@@ -813,8 +813,8 @@ class TMC2208Stepper : public TMCStepper {
 	  #ifdef TMC_SERIAL_SWITCH
 	    TMC2208Stepper(Stream * SerialPort, float RS, uint8_t addr, uint16_t mul_pin1, uint16_t mul_pin2);
 	  #endif
-		TMC2208Stepper(Stream * SerialPort, float RS, bool) :
-			TMC2208Stepper(SerialPort, RS, TMC2208_SLAVE_ADDR)
+		TMC2208Stepper(Stream * SerialPort, float RS, bool, uint8_t addr=TMC2208_SLAVE_ADDR) :
+			TMC2208Stepper(SerialPort, RS, addr)
 			{}
 		#if SW_CAPABLE_PLATFORM
 			TMC2208Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin, float RS, bool has_rx=true) :
