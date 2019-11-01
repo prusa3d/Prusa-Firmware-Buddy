@@ -1097,7 +1097,9 @@ void setup() {
  */
 void loop() {
 
+  #if !ENABLED(MARLIN_DISABLE_INFINITE_LOOP)
   for (;;) {
+  #endif
 
     idle(); // Do an idle first so boot is slightly faster
 
@@ -1131,5 +1133,8 @@ void loop() {
 
     queue.advance();
     endstops.event_handler();
+
+  #if !ENABLED(MARLIN_DISABLE_INFINITE_LOOP)
   }
+  #endif
 }
