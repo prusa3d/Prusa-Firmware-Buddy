@@ -986,11 +986,14 @@ class Planner {
     #endif
 
     #if HAS_LINEAR_E_JERK
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wdouble-promotion"
       FORCE_INLINE static void recalculate_max_e_jerk() {
         const float prop = junction_deviation_mm * SQRT(0.5) / (1.0f - SQRT(0.5));
         EXTRUDER_LOOP()
           max_e_jerk[E_INDEX_N(e)] = SQRT(prop * settings.max_acceleration_mm_per_s2[E_INDEX_N(e)]);
       }
+      #pragma GCC diagnostic pop
     #endif
 
   private:
