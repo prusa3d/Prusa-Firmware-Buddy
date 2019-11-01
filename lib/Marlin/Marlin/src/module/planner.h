@@ -874,6 +874,8 @@ class Planner {
     #endif
 
     #if HAS_LINEAR_E_JERK
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wdouble-promotion"
       FORCE_INLINE static void recalculate_max_e_jerk() {
         #define GET_MAX_E_JERK(N) SQRT(SQRT(0.5) * junction_deviation_mm * (N) * RECIPROCAL(1.0 - SQRT(0.5)))
         #if ENABLED(DISTINCT_E_FACTORS)
@@ -883,6 +885,7 @@ class Planner {
           max_e_jerk = GET_MAX_E_JERK(settings.max_acceleration_mm_per_s2[E_AXIS]);
         #endif
       }
+      #pragma GCC diagnostic pop
     #endif
 
   private:
