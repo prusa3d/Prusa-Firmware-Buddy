@@ -678,6 +678,10 @@ private:
     static void M73();
   #endif
 
+#if ENABLED(M73_PRUSA)
+  static void M73_PE();
+#endif
+
   static void M75();
   static void M76();
   static void M77();
