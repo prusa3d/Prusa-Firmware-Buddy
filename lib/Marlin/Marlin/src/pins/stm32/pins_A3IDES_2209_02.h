@@ -142,4 +142,4 @@
 #define BTN_EN1                PE15
 #define BTN_EN2                PE13
 
-//#define FIL_RUNOUT_PIN         PA3
+#define FIL_RUNOUT_PIN         PA3
