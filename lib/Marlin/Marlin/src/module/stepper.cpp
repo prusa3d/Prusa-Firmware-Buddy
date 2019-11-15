@@ -1799,6 +1799,10 @@ void Stepper::pulse_phase_isr() {
       #if EITHER(LIN_ADVANCE, MIXING_EXTRUDER)
         delta_error.e += advance_dividend.e;
         if (delta_error.e >= 0) {
+        //temporary solution to get count_position[E_AXIS] with enabled LA
+        //because with LA count_direction[E_AXIS] not set and is always =0
+        //we use motor_direction(E_AXIS) instead of count_direction[E_AXIS]
+        count_position[E_AXIS] += motor_direction(E_AXIS)?-1:1;
           #if ENABLED(LIN_ADVANCE)
             delta_error.e -= advance_divisor;
             // Don't step E here - But remember the number of steps to perform
