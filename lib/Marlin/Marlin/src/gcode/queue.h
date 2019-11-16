@@ -144,12 +144,14 @@ private:
   // Process the next "immediate" command
   static bool process_injected_command();
 
+public:
   /**
    * Enqueue with Serial Echo
    * Return true on success
    */
   static bool enqueue_one(const char* cmd);
 
+private:
   static void gcode_line_error(PGM_P const err, const int8_t port);
 
 };
