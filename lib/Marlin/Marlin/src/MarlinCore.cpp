@@ -56,6 +56,7 @@
 #include "gcode/queue.h"
 
 #include "feature/pause.h"
+#include "feature/safety_timer.h"
 #include "sd/cardreader.h"
 
 #include "lcd/marlinui.h"
@@ -336,6 +337,18 @@ bool printingIsPaused() {
   return did_pause_print || print_job_timer.isPaused() || IS_SD_PAUSED();
 }
 
+/**
+ * Whether any heater (bed or hotend) has target temperature != 0
+ */
+static bool anyHeatherIsActive() {
+  bool active = false;
+  #if HAS_HEATED_BED
+    active |= thermalManager.degTargetBed() != 0;
+  #endif
+  HOTEND_LOOP() active |= thermalManager.degTargetHotend(e) != 0;
+  return active;
+}
+
 void startOrResumeJob() {
   if (!printingIsPaused()) {
     TERN_(GCODE_REPEAT_MARKERS, repeat.reset());
@@ -403,6 +416,18 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
 
   const millis_t ms = millis();
 
+  if (printingIsActive() || !anyHeatherIsActive()) {
+      safety_timer_reset();
+  }
+
+  if (safety_timer_is_expired()) {
+    thermalManager.disable_all_heaters();
+
+    #ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
+      host_action_safety_timer_expired();
+    #endif
+  }
+
   // Prevent steppers timing-out
   const bool do_reset_timeout = no_stepper_sleep
                                || TERN0(PAUSE_PARK_NO_STEPPER_TIMEOUT, did_pause_print);
@@ -414,7 +439,11 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
     SERIAL_ERROR_START();
     SERIAL_ECHOPGM(STR_KILL_PRE);
     SERIAL_ECHOLNPGM(STR_KILL_INACTIVE_TIME, parser.command_ptr);
-    kill();
+    kill(PSTR("Inactive time kill")
+#if PROGMEM_EMULATED
+    		, parser.command_ptr
+#endif
+    		);
   }
 
   const bool has_blocks = planner.has_blocks_queued();  // Any moves in the planner?

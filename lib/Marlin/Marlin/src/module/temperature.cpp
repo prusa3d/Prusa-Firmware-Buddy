@@ -2064,7 +2064,7 @@ void Temperature::task() {
       SERIAL_ERROR_START();
       SERIAL_ECHO(e);
       SERIAL_ECHOLNPGM(STR_INVALID_EXTRUDER_NUM);
-      kill();
+      kill(PSTR(MSG_INVALID_EXTRUDER_NUM));
       return 0;
     }
 

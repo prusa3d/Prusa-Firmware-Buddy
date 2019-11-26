@@ -718,6 +718,9 @@
   #ifndef ACTION_ON_KILL
     #define ACTION_ON_KILL    "poweroff"
   #endif
+  #ifndef ACTION_ON_SAFETY_TIMER_EXPIRED
+    #define ACTION_ON_SAFETY_TIMER_EXPIRED "safety_timer_expired"
+  #endif
   #ifndef SHUTDOWN_ACTION
     #define SHUTDOWN_ACTION   "shutdown"
   #endif
