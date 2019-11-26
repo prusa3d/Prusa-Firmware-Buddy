@@ -1347,7 +1347,7 @@ void Temperature::manage_heater() {
         SERIAL_ERROR_START();
         SERIAL_ECHO((int)e);
         SERIAL_ECHOLNPGM(MSG_INVALID_EXTRUDER_NUM);
-        kill();
+        kill(PSTR(MSG_INVALID_EXTRUDER_NUM));
         return 0.0;
       }
 

@@ -92,6 +92,9 @@
   #ifndef ACTION_ON_KILL
     #define ACTION_ON_KILL    "poweroff"
   #endif
+  #ifndef ACTION_ON_SAFETY_TIMER_EXPIRED
+    #define ACTION_ON_SAFETY_TIMER_EXPIRED "safety_timer_expired"
+  #endif
   #if HAS_FILAMENT_SENSOR
     #ifndef ACTION_ON_FILAMENT_RUNOUT
       #define ACTION_ON_FILAMENT_RUNOUT "filament_runout"
