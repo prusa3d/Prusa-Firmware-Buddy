@@ -25,6 +25,9 @@
 
 void host_action(const char * const pstr, const bool eol=true);
 
+#ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
+  void host_action_safety_timer_expired();
+#endif
 #ifdef ACTION_ON_KILL
   void host_action_kill();
 #endif

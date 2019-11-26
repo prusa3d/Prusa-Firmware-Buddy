@@ -43,6 +43,9 @@ void host_action(const char * const pstr, const bool eol) {
   if (eol) SERIAL_EOL();
 }
 
+#ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
+  void host_action_safety_timer_expired() { host_action(PSTR(ACTION_ON_SAFETY_TIMER_EXPIRED)); }
+#endif
 #ifdef ACTION_ON_KILL
   void host_action_kill() { host_action(PSTR(ACTION_ON_KILL)); }
 #endif

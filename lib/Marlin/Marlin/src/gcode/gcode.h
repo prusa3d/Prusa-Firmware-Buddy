@@ -120,6 +120,7 @@
  * M84  - Disable steppers until next move, or use S<seconds> to specify an idle
  *        duration after which steppers should turn off. S0 disables the timeout.
  * M85  - Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
+ * M86  - Set Safety Timer expiration time (S<seconds>). Set to zero to disable the timer.
  * M92  - Set planner.settings.axis_steps_per_mm for one or more axes.
  * M100 - Watch Free Memory (for debugging) (Requires M100_FREE_MEMORY_WATCHER)
  * M104 - Set extruder target temp.
@@ -560,6 +561,7 @@ private:
   static void M82();
   static void M83();
   static void M85();
+  static void M86();
   static void M92();
 
   #if ENABLED(M100_FREE_MEMORY_WATCHER)

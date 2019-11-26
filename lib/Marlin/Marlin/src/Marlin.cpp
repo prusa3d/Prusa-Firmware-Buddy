@@ -42,6 +42,7 @@
 #include "module/configuration_store.h"
 #include "module/printcounter.h" // PrintCounter or Stopwatch
 #include "feature/closedloop.h"
+#include "feature/safety_timer.h"
 
 #include "HAL/shared/Delay.h"
 
@@ -357,6 +358,18 @@ bool printingIsPaused() {
 }
 
 /**
+ * Whether any heater (bed or hotend) has target temperature != 0
+ */
+static bool anyHeatherIsActive() {
+  bool active = false;
+  #if HAS_HEATED_BED
+    active |= thermalManager.degTargetBed() != 0;
+  #endif
+  HOTEND_LOOP() active |= thermalManager.degTargetHotend(e) != 0;
+  return active;
+}
+
+/**
  * Manage several activities:
  *  - Check for Filament Runout
  *  - Keep the command buffer full
@@ -380,10 +393,26 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
   const millis_t ms = millis();
 
+  if (printingIsActive() || !anyHeatherIsActive()) {
+      safety_timer_reset();
+  }
+
+  if (safety_timer_is_expired()) {
+    thermalManager.disable_all_heaters();
+
+    #ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
+      host_action_safety_timer_expired();
+    #endif
+  }
+
   if (max_inactive_time && ELAPSED(ms, gcode.previous_move_ms + max_inactive_time)) {
     SERIAL_ERROR_START();
     SERIAL_ECHOLNPAIR(MSG_KILL_INACTIVE_TIME, parser.command_ptr);
-    kill();
+    kill(PSTR("Inactive time kill")
+#if PROGMEM_EMULATED
+    		, parser.command_ptr
+#endif
+    		);
   }
 
   // Prevent steppers timing-out in the middle of M600
