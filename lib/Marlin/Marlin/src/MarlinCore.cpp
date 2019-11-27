@@ -247,7 +247,7 @@
   #include "feature/easythreed_ui.h"
 #endif
 
-PGMSTR(M112_KILL_STR, "M112 Shutdown");
+PGMSTR(M112_KILL_STR, "Emergency stop (M112)");
 
 MarlinState marlin_state = MF_INITIALIZING;
 
