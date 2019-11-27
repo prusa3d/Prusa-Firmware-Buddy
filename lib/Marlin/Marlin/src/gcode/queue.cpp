@@ -440,7 +440,7 @@ void GCodeQueue::get_serial_commands() {
               wait_for_user = false;
             #endif
           }
-          if (strcmp(command, "M112") == 0) kill(PSTR("M112 Shutdown"), nullptr, true);
+          if (strcmp(command, "M112") == 0) kill(PSTR("Emergency stop (M112)"), nullptr, true);
           if (strcmp(command, "M410") == 0) quickstop_stepper();
         #endif
 
