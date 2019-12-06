@@ -416,7 +416,7 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
 
   const millis_t ms = millis();
 
-  if (printingIsActive() || !anyHeatherIsActive()) {
+  if (printingIsActive() || printingIsPaused() || !anyHeatherIsActive()) {
       safety_timer_reset();
   }
 
