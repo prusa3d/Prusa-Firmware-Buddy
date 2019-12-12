@@ -34,7 +34,7 @@
 
 #include "../core/boards.h"
 #include "../core/macros.h"
-#include "../../Configuration.h"
+#include "Configuration.h"
 
 
 #ifdef CUSTOM_VERSION_FILE
