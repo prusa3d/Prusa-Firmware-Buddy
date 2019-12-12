@@ -36,7 +36,7 @@
 
 #include "../core/macros.h"
 #include "../core/boards.h"
-#include "../../Configuration.h"
+#include "Configuration.h"
 
 #ifdef CUSTOM_VERSION_FILE
   #if __has_include(STRINGIFY(../../CUSTOM_VERSION_FILE))
