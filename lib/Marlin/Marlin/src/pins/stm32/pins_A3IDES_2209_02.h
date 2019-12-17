@@ -87,11 +87,21 @@
   #define Y_HARDWARE_SERIAL  TMC2208_SERIAL
   #define Z_HARDWARE_SERIAL  TMC2208_SERIAL
   #define E0_HARDWARE_SERIAL TMC2208_SERIAL
-#endif
+#elif HAS_DRIVER(TMC2209)
+  #define TMC2209_SERIAL Serial3
 
-//#define SCK_PIN              PA5
-//#define MISO_PIN             PA6
-//#define MOSI_PIN             PA7
+  #define X_HARDWARE_SERIAL TMC2209_SERIAL
+  #define Y_HARDWARE_SERIAL TMC2209_SERIAL
+  #define Z_HARDWARE_SERIAL TMC2209_SERIAL
+  #define E0_HARDWARE_SERIAL TMC2209_SERIAL
+
+  #define X_SLAVE_ADDRESS 1
+  #define Y_SLAVE_ADDRESS 3
+  #define Z_SLAVE_ADDRESS 0
+  #define E0_SLAVE_ADDRESS 2
+#else
+  #error Unknown stepper driver
+#endif
 
 //
 // Temperature Sensors
