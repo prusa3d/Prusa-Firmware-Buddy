@@ -3003,6 +3003,8 @@ void Temperature::isr() {
             residency_start_ms = now;
           }
 
+        #else
+          UNUSED(first_loop);
         #endif
 
         // Prevent a wait-forever situation if R is misused i.e. M109 R0
