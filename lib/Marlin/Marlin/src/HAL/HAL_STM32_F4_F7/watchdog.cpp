@@ -28,7 +28,7 @@
 
   #include "watchdog.h"
 
-  IWDG_HandleTypeDef hiwdg;
+//  IWDG_HandleTypeDef hiwdg;
 
   void watchdog_init() {
     hiwdg.Instance = IWDG;
