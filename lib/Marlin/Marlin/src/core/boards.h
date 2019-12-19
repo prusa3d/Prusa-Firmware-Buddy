@@ -220,6 +220,12 @@
 #define BOARD_5DPRINT                 1707  // 5DPrint D8 Driver Board
 
 //
+// Prusa Research
+//
+
+#define BOARD_A3IDES_2209_02          1823  // Prusa A3ides (STM32F407VET6, TMC2209, rev02)
+
+//
 // LPC1768 ARM Cortex M3
 //
 
