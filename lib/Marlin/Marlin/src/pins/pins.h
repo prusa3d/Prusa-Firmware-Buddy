@@ -516,6 +516,9 @@
   #include "stm32/pins_LERDGE_K.h"              // STM32F4                                env:STM32F4
 #elif MB(LERDGE_X)
   #include "stm32/pins_LERDGE_X.h"              // STM32F4                                env:STM32F4
+#elif MB(A3IDES_2209_02)
+  #include "stm32/pins_A3IDES_2209_02.h"        // STM32F4                                env:STM32F4
+
 
 //
 // ARM Cortex M7
