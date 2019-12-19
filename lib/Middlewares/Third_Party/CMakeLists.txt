@@ -1,0 +1,5 @@
+add_subdirectory(FreeRTOS)
+add_subdirectory(FatFs)
+add_subdirectory(zlib)
+add_subdirectory(lpng)
+add_subdirectory(LwIP)

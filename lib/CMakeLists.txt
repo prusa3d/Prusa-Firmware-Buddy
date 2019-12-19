@@ -1,0 +1,7 @@
+add_subdirectory(Drivers)
+add_subdirectory(Middlewares)
+add_subdirectory(Arduino_Core_A3ides)
+add_subdirectory(LiquidCrystal_I2C)
+include(AddTMCStepper.cmake)
+include(AddMarlin.cmake)
+include(AddInih.cmake)

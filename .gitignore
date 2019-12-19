@@ -1,0 +1,9 @@
+.vs
+/build*
+.cproject
+.project
+.settings
+.dependencies
+.DS_Store
+/CMakeLists.txt.user
+.ccls-cache

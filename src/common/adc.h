@@ -1,0 +1,26 @@
+// adc.h
+#ifndef _ADC_H
+#define _ADC_H
+
+#include <inttypes.h>
+#include "config.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
+extern uint32_t adc_val[ADC_CHAN_CNT];
+
+extern uint32_t adc_sim_val[ADC_CHAN_CNT];
+
+extern uint32_t adc_sim_msk;
+
+extern void adc_init(void);
+
+extern void adc_cycle(void);
+
+#ifdef __cplusplus
+}
+#endif //__cplusplus
+
+#endif // _ADC_H

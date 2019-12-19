@@ -1,0 +1,59 @@
+// sys.h - system functions
+#ifndef _SYS_H
+#define _SYS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
+extern void sys_reset(void);
+
+extern void sys_dfu_boot(void);
+
+extern int sys_pll_is_enabled(void);
+
+extern void sys_pll_disable(void);
+
+extern void sys_pll_enable(void);
+
+extern int sys_sscg_is_enabled(void);
+
+extern void sys_sscg_disable(void);
+
+extern void sys_sscg_enable(void);
+
+extern void sys_sscg_set_config(int freq, int depth);
+
+extern int sys_sscg_get_config(float *pfreq, float *pdepth);
+
+extern void sys_spi_set_prescaler(int prescaler_num);
+
+extern int sys_fw_update_is_enabled(void);
+
+extern void sys_fw_update_enable(void);
+
+extern void sys_fw_update_disable(void);
+
+extern int sys_fw_update_on_restart_is_enabled(void);
+
+extern void sys_fw_update_on_restart_enable(void);
+
+extern void sys_fw_update_on_restart_disable(void);
+
+extern int sys_fw_is_valid(void);
+
+extern int sys_fw_invalidate(void);
+
+extern int sys_fw_validate(void);
+
+extern int sys_flash_is_empty(void *ptr, int size);
+
+extern int sys_flash_write(void *dst, void *src, int size);
+
+extern int sys_flash_erase_sector(unsigned int sector);
+
+#ifdef __cplusplus
+}
+#endif //__cplusplus
+
+#endif // _SYS_H

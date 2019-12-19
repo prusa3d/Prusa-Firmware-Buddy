@@ -1,0 +1,3 @@
+add_subdirectory(STM32_USB_Host_Library)
+add_subdirectory(STM32_USB_Device_Library)
+add_subdirectory(Utilites)
