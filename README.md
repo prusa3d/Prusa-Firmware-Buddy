@@ -1,6 +1,9 @@
-# A3ides
+# Prusa-Firmware-Buddy
 
-Firmware for the Original Prusa 3D Printers based on 32-bit ARM microcontrollers.
+This repository includes source code and firmware releases for the Original Prusa 3D printers based on the 32-bit ARM microcontrollers.
+
+The currently supported model is:
+- Original Prusa MINI
 
 ## Getting Started
 
@@ -73,33 +76,6 @@ Generate and open the project:
     See the header of `./CMakeLists.txt` for more command-line options (most of them are one-to-one mapped with `build.py`'s options).
 4. And invoke `ninja`. It will generate a `compile_commands.json` file, that an LSP server can pick up and use to provide autocompletion to your editor.
 
-## Webserver integration
-manual configurations and changes
-1. Add Ethernet and LWIP from CubeMX
-2. In CubeMX configurations for Ethernet
-	a. parameter setting -> Set PHY address = 0
-	b. Mode -> RMII
-3. LWIP
-	a. enable HTTPD
+## License
 
-4. add fsdata.c (from original cubeMX library) in ..lwip/apps/httpd folder and exclude from build
-   fsdata.c contains the ST example html pages
-   if you want to add custom page change the #define HTTPD_USE_CUSTOM_FSDATA 1 in LWip/src/include/lwip/apps/httpd_opts.h
-   and provide "fsdata_custom.c"
-
-5. to open web files from usb flash one has to implement fs_custom.c
-
-6. httpd options are configured in LWip/src/include/lwip/apps/httpd_opts.h
-
-To test html file load from external usb flash and page contents at the root location and connect to the board
-
-## Fonts
-
-* **big** - DejaVu Sans Mono, Bold 20px
-	([Free license](https://dejavu-fonts.github.io/License.html))
-* **normal** - DejaVu Sans Mono 18px
-	([Free license](https://dejavu-fonts.github.io/License.html))
-* **small** - DejaVu Sans Mono, Bold 20px
-	([Free license](https://dejavu-fonts.github.io/License.html))
-* **terminal** - IBM ISO9 15px
-  ([CC-BY-SA-4.0 license](https://int10h.org/oldschool-pc-fonts/fontlist/))
+The firmware source code is licensed under the GNU General Public License v3.0.
