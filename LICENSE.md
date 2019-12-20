@@ -1,4 +1,4 @@
-IMPORTANT: The Original Prusa MINI firmware is distributed under the following licenses:
+The Original Prusa MINI firmware is distributed under the following licenses:
 - The firmware source code is licensed under the GNU General Public License v3.0. Meaning you and your company can use the code both for the commercial and non-commercial activities, but you have to fulfil the requirements of the license. Read more about the permissions and limitations below.
 - The graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). Meaning you and your company are strictly prohibited from using these elements in a commercial product. You have to create your own graphics and design. Read more about the permissions and limitations below. Violating these conditions will lead to a legal dispute.
 Original Prusa MINI® is a registered trademark of the Prusa Research s.r.o.
