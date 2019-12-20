@@ -45,7 +45,7 @@ python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake -
 
 ### Development with LSP-based IDEs (Visual Studio [Code], Vim, Sublime Text, etc.)
 
-1. Install dependencies as described in section *Building*.
+1. Run `python utils/bootstrap.py` to download required dependencies.
 2. Create a build directory and enter it (`mkdir build`, `cd build`).
 3. Invoke CMake directly with your configuration, for example:
 
@@ -60,6 +60,8 @@ python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake -
 
     See the header of `./CMakeLists.txt` for more command-line options (most of them are one-to-one mapped with `build.py`'s options).
 4. And invoke `ninja`. It will generate a `compile_commands.json` file, that an LSP server can pick up and use to provide autocompletion to your editor.
+
+> This assumes you have sufficient version of cmake and ninja in your PATH. 
 
 ### Development using STM32CubeIDE (all platforms)
 
