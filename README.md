@@ -78,4 +78,4 @@ Generate and open the project:
 
 ## License
 
-The firmware source code is licensed under the GNU General Public License v3.0.
+The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
