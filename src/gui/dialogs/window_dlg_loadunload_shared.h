@@ -27,8 +27,8 @@ typedef struct
 
 #define LD_BT_DONE DLG_DI_US0 //continue button for marlin
 #define LD_BT_PURG DLG_DI_US1 //resume   button for marlin
-#define LD_BT_PURG_SEL DLG_DI_US2 //when flag is 0 active button is done \
-    //when flag is 1 active button is purge
+#define LD_BT_PURG_SEL DLG_DI_US2 //when flag is 0 active button is done
+//when flag is 1 active button is purge
 
 extern const float ld_purge_amount;
 

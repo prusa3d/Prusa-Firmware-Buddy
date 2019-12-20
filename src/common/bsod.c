@@ -257,8 +257,9 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     {
 #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif //_DEBUG \
-    //TODO: safe delay with sleep
+#endif //_DEBUG
+
+        //TODO: safe delay with sleep
     }
 
     va_end(args);
