@@ -1,4 +1,4 @@
-# Prusa-Firmware-Buddy
+# Buddy
 
 This repository includes source code and firmware releases for the Original Prusa 3D printers based on the 32-bit ARM microcontrollers.
 
