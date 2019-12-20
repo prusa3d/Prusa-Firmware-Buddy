@@ -5,11 +5,13 @@
  *      Author: Migi
  */
 
+#define LAN_CONFIG_DEVELOPMENT
+
 #include "screen_lan_settings.h"
 #include "lwip/dhcp.h"
+#include "lwip/netifapi.h"
 #include "lwip.h"
 #include <stdlib.h>
-#include "screen_menu.h"
 #include <stdbool.h>
 #ifdef LAN_CONFIG_DEVELOPMENT
     #include "ini.h"
@@ -18,7 +20,6 @@
 #include <string.h>
 
 #define MAC_ADDR_START 0x1FFF781A //MM:MM:MM:SS:SS:SS
-#define MAC_ADDR_SIZE 6
 #define MAX_INI_SIZE 100
 
 typedef enum {
@@ -82,7 +83,7 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
 
 static void _parse_MAC_addr(char *mac_addr_str) {
     uint8_t mac_addr[6] = { 0, 0, 0, 0, 0, 0 };
-    for (uint8_t i = 0; i < MAC_ADDR_SIZE; i++)
+    for (uint8_t i = 0; i < 6; i++)
         mac_addr[i] = *(volatile uint8_t *)(MAC_ADDR_START + i);
 
     sprintf(mac_addr_str, "%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
@@ -125,18 +126,17 @@ static void screen_lan_settings_init(screen_t *screen) {
     //============== DECLARE VARIABLES ================
 
     plan_str = (char *)gui_malloc(150 * sizeof(char));
-    char mac_addr_str[18];
 
     //============= FILL VARIABLES ============
 
-    _parse_MAC_addr(mac_addr_str);
+    _parse_MAC_addr(plsd->mac_addr_str);
 
     if (_get_ip4_addrs()) {
         config.lan_ip4_addr.addr = config.lan_ip4_msk.addr = config.lan_ip4_gw.addr = 0;
         sprintf(plan_str, "IPv4 Address:\n    0.0.0.0\nIPv4 Netmask:\n    0.0.0.0\nIPv4 Gateway:\n    0.0.0.0\nMAC Address:\n    %s",
-            mac_addr_str);
+            plsd->mac_addr_str);
     } else {
-        _addrs_to_str(mac_addr_str, 0); //0 means parsing to screen text
+        _addrs_to_str(plsd->mac_addr_str, 0); //0 means parsing to screen text
     }
 
     //============= SET TEXT ================
@@ -160,10 +160,7 @@ static uint8_t _save_ini_file(void) {
     uint8_t w = f_write(&ini_file, ini_file_str, ini_config_len, &written_bytes);
     uint8_t c = f_close(&ini_file);
 
-    if (i || w || c)
-        return 0;
-
-    if (written_bytes != ini_config_len)
+    if (i || w || c || written_bytes != ini_config_len)
         return 0;
 
     return 1;
@@ -203,7 +200,12 @@ static uint8_t _load_ini_file(void) {
         return 0;
     }
 
-    //TODO: SET CONFIGURATIONS THROUGH NETIF
+    //=========== SET ADDRESSES ================
+
+    netifapi_netif_set_addr(&eth0,
+        (const ip4_addr_t *)&config.lan_ip4_addr,
+        (const ip4_addr_t *)&config.lan_ip4_msk,
+        (const ip4_addr_t *)&config.lan_ip4_gw);
 
     return 1;
 }
@@ -252,6 +254,8 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
             if (_load_ini_file()) {
                 if (gui_msgbox("Settings successfully loaded", MSGBOX_BTN_OK | MSGBOX_ICO_INFO) == MSGBOX_RES_OK) {
                 }
+                _addrs_to_str(plsd->mac_addr_str, 0);
+                plsd->text.win.flg |= WINDOW_FLG_INVALID;
 
             } else {
                 if (gui_msgbox("File \"lan_settings.ini\" not found in the root directory of the USB flash disk.",

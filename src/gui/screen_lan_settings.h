@@ -22,6 +22,7 @@ typedef struct {
     menu_item_t *items;
 
     window_text_t text;
+    char mac_addr_str[18];
 } screen_lan_settings_data_t;
 
 typedef struct {
