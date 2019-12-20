@@ -43,21 +43,6 @@ Build the firmware for MINI using a custom version of gcc-arm-none-eabi (availab
 python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake --generator 'Unix Makefiles'
 ```
 
-### Development using STM32CubeIDE (all platforms)
-
-Installation:
-
-1. Install latest STM32CubeIDE ([link](https://www.st.com/en/development-tools/stm32cubeide.html))
-2. Install `cmake4eclipse` extension (`Help` > `Eclipse Marketplace...` > search for `cmake4eclipse` and install it)
-
-Generate and open the project:
-
-1. Generate a project file by running: `python utils/build.py --generate-cproject`
-2. Open the project in the IDE (`File` > `Import Projects from File System...` > Select the root directory of this repository > `Finish`)
-
-> 💡Changes to the generated project are not tracked by git.
-> The build is still driven by CMake; therefore, if you want to add a file or change some compiler settings, change it in CMakeLists.txt directly.
-
 ### Development with LSP-based IDEs (Visual Studio [Code], Vim, Sublime Text, etc.)
 
 1. Install dependencies as described in section *Building*.
@@ -75,6 +60,21 @@ Generate and open the project:
 
     See the header of `./CMakeLists.txt` for more command-line options (most of them are one-to-one mapped with `build.py`'s options).
 4. And invoke `ninja`. It will generate a `compile_commands.json` file, that an LSP server can pick up and use to provide autocompletion to your editor.
+
+### Development using STM32CubeIDE (all platforms)
+
+Installation:
+
+1. Install latest STM32CubeIDE ([link](https://www.st.com/en/development-tools/stm32cubeide.html))
+2. Install `cmake4eclipse` extension (`Help` > `Eclipse Marketplace...` > search for `cmake4eclipse` and install it)
+
+Generate and open the project:
+
+1. Generate a project file by running: `python utils/build.py --generate-cproject`
+2. Open the project in the IDE (`File` > `Import Projects from File System...` > Select the root directory of this repository > `Finish`)
+
+> 💡Changes to the generated project are not tracked by git.
+> The build is still driven by CMake; therefore, if you want to add a file or change some compiler settings, change it in CMakeLists.txt directly.
 
 ## License
 
