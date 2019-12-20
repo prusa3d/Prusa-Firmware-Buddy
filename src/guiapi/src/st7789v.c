@@ -33,10 +33,10 @@
 #define CMD_RAMWRC 0x3C
 #define CMD_WRDISBV 0x51 //Write Display Brightness
 #define CMD_RDDISBV 0x52 //Read Display Brightness Value
-#define CMD_WRCTRLD 0x53 // Write CTRL Display \
-    //-Brightness Control Block - bit 5        \
-    //-Display Dimming			- bit 3               \
-    //-Backlight Control On/Off - bit 2
+#define CMD_WRCTRLD 0x53 // Write CTRL Display
+//-Brightness Control Block - bit 5
+//-Display Dimming			- bit 3
+//-Backlight Control On/Off - bit 2
 #define CMD_RDCTRLD 0x54 //Read CTRL Value Display
 
 //st7789 gamma
