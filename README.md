@@ -78,6 +78,10 @@ Generate and open the project:
 > 💡Changes to the generated project are not tracked by git.
 > The build is still driven by CMake; therefore, if you want to add a file or change some compiler settings, change it in CMakeLists.txt directly.
 
+## Flashing Custom Firmware
+
+To install custom firmware, you have to break the appendix on the board. Learn how to in the following article https://help.prusa3d.com/article/zoiw36imrs-flashing-custom-firmware.
+
 ## License
 
 The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
