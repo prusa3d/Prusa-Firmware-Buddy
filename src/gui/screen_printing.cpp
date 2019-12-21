@@ -180,7 +180,7 @@ struct pduration_t : duration_t {
             s = this->second() % 60;
 
         if (d) {
-            sprintf(buffer, "%i3d %2ih %2im", d, h, m);
+            sprintf(buffer, "%3id %2ih %2im", d, h, m);
         } else if (h) {
             sprintf(buffer, "     %2ih %2im", h, m);
         } else if (m) {
