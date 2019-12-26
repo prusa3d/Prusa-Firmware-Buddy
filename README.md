@@ -11,6 +11,12 @@ The currently supported model is:
 
 - Python 3.6 or newer
 
+### Cloning this repository
+
+Run `git clone --recurse https://github.com/prusa3d/Prusa-Firmware-Buddy.git`.
+
+In the case you already cloned the repository without the `--recurse` flag, run `git submodule update --init`.
+
 ### Building (on all platforms, without an IDE)
 
 Run `python utils/build.py`. The binaries are then going to be stored under `./build/products`.
