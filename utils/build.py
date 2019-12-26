@@ -158,6 +158,7 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             ('SIGNING_KEY', 'FILEPATH', str(signing_key_flg)),
             ('CMAKE_TOOLCHAIN_FILE', 'FILEPATH', str(self.toolchain)),
             ('PRERELEASE', 'STRING', prerelease_flg),
+            ('CMAKE_BUILD_TYPE', 'STRING', self.build_type.value.title()),
         ])
         return entries
 
