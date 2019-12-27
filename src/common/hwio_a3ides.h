@@ -8,13 +8,12 @@
 //a3ides digital inputs
 #define _DI_Z_MIN 0 // PA8
 #define _DI_E_DIAG 1 // PA15
-#define _DI_FSENSOR 2 // PB4
-#define _DI_Y_DIAG 3 // PE1
-#define _DI_X_DIAG 4 // PE2
-#define _DI_Z_DIAG 5 // PE3
-#define _DI_BTN_ENC 6 // PE12
-#define _DI_BTN_EN1 7 // PE13
-#define _DI_BTN_EN2 8 // PE15
+#define _DI_Y_DIAG 2 // PE1
+#define _DI_X_DIAG 3 // PE2
+#define _DI_Z_DIAG 4 // PE3
+#define _DI_BTN_ENC 5 // PE12
+#define _DI_BTN_EN1 6 // PE13
+#define _DI_BTN_EN2 7 // PE15
 
 //a3ides digital outputs
 #define _DO_X_DIR 0 // PD0
