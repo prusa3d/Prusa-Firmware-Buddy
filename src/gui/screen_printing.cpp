@@ -161,8 +161,8 @@ screen_t screen_printing = {
 const screen_t *pscreen_printing = &screen_printing;
 
 //TODO: rework this, save memory
-char screen_printing_file_name[_MAX_LFN] = { '\0' };
-char screen_printing_file_path[_MAX_LFN] = { '\0' };
+char screen_printing_file_name[_MAX_LFN+1] = {'\0'};//+1 for '\0' character (avoid warning)
+char screen_printing_file_path[_MAX_LFN+2] = {'\0'};//+1 for '/' and '\0' characters (avoid warning)
 
 #define pw ((screen_printing_data_t *)screen->pdata)
 

@@ -131,8 +131,8 @@ const window_class_dlg_wait_t window_class_dlg_wait = {
         sizeof(window_dlg_wait_t),
         (window_init_t *)window_dlg_wait_init,
         0,
-        (window_init_t *)window_dlg_wait_draw,
-        (window_init_t *)window_dlg_wait_event,
+        (window_draw_t*)window_dlg_wait_draw,
+        (window_event_t*)window_dlg_wait_event,
     },
 };
 
