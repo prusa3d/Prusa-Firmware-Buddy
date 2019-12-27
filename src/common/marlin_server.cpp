@@ -738,7 +738,8 @@ int _process_server_request(char *request) {
     if (strncmp("!g ", request, 3) == 0) {
         processed = marlin_server_enqueue_gcode(request + 3);
     } else if (strncmp("!ig ", request, sizeof("!ig ") / sizeof(char) - 1) == 0) {
-        processed = marlin_server_inject_gcode(request + sizeof("!ig ") / sizeof(char) - 1);
+        unsigned long int iptr = strtoul(request + sizeof("!ig ") / sizeof(char) - 1, NULL, 0);
+        processed = marlin_server_inject_gcode( (const char*)iptr );
     } else if (strcmp("!start", request) == 0) {
         marlin_server_start_processing();
         processed = 1;

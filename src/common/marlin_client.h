@@ -63,11 +63,8 @@ extern void marlin_gcode(const char *gcode);
 // enqueue gcode - printf-like, returns number of chars printed
 extern int marlin_gcode_printf(const char *format, ...);
 
-// inject gcode - thread-safe version  (request '!g xxx')
+// inject gcode - thread-safe version  (request '!ig xxx')
 extern void marlin_gcode_push_front(const char *gcode);
-
-// inject gcode - printf-like, returns number of chars printed
-extern int marlin_gcode_push_front_printf(const char *format, ...);
 
 // returns current event status for evt_id
 extern int marlin_event(uint8_t evt_id);
