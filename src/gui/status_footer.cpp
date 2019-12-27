@@ -204,8 +204,10 @@ void status_footer_update_temperatures(status_footer_t *footer,
 }
 
 void status_footer_update_feedrate(status_footer_t *footer) {
-    // sprintf(text_prnspeed, "%3d%%", (int)ExtUI::getFeedrate_percent());
-    sprintf(footer->text_prnspeed, "%d%%", feedrate_percentage);
+    if ((uint16_t)feedrate_percentage <= 999)
+        snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "%d%%", feedrate_percentage);
+    else
+        snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "ERR");
     window_set_text(footer->wt_prnspeed.win.id, footer->text_prnspeed);
 }
 
