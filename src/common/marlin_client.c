@@ -224,27 +224,9 @@ void marlin_gcode_push_front(const char *gcode) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    strcpy(request, "!ig ");
-    strcat(request, gcode);
+    snprintf(request, MARLIN_MAX_REQUEST, "!ig %p", gcode);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
-}
-
-int marlin_gcode_prior_printf(const char *format, ...) {
-    int ret;
-    char request[MARLIN_MAX_REQUEST];
-    marlin_client_t *client = _client_ptr();
-    if (client == 0)
-        return 0;
-    va_list ap;
-    va_start(ap, format);
-    //strlcpy - null terminated string - safer when called with "" format
-    size_t len = strlcpy(request, "!ig ", MARLIN_MAX_REQUEST);
-    ret = vsprintf(request + len, format, ap);
-    va_end(ap);
-    _send_request_to_server(client->id, request);
-    _wait_ack_from_server(client->id);
-    return ret;
 }
 
 int marlin_event(uint8_t evt_id) {
