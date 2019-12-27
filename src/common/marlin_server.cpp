@@ -813,6 +813,7 @@ int _server_set_var(char *name_val_str) {
                 break;
             case MARLIN_VAR_FLOWFACT:
                 planner.flow_percentage[0] = (int16_t)marlin_server.vars.flow_factor;
+                planner.refresh_e_factor(0);
                 break;
             case MARLIN_VAR_WAITHEAT:
                 wait_for_heatup = marlin_server.vars.wait_heat ? true : false;
