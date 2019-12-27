@@ -18,11 +18,25 @@
 #include "FreeRTOS.h" //must apper before include task.h
 #include "task.h" //critical sections
 #include "cmsis_os.h" //osDelay
-#include "marlin_server.h" //enable/disable fs in marlin
+#include "marlin_client.h" //enable/disable fs in marlin
 
 static volatile fsensor_t state = FS_NOT_INICIALIZED;
 static volatile fsensor_t last_state = FS_NOT_INICIALIZED;
-static uint8_t meas_cycle = 0;
+
+
+typedef enum{
+    M600_on_edge  = 0,
+    M600_on_level = 1,
+    M600_never    = 2
+}
+send_M600_on_t;
+
+typedef struct{
+    uint8_t M600_sent    : 1;
+    uint8_t send_M600_on : 2;
+    uint8_t meas_cycle   : 5;//1 bit is used now
+}status_t;
+static status_t status = { 0, M600_on_edge, 0};
 
 /*---------------------------------------------------------------------------*/
 //local functions
@@ -41,15 +55,13 @@ void _enable() {
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
     state = FS_NOT_INICIALIZED;
     last_state = FS_NOT_INICIALIZED;
-    meas_cycle = 0;
-    marlin_fs_enable();
+    status.meas_cycle = 0;
 }
 
 void _disable() {
     state = FS_DISABLED;
     last_state = FS_DISABLED;
-    meas_cycle = 0;
-    marlin_fs_disable();
+    status.meas_cycle = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -63,6 +75,20 @@ int fs_did_filament_runout() {
     return state == FS_NO_FILAMENT;
 }
 
+void fs_send_M600_on_edge()
+{
+    status.send_M600_on = M600_on_edge;
+}
+
+void fs_send_M600_on_level()
+{
+    status.send_M600_on = M600_on_level;
+}
+
+void fs_send_M600_never()
+{
+    status.send_M600_on = M600_never;
+}
 /*---------------------------------------------------------------------------*/
 //global thread safe functions
 //but cannot be called from interrupt
@@ -100,14 +126,45 @@ void fs_init() {
         _disable();
 }
 
-//called only in fs_cycle
+/*---------------------------------------------------------------------------*/
+//methods called only in fs_cycle
+void _injectM600()
+{
+    marlin_vars_t* vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) |
+        MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) | MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) );
+    if (vars->sd_printing && (!vars->wait_user) /*&& (!vars->wait_heat)*/) {
+        marlin_gcode_push_front("M600");//change filament
+        status.M600_sent = 1;
+    }
+}
+
 void _cycle0() {
     if (gpio_get(PIN_FSENSOR) == 1) {
         gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLDOWN, GPIO_SPEED_FREQ_VERY_HIGH); // pulldown
-        meas_cycle = 1; //next cycle shall be 1
+        status.meas_cycle = 1;//next cycle shall be 1
     } else {
-        _set_state(FS_NO_FILAMENT);
-        meas_cycle = 0; //remain in cycle 0
+        int had_filament = state == FS_HAS_FILAMENT ? 1 : 0;
+        _set_state(FS_NO_FILAMENT);//it is filtered, 2 requests are needed to change state
+        //M600_on_edge == inject after state was changed from FS_HAS_FILAMENT to FS_NO_FILAMENT
+        //M600_on_level == inject on FS_NO_FILAMENT
+        //M600_never == do not inject
+        if (status.M600_sent == 0 && state == FS_NO_FILAMENT)
+        {
+            switch (status.send_M600_on)
+            {
+            case M600_on_edge:
+                if (!had_filament) break;
+                //if had_filament == 1 - do not break
+            case M600_on_level:
+                _injectM600();
+                break;
+            case M600_never:
+            default:
+                break;
+            }
+        }
+
+        status.meas_cycle = 0;//remain in cycle 0
     }
 }
 
@@ -116,7 +173,7 @@ void _cycle1() {
     //pulldown was set in cycle 0
     _set_state(gpio_get(PIN_FSENSOR) == 1 ? FS_HAS_FILAMENT : FS_NOT_CONNECTED);
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
-    meas_cycle = 0; //next cycle shall be 0
+    status.meas_cycle = 0;//next cycle shall be 0
 }
 
 //dealay between calls must be 1us or longer
@@ -126,9 +183,14 @@ void fs_cycle() {
         return;
 
     //sensor is enabled
-    if (meas_cycle == 0) {
+    if (status.meas_cycle == 0) {
         _cycle0();
     } else {
         _cycle1();
+    }
+
+    //can M600_sent status if marlin is paused
+    if (marlin_update_vars( MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) )->wait_user) {
+        status.M600_sent = 0;
     }
 }

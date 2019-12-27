@@ -97,7 +97,7 @@
 #endif //LCDSIM
 
 //marlin api config
-#define MARLIN_MAX_CLIENTS 2 // maximum number of clients registered in same time
+#define MARLIN_MAX_CLIENTS 3 // maximum number of clients registered in same time
 #define MARLIN_MAX_REQUEST 100 // maximum request length in chars
 
 //display PSOD instead of BSOD
