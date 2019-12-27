@@ -23,11 +23,6 @@
 #include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/libs/nozzle.h"
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-    #include "../Marlin/src/feature/runout.h"
-    #include "filament_sensor.h"
-#endif
-
 #include "hwio_a3ides.h"
 #include "eeprom.h"
 
@@ -167,13 +162,6 @@ void marlin_server_init(void) {
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
-
-    // wait until filament sensor is inicialized
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-    while (fs_get_state() == FS_NOT_INICIALIZED) {
-        osDelay(0); // switch to other threads
-    }
-#endif
 }
 
 int marlin_server_cycle(void) {
@@ -388,22 +376,6 @@ int marlin_all_axes_homed(void) {
 int marlin_all_axes_known(void) {
     return all_axes_known() ? 1 : 0;
 }
-
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-void marlin_fs_enable(void) {
-    runout.enabled = true;
-}
-
-void marlin_fs_disable(void) {
-    runout.enabled = false;
-}
-#else
-void marlin_fs_enable(void) {
-}
-
-void marlin_fs_disable(void) {
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // private functions
