@@ -189,7 +189,7 @@ void fs_cycle() {
         _cycle1();
     }
 
-    //can M600_sent status if marlin is paused
+    //clear M600_sent status if marlin is paused
     if (marlin_update_vars( MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) )->wait_user) {
         status.M600_sent = 0;
     }
