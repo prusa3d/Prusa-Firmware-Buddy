@@ -258,7 +258,7 @@ int main(void) {
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
     /* definition and creation of measurementTask */
-    osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 128);
+    osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
     measurementTaskHandle = osThreadCreate(osThread(measurementTask), NULL);
     /* USER CODE END RTOS_THREADS */
 
