@@ -94,7 +94,7 @@ marlin_vars_t *marlin_client_init(void) {
         memset(client, 0, sizeof(marlin_client_t));
         osMessageQDef(clientQueue, 32, uint32_t);
         marlin_client_queue[client_id] = osMessageCreate(osMessageQ(clientQueue), NULL);
-        client->id = 0;
+        client->id = client_id;
         client->flags = 0;
         client->events = 0;
         client->changes = 0;
