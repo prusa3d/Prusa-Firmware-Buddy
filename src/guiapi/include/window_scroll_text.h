@@ -4,6 +4,9 @@
 
 #include "window.h"
 
+#define TEXT_ROLL_DELAY_MS 100
+#define TEXT_ROLL_INITIAL_DELAY_MS 1000
+
 typedef struct _window_class_scroll_text_t {
     window_class_t cls;
 } window_class_scroll_text_t;
@@ -17,7 +20,6 @@ typedef struct _window_scroll_text_t {
     padding_ui8_t padding;
     uint8_t alignment;
     uint8_t roll_flag;
-    uint32_t timer;
     uint16_t roll_progress;
     uint16_t roll_count;
     uint8_t width_countdown;

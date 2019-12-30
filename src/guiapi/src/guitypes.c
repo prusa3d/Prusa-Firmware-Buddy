@@ -121,11 +121,9 @@ point_ui16_t font_meas_text(font_t *pf, const char *str) {
 
 uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, font_t *pf) {
 
-    uint16_t meas_x, len = strlen(text);
-    if (rc.h < pf->h || len * pf->w < rc.w)
-        return 0;
-    meas_x = len * pf->w - rc.w;
-    meas_x /= pf->w;
+    uint16_t meas_x = 0, len = strlen(text);
+    if (len * pf->w > rc.w)
+        meas_x = len - rc.w / pf->w;
     return meas_x;
 }
 
