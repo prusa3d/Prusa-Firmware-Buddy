@@ -18,6 +18,7 @@
 #define WINDOW_CLS_MENU 9 // MENU - menu
 #define WINDOW_CLS_MSGBOX 10 // MSGBOX - messagebox with configurable buttons and icon
 #define WINDOW_CLS_PROGRESS 11 // PROGRESS - progress bar with text
+#define WINDOW_CLS_SCROLL_TEXT 12 //SCROLL TEXT - rolling text for too long names
 #define WINDOW_CLS_USER 128 // USER - user defined window classes (WINDOW_CLS_USER+n)
 
 //window flags

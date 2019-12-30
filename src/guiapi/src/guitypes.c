@@ -119,6 +119,29 @@ point_ui16_t font_meas_text(font_t *pf, const char *str) {
     return point_ui16((uint16_t)w, (uint16_t)h);
 }
 
+uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, font_t *pf) {
+
+    uint16_t meas_x, len = strlen(text);
+    if (rc.h < pf->h || len * pf->w < rc.w)
+        return 0;
+    meas_x = len * pf->w - rc.w;
+    meas_x /= pf->w;
+    return meas_x;
+}
+
+rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, font_t *font, padding_ui8_t padding, uint16_t flags) {
+
+    rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
+    point_ui16_t wh_txt = font_meas_text(font, text);
+    if (wh_txt.x && wh_txt.y) {
+        rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
+        rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
+        return rc_txt;
+    }
+    rect_ui16_t empty = { 0, 0, 0, 0 };
+    return empty;
+}
+
 int font_line_chars(font_t *pf, const char *str, uint16_t line_width) {
     int w = 0;
     int char_w = pf->w;

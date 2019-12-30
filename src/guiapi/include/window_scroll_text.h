@@ -16,7 +16,12 @@ typedef struct _window_scroll_text_t {
     char *text;
     padding_ui8_t padding;
     uint8_t alignment;
+    uint8_t roll_flag;
     uint32_t timer;
+    uint16_t roll_progress;
+    uint16_t roll_count;
+    uint8_t width_countdown;
+    rect_ui16_t text_rect;
 } window_scroll_text_t;
 
 #ifdef __cplusplus

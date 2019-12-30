@@ -33,6 +33,7 @@ const window_class_t *window_classes[] = {
     (window_class_t *)(&window_class_menu), //  9  MENU
     (window_class_t *)(&window_class_msgbox), // 10  MSGBOX
     (window_class_t *)(&window_class_progress), // 11  PROGRESS
+    (window_class_t *)(&window_class_scroll_text), // 12 SCROLL_TEXT
 };
 
 const uint16_t window_class_count = sizeof(window_classes) / sizeof(window_class_t *);
@@ -344,6 +345,9 @@ void window_set_text(int16_t id, const char *text) {
         case WINDOW_CLS_TEXT:
             ((window_text_t *)window)->text = (char *)text;
             break;
+        case WINDOW_CLS_SCROLL_TEXT:
+            ((window_scroll_text_t *)window)->text = (char *)text;
+            break;
         }
         _window_invalidate((window_t *)window);
     }
@@ -355,6 +359,8 @@ char *window_get_text(int16_t id) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_TEXT:
             return ((window_text_t *)window)->text;
+        case WINDOW_CLS_SCROLL_TEXT:
+            return ((window_scroll_text_t *)window)->text;
         }
     }
     return 0;
