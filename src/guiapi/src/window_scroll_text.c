@@ -6,33 +6,23 @@
 #include "gui.h"
 #include "stm32f4xx_hal.h"
 #include "display.h"
-#include "display_helper.h"
+//#include "display_helper.h"
 
 void window_scroll_text_init(window_scroll_text_t *window) {
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
     window->text = 0;
-    window->width_countdown = 0;
     window->padding = gui_defaults.padding;
     window->alignment = gui_defaults.alignment;
-    window->roll_progress = window->roll_count = window->roll_flag = 0;
+    window->roll.phase = window->roll.setup = window->roll.px_cd = window->roll.count = 0;
 }
 
 void window_scroll_text_draw(window_scroll_text_t *window) {
 
-    if (window->roll_flag == 0) {
-        if (window->text != 0) {
-            window->text_rect = roll_text_rect_meas(window->win.rect, window->text, window->font, window->padding, window->alignment);
-            window->roll_count = text_rolls_meas(window->text_rect, window->text, window->font);
-            window->roll_flag = 1;
-            window->roll_progress = window->width_countdown = 0;
-        }
-    }
-
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
 
-        /*       render_scroll_text_align(window->win.rect,
+        /*  render_scroll_text_align(window->win.rect,
             window->text,
             window->font,
             (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back,
@@ -46,16 +36,24 @@ void window_scroll_text_draw(window_scroll_text_t *window) {
 
         if (window->text == 0) {
             display->fill_rect(window->win.rect, (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back);
+            window->win.flg &= ~WINDOW_FLG_INVALID;
             return;
         }
 
-        const char *str = window->text;
-        str += window->roll_progress;
+        if (window->roll.setup == 0) {
+            window->roll.rect = roll_text_rect_meas(window->win.rect, window->text, window->font, window->padding, window->alignment);
+            window->roll.count = text_rolls_meas(window->roll.rect, window->text, window->font);
+            window->roll.progress = window->roll.px_cd = 0;
+            window->roll.setup = 1;
+        }
 
-        volatile rect_ui16_t set_txt_rc = window->text_rect;
-        if (window->width_countdown != 0) {
-            set_txt_rc.x += window->width_countdown;
-            set_txt_rc.w -= window->width_countdown--;
+        const char *str = window->text;
+        str += window->roll.progress;
+
+        rect_ui16_t set_txt_rc = window->roll.rect;
+        if (window->roll.px_cd != 0) {
+            set_txt_rc.x += window->roll.px_cd;
+            set_txt_rc.w -= window->roll.px_cd;
         }
 
         if (set_txt_rc.w && set_txt_rc.h) {
@@ -80,16 +78,40 @@ void window_scroll_text_draw(window_scroll_text_t *window) {
 
 void window_scroll_text_event(window_scroll_text_t *window, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_TIMER) {
-        if (window->roll_count || window->width_countdown) {
-            if (window->width_countdown == 0) {
-                window->width_countdown = window->font->w - 1;
-                window->roll_count--;
-                window->roll_progress++;
+
+        switch (window->roll.phase) {
+        case ROLL_SETUP:
+            gui_timers_delete_by_window_id(window->win.id);
+            gui_timer_create_periodical(TEXT_ROLL_DELAY_MS, window->win.id);
+            if (window->roll.setup == 1)
+                window->roll.phase = ROLL_GO;
+            window_invalidate(window->win.id);
+            break;
+        case ROLL_GO:
+            if (window->roll.count > 0 || window->roll.px_cd > 0) {
+                if (window->roll.px_cd == 0) {
+                    window->roll.px_cd = window->font->w;
+                    window->roll.count--;
+                    window->roll.progress++;
+                }
+                window->roll.px_cd--;
+                window_invalidate(window->win.id);
+            } else {
+                window->roll.phase = ROLL_STOP;
             }
-        } else {
-            window->roll_flag = 0;
+            break;
+        case ROLL_STOP:
+            gui_timers_delete_by_window_id(window->win.id);
+            gui_timer_create_periodical(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+            window->roll.phase = ROLL_RESTART;
+            window_invalidate(window->win.id);
+            break;
+        case ROLL_RESTART:
+            window->roll.setup = 0;
+            window->roll.phase = ROLL_SETUP;
+            window_invalidate(window->win.id);
+            break;
         }
-        window_invalidate(window->win.id);
     }
 }
 
