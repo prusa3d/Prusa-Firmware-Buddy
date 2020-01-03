@@ -52,6 +52,83 @@ void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t c
     }
 }
 
+void scroll_text_phasing(int16_t win_id, font_t * font, txtroll_t * roll){
+
+    switch (roll->phase) {
+        case ROLL_SETUP:
+            gui_timer_create_periodical(TEXT_ROLL_DELAY_MS, win_id);
+            if (roll->setup == 1)
+                roll->phase = ROLL_GO;
+            window_invalidate(win_id);
+            break;
+        case ROLL_GO:
+            if (roll->count > 0 || roll->px_cd > 0) {
+                if (roll->px_cd == 0) {
+                    roll->px_cd = font->w;
+                    roll->count--;
+                    roll->progress++;
+                }
+                roll->px_cd--;
+                window_invalidate(win_id);
+            } else {
+                roll->phase = ROLL_STOP;
+            }
+            break;
+        case ROLL_STOP:
+            gui_timers_delete_by_window_id(win_id);
+            roll->phase = ROLL_RESTART;
+            gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
+            window_invalidate(win_id);
+            break;
+        case ROLL_RESTART:
+            roll->setup = 0;
+            gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
+            roll->phase = ROLL_SETUP;
+            window_invalidate(win_id);
+            break;
+    }
+}
+
+void render_scroll_text_align(uint8_t focus, rect_ui16_t rc, const char *text, font_t *font,
+    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, txtroll_t * roll) {
+
+    if (text == 0) {
+        display->fill_rect(rc, focus ? clr_text : clr_back);
+        return;
+    }
+
+    if (roll->setup == 0) {
+        roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
+        roll->count = text_rolls_meas(roll->rect, text, font);
+        roll->progress = roll->px_cd = 0;
+        roll->setup = 1;
+    }
+
+    const char *str = text;
+    str += roll->progress;
+
+    rect_ui16_t set_txt_rc = roll->rect;
+    if (roll->px_cd != 0) {
+        set_txt_rc.x += roll->px_cd;
+        set_txt_rc.w -= roll->px_cd;
+    }
+
+    if (set_txt_rc.w && set_txt_rc.h) {
+        rect_ui16_t rc_t = { rc.x, rc.y, rc.w, set_txt_rc.y - rc.y };
+        rect_ui16_t rc_b = { rc.x, set_txt_rc.y + set_txt_rc.h, rc.w, (rc.y + rc.h) - (set_txt_rc.y + set_txt_rc.h) };
+        rect_ui16_t rc_l = { rc.x, rc.y, set_txt_rc.x - rc.x, rc.h };
+        rect_ui16_t rc_r = { rc.x + set_txt_rc.w, rc.y, (rc.x + rc.w) - (set_txt_rc.x + set_txt_rc.w), rc.h };
+        display->fill_rect(rc_t, focus ? clr_text : clr_back);
+        display->fill_rect(rc_b, focus ? clr_text : clr_back);
+        display->fill_rect(rc_l, focus ? clr_text : clr_back);
+        display->fill_rect(rc_r, focus ? clr_text : clr_back);
+
+        display->draw_text(set_txt_rc, str, font, focus ? clr_text : clr_back, focus ? clr_back : clr_text);
+    } else {
+        display->fill_rect(rc, focus ? clr_text : clr_back);
+    }
+}
+
 void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags) {
     point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
     if (wh_ico.x && wh_ico.y) {

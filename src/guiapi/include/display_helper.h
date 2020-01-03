@@ -9,11 +9,35 @@
 #define RENDER_FLG_WORDB 0x1000 // multiline text
 #define RENDER_FLG(a, r) (a | r << 8) // render flag macro (ALIGN and ROPFN)
 
+#define TEXT_ROLL_DELAY_MS 50
+#define TEXT_ROLL_INITIAL_DELAY_MS 4000
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
+typedef enum {
+    ROLL_SETUP = 0,
+    ROLL_GO,
+    ROLL_STOP,
+    ROLL_RESTART,
+} TXTROLL_PHASE_t;
+
+typedef struct _txtroll_t {
+    uint8_t phase;
+    uint8_t setup;
+    uint16_t progress;
+    uint16_t count;
+    uint8_t px_cd;
+    rect_ui16_t rect;
+} txtroll_t;
+
 extern void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags);
+
+extern void scroll_text_phasing(int16_t win_id, font_t * font, txtroll_t * roll);
+
+extern void render_scroll_text_align(uint8_t focus, rect_ui16_t rc, const char *text, font_t *font,
+    padding_ui8_t padding, uint8_t alignment, color_t clr0, color_t clr1, txtroll_t * roll);
 
 extern void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
 
