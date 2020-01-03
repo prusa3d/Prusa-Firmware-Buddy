@@ -20,6 +20,7 @@
 #include <string.h>
 
 #define MAC_ADDR_START 0x1FFF781A //MM:MM:MM:SS:SS:SS
+#define MAC_ADDR_SIZE 6
 #define MAX_INI_SIZE 100
 
 typedef enum {
@@ -82,8 +83,8 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
 }
 
 static void _parse_MAC_addr(char *mac_addr_str) {
-    uint8_t mac_addr[6] = { 0, 0, 0, 0, 0, 0 };
-    for (uint8_t i = 0; i < 6; i++)
+    uint8_t mac_addr[] = { 0, 0, 0, 0, 0, 0 };
+    for (uint8_t i = 0; i < MAC_ADDR_SIZE; i++)
         mac_addr[i] = *(volatile uint8_t *)(MAC_ADDR_START + i);
 
     sprintf(mac_addr_str, "%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
