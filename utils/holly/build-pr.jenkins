@@ -15,7 +15,7 @@ pipeline {
                     ]
                     configurations.each { config ->
                         stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
-                            sh "python utils/build.py --printer ${config.printer} --build-type ${config.build_type} --bootloader ${config.bootloader} --generate-bbf"
+                            sh "python utils/build.py --printer ${config.printer} --build-type ${config.build_type} --bootloader ${config.bootloader} --generate-bbf --no-store-output"
                         }
                     }
                 }
@@ -60,9 +60,7 @@ pipeline {
             archiveArtifacts artifacts: 'build/products/*', fingerprint: true
         }
         cleanup {
-            dir('build') {
-                deleteDir()
-            }
+            deleteDir()
         }
     }
 }
