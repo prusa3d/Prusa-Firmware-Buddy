@@ -71,7 +71,6 @@ void window_scroll_text_draw(window_scroll_text_t *window) {
         } else {
             display->fill_rect(window->win.rect, (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back);
         }
-
         window->win.flg &= ~WINDOW_FLG_INVALID;
     }
 }
@@ -81,7 +80,6 @@ void window_scroll_text_event(window_scroll_text_t *window, uint8_t event, void 
 
         switch (window->roll.phase) {
         case ROLL_SETUP:
-            gui_timers_delete_by_window_id(window->win.id);
             gui_timer_create_periodical(TEXT_ROLL_DELAY_MS, window->win.id);
             if (window->roll.setup == 1)
                 window->roll.phase = ROLL_GO;
@@ -102,12 +100,13 @@ void window_scroll_text_event(window_scroll_text_t *window, uint8_t event, void 
             break;
         case ROLL_STOP:
             gui_timers_delete_by_window_id(window->win.id);
-            gui_timer_create_periodical(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
             window->roll.phase = ROLL_RESTART;
+            gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
             window_invalidate(window->win.id);
             break;
         case ROLL_RESTART:
             window->roll.setup = 0;
+            gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
             window->roll.phase = ROLL_SETUP;
             window_invalidate(window->win.id);
             break;
@@ -116,6 +115,7 @@ void window_scroll_text_event(window_scroll_text_t *window, uint8_t event, void 
 }
 
 void window_scroll_text_done(window_scroll_text_t *window) {
+    gui_timers_delete_by_window_id(window->win.id);
 }
 
 const window_class_scroll_text_t window_class_scroll_text = {
