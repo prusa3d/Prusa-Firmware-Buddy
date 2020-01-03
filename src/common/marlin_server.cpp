@@ -860,23 +860,16 @@ int _is_thermal_error(PGM_P const msg){
     if(!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP))) return 1;
     if(!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED))) return 1;
     if(!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED))) return 1;
+    return 0;
 }
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
     if (_is_thermal_error(msg)) {//todo remove me after new thermal manager
-        char buff[100];
-        snprintf(buff, sizeof(buff), 
-            "%s\nnoz: %d/%d\nbed: %d/%d",
-            component,
-            (int)marlin_server.vars.temp_nozzle,
-            (int)marlin_server.vars.target_nozzle,
-            (int)marlin_server.vars.temp_bed,
-            (int)marlin_server.vars.target_bed            
-        );
-        temp_error(msg, buff);
+        const marlin_vars_t &vars = marlin_server.vars; 
+        temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
     }else{
-        temp_error(msg, component);
+        general_error(msg, component);
     } 
 }
 
