@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project>
+	<configuration id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.9979773070b7478d91be70c7b37c1934" name="MINI_DEBUG_NOBOOT_BETA">
+		<extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
+			<provider class="org.eclipse.cdt.core.language.settings.providers.LanguageSettingsGenericProvider" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider" name="CDT User Setting Entries" prefer-non-shared="true" store-entries-with-project="true"/>
+			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
+			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
+			<provider copy-of="extension" id="org.eclipse.cdt.managedbuilder.core.GCCBuildCommandParser"/>
+			<provider class="com.st.stm32cube.ide.mcu.toolchain.armnone.setup.CrossBuiltinSpecsDetector" console="false" env-hash="-231412539392939013" id="com.st.stm32cube.ide.mcu.toolchain.armnone.setup.CrossBuiltinSpecsDetector" keep-relative-paths="false" name="MCU ARM GCC Built-in Compiler Settings" parameter="${COMMAND} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+				<language-scope id="org.eclipse.cdt.core.gcc"/>
+				<language-scope id="org.eclipse.cdt.core.g++"/>
+			</provider>
+			<provider class="de.marw.cmake.cdt.language.settings.providers.BuiltinsCompileCommandsJsonParser" id="de.marw.cmake.cdt.language.settings.providers.BuiltinsCompileCommandsJsonParser" name="CMAKE_EXPORT_COMPILE_COMMANDS Compiler Built-ins" store-entries-with-project="true">
+				<language-scope id="org.eclipse.cdt.core.gcc"/>
+				<language-scope id="org.eclipse.cdt.core.g++"/>
+				<language-scope id="com.nvidia.cuda.toolchain.language.cuda.cu"/>
+			</provider>
+			<provider class="de.marw.cmake.cdt.language.settings.providers.CompileCommandsJsonParser" id="de.marw.cmake.cdt.language.settings.providers.CompileCommandsJsonParser" name="CMAKE_EXPORT_COMPILE_COMMANDS Parser" store-entries-with-project="true">
+				<language-scope id="org.eclipse.cdt.core.gcc"/>
+				<language-scope id="org.eclipse.cdt.core.g++"/>
+				<language-scope id="com.nvidia.cuda.toolchain.language.cuda.cu"/>
+			</provider>
+		</extension>
+	</configuration>
+</project>
