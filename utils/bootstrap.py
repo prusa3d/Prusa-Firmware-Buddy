@@ -139,6 +139,32 @@ def install_dependency(dependency):
     fix_executable_permissions(dependency, installation_directory)
 
 
+def initialize_submodule(path):
+    cmd = [
+        'git', '-C',
+        str(project_root_dir), 'submodule', 'update', '--init', '--', path
+    ]
+    subprocess.run(cmd, check=True, encoding='utf-8')
+
+
+def check_submodules():
+    cmd = ['git', '-C', str(project_root_dir), 'submodule', 'status']
+    process = subprocess.run(cmd, stdout=subprocess.PIPE, encoding='utf-8')
+    if process.returncode != 0:
+        msg = 'Failed to check submodule status: git exited with code %d' % process.returncode
+        print(msg, file=sys.stderr)
+        return
+    statuses = [line.split() for line in process.stdout.splitlines()]
+    for status in statuses:
+        if status[0].startswith('-'):  #  '-' means uninitialized
+            print('Submodule %s is not initiliazed. Initializing now...' %
+                  status[1])
+            initialize_submodule(status[1])
+        elif status[0][0] in ('U', '+'):
+            print('WARNING: Submodule %s does not seem to be up-to-date!'
+                  ' Consider running `git submodule update`.' % status[1])
+
+
 def main() -> int:
     parser = ArgumentParser()
     # yapf: disable
@@ -187,6 +213,9 @@ def main() -> int:
         print('Installing Python package %s' % package)
         run(sys.executable, '-m', 'pip', 'install', package,
             '--disable-pip-version-check')
+
+    # check submodules are initialized
+    check_submodules()
 
     return 0
 
