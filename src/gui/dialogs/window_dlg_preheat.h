@@ -51,6 +51,7 @@ extern const window_class_dlg_preheat_t window_class_dlg_preheat;
 extern int gui_dlg_preheat(const char *caption);
 extern int gui_dlg_preheat_autoselect_if_able(const char *caption);
 extern int gui_dlg_preheat_forced(const char *caption); //no return option
+extern int gui_dlg_preheat_autoselect_if_able_forced(const char *caption); //no return option
 extern int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     dlg_on_click_cb *on_click, size_t count, int32_t ttl);
 #ifdef __cplusplus

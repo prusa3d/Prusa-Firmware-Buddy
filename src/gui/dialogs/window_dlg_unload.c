@@ -30,7 +30,7 @@ dlg_result_t gui_dlg_unload(void) {
 
 dlg_result_t gui_dlg_unload_forced(void) {
     //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    if (gui_dlg_preheat_forced("PREHEAT for UNLOAD") < 0)
+    if (gui_dlg_preheat_autoselect_if_able_forced("PREHEAT for UNLOAD") < 0)
         return DLG_ABORTED; //LD_ABORTED should not happen
     return _gui_dlg_unload();
 }
