@@ -52,6 +52,13 @@ function on_update_printer(xhr){
 	} else {
 		status_bed.querySelector("div>[cooling]").style.visibility = "hidden";
 	}
+
+	let printing_speed = data["print_settings"]["printing_speed"];
+	status_printingSpeed.querySelector("span").innerText =
+	printing_speed + "%";
+
+	let printing_flow = data["print_settings"]["flow_factor"];
+	status_status_printingFlow.querrySelector("span").innerText = 	printing_flow + "%";
 };
 
 function on_update_job(xhr){
@@ -91,8 +98,9 @@ function ajax_get(url, callback){
 }
 
 function update_status(){
-	ajax_get("/api/printer", on_update_printer);
-	// ajax_get("/api/job", on_update_job);
+	//ajax_get("/api/printer", on_update_printer);
+	jQuery.getJSON("/api/printer.json", on_update_printer)
+	//ajax_get("/api/job", on_update_job);
 }
 
 setInterval(update_status, 500);
