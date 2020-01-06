@@ -1,5 +1,6 @@
 // window_menu.c
 #include "window_menu.h"
+#include "gui_timer.h"
 #include "gui.h"
 
 #define WIO_MIN 0
@@ -40,9 +41,12 @@ void window_menu_init(window_menu_t *window) {
     window->menu_items = window_menu_items;
     window->data = NULL;
     window->win.flg |= WINDOW_FLG_ENABLED;
+    window->roll.count = window->roll.px_cd = window->roll.phase = window->roll.setup = window->roll.progress = 0;
+    window->last_index = 20;    //just a value different from index;
 }
 
 void window_menu_done(window_menu_t *window) {
+    gui_timers_delete_by_window_id(window->win.id);
 }
 
 void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
@@ -145,9 +149,28 @@ void window_menu_draw(window_menu_t *window) {
             }
 
             // render
-            render_text_align(rc, item->label, window->font,
-                color_back, color_text,
-                padding, window->alignment);
+            if((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == idx){
+                if(window->index != window->last_index){
+                    window->last_index = window->index;
+                    gui_timers_delete_by_window_id(window->win.id);
+                    window->roll.setup = window->roll.phase = 0;
+                    gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+                }
+
+                render_scroll_text_align(1,
+                    rc,
+                    item->label,
+                    window->font,
+                    padding,
+                    window->alignment,
+                    color_text,
+                    color_back,
+                    &window->roll);
+            } else {
+                render_text_align(rc, item->label, window->font,
+                    color_back, color_text,
+                    padding, window->alignment);
+            }
         }
     }
     rc_win.h = rc_win.h - (i * item_height);
@@ -156,6 +179,7 @@ void window_menu_draw(window_menu_t *window) {
         rc_win.y += i * item_height;
         display->fill_rect(rc_win, window->color_back);
     }
+    window->win.flg &= ~WINDOW_FLG_INVALID;
 }
 
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
@@ -185,6 +209,11 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
             }
             screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)window->index);
         }
+        if(window->roll.setup == 1){
+            gui_timers_delete_by_window_id(window->win.id);
+            window->roll.setup = 0;
+            gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+        }
         _window_invalidate((window_t *)window);
         break;
     case WINDOW_EVENT_ENC_DN:
@@ -201,6 +230,9 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
+        break;
+    case WINDOW_EVENT_TIMER:
+        scroll_text_phasing(window->win.id, window->font, &window->roll);
         break;
     }
 }

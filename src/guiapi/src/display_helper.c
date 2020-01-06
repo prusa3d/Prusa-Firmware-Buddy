@@ -53,6 +53,8 @@ void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t c
 }
 
 void scroll_text_phasing(int16_t win_id, font_t * font, txtroll_t * roll){
+    if(roll->setup == 2)
+        return;
 
     switch (roll->phase) {
         case ROLL_SETUP:
@@ -100,8 +102,11 @@ void render_scroll_text_align(uint8_t focus, rect_ui16_t rc, const char *text, f
     if (roll->setup == 0) {
         roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
         roll->count = text_rolls_meas(roll->rect, text, font);
-        roll->progress = roll->px_cd = 0;
-        roll->setup = 1;
+        roll->progress = roll->px_cd = roll->phase = 0;
+        if(roll->count == 0)
+            roll->setup = 2;
+        else
+            roll->setup = 1;
     }
 
     const char *str = text;
