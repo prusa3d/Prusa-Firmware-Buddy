@@ -450,4 +450,5 @@ target_sources(
           src/wui/lwsapi.cpp
           src/wui/connect.cpp
           src/wui/connection.cpp
+          src/wui/wui.c
   )

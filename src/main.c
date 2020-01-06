@@ -52,6 +52,7 @@
 #include "dbg.h"
 #include "diag.h"
 #include "timer_defaults.h"
+#include "wui.h"
 #include "lwsapi.h" // for lwsapi_init function
 #include "thread_measurement.h"
 
@@ -1006,9 +1007,11 @@ void StartWebServerTask(void const *argument) {
     // osThreadSuspend(0);
     MX_LWIP_Init();
     lwsapi_init();
+    init_wui();
     /* Infinite loop */
     for (;;) {
         osDelay(1);
+        marlin_var_update();
     }
     /* USER CODE END StartWebServerTask */
 }
