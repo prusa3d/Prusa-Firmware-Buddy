@@ -1,9 +1,11 @@
 var status_nozzle = document.querySelector(".status>[type=nozzle]");
 var status_bed = document.querySelector(".status>[type=bed]");
-var status_file = document.querySelector(".status>[type=file]");
+var printingSpeed = document.querySelector(".status>[type=printingSpeed]");
+var printingFlow = document.querySelector(".status>[type=printingFlow]");
+var filamentMaterial = document.querySelector(".status>[type=filamentMaterial]");
+var filenames = document.querySelectorAll(".filename");
 var progress = document.querySelectorAll(".progress>div");
 var percents = document.querySelectorAll(".percents");
-var filenames = document.querySelectorAll(".filename");
 
 
 function nav_click(event){
@@ -54,11 +56,14 @@ function on_update_printer(xhr){
 	}
 
 	let printing_speed = data["print_settings"]["printing_speed"];
-	status_printingSpeed.querySelector("span").innerText =
+	printingSpeed.querySelector("span").innerText =
 	printing_speed + "%";
 
-	let printing_flow = data["print_settings"]["flow_factor"];
-	status_status_printingFlow.querrySelector("span").innerText = 	printing_flow + "%";
+	let flow_factor = data["print_settings"]["flow_factor"];
+	printingFlow.querySelector("span").innerText = 	flow_factor + "%";
+
+	let filament_Material = data["print_settings"]["filament_material"];
+	filamentMaterial.querySelector("span").innerText = filament_Material;
 };
 
 function on_update_job(xhr){
@@ -67,7 +72,7 @@ function on_update_job(xhr){
 	}
 
 	let data = JSON.parse(xhr.responseText);
-	let completion = data["progress"]["completion"] || 0;
+	let completion = data["progress"]["precent_done"] || 0;
 	progress.forEach(function(elm){
 		elm.style.width = completion+"%";
 	});
@@ -75,8 +80,8 @@ function on_update_job(xhr){
 		elm.innerText = completion+"%";
 	});
 
-	let filename= data["job"]["file"]["display"];
-	if (filenames[0].innerText != data["job"]["file"]["display"]){
+	let filename= data["file"];
+	if (filenames[0].innerText != filename){
 		filenames.forEach(function(elm){
 			elm.innerText = filename;
 		});
@@ -98,12 +103,11 @@ function ajax_get(url, callback){
 }
 
 function update_status(){
-	//ajax_get("/api/printer", on_update_printer);
-	jQuery.getJSON("/api/printer.json", on_update_printer)
-	//ajax_get("/api/job", on_update_job);
+	ajax_get("/api/printer", on_update_printer)
+	ajax_get("/api/job", on_update_job);
 }
 
-setInterval(update_status, 500);
+setInterval(update_status, 100);
 
 document.querySelectorAll("nav>span:not([disabled])").forEach(function(elm){
 	elm.addEventListener("click", nav_click);
