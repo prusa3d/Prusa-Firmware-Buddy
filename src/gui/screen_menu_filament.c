@@ -14,32 +14,16 @@ extern screen_t screen_menu_preheat;
 extern screen_t screen_preheating;
 extern uint8_t menu_preheat_type;
 
-//#define OLD_LOAD_UNLOAD
-
 typedef enum {
     MI_RETURN,
-#ifdef OLD_LOAD_UNLOAD
     MI_LOAD,
     MI_UNLOAD,
-    MI_M701,
-    MI_M702,
-#else
-    MI_LOAD,
-    MI_UNLOAD,
-#endif
     MI_PURGE,
 } MI_t;
 
 const menu_item_t _menu_filament_items[] = {
-#ifdef OLD_LOAD_UNLOAD
-    { { "Load Filament", 0, WI_LABEL }, &screen_menu_preheat },
-    { { "Unload Filament", 0, WI_LABEL }, &screen_preheating },
-    { { "M701 Load", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "M702 Unload", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#else
     { { "Load Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Unload Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#endif
     { { "Purge Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
 
@@ -53,33 +37,12 @@ void screen_menu_filament_init(screen_t *screen) {
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
-#ifdef OLD_LOAD_UNLOAD
         case MI_LOAD:
-        case MI_UNLOAD:
-            menu_preheat_type = (int)param;
-            if (menu_preheat_type == 2) { // we know what type of filament is in printer :)
-                int16_t temp = filaments[get_filament()].nozzle;
-                if (temp < extrude_min_temp)
-                    temp = filaments[1].nozzle; // first filament is PLA
-                marlin_gcode_printf("M104 S%d", (int)temp);
-                // we really don't know, if user want to print after unload filament
-            }
-            break;
-#endif
-#ifndef OLD_LOAD_UNLOAD
-        case MI_LOAD:
-#else
-        case MI_M701:
-#endif
             p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
             gui_dlg_load();
             p_window_header_set_text(&(psmd->header), "FILAMENT");
             break;
-#ifndef OLD_LOAD_UNLOAD
         case MI_UNLOAD:
-#else
-        case MI_M702:
-#endif
             p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
             gui_dlg_unload();
             p_window_header_set_text(&(psmd->header), "FILAMENT");
