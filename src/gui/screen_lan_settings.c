@@ -5,47 +5,35 @@
  *      Author: Migi
  */
 
-#define LAN_CONFIG_DEVELOPMENT
-
 #include "screen_lan_settings.h"
 #include "lwip/dhcp.h"
 #include "lwip/netifapi.h"
 #include "lwip.h"
 #include <stdlib.h>
 #include <stdbool.h>
-#ifdef LAN_CONFIG_DEVELOPMENT
-    #include "ini.h"
-#endif //LAN_CONFIG_DEVELOPMENT
+#include "ini.h"
 #include "ff.h"
 #include <string.h>
 
 #define MAC_ADDR_START 0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE 6
 #define MAX_INI_SIZE 100
+#define IP4_ADDR_STR_SIZE 16
 
 typedef enum {
     MI_RETURN,
-//MI_LAN,
-#ifdef LAN_CONFIG_DEVELOPMENT
     MI_SAVE,
     MI_LOAD,
-#endif //LAN_CONFIG_DEVELOPMENT
 } MI_t;
 
-//TODO: static const char* lan_opt_on_off[] = {"Off", "On", NULL};		prepared for LAN switch implementation
 static char *plan_str = NULL;
 static networkconfig_t config;
-#ifdef LAN_CONFIG_DEVELOPMENT
 static const char ini_file_name[] = "/lan_settings.ini"; //change -> change msgboxes
 static char ini_file_str[MAX_INI_SIZE];
 extern bool media_is_inserted();
-#endif //LAN_CONFIG_DEVELOPMENT
 const menu_item_t _menu_lan_items[] = {
-//TODO: {{"LAN",          0, WI_SWITCH, .wi_switch_select = { 0, lan_opt_on_off } }, SCREEN_MENU_NO_SCREEN},
-#ifdef LAN_CONFIG_DEVELOPMENT
     { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#endif //LAN_CONFIG_DEVELOPMENT
 };
 
 static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t index,
@@ -70,10 +58,10 @@ static uint8_t _get_ip4_addrs(void) {
 }
 
 static void _addrs_to_str(char *param_str, uint8_t flg) {
-    static char ip4_addr_str[16], ip4_msk_str[16], ip4_gw_str[16];
-    strncpy(ip4_addr_str, ip4addr_ntoa(&(config.lan_ip4_addr)), 16);
-    strncpy(ip4_msk_str, ip4addr_ntoa(&(config.lan_ip4_msk)), 16);
-    strncpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), 16);
+    static char ip4_addr_str[IP4_ADDR_STR_SIZE], ip4_msk_str[IP4_ADDR_STR_SIZE], ip4_gw_str[IP4_ADDR_STR_SIZE];
+    strncpy(ip4_addr_str, ip4addr_ntoa(&(config.lan_ip4_addr)), IP4_ADDR_STR_SIZE);
+    strncpy(ip4_msk_str, ip4addr_ntoa(&(config.lan_ip4_msk)), IP4_ADDR_STR_SIZE);
+    strncpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
 
     if (flg)
         snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\naddress=%s\nmask=%s\ngateway=%s", ip4_addr_str, ip4_msk_str, ip4_gw_str);
@@ -121,9 +109,7 @@ static void screen_lan_settings_init(screen_t *screen) {
     plsd->text.font = resource_font(IDR_FNT_SPECIAL);
 
     plsd->items[0] = menu_item_return;
-#ifdef LAN_CONFIG_DEVELOPMENT
     memcpy(plsd->items + 1, _menu_lan_items, count * sizeof(menu_item_t));
-#endif //LAN_CONFIG_DEVELOPMENT
     //============== DECLARE VARIABLES ================
 
     plan_str = (char *)gui_malloc(150 * sizeof(char));
@@ -144,7 +130,6 @@ static void screen_lan_settings_init(screen_t *screen) {
 
     plsd->text.text = plan_str;
 }
-#ifdef LAN_CONFIG_DEVELOPMENT
 static uint8_t _save_ini_file(void) {
     //======= CONFIG -> INI STR ==========
 
@@ -210,7 +195,7 @@ static uint8_t _load_ini_file(void) {
 
     return 1;
 }
-#endif //LAN_CONFIG_DEVELOPMENT
+
 static int screen_lan_settings_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
 
@@ -224,7 +209,6 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
     case MI_RETURN:
         screen_close();
         return 1;
-#ifdef LAN_CONFIG_DEVELOPMENT
     case MI_SAVE:
         if (media_is_inserted() == false) {
             if (gui_msgbox("Please insert USB flash disk and try again.",
@@ -266,7 +250,6 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
             }
         }
         break;
-#endif //LAN_CONFIG_DEVELOPMENT
     }
 
     return 0;
