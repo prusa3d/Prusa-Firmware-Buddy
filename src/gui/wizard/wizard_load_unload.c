@@ -5,13 +5,17 @@
 #include "window_dlg_load.h"
 #include "window_dlg_unload.h"
 #include "window_dlg_preheat.h"
+#include "filament.h"
+#include "filament_sensor.h"
 
 LD_UNLD_STATE_t wizard_load_unload(LD_UNLD_STATE_t state) {
+    int filament_ok =  (get_filament() != FILAMENT_NONE && fs_get_state() != FS_NO_FILAMENT);
     switch (state) {
     case LD_UNLD_INIT:
         return LD_UNLD_MSG_DECIDE_CONTINUE_LOAD_UNLOAD;
 
     case LD_UNLD_MSG_DECIDE_CONTINUE_LOAD_UNLOAD: {
+        int def_bt = filament_ok ? MSGBOX_DEF_BUTTON0 : MSGBOX_DEF_BUTTON1;
         //cannot use CONTINUE button, string is too long
         const char *btns[3] = { "NEXT", "LOAD", "UNLOAD" };
         switch (wizard_msgbox_btns(
@@ -25,9 +29,11 @@ LD_UNLD_STATE_t wizard_load_unload(LD_UNLD_STATE_t state) {
             "press UNLOAD."
 
             ,
-            MSGBOX_BTN_CUSTOM3, 0, btns)) {
+            MSGBOX_BTN_CUSTOM3 | def_bt, 0, btns)) {
         case MSGBOX_RES_CUSTOM0:
-            return LD_UNLD_DIALOG_PREHEAT;
+            {
+            return filament_ok ? LD_UNLD_DONE : LD_UNLD_DIALOG_PREHEAT;
+            }
         case MSGBOX_RES_CUSTOM1:
             return LD_UNLD_DIALOG_LOAD;
         case MSGBOX_RES_CUSTOM2:
