@@ -1,6 +1,7 @@
 #include "lwsapi_app.hpp"
 #include "http_states.h"
 #include "dbg.h"
+#include "wui.h"
 
 #include <cstring>
 #include <cstdarg>
@@ -8,6 +9,16 @@
 #ifndef TEST_INTEGRITY
     #include "../Marlin/src/module/temperature.h"
 #endif
+
+#include "filament.h"
+#include "window_header.h"
+#include "status_footer.h"
+
+extern marlin_vars_t* webserver_marlin_vars;
+
+#define X_AXIS_POS 0
+#define Y_AXIS_POS 1
+#define Z_AXIS_POS 2
 
 #ifdef RFC1123_DATETIME
     #define LAST_MODIFY RFC1123_DATETIME
@@ -210,11 +221,18 @@ Message_t BufferResponse::generator(const struct pbuf *input) {
 */
 IResponse::unique_ptr_t api_job(Environment &env) {
     std::unique_ptr<BufferResponse> res(new BufferResponse());
-    if (res.get() != nullptr) {
-        res->response = HTTP_200;
-        res->ct_header.value = "application/json";
-        res->printf("{}");
-    }
+    const char* file_name = "test.gcode";
+    uint8_t sd_percent_done = (uint8_t)(webserver_marlin_vars->sd_percent_done);
+    uint32_t print_duration = (uint32_t)(webserver_marlin_vars->print_duration);
+    res->printf("{"
+            "\"file\":\"%s\","
+            "\"total_print_time\":%d, "
+            "\"progress\":{\"precent_done\":%d}"
+            "}",
+            file_name,
+            print_duration,
+            sd_percent_done
+            );
     return std::move(res);
 }
 
@@ -229,24 +247,33 @@ IResponse::unique_ptr_t api_printer(Environment &env) {
         res->response = HTTP_200;
         res->ct_header.value = "application/json";
 
-#ifndef TEST_INTEGRITY
-        float actual_nozzle = thermalManager.degHotend(0);
-        float target_nozzle = thermalManager.degTargetHotend(0);
-        float actual_heatbed = thermalManager.degBed();
-        float target_heatbed = thermalManager.degTargetBed();
-#else
-        float actual_nozzle = 26;
-        float target_nozzle = 32;
-        float actual_heatbed = 55;
-        float target_heatbed = 16;
-#endif
+        int32_t actual_nozzle = (int32_t)(webserver_marlin_vars->temp_nozzle);
+        int32_t target_nozzle = (int32_t)(webserver_marlin_vars->target_nozzle);
+        int32_t actual_heatbed = (int32_t)(webserver_marlin_vars->temp_bed);
+        int32_t target_heatbed = (int32_t)(webserver_marlin_vars->target_bed);
+
+        double x_pos_mm = static_cast <double> (webserver_marlin_vars->ipos[X_AXIS_POS]);
+        double y_pos_mm = static_cast <double> (webserver_marlin_vars->ipos[Y_AXIS_POS]);
+        double z_pos_mm = static_cast <double> (webserver_marlin_vars->ipos[Z_AXIS_POS]);
+        uint16_t print_speed = (uint16_t) (webserver_marlin_vars->print_speed);
+        uint16_t flow_factor = (uint16_t) (webserver_marlin_vars->flow_factor);
+        const char* filament_material = filaments[get_filament()].name;
 
         res->printf(
-            "{\"temperature\":{"
-            "\"tool0\":{\"actual\":%f, \"target\":%f},"
-            "\"bed\":{\"actual\":%f, \"target\":%f}}}",
-            static_cast<double>(actual_nozzle), static_cast<double>(target_nozzle),
-            static_cast<double>(actual_heatbed), static_cast<double>(target_heatbed));
+                "{\"temperature\":{"
+                        "\"tool0\":{\"actual\":%d, \"target\":%d},"
+                        "\"bed\":{\"actual\":%d, \"target\":%d}},"
+                 "\"xyz_pos_mm\":{"
+                         "\"x\":%.2f, \"y\":%.2f, \"z\":%.2f},"
+                 "\"print_settings\":{"
+                         "\"printing_speed\":%hd, \"flow_factor\":%hd, \"filament_material\":\"%s\"} }",
+
+                     actual_nozzle, target_nozzle,
+                     actual_heatbed, target_heatbed,
+                     x_pos_mm, y_pos_mm, z_pos_mm,
+                     print_speed, flow_factor,
+                     filament_material
+                  );
     }
     return std::move(res);
 }
