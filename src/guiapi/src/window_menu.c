@@ -157,14 +157,13 @@ void window_menu_draw(window_menu_t *window) {
                     gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
                 }
 
-                render_scroll_text_align(1,
-                    rc,
+                render_scroll_text_align(rc,
                     item->label,
                     window->font,
                     padding,
                     window->alignment,
-                    color_text,
                     color_back,
+                    color_text,
                     &window->roll);
             } else {
                 render_text_align(rc, item->label, window->font,

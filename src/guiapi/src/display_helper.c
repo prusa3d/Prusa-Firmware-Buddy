@@ -2,6 +2,8 @@
 
 #include "display_helper.h"
 #include "display.h"
+#include "gui_timer.h"
+#include "window.h"
 
 void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
@@ -91,11 +93,11 @@ void scroll_text_phasing(int16_t win_id, font_t * font, txtroll_t * roll){
     }
 }
 
-void render_scroll_text_align(uint8_t focus, rect_ui16_t rc, const char *text, font_t *font,
+void render_scroll_text_align(rect_ui16_t rc, const char *text, font_t *font,
     padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, txtroll_t * roll) {
 
     if (text == 0) {
-        display->fill_rect(rc, focus ? clr_text : clr_back);
+        display->fill_rect(rc, clr_back);
         return;
     }
 
@@ -122,15 +124,15 @@ void render_scroll_text_align(uint8_t focus, rect_ui16_t rc, const char *text, f
         rect_ui16_t rc_t = { rc.x, rc.y, rc.w, set_txt_rc.y - rc.y };
         rect_ui16_t rc_b = { rc.x, set_txt_rc.y + set_txt_rc.h, rc.w, (rc.y + rc.h) - (set_txt_rc.y + set_txt_rc.h) };
         rect_ui16_t rc_l = { rc.x, rc.y, set_txt_rc.x - rc.x, rc.h };
-        rect_ui16_t rc_r = { rc.x + set_txt_rc.w, rc.y, (rc.x + rc.w) - (set_txt_rc.x + set_txt_rc.w), rc.h };
-        display->fill_rect(rc_t, focus ? clr_text : clr_back);
-        display->fill_rect(rc_b, focus ? clr_text : clr_back);
-        display->fill_rect(rc_l, focus ? clr_text : clr_back);
-        display->fill_rect(rc_r, focus ? clr_text : clr_back);
+        rect_ui16_t rc_r = { set_txt_rc.x + set_txt_rc.w, rc.y, (rc.x + rc.w) - (set_txt_rc.x + set_txt_rc.w), rc.h };
+        display->fill_rect(rc_t, clr_back);
+        display->fill_rect(rc_b, clr_back);
+        display->fill_rect(rc_l, clr_back);
+        display->fill_rect(rc_r, clr_back);
 
-        display->draw_text(set_txt_rc, str, font, focus ? clr_text : clr_back, focus ? clr_back : clr_text);
+        display->draw_text(set_txt_rc, str, font, clr_back, clr_text);
     } else {
-        display->fill_rect(rc, focus ? clr_text : clr_back);
+        display->fill_rect(rc, clr_back);
     }
 }
 
