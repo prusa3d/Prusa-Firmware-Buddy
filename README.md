@@ -67,7 +67,7 @@ python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake -
     See the header of `./CMakeLists.txt` for more command-line options (most of them are one-to-one mapped with `build.py`'s options).
 4. And invoke `ninja`. It will generate a `compile_commands.json` file, that an LSP server can pick up and use to provide autocompletion to your editor.
 
-> This assumes you have sufficient version of cmake and ninja available in your PATH. 
+> This assumes you have sufficient version of cmake and ninja available in your PATH.
 
 ### Development using STM32CubeIDE (all platforms)
 
