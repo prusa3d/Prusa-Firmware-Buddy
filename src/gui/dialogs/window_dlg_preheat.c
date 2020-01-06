@@ -159,6 +159,24 @@ int gui_dlg_preheat_forced(const char *caption) {
     );
 }
 
+//no return option
+int gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
+    const FILAMENT_t fil = get_filament();
+    if (fil == FILAMENT_NONE) {
+        //no filament selected
+        return gui_dlg_preheat_forced(caption);
+    } else {
+        //when filament is known, but heating is off, just turn it on and do not ask
+        marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
+        if (p_vars->target_nozzle != filaments[fil].nozzle) {
+            marlin_gcode_printf("M104 S%d", (int)filaments[fil].nozzle);
+            marlin_gcode_printf("M140 S%d", (int)filaments[fil].heatbed);
+        }
+    }
+    return fil;
+}
+
+
 //returns index or -1 on timeout
 //todo make this independet on preheat, in separate file
 //todo caption is not showing
