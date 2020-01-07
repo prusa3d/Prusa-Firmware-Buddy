@@ -11,6 +11,9 @@
 #include "window_dlg_purge.h"
 #include "dbg.h"
 
+#define FKNOWN 0x01//filament is known
+#define F_NOTSENSED 0x02//filament is not in sensor
+
 extern screen_t screen_menu_preheat;
 extern screen_t screen_preheating;
 
@@ -29,25 +32,46 @@ const menu_item_t _menu_filament_items[] = {
     { { "Purge Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
 
-static uint8_t filament_not_loaded = -1;//should be in data, but this sis simpler and it is only 1 BYTE
+
+static void _load_dis(screen_t *screen) {
+    psmd->items[MI_LOAD].item.type |= WI_DISABLED;
+}
+
+static void _load_ena(screen_t *screen) {
+    psmd->items[MI_LOAD].item.type &= ~WI_DISABLED;
+}
+static void _change_dis(screen_t *screen) {
+    psmd->items[MI_CHANGE].item.type |= WI_DISABLED;
+}
+static void _change_ena(screen_t *screen) {
+    psmd->items[MI_CHANGE].item.type &= ~WI_DISABLED;
+}
 
 static void _deactivate_item(screen_t *screen) {
-    uint8_t _filament_not_loaded = get_filament() == FILAMENT_NONE && fs_get_state() == FS_NO_FILAMENT ? 1 : 0;
-    if(_filament_not_loaded != filament_not_loaded){
-        filament_not_loaded = _filament_not_loaded;
-        if(_filament_not_loaded){//disalbe CHANGE FILAMENT
-            // window_enable(psmd->items[MI_LOAD].item->window.win.id);
-            psmd->items[MI_LOAD].item.type &= ~WI_DISABLED;
-            psmd->items[MI_CHANGE].item.type |= WI_DISABLED;
-        }else{//disable LOAD FILAMENT
-            psmd->items[MI_CHANGE].item.type &= ~WI_DISABLED;
-            psmd->items[MI_LOAD].item.type |= WI_DISABLED;
+
+        uint8_t filament = 0;
+        filament |= get_filament() != FILAMENT_NONE ? FKNOWN : 0;
+        filament |= fs_get_state() == FS_NO_FILAMENT ? F_NOTSENSED : 0;
+        switch (filament){
+        case FKNOWN://known and not "unsensed" - do not allow load
+            _load_dis(screen);
+            _change_ena(screen);
+            break;
+        case FKNOWN | F_NOTSENSED://allow both load and change
+            _load_ena(screen);
+            _change_ena(screen);
+            break;
+        case F_NOTSENSED://allow load
+        case 0://filament is not known but is sensed == most likely same as F_NOTSENSED, but user inserted filament into sensor
+        default:
+            _load_ena(screen);
+            _change_dis(screen);
+            break;
         }
-    }
 }
 
 void screen_menu_filament_init(screen_t *screen) {
-    filament_not_loaded = -1;
+    //filament_not_loaded = -1;
     int count = sizeof(_menu_filament_items) / sizeof(menu_item_t);
     screen_menu_init(screen, "FILAMENT", count + 1, 1, 0);
     psmd->items[0] = menu_item_return;
