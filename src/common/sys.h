@@ -1,8 +1,21 @@
 // sys.h - system functions
+#include "stdint.h"
+#include "shared_config.h"
+
 #ifndef _SYS_H
 #define _SYS_H
 
+typedef struct {
+    uint8_t major;
+    uint8_t minor;
+    uint8_t patch;
+} version_t;
+
+
 #ifdef __cplusplus
+
+extern version_t &boot_version;                   // (address) from flash -> "volatile" is not necessary
+
 extern "C" {
 #endif //__cplusplus
 
@@ -51,6 +64,9 @@ extern int sys_flash_is_empty(void *ptr, int size);
 extern int sys_flash_write(void *dst, void *src, int size);
 
 extern int sys_flash_erase_sector(unsigned int sector);
+
+
+extern volatile data_exchange_t ram_data_exchange;
 
 #ifdef __cplusplus
 }

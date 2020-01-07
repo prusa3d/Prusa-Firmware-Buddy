@@ -28,4 +28,7 @@
 
 #define otp_lock_sector0 (*((uint8_t *)OTP_LOCK_BLOCK_ADDR))
 
+// bootloader version
+#define BOOTLOADER_VERSION_ADDRESS 0x0801FFFA
+
 #endif // _OTP_H

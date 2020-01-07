@@ -8,11 +8,14 @@
 #define FW_UPDATE_ENABLE 0xAA
 #define FW_UPDATE_DISABLE 0x00
 
+// pin PA13 state
+#define APPENDIX_FLAG_MASK 0x01
+
 #pragma pack(push)
 #pragma pack(1)
 typedef struct {
     uint8_t fw_update_flag;
-    uint8_t reserved1;
+	uint8_t model_specific_info;                  // ~ "reserved1" originally
     uint8_t reserved2;
     uint8_t reserved3;
     uint8_t reserved4;
