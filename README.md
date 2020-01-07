@@ -53,6 +53,7 @@ python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake -
 
 The build process of this project is driven by CMake and `build.py` is just a high-level wrapper around it. As most modern IDEs support some kind of CMake integration, it should be possible to use almost any editor for development. Below are some documents describing how to setup some popular text editors.
 
+- [Visual Studio Code](doc/editor/vscode.md)
 - [Eclipse, STM32CubeIDE](doc/editor/stm32cubeide.md)
 - [Other LSP-based IDEs (Vim, Atom, Sublime Text, ...)](doc/editor/lsp-based-ides.md)
 
