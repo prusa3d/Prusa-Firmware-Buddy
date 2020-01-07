@@ -1026,7 +1026,7 @@ void StartWebServerTask(void const *argument) {
     /* Infinite loop */
     for (;;) {
         osDelay(1);
-        marlin_var_update();
+        marlin_client_loop();
     }
     /* USER CODE END StartWebServerTask */
 }
