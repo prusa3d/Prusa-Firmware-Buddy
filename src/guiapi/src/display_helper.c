@@ -40,10 +40,14 @@ void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t c
         if (wh_txt.x && wh_txt.y) {
             rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
             rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
+            uint8_t unused_pxls = 0;
+            if(strlen(text) * font->w > rc_txt.w){
+                unused_pxls = rc_txt.w % font->w;
+            }
             rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc_txt.y - rc.y };
             rect_ui16_t rc_b = { rc.x, rc_txt.y + rc_txt.h, rc.w, (rc.y + rc.h) - (rc_txt.y + rc_txt.h) };
             rect_ui16_t rc_l = { rc.x, rc.y, rc_txt.x - rc.x, rc.h };
-            rect_ui16_t rc_r = { rc_txt.x + rc_txt.w, rc.y, (rc.x + rc.w) - (rc_txt.x + rc_txt.w), rc.h };
+            rect_ui16_t rc_r = { rc_txt.x + rc_txt.w - unused_pxls, rc.y, (rc.x + rc.w) - (rc_txt.x + rc_txt.w) + unused_pxls, rc.h };
             display->fill_rect(rc_t, clr0);
             display->fill_rect(rc_b, clr0);
             display->fill_rect(rc_l, clr0);
@@ -105,10 +109,16 @@ void render_scroll_text_align(rect_ui16_t rc, const char *text, font_t *font,
         roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
         roll->count = text_rolls_meas(roll->rect, text, font);
         roll->progress = roll->px_cd = roll->phase = 0;
-        if(roll->count == 0)
+        if(roll->count == 0) {
             roll->setup = 2;
-        else
+        } else {
+            uint8_t unused_pxls = roll->rect.w % font->w;
+            if (unused_pxls) {
+                rect_ui16_t rc_unused_pxls = {roll->rect.x + roll->rect.w - unused_pxls, roll->rect.y, unused_pxls, roll->rect.h};
+                display->fill_rect(rc_unused_pxls, clr_back);
+            }
             roll->setup = 1;
+        }
     }
 
     const char *str = text;
