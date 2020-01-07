@@ -117,7 +117,7 @@ fsensor_t fs_wait_inicialized() {
 
 /*---------------------------------------------------------------------------*/
 //global not thread safe functions
-void fs_init() {
+void _init() {
     int enabled = eeprom_get_var(EEVAR_FSENSOR_ENABLED).ui8 ? 1 : 0;
 
     if (enabled)
@@ -125,6 +125,20 @@ void fs_init() {
     else
         _disable();
 }
+
+void fs_init_on_edge() {
+    _init();
+    fs_send_M600_on_edge();
+}
+void fs_init_on_level() {
+    _init();
+    fs_send_M600_on_level();
+}
+void fs_init_never() {
+    _init();
+    fs_send_M600_never();
+}
+
 
 /*---------------------------------------------------------------------------*/
 //methods called only in fs_cycle
