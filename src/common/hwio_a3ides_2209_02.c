@@ -534,6 +534,10 @@ void hwio_beeper_tone2(float frq, uint32_t del, float vol) {
     hwio_beeper_tone(frq, del);
 }
 
+void hwio_beeper_notone(void) {
+    hwio_beeper_set_pwm(0, 0);
+}
+
 void hwio_update_1ms(void) {
     if ((hwio_beeper_del) && ((--hwio_beeper_del) == 0))
         hwio_beeper_set_pwm(0, 0);
