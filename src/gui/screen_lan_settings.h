@@ -14,6 +14,7 @@
 #include "lwip/netif.h"
 
 #define plsd ((screen_lan_settings_data_t *)screen->pdata)
+#define MAC_ADDR_STR_SIZE 18
 
 typedef struct {
     window_frame_t root;
@@ -22,6 +23,7 @@ typedef struct {
     menu_item_t *items;
 
     window_text_t text;
+    char mac_addr_str[MAC_ADDR_STR_SIZE];
 } screen_lan_settings_data_t;
 
 typedef struct {
