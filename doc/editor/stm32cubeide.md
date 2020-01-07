@@ -1,0 +1,17 @@
+### Development using STM32CubeIDE (all platforms)
+
+Installation:
+
+1. Install latest STM32CubeIDE ([link](https://www.st.com/en/development-tools/stm32cubeide.html))
+2. Install `cmake4eclipse` extension (`Help` > `Eclipse Marketplace...` > search for `cmake4eclipse` and install it)
+3. For FreeRTOS-aware debugging, install the `FreeRTOS` plugin [from here](https://mcuoneclipse.com/2016/07/06/freertos-kernel-awareness-for-eclipse-from-nxp/).
+
+Generate and open the project:
+
+1. Generate a project file by running: `python utils/build.py --generate-cproject`
+2. Open the project in the IDE (`File` > `Import Projects from File System...` > Select the root directory of this repository > `Finish`)
+3. Right click on the project and select `Properties`. Make sure the settings for `Indexer` is the same as on the screenshot below (sometimes, it does not get loaded).
+    ![screenshot](stm32cubeide_indexer.png)
+
+> 💡Changes to the generated project are not tracked by git.
+> The build is still driven by CMake; therefore, if you want to add a file or change some compiler settings, change it in CMakeLists.txt directly.
