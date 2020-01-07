@@ -67,7 +67,7 @@ python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake -
     See the header of `./CMakeLists.txt` for more command-line options (most of them are one-to-one mapped with `build.py`'s options).
 4. And invoke `ninja`. It will generate a `compile_commands.json` file, that an LSP server can pick up and use to provide autocompletion to your editor.
 
-> This assumes you have sufficient version of cmake and ninja available in your PATH. 
+> This assumes you have sufficient version of cmake and ninja available in your PATH.
 
 ### Development using STM32CubeIDE (all platforms)
 
@@ -90,4 +90,4 @@ To install custom firmware, you have to break the appendix on the board. Learn h
 
 ## License
 
-The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
+The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). Fonts are licensed under different license (see [LICENSE](LICENSE.md)).
