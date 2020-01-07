@@ -221,18 +221,22 @@ Message_t BufferResponse::generator(const struct pbuf *input) {
 */
 IResponse::unique_ptr_t api_job(Environment &env) {
     std::unique_ptr<BufferResponse> res(new BufferResponse());
-    const char* file_name = "test.gcode";
-    uint8_t sd_percent_done = (uint8_t)(webserver_marlin_vars->sd_percent_done);
-    uint32_t print_duration = (uint32_t)(webserver_marlin_vars->print_duration);
-    res->printf("{"
-            "\"file\":\"%s\","
-            "\"total_print_time\":%d, "
-            "\"progress\":{\"precent_done\":%d}"
-            "}",
-            file_name,
-            print_duration,
-            sd_percent_done
-            );
+    if (res.get() != nullptr) {
+        res->response = HTTP_200;
+        res->ct_header.value = "application/json";
+        const char* file_name = "test.gcode";
+        uint8_t sd_percent_done = (uint8_t)(webserver_marlin_vars->sd_percent_done);
+        uint32_t print_duration = (uint32_t)(webserver_marlin_vars->print_duration);
+        res->printf("{"
+                "\"file\":\"%s\","
+                "\"total_print_time\":%d, "
+                "\"progress\":{\"precent_done\":%d}"
+                "}",
+                file_name,
+                print_duration,
+                sd_percent_done
+                );
+    }
     return std::move(res);
 }
 
