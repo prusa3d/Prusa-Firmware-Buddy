@@ -5,8 +5,9 @@
     - `ccls` (this is an LSP server providing autocompletion for the project)
     - `Cortex-Debug` and `Cortex-Debug: Device Support Pack - STM32F4` (support for debugging of the firmware)
 2. Install OpenOCD and add it to your PATH
-    - On Windows: Download latest version of openOCD (gnutoolchains.com/arm-eabi/openocd/), extract content,
-    then through windows search open control panel "Edit the system environment variables"
-    and click on button "Environment Variables...". In the "System variables" table edit "Path" variable.
-    Add new path to `bin` folder at the OpenOCD extracted location.
+    - Microsoft Windows:
+    Download the latest version of openOCD from https://gnutoolchains.com/arm-eabi/openocd (7z archives).
+    Extract the content into some directory.
+    Navigate to Windows Control panel->System->Advanced system settings->Environment Variables.
+    Add the path to OpenOCD/bin to System variables/PATH.
 3. In Visual Studio Code, open the directory with this repository.
