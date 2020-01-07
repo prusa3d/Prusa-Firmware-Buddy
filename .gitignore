@@ -8,3 +8,4 @@
 /CMakeLists.txt.user
 .ccls-cache
 .idea
+compile_commands.json
