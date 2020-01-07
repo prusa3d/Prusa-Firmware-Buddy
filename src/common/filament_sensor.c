@@ -43,7 +43,7 @@ static status_t status = { 0, M600_on_edge, 0};
 
 //simple filter
 //without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
-void _set_state(fsensor_t st) {
+static void _set_state(fsensor_t st) {
     taskENTER_CRITICAL();
     if (last_state == st)
         state = st;
@@ -51,14 +51,14 @@ void _set_state(fsensor_t st) {
     taskEXIT_CRITICAL();
 }
 
-void _enable() {
+static void _enable() {
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
     state = FS_NOT_INICIALIZED;
     last_state = FS_NOT_INICIALIZED;
     status.meas_cycle = 0;
 }
 
-void _disable() {
+static void _disable() {
     state = FS_DISABLED;
     last_state = FS_DISABLED;
     status.meas_cycle = 0;
@@ -117,7 +117,7 @@ fsensor_t fs_wait_inicialized() {
 
 /*---------------------------------------------------------------------------*/
 //global not thread safe functions
-void _init() {
+static void _init() {
     int enabled = eeprom_get_var(EEVAR_FSENSOR_ENABLED).ui8 ? 1 : 0;
 
     if (enabled)
@@ -142,7 +142,7 @@ void fs_init_never() {
 
 /*---------------------------------------------------------------------------*/
 //methods called only in fs_cycle
-void _injectM600()
+static void _injectM600()
 {
     marlin_vars_t* vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) |
         MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) | MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) );
@@ -152,7 +152,7 @@ void _injectM600()
     }
 }
 
-void _cycle0() {
+static void _cycle0() {
     if (gpio_get(PIN_FSENSOR) == 1) {
         gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLDOWN, GPIO_SPEED_FREQ_VERY_HIGH); // pulldown
         status.meas_cycle = 1;//next cycle shall be 1
@@ -183,7 +183,7 @@ void _cycle0() {
 }
 
 //called only in fs_cycle
-void _cycle1() {
+static void _cycle1() {
     //pulldown was set in cycle 0
     _set_state(gpio_get(PIN_FSENSOR) == 1 ? FS_HAS_FILAMENT : FS_NOT_CONNECTED);
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
