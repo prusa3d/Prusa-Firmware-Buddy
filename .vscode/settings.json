@@ -1,0 +1,7 @@
+{
+    "cmake.configureOnOpen": true,
+    "ccls.misc.compilationDatabaseDirectory": "build-vscode",
+    "cmake.buildDirectory": "${workspaceFolder}/build-vscode",
+    "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.15.5/bin/cmake",
+    "cmake.generator": "Ninja"
+}

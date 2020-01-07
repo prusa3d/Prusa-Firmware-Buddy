@@ -49,40 +49,13 @@ Build the firmware for MINI using a custom version of gcc-arm-none-eabi (availab
 python utils/build.py --printer mini --toolchain cmake/AnyGccArmNoneEabi.cmake --generator 'Unix Makefiles'
 ```
 
-### Development with LSP-based IDEs (Visual Studio [Code], Vim, Sublime Text, etc.)
+### Development
 
-1. Run `python utils/bootstrap.py` to download required dependencies.
-2. Create a build directory and enter it (`mkdir build`, `cd build`).
-3. Invoke CMake directly with your configuration, for example:
+The build process of this project is driven by CMake and `build.py` is just a high-level wrapper around it. As most modern IDEs support some kind of CMake integration, it should be possible to use almost any editor for development. Below are some documents describing how to setup some popular text editors.
 
-    ```bash
-    cmake .. -G Ninja \
-             -DCMAKE_TOOLCHAIN_FILE=../cmake/GccArmNoneEabi.cmake \
-             -DCMAKE_EXPORT_COMPILE_COMMANDS=YES \
-             -DBOOTLOADER=YES \
-             -DPRINTER=MINI \
-             -DCMAKE_BUILD_TYPE=Debug
-    ```
-
-    See the header of `./CMakeLists.txt` for more command-line options (most of them are one-to-one mapped with `build.py`'s options).
-4. And invoke `ninja`. It will generate a `compile_commands.json` file, that an LSP server can pick up and use to provide autocompletion to your editor.
-
-> This assumes you have sufficient version of cmake and ninja available in your PATH. 
-
-### Development using STM32CubeIDE (all platforms)
-
-Installation:
-
-1. Install latest STM32CubeIDE ([link](https://www.st.com/en/development-tools/stm32cubeide.html))
-2. Install `cmake4eclipse` extension (`Help` > `Eclipse Marketplace...` > search for `cmake4eclipse` and install it)
-
-Generate and open the project:
-
-1. Generate a project file by running: `python utils/build.py --generate-cproject`
-2. Open the project in the IDE (`File` > `Import Projects from File System...` > Select the root directory of this repository > `Finish`)
-
-> 💡Changes to the generated project are not tracked by git.
-> The build is still driven by CMake; therefore, if you want to add a file or change some compiler settings, change it in CMakeLists.txt directly.
+- [Visual Studio Code](doc/editor/vscode.md)
+- [Eclipse, STM32CubeIDE](doc/editor/stm32cubeide.md)
+- [Other LSP-based IDEs (Vim, Atom, Sublime Text, ...)](doc/editor/lsp-based-ides.md)
 
 ## Flashing Custom Firmware
 
@@ -90,4 +63,4 @@ To install custom firmware, you have to break the appendix on the board. Learn h
 
 ## License
 
-The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
+The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). Fonts are licensed under different license (see [LICENSE](LICENSE.md)).

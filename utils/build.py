@@ -309,6 +309,49 @@ class CProjectGenerator:
         return definition
 
     @staticmethod
+    def generate_language_settings(cconfigurations):
+        """Generate .settings/language.settings.xml file"""
+        settings = ET.parse(project_root / 'utils' / 'cproject' /
+                            'template_language_settings.xml')
+        project = settings.getroot()
+        template = project.find('./configuration')
+        project.remove(template)
+
+        # create a `configuration` element for each `cconfiguration` in .cproject
+        for cconfiguration in cconfigurations:
+            new_config = deepcopy(template)
+            managedbuilder_config = cconfiguration.find(
+                './storageModule[@buildSystemId="org.eclipse.cdt'
+                '.managedbuilder.core.configurationDataProvider"]')
+            new_config.attrib['id'] = managedbuilder_config.attrib['id']
+            new_config.attrib['name'] = managedbuilder_config.attrib['name']
+            project.append(new_config)
+
+        path = project_root / '.settings' / 'language.settings.xml'
+        os.makedirs(path.parent, exist_ok=True)
+        with open(path, 'wb') as f:
+            f.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'.
+                    encode())
+            settings.write(f)
+        print('generated: .settings/language.settings.xml')
+
+    @staticmethod
+    def generate_core_settings():
+        """Generate .settings/org.eclipse.cdt.core.prefs file"""
+        shutil.copy(
+            project_root / 'utils' / 'cproject' /
+            'template_org_eclipse_cdt_core.prefs',
+            project_root / '.settings' / 'org.eclipse.cdt.core.prefs')
+        print('generated: .settings/org.eclipse.cdt.core.prefs')
+
+    @staticmethod
+    def generate_project():
+        shutil.copy(
+            project_root / 'utils' / 'cproject' / 'template_project.xml',
+            project_root / '.project')
+        print('generated: .project')
+
+    @staticmethod
     def generate_cconfiguration(template: ET,
                                 configuration: BuildConfiguration) -> ET:
         cconfiguration = deepcopy(template)
@@ -376,9 +419,11 @@ class CProjectGenerator:
                     encode())
             f.write('<?fileVersion 4.0.0?>\n'.encode())
             template.write(f)
-        shutil.copy(
-            project_root / 'utils' / 'cproject' / 'template_project.xml',
-            project_root / '.project')
+        print('generated: .cproject')
+        CProjectGenerator.generate_project()
+        CProjectGenerator.generate_language_settings(coresettings)
+        CProjectGenerator.generate_language_settings(coresettings)
+        CProjectGenerator.generate_core_settings()
 
 
 def store_products(products: List[Path], build_config: BuildConfiguration,
@@ -526,7 +571,6 @@ def main():
     # generate .cproject if requested
     if args.generate_cproject:
         CProjectGenerator.generate(configurations)
-        print('.cproject generated')
         sys.exit(0)
 
     # build everything

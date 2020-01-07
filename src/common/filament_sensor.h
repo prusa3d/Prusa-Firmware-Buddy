@@ -27,13 +27,20 @@ typedef enum {
 fsensor_t fs_get_state();
 int fs_did_filament_runout(); //for arduino / marlin
 
+//switch behavior when M600 should be send
+void fs_send_M600_on_edge();//default behavior
+void fs_send_M600_on_level();
+void fs_send_M600_never();
+
 //thread safe functions, but cannot be called from interrupt
 void fs_enable();
 void fs_disable();
 fsensor_t fs_wait_inicialized();
 
 //not thread safe functions
-void fs_init();
+void fs_init_on_edge();
+void fs_init_on_level();
+void fs_init_never();
 void fs_cycle(); //call it in thread, max call speed 1MHz
 
 #ifdef __cplusplus
