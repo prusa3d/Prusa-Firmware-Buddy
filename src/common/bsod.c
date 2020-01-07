@@ -139,7 +139,7 @@ static void get_fw_version(void) {
 }
 
 #define PADDING 10
-#define X_MAX (display->w - PADDING*2)
+#define X_MAX (display->w - PADDING * 2)
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -185,9 +185,9 @@ void general_error(const char *error, const char *module) {
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
 
-    display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), error,  gui_defaults.font,//resource_font(IDR_FNT_NORMAL),
+    display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
-    display->draw_line(point_ui16(PADDING, 30),point_ui16(display->w - PADDING, 30), COLOR_WHITE);
+    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - PADDING, 30), COLOR_WHITE);
 
     term_printf(&term, module);
     term_printf(&term, "\n");
@@ -200,16 +200,15 @@ void general_error(const char *error, const char *module) {
     jogwheel_init();
     gui_reset_jogwheel();
 
-
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
 #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg);
 #endif //_DEBUG
-        if (!gpio_get(jogwheel_config.pinENC))  sys_reset();//button press
+        if (!gpio_get(jogwheel_config.pinENC))
+            sys_reset(); //button press
     }
 }
-
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char buff[128];
@@ -218,7 +217,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         module, (int)t_noz, (int)tt_noz, (int)t_bed, (int)tt_bed);
     general_error(error, buff);
 }
-
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_list args;

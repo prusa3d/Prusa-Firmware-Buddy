@@ -153,7 +153,7 @@ static uint8_t _save_ini_file(void) {
 }
 
 static int handler(void *user, const char *section, const char *name, const char *value) {
-    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("lan_ip4", "address")) {
         config.lan_ip4_addr.addr = ipaddr_addr(value);
     } else if (MATCH("lan_ip4", "mask")) {
