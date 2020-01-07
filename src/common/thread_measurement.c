@@ -6,7 +6,7 @@
 
 void StartMeasurementTask(void const *argument) {
     marlin_client_init();
-    fs_init();
+    fs_init_on_level();
     /* Infinite loop */
     for (;;) {
         marlin_client_loop();

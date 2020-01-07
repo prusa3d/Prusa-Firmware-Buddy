@@ -38,7 +38,9 @@ void fs_disable();
 fsensor_t fs_wait_inicialized();
 
 //not thread safe functions
-void fs_init();
+void fs_init_on_edge();
+void fs_init_on_level();
+void fs_init_never();
 void fs_cycle(); //call it in thread, max call speed 1MHz
 
 #ifdef __cplusplus
