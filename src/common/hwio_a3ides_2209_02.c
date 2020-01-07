@@ -44,7 +44,6 @@ extern void Error_Handler(void);
 const uint32_t _di_pin32[] = {
     PIN_Z_MIN, // PA8
     PIN_E_DIAG, // PA15
-    PIN_FSENSOR, // PB4
     PIN_Y_DIAG, // PE1
     PIN_X_DIAG, // PE2
     PIN_Z_DIAG, // PE3
@@ -646,8 +645,6 @@ int hwio_arduino_digitalRead(uint32_t ulPin) {
             return hwio_di_get_val(_DI_BTN_EN1) || !hwio_jogwheel_enabled;
         case PIN_BTN_EN2:
             return hwio_di_get_val(_DI_BTN_EN2) || !hwio_jogwheel_enabled;
-        case PIN_FSENSOR:
-            return hwio_di_get_val(_DI_FSENSOR);
         case PIN_Z_DIR:
             return hwio_do_get_val(_DO_Z_DIR);
         default:

@@ -4,6 +4,7 @@
 #include "config.h"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
+#include "bsod.h"
 
 extern screen_t *pscreen_test_gui;
 extern screen_t *pscreen_test_term;
@@ -25,6 +26,7 @@ typedef struct
     window_text_t tst_msgbox;
     window_text_t tst_graph;
     window_text_t tst_temperature;
+    window_text_t tst_heat_err;
     window_text_t tst_disp_memory;
     int8_t id_tim;
     int8_t id_tim1;
@@ -81,6 +83,12 @@ void screen_test_init(screen_t *screen) {
     window_set_tag(id, 6);
     y += 22;
 
+    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_heat_err));
+    window_set_text(id, (const char *)"HEAT ERROR");
+    window_enable(id);
+    window_set_tag(id, 7);
+    y += 22;
+
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_disp_memory));
     window_set_text(id, (const char *)"Disp. R/W");
     window_enable(id);
@@ -117,6 +125,9 @@ int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *p
             return 1;
         case 6:
             screen_open(pscreen_test_temperature->id);
+            return 1;
+        case 7:
+            temp_error("TEST BED ERROR", "Bed",1.0,2.0,3.0,4.0);
             return 1;
         case 8:
             screen_open(pscreen_test_disp_mem->id);

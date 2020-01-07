@@ -101,10 +101,6 @@ extern int marlin_all_axes_homed(void);
 //
 extern int marlin_all_axes_known(void);
 
-extern void marlin_fs_enable(void);
-
-extern void marlin_fs_disable(void);
-
 #ifdef __cplusplus
 }
 #endif //__cplusplus

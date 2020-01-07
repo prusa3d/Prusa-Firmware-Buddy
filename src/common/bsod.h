@@ -28,7 +28,10 @@ extern "C" {
 
 void _bsod(const char *fmt, const char *fine_name, int line_number, ...); //with file name and line number
 
-void temp_error(const char *error, const char *module);
+void general_error(const char *error, const char *module);
+
+void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed);
+
 
 #ifdef __cplusplus
 }

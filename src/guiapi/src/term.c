@@ -189,11 +189,11 @@ int term_printf(term_t *pt, const char *fmt, ...) {
 
 //va_list version  ... callable in variadic functions
 int vterm_printf(term_t *pt, const char *fmt, va_list va) {
-    char text[64];
+    char text[TERM_PRINTF_MAX];
     int ret;
     int i;
 
-    ret = vsprintf(text, fmt, va);
+    ret = vsnprintf(text,sizeof(text), fmt, va);
 
     for (i = 0; i < ret; i++)
         term_write_char(pt, text[i]);

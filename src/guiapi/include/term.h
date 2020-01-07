@@ -35,6 +35,8 @@
 
 #define TERM_BUFF_SIZE(c, r) ((r * c * 2) + (r * c + 7) / 8)
 
+#define TERM_PRINTF_MAX 0xff
+
 #pragma pack(push)
 #pragma pack(1)
 

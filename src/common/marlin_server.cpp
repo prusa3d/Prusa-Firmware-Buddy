@@ -22,11 +22,7 @@
 #include "../Marlin/src/feature/pause.h"
 #include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/libs/nozzle.h"
-
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-    #include "../Marlin/src/feature/runout.h"
-    #include "filament_sensor.h"
-#endif
+#include "../Marlin/src/core/language.h"//GET_TEXT(MSG)
 
 #include "hwio_a3ides.h"
 #include "eeprom.h"
@@ -167,13 +163,6 @@ void marlin_server_init(void) {
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
-
-    // wait until filament sensor is inicialized
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-    while (fs_get_state() == FS_NOT_INICIALIZED) {
-        osDelay(0); // switch to other threads
-    }
-#endif
 }
 
 int marlin_server_cycle(void) {
@@ -388,22 +377,6 @@ int marlin_all_axes_homed(void) {
 int marlin_all_axes_known(void) {
     return all_axes_known() ? 1 : 0;
 }
-
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-void marlin_fs_enable(void) {
-    runout.enabled = true;
-}
-
-void marlin_fs_disable(void) {
-    runout.enabled = false;
-}
-#else
-void marlin_fs_enable(void) {
-}
-
-void marlin_fs_disable(void) {
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // private functions
@@ -813,6 +786,7 @@ int _server_set_var(char *name_val_str) {
                 break;
             case MARLIN_VAR_FLOWFACT:
                 planner.flow_percentage[0] = (int16_t)marlin_server.vars.flow_factor;
+                planner.refresh_e_factor(0);
                 break;
             case MARLIN_VAR_WAITHEAT:
                 wait_for_heatup = marlin_server.vars.wait_heat ? true : false;
@@ -845,9 +819,31 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
+
+//todo remove me after new thermal manager
+int _is_thermal_error(PGM_P const msg){
+    if(!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED))) return 1;
+    if(!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED))) return 1;
+    return 0;
+}
+
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
-    temp_error(msg, component);
+    if (_is_thermal_error(msg)) {//todo remove me after new thermal manager
+        const marlin_vars_t &vars = marlin_server.vars; 
+        temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
+    }else{
+        general_error(msg, component);
+    } 
 }
 
 void onMediaInserted() {
