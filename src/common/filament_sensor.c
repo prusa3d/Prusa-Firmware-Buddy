@@ -24,16 +24,16 @@ static volatile fsensor_t state = FS_NOT_INICIALIZED;
 static volatile fsensor_t last_state = FS_NOT_INICIALIZED;
 
 typedef enum {
-    M600_on_edge = 0,
+    M600_on_edge  = 0,
     M600_on_level = 1,
-    M600_never = 2
+    M600_never    = 2
 } send_M600_on_t;
 
-typedef struct {
-    uint8_t M600_sent : 1;
+typedef struct{
+    uint8_t M600_sent    : 1;
     uint8_t send_M600_on : 2;
-    uint8_t meas_cycle : 5; //1 bit is used now
-} status_t;
+    uint8_t meas_cycle   : 5;//1 bit is used now
+}status_t;
 static status_t status = { 0, M600_on_edge, 0 };
 
 /*---------------------------------------------------------------------------*/
