@@ -15,7 +15,7 @@ printer:
     mini:
       short: MINI
       long: Original Prusa MINI
-      setting:
+      settings:
         PRINTER: MINI
 bootloader:
   default: empty
@@ -23,10 +23,10 @@ bootloader:
     empty:
       short: EMPTYBOOT
       long: Reserve space for bootloader
-      setting:
+      settings:
         BOOTLOADER: EMPTY
     no:
       short: NOBOOT
       long: Without bootloader
-      setting:
+      settings:
         BOOTLOADER: 'NO'

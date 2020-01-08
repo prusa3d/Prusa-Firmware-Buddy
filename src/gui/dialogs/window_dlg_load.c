@@ -11,6 +11,7 @@
 #include "window_dlg_loadunload_shared.h"
 #include "gui.h" //gui_defaults
 #include "button_draw.h"
+#include "filament.h"
 
 static const _cl_dlg cl_load;
 
@@ -108,7 +109,9 @@ static dlg_result_t _gui_dlg_load(void) {
     _dlg_ld_vars ld_vars;
     memset(&ld_vars, '\0', sizeof(ld_vars));
     ld_vars.z_min_extr_pos = 30;
-    return _gui_dlg(&cl_load, &ld_vars, 600000); //10min
+    dlg_result_t ret = _gui_dlg(&cl_load, &ld_vars, 600000); //10min
+    if (ret != DLG_OK)set_filament(FILAMENT_NONE);
+    return ret;
 }
 
 dlg_result_t gui_dlg_load(void) {
