@@ -28,6 +28,7 @@
 
 #include <Arduino.h>
 #include "trinamic.h"
+#include "../Marlin/src/module/configuration_store.h"
 
 #define DBG _dbg0 //debug level 0
 //#define DBG(...)  //disable debug
@@ -66,7 +67,7 @@ void app_run(void) {
         osThreadResume(webServerTaskHandle);
 #endif //ETHERNET
 
-    eeprom_init();
+    uint8_t defaults_loaded = eeprom_init();
 
     marlin_server_init();
     marlin_server_idle_cb = app_idle;
@@ -89,6 +90,18 @@ void app_run(void) {
     } else
         app_setup();
     //DBG("after setup (%ld ms)", HAL_GetTick());
+
+    if (defaults_loaded && marlin_server_processing())
+    {
+        settings.reset();
+#ifndef _DEBUG
+        HAL_IWDG_Refresh(&hiwdg);
+#endif //_DEBUG
+        settings.save();
+#ifndef _DEBUG
+        HAL_IWDG_Refresh(&hiwdg);
+#endif //_DEBUG
+    }
 
     while (1) {
         if (marlin_server_processing()) {

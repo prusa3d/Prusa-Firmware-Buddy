@@ -139,6 +139,7 @@ void gui_loop(void) {
 int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
     window_msgbox_t msgbox;
+    window_t* window_1_tmp = window_1; //save current window_1
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
     msgbox.title = title;
@@ -160,6 +161,7 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     while (window_1) {
         gui_loop();
     }
+    window_1 = window_1_tmp; // restore previos window_1
     window_invalidate(0);
     window_set_capture(id_capture);
     return msgbox.res;

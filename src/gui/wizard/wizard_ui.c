@@ -91,10 +91,12 @@ int wizard_timer(uint32_t *p_timer, uint32_t delay_ms, _TEST_STATE_t *pstate, _W
 static void _wizard_init_test() {
     if (!marlin_processing())
         marlin_start_processing();
-    //marlin_server_settings_load();
+    marlin_event_clr(MARLIN_EVT_LoadSettings);
+    marlin_event_clr(MARLIN_EVT_FactoryReset);
     marlin_gcode("M501"); //restore settings
-    while (marlin_busy() || marlin_motion())
-        ; //i think busy does not work, but motion does
+    while (!marlin_event_clr(MARLIN_EVT_LoadSettings) &&
+    		!marlin_event_clr(MARLIN_EVT_FactoryReset)) //wait for M501 done
+    	gui_loop();
 }
 
 static void _disable_PID() {

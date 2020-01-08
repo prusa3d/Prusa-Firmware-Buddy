@@ -137,7 +137,11 @@ void wizard_selftest_axis(int16_t id_body, selftest_fans_axis_screen_t *p_screen
         if (axis == 2)
             marlin_gcode_printf("G28"); // home all axes (Z)
         else
+        {
+            marlin_gcode_printf("G1 %c%.3f F%d", achar,
+                    (double)(pos - dir * (max + 1.92F)), fr / 4);
             marlin_gcode_printf("G1 %c%.3f F%d", achar, (double)pos, fr); // start move to maximum (XY)
+        }
         marlin_wait_motion(100); // wait for motion start (max 100ms)
         phase++; // next phase
         break;
