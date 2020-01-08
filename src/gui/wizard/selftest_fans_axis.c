@@ -128,6 +128,12 @@ static float _get_pos(int axis) {
 typedef int (*selftest_phase)(selftest_fans_axis_data_t *p_data,
 	    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos);
 
+typedef struct
+{
+    const size_t sz;
+    const selftest_phase *p_phases;
+} _cl_st_ax;
+
 
 static int ph_init(selftest_fans_axis_data_t *p_data,
 	    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos){
@@ -220,52 +226,56 @@ static int ph_finish(selftest_fans_axis_data_t *p_data,
     return 0;
 }
 
+static const selftest_phase phasesXY[] = {
+		ph_init,
+		ph_move_to_max,
+		ph_wait_motion,
+		ph_move_to_min,
+		ph_wait_motion,
+		ph_measure_min,
+		ph_move_to_max,
+		ph_wait_motion,
+		ph_measure_max,
+		ph_finish
+};
+
+static const _cl_st_ax axisXY = {
+		sizeof(phasesXY)/sizeof(phasesXY[0]),
+		phasesXY
+};
 
 
-void wizard_selftest_axis(selftest_fans_axis_data_t *p_data,
+static const selftest_phase phasesZ[] = {
+		ph_init,
+		ph_move_to_max,
+		ph_wait_motion,
+		ph_move_to_min,
+		ph_wait_motion,
+		ph_measure_min,
+		ph_move_to_max,
+		ph_wait_motion,
+		ph_measure_max,
+		ph_finish
+};
+
+static const _cl_st_ax axisZ = {
+		sizeof(phasesZ)/sizeof(phasesZ[0]),
+		phasesZ
+};
+void wizard_selftest_axis(const _cl_st_ax* _ths, selftest_fans_axis_data_t *p_data,
 		uint8_t *state, int axis, int fr, int min, int max, int dir) {
     static uint8_t phase = 0;
     char achar = _axis_char[axis];
     float pos = _get_pos(axis);
-    float dis;
     if (*state == _TEST_START) {
-    	*state = _TEST_RUN;
     	phase = 0;
     }
-    switch (phase) {
-    case 0: // phase 1 - init and start move to maximum
-    	phase += ph_init(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 1:
-    	phase += ph_move_to_max(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 2:
-    	phase += ph_wait_motion(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 3:
-    	phase += 1;//ph_measure_max(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 4:
-    	phase += ph_move_to_min(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 5:
-    	phase += ph_wait_motion(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 6:
-    	phase += ph_measure_min(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 7:
-    	phase += ph_move_to_max(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 8:
-    	phase += ph_wait_motion(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 9:
-    	phase += ph_measure_max(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
-    case 10:
-    	phase += ph_finish(p_data, state, axis, fr, min, max, dir, achar, pos);
-        break;
+
+    if ( ((size_t)phase) >= _ths->sz) {
+    	*state = _TEST_FAILED;
+    }
+    else {
+    	phase += _ths->p_phases[phase](p_data, state, axis, fr, min, max, dir, achar, pos);
     }
 }
 
@@ -385,7 +395,7 @@ void wizard_selftest_axis(selftest_fans_axis_data_t *p_data,
 int wizard_selftest_x(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data) {
     if (p_data->state_x == _TEST_START)
         wizard_init_screen_selftest_fans_axis(id_body, p_screen, p_data);
-    wizard_selftest_axis(p_data, &(p_data->state_x), 0,
+    wizard_selftest_axis(&axisXY, p_data, &(p_data->state_x), 0,
         _SELFTEST_X_FR, _SELFTEST_X_MIN, _SELFTEST_X_MAX, 1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_X_TIME, &(p_data->state_x), _WIZ_TIMER);
     window_set_value(p_screen->progress_axis.win.id, (float)progress / 3);
@@ -396,7 +406,7 @@ int wizard_selftest_x(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
 int wizard_selftest_y(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data) {
     if (p_data->state_y == _TEST_START)
         wizard_init_screen_selftest_fans_axis(id_body, p_screen, p_data);
-    wizard_selftest_axis(p_data, &(p_data->state_y), 1,
+    wizard_selftest_axis(&axisXY, p_data, &(p_data->state_y), 1,
         _SELFTEST_Y_FR, _SELFTEST_Y_MIN, _SELFTEST_Y_MAX, -1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_Y_TIME, &(p_data->state_y), _WIZ_TIMER);
     window_set_value(p_screen->progress_axis.win.id, 33.3F + (float)progress / 3);
@@ -407,7 +417,7 @@ int wizard_selftest_y(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
 int wizard_selftest_z(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data) {
     if (p_data->state_z == _TEST_START)
         wizard_init_screen_selftest_fans_axis(id_body, p_screen, p_data);
-    wizard_selftest_axis(p_data, &(p_data->state_z), 2,
+    wizard_selftest_axis(&axisZ, p_data, &(p_data->state_z), 2,
         _SELFTEST_Z_FR, _SELFTEST_Z_MIN, _SELFTEST_Z_MAX, -1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_Z_TIME, &(p_data->state_z), _WIZ_TIMER);
     window_set_value(p_screen->progress_axis.win.id, 66.6F + (float)progress / 3);
