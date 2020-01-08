@@ -3,6 +3,7 @@
  */
 
 #include "window_scroll_text.h"
+#include "gui_timer.h"
 #include "gui.h"
 #include "stm32f4xx_hal.h"
 #include "display.h"
@@ -15,6 +16,7 @@ void window_scroll_text_init(window_scroll_text_t *window) {
     window->padding = gui_defaults.padding;
     window->alignment = gui_defaults.alignment;
     window->roll.phase = window->roll.setup = window->roll.px_cd = window->roll.count = 0;
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
 }
 
 void window_scroll_text_draw(window_scroll_text_t *window) {

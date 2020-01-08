@@ -64,7 +64,7 @@ void scroll_text_phasing(int16_t win_id, font_t * font, txtroll_t * roll){
 
     switch (roll->phase) {
         case ROLL_SETUP:
-            gui_timer_create_periodical(TEXT_ROLL_DELAY_MS, win_id);
+            gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
             if (roll->setup == 1)
                 roll->phase = ROLL_GO;
             window_invalidate(win_id);
@@ -83,14 +83,11 @@ void scroll_text_phasing(int16_t win_id, font_t * font, txtroll_t * roll){
             }
             break;
         case ROLL_STOP:
-            gui_timers_delete_by_window_id(win_id);
             roll->phase = ROLL_RESTART;
-            gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
-            window_invalidate(win_id);
+            gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
             break;
         case ROLL_RESTART:
             roll->setup = 0;
-            gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
             roll->phase = ROLL_SETUP;
             window_invalidate(win_id);
             break;

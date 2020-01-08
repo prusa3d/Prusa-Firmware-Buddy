@@ -131,7 +131,8 @@ void window_file_list_init(window_file_list_t *window) {
     window->alignment = ALIGN_LEFT_CENTER;
     window->win.flg |= WINDOW_FLG_ENABLED;
     window->roll.count = window->roll.px_cd = window->roll.phase = window->roll.setup = window->roll.progress = 0;
-    window->last_index = 20;    //just a value different from index;
+    window->last_index = 0;
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
 
     strcpy(window->altpath, "/");
 }
@@ -191,9 +192,9 @@ void window_file_list_draw(window_file_list_t *window) {
             if((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == idx){
                 if(window->index != window->last_index){
                     window->last_index = window->index;
-                    gui_timers_delete_by_window_id(window->win.id);
                     window->roll.setup = window->roll.phase = 0;
-                    gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+                    gui_timer_restart_txtroll(window->win.id);
+                    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
                 }
 
                 render_scroll_text_align(rc,

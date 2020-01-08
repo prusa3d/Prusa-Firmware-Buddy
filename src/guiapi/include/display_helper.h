@@ -24,12 +24,12 @@ typedef enum {
 } TXTROLL_PHASE_t;
 
 typedef struct _txtroll_t {
-    uint8_t phase;
-    uint8_t setup;
+    rect_ui16_t rect;
     uint16_t progress;
     uint16_t count;
+    uint8_t phase;
+    uint8_t setup;
     uint8_t px_cd;
-    rect_ui16_t rect;
 } txtroll_t;
 
 extern void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags);
