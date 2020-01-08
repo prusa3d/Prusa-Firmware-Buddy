@@ -1275,6 +1275,27 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   }
 
   const feedRate_t real_fr_mm_s = fr_mm_s ?: homing_feedrate(axis);
+
+  if ((axis == X_AXIS) || (axis == Y_AXIS))
+  {
+    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    target[axis] = 0;
+    planner.set_machine_position_mm(target);
+    float dist = (distance > 0)?-1.92F:1.92F;
+    target[axis] = dist;
+#if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+    const xyze_float_t delta_mm_cart{0};
+#endif
+    // Set delta/cartesian axes directly
+    planner.buffer_segment(target
+#if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+      , delta_mm_cart
+#endif
+      , real_fr_mm_s / 4, active_extruder
+    );
+    planner.synchronize();
+  }
+
   #if IS_SCARA
     // Tell the planner the axis is at 0
     current_position[axis] = 0;
