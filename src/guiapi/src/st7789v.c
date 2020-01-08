@@ -312,7 +312,16 @@ void st7789v_init_ctl_pins(void) {
 void st7789v_reset(void) {
     st7789v_clr_rst();
     st7789v_delay_ms(15);
+    gpio_init(st7789v_config.pinRST, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
+    volatile uint16_t delay = 0;
+    int irq = __get_PRIMASK() & 1;
+    if (irq) __disable_irq();
+    while (!gpio_get(st7789v_config.pinRST))
+        delay++;
+    if (irq) __enable_irq();
+    gpio_init(st7789v_config.pinRST, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
     st7789v_set_rst();
+    st7789v_reset_delay = delay;
 }
 
 void st7789v_init(void) {
@@ -906,6 +915,9 @@ st7789v_config_t st7789v_config = {
     0, // inverted
     0, // default control reg value
 };
+
+//measured delay from low to hi in reset cycle
+uint16_t st7789v_reset_delay = 0;
 
 //! @brief enable safe mode (direct acces + safe delay)
 void st7789v_enable_safe_mode(void) {

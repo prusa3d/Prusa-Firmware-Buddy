@@ -61,6 +61,8 @@ extern const display_t st7789v_display;
 
 extern st7789v_config_t st7789v_config;
 
+extern uint16_t st7789v_reset_delay;
+
 extern void st7789v_enable_safe_mode(void);
 
 extern void st7789v_spi_tx_complete(void);
