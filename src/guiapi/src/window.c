@@ -444,6 +444,9 @@ void window_set_color_back(int16_t id, color_t clr) {
         case WINDOW_CLS_TEXT:
             ((window_text_t *)window)->color_back = clr;
             break;
+        case WINDOW_CLS_SCROLL_TEXT:
+            ((window_scroll_text_t *)window)->color_back = clr;
+            break;
         }
         _window_invalidate((window_t *)window);
     }
@@ -455,6 +458,8 @@ color_t window_get_color_back(int16_t id) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_TEXT:
             return ((window_text_t *)window)->color_back;
+        case WINDOW_CLS_SCROLL_TEXT:
+            return ((window_scroll_text_t *)window)->color_back;
         }
     }
     return COLOR_BLACK;
@@ -467,6 +472,9 @@ void window_set_color_text(int16_t id, color_t clr) {
         case WINDOW_CLS_TEXT:
             ((window_text_t *)window)->color_text = clr;
             break;
+        case WINDOW_CLS_SCROLL_TEXT:
+            ((window_scroll_text_t *)window)->color_text = clr;
+            break;
         }
         _window_invalidate((window_t *)window);
     }
@@ -478,6 +486,8 @@ color_t window_get_color_text(int16_t id) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_TEXT:
             return ((window_text_t *)window)->color_text;
+        case WINDOW_CLS_SCROLL_TEXT:
+            return ((window_scroll_text_t *)window)->color_text;
         }
     }
     return COLOR_BLACK;
@@ -559,6 +569,9 @@ void window_set_padding(int16_t id, padding_ui8_t padding) {
         case WINDOW_CLS_TEXT:
             ((window_text_t *)window)->padding = padding;
             break;
+        case WINDOW_CLS_SCROLL_TEXT:
+            ((window_scroll_text_t *)window)->padding = padding;
+            break;
         }
         _window_invalidate((window_t *)window);
     }
@@ -570,6 +583,9 @@ void window_set_alignment(int16_t id, uint8_t alignment) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_TEXT:
             ((window_text_t *)window)->alignment = alignment;
+            break;
+        case WINDOW_CLS_SCROLL_TEXT:
+            ((window_scroll_text_t *)window)->alignment = alignment;
             break;
         }
         _window_invalidate((window_t *)window);

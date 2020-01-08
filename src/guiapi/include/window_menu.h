@@ -100,7 +100,6 @@ typedef struct _window_menu_t {
     void *src_param; // source event data
     txtroll_t roll; // text roll variables for too long text
     uint8_t last_index;
-    uint32_t long_text_flg;
 } window_menu_t;
 
 #pragma pack(pop)

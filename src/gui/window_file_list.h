@@ -9,6 +9,7 @@
 #define API_WINDOW_FILE_LIST_H_
 
 #include "window.h"
+#include "display_helper.h"
 #include "ffconf.h"
 #include "ff.h"
 
@@ -72,6 +73,8 @@ typedef struct _window_file_list_t {
     //char path[F_MAXPATHNAMELENGTH-_MAX_LFN];
     char altpath[F_MAXPATHNAMELENGTH - 12];
     FILINFO file_items[SDSORT_LIMIT];
+    txtroll_t roll;
+    uint8_t last_index;
 } window_file_list_t;
 
 #pragma pack(pop)
