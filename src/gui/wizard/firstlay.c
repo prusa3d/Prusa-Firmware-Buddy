@@ -425,7 +425,7 @@ const char *V2_gcodes_body[] = {
     "G1 X30.5  Y17.5  E0.0208",
 
     "G1 Z2 E-6 F2100",
-    "G1 X180 Y0 Z10 F3000",
+    "G1 X178 Y0 Z10 F3000",
 
     "G4",
 
