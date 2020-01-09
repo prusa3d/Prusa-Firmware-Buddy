@@ -19,6 +19,7 @@
 #include "uartslave.h"
 #include "hwio_pindef.h"
 #include "trinamic.h"
+#include "main.h"
 
 int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
     int ret;
@@ -208,16 +209,10 @@ int putslave_do_cmd_q_gpup(uartslave_t *pslave, char *pstr) {
     return UARTSLAVE_OK;
 }
 
-extern UART_HandleTypeDef huart1;
-extern DMA_HandleTypeDef hdma_usart1_rx;
-
 int putslave_do_cmd_q_uart(uartslave_t *pslave) {
-    uartrxbuff_t uart1rxbuff;
     uint8_t uart1rx_data[32] = { 0 };
-    uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
-    uartrxbuff_open(&uart1rxbuff);
     uint8_t data_out[2] = "i";
-    HAL_UART_Transmit(&huart1, (uint8_t *)data_out, sizeof(data_out), HAL_MAX_DELAY);
+    HAL_UART_Transmit(uart1rxbuff.phuart, (uint8_t *)data_out, sizeof(data_out), HAL_MAX_DELAY);
     if (uart1rx_data[0] == data_out[0])
         return UARTSLAVE_OK;
     uart1rx_data[0] = 0;
