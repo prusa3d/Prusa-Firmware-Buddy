@@ -143,6 +143,13 @@ static int ph_init(selftest_fans_axis_data_t *p_data,
     return 1;//next phase
 }
 
+static int ph_prepare_to_move_to_max(selftest_fans_axis_data_t *p_data,
+		uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    marlin_gcode_printf("G92 %c%.3f", achar, (double)pos); // set position to current
+    marlin_gcode_printf("G1 %c%.3f F%d", achar,(double)(pos - dir * (1.92F)), fr / 4);
+	return 1;//next phase
+}
+
 static int ph_move_to_max(selftest_fans_axis_data_t *p_data,
 		uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
 	marlin_gcode_printf("G92 %c%.3f", achar, (double)pos); // set position to current
@@ -260,6 +267,7 @@ static int ph_wait_autohome(selftest_fans_axis_data_t *p_data,
 
 static const selftest_phase phasesX[] = {
 		ph_init,
+        ph_prepare_to_move_to_max,
 		ph_move_to_max,
 		ph_wait_motion,
 		ph_move_to_min,
@@ -281,6 +289,7 @@ static const _cl_st_ax axisX = {
 
 static const selftest_phase phasesY[] = {
 		ph_init,
+        ph_prepare_to_move_to_max,
 		ph_move_to_max,
 		ph_wait_motion,
 		ph_move_to_min,
@@ -308,7 +317,7 @@ static const selftest_phase phasesZ[] = {
 		ph_wait_motion,
 		ph_measure_max,
 
-        //todo cannot measure position while moveing down
+        //todo cannot measure position while moving down
         //fixme
         /*ph_init, //now disable endstops
 		ph_move_to_min,
