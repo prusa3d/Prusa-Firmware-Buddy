@@ -72,10 +72,8 @@ static_assert(_STATE_LAST < 64, "too many states in wizard_state_t");
 	_STATE_MASK(_STATE_FINISH) | \
 	_STATE_MASK(_STATE_LAST) )*/
 
-//disabled XYZ and selftest
-#define _STATE_MASK_WIZARD (                                                                                                                                   \
-                               _STATE_MASK_WIZARD_START | _STATE_MASK_SELFTEST | _STATE_MASK_FIRSTLAY | _STATE_MASK(_STATE_FINISH) | _STATE_MASK(_STATE_LAST)) \
-    & (~_STATE_MASK(_STATE_SELFTEST_Z))
+//disabled XYZ
+#define _STATE_MASK_WIZARD (_STATE_MASK_WIZARD_START | _STATE_MASK_SELFTEST | _STATE_MASK_FIRSTLAY | _STATE_MASK(_STATE_FINISH) | _STATE_MASK(_STATE_LAST))
 
 #define _SCREEN_NONE 0
 #define _SCREEN_SELFTEST_FANS_XYZ 1
