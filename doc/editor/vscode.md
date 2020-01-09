@@ -1,5 +1,7 @@
 ### Development using Visual Studio Code
 
+![vscode screenshot](vscode_screenshot.png)
+
 1. In Visual Studio Code, install the following extensions:
     - `CMake Tools` (handles configuring and building the project),
     - `Cortex-Debug` and `Cortex-Debug: Device Support Pack - STM32F4` (support for debugging of the firmware),
