@@ -48,6 +48,7 @@ constexpr const int park_points[3] = NOZZLE_PARK_POINT;
 
 constexpr const int X_home = X_HOME_DIR > 0 ? X_MAX_POS : X_MIN_POS;
 constexpr const int Y_home = Y_HOME_DIR > 0 ? Y_MAX_POS : Y_MIN_POS;
+constexpr const int Z_home = Z_HOME_DIR > 0 ? Z_MAX_POS : Z_MIN_POS;
 
 constexpr const char X_home_gcode[] = {
     'G',
@@ -82,4 +83,22 @@ constexpr const char Y_home_gcode[] = {
     nth_char(Y_home, 7),
     nth_char(Y_home, 8)
 };
+
+constexpr const char Z_home_gcode[] = {
+    'G',
+    '9',
+    '2',
+    ' ',
+    'Z',
+    nth_char(Z_home, 0),
+    nth_char(Z_home, 1),
+    nth_char(Z_home, 2),
+    nth_char(Z_home, 3),
+    nth_char(Z_home, 4),
+    nth_char(Z_home, 5),
+    nth_char(Z_home, 6),
+    nth_char(Z_home, 7),
+    nth_char(Z_home, 8)
+};
+
 }

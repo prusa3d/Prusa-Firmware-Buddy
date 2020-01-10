@@ -286,10 +286,6 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
         "M83", /*extruder relative mode*/
 
 #define V__GCODES_HEAD_END                   \
-    "G28 X", /*HOME X MUST BE ONLY X*/       \
-        X_home_gcode, /*Set X pos */         \
-        "G28 Y", /*HOME Y MUST BE ONLY Y*/   \
-        Y_home_gcode, /*Set Y pos */         \
         "G28", /*autohome*/                  \
         "G29", /*meshbed leveling*/          \
         "G21", /* set units to millimeters*/ \

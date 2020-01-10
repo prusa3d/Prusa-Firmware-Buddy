@@ -48,6 +48,7 @@ extern const char *const gcode_nozzle_park;
 //If used with - Z safe homing is applyed
 extern const char X_home_gcode[];
 extern const char Y_home_gcode[];
+extern const char Z_home_gcode[];
 
 #ifdef __cplusplus
 }
