@@ -1,6 +1,5 @@
 // sys.cpp - system functions
 #include "sys.h"
-#include "otp.h"
 #include "shared_config.h"
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
