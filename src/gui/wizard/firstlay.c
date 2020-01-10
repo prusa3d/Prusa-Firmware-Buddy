@@ -333,7 +333,7 @@ const char *V2_gcodes_head_FLEX[] = {
 };
 const size_t V2_gcodes_head_FLEX_sz = sizeof(V2_gcodes_head_FLEX) / sizeof(V2_gcodes_head_FLEX[0]);
 
-//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575‬
+//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
 
 //todo generate me
 const char *V2_gcodes_body[] = {
