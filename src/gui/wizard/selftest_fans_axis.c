@@ -267,7 +267,7 @@ static int ph_wait_autohome(selftest_fans_axis_data_t *p_data,
 
 static const selftest_phase phasesX[] = {
 		ph_init,
-        ph_prepare_to_move_to_max,
+		ph_prepare_to_move_to_max,
 		ph_move_to_max,
 		ph_wait_motion,
 		ph_move_to_min,
@@ -276,20 +276,19 @@ static const selftest_phase phasesX[] = {
 		ph_move_to_max,
 		ph_wait_motion,
 		ph_measure_max,
-        ph_home_axis,
-        ph_restore_Xaxis,
-        ph_wait_autohome,
+		ph_home_axis,
+		ph_restore_Xaxis,
+		ph_wait_autohome,
 		ph_finish
 };
 
 static const _cl_st_ax axisX = {
-		sizeof(phasesX)/sizeof(phasesX[0]),
-		phasesX
+		sizeof(phasesX)/sizeof(phasesX[0]),	phasesX
 };
 
 static const selftest_phase phasesY[] = {
 		ph_init,
-        ph_prepare_to_move_to_max,
+		ph_prepare_to_move_to_max,
 		ph_move_to_max,
 		ph_wait_motion,
 		ph_move_to_min,
@@ -298,39 +297,38 @@ static const selftest_phase phasesY[] = {
 		ph_move_to_max,
 		ph_wait_motion,
 		ph_measure_max,
-        ph_home_axis,
-        ph_restore_Yaxis,
-        ph_wait_autohome,
+		ph_home_axis,
+		ph_restore_Yaxis,
+		ph_wait_autohome,
 		ph_finish
 };
 
 static const _cl_st_ax axisY = {
-		sizeof(phasesY)/sizeof(phasesY[0]),
-		phasesY
+		sizeof(phasesY)/sizeof(phasesY[0]),	phasesY
 };
 
 
 static const selftest_phase phasesZ[] = {
-        ph_home_all_axis,
-        ph_wait_autohome,
+		ph_home_all_axis,
+		ph_wait_autohome,
 		ph_move_to_max,
 		ph_wait_motion,
 		ph_measure_max,
 
-        //todo cannot measure position while moving down
-        //fixme
-        /*ph_init, //now disable endstops
+		//todo cannot measure position while moving down
+		//fixme
+		/*ph_init, //now disable endstops
 		ph_move_to_min,
 		ph_wait_motion,
 		ph_measure_min,
-        ph_home_axis,
-        ph_restore_Zaxis,
-        ph_wait_autohome,*/
+		ph_home_axis,
+		ph_restore_Zaxis,
+		ph_wait_autohome,*/
 
-        //autohome will reset coords
-        /*ph_home_axis,
-        ph_wait_autohome,
-        ph_measure_min,*/
+		//autohome will reset coords
+		/*ph_home_axis,
+		ph_wait_autohome,
+		ph_measure_min,*/
 		ph_finish
 };
 
