@@ -116,7 +116,7 @@ void gui_run(void) {
     // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
     // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
     if (st7789v_reset_delay > 1000) // threshold value is 1000
-        jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR;
+        jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR | JOGWHEEL_FLG_INV_ENC;
     //_dbg("delay=%u", st7789v_reset_delay);
 
     gui_defaults.font = resource_font(IDR_FNT_NORMAL);
