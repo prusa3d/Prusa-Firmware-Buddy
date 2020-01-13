@@ -21,9 +21,14 @@ static dlg_result_t _gui_dlg_change(void) {
     dlg_result_t res = _gui_dlg(&cl_unload, &ld_vars, -1); //-1 == 49710 days
     if (res == DLG_OK) {
         if (fs_get_state() == FS_NO_FILAMENT) {
-            if (gui_msgbox("The filament sensor failed to detect inserted filament. Disable the sensor?",
-                    MSGBOX_BTN_YESNO | MSGBOX_ICO_QUESTION)
-                == MSGBOX_RES_YES)
+            const char *btns[2] = { "RETRY", "DISABLE" };
+            if (gui_msgbox_ex(0, "No filament detected by the filament sensor. "
+                "Make sure the filament is inserted through the sensor and press RETRY. "
+                "To bypass the sensor, press DISABLE."
+                , MSGBOX_BTN_CUSTOM2 | MSGBOX_ICO_QUESTION,
+                rect_ui16(gui_defaults.msg_box_sz.x, gui_defaults.msg_box_sz.y,
+                gui_defaults.msg_box_sz.w, gui_defaults.msg_box_sz.h + 8), 0, btns)
+                == MSGBOX_RES_CUSTOM1)
                 fs_disable();
             else
                 fs_enable();
