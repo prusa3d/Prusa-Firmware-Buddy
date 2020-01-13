@@ -308,6 +308,9 @@ static void abort_print(screen_t *screen) {
     marlin_gcode("M104 S0");
     marlin_gcode("M140 S0");
     marlin_park_head();
+    while (marlin_vars()->pqueue) {
+        gui_loop();
+    }
 }
 
 static void open_popup_message(screen_t *screen) {
