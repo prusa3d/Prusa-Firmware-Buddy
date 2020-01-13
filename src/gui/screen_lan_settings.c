@@ -5,14 +5,18 @@
  *      Author: Migi
  */
 
+//#define STATIC_SAVE_LOAD_CONFIG
+
 #include "screen_lan_settings.h"
 #include "lwip/dhcp.h"
 #include "lwip/netifapi.h"
 #include "lwip.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#ifdef STATIC_SAVE_LOAD_CONFIG
 #include "ini.h"
 #include "ff.h"
+#endif //STATIC_SAVE_LOAD_CONFIG
 #include <string.h>
 
 #define MAC_ADDR_START 0x1FFF781A //MM:MM:MM:SS:SS:SS
@@ -22,18 +26,24 @@
 
 typedef enum {
     MI_RETURN,
+#ifdef STATIC_SAVE_LOAD_CONFIG
     MI_SAVE,
     MI_LOAD,
+#endif //STATIC_SAVE_LOAD_CONFIG
 } MI_t;
 
 static char *plan_str = NULL;
 static networkconfig_t config;
+#ifdef STATIC_SAVE_LOAD_CONFIG
 static const char ini_file_name[] = "/lan_settings.ini"; //change -> change msgboxes
 static char ini_file_str[MAX_INI_SIZE];
 extern bool media_is_inserted();
+#endif //STATIC_SAVE_LOAD_CONFIG
 const menu_item_t _menu_lan_items[] = {
+#ifdef STATIC_SAVE_LOAD_CONFIG
     { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+#endif //STATIC_SAVE_LOAD_CONFIG
 };
 
 static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t index,
@@ -71,7 +81,7 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
 }
 
 static void _parse_MAC_addr(char *mac_addr_str) {
-    uint8_t mac_addr[] = { 0, 0, 0, 0, 0, 0 };
+    volatile uint8_t mac_addr[] = { 0, 0, 0, 0, 0, 0 };
     for (uint8_t i = 0; i < MAC_ADDR_SIZE; i++)
         mac_addr[i] = *(volatile uint8_t *)(MAC_ADDR_START + i);
 
@@ -109,7 +119,9 @@ static void screen_lan_settings_init(screen_t *screen) {
     plsd->text.font = resource_font(IDR_FNT_SPECIAL);
 
     plsd->items[0] = menu_item_return;
+#ifdef STATIC_SAVE_LOAD_CONFIG
     memcpy(plsd->items + 1, _menu_lan_items, count * sizeof(menu_item_t));
+#endif //STATIC_SAVE_LOAD_CONFIG
     //============== DECLARE VARIABLES ================
 
     plan_str = (char *)gui_malloc(150 * sizeof(char));
@@ -130,6 +142,8 @@ static void screen_lan_settings_init(screen_t *screen) {
 
     plsd->text.text = plan_str;
 }
+#ifdef STATIC_SAVE_LOAD_CONFIG
+
 static uint8_t _save_ini_file(void) {
     //======= CONFIG -> INI STR ==========
 
@@ -195,7 +209,7 @@ static uint8_t _load_ini_file(void) {
 
     return 1;
 }
-
+#endif //STATIC_SAVE_LOAD_CONFIG
 static int screen_lan_settings_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
 
@@ -209,6 +223,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
     case MI_RETURN:
         screen_close();
         return 1;
+#ifdef STATIC_SAVE_LOAD_CONFIG
     case MI_SAVE:
         if (media_is_inserted() == false) {
             if (gui_msgbox("Please insert USB flash disk and try again.",
@@ -250,8 +265,8 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
             }
         }
         break;
+#endif //STATIC_SAVE_LOAD_CONFIG
     }
-
     return 0;
 }
 
