@@ -300,6 +300,16 @@ void screen_printing_done(screen_t *screen) {
 void screen_printing_draw(screen_t *screen) {
 }
 
+static void abort_print(screen_t *screen) {
+    marlin_print_abort();
+    while (marlin_vars()->sd_printing) {
+        gui_loop();
+    }
+    marlin_gcode("M104 S0");
+    marlin_gcode("M140 S0");
+    marlin_park_head();
+}
+
 static void open_popup_message(screen_t *screen) {
     window_hide(pw->w_etime_label.win.id);
     window_hide(pw->w_etime_value.win.id);
@@ -412,11 +422,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         } else if (gui_msgbox("Are you sure to stop this printing?",
                        MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
             == MSGBOX_RES_YES) {
-            marlin_print_abort();
-            while (marlin_vars()->sd_printing) {
-                gui_loop();
-            }
-            marlin_park_head();
+            abort_print(screen);
             screen_close();
             return 1;
         }
@@ -581,15 +587,15 @@ void screen_printing_printed(screen_t *screen) {
 }
 
 void screen_mesh_err_stop_print(screen_t *screen) {
-    double target_nozzle = marlin_vars()->target_nozzle;
-    double target_bed = marlin_vars()->target_bed;
+    float target_nozzle = marlin_vars()->target_nozzle;
+    float target_bed = marlin_vars()->target_bed;
     marlin_print_abort();
     while (marlin_vars()->sd_printing) {
         gui_loop();
     }
     //marlin_park_head();
-    marlin_gcode_printf("M104 S%F", target_nozzle);
-    marlin_gcode_printf("M140 S%F", target_bed);
+    marlin_gcode_printf("M104 S%F", (double)target_nozzle);
+    marlin_gcode_printf("M140 S%F", (double)target_bed);
     marlin_gcode("G0 Z30"); //Z 30mm
     marlin_gcode("M84"); //Disable steppers
     while (marlin_vars()->pqueue) {
