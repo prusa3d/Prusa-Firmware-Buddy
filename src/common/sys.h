@@ -1,10 +1,20 @@
 // sys.h - system functions
+#include "stdint.h"
+#include "shared_config.h"
+
 #ifndef _SYS_H
 #define _SYS_H
 
+
 #ifdef __cplusplus
+
+extern version_t &boot_version;                   // (address) from flash -> "volatile" is not necessary
+
 extern "C" {
 #endif //__cplusplus
+
+extern volatile data_exchange_t ram_data_exchange;
+
 
 extern void sys_reset(void);
 
