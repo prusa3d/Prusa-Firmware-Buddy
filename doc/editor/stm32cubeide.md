@@ -15,3 +15,11 @@ Generate and open the project:
 
 > 💡Changes to the generated project are not tracked by git.
 > The build is still driven by CMake; therefore, if you want to add a file or change some compiler settings, change it in CMakeLists.txt directly.
+
+### FAQ
+
+#### Error in final launch sequence: Failed to execute MI command ... and a looong file path
+
+<img src="stm32cubeide_issue_path.png" height="300" alt="screenshot of the error" />
+
+This happens when a debug configuration contains an _absolute_ path to the firmware. Just change it to a relative one (beginning with `build/`, or `build\` on windows).
