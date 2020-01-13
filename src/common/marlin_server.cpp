@@ -838,12 +838,13 @@ int _is_thermal_error(PGM_P const msg){
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
+    taskENTER_CRITICAL();//never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
     if (_is_thermal_error(msg)) {//todo remove me after new thermal manager
-        const marlin_vars_t &vars = marlin_server.vars; 
+        const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
     }else{
         general_error(msg, component);
-    } 
+    }
 }
 
 void onMediaInserted() {
