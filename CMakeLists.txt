@@ -226,7 +226,9 @@ endif()
 #
 # * Otherwise, with optimizations turned on, the firmware crashes on startup.
 # * TODO: investigate and potentially turn on again
-add_compile_options(-mno-unaligned-access)
+# caused by zlib, propagated this switch directly to it, seems to be solved now
+# keeping it commented here for emergency situations ;)
+# add_compile_options(-mno-unaligned-access)
 
 # configure linker script
 if(BOOTLOADER)
