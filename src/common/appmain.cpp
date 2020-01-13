@@ -87,6 +87,7 @@ void app_run(void) {
             for (int i = 0; i < hwio_fan_get_cnt(); ++i)
                 hwio_fan_set_pwm(i, 0); // disable fans
         }
+        init_tmc();
     } else
         app_setup();
     //DBG("after setup (%ld ms)", HAL_GetTick());
