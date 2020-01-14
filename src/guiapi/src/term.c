@@ -193,7 +193,7 @@ int vterm_printf(term_t *pt, const char *fmt, va_list va) {
     int ret;
     int i;
 
-    ret = vsnprintf(text,sizeof(text), fmt, va);
+    ret = vsnprintf(text, sizeof(text), fmt, va);
 
     for (i = 0; i < ret; i++)
         term_write_char(pt, text[i]);

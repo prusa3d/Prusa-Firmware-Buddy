@@ -28,7 +28,7 @@ fsensor_t fs_get_state();
 int fs_did_filament_runout(); //for arduino / marlin
 
 //switch behavior when M600 should be send
-void fs_send_M600_on_edge();//default behavior
+void fs_send_M600_on_edge(); //default behavior
 void fs_send_M600_on_level();
 void fs_send_M600_never();
 

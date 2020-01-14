@@ -127,7 +127,7 @@ int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *p
             screen_open(pscreen_test_temperature->id);
             return 1;
         case 7:
-            temp_error("TEST BED ERROR", "Bed",1.0,2.0,3.0,4.0);
+            temp_error("TEST BED ERROR", "Bed", 1.0, 2.0, 3.0, 4.0);
             return 1;
         case 8:
             screen_open(pscreen_test_disp_mem->id);

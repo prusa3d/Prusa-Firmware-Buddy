@@ -11,6 +11,6 @@ void StartMeasurementTask(void const *argument) {
     for (;;) {
         marlin_client_loop();
         fs_cycle();
-        osDelay(1);//have to wait at least few us, 1ms is very safe
+        osDelay(1); //have to wait at least few us, 1ms is very safe
     }
 }
