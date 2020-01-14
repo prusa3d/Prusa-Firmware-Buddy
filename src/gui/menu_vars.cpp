@@ -104,10 +104,10 @@ constexpr const char Z_home_gcode[] = {
 
 }
 
-constexpr const int32_t filament_change_slow_load_lenght = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
-constexpr const int32_t filament_change_fast_load_lenght = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
-constexpr const int32_t filament_change_slow_purge_lenght = 40;
-constexpr const float filament_unload_mini_lengt = 392.0F;
+constexpr const int32_t filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
+constexpr const int32_t filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
+constexpr const int32_t filament_change_slow_purge_length = 40;
+constexpr const float filament_unload_mini_length = 392.0F;
 
-constexpr const int32_t filament_change_full_load_lenght = filament_change_fast_load_lenght + filament_change_slow_load_lenght;
-constexpr const int32_t filament_change_full_purge_load_lenght = filament_change_full_load_lenght + filament_change_slow_purge_lenght;
+constexpr const int32_t filament_change_full_load_length = filament_change_fast_load_length + filament_change_slow_load_length;
+constexpr const int32_t filament_change_full_purge_load_length = filament_change_full_load_length + filament_change_slow_purge_length;

@@ -50,12 +50,12 @@ extern const char X_home_gcode[];
 extern const char Y_home_gcode[];
 extern const char Z_home_gcode[];
 
-extern const int32_t filament_change_slow_load_lenght;
-extern const int32_t filament_change_fast_load_lenght;
-extern const int32_t filament_change_full_load_lenght;
-extern const int32_t filament_change_slow_purge_lenght;
-extern const int32_t filament_change_full_purge_load_lenght;
-extern const float filament_unload_mini_lengt;
+extern const int32_t filament_change_slow_load_length;
+extern const int32_t filament_change_fast_load_length;
+extern const int32_t filament_change_full_load_length;
+extern const int32_t filament_change_slow_purge_length;
+extern const int32_t filament_change_full_purge_load_length;
+extern const float filament_unload_mini_length;
 
 #ifdef __cplusplus
 }
