@@ -323,12 +323,6 @@ static void abort_print(screen_t *screen) {
     while (marlin_vars()->sd_printing) {
         gui_loop();
     }
-    /*
-    while (marlin_vars()->gqueue) {
-        gui_loop();
-    }
-    marlin_gcode("M104 S0");
-    marlin_gcode("M140 S0");*/
     marlin_set_target_nozzle(0);
     marlin_set_target_bed(0);
     if (state__readonly__use_change_print_state != P_PAUSED)
