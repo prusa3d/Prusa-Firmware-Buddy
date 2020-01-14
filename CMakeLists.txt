@@ -225,9 +225,11 @@ endif()
 # disable unaligned access
 #
 # * Otherwise, with optimizations turned on, the firmware crashes on startup.
-# * TODO: investigate and potentially turn on again
-# caused by zlib, propagated this switch directly to it, seems to be solved now
-# keeping it commented here for emergency situations ;)
+#
+# The main problem was caused by zlib, thus this switch was propagated directly
+# to it, it seems to be solved now
+# And let's keep this line commented here for emergency situations ;)
+#
 # add_compile_options(-mno-unaligned-access)
 
 # configure linker script
