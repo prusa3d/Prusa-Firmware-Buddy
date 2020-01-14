@@ -21,7 +21,7 @@ const st7789v_config_t st7789v_cfg = {
     ST7789V_PIN_RST, // RST pin
     ST7789V_FLG_DMA, // flags (DMA, MISO)
     ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
-    ST7789V_DEF_MADCTL, // memory data access control penis penis (no mirror XY)
+    ST7789V_DEF_MADCTL, // memory data access control penis penis penis (no mirror XY)
 };
 
 const jogwheel_config_t jogwheel_cfg = {
