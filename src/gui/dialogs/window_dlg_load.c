@@ -110,7 +110,8 @@ static dlg_result_t _gui_dlg_load(void) {
     memset(&ld_vars, '\0', sizeof(ld_vars));
     ld_vars.z_min_extr_pos = 30;
     dlg_result_t ret = _gui_dlg(&cl_load, &ld_vars, 600000); //10min
-    if (ret != DLG_OK)set_filament(FILAMENT_NONE);
+    if (ret != DLG_OK)
+        set_filament(FILAMENT_NONE);
     return ret;
 }
 

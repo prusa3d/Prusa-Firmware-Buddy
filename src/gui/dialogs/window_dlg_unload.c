@@ -18,7 +18,6 @@ static dlg_result_t _gui_dlg_unload(void) {
     dlg_result_t ret = _gui_dlg(&cl_unload, &ld_vars, 300000); //5min
     set_filament(FILAMENT_NONE);
     return ret;
-
 }
 
 dlg_result_t gui_dlg_unload(void) {

@@ -315,10 +315,12 @@ void st7789v_reset(void) {
     gpio_init(st7789v_config.pinRST, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
     volatile uint16_t delay = 0;
     int irq = __get_PRIMASK() & 1;
-    if (irq) __disable_irq();
+    if (irq)
+        __disable_irq();
     while (!gpio_get(st7789v_config.pinRST))
         delay++;
-    if (irq) __enable_irq();
+    if (irq)
+        __enable_irq();
     gpio_init(st7789v_config.pinRST, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
     st7789v_set_rst();
     st7789v_reset_delay = delay;

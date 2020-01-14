@@ -91,8 +91,7 @@ void app_run(void) {
         app_setup();
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (defaults_loaded && marlin_server_processing())
-    {
+    if (defaults_loaded && marlin_server_processing()) {
         settings.reset();
 #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg);

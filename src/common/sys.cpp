@@ -13,7 +13,7 @@ int sys_pll_freq = 168000000;
 
 volatile data_exchange_t ram_data_exchange __attribute__((section(".boot_fw_data_exchange")));
 
-version_t &boot_version = *(version_t*)(BOOTLOADER_VERSION_ADDRESS); // (address) from flash -> "volatile" is not necessary
+version_t &boot_version = *(version_t *)(BOOTLOADER_VERSION_ADDRESS); // (address) from flash -> "volatile" is not necessary
 
 volatile uint8_t *psys_fw_valid = (uint8_t *)0x080FFFFF; //last byte in the flash
 

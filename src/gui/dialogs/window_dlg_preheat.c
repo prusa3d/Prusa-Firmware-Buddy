@@ -176,7 +176,6 @@ int gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
     return fil;
 }
 
-
 //returns index or -1 on timeout
 //todo make this independet on preheat, in separate file
 //todo caption is not showing
