@@ -135,6 +135,22 @@ void reset_print_state(void) {
 
 #pragma pack(pop)
 
+
+class Lock{
+    static bool locked;
+public:
+    Lock(){
+        locked = true;
+    }
+    static bool IsLocked(){
+        return locked;
+    }
+    ~Lock(){
+        locked = false;
+    }
+};
+bool Lock::locked = false;
+
 void screen_printing_init(screen_t *screen);
 void screen_printing_done(screen_t *screen);
 void screen_printing_draw(screen_t *screen);
@@ -307,8 +323,14 @@ static void abort_print(screen_t *screen) {
     while (marlin_vars()->sd_printing) {
         gui_loop();
     }
+    /*
+    while (marlin_vars()->gqueue) {
+        gui_loop();
+    }
     marlin_gcode("M104 S0");
-    marlin_gcode("M140 S0");
+    marlin_gcode("M140 S0");*/
+    marlin_set_target_nozzle(0);
+    marlin_set_target_bed(0);
     if (state__readonly__use_change_print_state != P_PAUSED)
         marlin_park_head();
     while (marlin_vars()->pqueue) {
@@ -343,7 +365,12 @@ static void close_popup_message(screen_t *screen) {
     pw->message_flag = 0;
 }
 
+
+
 int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    if (Lock::IsLocked())return 0;
+    Lock l;
+
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
         open_popup_message(screen);
         return 0;
@@ -431,15 +458,18 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         case P_RESUMING:
             return 0;
         default:
+        {
             if (gui_msgbox("Are you sure to stop this printing?",
-                       MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
-                        == MSGBOX_RES_YES)
+                MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
+                    == MSGBOX_RES_YES)
             {
                 abort_print(screen);
                 screen_close();
                 return 1;
             }
             else return 0;
+        }
+
         }
         break;
     }
