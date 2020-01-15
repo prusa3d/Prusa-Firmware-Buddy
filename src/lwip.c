@@ -57,6 +57,7 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "eeprom.h"
 #include "dbg.h"
 
 /* USER CODE END 0 */
@@ -80,8 +81,30 @@ void netif_link_callback(struct netif *eth) {
     ethernetif_update_config(eth);
 
     if (netif_is_link_up(eth)) {
-        netif_set_up(eth);
-        dhcp_start(eth);
+        if(eeprom_get_var(EEVAR_LAN_TYPE).ui8 == 1){
+            //if(eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32 == 0)
+            ip4_addr_t ip4_addr, ip4_msk, ip4_gw; //, ip4_dns1, ip4_dns2;
+            ip4_addr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
+            ip4_msk.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
+            ip4_gw.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
+            //ip4_dns1.addr = eeprom_get_var(EEVAR_LAN_IP4_DNS1).ui32;
+            //ip4_dns2.addr = eeprom_get_var(EEVAR_LAN_IP4_DNS2).ui32;
+
+            netif_set_addr(eth,
+                (const ip4_addr_t *)&ip4_addr,
+                (const ip4_addr_t *)&ip4_msk,
+                (const ip4_addr_t *)&ip4_gw);
+
+            //dns_setserver(0, (const ip4_addr_t *)&ip4_dns1);
+            //dns_setserver(1, (const ip4_addr_t *)&ip4_dns2);
+
+            netif_set_up(eth);
+            dhcp_inform(eth);   //inform dhcp server about fixed ip addr config
+
+        } else {
+            netif_set_up(eth);
+            dhcp_start(eth);
+        }
     } else {
         netif_set_down(eth);
     }
