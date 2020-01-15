@@ -135,6 +135,22 @@ void reset_print_state(void) {
 
 #pragma pack(pop)
 
+
+class Lock{
+    static bool locked;
+public:
+    Lock(){
+        locked = true;
+    }
+    static bool IsLocked(){
+        return locked;
+    }
+    ~Lock(){
+        locked = false;
+    }
+};
+bool Lock::locked = false;
+
 void screen_printing_init(screen_t *screen);
 void screen_printing_done(screen_t *screen);
 void screen_printing_draw(screen_t *screen);
@@ -301,13 +317,16 @@ void screen_printing_draw(screen_t *screen) {
 }
 
 static void abort_print(screen_t *screen) {
+    if (state__readonly__use_change_print_state == P_PAUSED)
+            marlin_print_resume();
     marlin_print_abort();
     while (marlin_vars()->sd_printing) {
         gui_loop();
     }
-    marlin_gcode("M104 S0");
-    marlin_gcode("M140 S0");
-    marlin_park_head();
+    marlin_set_target_nozzle(0);
+    marlin_set_target_bed(0);
+    if (state__readonly__use_change_print_state != P_PAUSED)
+        marlin_park_head();
     while (marlin_vars()->pqueue) {
         gui_loop();
     }
@@ -340,7 +359,12 @@ static void close_popup_message(screen_t *screen) {
     pw->message_flag = 0;
 }
 
+
+
 int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    if (Lock::IsLocked())return 0;
+    Lock l;
+
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
         open_popup_message(screen);
         return 0;
@@ -419,15 +443,27 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     case BUTTON_STOP:
         //todo it is static, because menu tune is not dialog
         //if(pw->state__readonly__use_change_print_state == P_PRINTED)
-        if (state__readonly__use_change_print_state == P_PRINTED) {
+        switch(state__readonly__use_change_print_state)
+        {
+        case P_PRINTED:
             screen_close();
             return 1;
-        } else if (gui_msgbox("Are you sure to stop this printing?",
-                       MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
-            == MSGBOX_RES_YES) {
-            abort_print(screen);
-            screen_close();
-            return 1;
+        case P_PAUSING:
+        case P_RESUMING:
+            return 0;
+        default:
+        {
+            if (gui_msgbox("Are you sure to stop this printing?",
+                MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
+                    == MSGBOX_RES_YES)
+            {
+                abort_print(screen);
+                screen_close();
+                return 1;
+            }
+            else return 0;
+        }
+
         }
         break;
     }
@@ -696,9 +732,16 @@ void set_stop_icon_and_label(screen_t *screen) {
     //switch (pw->state__readonly__use_change_print_state)
     switch (state__readonly__use_change_print_state) {
     case P_PRINTED:
+        enable_button(p_button);
         set_icon_and_label(iid_home, btn_id, lbl_id);
         break;
+    case P_PAUSING:
+    case P_RESUMING:
+        disable_button(p_button);
+        set_icon_and_label(iid_stop, btn_id, lbl_id);
+        break;
     default:
+        enable_button(p_button);
         set_icon_and_label(iid_stop, btn_id, lbl_id);
         break;
     }
