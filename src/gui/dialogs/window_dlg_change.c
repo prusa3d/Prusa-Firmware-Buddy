@@ -20,7 +20,7 @@ static dlg_result_t _gui_dlg_change(void) {
     ld_vars.z_min_extr_pos = 10;
     dlg_result_t res = _gui_dlg(&cl_unload, &ld_vars, -1); //-1 == 49710 days
     if (res == DLG_OK) {
-        if (fs_get_state() == FS_NO_FILAMENT) {
+        /*if (fs_get_state() == FS_NO_FILAMENT) {
             const char *btns[2] = { "RETRY", "DISABLE" };
             if (gui_msgbox_ex(0, "No filament detected by the filament sensor. "
                 "Make sure the filament is inserted through the sensor and press RETRY. "
@@ -32,7 +32,7 @@ static dlg_result_t _gui_dlg_change(void) {
                 fs_disable();
             else
                 fs_enable();
-        }
+        }*/
     }
     return res;
 }
