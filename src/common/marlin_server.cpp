@@ -344,6 +344,7 @@ void marlin_server_print_abort(void) {
     wait_for_heatup = wait_for_user = false;
     card.flag.abort_sd_printing = true;
     print_job_timer.stop();
+    queue.clear();
     //	planner.quick_stop();
     //	marlin_server_park_head();
     //	planner.synchronize();
