@@ -117,7 +117,6 @@ target_compile_definitions(
   MOTHERBOARD=${MOTHERBOARD}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
   FW_VERSION=${VER_MAJOR}${VER_MINOR}${VER_PATCH}
-  FW_BUILDNR=${BUILD_NUMBER}
   $<$<BOOL:${PRERELEASE}>:PRERELEASE=${PRERELEASE}>
   MARLIN_DISABLE_INFINITE_LOOP
   STM32GENERIC
@@ -453,4 +452,10 @@ target_sources(
           src/wui/lwsapi.cpp
           src/wui/connect.cpp
           src/wui/connection.cpp
+  )
+
+set_property(
+  SOURCE src/common/version.c
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS FW_BUILDNR=${BUILD_NUMBER}
   )
