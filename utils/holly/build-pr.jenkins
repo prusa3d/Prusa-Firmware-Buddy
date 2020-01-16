@@ -13,9 +13,14 @@ pipeline {
                         [printer: "mini", build_type: "release", bootloader: "no"],
                         [printer: "mini", build_type: "release", bootloader: "empty"],
                     ]
+                    if (env.BRANCH_NAME.startswith("RELEASE-")) {
+                        prerelease = "RC"
+                    } else {
+                        prerelease = "BETA"
+                    }
                     configurations.each { config ->
                         stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
-                            sh "python utils/build.py --printer ${config.printer} --build-type ${config.build_type} --bootloader ${config.bootloader} --generate-bbf --no-store-output"
+                            sh "python utils/build.py --printer ${config.printer} --build-type ${config.build_type} --bootloader ${config.bootloader} --generate-bbf --no-store-output --prerelease ${prerelease}"
                         }
                     }
                 }
