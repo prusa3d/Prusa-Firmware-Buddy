@@ -9,7 +9,8 @@
 2. Install [ccls](https://github.com/MaskRay/ccls) on your system
     - Linux: `sudo snap install ccls --classic` ([full instructions](https://snapcraft.io/ccls))
     - Mac: `brew install ccls`
-    - Windows:
+    - <details>
+        <summary>Windows</summary>
         1. Download our precompiled binaries from [here](https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/windows_tools.zip).
         2. Unzip them to `C:\Tools` so your file structure looks like this:
 
@@ -26,11 +27,13 @@
                 ```JSON
                 "ccls.launch.command": "c:\\Tools\\lsp-ccls\\bin\\ccls.exe",
                 ```
+        </details>
 
 3. Install OpenOCD
     - Linux: `sudo apt install openocd`
     - Mac: `brew install openocd`
-    - Windows:
+    - <details>
+        <summary>Windows</summary>
         1. Download the latest version from [here](https://gnutoolchains.com/arm-eabi/openocd).
         2. Extract the content to some permanent location.
         3. In vscode, Ctrl+Shift+P and `Preferences: Open Settings (JSON)`
@@ -39,5 +42,15 @@
             ```json
             "cortex-debug.openocdPath": "c:\\Path\\To\\openocd.exe"
             ```
+        </details>
 
 3. In Visual Studio Code, open the directory with this repository.
+
+### FAQ
+
+#### OpenOCD: Error: Can't find interface/stlink.cfg
+
+Most likely, your OpenOCD is too old (or let's rephrase it - not new enough). The general solution is to uninstall it and build it from source yourself! Yay! 💪
+
+1. `git clone https://github.com/ntfreak/openocd.git`
+2. And follow the instructions in the readme (your are mostly interested in `OpenOCD Dependencies` and `Compiling OpenOCD`).

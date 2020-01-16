@@ -81,9 +81,9 @@ static int f_CH_WAIT_E_POS__RAMMING(_dlg_vars *p_vars, _dlg_ld_vars *additional_
 static int f_CH_WAIT_E_POS__UNLOADING(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
     // 8 ... -392
     float pos = additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - additional_vars->e_start;
-    if (pos < -391.9F)
+    if (pos < (filament_unload_mini_length - 1.0F))
         p_vars->phase++;
-    return 100 * (8.0F - pos) / (392 + 8);
+    return 100 * (8.0F - pos) / (filament_unload_mini_length + 8);
 }
 
 static int f_CH_INIT(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
@@ -126,26 +126,26 @@ static int f_CH_WAIT_E_POS__INSERTING(_dlg_vars *p_vars, _dlg_ld_vars *additiona
     }
     float pos = additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - additional_vars->e_start;
     //wait E pos >= 40
-    if (pos >= 40)
+    if (pos >= filament_change_slow_load_length)
         p_vars->phase++;
-    return 100 * (pos) / 40;
+    return 100 * (pos) / filament_change_slow_load_length;
 }
 
 static int f_CH_WAIT_E_POS__LOADING_TO_NOZ(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
     //wait E pos >= 360
     float pos = additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - additional_vars->e_start;
-    if (pos >= 360)
+    if (pos >= filament_change_full_load_length)
         p_vars->phase++;
-    float ret = 100 * (pos - 40) / (360 - 40);
+    float ret = 100 * (pos - filament_change_slow_load_length) / (filament_change_full_load_length - filament_change_slow_load_length);
     return ret;
 }
 
 static int f_CH_WAIT_E_POS__PURGING(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
     //wait E pos >= 400
     float pos = additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - additional_vars->e_start;
-    if ((pos >= 400) && (marlin_motion() == 0))
+    if ((pos >= filament_change_full_purge_load_length) && (marlin_motion() == 0))
         p_vars->phase++;
-    return 100 * (pos - 360) / (400 - 360);
+    return 100 * (pos - filament_change_full_load_length) / (filament_change_full_purge_load_length - filament_change_full_load_length);
 }
 
 static int f_CH_CHECK_MARLIN_EVENT(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {

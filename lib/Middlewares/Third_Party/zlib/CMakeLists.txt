@@ -17,4 +17,6 @@ add_library(
   zutil.c
   )
 
+target_compile_options(zlib PUBLIC -mno-unaligned-access)
+
 target_include_directories(zlib PUBLIC .)
