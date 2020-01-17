@@ -3,8 +3,6 @@
 #include "Wire.h"
 #include "cmsis_os.h"
 
-extern I2C_HandleTypeDef hi2c1;
-
 uint16_t i2c_dev_address = 0;
 
 TwoWire::TwoWire(void) {
