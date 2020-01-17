@@ -14,7 +14,7 @@ pipeline {
                         [printer: "mini", build_type: "release", bootloader: "no"],
                         [printer: "mini", build_type: "release", bootloader: "empty"],
                     ]
-                    if (env.BRANCH_NAME.startswith("RELEASE-")) {
+                    if (env.BRANCH_NAME.startsWith("RELEASE-")) {
                         prerelease = "RC"
                     } else {
                         prerelease = "BETA"
