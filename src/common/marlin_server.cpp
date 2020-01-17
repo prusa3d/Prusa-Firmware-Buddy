@@ -1072,7 +1072,8 @@ void host_action_prompt_show() {
                 break;
             case HOST_PROMPT_BTN_PurgeMore:
                 do_pause_e_move(ADVANCED_PAUSE_PURGE_LENGTH, ADVANCED_PAUSE_PURGE_FEEDRATE);
-                paused = 0; //TODO: temporarily skip the loop because of unload UI
+                _send_notify_event(MARLIN_EVT_HostPrompt, ui32, 0);
+                paused = 1; //TODO: temporarily skip the loop because of unload UI
                 break;
             default:
                 paused = 0;
