@@ -15,7 +15,7 @@
 #define EEVAR_RUN_XYZCALIB 0x07
 #define EEVAR_RUN_FIRSTLAY 0x08
 #define EEVAR_FSENSOR_ENABLED 0x09
-#define EEVAR_LAN_TYPE 0x0A
+#define EEVAR_LAN_FLAG 0x0A // & 1 = On/off, & 2 = dhcp/static
 #define EEVAR_LAN_IP4_ADDR 0x0B
 #define EEVAR_LAN_IP4_MSK 0x0C
 #define EEVAR_LAN_IP4_GW 0x0D
@@ -30,6 +30,8 @@
 #define EEVAR_LAN_HOSTNAME_6 0x16
 
 #define LAN_HOSTNAME_MAX_LEN 7
+#define LAN_EEFLG_ONOFF 1
+#define LAN_EEFLG_TYPE 2
 
 #ifdef __cplusplus
 extern "C" {

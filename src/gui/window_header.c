@@ -11,6 +11,7 @@
 #include "marlin_client.h"
 #include "lwip/netif.h"
 #include "lwip/dhcp.h"
+#include "eeprom.h"
 
 extern bool media_is_inserted();
 
@@ -39,11 +40,19 @@ void window_header_init(window_header_t *window) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
     }
 
-    if (netif_is_up(&eth0)) {
-        if (dhcp_supplied_address(&eth0)) {
-            window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ACTIVE;
+    if (netif_is_link_up(&eth0)) {
+        if(eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE){
+            if (netif_is_up(&eth0)) {
+                window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ACTIVE;
+            } else {
+                window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ON;
+            }
         } else {
-            window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ON;
+            if (dhcp_supplied_address(&eth0)) {
+                window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ACTIVE;
+            } else {
+                window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ON;
+            }
         }
     }
 
@@ -156,11 +165,19 @@ void p_window_header_set_text(window_header_t *window, const char *text) {
 
 int p_window_header_event_clr(window_header_t *window, uint8_t evt_id) {
     /* lwip fces only read states, invalid states by another thread never mind */
-    if (netif_is_up(&eth0)) {
-        if (dhcp_supplied_address(&eth0)) {
-            p_window_header_icon_active(window, HEADER_ICON_LAN);
+    if (netif_is_link_up(&eth0)) {
+        if(eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE){
+            if (netif_is_up(&eth0)) {
+                p_window_header_icon_active(window, HEADER_ICON_LAN);
+            } else {
+                p_window_header_icon_on(window, HEADER_ICON_LAN);
+            }
         } else {
-            p_window_header_icon_on(window, HEADER_ICON_LAN);
+            if (dhcp_supplied_address(&eth0)) {
+                p_window_header_icon_active(window, HEADER_ICON_LAN);
+            } else {
+                p_window_header_icon_on(window, HEADER_ICON_LAN);
+            }
         }
     } else {
         p_window_header_icon_off(window, HEADER_ICON_LAN);
