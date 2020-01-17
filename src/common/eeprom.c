@@ -21,7 +21,7 @@ const uint8_t eeprom_map_v1[] = {
     VARIANT8_UI8, // EEVAR_RUN_XYZCALIB
     VARIANT8_UI8, // EEVAR_RUN_FIRSTLAY
     VARIANT8_UI8, // EEVAR_FSENSOR_ENABLED
-    VARIANT8_UI8, // EEVAR_LAN_TYPE
+    VARIANT8_UI8, // EEVAR_LAN_FLAG
     VARIANT8_UI32, // EEVAR_LAN_IP4_ADDR
     VARIANT8_UI32, // EEVAR_LAN_IP4_MSK
     VARIANT8_UI32, // EEVAR_LAN_IP4_GW
@@ -47,7 +47,7 @@ const char *eeprom_var_name[] = {
     "RUN_XYZCALIB",
     "RUN_FIRSTLAY",
     "FSENSOR_ENABLED",
-    "EEVAR_LAN_TYPE",
+    "EEVAR_LAN_FLAG",
     "EEVAR_LAN_IP4_ADDR",
     "EEVAR_LAN_IP4_MSK",
     "EEVAR_LAN_IP4_GW",
@@ -172,7 +172,7 @@ variant8_t eeprom_var_default(uint8_t id) {
         return variant8_ui8(1);
     case EEVAR_FSENSOR_ENABLED:
         return variant8_ui8(0);
-    case EEVAR_LAN_TYPE:
+    case EEVAR_LAN_FLAG:
         return variant8_ui8(0);
     case EEVAR_LAN_IP4_ADDR:
         return variant8_ui32(0);
@@ -224,7 +224,7 @@ int eeprom_var_sprintf(char *str, uint8_t id, variant8_t var) {
     case EEVAR_VERSION:
         return sprintf(str, "%u", (unsigned int)var.ui16);
     case EEVAR_FILAMENT_TYPE:
-    case EEVAR_LAN_TYPE:
+    case EEVAR_LAN_FLAG:
         return sprintf(str, "%u", (unsigned int)var.ui8);
     case EEVAR_FILAMENT_COLOR:
         return sprintf(str, "0x%08lx", (unsigned long)var.ui32);
