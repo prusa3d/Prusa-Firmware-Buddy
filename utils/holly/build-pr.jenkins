@@ -2,6 +2,7 @@ pipeline {
     agent {
         dockerfile {
             filename 'utils/holly/Dockerfile'
+            additionalBuildArgs '-t prusa-firmware-buddy'
         }
     }
 
