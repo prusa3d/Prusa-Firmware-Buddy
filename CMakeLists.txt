@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 
-project(A3ides LANGUAGES C CXX ASM)
+project(Buddy LANGUAGES C CXX ASM)
 
 if(NOT CMAKE_CROSSCOMPILING)
   #
