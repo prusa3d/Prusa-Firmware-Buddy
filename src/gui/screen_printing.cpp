@@ -317,16 +317,22 @@ void screen_printing_draw(screen_t *screen) {
 }
 
 static void abort_print(screen_t *screen) {
+    //must set temperatures to zero
+    //if not, and nozzle is cold - marlin would break and next print will stack
+    marlin_set_target_nozzle(0);
+    marlin_set_target_bed(0);
     if (state__readonly__use_change_print_state == P_PAUSED)
-            marlin_print_resume();
+    {
+        marlin_print_resume();
+    }
     marlin_print_abort();
+
     while (marlin_vars()->sd_printing) {
         gui_loop();
     }
     marlin_set_target_nozzle(0);
     marlin_set_target_bed(0);
-    if (state__readonly__use_change_print_state != P_PAUSED)
-        marlin_park_head();
+    marlin_park_head();
     while (marlin_vars()->pqueue) {
         gui_loop();
     }
