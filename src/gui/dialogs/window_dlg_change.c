@@ -1,5 +1,6 @@
 // window_dlg_change.c
 
+#include "window_dlg_change.h"
 #include "gui.h"
 #include "window_dlg_statemachine.h"
 #include "marlin_client.h"
@@ -23,8 +24,6 @@ static dlg_result_t _gui_dlg_change(void) {
 }
 
 dlg_result_t gui_dlg_change(void) {
-    //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    //if (gui_dlg_preheat_autoselect_if_able(NULL) < 1) return DLG_ABORTED;//user can choose "RETURN"
     return _gui_dlg_change();
 }
 
@@ -114,13 +113,13 @@ static int f_CH_FILAMENT_SENSOR(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars
         p_vars->flags &= ~DLG_BT_FLG;//clr btn to be safe
         p_vars->phase--;
     }
-    else{
+  /*  else{
         if (p_vars->flags & DLG_BT_FLG) {//DISABLE SENSOR
             p_vars->flags &= ~DLG_BT_FLG;
             fs_disable();
             p_vars->phase++;
         }
-    }
+    }*/
     return 0;
 }
 
@@ -207,8 +206,8 @@ static const _dlg_state unload_states[] = {
     { 10000, window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__UNLOADING },
     { 0, window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis, (dlg_state_func)f_SH_WAIT_E_STOPPED },
     { 0, window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", &bt_cont_ena, (dlg_state_func)f_CH_INSERT_FILAMENT },
-    { 0, window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", &bt_disable_ena, (dlg_state_func)f_CH_FILAMENT_SENSOR },
-    { 6000, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__INSERTING },
+	{ 0, window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", &bt_cont_dis, (dlg_state_func)f_CH_FILAMENT_SENSOR },
+	{ 6000, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__INSERTING },
     { 10000, window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__LOADING_TO_NOZ },
     { 10000, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__PURGING },
     { 0, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_none, (dlg_state_func)f_CH_CHECK_MARLIN_EVENT },
