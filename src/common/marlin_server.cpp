@@ -804,6 +804,14 @@ int _server_set_var(char *name_val_str) {
 
 } // extern "C"
 
+void force_M600_begin_notify() {
+	_send_notify_event(MARLIN_EVT_CommandBegin, MARLIN_CMD_M600, 0);
+}
+
+void force_M600_end_notify() {
+	_send_notify_event(MARLIN_EVT_CommandEnd, MARLIN_CMD_M600, 0);
+}
+
 //-----------------------------------------------------------------------------
 // ExtUI event handlers
 
