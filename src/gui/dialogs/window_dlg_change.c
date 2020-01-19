@@ -16,10 +16,12 @@
 static const _cl_dlg cl_unload;
 
 static dlg_result_t _gui_dlg_change(void) {
+    int st = fs_get_isenabled_and_disable();//remember fs state
     _dlg_ld_vars ld_vars;
     memset(&ld_vars, '\0', sizeof(ld_vars));
     ld_vars.z_min_extr_pos = 10;
     dlg_result_t res = _gui_dlg(&cl_unload, &ld_vars, -1); //-1 == 49710 days
+    fs_restore_isenabled(st);//restore fs state
     return res;
 }
 
