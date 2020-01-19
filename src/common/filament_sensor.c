@@ -106,6 +106,19 @@ void fs_disable() {
     taskEXIT_CRITICAL();
 }
 
+int fs_get_isenabled_and_disable() {
+    taskENTER_CRITICAL();
+    int ret = state == FS_DISABLED;
+    _disable();
+    taskEXIT_CRITICAL();
+    return ret;
+}
+void fs_restore_isenabled(int was_enabled) {
+    taskENTER_CRITICAL();
+    was_enabled ? _enable() : _disable();;
+    taskEXIT_CRITICAL();
+}
+
 fsensor_t fs_wait_inicialized() {
     fsensor_t ret = fs_get_state();
     while (ret == FS_NOT_INICIALIZED) {

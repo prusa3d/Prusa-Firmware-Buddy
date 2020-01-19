@@ -35,6 +35,8 @@ void fs_send_M600_never();
 //thread safe functions, but cannot be called from interrupt
 void fs_enable();
 void fs_disable();
+int fs_get_isenabled_and_disable();
+void fs_restore_isenabled(int was_enabled);
 fsensor_t fs_wait_inicialized();
 
 //not thread safe functions
