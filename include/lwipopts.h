@@ -142,8 +142,10 @@ extern "C" {
     /*-----------------------------------------------------------------------------*/
     /* USER CODE BEGIN 1 */
     // #define LWIP_HTTPD_CUSTOM_FILES       0  // option to open file from FAT file system
-    #define HTTPD_USE_CUSTOM_FSDATA 1 // uses the web resources from fsdata_custom.c
-    #define LWIP_HTTPD_DYNAMIC_FILE_READ 1
+    //#define HTTPD_USE_CUSTOM_FSDATA 1 // uses the web resources from fsdata_custom.c
+    //#define LWIP_HTTPD_DYNAMIC_FILE_READ 1
+	#define LWIP_NETIF_API 1	// enable LWIP_NETIF_API==1: Support netif api (in netifapi.c)
+	#define LWIP_NETIF_LINK_CALLBACK	1	//LWIP_NETIF_LINK_CALLBACK==1: Support a callback function from an interface
 /* USER CODE END 1 */
 
     #ifdef __cplusplus
