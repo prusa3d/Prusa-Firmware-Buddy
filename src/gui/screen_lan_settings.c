@@ -69,11 +69,6 @@ static void _get_ip4_addrs(void) {
                 config.lan_ip4_msk.addr = netif_ip4_netmask(&eth0)->addr;
                 config.lan_ip4_gw.addr = netif_ip4_gw(&eth0)->addr;
                 return;
-            } else {
-                config.lan_ip4_addr.addr = 0;
-                config.lan_ip4_msk.addr = 0;
-                config.lan_ip4_gw.addr = 0;
-                return;
             }
         }
     }
@@ -104,7 +99,7 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
         snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s",
             config.lan_flag & LAN_EEFLG_TYPE ? save_static : save_dhcp, save_hostname, ip4_addr_str, ip4_msk_str, ip4_gw_str);
     } else {
-        snprintf(plan_str, 150, "IPv4 Address:\n    %s      \nIPv4 Netmask:\n    %s      \nIPv4 Gateway:\n    %s      \nMAC Address:\n    %s",
+        snprintf(plan_str, 150, "IPv4 Address:\n  %s      \nIPv4 Netmask:\n  %s      \nIPv4 Gateway:\n  %s      \nMAC Address:\n  %s",
             ip4_addr_str, ip4_msk_str, ip4_gw_str, param_str);
     }
 }
@@ -201,14 +196,13 @@ static uint8_t _save_ini_file(void) {
     return 1;
 }
 
-void _change_any_to_static(){
+static void _change_any_to_static(){
     if(netif_is_up(&eth0)){                 //kdyz vypnu LAN a pak zmenim z dhcp na static tak to nevypne dhcp
         netifapi_netif_set_down(&eth0);
     }
     config.lan_flag |= LAN_EEFLG_TYPE;
     eeprom_set_var(EEVAR_LAN_FLAG, variant8_ui8(config.lan_flag));
 
-    //if(eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32 != 0){ pokud jsou ulozeny defaulty, tak nechat dhcp adresy a ulozit je do eeprom? }
     //ip4_addr_t ip4_dns1, ip4_dns2;
     config.lan_ip4_addr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
     config.lan_ip4_msk.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
@@ -226,7 +220,7 @@ void _change_any_to_static(){
     }
 }
 
-void _change_static_to_dhcp(){
+static void _change_static_to_dhcp(){
     if(netif_is_up(&eth0)){
         netifapi_netif_set_down(&eth0);
     }
@@ -356,6 +350,14 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
     }
     case MI_TYPE: {
         if(!(config.lan_flag & LAN_EEFLG_TYPE)){
+            if(eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32 == 0){
+                if (gui_msgbox("Static IPv4 addresses were not set.",
+                    MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
+                    == MSGBOX_RES_OK) {
+                }
+
+                return 0;
+            }
             _change_any_to_static();
             _addrs_to_str(plsd->mac_addr_str, 0);
             plsd->text.text = plan_str;
