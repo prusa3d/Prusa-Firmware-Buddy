@@ -11,7 +11,14 @@
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
             "configFiles": ["${workspaceRoot}/utils/cproject/A3ides-Debug-OpenOCD.cfg"],
             "toolchainPrefix": "arm-none-eabi",
-            "rtos": "FreeRTOS"
+            "rtos": "FreeRTOS",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
         }
     ]
 }
