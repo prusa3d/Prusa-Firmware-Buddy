@@ -354,8 +354,8 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                 if (gui_msgbox("Static IPv4 addresses were not set.",
                     MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                     == MSGBOX_RES_OK) {
+                    plsd->items[MI_TYPE].item.wi_switch_select.index = 0;
                 }
-
                 return 0;
             }
             _change_any_to_static();
