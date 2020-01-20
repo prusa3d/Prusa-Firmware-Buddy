@@ -32,7 +32,7 @@
 
 3. Install OpenOCD
     - Linux: `sudo apt install openocd`
-    - Mac: `brew install openocd`
+    - Mac: `brew install openocd --HEAD`
     - <details>
         <summary>Windows</summary>
         1. Download the latest version from [here](https://gnutoolchains.com/arm-eabi/openocd).
