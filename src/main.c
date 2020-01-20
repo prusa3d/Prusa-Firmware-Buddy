@@ -262,7 +262,7 @@ int main(void) {
     idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
 
     /* definition and creation of webServerTask */
-    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, 4096);
+    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, 512);
     webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
 
     /* USER CODE BEGIN RTOS_THREADS */
@@ -1026,7 +1026,7 @@ void StartWebServerTask(void const *argument) {
     /* Infinite loop */
     for (;;) {
         osDelay(1);
-        marlin_client_loop();
+        marlin_var_update();
     }
     /* USER CODE END StartWebServerTask */
 }
