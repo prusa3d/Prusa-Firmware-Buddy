@@ -242,7 +242,7 @@ int marlin_server_loop(void) {
             //_dbg("SVR: READY");
             marlin_server.flags &= ~MARLIN_SFLG_BUSY;
             _send_notify_event(MARLIN_EVT_Ready, 0, 0);
-            if (marlin_server.command != MARLIN_CMD_NONE) {
+            if ((marlin_server.command != MARLIN_CMD_NONE)&&(marlin_server.command != MARLIN_CMD_M600)) {
                 _send_notify_event(MARLIN_EVT_CommandEnd, marlin_server.command, 0);
                 marlin_server.command = MARLIN_CMD_NONE;
             }
@@ -805,10 +805,12 @@ int _server_set_var(char *name_val_str) {
 } // extern "C"
 
 void force_M600_begin_notify() {
+	marlin_server.command = MARLIN_CMD_M600;
 	_send_notify_event(MARLIN_EVT_CommandBegin, MARLIN_CMD_M600, 0);
 }
 
 void force_M600_end_notify() {
+	marlin_server.command = MARLIN_CMD_NONE;
 	_send_notify_event(MARLIN_EVT_CommandEnd, MARLIN_CMD_M600, 0);
 }
 
