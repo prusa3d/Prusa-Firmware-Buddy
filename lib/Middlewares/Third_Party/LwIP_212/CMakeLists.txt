@@ -94,6 +94,4 @@ target_include_directories(
          src/include/posix
   )
 
-target_compile_definitions(LwIP_212 PUBLIC LWIP_HTTPD_CUSTOM_FILES=$<BOOL:${LWIP_HTTPD_CUSTOM_FILES}>)
-
 target_link_libraries(LwIP_212 PUBLIC LwIP_Config)
