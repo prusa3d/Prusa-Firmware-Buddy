@@ -22,6 +22,8 @@ extern void app_tim6_tick(void);
 
 extern void app_tim14_tick(void);
 
+extern void app_usbhost_reenum(void);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
