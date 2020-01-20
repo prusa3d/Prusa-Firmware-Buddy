@@ -38,6 +38,7 @@ typedef struct{
 }status_t;
 static status_t status = { 0, M600_on_edge, 0};
 
+static void _init();
 /*---------------------------------------------------------------------------*/
 //local functions
 
@@ -77,17 +78,23 @@ int fs_did_filament_runout() {
 
 void fs_send_M600_on_edge()
 {
+	taskENTER_CRITICAL();
     status.send_M600_on = M600_on_edge;
+    taskEXIT_CRITICAL();
 }
 
 void fs_send_M600_on_level()
 {
+	taskENTER_CRITICAL();
     status.send_M600_on = M600_on_level;
+    taskEXIT_CRITICAL();
 }
 
 void fs_send_M600_never()
 {
+	taskENTER_CRITICAL();
     status.send_M600_on = M600_never;
+    taskEXIT_CRITICAL();
 }
 /*---------------------------------------------------------------------------*/
 //global thread safe functions
@@ -108,13 +115,14 @@ void fs_disable() {
 
 uint8_t fs_get__send_M600_on__and_disable() {
     taskENTER_CRITICAL();
-    int ret = status.send_M600_on;
+    uint8_t ret = status.send_M600_on;
     status.send_M600_on = M600_never;
     taskEXIT_CRITICAL();
     return ret;
 }
 void fs_restore__send_M600_on(uint8_t send_M600_on) {
     taskENTER_CRITICAL();
+    _init();
     status.send_M600_on = send_M600_on;
     taskEXIT_CRITICAL();
 }
