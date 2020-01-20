@@ -28,8 +28,21 @@
 #define EEVAR_LAN_HOSTNAME_4 0x14
 #define EEVAR_LAN_HOSTNAME_5 0x15
 #define EEVAR_LAN_HOSTNAME_6 0x16
+#define EEVAR_LAN_HOSTNAME_7 0x17
+#define EEVAR_LAN_HOSTNAME_8 0x18
+#define EEVAR_LAN_HOSTNAME_9 0x19
+#define EEVAR_LAN_HOSTNAME_10 0x1A
+#define EEVAR_LAN_HOSTNAME_11 0x1B
+#define EEVAR_LAN_HOSTNAME_12 0x1C
+#define EEVAR_LAN_HOSTNAME_13 0x1D
+#define EEVAR_LAN_HOSTNAME_14 0x1E
+#define EEVAR_LAN_HOSTNAME_15 0x1F
+#define EEVAR_LAN_HOSTNAME_16 0x20
+#define EEVAR_LAN_HOSTNAME_17 0x21
+#define EEVAR_LAN_HOSTNAME_18 0x22
+#define EEVAR_LAN_HOSTNAME_19 0x23
 
-#define LAN_HOSTNAME_MAX_LEN 7
+#define LAN_HOSTNAME_MAX_LEN 20
 #define LAN_EEFLG_ONOFF 1
 #define LAN_EEFLG_TYPE 2
 
@@ -51,6 +64,10 @@ extern void eeprom_set_var(uint8_t id, variant8_t var);
 
 // fill range 0x0000..0x0800 with 0xff
 extern void eeprom_clear(void);
+
+extern void eeprom_get_hostname(char * dest);
+
+extern void eeprom_set_hostname(char * src);
 
 int8_t eeprom_test_PUT(const unsigned int);
 

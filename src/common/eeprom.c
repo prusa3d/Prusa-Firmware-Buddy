@@ -34,6 +34,19 @@ const uint8_t eeprom_map_v1[] = {
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_4
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_5
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_6
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_7
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_8
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_9
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_10
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_11
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_12
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_13
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_14
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_15
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_16
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_17
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_18
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_19
 };
 
 const char *eeprom_var_name[] = {
@@ -60,6 +73,19 @@ const char *eeprom_var_name[] = {
     "EEVAR_LAN_HOSTNAME_4",
     "EEVAR_LAN_HOSTNAME_5",
     "EEVAR_LAN_HOSTNAME_6",
+    "EEVAR_LAN_HOSTNAME_7",
+    "EEVAR_LAN_HOSTNAME_8",
+    "EEVAR_LAN_HOSTNAME_9",
+    "EEVAR_LAN_HOSTNAME_10",
+    "EEVAR_LAN_HOSTNAME_11",
+    "EEVAR_LAN_HOSTNAME_12",
+    "EEVAR_LAN_HOSTNAME_13",
+    "EEVAR_LAN_HOSTNAME_14",
+    "EEVAR_LAN_HOSTNAME_15",
+    "EEVAR_LAN_HOSTNAME_16",
+    "EEVAR_LAN_HOSTNAME_17",
+    "EEVAR_LAN_HOSTNAME_18",
+    "EEVAR_LAN_HOSTNAME_19",
 };
 
 uint16_t eeprom_crc_value = 0;
@@ -185,20 +211,45 @@ variant8_t eeprom_var_default(uint8_t id) {
     case EEVAR_LAN_IP4_DNS2:
         return variant8_ui32(0);
     case EEVAR_LAN_HOSTNAME_0:
-        return variant8_ui8('P');
+        return variant8_ui8('M');
     case EEVAR_LAN_HOSTNAME_1:
-        return variant8_ui8('r');
+        return variant8_ui8('I');
     case EEVAR_LAN_HOSTNAME_2:
-        return variant8_ui8('u');
+        return variant8_ui8('N');
     case EEVAR_LAN_HOSTNAME_3:
-        return variant8_ui8('s');
+        return variant8_ui8('I');
     case EEVAR_LAN_HOSTNAME_4:
-        return variant8_ui8('a');
+        return variant8_ui8(0);
     case EEVAR_LAN_HOSTNAME_5:
-        return variant8_ui8('3');
+        return variant8_ui8(0);
     case EEVAR_LAN_HOSTNAME_6:
-        return variant8_ui8('D');
-
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_7:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_8:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_9:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_10:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_11:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_12:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_13:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_14:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_15:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_16:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_17:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_18:
+        return variant8_ui8(0);
+    case EEVAR_LAN_HOSTNAME_19:
+        return variant8_ui8(0);
     }
     return variant8_empty();
 }
@@ -216,6 +267,27 @@ void eeprom_dump(void) {
             sprintf(line + 4 + j * 3, " %02x", b);
         }
         _dbg("%s", line);
+    }
+}
+
+void eeprom_get_hostname(char * dest){
+    char hostname_str[LAN_HOSTNAME_MAX_LEN + 1];
+    for(uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++){
+        hostname_str[i] = (char)eeprom_get_var(EEVAR_LAN_HOSTNAME_0 + i).ui8;
+    }
+    hostname_str[LAN_HOSTNAME_MAX_LEN] = '\0';
+    strncpy(dest, hostname_str, LAN_HOSTNAME_MAX_LEN + 1);
+}
+void eeprom_set_hostname(char * src){
+    uint8_t end = 0;
+    for(uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++){
+        if(!end && src[i] == '\0')
+            end = 1;
+        if(!end){
+            eeprom_set_var(EEVAR_LAN_HOSTNAME_0 + i, variant8_ui8(src[i]));
+        } else {
+            eeprom_set_var(EEVAR_LAN_HOSTNAME_0 + i, variant8_ui8(0));
+        }
     }
 }
 
@@ -239,21 +311,13 @@ int eeprom_var_sprintf(char *str, uint8_t id, variant8_t var) {
     case EEVAR_RUN_FIRSTLAY:
     case EEVAR_FSENSOR_ENABLED:
         return sprintf(str, "%u", (unsigned int)var.ui8);
-    case EEVAR_LAN_HOSTNAME_0:{
-        char hostname_str[LAN_HOSTNAME_MAX_LEN + 1];
-        for(uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++){
-            hostname_str[i] = (char)eeprom_get_var(id + i).ui8;
-        }
-        hostname_str[LAN_HOSTNAME_MAX_LEN] = '\0';
-        return strncpy(str, hostname_str, LAN_HOSTNAME_MAX_LEN);
-    }
     }
     return 0;
 }
 
 void eeprom_print_vars(void) {
     uint8_t id;
-    char text[16];
+    char text[21];
     for (id = 0; id < EE_VAR_CNT; id++) {
         eeprom_var_sprintf(text, id, eeprom_get_var(id));
         _dbg("%s=%s", eeprom_var_name[id], text);
