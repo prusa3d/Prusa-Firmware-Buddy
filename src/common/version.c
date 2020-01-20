@@ -1,4 +1,4 @@
-// version.c
+//! @file
 
 #include "version.h"
 #include "config.h"
@@ -19,13 +19,15 @@
 
 #define VERSION(ver) \
     VERSION_MAJ(4)   \
-    "." VERSION_MIN(0) "." VERSION_SUB(0)
+    "." VERSION_MIN(0) "." VERSION_SUB(2)
 
 const char version_firmware_name[] = FWNAME;
 
 #ifdef PRERELEASE
+//! @brief semantic version (https://semver.org) is Prusa3D standard
 const char version_version[] = VERSION(FW_VERSION) "-" STR(PRERELEASE) "+" STR(FW_BUILDNR) FW_BUILDSX;
 #else
+//! @brief semantic version (https://semver.org) is Prusa3D standard
 const char version_version[] = VERSION(FW_VERSION);
 #endif
 
@@ -34,3 +36,9 @@ const char version_build[] = "build " STR(FW_BUILDNR) FW_BUILDSX " (DEBUG)";
 #else
 const char version_build[] = "build " STR(FW_BUILDNR) FW_BUILDSX;
 #endif
+
+//! @brief build number
+//!
+//! do not use FW_BUILDNR macro, as it is not defined outside of this file
+
+const int version_build_nr = FW_BUILDNR;

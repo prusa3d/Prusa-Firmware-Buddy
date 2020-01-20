@@ -11,6 +11,7 @@
 #include "window_dlg_loadunload_shared.h"
 #include "gui.h" //gui_defaults
 #include "button_draw.h"
+#include "filament.h"
 
 static const _cl_dlg cl_load;
 
@@ -108,7 +109,9 @@ static dlg_result_t _gui_dlg_load(void) {
     _dlg_ld_vars ld_vars;
     memset(&ld_vars, '\0', sizeof(ld_vars));
     ld_vars.z_min_extr_pos = 30;
-    return _gui_dlg(&cl_load, &ld_vars, 600000); //10min
+    dlg_result_t ret = _gui_dlg(&cl_load, &ld_vars, 600000); //10min
+    if (ret != DLG_OK)set_filament(FILAMENT_NONE);
+    return ret;
 }
 
 dlg_result_t gui_dlg_load(void) {
@@ -149,24 +152,24 @@ static int f_LD_WAIT_E_POS__INSERTING(_dlg_vars *p_vars, _dlg_ld_vars *additiona
         marlin_set_wait_user(0);
     }
     //wait E pos >= 40
-    if (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] >= 40)
+    if (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] >= filament_change_slow_load_length)
         p_vars->phase++;
-    return 100 * (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E]) / 40;
+    return 100 * (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E]) / filament_change_slow_load_length;
 }
 
 static int f_LD_WAIT_E_POS__LOADING_TO_NOZ(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
     //wait E pos >= 360
-    if (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] >= 360)
+    if (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] >= filament_change_full_load_length)
         p_vars->phase++;
-    float ret = 100 * (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - 40) / (360 - 40);
+    float ret = 100 * (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - filament_change_slow_load_length) / (filament_change_full_load_length - filament_change_slow_load_length);
     return ret;
 }
 
 static int f_LD_WAIT_E_POS__PURGING(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
     //wait E pos >= 400
-    if ((additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] >= 400) && (marlin_motion() == 0))
+    if ((additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] >= filament_change_full_purge_load_length) && (marlin_motion() == 0))
         p_vars->phase++;
-    return 100 * (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - 360) / (400 - 360);
+    return 100 * (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - filament_change_full_load_length) / (filament_change_full_purge_load_length - filament_change_full_load_length);
 }
 
 static int f_LD_CHECK_MARLIN_EVENT(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {

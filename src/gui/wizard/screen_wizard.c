@@ -355,11 +355,14 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 screen_close();
                 break;
             case _STATE_FIRSTLAY_INIT:
-                pd->state = _STATE_FIRSTLAY_LOAD;
-                window_show(footer_id);
-                wizard_init(filaments[FILAMENT_PLA].nozzle, filaments[FILAMENT_PLA].heatbed);
-                //wizard_init_screen_firstlay(frame_id, p_firstlay_screen, p_firstlay_data);
-                p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
+                {
+                    pd->state = _STATE_FIRSTLAY_LOAD;
+                    window_show(footer_id);
+                    FILAMENT_t filament = get_filament();
+                    if (filament == FILAMENT_NONE || fs_get_state() == FS_NO_FILAMENT) filament = FILAMENT_PLA;
+                    wizard_init(filaments[filament].nozzle, filaments[filament].heatbed);
+                    p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
+                }
                 break;
             case _STATE_FIRSTLAY_LOAD:
                 p_firstlay_screen->load_unload_state = wizard_load_unload(p_firstlay_screen->load_unload_state);

@@ -149,9 +149,13 @@ def initialize_submodule(path):
 
 def check_submodules():
     cmd = ['git', '-C', str(project_root_dir), 'submodule', 'status']
-    process = subprocess.run(cmd, stdout=subprocess.PIPE, encoding='utf-8')
-    if process.returncode != 0:
-        msg = 'Failed to check submodule status: git exited with code %d' % process.returncode
+    try:
+        process = subprocess.run(cmd,
+                                 stdout=subprocess.PIPE,
+                                 encoding='utf-8',
+                                 check=True)
+    except (subprocess.SubprocessError, FileNotFoundError):
+        msg = 'WARNING: Failed to check submodules status'
         print(msg, file=sys.stderr)
         return
     statuses = [line.split() for line in process.stdout.splitlines()]

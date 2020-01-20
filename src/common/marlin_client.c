@@ -372,7 +372,7 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
         return 0;
     marlin_client_loop();
     client->changes &= ~msk;
-    sprintf(request, "!update %" PRIu64, msk);
+    sprintf(request, "!update %08lx %08lx", (uint32_t)(msk & 0xffffffff), (uint32_t)(msk >> 32));
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
     return &(client->vars);

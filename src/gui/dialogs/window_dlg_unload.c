@@ -7,6 +7,7 @@
 #include <limits.h>
 #include "window_dlg_preheat.h"
 #include "window_dlg_loadunload_shared.h"
+#include "filament.h"
 
 static const _cl_dlg cl_unload;
 
@@ -14,7 +15,10 @@ static dlg_result_t _gui_dlg_unload(void) {
     _dlg_ld_vars ld_vars;
     memset(&ld_vars, '\0', sizeof(ld_vars));
     ld_vars.z_min_extr_pos = 10;
-    return _gui_dlg(&cl_unload, &ld_vars, 300000); //5min
+    dlg_result_t ret = _gui_dlg(&cl_unload, &ld_vars, 300000); //5min
+    set_filament(FILAMENT_NONE);
+    return ret;
+
 }
 
 dlg_result_t gui_dlg_unload(void) {
@@ -26,7 +30,7 @@ dlg_result_t gui_dlg_unload(void) {
 
 dlg_result_t gui_dlg_unload_forced(void) {
     //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    if (gui_dlg_preheat_forced("PREHEAT for UNLOAD") < 0)
+    if (gui_dlg_preheat_autoselect_if_able_forced("PREHEAT for UNLOAD") < 0)
         return DLG_ABORTED; //LD_ABORTED should not happen
     return _gui_dlg_unload();
 }

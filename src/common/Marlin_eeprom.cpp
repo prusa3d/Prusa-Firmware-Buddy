@@ -21,6 +21,9 @@ void eeprom_write_byte(uint8_t *pos, unsigned char value) {
     uint16_t adr = (uint16_t)(int)pos;
     st25dv64k_user_write(adr, value);
     DBG("EEwr %04x %02x", adr, value);
+#ifndef _DEBUG
+    HAL_IWDG_Refresh(&hiwdg); //watchdog reset
+#endif //_DEBUG
 }
 
 uint8_t eeprom_read_byte(uint8_t *pos) {

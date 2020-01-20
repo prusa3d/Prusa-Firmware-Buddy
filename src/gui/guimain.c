@@ -111,6 +111,14 @@ void gui_run(void) {
     st7789v_config = st7789v_cfg;
     jogwheel_config = jogwheel_cfg;
     gui_init();
+
+    // select jogwheel type by meassured 'reset delay'
+    // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
+    // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
+    if (st7789v_reset_delay > 1000) // threshold value is 1000
+        jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR;
+    //_dbg("delay=%u", st7789v_reset_delay);
+
     gui_defaults.font = resource_font(IDR_FNT_NORMAL);
     gui_defaults.font_big = resource_font(IDR_FNT_BIG);
     window_msgbox_id_icon[0] = 0; //IDR_PNG_icon_pepa;

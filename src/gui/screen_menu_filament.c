@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "screen_menu.h"
 #include "filament.h"
+#include "filament_sensor.h"
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "window_dlg_load.h"
@@ -10,78 +11,94 @@
 #include "window_dlg_purge.h"
 #include "dbg.h"
 
+#define FKNOWN 0x01//filament is known
+#define F_NOTSENSED 0x02//filament is not in sensor
+
 extern screen_t screen_menu_preheat;
 extern screen_t screen_preheating;
-extern uint8_t menu_preheat_type;
-
-//#define OLD_LOAD_UNLOAD
 
 typedef enum {
     MI_RETURN,
-#ifdef OLD_LOAD_UNLOAD
     MI_LOAD,
     MI_UNLOAD,
-    MI_M701,
-    MI_M702,
-#else
-    MI_LOAD,
-    MI_UNLOAD,
-#endif
+    MI_CHANGE,
     MI_PURGE,
 } MI_t;
 
 const menu_item_t _menu_filament_items[] = {
-#ifdef OLD_LOAD_UNLOAD
-    { { "Load Filament", 0, WI_LABEL }, &screen_menu_preheat },
-    { { "Unload Filament", 0, WI_LABEL }, &screen_preheating },
-    { { "M701 Load", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "M702 Unload", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#else
     { { "Load Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Unload Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#endif
+    { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Purge Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
 
+
+static void _load_dis(screen_t *screen) {
+    psmd->items[MI_LOAD].item.type |= WI_DISABLED;
+}
+
+static void _load_ena(screen_t *screen) {
+    psmd->items[MI_LOAD].item.type &= ~WI_DISABLED;
+}
+static void _change_dis(screen_t *screen) {
+    psmd->items[MI_CHANGE].item.type |= WI_DISABLED;
+}
+static void _change_ena(screen_t *screen) {
+    psmd->items[MI_CHANGE].item.type &= ~WI_DISABLED;
+}
+
+static void _deactivate_item(screen_t *screen) {
+
+        uint8_t filament = 0;
+        filament |= get_filament() != FILAMENT_NONE ? FKNOWN : 0;
+        filament |= fs_get_state() == FS_NO_FILAMENT ? F_NOTSENSED : 0;
+        switch (filament){
+        case FKNOWN://known and not "unsensed" - do not allow load
+            _load_dis(screen);
+            _change_ena(screen);
+            break;
+        case FKNOWN | F_NOTSENSED://allow both load and change
+            _load_ena(screen);
+            _change_ena(screen);
+            break;
+        case F_NOTSENSED://allow load
+        case 0://filament is not known but is sensed == most likely same as F_NOTSENSED, but user inserted filament into sensor
+        default:
+            _load_ena(screen);
+            _change_dis(screen);
+            break;
+        }
+}
+
 void screen_menu_filament_init(screen_t *screen) {
+    //filament_not_loaded = -1;
     int count = sizeof(_menu_filament_items) / sizeof(menu_item_t);
     screen_menu_init(screen, "FILAMENT", count + 1, 1, 0);
     psmd->items[0] = menu_item_return;
     memcpy(psmd->items + 1, _menu_filament_items, count * sizeof(menu_item_t));
+    _deactivate_item(screen);
 }
 
+
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    _deactivate_item(screen);
     if (event == WINDOW_EVENT_CLICK)
+        if(!(psmd->items[(int)param].item.type & WI_DISABLED))
         switch ((int)param) {
-#ifdef OLD_LOAD_UNLOAD
         case MI_LOAD:
-        case MI_UNLOAD:
-            menu_preheat_type = (int)param;
-            if (menu_preheat_type == 2) { // we know what type of filament is in printer :)
-                int16_t temp = filaments[get_filament()].nozzle;
-                if (temp < extrude_min_temp)
-                    temp = filaments[1].nozzle; // first filament is PLA
-                marlin_gcode_printf("M104 S%d", (int)temp);
-                // we really don't know, if user want to print after unload filament
-            }
-            break;
-#endif
-#ifndef OLD_LOAD_UNLOAD
-        case MI_LOAD:
-#else
-        case MI_M701:
-#endif
             p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
             gui_dlg_load();
             p_window_header_set_text(&(psmd->header), "FILAMENT");
             break;
-#ifndef OLD_LOAD_UNLOAD
         case MI_UNLOAD:
-#else
-        case MI_M702:
-#endif
             p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
             gui_dlg_unload();
+            p_window_header_set_text(&(psmd->header), "FILAMENT");
+            break;
+        case MI_CHANGE:
+            p_window_header_set_text(&(psmd->header), "CHANGE FILAM.");
+            gui_dlg_unload();
+            gui_dlg_load();
             p_window_header_set_text(&(psmd->header), "FILAMENT");
             break;
         case MI_PURGE:

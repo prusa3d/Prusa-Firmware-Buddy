@@ -8,10 +8,6 @@
     #error "FW_VERSION not defined"
 #endif
 
-#if !defined(FW_BUILDNR)
-    #error "FW_BUILDNR not defined"
-#endif
-
 #if !defined(FW_BUILDSX)
     #define FW_BUILDSX "" //build suffix
 #endif

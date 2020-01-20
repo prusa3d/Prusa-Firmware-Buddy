@@ -22,7 +22,7 @@
 #include "../Marlin/src/feature/pause.h"
 #include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/libs/nozzle.h"
-#include "../Marlin/src/core/language.h"//GET_TEXT(MSG)
+#include "../Marlin/src/core/language.h" //GET_TEXT(MSG)
 
 #include "hwio_a3ides.h"
 #include "eeprom.h"
@@ -701,7 +701,8 @@ uint64_t _server_update_vars(uint64_t update) {
 // process request on server side
 int _process_server_request(char *request) {
     int processed = 0;
-    uint64_t msk;
+    //uint64_t msk;
+    uint32_t msk32[2];
     float offs;
     int ival;
     int client_id = *(request++) - '0';
@@ -712,7 +713,7 @@ int _process_server_request(char *request) {
         processed = marlin_server_enqueue_gcode(request + 3);
     } else if (strncmp("!ig ", request, sizeof("!ig ") / sizeof(char) - 1) == 0) {
         unsigned long int iptr = strtoul(request + sizeof("!ig ") / sizeof(char) - 1, NULL, 0);
-        processed = marlin_server_inject_gcode( (const char*)iptr );
+        processed = marlin_server_inject_gcode((const char *)iptr);
     } else if (strcmp("!start", request) == 0) {
         marlin_server_start_processing();
         processed = 1;
@@ -722,8 +723,8 @@ int _process_server_request(char *request) {
     } else if (strncmp("!var ", request, 5) == 0) {
         _server_set_var(request + 5);
         processed = 1;
-    } else if (sscanf(request, "!update %" PRIu64, &msk) == 1) {
-        marlin_server_update(msk);
+    } else if (sscanf(request, "!update %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        marlin_server_update(msk32[0] + (((uint64_t)msk32[1]) << 32));
         processed = 1;
     } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
         marlin_server_do_babystep_Z(offs);
@@ -819,31 +820,41 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
-
 //todo remove me after new thermal manager
-int _is_thermal_error(PGM_P const msg){
-    if(!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED))) return 1;
-    if(!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED))) return 1;
+int _is_thermal_error(PGM_P const msg) {
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED)))
+        return 1;
     return 0;
 }
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
-    if (_is_thermal_error(msg)) {//todo remove me after new thermal manager
-        const marlin_vars_t &vars = marlin_server.vars; 
+    if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
+        const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
-    }else{
+    } else {
         general_error(msg, component);
-    } 
+    }
 }
 
 void onMediaInserted() {

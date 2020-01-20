@@ -88,7 +88,7 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim14;
 
-UART_HandleTypeDef huart1;
+static UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -141,6 +141,10 @@ extern void Error_Handler(void);
 /* USER CODE BEGIN 0 */
 #include "uartslave.h"
 #include "putslave.h"
+
+uartrxbuff_t uart1rxbuff;
+static uint8_t uart1rx_data[200];
+
 uartrxbuff_t uart6rxbuff;
 uint8_t uart6rx_data[32];
 uartslave_t uart6slave;
@@ -219,6 +223,9 @@ int main(void) {
     HAL_ADC_Initialized = 1;
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
+
+    uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
+    uartrxbuff_open(&uart1rxbuff);
 
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     uartrxbuff_open(&uart6rxbuff);
@@ -914,7 +921,9 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart == &huart2)
+    if (huart == &huart1)
+        uartrxbuff_rxcplt_cb(&uart1rxbuff);
+    else if (huart == &huart2)
         osSignalSet(defaultTaskHandle, 0x04);
     else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);

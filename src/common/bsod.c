@@ -17,6 +17,7 @@
 #include "gpio.h"
 #include "sys.h"
 #include "hwio.h"
+#include "version.h"
 
 /* FreeRTOS includes. */
 #include "task.h"
@@ -113,8 +114,6 @@ extern IWDG_HandleTypeDef hiwdg; //watchdog handle
 
 static void get_fw_version(void) {
     uint8_t FW_version[3];
-    uint16_t FW_build = 0;
-    uint8_t suff_idx = 5;
     uint16_t fw_parser = FW_VERSION;
 
     FW_version[0] = (uint8_t)(fw_parser / 100);
@@ -123,15 +122,10 @@ static void get_fw_version(void) {
     fw_parser -= FW_version[1] * 10;
     FW_version[2] = (uint8_t)fw_parser;
 
-#ifdef FW_BUILDNR
-    if (suff_idx < 5)
-        FW_build = FW_BUILDNR;
-#endif
-
 #ifdef PRERELEASE_STR
-    sprintf(FW_version_str, "%d.%d.%d-%s+%d",
+    snprintf(FW_version_str, sizeof(FW_version_str), "%d.%d.%d-%s+%d",
         FW_version[0], FW_version[1], FW_version[2],
-        PRERELEASE_STR, FW_build);
+        PRERELEASE_STR, version_build_nr);
 #else
     sprintf(FW_version_str, "%d.%d.%d", FW_version[0],
         FW_version[1], FW_version[2]);
@@ -139,7 +133,7 @@ static void get_fw_version(void) {
 }
 
 #define PADDING 10
-#define X_MAX (display->w - PADDING*2)
+#define X_MAX (display->w - PADDING * 2)
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -185,9 +179,9 @@ void general_error(const char *error, const char *module) {
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
 
-    display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), error,  gui_defaults.font,//resource_font(IDR_FNT_NORMAL),
+    display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
-    display->draw_line(point_ui16(PADDING, 30),point_ui16(display->w - PADDING, 30), COLOR_WHITE);
+    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - PADDING, 30), COLOR_WHITE);
 
     term_printf(&term, module);
     term_printf(&term, "\n");
@@ -200,16 +194,15 @@ void general_error(const char *error, const char *module) {
     jogwheel_init();
     gui_reset_jogwheel();
 
-
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
 #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg);
 #endif //_DEBUG
-        if (!gpio_get(jogwheel_config.pinENC))  sys_reset();//button press
+        if (!gpio_get(jogwheel_config.pinENC))
+            sys_reset(); //button press
     }
 }
-
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char buff[128];
@@ -218,7 +211,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         module, (int)t_noz, (int)tt_noz, (int)t_bed, (int)tt_bed);
     general_error(error, buff);
 }
-
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_list args;
