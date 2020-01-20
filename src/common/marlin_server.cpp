@@ -269,7 +269,7 @@ int marlin_server_idle(void) {
             switch (parser.codenum) {
             case 109:
             case 190:
-            case 600:
+            //case 600: // hacked in gcode
             case 701:
             case 702:
                 marlin_server.command = MARLIN_CMD_M + parser.codenum;
