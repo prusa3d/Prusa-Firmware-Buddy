@@ -106,16 +106,16 @@ void fs_disable() {
     taskEXIT_CRITICAL();
 }
 
-int fs_get_isenabled_and_disable() {
+uint8_t fs_get__send_M600_on__and_disable() {
     taskENTER_CRITICAL();
-    int ret = state == FS_DISABLED;
-    _disable();
+    int ret = status.send_M600_on;
+    status.send_M600_on = M600_never;
     taskEXIT_CRITICAL();
     return ret;
 }
-void fs_restore_isenabled(int was_enabled) {
+void fs_restore__send_M600_on(uint8_t send_M600_on) {
     taskENTER_CRITICAL();
-    was_enabled ? _enable() : _disable();;
+    status.send_M600_on = send_M600_on;
     taskEXIT_CRITICAL();
 }
 

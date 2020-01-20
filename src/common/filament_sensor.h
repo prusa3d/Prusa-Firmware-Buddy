@@ -8,6 +8,8 @@
 #ifndef _FILAMENT_SENSOR_H
 #define _FILAMENT_SENSOR_H
 
+#include "stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
@@ -35,8 +37,9 @@ void fs_send_M600_never();
 //thread safe functions, but cannot be called from interrupt
 void fs_enable();
 void fs_disable();
-int fs_get_isenabled_and_disable();
-void fs_restore_isenabled(int was_enabled);
+
+uint8_t fs_get__send_M600_on__and_disable();
+void fs_restore__send_M600_on(uint8_t send_M600_on);
 fsensor_t fs_wait_inicialized();
 
 //not thread safe functions
