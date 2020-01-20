@@ -58,7 +58,7 @@
 /* USER CODE BEGIN 0 */
 
 #include "dbg.h"
-
+#include "ethernetif.h"
 /* USER CODE END 0 */
 /* Private function prototypes -----------------------------------------------*/
 /* ETH Variables initialization ----------------------------------------------*/
