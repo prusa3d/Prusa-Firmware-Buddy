@@ -104,6 +104,26 @@ int8_t menu_timeout_enabled = 1; // Default: enabled
 
 void update_firmware_screen(void);
 
+static void _gui_loop_cb(){
+	static uint8_t m600_lock = 0;
+
+	if (!m600_lock) {
+		m600_lock = 1;
+		if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
+			if (marlin_command() == MARLIN_CMD_M600) {
+				_dbg("M600 start");
+				gui_dlg_change();
+				_dbg("M600 end");
+			}
+		}
+		m600_lock = 0;
+	}
+
+	marlin_client_loop();
+}
+
+
+
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -192,7 +212,7 @@ void gui_run(void) {
         screen_open(pscreen_splash->id);
 
     //set loop callback (will be called every time inside gui_loop)
-    gui_loop_cb = marlin_client_loop;
+    gui_loop_cb = _gui_loop_cb;
     int8_t gui_timeout_id;
     while (1) {
         float vol = 0.01F;
@@ -231,13 +251,6 @@ void gui_run(void) {
     #endif //PIDCALIBRATION
                 }
                 gui_timer_delete(gui_timeout_id);
-            }
-        }
-        if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
-            if (marlin_command() == MARLIN_CMD_M600) {
-                _dbg("M600 start");
-                gui_dlg_change();
-                _dbg("M600 end");
             }
         }
 #endif //LCDSIM
