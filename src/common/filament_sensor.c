@@ -32,15 +32,37 @@ typedef enum{
 send_M600_on_t;
 
 typedef struct{
-    uint8_t M600_sent    : 1;
-    uint8_t send_M600_on : 2;
-    uint8_t meas_cycle   : 5;//1 bit is used now
+    uint8_t M600_sent;
+    uint8_t send_M600_on;
+    uint8_t meas_cycle;
 }status_t;
 static status_t status = { 0, M600_on_edge, 0};
 
-static void _init();
+/*---------------------------------------------------------------------------*/
+//debug functions
+
+int fs_was_M600_send(){
+	return status.M600_sent != 0;
+}
+char fs_get_send_M600_on(){
+	switch (status.send_M600_on)
+	{
+	case M600_on_edge:
+		return 'e';
+	case M600_on_level:
+		return 'l';
+	case M600_never:
+		return 'n';
+	default:
+		return 'x';
+
+	}
+}
+
+
 /*---------------------------------------------------------------------------*/
 //local functions
+static void _init();
 
 //simple filter
 //without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
