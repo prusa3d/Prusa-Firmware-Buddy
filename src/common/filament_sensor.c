@@ -122,7 +122,7 @@ uint8_t fs_get__send_M600_on__and_disable() {
 }
 void fs_restore__send_M600_on(uint8_t send_M600_on) {
     taskENTER_CRITICAL();
-    //_init();
+    //cannot call _init(); - it could cause stacking in unincialized state
     status.send_M600_on = send_M600_on;
     taskEXIT_CRITICAL();
 }
