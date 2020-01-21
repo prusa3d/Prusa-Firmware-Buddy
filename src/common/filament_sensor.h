@@ -41,6 +41,7 @@ void fs_disable();
 uint8_t fs_get__send_M600_on__and_disable();
 void fs_restore__send_M600_on(uint8_t send_M600_on);
 fsensor_t fs_wait_inicialized();
+void fs_clr_sent();
 
 //not thread safe functions
 void fs_init_on_edge();
