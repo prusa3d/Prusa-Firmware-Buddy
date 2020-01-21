@@ -14,7 +14,6 @@ add_library(
   src/api/tcpip.c
   src/apps/http/fs.c
   src/apps/http/httpd.c
-  src/apps/mqtt/mqtt.c
   src/core/def.c
   src/core/dns.c
   src/core/inet_chksum.c
