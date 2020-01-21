@@ -92,8 +92,7 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
     strncpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
 
     if (flg){
-        char save_dhcp[] = "dhcp";
-        char save_static[] = "static";
+        char save_dhcp[] = "dhcp", save_static[] = "static";
         char save_hostname[LAN_HOSTNAME_MAX_LEN + 1];
         eeprom_get_hostname(save_hostname);
         snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s",
