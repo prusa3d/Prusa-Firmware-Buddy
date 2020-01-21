@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
+include(cmake/ProjectVersion.cmake)
 
-project(Buddy LANGUAGES C CXX ASM)
+project(
+  Buddy
+  LANGUAGES C CXX ASM
+  VERSION ${PROJECT_VERSION}
+  )
 
 if(NOT CMAKE_CROSSCOMPILING)
   #
@@ -48,9 +53,17 @@ set(SIGNING_KEY
     ""
     CACHE FILEPATH "Path to a PEM EC private key to be used to sign the firmware."
     )
-set(PRERELEASE
-    "BETA"
-    CACHE STRING "Development stage of the firmware. Set to empty string for final release."
+set(PROJECT_VERSION_SUFFIX
+    "<auto>"
+    CACHE
+      STRING
+      "Full version suffix to be shown on the info screen in settings (e.g. full_version=4.0.3-BETA+1035.PR111.B4, suffix=-BETA+1035.PR111.B4). Defaults to '+<commit sha>.<dirty?>.<debug?>' if set to '<auto>'."
+    )
+set(PROJECT_VERSION_SUFFIX_SHORT
+    "<auto>"
+    CACHE
+      STRING
+      "Short version suffix to be shown on splash screen. Defaults to '+<BUILD_NUMBER>' if set to '<auto>'."
     )
 set(BUILD_NUMBER
     ""
@@ -64,15 +77,8 @@ foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
   endif()
 endforeach()
 
-# Resolve Build Number if not specified
-if(NOT BUILD_NUMBER)
-  git_count_parent_commits(BUILD_NUMBER)
-  set(ERRORS "GIT-NOTFOUND" "HEAD-HASH-NOTFOUND")
-  if(BUILD_NUMBER IN_LIST ERRORS)
-    message(WARNING "Failed to resolve build number: ${BUILD_NUMBER}.")
-    set(BUILD_NUMBER "0")
-  endif()
-endif()
+# Resolve BUILD_NUMBER and PROJECT_VERSION_* variables
+resolve_version_variables()
 
 # Check GCC Version
 get_recommended_gcc_version(RECOMMENDED_TOOLCHAIN_VERSION)
@@ -83,11 +89,11 @@ if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ${RECOMMENDED_TOOLCHAIN_VERSION}
 endif()
 
 # Inform user about the resolved settings
-read_version_file(VER_MAJOR VER_MINOR VER_PATCH "${CMAKE_SOURCE_DIR}/version.txt")
-create_full_version_string(
-  FULL_VERSION ${VER_MAJOR} ${VER_MINOR} ${VER_PATCH} "${PRERELEASE}" ${BUILD_NUMBER}
+message(STATUS "Project version: ${PROJECT_VERSION}")
+message(STATUS "Project version with full suffix: ${PROJECT_VERSION_FULL}")
+message(
+  STATUS "Project version with short suffix: ${PROJECT_VERSION}${PROJECT_VERSION_SUFFIX_SHORT}"
   )
-message(STATUS "Project version: ${FULL_VERSION}")
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
 
@@ -116,8 +122,6 @@ target_compile_definitions(
   INTERFACE
   MOTHERBOARD=${MOTHERBOARD}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
-  FW_VERSION=${VER_MAJOR}${VER_MINOR}${VER_PATCH}
-  $<$<BOOL:${PRERELEASE}>:PRERELEASE=${PRERELEASE}>
   MARLIN_DISABLE_INFINITE_LOOP
   STM32GENERIC
   STM32F4
@@ -270,7 +274,21 @@ if(GENERATE_BBF)
   else()
     message(FATAL_ERROR "Don't know how to encode printer type for ${PRINTER}.")
   endif()
-  pack_firmware(firmware "${FULL_VERSION}" "${PRINTER_TYPE}" "${SIGNING_KEY}")
+
+  if(PROJECT_VERSION_SUFFIX)
+    if(NOT "${PROJECT_VERSION_SUFFIX}" MATCHES "\\+${BUILD_NUMBER}")
+      message(WARNING "The generated .bbf is configured to use the build number ${BUILD_NUMBER},
+      but the version suffix (${PROJECT_VERSION_SUFFIX}) does not contain +${BUILD_NUMBER}.
+      Are you sure you know what you are doing?"
+              )
+    endif()
+  endif()
+
+  pack_firmware(
+    firmware "${PROJECT_VERSION_FULL}" "${BUILD_NUMBER}" "${PRINTER_TYPE}" "${SIGNING_KEY}"
+    )
+elseif(SIGNING_KEY)
+  message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
 endif()
 
 target_include_directories(
@@ -457,5 +475,10 @@ target_sources(
 set_property(
   SOURCE src/common/version.c
   APPEND
-  PROPERTY COMPILE_DEFINITIONS FW_BUILDNR=${BUILD_NUMBER}
+  PROPERTY COMPILE_DEFINITIONS
+           FW_BUILD_NUMBER=${BUILD_NUMBER}
+           FW_VERSION_FULL=${PROJECT_VERSION_FULL}
+           FW_VERSION=${PROJECT_VERSION}
+           FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
+           FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
   )
