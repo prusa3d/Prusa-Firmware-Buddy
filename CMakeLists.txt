@@ -356,6 +356,10 @@ target_sources(
           src/common/print_utils.cpp
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
+          src/common/tm_stm32f4_crc.c
+          src/common/qrcodegen.c
+          src/common/utils.cpp
+          src/common/errors.c
           src/gui/screen_menu_filament.c
           src/gui/dialogs/window_dlg_change.c
           src/gui/dialogs/window_dlg_loadunload_shared.c
@@ -393,6 +397,7 @@ target_sources(
           src/gui/screen_watchdog.c
           src/gui/screen_menu_move.c
           src/gui/screen_lan_settings.c
+          src/gui/screen_qr_error.cpp
           src/gui/test/screen_test.c
           src/gui/test/screen_test_disp_mem.c
           src/gui/test/screen_test_gui.c
