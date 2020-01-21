@@ -233,12 +233,18 @@ void gui_run(void) {
                 gui_timer_delete(gui_timeout_id);
             }
         }
-        if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
-            if (marlin_command() == MARLIN_CMD_M600) {
-                _dbg("M600 start");
-                gui_dlg_change();
-                _dbg("M600 end");
-            }
+        static uint8_t m600_lock = 0;
+
+        if (!m600_lock) {
+        	m600_lock = 1;
+			if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
+				if (marlin_command() == MARLIN_CMD_M600) {
+					_dbg("M600 start");
+					gui_dlg_change();
+					_dbg("M600 end");
+				}
+			}
+			m600_lock = 0;
         }
 #endif //LCDSIM
     }
