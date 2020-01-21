@@ -379,7 +379,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 		_last = HAL_GetTick();
 
 		static char buff[] = "Sx Mx x";//x - fs state, m600on, m600_sent,
-		buff[1] = fs_get_state() - '0';
+		buff[1] = fs_get_state() + '0';
 		buff[4] = fs_get_send_M600_on();
 		buff[6] = fs_was_M600_send() ? 's' : 'n';
 		p_window_header_set_text(&(pw->header), buff);
