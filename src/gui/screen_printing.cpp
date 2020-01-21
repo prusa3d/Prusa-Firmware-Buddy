@@ -21,6 +21,10 @@
 
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 
+#ifdef DEBUG_FSENSOR_IN_HEADER
+#include "filament_sensor.h"
+#endif
+
 extern screen_t *pscreen_home;
 extern screen_t *pscreen_menu_tune;
 
@@ -368,6 +372,20 @@ static void close_popup_message(screen_t *screen) {
 
 
 int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
+#ifdef DEBUG_FSENSOR_IN_HEADER
+	static int _last = 0;
+	if (HAL_GetTick() - _last > 300 )
+	{
+		_last = HAL_GetTick();
+
+		static char buff[] = "Sx Mx x";//x - fs state, m600on, m600_sent,
+		buff[1] = fs_get_state() - '0';
+		buff[4] = fs_get_send_M600_on();
+		buff[6] = fs_was_M600_send() ? 's' : 'n';
+		p_window_header_set_text(&(pw->header), buff);
+	}
+
+#endif
     if (Lock::IsLocked())return 0;
     Lock l;
 
