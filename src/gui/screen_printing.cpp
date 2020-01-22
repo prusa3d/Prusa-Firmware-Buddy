@@ -14,6 +14,7 @@
 #include "filament.h"
 #include "screen_printing.h"
 #include "marlin_server.h"
+#include "web_thread_comm.h"
 
 #include "ffconf.h"
 
@@ -216,6 +217,13 @@ void screen_printing_init(screen_t *screen) {
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
     window_set_text(id, screen_printing_file_name);
+
+  /*  //----------------------------------------------------------------------------------------------------------
+    osSemaphoreWait(web_sema, osWaitForever);
+    osMessagePut(web_queue, (uint32_t)23, osWaitForever);
+    osSemaphoreRelease(web_sema);
+ */
+    strncpy(web_shared_memory->file_name, screen_printing_file_name, strlen(screen_printing_file_name));
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
@@ -485,6 +493,7 @@ static void screen_printing_update_remaining_time_progress(screen_t *screen) {
     if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration)) {
         nPercent = (uint8_t)oProgressData.oPercentDone.mGetValue();
         oProgressData.oTime2End.mFormatSeconds(pw->text_etime, marlin_vars()->print_speed);
+        strncpy(web_shared_memory->time_remain, pw->text_etime, 9);
         pw->w_etime_value.color_text = ((marlin_vars()->print_speed == 100) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID);
         pw->w_progress.color_text = COLOR_VALUE_VALID;
         //_dbg(".progress: %d\r",nPercent);
@@ -531,6 +540,7 @@ void screen_printing_update_progress(screen_t *screen) {
 
     const pduration_t e_time(marlin_vars()->print_duration);
     e_time.to_string(pw->text_time);
+    e_time.to_string(web_shared_memory->time_elapsed);
     window_set_text(pw->w_time_value.win.id, pw->text_time);
     //_dbg("#.. progress / p :: %d t0: %d ?: %d\r",oProgressData.oPercentDirectControl.mGetValue(),oProgressData.oPercentDirectControl.nTime,oProgressData.oPercentDirectControl.mIsActual(print_job_timer.duration()));
     //_dbg("#.. progress / P :: %d t0: %d ?: %d\r",oProgressData.oPercentDone.mGetValue(),oProgressData.oPercentDone.nTime,oProgressData.oPercentDone.mIsActual(print_job_timer.duration()));

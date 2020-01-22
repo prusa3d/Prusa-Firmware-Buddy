@@ -452,6 +452,7 @@ target_sources(
           src/wui/lwsapi.cpp
           src/wui/connect.cpp
           src/wui/connection.cpp
+          src/wui/web_thread_comm.cpp
   )
 
 set_property(

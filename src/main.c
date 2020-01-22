@@ -54,6 +54,7 @@
 #include "timer_defaults.h"
 #include "lwsapi.h" // for lwsapi_init function
 #include "thread_measurement.h"
+#include "web_thread_comm.h"
 
 /* USER CODE END Includes */
 
@@ -1015,6 +1016,10 @@ void StartWebServerTask(void const *argument) {
     // osThreadSuspend(0);
     MX_LWIP_Init();
     lwsapi_init();
+    if(web_thread_comm_init()){
+        osDelay(1);
+    }
+    //web_thread_comm_loop();
     /* Infinite loop */
     for (;;) {
         osDelay(1);
