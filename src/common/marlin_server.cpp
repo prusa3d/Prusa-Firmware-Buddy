@@ -814,33 +814,25 @@ int _server_set_var(char *name_val_str) {
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
 int _is_in_M600_flg = 0;
-
-
-void force_M600_begin_notify() {
-	marlin_server.command = MARLIN_CMD_M600;
-	_send_notify_event(MARLIN_EVT_CommandBegin, MARLIN_CMD_M600, 0);
-	_is_in_M600_flg = 1;
-}
-
-void force_M600_end_notify() {
-	marlin_server.command = MARLIN_CMD_NONE;
-	_send_notify_event(MARLIN_EVT_CommandEnd, MARLIN_CMD_M600, 0);
-	fs_clr_sent();
-	_is_in_M600_flg = 0;
-}
-
-#else
-void force_M600_begin_notify() {
-	marlin_server.command = MARLIN_CMD_M600;
-	_send_notify_event(MARLIN_EVT_CommandBegin, MARLIN_CMD_M600, 0);
-}
-
-void force_M600_end_notify() {
-	marlin_server.command = MARLIN_CMD_NONE;
-	_send_notify_event(MARLIN_EVT_CommandEnd, MARLIN_CMD_M600, 0);
-	fs_clr_sent();
-}
 #endif
+
+void force_M600_begin_notify() {
+	marlin_server.command = MARLIN_CMD_M600;
+	_send_notify_event(MARLIN_EVT_CommandBegin, MARLIN_CMD_M600, 0);
+#ifdef DEBUG_FSENSOR_IN_HEADER
+	_is_in_M600_flg = 1;
+#endif
+}
+
+void force_M600_end_notify() {
+	marlin_server.command = MARLIN_CMD_NONE;
+	_send_notify_event(MARLIN_EVT_CommandEnd, MARLIN_CMD_M600, 0);
+	fs_clr_sent();
+#ifdef DEBUG_FSENSOR_IN_HEADER
+	_is_in_M600_flg = 0;
+#endif
+}
+
 
 //-----------------------------------------------------------------------------
 // ExtUI event handlers
