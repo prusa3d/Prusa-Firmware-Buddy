@@ -96,7 +96,7 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
 }
 
 int putslave_do_cmd_q_ver(uartslave_t *pslave) {
-    uartslave_printf(pslave, "%s-%s ", version_firmware_name, version_version);
+    uartslave_printf(pslave, "%s-%s ", project_firmware_name, project_version_full);
     return UARTSLAVE_OK;
 }
 

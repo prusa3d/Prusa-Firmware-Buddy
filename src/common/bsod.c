@@ -112,26 +112,6 @@ extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
 #endif //_DEBUG
 
-static void get_fw_version(void) {
-    uint8_t FW_version[3];
-    uint16_t fw_parser = FW_VERSION;
-
-    FW_version[0] = (uint8_t)(fw_parser / 100);
-    fw_parser -= FW_version[0] * 100;
-    FW_version[1] = (uint8_t)(fw_parser / 10);
-    fw_parser -= FW_version[1] * 10;
-    FW_version[2] = (uint8_t)fw_parser;
-
-#ifdef PRERELEASE_STR
-    snprintf(FW_version_str, sizeof(FW_version_str), "%d.%d.%d-%s+%d",
-        FW_version[0], FW_version[1], FW_version[2],
-        PRERELEASE_STR, version_build_nr);
-#else
-    sprintf(FW_version_str, "%d.%d.%d", FW_version[0],
-        FW_version[1], FW_version[2]);
-#endif
-}
-
 #define PADDING 10
 #define X_MAX (display->w - PADDING * 2)
 
@@ -152,8 +132,7 @@ static void stop_common(void) {
 //! @param background_color background color
 static void print_error(term_t *term, color_t background_color) {
     render_term(rect_ui16(10, 10, 220, 288), term, gui_defaults.font, background_color, COLOR_WHITE);
-    get_fw_version();
-    display->draw_text(rect_ui16(10, 290, 220, 20), FW_version_str, gui_defaults.font, background_color, COLOR_WHITE);
+    display->draw_text(rect_ui16(10, 290, 220, 20), project_version_full, gui_defaults.font, background_color, COLOR_WHITE);
 }
 
 //! @brief Marlin stopped

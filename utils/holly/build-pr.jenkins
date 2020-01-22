@@ -10,18 +10,43 @@ pipeline {
         stage('Prepare Build Stages') {
             steps {
                 script {
-                    configurations = [
+                    // required configurations
+                    def configurations = [
                         [printer: "mini", build_type: "release", bootloader: "no"],
                         [printer: "mini", build_type: "release", bootloader: "empty"],
                     ]
-                    if (env.BRANCH_NAME.startsWith("RELEASE-")) {
-                        prerelease = "RC"
+
+                    // prepare version suffix
+                    def commit_nr = sh(script: 'git rev-list HEAD --count', returnStdout: true).trim()
+                    def short_suffix
+                    def full_suffix
+                    if (env.CHANGE_ID) {
+                        // This is a PR build
+                        short_suffix = "-BETA+${commit_nr}"
+                        full_suffix = "${short_suffix}.PR${env.CHANGE_ID}.B${env.BUILD_NUMBER}"
+                    } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
+                        // This is an RC build
+                        short_suffix = "-RC+${commit_nr}"
+                        full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
                     } else {
-                        prerelease = "BETA"
+                        // This is build of an ordinary branch (not a release branch)
+                        short_suffix = "-BETA+${commit_nr}"
+                        full_suffix = "${short_suffix}.BRANCH_${env.BRANCH_NAME}.B${env.BUILD_NUMBER}"
                     }
+
+                    // create the build stages
                     configurations.each { config ->
                         stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
-                            sh "python utils/build.py --printer ${config.printer} --build-type ${config.build_type} --bootloader ${config.bootloader} --generate-bbf --no-store-output --prerelease ${prerelease}"
+                            sh """
+                                python utils/build.py \
+                                    --printer ${config.printer} \
+                                    --build-type ${config.build_type} \
+                                    --bootloader ${config.bootloader} \
+                                    --generate-bbf \
+                                    --no-store-output \
+                                    --version-suffix=${full_suffix} \
+                                    --version-suffix-short=${short_suffix}
+                            """
                         }
                     }
                 }
@@ -47,21 +72,6 @@ pipeline {
 
     post {
         always {
-            // decide what prefix to use for build products
-            script {
-                if (env.CHANGE_ID) {
-                    prefix = "pr_${env.CHANGE_ID}_"
-                } else {
-                    prefix = "branch_${env.BRANCH_NAME}_"
-                }
-            }
-            // add prefix to build products
-            sh "PREFIX=${prefix} ; " + '''
-                cd build/products
-                for f in * ; do
-                    mv -- "$f" "${PREFIX}$f";
-                done
-            '''
             // archive build products
             archiveArtifacts artifacts: 'build/products/*', fingerprint: true
         }
