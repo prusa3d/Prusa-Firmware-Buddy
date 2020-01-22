@@ -372,6 +372,7 @@ static void close_popup_message(screen_t *screen) {
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
 extern int _is_in_M600_flg;
+extern uint32_t* pCommand;
 #endif
 
 int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -381,13 +382,14 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 	{
 		_last = HAL_GetTick();
 
-		static char buff[] = "Sx Mx x xxx";                         //"x"s are replaced
+		static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
 		buff[1] = fs_get_state() + '0';                             // S0 init, S1 has filament, S2 nofilament, S3 not connected, S4 disabled
 		buff[4] = fs_get_send_M600_on();                            // Me edge, Ml level, Mn never, Mx undefined
 		buff[6] = fs_was_M600_send() ? 's' : 'n';                   // s == send, n== not send
 		buff[8] = _is_in_M600_flg ? 'M' : '0';                      // M == marlin is doing M600
 		buff[9] = marlin_event(MARLIN_EVT_CommandBegin)? 'B' : '0'; // B == Event begin
 		buff[10]= marlin_command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
+		buff[11]= *pCommand == MARLIN_CMD_M600 ? 's' : '0';  // s == server - Command M600
 		p_window_header_set_text(&(pw->header), buff);
 	}
 

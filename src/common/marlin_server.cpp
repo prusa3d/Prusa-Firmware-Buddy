@@ -91,7 +91,9 @@ osMessageQId marlin_server_queue = 0; // input queue (uint8_t)
 osSemaphoreId marlin_server_sema = 0; // semaphore handle
 
 marlin_server_t marlin_server; // server structure - initialize task to zero
-
+#ifdef DEBUG_FSENSOR_IN_HEADER
+uint32_t* pCommand = &marlin_server.command;
+#endif
 marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
 
 //==========MSG_STACK===================
