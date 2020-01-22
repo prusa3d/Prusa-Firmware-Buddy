@@ -890,14 +890,10 @@ float Temperature::get_ff_output_hotend(float &last_target, float &expected, con
             expected_temp = temp_hotend[ee].celsius;
             pid_reset[ee] = false;
           }
-
           work_pid[ee].Kd = work_pid[ee].Kd + PID_K2 * (PID_PARAM(Kd, ee) * (temp_dState[ee] - temp_hotend[ee].celsius) - work_pid[ee].Kd);
-          const float max_power_over_i_gain = float(PID_MAX) / PID_PARAM(Ki, ee) - float(MIN_POWER);
-          temp_iState[ee] = constrain(temp_iState[ee] + pid_error, -max_power_over_i_gain, max_power_over_i_gain);
           work_pid[ee].Kp = PID_PARAM(Kp, ee) * pid_error;
-          work_pid[ee].Ki = PID_PARAM(Ki, ee) * temp_iState[ee];
 
-          pid_output = feed_forward + work_pid[ee].Kp + work_pid[ee].Ki + work_pid[ee].Kd + float(MIN_POWER);
+          pid_output = feed_forward + work_pid[ee].Kp + work_pid[ee].Kd + float(MIN_POWER);
 
           #if ENABLED(PID_EXTRUSION_SCALING)
             #if HOTENDS == 1
@@ -920,6 +916,14 @@ float Temperature::get_ff_output_hotend(float &last_target, float &expected, con
               pid_output += work_pid[ee].Kc;
             }
           #endif // PID_EXTRUSION_SCALING
+
+          //Sum error only if it has effect on output value
+          if (!((((pid_output + work_pid[ee].Ki) < 0) && (pid_error < 0))
+             || (((pid_output + work_pid[ee].Ki) > PID_MAX) && (pid_error > 0 )))) {
+            temp_iState[ee] += pid_error;
+          }
+          work_pid[ee].Ki = PID_PARAM(Ki, ee) * temp_iState[ee];
+          pid_output += work_pid[ee].Ki;
 
           LIMIT(pid_output, 0, PID_MAX);
         }
