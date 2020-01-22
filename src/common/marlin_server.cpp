@@ -142,7 +142,7 @@ extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue hand
 int _send_notify_to_client(osMessageQId queue, variant8_t msg);
 int _send_notify_event_to_client(int client_id, osMessageQId queue, uint8_t evt_id, uint32_t usr32, uint16_t usr16);
 uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
-void _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16);
+uint8_t _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16);
 int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var);
 uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk);
 void _server_update_gqueue(void);
@@ -482,9 +482,11 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
 }
 
 // send event notification to all clients (called from server thread)
-void _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16) {
+// returns bitmask - bit0 = notify for client0 successfully send, bit1 for client1...
+uint8_t _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16) {
+	uint8_t client_msk = 0;
     if ((marlin_server.notify_events & ((uint64_t)1 << evt_id)) == 0)
-        return;
+        return client_msk;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
             marlin_server.client_events[client_id] |= ((uint64_t)1 << evt_id); // event not sent, set bit
@@ -496,6 +498,9 @@ void _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16) {
                 marlin_server.mesh_point_notsent[client_id] |= mask;
             }
         }
+        else
+            client_msk |= (1 << client_id);
+    return client_msk;
 }
 
 // send variable change notification to client (called from server thread)
