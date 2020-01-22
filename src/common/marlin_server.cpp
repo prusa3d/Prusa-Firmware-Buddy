@@ -69,6 +69,8 @@ typedef struct _marlin_server_t {
     uint8_t pqueue; // calculated number of records in planner queue
     uint8_t gqueue; // copy of queue.length - number of commands in gcode queue
     uint32_t command; // actually running command
+    uint32_t command_begin; // variable for notification
+    uint32_t command_end; // variable for notification
     marlin_mesh_t mesh; // meshbed leveling
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
 } marlin_server_t;
@@ -279,7 +281,11 @@ int marlin_server_idle(void) {
                 break;
             }
         if (marlin_server.command != MARLIN_CMD_NONE)
+        {
+            marlin_server.command_begin = marlin_server.command;
+            marlin_server.command_end = marlin_server.command;
             _send_notify_event(MARLIN_EVT_CommandBegin, marlin_server.command, 0);
+        }
     }
     return marlin_server_cycle();
 }
@@ -443,11 +449,14 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
                     sent |= msk; // event sent, set bit
                 break;
             // CommandBegin/End - one ui32 argument (CMD)
-            //case MARLIN_EVT_CommandBegin:
-            //case MARLIN_EVT_CommandEnd:
-            //	if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
-            //		sent |= msk; // event sent, set bit
-            //	break;
+            case MARLIN_EVT_CommandBegin:
+                if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.command_begin, 0))
+                    sent |= msk; // event sent, set bit
+                break;
+            case MARLIN_EVT_CommandEnd:
+                if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.command_end, 0))
+                    sent |= msk; // event sent, set bit
+                break;
             //case MARLIN_EVT_PlayTone:
             //case MARLIN_EVT_UserConfirmRequired:
             case MARLIN_EVT_MeshUpdate:
