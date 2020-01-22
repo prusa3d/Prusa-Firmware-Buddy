@@ -436,7 +436,7 @@
 
     // Prusa MINI
     #define DEFAULT_Kp 7.00
-    #define DEFAULT_Ki 0.1
+    #define DEFAULT_Ki 0.01
     #define DEFAULT_Kd 0
 
 // MakerGear
