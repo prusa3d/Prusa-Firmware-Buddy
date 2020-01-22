@@ -274,7 +274,7 @@ int marlin_server_idle(void) {
             switch (parser.codenum) {
             case 109:
             case 190:
-            //case 600: // hacked in gcode
+            //case 600: // hacked in gcode (_force_M600_notify)
             case 701:
             case 702:
                 marlin_server.command = MARLIN_CMD_M + parser.codenum;
@@ -820,6 +820,7 @@ int _server_set_var(char *name_val_str) {
 }
 
 // this is extern from guimain.c, used in temporary fix (force_M600_notify)
+// this variable is set imediately after
 extern int gui_marlin_client_id;
 
 } // extern "C"
@@ -828,20 +829,42 @@ extern int gui_marlin_client_id;
 int _is_in_M600_flg = 0;
 #endif
 
+// force send M600 begin/end notify
+void _force_M600_notify(uint64_t evt_id, uint8_t req_client_mask)
+{
+    int client_id;
+    uint8_t client_mask = _send_notify_event(evt_id, MARLIN_CMD_M600, 0);
+    // loop until event successfully sent to requested clients
+    while ((client_mask & req_client_mask) != req_client_mask)
+    {
+        idle(); // call marlin idle
+        // check that event sent inside idle and update mask
+        for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
+            if ((marlin_server.client_events[client_id] & ((uint64_t)1 << evt_id)) == 0)
+                client_mask |= (1 << client_id);
+    }
+}
+
+// this is called in main thread directly from M600
 void force_M600_begin_notify() {
-	marlin_server.command = MARLIN_CMD_M600;
-	_send_notify_event(MARLIN_EVT_CommandBegin, MARLIN_CMD_M600, 0);
+    marlin_server.command = MARLIN_CMD_M600;
+    marlin_server.command_begin = MARLIN_CMD_M600;
+    marlin_server.command_end = MARLIN_CMD_M600;
+    // notification will wait until successfully sent to gui client
+    _force_M600_notify(MARLIN_EVT_CommandBegin, 1 << gui_marlin_client_id);
 #ifdef DEBUG_FSENSOR_IN_HEADER
-	_is_in_M600_flg = 1;
+    _is_in_M600_flg = 1;
 #endif
 }
 
+// this is called in main thread directly from M600
 void force_M600_end_notify() {
-	marlin_server.command = MARLIN_CMD_NONE;
-	_send_notify_event(MARLIN_EVT_CommandEnd, MARLIN_CMD_M600, 0);
-	fs_clr_sent();
+    marlin_server.command = MARLIN_CMD_NONE;
+    // notification will wait until successfully sent to gui client
+    _force_M600_notify(MARLIN_EVT_CommandEnd, 1 << gui_marlin_client_id);
+    fs_clr_sent();
 #ifdef DEBUG_FSENSOR_IN_HEADER
-	_is_in_M600_flg = 0;
+    _is_in_M600_flg = 0;
 #endif
 }
 
