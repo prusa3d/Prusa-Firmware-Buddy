@@ -447,11 +447,6 @@ target_sources(
           src/guiapi/src/window_text.c
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
-          src/wui/http_states.c
-          src/wui/lwsapi.cpp
-          src/wui/connect.cpp
-          src/wui/connection.cpp
-          src/wui/wui.c
   )
 
 set_property(
