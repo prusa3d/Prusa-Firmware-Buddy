@@ -810,6 +810,9 @@ int _server_set_var(char *name_val_str) {
     return 1;
 }
 
+// this is extern from guimain.c, used in temporary fix (force_M600_notify)
+extern int gui_marlin_client_id;
+
 } // extern "C"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
