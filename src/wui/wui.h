@@ -17,30 +17,10 @@ extern "C" {
 #endif
 
 /*!****************************************************************************
-* \brief initalize necessary things for Web UI interface
-*
-* \param
-*
-* \return
-*
-*****************************************************************************/
-void init_wui(void);
-
-/*!****************************************************************************
 * \brief Webserver thread function
 *
 *****************************************************************************/
 void StartWebServerTask(void const *argument);
-
-/*!****************************************************************************
-* \brief update the marlin variable for the current thread access
-*
-* \param    void
-*
-* \return	void
-*
-*****************************************************************************/
-void marlin_var_update();
 
 #ifdef __cplusplus
 }

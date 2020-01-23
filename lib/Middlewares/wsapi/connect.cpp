@@ -12,6 +12,7 @@
 
 extern marlin_vars_t webserver_marlin_vars;
 extern osMutexId  wui_web_mutex_id;
+static marlin_vars_t webserver_marlin_vars_copy;
 #define _dbg(...)
 #define X_AXIS_POS 0
 #define Y_AXIS_POS 1
@@ -222,8 +223,8 @@ IResponse::unique_ptr_t api_job(Environment &env) {
         res->response = HTTP_200;
         res->ct_header.value = "application/json";
         const char* file_name = "test.gcode";
-        uint8_t sd_percent_done = (uint8_t)(webserver_marlin_vars->sd_percent_done);
-        uint32_t print_duration = (uint32_t)(webserver_marlin_vars->print_duration);
+        uint8_t sd_percent_done = (uint8_t)(webserver_marlin_vars_copy.sd_percent_done);
+        uint32_t print_duration = (uint32_t)(webserver_marlin_vars_copy.print_duration);
         res->printf("{"
                 "\"file\":\"%s\","
                 "\"total_print_time\":%d, "
@@ -248,16 +249,16 @@ IResponse::unique_ptr_t api_printer(Environment &env) {
         res->response = HTTP_200;
         res->ct_header.value = "application/json";
 
-        int32_t actual_nozzle = (int32_t)(webserver_marlin_vars->temp_nozzle);
-        int32_t target_nozzle = (int32_t)(webserver_marlin_vars->target_nozzle);
-        int32_t actual_heatbed = (int32_t)(webserver_marlin_vars->temp_bed);
-        int32_t target_heatbed = (int32_t)(webserver_marlin_vars->target_bed);
+        int32_t actual_nozzle = (int32_t)(webserver_marlin_vars_copy.temp_nozzle);
+        int32_t target_nozzle = (int32_t)(webserver_marlin_vars_copy.target_nozzle);
+        int32_t actual_heatbed = (int32_t)(webserver_marlin_vars_copy.temp_bed);
+        int32_t target_heatbed = (int32_t)(webserver_marlin_vars_copy.target_bed);
 
-        double x_pos_mm = static_cast <double> (webserver_marlin_vars->ipos[X_AXIS_POS]);
-        double y_pos_mm = static_cast <double> (webserver_marlin_vars->ipos[Y_AXIS_POS]);
-        double z_pos_mm = static_cast <double> (webserver_marlin_vars->ipos[Z_AXIS_POS]);
-        uint16_t print_speed = (uint16_t) (webserver_marlin_vars->print_speed);
-        uint16_t flow_factor = (uint16_t) (webserver_marlin_vars->flow_factor);
+        double x_pos_mm = static_cast <double> (webserver_marlin_vars_copy.pos[X_AXIS_POS]);
+        double y_pos_mm = static_cast <double> (webserver_marlin_vars_copy.pos[Y_AXIS_POS]);
+        double z_pos_mm = static_cast <double> (webserver_marlin_vars_copy.pos[Z_AXIS_POS]);
+        uint16_t print_speed = (uint16_t) (webserver_marlin_vars_copy.print_speed);
+        uint16_t flow_factor = (uint16_t) (webserver_marlin_vars_copy.flow_factor);
         const char* filament_material = filaments[get_filament()].name;
 
         res->printf(
@@ -334,6 +335,12 @@ IHeader *request_header(const char *key, size_t key_length,
 IResponse::unique_ptr_t application(Environment &env) {
 
     _dbg("HTTP Request: %s %s", env.method, env.request_uri);
+
+    osStatus status = osMutexWait(wui_web_mutex_id, osWaitForever);
+    if (status == osOK)  {
+        webserver_marlin_vars_copy = webserver_marlin_vars;
+    }
+    osMutexRelease(wui_web_mutex_id);
 
     if (!strcmp(env.method, "GET") || !strcmp(env.method, "HEAD")) {
         // Static files

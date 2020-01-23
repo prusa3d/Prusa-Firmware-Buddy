@@ -13,24 +13,26 @@
 
 #include "cmsis_os.h"
 
-marlin_vars_t* webserver_marlin_vars = 0;
+osMutexDef (wui_web_mutex);    // Declare mutex
+osMutexId  (wui_web_mutex_id); // Mutex ID
 
-void init_wui() {
-    webserver_marlin_vars = marlin_client_init(); // init the client
-}
+
+marlin_vars_t* wui_marlin_vars = 0;
+marlin_vars_t webserver_marlin_vars;
 
 void StartWebServerTask(void const *argument) {
-    void init_wui();
-	MX_LWIP_Init();
+    wui_web_mutex_id = osMutexCreate(osMutex(wui_web_mutex));
+    wui_marlin_vars = marlin_client_init(); // init the client
+   	MX_LWIP_Init();
     http_server_init();
     for (;;) {
+//        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MSK_TEMP_ALL));
+        if(wui_marlin_vars) {
+            marlin_client_loop();
+        }
+        osMutexWait(wui_web_mutex_id, osWaitForever);
+        webserver_marlin_vars = *wui_marlin_vars;
+        osMutexRelease(wui_web_mutex_id);
         osDelay(100);
-        marlin_var_update();
-    }
-}
-
-void marlin_var_update() {
-    if(webserver_marlin_vars) {
-        marlin_client_loop();
     }
 }
