@@ -322,7 +322,12 @@ target_compile_options(firmware PRIVATE -Wdouble-promotion)
 
 # generate datetime string (RFC1123) to be used by web ui
 rfc1123_datetime(RFC1123_DATETIME)
-target_compile_definitions(firmware PRIVATE RFC1123_DATETIME="$RFC1123_DATETIME")
+target_compile_definitions(
+	firmware 
+	PRIVATE 
+	RFC1123_DATETIME="$RFC1123_DATETIME"
+	BUDDY_ENABLE_WUI
+	)
 
 target_link_libraries(
   firmware
