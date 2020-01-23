@@ -57,7 +57,6 @@
 
 /* USER CODE BEGIN 0 */
 
-#include "eeprom.h"
 #include "dbg.h"
 
 /* USER CODE END 0 */
@@ -66,7 +65,7 @@
 void Error_Handler(void);
 
 /* USER CODE BEGIN 1 */
-
+char interface_hostname[21];
 /* USER CODE END 1 */
 
 /* Variables Initialization */
@@ -138,7 +137,16 @@ void MX_LWIP_Init(void) {
     netif_set_link_callback(&eth0, netif_link_callback);
     netif_set_status_callback(&eth0, netif_status_callback);
     netif_set_down(&eth0);
-    if(!(eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_ONOFF)){
+    uint8_t ee_lan_flg = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
+    eeprom_get_hostname(interface_hostname);
+    eth0.hostname = interface_hostname;
+    if(ee_lan_flg & LAN_EEFLG_TYPE){
+        ipaddr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
+        netmask.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
+        gw.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
+        netif_set_addr(&eth0, &ipaddr, &netmask, &gw);
+    }
+    if(!(ee_lan_flg & LAN_EEFLG_ONOFF)){
         netif_set_up(&eth0);
     }
     /* USER CODE END 3 */

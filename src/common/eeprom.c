@@ -5,6 +5,7 @@
 #include "st25dv64k.h"
 #include "dbg.h"
 #include <string.h>
+#include <stdbool.h>
 
 #define EE_VERSION 0x0003
 #define EE_VAR_CNT sizeof(eeprom_map_v1)
@@ -22,12 +23,12 @@ const uint8_t eeprom_map_v1[] = {
     VARIANT8_UI8, // EEVAR_RUN_FIRSTLAY
     VARIANT8_UI8, // EEVAR_FSENSOR_ENABLED
     VARIANT8_UI8, // EEVAR_LAN_FLAG
-    VARIANT8_UI32, // EEVAR_LAN_IP4_ADDR
-    VARIANT8_UI32, // EEVAR_LAN_IP4_MSK
-    VARIANT8_UI32, // EEVAR_LAN_IP4_GW
-    VARIANT8_UI32, // EEVAR_LAN_IP4_DNS1
-    VARIANT8_UI32, // EEVAR_LAN_IP4_DNS2
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_0
+    VARIANT8_UI32, // EEVAR_LAN_IP4_ADDR    X.X.X.X address encoded in uint32
+    VARIANT8_UI32, // EEVAR_LAN_IP4_MSK     X.X.X.X address encoded in uint32
+    VARIANT8_UI32, // EEVAR_LAN_IP4_GW      X.X.X.X address encoded in uint32
+    VARIANT8_UI32, // EEVAR_LAN_IP4_DNS1    X.X.X.X address encoded in uint32
+    VARIANT8_UI32, // EEVAR_LAN_IP4_DNS2    X.X.X.X address encoded in uint32
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_0   Start of 20char string
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_1
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_2
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_3
@@ -46,7 +47,7 @@ const uint8_t eeprom_map_v1[] = {
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_16
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_17
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_18
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_19
+    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_19  End of 20char string
 };
 
 const char *eeprom_var_name[] = {
@@ -279,10 +280,10 @@ void eeprom_get_hostname(char * dest){
     strncpy(dest, hostname_str, LAN_HOSTNAME_MAX_LEN + 1);
 }
 void eeprom_set_hostname(char * src){
-    uint8_t end = 0;
+    bool end = false;
     for(uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++){
         if(!end && src[i] == '\0')
-            end = 1;
+            end = true;
         if(!end){
             eeprom_set_var(EEVAR_LAN_HOSTNAME_0 + i, variant8_ui8(src[i]));
         } else {
@@ -317,7 +318,7 @@ int eeprom_var_sprintf(char *str, uint8_t id, variant8_t var) {
 
 void eeprom_print_vars(void) {
     uint8_t id;
-    char text[21];
+    char text[16];
     for (id = 0; id < EE_VAR_CNT; id++) {
         eeprom_var_sprintf(text, id, eeprom_get_var(id));
         _dbg("%s=%s", eeprom_var_name[id], text);

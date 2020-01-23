@@ -71,8 +71,10 @@ extern "C" {
 
     /* USER CODE BEGIN 0 */
     #include "stm32f4xx_hal.h"
+    #include "eeprom.h"
 
 extern struct netif eth0;
+extern char interface_hostname[LAN_HOSTNAME_MAX_LEN + 1];
 /* USER CODE END 0 */
 
 /* Global Variables ----------------------------------------------------------*/

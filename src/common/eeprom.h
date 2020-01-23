@@ -15,13 +15,13 @@
 #define EEVAR_RUN_XYZCALIB 0x07
 #define EEVAR_RUN_FIRSTLAY 0x08
 #define EEVAR_FSENSOR_ENABLED 0x09
-#define EEVAR_LAN_FLAG 0x0A // & 1 = On/off, & 2 = dhcp/static
-#define EEVAR_LAN_IP4_ADDR 0x0B
-#define EEVAR_LAN_IP4_MSK 0x0C
-#define EEVAR_LAN_IP4_GW 0x0D
-#define EEVAR_LAN_IP4_DNS1 0x0E
-#define EEVAR_LAN_IP4_DNS2 0x0F
-#define EEVAR_LAN_HOSTNAME_0 0x10
+#define EEVAR_LAN_FLAG 0x0A // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
+#define EEVAR_LAN_IP4_ADDR 0x0B // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_MSK 0x0C // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_GW 0x0D // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_DNS1 0x0E // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_DNS2 0x0F // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_HOSTNAME_0 0x10 //Start of 20char string
 #define EEVAR_LAN_HOSTNAME_1 0x11
 #define EEVAR_LAN_HOSTNAME_2 0x12
 #define EEVAR_LAN_HOSTNAME_3 0x13
@@ -40,11 +40,11 @@
 #define EEVAR_LAN_HOSTNAME_16 0x20
 #define EEVAR_LAN_HOSTNAME_17 0x21
 #define EEVAR_LAN_HOSTNAME_18 0x22
-#define EEVAR_LAN_HOSTNAME_19 0x23
+#define EEVAR_LAN_HOSTNAME_19 0x23 //End of 20char string
 
 #define LAN_HOSTNAME_MAX_LEN 20
-#define LAN_EEFLG_ONOFF 1
-#define LAN_EEFLG_TYPE 2
+#define LAN_EEFLG_ONOFF 1 //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
+#define LAN_EEFLG_TYPE 2 //EEPROM flag for user-defined settings (Switch between dhcp and static)
 
 #ifdef __cplusplus
 extern "C" {
