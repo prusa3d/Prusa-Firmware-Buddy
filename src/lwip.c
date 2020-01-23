@@ -118,6 +118,5 @@ void http_server_init(void) {
     lwsapi_init();
 #else
     httpd_init();
-    init_wui();
 #endif
 }

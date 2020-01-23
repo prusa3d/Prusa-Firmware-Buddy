@@ -78,11 +78,10 @@ extern "C" {
 /* chip specific includes ----------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 /* lwip customization includes -----------------------------------------------*/
-#ifdef MINI_USE_WSAPI
+#ifdef BUDDY_USE_WSAPI
 #include "lwsapi.h" // use WSAPI web application server
 #else
 #include "httpd.h"  // use pure http server from LwIP library
-#include "wui.h"
 #endif
 
 extern struct netif eth0;
