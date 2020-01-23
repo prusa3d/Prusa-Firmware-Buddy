@@ -27,7 +27,7 @@
 #include "lwip/pbuf.h"
 #include "lwip/mem.h"
 
-#include "dbg.h"
+//#include "dbg.h"
 
 //! maximum of HTTP request without payload
 #define MAX_HTTP_REQUEST 1024
@@ -38,8 +38,8 @@
 //! maximum length of request uri
 #define URI_LENGTH 64
 
-#define lwsapi_dbg _dbg
-#define lwsapi_error _dbg
+#define lwsapi_dbg(...)
+#define lwsapi_error(...)
 
 #define lwsapi_free(arg)  \
     if (arg != nullptr) { \
