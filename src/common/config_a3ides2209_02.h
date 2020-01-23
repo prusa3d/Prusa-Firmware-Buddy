@@ -15,7 +15,7 @@
 #endif //_DEBUG
 
 //show filament sensor status in header
-#define DEBUG_FSENSOR_IN_HEADER
+//#define DEBUG_FSENSOR_IN_HEADER
 
 //--------------------------------------
 //ADC configuration
