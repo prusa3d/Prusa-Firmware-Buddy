@@ -405,7 +405,7 @@
 #define PIDTEMP
 #define BANG_MAX 255 // Limits current to nozzle while in bang-bang mode; 255=full current
 #define PID_MAX BANG_MAX // Limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
-#define PID_K1 0.95 // Smoothing factor within any PID loop
+#define PID_K1 0.97 // Derivative smoothing factor within any PID loop
 #if ENABLED(PIDTEMP)
     //#define PID_EDIT_MENU         // Add PID editing to the "Advanced Settings" menu. (~700 bytes of PROGMEM)
     //#define PID_AUTOTUNE_MENU     // Add PID auto-tuning to the "Advanced Settings" menu. (~250 bytes of PROGMEM)
@@ -436,8 +436,8 @@
 
     // Prusa MINI
     #define DEFAULT_Kp 7.00
-    #define DEFAULT_Ki 0.01
-    #define DEFAULT_Kd 0
+    #define DEFAULT_Ki 0.50
+    #define DEFAULT_Kd 45.00
 
 // MakerGear
 //#define DEFAULT_Kp 7.0
