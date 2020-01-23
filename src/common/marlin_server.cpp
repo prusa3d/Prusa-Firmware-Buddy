@@ -177,10 +177,11 @@ void print_fan_spd() {
         if (timediff >= 1000) {
 
             serial_echopair_PGM("Tacho_FAN0 ",float(Tacho_FAN0 * 30)/float(timediff));//60s / 2 pulses per rotation
-            serialprintPGM("rpm ");
+            serialprintPGM("rpm ");SERIAL_EOL();
             serial_echopair_PGM("Tacho_FAN1 ",float(Tacho_FAN1 * 30)/float(timediff));
-            serialprintPGM("rpm ");
-
+            serialprintPGM("rpm ");SERIAL_EOL();
+            Tacho_FAN0 = 0;
+            Tacho_FAN1 = 0;
             last_prt = time;
         }
     }
