@@ -31,7 +31,8 @@ pipeline {
                     } else {
                         // This is build of an ordinary branch (not a release branch)
                         short_suffix = "-BETA+${commit_nr}"
-                        full_suffix = "${short_suffix}.BRANCH_${env.BRANCH_NAME}.B${env.BUILD_NUMBER}"
+                        def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
+                        full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
                     }
 
                     // create the build stages
