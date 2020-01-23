@@ -1,21 +1,18 @@
 #include "lwsapi_app.hpp"
 #include "http_states.h"
-#include "dbg.h"
+//#include "dbg.h"
 #include "wui.h"
 
 #include <cstring>
 #include <cstdarg>
 
-#ifndef TEST_INTEGRITY
-    #include "../Marlin/src/module/temperature.h"
-#endif
-
 #include "filament.h"
 #include "window_header.h"
 #include "status_footer.h"
 
-extern marlin_vars_t* webserver_marlin_vars;
-
+extern marlin_vars_t webserver_marlin_vars;
+extern osMutexId  wui_web_mutex_id;
+#define _dbg(...)
 #define X_AXIS_POS 0
 #define Y_AXIS_POS 1
 #define Z_AXIS_POS 2
@@ -26,19 +23,19 @@ extern marlin_vars_t* webserver_marlin_vars;
     #define LAST_MODIFY __TIMESTAMP__
 #endif
 
-#include "res/cc/index_html.c"
-#include "res/cc/index_css.c"
-#include "res/cc/index_js.c"
-#include "res/cc/favicon_ico.c"
-#include "res/cc/connect_black_svg.c"
+#include "cc_wsapi/index_html.c"
+#include "cc_wsapi/index_css.c"
+#include "cc_wsapi/index_js.c"
+#include "cc_wsapi/favicon_ico.c"
+#include "cc_wsapi/connect_black_svg.c"
 
-#include "res/cc/status_filament_svg.c"
-#include "res/cc/status_heatbed_svg.c"
-#include "res/cc/status_nozzle_svg.c"
-#include "res/cc/status_prnflow_svg.c"
-#include "res/cc/status_prnspeed_svg.c"
-#include "res/cc/status_z_axis_svg.c"
-#include "res/cc/under_construction_gif.c"
+#include "cc_wsapi/status_filament_svg.c"
+#include "cc_wsapi/status_heatbed_svg.c"
+#include "cc_wsapi/status_nozzle_svg.c"
+#include "cc_wsapi/status_prnflow_svg.c"
+#include "cc_wsapi/status_prnspeed_svg.c"
+#include "cc_wsapi/status_z_axis_svg.c"
+#include "cc_wsapi/under_construction_gif.c"
 
 struct header_factory_t {
     const char *key;
