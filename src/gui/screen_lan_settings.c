@@ -184,19 +184,24 @@ static void _change_any_to_static(){
     }
     config.lan_flag |= LAN_EEFLG_TYPE;
     eeprom_set_var(EEVAR_LAN_FLAG, variant8_ui8(config.lan_flag));
-
-    //ip4_addr_t ip4_dns1, ip4_dns2;
+#ifdef DNS_MODULE_ON
+    ip4_addr_t ip4_dns1, ip4_dns2;
+#endif //DNS_MODULE_ON
     config.lan_ip4_addr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
     config.lan_ip4_msk.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
     config.lan_ip4_gw.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
-    //ip4_dns1.addr = eeprom_get_var(EEVAR_LAN_IP4_DNS1).ui32;
-    //ip4_dns2.addr = eeprom_get_var(EEVAR_LAN_IP4_DNS2).ui32;
+#ifdef DNS_MODULE_ON
+    ip4_dns1.addr = eeprom_get_var(EEVAR_LAN_IP4_DNS1).ui32;
+    ip4_dns2.addr = eeprom_get_var(EEVAR_LAN_IP4_DNS2).ui32;
+#endif //DNS_MODULE_ON
     netifapi_netif_set_addr(&eth0,
         (const ip4_addr_t *)&config.lan_ip4_addr,
         (const ip4_addr_t *)&config.lan_ip4_msk,
         (const ip4_addr_t *)&config.lan_ip4_gw);
-    //dns_setserver(0, (const ip4_addr_t *)&ip4_dns1);
-    //dns_setserver(1, (const ip4_addr_t *)&ip4_dns2);
+#ifdef DNS_MODULE_ON
+    dns_setserver(0, (const ip4_addr_t *)&ip4_dns1);
+    dns_setserver(1, (const ip4_addr_t *)&ip4_dns2);
+#endif //DNS_MODULE_ON
     if(netif_is_link_up(&eth0) && !(config.lan_flag & LAN_EEFLG_ONOFF)){
         netifapi_netif_set_up(&eth0);
     }
