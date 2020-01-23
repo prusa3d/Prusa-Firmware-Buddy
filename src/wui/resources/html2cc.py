@@ -23,7 +23,7 @@ def convert(filename):
                          data=dict(input=cdata)).text.encode('utf-8')
 
         # cdata = compress(src.read())
-        with open("cc/%s_%s.c" % (base, ext[1:]), "w+") as csource:
+        with open("cc_wsapi/%s_%s.c" % (base, ext[1:]), "w+") as csource:
             print("convert %s -> %s" % (src.name, csource.name))
             csource.write("#include <inttypes.h>\n\n")
             csource.write("const uint8_t %s_%s[] =\n" % (base, ext[1:]))
