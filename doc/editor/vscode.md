@@ -8,6 +8,7 @@
     - and `ccls` extension, which provides autocompletion and code navigation.
 2. Install [ccls](https://github.com/MaskRay/ccls) on your system
     - Linux: `sudo snap install ccls --classic` ([full instructions](https://snapcraft.io/ccls))
+        - Also, check out this: https://github.com/MaskRay/ccls/wiki/FAQ#maximum-number-of-file-descriptors
     - Mac: `brew install ccls`
     - <details>
         <summary>Windows</summary>

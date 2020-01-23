@@ -25,46 +25,6 @@ function(get_recommended_gcc_version var)
       )
 endfunction()
 
-function(read_version_file major minor patch version_file)
-  file(READ "${version_file}" content)
-  string(REGEX MATCH "([0-9]+)\.([0-9]+)\.([0-9]+)" result "${content}")
-  if(NOT result)
-    message(FATAL_ERROR "Failed to read version info from ${version_file}")
-  endif()
-  set(${major}
-      ${CMAKE_MATCH_1}
-      PARENT_SCOPE
-      )
-  set(${minor}
-      ${CMAKE_MATCH_2}
-      PARENT_SCOPE
-      )
-  set(${patch}
-      ${CMAKE_MATCH_3}
-      PARENT_SCOPE
-      )
-endfunction()
-
-function(
-  create_full_version_string
-  full
-  major
-  minor
-  patch
-  prerelease
-  buildnr
-  )
-  set(full_ ${major}.${minor}.${patch})
-  if(prerelease)
-    string(APPEND full_ "-${prerelease}")
-  endif()
-  string(APPEND full_ "+${buildnr}")
-  set(${full}
-      ${full_}
-      PARENT_SCOPE
-      )
-endfunction()
-
 function(objcopy target format suffix)
   add_custom_command(
     TARGET ${target} POST_BUILD
@@ -83,7 +43,7 @@ function(report_size target)
     )
 endfunction()
 
-function(pack_firmware target fw_version printer_type signing_key)
+function(pack_firmware target fw_version build_number printer_type signing_key)
   set(bin_firmware_path "${CMAKE_CURRENT_BINARY_DIR}/${target}.bin")
   if(SIGNING_KEY)
     set(sign_opts "--key" "${signing_key}")
@@ -95,8 +55,9 @@ function(pack_firmware target fw_version printer_type signing_key)
     COMMAND "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:${target}>" "${bin_firmware_path}"
     COMMAND echo "" # visually separate the output
     COMMAND
-      "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version "${fw_version}"
+      "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${fw_version}"
       --printer-type "${printer_type}" --printer-version "1" ${sign_opts} "${bin_firmware_path}"
+      --build-number "${build_number}"
     )
 endfunction()
 
