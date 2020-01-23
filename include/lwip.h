@@ -81,7 +81,7 @@ extern "C" {
 #ifdef BUDDY_USE_WSAPI
 #include "lwsapi.h" // use WSAPI web application server
 #else
-#include "httpd.h"  // use pure http server from LwIP library
+#include "lwip/apps/httpd.h"
 #endif
 
 extern struct netif eth0;
