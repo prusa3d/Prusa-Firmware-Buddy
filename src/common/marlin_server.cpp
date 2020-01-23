@@ -701,7 +701,8 @@ uint64_t _server_update_vars(uint64_t update) {
 // process request on server side
 int _process_server_request(char *request) {
     int processed = 0;
-    uint64_t msk;
+    //uint64_t msk;
+    uint32_t msk32[2];
     float offs;
     int ival;
     int client_id = *(request++) - '0';
@@ -722,8 +723,8 @@ int _process_server_request(char *request) {
     } else if (strncmp("!var ", request, 5) == 0) {
         _server_set_var(request + 5);
         processed = 1;
-    } else if (sscanf(request, "!update %" PRIu64, &msk) == 1) {
-        marlin_server_update(msk);
+    } else if (sscanf(request, "!update %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        marlin_server_update(msk32[0] + (((uint64_t)msk32[1]) << 32));
         processed = 1;
     } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
         marlin_server_do_babystep_Z(offs);

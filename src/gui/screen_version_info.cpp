@@ -9,6 +9,7 @@
 #include "config.h"
 #include "screen_menu.h"
 #include <stdlib.h>
+#include "version.h"
 
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
 #define OTP_START_ADDR 0x1FFF7800
@@ -69,7 +70,7 @@ void screen_menu_version_info_init(screen_t *screen) {
 #ifdef PRERELEASE_STR
     sprintf(FW_version_str, "%d.%d.%d-%s+%d",
         FW_version[0], FW_version[1], FW_version[2],
-        PRERELEASE_STR, FW_BUILDNR);
+        PRERELEASE_STR, version_build_nr);
 #else
     sprintf(FW_version_str, "%d.%d.%d", FW_version[0],
         FW_version[1], FW_version[2]);

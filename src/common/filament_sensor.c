@@ -159,7 +159,7 @@ static void _cycle0() {
             case M600_on_edge:
                 if (!had_filament)
                     break;
-                //if had_filament == 1 - do not break
+                // no break if had_filament == 1
             case M600_on_level:
                 _injectM600();
                 break;
