@@ -149,8 +149,8 @@ uint8_t uart6rx_data[32];
 uartslave_t uart6slave;
 char uart6slave_line[32];
 
-uint32_t Tacho_FAN0;
-uint32_t Tacho_FAN1;
+volatile uint32_t Tacho_FAN0;
+volatile uint32_t Tacho_FAN1;
 
 /* USER CODE END 0 */
 

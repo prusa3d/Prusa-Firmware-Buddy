@@ -84,6 +84,8 @@ extern IWDG_HandleTypeDef hiwdg; //watchdog handle
 
 //-----------------------------------------------------------------------------
 // variables
+extern uint32_t Tacho_FAN0;
+extern uint32_t Tacho_FAN1;
 
 osThreadId marlin_server_task = 0; // task handle
 osMessageQId marlin_server_queue = 0; // input queue (uint8_t)
@@ -165,7 +167,31 @@ void marlin_server_init(void) {
     marlin_server.mesh.yc = 4;
 }
 
+
+void print_fan_spd() {
+    if (DEBUGGING(INFO)) {
+        static int time = 0;
+        static int last_prt = 0;
+        time = HAL_GetTick();
+        int timediff = time - last_prt;
+        if (timediff >= 1000) {
+
+            serial_echopair_PGM("Tacho_FAN0 ",float(Tacho_FAN0 * 30)/float(timediff));//60s / 2 pulses per rotation
+            serialprintPGM("rpm ");SERIAL_EOL();
+            serial_echopair_PGM("Tacho_FAN1 ",float(Tacho_FAN1 * 30)/float(timediff));
+            serialprintPGM("rpm ");SERIAL_EOL();
+            Tacho_FAN0 = 0;
+            Tacho_FAN1 = 0;
+            last_prt = time;
+        }
+    }
+}
+
+
 int marlin_server_cycle(void) {
+
+    print_fan_spd();
+
     int count = 0;
     int client_id;
     uint64_t msk = 0;
