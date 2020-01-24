@@ -338,7 +338,6 @@ target_link_libraries(
           Arduino::TMCStepper
           Arduino::LiquidCrystal
           LwIP_212
-          wsapi
           FatFs
           lpng
           STM32::USBHost
