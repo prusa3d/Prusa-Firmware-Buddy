@@ -260,8 +260,7 @@ Temperature thermalManager;
 volatile bool Temperature::temp_meas_ready = false;
 
 #if ENABLED(PID_EXTRUSION_SCALING)
-  int32_t Temperature::last_e_position, Temperature::lpq[LPQ_MAX_LEN];
-  lpq_ptr_t Temperature::lpq_ptr = 0;
+  uint32_t Temperature::last_e_position;
 #endif
 
 #define TEMPDIR(N) ((HEATER_##N##_RAW_LO_TEMP) < (HEATER_##N##_RAW_HI_TEMP) ? 1 : -1)
@@ -306,9 +305,6 @@ volatile bool Temperature::temp_meas_ready = false;
   uint8_t Temperature::ADCKey_count = 0;
 #endif
 
-#if ENABLED(PID_EXTRUSION_SCALING)
-  int16_t Temperature::lpq_len; // Initialized in configuration_store
-#endif
 
 #if HAS_PID_HEATING
 
@@ -785,6 +781,9 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
   _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP));
 }
 
+static constexpr float sample_frequency = TEMP_TIMER_FREQUENCY / MIN_ADC_ISR_LOOPS / OVERSAMPLENR;
+static constexpr float ambient_temp = 21.0f;
+
 //! @brief Get feed forward steady state output hotend
 //!
 //! steady state output:
@@ -797,7 +796,6 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
 static float ff_steady_state(float target_temp, float print_fan)
 {
     static_assert(PID_MAX == 255, "PID_MAX == 255 expected");
-    constexpr float ambient_temp = 21.0f;
     //TODO Square root computation can be mostly avoided by if it is stored and updated only on print_fan change
     float retval = ((target_temp - ambient_temp) * 0.322 + (target_temp - ambient_temp) * (target_temp - ambient_temp) * 0.0002 * (1 - print_fan)) * sqrt(1 + print_fan * 3.9);
     if (retval < 0) return 0;
@@ -823,7 +821,6 @@ float Temperature::get_ff_output_hotend(float &last_target, float &expected, con
     };
 
     constexpr float epsilon = 0.01f;
-    constexpr float sample_frequency = TEMP_TIMER_FREQUENCY / MIN_ADC_ISR_LOOPS / OVERSAMPLENR;
     constexpr float transport_delay_seconds = 5.60f;
     constexpr int transport_delay_cycles = transport_delay_seconds * sample_frequency;
     constexpr float transport_delay_cycles_inv = 1.0f / transport_delay_cycles;
@@ -939,16 +936,13 @@ float Temperature::get_ff_output_hotend(float &last_target, float &expected, con
             #endif
             work_pid[ee].Kc = 0;
             if (this_hotend) {
-              const long e_position = stepper.position(E_AXIS);
-              if (e_position > last_e_position) {
-                lpq[lpq_ptr] = e_position - last_e_position;
-                last_e_position = e_position;
-              }
-              else
-                lpq[lpq_ptr] = 0;
+              constexpr float distance_to_volume = M_PI * pow(DEFAULT_NOMINAL_FILAMENT_DIA / 2, 2);
+              constexpr float distance_to_volume_per_second = distance_to_volume * sample_frequency;
+              uint32_t e_position = stepper.position(E_AXIS);
+              const int32_t e_pos_diff = e_position - last_e_position;
+              last_e_position = e_position;
 
-              if (++lpq_ptr >= lpq_len) lpq_ptr = 0;
-              work_pid[ee].Kc = (lpq[lpq_ptr] * planner.steps_to_mm[E_AXIS]) * PID_PARAM(Kc, ee);
+              work_pid[ee].Kc = e_pos_diff * planner.steps_to_mm[E_AXIS] * distance_to_volume_per_second * (temp_hotend[ee].celsius - ambient_temp) * PID_PARAM(Kc, ee);
               pid_output += work_pid[ee].Kc;
             }
           #endif // PID_EXTRUSION_SCALING

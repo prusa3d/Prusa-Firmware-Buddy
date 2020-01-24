@@ -194,8 +194,12 @@
   // A well-chosen Kc value should add just enough power to melt the increased material volume.
   //#define PID_EXTRUSION_SCALING
   #if ENABLED(PID_EXTRUSION_SCALING)
-    #define DEFAULT_Kc (100) //heating power=Kc*(e_speed)
-    #define LPQ_MAX_LEN 50
+    /**
+     * Increase in PWM duty cycle needed to to extrude 1 mm^2 per second
+     * of filament if extruder temperature is 1 Kelvin above ambient
+     * temperature [1/PID_MAX*s*K^-1*mm^-2]
+     */
+    #define DEFAULT_Kc 0.009517f
   #endif
 #endif
 
