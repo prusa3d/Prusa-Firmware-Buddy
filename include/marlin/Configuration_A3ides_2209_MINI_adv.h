@@ -129,10 +129,14 @@
 #if ENABLED(PIDTEMP)
     // this adds an experimental additional term to the heating power, proportional to the extrusion speed.
     // if Kc is chosen well, the additional required power due to increased melting should be compensated.
-    //#define PID_EXTRUSION_SCALING
+    #define PID_EXTRUSION_SCALING
     #if ENABLED(PID_EXTRUSION_SCALING)
-        #define DEFAULT_Kc (100) //heating power=Kc*(e_speed)
-        #define LPQ_MAX_LEN 50
+        /**
+         * Increase in PWM duty cycle needed to to extrude 1 mm^2 per second
+         * of filament if extruder temperature is 1 Kelvin above ambient
+         * temperature [s*K^-1*mm^-2]
+         */
+        #define DEFAULT_Kc 0.009517f
     #endif
 #endif
 
