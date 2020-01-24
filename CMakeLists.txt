@@ -327,7 +327,7 @@ target_compile_definitions(
 	PRIVATE 
 	RFC1123_DATETIME="$RFC1123_DATETIME"
 	BUDDY_ENABLE_WUI
-    BUDDY_USE_WSAPI
+#    BUDDY_USE_WSAPI # enables wsapi
 	)
 
 target_link_libraries(
@@ -338,6 +338,7 @@ target_link_libraries(
           Arduino::TMCStepper
           Arduino::LiquidCrystal
           LwIP_212
+#          wsapi    # adds wsapi library
           FatFs
           lpng
           STM32::USBHost
