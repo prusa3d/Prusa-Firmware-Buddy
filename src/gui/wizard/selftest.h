@@ -5,7 +5,6 @@
 #include <inttypes.h>
 #include "gui.h"
 #include "wizard_types.h"
-#include "selftest_home.h"
 #include "selftest_cool.h"
 #include "selftest_temp.h"
 #include "selftest_fans_axis.h"
@@ -20,7 +19,6 @@ extern "C" {
 //#pragma pack(1) makes enums 8 bit
 typedef struct
 {
-    selftest_home_data_t home_data;
     selftest_cool_data_t cool_data;
     selftest_temp_data_t temp_data;
     selftest_fans_axis_data_t fans_axis_data;

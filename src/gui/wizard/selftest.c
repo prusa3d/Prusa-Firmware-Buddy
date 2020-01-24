@@ -9,7 +9,6 @@ int wizard_selftest_is_ok(int16_t id_body, selftest_data_t *p_data) {
     ok &= (p_data->fans_axis_data.state_x == _TEST_PASSED);
     ok &= (p_data->fans_axis_data.state_y == _TEST_PASSED);
     ok &= (p_data->fans_axis_data.state_z == _TEST_PASSED);
-    ok &= (p_data->home_data.state_home == _TEST_PASSED);
     ok &= (p_data->cool_data.state_cool == _TEST_PASSED);
     ok &= (p_data->temp_data.state_temp_nozzle == _TEST_PASSED);
     ok &= (p_data->temp_data.state_temp_bed == _TEST_PASSED);
