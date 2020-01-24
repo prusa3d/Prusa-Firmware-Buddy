@@ -35,7 +35,7 @@ int wizard_selftest_home(int16_t id_body, selftest_home_screen_t *p_screen, self
         switch (phase) {
         case 1:
             marlin_gcode("G28 X");
-            marlin_wait_motion(100);
+            marlin_wait_motion(250);
             phase++;
             break;
         case 2:
@@ -45,7 +45,7 @@ int wizard_selftest_home(int16_t id_body, selftest_home_screen_t *p_screen, self
             break;
         case 3:
             marlin_gcode("G28 Y");
-            marlin_wait_motion(100);
+            marlin_wait_motion(250);
             phase++;
             break;
         case 4:

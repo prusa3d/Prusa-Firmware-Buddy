@@ -156,7 +156,7 @@ static int ph_move_to_max(selftest_fans_axis_data_t *p_data,
 	p_data->axis_max[axis] = pos; // save current position
 	pos += dir * max; // calc target position
 	marlin_gcode_printf("G1 %c%.3f F%d", achar, (double)pos, fr); // start move to maximum (XY)
-	marlin_wait_motion(100); // wait for motion start (max 100ms)
+	marlin_wait_motion(250); // wait for motion start (max 250ms)
 	return 1;//next phase
 }
 
@@ -172,7 +172,7 @@ static int ph_move_to_min(selftest_fans_axis_data_t *p_data,
     p_data->axis_min[axis] = pos; // save current position
     pos -= dir * max; // calc target position
     marlin_gcode_printf("G1 %c%.3f F%d", achar, (double)pos, fr); // start move to maximum
-    marlin_wait_motion(100); // wait for motion start (max 100ms)
+    marlin_wait_motion(250); // wait for motion start (max 250ms)
     return 1;//next phase
 }
 
@@ -240,21 +240,21 @@ static int ph_home_all_axis(selftest_fans_axis_data_t *p_data,
 static int ph_restore_Xaxis(selftest_fans_axis_data_t *p_data,
 		uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", X_home_gcode); /*Set pos */
-    marlin_wait_motion(100);
+    marlin_wait_motion(250);
     return 1;
 }
 
 static int ph_restore_Yaxis(selftest_fans_axis_data_t *p_data,
 		uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", Y_home_gcode); /*Set pos */
-    marlin_wait_motion(100);
+    marlin_wait_motion(250);
     return 1;
 }
 
 static int ph_restore_Zaxis(selftest_fans_axis_data_t *p_data,
 		uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", Z_home_gcode); /*Set pos */
-    marlin_wait_motion(100);
+    marlin_wait_motion(250);
     return 1;
 }
 
