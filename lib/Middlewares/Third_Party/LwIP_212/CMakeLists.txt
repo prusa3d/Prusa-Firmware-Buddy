@@ -91,6 +91,7 @@ target_include_directories(
          src/include/lwip/prot
          src/include/netif
          src/include/posix
+         ${CMAKE_SOURCE_DIR}/src/wui/resources
   )
 
 target_link_libraries(LwIP_212 PUBLIC LwIP_Config)
