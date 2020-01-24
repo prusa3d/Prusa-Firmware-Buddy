@@ -787,12 +787,8 @@ void MarlinSettings::postprocess() {
       }
 
       _FIELD_TEST(lpq_len);
-      #if ENABLED(PID_EXTRUSION_SCALING)
-        EEPROM_WRITE(thermalManager.lpq_len);
-      #else
-        const int16_t lpq_len = 20;
-        EEPROM_WRITE(lpq_len);
-      #endif
+      const int16_t lpq_len = 20;
+      EEPROM_WRITE(lpq_len);
     }
 
     //
@@ -1595,12 +1591,8 @@ void MarlinSettings::postprocess() {
       //
       {
         _FIELD_TEST(lpq_len);
-        #if ENABLED(PID_EXTRUSION_SCALING)
-          EEPROM_READ(thermalManager.lpq_len);
-        #else
-          int16_t lpq_len;
-          EEPROM_READ(lpq_len);
-        #endif
+        int16_t lpq_len;
+        EEPROM_READ(lpq_len);
       }
 
       //
@@ -2429,10 +2421,6 @@ void MarlinSettings::reset() {
   // PID Extrusion Scaling
   //
 
-  #if ENABLED(PID_EXTRUSION_SCALING)
-    thermalManager.lpq_len = 20;  // Default last-position-queue size
-  #endif
-
   //
   // Heated Bed PID
   //
@@ -2978,7 +2966,6 @@ void MarlinSettings::reset() {
           );
           #if ENABLED(PID_EXTRUSION_SCALING)
             SERIAL_ECHOPAIR(" C", PID_PARAM(Kc, e));
-            if (e == 0) SERIAL_ECHOPAIR(" L", thermalManager.lpq_len);
           #endif
           SERIAL_EOL();
         }

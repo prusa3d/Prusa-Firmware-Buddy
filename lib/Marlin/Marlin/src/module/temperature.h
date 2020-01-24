@@ -57,11 +57,6 @@ typedef struct { float Kp, Ki, Kd;     } PID_t;
 typedef struct { float Kp, Ki, Kd, Kc; } PIDC_t;
 #if ENABLED(PID_EXTRUSION_SCALING)
   typedef PIDC_t hotend_pid_t;
-  #if LPQ_MAX_LEN > 255
-    typedef uint16_t lpq_ptr_t;
-  #else
-    typedef uint8_t lpq_ptr_t;
-  #endif
 #else
   typedef PID_t hotend_pid_t;
 #endif
@@ -346,8 +341,7 @@ class Temperature {
     #endif
 
     #if ENABLED(PID_EXTRUSION_SCALING)
-      static int32_t last_e_position, lpq[LPQ_MAX_LEN];
-      static lpq_ptr_t lpq_ptr;
+      static uint32_t last_e_position;
     #endif
 
     #if HOTENDS
