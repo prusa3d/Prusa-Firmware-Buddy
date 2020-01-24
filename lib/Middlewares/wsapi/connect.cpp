@@ -9,6 +9,7 @@
 #include "filament.h"
 #include "window_header.h"
 #include "status_footer.h"
+#include "ui_support.h"
 
 extern marlin_vars_t webserver_marlin_vars;
 extern osMutexId  wui_web_mutex_id;

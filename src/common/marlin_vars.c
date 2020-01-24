@@ -30,6 +30,8 @@ const char *__var_name[] = {
     "SD_PRINT",
     "SD_PDONE",
     "DURATION",
+    "TOTAL_TIME",
+    "FILE_NAME",
     "FSENSOR",
 };
 
@@ -98,8 +100,18 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
             return variant8_ui8(vars->sd_percent_done);
         case MARLIN_VAR_DURATION:
             return variant8_ui32(vars->print_duration);
+        case MARLIN_VAR_TOTAL_TIME:
+            return variant8_ui32(vars->total_time);
         }
     return variant8_empty();
+}
+
+void marlin_vars_get_file_name(marlin_vars_t *vars, char * dest){
+    strncpy(dest, vars->file_name, MARLIN_MAX_FILE_NAME_LEN);
+}
+
+void marlin_vars_set_file_name(marlin_vars_t *vars, char* src){
+    strncpy(vars->file_name, src, MARLIN_MAX_FILE_NAME_LEN);
 }
 
 void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
@@ -177,6 +189,9 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         case MARLIN_VAR_DURATION:
             vars->print_duration = var.ui32;
             break;
+        case MARLIN_VAR_TOTAL_TIME:
+            vars->total_time = var.ui32;
+            break;
         }
 }
 
@@ -242,6 +257,9 @@ void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
             break;
         case MARLIN_VAR_DURATION:
             sprintf(str, "%lu", (long unsigned int)(vars->print_duration));
+            break;
+        case MARLIN_VAR_TOTAL_TIME:
+            sprintf(str, "%lu", (long unsigned int)(vars->total_time));
             break;
         default:
             sprintf(str, "???");
@@ -311,6 +329,9 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
             break;
         case MARLIN_VAR_DURATION:
             ret = sscanf(str, "%lu", &(vars->print_duration));
+            break;
+        case MARLIN_VAR_TOTAL_TIME:
+            ret = sscanf(str, "%lu", &(vars->total_time));
             break;
         }
     return ret;

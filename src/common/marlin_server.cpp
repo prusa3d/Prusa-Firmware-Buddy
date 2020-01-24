@@ -698,9 +698,19 @@ uint64_t _server_update_vars(uint64_t update) {
     return changes;
 }
 
+// set filename in marlin_sever.vars
+void marlin_server_set_filename(char * src){
+    strncpy(marlin_server.vars.file_name, src, MARLIN_MAX_FILE_NAME_LEN);
+}
+
+// fill pointer with filename from marlin_server.vars
+void marlin_server_get_filename(char * dest){
+    strncpy(dest, marlin_server.vars.file_name, MARLIN_MAX_FILE_NAME_LEN);
+}
 // process request on server side
 int _process_server_request(char *request) {
     int processed = 0;
+    char * fn_ptr;
     //uint64_t msk;
     uint32_t msk32[2];
     float offs;
@@ -755,6 +765,12 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (sscanf(request, "!hclick %d", &ival) == 1) {
         host_prompt_button_clicked = (host_prompt_button_t)ival;
+        processed = 1;
+    } else if (sscanf(request, "!fnset %p", &fn_ptr) == 1) {
+        marlin_server_set_filename(fn_ptr);
+        processed = 1;
+    } else if (sscanf(request, "!fnget %p", &fn_ptr) == 1) {
+        marlin_server_get_filename(fn_ptr);
         processed = 1;
     }
     if (processed)

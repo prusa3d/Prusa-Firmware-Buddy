@@ -358,6 +358,30 @@ variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
     return retval;
 }
 
+void marlin_set_file_name(char* src){
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        char request[MARLIN_MAX_REQUEST];
+        marlin_vars_set_file_name(&(client->vars), src);
+        sprintf(request, "!fnset %p", src);
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
+}
+
+void marlin_get_file_name(char* dest){
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        char request[MARLIN_MAX_REQUEST];
+        sprintf(request, "!fnget %p", dest);
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+
+        marlin_vars_set_file_name(&(client->vars), dest);
+    }
+}
+
+
 marlin_vars_t *marlin_vars(void) {
     marlin_client_t *client = _client_ptr();
     if (client)

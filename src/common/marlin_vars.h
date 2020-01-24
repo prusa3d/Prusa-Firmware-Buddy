@@ -29,7 +29,11 @@
 #define MARLIN_VAR_SD_PRINT 0x15 // R:  uint8, card.flag.sdprinting
 #define MARLIN_VAR_SD_PDONE 0x16 // R:  uint8, card.percentDone()
 #define MARLIN_VAR_DURATION 0x17 // R:  uint32, print_job_timer.duration()
-#define MARLIN_VAR_MAX MARLIN_VAR_DURATION
+#define MARLIN_VAR_TOTAL_TIME 0x18 // RW: uint32, get from GcodeParser
+#define MARLIN_VAT_FILE_NAME 0x19 // RW: char[95], from filesystem
+#define MARLIN_VAR_MAX MARLIN_VAR_TOTAL_TIME
+
+#define MARLIN_MAX_FILE_NAME_LEN 95
 
 // variable masks
 #define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (v_id))
@@ -93,6 +97,8 @@ typedef struct _marlin_vars_t {
     uint8_t sd_printing; // card.flag.sdprinting
     uint8_t sd_percent_done; // card.percentDone()
     uint32_t print_duration; // print_job_timer.duration()
+    uint32_t total_time; // total print time
+    char file_name[MARLIN_MAX_FILE_NAME_LEN]; // gcode file name
 } marlin_vars_t;
 
 typedef union _marlin_changes_t {
@@ -123,7 +129,8 @@ typedef union _marlin_changes_t {
         uint8_t var_sd_printing : 1;
         uint8_t var_sd_percent_done : 1;
         uint8_t var_print_duration : 1;
-        uint64_t var_reserved : 42;
+        uint8_t var_total_time : 1;
+        uint64_t var_reserved : 41;
     };
 } marlin_changes_t;
 
@@ -144,6 +151,12 @@ extern variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id);
 
 // set variable value as variant8 directly in vars structure
 extern void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var);
+
+// set printing file name in vars structure
+extern void marlin_vars_set_file_name(marlin_vars_t * vars, char * src);
+
+// get printing file name form vars structure
+extern void marlin_vars_get_file_name(marlin_vars_t * vars, char * dest);
 
 // format variable to string
 extern void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str);
