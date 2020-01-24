@@ -89,6 +89,7 @@ static const tHTTPHeader g_psHTTPHeaders[] = {
   { "gif",  HTTP_HDR_GIF},
   { "png",  HTTP_HDR_PNG},
   { "jpg",  HTTP_HDR_JPG},
+  { "svg",  HTTP_HDR_SVG},
   { "bmp",  HTTP_HDR_BMP},
   { "ico",  HTTP_HDR_ICO},
   { "class", HTTP_HDR_APP},
