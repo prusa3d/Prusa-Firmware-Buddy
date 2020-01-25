@@ -112,6 +112,11 @@
 #include <stdlib.h> /* atoi */
 #include <stdio.h>
 
+/*******   Customization ***************************************/
+#include "wui_api.h"
+#define WUI_API_ROOT_STR_LEN    5
+/***************************************************************/
+
 #if LWIP_TCP && LWIP_CALLBACK_API
 
 /** Minimum length for a valid HTTP/0.9 request: "GET /\r\n" -> 7 bytes */
@@ -2788,11 +2793,16 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09)
       }
     }
   }
+
+  /* check with the wui api */
   if(file == NULL) {
-	  if(!(strcmp(uri, "/api/printer"))) {
-		  LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("api call %s\n", uri));
-	  }
+      if(0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
+          file = wui_api_main(uri, hs);
+          strcat(uri, ".json"); // http server adds data type based on the file extension
+
+      }
   }
+
   if (file == NULL) {
     /* No - we've been asked for a specific file. */
     /* First, isolate the base URI (without any parameters) */
