@@ -92,6 +92,7 @@ target_include_directories(
          src/include/netif
          src/include/posix
          ${CMAKE_SOURCE_DIR}/src/wui/resources
+         ${CMAKE_SOURCE_DIR}/src/wui
   )
 
 target_link_libraries(LwIP_212 PUBLIC LwIP_Config)
