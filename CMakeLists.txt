@@ -455,6 +455,7 @@ target_sources(
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
 		  src/wui/wui.c
+		  src/wui/wui_api.c
   )
 
 set_property(
