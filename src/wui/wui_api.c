@@ -106,10 +106,10 @@ struct fs_file* wui_api_main(char* uri,struct fs_file* file ) {
     file->index = 0;
     file->pextension = NULL;
     file->flags = BDY_NO_FS_FLAGS; // http server adds response header
-    if (!(strncmp(uri, "/api/printer", BDY_API_PRINTER_LEN))) {
+    if (!strncmp(uri, "/api/printer", BDY_API_PRINTER_LEN) && (BDY_API_PRINTER_LEN == strlen(uri)) ) {
         wui_api_printer(file);
         return file;
-    }else if (!(strncmp(uri, "/api/job", BDY_API_JOB_LEN))) {
+    }else if (!strncmp(uri, "/api/job", BDY_API_JOB_LEN) && (BDY_API_JOB_LEN == strlen(uri)) ) {
         wui_api_job(file);
         return file;
     }
