@@ -3,8 +3,10 @@
 #include "shared_config.h"
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
-#include "new_eeprom.h"
 #include "dbg.h"
+
+//firmware update flag
+#define FW_UPDATE_FLAG_ADDRESS 0x40B
 
 extern SPI_HandleTypeDef hspi2;
 

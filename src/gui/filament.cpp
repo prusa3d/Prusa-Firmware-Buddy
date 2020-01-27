@@ -4,7 +4,6 @@
  *  Created on: 19. 7. 2019
  *      Author: mcbig
  */
-#include "new_eeprom.h"
 #include "st25dv64k.h"
 #include "assert.h"
 #include "dbg.h"
