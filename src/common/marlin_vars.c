@@ -100,8 +100,10 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
             return variant8_ui8(vars->sd_percent_done);
         case MARLIN_VAR_DURATION:
             return variant8_ui32(vars->print_duration);
-        case MARLIN_VAR_TOTAL_TIME:
-            return variant8_ui32(vars->total_time);
+        case MARLIN_VAR_R_TIME:
+            return variant8_ui32(vars->remaining_time);
+        case MARLIN_VAR_P_DONE:
+            return variant8_ui8(vars->percent_done);
         }
     return variant8_empty();
 }
@@ -189,8 +191,11 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         case MARLIN_VAR_DURATION:
             vars->print_duration = var.ui32;
             break;
-        case MARLIN_VAR_TOTAL_TIME:
-            vars->total_time = var.ui32;
+        case MARLIN_VAR_R_TIME:
+            vars->remaining_time = var.ui32;
+            break;
+        case MARLIN_VAR_P_DONE:
+            vars->percent_done = var.ui8;
             break;
         }
 }
@@ -258,8 +263,11 @@ void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
         case MARLIN_VAR_DURATION:
             sprintf(str, "%lu", (long unsigned int)(vars->print_duration));
             break;
-        case MARLIN_VAR_TOTAL_TIME:
-            sprintf(str, "%lu", (long unsigned int)(vars->total_time));
+        case MARLIN_VAR_R_TIME:
+            sprintf(str, "%lu", (long unsigned int)(vars->remaining_time));
+            break;
+        case MARLIN_VAR_R_TIME:
+            sprintf(str, "%u", (unsigned int)(vars->percent_done));
             break;
         default:
             sprintf(str, "???");
@@ -330,9 +338,13 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
         case MARLIN_VAR_DURATION:
             ret = sscanf(str, "%lu", &(vars->print_duration));
             break;
-        case MARLIN_VAR_TOTAL_TIME:
-            ret = sscanf(str, "%lu", &(vars->total_time));
+        case MARLIN_VAR_R_TIME:
+            ret = sscanf(str, "%lu", &(vars->remaining_time));
             break;
+        case MARLIN_VAR_P_DONE:
+            ret = sscanf(str, "%u", &(vars->percent_done));
+            break;
+
         }
     return ret;
 }
