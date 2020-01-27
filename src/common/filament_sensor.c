@@ -186,7 +186,6 @@ void fs_init_never() {
 /*---------------------------------------------------------------------------*/
 //methods called only in fs_cycle
 static void _injectM600() {
-    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) | MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER));
     marlin_vars_t* vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
     if (status.M600_sent == 0 && vars->sd_printing) {
         marlin_gcode_push_front("M600"); //change filament
@@ -204,7 +203,7 @@ static void _cycle0() {
         //M600_on_edge == inject after state was changed from FS_HAS_FILAMENT to FS_NO_FILAMENT
         //M600_on_level == inject on FS_NO_FILAMENT
         //M600_never == do not inject
-        if (state == FS_NO_FILAMENT)
+        if (state == FS_NO_FILAMENT) {
             switch (status.send_M600_on) {
             case M600_on_edge:
                 if (!had_filament)
