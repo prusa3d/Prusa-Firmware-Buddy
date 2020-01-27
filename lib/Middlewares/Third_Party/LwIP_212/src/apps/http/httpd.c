@@ -2798,7 +2798,7 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09)
   if(file == NULL) {
       if(0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
           file = wui_api_main(uri, hs);
-          strcat(uri, ".json"); // http server adds data type based on the file extension
+          strcat(uri, ".json"); // http server adds header info (data type) based on the file extension
 
       }
   }
