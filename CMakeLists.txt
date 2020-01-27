@@ -374,7 +374,6 @@ target_sources(
           src/common/gcode_file.cpp
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
-          src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
           src/gui/screen_menu_filament.c
           src/gui/dialogs/window_dlg_change.c
