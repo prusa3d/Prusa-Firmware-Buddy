@@ -62,6 +62,7 @@
 #include "dbg.h"
 #include "ethernetif.h"
 
+char interface_hostname[21];
 struct netif eth0;
 ip4_addr_t ipaddr;
 ip4_addr_t netmask;
@@ -71,13 +72,30 @@ void Error_Handler(void);
 
 void netif_link_callback(struct netif *eth) {
     ethernetif_update_config(eth);
-
+    uint8_t ee_flag = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
     if (netif_is_link_up(eth)) {
-        netif_set_up(eth);
-        dhcp_start(eth);
+        if(!(ee_flag & LAN_EEFLG_ONOFF)){
+            netif_set_up(eth);
+        }
     } else {
         netif_set_down(eth);
     }
+}
+
+void netif_status_callback(struct netif *eth) {
+    uint8_t ee_flag = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
+    if(netif_is_up(eth)){
+        if(!(ee_flag & LAN_EEFLG_TYPE)){
+            dhcp_start(eth);
+        } else {
+            dhcp_inform(eth);
+        }
+    } else {
+        if(!(ee_flag & LAN_EEFLG_TYPE)){
+            dhcp_stop(eth);
+        }
+    }
+
 }
 
 void MX_LWIP_Init(void) {
@@ -108,6 +126,20 @@ void MX_LWIP_Init(void) {
 
     /* USER CODE BEGIN 3 */
     netif_set_link_callback(&eth0, netif_link_callback);
+    netif_set_status_callback(&eth0, netif_status_callback);
+    netif_set_down(&eth0);
+    uint8_t ee_lan_flg = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
+    eeprom_get_hostname(interface_hostname);
+    eth0.hostname = interface_hostname;
+    if(ee_lan_flg & LAN_EEFLG_TYPE){
+        ipaddr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
+        netmask.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
+        gw.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
+        netif_set_addr(&eth0, &ipaddr, &netmask, &gw);
+    }
+    if(!(ee_lan_flg & LAN_EEFLG_ONOFF)){
+        netif_set_up(&eth0);
+    }
     /* USER CODE END 3 */
 }
 

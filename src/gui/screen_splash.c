@@ -34,6 +34,7 @@ typedef struct
     window_text_t text_progress;
     window_progress_t progress;
     window_text_t text_version;
+    char text_version_buffer[16];
     window_icon_t icon_logo_buddy;
     window_icon_t icon_logo_marlin;
 
@@ -78,7 +79,9 @@ void screen_splash_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(00, 295, 240, 22),
         &(_psd->text_version));
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, version_version);
+    snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
+          project_version, project_version_suffix_short);
+    window_set_text(id, _psd->text_version_buffer);
 }
 
 void screen_splash_done(screen_t *screen) {
