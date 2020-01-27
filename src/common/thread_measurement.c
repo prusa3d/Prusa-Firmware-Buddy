@@ -6,11 +6,11 @@
 
 void StartMeasurementTask(void const *argument) {
     marlin_client_init();
-    fs_init_on_level();
+    fs_init_on_edge();
     /* Infinite loop */
     for (;;) {
         marlin_client_loop();
         fs_cycle();
-        osDelay(1); //have to wait at least few us, 1ms is very safe
+        osDelay(50);//have to wait at least few us, 1ms is very safe
     }
 }
