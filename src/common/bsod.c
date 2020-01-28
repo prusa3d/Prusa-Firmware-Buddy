@@ -294,3 +294,13 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     va_end(args);
 }
+
+static TaskHandle_t tsk_hndl = 0;
+static signed char *tsk_name = 0;
+
+void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName )
+{
+	tsk_hndl = xTask;
+	tsk_name = pcTaskName;
+	_bsod("STACK OVERFLOW\nHANDLE %p\n%s", 0, 0, xTask, pcTaskName);
+}
