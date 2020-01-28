@@ -130,10 +130,10 @@ void USBSerial::flush(void) {
 }
 
 size_t USBSerial::write(uint8_t ch) {
-    if (obufc >= USBSERIAL_OBUF_SIZE)
-        return 0; // buffer overflow
-    obuff[obufc++] = ch;
-    if (ch == '\n') // eoln
+    if (obufc < USBSERIAL_OBUF_SIZE) {
+        obuff[obufc++] = ch;
+    }
+    if ((ch == '\n') || (obufc == USBSERIAL_OBUF_SIZE)) // eoln or full
         usb_cdc_tx_buffer();
     return 1;
 }
