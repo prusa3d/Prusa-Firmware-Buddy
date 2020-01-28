@@ -314,10 +314,6 @@ static void low_level_init(struct netif *netif) {
     HAL_ETH_Start(&heth);
 
     /* USER CODE BEGIN PHY_PRE_CONFIG */
-    /* link check */
-    //ethernetif_link(&netif);
-    //osThreadDef(EthIfLink, ethernetif_link, osPriorityLow, 0, INTERFACE_THREAD_STACK_SIZE);
-    //osThreadCreate(osThread(EthIfLink), netif);
 
     /* USER CODE END PHY_PRE_CONFIG */
 
