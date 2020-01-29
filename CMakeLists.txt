@@ -446,6 +446,7 @@ target_sources(
           src/guiapi/src/window_text.c
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
+          src/Marlin_excludes/M600.cpp
           src/wui/http_states.c
           src/wui/lwsapi.cpp
           src/wui/connect.cpp
