@@ -20,19 +20,19 @@
  *
  */
 
-#include "../../../inc/MarlinConfig.h"
+#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
 #if ENABLED(PARK_HEAD_ON_PAUSE)
 
-#include "../../gcode.h"
-#include "../../parser.h"
-#include "../../../feature/pause.h"
-#include "../../../module/motion.h"
-#include "../../../sd/cardreader.h"
-#include "../../../module/printcounter.h"
+#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../../lib/Marlin/Marlin/src/gcode/parser.h"
+#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
+#include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include "../../../lib/Marlin/Marlin/src/sd/cardreader.h"
+#include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
 
 #if HAS_LCD_MENU
-  #include "../../../lcd/ultralcd.h"
+  #include "../../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
 #endif
 
 /**

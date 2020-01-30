@@ -20,39 +20,39 @@
  *
  */
 
-#include "../../inc/MarlinConfig.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
-#include "../gcode.h"
+#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 
-#include "../../module/stepper.h"
-#include "../../module/endstops.h"
+#include "../../lib/Marlin/Marlin/src/module/stepper.h"
+#include "../../lib/Marlin/Marlin/src/module/endstops.h"
 
 #if HOTENDS > 1
-  #include "../../module/tool_change.h"
+  #include "../../lib/Marlin/Marlin/src/module/tool_change.h"
 #endif
 
 #if HAS_LEVELING
-  #include "../../feature/bedlevel/bedlevel.h"
+  #include "../../lib/Marlin/Marlin/src/feature/bedlevel/bedlevel.h"
 #endif
 
 #if ENABLED(SENSORLESS_HOMING)
-  #include "../../feature/tmc_util.h"
+  #include "../../lib/Marlin/Marlin/src/feature/tmc_util.h"
 #endif
 
-#include "../../module/probe.h"
+#include "../../lib/Marlin/Marlin/src/module/probe.h"
 
 #if ENABLED(BLTOUCH)
-  #include "../../feature/bltouch.h"
+  #include "../../lib/Marlin/Marlin/src/feature/bltouch.h"
 #endif
 
-#include "../../lcd/ultralcd.h"
+#include "../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
 
 #if HAS_DRIVER(L6470)                         // set L6470 absolute position registers to counts
   #include "../../libs/L6470/L6470_Marlin.h"
 #endif
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
-#include "../../core/debug_out.h"
+#include "../../lib/Marlin/Marlin/src/core/debug_out.h"
 
 #if ENABLED(QUICK_HOME)
 

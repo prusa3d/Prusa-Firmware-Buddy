@@ -21,13 +21,13 @@
  */
 
 
-#include "../../../inc/MarlinConfig.h"
+#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-#include "../../gcode.h"
-#include "../../../libs/nozzle.h"
-#include "../../../module/motion.h"
+#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../../lib/Marlin/Marlin/src/libs/nozzle.h"
+#include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
 /**
  * G27: Park the nozzle

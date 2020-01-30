@@ -20,30 +20,30 @@
  *
  */
 
-#include "../../../inc/MarlinConfigPre.h"
+#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfigPre.h"
 
 #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
 
-#include "../../gcode.h"
-#include "../../../Marlin.h"
-#include "../../../module/motion.h"
-#include "../../../module/temperature.h"
-#include "../../../feature/pause.h"
+#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../../lib/Marlin/Marlin/src/Marlin.h"
+#include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include "../../../lib/Marlin/Marlin/src/module/temperature.h"
+#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 
 #if EXTRUDERS > 1
-  #include "../../../module/tool_change.h"
+  #include "../../../lib/Marlin/Marlin/src/module/tool_change.h"
 #endif
 
 #if HAS_LCD_MENU
-  #include "../../../lcd/ultralcd.h"
+  #include "../../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
 #endif
 
 #if ENABLED(PRUSA_MMU2)
-  #include "../../../feature/prusa_MMU2/mmu2.h"
+  #include "../../../lib/Marlin/Marlin/src/feature/prusa_MMU2/mmu2.h"
 #endif
 
 #if ENABLED(MIXING_EXTRUDER)
-  #include "../../../feature/mixing.h"
+  #include "../../../lib/Marlin/Marlin/src/feature/mixing.h"
 #endif
 
 /**

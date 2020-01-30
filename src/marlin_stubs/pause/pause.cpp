@@ -25,17 +25,17 @@
  * This may be combined with related G-codes if features are consolidated.
  */
 
-#include "../inc/MarlinConfigPre.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfigPre.h"
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-#include "../Marlin.h"
-#include "../gcode/gcode.h"
-#include "../module/motion.h"
-#include "../module/planner.h"
-#include "../module/stepper.h"
-#include "../module/printcounter.h"
-#include "../module/temperature.h"
+#include "../../lib/Marlin/Marlin/src/Marlin.h"
+#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../lib/Marlin/Marlin/src/module/motion.h"
+#include "../../lib/Marlin/Marlin/src/module/planner.h"
+#include "../../lib/Marlin/Marlin/src/module/stepper.h"
+#include "../../lib/Marlin/Marlin/src/module/printcounter.h"
+#include "../../lib/Marlin/Marlin/src/module/temperature.h"
 
 #if ENABLED(FWRETRACT)
   #include "fwretract.h"
@@ -46,22 +46,22 @@
 #endif
 
 #if ENABLED(HOST_ACTION_COMMANDS)
-  #include "host_actions.h"
+  #include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
 #endif
 
 #if ENABLED(EXTENSIBLE_UI)
-  #include "../lcd/extensible_ui/ui_api.h"
+  #include "../../lib/Marlin/Marlin/src/lcd/extensible_ui/ui_api.h"
 #endif
 
-#include "../core/language.h"
-#include "../lcd/ultralcd.h"
+#include "../../lib/Marlin/Marlin/src/core/language.h"
+#include "../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
 
 #if HAS_BUZZER
-  #include "../libs/buzzer.h"
+  #include "../../lib/Marlin/Marlin/src/libs/buzzer.h"
 #endif
 
-#include "../libs/nozzle.h"
-#include "pause.h"
+#include "../../lib/Marlin/Marlin/src/libs/nozzle.h"
+#include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
 // private:
 
@@ -74,7 +74,7 @@ PauseMenuResponse pause_menu_response;
 fil_change_settings_t fc_settings[EXTRUDERS];
 
 #if ENABLED(SDSUPPORT)
-  #include "../sd/cardreader.h"
+  #include "../../lib/Marlin/Marlin/src/sd/cardreader.h"
 #endif
 
 #if ENABLED(EMERGENCY_PARSER)

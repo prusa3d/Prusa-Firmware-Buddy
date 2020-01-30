@@ -20,17 +20,17 @@
  *
  */
 
-#include "../../../inc/MarlinConfig.h"
+#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-#include "../../gcode.h"
-#include "../../../feature/pause.h"
-#include "../../../module/motion.h"
-#include "../../../module/printcounter.h"
+#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
+#include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
 
 #if EXTRUDERS > 1
-  #include "../../../module/tool_change.h"
+  #include "../../../lib/Marlin/Marlin/src/module/tool_change.h"
 #endif
 
 /**
