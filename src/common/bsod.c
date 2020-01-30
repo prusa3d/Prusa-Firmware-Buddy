@@ -19,6 +19,7 @@
 #include "hwio.h"
 
 /* FreeRTOS includes. */
+#include "FreeRTOS.h"
 #include "task.h"
 #include "StackMacros.h"
 
@@ -294,3 +295,18 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     va_end(args);
 }
+
+#ifdef configCHECK_FOR_STACK_OVERFLOW
+
+static TaskHandle_t tsk_hndl = 0;
+static signed char *tsk_name = 0;
+
+void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName )
+{
+	tsk_hndl = xTask;
+	tsk_name = pcTaskName;
+	if (strlen((const char *)pcTaskName) > 20) _bsod("STACK OVERFLOW\nHANDLE %p\n%s", 0, 0, xTask, pcTaskName);
+	else _bsod("STACK OVERFLOW\nHANDLE %p\nTaskname ERROR", 0, 0, xTask);
+}
+
+#endif//configCHECK_FOR_STACK_OVERFLOW
