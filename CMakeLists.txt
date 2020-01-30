@@ -396,7 +396,6 @@ target_sources(
           src/gui/screen_menu_settings.c
           src/gui/wizard/wizard_progress_bar.c
           src/gui/wizard/firstlay.c
-          src/gui/wizard/selftest_home.c
           src/gui/wizard/selftest_cool.c
           src/gui/window_header.c
           src/gui/screen_sysinf.c
@@ -420,7 +419,6 @@ target_sources(
           src/gui/test/screen_test_msgbox.c
           src/gui/test/screen_test_graph.c
           src/gui/wizard/selftest_fans_axis.c
-          src/gui/wizard/selftest_home.c
           src/gui/wizard/selftest_temp.c
           src/gui/wizard/selftest_cool.c
           src/gui/wizard/selftest.c
