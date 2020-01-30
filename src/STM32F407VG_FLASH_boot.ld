@@ -45,10 +45,29 @@ _Min_Stack_Size = 0x800; /* required amount of stack */
 MEMORY
 {
   FLASH (rx)      : ORIGIN = 0x08020200, LENGTH = 895K
+  CCMRAM (rw)     : ORIGIN = 0x10000000, LENGTH = 64K
   RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 128K
   MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0K
-  CCMRAM (rw)     : ORIGIN = 0x10000000, LENGTH = 64K
 }
+/* Variables used by FreeRTOS-MPU. */
+_Privileged_Functions_Region_Size = 16K;
+_Privileged_Data_Region_Size = 512;
+
+/* Start of flash, bootloader is contained in protection */
+__FLASH_segment_start__ = 0x08000000;
+__FLASH_segment_end__ = __FLASH_segment_start__ + LENGTH( FLASH );
+
+/* Rounded backward to start at multiply of 32K */
+__privileged_functions_start__ = 0x08020000;
+__privileged_functions_end__ = __privileged_functions_start__ + _Privileged_Functions_Region_Size;
+
+/* Must be power of two and cover both CCRAM and RAM */
+__SRAM_segment_start__ = ORIGIN( CCMRAM );
+__SRAM_segment_end__ = __SRAM_segment_start__ + 0x10000000;
+
+/* Contains also boot_fw_data_exchange, this can not be accessed after OS start. */
+__privileged_data_start__ = ORIGIN( RAM );
+__privileged_data_end__ = ORIGIN( RAM ) + _Privileged_Data_Region_Size;
 
 /* Define output sections */
 SECTIONS
@@ -58,7 +77,12 @@ SECTIONS
   {
     . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
+    *(privileged_functions)
     . = ALIGN(4);
+
+    /* Non privileged code is after _Privileged_Functions_Region_Size. */
+    __privileged_functions_actual_end__ = .;
+    . = _Privileged_Functions_Region_Size;
   } >FLASH
 
   /* The program code and other data goes into FLASH */
@@ -124,6 +148,15 @@ SECTIONS
     . = ALIGN(4); /* allignment is important as 4 bytes are written to zero at once in startup code*/
     _eboot_fw_data_exchange = .;  /* global symbol at the end */
   } >RAM AT> FLASH /* AT> FLASH added to avoid the binary size increase*/
+
+  privileged_data :
+  {
+    *(privileged_data)
+    /* Non kernel data is kept out of the first _Privileged_Data_Region_Size
+    bytes of SRAM. */
+    __privileged_data_actual_end__ = .;
+    . = _Privileged_Data_Region_Size;
+  } > RAM
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
