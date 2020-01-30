@@ -106,7 +106,7 @@ typedef tskTCB TCB_t;
 char FW_version_str[22] = { '\0' };
 
 //current thread from FreeRTOS
-extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
+extern TCB_t *volatile pxCurrentTCB;
 
 #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
