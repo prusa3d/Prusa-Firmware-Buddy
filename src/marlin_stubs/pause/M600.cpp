@@ -20,13 +20,13 @@
  *
  */
 
-#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
+#include "../../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../lib/Marlin/Marlin/src/feature/pause.h"
-#include "../../lib/Marlin/Marlin/src/module/motion.h"
-#include "../../lib/Marlin/Marlin/src/module/printcounter.h"
+#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
+#include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
 /*
 #include "../../gcode.h"
 #include "../../../feature/pause.h"
