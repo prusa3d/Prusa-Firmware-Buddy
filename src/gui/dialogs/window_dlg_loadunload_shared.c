@@ -15,6 +15,7 @@ const float ld_purge_amount = 40.0F; //todo is this amount correct?
 
 static const char *txt_stop[] = { "STOP" };
 static const char *txt_cont[] = { "CONTINUE" };
+static const char *txt_disa[] = { "DISABLE SENSOR" };
 static const char *txt_none[] = { "" };
 
 const _dlg_button_t bt_stop_ena = {
@@ -28,6 +29,11 @@ const _dlg_button_t bt_stop_dis = {
 
 const _dlg_button_t bt_cont_ena = {
     txt_cont, BT_ENABLED,
+    window_dlg_statemachine_draw_1bt, window_dlg_statemachine_event_1bt
+};
+
+const _dlg_button_t bt_disable_ena = {
+    txt_disa, BT_ENABLED,
     window_dlg_statemachine_draw_1bt, window_dlg_statemachine_event_1bt
 };
 

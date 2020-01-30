@@ -30,14 +30,37 @@ typedef enum {
 } send_M600_on_t;
 
 typedef struct{
-    uint8_t M600_sent    : 1;
-    uint8_t send_M600_on : 2;
-    uint8_t meas_cycle   : 5;//1 bit is used now
+    uint8_t M600_sent;
+    uint8_t send_M600_on;
+    uint8_t meas_cycle;
 }status_t;
 static status_t status = { 0, M600_on_edge, 0 };
 
 /*---------------------------------------------------------------------------*/
+//debug functions
+
+int fs_was_M600_send(){
+	return status.M600_sent != 0;
+}
+char fs_get_send_M600_on(){
+	switch (status.send_M600_on)
+	{
+	case M600_on_edge:
+		return 'e';
+	case M600_on_level:
+		return 'l';
+	case M600_never:
+		return 'n';
+	default:
+		return 'x';
+
+	}
+}
+
+
+/*---------------------------------------------------------------------------*/
 //local functions
+static void _init();
 
 //simple filter
 //without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
@@ -74,15 +97,21 @@ int fs_did_filament_runout() {
 }
 
 void fs_send_M600_on_edge() {
+	taskENTER_CRITICAL();
     status.send_M600_on = M600_on_edge;
+    taskEXIT_CRITICAL();
 }
 
 void fs_send_M600_on_level() {
+	taskENTER_CRITICAL();
     status.send_M600_on = M600_on_level;
+    taskEXIT_CRITICAL();
 }
 
 void fs_send_M600_never() {
+	taskENTER_CRITICAL();
     status.send_M600_on = M600_never;
+    taskEXIT_CRITICAL();
 }
 /*---------------------------------------------------------------------------*/
 //global thread safe functions
@@ -101,6 +130,20 @@ void fs_disable() {
     taskEXIT_CRITICAL();
 }
 
+uint8_t fs_get__send_M600_on__and_disable() {
+    taskENTER_CRITICAL();
+    uint8_t ret = status.send_M600_on;
+    status.send_M600_on = M600_never;
+    taskEXIT_CRITICAL();
+    return ret;
+}
+void fs_restore__send_M600_on(uint8_t send_M600_on) {
+    taskENTER_CRITICAL();
+    //cannot call _init(); - it could cause stacking in unincialized state
+    status.send_M600_on = send_M600_on;
+    taskEXIT_CRITICAL();
+}
+
 fsensor_t fs_wait_inicialized() {
     fsensor_t ret = fs_get_state();
     while (ret == FS_NOT_INICIALIZED) {
@@ -108,6 +151,12 @@ fsensor_t fs_wait_inicialized() {
         ret = fs_get_state();
     }
     return ret;
+}
+
+void fs_clr_sent(){
+    taskENTER_CRITICAL();
+	status.M600_sent = 0;
+    taskEXIT_CRITICAL();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,8 +186,8 @@ void fs_init_never() {
 /*---------------------------------------------------------------------------*/
 //methods called only in fs_cycle
 static void _injectM600() {
-    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) | MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER));
-    if (vars->sd_printing && (!vars->wait_user) /*&& (!vars->wait_heat)*/) {
+    marlin_vars_t* vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
+    if (status.M600_sent == 0 && vars->sd_printing) {
         marlin_gcode_push_front("M600"); //change filament
         status.M600_sent = 1;
     }
@@ -154,7 +203,7 @@ static void _cycle0() {
         //M600_on_edge == inject after state was changed from FS_HAS_FILAMENT to FS_NO_FILAMENT
         //M600_on_level == inject on FS_NO_FILAMENT
         //M600_never == do not inject
-        if (status.M600_sent == 0 && state == FS_NO_FILAMENT) {
+        if (state == FS_NO_FILAMENT) {
             switch (status.send_M600_on) {
             case M600_on_edge:
                 if (!had_filament)
@@ -192,10 +241,5 @@ void fs_cycle() {
         _cycle0();
     } else {
         _cycle1();
-    }
-
-    //clear M600_sent status if marlin is paused
-    if (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER))->wait_user) {
-        status.M600_sent = 0;
     }
 }

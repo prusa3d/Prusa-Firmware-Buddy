@@ -54,7 +54,6 @@ add_library(
   Marlin/Marlin/src/gcode/feature/advance/M900.cpp
   Marlin/Marlin/src/gcode/feature/pause/G27.cpp
   Marlin/Marlin/src/gcode/feature/pause/M125.cpp
-  Marlin/Marlin/src/gcode/feature/pause/M600.cpp
   Marlin/Marlin/src/gcode/feature/pause/M603.cpp
   Marlin/Marlin/src/gcode/feature/pause/M701_M702.cpp
   Marlin/Marlin/src/gcode/feature/runout/M412.cpp

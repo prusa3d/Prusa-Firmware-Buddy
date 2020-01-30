@@ -36,6 +36,9 @@ extern void marlin_client_shdn(void);
 // client loop - must be called periodically in client thread
 extern void marlin_client_loop(void);
 
+// returns client_id for calling thread (-1 for unattached thread)
+extern int marlin_client_id(void);
+
 // returns enabled status of loop processing
 extern int marlin_processing(void);
 

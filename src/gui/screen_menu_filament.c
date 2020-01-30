@@ -54,7 +54,7 @@ static void _deactivate_item(screen_t *screen) {
         filament |= fs_get_state() == FS_NO_FILAMENT ? F_NOTSENSED : 0;
         switch (filament){
         case FKNOWN://known and not "unsensed" - do not allow load
-            _load_dis(screen);
+            //_load_dis(screen);
             _change_ena(screen);
             break;
         case FKNOWN | F_NOTSENSED://allow both load and change

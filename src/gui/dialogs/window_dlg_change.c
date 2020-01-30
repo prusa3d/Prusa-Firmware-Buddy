@@ -1,5 +1,6 @@
 // window_dlg_change.c
 
+#include "window_dlg_change.h"
 #include "gui.h"
 #include "window_dlg_statemachine.h"
 #include "marlin_client.h"
@@ -15,26 +16,16 @@
 static const _cl_dlg cl_unload;
 
 static dlg_result_t _gui_dlg_change(void) {
+    uint8_t st = fs_get__send_M600_on__and_disable();//remember fs state
     _dlg_ld_vars ld_vars;
     memset(&ld_vars, '\0', sizeof(ld_vars));
     ld_vars.z_min_extr_pos = 10;
     dlg_result_t res = _gui_dlg(&cl_unload, &ld_vars, -1); //-1 == 49710 days
-    if (res == DLG_OK) {
-        if (fs_get_state() == FS_NO_FILAMENT) {
-            if (gui_msgbox("The filament sensor failed to detect inserted filament. Disable the sensor?",
-                    MSGBOX_BTN_YESNO | MSGBOX_ICO_QUESTION)
-                == MSGBOX_RES_YES)
-                fs_disable();
-            else
-                fs_enable();
-        }
-    }
+    fs_restore__send_M600_on(st);//restore fs state
     return res;
 }
 
 dlg_result_t gui_dlg_change(void) {
-    //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    //if (gui_dlg_preheat_autoselect_if_able(NULL) < 1) return DLG_ABORTED;//user can choose "RETURN"
     return _gui_dlg_change();
 }
 
@@ -112,9 +103,25 @@ extern const _dlg_button_t bt_yesno_dis;
 static int f_CH_INSERT_FILAMENT(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
     if (p_vars->flags & DLG_BT_FLG) {
         p_vars->flags &= ~DLG_BT_FLG;
-        p_vars->phase++;
+        if (fs_get_state() == FS_NO_FILAMENT) p_vars->phase++; // f_CH_FILAMENT_SENSOR
+        else  p_vars->phase += 2;//skip f_CH_FILAMENT_SENSOR
         additional_vars->e_start = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_POS_E))->pos[3];
     }
+    return 0;
+}
+
+static int f_CH_FILAMENT_SENSOR(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
+    if(fs_get_state() != FS_NO_FILAMENT) {
+        p_vars->flags &= ~DLG_BT_FLG;//clr btn to be safe
+        p_vars->phase--;
+    }
+  /*  else{
+        if (p_vars->flags & DLG_BT_FLG) {//DISABLE SENSOR
+            p_vars->flags &= ~DLG_BT_FLG;
+            fs_disable();
+            p_vars->phase++;
+        }
+    }*/
     return 0;
 }
 
@@ -200,8 +207,9 @@ static const _dlg_state unload_states[] = {
     { 1500, window_dlg_statemachine_draw_progress_tot, "Ramming", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__RAMMING },
     { 10000, window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__UNLOADING },
     { 0, window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis, (dlg_state_func)f_SH_WAIT_E_STOPPED },
-    { 0, window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.", &bt_cont_ena, (dlg_state_func)f_CH_INSERT_FILAMENT },
-    { 6000, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__INSERTING },
+    { 0, window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", &bt_cont_ena, (dlg_state_func)f_CH_INSERT_FILAMENT },
+	{ 0, window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", &bt_cont_dis, (dlg_state_func)f_CH_FILAMENT_SENSOR },
+	{ 6000, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__INSERTING },
     { 10000, window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__LOADING_TO_NOZ },
     { 10000, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_stop_dis, (dlg_state_func)f_CH_WAIT_E_POS__PURGING },
     { 0, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_none, (dlg_state_func)f_CH_CHECK_MARLIN_EVENT },

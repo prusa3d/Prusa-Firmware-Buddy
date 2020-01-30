@@ -14,6 +14,9 @@
 //#define DBG_SWO        // trace to swo port
 #endif //_DEBUG
 
+//show filament sensor status in header
+//#define DEBUG_FSENSOR_IN_HEADER
+
 //--------------------------------------
 //ADC configuration
 //channels:
