@@ -26,7 +26,6 @@ add_library(
   Marlin/Marlin/src/gcode/bedlevel/G42.cpp
   Marlin/Marlin/src/gcode/bedlevel/M420.cpp
   Marlin/Marlin/src/gcode/bedlevel/mbl/G29.cpp
-  Marlin/Marlin/src/gcode/calibrate/G28.cpp
   Marlin/Marlin/src/gcode/config/M200-M205.cpp
   Marlin/Marlin/src/gcode/config/M220.cpp
   Marlin/Marlin/src/gcode/config/M221.cpp
@@ -52,10 +51,6 @@ add_library(
   Marlin/Marlin/src/gcode/control/T.cpp
   Marlin/Marlin/src/gcode/eeprom/M500-M504.cpp
   Marlin/Marlin/src/gcode/feature/advance/M900.cpp
-  Marlin/Marlin/src/gcode/feature/pause/G27.cpp
-  Marlin/Marlin/src/gcode/feature/pause/M125.cpp
-  Marlin/Marlin/src/gcode/feature/pause/M603.cpp
-  Marlin/Marlin/src/gcode/feature/pause/M701_M702.cpp
   Marlin/Marlin/src/gcode/feature/runout/M412.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M122.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M569.cpp

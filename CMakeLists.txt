@@ -464,7 +464,12 @@ target_sources(
           src/guiapi/src/window_text.c
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
-          src/marlin_stubs/M600.cpp
+          src/marlin_stubs/G28.cpp
+          src/marlin_stubs/pause/G27.cpp
+          src/marlin_stubs/pause/M125.cpp
+          src/marlin_stubs/pause/M600.cpp
+          src/marlin_stubs/pause/M603.cpp
+          src/marlin_stubs/pause/M701_702.cpp
           src/wui/http_states.c
           src/wui/lwsapi.cpp
           src/wui/connect.cpp
