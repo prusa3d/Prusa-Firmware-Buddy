@@ -465,6 +465,7 @@ target_sources(
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
           src/marlin_stubs/G28.cpp
+          src/marlin_stubs/pause.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
