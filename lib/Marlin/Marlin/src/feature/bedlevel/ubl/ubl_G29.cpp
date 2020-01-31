@@ -664,6 +664,13 @@
     if (parser.seen('T'))
       display_map(g29_map_type);
 
+    if (!parser.seen_any()) {
+        // backward compatibility with ABL
+        gcode.process_subcommands_now_P("G29 P1 E");
+        gcode.process_subcommands_now_P("G29 P3");
+        gcode.process_subcommands_now_P("G29 A");
+    }
+
     LEAVE:
 
     #if HAS_LCD_MENU
