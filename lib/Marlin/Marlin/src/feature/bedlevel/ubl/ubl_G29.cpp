@@ -680,6 +680,13 @@ void unified_bed_leveling::G29() {
   if (parser.seen_test('T'))
     display_map(param.T_map_type);
 
+    if (!parser.seen_any()) {
+        // backward compatibility with ABL
+        gcode.process_subcommands_now_P("G29 P1 E");
+        gcode.process_subcommands_now_P("G29 P3");
+        gcode.process_subcommands_now_P("G29 A");
+    }
+
   LEAVE:
 
   #if HAS_MARLINUI_MENU
