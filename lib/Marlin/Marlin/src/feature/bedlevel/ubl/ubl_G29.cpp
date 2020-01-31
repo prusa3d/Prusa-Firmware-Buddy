@@ -368,7 +368,7 @@ void unified_bed_leveling::G29() {
         // find_closest_mesh_point (which only returns REAL points).
         if (closest.pos.x < 0) { invalidate_all = true; break; }
         z_values[closest.pos.x][closest.pos.y] = NAN;
-        TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(closest.pos, 0.0f));
+        TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(closest.pos.x, closest.pos.y, 0));
       }
     }
     if (invalidate_all) {
@@ -558,7 +558,7 @@ void unified_bed_leveling::G29() {
               }
               else {
                 z_values[cpos.x][cpos.y] = param.C_constant;
-                TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(cpos, param.C_constant));
+                TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(cpos.x, cpos.y, param.C_constant));
               }
             }
           }
@@ -802,8 +802,8 @@ void unified_bed_leveling::shift_mesh_height() {
                     );
         z_values[best.pos.x][best.pos.y] = measured_z;
         #if ENABLED(EXTENSIBLE_UI)
-          ExtUI::onMeshUpdate(best.pos, ExtUI::G29_POINT_FINISH);
-          ExtUI::onMeshUpdate(best.pos, measured_z);
+          ExtUI::onMeshUpdate(best.pos.x, best.pos.y, ExtUI::G29_POINT_FINISH);
+          ExtUI::onMeshUpdate(best.pos.x, best.pos.y, measured_z);
         #endif
       }
       SERIAL_FLUSH(); // Prevent host M105 buffer overrun.
