@@ -80,8 +80,6 @@ extern void term_write_char(term_t *pt, uint8_t ch);
 
 extern int term_printf(term_t *pt, const char *fmt, ...);
 
-extern int vterm_printf(term_t *pt, const char *fmt, va_list va);
-
 #ifdef __cplusplus
 }
 #endif //__cplusplus
