@@ -759,7 +759,6 @@ void unified_bed_leveling::shift_mesh_height() {
    *   This attempts to fill in locations closest to the nozzle's start location first.
    */
   void unified_bed_leveling::probe_entire_mesh(const xy_pos_t &nearby, const bool do_ubl_mesh_map, const bool stow_probe, const bool do_furthest) {
-    probe.deploy(); // Deploy before ui.capture() to allow for PAUSE_BEFORE_DEPLOY_STOW
 
     TERN_(HAS_MARLINUI_MENU, ui.capture());
     TERN_(EXTENSIBLE_UI, ExtUI::onLevelingStart());
@@ -810,11 +809,9 @@ void unified_bed_leveling::shift_mesh_height() {
 
     } while (best.pos.x >= 0 && --count);
 
-    TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(best.pos, ExtUI::G29_FINISH));
-
+    TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(best.pos.x, best.pos.y, ExtUI::G29_FINISH));
     // Release UI during stow to allow for PAUSE_BEFORE_DEPLOY_STOW
     TERN_(HAS_MARLINUI_MENU, ui.release());
-    probe.stow();
     TERN_(HAS_MARLINUI_MENU, ui.capture());
 
     probe.move_z_after_probing();
