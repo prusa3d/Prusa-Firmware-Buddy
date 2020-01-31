@@ -259,6 +259,9 @@ set_target_properties(firmware PROPERTIES CXX_STANDARD 11)
 # generate firmware.bin file
 objcopy(firmware "binary" ".bin")
 
+# generate linker map file
+target_link_options(firmware PUBLIC -Wl,-Map=firmware.map)
+
 # inform about the firmware's size in terminal
 report_size(firmware)
 
