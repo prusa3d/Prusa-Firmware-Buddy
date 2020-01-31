@@ -120,8 +120,8 @@ static void stop_common(void) {
     hwio_safe_state();
     st7789v_enable_safe_mode();
     hwio_beeper_set_pwm(0, 0);
-    display->init();
-    display->init();
+    st7789v_safe_init();
+    st7789v_safe_init();
 }
 
 //! @brief print white error message on background

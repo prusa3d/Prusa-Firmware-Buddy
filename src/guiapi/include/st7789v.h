@@ -67,6 +67,8 @@ extern void st7789v_enable_safe_mode(void);
 
 extern void st7789v_spi_tx_complete(void);
 
+extern void st7789v_safe_init(void);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

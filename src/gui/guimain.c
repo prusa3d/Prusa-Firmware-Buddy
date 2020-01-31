@@ -82,7 +82,7 @@ int guimain_spi_test = 0;
 #include "dbg.h"
 #include "marlin_host.h"
 
-const st7789v_config_t st7789v_cfg = {
+const st7789v_config_t guimain_st7789v_cfg = {
     &hspi2, // spi handle pointer
     ST7789V_PIN_CS, // CS pin
     ST7789V_PIN_RS, // RS pin
@@ -129,7 +129,7 @@ void gui_run(void) {
     if (diag_fastboot)
         return;
 
-    st7789v_config = st7789v_cfg;
+    st7789v_config = guimain_st7789v_cfg;
     jogwheel_config = jogwheel_cfg;
     gui_init();
 
