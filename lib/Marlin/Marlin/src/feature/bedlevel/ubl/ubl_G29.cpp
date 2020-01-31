@@ -746,7 +746,6 @@
       #endif
 
       save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
-      DEPLOY_PROBE();
 
       uint8_t count = GRID_MAX_POINTS;
 
@@ -789,8 +788,6 @@
         SERIAL_FLUSH(); // Prevent host M105 buffer overrun.
 
       } while (best.pos.x >= 0 && --count);
-
-      STOW_PROBE();
 
       #ifdef Z_AFTER_PROBING
         move_z_after_probing();
