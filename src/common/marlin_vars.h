@@ -31,7 +31,7 @@
 #define MARLIN_VAR_DURATION 0x17 // R:  uint32, print_job_timer.duration()
 #define MARLIN_VAR_R_TIME 0x18 // RW: uint32, get from GcodeParser
 #define MARLIN_VAR_P_DONE 0x19 // RW: uint8, get from GcodeParser
-#define MARLIN_VAT_FILE_NAME 0x1A // RW: char[95], from filesystem
+#define MARLIN_VAR_FILE_NAME 0x1A // RW: char[95], from filesystem
 #define MARLIN_VAR_MAX MARLIN_VAR_TOTAL_TIME
 
 #define MARLIN_MAX_FILE_NAME_LEN 95
