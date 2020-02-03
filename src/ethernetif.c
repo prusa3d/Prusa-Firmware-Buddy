@@ -71,8 +71,8 @@
 /* Stack size of the interface thread */
 #define INTERFACE_THREAD_STACK_SIZE (350)
 /* Network interface name */
-#define IFNAME0 's'
-#define IFNAME1 't'
+#define IFNAME0 'P'
+#define IFNAME1 'R'
 
 /* USER CODE BEGIN 1 */
 
@@ -564,7 +564,7 @@ err_t ethernetif_init(struct netif *netif) {
 
 #if LWIP_NETIF_HOSTNAME
     /* Initialize interface hostname */
-    netif->hostname = "lwip";
+    netif->hostname = "MINI";
 #endif /* LWIP_NETIF_HOSTNAME */
 
     netif->name[0] = IFNAME0;
