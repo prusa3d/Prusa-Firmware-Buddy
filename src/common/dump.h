@@ -3,7 +3,7 @@
 #ifndef _DUMP_H
 #define _DUMP_H
 
-#define DUMP_HARDFULT
+#define DUMP_HARDFAULT_TO_CCRAM
 
 
 #ifdef __cplusplus

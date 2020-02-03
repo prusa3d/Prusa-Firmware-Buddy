@@ -40,6 +40,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bsod.h"
+#include "dump.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,6 +108,8 @@ void NMI_Handler(void) {
   */
 void HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
+	DUMP_HARDFAULT_TO_CCRAM;
+	dump_to_xflash();
     bsod("HardFault_Handler");
     /* USER CODE END HardFault_IRQn 0 */
     while (1) {

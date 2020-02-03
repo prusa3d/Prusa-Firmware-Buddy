@@ -10,6 +10,7 @@
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
+#include "dump.h"
 
 extern screen_t screen_menu_temperature;
 extern screen_t screen_menu_move;
@@ -35,6 +36,7 @@ typedef enum {
     MI_FILAMENT_SENSOR,
     MI_TIMEOUT,
     MI_LAN_SETTINGS,
+    MI_SAVE_DUMP,
 } MI_t;
 
 const menu_item_t _menu_settings_items[] = {
@@ -50,6 +52,7 @@ const menu_item_t _menu_settings_items[] = {
     { { "Fil. sens.", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
+    { { "Save CrashDUMP", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
 
 void screen_menu_settings_init(screen_t *screen) {
@@ -72,6 +75,12 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
         return 1;
     if (event == WINDOW_EVENT_CLICK) {
         switch ((int)param) {
+        case MI_SAVE_DUMP:
+            if (dump_save_xflash_to_usb("dump.bin"))
+                gui_msgbox("Crash dump report 'dump.bin' saved to usb flash", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+            else
+                gui_msgbox("Error saving crash dump report to usb flash", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+            break;
         case MI_DISABLE_STEP:
             marlin_gcode("M18");
             break;
