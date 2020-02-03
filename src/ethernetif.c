@@ -63,6 +63,7 @@
 #include "lwip/netifapi.h"
 #include "otp.h"
 #include "eeprom.h"
+#include <stdbool.h>
 /* USER CODE END 0 */
 
 /* Private define ------------------------------------------------------------*/
@@ -212,21 +213,26 @@ void ethernetif_link(const void *arg) {
     struct netif *netif = (struct netif *)arg;
     uint8_t eth_link;
     uint32_t phyreg = 0U;
+    static bool wait = false;
 
-    while (1) {
-        HAL_ETH_ReadPHYRegister(&heth, PHY_BSR, &phyreg);
-        eth_link = (phyreg & PHY_LINKED_STATUS) == PHY_LINKED_STATUS ? 1 : 0;
+    HAL_ETH_ReadPHYRegister(&heth, PHY_BSR, &phyreg);
+    eth_link = (phyreg & PHY_LINKED_STATUS) == PHY_LINKED_STATUS ? 1 : 0;
 
-        if (eth_link != netif_is_link_up(netif)) {
-            if (eth_link) {
-                netifapi_netif_set_link_up(netif); // thread safe variant
-                osDelay(5000); // give some time to reconnect
-            } else {
-                netifapi_netif_set_link_down(netif);
-            }
+    if(wait){
+        if(netif_is_link_up(netif) || !eth_link){
+            wait = false;
         }
+    }
 
-        osDelay(200);
+    if (eth_link != netif_is_link_up(netif)) {
+        if (eth_link) {
+            if(!wait){
+                netifapi_netif_set_link_up(netif); // thread safe variant
+                wait = true;
+            }
+        } else {
+            netifapi_netif_set_link_down(netif);
+        }
     }
 }
 
@@ -308,9 +314,6 @@ static void low_level_init(struct netif *netif) {
     HAL_ETH_Start(&heth);
 
     /* USER CODE BEGIN PHY_PRE_CONFIG */
-    /* link check */
-    osThreadDef(EthIfLink, ethernetif_link, osPriorityLow, 0, INTERFACE_THREAD_STACK_SIZE);
-    osThreadCreate(osThread(EthIfLink), netif);
 
     /* USER CODE END PHY_PRE_CONFIG */
 
