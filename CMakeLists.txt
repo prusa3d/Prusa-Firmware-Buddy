@@ -172,7 +172,7 @@ target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
 # Configure LwIP
 #
 
-set(LWIP_HTTPD_CUSTOM_FILES "1")
+#set(LWIP_HTTPD_CUSTOM_FILES "1")
 add_library(LwIP_Config ALIAS A3idesHeaders)
 
 #
@@ -299,7 +299,13 @@ target_compile_options(firmware PRIVATE -Wdouble-promotion)
 
 # generate datetime string (RFC1123) to be used by web ui
 rfc1123_datetime(RFC1123_DATETIME)
-target_compile_definitions(firmware PRIVATE RFC1123_DATETIME="$RFC1123_DATETIME")
+target_compile_definitions(
+	firmware 
+	PRIVATE 
+	RFC1123_DATETIME="$RFC1123_DATETIME"
+	BUDDY_ENABLE_WUI
+#    BUDDY_USE_WSAPI # enables wsapi
+	)
 
 target_link_libraries(
   firmware
@@ -308,7 +314,8 @@ target_link_libraries(
           Arduino::Core
           Arduino::TMCStepper
           Arduino::LiquidCrystal
-          LwIP
+          LwIP_212
+#          wsapi    # adds wsapi library
           FatFs
           lpng
           STM32::USBHost
@@ -330,7 +337,6 @@ target_sources(
           src/ethernetif.c
           src/main.c
           src/usbd_desc.c
-          src/fs_custom.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
           src/stm32f4xx_hal_msp.c
@@ -466,10 +472,8 @@ target_sources(
           src/guiapi/src/window_text.c
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
-          src/wui/http_states.c
-          src/wui/lwsapi.cpp
-          src/wui/connect.cpp
-          src/wui/connection.cpp
+		  src/wui/wui.c
+		  src/wui/wui_api.c
   )
 
 set_property(
