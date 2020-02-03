@@ -5,12 +5,6 @@
 #include "w25x.h"
 
 
-#define DUMP_RAM_ADDR    0x20000000
-#define DUMP_RAM_SIZE    0x00020000
-
-#define DUMP_CCRAM_ADDR  0x10000000
-#define DUMP_CCRAM_SIZE  0x00010000
-
 #define DUMP_OFFSET      0x00000000
 
 #define DUMP_PAGE_SIZE   0x100
@@ -22,26 +16,34 @@
 
 void dump_to_xflash(void)
 {
+//	uint8_t buff[DUMP_BUFF_SIZE];
 	uint32_t addr;
 	if (w25x_init())
 	{
-		w25x_wait_busy();
-		w25x_enable_wr();
 		for (addr = 0; addr < DUMP_FILE_SIZE; addr += 0x10000)
 		{
-			w25x_block64_erase(DUMP_OFFSET + addr);
 			w25x_wait_busy();
+			w25x_enable_wr();
+			w25x_block64_erase(DUMP_OFFSET + addr);
+//			w25x_wait_busy();
 		}
 		for (addr = 0; addr < DUMP_RAM_SIZE; addr += DUMP_PAGE_SIZE)
 		{
-			w25x_page_program(DUMP_OFFSET + addr, (uint8_t*)(DUMP_RAM_ADDR + addr), DUMP_PAGE_SIZE);
 			w25x_wait_busy();
+			w25x_enable_wr();
+			w25x_page_program(DUMP_OFFSET + addr, (uint8_t*)(DUMP_RAM_ADDR + addr), DUMP_PAGE_SIZE);
+//			w25x_wait_busy();
+//			w25x_rd_data(DUMP_OFFSET + addr, buff, DUMP_BUFF_SIZE);
 		}
 		for (addr = 0; addr < DUMP_CCRAM_SIZE; addr += DUMP_PAGE_SIZE)
 		{
-			w25x_page_program(DUMP_OFFSET + addr, (uint8_t*)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
 			w25x_wait_busy();
+			w25x_enable_wr();
+			w25x_page_program(DUMP_OFFSET + DUMP_RAM_SIZE + addr, (uint8_t*)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
+//			w25x_wait_busy();
+//			w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + addr, buff, DUMP_BUFF_SIZE);
 		}
+		w25x_wait_busy();
 		w25x_disable_wr();
 	}
 }
@@ -58,6 +60,7 @@ int dump_save_xflash_to_usb(const char* fn)
 		{
 			for (addr = 0; addr < DUMP_FILE_SIZE; addr += DUMP_BUFF_SIZE)
 			{
+				memset(buff, 0, DUMP_BUFF_SIZE);
 				w25x_rd_data(addr, buff, DUMP_BUFF_SIZE);
 				f_write(&fil, buff, DUMP_BUFF_SIZE, &bw);
 			}
@@ -66,4 +69,8 @@ int dump_save_xflash_to_usb(const char* fn)
 		}
 	}
 	return 0;
+}
+
+void dump_hardfault_test(void)
+{
 }

@@ -108,7 +108,7 @@ void NMI_Handler(void) {
   */
 void HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
-	DUMP_HARDFAULT_TO_CCRAM;
+	DUMP_REGS_TO_CCRAM();
 	dump_to_xflash();
     bsod("HardFault_Handler");
     /* USER CODE END HardFault_IRQn 0 */
