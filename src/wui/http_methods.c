@@ -8,6 +8,7 @@
 #include "marlin_client.h"
 #include "wui.h"
 #include "cmsis_os.h"
+#include "frozen.h"
 
 #include <string.h>
 

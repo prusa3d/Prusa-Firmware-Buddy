@@ -320,6 +320,7 @@ target_link_libraries(
           STM32::USBDevice
           CPU
           inih::inih
+          frozen-json::frozen-json
   )
 
 target_sources(
