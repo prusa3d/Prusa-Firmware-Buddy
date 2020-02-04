@@ -13,7 +13,7 @@
 #include "ethernetif.h"
 
 #include "cmsis_os.h"
-
+#include "http_client.h"
 osMutexDef (wui_web_mutex);    // Declare mutex
 osMutexId  (wui_web_mutex_id); // Mutex ID
 
