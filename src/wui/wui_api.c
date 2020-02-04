@@ -38,10 +38,12 @@ static void wui_api_job(struct fs_file* file) {
 
     struct json_out out = JSON_OUT_BUF(_buffer, BDY_WUI_API_BUFFER_SIZE);
     json_printf(&out,
-            "{"
-            "file: %Q,"
-            "total_print_time: %d, "
-            "progress: {precent_done: %d}"
+            "{\n"
+            "   file: %Q,\n"
+            "   total_print_time: %d,\n"
+            "   progress: {\n"
+            "       precent_done: %d\n"
+            "   }\n"
             "}",
             file_name,
             print_duration,
@@ -71,13 +73,27 @@ static void wui_api_printer(struct fs_file* file) {
 
     struct json_out out = JSON_OUT_BUF(_buffer, BDY_WUI_API_BUFFER_SIZE);
     json_printf(&out,
-            "{temperature: {"
-            "tool0: {actual: %d, target: %d},"
-            "bed: {actual: %d, target: %d}},"
-            "xyz_pos_mm: {"
-            "x: %.2f, y: %.2f, z: %.2f},"
-            "print_settings: {"
-            "printing_speed: %hd, flow_factor: %hd, filament_material: %Q} }",
+            "{\n"
+            "   temperature: {\n"
+            "       tool0: {\n"
+            "           actual: %d,\n"
+            "           target: %d\n"
+            "       },\n"
+            "       bed: {\n"
+            "           actual: %d,\n"
+            "           target: %d\n"
+            "       }\n"
+            "   },\n"
+            "   xyz_pos_mm: {\n"
+            "       x: %.2f,\n"
+            "       y: %.2f,\n"
+            "       z: %.2f\n"
+            "   },\n"
+            "   print_settings: {\n"
+            "       printing_speed: %hd,\n"
+            "       flow_factor: %hd,\n"
+            "       filament_material: %Q}\n"
+            "}",
             actual_nozzle, target_nozzle, actual_heatbed, target_heatbed,
             x_pos_mm, y_pos_mm, z_pos_mm, print_speed, flow_factor,
             filament_material);
