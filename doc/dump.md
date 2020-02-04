@@ -40,3 +40,24 @@ offset  size   content
 0x5c   reserved  
 
 ##SCB
+0x00   CPUID    (R/ )  CPUID Base Register  
+0x04   ICSR     (R/W)  Interrupt Control and State Register  
+0x08   VTOR     (R/W)  Vector Table Offset Register  
+0x0C   AIRCR    (R/W)  Application Interrupt and Reset Control Register  
+0x10   SCR      (R/W)  System Control Register  
+0x14   CCR      (R/W)  Configuration Control Register  
+0x18   SHP      (R/W)  System Handlers Priority Registers (4-7, 8-11, 12-15)  
+0x24   SHCSR    (R/W)  System Handler Control and State Register  
+0x28   CFSR     (R/W)  Configurable Fault Status Register  
+0x2C   HFSR     (R/W)  HardFault Status Register  
+0x30   DFSR     (R/W)  Debug Fault Status Register  
+0x34   MMFAR    (R/W)  MemManage Fault Address Register  
+0x38   BFAR     (R/W)  BusFault Address Register  
+0x3C   AFSR     (R/W)  Auxiliary Fault Status Register  
+0x40   PFR      (R/ )  Processor Feature Register  
+0x48   DFR      (R/ )  Debug Feature Register  
+0x4C   ADR      (R/ )  Auxiliary Feature Register  
+0x50   MMFR     (R/ )  Memory Model Feature Register  
+0x60   ISAR     (R/ )  Instruction Set Attributes Register  
+0x84   RESERVED0  
+0x88   CPACR    (R/W)  Coprocessor Access Control  
