@@ -17,6 +17,7 @@
 #include "gpio.h"
 #include "sys.h"
 #include "hwio.h"
+#include "version.h"
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
@@ -310,3 +311,213 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName 
 }
 
 #endif//configCHECK_FOR_STACK_OVERFLOW
+
+#ifndef PSOD_BSOD
+//https://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
+
+
+
+/*
++--------------------------------------------------------+-------------+-----------------+-------------+
+|                       Fault type                       |   Handler   | Status Register |  Bit Name   |
++--------------------------------------------------------+-------------+-----------------+-------------+
+| Bus error on a vector read error                       | HardFault   | HFSR            | VECTTBL     |
+| Fault that is escalated to a hard fault                |             |                 | FORCED      |
+| Fault on breakpoint escalation                         |             |                 | DEBUGEVT    |
+| Fault on instruction access                            | MemManage   | MMFSR           | IACCVIOL    |
+| Fault on direct data access                            |             |                 | DACCVIOL    |
+| Context stacking, because of an MPU access violation   |             |                 | MSTKERR     |
+| Context unstacking, because of an MPU access violation |             |                 | MUNSTKERR   |
+| During lazy floating-point state preservation          |             |                 | MLSPERR     |
+| During exception stacking                              | BusFault    | BFSR            | STKERR      |
+| During exception unstacking                            |             |                 | UNSTKERR    |
+| During instruction prefetching, precise                |             |                 | IBUSERR     |
+| During lazy floating-point state preservation          |             |                 | LSPERR      |
+| Precise data access error, precise                     |             |                 | PRECISERR   |
+| Imprecise data access error, imprecise                 |             |                 | IMPRECISERR |
+| Undefined instruction                                  | UsageFault  | UFSR            | UNDEFINSTR  |
+| Attempt to enter an invalid instruction set state      |             |                 | INVSTATE    |
+| Failed integrity check on exception return             |             |                 | INVPC       |
+| Attempt to access a non-existing coprocessor           |             |                 | NOCPC       |
+| Illegal unaligned load or store                        |             |                 | UNALIGNED   |
+| Stack overflow                                         |             |                 | STKOF       |
+| Divide By 0                                            |             |                 | DIVBYZERO   |
++--------------------------------------------------------+-------------+-----------------+-------------+
+*/
+
+#define IACCVIOL_Msk    (1UL << 0)
+#define DACCVIOL_Msk    (1UL << 1)
+#define MSTKERR_Msk     (1UL << 4)
+#define MUNSTKERR_Msk   (1UL << 3)
+#define MLSPERR_Msk     (1UL << 5)
+
+#define IACCVIOL_Txt    "Fault on instruction access"
+#define DACCVIOL_Txt    "Fault on direct data access"
+#define MSTKERR_Txt     "Context stacking, because of an MPU access violation"
+#define MUNSTKERR_Txt   "Context unstacking, because of an MPU access violation"
+#define MLSPERR_Txt     "During lazy floating-point state preservation"
+
+#define MMARVALID_Msk   (1UL << 7)// MemManage Fault Address Register (MMFAR) valid flag:
+
+#define STKERR_Msk      (1UL << 12)
+#define UNSTKERR_Msk    (1UL << 11)
+#define IBUSERR_Msk     (1UL << 8)
+#define LSPERR_Msk      (1UL << 13)
+#define PRECISERR_Msk   (1UL << 9)
+#define IMPRECISERR_Msk (1UL << 10)
+
+#define STKERR_Txt       "During exception stacking"
+#define UNSTKERR_Txt     "During exception unstacking"
+#define IBUSERR_Txt      "During instruction prefetching, precise"
+#define LSPERR_Txt       "During lazy floating-point state preservation "
+#define PRECISERR_Txt    "Precise data access error, precise"
+#define IMPRECISERR_Txt  "Imprecise data access error, imprecise"
+
+#define BFARVALID_Msk   (1UL << 15)// MemManage Fault Address Register (MMFAR) valid flag:
+
+#define UNDEFINSTR_Msk  (1UL << 16)
+#define INVSTATE_Msk    (1UL << 17)
+#define INVPC_Msk       (1UL << 18)
+#define NOCPC_Msk       (1UL << 19)
+#define UNALIGNED_Msk   (1UL << 24)
+#define DIVBYZERO_Msk   (1UL << 25)
+
+#define UNDEFINSTR_Txt  "Undefined instruction"
+#define INVSTATE_Txt    "Attempt to enter an invalid instruction set state "
+#define INVPC_Txt       "Failed integrity check on exception return  "
+#define NOCPC_Txt       "Attempt to access a non-existing coprocessor"
+#define UNALIGNED_Txt   "Illegal unaligned load or store"
+#define DIVBYZERO_Txt   "Divide By 0"
+//#define STKOF (1UL << 0)
+
+volatile uint32_t r0;
+volatile uint32_t r1;
+volatile uint32_t r2;
+volatile uint32_t r3;
+volatile uint32_t r12;
+volatile uint32_t lr; /* Link register. */
+volatile uint32_t pc; /* Program counter. */
+volatile uint32_t psr;/* Program status register. */
+
+#define ROWS 21
+#define COLS 32
+
+void ScreenHardFault()
+{
+    __disable_irq(); //disable irq
+
+    char tskName[configMAX_TASK_NAME_LEN];
+    strncpy(tskName, pxCurrentTCB->pcTaskName, configMAX_TASK_NAME_LEN);
+    StackType_t *pTopOfStack = (StackType_t *)pxCurrentTCB->pxTopOfStack;
+    StackType_t *pBotOfStack = pxCurrentTCB->pxStack;
+
+    stop_common();
+
+    display->clear(COLOR_NAVY); //clear with dark blue color
+    term_t term; //terminal structure
+    uint8_t buff[TERM_BUFF_SIZE(COLS, ROWS)]; //terminal buffer for 20x16
+    term_init(&term, COLS, ROWS, buff); //initialize terminal structure (clear buffer etc)
+
+    term_printf(&term, "TASK: %s. ", tskName);
+
+    switch((SCB->CFSR) & (
+        IACCVIOL_Msk|DACCVIOL_Msk|MSTKERR_Msk|MUNSTKERR_Msk|MLSPERR_Msk|
+        STKERR_Msk|UNSTKERR_Msk|IBUSERR_Msk|LSPERR_Msk|PRECISERR_Msk|IMPRECISERR_Msk|
+        UNDEFINSTR_Msk|INVSTATE_Msk|INVPC_Msk|NOCPC_Msk|UNALIGNED_Msk|DIVBYZERO_Msk
+        ) )
+    {
+        case IACCVIOL_Msk   : term_printf(&term, IACCVIOL_Txt); break;
+        case DACCVIOL_Msk   : term_printf(&term, DACCVIOL_Txt); break;
+        case MSTKERR_Msk    : term_printf(&term, MSTKERR_Txt); break;
+        case MUNSTKERR_Msk  : term_printf(&term, MUNSTKERR_Txt); break;
+        case MLSPERR_Msk    : term_printf(&term, MLSPERR_Txt); break;
+
+        case STKERR_Msk     : term_printf(&term, STKERR_Txt); break;
+        case UNSTKERR_Msk   : term_printf(&term, UNSTKERR_Txt); break;
+        case IBUSERR_Msk    : term_printf(&term, IBUSERR_Txt); break;
+        case LSPERR_Msk     : term_printf(&term, LSPERR_Txt); break;
+        case PRECISERR_Msk  : term_printf(&term, PRECISERR_Txt); break;
+        case IMPRECISERR_Msk: term_printf(&term, IMPRECISERR_Txt); break;
+
+        case UNDEFINSTR_Msk : term_printf(&term, UNDEFINSTR_Txt); break;
+        case INVSTATE_Msk   : term_printf(&term, INVSTATE_Txt); break;
+        case INVPC_Msk      : term_printf(&term, INVPC_Txt); break;
+        case NOCPC_Msk      : term_printf(&term, NOCPC_Txt); break;
+        case UNALIGNED_Msk  : term_printf(&term, UNALIGNED_Txt); break;
+        case DIVBYZERO_Msk  : term_printf(&term, DIVBYZERO_Txt); break;
+
+        default:
+            term_printf(&term, "Multiple Errors CFSR :%08x", SCB->CFSR);
+            break;
+    }
+    term_printf(&term, "\n");
+
+
+    term_printf(&term, "bot: 0x%08x top: 0x%08x\n", pBotOfStack, pTopOfStack);
+
+//32 characters pre line
+    term_printf(&term, "CPUID:%08x  ", SCB->CPUID);
+    if(SCB->ICSR) term_printf(&term, "ICSR :%08x  ", SCB->ICSR);
+    if(SCB->VTOR) term_printf(&term, "VTOR :%08x  ", SCB->VTOR);
+    if(SCB->AIRCR)term_printf(&term, "AIRCR:%08x  ", SCB->AIRCR);
+    if(SCB->SCR)  term_printf(&term, "SCR  :%08x  ", SCB->SCR);
+    if(SCB->CCR)  term_printf(&term, "CCR  :%08x  ", SCB->CCR);
+    if(SCB->SHCSR)term_printf(&term, "SHCSR:%08x  ", SCB->SHCSR);
+    if(SCB->HFSR) term_printf(&term, "HFSR :%08x  ", SCB->HFSR);
+    if(SCB->DFSR) term_printf(&term, "DFSR :%08x  ", SCB->DFSR);
+    if ((SCB->CFSR) & MMARVALID_Msk)term_printf(&term, "MMFAR:%08x  ", SCB->MMFAR);//print this only if value is valid
+    if ((SCB->CFSR) & BFARVALID_Msk)term_printf(&term, "BFAR :%08x  ", SCB->BFAR); //print this only if value is valid
+    if(SCB->AFSR) term_printf(&term, "AFSR :%08x  ", SCB->AFSR);
+    if(SCB->DFR)  term_printf(&term, "DFR  :%08x  ", SCB->DFR);
+    if(SCB->ADR)  term_printf(&term, "ADR  :%08x  ", SCB->ADR);
+    if(SCB->CPACR)term_printf(&term, "CPACR:%08x\n", SCB->CPACR);
+
+
+/*
+    term_printf(&term, "r0 :%08x", r0);
+    term_printf(&term, "r1 :%08x", r1);
+    term_printf(&term, "r2 :%08x", r2);
+    term_printf(&term, "r3 :%08x", r3);
+    term_printf(&term, "r12:%08x", r12);
+    term_printf(&term, "lr :%08x", lr);
+    term_printf(&term, "pc :%08x", pc);
+    term_printf(&term, "psr:%08x", psr);*/
+
+
+    //const int addr_string_len = 10;//"0x12345678"
+    const int strings_per_row = 3;
+    int available_rows  = term.rows - term.row - 1;
+    //int available_chars = available_rows * COLS;
+    int stack_sz = pTopOfStack - pBotOfStack;
+    //int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
+    int requested_rows = stack_sz/3;
+
+    StackType_t *lastAddr;
+    if (requested_rows < available_rows) lastAddr = pBotOfStack - 1;
+    else lastAddr = pTopOfStack - available_rows * strings_per_row;
+
+    int space_counter = 0; //3rd string does not have a space behind it
+    for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
+        space_counter ++;
+        term_printf(&term, "0x%08x", *i);
+        if (space_counter % 3)term_printf(&term," ");
+    }
+
+
+    render_term(rect_ui16(10, 10, 220, 288), &term, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    get_fw_version();
+    display->draw_text(rect_ui16(10, 290, 220, 20), FW_version_str, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+
+
+    while (1) //endless loop
+    {
+#ifndef _DEBUG
+        HAL_IWDG_Refresh(&hiwdg); //watchdog reset
+#endif //_DEBUG
+
+        //TODO: safe delay with sleep
+    }
+
+}
+
+#endif //PSOD_BSOD

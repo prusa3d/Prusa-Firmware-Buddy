@@ -83,8 +83,16 @@ extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern TIM_HandleTypeDef htim6;
 
-/* USER CODE BEGIN EV */
+extern volatile uint32_t r0;
+extern volatile uint32_t r1;
+extern volatile uint32_t r2;
+extern volatile uint32_t r3;
+extern volatile uint32_t r12;
+extern volatile uint32_t lr; /* Link register. */
+extern volatile uint32_t pc; /* Program counter. */
+extern volatile uint32_t psr;/* Program status register. */
 
+/* USER CODE BEGIN EV */
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -107,7 +115,13 @@ void NMI_Handler(void) {
   */
 void HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
-    bsod("HardFault_Handler");
+#ifdef PSOD_BSOD
+  bsod("HardFault_Handler");
+#else
+  // __disable_irq();
+  //taskENTER_CRITICAL();
+    ScreenHardFault();
+#endif//PSOD_BSOD
     /* USER CODE END HardFault_IRQn 0 */
     while (1) {
         /* USER CODE BEGIN W1_HardFault_IRQn 0 */
