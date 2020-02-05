@@ -11,7 +11,7 @@
 
 #define DUMP_BUFF_SIZE   0x100
 
-#define DUMP_FILE_SIZE   (DUMP_RAM_SIZE + DUMP_CCRAM_SIZE)
+#define DUMP_XFLASH_SIZE   (DUMP_RAM_SIZE + DUMP_CCRAM_SIZE)
 
 #define _STR(arg) #arg
 #define __STR(arg) _STR(arg)
@@ -25,40 +25,34 @@ static inline void dump_regs_SCB(void)
 
 void dump_to_xflash(int dump_type)
 {
-//	uint8_t buff[DUMP_BUFF_SIZE];
 	uint32_t addr;
 	dump_regs_SCB();
 	if (w25x_init())
 	{
-		for (addr = 0; addr < DUMP_FILE_SIZE; addr += 0x10000)
+		for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000)
 		{
 			w25x_wait_busy();
 			w25x_enable_wr();
 			w25x_block64_erase(DUMP_OFFSET + addr);
-//			w25x_wait_busy();
 		}
 		for (addr = 0; addr < DUMP_RAM_SIZE; addr += DUMP_PAGE_SIZE)
 		{
 			w25x_wait_busy();
 			w25x_enable_wr();
 			w25x_page_program(DUMP_OFFSET + addr, (uint8_t*)(DUMP_RAM_ADDR + addr), DUMP_PAGE_SIZE);
-//			w25x_wait_busy();
-//			w25x_rd_data(DUMP_OFFSET + addr, buff, DUMP_BUFF_SIZE);
 		}
 		for (addr = 0; addr < DUMP_CCRAM_SIZE; addr += DUMP_PAGE_SIZE)
 		{
 			w25x_wait_busy();
 			w25x_enable_wr();
 			w25x_page_program(DUMP_OFFSET + DUMP_RAM_SIZE + addr, (uint8_t*)(DUMP_CCRAM_ADDR + addr), DUMP_PAGE_SIZE);
-//			w25x_wait_busy();
-//			w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + addr, buff, DUMP_BUFF_SIZE);
 		}
 		w25x_wait_busy();
 		w25x_disable_wr();
 	}
 }
 
-int dump_save_xflash_to_usb(const char* fn)
+int dump_save_to_usb(const char* fn)
 {
 	FIL fil;
 	uint32_t addr;
@@ -68,12 +62,19 @@ int dump_save_xflash_to_usb(const char* fn)
 	{
 		if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK)
 		{
-			for (addr = 0; addr < DUMP_FILE_SIZE; addr += DUMP_BUFF_SIZE)
+			//save dumped RAM and CCRAM from xflash
+			for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += DUMP_BUFF_SIZE)
 			{
 				memset(buff, 0, DUMP_BUFF_SIZE);
 				w25x_rd_data(addr, buff, DUMP_BUFF_SIZE);
 				f_write(&fil, buff, DUMP_BUFF_SIZE, &bw);
 			}
+			//save OTP
+			for (addr = 0; addr < DUMP_OTP_SIZE; addr += DUMP_BUFF_SIZE)
+				f_write(&fil, DUMP_OTP_ADDR + addr, DUMP_BUFF_SIZE, &bw);
+			//save FLASH
+			for (addr = 0; addr < DUMP_FLASH_SIZE; addr += DUMP_BUFF_SIZE)
+				f_write(&fil, DUMP_FLASH_ADDR + addr, DUMP_BUFF_SIZE, &bw);
 			f_close(&fil);
 			return 1;
 		}

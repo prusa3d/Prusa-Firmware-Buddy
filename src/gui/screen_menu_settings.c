@@ -87,7 +87,7 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
     if (event == WINDOW_EVENT_CLICK) {
         switch ((int)param) {
         case MI_SAVE_DUMP:
-            if (dump_save_xflash_to_usb("dump.bin"))
+            if (dump_save_to_usb("dump.bin"))
                 gui_msgbox("Crash dump report 'dump.bin' saved to usb flash", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
             else
                 gui_msgbox("Error saving crash dump report to usb flash", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);

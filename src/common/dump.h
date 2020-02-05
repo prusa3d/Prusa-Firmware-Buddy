@@ -16,6 +16,14 @@
 #define DUMP_CCRAM_ADDR  0x10000000
 #define DUMP_CCRAM_SIZE  0x00010000
 
+// dumped otp area (32kb)
+#define DUMP_OTP_ADDR  0x1FFF0000
+#define DUMP_OTP_SIZE  0x00008000
+
+// dumped flash area (1024kb)
+#define DUMP_FLASH_ADDR  0x08000000
+#define DUMP_FLASH_SIZE  0x00100000
+
 // general registers stored to ccram
 // r0-r12, sp, lr, pc - 64 bytes
 // xpsr, fpcsr, PRIMASK, BASEPRI, FAULTMASK, CONTROL, MSP, PSP - 32 bytes
@@ -83,7 +91,7 @@ extern "C" {
 
 extern void dump_to_xflash(int dump_type);
 
-extern int dump_save_xflash_to_usb(const char* fn);
+extern int dump_save_to_usb(const char* fn);
 
 
 extern void dump_hardfault_test_0(void);
