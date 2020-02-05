@@ -77,12 +77,16 @@ void json_parse(const char *request_buf, uint16_t len){
         uint8_t command_len = strlen(command);
         if(strncmp(command, "home", command_len) == 0){
             if((ret = json_scanf(t.ptr, t.len, "{axis: [%Q, %Q, %Q]", &axis[0], &axis[1], &axis[2]))){
+                char request[100];
                 if(ret == 1){
-
+                    sprintf(request, "G28 %c", axis[0]);
+                    send_request_to_server(format_request(MSG_GCODE, request));
                 } else if (ret == 2) {
-
+                    sprintf(request, "G28 %c %c", axis[0], axis[1]);
+                    send_request_to_server(format_request(MSG_GCODE, request));
                 } else {
-
+                    sprintf(request, "G28 %c %c %c", axis[0], axis[1], axis[2]);
+                    send_request_to_server(format_request(MSG_GCODE, request));
                 }
 
             }
