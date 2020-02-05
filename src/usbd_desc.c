@@ -53,6 +53,7 @@
 #include "usbd_conf.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "common/otp.h"
 
 /* USER CODE END INCLUDE */
 
@@ -91,11 +92,11 @@
   * @{
   */
 
-#define USBD_VID 1155
+#define USBD_VID 11417
 #define USBD_LANGID_STRING 1033
-#define USBD_MANUFACTURER_STRING "STMicroelectronics"
-#define USBD_PID_FS 22336
-#define USBD_PRODUCT_STRING_FS "STM32 Virtual ComPort"
+#define USBD_MANUFACTURER_STRING "Prusa Research (prusa3d.com)"
+#define USBD_PID_FS 12
+#define USBD_PRODUCT_STRING_FS "Original Prusa MINI"
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 #define USBD_CONFIGURATION_STRING_FS "CDC Config"
 #define USBD_INTERFACE_STRING_FS "CDC Interface"
@@ -310,11 +311,28 @@ uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *le
   * @retval Pointer to descriptor buffer
   */
 uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length) {
-    if (speed == USBD_SPEED_HIGH) {
-        USBD_GetString((uint8_t *)USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
-    } else {
-        USBD_GetString((uint8_t *)USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
-    }
+    // The original code looks suspicious - the same calls for different USB speeds
+    // if (speed == USBD_SPEED_HIGH) {
+    //     USBD_GetString((uint8_t *)USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
+    // } else {
+    //     USBD_GetString((uint8_t *)USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
+    // }
+
+    // Anyway, we want to return our serial number from OTP.
+    // The OTP contains the serial number without the first four characters "CZPX" (total 15 chars, zero terminated).
+    // And since it is already zero-terminated, we can convert the serial number into a unicode string and return it.
+    // The source address should be normally const uint8_t *, but the function's signature is without const (which is wrong in fact).
+#ifdef _DEBUG
+    // This is here just for the case of old dev boards which do not have anything in the OTP memory.
+    // Normal boards, which went through normal manufacturing process, have ALWAYS a set serial number terminated with \0
+    uint8_t tmp[16];
+    memcpy(tmp, (/*const*/ uint8_t *)OTP_SERIAL_NUMBER_ADDR, 16);
+    tmp[15] = 0; // to be sure...
+
+    USBD_GetString(tmp, USBD_StrDesc, length);
+#else
+    USBD_GetString((/*const*/ uint8_t *)OTP_SERIAL_NUMBER_ADDR, USBD_StrDesc, length);
+#endif
     return USBD_StrDesc;
 }
 
