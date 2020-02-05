@@ -13,11 +13,21 @@
 
 #define DUMP_FILE_SIZE   (DUMP_RAM_SIZE + DUMP_CCRAM_SIZE)
 
+#define _STR(arg) #arg
+#define __STR(arg) _STR(arg)
 
-void dump_to_xflash(void)
+static inline void dump_regs_SCB(void)
+{
+	//copy entire SCB to CCRAM
+	memcpy(DUMP_REGS_SCB_ADDR, SCB, DUMP_REGS_SCB_SIZE);
+}
+
+
+void dump_to_xflash(int dump_type)
 {
 //	uint8_t buff[DUMP_BUFF_SIZE];
 	uint32_t addr;
+	dump_regs_SCB();
 	if (w25x_init())
 	{
 		for (addr = 0; addr < DUMP_FILE_SIZE; addr += 0x10000)
@@ -71,6 +81,17 @@ int dump_save_xflash_to_usb(const char* fn)
 	return 0;
 }
 
-void dump_hardfault_test(void)
+//
+void dump_hardfault_test_0(void)
 {
+#define test_0_var (*((volatile unsigned long *)(0x4b000000)))
+	test_0_var = 0;
+}
+
+//integer div by zero test
+void dump_hardfault_test_1(void)
+{
+	volatile int a = 1;
+	volatile int b = 0;
+	volatile int c = a / b;
 }

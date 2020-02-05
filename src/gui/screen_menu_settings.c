@@ -37,7 +37,10 @@ typedef enum {
     MI_TIMEOUT,
     MI_LAN_SETTINGS,
     MI_SAVE_DUMP,
-	MI_HF_TEST,
+#ifdef _DEBUG
+	MI_HF_TEST_0,
+	MI_HF_TEST_1,
+#endif //_DEBUG
 } MI_t;
 
 const menu_item_t _menu_settings_items[] = {
@@ -54,7 +57,10 @@ const menu_item_t _menu_settings_items[] = {
     { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
     { { "Save CrashDUMP", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "HF test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+#ifdef _DEBUG
+    { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+#endif //_DEBUG
 };
 
 void screen_menu_settings_init(screen_t *screen) {
@@ -83,11 +89,14 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             else
                 gui_msgbox("Error saving crash dump report to usb flash", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
             break;
-        case MI_HF_TEST:
-        	dump_hardfault_test();
-//        	DUMP_REGS_TO_CCRAM();
-//        	dump_to_xflash();
+#ifdef _DEBUG
+        case MI_HF_TEST_0:
+        	dump_hardfault_test_0();
             break;
+        case MI_HF_TEST_1:
+        	dump_hardfault_test_1();
+            break;
+#endif //_DEBUG
         case MI_DISABLE_STEP:
             marlin_gcode("M18");
             break;
