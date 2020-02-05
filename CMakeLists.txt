@@ -172,7 +172,6 @@ target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
 # Configure LwIP
 #
 
-#set(LWIP_HTTPD_CUSTOM_FILES "1")
 add_library(LwIP212_Config ALIAS A3idesHeaders)
 
 #
