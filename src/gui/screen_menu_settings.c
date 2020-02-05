@@ -12,6 +12,9 @@
 #include "filament_sensor.h"
 #include "dump.h"
 
+//hardfault test
+#define HF_TEST
+
 extern screen_t screen_menu_temperature;
 extern screen_t screen_menu_move;
 #ifdef _DEBUG
@@ -37,10 +40,10 @@ typedef enum {
     MI_TIMEOUT,
     MI_LAN_SETTINGS,
     MI_SAVE_DUMP,
-#ifdef _DEBUG
+#ifdef HF_TEST
 	MI_HF_TEST_0,
 	MI_HF_TEST_1,
-#endif //_DEBUG
+#endif //HF_TEST
 } MI_t;
 
 const menu_item_t _menu_settings_items[] = {
@@ -57,10 +60,10 @@ const menu_item_t _menu_settings_items[] = {
     { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
     { { "Save CrashDUMP", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#ifdef _DEBUG
+#ifdef HF_TEST
     { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#endif //_DEBUG
+#endif //HF_TEST
 };
 
 void screen_menu_settings_init(screen_t *screen) {
@@ -89,14 +92,14 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             else
                 gui_msgbox("Error saving crash dump report to usb flash", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
             break;
-#ifdef _DEBUG
+#ifdef HF_TEST
         case MI_HF_TEST_0:
         	dump_hardfault_test_0();
             break;
         case MI_HF_TEST_1:
         	dump_hardfault_test_1();
             break;
-#endif //_DEBUG
+#endif //HF_TEST
         case MI_DISABLE_STEP:
             marlin_gcode("M18");
             break;
