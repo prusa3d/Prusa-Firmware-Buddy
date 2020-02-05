@@ -106,7 +106,7 @@ void NMI_Handler(void) {
 /**
   * @brief This function handles Hard fault interrupt.
   */
-void HardFault_Handler(void) {
+void __attribute__((naked)) HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
 	DUMP_HARDFAULT_TO_XFLASH();
     bsod("HardFault_Handler");
