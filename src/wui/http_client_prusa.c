@@ -6,7 +6,7 @@
 #include "string.h"
 
 #define RECV_BUFFSIZE 512
-#define DEST_PORT 4545
+#define DEST_PORT 9000
 #define TCP_POLL_INTERVAL 2
 
 web_client_t web_client;
