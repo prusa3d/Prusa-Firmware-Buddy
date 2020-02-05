@@ -321,18 +321,12 @@ uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length) 
     // Anyway, we want to return our serial number from OTP.
     // The OTP contains the serial number without the first four characters "CZPX" (total 15 chars, zero terminated).
     // And since it is already zero-terminated, we can convert the serial number into a unicode string and return it.
-    // The source address should be normally const uint8_t *, but the function's signature is without const (which is wrong in fact).
-#ifdef _DEBUG
-    // This is here just for the case of old dev boards which do not have anything in the OTP memory.
-    // Normal boards, which went through normal manufacturing process, have ALWAYS a set serial number terminated with \0
-    uint8_t tmp[16];
-    memcpy(tmp, (/*const*/ uint8_t *)OTP_SERIAL_NUMBER_ADDR, 16);
-    tmp[15] = 0; // to be sure...
+    // Additionally, it is required to print the serial number the same way as the MK3 does -> we must add CZPX to the beginning
+    uint8_t tmp[OTP_SERIAL_NUMBER_SIZE + 4] = "CZPX";
+    memcpy(tmp + 4, (const uint8_t *)OTP_SERIAL_NUMBER_ADDR, OTP_SERIAL_NUMBER_SIZE);
+    tmp[OTP_SERIAL_NUMBER_SIZE + 4 - 1] = 0; // proper string termination in case there is something wrong with the OTP data
 
     USBD_GetString(tmp, USBD_StrDesc, length);
-#else
-    USBD_GetString((/*const*/ uint8_t *)OTP_SERIAL_NUMBER_ADDR, USBD_StrDesc, length);
-#endif
     return USBD_StrDesc;
 }
 
