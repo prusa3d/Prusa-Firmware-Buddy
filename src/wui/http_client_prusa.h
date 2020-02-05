@@ -20,10 +20,10 @@ extern osSemaphoreId web_client_sema_id;
 #define ERRMSG_NOT_FOUND 3
 #define ERRMSG_GEN_ERR 4
 
-#define WCS_NOT_CONNECTED 0
-#define WCS_CONNECTED 1
-#define WCS_RECEIVED 2
-#define WCS_CLOSING 3
+#define HCS_NOT_CONNECTED 0
+#define HCS_CONNECTED 1
+#define HCS_RECEIVED 2
+#define HCS_CLOSING 3
 
 /*typedef struct {
   uint8_t Num;
@@ -33,13 +33,6 @@ extern osSemaphoreId web_client_sema_id;
   uint16_t len;
   uint8_t connection_timeout;
 } htto_client_state_t; */
-
-typedef struct {
-
-    uint8_t state;
-    struct tcp_pcb * pcb;
-    struct pbuf * pbuf_ptr;
-} web_client_pass_t;
 
 typedef struct {
     uint32_t flags;
