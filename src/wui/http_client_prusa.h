@@ -25,15 +25,6 @@ extern osSemaphoreId web_client_sema_id;
 #define HCS_RECEIVED 2
 #define HCS_CLOSING 3
 
-/*typedef struct {
-  uint8_t Num;
-  char * page;
-  char * post_vars;
-  char *recv_data;
-  uint16_t len;
-  uint8_t connection_timeout;
-} htto_client_state_t; */
-
 typedef struct {
     uint32_t flags;
     marlin_vars_t * wui_marlin_vars;
@@ -41,13 +32,14 @@ typedef struct {
     uint16_t request_len;
 } web_client_t;
 
-void web_client_queue_cycle(void);
+void http_client_init(void);
+void http_client_queue_cycle(void);
 
 int process_server_request(void);
 
 void send_request_to_server(void);
 
-void tcp_web_client_connect(void);
+void tcp_http_client_connect(void);
 
 
 

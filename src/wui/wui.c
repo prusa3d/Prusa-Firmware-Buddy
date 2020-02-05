@@ -13,7 +13,8 @@
 #include "ethernetif.h"
 
 #include "cmsis_os.h"
-#include "http_client.h"
+#include "http_client_prusa.h"
+
 osMutexDef (wui_web_mutex);    // Declare mutex
 osMutexId  (wui_web_mutex_id); // Mutex ID
 
@@ -26,6 +27,7 @@ void StartWebServerTask(void const *argument) {
     wui_marlin_vars = marlin_client_init(); // init the client
    	MX_LWIP_Init();
     http_server_init();
+    http_client_init();
     for (;;) {
 //        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MSK_TEMP_ALL));
         ethernetif_link(&eth0);

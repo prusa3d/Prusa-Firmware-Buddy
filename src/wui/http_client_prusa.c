@@ -2,10 +2,11 @@
 // author: Migi
 
 #include "http_client_prusa.h"
+#include "lwip.h"
 #include "string.h"
 
 #define RECV_BUFFSIZE 512
-#define DEST_PORT 8
+#define DEST_PORT 4545
 #define TCP_POLL_INTERVAL 2
 
 web_client_t web_client;
@@ -34,8 +35,7 @@ void tcp_http_client_connect(void){
     ip_addr_t dest_ip;
     web_client_pcb = tcp_new();
     if(web_client_pcb != NULL){
-        //netif get addrs
-        //IP4_ADDR(&dest_ip, 1, 2, 3, 4);
+        dest_ip.addr = netif_ip_addr4(&eth0)->addr;
         tcp_connect(web_client_pcb, &dest_ip, DEST_PORT, tcp_http_client_connected);
     }
 }
@@ -138,7 +138,7 @@ static err_t tcp_http_client_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *
 
 static void tcp_http_client_send(struct tcp_pcb *tpcb, struct http_client_t * hcp){
     struct pbuf *ptr;
-    err_t write_err;
+    err_t write_err = ERR_OK;
 
     while(write_err == ERR_OK && hcp->pbuf_ptr != NULL && hcp->pbuf_ptr->len <= tcp_sndbuf(tpcb)){
         ptr = hcp->pbuf_ptr;
@@ -233,11 +233,11 @@ static err_t tcp_http_client_poll(void *arg, struct tcp_pcb *tpcb)
   return ret_err;
 }
 
-void web_client_init(void){
+void http_client_init(void){
     memset(&web_client, 0, sizeof(web_client_t));
 }
 
-void web_client_queue_cycle(void){
+void http_client_queue_cycle(void){
     osEvent ose;
     char ch;
 
