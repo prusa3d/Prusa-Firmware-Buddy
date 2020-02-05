@@ -35,7 +35,7 @@ void tcp_http_client_connect(void){
     ip_addr_t dest_ip;
     web_client_pcb = tcp_new();
     if(web_client_pcb != NULL){
-        dest_ip.addr = netif_ip_addr4(&eth0)->addr;
+        IP4_ADDR(&dest_ip, 192, 168, 1, 152);
         tcp_connect(web_client_pcb, &dest_ip, DEST_PORT, tcp_http_client_connected);
     }
 }

@@ -23,6 +23,7 @@ marlin_vars_t* wui_marlin_vars = 0;
 marlin_vars_t webserver_marlin_vars;
 
 void StartWebServerTask(void const *argument) {
+    bool conn = false;
     wui_web_mutex_id = osMutexCreate(osMutex(wui_web_mutex));
     wui_marlin_vars = marlin_client_init(); // init the client
    	MX_LWIP_Init();
@@ -33,6 +34,10 @@ void StartWebServerTask(void const *argument) {
         ethernetif_link(&eth0);
         if(wui_marlin_vars) {
             marlin_client_loop();
+        }
+        if(netif_ip4_addr(&eth0)->addr != 0 && !conn){
+            tcp_http_client_connect();
+            conn = true;
         }
         osMutexWait(wui_web_mutex_id, osWaitForever);
         webserver_marlin_vars = *wui_marlin_vars;
