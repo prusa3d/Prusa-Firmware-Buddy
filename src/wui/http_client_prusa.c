@@ -56,15 +56,14 @@ static err_t tcp_http_client_connected(void *arg, struct tcp_pcb *tpcb, err_t er
 
     hcp->state = HCS_CONNECTED;
     hcp->pcb = tpcb;
-
-    sprintf(data, "sending tcp client message #%d", msg_count++);
+    char *string = "HEAD /process.php?data1=12&data2=5 HTTP/1.0\r\nHost: mywebsite.com\r\n\r\n ";
 
     /*allocate pbuf*/
-    hcp->pbuf_ptr = pbuf_alloc(PBUF_TRANSPORT, strlen(data), PBUF_POOL);
+    hcp->pbuf_ptr = pbuf_alloc(PBUF_TRANSPORT, strlen(string), PBUF_POOL);
 
     if(hcp->pbuf_ptr != NULL){
         /*copy test message to pbuf*/
-        pbuf_take(hcp->pbuf_ptr, data, strlen(data));
+        pbuf_take(hcp->pbuf_ptr, string, strlen(string));
 
         /*pass wcp structure as argument to tpcb*/
         tcp_arg(tpcb, hcp);
@@ -116,6 +115,8 @@ static err_t tcp_http_client_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *
     /*Else if all is alright and connection is established*/
     } else if(hcp->state == HCS_CONNECTED){
         msg_count++;
+
+        //READ & PARSE & COMMAND
 
         /* Acknowledge data reception */
         tcp_recved(tpcb, p->tot_len);
