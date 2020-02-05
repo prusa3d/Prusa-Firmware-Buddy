@@ -35,6 +35,7 @@
 
 #define DUMP_REGS_GEN_FAULT() \
 	asm volatile( \
+	"   mov r3, lr             \n" /* save lrexc */ \
 	"	tst lr, #4             \n" \
 	"	ite eq                 \n" \
 	"	mrseq r0, msp          \n" /* msp->r0  */ \
@@ -57,8 +58,7 @@
 	"	str r10, [r1, #0x28]   \n" /* r10  */ \
 	"	str r11, [r1, #0x2c]   \n" /* r11  */ \
 	"	str r12, [r1, #0x30]   \n" /* r12  */ \
-	"	ldr r2, [r0, #0x10]    \n" /* load sp from stack frame  */ \
-	"	str r2, [r1, #0x34]    \n" /* store sp to ccram  */ \
+	"	str r0, [r1, #0x34]    \n" /* store sp (r0) to ccram  */ \
 	"	ldr r2, [r0, #0x14]    \n" /* lr  */ \
 	"	str r2, [r1, #0x38]    \n" \
 	"	ldr r2, [r0, #0x18]    \n" /* pc  */ \
@@ -77,6 +77,7 @@
 	"	str r2, [r1, #0x54]    \n" \
 	"	mrs r2, PSP            \n" /* PSP  */ \
 	"	str r2, [r1, #0x58]    \n" \
+	"	str r3, [r1, #0x5c]    \n" /* lrexc  */\
 )
 
 //#define DUMP_SNAPSHOT_TO_XFLASH() { DUMP_REGS_GEN_SNAPSHOT(); dump_to_xflash(DUMP_TYPE_SNAPSHOT); }

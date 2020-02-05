@@ -39,7 +39,7 @@ offset  size   content
 0x50   CONTROL  
 0x54   MSP  
 0x58   PSP  
-0x5c   reserved  
+0x5c   lrexc  
 
 ##SCB
 0x00   CPUID    (R/ )  CPUID Base Register  
