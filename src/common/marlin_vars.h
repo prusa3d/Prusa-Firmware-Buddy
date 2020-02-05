@@ -146,7 +146,7 @@ extern variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id);
 extern void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var);
 
 // format variable to string
-extern void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str);
+extern void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uint32_t str_size);
 
 // parse variable from string, returns sscanf result (1 = ok)
 extern int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *str);

@@ -180,71 +180,71 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         }
 }
 
-void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
+void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uint32_t str_size) {
     if (vars)
         switch (var_id) {
         case MARLIN_VAR_MOTION:
-            sprintf(str, "%u", (unsigned int)(vars->motion));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->motion));
             break;
         case MARLIN_VAR_GQUEUE:
-            sprintf(str, "%u", (unsigned int)(vars->gqueue));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->gqueue));
             break;
         case MARLIN_VAR_PQUEUE:
-            sprintf(str, "%u", (unsigned int)(vars->pqueue));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->pqueue));
             break;
         case MARLIN_VAR_IPOS_X:
         case MARLIN_VAR_IPOS_Y:
         case MARLIN_VAR_IPOS_Z:
         case MARLIN_VAR_IPOS_E:
-            sprintf(str, "%li", (long int)vars->ipos[var_id - MARLIN_VAR_IPOS_X]);
+            snprintf(str, str_size, "%li", (long int)vars->ipos[var_id - MARLIN_VAR_IPOS_X]);
             break;
         case MARLIN_VAR_POS_X:
         case MARLIN_VAR_POS_Y:
         case MARLIN_VAR_POS_Z:
         case MARLIN_VAR_POS_E:
-            sprintf(str, "%.3f", (double)(vars->pos[var_id - MARLIN_VAR_POS_X]));
+            snprintf(str, str_size, "%.3f", (double)(vars->pos[var_id - MARLIN_VAR_POS_X]));
             break;
         case MARLIN_VAR_TEMP_NOZ:
-            sprintf(str, "%.1f", (double)(vars->temp_nozzle));
+            snprintf(str, str_size, "%.1f", (double)(vars->temp_nozzle));
             break;
         case MARLIN_VAR_TEMP_BED:
-            sprintf(str, "%.1f", (double)(vars->temp_bed));
+            snprintf(str, str_size, "%.1f", (double)(vars->temp_bed));
             break;
         case MARLIN_VAR_TTEM_NOZ:
-            sprintf(str, "%.1f", (double)(vars->target_nozzle));
+            snprintf(str, str_size, "%.1f", (double)(vars->target_nozzle));
             break;
         case MARLIN_VAR_TTEM_BED:
-            sprintf(str, "%.1f", (double)(vars->target_bed));
+            snprintf(str, str_size, "%.1f", (double)(vars->target_bed));
             break;
         case MARLIN_VAR_Z_OFFSET:
-            sprintf(str, "%.4f", (double)(vars->z_offset));
+            snprintf(str, str_size, "%.4f", (double)(vars->z_offset));
             break;
         case MARLIN_VAR_FANSPEED:
-            sprintf(str, "%u", (unsigned int)(vars->fan_speed));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->fan_speed));
             break;
         case MARLIN_VAR_PRNSPEED:
-            sprintf(str, "%u", (unsigned int)(vars->print_speed));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->print_speed));
             break;
         case MARLIN_VAR_FLOWFACT:
-            sprintf(str, "%u", (unsigned int)(vars->flow_factor));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->flow_factor));
             break;
         case MARLIN_VAR_WAITHEAT:
-            sprintf(str, "%u", (unsigned int)(vars->wait_heat));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->wait_heat));
             break;
         case MARLIN_VAR_WAITUSER:
-            sprintf(str, "%u", (unsigned int)(vars->wait_user));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->wait_user));
             break;
         case MARLIN_VAR_SD_PRINT:
-            sprintf(str, "%u", (unsigned int)(vars->sd_printing));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->sd_printing));
             break;
         case MARLIN_VAR_SD_PDONE:
-            sprintf(str, "%u", (unsigned int)(vars->sd_percent_done));
+            snprintf(str, str_size, "%u", (unsigned int)(vars->sd_percent_done));
             break;
         case MARLIN_VAR_DURATION:
-            sprintf(str, "%lu", (long unsigned int)(vars->print_duration));
+            snprintf(str, str_size, "%lu", (long unsigned int)(vars->print_duration));
             break;
         default:
-            sprintf(str, "???");
+            snprintf(str, str_size, "???");
         }
 }
 

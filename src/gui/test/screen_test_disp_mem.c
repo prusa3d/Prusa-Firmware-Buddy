@@ -96,12 +96,14 @@ static int8_t isInverted_actual = -1;
 static int8_t isBrightness_ena_last = -1;
 static int8_t isBrightness_ena_actual = -1;
 
+static const char window_list_indexError[] = "Index ERROR";
+
 void window_list_spi_item(window_list_t *pwindow_list, uint16_t index,
     const char **pptext, uint16_t *pid_icon) {
     if (index < opt_spi_sz)
         *pptext = (char *)opt_spi[index];
     else
-        *pptext = "Index ERROR";
+        *pptext = window_list_indexError;
     *pid_icon = 0;
 }
 
@@ -110,7 +112,7 @@ void window_list_modes_item(window_list_t *pwindow_list, uint16_t index,
     if (index < modes_sz)
         *pptext = (char *)modes[index];
     else
-        *pptext = "Index ERROR";
+        *pptext = window_list_indexError;
     *pid_icon = 0;
 }
 
@@ -119,7 +121,7 @@ void window_list_inversions_item(window_list_t *pwindow_list, uint16_t index,
     if (index < inversions_sz)
         *pptext = (char *)inversions[index];
     else
-        *pptext = "Index ERROR";
+        *pptext = window_list_indexError;
     *pid_icon = 0;
 }
 
@@ -128,7 +130,7 @@ void window_list_bright_enas_item(window_list_t *pwindow_list, uint16_t index,
     if (index < bright_enas_sz)
         *pptext = (char *)bright_enas[index];
     else
-        *pptext = "Index ERROR";
+        *pptext = window_list_indexError;
     *pid_icon = 0;
 }
 

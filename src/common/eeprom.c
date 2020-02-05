@@ -157,43 +157,44 @@ void eeprom_dump(void) {
     char line[64];
     for (i = 0; i < 128; i++) // 128 lines = 2048 bytes
     {
-        sprintf(line, "%04x", i * 16);
+        sprintf(line, "%04x", i * 16); //@@TODO make safer with snprintf
         for (j = 0; j < 16; j++) {
             b = st25dv64k_user_read(j + i * 16);
-            sprintf(line + 4 + j * 3, " %02x", b);
+            sprintf(line + 4 + j * 3, " %02x", b); //@@TODO make safer with snprintf
         }
         _dbg("%s", line);
     }
 }
 
-int eeprom_var_sprintf(char *str, uint8_t id, variant8_t var) {
+int eeprom_var_sprintf(char *str, uint32_t str_size, uint8_t id, variant8_t var) {
     switch (id) {
     case EEVAR_VERSION:
-        return sprintf(str, "%u", (unsigned int)var.ui16);
+        return snprintf(str, str_size, "%u", (unsigned int)var.ui16);
     case EEVAR_FILAMENT_TYPE:
-        return sprintf(str, "%u", (unsigned int)var.ui8);
+        return snprintf(str, str_size, "%u", (unsigned int)var.ui8);
     case EEVAR_FILAMENT_COLOR:
-        return sprintf(str, "0x%08lx", (unsigned long)var.ui32);
+        return snprintf(str, str_size, "0x%08lx", (unsigned long)var.ui32);
     case EEVAR_UNUSED_1:
-        return sprintf(str, "%.4f", (double)var.flt);
+        return snprintf(str, str_size, "%.4f", (double)var.flt);
     case EEVAR_UNUSED_2:
-        return sprintf(str, "%.1f", (double)var.flt);
+        return snprintf(str, str_size, "%.1f", (double)var.flt);
     case EEVAR_UNUSED_3:
-        return sprintf(str, "%.1f", (double)var.flt);
+        return snprintf(str, str_size, "%.1f", (double)var.flt);
     case EEVAR_RUN_SELFTEST:
     case EEVAR_RUN_XYZCALIB:
     case EEVAR_RUN_FIRSTLAY:
     case EEVAR_FSENSOR_ENABLED:
-        return sprintf(str, "%u", (unsigned int)var.ui8);
+        return snprintf(str, str_size, "%u", (unsigned int)var.ui8);
     }
     return 0;
 }
 
 void eeprom_print_vars(void) {
     uint8_t id;
-    char text[16];
+    static const uint32_t text_size = 16;
+    char text[text_size];
     for (id = 0; id < EE_VAR_CNT; id++) {
-        eeprom_var_sprintf(text, id, eeprom_get_var(id));
+        eeprom_var_sprintf(text, text_size, id, eeprom_get_var(id));
         _dbg("%s=%s", eeprom_var_name[id], text);
     }
 }
@@ -208,7 +209,7 @@ void eeprom_clear(void) {
 int8_t eeprom_test_PUT(const unsigned int bytes) {
 
     unsigned int i;
-    char line[16] = "abcdefghijklmno";
+    static const char line[16] = "abcdefghijklmno";
     char line2[16];
     uint8_t size = sizeof(line);
     unsigned int count = bytes / 16;

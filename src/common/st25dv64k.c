@@ -116,8 +116,8 @@ void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint8_t size) {
     st25dv64k_unlock();
 }
 
-void st25dv64k_user_write_bytes(uint16_t address, void *pdata, uint8_t size) {
-    uint8_t *p = (uint8_t *)pdata;
+void st25dv64k_user_write_bytes(uint16_t address, const void *pdata, uint8_t size) {
+    const uint8_t *p = (const uint8_t *)pdata;
     uint8_t _out[6];
     uint8_t block_size;
     st25dv64k_lock();

@@ -25,7 +25,7 @@ void menu_support() {
     int ver_min = (FW_VERSION - 100 * ver_maj) / 10;
     int ver_sub = FW_VERSION % 10;
     const char *stages[] = { "pre-alpha", "alpha", "beta", "RC", "final" };
-    sprintf(version, " %d.%d.%d %s", ver_maj, ver_min, ver_sub, (char *)stages[FW_STAGENR]);
+    snprintf(version, " %d.%d.%d %s", ver_maj, ver_min, ver_sub, (char *)stages[FW_STAGENR]);
     #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     const char *printer = "MINI";
     #else

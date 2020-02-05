@@ -193,20 +193,20 @@ struct pduration_t : duration_t {
     pduration_t(uint32_t const &seconds)
         : duration_t(seconds) {}
 
-    void to_string(char *buffer) const {
+    void to_string(char *buffer, uint32_t buffer_size) const {
         int d = this->day(),
             h = this->hour() % 24,
             m = this->minute() % 60,
             s = this->second() % 60;
 
         if (d) {
-            sprintf(buffer, "%3id %2ih %2im", d, h, m);
+            snprintf(buffer, buffer_size, "%3id %2ih %2im", d, h, m);
         } else if (h) {
-            sprintf(buffer, "     %2ih %2im", h, m);
+            snprintf(buffer, buffer_size, "     %2ih %2im", h, m);
         } else if (m) {
-            sprintf(buffer, "     %2im %2is", m, s);
+            snprintf(buffer, buffer_size, "     %2im %2is", m, s);
         } else {
-            sprintf(buffer, "         %2is", s);
+            snprintf(buffer, buffer_size, "         %2is", s);
         }
     }
 };
@@ -607,7 +607,7 @@ void screen_printing_update_progress(screen_t *screen) {
     //const pduration_t e_time(ExtUI::getProgress_seconds_elapsed());
 
     const pduration_t e_time(marlin_vars()->print_duration);
-    e_time.to_string(pw->text_time);
+    e_time.to_string(pw->text_time, sizeof(pw->text_time) );
     window_set_text(pw->w_time_value.win.id, pw->text_time);
     //_dbg("#.. progress / p :: %d t0: %d ?: %d\r",oProgressData.oPercentDirectControl.mGetValue(),oProgressData.oPercentDirectControl.nTime,oProgressData.oPercentDirectControl.mIsActual(print_job_timer.duration()));
     //_dbg("#.. progress / P :: %d t0: %d ?: %d\r",oProgressData.oPercentDone.mGetValue(),oProgressData.oPercentDone.nTime,oProgressData.oPercentDone.mIsActual(print_job_timer.duration()));

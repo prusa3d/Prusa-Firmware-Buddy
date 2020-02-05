@@ -9,7 +9,8 @@ void window_numb_init(window_numb_t *window) {
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
     window->value = 0;
-    window->format = "%.0f";
+    static const char format[] = "%.0f";
+    window->format = format;
     window->padding = gui_defaults.padding;
     window->alignment = gui_defaults.alignment;
 }
@@ -22,9 +23,9 @@ void window_numb_draw(window_numb_t *window) {
             clr_text = COLOR_ORANGE;
         char text[WINDOW_NUMB_MAX_TEXT];
         if (window->win.flg & WINDOW_FLG_NUMB_FLOAT2INT) {
-            sprintf(text, window->format, (int)(window->value));
+            snprintf(text, sizeof(text), window->format, (int)(window->value));
         } else {
-            sprintf(text, window->format, (double)window->value);
+            snprintf(text, sizeof(text), window->format, (double)window->value);
         }
 
         render_text_align(window->win.rect,

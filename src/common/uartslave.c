@@ -127,10 +127,11 @@ void uartslave_cycle(uartslave_t *pslave) {
 }
 
 int uartslave_printf(uartslave_t *pslave, const char *fmt, ...) {
-    char text[32];
+    static const uint32_t text_size = 32;
+    char text[text_size];
     va_list va;
     va_start(va, fmt);
-    int len = vsprintf(text, fmt, va);
+    int len = vsnprintf(text, text_size, fmt, va);
     va_end(va);
     HAL_StatusTypeDef ret = HAL_UART_Transmit(pslave->prxbuff->phuart, (uint8_t *)text, len, HAL_MAX_DELAY);
     if (ret == HAL_OK)

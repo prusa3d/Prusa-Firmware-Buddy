@@ -108,7 +108,11 @@ void _window_dlg_statemachine_draw_frame(window_dlg_statemachine_t *window) {
 void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     color_t color_text, padding_ui8_t padding, uint8_t progress) {
     rect_ui16_t rc_pro = win_rect; //must copy it
-    char text[16];
+    // why 16 bytes for "0%" - "100%"? Thats just 5 bytes instead of 16
+    // Save stack, guys!
+    // @@TODO duplicit code for printing percentage!
+    static const uint32_t text_size = 5;//16;
+    char text[text_size];
     rc_pro.x += 10;
     rc_pro.w -= 20;
     rc_pro.h = 16;
@@ -123,7 +127,7 @@ void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     rc_pro.w = win_rect.w - 120;
     rc_pro.x = win_rect.x + 60;
     rc_pro.h = 30;
-    sprintf(text, "%d%%", progress);
+    snprintf(text, text_size, "%d%%", progress);
     render_text_align(rc_pro, text, font, color_back, color_text, padding, ALIGN_CENTER);
 }
 

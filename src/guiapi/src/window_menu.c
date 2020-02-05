@@ -45,18 +45,23 @@ void window_menu_init(window_menu_t *window) {
 void window_menu_done(window_menu_t *window) {
 }
 
-void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
+void window_menu_calculate_spin(WI_SPIN_t *item, char *value, uint32_t value_size) {
+    static const char fmt3f[] = "%.3f";
+    static const char fmt2f[] = "%.2f";
+    static const char fmt1f[] = "%.1f";
+    static const char fmtf[] = "%.f";
+
     const char *format;
 
     if (item->range[WIO_STEP] < 10)
-        format = "%.3f";
+        format = fmt3f;
     else if (item->range[WIO_STEP] < 100)
-        format = "%.2f";
+        format = fmt2f;
     else if (item->range[WIO_STEP] < 1000)
-        format = "%.1f";
+        format = fmt1f;
     else
-        format = "%.f";
-    sprintf(value, format, item->value * 0.001);
+        format = fmtf;
+    snprintf(value, value_size, format, item->value * 0.001);
 }
 
 void _window_menu_draw_value(window_menu_t *window, const char *value,
@@ -117,9 +122,9 @@ void window_menu_draw(window_menu_t *window) {
             case WI_SPIN_FL: {
                 char value[20] = { '\0' };
                 if (item->type & WI_SPIN_FL)
-                    sprintf(value, item->wi_spin_fl.prt_format, (double)item->wi_spin_fl.value);
+                    snprintf(value, sizeof(value), item->wi_spin_fl.prt_format, (double)item->wi_spin_fl.value);
                 else
-                    window_menu_calculate_spin(&(item->wi_spin), value);
+                    window_menu_calculate_spin(&(item->wi_spin), value, sizeof(value));
 
                 _window_menu_draw_value(window, value, &rc, color_option, color_back);
             } break;

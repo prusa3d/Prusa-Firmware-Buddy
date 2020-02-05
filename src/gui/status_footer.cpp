@@ -184,7 +184,7 @@ void status_footer_update_temperatures(status_footer_t *footer,
     } else if (!heating_nozzle && actual_nozzle != footer->nozzle) {
         footer->nozzle = actual_nozzle;
     }
-    sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
+    snprintf(footer->text_nozzle, sizeof(footer->text_nozzle), "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
     window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
 
     if (heating_heatbed && target_heatbed != footer->heatbed) {
@@ -192,13 +192,13 @@ void status_footer_update_temperatures(status_footer_t *footer,
     } else if (!heating_heatbed && actual_heatbed != footer->heatbed) {
         footer->heatbed = actual_heatbed;
     }
-    sprintf(footer->text_heatbed, "%.0f/%.0f\177C", (double)actual_heatbed, (double)target_heatbed);
+    snprintf(footer->text_heatbed, sizeof(footer->text_heatbed), "%.0f/%.0f\177C", (double)actual_heatbed, (double)target_heatbed);
     window_set_text(footer->wt_heatbed.win.id, footer->text_heatbed);
 
 #ifdef LCD_HEATBREAK_TO_FILAMENT
     float actual_heatbreak = thermalManager.degHeatbreak();
     //float actual_heatbreak = analogRead(6);
-    sprintf(footer->text_heatbreak, "%.0f\177C", (double)actual_heatbreak);
+    snprintf(footer->text_heatbreak, sizeof(footer->text_heatbreak), "%.0f\177C", (double)actual_heatbreak);
     window_set_text(footer->wt_filament.win.id, footer->text_heatbreak);
 #endif //LCD_HEATBREAK_TO_FILAMENT
 }
@@ -212,7 +212,7 @@ void status_footer_update_feedrate(status_footer_t *footer) {
 }
 
 void status_footer_update_z_axis(status_footer_t *footer) {
-    sprintf(footer->text_z_axis, "%.2f", (double)current_position[2]);
+    snprintf(footer->text_z_axis, sizeof(footer->text_z_axis), "%.2f", (double)current_position[2]);
     window_set_text(footer->wt_z_axis.win.id, footer->text_z_axis);
 }
 

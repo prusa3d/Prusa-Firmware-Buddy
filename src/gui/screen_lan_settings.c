@@ -80,12 +80,12 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
             ip4_addr_str, ip4_msk_str, ip4_gw_str, param_str);
 }
 
-static void _parse_MAC_addr(char *mac_addr_str) {
+static void _parse_MAC_addr(char *mac_addr_str, uint32_t mac_addr_str_size) {
     volatile uint8_t mac_addr[] = { 0, 0, 0, 0, 0, 0 };
     for (uint8_t i = 0; i < MAC_ADDR_SIZE; i++)
         mac_addr[i] = *(volatile uint8_t *)(MAC_ADDR_START + i);
 
-    sprintf(mac_addr_str, "%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+    snprintf(mac_addr_str, mac_addr_str_size, "%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 }
 
 static void screen_lan_settings_init(screen_t *screen) {
@@ -124,15 +124,16 @@ static void screen_lan_settings_init(screen_t *screen) {
 #endif //STATIC_SAVE_LOAD_CONFIG
     //============== DECLARE VARIABLES ================
 
-    plan_str = (char *)gui_malloc(150 * sizeof(char));
+    static const uint32_t plan_str_size = 150;
+    plan_str = (char *)gui_malloc(plan_str_size * sizeof(char));
 
     //============= FILL VARIABLES ============
 
-    _parse_MAC_addr(plsd->mac_addr_str);
+    _parse_MAC_addr(plsd->mac_addr_str, sizeof(plsd->mac_addr_str));
 
     if (_get_ip4_addrs()) {
         config.lan_ip4_addr.addr = config.lan_ip4_msk.addr = config.lan_ip4_gw.addr = 0;
-        sprintf(plan_str, "IPv4 Address:\n    0.0.0.0\nIPv4 Netmask:\n    0.0.0.0\nIPv4 Gateway:\n    0.0.0.0\nMAC Address:\n    %s",
+        snprintf(plan_str, plan_str_size, "IPv4 Address:\n    0.0.0.0\nIPv4 Netmask:\n    0.0.0.0\nIPv4 Gateway:\n    0.0.0.0\nMAC Address:\n    %s",
             plsd->mac_addr_str);
     } else {
         _addrs_to_str(plsd->mac_addr_str, 0); //0 means parsing to screen text

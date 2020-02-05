@@ -28,10 +28,14 @@ void wizard_update_test_icon(int16_t win_id, uint8_t state) {
 // messagebox with custom buttons (NEXT and DONE), optionaly icon and rectangle
 int wizard_msgbox_ex(const char *text, uint16_t flags, uint16_t id_icon, rect_ui16_t rc) {
     const char *custom_btn = 0;
-    if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_NEXT)
-        custom_btn = "NEXT";
-    else if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_DONE)
-        custom_btn = "DONE";
+    if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_NEXT){
+        static const char next[] = "NEXT";
+        custom_btn = next;
+    } else if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_DONE){
+        static const char done[] = "DONE";
+        custom_btn = done;
+    }
+
     if (custom_btn) {
         flags = (flags & ~MSGBOX_MSK_BTN) | MSGBOX_BTN_CUSTOM1;
         return gui_msgbox_ex(0, text, flags | MSGBOX_ICO_CUSTOM, rc, id_icon, &custom_btn);

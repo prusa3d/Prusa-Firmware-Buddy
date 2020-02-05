@@ -213,14 +213,14 @@ void marlin_gcode(const char *gcode) {
 
 int marlin_gcode_printf(const char *format, ...) {
     int ret;
-    char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return 0;
-    strcpy(request, "!g ");
+    // strcpy(request, "!g ");
+    char request[MARLIN_MAX_REQUEST] = "!g ";
     va_list ap;
     va_start(ap, format);
-    ret = vsprintf(request + 3, format, ap);
+    ret = vsnprintf(request + 3, sizeof(request)-3, format, ap);
     va_end(ap);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
@@ -358,8 +358,8 @@ variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
     if (client) {
         retval = marlin_vars_get_var(&(client->vars), var_id);
         marlin_vars_set_var(&(client->vars), var_id, val);
-        n = sprintf(request, "!var %s ", marlin_vars_get_name(var_id));
-        marlin_vars_value_to_str(&(client->vars), var_id, request + n);
+        n = snprintf(request, sizeof(request), "!var %s ", marlin_vars_get_name(var_id));
+        marlin_vars_value_to_str(&(client->vars), var_id, request + n, MARLIN_MAX_REQUEST - n);
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
     }
@@ -380,7 +380,7 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
         return 0;
     marlin_client_loop();
     client->changes &= ~msk;
-    sprintf(request, "!update %08lx %08lx", (uint32_t)(msk & 0xffffffff), (uint32_t)(msk >> 32));
+    snprintf(request, sizeof(request), "!update %08lx %08lx", (uint32_t)(msk & 0xffffffff), (uint32_t)(msk >> 32));
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
     return &(client->vars);
@@ -443,7 +443,7 @@ void marlin_do_babysteps_Z(float offs) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    sprintf(request, "!babystep_Z %.4f", (double)offs);
+    snprintf(request, sizeof(request), "!babystep_Z %.4f", (double)offs);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
@@ -552,7 +552,7 @@ void marlin_host_button_click(host_prompt_button_t button) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    sprintf(request, "!hclick %d", (int)button);
+    snprintf(request, sizeof(request), "!hclick %d", (int)button);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
@@ -618,13 +618,14 @@ uint32_t _wait_ack_from_server(uint8_t client_id) {
 
 // process message on client side (set flags, update vars etc.)
 void _process_client_message(marlin_client_t *client, variant8_t msg) {
-    char var_str[16];
+    static const size_t var_str_size = 16;
+    char var_str[var_str_size];
     uint8_t id = msg.usr8 & MARLIN_USR8_MSK_ID;
     if (msg.usr8 & MARLIN_USR8_VAR_FLG) // variable change received
     {
         marlin_vars_set_var(&(client->vars), id, msg);
         client->changes |= ((uint64_t)1 << id);
-        marlin_vars_value_to_str(&(client->vars), id, var_str);
+        marlin_vars_value_to_str(&(client->vars), id, var_str, var_str_size);
 #ifdef DBG_VAR_MSK
         if (DBG_VAR_MSK & ((uint64_t)1 << id))
 #endif //DBG_VAR_MSK
