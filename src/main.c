@@ -196,6 +196,8 @@ int main(void) {
 
     diag_check_fastboot();
 
+    memset(0x10000000, 0, 0x10000); // clear CCRAM
+
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
