@@ -1,4 +1,4 @@
-if(NOT TARGET LwIP_Config)
+if(NOT TARGET LwIP212_Config)
   message(FATAL_ERROR "Target LwIP_Config does not exist.")
 endif()
 
