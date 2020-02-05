@@ -30,10 +30,10 @@ void window_list_filament_item_forced_cb(window_list_t *pwindow_list, uint16_t i
     const char **pptext, uint16_t *pid_icon) {
     if (index <= pwindow_list->count) {
         *pptext = filaments[index + FILAMENT_PLA].long_name;
-    } else
+    } else {
         static const char indexError[] = "Index ERROR";
         *pptext = indexError;
-
+    }
     *pid_icon = 0;
 }
 
