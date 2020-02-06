@@ -16,6 +16,8 @@
     #else //_DEBUG
         #include "res/cc/png_statusscreen_logo_prusamini.c" //IDR_PNG_status_logo_prusa_prn
     #endif //_DEBUG
+#else
+    #error "Unknown PRINTER_TYPE."
 #endif // PRINTER_TYPE
 
 #include "res/cc/png_statusscreen_icon_nozzle.c" //IDR_PNG_status_icon_nozzle
