@@ -5,8 +5,10 @@
 #include <inttypes.h>
 #include "stm32f4xx_hal.h"
 
-#define DUMP_TYPE_SNAPSHOT     0x00
-#define DUMP_TYPE_HARDFAULT    0x01
+#define DUMP_TYPE_NONE         0x00
+#define DUMP_TYPE_UNDEFINED    0xff
+#define DUMP_TYPE_SNAPSHOT     0x01
+#define DUMP_TYPE_HARDFAULT    0x02
 
 // dumped ram area (128kb)
 #define DUMP_RAM_ADDR    0x20000000
