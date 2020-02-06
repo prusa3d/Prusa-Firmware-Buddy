@@ -181,7 +181,7 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
 }
 
 void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uint32_t str_size) {
-    if (vars)
+    if (vars) {
         switch (var_id) {
         case MARLIN_VAR_MOTION:
             snprintf(str, str_size, "%u", (unsigned int)(vars->motion));
@@ -246,6 +246,12 @@ void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, ui
         default:
             snprintf(str, str_size, "???");
         }
+    } else {
+        // in a rare case when vars is nullptr, at least properly write "empty" string to str
+        // of course only when the str pointer is valid and some non-zero size was set
+        if( str && str_size )
+            str[0] = 0;
+    }
 }
 
 int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *str) {

@@ -19,13 +19,15 @@ void menu_support() {
     #else
     STATIC_ITEM_P("Marlin - A3ides ????");
     #endif
-    char version[32];
-    char build[32];
+    static const uint32_t version_size = 32;
+    static const uint32_t build_size = 32;
+    char version[version_size];
+    char build[build_size];
     int ver_maj = FW_VERSION / 100;
     int ver_min = (FW_VERSION - 100 * ver_maj) / 10;
     int ver_sub = FW_VERSION % 10;
     const char *stages[] = { "pre-alpha", "alpha", "beta", "RC", "final" };
-    snprintf(version, " %d.%d.%d %s", ver_maj, ver_min, ver_sub, (char *)stages[FW_STAGENR]);
+    snprintf(version, version_size, " %d.%d.%d %s", ver_maj, ver_min, ver_sub, (char *)stages[FW_STAGENR]);
     #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     const char *printer = "MINI";
     #else
@@ -34,7 +36,7 @@ void menu_support() {
     #ifdef _DEBUG
     sprintf(build, " %d%s (DEBUG_%s)", version_build_nr, (char *)FW_BUILDSX, printer);
     #else //_DEBUG
-    sprintf(build, " %d%s (%s)", version_build_nr, (char *)FW_BUILDSX, printer);
+    snprintf(build, build_size, " %d%s (%s)", version_build_nr, (char *)FW_BUILDSX, printer);
     #endif //_DEBUG
     STATIC_ITEM_P("version:            ");
     STATIC_ITEM(version);

@@ -129,6 +129,7 @@ static void screen_lan_settings_init(screen_t *screen) {
 
     //============= FILL VARIABLES ============
 
+    _Static_assert( sizeof(plsd->mac_addr_str) >= 18, "mac_addr_str is too short" ); // gcc-specific c-style static assert
     _parse_MAC_addr(plsd->mac_addr_str, sizeof(plsd->mac_addr_str));
 
     if (_get_ip4_addrs()) {
