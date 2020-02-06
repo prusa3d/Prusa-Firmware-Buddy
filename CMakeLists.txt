@@ -259,6 +259,9 @@ set_target_properties(firmware PROPERTIES CXX_STANDARD 11)
 # generate firmware.bin file
 objcopy(firmware "binary" ".bin")
 
+# generate linker map file
+target_link_options(firmware PUBLIC -Wl,-Map=firmware.map)
+
 # inform about the firmware's size in terminal
 report_size(firmware)
 
@@ -396,7 +399,6 @@ target_sources(
           src/gui/screen_menu_settings.c
           src/gui/wizard/wizard_progress_bar.c
           src/gui/wizard/firstlay.c
-          src/gui/wizard/selftest_home.c
           src/gui/wizard/selftest_cool.c
           src/gui/window_header.c
           src/gui/screen_sysinf.c
@@ -420,7 +422,6 @@ target_sources(
           src/gui/test/screen_test_msgbox.c
           src/gui/test/screen_test_graph.c
           src/gui/wizard/selftest_fans_axis.c
-          src/gui/wizard/selftest_home.c
           src/gui/wizard/selftest_temp.c
           src/gui/wizard/selftest_cool.c
           src/gui/wizard/selftest.c
@@ -466,6 +467,13 @@ target_sources(
           src/guiapi/src/window_text.c
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
+          src/marlin_stubs/G28.cpp
+          src/marlin_stubs/pause/G27.cpp
+          src/marlin_stubs/pause/M125.cpp
+          src/marlin_stubs/pause/M600.cpp
+          src/marlin_stubs/pause/M603.cpp
+          src/marlin_stubs/pause/M701_M702.cpp
+          src/marlin_stubs/pause/pause.cpp
           src/wui/http_states.c
           src/wui/lwsapi.cpp
           src/wui/connect.cpp

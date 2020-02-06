@@ -100,9 +100,30 @@ const jogwheel_config_t jogwheel_cfg = {
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
+int gui_marlin_client_id = -1;
 int8_t menu_timeout_enabled = 1; // Default: enabled
 
 void update_firmware_screen(void);
+
+static void _gui_loop_cb(){
+	static uint8_t m600_lock = 0;
+
+	if (!m600_lock) {
+		m600_lock = 1;
+		if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
+			if (marlin_command() == MARLIN_CMD_M600) {
+				_dbg("M600 start");
+				gui_dlg_change();
+				_dbg("M600 end");
+			}
+		}
+		m600_lock = 0;
+	}
+
+	marlin_client_loop();
+}
+
+
 
 void gui_run(void) {
     if (diag_fastboot)
@@ -116,7 +137,7 @@ void gui_run(void) {
     // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
     // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
     if (st7789v_reset_delay > 1000) // threshold value is 1000
-        jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR;
+        jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR | JOGWHEEL_FLG_INV_ENC;
     //_dbg("delay=%u", st7789v_reset_delay);
 
     gui_defaults.font = resource_font(IDR_FNT_NORMAL);
@@ -131,6 +152,7 @@ void gui_run(void) {
         update_firmware_screen();
 
     gui_marlin_vars = marlin_client_init();
+    gui_marlin_client_id = marlin_client_id();
 
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
@@ -192,7 +214,7 @@ void gui_run(void) {
         screen_open(pscreen_splash->id);
 
     //set loop callback (will be called every time inside gui_loop)
-    gui_loop_cb = marlin_client_loop;
+    gui_loop_cb = _gui_loop_cb;
     int8_t gui_timeout_id;
     while (1) {
         float vol = 0.01F;
@@ -231,13 +253,6 @@ void gui_run(void) {
     #endif //PIDCALIBRATION
                 }
                 gui_timer_delete(gui_timeout_id);
-            }
-        }
-        if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
-            if (marlin_command() == MARLIN_CMD_M600) {
-                _dbg("M600 start");
-                gui_dlg_change();
-                _dbg("M600 end");
             }
         }
 #endif //LCDSIM

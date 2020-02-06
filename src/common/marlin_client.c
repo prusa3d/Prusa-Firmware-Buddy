@@ -142,6 +142,14 @@ void marlin_client_loop(void) {
     client->last_count = count;
 }
 
+int marlin_client_id(void)
+{
+    marlin_client_t *client = _client_ptr();
+    if (client)
+        return client->id;
+    return 0;
+}
+
 int marlin_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client)

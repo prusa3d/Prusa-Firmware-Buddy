@@ -19,6 +19,18 @@
                 "source": "probe",
                 "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
             }
+        },
+        {
+            "name": "JLink",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
+            "toolchainPrefix": "arm-none-eabi",
+            "rtos": "FreeRTOS",
+            "device": "STM32F407VG"
         }
     ]
 }
