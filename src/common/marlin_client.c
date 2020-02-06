@@ -205,9 +205,7 @@ void marlin_gcode(const char *gcode) {
     if (client == 0)
         return;
     char request[MARLIN_MAX_REQUEST] = "!g ";
-//    strcpy(request, "!g ");
-    strncat(request, gcode, MARLIN_MAX_REQUEST - 3);
-    request[MARLIN_MAX_REQUEST-1] = 0; // safety, strncat does not add a \0 if buffer limit is reached
+    strlcat(request + 3, gcode, MARLIN_MAX_REQUEST - 3);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
@@ -217,7 +215,6 @@ int marlin_gcode_printf(const char *format, ...) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return 0;
-    // strcpy(request, "!g ");
     char request[MARLIN_MAX_REQUEST] = "!g ";
     va_list ap;
     va_start(ap, format);

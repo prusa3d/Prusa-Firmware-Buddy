@@ -109,20 +109,18 @@ void _add_status_msg(const char *const popup_msg) {
     char message[MSG_MAX_LENGTH];
     size_t str_size = strlen(popup_msg);
     if (str_size >= MSG_MAX_LENGTH - 1) {
-        strncpy(message, popup_msg, MSG_MAX_LENGTH - 1); // popup_msg is not always null-terminated...
-        message[MSG_MAX_LENGTH - 1] = '\0';
+        strlcpy(message, popup_msg, MSG_MAX_LENGTH); // popup_msg is not always null-terminated but strlcpy should solve it
     } else {
-        strncpy(message, popup_msg, str_size);
-        message[str_size] = '\0';
+        strlcpy(message, popup_msg, str_size);
     }
 
     for (uint8_t i = msg_stack.count; i; i--) {
         if (i == MSG_STACK_SIZE)
             i--; // last place of the limited stack will be always overwritten
-        strncpy(msg_stack.msg_data[i], msg_stack.msg_data[i - 1], MSG_MAX_LENGTH);
+        strlcpy(msg_stack.msg_data[i], msg_stack.msg_data[i - 1], MSG_MAX_LENGTH);
     }
 
-    strncpy(msg_stack.msg_data[0], message, MSG_MAX_LENGTH);
+    strlcpy(msg_stack.msg_data[0], message, MSG_MAX_LENGTH);
 
     if (msg_stack.count < MSG_STACK_SIZE)
         msg_stack.count++;
@@ -1127,16 +1125,14 @@ void host_response_handler(const uint8_t response) {
 
 void host_action_prompt_begin(const char *const pstr, const bool eol) {
     DBG_HOST("host_action_prompt_begin '%s' %d", pstr, (int)eol);
-    strncpy(host_prompt, pstr, HOST_PROMPT_LEN_MAX);
-    host_prompt[HOST_PROMPT_LEN_MAX-1] = 0;
+    strlcpy(host_prompt, pstr, HOST_PROMPT_LEN_MAX);
     host_prompt_buttons = 0;
 }
 
 void host_action_prompt_button(const char *const pstr) {
     DBG_HOST("host_action_prompt_button '%s'", pstr);
     if (host_prompt_buttons < HOST_BUTTON_CNT_MAX) {
-        strncpy(host_prompt_button[host_prompt_buttons], pstr, HOST_PROMPT_LEN_MAX);
-        host_prompt_button[host_prompt_buttons][HOST_PROMPT_LEN_MAX-1] = 0;
+        strlcpy(host_prompt_button[host_prompt_buttons], pstr, HOST_PROMPT_LEN_MAX);
         host_prompt_buttons++;
     }
 }

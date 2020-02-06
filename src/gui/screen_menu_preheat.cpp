@@ -30,7 +30,7 @@ void screen_menu_preheat_init(screen_t *screen) {
 
     for (size_t i = 1; i < FILAMENTS_END; i++) {
         memset((char *)psmd->items[i].item.label, ' ', sizeof(char) * 15);
-        strncpy((char *)psmd->items[i].item.label, filaments[i].name,
+        strlcpy((char *)psmd->items[i].item.label, filaments[i].name,
             strlen(filaments[i].name));
         sprintf((char *)psmd->items[i].item.label + 9, "%d/%d",
             filaments[i].nozzle, filaments[i].heatbed); //@@TODO very dangerous - the size of "label" is unknown here

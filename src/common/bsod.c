@@ -197,7 +197,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     __disable_irq(); //disable irq
 
     char tskName[configMAX_TASK_NAME_LEN];
-    strncpy(tskName, pxCurrentTCB->pcTaskName, configMAX_TASK_NAME_LEN);
+    strlcpy(tskName, pxCurrentTCB->pcTaskName, configMAX_TASK_NAME_LEN);
     StackType_t *pTopOfStack = (StackType_t *)pxCurrentTCB->pxTopOfStack;
     StackType_t *pBotOfStack = pxCurrentTCB->pxStack;
 
