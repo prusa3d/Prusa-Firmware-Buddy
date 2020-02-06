@@ -8,7 +8,6 @@
 #include "marlin_client.h"
 #include "wui.h"
 #include "cmsis_os.h"
-#include "frozen.h"
 #include "jsmn.h"
 
 #include <string.h>
@@ -72,37 +71,6 @@ static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
 
 void send_request_to_server(const char * request);
 const char * format_request(uint8_t type, char * request);
-
-void json_parse_frozen(const char *request_buf, uint16_t len){
-
-    struct json_token t;
-    uint16_t idx;
-    char axis[3];
-    char command[12];
-    uint8_t ret;
-    variant8_t val;     //TODO: Devide parse options according to url (printer/tool, printer/printhead)
-
-    for(idx = 0; json_scanf_array_elem(request_buf, len, "", idx, &t) > 0; idx++ ){
-
-        json_scanf(t.ptr, t.len, "{command: %Q}", &command);
-        uint8_t command_len = strlen(command);
-        if(strncmp(command, "home", command_len) == 0){
-            if((ret = json_scanf(t.ptr, t.len, "{axis: [%Q, %Q, %Q]", &axis[0], &axis[1], &axis[2]))){
-                char request[100];
-                if(ret == 1){
-                    sprintf(request, "G28 %c", axis[0]);
-                    send_request_to_server(format_request(MSG_GCODE, request));
-                } else if (ret == 2) {
-                    sprintf(request, "G28 %c %c", axis[0], axis[1]);
-                    send_request_to_server(format_request(MSG_GCODE, request));
-                } else {
-                    strcpy(request, "G28");
-                    send_request_to_server(format_request(MSG_GCODE, request));
-                }
-            }
-        }
-    }
-}
 
 void json_parse_jsmn(const char* json, uint16_t len){
     int ret;
@@ -217,7 +185,6 @@ err_t httpd_post_receive_data(void * connection, struct pbuf * p)
                 u16_t ret = pbuf_copy_partial(p, request_buf, len, token_move);
                 if(ret){
                     request_buf[ret] = 0;
-                    //json_parse_frozen(request_buf, ret);
                     json_parse_jsmn(request_buf, ret);
                     valid_connection = connection;
                 }

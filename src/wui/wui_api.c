@@ -13,7 +13,6 @@
 
 #include "cmsis_os.h"
 #include "stdarg.h"
-#include "frozen.h"
 
 #define BDY_WUI_API_BUFFER_SIZE 512
 #define BDY_NO_FS_FLAGS    0   // no flags for fs_open
@@ -30,28 +29,32 @@ static marlin_vars_t webserver_marlin_vars_copy;
 static struct fs_file api_file;
 static char _buffer[BDY_WUI_API_BUFFER_SIZE];
 
+static int char_streamer(const char *format, ...) {
+    int rv = 0;
+    va_list args;
+    va_start(args, format);
+    rv = vsnprintf(_buffer, BDY_WUI_API_BUFFER_SIZE, format, args);
+    va_end(args);
+    return rv;
+}
+
 static void wui_api_job(struct fs_file* file) {
 
     const char* file_name = "test.gcode";
     uint8_t sd_percent_done = (uint8_t)(webserver_marlin_vars_copy.sd_percent_done);
     uint32_t print_duration = (uint32_t)(webserver_marlin_vars_copy.print_duration);
 
-    struct json_out out = JSON_OUT_BUF(_buffer, BDY_WUI_API_BUFFER_SIZE);
-    json_printf(&out,
-            "{\n"
-            "   file: %Q,\n"
-            "   total_print_time: %d,\n"
-            "   progress: {\n"
-            "       precent_done: %d\n"
-            "   }\n"
+    int response_len = char_streamer("{"
+            "\"file\":\"%s\","
+            "\"total_print_time\":%d, "
+            "\"progress\":{\"precent_done\":%d}"
             "}",
             file_name,
             print_duration,
             sd_percent_done
             );
-    int response_len = out.u.buf.len;
     file->len = response_len;
-    file->data = (const char*)out.u.buf.buf;
+    file->data = (const char*)&_buffer;
     file->index = response_len;
     file->pextension = NULL;
     file->flags = BDY_NO_FS_FLAGS;
@@ -71,36 +74,20 @@ static void wui_api_printer(struct fs_file* file) {
     uint16_t flow_factor = (uint16_t) (webserver_marlin_vars_copy.flow_factor);
     const char *filament_material = filaments[get_filament()].name;
 
-    struct json_out out = JSON_OUT_BUF(_buffer, BDY_WUI_API_BUFFER_SIZE);
-    json_printf(&out,
-            "{\n"
-            "   temperature: {\n"
-            "       tool0: {\n"
-            "           actual: %d,\n"
-            "           target: %d\n"
-            "       },\n"
-            "       bed: {\n"
-            "           actual: %d,\n"
-            "           target: %d\n"
-            "       }\n"
-            "   },\n"
-            "   xyz_pos_mm: {\n"
-            "       x: %.2f,\n"
-            "       y: %.2f,\n"
-            "       z: %.2f\n"
-            "   },\n"
-            "   print_settings: {\n"
-            "       printing_speed: %hd,\n"
-            "       flow_factor: %hd,\n"
-            "       filament_material: %Q}\n"
-            "}",
+    int response_len = char_streamer(
+            "{\"temperature\":{"
+                    "\"tool0\":{\"actual\":%d, \"target\":%d},"
+                    "\"bed\":{\"actual\":%d, \"target\":%d}},"
+                    "\"xyz_pos_mm\":{"
+                    "\"x\":%.2f, \"y\":%.2f, \"z\":%.2f},"
+                    "\"print_settings\":{"
+                    "\"printing_speed\":%hd, \"flow_factor\":%hd, \"filament_material\":\"%s\"} }",
+
             actual_nozzle, target_nozzle, actual_heatbed, target_heatbed,
             x_pos_mm, y_pos_mm, z_pos_mm, print_speed, flow_factor,
             filament_material);
-
-    int response_len = out.u.buf.len;
     file->len = response_len;
-    file->data = (const char*)out.u.buf.buf;
+    file->data = (const char*)&_buffer;
     file->index = response_len;
     file->pextension = NULL;
     file->flags = BDY_NO_FS_FLAGS; // http server adds response header

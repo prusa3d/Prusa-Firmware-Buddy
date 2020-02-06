@@ -7,6 +7,3 @@
 [submodule "inih"]
 	path = lib/inih
 	url = https://github.com/benhoyt/inih.git
-[submodule "lib/frozen-json"]
-	path = lib/frozen-json
-	url = git@github.com:cesanta/frozen.git
