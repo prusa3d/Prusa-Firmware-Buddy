@@ -166,7 +166,7 @@ void eeprom_dump(void) {
     }
 }
 
-int eeprom_var_sprintf(char *str, uint32_t str_size, uint8_t id, variant8_t var) {
+int eeprom_var_snprintf(char *str, uint32_t str_size, uint8_t id, variant8_t var) {
     switch (id) {
     case EEVAR_VERSION:
         return snprintf(str, str_size, "%u", (unsigned int)var.ui16);
@@ -194,7 +194,7 @@ void eeprom_print_vars(void) {
     static const uint32_t text_size = 16;
     char text[text_size];
     for (id = 0; id < EE_VAR_CNT; id++) {
-        eeprom_var_sprintf(text, text_size, id, eeprom_get_var(id));
+        eeprom_var_snprintf(text, text_size, id, eeprom_get_var(id));
         _dbg("%s=%s", eeprom_var_name[id], text);
     }
 }

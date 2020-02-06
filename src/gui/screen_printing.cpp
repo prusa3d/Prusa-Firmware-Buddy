@@ -217,8 +217,8 @@ void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
     int16_t id;
 
-    strcpy(pw->text_time, "0m");
-    strcpy(pw->text_filament, "999m");
+    strncpy(pw->text_time, "0m", sizeof(pw->text_time)); pw->text_time[sizeof(pw->text_time)-1] = 0;
+    strncpy(pw->text_filament, "999m", sizeof(pw->text_filament)); pw->text_filament[ sizeof(pw->text_filament)-1] = 0;
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
@@ -567,7 +567,7 @@ static void screen_printing_update_remaining_time_progress(screen_t *screen) {
         //_dbg(".progress: %d\r",nPercent);
     } else {
         nPercent = marlin_vars()->sd_percent_done;
-        strcpy_P(pw->text_etime, PSTR("N/A"));
+        strncpy(pw->text_etime, "N/A", sizeof(pw->text_etime)); pw->text_etime[sizeof(pw->text_etime)-1] = 0;
         pw->w_etime_value.color_text = COLOR_VALUE_VALID;
         pw->w_progress.color_text = COLOR_VALUE_INVALID;
         //_dbg(".progress: %d ???\r",nPercent);

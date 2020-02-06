@@ -568,19 +568,19 @@ void hwio_arduino_error(int err, uint32_t pin32) {
     char text[text_size];
     if ((err == HWIO_ERR_UNINI_DIG_WR) && (pin32 == PIN_BEEPER))
         return; //ignore BEEPER write
-    strcat(text, "HWIO error\n");
+    strncat(text, "HWIO error\n", text_size);
     switch (err) {
     case HWIO_ERR_UNINI_DIG_RD:
     case HWIO_ERR_UNINI_DIG_WR:
     case HWIO_ERR_UNINI_ANA_RD:
     case HWIO_ERR_UNINI_ANA_WR:
-        strcat(text, "uninitialized\n");
+        strncat(text, "uninitialized\n", text_size);
         break;
     case HWIO_ERR_UNDEF_DIG_RD:
     case HWIO_ERR_UNDEF_DIG_WR:
     case HWIO_ERR_UNDEF_ANA_RD:
     case HWIO_ERR_UNDEF_ANA_WR:
-        strcat(text, "undefined\n");
+        strncat(text, "undefined\n", text_size);
         break;
     }
     uint32_t text_current_len = strlen(text);
@@ -590,13 +590,13 @@ void hwio_arduino_error(int err, uint32_t pin32) {
     case HWIO_ERR_UNINI_DIG_WR:
     case HWIO_ERR_UNDEF_DIG_RD:
     case HWIO_ERR_UNDEF_DIG_WR:
-        strcat(text, "digital ");
+        strncat(text, "digital ", text_size);
         break;
     case HWIO_ERR_UNINI_ANA_RD:
     case HWIO_ERR_UNINI_ANA_WR:
     case HWIO_ERR_UNDEF_ANA_RD:
     case HWIO_ERR_UNDEF_ANA_WR:
-        strcat(text, "analog ");
+        strncat(text, "analog ", text_size);
         break;
     }
     switch (err) {
@@ -604,15 +604,16 @@ void hwio_arduino_error(int err, uint32_t pin32) {
     case HWIO_ERR_UNDEF_DIG_RD:
     case HWIO_ERR_UNINI_ANA_RD:
     case HWIO_ERR_UNDEF_ANA_RD:
-        strcat(text, "read");
+        strncat(text, "read", text_size);
         break;
     case HWIO_ERR_UNINI_DIG_WR:
     case HWIO_ERR_UNDEF_DIG_WR:
     case HWIO_ERR_UNINI_ANA_WR:
     case HWIO_ERR_UNDEF_ANA_WR:
-        strcat(text, "write");
+        strncat(text, "write", text_size);
         break;
     }
+    text[text_size - 1] = 0;
     bsod(text);
 }
 

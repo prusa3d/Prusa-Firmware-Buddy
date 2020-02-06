@@ -1127,14 +1127,16 @@ void host_response_handler(const uint8_t response) {
 
 void host_action_prompt_begin(const char *const pstr, const bool eol) {
     DBG_HOST("host_action_prompt_begin '%s' %d", pstr, (int)eol);
-    strcpy(host_prompt, pstr);
+    strncpy(host_prompt, pstr, HOST_PROMPT_LEN_MAX);
+    host_prompt[HOST_PROMPT_LEN_MAX-1] = 0;
     host_prompt_buttons = 0;
 }
 
 void host_action_prompt_button(const char *const pstr) {
     DBG_HOST("host_action_prompt_button '%s'", pstr);
     if (host_prompt_buttons < HOST_BUTTON_CNT_MAX) {
-        strcpy(host_prompt_button[host_prompt_buttons], pstr);
+        strncpy(host_prompt_button[host_prompt_buttons], pstr, HOST_PROMPT_LEN_MAX);
+        host_prompt_button[host_prompt_buttons][HOST_PROMPT_LEN_MAX-1] = 0;
         host_prompt_buttons++;
     }
 }

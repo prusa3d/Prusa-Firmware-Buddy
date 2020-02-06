@@ -201,12 +201,13 @@ int marlin_wait_motion(uint32_t timeout) {
 }
 
 void marlin_gcode(const char *gcode) {
-    char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    strcpy(request, "!g ");
-    strcat(request, gcode);
+    char request[MARLIN_MAX_REQUEST] = "!g ";
+//    strcpy(request, "!g ");
+    strncat(request, gcode, MARLIN_MAX_REQUEST - 3);
+    request[MARLIN_MAX_REQUEST-1] = 0; // safety, strncat does not add a \0 if buffer limit is reached
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
