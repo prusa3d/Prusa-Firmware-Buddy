@@ -9,6 +9,7 @@
 #include "wui.h"
 #include "cmsis_os.h"
 #include "frozen.h"
+#include "jsmn.h"
 
 #include <string.h>
 
@@ -20,6 +21,8 @@ static void * valid_connection;
 
 extern osMessageQId wui_queue; // input queue (uint8_t)
 extern osSemaphoreId wui_sema; // semaphore handle
+
+
 
 /*
 void json_parse_callback(void *callback_data, const char *name,
@@ -62,7 +65,7 @@ void json_parse_callback(void *callback_data, const char *name,
 void send_request_to_server(const char * request);
 const char * format_request(uint8_t type, char * request);
 
-void json_parse(const char *request_buf, uint16_t len){
+void json_parse_frozen(const char *request_buf, uint16_t len){
 
     struct json_token t;
     uint16_t idx;
@@ -85,17 +88,32 @@ void json_parse(const char *request_buf, uint16_t len){
                     sprintf(request, "G28 %c %c", axis[0], axis[1]);
                     send_request_to_server(format_request(MSG_GCODE, request));
                 } else {
-                    sprintf(request, "G28 %c %c %c", axis[0], axis[1], axis[2]);
+                    strcpy(request, "G28");
                     send_request_to_server(format_request(MSG_GCODE, request));
                 }
-
             }
         }
+    }
+}
 
+void json_parse_jsmn(const char* json, uint16_t len){
+    int ret;
+    jsmn_parser parser;
+    jsmntok_t t[128]; // Just a raw value, we do not expect more that 128 tokens
 
+    jsmn_init(&parser);
+    ret = jsmn_parse(&parser, json, len, t, sizeof(t)/sizeof(jsmntok_t));
+
+    if(ret < 1 || t[0].type != JSMN_OBJECT){
+        // Fail to parse JSON
+        // or
+        // Top element is not an object
+        return;
     }
 
+    for(int i = 0; i < ret; i++){
 
+    }
 }
 
 void send_request_to_server(const char * request){
@@ -170,7 +188,7 @@ err_t httpd_post_receive_data(void * connection, struct pbuf * p)
                 char request_buf[MSG_BUFFSIZE];
                 u16_t ret = pbuf_copy_partial(p, request_buf, len, token_move);
                 if(ret){
-                    request_container.flag = 0;
+                    request_buf[ret] = 0;
                     json_parse(request_buf, ret);
                     valid_connection = connection;
                 }
