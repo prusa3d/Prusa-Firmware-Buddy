@@ -22,45 +22,6 @@ extern osMessageQId wui_queue; // input queue (uint8_t)
 extern osSemaphoreId wui_sema; // semaphore handle
 
 
-
-/*
-void json_parse_callback(void *callback_data, const char *name,
-                         size_t name_len, const char *path,
-                         const struct json_token *token)
-{
-    switch(token->type) {
-        case JSON_TYPE_INVALID:
-        case JSON_TYPE_STRING:
-            uint16_t len = strlen((const char*) callback_data);
-            if(strncmp("command", name, name_len) == 0){
-                if(strncmp("init", (const char*) callback_data, len) == 0){
-
-                } else if (strncmp("init", (const char*) callback_data, len) == 0) {
-
-                } else if (strncmp("refresh", (const char*) callback_data, len) == 0) {
-
-                } else if (strncmp("home", (const char*) callback_data, len) == 0) {
-
-                } else if (strncmp("init", (const char*) callback_data, len) == 0) {
-
-                } else if (strncmp("init", (const char*) callback_data, len) == 0) {
-
-                }
-            }
-            break;
-        case JSON_TYPE_NUMBER:
-        case JSON_TYPE_TRUE:
-        case JSON_TYPE_FALSE:
-        case JSON_TYPE_NULL:
-        case JSON_TYPE_OBJECT_START:
-        case JSON_TYPE_OBJECT_END:
-        case JSON_TYPE_ARRAY_START:
-        case JSON_TYPE_ARRAY_END:
-        break;
-    }
-}
-*/
-
 static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
   if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
       strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
@@ -95,21 +56,22 @@ void json_parse_jsmn(const char* json, uint16_t len){
             } else {
 
             }*/
-            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
             request[t[i + 1].end - t[i + 1].start] = 0;
             i++;
         } else if(json_cmp(json, &t[i], "axis") == 0){
             if(t[i + 1].type != JSMN_ARRAY){
                 continue;
             }
-            strncat(request, " ", 1);
+            strlcat(request, " ", 1);
             int j;
             for(j = 0; j < t[i + 1].size; j++){
-                strncat(request, json + t[i + j + 2].start, 1);
+                strlcat(request, json + t[i + j + 2].start, 1);
             }
             i += j + 1; //array token (1) + array size (j-1) + axis (1)
         }
     }
+    //send_request_to_server(format_request(MSG_GCODE, request));
 }
 
 void send_request_to_server(const char * request){
@@ -149,7 +111,7 @@ void send_request_to_server(const char * request){
 const char * format_request(uint8_t type, char * request){
     size_t req_len = strlen(request);
     char tmp_str[req_len];
-    strncpy(tmp_str, request, req_len);
+    strlcpy(tmp_str, request, req_len);
     if(type == MSG_GCODE){
         snprintf(request, req_len + 4, "!g %s", tmp_str);
     }
