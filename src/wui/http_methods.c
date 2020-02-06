@@ -62,6 +62,14 @@ void json_parse_callback(void *callback_data, const char *name,
 }
 */
 
+static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
+  if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
+      strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+    return 0;
+  }
+  return -1;
+}
+
 void send_request_to_server(const char * request);
 const char * format_request(uint8_t type, char * request);
 
@@ -100,6 +108,7 @@ void json_parse_jsmn(const char* json, uint16_t len){
     int ret;
     jsmn_parser parser;
     jsmntok_t t[128]; // Just a raw value, we do not expect more that 128 tokens
+    char request[100];
 
     jsmn_init(&parser);
     ret = jsmn_parse(&parser, json, len, t, sizeof(t)/sizeof(jsmntok_t));
@@ -112,7 +121,26 @@ void json_parse_jsmn(const char* json, uint16_t len){
     }
 
     for(int i = 0; i < ret; i++){
+        if(json_cmp(json, &t[i], "command") == 0){
+            /*if(t[i + 1].type == JSMN_ARRAY){
 
+            } else {
+
+            }*/
+            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            request[t[i + 1].end - t[i + 1].start] = 0;
+            i++;
+        } else if(json_cmp(json, &t[i], "axis") == 0){
+            if(t[i + 1].type != JSMN_ARRAY){
+                continue;
+            }
+            strncat(request, " ", 1);
+            int j;
+            for(j = 0; j < t[i + 1].size; j++){
+                strncat(request, json + t[i + j + 2].start, 1);
+            }
+            i += j + 1; //array token (1) + array size (j-1) + axis (1)
+        }
     }
 }
 
@@ -189,7 +217,8 @@ err_t httpd_post_receive_data(void * connection, struct pbuf * p)
                 u16_t ret = pbuf_copy_partial(p, request_buf, len, token_move);
                 if(ret){
                     request_buf[ret] = 0;
-                    json_parse(request_buf, ret);
+                    //json_parse_frozen(request_buf, ret);
+                    json_parse_jsmn(request_buf, ret);
                     valid_connection = connection;
                 }
             }
