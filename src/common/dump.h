@@ -82,9 +82,9 @@
 	"	str r3, [r1, #0x5c]    \n" /* lrexc  */\
 )
 
-//#define DUMP_SNAPSHOT_TO_XFLASH() { DUMP_REGS_GEN_SNAPSHOT(); dump_to_xflash(DUMP_TYPE_SNAPSHOT); }
+//#define DUMP_SNAPSHOT_TO_XFLASH() { DUMP_REGS_GEN_SNAPSHOT(); dump_to_xflash(); }
 
-#define DUMP_HARDFAULT_TO_XFLASH() { DUMP_REGS_GEN_FAULT(); dump_to_xflash(DUMP_TYPE_HARDFAULT); }
+#define DUMP_HARDFAULT_TO_XFLASH() { DUMP_REGS_GEN_FAULT(); dump_to_xflash(); }
 
 
 #ifdef __cplusplus
@@ -92,7 +92,7 @@ extern "C" {
 #endif //__cplusplus
 
 
-extern void dump_to_xflash(int dump_type);
+extern void dump_to_xflash();
 
 extern int dump_save_to_usb(const char* fn);
 

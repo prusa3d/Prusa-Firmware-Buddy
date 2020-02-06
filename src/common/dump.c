@@ -23,11 +23,10 @@ static inline void dump_regs_SCB(void)
 }
 
 
-void dump_to_xflash(int dump_type)
+void dump_to_xflash(void)
 {
 	uint32_t addr;
 	dump_regs_SCB();
-	*((uint8_t*)(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - 1)) = dump_type;
 	if (w25x_init())
 	{
 		for (addr = 0; addr < DUMP_XFLASH_SIZE; addr += 0x10000)
