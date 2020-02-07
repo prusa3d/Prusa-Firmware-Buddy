@@ -10,6 +10,7 @@
 #include "stdbool.h"
 #include "marlin_client.h"
 #include "lwip.h"
+#include "ethernetif.h"
 
 #include "cmsis_os.h"
 
@@ -50,7 +51,7 @@ void StartWebServerTask(void const *argument) {
     http_server_init();
     for (;;) {
 //        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MSK_TEMP_ALL));
-
+        ethernetif_link(&eth0);
         _wui_queue_cycle();
 
         if(wui.wui_marlin_vars) {
