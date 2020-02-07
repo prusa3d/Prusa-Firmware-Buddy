@@ -299,12 +299,10 @@ target_compile_options(firmware PRIVATE -Wdouble-promotion)
 # generate datetime string (RFC1123) to be used by web ui
 rfc1123_datetime(RFC1123_DATETIME)
 target_compile_definitions(
-	firmware 
-	PRIVATE 
-	RFC1123_DATETIME="$RFC1123_DATETIME"
-	BUDDY_ENABLE_WUI
-#    BUDDY_USE_WSAPI # enables wsapi
-	)
+  firmware PRIVATE RFC1123_DATETIME="$RFC1123_DATETIME" BUDDY_ENABLE_WUI
+
+  # BUDDY_USE_WSAPI # enables wsapi
+  )
 
 target_link_libraries(
   firmware
@@ -314,13 +312,14 @@ target_link_libraries(
           Arduino::TMCStepper
           Arduino::LiquidCrystal
           LwIP_212
-#          wsapi    # adds wsapi library
+          # wsapi    # adds wsapi library
           FatFs
           lpng
           STM32::USBHost
           STM32::USBDevice
           CPU
           inih::inih
+          jsmn::jsmn
   )
 
 target_sources(
@@ -471,8 +470,9 @@ target_sources(
           src/guiapi/src/window_text.c
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
-		  src/wui/wui.c
-		  src/wui/wui_api.c
+          src/wui/wui.c
+          src/wui/wui_api.c
+          src/wui/http/http_server_prusa.c
   )
 
 set_property(
