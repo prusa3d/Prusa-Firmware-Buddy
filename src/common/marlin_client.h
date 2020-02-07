@@ -60,6 +60,9 @@ extern int marlin_wait_motion(uint32_t timeout);
 // enqueue gcode - thread-safe version  (request '!g xxx')
 extern void marlin_gcode(const char *gcode);
 
+// enqueue gcode - handle request from webUI
+extern void marlin_json_gcode(const char *gcode);
+
 // enqueue gcode - printf-like, returns number of chars printed
 extern int marlin_gcode_printf(const char *format, ...);
 

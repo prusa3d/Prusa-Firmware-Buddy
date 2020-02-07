@@ -13,7 +13,7 @@
 #include <string.h>
 
 #define MSG_BUFFSIZE 512
-#define MSG_GCODE 1
+#define MAX_MARLIN_REQUEST_LEN 100
 
 static void * current_connection;
 static void * valid_connection;
@@ -31,47 +31,39 @@ static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
 }
 
 void send_request_to_server(const char * request);
-const char * format_request(uint8_t type, char * request);
 
 void json_parse_jsmn(const char* json, uint16_t len){
     int ret;
     jsmn_parser parser;
     jsmntok_t t[128]; // Just a raw value, we do not expect more that 128 tokens
-    char request[100];
+    char request[MAX_MARLIN_REQUEST_LEN];
 
     jsmn_init(&parser);
     ret = jsmn_parse(&parser, json, len, t, sizeof(t)/sizeof(jsmntok_t));
 
     if(ret < 1 || t[0].type != JSMN_OBJECT){
-        // Fail to parse JSON
-        // or
-        // Top element is not an object
+        // Fail to parse JSON or top element is not an object
         return;
     }
 
     for(int i = 0; i < ret; i++){
         if(json_cmp(json, &t[i], "command") == 0){
-            /*if(t[i + 1].type == JSMN_ARRAY){
-
-            } else {
-
-            }*/
-            strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
             request[t[i + 1].end - t[i + 1].start] = 0;
             i++;
-        } else if(json_cmp(json, &t[i], "axis") == 0){
+            send_request_to_server(request);
+        }/* else if(json_cmp(json, &t[i], "axis") == 0){
             if(t[i + 1].type != JSMN_ARRAY){
                 continue;
             }
-            strlcat(request, " ", 1);
+            strncat(request, " ", 1);
             int j;
             for(j = 0; j < t[i + 1].size; j++){
-                strlcat(request, json + t[i + j + 2].start, 1);
+                strncat(request, json + t[i + j + 2].start, 1);
             }
             i += j + 1; //array token (1) + array size (j-1) + axis (1)
-        }
+        }*/
     }
-    //send_request_to_server(format_request(MSG_GCODE, request));
 }
 
 void send_request_to_server(const char * request){
@@ -108,27 +100,17 @@ void send_request_to_server(const char * request){
     osSemaphoreRelease(wui_sema); //unlock
 }
 
-const char * format_request(uint8_t type, char * request){
-    size_t req_len = strlen(request);
-    char tmp_str[req_len];
-    strlcpy(tmp_str, request, req_len);
-    if(type == MSG_GCODE){
-        snprintf(request, req_len + 4, "!g %s", tmp_str);
-    }
-    return request;
-}
-
 err_t httpd_post_begin(void *connection, const char *uri, const char *http_request,
                  u16_t http_request_len, int content_len, char *response_uri,
                  u16_t response_uri_len, u8_t *post_auto_wnd)
 {
     //LWIP_UNUSED_ARG();
-    if(!memcmp(uri, "/test-post.html", 16)){
+    if(!memcmp(uri, "/post_gcode.html", 16)){
         if(current_connection != connection){
             current_connection = connection;
             valid_connection = NULL;
             /* default page */
-            snprintf(response_uri, response_uri_len, "/test-post.html");
+            snprintf(response_uri, response_uri_len, "/post_gcode.html");
             return ERR_OK;
         }
     }
@@ -160,11 +142,11 @@ err_t httpd_post_receive_data(void * connection, struct pbuf * p)
 void httpd_post_finished(void * connection, char * response_uri, u16_t response_uri_len)
 {
     /* default page */
-    snprintf(response_uri, response_uri_len, "/test-post.html");
+    snprintf(response_uri, response_uri_len, "/post_gcode.html");
     if(current_connection == connection){
         if(valid_connection == connection){
             /*receiving data succeeded*/
-            snprintf(response_uri, response_uri_len, "/test-post.html");
+            snprintf(response_uri, response_uri_len, "/post_gcode.html");
         }
         current_connection = NULL;
         valid_connection = NULL;

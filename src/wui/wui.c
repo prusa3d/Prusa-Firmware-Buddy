@@ -100,14 +100,7 @@ static void _wui_queue_cycle(){
 }
 static int _process_wui_request(){
 
-    if(strncmp(wui.request, "!g", 2) == 0){
-        if(wui.request_len < 5){
-            return 2;
-        }
-        char gcode_str[MAX_MARLIN_REQUEST_LEN];
-        strncpy(gcode_str, wui.request + 3, wui.request_len - 3);
-        marlin_gcode_printf(gcode_str);
-        return 1;
-    }
-    return 0;
+    //if(wui.request == gcode)
+    marlin_json_gcode(wui.request);
+    return 1;
 }
