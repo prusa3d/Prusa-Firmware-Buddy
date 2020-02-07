@@ -10,7 +10,7 @@
 #define TCP_POLL_INTERVAL 2
 
 char recv_buf[RECV_BUFFSIZE];
-char data[100];
+char send_buf[100];
 uint16_t msg_count = 0;
 struct tcp_pcb * web_client_pcb;
 
@@ -21,69 +21,68 @@ struct http_client_t {
 };
 
 // Private function prototypes
-static err_t tcp_http_client_connected(void *arg, struct tcp_pcb *tpcb, err_t err);
-static err_t tcp_http_client_recv(void * arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
-static void tcp_http_client_connection_close(struct tcp_pcb *tpcb, struct http_client_t * hcp);
-static err_t tcp_http_client_poll(void *arg, struct tcp_pcb *tpcb);
-static err_t tcp_http_client_sent(void *arg, struct tcp_pcb *tpcb, u16_t len);
-static void tcp_http_client_send(struct tcp_pcb *tpcb, struct http_client_t * hcp);
+static err_t tcp_connected_cb(void *arg, struct tcp_pcb *tpcb, err_t err);
+static err_t tcp_recv_cb(void * arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
+static void tcp_close_connection_cb(struct tcp_pcb *tpcb, struct http_client_t * hcp);
+static err_t tcp_poll_cb(void *arg, struct tcp_pcb *tpcb);
+static err_t tcp_sent_cb(void *arg, struct tcp_pcb *tpcb, u16_t len);
+static void tcp_send(struct tcp_pcb *tpcb, struct http_client_t * hcp);
 
-
-void tcp_http_client_connect(void){
+void tcp_connect_to_server(const char * msg){
     ip_addr_t dest_ip;
     web_client_pcb = tcp_new();
+    strncpy(send_buf, msg, strlen(msg));
     if(web_client_pcb != NULL){
-        IP4_ADDR(&dest_ip, 192, 168, 1, 152);
-        tcp_connect(web_client_pcb, &dest_ip, DEST_PORT, tcp_http_client_connected);
+        IP4_ADDR(&dest_ip, 192, 168, 1, 152);   //IP of my computer/server
+        tcp_connect(web_client_pcb, &dest_ip, DEST_PORT, tcp_connected_cb);
     }
 }
 
-static err_t tcp_http_client_connected(void *arg, struct tcp_pcb *tpcb, err_t err){
+static err_t tcp_connected_cb(void *arg, struct tcp_pcb *tpcb, err_t err){
     struct http_client_t * hcp = NULL;
 
     if(err != ERR_OK){
-        tcp_http_client_connection_close(tpcb, hcp);
+        tcp_close_connection_cb(tpcb, hcp);
         return err;
     }
 
     hcp = (struct http_client_t *)mem_malloc(sizeof(struct http_client_t));
     if(hcp == NULL){
-        tcp_http_client_connection_close(tpcb, hcp);
+        tcp_close_connection_cb(tpcb, hcp);
         return ERR_MEM;
     }
 
     hcp->state = HCS_CONNECTED;
     hcp->pcb = tpcb;
-    char *string = "HEAD /post_gcode.html HTTP/1.0\r\nHost: 192.168.1.152\r\n\r\n ";
 
     /*allocate pbuf*/
-    hcp->pbuf_ptr = pbuf_alloc(PBUF_TRANSPORT, strlen(string), PBUF_POOL);
+    hcp->pbuf_ptr = pbuf_alloc(PBUF_TRANSPORT, strlen(send_buf), PBUF_POOL);
 
     if(hcp->pbuf_ptr != NULL){
         /*copy test message to pbuf*/
-        pbuf_take(hcp->pbuf_ptr, string, strlen(string));
+        pbuf_take(hcp->pbuf_ptr, send_buf, strlen(send_buf));
 
         /*pass wcp structure as argument to tpcb*/
         tcp_arg(tpcb, hcp);
 
         /*initialize lwIP tcp_recv callback func*/
-        tcp_recv(tpcb, tcp_http_client_recv);
+        tcp_recv(tpcb, tcp_recv_cb);
 
         /*initialize lwIP tcp_poll callback func*/
-        tcp_poll(tpcb, tcp_http_client_poll, TCP_POLL_INTERVAL);
+        tcp_poll(tpcb, tcp_poll_cb, TCP_POLL_INTERVAL);
 
         /*initialize lwIP tcp_sent callback func*/
-        tcp_sent(tpcb, tcp_http_client_sent);
+        tcp_sent(tpcb, tcp_sent_cb);
 
         /*send test data*/
-        tcp_http_client_send(tpcb, hcp);
+        tcp_send(tpcb, hcp);
 
         return ERR_OK;
     }
     return ERR_MEM;
 }
 
-static err_t tcp_http_client_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+static err_t tcp_recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
     struct http_client_t *hcp;
     err_t return_err;
@@ -96,9 +95,9 @@ static err_t tcp_http_client_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *
         hcp->state = HCS_CLOSING;
         if(hcp->pbuf_ptr != NULL){
             /*We have something to send before closing*/
-            tcp_http_client_send(tpcb, hcp);
+            tcp_send(tpcb, hcp);
         } else {
-            tcp_http_client_connection_close(tpcb, hcp);
+            tcp_close_connection_cb(tpcb, hcp);
         }
         return_err = ERR_OK;
 
@@ -120,7 +119,7 @@ static err_t tcp_http_client_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *
         tcp_recved(tpcb, p->tot_len);
 
         pbuf_free(p);
-        tcp_http_client_connection_close(tpcb, hcp);
+        tcp_close_connection_cb(tpcb, hcp);
         return_err = ERR_OK;
 
     /*Data recieved when connection is already closed*/
@@ -135,7 +134,7 @@ static err_t tcp_http_client_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *
     return return_err;
 }
 
-static void tcp_http_client_send(struct tcp_pcb *tpcb, struct http_client_t * hcp){
+static void tcp_send(struct tcp_pcb *tpcb, struct http_client_t * hcp){
     struct pbuf *ptr;
     err_t write_err = ERR_OK;
 
@@ -166,7 +165,7 @@ static void tcp_http_client_send(struct tcp_pcb *tpcb, struct http_client_t * hc
     }
 }
 
-static err_t tcp_http_client_sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
+static err_t tcp_sent_cb(void *arg, struct tcp_pcb *tpcb, u16_t len)
 {
   struct http_client_t * hcp;
 
@@ -177,13 +176,13 @@ static err_t tcp_http_client_sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
   if(hcp->pbuf_ptr != NULL)
   {
     /* still got pbufs to send */
-    tcp_http_client_send(tpcb, hcp);
+    tcp_send(tpcb, hcp);
   }
 
   return ERR_OK;
 }
 
-static void tcp_http_client_connection_close(struct tcp_pcb *tpcb, struct http_client_t * hcp )
+static void tcp_close_connection_cb(struct tcp_pcb *tpcb, struct http_client_t * hcp )
 {
   /* remove callbacks */
   tcp_recv(tpcb, NULL);
@@ -199,7 +198,7 @@ static void tcp_http_client_connection_close(struct tcp_pcb *tpcb, struct http_c
   tcp_close(tpcb);
 }
 
-static err_t tcp_http_client_poll(void *arg, struct tcp_pcb *tpcb)
+static err_t tcp_poll_cb(void *arg, struct tcp_pcb *tpcb)
 {
   err_t ret_err;
   struct http_client_t * hcp;
@@ -210,7 +209,7 @@ static err_t tcp_http_client_poll(void *arg, struct tcp_pcb *tpcb)
     if (hcp->pbuf_ptr != NULL)
     {
       /* there is a remaining pbuf (chain) , try to send data */
-      tcp_http_client_send(tpcb, hcp);
+      tcp_send(tpcb, hcp);
     }
     else
     {
@@ -218,7 +217,7 @@ static err_t tcp_http_client_poll(void *arg, struct tcp_pcb *tpcb)
       if(hcp->state == HCS_CLOSING)
       {
         /* close tcp connection */
-        tcp_http_client_connection_close(tpcb, hcp);
+        tcp_close_connection_cb(tpcb, hcp);
       }
     }
     ret_err = ERR_OK;

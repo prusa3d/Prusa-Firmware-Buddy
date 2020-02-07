@@ -25,6 +25,5 @@ extern osSemaphoreId web_client_sema_id;
 #define HCS_RECEIVED 2
 #define HCS_CLOSING 3
 
-void http_client_init(void);
-void tcp_http_client_connect(void);
+void tcp_connect_to_server(const char * msg);
 #endif //HTTP_CLIENT_PRUSA_H
