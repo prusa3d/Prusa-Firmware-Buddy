@@ -1,4 +1,4 @@
-if(NOT TARGET LwIP_Config)
+if(NOT TARGET LwIP212_Config)
   message(FATAL_ERROR "Target LwIP_Config does not exist.")
 endif()
 
@@ -93,6 +93,7 @@ target_include_directories(
          src/include/posix
          ${CMAKE_SOURCE_DIR}/src/wui/resources
          ${CMAKE_SOURCE_DIR}/src/wui
+         ${CMAKE_SOURCE_DIR}/include
   )
 
-target_link_libraries(LwIP_212 PUBLIC LwIP_Config)
+target_link_libraries(LwIP_212 PUBLIC LwIP212_Config)

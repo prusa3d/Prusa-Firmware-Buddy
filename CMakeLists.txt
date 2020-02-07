@@ -172,8 +172,7 @@ target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
 # Configure LwIP
 #
 
-# set(LWIP_HTTPD_CUSTOM_FILES "1")
-add_library(LwIP_Config ALIAS A3idesHeaders)
+add_library(LwIP212_Config ALIAS A3idesHeaders)
 
 #
 # Configure FatFs
@@ -320,6 +319,7 @@ target_link_libraries(
           STM32::USBDevice
           CPU
           inih::inih
+          jsmn::jsmn
   )
 
 target_sources(
@@ -472,7 +472,7 @@ target_sources(
           src/guiapi/src/window.c
           src/wui/wui.c
           src/wui/wui_api.c
-          src/wui/http_client_prusa.c
+          src/wui/http/http_server_prusa.c
   )
 
 set_property(
