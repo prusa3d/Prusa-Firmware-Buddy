@@ -473,6 +473,7 @@ target_sources(
           src/wui/wui.c
           src/wui/wui_api.c
           src/wui/http/http_server_prusa.c
+          src/wui/http/http_client_prusa.c
   )
 
 set_property(
