@@ -13,7 +13,7 @@
 #include "ethernetif.h"
 
 #include "cmsis_os.h"
-#include "http_client_prusa.h"
+#include "http/http_client_prusa.h"
 
 #define MAX_WUI_REQUEST_LEN 100
 #define MAX_MARLIN_REQUEST_LEN 100
@@ -24,20 +24,19 @@ osSemaphoreId wui_sema = 0; // semaphore handle
 osMutexDef (wui_web_mutex);    // Declare mutex
 osMutexId  (wui_web_mutex_id); // Mutex ID
 
-
 typedef struct {
     uint32_t flags;
     marlin_vars_t * wui_marlin_vars;
-    char request[MAX_WUI_REQUEST_LEN];
-    uint8_t request_len;
+    char request[MAX_REQUEST_LEN];
+    uint16_t request_len;
 } web_client_t;
 
 marlin_vars_t webserver_marlin_vars;
 
 web_client_t wui;
 
-static void _wui_queue_cycle(void);
-static int _process_wui_request(void);
+static void wui_queue_cycle(void);
+static int process_wui_request(void);
 
 void StartWebServerTask(void const *argument) {
     osMessageQDef(wuiQueue, 64, uint8_t);
@@ -48,13 +47,14 @@ void StartWebServerTask(void const *argument) {
     wui.wui_marlin_vars = marlin_client_init(); // init the client
     wui.flags = wui.request_len = 0;
 
+    bool conn = false;
+
     MX_LWIP_Init();
     http_server_init();
-    http_client_init();
     for (;;) {
 //        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MSK_TEMP_ALL));
         ethernetif_link(&eth0);
-        _wui_queue_cycle();
+        wui_queue_cycle();
 
         if(wui.wui_marlin_vars) {
             marlin_client_loop();
@@ -70,12 +70,12 @@ void StartWebServerTask(void const *argument) {
     }
 }
 
-static void _wui_queue_cycle(){
+static void wui_queue_cycle(){
     osEvent ose;
     char ch;
 
     if(wui.flags & WUI_FLG_PEND_REQ){
-        if(_process_wui_request()){
+        if(process_wui_request()){
             wui.flags &= ~WUI_FLG_PEND_REQ;
             wui.request_len = 0;
         }
@@ -96,7 +96,7 @@ static void _wui_queue_cycle(){
             wui.request_len = 0;
         }
         if ((ch == 0) && (wui.request_len > 1)) {
-            if (_process_wui_request()) {
+            if (process_wui_request()) {
                 wui.request_len = 0;
             } else {
                 wui.flags |= WUI_FLG_PEND_REQ;
@@ -105,7 +105,7 @@ static void _wui_queue_cycle(){
         }
     }
 }
-static int _process_wui_request(){
+static int process_wui_request(){
 
     //if(wui.request == gcode)
     marlin_json_gcode(wui.request);

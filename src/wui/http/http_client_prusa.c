@@ -9,8 +9,6 @@
 #define DEST_PORT 9000
 #define TCP_POLL_INTERVAL 2
 
-web_client_t web_client;
-
 char recv_buf[RECV_BUFFSIZE];
 char data[100];
 uint16_t msg_count = 0;
@@ -56,7 +54,7 @@ static err_t tcp_http_client_connected(void *arg, struct tcp_pcb *tpcb, err_t er
 
     hcp->state = HCS_CONNECTED;
     hcp->pcb = tpcb;
-    char *string = "HEAD /process.php?data1=12&data2=5 HTTP/1.0\r\nHost: mywebsite.com\r\n\r\n ";
+    char *string = "HEAD /post_gcode.html HTTP/1.0\r\nHost: 192.168.1.152\r\n\r\n ";
 
     /*allocate pbuf*/
     hcp->pbuf_ptr = pbuf_alloc(PBUF_TRANSPORT, strlen(string), PBUF_POOL);
@@ -232,61 +230,4 @@ static err_t tcp_http_client_poll(void *arg, struct tcp_pcb *tpcb)
     ret_err = ERR_ABRT;
   }
   return ret_err;
-}
-
-void http_client_init(void){
-    memset(&web_client, 0, sizeof(web_client_t));
-}
-
-void http_client_queue_cycle(void){
-    osEvent ose;
-    char ch;
-
-    if(web_client.flags & WUI_FLG_PEND_REQ){
-        if(process_server_request()){
-            web_client.flags &= ~WUI_FLG_PEND_REQ;
-            web_client.request_len = 0;
-        }
-    }
-
-    while ((ose = osMessageGet(web_client_queue_id, 0)).status == osEventMessage) {
-        ch = (char)((uint8_t)(ose.value.v));
-        switch (ch) {
-        case '\r':
-        case '\n':
-            ch = 0;
-            break;
-        }
-        if (web_client.request_len < MAX_REQUEST_LEN)
-            web_client.request[web_client.request_len++] = ch;
-        else {
-            //TOO LONG
-            web_client.request_len = 0;
-        }
-        if ((ch == 0) && (web_client.request_len > 1)) {
-            if (process_server_request()) {
-                web_client.request_len = 0;
-            } else {
-                web_client.flags |= WUI_FLG_PEND_REQ;
-                break;
-            }
-        }
-    }
-}
-
-int process_server_request(void){
-    if(strncmp(web_client.request, "!g", 2) == 0){
-        if(web_client.request_len < 5){
-            return 2;
-        }
-        char gcode_str[MAX_MARLIN_REQUEST_LEN];
-        strncpy(gcode_str, web_client.request + 3, web_client.request_len - 3);
-        marlin_gcode_printf(gcode_str);
-        return 1;
-    }
-    return 0;
-}
-
-void send_request_to_server(){
-
 }
