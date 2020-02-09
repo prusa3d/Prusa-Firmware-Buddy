@@ -16,6 +16,49 @@
 #define DUMP_FLASH_SIZE	0x00100000
 
 
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct _dump_regs_gen_t
+{
+	union
+	{
+		uint32_t R[16];
+		struct
+		{
+			uint32_t R0;
+			uint32_t R1;
+			uint32_t R2;
+			uint32_t R3;
+			uint32_t R4;
+			uint32_t R5;
+			uint32_t R6;
+			uint32_t R7;
+			uint32_t R8;
+			uint32_t R9;
+			uint32_t R10;
+			uint32_t R11;
+			uint32_t R12;
+			uint32_t R13;
+			uint32_t R14;
+			uint32_t R15;
+		};
+	};
+} dump_regs_gen_t;
+
+typedef struct _dump_tcb_t
+{
+	uint32_t pxTopOfStack;
+	uint32_t xStateListItem[5];
+	uint32_t xEventListItem[5];
+	uint32_t uxPriority;
+	uint32_t pxStack;
+	char pcTaskName[16];
+} dump_tcb_t;
+
+#pragma pack(pop)
+
+
 typedef struct _dump_t
 {
 	uint8_t* ram;
@@ -33,11 +76,29 @@ extern "C" {
 
 extern void dump_free(dump_t* pd);
 
-extern int dump_load(dump_t* pd, const char* fn);
+
+extern dump_t* dump_load(const char* fn);
+
+extern int dump_load_all_sections(dump_t* pd, const char* dir);
+
+extern int dump_save_all_sections(dump_t* pd, const char* dir);
+
+
+extern uint8_t* dump_get_data_ptr(dump_t* pd, uint32_t addr);
+
+extern void dump_get_data(dump_t* pd, uint32_t addr, uint32_t size, uint8_t* data);
+
+extern uint32_t dump_get_ui32(dump_t* pd, uint32_t addr);
+
+
+extern int dump_load_bin_from_file(void* data, int size, const char* fn);
 
 extern int dump_save_bin_to_file(void* data, int size, const char* fn);
 
+
 extern void dump_print_hardfault_simple(uint32_t* gen_regs, uint32_t* scb_regs);
+
+extern void dump_print_hardfault_detail(uint32_t* gen_regs, uint32_t* scb_regs);
 
 
 #ifdef __cplusplus
