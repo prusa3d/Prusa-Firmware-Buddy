@@ -12,9 +12,9 @@
 
 struct tcp_pcb* testpcb;
 static uint32_t data = 0xdeadbeef;
-static bool httpc_inited = false;
 extern struct netif  eth0;
 static uint32_t client_interval = 0;
+static bool init_tick = false;
 /** http client tcp sent callback */
 static err_t
 tcpSendCallback(void *arg, struct tcp_pcb *pcb, u16_t len)
@@ -38,13 +38,14 @@ static err_t tcpRecvCallback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 
     if (p == NULL) {
 
-    //    tcp_close(testpcb);
+        tcp_close(testpcb);
         return ERR_ABRT;
     } else {
-         pbuf_clen(p);
-         (char *)p->payload;
+        // parse here the message from CONNECT server and accept "command"
+        pbuf_clen(p);
+        (char *)p->payload;
     }
-
+    tcp_close(testpcb);
     return 0;
 }
 
@@ -106,13 +107,13 @@ void buddy_http_client_init() {
 
 void buddy_http_client_loop() {
 
-    if(netif_ip4_addr(&eth0)->addr != 0 && !httpc_inited) {
-        buddy_http_client_init();
-        httpc_inited = true;
+    if(!init_tick) {
         client_interval = HAL_GetTick();
+        init_tick = true;
     }
-    if(httpc_inited && ((HAL_GetTick() - client_interval) > 1050)) {
-        tcp_send_packet();
+
+    if(netif_ip4_addr(&eth0)->addr != 0 && ((HAL_GetTick() - client_interval) > 1050)) {
+        buddy_http_client_init();
         client_interval = HAL_GetTick();
     }
 
