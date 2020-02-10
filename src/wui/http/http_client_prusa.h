@@ -17,6 +17,8 @@ extern "C" {
 
 void buddy_http_client_init();
 
+void buddy_http_client_loop();
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

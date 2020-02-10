@@ -7,7 +7,6 @@
  */
 
 #include "wui.h"
-#include "stdbool.h"
 #include "marlin_client.h"
 #include "lwip.h"
 #include "ethernetif.h"

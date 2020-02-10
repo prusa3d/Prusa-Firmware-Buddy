@@ -8,11 +8,13 @@
 
 #include <http_client_prusa.h>
 
+#include "stdbool.h"
+
 struct tcp_pcb* testpcb;
 static uint32_t data = 0xdeadbeef;
 static bool httpc_inited = false;
 extern struct netif  eth0;
-
+static uint32_t client_interval = 0;
 /** http client tcp sent callback */
 static err_t
 tcpSendCallback(void *arg, struct tcp_pcb *pcb, u16_t len)
@@ -48,11 +50,17 @@ static err_t tcpRecvCallback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 
 uint32_t tcp_send_packet(void)
 {
-    char *string = "HEAD /process.php?data1=12&data2=5 HTTP/1.0\r\nHost: mywebsite.com\r\n\r\n ";
-    uint32_t len = strlen(string);
+    char *header_plus_data = "POST /api/printer HTTP/1.0\r\nHost: 192.168.88.210\r\n\r\n{\"temperature\":{"
+            "\"tool0\":{\"actual\":20, \"target\":50},"
+            "\"bed\":{\"actual\":56, \"target\":89}},"
+            "\"xyz_pos_mm\":{"
+            "\"x\":23, \"y\":23, \"z\":23},"
+            "\"print_settings\":{"
+            "\"printing_speed\":100, \"flow_factor\":89, \"filament_material\":\"PLA\"} }";
 
+    uint32_t len = strlen(header_plus_data);
     /* push to buffer */
-    err_t error = tcp_write(testpcb, string, strlen(string), TCP_WRITE_FLAG_COPY);
+    err_t error = tcp_write(testpcb, header_plus_data, len, TCP_WRITE_FLAG_COPY);
 
     if (error) {
 
@@ -97,8 +105,15 @@ void buddy_http_client_init() {
 }
 
 void buddy_http_client_loop() {
+
     if(netif_ip4_addr(&eth0)->addr != 0 && !httpc_inited) {
         buddy_http_client_init();
         httpc_inited = true;
+        client_interval = HAL_GetTick();
     }
+    if(httpc_inited && ((HAL_GetTick() - client_interval) > 1050)) {
+        tcp_send_packet();
+        client_interval = HAL_GetTick();
+    }
+
 }
