@@ -22,6 +22,8 @@ class TestTCPHandler(socketserver.BaseRequestHandler):
 
 HOST = args.ip_address
 print('IP address of server connected:' + str(HOST) )
-httpd = socketserver.TCPServer((str(HOST), PORT), http.server.SimpleHTTPRequestHandler)
-#httpd = socketserver.TCPServer((HOST, PORT), TestTCPHandler)
+# standard http server
+#httpd = socketserver.TCPServer((str(HOST), PORT), http.server.SimpleHTTPRequestHandler)
+#custom server
+httpd = socketserver.TCPServer((str(HOST), PORT), TestTCPHandler)
 httpd.serve_forever()
