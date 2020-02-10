@@ -82,7 +82,6 @@
     "    str r3, [r1, #0x5c]    \n" /* lrexc  */\
 )
 
-//#define DUMP_SNAPSHOT_TO_XFLASH() { DUMP_REGS_GEN_SNAPSHOT(); dump_to_xflash(); }
 
 #define DUMP_HARDFAULT_TO_XFLASH() { DUMP_REGS_GEN_FAULT(); dump_to_xflash(); }
 
