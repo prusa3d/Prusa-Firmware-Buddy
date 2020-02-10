@@ -213,14 +213,6 @@ void gui_run(void) {
 #endif // _DEBUG
         screen_open(pscreen_splash->id);
 
-#if 0
-    volatile char buff[32];
-    while (1)
-    {
-    	sprintf(buff, "%10.5f", ((float)rand())/10000);
-    }
-#endif
-
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
     int8_t gui_timeout_id;

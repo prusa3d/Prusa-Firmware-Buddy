@@ -108,18 +108,6 @@ void app_run(void) {
 #endif //_DEBUG
     }
 
-#if 0
-    char buff[32];
-    while (1)
-    {
-    	sprintf(buff, "%10.5f", ((float)rand())/10000);
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg);
-#endif //_DEBUG
-        _dbg0("%s", buff);
-    }
-#endif
-
     while (1) {
         if (marlin_server_processing()) {
             loop();
