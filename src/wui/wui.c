@@ -11,6 +11,7 @@
 #include "marlin_client.h"
 #include "lwip.h"
 #include "ethernetif.h"
+#include "http_client_prusa.h"
 
 #include "cmsis_os.h"
 
@@ -61,6 +62,8 @@ void StartWebServerTask(void const *argument) {
         webserver_marlin_vars = *(wui.wui_marlin_vars);
         osMutexRelease(wui_web_mutex_id);
         osDelay(100);
+        // http client loop
+        buddy_http_client_loop();
     }
 }
 
