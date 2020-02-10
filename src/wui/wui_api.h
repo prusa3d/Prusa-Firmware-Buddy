@@ -11,12 +11,17 @@
 
 #include "httpd.h"
 #include "lwip/apps/fs.h"
+#include "jsmn.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define MAX_MARLIN_REQUEST_LEN 100
 
 struct fs_file* wui_api_main(char* uri, struct fs_file* file);
+
+void json_parse_jsmn(const char * json, uint16_t len);
+void send_request_to_server(const char * request);
 
 #ifdef __cplusplus
 }

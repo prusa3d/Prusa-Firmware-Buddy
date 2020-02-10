@@ -14,6 +14,7 @@
 
 #include "cmsis_os.h"
 #include "http/http_client_prusa.h"
+#include <stdbool.h>
 
 #define MAX_WUI_REQUEST_LEN 100
 #define MAX_MARLIN_REQUEST_LEN 100
@@ -27,7 +28,7 @@ osMutexId  (wui_web_mutex_id); // Mutex ID
 typedef struct {
     uint32_t flags;
     marlin_vars_t * wui_marlin_vars;
-    char request[MAX_REQUEST_LEN];
+    char request[MAX_WUI_REQUEST_LEN];
     uint16_t request_len;
 } web_client_t;
 
