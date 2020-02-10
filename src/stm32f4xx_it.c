@@ -83,16 +83,8 @@ extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern TIM_HandleTypeDef htim6;
 
-extern volatile uint32_t r0;
-extern volatile uint32_t r1;
-extern volatile uint32_t r2;
-extern volatile uint32_t r3;
-extern volatile uint32_t r12;
-extern volatile uint32_t lr; /* Link register. */
-extern volatile uint32_t pc; /* Program counter. */
-extern volatile uint32_t psr;/* Program status register. */
-
 /* USER CODE BEGIN EV */
+
 /* USER CODE END EV */
 
 /******************************************************************************/

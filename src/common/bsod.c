@@ -390,15 +390,6 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName 
 #define DIVBYZERO_Txt   "Divide By 0"
 //#define STKOF (1UL << 0)
 
-volatile uint32_t r0;
-volatile uint32_t r1;
-volatile uint32_t r2;
-volatile uint32_t r3;
-volatile uint32_t r12;
-volatile uint32_t lr; /* Link register. */
-volatile uint32_t pc; /* Program counter. */
-volatile uint32_t psr;/* Program status register. */
-
 #define ROWS 21
 #define COLS 32
 
