@@ -12,6 +12,7 @@
 #include "gui.h" //gui_defaults
 #include "button_draw.h"
 #include "filament.h"
+#include "filament_sensor.h"
 
 static const _cl_dlg cl_load;
 
@@ -140,7 +141,16 @@ static int f_LD_GCODE(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
 static int f_LD_INSERT_FILAMENT(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
     if (p_vars->flags & DLG_BT_FLG) {
         p_vars->flags &= ~DLG_BT_FLG;
-        p_vars->phase++;
+        if (fs_get_state() == FS_NO_FILAMENT) p_vars->phase++; // f_CH_FILAMENT_SENSOR
+        else  p_vars->phase += 2;//skip f_CH_FILAMENT_SENSOR
+    }
+    return 0;
+}
+
+static int f_LD_FILAMENT_SENSOR(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
+    if(fs_get_state() != FS_NO_FILAMENT) {
+        p_vars->flags &= ~DLG_BT_FLG;//clr btn to be safe
+        p_vars->phase--;
     }
     return 0;
 }
@@ -230,8 +240,9 @@ static const _dlg_state load_states[] = {
     { 0, window_dlg_statemachine_draw_progress_tot, "Parking", &bt_stop_ena, (dlg_state_func)f_SH_WAIT_INITIAL_Z_MOTION },
     { 3000, window_dlg_statemachine_draw_progress_tot, "Parking", &bt_stop_ena, (dlg_state_func)f_SH_WAIT_INITIAL_Z_STOPPED },
     { 10000, window_dlg_statemachine_draw_progress_tot, "Waiting for temp.", &bt_stop_ena, (dlg_state_func)f_SH_WAIT_TEMP },
-    { 0, window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.", &bt_cont_ena, (dlg_state_func)f_LD_INSERT_FILAMENT },
-    { 0, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis, (dlg_state_func)f_LD_GCODE },
+    { 0, window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", &bt_cont_ena, (dlg_state_func)f_LD_INSERT_FILAMENT },
+	{ 0, window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", &bt_cont_dis, (dlg_state_func)f_LD_FILAMENT_SENSOR },
+	{ 0, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis, (dlg_state_func)f_LD_GCODE },
     { 6000, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis, (dlg_state_func)f_LD_WAIT_E_POS__INSERTING },
     { 10000, window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", &bt_stop_dis, (dlg_state_func)f_LD_WAIT_E_POS__LOADING_TO_NOZ },
     { 10000, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_stop_dis, (dlg_state_func)f_LD_WAIT_E_POS__PURGING },

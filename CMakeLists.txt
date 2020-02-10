@@ -197,6 +197,9 @@ set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
 add_compile_options(${MCU_FLAGS})
 add_link_options(${MCU_FLAGS})
 
+# Thread safe newlib
+add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
+
 # include symbols
 add_compile_options(-g)
 
@@ -252,6 +255,9 @@ set_target_properties(firmware PROPERTIES CXX_STANDARD 11)
 
 # generate firmware.bin file
 objcopy(firmware "binary" ".bin")
+
+# generate linker map file
+target_link_options(firmware PUBLIC -Wl,-Map=firmware.map)
 
 # inform about the firmware's size in terminal
 report_size(firmware)
@@ -446,6 +452,7 @@ target_sources(
           src/guiapi/src/window_text.c
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
+          src/marlin_stubs/M600.cpp
           src/wui/http_states.c
           src/wui/lwsapi.cpp
           src/wui/connect.cpp

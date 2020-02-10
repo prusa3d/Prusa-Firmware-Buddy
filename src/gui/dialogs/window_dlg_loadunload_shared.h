@@ -36,6 +36,7 @@ extern const _dlg_button_t bt_stop_ena;
 extern const _dlg_button_t bt_stop_dis;
 extern const _dlg_button_t bt_cont_ena;
 extern const _dlg_button_t bt_cont_dis;
+extern const _dlg_button_t bt_disable_ena;
 extern const _dlg_button_t bt_none;
 
 extern void f_SH_on_load(void); //after start

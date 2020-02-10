@@ -58,7 +58,7 @@ static int f_PU_PURGE_USER_INTERACTION(_dlg_vars *p_vars, _dlg_ld_vars *addition
 static int f_PU_PURGE_SHOW_PROGRESS(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
     float ret = 100.0F * (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - additional_vars->e_last)
         / ld_purge_amount;
-    if (ret > 99.5F) {
+    if (ret > 99.0F) {
         p_vars->phase--; //jump back to f_LD_PURGE_USER_INTERACTION
         p_vars->flags &= (~(LD_BT_PURG | LD_BT_DONE | LD_BT_PURG_SEL)); //clr buttons, select done
         return 100;
