@@ -40,6 +40,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bsod.h"
+#include "dump.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,15 +106,10 @@ void NMI_Handler(void) {
 /**
   * @brief This function handles Hard fault interrupt.
   */
-void HardFault_Handler(void) {
+void __attribute__((naked)) HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
-#ifdef PSOD_BSOD
-  bsod("HardFault_Handler");
-#else
-  // __disable_irq();
-  //taskENTER_CRITICAL();
+	DUMP_HARDFAULT_TO_XFLASH();
     ScreenHardFault();
-#endif//PSOD_BSOD
     /* USER CODE END HardFault_IRQn 0 */
     while (1) {
         /* USER CODE BEGIN W1_HardFault_IRQn 0 */

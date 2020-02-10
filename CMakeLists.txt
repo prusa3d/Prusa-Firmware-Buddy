@@ -340,6 +340,7 @@ target_sources(
           src/common/safe_state.c
           src/common/variant8.c
           src/common/dbg.c
+          src/common/dump.c
           src/common/marlin_client.c
           src/common/bsod.c
           src/common/adc.c
