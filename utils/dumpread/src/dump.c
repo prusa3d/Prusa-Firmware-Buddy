@@ -196,4 +196,3 @@ int dump_save_bin_to_file(void* data, int size, const char* fn)
 	}
 	return 0;
 }
-

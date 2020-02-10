@@ -19,7 +19,7 @@
 static inline void dump_regs_SCB(void)
 {
 	//copy entire SCB to CCRAM
-	memcpy(DUMP_REGS_SCB_ADDR, SCB, DUMP_REGS_SCB_SIZE);
+	memcpy((uint8_t*)DUMP_REGS_SCB_ADDR, SCB, DUMP_REGS_SCB_SIZE);
 }
 
 
@@ -71,10 +71,10 @@ int dump_save_to_usb(const char* fn)
 			}
 			//save OTP
 			for (addr = 0; addr < DUMP_OTP_SIZE; addr += DUMP_BUFF_SIZE)
-				f_write(&fil, DUMP_OTP_ADDR + addr, DUMP_BUFF_SIZE, &bw);
+				f_write(&fil, (uint8_t*)(DUMP_OTP_ADDR + addr), DUMP_BUFF_SIZE, &bw);
 			//save FLASH
 			for (addr = 0; addr < DUMP_FLASH_SIZE; addr += DUMP_BUFF_SIZE)
-				f_write(&fil, DUMP_FLASH_ADDR + addr, DUMP_BUFF_SIZE, &bw);
+				f_write(&fil, (uint8_t*)(DUMP_FLASH_ADDR + addr), DUMP_BUFF_SIZE, &bw);
 			f_close(&fil);
 			return 1;
 		}
@@ -95,4 +95,5 @@ void dump_hardfault_test_1(void)
 	volatile int a = 1;
 	volatile int b = 0;
 	volatile int c = a / b;
+	c = c;
 }
