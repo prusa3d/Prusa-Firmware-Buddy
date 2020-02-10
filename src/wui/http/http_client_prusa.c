@@ -7,8 +7,10 @@
  */
 
 #include "http_client_prusa.h"
-#include "http_sever_prusa.h"
-#include "stdbool.h"
+#include <stdbool.h>
+#include "wui_api.h"
+#include "stm32f4xx_hal.h"
+#include <string.h>
 
 struct tcp_pcb* testpcb;
 static uint32_t data = 0xdeadbeef;
@@ -42,9 +44,17 @@ static err_t tcpRecvCallback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
         return ERR_ABRT;
     } else {
 
-        // parse here the message from CONNECT server and accept "command"
-        pbuf_clen(p);
-        (char *)p->payload;
+        uint16_t pbuf_count = pbuf_clen(p);
+        for(int i = 0; i < pbuf_count; i++){
+            // isolate reqeust body
+            uint16_t body_tok = pbuf_memfind(p, "{", 1, 0); // Easiest way to find body start (Can '{' be in a header?)
+            if(body_tok != 0xFFFF){
+                // parse with jsmn & execute command
+                json_parse_jsmn(((char*)p->payload) + body_tok, p->tot_len - body_tok);
+            }
+            // point to next pbuf
+            p = p->next;
+        }
     }
     tcp_close(testpcb);
     return 0;
@@ -52,15 +62,9 @@ static err_t tcpRecvCallback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 
 uint32_t tcp_send_packet(void)
 {
-    char *header_plus_data = "POST /api/printer HTTP/1.0\r\nHost: 192.168.88.210\r\n\r\n{\"temperature\":{"
-            "\"tool0\":{\"actual\":20, \"target\":50},"
-            "\"bed\":{\"actual\":56, \"target\":89}},"
-            "\"xyz_pos_mm\":{"
-            "\"x\":23, \"y\":23, \"z\":23},"
-            "\"print_settings\":{"
-            "\"printing_speed\":100, \"flow_factor\":89, \"filament_material\":\"PLA\"} }";
+    const char * header_plus_data = get_update_str("POST /api/printer HTTP/1.0\r\nHost: 192.168.1.152\r\n\r\n");
 
-    uint32_t len = strlen(header_plus_data);
+    uint16_t len = strlen(header_plus_data);
     /* push to buffer */
     err_t error = tcp_write(testpcb, header_plus_data, len, TCP_WRITE_FLAG_COPY);
 
@@ -89,7 +93,7 @@ err_t connectCallback(void *arg, struct tcp_pcb *tpcb, err_t err)
 void buddy_http_client_init() {
 
     ip_addr_t ip;
-    IP4_ADDR(&ip, 192,168,88,220);    //IP of my PHP server
+    IP4_ADDR(&ip, 192,168,1,152);    //IP of my PHP server
     /* create the control block */
     testpcb = tcp_new();
     tcp_arg(testpcb, &data);

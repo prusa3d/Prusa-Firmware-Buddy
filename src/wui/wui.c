@@ -13,7 +13,7 @@
 #include "http_client_prusa.h"
 
 #include "cmsis_os.h"
-#include "http/http_client_prusa.h"
+#include "http_client_prusa.h"
 #include <stdbool.h>
 
 #define MAX_WUI_REQUEST_LEN 100
@@ -48,9 +48,6 @@ void StartWebServerTask(void const *argument) {
     wui.wui_marlin_vars = marlin_client_init(); // init the client
     wui.flags = wui.request_len = 0;
 
-    uint32_t POST_timer = HAL_GetTick();
-    bool got_addr = false;
-
     MX_LWIP_Init();
     http_server_init();
     for (;;) {
@@ -61,15 +58,6 @@ void StartWebServerTask(void const *argument) {
         if(wui.wui_marlin_vars) {
             marlin_client_loop();
         }
-
-        if(netif_ip4_addr(&eth0)->addr != 0 && !got_addr){  //REWORK
-            got_addr = true;
-        }
-        if(got_addr && HAL_GetTick() - POST_timer >= 1000 && wui.wui_marlin_vars){
-            tcp_connect_to_server("GET /api/printer HTTP/1.1\r\nHost: 192.168.1.182\r\n\r\n");
-            POST_timer = HAL_GetTick();
-        }
-
         osMutexWait(wui_web_mutex_id, osWaitForever);
         webserver_marlin_vars = *(wui.wui_marlin_vars);
         osMutexRelease(wui_web_mutex_id);

@@ -291,7 +291,14 @@ elseif(SIGNING_KEY)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/wui src/wui/http
+  firmware
+  PRIVATE include
+          src/common
+          src/gui
+          src/gui/dialogs
+          src/guiapi/include
+          src/wui
+          src/wui/http
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -474,6 +481,7 @@ target_sources(
           src/wui/wui_api.c
           src/wui/http/http_server_prusa.c
           src/wui/http/http_client_prusa.c
+          src/wui/wui_helper_funcs.c
   )
 
 set_property(
