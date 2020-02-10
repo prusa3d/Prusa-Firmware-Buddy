@@ -197,6 +197,9 @@ set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
 add_compile_options(${MCU_FLAGS})
 add_link_options(${MCU_FLAGS})
 
+# Thread safe newlib
+add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
+
 # include symbols
 add_compile_options(-g)
 
@@ -359,7 +362,6 @@ target_sources(
           src/common/print_utils.cpp
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
-          src/common/dump.c
           src/gui/screen_menu_filament.c
           src/gui/dialogs/window_dlg_change.c
           src/gui/dialogs/window_dlg_loadunload_shared.c
@@ -450,6 +452,7 @@ target_sources(
           src/guiapi/src/window_text.c
           src/guiapi/src/window_msgbox.c
           src/guiapi/src/window.c
+          src/marlin_stubs/M600.cpp
           src/wui/http_states.c
           src/wui/lwsapi.cpp
           src/wui/connect.cpp
