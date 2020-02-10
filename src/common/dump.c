@@ -83,7 +83,7 @@ int dump_save_to_usb(const char* fn)
 }
 
 
-#ifndef _DEBUG
+#ifdef _DEBUG
 
 //
 void dump_hardfault_test_0(void)
