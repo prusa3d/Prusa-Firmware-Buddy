@@ -291,7 +291,7 @@ elseif(SIGNING_KEY)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/wui
+  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/wui src/wui/http
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
