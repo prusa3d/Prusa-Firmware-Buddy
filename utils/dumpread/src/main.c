@@ -95,23 +95,23 @@ int main(int argc, char** argv)
 //test
             mapfile_mem_entry_t* e;
 
-            e = mapfile_get_mem_entry(pmap, "_Balloc");
+            e = mapfile_find_mem_entry(pmap, "_Balloc");
             printf("<_Balloc> 0x%08x\n", e->addr);
 
-            e = mapfile_get_mem_entry(pmap, "xTickCount");
+            e = mapfile_find_mem_entry(pmap, "xTickCount");
             uint32_t xTickCount = dump_get_ui32(pdump, e->addr);
             printf("xTickCount=%u ms (%u hours)\n", xTickCount, xTickCount/(1000*60*60));
 
-            e = mapfile_get_mem_entry(pmap, "uwTick");
+            e = mapfile_find_mem_entry(pmap, "uwTick");
             uint32_t uwTick = dump_get_ui32(pdump, e->addr);
             printf("uwTick=%u ms (%u hours)\n", uwTick, uwTick/(1000*60*60));
 
-            e = mapfile_get_mem_entry(pmap, "defaultTaskHandle");
+            e = mapfile_find_mem_entry(pmap, "defaultTaskHandle");
             printf("defaultTaskHandle 0x%08x\n", e->addr);
             uint32_t defaultTaskHandle = dump_get_ui32(pdump, e->addr);
             printf("defaultTaskHandle=0x%08x\n", defaultTaskHandle);
 
-            e = mapfile_get_mem_entry(pmap, "displayTaskHandle");
+            e = mapfile_find_mem_entry(pmap, "displayTaskHandle");
             printf("displayTaskHandle 0x%08x\n", e->addr);
             uint32_t displayTaskHandle = dump_get_ui32(pdump, e->addr);
             printf("displayTaskHandle=0x%08x\n", displayTaskHandle);

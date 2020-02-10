@@ -26,7 +26,7 @@ public:
     cmapfile();
     ~cmapfile();
     bool load(const char* fn);
-    cmapfile_mem_entry* get_mem_entry(const char* name);
+    cmapfile_mem_entry* find_mem_entry(const char* name);
 protected:
     int add_mem_entry(mapfile_mem_type_t type, uint32_t addr, uint32_t size, const char* name);
 private:
@@ -185,7 +185,7 @@ bool cmapfile::load(const char* fn)
     return false;
 }
 
-cmapfile_mem_entry* cmapfile::get_mem_entry(const char* name)
+cmapfile_mem_entry* cmapfile::find_mem_entry(const char* name)
 {
     return &m_mem[m_map[name]];
 }
@@ -220,10 +220,10 @@ mapfile_t* mapfile_load(const char* fn)
     return 0;
 }
 
-mapfile_mem_entry_t* mapfile_get_mem_entry(mapfile_t* pm, const char* name)
+mapfile_mem_entry_t* mapfile_find_mem_entry(mapfile_t* pm, const char* name)
 {
     cmapfile* mapfile = (cmapfile*)pm;
-    cmapfile_mem_entry* entry = mapfile->get_mem_entry(name);
+    cmapfile_mem_entry* entry = mapfile->find_mem_entry(name);
     return entry;
 }
 
