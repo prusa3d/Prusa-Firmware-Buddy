@@ -38,8 +38,8 @@ typedef enum {
     MI_LAN_SETTINGS,
     MI_SAVE_DUMP,
 #ifdef _DEBUG
-	MI_HF_TEST_0,
-	MI_HF_TEST_1,
+    MI_HF_TEST_0,
+    MI_HF_TEST_1,
 #endif //_DEBUG
 } MI_t;
 
@@ -91,10 +91,10 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             break;
 #ifdef _DEBUG
         case MI_HF_TEST_0:
-        	dump_hardfault_test_0();
+            dump_hardfault_test_0();
             break;
         case MI_HF_TEST_1:
-        	dump_hardfault_test_1();
+            dump_hardfault_test_1();
             break;
 #endif //_DEBUG
         case MI_DISABLE_STEP:
