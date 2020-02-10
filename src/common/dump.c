@@ -82,6 +82,9 @@ int dump_save_to_usb(const char* fn)
     return 0;
 }
 
+
+#ifndef _DEBUG
+
 //
 void dump_hardfault_test_0(void)
 {
@@ -97,3 +100,5 @@ void dump_hardfault_test_1(void)
     volatile int c = a / b;
     c = c;
 }
+
+#endif //_DEBUG

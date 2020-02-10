@@ -97,9 +97,13 @@ extern void dump_to_xflash();
 extern int dump_save_to_usb(const char* fn);
 
 
+#ifndef _DEBUG
+
 extern void dump_hardfault_test_0(void);
 
 extern void dump_hardfault_test_1(void);
+
+#endif //_DEBUG
 
 
 #ifdef __cplusplus
