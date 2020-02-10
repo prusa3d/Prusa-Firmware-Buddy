@@ -86,14 +86,13 @@ int main(int argc, char** argv)
 
 	if (pdump)
 	{
-//		uint32_t* gen_regs = (uint32_t*)(pdump->ccram + 0xff00);
-//		uint32_t* scb_regs = (uint32_t*)(pdump->ccram + 0xff60);
-//		dump_print_hardfault_simple(gen_regs, scb_regs);
-//		dump_print_hardfault_detail(gen_regs, scb_regs);
+//		dump_print_hardfault_simple(pdump);
+		dump_print_hardfault_detail(pdump);
 //		dump_save_all_sections(pdump, out_dir);
 
 		if (pmap)
 		{
+//test
 			mapfile_mem_entry_t* e;
 
 			e = mapfile_get_mem_entry(pmap, "_Balloc");
@@ -119,28 +118,6 @@ int main(int argc, char** argv)
 		}
 
 	}
-
-
-#if 0
-	uint8_t* data = (uint8_t*)malloc(DUMP_RAM_SIZE+DUMP_CCRAM_SIZE+DUMP_OTP_SIZE+DUMP_FLASH_SIZE);
-
-	FILE* f = fopen("test\\dump_ram.bin", "rb");
-	int rd_ram = fread(data, 1, DUMP_RAM_SIZE, f);
-	fclose(f);
-
-	f = fopen("test\\dump_ccram.bin", "rb");
-	int rd_ccram = fread(data + DUMP_RAM_SIZE, 1, DUMP_CCRAM_SIZE, f);
-	fclose(f);
-
-	f = fopen("test\\dump_otp.bin", "rb");
-	int rd_otp = fread(data + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE, 1, DUMP_CCRAM_SIZE, f);
-	fclose(f);
-
-	f = fopen("test\\dump.bin", "wb");
-	int wb = fwrite(data, 1, DUMP_RAM_SIZE+DUMP_CCRAM_SIZE+DUMP_OTP_SIZE+DUMP_FLASH_SIZE, f);
-	fclose(f);
-
-#endif
 
 	if (pmap) mapfile_free(pmap);
 

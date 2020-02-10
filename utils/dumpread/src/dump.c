@@ -46,10 +46,29 @@ dump_t* dump_load(const char* fn)
 			(rd_ccram == DUMP_CCRAM_SIZE) &&
 			(rd_otp == DUMP_OTP_SIZE) &&
 			(rd_flash == DUMP_FLASH_SIZE))
+		{
+			pd->regs_gen = (dump_regs_gen_t*)dump_get_data_ptr(pd, DUMP_REGS_GEN);
+			pd->regs_scb = dump_get_data_ptr(pd, DUMP_REGS_SCB);
 			return pd;
+		}
 	}
 	dump_free(pd);
 	return 0;
+}
+
+int dump_load_all_sections(dump_t* pd, const char* dir)
+{
+	char path[MAX_PATH];
+	strcpy(path, dir);
+	strcpy(path + strlen(dir), "dump_ram.bin");
+	dump_load_bin_from_file(pd->ram, DUMP_RAM_SIZE, path);
+	strcpy(path + strlen(dir), "dump_ccram.bin");
+	dump_load_bin_from_file(pd->ccram, DUMP_CCRAM_SIZE, path);
+	strcpy(path + strlen(dir), "dump_otp.bin");
+	dump_load_bin_from_file(pd->otp, DUMP_OTP_SIZE, path);
+	strcpy(path + strlen(dir), "dump_flash.bin");
+	dump_load_bin_from_file(pd->flash, DUMP_FLASH_SIZE, path);
+	return 1;
 }
 
 int dump_save_all_sections(dump_t* pd, const char* dir)
@@ -95,6 +114,65 @@ uint32_t dump_get_ui32(dump_t* pd, uint32_t addr)
 	return value;
 }
 
+void dump_print_hardfault_stackframe(dump_t* pd)
+{
+	printf("Stack Frame:\n");
+	printf("R0  = 0x%08x\n", pd->regs_gen->R0);
+	printf("R1  = 0x%08x\n", pd->regs_gen->R1);
+	printf("R2  = 0x%08x\n", pd->regs_gen->R2);
+	printf("R3  = 0x%08x\n", pd->regs_gen->R3);
+	printf("R12 = 0x%08x\n", pd->regs_gen->R12);
+	printf("SP  = 0x%08x\n", pd->regs_gen->SP);
+	printf("LR  = 0x%08x\n", pd->regs_gen->LR);
+	printf("PC  = 0x%08x\n", pd->regs_gen->PC);
+	printf("PSR = 0x%08x\n", pd->regs_gen->PSR);
+}
+
+void dump_print_hardfault_simple(dump_t* pd)
+{
+	printf("HARDFAULT\n");
+	dump_print_hardfault_stackframe(pd);
+	printf("SCB:\n");
+	printf("CFSR = 0x%08x\n", pd->regs_scb[0x28/4]);
+	printf("HFSR = 0x%08x\n", pd->regs_scb[0x2c/4]);
+	printf("DFSR = 0x%08x\n", pd->regs_scb[0x30/4]);
+	printf("AFSR = 0x%08x\n", pd->regs_scb[0x3c/4]);
+	printf("BFAR = 0x%08x\n", pd->regs_scb[0x38/4]);
+	printf("Misc:\n");
+	printf("LREXC     = 0x%08x\n", pd->regs_gen->PSR);
+}
+
+void dump_print_hardfault_detail(dump_t* pd)
+{
+	printf("HARDFAULT\n");
+	dump_print_hardfault_stackframe(pd);
+
+	uint32_t* scb_regs = (uint32_t*)(pd->ccram + 0xff60);
+
+	printf("registers:\n");
+	printf("R4  = 0x%08x\n", pd->regs_gen->R4);
+	printf("R5  = 0x%08x\n", pd->regs_gen->R5);
+	printf("R6  = 0x%08x\n", pd->regs_gen->R6);
+	printf("R7  = 0x%08x\n", pd->regs_gen->R7);
+	printf("R8  = 0x%08x\n", pd->regs_gen->R8);
+	printf("R9  = 0x%08x\n", pd->regs_gen->R9);
+	printf("R10 = 0x%08x\n", pd->regs_gen->R10);
+	printf("R11 = 0x%08x\n", pd->regs_gen->R11);
+	printf("PRIMASK   = 0x%08x\n", pd->regs_gen->PRIMASK);
+	printf("BASEPRI   = 0x%08x\n", pd->regs_gen->BASEPRI);
+	printf("FAULTMASK = 0x%08x\n", pd->regs_gen->FAULTMASK);
+	printf("CONTROL   = 0x%08x\n", pd->regs_gen->CONTROL);
+	printf("MSP       = 0x%08x\n", pd->regs_gen->MSP);
+	printf("PSP       = 0x%08x\n", pd->regs_gen->PSP);
+	printf("LREXC     = 0x%08x\n", pd->regs_gen->LREXC);
+	printf("SCB:\n");
+	printf("CFSR = 0x%08x\n", scb_regs[0x28/4]);
+	printf("HFSR = 0x%08x\n", scb_regs[0x2c/4]);
+	printf("DFSR = 0x%08x\n", scb_regs[0x30/4]);
+	printf("AFSR = 0x%08x\n", scb_regs[0x3c/4]);
+	printf("BFAR = 0x%08x\n", scb_regs[0x38/4]);
+}
+
 int dump_load_bin_from_file(void* data, int size, const char* fn)
 {
 	FILE* fbin = fopen(fn, "rb");
@@ -119,58 +197,3 @@ int dump_save_bin_to_file(void* data, int size, const char* fn)
 	return 0;
 }
 
-void dump_print_hardfault_stackframe(uint32_t* gen_regs)
-{
-	printf("Stack Frame:\n");
-	printf("R0  = 0x%08x\n", gen_regs[0x00/4]);
-	printf("R1  = 0x%08x\n", gen_regs[0x04/4]);
-	printf("R2  = 0x%08x\n", gen_regs[0x08/4]);
-	printf("R3  = 0x%08x\n", gen_regs[0x0c/4]);
-	printf("R12 = 0x%08x\n", gen_regs[0x30/4]);
-	printf("SP  = 0x%08x\n", gen_regs[0x34/4]);
-	printf("LR  = 0x%08x\n", gen_regs[0x38/4]);
-	printf("PC  = 0x%08x\n", gen_regs[0x3c/4]);
-	printf("PSR = 0x%08x\n", gen_regs[0x40/4]);
-}
-
-void dump_print_hardfault_simple(uint32_t* gen_regs, uint32_t* scb_regs)
-{
-	printf("HARDFAULT\n");
-	dump_print_hardfault_stackframe(gen_regs);
-	printf("SCB:\n");
-	printf("CFSR = 0x%08x\n", scb_regs[0x28/4]);
-	printf("HFSR = 0x%08x\n", scb_regs[0x2c/4]);
-	printf("DFSR = 0x%08x\n", scb_regs[0x30/4]);
-	printf("AFSR = 0x%08x\n", scb_regs[0x3c/4]);
-	printf("BFAR = 0x%08x\n", scb_regs[0x38/4]);
-	printf("Misc:\n");
-	printf("LREXC     = 0x%08x\n", gen_regs[0x5c/4]);
-}
-
-void dump_print_hardfault_detail(uint32_t* gen_regs, uint32_t* scb_regs)
-{
-	printf("HARDFAULT\n");
-	dump_print_hardfault_stackframe(gen_regs);
-	printf("registers:\n");
-	printf("R4  = 0x%08x\n", gen_regs[0x10/4]);
-	printf("R5  = 0x%08x\n", gen_regs[0x14/4]);
-	printf("R6  = 0x%08x\n", gen_regs[0x18/4]);
-	printf("R7  = 0x%08x\n", gen_regs[0x1c/4]);
-	printf("R8  = 0x%08x\n", gen_regs[0x10/4]);
-	printf("R9  = 0x%08x\n", gen_regs[0x14/4]);
-	printf("R10 = 0x%08x\n", gen_regs[0x18/4]);
-	printf("R11 = 0x%08x\n", gen_regs[0x1c/4]);
-	printf("PRIMASK   = 0x%08x\n", gen_regs[0x44/4]);
-	printf("BASEPRI   = 0x%08x\n", gen_regs[0x48/4]);
-	printf("FAULTMASK = 0x%08x\n", gen_regs[0x4c/4]);
-	printf("CONTROL   = 0x%08x\n", gen_regs[0x50/4]);
-	printf("MSP       = 0x%08x\n", gen_regs[0x54/4]);
-	printf("PSP       = 0x%08x\n", gen_regs[0x58/4]);
-	printf("LREXC     = 0x%08x\n", gen_regs[0x5c/4]);
-	printf("SCB:\n");
-	printf("CFSR = 0x%08x\n", scb_regs[0x28/4]);
-	printf("HFSR = 0x%08x\n", scb_regs[0x2c/4]);
-	printf("DFSR = 0x%08x\n", scb_regs[0x30/4]);
-	printf("AFSR = 0x%08x\n", scb_regs[0x3c/4]);
-	printf("BFAR = 0x%08x\n", scb_regs[0x38/4]);
-}

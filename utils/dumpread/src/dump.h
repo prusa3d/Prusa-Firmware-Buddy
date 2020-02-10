@@ -15,6 +15,9 @@
 #define DUMP_FLASH_ADDR	0x08000000
 #define DUMP_FLASH_SIZE	0x00100000
 
+#define DUMP_REGS_GEN	0x1000ff00
+#define DUMP_REGS_SCB	0x1000ff60
+
 
 #pragma pack(push)
 #pragma pack(1)
@@ -39,11 +42,31 @@ typedef struct _dump_regs_gen_t
 			uint32_t R10;
 			uint32_t R11;
 			uint32_t R12;
-			uint32_t R13;
-			uint32_t R14;
-			uint32_t R15;
+			union
+			{
+				uint32_t R13;
+				uint32_t SP;
+			};
+			union
+			{
+				uint32_t R14;
+				uint32_t LR;
+			};
+			union
+			{
+				uint32_t R15;
+				uint32_t PC;
+			};
 		};
 	};
+	uint32_t PSR;
+	uint32_t PRIMASK;
+	uint32_t BASEPRI;
+	uint32_t FAULTMASK;
+	uint32_t CONTROL;
+	uint32_t MSP;
+	uint32_t PSP;
+	uint32_t LREXC;
 } dump_regs_gen_t;
 
 typedef struct _dump_tcb_t
@@ -65,6 +88,8 @@ typedef struct _dump_t
 	uint8_t* ccram;
 	uint8_t* otp;
 	uint8_t* flash;
+	dump_regs_gen_t* regs_gen;
+	uint8_t* regs_scb;
 } dump_t;
 
 
@@ -91,14 +116,14 @@ extern void dump_get_data(dump_t* pd, uint32_t addr, uint32_t size, uint8_t* dat
 extern uint32_t dump_get_ui32(dump_t* pd, uint32_t addr);
 
 
+extern void dump_print_hardfault_simple(dump_t* pd);
+
+extern void dump_print_hardfault_detail(dump_t* pd);
+
+
 extern int dump_load_bin_from_file(void* data, int size, const char* fn);
 
 extern int dump_save_bin_to_file(void* data, int size, const char* fn);
-
-
-extern void dump_print_hardfault_simple(uint32_t* gen_regs, uint32_t* scb_regs);
-
-extern void dump_print_hardfault_detail(uint32_t* gen_regs, uint32_t* scb_regs);
 
 
 #ifdef __cplusplus
