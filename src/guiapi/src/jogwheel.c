@@ -32,10 +32,10 @@ void jogwheel_update_1ms(void) {
     if (jogwheel_config.flg & JOGWHEEL_FLG_INV_E12)
         signals ^= 3;
     if (jogwheel_config.flg & JOGWHEEL_FLG_FILTER2)
-		if (jogwheel_signals_new != signals) {
-			jogwheel_signals_new = signals;
-			return;
-		}
+        if (jogwheel_signals_new != signals) {
+            jogwheel_signals_new = signals;
+            return;
+        }
     uint8_t change = signals ^ jogwheel_signals;
     if (change & 3) //encoder phase signals changed
     {
