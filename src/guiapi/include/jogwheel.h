@@ -9,10 +9,11 @@
 #define JOGWHEEL_FLG_INV_ENC 0x02
 #define JOGWHEEL_FLG_INV_E12 0x04
 #define JOGWHEEL_FLG_2PULSES 0x08
+#define JOGWHEEL_FLG_FILTER2 0x10
 //old encoder (with new encoder 2 steps per 1 count)
 //#define JOGWHEEL_DEF_FLG      (JOGWHEEL_FLG_INV_ENC | JOGWHEEL_FLG_INV_DIR)
 //new encoder (1 steps per 1 count)
-#define JOGWHEEL_DEF_FLG (JOGWHEEL_FLG_INV_ENC | JOGWHEEL_FLG_2PULSES)
+#define JOGWHEEL_DEF_FLG (JOGWHEEL_FLG_INV_ENC | JOGWHEEL_FLG_2PULSES | JOGWHEEL_FLG_FILTER2)
 
 #pragma pack(push)
 #pragma pack(1)
