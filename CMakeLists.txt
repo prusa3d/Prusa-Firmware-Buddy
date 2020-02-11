@@ -201,6 +201,9 @@ set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
 add_compile_options(${MCU_FLAGS})
 add_link_options(${MCU_FLAGS})
 
+# Thread safe newlib
+add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
+
 # include symbols
 add_compile_options(-g)
 
@@ -358,6 +361,7 @@ target_sources(
           src/common/safe_state.c
           src/common/variant8.c
           src/common/dbg.c
+          src/common/dump.c
           src/common/marlin_client.c
           src/common/bsod.c
           src/common/adc.c

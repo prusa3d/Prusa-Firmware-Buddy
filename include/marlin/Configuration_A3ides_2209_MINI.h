@@ -435,9 +435,9 @@
     //#define DEFAULT_Kd 45.43
 
     // Prusa MINI
-    #define DEFAULT_Kp 18.00
-    #define DEFAULT_Ki 1.84
-    #define DEFAULT_Kd 43.91
+    #define DEFAULT_Kp 21.26
+    #define DEFAULT_Ki 2.55
+    #define DEFAULT_Kd 48.46
 
 // MakerGear
 //#define DEFAULT_Kp 7.0
@@ -497,9 +497,9 @@
     //#define DEFAULT_bedKd 1675.16
 
     //24V Prusa MK3 bed
-    #define DEFAULT_bedKp 160.97
-    #define DEFAULT_bedKi 14.07
-    #define DEFAULT_bedKd 460.39
+    #define DEFAULT_bedKp 47.06
+    #define DEFAULT_bedKi 3.83
+    #define DEFAULT_bedKd 258.07
 
 // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
@@ -711,7 +711,7 @@
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
 //
-//#define JUNCTION_DEVIATION
+#define CLASSIC_JERK
 #if DISABLED(CLASSIC_JERK)
     #define JUNCTION_DEVIATION_MM 0.02 // (mm) Distance from real junction edge
 #endif
