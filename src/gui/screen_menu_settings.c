@@ -56,7 +56,7 @@ const menu_item_t _menu_settings_items[] = {
     { { "Fil. sens.", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
-    { { "Save Crash DUMP", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 #ifdef _DEBUG
     { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
