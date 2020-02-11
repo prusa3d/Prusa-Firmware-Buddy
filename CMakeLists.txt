@@ -167,6 +167,7 @@ add_library(STM32_Utilities_CPU_Config ALIAS A3idesHeaders)
 
 add_library(FreeRTOS_Config INTERFACE)
 target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
+target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 
 #
 # Configure LwIP
