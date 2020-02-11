@@ -56,7 +56,7 @@ const menu_item_t _menu_settings_items[] = {
     { { "Fil. sens.", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
-    { { "Save CrashDUMP", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 #ifdef _DEBUG
     { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
@@ -85,9 +85,9 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
         switch ((int)param) {
         case MI_SAVE_DUMP:
             if (dump_save_to_usb("dump.bin"))
-                gui_msgbox("Crash dump report 'dump.bin' saved to usb flash", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+                gui_msgbox("A crash dump report (file dump.bin) has been saved to the USB drive.", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
             else
-                gui_msgbox("Error saving crash dump report to usb flash", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+                gui_msgbox("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
             break;
 #ifdef _DEBUG
         case MI_HF_TEST_0:
