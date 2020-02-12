@@ -99,7 +99,6 @@ osThreadId displayTaskHandle;
 osThreadId idleTaskHandle;
 osThreadId webServerTaskHandle;
 /* USER CODE BEGIN PV */
-osThreadId measurementTaskHandle;
 int HAL_IWDG_Reset = 0;
 int HAL_GPIO_Initialized = 0;
 int HAL_ADC_Initialized = 0;
@@ -251,9 +250,12 @@ int main(void) {
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
     /* definition and creation of displayTask */
+#ifndef HAS_GUI
+    #error "HAS_GUI not defined."
+#elif HAS_GUI
     osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 2048);
     displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
-
+#endif
     /* definition and creation of idleTask */
     osThreadDef(idleTask, StartIdleTask, osPriorityIdle, 0, 128);
     idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
@@ -265,8 +267,12 @@ int main(void) {
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
     /* definition and creation of measurementTask */
+#ifndef HAS_FILAMENT_SENSOR
+    #error "HAS_FILAMENT_SENSOR not defined."
+#elif HAS_FILAMENT_SENSOR
     osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
-    measurementTaskHandle = osThreadCreate(osThread(measurementTask), NULL);
+    osThreadCreate(osThread(measurementTask), NULL);
+#endif
     /* USER CODE END RTOS_THREADS */
 
     /* USER CODE BEGIN RTOS_QUEUES */

@@ -101,6 +101,22 @@ message(STATUS "Bootloader: ${BOOTLOADER}")
 # variables
 set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 
+# Set printer features
+set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
+set(PRINTERS_WITH_GUI "MINI")
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
+  set(FILAMENT_SENSOR YES)
+else()
+  set(FILAMENT_SENSOR NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
+  set(GUI YES)
+else()
+  set(GUI NO)
+endif()
+
 #
 # A3idesHeaders
 #
@@ -347,8 +363,8 @@ target_sources(
           src/usbh_conf.c
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
-          src/common/filament_sensor.c
-          src/common/thread_measurement.c
+          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.c>
+          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
           src/common/eeprom.c
           src/common/marlin_vars.c
@@ -384,94 +400,6 @@ target_sources(
           src/common/print_utils.cpp
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
-          src/gui/screen_menu_filament.c
-          src/gui/dialogs/window_dlg_change.c
-          src/gui/dialogs/window_dlg_loadunload_shared.c
-          src/gui/dialogs/window_dlg_statemachine.c
-          src/gui/dialogs/window_dlg_load.c
-          src/gui/dialogs/window_dlg_wait.c
-          src/gui/dialogs/window_dlg_popup.c
-          src/gui/dialogs/window_dlg_purge.c
-          src/gui/dialogs/window_dlg_preheat.c
-          src/gui/dialogs/window_dlg_unload.c
-          src/gui/screen_menu_temperature.c
-          src/gui/resource.c
-          src/gui/window_file_list.c
-          src/gui/pngview.c
-          src/gui/guimain.c
-          src/gui/wizard/selftest_temp.c
-          src/gui/window_temp_graph.c
-          src/gui/screen_menu_settings.c
-          src/gui/wizard/wizard_progress_bar.c
-          src/gui/wizard/firstlay.c
-          src/gui/wizard/selftest_cool.c
-          src/gui/window_header.c
-          src/gui/screen_sysinf.c
-          src/gui/screen_version_info.cpp
-          src/gui/test_display.c
-          src/gui/screen_splash.c
-          src/gui/window_logo.c
-          src/gui/screen_menu_service.c
-          src/gui/screen_menu_calibration.c
-          src/gui/screen_menu.c
-          src/gui/screen_print_preview.c
-          src/gui/screen_messages.c
-          src/gui/screen_menu_info.c
-          src/gui/screen_watchdog.c
-          src/gui/screen_menu_move.c
-          src/gui/screen_lan_settings.c
-          src/gui/test/screen_test.c
-          src/gui/test/screen_test_disp_mem.c
-          src/gui/test/screen_test_gui.c
-          src/gui/test/screen_test_term.c
-          src/gui/test/screen_test_msgbox.c
-          src/gui/test/screen_test_graph.c
-          src/gui/wizard/selftest_fans_axis.c
-          src/gui/wizard/selftest_temp.c
-          src/gui/wizard/selftest_cool.c
-          src/gui/wizard/selftest.c
-          src/gui/wizard/firstlay.c
-          src/gui/wizard/wizard_load_unload.c
-          src/gui/wizard/wizard_ui.c
-          src/gui/wizard/wizard.c
-          src/gui/wizard/screen_wizard.c
-          src/gui/wizard/xyzcalib.c
-          src/gui/wizard/wizard_progress_bar.c
-          src/gui/screen_home.cpp
-          src/gui/screen_filebrowser.cpp
-          src/gui/screen_menu_preheat.cpp
-          src/gui/status_footer.cpp
-          src/gui/filament.cpp
-          src/gui/menu_vars.cpp
-          src/gui/screen_printing.cpp
-          src/gui/screen_menu_tune.cpp
-          src/gui/screen_PID.cpp
-          src/gui/screen_menu_fw_update.c
-          src/gui/test/screen_test_temperature.cpp
-          src/gui/wizard/selftest_fans_axis.c
-          src/gui/test/screen_mesh_bed_lv.cpp
-          src/gui/wizard/Marlin_PID_wrapper.cpp
-          src/guiapi/src/button_draw.c
-          src/guiapi/src/display.c
-          src/guiapi/src/gui.c
-          src/guiapi/src/term.c
-          src/guiapi/src/guitypes.c
-          src/guiapi/src/window_progress.c
-          src/guiapi/src/window_frame.c
-          src/guiapi/src/gui_timer.c
-          src/guiapi/src/display_helper.c
-          src/guiapi/src/window_menu.c
-          src/guiapi/src/screen.c
-          src/guiapi/src/window_term.c
-          src/guiapi/src/window_list.c
-          src/guiapi/src/jogwheel.c
-          src/guiapi/src/window_numb.c
-          src/guiapi/src/st7789v.c
-          src/guiapi/src/window_icon.c
-          src/guiapi/src/window_spin.c
-          src/guiapi/src/window_text.c
-          src/guiapi/src/window_msgbox.c
-          src/guiapi/src/window.c
           src/marlin_stubs/G28.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
@@ -485,6 +413,100 @@ target_sources(
           src/wui/connection.cpp
   )
 
+if(GUI)
+  target_sources(
+    firmware
+    PRIVATE src/gui/screen_menu_filament.c
+            src/gui/dialogs/window_dlg_change.c
+            src/gui/dialogs/window_dlg_loadunload_shared.c
+            src/gui/dialogs/window_dlg_statemachine.c
+            src/gui/dialogs/window_dlg_load.c
+            src/gui/dialogs/window_dlg_wait.c
+            src/gui/dialogs/window_dlg_popup.c
+            src/gui/dialogs/window_dlg_purge.c
+            src/gui/dialogs/window_dlg_preheat.c
+            src/gui/dialogs/window_dlg_unload.c
+            src/gui/screen_menu_temperature.c
+            src/gui/resource.c
+            src/gui/window_file_list.c
+            src/gui/pngview.c
+            src/gui/guimain.c
+            src/gui/wizard/selftest_temp.c
+            src/gui/window_temp_graph.c
+            src/gui/screen_menu_settings.c
+            src/gui/wizard/wizard_progress_bar.c
+            src/gui/wizard/firstlay.c
+            src/gui/wizard/selftest_cool.c
+            src/gui/window_header.c
+            src/gui/screen_sysinf.c
+            src/gui/screen_version_info.cpp
+            src/gui/test_display.c
+            src/gui/screen_splash.c
+            src/gui/window_logo.c
+            src/gui/screen_menu_service.c
+            src/gui/screen_menu_calibration.c
+            src/gui/screen_menu.c
+            src/gui/screen_print_preview.c
+            src/gui/screen_messages.c
+            src/gui/screen_menu_info.c
+            src/gui/screen_watchdog.c
+            src/gui/screen_menu_move.c
+            src/gui/screen_lan_settings.c
+            src/gui/test/screen_test.c
+            src/gui/test/screen_test_disp_mem.c
+            src/gui/test/screen_test_gui.c
+            src/gui/test/screen_test_term.c
+            src/gui/test/screen_test_msgbox.c
+            src/gui/test/screen_test_graph.c
+            src/gui/wizard/selftest_fans_axis.c
+            src/gui/wizard/selftest_temp.c
+            src/gui/wizard/selftest_cool.c
+            src/gui/wizard/selftest.c
+            src/gui/wizard/firstlay.c
+            src/gui/wizard/wizard_load_unload.c
+            src/gui/wizard/wizard_ui.c
+            src/gui/wizard/wizard.c
+            src/gui/wizard/screen_wizard.c
+            src/gui/wizard/xyzcalib.c
+            src/gui/wizard/wizard_progress_bar.c
+            src/gui/screen_home.cpp
+            src/gui/screen_filebrowser.cpp
+            src/gui/screen_menu_preheat.cpp
+            src/gui/status_footer.cpp
+            src/gui/filament.cpp
+            src/gui/menu_vars.cpp
+            src/gui/screen_printing.cpp
+            src/gui/screen_menu_tune.cpp
+            src/gui/screen_PID.cpp
+            src/gui/screen_menu_fw_update.c
+            src/gui/test/screen_test_temperature.cpp
+            src/gui/wizard/selftest_fans_axis.c
+            src/gui/test/screen_mesh_bed_lv.cpp
+            src/gui/wizard/Marlin_PID_wrapper.cpp
+            src/guiapi/src/button_draw.c
+            src/guiapi/src/display.c
+            src/guiapi/src/gui.c
+            src/guiapi/src/term.c
+            src/guiapi/src/guitypes.c
+            src/guiapi/src/window_progress.c
+            src/guiapi/src/window_frame.c
+            src/guiapi/src/gui_timer.c
+            src/guiapi/src/display_helper.c
+            src/guiapi/src/window_menu.c
+            src/guiapi/src/screen.c
+            src/guiapi/src/window_term.c
+            src/guiapi/src/window_list.c
+            src/guiapi/src/jogwheel.c
+            src/guiapi/src/window_numb.c
+            src/guiapi/src/st7789v.c
+            src/guiapi/src/window_icon.c
+            src/guiapi/src/window_spin.c
+            src/guiapi/src/window_text.c
+            src/guiapi/src/window_msgbox.c
+            src/guiapi/src/window.c
+    )
+endif()
+
 set_property(
   SOURCE src/common/version.c
   APPEND
@@ -494,4 +516,17 @@ set_property(
            FW_VERSION=${PROJECT_VERSION}
            FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
            FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
+  )
+
+set_property(
+  SOURCE src/main.c
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
+           HAS_GUI=$<BOOL:${GUI}>
+  )
+
+set_property(
+  SOURCE src/common/bsod.c src/common/appmain.cpp
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )

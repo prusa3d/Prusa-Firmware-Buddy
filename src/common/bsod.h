@@ -34,7 +34,7 @@ void general_error(const char *error, const char *module);
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed);
 
-void ScreenHardFault();
+void ScreenHardFault(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus

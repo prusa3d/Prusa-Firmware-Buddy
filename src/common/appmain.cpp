@@ -176,7 +176,11 @@ void adc_tick_1ms(void) {
 }
 
 void app_tim14_tick(void) {
+#ifndef HAS_GUI
+    #error "HAS_GUI not defined."
+#elif HAS_GUI
     jogwheel_update_1ms();
+#endif
     hwio_update_1ms();
     adc_tick_1ms();
 }

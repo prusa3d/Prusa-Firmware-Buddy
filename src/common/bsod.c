@@ -1,5 +1,10 @@
 // bsod.c - blue screen of death
 #include "bsod.h"
+
+#ifndef HAS_GUI
+    #error "HAS_GUI not defined"
+#elif HAS_GUI
+
 #include "stm32f4xx_hal.h"
 #include "config.h"
 #include "gui.h"
@@ -191,6 +196,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     general_error(error, buff);
 }
 
+
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_list args;
     va_start(args, line_number);
@@ -362,7 +368,7 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName 
 #define ROWS 21
 #define COLS 32
 
-void ScreenHardFault()
+void ScreenHardFault(void)
 {
     __disable_irq(); //disable irq
 
@@ -480,3 +486,10 @@ void ScreenHardFault()
 }
 
 #endif //PSOD_BSOD
+
+#else
+void _bsod(const char *fmt, const char *file_name, int line_number, ...){}
+void general_error(const char *error, const char *module){}
+void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed){}
+void ScreenHardFault(void){}
+#endif
