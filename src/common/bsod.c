@@ -1,33 +1,33 @@
 // bsod.c - blue screen of death
 #include "bsod.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 #ifndef HAS_GUI
     #error "HAS_GUI not defined"
 #elif HAS_GUI
 
-#include "stm32f4xx_hal.h"
-#include "config.h"
-#include "gui.h"
-#include "term.h"
-#include "st7789v.h"
-#include "window_term.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include "safe_state.h"
-#include <inttypes.h>
-#include <inttypes.h>
-#include "jogwheel.h"
-#include "gpio.h"
-#include "sys.h"
-#include "hwio.h"
-#include "version.h"
+    #include "stm32f4xx_hal.h"
+    #include "config.h"
+    #include "gui.h"
+    #include "term.h"
+    #include "st7789v.h"
+    #include "window_term.h"
+    #include <stdio.h>
+    #include <stdarg.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include "safe_state.h"
+    #include <inttypes.h>
+    #include <inttypes.h>
+    #include "jogwheel.h"
+    #include "gpio.h"
+    #include "sys.h"
+    #include "hwio.h"
+    #include "version.h"
 
-/* FreeRTOS includes. */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "StackMacros.h"
+    /* FreeRTOS includes. */
+    #include "StackMacros.h"
 
 //this is private struct definition from FreeRTOS
 /*
@@ -38,9 +38,9 @@
 typedef struct tskTaskControlBlock {
     volatile StackType_t *pxTopOfStack; /*< Points to the location of the last item placed on the tasks stack.  THIS MUST BE THE FIRST MEMBER OF THE TCB STRUCT. */
 
-#if (portUSING_MPU_WRAPPERS == 1)
+    #if (portUSING_MPU_WRAPPERS == 1)
     xMPU_SETTINGS xMPUSettings; /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
-#endif
+    #endif
 
     ListItem_t xStateListItem; /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
     ListItem_t xEventListItem; /*< Used to reference a task from an event list. */
@@ -48,37 +48,37 @@ typedef struct tskTaskControlBlock {
     StackType_t *pxStack; /*< Points to the start of the stack. */
     char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */ /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
-#if (portSTACK_GROWTH > 0)
+    #if (portSTACK_GROWTH > 0)
     StackType_t *pxEndOfStack; /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
-#endif
+    #endif
 
-#if (portCRITICAL_NESTING_IN_TCB == 1)
+    #if (portCRITICAL_NESTING_IN_TCB == 1)
     UBaseType_t uxCriticalNesting; /*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
-#endif
+    #endif
 
-#if (configUSE_TRACE_FACILITY == 1)
+    #if (configUSE_TRACE_FACILITY == 1)
     UBaseType_t uxTCBNumber; /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
     UBaseType_t uxTaskNumber; /*< Stores a number specifically for use by third party trace code. */
-#endif
+    #endif
 
-#if (configUSE_MUTEXES == 1)
+    #if (configUSE_MUTEXES == 1)
     UBaseType_t uxBasePriority; /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
     UBaseType_t uxMutexesHeld;
-#endif
+    #endif
 
-#if (configUSE_APPLICATION_TASK_TAG == 1)
+    #if (configUSE_APPLICATION_TASK_TAG == 1)
     TaskHookFunction_t pxTaskTag;
-#endif
+    #endif
 
-#if (configNUM_THREAD_LOCAL_STORAGE_POINTERS > 0)
+    #if (configNUM_THREAD_LOCAL_STORAGE_POINTERS > 0)
     void *pvThreadLocalStoragePointers[configNUM_THREAD_LOCAL_STORAGE_POINTERS];
-#endif
+    #endif
 
-#if (configGENERATE_RUN_TIME_STATS == 1)
+    #if (configGENERATE_RUN_TIME_STATS == 1)
     uint32_t ulRunTimeCounter; /*< Stores the amount of time the task has spent in the Running state. */
-#endif
+    #endif
 
-#if (configUSE_NEWLIB_REENTRANT == 1)
+    #if (configUSE_NEWLIB_REENTRANT == 1)
     /* Allocate a Newlib reent structure that is specific to this task.
 		Note Newlib support has been included by popular demand, but is not
 		used by the FreeRTOS maintainers themselves.  FreeRTOS is not
@@ -87,22 +87,22 @@ typedef struct tskTaskControlBlock {
 		stubs. Be warned that (at the time of writing) the current newlib design
 		implements a system-wide malloc() that must be provided with locks. */
     struct _reent xNewLib_reent;
-#endif
+    #endif
 
-#if (configUSE_TASK_NOTIFICATIONS == 1)
+    #if (configUSE_TASK_NOTIFICATIONS == 1)
     volatile uint32_t ulNotifiedValue;
     volatile uint8_t ucNotifyState;
-#endif
+    #endif
 
-/* See the comments above the definition of
+    /* See the comments above the definition of
 	tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE. */
-#if (tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0)
+    #if (tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0)
     uint8_t ucStaticallyAllocated; /*< Set to pdTRUE if the task is a statically allocated to ensure no attempt is made to free the memory. */
-#endif
+    #endif
 
-#if (INCLUDE_xTaskAbortDelay == 1)
+    #if (INCLUDE_xTaskAbortDelay == 1)
     uint8_t ucDelayAborted;
-#endif
+    #endif
 
 } tskTCB;
 
@@ -113,12 +113,12 @@ typedef tskTCB TCB_t;
 //current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
-#ifndef _DEBUG
+    #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif //_DEBUG
+    #endif //_DEBUG
 
-#define PADDING 10
-#define X_MAX (display->w - PADDING * 2)
+    #define PADDING 10
+    #define X_MAX (display->w - PADDING * 2)
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -180,9 +180,9 @@ void general_error(const char *error, const char *module) {
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
-#ifndef _DEBUG
+    #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg);
-#endif //_DEBUG
+    #endif //_DEBUG
         if (!gpio_get(jogwheel_config.pinENC))
             sys_reset(); //button press
     }
@@ -196,7 +196,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     general_error(error, buff);
 }
 
-
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_list args;
     va_start(args, line_number);
@@ -209,12 +208,12 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     stop_common();
 
-#ifdef PSOD_BSOD
+    #ifdef PSOD_BSOD
     display->clear(COLOR_BLACK); //clear with black color
     //display->draw_icon(point_ui16(75, 40), IDR_PNG_icon_pepa, COLOR_BLACK, 0);
     display->draw_icon(point_ui16(75, 40), IDR_PNG_icon_pepa_psod, COLOR_BLACK, 0);
     display->draw_text(rect_ui16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
-#else
+    #else
     display->clear(COLOR_NAVY); //clear with dark blue color
     term_t term; //terminal structure
     uint8_t buff[TERM_BUFF_SIZE(20, 16)]; //terminal buffer for 20x16
@@ -258,13 +257,13 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     }
 
     print_error(&term, COLOR_NAVY);
-#endif
+    #endif
 
     while (1) //endless loop
     {
-#ifndef _DEBUG
+    #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif //_DEBUG
+    #endif //_DEBUG
 
         //TODO: safe delay with sleep
     }
@@ -272,7 +271,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_end(args);
 }
 
-#ifdef configCHECK_FOR_STACK_OVERFLOW
+    #ifdef configCHECK_FOR_STACK_OVERFLOW
 
 static TaskHandle_t tsk_hndl = 0;
 static signed char *tsk_name = 0;
@@ -285,11 +284,10 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName 
 	else _bsod("STACK OVERFLOW\nHANDLE %p\nTaskname ERROR", 0, 0, xTask);
 }
 
-#endif//configCHECK_FOR_STACK_OVERFLOW
+    #endif //configCHECK_FOR_STACK_OVERFLOW
 
-#ifndef PSOD_BSOD
-//https://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
-
+    #ifndef PSOD_BSOD
+    //https://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
 
 
 /*
@@ -320,56 +318,57 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName 
 +--------------------------------------------------------+-------------+-----------------+-------------+
 */
 
-#define IACCVIOL_Msk    (1UL << 0)
-#define DACCVIOL_Msk    (1UL << 1)
-#define MSTKERR_Msk     (1UL << 4)
-#define MUNSTKERR_Msk   (1UL << 3)
-#define MLSPERR_Msk     (1UL << 5)
-
-#define IACCVIOL_Txt    "Fault on instruction access"
-#define DACCVIOL_Txt    "Fault on direct data access"
-#define MSTKERR_Txt     "Context stacking, because of an MPU access violation"
-#define MUNSTKERR_Txt   "Context unstacking, because of an MPU access violation"
-#define MLSPERR_Txt     "During lazy floating-point state preservation"
-
-#define MMARVALID_Msk   (1UL << 7)// MemManage Fault Address Register (MMFAR) valid flag:
-
-#define STKERR_Msk      (1UL << 12)
-#define UNSTKERR_Msk    (1UL << 11)
-#define IBUSERR_Msk     (1UL << 8)
-#define LSPERR_Msk      (1UL << 13)
-#define PRECISERR_Msk   (1UL << 9)
-#define IMPRECISERR_Msk (1UL << 10)
-
-#define STKERR_Txt       "During exception stacking"
-#define UNSTKERR_Txt     "During exception unstacking"
-#define IBUSERR_Txt      "During instruction prefetching, precise"
-#define LSPERR_Txt       "During lazy floating-point state preservation "
-#define PRECISERR_Txt    "Precise data access error, precise"
-#define IMPRECISERR_Txt  "Imprecise data access error, imprecise"
-
-#define BFARVALID_Msk   (1UL << 15)// MemManage Fault Address Register (MMFAR) valid flag:
-
-#define UNDEFINSTR_Msk  (1UL << 16)
-#define INVSTATE_Msk    (1UL << 17)
-#define INVPC_Msk       (1UL << 18)
-#define NOCPC_Msk       (1UL << 19)
-#define UNALIGNED_Msk   (1UL << 24)
-#define DIVBYZERO_Msk   (1UL << 25)
-
-#define UNDEFINSTR_Txt  "Undefined instruction"
-#define INVSTATE_Txt    "Attempt to enter an invalid instruction set state "
-#define INVPC_Txt       "Failed integrity check on exception return  "
-#define NOCPC_Txt       "Attempt to access a non-existing coprocessor"
-#define UNALIGNED_Txt   "Illegal unaligned load or store"
-#define DIVBYZERO_Txt   "Divide By 0"
-//#define STKOF (1UL << 0)
-
-#define ROWS 21
-#define COLS 32
 
 void ScreenHardFault(void)
 {
+        #define IACCVIOL_Msk (1UL << 0)
+        #define DACCVIOL_Msk (1UL << 1)
+        #define MSTKERR_Msk (1UL << 4)
+        #define MUNSTKERR_Msk (1UL << 3)
+        #define MLSPERR_Msk (1UL << 5)
+
+        #define IACCVIOL_Txt "Fault on instruction access"
+        #define DACCVIOL_Txt "Fault on direct data access"
+        #define MSTKERR_Txt "Context stacking, because of an MPU access violation"
+        #define MUNSTKERR_Txt "Context unstacking, because of an MPU access violation"
+        #define MLSPERR_Txt "During lazy floating-point state preservation"
+
+        #define MMARVALID_Msk (1UL << 7) // MemManage Fault Address Register (MMFAR) valid flag:
+
+        #define STKERR_Msk (1UL << 12)
+        #define UNSTKERR_Msk (1UL << 11)
+        #define IBUSERR_Msk (1UL << 8)
+        #define LSPERR_Msk (1UL << 13)
+        #define PRECISERR_Msk (1UL << 9)
+        #define IMPRECISERR_Msk (1UL << 10)
+
+        #define STKERR_Txt "During exception stacking"
+        #define UNSTKERR_Txt "During exception unstacking"
+        #define IBUSERR_Txt "During instruction prefetching, precise"
+        #define LSPERR_Txt "During lazy floating-point state preservation "
+        #define PRECISERR_Txt "Precise data access error, precise"
+        #define IMPRECISERR_Txt "Imprecise data access error, imprecise"
+
+        #define BFARVALID_Msk (1UL << 15) // MemManage Fault Address Register (MMFAR) valid flag:
+
+        #define UNDEFINSTR_Msk (1UL << 16)
+        #define INVSTATE_Msk (1UL << 17)
+        #define INVPC_Msk (1UL << 18)
+        #define NOCPC_Msk (1UL << 19)
+        #define UNALIGNED_Msk (1UL << 24)
+        #define DIVBYZERO_Msk (1UL << 25)
+
+        #define UNDEFINSTR_Txt "Undefined instruction"
+        #define INVSTATE_Txt "Attempt to enter an invalid instruction set state "
+        #define INVPC_Txt "Failed integrity check on exception return  "
+        #define NOCPC_Txt "Attempt to access a non-existing coprocessor"
+        #define UNALIGNED_Txt "Illegal unaligned load or store"
+        #define DIVBYZERO_Txt "Divide By 0"
+        //#define STKOF (1UL << 0)
+
+        #define ROWS 21
+        #define COLS 32
+
     __disable_irq(); //disable irq
 
     char tskName[configMAX_TASK_NAME_LEN];
@@ -449,14 +448,13 @@ void ScreenHardFault(void)
     term_printf(&term, "pc :%08x", pc);
     term_printf(&term, "psr:%08x", psr);*/
 
-
     //const int addr_string_len = 10;//"0x12345678"
     const int strings_per_row = 3;
-    int available_rows  = term.rows - term.row - 1;
+    int available_rows = term.rows - term.row - 1;
     //int available_chars = available_rows * COLS;
     int stack_sz = pTopOfStack - pBotOfStack;
     //int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
-    int requested_rows = stack_sz/3;
+    int requested_rows = stack_sz / 3;
 
     StackType_t *lastAddr;
     if (requested_rows < available_rows) lastAddr = pBotOfStack - 1;
@@ -464,32 +462,30 @@ void ScreenHardFault(void)
 
     int space_counter = 0; //3rd string does not have a space behind it
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
-        space_counter ++;
+        space_counter++;
         term_printf(&term, "0x%08x", *i);
         if (space_counter % 3)term_printf(&term," ");
     }
 
-
     render_term(rect_ui16(10, 10, 220, 288), &term, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
     display->draw_text(rect_ui16(10, 290, 220, 20), project_version_full, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 
-
     while (1) //endless loop
     {
-#ifndef _DEBUG
+        #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif //_DEBUG
+        #endif //_DEBUG
 
         //TODO: safe delay with sleep
     }
-
 }
 
-#endif //PSOD_BSOD
+    #endif //PSOD_BSOD
 
-#else
-void _bsod(const char *fmt, const char *file_name, int line_number, ...){}
-void general_error(const char *error, const char *module){}
-void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed){}
-void ScreenHardFault(void){}
-#endif
+#else //HAS_GUI
+void _bsod(const char *fmt, const char *file_name, int line_number, ...) {}
+void general_error(const char *error, const char *module) {}
+void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {}
+void ScreenHardFault(void) {}
+void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {}
+#endif //HAS_GUI
