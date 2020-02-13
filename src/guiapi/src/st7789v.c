@@ -655,6 +655,7 @@ void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t r
 
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
+uint32_t png_mem_max = 0;
 void *png_mem_ptrs[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_sizes[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
@@ -678,6 +679,8 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
         png_mem_sizes[i] = size;
         png_mem_total += size;
         png_mem_cnt++;
+        if (png_mem_max < png_mem_total)
+        	png_mem_max = png_mem_total;
     }
     return p;
 }

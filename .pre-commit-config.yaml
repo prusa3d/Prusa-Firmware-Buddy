@@ -25,4 +25,3 @@ repos:
       args: [--markdown-linebreak-ext=md]
     - id: end-of-file-fixer
     - id: mixed-line-ending
-      args: ['--fix=lf']

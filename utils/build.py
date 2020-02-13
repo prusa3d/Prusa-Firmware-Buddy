@@ -40,6 +40,12 @@ def bootstrap(*args, interactive=False, check=False):
     return result
 
 
+def project_version():
+    """Return current project version (e. g. "4.0.3")"""
+    with open(project_root / 'version.txt', 'r') as f:
+        return f.read().strip()
+
+
 @lru_cache()
 def get_dependency(name):
     install_dir = Path(
@@ -121,7 +127,8 @@ class FirmwareBuildConfiguration(BuildConfiguration):
                  generator: str = None,
                  generate_bbf: bool = False,
                  signing_key: Path = None,
-                 prerelease: str = None):
+                 version_suffix: str = None,
+                 version_suffix_short: str = None):
         self.printer = printer
         self.bootloader = bootloader
         self.build_type = build_type
@@ -130,7 +137,8 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         self.generator = generator
         self.generate_bbf = generate_bbf
         self.signing_key = signing_key
-        self.prerelease = prerelease.upper() if prerelease else None
+        self.version_suffix = version_suffix
+        self.version_suffix_short = version_suffix_short
 
     @staticmethod
     def default_toolchain() -> Path:
@@ -145,7 +153,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         else:
             generate_bbf = False
             signing_key_flg = ''
-        prerelease_flg = self.prerelease or ''
         entries = []
         if self.generator.lower() == 'ninja':
             entries.append(('CMAKE_MAKE_PROGRAM', 'FILEPATH',
@@ -157,8 +164,10 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             ('GENERATE_BBF', 'STRING', str(generate_bbf).upper()),
             ('SIGNING_KEY', 'FILEPATH', str(signing_key_flg)),
             ('CMAKE_TOOLCHAIN_FILE', 'FILEPATH', str(self.toolchain)),
-            ('PRERELEASE', 'STRING', prerelease_flg),
             ('CMAKE_BUILD_TYPE', 'STRING', self.build_type.value.title()),
+            ('PROJECT_VERSION_SUFFIX', 'STRING', self.version_suffix or ''),
+            ('PROJECT_VERSION_SUFFIX_SHORT', 'STRING',
+             self.version_suffix_short or ''),
         ])
         return entries
 
@@ -177,8 +186,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             self.build_type.value,
             self.bootloader.file_component,
         ]
-        if self.prerelease:
-            components.append(self.prerelease)
         return '_'.join(components)
 
 
@@ -431,8 +438,16 @@ def store_products(products: List[Path], build_config: BuildConfiguration,
     """Copy build products to a shared products directory."""
     products_dir.mkdir(parents=True, exist_ok=True)
     for product in products:
-        destination = products_dir / (build_config.name.lower() +
-                                      product.suffix)
+        is_firmware = isinstance(build_config, FirmwareBuildConfiguration)
+        has_custom_suffix = is_firmware and (build_config.version_suffix !=
+                                             '<auto>')
+        if has_custom_suffix:
+            version = project_version()
+            name = build_config.name.lower(
+            ) + '_' + version + build_config.version_suffix
+        else:
+            name = build_config.name.lower()
+        destination = products_dir / (name + product.suffix)
         shutil.copy(product, destination)
 
 
@@ -477,16 +492,19 @@ def main():
         type=Path,
         help='A PEM private key to be used to generate .bbf version.')
     parser.add_argument(
-        '--prerelease',
+        '--version-suffix',
         type=str,
-        default='beta',
-        help='Type of this release (default: beta; use --final for final builds).')
+        default='<auto>',
+        help='Version suffix (e.g. -BETA+1035.PR111.B4)')
+    parser.add_argument(
+        '--version-suffix-short',
+        type=str,
+        default='<auto>',
+        help='Version suffix (e.g. +1035)')
     parser.add_argument(
         '--final',
-        action='store_const',
-        const=None,
-        dest='prerelease',
-        help='Disable prerelease.')
+        action='store_true',
+        help='Set\'s --version-suffix and --version-suffix-short to empty string.')
     parser.add_argument(
         '--build-dir',
         type=Path,
@@ -538,6 +556,10 @@ def main():
         __file__).resolve().parent.parent / 'build'
     products_dir_root = args.products_dir or (build_dir_root / 'products')
 
+    if args.final:
+        args.version_suffix = ''
+        args.version_suffix_short = ''
+
     if args.generate_cproject:
         args.build_type = list(BuildType)
         args.host_tools = True
@@ -550,15 +572,16 @@ def main():
 
     # prepare configurations
     configurations = [
-        FirmwareBuildConfiguration(printer=printer,
-                                   bootloader=bootloader,
-                                   build_type=build_type,
-                                   generate_bbf=args.generate_bbf,
-                                   signing_key=args.signing_key,
-                                   prerelease=args.prerelease,
-                                   generator=args.generator)
-        for printer in args.printer for build_type in args.build_type
-        for bootloader in args.bootloader
+        FirmwareBuildConfiguration(
+            printer=printer,
+            bootloader=bootloader,
+            build_type=build_type,
+            generate_bbf=args.generate_bbf,
+            signing_key=args.signing_key,
+            version_suffix=args.version_suffix,
+            version_suffix_short=args.version_suffix_short,
+            generator=args.generator) for printer in args.printer
+        for build_type in args.build_type for bootloader in args.bootloader
     ]
     if args.host_tools:
         configurations.extend([

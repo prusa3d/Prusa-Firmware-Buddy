@@ -12,10 +12,11 @@ add_library(
   Marlin/Marlin/src/feature/bedlevel/abl/abl.cpp
   Marlin/Marlin/src/feature/bedlevel/bedlevel.cpp
   Marlin/Marlin/src/feature/bedlevel/mbl/mesh_bed_leveling.cpp
+  Marlin/Marlin/src/feature/bedlevel/ubl/ubl.cpp
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl_G29.cpp
+  Marlin/Marlin/src/feature/bedlevel/ubl/ubl_motion.cpp
   Marlin/Marlin/src/feature/binary_protocol.cpp
   Marlin/Marlin/src/feature/joystick.cpp
-  Marlin/Marlin/src/feature/pause.cpp
   Marlin/Marlin/src/feature/runout.cpp
   Marlin/Marlin/src/feature/safety_timer.cpp
   Marlin/Marlin/src/feature/spindle_laser.cpp
@@ -23,9 +24,12 @@ add_library(
   Marlin/Marlin/src/feature/touch/xpt2046.cpp
   Marlin/Marlin/src/gcode/bedlevel/abl/G29.cpp
   Marlin/Marlin/src/gcode/bedlevel/abl/M421.cpp
+  Marlin/Marlin/src/gcode/bedlevel/G26.cpp
   Marlin/Marlin/src/gcode/bedlevel/G42.cpp
   Marlin/Marlin/src/gcode/bedlevel/M420.cpp
   Marlin/Marlin/src/gcode/bedlevel/mbl/G29.cpp
+  Marlin/Marlin/src/gcode/bedlevel/ubl/G29.cpp
+  Marlin/Marlin/src/gcode/bedlevel/ubl/M421.cpp
   Marlin/Marlin/src/gcode/calibrate/G28.cpp
   Marlin/Marlin/src/gcode/config/M200-M205.cpp
   Marlin/Marlin/src/gcode/config/M220.cpp
@@ -52,10 +56,6 @@ add_library(
   Marlin/Marlin/src/gcode/control/T.cpp
   Marlin/Marlin/src/gcode/eeprom/M500-M504.cpp
   Marlin/Marlin/src/gcode/feature/advance/M900.cpp
-  Marlin/Marlin/src/gcode/feature/pause/G27.cpp
-  Marlin/Marlin/src/gcode/feature/pause/M125.cpp
-  Marlin/Marlin/src/gcode/feature/pause/M603.cpp
-  Marlin/Marlin/src/gcode/feature/pause/M701_M702.cpp
   Marlin/Marlin/src/gcode/feature/runout/M412.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M122.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M569.cpp

@@ -3,27 +3,6 @@
 #define _CONFIG_H
 
 //--------------------------------------
-//version and buildnumber
-#if !defined(FW_VERSION)
-    #error "FW_VERSION not defined"
-#endif
-
-#if !defined(FW_BUILDNR)
-    #error "FW_BUILDNR not defined"
-#endif
-
-#if !defined(FW_BUILDSX)
-    #define FW_BUILDSX "" //build suffix
-#endif
-
-// convert PRERELEASE macro to string literal PRERELEASE_STR
-#ifdef PRERELEASE
-    #define PRERELEASE_QUOTE(arg) #arg
-    #define PRERELEASE_STR_(macro) PRERELEASE_QUOTE(macro)
-    #define PRERELEASE_STR PRERELEASE_STR_(PRERELEASE)
-#endif
-
-//--------------------------------------
 //printer variants
 #define PRINTER_PRUSA_MINI 2 //MINI printer
 

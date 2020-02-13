@@ -52,7 +52,6 @@ void screen_wizard_init(screen_t *screen) {
     pd->selftest.fans_axis_data.state_x = init_state(_STATE_SELFTEST_X);
     pd->selftest.fans_axis_data.state_y = init_state(_STATE_SELFTEST_Y);
     pd->selftest.fans_axis_data.state_z = init_state(_STATE_SELFTEST_Z);
-    pd->selftest.home_data.state_home = init_state(_STATE_SELFTEST_HOME);
     pd->selftest.cool_data.state_cool = init_state(_STATE_SELFTEST_COOL);
     pd->selftest.temp_data.state_preheat_nozzle = init_state(_STATE_SELFTEST_TEMP);
     pd->selftest.temp_data.state_preheat_bed = init_state(_STATE_SELFTEST_TEMP);
@@ -104,13 +103,11 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     int16_t footer_id = pd->frame_footer.win.id;
     int16_t frame_id = pd->frame_body.win.id;
     selftest_fans_axis_screen_t *p_selftest_fans_axis_screen = &(pd->screen_variant.selftest_fans_axis_screen);
-    selftest_home_screen_t *p_selftest_home_screen = &(pd->screen_variant.selftest_home_screen);
     selftest_cool_screen_t *p_selftest_cool_screen = &(pd->screen_variant.selftest_cool_screen);
     selftest_temp_screen_t *p_selftest_temp_screen = &(pd->screen_variant.selftest_temp_screen);
     selftest_data_t *p_selftest_data = &(pd->selftest);
     selftest_cool_data_t *p_selftest_cool_data = &(pd->selftest.cool_data);
     selftest_temp_data_t *p_selftest_temp_data = &(pd->selftest.temp_data);
-    selftest_home_data_t *p_selftest_home_data = &(pd->selftest.home_data);
     selftest_fans_axis_data_t *p_selftest_fans_axis_data = &(pd->selftest.fans_axis_data);
     firstlay_screen_t *p_firstlay_screen = &(pd->screen_variant.firstlay_screen);
     firstlay_data_t *p_firstlay_data = &(pd->firstlay);
@@ -215,10 +212,6 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 break;
             case _STATE_SELFTEST_Z:
                 if (wizard_selftest_z(frame_id, p_selftest_fans_axis_screen, p_selftest_fans_axis_data) == 100)
-                    pd->state = _STATE_SELFTEST_HOME;
-                break;
-            case _STATE_SELFTEST_HOME:
-                if (wizard_selftest_home(frame_id, p_selftest_home_screen, p_selftest_home_data) == 100)
                     pd->state = _STATE_SELFTEST_COOL;
                 break;
             case _STATE_SELFTEST_COOL:
@@ -504,7 +497,6 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_SELFTEST_X:
     case _STATE_SELFTEST_Y:
     case _STATE_SELFTEST_Z:
-    case _STATE_SELFTEST_HOME:
     case _STATE_SELFTEST_COOL:
     case _STATE_SELFTEST_INIT_TEMP:
     case _STATE_SELFTEST_TEMP:

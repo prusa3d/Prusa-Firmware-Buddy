@@ -50,8 +50,9 @@ extern "C" {
     /* Includes ------------------------------------------------------------------*/
     #include "stm32f4xx_hal.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+    /* Private includes ----------------------------------------------------------*/
+    /* USER CODE BEGIN Includes */
+    #include "../src/common/uartrxbuff.h"
 
 /* USER CODE END Includes */
 
@@ -62,6 +63,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+extern uartrxbuff_t uart1rxbuff;
 
 /* USER CODE END EC */
 

@@ -23,20 +23,18 @@
 static volatile fsensor_t state = FS_NOT_INICIALIZED;
 static volatile fsensor_t last_state = FS_NOT_INICIALIZED;
 
-
-typedef enum{
+typedef enum {
     M600_on_edge  = 0,
     M600_on_level = 1,
     M600_never    = 2
-}
-send_M600_on_t;
+} send_M600_on_t;
 
 typedef struct{
     uint8_t M600_sent;
     uint8_t send_M600_on;
     uint8_t meas_cycle;
 }status_t;
-static status_t status = { 0, M600_on_edge, 0};
+static status_t status = { 0, M600_on_edge, 0 };
 
 /*---------------------------------------------------------------------------*/
 //debug functions
@@ -98,22 +96,19 @@ int fs_did_filament_runout() {
     return state == FS_NO_FILAMENT;
 }
 
-void fs_send_M600_on_edge()
-{
+void fs_send_M600_on_edge() {
 	taskENTER_CRITICAL();
     status.send_M600_on = M600_on_edge;
     taskEXIT_CRITICAL();
 }
 
-void fs_send_M600_on_level()
-{
+void fs_send_M600_on_level() {
 	taskENTER_CRITICAL();
     status.send_M600_on = M600_on_level;
     taskEXIT_CRITICAL();
 }
 
-void fs_send_M600_never()
-{
+void fs_send_M600_never() {
 	taskENTER_CRITICAL();
     status.send_M600_on = M600_never;
     taskEXIT_CRITICAL();
@@ -188,14 +183,12 @@ void fs_init_never() {
     fs_send_M600_never();
 }
 
-
 /*---------------------------------------------------------------------------*/
 //methods called only in fs_cycle
-static void _injectM600()
-{
+static void _injectM600() {
     marlin_vars_t* vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
     if (status.M600_sent == 0 && vars->sd_printing) {
-        marlin_gcode_push_front("M600");//change filament
+        marlin_gcode_push_front("M600"); //change filament
         status.M600_sent = 1;
     }
 }
@@ -203,20 +196,19 @@ static void _injectM600()
 static void _cycle0() {
     if (gpio_get(PIN_FSENSOR) == 1) {
         gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLDOWN, GPIO_SPEED_FREQ_VERY_HIGH); // pulldown
-        status.meas_cycle = 1;//next cycle shall be 1
+        status.meas_cycle = 1; //next cycle shall be 1
     } else {
         int had_filament = state == FS_HAS_FILAMENT ? 1 : 0;
-        _set_state(FS_NO_FILAMENT);//it is filtered, 2 requests are needed to change state
+        _set_state(FS_NO_FILAMENT); //it is filtered, 2 requests are needed to change state
         //M600_on_edge == inject after state was changed from FS_HAS_FILAMENT to FS_NO_FILAMENT
         //M600_on_level == inject on FS_NO_FILAMENT
         //M600_never == do not inject
-        if (state == FS_NO_FILAMENT)
-        {
-            switch (status.send_M600_on)
-            {
+        if (state == FS_NO_FILAMENT) {
+            switch (status.send_M600_on) {
             case M600_on_edge:
-                if (!had_filament) break;
-                //if had_filament == 1 - do not break
+                if (!had_filament)
+                    break;
+                // no break if had_filament == 1
             case M600_on_level:
                 _injectM600();
                 break;
@@ -226,7 +218,7 @@ static void _cycle0() {
             }
         }
 
-        status.meas_cycle = 0;//remain in cycle 0
+        status.meas_cycle = 0; //remain in cycle 0
     }
 }
 
@@ -235,7 +227,7 @@ static void _cycle1() {
     //pulldown was set in cycle 0
     _set_state(gpio_get(PIN_FSENSOR) == 1 ? FS_HAS_FILAMENT : FS_NOT_CONNECTED);
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
-    status.meas_cycle = 0;//next cycle shall be 0
+    status.meas_cycle = 0; //next cycle shall be 0
 }
 
 //dealay between calls must be 1us or longer

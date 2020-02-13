@@ -56,11 +56,7 @@ void wizard_run_complete(void) {
 }
 
 void wizard_run_selftest(void) {
-    //wizard_run_mask(_STATE_MASK_SELFTEST);
-    uint64_t mask = (_STATE_MASK(_STATE_SELFTEST_INIT) | _STATE_MASK(_STATE_SELFTEST_FAN0) | _STATE_MASK(_STATE_SELFTEST_FAN1) | _STATE_MASK(_STATE_SELFTEST_X) | _STATE_MASK(_STATE_SELFTEST_Y) |
-        //_STATE_MASK(_STATE_SELFTEST_Z) |
-        _STATE_MASK(_STATE_SELFTEST_HOME) | _STATE_MASK(_STATE_SELFTEST_COOL) | _STATE_MASK(_STATE_SELFTEST_INIT_TEMP) | _STATE_MASK(_STATE_SELFTEST_TEMP) | _STATE_MASK(_STATE_SELFTEST_PASS) | _STATE_MASK(_STATE_SELFTEST_FAIL) | _STATE_MASK(_STATE_LAST));
-    wizard_run_mask(mask);
+    wizard_run_mask(_STATE_MASK_SELFTEST);
 }
 
 void wizard_run_xyzcalib(void) {

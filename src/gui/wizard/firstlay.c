@@ -286,10 +286,6 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
         "M83", /*extruder relative mode*/
 
 #define V__GCODES_HEAD_END                   \
-    "G28 X", /*HOME X MUST BE ONLY X*/       \
-        X_home_gcode, /*Set X pos */         \
-        "G28 Y", /*HOME Y MUST BE ONLY Y*/   \
-        Y_home_gcode, /*Set Y pos */         \
         "G28", /*autohome*/                  \
         "G29", /*meshbed leveling*/          \
         "G21", /* set units to millimeters*/ \
@@ -337,7 +333,7 @@ const char *V2_gcodes_head_FLEX[] = {
 };
 const size_t V2_gcodes_head_FLEX_sz = sizeof(V2_gcodes_head_FLEX) / sizeof(V2_gcodes_head_FLEX[0]);
 
-//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575‬
+//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
 
 //todo generate me
 const char *V2_gcodes_body[] = {
@@ -365,12 +361,12 @@ const char *V2_gcodes_body[] = {
     "G1 X170 Y50  E0.665",
     "G1 X10  Y50  E5.322",
 
-	//frame around
-    "G1 X10    Y17    E1.371975",//33 * 0.041575 = 1.371975
-    "G1 X31    Y17    E1.288825",//31 * 0.041575 = 1.288825
-    "G1 X31    Y30.5  E0.5612625",//13.5 * 0.041575 = 0.5612625
-    "G1 X10.5  Y30.5  E0.832",//20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
-    "G1 X10.5  Y30.0  E0.0208",//0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
+    //frame around
+    "G1 X10    Y17    E1.371975", //33 * 0.041575 = 1.371975
+    "G1 X31    Y17    E1.288825", //31 * 0.041575 = 1.288825
+    "G1 X31    Y30.5  E0.5612625", //13.5 * 0.041575 = 0.5612625
+    "G1 X10.5  Y30.5  E0.832", //20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
+    "G1 X10.5  Y30.0  E0.0208", //0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
 
     "G1 F1000",
     "G1 X30.5  Y30.0  E0.832",
