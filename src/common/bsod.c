@@ -253,8 +253,15 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     pc = strrchr(file_name, '\\');
     if (pc != 0)
         file_name = pc + 1;
+    {
+		char text[TERM_PRINTF_MAX];
 
-    vterm_printf(&term, fmt, args); //print text to terminal
+		int ret = vsnprintf(text, sizeof(text), fmt, args);
+
+		const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
+		for (size_t i = 0; i < range; i++)
+			term_write_char(&term, text[i]);
+    }
     term_printf(&term, "\n");
     if (file_name != 0)
         term_printf(&term, "%s", file_name); //print filename
