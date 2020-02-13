@@ -111,7 +111,7 @@ below to enable the use of older kernel aware debuggers. */
 typedef tskTCB TCB_t;
 
 //current thread from FreeRTOS
-extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
+extern TCB_t *volatile pxCurrentTCB;
 
     #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
@@ -125,8 +125,8 @@ static void stop_common(void) {
     hwio_safe_state();
     st7789v_enable_safe_mode();
     hwio_beeper_set_pwm(0, 0);
-    display->init();
-    display->init();
+    st7789v_safe_init();
+    st7789v_safe_init();
 }
 
 //! @brief print white error message on background
@@ -136,8 +136,8 @@ static void stop_common(void) {
 //! @param term input message
 //! @param background_color background color
 static void print_error(term_t *term, color_t background_color) {
-    render_term(rect_ui16(10, 10, 220, 288), term, gui_defaults.font, background_color, COLOR_WHITE);
-    display->draw_text(rect_ui16(10, 290, 220, 20), project_version_full, gui_defaults.font, background_color, COLOR_WHITE);
+    render_term(rect_ui16(10, 10, 220, 288), term, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    display->draw_text(rect_ui16(10, 290, 220, 20), project_version_full, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
 }
 
 //! @brief Marlin stopped
@@ -227,8 +227,15 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     pc = strrchr(file_name, '\\');
     if (pc != 0)
         file_name = pc + 1;
+    {
+		char text[TERM_PRINTF_MAX];
 
-    vterm_printf(&term, fmt, args); //print text to terminal
+		int ret = vsnprintf(text, sizeof(text), fmt, args);
+
+		const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
+		for (size_t i = 0; i < range; i++)
+			term_write_char(&term, text[i]);
+    }
     term_printf(&term, "\n");
     if (file_name != 0)
         term_printf(&term, "%s", file_name); //print filename

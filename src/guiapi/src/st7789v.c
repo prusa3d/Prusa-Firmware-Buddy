@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
+#include "guimain.h"
 
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"
@@ -324,10 +325,7 @@ void st7789v_reset(void) {
     st7789v_reset_delay = delay;
 }
 
-void st7789v_init(void) {
-#ifdef ST7789V_USE_RTOS
-    st7789v_task_handle = osThreadGetId();
-#endif //ST7789V_USE_RTOS
+static void init_common(void) {
     if (st7789v_flg & ST7789V_FLG_SAFE)
         st7789v_flg &= ~ST7789V_FLG_DMA;
     else
@@ -341,6 +339,19 @@ void st7789v_init(void) {
     st7789v_cmd_colmod(st7789v_config.colmod); // memory data access control
     st7789v_cmd_dispon(); // display on
     st7789v_delay_ms(10); // 10ms wait
+}
+
+void st7789v_safe_init(void)
+{
+	st7789v_config = guimain_st7789v_cfg;
+	init_common();
+}
+
+void st7789v_init(void) {
+#ifdef ST7789V_USE_RTOS
+    st7789v_task_handle = osThreadGetId();
+#endif //ST7789V_USE_RTOS
+    init_common();
 }
 
 void st7789v_done(void) {

@@ -176,26 +176,18 @@ void term_write_char(term_t *pt, uint8_t ch) {
 }
 
 int term_printf(term_t *pt, const char *fmt, ...) {
-    int ret;
-
     va_list va;
     va_start(va, fmt);
 
-    ret = vterm_printf(pt, fmt, va);
+    char text[TERM_PRINTF_MAX];
+
+    int ret = vsnprintf(text, sizeof(text), fmt, va);
+
+    const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
+    for (size_t i = 0; i < range; i++)
+        term_write_char(pt, text[i]);
+
     va_end(va);
 
-    return ret;
-}
-
-//va_list version  ... callable in variadic functions
-int vterm_printf(term_t *pt, const char *fmt, va_list va) {
-    char text[TERM_PRINTF_MAX];
-    int ret;
-    int i;
-
-    ret = vsnprintf(text, sizeof(text), fmt, va);
-
-    for (i = 0; i < ret; i++)
-        term_write_char(pt, text[i]);
     return ret;
 }
