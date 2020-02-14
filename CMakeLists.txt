@@ -401,6 +401,7 @@ target_sources(
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
           src/marlin_stubs/G28.cpp
+          src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp

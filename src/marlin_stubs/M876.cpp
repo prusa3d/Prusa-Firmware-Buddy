@@ -19,13 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "../../inc/MarlinConfig.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
 #if ENABLED(HOST_PROMPT_SUPPORT) && DISABLED(EMERGENCY_PARSER)
 
-#include "../../feature/host_actions.h"
-#include "../gcode.h"
-#include "../../Marlin.h"
+#include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
+#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../lib/Marlin/Marlin/src/Marlin.h"
 
 /**
  * M876: Handle Prompt Response
