@@ -393,7 +393,13 @@
 #define HEATER_3_MAXTEMP 275
 #define HEATER_4_MAXTEMP 275
 #define HEATER_5_MAXTEMP 275
-#define BED_MAXTEMP 125
+// Beware: this is the absolute temperature limit.
+// The MINI cannot normally reach 110C.
+// Thus all usage in the UI must be lowered by 10C to offer a valid temperature limit.
+// Those 10C are a safety margin used throughout the whole Marlin code
+// (without a proper #define though :( )
+#define BED_MAXTEMP 110
+#define BED_MAXTEMP_SAFETY_MARGIN 10
 #define CHAMBER_MAXTEMP 100
 
 //===========================================================================
