@@ -12,8 +12,6 @@ add_library(
   src/api/netifapi.c
   src/api/sockets.c
   src/api/tcpip.c
-  src/apps/http/fs.c
-  src/apps/http/httpd.c
   src/core/def.c
   src/core/dns.c
   src/core/inet_chksum.c
@@ -86,7 +84,6 @@ target_include_directories(
          src/include
          src/include/netif/ppp
          src/include/lwip
-         src/include/lwip/apps
          src/include/lwip/priv
          src/include/lwip/prot
          src/include/netif
