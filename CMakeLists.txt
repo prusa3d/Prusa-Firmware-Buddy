@@ -104,6 +104,7 @@ set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
+set(WUI YES)
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
@@ -189,7 +190,9 @@ target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 # Configure LwIP
 #
 
-add_library(LwIP212_Config ALIAS A3idesHeaders)
+add_library(LwIP_Config INTERFACE)
+target_include_directories(LwIP_Config INTERFACE src/wui src/wui/resources)
+target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 
 #
 # Configure FatFs
@@ -314,18 +317,17 @@ elseif(SIGNING_KEY)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/wui
+  firmware
+  PRIVATE include
+          src/common
+          src/gui
+          src/gui/dialogs
+          src/guiapi/include
+          src/wui
+          src/wui/http
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
-
-# generate datetime string (RFC1123) to be used by web ui
-rfc1123_datetime(RFC1123_DATETIME)
-target_compile_definitions(
-  firmware PRIVATE RFC1123_DATETIME="$RFC1123_DATETIME" BUDDY_ENABLE_WUI
-
-  # BUDDY_USE_WSAPI # enables wsapi
-  )
 
 target_link_libraries(
   firmware
@@ -334,8 +336,7 @@ target_link_libraries(
           Arduino::Core
           Arduino::TMCStepper
           Arduino::LiquidCrystal
-          LwIP_212
-          # wsapi    # adds wsapi library
+          LwIP
           FatFs
           lpng
           STM32::USBHost
@@ -504,6 +505,13 @@ if(GUI)
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window.c
     )
+endif()
+
+if(WUI)
+  target_sources(
+    firmware PRIVATE src/wui/wui.c src/wui/wui_api.c src/wui/http/fs.c src/wui/http/httpd.c
+    )
+  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
 endif()
 
 set_property(
