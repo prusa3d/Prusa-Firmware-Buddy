@@ -26,8 +26,8 @@ const uint8_t eeprom_map_v1[] = {
     VARIANT8_UI32, // EEVAR_LAN_IP4_ADDR    X.X.X.X address encoded in uint32
     VARIANT8_UI32, // EEVAR_LAN_IP4_MSK     X.X.X.X address encoded in uint32
     VARIANT8_UI32, // EEVAR_LAN_IP4_GW      X.X.X.X address encoded in uint32
-    VARIANT8_UI32, // EEVAR_LAN_IP4_DNS1    X.X.X.X address encoded in uint32
-    VARIANT8_UI32, // EEVAR_LAN_IP4_DNS2    X.X.X.X address encoded in uint32
+    VARIANT8_UI32, // EEVAR_IP4_DNS1    X.X.X.X address encoded in uint32
+    VARIANT8_UI32, // EEVAR_IP4_DNS2    X.X.X.X address encoded in uint32
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_0   Start of 20char string
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_1
     VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_2
@@ -65,8 +65,8 @@ const char *eeprom_var_name[] = {
     "EEVAR_LAN_IP4_ADDR",
     "EEVAR_LAN_IP4_MSK",
     "EEVAR_LAN_IP4_GW",
-    "EEVAR_LAN_IP4_DNS1",
-    "EEVAR_LAN_IP4_DNS2",
+    "EEVAR_IP4_DNS1",
+    "EEVAR_IP4_DNS2",
     "EEVAR_LAN_HOSTNAME_0",
     "EEVAR_LAN_HOSTNAME_1",
     "EEVAR_LAN_HOSTNAME_2",
@@ -207,9 +207,9 @@ variant8_t eeprom_var_default(uint8_t id) {
         return variant8_ui32(0);
     case EEVAR_LAN_IP4_GW:
         return variant8_ui32(0);
-    case EEVAR_LAN_IP4_DNS1:
+    case EEVAR_IP4_DNS1:
         return variant8_ui32(0);
-    case EEVAR_LAN_IP4_DNS2:
+    case EEVAR_IP4_DNS2:
         return variant8_ui32(0);
     case EEVAR_LAN_HOSTNAME_0:
         return variant8_ui8('M');

@@ -19,8 +19,8 @@
 #define EEVAR_LAN_IP4_ADDR 0x0B // X.X.X.X address encoded in uint32
 #define EEVAR_LAN_IP4_MSK 0x0C // X.X.X.X address encoded in uint32
 #define EEVAR_LAN_IP4_GW 0x0D // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_DNS1 0x0E // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_DNS2 0x0F // X.X.X.X address encoded in uint32
+#define EEVAR_IP4_DNS1 0x0E // X.X.X.X address encoded in uint32
+#define EEVAR_IP4_DNS2 0x0F // X.X.X.X address encoded in uint32
 #define EEVAR_LAN_HOSTNAME_0 0x10 //Start of 20char string
 #define EEVAR_LAN_HOSTNAME_1 0x11
 #define EEVAR_LAN_HOSTNAME_2 0x12
