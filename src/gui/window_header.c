@@ -39,7 +39,7 @@ void window_header_init(window_header_t *window) {
     if (media_is_inserted()) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
     }
-
+#ifdef BUDDY_ENABLE_ETHERNET
     if (netif_is_link_up(&eth0)) {
         if(eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE){
             if (netif_is_up(&eth0)) {
@@ -55,6 +55,7 @@ void window_header_init(window_header_t *window) {
             }
         }
     }
+#endif //BUDDY_ENABLE_ETHERNET
 
 #if 0
 	if (netif_is_up(&wlan0)) {
@@ -165,6 +166,7 @@ void p_window_header_set_text(window_header_t *window, const char *text) {
 
 int p_window_header_event_clr(window_header_t *window, uint8_t evt_id) {
     /* lwip fces only read states, invalid states by another thread never mind */
+#ifdef BUDDY_ENABLE_ETHERNET
     if (netif_is_link_up(&eth0)) {
         if(eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE){
             if (netif_is_up(&eth0)) {
@@ -182,7 +184,7 @@ int p_window_header_event_clr(window_header_t *window, uint8_t evt_id) {
     } else {
         p_window_header_icon_off(window, HEADER_ICON_LAN);
     }
-
+#endif //BUDDY_ENABLE_ETHERNET
     if (marlin_event_clr(evt_id)) {
         switch (evt_id) {
         case MARLIN_EVT_MediaInserted:
