@@ -189,7 +189,7 @@ target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 # Configure LwIP
 #
 
-add_library(LwIP212_Config ALIAS A3idesHeaders)
+add_library(LwIP_Config ALIAS A3idesHeaders)
 
 #
 # Configure FatFs
@@ -326,7 +326,7 @@ target_link_libraries(
           Arduino::Core
           Arduino::TMCStepper
           Arduino::LiquidCrystal
-          LwIP_212
+          LwIP
           FatFs
           lpng
           STM32::USBHost
