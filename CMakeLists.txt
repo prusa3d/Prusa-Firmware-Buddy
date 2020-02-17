@@ -316,7 +316,14 @@ elseif(SIGNING_KEY)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/wui
+  firmware
+  PRIVATE include
+          src/common
+          src/gui
+          src/gui/dialogs
+          src/guiapi/include
+          src/wui
+          src/wui/http
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -403,6 +410,10 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/wui/wui.c
+          src/wui/wui_api.c
+          src/wui/http/fs.c
+          src/wui/http/httpd.c
   )
 
 if(GUI)
