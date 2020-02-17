@@ -104,6 +104,7 @@ set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
+set(WUI YES)
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
@@ -410,10 +411,6 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
-          src/wui/wui.c
-          src/wui/wui_api.c
-          src/wui/http/fs.c
-          src/wui/http/httpd.c
   )
 
 if(GUI)
@@ -508,6 +505,13 @@ if(GUI)
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window.c
     )
+endif()
+
+if(WUI)
+  target_sources(
+    firmware PRIVATE src/wui/wui.c src/wui/wui_api.c src/wui/http/fs.c src/wui/http/httpd.c
+    )
+  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
 endif()
 
 set_property(
