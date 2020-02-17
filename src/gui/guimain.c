@@ -106,10 +106,10 @@ int8_t menu_timeout_enabled = 1; // Default: enabled
 void update_firmware_screen(void);
 
 static void _gui_loop_cb(){
-	static uint8_t m600_lock = 0;
+	static uint8_t event_lock = 0;
 
-	if (!m600_lock) {
-		m600_lock = 1;
+	if (!event_lock) {
+		event_lock = 1;
 		if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
 			if (marlin_command() == MARLIN_CMD_M600) {
 				_dbg("M600 start");
@@ -117,7 +117,15 @@ static void _gui_loop_cb(){
 				_dbg("M600 end");
 			}
 		}
-		m600_lock = 0;
+        //DO NOT USE M600
+		if (marlin_event_clr(MARLIN_EVT_DialogCreation)) {
+			if (marlin_command() == 0) {
+				_dbg("DialogCreation start");
+				//gui_dlg_change();
+				_dbg("DialogCreation end");
+			}
+		}
+		event_lock = 0;
 	}
 
 	marlin_client_loop();

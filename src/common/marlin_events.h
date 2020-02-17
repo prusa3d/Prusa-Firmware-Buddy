@@ -35,7 +35,8 @@
 #define MARLIN_EVT_SafetyTimerExpired 0x19 // host action from marlin, hotends and bed turned off
 #define MARLIN_EVT_Message 0x1a //
 #define MARLIN_EVT_Reheat 0x1b //
-#define MARLIN_EVT_Acknowledge 0x1c // onAcknowledge - lowest priority
+#define MARLIN_EVT_DialogCreation 0x1c //
+#define MARLIN_EVT_Acknowledge 0x1d // onAcknowledge - lowest priority
 #define MARLIN_EVT_MAX MARLIN_EVT_Acknowledge
 
 // event masks
@@ -57,7 +58,7 @@
 #define MARLIN_CMD_M600 (MARLIN_CMD_M + 600)
 #define MARLIN_CMD_M701 (MARLIN_CMD_M + 701)
 #define MARLIN_CMD_M702 (MARLIN_CMD_M + 702)
-
+#define MARLIN_CMD_M876 (MARLIN_CMD_M + 876)
 #define MARLIN_MAX_MESH_POINTS (4 * 4)
 
 #pragma pack(push)

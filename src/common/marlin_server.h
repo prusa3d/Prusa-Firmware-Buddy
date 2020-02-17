@@ -101,6 +101,8 @@ extern int marlin_all_axes_homed(void);
 //
 extern int marlin_all_axes_known(void);
 
+extern void host_dialog_creation_handler(const uint8_t is_host);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
