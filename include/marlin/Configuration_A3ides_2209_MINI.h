@@ -399,6 +399,7 @@
 // Those 10C are a safety margin used throughout the whole Marlin code
 // (without a proper #define though :( )
 #define BED_MAXTEMP 110
+#define BED_MAXTEMP_SAFETY_MARGIN 10
 #define CHAMBER_MAXTEMP 100
 
 //===========================================================================
