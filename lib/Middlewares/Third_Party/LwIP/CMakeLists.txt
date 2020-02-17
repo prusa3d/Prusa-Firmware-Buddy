@@ -1,9 +1,9 @@
-if(NOT TARGET LwIP212_Config)
+if(NOT TARGET LwIP_Config)
   message(FATAL_ERROR "Target LwIP_Config does not exist.")
 endif()
 
 add_library(
-  LwIP_212
+  LwIP
   src/api/api_lib.c
   src/api/api_msg.c
   src/api/err.c
@@ -80,7 +80,7 @@ add_library(
   )
 
 target_include_directories(
-  LwIP_212
+  LwIP
   PUBLIC system
          src/app/http
          src/include
@@ -93,4 +93,4 @@ target_include_directories(
          src/include/posix
   )
 
-target_link_libraries(LwIP_212 PUBLIC LwIP212_Config)
+target_link_libraries(LwIP PUBLIC LwIP_Config)
