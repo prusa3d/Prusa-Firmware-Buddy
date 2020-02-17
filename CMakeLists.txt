@@ -189,7 +189,9 @@ target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 # Configure LwIP
 #
 
-add_library(LwIP_Config ALIAS A3idesHeaders)
+add_library(LwIP_Config INTERFACE)
+target_include_directories(LwIP_Config INTERFACE src/wui src/wui/resources)
+target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 
 #
 # Configure FatFs
