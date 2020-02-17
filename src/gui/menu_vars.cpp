@@ -31,7 +31,9 @@ const float z_offset_max = Z_OFFSET_MAX;
 const float zoffset_fl_range[3] = { z_offset_min, z_offset_max, z_offset_step };
 const char *zoffset_fl_format = "%.3f";
 const int32_t nozzle_range[3] = { 0, (HEATER_0_MAXTEMP - 15) * 1000, 1000 };
-const int32_t heatbed_range[3] = { 0, BED_MAXTEMP * 1000, 1000 };
+// The MINI can heat up no more than 100C, for detection of thermal run away the bed is set 10C higher
+// Thus do not allow the user to set a higher bed temp in the UI here
+const int32_t heatbed_range[3] = { 0, (BED_MAXTEMP - 10) * 1000, 1000 };
 const int32_t printfan_range[3] = { 0, 255000, 1000 };
 const int32_t flowfact_range[3] = { 50000, 150000, 1000 };
 const int32_t feedrate_range[3] = { 10000, 255000, 1000 };
