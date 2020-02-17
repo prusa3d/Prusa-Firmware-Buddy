@@ -34,7 +34,9 @@ typedef enum {
     MI_FW_UPDATE,
     MI_FILAMENT_SENSOR,
     MI_TIMEOUT,
+#ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
+#endif //BUDDY_ENABLE_ETHERNET
 } MI_t;
 
 const menu_item_t _menu_settings_items[] = {
@@ -49,7 +51,9 @@ const menu_item_t _menu_settings_items[] = {
     { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update },
     { { "Fil. sens.", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
+#ifdef BUDDY_ENABLE_ETHERNET
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
+#endif //BUDDY_ENABLE_ETHERNET
 };
 
 void screen_menu_settings_init(screen_t *screen) {
