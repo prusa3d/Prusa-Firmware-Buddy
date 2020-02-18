@@ -117,20 +117,42 @@ static void _gui_loop_cb(){
 				_dbg("M600 end");
 			}
 		}
-        //DO NOT USE M600
+      /*  //DO NOT USE M600
 		if (marlin_event_clr(MARLIN_EVT_DialogCreation)) {
 			if (marlin_command() == 0) {
 				_dbg("DialogCreation start");
 				//gui_dlg_change();
 				_dbg("DialogCreation end");
 			}
-		}
+		}*/
 		event_lock = 0;
 	}
 
 	marlin_client_loop();
 }
 
+void serial_prt_cb() {
+    //todo test already opened
+    screen_open(pscreen_printing->id);
+}
+
+extern screen_t screen_home;
+extern screen_t screen_printing;
+extern screen_t screen_menu_tune;
+extern screen_t screen_wizard;
+extern screen_t screen_print_preview;
+extern screen_t screen_PID;
+
+static screen_t * const timeout_blacklist[] = {
+    &screen_home,
+    &screen_printing,
+    &screen_menu_tune,
+    &screen_wizard,
+    &screen_print_preview
+#ifdef PIDCALIBRATION
+    ,&screen_PID
+#endif //PIDCALIBRATION
+};
 
 
 void gui_run(void) {
@@ -161,7 +183,7 @@ void gui_run(void) {
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_client_id = marlin_client_id();
-
+    marlin_client_set_dialog_cb(serial_prt_cb);
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
     screen_register(pscreen_splash);
@@ -246,22 +268,9 @@ void gui_run(void) {
         if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
-                screen_t *curr = screen_get_curr();
-                if (
-                    curr != pscreen_menu_tune && curr != pscreen_wizard && curr != pscreen_print_preview) { //timeout screen black list
-    #ifdef PIDCALIBRATION
-                    if (curr != pscreen_PID) {
-    #endif //PIDCALIBRATION
-                        while (curr != pscreen_printing && curr != pscreen_home && curr != pscreen_menu_tune) {
-                            screen_close();
-                            curr = screen_get_curr();
-                        }
-    #ifdef PIDCALIBRATION
-                    }
-    #endif //PIDCALIBRATION
-                }
-                gui_timer_delete(gui_timeout_id);
+               screen_unloop(timeout_blacklist, sizeof(timeout_blacklist)/sizeof(timeout_blacklist[0]));
             }
+
         }
 #endif //LCDSIM
     }
