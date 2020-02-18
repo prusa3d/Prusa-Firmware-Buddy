@@ -1003,7 +1003,7 @@ void StartIdleTask(void const *argument) {
 /* USER CODE END Header_StartWebServerTask */
 void StartWebServerTask(void const *argument) {
     /* USER CODE BEGIN StartWebServerTask */
-    // osThreadSuspend(0);
+    osThreadSuspend(0);
     MX_LWIP_Init();
     lwsapi_init();
     /* Infinite loop */
