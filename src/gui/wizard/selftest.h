@@ -10,6 +10,8 @@
 #include "selftest_temp.h"
 #include "selftest_fans_axis.h"
 
+#define LAST_SELFTEST_TIMEOUT (30*60) // [s]
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
@@ -27,6 +29,9 @@ typedef struct
 } selftest_data_t;
 
 #pragma pack(pop)
+
+extern uint32_t last_selftest_result;
+extern uint32_t last_selftest_time;
 
 extern int wizard_selftest_is_ok(int16_t id_body, selftest_data_t *p_data);
 
