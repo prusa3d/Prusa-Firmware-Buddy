@@ -112,11 +112,6 @@
 #include <stdlib.h> /* atoi */
 #include <stdio.h>
 
-/*******   Customization ***************************************/
-#include "wui_api.h"
-#define WUI_API_ROOT_STR_LEN    5
-/***************************************************************/
-
 #if LWIP_TCP && LWIP_CALLBACK_API
 
 /** Minimum length for a valid HTTP/0.9 request: "GET /\r\n" -> 7 bytes */
@@ -2168,7 +2163,6 @@ http_uri_is_ssi(struct fs_file *file, const char *uri)
 }
 #endif /* LWIP_HTTPD_SSI */
 
-#if 0
 /** Try to find the file specified by uri and, if found, initialize hs
  * accordingly.
  *
@@ -2294,7 +2288,6 @@ http_find_file(struct http_state *hs, const char *uri, int is_09)
   }
   return http_init_file(hs, file, is_09, uri, tag_check, params);
 }
-#endif
 
 /** Initialize a http connection with a file to send (if found).
  * Called by http_find_file and http_find_error_file.
@@ -2749,85 +2742,5 @@ http_set_cgi_handlers(const tCGI *cgis, int num_handlers)
   httpd_num_cgis = num_handlers;
 }
 #endif /* LWIP_HTTPD_CGI */
-
-/*******   Customization ***************************************/
-/** Try to find the file specified by uri and, if found, initialize hs
- * accordingly.
- *
- * @param hs the connection state
- * @param uri the HTTP header URI
- * @param is_09 1 if the request is HTTP/0.9 (no HTTP headers in response)
- * @return ERR_OK if file was found and hs has been initialized correctly
- *         another err_t otherwise
- *
- * Note! this is custom implementation!
- */
-static err_t http_find_file(struct http_state *hs, const char *uri, int is_09)
-{
-  size_t loop;
-  struct fs_file *file = NULL;
-  char *params = NULL;
-  err_t err;
-
-  /* By default, assume we will not be processing server-side-includes tags */
-  u8_t tag_check = 0;
-
-  // check for default files only in root directory
-  if ((uri[0] == '/') &&  (uri[1] == 0)) {
-
-    /* Try each of the configured default filenames until we find one
-       that exists. */
-    for (loop = 0; loop < NUM_DEFAULT_FILENAMES; loop++) {
-
-    	const char *file_name;
-        file_name = httpd_default_filenames[loop].name;
-
-      LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Looking for %s...\n", file_name));
-      err = fs_open(&hs->file_handle, file_name);
-      if (err == ERR_OK) {
-        uri = file_name;
-        file = &hs->file_handle;
-        LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opened.\n"));
-
-        break;
-      }
-    }
-  }
-
-  /* check with the wui api */
-  if(file == NULL) {
-      if(0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
-          file = wui_api_main(uri, hs);
-          strcat(uri, ".json"); // http server adds header info (data type) based on the file extension
-
-      }
-  }
-
-  if (file == NULL) {
-    /* No - we've been asked for a specific file. */
-    /* First, isolate the base URI (without any parameters) */
-    params = (char *)strchr(uri, '?');
-    if (params != NULL) {
-      /* URI contains parameters. NULL-terminate the base URI */
-      *params = '\0';
-      params++;
-    }
-
-    LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opening %s\n", uri));
-
-    err = fs_open(&hs->file_handle, uri);
-    if (err == ERR_OK) {
-      file = &hs->file_handle;
-    } else {
-      file = http_get_404_file(hs, &uri);
-    }
-
-  }
-  if (file == NULL) {
-    /* None of the default filenames exist so send back a 404 page */
-    file = http_get_404_file(hs, &uri);
-  }
-  return http_init_file(hs, file, is_09, uri, tag_check, params);
-}
 
 #endif /* LWIP_TCP && LWIP_CALLBACK_API */
