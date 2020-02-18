@@ -18,6 +18,8 @@
 extern "C" {
 #endif //__cplusplus
 
+typedef void (*dialog_cb_t)(int);
+
 //-----------------------------------------------------------------------------
 //externs from marlin server todo fixme use variables
 extern int marlin_all_axes_homed(void);
@@ -38,6 +40,12 @@ extern void marlin_client_loop(void);
 
 // returns client_id for calling thread (-1 for unattached thread)
 extern int marlin_client_id(void);
+
+//sets dialog callback, returns 1 on success
+extern int marlin_client_set_dialog_cb(dialog_cb_t cb);
+
+//calls dialog callback, returns 1 if valid
+extern int marlin_client_dialog_cb(int data);
 
 // returns enabled status of loop processing
 extern int marlin_processing(void);
