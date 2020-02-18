@@ -60,6 +60,7 @@ int16_t screen_stack_pop(void) {
 }
 
 void screen_open(int16_t screen_id) {
+    if (screen_0->id == screen_id) return;
     if (screen_0) {
         screen_stack_push(screen_0->id);
         screen_0->done(screen_0);
