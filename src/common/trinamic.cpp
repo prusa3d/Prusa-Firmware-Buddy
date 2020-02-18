@@ -63,9 +63,9 @@ void tmc_sample(void) {
     //	int sgz = pStepZ->SG_RESULT();
     //	int sge = pStepE->SG_RESULT();
     //	_dbg("sg %d %d %d %d", sgx, sgy, sgz, sge);
-    sgx = sgx; //prevent warning
+    sgx = sgx;       //prevent warning
     tstepx = tstepx; //prevent warning
-    diag = diag; //prevent warning
+    diag = diag;     //prevent warning
     DBG("sg %u %u %u", sgx, diag, tstepx);
 }
 

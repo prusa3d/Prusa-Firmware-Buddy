@@ -37,18 +37,18 @@
 
 // client
 typedef struct _marlin_client_t {
-    uint8_t id; // client id (0..MARLIN_MAX_CLIENTS-1)
-    uint16_t flags; // client flags (MARLIN_CFLG_xxx)
-    uint64_t events; // event mask
-    uint64_t changes; // variable change mask
-    marlin_vars_t vars; // cached variables
-    uint32_t ack; // cached ack value from last Acknowledge event
+    uint8_t id;          // client id (0..MARLIN_MAX_CLIENTS-1)
+    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
+    uint64_t events;     // event mask
+    uint64_t changes;    // variable change mask
+    marlin_vars_t vars;  // cached variables
+    uint32_t ack;        // cached ack value from last Acknowledge event
     uint16_t last_count; // number of messages received in last client loop
     uint64_t errors;
-    marlin_mesh_t mesh; // meshbed leveling
-    uint32_t command; // processed command (G28,G29,M701,M702,M600)
+    marlin_mesh_t mesh;          // meshbed leveling
+    uint32_t command;            // processed command (G28,G29,M701,M702,M600)
     marlin_host_prompt_t prompt; // current host prompt structure (type and buttons)
-    uint8_t reheating; // reheating in progress
+    uint8_t reheating;           // reheating in progress
 } marlin_client_t;
 
 #pragma pack(pop)
@@ -56,16 +56,16 @@ typedef struct _marlin_client_t {
 //-----------------------------------------------------------------------------
 // variables
 
-osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
+osThreadId marlin_client_task[MARLIN_MAX_CLIENTS];    // task handles
 osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
 
 marlin_client_t marlin_client[MARLIN_MAX_CLIENTS]; // client structure
-uint8_t marlin_clients = 0; // number of connected clients
+uint8_t marlin_clients = 0;                        // number of connected clients
 
 //-----------------------------------------------------------------------------
 // external variables from marlin_server
 
-extern osThreadId marlin_server_task; // task handle
+extern osThreadId marlin_server_task;    // task handle
 extern osMessageQId marlin_server_queue; // input queue (uint8_t)
 extern osSemaphoreId marlin_server_sema; // semaphore handle
 
@@ -133,17 +133,16 @@ void marlin_client_loop(void) {
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
                 *(((uint32_t *)(&msg)) + 1) = ose.value.v; //store high dword
-                _process_client_message(client, msg); //call handler
+                _process_client_message(client, msg);      //call handler
                 count++;
             } else
                 *(((uint32_t *)(&msg)) + 0) = ose.value.v; //store low dword
-            client->flags ^= MARLIN_CFLG_LOWHIGH; //flip flag
+            client->flags ^= MARLIN_CFLG_LOWHIGH;          //flip flag
         }
     client->last_count = count;
 }
 
-int marlin_client_id(void)
-{
+int marlin_client_id(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
         return client->id;
@@ -581,16 +580,16 @@ void _send_request_to_server(uint8_t client_id, const char *request) {
     osMessageQId queue = 0;
     int i;
     osSemaphoreWait(marlin_server_sema, osWaitForever); // lock
-    if ((queue = marlin_server_queue) != 0) // queue valid
+    if ((queue = marlin_server_queue) != 0)             // queue valid
     {
         marlin_client[client_id].events &= ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
         while (ret == 0) {
             if (osMessageAvailableSpace(queue) >= (uint32_t)(len + 1)) // check available space
             {
                 osMessagePut(queue, '0' + client_id, osWaitForever); // one character client id
-                for (i = 0; i < len; i++) // loop over every characters
-                    osMessagePut(queue, request[i], osWaitForever); //
-                if ((i > 0) && (request[i - 1] != '\n')) // automatically terminate with '\n'
+                for (i = 0; i < len; i++)                            // loop over every characters
+                    osMessagePut(queue, request[i], osWaitForever);  //
+                if ((i > 0) && (request[i - 1] != '\n'))             // automatically terminate with '\n'
                     osMessagePut(queue, '\n', osWaitForever);
                 ret = 1;
             } else {

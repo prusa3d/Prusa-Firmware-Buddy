@@ -14,14 +14,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #ifdef STATIC_SAVE_LOAD_CONFIG
-#include "ini.h"
-#include "ff.h"
+    #include "ini.h"
+    #include "ff.h"
 #endif //STATIC_SAVE_LOAD_CONFIG
 #include <string.h>
 
-#define MAC_ADDR_START 0x1FFF781A //MM:MM:MM:SS:SS:SS
-#define MAC_ADDR_SIZE 6
-#define MAX_INI_SIZE 100
+#define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
+#define MAC_ADDR_SIZE     6
+#define MAX_INI_SIZE      100
 #define IP4_ADDR_STR_SIZE 16
 
 typedef enum {
@@ -167,7 +167,7 @@ static uint8_t _save_ini_file(void) {
 }
 
 static int handler(void *user, const char *section, const char *name, const char *value) {
-#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("lan_ip4", "address")) {
         config.lan_ip4_addr.addr = ipaddr_addr(value);
     } else if (MATCH("lan_ip4", "mask")) {
@@ -288,7 +288,7 @@ screen_t screen_lan_settings = {
     screen_lan_settings_draw,
     screen_lan_settings_event,
     sizeof(screen_lan_settings_data_t), //data_size
-    0, //pdata
+    0,                                  //pdata
 };
 
 screen_t *const pscreen_lan_settings = &screen_lan_settings;

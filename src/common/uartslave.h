@@ -8,10 +8,10 @@
 
 #define UARTSLAVE_MOD_MSK_0 0x0000
 
-#define UARTSLAVE_CMD_ID_0 0x0000
+#define UARTSLAVE_CMD_ID_0   0x0000
 #define UARTSLAVE_CMD_ID_UNK 0xffff
 
-#define UARTSLAVE_OK 0 //ok - success
+#define UARTSLAVE_OK      0  //ok - success
 #define UARTSLAVE_ERR_UNK -1 //error 1 - unknown/unspecified failure
 #define UARTSLAVE_ERR_BSY -2 //error 2 - busy
 #define UARTSLAVE_ERR_SYN -3 //error 3 - syntax error

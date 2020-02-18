@@ -37,16 +37,16 @@ typedef struct {
     bool redraw_thumbnail;
 } screen_print_preview_data_t;
 
-#define HEADER_HEIGHT 24
-#define PADDING 10
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 320
+#define HEADER_HEIGHT    24
+#define PADDING          10
+#define SCREEN_WIDTH     240
+#define SCREEN_HEIGHT    320
 #define THUMBNAIL_HEIGHT 124
-#define TITLE_HEIGHT 24
-#define LINE_HEIGHT 15
-#define LINE_SPACING 5
+#define TITLE_HEIGHT     24
+#define LINE_HEIGHT      15
+#define LINE_SPACING     5
 
-#define BACK_BUTTON_ID 0x11
+#define BACK_BUTTON_ID  0x11
 #define PRINT_BUTTON_ID 0x12
 
 static const char *gcode_file_name = NULL;
@@ -66,7 +66,7 @@ static screen_t screen_print_preview = {
     screen_print_preview_draw,
     screen_print_preview_event,
     sizeof(screen_print_preview_data_t), // dynamic data size
-    NULL // dynamic data pointer
+    NULL                                 // dynamic data pointer
 };
 
 const uint16_t menu_icons[2] = {

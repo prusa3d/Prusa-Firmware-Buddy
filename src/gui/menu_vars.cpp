@@ -105,7 +105,6 @@ constexpr const char Z_home_gcode[] = {
     nth_char(Z_home, 7),
     nth_char(Z_home, 8)
 };
-
 }
 
 constexpr const int32_t filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;

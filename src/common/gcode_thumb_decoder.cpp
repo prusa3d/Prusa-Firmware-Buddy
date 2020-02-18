@@ -120,9 +120,9 @@ int GCodeThumbDecoder::Read(FIL *f, char *pc, int n) {
                 }
                 if (l.IsEndThumbnail()) {
                     state = States::End; // platny konec thumbnailu
-                    return i; // uz je EOF, nemam dalsi data, ale automat konci
-                        // spravnym koncem
-                        // vracim, kolik jsem dosud nactetl
+                    return i;            // uz je EOF, nemam dalsi data, ale automat konci
+                                         // spravnym koncem
+                                         // vracim, kolik jsem dosud nactetl
                 } else if (LineIsBase64(l, bytesQ)) {
                     // line nactena v poradku a zdekodovana, stav base64
                     // zustava, ocekava se dalsi takova radka

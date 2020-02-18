@@ -21,6 +21,8 @@
  */
 #pragma once
 
+// clang-format off
+
 /**
  * Configuration.h
  *

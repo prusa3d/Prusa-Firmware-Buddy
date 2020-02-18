@@ -20,22 +20,22 @@
  *
  */
 
-
 #include "../../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../../lib/Marlin/Marlin/src/libs/nozzle.h"
-#include "../../../lib/Marlin/Marlin/src/module/motion.h"
+    #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+    #include "../../../lib/Marlin/Marlin/src/libs/nozzle.h"
+    #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
 /**
  * G27: Park the nozzle
  */
 void GcodeSuite::G27() {
-  // Don't allow nozzle parking without homing first
-  if (axis_unhomed_error()) return;
-  nozzle.park(parser.ushortval('P'));
+    // Don't allow nozzle parking without homing first
+    if (axis_unhomed_error())
+        return;
+    nozzle.park(parser.ushortval('P'));
 }
 
 #endif // NOZZLE_PARK_FEATURE

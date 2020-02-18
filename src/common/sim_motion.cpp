@@ -79,12 +79,12 @@ void sim_motion_set_stp(uint8_t axis, int state) {
     if (state) {
         if ((sim_motion_stpdir ^ (sim_motion_invdir << 4)) & (0x10 << axis)) {
             sim_motion_endstops &= ~(0x01 << axis); //clear min endstop
-            sim_motion_pos[axis]++; //increment position
+            sim_motion_pos[axis]++;                 //increment position
             if (sim_motion_pos[axis] > sim_motion_max[axis])
                 sim_motion_pos[axis] = sim_motion_max[axis];
         } else {
             sim_motion_endstops &= ~(0x10 << axis); //clear max endstop
-            sim_motion_pos[axis]--; //decrement position
+            sim_motion_pos[axis]--;                 //decrement position
             if (sim_motion_pos[axis] < sim_motion_min[axis])
                 sim_motion_pos[axis] = sim_motion_min[axis];
         }

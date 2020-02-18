@@ -37,19 +37,18 @@ extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
 
 extern void reset_trinamic_drivers();
 
-
 extern "C" {
 
 extern uartrxbuff_t uart6rxbuff; // PUT rx buffer
-extern uartslave_t uart6slave; // PUT slave
+extern uartslave_t uart6slave;   // PUT slave
 
 #ifdef ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
-#endif //ETHERNET
+#endif                                 //ETHERNET
 
 #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif //_DEBUG
+#endif                           //_DEBUG
 
 void app_setup(void) {
     setup();
@@ -96,8 +95,7 @@ void app_run(void) {
         app_setup();
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (defaults_loaded && marlin_server_processing())
-    {
+    if (defaults_loaded && marlin_server_processing()) {
         settings.reset();
 #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg);
@@ -185,7 +183,6 @@ void app_tim14_tick(void) {
     adc_tick_1ms();
 }
 
-
 #include "usbh_core.h"
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
@@ -195,9 +192,9 @@ extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 // state is checked every 100ms, timeout for re-enumeration is 500ms
 // TODO: maybe we will change condition for states, because it can hang also in different state
 void app_usbhost_reenum(void) {
-    static uint32_t timer = 0;      // static timer variable
-    uint32_t tick = HAL_GetTick();  // read tick
-    if ((tick - timer) > 100) {     // every 100ms
+    static uint32_t timer = 0;     // static timer variable
+    uint32_t tick = HAL_GetTick(); // read tick
+    if ((tick - timer) > 100) {    // every 100ms
         // timer is valid, UsbHost is in enumeration state
         if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
             // longer than 500ms
@@ -205,8 +202,7 @@ void app_usbhost_reenum(void) {
                 _dbg("USB host reenumerating"); // trace
                 USBH_ReEnumerate(&hUsbHostHS);  // re-enumerate UsbHost
             }
-        }
-        else // otherwise update timer
+        } else // otherwise update timer
             timer = tick;
     }
 }

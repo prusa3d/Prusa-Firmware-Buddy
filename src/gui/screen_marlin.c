@@ -86,7 +86,7 @@ screen_marlin_t screen_marlin = {
         (screen_draw_t *)screen_marlin_draw,
         (screen_event_t *)screen_marlin_event,
         sizeof(screen_marlin_data_t), //data_size
-        0, //pdata
+        0,                            //pdata
     },
     0, //lcdsim_initialized
 };

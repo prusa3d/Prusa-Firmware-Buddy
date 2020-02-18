@@ -38,7 +38,7 @@
 //! maximum length of request uri
 #define URI_LENGTH 64
 
-#define lwsapi_dbg _dbg
+#define lwsapi_dbg   _dbg
 #define lwsapi_error _dbg
 
 #define lwsapi_free(arg)  \
@@ -180,7 +180,7 @@ public:
 //! Environment struct like as WSGI environment as possible could be.
 class Environment {
 public:
-    char method[METHOD_LENGTH] = { '\0' }; /**< HTTP METHOD (GET|POST|etc..) */
+    char method[METHOD_LENGTH] = { '\0' };   /**< HTTP METHOD (GET|POST|etc..) */
     char request_uri[URI_LENGTH] = { '\0' }; /**< Full HTTP request uri */
 
     Environment()
@@ -209,7 +209,7 @@ private:
 
 //! Message which must be returned from coroutine generator.
 struct Message_t {
-    const char *response; /**< 200 OK etc.*/
+    const char *response;   /**< 200 OK etc.*/
     const IHeader *headers; /**< response header */
     const uint8_t *payload;
     int length; /**< payload length */

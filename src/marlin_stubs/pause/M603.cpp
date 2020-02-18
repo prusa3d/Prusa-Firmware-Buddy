@@ -24,14 +24,14 @@
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
-#include "../../../lib/Marlin/Marlin/src/module/motion.h"
-#include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
+    #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+    #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
+    #include "../../../lib/Marlin/Marlin/src/module/motion.h"
+    #include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
 
-#if EXTRUDERS > 1
-  #include "../../../lib/Marlin/Marlin/src/module/tool_change.h"
-#endif
+    #if EXTRUDERS > 1
+        #include "../../../lib/Marlin/Marlin/src/module/tool_change.h"
+    #endif
 
 /**
  * M603: Configure filament change
@@ -43,24 +43,25 @@
  */
 void GcodeSuite::M603() {
 
-  const int8_t target_extruder = get_target_extruder_from_command();
-  if (target_extruder < 0) return;
+    const int8_t target_extruder = get_target_extruder_from_command();
+    if (target_extruder < 0)
+        return;
 
-  // Unload length
-  if (parser.seen('U')) {
-    fc_settings[target_extruder].unload_length = ABS(parser.value_axis_units(E_AXIS));
+    // Unload length
+    if (parser.seen('U')) {
+        fc_settings[target_extruder].unload_length = ABS(parser.value_axis_units(E_AXIS));
     #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-      NOMORE(fc_settings[target_extruder].unload_length, EXTRUDE_MAXLENGTH);
+        NOMORE(fc_settings[target_extruder].unload_length, EXTRUDE_MAXLENGTH);
     #endif
-  }
+    }
 
-  // Load length
-  if (parser.seen('L')) {
-    fc_settings[target_extruder].load_length = ABS(parser.value_axis_units(E_AXIS));
+    // Load length
+    if (parser.seen('L')) {
+        fc_settings[target_extruder].load_length = ABS(parser.value_axis_units(E_AXIS));
     #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-      NOMORE(fc_settings[target_extruder].load_length, EXTRUDE_MAXLENGTH);
+        NOMORE(fc_settings[target_extruder].load_length, EXTRUDE_MAXLENGTH);
     #endif
-  }
+    }
 }
 
 #endif // ADVANCED_PAUSE_FEATURE

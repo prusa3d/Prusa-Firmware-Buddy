@@ -87,7 +87,7 @@ screen_t screen_menu_preheat = {
     screen_menu_draw,
     screen_menu_preheat_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_menu_preheat = &screen_menu_preheat;
