@@ -71,13 +71,13 @@ void jogwheel_update_1ms(void) {
     if (change & 7) //encoder phase signals or button changed
     {
         jogwheel_signals_old = jogwheel_signals; //save old signal state
-        jogwheel_signals = signals; //update signal state
+        jogwheel_signals = signals;              //update signal state
     }
     if (change & 12) //encoder changed or button changed
     {
         jogwheel_signals_old = jogwheel_signals; //save old signal state
-        jogwheel_signals = signals; //update signal state
-        jogwheel_changed |= (change >> 2); //synchronization is not necessary because we are inside interrupt
+        jogwheel_signals = signals;              //update signal state
+        jogwheel_changed |= (change >> 2);       //synchronization is not necessary because we are inside interrupt
     }
 }
 

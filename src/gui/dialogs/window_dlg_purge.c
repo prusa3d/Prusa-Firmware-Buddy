@@ -49,7 +49,7 @@ static int f_PU_PURGE_USER_INTERACTION(_dlg_vars *p_vars, _dlg_ld_vars *addition
         break;
     case LD_BT_DONE:
     case (LD_BT_DONE | LD_BT_PURG): //if both buttons are clicked DONE has priority, but should not happen
-        p_vars->phase += 2; //DONE
+        p_vars->phase += 2;         //DONE
         break;
     }
     return 100; //progressbar MUST be 100
@@ -59,7 +59,7 @@ static int f_PU_PURGE_SHOW_PROGRESS(_dlg_vars *p_vars, _dlg_ld_vars *additional_
     float ret = 100.0F * (additional_vars->p_marlin_vars->pos[MARLIN_VAR_INDEX_E] - additional_vars->e_last)
         / ld_purge_amount;
     if (ret > 99.0F) {
-        p_vars->phase--; //jump back to f_LD_PURGE_USER_INTERACTION
+        p_vars->phase--;                                                //jump back to f_LD_PURGE_USER_INTERACTION
         p_vars->flags &= (~(LD_BT_PURG | LD_BT_DONE | LD_BT_PURG_SEL)); //clr buttons, select done
         return 100;
     }
@@ -99,7 +99,7 @@ static const _dlg_state purge_states[] = {
     { 0, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_none, (dlg_state_func)f_PU_GCODE },
     { 0, window_dlg_statemachine_draw_progress_none, "Purge filament?", &bt_none, (dlg_state_func)f_PU_PREPICK_PURGE_BTN },
     { 0, window_dlg_statemachine_draw_progress_none, "Purge filament?", &bt_prgdn_ena, (dlg_state_func)f_PU_PURGE_USER_INTERACTION }, //can end (state += 2)
-    { 0, window_dlg_statemachine_draw_progress_part, "Purging", &bt_prgdn_ena, (dlg_state_func)f_PU_PURGE_SHOW_PROGRESS }, //can jump back (state --)
+    { 0, window_dlg_statemachine_draw_progress_part, "Purging", &bt_prgdn_ena, (dlg_state_func)f_PU_PURGE_SHOW_PROGRESS },            //can jump back (state --)
     { 0, window_dlg_statemachine_draw_progress_part, "Finished", &bt_none, (dlg_state_func)f_PU_WAIT_READY }
 };
 
@@ -117,12 +117,12 @@ static loop_result_t purge_loop(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars
 
 static const _cl_dlg cl_purge = {
 
-    "Purge nozzle", //title
-    purge_states, //p_states
+    "Purge nozzle",                                 //title
+    purge_states,                                   //p_states
     sizeof(purge_states) / sizeof(purge_states[0]), //count
     //load/unload dialogs reacts to MARLIN_EVT_CommandEnd, purge dialog does not
-    NULL, //on_load event,
+    NULL,                      //on_load event,
     (dlg_loop_cb_t)purge_loop, //on_loop
-    NULL, //on_timeout
-    purge_done, //on_done
+    NULL,                      //on_timeout
+    purge_done,                //on_done
 };

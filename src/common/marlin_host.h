@@ -8,10 +8,10 @@
 
 // host prompts
 #define MARLIN_HOSTPROMPT_LoadFilament 0x01
-#define MARLIN_HOSTPROMPT_Paused 0x02
+#define MARLIN_HOSTPROMPT_Paused       0x02
 
 // host prompt buttons
-#define MARLIN_HOSTPROMPT_BTN_Continue 0x01
+#define MARLIN_HOSTPROMPT_BTN_Continue  0x01
 #define MARLIN_HOSTPROMPT_BTN_PurgeMore 0x02
 
 typedef enum {

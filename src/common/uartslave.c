@@ -21,7 +21,7 @@ int uartslave_parse_mod_mask(uartslave_t *pslave, char *pstr, uint16_t *pmod_msk
 #ifdef UARTSLAVE_TST
                 if (strncmp(pstr - 4, "tst", 3) == 0)
                     *pmod_msk = 1;
-#else //UARTSLAVE_TST
+#else  //UARTSLAVE_TST
                 *pmod_msk = UARTSLAVE_MOD_MSK_0;
 #endif //UARTSLAVE_TST
             return ret;

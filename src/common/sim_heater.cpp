@@ -10,7 +10,7 @@
     #include "sim_nozzle.h"
     #include "sim_bed.h"
 
-    #define SIM_HEATER_MULTI 5 // time multiply
+    #define SIM_HEATER_MULTI 5     // time multiply
     #define SIM_HEATER_DELAY 0.05F // cycle delay in ms
 
 extern "C" {

@@ -17,12 +17,12 @@
 // user have to use appropriate divider for the SPI clock
 // This function should not be used in new project.
 // Use SPISettings with SPI.beginTransaction() to configure SPI parameters.
-#define SPI_CLOCK_DIV2 2
-#define SPI_CLOCK_DIV4 4
-#define SPI_CLOCK_DIV8 8
-#define SPI_CLOCK_DIV16 16
-#define SPI_CLOCK_DIV32 32
-#define SPI_CLOCK_DIV64 64
+#define SPI_CLOCK_DIV2   2
+#define SPI_CLOCK_DIV4   4
+#define SPI_CLOCK_DIV8   8
+#define SPI_CLOCK_DIV16  16
+#define SPI_CLOCK_DIV32  32
+#define SPI_CLOCK_DIV64  64
 #define SPI_CLOCK_DIV128 128
 
 // SPI mode parameters for SPISettings
@@ -34,7 +34,7 @@
 // Transfer mode
 enum SPITransferMode {
     SPI_CONTINUE, /* Transfer not finished: CS pin kept active */
-    SPI_LAST /* Transfer ended: CS pin released */
+    SPI_LAST      /* Transfer ended: CS pin released */
 };
 
 // Indicates the user controls himself the CS pin outside of the spi class

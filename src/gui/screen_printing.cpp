@@ -22,7 +22,7 @@
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
-#include "filament_sensor.h"
+    #include "filament_sensor.h"
 #endif
 
 extern screen_t *pscreen_home;
@@ -32,9 +32,9 @@ extern screen_t *pscreen_menu_tune;
 //#define COLOR_VALUE_INVALID COLOR_YELLOW
 #define COLOR_VALUE_INVALID COLOR_WHITE
 
-#define BUTTON_TUNE 0
+#define BUTTON_TUNE  0
 #define BUTTON_PAUSE 1
-#define BUTTON_STOP 2
+#define BUTTON_STOP  2
 
 #define POPUP_MSG_DUR_MS 5000
 
@@ -121,8 +121,8 @@ typedef struct
 
     status_footer_t footer;
 
-    char text_time[13]; // 999d 23h 30m\0
-    char text_etime[9]; // 999X 23Y\0
+    char text_time[13];    // 999d 23h 30m\0
+    char text_etime[9];    // 999X 23Y\0
     char text_filament[5]; // 999m\0 | 1.2m\0
 
     window_text_t w_message; //Messages from onStatusChanged()
@@ -139,17 +139,17 @@ void reset_print_state(void) {
 
 #pragma pack(pop)
 
-
-class Lock{
+class Lock {
     static bool locked;
+
 public:
-    Lock(){
+    Lock() {
         locked = true;
     }
-    static bool IsLocked(){
+    static bool IsLocked() {
         return locked;
     }
-    ~Lock(){
+    ~Lock() {
         locked = false;
     }
 };
@@ -176,7 +176,7 @@ screen_t screen_printing = {
     screen_printing_draw,
     screen_printing_event,
     sizeof(screen_printing_data_t), //data_size
-    0, //pdata
+    0,                              //pdata
 };
 const screen_t *pscreen_printing = &screen_printing;
 
@@ -326,8 +326,7 @@ static void abort_print(screen_t *screen) {
     //if not, and nozzle is cold - marlin would break and next print will stack
     marlin_set_target_nozzle(0);
     marlin_set_target_bed(0);
-    if (state__readonly__use_change_print_state == P_PAUSED)
-    {
+    if (state__readonly__use_change_print_state == P_PAUSED) {
         marlin_print_resume();
     }
     marlin_print_abort();
@@ -372,29 +371,29 @@ static void close_popup_message(screen_t *screen) {
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
 extern int _is_in_M600_flg;
-extern uint32_t* pCommand;
+extern uint32_t *pCommand;
 #endif
 
 int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
-	static int _last = 0;
-	if (HAL_GetTick() - _last > 300 )
-	{
-		_last = HAL_GetTick();
+    static int _last = 0;
+    if (HAL_GetTick() - _last > 300) {
+        _last = HAL_GetTick();
 
-		static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
-		buff[1] = fs_get_state() + '0';                             // S0 init, S1 has filament, S2 nofilament, S3 not connected, S4 disabled
-		buff[4] = fs_get_send_M600_on();                            // Me edge, Ml level, Mn never, Mx undefined
-		buff[6] = fs_was_M600_send() ? 's' : 'n';                   // s == send, n== not send
-		buff[8] = _is_in_M600_flg ? 'M' : '0';                      // M == marlin is doing M600
-		buff[9] = marlin_event(MARLIN_EVT_CommandBegin)? 'B' : '0'; // B == Event begin
-		buff[10]= marlin_command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
-		buff[11]= *pCommand == MARLIN_CMD_M600 ? 's' : '0';  // s == server - Command M600
-		p_window_header_set_text(&(pw->header), buff);
-	}
+        static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
+        buff[1] = fs_get_state() + '0';                              // S0 init, S1 has filament, S2 nofilament, S3 not connected, S4 disabled
+        buff[4] = fs_get_send_M600_on();                             // Me edge, Ml level, Mn never, Mx undefined
+        buff[6] = fs_was_M600_send() ? 's' : 'n';                    // s == send, n== not send
+        buff[8] = _is_in_M600_flg ? 'M' : '0';                       // M == marlin is doing M600
+        buff[9] = marlin_event(MARLIN_EVT_CommandBegin) ? 'B' : '0'; // B == Event begin
+        buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
+        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0';         // s == server - Command M600
+        p_window_header_set_text(&(pw->header), buff);
+    }
 
 #endif
-    if (Lock::IsLocked())return 0;
+    if (Lock::IsLocked())
+        return 0;
     Lock l;
 
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
@@ -475,27 +474,23 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     case BUTTON_STOP:
         //todo it is static, because menu tune is not dialog
         //if(pw->state__readonly__use_change_print_state == P_PRINTED)
-        switch(state__readonly__use_change_print_state)
-        {
+        switch (state__readonly__use_change_print_state) {
         case P_PRINTED:
             screen_close();
             return 1;
         case P_PAUSING:
         case P_RESUMING:
             return 0;
-        default:
-        {
+        default: {
             if (gui_msgbox("Are you sure to stop this printing?",
-                MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
-                    == MSGBOX_RES_YES)
-            {
+                    MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
+                == MSGBOX_RES_YES) {
                 abort_print(screen);
                 screen_close();
                 return 1;
-            }
-            else return 0;
+            } else
+                return 0;
         }
-
         }
         break;
     }
@@ -536,7 +531,7 @@ void _state_loop(screen_t *screen) {
     switch (state__readonly__use_change_print_state) {
     case P_PRINTING:
         if ((!p_vars->sd_printing) && (marlin_command() != MARLIN_CMD_M600) && // prevent false trigering durring M600 TODO: better solution
-            !marlin_motion()) // wait for motors idle
+            !marlin_motion())                                                  // wait for motors idle
             screen_printing_printed(screen);
         else
             screen_printing_update_remaining_time_progress(screen);
@@ -672,7 +667,7 @@ void screen_mesh_err_stop_print(screen_t *screen) {
     marlin_gcode_printf("M104 S%F", (double)target_nozzle);
     marlin_gcode_printf("M140 S%F", (double)target_bed);
     marlin_gcode("G0 Z30"); //Z 30mm
-    marlin_gcode("M84"); //Disable steppers
+    marlin_gcode("M84");    //Disable steppers
     while (marlin_vars()->pqueue) {
         gui_loop();
     }

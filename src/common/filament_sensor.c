@@ -15,48 +15,45 @@
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 #include "eeprom.h"
-#include "FreeRTOS.h" //must apper before include task.h
-#include "task.h" //critical sections
-#include "cmsis_os.h" //osDelay
+#include "FreeRTOS.h"      //must apper before include task.h
+#include "task.h"          //critical sections
+#include "cmsis_os.h"      //osDelay
 #include "marlin_client.h" //enable/disable fs in marlin
 
 static volatile fsensor_t state = FS_NOT_INICIALIZED;
 static volatile fsensor_t last_state = FS_NOT_INICIALIZED;
 
 typedef enum {
-    M600_on_edge  = 0,
+    M600_on_edge = 0,
     M600_on_level = 1,
-    M600_never    = 2
+    M600_never = 2
 } send_M600_on_t;
 
-typedef struct{
+typedef struct {
     uint8_t M600_sent;
     uint8_t send_M600_on;
     uint8_t meas_cycle;
-}status_t;
+} status_t;
 static status_t status = { 0, M600_on_edge, 0 };
 
 /*---------------------------------------------------------------------------*/
 //debug functions
 
-int fs_was_M600_send(){
-	return status.M600_sent != 0;
+int fs_was_M600_send() {
+    return status.M600_sent != 0;
 }
-char fs_get_send_M600_on(){
-	switch (status.send_M600_on)
-	{
-	case M600_on_edge:
-		return 'e';
-	case M600_on_level:
-		return 'l';
-	case M600_never:
-		return 'n';
-	default:
-		return 'x';
-
-	}
+char fs_get_send_M600_on() {
+    switch (status.send_M600_on) {
+    case M600_on_edge:
+        return 'e';
+    case M600_on_level:
+        return 'l';
+    case M600_never:
+        return 'n';
+    default:
+        return 'x';
+    }
 }
-
 
 /*---------------------------------------------------------------------------*/
 //local functions
@@ -97,19 +94,19 @@ int fs_did_filament_runout() {
 }
 
 void fs_send_M600_on_edge() {
-	taskENTER_CRITICAL();
+    taskENTER_CRITICAL();
     status.send_M600_on = M600_on_edge;
     taskEXIT_CRITICAL();
 }
 
 void fs_send_M600_on_level() {
-	taskENTER_CRITICAL();
+    taskENTER_CRITICAL();
     status.send_M600_on = M600_on_level;
     taskEXIT_CRITICAL();
 }
 
 void fs_send_M600_never() {
-	taskENTER_CRITICAL();
+    taskENTER_CRITICAL();
     status.send_M600_on = M600_never;
     taskEXIT_CRITICAL();
 }
@@ -153,9 +150,9 @@ fsensor_t fs_wait_inicialized() {
     return ret;
 }
 
-void fs_clr_sent(){
+void fs_clr_sent() {
     taskENTER_CRITICAL();
-	status.M600_sent = 0;
+    status.M600_sent = 0;
     taskEXIT_CRITICAL();
 }
 
@@ -186,7 +183,7 @@ void fs_init_never() {
 /*---------------------------------------------------------------------------*/
 //methods called only in fs_cycle
 static void _injectM600() {
-    marlin_vars_t* vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
+    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
     if (status.M600_sent == 0 && vars->sd_printing) {
         marlin_gcode_push_front("M600"); //change filament
         status.M600_sent = 1;
@@ -196,7 +193,7 @@ static void _injectM600() {
 static void _cycle0() {
     if (gpio_get(PIN_FSENSOR) == 1) {
         gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLDOWN, GPIO_SPEED_FREQ_VERY_HIGH); // pulldown
-        status.meas_cycle = 1; //next cycle shall be 1
+        status.meas_cycle = 1;                                                             //next cycle shall be 1
     } else {
         int had_filament = state == FS_HAS_FILAMENT ? 1 : 0;
         _set_state(FS_NO_FILAMENT); //it is filtered, 2 requests are needed to change state
@@ -227,7 +224,7 @@ static void _cycle1() {
     //pulldown was set in cycle 0
     _set_state(gpio_get(PIN_FSENSOR) == 1 ? FS_HAS_FILAMENT : FS_NOT_CONNECTED);
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
-    status.meas_cycle = 0; //next cycle shall be 0
+    status.meas_cycle = 0;                                                           //next cycle shall be 0
 }
 
 //dealay between calls must be 1us or longer

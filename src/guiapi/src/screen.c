@@ -31,7 +31,7 @@ int16_t screen_register(screen_t *pscreen) {
             while ((id < SCREEN_MAX_SCREENS) && (screens[id]))
                 id++;
         if (id < SCREEN_MAX_SCREENS) { //id is valid
-            screens[id] = pscreen; //set screen pointer
+            screens[id] = pscreen;     //set screen pointer
             pscreen->id = id;
             screen_count++; //increment count
         } else

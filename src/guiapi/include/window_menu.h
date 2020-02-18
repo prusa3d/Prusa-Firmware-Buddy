@@ -96,7 +96,7 @@ typedef struct _window_menu_t {
     window_menu_items_t *menu_items;
     void *data;
     uint8_t src_event; // source event
-    void *src_param; // source event data
+    void *src_param;   // source event data
 } window_menu_t;
 
 #pragma pack(pop)
