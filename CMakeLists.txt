@@ -69,6 +69,10 @@ set(BUILD_NUMBER
     ""
     CACHE STRING "Build number of the firmware. Resolved automatically if not specified."
     )
+set(CUSTOM_COMPILE_OPTIONS
+    ""
+    CACHE STRING "Allows adding custom C/C++ flags"
+    )
 
 # Validate options
 foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
@@ -115,6 +119,12 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
   set(GUI YES)
 else()
   set(GUI NO)
+endif()
+
+# append custom C/C++ flags
+if(CUSTOM_COMPILE_OPTIONS)
+  string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
+  add_compile_options(${CUSTOM_COMPILE_OPTIONS})
 endif()
 
 #

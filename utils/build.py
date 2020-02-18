@@ -3,6 +3,7 @@ import argparse
 import os
 import platform
 import random
+import re
 import shutil
 import subprocess
 import sys
@@ -128,7 +129,8 @@ class FirmwareBuildConfiguration(BuildConfiguration):
                  generate_bbf: bool = False,
                  signing_key: Path = None,
                  version_suffix: str = None,
-                 version_suffix_short: str = None):
+                 version_suffix_short: str = None,
+                 custom_entries: List[str] = None):
         self.printer = printer
         self.bootloader = bootloader
         self.build_type = build_type
@@ -139,6 +141,7 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         self.signing_key = signing_key
         self.version_suffix = version_suffix
         self.version_suffix_short = version_suffix_short
+        self.custom_entries = custom_entries or []
 
     @staticmethod
     def default_toolchain() -> Path:
@@ -169,6 +172,7 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             ('PROJECT_VERSION_SUFFIX_SHORT', 'STRING',
              self.version_suffix_short or ''),
         ])
+        entries.extend(self.custom_entries)
         return entries
 
     def get_cmake_flags(self, build_dir: Path) -> List[str]:
@@ -467,6 +471,13 @@ def list_of(EnumType):
     return convert
 
 
+def cmake_cache_entry(arg):
+    match = re.fullmatch(r'(.*):(.*)=(.*)', arg)
+    if not match:
+        raise ValueError('invalid cmake entry; must be <NAME>:<TYPE>=<VALUE>')
+    return (match.group(1), match.group(2), match.group(3))
+
+
 def main():
     parser = argparse.ArgumentParser()
     # yapf: disable
@@ -549,6 +560,11 @@ def main():
         action='store_false',
         help='Do not write build output to files - print it to console instead.'
     )
+    parser.add_argument(
+        '-D', '--cmake-def',
+        action='append', type=cmake_cache_entry,
+        help='Custom CMake cache entries (e.g. -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror)'
+    )
     args = parser.parse_args(sys.argv[1:])
     # yapf: enable
 
@@ -580,7 +596,8 @@ def main():
             signing_key=args.signing_key,
             version_suffix=args.version_suffix,
             version_suffix_short=args.version_suffix_short,
-            generator=args.generator) for printer in args.printer
+            generator=args.generator,
+            custom_entries=args.cmake_def) for printer in args.printer
         for build_type in args.build_type for bootloader in args.bootloader
     ]
     if args.host_tools:
