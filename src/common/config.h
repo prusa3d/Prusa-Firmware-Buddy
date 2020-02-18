@@ -62,15 +62,15 @@
 #endif
 
 //--------------------------------------
-//ETHERNET configuration
-#define ETHERNET
+//BUDDY_ENABLE_ETHERNET configuration
+#define BUDDY_ENABLE_ETHERNET
 
 //--------------------------------------
 //LCDSIM configuration
 
 //defined as external
 #ifdef LCDSIM
-    #undef ETHERNET
+    #undef BUDDY_ENABLE_ETHERNET
     #define LCDSIM_COLS 20
     #define LCDSIM_ROWS 4
 #endif //LCDSIM
