@@ -34,13 +34,13 @@
 <stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.initCommands" value=""/>
 <stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.ipAddress" value="localhost"/>
 <stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.jtagDevice" value="ST-LINK (ST-LINK GDB server)"/>
-<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.pcRegister" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.pcRegister" value="800ba49"/>
 <intAttribute key="org.eclipse.cdt.debug.gdbjtag.core.portNumber" value="61234"/>
 <stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.runCommands" value=""/>
-<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setPcRegister" value="false"/>
-<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setResume" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setPcRegister" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setResume" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setStopAt" value="true"/>
-<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.stopAt" value="app_run"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.stopAt" value="main"/>
 <stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="${TOOLCHAIN_PATH}/arm-none-eabi-gdb"/>
 <booleanAttribute key="org.eclipse.cdt.dsf.gdb.NON_STOP" value="true"/>
 <booleanAttribute key="org.eclipse.cdt.dsf.gdb.UPDATE_THREADLIST_ON_SUSPEND" value="false"/>
