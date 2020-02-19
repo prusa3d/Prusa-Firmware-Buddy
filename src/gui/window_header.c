@@ -10,8 +10,8 @@
 #include "config.h"
 #include "marlin_client.h"
 #ifdef BUDDY_ENABLE_ETHERNET
-#include "lwip/netif.h"
-#include "lwip/dhcp.h"
+    #include "lwip/netif.h"
+    #include "lwip/dhcp.h"
 #endif //BUDDY_ENABLE_ETHERNET
 #include "eeprom.h"
 
@@ -25,6 +25,26 @@ extern struct netif wlan0;
 void window_frame_draw(window_frame_t *window);
 
 int16_t WINDOW_CLS_HEADER = 0;
+
+static void update_ETH_icon(bool link_up, window_header_t *window) {
+    if (link_up) {
+        if (eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE) {
+            if (netif_is_up(&eth0)) {
+                p_window_header_icon_active(window, HEADER_ICON_LAN);
+            } else {
+                p_window_header_icon_on(window, HEADER_ICON_LAN);
+            }
+        } else {
+            if (dhcp_supplied_address(&eth0)) {
+                p_window_header_icon_active(window, HEADER_ICON_LAN);
+            } else {
+                p_window_header_icon_on(window, HEADER_ICON_LAN);
+            }
+        }
+    } else {
+        p_window_header_icon_off(window, HEADER_ICON_LAN);
+    }
+}
 
 void window_header_init(window_header_t *window) {
     window->color_back = gui_defaults.color_back;
@@ -42,31 +62,8 @@ void window_header_init(window_header_t *window) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
     }
 #ifdef BUDDY_ENABLE_ETHERNET
-    if (netif_is_link_up(&eth0)) {
-        if(eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE){
-            if (netif_is_up(&eth0)) {
-                window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ACTIVE;
-            } else {
-                window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ON;
-            }
-        } else {
-            if (dhcp_supplied_address(&eth0)) {
-                window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ACTIVE;
-            } else {
-                window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ON;
-            }
-        }
-    }
+    update_ETH_icon(netif_is_link_up(&eth0), window);
 #endif //BUDDY_ENABLE_ETHERNET
-#if 0
-	if (netif_is_up(&wlan0)) {
-		if (dhcp_supplied_address(&wlan0)){
-			window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_ACTIVE;
-		} else {
-			window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_ON;
-		}
-	}
-#endif
 }
 
 void window_header_done(window_header_t *window) {}
@@ -168,23 +165,7 @@ void p_window_header_set_text(window_header_t *window, const char *text) {
 int p_window_header_event_clr(window_header_t *window, uint8_t evt_id) {
     /* lwip fces only read states, invalid states by another thread never mind */
 #ifdef BUDDY_ENABLE_ETHERNET
-    if (netif_is_link_up(&eth0)) {
-        if(eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE){
-            if (netif_is_up(&eth0)) {
-                p_window_header_icon_active(window, HEADER_ICON_LAN);
-            } else {
-                p_window_header_icon_on(window, HEADER_ICON_LAN);
-            }
-        } else {
-            if (dhcp_supplied_address(&eth0)) {
-                p_window_header_icon_active(window, HEADER_ICON_LAN);
-            } else {
-                p_window_header_icon_on(window, HEADER_ICON_LAN);
-            }
-        }
-    } else {
-        p_window_header_icon_off(window, HEADER_ICON_LAN);
-    }
+    update_ETH_icon(netif_is_link_up(&eth0), window);
 #endif //BUDDY_ENABLE_ETHERNET
     if (marlin_event_clr(evt_id)) {
         switch (evt_id) {
