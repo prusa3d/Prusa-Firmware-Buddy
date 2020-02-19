@@ -33,7 +33,7 @@ void menu_support() {
     #endif
     #ifdef _DEBUG
     sprintf(build, " %d%s (DEBUG_%s)", version_build_nr, (char *)FW_BUILDSX, printer);
-    #else //_DEBUG
+    #else  //_DEBUG
     sprintf(build, " %d%s (%s)", version_build_nr, (char *)FW_BUILDSX, printer);
     #endif //_DEBUG
     STATIC_ITEM_P("version:            ");

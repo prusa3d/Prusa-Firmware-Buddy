@@ -219,7 +219,7 @@ void ethernetif_link(const void *arg) {
         if (eth_link != netif_is_link_up(netif)) {
             if (eth_link) {
                 netifapi_netif_set_link_up(netif); // thread safe variant
-                osDelay(5000); // give some time to reconnect
+                osDelay(5000);                     // give some time to reconnect
             } else {
                 netifapi_netif_set_link_down(netif);
             }
@@ -581,8 +581,8 @@ err_t ethernetif_init(struct netif *netif) {
     /* The user should write ist own code in low_level_output_arp_off function */
     netif->output = low_level_output_arp_off;
         #endif /* LWIP_ARP */
-    #endif /* LWIP_ARP || LWIP_ETHERNET */
-#endif /* LWIP_IPV4 */
+    #endif     /* LWIP_ARP || LWIP_ETHERNET */
+#endif         /* LWIP_IPV4 */
 
 #if LWIP_IPV6
     netif->output_ip6 = ethip6_output;

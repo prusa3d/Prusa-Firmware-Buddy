@@ -5,15 +5,15 @@
 
 #include "variant8.h"
 
-#define EEVAR_VERSION 0x00
-#define EEVAR_FILAMENT_TYPE 0x01
-#define EEVAR_FILAMENT_COLOR 0x02
-#define EEVAR_UNUSED_1 0x03
-#define EEVAR_UNUSED_2 0x04
-#define EEVAR_UNUSED_3 0x05
-#define EEVAR_RUN_SELFTEST 0x06
-#define EEVAR_RUN_XYZCALIB 0x07
-#define EEVAR_RUN_FIRSTLAY 0x08
+#define EEVAR_VERSION         0x00
+#define EEVAR_FILAMENT_TYPE   0x01
+#define EEVAR_FILAMENT_COLOR  0x02
+#define EEVAR_UNUSED_1        0x03
+#define EEVAR_UNUSED_2        0x04
+#define EEVAR_UNUSED_3        0x05
+#define EEVAR_RUN_SELFTEST    0x06
+#define EEVAR_RUN_XYZCALIB    0x07
+#define EEVAR_RUN_FIRSTLAY    0x08
 #define EEVAR_FSENSOR_ENABLED 0x09
 
 #ifdef __cplusplus

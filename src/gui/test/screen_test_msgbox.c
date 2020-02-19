@@ -141,7 +141,7 @@ screen_t screen_test_msgbox = {
     screen_test_msgbox_draw,
     screen_test_msgbox_event,
     sizeof(screen_test_msgbox_data_t), //data_size
-    0, //pdata
+    0,                                 //pdata
 };
 
 const screen_t *pscreen_test_msgbox = &screen_test_msgbox;

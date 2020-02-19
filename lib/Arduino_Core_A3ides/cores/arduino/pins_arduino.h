@@ -376,17 +376,17 @@ uint32_t pinNametoDigitalPin(PinName p);
 // All pins could manage EXTI
 #define digitalPinToInterrupt(p) (digitalPinIsValid(p) ? p : NOT_AN_INTERRUPT)
 
-#define digitalPinHasI2C(p) (pin_in_pinmap(digitalPinToPinName(p), PinMap_I2C_SDA) || pin_in_pinmap(digitalPinToPinName(p), PinMap_I2C_SCL))
-#define digitalPinHasPWM(p) (pin_in_pinmap(digitalPinToPinName(p), PinMap_PWM))
+#define digitalPinHasI2C(p)    (pin_in_pinmap(digitalPinToPinName(p), PinMap_I2C_SDA) || pin_in_pinmap(digitalPinToPinName(p), PinMap_I2C_SCL))
+#define digitalPinHasPWM(p)    (pin_in_pinmap(digitalPinToPinName(p), PinMap_PWM))
 #define digitalPinHasSerial(p) (pin_in_pinmap(digitalPinToPinName(p), PinMap_UART_RX) || pin_in_pinmap(digitalPinToPinName(p), PinMap_UART_TX))
-#define digitalPinHasSPI(p) (pin_in_pinmap(digitalPinToPinName(p), PinMap_SPI_MOSI) || pin_in_pinmap(digitalPinToPinName(p), PinMap_SPI_MISO) || pin_in_pinmap(digitalPinToPinName(p), PinMap_SPI_SCLK) || pin_in_pinmap(digitalPinToPinName(p), PinMap_SPI_SSEL))
+#define digitalPinHasSPI(p)    (pin_in_pinmap(digitalPinToPinName(p), PinMap_SPI_MOSI) || pin_in_pinmap(digitalPinToPinName(p), PinMap_SPI_MISO) || pin_in_pinmap(digitalPinToPinName(p), PinMap_SPI_SCLK) || pin_in_pinmap(digitalPinToPinName(p), PinMap_SPI_SSEL))
 
-#define digitalPinToPort(p) (get_GPIO_Port(STM_PORT(digitalPinToPinName(p))))
+#define digitalPinToPort(p)    (get_GPIO_Port(STM_PORT(digitalPinToPinName(p))))
 #define digitalPinToBitMask(p) (STM_GPIO_PIN(digitalPinToPinName(p)))
 
-#define analogInPinToBit(p) (STM_GPIO_PIN(digitalPinToPinName(p)))
+#define analogInPinToBit(p)   (STM_GPIO_PIN(digitalPinToPinName(p)))
 #define portOutputRegister(P) (&(P->ODR))
-#define portInputRegister(P) (&(P->IDR))
+#define portInputRegister(P)  (&(P->IDR))
 
 #define portSetRegister(P) (&(P->BSRR))
 #if defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx)

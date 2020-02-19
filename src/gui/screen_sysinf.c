@@ -117,7 +117,7 @@ screen_t screen_sysinfo = {
     screen_sysinfo_draw,
     screen_sysinfo_event,
     sizeof(screen_sysinfo_data_t), //data_size
-    0, //pdata
+    0,                             //pdata
 };
 
 const screen_t *pscreen_sysinfo = &screen_sysinfo;

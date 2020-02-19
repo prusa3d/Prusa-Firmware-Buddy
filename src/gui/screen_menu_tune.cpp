@@ -31,11 +31,11 @@ enum {
 //cannot use .wi_spin = { 0, feedrate_range } ...
 //sorry, unimplemented: non-trivial designated initializers not supported
 const menu_item_t _menu_tune_items[] = {
-    { { "Speed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
-    { { "Nozzle", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
-    { { "HeatBed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
-    { { "Fan Speed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
-    { { "Flow Factor", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
+    { { "Speed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },            //set later
+    { { "Nozzle", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },           //set later
+    { { "HeatBed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },          //set later
+    { { "Fan Speed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },        //set later
+    { { "Flow Factor", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },      //set later
     { { "Live Adjust Z", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
     { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Info", 0, WI_LABEL | WI_DISABLED }, &screen_menu_info },
@@ -197,7 +197,7 @@ screen_t screen_menu_tune = {
     screen_menu_draw,
     screen_menu_tune_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_menu_tune = &screen_menu_tune;
