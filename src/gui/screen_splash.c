@@ -138,7 +138,7 @@ screen_t screen_splash = {
     screen_splash_draw,
     screen_splash_event,
     sizeof(screen_splash_data_t), //data_size
-    0, //pdata
+    0,                            //pdata
 };
 
 const screen_t *pscreen_splash = &screen_splash;

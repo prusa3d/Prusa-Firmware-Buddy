@@ -16,22 +16,22 @@
 #define DLG_FRAME_ENA 0
 
 //dialog flags bitshift
-#define DLG_SHI_MOD 4 // mode shift
+#define DLG_SHI_MOD 4  // mode shift
 #define DLG_SHI_CHG 14 // change flag shift
 
 #if DLG_FRAME_ENA == 1
     #define DLG_DRA_FR 0x0800 // draw frame
 #else
-    #define DLG_DRA_FR 0x0000 // draw frame
-#endif //DLG_FRAME_ENA == 1
-#define DLG_BTN_CH 0x1000 // button changed
-#define DLG_TXT_CH 0x2000 // text changed
-#define DLG_PRO_CH 0x4000 // progress changed
-#define DLG_PPR_CH 0x8000 // part progress changed
-#define DLG_PRX_CH (DLG_PRO_CH | DLG_PPR_CH) // some progress changed
+    #define DLG_DRA_FR 0x0000                             // draw frame
+#endif                                                    //DLG_FRAME_ENA == 1
+#define DLG_BTN_CH 0x1000                                 // button changed
+#define DLG_TXT_CH 0x2000                                 // text changed
+#define DLG_PRO_CH 0x4000                                 // progress changed
+#define DLG_PPR_CH 0x8000                                 // part progress changed
+#define DLG_PRX_CH (DLG_PRO_CH | DLG_PPR_CH)              // some progress changed
 #define DLG_PHA_CH (DLG_PRX_CH | DLG_BTN_CH | DLG_TXT_CH) // phase changed
 //dialog flags bitmasks
-#define DLG_MSK_MOD 0x0003 // mode mask
+#define DLG_MSK_MOD 0x0003     // mode mask
 #define DLG_MSK_CHG DLG_PHA_CH // change flag mask
 
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
@@ -293,7 +293,7 @@ dlg_result_t _gui_dlg(const _cl_dlg *_ths, void *p_additional_vars, int32_t ttl)
         //button auto exit flag must be handled here
         //state could change phase
         if (
-            (p_vars->flags & DLG_BT_FLG) && //button clicked
+            (p_vars->flags & DLG_BT_FLG) &&                               //button clicked
             (_ths->p_states[p_vars->phase].p_button->flags & BT_AUTOEXIT) //autoexit flag on current button
         ) {
             break;

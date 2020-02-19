@@ -126,85 +126,84 @@ void wizard_selftest_axis(int16_t id_body, selftest_fans_axis_screen_t *p_screen
     if (*state == _TEST_START)
         phase = 1;
     switch (phase) {
-    case 1: // phase 1 - init and start move to maximum
-        marlin_start_processing(); // enable processing
-        marlin_gcode("M211 S0"); // disable software endstops
-        marlin_gcode("M120"); // enable hw endstop detection
-        pos = marlin_update_vars(varmsk)->pos[axis]; // update variable pos[]
+    case 1:                                                    // phase 1 - init and start move to maximum
+        marlin_start_processing();                             // enable processing
+        marlin_gcode("M211 S0");                               // disable software endstops
+        marlin_gcode("M120");                                  // enable hw endstop detection
+        pos = marlin_update_vars(varmsk)->pos[axis];           // update variable pos[]
         marlin_gcode_printf("G92 %c%.3f", achar, (double)pos); // set position to current
-        p_data->axis_max[axis] = pos; // save current position
-        pos += dir * max; // calc target position
+        p_data->axis_max[axis] = pos;                          // save current position
+        pos += dir * max;                                      // calc target position
         if (axis == 2)
             marlin_gcode_printf("G28"); // home all axes (Z)
-        else
-        {
+        else {
             marlin_gcode_printf("G1 %c%.3f F%d", achar,
-                    (double)(pos - dir * (max + 1.92F)), fr / 4);
+                (double)(pos - dir * (max + 1.92F)), fr / 4);
             marlin_gcode_printf("G1 %c%.3f F%d", achar, (double)pos, fr); // start move to maximum (XY)
         }
         marlin_wait_motion(100); // wait for motion start (max 100ms)
-        phase++; // next phase
+        phase++;                 // next phase
         break;
     case 2: // phase 2 - wait while motion, then read position and start move to minimum
         if (marlin_motion())
-            break; // axis is moving - wait
+            break;                                   // axis is moving - wait
         pos = marlin_update_vars(varmsk)->pos[axis]; // update variable pos[]
-        dis = pos - p_data->axis_max[axis]; // calculate traveled distance
+        dis = pos - p_data->axis_max[axis];          // calculate traveled distance
         _dbg("dis = %.3f", (double)dis);
         if ((int)(dis + 0.5F) >= max) // check distance >= max
-        { //  (round to millimeters)
-            *state = _TEST_FAILED; // fail - endstop not triggered
+        {                             //  (round to millimeters)
+            *state = _TEST_FAILED;    // fail - endstop not triggered
             break;
         }
-        marlin_gcode_printf("G92 %c%.3f", achar, (double)pos); // set position to current
-        p_data->axis_min[axis] = pos; // save current position
-        pos -= dir * max; // calc target position
+        marlin_gcode_printf("G92 %c%.3f", achar, (double)pos);        // set position to current
+        p_data->axis_min[axis] = pos;                                 // save current position
+        pos -= dir * max;                                             // calc target position
         marlin_gcode_printf("G1 %c%.3f F%d", achar, (double)pos, fr); // start move to maximum
-        marlin_wait_motion(100); // wait for motion start (max 100ms)
-        phase++; // next phase
+        marlin_wait_motion(100);                                      // wait for motion start (max 100ms)
+        phase++;                                                      // next phase
         break;
     case 3: // phase 3 - wait while motion, then read position and start move to maximum
         if (marlin_motion())
-            break; // axis is moving - wait
+            break;                                   // axis is moving - wait
         pos = marlin_update_vars(varmsk)->pos[axis]; // update variable pos[]
-        dis = dir * (p_data->axis_min[axis] - pos); // calculate traveled distance
+        dis = dir * (p_data->axis_min[axis] - pos);  // calculate traveled distance
         _dbg("dis = %.3f", (double)dis);
         if ((int)(dis + 0.5F) >= max) // check distance >= max
-        { //  (round to millimeters)
+        {                             //  (round to millimeters)
             _dbg("endstop not reached");
             *state = _TEST_FAILED; // fail - endstop not triggered
             break;
         }
         if ((int)(dis + 0.5F) <= min) // check distance <= min
-        { //  (round to millimeters)
+        {                             //  (round to millimeters)
             _dbg("distance to short");
             *state = _TEST_FAILED; // fail - axis length invalid
             break;
         }
         marlin_gcode_printf("G92 %c%.3f", achar, (double)pos); // set position to current
-        p_data->axis_max[axis] = pos; // save current position
+        p_data->axis_max[axis] = pos;                          // save current position
         pos += dir * max;
         if (axis == 2)
             marlin_gcode_printf("G28 Z", achar, (double)pos, fr); // home Z (Z)
         else
             marlin_gcode_printf("G1 %c%.3f F%d", achar, (double)pos, fr); // start move to minimum
-        marlin_wait_motion(100); // wait for motion start (max 100ms)
-        phase++; // next phase
+        marlin_wait_motion(100);                                          // wait for motion start (max 100ms)
+        phase++;                                                          // next phase
         break;
     case 4: // phase 3 - wait while motion, then read position and finish
         if (marlin_motion())
-            break; // axis is moving - wait
+            break;                                   // axis is moving - wait
         pos = marlin_update_vars(varmsk)->pos[axis]; // update variable pos[]
-        dis = dir * (pos - p_data->axis_max[axis]); // calculate traveled distance
+        dis = dir * (pos - p_data->axis_max[axis]);  // calculate traveled distance
         _dbg("dis = %.3f", (double)dis);
         if ((int)(dis + 0.5F) >= max) // check distance >= max
-        { //  (round to millimeters)
+        {                             //  (round to millimeters)
             _dbg("endstop not reached");
             *state = _TEST_FAILED; // fail - endstop not triggered
             break;
         }
         if ((int)(dis + 0.5F) <= min) // check distance <= min
-        { //  (round to millimeters)
+        {                             //  (round to millimeters)
             _dbg("distance to short");
             *state = _TEST_FAILED; // fail - axis length invalid
             break;

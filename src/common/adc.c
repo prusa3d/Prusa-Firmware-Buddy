@@ -15,10 +15,10 @@ extern uint8_t ADC_SEQ2IDX(uint8_t seq);
 extern void Error_Handler(void);
 
 uint32_t adc_val[ADC_CHAN_CNT]; //sampled values
-uint8_t adc_cnt[ADC_CHAN_CNT]; //number of samples
-uint8_t adc_chn[ADC_CHAN_CNT]; //physical channels
-uint8_t adc_sta = 0xff; //current state, 0xff means "not initialized"
-int8_t adc_idx = 0; //current value index
+uint8_t adc_cnt[ADC_CHAN_CNT];  //number of samples
+uint8_t adc_chn[ADC_CHAN_CNT];  //physical channels
+uint8_t adc_sta = 0xff;         //current state, 0xff means "not initialized"
+int8_t adc_idx = 0;             //current value index
 
 uint32_t adc_sim_val[ADC_CHAN_CNT]; //simulated values
 uint32_t adc_sim_msk = ADC_SIM_MSK; //mask simulated channels

@@ -38,17 +38,17 @@ typedef struct
 #define pd ((screen_test_data_t *)screen->pdata)
 
 typedef enum {
-	STI_back = 1,
-	STI_tst_gui,
-	STI_tst_term,
-	STI_tst_msgbox,
-	STI_tst_graph,
-	STI_tst_temperature,
-	STI_tst_heat_err,
-	STI_tst_disp_memory,
-	STI_tst_stack_overflow
+    STI_back = 1,
+    STI_tst_gui,
+    STI_tst_term,
+    STI_tst_msgbox,
+    STI_tst_graph,
+    STI_tst_temperature,
+    STI_tst_heat_err,
+    STI_tst_disp_memory,
+    STI_tst_stack_overflow
 
-}STI_tag_t;
+} STI_tag_t;
 
 void screen_test_init(screen_t *screen) {
     int16_t id;
@@ -125,12 +125,12 @@ void screen_test_done(screen_t *screen) {
 void screen_test_draw(screen_t *screen) {
 }
 
-
 static volatile int _recursive = 1;
-static volatile void recursive(uint64_t i){
-	uint64_t x = i + (uint64_t)_recursive;
-	osDelay(1);
-	if(_recursive)recursive(x);
+static volatile void recursive(uint64_t i) {
+    uint64_t x = i + (uint64_t)_recursive;
+    osDelay(1);
+    if (_recursive)
+        recursive(x);
 }
 
 int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -155,14 +155,14 @@ int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *p
             screen_open(pscreen_test_temperature->id);
             return 1;
         case STI_tst_heat_err:
-            temp_error("TEST BED ERROR", "Bed",1.0,2.0,3.0,4.0);
+            temp_error("TEST BED ERROR", "Bed", 1.0, 2.0, 3.0, 4.0);
             return 1;
         case STI_tst_disp_memory:
             screen_open(pscreen_test_disp_mem->id);
             return 1;
         case STI_tst_stack_overflow:
-        	recursive(0);
-        	return 1;
+            recursive(0);
+            return 1;
         }
     else if (event == WINDOW_EVENT_TIMER) {
         if ((int)param == pd->id_tim)
@@ -182,7 +182,7 @@ screen_t screen_test = {
     screen_test_draw,
     screen_test_event,
     sizeof(screen_test_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_test = &screen_test;

@@ -36,40 +36,40 @@ static const char *const g_psHTTPHeaderStrings[] = {
 };
 
     /* Indexes into the g_psHTTPHeaderStrings array */
-    #define HTTP_HDR_OK 0 /* 200 OK */
-    #define HTTP_HDR_NOT_FOUND 1 /* 404 File not found */
-    #define HTTP_HDR_BAD_REQUEST 2 /* 400 Bad request */
-    #define HTTP_HDR_NOT_IMPL 3 /* 501 Not Implemented */
-    #define HTTP_HDR_OK_11 4 /* 200 OK */
-    #define HTTP_HDR_NOT_FOUND_11 5 /* 404 File not found */
-    #define HTTP_HDR_BAD_REQUEST_11 6 /* 400 Bad request */
-    #define HTTP_HDR_NOT_IMPL_11 7 /* 501 Not Implemented */
-    #define HTTP_HDR_CONTENT_LENGTH 8 /* Content-Length: (HTTP 1.0)*/
-    #define HTTP_HDR_CONN_CLOSE 9 /* Connection: Close (HTTP 1.1) */
+    #define HTTP_HDR_OK             0  /* 200 OK */
+    #define HTTP_HDR_NOT_FOUND      1  /* 404 File not found */
+    #define HTTP_HDR_BAD_REQUEST    2  /* 400 Bad request */
+    #define HTTP_HDR_NOT_IMPL       3  /* 501 Not Implemented */
+    #define HTTP_HDR_OK_11          4  /* 200 OK */
+    #define HTTP_HDR_NOT_FOUND_11   5  /* 404 File not found */
+    #define HTTP_HDR_BAD_REQUEST_11 6  /* 400 Bad request */
+    #define HTTP_HDR_NOT_IMPL_11    7  /* 501 Not Implemented */
+    #define HTTP_HDR_CONTENT_LENGTH 8  /* Content-Length: (HTTP 1.0)*/
+    #define HTTP_HDR_CONN_CLOSE     9  /* Connection: Close (HTTP 1.1) */
     #define HTTP_HDR_CONN_KEEPALIVE 10 /* Connection: keep-alive (HTTP 1.1) */
-    #define HTTP_HDR_KEEPALIVE_LEN 11 /* Connection: keep-alive + Content-Length: (HTTP 1.1)*/
-    #define HTTP_HDR_SERVER 12 /* Server: HTTPD_SERVER_AGENT */
-    #define DEFAULT_404_HTML 13 /* default 404 body */
+    #define HTTP_HDR_KEEPALIVE_LEN  11 /* Connection: keep-alive + Content-Length: (HTTP 1.1)*/
+    #define HTTP_HDR_SERVER         12 /* Server: HTTPD_SERVER_AGENT */
+    #define DEFAULT_404_HTML        13 /* default 404 body */
     #if LWIP_HTTPD_SUPPORT_11_KEEPALIVE
         #define DEFAULT_404_HTML_PERSISTENT 14 /* default 404 body, but including Connection: keep-alive */
     #endif
 
     #define HTTP_HDR_HTML "Content-type: text/html\r\n\r\n"
-    #define HTTP_HDR_SSI "Content-type: text/html\r\nExpires: Fri, 10 Apr 2008 14:00:00 GMT\r\nPragma: no-cache\r\n\r\n"
-    #define HTTP_HDR_GIF "Content-type: image/gif\r\n\r\n"
-    #define HTTP_HDR_PNG "Content-type: image/png\r\n\r\n"
-    #define HTTP_HDR_JPG "Content-type: image/jpeg\r\n\r\n"
-    #define HTTP_HDR_BMP "Content-type: image/bmp\r\n\r\n"
-    #define HTTP_HDR_ICO "Content-type: image/x-icon\r\n\r\n"
-    #define HTTP_HDR_APP "Content-type: application/octet-stream\r\n\r\n"
-    #define HTTP_HDR_JS "Content-type: application/javascript\r\n\r\n"
-    #define HTTP_HDR_RA "Content-type: application/javascript\r\n\r\n"
-    #define HTTP_HDR_CSS "Content-type: text/css\r\n\r\n"
-    #define HTTP_HDR_SWF "Content-type: application/x-shockwave-flash\r\n\r\n"
-    #define HTTP_HDR_XML "Content-type: text/xml\r\n\r\n"
-    #define HTTP_HDR_PDF "Content-type: application/pdf\r\n\r\n"
+    #define HTTP_HDR_SSI  "Content-type: text/html\r\nExpires: Fri, 10 Apr 2008 14:00:00 GMT\r\nPragma: no-cache\r\n\r\n"
+    #define HTTP_HDR_GIF  "Content-type: image/gif\r\n\r\n"
+    #define HTTP_HDR_PNG  "Content-type: image/png\r\n\r\n"
+    #define HTTP_HDR_JPG  "Content-type: image/jpeg\r\n\r\n"
+    #define HTTP_HDR_BMP  "Content-type: image/bmp\r\n\r\n"
+    #define HTTP_HDR_ICO  "Content-type: image/x-icon\r\n\r\n"
+    #define HTTP_HDR_APP  "Content-type: application/octet-stream\r\n\r\n"
+    #define HTTP_HDR_JS   "Content-type: application/javascript\r\n\r\n"
+    #define HTTP_HDR_RA   "Content-type: application/javascript\r\n\r\n"
+    #define HTTP_HDR_CSS  "Content-type: text/css\r\n\r\n"
+    #define HTTP_HDR_SWF  "Content-type: application/x-shockwave-flash\r\n\r\n"
+    #define HTTP_HDR_XML  "Content-type: text/xml\r\n\r\n"
+    #define HTTP_HDR_PDF  "Content-type: application/pdf\r\n\r\n"
     #define HTTP_HDR_JSON "Content-type: application/json\r\n\r\n"
-    #define HTTP_HDR_SVG "Content-type: image/svg+xml\r\n\r\n"
+    #define HTTP_HDR_SVG  "Content-type: image/svg+xml\r\n\r\n"
 
     #define HTTP_HDR_DEFAULT_TYPE "Content-type: text/plain\r\n\r\n"
 

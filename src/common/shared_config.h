@@ -5,7 +5,7 @@
 #include "stdint.h"
 
 // EEPROM firmware update flag
-#define FW_UPDATE_ENABLE 0xAA
+#define FW_UPDATE_ENABLE  0xAA
 #define FW_UPDATE_DISABLE 0x00
 
 #pragma pack(push)

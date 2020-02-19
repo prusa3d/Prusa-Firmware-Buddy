@@ -8,9 +8,9 @@
 //timer defaults
 //50000 us
 #define TIM1_default_Prescaler 0x3fff
-#define TIM1_default_Period 0xff
+#define TIM1_default_Period    0xff
 #define TIM3_default_Prescaler 0x3fff
-#define TIM3_default_Period 0xff
+#define TIM3_default_Period    0xff
 
 //must be macro to be able to inicialize variables with it
 #define GEN_PERIOD_US(prescaler, period) \

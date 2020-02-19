@@ -116,7 +116,7 @@ screen_t screen_messages = {
     screen_messages_draw,
     screen_messages_event,
     sizeof(screen_messages_data_t), //data_size
-    0, //pdata
+    0,                              //pdata
 };
 
 const screen_t *pscreen_messages = &screen_messages;

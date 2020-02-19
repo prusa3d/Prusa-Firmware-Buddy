@@ -8,7 +8,7 @@
 #endif //(PRINTER_TYPE ==
 
 #define _STR(x) #x
-#define STR(x) _STR(x)
+#define STR(x)  _STR(x)
 
 //TODO:
 // MAJ/MIN/SUB in structure from FW_VERSION

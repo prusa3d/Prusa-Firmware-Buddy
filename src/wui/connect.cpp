@@ -75,8 +75,8 @@ static const FileHandler_t files[] = {
 //! Response state enumeration
 enum State_t {
     FIRST, /**< First coroutine_fn call after creation */
-    NEXT, /**< Any other coroutine_fn call while all data is not sent */
-    DONE /**< Last coroutine_fn call, coroutine_fn must delete response
+    NEXT,  /**< Any other coroutine_fn call while all data is not sent */
+    DONE   /**< Last coroutine_fn call, coroutine_fn must delete response
                      object */
 };
 

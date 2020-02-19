@@ -15,11 +15,11 @@
 extern SPI_HandleTypeDef hspi2;
 
 const st7789v_config_t st7789v_cfg = {
-    &hspi2, // spi handle pointer
-    ST7789V_PIN_CS, // CS pin
-    ST7789V_PIN_RS, // RS pin
-    ST7789V_PIN_RST, // RST pin
-    ST7789V_FLG_DMA, // flags (DMA, MISO)
+    &hspi2,             // spi handle pointer
+    ST7789V_PIN_CS,     // CS pin
+    ST7789V_PIN_RS,     // RS pin
+    ST7789V_PIN_RST,    // RST pin
+    ST7789V_FLG_DMA,    // flags (DMA, MISO)
     ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
     ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
 };

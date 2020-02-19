@@ -196,7 +196,7 @@
 
 /* USER CODE BEGIN Volumes */
 #define _STR_VOLUME_ID 0 /* 0:Use only 0-9 for drive ID, 1:Use strings for drive ID */
-#define _VOLUME_STRS "RAM", "NAND", "CF", "SD1", "SD2", "USB1", "USB2", "USB3"
+#define _VOLUME_STRS   "RAM", "NAND", "CF", "SD1", "SD2", "USB1", "USB2", "USB3"
 /* _STR_VOLUME_ID switches string support of volume ID.
 /  When _STR_VOLUME_ID is set to 1, also pre-defined strings can be used as drive
 /  number in the path name. _VOLUME_STRS defines the drive ID strings for each
@@ -251,8 +251,8 @@
 /  When enable exFAT, also LFN needs to be enabled. (_USE_LFN >= 1)
 /  Note that enabling exFAT discards C89 compatibility. */
 
-#define _FS_NORTC 0
-#define _NORTC_MON 6
+#define _FS_NORTC   0
+#define _NORTC_MON  6
 #define _NORTC_MDAY 4
 #define _NORTC_YEAR 2015
 /* The option _FS_NORTC switches timestamp functiton. If the system does not have
@@ -275,9 +275,9 @@
 /      can be opened simultaneously under file lock control. Note that the file
 /      lock control is independent of re-entrancy. */
 
-#define _FS_REENTRANT 1 /* 0:Disable or 1:Enable */
-#define _FS_TIMEOUT 1000 /* Timeout period in unit of time ticks */
-#define _SYNC_t osSemaphoreId
+#define _FS_REENTRANT 1    /* 0:Disable or 1:Enable */
+#define _FS_TIMEOUT   1000 /* Timeout period in unit of time ticks */
+#define _SYNC_t       osSemaphoreId
 /* The option _FS_REENTRANT switches the re-entrancy (thread safe) of the FatFs
 /  module itself. Note that regardless of this option, file access to different
 /  volume is always re-entrant and volume control functions, f_mount(), f_mkfs()
@@ -299,7 +299,7 @@
 #if !defined(ff_malloc) && !defined(ff_free)
     #include <stdlib.h>
     #define ff_malloc malloc
-    #define ff_free free
+    #define ff_free   free
 #endif
 
 #endif /* _FFCONF */

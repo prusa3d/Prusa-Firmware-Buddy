@@ -11,8 +11,8 @@
 #include <stdlib.h>
 
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
-#define OTP_START_ADDR 0x1FFF7800
-#define SERIAL_NUM_ADDR 0x1FFF7808
+#define OTP_START_ADDR             0x1FFF7800
+#define SERIAL_NUM_ADDR            0x1FFF7808
 
 enum {
     TAG_QUIT = 10
@@ -102,7 +102,7 @@ screen_t screen_version_info = {
     screen_menu_draw,
     screen_menu_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_version_info = &screen_version_info;

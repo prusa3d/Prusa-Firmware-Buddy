@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------------
 //stringize macros
 #define QUOTE_ME(x) #x
-#define STR(x) QUOTE_ME(x)
+#define STR(x)      QUOTE_ME(x)
 
 #ifdef __cplusplus
 extern "C" {
