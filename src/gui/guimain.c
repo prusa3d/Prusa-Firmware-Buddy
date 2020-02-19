@@ -285,7 +285,8 @@ void gui_run(void) {
         if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
-               screen_unloop(timeout_blacklist, sizeof(timeout_blacklist)/sizeof(timeout_blacklist[0]));
+                screen_unloop(timeout_blacklist, sizeof(timeout_blacklist)/sizeof(timeout_blacklist[0]));
+                gui_timer_delete(gui_timeout_id);
             }
 
         }
