@@ -115,8 +115,6 @@ extern IWDG_HandleTypeDef hiwdg; //watchdog handle
 
 static void get_fw_version(void) {
     uint8_t FW_version[3];
-    uint16_t FW_build = 0;
-    uint8_t suff_idx = 5;
     uint16_t fw_parser = FW_VERSION;
 
     FW_version[0] = (uint8_t)(fw_parser / 100);
@@ -125,15 +123,10 @@ static void get_fw_version(void) {
     fw_parser -= FW_version[1] * 10;
     FW_version[2] = (uint8_t)fw_parser;
 
-#ifdef FW_BUILDNR
-    if (suff_idx < 5)
-        FW_build = FW_BUILDNR;
-#endif
-
 #ifdef PRERELEASE_STR
     sprintf(FW_version_str, "%d.%d.%d-%s+%d",
         FW_version[0], FW_version[1], FW_version[2],
-        PRERELEASE_STR, FW_build);
+        PRERELEASE_STR, FW_BUILDNR);
 #else
     sprintf(FW_version_str, "%d.%d.%d", FW_version[0],
         FW_version[1], FW_version[2]);
