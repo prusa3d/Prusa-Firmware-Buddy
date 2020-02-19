@@ -42,6 +42,7 @@ extern screen_t *pscreen_test_temperature;
 extern screen_t *pscreen_home;
 extern screen_t *pscreen_filebrowser;
 extern screen_t *pscreen_printing;
+extern screen_t *pscreen_printing_serial;
 extern screen_t *pscreen_menu_preheat;
 extern screen_t *pscreen_menu_filament;
 extern screen_t *pscreen_preheating;
@@ -105,6 +106,8 @@ int8_t menu_timeout_enabled = 1; // Default: enabled
 
 extern screen_t screen_home;
 extern screen_t screen_printing;
+
+extern screen_t screen_printing_serial;
 extern screen_t screen_menu_tune;
 extern screen_t screen_wizard;
 extern screen_t screen_print_preview;
@@ -122,6 +125,7 @@ static screen_t * const timeout_blacklist[] = {
 };
 
 static screen_t * const m876_blacklist[] = {
+    &screen_printing_serial,
     &screen_home
 #ifdef PIDCALIBRATION
     ,&screen_PID
@@ -157,12 +161,11 @@ static void _gui_loop_cb(){
 }
 
 void serial_prt_cb() {
-    //todo add itself to blacklist
     screen_unloop(m876_blacklist, sizeof(m876_blacklist)/sizeof(m876_blacklist[0]));
 
     screen_t *curr = screen_get_curr();
-    //todo test already opened
-    screen_open(pscreen_printing->id);
+    if (curr!=pscreen_printing_serial)
+        screen_open(pscreen_printing_serial->id);
 }
 
 
@@ -225,6 +228,7 @@ void gui_run(void) {
     screen_register(pscreen_home);
     screen_register(pscreen_filebrowser);
     screen_register(pscreen_printing);
+    screen_register(pscreen_printing_serial);
     screen_register(pscreen_menu_preheat);
     screen_register(pscreen_menu_filament);
     screen_register(pscreen_menu_calibration);

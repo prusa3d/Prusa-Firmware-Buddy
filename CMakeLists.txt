@@ -477,6 +477,7 @@ if(GUI)
             src/gui/filament.cpp
             src/gui/menu_vars.cpp
             src/gui/screen_printing.cpp
+            src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
             src/gui/screen_PID.cpp
             src/gui/screen_menu_fw_update.c
