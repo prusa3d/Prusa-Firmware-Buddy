@@ -15,22 +15,22 @@
 #define ST7789V_ROWS 320 //
 
 //st7789 commands
-#define CMD_SLPIN 0x10
-#define CMD_SLPOUT 0x11
-#define CMD_INVOFF 0x20 //Display Inversion Off
-#define CMD_INVON 0x21 //Display Inversion On
+#define CMD_SLPIN     0x10
+#define CMD_SLPOUT    0x11
+#define CMD_INVOFF    0x20 //Display Inversion Off
+#define CMD_INVON     0x21 //Display Inversion On
 #define CMD_GAMMA_SET 0x26 //gamma set
-#define CMD_DISPOFF 0x28
-#define CMD_DISPON 0x29
-#define CMD_CASET 0x2A
-#define CMD_RASET 0x2B
-#define CMD_RAMWR 0x2C
-#define CMD_RAMRD 0x2E
-#define CMD_MADCTL 0x36
+#define CMD_DISPOFF   0x28
+#define CMD_DISPON    0x29
+#define CMD_CASET     0x2A
+#define CMD_RASET     0x2B
+#define CMD_RAMWR     0x2C
+#define CMD_RAMRD     0x2E
+#define CMD_MADCTL    0x36
 //#define CMD_IDMOFF 		0x38//Idle Mode Off
 //#define CMD_IDMON 		0x38//Idle Mode On
-#define CMD_COLMOD 0x3A
-#define CMD_RAMWRC 0x3C
+#define CMD_COLMOD  0x3A
+#define CMD_RAMWRC  0x3C
 #define CMD_WRDISBV 0x51 //Write Display Brightness
 #define CMD_RDDISBV 0x52 //Read Display Brightness Value
 #define CMD_WRCTRLD 0x53 // Write CTRL Display
@@ -47,20 +47,20 @@
 
 //st7789 CTRL Display
 #define MASK_CTRLD_BCTRL (0x01 << 5) //Brightness Control Block
-#define MASK_CTRLD_DD (0x01 << 3) //Display Dimming
-#define MASK_CTRLD_BL (0x01 << 2) //Backlight Control
+#define MASK_CTRLD_DD    (0x01 << 3) //Display Dimming
+#define MASK_CTRLD_BL    (0x01 << 2) //Backlight Control
 
 //color constants
-#define CLR565_WHITE 0xffff
-#define CLR565_BLACK 0x0000
-#define CLR565_RED 0xf800
-#define CLR565_CYAN 0x0000
+#define CLR565_WHITE   0xffff
+#define CLR565_BLACK   0x0000
+#define CLR565_RED     0xf800
+#define CLR565_CYAN    0x0000
 #define CLR565_MAGENTA 0x0000
-#define CLR565_GREEN 0x07e0
-#define CLR565_YELLOW 0xffe0
-#define CLR565_ORANGE 0x0000
-#define CLR565_GRAY 0x38e7
-#define CLR565_BLUE 0x001f
+#define CLR565_GREEN   0x07e0
+#define CLR565_YELLOW  0xffe0
+#define CLR565_ORANGE  0x0000
+#define CLR565_GRAY    0x38e7
+#define CLR565_BLUE    0x001f
 
 //color conversion
 #define _COLOR_565(clr) color_to_565(clr)
@@ -68,14 +68,14 @@
 #define _565_COLOR(clr) color_from_565(clr)
 
 //private flags (pin states)
-#define FLG_CS 0x01 // current CS pin state
-#define FLG_RS 0x02 // current RS pin state
+#define FLG_CS  0x01 // current CS pin state
+#define FLG_RS  0x02 // current RS pin state
 #define FLG_RST 0x04 // current RST pin state
 
 uint8_t st7789v_flg = 0; // flags
 
-uint16_t st7789v_x = 0; // current x coordinate (CASET)
-uint16_t st7789v_y = 0; // current y coordinate (RASET)
+uint16_t st7789v_x = 0;  // current x coordinate (CASET)
+uint16_t st7789v_y = 0;  // current y coordinate (RASET)
 uint16_t st7789v_cx = 0; //
 uint16_t st7789v_cy = 0; //
 
@@ -173,7 +173,7 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
         HAL_SPI_Transmit_DMA(st7789v_config.phspi, pb, size);
 #ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-#else //ST7789V_USE_RTOS
+#else  //ST7789V_USE_RTOS
 //TODO:
 #endif //ST7789V_USE_RTOS
     } else
@@ -195,11 +195,11 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
 		ret = HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
     #ifdef ST7789V_USE_RTOS
 		osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    #endif //ST7789V_USE_RTOS
+    #endif     //ST7789V_USE_RTOS
 	}
-#else //ST7789V_DMA
+#else          //ST7789V_DMA
     ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
-#endif //ST7789V_DMA
+#endif         //ST7789V_DMA
     ret = ret; //prevent warning
 }
 
@@ -208,10 +208,10 @@ void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
     if (st7789v_flg & FLG_CS)
         st7789v_clr_cs(); // CS = L
     if (st7789v_flg & FLG_RS)
-        st7789v_clr_rs(); // RS = L
+        st7789v_clr_rs();     // RS = L
     st7789v_spi_wr_byte(cmd); // write command byte
     if (pdata && size) {
-        st7789v_set_rs(); // RS = H
+        st7789v_set_rs();                  // RS = H
         st7789v_spi_wr_bytes(pdata, size); // write data bytes
     }
     if (tmp_flg & FLG_CS)
@@ -220,12 +220,12 @@ void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
 
 void st7789v_wr(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
-        return; // null or empty data - return
+        return;                     // null or empty data - return
     uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS)
         st7789v_clr_cs(); // CS = L
     if (!(st7789v_flg & FLG_RS))
-        st7789v_set_rs(); // RS = H
+        st7789v_set_rs();              // RS = H
     st7789v_spi_wr_bytes(pdata, size); // write data bytes
     if (tmp_flg & FLG_CS)
         st7789v_set_cs(); // CS = H
@@ -233,12 +233,12 @@ void st7789v_wr(uint8_t *pdata, uint16_t size) {
 
 void st7789v_rd(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
-        return; // null or empty data - return
+        return;                     // null or empty data - return
     uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS)
         st7789v_clr_cs(); // CS = L
     if (!(st7789v_flg & FLG_RS))
-        st7789v_set_rs(); // RS = H
+        st7789v_set_rs();              // RS = H
     st7789v_spi_rd_bytes(pdata, size); // read data bytes
     if (tmp_flg & FLG_CS)
         st7789v_set_cs(); // CS = H
@@ -315,10 +315,12 @@ void st7789v_reset(void) {
     gpio_init(st7789v_config.pinRST, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
     volatile uint16_t delay = 0;
     int irq = __get_PRIMASK() & 1;
-    if (irq) __disable_irq();
+    if (irq)
+        __disable_irq();
     while (!gpio_get(st7789v_config.pinRST))
         delay++;
-    if (irq) __enable_irq();
+    if (irq)
+        __enable_irq();
     gpio_init(st7789v_config.pinRST, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
     st7789v_set_rst();
     st7789v_reset_delay = delay;
@@ -332,15 +334,15 @@ void st7789v_init(void) {
         st7789v_flg &= ~ST7789V_FLG_DMA;
     else
         st7789v_flg = st7789v_config.flg;
-    st7789v_init_ctl_pins(); // CS=H, RS=H, RST=H
-    st7789v_reset(); // 15ms reset pulse
-    st7789v_delay_ms(120); // 120ms wait
-    st7789v_cmd_slpout(); // wakeup
-    st7789v_delay_ms(120); // 120ms wait
+    st7789v_init_ctl_pins();                   // CS=H, RS=H, RST=H
+    st7789v_reset();                           // 15ms reset pulse
+    st7789v_delay_ms(120);                     // 120ms wait
+    st7789v_cmd_slpout();                      // wakeup
+    st7789v_delay_ms(120);                     // 120ms wait
     st7789v_cmd_madctl(st7789v_config.madctl); // interface pixel format
     st7789v_cmd_colmod(st7789v_config.colmod); // memory data access control
-    st7789v_cmd_dispon(); // display on
-    st7789v_delay_ms(10); // 10ms wait
+    st7789v_cmd_dispon();                      // display on
+    st7789v_delay_ms(10);                      // 10ms wait
 }
 
 void st7789v_done(void) {
@@ -446,7 +448,7 @@ void st7789v_draw_line(point_ui16_t pt, point_ui16_t pt1, color_t clr) {
     dx = cx;
     dy = cy;
     if ((dx == 0) || (dy == 0)) { // orthogonal line
-        if (dx) // dy == 0
+        if (dx)                   // dy == 0
             st7789v_fill_rect(rect_ui16((sx > 0) ? pt.x : pt1.x, pt.y, dx, 1), clr);
         else // dx == 0
             st7789v_fill_rect(rect_ui16(pt.x, (sy > 0) ? pt.y : pt1.y, 1, dy), clr);
@@ -514,15 +516,15 @@ void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
 void st7789v_draw_char(point_ui16_t pt, char chr, font_t *pf, color_t clr0, color_t clr1) {
     int i;
     int j;
-    uint8_t *pch; //character data pointer
-    uint8_t crd = 0; //current row byte data
-    uint8_t rb; //row byte
-    uint16_t w = pf->w; //cache width
-    uint16_t h = pf->h; //..
-    uint8_t bpr = pf->bpr; //bytes per row
-    uint16_t bpc = bpr * h; //bytes per char
-    uint8_t bpp = 8 * bpr / w; //bits per pixel
-    uint8_t ppb = 8 / bpp; //pixels per byte
+    uint8_t *pch;                 //character data pointer
+    uint8_t crd = 0;              //current row byte data
+    uint8_t rb;                   //row byte
+    uint16_t w = pf->w;           //cache width
+    uint16_t h = pf->h;           //..
+    uint8_t bpr = pf->bpr;        //bytes per row
+    uint16_t bpc = bpr * h;       //bytes per char
+    uint8_t bpp = 8 * bpr / w;    //bits per pixel
+    uint8_t ppb = 8 / bpp;        //pixels per byte
     uint8_t pms = (1 << bpp) - 1; //pixel mask
     uint16_t *p = (uint16_t *)st7789v_buff;
     uint8_t *pc;
@@ -655,6 +657,7 @@ void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t r
 
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
+uint32_t png_mem_max = 0;
 void *png_mem_ptrs[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_sizes[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
@@ -678,6 +681,8 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
         png_mem_sizes[i] = size;
         png_mem_total += size;
         png_mem_cnt++;
+        if (png_mem_max < png_mem_total)
+            png_mem_max = png_mem_total;
     }
     return p;
 }
@@ -903,17 +908,17 @@ const display_t st7789v_display = {
 };
 
 st7789v_config_t st7789v_config = {
-    0, // spi handle pointer
-    0, // CS pin
-    0, // RS pin
-    0, // RST pin
-    0, // flags (DMA, MISO)
-    0, // interface pixel format (5-6-5, hi-color)
-    0, // memory data access control (no mirror XY)
+    0,            // spi handle pointer
+    0,            // CS pin
+    0,            // RS pin
+    0,            // RST pin
+    0,            // flags (DMA, MISO)
+    0,            // interface pixel format (5-6-5, hi-color)
+    0,            // memory data access control (no mirror XY)
     GAMMA_CURVE0, // gamma curve
-    0, // brightness
-    0, // inverted
-    0, // default control reg value
+    0,            // brightness
+    0,            // inverted
+    0,            // default control reg value
 };
 
 //measured delay from low to hi in reset cycle

@@ -12,8 +12,8 @@
 #include "version.h"
 
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
-#define OTP_START_ADDR 0x1FFF7800
-#define SERIAL_NUM_ADDR 0x1FFF7808
+#define OTP_START_ADDR             0x1FFF7800
+#define SERIAL_NUM_ADDR            0x1FFF7808
 
 enum {
     TAG_QUIT = 10
@@ -70,12 +70,12 @@ void screen_menu_version_info_init(screen_t *screen) {
         else
             line_length = max_chars_per_line;
         snprintf(version_info_str + strlen(version_info_str),
-                 VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
-                 "%.*s\n", line_length, project_version_full + i);
+            VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
+            "%.*s\n", line_length, project_version_full + i);
     }
 
     snprintf(version_info_str + strlen(version_info_str),
-            VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
+        VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
         "\nBootloader version\n%d.%d.%d\n\nBuddy board\n%d.%d.%d\n%s",
         bootloader->major, bootloader->minor, bootloader->patch,
         board_version[0], board_version[1], board_version[2],
@@ -101,7 +101,7 @@ screen_t screen_version_info = {
     screen_menu_draw,
     screen_menu_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_version_info = &screen_version_info;

@@ -15,7 +15,6 @@
 
 typedef union {
     selftest_fans_axis_screen_t selftest_fans_axis_screen;
-    selftest_home_screen_t selftest_home_screen;
     selftest_cool_screen_t selftest_cool_screen;
     selftest_temp_screen_t selftest_temp_screen;
     //selftest_screen_t selftest_screen;

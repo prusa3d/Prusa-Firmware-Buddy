@@ -7,8 +7,8 @@
 #include "lwsapi.h"
 #include "connection.hpp"
 
-#define LIGHT_WSAPI_PORT 80
-#define LIGHT_WSAPI_RETRIES 4 // 8 seconds timeout
+#define LIGHT_WSAPI_PORT          80
+#define LIGHT_WSAPI_RETRIES       4 // 8 seconds timeout
 #define LIGHT_WSAPI_POLL_INTERVAL 4 // once a two seconds
 
 //! Full Bad Request response
@@ -284,7 +284,7 @@ static err_t lwsapi_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t e
         }
     } else if (ctx->state == Context::State::WAIT_FOR_EOH) {
         ctx->fill_request_buffer(p); // append data to buffer
-        eoh = ctx->find_eoh(); // use internal buffer
+        eoh = ctx->find_eoh();       // use internal buffer
     }
 
     if (eoh > 0) // only set when not found in last callback

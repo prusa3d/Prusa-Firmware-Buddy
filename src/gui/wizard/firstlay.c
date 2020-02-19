@@ -180,7 +180,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         if (line_head > G29_pos && marlin_error(MARLIN_ERR_ProbingFailed)) {
             marlin_error_clr(MARLIN_ERR_ProbingFailed);
             marlin_gcode("G0 Z30"); //Z 30mm
-            marlin_gcode("M84"); //Disable steppers
+            marlin_gcode("M84");    //Disable steppers
             if (wizard_msgbox("Mesh bed leveling failed?", MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
                 //RETRY
                 line_head = G28_pos;
@@ -281,12 +281,12 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 }
 
 #define V__GCODES_HEAD_BEGIN                \
-    "M107", /*fan off */                    \
+    "M107",    /*fan off */                 \
         "G90", /*use absolute coordinates*/ \
         "M83", /*extruder relative mode*/
 
 #define V__GCODES_HEAD_END                   \
-        "G28", /*autohome*/                  \
+    "G28",     /*autohome*/                  \
         "G29", /*meshbed leveling*/          \
         "G21", /* set units to millimeters*/ \
         "G90", /* use absolute coordinates*/ \
@@ -296,8 +296,8 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 const char *V2_gcodes_head_PLA[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S215", //nozzle target 215C
-    "M140 S60", //bed target 60C
-    "M190 S60", //wait for bed temp 60C
+    "M140 S60",  //bed target 60C
+    "M190 S60",  //wait for bed temp 60C
     "M109 S215", //wait for nozzle temp 215C
     V__GCODES_HEAD_END
 };
@@ -306,8 +306,8 @@ const size_t V2_gcodes_head_PLA_sz = sizeof(V2_gcodes_head_PLA) / sizeof(V2_gcod
 const char *V2_gcodes_head_PETG[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S230", //nozzle target 215C
-    "M140 S85", //bed target 60C
-    "M190 S85", //wait for bed temp 60C
+    "M140 S85",  //bed target 60C
+    "M190 S85",  //wait for bed temp 60C
     "M109 S230", //wait for nozzle temp 215C
     V__GCODES_HEAD_END
 };
@@ -326,8 +326,8 @@ const size_t V2_gcodes_head_ASA_sz = sizeof(V2_gcodes_head_ASA) / sizeof(V2_gcod
 const char *V2_gcodes_head_FLEX[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S240", //nozzle target 215C
-    "M140 S50", //bed target 60C
-    "M190 S50", //wait for bed temp 60C
+    "M140 S50",  //bed target 60C
+    "M190 S50",  //wait for bed temp 60C
     "M109 S240", //wait for nozzle temp 215C
     V__GCODES_HEAD_END
 };
@@ -362,11 +362,11 @@ const char *V2_gcodes_body[] = {
     "G1 X10  Y50  E5.322",
 
     //frame around
-    "G1 X10    Y17    E1.371975", //33 * 0.041575 = 1.371975
-    "G1 X31    Y17    E1.288825", //31 * 0.041575 = 1.288825
+    "G1 X10    Y17    E1.371975",  //33 * 0.041575 = 1.371975
+    "G1 X31    Y17    E1.288825",  //31 * 0.041575 = 1.288825
     "G1 X31    Y30.5  E0.5612625", //13.5 * 0.041575 = 0.5612625
-    "G1 X10.5  Y30.5  E0.832", //20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
-    "G1 X10.5  Y30.0  E0.0208", //0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
+    "G1 X10.5  Y30.5  E0.832",     //20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
+    "G1 X10.5  Y30.0  E0.0208",    //0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
 
     "G1 F1000",
     "G1 X30.5  Y30.0  E0.832",
@@ -428,7 +428,7 @@ const char *V2_gcodes_body[] = {
     "M107",
     "M104 S0", // turn off temperature
     "M140 S0", // turn off heatbed
-    "M84" // disable motors
+    "M84"      // disable motors
 };
 const size_t V2_gcodes_body_sz = sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[0]);
 

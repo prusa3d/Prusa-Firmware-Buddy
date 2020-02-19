@@ -21,6 +21,8 @@
  */
 #pragma once
 
+// clang-format off
+
 /**
  * Configuration.h
  *
@@ -393,7 +395,13 @@
 #define HEATER_3_MAXTEMP 275
 #define HEATER_4_MAXTEMP 275
 #define HEATER_5_MAXTEMP 275
-#define BED_MAXTEMP 125
+// Beware: this is the absolute temperature limit.
+// The MINI cannot normally reach 110C.
+// Thus all usage in the UI must be lowered by 10C to offer a valid temperature limit.
+// Those 10C are a safety margin used throughout the whole Marlin code
+// (without a proper #define though :( )
+#define BED_MAXTEMP 110
+#define BED_MAXTEMP_SAFETY_MARGIN 10
 #define CHAMBER_MAXTEMP 100
 
 //===========================================================================
@@ -711,7 +719,7 @@
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
 //
-//#define JUNCTION_DEVIATION
+#define CLASSIC_JERK
 #if DISABLED(CLASSIC_JERK)
     #define JUNCTION_DEVIATION_MM 0.02 // (mm) Distance from real junction edge
 #endif
@@ -1097,7 +1105,7 @@
  * Normally G28 leaves leveling disabled on completion. Enable
  * this option to have G28 restore the prior leveling state.
  */
-//#define RESTORE_LEVELING_AFTER_G28
+#define RESTORE_LEVELING_AFTER_G28 false
 
 /**
  * Enable detailed logging of G28, G29, M48, etc.
@@ -1173,8 +1181,8 @@
 
 //#define MESH_EDIT_GFX_OVERLAY   // Display a graphics overlay while editing the mesh
 
-    #define MESH_INSET 1 // Set Mesh bounds as an inset region of the bed
-    #define GRID_MAX_POINTS_X 10 // Don't use more than 15 points per axis, implementation limited.
+    #define MESH_INSET 0 // Set Mesh bounds as an inset region of the bed
+    #define GRID_MAX_POINTS_X 5 // Don't use more than 15 points per axis, implementation limited.
     #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
 
     #define UBL_MESH_EDIT_MOVES_Z // Sophisticated users prefer no movement of nozzle

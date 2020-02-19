@@ -33,7 +33,7 @@ typedef struct
     char text_nozzle[10]; // "215/215°C"
     char text_heatbed[10];
     char text_prnspeed[5]; // "999%"
-    char text_z_axis[7]; // "999.95"
+    char text_z_axis[7];   // "999.95"
 
 #ifdef LCD_HEATBREAK_TO_FILAMENT
     char text_heatbreak[5]; // "99°C"
@@ -45,10 +45,10 @@ typedef struct
 
 #pragma pack(pop)
 
-#define BUTTON_STATUS_NOZZLE 0xf0
-#define BUTTON_STATUS_HEATBED 0xf1
+#define BUTTON_STATUS_NOZZLE   0xf0
+#define BUTTON_STATUS_HEATBED  0xf1
 #define BUTTON_STATUS_PRNSPEED 0xf2
-#define BUTTON_STATUS_Z_AXIS 0xf3
+#define BUTTON_STATUS_Z_AXIS   0xf3
 #define BUTTON_STATUS_FILAMENT 0xf4
 
 #ifdef __cplusplus

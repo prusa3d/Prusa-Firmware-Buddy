@@ -69,7 +69,7 @@ screen_t screen_menu_fw_update = {
     screen_menu_draw,
     screen_menu_fw_update_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 screen_t *const pscreen_menu_fw_update = &screen_menu_fw_update;

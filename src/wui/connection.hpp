@@ -4,7 +4,7 @@
 
 #include "lwsapi_app.hpp"
 
-#define CRLF "\r\n"
+#define CRLF                   "\r\n"
 #define MINIMAL_REQUEST_LENGTH 14 // GET / HTTP/1.0
 
 #define memshift(ptr, size) \
@@ -20,17 +20,17 @@
 class Context : public LwIPClass {
 public:
     enum State {
-        FIRST, // firt call of recv callback after constructor
+        FIRST,        // firt call of recv callback after constructor
         WAIT_FOR_EOH, // wait for end of header \r\n\r\n
-        PAYLOAD // pbuf containt payload
+        PAYLOAD       // pbuf containt payload
     };
 
     struct tcp_pcb *pcb;
     uint8_t retries; /*< retries >*/
     State state;
-    Environment env; /**< Request WSAPI environment */
+    Environment env;   /**< Request WSAPI environment */
     Message_t message; /**< Last message returned from application */
-    char *buffer; /**< Buffer for internal output data */
+    char *buffer;      /**< Buffer for internal output data */
     size_t m_position; /**< Position of data in last message which is
                                      write not yet. */
     size_t end_of_header;
@@ -68,7 +68,7 @@ public:
     }
 
     ~Context() {
-        lwsapi_free(buffer); // when buffer is not deleted
+        lwsapi_free(buffer);         // when buffer is not deleted
         lwsapi_free(request_buffer); // when request_buffer is not deleted
         tcp_arg(this->pcb, nullptr);
     }
