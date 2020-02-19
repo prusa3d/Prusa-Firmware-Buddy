@@ -529,7 +529,7 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/bsod.c src/common/appmain.cpp
+  SOURCE src/common/bsod.c src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )
