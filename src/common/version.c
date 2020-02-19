@@ -19,7 +19,7 @@
 
 #define VERSION(ver) \
     VERSION_MAJ(4)   \
-    "." VERSION_MIN(0) "." VERSION_SUB(2)
+    "." VERSION_MIN(0) "." VERSION_SUB(3)
 
 const char version_firmware_name[] = FWNAME;
 
