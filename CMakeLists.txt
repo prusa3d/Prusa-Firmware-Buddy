@@ -361,7 +361,7 @@ target_sources(
           src/freertos_openocd.c
           src/usbh_diskio.c
           src/ethernetif.c
-          src/main.c
+          src/main_${PRINTER}.c
           src/usbd_desc.c
           src/fs_custom.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
@@ -526,13 +526,6 @@ set_property(
            FW_VERSION=${PROJECT_VERSION}
            FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
            FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
-  )
-
-set_property(
-  SOURCE src/main.c
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
-           HAS_GUI=$<BOOL:${GUI}>
   )
 
 set_property(

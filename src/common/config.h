@@ -2,13 +2,7 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-//--------------------------------------
-//printer variants
-#define PRINTER_PRUSA_MINI 2 //MINI printer
-
-#ifndef PRINTER_TYPE
-    #error "macro PRINTER_TYPE not defined"
-#endif
+#include "printers.h"
 
 #include <avr/pgmspace.h>
 
