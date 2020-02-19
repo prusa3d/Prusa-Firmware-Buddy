@@ -218,15 +218,15 @@ void ethernetif_link(const void *arg) {
     HAL_ETH_ReadPHYRegister(&heth, PHY_BSR, &phyreg);
     eth_link = (phyreg & PHY_LINKED_STATUS) == PHY_LINKED_STATUS ? 1 : 0;
 
-    if(wait){
-        if(netif_is_link_up(netif) || !eth_link){
+    if (wait) {
+        if (netif_is_link_up(netif) || !eth_link) {
             wait = false;
         }
     }
 
     if (eth_link != netif_is_link_up(netif)) {
         if (eth_link) {
-            if(!wait){
+            if (!wait) {
                 netifapi_netif_set_link_up(netif); // thread safe variant
                 wait = true;
             }
@@ -585,8 +585,8 @@ err_t ethernetif_init(struct netif *netif) {
     /* The user should write ist own code in low_level_output_arp_off function */
     netif->output = low_level_output_arp_off;
         #endif /* LWIP_ARP */
-    #endif /* LWIP_ARP || LWIP_ETHERNET */
-#endif /* LWIP_IPV4 */
+    #endif     /* LWIP_ARP || LWIP_ETHERNET */
+#endif         /* LWIP_IPV4 */
 
 #if LWIP_IPV6
     netif->output_ip6 = ethip6_output;

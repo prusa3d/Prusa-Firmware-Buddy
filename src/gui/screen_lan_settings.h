@@ -14,7 +14,7 @@
 #include "lwip/netif.h"
 #include "eeprom.h"
 
-#define plsd ((screen_lan_settings_data_t *)screen->pdata)
+#define plsd              ((screen_lan_settings_data_t *)screen->pdata)
 #define MAC_ADDR_STR_SIZE 18
 
 typedef struct {

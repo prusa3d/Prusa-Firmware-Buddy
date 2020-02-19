@@ -238,7 +238,7 @@ int _validate_serial(const char *str) {
     unsigned int w2 = 0; // week of year (1-52)
     unsigned int y2 = 0; // year since 2000 (19-25)
     unsigned int p3 = 0; // product - 017 for MINI
-    char t1 = 0; // type - 'K' or 'C' (kit or complete)
+    char t1 = 0;         // type - 'K' or 'C' (kit or complete)
     unsigned int n5 = 0; // number - 0..99999
     if (sscanf(str, "%2u%2uX%3uX%c%5u", &w2, &y2, &p3, &t1, &n5) != 5)
         return 0;
@@ -497,9 +497,9 @@ int putslave_do_cmd_a_ten(uartslave_t *pslave, char *pstr) {
     if ((state < 0) || (state > 1))
         return UARTSLAVE_ERR_OOR;
     tmc_set_mres();
-    gpio_set(PD3, state); //X
+    gpio_set(PD3, state);  //X
     gpio_set(PD14, state); //Y
-    gpio_set(PD2, state); //Z
+    gpio_set(PD2, state);  //Z
     gpio_set(PD10, state); //E
     return UARTSLAVE_OK;
 }

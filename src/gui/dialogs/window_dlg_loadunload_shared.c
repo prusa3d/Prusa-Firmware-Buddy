@@ -82,7 +82,7 @@ int f_SH_MOVE_INITIAL_Z(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
 
     if (_was_move(additional_vars)) {
         marlin_gcode_printf("G0 Z%f", (double)additional_vars->z_min_extr_pos); //move to start pos
-        additional_vars->z_start = additional_vars->z_min_extr_pos; //set new start pos
+        additional_vars->z_start = additional_vars->z_min_extr_pos;             //set new start pos
     }
     p_vars->phase++;
     return 0;

@@ -22,7 +22,7 @@ typedef struct _jogwheel_config_t {
     uint8_t pinEN1; // encoder phase1 pin
     uint8_t pinEN2; // encoder phase2 pin
     uint8_t pinENC; // button pin
-    uint8_t flg; // flags
+    uint8_t flg;    // flags
 } jogwheel_config_t;
 
 #pragma pack(pop)

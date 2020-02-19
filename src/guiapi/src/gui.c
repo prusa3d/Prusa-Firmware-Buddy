@@ -18,15 +18,15 @@ osThreadId gui_task_handle = 0;
 #endif //GUI_USE_RTOS
 
 gui_defaults_t gui_defaults = {
-    COLOR_BLACK, //color_back;
-    COLOR_WHITE, //color_text;
-    COLOR_SILVER, //color_disabled;
-    0, //font;
-    0, //font_big;
-    { 2, 2, 2, 2 }, //padding; padding_ui8(2,2,2,2)
-    ALIGN_LEFT_TOP, //alignment;
+    COLOR_BLACK,              //color_back;
+    COLOR_WHITE,              //color_text;
+    COLOR_SILVER,             //color_disabled;
+    0,                        //font;
+    0,                        //font_big;
+    { 2, 2, 2, 2 },           //padding; padding_ui8(2,2,2,2)
+    ALIGN_LEFT_TOP,           //alignment;
     { 0, 32, 240, 320 - 96 }, //msg box size
-    6, // btn_spacing: 12 pixels spacing between buttons, 6 from margins
+    6,                        // btn_spacing: 12 pixels spacing between buttons, 6 from margins
 };
 
 gui_loop_cb_t *gui_loop_cb = 0;
@@ -70,8 +70,8 @@ void gui_invalidate(void) {
 #endif //GUI_USE_RTOS
 }
 
-#define GUI_DELAY_MIN 1
-#define GUI_DELAY_MAX 10
+#define GUI_DELAY_MIN  1
+#define GUI_DELAY_MAX  10
 #define GUI_DELAY_LOOP 100
 
 #ifdef GUI_WINDOW_SUPPORT
@@ -139,7 +139,7 @@ void gui_loop(void) {
 int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
     window_msgbox_t msgbox;
-    window_t* window_1_tmp = window_1; //save current window_1
+    window_t *window_1_tmp = window_1; //save current window_1
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
     msgbox.title = title;

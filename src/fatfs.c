@@ -48,10 +48,10 @@
 
 #include "fatfs.h"
 
-uint8_t retUSBH; /* Return value for USBH */
+uint8_t retUSBH;  /* Return value for USBH */
 char USBHPath[4]; /* USBH logical drive path */
-FATFS USBHFatFS; /* File system object for USBH logical drive */
-FIL USBHFile; /* File object for USBH */
+FATFS USBHFatFS;  /* File system object for USBH logical drive */
+FIL USBHFile;     /* File object for USBH */
 
 /* USER CODE BEGIN Variables */
 

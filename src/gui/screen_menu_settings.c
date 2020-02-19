@@ -9,7 +9,7 @@
 #include "sys.h"
 #include "eeprom.h"
 #ifdef BUDDY_ENABLE_ETHERNET
-#include "screen_lan_settings.h"
+    #include "screen_lan_settings.h"
 #endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
@@ -159,7 +159,7 @@ screen_t screen_menu_settings = {
     screen_menu_draw,
     screen_menu_settings_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_menu_settings = &screen_menu_settings;

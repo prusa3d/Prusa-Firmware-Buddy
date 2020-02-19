@@ -301,7 +301,7 @@ void CardReader::openFile(char *const path, const bool read, bool subcall) {
         // Opening fresh file
         doing = 2;
         file_subcall_ctr = 0; // Reset procedure depth in case user cancels
-            // print while in procedure
+                              // print while in procedure
     }
 
     if (doing) {
@@ -356,15 +356,15 @@ bool CardReader::is_dir_or_gcode(const dir_t &p) {
     uint8_t pn0 = p.name[0];
 
     if (pn0 == DIR_NAME_FREE || pn0 == DIR_NAME_DELETED // Clear or Deleted entry
-        || pn0 == '.' || longFilename[0] == '.' // Hidden file
-        || !DIR_IS_FILE_OR_SUBDIR(&p) // Not a File or Directory
-        || (p.attributes & DIR_ATT_HIDDEN) // Hidden by attribute
+        || pn0 == '.' || longFilename[0] == '.'         // Hidden file
+        || !DIR_IS_FILE_OR_SUBDIR(&p)                   // Not a File or Directory
+        || (p.attributes & DIR_ATT_HIDDEN)              // Hidden by attribute
     )
         return false;
 
     flag.filenameIsDir = DIR_IS_SUBDIR(&p); // We know it's a File or Folder
 
-    return (flag.filenameIsDir // All Directories are ok
+    return (flag.filenameIsDir                    // All Directories are ok
         || (p.name[8] == 'G' && p.name[9] != '~') // Non-backup *.G* files are accepted
     );
 }

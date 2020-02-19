@@ -13,41 +13,41 @@
 
 const uint8_t eeprom_map_v1[] = {
     VARIANT8_UI16, // EEVAR_VERSION
-    VARIANT8_UI8, // EEVAR_FILAMENT_TYPE
+    VARIANT8_UI8,  // EEVAR_FILAMENT_TYPE
     VARIANT8_UI32, // EEVAR_FILAMENT_COLOR
-    VARIANT8_FLT, //
-    VARIANT8_FLT, //
-    VARIANT8_FLT, //
-    VARIANT8_UI8, // EEVAR_RUN_SELFTEST
-    VARIANT8_UI8, // EEVAR_RUN_XYZCALIB
-    VARIANT8_UI8, // EEVAR_RUN_FIRSTLAY
-    VARIANT8_UI8, // EEVAR_FSENSOR_ENABLED
-    VARIANT8_UI8, // EEVAR_LAN_FLAG
+    VARIANT8_FLT,  //
+    VARIANT8_FLT,  //
+    VARIANT8_FLT,  //
+    VARIANT8_UI8,  // EEVAR_RUN_SELFTEST
+    VARIANT8_UI8,  // EEVAR_RUN_XYZCALIB
+    VARIANT8_UI8,  // EEVAR_RUN_FIRSTLAY
+    VARIANT8_UI8,  // EEVAR_FSENSOR_ENABLED
+    VARIANT8_UI8,  // EEVAR_LAN_FLAG
     VARIANT8_UI32, // EEVAR_LAN_IP4_ADDR    X.X.X.X address encoded in uint32
     VARIANT8_UI32, // EEVAR_LAN_IP4_MSK     X.X.X.X address encoded in uint32
     VARIANT8_UI32, // EEVAR_LAN_IP4_GW      X.X.X.X address encoded in uint32
     VARIANT8_UI32, // EEVAR_LAN_IP4_DNS1    X.X.X.X address encoded in uint32
     VARIANT8_UI32, // EEVAR_LAN_IP4_DNS2    X.X.X.X address encoded in uint32
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_0   Start of 20char string
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_1
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_2
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_3
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_4
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_5
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_6
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_7
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_8
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_9
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_10
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_11
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_12
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_13
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_14
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_15
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_16
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_17
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_18
-    VARIANT8_UI8, // EEVAR_LAN_HOSTNAME_19  End of 20char string
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_0   Start of 20char string
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_1
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_2
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_3
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_4
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_5
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_6
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_7
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_8
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_9
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_10
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_11
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_12
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_13
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_14
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_15
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_16
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_17
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_18
+    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_19  End of 20char string
 };
 
 const char *eeprom_var_name[] = {
@@ -271,20 +271,20 @@ void eeprom_dump(void) {
     }
 }
 
-void eeprom_get_hostname(char * dest){
+void eeprom_get_hostname(char *dest) {
     char hostname_str[LAN_HOSTNAME_MAX_LEN + 1];
-    for(uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++){
+    for (uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++) {
         hostname_str[i] = (char)eeprom_get_var(EEVAR_LAN_HOSTNAME_0 + i).ui8;
     }
     hostname_str[LAN_HOSTNAME_MAX_LEN] = '\0';
     strncpy(dest, hostname_str, LAN_HOSTNAME_MAX_LEN + 1);
 }
-void eeprom_set_hostname(char * src){
+void eeprom_set_hostname(char *src) {
     bool end = false;
-    for(uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++){
-        if(!end && src[i] == '\0')
+    for (uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++) {
+        if (!end && src[i] == '\0')
             end = true;
-        if(!end){
+        if (!end) {
             eeprom_set_var(EEVAR_LAN_HOSTNAME_0 + i, variant8_ui8(src[i]));
         } else {
             eeprom_set_var(EEVAR_LAN_HOSTNAME_0 + i, variant8_ui8(0));
