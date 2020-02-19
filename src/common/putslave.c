@@ -21,6 +21,10 @@
 #include "trinamic.h"
 #include "main.h"
 
+#ifndef HAS_GUI
+    #error "HAS_GUI not defined."
+#endif
+
 int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
     int ret;
     uint16_t cmd_id = UARTSLAVE_CMD_ID_UNK;
@@ -338,19 +342,19 @@ extern osThreadId displayTaskHandle;
 extern osThreadId idleTaskHandle;
 
 extern osThreadId webServerTaskHandle;
-extern SPI_HandleTypeDef hspi2;
 
 int put_setup_done = 0;
 
+#if HAS_GUI
 int putslave_do_cmd_a_start(uartslave_t *pslave) {
     if (!marlin_server_processing()) {
         NVIC_EnableIRQ(TIM7_IRQn);
         HAL_SPI_MspInit(&hspi2);
         marlin_server_start_processing();
         osThreadResume(displayTaskHandle);
-#ifdef ETHERNET
+    #ifdef ETHERNET
         osThreadResume(webServerTaskHandle);
-#endif //ETHERNET
+    #endif //ETHERNET
         if (diag_fastboot && !put_setup_done) {
             app_setup();
             put_setup_done = 1;
@@ -358,6 +362,7 @@ int putslave_do_cmd_a_start(uartslave_t *pslave) {
     }
     return UARTSLAVE_OK;
 }
+#endif
 
 int putslave_do_cmd_a_stop(uartslave_t *pslave) {
     if (marlin_server_processing()) {
@@ -366,7 +371,9 @@ int putslave_do_cmd_a_stop(uartslave_t *pslave) {
 #ifdef ETHERNET
         osThreadSuspend(webServerTaskHandle);
 #endif //ETHERNET
+#if HAS_GUI
         HAL_SPI_MspDeInit(&hspi2);
+#endif
         NVIC_DisableIRQ(TIM7_IRQn);
         hwio_pwm_set_val(_PWM_HEATER_BED, 0);
         hwio_pwm_set_val(_PWM_HEATER_0, 0);
@@ -591,8 +598,10 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_tst(pslave, pstr);
             case PUTSLAVE_CMD_ID_TONE:
                 return putslave_do_cmd_a_tone(pslave, pstr);
+#if HAS_GUI
             case PUTSLAVE_CMD_ID_START:
                 return putslave_do_cmd_a_start(pslave);
+#endif
             case PUTSLAVE_CMD_ID_STOP:
                 return putslave_do_cmd_a_stop(pslave);
             case PUTSLAVE_CMD_ID_EECL:
@@ -623,7 +632,9 @@ void putslave_init(uartslave_t *pslave) {
     if (diag_fastboot) {
         uartslave_printf(pslave, "fastboot\n");
         marlin_server_stop_processing();
+#if HAS_GUI
         HAL_SPI_MspDeInit(&hspi2);
+#endif
         NVIC_DisableIRQ(TIM7_IRQn);
         hwio_pwm_set_val(_PWM_HEATER_BED, 0);
         hwio_pwm_set_val(_PWM_HEATER_0, 0);
