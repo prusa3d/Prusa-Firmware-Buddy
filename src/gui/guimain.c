@@ -103,6 +103,31 @@ marlin_vars_t *gui_marlin_vars = 0;
 int gui_marlin_client_id = -1;
 int8_t menu_timeout_enabled = 1; // Default: enabled
 
+extern screen_t screen_home;
+extern screen_t screen_printing;
+extern screen_t screen_menu_tune;
+extern screen_t screen_wizard;
+extern screen_t screen_print_preview;
+extern screen_t screen_PID;
+
+static screen_t * const timeout_blacklist[] = {
+    &screen_home,
+    &screen_printing,
+    &screen_menu_tune,
+    &screen_wizard,
+    &screen_print_preview
+#ifdef PIDCALIBRATION
+    ,&screen_PID
+#endif //PIDCALIBRATION
+};
+
+static screen_t * const m876_blacklist[] = {
+    &screen_home
+#ifdef PIDCALIBRATION
+    ,&screen_PID
+#endif //PIDCALIBRATION
+};
+
 void update_firmware_screen(void);
 
 static void _gui_loop_cb(){
@@ -132,27 +157,15 @@ static void _gui_loop_cb(){
 }
 
 void serial_prt_cb() {
+    //todo add itself to blacklist
+    screen_unloop(m876_blacklist, sizeof(m876_blacklist)/sizeof(m876_blacklist[0]));
+
+    screen_t *curr = screen_get_curr();
     //todo test already opened
     screen_open(pscreen_printing->id);
 }
 
-extern screen_t screen_home;
-extern screen_t screen_printing;
-extern screen_t screen_menu_tune;
-extern screen_t screen_wizard;
-extern screen_t screen_print_preview;
-extern screen_t screen_PID;
 
-static screen_t * const timeout_blacklist[] = {
-    &screen_home,
-    &screen_printing,
-    &screen_menu_tune,
-    &screen_wizard,
-    &screen_print_preview
-#ifdef PIDCALIBRATION
-    ,&screen_PID
-#endif //PIDCALIBRATION
-};
 
 
 void gui_run(void) {
