@@ -210,6 +210,17 @@ void marlin_gcode(const char *gcode) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_json_gcode(const char *gcode) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    strcpy(request, "!g ");
+    strcat(request, gcode);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
 int marlin_gcode_printf(const char *format, ...) {
     int ret;
     char request[MARLIN_MAX_REQUEST];
