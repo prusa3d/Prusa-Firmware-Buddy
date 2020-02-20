@@ -63,8 +63,9 @@
 
 //--------------------------------------
 //BUDDY_ENABLE_ETHERNET configuration
-#define BUDDY_ENABLE_ETHERNET
-
+#ifdef BUDDY_ENABLE_WUI
+    #define BUDDY_ENABLE_ETHERNET
+#endif //BUDDY_ENABLE_WUI
 //--------------------------------------
 //LCDSIM configuration
 

@@ -101,7 +101,7 @@ static void _parse_MAC_addr(char *mac_addr_str) {
     for (uint8_t i = 0; i < MAC_ADDR_SIZE; i++)
         mac_addr[i] = *(volatile uint8_t *)(MAC_ADDR_START + i);
 
-    sprintf(mac_addr_str, "%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+    sprintf(mac_addr_str, "%02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 }
 
 static void screen_lan_settings_init(screen_t *screen) {
