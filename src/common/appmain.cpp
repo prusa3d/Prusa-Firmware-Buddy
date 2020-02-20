@@ -29,6 +29,8 @@
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
+#include "../Marlin/src/module/temperature.h"
+#include "../Marlin/src/module/probe.h"
 
 #define DBG _dbg0 //debug level 0
 //#define DBG(...)  //disable debug
@@ -52,6 +54,15 @@ extern IWDG_HandleTypeDef hiwdg; //watchdog handle
 
 void app_setup(void) {
     setup();
+
+// variables from eeprom - temporary solution
+    probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
+    Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
+    Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
+    Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
+    Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
+    Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
+    Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
 
     init_tmc();
     //DBG("after init_tmc (%ld ms)", HAL_GetTick());
