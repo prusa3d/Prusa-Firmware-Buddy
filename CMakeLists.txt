@@ -201,8 +201,15 @@ target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 #
 
 add_library(LwIP_Config INTERFACE)
-target_include_directories(LwIP_Config INTERFACE src/wui src/wui/resources)
 target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
+
+#
+# Configure WUI
+#
+
+add_library(WUI_Config INTERFACE)
+target_include_directories(LwIP_Config INTERFACE src/common src/gui src/guiapi/include)
+target_link_libraries(WUI_Config INTERFACE A3idesHeaders)
 
 #
 # Configure FatFs
@@ -279,6 +286,7 @@ add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 #
 
 add_subdirectory(lib)
+add_subdirectory(src/wui)
 
 #
 # A3ides firmware
@@ -287,6 +295,10 @@ add_subdirectory(lib)
 add_executable(firmware)
 
 set_target_properties(firmware PROPERTIES CXX_STANDARD 11)
+
+if(WUI)
+  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
+endif()
 
 # generate firmware.bin file
 objcopy(firmware "binary" ".bin")
@@ -327,14 +339,7 @@ elseif(SIGNING_KEY)
 endif()
 
 target_include_directories(
-  firmware
-  PRIVATE include
-          src/common
-          src/gui
-          src/gui/dialogs
-          src/guiapi/include
-          src/wui
-          src/wui/http
+  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -353,6 +358,7 @@ target_link_libraries(
           STM32::USBDevice
           CPU
           inih::inih
+          WUI
   )
 
 target_sources(
@@ -515,13 +521,6 @@ if(GUI)
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window.c
     )
-endif()
-
-if(WUI)
-  target_sources(
-    firmware PRIVATE src/wui/wui.c src/wui/wui_api.c src/wui/http/fs.c src/wui/http/httpd.c
-    )
-  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
 endif()
 
 set_property(
