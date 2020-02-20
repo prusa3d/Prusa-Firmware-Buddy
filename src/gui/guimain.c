@@ -65,8 +65,6 @@ extern screen_t *pscreen_wizard;
 
 extern int HAL_IWDG_Reset;
 
-extern SPI_HandleTypeDef hspi2;
-
 #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
 #endif                           //_DEBUG

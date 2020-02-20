@@ -136,8 +136,8 @@ static void stop_common(void) {
 //! @param term input message
 //! @param background_color background color
 static void print_error(term_t *term, color_t background_color) {
-    render_term(rect_ui16(10, 10, 220, 288), term, gui_defaults.font, background_color, COLOR_WHITE);
-    display->draw_text(rect_ui16(10, 290, 220, 20), project_version_full, gui_defaults.font, background_color, COLOR_WHITE);
+    render_term(rect_ui16(10, 10, 220, 288), term, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    display->draw_text(rect_ui16(10, 290, 220, 20), project_version_full, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
 }
 
 //! @brief Marlin stopped

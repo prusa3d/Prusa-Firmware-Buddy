@@ -361,7 +361,7 @@ target_sources(
           src/freertos_openocd.c
           src/usbh_diskio.c
           src/ethernetif.c
-          src/main.c
+          src/main_${PRINTER}.c
           src/usbd_desc.c
           src/fs_custom.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
@@ -528,14 +528,7 @@ set_property(
   )
 
 set_property(
-  SOURCE src/main.c
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
-           HAS_GUI=$<BOOL:${GUI}>
-  )
-
-set_property(
-  SOURCE src/common/bsod.c src/common/appmain.cpp
+  SOURCE src/common/bsod.c src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )
