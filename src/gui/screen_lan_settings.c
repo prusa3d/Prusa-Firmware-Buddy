@@ -35,12 +35,12 @@ static bool conn_flg = false; // wait for dhcp to supply addresses
 static networkconfig_t config;
 static const char ini_file_name[] = "/lan_settings.ini"; //change -> change msgboxes
 static const char *LAN_switch_opt[] = { "On", "Off", NULL };
-static const char *LAN_type_opt[] = { "dhcp", "static", NULL };
+static const char *LAN_type_opt[] = { "DHCP", "static", NULL };
 static char ini_file_str[MAX_INI_SIZE];
 extern bool media_is_inserted();
 const menu_item_t _menu_lan_items[] = {
     { { "LAN", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_switch_opt } }, SCREEN_MENU_NO_SCREEN },
-    { { "LAN type", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_type_opt } }, SCREEN_MENU_NO_SCREEN },
+    { { "LAN IP", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_type_opt } }, SCREEN_MENU_NO_SCREEN },
     { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
@@ -73,9 +73,9 @@ static void _get_ip4_addrs(void) {
 
 static void _addrs_to_str(char *param_str, uint8_t flg) {
     static char ip4_addr_str[IP4_ADDR_STR_SIZE], ip4_msk_str[IP4_ADDR_STR_SIZE], ip4_gw_str[IP4_ADDR_STR_SIZE];
-    strncpy(ip4_addr_str, ip4addr_ntoa(&(config.lan_ip4_addr)), IP4_ADDR_STR_SIZE);
-    strncpy(ip4_msk_str, ip4addr_ntoa(&(config.lan_ip4_msk)), IP4_ADDR_STR_SIZE);
-    strncpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
+    strlcpy(ip4_addr_str, ip4addr_ntoa(&(config.lan_ip4_addr)), IP4_ADDR_STR_SIZE);
+    strlcpy(ip4_msk_str, ip4addr_ntoa(&(config.lan_ip4_msk)), IP4_ADDR_STR_SIZE);
+    strlcpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
 
     if (flg) {
         char save_hostname[LAN_HOSTNAME_MAX_LEN + 1];
@@ -101,7 +101,7 @@ static void _parse_MAC_addr(char *mac_addr_str) {
     for (uint8_t i = 0; i < MAC_ADDR_SIZE; i++)
         mac_addr[i] = *(volatile uint8_t *)(MAC_ADDR_START + i);
 
-    sprintf(mac_addr_str, "%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+    sprintf(mac_addr_str, "%02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 }
 
 static void screen_lan_settings_init(screen_t *screen) {
@@ -271,7 +271,7 @@ static uint8_t _load_ini_file(void) {
     }
 
     if (!(tmp_config.lan_flag & LAN_EEFLG_TYPE)) {
-        strncpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
+        strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
         eth0.hostname = interface_hostname;
         if ((config.lan_flag & LAN_EEFLG_TYPE) != (tmp_config.lan_flag & LAN_EEFLG_TYPE)) {
             _change_static_to_dhcp();
@@ -281,7 +281,7 @@ static uint8_t _load_ini_file(void) {
         if (tmp_config.lan_ip4_addr.addr == 0 || tmp_config.lan_ip4_msk.addr == 0 || tmp_config.lan_ip4_gw.addr == 0) {
             return 0;
         } else {
-            strncpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
+            strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
             eth0.hostname = interface_hostname;
             eeprom_set_hostname(interface_hostname);
             eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(tmp_config.lan_ip4_addr.addr));
