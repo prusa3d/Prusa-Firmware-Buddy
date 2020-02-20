@@ -63,6 +63,7 @@ void app_setup(void) {
     Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
     Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
     Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
+    thermalManager.updatePID();
 
     init_tmc();
     //DBG("after init_tmc (%ld ms)", HAL_GetTick());
