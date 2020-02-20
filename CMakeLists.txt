@@ -73,6 +73,10 @@ set(CUSTOM_COMPILE_OPTIONS
     ""
     CACHE STRING "Allows adding custom C/C++ flags"
     )
+set(WUI
+    "YES"
+    CACHE BOOL "Enable Web User Interface"
+    )
 
 # Validate options
 foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
@@ -100,6 +104,7 @@ message(
   )
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
+message(STATUS "Web User Interface: ${WUI}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
@@ -108,7 +113,6 @@ set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
-set(WUI YES)
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
@@ -207,9 +211,11 @@ target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 # Configure WUI
 #
 
-add_library(WUI_Config INTERFACE)
-target_include_directories(LwIP_Config INTERFACE src/common src/gui src/guiapi/include)
-target_link_libraries(WUI_Config INTERFACE A3idesHeaders)
+if(WUI)
+  add_library(WUI_Config INTERFACE)
+  target_include_directories(LwIP_Config INTERFACE src/common src/gui src/guiapi/include)
+  target_link_libraries(WUI_Config INTERFACE A3idesHeaders)
+endif()
 
 #
 # Configure FatFs
@@ -286,7 +292,9 @@ add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 #
 
 add_subdirectory(lib)
-add_subdirectory(src/wui)
+if(WUI)
+  add_subdirectory(src/wui)
+endif()
 
 #
 # A3ides firmware
@@ -358,7 +366,7 @@ target_link_libraries(
           STM32::USBDevice
           CPU
           inih::inih
-          WUI
+          $<$<BOOL:${WUI}>:WUI>
   )
 
 target_sources(
