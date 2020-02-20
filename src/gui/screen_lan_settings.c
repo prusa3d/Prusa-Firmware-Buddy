@@ -40,7 +40,7 @@ static char ini_file_str[MAX_INI_SIZE];
 extern bool media_is_inserted();
 const menu_item_t _menu_lan_items[] = {
     { { "LAN", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_switch_opt } }, SCREEN_MENU_NO_SCREEN },
-    { { "LAN type", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_type_opt } }, SCREEN_MENU_NO_SCREEN },
+    { { "LAN IP", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_type_opt } }, SCREEN_MENU_NO_SCREEN },
     { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
