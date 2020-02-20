@@ -77,6 +77,10 @@ set(WUI
     "YES"
     CACHE BOOL "Enable Web User Interface"
     )
+set(GUI
+    "NO"
+    CACHE BOOL "Enable GUI"
+    )
 
 # Validate options
 foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
@@ -105,6 +109,7 @@ message(
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
 message(STATUS "Web User Interface: ${WUI}")
+message(STATUS "GUI: ${GUI}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
@@ -118,12 +123,6 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
 else()
   set(FILAMENT_SENSOR NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
-  set(GUI YES)
-else()
-  set(GUI NO)
 endif()
 
 # append custom C/C++ flags
@@ -213,7 +212,7 @@ target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 
 if(WUI)
   add_library(WUI_Config INTERFACE)
-  target_include_directories(LwIP_Config INTERFACE src/common src/gui src/guiapi/include)
+  target_include_directories(WUI_Config INTERFACE src/common src/gui src/guiapi/include)
   target_link_libraries(WUI_Config INTERFACE A3idesHeaders)
 endif()
 
@@ -250,7 +249,7 @@ add_compile_options(-g)
 
 # optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_options(-Og)
+  add_compile_options(-O0)
 else()
   add_compile_options(-Os)
 endif()
@@ -435,13 +434,15 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/gui/guimain.c
+          src/gui/filament.cpp
   )
 
 if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.c
-            src/gui/dialogs/window_dlg_change.c
+    PRIVATE src/gui/dialogs/window_dlg_change.c
             src/gui/dialogs/window_dlg_loadunload_shared.c
             src/gui/dialogs/window_dlg_statemachine.c
             src/gui/dialogs/window_dlg_load.c
@@ -454,7 +455,6 @@ if(GUI)
             src/gui/resource.c
             src/gui/window_file_list.c
             src/gui/pngview.c
-            src/gui/guimain.c
             src/gui/wizard/selftest_temp.c
             src/gui/window_temp_graph.c
             src/gui/screen_menu_settings.c
@@ -497,7 +497,6 @@ if(GUI)
             src/gui/screen_filebrowser.cpp
             src/gui/screen_menu_preheat.cpp
             src/gui/status_footer.cpp
-            src/gui/filament.cpp
             src/gui/menu_vars.cpp
             src/gui/screen_printing.cpp
             src/gui/screen_menu_tune.cpp
