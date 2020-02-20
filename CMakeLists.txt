@@ -367,6 +367,7 @@ target_link_libraries(
           CPU
           inih::inih
           $<$<BOOL:${WUI}>:WUI>
+          jsmn::jsmn
   )
 
 target_sources(

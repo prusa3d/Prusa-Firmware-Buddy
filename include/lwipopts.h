@@ -148,6 +148,7 @@ extern "C" {
     #define LWIP_HTTPD_DYNAMIC_HEADERS 1
     #define LWIP_NETIF_STATUS_CALLBACK 1
     #define LWIP_NETIF_HOSTNAME        1
+    #define LWIP_HTTPD_SUPPORT_POST    1
 
 /* USER CODE END 1 */
 
