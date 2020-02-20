@@ -42,12 +42,11 @@ extern void Error_Handler(void);
 
 // a3ides digital input pins
 const uint32_t _di_pin32[] = {
-    PIN_Z_MIN, // PA8
-    PIN_E_DIAG, // PA15
-    PIN_FSENSOR, // PB4
-    PIN_Y_DIAG, // PE1
-    PIN_X_DIAG, // PE2
-    PIN_Z_DIAG, // PE3
+    PIN_Z_MIN,   // PA8
+    PIN_E_DIAG,  // PA15
+    PIN_Y_DIAG,  // PE1
+    PIN_X_DIAG,  // PE2
+    PIN_Z_DIAG,  // PE3
     PIN_BTN_ENC, // PE12
     PIN_BTN_EN1, // PE13
     PIN_BTN_EN2, // PE15
@@ -93,11 +92,11 @@ const int _dac_max[] = { 0 };
 
 #define _FAN_ID_MIN HWIO_PWM_FAN1
 #define _FAN_ID_MAX HWIO_PWM_FAN
-#define _FAN_CNT (_FAN_ID_MAX - _FAN_ID_MIN + 1)
+#define _FAN_CNT    (_FAN_ID_MAX - _FAN_ID_MIN + 1)
 
 #define _HEATER_ID_MIN HWIO_PWM_HEATER_BED
 #define _HEATER_ID_MAX HWIO_PWM_HEATER_0
-#define _HEATER_CNT (_HEATER_ID_MAX - _HEATER_ID_MIN + 1)
+#define _HEATER_CNT    (_HEATER_ID_MAX - _HEATER_ID_MIN + 1)
 
 //this value is compared to new value (to avoid rounding errors)
 int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
@@ -137,11 +136,11 @@ const int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_
 #define _PWM_CNT (sizeof(_pwm_pin32) / sizeof(uint32_t))
 
 const TIM_OC_InitTypeDef sConfigOC_default = {
-    TIM_OCMODE_PWM1, //OCMode
-    0, //Pulse
-    TIM_OCPOLARITY_HIGH, //OCPolarity
-    TIM_OCNPOLARITY_HIGH, //OCNPolarity
-    TIM_OCFAST_DISABLE, //OCFastMode
+    TIM_OCMODE_PWM1,       //OCMode
+    0,                     //Pulse
+    TIM_OCPOLARITY_HIGH,   //OCPolarity
+    TIM_OCNPOLARITY_HIGH,  //OCNPolarity
+    TIM_OCFAST_DISABLE,    //OCFastMode
     TIM_OCIDLESTATE_RESET, //OCIdleState
     TIM_OCNIDLESTATE_RESET //OCNIdleState
 };
@@ -632,7 +631,7 @@ int hwio_arduino_digitalRead(uint32_t ulPin) {
             return sim_motion_get_diag(0);
         case PIN_Z_DIAG:
             return sim_motion_get_diag(2);
-#else //SIM_MOTION
+#else  //SIM_MOTION
         case PIN_Z_MIN:
             return hwio_di_get_val(_DI_Z_MIN);
         case PIN_E_DIAG:
@@ -650,8 +649,6 @@ int hwio_arduino_digitalRead(uint32_t ulPin) {
             return hwio_di_get_val(_DI_BTN_EN1) || !hwio_jogwheel_enabled;
         case PIN_BTN_EN2:
             return hwio_di_get_val(_DI_BTN_EN2) || !hwio_jogwheel_enabled;
-        case PIN_FSENSOR:
-            return hwio_di_get_val(_DI_FSENSOR);
         case PIN_Z_DIR:
             return hwio_do_get_val(_DO_Z_DIR);
         default:
@@ -730,7 +727,7 @@ void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         case PIN_Z_DIR:
             sim_motion_set_dir(2, ulVal ? 1 : 0);
             return;
-#else //SIM_MOTION
+#else  //SIM_MOTION
         case PIN_X_DIR:
             hwio_do_set_val(_DO_X_DIR, ulVal ? 1 : 0);
             return;

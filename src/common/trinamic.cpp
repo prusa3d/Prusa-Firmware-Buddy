@@ -44,8 +44,8 @@ void init_tmc(void) {
     pStepY->TCOOLTHRS(400);
     pStepZ->TCOOLTHRS(400);
     pStepE->TCOOLTHRS(400); //400
-    pStepX->SGTHRS(100);
-    pStepY->SGTHRS(100);
+    pStepX->SGTHRS(140);
+    pStepY->SGTHRS(130);
     pStepZ->SGTHRS(100);
     pStepE->SGTHRS(100);
 }
@@ -63,9 +63,9 @@ void tmc_sample(void) {
     //	int sgz = pStepZ->SG_RESULT();
     //	int sge = pStepE->SG_RESULT();
     //	_dbg("sg %d %d %d %d", sgx, sgy, sgz, sge);
-    sgx = sgx; //prevent warning
+    sgx = sgx;       //prevent warning
     tstepx = tstepx; //prevent warning
-    diag = diag; //prevent warning
+    diag = diag;     //prevent warning
     DBG("sg %u %u %u", sgx, diag, tstepx);
 }
 

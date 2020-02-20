@@ -98,9 +98,11 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
     //todo, fixme, error i will not get WINDOW_EVENT_BTN_DN event here first time when it is clicked
     //but list reacts to it
     switch (event) {
+    case WINDOW_EVENT_ENC_UP:
+    case WINDOW_EVENT_ENC_DN: //forward up/dn events to list window
+        window->list.win.cls->event(&(window->list.win), event, param);
+        break;
     case WINDOW_EVENT_BTN_DN:
-    case WINDOW_EVENT_BTN_UP:
-    case WINDOW_EVENT_CLICK:
         if (window->timer != -1) {
             window->timer = -1; //close
             window->on_click(window);
@@ -159,6 +161,23 @@ int gui_dlg_preheat_forced(const char *caption) {
     );
 }
 
+//no return option
+int gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
+    const FILAMENT_t fil = get_filament();
+    if (fil == FILAMENT_NONE) {
+        //no filament selected
+        return gui_dlg_preheat_forced(caption);
+    } else {
+        //when filament is known, but heating is off, just turn it on and do not ask
+        marlin_vars_t *p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
+        if (p_vars->target_nozzle != filaments[fil].nozzle) {
+            marlin_gcode_printf("M104 S%d", (int)filaments[fil].nozzle);
+            marlin_gcode_printf("M140 S%d", (int)filaments[fil].heatbed);
+        }
+    }
+    return fil;
+}
+
 //returns index or -1 on timeout
 //todo make this independet on preheat, in separate file
 //todo caption is not showing
@@ -177,8 +196,10 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
 
     window_set_item_count(dlg.list.win.id, count);
 
+    window_t *tmp_window_1 = window_1; //save current window_1
+
     window_1 = (window_t *)&dlg;
-    window_set_capture(dlg.list.win.id); //get inside list
+    window_set_capture(id); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
 
     gui_reset_jogwheel();
     gui_invalidate();
@@ -199,7 +220,8 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
         ret = dlg.list.index;
     }
 
-    window_destroy(id); //msg box does not call this, should I
+    window_destroy(id);      //msgbox call this inside (destroys its own window)
+    window_1 = tmp_window_1; //restore current window_1
     window_invalidate(0);
     window_set_capture(id_capture);
     return ret;

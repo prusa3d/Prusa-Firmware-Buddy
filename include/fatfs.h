@@ -61,10 +61,10 @@ extern "C" {
 
 /* USER CODE END Includes */
 
-extern uint8_t retUSBH; /* Return value for USBH */
+extern uint8_t retUSBH;  /* Return value for USBH */
 extern char USBHPath[4]; /* USBH logical drive path */
-extern FATFS USBHFatFS; /* File system object for USBH logical drive */
-extern FIL USBHFile; /* File object for USBH */
+extern FATFS USBHFatFS;  /* File system object for USBH logical drive */
+extern FIL USBHFile;     /* File object for USBH */
 
 void MX_FATFS_Init(void);
 

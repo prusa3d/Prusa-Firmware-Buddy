@@ -2,40 +2,13 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-//--------------------------------------
-//version and buildnumber
-#if !defined(FW_VERSION)
-    #error "FW_VERSION not defined"
-#endif
-
-#if !defined(FW_BUILDNR)
-    #error "FW_BUILDNR not defined"
-#endif
-
-#if !defined(FW_BUILDSX)
-    #define FW_BUILDSX "" //build suffix
-#endif
-
-// convert PRERELEASE macro to string literal PRERELEASE_STR
-#ifdef PRERELEASE
-    #define PRERELEASE_QUOTE(arg) #arg
-    #define PRERELEASE_STR_(macro) PRERELEASE_QUOTE(macro)
-    #define PRERELEASE_STR PRERELEASE_STR_(PRERELEASE)
-#endif
-
-//--------------------------------------
-//printer variants
-#define PRINTER_PRUSA_MINI 2 //MINI printer
-
-#ifndef PRINTER_TYPE
-    #error "macro PRINTER_TYPE not defined"
-#endif
+#include "printers.h"
 
 #include <avr/pgmspace.h>
 
 //--------------------------------------
 //board revisions
-#define OLIMEX_E407 0 //Olimex STM32-E407 devboard (discontinued 1.9.2019)
+#define OLIMEX_E407      0 //Olimex STM32-E407 devboard (discontinued 1.9.2019)
 #define A3IDES2130_REV01 1 //A3ides with TMC2130 rev01 (discontinued 1.9.2019)
 #define A3IDES2209_REV01 2 //A3ides with TMC2209 rev01 (discontinued 1.9.2019)
 #define A3IDES2209_REV02 4 //A3ides with TMC2209 rev02
@@ -97,7 +70,7 @@
 #endif //LCDSIM
 
 //marlin api config
-#define MARLIN_MAX_CLIENTS 2 // maximum number of clients registered in same time
+#define MARLIN_MAX_CLIENTS 3   // maximum number of clients registered in same time
 #define MARLIN_MAX_REQUEST 100 // maximum request length in chars
 
 //display PSOD instead of BSOD

@@ -22,14 +22,11 @@
 #include "../Marlin/src/feature/pause.h"
 #include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/libs/nozzle.h"
-
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-    #include "../Marlin/src/feature/runout.h"
-    #include "filament_sensor.h"
-#endif
+#include "../Marlin/src/core/language.h" //GET_TEXT(MSG)
 
 #include "hwio_a3ides.h"
 #include "eeprom.h"
+#include "filament_sensor.h"
 
 #ifdef LCDSIM
     #include "lcdsim.h"
@@ -50,30 +47,32 @@
 // host_actions definitions
 #define HOST_PROMPT_LEN_MAX 32 // max 32 chars prompt text
 #define HOST_BUTTON_LEN_MAX 16 // max 16 chars button text
-#define HOST_BUTTON_CNT_MAX 4 // max 4 buttons
+#define HOST_BUTTON_CNT_MAX 4  // max 4 buttons
 
 #pragma pack(push)
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
-    uint16_t flags; // server flags (MARLIN_SFLG)
-    uint64_t notify_events; // event notification mask
+    uint16_t flags;          // server flags (MARLIN_SFLG)
+    uint64_t notify_events;  // event notification mask
     uint64_t notify_changes; // variable change notification mask
-    marlin_vars_t vars; // cached variables
+    marlin_vars_t vars;      // cached variables
     char request[MARLIN_MAX_REQUEST];
     int request_len;
-    uint64_t client_events[MARLIN_MAX_CLIENTS]; // client event mask
-    uint64_t client_changes[MARLIN_MAX_CLIENTS]; // client variable change mask
+    uint64_t client_events[MARLIN_MAX_CLIENTS];              // client event mask
+    uint64_t client_changes[MARLIN_MAX_CLIENTS];             // client variable change mask
     variant8_t client_events_notsent[MARLIN_MAX_CLIENTS][4]; // buffer for events that are not sent
-    uint32_t last_update; // last update tick count
-    uint8_t idle_cnt; // idle call counter
-    uint8_t pqueue_head; // copy of planner.block_buffer_head
-    uint8_t pqueue_tail; // copy of planner.block_buffer_tail
-    uint8_t pqueue; // calculated number of records in planner queue
-    uint8_t gqueue; // copy of queue.length - number of commands in gcode queue
-    uint32_t command; // actually running command
-    marlin_mesh_t mesh; // meshbed leveling
-    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
+    uint32_t last_update;                                    // last update tick count
+    uint8_t idle_cnt;                                        // idle call counter
+    uint8_t pqueue_head;                                     // copy of planner.block_buffer_head
+    uint8_t pqueue_tail;                                     // copy of planner.block_buffer_tail
+    uint8_t pqueue;                                          // calculated number of records in planner queue
+    uint8_t gqueue;                                          // copy of queue.length - number of commands in gcode queue
+    uint32_t command;                                        // actually running command
+    uint32_t command_begin;                                  // variable for notification
+    uint32_t command_end;                                    // variable for notification
+    marlin_mesh_t mesh;                                      // meshbed leveling
+    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS];         // mesh point mask (points that are not sent)
 } marlin_server_t;
 
 #pragma pack(pop)
@@ -84,17 +83,21 @@ extern "C" {
 
 #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif //_DEBUG
+#endif                           //_DEBUG
 
 //-----------------------------------------------------------------------------
 // variables
+extern uint32_t Tacho_FAN0;
+extern uint32_t Tacho_FAN1;
 
-osThreadId marlin_server_task = 0; // task handle
+osThreadId marlin_server_task = 0;    // task handle
 osMessageQId marlin_server_queue = 0; // input queue (uint8_t)
 osSemaphoreId marlin_server_sema = 0; // semaphore handle
 
 marlin_server_t marlin_server; // server structure - initialize task to zero
-
+#ifdef DEBUG_FSENSOR_IN_HEADER
+uint32_t *pCommand = &marlin_server.command;
+#endif
 marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
 
 //==========MSG_STACK===================
@@ -134,7 +137,7 @@ host_prompt_button_t host_prompt_button_clicked = HOST_PROMPT_BTN_None;
 //-----------------------------------------------------------------------------
 // external variables from marlin_client
 
-extern osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
+extern osThreadId marlin_client_task[MARLIN_MAX_CLIENTS];    // task handles
 extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
 
 //-----------------------------------------------------------------------------
@@ -143,7 +146,7 @@ extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue hand
 int _send_notify_to_client(osMessageQId queue, variant8_t msg);
 int _send_notify_event_to_client(int client_id, osMessageQId queue, uint8_t evt_id, uint32_t usr32, uint16_t usr16);
 uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
-void _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16);
+uint8_t _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16);
 int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var);
 uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk);
 void _server_update_gqueue(void);
@@ -167,16 +170,33 @@ void marlin_server_init(void) {
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
+}
 
-    // wait until filament sensor is inicialized
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-    while (fs_get_state() == FS_NOT_INICIALIZED) {
-        osDelay(0); // switch to other threads
+void print_fan_spd() {
+    if (DEBUGGING(INFO)) {
+        static int time = 0;
+        static int last_prt = 0;
+        time = HAL_GetTick();
+        int timediff = time - last_prt;
+        if (timediff >= 1000) {
+
+            serial_echopair_PGM("Tacho_FAN0 ", float(Tacho_FAN0 * 30) / float(timediff)); //60s / 2 pulses per rotation
+            serialprintPGM("rpm ");
+            SERIAL_EOL();
+            serial_echopair_PGM("Tacho_FAN1 ", float(Tacho_FAN1 * 30) / float(timediff));
+            serialprintPGM("rpm ");
+            SERIAL_EOL();
+            Tacho_FAN0 = 0;
+            Tacho_FAN1 = 0;
+            last_prt = time;
+        }
     }
-#endif
 }
 
 int marlin_server_cycle(void) {
+
+    print_fan_spd();
+
     int count = 0;
     int client_id;
     uint64_t msk = 0;
@@ -241,7 +261,7 @@ int marlin_server_cycle(void) {
 #ifndef _DEBUG
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
         HAL_IWDG_Refresh(&hiwdg); // this prevents iwdg reset while processing disabled
-#endif //_DEBUG
+#endif                            //_DEBUG
     return count;
 }
 
@@ -253,7 +273,7 @@ int marlin_server_loop(void) {
             //_dbg("SVR: READY");
             marlin_server.flags &= ~MARLIN_SFLG_BUSY;
             _send_notify_event(MARLIN_EVT_Ready, 0, 0);
-            if (marlin_server.command != MARLIN_CMD_NONE) {
+            if ((marlin_server.command != MARLIN_CMD_NONE) && (marlin_server.command != MARLIN_CMD_M600)) {
                 _send_notify_event(MARLIN_EVT_CommandEnd, marlin_server.command, 0);
                 marlin_server.command = MARLIN_CMD_NONE;
             }
@@ -280,14 +300,17 @@ int marlin_server_idle(void) {
             switch (parser.codenum) {
             case 109:
             case 190:
-            case 600:
+            //case 600: // hacked in gcode (_force_M600_notify)
             case 701:
             case 702:
                 marlin_server.command = MARLIN_CMD_M + parser.codenum;
                 break;
             }
-        if (marlin_server.command != MARLIN_CMD_NONE)
+        if (marlin_server.command != MARLIN_CMD_NONE) {
+            marlin_server.command_begin = marlin_server.command;
+            marlin_server.command_end = marlin_server.command;
             _send_notify_event(MARLIN_EVT_CommandBegin, marlin_server.command, 0);
+        }
     }
     return marlin_server_cycle();
 }
@@ -355,6 +378,7 @@ void marlin_server_print_abort(void) {
     wait_for_heatup = wait_for_user = false;
     card.flag.abort_sd_printing = true;
     print_job_timer.stop();
+    queue.clear();
     //	planner.quick_stop();
     //	marlin_server_park_head();
     //	planner.synchronize();
@@ -388,22 +412,6 @@ int marlin_all_axes_homed(void) {
 int marlin_all_axes_known(void) {
     return all_axes_known() ? 1 : 0;
 }
-
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-void marlin_fs_enable(void) {
-    runout.enabled = true;
-}
-
-void marlin_fs_disable(void) {
-    runout.enabled = false;
-}
-#else
-void marlin_fs_enable(void) {
-}
-
-void marlin_fs_disable(void) {
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // private functions
@@ -466,11 +474,14 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
                     sent |= msk; // event sent, set bit
                 break;
             // CommandBegin/End - one ui32 argument (CMD)
-            //case MARLIN_EVT_CommandBegin:
-            //case MARLIN_EVT_CommandEnd:
-            //	if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
-            //		sent |= msk; // event sent, set bit
-            //	break;
+            case MARLIN_EVT_CommandBegin:
+                if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.command_begin, 0))
+                    sent |= msk; // event sent, set bit
+                break;
+            case MARLIN_EVT_CommandEnd:
+                if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.command_end, 0))
+                    sent |= msk; // event sent, set bit
+                break;
             //case MARLIN_EVT_PlayTone:
             //case MARLIN_EVT_UserConfirmRequired:
             case MARLIN_EVT_MeshUpdate:
@@ -505,20 +516,24 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
 }
 
 // send event notification to all clients (called from server thread)
-void _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16) {
+// returns bitmask - bit0 = notify for client0 successfully send, bit1 for client1...
+uint8_t _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16) {
+    uint8_t client_msk = 0;
     if ((marlin_server.notify_events & ((uint64_t)1 << evt_id)) == 0)
-        return;
+        return client_msk;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
             marlin_server.client_events[client_id] |= ((uint64_t)1 << evt_id); // event not sent, set bit
             if (evt_id == MARLIN_EVT_MeshUpdate) {
-                uint8_t x = usr16 & 0xff; // x index
-                uint8_t y = usr16 >> 8; // y index
+                uint8_t x = usr16 & 0xff;                      // x index
+                uint8_t y = usr16 >> 8;                        // y index
                 uint8_t index = x + marlin_server.mesh.xc * y; // index
-                uint64_t mask = ((uint64_t)1 << index); // mask
+                uint64_t mask = ((uint64_t)1 << index);        // mask
                 marlin_server.mesh_point_notsent[client_id] |= mask;
             }
-        }
+        } else
+            client_msk |= (1 << client_id);
+    return client_msk;
 }
 
 // send variable change notification to client (called from server thread)
@@ -728,7 +743,8 @@ uint64_t _server_update_vars(uint64_t update) {
 // process request on server side
 int _process_server_request(char *request) {
     int processed = 0;
-    uint64_t msk;
+    //uint64_t msk;
+    uint32_t msk32[2];
     float offs;
     int ival;
     int client_id = *(request++) - '0';
@@ -739,7 +755,7 @@ int _process_server_request(char *request) {
         processed = marlin_server_enqueue_gcode(request + 3);
     } else if (strncmp("!ig ", request, sizeof("!ig ") / sizeof(char) - 1) == 0) {
         unsigned long int iptr = strtoul(request + sizeof("!ig ") / sizeof(char) - 1, NULL, 0);
-        processed = marlin_server_inject_gcode( (const char*)iptr );
+        processed = marlin_server_inject_gcode((const char *)iptr);
     } else if (strcmp("!start", request) == 0) {
         marlin_server_start_processing();
         processed = 1;
@@ -749,8 +765,8 @@ int _process_server_request(char *request) {
     } else if (strncmp("!var ", request, 5) == 0) {
         _server_set_var(request + 5);
         processed = 1;
-    } else if (sscanf(request, "!update %" PRIu64, &msk) == 1) {
-        marlin_server_update(msk);
+    } else if (sscanf(request, "!update %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        marlin_server_update(msk32[0] + (((uint64_t)msk32[1]) << 32));
         processed = 1;
     } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
         marlin_server_do_babystep_Z(offs);
@@ -813,6 +829,7 @@ int _server_set_var(char *name_val_str) {
                 break;
             case MARLIN_VAR_FLOWFACT:
                 planner.flow_percentage[0] = (int16_t)marlin_server.vars.flow_factor;
+                planner.refresh_e_factor(0);
                 break;
             case MARLIN_VAR_WAITHEAT:
                 wait_for_heatup = marlin_server.vars.wait_heat ? true : false;
@@ -827,7 +844,52 @@ int _server_set_var(char *name_val_str) {
     return 1;
 }
 
+// this is extern from guimain.c, used in temporary fix (force_M600_notify)
+// this variable is set imediately after
+extern int gui_marlin_client_id;
+
 } // extern "C"
+
+#ifdef DEBUG_FSENSOR_IN_HEADER
+int _is_in_M600_flg = 0;
+#endif
+
+// force send M600 begin/end notify
+void _force_M600_notify(uint64_t evt_id, uint8_t req_client_mask) {
+    int client_id;
+    uint8_t client_mask = _send_notify_event(evt_id, MARLIN_CMD_M600, 0);
+    // loop until event successfully sent to requested clients
+    while ((client_mask & req_client_mask) != req_client_mask) {
+        idle(); // call marlin idle
+        // check that event sent inside idle and update mask
+        for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
+            if ((marlin_server.client_events[client_id] & ((uint64_t)1 << evt_id)) == 0)
+                client_mask |= (1 << client_id);
+    }
+}
+
+// this is called in main thread directly from M600
+void force_M600_begin_notify() {
+    marlin_server.command = MARLIN_CMD_M600;
+    marlin_server.command_begin = MARLIN_CMD_M600;
+    marlin_server.command_end = MARLIN_CMD_M600;
+    // notification will wait until successfully sent to gui client
+    _force_M600_notify(MARLIN_EVT_CommandBegin, 1 << gui_marlin_client_id);
+#ifdef DEBUG_FSENSOR_IN_HEADER
+    _is_in_M600_flg = 1;
+#endif
+}
+
+// this is called in main thread directly from M600
+void force_M600_end_notify() {
+    marlin_server.command = MARLIN_CMD_NONE;
+    // notification will wait until successfully sent to gui client
+    _force_M600_notify(MARLIN_EVT_CommandEnd, 1 << gui_marlin_client_id);
+    fs_clr_sent();
+#ifdef DEBUG_FSENSOR_IN_HEADER
+    _is_in_M600_flg = 0;
+#endif
+}
 
 //-----------------------------------------------------------------------------
 // ExtUI event handlers
@@ -845,9 +907,43 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
+//todo remove me after new thermal manager
+int _is_thermal_error(PGM_P const msg) {
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED)))
+        return 1;
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED)))
+        return 1;
+    return 0;
+}
+
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
-    temp_error(msg, component);
+    taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+    HAL_IWDG_Refresh(&hiwdg);
+    if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
+        const marlin_vars_t &vars = marlin_server.vars;
+        temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
+    } else {
+        general_error(msg, component);
+    }
 }
 
 void onMediaInserted() {
@@ -989,10 +1085,10 @@ void host_action(const char *const pstr, const bool eol) {
 //   Marlin/src/module/temperature.cpp, line 968
 void host_action_kill() {
 #ifdef LCDSIM
-    char text[85]; //max 4 lines of 20 chars + 4x '\n' + '\x00'
+    char text[85];          //max 4 lines of 20 chars + 4x '\n' + '\x00'
     lcdsim_grab_text(text); //grab text from display buffer
-    bsod(text); //BSOD (endless loop with disabled interrupts)
-#endif // LCDSIM
+    bsod(text);             //BSOD (endless loop with disabled interrupts)
+#endif                      // LCDSIM
 }
 
 void host_action_safety_timer_expired() {
@@ -1074,8 +1170,11 @@ void host_action_prompt_show() {
                 paused = 0;
                 break;
             case HOST_PROMPT_BTN_PurgeMore:
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
                 do_pause_e_move(ADVANCED_PAUSE_PURGE_LENGTH, ADVANCED_PAUSE_PURGE_FEEDRATE);
-                paused = 0; //TODO: temporarily skip the loop because of unload UI
+#endif
+                _send_notify_event(MARLIN_EVT_HostPrompt, ui32, 0);
+                paused = 1; //TODO: temporarily skip the loop because of unload UI
                 break;
             default:
                 paused = 0;

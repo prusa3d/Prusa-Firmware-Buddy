@@ -25,6 +25,8 @@ void window_logo_draw(window_logo_t *window) {
         const char chr = '\2';
         const uint16_t left = 16;
         const uint16_t right = 105;
+#else
+    #error "Unknown PRINTER_TYPE."
 #endif
 
         // ORIGINAL

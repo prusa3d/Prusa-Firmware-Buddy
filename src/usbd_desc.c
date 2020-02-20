@@ -53,6 +53,7 @@
 #include "usbd_conf.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "common/otp.h"
 
 /* USER CODE END INCLUDE */
 
@@ -91,14 +92,14 @@
   * @{
   */
 
-#define USBD_VID 1155
-#define USBD_LANGID_STRING 1033
-#define USBD_MANUFACTURER_STRING "STMicroelectronics"
-#define USBD_PID_FS 22336
-#define USBD_PRODUCT_STRING_FS "STM32 Virtual ComPort"
-#define USBD_SERIALNUMBER_STRING_FS "00000000001A"
+#define USBD_VID                     11417
+#define USBD_LANGID_STRING           1033
+#define USBD_MANUFACTURER_STRING     "Prusa Research (prusa3d.com)"
+#define USBD_PID_FS                  12
+#define USBD_PRODUCT_STRING_FS       "Original Prusa MINI"
+#define USBD_SERIALNUMBER_STRING_FS  "00000000001A"
 #define USBD_CONFIGURATION_STRING_FS "CDC Config"
-#define USBD_INTERFACE_STRING_FS "CDC Interface"
+#define USBD_INTERFACE_STRING_FS     "CDC Interface"
 
 #define USB_SIZ_BOS_DESC 0x0C
 
@@ -170,7 +171,7 @@ USBD_DescriptorsTypeDef FS_Desc = {
 #endif /* defined ( __ICCARM__ ) */
 /** USB standard device descriptor. */
 __ALIGN_BEGIN uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END = {
-    0x12, /*bLength */
+    0x12,                 /*bLength */
     USB_DESC_TYPE_DEVICE, /*bDescriptorType*/
 #if (USBD_LPM_ENABLED == 1)
     0x01, /*bcdUSB */ /* changed to USB version 2.01
@@ -180,19 +181,19 @@ __ALIGN_BEGIN uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END = {
     0x00, /*bcdUSB */
 #endif /* (USBD_LPM_ENABLED == 1) */
     0x02,
-    0x02, /*bDeviceClass*/
-    0x02, /*bDeviceSubClass*/
-    0x00, /*bDeviceProtocol*/
-    USB_MAX_EP0_SIZE, /*bMaxPacketSize*/
-    LOBYTE(USBD_VID), /*idVendor*/
-    HIBYTE(USBD_VID), /*idVendor*/
+    0x02,                /*bDeviceClass*/
+    0x02,                /*bDeviceSubClass*/
+    0x00,                /*bDeviceProtocol*/
+    USB_MAX_EP0_SIZE,    /*bMaxPacketSize*/
+    LOBYTE(USBD_VID),    /*idVendor*/
+    HIBYTE(USBD_VID),    /*idVendor*/
     LOBYTE(USBD_PID_FS), /*idProduct*/
     HIBYTE(USBD_PID_FS), /*idProduct*/
-    0x00, /*bcdDevice rel. 2.00*/
+    0x00,                /*bcdDevice rel. 2.00*/
     0x02,
-    USBD_IDX_MFC_STR, /*Index of manufacturer  string*/
-    USBD_IDX_PRODUCT_STR, /*Index of product string*/
-    USBD_IDX_SERIAL_STR, /*Index of serial number string*/
+    USBD_IDX_MFC_STR,          /*Index of manufacturer  string*/
+    USBD_IDX_PRODUCT_STR,      /*Index of product string*/
+    USBD_IDX_SERIAL_STR,       /*Index of serial number string*/
     USBD_MAX_NUM_CONFIGURATION /*bNumConfigurations*/
 };
 
@@ -310,11 +311,20 @@ uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *le
   * @retval Pointer to descriptor buffer
   */
 uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length) {
-    if (speed == USBD_SPEED_HIGH) {
-        USBD_GetString((uint8_t *)USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
-    } else {
-        USBD_GetString((uint8_t *)USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
-    }
+    // The original code looks suspicious - the same calls for different USB speeds
+    // if (speed == USBD_SPEED_HIGH) {
+    //     USBD_GetString((uint8_t *)USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
+    // } else {
+    //     USBD_GetString((uint8_t *)USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
+    // }
+    // Anyway, we want to return our serial number from OTP.
+    // The OTP contains the serial number without the first four characters "CZPX" (total 15 chars, zero terminated).
+    // And since it is already zero-terminated, we can convert the serial number into a unicode string and return it.
+    // Additionally, it is required to print the serial number the same way as the MK3 does -> we must add CZPX to the beginning
+    uint8_t tmp[OTP_SERIAL_NUMBER_SIZE + 4] = "CZPX";
+    memcpy(tmp + 4, (const uint8_t *)OTP_SERIAL_NUMBER_ADDR, OTP_SERIAL_NUMBER_SIZE);
+    tmp[OTP_SERIAL_NUMBER_SIZE + 4 - 1] = 0; // proper string termination in case there is something wrong with the OTP data
+    USBD_GetString(tmp, USBD_StrDesc, length);
     return USBD_StrDesc;
 }
 

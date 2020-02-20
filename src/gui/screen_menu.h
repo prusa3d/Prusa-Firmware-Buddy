@@ -35,9 +35,9 @@ typedef struct
 
 #pragma pack(pop)
 
-#define SCREEN_MENU_RETURN (screen_t *)SIZE_MAX
+#define SCREEN_MENU_RETURN    (screen_t *)SIZE_MAX
 #define SCREEN_MENU_NO_SCREEN NULL
-#define psmd ((screen_menu_data_t *)screen->pdata)
+#define psmd                  ((screen_menu_data_t *)screen->pdata)
 
 #ifdef __cplusplus
 extern "C" {
