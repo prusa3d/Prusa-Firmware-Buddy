@@ -29,7 +29,6 @@ typedef struct {
     char request[MAX_WUI_REQUEST_LEN];
     uint8_t request_len;
 } web_client_t;
-
 marlin_vars_t webserver_marlin_vars;
 
 web_client_t wui;
@@ -49,7 +48,6 @@ void StartWebServerTask(void const *argument) {
     MX_LWIP_Init();
     http_server_init();
     for (;;) {
-        //        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MSK_TEMP_ALL));
         ethernetif_link(&eth0);
         wui_queue_cycle();
 
