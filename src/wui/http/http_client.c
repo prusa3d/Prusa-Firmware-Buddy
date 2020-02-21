@@ -12,6 +12,7 @@
 #include "stm32f4xx_hal.h"
 #include <string.h>
 
+#define CLIENT_CONNECT_DELAY 10000 // 1 Sec.
 struct tcp_pcb *testpcb;
 static uint32_t data = 0xdeadbeef;
 extern struct netif eth0;
@@ -88,7 +89,7 @@ err_t connectCallback(void *arg, struct tcp_pcb *tpcb, err_t err) {
 void buddy_http_client_init() {
 
     ip_addr_t ip;
-    IP4_ADDR(&ip, 192, 168, 1, 152); //IP of my PHP server
+    IP4_ADDR(&ip, 192, 168, 88, 220); //IP of connect server
     /* create the control block */
     testpcb = tcp_new();
     tcp_arg(testpcb, &data);
@@ -108,7 +109,7 @@ void buddy_http_client_loop() {
         init_tick = true;
     }
 
-    if (netif_ip4_addr(&eth0)->addr != 0 && ((HAL_GetTick() - client_interval) > 1050)) {
+    if (netif_ip4_addr(&eth0)->addr != 0 && ((HAL_GetTick() - client_interval) > CLIENT_CONNECT_DELAY)) {
         buddy_http_client_init();
         client_interval = HAL_GetTick();
     }
