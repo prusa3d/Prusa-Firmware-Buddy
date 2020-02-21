@@ -9,7 +9,6 @@ add_library(
   http/altcp_proxyconnect.c
   http/fs.c
   http/fsdata.c
-  http/http_client.c
   http/httpd.c
   resources/fsdata_custom.c
 )
@@ -24,5 +23,7 @@ target_include_directories(
 
 target_link_libraries(WUI PUBLIC WUI_Config)
 target_link_libraries(
-  WUI PRIVATE LwIP
+  WUI
+  PRIVATE LwIP
+          jsmn::jsmn
   )
