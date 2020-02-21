@@ -27,16 +27,6 @@ extern osMutexId wui_web_mutex_id;
 static marlin_vars_t webserver_marlin_vars_copy;
 // for storing /api/* data
 static struct fs_file api_file;
-static char _buffer[BDY_WUI_API_BUFFER_SIZE];
-
-static int char_streamer(const char *format, ...) {
-    int rv = 0;
-    va_list args;
-    va_start(args, format);
-    rv = vsnprintf(_buffer, BDY_WUI_API_BUFFER_SIZE, format, args);
-    va_end(args);
-    return rv;
-}
 
 const char *get_progress_str(void) {
 

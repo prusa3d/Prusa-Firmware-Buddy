@@ -7,11 +7,10 @@
  */
 
 #include "wui.h"
-#include "http_client.h"
-#include <stdbool.h>
 #include "marlin_client.h"
 #include "lwip.h"
 #include "ethernetif.h"
+#include "http_client.h"
 
 #include "cmsis_os.h"
 
@@ -29,15 +28,6 @@ typedef struct {
     marlin_vars_t *wui_marlin_vars;
     char request[MAX_WUI_REQUEST_LEN];
     uint8_t request_len;
-} web_client_t;
-marlin_vars_t *wui_marlin_vars = 0;
-marlin_vars_t webserver_marlin_vars;
-
-typedef struct {
-    uint32_t flags;
-    marlin_vars_t *wui_marlin_vars;
-    char request[MAX_WUI_REQUEST_LEN];
-    uint16_t request_len;
 } web_client_t;
 
 marlin_vars_t webserver_marlin_vars;
@@ -114,6 +104,5 @@ static int process_wui_request() {
 
     //if(wui.request == gcode)
     marlin_json_gcode(wui.request);
-    return 1;
     return 1;
 }
