@@ -6,7 +6,7 @@
  *      Author: joshy <joshymjose[at]gmail.com>
  */
 
-#include "http_client_prusa.h"
+#include "http_client.h"
 #include <stdbool.h>
 #include "wui_api.h"
 #include "stm32f4xx_hal.h"

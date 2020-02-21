@@ -4,8 +4,9 @@ endif()
 
 add_library(
   WUI
-  wui_api.c
   wui.c
+  wui_api.c
+  wui_helper_funcs.c
   http/altcp_proxyconnect.c
   http/fs.c
   http/fsdata.c
@@ -24,5 +25,7 @@ target_include_directories(
 
 target_link_libraries(WUI PUBLIC WUI_Config)
 target_link_libraries(
-  WUI PRIVATE LwIP
+  WUI
+  PRIVATE LwIP
+          jsmn::jsmn
   )
