@@ -160,12 +160,16 @@ static void _gui_loop_cb(){
 	marlin_client_loop();
 }
 
-void serial_prt_cb() {
-    screen_unloop(m876_blacklist, sizeof(m876_blacklist)/sizeof(m876_blacklist[0]));
+static void serial_prt_cb(int data) {
+    if (data) {
+        screen_unloop(m876_blacklist, sizeof(m876_blacklist)/sizeof(m876_blacklist[0]));
 
-    screen_t *curr = screen_get_curr();
-    if (curr!=pscreen_printing_serial)
-        screen_open(pscreen_printing_serial->id);
+        if (screen_get_curr()!=pscreen_printing_serial)
+            screen_open(pscreen_printing_serial->id);
+    } else {
+        if (screen_get_curr()==pscreen_printing_serial)
+            screen_close();
+    }
 }
 
 
