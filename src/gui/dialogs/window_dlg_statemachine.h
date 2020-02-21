@@ -52,8 +52,8 @@ typedef enum {
     LOOP_RESULT_BREAK
 } loop_result_t;
 
-typedef int (*dlg_state_func)(_dlg_vars *p_vars, void *p_additional_vars); //prototype of state function
-typedef void (*dlg_cb_t)(void); //dialog callback
+typedef int (*dlg_state_func)(_dlg_vars *p_vars, void *p_additional_vars);          //prototype of state function
+typedef void (*dlg_cb_t)(void);                                                     //dialog callback
 typedef loop_result_t (*dlg_loop_cb_t)(_dlg_vars *p_vars, void *p_additional_vars); //dialog loop callback can break loop
 
 typedef struct
@@ -78,10 +78,10 @@ typedef struct
     const char *title;
     const _dlg_state *p_states;
     const size_t count;
-    const dlg_cb_t on_load; //after start
+    const dlg_cb_t on_load;      //after start
     const dlg_loop_cb_t on_loop; //begin of each cycle
-    const dlg_cb_t on_timeout; //check inside loop
-    const dlg_cb_t on_done; //before finish
+    const dlg_cb_t on_timeout;   //check inside loop
+    const dlg_cb_t on_done;      //before finish
 } _cl_dlg;
 
 typedef struct _window_dlg_statemachine_t {

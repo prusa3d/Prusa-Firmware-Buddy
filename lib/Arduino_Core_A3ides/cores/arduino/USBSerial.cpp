@@ -7,8 +7,8 @@
 
 #define USBSERIAL_OBUF_SIZE 256
 #define USBSERIAL_IBUF_SIZE 256
-#define USBSERIAL_RETRY 100
-#define USBSERIAL_MAX_FAIL 10
+#define USBSERIAL_RETRY     100
+#define USBSERIAL_MAX_FAIL  10
 
 extern "C" {
 
@@ -19,12 +19,12 @@ extern int usbd_cdc_initialized;
 int USBSerial_failcount = 0;
 
 uint8_t obuff[USBSERIAL_OBUF_SIZE]; //output buffer
-uint32_t obufc = 0; //number of characters in output buffer
+uint32_t obufc = 0;                 //number of characters in output buffer
 
 uint8_t ibuff[USBSERIAL_IBUF_SIZE]; //input buffer
-uint32_t ibufc = 0; //number of characters in input buffer
-uint32_t ibufr = 0; //input buffer read index
-uint32_t ibufw = 0; //input buffer write index
+uint32_t ibufc = 0;                 //number of characters in input buffer
+uint32_t ibufr = 0;                 //input buffer read index
+uint32_t ibufw = 0;                 //input buffer write index
 
 void usb_cdc_tx_buffer(void) {
     uint8_t ret;
@@ -130,10 +130,10 @@ void USBSerial::flush(void) {
 }
 
 size_t USBSerial::write(uint8_t ch) {
-    if (obufc >= USBSERIAL_OBUF_SIZE)
-        return 0; // buffer overflow
-    obuff[obufc++] = ch;
-    if (ch == '\n') // eoln
+    if (obufc < USBSERIAL_OBUF_SIZE) {
+        obuff[obufc++] = ch;
+    }
+    if ((ch == '\n') || (obufc == USBSERIAL_OBUF_SIZE)) // eoln or full
         usb_cdc_tx_buffer();
     return 1;
 }

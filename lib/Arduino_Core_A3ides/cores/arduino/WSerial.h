@@ -9,7 +9,7 @@
     #ifndef DISABLE_GENERIC_SERIALUSB
         #define ENABLE_SERIALUSB
         #if !defined(Serial)
-            #define Serial SerialUSB
+            #define Serial      SerialUSB
             #define serialEvent serialEventUSB
         #endif
     #endif
@@ -26,67 +26,67 @@ extern void serialEventUSB(void) __attribute__((weak));
         #if SERIAL_UART_INSTANCE == 0
             #define ENABLE_HWSERIALLP1
             #if !defined(Serial)
-                #define Serial SerialLP1
+                #define Serial      SerialLP1
                 #define serialEvent serialEventLP1
             #endif
         #elif SERIAL_UART_INSTANCE == 1
             #define ENABLE_HWSERIAL1
             #if !defined(Serial)
-                #define Serial Serial1
+                #define Serial      Serial1
                 #define serialEvent serialEvent1
             #endif
         #elif SERIAL_UART_INSTANCE == 2
             #define ENABLE_HWSERIAL2
             #if !defined(Serial)
-                #define Serial Serial2
+                #define Serial      Serial2
                 #define serialEvent serialEvent2
             #endif
         #elif SERIAL_UART_INSTANCE == 3
             #define ENABLE_HWSERIAL3
             #if !defined(Serial)
-                #define Serial Serial3
+                #define Serial      Serial3
                 #define serialEvent serialEvent3
             #endif
         #elif SERIAL_UART_INSTANCE == 4
             #define ENABLE_HWSERIAL4
             #if !defined(Serial)
-                #define Serial Serial4
+                #define Serial      Serial4
                 #define serialEvent serialEvent4
             #endif
         #elif SERIAL_UART_INSTANCE == 5
             #define ENABLE_HWSERIAL5
             #if !defined(Serial)
-                #define Serial Serial5
+                #define Serial      Serial5
                 #define serialEvent serialEvent5
             #endif
         #elif SERIAL_UART_INSTANCE == 6
             #define ENABLE_HWSERIAL6
             #if !defined(Serial)
-                #define Serial Serial6
+                #define Serial      Serial6
                 #define serialEvent serialEvent6
             #endif
         #elif SERIAL_UART_INSTANCE == 7
             #define ENABLE_HWSERIAL7
             #if !defined(Serial)
-                #define Serial Serial7
+                #define Serial      Serial7
                 #define serialEvent serialEvent7
             #endif
         #elif SERIAL_UART_INSTANCE == 8
             #define ENABLE_HWSERIAL8
             #if !defined(Serial)
-                #define Serial Serial8
+                #define Serial      Serial8
                 #define serialEvent serialEvent8
             #endif
         #elif SERIAL_UART_INSTANCE == 9
             #define ENABLE_HWSERIAL9
             #if !defined(Serial)
-                #define Serial Serial9
+                #define Serial      Serial9
                 #define serialEvent serialEvent9
             #endif
         #elif SERIAL_UART_INSTANCE == 10
             #define ENABLE_HWSERIAL10
             #if !defined(Serial)
-                #define Serial Serial10
+                #define Serial      Serial10
                 #define serialEvent serialEvent10
             #endif
         #else
@@ -94,7 +94,7 @@ extern void serialEventUSB(void) __attribute__((weak));
                 #warning "No generic 'Serial' defined!"
             #endif
         #endif /* SERIAL_UART_INSTANCE == x */
-    #endif /* !HWSERIAL_NONE && SERIAL_UART_INSTANCE */
+    #endif     /* !HWSERIAL_NONE && SERIAL_UART_INSTANCE */
 
     #if defined(ENABLE_HWSERIALLP1)
         #if defined(LPUART1_BASE)

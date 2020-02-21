@@ -123,10 +123,9 @@ int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, self
         marlin_start_processing();
         marlin_event_clr(MARLIN_EVT_LoadSettings);
         marlin_event_clr(MARLIN_EVT_FactoryReset);
-        marlin_gcode("M501"); //restore settings
-        while (!marlin_event_clr(MARLIN_EVT_LoadSettings) &&
-        		!marlin_event_clr(MARLIN_EVT_FactoryReset)) //wait for M501 done
-        	gui_loop();
+        marlin_gcode("M501");                                                                            //restore settings
+        while (!marlin_event_clr(MARLIN_EVT_LoadSettings) && !marlin_event_clr(MARLIN_EVT_FactoryReset)) //wait for M501 done
+            gui_loop();
     }
     //-------------------------------------
 

@@ -10,13 +10,13 @@
 // server flags
 #define MARLIN_SFLG_STARTED 0x0001 // server started (set in marlin_server_init)
 #define MARLIN_SFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_SFLG_BUSY 0x0004 // loop is busy
+#define MARLIN_SFLG_BUSY    0x0004 // loop is busy
 #define MARLIN_SFLG_PENDREQ 0x0008 // pending request
 
 // server variable update interval [ms]
 #define MARLIN_UPDATE_PERIOD 100
-#define MSG_STACK_SIZE 8 //status message stack size
-#define MSG_MAX_LENGTH 21 //status message max length
+#define MSG_STACK_SIZE       8  //status message stack size
+#define MSG_MAX_LENGTH       21 //status message max length
 
 typedef void(marlin_server_idle_t)(void);
 

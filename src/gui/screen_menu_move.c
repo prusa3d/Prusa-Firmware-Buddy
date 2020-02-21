@@ -49,7 +49,7 @@ int screen_menu_move_event(screen_t *screen, window_t *window, uint8_t event, vo
     } else if (event == WINDOW_EVENT_CLICK) {
         marlin_gcode("G90"); // Set to Absolute Positioning
         if ((int)param == MI_MOVE_E) {
-            marlin_gcode("M82"); // Set extruder to absolute mode
+            marlin_gcode("M82");    // Set extruder to absolute mode
             marlin_gcode("G92 E0"); // Reset position before change
         }
         psmd->items[MI_MOVE_E].item.wi_spin.value = 0; // Reset spin before change
@@ -79,7 +79,7 @@ screen_t screen_menu_move = {
     0,
     screen_menu_move_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_menu_move = &screen_menu_move;

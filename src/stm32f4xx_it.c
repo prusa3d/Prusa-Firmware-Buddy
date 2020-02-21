@@ -108,7 +108,7 @@ void NMI_Handler(void) {
   */
 void __attribute__((naked)) HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
-	DUMP_HARDFAULT_TO_XFLASH();
+    DUMP_HARDFAULT_TO_XFLASH();
     ScreenHardFault();
     /* USER CODE END HardFault_IRQn 0 */
     while (1) {

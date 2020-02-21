@@ -24,16 +24,16 @@
 
 #if ENABLED(PARK_HEAD_ON_PAUSE)
 
-#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../../lib/Marlin/Marlin/src/gcode/parser.h"
-#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
-#include "../../../lib/Marlin/Marlin/src/module/motion.h"
-#include "../../../lib/Marlin/Marlin/src/sd/cardreader.h"
-#include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
+    #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+    #include "../../../lib/Marlin/Marlin/src/gcode/parser.h"
+    #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
+    #include "../../../lib/Marlin/Marlin/src/module/motion.h"
+    #include "../../../lib/Marlin/Marlin/src/sd/cardreader.h"
+    #include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
 
-#if HAS_LCD_MENU
-  #include "../../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
-#endif
+    #if HAS_LCD_MENU
+        #include "../../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
+    #endif
 
 /**
  * M125: Store current position and move to parking position.
@@ -51,45 +51,48 @@
  *    Z = override Z raise
  */
 void GcodeSuite::M125() {
-  // Initial retract before move to filament change position
-  const float retract = -ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
+    // Initial retract before move to filament change position
+    const float retract = -ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
     #ifdef PAUSE_PARK_RETRACT_LENGTH
-      + (PAUSE_PARK_RETRACT_LENGTH)
+                + (PAUSE_PARK_RETRACT_LENGTH)
     #endif
-  );
+    );
 
-  xyz_pos_t park_point = NOZZLE_PARK_POINT;
+    xyz_pos_t park_point = NOZZLE_PARK_POINT;
 
-  // Move XY axes to filament change position or given position
-  if (parser.seenval('X')) park_point.x = RAW_X_POSITION(parser.linearval('X'));
-  if (parser.seenval('Y')) park_point.y = RAW_X_POSITION(parser.linearval('Y'));
+    // Move XY axes to filament change position or given position
+    if (parser.seenval('X'))
+        park_point.x = RAW_X_POSITION(parser.linearval('X'));
+    if (parser.seenval('Y'))
+        park_point.y = RAW_X_POSITION(parser.linearval('Y'));
 
-  // Lift Z axis
-  if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
+    // Lift Z axis
+    if (parser.seenval('Z'))
+        park_point.z = parser.linearval('Z');
 
-  #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA)
+    #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA)
     park_point += hotend_offset[active_extruder];
-  #endif
+    #endif
 
-  #if ENABLED(SDSUPPORT)
+    #if ENABLED(SDSUPPORT)
     const bool sd_printing = IS_SD_PRINTING();
-  #else
+    #else
     constexpr bool sd_printing = false;
-  #endif
+    #endif
 
-  #if HAS_LCD_MENU
+    #if HAS_LCD_MENU
     lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);
     const bool show_lcd = parser.seenval('P');
-  #else
+    #else
     constexpr bool show_lcd = false;
-  #endif
+    #endif
 
-  if (pause_print(retract, park_point, 0, show_lcd)) {
-    if (!sd_printing || show_lcd) {
-      wait_for_confirmation(false, 0);
-      resume_print(0, 0, PAUSE_PARK_RETRACT_LENGTH, 0);
+    if (pause_print(retract, park_point, 0, show_lcd)) {
+        if (!sd_printing || show_lcd) {
+            wait_for_confirmation(false, 0);
+            resume_print(0, 0, PAUSE_PARK_RETRACT_LENGTH, 0);
+        }
     }
-  }
 }
 
 #endif // PARK_HEAD_ON_PAUSE

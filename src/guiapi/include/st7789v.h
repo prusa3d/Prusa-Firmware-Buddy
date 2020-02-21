@@ -6,7 +6,7 @@
 #include "stm32f4xx_hal.h"
 
 //public flags (config)
-#define ST7789V_FLG_DMA 0x08 // DMA enabled
+#define ST7789V_FLG_DMA  0x08 // DMA enabled
 #define ST7789V_FLG_MISO 0x10 // MISO enabled
 #define ST7789V_FLG_SAFE 0x20 // SAFE mode (no DMA and safe delay)
 
@@ -18,12 +18,12 @@
 
 typedef struct _st7789v_config_t {
     SPI_HandleTypeDef *phspi; // spi handle pointer
-    uint8_t pinCS; // CS pin
-    uint8_t pinRS; // RS pin
-    uint8_t pinRST; // RST pin
-    uint8_t flg; // flags (DMA, MISO)
-    uint8_t colmod; // interface pixel format
-    uint8_t madctl; // memory data access control
+    uint8_t pinCS;            // CS pin
+    uint8_t pinRS;            // RS pin
+    uint8_t pinRST;           // RST pin
+    uint8_t flg;              // flags (DMA, MISO)
+    uint8_t colmod;           // interface pixel format
+    uint8_t madctl;           // memory data access control
 
     uint8_t gamma;
     uint8_t brightness;

@@ -6,15 +6,15 @@
 #include <inttypes.h>
 
 #define VARIANT8_EMPTY 0x00 // empty - no data
-#define VARIANT8_I8 0x01 // signed char - 1byte
-#define VARIANT8_UI8 0x02 // unsigned char - 1byte
-#define VARIANT8_I16 0x03 // signed short - 2byte
-#define VARIANT8_UI16 0x04 // unsigned short - 2byte
-#define VARIANT8_I32 0x05 // signed long - 4byte
-#define VARIANT8_UI32 0x06 // unsigned long - 4byte
-#define VARIANT8_FLT 0x07 // float - 4byte
-#define VARIANT8_USER 0x3f // user - up to 7 bytes
-#define VARIANT8_PTR 0x40 // pointer - 4 bytes
+#define VARIANT8_I8    0x01 // signed char - 1byte
+#define VARIANT8_UI8   0x02 // unsigned char - 1byte
+#define VARIANT8_I16   0x03 // signed short - 2byte
+#define VARIANT8_UI16  0x04 // unsigned short - 2byte
+#define VARIANT8_I32   0x05 // signed long - 4byte
+#define VARIANT8_UI32  0x06 // unsigned long - 4byte
+#define VARIANT8_FLT   0x07 // float - 4byte
+#define VARIANT8_USER  0x3f // user - up to 7 bytes
+#define VARIANT8_PTR   0x40 // pointer - 4 bytes
 #define VARIANT8_ARRAY 0x80 // array
 #define VARIANT8_ERROR 0xff // error
 

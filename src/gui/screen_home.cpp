@@ -26,12 +26,12 @@ extern screen_t *pscreen_menu_calibration;
 extern screen_t *pscreen_menu_settings;
 extern screen_t *pscreen_menu_info;
 
-#define BUTTON_PRINT 0
-#define BUTTON_PREHEAT 1
-#define BUTTON_FILAMENT 2
+#define BUTTON_PRINT       0
+#define BUTTON_PREHEAT     1
+#define BUTTON_FILAMENT    2
 #define BUTTON_CALIBRATION 3
-#define BUTTON_SETTINGS 4
-#define BUTTON_INFO 5
+#define BUTTON_SETTINGS    4
+#define BUTTON_INFO        5
 
 const uint16_t icons[6] = {
     IDR_PNG_menu_icon_print,
@@ -272,7 +272,7 @@ screen_t screen_home = {
     screen_home_draw,
     screen_home_event,
     sizeof(screen_home_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_home = &screen_home;

@@ -31,7 +31,7 @@ int16_t screen_register(screen_t *pscreen) {
             while ((id < SCREEN_MAX_SCREENS) && (screens[id]))
                 id++;
         if (id < SCREEN_MAX_SCREENS) { //id is valid
-            screens[id] = pscreen; //set screen pointer
+            screens[id] = pscreen;     //set screen pointer
             pscreen->id = id;
             screen_count++; //increment count
         } else
@@ -95,13 +95,15 @@ void screen_close(void) {
     }
 }
 
-int _currnet_in_list(screen_t *const*list, size_t sz) {
+int _currnet_in_list(screen_t *const *list, size_t sz) {
     screen_t *curr = screen_get_curr();
-    for (size_t i = 0; i < sz; ++sz) if(curr == list[sz]) return 1;
+    for (size_t i = 0; i < sz; ++sz)
+        if (curr == list[sz])
+            return 1;
     return 0;
 }
 
-void screen_unloop(screen_t *const*unl_blacklist, size_t sz) {
+void screen_unloop(screen_t *const *unl_blacklist, size_t sz) {
 
     while (!_currnet_in_list(unl_blacklist, sz)) {
         screen_close();

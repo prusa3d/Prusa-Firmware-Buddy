@@ -14,13 +14,13 @@
 
 //dialog flags bitmasks
 
-#define DLG_W8_HOUR_CHNG 0x0300 //Hourglass change flag
+#define DLG_W8_HOUR_CHNG  0x0300 //Hourglass change flag
 #define DLG_W8_HOUR_REDRW 0x0100 //Hourglass sand animation change
-#define DLG_W8_ANI_FLG 0x0010 //Hourglass sand animation start
-#define DLG_W8_FRAME_FLG 0x4000 //Draw grey frame
-#define DLG_W8_PROGRESS 0x8000 //Draw progressbar
-#define DLG_W8_HOUR_ROT 0x0200 //rotate hourglass
-#define DLG_W8_FPS 2 //frame per sec of hourglass animation
+#define DLG_W8_ANI_FLG    0x0010 //Hourglass sand animation start
+#define DLG_W8_FRAME_FLG  0x4000 //Draw grey frame
+#define DLG_W8_PROGRESS   0x8000 //Draw progressbar
+#define DLG_W8_HOUR_ROT   0x0200 //rotate hourglass
+#define DLG_W8_FPS        2      //frame per sec of hourglass animation
 
 int16_t WINDOW_CLS_DLG_WAIT = 0;
 
@@ -148,7 +148,7 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
     window_set_capture(id);
 
     dlg.progress = (*callback)();
-    dlg.flags |= DLG_W8_FRAME_FLG; //draw gray frame
+    dlg.flags |= DLG_W8_FRAME_FLG;  //draw gray frame
     dlg.flags |= DLG_W8_HOUR_REDRW; //redraw hourglass icon
 
     dlg.timer = HAL_GetTick();

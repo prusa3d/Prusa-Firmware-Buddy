@@ -66,7 +66,7 @@ static void screen_filebrowser_init(screen_t *screen) {
     window_file_list_load(&(pd->w_filelist), filters, filt_cnt, screen_filebrowser_sort);
     window_file_set_item_index(&(pd->w_filelist), 1);
     window_set_capture(id); // hack for do not change capture
-    window_set_focus(id); // hack for do not change capture
+    window_set_focus(id);   // hack for do not change capture
 }
 
 static void screen_filebrowser_done(_screen_t *screen) {
@@ -108,7 +108,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
         return 1;
     }
 
-    if (file_item->fattrib & AM_DIR) { // directory selected
+    if (file_item->fattrib & AM_DIR) {        // directory selected
         if (strcmp(file_item->fname, "..")) { // not same -> not ..
             if ((strlen(filelist->altpath) + strlen(file_item->altname) + 1) >= MAXPATHNAMELENGTH) {
                 LOG_ERROR("path too long");
