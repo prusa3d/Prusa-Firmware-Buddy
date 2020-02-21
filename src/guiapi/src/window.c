@@ -21,19 +21,19 @@ window_t *window_focused_ptr = 0; //current focused window
 window_t *window_capture_ptr = 0; //current capture window
 
 const window_class_t *window_classes[] = {
-    (window_class_t *)(&window_class_frame), //  0  FRAME
-    (window_class_t *)(&window_class_text), //  1  TEXT
-    (window_class_t *)(&window_class_numb), //  2  NUMB
-    (window_class_t *)(&window_class_icon), //  3  ICON
-    (window_class_t *)(&window_class_list), //  4  LIST
-    0, //  5  EDIT
-    (window_class_t *)(&window_class_spin), //  6  SPIN
-    0, //  7  TXIC
-    (window_class_t *)(&window_class_term), //  8  TERM
-    (window_class_t *)(&window_class_menu), //  9  MENU
-    (window_class_t *)(&window_class_msgbox), // 10  MSGBOX
+    (window_class_t *)(&window_class_frame),    //  0  FRAME
+    (window_class_t *)(&window_class_text),     //  1  TEXT
+    (window_class_t *)(&window_class_numb),     //  2  NUMB
+    (window_class_t *)(&window_class_icon),     //  3  ICON
+    (window_class_t *)(&window_class_list),     //  4  LIST
+    0,                                          //  5  EDIT
+    (window_class_t *)(&window_class_spin),     //  6  SPIN
+    0,                                          //  7  TXIC
+    (window_class_t *)(&window_class_term),     //  8  TERM
+    (window_class_t *)(&window_class_menu),     //  9  MENU
+    (window_class_t *)(&window_class_msgbox),   // 10  MSGBOX
     (window_class_t *)(&window_class_progress), // 11  PROGRESS
-    (window_class_t *)(&window_class_qr), // 12  QR
+    (window_class_t *)(&window_class_qr),       // 12  QR
 };
 
 const uint16_t window_class_count = sizeof(window_classes) / sizeof(window_class_t *);
@@ -54,8 +54,8 @@ int16_t window_new_id(window_t *window) {
             while ((id < WINDOW_MAX_WINDOWS) && (windows[id]))
                 id++;
         if (id < WINDOW_MAX_WINDOWS) { //id is valid
-            windows[id] = window; //set window pointer
-            window_count++; //increment count
+            windows[id] = window;      //set window pointer
+            window_count++;            //increment count
         } else
             id = -1;
     }
@@ -65,8 +65,8 @@ int16_t window_new_id(window_t *window) {
 window_t *window_free_id(int16_t id) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) { //valid id and not null window pointer
-        windows[id] = 0; //reset pointer
-        window_count--; //decrement count
+        windows[id] = 0;                  //reset pointer
+        window_count--;                   //decrement count
     }
     return window;
 }

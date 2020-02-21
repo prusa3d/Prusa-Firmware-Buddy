@@ -68,46 +68,46 @@ int deflate_level = 10; /* default compression level, can be changed via command
 /* Compatibility defines Win32 vs. DOS */
 #ifdef WIN32
 
-    #define FIND_T WIN32_FIND_DATAA
-    #define FIND_T_FILENAME(fInfo) (fInfo.cFileName)
-    #define FIND_T_IS_DIR(fInfo) ((fInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-    #define FIND_T_IS_FILE(fInfo) ((fInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-    #define FIND_RET_T HANDLE
+    #define FIND_T                       WIN32_FIND_DATAA
+    #define FIND_T_FILENAME(fInfo)       (fInfo.cFileName)
+    #define FIND_T_IS_DIR(fInfo)         ((fInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+    #define FIND_T_IS_FILE(fInfo)        ((fInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+    #define FIND_RET_T                   HANDLE
     #define FINDFIRST_FILE(path, result) FindFirstFileA(path, result)
-    #define FINDFIRST_DIR(path, result) FindFirstFileA(path, result)
-    #define FINDNEXT(ff_res, result) FindNextFileA(ff_res, result)
-    #define FINDFIRST_SUCCEEDED(ret) (ret != INVALID_HANDLE_VALUE)
-    #define FINDNEXT_SUCCEEDED(ret) (ret == TRUE)
+    #define FINDFIRST_DIR(path, result)  FindFirstFileA(path, result)
+    #define FINDNEXT(ff_res, result)     FindNextFileA(ff_res, result)
+    #define FINDFIRST_SUCCEEDED(ret)     (ret != INVALID_HANDLE_VALUE)
+    #define FINDNEXT_SUCCEEDED(ret)      (ret == TRUE)
 
-    #define GETCWD(path, len) GetCurrentDirectoryA(len, path)
-    #define CHDIR(path) SetCurrentDirectoryA(path)
+    #define GETCWD(path, len)    GetCurrentDirectoryA(len, path)
+    #define CHDIR(path)          SetCurrentDirectoryA(path)
     #define CHDIR_SUCCEEDED(ret) (ret == TRUE)
 
 #else
 
-    #define FIND_T struct ffblk
-    #define FIND_T_FILENAME(fInfo) (fInfo.ff_name)
-    #define FIND_T_IS_DIR(fInfo) ((fInfo.ff_attrib & FA_DIREC) == FA_DIREC)
-    #define FIND_T_IS_FILE(fInfo) (1)
-    #define FIND_RET_T int
+    #define FIND_T                       struct ffblk
+    #define FIND_T_FILENAME(fInfo)       (fInfo.ff_name)
+    #define FIND_T_IS_DIR(fInfo)         ((fInfo.ff_attrib & FA_DIREC) == FA_DIREC)
+    #define FIND_T_IS_FILE(fInfo)        (1)
+    #define FIND_RET_T                   int
     #define FINDFIRST_FILE(path, result) findfirst(path, result, FA_ARCH)
-    #define FINDFIRST_DIR(path, result) findfirst(path, result, FA_DIREC)
-    #define FINDNEXT(ff_res, result) FindNextFileA(ff_res, result)
-    #define FINDFIRST_SUCCEEDED(ret) (ret == 0)
-    #define FINDNEXT_SUCCEEDED(ret) (ret == 0)
+    #define FINDFIRST_DIR(path, result)  findfirst(path, result, FA_DIREC)
+    #define FINDNEXT(ff_res, result)     FindNextFileA(ff_res, result)
+    #define FINDFIRST_SUCCEEDED(ret)     (ret == 0)
+    #define FINDNEXT_SUCCEEDED(ret)      (ret == 0)
 
-    #define GETCWD(path, len) getcwd(path, len)
-    #define CHDIR(path) chdir(path)
+    #define GETCWD(path, len)    getcwd(path, len)
+    #define CHDIR(path)          chdir(path)
     #define CHDIR_SUCCEEDED(ret) (ret == 0)
 
 #endif
 
-#define NEWLINE "\r\n"
+#define NEWLINE     "\r\n"
 #define NEWLINE_LEN 2
 
 /* define this to get the header variables we use to build HTTP headers */
 #define LWIP_HTTPD_DYNAMIC_HEADERS 1
-#define LWIP_HTTPD_SSI 1
+#define LWIP_HTTPD_SSI             1
 #include "lwip/init.h"
 #include "httpd_structs.h"
 #include "lwip/apps/fs.h"

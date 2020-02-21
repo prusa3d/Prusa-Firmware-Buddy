@@ -7,6 +7,9 @@
 
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     #include "gui_config_mini.h"
+    #include "Configuration_A3ides_2209_MINI_adv.h"
+#else
+    #error "Unknown PRINTER_TYPE."
 #endif
 
 extern "C" {
@@ -28,7 +31,9 @@ const float z_offset_max = Z_OFFSET_MAX;
 const float zoffset_fl_range[3] = { z_offset_min, z_offset_max, z_offset_step };
 const char *zoffset_fl_format = "%.3f";
 const int32_t nozzle_range[3] = { 0, (HEATER_0_MAXTEMP - 15) * 1000, 1000 };
-const int32_t heatbed_range[3] = { 0, BED_MAXTEMP * 1000, 1000 };
+// The MINI can heat up no more than 100C, for detection of thermal run away the bed is set 10C higher
+// Thus do not allow the user to set a higher bed temp in the UI here
+const int32_t heatbed_range[3] = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN) * 1000, 1000 };
 const int32_t printfan_range[3] = { 0, 255000, 1000 };
 const int32_t flowfact_range[3] = { 50000, 150000, 1000 };
 const int32_t feedrate_range[3] = { 10000, 255000, 1000 };
@@ -48,6 +53,7 @@ constexpr const int park_points[3] = NOZZLE_PARK_POINT;
 
 constexpr const int X_home = X_HOME_DIR > 0 ? X_MAX_POS : X_MIN_POS;
 constexpr const int Y_home = Y_HOME_DIR > 0 ? Y_MAX_POS : Y_MIN_POS;
+constexpr const int Z_home = Z_HOME_DIR > 0 ? Z_MAX_POS : Z_MIN_POS;
 
 constexpr const char X_home_gcode[] = {
     'G',
@@ -82,4 +88,29 @@ constexpr const char Y_home_gcode[] = {
     nth_char(Y_home, 7),
     nth_char(Y_home, 8)
 };
+
+constexpr const char Z_home_gcode[] = {
+    'G',
+    '9',
+    '2',
+    ' ',
+    'Z',
+    nth_char(Z_home, 0),
+    nth_char(Z_home, 1),
+    nth_char(Z_home, 2),
+    nth_char(Z_home, 3),
+    nth_char(Z_home, 4),
+    nth_char(Z_home, 5),
+    nth_char(Z_home, 6),
+    nth_char(Z_home, 7),
+    nth_char(Z_home, 8)
+};
 }
+
+constexpr const int32_t filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
+constexpr const int32_t filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
+constexpr const int32_t filament_change_slow_purge_length = 40;
+constexpr const float filament_unload_mini_length = 392.0F;
+
+constexpr const int32_t filament_change_full_load_length = filament_change_fast_load_length + filament_change_slow_load_length;
+constexpr const int32_t filament_change_full_purge_load_length = filament_change_full_load_length + filament_change_slow_purge_length;

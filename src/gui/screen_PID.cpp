@@ -15,8 +15,8 @@
     #include "../Marlin/src/module/temperature.h"
     #include "marlin_client.h"
 
-    #define SPIN_DIGITS 6
-    #define SPIN_PRECISION 2
+    #define SPIN_DIGITS     6
+    #define SPIN_PRECISION  2
     #define SPIN_INT_DIGITS (SPIN_DIGITS - SPIN_PRECISION)
 
 enum { _BED = -1,
@@ -115,7 +115,7 @@ typedef struct
     #define pd ((screen_PID_data_t *)screen->pdata)
 
     #define AUTO_TN_DEFAULT_CL COLOR_WHITE
-    #define AUTO_TN_ACTIVE_CL COLOR_RED
+    #define AUTO_TN_ACTIVE_CL  COLOR_RED
 
 enum {
     TAG_QUIT = 10,
@@ -533,7 +533,7 @@ screen_t screen_PID = {
     screen_PID_draw,
     screen_PID_event,
     sizeof(screen_PID_data_t), //data_size
-    0, //pdata
+    0,                         //pdata
 };
 
 const screen_t *pscreen_PID = &screen_PID;

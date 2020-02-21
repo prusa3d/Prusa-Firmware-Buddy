@@ -9,10 +9,10 @@ void interval_intersect_ui16(uint16_t *p) {
     {
         if (p[1] > p[2]) //intersection exists
         {
-            p[4] = p[2]; //result left point is p2
+            p[4] = p[2];     //result left point is p2
             if (p[1] > p[3]) //intersection is equal p2-p3
                 p[5] = p[3]; //result right point is p3
-            else //intersection is equal p2-p1
+            else             //intersection is equal p2-p1
                 p[5] = p[1]; //result right point is p1
         } else {
             p[4] = 0;
@@ -22,10 +22,10 @@ void interval_intersect_ui16(uint16_t *p) {
     {
         if (p[3] > p[0]) //intersection exists
         {
-            p[4] = p[0]; //result left point is p0
+            p[4] = p[0];     //result left point is p0
             if (p[3] > p[1]) //intersection is equal p0-p1
                 p[5] = p[1]; //result right point is p1
-            else //intersection is equal p0-p3
+            else             //intersection is equal p0-p3
                 p[5] = p[3]; //result right point is p3
         } else {
             p[4] = 0;

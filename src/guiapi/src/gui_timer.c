@@ -7,9 +7,9 @@
 
 #define GUI_MAX_TIMERS 5
 
-#define GUI_TIMER_NONE 0
-#define GUI_TIMER_1SHT 1
-#define GUI_TIMER_PERI 2
+#define GUI_TIMER_NONE   0
+#define GUI_TIMER_1SHT   1
+#define GUI_TIMER_PERI   2
 #define GUI_MENU_TIMEOUT 3
 
 #pragma pack(push)

@@ -103,7 +103,7 @@ screen_t screen_test_temperature = {
     screen_menu_draw,
     screen_test_temperature_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_test_temperature = &screen_test_temperature;

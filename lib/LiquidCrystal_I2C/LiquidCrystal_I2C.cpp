@@ -120,7 +120,7 @@ void LiquidCrystal_I2C::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
 /********** high level commands, for the user! */
 void LiquidCrystal_I2C::clear() {
     command(LCD_CLEARDISPLAY); // clear display, set cursor position to zero
-    delayMicroseconds(2000); // this command takes a long time!
+    delayMicroseconds(2000);   // this command takes a long time!
 }
 
 void LiquidCrystal_I2C::home() {
@@ -248,10 +248,10 @@ void LiquidCrystal_I2C::expanderWrite(uint8_t _data) {
 
 void LiquidCrystal_I2C::pulseEnable(uint8_t _data) {
     expanderWrite(_data | En); // En high
-    delayMicroseconds(1); // enable pulse must be >450ns
+    delayMicroseconds(1);      // enable pulse must be >450ns
 
     expanderWrite(_data & ~En); // En low
-    delayMicroseconds(50); // commands need > 37us to settle
+    delayMicroseconds(50);      // commands need > 37us to settle
 }
 
 // Alias functions

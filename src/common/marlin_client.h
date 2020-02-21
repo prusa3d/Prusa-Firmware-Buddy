@@ -10,7 +10,7 @@
 // client flags
 #define MARLIN_CFLG_STARTED 0x0001 // client started (set in marlin_client_init)
 #define MARLIN_CFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_CFLG_BUSY 0x0004 // loop is busy
+#define MARLIN_CFLG_BUSY    0x0004 // loop is busy
 #define MARLIN_CFLG_LOWHIGH 0x0008 // receiving low/high part of client message
 #define MARLIN_CFLG_MESSAGE 0x0010 // receiving status change message
 
@@ -35,6 +35,9 @@ extern void marlin_client_shdn(void);
 
 // client loop - must be called periodically in client thread
 extern void marlin_client_loop(void);
+
+// returns client_id for calling thread (-1 for unattached thread)
+extern int marlin_client_id(void);
 
 // returns enabled status of loop processing
 extern int marlin_processing(void);

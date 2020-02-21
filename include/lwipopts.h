@@ -142,7 +142,7 @@ extern "C" {
     /*-----------------------------------------------------------------------------*/
     /* USER CODE BEGIN 1 */
     // #define LWIP_HTTPD_CUSTOM_FILES       0  // option to open file from FAT file system
-    #define HTTPD_USE_CUSTOM_FSDATA 1 // uses the web resources from fsdata_custom.c
+    #define HTTPD_USE_CUSTOM_FSDATA      1 // uses the web resources from fsdata_custom.c
     #define LWIP_HTTPD_DYNAMIC_FILE_READ 1
 /* USER CODE END 1 */
 

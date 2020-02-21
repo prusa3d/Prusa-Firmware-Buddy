@@ -4,9 +4,9 @@
 
 #include "guitypes.h"
 
-#define RENDER_FLG_ALIGN 0x00ff // alignment mask (ALIGN_xxx)
-#define RENDER_FLG_ROPFN 0x0f00 // raster operation function mask (ROPFN_xxx << 8)
-#define RENDER_FLG_WORDB 0x1000 // multiline text
+#define RENDER_FLG_ALIGN 0x00ff       // alignment mask (ALIGN_xxx)
+#define RENDER_FLG_ROPFN 0x0f00       // raster operation function mask (ROPFN_xxx << 8)
+#define RENDER_FLG_WORDB 0x1000       // multiline text
 #define RENDER_FLG(a, r) (a | r << 8) // render flag macro (ALIGN and ROPFN)
 
 #ifdef __cplusplus

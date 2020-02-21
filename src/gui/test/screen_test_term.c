@@ -72,7 +72,7 @@ screen_t screen_test_term = {
     screen_test_term_draw,
     screen_test_term_event,
     sizeof(screen_test_term_data_t), //data_size
-    0, //pdata
+    0,                               //pdata
 };
 
 const screen_t *pscreen_test_term = &screen_test_term;

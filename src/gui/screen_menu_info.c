@@ -42,8 +42,8 @@ const menu_item_t _menu_info_items[] = {
       },
         &screen_version_info },
 #ifdef _DEBUG
-	    { { "Send Info by QR", 0, WI_LABEL }, &screen_qr_info },
-	    { { "QR test", 0, WI_LABEL }, &screen_qr_error },
+    { { "Send Info by QR", 0, WI_LABEL }, &screen_qr_info },
+    { { "QR test", 0, WI_LABEL }, &screen_qr_error },
 #endif //_DEBUG
 };
 
@@ -66,7 +66,7 @@ screen_t screen_menu_info = {
     screen_menu_draw,
     screen_menu_info_event,
     sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_menu_info = &screen_menu_info;

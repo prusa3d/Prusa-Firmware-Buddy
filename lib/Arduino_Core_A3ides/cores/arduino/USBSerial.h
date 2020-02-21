@@ -12,7 +12,7 @@ public:
     virtual int availableForWrite(void);
     virtual int peek(void);
     virtual int read(void);
-    virtual size_t readBytes(char *buffer, size_t length); // read chars from stream into buffer
+    virtual size_t readBytes(char *buffer, size_t length);                       // read chars from stream into buffer
     virtual size_t readBytesUntil(char terminator, char *buffer, size_t length); // as readBytes with terminator character
     virtual void flush(void);
     virtual size_t write(uint8_t);

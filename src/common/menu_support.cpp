@@ -32,9 +32,9 @@ void menu_support() {
     const char *printer = "???";
     #endif
     #ifdef _DEBUG
-    sprintf(build, " %d%s (DEBUG_%s)", (int)FW_BUILDNR, (char *)FW_BUILDSX, printer);
-    #else //_DEBUG
-    sprintf(build, " %d%s (%s)", (int)FW_BUILDNR, (char *)FW_BUILDSX, printer);
+    sprintf(build, " %d%s (DEBUG_%s)", version_build_nr, (char *)FW_BUILDSX, printer);
+    #else  //_DEBUG
+    sprintf(build, " %d%s (%s)", version_build_nr, (char *)FW_BUILDSX, printer);
     #endif //_DEBUG
     STATIC_ITEM_P("version:            ");
     STATIC_ITEM(version);

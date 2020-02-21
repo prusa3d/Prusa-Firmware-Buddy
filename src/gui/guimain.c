@@ -63,15 +63,13 @@ extern screen_t *pscreen_PID;
     #endif //PIDCALIBRATION
 extern screen_t *pscreen_mesh_bed_lv;
 extern screen_t *pscreen_wizard;
-#endif // LCDSIM
+#endif     // LCDSIM
 
 extern int HAL_IWDG_Reset;
 
-extern SPI_HandleTypeDef hspi2;
-
 #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif //_DEBUG
+#endif                           //_DEBUG
 
 int guimain_spi_test = 0;
 
@@ -85,11 +83,11 @@ int guimain_spi_test = 0;
 #include "marlin_host.h"
 
 const st7789v_config_t st7789v_cfg = {
-    &hspi2, // spi handle pointer
-    ST7789V_PIN_CS, // CS pin
-    ST7789V_PIN_RS, // RS pin
-    ST7789V_PIN_RST, // RST pin
-    ST7789V_FLG_DMA, // flags (DMA, MISO)
+    &hspi2,             // spi handle pointer
+    ST7789V_PIN_CS,     // CS pin
+    ST7789V_PIN_RS,     // RS pin
+    ST7789V_PIN_RST,    // RST pin
+    ST7789V_FLG_DMA,    // flags (DMA, MISO)
     ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
     ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
 };
@@ -102,9 +100,28 @@ const jogwheel_config_t jogwheel_cfg = {
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
+int gui_marlin_client_id = -1;
 int8_t menu_timeout_enabled = 1; // Default: enabled
 
 void update_firmware_screen(void);
+
+static void _gui_loop_cb() {
+    static uint8_t m600_lock = 0;
+
+    if (!m600_lock) {
+        m600_lock = 1;
+        if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
+            if (marlin_command() == MARLIN_CMD_M600) {
+                _dbg("M600 start");
+                gui_dlg_change();
+                _dbg("M600 end");
+            }
+        }
+        m600_lock = 0;
+    }
+
+    marlin_client_loop();
+}
 
 void gui_run(void) {
     if (diag_fastboot)
@@ -113,6 +130,14 @@ void gui_run(void) {
     st7789v_config = st7789v_cfg;
     jogwheel_config = jogwheel_cfg;
     gui_init();
+
+    // select jogwheel type by meassured 'reset delay'
+    // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
+    // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
+    if (st7789v_reset_delay > 1000) // threshold value is 1000
+        jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR | JOGWHEEL_FLG_INV_ENC;
+    //_dbg("delay=%u", st7789v_reset_delay);
+
     gui_defaults.font = resource_font(IDR_FNT_NORMAL);
     gui_defaults.font_big = resource_font(IDR_FNT_BIG);
     window_msgbox_id_icon[0] = 0; //IDR_PNG_icon_pepa;
@@ -125,6 +150,7 @@ void gui_run(void) {
         update_firmware_screen();
 
     gui_marlin_vars = marlin_client_init();
+    gui_marlin_client_id = marlin_client_id();
 
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
@@ -177,7 +203,7 @@ void gui_run(void) {
     screen_register(pscreen_print_preview);
     screen_register(pscreen_lan_settings);
     screen_register(pscreen_menu_fw_update);
-#endif // LCDSIM
+#endif     // LCDSIM
 
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
@@ -188,15 +214,15 @@ void gui_run(void) {
         screen_open(pscreen_splash->id);
 
     //set loop callback (will be called every time inside gui_loop)
-    gui_loop_cb = marlin_client_loop;
+    gui_loop_cb = _gui_loop_cb;
     int8_t gui_timeout_id;
     while (1) {
         float vol = 0.01F;
         //simple jogwheel acoustic feedback
-        if ((jogwheel_changed & 1) && jogwheel_button_down) //button changed and pressed
+        if ((jogwheel_changed & 1) && jogwheel_button_down)       //button changed and pressed
             hwio_beeper_tone2(200.0, 50, (double)(vol * 0.125F)); //beep
-        else if (jogwheel_changed & 2) // encoder changed
-            hwio_beeper_tone2(50.0, 25, (double)(vol * 0.125F)); //short click
+        else if (jogwheel_changed & 2)                            // encoder changed
+            hwio_beeper_tone2(50.0, 25, (double)(vol * 0.125F));  //short click
         // show warning dialog on safety timer expiration
         if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
             gui_msgbox("Heating disabled due to 30 minutes of inactivity.", MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
@@ -229,13 +255,6 @@ void gui_run(void) {
                 gui_timer_delete(gui_timeout_id);
             }
         }
-        if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
-            if (marlin_command() == MARLIN_CMD_M600) {
-                _dbg("M600 start");
-                gui_dlg_change();
-                _dbg("M600 end");
-            }
-        }
 #endif //LCDSIM
     }
 }
@@ -254,6 +273,6 @@ void update_firmware_screen(void) {
         osDelay(1);
 #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif //_DEBUG
+#endif                            //_DEBUG
     }
 }

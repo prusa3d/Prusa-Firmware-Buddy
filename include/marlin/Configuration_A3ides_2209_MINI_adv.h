@@ -21,6 +21,8 @@
  */
 #pragma once
 
+// clang-format off
+
 /**
  * Configuration_adv.h
  *
@@ -452,8 +454,8 @@
 // @section homing
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
-#define X_HOME_BUMP_MM 5
-#define Y_HOME_BUMP_MM 5
+#define X_HOME_BUMP_MM 0
+#define Y_HOME_BUMP_MM 0
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
     { 2, 2, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
@@ -1051,10 +1053,10 @@
 
 #if EITHER(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
 // Override the mesh area if the automatic (max) area is too large
-//#define MESH_MIN_X MESH_INSET
-//#define MESH_MIN_Y MESH_INSET
-//#define MESH_MAX_X X_BED_SIZE - (MESH_INSET)
-//#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET)
+#define MESH_MIN_X MESH_INSET
+#define MESH_MIN_Y MESH_INSET
+#define MESH_MAX_X X_BED_SIZE - (MESH_INSET) - 29
+#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET) - 3
 #endif
 
 /**
@@ -1340,6 +1342,8 @@
     #define FILAMENT_UNLOAD_DELAY 5000 // (ms) Delay for the filament to cool after retract.
     #define FILAMENT_UNLOAD_PURGE_LENGTH 16 // (mm) An unretract is done, then this length is purged.
     #define FILAMENT_UNLOAD_PURGE_FEEDRATE 66 // (mm/s)
+    #define FILAMENT_UNLOAD_PHASE1_LENGHT 35 // (mm)fast phase
+    #define FILAMENT_UNLOAD_PHASE2_LENGHT 45 // (mm)slow phase
 
     #define PAUSE_PARK_NOZZLE_TIMEOUT 45 // (seconds) Time limit before the nozzle is turned off for safety.
     #define FILAMENT_CHANGE_ALERT_BEEPS 10 // Number of alert beeps to play when a response is needed.

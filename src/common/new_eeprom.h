@@ -24,7 +24,7 @@
 //====================EEPROM_REWORK======================
 
 #define EEPROM_START_ADDR 0x400
-#define EEPROM_VER 0x01 //increment if you add any variable
+#define EEPROM_VER        0x01 //increment if you add any variable
 #define EEPROM_VER_OFFSET 2323 //is added to EEPROM_VER for security
 //#define EEPROM_MEMORY_RESERVED	0
 
@@ -42,9 +42,9 @@ typedef struct {
 
 #ifdef __cplusplus //Not included in sys.c (should be .cpp)
 
-void eeprom_initialize(EEPROM_t *ptr); //set default values, makes eeprom compatible with it's older versions
+void eeprom_initialize(EEPROM_t *ptr);           //set default values, makes eeprom compatible with it's older versions
 extern void eeprom_factory_reset(EEPROM_t *ptr); //set all eerpom variables to default
-int8_t eeprom_check_sum(EEPROM_t *ptr); //checks if data is not corrupted (optimalization at compilation will probably cause eeprom factory reset)
+int8_t eeprom_check_sum(EEPROM_t *ptr);          //checks if data is not corrupted (optimalization at compilation will probably cause eeprom factory reset)
 
 template <typename _T>
 void eeprom_get(const _T &eeprom_source, _T &destination) {
