@@ -10,7 +10,6 @@ add_library(
   http/altcp_proxyconnect.c
   http/fs.c
   http/fsdata.c
-  http/http_client.c
   http/httpd.c
   resources/fsdata_custom.c
 )
