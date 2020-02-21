@@ -249,7 +249,7 @@ add_compile_options(-g)
 
 # optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_options(-O0)
+  add_compile_options(-Og)
 else()
   add_compile_options(-Os)
 endif()
