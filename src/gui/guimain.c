@@ -161,6 +161,7 @@ static void _gui_loop_cb(){
 }
 
 static void serial_prt_cb(int data) {
+    if (gui_get_nesting() > 1) return;//todo notify octoprint
     if (data) {
         screen_unloop(m876_blacklist, sizeof(m876_blacklist)/sizeof(m876_blacklist[0]));
 

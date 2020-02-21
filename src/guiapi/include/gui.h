@@ -59,6 +59,7 @@ extern void gui_redraw(void);
 
 #ifdef GUI_WINDOW_SUPPORT
 
+extern uint8_t gui_get_nesting(void);
 extern void gui_loop(void);
 
 extern int gui_msgbox_ex(const char *title, const char *text, uint16_t flags, rect_ui16_t rect, uint16_t id_icon, const char **buttons);
