@@ -3,5 +3,5 @@
 
 const error_t errors[] =
 {
-     {"Bed Heating Failed", "Heating failed,\nplease check the\nbed heater and\nthermistor wiring\nfor possible damage."}
+     {"Heating failed bed", "Check the bed\nheater & thermistor\nwiring for possible\ndamage."}
 };

@@ -24,6 +24,7 @@
     #include "window_menu.h"
     #include "window_msgbox.h"
     #include "window_progress.h"
+    #include "window_qr.h"
     #include "screen.h"
 #endif //GUI_WINDOW_SUPPORT
 

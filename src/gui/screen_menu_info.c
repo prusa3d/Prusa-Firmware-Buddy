@@ -5,6 +5,7 @@
 
 extern screen_t screen_sysinfo;
 extern screen_t screen_version_info;
+extern screen_t screen_qr_info;
 extern screen_t screen_qr_error;
 
 typedef enum {
@@ -41,7 +42,8 @@ const menu_item_t _menu_info_items[] = {
       },
         &screen_version_info },
 #ifdef _DEBUG
-    { { "QR test", 0, WI_LABEL }, &screen_qr_error },
+	    { { "Send Info by QR", 0, WI_LABEL }, &screen_qr_info },
+	    { { "QR test", 0, WI_LABEL }, &screen_qr_error },
 #endif //_DEBUG
 };
 

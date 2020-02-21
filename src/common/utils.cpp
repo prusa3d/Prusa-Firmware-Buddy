@@ -8,11 +8,18 @@
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
 #include "lang.h"
+#include "../../gui/wizard/selftest.h"
 
 
 char* eofstr(char* str)
 {
      return(str+strlen(str));
+}
+
+void block2hex(char* str, uint8_t* pdata, size_t length)
+{
+for(; length>0 ; length--)
+	 sprintf(eofstr(str), "%02X", *(pdata++));
 }
 
 void appendCRC(char* str)
@@ -40,32 +47,47 @@ void create_path_info(char* str, int error_code)
      appendCRC(str);
 }
 
-bool getQR(char* str, uint8_t* pData, enum qrcodegen_Ecc qrcodegen_ecl)
+void get_path_info2(char* str)
 {
-     uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(qrcodegen_VERSION)];
-     bool QRok;
-
-     QRok = qrcodegen_encodeText(str, temp_buff, pData, qrcodegen_ecl, qrcodegen_VERSION, qrcodegen_VERSION, qrcodegen_Mask_AUTO, true);
-     return(QRok);
+     strcpy(str, IR_URL);
+                                                        // PrinterType
+     sprintf(eofstr(str), "%d/", PRINTER_TYPE);
+                                                        // UniqueID
+     block2hex(str, (uint8_t*)OTP_STM32_UUID_ADDR,OTP_STM32_UUID_SIZE);
+     strcat(str, "/");
+                                                       // AppendixStatus
+     sprintf(eofstr(str), "%s/", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
+                                                       // SerialNumber
+     block2hex(str, (uint8_t*)OTP_SERIAL_NUMBER_ADDR,OTP_SERIAL_NUMBER_SIZE-1); // "-1" ~ without "\x00"
+     strcat(str, "/");
+                                                       // BootloaderVersion
+     sprintf(eofstr(str), "%02X%02X%02X/", boot_version.major, boot_version.minor, boot_version.patch);
+                                                       // MacAddress
+     block2hex(str, (uint8_t*)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
+     strcat(str, "/");
+                                                       // BoardVersion
+     block2hex(str, (uint8_t*)OTP_BOARD_REVISION_ADDR, OTP_BOARD_REVISION_SIZE);
+     strcat(str, "/");
+                                                       // TimeStamp
+     block2hex(str, (uint8_t*)OTP_BOARD_TIME_STAMP_ADDR, OTP_BOARD_TIME_STAMP_SIZE);
+     strcat(str, "/");
+                                                       // FWversion
+     sprintf(eofstr(str), "%04X-", (uint16_t)(FW_VERSION));
+                                                       // BuildNumber
+     sprintf(eofstr(str), "%d/",FW_BUILDNR);
+                                                       // LanguageInfo
+     sprintf(eofstr(str), "%d/", lang_code);
+                                                       // SelfTestResult
+     if(last_selftest_time == 0)
+          strcat(str, "0");
+     else sprintf(eofstr(str), "%lu-%lu", last_selftest_result, (HAL_GetTick()/1000-last_selftest_time));
+     strcat(str, "/");
+                                                       // LockBlock
+     block2hex(str, (uint8_t*)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
 }
 
-void drawQR(uint8_t* pData)
+void create_path_info2(char* str)
 {
-     int size;
-
-     size = qrcodegen_getSize(pData);
-     for(int y = -BORDER; y < (size+BORDER); y++)
-          for (int x = -BORDER; x < (size+BORDER); x++)
-               display->fill_rect(rect_ui16(X0+x*MS, Y0+y*MS, MS, MS), ((qrcodegen_getModule(pData, x, y) ? COLOR_BLACK : COLOR_WHITE)));
-}
-
-bool createQR(char* str, enum qrcodegen_Ecc qrcodegen_ecl)
-{
-     bool QRok;
-     uint8_t qrcode_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(qrcodegen_VERSION)];
-
-     QRok = getQR(str, qrcode_buff, qrcodegen_ecl);
-     if( QRok )
-          drawQR(qrcode_buff);
-     return(QRok);
+     get_path_info2(str);
+     appendCRC(str);
 }
