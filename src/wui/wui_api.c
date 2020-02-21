@@ -107,7 +107,7 @@ static void wui_api_printer(struct fs_file *file) {
     file->flags = BDY_NO_FS_FLAGS; // http server adds response header
 }
 
-struct fs_file *wui_api_main(char *uri, struct fs_file *file) {
+struct fs_file *wui_api_main(const char *uri, struct fs_file *file) {
 
     file = &api_file;
     file->len = 0;

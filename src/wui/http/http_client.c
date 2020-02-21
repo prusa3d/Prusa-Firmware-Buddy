@@ -98,10 +98,7 @@ void buddy_http_client_init() {
     tcp_recv(testpcb, tcpRecvCallback);
     tcp_sent(testpcb, tcpSendCallback);
     /* now connect */
-    err_t er = tcp_connect(testpcb, &ip, 9000, connectCallback);
-    if (ERR_OK == er) {
-        int x = 23;
-    }
+    tcp_connect(testpcb, &ip, 9000, connectCallback);
 }
 
 void buddy_http_client_loop() {

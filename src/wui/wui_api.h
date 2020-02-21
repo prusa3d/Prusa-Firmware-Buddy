@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-struct fs_file *wui_api_main(char *uri, struct fs_file *file);
+struct fs_file *wui_api_main(const char *uri, struct fs_file *file);
 const char *get_update_str(const char *header);
 
 #ifdef __cplusplus
