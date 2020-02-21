@@ -48,11 +48,8 @@ typedef struct _marlin_client_t {
     marlin_mesh_t mesh;          // meshbed leveling
     uint32_t command;            // processed command (G28,G29,M701,M702,M600)
     marlin_host_prompt_t prompt; // current host prompt structure (type and buttons)
-<<<<<<< HEAD
     uint8_t reheating;           // reheating in progress
     dialog_cb_t dialog_cb;
-    == == == = uint8_t reheating; // reheating in progress
->>>>>>> UPSTREAM/master
 } marlin_client_t;
 
 #pragma pack(pop)
