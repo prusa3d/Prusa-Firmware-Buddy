@@ -422,6 +422,7 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/wui/http_states.c
           src/wui/lwsapi.cpp
           src/wui/connect.cpp
           src/wui/connection.cpp
@@ -466,7 +467,8 @@ if(GUI)
             src/gui/screen_watchdog.c
             src/gui/screen_menu_move.c
             src/gui/screen_lan_settings.c
-            src/gui/screen_qr_error.c
+            src/gui/screen_qr_info.cpp
+            src/gui/screen_qr_error.cpp
             src/gui/test/screen_test.c
             src/gui/test/screen_test_disp_mem.c
             src/gui/test/screen_test_gui.c
