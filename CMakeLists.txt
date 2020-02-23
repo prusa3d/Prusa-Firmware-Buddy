@@ -385,7 +385,7 @@ target_sources(
           src/common/hwio_a3ides_2209_02.c
           src/common/putslave.c
           src/common/safe_state.c
-          src/common/variant8.c
+          src/common/variant8.cpp
           src/common/dbg.c
           src/common/dump.c
           src/common/marlin_client.c
