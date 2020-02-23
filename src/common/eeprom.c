@@ -121,7 +121,6 @@ uint8_t eeprom_crc_index = 0;
 
 uint16_t eeprom_var_size(uint8_t id);
 uint16_t eeprom_var_addr(uint8_t id);
-//variant8_t eeprom_var_default(uint8_t id);
 void eeprom_dump(void);
 void eeprom_print_vars(void);
 void eeprom_clear(void);
@@ -133,14 +132,14 @@ uint8_t eeprom_init(void) {
     uint8_t ret = 0;
     st25dv64k_init();
     //eeprom_clear();
-    eeprom_dump();
+    //eeprom_dump();
     uint16_t version = eeprom_get_var(EEVAR_VERSION).ui16;
     if (version != EEPROM_VERSION) {
         eeprom_defaults();
         ret = 1;
     }
-    eeprom_print_vars();
-    eeprom_dump();
+    //eeprom_print_vars();
+    //eeprom_dump();
     return ret;
 }
 
@@ -303,4 +302,13 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
             res_flag = 0;
     }
     return res_flag;
+}
+
+#define ADDR_FILAMENT_TYPE 0x400
+
+int eeprom_convert_from_v2(void)
+{
+//	eeprom_vars_t vars = eeprom_var_defaults;
+//    st25dv64k_user_read_bytes(EE_ADDRESS + i * size, &(vars.FILAMENT_TYPE), size);
+	return 0;
 }
