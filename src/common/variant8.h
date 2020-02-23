@@ -28,6 +28,13 @@
 #define VARIANT8_PFLT  (VARIANT8_FLT  | VARIANT8_PTR)
 #define VARIANT8_PCHAR (VARIANT8_CHAR | VARIANT8_PTR)
 
+//variant errors
+#define VARIANT8_ERR_MALLOC   1 // memory allocation error (during conversion to strings and allocating pointer types)
+#define VARIANT8_ERR_UNSTYP   2 // unsupported conversion (during conversion)
+#define VARIANT8_ERR_UNSCON   3 // unsupported conversion (during conversion)
+#define VARIANT8_ERR_INVFMT   4 // invalid format (during conversion from string)
+#define VARIANT8_ERR_OOFRNG   5 // out of range (during conversion from bigger to lower range number)
+
 
 #pragma pack(push)
 #pragma pack(1)
@@ -38,6 +45,7 @@ typedef struct _variant8_t {
     union {
         uint16_t usr16;
         uint16_t size;
+        uint16_t err16;
     };
     union {
         void *ptr;
@@ -58,6 +66,7 @@ typedef struct _variant8_t {
         int16_t i16;
         uint8_t ui8;
         int8_t i8;
+        uint16_t err32;
     };
 } variant8_t;
 
@@ -72,11 +81,14 @@ extern "C" {
 // returns newly allocated variant8, copy data from pdata if not null
 extern variant8_t variant8_init(uint8_t type, uint16_t size, void* pdata);
 
-// free allocated pointer for VARIANT8_PTR types, sets EMPTY
+// free allocated pointer for VARIANT8_PTR types, sets pvar8 to VARIANT8_EMPTY
 extern void variant8_done(variant8_t* pvar8);
 
 // returns copy of pvar8, allocate pointer and copy data for VARIANT8_PTR types
 extern variant8_t variant8_copy(variant8_t* pvar8);
+
+// perform implicit conversion to desired data type (supported conversions described at end of .c file)
+extern int variant8_change_type(variant8_t* pvar8, uint8_t type);
 
 // returns VARIANT8_EMPTY
 extern variant8_t variant8_empty(void);
@@ -102,11 +114,35 @@ extern variant8_t variant8_ui32(uint32_t ui32);
 // returns VARIANT8_FLT
 extern variant8_t variant8_flt(float flt);
 
+// returns VARIANT8_PI8
+extern variant8_t variant8_pi8(int8_t* pi8, uint16_t count, int init);
+
+// returns VARIANT8_PUI8
+extern variant8_t variant8_pui8(uint8_t* pui8, uint16_t count, int init);
+
+// returns VARIANT8_PI16
+extern variant8_t variant8_pi16(int16_t* pi16, uint16_t count, int init);
+
+// returns VARIANT8_PUI16
+extern variant8_t variant8_pui16(uint16_t* pui16, uint16_t count, int init);
+
+// returns VARIANT8_PI32
+extern variant8_t variant8_pi32(int32_t* pi32, uint16_t count, int init);
+
+// returns VARIANT8_PUI32
+extern variant8_t variant8_pui32(uint32_t* pui32, uint16_t count, int init);
+
+// returns VARIANT8_PFLT
+extern variant8_t variant8_pflt(float* pflt, uint16_t count, int init);
+
 // returns VARIANT8_PCHAR
-extern variant8_t variant8_pchar(const char* pch);
+extern variant8_t variant8_pchar(char* pch, uint16_t count, int init);
 
 // returns VARIANT8_USER
 extern variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8);
+
+// returns VARIANT8_ERROR
+extern variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8);
 
 // returns size of data type
 extern uint16_t variant8_type_size(uint8_t type);
@@ -122,6 +158,9 @@ extern void* variant8_malloc(uint16_t size);
 
 // variant8 free function
 extern void variant8_free(void* ptr);
+
+// variant8 realloc function (NOT IMPLEMENTED, TODO)
+//extern void* variant8_realloc(void *ptr, uint16_t size);
 
 
 #ifdef __cplusplus
