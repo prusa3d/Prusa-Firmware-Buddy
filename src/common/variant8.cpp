@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 
 char* _variant8_to_str(variant8_t* pvar8, const char* fmt);
 variant8_t _variant_from_str(uint8_t type, char* str, const char* fmt);
@@ -108,27 +110,27 @@ variant8_t variant8_flt(float flt) { return (variant8_t){ VARIANT8_FLT, 0, { 0 }
 
 variant8_t variant8_pui8(uint8_t* pui8, uint16_t count, int init) {
 	if (init) return variant8_init(VARIANT8_PUI8, count, (void*)pui8);
-	return (variant8_t){ VARIANT8_PUI8, 0, { .size = count * sizeof(uint8_t) }, { .pui8 = pui8} };
+	return (variant8_t){ VARIANT8_PUI8, 0, { .size = (uint16_t)(count * sizeof(uint8_t)) }, { .pui8 = pui8} };
 }
 
 variant8_t variant8_pui16(uint16_t* pui16, uint16_t count, int init) {
 	if (init) return variant8_init(VARIANT8_PUI16, count, (void*)pui16);
-	return (variant8_t){ VARIANT8_PUI16, 0, { .size = count * sizeof(uint16_t) }, { .pui16 = pui16} };
+	return (variant8_t){ VARIANT8_PUI16, 0, { .size = (uint16_t)(count * sizeof(uint16_t)) }, { .pui16 = pui16} };
 }
 
 variant8_t variant8_pui32(uint32_t* pui32, uint16_t count, int init) {
 	if (init) return variant8_init(VARIANT8_PUI32, count, (void*)pui32);
-	return (variant8_t){ VARIANT8_PUI32, 0, { .size = count * sizeof(uint32_t) }, { .pui32 = pui32} };
+	return (variant8_t){ VARIANT8_PUI32, 0, { .size = (uint16_t)(count * sizeof(uint32_t)) }, { .pui32 = pui32} };
 }
 
 variant8_t variant8_pflt(float* pflt, uint16_t count, int init) {
 	if (init) return variant8_init(VARIANT8_PFLT, count, (void*)pflt);
-	return (variant8_t){ VARIANT8_PFLT, 0, { .size = count * sizeof(float) }, { .pflt = pflt } };
+	return (variant8_t){ VARIANT8_PFLT, 0, { .size = (uint16_t)(count * sizeof(float)) }, { .pflt = pflt } };
 }
 
 variant8_t variant8_pchar(char* pch, uint16_t count, int init) {
 	if (init) return variant8_init(VARIANT8_PCHAR, count?count:strlen(pch), (void*)pch);
-	return (variant8_t){ VARIANT8_PCHAR, 0, { .size = count?count:strlen(pch) }, { .pch = (char*)pch } };
+	return (variant8_t){ VARIANT8_PCHAR, 0, { .size = (uint16_t)(count?count:strlen(pch)) }, { .pch = (char*)pch } };
 }
 
 variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8) {
@@ -226,15 +228,16 @@ char* _variant8_to_str(variant8_t* pvar8, const char* fmt) {
 	char buff[VARIANT8_TO_STR_MAX_BUFF] = "";
 	switch (pvar8->type) {
 	case VARIANT8_EMPTY: break;
-	case VARIANT8_I8:    snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%i", pvar8->i8); break;
-	case VARIANT8_UI8:   snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%u", pvar8->ui8); break;
-	case VARIANT8_I16:   snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%i", pvar8->i16); break;
-	case VARIANT8_UI16:  snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%u", pvar8->ui16); break;
-	case VARIANT8_I32:   snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%i", pvar8->i32); break;
-	case VARIANT8_UI32:  snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%u", pvar8->ui32); break;
+	case VARIANT8_I8:    snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%i", (int)pvar8->i8); break;
+	case VARIANT8_UI8:   snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%u", (unsigned int)pvar8->ui8); break;
+	case VARIANT8_I16:   snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%i", (int)pvar8->i16); break;
+	case VARIANT8_UI16:  snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%u", (unsigned int)pvar8->ui16); break;
+	case VARIANT8_I32:   snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%i", (int)pvar8->i32); break;
+	case VARIANT8_UI32:  snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%u", (unsigned int)pvar8->ui32); break;
 	case VARIANT8_FLT:   snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%f", pvar8->flt); break;
 	case VARIANT8_CHAR:  snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%c", pvar8->ch); break;
-	case VARIANT8_USER:  snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%u %u %u", pvar8->usr32, pvar8->usr16, pvar8->usr8); break;
+	case VARIANT8_USER:  snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt?fmt:"%u %u %u",
+			(unsigned int)pvar8->usr32, (unsigned int)pvar8->usr16, (unsigned int)pvar8->usr8); break;
 	}
 	char* str = (char*)variant8_malloc(strlen(buff) + 1);
 	if (str) strcpy(str, buff);
@@ -251,12 +254,12 @@ variant8_t _variant_from_str(uint8_t type, char* str, const char* fmt) {
 	case VARIANT8_I8:
 	case VARIANT8_I16:
 	case VARIANT8_I32:
-		n = sscanf(str, fmt?fmt:"%i", &(var8.i32));
+		n = sscanf(str, fmt?fmt:"%i", (int*)&(var8.i32));
 		break;
 	case VARIANT8_UI8:
 	case VARIANT8_UI16:
 	case VARIANT8_UI32:
-		n = sscanf(str, fmt?fmt:"%u", &(var8.ui32));
+		n = sscanf(str, fmt?fmt:"%u", (unsigned int*)&(var8.ui32));
 		break;
 	case VARIANT8_FLT:
 		n = sscanf(str, fmt?fmt:"%f", &(var8.flt));
@@ -265,7 +268,7 @@ variant8_t _variant_from_str(uint8_t type, char* str, const char* fmt) {
 		n = sscanf(str, fmt?fmt:"%c", &(var8.ch));
 		break;
 	case VARIANT8_USER:
-		n = sscanf(str, fmt?fmt:"%u %hu %u", &(var8.usr32), &(var8.usr16), &ui);
+		n = sscanf(str, fmt?fmt:"%u %hu %u", (unsigned int*)&(var8.usr32), (unsigned short int*)&(var8.usr16), &ui);
 		if (n >= 3) var8.usr8 = ui;
 		break;
 	default:
@@ -280,6 +283,8 @@ variant8_t _variant_from_str(uint8_t type, char* str, const char* fmt) {
 	}
 	return var8;
 }
+
+} //extern "C"
 
 // supported conversions for variant8_change_type
 // from              to               param     description
