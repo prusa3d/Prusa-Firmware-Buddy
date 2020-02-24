@@ -13,7 +13,7 @@
 #include <string.h>
 #include "eeprom.h"
 
-#define CLIENT_CONNECT_DELAY 10000 // 1 Sec.
+#define CLIENT_CONNECT_DELAY 1000 // 1 Sec.
 #define IP4_ADDR_STR_SIZE    16
 #define HEADER_MAX_SIZE      128
 struct tcp_pcb *testpcb;
@@ -28,6 +28,7 @@ tcpSendCallback(void *arg, struct tcp_pcb *pcb, u16_t len) {
     LWIP_UNUSED_ARG(arg);
     LWIP_UNUSED_ARG(pcb);
     LWIP_UNUSED_ARG(len);
+    tcp_close(testpcb);
     return ERR_OK;
 }
 
@@ -106,7 +107,7 @@ void buddy_http_client_init() {
 
     /* register callbacks with the pcb */
     tcp_err(testpcb, tcpErrorHandler);
-    tcp_recv(testpcb, tcpRecvCallback);
+    //tcp_recv(testpcb, tcpRecvCallback);
     tcp_sent(testpcb, tcpSendCallback);
     /* now connect */
     tcp_connect(testpcb, &ip, 9000, connectCallback);

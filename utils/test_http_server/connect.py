@@ -22,7 +22,7 @@ class TestTCPHandler(socketserver.BaseRequestHandler):
         print(self.data)
         ret_data = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"command\": \"home\"}"
         # just send back the same data, but upper-cased
-        self.request.sendall(ret_data.encode('utf-8'))
+        # self.request.sendall(ret_data.encode('utf-8'))
 
 
 HOST = args.ip_address
