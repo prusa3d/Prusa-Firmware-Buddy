@@ -17,7 +17,7 @@
 
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE     6
-#define MAX_INI_SIZE      100
+#define MAX_INI_SIZE      200
 #define IP4_ADDR_STR_SIZE 16
 
 #define _change_static_to_static() _change_dhcp_to_static()
@@ -76,12 +76,13 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
     strncpy(ip4_addr_str, ip4addr_ntoa(&(config.lan_ip4_addr)), IP4_ADDR_STR_SIZE);
     strncpy(ip4_msk_str, ip4addr_ntoa(&(config.lan_ip4_msk)), IP4_ADDR_STR_SIZE);
     strncpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
-    strncpy(ip4_connect_str, ip4addr_ntoa(&(config.connect_ip4)), IP4_ADDR_STR_SIZE);
 
     if (flg) {
         char save_hostname[LAN_HOSTNAME_MAX_LEN + 1], save_sec_key[CONNECT_SEC_KEY_LEN + 1];
         eeprom_get_string(EEVAR_LAN_HOSTNAME_START, save_hostname, LAN_HOSTNAME_MAX_LEN); // TODO: move hostname outside the lan_ip4 sector and make it printername
         eeprom_get_string(EEVAR_CONNECT_KEY_START, save_sec_key, CONNECT_SEC_KEY_LEN);
+        config.connect_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP).ui32;
+        strncpy(ip4_connect_str, ip4addr_ntoa(&(config.connect_ip4)), IP4_ADDR_STR_SIZE);
         snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s\n\n[connect]\naddress=%s\nsecurity_key=%s\n",
             config.lan_flag & LAN_EEFLG_TYPE ? LAN_type_opt[1] : LAN_type_opt[0], save_hostname, ip4_addr_str, ip4_msk_str, ip4_gw_str, ip4_connect_str, save_sec_key);
     } else {

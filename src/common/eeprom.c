@@ -29,8 +29,47 @@ const uint8_t eeprom_map_v1[] = {
     VARIANT8_UI32, // EEVAR_LAN_IP4_DNS1    X.X.X.X address encoded in uint32
     VARIANT8_UI32, // EEVAR_LAN_IP4_DNS2    X.X.X.X address encoded in uint32
     VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_START   Start of 20char string
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
     VARIANT8_UI32, // EEVAR_CONNECT_IP    X.X.X.X address encoded in uint32
     VARIANT8_UI8,  // EEVAR_SECURITY_KEY_START   Start of 20char string
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+    VARIANT8_UI8,
+
 };
 
 const char *eeprom_var_name[] = {
@@ -51,8 +90,46 @@ const char *eeprom_var_name[] = {
     "EEVAR_LAN_IP4_DNS1",
     "EEVAR_LAN_IP4_DNS2",
     "EEVAR_LAN_HOSTNAME_START",
+    "EEVAR_LAN_HOSTNAME_CHAR2",
+    "EEVAR_LAN_HOSTNAME_CHAR3",
+    "EEVAR_LAN_HOSTNAME_CHAR4",
+    "EEVAR_LAN_HOSTNAME_CHAR5",
+    "EEVAR_LAN_HOSTNAME_CHAR6",
+    "EEVAR_LAN_HOSTNAME_CHAR7",
+    "EEVAR_LAN_HOSTNAME_CHAR8",
+    "EEVAR_LAN_HOSTNAME_CHAR9",
+    "EEVAR_LAN_HOSTNAME_CHAR10",
+    "EEVAR_LAN_HOSTNAME_CHAR11",
+    "EEVAR_LAN_HOSTNAME_CHAR12",
+    "EEVAR_LAN_HOSTNAME_CHAR13",
+    "EEVAR_LAN_HOSTNAME_CHAR14",
+    "EEVAR_LAN_HOSTNAME_CHAR15",
+    "EEVAR_LAN_HOSTNAME_CHAR16",
+    "EEVAR_LAN_HOSTNAME_CHAR17",
+    "EEVAR_LAN_HOSTNAME_CHAR18",
+    "EEVAR_LAN_HOSTNAME_CHAR19",
+    "EEVAR_LAN_HOSTNAME_CHAR20",
     "EEVAR_CONNECT_IP",
     "EEVAR_CONNECT_KEY_START",
+    "EEVAR_CONNECT_KEY_CHAR2",
+    "EEVAR_CONNECT_KEY_CHAR3",
+    "EEVAR_CONNECT_KEY_CHAR4",
+    "EEVAR_CONNECT_KEY_CHAR5",
+    "EEVAR_CONNECT_KEY_CHAR6",
+    "EEVAR_CONNECT_KEY_CHAR7",
+    "EEVAR_CONNECT_KEY_CHAR8",
+    "EEVAR_CONNECT_KEY_CHAR9",
+    "EEVAR_CONNECT_KEY_CHAR10",
+    "EEVAR_CONNECT_KEY_CHAR11",
+    "EEVAR_CONNECT_KEY_CHAR12",
+    "EEVAR_CONNECT_KEY_CHAR13",
+    "EEVAR_CONNECT_KEY_CHAR14",
+    "EEVAR_CONNECT_KEY_CHAR15",
+    "EEVAR_CONNECT_KEY_CHAR16",
+    "EEVAR_CONNECT_KEY_CHAR17",
+    "EEVAR_CONNECT_KEY_CHAR18",
+    "EEVAR_CONNECT_KEY_CHAR19",
+    "EEVAR_CONNECT_KEY_CHAR20",
 };
 
 uint16_t eeprom_crc_value = 0;
@@ -216,7 +293,7 @@ void eeprom_dump(void) {
 
 void eeprom_get_string(uint8_t id, char *dest, uint16_t len) {
     char str[len + 1];
-    for (uint8_t i = 0; i < len; i++) {
+    for (uint16_t i = 0; i < len; i++) {
         str[i] = (char)eeprom_get_var(id + i).ui8;
     }
     str[len] = '\0';
@@ -224,7 +301,7 @@ void eeprom_get_string(uint8_t id, char *dest, uint16_t len) {
 }
 void eeprom_set_string(uint8_t id, char *src, uint16_t len) {
     bool end = false;
-    for (uint8_t i = 0; i < len; i++) {
+    for (uint16_t i = 0; i < len; i++) {
         if (!end && src[i] == '\0')
             end = true;
         if (!end) {

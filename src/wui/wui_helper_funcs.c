@@ -85,6 +85,11 @@ void json_parse_jsmn(const char *json, uint16_t len) {
             request[t[i + 1].end - t[i + 1].start] = 0;
             eeprom_set_string(EEVAR_CONNECT_KEY_START, request, CONNECT_SEC_KEY_LEN);
             i++;
+        } else if (json_cmp(json, &t[i], "connect_name") == 0) {
+            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            request[t[i + 1].end - t[i + 1].start] = 0;
+            eeprom_set_string(EEVAR_LAN_HOSTNAME_START, request, LAN_HOSTNAME_MAX_LEN);
+            i++;
         }
 
         /* else if(json_cmp(json, &t[i], "axis") == 0){

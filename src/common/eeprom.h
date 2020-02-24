@@ -23,8 +23,8 @@
 #define EEVAR_LAN_IP4_DNS2       0x0F // X.X.X.X address encoded in uint32
 #define EEVAR_LAN_HOSTNAME_START 0x10 //Start of 20char string
 
-#define EEVAR_CONNECT_IP        0x11 // X.X.X.X address encoded in uint32
-#define EEVAR_CONNECT_KEY_START 0x12 //Start of 20char string
+#define EEVAR_CONNECT_IP        0x24 // X.X.X.X address encoded in uint32
+#define EEVAR_CONNECT_KEY_START 0x25 //Start of 20char string
 
 #define LAN_HOSTNAME_MAX_LEN 20
 #define CONNECT_SEC_KEY_LEN  20
