@@ -78,7 +78,7 @@ set(WUI
     CACHE BOOL "Enable Web User Interface"
     )
 set(GUI
-    "NO"
+    "YES"
     CACHE BOOL "Enable GUI"
     )
 
