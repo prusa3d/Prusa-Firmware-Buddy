@@ -103,8 +103,38 @@ int8_t menu_timeout_enabled = 1; // Default: enabled
 
 void update_firmware_screen(void);
 
+
+// set low SPI frequency after timeout expired
+#define SPI_LOW_FREQ_TEST
+
+#ifdef SPI_LOW_FREQ_TEST
+
+#define SPI_JOG_TIMEOUT 2000   // timeout to keep high frequency after jogwheel changed
+#define SPI_PRESC_HIGH  0      // high freq. prescaler (21MHz)
+#define SPI_PRESC_LOW   3      // low freq. prescaler (2.6MHz)
+
+int spi_pres = SPI_PRESC_HIGH; // current spi prescaler
+uint32_t spi_time = 0;         //
+
+#endif //SPI_LOW_FREQ_TEST
+
+
 static void _gui_loop_cb() {
     static uint8_t m600_lock = 0;
+
+#ifdef SPI_LOW_FREQ_TEST
+    if (jogwheel_changed && (spi_pres != SPI_PRESC_HIGH)) {
+        spi_pres = SPI_PRESC_HIGH;
+        sys_spi_set_prescaler(spi_pres);
+        spi_time = HAL_GetTick();
+    }
+    else
+        if ((spi_pres == SPI_PRESC_HIGH) && ((HAL_GetTick() - spi_time) > SPI_JOG_TIMEOUT))
+        {
+            spi_pres = SPI_PRESC_LOW;
+            sys_spi_set_prescaler(spi_pres);
+        }
+#endif //SPI_LOW_FREQ_TEST
 
     if (!m600_lock) {
         m600_lock = 1;
