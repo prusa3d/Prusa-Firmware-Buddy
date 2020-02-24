@@ -214,6 +214,8 @@ static int ph_measure_max(selftest_fans_axis_data_t *p_data,
 
 static int ph_finish(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    marlin_gcode("M211 S1"); // enable software endstops
+    marlin_gcode("M121");    // disable hw endstop detection
     _dbg("finished");
     *state = _TEST_PASSED;
     return 0;
@@ -224,6 +226,7 @@ static int ph_home_axis(selftest_fans_axis_data_t *p_data,
     marlin_gcode("G90"); /*use absolute coordinates*/
 
     marlin_gcode_printf("G28 %c", achar); /*HOME AXIS MUST BE ONLY currrent axis*/
+    marlin_wait_motion(250);
     return 1;
 }
 
@@ -232,27 +235,25 @@ static int ph_home_all_axis(selftest_fans_axis_data_t *p_data,
     marlin_gcode("G90"); /*use absolute coordinates*/
 
     marlin_gcode("G28");
+    marlin_wait_motion(250);
     return 1;
 }
 
 static int ph_restore_Xaxis(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", X_home_gcode); /*Set pos */
-    marlin_wait_motion(250);
     return 1;
 }
 
 static int ph_restore_Yaxis(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", Y_home_gcode); /*Set pos */
-    marlin_wait_motion(250);
     return 1;
 }
 
 static int ph_restore_Zaxis(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", Z_home_gcode); /*Set pos */
-    marlin_wait_motion(250);
     return 1;
 }
 
@@ -276,8 +277,8 @@ static const selftest_phase phasesX[] = {
     ph_wait_motion,
     ph_measure_max,
     ph_home_axis,
-    ph_restore_Xaxis,
     ph_wait_autohome,
+    ph_restore_Xaxis,
     ph_finish
 };
 
@@ -297,8 +298,8 @@ static const selftest_phase phasesY[] = {
     ph_wait_motion,
     ph_measure_max,
     ph_home_axis,
-    ph_restore_Yaxis,
     ph_wait_autohome,
+    ph_restore_Yaxis,
     ph_finish
 };
 
