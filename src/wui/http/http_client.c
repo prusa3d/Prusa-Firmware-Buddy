@@ -62,11 +62,13 @@ static err_t tcpRecvCallback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 }
 
 uint32_t tcp_send_packet(void) {
-    char host_ip4_str[IP4_ADDR_STR_SIZE], header[HEADER_MAX_SIZE], *uri = "/api/printer";
+    char host_ip4_str[IP4_ADDR_STR_SIZE], header[HEADER_MAX_SIZE], *uri = "/p/telemetry", printer_token[21];
     ip4_addr_t host_ip4;
     host_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP).ui32;
     strlcpy(host_ip4_str, ip4addr_ntoa(&host_ip4), IP4_ADDR_STR_SIZE);
-    snprintf(header, HEADER_MAX_SIZE, "POST %s HTTP/1.0\r\nHost: %s", uri, host_ip4_str);
+    eeprom_get_string(EEVAR_CONNECT_KEY_START, printer_token, 20);
+    printer_token[20] = 0;
+    snprintf(header, HEADER_MAX_SIZE, "POST %s HTTP/1.0\r\nHost: %s\nPrinter-Token: %s", uri, host_ip4_str, printer_token);
     const char *header_plus_data = get_update_str(header);
 
     uint16_t len = strlen(header_plus_data);
