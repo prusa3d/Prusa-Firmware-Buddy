@@ -1,14 +1,15 @@
-#include "utils.h"
 #include "config.h"
 #include "otp.h"
 #include "sys.h"
 #include "shared_config.h"
+#include "support_utils.h"
 #include "display.h"
 #include "string.h"
-#include "tm_stm32f4_crc.h"
-#include "qrcodegen.h"
 #include "lang.h"
 #include "../../gui/wizard/selftest.h"
+
+#include "tm_stm32f4_crc.h"
+#include "qrcodegen.h"
 
 char *eofstr(char *str) {
     return (str + strlen(str));
@@ -19,7 +20,7 @@ void block2hex(char *str, uint8_t *pdata, size_t length) {
         sprintf(eofstr(str), "%02X", *(pdata++));
 }
 
-void appendCRC(char *str) {
+void append_crc(char *str) {
     uint32_t crc;
 
     TM_CRC_Init(); // !!! spravne patri uplne jinam (zatim neni jasne kam)
@@ -27,21 +28,17 @@ void appendCRC(char *str) {
     sprintf(eofstr(str), "/%08lX", crc);
 }
 
-void get_path_info(char *str, int error_code) {
+void create_path_info_4error(char *str, int error_code) {
     strcpy(str, ER_URL);
     sprintf(eofstr(str), "%d/", error_code);
     sprintf(eofstr(str), "%d/", PRINTER_TYPE);
     sprintf(eofstr(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     //!//     sprintf(eofstr(str), "%d/", FW_VERSION);
     sprintf(eofstr(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
+    append_crc(str);
 }
 
-void create_path_info(char *str, int error_code) {
-    get_path_info(str, error_code);
-    appendCRC(str);
-}
-
-void get_path_info2(char *str) {
+void create_path_info_4service(char *str) {
     strcpy(str, IR_URL);
     // PrinterType
     sprintf(eofstr(str), "%d/", PRINTER_TYPE);
@@ -78,9 +75,5 @@ void get_path_info2(char *str) {
     strcat(str, "/");
     // LockBlock
     block2hex(str, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
-}
-
-void create_path_info2(char *str) {
-    get_path_info2(str);
-    appendCRC(str);
+    append_crc(str);
 }

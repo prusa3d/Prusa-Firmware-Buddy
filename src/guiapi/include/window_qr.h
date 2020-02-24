@@ -4,6 +4,7 @@
 #define _WINDOW_QR_H
 
 #include "window.h"
+
 #include "qrcodegen.h"
 
 #pragma pack(push)
@@ -15,7 +16,7 @@ typedef struct {
 
 typedef struct {
     window_t win;
-    char* text;
+    char *text;
     int version;
     enum qrcodegen_Ecc ecc_level;
     enum qrcodegen_Mode mode;

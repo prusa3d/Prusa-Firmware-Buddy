@@ -9,7 +9,11 @@
 #include "selftest_temp.h"
 #include "selftest_fans_axis.h"
 
-#define LAST_SELFTEST_TIMEOUT 30 //(30*60) // [s]
+#ifndef _DEBUG
+    #define LAST_SELFTEST_TIMEOUT (30 * 60) // [s]
+#else
+    #define LAST_SELFTEST_TIMEOUT 30 // [s]
+#endif                               //_DEBUG
 
 #ifdef __cplusplus
 extern "C" {

@@ -13,7 +13,6 @@ static uint32_t get_and_store_selftest_result(int16_t id_body, selftest_data_t *
     mask = (mask << 1) | (p_data->fans_axis_data.state_x != _TEST_PASSED);
     mask = (mask << 1) | (p_data->fans_axis_data.state_y != _TEST_PASSED);
     mask = (mask << 1) | (p_data->fans_axis_data.state_z != _TEST_PASSED);
-    //!//    mask = (mask << 1) | (p_data->home_data.state_home != _TEST_PASSED);
     mask = (mask << 1) | (p_data->cool_data.state_cool != _TEST_PASSED);
     mask = (mask << 1) | (p_data->temp_data.state_temp_nozzle != _TEST_PASSED);
     mask = (mask << 1) | (p_data->temp_data.state_temp_bed != _TEST_PASSED);

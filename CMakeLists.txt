@@ -348,6 +348,8 @@ target_link_libraries(
           STM32::USBDevice
           CPU
           inih::inih
+          QR
+          CRC
   )
 
 target_sources(
@@ -410,9 +412,7 @@ target_sources(
           src/common/print_utils.cpp
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
-          src/common/tm_stm32f4_crc.c
-          src/common/qrcodegen.c
-          src/common/utils.cpp
+          src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
           src/marlin_stubs/G28.cpp

@@ -3,6 +3,7 @@
 #include "gui.h"
 
 #include "display.h"
+
 #include "qrcodegen.h"
 
 void window_qr_init(window_qr_t *window) {
@@ -16,9 +17,9 @@ void window_qr_init(window_qr_t *window) {
 }
 
 #define BORDER (window->border)
-#define MSIZE (window->px_per_module)
-#define X0 (window->win.rect.x+window->border*MSIZE)
-#define Y0 (window->win.rect.y+window->border*MSIZE)
+#define MSIZE  (window->px_per_module)
+#define X0     (window->win.rect.x + window->border * MSIZE)
+#define Y0     (window->win.rect.y + window->border * MSIZE)
 
 void window_qr_draw(window_qr_t *window) {
     uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
@@ -28,13 +29,13 @@ void window_qr_draw(window_qr_t *window) {
 
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, window->ecc_level, window->version, window->version, qrcodegen_Mask_AUTO, true);
-        if(qr_ok) {
+        if (qr_ok) {
             size = qrcodegen_getSize(qrcode_buff);
-            for(int y = -BORDER; y < (size+BORDER); y++)
-                for (int x = -BORDER; x < (size+BORDER); x++)
-                    display->fill_rect(rect_ui16(X0+x*MSIZE, Y0+y*MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
+            for (int y = -BORDER; y < (size + BORDER); y++)
+                for (int x = -BORDER; x < (size + BORDER); x++)
+                    display->fill_rect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
         }
-    	window->win.flg &= ~WINDOW_FLG_INVALID;
+        window->win.flg &= ~WINDOW_FLG_INVALID;
     }
 }
 
