@@ -90,6 +90,7 @@ int wizard_selftest_fan0(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
         if ((Tacho_FAN0 < _SELFTEST_FAN0_MIN) || (Tacho_FAN0 > _SELFTEST_FAN0_MAX))
             p_data->state_fan0 = _TEST_FAILED;
         hwio_fan_set_pwm(0, 0);
+        marlin_start_processing();
     }
     window_set_value(p_screen->progress_fan.win.id, (float)progress / 2);
     wizard_update_test_icon(p_screen->icon_extruder_fan.win.id, p_data->state_fan0);
@@ -108,6 +109,7 @@ int wizard_selftest_fan1(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
         if ((Tacho_FAN1 < _SELFTEST_FAN1_MIN) || (Tacho_FAN1 > _SELFTEST_FAN1_MAX))
             p_data->state_fan1 = _TEST_FAILED;
         hwio_fan_set_pwm(1, 0);
+        marlin_start_processing();
     }
     window_set_value(p_screen->progress_fan.win.id, 50.0F + (float)progress / 2);
     wizard_update_test_icon(p_screen->icon_print_fan.win.id, p_data->state_fan1);
@@ -132,10 +134,9 @@ typedef struct
 
 static int ph_init(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
-    marlin_start_processing(); // enable processing
-    marlin_gcode("M211 S0");   // disable software endstops
-    marlin_gcode("M120");      // enable hw endstop detection
-    return 1;                  //next phase
+    marlin_gcode("M211 S0"); // disable software endstops
+    marlin_gcode("M120");    // enable hw endstop detection
+    return 1;                //next phase
 }
 
 static int ph_prepare_to_move_to_max(selftest_fans_axis_data_t *p_data,
