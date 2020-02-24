@@ -73,15 +73,15 @@ extern "C" {
 #include "ethernetif.h"
 /* Includes for RTOS ---------------------------------------------------------*/
 #if WITH_RTOS
-#include "lwip/tcpip.h"
+    #include "lwip/tcpip.h"
 #endif /* WITH_RTOS */
 /* chip specific includes ----------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 /* lwip customization includes -----------------------------------------------*/
 #ifdef BUDDY_USE_WSAPI
-#include "lwsapi.h" // use WSAPI web application server
+    #include "lwsapi.h" // use WSAPI web application server
 #else
-#include "lwip/apps/httpd.h"
+    #include "lwip/apps/httpd.h"
 #endif
 #include "eeprom.h"
 /* Global Variables ---------------------------------------------------------*/

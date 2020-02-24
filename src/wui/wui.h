@@ -9,7 +9,7 @@
 #ifndef SRC_WUI_WUI_H_
 #define SRC_WUI_WUI_H_
 
-#define BUDDY_WEB_STACK_SIZE	512
+#define BUDDY_WEB_STACK_SIZE 512
 #include <marlin_vars.h>
 
 #ifdef __cplusplus
@@ -27,4 +27,3 @@ void StartWebServerTask(void const *argument);
 #endif // __cplusplus
 
 #endif /* SRC_WUI_WUI_H_ */
-
