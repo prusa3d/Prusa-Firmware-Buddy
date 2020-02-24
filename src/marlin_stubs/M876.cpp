@@ -23,16 +23,18 @@
 
 #if ENABLED(HOST_PROMPT_SUPPORT) && DISABLED(EMERGENCY_PARSER)
 
-#include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../lib/Marlin/Marlin/src/Marlin.h"
-#include "marlin_server.h"
+    #include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
+    #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+    #include "../../lib/Marlin/Marlin/src/Marlin.h"
+    #include "marlin_server.h"
 /**
  * M876: Handle Prompt Response
  */
 void GcodeSuite::M876() {
-  if (parser.seenval('P')) host_dialog_creation_handler((uint8_t)parser.value_int());
-  if (parser.seenval('S')) host_response_handler((uint8_t)parser.value_int());
+    if (parser.seenval('P'))
+        host_dialog_creation_handler((uint8_t)parser.value_int());
+    if (parser.seenval('S'))
+        host_response_handler((uint8_t)parser.value_int());
 }
 
 #endif // HOST_PROMPT_SUPPORT && !EMERGENCY_PARSER
