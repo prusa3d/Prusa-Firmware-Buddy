@@ -1123,18 +1123,7 @@ void host_action_resumed() {
 
 void host_dialog_creation_handler(const uint8_t is_host) {
     DBG_HOST("host_dialog_creation_handler %d", (int)is_host);
-    /* if (is_host) {
 
-        marlin_server.command = MARLIN_CMD_M876;
-        marlin_server.command_begin = MARLIN_CMD_M876;
-        marlin_server.command_end = MARLIN_CMD_M876;
-
-        const uint8_t evt_id = MARLIN_EVT_CommandBegin;//MARLIN_EVT_DialogCreation;
-        uint8_t client_mask = _send_notify_event(evt_id, MARLIN_CMD_M876, 0);
-        // notification will wait until successfully sent to gui client
-        _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
- }
-*/
     const uint8_t evt_id = MARLIN_EVT_DialogCreation; //MARLIN_EVT_CommandBegin;
     uint8_t client_mask = _send_notify_event(evt_id, is_host, 0);
     // notification will wait until successfully sent to gui client
