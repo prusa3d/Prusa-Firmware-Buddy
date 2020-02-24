@@ -128,7 +128,7 @@ void MX_LWIP_Init(void) {
     netif_set_status_callback(&eth0, netif_status_callback);
     netif_set_down(&eth0);
     uint8_t ee_lan_flg = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
-    eeprom_get_hostname(interface_hostname);
+    eeprom_get_string(EEVAR_LAN_HOSTNAME_START, interface_hostname, LAN_HOSTNAME_MAX_LEN);
     eth0.hostname = interface_hostname;
     if (ee_lan_flg & LAN_EEFLG_TYPE) {
         ipaddr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;

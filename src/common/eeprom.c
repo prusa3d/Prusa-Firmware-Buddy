@@ -87,8 +87,23 @@ uint8_t eeprom_init(void) {
 // write default values to all variables
 void eeprom_defaults(void) {
     uint8_t id;
-    for (id = 0; id < EE_VAR_CNT; id++)
-        eeprom_set_var(id, eeprom_var_default(id));
+    for (id = 0; id < EE_VAR_CNT; id++) {
+        if (strcmp(eeprom_var_name[id], "EEVAR_LAN_HOSTNAME_START") == 0) {
+            eeprom_set_var(id, variant8_ui8('M'));
+            eeprom_set_var(id + 1, variant8_ui8('I'));
+            eeprom_set_var(id + 2, variant8_ui8('N'));
+            eeprom_set_var(id + 3, variant8_ui8('I'));
+            for (int id2 = id + 4; id2 < id + LAN_HOSTNAME_MAX_LEN; id2++) {
+                eeprom_set_var(id2, variant8_ui8(0));
+            }
+        } else if (strcmp(eeprom_var_name[id], "EEVAR_CONNECT_KEY_START") == 0) {
+            for (int id2 = id; id2 < id + CONNECT_SEC_KEY_LEN; id2++) {
+                eeprom_set_var(id2, variant8_ui8(0));
+            }
+        } else {
+            eeprom_set_var(id, eeprom_var_default(id));
+        }
+    }
 }
 
 variant8_t eeprom_get_var(uint8_t id) {
@@ -199,23 +214,23 @@ void eeprom_dump(void) {
     }
 }
 
-void eeprom_get_hostname(char *dest) {
-    char hostname_str[LAN_HOSTNAME_MAX_LEN + 1];
-    for (uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++) {
-        hostname_str[i] = (char)eeprom_get_var(EEVAR_LAN_HOSTNAME_0 + i).ui8;
+void eeprom_get_string(uint8_t id, char *dest, uint16_t len) {
+    char str[len + 1];
+    for (uint8_t i = 0; i < len; i++) {
+        str[i] = (char)eeprom_get_var(id + i).ui8;
     }
-    hostname_str[LAN_HOSTNAME_MAX_LEN] = '\0';
-    strncpy(dest, hostname_str, LAN_HOSTNAME_MAX_LEN + 1);
+    str[len] = '\0';
+    strncpy(dest, str, len + 1);
 }
-void eeprom_set_hostname(char *src) {
+void eeprom_set_string(uint8_t id, char *src, uint16_t len) {
     bool end = false;
-    for (uint8_t i = 0; i < LAN_HOSTNAME_MAX_LEN; i++) {
+    for (uint8_t i = 0; i < len; i++) {
         if (!end && src[i] == '\0')
             end = true;
         if (!end) {
-            eeprom_set_var(EEVAR_LAN_HOSTNAME_0 + i, variant8_ui8(src[i]));
+            eeprom_set_var(id + i, variant8_ui8(src[i]));
         } else {
-            eeprom_set_var(EEVAR_LAN_HOSTNAME_0 + i, variant8_ui8(0));
+            eeprom_set_var(id + i, variant8_ui8(0));
         }
     }
 }

@@ -50,9 +50,9 @@ extern void eeprom_set_var(uint8_t id, variant8_t var);
 // fill range 0x0000..0x0800 with 0xff
 extern void eeprom_clear(void);
 
-extern void eeprom_get_hostname(char *dest);
+extern void eeprom_get_string(uint8_t id, char *dest, uint16_t len);
 
-extern void eeprom_set_hostname(char *src);
+extern void eeprom_set_string(uint8_t id, char *src, uint16_t len);
 
 int8_t eeprom_test_PUT(const unsigned int);
 
