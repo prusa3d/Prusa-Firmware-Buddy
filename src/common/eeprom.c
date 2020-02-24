@@ -312,3 +312,33 @@ int eeprom_convert_from_v2(void)
 //    st25dv64k_user_read_bytes(EE_ADDRESS + i * size, &(vars.FILAMENT_TYPE), size);
 	return 0;
 }
+
+#include "ff.h"
+
+int eeprom_load_bin(const char* fn)
+{
+    FIL fil;
+    if (f_open(&fil, fn, FA_READ) == FR_OK) {
+
+    }
+	return 0;
+}
+
+int eeprom_save_bin(const char* fn)
+{
+    FIL fil;
+    if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
+
+    }
+	return 0;
+}
+
+int eeprom_load_xml(const char* fn)
+{
+	return 0;
+}
+
+int eeprom_save_xml(const char* fn)
+{
+	return 0;
+}
