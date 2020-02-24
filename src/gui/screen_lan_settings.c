@@ -357,18 +357,18 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
     }
     case MI_SAVE:
         if (media_is_inserted() == false) {
-            if (gui_msgbox("Please insert USB flash disk and try again.",
+            if (gui_msgbox("Please insert a USB drive and try again.",
                     MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                 == MSGBOX_RES_OK) {
             }
         } else {
             if (_save_ini_file()) { // !its possible to save empty configurations!
-                if (gui_msgbox("Settings saved in the \"lan_settings.ini\" file.",
+                if (gui_msgbox("The settings have been saved successfully in the \"lan_settings.ini\" file.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_INFO)
                     == MSGBOX_RES_OK) {
                 }
             } else {
-                if (gui_msgbox("File \"lan_settings.ini\" did not saved properly.",
+                if (gui_msgbox("There was an error saving the settings in the \"lan_settings.ini\" file.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                     == MSGBOX_RES_OK) {
                 }
@@ -397,7 +397,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                 }
 
             } else {
-                if (gui_msgbox("Addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB flash disk.",
+                if (gui_msgbox("IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                     == MSGBOX_RES_OK) {
                 }
