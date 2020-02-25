@@ -10,6 +10,7 @@
 
 #include "wui.h"
 #include "filament.h"
+#include "wui_vars.h"
 
 #include "cmsis_os.h"
 #include "stdarg.h"
@@ -22,19 +23,17 @@
 #define Y_AXIS_POS              1
 #define Z_AXIS_POS              2
 // for data exchange between wui thread and HTTP thread
-extern marlin_vars_t webserver_marlin_vars;
-extern osMutexId wui_web_mutex_id;
 static marlin_vars_t webserver_marlin_vars_copy;
 // for storing /api/* data
 static struct fs_file api_file;
 
 const char *get_progress_str(void) {
 
-    osStatus status = osMutexWait(wui_web_mutex_id, osWaitForever);
+    osStatus status = osMutexWait(wui_thread_mutex_id, osWaitForever);
     if (status == osOK) {
         webserver_marlin_vars_copy = webserver_marlin_vars;
     }
-    osMutexRelease(wui_web_mutex_id);
+    osMutexRelease(wui_thread_mutex_id);
 
     const char *file_name = "test.gcode";
     uint8_t sd_percent_done = (uint8_t)(webserver_marlin_vars_copy.sd_percent_done);
@@ -52,11 +51,11 @@ const char *get_progress_str(void) {
 
 const char *get_update_str(const char *header) {
 
-    osStatus status = osMutexWait(wui_web_mutex_id, osWaitForever);
+    osStatus status = osMutexWait(wui_thread_mutex_id, osWaitForever);
     if (status == osOK) {
         webserver_marlin_vars_copy = webserver_marlin_vars;
     }
-    osMutexRelease(wui_web_mutex_id);
+    osMutexRelease(wui_thread_mutex_id);
 
     int32_t actual_nozzle = (int32_t)(webserver_marlin_vars_copy.temp_nozzle);
     int32_t target_nozzle = (int32_t)(webserver_marlin_vars_copy.target_nozzle);

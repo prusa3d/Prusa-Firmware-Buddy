@@ -7,21 +7,20 @@
  */
 
 #include "wui.h"
+#include "wui_vars.h"
 #include "marlin_client.h"
 #include "lwip.h"
 #include "ethernetif.h"
 #include "http_client.h"
 
-#include "cmsis_os.h"
-
 #define MAX_WUI_REQUEST_LEN    100
 #define MAX_MARLIN_REQUEST_LEN 100
 #define WUI_FLG_PEND_REQ       0x0001
 
-osMessageQId wui_queue = 0;  // input queue (uint8_t)
-osSemaphoreId wui_sema = 0;  // semaphore handle
-osMutexDef(wui_web_mutex);   // Declare mutex
-osMutexId(wui_web_mutex_id); // Mutex ID
+osMessageQId tcpclient_wui_queue = 0; // char input queue (uint8_t)
+osSemaphoreId tcpclient_wui_sema = 0; // semaphore handle
+osMutexDef(wui_thread_mutex);         // Declare mutex
+osMutexId(wui_thread_mutex_id);       // Mutex ID
 
 typedef struct {
     uint32_t flags;
@@ -38,10 +37,10 @@ static int process_wui_request(void);
 
 void StartWebServerTask(void const *argument) {
     osMessageQDef(wuiQueue, 64, uint8_t);
-    wui_queue = osMessageCreate(osMessageQ(wuiQueue), NULL);
+    tcpclient_wui_queue = osMessageCreate(osMessageQ(wuiQueue), NULL);
     osSemaphoreDef(wuiSema);
-    wui_sema = osSemaphoreCreate(osSemaphore(wuiSema), 1);
-    wui_web_mutex_id = osMutexCreate(osMutex(wui_web_mutex));
+    tcpclient_wui_sema = osSemaphoreCreate(osSemaphore(wuiSema), 1);
+    wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
     wui.wui_marlin_vars = marlin_client_init(); // init the client
     wui.flags = wui.request_len = 0;
 
@@ -54,9 +53,9 @@ void StartWebServerTask(void const *argument) {
         if (wui.wui_marlin_vars) {
             marlin_client_loop();
         }
-        osMutexWait(wui_web_mutex_id, osWaitForever);
+        osMutexWait(wui_thread_mutex_id, osWaitForever);
         webserver_marlin_vars = *(wui.wui_marlin_vars);
-        osMutexRelease(wui_web_mutex_id);
+        osMutexRelease(wui_thread_mutex_id);
         osDelay(100);
         // http client loop
         buddy_http_client_loop();
@@ -74,7 +73,7 @@ static void wui_queue_cycle() {
         }
     }
 
-    while ((ose = osMessageGet(wui_queue, 0)).status == osEventMessage) {
+    while ((ose = osMessageGet(tcpclient_wui_queue, 0)).status == osEventMessage) {
         ch = (char)((uint8_t)(ose.value.v));
         switch (ch) {
         case '\r':
