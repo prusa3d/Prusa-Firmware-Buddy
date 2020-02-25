@@ -11,9 +11,9 @@
 #include "marlin_server.h"
 #include "sim_motion.h"
 #include "otp.h"
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
     #include "lwip.h"
-#endif //ETHERNET
+#endif //BUDDY_ENABLE_ETHERNET
 #include "eeprom.h"
 #include "cmsis_os.h"
 #include "uartslave.h"
@@ -136,13 +136,13 @@ int putslave_do_cmd_q_uid(uartslave_t *pslave) {
 }
 
 int putslave_do_cmd_q_ip4(uartslave_t *pslave) {
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
     uint8_t *ptr = (uint8_t *)(&netif_default->ip_addr);
     uartslave_printf(pslave, "%u.%u.%u.%u ", ptr[0], ptr[1], ptr[2], ptr[3]);
     return UARTSLAVE_OK;
 #else
     return UARTSLAVE_ERR_ONP;
-#endif
+#endif //BUDDY_ENABLE_ETHERNET
 }
 
 int putslave_do_cmd_q_lock(uartslave_t *pslave) {
@@ -352,9 +352,9 @@ int putslave_do_cmd_a_start(uartslave_t *pslave) {
         HAL_SPI_MspInit(&hspi2);
         marlin_server_start_processing();
         osThreadResume(displayTaskHandle);
-    #ifdef ETHERNET
+    #ifdef BUDDY_ENABLE_ETHERNET
         osThreadResume(webServerTaskHandle);
-    #endif //ETHERNET
+    #endif //BUDDY_ENABLE_ETHERNET
         if (diag_fastboot && !put_setup_done) {
             app_setup();
             put_setup_done = 1;
@@ -368,9 +368,9 @@ int putslave_do_cmd_a_stop(uartslave_t *pslave) {
     if (marlin_server_processing()) {
         marlin_server_stop_processing();
         osThreadSuspend(displayTaskHandle);
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
         osThreadSuspend(webServerTaskHandle);
-#endif //ETHERNET
+#endif //BUDDY_ENABLE_ETHERNET
 #if HAS_GUI
         HAL_SPI_MspDeInit(&hspi2);
 #endif

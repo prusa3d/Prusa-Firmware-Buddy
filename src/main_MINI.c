@@ -42,7 +42,9 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "lwip.h"
+#ifdef BUDDY_ENABLE_WUI
+    #include "wui.h"
+#endif
 #include "usb_device.h"
 #include "usb_host.h"
 
@@ -52,7 +54,6 @@
 #include "dbg.h"
 #include "diag.h"
 #include "timer_defaults.h"
-#include "lwsapi.h" // for lwsapi_init function
 #include "thread_measurement.h"
 
 /* USER CODE END Includes */
@@ -125,7 +126,6 @@ static void MX_TIM14_Init(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartIdleTask(void const *argument);
-void StartWebServerTask(void const *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -257,9 +257,11 @@ int main(void) {
     osThreadDef(idleTask, StartIdleTask, osPriorityIdle, 0, 128);
     idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
 
+#ifdef BUDDY_ENABLE_WUI
     /* definition and creation of webServerTask */
-    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, 512);
+    osThreadDef(webServerTask, StartWebServerTask, osPriorityNormal, 0, BUDDY_WEB_STACK_SIZE);
     webServerTaskHandle = osThreadCreate(osThread(webServerTask), NULL);
+#endif
 
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
@@ -1001,25 +1003,6 @@ void StartIdleTask(void const *argument) {
         osDelay(1);
     }
     /* USER CODE END StartIdleTask */
-}
-
-/* USER CODE BEGIN Header_StartWebServerTask */
-/**
-* @brief Function implementing the webServerTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartWebServerTask */
-void StartWebServerTask(void const *argument) {
-    /* USER CODE BEGIN StartWebServerTask */
-    // osThreadSuspend(0);
-    MX_LWIP_Init();
-    lwsapi_init();
-    /* Infinite loop */
-    for (;;) {
-        osDelay(1);
-    }
-    /* USER CODE END StartWebServerTask */
 }
 
 /**

@@ -12,6 +12,7 @@
 #include "config.h"
 #include "screen_menu.h"
 #include "lwip/netif.h"
+#include "eeprom.h"
 
 #define plsd              ((screen_lan_settings_data_t *)screen->pdata)
 #define MAC_ADDR_STR_SIZE 18
@@ -27,6 +28,8 @@ typedef struct {
 } screen_lan_settings_data_t;
 
 typedef struct {
+    uint8_t lan_flag;
+    char hostname[LAN_HOSTNAME_MAX_LEN + 1];
     ip4_addr_t lan_ip4_addr;
     ip4_addr_t lan_ip4_msk;
     ip4_addr_t lan_ip4_gw;
