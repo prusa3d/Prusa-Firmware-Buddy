@@ -95,7 +95,7 @@ void screen_close(void) {
     }
 }
 
-int _currnet_in_list(screen_t *const *list, size_t sz) {
+int _current_in_list(screen_t *const *list, size_t sz) {
     screen_t *curr = screen_get_curr();
     for (size_t i = 0; i < sz; ++sz)
         if (curr == list[sz])
@@ -105,7 +105,7 @@ int _currnet_in_list(screen_t *const *list, size_t sz) {
 
 void screen_unloop(screen_t *const *unl_blacklist, size_t sz) {
 
-    while (!_currnet_in_list(unl_blacklist, sz)) {
+    while (!_current_in_list(unl_blacklist, sz)) {
         screen_close();
     }
 }

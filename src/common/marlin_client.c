@@ -49,7 +49,7 @@ typedef struct _marlin_client_t {
     uint32_t command;            // processed command (G28,G29,M701,M702,M600)
     marlin_host_prompt_t prompt; // current host prompt structure (type and buttons)
     uint8_t reheating;           // reheating in progress
-    dialog_cb_t dialog_cb;
+    dialog_cb_t dialog_cb;       // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
 } marlin_client_t;
 
 #pragma pack(pop)
