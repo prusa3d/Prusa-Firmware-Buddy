@@ -17,52 +17,28 @@
 #define BDY_WUI_API_BUFFER_SIZE 512
 #define BDY_NO_FS_FLAGS         0  // no flags for fs_open
 #define BDY_API_TELEMETRY_LEN   14 // length of "/api/telemetry" string
-#define X_AXIS_POS              0
-#define Y_AXIS_POS              1
-#define Z_AXIS_POS              2
+
 // for data exchange between wui thread and HTTP thread
-static marlin_vars_t webserver_marlin_vars_copy;
+static web_vars_t web_vars_copy;
 // for storing /api/* data
 static struct fs_file api_file;
-
-const char *get_progress_str(void) {
-
-    osStatus status = osMutexWait(wui_thread_mutex_id, osWaitForever);
-    if (status == osOK) {
-        webserver_marlin_vars_copy = webserver_marlin_vars;
-    }
-    osMutexRelease(wui_thread_mutex_id);
-
-    const char *file_name = "test.gcode";
-    uint8_t sd_percent_done = (uint8_t)(webserver_marlin_vars_copy.sd_percent_done);
-    uint32_t print_duration = (uint32_t)(webserver_marlin_vars_copy.print_duration);
-
-    return char_streamer("{"
-                         "\"file\":\"%s\","
-                         "\"total_print_time\":%d, "
-                         "\"progress\":{\"precent_done\":%d}"
-                         "}",
-        file_name,
-        print_duration,
-        sd_percent_done);
-}
 
 const char *get_update_str(const char *header) {
 
     osStatus status = osMutexWait(wui_thread_mutex_id, osWaitForever);
     if (status == osOK) {
-        webserver_marlin_vars_copy = webserver_marlin_vars;
+        web_vars_copy = web_vars;
     }
     osMutexRelease(wui_thread_mutex_id);
 
-    int32_t actual_nozzle = (int32_t)(webserver_marlin_vars_copy.temp_nozzle);
+    int32_t actual_nozzle = (int32_t)(web_vars_copy.temp_nozzle);
     //int32_t target_nozzle = (int32_t)(webserver_marlin_vars_copy.target_nozzle);
-    int32_t actual_heatbed = (int32_t)(webserver_marlin_vars_copy.temp_bed);
+    int32_t actual_heatbed = (int32_t)(web_vars_copy.temp_bed);
     //int32_t target_heatbed = (int32_t)(webserver_marlin_vars_copy.target_bed);
 
-    double z_pos_mm = (double)webserver_marlin_vars_copy.pos[Z_AXIS_POS];
-    uint16_t print_speed = (uint16_t)(webserver_marlin_vars_copy.print_speed);
-    uint16_t flow_factor = (uint16_t)(webserver_marlin_vars_copy.flow_factor);
+    double z_pos_mm = (double)web_vars_copy.pos[Z_AXIS_POS];
+    uint16_t print_speed = (uint16_t)(web_vars_copy.print_speed);
+    uint16_t flow_factor = (uint16_t)(web_vars_copy.flow_factor);
     const char *filament_material = filaments[get_filament()].name;
 
     return char_streamer("%s{"

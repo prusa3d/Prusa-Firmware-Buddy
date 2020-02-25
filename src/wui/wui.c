@@ -28,7 +28,7 @@ typedef struct {
     char request[MAX_WUI_REQUEST_LEN];
     uint8_t request_len;
 } web_client_t;
-marlin_vars_t webserver_marlin_vars;
+web_vars_t web_vars;
 
 web_client_t wui;
 
@@ -54,11 +54,13 @@ void StartWebServerTask(void const *argument) {
             marlin_client_loop();
         }
         osMutexWait(wui_thread_mutex_id, osWaitForever);
-        webserver_marlin_vars = *(wui.wui_marlin_vars);
+        web_vars.pos[Z_AXIS_POS] = wui.wui_marlin_vars->pos[Z_AXIS_POS];
+        web_vars.temp_nozzle = wui.wui_marlin_vars->temp_nozzle;
+        web_vars.temp_bed = wui.wui_marlin_vars->temp_bed;
+        web_vars.print_speed = wui.wui_marlin_vars->print_speed;
+        web_vars.flow_factor = wui.wui_marlin_vars->flow_factor;
         osMutexRelease(wui_thread_mutex_id);
         osDelay(100);
-        // http client loop
-        buddy_http_client_loop();
     }
 }
 
