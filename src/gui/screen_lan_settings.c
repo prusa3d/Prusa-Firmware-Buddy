@@ -5,18 +5,14 @@
  *      Author: Migi
  */
 
-//#define STATIC_SAVE_LOAD_CONFIG
-
 #include "screen_lan_settings.h"
 #include "lwip/dhcp.h"
 #include "lwip/netifapi.h"
 #include "lwip.h"
 #include <stdlib.h>
 #include <stdbool.h>
-#ifdef STATIC_SAVE_LOAD_CONFIG
-    #include "ini.h"
-    #include "ff.h"
-#endif //STATIC_SAVE_LOAD_CONFIG
+#include "ini.h"
+#include "ff.h"
 #include <string.h>
 
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
@@ -24,26 +20,29 @@
 #define MAX_INI_SIZE      100
 #define IP4_ADDR_STR_SIZE 16
 
+#define _change_static_to_static() _change_dhcp_to_static()
+
 typedef enum {
     MI_RETURN,
-#ifdef STATIC_SAVE_LOAD_CONFIG
+    MI_SWITCH,
+    MI_TYPE,
     MI_SAVE,
     MI_LOAD,
-#endif //STATIC_SAVE_LOAD_CONFIG
 } MI_t;
 
 static char *plan_str = NULL;
+static bool conn_flg = false; // wait for dhcp to supply addresses
 static networkconfig_t config;
-#ifdef STATIC_SAVE_LOAD_CONFIG
 static const char ini_file_name[] = "/lan_settings.ini"; //change -> change msgboxes
+static const char *LAN_switch_opt[] = { "On", "Off", NULL };
+static const char *LAN_type_opt[] = { "DHCP", "static", NULL };
 static char ini_file_str[MAX_INI_SIZE];
 extern bool media_is_inserted();
-#endif //STATIC_SAVE_LOAD_CONFIG
 const menu_item_t _menu_lan_items[] = {
-#ifdef STATIC_SAVE_LOAD_CONFIG
+    { { "LAN", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_switch_opt } }, SCREEN_MENU_NO_SCREEN },
+    { { "LAN IP", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_type_opt } }, SCREEN_MENU_NO_SCREEN },
     { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#endif //STATIC_SAVE_LOAD_CONFIG
 };
 
 static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t index,
@@ -52,32 +51,49 @@ static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t inde
     *ppitem = &(plsd->items[index].item);
 }
 
-static uint8_t _get_ip4_addrs(void) {
-    if (netif_is_up(&eth0)) {
-        if (dhcp_supplied_address(&eth0)) {
+static void _get_ip4_addrs(void) {
+    if (!(config.lan_flag & LAN_EEFLG_ONOFF)) {
+        if ((!(config.lan_flag & LAN_EEFLG_TYPE) && dhcp_supplied_address(&eth0)) || config.lan_flag & LAN_EEFLG_TYPE) {
             config.lan_ip4_addr.addr = netif_ip4_addr(&eth0)->addr;
             config.lan_ip4_msk.addr = netif_ip4_netmask(&eth0)->addr;
             config.lan_ip4_gw.addr = netif_ip4_gw(&eth0)->addr;
-        } else {
-            return 1;
+            return;
         }
-    } else {
-        return 1;
     }
-    return 0;
+    if (!(config.lan_flag & LAN_EEFLG_TYPE)) {
+        config.lan_ip4_addr.addr = 0;
+        config.lan_ip4_msk.addr = 0;
+        config.lan_ip4_gw.addr = 0;
+        return;
+    }
+    config.lan_ip4_addr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
+    config.lan_ip4_msk.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
+    config.lan_ip4_gw.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
 }
 
 static void _addrs_to_str(char *param_str, uint8_t flg) {
     static char ip4_addr_str[IP4_ADDR_STR_SIZE], ip4_msk_str[IP4_ADDR_STR_SIZE], ip4_gw_str[IP4_ADDR_STR_SIZE];
-    strncpy(ip4_addr_str, ip4addr_ntoa(&(config.lan_ip4_addr)), IP4_ADDR_STR_SIZE);
-    strncpy(ip4_msk_str, ip4addr_ntoa(&(config.lan_ip4_msk)), IP4_ADDR_STR_SIZE);
-    strncpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
+    strlcpy(ip4_addr_str, ip4addr_ntoa(&(config.lan_ip4_addr)), IP4_ADDR_STR_SIZE);
+    strlcpy(ip4_msk_str, ip4addr_ntoa(&(config.lan_ip4_msk)), IP4_ADDR_STR_SIZE);
+    strlcpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
 
-    if (flg)
-        snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\naddress=%s\nmask=%s\ngateway=%s", ip4_addr_str, ip4_msk_str, ip4_gw_str);
-    else
-        snprintf(plan_str, 150, "IPv4 Address:\n    %s\nIPv4 Netmask:\n    %s\nIPv4 Gateway:\n    %s\nMAC Address:\n    %s",
+    if (flg) {
+        char save_hostname[LAN_HOSTNAME_MAX_LEN + 1];
+        eeprom_get_hostname(save_hostname);
+        snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s",
+            config.lan_flag & LAN_EEFLG_TYPE ? LAN_type_opt[1] : LAN_type_opt[0], save_hostname, ip4_addr_str, ip4_msk_str, ip4_gw_str);
+    } else {
+        snprintf(plan_str, 150, "IPv4 Address:\n  %s      \nIPv4 Netmask:\n  %s      \nIPv4 Gateway:\n  %s      \nMAC Address:\n  %s",
             ip4_addr_str, ip4_msk_str, ip4_gw_str, param_str);
+    }
+}
+
+static void _refresh_addresses(screen_t *screen) {
+    _get_ip4_addrs();
+    _addrs_to_str(plsd->mac_addr_str, 0);
+    plsd->text.text = plan_str;
+    plsd->text.win.flg |= WINDOW_FLG_INVALID;
+    gui_invalidate();
 }
 
 static void _parse_MAC_addr(char *mac_addr_str) {
@@ -85,7 +101,7 @@ static void _parse_MAC_addr(char *mac_addr_str) {
     for (uint8_t i = 0; i < MAC_ADDR_SIZE; i++)
         mac_addr[i] = *(volatile uint8_t *)(MAC_ADDR_START + i);
 
-    sprintf(mac_addr_str, "%x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+    sprintf(mac_addr_str, "%02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 }
 
 static void screen_lan_settings_init(screen_t *screen) {
@@ -96,7 +112,7 @@ static void screen_lan_settings_init(screen_t *screen) {
     plsd->items = (menu_item_t *)malloc(sizeof(menu_item_t) * (count + 1));
     memset(plsd->items, '\0', sizeof(menu_item_t) * (count + 1));
 
-    rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 90);
+    rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 150);
 
     int16_t id;
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(plsd->root));
@@ -115,13 +131,20 @@ static void screen_lan_settings_init(screen_t *screen) {
     window_set_capture(id); // set capture to list
     window_set_focus(id);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(10, 130, 220, 190), &(plsd->text));
+    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(10, 183, 230, 137), &(plsd->text));
     plsd->text.font = resource_font(IDR_FNT_SPECIAL);
 
     plsd->items[0] = menu_item_return;
-#ifdef STATIC_SAVE_LOAD_CONFIG
     memcpy(plsd->items + 1, _menu_lan_items, count * sizeof(menu_item_t));
-#endif //STATIC_SAVE_LOAD_CONFIG
+
+    config.lan_flag = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
+
+    plsd->items[MI_SWITCH].item.wi_switch_select.index = config.lan_flag & LAN_EEFLG_ONOFF;
+    plsd->items[MI_TYPE].item.wi_switch_select.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
+    if (!(config.lan_flag & LAN_EEFLG_ONOFF) && !(config.lan_flag & LAN_EEFLG_TYPE) && !dhcp_supplied_address(&eth0)) {
+        conn_flg = true;
+    }
+
     //============== DECLARE VARIABLES ================
 
     plan_str = (char *)gui_malloc(150 * sizeof(char));
@@ -129,20 +152,8 @@ static void screen_lan_settings_init(screen_t *screen) {
     //============= FILL VARIABLES ============
 
     _parse_MAC_addr(plsd->mac_addr_str);
-
-    if (_get_ip4_addrs()) {
-        config.lan_ip4_addr.addr = config.lan_ip4_msk.addr = config.lan_ip4_gw.addr = 0;
-        sprintf(plan_str, "IPv4 Address:\n    0.0.0.0\nIPv4 Netmask:\n    0.0.0.0\nIPv4 Gateway:\n    0.0.0.0\nMAC Address:\n    %s",
-            plsd->mac_addr_str);
-    } else {
-        _addrs_to_str(plsd->mac_addr_str, 0); //0 means parsing to screen text
-    }
-
-    //============= SET TEXT ================
-
-    plsd->text.text = plan_str;
+    _refresh_addresses(screen);
 }
-#ifdef STATIC_SAVE_LOAD_CONFIG
 
 static uint8_t _save_ini_file(void) {
     //======= CONFIG -> INI STR ==========
@@ -166,14 +177,70 @@ static uint8_t _save_ini_file(void) {
     return 1;
 }
 
+static void _change_any_to_static() {
+    if (netif_is_up(&eth0)) {
+        netifapi_netif_set_down(&eth0);
+    }
+    config.lan_flag |= LAN_EEFLG_TYPE;
+    eeprom_set_var(EEVAR_LAN_FLAG, variant8_ui8(config.lan_flag));
+#ifdef DNS_MODULE_ON
+    ip4_addr_t ip4_dns1, ip4_dns2;
+#endif //DNS_MODULE_ON
+    config.lan_ip4_addr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
+    config.lan_ip4_msk.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
+    config.lan_ip4_gw.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
+#ifdef DNS_MODULE_ON
+    ip4_dns1.addr = eeprom_get_var(EEVAR_LAN_IP4_DNS1).ui32;
+    ip4_dns2.addr = eeprom_get_var(EEVAR_LAN_IP4_DNS2).ui32;
+#endif //DNS_MODULE_ON
+    netifapi_netif_set_addr(&eth0,
+        (const ip4_addr_t *)&config.lan_ip4_addr,
+        (const ip4_addr_t *)&config.lan_ip4_msk,
+        (const ip4_addr_t *)&config.lan_ip4_gw);
+#ifdef DNS_MODULE_ON
+    dns_setserver(0, (const ip4_addr_t *)&ip4_dns1);
+    dns_setserver(1, (const ip4_addr_t *)&ip4_dns2);
+#endif //DNS_MODULE_ON
+    if (netif_is_link_up(&eth0) && !(config.lan_flag & LAN_EEFLG_ONOFF)) {
+        netifapi_netif_set_up(&eth0);
+    }
+}
+
+static void _change_static_to_dhcp() {
+    if (netif_is_up(&eth0)) {
+        netifapi_netif_set_down(&eth0);
+    }
+    config.lan_flag &= ~LAN_EEFLG_TYPE;
+    eeprom_set_var(EEVAR_LAN_FLAG, variant8_ui8(config.lan_flag));
+    if (netif_is_link_up(&eth0) && !(config.lan_flag & LAN_EEFLG_ONOFF)) {
+        netifapi_netif_set_up(&eth0);
+    }
+}
+
 static int handler(void *user, const char *section, const char *name, const char *value) {
-    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-    if (MATCH("lan_ip4", "address")) {
-        config.lan_ip4_addr.addr = ipaddr_addr(value);
+    networkconfig_t *tmp_config = (networkconfig_t *)user;
+#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+    if (MATCH("lan_ip4", "type")) {
+        if (strncmp(value, "dhcp", 4) == 0) {
+            tmp_config->lan_flag &= ~LAN_EEFLG_TYPE;
+        } else if (strncmp(value, "static", 6) == 0) {
+            tmp_config->lan_flag |= LAN_EEFLG_TYPE;
+        }
+    } else if (MATCH("lan_ip4", "hostname")) {
+        strncpy(tmp_config->hostname, value, LAN_HOSTNAME_MAX_LEN);
+        tmp_config->hostname[LAN_HOSTNAME_MAX_LEN] = '\0';
+    } else if (MATCH("lan_ip4", "address")) {
+        if (!ip4addr_aton(value, &tmp_config->lan_ip4_addr)) {
+            tmp_config->lan_ip4_addr.addr = 0;
+        }
     } else if (MATCH("lan_ip4", "mask")) {
-        config.lan_ip4_msk.addr = ipaddr_addr(value);
+        if (!ip4addr_aton(value, &tmp_config->lan_ip4_msk)) {
+            tmp_config->lan_ip4_msk.addr = 0;
+        }
     } else if (MATCH("lan_ip4", "gateway")) {
-        config.lan_ip4_gw.addr = ipaddr_addr(value);
+        if (!ip4addr_aton(value, &tmp_config->lan_ip4_gw)) {
+            tmp_config->lan_ip4_gw.addr = 0;
+        }
     } else {
         return 0; /* unknown section/name, error */
     }
@@ -196,24 +263,46 @@ static uint8_t _load_ini_file(void) {
 
     //=========== INI FILE PARSING =============
 
-    if (ini_parse_string(ini_file_str, handler, 0) < 0) {
+    networkconfig_t tmp_config;
+    tmp_config.lan_flag = config.lan_flag;
+    tmp_config.lan_ip4_addr.addr = tmp_config.lan_ip4_msk.addr = tmp_config.lan_ip4_gw.addr = 0;
+    if (ini_parse_string(ini_file_str, handler, &tmp_config) < 0) {
         return 0;
     }
 
-    //=========== SET ADDRESSES ================
-
-    netifapi_netif_set_addr(&eth0,
-        (const ip4_addr_t *)&config.lan_ip4_addr,
-        (const ip4_addr_t *)&config.lan_ip4_msk,
-        (const ip4_addr_t *)&config.lan_ip4_gw);
-
+    if (!(tmp_config.lan_flag & LAN_EEFLG_TYPE)) {
+        strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
+        eth0.hostname = interface_hostname;
+        if ((config.lan_flag & LAN_EEFLG_TYPE) != (tmp_config.lan_flag & LAN_EEFLG_TYPE)) {
+            _change_static_to_dhcp();
+        }
+        eeprom_set_hostname(interface_hostname);
+    } else {
+        if (tmp_config.lan_ip4_addr.addr == 0 || tmp_config.lan_ip4_msk.addr == 0 || tmp_config.lan_ip4_gw.addr == 0) {
+            return 0;
+        } else {
+            strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
+            eth0.hostname = interface_hostname;
+            eeprom_set_hostname(interface_hostname);
+            eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(tmp_config.lan_ip4_addr.addr));
+            eeprom_set_var(EEVAR_LAN_IP4_MSK, variant8_ui32(tmp_config.lan_ip4_msk.addr));
+            eeprom_set_var(EEVAR_LAN_IP4_GW, variant8_ui32(tmp_config.lan_ip4_gw.addr));
+            _change_any_to_static();
+        }
+    }
     return 1;
 }
-#endif //STATIC_SAVE_LOAD_CONFIG
 static int screen_lan_settings_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
 
     window_header_events(&(plsd->header));
+
+    if (conn_flg) {
+        if (config.lan_flag & LAN_EEFLG_TYPE || dhcp_supplied_address(&eth0)) {
+            conn_flg = false;
+            _refresh_addresses(screen);
+        }
+    }
 
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
@@ -223,21 +312,63 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
     case MI_RETURN:
         screen_close();
         return 1;
-#ifdef STATIC_SAVE_LOAD_CONFIG
+    case MI_SWITCH: {
+        if (!(config.lan_flag & LAN_EEFLG_ONOFF)) {
+            if (netif_is_up(&eth0)) {
+                netifapi_netif_set_down(&eth0);
+            }
+            config.lan_flag |= LAN_EEFLG_ONOFF;
+            eeprom_set_var(EEVAR_LAN_FLAG, variant8_ui8(config.lan_flag));
+            _refresh_addresses(screen);
+        } else {
+            config.lan_flag &= ~LAN_EEFLG_ONOFF;
+            eeprom_set_var(EEVAR_LAN_FLAG, variant8_ui8(config.lan_flag));
+            if (netif_is_link_up(&eth0)) {
+                netifapi_netif_set_up(&eth0);
+            }
+            _refresh_addresses(screen);
+            conn_flg = true;
+        }
+        break;
+    }
+    case MI_TYPE: {
+        if (!(config.lan_flag & LAN_EEFLG_TYPE)) {
+            if (eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32 == 0) {
+                if (gui_msgbox("Static IPv4 addresses were not set.",
+                        MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
+                    == MSGBOX_RES_OK) {
+                    plsd->items[MI_TYPE].item.wi_switch_select.index = 0;
+                }
+                return 0;
+            }
+            _change_any_to_static();
+            _addrs_to_str(plsd->mac_addr_str, 0);
+            plsd->text.text = plan_str;
+            plsd->text.win.flg |= WINDOW_FLG_INVALID;
+            gui_invalidate();
+        } else {
+            _change_static_to_dhcp();
+            _refresh_addresses(screen);
+            if (!(config.lan_flag & LAN_EEFLG_ONOFF)) {
+                conn_flg = true;
+            }
+        }
+        break;
+    }
     case MI_SAVE:
         if (media_is_inserted() == false) {
-            if (gui_msgbox("Please insert USB flash disk and try again.",
+            if (gui_msgbox("Please insert a USB drive and try again.",
                     MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                 == MSGBOX_RES_OK) {
             }
         } else {
             if (_save_ini_file()) { // !its possible to save empty configurations!
-                if (gui_msgbox("Settings saved in the \"lan_settings.ini\" file.",
+                if (gui_msgbox("The settings have been saved successfully in the \"lan_settings.ini\" file.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_INFO)
                     == MSGBOX_RES_OK) {
                 }
             } else {
-                if (gui_msgbox("File \"lan_settings.ini\" did not saved properly.",
+                if (gui_msgbox("There was an error saving the settings in the \"lan_settings.ini\" file.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                     == MSGBOX_RES_OK) {
                 }
@@ -253,19 +384,26 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
         } else {
             if (_load_ini_file()) {
                 if (gui_msgbox("Settings successfully loaded", MSGBOX_BTN_OK | MSGBOX_ICO_INFO) == MSGBOX_RES_OK) {
+                    plsd->items[MI_TYPE].item.wi_switch_select.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
+                    window_invalidate(plsd->menu.win.id);
+                    if (!(config.lan_flag & LAN_EEFLG_TYPE)) {
+                        _refresh_addresses(screen);
+                        conn_flg = true;
+                    } else {
+                        _addrs_to_str(plsd->mac_addr_str, 0);
+                        plsd->text.text = plan_str;
+                        plsd->text.win.flg |= WINDOW_FLG_INVALID;
+                    }
                 }
-                _addrs_to_str(plsd->mac_addr_str, 0);
-                plsd->text.win.flg |= WINDOW_FLG_INVALID;
 
             } else {
-                if (gui_msgbox("File \"lan_settings.ini\" not found in the root directory of the USB flash disk.",
+                if (gui_msgbox("IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                     == MSGBOX_RES_OK) {
                 }
             }
         }
         break;
-#endif //STATIC_SAVE_LOAD_CONFIG
     }
     return 0;
 }

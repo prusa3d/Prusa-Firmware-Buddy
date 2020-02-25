@@ -1,13 +1,16 @@
 // screen_menu_settings.c
 
 #include "gui.h"
+#include "config.h"
 #include "app.h"
 #include "marlin_client.h"
 #include "screen_menu.h"
 #include "cmsis_os.h"
 #include "sys.h"
 #include "eeprom.h"
-#include "screen_lan_settings.h"
+#ifdef BUDDY_ENABLE_ETHERNET
+    #include "screen_lan_settings.h"
+#endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
 #include "dump.h"
@@ -35,7 +38,9 @@ typedef enum {
     MI_FW_UPDATE,
     MI_FILAMENT_SENSOR,
     MI_TIMEOUT,
+#ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
+#endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP,
 #ifdef _DEBUG
     MI_HF_TEST_0,
@@ -55,7 +60,9 @@ const menu_item_t _menu_settings_items[] = {
     { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update },
     { { "Fil. sens.", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
+#ifdef BUDDY_ENABLE_ETHERNET
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
+#endif //BUDDY_ENABLE_ETHERNET
     { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 #ifdef _DEBUG
     { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
