@@ -46,6 +46,8 @@ extern void screen_open(int16_t screen_id);
 
 extern void screen_close(void);
 
+extern void screen_unloop(screen_t *const *unl_blacklist, size_t sz);
+
 extern void screen_draw(void);
 
 extern void screen_dispatch_event(window_t *window, uint8_t event, void *param);

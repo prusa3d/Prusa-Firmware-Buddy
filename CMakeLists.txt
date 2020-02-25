@@ -415,6 +415,7 @@ target_sources(
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
           src/marlin_stubs/G28.cpp
+          src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
@@ -486,6 +487,7 @@ if(GUI)
             src/gui/filament.cpp
             src/gui/menu_vars.cpp
             src/gui/screen_printing.cpp
+            src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
             src/gui/screen_PID.cpp
             src/gui/screen_menu_fw_update.c
