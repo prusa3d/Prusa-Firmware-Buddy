@@ -4,6 +4,11 @@
 extern "C" {
 #endif //__cplusplus
 
+/// Project's version ...
+extern const int project_version_major; // major (4)
+extern const int project_version_minor; // minor (0)
+extern const int project_version_patch; // patch (2)
+
 /// Project's version (4.0.2)
 extern const char project_version[];
 

@@ -3,6 +3,7 @@
 #include "sys.h"
 #include "shared_config.h"
 #include "support_utils.h"
+#include "version.h"
 #include "display.h"
 #include "string.h"
 #include "lang.h"
@@ -33,7 +34,7 @@ void create_path_info_4error(char *str, int error_code) {
     sprintf(eofstr(str), "%d/", error_code);
     sprintf(eofstr(str), "%d/", PRINTER_TYPE);
     sprintf(eofstr(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
-    //!//     sprintf(eofstr(str), "%d/", FW_VERSION);
+    sprintf(eofstr(str), "%d-%d-%d-%d/", project_version_major, project_version_minor, project_version_patch, project_build_number);
     sprintf(eofstr(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
     append_crc(str);
 }
@@ -62,9 +63,9 @@ void create_path_info_4service(char *str) {
     block2hex(str, (uint8_t *)OTP_BOARD_TIME_STAMP_ADDR, OTP_BOARD_TIME_STAMP_SIZE);
     strcat(str, "/");
     // FWversion
-    //!//     sprintf(eofstr(str), "%04X-", (uint16_t)(FW_VERSION));
+    sprintf(eofstr(str), "%d-%d-%d", project_version_major, project_version_minor, project_version_patch);
     // BuildNumber
-    //!//     sprintf(eofstr(str), "%d/",FW_BUILDNR);
+    sprintf(eofstr(str), "-%d/", project_build_number);
     // LanguageInfo
     sprintf(eofstr(str), "%d/", lang_code);
     // SelfTestResult
