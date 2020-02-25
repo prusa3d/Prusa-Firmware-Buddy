@@ -63,7 +63,7 @@ void json_parse_jsmn(const char *json, uint16_t len) {
 
     for (int i = 0; i < ret; i++) {
         if (json_cmp(json, &t[i], "command") == 0) {
-            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
             request[t[i + 1].end - t[i + 1].start] = 0;
             i++;
             send_request_to_server(request);

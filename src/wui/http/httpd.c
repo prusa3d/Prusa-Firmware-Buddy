@@ -108,7 +108,6 @@
     #include "lwip/sys.h"
 #endif /* LWIP_HTTPD_TIMING */
 
-#include "cmsis_os.h"
 #include <string.h> /* memset */
 #include <stdlib.h> /* atoi */
 #include <stdio.h>

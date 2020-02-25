@@ -12,13 +12,11 @@
 #include "filament.h"
 #include "wui_vars.h"
 
-#include "cmsis_os.h"
 #include "stdarg.h"
 
 #define BDY_WUI_API_BUFFER_SIZE 512
 #define BDY_NO_FS_FLAGS         0  // no flags for fs_open
-#define BDY_API_PRINTER_LEN     12 // length of "/api/printer" string
-#define BDY_API_JOB_LEN         8  // length of "/api/job" string
+#define BDY_API_TELEMETRY_LEN   14 // length of "/api/telemetry" string
 #define X_AXIS_POS              0
 #define Y_AXIS_POS              1
 #define Z_AXIS_POS              2
@@ -82,19 +80,7 @@ const char *get_update_str(const char *header) {
         print_speed, flow_factor, filament_material);
 }
 
-static void wui_api_job(struct fs_file *file) {
-
-    const char *ptr = get_progress_str();
-
-    uint16_t response_len = strlen(ptr);
-    file->len = response_len;
-    file->data = ptr;
-    file->index = response_len;
-    file->pextension = NULL;
-    file->flags = BDY_NO_FS_FLAGS;
-}
-
-static void wui_api_printer(struct fs_file *file) {
+static void wui_api_telemetry(struct fs_file *file) {
 
     const char *ptr = get_update_str("");
 
@@ -114,11 +100,8 @@ struct fs_file *wui_api_main(const char *uri, struct fs_file *file) {
     file->index = 0;
     file->pextension = NULL;
     file->flags = BDY_NO_FS_FLAGS; // http server adds response header
-    if (!strncmp(uri, "/api/printer", BDY_API_PRINTER_LEN) && (BDY_API_PRINTER_LEN == strlen(uri))) {
-        wui_api_printer(file);
-        return file;
-    } else if (!strncmp(uri, "/api/job", BDY_API_JOB_LEN) && (BDY_API_JOB_LEN == strlen(uri))) {
-        wui_api_job(file);
+    if (!strncmp(uri, "/api/telemetry", BDY_API_TELEMETRY_LEN) && (BDY_API_TELEMETRY_LEN == strlen(uri))) {
+        wui_api_telemetry(file);
         return file;
     }
     return NULL;
