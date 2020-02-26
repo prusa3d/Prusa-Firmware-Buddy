@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include "eeprom.h"
+#include "ip4_addr.h"
 
 extern osMessageQId wui_queue; // input queue (uint8_t)
 extern osSemaphoreId wui_sema; // semaphore handle
@@ -70,7 +72,27 @@ void json_parse_jsmn(const char *json, uint16_t len) {
             request[t[i + 1].end - t[i + 1].start] = 0;
             i++;
             send_request_to_server(request);
-        } /* else if(json_cmp(json, &t[i], "axis") == 0){
+        } else if (json_cmp(json, &t[i], "connect_ip") == 0) {
+            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            request[t[i + 1].end - t[i + 1].start] = 0;
+            ip4_addr_t tmp_addr;
+            if (ip4addr_aton(request, &tmp_addr)) {
+                eeprom_set_var(EEVAR_CONNECT_IP, variant8_ui32(tmp_addr.addr));
+            }
+            i++;
+        } else if (json_cmp(json, &t[i], "connect_key") == 0) {
+            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            request[t[i + 1].end - t[i + 1].start] = 0;
+            eeprom_set_string(EEVAR_CONNECT_KEY_START, request, CONNECT_SEC_KEY_LEN);
+            i++;
+        } else if (json_cmp(json, &t[i], "connect_name") == 0) {
+            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            request[t[i + 1].end - t[i + 1].start] = 0;
+            eeprom_set_string(EEVAR_LAN_HOSTNAME_START, request, LAN_HOSTNAME_MAX_LEN);
+            i++;
+        }
+
+        /* else if(json_cmp(json, &t[i], "axis") == 0){
             if(t[i + 1].type != JSMN_ARRAY){
                 continue;
             }

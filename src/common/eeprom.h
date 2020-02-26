@@ -46,6 +46,9 @@
 
 #define EEVAR_LAN_HOSTNAME_END (EEVAR_LAN_HOSTNAME_START + LAN_HOSTNAME_MAX_LEN) //End of 20char string
 
+#define EEVAR_CONNECT_IP        0x24 // X.X.X.X address encoded in uint32
+#define EEVAR_CONNECT_KEY_START 0x25 //Start of 20char string
+
 #define LAN_EEFLG_ONOFF 1 //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
 #define LAN_EEFLG_TYPE  2 //EEPROM flag for user-defined settings (Switch between dhcp and static)
 
@@ -68,11 +71,9 @@ extern void eeprom_set_var(uint8_t id, variant8_t var);
 // fill range 0x0000..0x0800 with 0xff
 extern void eeprom_clear(void);
 
-// fill dest parameter with hostname (max 20 chars)
-extern void eeprom_get_hostname(char *dest);
+extern void eeprom_get_string(uint8_t id, char *dest, uint16_t len);
 
-// set hostname from src parameter (max 20 chars)
-extern void eeprom_set_hostname(char *src);
+extern void eeprom_set_string(uint8_t id, char *src, uint16_t len);
 
 int8_t eeprom_test_PUT(const unsigned int);
 

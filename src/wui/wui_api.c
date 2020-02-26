@@ -59,28 +59,22 @@ const char *get_update_str(const char *header) {
     osMutexRelease(wui_web_mutex_id);
 
     int32_t actual_nozzle = (int32_t)(webserver_marlin_vars_copy.temp_nozzle);
-    int32_t target_nozzle = (int32_t)(webserver_marlin_vars_copy.target_nozzle);
+    //int32_t target_nozzle = (int32_t)(webserver_marlin_vars_copy.target_nozzle);
     int32_t actual_heatbed = (int32_t)(webserver_marlin_vars_copy.temp_bed);
-    int32_t target_heatbed = (int32_t)(webserver_marlin_vars_copy.target_bed);
+    //int32_t target_heatbed = (int32_t)(webserver_marlin_vars_copy.target_bed);
 
-    double x_pos_mm = (double)webserver_marlin_vars_copy.pos[X_AXIS_POS];
-    double y_pos_mm = (double)webserver_marlin_vars_copy.pos[Y_AXIS_POS];
     double z_pos_mm = (double)webserver_marlin_vars_copy.pos[Z_AXIS_POS];
-    uint16_t print_speed = (uint16_t)(webserver_marlin_vars_copy.print_speed);
-    uint16_t flow_factor = (uint16_t)(webserver_marlin_vars_copy.flow_factor);
-    const char *filament_material = filaments[get_filament()].name;
+    //uint16_t print_speed = (uint16_t)(webserver_marlin_vars_copy.print_speed);
+    //uint16_t flow_factor = (uint16_t)(webserver_marlin_vars_copy.flow_factor);
+    //const char *filament_material = filaments[get_filament()].name;
 
-    return char_streamer("%s{\"temperature\":{"
-                         "\"tool0\":{\"actual\":%d, \"target\":%d},"
-                         "\"bed\":{\"actual\":%d, \"target\":%d}},"
-                         "\"xyz_pos_mm\":{"
-                         "\"x\":%.2f, \"y\":%.2f, \"z\":%.2f},"
-                         "\"print_settings\":{"
-                         "\"printing_speed\":%hd, \"flow_factor\":%hd, \"filament_material\":\"%s\"} }",
+    return char_streamer("%s\r\n\r\n{"
+                         "\"temp_nozzle\":%d,"
+                         "\"temp_bed\":%d,"
+                         "\"z_axis\":%.2f,"
+                         "}",
         header,
-        actual_nozzle, target_nozzle, actual_heatbed, target_heatbed,
-        x_pos_mm, y_pos_mm, z_pos_mm,
-        print_speed, flow_factor, filament_material);
+        actual_nozzle, actual_heatbed, z_pos_mm);
 }
 
 static void wui_api_job(struct fs_file *file) {

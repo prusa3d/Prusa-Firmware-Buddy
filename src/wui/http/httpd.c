@@ -347,6 +347,8 @@ const struct http_ssi_tag_description http_ssi_tag_desc[] = {
     #define MSG_BUFFSIZE           512
     #define MAX_MARLIN_REQUEST_LEN 100
 
+static char request_buf[MSG_BUFFSIZE];
+
 static void *current_connection;
 static void *valid_connection;
 
@@ -356,7 +358,7 @@ extern osSemaphoreId wui_sema; // semaphore handle
 err_t httpd_post_begin(void *connection, const char *uri, const char *http_request,
     u16_t http_request_len, int content_len, char *response_uri,
     u16_t response_uri_len, u8_t *post_auto_wnd) {
-    //LWIP_UNUSED_ARG();
+    LWIP_UNUSED_ARG(post_auto_wnd);
     if (!memcmp(uri, "/post_gcode.html", 16)) {
         if (current_connection != connection) {
             current_connection = connection;
@@ -365,38 +367,48 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
             snprintf(response_uri, response_uri_len, "/post_gcode.html");
             return ERR_OK;
         }
+    } else if (!memcmp(uri, "/admin.html", 11)) {
+        if (current_connection != connection) {
+            current_connection = connection;
+            valid_connection = NULL;
+            /* default page */
+            snprintf(response_uri, response_uri_len, "/admin.html");
+            return ERR_OK;
+        }
     }
     return ERR_VAL;
 }
 
 err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
     if (current_connection == connection) {
-        u16_t token_move = pbuf_memfind(p, "{", 1, 0);
-
-        if (token_move != 0xFFFF) {
-            u16_t len = p->tot_len - token_move;
-            if (len != 0 && len < MSG_BUFFSIZE) {
-                char request_buf[MSG_BUFFSIZE];
-                u16_t ret = pbuf_copy_partial(p, request_buf, len, token_move);
-                if (ret) {
-                    request_buf[ret] = 0;
-                    json_parse_jsmn(request_buf, ret);
-                    valid_connection = connection;
-                }
-            }
+        char request_part[(const u16_t)p->tot_len + 1];
+        char *payload = p->payload;
+        if (payload[0] == 0) {
+            return 0;
         }
-        return ERR_OK;
+        u16_t ret = pbuf_copy_partial(p, request_part, p->tot_len, 0);
+        if (ret && strlen(request_buf) + ret <= MSG_BUFFSIZE) {
+            request_part[ret] = 0;
+            strncat(request_buf, request_part, ret + 1);
+            valid_connection = connection;
+            return ERR_OK;
+        }
+        request_buf[0] = 0;
     }
     return ERR_VAL;
 }
 
 void httpd_post_finished(void *connection, char *response_uri, u16_t response_uri_len) {
     /* default page */
-    snprintf(response_uri, response_uri_len, "/post_gcode.html");
     if (current_connection == connection) {
         if (valid_connection == connection) {
             /*receiving data succeeded*/
-            snprintf(response_uri, response_uri_len, "/post_gcode.html");
+            //TODO: Send 200 OK
+            if (request_buf[0] != 0) {
+                json_parse_jsmn(request_buf, strlen(request_buf));
+                strncpy(response_uri, "/admin.html", response_uri_len);
+                request_buf[0] = 0;
+            }
         }
         current_connection = NULL;
         valid_connection = NULL;

@@ -11,8 +11,11 @@
 #include "wui_api.h"
 #include "stm32f4xx_hal.h"
 #include <string.h>
+#include "eeprom.h"
 
-#define CLIENT_CONNECT_DELAY 10000 // 1 Sec.
+#define CLIENT_CONNECT_DELAY 1000 // 1 Sec.
+#define IP4_ADDR_STR_SIZE    16
+#define HEADER_MAX_SIZE      128
 struct tcp_pcb *testpcb;
 static uint32_t data = 0xdeadbeef;
 extern struct netif eth0;
@@ -25,6 +28,7 @@ tcpSendCallback(void *arg, struct tcp_pcb *pcb, u16_t len) {
     LWIP_UNUSED_ARG(arg);
     LWIP_UNUSED_ARG(pcb);
     LWIP_UNUSED_ARG(len);
+    tcp_close(testpcb);
     return ERR_OK;
 }
 
@@ -59,7 +63,14 @@ static err_t tcpRecvCallback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 }
 
 uint32_t tcp_send_packet(void) {
-    const char *header_plus_data = get_update_str("POST /api/printer HTTP/1.0\r\nHost: 192.168.1.152\r\n\r\n");
+    char host_ip4_str[IP4_ADDR_STR_SIZE], header[HEADER_MAX_SIZE], *uri = "/p/telemetry", printer_token[21];
+    ip4_addr_t host_ip4;
+    host_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP).ui32;
+    strlcpy(host_ip4_str, ip4addr_ntoa(&host_ip4), IP4_ADDR_STR_SIZE);
+    eeprom_get_string(EEVAR_CONNECT_KEY_START, printer_token, 20);
+    printer_token[20] = 0;
+    snprintf(header, HEADER_MAX_SIZE, "POST %s HTTP/1.0\r\nHost: %s\nPrinter-Token: %s", uri, host_ip4_str, printer_token);
+    const char *header_plus_data = get_update_str(header);
 
     uint16_t len = strlen(header_plus_data);
     /* push to buffer */
@@ -89,14 +100,14 @@ err_t connectCallback(void *arg, struct tcp_pcb *tpcb, err_t err) {
 void buddy_http_client_init() {
 
     ip_addr_t ip;
-    IP4_ADDR(&ip, 192, 168, 88, 220); //IP of connect server
+    ip.addr = eeprom_get_var(EEVAR_CONNECT_IP).ui32;
     /* create the control block */
     testpcb = tcp_new();
     tcp_arg(testpcb, &data);
 
     /* register callbacks with the pcb */
     tcp_err(testpcb, tcpErrorHandler);
-    tcp_recv(testpcb, tcpRecvCallback);
+    //tcp_recv(testpcb, tcpRecvCallback);
     tcp_sent(testpcb, tcpSendCallback);
     /* now connect */
     tcp_connect(testpcb, &ip, 9000, connectCallback);
