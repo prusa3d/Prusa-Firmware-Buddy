@@ -5,36 +5,48 @@
 
 #include "variant8.h"
 
+#define EEPROM_ADDRESS 0x0500
 #define EEPROM_VERSION        3
+#define EEPROM_FEATURES       (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN)
+
+// basic variables
+#define EEVAR_VERSION         0x00 // uint16_t eeprom version
+#define EEVAR_FEATURES        0x01 // uint16_t feature mask
+#define EEVAR_DATASIZE        0x02 // uint16_t eeprom data size
+#define EEVAR_FW_VERSION      0x03 // uint16_t encoded firmware version (e.g. 403 for 4.0.3)
+#define EEVAR_FW_BUILD        0x04 // uint16_t firmware build number
+#define EEVAR_FILAMENT_TYPE   0x05 // uint8_t  filament type
+#define EEVAR_FILAMENT_COLOR  0x06 // uint32_t filament color (rgb)
+#define EEVAR_RUN_SELFTEST    0x07 // uint8_t  selftest flag
+#define EEVAR_RUN_XYZCALIB    0x08 // uint8_t  xyz calibration flag
+#define EEVAR_RUN_FIRSTLAY    0x09 // uint8_t  first layer calibration flag
+#define EEVAR_FSENSOR_ENABLED 0x0a // uint8_t  fsensor state
+#define EEVAR_ZOFFSET         0x0b // float    zoffset
+// nozzle PID variables
+#define EEVAR_PID_NOZ_P       0x0c // float    PID constants for nozzle
+#define EEVAR_PID_NOZ_I       0x0d //
+#define EEVAR_PID_NOZ_D       0x0e //
+// bed PID variables
+#define EEVAR_PID_BED_P       0x0f // float    PID constants for bed
+#define EEVAR_PID_BED_I       0x10 //
+#define EEVAR_PID_BED_D       0x11 //
+// lan variables
+#define EEVAR_LAN_FLAG        0x12 // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
+#define EEVAR_LAN_IP4_ADDR    0x13 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_MSK     0x14 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_GW      0x15 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_DNS1    0x16 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_DNS2    0x17 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_HOSTNAME    0x18 // 20char string
+
+#define EEVAR_TEST            0x19
+
+#define EEVAR_CRC32           0x1a // uint32_t crc32 for
 
 
-#define EEVAR_VERSION         0x00
-#define EEVAR_FILAMENT_TYPE   0x01
-#define EEVAR_FILAMENT_COLOR  0x02
-#define EEVAR_UNUSED_1        0x03
-#define EEVAR_UNUSED_2        0x04
-#define EEVAR_UNUSED_3        0x05
-#define EEVAR_RUN_SELFTEST    0x06
-#define EEVAR_RUN_XYZCALIB    0x07
-#define EEVAR_RUN_FIRSTLAY    0x08
-#define EEVAR_FSENSOR_ENABLED 0x09
-#define EEVAR_ZOFFSET         0x0a
-#define EEVAR_PID_NOZ_P       0x0b
-#define EEVAR_PID_NOZ_I       0x0c
-#define EEVAR_PID_NOZ_D       0x0d
-#define EEVAR_PID_BED_P       0x0e
-#define EEVAR_PID_BED_I       0x0f
-#define EEVAR_PID_BED_D       0x10
-
-#define EEVAR_LAN_FLAG        0x11 // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
-#define EEVAR_LAN_IP4_ADDR    0x12 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_MSK     0x13 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_GW      0x14 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_DNS1    0x15 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_DNS2    0x16 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_HOSTNAME    0x17 // 20char string
-
-#define EEVAR_TEST            0x18
+#define EEPROM_FEATURE_PID_NOZ   0x0001
+#define EEPROM_FEATURE_PID_BED   0x0002
+#define EEPROM_FEATURE_LAN       0x0004
 
 
 #define LAN_HOSTNAME_MAX_LEN 20
@@ -62,6 +74,19 @@ extern void eeprom_set_var(uint8_t id, variant8_t var);
 // fill range 0x0000..0x0800 with 0xff
 extern void eeprom_clear(void);
 
+//
+extern int eeprom_load_bin(const char* fn);
+
+//
+extern int eeprom_save_bin(const char* fn);
+
+//
+extern int eeprom_load_xml(const char* fn);
+
+//
+extern int eeprom_save_xml(const char* fn);
+
+// PUT test
 int8_t eeprom_test_PUT(const unsigned int);
 
 
