@@ -24,7 +24,7 @@ extern "C" {
 extern marlin_vars_t webserver_marlin_vars;
 extern osMutexId wui_web_mutex_id;
 
-struct fs_file *wui_api_main(const char *uri, struct fs_file *file);
+struct fs_file *wui_api_main(const char *uri);
 const char *get_update_str(const char *header);
 
 #ifdef __cplusplus
