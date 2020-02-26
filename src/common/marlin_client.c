@@ -49,6 +49,7 @@ typedef struct _marlin_client_t {
     uint32_t command;            // processed command (G28,G29,M701,M702,M600)
     marlin_host_prompt_t prompt; // current host prompt structure (type and buttons)
     uint8_t reheating;           // reheating in progress
+    dialog_cb_t dialog_cb;       // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
 } marlin_client_t;
 
 #pragma pack(pop)
@@ -105,6 +106,7 @@ marlin_vars_t *marlin_client_init(void) {
         client->mesh.yc = 4;
         client->command = MARLIN_CMD_NONE;
         client->reheating = 0;
+        client->dialog_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -146,6 +148,24 @@ int marlin_client_id(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
         return client->id;
+    return 0;
+}
+
+int marlin_client_set_dialog_cb(dialog_cb_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->dialog_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
+int marlin_client_dialog_cb(int data) {
+    marlin_client_t *client = _client_ptr();
+    if (client && client->dialog_cb) {
+        client->dialog_cb(data);
+        return 1;
+    }
     return 0;
 }
 
@@ -670,6 +690,10 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case MARLIN_EVT_Acknowledge:
             client->ack = msg.ui32;
+            break;
+        case MARLIN_EVT_DialogCreation:
+            if (client->dialog_cb)
+                client->dialog_cb(msg.ui32);
             break;
         }
 #ifdef DBG_EVT_MSK

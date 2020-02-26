@@ -58,7 +58,7 @@ static void screen_print_preview_draw(screen_t *screen);
 static int screen_print_preview_event(screen_t *screen, window_t *window,
     uint8_t event, void *param);
 
-static screen_t screen_print_preview = {
+screen_t screen_print_preview = {
     0, // screen identifier
     0, // flags
     screen_print_preview_init,
