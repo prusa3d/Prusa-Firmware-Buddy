@@ -212,7 +212,7 @@ void variant8_free(void *ptr) {
 	if (ptr) {
 		uint16_t size = ((uint16_t*)ptr)[-1];
 		variant8_total_malloc_size -= size;
-		free(ptr);
+		free(((uint16_t*)ptr) - 1);
 	}
 }
 
