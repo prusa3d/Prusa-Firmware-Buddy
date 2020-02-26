@@ -35,6 +35,9 @@
 #define VARIANT8_ERR_INVFMT   4 // invalid format (during conversion from string)
 #define VARIANT8_ERR_OOFRNG   5 // out of range (during conversion from bigger to lower range number)
 
+//macros for variant8 structure constants
+#define _VARIANT8_TYPE(type, _8, _16, _32) ((variant8_t){ type, _8, { _16 }, { _32 } })
+#define _VARIANT8_EMPTY() _VARIANT8_TYPE(VARIANT8_EMPTY, 0, 0, 0)
 
 #pragma pack(push)
 #pragma pack(1)
@@ -66,7 +69,7 @@ typedef struct _variant8_t {
         int16_t i16;
         uint8_t ui8;
         int8_t i8;
-        uint16_t err32;
+        uint32_t err32;
     };
 } variant8_t;
 
@@ -153,6 +156,16 @@ extern uint16_t variant8_data_size(variant8_t* pvar8);
 // returns pointer to data stored in variant
 extern void* variant8_data_ptr(variant8_t* pvar8);
 
+// format simple variant8 types to string
+// same behavior as normal snprintf except for fmt==null - in this case default formating will be used
+extern int variant8_snprintf(char* str, unsigned int size, const char* fmt, variant8_t* pvar8);
+
+// format variant8 with variant8_snprintf, returns pointer to string allocated using variant8_malloc
+extern char* variant8_to_str(variant8_t* pvar8, const char* fmt);
+
+// returns variant8 with desired type parsed from string with sscanf
+extern variant8_t variant8_from_str(uint8_t type, char* str, const char* fmt);
+
 // variant8 malloc function
 extern void* variant8_malloc(uint16_t size);
 
@@ -161,6 +174,7 @@ extern void variant8_free(void* ptr);
 
 // variant8 realloc function (NOT IMPLEMENTED, TODO)
 //extern void* variant8_realloc(void *ptr, uint16_t size);
+
 
 
 #ifdef __cplusplus
