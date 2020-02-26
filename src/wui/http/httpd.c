@@ -108,7 +108,6 @@
     #include "lwip/sys.h"
 #endif /* LWIP_HTTPD_TIMING */
 
-#include "cmsis_os.h"
 #include <string.h> /* memset */
 #include <stdlib.h> /* atoi */
 #include <stdio.h>
@@ -359,12 +358,12 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
     u16_t http_request_len, int content_len, char *response_uri,
     u16_t response_uri_len, u8_t *post_auto_wnd) {
     LWIP_UNUSED_ARG(post_auto_wnd);
-    if (!memcmp(uri, "/post_gcode.html", 16)) {
+    if (!memcmp(uri, "/api/g-code", 11)) {
         if (current_connection != connection) {
             current_connection = connection;
             valid_connection = NULL;
             /* default page */
-            snprintf(response_uri, response_uri_len, "/post_gcode.html");
+            snprintf(response_uri, response_uri_len, "/#g-code");
             return ERR_OK;
         }
     } else if (!memcmp(uri, "/admin.html", 11)) {
@@ -399,7 +398,7 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
 }
 
 void httpd_post_finished(void *connection, char *response_uri, u16_t response_uri_len) {
-    /* default page */
+
     if (current_connection == connection) {
         if (valid_connection == connection) {
             /*receiving data succeeded*/

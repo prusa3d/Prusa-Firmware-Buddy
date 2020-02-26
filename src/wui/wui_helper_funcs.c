@@ -7,9 +7,6 @@
 #include "eeprom.h"
 #include "ip4_addr.h"
 
-extern osMessageQId wui_queue; // input queue (uint8_t)
-extern osSemaphoreId wui_sema; // semaphore handle
-
 char buffer[MAX_REQ_BODY_SIZE] = "";
 static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
     if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start && strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
@@ -22,8 +19,8 @@ void send_request_to_server(const char *request) {
     size_t req_len = strlen(request);
     osMessageQId queue = 0;
 
-    osSemaphoreWait(wui_sema, osWaitForever); // lock
-    if ((queue = wui_queue) != 0)             // queue valid
+    osSemaphoreWait(tcpclient_wui_sema, osWaitForever); // lock
+    if ((queue = tcpclient_wui_queue) != 0)             // queue valid
     {
         while (req_len) {
             int end, i;
@@ -43,13 +40,13 @@ void send_request_to_server(const char *request) {
                     osMessagePut(queue, '\n', 0);
                 }
             } else {
-                osSemaphoreRelease(wui_sema); // unlock
+                osSemaphoreRelease(tcpclient_wui_sema); // unlock
                 osDelay(10);
-                osSemaphoreWait(wui_sema, osWaitForever); //lock
+                osSemaphoreWait(tcpclient_wui_sema, osWaitForever); //lock
             }
         }
     }
-    osSemaphoreRelease(wui_sema); //unlock
+    osSemaphoreRelease(tcpclient_wui_sema); //unlock
 }
 
 void json_parse_jsmn(const char *json, uint16_t len) {
@@ -68,7 +65,7 @@ void json_parse_jsmn(const char *json, uint16_t len) {
 
     for (int i = 0; i < ret; i++) {
         if (json_cmp(json, &t[i], "command") == 0) {
-            strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
+            strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
             request[t[i + 1].end - t[i + 1].start] = 0;
             i++;
             send_request_to_server(request);
