@@ -60,6 +60,9 @@ void StartWebServerTask(void const *argument) {
         web_vars.print_speed = wui.wui_marlin_vars->print_speed;
         web_vars.flow_factor = wui.wui_marlin_vars->flow_factor;
         osMutexRelease(wui_thread_mutex_id);
+
+        //buddy_http_client_loop();
+
         osDelay(100);
     }
 }

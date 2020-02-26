@@ -364,6 +364,14 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
             snprintf(response_uri, response_uri_len, "/post_gcode.html");
             return ERR_OK;
         }
+    } else if (!memcmp(uri, "/g-code", 7)) {
+        if (current_connection != connection) {
+            current_connection = connection;
+            valid_connection = NULL;
+            /* default page */
+            snprintf(response_uri, response_uri_len, "/g-code");
+            return ERR_OK;
+        }
     }
     return ERR_VAL;
 }
