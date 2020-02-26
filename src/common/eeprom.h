@@ -25,7 +25,21 @@
 #define EEVAR_PID_BED_P       0x0e
 #define EEVAR_PID_BED_I       0x0f
 #define EEVAR_PID_BED_D       0x10
-#define EEVAR_TEST            0x11
+
+#define EEVAR_LAN_FLAG        0x11 // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
+#define EEVAR_LAN_IP4_ADDR    0x12 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_MSK     0x13 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_GW      0x14 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_DNS1    0x15 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_DNS2    0x16 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_HOSTNAME    0x17 // 20char string
+
+#define EEVAR_TEST            0x18
+
+
+#define LAN_HOSTNAME_MAX_LEN 20
+#define LAN_EEFLG_ONOFF 1 //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
+#define LAN_EEFLG_TYPE  2 //EEPROM flag for user-defined settings (Switch between dhcp and static)
 
 
 #ifdef __cplusplus

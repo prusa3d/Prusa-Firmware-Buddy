@@ -39,6 +39,13 @@ typedef struct _eeprom_vars_t {
     float PID_BED_P;
     float PID_BED_I;
     float PID_BED_D;
+    uint8_t LAN_FLAG;
+    uint32_t LAN_IP4_ADDR;
+	uint32_t LAN_IP4_MSK;
+	uint32_t LAN_IP4_GW;
+	uint32_t LAN_IP4_DNS1;
+	uint32_t LAN_IP4_DNS2;
+	char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
     char TEST[10];
 } eeprom_vars_t;
 
@@ -64,6 +71,13 @@ const eeprom_entry_t eeprom_map[] = {
     { VARIANT8_FLT,   1  }, // EEVAR_PID_BED_P
     { VARIANT8_FLT,   1  }, // EEVAR_PID_BED_I
     { VARIANT8_FLT,   1  }, // EEVAR_PID_BED_D
+    { VARIANT8_UI8,   1  }, // EEVAR_LAN_FLAG
+    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_ADDR
+    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_MSK
+    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_GW
+    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS1
+    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS2
+    { VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1 }, // EEVAR_LAN_HOSTNAME
     { VARIANT8_PCHAR, 10 }, // EEVAR_TEST
 };
 
@@ -86,6 +100,13 @@ const char *eeprom_var_name[] = {
 	"PID_BED_P",
 	"PID_BED_I",
 	"PID_BED_D",
+	"LAN_FLAG",
+	"LAN_IP4_ADDR",
+	"LAN_IP4_MSK",
+	"LAN_IP4_GW",
+	"LAN_IP4_DNS1",
+	"LAN_IP4_DNS2",
+	"LAN_HOSTNAME",
     "TEST",
 };
 
@@ -108,6 +129,13 @@ const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_PID_BED_P
     0,               // EEVAR_PID_BED_I
     0,               // EEVAR_PID_BED_D
+	0,               // EEVAR_LAN_FLAG
+	0,               // EEVAR_LAN_IP4_ADDR
+	0,               // EEVAR_LAN_IP4_MSK
+	0,               // EEVAR_LAN_IP4_GW
+	0,               // EEVAR_LAN_IP4_DNS1
+	0,               // EEVAR_LAN_IP4_DNS2
+	"",              // EEVAR_LAN_HOSTNAME
 	"TEST",          // EEVAR_TEST
 };
 
@@ -138,7 +166,7 @@ uint8_t eeprom_init(void) {
         eeprom_defaults();
         ret = 1;
     }
-    //eeprom_print_vars();
+    eeprom_print_vars();
     //eeprom_dump();
     return ret;
 }
@@ -265,7 +293,7 @@ int eeprom_var_sprintf(char *str, uint8_t id, variant8_t var) {
 
 void eeprom_print_vars(void) {
     uint8_t id;
-    char text[16];
+    char text[128];
     variant8_t var8;
     for (id = 0; id < EE_VAR_CNT; id++) {
     	var8 = eeprom_get_var(id);
