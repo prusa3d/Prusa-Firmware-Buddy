@@ -44,7 +44,7 @@ const char *get_update_str(const char *header) {
     return char_streamer("%s{"
                          "\"temp_nozzle\":%d,"
                          "\"temp_bed\":%d,"
-                         "\"material\":%s,"
+                         "\"material\":\"%s\","
                          "\"pos_z_mm\":%.2f,"
                          "\"printing_speed\":%d,"
                          "\"flow_factor\":%d"
