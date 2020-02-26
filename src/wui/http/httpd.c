@@ -356,12 +356,12 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
     u16_t http_request_len, int content_len, char *response_uri,
     u16_t response_uri_len, u8_t *post_auto_wnd) {
     //LWIP_UNUSED_ARG();
-    if (!memcmp(uri, "/api/g-code", 7)) {
+    if (!memcmp(uri, "/api/g-code", 11)) {
         if (current_connection != connection) {
             current_connection = connection;
             valid_connection = NULL;
             /* default page */
-            snprintf(response_uri, response_uri_len, "/api/g-code");
+            snprintf(response_uri, response_uri_len, "/#g-code");
             return ERR_OK;
         }
     }
@@ -390,12 +390,11 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
 }
 
 void httpd_post_finished(void *connection, char *response_uri, u16_t response_uri_len) {
-    /* default page */
-    snprintf(response_uri, response_uri_len, "/g-code");
+
     if (current_connection == connection) {
         if (valid_connection == connection) {
             /*receiving data succeeded*/
-            snprintf(response_uri, response_uri_len, "/g-code");
+            snprintf(response_uri, response_uri_len, "/#g-code");
         }
         current_connection = NULL;
         valid_connection = NULL;
