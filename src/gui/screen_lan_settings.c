@@ -79,7 +79,9 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
 
     if (flg) {
         char save_hostname[LAN_HOSTNAME_MAX_LEN + 1];
-        eeprom_get_hostname(save_hostname);
+        variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME);
+        strcpy(save_hostname, hostname.pch);
+        variant8_done(&hostname);
         snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s",
             config.lan_flag & LAN_EEFLG_TYPE ? LAN_type_opt[1] : LAN_type_opt[0], save_hostname, ip4_addr_str, ip4_msk_str, ip4_gw_str);
     } else {
@@ -276,14 +278,16 @@ static uint8_t _load_ini_file(void) {
         if ((config.lan_flag & LAN_EEFLG_TYPE) != (tmp_config.lan_flag & LAN_EEFLG_TYPE)) {
             _change_static_to_dhcp();
         }
-        eeprom_set_hostname(interface_hostname);
+        variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
+        eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
     } else {
         if (tmp_config.lan_ip4_addr.addr == 0 || tmp_config.lan_ip4_msk.addr == 0 || tmp_config.lan_ip4_gw.addr == 0) {
             return 0;
         } else {
             strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
             eth0.hostname = interface_hostname;
-            eeprom_set_hostname(interface_hostname);
+            variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
+            eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
             eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(tmp_config.lan_ip4_addr.addr));
             eeprom_set_var(EEVAR_LAN_IP4_MSK, variant8_ui32(tmp_config.lan_ip4_msk.addr));
             eeprom_set_var(EEVAR_LAN_IP4_GW, variant8_ui32(tmp_config.lan_ip4_gw.addr));
