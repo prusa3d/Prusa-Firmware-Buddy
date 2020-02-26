@@ -2,13 +2,7 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-//--------------------------------------
-//printer variants
-#define PRINTER_PRUSA_MINI 2 //MINI printer
-
-#ifndef PRINTER_TYPE
-    #error "macro PRINTER_TYPE not defined"
-#endif
+#include "printers.h"
 
 #include <avr/pgmspace.h>
 
@@ -63,8 +57,9 @@
 
 //--------------------------------------
 //BUDDY_ENABLE_ETHERNET configuration
-#define BUDDY_ENABLE_ETHERNET
-
+#ifdef BUDDY_ENABLE_WUI
+    #define BUDDY_ENABLE_ETHERNET
+#endif //BUDDY_ENABLE_WUI
 //--------------------------------------
 //LCDSIM configuration
 

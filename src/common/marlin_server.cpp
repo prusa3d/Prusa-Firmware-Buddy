@@ -180,10 +180,10 @@ void print_fan_spd() {
         int timediff = time - last_prt;
         if (timediff >= 1000) {
 
-            serial_echopair_PGM("Tacho_FAN0 ", float(Tacho_FAN0 * 30) / float(timediff)); //60s / 2 pulses per rotation
+            serial_echopair_PGM("Tacho_FAN0 ", (30 * 1000 * Tacho_FAN0) / timediff); //60s / 2 pulses per rotation
             serialprintPGM("rpm ");
             SERIAL_EOL();
-            serial_echopair_PGM("Tacho_FAN1 ", float(Tacho_FAN1 * 30) / float(timediff));
+            serial_echopair_PGM("Tacho_FAN1 ", (30 * 1000 * Tacho_FAN1) / timediff);
             serialprintPGM("rpm ");
             SERIAL_EOL();
             Tacho_FAN0 = 0;
@@ -464,6 +464,7 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_StopProcessing:
             case MARLIN_EVT_Busy:
             case MARLIN_EVT_Ready:
+            case MARLIN_EVT_DialogCreation:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
                 break;
@@ -855,9 +856,8 @@ int _is_in_M600_flg = 0;
 #endif
 
 // force send M600 begin/end notify
-void _force_M600_notify(uint64_t evt_id, uint8_t req_client_mask) {
+void _ensure_event_sent(uint64_t evt_id, uint8_t req_client_mask, uint8_t client_mask) {
     int client_id;
-    uint8_t client_mask = _send_notify_event(evt_id, MARLIN_CMD_M600, 0);
     // loop until event successfully sent to requested clients
     while ((client_mask & req_client_mask) != req_client_mask) {
         idle(); // call marlin idle
@@ -866,6 +866,11 @@ void _force_M600_notify(uint64_t evt_id, uint8_t req_client_mask) {
             if ((marlin_server.client_events[client_id] & ((uint64_t)1 << evt_id)) == 0)
                 client_mask |= (1 << client_id);
     }
+}
+
+void _force_M600_notify(uint64_t evt_id, uint8_t req_client_mask) {
+    uint8_t client_mask = _send_notify_event(evt_id, MARLIN_CMD_M600, 0);
+    _ensure_event_sent(evt_id, req_client_mask, client_mask);
 }
 
 // this is called in main thread directly from M600
@@ -1116,6 +1121,14 @@ void host_action_resumed() {
     DBG_HOST("host_action_resumed");
 }
 
+void host_dialog_creation_handler(const uint8_t is_host) {
+    DBG_HOST("host_dialog_creation_handler %d", (int)is_host);
+
+    const uint8_t evt_id = MARLIN_EVT_DialogCreation; //MARLIN_EVT_CommandBegin;
+    uint8_t client_mask = _send_notify_event(evt_id, is_host, 0);
+    // notification will wait until successfully sent to gui client
+    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+}
 void host_response_handler(const uint8_t response) {
     DBG_HOST("host_response_handler %d", (int)response);
 }

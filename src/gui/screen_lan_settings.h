@@ -30,9 +30,11 @@ typedef struct {
 typedef struct {
     uint8_t lan_flag;
     char hostname[LAN_HOSTNAME_MAX_LEN + 1];
+    char security_key[CONNECT_SEC_KEY_LEN + 1];
     ip4_addr_t lan_ip4_addr;
     ip4_addr_t lan_ip4_msk;
     ip4_addr_t lan_ip4_gw;
+    ip4_addr_t connect_ip4;
 } networkconfig_t;
 
 extern screen_t screen_lan_settings;

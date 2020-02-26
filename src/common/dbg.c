@@ -4,7 +4,11 @@
 #include <stdarg.h>
 #include "stm32f4xx_hal.h"
 
-#define DBG_MAXLINE 128
+#ifndef _DEBUG
+    #define DBG_MAXLINE 128
+#else
+    #define DBG_MAXLINE 256
+#endif //_DEBUG
 
 #ifdef DBG_RTOS
 
