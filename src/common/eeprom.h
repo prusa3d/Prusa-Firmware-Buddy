@@ -5,8 +5,6 @@
 
 #include "variant8.h"
 
-#define LAN_HOSTNAME_MAX_LEN 20
-
 #define EEVAR_VERSION            0x00
 #define EEVAR_FILAMENT_TYPE      0x01
 #define EEVAR_FILAMENT_COLOR     0x02
@@ -48,6 +46,9 @@
 
 #define EEVAR_CONNECT_IP        0x24 // X.X.X.X address encoded in uint32
 #define EEVAR_CONNECT_KEY_START 0x25 //Start of 20char string
+
+#define LAN_HOSTNAME_MAX_LEN 20
+#define CONNECT_SEC_KEY_LEN  20
 
 #define LAN_EEFLG_ONOFF 1 //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
 #define LAN_EEFLG_TYPE  2 //EEPROM flag for user-defined settings (Switch between dhcp and static)
