@@ -213,7 +213,7 @@ target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 if(WUI)
   add_library(WUI_Config INTERFACE)
   target_include_directories(WUI_Config INTERFACE src/common src/gui src/guiapi/include)
-  target_link_libraries(WUI_Config INTERFACE A3idesHeaders)
+  target_link_libraries(WUI_Config INTERFACE A3idesHeaders QR)
 endif()
 
 #
@@ -539,13 +539,6 @@ if(GUI)
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
     )
-endif()
-
-if(WUI)
-  target_sources(
-    firmware PRIVATE src/wui/wui.c src/wui/wui_api.c src/wui/http/fs.c src/wui/http/httpd.c
-    )
-  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
 endif()
 
 set_property(

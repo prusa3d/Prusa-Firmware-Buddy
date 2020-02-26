@@ -222,7 +222,7 @@ variant8_t eeprom_var_default(uint8_t id) {
         return variant8_ui32(0);
     case EEVAR_LAN_IP4_DNS2:
         return variant8_ui32(0);
-    case EEVAR_LAN_HOSTNAME_0:
+    case EEVAR_LAN_HOSTNAME_START:
         return variant8_ui8('M');
     case EEVAR_LAN_HOSTNAME_1:
         return variant8_ui8('I');

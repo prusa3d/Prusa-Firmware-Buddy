@@ -2146,7 +2146,8 @@ http_parse_request(struct pbuf *inp, struct http_state *hs, struct altcp_pcb *pc
     }
 }
 
-    #if LWIP_HTTPD_SSI && (LWIP_HTTPD_SSI_BY_FILE_EXTENSION == 1)
+    #if 0
+        #if LWIP_HTTPD_SSI && (LWIP_HTTPD_SSI_BY_FILE_EXTENSION == 1)
 /* Check if SSI should be parsed for this file/URL
  * (With LWIP_HTTPD_SSI_BY_FILE_EXTENSION == 2, this function can be
  * overridden by an external implementation.)
@@ -2184,7 +2185,8 @@ http_uri_is_ssi(struct fs_file *file, const char *uri) {
     }
     return tag_check;
 }
-    #endif /* LWIP_HTTPD_SSI */
+        #endif /* LWIP_HTTPD_SSI */
+    #endif
 
 /** Initialize a http connection with a file to send (if found).
  * Called by http_find_file and http_find_error_file.
@@ -2668,7 +2670,7 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
     /* check with the wui api */
     if (file == NULL) {
         if (0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
-            file = wui_api_main(uri, hs);
+            file = wui_api_main(uri);
             strcat((char *)uri, ".json"); // http server adds header info (data type) based on the file extension
         }
     }
