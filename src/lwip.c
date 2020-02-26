@@ -62,7 +62,8 @@
 #include "dbg.h"
 #include "ethernetif.h"
 
-char interface_hostname[21];
+#define HOSTNAME_MAX_LEN 20
+char interface_hostname[HOSTNAME_MAX_LEN + 1];
 struct netif eth0;
 ip4_addr_t ipaddr;
 ip4_addr_t netmask;

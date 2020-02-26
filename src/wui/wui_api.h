@@ -12,10 +12,17 @@
 #include "httpd.h"
 #include "lwip/apps/fs.h"
 #include "wui_helper_funcs.h"
+#include "marlin_vars.h"
+
+#include "cmsis_os.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// for data exchange between wui thread and HTTP thread
+extern marlin_vars_t webserver_marlin_vars;
+extern osMutexId wui_web_mutex_id;
 
 struct fs_file *wui_api_main(const char *uri, struct fs_file *file);
 const char *get_update_str(const char *header);

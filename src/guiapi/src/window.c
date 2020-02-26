@@ -33,6 +33,7 @@ const window_class_t *window_classes[] = {
     (window_class_t *)(&window_class_menu),     //  9  MENU
     (window_class_t *)(&window_class_msgbox),   // 10  MSGBOX
     (window_class_t *)(&window_class_progress), // 11  PROGRESS
+    (window_class_t *)(&window_class_qr),       // 12  QR
 };
 
 const uint16_t window_class_count = sizeof(window_classes) / sizeof(window_class_t *);

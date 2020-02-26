@@ -43,7 +43,7 @@
 #include "cmsis_os.h"
 #include "fatfs.h"
 #ifdef BUDDY_ENABLE_WUI
-#include "wui.h"
+    #include "wui.h"
 #endif
 #include "usb_device.h"
 #include "usb_host.h"
@@ -250,12 +250,9 @@ int main(void) {
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
     /* definition and creation of displayTask */
-#ifndef HAS_GUI
-    #error "HAS_GUI not defined."
-#elif HAS_GUI
     osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 2048);
     displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
-#endif
+
     /* definition and creation of idleTask */
     osThreadDef(idleTask, StartIdleTask, osPriorityIdle, 0, 128);
     idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
@@ -269,12 +266,9 @@ int main(void) {
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
     /* definition and creation of measurementTask */
-#ifndef HAS_FILAMENT_SENSOR
-    #error "HAS_FILAMENT_SENSOR not defined."
-#elif HAS_FILAMENT_SENSOR
     osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
     osThreadCreate(osThread(measurementTask), NULL);
-#endif
+
     /* USER CODE END RTOS_THREADS */
 
     /* USER CODE BEGIN RTOS_QUEUES */

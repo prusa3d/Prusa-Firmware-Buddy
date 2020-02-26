@@ -7,9 +7,9 @@
 [submodule "inih"]
 	path = lib/inih
 	url = https://github.com/benhoyt/inih.git
-[submodule "lib/Middlewares/Third_Party/LwIP"]
+[submodule "LwIP"]
 	path = lib/Middlewares/Third_Party/LwIP
-	url = git@github.com:prusa3d/LwIP_212.git
+	url = https://github.com/prusa3d/LwIP_212.git
 [submodule "lib/jsmn"]
 	path = lib/jsmn
 	url = git@github.com:zserge/jsmn.git

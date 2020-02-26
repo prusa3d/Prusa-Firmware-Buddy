@@ -75,7 +75,12 @@ void gui_invalidate(void) {
 #define GUI_DELAY_LOOP 100
 
 #ifdef GUI_WINDOW_SUPPORT
+
+static uint8_t guiloop_nesting = 0;
+uint8_t gui_get_nesting(void) { return guiloop_nesting; }
+
 void gui_loop(void) {
+    ++guiloop_nesting;
     uint32_t delay;
     uint32_t tick;
     #ifdef GUI_JOGWHEEL_SUPPORT
@@ -134,6 +139,7 @@ void gui_loop(void) {
         gui_loop_tick = tick;
         screen_dispatch_event(0, WINDOW_EVENT_LOOP, 0);
     }
+    --guiloop_nesting;
 }
 
 int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,

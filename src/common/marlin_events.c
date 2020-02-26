@@ -33,6 +33,7 @@ const char *__evt_name[] = {
     "SafetyTimerExpired",
     "Message",
     "Reheat",
+    "DialogCreation",
     "Acknowledge",
 };
 

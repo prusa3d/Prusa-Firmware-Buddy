@@ -78,7 +78,7 @@ set(WUI
     CACHE BOOL "Enable Web User Interface"
     )
 set(GUI
-    "NO"
+    "YES"
     CACHE BOOL "Enable GUI"
     )
 
@@ -367,6 +367,8 @@ target_link_libraries(
           inih::inih
           $<$<BOOL:${WUI}>:WUI>
           jsmn::jsmn
+          QR
+          CRC
   )
 
 target_sources(
@@ -380,7 +382,7 @@ target_sources(
           src/freertos_openocd.c
           src/usbh_diskio.c
           src/ethernetif.c
-          src/main.c
+          src/main_${PRINTER}.c
           src/usbd_desc.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
@@ -428,7 +430,11 @@ target_sources(
           src/common/print_utils.cpp
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
+          src/common/support_utils.cpp
+          src/common/errors.c
+          src/common/lang.c
           src/marlin_stubs/G28.cpp
+          src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
@@ -477,6 +483,8 @@ if(GUI)
             src/gui/screen_watchdog.c
             src/gui/screen_menu_move.c
             src/gui/screen_lan_settings.c
+            src/gui/screen_qr_info.cpp
+            src/gui/screen_qr_error.cpp
             src/gui/test/screen_test.c
             src/gui/test/screen_test_disp_mem.c
             src/gui/test/screen_test_gui.c
@@ -500,6 +508,7 @@ if(GUI)
             src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
             src/gui/screen_printing.cpp
+            src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
             src/gui/screen_PID.cpp
             src/gui/screen_menu_fw_update.c
@@ -527,8 +536,16 @@ if(GUI)
             src/guiapi/src/window_spin.c
             src/guiapi/src/window_text.c
             src/guiapi/src/window_msgbox.c
+            src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
     )
+endif()
+
+if(WUI)
+  target_sources(
+    firmware PRIVATE src/wui/wui.c src/wui/wui_api.c src/wui/http/fs.c src/wui/http/httpd.c
+    )
+  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
 endif()
 
 set_property(
@@ -543,14 +560,7 @@ set_property(
   )
 
 set_property(
-  SOURCE src/main.c
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
-           HAS_GUI=$<BOOL:${GUI}>
-  )
-
-set_property(
-  SOURCE src/common/bsod.c src/common/appmain.cpp
+  SOURCE src/common/bsod.c src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )
