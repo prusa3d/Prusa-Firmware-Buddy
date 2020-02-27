@@ -6,6 +6,9 @@
 #include "config.h"
 #include "st25dv64k.h"
 #include "dbg.h"
+#include "cmsis_os.h"
+#include "ff.h"
+
 
 
 #define EEPROM_VARCOUNT  (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
@@ -129,14 +132,14 @@ const eeprom_vars_t eeprom_var_defaults = {
     1,               // EEVAR_RUN_SELFTEST
     1,               // EEVAR_RUN_XYZCALIB
     1,               // EEVAR_RUN_FIRSTLAY
-    0,               // EEVAR_FSENSOR_ENABLED
+    1,               // EEVAR_FSENSOR_ENABLED
     0,               // EEVAR_ZOFFSET
-    0,               // EEVAR_PID_NOZ_P
-    0,               // EEVAR_PID_NOZ_I
-    0,               // EEVAR_PID_NOZ_D
-    0,               // EEVAR_PID_BED_P
-    0,               // EEVAR_PID_BED_I
-    0,               // EEVAR_PID_BED_D
+    18.000000,       // EEVAR_PID_NOZ_P
+    0.294400,        // EEVAR_PID_NOZ_I
+    274.437500,      // EEVAR_PID_NOZ_D
+    160.970001,      // EEVAR_PID_BED_P
+    2.251200,        // EEVAR_PID_BED_I
+    2877.437744,     // EEVAR_PID_BED_D
     0,               // EEVAR_LAN_FLAG
     0,               // EEVAR_LAN_IP4_ADDR
     0,               // EEVAR_LAN_IP4_MSK
@@ -149,9 +152,8 @@ const eeprom_vars_t eeprom_var_defaults = {
 };
 
 
-//TODO: crc
-uint16_t eeprom_crc_value = 0;
-uint8_t eeprom_crc_index = 0;
+// semaphore handle (lock/unlock)
+osSemaphoreId eeprom_sema = 0;
 
 
 // forward declarations of private functions
@@ -169,7 +171,6 @@ void eeprom_unlock(void);
 
 
 // public functions - described in header
-#include "cmsis_os.h"
 
 uint8_t eeprom_init(void) {
     uint8_t ret = 0;
@@ -194,7 +195,7 @@ uint8_t eeprom_init(void) {
     else
     {
         uint16_t features = eeprom_get_var(EEVAR_FEATURES).ui16;
-        if (features != EEVAR_FEATURES)
+        if (features != EEPROM_FEATURES)
             if (eeprom_convert_from() == 0)
                 ret = 1;
     }
@@ -338,28 +339,58 @@ void eeprom_print_vars(void) {
 }
 
 
-#define ADDR_FILAMENT_TYPE 0x400
+#define ADDR_V2_FILAMENT_TYPE  0x0400
+#define ADDR_V2_FILAMENT_COLOR EEPROM_ADDRESS + 3
+#define ADDR_V2_RUN_SELFTEST   EEPROM_ADDRESS + 19
+#define ADDR_V2_ZOFFSET        0x010e
+#define ADDR_V2_PID_NOZ_P      0x019d
+#define ADDR_V2_PID_BED_P      0x01af
 
 // conversion function for old version 2 format (marlin eeprom)
-int eeprom_convert_from_v2(void)
-{
+int eeprom_convert_from_v2(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
-    // read FILAMENT_TYPE & FILAMENT_COLOR (uint8_t, uint32_t)
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS + 2, &(vars.FILAMENT_TYPE), sizeof(uint8_t) + sizeof(uint32_t));
+    // read FILAMENT_TYPE (uint8_t)
+    st25dv64k_user_read_bytes(ADDR_V2_FILAMENT_TYPE, &(vars.FILAMENT_TYPE), sizeof(uint8_t));
+    // initialize to zero, maybe not necessary
+    if (vars.FILAMENT_TYPE == 0xff) vars.FILAMENT_TYPE = 0;
+    // read FILAMENT_COLOR (uint32_t)
+    st25dv64k_user_read_bytes(ADDR_V2_FILAMENT_COLOR, &(vars.FILAMENT_COLOR), sizeof(uint32_t));
     // read RUN_SELFTEST & RUN_XYZCALIB & RUN_FIRSTLAY & FSENSOR_ENABLED (4x uint8_t)
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS + 19, &(vars.RUN_SELFTEST), 4 * sizeof(uint8_t));
-    //
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void*)&eeprom_var_defaults, EEPROM_DATASIZE);
-    return 0;
+    st25dv64k_user_read_bytes(ADDR_V2_RUN_SELFTEST, &(vars.RUN_SELFTEST), 4 * sizeof(uint8_t));
+    // read ZOFFSET (float)
+    st25dv64k_user_read_bytes(ADDR_V2_ZOFFSET, &(vars.ZOFFSET), sizeof(float));
+    // check ZOFFSET valid range, cancel conversion if not of valid range (defaults will be loaded)
+    if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0)) return 0;
+    // read PID_NOZ_P & PID_NOZ_I & PID_NOZ_D (3x float)
+    st25dv64k_user_read_bytes(ADDR_V2_PID_NOZ_P, &(vars.PID_NOZ_P), 3 * sizeof(float));
+    // TODO: validate nozzle PID constants
+    // read PID_BED_P & PID_BED_I & PID_BED_D (3x float)
+    st25dv64k_user_read_bytes(ADDR_V2_PID_BED_P, &(vars.PID_BED_P), 3 * sizeof(float));
+    // TODO: validate bed PID constants
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void*)&vars, EEPROM_DATASIZE);
+    return 1;
 }
 
 // conversion function for new version format (features, firmware version/build)
-int eeprom_convert_from(void)
-{
+int eeprom_convert_from(void) {
     return 0;
 }
 
-#include "ff.h"
+void eeprom_lock(void) {
+    if (eeprom_sema == 0) {
+        osSemaphoreDef(eepromSema);
+        eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
+    }
+    osSemaphoreWait(eeprom_sema, osWaitForever);
+}
+
+void eeprom_unlock(void) {
+    osSemaphoreRelease(eeprom_sema);
+}
+
+
+// public functions for load/save
 
 int eeprom_load_bin(const char* fn)
 {
@@ -453,16 +484,3 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
 }
 
 
-osSemaphoreId eeprom_sema = 0; // semaphore handle
-
-void eeprom_lock(void) {
-    if (eeprom_sema == 0) {
-        osSemaphoreDef(eepromSema);
-        eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
-    }
-    osSemaphoreWait(eeprom_sema, osWaitForever);
-}
-
-void eeprom_unlock(void) {
-    osSemaphoreRelease(eeprom_sema);
-}
