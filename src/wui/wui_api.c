@@ -11,12 +11,14 @@
 #include "wui.h"
 #include "filament.h"
 #include "wui_vars.h"
+#include "progress_data_wrapper.h"
 
 #include "stdarg.h"
 
 #define BDY_WUI_API_BUFFER_SIZE 512
 #define BDY_NO_FS_FLAGS         0  // no flags for fs_open
 #define BDY_API_TELEMETRY_LEN   14 // length of "/api/telemetry" string
+#define BDY_API_PROGRESS_LEN    13 // length of "/api/progress" string
 
 // for data exchange between wui thread and HTTP thread
 static web_vars_t web_vars_copy;
@@ -41,17 +43,47 @@ const char *get_update_str(const char *header) {
     uint16_t flow_factor = (uint16_t)(web_vars_copy.flow_factor);
     const char *filament_material = filaments[get_filament()].name;
 
+    if (!web_vars_copy.sd_printing) {
+        return char_streamer("%s{"
+                             "\"temp_nozzle\":%d,"
+                             "\"temp_bed\":%d,"
+                             "\"material\":\"%s\","
+                             "\"pos_z_mm\":%.2f,"
+                             "\"printing_speed\":%d,"
+                             "\"flow_factor\":%d"
+                             "}",
+            header,
+            actual_nozzle, actual_heatbed, filament_material,
+            z_pos_mm, print_speed, flow_factor);
+    }
+
+    uint8_t percent_done;
+    char time_2_end[9], print_time[13];
+    if (is_percentage_valid(web_vars_copy.print_dur)) {
+        percent_done = progress_get_percentage();
+        progress_format_time2end(time_2_end, web_vars_copy.print_speed);
+    } else {
+        strlcpy(time_2_end, "N/A", 4);
+        percent_done = web_vars_copy.sd_precent_done;
+    }
+
+    print_dur_to_string(print_time, web_vars_copy.print_dur);
+
     return char_streamer("%s{"
                          "\"temp_nozzle\":%d,"
                          "\"temp_bed\":%d,"
                          "\"material\":\"%s\","
                          "\"pos_z_mm\":%.2f,"
                          "\"printing_speed\":%d,"
-                         "\"flow_factor\":%d"
+                         "\"flow_factor\":%d,"
+                         "\"progress\":%d,"
+                         "\"print_dur\":\"%s\","
+                         "\"time_est\":\"%s\""
                          "}",
         header,
         actual_nozzle, actual_heatbed, filament_material,
-        z_pos_mm, print_speed, flow_factor);
+        z_pos_mm, print_speed, flow_factor,
+        percent_done, print_time, time_2_end);
 }
 
 static void wui_api_telemetry(struct fs_file *file) {

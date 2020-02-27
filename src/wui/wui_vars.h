@@ -10,8 +10,11 @@ typedef struct {
     float pos[4];
     float temp_nozzle;
     float temp_bed;
+    uint32_t print_dur;
     uint16_t print_speed;
     uint16_t flow_factor;
+    uint8_t sd_precent_done;
+    uint8_t sd_printing;
 } web_vars_t;
 extern web_vars_t web_vars;
 
