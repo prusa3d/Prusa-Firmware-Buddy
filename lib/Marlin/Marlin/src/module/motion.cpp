@@ -34,6 +34,12 @@
 
 #include "../inc/MarlinConfig.h"
 
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+#include "minda_broken_cable_detection.h"
+#else
+static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0(){}
+#endif
+
 #if IS_SCARA
   #include "../libs/buzzer.h"
   #include "../lcd/ultralcd.h"
@@ -1547,7 +1553,7 @@ void homeaxis(const AxisEnum axis) {
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
       if (axis == Z_AXIS && bltouch.deploy()) return; // Intermediate DEPLOY (in LOW SPEED MODE)
     #endif
-
+    MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0();
     do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
