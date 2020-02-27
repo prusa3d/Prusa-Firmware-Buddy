@@ -145,16 +145,6 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             break;
         case MI_FACTORY_DEFAULTS:
             if (gui_msgbox("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?", MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
-                marlin_event_clr(MARLIN_EVT_FactoryReset);
-                marlin_gcode("M502");
-                while (!marlin_event_clr(MARLIN_EVT_FactoryReset)) {
-                    gui_loop();
-                }
-                marlin_event_clr(MARLIN_EVT_StoreSettings);
-                marlin_gcode("M500");
-                while (!marlin_event_clr(MARLIN_EVT_StoreSettings)) {
-                    gui_loop();
-                }
                 eeprom_defaults();
                 gui_msgbox("Factory defaults loaded. The system will now restart.", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
                 sys_reset();
