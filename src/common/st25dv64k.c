@@ -68,7 +68,7 @@ static inline void st25dv64k_unlock(void) {
 
     #define st25dv64k_delay HAL_Delay
 
-#endif //DBG_RTOS
+#endif //ST25DV64K_RTOS
 
 void st25dv64k_init(void) {
     uint8_t pwd[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };

@@ -46,6 +46,13 @@ typedef enum {
     MI_HF_TEST_0,
     MI_HF_TEST_1,
 #endif //_DEBUG
+#ifdef _DEBUG
+    MI_EE_TEST_400,
+    MI_EE_TEST_401,
+    MI_EE_TEST_402,
+    MI_EE_TEST_403RC1,
+    MI_EE_TEST_403,
+#endif //_DEBUG
 } MI_t;
 
 const menu_item_t _menu_settings_items[] = {
@@ -67,6 +74,13 @@ const menu_item_t _menu_settings_items[] = {
 #ifdef _DEBUG
     { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+#endif //_DEBUG
+#ifdef _DEBUG
+    { { "EE 4.0.0", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE 4.0.1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE 4.0.2", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE 4.0.3-RC1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE 4.0.3", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 #endif //_DEBUG
 };
 
@@ -102,6 +116,28 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             break;
         case MI_HF_TEST_1:
             dump_hardfault_test_1();
+            break;
+#endif //_DEBUG
+#ifdef _DEBUG
+        case MI_EE_TEST_400:
+            eeprom_load_bin("eeprom/eeprom_MINI-4.0.0-final+1965.bin");
+            sys_reset();
+            break;
+        case MI_EE_TEST_401:
+            eeprom_load_bin("eeprom/eeprom_MINI-4.0.1-final+1974.bin");
+            sys_reset();
+            break;
+        case MI_EE_TEST_402:
+            eeprom_load_bin("eeprom/eeprom_MINI-4.0.2-final+1977.bin");
+            sys_reset();
+            break;
+        case MI_EE_TEST_403RC1:
+            eeprom_load_bin("eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
+            sys_reset();
+            break;
+        case MI_EE_TEST_403:
+            eeprom_load_bin("eeprom/eeprom_MINI-4.0.3-final+258.bin");
+            sys_reset();
             break;
 #endif //_DEBUG
         case MI_DISABLE_STEP:
