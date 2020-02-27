@@ -178,7 +178,7 @@ uint8_t eeprom_init(void) {
     //eeprom_clear();
     //eeprom_dump();
     //osDelay(2000);
-    //eeprom_save_bin("eeprom.bin");
+    //eeprom_save_bin_to_usb("eeprom.bin");
     uint16_t version = eeprom_get_var(EEVAR_VERSION).ui16;
     if (version != EEPROM_VERSION) {
         if (version == 2) {
@@ -389,7 +389,7 @@ void eeprom_unlock(void) {
 
 // public functions for load/save
 
-int eeprom_load_bin(const char* fn)
+int eeprom_load_bin_from_usb(const char* fn)
 {
     FIL fil;
     uint8_t buff[128];
@@ -418,7 +418,7 @@ int eeprom_load_bin(const char* fn)
     return 0;
 }
 
-int eeprom_save_bin(const char* fn)
+int eeprom_save_bin_to_usb(const char* fn)
 {
     FIL fil;
     uint8_t buff[128];
@@ -447,12 +447,12 @@ int eeprom_save_bin(const char* fn)
     return 0;
 }
 
-int eeprom_load_xml(const char* fn)
+int eeprom_load_xml_from_usb(const char* fn)
 {
     return 0;
 }
 
-int eeprom_save_xml(const char* fn)
+int eeprom_save_xml_to_usb(const char* fn)
 {
     FIL fil;
     uint8_t id;

@@ -75,16 +75,16 @@ extern void eeprom_set_var(uint8_t id, variant8_t var);
 extern void eeprom_clear(void);
 
 //
-extern int eeprom_load_bin(const char* fn);
+extern int eeprom_load_bin_from_usb(const char* fn);
 
 //
-extern int eeprom_save_bin(const char* fn);
+extern int eeprom_save_bin_to_usb(const char* fn);
 
 //
-extern int eeprom_load_xml(const char* fn);
+extern int eeprom_load_xml_from_usb(const char* fn);
 
 //
-extern int eeprom_save_xml(const char* fn);
+extern int eeprom_save_xml_to_usb(const char* fn);
 
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);

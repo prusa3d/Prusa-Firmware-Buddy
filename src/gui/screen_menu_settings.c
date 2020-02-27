@@ -126,34 +126,34 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
 #endif //_DEBUG
 #ifdef _DEBUG
         case MI_EE_LOAD_400:
-            eeprom_load_bin("eeprom/eeprom_MINI-4.0.0-final+1965.bin");
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.0-final+1965.bin");
             sys_reset();
             break;
         case MI_EE_LOAD_401:
-            eeprom_load_bin("eeprom/eeprom_MINI-4.0.1-final+1974.bin");
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.1-final+1974.bin");
             sys_reset();
             break;
         case MI_EE_LOAD_402:
-            eeprom_load_bin("eeprom/eeprom_MINI-4.0.2-final+1977.bin");
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.2-final+1977.bin");
             sys_reset();
             break;
         case MI_EE_LOAD_403RC1:
-            eeprom_load_bin("eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
             sys_reset();
             break;
         case MI_EE_LOAD_403:
-            eeprom_load_bin("eeprom/eeprom_MINI-4.0.3-final+258.bin");
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.3-final+258.bin");
             sys_reset();
             break;
         case MI_EE_LOAD:
-            eeprom_load_bin("eeprom.bin");
+            eeprom_load_bin_from_usb("eeprom.bin");
             sys_reset();
             break;
         case MI_EE_SAVE:
-            eeprom_save_bin("eeprom.bin");
+            eeprom_save_bin_to_usb("eeprom.bin");
             break;
         case MI_EE_SAVEXML:
-            eeprom_save_xml("eeprom.xml");
+            eeprom_save_xml_to_usb("eeprom.xml");
             break;
 #endif //_DEBUG
         case MI_DISABLE_STEP:
