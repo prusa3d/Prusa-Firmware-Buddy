@@ -161,7 +161,7 @@ osSemaphoreId eeprom_sema = 0;
 uint16_t eeprom_var_size(uint8_t id);
 uint16_t eeprom_var_addr(uint8_t id);
 void eeprom_dump(void);
-int eeprom_var_snprintf(char *str, unsigned int size, uint8_t id, variant8_t var);
+int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var);
 void eeprom_print_vars(void);
 int eeprom_convert_from_v2(void);
 int eeprom_convert_from(void);
@@ -181,19 +181,16 @@ uint8_t eeprom_init(void) {
     //eeprom_save_bin("eeprom.bin");
     uint16_t version = eeprom_get_var(EEVAR_VERSION).ui16;
     if (version != EEPROM_VERSION) {
-        if (version == 2)
-        {
+        if (version == 2) {
             if (eeprom_convert_from_v2() == 0)
                 ret = 1;
         }
-        else
-        {
+        else {
             if (eeprom_convert_from() == 0)
                 ret = 1;
         }
     }
-    else
-    {
+    else {
         uint16_t features = eeprom_get_var(EEVAR_FEATURES).ui16;
         if (features != EEPROM_FEATURES)
             if (eeprom_convert_from() == 0)
@@ -306,7 +303,7 @@ void eeprom_dump(void) {
     }
 }
 
-int eeprom_var_snprintf(char *str, unsigned int size, uint8_t id, variant8_t var) {
+int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) {
     int n = 0;
     switch (id) {
     // ip addresses
@@ -332,7 +329,7 @@ void eeprom_print_vars(void) {
     variant8_t var8;
     for (id = 0; id < EEPROM_VARCOUNT; id++) {
         var8 = eeprom_get_var(id);
-        eeprom_var_snprintf(text, 128, id, var8);
+        eeprom_var_format(text, 128, id, var8);
         _dbg("%s=%s", eeprom_var_name[id], text);
         variant8_done(&var8);
     }
@@ -457,6 +454,28 @@ int eeprom_load_xml(const char* fn)
 
 int eeprom_save_xml(const char* fn)
 {
+    FIL fil;
+    uint8_t id;
+    char text[128];
+    variant8_t var8;
+    UINT bw;
+    if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
+    	f_write(&fil, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", 55, &bw);
+    	f_write(&fil, "<eeprom>\n", 9, &bw);
+		for (id = 0; id < EEPROM_VARCOUNT; id++) {
+			var8 = eeprom_get_var(id);
+			eeprom_var_format(text, 128, id, var8);
+	    	f_write(&fil, "  <variable id=\"", 16, &bw);
+	    	f_write(&fil, eeprom_var_name[id], strlen(eeprom_var_name[id]), &bw);
+	    	f_write(&fil, "\" value=\"", 9, &bw);
+	    	f_write(&fil, text, strlen(text), &bw);
+	    	f_write(&fil, "\"/>\n", 4, &bw);
+			variant8_done(&var8);
+		}
+    	f_write(&fil, "</eeprom>\n", 10, &bw);
+        f_close(&fil);
+        return 1;
+    }
     return 0;
 }
 

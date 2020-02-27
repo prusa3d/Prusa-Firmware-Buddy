@@ -47,11 +47,14 @@ typedef enum {
     MI_HF_TEST_1,
 #endif //_DEBUG
 #ifdef _DEBUG
-    MI_EE_TEST_400,
-    MI_EE_TEST_401,
-    MI_EE_TEST_402,
-    MI_EE_TEST_403RC1,
-    MI_EE_TEST_403,
+    MI_EE_LOAD_400,
+    MI_EE_LOAD_401,
+    MI_EE_LOAD_402,
+    MI_EE_LOAD_403RC1,
+    MI_EE_LOAD_403,
+    MI_EE_LOAD,
+    MI_EE_SAVE,
+    MI_EE_SAVEXML,
 #endif //_DEBUG
 } MI_t;
 
@@ -81,6 +84,9 @@ const menu_item_t _menu_settings_items[] = {
     { { "EE 4.0.2", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "EE 4.0.3-RC1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "EE 4.0.3", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE load", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE save", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE save xml", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 #endif //_DEBUG
 };
 
@@ -119,25 +125,35 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             break;
 #endif //_DEBUG
 #ifdef _DEBUG
-        case MI_EE_TEST_400:
+        case MI_EE_LOAD_400:
             eeprom_load_bin("eeprom/eeprom_MINI-4.0.0-final+1965.bin");
             sys_reset();
             break;
-        case MI_EE_TEST_401:
+        case MI_EE_LOAD_401:
             eeprom_load_bin("eeprom/eeprom_MINI-4.0.1-final+1974.bin");
             sys_reset();
             break;
-        case MI_EE_TEST_402:
+        case MI_EE_LOAD_402:
             eeprom_load_bin("eeprom/eeprom_MINI-4.0.2-final+1977.bin");
             sys_reset();
             break;
-        case MI_EE_TEST_403RC1:
+        case MI_EE_LOAD_403RC1:
             eeprom_load_bin("eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
             sys_reset();
             break;
-        case MI_EE_TEST_403:
+        case MI_EE_LOAD_403:
             eeprom_load_bin("eeprom/eeprom_MINI-4.0.3-final+258.bin");
             sys_reset();
+            break;
+        case MI_EE_LOAD:
+            eeprom_load_bin("eeprom.bin");
+            sys_reset();
+            break;
+        case MI_EE_SAVE:
+            eeprom_save_bin("eeprom.bin");
+            break;
+        case MI_EE_SAVEXML:
+            eeprom_save_xml("eeprom.xml");
             break;
 #endif //_DEBUG
         case MI_DISABLE_STEP:
