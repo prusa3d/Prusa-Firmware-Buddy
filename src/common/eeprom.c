@@ -12,8 +12,8 @@
 
 
 #define EEPROM_VARCOUNT  (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
-#define EEPROM_DATASIZE sizeof(eeprom_vars_t)
-
+#define EEPROM_DATASIZE  sizeof(eeprom_vars_t)
+#define EEPROM__PADDING  1
 
 #pragma pack(push)
 #pragma pack(1)
@@ -52,6 +52,7 @@ typedef struct _eeprom_vars_t {
     uint32_t LAN_IP4_DNS2;
     char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
     char TEST[10];
+    char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
 
@@ -86,6 +87,7 @@ const eeprom_entry_t eeprom_map[] = {
     { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS2
     { VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1 }, // EEVAR_LAN_HOSTNAME
     { VARIANT8_PCHAR, 10 }, // EEVAR_TEST
+    { VARIANT8_PCHAR, EEPROM__PADDING }, // EEVAR__PADDING32
     { VARIANT8_UI32,  1  }, // EEVAR_CRC32
 };
 
@@ -117,6 +119,7 @@ const char *eeprom_var_name[] = {
     "LAN_IP4_DNS2",
     "LAN_HOSTNAME",
     "TEST",
+    "_PADDING",
     "CRC32",
 };
 
@@ -148,6 +151,7 @@ const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_LAN_IP4_DNS2
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
     "TEST",          // EEVAR_TEST
+    "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
 
@@ -464,6 +468,7 @@ int eeprom_save_xml_to_usb(const char* fn)
     	f_write(&fil, "<eeprom>\n", 9, &bw);
 		for (id = 0; id < EEPROM_VARCOUNT; id++) {
 			var8 = eeprom_get_var(id);
+			*text = 0;
 			eeprom_var_format(text, 128, id, var8);
 	    	f_write(&fil, "  <variable id=\"", 16, &bw);
 	    	f_write(&fil, eeprom_var_name[id], strlen(eeprom_var_name[id]), &bw);

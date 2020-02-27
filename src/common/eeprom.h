@@ -41,7 +41,9 @@
 
 #define EEVAR_TEST            0x19
 
-#define EEVAR_CRC32           0x1a // uint32_t crc32 for
+#define EEVAR__PADDING        0x1a // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+
+#define EEVAR_CRC32           0x1b // uint32_t crc32 for
 
 
 #define EEPROM_FEATURE_PID_NOZ   0x0001
