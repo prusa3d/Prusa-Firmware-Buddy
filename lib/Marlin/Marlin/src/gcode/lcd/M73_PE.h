@@ -1,7 +1,7 @@
 #ifndef SRC_GCODE_LCD_M73_PE_H_
 #define SRC_GCODE_LCD_M73_PE_H_
 
-
+#include <stdint.h>
 #define PROGRESS_DATA_VALIDITY_PERIOD (60*5)      // [s] ~ 5min
 //#define PROGRESS_DATA_VALIDITY_PERIOD 20
 
