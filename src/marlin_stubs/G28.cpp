@@ -22,6 +22,16 @@
 
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+    #include "minda_broken_cable_detection.h"
+#else
+static inline void MINDA_BROKEN_CABLE_DETECTION__BEGIN() {}
+static inline void MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME() {}
+static inline void MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME() {}
+static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1() {}
+static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
+#endif
+
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
@@ -182,6 +192,7 @@ inline void home_z_safely() {
  *
  */
 void GcodeSuite::G28(const bool always_home_all) {
+    MINDA_BROKEN_CABLE_DETECTION__BEGIN();
     if (DEBUGGING(LEVELING)) {
         DEBUG_ECHOLNPGM(">>> G28");
         log_machine_info();
@@ -297,7 +308,7 @@ void GcodeSuite::G28(const bool always_home_all) {
             do_blocking_move_to_z(destination.z);
         }
     }
-
+    MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME();
     #if ENABLED(QUICK_HOME)
 
     if (doX && doY)
@@ -358,6 +369,7 @@ void GcodeSuite::G28(const bool always_home_all) {
     // Home Z last if homing towards the bed
     #if Z_HOME_DIR < 0
     if (doZ) {
+        MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME();
         #if ENABLED(BLTOUCH)
         bltouch.init();
         #endif
@@ -370,7 +382,7 @@ void GcodeSuite::G28(const bool always_home_all) {
         #if HOMING_Z_WITH_PROBE && defined(Z_AFTER_PROBING)
         move_z_after_probing();
         #endif
-
+        MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1();
     } // doZ
     #endif // Z_HOME_DIR < 0
 
@@ -473,4 +485,5 @@ void GcodeSuite::G28(const bool always_home_all) {
         L6470.set_param(cv, L6470_ABS_POS, stepper.position((AxisEnum)L6470.axis_xref[cv]));
     }
 #endif
+    MINDA_BROKEN_CABLE_DETECTION__END();
 }

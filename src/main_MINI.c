@@ -55,6 +55,7 @@
 #include "diag.h"
 #include "timer_defaults.h"
 #include "thread_measurement.h"
+#include "Z_probe.h"
 
 /* USER CODE END Includes */
 
@@ -151,6 +152,8 @@ char uart6slave_line[32];
 volatile uint32_t Tacho_FAN0;
 volatile uint32_t Tacho_FAN1;
 
+static volatile uint32_t minda_falling_edges = 0;
+uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 /* USER CODE END 0 */
 
 /**
@@ -894,7 +897,7 @@ static void MX_GPIO_Init(void) {
 
     /*Configure GPIO pin : Z_MIN_Pin */
     GPIO_InitStruct.Pin = Z_MIN_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(Z_MIN_GPIO_Port, &GPIO_InitStruct);
 
@@ -911,6 +914,9 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* EXTI interrupt init*/
+    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
@@ -937,6 +943,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
         break;
     case GPIO_PIN_14:
         Tacho_FAN0++;
+        break;
+    case Z_MIN_Pin:
+        ++minda_falling_edges;
         break;
     }
 }
