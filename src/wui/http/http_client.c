@@ -35,6 +35,10 @@ static err_t tcpSendCallback(void *arg, struct tcp_pcb *pcb, u16_t len) {
 // http client tcp err callback
 static void tcpErrorHandler(void *arg, err_t err) {
     LWIP_UNUSED_ARG(arg);
+    if (NULL != client_pcb) {
+        tcp_close(client_pcb);
+        tcp_free(client_pcb);
+    }
 }
 
 #if 0 // disabled for now!
@@ -100,31 +104,40 @@ err_t connectCallback(void *arg, struct tcp_pcb *tpcb, err_t err) {
     return 0;
 }
 
-void buddy_http_client_init() {
+wui_err buddy_http_client_init() {
 
+    err_t error = ERR_OK;
     ip_addr_t ip;
     ip.addr = eeprom_get_var(EEVAR_CONNECT_IP).ui32;
+    // closing if any previously started pcb without joining a connection
+    if (NULL == client_pcb) {
+        tcp_close(client_pcb);
+        tcp_free(client_pcb);
+    }
     // create the control block
     client_pcb = tcp_new();
+    if (NULL == client_pcb) {
+        tcp_close(client_pcb);
+        return WUI_ERR;
+    }
     // register callbacks with the pcb
     tcp_err(client_pcb, tcpErrorHandler);
     //tcp_recv(client_pcb, tcpRecvCallback); // temporarily disabled
     tcp_sent(client_pcb, tcpSendCallback);
     // make connection
-    tcp_connect(client_pcb, &ip, CLIENT_PORT_NO, connectCallback);
+    error = tcp_connect(client_pcb, &ip, CLIENT_PORT_NO, connectCallback);
+    if (ERR_OK != error) {
+        if (NULL != client_pcb) {
+            tcp_close(client_pcb);
+            tcp_free(client_pcb);
+        }
+        return WUI_ERR;
+    }
+
+    return WUI_OK;
 }
 
 void buddy_http_client_loop() {
-
-    //    if (!init_tick) {
-    //        client_interval = HAL_GetTick();
-    //        init_tick = true;
-    //    }
-    //
-    //    if (netif_ip4_addr(&eth0)->addr != 0 && ((HAL_GetTick() - client_interval) > CLIENT_CONNECT_DELAY)) {
-    //        buddy_http_client_init();
-    //        client_interval = HAL_GetTick();
-    //    }
 
     if (!init_tick) {
         client_interval = xTaskGetTickCount();

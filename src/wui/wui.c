@@ -16,6 +16,7 @@
 #define MAX_WUI_REQUEST_LEN    100
 #define MAX_MARLIN_REQUEST_LEN 100
 #define WUI_FLG_PEND_REQ       0x0001
+//#define BUDDY_DISABLE_HTTP_CLIENT
 
 osMessageQId tcpclient_wui_queue = 0; // char input queue (uint8_t)
 osSemaphoreId tcpclient_wui_sema = 0; // semaphore handle
@@ -60,9 +61,9 @@ void StartWebServerTask(void const *argument) {
         web_vars.print_speed = wui.wui_marlin_vars->print_speed;
         web_vars.flow_factor = wui.wui_marlin_vars->flow_factor;
         osMutexRelease(wui_thread_mutex_id);
-
+#ifndef BUDDY_DISABLE_HTTP_CLIENT
         buddy_http_client_loop();
-
+#endif
         osDelay(100);
     }
 }
