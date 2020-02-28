@@ -18,6 +18,7 @@
 #define CLIENT_PORT_NO       9000
 #define IP4_ADDR_STR_SIZE    16
 #define HEADER_MAX_SIZE      128
+#define API_TOKEN_LEN        20
 
 struct tcp_pcb *client_pcb;
 static uint32_t client_interval = 0;
@@ -63,30 +64,33 @@ static err_t tcpRecvCallback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 #endif
 
 uint32_t tcp_send_packet(void) {
-    char host_ip4_str[IP4_ADDR_STR_SIZE], header[HEADER_MAX_SIZE], *uri = "/p/telemetry", printer_token[21];
+
+    char host_ip4_str[IP4_ADDR_STR_SIZE];
+    char header[HEADER_MAX_SIZE];
+    char *uri = "/p/telemetry";
+    char printer_token[API_TOKEN_LEN + 1]; // extra space of end of line
     ip4_addr_t host_ip4;
+
     host_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP).ui32;
     strlcpy(host_ip4_str, ip4addr_ntoa(&host_ip4), IP4_ADDR_STR_SIZE);
-    eeprom_get_string(EEVAR_CONNECT_KEY_START, printer_token, 20);
-    printer_token[20] = 0;
+    eeprom_get_string(EEVAR_CONNECT_KEY_START, printer_token, API_TOKEN_LEN);
+    printer_token[API_TOKEN_LEN] = 0;
     snprintf(header, HEADER_MAX_SIZE, "POST %s HTTP/1.0\r\nHost: %s\nPrinter-Token: %s", uri, host_ip4_str, printer_token);
     const char *header_plus_data = get_update_str(header);
 
-    uint16_t len = strlen(header_plus_data);
-    /* push to buffer */
-    err_t error = tcp_write(client_pcb, header_plus_data, len, TCP_WRITE_FLAG_COPY);
+    uint32_t packet_len = strlen(header_plus_data);
+    err_t error = tcp_write(client_pcb, header_plus_data, packet_len, TCP_WRITE_FLAG_COPY);
 
     if (error) {
-
         return 1;
     }
-
     /* now send */
     error = tcp_output(client_pcb);
-    if (error) {
 
+    if (error) {
         return 1;
     }
+
     return 0;
 }
 
@@ -112,13 +116,23 @@ void buddy_http_client_init() {
 
 void buddy_http_client_loop() {
 
+    //    if (!init_tick) {
+    //        client_interval = HAL_GetTick();
+    //        init_tick = true;
+    //    }
+    //
+    //    if (netif_ip4_addr(&eth0)->addr != 0 && ((HAL_GetTick() - client_interval) > CLIENT_CONNECT_DELAY)) {
+    //        buddy_http_client_init();
+    //        client_interval = HAL_GetTick();
+    //    }
+
     if (!init_tick) {
-        client_interval = HAL_GetTick();
+        client_interval = xTaskGetTickCount();
         init_tick = true;
     }
-
-    if (netif_ip4_addr(&eth0)->addr != 0 && ((HAL_GetTick() - client_interval) > CLIENT_CONNECT_DELAY)) {
+    xTaskGetTickCount();
+    if (netif_ip4_addr(&eth0)->addr != 0 && ((xTaskGetTickCount() - client_interval) > CLIENT_CONNECT_DELAY)) {
         buddy_http_client_init();
-        client_interval = HAL_GetTick();
+        client_interval = xTaskGetTickCount();
     }
 }

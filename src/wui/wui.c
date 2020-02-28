@@ -61,7 +61,7 @@ void StartWebServerTask(void const *argument) {
         web_vars.flow_factor = wui.wui_marlin_vars->flow_factor;
         osMutexRelease(wui_thread_mutex_id);
 
-        //buddy_http_client_loop();
+        buddy_http_client_loop();
 
         osDelay(100);
     }
