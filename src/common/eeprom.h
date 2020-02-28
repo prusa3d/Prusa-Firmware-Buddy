@@ -5,8 +5,8 @@
 
 #include "variant8.h"
 
-#define EEPROM_ADDRESS 0x0500
-#define EEPROM_VERSION        3
+#define EEPROM_ADDRESS        0x0500
+#define EEPROM_VERSION        4
 #define EEPROM_FEATURES       (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN)
 
 // basic variables
@@ -76,16 +76,16 @@ extern void eeprom_set_var(uint8_t id, variant8_t var);
 // fill range 0x0000..0x0800 with 0xff
 extern void eeprom_clear(void);
 
-//
+// load binary image (0x0000..0x0800) from usb flash (fatfs file)
 extern int eeprom_load_bin_from_usb(const char* fn);
 
-//
+// save binary image (0x0000..0x0800) to usb flash (fatfs file)
 extern int eeprom_save_bin_to_usb(const char* fn);
 
-//
+// TODO:
 extern int eeprom_load_xml_from_usb(const char* fn);
 
-//
+// save xml file with all variables to usb flash (fatfs file)
 extern int eeprom_save_xml_to_usb(const char* fn);
 
 // PUT test

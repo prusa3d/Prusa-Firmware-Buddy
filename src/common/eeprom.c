@@ -8,6 +8,8 @@
 #include "dbg.h"
 #include "cmsis_os.h"
 #include "ff.h"
+#include "tm_stm32f4_crc.h"
+
 
 
 
@@ -173,33 +175,49 @@ int eeprom_convert_from(void);
 void eeprom_lock(void);
 void eeprom_unlock(void);
 
+uint32_t eeprom_calc_crc32(uint32_t* p, uint16_t n);
+
+int eeprom_check_crc32(void);
+void eeprom_update_crc32(uint16_t addr, uint16_t size);
 
 // public functions - described in header
 
 uint8_t eeprom_init(void) {
     uint8_t ret = 0;
+    int crcOK;
     st25dv64k_init();
     //eeprom_clear();
     //eeprom_dump();
     //osDelay(2000);
     //eeprom_save_bin_to_usb("eeprom.bin");
-    uint16_t version = eeprom_get_var(EEVAR_VERSION).ui16;
-    if (version != EEPROM_VERSION) {
-        if (version == 2) {
-            if (eeprom_convert_from_v2() == 0)
-                ret = 1;
-        }
-        else {
-            if (eeprom_convert_from() == 0)
-                ret = 1;
-        }
+#if 0 // crc test
+    uint32_t data[] = {0x01020304, 0x02030405, 0x03040506, 0x04050607, 0 };
+    uint32_t crc = eeprom_calc_crc32(data, 4);
+    data[4] = crc;
+    crc = eeprom_calc_crc32(data, 5);
+#endif
+    crcOK = eeprom_check_crc32();
+    if (crcOK) { // TODO: simplify this logic
+		uint16_t version = eeprom_get_var(EEVAR_VERSION).ui16;
+		if (version != EEPROM_VERSION) {
+			if (version == 2) {
+				if (eeprom_convert_from_v2() == 0)
+					ret = 1;
+			}
+			else {
+				if (eeprom_convert_from() == 0)
+					ret = 1;
+			}
+		}
+		else {
+			uint16_t features = eeprom_get_var(EEVAR_FEATURES).ui16;
+			if (features != EEPROM_FEATURES)
+				if (eeprom_convert_from() == 0)
+					ret = 1;
+		}
     }
-    else {
-        uint16_t features = eeprom_get_var(EEVAR_FEATURES).ui16;
-        if (features != EEPROM_FEATURES)
-            if (eeprom_convert_from() == 0)
-                ret = 1;
-    }
+	else
+		ret = 1;
     if (ret)
         eeprom_defaults();
     eeprom_print_vars();
@@ -208,8 +226,12 @@ uint8_t eeprom_init(void) {
 }
 
 void eeprom_defaults(void) {
+    eeprom_vars_t vars = eeprom_var_defaults;
     eeprom_lock();
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void*)&eeprom_var_defaults, EEPROM_DATASIZE);
+    // calculate crc32
+    vars.CRC32 = eeprom_calc_crc32((uint32_t*)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void*)&vars, EEPROM_DATASIZE);
     eeprom_unlock();
 }
 
@@ -245,6 +267,12 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     uint16_t size;
     uint16_t data_size;
     void* data_ptr;
+/*    uint32_t crc;
+    uint32_t crc2;
+    uint32_t crc3;
+    uint32_t data_crc[8];
+    uint16_t addr_crc;
+    uint16_t count_crc;*/
     if (id < EEPROM_VARCOUNT) {
         eeprom_lock();
         if (var.type == eeprom_map[id].type) {
@@ -253,7 +281,24 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
             if (size == data_size) {
                 addr = eeprom_var_addr(id);
                 data_ptr = variant8_data_ptr(&var);
+/*
+                st25dv64k_user_read_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &crc, 4);
+
+                addr_crc = addr & 0xfffc;
+                count_crc = (size + addr_crc - addr + 2) / 4;
+                st25dv64k_user_read_bytes(addr_crc, data_crc, count_crc * 4);
+                data_crc[count_crc] = crc;
+                crc2 = eeprom_calc_crc32(data_crc, count_crc + 1);
+*/
                 st25dv64k_user_write_bytes(addr, data_ptr, size);
+                eeprom_update_crc32(addr, size);
+/*
+                st25dv64k_user_read_bytes(addr_crc, data_crc, count_crc * 4);
+                data_crc[count_crc] = crc2;
+                crc3 = eeprom_calc_crc32(data_crc, count_crc + 1);
+
+                st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &crc3, 4);
+*/
             }
             else {
                 // TODO: error
@@ -368,6 +413,8 @@ int eeprom_convert_from_v2(void) {
     // read PID_BED_P & PID_BED_I & PID_BED_D (3x float)
     st25dv64k_user_read_bytes(ADDR_V2_PID_BED_P, &(vars.PID_BED_P), 3 * sizeof(float));
     // TODO: validate bed PID constants
+    // calculate crc32
+    vars.CRC32 = eeprom_calc_crc32((uint32_t*)(&vars), (EEPROM_DATASIZE - 4) / 4);
     // write data to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void*)&vars, EEPROM_DATASIZE);
     return 1;
@@ -390,6 +437,68 @@ void eeprom_unlock(void) {
     osSemaphoreRelease(eeprom_sema);
 }
 
+// crc32 calculation function
+uint32_t eeprom_calc_crc32(uint32_t* p, uint16_t n)
+{
+#if 0 // XOR32 instead of CRC32 (for debugging)
+    uint32_t crc = 0;
+    while (n--)
+        crc ^= *(p++);
+#else // hardware CRC32
+    // TODO: semaphore and separate module for HW CRC32, because it will be shared  (in this time used just in QR codes)
+    //
+    TM_CRC_Init(); // it seems that is no problem to call this every time before using TM_CRC_Calculate32
+    uint32_t crc = TM_CRC_Calculate32(p, n, 1);
+#endif
+    return crc;
+}
+
+// version independent crc32 check
+int eeprom_check_crc32(void)
+{
+    uint16_t version;
+    uint16_t datasize;
+    uint32_t crc;
+//    uint16_t addr;
+//    uint16_t n;
+    version = eeprom_get_var(EEVAR_VERSION).ui16;
+    if (version <= 3)
+        return 1; // version <= 3 is without crc, return 1 means crc OK, because import from v2 has additional check/validation
+    datasize = eeprom_get_var(EEVAR_DATASIZE).ui16;
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &crc, 4);
+#if 1 //simple method
+    uint8_t data[256];
+    uint32_t crc2;
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, datasize);
+    crc2 = eeprom_calc_crc32((uint32_t*)data, (datasize - 4) / 4);
+    return (crc == crc2)?1:0;
+#else //
+    uint32_t data[2] = {0, crc};
+    n = (datasize - 4) / 4;
+    addr = EEPROM_ADDRESS;
+    while (n--)
+    {
+        st25dv64k_user_read_bytes(addr, &(data[0]), 4);
+        data[1] = eeprom_calc_crc32(data, 2);
+        addr += 4;
+    }
+    return (data[1] == 0)?1:0;
+#endif
+}
+
+void eeprom_update_crc32(uint16_t addr, uint16_t size)
+{
+#if 1 //simple method
+    eeprom_vars_t vars;
+    // read eeprom data
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void*)&vars, EEPROM_DATASIZE);
+    // calculate crc32
+    vars.CRC32 = eeprom_calc_crc32((uint32_t*)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write crc to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
+#else //
+#endif
+}
 
 // public functions for load/save
 
@@ -464,20 +573,20 @@ int eeprom_save_xml_to_usb(const char* fn)
     variant8_t var8;
     UINT bw;
     if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
-    	f_write(&fil, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", 55, &bw);
-    	f_write(&fil, "<eeprom>\n", 9, &bw);
-		for (id = 0; id < EEPROM_VARCOUNT; id++) {
-			var8 = eeprom_get_var(id);
-			*text = 0;
-			eeprom_var_format(text, 128, id, var8);
-	    	f_write(&fil, "  <variable id=\"", 16, &bw);
-	    	f_write(&fil, eeprom_var_name[id], strlen(eeprom_var_name[id]), &bw);
-	    	f_write(&fil, "\" value=\"", 9, &bw);
-	    	f_write(&fil, text, strlen(text), &bw);
-	    	f_write(&fil, "\"/>\n", 4, &bw);
-			variant8_done(&var8);
-		}
-    	f_write(&fil, "</eeprom>\n", 10, &bw);
+        f_write(&fil, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", 55, &bw);
+        f_write(&fil, "<eeprom>\n", 9, &bw);
+        for (id = 0; id < EEPROM_VARCOUNT; id++) {
+            var8 = eeprom_get_var(id);
+            *text = 0;
+            eeprom_var_format(text, 128, id, var8);
+            f_write(&fil, "  <variable id=\"", 16, &bw);
+            f_write(&fil, eeprom_var_name[id], strlen(eeprom_var_name[id]), &bw);
+            f_write(&fil, "\" value=\"", 9, &bw);
+            f_write(&fil, text, strlen(text), &bw);
+            f_write(&fil, "\"/>\n", 4, &bw);
+            variant8_done(&var8);
+        }
+        f_write(&fil, "</eeprom>\n", 10, &bw);
         f_close(&fil);
         return 1;
     }
