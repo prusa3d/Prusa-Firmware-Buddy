@@ -73,11 +73,11 @@ void MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN() {
     memset(mbl_preposts, 0, sizeof(mbl_preposts));
     actual_point = 0;
 }
-void MINDA_BROKEN_CABLE_DETECTION__PRE_XYPROBE() {
+void MINDA_BROKEN_CABLE_DETECTION__PRE_XYMOVE() {
     mbl_preposts[actual_point].pre_lvl = hwio_di_get_val(_DI_Z_MIN);
     mbl_preposts[actual_point].pre = get_Z_probe_endstop_hits();
 }
-void MINDA_BROKEN_CABLE_DETECTION__POST_XYPROBE() {
+void MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE() {
     mbl_preposts[actual_point].post_lvl = hwio_di_get_val(_DI_Z_MIN);
     mbl_preposts[actual_point].post = get_Z_probe_endstop_hits();
     actual_point = (actual_point + 1) % POINTS;
@@ -87,7 +87,7 @@ void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {
     uint16_t points = 0;
 
     for (actual_point = 0; actual_point < (POINTS - 1); ++actual_point) {
-        if (mbl_preposts[actual_point].post != mbl_preposts[actual_point + 1].pre)
+        if (mbl_preposts[actual_point + 1].post != mbl_preposts[actual_point + 1].pre)
             moves |= 1 << actual_point;
         if (mbl_preposts[actual_point].pre_lvl || mbl_preposts[actual_point].post_lvl)
             points |= 1 << actual_point;
