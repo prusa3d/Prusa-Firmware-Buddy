@@ -26,6 +26,13 @@
 
 #include "../inc/MarlinConfig.h"
 
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+    #include "minda_broken_cable_detection.h"
+#else
+static inline void MINDA_BROKEN_CABLE_DETECTION__PRE_XYPROBE() {}
+static inline void MINDA_BROKEN_CABLE_DETECTION__POST_XYPROBE() {}
+#endif
+
 #if HAS_BED_PROBE
 
 #include "probe.h"
@@ -713,7 +720,9 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
   feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
   // Move the probe to the starting XYZ
+  MINDA_BROKEN_CABLE_DETECTION__PRE_XYPROBE();
   do_blocking_move_to(npos);
+  MINDA_BROKEN_CABLE_DETECTION__POST_XYPROBE();
 
   float measured_z = NAN;
   if (!DEPLOY_PROBE()) {
