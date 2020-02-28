@@ -1,0 +1,22 @@
+apiVersion: 1
+deleteDatasources:
+    - name: buddy
+      orgId: 1
+datasources:
+    - name: buddy
+      type: influxdb
+      access: proxy
+      url: http://influxdb:8086
+      password:
+      user:
+      database: buddy
+      basicAuth: false
+      basicAuthUser:
+      basicAuthPassword:
+      withCredentials:
+      isDefault: true
+      jsonData:
+         tlsAuth: false
+         tlsAuthWithCACert: false
+      secureJsonData:
+        tlsCACert: ""

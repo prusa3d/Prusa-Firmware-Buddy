@@ -395,6 +395,8 @@ target_sources(
           src/common/dbg.c
           src/common/dump.c
           src/common/marlin_client.c
+          src/common/metric.c
+          src/common/metric_handlers.c
           src/common/bsod.c
           src/common/adc.c
           src/common/uartslave.c

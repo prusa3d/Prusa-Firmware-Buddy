@@ -1,0 +1,21 @@
+influxdb:
+  image: influxdb:latest
+  container_name: influxdb
+  ports:
+    - "8083:8083"
+    - "8086:8086"
+    - "8090:8090"
+  volumes:
+    - ./data_influxdb:/var/lib/influxdb
+
+grafana:
+  image: grafana/grafana:latest
+  container_name: grafana
+  ports:
+    - "3000:3000"
+  user: "0"
+  links:
+    - influxdb
+  volumes:
+    - ./data_grafana:/var/lib/grafana
+    - ./grafana:/etc/grafana/provisioning

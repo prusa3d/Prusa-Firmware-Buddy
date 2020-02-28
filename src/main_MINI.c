@@ -230,6 +230,14 @@ int main(void) {
     uartslave_init(&uart6slave, &uart6rxbuff, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
 
+#ifdef BUDDY_ENABLE_METRICS
+    static metric_handler_t *handlers[] = {
+        &metric_handler_uart,
+        &metric_handler_syslog,
+        NULL
+    };
+    metric_system_init(handlers);
+#endif
     /* USER CODE END 2 */
 
     /* USER CODE BEGIN RTOS_MUTEX */
