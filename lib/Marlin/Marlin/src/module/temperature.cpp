@@ -790,7 +790,7 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
     //! @brief Get feed forward steady state output hotend
     //!
     //! steady state output:
-    //! ((target_temp - ambient_temp) * 0.322 + (target_temp - ambient_temp)^2 * 0.0002 * (1 - print_fan)) * sqrt(1 + print_fan * 3.9)
+    //! ((target_temp - ambient_temp) * 0.322 + (target_temp - ambient_temp)^2 * 0.0002 * (1 - print_fan)) * SQRT(1 + print_fan * 3.9)
     //! temperatures in degrees (Celsius or Kelvin)
     //! @param target_temp target temperature in degrees Celsius
     //! @param print_fan print fan power in range 0.0 .. 1.0
@@ -798,12 +798,10 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
 
     static float ff_steady_state_hotend(float target_temp, float print_fan) {
       static_assert(PID_MAX == 255, "PID_MAX == 255 expected");
-      //TODO Square root computation can be mostly avoided by if it is stored and updated only on print_fan change
-      float retval = ((target_temp - ambient_temp) * 0.322
-          + (target_temp - ambient_temp) * (target_temp - ambient_temp) * 0.0002 * (1 - print_fan))
-          * sqrt(1 + print_fan * 3.9);
-      if (retval < 0) return 0;
-      return retval;
+      // TODO Square root computation can be mostly avoided by if stored and updated only on print_fan change
+      const float tdiff = target_temp - ambient_temp;
+      const float retval = (tdiff * 0.322 + sq(tdiff) * 0.0002 * (1 - print_fan)) * SQRT(1 + print_fan * 3.9);
+      return _MAX(retval, 0);
     }
 
     //! @brief Get feed forward output hotend
@@ -816,7 +814,7 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
     float Temperature::get_ff_output_hotend(float &last_target, float &expected, const uint8_t E_NAME) {
       const uint8_t ee = HOTEND_INDEX;
 
-      enum class Ramp {
+      enum class Ramp : uint_least8_t {
         Up,
         Down,
         None,
