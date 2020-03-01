@@ -258,16 +258,16 @@ variant8_t variant8_from_str(uint8_t type, char* str, const char* fmt) {
                     var8.i8 = (int8_t)i;
                 else
                     var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
+                break;
             case VARIANT8_I16:
                 if ((i >= -32768) && (i <= 32767))
                     var8.i16 = (int16_t)i;
                 else
                     var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
+                break;
             case VARIANT8_I32:
-                if ((i >= -2147483648) && (i <= 2147483647))
-                    var8.i32 = (int32_t)i;
-                else
-                    var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
+                var8.i32 = (int32_t)i;
+                break;
             }
         break;
     case VARIANT8_UI8:
@@ -282,16 +282,16 @@ variant8_t variant8_from_str(uint8_t type, char* str, const char* fmt) {
                     var8.ui8 = (uint8_t)ui;
                 else
                     var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
+                break;
             case VARIANT8_UI16:
                 if (ui <= 65535)
                     var8.ui16 = (uint16_t)ui;
                 else
                     var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
+                break;
             case VARIANT8_UI32:
-                if (ui <= 4294967295)
-                    var8.ui32 = (uint32_t)ui;
-                else
-                    var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
+                var8.ui32 = (uint32_t)ui;
+                break;
             }
         break;
     case VARIANT8_FLT:
