@@ -156,6 +156,9 @@ extern uint16_t variant8_data_size(variant8_t* pvar8);
 // returns pointer to data stored in variant
 extern void* variant8_data_ptr(variant8_t* pvar8);
 
+// returns pointer to typename (e.g. "PCHAR" for VARIANT8_PCHAR)
+const char* variant8_typename(uint8_t type);
+
 // format simple variant8 types to string
 // same behavior as normal snprintf except for fmt==null - in this case default formating will be used
 extern int variant8_snprintf(char* str, unsigned int size, const char* fmt, variant8_t* pvar8);
@@ -172,8 +175,8 @@ extern void* variant8_malloc(uint16_t size);
 // variant8 free function
 extern void variant8_free(void* ptr);
 
-// variant8 realloc function (NOT IMPLEMENTED, TODO)
-//extern void* variant8_realloc(void *ptr, uint16_t size);
+// variant8 realloc function
+extern void* variant8_realloc(void *ptr, uint16_t size);
 
 
 
