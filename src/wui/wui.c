@@ -36,6 +36,20 @@ web_client_t wui;
 static void wui_queue_cycle(void);
 static int process_wui_request(void);
 
+void update_web_vars(void) {
+    wui.wui_marlin_vars = marlin_update_vars(MARLIN_VAR_MSK_WUI);
+    osMutexWait(wui_thread_mutex_id, osWaitForever);
+    web_vars.pos[Z_AXIS_POS] = wui.wui_marlin_vars->pos[Z_AXIS_POS];
+    web_vars.temp_nozzle = wui.wui_marlin_vars->temp_nozzle;
+    web_vars.temp_bed = wui.wui_marlin_vars->temp_bed;
+    web_vars.print_speed = wui.wui_marlin_vars->print_speed;
+    web_vars.flow_factor = wui.wui_marlin_vars->flow_factor;
+    web_vars.print_dur = wui.wui_marlin_vars->print_duration;
+    web_vars.sd_precent_done = wui.wui_marlin_vars->sd_percent_done;
+    web_vars.sd_printing = wui.wui_marlin_vars->sd_printing;
+    osMutexRelease(wui_thread_mutex_id);
+}
+
 void StartWebServerTask(void const *argument) {
     osMessageQDef(wuiQueue, 64, uint8_t);
     tcpclient_wui_queue = osMessageCreate(osMessageQ(wuiQueue), NULL);
@@ -53,14 +67,8 @@ void StartWebServerTask(void const *argument) {
 
         if (wui.wui_marlin_vars) {
             marlin_client_loop();
+            update_web_vars();
         }
-        osMutexWait(wui_thread_mutex_id, osWaitForever);
-        web_vars.pos[Z_AXIS_POS] = wui.wui_marlin_vars->pos[Z_AXIS_POS];
-        web_vars.temp_nozzle = wui.wui_marlin_vars->temp_nozzle;
-        web_vars.temp_bed = wui.wui_marlin_vars->temp_bed;
-        web_vars.print_speed = wui.wui_marlin_vars->print_speed;
-        web_vars.flow_factor = wui.wui_marlin_vars->flow_factor;
-        osMutexRelease(wui_thread_mutex_id);
 #ifndef BUDDY_DISABLE_HTTP_CLIENT
         buddy_http_client_loop();
 #endif
