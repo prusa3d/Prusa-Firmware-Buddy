@@ -418,7 +418,7 @@ err_t data_received_fun(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t e
             break;
         }
     }
-    http_json_parser(&request_part, len_copied);
+    http_json_parser((char *)&request_part, len_copied);
     return ERR_OK;
 }
 
