@@ -2,11 +2,12 @@
 
 #include "marlin_server.h"
 #include <stdarg.h>
+#include <stdio.h>
 #include "dbg.h"
 #include "app.h"
 #include "bsod.h"
 #include "cmsis_os.h"
-#include "string.h" //strncmp
+#include <string.h> //strncmp
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -748,7 +749,7 @@ void marlin_server_set_gcode_name(const char *request) {
     if (request == NULL)
         return;
     const char *ptr;
-    int ret = sscanf_s(request, "%p", &ptr);
+    int ret = sscanf(request, "%p", &ptr);
     if (ret != 1 || ptr != NULL)
         return;
     strlcpy(marlin_server.gcode_name, ptr, GCODE_NAME_MAX_LEN + 1);
@@ -759,7 +760,7 @@ void marlin_server_get_gcode_name(const char *dest) {
     if (dest == NULL)
         return;
     char *ptr;
-    int ret = sscanf_s(dest, "%p", &ptr);
+    int ret = sscanf(dest, "%p", &ptr);
     if (ret != 1 || ptr != NULL)
         return;
     strlcpy(ptr, marlin_server.gcode_name, GCODE_NAME_MAX_LEN + 1);
