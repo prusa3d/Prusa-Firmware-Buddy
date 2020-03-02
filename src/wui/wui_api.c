@@ -18,7 +18,6 @@
 #define BDY_WUI_API_BUFFER_SIZE 512
 #define BDY_NO_FS_FLAGS         0  // no flags for fs_open
 #define BDY_API_TELEMETRY_LEN   14 // length of "/api/telemetry" string
-#define BDY_API_PROGRESS_LEN    13 // length of "/api/progress" string
 
 // for data exchange between wui thread and HTTP thread
 static web_vars_t web_vars_copy;
