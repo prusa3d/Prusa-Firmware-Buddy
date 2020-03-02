@@ -11,6 +11,7 @@
 #include "wui.h"
 #include "filament.h"
 #include "wui_vars.h"
+#include "progress_data_wrapper.h"
 
 #include "stdarg.h"
 
@@ -32,14 +33,37 @@ const char *get_update_str(const char *header) {
     osMutexRelease(wui_thread_mutex_id);
 
     int32_t actual_nozzle = (int32_t)(web_vars_copy.temp_nozzle);
-    //int32_t target_nozzle = (int32_t)(webserver_marlin_vars_copy.target_nozzle);
     int32_t actual_heatbed = (int32_t)(web_vars_copy.temp_bed);
-    //int32_t target_heatbed = (int32_t)(webserver_marlin_vars_copy.target_bed);
-
     double z_pos_mm = (double)web_vars_copy.pos[Z_AXIS_POS];
     uint16_t print_speed = (uint16_t)(web_vars_copy.print_speed);
     uint16_t flow_factor = (uint16_t)(web_vars_copy.flow_factor);
     const char *filament_material = filaments[get_filament()].name;
+
+    if (!web_vars_copy.sd_printing) {
+        return char_streamer("%s{"
+                             "\"temp_nozzle\":%d,"
+                             "\"temp_bed\":%d,"
+                             "\"material\":\"%s\","
+                             "\"pos_z_mm\":%.2f,"
+                             "\"printing_speed\":%d,"
+                             "\"flow_factor\":%d"
+                             "}",
+            header,
+            actual_nozzle, actual_heatbed, filament_material,
+            z_pos_mm, print_speed, flow_factor);
+    }
+
+    uint8_t percent_done;
+    char time_2_end[9], print_time[13];
+    if (is_percentage_valid(web_vars_copy.print_dur)) {
+        percent_done = progress_get_percentage();
+        progress_format_time2end(time_2_end, web_vars_copy.print_speed);
+    } else {
+        strlcpy(time_2_end, "N/A", 4);
+        percent_done = web_vars_copy.sd_precent_done;
+    }
+
+    print_dur_to_string(print_time, web_vars_copy.print_dur);
 
     return char_streamer("%s{"
                          "\"temp_nozzle\":%d,"
@@ -47,11 +71,15 @@ const char *get_update_str(const char *header) {
                          "\"material\":\"%s\","
                          "\"pos_z_mm\":%.2f,"
                          "\"printing_speed\":%d,"
-                         "\"flow_factor\":%d"
+                         "\"flow_factor\":%d,"
+                         "\"progress\":%d,"
+                         "\"print_dur\":\"%s\","
+                         "\"time_est\":\"%s\""
                          "}",
         header,
         actual_nozzle, actual_heatbed, filament_material,
-        z_pos_mm, print_speed, flow_factor);
+        z_pos_mm, print_speed, flow_factor,
+        percent_done, print_time, time_2_end);
 }
 
 static void wui_api_telemetry(struct fs_file *file) {
