@@ -491,10 +491,7 @@ wui_err buddy_http_client_init() {
     }
 
     req->recv_fn = data_received_fun;
-    //req->conn_settings = settings;
-    //req->callback_arg = callback_arg;
     tcp_connect(req->pcb, &host_ip4, 9000, httpc_tcp_connected);
-    //  *connection = req;
     return ERR_OK;
 }
 

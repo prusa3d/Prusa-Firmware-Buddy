@@ -7,7 +7,8 @@
 #include "eeprom.h"
 #include "ip4_addr.h"
 
-char buffer[MAX_REQ_BODY_SIZE] = "";
+static char buffer[MAX_REQ_BODY_SIZE] = "";
+
 static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
     if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start && strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
         return 0;
@@ -15,7 +16,7 @@ static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
     return -1;
 }
 
-void send_request_to_wui(const char *request) {
+static void send_request_to_wui(const char *request) {
     size_t req_len = strlen(request);
     osMessageQId queue = 0;
 
