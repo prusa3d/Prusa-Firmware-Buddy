@@ -170,6 +170,7 @@ void marlin_server_init(void) {
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
+    marlin_server.vars.gcode_name[0] = '\0';
 }
 
 void print_fan_spd() {
@@ -741,6 +742,18 @@ uint64_t _server_update_vars(uint64_t update) {
     return changes;
 }
 
+void marlin_server_set_gcode_name(const char *request) {
+    if (request == NULL)
+        return;
+    const char *ptr;
+    int ret = sscanf_s(request, "%p", &ptr);
+    if (ret != 1)
+        return;
+    int len = strlen(ptr);
+    strncpy(marlin_server.vars.gcode_name, ptr, len);
+    marlin_server.vars.gcode_name[len] = '\0';
+}
+
 // process request on server side
 int _process_server_request(char *request) {
     int processed = 0;
@@ -780,6 +793,9 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();
+        processed = 1;
+    } else if (strcmp("!setgcode ", request) == 0) {
+        marlin_server_set_gcode_name(request + 10);
         processed = 1;
     } else if (strcmp("!qstop", request) == 0) {
         marlin_server_quick_stop();

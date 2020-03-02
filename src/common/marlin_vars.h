@@ -5,31 +5,32 @@
 #include "variant8.h"
 
 // Marlin variables
-#define MARLIN_VAR_MOTION   0x00 // R:  uint8, method stepper.axis_is_moving
-#define MARLIN_VAR_GQUEUE   0x01 // R:  uint8, method queue.length
-#define MARLIN_VAR_PQUEUE   0x02 // R:  uint8, variables planner.block_buffer_head/tail
-#define MARLIN_VAR_IPOS_X   0x03 // RW: int32, variable stepper.count_position
-#define MARLIN_VAR_IPOS_Y   0x04 // RW: ==||==
-#define MARLIN_VAR_IPOS_Z   0x05 // RW: ==||==
-#define MARLIN_VAR_IPOS_E   0x06 // RW: ==||==
-#define MARLIN_VAR_POS_X    0x07 // RW: float, planner.getAxisPosition_mm(), setAxisPosition_mm()
-#define MARLIN_VAR_POS_Y    0x08 // RW: ==||==
-#define MARLIN_VAR_POS_Z    0x09 // RW: ==||==
-#define MARLIN_VAR_POS_E    0x0a // RW: ==||==
-#define MARLIN_VAR_TEMP_NOZ 0x0b // R:  float, thermalManager.temp_hotend[0].current
-#define MARLIN_VAR_TEMP_BED 0x0c // R:  float, thermalManager.temp_bed.current
-#define MARLIN_VAR_TTEM_NOZ 0x0d // RW: float, thermalManager.temp_hotend[0].target, thermalManager.setTargetHotend()
-#define MARLIN_VAR_TTEM_BED 0x0e // RW: float, thermalManager.temp_bed.target, thermalManager.setTargetBed()
-#define MARLIN_VAR_Z_OFFSET 0x0f // R:  float, zprobe_zoffset
-#define MARLIN_VAR_FANSPEED 0x10 // RW: uint8, thermalManager.fan_speed[0], thermalManager.set_fan_speed()
-#define MARLIN_VAR_PRNSPEED 0x11 // RW: uint16, feedrate_percentage
-#define MARLIN_VAR_FLOWFACT 0x12 // RW: uint16, planner.flow_percentage
-#define MARLIN_VAR_WAITHEAT 0x13 // RW: uint8, Marlin, wait_for_heatup
-#define MARLIN_VAR_WAITUSER 0x14 // RW: uint8, Marlin, wait_for_user
-#define MARLIN_VAR_SD_PRINT 0x15 // R:  uint8, card.flag.sdprinting
-#define MARLIN_VAR_SD_PDONE 0x16 // R:  uint8, card.percentDone()
-#define MARLIN_VAR_DURATION 0x17 // R:  uint32, print_job_timer.duration()
-#define MARLIN_VAR_MAX      MARLIN_VAR_DURATION
+#define MARLIN_VAR_MOTION     0x00 // R:  uint8, method stepper.axis_is_moving
+#define MARLIN_VAR_GQUEUE     0x01 // R:  uint8, method queue.length
+#define MARLIN_VAR_PQUEUE     0x02 // R:  uint8, variables planner.block_buffer_head/tail
+#define MARLIN_VAR_IPOS_X     0x03 // RW: int32, variable stepper.count_position
+#define MARLIN_VAR_IPOS_Y     0x04 // RW: ==||==
+#define MARLIN_VAR_IPOS_Z     0x05 // RW: ==||==
+#define MARLIN_VAR_IPOS_E     0x06 // RW: ==||==
+#define MARLIN_VAR_POS_X      0x07 // RW: float, planner.getAxisPosition_mm(), setAxisPosition_mm()
+#define MARLIN_VAR_POS_Y      0x08 // RW: ==||==
+#define MARLIN_VAR_POS_Z      0x09 // RW: ==||==
+#define MARLIN_VAR_POS_E      0x0a // RW: ==||==
+#define MARLIN_VAR_TEMP_NOZ   0x0b // R:  float, thermalManager.temp_hotend[0].current
+#define MARLIN_VAR_TEMP_BED   0x0c // R:  float, thermalManager.temp_bed.current
+#define MARLIN_VAR_TTEM_NOZ   0x0d // RW: float, thermalManager.temp_hotend[0].target, thermalManager.setTargetHotend()
+#define MARLIN_VAR_TTEM_BED   0x0e // RW: float, thermalManager.temp_bed.target, thermalManager.setTargetBed()
+#define MARLIN_VAR_Z_OFFSET   0x0f // R:  float, zprobe_zoffset
+#define MARLIN_VAR_FANSPEED   0x10 // RW: uint8, thermalManager.fan_speed[0], thermalManager.set_fan_speed()
+#define MARLIN_VAR_PRNSPEED   0x11 // RW: uint16, feedrate_percentage
+#define MARLIN_VAR_FLOWFACT   0x12 // RW: uint16, planner.flow_percentage
+#define MARLIN_VAR_WAITHEAT   0x13 // RW: uint8, Marlin, wait_for_heatup
+#define MARLIN_VAR_WAITUSER   0x14 // RW: uint8, Marlin, wait_for_user
+#define MARLIN_VAR_SD_PRINT   0x15 // R:  uint8, card.flag.sdprinting
+#define MARLIN_VAR_SD_PDONE   0x16 // R:  uint8, card.percentDone()
+#define MARLIN_VAR_DURATION   0x17 // R:  uint32, print_job_timer.duration()
+#define MARLIN_VAR_GCODE_NAME 0x18 // R: char[97], printing gcode name
+#define MARLIN_VAR_MAX        MARLIN_VAR_DURATION
 
 // variable masks
 #define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (v_id))
@@ -70,29 +71,32 @@
 #define MARLIN_VAR_MOTION_MSK_Z (1 << MARLIN_VAR_INDEX_Z)
 #define MARLIN_VAR_MOTION_MSK_E (1 << MARLIN_VAR_INDEX_E)
 
+#define GCODE_NAME_MAX_LEN 96
+
 #pragma pack(push)
 #pragma pack(1)
 
 // variables structure - used in server and client
 typedef struct _marlin_vars_t {
-    uint8_t motion;          // motion (bit0-X, bit1-Y, bit2-Z, bit3-E)
-    uint8_t gqueue;          // number of commands in gcode queue
-    uint8_t pqueue;          // number of commands in planner queue
-    int32_t ipos[4];         // integer position XYZE [steps]
-    float pos[4];            // position XYZE [mm]
-    float temp_nozzle;       // nozzle temperature [C]
-    float temp_bed;          // bed temperature [C]
-    float target_nozzle;     // nozzle target temperature [C]
-    float target_bed;        // bed target temperature [C]
-    float z_offset;          // probe z-offset [mm]
-    uint8_t fan_speed;       // print fan0 speed [0..255]
-    uint16_t print_speed;    // printing speed factor [%]
-    uint16_t flow_factor;    // flow factor [%]
-    uint8_t wait_heat;       // wait_for_heatup
-    uint8_t wait_user;       // wait_for_user
-    uint8_t sd_printing;     // card.flag.sdprinting
-    uint8_t sd_percent_done; // card.percentDone()
-    uint32_t print_duration; // print_job_timer.duration()
+    char gcode_name[GCODE_NAME_MAX_LEN + 1]; // printing gcode name
+    uint8_t motion;                          // motion (bit0-X, bit1-Y, bit2-Z, bit3-E)
+    uint8_t gqueue;                          // number of commands in gcode queue
+    uint8_t pqueue;                          // number of commands in planner queue
+    int32_t ipos[4];                         // integer position XYZE [steps]
+    float pos[4];                            // position XYZE [mm]
+    float temp_nozzle;                       // nozzle temperature [C]
+    float temp_bed;                          // bed temperature [C]
+    float target_nozzle;                     // nozzle target temperature [C]
+    float target_bed;                        // bed target temperature [C]
+    float z_offset;                          // probe z-offset [mm]
+    uint8_t fan_speed;                       // print fan0 speed [0..255]
+    uint16_t print_speed;                    // printing speed factor [%]
+    uint16_t flow_factor;                    // flow factor [%]
+    uint8_t wait_heat;                       // wait_for_heatup
+    uint8_t wait_user;                       // wait_for_user
+    uint8_t sd_printing;                     // card.flag.sdprinting
+    uint8_t sd_percent_done;                 // card.percentDone()
+    uint32_t print_duration;                 // print_job_timer.duration()
 } marlin_vars_t;
 
 typedef union _marlin_changes_t {
