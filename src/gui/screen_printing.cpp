@@ -239,7 +239,7 @@ void screen_printing_init(screen_t *screen) {
     window_set_text(id, screen_printing_file_name);
 
     // set gcode name into marlin_vars_t for WUI
-    set_printing_gcode_name(screen_printing_file_name);
+    marlin_set_printing_gcode_name(screen_printing_file_name);
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),

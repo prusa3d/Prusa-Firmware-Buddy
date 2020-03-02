@@ -416,13 +416,24 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
     return &(client->vars);
 }
 
-void set_printing_gcode_name(const char *src) {
+void marlin_set_printing_gcode_name(const char *src) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
     marlin_client_loop();
     sprintf(request, "!setgcode %p", src);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_get_printing_gcode_name(char *src) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    marlin_client_loop();
+    sprintf(request, "!getgcode %p", src);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }

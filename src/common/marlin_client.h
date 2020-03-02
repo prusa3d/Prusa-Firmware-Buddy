@@ -129,7 +129,10 @@ extern marlin_vars_t *marlin_vars(void);
 extern marlin_vars_t *marlin_update_vars(uint64_t msk);
 
 // set name of printing gcode
-extern void set_printing_gcode_name(const char *src);
+extern void marlin_set_printing_gcode_name(const char *src);
+
+// get name of printing gcode
+extern void marlin_get_printing_gcode_name(char *src);
 
 // returns number of commands in gcode queue
 extern uint8_t marlin_get_gqueue(void);
