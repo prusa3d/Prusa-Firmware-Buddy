@@ -398,3 +398,147 @@ void* variant8_realloc(void *ptr, uint16_t size) {
 // VARIANT8_PCHAR -> VARIANT8_CHAR    fmt
 // VARIANT8_PCHAR -> VARIANT8_USER    fmt
 //
+
+cvariant8::cvariant8()
+{
+    *((variant8_t*)this) = variant8_empty();
+}
+
+cvariant8::cvariant8(const cvariant8& var8)
+{
+    *((variant8_t*)this) = variant8_copy((variant8_t*)&var8);
+}
+
+cvariant8::cvariant8(int8_t val)
+{
+    *((variant8_t*)this) = variant8_i8(val);
+}
+
+cvariant8::cvariant8(uint8_t val)
+{
+    *((variant8_t*)this) = variant8_ui8(val);
+}
+
+cvariant8::cvariant8(int16_t val)
+{
+    *((variant8_t*)this) = variant8_i16(val);
+}
+
+cvariant8::cvariant8(uint16_t val)
+{
+    *((variant8_t*)this) = variant8_ui16(val);
+}
+
+cvariant8::cvariant8(int32_t val)
+{
+    *((variant8_t*)this) = variant8_i32(val);
+}
+
+cvariant8::cvariant8(uint32_t val)
+{
+    *((variant8_t*)this) = variant8_ui32(val);
+}
+
+cvariant8::cvariant8(float val)
+{
+    *((variant8_t*)this) = variant8_flt(val);
+}
+
+cvariant8::cvariant8(const char* val)
+{
+    *((variant8_t*)this) = variant8_pchar((char*)val, 0, 1);
+}
+
+cvariant8::~cvariant8()
+{
+    variant8_done(this);
+}
+
+cvariant8 cvariant8::copy()
+{
+    cvariant8 var8 = *this;
+    return var8;
+}
+
+cvariant8& cvariant8::attach(variant8_t var8)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = var8;
+    return *this;
+}
+
+variant8_t cvariant8::detach()
+{
+    variant8_t var8 = *this;
+    variant8_done(this);
+    return var8;
+}
+
+cvariant8& cvariant8::change_type(uint8_t new_type)
+{
+    variant8_change_type(this, new_type);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (const cvariant8& var8)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_copy((variant8_t*)&var8);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (int8_t val)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_i8(val);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (uint8_t val)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_ui8(val);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (int16_t val)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_i16(val);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (uint16_t val)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_ui16(val);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (int32_t val)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_i32(val);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (uint32_t val)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_ui32(val);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (float val)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_flt(val);
+    return *this;
+}
+
+cvariant8& cvariant8::operator = (const char* val)
+{
+    variant8_done(this);
+    *((variant8_t*)this) = variant8_pchar((char*)val, 0, 1);
+    return *this;
+}

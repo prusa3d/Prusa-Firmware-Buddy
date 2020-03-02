@@ -77,6 +77,47 @@ typedef struct _variant8_t {
 
 
 #ifdef __cplusplus
+
+class cvariant8 : public variant8_t {
+public: // construction/destruction
+    cvariant8();
+    cvariant8(const cvariant8& var8);
+    cvariant8(int8_t val);
+    cvariant8(uint8_t val);
+    cvariant8(int16_t val);
+    cvariant8(uint16_t val);
+    cvariant8(int32_t val);
+    cvariant8(uint32_t val);
+    cvariant8(float val);
+    cvariant8(const char* val);
+    ~cvariant8();
+public: // public functions
+    cvariant8 copy();
+    cvariant8& attach(variant8_t var8);
+    variant8_t detach();
+    cvariant8& change_type(uint8_t new_type);
+public: // assignment operators
+    cvariant8& operator = (const cvariant8& var8);
+    cvariant8& operator = (int8_t val);
+    cvariant8& operator = (uint8_t val);
+    cvariant8& operator = (int16_t val);
+    cvariant8& operator = (uint16_t val);
+    cvariant8& operator = (int32_t val);
+    cvariant8& operator = (uint32_t val);
+    cvariant8& operator = (float val);
+    cvariant8& operator = (const char* val);
+public: // extractors
+    operator int8_t() { return (type == VARIANT8_I8)?i8:0; }
+    operator uint8_t() { return (type == VARIANT8_UI8)?ui8:0; }
+    operator int16_t() { return (type == VARIANT8_I16)?i16:0; }
+    operator uint16_t() { return (type == VARIANT8_UI16)?ui16:0; }
+    operator int32_t() { return (type == VARIANT8_I32)?i32:0; }
+    operator uint32_t() { return (type == VARIANT8_UI32)?ui32:0; }
+    operator float() { return (type == VARIANT8_FLT)?flt:0; }
+    operator const char*() { return (type == VARIANT8_PCHAR)?pch:0; }
+protected:
+};
+
 extern "C" {
 #endif //__cplusplus
 
