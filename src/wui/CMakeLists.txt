@@ -28,4 +28,5 @@ target_link_libraries(
   WUI
   PRIVATE LwIP
           jsmn::jsmn
+          Marlin
   )

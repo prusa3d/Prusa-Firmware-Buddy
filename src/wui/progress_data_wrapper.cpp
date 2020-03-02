@@ -1,4 +1,4 @@
-#include "../../../lib/Marlin/Marlin/src/gcode/lcd/M73_PE.h"
+#include "M73_PE.h"
 #include "progress_data_wrapper.h"
 #include <stdio.h>
 

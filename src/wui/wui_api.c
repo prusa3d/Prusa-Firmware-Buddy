@@ -33,10 +33,7 @@ const char *get_update_str(const char *header) {
     osMutexRelease(wui_thread_mutex_id);
 
     int32_t actual_nozzle = (int32_t)(web_vars_copy.temp_nozzle);
-    //int32_t target_nozzle = (int32_t)(webserver_marlin_vars_copy.target_nozzle);
     int32_t actual_heatbed = (int32_t)(web_vars_copy.temp_bed);
-    //int32_t target_heatbed = (int32_t)(webserver_marlin_vars_copy.target_bed);
-
     double z_pos_mm = (double)web_vars_copy.pos[Z_AXIS_POS];
     uint16_t print_speed = (uint16_t)(web_vars_copy.print_speed);
     uint16_t flow_factor = (uint16_t)(web_vars_copy.flow_factor);
