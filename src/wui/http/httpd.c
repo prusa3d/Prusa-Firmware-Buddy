@@ -414,7 +414,7 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
             /*receiving data succeeded*/
             //TODO: Send 200 OK
             if (request_buf[0] != 0) {
-                json_parse_jsmn(request_buf, strlen(request_buf));
+                http_json_parser(request_buf, strlen(request_buf));
                 response_uri_len = strlen(post_url_str);
                 strlcpy(response_uri, post_url_str, response_uri_len + 1);
                 request_buf[0] = 0;

@@ -20,7 +20,7 @@ class TestTCPHandler(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print("{} wrote:".format(self.client_address[0]))
         print(self.data)
-        ret_data = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"command\": \"home\"}"
+        ret_data = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"command\":\"g28\"}"
         self.request.sendall(ret_data.encode('utf-8'))
 
 

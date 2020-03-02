@@ -7,6 +7,7 @@
  */
 
 #include "http_client.h"
+#include "wui_helper_funcs.h"
 #include <stdbool.h>
 #include "wui_api.h"
 #include "stm32f4xx_hal.h"
@@ -388,14 +389,36 @@ httpc_tcp_connected(void *arg, struct altcp_pcb *pcb, err_t err) {
  *            callback function!
  */
 err_t data_received_fun(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err) {
+
     LWIP_UNUSED_ARG(tpcb);
     LWIP_UNUSED_ARG(err);
-    char request_part[(const u16_t)p->tot_len + 1];
-    char *payload = p->payload;
-    if (payload[0] == 0) {
-        return 0;
+    uint32_t len_copied = 0;
+    if (NULL == p) {
+        return ERR_ARG;
     }
-    u16_t ret = pbuf_copy_partial(p, request_part, p->tot_len, 0);
+
+    char request_part[(const u16_t)p->tot_len + 1];
+
+    while (len_copied < p->tot_len) {
+
+        char *payload = p->payload;
+        // check if empty
+        if (payload[0] == 0) {
+            return ERR_ARG;
+        }
+
+        len_copied += pbuf_copy_partial(p, request_part, p->tot_len, 0);
+
+        if (len_copied != p->len) {
+            return ERR_ARG;
+        }
+        p = p->next;
+        if (NULL == p) {
+            request_part[(const u16_t)p->tot_len] = 0; // end of line added
+            break;
+        }
+    }
+    http_json_parser(&request_part, len_copied);
     return ERR_OK;
 }
 
