@@ -750,7 +750,7 @@ void marlin_server_set_gcode_name(const char *request) {
         return;
     const char *ptr;
     int ret = sscanf(request, "%p", &ptr);
-    if (ret != 1 || ptr != NULL)
+    if (ret != 1 || ptr == NULL)
         return;
     strlcpy(marlin_server.gcode_name, ptr, GCODE_NAME_MAX_LEN + 1);
 }
@@ -761,7 +761,7 @@ void marlin_server_get_gcode_name(const char *dest) {
         return;
     char *ptr;
     int ret = sscanf(dest, "%p", &ptr);
-    if (ret != 1 || ptr != NULL)
+    if (ret != 1 || ptr == NULL)
         return;
     strlcpy(ptr, marlin_server.gcode_name, GCODE_NAME_MAX_LEN + 1);
 }
@@ -806,10 +806,10 @@ int _process_server_request(char *request) {
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();
         processed = 1;
-    } else if (strcmp("!setgcode ", request) == 0) {
+    } else if (strncmp("!setgcode ", request, 10) == 0) {
         marlin_server_set_gcode_name(request + 10);
         processed = 1;
-    } else if (strcmp("!getgcode ", request) == 0) {
+    } else if (strncmp("!getgcode ", request, 10) == 0) {
         marlin_server_get_gcode_name(request + 10);
         processed = 1;
     } else if (strcmp("!qstop", request) == 0) {
