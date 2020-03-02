@@ -12,9 +12,6 @@
 #include "stm32f4xx_hal.h"
 #include <string.h>
 #include "eeprom.h"
-//#include "lwip/altcp_tcp.h"
-//#include "lwip/mem.h"
-//#include "lwip/altcp_tls.h"
 #include "lwip/altcp.h"
 #include "lwip.h"
 
@@ -390,9 +387,15 @@ httpc_tcp_connected(void *arg, struct altcp_pcb *pcb, err_t err) {
  *            Only return ERR_ABRT if you have called tcp_abort from within the
  *            callback function!
  */
-err_t recev_fun(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err) {
+err_t data_received_fun(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err) {
     LWIP_UNUSED_ARG(tpcb);
     LWIP_UNUSED_ARG(err);
+    char request_part[(const u16_t)p->tot_len + 1];
+    char *payload = p->payload;
+    if (payload[0] == 0) {
+        return 0;
+    }
+    u16_t ret = pbuf_copy_partial(p, request_part, p->tot_len, 0);
     return ERR_OK;
 }
 
@@ -464,7 +467,7 @@ wui_err buddy_http_client_init() {
         return ERR_VAL;
     }
 
-    //req->recv_fn = recv_fn;
+    req->recv_fn = data_received_fun;
     //req->conn_settings = settings;
     //req->callback_arg = callback_arg;
     tcp_connect(req->pcb, &host_ip4, 9000, httpc_tcp_connected);
