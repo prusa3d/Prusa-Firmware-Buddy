@@ -501,7 +501,7 @@ void buddy_http_client_loop() {
         client_interval = xTaskGetTickCount();
         init_tick = true;
     }
-    xTaskGetTickCount();
+
     if (netif_ip4_addr(&eth0)->addr != 0 && ((xTaskGetTickCount() - client_interval) > CLIENT_CONNECT_DELAY)) {
         buddy_http_client_init();
         client_interval = xTaskGetTickCount();
