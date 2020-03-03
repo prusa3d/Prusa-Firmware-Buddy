@@ -487,6 +487,7 @@ void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
     st7789v_draw_line(pt1, pt2, clr);
     st7789v_draw_line(pt2, pt3, clr);
     st7789v_draw_line(pt3, pt, clr);
+    st7789v_set_pixel(pt2, clr); //hack, drawline is broken
 }
 
 void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
