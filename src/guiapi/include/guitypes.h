@@ -56,6 +56,8 @@
 #define COLOR_NAVY      0x00800000L
 #define COLOR_ORANGE    0x001B65F8L
 
+#define COLOR_DARK_KHAKI 0x006BD7DBL
+
 #pragma pack(push)
 #pragma pack(1)
 

@@ -433,6 +433,7 @@ target_sources(
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
+          src/common/minda_broken_cable_detection.c
           src/marlin_stubs/G28.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
@@ -449,7 +450,7 @@ if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.c
-    PRIVATE src/gui/dialogs/window_dlg_change.c
+            src/gui/dialogs/window_dlg_change.c
             src/gui/dialogs/window_dlg_loadunload_shared.c
             src/gui/dialogs/window_dlg_statemachine.c
             src/gui/dialogs/window_dlg_load.c

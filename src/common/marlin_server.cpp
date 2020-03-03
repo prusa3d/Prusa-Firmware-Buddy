@@ -28,6 +28,7 @@
 #include "hwio_a3ides.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
+#include "Z_probe.h" //get_Z_probe_endstop_hits
 
 #ifdef LCDSIM
     #include "lcdsim.h"
@@ -196,9 +197,23 @@ void print_fan_spd() {
     }
 }
 
+void print_Z_probe_cnt() {
+    if (DEBUGGING(INFO)) {
+        static uint32_t last = 0;
+        static uint32_t actual = 0;
+        actual = get_Z_probe_endstop_hits();
+        if (last != actual) {
+            last = actual;
+            serial_echopair_PGM("Z Endstop hit ", actual);
+            serialprintPGM(" times.");
+            SERIAL_EOL();
+        }
+    }
+}
 int marlin_server_cycle(void) {
 
     print_fan_spd();
+    print_Z_probe_cnt();
 
     int count = 0;
     int client_id;
