@@ -2,11 +2,12 @@
 
 #include "marlin_server.h"
 #include <stdarg.h>
+#include <stdio.h>
 #include "dbg.h"
 #include "app.h"
 #include "bsod.h"
 #include "cmsis_os.h"
-#include "string.h" //strncmp
+#include <string.h> //strncmp
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -53,10 +54,11 @@
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
-    uint16_t flags;          // server flags (MARLIN_SFLG)
-    uint64_t notify_events;  // event notification mask
-    uint64_t notify_changes; // variable change notification mask
-    marlin_vars_t vars;      // cached variables
+    char gcode_name[GCODE_NAME_MAX_LEN + 1]; // printing gcode name
+    uint16_t flags;                          // server flags (MARLIN_SFLG)
+    uint64_t notify_events;                  // event notification mask
+    uint64_t notify_changes;                 // variable change notification mask
+    marlin_vars_t vars;                      // cached variables
     char request[MARLIN_MAX_REQUEST];
     int request_len;
     uint64_t client_events[MARLIN_MAX_CLIENTS];              // client event mask
@@ -170,6 +172,7 @@ void marlin_server_init(void) {
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
+    marlin_server.gcode_name[0] = '\0';
 }
 
 void print_fan_spd() {
@@ -741,6 +744,28 @@ uint64_t _server_update_vars(uint64_t update) {
     return changes;
 }
 
+// set name of the printing gcode (for WUI)
+void marlin_server_set_gcode_name(const char *request) {
+    if (request == NULL)
+        return;
+    const char *ptr;
+    int ret = sscanf(request, "%p", &ptr);
+    if (ret != 1 || ptr == NULL)
+        return;
+    strlcpy(marlin_server.gcode_name, ptr, GCODE_NAME_MAX_LEN + 1);
+}
+
+// fill pointer with name of the printing gcode (for WUI), dest param have to be at least 97 chars long!
+void marlin_server_get_gcode_name(const char *dest) {
+    if (dest == NULL)
+        return;
+    char *ptr;
+    int ret = sscanf(dest, "%p", &ptr);
+    if (ret != 1 || ptr == NULL)
+        return;
+    strlcpy(ptr, marlin_server.gcode_name, GCODE_NAME_MAX_LEN + 1);
+}
+
 // process request on server side
 int _process_server_request(char *request) {
     int processed = 0;
@@ -780,6 +805,12 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();
+        processed = 1;
+    } else if (strncmp("!setgcode ", request, 10) == 0) {
+        marlin_server_set_gcode_name(request + 10);
+        processed = 1;
+    } else if (strncmp("!getgcode ", request, 10) == 0) {
+        marlin_server_get_gcode_name(request + 10);
         processed = 1;
     } else if (strcmp("!qstop", request) == 0) {
         marlin_server_quick_stop();

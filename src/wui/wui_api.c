@@ -74,12 +74,13 @@ const char *get_update_str(const char *header) {
                          "\"flow_factor\":%d,"
                          "\"progress\":%d,"
                          "\"print_dur\":\"%s\","
-                         "\"time_est\":\"%s\""
+                         "\"time_est\":\"%s\","
+                         "\"project_name\":\"%s\""
                          "}",
         header,
         actual_nozzle, actual_heatbed, filament_material,
         z_pos_mm, print_speed, flow_factor,
-        percent_done, print_time, time_2_end);
+        percent_done, print_time, time_2_end, web_vars_copy.gcode_name);
 }
 
 static void wui_api_telemetry(struct fs_file *file) {
