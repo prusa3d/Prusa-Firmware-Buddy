@@ -75,7 +75,7 @@ const char *get_update_str(const char *header) {
                          "\"progress\":%d,"
                          "\"print_dur\":\"%s\","
                          "\"time_est\":\"%s\","
-                         "\"print_file\":\"%s\""
+                         "\"project_name\":\"%s\""
                          "}",
         header,
         actual_nozzle, actual_heatbed, filament_material,
