@@ -25,22 +25,28 @@ void append_crc(char *str) {
     uint32_t crc;
 
     TM_CRC_Init(); // !!! spravne patri uplne jinam (zatim neni jasne kam)
-    crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ER_URL) - 1), strlen(str) - sizeof(ER_URL) + 1, 1);
+    crc = TM_CRC_Calculate8((uint8_t *)str, strlen(str), 1);
     sprintf(eofstr(str), "/%08lX", crc);
 }
 
 void create_path_info_4error(char *str, int error_code) {
+    char *substr4crc;
+
     strcpy(str, ER_URL);
+    substr4crc = eofstr(str);
     sprintf(eofstr(str), "%d/", error_code);
     sprintf(eofstr(str), "%d/", PRINTER_TYPE);
     sprintf(eofstr(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     sprintf(eofstr(str), "%d-%d-%d-%d/", project_version_major, project_version_minor, project_version_patch, project_build_number);
     sprintf(eofstr(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
-    append_crc(str);
+    append_crc(substr4crc);
 }
 
 void create_path_info_4service(char *str) {
+    char *substr4crc;
+
     strcpy(str, IR_URL);
+    substr4crc = eofstr(str);
     // PrinterType
     sprintf(eofstr(str), "%d/", PRINTER_TYPE);
     // UniqueID
@@ -76,5 +82,5 @@ void create_path_info_4service(char *str) {
     strcat(str, "/");
     // LockBlock
     block2hex(str, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
-    append_crc(str);
+    append_crc(substr4crc);
 }
