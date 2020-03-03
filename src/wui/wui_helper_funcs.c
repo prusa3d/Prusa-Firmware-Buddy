@@ -7,7 +7,8 @@
 #include "eeprom.h"
 #include "ip4_addr.h"
 
-char buffer[MAX_REQ_BODY_SIZE] = "";
+static char buffer[MAX_REQ_BODY_SIZE] = "";
+
 static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
     if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start && strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
         return 0;
@@ -15,7 +16,7 @@ static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
     return -1;
 }
 
-void send_request_to_server(const char *request) {
+static void send_request_to_wui(const char *request) {
     size_t req_len = strlen(request);
     osMessageQId queue = 0;
 
@@ -49,7 +50,7 @@ void send_request_to_server(const char *request) {
     osSemaphoreRelease(tcpclient_wui_sema); //unlock
 }
 
-void json_parse_jsmn(const char *json, uint16_t len) {
+void http_json_parser(char *json, uint32_t len) {
     int ret;
     jsmn_parser parser;
     jsmntok_t t[128]; // Just a raw value, we do not expect more that 128 tokens
@@ -65,10 +66,9 @@ void json_parse_jsmn(const char *json, uint16_t len) {
 
     for (int i = 0; i < ret; i++) {
         if (json_cmp(json, &t[i], "command") == 0) {
-            strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
-            request[t[i + 1].end - t[i + 1].start] = 0;
+            strlcpy(request, json + t[i + 1].start, (t[i + 1].end - t[i + 1].start + 1));
             i++;
-            send_request_to_server(request);
+            send_request_to_wui(request);
         } else if (json_cmp(json, &t[i], "connect_ip") == 0) {
             strncpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start);
             request[t[i + 1].end - t[i + 1].start] = 0;
@@ -88,18 +88,6 @@ void json_parse_jsmn(const char *json, uint16_t len) {
             eeprom_set_string(EEVAR_LAN_HOSTNAME_START, request, LAN_HOSTNAME_MAX_LEN);
             i++;
         }
-
-        /* else if(json_cmp(json, &t[i], "axis") == 0){
-            if(t[i + 1].type != JSMN_ARRAY){
-                continue;
-            }
-            strncat(request, " ", 1);
-            int j;
-            for(j = 0; j < t[i + 1].size; j++){
-                strncat(request, json + t[i + j + 2].start, 1);
-            }
-            i += j + 1; //array token (1) + array size (j-1) + axis (1)
-        }*/
     }
 }
 

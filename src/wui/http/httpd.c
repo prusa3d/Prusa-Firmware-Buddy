@@ -95,6 +95,7 @@
 #include "lwip/apps/fs.h"
 #include "httpd_structs.h"
 #include "lwip/def.h"
+#include "lwip.h"
 
 #include "lwip/altcp.h"
 #include "lwip/altcp_tcp.h"
@@ -345,8 +346,10 @@ const struct http_ssi_tag_description http_ssi_tag_desc[] = {
 
     #define MSG_BUFFSIZE           512
     #define MAX_MARLIN_REQUEST_LEN 100
+    #define POST_URL_STR_MAX_LEN   50
 
 static char request_buf[MSG_BUFFSIZE];
+static char post_url_str[POST_URL_STR_MAX_LEN];
 
 static void *current_connection;
 static void *valid_connection;
@@ -357,13 +360,18 @@ extern osSemaphoreId wui_sema; // semaphore handle
 err_t httpd_post_begin(void *connection, const char *uri, const char *http_request,
     u16_t http_request_len, int content_len, char *response_uri,
     u16_t response_uri_len, u8_t *post_auto_wnd) {
+
+    strlcpy(post_url_str, "", 1);
     LWIP_UNUSED_ARG(post_auto_wnd);
+
     if (!memcmp(uri, "/api/g-code", 11)) {
         if (current_connection != connection) {
             current_connection = connection;
             valid_connection = NULL;
             /* default page */
-            snprintf(response_uri, response_uri_len, "/#g-code");
+            response_uri_len = 12;
+            snprintf(response_uri, response_uri_len, "/api/g-code");
+            strlcpy(post_url_str, "g-code.json", 12);
             return ERR_OK;
         }
     } else if (!memcmp(uri, "/admin.html", 11)) {
@@ -371,7 +379,9 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
             current_connection = connection;
             valid_connection = NULL;
             /* default page */
+            response_uri_len = 12;
             snprintf(response_uri, response_uri_len, "/admin.html");
+            strlcpy(post_url_str, "admin.html", 10);
             return ERR_OK;
         }
     }
@@ -404,8 +414,9 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
             /*receiving data succeeded*/
             //TODO: Send 200 OK
             if (request_buf[0] != 0) {
-                json_parse_jsmn(request_buf, strlen(request_buf));
-                strncpy(response_uri, "/admin.html", response_uri_len);
+                http_json_parser(request_buf, strlen(request_buf));
+                response_uri_len = strlen(post_url_str);
+                strlcpy(response_uri, post_url_str, response_uri_len + 1);
                 request_buf[0] = 0;
             }
         }
