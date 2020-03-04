@@ -158,6 +158,7 @@ void Error_Handler(void);
 #define LCD_CS_GPIO_Port      GPIOC
 #define Z_MIN_Pin             GPIO_PIN_8
 #define Z_MIN_GPIO_Port       GPIOA
+#define Z_MIN_EXTI_IRQn       EXTI9_5_IRQn
 #define USB_FS_N_Pin          GPIO_PIN_11
 #define USB_FS_N_GPIO_Port    GPIOA
 #define USB_FS_P_Pin          GPIO_PIN_12
