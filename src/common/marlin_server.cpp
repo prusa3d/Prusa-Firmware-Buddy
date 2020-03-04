@@ -27,7 +27,9 @@
 #include "hwio_a3ides.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-#include "Z_probe.h" //get_Z_probe_endstop_hits
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+    #include "Z_probe.h" //get_Z_probe_endstop_hits
+#endif
 
 #ifdef LCDSIM
     #include "lcdsim.h"
