@@ -11,7 +11,7 @@ add_library(
   http/fs.c
   http/http_client.c
   http/httpd.c
-  resources/fsdata_custom.c
+  resources/${HTTPD_FSDATA_FILE}
   progress_data_wrapper.cpp
 )
 
@@ -23,10 +23,10 @@ target_include_directories(
     resources
 )
 
-target_link_libraries(WUI PUBLIC WUI_Config)
 target_link_libraries(
   WUI
   PRIVATE LwIP
           jsmn::jsmn
           Marlin
+          WUI_Config
   )

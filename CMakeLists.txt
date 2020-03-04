@@ -212,6 +212,7 @@ target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 if(WUI)
   add_library(WUI_Config INTERFACE)
   target_include_directories(WUI_Config INTERFACE src/common src/gui src/guiapi/include)
+  target_compile_definitions(WUI_Config INTERFACE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
   target_link_libraries(WUI_Config INTERFACE A3idesHeaders QR)
 endif()
 

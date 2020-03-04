@@ -30,7 +30,7 @@
  *
  */
 
-#include "lwip/apps/httpd_opts.h"
+#include "httpd_opts.h"
 #include "lwip/def.h"
 #include "lwip/apps/fs.h"
 #include <string.h>

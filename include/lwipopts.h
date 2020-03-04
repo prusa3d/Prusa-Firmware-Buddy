@@ -148,7 +148,6 @@ extern "C" {
     #define LWIP_NETIF_STATUS_CALLBACK 1
     #define LWIP_NETIF_HOSTNAME        1
     #define LWIP_HTTPD_SUPPORT_POST    1
-    //#define LWIP_HTTPD_TEST_FSDATA     1 // changes fsdata file name for internal eth tests
 
 /* USER CODE END 1 */
 
