@@ -80,7 +80,6 @@ add_library(
 target_include_directories(
   LwIP
   PUBLIC system
-         src/app/http
          src/include
          src/include/netif/ppp
          src/include/lwip
