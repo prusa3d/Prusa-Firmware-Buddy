@@ -147,7 +147,7 @@ char uart6slave_line[32];
 
 uint32_t Tacho_FAN0;
 uint32_t Tacho_FAN1;
-
+//
 /* USER CODE END 0 */
 
 /**
