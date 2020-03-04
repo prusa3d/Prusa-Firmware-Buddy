@@ -50,10 +50,6 @@
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
 
-#if HAS_BUZZER
-    #include "../../lib/Marlin/Marlin/src/libs/buzzer.h"
-#endif
-
 #include "../../lib/Marlin/Marlin/src/libs/nozzle.h"
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
@@ -83,6 +79,7 @@ fil_change_settings_t fc_settings[EXTRUDERS];
 #endif
 
 #if HAS_BUZZER
+    #include "../../lib/Marlin/Marlin/src/libs/buzzer.h"
 static void filament_change_beep(const int8_t max_beep_count, const bool init = false) {
     if (pause_mode == PAUSE_MODE_PAUSE_PRINT)
         return;
@@ -101,6 +98,8 @@ static void filament_change_beep(const int8_t max_beep_count, const bool init = 
         }
     }
 }
+#else
+static void filament_change_beep(const int8_t max_beep_count, const bool init = false) {}
 #endif
 
 /**
@@ -165,11 +164,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     if (pause_for_user) {
         SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_INSERT));
 
-#if HAS_BUZZER
         filament_change_beep(max_beep_count, true);
-#else
-        UNUSED(max_beep_count);
-#endif
 
         KEEPALIVE_STATE(PAUSED_FOR_USER);
         wait_for_user = true; // LCD click or M108 will clear this
@@ -187,9 +182,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         ExtUI::onUserConfirmRequired_P(PSTR("Load Filament"));
 #endif
         while (wait_for_user) {
-#if HAS_BUZZER
             filament_change_beep(max_beep_count);
-#endif
             idle(true);
         }
     }
@@ -465,11 +458,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
 
     show_continue_prompt(is_reload);
 
-#if HAS_BUZZER
     filament_change_beep(max_beep_count, true);
-#else
-    UNUSED(max_beep_count);
-#endif
 
     // Start the heater idle timers
     const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL;
@@ -487,9 +476,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
     ExtUI::onUserConfirmRequired_P(PSTR("Nozzle Parked"));
 #endif
     while (wait_for_user) {
-#if HAS_BUZZER
         filament_change_beep(max_beep_count);
-#endif
 
         // If the nozzle has timed out...
         if (!nozzle_timed_out)
@@ -544,9 +531,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             wait_for_user = true;
             nozzle_timed_out = false;
 
-#if HAS_BUZZER
             filament_change_beep(max_beep_count, true);
-#endif
         }
 
         idle(true);
