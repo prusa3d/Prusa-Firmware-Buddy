@@ -194,7 +194,8 @@ void print_fan_spd() {
     }
 }
 
-void print_Z_probe_cnt() {
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+static void print_Z_probe_cnt() {
     if (DEBUGGING(INFO)) {
         static uint32_t last = 0;
         static uint32_t actual = 0;
@@ -207,10 +208,13 @@ void print_Z_probe_cnt() {
         }
     }
 }
+#endif
 int marlin_server_cycle(void) {
 
     print_fan_spd();
+#ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
+#endif
 
     int count = 0;
     int client_id;
