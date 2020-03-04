@@ -418,6 +418,7 @@ target_sources(
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
+          src/common/crc32.c
           src/marlin_stubs/G28.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp

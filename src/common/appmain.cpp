@@ -25,6 +25,7 @@
 #include "eeprom.h"
 #include "diag.h"
 #include "safe_state.h"
+#include "crc32.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
@@ -80,6 +81,8 @@ void app_run(void) {
     if (diag_fastboot)
         osThreadResume(webServerTaskHandle);
 #endif //BUDDY_ENABLE_ETHERNET
+
+    crc32_init();
 
     uint8_t defaults_loaded = eeprom_init();
 
