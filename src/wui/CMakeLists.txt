@@ -18,7 +18,7 @@ add_library(
 target_include_directories(
   WUI
   PUBLIC
-    /
+    ${CMAKE_CURRENT_LIST_DIR}
     http
     resources
 )
