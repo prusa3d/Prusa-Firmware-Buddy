@@ -43,10 +43,7 @@
     #include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
 #endif
 
-#if ENABLED(EXTENSIBLE_UI)
-    #include "../../lib/Marlin/Marlin/src/lcd/extensible_ui/ui_api.h"
-#endif
-
+#include "../../lib/Marlin/Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
 
@@ -56,10 +53,18 @@
 // private:
 //check unsupported feacures
 //filament sensor is no longre part of marlin thus it must be disabled
-#if (!ENABLED(ADVANCED_PAUSE_FEATURE)) || HAS_FILAMENT_SENSOR || HAS_LCD_MENU || NUM_RUNOUT_SENSORS > 1 || ENABLED(DUAL_X_CARRIAGE) || (!ENABLED(PREVENT_COLD_EXTRUSION)) || ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE)
+// clang-format off
+#if (!ENABLED(EXTENSIBLE_UI)) || \
+    (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
+    HAS_FILAMENT_SENSOR || \
+    HAS_LCD_MENU || \
+    NUM_RUNOUT_SENSORS > 1 || \
+    ENABLED(DUAL_X_CARRIAGE) || \
+    (!ENABLED(PREVENT_COLD_EXTRUSION)) || \
+    ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE)
     #error unsupported
 #endif
-
+// clang-format on
 static xyze_pos_t resume_position;
 
 PauseMode pause_mode = PAUSE_MODE_PAUSE_PRINT;
@@ -178,9 +183,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         host_action_prompt_button(PSTR("Continue"));
         host_action_prompt_show();
 #endif
-#if ENABLED(EXTENSIBLE_UI)
         ExtUI::onUserConfirmRequired_P(PSTR("Load Filament"));
-#endif
         while (wait_for_user) {
             filament_change_beep(max_beep_count);
             idle(true);
@@ -472,9 +475,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
 #if ENABLED(HOST_PROMPT_SUPPORT)
     host_prompt_do(PROMPT_USER_CONTINUE, PSTR("Nozzle Parked"), PSTR("Continue"));
 #endif
-#if ENABLED(EXTENSIBLE_UI)
     ExtUI::onUserConfirmRequired_P(PSTR("Nozzle Parked"));
-#endif
     while (wait_for_user) {
         filament_change_beep(max_beep_count);
 
@@ -491,11 +492,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
 #if ENABLED(HOST_PROMPT_SUPPORT)
             host_prompt_do(PROMPT_USER_CONTINUE, PSTR("HeaterTimeout"), PSTR("Reheat"));
 #endif
-
-#if ENABLED(EXTENSIBLE_UI)
             ExtUI::onUserConfirmRequired_P(PSTR("HeaterTimeout"));
-#endif
-
             // Wait for LCD click or M108
             while (wait_for_user)
                 idle(true);
@@ -503,9 +500,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
 #if ENABLED(HOST_PROMPT_SUPPORT)
             host_prompt_do(PROMPT_INFO, PSTR("Reheating"));
 #endif
-#if ENABLED(EXTENSIBLE_UI)
             ExtUI::onStatusChanged(PSTR("Reheating..."));
-#endif
 
             // Re-enable the heaters if they timed out
             HOTEND_LOOP()
@@ -525,9 +520,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
 #if ENABLED(HOST_PROMPT_SUPPORT)
             host_prompt_do(PROMPT_USER_CONTINUE, PSTR("Reheat Done"), PSTR("Continue"));
 #endif
-#if ENABLED(EXTENSIBLE_UI)
             ExtUI::onUserConfirmRequired_P(PSTR("Reheat finished."));
-#endif
             wait_for_user = true;
             nozzle_timed_out = false;
 
