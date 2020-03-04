@@ -383,7 +383,11 @@
 #if !defined HTTPD_FSDATA_FILE || defined __DOXYGEN__
     /* HTTPD_USE_CUSTOM_FSDATA: Compatibility with deprecated lwIP option */
     #if defined(HTTPD_USE_CUSTOM_FSDATA) && (HTTPD_USE_CUSTOM_FSDATA != 0)
-        #define HTTPD_FSDATA_FILE "fsdata_custom.c"
+        #if defined(LWIP_HTTPD_TEST_FSDATA) && (LWIP_HTTPD_TEST_FSDATA != 0)
+            #define HTTPD_FSDATA_FILE "fsdata_wui_tests.c"
+        #else
+            #define HTTPD_FSDATA_FILE "fsdata_wui_local.c"
+        #endif
     #else
         #define HTTPD_FSDATA_FILE "fsdata.c"
     #endif
