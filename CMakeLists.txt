@@ -77,10 +77,6 @@ set(WUI
     "YES"
     CACHE BOOL "Enable Web User Interface"
     )
-set(GUI
-    "YES"
-    CACHE BOOL "Enable GUI"
-    )
 
 # Validate options
 foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
@@ -109,7 +105,6 @@ message(
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
 message(STATUS "Web User Interface: ${WUI}")
-message(STATUS "GUI: ${GUI}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
@@ -117,12 +112,20 @@ set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
+set(PRINTERS_WITH_GUI "MINI")
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
 else()
   set(FILAMENT_SENSOR NO)
 endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
+  set(GUI YES)
+else()
+  set(GUI NO)
+endif()
+message(STATUS "GUI: ${GUI}")
 
 # append custom C/C++ flags
 if(CUSTOM_COMPILE_OPTIONS)
