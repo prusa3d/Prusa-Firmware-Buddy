@@ -258,7 +258,7 @@ void marlin_gcode_push_front(const char *gcode) {
     _wait_ack_from_server(client->id);
 }
 
-int marlin_event(uint8_t evt_id) {
+int marlin_event(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -267,7 +267,7 @@ int marlin_event(uint8_t evt_id) {
     return ret;
 }
 
-int marlin_event_set(uint8_t evt_id) {
+int marlin_event_set(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -278,7 +278,7 @@ int marlin_event_set(uint8_t evt_id) {
     return ret;
 }
 
-int marlin_event_clr(uint8_t evt_id) {
+int marlin_event_clr(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -653,7 +653,7 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
     } else if (msg.type == VARIANT8_USER) // event received
     {
         client->events |= ((uint64_t)1 << id);
-        switch (id) {
+        switch ((MARLIN_EVT_t)id) {
         case MARLIN_EVT_MeshUpdate: {
             uint8_t x = msg.usr16 & 0xff;
             uint8_t y = msg.usr16 >> 8;
@@ -700,6 +700,26 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_DialogClose:
             if (client->dialog_close_cb)
                 client->dialog_close_cb((dialog_t)msg.ui32);
+            break;
+            //not handled events
+            //do not use default, i want all events listed here, so new event will generate warning, when not added
+        case MARLIN_EVT_Startup:
+        case MARLIN_EVT_Idle:
+        case MARLIN_EVT_PrinterKilled:
+        case MARLIN_EVT_MediaInserted:
+        case MARLIN_EVT_MediaError:
+        case MARLIN_EVT_MediaRemoved:
+        case MARLIN_EVT_PlayTone:
+        case MARLIN_EVT_PrintTimerStarted:
+        case MARLIN_EVT_PrintTimerPaused:
+        case MARLIN_EVT_PrintTimerStopped:
+        case MARLIN_EVT_FilamentRunout:
+        case MARLIN_EVT_UserConfirmRequired:
+        case MARLIN_EVT_StatusChanged:
+        case MARLIN_EVT_FactoryReset:
+        case MARLIN_EVT_LoadSettings:
+        case MARLIN_EVT_StoreSettings:
+        case MARLIN_EVT_SafetyTimerExpired:
             break;
         }
 #ifdef DBG_EVT_MSK

@@ -33,9 +33,12 @@ const char *__evt_name[] = {
     "SafetyTimerExpired",
     "Message",
     "Reheat",
-    "DialogCreation",
+    "DialogOpen",
+    "DialogClose",
     "Acknowledge",
 };
+
+_Static_assert((sizeof(__evt_name) / sizeof(__evt_name[0])) == (MARLIN_EVT_MAX + 1), "Incorrect number of event names");
 
 // returns event name (dbg)
 const char *marlin_events_get_name(uint8_t evt_id) {

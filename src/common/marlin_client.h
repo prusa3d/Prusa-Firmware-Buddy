@@ -76,13 +76,13 @@ extern int marlin_gcode_printf(const char *format, ...);
 extern void marlin_gcode_push_front(const char *gcode);
 
 // returns current event status for evt_id
-extern int marlin_event(uint8_t evt_id);
+extern int marlin_event(MARLIN_EVT_t evt_id);
 
 // returns current event status for evt_id and set event
-extern int marlin_event_set(uint8_t evt_id);
+extern int marlin_event_set(MARLIN_EVT_t evt_id);
 
 // returns current event status for evt_id and clear event
-extern int marlin_event_clr(uint8_t evt_id);
+extern int marlin_event_clr(MARLIN_EVT_t evt_id);
 
 // returns current event status for all events as 64bit mask
 extern uint64_t marlin_events(void);
