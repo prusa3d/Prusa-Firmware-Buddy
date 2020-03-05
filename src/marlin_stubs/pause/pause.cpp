@@ -142,17 +142,6 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
     planner.synchronize();
 }
 
-void plan_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
-    #if HAS_FILAMENT_SENSOR
-    runout.reset();
-    #endif
-    current_position.e += length / planner.e_factor[active_extruder];
-    //line_to_current_position(fr_mm_s);
-    while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
-        delay(50);
-    }
-}
-
 /**
  * Load filament into the hotend
  *
@@ -368,7 +357,6 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
         lcd_pause_show_message(PAUSE_MESSAGE_UNLOAD, mode);
     #endif
 
-    #if 0
     // Retract filament
     do_pause_e_move(-(FILAMENT_UNLOAD_RETRACT_LENGTH)*mix_multiplier, (PAUSE_PARK_RETRACT_FEEDRATE)*mix_multiplier);
 
@@ -379,77 +367,18 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     do_pause_e_move((FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH) * mix_multiplier,
         FILAMENT_UNLOAD_PURGE_FEEDRATE * mix_multiplier);
 
-    #else
-    constexpr float mm_per_minute = 1 / 60.f;
-    // debug code:
-    //     plan_pause_e_move(1*mix_multiplier, 100*mix_multiplier * mm_per_minute);
-    // // G1 F300
-    // // G1 E1
-    //     plan_pause_e_move(1*mix_multiplier, 300*mix_multiplier * mm_per_minute);
-    // // G1 F800
-    // // G1 E3
-    //     plan_pause_e_move(3*mix_multiplier, 800*mix_multiplier * mm_per_minute);
-    // // G1 F1200
-    // // G1 E2
-    //     plan_pause_e_move(2*mix_multiplier, 1200*mix_multiplier * mm_per_minute);
-    // // G1 F2200
-    // // G1 E2
-    //     plan_pause_e_move(2*mix_multiplier, 2200*mix_multiplier * mm_per_minute);
-    // // G1 F2600
-    // // G1 E2
-    //     plan_pause_e_move(2*mix_multiplier, 2600*mix_multiplier * mm_per_minute);
-
-    // // ; unload
-    // // G1 F2200
-    // // G1 E-2
-    //     plan_pause_e_move(-2*mix_multiplier, 2200*mix_multiplier * mm_per_minute);
-    // // G1 F3000
-    // // G1 E-20
-    //     plan_pause_e_move(-20*mix_multiplier, 3000*mix_multiplier * mm_per_minute);
-    // // G1 F4000
-    // // G1 E-30
-    //     plan_pause_e_move(-30*mix_multiplier, 4000*mix_multiplier * mm_per_minute);
-
-    struct RamUnloadSeqItem {
-        int16_t e;        ///< relative movement of Extruder
-        int16_t feedrate; ///< feedrate of the move
-    };
-
-    static const RamUnloadSeqItem ramUnloadSeq[] = {
-        { 1, 100 },
-        { 1, 300 },
-        { 3, 800 },
-        { 2, 1200 },
-        { 2, 2200 },
-        { 2, 2600 }, // end of ramming
-        { -2, 2200 },
-        { -20, 3000 },
-        { -30, 4000 }, // end of pre-unload
-    };
-
-    constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
-
-    for (size_t i = 0; i < ramUnloadSeqSize; ++i) {
-        plan_pause_e_move(ramUnloadSeq[i].e * mix_multiplier, ramUnloadSeq[i].feedrate * mix_multiplier * mm_per_minute);
-    }
-    #endif
-
     // Unload filament
     #if FILAMENT_CHANGE_UNLOAD_ACCEL > 0
     const float saved_acceleration = planner.settings.retract_acceleration;
     planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
     #endif
 
-    //    if (unload_length < -(FILAMENT_UNLOAD_PHASE1_LENGHT + FILAMENT_UNLOAD_PHASE2_LENGHT)) {
-    //        do_pause_e_move(-FILAMENT_UNLOAD_PHASE1_LENGHT * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
-    //        do_pause_e_move(-FILAMENT_UNLOAD_PHASE2_LENGHT * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE / 4) * mix_multiplier);
-    //        do_pause_e_move((unload_length + (FILAMENT_UNLOAD_PHASE1_LENGHT + FILAMENT_UNLOAD_PHASE2_LENGHT)) * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
-    //    } else
-
-    // subtract the already performed extruder movement (-30mm) from the total unload length
-    do_pause_e_move(
-        (unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e) * mix_multiplier,
-        (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
+    if (unload_length < -(FILAMENT_UNLOAD_PHASE1_LENGHT + FILAMENT_UNLOAD_PHASE2_LENGHT)) {
+        do_pause_e_move(-FILAMENT_UNLOAD_PHASE1_LENGHT * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
+        do_pause_e_move(-FILAMENT_UNLOAD_PHASE2_LENGHT * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE / 4) * mix_multiplier);
+        do_pause_e_move((unload_length + (FILAMENT_UNLOAD_PHASE1_LENGHT + FILAMENT_UNLOAD_PHASE2_LENGHT)) * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
+    } else
+        do_pause_e_move(unload_length * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
 
     #if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
     planner.settings.retract_acceleration = saved_acceleration;
