@@ -236,7 +236,7 @@ void marlin_json_gcode(const char *gcode) {
     if (client == 0)
         return;
     strcpy(request, "!g ");
-    strcat(request, gcode);
+    strlcat(request, gcode, MARLIN_MAX_REQUEST);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
@@ -422,7 +422,7 @@ void marlin_set_printing_gcode_name(const char *src) {
     if (client == 0)
         return;
     marlin_client_loop();
-    sprintf(request, "!setgcode %p", src);
+    snprintf(request, MARLIN_MAX_REQUEST,"!setgcode %p", src);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
@@ -433,7 +433,7 @@ void marlin_get_printing_gcode_name(char *src) {
     if (client == 0)
         return;
     marlin_client_loop();
-    sprintf(request, "!getgcode %p", src);
+    snprintf(request, MARLIN_MAX_REQUEST, "!getgcode %p", src);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
