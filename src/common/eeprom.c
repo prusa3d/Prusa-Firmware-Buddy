@@ -21,6 +21,9 @@
 #define EEPROM_MAX_DATASIZE      256    // maximum datasize
 #define EEPROM_FIRST_VERSION_CRC 0x0004 // first eeprom version with crc support
 
+// flags will be used also for selective variable reset default values in some cases (shipping etc.))
+#define EEVAR_FLG_READONLY       0x0001 // variable is read only
+
 
 #pragma pack(push)
 #pragma pack(1)
@@ -30,6 +33,7 @@ typedef struct _eeprom_entry_t {
     const char name[EEPROM_MAX_NAME];
     uint8_t type;   // variant8 data type
     uint8_t count;  // number of elements
+    uint16_t flags; // flags
 } eeprom_entry_t;
 
 // eeprom vars structure (used for defaults)
@@ -69,34 +73,34 @@ typedef struct _eeprom_vars_t {
 
 // eeprom map
 const eeprom_entry_t eeprom_map[] = {
-    { "VERSION",         VARIANT8_UI16,  1  }, // EEVAR_VERSION
-    { "FEATURES",        VARIANT8_UI16,  1  }, // EEVAR_FEATURES
-    { "DATASIZE",        VARIANT8_UI16,  1  }, // EEVAR_DATASIZE
-    { "FW_VERSION",      VARIANT8_UI16,  1  }, // EEVAR_FW_VERSION
-    { "FW_BUILD",        VARIANT8_UI16,  1  }, // EEVAR_FW_BUILD
-    { "FILAMENT_TYPE",   VARIANT8_UI8,   1  }, // EEVAR_FILAMENT_TYPE
-    { "FILAMENT_COLOR",  VARIANT8_UI32,  1  }, // EEVAR_FILAMENT_COLOR
-    { "RUN_SELFTEST",    VARIANT8_UI8,   1  }, // EEVAR_RUN_SELFTEST
-    { "RUN_XYZCALIB",    VARIANT8_UI8,   1  }, // EEVAR_RUN_XYZCALIB
-    { "RUN_FIRSTLAY",    VARIANT8_UI8,   1  }, // EEVAR_RUN_FIRSTLAY
-    { "FSENSOR_ENABLED", VARIANT8_UI8,   1  }, // EEVAR_FSENSOR_ENABLED
-    { "ZOFFSET",         VARIANT8_FLT,   1  }, // EEVAR_ZOFFSET
-    { "PID_NOZ_P",       VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_P
-    { "PID_NOZ_I",       VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_I
-    { "PID_NOZ_D",       VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_D
-    { "PID_BED_P",       VARIANT8_FLT,   1  }, // EEVAR_PID_BED_P
-    { "PID_BED_I",       VARIANT8_FLT,   1  }, // EEVAR_PID_BED_I
-    { "PID_BED_D",       VARIANT8_FLT,   1  }, // EEVAR_PID_BED_D
-    { "LAN_FLAG",        VARIANT8_UI8,   1  }, // EEVAR_LAN_FLAG
-    { "LAN_IP4_ADDR",    VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_ADDR
-    { "LAN_IP4_MSK",     VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_MSK
-    { "LAN_IP4_GW",      VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_GW
-    { "LAN_IP4_DNS1",    VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS1
-    { "LAN_IP4_DNS2",    VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS2
-    { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1 }, // EEVAR_LAN_HOSTNAME
-    { "TEST",            VARIANT8_PCHAR, 10 }, // EEVAR_TEST
-    { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING }, // EEVAR__PADDING32
-    { "CRC32",           VARIANT8_UI32,  1  }, // EEVAR_CRC32
+    { "VERSION",         VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_VERSION
+    { "FEATURES",        VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_FEATURES
+    { "DATASIZE",        VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_DATASIZE
+    { "FW_VERSION",      VARIANT8_UI16,  1, 0 }, // EEVAR_FW_VERSION
+    { "FW_BUILD",        VARIANT8_UI16,  1, 0 }, // EEVAR_FW_BUILD
+    { "FILAMENT_TYPE",   VARIANT8_UI8,   1, 0 }, // EEVAR_FILAMENT_TYPE
+    { "FILAMENT_COLOR",  VARIANT8_UI32,  1, 0 }, // EEVAR_FILAMENT_COLOR
+    { "RUN_SELFTEST",    VARIANT8_UI8,   1, 0 }, // EEVAR_RUN_SELFTEST
+    { "RUN_XYZCALIB",    VARIANT8_UI8,   1, 0 }, // EEVAR_RUN_XYZCALIB
+    { "RUN_FIRSTLAY",    VARIANT8_UI8,   1, 0 }, // EEVAR_RUN_FIRSTLAY
+    { "FSENSOR_ENABLED", VARIANT8_UI8,   1, 0 }, // EEVAR_FSENSOR_ENABLED
+    { "ZOFFSET",         VARIANT8_FLT,   1, 0 }, // EEVAR_ZOFFSET
+    { "PID_NOZ_P",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_P
+    { "PID_NOZ_I",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_I
+    { "PID_NOZ_D",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_D
+    { "PID_BED_P",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_BED_P
+    { "PID_BED_I",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_BED_I
+    { "PID_BED_D",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_BED_D
+    { "LAN_FLAG",        VARIANT8_UI8,   1, 0 }, // EEVAR_LAN_FLAG
+    { "LAN_IP4_ADDR",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_ADDR
+    { "LAN_IP4_MSK",     VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_MSK
+    { "LAN_IP4_GW",      VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_GW
+    { "LAN_IP4_DNS1",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_DNS1
+    { "LAN_IP4_DNS2",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_DNS2
+    { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_LAN_HOSTNAME
+    { "TEST",            VARIANT8_PCHAR, 10, 0 }, // EEVAR_TEST
+    { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
+    { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
 
 // eeprom variable defaults
