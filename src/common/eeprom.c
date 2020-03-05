@@ -17,6 +17,7 @@
 #define EEPROM_DATASIZE  sizeof(eeprom_vars_t)
 #define EEPROM__PADDING  1
 
+#define EEPROM_MAX_NAME          16     // maximum name length (with '\0')
 #define EEPROM_MAX_DATASIZE      256    // maximum datasize
 #define EEPROM_FIRST_VERSION_CRC 0x0004 // first eeprom version with crc support
 
@@ -26,6 +27,7 @@
 
 // eeprom map entry structure
 typedef struct _eeprom_entry_t {
+    const char name[EEPROM_MAX_NAME];
     uint8_t type;   // variant8 data type
     uint8_t count;  // number of elements
 } eeprom_entry_t;
@@ -67,66 +69,34 @@ typedef struct _eeprom_vars_t {
 
 // eeprom map
 const eeprom_entry_t eeprom_map[] = {
-    { VARIANT8_UI16,  1  }, // EEVAR_VERSION
-    { VARIANT8_UI16,  1  }, // EEVAR_FEATURES
-    { VARIANT8_UI16,  1  }, // EEVAR_DATASIZE
-    { VARIANT8_UI16,  1  }, // EEVAR_FW_VERSION
-    { VARIANT8_UI16,  1  }, // EEVAR_FW_BUILD
-    { VARIANT8_UI8,   1  }, // EEVAR_FILAMENT_TYPE
-    { VARIANT8_UI32,  1  }, // EEVAR_FILAMENT_COLOR
-    { VARIANT8_UI8,   1  }, // EEVAR_RUN_SELFTEST
-    { VARIANT8_UI8,   1  }, // EEVAR_RUN_XYZCALIB
-    { VARIANT8_UI8,   1  }, // EEVAR_RUN_FIRSTLAY
-    { VARIANT8_UI8,   1  }, // EEVAR_FSENSOR_ENABLED
-    { VARIANT8_FLT,   1  }, // EEVAR_ZOFFSET
-    { VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_P
-    { VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_I
-    { VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_D
-    { VARIANT8_FLT,   1  }, // EEVAR_PID_BED_P
-    { VARIANT8_FLT,   1  }, // EEVAR_PID_BED_I
-    { VARIANT8_FLT,   1  }, // EEVAR_PID_BED_D
-    { VARIANT8_UI8,   1  }, // EEVAR_LAN_FLAG
-    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_ADDR
-    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_MSK
-    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_GW
-    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS1
-    { VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS2
-    { VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1 }, // EEVAR_LAN_HOSTNAME
-    { VARIANT8_PCHAR, 10 }, // EEVAR_TEST
-    { VARIANT8_PCHAR, EEPROM__PADDING }, // EEVAR__PADDING32
-    { VARIANT8_UI32,  1  }, // EEVAR_CRC32
-};
-
-// eeprom variable names
-const char *eeprom_var_name[] = {
-    "VERSION",
-    "FEATURES",
-    "DATASIZE",
-    "FW_VERSION",
-    "FW_BUILD",
-    "FILAMENT_TYPE",
-    "FILAMENT_COLOR",
-    "RUN_SELFTEST",
-    "RUN_XYZCALIB",
-    "RUN_FIRSTLAY",
-    "FSENSOR_ENABLED",
-    "ZOFFSET",
-    "PID_NOZ_P",
-    "PID_NOZ_I",
-    "PID_NOZ_D",
-    "PID_BED_P",
-    "PID_BED_I",
-    "PID_BED_D",
-    "LAN_FLAG",
-    "LAN_IP4_ADDR",
-    "LAN_IP4_MSK",
-    "LAN_IP4_GW",
-    "LAN_IP4_DNS1",
-    "LAN_IP4_DNS2",
-    "LAN_HOSTNAME",
-    "TEST",
-    "_PADDING",
-    "CRC32",
+    { "VERSION",         VARIANT8_UI16,  1  }, // EEVAR_VERSION
+    { "FEATURES",        VARIANT8_UI16,  1  }, // EEVAR_FEATURES
+    { "DATASIZE",        VARIANT8_UI16,  1  }, // EEVAR_DATASIZE
+    { "FW_VERSION",      VARIANT8_UI16,  1  }, // EEVAR_FW_VERSION
+    { "FW_BUILD",        VARIANT8_UI16,  1  }, // EEVAR_FW_BUILD
+    { "FILAMENT_TYPE",   VARIANT8_UI8,   1  }, // EEVAR_FILAMENT_TYPE
+    { "FILAMENT_COLOR",  VARIANT8_UI32,  1  }, // EEVAR_FILAMENT_COLOR
+    { "RUN_SELFTEST",    VARIANT8_UI8,   1  }, // EEVAR_RUN_SELFTEST
+    { "RUN_XYZCALIB",    VARIANT8_UI8,   1  }, // EEVAR_RUN_XYZCALIB
+    { "RUN_FIRSTLAY",    VARIANT8_UI8,   1  }, // EEVAR_RUN_FIRSTLAY
+    { "FSENSOR_ENABLED", VARIANT8_UI8,   1  }, // EEVAR_FSENSOR_ENABLED
+    { "ZOFFSET",         VARIANT8_FLT,   1  }, // EEVAR_ZOFFSET
+    { "PID_NOZ_P",       VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_P
+    { "PID_NOZ_I",       VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_I
+    { "PID_NOZ_D",       VARIANT8_FLT,   1  }, // EEVAR_PID_NOZ_D
+    { "PID_BED_P",       VARIANT8_FLT,   1  }, // EEVAR_PID_BED_P
+    { "PID_BED_I",       VARIANT8_FLT,   1  }, // EEVAR_PID_BED_I
+    { "PID_BED_D",       VARIANT8_FLT,   1  }, // EEVAR_PID_BED_D
+    { "LAN_FLAG",        VARIANT8_UI8,   1  }, // EEVAR_LAN_FLAG
+    { "LAN_IP4_ADDR",    VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_ADDR
+    { "LAN_IP4_MSK",     VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_MSK
+    { "LAN_IP4_GW",      VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_GW
+    { "LAN_IP4_DNS1",    VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS1
+    { "LAN_IP4_DNS2",    VARIANT8_UI32,  1  }, // EEVAR_LAN_IP4_DNS2
+    { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1 }, // EEVAR_LAN_HOSTNAME
+    { "TEST",            VARIANT8_PCHAR, 10 }, // EEVAR_TEST
+    { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING }, // EEVAR__PADDING32
+    { "CRC32",           VARIANT8_UI32,  1  }, // EEVAR_CRC32
 };
 
 // eeprom variable defaults
@@ -134,8 +104,8 @@ const eeprom_vars_t eeprom_var_defaults = {
     EEPROM_VERSION,  // EEVAR_VERSION
     EEPROM_FEATURES, // EEVAR_FEATURES
     EEPROM_DATASIZE, // EEVAR_DATASIZE
-    0,               // EEVAR_FW_VERSION
-    0,               // EEVAR_FW_BUILD
+    0,               // EEVAR_FW_VERSION TODO: default value
+    0,               // EEVAR_FW_BUILD   TODO: default value
     0,               // EEVAR_FILAMENT_TYPE
     0,               // EEVAR_FILAMENT_COLOR
     1,               // EEVAR_RUN_SELFTEST
@@ -144,11 +114,11 @@ const eeprom_vars_t eeprom_var_defaults = {
     1,               // EEVAR_FSENSOR_ENABLED
     0,               // EEVAR_ZOFFSET
     18.000000,       // EEVAR_PID_NOZ_P
-    0.294400,        // EEVAR_PID_NOZ_I
-    274.437500,      // EEVAR_PID_NOZ_D
+    0.294400,        // EEVAR_PID_NOZ_I (unscaled)
+    274.437500,      // EEVAR_PID_NOZ_D (unscaled)
     160.970001,      // EEVAR_PID_BED_P
-    2.251200,        // EEVAR_PID_BED_I
-    2877.437744,     // EEVAR_PID_BED_D
+    2.251200,        // EEVAR_PID_BED_I (unscaled)
+    2877.437744,     // EEVAR_PID_BED_D (unscaled)
     0,               // EEVAR_LAN_FLAG
     0,               // EEVAR_LAN_IP4_ADDR
     0,               // EEVAR_LAN_IP4_MSK
@@ -191,8 +161,8 @@ void eeprom_update_crc32(uint16_t addr, uint16_t size);
 // public functions - described in header
 
 uint8_t eeprom_init(void) {
-	uint16_t version;
-	uint16_t features;
+    uint16_t version;
+    uint16_t features;
     uint8_t defaults = 0;
     osSemaphoreDef(eepromSema);
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
@@ -204,16 +174,16 @@ uint8_t eeprom_init(void) {
     //eeprom_save_bin_to_usb("eeprom.bin");
     //while (1);
 
-	version = eeprom_get_var(EEVAR_VERSION).ui16;
-	features = (version >= 4)?eeprom_get_var(EEVAR_FEATURES).ui16:0;
-	if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
-		defaults = 1;
-	else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
-		if (eeprom_convert_from(version, features) == 0)
-			defaults = 1;
-	}
-	if (defaults)
-		eeprom_defaults();
+    version = eeprom_get_var(EEVAR_VERSION).ui16;
+    features = (version >= 4)?eeprom_get_var(EEVAR_FEATURES).ui16:0;
+    if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
+        defaults = 1;
+    else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
+        if (eeprom_convert_from(version, features) == 0)
+            defaults = 1;
+    }
+    if (defaults)
+        eeprom_defaults();
     eeprom_print_vars();
     //eeprom_dump();
     return defaults;
@@ -284,12 +254,12 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
 }
 
 uint8_t eeprom_get_var_count(void) {
-	return EEPROM_VARCOUNT;
+    return EEPROM_VARCOUNT;
 }
 
 const char* eeprom_get_var_name(uint8_t id) {
     if (id < EEPROM_VARCOUNT)
-    	return eeprom_var_name[id];
+        return eeprom_map[id].name;
     return "???";
 }
 
@@ -361,7 +331,7 @@ void eeprom_print_vars(void) {
     for (id = 0; id < EEPROM_VARCOUNT; id++) {
         var8 = eeprom_get_var(id);
         eeprom_var_format(text, 128, id, var8);
-        _dbg("%s=%s", eeprom_var_name[id], text);
+        _dbg("%s=%s", eeprom_map[id].name, text);
         variant8_done(&var8);
     }
 }
@@ -404,8 +374,8 @@ int eeprom_convert_from_v2(void) {
 
 // conversion function for new version format (features, firmware version/build)
 int eeprom_convert_from(uint16_t version, uint16_t features) {
-	if (version == 2)
-		return eeprom_convert_from_v2();
+    if (version == 2)
+        return eeprom_convert_from_v2();
     return 0;
 }
 
@@ -440,101 +410,7 @@ void eeprom_update_crc32(uint16_t addr, uint16_t size)
 #endif
 }
 
-/*
-// public functions for load/save
 
-int eeprom_load_bin_from_usb(const char* fn)
-{
-    FIL fil;
-    uint8_t buff[128];
-    uint16_t size = 0x800;
-    uint16_t addr = 0x000;
-    UINT bs = sizeof(buff);
-    UINT br;
-    if (f_open(&fil, fn, FA_READ) == FR_OK) {
-        eeprom_lock();
-        while (size)
-        {
-            if (size < bs)
-                bs = size;
-            if (f_read(&fil, buff, bs, &br) != FR_OK)
-                break;
-            if (br != bs)
-                break;
-            st25dv64k_user_write_bytes(addr, buff, bs);
-            size -= bs;
-            addr += bs;
-        }
-        f_close(&fil);
-        eeprom_unlock();
-        return (size == 0)?1:0;
-    }
-    return 0;
-}
-
-int eeprom_save_bin_to_usb(const char* fn)
-{
-    FIL fil;
-    uint8_t buff[128];
-    uint16_t size = 0x800;
-    uint16_t addr = 0x000;
-    UINT bs = sizeof(buff);
-    UINT bw;
-    if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
-        eeprom_lock();
-        while (size)
-        {
-            if (size < bs)
-                bs = size;
-            st25dv64k_user_read_bytes(addr, buff, bs);
-            if (f_write(&fil, buff, bs, &bw) != FR_OK)
-                break;
-            if (bw != bs)
-                break;
-            size -= bs;
-            addr += bs;
-        }
-        f_close(&fil);
-        eeprom_unlock();
-        return (size == 0)?1:0;
-    }
-    return 0;
-}
-
-int eeprom_load_xml_from_usb(const char* fn)
-{
-    return 0;
-}
-
-int eeprom_save_xml_to_usb(const char* fn)
-{
-    FIL fil;
-    uint8_t id;
-    char text[128];
-    variant8_t var8;
-    UINT bw;
-    if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
-        f_write(&fil, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", 55, &bw);
-        f_write(&fil, "<eeprom>\n", 9, &bw);
-        for (id = 0; id < EEPROM_VARCOUNT; id++) {
-            var8 = eeprom_get_var(id);
-            *text = 0;
-            eeprom_var_format(text, 128, id, var8);
-            f_write(&fil, "  <variable id=\"", 16, &bw);
-            f_write(&fil, eeprom_var_name[id], strlen(eeprom_var_name[id]), &bw);
-            f_write(&fil, "\" value=\"", 9, &bw);
-            f_write(&fil, text, strlen(text), &bw);
-            f_write(&fil, "\"/>\n", 4, &bw);
-            variant8_done(&var8);
-        }
-        f_write(&fil, "</eeprom>\n", 10, &bw);
-        f_close(&fil);
-        return 1;
-    }
-    return 0;
-}
-
-*/
 
 int8_t eeprom_test_PUT(const unsigned int bytes) {
     unsigned int i;
