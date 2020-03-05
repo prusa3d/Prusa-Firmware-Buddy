@@ -768,6 +768,7 @@ void marlin_server_set_gcode_name(const char *request) {
     if (ret != 1 || ptr == NULL)
         return;
     strlcpy(marlin_server.gcode_name, ptr, GCODE_NAME_MAX_LEN + 1);
+    _send_notify_event(MARLIN_EVT_GFileChange, 0, 0);
 }
 
 // fill pointer with name of the printing gcode (for WUI), dest param have to be at least 97 chars long!

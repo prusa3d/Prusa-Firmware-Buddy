@@ -428,6 +428,7 @@ void marlin_set_printing_gcode_name(const char *filename_pntr) {
         _dbg0("error!: filename string is not null terminated");
     }
     sprintf(request, "!gfileset %p", filename_pntr);
+    marlin_event_clr(MARLIN_EVT_GFileChange);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
