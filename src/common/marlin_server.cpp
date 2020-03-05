@@ -821,10 +821,10 @@ int _process_server_request(char *request) {
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();
         processed = 1;
-    } else if (strncmp("!setgcode ", request, 10) == 0) {
+    } else if (strncmp("!gfileset ", request, 10) == 0) {
         marlin_server_set_gcode_name(request + 10);
         processed = 1;
-    } else if (strncmp("!getgcode ", request, 10) == 0) {
+    } else if (strncmp("!gfileget ", request, 10) == 0) {
         marlin_server_get_gcode_name(request + 10);
         processed = 1;
     } else if (strcmp("!qstop", request) == 0) {
