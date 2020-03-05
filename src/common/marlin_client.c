@@ -237,7 +237,7 @@ void marlin_json_gcode(const char *gcode) {
     if (client == 0)
         return;
     strcpy(request, "!g ");
-    strcat(request, gcode);
+    strlcat(request, gcode, MARLIN_MAX_REQUEST);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
@@ -427,7 +427,7 @@ void marlin_set_printing_gcode_name(const char *filename_pntr) {
     if (_MAX_LFN == filename_len) {
         _dbg0("error!: filename string is not null terminated");
     }
-    sprintf(request, "!gfileset %p", filename_pntr);
+    snprintf(request, MARLIN_MAX_REQUEST, "!gfileset %p", src);
     marlin_event_clr(MARLIN_EVT_GFileChange);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
@@ -439,7 +439,7 @@ void marlin_get_printing_gcode_name(char *src) {
     if (client == 0) {
         return;
     }
-    sprintf(request, "!gfileget %p", src);
+    snprintf(request, MARLIN_MAX_REQUEST, "!gfileget %p", src);
     _send_request_to_server(client->id, request);
 }
 
