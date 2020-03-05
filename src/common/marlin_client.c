@@ -45,11 +45,12 @@ typedef struct _marlin_client_t {
     uint32_t ack;        // cached ack value from last Acknowledge event
     uint16_t last_count; // number of messages received in last client loop
     uint64_t errors;
-    marlin_mesh_t mesh;          // meshbed leveling
-    uint32_t command;            // processed command (G28,G29,M701,M702,M600)
-    marlin_host_prompt_t prompt; // current host prompt structure (type and buttons)
-    uint8_t reheating;           // reheating in progress
-    dialog_cb_t dialog_cb;       // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
+    marlin_mesh_t mesh;                // meshbed leveling
+    uint32_t command;                  // processed command (G28,G29,M701,M702,M600)
+    marlin_host_prompt_t prompt;       // current host prompt structure (type and buttons)
+    uint8_t reheating;                 // reheating in progress
+    dialog_open_cb_t dialog_open_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
+    dialog_close_cb_t dialog_close_cb; // to register callback for screen destruction
 } marlin_client_t;
 
 #pragma pack(pop)
@@ -106,7 +107,8 @@ marlin_vars_t *marlin_client_init(void) {
         client->mesh.yc = 4;
         client->command = MARLIN_CMD_NONE;
         client->reheating = 0;
-        client->dialog_cb = NULL;
+        client->dialog_open_cb = NULL;
+        client->dialog_close_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -151,19 +153,19 @@ int marlin_client_id(void) {
     return 0;
 }
 
-int marlin_client_set_dialog_cb(dialog_cb_t cb) {
+int marlin_client_set_dialog_open_cb(dialog_open_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
-        client->dialog_cb = cb;
+        client->dialog_open_cb = cb;
         return 1;
     }
     return 0;
 }
 
-int marlin_client_dialog_cb(int data) {
+int marlin_client_set_dialog_close_cb(dialog_close_cb_t cb) {
     marlin_client_t *client = _client_ptr();
-    if (client && client->dialog_cb) {
-        client->dialog_cb(data);
+    if (client && cb) {
+        client->dialog_close_cb = cb;
         return 1;
     }
     return 0;
@@ -691,9 +693,13 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_Acknowledge:
             client->ack = msg.ui32;
             break;
-        case MARLIN_EVT_DialogCreation:
-            if (client->dialog_cb)
-                client->dialog_cb(msg.ui32);
+        case MARLIN_EVT_DialogOpen:
+            if (client->dialog_open_cb)
+                client->dialog_open_cb((dialog_t)msg.ui32);
+            break;
+        case MARLIN_EVT_DialogClose:
+            if (client->dialog_close_cb)
+                client->dialog_close_cb((dialog_t)msg.ui32);
             break;
         }
 #ifdef DBG_EVT_MSK

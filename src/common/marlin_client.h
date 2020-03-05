@@ -6,6 +6,7 @@
 #include "marlin_vars.h"
 #include "marlin_errors.h"
 #include "marlin_host.h"
+#include "dialogs.h"
 
 // client flags
 #define MARLIN_CFLG_STARTED 0x0001 // client started (set in marlin_client_init)
@@ -17,8 +18,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-
-typedef void (*dialog_cb_t)(int);
 
 //-----------------------------------------------------------------------------
 //externs from marlin server todo fixme use variables
@@ -42,10 +41,9 @@ extern void marlin_client_loop(void);
 extern int marlin_client_id(void);
 
 //sets dialog callback, returns 1 on success
-extern int marlin_client_set_dialog_cb(dialog_cb_t cb);
-
-//calls dialog callback, returns 1 if valid
-extern int marlin_client_dialog_cb(int data);
+extern int marlin_client_set_dialog_open_cb(dialog_open_cb_t cb);
+//sets dialog callback, returns 1 on success
+extern int marlin_client_set_dialog_close_cb(dialog_close_cb_t cb);
 
 // returns enabled status of loop processing
 extern int marlin_processing(void);
