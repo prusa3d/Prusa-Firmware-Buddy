@@ -383,6 +383,7 @@ target_sources(
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
           src/common/eeprom.c
+          src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
           src/common/marlin_host.c
           src/common/sim_bed.c

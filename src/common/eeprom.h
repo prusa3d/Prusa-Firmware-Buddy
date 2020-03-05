@@ -73,20 +73,18 @@ extern variant8_t eeprom_get_var(uint8_t id);
 // set variable value as variant8
 extern void eeprom_set_var(uint8_t id, variant8_t var);
 
+// get number of variables
+extern uint8_t eeprom_get_var_count(void);
+
+// get variable name
+extern const char* eeprom_get_var_name(uint8_t id);
+
+// format variable value to string (some variables can have specific formating)
+extern int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var);
+
 // fill range 0x0000..0x0800 with 0xff
 extern void eeprom_clear(void);
 
-// load binary image (0x0000..0x0800) from usb flash (fatfs file)
-extern int eeprom_load_bin_from_usb(const char* fn);
-
-// save binary image (0x0000..0x0800) to usb flash (fatfs file)
-extern int eeprom_save_bin_to_usb(const char* fn);
-
-// TODO:
-extern int eeprom_load_xml_from_usb(const char* fn);
-
-// save xml file with all variables to usb flash (fatfs file)
-extern int eeprom_save_xml_to_usb(const char* fn);
 
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);

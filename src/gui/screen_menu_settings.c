@@ -8,6 +8,7 @@
 #include "cmsis_os.h"
 #include "sys.h"
 #include "eeprom.h"
+#include "eeprom_loadsave.h"
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "screen_lan_settings.h"
 #endif //BUDDY_ENABLE_ETHERNET

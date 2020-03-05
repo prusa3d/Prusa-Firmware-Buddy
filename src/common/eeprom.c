@@ -283,6 +283,36 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     }
 }
 
+uint8_t eeprom_get_var_count(void) {
+	return EEPROM_VARCOUNT;
+}
+
+const char* eeprom_get_var_name(uint8_t id) {
+    if (id < EEPROM_VARCOUNT)
+    	return eeprom_var_name[id];
+    return "???";
+}
+
+int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) {
+    int n = 0;
+    switch (id) {
+    // ip addresses
+    case EEVAR_LAN_IP4_ADDR:
+    case EEVAR_LAN_IP4_MSK:
+    case EEVAR_LAN_IP4_GW:
+    case EEVAR_LAN_IP4_DNS1:
+    case EEVAR_LAN_IP4_DNS2: {
+            uint8_t* p = (uint8_t*)(&(var.ui32));
+            n = snprintf(str, size, "%u.%u.%u.%u", p[0], p[1], p[2], p[3]);
+        }
+        break;
+    default: //use default conversion
+        n = variant8_snprintf(str, size, 0, &var);
+        break;
+    }
+    return n;
+}
+
 void eeprom_clear(void) {
     uint16_t a;
     uint32_t data = 0xffffffff;
@@ -322,26 +352,6 @@ void eeprom_dump(void) {
         }
         _dbg("%s", line);
     }
-}
-
-int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) {
-    int n = 0;
-    switch (id) {
-    // ip addresses
-    case EEVAR_LAN_IP4_ADDR:
-    case EEVAR_LAN_IP4_MSK:
-    case EEVAR_LAN_IP4_GW:
-    case EEVAR_LAN_IP4_DNS1:
-    case EEVAR_LAN_IP4_DNS2: {
-            uint8_t* p = (uint8_t*)(&(var.ui32));
-            n = snprintf(str, size, "%u.%u.%u.%u", p[0], p[1], p[2], p[3]);
-        }
-        break;
-    default: //use default conversion
-        n = variant8_snprintf(str, size, 0, &var);
-        break;
-    }
-    return n;
 }
 
 void eeprom_print_vars(void) {
@@ -430,6 +440,7 @@ void eeprom_update_crc32(uint16_t addr, uint16_t size)
 #endif
 }
 
+/*
 // public functions for load/save
 
 int eeprom_load_bin_from_usb(const char* fn)
@@ -523,7 +534,7 @@ int eeprom_save_xml_to_usb(const char* fn)
     return 0;
 }
 
-
+*/
 
 int8_t eeprom_test_PUT(const unsigned int bytes) {
     unsigned int i;
