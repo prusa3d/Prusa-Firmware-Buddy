@@ -77,7 +77,7 @@ typedef struct _marlin_mesh_t {
 extern "C" {
 #endif //__cplusplus
 
-extern const char *marlin_events_get_name(uint8_t evt_id);
+extern const char *marlin_events_get_name(MARLIN_EVT_t evt_id);
 
 #ifdef __cplusplus
 }
