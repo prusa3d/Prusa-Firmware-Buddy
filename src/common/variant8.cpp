@@ -246,7 +246,7 @@ int variant8_snprintf(char *str, unsigned int size, const char *fmt, variant8_t 
         n = snprintf(str, size, fmt ? fmt : "%u", (unsigned int)pvar8->ui32);
         break;
     case VARIANT8_FLT:
-        n = snprintf(str, size, fmt ? fmt : "%f", pvar8->flt);
+        n = snprintf(str, size, fmt ? fmt : "%f", (double)pvar8->flt);
         break;
     case VARIANT8_CHAR:
         n = snprintf(str, size, fmt ? fmt : "%c", pvar8->ch);
