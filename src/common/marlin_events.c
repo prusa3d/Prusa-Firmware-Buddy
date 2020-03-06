@@ -34,6 +34,7 @@ const char *__evt_name[] = {
     "Reheat",
     "DialogOpen",
     "DialogClose",
+    "DialogChange",
     "GFileChange",
     "Acknowledge",
 };

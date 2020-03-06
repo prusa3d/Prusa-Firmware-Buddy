@@ -38,8 +38,9 @@ extern const multibtns_t load_sequence_multibtns[load_seq_count];
 //because I need to set caption of change filament dialog (load / unload / change)
 //use extra state of statemachine to set caption woud be cleaner, but I can miss events
 //only last sent event is guaranteed  to pass its data
-typedef void (*dialog_open_cb_t)(dialog_t, uint8_t); //open dialog
-typedef void (*dialog_close_cb_t)(dialog_t);         //close dialog
+typedef void (*dialog_open_cb_t)(dialog_t, uint8_t);                                                 //open dialog
+typedef void (*dialog_close_cb_t)(dialog_t);                                                         //close dialog
+typedef void (*dialog_change_cb_t)(dialog_t, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change dialog state or progress
 
 #ifdef __cplusplus
 }

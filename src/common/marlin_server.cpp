@@ -541,6 +541,7 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             //do not resend open close dialog, send is forced
             case MARLIN_EVT_DialogOpen:
             case MARLIN_EVT_DialogClose:
+            case MARLIN_EVT_DialogChange:
                 break;
             }
         msk <<= 1;

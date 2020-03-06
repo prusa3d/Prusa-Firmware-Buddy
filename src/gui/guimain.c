@@ -174,6 +174,10 @@ static void dialog_close_cb(dialog_t dialog) {
     }
 }
 
+static void dialog_change_cb(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+    switch (dialog) {
+    }
+}
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -204,6 +208,7 @@ void gui_run(void) {
     gui_marlin_client_id = marlin_client_id();
     marlin_client_set_dialog_open_cb(dialog_open_cb);
     marlin_client_set_dialog_close_cb(dialog_close_cb);
+    marlin_client_set_dialog_change_cb(dialog_change_cb);
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
     screen_register(pscreen_splash);
