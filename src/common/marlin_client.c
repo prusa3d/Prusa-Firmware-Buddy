@@ -8,6 +8,7 @@
 #include "bsod.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
+#include "ffconf.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -416,26 +417,30 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
     return &(client->vars);
 }
 
-void marlin_set_printing_gcode_name(const char *src) {
+void marlin_set_printing_gcode_name(const char *filename_pntr) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
-    if (client == 0)
+    if (client == 0) {
         return;
-    marlin_client_loop();
-    snprintf(request, MARLIN_MAX_REQUEST,"!setgcode %p", src);
+    }
+    uint32_t filename_len = strnlen(filename_pntr, _MAX_LFN);
+    if (_MAX_LFN == filename_len) {
+        _dbg0("error!: filename string is not null terminated");
+    }
+    snprintf(request, MARLIN_MAX_REQUEST, "!gfileset %p", filename_pntr);
+    marlin_event_clr(MARLIN_EVT_GFileChange);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
 
-void marlin_get_printing_gcode_name(char *src) {
+void marlin_get_printing_gcode_name(char *filename_pntr) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
-    if (client == 0)
+    if (client == 0) {
         return;
-    marlin_client_loop();
-    snprintf(request, MARLIN_MAX_REQUEST, "!getgcode %p", src);
+    }
+    snprintf(request, MARLIN_MAX_REQUEST, "!gfileget %p", filename_pntr);
     _send_request_to_server(client->id, request);
-    _wait_ack_from_server(client->id);
 }
 
 uint8_t marlin_get_gqueue(void) {
