@@ -73,16 +73,22 @@ void http_json_parser(char *json, uint32_t len) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
             ip4_addr_t tmp_addr;
             if (ip4addr_aton(request, &tmp_addr)) {
-                eeprom_set_var(EEVAR_CONNECT_IP, variant8_ui32(tmp_addr.addr));
+                char connect_request[MAX_REQ_MARLIN_SIZE];
+                snprintf(connect_request, MAX_REQ_MARLIN_SIZE, "!cip %s", request);
+                send_request_to_wui(connect_request);
             }
             i++;
         } else if (json_cmp(json, &t[i], "connect_key") == 0) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
-            eeprom_set_string(EEVAR_CONNECT_KEY_START, request, CONNECT_SEC_KEY_LEN);
+            char connect_request[MAX_REQ_MARLIN_SIZE];
+            snprintf(connect_request, MAX_REQ_MARLIN_SIZE, "!ck %s", request);
+            send_request_to_wui(connect_request);
             i++;
         } else if (json_cmp(json, &t[i], "connect_name") == 0) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
-            eeprom_set_string(EEVAR_LAN_HOSTNAME_START, request, LAN_HOSTNAME_MAX_LEN);
+            char connect_request[MAX_REQ_MARLIN_SIZE];
+            snprintf(connect_request, MAX_REQ_MARLIN_SIZE, "!cn %s", request);
+            send_request_to_wui(connect_request);
             i++;
         }
     }

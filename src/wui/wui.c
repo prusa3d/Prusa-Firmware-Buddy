@@ -12,9 +12,12 @@
 #include "lwip.h"
 #include "ethernetif.h"
 #include "http_client.h"
+#include "eeprom.h"
+#include <string.h>
 
 #define MAX_WUI_REQUEST_LEN       100
 #define MAX_MARLIN_REQUEST_LEN    100
+#define MAX_IP4_ADDR_SIZE         16
 #define WUI_FLG_PEND_REQ          0x0001
 #define BUDDY_DISABLE_HTTP_CLIENT //disabling http client for next public release
 
@@ -119,7 +122,14 @@ static void wui_queue_cycle() {
 }
 static int process_wui_request() {
 
-    //if(wui.request == gcode)
-    marlin_json_gcode(wui.request);
+    if(strncmp(wui.request, "!cip ", 5) == 0){
+        eeprom_set_string(EEVAR_CONNECT_IP, wui.request + 5, MAX_IP4_ADDR_SIZE);
+    } else if (strncmp(wui.request, "!ck ", 4) == 0){
+        eeprom_set_string(EEVAR_CONNECT_KEY_START, wui.request + 4, CONNECT_SEC_KEY_LEN);
+    } else if (strncmp(wui.request, "!cn ", 4) == 0){
+        eeprom_set_string(EEVAR_LAN_HOSTNAME_START, wui.request + 4, LAN_HOSTNAME_MAX_LEN);
+    } else {
+        marlin_json_gcode(wui.request);
+    }
     return 1;
 }
