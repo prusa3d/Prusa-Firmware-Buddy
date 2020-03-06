@@ -849,7 +849,9 @@ int _server_set_var(char *name_val_str) {
                 thermalManager.setTargetBed(marlin_server.vars.target_bed);
                 break;
             case MARLIN_VAR_Z_OFFSET:
+#if HAS_BED_PROBE
                 probe_offset.z = marlin_server.vars.z_offset;
+#endif //HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
                 thermalManager.set_fan_speed(0, marlin_server.vars.fan_speed);
