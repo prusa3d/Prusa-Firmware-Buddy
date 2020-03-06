@@ -123,7 +123,10 @@ static void wui_queue_cycle() {
 static int process_wui_request() {
 
     if(strncmp(wui.request, "!cip ", 5) == 0){
-        eeprom_set_string(EEVAR_CONNECT_IP, wui.request + 5, MAX_IP4_ADDR_SIZE);
+        uint32_t ip;
+        if(sscanf(wui.request + 5, "%u", &ip)){
+            eeprom_set_var(EEVAR_CONNECT_IP, variant8_ui32(ip));
+        }
     } else if (strncmp(wui.request, "!ck ", 4) == 0){
         eeprom_set_string(EEVAR_CONNECT_KEY_START, wui.request + 4, CONNECT_SEC_KEY_LEN);
     } else if (strncmp(wui.request, "!cn ", 4) == 0){
