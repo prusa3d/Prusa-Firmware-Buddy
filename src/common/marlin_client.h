@@ -44,7 +44,8 @@ extern int marlin_client_id(void);
 extern int marlin_client_set_dialog_open_cb(dialog_open_cb_t cb);
 //sets dialog callback, returns 1 on success
 extern int marlin_client_set_dialog_close_cb(dialog_close_cb_t cb);
-
+//sets dialog callback, returns 1 on success
+extern int marlin_client_set_dialog_change_cb(dialog_change_cb_t cb);
 // returns enabled status of loop processing
 extern int marlin_processing(void);
 

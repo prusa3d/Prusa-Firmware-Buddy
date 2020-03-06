@@ -37,6 +37,7 @@ typedef enum {
     MARLIN_EVT_Reheat,              //
     MARLIN_EVT_DialogOpen,          //
     MARLIN_EVT_DialogClose,         //
+    MARLIN_EVT_DialogChange,        //
     MARLIN_EVT_Acknowledge          // onAcknowledge - lowest priority
 } MARLIN_EVT_t;
 #define MARLIN_EVT_MAX MARLIN_EVT_Acknowledge
