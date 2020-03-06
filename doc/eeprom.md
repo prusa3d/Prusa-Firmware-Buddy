@@ -11,4 +11,3 @@ FW version         EE version  Marlin EE
 4.0.3-RC1+246      2           V2 - removed FS
 
 4.0.4-             3           N/A
-

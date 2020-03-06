@@ -56,7 +56,7 @@ extern IWDG_HandleTypeDef hiwdg; //watchdog handle
 void app_setup(void) {
     setup();
 
-// variables from eeprom - temporary solution
+    // variables from eeprom - temporary solution
     probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
     Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
     Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;

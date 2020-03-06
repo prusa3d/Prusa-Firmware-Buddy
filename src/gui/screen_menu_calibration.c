@@ -57,7 +57,7 @@ int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t ev
     if ((event == WINDOW_EVENT_CHANGING) && ((int)param == MI_Z_OFFSET))
         marlin_set_z_offset(psmd->items[MI_Z_OFFSET].item.wi_spin_fl.value);
     else if ((event == WINDOW_EVENT_CHANGE) && ((int)param == MI_Z_OFFSET))
-    	eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
+        eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
     else if (event == WINDOW_EVENT_CLICK) {
         switch ((int)param) {
         case MI_WIZARD:

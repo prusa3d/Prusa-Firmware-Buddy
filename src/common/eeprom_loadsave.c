@@ -10,12 +10,9 @@
 #include "ff.h"
 #include "crc32.h"
 
-
-
 // public functions for load/save
 
-int eeprom_load_bin_from_usb(const char* fn)
-{
+int eeprom_load_bin_from_usb(const char *fn) {
     FIL fil;
     uint8_t buff[128];
     uint16_t size = 0x800;
@@ -23,9 +20,8 @@ int eeprom_load_bin_from_usb(const char* fn)
     UINT bs = sizeof(buff);
     UINT br;
     if (f_open(&fil, fn, FA_READ) == FR_OK) {
-//        eeprom_lock();
-        while (size)
-        {
+        //        eeprom_lock();
+        while (size) {
             if (size < bs)
                 bs = size;
             if (f_read(&fil, buff, bs, &br) != FR_OK)
@@ -37,14 +33,13 @@ int eeprom_load_bin_from_usb(const char* fn)
             addr += bs;
         }
         f_close(&fil);
-//        eeprom_unlock();
-        return (size == 0)?1:0;
+        //        eeprom_unlock();
+        return (size == 0) ? 1 : 0;
     }
     return 0;
 }
 
-int eeprom_save_bin_to_usb(const char* fn)
-{
+int eeprom_save_bin_to_usb(const char *fn) {
     FIL fil;
     uint8_t buff[128];
     uint16_t size = 0x800;
@@ -52,9 +47,8 @@ int eeprom_save_bin_to_usb(const char* fn)
     UINT bs = sizeof(buff);
     UINT bw;
     if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
-//        eeprom_lock();
-        while (size)
-        {
+        //        eeprom_lock();
+        while (size) {
             if (size < bs)
                 bs = size;
             st25dv64k_user_read_bytes(addr, buff, bs);
@@ -66,26 +60,24 @@ int eeprom_save_bin_to_usb(const char* fn)
             addr += bs;
         }
         f_close(&fil);
-//        eeprom_unlock();
-        return (size == 0)?1:0;
+        //        eeprom_unlock();
+        return (size == 0) ? 1 : 0;
     }
     return 0;
 }
 
-int eeprom_load_xml_from_usb(const char* fn)
-{
+int eeprom_load_xml_from_usb(const char *fn) {
     return 0;
 }
 
-int eeprom_save_xml_to_usb(const char* fn)
-{
+int eeprom_save_xml_to_usb(const char *fn) {
     FIL fil;
     uint8_t id;
     char text[128];
     variant8_t var8;
     UINT bw;
     uint8_t var_count = eeprom_get_var_count();
-    const char* var_name;
+    const char *var_name;
     if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
         f_write(&fil, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", 55, &bw);
         f_write(&fil, "<eeprom>\n", 9, &bw);
@@ -107,5 +99,3 @@ int eeprom_save_xml_to_usb(const char* fn)
     }
     return 0;
 }
-
-

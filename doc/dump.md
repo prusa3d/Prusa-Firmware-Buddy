@@ -10,7 +10,7 @@ offset        size         content
 planned, not implemented
 0x00138000    0x00000800   EEPROM0 (0x0000..0x0800) saved eeprom  
 0x00138800    0x00000800   EEPROM1 (0x0000..0x0800) current eeprom  
-0x00139000    
+0x00139000  
 
 ##registers - CCRAM (0x1000ff00-0x1000ffff)
 offset  size   content  
