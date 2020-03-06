@@ -62,7 +62,7 @@ static void _init();
 static int serial_printing = 0;
 //called when Serial print screen is openned
 //printer is not in sd printing mode, so filament sensor does not trigger M600
-static void dialog_open_cb(dialog_t dialog) {
+static void dialog_open_cb(dialog_t dialog, uint8_t data) {
     if (dialog == DLG_serial_printing)
         serial_printing = 1;
 }
