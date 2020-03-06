@@ -485,8 +485,6 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_StopProcessing:
             case MARLIN_EVT_Busy:
             case MARLIN_EVT_Ready:
-            case MARLIN_EVT_DialogOpen:
-            case MARLIN_EVT_DialogClose:
             case MARLIN_EVT_GFileChange:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
@@ -539,6 +537,10 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_SafetyTimerExpired:
             case MARLIN_EVT_Message:
             case MARLIN_EVT_Reheat:
+
+            //do not resend open close dialog, send is forced
+            case MARLIN_EVT_DialogOpen:
+            case MARLIN_EVT_DialogClose:
                 break;
             }
         msk <<= 1;
