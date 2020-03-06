@@ -695,7 +695,7 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case MARLIN_EVT_DialogOpen:
             if (client->dialog_open_cb)
-                client->dialog_open_cb((dialog_t)msg.ui32);
+                client->dialog_open_cb((dialog_t)msg.ui32, (uint8_t)(msg.ui32 >> 8));
             break;
         case MARLIN_EVT_DialogClose:
             if (client->dialog_close_cb)

@@ -154,7 +154,7 @@ static void _gui_loop_cb() {
     marlin_client_loop();
 }
 
-static void dialog_open_cb(dialog_t dialog) {
+static void dialog_open_cb(dialog_t dialog, uint8_t data) {
     if (gui_get_nesting() > 1)
         return; //todo notify octoprint
     if (dialog == DLG_serial_printing) {
