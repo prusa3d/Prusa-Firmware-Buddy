@@ -42,6 +42,7 @@ extern screen_t *pscreen_test_temperature;
 extern screen_t *pscreen_home;
 extern screen_t *pscreen_filebrowser;
 extern screen_t *pscreen_printing;
+extern screen_t *pscreen_printing_serial;
 extern screen_t *pscreen_menu_preheat;
 extern screen_t *pscreen_menu_filament;
 extern screen_t *pscreen_preheating;
@@ -54,6 +55,8 @@ extern screen_t *pscreen_menu_tune;
 extern screen_t *pscreen_menu_service;
 extern screen_t *pscreen_sysinfo;
 extern screen_t *pscreen_version_info;
+extern screen_t *pscreen_qr_info;
+extern screen_t *pscreen_qr_error;
 extern screen_t *pscreen_test_disp_mem;
 extern screen_t *pscreen_messages;
     #ifdef PIDCALIBRATION
@@ -100,6 +103,36 @@ const jogwheel_config_t jogwheel_cfg = {
 marlin_vars_t *gui_marlin_vars = 0;
 int gui_marlin_client_id = -1;
 int8_t menu_timeout_enabled = 1; // Default: enabled
+
+extern screen_t screen_home;
+extern screen_t screen_printing;
+
+extern screen_t screen_printing_serial;
+extern screen_t screen_menu_tune;
+extern screen_t screen_wizard;
+extern screen_t screen_print_preview;
+extern screen_t screen_PID;
+
+static screen_t *const timeout_blacklist[] = {
+    &screen_home,
+    &screen_printing,
+    &screen_menu_tune,
+    &screen_wizard,
+    &screen_print_preview
+#ifdef PIDCALIBRATION
+    ,
+    &screen_PID
+#endif //PIDCALIBRATION
+};
+
+static screen_t *const m876_blacklist[] = {
+    &screen_printing_serial,
+    &screen_home
+#ifdef PIDCALIBRATION
+    ,
+    &screen_PID
+#endif //PIDCALIBRATION
+};
 
 void update_firmware_screen(void);
 
@@ -151,6 +184,26 @@ static void _gui_loop_cb() {
     marlin_client_loop();
 }
 
+static void dialog_open_cb(dialog_t dialog) {
+    if (gui_get_nesting() > 1)
+        return; //todo notify octoprint
+    if (dialog == DLG_serial_printing) {
+        screen_unloop(m876_blacklist, sizeof(m876_blacklist) / sizeof(m876_blacklist[0]));
+
+        if (screen_get_curr() != pscreen_printing_serial)
+            screen_open(pscreen_printing_serial->id);
+    }
+}
+
+static void dialog_close_cb(dialog_t dialog) {
+    if (gui_get_nesting() > 1)
+        return; //todo notify octoprint
+    if (dialog == DLG_serial_printing) {
+        if (screen_get_curr() == pscreen_printing_serial)
+            screen_close();
+    }
+}
+
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -179,7 +232,8 @@ void gui_run(void) {
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_client_id = marlin_client_id();
-
+    marlin_client_set_dialog_open_cb(dialog_open_cb);
+    marlin_client_set_dialog_close_cb(dialog_close_cb);
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
     screen_register(pscreen_splash);
@@ -208,6 +262,7 @@ void gui_run(void) {
     screen_register(pscreen_home);
     screen_register(pscreen_filebrowser);
     screen_register(pscreen_printing);
+    screen_register(pscreen_printing_serial);
     screen_register(pscreen_menu_preheat);
     screen_register(pscreen_menu_filament);
     screen_register(pscreen_menu_calibration);
@@ -219,6 +274,8 @@ void gui_run(void) {
     screen_register(pscreen_menu_service);
     screen_register(pscreen_sysinfo);
     screen_register(pscreen_version_info);
+    screen_register(pscreen_qr_info);
+    screen_register(pscreen_qr_error);
     screen_register(pscreen_test_disp_mem);
     screen_register(pscreen_messages);
     #ifdef PIDCALIBRATION
@@ -264,20 +321,7 @@ void gui_run(void) {
         if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
-                screen_t *curr = screen_get_curr();
-                if (
-                    curr != pscreen_menu_tune && curr != pscreen_wizard && curr != pscreen_print_preview) { //timeout screen black list
-    #ifdef PIDCALIBRATION
-                    if (curr != pscreen_PID) {
-    #endif //PIDCALIBRATION
-                        while (curr != pscreen_printing && curr != pscreen_home && curr != pscreen_menu_tune) {
-                            screen_close();
-                            curr = screen_get_curr();
-                        }
-    #ifdef PIDCALIBRATION
-                    }
-    #endif //PIDCALIBRATION
-                }
+                screen_unloop(timeout_blacklist, sizeof(timeout_blacklist) / sizeof(timeout_blacklist[0]));
                 gui_timer_delete(gui_timeout_id);
             }
         }

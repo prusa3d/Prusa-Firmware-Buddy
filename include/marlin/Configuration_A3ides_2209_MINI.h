@@ -576,6 +576,7 @@
 // Specify here all the endstop connectors that are connected to any endstop or probe.
 // Almost all printers will be using one per axis. Probes will use one or more of the
 // extra connectors. Leave undefined any used for non-endstop and non-probe purposes.
+#define MINDA_BROKEN_CABLE_DETECTION
 #define USE_XMIN_PLUG
 #define USE_YMIN_PLUG
 #define USE_ZMIN_PLUG
@@ -683,7 +684,7 @@
  */
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100, 100, 400, 280 } //E0 280 295
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 400, 317 } //E0 280 295
+    { 100, 100, 400, 325 } //E0 280 295
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 800, 800, 3200, 1120 } //E0 280 295
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100, 100, 400, 1120 } //E0 280 295
 
@@ -719,7 +720,7 @@
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
 //
-#define CLASSIC_JERK
+//#define JUNCTION_DEVIATION
 #if DISABLED(CLASSIC_JERK)
     #define JUNCTION_DEVIATION_MM 0.02 // (mm) Distance from real junction edge
 #endif

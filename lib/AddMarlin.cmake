@@ -71,7 +71,6 @@ add_library(
   Marlin/Marlin/src/gcode/host/M118.cpp
   Marlin/Marlin/src/gcode/host/M119.cpp
   Marlin/Marlin/src/gcode/host/M16.cpp
-  Marlin/Marlin/src/gcode/host/M876.cpp
   Marlin/Marlin/src/gcode/lcd/M0_M1.cpp
   Marlin/Marlin/src/gcode/lcd/M117.cpp
   Marlin/Marlin/src/gcode/lcd/M145.cpp

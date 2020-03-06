@@ -95,6 +95,21 @@ void screen_close(void) {
     }
 }
 
+int _current_in_list(screen_t *const *list, size_t sz) {
+    screen_t *curr = screen_get_curr();
+    for (size_t i = 0; i < sz; ++sz)
+        if (curr == list[sz])
+            return 1;
+    return 0;
+}
+
+void screen_unloop(screen_t *const *unl_blacklist, size_t sz) {
+
+    while (!_current_in_list(unl_blacklist, sz)) {
+        screen_close();
+    }
+}
+
 void screen_draw(void) {
     if (screen_0)
         screen_0->draw(screen_0);
