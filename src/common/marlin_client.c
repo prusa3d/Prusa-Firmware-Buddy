@@ -742,7 +742,6 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added
         case MARLIN_EVT_Startup:
-        case MARLIN_EVT_Idle:
         case MARLIN_EVT_PrinterKilled:
         case MARLIN_EVT_MediaInserted:
         case MARLIN_EVT_MediaError:
