@@ -855,6 +855,7 @@ int _process_server_request(char *request) {
 // set variable from string request
 int _server_set_var(char *name_val_str) {
     int var_id;
+    bool var_change_update = false;
     char *val_str = strchr(name_val_str, ' ');
     *(val_str++) = 0;
     if ((var_id = marlin_vars_get_id_by_name(name_val_str)) >= 0) {
@@ -868,16 +869,20 @@ int _server_set_var(char *name_val_str) {
                 break;
             case MARLIN_VAR_Z_OFFSET:
                 probe_offset.z = marlin_server.vars.z_offset;
+                var_change_update = true;
                 break;
             case MARLIN_VAR_FANSPEED:
                 thermalManager.set_fan_speed(0, marlin_server.vars.fan_speed);
+                var_change_update = true;
                 break;
             case MARLIN_VAR_PRNSPEED:
                 feedrate_percentage = (int16_t)marlin_server.vars.print_speed;
+                var_change_update = true;
                 break;
             case MARLIN_VAR_FLOWFACT:
                 planner.flow_percentage[0] = (int16_t)marlin_server.vars.flow_factor;
                 planner.refresh_e_factor(0);
+                var_change_update = true;
                 break;
             case MARLIN_VAR_WAITHEAT:
                 wait_for_heatup = marlin_server.vars.wait_heat ? true : false;
@@ -885,6 +890,10 @@ int _server_set_var(char *name_val_str) {
             case MARLIN_VAR_WAITUSER:
                 wait_for_user = marlin_server.vars.wait_user ? true : false;
                 break;
+            }
+
+            if (var_change_update) {
+                marlin_server_update(MARLIN_VAR_MSK(var_id));
             }
         }
     }
