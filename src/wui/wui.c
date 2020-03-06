@@ -17,7 +17,6 @@
 
 #define MAX_WUI_REQUEST_LEN       100
 #define MAX_MARLIN_REQUEST_LEN    100
-#define MAX_IP4_ADDR_SIZE         16
 #define WUI_FLG_PEND_REQ          0x0001
 #define BUDDY_DISABLE_HTTP_CLIENT //disabling http client for next public release
 
