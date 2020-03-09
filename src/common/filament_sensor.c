@@ -62,8 +62,13 @@ static void _init();
 static int serial_printing = 0;
 //called when Serial print screen is openned
 //printer is not in sd printing mode, so filament sensor does not trigger M600
-static void M876_cb(int data) {
-    serial_printing = (data == 1);
+static void dialog_open_cb(dialog_t dialog) {
+    if (dialog == DLG_serial_printing)
+        serial_printing = 1;
+}
+static void dialog_close_cb(dialog_t dialog) {
+    if (dialog == DLG_serial_printing)
+        serial_printing = 0;
 }
 
 //simple filter
@@ -167,7 +172,8 @@ void fs_clr_sent() {
 //global not thread safe functions
 static void _init() {
     int enabled = eeprom_get_var(EEVAR_FSENSOR_ENABLED).ui8 ? 1 : 0;
-    marlin_client_set_dialog_cb(M876_cb);
+    marlin_client_set_dialog_open_cb(dialog_open_cb);
+    marlin_client_set_dialog_close_cb(dialog_close_cb);
     if (enabled)
         _enable();
     else
