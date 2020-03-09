@@ -2,196 +2,223 @@
 
 #include "eeprom.h"
 #include <stdio.h>
+#include <string.h>
+#include "config.h"
 #include "st25dv64k.h"
 #include "dbg.h"
-#include <string.h>
-#include <stdbool.h>
+#include "cmsis_os.h"
+#include "ff.h"
+#include "crc32.h"
 
-#define EE_VERSION 0x0003
-#define EE_VAR_CNT sizeof(eeprom_map_v1)
-#define EE_ADDRESS 0x0500
+#define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
+#define EEPROM_DATASIZE sizeof(eeprom_vars_t)
+#define EEPROM__PADDING 1
 
-const uint8_t eeprom_map_v1[] = {
-    VARIANT8_UI16, // EEVAR_VERSION
-    VARIANT8_UI8,  // EEVAR_FILAMENT_TYPE
-    VARIANT8_UI32, // EEVAR_FILAMENT_COLOR
-    VARIANT8_FLT,  //
-    VARIANT8_FLT,  //
-    VARIANT8_FLT,  //
-    VARIANT8_UI8,  // EEVAR_RUN_SELFTEST
-    VARIANT8_UI8,  // EEVAR_RUN_XYZCALIB
-    VARIANT8_UI8,  // EEVAR_RUN_FIRSTLAY
-    VARIANT8_UI8,  // EEVAR_FSENSOR_ENABLED
-    VARIANT8_UI8,  // EEVAR_LAN_FLAG
-    VARIANT8_UI32, // EEVAR_LAN_IP4_ADDR    X.X.X.X address encoded in uint32
-    VARIANT8_UI32, // EEVAR_LAN_IP4_MSK     X.X.X.X address encoded in uint32
-    VARIANT8_UI32, // EEVAR_LAN_IP4_GW      X.X.X.X address encoded in uint32
-    VARIANT8_UI32, // EEVAR_LAN_IP4_DNS1    X.X.X.X address encoded in uint32
-    VARIANT8_UI32, // EEVAR_LAN_IP4_DNS2    X.X.X.X address encoded in uint32
-    VARIANT8_UI8,  // EEVAR_LAN_HOSTNAME_START   Start of 20char string
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI32, // EEVAR_CONNECT_IP    X.X.X.X address encoded in uint32
-    VARIANT8_UI8,  // EEVAR_SECURITY_KEY_START   Start of 20char string
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
-    VARIANT8_UI8,
+#define EEPROM_MAX_NAME          16     // maximum name length (with '\0')
+#define EEPROM_MAX_DATASIZE      256    // maximum datasize
+#define EEPROM_FIRST_VERSION_CRC 0x0004 // first eeprom version with crc support
 
+// flags will be used also for selective variable reset default values in some cases (shipping etc.))
+#define EEVAR_FLG_READONLY 0x0001 // variable is read only
+
+#pragma pack(push)
+#pragma pack(1)
+
+// eeprom map entry structure
+typedef struct _eeprom_entry_t {
+    const char name[EEPROM_MAX_NAME];
+    uint8_t type;   // variant8 data type
+    uint8_t count;  // number of elements
+    uint16_t flags; // flags
+} eeprom_entry_t;
+
+// eeprom vars structure (used for defaults)
+typedef struct _eeprom_vars_t {
+    uint16_t VERSION;
+    uint16_t FEATURES;
+    uint16_t DATASIZE;
+    uint16_t FWVERSION;
+    uint16_t FWBUILD;
+    uint8_t FILAMENT_TYPE;
+    uint32_t FILAMENT_COLOR;
+    uint8_t RUN_SELFTEST;
+    uint8_t RUN_XYZCALIB;
+    uint8_t RUN_FIRSTLAY;
+    uint8_t FSENSOR_ENABLED;
+    float ZOFFSET;
+    float PID_NOZ_P;
+    float PID_NOZ_I;
+    float PID_NOZ_D;
+    float PID_BED_P;
+    float PID_BED_I;
+    float PID_BED_D;
+    uint8_t LAN_FLAG;
+    uint32_t LAN_IP4_ADDR;
+    uint32_t LAN_IP4_MSK;
+    uint32_t LAN_IP4_GW;
+    uint32_t LAN_IP4_DNS1;
+    uint32_t LAN_IP4_DNS2;
+    char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
+    char TEST[10];
+    char _PADDING[EEPROM__PADDING];
+    uint32_t CRC32;
+} eeprom_vars_t;
+
+#pragma pack(pop)
+
+// clang-format off
+
+// eeprom map
+const eeprom_entry_t eeprom_map[] = {
+    { "VERSION",         VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_VERSION
+    { "FEATURES",        VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_FEATURES
+    { "DATASIZE",        VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_DATASIZE
+    { "FW_VERSION",      VARIANT8_UI16,  1, 0 }, // EEVAR_FW_VERSION
+    { "FW_BUILD",        VARIANT8_UI16,  1, 0 }, // EEVAR_FW_BUILD
+    { "FILAMENT_TYPE",   VARIANT8_UI8,   1, 0 }, // EEVAR_FILAMENT_TYPE
+    { "FILAMENT_COLOR",  VARIANT8_UI32,  1, 0 }, // EEVAR_FILAMENT_COLOR
+    { "RUN_SELFTEST",    VARIANT8_UI8,   1, 0 }, // EEVAR_RUN_SELFTEST
+    { "RUN_XYZCALIB",    VARIANT8_UI8,   1, 0 }, // EEVAR_RUN_XYZCALIB
+    { "RUN_FIRSTLAY",    VARIANT8_UI8,   1, 0 }, // EEVAR_RUN_FIRSTLAY
+    { "FSENSOR_ENABLED", VARIANT8_UI8,   1, 0 }, // EEVAR_FSENSOR_ENABLED
+    { "ZOFFSET",         VARIANT8_FLT,   1, 0 }, // EEVAR_ZOFFSET
+    { "PID_NOZ_P",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_P
+    { "PID_NOZ_I",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_I
+    { "PID_NOZ_D",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_NOZ_D
+    { "PID_BED_P",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_BED_P
+    { "PID_BED_I",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_BED_I
+    { "PID_BED_D",       VARIANT8_FLT,   1, 0 }, // EEVAR_PID_BED_D
+    { "LAN_FLAG",        VARIANT8_UI8,   1, 0 }, // EEVAR_LAN_FLAG
+    { "LAN_IP4_ADDR",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_ADDR
+    { "LAN_IP4_MSK",     VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_MSK
+    { "LAN_IP4_GW",      VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_GW
+    { "LAN_IP4_DNS1",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_DNS1
+    { "LAN_IP4_DNS2",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_DNS2
+    { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_LAN_HOSTNAME
+    { "TEST",            VARIANT8_PCHAR, 10, 0 }, // EEVAR_TEST
+    { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
+    { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
 
-const char *eeprom_var_name[] = {
-    "VERSION",
-    "FILAMENT_TYPE",
-    "FILAMENT_COLOR",
-    "UNUSED_1",
-    "UNUSED_2",
-    "UNUSED_3",
-    "RUN_SELFTEST",
-    "RUN_XYZCALIB",
-    "RUN_FIRSTLAY",
-    "FSENSOR_ENABLED",
-    "EEVAR_LAN_FLAG",
-    "EEVAR_LAN_IP4_ADDR",
-    "EEVAR_LAN_IP4_MSK",
-    "EEVAR_LAN_IP4_GW",
-    "EEVAR_LAN_IP4_DNS1",
-    "EEVAR_LAN_IP4_DNS2",
-    "EEVAR_LAN_HOSTNAME_START",
-    "EEVAR_LAN_HOSTNAME_CHAR2",
-    "EEVAR_LAN_HOSTNAME_CHAR3",
-    "EEVAR_LAN_HOSTNAME_CHAR4",
-    "EEVAR_LAN_HOSTNAME_CHAR5",
-    "EEVAR_LAN_HOSTNAME_CHAR6",
-    "EEVAR_LAN_HOSTNAME_CHAR7",
-    "EEVAR_LAN_HOSTNAME_CHAR8",
-    "EEVAR_LAN_HOSTNAME_CHAR9",
-    "EEVAR_LAN_HOSTNAME_CHAR10",
-    "EEVAR_LAN_HOSTNAME_CHAR11",
-    "EEVAR_LAN_HOSTNAME_CHAR12",
-    "EEVAR_LAN_HOSTNAME_CHAR13",
-    "EEVAR_LAN_HOSTNAME_CHAR14",
-    "EEVAR_LAN_HOSTNAME_CHAR15",
-    "EEVAR_LAN_HOSTNAME_CHAR16",
-    "EEVAR_LAN_HOSTNAME_CHAR17",
-    "EEVAR_LAN_HOSTNAME_CHAR18",
-    "EEVAR_LAN_HOSTNAME_CHAR19",
-    "EEVAR_LAN_HOSTNAME_CHAR20",
-    "EEVAR_CONNECT_IP",
-    "EEVAR_CONNECT_KEY_START",
-    "EEVAR_CONNECT_KEY_CHAR2",
-    "EEVAR_CONNECT_KEY_CHAR3",
-    "EEVAR_CONNECT_KEY_CHAR4",
-    "EEVAR_CONNECT_KEY_CHAR5",
-    "EEVAR_CONNECT_KEY_CHAR6",
-    "EEVAR_CONNECT_KEY_CHAR7",
-    "EEVAR_CONNECT_KEY_CHAR8",
-    "EEVAR_CONNECT_KEY_CHAR9",
-    "EEVAR_CONNECT_KEY_CHAR10",
-    "EEVAR_CONNECT_KEY_CHAR11",
-    "EEVAR_CONNECT_KEY_CHAR12",
-    "EEVAR_CONNECT_KEY_CHAR13",
-    "EEVAR_CONNECT_KEY_CHAR14",
-    "EEVAR_CONNECT_KEY_CHAR15",
-    "EEVAR_CONNECT_KEY_CHAR16",
-    "EEVAR_CONNECT_KEY_CHAR17",
-    "EEVAR_CONNECT_KEY_CHAR18",
-    "EEVAR_CONNECT_KEY_CHAR19",
-    "EEVAR_CONNECT_KEY_CHAR20",
+// eeprom variable defaults
+const eeprom_vars_t eeprom_var_defaults = {
+    EEPROM_VERSION,  // EEVAR_VERSION
+    EEPROM_FEATURES, // EEVAR_FEATURES
+    EEPROM_DATASIZE, // EEVAR_DATASIZE
+    0,               // EEVAR_FW_VERSION TODO: default value
+    0,               // EEVAR_FW_BUILD   TODO: default value
+    0,               // EEVAR_FILAMENT_TYPE
+    0,               // EEVAR_FILAMENT_COLOR
+    1,               // EEVAR_RUN_SELFTEST
+    1,               // EEVAR_RUN_XYZCALIB
+    1,               // EEVAR_RUN_FIRSTLAY
+    1,               // EEVAR_FSENSOR_ENABLED
+    0,               // EEVAR_ZOFFSET
+    18.000000,       // EEVAR_PID_NOZ_P
+    0.294400,        // EEVAR_PID_NOZ_I (unscaled)
+    274.437500,      // EEVAR_PID_NOZ_D (unscaled)
+    160.970001,      // EEVAR_PID_BED_P
+    2.251200,        // EEVAR_PID_BED_I (unscaled)
+    2877.437744,     // EEVAR_PID_BED_D (unscaled)
+    0,               // EEVAR_LAN_FLAG
+    0,               // EEVAR_LAN_IP4_ADDR
+    0,               // EEVAR_LAN_IP4_MSK
+    0,               // EEVAR_LAN_IP4_GW
+    0,               // EEVAR_LAN_IP4_DNS1
+    0,               // EEVAR_LAN_IP4_DNS2
+    "PrusaMINI",     // EEVAR_LAN_HOSTNAME
+    "TEST",          // EEVAR_TEST
+    "",              // EEVAR__PADDING
+    0xffffffff,      // EEVAR_CRC32
 };
 
-uint16_t eeprom_crc_value = 0;
-uint8_t eeprom_crc_index = 0;
+// clang-format on
+
+// semaphore handle (lock/unlock)
+osSemaphoreId eeprom_sema = 0;
+
+static inline void eeprom_lock(void) {
+    osSemaphoreWait(eeprom_sema, osWaitForever);
+}
+
+static inline void eeprom_unlock(void) {
+    osSemaphoreRelease(eeprom_sema);
+}
 
 // forward declarations of private functions
 
 uint16_t eeprom_var_size(uint8_t id);
 uint16_t eeprom_var_addr(uint8_t id);
-variant8_t eeprom_var_default(uint8_t id);
 void eeprom_dump(void);
+int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var);
 void eeprom_print_vars(void);
-void eeprom_clear(void);
+int eeprom_convert_from_v2(void);
+int eeprom_convert_from(uint16_t version, uint16_t features);
 
-// public functions
+int eeprom_check_crc32(void);
+void eeprom_update_crc32(uint16_t addr, uint16_t size);
+
+// public functions - described in header
 
 uint8_t eeprom_init(void) {
-    uint8_t ret = 0;
+    uint16_t version;
+    uint16_t features;
+    uint8_t defaults = 0;
+    osSemaphoreDef(eepromSema);
+    eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
+
     //eeprom_clear();
     //eeprom_dump();
-    uint16_t version = eeprom_get_var(EEVAR_VERSION).ui16;
-    if (version != EE_VERSION) {
-        eeprom_defaults();
-        ret = 1;
+    //osDelay(2000);
+    //eeprom_save_bin_to_usb("eeprom.bin");
+    //while (1);
+
+    version = eeprom_get_var(EEVAR_VERSION).ui16;
+    features = (version >= 4) ? eeprom_get_var(EEVAR_FEATURES).ui16 : 0;
+    if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
+        defaults = 1;
+    else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
+        if (eeprom_convert_from(version, features) == 0)
+            defaults = 1;
     }
-    //eeprom_print_vars();
+    if (defaults)
+        eeprom_defaults();
+    eeprom_print_vars();
     //eeprom_dump();
-    return ret;
+    return defaults;
 }
 
-// write default values to all variables
 void eeprom_defaults(void) {
-    uint8_t id;
-    for (id = 0; id < EE_VAR_CNT; id++) {
-        if (strcmp(eeprom_var_name[id], "EEVAR_LAN_HOSTNAME_START") == 0) {
-            eeprom_set_var(id, variant8_ui8('M'));
-            eeprom_set_var(id + 1, variant8_ui8('I'));
-            eeprom_set_var(id + 2, variant8_ui8('N'));
-            eeprom_set_var(id + 3, variant8_ui8('I'));
-            for (int id2 = id + 4; id2 < id + LAN_HOSTNAME_MAX_LEN; id2++) {
-                eeprom_set_var(id2, variant8_ui8(0));
-            }
-        } else if (strcmp(eeprom_var_name[id], "EEVAR_CONNECT_KEY_START") == 0) {
-            for (int id2 = id; id2 < id + CONNECT_SEC_KEY_LEN; id2++) {
-                eeprom_set_var(id2, variant8_ui8(0));
-            }
-        } else {
-            eeprom_set_var(id, eeprom_var_default(id));
-        }
-    }
+    eeprom_vars_t vars = eeprom_var_defaults;
+    eeprom_lock();
+    // calculate crc32
+    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+    eeprom_unlock();
 }
 
 variant8_t eeprom_get_var(uint8_t id) {
     uint16_t addr;
     uint16_t size;
+    uint16_t data_size;
+    void *data_ptr;
     variant8_t var = variant8_empty();
-    if (id < EE_VAR_CNT) {
-        var.type = eeprom_map_v1[id];
-        addr = eeprom_var_addr(id);
+    if (id < EEPROM_VARCOUNT) {
+        eeprom_lock();
+        var = variant8_init(eeprom_map[id].type, eeprom_map[id].count, 0);
         size = eeprom_var_size(id);
-        st25dv64k_user_read_bytes(addr, &(var.ui32), size);
+        data_size = variant8_data_size(&var);
+        if (size == data_size) {
+            addr = eeprom_var_addr(id);
+            data_ptr = variant8_data_ptr(&var);
+            st25dv64k_user_read_bytes(addr, data_ptr, size);
+        } else {
+            _dbg("error");
+            //TODO:error
+        }
+        eeprom_unlock();
     }
     return var;
 }
@@ -199,120 +226,79 @@ variant8_t eeprom_get_var(uint8_t id) {
 void eeprom_set_var(uint8_t id, variant8_t var) {
     uint16_t addr;
     uint16_t size;
-    if (id < EE_VAR_CNT) {
-        if (var.type == eeprom_map_v1[id]) {
-            addr = eeprom_var_addr(id);
+    uint16_t data_size;
+    void *data_ptr;
+    if (id < EEPROM_VARCOUNT) {
+        eeprom_lock();
+        if (var.type == eeprom_map[id].type) {
             size = eeprom_var_size(id);
-            st25dv64k_user_write_bytes(addr, &(var.ui32), size);
-            //			osDelay(5);
+            data_size = variant8_data_size(&var);
+            if (size == data_size) {
+                addr = eeprom_var_addr(id);
+                data_ptr = variant8_data_ptr(&var);
+                st25dv64k_user_write_bytes(addr, data_ptr, size);
+                eeprom_update_crc32(addr, size);
+            } else {
+                // TODO: error
+            }
+        } else {
+            // TODO: error
         }
+        eeprom_unlock();
     }
+}
+
+uint8_t eeprom_get_var_count(void) {
+    return EEPROM_VARCOUNT;
+}
+
+const char *eeprom_get_var_name(uint8_t id) {
+    if (id < EEPROM_VARCOUNT)
+        return eeprom_map[id].name;
+    return "???";
+}
+
+int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) {
+    int n = 0;
+    switch (id) {
+    // ip addresses
+    case EEVAR_LAN_IP4_ADDR:
+    case EEVAR_LAN_IP4_MSK:
+    case EEVAR_LAN_IP4_GW:
+    case EEVAR_LAN_IP4_DNS1:
+    case EEVAR_LAN_IP4_DNS2: {
+        uint8_t *p = (uint8_t *)(&(var.ui32));
+        n = snprintf(str, size, "%u.%u.%u.%u", p[0], p[1], p[2], p[3]);
+    } break;
+    default: //use default conversion
+        n = variant8_snprintf(str, size, 0, &var);
+        break;
+    }
+    return n;
+}
+
+void eeprom_clear(void) {
+    uint16_t a;
+    uint32_t data = 0xffffffff;
+    eeprom_lock();
+    for (a = 0x0000; a < 0x0800; a += 4)
+        st25dv64k_user_write_bytes(a, &data, 4);
+    eeprom_unlock();
 }
 
 // private functions
 
 uint16_t eeprom_var_size(uint8_t id) {
-    if (id < EE_VAR_CNT)
-        switch (eeprom_map_v1[id]) {
-        case VARIANT8_I8:
-        case VARIANT8_UI8:
-            return 1;
-        case VARIANT8_I16:
-        case VARIANT8_UI16:
-            return 2;
-        case VARIANT8_I32:
-        case VARIANT8_UI32:
-        case VARIANT8_FLT:
-            return 4;
-        }
+    if (id < EEPROM_VARCOUNT)
+        return variant8_type_size(eeprom_map[id].type & ~VARIANT8_PTR) * eeprom_map[id].count;
     return 0;
 }
 
 uint16_t eeprom_var_addr(uint8_t id) {
-    uint16_t addr = EE_ADDRESS;
+    uint16_t addr = EEPROM_ADDRESS;
     while (id)
         addr += eeprom_var_size(--id);
     return addr;
-}
-
-variant8_t eeprom_var_default(uint8_t id) {
-    switch (id) {
-    case EEVAR_VERSION:
-        return variant8_ui16(EE_VERSION);
-    case EEVAR_FILAMENT_TYPE:
-        return variant8_ui8(0);
-    case EEVAR_FILAMENT_COLOR:
-        return variant8_ui32(0);
-    case EEVAR_UNUSED_1:
-        return variant8_flt(0.0100);
-    case EEVAR_UNUSED_2:
-        return variant8_flt(-40);
-    case EEVAR_UNUSED_3:
-        return variant8_flt(20);
-    case EEVAR_RUN_SELFTEST:
-        return variant8_ui8(1);
-    case EEVAR_RUN_XYZCALIB:
-        return variant8_ui8(1);
-    case EEVAR_RUN_FIRSTLAY:
-        return variant8_ui8(1);
-    case EEVAR_FSENSOR_ENABLED:
-        return variant8_ui8(0);
-    case EEVAR_LAN_FLAG:
-        return variant8_ui8(0);
-    case EEVAR_LAN_IP4_ADDR:
-        return variant8_ui32(0);
-    case EEVAR_LAN_IP4_MSK:
-        return variant8_ui32(0);
-    case EEVAR_LAN_IP4_GW:
-        return variant8_ui32(0);
-    case EEVAR_LAN_IP4_DNS1:
-        return variant8_ui32(0);
-    case EEVAR_LAN_IP4_DNS2:
-        return variant8_ui32(0);
-    case EEVAR_CONNECT_IP:
-        return variant8_ui32(0);
-    case EEVAR_LAN_HOSTNAME_START:
-        return variant8_ui8('M');
-    case EEVAR_LAN_HOSTNAME_1:
-        return variant8_ui8('I');
-    case EEVAR_LAN_HOSTNAME_2:
-        return variant8_ui8('N');
-    case EEVAR_LAN_HOSTNAME_3:
-        return variant8_ui8('I');
-    case EEVAR_LAN_HOSTNAME_4:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_5:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_6:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_7:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_8:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_9:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_10:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_11:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_12:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_13:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_14:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_15:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_16:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_17:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_18:
-        return variant8_ui8(0);
-    case EEVAR_LAN_HOSTNAME_19:
-        return variant8_ui8(0);
-    }
-    return variant8_empty();
 }
 
 void eeprom_dump(void) {
@@ -331,69 +317,92 @@ void eeprom_dump(void) {
     }
 }
 
-void eeprom_get_string(uint8_t id, char *dest, uint16_t len) {
-    char str[len + 1];
-    for (uint16_t i = 0; i < len; i++) {
-        str[i] = (char)eeprom_get_var(id + i).ui8;
-    }
-    str[len] = '\0';
-    strncpy(dest, str, len + 1);
-}
-void eeprom_set_string(uint8_t id, char *src, uint16_t len) {
-    bool end = false;
-    for (uint16_t i = 0; i < len; i++) {
-        if (!end && src[i] == '\0')
-            end = true;
-        if (!end) {
-            eeprom_set_var(id + i, variant8_ui8(src[i]));
-        } else {
-            eeprom_set_var(id + i, variant8_ui8(0));
-        }
+void eeprom_print_vars(void) {
+    uint8_t id;
+    char text[128];
+    variant8_t var8;
+    for (id = 0; id < EEPROM_VARCOUNT; id++) {
+        var8 = eeprom_get_var(id);
+        eeprom_var_format(text, 128, id, var8);
+        _dbg("%s=%s", eeprom_map[id].name, text);
+        variant8_done(&var8);
     }
 }
 
-int eeprom_var_sprintf(char *str, uint8_t id, variant8_t var) {
-    switch (id) {
-    case EEVAR_VERSION:
-        return sprintf(str, "%u", (unsigned int)var.ui16);
-    case EEVAR_FILAMENT_TYPE:
-    case EEVAR_LAN_FLAG:
-        return sprintf(str, "%u", (unsigned int)var.ui8);
-    case EEVAR_FILAMENT_COLOR:
-        return sprintf(str, "0x%08lx", (unsigned long)var.ui32);
-    case EEVAR_UNUSED_1:
-        return sprintf(str, "%.4f", (double)var.flt);
-    case EEVAR_UNUSED_2:
-        return sprintf(str, "%.1f", (double)var.flt);
-    case EEVAR_UNUSED_3:
-        return sprintf(str, "%.1f", (double)var.flt);
-    case EEVAR_RUN_SELFTEST:
-    case EEVAR_RUN_XYZCALIB:
-    case EEVAR_RUN_FIRSTLAY:
-    case EEVAR_FSENSOR_ENABLED:
-        return sprintf(str, "%u", (unsigned int)var.ui8);
-    }
+#define ADDR_V2_FILAMENT_TYPE  0x0400
+#define ADDR_V2_FILAMENT_COLOR EEPROM_ADDRESS + 3
+#define ADDR_V2_RUN_SELFTEST   EEPROM_ADDRESS + 19
+#define ADDR_V2_ZOFFSET        0x010e
+#define ADDR_V2_PID_NOZ_P      0x019d
+#define ADDR_V2_PID_BED_P      0x01af
+
+// conversion function for old version 2 format (marlin eeprom)
+int eeprom_convert_from_v2(void) {
+    eeprom_vars_t vars = eeprom_var_defaults;
+    // read FILAMENT_TYPE (uint8_t)
+    st25dv64k_user_read_bytes(ADDR_V2_FILAMENT_TYPE, &(vars.FILAMENT_TYPE), sizeof(uint8_t));
+    // initialize to zero, maybe not necessary
+    if (vars.FILAMENT_TYPE == 0xff)
+        vars.FILAMENT_TYPE = 0;
+    // read FILAMENT_COLOR (uint32_t)
+    st25dv64k_user_read_bytes(ADDR_V2_FILAMENT_COLOR, &(vars.FILAMENT_COLOR), sizeof(uint32_t));
+    // read RUN_SELFTEST & RUN_XYZCALIB & RUN_FIRSTLAY & FSENSOR_ENABLED (4x uint8_t)
+    st25dv64k_user_read_bytes(ADDR_V2_RUN_SELFTEST, &(vars.RUN_SELFTEST), 4 * sizeof(uint8_t));
+    // read ZOFFSET (float)
+    st25dv64k_user_read_bytes(ADDR_V2_ZOFFSET, &(vars.ZOFFSET), sizeof(float));
+    // check ZOFFSET valid range, cancel conversion if not of valid range (defaults will be loaded)
+    if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0))
+        return 0;
+    // read PID_NOZ_P & PID_NOZ_I & PID_NOZ_D (3x float)
+    st25dv64k_user_read_bytes(ADDR_V2_PID_NOZ_P, &(vars.PID_NOZ_P), 3 * sizeof(float));
+    // TODO: validate nozzle PID constants
+    // read PID_BED_P & PID_BED_I & PID_BED_D (3x float)
+    st25dv64k_user_read_bytes(ADDR_V2_PID_BED_P, &(vars.PID_BED_P), 3 * sizeof(float));
+    // TODO: validate bed PID constants
+    // calculate crc32
+    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+    return 1;
+}
+
+// conversion function for new version format (features, firmware version/build)
+int eeprom_convert_from(uint16_t version, uint16_t features) {
+    if (version == 2)
+        return eeprom_convert_from_v2();
     return 0;
 }
 
-void eeprom_print_vars(void) {
-    uint8_t id;
-    char text[16];
-    for (id = 0; id < EE_VAR_CNT; id++) {
-        eeprom_var_sprintf(text, id, eeprom_get_var(id));
-        _dbg("%s=%s", eeprom_var_name[id], text);
-    }
+// version independent crc32 check
+int eeprom_check_crc32(void) {
+    uint16_t datasize;
+    uint32_t crc;
+    datasize = eeprom_get_var(EEVAR_DATASIZE).ui16;
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &crc, 4);
+#if 1 //simple method
+    uint8_t data[EEPROM_MAX_DATASIZE];
+    uint32_t crc2;
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS, data, datasize);
+    crc2 = crc32_calc((uint32_t *)data, (datasize - 4) / 4);
+    return (crc == crc2) ? 1 : 0;
+#else //
+#endif
 }
 
-void eeprom_clear(void) {
-    uint16_t a;
-    uint32_t data = 0xffffffff;
-    for (a = 0x0000; a < 0x0800; a += 4)
-        st25dv64k_user_write_bytes(a, &data, 4);
+void eeprom_update_crc32(uint16_t addr, uint16_t size) {
+#if 1 //simple method
+    eeprom_vars_t vars;
+    // read eeprom data
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+    // calculate crc32
+    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write crc to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
+#else //
+#endif
 }
 
 int8_t eeprom_test_PUT(const unsigned int bytes) {
-
     unsigned int i;
     char line[16] = "abcdefghijklmno";
     char line2[16];
@@ -401,13 +410,13 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
     unsigned int count = bytes / 16;
 
     for (i = 0; i < count; i++) {
-        st25dv64k_user_write_bytes(EE_ADDRESS + i * size, &line, size);
+        st25dv64k_user_write_bytes(EEPROM_ADDRESS + i * size, &line, size);
     }
 
     int8_t res_flag = 1;
 
     for (i = 0; i < count; i++) {
-        st25dv64k_user_read_bytes(EE_ADDRESS + i * size, &line2, size);
+        st25dv64k_user_read_bytes(EEPROM_ADDRESS + i * size, &line2, size);
         if (strcmp(line2, line))
             res_flag = 0;
     }

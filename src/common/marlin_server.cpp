@@ -28,7 +28,9 @@
 #include "hwio_a3ides.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-#include "Z_probe.h" //get_Z_probe_endstop_hits
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+    #include "Z_probe.h" //get_Z_probe_endstop_hits
+#endif
 
 #ifdef LCDSIM
     #include "lcdsim.h"
@@ -197,7 +199,8 @@ void print_fan_spd() {
     }
 }
 
-void print_Z_probe_cnt() {
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+static void print_Z_probe_cnt() {
     if (DEBUGGING(INFO)) {
         static uint32_t last = 0;
         static uint32_t actual = 0;
@@ -210,10 +213,13 @@ void print_Z_probe_cnt() {
         }
     }
 }
+#endif
 int marlin_server_cycle(void) {
 
     print_fan_spd();
+#ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
+#endif
 
     int count = 0;
     int client_id;
@@ -449,9 +455,7 @@ int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 // send event notification to client (called from server thread)
 int _send_notify_event_to_client(int client_id, osMessageQId queue, uint8_t evt_id, uint32_t usr32, uint16_t usr16) {
     variant8_t msg;
-    msg = variant8_user(usr32);
-    msg.usr16 = usr16;
-    msg.usr8 = evt_id;
+    msg = variant8_user(usr32, usr16, evt_id);
     return _send_notify_to_client(queue, msg);
 }
 
