@@ -26,6 +26,7 @@
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
+#include "DialogHandler.h"
 
 extern screen_t *pscreen_splash;
 extern screen_t *pscreen_watchdog;
@@ -125,7 +126,7 @@ static screen_t *const timeout_blacklist[] = {
 #endif //PIDCALIBRATION
 };
 
-static screen_t *const m876_blacklist[] = {
+screen_t *const m876_blacklist[] = {
     &screen_printing_serial,
     &screen_home
 #ifdef PIDCALIBRATION
@@ -133,6 +134,7 @@ static screen_t *const m876_blacklist[] = {
     &screen_PID
 #endif //PIDCALIBRATION
 };
+size_t const m876_blacklist_sz = sizeof(m876_blacklist) / sizeof(m876_blacklist[0]);
 
 void update_firmware_screen(void);
 
@@ -154,30 +156,6 @@ static void _gui_loop_cb() {
     marlin_client_loop();
 }
 
-static void dialog_open_cb(dialog_t dialog, uint8_t data) {
-    if (gui_get_nesting() > 1)
-        return; //todo notify octoprint
-    if (dialog == DLG_serial_printing) {
-        screen_unloop(m876_blacklist, sizeof(m876_blacklist) / sizeof(m876_blacklist[0]));
-
-        if (screen_get_curr() != pscreen_printing_serial)
-            screen_open(pscreen_printing_serial->id);
-    }
-}
-
-static void dialog_close_cb(dialog_t dialog) {
-    if (gui_get_nesting() > 1)
-        return; //todo notify octoprint
-    if (dialog == DLG_serial_printing) {
-        if (screen_get_curr() == pscreen_printing_serial)
-            screen_close();
-    }
-}
-
-static void dialog_change_cb(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    switch (dialog) {
-    }
-}
 void gui_run(void) {
     if (diag_fastboot)
         return;

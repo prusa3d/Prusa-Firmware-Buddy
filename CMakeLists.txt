@@ -435,6 +435,7 @@ if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.c
+            src/gui/dialogs/DialogHandler.cpp
             src/gui/dialogs/window_dlg_change.c
             src/gui/dialogs/window_dlg_loadunload_shared.c
             src/gui/dialogs/window_dlg_statemachine.c
