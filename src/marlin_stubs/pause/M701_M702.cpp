@@ -38,6 +38,7 @@
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
+#include "marlin_server.h" //open_dialog_handler, close_dialog_handler
 
 /**
  * M701: Load filament
@@ -50,6 +51,7 @@
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
+    open_dialog_handler(DLG_load_unload, 0);
     xyz_pos_t park_point = NOZZLE_PARK_POINT;
 
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -80,6 +82,7 @@ void GcodeSuite::M701() {
     // Restore Z axis
     if (park_point.z > 0)
         do_blocking_move_to_z(_MAX(current_position.z - park_point.z, 0), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+    close_dialog_handler(DLG_load_unload);
 }
 
 /**
@@ -94,6 +97,7 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
+    open_dialog_handler(DLG_load_unload, 0);
     xyz_pos_t park_point = NOZZLE_PARK_POINT;
 
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -120,4 +124,5 @@ void GcodeSuite::M702() {
     // Restore Z axis
     if (park_point.z > 0)
         do_blocking_move_to_z(_MAX(current_position.z - park_point.z, 0), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+    close_dialog_handler(DLG_load_unload);
 }
