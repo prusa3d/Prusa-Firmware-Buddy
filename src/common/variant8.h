@@ -81,6 +81,9 @@ class cvariant8 : public variant8_t {
 public: // construction/destruction
     cvariant8();
     cvariant8(const cvariant8 &var8);
+    #if __cplusplus >= 201103L
+    cvariant8(cvariant8 &&var8);
+    #endif
     cvariant8(int8_t val);
     cvariant8(uint8_t val);
     cvariant8(int16_t val);
@@ -97,8 +100,19 @@ public: // public functions
     variant8_t detach();
     cvariant8 &change_type(uint8_t new_type);
 
+public: //
+    bool is_empty();
+    bool is_error();
+    bool is_signed();
+    bool is_unsigned();
+    bool is_integer();
+    bool is_number();
+
 public: // assignment operators
     cvariant8 &operator=(const cvariant8 &var8);
+    #if __cplusplus >= 201103L
+    cvariant8 &operator=(cvariant8 &&var8);
+    #endif
     cvariant8 &operator=(int8_t val);
     cvariant8 &operator=(uint8_t val);
     cvariant8 &operator=(int16_t val);
@@ -220,6 +234,18 @@ extern void variant8_free(void *ptr);
 
 // variant8 realloc function
 extern void *variant8_realloc(void *ptr, uint16_t size);
+
+// returns 1 for signed integer types (I8, I16, I32), otherwise returns 0
+inline static int variant8_is_signed(variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
+
+// returns 1 for unsigned integer types (UI8, UI16, UI32), otherwise returns 0
+inline static int variant8_is_unsigned(variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
+
+// returns 1 for integer types (I8, I16, I32, UI8, UI16, UI32), otherwise returns 0
+inline static int variant8_is_integer(variant8_t *pvar8) { return (pvar8) ? ((variant8_is_signed(pvar8) || variant8_is_unsigned(pvar8)) ? 1 : 0) : 0; }
+
+// returns 1 for numeric types (I8, I16, I32, UI8, UI16, UI32, float), otherwise returns 0
+inline static int variant8_is_number(variant8_t *pvar8) { return (pvar8) ? ((variant8_is_integer(pvar8) || (pvar8->type == VARIANT8_FLT)) ? 1 : 0) : 0; }
 
 #ifdef __cplusplus
 }
