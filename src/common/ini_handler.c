@@ -37,7 +37,7 @@ uint8_t ini_load_file(ini_handler handler, void * user_struct) {
         return 0;
     }
 
-    if (ini_parse_string(ini_file_str, handler, &user_struct) < 0) {
+    if (ini_parse_string(ini_file_str, handler, user_struct) < 0) {
         return 0;
     }
     return 1;

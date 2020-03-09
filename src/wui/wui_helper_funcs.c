@@ -73,16 +73,18 @@ void http_json_parser(char *json, uint32_t len) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
             ip4_addr_t tmp_addr;
             if (ip4addr_aton(request, &tmp_addr)) {
-                eeprom_set_var(EEVAR_CONNECT_IP, variant8_ui32(tmp_addr.addr));
+                eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(tmp_addr.addr));
             }
             i++;
         } else if (json_cmp(json, &t[i], "connect_key") == 0) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
-            eeprom_set_string(EEVAR_CONNECT_KEY_START, request, CONNECT_SEC_KEY_LEN);
+            variant8_t token = variant8_pchar(request, 0, 0);
+            eeprom_set_var(EEVAR_LAN_HOSTNAME, token);
             i++;
         } else if (json_cmp(json, &t[i], "connect_name") == 0) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
-            eeprom_set_string(EEVAR_LAN_HOSTNAME_START, request, LAN_HOSTNAME_MAX_LEN);
+            variant8_t token = variant8_pchar(request, 0, 0);
+            eeprom_set_var(EEVAR_LAN_HOSTNAME, token);
             i++;
         }
     }

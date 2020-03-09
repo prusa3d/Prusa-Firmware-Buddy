@@ -74,13 +74,17 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
     strlcpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
 
     if (flg) {
-        char save_hostname[LAN_HOSTNAME_MAX_LEN + 1], save_sec_key[CONNECT_SEC_KEY_LEN + 1];
-        eeprom_get_string(EEVAR_LAN_HOSTNAME_START, save_hostname, LAN_HOSTNAME_MAX_LEN); // TODO: move hostname outside the lan_ip4 sector and make it printername
-        eeprom_get_string(EEVAR_CONNECT_KEY_START, save_sec_key, CONNECT_SEC_KEY_LEN);
-        config.connect_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP).ui32;
-        strncpy(ip4_connect_str, ip4addr_ntoa(&(config.connect_ip4)), IP4_ADDR_STR_SIZE);
-        snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s\n\n[connect]\naddress=%s\nsecurity_key=%s\n",
-            config.lan_flag & LAN_EEFLG_TYPE ? LAN_type_opt[1] : LAN_type_opt[0], save_hostname, ip4_addr_str, ip4_msk_str, ip4_gw_str, ip4_connect_str, save_sec_key);
+        char save_hostname[LAN_HOSTNAME_MAX_LEN + 1], save_connect_token[CONNECT_TOKEN_SIZE + 1];
+        variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME); // TODO: move hostname outside the lan_ip4 sector and make it printername
+        strlcpy(save_hostname, hostname.pch, LAN_HOSTNAME_MAX_LEN + 1);
+        variant8_done(&hostname);
+        variant8_t connect_token = eeprom_get_var(EEVAR_CONNECT_TOKEN);
+        strlcpy(save_connect_token, connect_token.pch, CONNECT_TOKEN_SIZE + 1);
+        variant8_done(&connect_token);
+        config.connect_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP4).ui32;
+        strlcpy(ip4_connect_str, ip4addr_ntoa(&(config.connect_ip4)), IP4_ADDR_STR_SIZE);
+        snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s\n\n[connect]\naddress=%s\ntoken=%s\n",
+            config.lan_flag & LAN_EEFLG_TYPE ? LAN_type_opt[1] : LAN_type_opt[0], save_hostname, ip4_addr_str, ip4_msk_str, ip4_gw_str, ip4_connect_str, save_connect_token);
     } else {
         snprintf(plan_str, 150, "IPv4 Address:\n  %s      \nIPv4 Netmask:\n  %s      \nIPv4 Gateway:\n  %s      \nMAC Address:\n  %s",
             ip4_addr_str, ip4_msk_str, ip4_gw_str, param_str);
@@ -202,33 +206,37 @@ static int ini_load_handler(void *user, const char *section, const char *name, c
     networkconfig_t *tmp_config = (networkconfig_t *)user;
 #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("lan_ip4", "type")) {
-        if (strncmp(value, "dhcp", 4) == 0) {
+        if (strncmp(value, "DHCP", 4) == 0 || strncmp(value, "dhcp", 4) == 0) {
             tmp_config->lan_flag &= ~LAN_EEFLG_TYPE;
-        } else if (strncmp(value, "static", 6) == 0) {
+            tmp_config->set_flag |= NETVAR_SETFLG_LAN_FLAGS;
+        } else if (strncmp(value, "STATIC", 6) == 0 || strncmp(value, "static", 6) == 0) {
             tmp_config->lan_flag |= LAN_EEFLG_TYPE;
+            tmp_config->set_flag |= NETVAR_SETFLG_LAN_FLAGS;
         }
     } else if (MATCH("lan_ip4", "hostname")) {
-        strncpy(tmp_config->hostname, value, LAN_HOSTNAME_MAX_LEN);
+        strlcpy(tmp_config->hostname, value, LAN_HOSTNAME_MAX_LEN + 1);
         tmp_config->hostname[LAN_HOSTNAME_MAX_LEN] = '\0';
+        tmp_config->set_flag |= NETVAR_SETFLG_HOSTNAME;
     } else if (MATCH("lan_ip4", "address")) {
-        if (!ip4addr_aton(value, &tmp_config->lan_ip4_addr)) {
-            tmp_config->lan_ip4_addr.addr = 0;
+        if (ip4addr_aton(value, &tmp_config->lan_ip4_addr)) {
+            tmp_config->set_flag |= NETVAR_SETFLG_LAN_IP4_ADDR;
         }
     } else if (MATCH("lan_ip4", "mask")) {
-        if (!ip4addr_aton(value, &tmp_config->lan_ip4_msk)) {
-            tmp_config->lan_ip4_msk.addr = 0;
+        if (ip4addr_aton(value, &tmp_config->lan_ip4_msk)) {
+            tmp_config->set_flag |= NETVAR_SETFLG_LAN_IP4_MSK;
         }
     } else if (MATCH("lan_ip4", "gateway")) {
-        if (!ip4addr_aton(value, &tmp_config->lan_ip4_gw)) {
-            tmp_config->lan_ip4_gw.addr = 0;
+        if (ip4addr_aton(value, &tmp_config->lan_ip4_gw)) {
+            tmp_config->set_flag |= NETVAR_SETFLG_LAN_IP4_GW;
         }
     } else if (MATCH("connect", "address")) {
-        if (!ip4addr_aton(value, &tmp_config->connect_ip4)) {
-            tmp_config->connect_ip4.addr = 0;
+        if (ip4addr_aton(value, &tmp_config->connect_ip4)) {
+            tmp_config->set_flag |= NETVAR_SETFLG_CONNECT_IP4;
         }
-    } else if (MATCH("connect", "security_key")) {
-        strncpy(tmp_config->security_key, value, CONNECT_SEC_KEY_LEN);
-        tmp_config->security_key[CONNECT_SEC_KEY_LEN] = '\0';
+    } else if (MATCH("connect", "token")) {
+        strlcpy(tmp_config->connect_token, value, CONNECT_TOKEN_SIZE + 1);
+        tmp_config->connect_token[CONNECT_TOKEN_SIZE] = '\0';
+        tmp_config->set_flag |= NETVAR_SETFLG_CONNECT_TOKEN;
     } else {
         return 0; /* unknown section/name, error */
     }
@@ -239,38 +247,52 @@ static uint8_t _load_config(void) {
 
     networkconfig_t tmp_config;
     tmp_config.lan_flag = config.lan_flag;
-    tmp_config.lan_ip4_addr.addr = tmp_config.lan_ip4_msk.addr = tmp_config.lan_ip4_gw.addr = tmp_config.connect_ip4.addr = 0;
+    tmp_config.set_flag = 0;
 
     if(ini_load_file(ini_load_handler, &tmp_config) == 0){
         return 0;
     }
 
     if (!(tmp_config.lan_flag & LAN_EEFLG_TYPE)) {
-        if (tmp_config.connect_ip4.addr != 0) {
-            strncpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
-            eth0.hostname = interface_hostname;
-            if ((config.lan_flag & LAN_EEFLG_TYPE) != (tmp_config.lan_flag & LAN_EEFLG_TYPE)) {
+        if (tmp_config.set_flag & NETVAR_SETFLG_CONNECT_IP4) {
+            if(tmp_config.set_flag & NETVAR_SETFLG_HOSTNAME){
+                strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
+                eth0.hostname = interface_hostname;
+                variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
+                eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
+            }
+            if (tmp_config.lan_flag & LAN_EEFLG_TYPE) {
                 _change_static_to_dhcp();
             }
-            eeprom_set_string(EEVAR_LAN_HOSTNAME_START, interface_hostname, LAN_HOSTNAME_MAX_LEN);
-            eeprom_set_string(EEVAR_CONNECT_KEY_START, tmp_config.security_key, CONNECT_SEC_KEY_LEN);
-            eeprom_set_var(EEVAR_CONNECT_IP, variant8_ui32(tmp_config.connect_ip4.addr));
+            if(tmp_config.set_flag & NETVAR_SETFLG_CONNECT_TOKEN){
+                variant8_t token = variant8_pchar(tmp_config.connect_token, 0, 0);
+                eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
+            }
+            eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(tmp_config.connect_ip4.addr));
         } else {
             return 0;
         }
     } else {
-        if (tmp_config.lan_ip4_addr.addr == 0 || tmp_config.lan_ip4_msk.addr == 0
-            || tmp_config.lan_ip4_gw.addr == 0 || tmp_config.connect_ip4.addr == 0) {
+        if ((tmp_config.set_flag & (NETVAR_SETFLG_LAN_IP4_ADDR | NETVAR_SETFLG_LAN_IP4_MSK | NETVAR_SETFLG_LAN_IP4_GW))
+             != (NETVAR_SETFLG_LAN_IP4_ADDR | NETVAR_SETFLG_LAN_IP4_MSK | NETVAR_SETFLG_LAN_IP4_GW)) {
             return 0;
         } else {
-            strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
-            eth0.hostname = interface_hostname;
-            eeprom_set_string(EEVAR_LAN_HOSTNAME_START, interface_hostname, LAN_HOSTNAME_MAX_LEN);
-            eeprom_set_string(EEVAR_CONNECT_KEY_START, tmp_config.security_key, CONNECT_SEC_KEY_LEN);
+            if(tmp_config.set_flag & NETVAR_SETFLG_HOSTNAME){
+                strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
+                eth0.hostname = interface_hostname;
+                variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
+                eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
+            }
+            if(tmp_config.set_flag & NETVAR_SETFLG_CONNECT_TOKEN){
+                variant8_t token = variant8_pchar(tmp_config.connect_token, 0, 0);
+                eeprom_set_var(EEVAR_LAN_HOSTNAME, token);
+            }
             eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(tmp_config.lan_ip4_addr.addr));
             eeprom_set_var(EEVAR_LAN_IP4_MSK, variant8_ui32(tmp_config.lan_ip4_msk.addr));
             eeprom_set_var(EEVAR_LAN_IP4_GW, variant8_ui32(tmp_config.lan_ip4_gw.addr));
-            eeprom_set_var(EEVAR_CONNECT_IP, variant8_ui32(tmp_config.connect_ip4.addr));
+            if(tmp_config.set_flag & NETVAR_SETFLG_CONNECT_IP4){
+                eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(tmp_config.connect_ip4.addr));
+            }
             _change_any_to_static();
         }
     }
