@@ -1,7 +1,22 @@
 #include "DialogHandler.h"
 #include "gui.h"
+#include "DialogNONE.hpp"
+#include "static_alocation_ptr.hpp"
 
+//screens do not have headers, have to use extern
 extern screen_t *pscreen_printing_serial;
+
+class DialogHandler {
+    static_unique_ptr<IDialog> ptr;
+    std::aligned_union<0, DialogNONE>::type all_dialogs;
+
+public:
+    DialogHandler()
+        : ptr(make_static_unique_ptr<DialogNONE>(&all_dialogs)) {}
+};
+
+DialogHandler hndlr;
+
 void dialog_open_cb(dialog_t dialog, uint8_t data) {
     if (gui_get_nesting() > 1)
         return; //todo notify octoprint
