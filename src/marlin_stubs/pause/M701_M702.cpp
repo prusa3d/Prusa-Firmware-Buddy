@@ -51,7 +51,7 @@
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    open_dialog_handler(DLG_load_unload, 0);
+    open_dialog_handler(DLG_load_unload, DLG_type_load);
     xyz_pos_t park_point = NOZZLE_PARK_POINT;
 
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -97,7 +97,7 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    open_dialog_handler(DLG_load_unload, 0);
+    open_dialog_handler(DLG_load_unload, DLG_type_unload);
     xyz_pos_t park_point = NOZZLE_PARK_POINT;
 
     const int8_t target_extruder = get_target_extruder_from_command();

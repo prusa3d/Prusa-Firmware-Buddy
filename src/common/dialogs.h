@@ -12,6 +12,12 @@ typedef enum {
 } dialog_t;
 
 typedef enum {
+    DLG_type_change,
+    DLG_type_load,
+    DLG_type_unload
+} load_unload_type_t;
+
+typedef enum {
     btns_none,
     btns_stop,
     btns_continue,
