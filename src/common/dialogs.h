@@ -7,7 +7,8 @@ extern "C" {
 #endif //__cplusplus
 
 typedef enum {
-    DLG_serial_printing
+    DLG_serial_printing,
+    DLG_load_unload
 } dialog_t;
 
 typedef enum {
