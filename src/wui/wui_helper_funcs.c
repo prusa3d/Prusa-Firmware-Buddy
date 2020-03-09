@@ -19,6 +19,8 @@ static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
 static void send_request_to_wui(const char *request) {
     size_t req_len = strlen(request);
     osMessageQId queue = 0;
+    const char * curr_ptr = request;
+    uint16_t helper = 0;
 
     osSemaphoreWait(tcpclient_wui_sema, osWaitForever); // lock
     if ((queue = tcpclient_wui_queue) != 0)             // queue valid
@@ -30,16 +32,19 @@ static void send_request_to_wui(const char *request) {
                 if (q_space < req_len) {
                     end = q_space;
                     req_len -= q_space;
+                    helper = q_space;
                 } else {
                     end = req_len;
                     req_len = 0;
                 }
                 for (i = 0; i < end; i++) {
-                    osMessagePut(queue, request[i], 0);
+                    osMessagePut(queue, curr_ptr[i], 0);
                 }
-                if (request[i - 1] != '\n') {
+                if (req_len == 0 && curr_ptr[i - 1] != '\n') {
                     osMessagePut(queue, '\n', 0);
                 }
+                curr_ptr = curr_ptr + helper;
+                helper = 0;
             } else {
                 osSemaphoreRelease(tcpclient_wui_sema); // unlock
                 osDelay(10);
@@ -73,16 +78,22 @@ void http_json_parser(char *json, uint32_t len) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
             ip4_addr_t tmp_addr;
             if (ip4addr_aton(request, &tmp_addr)) {
-                eeprom_set_var(EEVAR_CONNECT_IP, variant8_ui32(tmp_addr.addr));
+                char connect_request[MAX_REQ_MARLIN_SIZE];
+                snprintf(connect_request, MAX_REQ_MARLIN_SIZE, "!cip %lu", tmp_addr.addr);
+                send_request_to_wui(connect_request);
             }
             i++;
         } else if (json_cmp(json, &t[i], "connect_key") == 0) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
-            eeprom_set_string(EEVAR_CONNECT_KEY_START, request, CONNECT_SEC_KEY_LEN);
+            char connect_request[MAX_REQ_MARLIN_SIZE];
+            snprintf(connect_request, MAX_REQ_MARLIN_SIZE, "!ck %s", request);
+            send_request_to_wui(connect_request);
             i++;
         } else if (json_cmp(json, &t[i], "connect_name") == 0) {
             strlcpy(request, json + t[i + 1].start, t[i + 1].end - t[i + 1].start + 1);
-            eeprom_set_string(EEVAR_LAN_HOSTNAME_START, request, LAN_HOSTNAME_MAX_LEN);
+            char connect_request[MAX_REQ_MARLIN_SIZE];
+            snprintf(connect_request, MAX_REQ_MARLIN_SIZE, "!cn %s", request);
+            send_request_to_wui(connect_request);
             i++;
         }
     }
