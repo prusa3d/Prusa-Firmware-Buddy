@@ -9,19 +9,21 @@
 #include "lang.h"
 #include "../../gui/wizard/selftest.h"
 
+//  #include "dbg.h"
+
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
 
-char *eofstr(char *str) {
+static char *eofstr(char *str) {
     return (str + strlen(str));
 }
 
-void block2hex(char *str, uint8_t *pdata, size_t length) {
+static void block2hex(char *str, uint8_t *pdata, size_t length) {
     for (; length > 0; length--)
         sprintf(eofstr(str), "%02X", *(pdata++));
 }
 
-void append_crc(char *str) {
+static void append_crc(char *str) {
     uint32_t crc;
 
     TM_CRC_Init(); // !!! spravne patri uplne jinam (zatim neni jasne kam)
@@ -29,12 +31,12 @@ void append_crc(char *str) {
     sprintf(eofstr(str), "/%08lX", crc);
 }
 
-void create_path_info_4error(char *str, int error_code) {
+void create_path_info_4error(char *str, int err_article) {
     char *substr4crc;
 
-    strcpy(str, ER_URL);
+    strcpy(str, get_actual_lang()->err_url);
     substr4crc = eofstr(str);
-    sprintf(eofstr(str), "%d/", error_code);
+    sprintf(eofstr(str), "%d/", err_article);
     sprintf(eofstr(str), "%d/", PRINTER_TYPE);
     sprintf(eofstr(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     sprintf(eofstr(str), "%d-%d-%d-%d/", project_version_major, project_version_minor, project_version_patch, project_build_number);
@@ -44,8 +46,10 @@ void create_path_info_4error(char *str, int error_code) {
 
 void create_path_info_4service(char *str) {
     char *substr4crc;
+    const lang_t *plang;
 
-    strcpy(str, IR_URL);
+    plang = get_actual_lang();
+    strcpy(str, plang->service_url);
     substr4crc = eofstr(str);
     // PrinterType
     sprintf(eofstr(str), "%d/", PRINTER_TYPE);
@@ -73,7 +77,7 @@ void create_path_info_4service(char *str) {
     // BuildNumber
     sprintf(eofstr(str), "-%d/", project_build_number);
     // LanguageInfo
-    sprintf(eofstr(str), "%d/", lang_code);
+    sprintf(eofstr(str), "%lu/", (uint32_t)plang->lang_code);
     // SelfTestResult
     if (last_selftest_time == 0)
         strcat(str, "0");

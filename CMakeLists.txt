@@ -417,8 +417,8 @@ target_sources(
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
           src/common/support_utils.cpp
-          src/common/errors.c
-          src/common/lang.c
+          src/common/errors.cpp
+          src/common/lang.cpp
           src/marlin_stubs/G28.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
