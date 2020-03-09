@@ -6,18 +6,16 @@
  */
 
 #include "screen_lan_settings.h"
+#include "ini_handler.h"
 #include "lwip/dhcp.h"
 #include "lwip/netifapi.h"
 #include "lwip.h"
 #include <stdlib.h>
 #include <stdbool.h>
-#include "ini.h"
-#include "ff.h"
 #include <string.h>
 
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE     6
-#define MAX_INI_SIZE      200
 #define IP4_ADDR_STR_SIZE 16
 
 #define _change_static_to_static() _change_dhcp_to_static()
@@ -33,10 +31,8 @@ typedef enum {
 static char *plan_str = NULL;
 static bool conn_flg = false; // wait for dhcp to supply addresses
 static networkconfig_t config;
-static const char ini_file_name[] = "/lan_settings.ini"; //change -> change msgboxes
 static const char *LAN_switch_opt[] = { "On", "Off", NULL };
 static const char *LAN_type_opt[] = { "DHCP", "static", NULL };
-static char ini_file_str[MAX_INI_SIZE];
 extern bool media_is_inserted();
 const menu_item_t _menu_lan_items[] = {
     { { "LAN", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_switch_opt } }, SCREEN_MENU_NO_SCREEN },
@@ -157,29 +153,12 @@ static void screen_lan_settings_init(screen_t *screen) {
     _parse_MAC_addr(plsd->mac_addr_str);
     _refresh_addresses(screen);
 }
-static uint8_t _save_ini_file(void) {
-    //======= CONFIG -> INI STR ==========
-
+static uint8_t _save_config(void) {
     _addrs_to_str(ini_file_str, 1); //1 means parsing to ini file format
-    UINT ini_config_len = strlen(ini_file_str);
-    UINT written_bytes = 0;
-    FIL ini_file;
-
-    //=========== FILE ACCESS =============
-
-    f_unlink(ini_file_name);
-
-    uint8_t i = f_open(&ini_file, ini_file_name, FA_WRITE | FA_CREATE_NEW);
-    uint8_t w = f_write(&ini_file, ini_file_str, ini_config_len, &written_bytes);
-    uint8_t c = f_close(&ini_file);
-
-    if (i || w || c || written_bytes != ini_config_len)
-        return 0;
-
-    return 1;
+    return ini_save_file(ini_file_str);
 }
 
-static void _change_any_to_static() {
+static void _change_any_to_static(void) {
     if (netif_is_up(&eth0)) {
         netifapi_netif_set_down(&eth0);
     }
@@ -208,7 +187,7 @@ static void _change_any_to_static() {
     }
 }
 
-static void _change_static_to_dhcp() {
+static void _change_static_to_dhcp(void) {
     if (netif_is_up(&eth0)) {
         netifapi_netif_set_down(&eth0);
     }
@@ -219,7 +198,7 @@ static void _change_static_to_dhcp() {
     }
 }
 
-static int handler(void *user, const char *section, const char *name, const char *value) {
+static int ini_load_handler(void *user, const char *section, const char *name, const char *value) {
     networkconfig_t *tmp_config = (networkconfig_t *)user;
 #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("lan_ip4", "type")) {
@@ -256,26 +235,13 @@ static int handler(void *user, const char *section, const char *name, const char
     return 1;
 }
 
-static uint8_t _load_ini_file(void) {
-    UINT written_bytes = 0;
-    FIL ini_file;
-
-    //=========== FILE ACCESS =============
-
-    uint8_t file_init = f_open(&ini_file, ini_file_name, FA_READ);
-    uint8_t file_read = f_read(&ini_file, ini_file_str, MAX_INI_SIZE, &written_bytes);
-    uint8_t file_close = f_close(&ini_file);
-
-    if (file_init || file_read || file_close) {
-        return 0;
-    }
-
-    //=========== INI FILE PARSING =============
+static uint8_t _load_config(void) {
 
     networkconfig_t tmp_config;
     tmp_config.lan_flag = config.lan_flag;
     tmp_config.lan_ip4_addr.addr = tmp_config.lan_ip4_msk.addr = tmp_config.lan_ip4_gw.addr = tmp_config.connect_ip4.addr = 0;
-    if (ini_parse_string(ini_file_str, handler, &tmp_config) < 0) {
+
+    if(ini_load_file(ini_load_handler, &tmp_config) == 0){
         return 0;
     }
 
@@ -380,7 +346,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                 == MSGBOX_RES_OK) {
             }
         } else {
-            if (_save_ini_file()) { // !its possible to save empty configurations!
+            if (_save_config()) { // !its possible to save empty configurations!
                 if (gui_msgbox("The settings have been saved successfully in the \"lan_settings.ini\" file.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_INFO)
                     == MSGBOX_RES_OK) {
@@ -400,7 +366,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                 == MSGBOX_RES_OK) {
             }
         } else {
-            if (_load_ini_file()) {
+            if (_load_config()) {
                 if (gui_msgbox("Settings successfully loaded", MSGBOX_BTN_OK | MSGBOX_ICO_INFO) == MSGBOX_RES_OK) {
                     plsd->items[MI_TYPE].item.wi_switch_select.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
                     window_invalidate(plsd->menu.win.id);
