@@ -32,7 +32,7 @@
  */
 void GcodeSuite::M876() {
     if (parser.seenval('P'))
-        host_dialog_creation_handler((uint8_t)parser.value_int());
+        parser.value_int() ? open_dialog_handler(DLG_serial_printing, 0) : close_dialog_handler(DLG_serial_printing);
     if (parser.seenval('S'))
         host_response_handler((uint8_t)parser.value_int());
 }
