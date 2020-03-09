@@ -1197,15 +1197,6 @@ void host_action_resumed() {
     DBG_HOST("host_action_resumed");
 }
 
-void host_dialog_creation_handler(const uint8_t is_host) {
-    DBG_HOST("host_dialog_creation_handler %d", (int)is_host);
-
-    const MARLIN_EVT_t evt_id = is_host ? MARLIN_EVT_DialogOpen : MARLIN_EVT_DialogClose;
-    uint8_t client_mask = _send_notify_event(evt_id, DLG_serial_printing, 0);
-    // notification will wait until successfully sent to gui client
-    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
-}
-
 //must match dialog_open_cb_t signature
 void open_dialog_handler(dialog_t type, uint8_t data) {
     uint32_t usr32 = type + (data << 8);
