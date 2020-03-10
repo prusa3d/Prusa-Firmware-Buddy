@@ -28,17 +28,13 @@
 #include "hwio_a3ides.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-<<<<<<< HEAD
 #include "errors.h"
-    == == ==
-    =
-    #ifdef MINDA_BROKEN_CABLE_DETECTION
-        #include "Z_probe.h" //get_Z_probe_endstop_hits
-    #endif
->>>>>>> origin/master
+#ifdef MINDA_BROKEN_CABLE_DETECTION
+    #include "Z_probe.h" //get_Z_probe_endstop_hits
+#endif
 
-        #ifdef LCDSIM
-#include "lcdsim.h"
+#ifdef LCDSIM
+    #include "lcdsim.h"
 #endif // LCDSIM
 
 #define DBG _dbg1 //enabled level 1
@@ -61,7 +57,7 @@
 #pragma pack(push)
 #pragma pack(1)
 
-    typedef struct _marlin_server_t {
+typedef struct _marlin_server_t {
     uint16_t flags;          // server flags (MARLIN_SFLG)
     uint64_t notify_events;  // event notification mask
     uint64_t notify_changes; // variable change notification mask
