@@ -4,49 +4,49 @@
 
 #include "variant8.h"
 
-// Marlin events - UIAPI
-#define MARLIN_EVT_Startup             0x00 // onStartup()
-#define MARLIN_EVT_Idle                0x01 // onIdle()
-#define MARLIN_EVT_PrinterKilled       0x02 // onPrinterKilled(PGM_P const msg)
-#define MARLIN_EVT_MediaInserted       0x03 // onMediaInserted();
-#define MARLIN_EVT_MediaError          0x04 // onMediaError();
-#define MARLIN_EVT_MediaRemoved        0x05 // onMediaRemoved();
-#define MARLIN_EVT_PlayTone            0x06 // onPlayTone(const uint16_t frequency, const uint16_t duration)
-#define MARLIN_EVT_PrintTimerStarted   0x07 // onPrintTimerStarted()
-#define MARLIN_EVT_PrintTimerPaused    0x08 // onPrintTimerPaused()
-#define MARLIN_EVT_PrintTimerStopped   0x09 // onPrintTimerStopped()
-#define MARLIN_EVT_FilamentRunout      0x0a // onFilamentRunout()
-#define MARLIN_EVT_UserConfirmRequired 0x0b // onUserConfirmRequired(const char * const msg)
-#define MARLIN_EVT_StatusChanged       0x0c // onStatusChanged(const char * const msg)
-#define MARLIN_EVT_FactoryReset        0x0d // onFactoryReset()
-#define MARLIN_EVT_LoadSettings        0x0e // onLoadSettings()
-#define MARLIN_EVT_StoreSettings       0x0f // onStoreSettings()
-#define MARLIN_EVT_MeshUpdate          0x10 // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
-// Marlin events - host actions
-#define MARLIN_EVT_HostPrompt 0x11 // host_action_prompt
-// Marlin events - other
-#define MARLIN_EVT_StartProcessing    0x12 // sent from marlin_server_start_processing
-#define MARLIN_EVT_StopProcessing     0x13 // sent from marlin_server_stop_processing
-#define MARLIN_EVT_Busy               0x14 // sent from marlin_server_idle
-#define MARLIN_EVT_Ready              0x15 // sent from marlin_server_loop
-#define MARLIN_EVT_Error              0x16 // sent onStatusChanged etc.
-#define MARLIN_EVT_CommandBegin       0x17 //
-#define MARLIN_EVT_CommandEnd         0x18 //
-#define MARLIN_EVT_SafetyTimerExpired 0x19 // host action from marlin, hotends and bed turned off
-#define MARLIN_EVT_Message            0x1a //
-#define MARLIN_EVT_Reheat             0x1b //
-#define MARLIN_EVT_DialogCreation     0x1c //
-#define MARLIN_EVT_Acknowledge        0x1d // onAcknowledge - lowest priority
-#define MARLIN_EVT_MAX                MARLIN_EVT_Acknowledge
+typedef enum {
+    // Marlin events - UIAPI
+    MARLIN_EVT_Startup,             // onStartup()
+    MARLIN_EVT_Idle,                // onIdle()
+    MARLIN_EVT_PrinterKilled,       // onPrinterKilled(PGM_P const msg)
+    MARLIN_EVT_MediaInserted,       // onMediaInserted();
+    MARLIN_EVT_MediaError,          // onMediaError();
+    MARLIN_EVT_MediaRemoved,        // onMediaRemoved();
+    MARLIN_EVT_PlayTone,            // onPlayTone(const uint16_t frequency, const uint16_t duration)
+    MARLIN_EVT_PrintTimerStarted,   // onPrintTimerStarted()
+    MARLIN_EVT_PrintTimerPaused,    // onPrintTimerPaused()
+    MARLIN_EVT_PrintTimerStopped,   // onPrintTimerStopped()
+    MARLIN_EVT_FilamentRunout,      // onFilamentRunout()
+    MARLIN_EVT_UserConfirmRequired, // onUserConfirmRequired(const char * const msg)
+    MARLIN_EVT_StatusChanged,       // onStatusChanged(const char * const msg)
+    MARLIN_EVT_FactoryReset,        // onFactoryReset()
+    MARLIN_EVT_LoadSettings,        // onLoadSettings()
+    MARLIN_EVT_StoreSettings,       // onStoreSettings()
+    MARLIN_EVT_MeshUpdate,          // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
+                                    // Marlin events - host actions
+    MARLIN_EVT_HostPrompt,          // host_action_prompt
+                                    // Marlin events - other
+    MARLIN_EVT_StartProcessing,     // sent from marlin_server_start_processing
+    MARLIN_EVT_StopProcessing,      // sent from marlin_server_stop_processing
+    MARLIN_EVT_Busy,                // sent from marlin_server_idle
+    MARLIN_EVT_Ready,               // sent from marlin_server_loop
+    MARLIN_EVT_Error,               // sent onStatusChanged etc.
+    MARLIN_EVT_CommandBegin,        //
+    MARLIN_EVT_CommandEnd,          //
+    MARLIN_EVT_SafetyTimerExpired,  // host action from marlin, hotends and bed turned off
+    MARLIN_EVT_Message,             //
+    MARLIN_EVT_Reheat,              //
+    MARLIN_EVT_DialogOpen,          //
+    MARLIN_EVT_DialogClose,         //
+    MARLIN_EVT_Acknowledge          // onAcknowledge - lowest priority
+} MARLIN_EVT_t;
+#define MARLIN_EVT_MAX MARLIN_EVT_Acknowledge
 
 // event masks
 #define MARLIN_EVT_MSK(e_id) ((uint64_t)1 << (e_id))
-#define MARLIN_EVT_MSK_DEF   ( \
-    MARLIN_EVT_MSK(MARLIN_EVT_Startup) | MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted) | MARLIN_EVT_MSK(MARLIN_EVT_MediaError) | MARLIN_EVT_MSK(MARLIN_EVT_MediaRemoved) | MARLIN_EVT_MSK(MARLIN_EVT_PlayTone) | MARLIN_EVT_MSK(MARLIN_EVT_PrintTimerStarted) | MARLIN_EVT_MSK(MARLIN_EVT_PrintTimerPaused) | MARLIN_EVT_MSK(MARLIN_EVT_PrintTimerStopped) | MARLIN_EVT_MSK(MARLIN_EVT_FilamentRunout) | MARLIN_EVT_MSK(MARLIN_EVT_UserConfirmRequired) | MARLIN_EVT_MSK(MARLIN_EVT_StatusChanged) | MARLIN_EVT_MSK(MARLIN_EVT_FactoryReset) | MARLIN_EVT_MSK(MARLIN_EVT_LoadSettings) | MARLIN_EVT_MSK(MARLIN_EVT_StoreSettings) | MARLIN_EVT_MSK(MARLIN_EVT_MeshUpdate) | MARLIN_EVT_MSK(MARLIN_EVT_HostPrompt) | MARLIN_EVT_MSK(MARLIN_EVT_StartProcessing) | MARLIN_EVT_MSK(MARLIN_EVT_StopProcessing) | MARLIN_EVT_MSK(MARLIN_EVT_Busy) | MARLIN_EVT_MSK(MARLIN_EVT_Ready) | MARLIN_EVT_MSK(MARLIN_EVT_Error) | MARLIN_EVT_MSK(MARLIN_EVT_CommandBegin) | MARLIN_EVT_MSK(MARLIN_EVT_CommandEnd) | MARLIN_EVT_MSK(MARLIN_EVT_SafetyTimerExpired) | MARLIN_EVT_MSK(MARLIN_EVT_Message) | MARLIN_EVT_MSK(MARLIN_EVT_Reheat) | MARLIN_EVT_MSK(MARLIN_EVT_DialogCreation) | MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
-#define MARLIN_EVT_MSK_ALL ( \
-    MARLIN_EVT_MSK(MARLIN_EVT_Startup) | MARLIN_EVT_MSK(MARLIN_EVT_Idle) | MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled) | MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted) | MARLIN_EVT_MSK(MARLIN_EVT_MediaError) | MARLIN_EVT_MSK(MARLIN_EVT_MediaRemoved) | MARLIN_EVT_MSK(MARLIN_EVT_PlayTone) | MARLIN_EVT_MSK(MARLIN_EVT_PrintTimerStarted) | MARLIN_EVT_MSK(MARLIN_EVT_PrintTimerPaused) | MARLIN_EVT_MSK(MARLIN_EVT_PrintTimerStopped) | MARLIN_EVT_MSK(MARLIN_EVT_FilamentRunout) | MARLIN_EVT_MSK(MARLIN_EVT_UserConfirmRequired) | MARLIN_EVT_MSK(MARLIN_EVT_StatusChanged) | MARLIN_EVT_MSK(MARLIN_EVT_FactoryReset) | MARLIN_EVT_MSK(MARLIN_EVT_LoadSettings) | MARLIN_EVT_MSK(MARLIN_EVT_StoreSettings) | MARLIN_EVT_MSK(MARLIN_EVT_MeshUpdate) | MARLIN_EVT_MSK(MARLIN_EVT_HostPrompt) | MARLIN_EVT_MSK(MARLIN_EVT_StartProcessing) | MARLIN_EVT_MSK(MARLIN_EVT_StopProcessing) | MARLIN_EVT_MSK(MARLIN_EVT_Busy) | MARLIN_EVT_MSK(MARLIN_EVT_Ready) | MARLIN_EVT_MSK(MARLIN_EVT_Error) | MARLIN_EVT_MSK(MARLIN_EVT_CommandBegin) | MARLIN_EVT_MSK(MARLIN_EVT_CommandEnd) | MARLIN_EVT_MSK(MARLIN_EVT_SafetyTimerExpired) | MARLIN_EVT_MSK(MARLIN_EVT_Message) | MARLIN_EVT_MSK(MARLIN_EVT_Reheat) | MARLIN_EVT_MSK(MARLIN_EVT_DialogCreation) | MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
-
+#define MARLIN_EVT_MSK_ALL (MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1)
+#define MARLIN_EVT_MSK_DEF (MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_Idle) | MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled)))
 // commands
 #define MARLIN_CMD_NONE 0
 #define MARLIN_CMD_G    (((uint32_t)'G') << 16)
@@ -65,42 +65,6 @@
 #pragma pack(push)
 #pragma pack(1)
 
-typedef union _marlin_events_t {
-    uint64_t evt;
-    struct
-    {
-        uint8_t evt_Startup : 1;
-        uint8_t evt_Idle : 1;
-        uint8_t evt_PrinterKilled : 1;
-        uint8_t evt_MediaInserted : 1;
-        uint8_t evt_MediaError : 1;
-        uint8_t evt_MediaRemoved : 1;
-        uint8_t evt_PlayTone : 1;
-        uint8_t evt_PrintTimerStarted : 1;
-        uint8_t evt_PrintTimerPaused : 1;
-        uint8_t evt_PrintTimerStopped : 1;
-        uint8_t evt_FilamentRunout : 1;
-        uint8_t evt_UserConfirmRequired : 1;
-        uint8_t evt_StatusChanged : 1;
-        uint8_t evt_FactoryReset : 1;
-        uint8_t evt_LoadSettings : 1;
-        uint8_t evt_StoreSettings : 1;
-        uint8_t evt_MeshUpdate : 1;
-        uint8_t evt_HostPrompt : 1;
-        uint8_t evt_StartProcessing : 1;
-        uint8_t evt_StopProcessing : 1;
-        uint8_t evt_Busy : 1;
-        uint8_t evt_Ready : 1;
-        uint8_t evt_Error : 1;
-        uint8_t evt_CommandBegin : 1;
-        uint8_t evt_CommandEnd : 1;
-        uint8_t evt_SafetyTimerExpired : 1;
-        uint8_t evt_Message : 1;
-        uint8_t evt_Acknowledge : 1;
-        uint64_t evt_reserved : 38;
-    };
-} marlin_events_t;
-
 typedef struct _marlin_mesh_t {
     float z[MARLIN_MAX_MESH_POINTS];
     uint8_t xc;
@@ -113,7 +77,7 @@ typedef struct _marlin_mesh_t {
 extern "C" {
 #endif //__cplusplus
 
-extern const char *marlin_events_get_name(uint8_t evt_id);
+extern const char *marlin_events_get_name(MARLIN_EVT_t evt_id);
 
 #ifdef __cplusplus
 }

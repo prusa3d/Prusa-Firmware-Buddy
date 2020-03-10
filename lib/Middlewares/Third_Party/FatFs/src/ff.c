@@ -2448,7 +2448,7 @@ void get_fileinfo (		/* No return code */
 {
 	UINT i, j;
 	TCHAR c;
-	DWORD tm;
+	DWORD tm, tmc;
 #if _USE_LFN != 0
 	WCHAR w, lfv;
 	FATFS *fs = dp->obj.fs;
@@ -2529,7 +2529,9 @@ void get_fileinfo (		/* No return code */
 
 	fno->fattrib = dp->dir[DIR_Attr];				/* Attribute */
 	fno->fsize = ld_dword(dp->dir + DIR_FileSize);	/* Size */
-	tm = ld_dword(dp->dir + DIR_ModTime);			/* Timestamp */
+	tm = ld_dword(dp->dir + DIR_ModTime);			/* Modification Timestamp */
+	tmc = ld_dword(dp->dir + DIR_CrtTime);          /* Creation Timestamp */
+	tm = (tm > tmc) ? tm : tmc;
 	fno->ftime = (WORD)tm; fno->fdate = (WORD)(tm >> 16);
 }
 
