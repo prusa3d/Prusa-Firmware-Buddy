@@ -12,7 +12,7 @@
 
 #define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
 #define EEPROM_DATASIZE sizeof(eeprom_vars_t)
-#define EEPROM__PADDING 1
+#define EEPROM__PADDING 3
 
 #define EEPROM_MAX_NAME          16     // maximum name length (with '\0')
 #define EEPROM_MAX_DATASIZE      256    // maximum datasize
@@ -62,7 +62,6 @@ typedef struct _eeprom_vars_t {
     uint32_t LAN_IP4_DNS1;
     uint32_t LAN_IP4_DNS2;
     char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
-    char TEST[10];
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -98,7 +97,6 @@ const eeprom_entry_t eeprom_map[] = {
     { "LAN_IP4_DNS1",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_DNS1
     { "LAN_IP4_DNS2",    VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_IP4_DNS2
     { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_LAN_HOSTNAME
-    { "TEST",            VARIANT8_PCHAR, 10, 0 }, // EEVAR_TEST
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -130,7 +128,6 @@ const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_LAN_IP4_DNS1
     0,               // EEVAR_LAN_IP4_DNS2
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
-    "TEST",          // EEVAR_TEST
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };

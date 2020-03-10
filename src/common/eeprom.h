@@ -13,6 +13,7 @@
 #define EEPROM_FEATURE_PID_BED 0x0002
 #define EEPROM_FEATURE_LAN     0x0004
 
+// clang-format off
 
 // basic variables
 #define EEVAR_VERSION         0x00 // uint16_t eeprom version
@@ -30,34 +31,34 @@
 
 // nozzle PID variables
 #if (EEPROM_FEATURES & EEPROM_FEATURE_PID_NOZ)
-#define EEVAR_PID_NOZ_P 0x0c // float    PID constants for nozzle
-#define EEVAR_PID_NOZ_I 0x0d //
-#define EEVAR_PID_NOZ_D 0x0e //
+#define EEVAR_PID_NOZ_P       0x0c // float    PID constants for nozzle
+#define EEVAR_PID_NOZ_I       0x0d // float
+#define EEVAR_PID_NOZ_D       0x0e // float
 #endif
 
 // bed PID variables
 #if (EEPROM_FEATURES & EEPROM_FEATURE_PID_BED)
-#define EEVAR_PID_BED_P 0x0f // float    PID constants for bed
-#define EEVAR_PID_BED_I 0x10 //
-#define EEVAR_PID_BED_D 0x11 //
+#define EEVAR_PID_BED_P       0x0f // float    PID constants for bed
+#define EEVAR_PID_BED_I       0x10 // float
+#define EEVAR_PID_BED_D       0x11 // float
 #endif
 
 // lan variables
 #if (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
-#define EEVAR_LAN_FLAG     0x12 // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
-#define EEVAR_LAN_IP4_ADDR 0x13 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_MSK  0x14 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_GW   0x15 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_DNS1 0x16 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_DNS2 0x17 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_HOSTNAME 0x18 // 20char string
+#define EEVAR_LAN_FLAG        0x12 // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
+#define EEVAR_LAN_IP4_ADDR    0x13 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_MSK     0x14 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_GW      0x15 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_DNS1    0x16 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_IP4_DNS2    0x17 // X.X.X.X address encoded in uint32
+#define EEVAR_LAN_HOSTNAME    0x18 // 20char string
 #endif
 
-#define EEVAR_TEST 0x19
+#define EEVAR__PADDING        0x19 // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
-#define EEVAR__PADDING 0x1a // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+#define EEVAR_CRC32           0x1a // uint32_t crc32 for
 
-#define EEVAR_CRC32 0x1b // uint32_t crc32 for
+// clang-format on
 
 #define LAN_HOSTNAME_MAX_LEN 20
 #define LAN_EEFLG_ONOFF      1 //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
