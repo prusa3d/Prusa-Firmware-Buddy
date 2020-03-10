@@ -139,6 +139,13 @@ void update_firmware_screen(void);
 static void _gui_loop_cb() {
     static uint8_t m600_lock = 0;
 
+    //_dbg("*** loop()");
+    if (marlin_event_clr(MARLIN_EVT_PrinterKilled)) {
+        //--// screen_open
+        _dbg("### ScreenOpen()");
+        //screen_open(pscreen_qr_error->id);
+    }
+
     if (!m600_lock) {
         m600_lock = 1;
         if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
@@ -150,6 +157,13 @@ static void _gui_loop_cb() {
         }
         m600_lock = 0;
     }
+    /*
+    if (marlin_event_clr(MARLIN_EVT_PrinterKilled)) {
+    	//--// screen_open
+_dbg("### ScreenOpen()");
+//screen_open(pscreen_qr_error->id);
+    }
+*/
 
     marlin_client_loop();
 }

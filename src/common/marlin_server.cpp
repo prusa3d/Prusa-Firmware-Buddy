@@ -27,6 +27,7 @@
 #include "hwio_a3ides.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
+#include "errors.h"
 
 #ifdef LCDSIM
     #include "lcdsim.h"
@@ -445,9 +446,10 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
     for (uint8_t evt_id = 0; evt_id < 64; evt_id++) {
         if (msk & evt_msk)
             switch (evt_id) {
-            // Idle and PrinterKilled events not used
-            //case MARLIN_EVT_Idle:
-            //case MARLIN_EVT_PrinterKilled:
+                // Idle and PrinterKilled events not used
+                //case MARLIN_EVT_Idle:
+            //-//
+            case MARLIN_EVT_PrinterKilled:
             // Events without arguments
             case MARLIN_EVT_Startup:
             case MARLIN_EVT_MediaInserted:
@@ -914,38 +916,67 @@ void onIdle() {
 
 //todo remove me after new thermal manager
 int _is_thermal_error(PGM_P const msg) {
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD)))
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD))) {
+        set_actual_error({ ERR_CAT_THERMAL, ERR_CAT_THERMAL_SUBCAT_HOTEND, ERR_CAT_THERMAL_SUBCAT_HOTEND_HFAIL });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED))) {
+        set_actual_error({ ERR_CAT_THERMAL, ERR_CAT_THERMAL_SUBCAT_BED, ERR_CAT_THERMAL_SUBCAT_BED_HFAIL });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER))) {
+        set_actual_error({ ERR_CAT_UNDEF, ERR_SUBCAT_UNDEF, ERR_ITEM_UNDEF });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP))) {
+        set_actual_error({ ERR_CAT_UNDEF, ERR_SUBCAT_UNDEF, ERR_ITEM_UNDEF });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY))) {
+        set_actual_error({ ERR_CAT_THERMAL, ERR_CAT_THERMAL_SUBCAT_HOTEND, ERR_CAT_THERMAL_SUBCAT_HOTEND_RUNAWAY });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED))) {
+        set_actual_error({ ERR_CAT_THERMAL, ERR_CAT_THERMAL_SUBCAT_BED, ERR_CAT_THERMAL_SUBCAT_BED_RUNAWAY });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER))) {
+        set_actual_error({ ERR_CAT_UNDEF, ERR_SUBCAT_UNDEF, ERR_ITEM_UNDEF });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP))) {
+        set_actual_error({ ERR_CAT_THERMAL, ERR_CAT_THERMAL_SUBCAT_HOTEND, ERR_CAT_THERMAL_SUBCAT_HOTEND_MAXTEMP });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP))) {
+        set_actual_error({ ERR_CAT_THERMAL, ERR_CAT_THERMAL_SUBCAT_HOTEND, ERR_CAT_THERMAL_SUBCAT_HOTEND_MINTEMP });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED))) {
+        set_actual_error({ ERR_CAT_THERMAL, ERR_CAT_THERMAL_SUBCAT_BED, ERR_CAT_THERMAL_SUBCAT_BED_MAXTEMP });
         return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED)))
+    }
+    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED))) {
+        set_actual_error({ ERR_CAT_THERMAL, ERR_CAT_THERMAL_SUBCAT_BED, ERR_CAT_THERMAL_SUBCAT_BED_MINTEMP });
         return 1;
+    }
     return 0;
 }
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
-    taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-    HAL_IWDG_Refresh(&hiwdg);
+    if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
+        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+#ifndef _DEBUG
+    HAL_IWDG_Refresh(&hiwdg);     //watchdog reset
+#endif                            //_DEBUG
     if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
+        //--//
+        _dbg("### onPrinterKilled()");
         const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
+        //_send_notify_event(MARLIN_EVT_PrinterKilled, 0, 0);
+        _dbg("... sent");
     } else {
         general_error(msg, component);
     }
