@@ -487,6 +487,7 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_Ready:
             case MARLIN_EVT_DialogOpen:
             case MARLIN_EVT_DialogClose:
+            case MARLIN_EVT_PrinterKilled:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
                 break;
@@ -531,7 +532,6 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
                 break;
             //unused events
             case MARLIN_EVT_Idle:
-            case MARLIN_EVT_PrinterKilled:
             case MARLIN_EVT_Error:
             case MARLIN_EVT_PlayTone:
             case MARLIN_EVT_HostPrompt:
@@ -993,19 +993,14 @@ int _is_thermal_error(PGM_P const msg) {
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
-    if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
-        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-#ifndef _DEBUG
-    HAL_IWDG_Refresh(&hiwdg);     //watchdog reset
-#endif                            //_DEBUG
     if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
-        //--//
-        _dbg("### onPrinterKilled()");
-        const marlin_vars_t &vars = marlin_server.vars;
-        temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
-        //_send_notify_event(MARLIN_EVT_PrinterKilled, 0, 0);
-        _dbg("... sent");
+        _send_notify_event(MARLIN_EVT_PrinterKilled, 0, 0);
     } else {
+        if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
+            taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+#ifndef _DEBUG
+        HAL_IWDG_Refresh(&hiwdg); //watchdog reset
+#endif                            //_DEBUG
         general_error(msg, component);
     }
 }

@@ -46,7 +46,7 @@ typedef enum {
 #define MARLIN_EVT_MSK(e_id) ((uint64_t)1 << (e_id))
 
 #define MARLIN_EVT_MSK_ALL (MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1)
-#define MARLIN_EVT_MSK_DEF (MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_Idle) | MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled)))
+#define MARLIN_EVT_MSK_DEF (MARLIN_EVT_MSK_ALL - MARLIN_EVT_MSK(MARLIN_EVT_Idle))
 // commands
 #define MARLIN_CMD_NONE 0
 #define MARLIN_CMD_G    (((uint32_t)'G') << 16)
