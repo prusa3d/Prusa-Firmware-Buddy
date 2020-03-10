@@ -21,6 +21,9 @@
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
 #define EEVAR_FLG_READONLY 0x0001 // variable is read only
 
+// measure time needed to update crc
+//#define EEPROM_MEASURE_CRC_TIME
+
 #pragma pack(push)
 #pragma pack(1)
 
@@ -233,10 +236,10 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
         if (var.type == eeprom_map[id].type) {
             size = eeprom_var_size(id);
             data_size = variant8_data_size(&var);
-            if (size == data_size) {
+            if ((size == data_size) || ((var.type == VARIANT8_PCHAR) && (data_size <= size))) {
                 addr = eeprom_var_addr(id);
                 data_ptr = variant8_data_ptr(&var);
-                st25dv64k_user_write_bytes(addr, data_ptr, size);
+                st25dv64k_user_write_bytes(addr, data_ptr, data_size);
                 eeprom_update_crc32(addr, size);
             } else {
                 // TODO: error
@@ -390,6 +393,9 @@ int eeprom_check_crc32(void) {
 }
 
 void eeprom_update_crc32(uint16_t addr, uint16_t size) {
+#ifdef EEPROM_MEASURE_CRC_TIME
+    uint32_t time = _microseconds();
+#endif
 #if 1 //simple method
     eeprom_vars_t vars;
     // read eeprom data
@@ -399,6 +405,10 @@ void eeprom_update_crc32(uint16_t addr, uint16_t size) {
     // write crc to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
 #else //
+#endif
+#ifdef EEPROM_MEASURE_CRC_TIME
+    time = _microseconds() - time;
+    _dbg("crc update %u us", time);
 #endif
 }
 
