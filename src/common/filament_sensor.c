@@ -59,6 +59,18 @@ char fs_get_send_M600_on() {
 //local functions
 static void _init();
 
+static int serial_printing = 0;
+//called when Serial print screen is openned
+//printer is not in sd printing mode, so filament sensor does not trigger M600
+static void dialog_open_cb(dialog_t dialog) {
+    if (dialog == DLG_serial_printing)
+        serial_printing = 1;
+}
+static void dialog_close_cb(dialog_t dialog) {
+    if (dialog == DLG_serial_printing)
+        serial_printing = 0;
+}
+
 //simple filter
 //without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
 static void _set_state(fsensor_t st) {
@@ -160,7 +172,8 @@ void fs_clr_sent() {
 //global not thread safe functions
 static void _init() {
     int enabled = eeprom_get_var(EEVAR_FSENSOR_ENABLED).ui8 ? 1 : 0;
-
+    marlin_client_set_dialog_open_cb(dialog_open_cb);
+    marlin_client_set_dialog_close_cb(dialog_close_cb);
     if (enabled)
         _enable();
     else
@@ -184,7 +197,7 @@ void fs_init_never() {
 //methods called only in fs_cycle
 static void _injectM600() {
     marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
-    if (status.M600_sent == 0 && vars->sd_printing) {
+    if (status.M600_sent == 0 && (vars->sd_printing || serial_printing)) {
         marlin_gcode_push_front("M600"); //change filament
         status.M600_sent = 1;
     }

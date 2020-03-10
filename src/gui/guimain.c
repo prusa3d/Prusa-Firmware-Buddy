@@ -168,15 +168,21 @@ _dbg("### ScreenOpen()");
     marlin_client_loop();
 }
 
-static void serial_prt_cb(int data) {
+static void dialog_open_cb(dialog_t dialog) {
     if (gui_get_nesting() > 1)
         return; //todo notify octoprint
-    if (data) {
+    if (dialog == DLG_serial_printing) {
         screen_unloop(m876_blacklist, sizeof(m876_blacklist) / sizeof(m876_blacklist[0]));
 
         if (screen_get_curr() != pscreen_printing_serial)
             screen_open(pscreen_printing_serial->id);
-    } else {
+    }
+}
+
+static void dialog_close_cb(dialog_t dialog) {
+    if (gui_get_nesting() > 1)
+        return; //todo notify octoprint
+    if (dialog == DLG_serial_printing) {
         if (screen_get_curr() == pscreen_printing_serial)
             screen_close();
     }
@@ -210,7 +216,8 @@ void gui_run(void) {
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_client_id = marlin_client_id();
-    marlin_client_set_dialog_cb(serial_prt_cb);
+    marlin_client_set_dialog_open_cb(dialog_open_cb);
+    marlin_client_set_dialog_close_cb(dialog_close_cb);
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
     screen_register(pscreen_splash);
