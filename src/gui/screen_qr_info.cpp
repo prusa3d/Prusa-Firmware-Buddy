@@ -40,7 +40,7 @@ void screen_menu_qr_info_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 280, 224, 30), &(pd->button));
     pd->button.font = resource_font(IDR_FNT_BIG);
-    window_set_color_back(id, COLOR_WHITE);
+    window_set_color_back(id, COLOR_ORANGE);
     window_set_color_text(id, COLOR_BLACK);
     window_set_alignment(id, ALIGN_HCENTER);
     window_set_text(id, "RETURN");
