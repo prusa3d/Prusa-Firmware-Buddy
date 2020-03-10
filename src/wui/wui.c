@@ -12,6 +12,8 @@
 #include "lwip.h"
 #include "ethernetif.h"
 #include "http_client.h"
+#include "eeprom.h"
+#include <string.h>
 
 #define MAX_WUI_REQUEST_LEN       100
 #define MAX_MARLIN_REQUEST_LEN    100
@@ -119,7 +121,17 @@ static void wui_queue_cycle() {
 }
 static int process_wui_request() {
 
-    //if(wui.request == gcode)
-    marlin_json_gcode(wui.request);
+    if(strncmp(wui.request, "!cip ", 5) == 0){
+        uint32_t ip;
+        if(sscanf(wui.request + 5, "%u", &ip)){
+            eeprom_set_var(EEVAR_CONNECT_IP, variant8_ui32(ip));
+        }
+    } else if (strncmp(wui.request, "!ck ", 4) == 0){
+        eeprom_set_string(EEVAR_CONNECT_KEY_START, wui.request + 4, CONNECT_SEC_KEY_LEN);
+    } else if (strncmp(wui.request, "!cn ", 4) == 0){
+        eeprom_set_string(EEVAR_LAN_HOSTNAME_START, wui.request + 4, LAN_HOSTNAME_MAX_LEN);
+    } else {
+        marlin_json_gcode(wui.request);
+    }
     return 1;
 }
