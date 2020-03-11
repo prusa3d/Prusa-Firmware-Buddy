@@ -13,7 +13,8 @@ class DialogHandler {
     std::aligned_union<0, /*DialogNONE,*/ DialogLoadUnload>::type all_dialogs;
 
 public:
-    DialogHandler(): opened(DLG_count)
+    DialogHandler()
+        : opened(DLG_count)
     //: ptr(make_static_unique_ptr<DialogNONE>(&all_dialogs))
     {}
 
@@ -41,7 +42,8 @@ void dialog_change_cb(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint
 //*****************************************************************************
 //method definitions
 void DialogHandler::open(dialog_t dialog, uint8_t data) {
-    if (opened != DLG_count) return;
+    if (opened != DLG_count)
+        return;
     opened = dialog;
 
     if (gui_get_nesting() > 1)
@@ -52,8 +54,6 @@ void DialogHandler::open(dialog_t dialog, uint8_t data) {
         if (screen_get_curr() != pscreen_printing_serial)
             screen_open(pscreen_printing_serial->id);
     }
-
-
 
     if (dialog == DLG_load_unload) {
         if (!ptr) {
@@ -74,6 +74,7 @@ void DialogHandler::close(dialog_t dialog) {
 }
 
 void DialogHandler::change(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    if (opened != dialog) return;
-    ptr->Change(phase,progress_tot, progress);
+    if (opened != dialog)
+        return;
+    ptr->Change(phase, progress_tot, progress);
 }
