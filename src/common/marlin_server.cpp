@@ -1221,7 +1221,7 @@ void close_dialog_handler(dialog_t type) {
 //must match dialog_change_cb_t signature
 void change_dialog_handler(dialog_t type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     uint32_t usr32 = type + (phase << 8) + (progress_tot << 16) + (progress << 24);
-    DBG_HOST("open_dialog_handler %d", usr32);
+    DBG_HOST("change_dialog_handler %d", usr32);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_DialogChange;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
