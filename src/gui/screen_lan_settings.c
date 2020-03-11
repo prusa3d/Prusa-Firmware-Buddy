@@ -67,17 +67,28 @@ static void _get_ip4_addrs(void) {
     config.lan_ip4_gw.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
 }
 
-static void _addrs_to_str(char *param_str, uint8_t flg) {
-    static char ip4_addr_str[IP4_ADDR_STR_SIZE], ip4_msk_str[IP4_ADDR_STR_SIZE], ip4_gw_str[IP4_ADDR_STR_SIZE], ip4_connect_str[IP4_ADDR_STR_SIZE];
+/** Puts wanted net info in the string.
+*
+*   It as two options:
+*       1) flg == 0: function creates string for LAN_SETTINGS display (param_str = mac address)
+*       2) flg == 1: function creates string for ini file (param_str = destination pointer)
+*/
+static void stringify_netinfo(char *param_str, uint8_t flg) {
+    static char ip4_addr_str[IP4_ADDR_STR_SIZE];
+    static char ip4_msk_str[IP4_ADDR_STR_SIZE];
+    static char ip4_gw_str[IP4_ADDR_STR_SIZE];
     strlcpy(ip4_addr_str, ip4addr_ntoa(&(config.lan_ip4_addr)), IP4_ADDR_STR_SIZE);
     strlcpy(ip4_msk_str, ip4addr_ntoa(&(config.lan_ip4_msk)), IP4_ADDR_STR_SIZE);
     strlcpy(ip4_gw_str, ip4addr_ntoa(&(config.lan_ip4_gw)), IP4_ADDR_STR_SIZE);
 
     if (flg) {
-        char save_hostname[LAN_HOSTNAME_MAX_LEN + 1], save_connect_token[CONNECT_TOKEN_SIZE + 1];
-        variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME); // TODO: move hostname outside the lan_ip4 sector and make it printername
+        char save_hostname[LAN_HOSTNAME_MAX_LEN + 1];
+        variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME);
         strlcpy(save_hostname, hostname.pch, LAN_HOSTNAME_MAX_LEN + 1);
         variant8_done(&hostname);
+#ifdef BUDDY_ENABLE_CONNECT
+        char ip4_connect_str[IP4_ADDR_STR_SIZE];
+        char save_connect_token[CONNECT_TOKEN_SIZE + 1];
         variant8_t connect_token = eeprom_get_var(EEVAR_CONNECT_TOKEN);
         strlcpy(save_connect_token, connect_token.pch, CONNECT_TOKEN_SIZE + 1);
         variant8_done(&connect_token);
@@ -85,6 +96,10 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
         strlcpy(ip4_connect_str, ip4addr_ntoa(&(config.connect_ip4)), IP4_ADDR_STR_SIZE);
         snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s\n\n[connect]\naddress=%s\ntoken=%s\n",
             config.lan_flag & LAN_EEFLG_TYPE ? LAN_type_opt[1] : LAN_type_opt[0], save_hostname, ip4_addr_str, ip4_msk_str, ip4_gw_str, ip4_connect_str, save_connect_token);
+#else
+        snprintf(param_str, MAX_INI_SIZE, "[lan_ip4]\ntype=%s\nhostname=%s\naddress=%s\nmask=%s\ngateway=%s\n",
+            config.lan_flag & LAN_EEFLG_TYPE ? LAN_type_opt[1] : LAN_type_opt[0], save_hostname, ip4_addr_str, ip4_msk_str, ip4_gw_str);
+#endif // BUDDY_ENABLE_CONNECT
     } else {
         snprintf(plan_str, 150, "IPv4 Address:\n  %s      \nIPv4 Netmask:\n  %s      \nIPv4 Gateway:\n  %s      \nMAC Address:\n  %s",
             ip4_addr_str, ip4_msk_str, ip4_gw_str, param_str);
@@ -93,7 +108,7 @@ static void _addrs_to_str(char *param_str, uint8_t flg) {
 
 static void _refresh_addresses(screen_t *screen) {
     _get_ip4_addrs();
-    _addrs_to_str(plsd->mac_addr_str, 0);
+    stringify_netinfo(plsd->mac_addr_str, 0);
     plsd->text.text = plan_str;
     plsd->text.win.flg |= WINDOW_FLG_INVALID;
     gui_invalidate();
@@ -158,7 +173,7 @@ static void screen_lan_settings_init(screen_t *screen) {
     _refresh_addresses(screen);
 }
 static uint8_t _save_config(void) {
-    _addrs_to_str(ini_file_str, 1); //1 means parsing to ini file format
+    stringify_netinfo(ini_file_str, 1); //1 means parsing to ini file format
     return ini_save_file(ini_file_str);
 }
 
@@ -229,7 +244,9 @@ static int ini_load_handler(void *user, const char *section, const char *name, c
         if (ip4addr_aton(value, &tmp_config->lan_ip4_gw)) {
             tmp_config->set_flag |= NETVAR_SETFLG_LAN_IP4_GW;
         }
-    } else if (MATCH("connect", "address")) {
+    } 
+#ifdef BUDDY_ENABLE_CONNECT    
+    else if (MATCH("connect", "address")) {
         if (ip4addr_aton(value, &tmp_config->connect_ip4)) {
             tmp_config->set_flag |= NETVAR_SETFLG_CONNECT_IP4;
         }
@@ -237,7 +254,9 @@ static int ini_load_handler(void *user, const char *section, const char *name, c
         strlcpy(tmp_config->connect_token, value, CONNECT_TOKEN_SIZE + 1);
         tmp_config->connect_token[CONNECT_TOKEN_SIZE] = '\0';
         tmp_config->set_flag |= NETVAR_SETFLG_CONNECT_TOKEN;
-    } else {
+    } 
+#endif // BUDDY_ENABLE_CONNECT    
+    else {
         return 0; /* unknown section/name, error */
     }
     return 1;
@@ -263,6 +282,7 @@ static uint8_t _load_config(void) {
         if (tmp_config.lan_flag & LAN_EEFLG_TYPE) {
             _change_static_to_dhcp();
         }
+#ifdef BUDDY_ENABLE_CONNECT
         if(tmp_config.set_flag & NETVAR_SETFLG_CONNECT_TOKEN){
             variant8_t token = variant8_pchar(tmp_config.connect_token, 0, 0);
             eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
@@ -270,6 +290,7 @@ static uint8_t _load_config(void) {
         if (tmp_config.set_flag & NETVAR_SETFLG_CONNECT_IP4) {
             eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(tmp_config.connect_ip4.addr));
         }
+#endif // BUDDY_ENABLE_CONNECT
     } else {
         if ((tmp_config.set_flag & (NETVAR_SETFLG_LAN_IP4_ADDR | NETVAR_SETFLG_LAN_IP4_MSK | NETVAR_SETFLG_LAN_IP4_GW))
              != (NETVAR_SETFLG_LAN_IP4_ADDR | NETVAR_SETFLG_LAN_IP4_MSK | NETVAR_SETFLG_LAN_IP4_GW)) {
@@ -281,16 +302,19 @@ static uint8_t _load_config(void) {
                 variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
                 eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
             }
+#ifdef BUDDY_ENABLE_CONNECT
             if(tmp_config.set_flag & NETVAR_SETFLG_CONNECT_TOKEN){
                 variant8_t token = variant8_pchar(tmp_config.connect_token, 0, 0);
                 eeprom_set_var(EEVAR_LAN_HOSTNAME, token);
             }
-            eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(tmp_config.lan_ip4_addr.addr));
-            eeprom_set_var(EEVAR_LAN_IP4_MSK, variant8_ui32(tmp_config.lan_ip4_msk.addr));
-            eeprom_set_var(EEVAR_LAN_IP4_GW, variant8_ui32(tmp_config.lan_ip4_gw.addr));
             if(tmp_config.set_flag & NETVAR_SETFLG_CONNECT_IP4){
                 eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(tmp_config.connect_ip4.addr));
             }
+#endif // BUDDY_ENABLE_CONNECT
+            eeprom_set_var(EEVAR_LAN_IP4_ADDR, variant8_ui32(tmp_config.lan_ip4_addr.addr));
+            eeprom_set_var(EEVAR_LAN_IP4_MSK, variant8_ui32(tmp_config.lan_ip4_msk.addr));
+            eeprom_set_var(EEVAR_LAN_IP4_GW, variant8_ui32(tmp_config.lan_ip4_gw.addr));
+            
             _change_any_to_static();
         }
     }
@@ -346,7 +370,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                 return 0;
             }
             _change_any_to_static();
-            _addrs_to_str(plsd->mac_addr_str, 0);
+            stringify_netinfo(plsd->mac_addr_str, 0);
             plsd->text.text = plan_str;
             plsd->text.win.flg |= WINDOW_FLG_INVALID;
             gui_invalidate();
@@ -394,7 +418,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                         _refresh_addresses(screen);
                         conn_flg = true;
                     } else {
-                        _addrs_to_str(plsd->mac_addr_str, 0);
+                        stringify_netinfo(plsd->mac_addr_str, 0);
                         plsd->text.text = plan_str;
                         plsd->text.win.flg |= WINDOW_FLG_INVALID;
                     }
