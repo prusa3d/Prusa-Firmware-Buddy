@@ -228,3 +228,24 @@ static const _cl_dlg cl_unload = {
     f_SH_on_timeout,                                  //on_timeout
     NULL,                                             //on_done
 };
+
+static int f_DUMMY(_dlg_vars *p_vars, _dlg_ld_vars *additional_vars) {
+    return 0;
+}
+
+const _dlg_state test_states[] = {
+    { 0, window_dlg_statemachine_draw_progress_tot, "Parking", &bt_stop_ena, (dlg_state_func)f_DUMMY },
+    { 2000, window_dlg_statemachine_draw_progress_tot, "Waiting for temp.", &bt_stop_ena, (dlg_state_func)f_DUMMY },
+    { 1500, window_dlg_statemachine_draw_progress_tot, "Preparing to ram", &bt_stop_dis, (dlg_state_func)f_DUMMY },
+    { 1500, window_dlg_statemachine_draw_progress_tot, "Ramming", &bt_stop_dis, (dlg_state_func)f_DUMMY },
+    { 10000, window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis, (dlg_state_func)f_DUMMY },
+    { 0, window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis, (dlg_state_func)f_DUMMY },
+    { 0, window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", &bt_cont_ena, (dlg_state_func)f_DUMMY },
+    { 0, window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", &bt_cont_dis, (dlg_state_func)f_DUMMY },
+    { 6000, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis, (dlg_state_func)f_DUMMY },
+    { 10000, window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", &bt_stop_dis, (dlg_state_func)f_DUMMY },
+    { 10000, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_stop_dis, (dlg_state_func)f_DUMMY },
+    { 0, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_none, (dlg_state_func)f_DUMMY },
+    { 0, window_dlg_statemachine_draw_progress_none, "Is color correct?", &bt_yesno_ena, (dlg_state_func)f_DUMMY }, //can end (state += 2)
+    { 0, window_dlg_statemachine_draw_progress_part, "Purging", &bt_yesno_dis, (dlg_state_func)f_DUMMY },           //can jump back (state --)
+};
