@@ -8,11 +8,12 @@
 extern screen_t *pscreen_printing_serial;
 
 class DialogHandler {
+    dialog_t opened;
     static_unique_ptr<IDialog> ptr;
     std::aligned_union<0, /*DialogNONE,*/ DialogLoadUnload>::type all_dialogs;
 
 public:
-    DialogHandler()
+    DialogHandler(): opened(DLG_count)
     //: ptr(make_static_unique_ptr<DialogNONE>(&all_dialogs))
     {}
 
@@ -40,6 +41,9 @@ void dialog_change_cb(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint
 //*****************************************************************************
 //method definitions
 void DialogHandler::open(dialog_t dialog, uint8_t data) {
+    if (opened != DLG_count) return;
+    opened = dialog;
+
     if (gui_get_nesting() > 1)
         return; //todo notify octoprint
     if (dialog == DLG_serial_printing) {
@@ -48,6 +52,8 @@ void DialogHandler::open(dialog_t dialog, uint8_t data) {
         if (screen_get_curr() != pscreen_printing_serial)
             screen_open(pscreen_printing_serial->id);
     }
+
+
 
     if (dialog == DLG_load_unload) {
         if (!ptr) {
@@ -64,9 +70,10 @@ void DialogHandler::close(dialog_t dialog) {
         if (screen_get_curr() == pscreen_printing_serial)
             screen_close();
     }
+    opened = DLG_count;
 }
 
 void DialogHandler::change(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    switch (dialog) {
-    }
+    if (opened != dialog) return;
+    ptr->Change(phase,progress_tot, progress);
 }
