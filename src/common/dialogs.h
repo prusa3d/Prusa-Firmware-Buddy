@@ -8,7 +8,8 @@ extern "C" {
 
 typedef enum {
     DLG_serial_printing,
-    DLG_load_unload
+    DLG_load_unload,
+    DLG_count
 } dialog_t;
 
 typedef enum {
