@@ -9,11 +9,12 @@ extern screen_t *pscreen_printing_serial;
 
 class DialogHandler {
     static_unique_ptr<IDialog> ptr;
-    std::aligned_union<0, DialogNONE>::type all_dialogs;
+    std::aligned_union<0, /*DialogNONE,*/ DialogLoadUnload>::type all_dialogs;
 
 public:
     DialogHandler()
-        : ptr(make_static_unique_ptr<DialogNONE>(&all_dialogs)) {}
+    //: ptr(make_static_unique_ptr<DialogNONE>(&all_dialogs))
+    {}
 
     void open(dialog_t dialog, uint8_t data);
     void close(dialog_t dialog);
@@ -47,7 +48,13 @@ void DialogHandler::open(dialog_t dialog, uint8_t data) {
         if (screen_get_curr() != pscreen_printing_serial)
             screen_open(pscreen_printing_serial->id);
     }
-    gui_dlg_change(); //testcode
+
+    if (dialog == DLG_load_unload) {
+        if (!ptr) {
+            ptr = make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, "SOME NAME");
+        }
+    }
+    //gui_dlg_change(); //testcode
 }
 
 void DialogHandler::close(dialog_t dialog) {

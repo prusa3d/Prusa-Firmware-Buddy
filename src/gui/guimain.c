@@ -139,7 +139,7 @@ size_t const m876_blacklist_sz = sizeof(m876_blacklist) / sizeof(m876_blacklist[
 void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
-    static uint8_t m600_lock = 0;
+    /* static uint8_t m600_lock = 0;
 
     if (!m600_lock) {
         m600_lock = 1;
@@ -151,7 +151,7 @@ static void _gui_loop_cb() {
             }
         }
         m600_lock = 0;
-    }
+    }*/
 
     marlin_client_loop();
 }
