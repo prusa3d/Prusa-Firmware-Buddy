@@ -100,6 +100,7 @@ message(
   )
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
+message(STATUS "Printer: ${PRINTER}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
