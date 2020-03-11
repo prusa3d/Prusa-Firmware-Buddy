@@ -254,23 +254,21 @@ static uint8_t _load_config(void) {
     }
 
     if (!(tmp_config.lan_flag & LAN_EEFLG_TYPE)) {
+        if(tmp_config.set_flag & NETVAR_SETFLG_HOSTNAME){
+            strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
+            eth0.hostname = interface_hostname;
+            variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
+            eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
+        }
+        if (tmp_config.lan_flag & LAN_EEFLG_TYPE) {
+            _change_static_to_dhcp();
+        }
+        if(tmp_config.set_flag & NETVAR_SETFLG_CONNECT_TOKEN){
+            variant8_t token = variant8_pchar(tmp_config.connect_token, 0, 0);
+            eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
+        }
         if (tmp_config.set_flag & NETVAR_SETFLG_CONNECT_IP4) {
-            if(tmp_config.set_flag & NETVAR_SETFLG_HOSTNAME){
-                strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
-                eth0.hostname = interface_hostname;
-                variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
-                eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
-            }
-            if (tmp_config.lan_flag & LAN_EEFLG_TYPE) {
-                _change_static_to_dhcp();
-            }
-            if(tmp_config.set_flag & NETVAR_SETFLG_CONNECT_TOKEN){
-                variant8_t token = variant8_pchar(tmp_config.connect_token, 0, 0);
-                eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
-            }
             eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(tmp_config.connect_ip4.addr));
-        } else {
-            return 0;
         }
     } else {
         if ((tmp_config.set_flag & (NETVAR_SETFLG_LAN_IP4_ADDR | NETVAR_SETFLG_LAN_IP4_MSK | NETVAR_SETFLG_LAN_IP4_GW))
