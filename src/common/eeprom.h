@@ -64,7 +64,7 @@
 extern "C" {
 #endif //__cplusplus
 
-// initialize eeprom
+// initialize eeprom, return values:  1 - defaults loaded, 0 - normal init (eeprom data valid)
 extern uint8_t eeprom_init(void);
 
 // write default values to all variables
