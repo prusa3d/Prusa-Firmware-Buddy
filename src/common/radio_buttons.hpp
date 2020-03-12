@@ -2,11 +2,16 @@
 
 #include <cstdint>
 #include <cstddef>
+//count cenum class members (if "_first" and "_last" is defined)
 template <class T>
 constexpr size_t RadioBtnCount() {
     return static_cast<size_t>(T::_last) - static_cast<size_t>(T::_first);
 }
 
+//define enum classes for buttons here
+//every enum must have "_first" and "_last"
+//"_first" ==  "previous_enum::_last" + 1
+//also "NoBtn" should be defined with same value as "_last" (for future use)
 enum class RadioBtnLoadUnload : uint16_t {
     _first = 0,
     bt1 = _first,
@@ -23,9 +28,11 @@ enum class RadioBtnTest : uint16_t {
     _last = NoBtn
 };
 
+//static class for work with radiobuttons
 class RadioButtons {
     RadioButtons() = delete;
 
+    //declare counts of individual radio buttons here
     static const uint8_t LoadUnloadCounts[RadioBtnCount<RadioBtnLoadUnload>()];
     static const uint8_t TestCounts[RadioBtnCount<RadioBtnTest>()];
 
