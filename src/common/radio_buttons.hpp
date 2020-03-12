@@ -15,8 +15,6 @@ enum class RadioBtnLoadUnload : uint16_t {
     _last = NoBtn
 };
 
-extern const uint8_t RadioBtnLoadUnloadCounts[RadioBtnCount<RadioBtnLoadUnload>()];
-
 enum class RadioBtnTest : uint16_t {
     _first = static_cast<uint16_t>(RadioBtnLoadUnload::_last) + 1,
     Test1 = _first,
@@ -25,18 +23,19 @@ enum class RadioBtnTest : uint16_t {
     _last = NoBtn
 };
 
-extern const uint8_t RadioBtnTestCounts[RadioBtnCount<RadioBtnTest>()];
-
 class RadioButtons {
     RadioButtons() = delete;
 
+    static const uint8_t LoadUnloadCounts[RadioBtnCount<RadioBtnLoadUnload>()];
+    static const uint8_t TestCounts[RadioBtnCount<RadioBtnTest>()];
+
 public:
     static uint8_t GetCount(RadioBtnLoadUnload bt) {
-        return RadioBtnLoadUnloadCounts[static_cast<size_t>(bt)];
+        return LoadUnloadCounts[static_cast<size_t>(bt)];
     }
 
     static uint8_t GetCount(RadioBtnTest bt) {
-        return RadioBtnTestCounts[static_cast<size_t>(bt)];
+        return TestCounts[static_cast<size_t>(bt)];
     }
 
     //encode radio button and clicked index into int
