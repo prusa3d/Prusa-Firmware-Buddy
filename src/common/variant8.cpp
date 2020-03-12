@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <malloc.h>
 
 #define VARIANT8_DBG_MALLOC
 
@@ -437,52 +438,41 @@ variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt) {
     return var8;
 }
 
+#ifdef VARIANT8_DBG_MALLOC
 uint32_t variant8_total_malloc_size = 0;
+#endif //VARIANT8_DBG_MALLOC
 
 void *variant8_malloc(uint16_t size) {
+    void *ptr = malloc(size);
 #ifdef VARIANT8_DBG_MALLOC
-    uint8_t *ptr = (uint8_t *)(size ? malloc(size + sizeof(uint16_t)) : 0);
-    if (ptr) {
-        *((uint16_t *)ptr) = size;
-        variant8_total_malloc_size += size;
-    }
-    return ptr ? (ptr + sizeof(uint16_t)) : 0;
-#else  //VARIANT8_DBG_MALLOC
-    return malloc(size);
+    variant8_total_malloc_size += malloc_usable_size(ptr);
 #endif //VARIANT8_DBG_MALLOC
+    return ptr;
 }
 
 void variant8_free(void *ptr) {
-#ifdef VARIANT8_DBG_MALLOC
     if (ptr) {
-        uint16_t size = ((uint16_t *)ptr)[-1];
-        variant8_total_malloc_size -= size;
-        free(((uint16_t *)ptr) - 1);
-    }
-#else  //VARIANT8_DBG_MALLOC
-    free(ptr);
+#ifdef VARIANT8_DBG_MALLOC
+        variant8_total_malloc_size -= malloc_usable_size(ptr);
 #endif //VARIANT8_DBG_MALLOC
+        free(ptr);
+    }
 }
 
 void *variant8_realloc(void *ptr, uint16_t size) {
 #ifdef VARIANT8_DBG_MALLOC
-    if (ptr) {
-        if (size != 0) {
-            uint16_t old_size = ((uint16_t *)ptr)[-1];
-            ptr = (uint8_t *)realloc(ptr, size + sizeof(uint16_t));
-            if (ptr) {
-                *((uint16_t *)ptr) = size;
-                variant8_total_malloc_size += (size - old_size);
-            }
-            return ptr;
-        }
-        variant8_free(ptr);
-        return 0;
-    }
-    return variant8_malloc(size);
-#else  //VARIANT8_DBG_MALLOC
-    return realloc(ptr, size);
+    uint32_t old_size = 0;
+    uint32_t new_size = 0;
+    if (ptr)
+        old_size = malloc_usable_size(ptr);
 #endif //VARIANT8_DBG_MALLOC
+    ptr = realloc(ptr, size);
+#ifdef VARIANT8_DBG_MALLOC
+    if (ptr)
+        new_size = malloc_usable_size(ptr);
+    variant8_total_malloc_size += (new_size - old_size);
+#endif //VARIANT8_DBG_MALLOC
+    return ptr;
 }
 
 } //extern "C"
