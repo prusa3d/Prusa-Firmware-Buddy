@@ -50,7 +50,7 @@
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
 #include "marlin_server.h"
-#include "DialogLoadUnload.hpp"
+#include "server_radio_buttons.hpp"
 // private:
 //check unsupported feacures
 //filament sensor is no longre part of marlin thus it must be disabled
@@ -167,13 +167,14 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         return false;
     }
 
-    if (pause_for_user) {
+    if (pause_for_user) { // == still heating
         SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_INSERT));
 
         filament_change_beep(max_beep_count, true);
 
         KEEPALIVE_STATE(PAUSED_FOR_USER);
         wait_for_user = true; // LCD click or M108 will clear this
+        /*
 #if ENABLED(HOST_PROMPT_SUPPORT)
         const char tool = '0';
         host_prompt_reason = PROMPT_USER_CONTINUE;
@@ -183,12 +184,14 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         SERIAL_EOL();
         host_action_prompt_button(PSTR("Continue"));
         host_action_prompt_show();
-#endif
-        change_dialog_handler(DLG_load_unload, DialogLoadUnload::UserPush, 50, 0);
-        ExtUI::onUserConfirmRequired_P(PSTR("Load Filament"));
+#endif*/
+        change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::UserPush), 50, 0);
+        //ExtUI::onUserConfirmRequired_P(PSTR("Load Filament"));
         while (wait_for_user) {
             filament_change_beep(max_beep_count);
             idle(true);
+            if (ServerRadioButtons::IsButtons(RadioBtnLoadUnload::UserPush))
+                wait_for_user = false;
         }
     }
 
@@ -218,7 +221,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         }
 
         // Show "Purge More" / "Resume" menu and wait for reply
-        change_dialog_handler(DLG_load_unload, DialogLoadUnload::Purging, 90, 0);
+        change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Purging), 90, 0);
 #if ENABLED(HOST_PROMPT_SUPPORT)
         host_prompt_reason = PROMPT_FILAMENT_RUNOUT;
         host_action_prompt_end(); // Close current prompt

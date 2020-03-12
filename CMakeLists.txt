@@ -422,6 +422,7 @@ target_sources(
           src/common/errors.c
           src/common/lang.c
           src/common/radio_buttons.cpp
+          src/common/server_radio_buttons.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
           src/marlin_stubs/M876.cpp

@@ -28,6 +28,7 @@
 #include "hwio_a3ides.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
+#include "server_radio_buttons.hpp"
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
@@ -137,7 +138,6 @@ char host_prompt[HOST_PROMPT_LEN_MAX] = "";
 char host_prompt_button[HOST_BUTTON_CNT_MAX][HOST_PROMPT_LEN_MAX];
 uint8_t host_prompt_buttons = 0;
 host_prompt_button_t host_prompt_button_clicked = HOST_PROMPT_BTN_None;
-uint32_t radio_button_encoded_click = -1;
 
 //-----------------------------------------------------------------------------
 // external variables from marlin_client
@@ -832,7 +832,7 @@ int _process_server_request(char *request) {
         host_prompt_button_clicked = (host_prompt_button_t)ival;
         processed = 1;
     } else if (sscanf(request, "!rclick %d", &ival) == 1) { //radiobutton click
-        radio_button_encoded_click = ival;
+        ServerRadioButtons::SetRadioButtons(ival);
         processed = 1;
     }
     if (processed)

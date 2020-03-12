@@ -1,11 +1,12 @@
 #pragma once
 
 #include "DialogStateful.hpp"
+#include "radio_buttons.hpp"
 
 //load unload and change filament dialog
-class DialogLoadUnload : public DialogStateful<5> {
+class DialogLoadUnload : public DialogStateful<RadioBtnCount<RadioBtnLoadUnload>()> {
 public:
-    typedef enum {
+    /* typedef enum {
         Parking,
         WaitingTemp,
         PreparingToRam,
@@ -20,9 +21,9 @@ public:
         Purging2,
         IsColor,
         Purging3
-    } states_t;
+    } states_t;*/
 
     DialogLoadUnload(const char *name)
-        : DialogStateful<5>(name) {}
+        : DialogStateful<RadioBtnCount<RadioBtnLoadUnload>()>(name) {}
     //virtual void Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {}
 };
