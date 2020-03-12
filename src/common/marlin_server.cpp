@@ -139,6 +139,7 @@ char host_prompt[HOST_PROMPT_LEN_MAX] = "";
 char host_prompt_button[HOST_BUTTON_CNT_MAX][HOST_PROMPT_LEN_MAX];
 uint8_t host_prompt_buttons = 0;
 host_prompt_button_t host_prompt_button_clicked = HOST_PROMPT_BTN_None;
+uint32_t radio_button_encoded_click = -1;
 
 //-----------------------------------------------------------------------------
 // external variables from marlin_client
@@ -860,6 +861,9 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (sscanf(request, "!hclick %d", &ival) == 1) {
         host_prompt_button_clicked = (host_prompt_button_t)ival;
+        processed = 1;
+    } else if (sscanf(request, "!rclick %d", &ival) == 1) { //radiobutton click
+        radio_button_encoded_click = ival;
         processed = 1;
     }
     if (processed)
