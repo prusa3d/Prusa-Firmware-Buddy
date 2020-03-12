@@ -37,6 +37,8 @@ class RadioButtons {
     static const uint8_t TestCounts[RadioBtnCount<RadioBtnTest>()];
 
 public:
+    enum { MAX_BTNS = 4 };
+
     static uint8_t GetCount(RadioBtnLoadUnload bt) {
         return LoadUnloadCounts[static_cast<size_t>(bt)];
     }
@@ -48,7 +50,7 @@ public:
     //encode radio button and clicked index into int
     template <class T>
     static uint32_t Encode(T bt, uint8_t clicked_index) {
-        if (clicked_index > 3)
+        if (clicked_index >= MAX_BTNS)
             return -1; //button num is 0-3 (1 - 4 buttons)
         if (bt == T::NoBtn_Count)
             return -1; //count cannot be used
