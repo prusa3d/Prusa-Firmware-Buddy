@@ -596,6 +596,18 @@ int marlin_reheating(void) {
 }
 
 //-----------------------------------------------------------------------------
+// radio buttons
+void marlin_radio_button_click_encoded(uint32_t btn_and_blicked_index) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    sprintf(request, "!rclick %d", (int)btn_and_blicked_index);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
+//-----------------------------------------------------------------------------
 // private functions
 
 // wait while server not started (called from client thread in marlin_client_init)

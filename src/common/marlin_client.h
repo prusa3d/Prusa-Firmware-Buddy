@@ -181,6 +181,8 @@ extern void marlin_host_button_click(host_prompt_button_t button);
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);
 
+// radio button click
+extern void marlin_radio_button_click_encoded(uint32_t btn_and_blicked_index);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
