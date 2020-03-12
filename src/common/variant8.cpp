@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #define VARIANT8_DBG_MALLOC
 
@@ -122,37 +123,37 @@ int variant8_change_type(variant8_t *pvar8, uint8_t type) {
     } else if (pvar8->type == VARIANT8_FLT) {
         switch (type) {
         case VARIANT8_I8:
-            if ((pvar8->flt >= -128) && (pvar8->flt <= 127))
+            if ((pvar8->flt >= INT8_MIN) && (pvar8->flt <= INT8_MAX))
                 pvar8->i8 = (int8_t)pvar8->flt;
             else
                 *pvar8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
             break;
         case VARIANT8_I16:
-            if ((pvar8->flt >= -32768) && (pvar8->flt <= 32767))
+            if ((pvar8->flt >= INT16_MIN) && (pvar8->flt <= INT16_MAX))
                 pvar8->i16 = (int16_t)pvar8->flt;
             else
                 *pvar8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
             break;
         case VARIANT8_I32:
-            if ((pvar8->flt >= -2147483648) && (pvar8->flt <= 2147483647))
+            if ((pvar8->flt >= INT32_MIN) && (pvar8->flt <= INT32_MAX))
                 pvar8->i32 = (int16_t)pvar8->flt;
             else
                 *pvar8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
             break;
         case VARIANT8_UI8:
-            if ((pvar8->flt >= 0) && (pvar8->flt <= 255))
+            if ((pvar8->flt >= 0) && (pvar8->flt <= UINT8_MAX))
                 pvar8->ui8 = (uint8_t)pvar8->flt;
             else
                 *pvar8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
             break;
         case VARIANT8_UI16:
-            if ((pvar8->flt >= 0) && (pvar8->flt <= 65535))
+            if ((pvar8->flt >= 0) && (pvar8->flt <= UINT16_MAX))
                 pvar8->ui16 = (uint16_t)pvar8->flt;
             else
                 *pvar8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
             break;
         case VARIANT8_UI32:
-            if ((pvar8->flt >= 0) && (pvar8->flt <= 4294967295))
+            if ((pvar8->flt >= 0) && (pvar8->flt <= UINT32_MAX))
                 pvar8->ui32 = (uint32_t)pvar8->flt;
             else
                 *pvar8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
@@ -369,13 +370,13 @@ variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt) {
         if (n > 0)
             switch (type) {
             case VARIANT8_I8:
-                if ((i >= -128) && (i <= 127))
+                if ((i >= INT8_MIN) && (i <= INT8_MAX))
                     var8.i8 = (int8_t)i;
                 else
                     var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
                 break;
             case VARIANT8_I16:
-                if ((i >= -32768) && (i <= 32767))
+                if ((i >= INT16_MIN) && (i <= INT16_MAX))
                     var8.i16 = (int16_t)i;
                 else
                     var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
@@ -392,13 +393,13 @@ variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt) {
         if (n > 0)
             switch (type) {
             case VARIANT8_UI8:
-                if (ui <= 255)
+                if (ui <= UINT8_MAX)
                     var8.ui8 = (uint8_t)ui;
                 else
                     var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
                 break;
             case VARIANT8_UI16:
-                if (ui <= 65535)
+                if (ui <= UINT16_MAX)
                     var8.ui16 = (uint16_t)ui;
                 else
                     var8 = variant8_error(VARIANT8_ERR_OOFRNG, 0, 0);
