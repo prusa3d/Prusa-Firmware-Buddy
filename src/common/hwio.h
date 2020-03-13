@@ -30,7 +30,6 @@ extern "C" {
 // low level I/O functions
 
 //digital inputs
-extern int hwio_di_get_cnt(void);     //number of digital inputs
 extern int hwio_di_get_val(int i_di); //read digital input state
 
 //digital outputs
@@ -50,9 +49,9 @@ extern int hwio_dac_get_max(int i_dac);           //analog output maximum value
 extern void hwio_dac_set_val(int i_dac, int val); //write analog output
 
 //pwm outputs
-extern int hwio_pwm_get_cnt(void);                //number of pwm outputs
-extern int hwio_pwm_get_max(int i_pwm);           //pwm output maximum value
-extern void hwio_pwm_set_val(int i_pwm, int val); //write pwm output
+extern int hwio_pwm_get_cnt(void);                     //number of pwm outputs
+extern int hwio_pwm_get_max(int i_pwm);                //pwm output maximum value
+extern void hwio_pwm_set_val(int i_pwm, uint32_t val); //write pwm output
 
 extern int hwio_pwm_get_val(int i_pwm);                       //get pwm value, returns 0 if stopped
 extern void hwio_pwm_set_period_us(int i_pwm, int T_us);      //changes period of timer, can affect multiple channels

@@ -363,7 +363,7 @@ TIM_HandleTypeDef *_pwm_get_htim(int i_pwm) {
     return _pwm_p_htim[i_pwm];
 }
 
-void hwio_pwm_set_val(int i_pwm, int val) //write pwm output and actualize _pwm_analogWrite_val
+void hwio_pwm_set_val(int i_pwm, uint32_t val) //write pwm output and actualize _pwm_analogWrite_val
 {
     if (!is_pwm_id_valid(i_pwm))
         return;
