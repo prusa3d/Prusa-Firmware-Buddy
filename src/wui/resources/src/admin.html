@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin</title>
+
+<!-- CSS -->
+<style>
+/* Force scrollbars onto browser window */
+body {
+	margin: 0;
+	background: black;
+}
+
+/* Box styles */
+
+.label {
+	font-size: 20px;
+	font-family: Arial;
+	color: white;
+	position: fixed;
+	text-align: right;
+	left: 250px;
+	width: 400px;
+	height: 30px;
+}
+
+#ip_label {
+	top: 250px;
+}
+
+#key_label {
+	top: 300px;
+}
+
+#name_label {
+	top: 350px;
+}
+
+#info {
+	top: 150px;
+	text-align: left;
+	left: 550px;
+	width: 400px;
+}
+
+.input {
+	position: fixed;
+	left: 660px;
+	width: 250px;
+	height: 30px;
+}
+
+#in1 {
+	top: 265px;
+}
+
+#in2 {
+	top: 315px;
+}
+
+#in3 {
+	top: 365px;
+}
+
+.button1 {
+	position: fixed;
+	left: 660px;
+	top: 415px;
+	width: 100px;
+	height: 30px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- HTML -->
+<div id="info" class="label">
+	<p>
+		Save CONNECT info into printers eeprom
+	</p>
+</div>
+
+<div class="label" id="ip_label">
+	<p>CONNECT server IP address:</p>
+</div>
+<div class="label" id="key_label">
+	<p>API key (20 chars):</p>
+</div>
+<div class="label" id="name_label">
+	<p>CONNECT hostname (max 20 chars):</p>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<form id="admin_form" method="POST">
+  <input id="in1" class="input" type="text" name="connect_ip">
+  <input id="in2" class="input" type="text" name="connect_key">
+  <input id="in3" class="input" type="text" name="connect_name">
+  <button class="button1" value="Submit" type="submit">Set</button>
+</form>
+
+<script type="text/javascript">
+  $("#admin_form").submit(function(e) {
+
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+
+    var form = $(this);
+    var urlmini = "/admin.html"
+
+    $.ajax({
+           type: "POST",
+           url: urlmini,
+           contentType: "application/json",
+    	   dataType: "json",
+           data: JSON.stringify({"connect_ip": document.getElementById("in1").value, "connect_key": document.getElementById("in2").value, "connect_name": document.getElementById("in3").value}),
+           success: function(data){alert(data);},
+    	   failure: function(errMsg) {
+               alert(errMsg);
+           }
+         });
+	});
+
+</script>
+</body>
+</html>

@@ -62,6 +62,12 @@ extern void marlin_server_stop_processing(void);
 // update variables at server side, defined by 'update' mask and send notification to all clients
 extern void marlin_server_update(uint64_t update);
 
+// set printing gcode name (for WUI)
+extern void marlin_server_set_gcode_name(const char *request);
+
+// get printing gcode name (for WUI)
+extern void marlin_server_get_gcode_name(const char *dest);
+
 // direct call of babystep.add_steps(Z_AXIS, ...)
 extern void marlin_server_do_babystep_Z(float offs);
 

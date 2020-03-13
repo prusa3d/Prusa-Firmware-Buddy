@@ -150,9 +150,5 @@ void MX_LWIP_Init(void) {
 /* MINI LwIP interface functions --------------------------------------------*/
 
 void http_server_init(void) {
-#ifdef BUDDY_USE_WSAPI
-    lwsapi_init();
-#else
     httpd_init();
-#endif
 }

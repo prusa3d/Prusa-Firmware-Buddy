@@ -1,128 +1,104 @@
-/**
- * @file
- * HTTP client
- */
-
 /*
- * Copyright (c) 2018 Simon Goldschmidt <goldsimon@gmx.de>
- * All rights reserved.
+ * http_client.c
+ * \brief
  *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
- * OF SUCH DAMAGE.
- *
- * This file is part of the lwIP TCP/IP stack.
- *
- * Author: Simon Goldschmidt <goldsimon@gmx.de>
+ *  Created on: Feb 5, 2020
+ *      Author: joshy <joshymjose[at]gmail.com>
  */
+
+#include "http_client.h"
+#include "wui_helper_funcs.h"
+#include <stdbool.h>
+#include "wui_api.h"
+#include "stm32f4xx_hal.h"
+#include <string.h>
+#include "eeprom.h"
+#include "lwip/altcp.h"
+#include "lwip.h"
+
+#define CLIENT_CONNECT_DELAY      1000 // 1 Sec.
+#define CLIENT_PORT_NO            9000
+#define IP4_ADDR_STR_SIZE         16
+#define HEADER_MAX_SIZE           128
+#define HTTPC_CONTENT_LEN_INVALID 0xFFFFFFFF
+#define HTTPC_POLL_INTERVAL       1
+#define HTTPC_POLL_TIMEOUT        3 /* 1.5 seconds */
+
+struct tcp_pcb *client_pcb;
+static uint32_t client_interval = 0;
+static bool init_tick = false;
 
 /**
- * @defgroup httpc HTTP client
- * @ingroup apps
- * @todo:
- * - persistent connections
- * - select outgoing http version
- * - optionally follow redirect
- * - check request uri for invalid characters? (e.g. encode spaces)
- * - IPv6 support
+ * @ingroup httpc
+ * HTTP client result codes
  */
+typedef enum ehttpc_result {
+    /** File successfully received */
+    HTTPC_RESULT_OK = 0,
+    /** Unknown error */
+    HTTPC_RESULT_ERR_UNKNOWN = 1,
+    /** Connection to server failed */
+    HTTPC_RESULT_ERR_CONNECT = 2,
+    /** Failed to resolve server hostname */
+    HTTPC_RESULT_ERR_HOSTNAME = 3,
+    /** Connection unexpectedly closed by remote server */
+    HTTPC_RESULT_ERR_CLOSED = 4,
+    /** Connection timed out (server didn't respond in time) */
+    HTTPC_RESULT_ERR_TIMEOUT = 5,
+    /** Server responded with an error code */
+    HTTPC_RESULT_ERR_SVR_RESP = 6,
+    /** Local memory error */
+    HTTPC_RESULT_ERR_MEM = 7,
+    /** Local abort */
+    HTTPC_RESULT_LOCAL_ABORT = 8,
+    /** Content length mismatch */
+    HTTPC_RESULT_ERR_CONTENT_LEN = 9
+} httpc_result_t;
 
-#include "lwip/apps/http_client.h"
+typedef struct _httpc_state httpc_state_t;
 
-#include "lwip/altcp_tcp.h"
-#include "lwip/dns.h"
-#include "lwip/debug.h"
-#include "lwip/mem.h"
-#include "lwip/altcp_tls.h"
-#include "lwip/init.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#if LWIP_TCP && LWIP_CALLBACK_API
-
-    /**
- * HTTPC_DEBUG: Enable debugging for HTTP client.
+/**
+ * @ingroup httpc
+ * Prototype of a http client callback function
+ *
+ * @param arg argument specified when initiating the request
+ * @param httpc_result result of the http transfer (see enum httpc_result_t)
+ * @param rx_content_len number of bytes received (without headers)
+ * @param srv_res this contains the http status code received (if any)
+ * @param err an error returned by internal lwip functions, can help to specify
+ *            the source of the error but must not necessarily be != ERR_OK
  */
-    #ifndef HTTPC_DEBUG
-        #define HTTPC_DEBUG LWIP_DBG_OFF
-    #endif
+typedef void (*httpc_result_fn)(void *arg, httpc_result_t httpc_result, u32_t rx_content_len, u32_t srv_res, err_t err);
 
-    /** Set this to 1 to keep server name and uri in request state */
-    #ifndef HTTPC_DEBUG_REQUEST
-        #define HTTPC_DEBUG_REQUEST 0
-    #endif
+/**
+ * @ingroup httpc
+ * Prototype of http client callback: called when the headers are received
+ *
+ * @param connection http client connection
+ * @param arg argument specified when initiating the request
+ * @param hdr header pbuf(s) (may contain data also)
+ * @param hdr_len length of the heders in 'hdr'
+ * @param content_len content length as received in the headers (-1 if not received)
+ * @return if != ERR_OK is returned, the connection is aborted
+ */
+typedef err_t (*httpc_headers_done_fn)(httpc_state_t *connection, void *arg, struct pbuf *hdr, u16_t hdr_len, u32_t content_len);
 
-    /** This string is passed in the HTTP header as "User-Agent: " */
-    #ifndef HTTPC_CLIENT_AGENT
-        #define HTTPC_CLIENT_AGENT "lwIP/" LWIP_VERSION_STRING " (http://savannah.nongnu.org/projects/lwip)"
-    #endif
+typedef struct _httpc_connection {
+    ip_addr_t proxy_addr;
+    u16_t proxy_port;
+    u8_t use_proxy;
+    /* @todo: add username:pass? */
 
-    /* the various debug levels for this file */
-    #define HTTPC_DEBUG_TRACE      (HTTPC_DEBUG | LWIP_DBG_TRACE)
-    #define HTTPC_DEBUG_STATE      (HTTPC_DEBUG | LWIP_DBG_STATE)
-    #define HTTPC_DEBUG_WARN       (HTTPC_DEBUG | LWIP_DBG_LEVEL_WARNING)
-    #define HTTPC_DEBUG_WARN_STATE (HTTPC_DEBUG | LWIP_DBG_LEVEL_WARNING | LWIP_DBG_STATE)
-    #define HTTPC_DEBUG_SERIOUS    (HTTPC_DEBUG | LWIP_DBG_LEVEL_SERIOUS)
+#if LWIP_ALTCP
+    altcp_allocator_t *altcp_allocator;
+#endif
 
-    #define HTTPC_POLL_INTERVAL 1
-    #define HTTPC_POLL_TIMEOUT  30 /* 15 seconds */
-
-    #define HTTPC_CONTENT_LEN_INVALID 0xFFFFFFFF
-
-    /* GET request basic */
-    #define HTTPC_REQ_11 "GET %s HTTP/1.1\r\n" /* URI */                                            \
-                         "User-Agent: %s\r\n"  /* User-Agent */                                     \
-                         "Accept: */*\r\n"                                                          \
-                         "Connection: Close\r\n" /* we don't support persistent connections, yet */ \
-                         "\r\n"
-    #define HTTPC_REQ_11_FORMAT(uri) HTTPC_REQ_11, uri, HTTPC_CLIENT_AGENT
-
-    /* GET request with host */
-    #define HTTPC_REQ_11_HOST "GET %s HTTP/1.1\r\n" /* URI */                                            \
-                              "User-Agent: %s\r\n"  /* User-Agent */                                     \
-                              "Accept: */*\r\n"                                                          \
-                              "Host: %s\r\n"          /* server name */                                  \
-                              "Connection: Close\r\n" /* we don't support persistent connections, yet */ \
-                              "\r\n"
-    #define HTTPC_REQ_11_HOST_FORMAT(uri, srv_name) HTTPC_REQ_11_HOST, uri, HTTPC_CLIENT_AGENT, srv_name
-
-    /* GET request with proxy */
-    #define HTTPC_REQ_11_PROXY "GET http://%s%s HTTP/1.1\r\n" /* HOST, URI */                             \
-                               "User-Agent: %s\r\n"           /* User-Agent */                            \
-                               "Accept: */*\r\n"                                                          \
-                               "Host: %s\r\n"          /* server name */                                  \
-                               "Connection: Close\r\n" /* we don't support persistent connections, yet */ \
-                               "\r\n"
-    #define HTTPC_REQ_11_PROXY_FORMAT(host, uri, srv_name) HTTPC_REQ_11_PROXY, host, uri, HTTPC_CLIENT_AGENT, srv_name
-
-    /* GET request with proxy (non-default server port) */
-    #define HTTPC_REQ_11_PROXY_PORT "GET http://%s:%d%s HTTP/1.1\r\n" /* HOST, host-port, URI */               \
-                                    "User-Agent: %s\r\n"              /* User-Agent */                         \
-                                    "Accept: */*\r\n"                                                          \
-                                    "Host: %s\r\n"          /* server name */                                  \
-                                    "Connection: Close\r\n" /* we don't support persistent connections, yet */ \
-                                    "\r\n"
-    #define HTTPC_REQ_11_PROXY_PORT_FORMAT(host, host_port, uri, srv_name) HTTPC_REQ_11_PROXY_PORT, host, host_port, uri, HTTPC_CLIENT_AGENT, srv_name
+    /* this callback is called when the transfer is finished (or aborted) */
+    httpc_result_fn result_fn;
+    /* this callback is called after receiving the http headers
+     It can abort the connection by returning != ERR_OK */
+    httpc_headers_done_fn headers_done_fn;
+} httpc_connection_t;
 
 typedef enum ehttpc_parse_state {
     HTTPC_PARSE_WAIT_FIRST_LINE = 0,
@@ -145,10 +121,10 @@ typedef struct _httpc_state {
     u32_t rx_content_len;
     u32_t hdr_content_len;
     httpc_parse_state_t parse_state;
-    #if HTTPC_DEBUG_REQUEST
+#if HTTPC_DEBUG_REQUEST
     char *server_name;
     char *uri;
-    #endif
+#endif
 } httpc_state_t;
 
 /** Free http client state and deallocate all resources within */
@@ -401,117 +377,78 @@ httpc_tcp_connected(void *arg, struct altcp_pcb *pcb, err_t err) {
     return ERR_OK;
 }
 
-/** Start the http request when the server IP addr is known */
-static err_t
-httpc_get_internal_addr(httpc_state_t *req, const ip_addr_t *ipaddr) {
-    err_t err;
-    LWIP_ASSERT("req != NULL", req != NULL);
-
-    if (&req->remote_addr != ipaddr) {
-        /* fill in remote addr if called externally */
-        req->remote_addr = *ipaddr;
-    }
-
-    err = altcp_connect(req->pcb, &req->remote_addr, req->remote_port, httpc_tcp_connected);
-    if (err == ERR_OK) {
-        return ERR_OK;
-    }
-    LWIP_DEBUGF(HTTPC_DEBUG_WARN_STATE, ("tcp_connect failed: %d\n", (int)err));
-    return err;
-}
-
-    #if LWIP_DNS
-/** DNS callback
- * If ipaddr is non-NULL, resolving succeeded and the request can be sent, otherwise it failed.
+/** Function for tcp receive callback functions. Called when data has
+ * been received.
+ *
+ * @param arg Additional argument to pass to the callback function (@see tcp_arg())
+ * @param tpcb The connection pcb which received data
+ * @param p The received data (or NULL when the connection has been closed!)
+ * @param err An error code if there has been an error receiving
+ *            Only return ERR_ABRT if you have called tcp_abort from within the
+ *            callback function!
  */
-static void
-httpc_dns_found(const char *hostname, const ip_addr_t *ipaddr, void *arg) {
-    httpc_state_t *req = (httpc_state_t *)arg;
-    err_t err;
-    httpc_result_t result;
+err_t data_received_fun(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err) {
 
-    LWIP_UNUSED_ARG(hostname);
+    LWIP_UNUSED_ARG(tpcb);
+    LWIP_UNUSED_ARG(err);
+    uint32_t len_copied = 0;
+    if (NULL == p) {
+        return ERR_ARG;
+    }
 
-    if (ipaddr != NULL) {
-        err = httpc_get_internal_addr(req, ipaddr);
-        if (err == ERR_OK) {
-            return;
+    char request_part[(const u16_t)p->tot_len + 1];
+
+    while (len_copied < p->tot_len) {
+
+        char *payload = p->payload;
+        // check if empty
+        if (payload[0] == 0) {
+            return ERR_ARG;
         }
-        result = HTTPC_RESULT_ERR_CONNECT;
-    } else {
-        LWIP_DEBUGF(HTTPC_DEBUG_WARN_STATE, ("httpc_dns_found: failed to resolve hostname: %s\n", hostname));
-        result = HTTPC_RESULT_ERR_HOSTNAME;
-        err = ERR_ARG;
-    }
-    httpc_close(req, result, 0, err);
-}
-    #endif /* LWIP_DNS */
 
-/** Start the http request after converting 'server_name' to ip address (DNS or address string) */
-static err_t
-httpc_get_internal_dns(httpc_state_t *req, const char *server_name) {
-    err_t err;
-    LWIP_ASSERT("req != NULL", req != NULL);
+        len_copied += pbuf_copy_partial(p, request_part, p->tot_len, 0);
 
-    #if LWIP_DNS
-    err = dns_gethostbyname(server_name, &req->remote_addr, httpc_dns_found, req);
-    #else
-    err = ipaddr_aton(server_name, &req->remote_addr) ? ERR_OK : ERR_ARG;
-    #endif
-
-    if (err == ERR_OK) {
-        /* cached or IP-string */
-        err = httpc_get_internal_addr(req, &req->remote_addr);
-    } else if (err == ERR_INPROGRESS) {
-        return ERR_OK;
-    }
-    return err;
-}
-
-static int
-httpc_create_request_string(const httpc_connection_t *settings, const char *server_name, int server_port, const char *uri,
-    int use_host, char *buffer, size_t buffer_size) {
-    if (settings->use_proxy) {
-        LWIP_ASSERT("server_name != NULL", server_name != NULL);
-        if (server_port != HTTP_DEFAULT_PORT) {
-            return snprintf(buffer, buffer_size, HTTPC_REQ_11_PROXY_PORT_FORMAT(server_name, server_port, uri, server_name));
-        } else {
-            return snprintf(buffer, buffer_size, HTTPC_REQ_11_PROXY_FORMAT(server_name, uri, server_name));
+        if (len_copied != p->len) {
+            return ERR_ARG;
         }
-    } else if (use_host) {
-        LWIP_ASSERT("server_name != NULL", server_name != NULL);
-        return snprintf(buffer, buffer_size, HTTPC_REQ_11_HOST_FORMAT(uri, server_name));
-    } else {
-        return snprintf(buffer, buffer_size, HTTPC_REQ_11_FORMAT(uri));
+        p = p->next;
+        if (NULL == p) {
+            request_part[(const u16_t)p->tot_len] = 0; // end of line added
+            break;
+        }
     }
+    http_json_parser((char *)&request_part, len_copied);
+    return ERR_OK;
 }
 
-/** Initialize the connection struct */
-static err_t
-httpc_init_connection_common(httpc_state_t **connection, const httpc_connection_t *settings, const char *server_name,
-    u16_t server_port, const char *uri, altcp_recv_fn recv_fn, void *callback_arg, int use_host) {
+wui_err buddy_http_client_init() {
+
+    char host_ip4_str[IP4_ADDR_STR_SIZE];
+    char header[HEADER_MAX_SIZE];
+    char *uri = "/p/telemetry";
+    char printer_token[CONNECT_TOKEN_SIZE + 1]; // extra space of end of line
+    ip4_addr_t host_ip4;
+
     size_t alloc_len;
     mem_size_t mem_alloc_len;
     int req_len, req_len2;
     httpc_state_t *req;
-    #if HTTPC_DEBUG_REQUEST
-    size_t server_name_len, uri_len;
-    #endif
 
-    LWIP_ASSERT("uri != NULL", uri != NULL);
+    host_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP4).ui32;
+    strlcpy(host_ip4_str, ip4addr_ntoa(&host_ip4), IP4_ADDR_STR_SIZE);
+    variant8_t token = eeprom_get_var(EEVAR_LAN_HOSTNAME);
+    strlcpy(printer_token, token.pch, LAN_HOSTNAME_MAX_LEN + 1);
+    variant8_done(&token);
+    snprintf(header, HEADER_MAX_SIZE, "POST %s HTTP/1.0\r\nHost: %s\nPrinter-Token: %s\r\n", uri, host_ip4_str, printer_token);
+    const char *header_plus_data = get_update_str(header);
 
-    /* get request len */
-    req_len = httpc_create_request_string(settings, server_name, server_port, uri, use_host, NULL, 0);
+    req_len = strlen(header_plus_data);
+
     if ((req_len < 0) || (req_len > 0xFFFF)) {
         return ERR_VAL;
     }
     /* alloc state and request in one block */
     alloc_len = sizeof(httpc_state_t);
-    #if HTTPC_DEBUG_REQUEST
-    server_name_len = server_name ? strlen(server_name) : 0;
-    uri_len = strlen(uri);
-    alloc_len += server_name_len + 1 + uri_len + 1;
-    #endif
     mem_alloc_len = (mem_size_t)alloc_len;
     if ((mem_alloc_len < alloc_len) || (req_len + 1 > 0xFFFF)) {
         return ERR_VAL;
@@ -534,20 +471,12 @@ httpc_init_connection_common(httpc_state_t **connection, const httpc_connection_
         return ERR_MEM;
     }
     req->hdr_content_len = HTTPC_CONTENT_LEN_INVALID;
-    #if HTTPC_DEBUG_REQUEST
-    req->server_name = (char *)(req + 1);
-    if (server_name) {
-        memcpy(req->server_name, server_name, server_name_len + 1);
-    }
-    req->uri = req->server_name + server_name_len + 1;
-    memcpy(req->uri, uri, uri_len + 1);
-    #endif
-    req->pcb = altcp_new(settings->altcp_allocator);
+    req->pcb = altcp_new();
     if (req->pcb == NULL) {
         httpc_free_state(req);
         return ERR_MEM;
     }
-    req->remote_port = settings->use_proxy ? settings->proxy_port : server_port;
+    req->remote_port = CLIENT_PORT_NO;
     altcp_arg(req->pcb, req);
     altcp_recv(req->pcb, httpc_tcp_recv);
     altcp_err(req->pcb, httpc_tcp_err);
@@ -555,322 +484,26 @@ httpc_init_connection_common(httpc_state_t **connection, const httpc_connection_
     altcp_sent(req->pcb, httpc_tcp_sent);
 
     /* set up request buffer */
-    req_len2 = httpc_create_request_string(settings, server_name, server_port, uri, use_host,
-        (char *)req->request->payload, req_len + 1);
+    req_len2 = strlcpy((char *)req->request->payload, header_plus_data, req_len + 1);
     if (req_len2 != req_len) {
         httpc_free_state(req);
         return ERR_VAL;
     }
 
-    req->recv_fn = recv_fn;
-    req->conn_settings = settings;
-    req->callback_arg = callback_arg;
-
-    *connection = req;
+    req->recv_fn = data_received_fun;
+    tcp_connect(req->pcb, &host_ip4, 9000, httpc_tcp_connected);
     return ERR_OK;
 }
 
-/**
- * Initialize the connection struct
- */
-static err_t
-httpc_init_connection(httpc_state_t **connection, const httpc_connection_t *settings, const char *server_name,
-    u16_t server_port, const char *uri, altcp_recv_fn recv_fn, void *callback_arg) {
-    return httpc_init_connection_common(connection, settings, server_name, server_port, uri, recv_fn, callback_arg, 1);
-}
+void buddy_http_client_loop() {
 
-/**
- * Initialize the connection struct (from IP address)
- */
-static err_t
-httpc_init_connection_addr(httpc_state_t **connection, const httpc_connection_t *settings,
-    const ip_addr_t *server_addr, u16_t server_port, const char *uri,
-    altcp_recv_fn recv_fn, void *callback_arg) {
-    char *server_addr_str = ipaddr_ntoa(server_addr);
-    if (server_addr_str == NULL) {
-        return ERR_VAL;
-    }
-    return httpc_init_connection_common(connection, settings, server_addr_str, server_port, uri,
-        recv_fn, callback_arg, 1);
-}
-
-/**
- * @ingroup httpc
- * HTTP client API: get a file by passing server IP address
- *
- * @param server_addr IP address of the server to connect
- * @param port tcp port of the server
- * @param uri uri to get from the server, remember leading "/"!
- * @param settings connection settings (callbacks, proxy, etc.)
- * @param recv_fn the http body (not the headers) are passed to this callback
- * @param callback_arg argument passed to all the callbacks
- * @param connection retreives the connection handle (to match in callbacks)
- * @return ERR_OK if starting the request succeeds (callback_fn will be called later)
- *         or an error code
- */
-err_t httpc_get_file(const ip_addr_t *server_addr, u16_t port, const char *uri, const httpc_connection_t *settings,
-    altcp_recv_fn recv_fn, void *callback_arg, httpc_state_t **connection) {
-    err_t err;
-    httpc_state_t *req;
-
-    LWIP_ERROR("invalid parameters", (server_addr != NULL) && (uri != NULL) && (recv_fn != NULL), return ERR_ARG;);
-
-    err = httpc_init_connection_addr(&req, settings, server_addr, port,
-        uri, recv_fn, callback_arg);
-    if (err != ERR_OK) {
-        return err;
+    if (!init_tick) {
+        client_interval = xTaskGetTickCount();
+        init_tick = true;
     }
 
-    if (settings->use_proxy) {
-        err = httpc_get_internal_addr(req, &settings->proxy_addr);
-    } else {
-        err = httpc_get_internal_addr(req, server_addr);
-    }
-    if (err != ERR_OK) {
-        httpc_free_state(req);
-        return err;
-    }
-
-    if (connection != NULL) {
-        *connection = req;
-    }
-    return ERR_OK;
-}
-
-/**
- * @ingroup httpc
- * HTTP client API: get a file by passing server name as string (DNS name or IP address string)
- *
- * @param server_name server name as string (DNS name or IP address string)
- * @param port tcp port of the server
- * @param uri uri to get from the server, remember leading "/"!
- * @param settings connection settings (callbacks, proxy, etc.)
- * @param recv_fn the http body (not the headers) are passed to this callback
- * @param callback_arg argument passed to all the callbacks
- * @param connection retreives the connection handle (to match in callbacks)
- * @return ERR_OK if starting the request succeeds (callback_fn will be called later)
- *         or an error code
- */
-err_t httpc_get_file_dns(const char *server_name, u16_t port, const char *uri, const httpc_connection_t *settings,
-    altcp_recv_fn recv_fn, void *callback_arg, httpc_state_t **connection) {
-    err_t err;
-    httpc_state_t *req;
-
-    LWIP_ERROR("invalid parameters", (server_name != NULL) && (uri != NULL) && (recv_fn != NULL), return ERR_ARG;);
-
-    err = httpc_init_connection(&req, settings, server_name, port, uri, recv_fn, callback_arg);
-    if (err != ERR_OK) {
-        return err;
-    }
-
-    if (settings->use_proxy) {
-        err = httpc_get_internal_addr(req, &settings->proxy_addr);
-    } else {
-        err = httpc_get_internal_dns(req, server_name);
-    }
-    if (err != ERR_OK) {
-        httpc_free_state(req);
-        return err;
-    }
-
-    if (connection != NULL) {
-        *connection = req;
-    }
-    return ERR_OK;
-}
-
-    #if LWIP_HTTPC_HAVE_FILE_IO
-/* Implementation to disk via fopen/fwrite/fclose follows */
-
-typedef struct _httpc_filestate {
-    const char *local_file_name;
-    FILE *file;
-    httpc_connection_t settings;
-    const httpc_connection_t *client_settings;
-    void *callback_arg;
-} httpc_filestate_t;
-
-static void httpc_fs_result(void *arg, httpc_result_t httpc_result, u32_t rx_content_len,
-    u32_t srv_res, err_t err);
-
-/** Initalize http client state for download to file system */
-static err_t
-httpc_fs_init(httpc_filestate_t **filestate_out, const char *local_file_name,
-    const httpc_connection_t *settings, void *callback_arg) {
-    httpc_filestate_t *filestate;
-    size_t file_len, alloc_len;
-    FILE *f;
-
-    file_len = strlen(local_file_name);
-    alloc_len = sizeof(httpc_filestate_t) + file_len + 1;
-
-    filestate = (httpc_filestate_t *)mem_malloc((mem_size_t)alloc_len);
-    if (filestate == NULL) {
-        return ERR_MEM;
-    }
-    memset(filestate, 0, sizeof(httpc_filestate_t));
-    filestate->local_file_name = (const char *)(filestate + 1);
-    memcpy((char *)(filestate + 1), local_file_name, file_len + 1);
-    filestate->file = NULL;
-    filestate->client_settings = settings;
-    filestate->callback_arg = callback_arg;
-    /* copy client settings but override result callback */
-    memcpy(&filestate->settings, settings, sizeof(httpc_connection_t));
-    filestate->settings.result_fn = httpc_fs_result;
-
-    f = fopen(local_file_name, "wb");
-    if (f == NULL) {
-        /* could not open file */
-        mem_free(filestate);
-        return ERR_VAL;
-    }
-    filestate->file = f;
-    *filestate_out = filestate;
-    return ERR_OK;
-}
-
-/** Free http client state for download to file system */
-static void
-httpc_fs_free(httpc_filestate_t *filestate) {
-    if (filestate != NULL) {
-        if (filestate->file != NULL) {
-            fclose(filestate->file);
-            filestate->file = NULL;
-        }
-        mem_free(filestate);
+    if (netif_ip4_addr(&eth0)->addr != 0 && ((xTaskGetTickCount() - client_interval) > CLIENT_CONNECT_DELAY)) {
+        buddy_http_client_init();
+        client_interval = xTaskGetTickCount();
     }
 }
-
-/** Connection closed (success or error) */
-static void
-httpc_fs_result(void *arg, httpc_result_t httpc_result, u32_t rx_content_len,
-    u32_t srv_res, err_t err) {
-    httpc_filestate_t *filestate = (httpc_filestate_t *)arg;
-    if (filestate != NULL) {
-        if (filestate->client_settings->result_fn != NULL) {
-            filestate->client_settings->result_fn(filestate->callback_arg, httpc_result, rx_content_len,
-                srv_res, err);
-        }
-        httpc_fs_free(filestate);
-    }
-}
-
-/** tcp recv callback */
-static err_t
-httpc_fs_tcp_recv(void *arg, struct altcp_pcb *pcb, struct pbuf *p, err_t err) {
-    httpc_filestate_t *filestate = (httpc_filestate_t *)arg;
-    struct pbuf *q;
-    LWIP_UNUSED_ARG(err);
-
-    LWIP_ASSERT("p != NULL", p != NULL);
-
-    for (q = p; q != NULL; q = q->next) {
-        fwrite(q->payload, 1, q->len, filestate->file);
-    }
-    altcp_recved(pcb, p->tot_len);
-    pbuf_free(p);
-    return ERR_OK;
-}
-
-/**
- * @ingroup httpc
- * HTTP client API: get a file to disk by passing server IP address
- *
- * @param server_addr IP address of the server to connect
- * @param port tcp port of the server
- * @param uri uri to get from the server, remember leading "/"!
- * @param settings connection settings (callbacks, proxy, etc.)
- * @param callback_arg argument passed to all the callbacks
- * @param connection retreives the connection handle (to match in callbacks)
- * @return ERR_OK if starting the request succeeds (callback_fn will be called later)
- *         or an error code
- */
-err_t httpc_get_file_to_disk(const ip_addr_t *server_addr, u16_t port, const char *uri, const httpc_connection_t *settings,
-    void *callback_arg, const char *local_file_name, httpc_state_t **connection) {
-    err_t err;
-    httpc_state_t *req;
-    httpc_filestate_t *filestate;
-
-    LWIP_ERROR("invalid parameters", (server_addr != NULL) && (uri != NULL) && (local_file_name != NULL), return ERR_ARG;);
-
-    err = httpc_fs_init(&filestate, local_file_name, settings, callback_arg);
-    if (err != ERR_OK) {
-        return err;
-    }
-
-    err = httpc_init_connection_addr(&req, &filestate->settings, server_addr, port,
-        uri, httpc_fs_tcp_recv, filestate);
-    if (err != ERR_OK) {
-        httpc_fs_free(filestate);
-        return err;
-    }
-
-    if (settings->use_proxy) {
-        err = httpc_get_internal_addr(req, &settings->proxy_addr);
-    } else {
-        err = httpc_get_internal_addr(req, server_addr);
-    }
-    if (err != ERR_OK) {
-        httpc_fs_free(filestate);
-        httpc_free_state(req);
-        return err;
-    }
-
-    if (connection != NULL) {
-        *connection = req;
-    }
-    return ERR_OK;
-}
-
-/**
- * @ingroup httpc
- * HTTP client API: get a file to disk by passing server name as string (DNS name or IP address string)
- *
- * @param server_name server name as string (DNS name or IP address string)
- * @param port tcp port of the server
- * @param uri uri to get from the server, remember leading "/"!
- * @param settings connection settings (callbacks, proxy, etc.)
- * @param callback_arg argument passed to all the callbacks
- * @param connection retreives the connection handle (to match in callbacks)
- * @return ERR_OK if starting the request succeeds (callback_fn will be called later)
- *         or an error code
- */
-err_t httpc_get_file_dns_to_disk(const char *server_name, u16_t port, const char *uri, const httpc_connection_t *settings,
-    void *callback_arg, const char *local_file_name, httpc_state_t **connection) {
-    err_t err;
-    httpc_state_t *req;
-    httpc_filestate_t *filestate;
-
-    LWIP_ERROR("invalid parameters", (server_name != NULL) && (uri != NULL) && (local_file_name != NULL), return ERR_ARG;);
-
-    err = httpc_fs_init(&filestate, local_file_name, settings, callback_arg);
-    if (err != ERR_OK) {
-        return err;
-    }
-
-    err = httpc_init_connection(&req, &filestate->settings, server_name, port,
-        uri, httpc_fs_tcp_recv, filestate);
-    if (err != ERR_OK) {
-        httpc_fs_free(filestate);
-        return err;
-    }
-
-    if (settings->use_proxy) {
-        err = httpc_get_internal_addr(req, &settings->proxy_addr);
-    } else {
-        err = httpc_get_internal_dns(req, server_name);
-    }
-    if (err != ERR_OK) {
-        httpc_fs_free(filestate);
-        httpc_free_state(req);
-        return err;
-    }
-
-    if (connection != NULL) {
-        *connection = req;
-    }
-    return ERR_OK;
-}
-    #endif /* LWIP_HTTPC_HAVE_FILE_IO */
-
-#endif /* LWIP_TCP && LWIP_CALLBACK_API */
