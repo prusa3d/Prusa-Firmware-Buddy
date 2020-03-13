@@ -503,13 +503,10 @@ if(GUI)
     PRIVATE src/gui/screen_menu_filament.c
             src/gui/dialogs/DialogHandler.cpp
             src/gui/dialogs/DialogStateful.cpp
-            src/gui/dialogs/window_dlg_change.c
-            src/gui/dialogs/window_dlg_loadunload_shared.c
-            src/gui/dialogs/window_dlg_statemachine.c
+            src/gui/dialogs/window_dlg_change.cpp
             src/gui/dialogs/window_dlg_load.c
             src/gui/dialogs/window_dlg_wait.c
             src/gui/dialogs/window_dlg_popup.c
-            src/gui/dialogs/window_dlg_purge.c
             src/gui/dialogs/window_dlg_preheat.c
             src/gui/dialogs/window_dlg_unload.c
             src/gui/screen_menu_temperature.c
