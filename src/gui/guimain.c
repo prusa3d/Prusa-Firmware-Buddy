@@ -77,7 +77,7 @@ int guimain_spi_test = 0;
 #include "gpio.h"
 #include "st7789v.h"
 #include "jogwheel.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "diag.h"
 #include "sys.h"
 #include "dbg.h"

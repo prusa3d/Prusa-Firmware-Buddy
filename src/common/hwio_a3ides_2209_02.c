@@ -1,6 +1,7 @@
 //----------------------------------------------------------------------------//
 // hwio_a3ides.c - hardware input output abstraction for a3ides board
 
+#include "hwio.h"
 #include "hwio_a3ides.h"
 #include <inttypes.h>
 #include "config.h"
@@ -454,7 +455,7 @@ void hwio_fan_set_pwm(int i_fan, int val) {
 //--------------------------------------
 // heater control functions
 
-inline int hwio_heater_get_cnt(void) //number of heaters
+int hwio_heater_get_cnt(void) //number of heaters
 { return _HEATER_CNT; }
 
 void hwio_heater_set_pwm(int i_heater, int val) {

@@ -5,7 +5,7 @@
 #include "window_lcdsim.h"
 #include "window_logo.h"
 #include "cmsis_os.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "lcdsim.h"
 
 extern osThreadId displayTaskHandle;
