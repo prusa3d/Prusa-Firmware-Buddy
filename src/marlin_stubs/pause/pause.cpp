@@ -167,39 +167,18 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         return false;
     }
 
-    if (pause_for_user) { // == still heating
-        SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_INSERT));
-
-        filament_change_beep(max_beep_count, true);
-
-        KEEPALIVE_STATE(PAUSED_FOR_USER);
-        wait_for_user = true; // LCD click or M108 will clear this
-        /*
-#if ENABLED(HOST_PROMPT_SUPPORT)
-        const char tool = '0';
-        host_prompt_reason = PROMPT_USER_CONTINUE;
-        host_action_prompt_end();
-        host_action_prompt_begin(PSTR("Load Filament T"), false);
-        SERIAL_CHAR(tool);
-        SERIAL_EOL();
-        host_action_prompt_button(PSTR("Continue"));
-        host_action_prompt_show();
-#endif*/
-        change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::UserPush), 50, 0);
-        //ExtUI::onUserConfirmRequired_P(PSTR("Load Filament"));
-        while (wait_for_user) {
-            filament_change_beep(max_beep_count);
-            idle(true);
-            if (ServerRadioButtons::IsButtons(RadioBtnLoadUnload::UserPush))
-                wait_for_user = false;
-        }
-    }
+    change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::UserPush), 50, 0);
+    while (ServerRadioButtons::GetRadioButton(RadioBtnLoadUnload::UserPush) == -1)
+        idle(true);
 
     // Slow Load filament
-    if (slow_load_length)
+    if (slow_load_length) {
+        change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Inserting), 55, 0);
         do_pause_e_move(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE);
+    }
 
     // Fast Load Filament
+    change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Loading), 56, 0);
     if (fast_load_length) {
 #if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
         const float saved_acceleration = planner.settings.retract_acceleration;
@@ -213,31 +192,19 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
 #endif
     }
 
-    do {
-        if (purge_length > 0) {
-
+    if (purge_length > 0) {
+        uint8_t btn;
+        do {
+            change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Purging), 90, 0);
             // Extrude filament to get into hotend
             do_pause_e_move(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE);
-        }
 
-        // Show "Purge More" / "Resume" menu and wait for reply
-        change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Purging), 90, 0);
-#if ENABLED(HOST_PROMPT_SUPPORT)
-        host_prompt_reason = PROMPT_FILAMENT_RUNOUT;
-        host_action_prompt_end(); // Close current prompt
-        host_action_prompt_begin(PSTR("Paused"));
-        host_action_prompt_button(PSTR("PurgeMore"));
-        if (false)
-            host_action_prompt_button(PSTR("DisableRunout"));
-        else {
-            host_prompt_reason = PROMPT_FILAMENT_RUNOUT;
-            host_action_prompt_button(PSTR("Continue"));
-        }
-        host_action_prompt_show();
-#endif
-
-        // Keep looping if "Purge More" was selected
-    } while (false);
+            do {
+                idle();
+                btn = ServerRadioButtons::GetRadioButton(RadioBtnLoadUnload::UserPush);
+            } while (btn == -1); //no button
+        } while (btn == 1);      //purge more
+    }
 
     return true;
 }

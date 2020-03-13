@@ -10,11 +10,14 @@ public:
     static void SetRadioButtons(uint32_t encoded_bt) {
         server_side_encoded_radio_button = encoded_bt;
     }
+    //return radiobutton state and erase it
+    //return -1 if button does not match
     template <class T>
-    static uint8_t IsButtons(T bt) {
+    static uint8_t GetRadioButton(T bt) {
         uint32_t _bt = server_side_encoded_radio_button >> BTNS_BITS;
         if ((static_cast<uint32_t>(bt)) != _bt)
             return -1;
+        server_side_encoded_radio_button = -1;
         return (static_cast<uint32_t>(bt)) & (MAX_BTNS - 1);
     }
 };
