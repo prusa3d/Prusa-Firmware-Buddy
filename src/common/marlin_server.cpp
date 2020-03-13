@@ -863,7 +863,7 @@ int _process_server_request(char *request) {
         host_prompt_button_clicked = (host_prompt_button_t)ival;
         processed = 1;
     } else if (sscanf(request, "!rclick %d", &ival) == 1) { //radiobutton click
-        ServerRadioButtons::SetRadioButtons(ival);
+        ServerDialogCommands::SetCommand(ival);
         processed = 1;
     }
     if (processed)

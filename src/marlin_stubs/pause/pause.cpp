@@ -167,18 +167,18 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         return false;
     }
 
-    change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::UserPush), 50, 0);
-    while (ServerRadioButtons::GetRadioButton(RadioBtnLoadUnload::UserPush) == Button::CONTINUE)
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 50, 0);
+    while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) == Command::CONTINUE)
         idle(true);
 
     // Slow Load filament
     if (slow_load_length) {
-        change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Inserting), 55, 0);
+        change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Inserting), 55, 0);
         do_pause_e_move(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE);
     }
 
     // Fast Load Filament
-    change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Loading), 56, 0);
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Loading), 56, 0);
     if (fast_load_length) {
 #if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
         const float saved_acceleration = planner.settings.retract_acceleration;
@@ -193,17 +193,17 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     }
 
     if (purge_length > 0) {
-        Button btn;
+        Command command;
         do {
-            change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Purging), 90, 0);
+            change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Purging), 90, 0);
             // Extrude filament to get into hotend
             do_pause_e_move(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE);
 
             do {
                 idle();
-                btn = ServerRadioButtons::GetRadioButton(RadioBtnLoadUnload::UserPush);
-            } while (btn == Button::_NONE);  //no button
-        } while (btn == Button::PURGE_MORE); //purge more or continue .. exit loop
+                command = ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush);
+            } while (command == Command::_NONE);  //no button
+        } while (command == Command::PURGE_MORE); //purge more or continue .. exit loop
     }
 
     return true;

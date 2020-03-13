@@ -1,24 +1,25 @@
 #pragma once
 #include "dialog_commands.hpp"
 
-//inheritred class for server side to be able to work with server_side_encoded_radio_button
-class ServerRadioButtons : public RadioButtons {
-    ServerRadioButtons() = delete;
-    static uint32_t server_side_encoded_radio_button;
+//inheritred class for server side to be able to work with server_side_encoded_dialog_command
+class ServerDialogCommands : public DialogCommands {
+    ServerDialogCommands() = delete;
+    static uint32_t server_side_encoded_dialog_command;
 
 public:
-    static void SetRadioButtons(uint32_t encoded_bt) {
-        server_side_encoded_radio_button = encoded_bt;
+    //call inside marlin server on received command from client
+    static void SetCommand(uint32_t encoded_bt) {
+        server_side_encoded_dialog_command = encoded_bt;
     }
-    //return radiobutton state and erase it
+    //return command state and erase it
     //return -1 if button does not match
     template <class T>
-    static Button GetRadioButton(T radio_bt) {
-        uint32_t _radio_bt = server_side_encoded_radio_button >> BTNS_BITS;
-        if ((static_cast<uint32_t>(radio_bt)) != _radio_bt)
-            return Button::_NONE;
-        uint32_t index = server_side_encoded_radio_button & uint32_t(MAX_BTNS - 1); //get button idex
-        server_side_encoded_radio_button = -1;                                      //erase button click
-        return GetButton(radio_bt, index);
+    static Command GetCommandFromPhase(T phase) {
+        uint32_t _phase = server_side_encoded_dialog_command >> COMMAND_BITS;
+        if ((static_cast<uint32_t>(phase)) != _phase)
+            return Command::_NONE;
+        uint32_t index = server_side_encoded_dialog_command & uint32_t(MAX_COMMANDS - 1); //get command index
+        server_side_encoded_dialog_command = -1;                                          //erase command
+        return GetCommand(phase, index);
     }
 };
