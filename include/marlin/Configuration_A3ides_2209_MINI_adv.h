@@ -138,6 +138,9 @@
          */
         #define DEFAULT_Kc 0.009517f
     #endif
+    // this adds an experimental additional term to the heating power, regulation constants are hard coded for PRUSA MINI printer
+    // there is no sense to enable it for any else printer
+    #define FEED_FORWARD_HOTEND_REGULATOR
 #endif
 
 /**
