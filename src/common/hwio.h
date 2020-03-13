@@ -41,6 +41,8 @@ extern void hwio_do_set_val(int i_do, int val); //set digital output state
 extern int hwio_adc_get_cnt(void);      //number of analog inputs
 extern int hwio_adc_get_max(int i_adc); //analog input maximum value
 extern int hwio_adc_get_val(int i_adc); //read analog input
+extern void adc_ready(uint8_t index);
+extern uint8_t adc_seq2idx(uint8_t seq);
 
 //analog outputs
 extern int hwio_dac_get_cnt(void);                //number of analog outputs
@@ -60,6 +62,13 @@ extern int hwio_pwm_get_prescaler(int i_pwm);                 //gets value of pr
 extern void hwio_pwm_set_prescaler_exp2(int i_pwm, int exp);  //changes prescaler (2^n)-1 ... 1.5us, 3us, 6us, 12us ...
 extern int hwio_pwm_get_prescaler_log2(int i_pwm);            //gets exponent of prescaler - reversion of hwio_pwm_set_prescaler_exp2
 
+// arduino compatibility functions
+extern uint32_t hwio_arduino_analogRead(uint32_t ulPin);
+extern void hwio_arduino_analogWrite(uint32_t ulPin, uint32_t ulValue);
+extern int hwio_arduino_digitalRead(uint32_t ulPin);
+extern void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal);
+extern void hwio_arduino_digitalToggle(uint32_t ulPin);
+extern void hwio_arduino_pinMode(uint32_t ulPin, uint32_t ulMode);
 //--------------------------------------
 // high level I/O functions
 

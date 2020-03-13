@@ -17,6 +17,7 @@
 #include "hwio_pindef.h"
 #include "filament_sensor.h"
 #include "bsod.h"
+#include "main.h"
 
 //hwio arduino wrapper errors
 #define HWIO_ERR_UNINI_DIG_RD 0x01
@@ -27,19 +28,6 @@
 #define HWIO_ERR_UNDEF_DIG_WR 0x06
 #define HWIO_ERR_UNDEF_ANA_RD 0x07
 #define HWIO_ERR_UNDEF_ANA_WR 0x08
-
-//initialization flags - defined in main.c
-extern int HAL_GPIO_Initialized;
-extern int HAL_ADC_Initialized;
-extern int HAL_PWM_Initialized;
-
-//HAL timer handles
-extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-
-//Main error handler
-extern void Error_Handler(void);
 
 // a3ides digital input pins
 const uint32_t _di_pin32[] = {
