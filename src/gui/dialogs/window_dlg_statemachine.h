@@ -40,21 +40,11 @@ typedef struct
     int8_t prev_phase;
     uint8_t progress;
     uint8_t prev_progress;
-    uint8_t part_progress;
-    uint8_t base_progress;
-    uint8_t prev_part_progress;
-    uint32_t tick_part_start;
-    uint32_t time_total;
+    //uint8_t part_progress;
+    //uint8_t prev_part_progress;
+    //uint32_t tick_part_start;
+    //uint32_t time_total;
 } _dlg_vars;
-
-typedef enum {
-    LOOP_RESULT_CONTINUE,
-    LOOP_RESULT_BREAK
-} loop_result_t;
-
-typedef int (*dlg_state_func)(_dlg_vars *p_vars, void *p_additional_vars);          //prototype of state function
-typedef void (*dlg_cb_t)(void);                                                     //dialog callback
-typedef loop_result_t (*dlg_loop_cb_t)(_dlg_vars *p_vars, void *p_additional_vars); //dialog loop callback can break loop
 
 typedef struct
 {
@@ -66,11 +56,9 @@ typedef struct
 
 typedef struct
 {
-    uint32_t time;
     window_draw_dlg_cb_t *progress_draw;
     const char *text;
     const _dlg_button_t *p_button;
-    dlg_state_func state_fnc;
 } _dlg_state;
 
 typedef struct
@@ -78,10 +66,7 @@ typedef struct
     const char *title;
     const _dlg_state *p_states;
     const size_t count;
-    const dlg_cb_t on_load;      //after start
-    const dlg_loop_cb_t on_loop; //begin of each cycle
-    const dlg_cb_t on_timeout;   //check inside loop
-    const dlg_cb_t on_done;      //before finish
+
 } _cl_dlg;
 
 typedef struct _window_dlg_statemachine_t {
@@ -108,25 +93,7 @@ typedef struct _window_class_dlg_statemachine_t {
 extern "C" {
 #endif //__cplusplus
 
-//flags are not directly accessible from outside
-extern void set_repaint_btn_flg(window_dlg_statemachine_t *window);
-extern int is_repaint_btn_flg(window_dlg_statemachine_t *window);
-
-extern void window_dlg_statemachine_draw_progress_tot(window_dlg_statemachine_t *window);
-extern void window_dlg_statemachine_draw_progress_part(window_dlg_statemachine_t *window);
-extern void window_dlg_statemachine_draw_progress_none(window_dlg_statemachine_t *window);
-
-extern rect_ui16_t _get_dlg_statemachine_button_size(window_dlg_statemachine_t *window);
-
-extern dlg_result_t _gui_dlg(const _cl_dlg *_ths, void *p_additional_vars, int32_t ttl);
-
 extern const window_class_dlg_statemachine_t window_class_dlg_statemachine;
-
-//button draw mwthods
-extern void window_dlg_statemachine_draw_0bt(window_dlg_statemachine_t *window);
-extern void window_dlg_statemachine_draw_1bt(window_dlg_statemachine_t *window);
-extern void window_dlg_statemachine_event_1bt(
-    window_dlg_statemachine_t *window, uint8_t event, void *param);
 
 #ifdef __cplusplus
 }
