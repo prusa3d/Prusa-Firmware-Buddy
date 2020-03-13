@@ -19,7 +19,7 @@ static int json_cmp(const char *json, jsmntok_t *tok, const char *s) {
 static void send_request_to_wui(const char *request) {
     size_t req_len = strlen(request);
     osMessageQId queue = 0;
-    const char * curr_ptr = request;
+    const char *curr_ptr = request;
     uint16_t helper = 0;
 
     osSemaphoreWait(tcpclient_wui_sema, osWaitForever); // lock

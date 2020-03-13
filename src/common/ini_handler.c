@@ -3,11 +3,9 @@
 #include "ini_handler.h"
 #include "ff.h"
 
-
-
 static const char network_ini_file_name[] = "/lan_settings.ini"; //change -> change msgboxes in screen_lan_settings
 
-uint8_t ini_save_file(const char * ini_save_str) {
+uint8_t ini_save_file(const char *ini_save_str) {
 
     UINT ini_config_len = strlen(ini_save_str);
     UINT written_bytes = 0;
@@ -25,7 +23,7 @@ uint8_t ini_save_file(const char * ini_save_str) {
     return 1;
 }
 
-uint8_t ini_load_file(ini_handler handler, void * user_struct) {
+uint8_t ini_load_file(ini_handler handler, void *user_struct) {
     UINT written_bytes = 0;
     FIL ini_file;
 

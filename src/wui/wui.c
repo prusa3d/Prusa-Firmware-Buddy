@@ -15,9 +15,9 @@
 #include "eeprom.h"
 #include <string.h>
 
-#define MAX_WUI_REQUEST_LEN       100
-#define MAX_MARLIN_REQUEST_LEN    100
-#define WUI_FLG_PEND_REQ          0x0001
+#define MAX_WUI_REQUEST_LEN    100
+#define MAX_MARLIN_REQUEST_LEN 100
+#define WUI_FLG_PEND_REQ       0x0001
 
 osMessageQId tcpclient_wui_queue = 0; // char input queue (uint8_t)
 osSemaphoreId tcpclient_wui_sema = 0; // semaphore handle
@@ -120,15 +120,15 @@ static void wui_queue_cycle() {
 }
 static int process_wui_request() {
 
-    if(strncmp(wui.request, "!cip ", 5) == 0){
+    if (strncmp(wui.request, "!cip ", 5) == 0) {
         uint32_t ip;
-        if(sscanf(wui.request + 5, "%lu", &ip)){
+        if (sscanf(wui.request + 5, "%lu", &ip)) {
             eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(ip));
         }
-    } else if (strncmp(wui.request, "!ck ", 4) == 0){
+    } else if (strncmp(wui.request, "!ck ", 4) == 0) {
         variant8_t token = variant8_pchar(wui.request + 4, 0, 0);
         eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
-    } else if (strncmp(wui.request, "!cn ", 4) == 0){
+    } else if (strncmp(wui.request, "!cn ", 4) == 0) {
         variant8_t hostname = variant8_pchar(wui.request + 4, 0, 0);
         eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
     } else {
