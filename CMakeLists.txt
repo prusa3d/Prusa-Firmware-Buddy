@@ -482,6 +482,8 @@ target_sources(
           src/common/ini_handler.c
           src/common/radio_buttons.cpp
           src/common/server_radio_buttons.cpp
+          src/common/dialog_commands.cpp
+          src/common/dialog_commands_server.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
           src/marlin_stubs/M876.cpp

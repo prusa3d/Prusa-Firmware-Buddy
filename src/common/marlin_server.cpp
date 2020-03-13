@@ -29,7 +29,7 @@
 #include "hwio.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-#include "server_radio_buttons.hpp"
+#include "dialog_commands_server.hpp"
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif

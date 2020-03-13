@@ -50,7 +50,7 @@
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
 #include "marlin_server.h"
-#include "server_radio_buttons.hpp"
+#include "dialog_commands_server.hpp"
 // private:
 //check unsupported feacures
 //filament sensor is no longre part of marlin thus it must be disabled
