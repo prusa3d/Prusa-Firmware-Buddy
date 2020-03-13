@@ -453,9 +453,7 @@ int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 // send event notification to client (called from server thread)
 int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     variant8_t msg;
-    msg = variant8_user(usr32);
-    msg.usr16 = usr16;
-    msg.usr8 = evt_id;
+    msg = variant8_user(usr32, usr16, evt_id);
     return _send_notify_to_client(queue, msg);
 }
 
@@ -849,7 +847,9 @@ int _server_set_var(char *name_val_str) {
                 thermalManager.setTargetBed(marlin_server.vars.target_bed);
                 break;
             case MARLIN_VAR_Z_OFFSET:
+#if HAS_BED_PROBE
                 probe_offset.z = marlin_server.vars.z_offset;
+#endif //HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
                 thermalManager.set_fan_speed(0, marlin_server.vars.fan_speed);
@@ -970,8 +970,11 @@ int _is_thermal_error(PGM_P const msg) {
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
-    taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-    HAL_IWDG_Refresh(&hiwdg);
+    if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
+        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+#ifndef _DEBUG
+    HAL_IWDG_Refresh(&hiwdg);     //watchdog reset
+#endif                            //_DEBUG
     if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
         const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
