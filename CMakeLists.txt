@@ -104,6 +104,7 @@ message(
   )
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
+message(STATUS "Printer: ${PRINTER}")
 message(STATUS "Web User Interface: ${WUI}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
@@ -400,6 +401,7 @@ target_sources(
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
           src/common/eeprom.c
+          src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
           src/common/marlin_host.c
           src/common/sim_bed.c
@@ -408,7 +410,7 @@ target_sources(
           src/common/hwio_a3ides_2209_02.c
           src/common/putslave.c
           src/common/safe_state.c
-          src/common/variant8.c
+          src/common/variant8.cpp
           src/common/dbg.c
           src/common/dump.c
           src/common/marlin_client.c
@@ -431,13 +433,14 @@ target_sources(
           src/common/gcode_file.cpp
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
-          src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
-          src/common/minda_broken_cable_detection.c
-          src/marlin_stubs/G28.cpp
+          src/common/crc32.c
+          src/common/ini_handler.c
+          $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
+          $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp

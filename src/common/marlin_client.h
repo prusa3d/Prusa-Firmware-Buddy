@@ -6,6 +6,7 @@
 #include "marlin_vars.h"
 #include "marlin_errors.h"
 #include "marlin_host.h"
+#include "dialogs.h"
 
 // client flags
 #define MARLIN_CFLG_STARTED 0x0001 // client started (set in marlin_client_init)
@@ -17,8 +18,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-
-typedef void (*dialog_cb_t)(int);
 
 //-----------------------------------------------------------------------------
 //externs from marlin server todo fixme use variables
@@ -42,10 +41,9 @@ extern void marlin_client_loop(void);
 extern int marlin_client_id(void);
 
 //sets dialog callback, returns 1 on success
-extern int marlin_client_set_dialog_cb(dialog_cb_t cb);
-
-//calls dialog callback, returns 1 if valid
-extern int marlin_client_dialog_cb(int data);
+extern int marlin_client_set_dialog_open_cb(dialog_open_cb_t cb);
+//sets dialog callback, returns 1 on success
+extern int marlin_client_set_dialog_close_cb(dialog_close_cb_t cb);
 
 // returns enabled status of loop processing
 extern int marlin_processing(void);
@@ -81,13 +79,13 @@ extern int marlin_gcode_printf(const char *format, ...);
 extern void marlin_gcode_push_front(const char *gcode);
 
 // returns current event status for evt_id
-extern int marlin_event(uint8_t evt_id);
+extern int marlin_event(MARLIN_EVT_t evt_id);
 
 // returns current event status for evt_id and set event
-extern int marlin_event_set(uint8_t evt_id);
+extern int marlin_event_set(MARLIN_EVT_t evt_id);
 
 // returns current event status for evt_id and clear event
-extern int marlin_event_clr(uint8_t evt_id);
+extern int marlin_event_clr(MARLIN_EVT_t evt_id);
 
 // returns current event status for all events as 64bit mask
 extern uint64_t marlin_events(void);

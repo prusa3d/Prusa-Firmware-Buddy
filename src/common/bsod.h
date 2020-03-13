@@ -31,7 +31,7 @@ extern "C" {
 void _bsod(const char *fmt, const char *fine_name, int line_number, ...); //with file name and line number
 
 void general_error(const char *error, const char *module);
-void mbl_error(uint16_t moves, uint16_t points);
+
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed);
 
 void ScreenHardFault(void);

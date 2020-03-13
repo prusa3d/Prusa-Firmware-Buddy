@@ -20,7 +20,6 @@
 #define CLIENT_PORT_NO            9000
 #define IP4_ADDR_STR_SIZE         16
 #define HEADER_MAX_SIZE           128
-#define API_TOKEN_LEN             20
 #define HTTPC_CONTENT_LEN_INVALID 0xFFFFFFFF
 #define HTTPC_POLL_INTERVAL       1
 #define HTTPC_POLL_TIMEOUT        3 /* 1.5 seconds */
@@ -427,7 +426,7 @@ wui_err buddy_http_client_init() {
     char host_ip4_str[IP4_ADDR_STR_SIZE];
     char header[HEADER_MAX_SIZE];
     char *uri = "/p/telemetry";
-    char printer_token[API_TOKEN_LEN + 1]; // extra space of end of line
+    char printer_token[CONNECT_TOKEN_SIZE + 1]; // extra space of end of line
     ip4_addr_t host_ip4;
 
     size_t alloc_len;
@@ -435,10 +434,11 @@ wui_err buddy_http_client_init() {
     int req_len, req_len2;
     httpc_state_t *req;
 
-    host_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP).ui32;
+    host_ip4.addr = eeprom_get_var(EEVAR_CONNECT_IP4).ui32;
     strlcpy(host_ip4_str, ip4addr_ntoa(&host_ip4), IP4_ADDR_STR_SIZE);
-    eeprom_get_string(EEVAR_CONNECT_KEY_START, printer_token, API_TOKEN_LEN);
-    printer_token[API_TOKEN_LEN] = 0;
+    variant8_t token = eeprom_get_var(EEVAR_LAN_HOSTNAME);
+    strlcpy(printer_token, token.pch, LAN_HOSTNAME_MAX_LEN + 1);
+    variant8_done(&token);
     snprintf(header, HEADER_MAX_SIZE, "POST %s HTTP/1.0\r\nHost: %s\nPrinter-Token: %s\r\n", uri, host_ip4_str, printer_token);
     const char *header_plus_data = get_update_str(header);
 
