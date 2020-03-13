@@ -89,7 +89,7 @@ public:
 
     //get button by index
     template <class T>
-    static uint8_t GetButton(T radio_bt, uint8_t index) {
+    static Button GetButton(T radio_bt, uint8_t index) {
         if (index > MAX_BTNS)
             return Button::_NONE;
         const Button *pBtns = getBtns(radio_bt);
