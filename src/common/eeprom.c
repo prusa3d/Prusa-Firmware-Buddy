@@ -12,7 +12,7 @@
 
 #define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
 #define EEPROM_DATASIZE sizeof(eeprom_vars_t)
-#define EEPROM__PADDING 3
+#define EEPROM__PADDING 2
 
 #define EEPROM_MAX_NAME          16     // maximum name length (with '\0')
 #define EEPROM_MAX_DATASIZE      256    // maximum datasize
