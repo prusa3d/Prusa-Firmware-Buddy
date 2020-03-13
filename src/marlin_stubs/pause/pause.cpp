@@ -168,7 +168,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     }
 
     change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::UserPush), 50, 0);
-    while (ServerRadioButtons::GetRadioButton(RadioBtnLoadUnload::UserPush) == -1)
+    while (ServerRadioButtons::GetRadioButton(RadioBtnLoadUnload::UserPush) == Button::CONTINUE)
         idle(true);
 
     // Slow Load filament
@@ -193,7 +193,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     }
 
     if (purge_length > 0) {
-        uint8_t btn;
+        Button btn;
         do {
             change_dialog_handler(DLG_load_unload, PhaseFromRadioBtn(RadioBtnLoadUnload::Purging), 90, 0);
             // Extrude filament to get into hotend
@@ -202,8 +202,8 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
             do {
                 idle();
                 btn = ServerRadioButtons::GetRadioButton(RadioBtnLoadUnload::UserPush);
-            } while (btn == -1); //no button
-        } while (btn == 1);      //purge more
+            } while (btn == Button::_NONE);  //no button
+        } while (btn == Button::PURGE_MORE); //purge more or continue .. exit loop
     }
 
     return true;
