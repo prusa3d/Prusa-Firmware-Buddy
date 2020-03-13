@@ -2,6 +2,24 @@
 
 #include <cstdint>
 #include <cstddef>
+
+enum { BTNS_BITS = 2,
+    MAX_BTNS = (1 << BTNS_BITS) };
+
+//list of all button types
+enum class Button : uint8_t {
+    _NONE = 0, //none must be zero becouse of empty initialization of array
+    YES,
+    NO,
+    CONTINUE,
+    OK,
+    BACK,
+    RETRY,
+    PURGE_MORE
+};
+
+using RadioBtn = Button[MAX_BTNS];
+
 //count cenum class members (if "_first" and "_last" is defined)
 template <class T>
 constexpr size_t RadioBtnCount() {
@@ -17,7 +35,7 @@ constexpr uint8_t PhaseFromRadioBtn(T btn) {
 //and YES radio button can have 0 buttons
 //every enum must have "_first" and "_last"
 //"_first" ==  "previous_enum::_last" + 1
-//EVERY button shall have unique ID
+//EVERY radio button shall have unique ID
 enum class RadioBtnLoadUnload : uint16_t {
     _first = 0,
     Parking = _first,
@@ -49,32 +67,44 @@ enum class RadioBtnTest : uint16_t {
 class RadioButtons {
     RadioButtons() = delete;
 
-    //declare counts of individual radio buttons here
-    static const uint8_t LoadUnloadCounts[RadioBtnCount<RadioBtnLoadUnload>()];
-    static const uint8_t TestCounts[RadioBtnCount<RadioBtnTest>()];
+    //declare 2d arrays of single buttons for radio buttons
+    static const RadioBtn LoadUnloadButtons[RadioBtnCount<RadioBtnLoadUnload>()];
+    static const RadioBtn TestButtons[RadioBtnCount<RadioBtnTest>()];
+
+    //methods to "bind" button array with enum type
+    static const Button *getBtns(RadioBtnLoadUnload radio_bt) { return &(LoadUnloadButtons[static_cast<size_t>(radio_bt)][0]); }
+    static const Button *getBtns(RadioBtnTest radio_bt) { return &(TestButtons[static_cast<size_t>(radio_bt)][0]); }
 
 public:
-    enum { BTNS_BITS = 2,
-        MAX_BTNS = (1 << BTNS_BITS) };
-
-    static uint8_t GetCount(RadioBtnLoadUnload bt) {
-        return LoadUnloadCounts[static_cast<size_t>(bt)];
+    //get index of single button in radiobutton
+    template <class T>
+    static uint8_t GetIndex(T radio_bt, Button btn) {
+        const Button *pBtns = getBtns(radio_bt);
+        for (size_t i = 0; i < MAX_BTNS; ++i) {
+            if (pBtns[i] == btn)
+                return i;
+        }
+        return -1;
     }
 
-    static uint8_t GetCount(RadioBtnTest bt) {
-        return TestCounts[static_cast<size_t>(bt)];
+    //get button by index
+    template <class T>
+    static uint8_t GetButton(T radio_bt, uint8_t index) {
+        if (index > MAX_BTNS)
+            return Button::_NONE;
+        const Button *pBtns = getBtns(radio_bt);
+        return pBtns[index];
     }
 
     //encode radio button and clicked index into int
     //use on client side
     template <class T>
-    static uint32_t Encode(T bt, uint8_t clicked_index) {
-        if (clicked_index >= MAX_BTNS)
-            return -1; //button num is 0-3 (1 - 4 buttons)
-        if (bt == T::NoBtn_Count)
+    static uint32_t Encode(T radio_bt, Button btn) {
+        if (radio_bt == T::NoBtn_Count)
             return -1; //count cannot be used
-        if (clicked_index >= GetCount(bt))
+        uint8_t clicked_index = GetIndex(radio_bt);
+        if (clicked_index > MAX_BTNS)
             return -1; // this radio button does not have so many buttons
-        return ((static_cast<uint32_t>(bt)) << BTNS_BITS) + uint32_t(clicked_index);
+        return ((static_cast<uint32_t>(radio_bt)) << BTNS_BITS) + uint32_t(clicked_index);
     }
 };
