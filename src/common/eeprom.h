@@ -49,9 +49,10 @@
     #define EEVAR_LAN_IP4_GW   0x15 // X.X.X.X address encoded in uint32
     #define EEVAR_LAN_IP4_DNS1 0x16 // X.X.X.X address encoded in uint32
     #define EEVAR_LAN_IP4_DNS2 0x17 // X.X.X.X address encoded in uint32
-#define EEVAR_CONNECT_IP4  0x18 // X.X.X.X address encoded in uint32
-#define EEVAR_CONNECT_TOKEN 0x19 // 20char string
-#define EEVAR_LAN_HOSTNAME 0x1A // 20char string
+    #define EEVAR_CONNECT_IP4  0x18 // X.X.X.X address encoded in uint32
+    #define EEVAR_CONNECT_TOKEN 0x19 // 20char string
+    #define EEVAR_LAN_HOSTNAME 0x1A // 20char string
+#endif // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
 
 #define EEVAR__PADDING 0x19 // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
