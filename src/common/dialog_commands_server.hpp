@@ -1,5 +1,5 @@
 #pragma once
-#include "radio_buttons.hpp"
+#include "dialog_commands.hpp"
 
 //inheritred class for server side to be able to work with server_side_encoded_radio_button
 class ServerRadioButtons : public RadioButtons {

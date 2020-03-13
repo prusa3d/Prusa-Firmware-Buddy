@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DialogStateful.hpp"
-#include "radio_buttons.hpp"
+#include "dialog_commands.hpp"
 
 //load unload and change filament dialog
 class DialogLoadUnload : public DialogStateful<RadioBtnCount<RadioBtnLoadUnload>()> {

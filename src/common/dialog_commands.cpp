@@ -1,4 +1,4 @@
-#include "radio_buttons.hpp"
+#include "dialog_commands.hpp"
 
 //define counts of individual radio buttons here
 const RadioBtn RadioButtons::LoadUnloadButtons[RadioBtnCount<RadioBtnLoadUnload>()] = {
