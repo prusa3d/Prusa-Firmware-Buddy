@@ -453,9 +453,7 @@ int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 // send event notification to client (called from server thread)
 int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     variant8_t msg;
-    msg = variant8_user(usr32);
-    msg.usr16 = usr16;
-    msg.usr8 = evt_id;
+    msg = variant8_user(usr32, usr16, evt_id);
     return _send_notify_to_client(queue, msg);
 }
 

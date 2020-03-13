@@ -3,13 +3,12 @@
 #include "shared_config.h"
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
-#include "new_eeprom.h"
 #include "dbg.h"
-#include "main.h"
 
-#ifndef HAS_GUI
-    #error "HAS_GUI not defined."
-#endif
+//firmware update flag
+#define FW_UPDATE_FLAG_ADDRESS 0x40B
+
+extern SPI_HandleTypeDef hspi2;
 
 //int sys_pll_freq = 100000000;
 int sys_pll_freq = 168000000;
@@ -234,11 +233,9 @@ void sys_spi_set_prescaler(int prescaler_num) {
     int irq = __get_PRIMASK() & 1;
     if (irq)
         __disable_irq(); //disable irq while switching clock
-#if HAS_GUI
     HAL_SPI_DeInit(&hspi2);
     hspi2.Init.BaudRatePrescaler = _spi_prescaler(prescaler_num);
     HAL_SPI_Init(&hspi2);
-#endif
     if (irq)
         __enable_irq();
 }
