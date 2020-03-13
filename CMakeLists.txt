@@ -104,7 +104,7 @@ message(
   )
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
-message(STATUS "Web User Interface: ${WUI}")
+message(STATUS "Printer: ${PRINTER}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
@@ -440,7 +440,6 @@ target_sources(
           src/common/ini_handler.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
-          src/marlin_stubs/G28.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp

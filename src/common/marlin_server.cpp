@@ -1,6 +1,7 @@
 // marlin_server.cpp
 
 #include "marlin_server.h"
+#include "dialogs.h" //dialog_t
 #include <stdarg.h>
 #include <stdio.h>
 #include "dbg.h"
@@ -149,9 +150,9 @@ extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue hand
 // forward declarations of private functions
 
 int _send_notify_to_client(osMessageQId queue, variant8_t msg);
-int _send_notify_event_to_client(int client_id, osMessageQId queue, uint8_t evt_id, uint32_t usr32, uint16_t usr16);
+int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
 uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
-uint8_t _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16);
+uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
 int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var);
 uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk);
 void _server_update_gqueue(void);
@@ -453,7 +454,7 @@ int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 }
 
 // send event notification to client (called from server thread)
-int _send_notify_event_to_client(int client_id, osMessageQId queue, uint8_t evt_id, uint32_t usr32, uint16_t usr16) {
+int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     variant8_t msg;
     msg = variant8_user(usr32, usr16, evt_id);
     return _send_notify_to_client(queue, msg);
@@ -464,12 +465,10 @@ int _send_notify_event_to_client(int client_id, osMessageQId queue, uint8_t evt_
 uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
     uint64_t sent = 0;
     uint64_t msk = 1;
-    for (uint8_t evt_id = 0; evt_id < 64; evt_id++) {
+    for (uint8_t evt_int = 0; evt_int <= MARLIN_EVT_MAX; evt_int++) {
+        MARLIN_EVT_t evt_id = (MARLIN_EVT_t)evt_int;
         if (msk & evt_msk)
-            switch (evt_id) {
-            // Idle and PrinterKilled events not used
-            //case MARLIN_EVT_Idle:
-            //case MARLIN_EVT_PrinterKilled:
+            switch ((MARLIN_EVT_t)evt_id) {
             // Events without arguments
             case MARLIN_EVT_Startup:
             case MARLIN_EVT_MediaInserted:
@@ -486,11 +485,11 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_StopProcessing:
             case MARLIN_EVT_Busy:
             case MARLIN_EVT_Ready:
-            case MARLIN_EVT_DialogCreation:
+            case MARLIN_EVT_DialogOpen:
+            case MARLIN_EVT_DialogClose:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
                 break;
-            //case MARLIN_EVT_Error:
             // StatusChanged event - one string argument
             case MARLIN_EVT_StatusChanged:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
@@ -505,8 +504,6 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
                 if (_send_notify_event_to_client(client_id, queue, evt_id, marlin_server.command_end, 0))
                     sent |= msk; // event sent, set bit
                 break;
-            //case MARLIN_EVT_PlayTone:
-            //case MARLIN_EVT_UserConfirmRequired:
             case MARLIN_EVT_MeshUpdate:
                 if (marlin_server.mesh_point_notsent[client_id]) {
                     uint8_t x;
@@ -532,6 +529,17 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
                 break;
+            //unused events
+            case MARLIN_EVT_Idle:
+            case MARLIN_EVT_PrinterKilled:
+            case MARLIN_EVT_Error:
+            case MARLIN_EVT_PlayTone:
+            case MARLIN_EVT_HostPrompt:
+            case MARLIN_EVT_UserConfirmRequired:
+            case MARLIN_EVT_SafetyTimerExpired:
+            case MARLIN_EVT_Message:
+            case MARLIN_EVT_Reheat:
+                break;
             }
         msk <<= 1;
     }
@@ -540,7 +548,7 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
 
 // send event notification to all clients (called from server thread)
 // returns bitmask - bit0 = notify for client0 successfully send, bit1 for client1...
-uint8_t _send_notify_event(uint8_t evt_id, uint32_t usr32, uint16_t usr16) {
+uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     uint8_t client_msk = 0;
     if ((marlin_server.notify_events & ((uint64_t)1 << evt_id)) == 0)
         return client_msk;
@@ -872,8 +880,9 @@ int _server_set_var(char *name_val_str) {
                 thermalManager.setTargetBed(marlin_server.vars.target_bed);
                 break;
             case MARLIN_VAR_Z_OFFSET:
+#if HAS_BED_PROBE
                 probe_offset.z = marlin_server.vars.z_offset;
-                var_change_update = true;
+#endif //HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
                 thermalManager.set_fan_speed(0, marlin_server.vars.fan_speed);
@@ -916,7 +925,7 @@ int _is_in_M600_flg = 0;
 #endif
 
 // force send M600 begin/end notify
-void _ensure_event_sent(uint64_t evt_id, uint8_t req_client_mask, uint8_t client_mask) {
+void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t req_client_mask, uint8_t client_mask) {
     int client_id;
     // loop until event successfully sent to requested clients
     while ((client_mask & req_client_mask) != req_client_mask) {
@@ -928,7 +937,7 @@ void _ensure_event_sent(uint64_t evt_id, uint8_t req_client_mask, uint8_t client
     }
 }
 
-void _force_M600_notify(uint64_t evt_id, uint8_t req_client_mask) {
+void _force_M600_notify(MARLIN_EVT_t evt_id, uint8_t req_client_mask) {
     uint8_t client_mask = _send_notify_event(evt_id, MARLIN_CMD_M600, 0);
     _ensure_event_sent(evt_id, req_client_mask, client_mask);
 }
@@ -1001,8 +1010,11 @@ int _is_thermal_error(PGM_P const msg) {
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
-    taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-    HAL_IWDG_Refresh(&hiwdg);
+    if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
+        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+#ifndef _DEBUG
+    HAL_IWDG_Refresh(&hiwdg);     //watchdog reset
+#endif                            //_DEBUG
     if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
         const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
@@ -1184,8 +1196,8 @@ void host_action_resumed() {
 void host_dialog_creation_handler(const uint8_t is_host) {
     DBG_HOST("host_dialog_creation_handler %d", (int)is_host);
 
-    const uint8_t evt_id = MARLIN_EVT_DialogCreation; //MARLIN_EVT_CommandBegin;
-    uint8_t client_mask = _send_notify_event(evt_id, is_host, 0);
+    const MARLIN_EVT_t evt_id = is_host ? MARLIN_EVT_DialogOpen : MARLIN_EVT_DialogClose;
+    uint8_t client_mask = _send_notify_event(evt_id, DLG_serial_printing, 0);
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }

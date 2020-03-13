@@ -9,6 +9,10 @@
 #define EEPROM_VERSION  4
 #define EEPROM_FEATURES (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN)
 
+#define EEPROM_FEATURE_PID_NOZ 0x0001
+#define EEPROM_FEATURE_PID_BED 0x0002
+#define EEPROM_FEATURE_LAN     0x0004
+
 // basic variables
 #define EEVAR_VERSION         0x00 // uint16_t eeprom version
 #define EEVAR_FEATURES        0x01 // uint16_t feature mask
@@ -22,34 +26,36 @@
 #define EEVAR_RUN_FIRSTLAY    0x09 // uint8_t  first layer calibration flag
 #define EEVAR_FSENSOR_ENABLED 0x0a // uint8_t  fsensor state
 #define EEVAR_ZOFFSET         0x0b // float    zoffset
+
 // nozzle PID variables
-#define EEVAR_PID_NOZ_P 0x0c // float    PID constants for nozzle
-#define EEVAR_PID_NOZ_I 0x0d //
-#define EEVAR_PID_NOZ_D 0x0e //
+#if (EEPROM_FEATURES & EEPROM_FEATURE_PID_NOZ)
+    #define EEVAR_PID_NOZ_P 0x0c // float    PID constants for nozzle
+    #define EEVAR_PID_NOZ_I 0x0d // float
+    #define EEVAR_PID_NOZ_D 0x0e // float
+#endif
+
 // bed PID variables
-#define EEVAR_PID_BED_P 0x0f // float    PID constants for bed
-#define EEVAR_PID_BED_I 0x10 //
-#define EEVAR_PID_BED_D 0x11 //
+#if (EEPROM_FEATURES & EEPROM_FEATURE_PID_BED)
+    #define EEVAR_PID_BED_P 0x0f // float    PID constants for bed
+    #define EEVAR_PID_BED_I 0x10 // float
+    #define EEVAR_PID_BED_D 0x11 // float
+#endif
+
 // lan variables
-#define EEVAR_LAN_FLAG     0x12 // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
-#define EEVAR_LAN_IP4_ADDR 0x13 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_MSK  0x14 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_GW   0x15 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_DNS1 0x16 // X.X.X.X address encoded in uint32
-#define EEVAR_LAN_IP4_DNS2 0x17 // X.X.X.X address encoded in uint32
+#if (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
+    #define EEVAR_LAN_FLAG     0x12 // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
+    #define EEVAR_LAN_IP4_ADDR 0x13 // X.X.X.X address encoded in uint32
+    #define EEVAR_LAN_IP4_MSK  0x14 // X.X.X.X address encoded in uint32
+    #define EEVAR_LAN_IP4_GW   0x15 // X.X.X.X address encoded in uint32
+    #define EEVAR_LAN_IP4_DNS1 0x16 // X.X.X.X address encoded in uint32
+    #define EEVAR_LAN_IP4_DNS2 0x17 // X.X.X.X address encoded in uint32
 #define EEVAR_CONNECT_IP4  0x18 // X.X.X.X address encoded in uint32
 #define EEVAR_CONNECT_TOKEN 0x19 // 20char string
 #define EEVAR_LAN_HOSTNAME 0x1A // 20char string
 
-#define EEVAR_TEST 0x1B
+#define EEVAR__PADDING 0x19 // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
-#define EEVAR__PADDING 0x1C // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-
-#define EEVAR_CRC32 0x1D // uint32_t crc32 for
-
-#define EEPROM_FEATURE_PID_NOZ 0x0001
-#define EEPROM_FEATURE_PID_BED 0x0002
-#define EEPROM_FEATURE_LAN     0x0004
+#define EEVAR_CRC32 0x1a // uint32_t crc32 for
 
 #define LAN_HOSTNAME_MAX_LEN 20
 #define CONNECT_TOKEN_SIZE 20
@@ -60,7 +66,7 @@
 extern "C" {
 #endif //__cplusplus
 
-// initialize eeprom
+// initialize eeprom, return values:  1 - defaults loaded, 0 - normal init (eeprom data valid)
 extern uint8_t eeprom_init(void);
 
 // write default values to all variables

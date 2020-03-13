@@ -20,7 +20,6 @@ int eeprom_load_bin_from_usb(const char *fn) {
     UINT bs = sizeof(buff);
     UINT br;
     if (f_open(&fil, fn, FA_READ) == FR_OK) {
-        //        eeprom_lock();
         while (size) {
             if (size < bs)
                 bs = size;
@@ -33,7 +32,6 @@ int eeprom_load_bin_from_usb(const char *fn) {
             addr += bs;
         }
         f_close(&fil);
-        //        eeprom_unlock();
         return (size == 0) ? 1 : 0;
     }
     return 0;
@@ -47,7 +45,6 @@ int eeprom_save_bin_to_usb(const char *fn) {
     UINT bs = sizeof(buff);
     UINT bw;
     if (f_open(&fil, fn, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
-        //        eeprom_lock();
         while (size) {
             if (size < bs)
                 bs = size;
@@ -60,7 +57,6 @@ int eeprom_save_bin_to_usb(const char *fn) {
             addr += bs;
         }
         f_close(&fil);
-        //        eeprom_unlock();
         return (size == 0) ? 1 : 0;
     }
     return 0;
@@ -84,7 +80,7 @@ int eeprom_save_xml_to_usb(const char *fn) {
         for (id = 0; id < var_count; id++) {
             var8 = eeprom_get_var(id);
             *text = 0;
-            eeprom_var_format(text, 128, id, var8);
+            eeprom_var_format(text, sizeof(text), id, var8);
             var_name = eeprom_get_var_name(id);
             f_write(&fil, "  <variable id=\"", 16, &bw);
             f_write(&fil, var_name, strlen(var_name), &bw);

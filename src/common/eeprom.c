@@ -12,7 +12,7 @@
 
 #define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
 #define EEPROM_DATASIZE sizeof(eeprom_vars_t)
-#define EEPROM__PADDING 1
+#define EEPROM__PADDING 3
 
 #define EEPROM_MAX_NAME          16     // maximum name length (with '\0')
 #define EEPROM_MAX_DATASIZE      256    // maximum datasize
@@ -20,6 +20,9 @@
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
 #define EEVAR_FLG_READONLY 0x0001 // variable is read only
+
+// measure time needed to update crc
+//#define EEPROM_MEASURE_CRC_TIME
 
 #pragma pack(push)
 #pragma pack(1)
@@ -61,7 +64,6 @@ typedef struct _eeprom_vars_t {
     uint32_t CONNECT_IP4_ADDR;
     char CONNECT_TOKEN[CONNECT_TOKEN_SIZE + 1];
     char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
-    char TEST[10];
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -71,7 +73,7 @@ typedef struct _eeprom_vars_t {
 // clang-format off
 
 // eeprom map
-const eeprom_entry_t eeprom_map[] = {
+static const eeprom_entry_t eeprom_map[] = {
     { "VERSION",         VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_VERSION
     { "FEATURES",        VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_FEATURES
     { "DATASIZE",        VARIANT8_UI16,  1, EEVAR_FLG_READONLY }, // EEVAR_DATASIZE
@@ -99,13 +101,12 @@ const eeprom_entry_t eeprom_map[] = {
     { "CONNECT_IP4",     VARIANT8_UI32,  1, 0 }, // EEVAR_CONNECT_IP4
     { "CONNECT_TOKEN",   VARIANT8_PCHAR, CONNECT_TOKEN_SIZE + 1, 0 }, // EEVAR_CONNECT_TOKEN
     { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_LAN_HOSTNAME
-    { "TEST",            VARIANT8_PCHAR, 10, 0 }, // EEVAR_TEST
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
 
 // eeprom variable defaults
-const eeprom_vars_t eeprom_var_defaults = {
+static const eeprom_vars_t eeprom_var_defaults = {
     EEPROM_VERSION,  // EEVAR_VERSION
     EEPROM_FEATURES, // EEVAR_FEATURES
     EEPROM_DATASIZE, // EEVAR_DATASIZE
@@ -133,7 +134,6 @@ const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_CONNECT_IP4
     "",              // EEVAR_CONNECT_TOKEN
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
-    "TEST",          // EEVAR_TEST
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
@@ -141,7 +141,7 @@ const eeprom_vars_t eeprom_var_defaults = {
 // clang-format on
 
 // semaphore handle (lock/unlock)
-osSemaphoreId eeprom_sema = 0;
+static osSemaphoreId eeprom_sema = 0;
 
 static inline void eeprom_lock(void) {
     osSemaphoreWait(eeprom_sema, osWaitForever);
@@ -153,16 +153,15 @@ static inline void eeprom_unlock(void) {
 
 // forward declarations of private functions
 
-uint16_t eeprom_var_size(uint8_t id);
-uint16_t eeprom_var_addr(uint8_t id);
-void eeprom_dump(void);
-int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var);
-void eeprom_print_vars(void);
-int eeprom_convert_from_v2(void);
-int eeprom_convert_from(uint16_t version, uint16_t features);
+static uint16_t eeprom_var_size(uint8_t id);
+static uint16_t eeprom_var_addr(uint8_t id);
+static void eeprom_dump(void);
+static void eeprom_print_vars(void);
+static int eeprom_convert_from_v2(void);
+static int eeprom_convert_from(uint16_t version, uint16_t features);
 
-int eeprom_check_crc32(void);
-void eeprom_update_crc32(uint16_t addr, uint16_t size);
+static int eeprom_check_crc32(void);
+static void eeprom_update_crc32(uint16_t addr, uint16_t size);
 
 // public functions - described in header
 
@@ -239,10 +238,10 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
         if (var.type == eeprom_map[id].type) {
             size = eeprom_var_size(id);
             data_size = variant8_data_size(&var);
-            if (size == data_size) {
+            if ((size == data_size) || ((var.type == VARIANT8_PCHAR) && (data_size <= size))) {
                 addr = eeprom_var_addr(id);
                 data_ptr = variant8_data_ptr(&var);
-                st25dv64k_user_write_bytes(addr, data_ptr, size);
+                st25dv64k_user_write_bytes(addr, data_ptr, data_size);
                 eeprom_update_crc32(addr, size);
             } else {
                 // TODO: error
@@ -294,20 +293,20 @@ void eeprom_clear(void) {
 
 // private functions
 
-uint16_t eeprom_var_size(uint8_t id) {
+static uint16_t eeprom_var_size(uint8_t id) {
     if (id < EEPROM_VARCOUNT)
         return variant8_type_size(eeprom_map[id].type & ~VARIANT8_PTR) * eeprom_map[id].count;
     return 0;
 }
 
-uint16_t eeprom_var_addr(uint8_t id) {
+static uint16_t eeprom_var_addr(uint8_t id) {
     uint16_t addr = EEPROM_ADDRESS;
     while (id)
         addr += eeprom_var_size(--id);
     return addr;
 }
 
-void eeprom_dump(void) {
+static void eeprom_dump(void) {
     int i;
     int j;
     uint8_t b;
@@ -323,13 +322,13 @@ void eeprom_dump(void) {
     }
 }
 
-void eeprom_print_vars(void) {
+static void eeprom_print_vars(void) {
     uint8_t id;
     char text[128];
     variant8_t var8;
     for (id = 0; id < EEPROM_VARCOUNT; id++) {
         var8 = eeprom_get_var(id);
-        eeprom_var_format(text, 128, id, var8);
+        eeprom_var_format(text, sizeof(text), id, var8);
         _dbg("%s=%s", eeprom_map[id].name, text);
         variant8_done(&var8);
     }
@@ -343,7 +342,7 @@ void eeprom_print_vars(void) {
 #define ADDR_V2_PID_BED_P      0x01af
 
 // conversion function for old version 2 format (marlin eeprom)
-int eeprom_convert_from_v2(void) {
+static int eeprom_convert_from_v2(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
     // read FILAMENT_TYPE (uint8_t)
     st25dv64k_user_read_bytes(ADDR_V2_FILAMENT_TYPE, &(vars.FILAMENT_TYPE), sizeof(uint8_t));
@@ -373,14 +372,14 @@ int eeprom_convert_from_v2(void) {
 }
 
 // conversion function for new version format (features, firmware version/build)
-int eeprom_convert_from(uint16_t version, uint16_t features) {
+static int eeprom_convert_from(uint16_t version, uint16_t features) {
     if (version == 2)
         return eeprom_convert_from_v2();
     return 0;
 }
 
 // version independent crc32 check
-int eeprom_check_crc32(void) {
+static int eeprom_check_crc32(void) {
     uint16_t datasize;
     uint32_t crc;
     datasize = eeprom_get_var(EEVAR_DATASIZE).ui16;
@@ -395,7 +394,10 @@ int eeprom_check_crc32(void) {
 #endif
 }
 
-void eeprom_update_crc32(uint16_t addr, uint16_t size) {
+static void eeprom_update_crc32(uint16_t addr, uint16_t size) {
+#ifdef EEPROM_MEASURE_CRC_TIME
+    uint32_t time = _microseconds();
+#endif
 #if 1 //simple method
     eeprom_vars_t vars;
     // read eeprom data
@@ -405,6 +407,10 @@ void eeprom_update_crc32(uint16_t addr, uint16_t size) {
     // write crc to eeprom
     st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
 #else //
+#endif
+#ifdef EEPROM_MEASURE_CRC_TIME
+    time = _microseconds() - time;
+    _dbg("crc update %u us", time);
 #endif
 }
 

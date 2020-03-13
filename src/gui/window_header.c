@@ -162,7 +162,7 @@ void p_window_header_set_text(window_header_t *window, const char *text) {
     _window_invalidate((window_t *)window);
 }
 
-int p_window_header_event_clr(window_header_t *window, uint8_t evt_id) {
+int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id) {
     /* lwip fces only read states, invalid states by another thread never mind */
 #ifdef BUDDY_ENABLE_ETHERNET
     update_ETH_icon(netif_is_link_up(&eth0), window);
@@ -174,6 +174,8 @@ int p_window_header_event_clr(window_header_t *window, uint8_t evt_id) {
             break;
         case MARLIN_EVT_MediaRemoved:
             p_window_header_icon_on(window, HEADER_ICON_USB);
+            break;
+        default:
             break;
         }
         return 1;
