@@ -1,6 +1,7 @@
 //----------------------------------------------------------------------------//
 // hwio_a3ides.c - hardware input output abstraction for a3ides board
 
+#include "hwio.h"
 #include "hwio_a3ides.h"
 #include <inttypes.h>
 #include "config.h"
@@ -16,6 +17,7 @@
 #include "hwio_pindef.h"
 #include "filament_sensor.h"
 #include "bsod.h"
+#include "main.h"
 
 //hwio arduino wrapper errors
 #define HWIO_ERR_UNINI_DIG_RD 0x01
@@ -26,19 +28,6 @@
 #define HWIO_ERR_UNDEF_DIG_WR 0x06
 #define HWIO_ERR_UNDEF_ANA_RD 0x07
 #define HWIO_ERR_UNDEF_ANA_WR 0x08
-
-//initialization flags - defined in main.c
-extern int HAL_GPIO_Initialized;
-extern int HAL_ADC_Initialized;
-extern int HAL_PWM_Initialized;
-
-//HAL timer handles
-extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-
-//Main error handler
-extern void Error_Handler(void);
 
 // a3ides digital input pins
 const uint32_t _di_pin32[] = {
@@ -243,7 +232,7 @@ int hwio_adc_get_cnt(void) //number of analog inputs
 int hwio_adc_get_max(int i_adc) //analog input maximum value
 { return _adc_max[i_adc]; }
 
-int hwio_adc_get_val(int i_adc) //read analog input
+int hwio_adc_get_val(Adc i_adc) //read analog input
 {
     if ((i_adc >= 0) && (i_adc < _ADC_CNT))
         return _adc_val[i_adc];
@@ -374,7 +363,7 @@ TIM_HandleTypeDef *_pwm_get_htim(int i_pwm) {
     return _pwm_p_htim[i_pwm];
 }
 
-void hwio_pwm_set_val(int i_pwm, int val) //write pwm output and actualize _pwm_analogWrite_val
+void hwio_pwm_set_val(int i_pwm, uint32_t val) //write pwm output and actualize _pwm_analogWrite_val
 {
     if (!is_pwm_id_valid(i_pwm))
         return;
@@ -454,7 +443,7 @@ void hwio_fan_set_pwm(int i_fan, int val) {
 //--------------------------------------
 // heater control functions
 
-inline int hwio_heater_get_cnt(void) //number of heaters
+int hwio_heater_get_cnt(void) //number of heaters
 { return _HEATER_CNT; }
 
 void hwio_heater_set_pwm(int i_heater, int val) {

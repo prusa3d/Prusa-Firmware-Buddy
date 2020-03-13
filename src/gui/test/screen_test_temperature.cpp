@@ -9,7 +9,7 @@
 #include "gui.h"
 #include "screen_menu.h"
 #include "cmsis_os.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 
 #include "../Marlin/src/module/temperature.h"
 

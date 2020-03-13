@@ -25,7 +25,7 @@
 #include "../Marlin/src/libs/nozzle.h"
 #include "../Marlin/src/core/language.h" //GET_TEXT(MSG)
 
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
 #ifdef MINDA_BROKEN_CABLE_DETECTION

@@ -7,7 +7,7 @@
 #include "dbg.h"
 #include "adc.h"
 #include "jogwheel.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
 
