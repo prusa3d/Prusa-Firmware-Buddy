@@ -128,9 +128,11 @@ static int process_wui_request() {
     } else if (strncmp(wui.request, "!ck ", 4) == 0) {
         variant8_t token = variant8_pchar(wui.request + 4, 0, 0);
         eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
+        variant8_done(&token);
     } else if (strncmp(wui.request, "!cn ", 4) == 0) {
         variant8_t hostname = variant8_pchar(wui.request + 4, 0, 0);
         eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
+        variant8_done(&hostname);
     } else {
         marlin_json_gcode(wui.request);
     }
