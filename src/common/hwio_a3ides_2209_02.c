@@ -232,7 +232,7 @@ int hwio_adc_get_cnt(void) //number of analog inputs
 int hwio_adc_get_max(int i_adc) //analog input maximum value
 { return _adc_max[i_adc]; }
 
-int hwio_adc_get_val(int i_adc) //read analog input
+int hwio_adc_get_val(Adc i_adc) //read analog input
 {
     if ((i_adc >= 0) && (i_adc < _ADC_CNT))
         return _adc_val[i_adc];

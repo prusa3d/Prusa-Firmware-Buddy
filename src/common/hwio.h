@@ -26,6 +26,16 @@
 extern "C" {
 #endif //__cplusplus
 
+//a3ides analog inputs
+enum {
+    ADC_HW_IDENTIFY,    //!< PA3 - chan 3
+    ADC_TEMP_BED,       //!< PA4 - chan 4
+    ADC_TEMP_2,         //!< PA5 - chan 5
+    ADC_TEMP_HEATBREAK, //!< PA6 - chan 6
+    ADC_TEMP_0,         //!< PC0 - chan 10
+    ONE_BEHIND_LAST_ADC,
+} typedef Adc;
+
 //--------------------------------------
 // low level I/O functions
 
@@ -39,7 +49,7 @@ extern void hwio_do_set_val(int i_do, int val); //set digital output state
 //analog inputs
 extern int hwio_adc_get_cnt(void);      //number of analog inputs
 extern int hwio_adc_get_max(int i_adc); //analog input maximum value
-extern int hwio_adc_get_val(int i_adc); //read analog input
+extern int hwio_adc_get_val(Adc i_adc); //read analog input
 extern void adc_ready(uint8_t index);
 extern uint8_t adc_seq2idx(uint8_t seq);
 
