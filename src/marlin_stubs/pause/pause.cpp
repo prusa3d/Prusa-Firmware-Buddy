@@ -168,7 +168,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     }
 
     change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 50, 0);
-    while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) == Command::CONTINUE)
+    while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::CONTINUE)
         idle(true);
 
     // Slow Load filament
