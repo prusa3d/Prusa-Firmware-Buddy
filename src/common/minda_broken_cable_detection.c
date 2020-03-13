@@ -6,6 +6,7 @@
 #include "FreeRTOS.h"
 #include "task.h"   //taskENTER_CRITICAL
 #include <string.h> //memset
+#include "MindaRedscreen.h"
 
 #ifndef _DEBUG
     #include "stm32f4xx_hal.h"   //HAL_IWDG_Refresh
