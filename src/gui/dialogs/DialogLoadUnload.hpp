@@ -4,7 +4,7 @@
 #include "dialog_commands.hpp"
 
 //load unload and change filament dialog
-class DialogLoadUnload : public DialogStateful<RadioBtnCount<RadioBtnLoadUnload>()> {
+class DialogLoadUnload : public DialogStateful<CountPhases<PhasesLoadUnload>()> {
 public:
     /* typedef enum {
         Parking,
@@ -24,6 +24,6 @@ public:
     } states_t;*/
 
     DialogLoadUnload(const char *name)
-        : DialogStateful<RadioBtnCount<RadioBtnLoadUnload>()>(name) {}
+        : DialogStateful<CountPhases<PhasesLoadUnload>()>(name) {}
     //virtual void Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {}
 };
