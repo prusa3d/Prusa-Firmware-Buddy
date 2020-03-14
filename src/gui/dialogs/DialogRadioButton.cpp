@@ -12,15 +12,17 @@ RadioButton::RadioButton(const window_t window, const PhaseCommands cmmnds, cons
     , is_enabled(enabled) {
 }
 
+//no overflow
 RadioButton &RadioButton::operator++() {
-    if (btn_count)
-        selected_index = (selected_index + 1) % btn_count;
+    if ((selected_index + 1) < btn_count)
+        ++selected_index; //btn_count can be 0
     return *this;
 }
 
+//no underflow
 RadioButton &RadioButton::operator--() {
-    if (btn_count)
-        selected_index = (selected_index + 1) % btn_count;
+    if (selected_index > 0)
+        --selected_index;
     return *this;
 }
 

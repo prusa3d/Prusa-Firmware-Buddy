@@ -33,8 +33,8 @@ public:
 
     // No postfix increment/decrement operator, it would have to return button by value.
     // it would not be a problem, but buttons are not ment to be used that way
-    RadioButton &operator++(); // Prefix increment operator
-    RadioButton &operator--(); // Prefix decrement operator
+    RadioButton &operator++(); // Prefix increment operator no overflow
+    RadioButton &operator--(); // Prefix decrement operator no underflow
 
     bool Draw();           //draw only when need_redraw, return if did
     void DrawForced();     //draw no matter need_redraw
