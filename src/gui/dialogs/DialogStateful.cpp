@@ -1,10 +1,16 @@
 #include "DialogStateful.hpp"
+#include "DialogRadioButton.hpp"
 #include "window_dlg_statemachine.h"
 #include "gui.h"
 
-//choose 1
-//#define DBG_LOAD_PROGRESS 1
-#define DBG_LOAD_PROGRESS 0
+#include "display_helper.h"
+#include "stm32f4xx_hal.h"
+#include <limits.h>
+#include "button_draw.h"
+#include "window_dlg_change.h"
+#include "marlin_client.h"
+#include "menu_vars.h"
+#include "window_msgbox.h"
 
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
@@ -28,9 +34,80 @@
 #define DLG_MSK_MOD 0x0003     // mode mask
 #define DLG_MSK_CHG DLG_PHA_CH // change flag mask
 
-//data structure defining 1 stateful state
+//button flags
+//combination of enabled and not visible  == do not clear
+#define BT_ENABLED ((uint8_t)(1 << 0))
+//#define BT_VISIBLE  ((uint8_t)(1 << 1))
+#define BT_AUTOEXIT ((uint8_t)(1 << 2))
+
+#define DLG_BT_FLG ((uint8_t)(1 << 0)) //button flag
+#define DLG_CH_CMD ((uint8_t)(1 << 1)) //check marlin_command()
+
+//flags for draw_cb function (user callback)
+#define DLG_DI_US0 ((uint8_t)(1 << 4)) //user flag 0
+#define DLG_DI_US1 ((uint8_t)(1 << 5)) //user flag 1
+#define DLG_DI_US2 ((uint8_t)(1 << 6)) //user flag 2
+#define DLG_DI_US3 ((uint8_t)(1 << 7)) //user flag 3
 
 extern window_t *window_1; //current popup window, C-code remain
+
+typedef struct _window_dlg_statemachine_t window_dlg_statemachine_t;
+
+typedef void(window_draw_dlg_cb_t)(window_dlg_statemachine_t *window);
+//this type does not match to window_event_t .. p_event is pointer
+typedef void(window_event_dlg_cb_t)(window_dlg_statemachine_t *window, uint8_t event, void *param);
+
+#pragma pack(push)
+#pragma pack(1)
+
+//universal dialog vars
+typedef struct
+{
+    uint8_t flags;
+    int8_t phase;
+    int8_t prev_phase;
+    uint8_t progress;
+    uint8_t prev_progress;
+} _dlg_vars;
+
+typedef struct
+{
+    const char **labels;
+    uint8_t flags;
+    window_draw_dlg_cb_t *draw_cb;
+    window_event_dlg_cb_t *event_cb;
+} _dlg_button_t;
+
+typedef struct
+{
+    window_draw_dlg_cb_t *progress_draw;
+    const char *text;
+    const _dlg_button_t *p_button;
+} _dlg_state;
+
+typedef struct
+{
+    const char *title;
+    const _dlg_state *p_states;
+    const size_t count;
+
+} _cl_dlg;
+
+typedef struct _window_dlg_statemachine_t {
+    window_t win;
+    color_t color_back;
+    color_t color_text;
+    font_t *font;
+    font_t *font_title;
+    padding_ui8_t padding;
+    uint16_t flags;
+    uint8_t last_text_h; //hack todo remove me
+
+    const _cl_dlg *_ths;
+    _dlg_vars vars;
+} window_dlg_statemachine_t;
+
+#pragma pack(pop)
 
 extern const _dlg_state test_states[14];
 
@@ -71,15 +148,6 @@ IDialogStateful::~IDialogStateful() {
     window_invalidate(0);
 }
 
-#include "display_helper.h"
-#include "stm32f4xx_hal.h"
-#include <limits.h>
-#include "button_draw.h"
-#include "window_dlg_change.h"
-#include "marlin_client.h"
-#include "menu_vars.h"
-#include "window_msgbox.h"
-
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
 
 extern window_t *window_1; //current popup window
@@ -104,12 +172,7 @@ void window_dlg_statemachine_init(window_dlg_statemachine_t *window) {
     window->vars.phase = 0;
     window->vars.prev_phase = -1;
     window->vars.progress = 0;
-    //window->vars.prev_progress = 0;
-    //window->vars.part_progress = 0;
     window->flags = 0;
-
-    //window->vars.tick_part_start = HAL_GetTick();
-    //window->vars.time_total = _phase_time_total(window->_ths->count - 1, window->_ths);
 }
 
 rect_ui16_t _get_dlg_statemachine_button_size(window_dlg_statemachine_t *window) {
@@ -183,12 +246,6 @@ void window_dlg_statemachine_draw_progress_tot(window_dlg_statemachine_t *window
         progress_draw(window->win.rect, window->font_title, window->color_back,
             window->color_text, window->padding, window->vars.progress);
 }
-/*
-void window_dlg_statemachine_draw_progress_part(window_dlg_statemachine_t *window) {
-    if (window->flags & DLG_PPR_CH)
-        progress_draw(window->win.rect, window->font_title, window->color_back,
-            window->color_text, window->padding, window->vars.part_progress);
-}*/
 
 void window_dlg_statemachine_draw_progress_none(window_dlg_statemachine_t *window) {
     progress_clr(window->win.rect, window->font_title, window->color_back);
@@ -449,23 +506,3 @@ const _dlg_state test_states[] = {
     { window_dlg_statemachine_draw_progress_tot,                                        //was part
         "Purging", &bt_yesno_dis },                                                     //can jump back (state --)
 };
-
-/*
-const _dlg_state test_states[] = {
-    { 0, window_dlg_statemachine_draw_progress_tot, "Parking", &bt_stop_ena },
-    { 2000, window_dlg_statemachine_draw_progress_tot, "Waiting for temp.", &bt_stop_ena },
-    { 1500, window_dlg_statemachine_draw_progress_tot, "Preparing to ram", &bt_stop_dis },
-    { 1500, window_dlg_statemachine_draw_progress_tot, "Ramming", &bt_stop_dis },
-    { 10000, window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis },
-    { 0, window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis },
-    { 0, window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", &bt_cont_ena },
-    { 0, window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", &bt_cont_dis },
-    { 6000, window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis },
-    { 10000, window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", &bt_stop_dis },
-    { 10000, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_stop_dis },
-    { 0, window_dlg_statemachine_draw_progress_tot, "Purging", &bt_none },
-    { 0, window_dlg_statemachine_draw_progress_none, "Is color correct?", &bt_yesno_ena }, //can end (state += 2)
-    { 0, window_dlg_statemachine_draw_progress_tot,//was part
-    "Purging", &bt_yesno_dis },           //can jump back (state --)
-};
-*/
