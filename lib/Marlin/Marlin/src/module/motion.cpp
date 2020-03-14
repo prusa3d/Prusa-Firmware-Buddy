@@ -1282,12 +1282,13 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
 
   const feedRate_t real_fr_mm_s = fr_mm_s ?: homing_feedrate(axis);
 
+  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
   if ((axis == X_AXIS) || (axis == Y_AXIS))
   {
     abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
     target[axis] = 0;
     planner.set_machine_position_mm(target);
-    float dist = (distance > 0)?-1.92F:1.92F;
+    float dist = (distance > 0) ? -MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE;
     target[axis] = dist;
 #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
     const xyze_float_t delta_mm_cart{0};
@@ -1301,6 +1302,7 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
     );
     planner.synchronize();
   }
+  #endif
 
   #if IS_SCARA
     // Tell the planner the axis is at 0
