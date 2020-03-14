@@ -6,7 +6,7 @@
 
 #include <cstdint>
 #include <cstddef>
-
+#include <array>
 enum { COMMAND_BITS = 2,
     MAX_COMMANDS = (1 << COMMAND_BITS) };
 
@@ -22,7 +22,7 @@ enum class Command : uint8_t {
     PURGE_MORE
 };
 
-using PhaseCommands = Command[MAX_COMMANDS];
+using PhaseCommands = std::array<Command, MAX_COMMANDS>;
 
 //count cenum class members (if "_first" and "_last" is defined)
 template <class T>
