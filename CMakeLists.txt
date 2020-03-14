@@ -440,6 +440,7 @@ if(GUI)
     PRIVATE src/gui/screen_menu_filament.c
             src/gui/dialogs/DialogHandler.cpp
             src/gui/dialogs/DialogStateful.cpp
+            src/gui/dialogs/DialogRadioButton.cpp
             src/gui/dialogs/window_dlg_change.cpp
             src/gui/dialogs/window_dlg_load.c
             src/gui/dialogs/window_dlg_wait.c
