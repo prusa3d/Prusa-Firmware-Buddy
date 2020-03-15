@@ -10,11 +10,14 @@ using PhaseTexts = std::array<const char *, MAX_COMMANDS>;
 //if there is more labels than buttons, "additional buttons" are not acessible
 //if there is less labels than buttons, "remaining buttons" have no labels
 class RadioButton {
+public:
     struct window_t {
         font_t *pfont;
         color_t color_back;
         rect_ui16_t rect;
     };
+
+private:
     const window_t &win;
     const PhaseCommands &commands;
     const PhaseTexts &texts;
