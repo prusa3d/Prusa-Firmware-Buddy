@@ -70,6 +70,9 @@ void DialogHandler::close(dialog_t dialog) {
         if (screen_get_curr() == pscreen_printing_serial)
             screen_close();
     }
+    if (dialog == DLG_load_unload) {
+        ptr = nullptr;
+    }
     opened = DLG_count;
 }
 
