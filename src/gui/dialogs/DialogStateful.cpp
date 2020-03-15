@@ -82,13 +82,14 @@ typedef struct
 {
     window_draw_dlg_cb_t *progress_draw;
     const char *text;
-    const _dlg_button_t *p_button;
+    //const _dlg_button_t *p_button;
+    RadioButton radio_btn;
 } _dlg_state;
 
 typedef struct
 {
     const char *title;
-    const _dlg_state *p_states;
+    _dlg_state *p_states;
     const size_t count;
 
 } _cl_dlg;
@@ -103,13 +104,13 @@ typedef struct _window_dlg_statemachine_t {
     uint16_t flags;
     uint8_t last_text_h; //hack todo remove me
 
-    const _cl_dlg *_ths;
+    _cl_dlg *_ths;
     _dlg_vars vars;
 } window_dlg_statemachine_t;
 
 #pragma pack(pop)
 
-extern const _dlg_state test_states[14];
+extern _dlg_state test_states[14];
 
 const char *const test_title = "TEST";
 static _cl_dlg cl_dlg = { test_title, test_states, 14 }; //todo c remains
@@ -183,7 +184,7 @@ rect_ui16_t _get_dlg_statemachine_button_size(window_dlg_statemachine_t *window)
     rc_btn.w -= 12;
     return rc_btn;
 }
-
+/*
 void window_dlg_statemachine_draw_1bt(window_dlg_statemachine_t *window) {
     rect_ui16_t rc_btn = _get_dlg_statemachine_button_size(window);
     const char *label = window->_ths->p_states[window->vars.phase].p_button->labels[0];
@@ -196,7 +197,7 @@ void window_dlg_statemachine_draw_0bt(window_dlg_statemachine_t *window) {
 
     display->fill_rect(rc_btn, window->color_back);
 }
-
+*/
 void _window_dlg_statemachine_draw_frame(window_dlg_statemachine_t *window) {
     rect_ui16_t rc = window->win.rect;
     display->draw_line(point_ui16(rc.x, rc.y), point_ui16(239, rc.y), COLOR_GRAY);
@@ -304,7 +305,7 @@ void window_dlg_statemachine_draw(window_dlg_statemachine_t *window) {
         }
         if (window->flags & DLG_BTN_CH) //button changed
         {
-            window->_ths->p_states[window->vars.phase].p_button->draw_cb(window);
+            window->_ths->p_states[window->vars.phase].radio_btn.Draw();
             window->flags &= ~DLG_BTN_CH;
         }
         if (window->flags & DLG_PRX_CH) //any progress changed
@@ -321,11 +322,22 @@ void window_dlg_statemachine_draw(window_dlg_statemachine_t *window) {
 
 void window_dlg_statemachine_event(window_dlg_statemachine_t *window,
     uint8_t event, void *param) {
-    window_event_dlg_cb_t *event_cb = window->_ths->p_states[window->vars.phase].p_button->event_cb;
-    if (event_cb != NULL)
-        event_cb(window, event, param);
+    RadioButton &btn = window->_ths->p_states[window->vars.phase].radio_btn;
+    switch (event) {
+    case WINDOW_EVENT_BTN_DN:
+    //case WINDOW_EVENT_BTN_UP:
+    case WINDOW_EVENT_CLICK:
+        btn.Click();
+        return;
+    case WINDOW_EVENT_ENC_UP:
+        ++btn;
+        return;
+    case WINDOW_EVENT_ENC_DN:
+        --btn;
+        return;
+    }
 }
-
+/*
 void window_dlg_statemachine_event_1bt(window_dlg_statemachine_t *window,
     uint8_t event, void *param) {
     switch (event) {
@@ -336,7 +348,7 @@ void window_dlg_statemachine_event_1bt(window_dlg_statemachine_t *window,
         return;
     }
 }
-
+*/
 const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
     {
         WINDOW_CLS_USER,
@@ -352,45 +364,7 @@ const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
 #define LD_BT_PURG     DLG_DI_US1 //resume   button for marlin
 #define LD_BT_PURG_SEL DLG_DI_US2 //when flag is 0 active button is done
 
-/*****************************************************************************/
-//buttons
-// is_donelhs_purgerhs == 1 == DONE  is on left hand side and PURGE is on right hand side
-// is_donelhs_purgerhs == 0 == PURGE is on left hand side and DONE  is on right hand side
-// does not effect texts - INTENDED, DO NOT CHANGE IT!!!
-// left text is p_button->labels[0] an right is p_button->labels[1]
-void window_dlg_load_draw_buttons(window_dlg_statemachine_t *window,
-    int is_donelhs_purgerhs) {
-    rect_ui16_t rc_btn = _get_dlg_statemachine_button_size(window);
-    int is_enabled = window->_ths->p_states[window->vars.phase].p_button->flags & BT_ENABLED;
-
-    const char *bt_caption = window->_ths->p_states[window->vars.phase].p_button->labels[0];
-    int is_active = ((window->vars.flags & LD_BT_PURG_SEL) != 0) != (is_donelhs_purgerhs != 0);
-    int16_t btn_width = rc_btn.w / 2 - gui_defaults.btn_spacing;
-
-    rc_btn.w = btn_width;
-    //lhs button
-    button_draw(rc_btn, bt_caption, window->font_title, is_active && is_enabled);
-
-    //more difficult calculations of coords to avoid round errors
-
-    //space between buttons
-    rc_btn.x += btn_width;
-    rc_btn.w = _get_dlg_statemachine_button_size(window).w - rc_btn.w * 2;
-    display->fill_rect(rc_btn, window->color_back);
-
-    //distance of both buttons from screen sides is same
-    rc_btn.x += rc_btn.w;
-    rc_btn.w = btn_width;
-    is_active = !is_active;
-    bt_caption = window->_ths->p_states[window->vars.phase].p_button->labels[1];
-    //rhs button
-    button_draw(rc_btn, bt_caption, window->font_title, is_active && is_enabled);
-}
-
-void window_dlg_load_draw_buttons_cb(window_dlg_statemachine_t *window) {
-    window_dlg_load_draw_buttons(window, 1);
-};
-
+/*
 //have to clear handled events
 void window_dlg_load_event_cb(window_dlg_statemachine_t *window, uint8_t event, void *param) {
     uint8_t *p_flags = &window->vars.flags;
@@ -442,67 +416,34 @@ void window_dlg_load_event_inverted_cb(window_dlg_statemachine_t *window, uint8_
         }
         return;
     }
-}
+}*/
 
 /*****************************************************************************/
 //buttons
 const float ld_purge_amount = 40.0F; //todo is this amount correct?
 
-static const char *txt_stop[] = { "STOP" };
-static const char *txt_cont[] = { "CONTINUE" };
-static const char *txt_disa[] = { "DISABLE SENSOR" };
-static const char *txt_none[] = { "" };
-static const char *txt_yesno[] = { "YES", "NO" };
+static const PhaseTexts txt_stop = { "STOP", "", "", "" };
+static const PhaseTexts txt_cont = { "CONTINUE", "", "", "" };
+static const PhaseTexts txt_disa = { "DISABLE SENSOR", "", "", "" };
+static const PhaseTexts txt_none = { "", "", "", "" };
+static const PhaseTexts txt_yesno = { "YES", "NO", "", "" };
 
-const _dlg_button_t bt_yesno_ena = {
-    txt_yesno, BT_ENABLED, window_dlg_load_draw_buttons_cb, window_dlg_load_event_cb
-};
+static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defaults.color_back, rect_ui16(0, 0, display->w, display->h) };
 
-const _dlg_button_t bt_yesno_dis = {
-    txt_yesno, 0, window_dlg_load_draw_buttons_cb, NULL
-};
-
-const _dlg_button_t bt_stop_ena = {
-    txt_stop, BT_ENABLED | BT_AUTOEXIT,
-    window_dlg_statemachine_draw_1bt, window_dlg_statemachine_event_1bt
-};
-
-const _dlg_button_t bt_stop_dis = {
-    txt_stop, 0, window_dlg_statemachine_draw_1bt, NULL
-};
-
-const _dlg_button_t bt_cont_ena = {
-    txt_cont, BT_ENABLED,
-    window_dlg_statemachine_draw_1bt, window_dlg_statemachine_event_1bt
-};
-
-const _dlg_button_t bt_disable_ena = {
-    txt_disa, BT_ENABLED,
-    window_dlg_statemachine_draw_1bt, window_dlg_statemachine_event_1bt
-};
-
-const _dlg_button_t bt_cont_dis = {
-    txt_cont, 0, window_dlg_statemachine_draw_1bt, NULL
-};
-
-const _dlg_button_t bt_none = {
-    txt_none, 0, window_dlg_statemachine_draw_0bt, NULL
-};
-
-const _dlg_state test_states[] = {
-    { window_dlg_statemachine_draw_progress_tot, "Parking", &bt_stop_ena },
-    { window_dlg_statemachine_draw_progress_tot, "Waiting for temp.", &bt_stop_ena },
-    { window_dlg_statemachine_draw_progress_tot, "Preparing to ram", &bt_stop_dis },
-    { window_dlg_statemachine_draw_progress_tot, "Ramming", &bt_stop_dis },
-    { window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis },
-    { window_dlg_statemachine_draw_progress_tot, "Unloading", &bt_stop_dis },
-    { window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", &bt_cont_ena },
-    { window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", &bt_cont_dis },
-    { window_dlg_statemachine_draw_progress_tot, "Inserting", &bt_stop_dis },
-    { window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", &bt_stop_dis },
-    { window_dlg_statemachine_draw_progress_tot, "Purging", &bt_stop_dis },
-    { window_dlg_statemachine_draw_progress_tot, "Purging", &bt_none },
-    { window_dlg_statemachine_draw_progress_none, "Is color correct?", &bt_yesno_ena }, //can end (state += 2)
-    { window_dlg_statemachine_draw_progress_tot,                                        //was part
-        "Purging", &bt_yesno_dis },                                                     //can jump back (state --)
+_dlg_state test_states[] = {
+    { window_dlg_statemachine_draw_progress_tot, "Parking", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Parking), txt_stop, true) },
+    { window_dlg_statemachine_draw_progress_tot, "Waiting for temp.", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::WaitingTemp), txt_stop, true) },
+    { window_dlg_statemachine_draw_progress_tot, "Preparing to ram", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::PreparingToRam), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Ramming", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Ramming), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Unloading", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Unloading", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading2), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::UserPush), txt_cont, true) },
+    { window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::MakeSureInserted), txt_cont, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Inserting", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Inserting), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Loading), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Purging", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Purging", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging2), txt_none, false) },
+    { window_dlg_statemachine_draw_progress_none, "Is color correct?", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::IsColor), txt_yesno, true) }, //can end (state += 2)
+    { window_dlg_statemachine_draw_progress_tot,                                                                                                                          //was part progress
+        "Purging", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging3), txt_yesno, false) },                                                   //can jump back (state --)
 };
