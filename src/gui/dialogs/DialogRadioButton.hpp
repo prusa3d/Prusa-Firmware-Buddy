@@ -28,7 +28,7 @@ private:
 
     void draw_0_btn() const;
     void draw_1_btn() const;
-    void draw_n_btn() const;
+    void draw_n_btn(size_t btn_count) const;
 
 public:
     RadioButton(const window_t window, const PhaseCommands cmmnds, const PhaseTexts labels, bool enabled = true);
