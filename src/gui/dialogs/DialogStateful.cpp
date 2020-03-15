@@ -22,14 +22,13 @@
 #if DLG_FRAME_ENA == 1
     #define DLG_DRA_FR 0x0800 // draw frame
 #else
-    #define DLG_DRA_FR 0x0000                             // draw frame
-#endif                                                    //DLG_FRAME_ENA == 1
-#define DLG_BTN_CH 0x1000                                 // button changed
-#define DLG_TXT_CH 0x2000                                 // text changed
-#define DLG_PRO_CH 0x4000                                 // progress changed
-#define DLG_PPR_CH 0x8000                                 // part progress changed
-#define DLG_PRX_CH (DLG_PRO_CH | DLG_PPR_CH)              // some progress changed
-#define DLG_PHA_CH (DLG_PRX_CH | DLG_BTN_CH | DLG_TXT_CH) // phase changed
+    #define DLG_DRA_FR 0x0000                // draw frame
+#endif                                       //DLG_FRAME_ENA == 1
+#define DLG_TXT_CH 0x2000                    // text changed
+#define DLG_PRO_CH 0x4000                    // progress changed
+#define DLG_PPR_CH 0x8000                    // part progress changed
+#define DLG_PRX_CH (DLG_PRO_CH | DLG_PPR_CH) // some progress changed
+#define DLG_PHA_CH (DLG_PRX_CH | DLG_TXT_CH) // phase changed
 //dialog flags bitmasks
 #define DLG_MSK_MOD 0x0003     // mode mask
 #define DLG_MSK_CHG DLG_PHA_CH // change flag mask
@@ -40,7 +39,6 @@
 //#define BT_VISIBLE  ((uint8_t)(1 << 1))
 #define BT_AUTOEXIT ((uint8_t)(1 << 2))
 
-#define DLG_BT_FLG ((uint8_t)(1 << 0)) //button flag
 #define DLG_CH_CMD ((uint8_t)(1 << 1)) //check marlin_command()
 
 //flags for draw_cb function (user callback)
@@ -152,14 +150,6 @@ IDialogStateful::~IDialogStateful() {
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
 
 extern window_t *window_1; //current popup window
-
-void set_repaint_btn_flg(window_dlg_statemachine_t *window) {
-    window->flags |= DLG_BTN_CH;
-}
-
-int is_repaint_btn_flg(window_dlg_statemachine_t *window) {
-    return window->flags | DLG_BTN_CH;
-}
 
 void window_dlg_statemachine_init(window_dlg_statemachine_t *window) {
     if (rect_empty_ui16(window->win.rect)) //use display rect if current rect is empty
@@ -297,17 +287,15 @@ void window_dlg_statemachine_draw(window_dlg_statemachine_t *window) {
             window->win.f_invalid = 0;
             window->flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
         }
-        //DLG_PHA_CH == DLG_TXT_CH | DLG_BTN_CH
+        //DLG_PHA_CH == DLG_TXT_CH
         if (window->flags & DLG_TXT_CH) //text changed
         {
             _window_dlg_statemachine_draw_phase_text(window);
             window->flags &= ~DLG_TXT_CH;
         }
-        if (window->flags & DLG_BTN_CH) //button changed
-        {
-            window->_ths->p_states[window->vars.phase].radio_btn.Draw();
-            window->flags &= ~DLG_BTN_CH;
-        }
+        //button knows when it needs to be repainted
+        window->_ths->p_states[window->vars.phase].radio_btn.Draw();
+
         if (window->flags & DLG_PRX_CH) //any progress changed
         {
             window->_ths->p_states[window->vars.phase].progress_draw(window);
@@ -337,18 +325,7 @@ void window_dlg_statemachine_event(window_dlg_statemachine_t *window,
         return;
     }
 }
-/*
-void window_dlg_statemachine_event_1bt(window_dlg_statemachine_t *window,
-    uint8_t event, void *param) {
-    switch (event) {
-    case WINDOW_EVENT_BTN_DN:
-    //case WINDOW_EVENT_BTN_UP:
-    case WINDOW_EVENT_CLICK:
-        window->vars.flags |= DLG_BT_FLG;
-        return;
-    }
-}
-*/
+
 const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
     {
         WINDOW_CLS_USER,
@@ -359,64 +336,6 @@ const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
         (window_event_t *)window_dlg_statemachine_event,
     },
 };
-/*
-#define LD_BT_DONE     DLG_DI_US0 //continue button for marlin
-#define LD_BT_PURG     DLG_DI_US1 //resume   button for marlin
-#define LD_BT_PURG_SEL DLG_DI_US2 //when flag is 0 active button is done
-
-
-//have to clear handled events
-void window_dlg_load_event_cb(window_dlg_statemachine_t *window, uint8_t event, void *param) {
-    uint8_t *p_flags = &window->vars.flags;
-    switch (event) {
-    case WINDOW_EVENT_BTN_DN:
-    case WINDOW_EVENT_CLICK:
-        if ((*p_flags) & LD_BT_PURG_SEL)
-            window->vars.flags |= LD_BT_PURG; //set purge button
-        else
-            window->vars.flags |= LD_BT_DONE; //set done  button
-        return;
-    case WINDOW_EVENT_ENC_DN:
-        if ((*p_flags) & LD_BT_PURG_SEL) {
-            (*p_flags) &= ~LD_BT_PURG_SEL;
-            set_repaint_btn_flg(window); //set window flag - wil repaint buttons
-        }
-        return;
-    case WINDOW_EVENT_ENC_UP:
-        if (!((*p_flags) & LD_BT_PURG_SEL)) {
-            (*p_flags) |= LD_BT_PURG_SEL;
-            set_repaint_btn_flg(window); //set window flag - wil repaint buttons
-        }
-        return;
-    }
-}
-
-//todo copy - paste (safer before release) fixme
-//have to clear handled events
-void window_dlg_load_event_inverted_cb(window_dlg_statemachine_t *window, uint8_t event, void *param) {
-    uint8_t *p_flags = &window->vars.flags;
-    switch (event) {
-    case WINDOW_EVENT_BTN_DN:
-    case WINDOW_EVENT_CLICK:
-        if ((*p_flags) & LD_BT_PURG_SEL)
-            window->vars.flags |= LD_BT_PURG; //set purge button
-        else
-            window->vars.flags |= LD_BT_DONE; //set done  button
-        return;
-    case WINDOW_EVENT_ENC_UP:
-        if ((*p_flags) & LD_BT_PURG_SEL) {
-            (*p_flags) &= ~LD_BT_PURG_SEL;
-            set_repaint_btn_flg(window); //set window flag - wil repaint buttons
-        }
-        return;
-    case WINDOW_EVENT_ENC_DN:
-        if (!((*p_flags) & LD_BT_PURG_SEL)) {
-            (*p_flags) |= LD_BT_PURG_SEL;
-            set_repaint_btn_flg(window); //set window flag - wil repaint buttons
-        }
-        return;
-    }
-}*/
 
 /*****************************************************************************/
 //buttons
