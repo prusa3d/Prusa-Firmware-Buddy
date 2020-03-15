@@ -42,7 +42,7 @@ void RadioButton::DrawForced() {
         draw_1_btn(); //could use draw_n_btn, but this is much faster
         break;
     default:
-        draw_n_btn();
+        draw_n_btn(btn_count);
         break;
     }
 
@@ -61,26 +61,25 @@ void RadioButton::draw_1_btn() const {
     button_draw(win.rect, texts[0], win.pfont, is_enabled);
 }
 
-void RadioButton::draw_n_btn() const {
+void RadioButton::draw_n_btn(size_t btn_count) const {
     rect_ui16_t rc_btn = win.rect;
 
-    int16_t btn_width = rc_btn.w / 2 - gui_defaults.btn_spacing;
+    int16_t btn_width = rc_btn.w / btn_count - gui_defaults.btn_spacing * (btn_count - 1);
 
     rc_btn.w = btn_width;
     //lhs button
-    button_draw(rc_btn, texts[0], win.pfont, selected_index == 0 && is_enabled);
+    for (size_t i = 0; i < btn_count; ++i) {
+        button_draw(rc_btn, texts[i], win.pfont, selected_index == i && is_enabled);
 
-    //more difficult calculations of coords to avoid round errors
+        if (i + 1 < btn_count) {
+            //space between buttons
+            rc_btn.x += btn_width;
+            rc_btn.w = gui_defaults.btn_spacing;
+            display->fill_rect(rc_btn, win.color_back);
 
-    //space between buttons
-    rc_btn.x += btn_width;
-    rc_btn.w = win.rect.w - rc_btn.w * 2;
-    display->fill_rect(rc_btn, win.color_back);
-
-    //distance of both buttons from screen sides is same
-    rc_btn.x += rc_btn.w;
-    rc_btn.w = btn_width;
-
-    //rhs button
-    button_draw(rc_btn, texts[1], win.pfont, selected_index == 1 && is_enabled);
+            //nextbutton coords
+            rc_btn.x += gui_defaults.btn_spacing;
+            rc_btn.w = btn_width;
+        }
+    }
 }
