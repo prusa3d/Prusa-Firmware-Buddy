@@ -77,16 +77,16 @@ class DialogCommands {
     static const PhaseCommands TestButtons[CountPhases<PhasesTest>()];
 
     //methods to "bind" button array with enum type
-    static const Command *getCommandsInPhase(PhasesLoadUnload phase) { return &(LoadUnloadButtons[static_cast<size_t>(phase)][0]); }
-    static const Command *getCommandsInPhase(PhasesTest phase) { return &(TestButtons[static_cast<size_t>(phase)][0]); }
+    static const PhaseCommands &getCommandsInPhase(PhasesLoadUnload phase) { return LoadUnloadButtons[static_cast<size_t>(phase)]; }
+    static const PhaseCommands &getCommandsInPhase(PhasesTest phase) { return TestButtons[static_cast<size_t>(phase)]; }
 
 protected:
     //get index of single command in PhaseCommands
     template <class T>
     static uint8_t GetIndex(T phase, Command command) {
-        const Command *pCmds = getCommandsInPhase(phase);
+        const PhaseCommands &cmds = getCommandsInPhase(phase);
         for (size_t i = 0; i < MAX_COMMANDS; ++i) {
-            if (pCmds[i] == command)
+            if (cmds[i] == command)
                 return i;
         }
         return -1;
@@ -97,11 +97,17 @@ protected:
     static Command GetCommand(T phase, uint8_t index) {
         if (index > MAX_COMMANDS)
             return Command::_NONE;
-        const Command *pCmds = getCommandsInPhase(phase);
-        return pCmds[index];
+        const PhaseCommands &cmds = getCommandsInPhase(phase);
+        return cmds[index];
     }
 
 public:
+    //get all commands for phase
+    template <class T>
+    static const PhaseCommands &GetCommands(T phase) {
+        return getCommandsInPhase(phase);
+    }
+
     //encode radio button and clicked index into int
     //use on client side
     template <class T>
