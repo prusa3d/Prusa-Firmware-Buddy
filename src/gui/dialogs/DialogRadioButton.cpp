@@ -53,22 +53,12 @@ Command RadioButton::Click() const {
     return commands[selected_index];
 }
 
-rect_ui16_t RadioButton::get_button_size() const {
-    rect_ui16_t rc_btn = win.rect;
-    rc_btn.y += (rc_btn.h - 40); // 30pixels for button (+ 10 space for grey frame)
-    rc_btn.h = 30;
-    rc_btn.x += 6;
-    rc_btn.w -= 12;
-    return rc_btn;
-}
-
 void RadioButton::draw_0_btn() const {
     display->fill_rect(win.rect, win.color_back);
 }
 
 void RadioButton::draw_1_btn() const {
-    rect_ui16_t rc_btn = get_button_size();
-    button_draw(rc_btn, texts[0], win.pfont, is_enabled);
+    button_draw(win.rect, texts[0], win.pfont, is_enabled);
 }
 
 void RadioButton::draw_n_btn() const {
@@ -84,7 +74,7 @@ void RadioButton::draw_n_btn() const {
 
     //space between buttons
     rc_btn.x += btn_width;
-    rc_btn.w = get_button_size().w - rc_btn.w * 2;
+    rc_btn.w = win.rect.w - rc_btn.w * 2;
     display->fill_rect(rc_btn, win.color_back);
 
     //distance of both buttons from screen sides is same
