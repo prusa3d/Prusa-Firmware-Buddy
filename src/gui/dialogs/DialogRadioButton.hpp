@@ -26,7 +26,6 @@ private:
     bool need_redraw : 1;
     bool is_enabled : 1;
 
-    rect_ui16_t get_button_size() const;
     void draw_0_btn() const;
     void draw_1_btn() const;
     void draw_n_btn() const;

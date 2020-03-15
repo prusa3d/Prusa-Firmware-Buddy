@@ -63,7 +63,7 @@ typedef void(window_event_dlg_cb_t)(window_dlg_statemachine_t *window, uint8_t e
 //universal dialog vars
 typedef struct
 {
-    uint8_t flags;
+    //uint8_t flags;
     int8_t phase;
     int8_t prev_phase;
     uint8_t progress;
@@ -175,7 +175,7 @@ void window_dlg_statemachine_init(window_dlg_statemachine_t *window) {
     window->vars.progress = 0;
     window->flags = 0;
 }
-
+/*
 rect_ui16_t _get_dlg_statemachine_button_size(window_dlg_statemachine_t *window) {
     rect_ui16_t rc_btn = window->win.rect;
     rc_btn.y += (rc_btn.h - 40); // 30pixels for button (+ 10 space for grey frame)
@@ -184,7 +184,7 @@ rect_ui16_t _get_dlg_statemachine_button_size(window_dlg_statemachine_t *window)
     rc_btn.w -= 12;
     return rc_btn;
 }
-/*
+
 void window_dlg_statemachine_draw_1bt(window_dlg_statemachine_t *window) {
     rect_ui16_t rc_btn = _get_dlg_statemachine_button_size(window);
     const char *label = window->_ths->p_states[window->vars.phase].p_button->labels[0];
@@ -359,12 +359,12 @@ const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
         (window_event_t *)window_dlg_statemachine_event,
     },
 };
-
+/*
 #define LD_BT_DONE     DLG_DI_US0 //continue button for marlin
 #define LD_BT_PURG     DLG_DI_US1 //resume   button for marlin
 #define LD_BT_PURG_SEL DLG_DI_US2 //when flag is 0 active button is done
 
-/*
+
 //have to clear handled events
 void window_dlg_load_event_cb(window_dlg_statemachine_t *window, uint8_t event, void *param) {
     uint8_t *p_flags = &window->vars.flags;
@@ -428,7 +428,16 @@ static const PhaseTexts txt_disa = { "DISABLE SENSOR", "", "", "" };
 static const PhaseTexts txt_none = { "", "", "", "" };
 static const PhaseTexts txt_yesno = { "YES", "NO", "", "" };
 
-static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defaults.color_back, rect_ui16(0, 0, display->w, display->h) };
+rect_ui16_t _get_dlg_statemachine_button_size() {
+    rect_ui16_t rc_btn = rect_ui16(0, 0, display->w, display->h);
+    rc_btn.y += (rc_btn.h - 40); // 30pixels for button (+ 10 space for grey frame)
+    rc_btn.h = 30;
+    rc_btn.x += 6;
+    rc_btn.w -= 12;
+    return rc_btn;
+}
+
+static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defaults.color_back, _get_dlg_statemachine_button_size() };
 
 _dlg_state test_states[] = {
     { window_dlg_statemachine_draw_progress_tot, "Parking", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Parking), txt_stop, true) },
