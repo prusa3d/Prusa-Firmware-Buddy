@@ -6,8 +6,6 @@
 #include "window.h"
 #include "dlg_result.h"
 
-extern int16_t WINDOW_CLS_DLG_LOADUNLOAD;
-
 #pragma pack(push)
 #pragma pack(1)
 

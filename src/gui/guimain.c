@@ -24,6 +24,8 @@
     #include "screen_print_preview.h"
 #endif //LCDSIM
 
+extern int16_t WINDOW_CLS_DLG_LOADUNLOAD;
+
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
 #include "DialogHandler.h"
