@@ -2,7 +2,6 @@
 
 #include "DialogStateful.hpp"
 #include "dialog_commands.hpp"
-extern int16_t WINDOW_CLS_DLG_LOADUNLOAD;
 
 constexpr size_t DialogLoadUnloadPhases = CountPhases<PhasesLoadUnload>();
 
@@ -29,6 +28,7 @@ public:
     } states_t;*/
 
     DialogLoadUnload(const char *name);
-    //virtual void Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {}
+    static void c_draw(window_t *win);
+    static void c_event(window_t *win, uint8_t event, void *param);
 };
 #pragma pack(pop)

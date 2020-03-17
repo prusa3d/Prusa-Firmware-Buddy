@@ -14,7 +14,7 @@
     #include "window_file_list.h"
     #include "window_header.h"
     #include "window_temp_graph.h"
-    #include "window_dlg_statemachine.h"
+    #include "DialogLoadUnload.h"
     #include "window_dlg_wait.h"
     #ifdef _DEBUG
         #include "window_dlg_popup.h"
@@ -23,8 +23,6 @@
     #include "window_dlg_change.h"
     #include "screen_print_preview.h"
 #endif //LCDSIM
-
-extern int16_t WINDOW_CLS_DLG_LOADUNLOAD;
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
