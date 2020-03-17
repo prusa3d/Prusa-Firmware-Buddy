@@ -1,6 +1,5 @@
 #include "DialogStateful.hpp"
 #include "DialogRadioButton.hpp"
-#include "window_dlg_statemachine.h"
 #include "gui.h"
 
 #include "display_helper.h"
@@ -12,108 +11,10 @@
 #include "menu_vars.h"
 #include "window_msgbox.h"
 
-//#define DLG_FRAME_ENA 1
-#define DLG_FRAME_ENA 0
-
-//dialog flags bitshift
-#define DLG_SHI_MOD 4  // mode shift
-#define DLG_SHI_CHG 14 // change flag shift
-
-#if DLG_FRAME_ENA == 1
-    #define DLG_DRA_FR 0x0800 // draw frame
-#else
-    #define DLG_DRA_FR 0x0000                // draw frame
-#endif                                       //DLG_FRAME_ENA == 1
-#define DLG_TXT_CH 0x2000                    // text changed
-#define DLG_PRO_CH 0x4000                    // progress changed
-#define DLG_PPR_CH 0x8000                    // part progress changed
-#define DLG_PRX_CH (DLG_PRO_CH | DLG_PPR_CH) // some progress changed
-#define DLG_PHA_CH (DLG_PRX_CH | DLG_TXT_CH) // phase changed
-//dialog flags bitmasks
-#define DLG_MSK_MOD 0x0003     // mode mask
-#define DLG_MSK_CHG DLG_PHA_CH // change flag mask
-
-//button flags
-//combination of enabled and not visible  == do not clear
-#define BT_ENABLED ((uint8_t)(1 << 0))
-//#define BT_VISIBLE  ((uint8_t)(1 << 1))
-#define BT_AUTOEXIT ((uint8_t)(1 << 2))
-
-#define DLG_CH_CMD ((uint8_t)(1 << 1)) //check marlin_command()
-
-//flags for draw_cb function (user callback)
-#define DLG_DI_US0 ((uint8_t)(1 << 4)) //user flag 0
-#define DLG_DI_US1 ((uint8_t)(1 << 5)) //user flag 1
-#define DLG_DI_US2 ((uint8_t)(1 << 6)) //user flag 2
-#define DLG_DI_US3 ((uint8_t)(1 << 7)) //user flag 3
-
 extern window_t *window_1; //current popup window, C-code remain
 
-//typedef struct _window_dlg_statemachine_t window_dlg_statemachine_t;
-
-typedef void(window_draw_dlg_cb_t)(window_dlg_statemachine_t *window);
-//this type does not match to window_event_t .. p_event is pointer
-typedef void(window_event_dlg_cb_t)(window_dlg_statemachine_t *window, uint8_t event, void *param);
-/*
-#pragma pack(push)
-#pragma pack(1)
-
-//universal dialog vars
-typedef struct
-{
-    //uint8_t flags;
-    int8_t phase;
-    int8_t prev_phase;
-    uint8_t progress;
-    uint8_t prev_progress;
-} _dlg_vars;
-
-
-typedef struct
-{
-    window_draw_dlg_cb_t *progress_draw;
-    const char *text;
-    RadioButton radio_btn;
-} _dlg_state;
-
-typedef struct
-{
-    const char *title;
-    _dlg_state *p_states;
-    const size_t count;
-
-} _cl_dlg;
-
-typedef struct _window_dlg_statemachine_t {
-    window_t win;
-    color_t color_back;
-    color_t color_text;
-    font_t *font;
-    font_t *font_title;
-    padding_ui8_t padding;
-    uint16_t flags;
-    uint8_t last_text_h; //hack todo remove me
-
-//std::array
-    _cl_dlg *_ths;
-    _dlg_vars vars;
-} window_dlg_statemachine_t;
-
-#pragma pack(pop)
-*/
-//extern _dlg_state test_states[14];
-
 const char *const test_title = "TEST";
-//static _cl_dlg cl_dlg = { test_title, test_states, 14 }; //todo c remains
-/*
-constexpr window_dlg_statemachine_t dlg_init() {
-    window_dlg_statemachine_t ret = {};
-    ret._ths = &cl_dlg;
-    return ret;
-}
 
-static window_dlg_statemachine_t dlg = dlg_init(); //todo c remains
-*/
 //*****************************************************************************
 //DlgVars
 DlgVars::DlgVars()
@@ -124,9 +25,9 @@ DlgVars::DlgVars()
 
 //*****************************************************************************
 //DlgStatemachine
-DlgStatemachine::DlgStatemachine(window_t win, const char *tit)
-    : window_t(win)
-    , color_back(gui_defaults.color_back)
+/*
+DlgStatemachine::DlgStatemachine(const char *tit)
+    :  color_back(gui_defaults.color_back)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , font_title(gui_defaults.font_big)
@@ -134,36 +35,42 @@ DlgStatemachine::DlgStatemachine(window_t win, const char *tit)
     , flags(0)
     , last_text_h(0)
     , title(tit) {
-    if (rect_empty_ui16(rect)) //use display rect if current rect is empty
-        rect = rect_ui16(0, 0, display->w, display->h);
-    flg |= WINDOW_FLG_ENABLED; //enabled by default
-}
+}*/
 
 //*****************************************************************************
 
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
-    : WINDOW_CLS(WINDOW_CLS_)
+    : IDialog(winCreate(WINDOW_CLS))
+    , WINDOW_CLS(WINDOW_CLS_)
     , id_capture(window_capture())
-    , data(winCreate(WINDOW_CLS), name) {
+#warning check id_capture(window_capture())
+    , color_back(gui_defaults.color_back)
+    , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
+    , font_title(gui_defaults.font_big)
+    , padding(gui_defaults.padding)
+    , flags(0)
+    , last_text_h(0)
+    , title(name) {
     //  err dlg nezna stavy a count
     //, id(window_create_ptr(WINDOW_CLS_DLG_LOADUNLOAD, 0, gui_defaults.msg_box_sz, &dlg))
 
-    window_1 = &data; //todo
+    window_1 = this; //todo
     gui_reset_jogwheel();
     gui_invalidate();
-    window_set_capture(data.id);
+    window_set_capture(id);
 }
 
 void IDialogStateful::Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    data.dlg_vars.phase = phase;
-    data.flags |= DLG_PHA_CH;
+    dlg_vars.phase = phase;
+    flags |= DLG_PHA_CH;
     //dlg.vars.phase = phase;
     //dlg.flags |= DLG_PHA_CH;
     gui_invalidate();
 }
 
 IDialogStateful::~IDialogStateful() {
-    window_destroy(data.id);
+    window_destroy(id);
     window_set_capture(id_capture);
     window_invalidate(0);
 }
@@ -185,14 +92,15 @@ void window_dlg_statemachine_init(window_dlg_statemachine_t *window) {
     window->flags = 0;
 }
 */
-void _window_dlg_statemachine_draw_frame(window_dlg_statemachine_t *window) {
-    rect_ui16_t rc = window->win.rect;
+void IDialogStateful::draw_frame() {
+    rect_ui16_t rc = rect;
     display->draw_line(point_ui16(rc.x, rc.y), point_ui16(239, rc.y), COLOR_GRAY);
     display->draw_line(point_ui16(rc.x, rc.y), point_ui16(rc.x, 320 - 67), COLOR_GRAY);
     display->draw_line(point_ui16(239, rc.y), point_ui16(239, 320 - 67), COLOR_GRAY);
     display->draw_line(point_ui16(rc.x, 320 - 67), point_ui16(239, 320 - 67), COLOR_GRAY);
 }
 
+//this should be moved elswhere
 void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     color_t color_text, padding_ui8_t padding, uint8_t progress) {
     rect_ui16_t rc_pro = win_rect; //must copy it
@@ -215,7 +123,7 @@ void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     render_text_align(rc_pro, text, font, color_back, color_text, padding, ALIGN_CENTER);
 }
 
-void progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
+void IDialogStateful::progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
     rect_ui16_t rc_pro = win_rect; //must copy it
     rc_pro.x += 10;
     rc_pro.w -= 20;
@@ -229,18 +137,18 @@ void progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
     display->fill_rect(rc_pro, color_back);
 }
 
-void window_dlg_statemachine_draw_progress_tot(window_dlg_statemachine_t *window) {
+void IDialogStateful::_draw_progress_tot(IDialogStateful *window) {
     if (window->flags & DLG_PRO_CH)
-        progress_draw(window->win.rect, window->font_title, window->color_back,
-            window->color_text, window->padding, window->vars.progress);
+        progress_draw(window->rect, window->font_title, window->color_back,
+            window->color_text, window->padding, window->dlg_vars.progress);
 }
 
-void window_dlg_statemachine_draw_progress_none(window_dlg_statemachine_t *window) {
-    progress_clr(window->win.rect, window->font_title, window->color_back);
+void IDialogStateful::_draw_progress_none(IDialogStateful *window) {
+    progress_clr(window->rect, window->font_title, window->color_back);
 }
-
-void _window_dlg_statemachine_draw_phase_text(window_dlg_statemachine_t *window) {
-    rect_ui16_t rc_sta = window->win.rect;
+/*
+void IDialogStateful::_draw_phase_text(IDialogStateful *window) {
+    rect_ui16_t rc_sta = window->rect;
     size_t nl; //number of new lines
     const char *s = window->_ths->p_states[window->vars.phase].text;
     for (nl = 0; s[nl]; s[nl] == '\n' ? nl++ : *s++)
@@ -266,11 +174,11 @@ void _window_dlg_statemachine_draw_phase_text(window_dlg_statemachine_t *window)
         window->color_back, window->color_text, window->padding, ALIGN_CENTER);
 }
 
-void window_dlg_statemachine_draw(window_dlg_statemachine_t *window) {
-    if ((window->win.f_visible) && ((size_t)(window->vars.phase) < window->_ths->count)) {
-        rect_ui16_t rc = window->win.rect;
+void IDialogStateful::draw(IDialogStateful *window) {
+    if ((window->f_visible) && ((size_t)(window->dlg_vars.phase) < window->_ths->count)) {
+        rect_ui16_t rc = window->rect;
 
-        if (window->win.f_invalid) {
+        if (window->f_invalid) {
             display->fill_rect(rc, window->color_back);
             rect_ui16_t rc_tit = rc;
             rc_tit.h = 30; // 30pixels for title
@@ -278,10 +186,10 @@ void window_dlg_statemachine_draw(window_dlg_statemachine_t *window) {
             //			rc_tit.w -= 30;
             //			rc_tit.x += 30;
             //title
-            render_text_align(rc_tit, window->_ths->title, window->font_title,
+            render_text_align(rc_tit, window->title, window->font_title,
                 window->color_back, window->color_text, window->padding, ALIGN_CENTER);
 
-            window->win.f_invalid = 0;
+            window->f_invalid = 0;
             window->flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
         }
         //DLG_PHA_CH == DLG_TXT_CH
@@ -305,8 +213,7 @@ void window_dlg_statemachine_draw(window_dlg_statemachine_t *window) {
     }
 }
 
-void window_dlg_statemachine_event(window_dlg_statemachine_t *window,
-    uint8_t event, void *param) {
+void IDialogStateful::event(IDialogStateful *window, uint8_t event, void *param) {
     RadioButton &btn = window->_ths->p_states[window->vars.phase].radio_btn;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
@@ -321,78 +228,4 @@ void window_dlg_statemachine_event(window_dlg_statemachine_t *window,
         --btn;
         return;
     }
-}
-
-const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(window_dlg_statemachine_t),
-        0, //(window_init_t *)window_dlg_statemachine_init,
-        0,
-        (window_draw_t *)window_dlg_statemachine_draw,
-        (window_event_t *)window_dlg_statemachine_event,
-    },
-};
-
-/*****************************************************************************/
-//buttons
-const float ld_purge_amount = 40.0F; //todo is this amount correct?
-                                     /*
-static const PhaseTexts txt_stop = { "STOP", "", "", "" };
-static const PhaseTexts txt_cont = { "CONTINUE", "", "", "" };
-static const PhaseTexts txt_disa = { "DISABLE SENSOR", "", "", "" };
-static const PhaseTexts txt_none = { "", "", "", "" };
-static const PhaseTexts txt_yesno = { "YES", "NO", "", "" };
-*/
-
-/*
-static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defaults.color_back, _get_dlg_statemachine_button_size() };
-
-_dlg_state test_states[] = {
-    { window_dlg_statemachine_draw_progress_tot, "Parking", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Parking), txt_stop, true) },
-    { window_dlg_statemachine_draw_progress_tot, "Waiting for temp.", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::WaitingTemp), txt_stop, true) },
-    { window_dlg_statemachine_draw_progress_tot, "Preparing to ram", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::PreparingToRam), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Ramming", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Ramming), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Unloading", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Unloading", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading2), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::UserPush), txt_cont, true) },
-    { window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::MakeSureInserted), txt_cont, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Inserting", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Inserting), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Loading), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Purging", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Purging", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging2), txt_none, false) },
-    { window_dlg_statemachine_draw_progress_none, "Is color correct?", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::IsColor), txt_yesno, true) }, //can end (state += 2)
-    { window_dlg_statemachine_draw_progress_tot,                                                                                                                          //was part progress
-        "Purging", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging3), txt_yesno, false) },                                                   //can jump back (state --)
-};
-*/
-/*
-const RadioButton::window_t& radio_win(){
-    static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defaults.color_back, _get_dlg_statemachine_button_size() };
-    return radio_win;
-}
-
-
-
-
-std::array<_dlg_state,14>& get_test_states(){
-
-
-static std::array<_dlg_state,14> test_states = {
-    { window_dlg_statemachine_draw_progress_tot, "Parking", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Parking), txt_stop, true) }
-    { window_dlg_statemachine_draw_progress_tot, "Waiting for temp.", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::WaitingTemp), txt_stop, true) },
-    { window_dlg_statemachine_draw_progress_tot, "Preparing to ram", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::PreparingToRam), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Ramming", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Ramming), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Unloading", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Unloading), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Unloading", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Unloading2), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::UserPush), txt_cont, true) },
-    { window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::MakeSureInserted), txt_cont, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Inserting", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Inserting), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Loading), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Purging", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Purging), txt_stop, false) },
-    { window_dlg_statemachine_draw_progress_tot, "Purging", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Purging2), txt_none, false) },
-    { window_dlg_statemachine_draw_progress_none, "Is color correct?", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::IsColor), txt_yesno, true) }, //can end (state += 2)
-    { window_dlg_statemachine_draw_progress_tot,  "Purging", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Purging3), txt_yesno, false) }                                                   //can jump back (state --)
-};
-return test_states;
 }*/
