@@ -5,6 +5,7 @@
 extern int16_t WINDOW_CLS_DLG_LOADUNLOAD;
 
 constexpr size_t DialogLoadUnloadPhases = CountPhases<PhasesLoadUnload>();
+
 #pragma pack(push)
 #pragma pack(1)
 //load unload and change filament dialog

@@ -99,11 +99,11 @@ protected:
         return ret;
     }
 
-    void DrawProgress() {}
+    virtual bool can_change(uint8_t phase) = 0;
 
 public:
     IDialogStateful(const char *name, int16_t WINDOW_CLS_);
-    virtual void Change(uint8_t phase, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
+    bool Change(uint8_t phase, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
     virtual ~IDialogStateful();
 
     static constexpr rect_ui16_t get_radio_button_size() {
@@ -119,10 +119,9 @@ private:
     void _progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
         color_t color_text, padding_ui8_t padding, uint8_t progress);
     void _progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back);
-    void _draw_progress_tot(IDialogStateful *window);
-    void _draw_progress_none(IDialogStateful *window);
 
 protected:
+    void draw_phase_text(const char *text);
     void draw_frame();
     void draw_progress();
 };
@@ -141,7 +140,7 @@ public:
         , states(st) {};
 
 protected:
-    static void _draw_phase_text(DialogStateful<SZ> *window);
+    virtual bool can_change(uint8_t phase) { return phase < SZ; }
 
 public:
     static void draw(DialogStateful<SZ> *window);
@@ -151,6 +150,7 @@ public:
 
 /*****************************************************************************/
 //template definitions
+/*
 template <int SZ>
 void DialogStateful<SZ>::_draw_phase_text(DialogStateful<SZ> *window) {
     rect_ui16_t rc_sta = window->rect;
@@ -178,11 +178,14 @@ void DialogStateful<SZ>::_draw_phase_text(DialogStateful<SZ> *window) {
     render_text_align(rc_sta, window->_ths->p_states[window->vars.phase].text, window->font_title,
         window->color_back, window->color_text, window->padding, ALIGN_CENTER);
 }
-
+*/
 template <int SZ>
 void DialogStateful<SZ>::draw(DialogStateful<SZ> *window) {
-    if ((window->f_visible) && ((size_t)(window->dlg_vars.phase) < window->states.size())) {
+    if ((window->f_visible)
+        //&& ((size_t)(window->dlg_vars.phase) < window->states.size()) // no need to check
+    ) {
         RadioButton &radio = std::get<RadioButton>(window->states[window->dlg_vars.phase]);
+        const char *text = std::get<const char *>(window->states[window->dlg_vars.phase]);
         rect_ui16_t rc = window->rect;
 
         if (window->f_invalid) {
@@ -202,7 +205,7 @@ void DialogStateful<SZ>::draw(DialogStateful<SZ> *window) {
         //DLG_PHA_CH == DLG_TXT_CH
         if (window->flags & DLG_TXT_CH) //text changed
         {
-            _draw_phase_text(window);
+            window->draw_phase_text(text);
             window->flags &= ~DLG_TXT_CH;
         }
         //button knows when it needs to be repainted
@@ -210,11 +213,11 @@ void DialogStateful<SZ>::draw(DialogStateful<SZ> *window) {
 
         if (window->flags & DLG_PRX_CH) //any progress changed
         {
-            window->state.progress_draw(window);
+            window->draw_progress();
             window->flags &= ~DLG_PRX_CH;
         }
         if (window->flags & DLG_DRA_FR) { //draw frame
-            _window_dlg_statemachine_draw_frame(window);
+            window->draw_frame();
             window->flags &= ~DLG_DRA_FR;
         }
     }
@@ -222,18 +225,18 @@ void DialogStateful<SZ>::draw(DialogStateful<SZ> *window) {
 
 template <int SZ>
 void DialogStateful<SZ>::event(DialogStateful<SZ> *window, uint8_t event, void *param) {
-    RadioButton &btn = window->_ths->p_states[window->vars.phase].radio_btn;
+    RadioButton &radio = std::get<RadioButton>(window->states[window->dlg_vars.phase]);
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     //case WINDOW_EVENT_BTN_UP:
     case WINDOW_EVENT_CLICK:
-        btn.Click();
+        radio.Click();
         return;
     case WINDOW_EVENT_ENC_UP:
-        ++btn;
+        ++radio;
         return;
     case WINDOW_EVENT_ENC_DN:
-        --btn;
+        --radio;
         return;
     }
 }
