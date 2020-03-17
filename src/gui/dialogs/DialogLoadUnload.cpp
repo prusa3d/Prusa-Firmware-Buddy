@@ -1,7 +1,13 @@
 #include "DialogLoadUnload.hpp"
-#include "window_dlg_statemachine.h"
+#include "DialogLoadUnload.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
+#ifdef __cplusplus
+}
+#endif //__cplusplus
 
 static const PhaseTexts txt_stop = { "STOP", "", "", "" };
 static const PhaseTexts txt_cont = { "CONTINUE", "", "", "" };
@@ -46,6 +52,18 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 DialogLoadUnload::DialogLoadUnload(const char *name)
     : DialogStateful<CountPhases<PhasesLoadUnload>()>(name, WINDOW_CLS_DLG_LOADUNLOAD, LoadUnloadFactory()) {}
 
+void DialogLoadUnload::c_draw(window_t *win) {
+    IDialog *ptr = cast(win);
+    DialogLoadUnload *ths = dynamic_cast<DialogLoadUnload *>(ptr);
+    ths->draw();
+}
+
+void DialogLoadUnload::c_event(window_t *win, uint8_t event, void *param) {
+    IDialog *ptr = cast(win);
+    DialogLoadUnload *ths = dynamic_cast<DialogLoadUnload *>(ptr);
+    ths->event(event, param);
+}
+
 const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
     {
         WINDOW_CLS_USER,
@@ -53,7 +71,7 @@ const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
 #warning is this right?
         0, //(window_init_t *)window_dlg_statemachine_init,
         0,
-        (window_draw_t *)DialogLoadUnload::draw,
-        (window_event_t *)DialogLoadUnload::event,
+        (window_draw_t *)DialogLoadUnload::c_draw,
+        (window_event_t *)DialogLoadUnload::c_event,
     },
 };

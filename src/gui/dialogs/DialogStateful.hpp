@@ -48,7 +48,6 @@ public:
     using State = std::tuple<const char *, RadioButton>;
 
 protected:
-    int16_t WINDOW_CLS;
     int16_t id_capture;
 
     color_t color_back;
@@ -61,12 +60,6 @@ protected:
 
     const char *title;
     DlgVars dlg_vars;
-
-    static window_t winCreate(int16_t WINDOW_CLS_) {
-        window_t ret;
-        window_create_ptr(WINDOW_CLS_, 0, gui_defaults.msg_box_sz, &ret);
-        return ret;
-    }
 
     virtual bool can_change(uint8_t phase) = 0;
 
@@ -112,60 +105,60 @@ protected:
     virtual bool can_change(uint8_t phase) { return phase < SZ; }
 
 public:
-    static void draw(DialogStateful<SZ> *window);
-    static void event(DialogStateful<SZ> *window, uint8_t event, void *param);
+    void draw();
+    void event(uint8_t event, void *param);
 };
 #pragma pack(pop)
 
 /*****************************************************************************/
 //template definitions
 template <int SZ>
-void DialogStateful<SZ>::draw(DialogStateful<SZ> *window) {
-    if ((window->f_visible)
-        //&& ((size_t)(window->dlg_vars.phase) < window->states.size()) // no need to check
+void DialogStateful<SZ>::draw() {
+    if ((f_visible)
+        //&& ((size_t)(dlg_vars.phase) < states.size()) // no need to check
     ) {
-        RadioButton &radio = std::get<RadioButton>(window->states[window->dlg_vars.phase]);
-        const char *text = std::get<const char *>(window->states[window->dlg_vars.phase]);
-        rect_ui16_t rc = window->rect;
+        RadioButton &radio = std::get<RadioButton>(states[dlg_vars.phase]);
+        const char *text = std::get<const char *>(states[dlg_vars.phase]);
+        rect_ui16_t rc = rect;
 
-        if (window->f_invalid) {
-            display->fill_rect(rc, window->color_back);
+        if (f_invalid) {
+            display->fill_rect(rc, color_back);
             rect_ui16_t rc_tit = rc;
             rc_tit.h = 30; // 30pixels for title
             // TODO: - icon
             //			rc_tit.w -= 30;
             //			rc_tit.x += 30;
             //title
-            render_text_align(rc_tit, window->title, window->font_title,
-                window->color_back, window->color_text, window->padding, ALIGN_CENTER);
+            render_text_align(rc_tit, title, font_title,
+                color_back, color_text, padding, ALIGN_CENTER);
 
-            window->f_invalid = 0;
-            window->flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
+            f_invalid = 0;
+            flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
         }
         //DLG_PHA_CH == DLG_TXT_CH
-        if (window->flags & DLG_TXT_CH) //text changed
+        if (flags & DLG_TXT_CH) //text changed
         {
-            window->draw_phase_text(text);
-            window->flags &= ~DLG_TXT_CH;
+            draw_phase_text(text);
+            flags &= ~DLG_TXT_CH;
         }
         //button knows when it needs to be repainted
         radio.Draw();
 
-        if (window->flags & DLG_PRX_CH) //any progress changed
+        if (flags & DLG_PRX_CH) //any progress changed
         {
-            window->draw_progress();
-            window->flags &= ~DLG_PRX_CH;
+            draw_progress();
+            flags &= ~DLG_PRX_CH;
         }
-        if (window->flags & DLG_DRA_FR) { //draw frame
-            window->draw_frame();
-            window->flags &= ~DLG_DRA_FR;
+        if (flags & DLG_DRA_FR) { //draw frame
+            draw_frame();
+            flags &= ~DLG_DRA_FR;
         }
     }
 }
 
 template <int SZ>
-void DialogStateful<SZ>::event(DialogStateful<SZ> *window, uint8_t event, void *param) {
-    RadioButton &radio = std::get<RadioButton>(window->states[window->dlg_vars.phase]);
+void DialogStateful<SZ>::event(uint8_t event, void *param) {
+    RadioButton &radio = std::get<RadioButton>(states[dlg_vars.phase]);
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     //case WINDOW_EVENT_BTN_UP:

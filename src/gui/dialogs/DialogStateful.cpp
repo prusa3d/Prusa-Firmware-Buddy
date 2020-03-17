@@ -26,8 +26,7 @@ DlgVars::DlgVars()
 //*****************************************************************************
 
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
-    : IDialog(winCreate(WINDOW_CLS))
-    , WINDOW_CLS(WINDOW_CLS_)
+    : IDialog(WINDOW_CLS_)
     , id_capture(window_capture())
 #warning check id_capture(window_capture())
     , color_back(gui_defaults.color_back)
