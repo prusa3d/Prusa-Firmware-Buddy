@@ -1,4 +1,5 @@
 #include "DialogLoadUnload.hpp"
+#include "window_dlg_statemachine.h"
 
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
 
@@ -44,3 +45,15 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 
 DialogLoadUnload::DialogLoadUnload(const char *name)
     : DialogStateful<CountPhases<PhasesLoadUnload>()>(name, WINDOW_CLS_DLG_LOADUNLOAD, LoadUnloadFactory()) {}
+
+const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
+    {
+        WINDOW_CLS_USER,
+        sizeof(DialogLoadUnload),
+#warning is this right?
+        0, //(window_init_t *)window_dlg_statemachine_init,
+        0,
+        (window_draw_t *)DialogLoadUnload::draw,
+        (window_event_t *)DialogLoadUnload::event,
+    },
+};
