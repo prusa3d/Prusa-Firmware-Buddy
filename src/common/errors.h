@@ -2,8 +2,10 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
 
+#include "inttypes.h"
+
 // ***** CATEGORY definitions
-typedef enum {
+typedef enum : int16_t {
     ERR_CAT_UNDEF = 0,
     ERR_CAT_MECHANICAL = 1,
     ERR_CAT_THERMAL = 2,
@@ -14,7 +16,7 @@ typedef enum {
 } err_category_t;
 
 // ***** SUBCATEGORY definitions
-typedef enum {
+typedef enum : int16_t {
     ERR_SUBCAT_UNDEF = 0,
     // ##### category MECHANICAL
     ERR_CAT_MECHANICAL_SUBCAT_MOTOR = 1,
@@ -34,7 +36,7 @@ typedef enum {
 } err_subcategory_t;
 
 // ***** ITEM definitions
-typedef enum {
+typedef enum : int16_t {
     ERR_ITEM_UNDEF = 0,
     // ##### category THERMAL
 
@@ -63,13 +65,14 @@ typedef enum {
     ERR_CAT_ELECTRO_SUBCAT_FSENSOR_OTHER = 9,
 } err_item_t;
 
-typedef enum {
+typedef enum : int16_t {
     ART_NONE = 0,
     ART_OTHER = 999,
     ART122 = 122,
     ART124 = 124,
 } err_art_list_t;
 
+#pragma pack(push, 1)
 typedef struct {
     err_category_t cat_num;
     err_subcategory_t subcat_num;
@@ -78,7 +81,9 @@ typedef struct {
     //    int32_t subcat_num;
     //    int32_t item_num;
 } err_num_t;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
     err_num_t err_num;
     const char *err_sign;
@@ -86,6 +91,7 @@ typedef struct {
     const char *err_text;
     err_art_list_t err_article;
 } err_t;
+#pragma pack(pop)
 
 extern void set_actual_error(err_num_t err_item);
 extern void set_actual_error(err_category_t err_category, err_subcategory_t err_subcategory, err_item_t err_item);

@@ -8,9 +8,7 @@
 #include "errors.h"
 #include "lang.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
+#pragma pack(push, 1)
 typedef struct
 {
     window_frame_t root;
@@ -21,7 +19,6 @@ typedef struct
     char qr_text[MAX_LEN_4QR + 1];
     bool first_run_flag;
 } screen_qr_error_data_t;
-
 #pragma pack(pop)
 
 #define pd ((screen_qr_error_data_t *)screen->pdata)

@@ -7,9 +7,7 @@
 #include "../../gui/wizard/selftest.h"
 #include "stm32f4xx_hal.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
+#pragma pack(push, 1)
 typedef struct
 {
     window_frame_t root;
@@ -18,7 +16,6 @@ typedef struct
     window_qr_t qr;
     char qr_text[MAX_LEN_4QR + 1];
 } screen_qr_info_data_t;
-
 #pragma pack(pop)
 
 #define pd ((screen_qr_info_data_t *)screen->pdata)
