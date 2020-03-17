@@ -2,9 +2,12 @@
 
 #include "DialogStateful.hpp"
 #include "dialog_commands.hpp"
+extern int16_t WINDOW_CLS_DLG_LOADUNLOAD;
+
+constexpr size_t DialogLoadUnloadPhases = CountPhases<PhasesLoadUnload>();
 
 //load unload and change filament dialog
-class DialogLoadUnload : public DialogStateful<CountPhases<PhasesLoadUnload>()> {
+class DialogLoadUnload : public DialogStateful<DialogLoadUnloadPhases> {
 public:
     /* typedef enum {
         Parking,
@@ -23,7 +26,6 @@ public:
         Purging3
     } states_t;*/
 
-    DialogLoadUnload(const char *name)
-        : DialogStateful<CountPhases<PhasesLoadUnload>()>(name) {}
+    DialogLoadUnload(const char *name);
     //virtual void Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {}
 };

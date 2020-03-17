@@ -57,7 +57,8 @@ void DialogHandler::open(dialog_t dialog, uint8_t data) {
 
     if (dialog == DLG_load_unload) {
         if (!ptr) {
-            ptr = make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, "SOME NAME");
+            static const char *name = "SOME NAME";
+            ptr = make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, name);
         }
     }
     //gui_dlg_change(); //testcode

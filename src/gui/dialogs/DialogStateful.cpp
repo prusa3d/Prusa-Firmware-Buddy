@@ -49,12 +49,12 @@
 
 extern window_t *window_1; //current popup window, C-code remain
 
-typedef struct _window_dlg_statemachine_t window_dlg_statemachine_t;
+//typedef struct _window_dlg_statemachine_t window_dlg_statemachine_t;
 
 typedef void(window_draw_dlg_cb_t)(window_dlg_statemachine_t *window);
 //this type does not match to window_event_t .. p_event is pointer
 typedef void(window_event_dlg_cb_t)(window_dlg_statemachine_t *window, uint8_t event, void *param);
-
+/*
 #pragma pack(push)
 #pragma pack(1)
 
@@ -68,19 +68,11 @@ typedef struct
     uint8_t prev_progress;
 } _dlg_vars;
 
-typedef struct
-{
-    const char **labels;
-    uint8_t flags;
-    window_draw_dlg_cb_t *draw_cb;
-    window_event_dlg_cb_t *event_cb;
-} _dlg_button_t;
 
 typedef struct
 {
     window_draw_dlg_cb_t *progress_draw;
     const char *text;
-    //const _dlg_button_t *p_button;
     RadioButton radio_btn;
 } _dlg_state;
 
@@ -102,17 +94,18 @@ typedef struct _window_dlg_statemachine_t {
     uint16_t flags;
     uint8_t last_text_h; //hack todo remove me
 
+//std::array
     _cl_dlg *_ths;
     _dlg_vars vars;
 } window_dlg_statemachine_t;
 
 #pragma pack(pop)
-
-extern _dlg_state test_states[14];
+*/
+//extern _dlg_state test_states[14];
 
 const char *const test_title = "TEST";
-static _cl_dlg cl_dlg = { test_title, test_states, 14 }; //todo c remains
-
+//static _cl_dlg cl_dlg = { test_title, test_states, 14 }; //todo c remains
+/*
 constexpr window_dlg_statemachine_t dlg_init() {
     window_dlg_statemachine_t ret = {};
     ret._ths = &cl_dlg;
@@ -120,37 +113,63 @@ constexpr window_dlg_statemachine_t dlg_init() {
 }
 
 static window_dlg_statemachine_t dlg = dlg_init(); //todo c remains
+*/
+//*****************************************************************************
+//DlgVars
+DlgVars::DlgVars()
+    : phase(0)
+    , prev_phase(-1)
+    , progress(0)
+    , prev_progress(-1) {}
+
+//*****************************************************************************
+//DlgStatemachine
+DlgStatemachine::DlgStatemachine(window_t win, const char *tit)
+    : window_t(win)
+    , color_back(gui_defaults.color_back)
+    , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
+    , font_title(gui_defaults.font_big)
+    , padding(gui_defaults.padding)
+    , flags(0)
+    , last_text_h(0)
+    , title(tit) {
+    if (rect_empty_ui16(rect)) //use display rect if current rect is empty
+        rect = rect_ui16(0, 0, display->w, display->h);
+    flg |= WINDOW_FLG_ENABLED; //enabled by default
+}
 
 //*****************************************************************************
 
-IDialogStateful::IDialogStateful(const char *name)
-    : id_capture(window_capture())
-    , _name(name)
+IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
+    : WINDOW_CLS(WINDOW_CLS_)
+    , id_capture(window_capture())
+    , data(winCreate(WINDOW_CLS), name) {
     //  err dlg nezna stavy a count
-    , id(window_create_ptr(WINDOW_CLS_DLG_LOADUNLOAD, 0, gui_defaults.msg_box_sz, &dlg)) {
+    //, id(window_create_ptr(WINDOW_CLS_DLG_LOADUNLOAD, 0, gui_defaults.msg_box_sz, &dlg))
 
-    window_1 = (window_t *)&dlg; //todo
+    window_1 = &data; //todo
     gui_reset_jogwheel();
     gui_invalidate();
-    window_set_capture(id);
+    window_set_capture(data.id);
 }
 
 void IDialogStateful::Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    dlg.vars.phase = phase;
-    dlg.flags |= DLG_PHA_CH;
+    data.dlg_vars.phase = phase;
+    data.flags |= DLG_PHA_CH;
+    //dlg.vars.phase = phase;
+    //dlg.flags |= DLG_PHA_CH;
     gui_invalidate();
 }
 
 IDialogStateful::~IDialogStateful() {
-    window_destroy(id);
+    window_destroy(data.id);
     window_set_capture(id_capture);
     window_invalidate(0);
 }
 
-int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
-
 extern window_t *window_1; //current popup window
-
+/*
 void window_dlg_statemachine_init(window_dlg_statemachine_t *window) {
     if (rect_empty_ui16(window->win.rect)) //use display rect if current rect is empty
         window->win.rect = rect_ui16(0, 0, display->w, display->h);
@@ -164,28 +183,6 @@ void window_dlg_statemachine_init(window_dlg_statemachine_t *window) {
     window->vars.prev_phase = -1;
     window->vars.progress = 0;
     window->flags = 0;
-}
-/*
-rect_ui16_t _get_dlg_statemachine_button_size(window_dlg_statemachine_t *window) {
-    rect_ui16_t rc_btn = window->win.rect;
-    rc_btn.y += (rc_btn.h - 40); // 30pixels for button (+ 10 space for grey frame)
-    rc_btn.h = 30;
-    rc_btn.x += 6;
-    rc_btn.w -= 12;
-    return rc_btn;
-}
-
-void window_dlg_statemachine_draw_1bt(window_dlg_statemachine_t *window) {
-    rect_ui16_t rc_btn = _get_dlg_statemachine_button_size(window);
-    const char *label = window->_ths->p_states[window->vars.phase].p_button->labels[0];
-    int enabled = window->_ths->p_states[window->vars.phase].p_button->flags & BT_ENABLED ? 1 : 0;
-    button_draw(rc_btn, label, window->font_title, enabled);
-}
-
-void window_dlg_statemachine_draw_0bt(window_dlg_statemachine_t *window) {
-    rect_ui16_t rc_btn = _get_dlg_statemachine_button_size(window);
-
-    display->fill_rect(rc_btn, window->color_back);
 }
 */
 void _window_dlg_statemachine_draw_frame(window_dlg_statemachine_t *window) {
@@ -330,7 +327,7 @@ const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
     {
         WINDOW_CLS_USER,
         sizeof(window_dlg_statemachine_t),
-        (window_init_t *)window_dlg_statemachine_init,
+        0, //(window_init_t *)window_dlg_statemachine_init,
         0,
         (window_draw_t *)window_dlg_statemachine_draw,
         (window_event_t *)window_dlg_statemachine_event,
@@ -340,22 +337,15 @@ const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
 /*****************************************************************************/
 //buttons
 const float ld_purge_amount = 40.0F; //todo is this amount correct?
-
+                                     /*
 static const PhaseTexts txt_stop = { "STOP", "", "", "" };
 static const PhaseTexts txt_cont = { "CONTINUE", "", "", "" };
 static const PhaseTexts txt_disa = { "DISABLE SENSOR", "", "", "" };
 static const PhaseTexts txt_none = { "", "", "", "" };
 static const PhaseTexts txt_yesno = { "YES", "NO", "", "" };
+*/
 
-rect_ui16_t _get_dlg_statemachine_button_size() {
-    rect_ui16_t rc_btn = rect_ui16(0, 0, display->w, display->h);
-    rc_btn.y += (rc_btn.h - 40); // 30pixels for button (+ 10 space for grey frame)
-    rc_btn.h = 30;
-    rc_btn.x += 6;
-    rc_btn.w -= 12;
-    return rc_btn;
-}
-
+/*
 static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defaults.color_back, _get_dlg_statemachine_button_size() };
 
 _dlg_state test_states[] = {
@@ -375,3 +365,34 @@ _dlg_state test_states[] = {
     { window_dlg_statemachine_draw_progress_tot,                                                                                                                          //was part progress
         "Purging", RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging3), txt_yesno, false) },                                                   //can jump back (state --)
 };
+*/
+/*
+const RadioButton::window_t& radio_win(){
+    static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defaults.color_back, _get_dlg_statemachine_button_size() };
+    return radio_win;
+}
+
+
+
+
+std::array<_dlg_state,14>& get_test_states(){
+
+
+static std::array<_dlg_state,14> test_states = {
+    { window_dlg_statemachine_draw_progress_tot, "Parking", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Parking), txt_stop, true) }
+    { window_dlg_statemachine_draw_progress_tot, "Waiting for temp.", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::WaitingTemp), txt_stop, true) },
+    { window_dlg_statemachine_draw_progress_tot, "Preparing to ram", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::PreparingToRam), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Ramming", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Ramming), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Unloading", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Unloading), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Unloading", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Unloading2), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Press CONTINUE and\npush filament into\nthe extruder.     ", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::UserPush), txt_cont, true) },
+    { window_dlg_statemachine_draw_progress_tot, "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::MakeSureInserted), txt_cont, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Inserting", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Inserting), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Loading to nozzle", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Loading), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Purging", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Purging), txt_stop, false) },
+    { window_dlg_statemachine_draw_progress_tot, "Purging", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Purging2), txt_none, false) },
+    { window_dlg_statemachine_draw_progress_none, "Is color correct?", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::IsColor), txt_yesno, true) }, //can end (state += 2)
+    { window_dlg_statemachine_draw_progress_tot,  "Purging", RadioButton(radio_win(), DialogCommands::GetCommands(PhasesLoadUnload::Purging3), txt_yesno, false) }                                                   //can jump back (state --)
+};
+return test_states;
+}*/
