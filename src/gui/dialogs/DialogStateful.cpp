@@ -61,12 +61,16 @@ IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     window_set_capture(id);
 }
 
-void IDialogStateful::Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+bool IDialogStateful::Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+    if (!can_change(phase))
+        return false;
     dlg_vars.phase = phase;
     flags |= DLG_PHA_CH;
+#warning do progress here
     //dlg.vars.phase = phase;
     //dlg.flags |= DLG_PHA_CH;
     gui_invalidate();
+    return true;
 }
 
 IDialogStateful::~IDialogStateful() {
@@ -122,8 +126,8 @@ void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     sprintf(text, "%d%%", progress);
     render_text_align(rc_pro, text, font, color_back, color_text, padding, ALIGN_CENTER);
 }
-
-void IDialogStateful::progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
+//this should be moved elswhere
+void progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
     rect_ui16_t rc_pro = win_rect; //must copy it
     rc_pro.x += 10;
     rc_pro.w -= 20;
@@ -137,15 +141,42 @@ void IDialogStateful::progress_clr(rect_ui16_t win_rect, font_t *font, color_t c
     display->fill_rect(rc_pro, color_back);
 }
 
-void IDialogStateful::_draw_progress_tot(IDialogStateful *window) {
-    if (window->flags & DLG_PRO_CH)
-        progress_draw(window->rect, window->font_title, window->color_back,
-            window->color_text, window->padding, window->dlg_vars.progress);
+void IDialogStateful::draw_progress() {
+    if (dlg_vars.progress <= 100) {
+        if (flags & DLG_PRO_CH)
+            progress_draw(rect, font_title, color_back, color_text, padding, dlg_vars.progress);
+    } else {
+        progress_clr(rect, font_title, color_back);
+    }
 }
 
-void IDialogStateful::_draw_progress_none(IDialogStateful *window) {
-    progress_clr(window->rect, window->font_title, window->color_back);
+void IDialogStateful::draw_phase_text(const char *text) {
+    rect_ui16_t rc_sta = rect;
+    size_t nl; //number of new lines
+    const char *s = text;
+    for (nl = 0; s[nl]; s[nl] == '\n' ? nl++ : *s++)
+        ; //count '\n' in s
+    rc_sta.h = 30 + font_title->h * nl;
+    rc_sta.y += (30 + 46);
+    rc_sta.x += 2;
+    rc_sta.w -= 4;
+
+    //erase remains of previous text if it was longer
+    //prerelease hack todo text window just should be CENTER_TOP aligned and bigger
+    int h_diff = last_text_h - rc_sta.h;
+    if (h_diff > 0) {
+        rect_ui16_t rc = rc_sta;
+        rc.h = last_text_h - rc_sta.h;
+        rc.y += rc_sta.h;
+        display->fill_rect(rc, color_back);
+    }
+
+    last_text_h = rc_sta.h;
+
+    render_text_align(rc_sta, text, font_title,
+        color_back, color_text, padding, ALIGN_CENTER);
 }
+
 /*
 void IDialogStateful::_draw_phase_text(IDialogStateful *window) {
     rect_ui16_t rc_sta = window->rect;

@@ -1,6 +1,5 @@
 #include "DialogHandler.h"
 #include "gui.h"
-#include "DialogNONE.hpp"
 #include "DialogLoadUnload.hpp"
 #include "static_alocation_ptr.hpp"
 
@@ -9,7 +8,7 @@ extern screen_t *pscreen_printing_serial;
 
 class DialogHandler {
     dialog_t opened;
-    static_unique_ptr<IDialog> ptr;
+    static_unique_ptr<IDialogStateful> ptr;
     std::aligned_union<0, /*DialogNONE,*/ DialogLoadUnload>::type all_dialogs;
 
 public:

@@ -10,7 +10,7 @@
 class IDialog : public window_t {
 public:
     IDialog(window_t win);
-    virtual void Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) = 0;
+    //virtual void Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) = 0;
     virtual ~IDialog() {}
 };
 #pragma pack(pop)
