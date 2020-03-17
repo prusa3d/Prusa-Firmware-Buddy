@@ -3,7 +3,7 @@
 #include "selftest.h"
 #include "dbg.h"
 #include "config.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "marlin_client.h"
 #include "wizard_config.h"
 #include "wizard_ui.h"

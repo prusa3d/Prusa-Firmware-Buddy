@@ -573,6 +573,14 @@
 
 // @section homing
 
+//! Move in opposite direction as first homing move
+//! useful for sensor-less homing to avoid clicking noise
+//! implemented only for Cartesian kinematics
+#define MOVE_BACK_BEFORE_HOMING
+#if ENABLED(MOVE_BACK_BEFORE_HOMING)
+    #define MOVE_BACK_BEFORE_HOMING_DISTANCE 1.92f
+#endif
+
 // Specify here all the endstop connectors that are connected to any endstop or probe.
 // Almost all printers will be using one per axis. Probes will use one or more of the
 // extra connectors. Leave undefined any used for non-endstop and non-probe purposes.
@@ -1351,7 +1359,7 @@
 // M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
 // M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to.
 //
-#define EEPROM_SETTINGS // Enable for M500 and M501 commands
+//#define EEPROM_SETTINGS // Enable for M500 and M501 commands
 //#define DISABLE_M503    // Saves ~2700 bytes of PROGMEM. Disable for release!
 //#define EEPROM_CHITCHAT   // Give feedback on EEPROM commands. Disable to save PROGMEM.
 

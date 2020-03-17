@@ -1,15 +1,13 @@
 //adc.c
 #include "adc.h"
 #include "stm32f4xx_hal.h"
+#include "hwio.h"
 
 #ifndef ADC_SIM_MSK
     #define ADC_SIM_MSK 0
 #endif
 
 extern ADC_HandleTypeDef hadc1;
-
-extern void ADC_READY(uint8_t index);
-extern uint8_t ADC_SEQ2IDX(uint8_t seq);
 
 //Main error handler
 extern void Error_Handler(void);

@@ -69,6 +69,9 @@ extern int marlin_wait_motion(uint32_t timeout);
 // enqueue gcode - thread-safe version  (request '!g xxx')
 extern void marlin_gcode(const char *gcode);
 
+// enqueue gcode from ethernet command (json parsed)
+extern void marlin_json_gcode(const char *gcode);
+
 // enqueue gcode - printf-like, returns number of chars printed
 extern int marlin_gcode_printf(const char *format, ...);
 
@@ -122,6 +125,12 @@ extern marlin_vars_t *marlin_vars(void);
 
 // send request to update variables at server side and wait for change notification
 extern marlin_vars_t *marlin_update_vars(uint64_t msk);
+
+// set name of printing gcode
+extern void marlin_set_printing_gcode_name(const char *src);
+
+// get name of printing gcode
+extern void marlin_get_printing_gcode_name(char *src);
 
 // returns number of commands in gcode queue
 extern uint8_t marlin_get_gqueue(void);

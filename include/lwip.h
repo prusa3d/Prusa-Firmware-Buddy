@@ -78,11 +78,8 @@ extern "C" {
 /* chip specific includes ----------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 /* lwip customization includes -----------------------------------------------*/
-#ifdef BUDDY_USE_WSAPI
-    #include "lwsapi.h" // use WSAPI web application server
-#else
-    #include "lwip/apps/httpd.h"
-#endif
+
+#include "lwip/apps/httpd.h"
 #include "eeprom.h"
 /* Global Variables ---------------------------------------------------------*/
 extern struct netif eth0;

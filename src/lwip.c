@@ -59,6 +59,8 @@
 #include "lwip/init.h"
 #include "lwip/netif.h"
 
+#include <string.h>
+
 #include "dbg.h"
 #include "ethernetif.h"
 
@@ -129,7 +131,9 @@ void MX_LWIP_Init(void) {
     netif_set_status_callback(&eth0, netif_status_callback);
     netif_set_down(&eth0);
     uint8_t ee_lan_flg = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
-    eeprom_get_hostname(interface_hostname);
+    variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME);
+    strcpy(interface_hostname, hostname.pch);
+    variant8_done(&hostname);
     eth0.hostname = interface_hostname;
     if (ee_lan_flg & LAN_EEFLG_TYPE) {
         ipaddr.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
@@ -146,9 +150,5 @@ void MX_LWIP_Init(void) {
 /* MINI LwIP interface functions --------------------------------------------*/
 
 void http_server_init(void) {
-#ifdef BUDDY_USE_WSAPI
-    lwsapi_init();
-#else
     httpd_init();
-#endif
 }
