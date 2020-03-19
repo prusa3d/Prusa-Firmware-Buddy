@@ -220,7 +220,8 @@ static void print_Z_probe_cnt() {
 int marlin_server_cycle(void) {
 
     static int processing = 0;
-    if (processing) return 0;
+    if (processing)
+        return 0;
     processing = 1;
 
     print_fan_spd();
