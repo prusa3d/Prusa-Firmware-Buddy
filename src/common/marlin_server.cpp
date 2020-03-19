@@ -218,6 +218,10 @@ static void print_Z_probe_cnt() {
 #endif
 int marlin_server_cycle(void) {
 
+    static int processing = 0;
+    if (processing) return 0;
+    processing = 1;
+
     print_fan_spd();
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
@@ -288,6 +292,7 @@ int marlin_server_cycle(void) {
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
         HAL_IWDG_Refresh(&hiwdg); // this prevents iwdg reset while processing disabled
 #endif                            //_DEBUG
+    processing = 0;
     return count;
 }
 
