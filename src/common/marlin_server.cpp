@@ -392,11 +392,29 @@ int marlin_server_inject_gcode(const char *gcode) {
 }
 
 void marlin_server_settings_save(void) {
-    (void)settings.save();
+    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(probe_offset.z));
+    eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
+    eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
+    eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+    eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
+    eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
+    eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
 }
 
 void marlin_server_settings_load(void) {
-    (void)settings.load();
+    (void)settings.reset();
+    probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
+    Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
+    Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
+    Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
+    Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
+    Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
+    Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
+    thermalManager.updatePID();
+}
+
+void marlin_server_settings_reset(void) {
+    (void)settings.reset();
 }
 
 void marlin_server_manage_heater(void) {
@@ -835,11 +853,14 @@ int _process_server_request(char *request) {
     } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
         marlin_server_do_babystep_Z(offs);
         processed = 1;
-    } else if (strcmp("!save", request) == 0) {
+    } else if (strcmp("!cfg_save", request) == 0) {
         marlin_server_settings_save();
         processed = 1;
-    } else if (strcmp("!load", request) == 0) {
+    } else if (strcmp("!cfg_load", request) == 0) {
         marlin_server_settings_load();
+        processed = 1;
+    } else if (strcmp("!cfg_reset", request) == 0) {
+        marlin_server_settings_reset();
         processed = 1;
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();

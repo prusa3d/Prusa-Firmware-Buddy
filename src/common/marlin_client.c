@@ -511,7 +511,7 @@ void marlin_settings_save(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    _send_request_to_server(client->id, "!save");
+    _send_request_to_server(client->id, "!cfg_save");
     _wait_ack_from_server(client->id);
 }
 
@@ -519,7 +519,15 @@ void marlin_settings_load(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    _send_request_to_server(client->id, "!load");
+    _send_request_to_server(client->id, "!cfg_load");
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_settings_reset(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!cfg_reset");
     _wait_ack_from_server(client->id);
 }
 
