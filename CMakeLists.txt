@@ -49,6 +49,10 @@ set(GENERATE_BBF
     "NO"
     CACHE STRING "Whether a .bbf version should be generated."
     )
+set(GENERATE_DFU
+    "NO"
+    CACHE BOOL "Whether a .dfu file should be generated."
+    )
 set(SIGNING_KEY
     ""
     CACHE FILEPATH "Path to a PEM EC private key to be used to sign the firmware."
@@ -347,6 +351,30 @@ if(GENERATE_BBF)
     )
 elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
+endif()
+
+# generate .dfu version if requested
+if(GENERATE_DFU)
+  if(BOOTLOADER)
+    set(firmware_addr "0x08020000")
+    if(BOOTLOADER STREQUAL "YES")
+      string(TOLOWER ${PRINTER} printer_low)
+      get_dependency_directory("bootloader-${printer_low}" bootloader_dir)
+      set(bootloader_input "0x08000000:${bootloader_dir}/bootloader.bin")
+    endif()
+  else()
+    set(firmware_addr "0x08000000")
+  endif()
+
+  create_dfu(
+    TARGET
+    firmware
+    INPUT
+    "${firmware_addr}:${CMAKE_CURRENT_BINARY_DIR}/firmware.bin"
+    "${bootloader_input}"
+    OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/firmware.dfu"
+    )
 endif()
 
 target_include_directories(
