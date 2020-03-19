@@ -5,7 +5,6 @@
 #include "resource.h"
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "marlin_client.h" //HAL_GetTick
-#include "marlin_server.h" //marlin_server_settings_load
 
 uint16_t wizard_get_test_icon_resource(uint8_t state) {
     switch (state) {
@@ -91,11 +90,7 @@ int wizard_timer(uint32_t *p_timer, uint32_t delay_ms, _TEST_STATE_t *pstate, _W
 static void _wizard_init_test() {
     if (!marlin_processing())
         marlin_start_processing();
-    marlin_event_clr(MARLIN_EVT_LoadSettings);
-    marlin_event_clr(MARLIN_EVT_FactoryReset);
-    //    marlin_gcode("M501");                                                                            //restore settings
-    //    while (!marlin_event_clr(MARLIN_EVT_LoadSettings) && !marlin_event_clr(MARLIN_EVT_FactoryReset)) //wait for M501 done
-    //        gui_loop();
+    marlin_settings_load();
 }
 
 static void _disable_PID() {
