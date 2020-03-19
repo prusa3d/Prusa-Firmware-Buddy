@@ -37,6 +37,8 @@
     #include "lcdsim.h"
 #endif // LCDSIM
 
+#include "menu_vars.h"
+
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 
@@ -405,14 +407,7 @@ void marlin_server_quick_stop(void) {
 }
 
 void marlin_server_print_abort(void) {
-    wait_for_heatup = wait_for_user = false;
     card.flag.abort_sd_printing = true;
-    print_job_timer.stop();
-    queue.clear();
-    //	planner.quick_stop();
-    //	marlin_server_park_head();
-    //	planner.synchronize();
-    //	queue.inject_P("M125");
 }
 
 void marlin_server_print_pause(void) {
@@ -430,6 +425,14 @@ void marlin_server_print_resume(void) {
 void marlin_server_park_head(void) {
     //homed check
     if (all_axes_homed() && all_axes_known()) {
+        float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
+        float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
+        float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
+        current_position.x = x;
+        current_position.y = y;
+        current_position.z = z;
+        current_position.e = 0;
+        planner.set_position_mm(x, y, z, 0);
         xyz_pos_t park_point = NOZZLE_PARK_POINT;
         nozzle.park(2, park_point);
     }
