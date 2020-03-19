@@ -121,11 +121,7 @@ int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, self
         hwio_fan_set_pwm(0, 0);
         hwio_fan_set_pwm(1, 0);
         marlin_start_processing();
-        marlin_event_clr(MARLIN_EVT_LoadSettings);
-        marlin_event_clr(MARLIN_EVT_FactoryReset);
-        //        marlin_gcode("M501");                                                                            //restore settings
-        //        while (!marlin_event_clr(MARLIN_EVT_LoadSettings) && !marlin_event_clr(MARLIN_EVT_FactoryReset)) //wait for M501 done
-        //            gui_loop();
+        marlin_settings_load();
     }
     //-------------------------------------
 
