@@ -21,6 +21,8 @@ extern const int z_axis_len;
 extern const int len_tol_abs; // length absolute tolerance (+-5mm)
 extern const int len_tol_rev; // length tolerance in reversed direction (3mm)
 
+extern const int axis_steps_per_unit[];
+
 extern const float nozzle_to_probe[3];
 
 extern const float z_offset_step;
