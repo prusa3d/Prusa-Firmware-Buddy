@@ -84,6 +84,9 @@ extern void marlin_server_settings_save(void);
 // direct call of settings.load()
 extern void marlin_server_settings_load(void);
 
+// direct call of settings.reset()
+extern void marlin_server_settings_reset(void);
+
 // direct call of thermalManager.manage_heater()
 extern void marlin_server_manage_heater(void);
 
