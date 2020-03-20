@@ -2,7 +2,7 @@
 #include <algorithm> //find
 #include "button_draw.h"
 
-RadioButton::RadioButton(const window_t window, const PhaseCommands cmmnds, const PhaseTexts labels, bool enabled)
+RadioButton::RadioButton(const Window &window, const PhaseCommands &cmmnds, const PhaseTexts &labels, bool enabled)
     : win(window)
     , commands(cmmnds)
     , texts(labels)

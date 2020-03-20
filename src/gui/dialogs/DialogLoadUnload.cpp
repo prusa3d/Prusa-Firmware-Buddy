@@ -1,5 +1,7 @@
 #include "DialogLoadUnload.hpp"
 #include "DialogLoadUnload.h"
+#include "gui.h"      //resource_font
+#include "resource.h" //IDR_FNT_BIG
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +36,7 @@ static const char *txt_loading = "Loading to nozzle";
 static const char *txt_purging = "Purging";
 static const char *txt_is_color = "Is color correct?";
 
-static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defaults.color_back, IDialogStateful::get_radio_button_size() };
+static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_defaults.color_back, IDialogStateful::get_radio_button_size() };
 
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {
@@ -75,8 +77,7 @@ const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
     {
         WINDOW_CLS_USER,
         sizeof(DialogLoadUnload),
-#warning is this right?
-        0, //(window_init_t *)window_dlg_statemachine_init,
+        0,
         0,
         (window_draw_t *)DialogLoadUnload::c_draw,
         (window_event_t *)DialogLoadUnload::c_event,
