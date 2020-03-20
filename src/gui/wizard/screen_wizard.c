@@ -429,7 +429,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     == MSGBOX_RES_NO) {
                     pd->state = _STATE_FINISH;
                     marlin_set_z_offset(p_firstlay_screen->Z_offset);
-                    marlin_gcode("M500");                                //store to eeprom
+                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(p_firstlay_screen->Z_offset));
                     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
                     wizard_done_screen(screen);
                 } else {
