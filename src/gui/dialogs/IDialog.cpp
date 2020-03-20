@@ -1,5 +1,4 @@
 #include "IDialog.hpp"
-#include "display.hpp"
 #include "gui.h"
 #include <stdint.h>
 

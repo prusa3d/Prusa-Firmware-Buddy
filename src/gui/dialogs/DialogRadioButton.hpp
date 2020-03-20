@@ -11,14 +11,14 @@ using PhaseTexts = std::array<const char *, MAX_COMMANDS>;
 //if there is less labels than buttons, "remaining buttons" have no labels
 class RadioButton {
 public:
-    struct window_t {
+    struct Window {
         font_t *pfont;
         color_t color_back;
         rect_ui16_t rect;
     };
 
 private:
-    const window_t &win;
+    const Window &win;
     const PhaseCommands &commands;
     const PhaseTexts &texts;
     const uint8_t btn_count : COMMAND_BITS;
@@ -31,7 +31,7 @@ private:
     void draw_n_btn(size_t btn_count) const;
 
 public:
-    RadioButton(const window_t window, const PhaseCommands cmmnds, const PhaseTexts labels, bool enabled = true);
+    RadioButton(const Window &window, const PhaseCommands &cmmnds, const PhaseTexts &labels, bool enabled = true);
 
     // No postfix increment/decrement operator, it would have to return button by value.
     // it would not be a problem, but buttons are not ment to be used that way

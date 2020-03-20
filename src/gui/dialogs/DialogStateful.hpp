@@ -2,9 +2,7 @@
 
 #include "IDialog.hpp"
 #include <array>
-#include <tuple>
 #include "DialogRadioButton.hpp"
-#include "display.hpp"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -45,7 +43,13 @@ protected:
     };
 
 public:
-    using State = std::tuple<const char *, RadioButton>;
+    struct State {
+        State(const char *lbl, RadioButton btn)
+            : label(lbl)
+            , button(btn) {}
+        const char *label;
+        RadioButton button;
+    };
 
 protected:
     int16_t id_capture;
@@ -69,8 +73,8 @@ public:
     virtual ~IDialogStateful();
 
     static constexpr rect_ui16_t get_radio_button_size() {
-        rect_ui16_t rc_btn = { 0, 0, Disp().w, Disp().h };
-        rc_btn.y += (rc_btn.h - 40); // 30pixels for button (+ 10 space for grey frame)
+        rect_ui16_t rc_btn = { 0, 32, 240, 320 - 96 }; //msg box size
+        rc_btn.y += (rc_btn.h - 40);                   // 30pixels for button (+ 10 space for grey frame)
         rc_btn.h = 30;
         rc_btn.x += 6;
         rc_btn.w -= 12;
@@ -117,8 +121,8 @@ void DialogStateful<SZ>::draw() {
     if ((f_visible)
         //&& ((size_t)(dlg_vars.phase) < states.size()) // no need to check
     ) {
-        RadioButton &radio = std::get<RadioButton>(states[dlg_vars.phase]);
-        const char *text = std::get<const char *>(states[dlg_vars.phase]);
+        RadioButton &radio = states[dlg_vars.phase].button;
+        const char *text = states[dlg_vars.phase].label;
         rect_ui16_t rc = rect;
 
         if (f_invalid) {
@@ -158,7 +162,7 @@ void DialogStateful<SZ>::draw() {
 
 template <int SZ>
 void DialogStateful<SZ>::event(uint8_t event, void *param) {
-    RadioButton &radio = std::get<RadioButton>(states[dlg_vars.phase]);
+    RadioButton &radio = states[dlg_vars.phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     //case WINDOW_EVENT_BTN_UP:
