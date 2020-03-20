@@ -49,6 +49,10 @@ set(GENERATE_BBF
     "NO"
     CACHE STRING "Whether a .bbf version should be generated."
     )
+set(GENERATE_DFU
+    "NO"
+    CACHE BOOL "Whether a .dfu file should be generated. Implies GENERATE_BBF."
+    )
 set(SIGNING_KEY
     ""
     CACHE FILEPATH "Path to a PEM EC private key to be used to sign the firmware."
@@ -84,6 +88,11 @@ foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
     message(FATAL_ERROR "Invalid ${OPTION} ${${OPTION}}: Valid values are ${${OPTION}_VALID_OPTS}")
   endif()
 endforeach()
+
+# in order to generate DFU file for bootloader, we need a BFU
+if(GENERATE_DFU AND BOOTLOADER)
+  set(GENERATE_BBF "YES")
+endif()
 
 # Resolve BUILD_NUMBER and PROJECT_VERSION_* variables
 resolve_version_variables()
@@ -347,6 +356,31 @@ if(GENERATE_BBF)
     )
 elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
+endif()
+
+# generate .dfu version if requested
+if(GENERATE_DFU)
+  if(BOOTLOADER)
+    set(firmware_addr "0x08020000")
+    if(BOOTLOADER STREQUAL "YES")
+      string(TOLOWER ${PRINTER} printer_low)
+      get_dependency_directory("bootloader-${printer_low}" bootloader_dir)
+      set(bootloader_input "0x08000000:${bootloader_dir}/bootloader.bin")
+    endif()
+    set(firmware_input "0x08020000:${CMAKE_BINARY_DIR}/firmware.bbf")
+  else()
+    set(firmware_input "0x08000000:${CMAKE_BINARY_DIR}/firmware.bin")
+  endif()
+
+  create_dfu(
+    TARGET
+    firmware
+    INPUT
+    "${bootloader_input}"
+    "${firmware_input}"
+    OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/firmware.dfu"
+    )
 endif()
 
 target_include_directories(
