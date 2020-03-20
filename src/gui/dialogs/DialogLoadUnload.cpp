@@ -9,11 +9,18 @@ int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
 }
 #endif //__cplusplus
 
-static const PhaseTexts txt_stop = { "STOP", "", "", "" };
-static const PhaseTexts txt_cont = { "CONTINUE", "", "", "" };
-static const PhaseTexts txt_disa = { "DISABLE SENSOR", "", "", "" };
-static const PhaseTexts txt_none = { "", "", "", "" };
-static const PhaseTexts txt_yesno = { "YES", "NO", "", "" };
+static const char *txt_none = "";
+static const char *txt_stop = "STOP";
+static const char *txt_cont = "CONTINUE";
+static const char *txt_disa = "DISABLE SENSOR";
+static const char *txt_yes = "YES";
+static const char *txt_no = "NO";
+
+static const PhaseTexts ph_txt_stop = { txt_stop, txt_none, txt_none, txt_none };
+static const PhaseTexts ph_txt_cont = { txt_cont, txt_none, txt_none, txt_none };
+static const PhaseTexts ph_txt_disa = { txt_disa, txt_none, txt_none, txt_none };
+static const PhaseTexts ph_txt_none = { txt_none, txt_none, txt_none, txt_none };
+static const PhaseTexts ph_txt_yesno = { txt_yes, txt_no, txt_none, txt_none };
 
 static const char *txt_parking = "Parking";
 static const char *txt_wait_temp = "Waiting for temp.";
@@ -31,20 +38,20 @@ static const RadioButton::window_t radio_win = { gui_defaults.font_big, gui_defa
 
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {
-        DialogLoadUnload::State { txt_parking, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Parking), txt_stop, true) },
-        DialogLoadUnload::State { txt_wait_temp, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::WaitingTemp), txt_stop, true) },
-        DialogLoadUnload::State { txt_prep_ram, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::PreparingToRam), txt_stop, false) },
-        DialogLoadUnload::State { txt_ram, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Ramming), txt_stop, false) },
-        DialogLoadUnload::State { txt_unload, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading), txt_stop, false) },
-        DialogLoadUnload::State { txt_unload, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading2), txt_stop, false) },
-        DialogLoadUnload::State { txt_push_fil, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::UserPush), txt_cont, true) },
-        DialogLoadUnload::State { txt_make_sure_inserted, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::MakeSureInserted), txt_cont, false) },
-        DialogLoadUnload::State { txt_inserting, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Inserting), txt_stop, false) },
-        DialogLoadUnload::State { txt_loading, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Loading), txt_stop, false) },
-        DialogLoadUnload::State { txt_purging, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging), txt_stop, false) },
-        DialogLoadUnload::State { txt_purging, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging2), txt_none, false) },
-        DialogLoadUnload::State { txt_is_color, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::IsColor), txt_yesno, true) },
-        DialogLoadUnload::State { txt_purging, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging3), txt_yesno, false) },
+        DialogLoadUnload::State { txt_parking, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Parking), ph_txt_stop, true) },
+        DialogLoadUnload::State { txt_wait_temp, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::WaitingTemp), ph_txt_stop, true) },
+        DialogLoadUnload::State { txt_prep_ram, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::PreparingToRam), ph_txt_stop, false) },
+        DialogLoadUnload::State { txt_ram, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Ramming), ph_txt_stop, false) },
+        DialogLoadUnload::State { txt_unload, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading), ph_txt_stop, false) },
+        DialogLoadUnload::State { txt_unload, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading2), ph_txt_stop, false) },
+        DialogLoadUnload::State { txt_push_fil, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::UserPush), ph_txt_cont, true) },
+        DialogLoadUnload::State { txt_make_sure_inserted, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::MakeSureInserted), ph_txt_cont, false) },
+        DialogLoadUnload::State { txt_inserting, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Inserting), ph_txt_stop, false) },
+        DialogLoadUnload::State { txt_loading, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Loading), ph_txt_stop, false) },
+        DialogLoadUnload::State { txt_purging, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging), ph_txt_stop, false) },
+        DialogLoadUnload::State { txt_purging, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging2), ph_txt_none, false) },
+        DialogLoadUnload::State { txt_is_color, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::IsColor), ph_txt_yesno, true) },
+        DialogLoadUnload::State { txt_purging, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Purging3), ph_txt_yesno, false) },
     };
     return ret;
 }
