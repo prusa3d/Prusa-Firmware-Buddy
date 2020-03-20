@@ -74,9 +74,14 @@ def input_file_spec(arg):
 
 def create_cmd(args):
     images = []
+    # load input files
     for infile in args.input_files:
         with open(infile[1], 'rb') as f:
-            images.append(DfuImage(infile[0], f.read()))
+            data = f.read()
+            if infile[1].suffix == '.bbf':
+                data = data[64:]  # skip signature in .bbf files
+            images.append(DfuImage(infile[0], data))
+    # create dfu files
     dfu_file_create(path=args.dfu_file,
                     id_product=args.device[0],
                     id_vendor=args.device[1],
