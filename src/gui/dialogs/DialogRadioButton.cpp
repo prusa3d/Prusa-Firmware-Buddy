@@ -1,15 +1,36 @@
 #include "DialogRadioButton.hpp"
 #include <algorithm> //find
 #include "button_draw.h"
+/*****************************************************************************/
+//static variables and methods
+static const PhaseCommands disabled_commands = { Command::_NONE, Command::_NONE, Command::_NONE, Command::_NONE }; //used in constructor
 
-RadioButton::RadioButton(const Window &window, const PhaseCommands &cmmnds, const PhaseTexts &labels, bool enabled)
+size_t RadioButton::cnt_labels(const PhaseTexts &labels) {
+    return (std::find_if(labels.begin(), labels.end(), [](const char *s) { return strcmp(s, ""); })) - labels.begin();
+}
+
+size_t RadioButton::cnt_commands(const PhaseCommands &cmmnds) {
+    return (std::find(cmmnds.begin(), cmmnds.end(), Command::_NONE)) - cmmnds.begin();
+}
+
+size_t RadioButton::cnt_buttons(const PhaseTexts &labels, const PhaseCommands &cmmnds) {
+    size_t lbls = cnt_labels(labels);
+    size_t cmds = cnt_commands(cmmnds);
+    return lbls > cmds ? lbls : cmds;
+}
+/*****************************************************************************/
+//nonstatic variables and methods
+RadioButton::RadioButton(const Window &window, const PhaseCommands &cmmnds, const PhaseTexts &labels)
     : win(window)
     , commands(cmmnds)
     , texts(labels)
-    , btn_count((std::find(commands.begin(), commands.end(), Command::_NONE)) - commands.begin())
+    , btn_count(cnt_buttons(labels, cmmnds))
     , selected_index(0)
-    , need_redraw(true)
-    , is_enabled(enabled) {
+    , need_redraw(true) {
+}
+
+RadioButton::RadioButton(const Window &window, const PhaseTexts &labels)
+    : RadioButton(window, disabled_commands, labels) {
 }
 
 //no overflow
@@ -58,7 +79,7 @@ void RadioButton::draw_0_btn() const {
 }
 
 void RadioButton::draw_1_btn() const {
-    button_draw(win.rect, texts[0], win.pfont, is_enabled);
+    button_draw(win.rect, texts[0], win.pfont, IsEnabled());
 }
 
 void RadioButton::draw_n_btn(size_t btn_count) const {
@@ -69,7 +90,7 @@ void RadioButton::draw_n_btn(size_t btn_count) const {
     rc_btn.w = btn_width;
     //lhs button
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(rc_btn, texts[i], win.pfont, selected_index == i && is_enabled);
+        button_draw(rc_btn, texts[i], win.pfont, selected_index == i && IsEnabled());
 
         if (i + 1 < btn_count) {
             //space between buttons
@@ -82,4 +103,8 @@ void RadioButton::draw_n_btn(size_t btn_count) const {
             rc_btn.w = btn_width;
         }
     }
+}
+
+bool RadioButton::IsEnabled() const {
+    return commands[0] != Command::_NONE; //faster than cnt_commands(cmmnds)!=0
 }
