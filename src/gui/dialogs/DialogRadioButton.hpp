@@ -21,7 +21,7 @@ private:
     const Window &win;
     const PhaseCommands &commands;
     const PhaseTexts &texts;
-    const uint8_t btn_count : COMMAND_BITS;
+    const uint8_t btn_count : COMMAND_BITS + 1;
     uint8_t selected_index : COMMAND_BITS;
     bool need_redraw : 1;
 
