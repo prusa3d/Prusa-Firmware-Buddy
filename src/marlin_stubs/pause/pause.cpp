@@ -62,7 +62,8 @@
     NUM_RUNOUT_SENSORS > 1 || \
     ENABLED(DUAL_X_CARRIAGE) || \
     (!ENABLED(PREVENT_COLD_EXTRUSION)) || \
-    ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE)
+    ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE) || \
+    BOTH(FILAMENT_UNLOAD_ALL_EXTRUDERS, MIXING_EXTRUDER)
     #error unsupported
 #endif
 // clang-format on
@@ -163,6 +164,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         DXC_ARGS) {
     UNUSED(show_lcd);
 
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::WaitingTemp), 25, 0);
     if (!ensure_safe_temperature(mode)) {
         return false;
     }
@@ -221,17 +223,10 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
  */
 bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     const PauseMode mode /*=PAUSE_MODE_PAUSE_PRINT*/
-#if BOTH(FILAMENT_UNLOAD_ALL_EXTRUDERS, MIXING_EXTRUDER)
-    ,
-    const float &mix_multiplier /*=1.0*/
-#endif
 ) {
     UNUSED(show_lcd);
 
-#if !BOTH(FILAMENT_UNLOAD_ALL_EXTRUDERS, MIXING_EXTRUDER)
-    constexpr float mix_multiplier = 1.0;
-#endif
-
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::WaitingTemp), 25, 0);
     if (!ensure_safe_temperature(mode)) {
         return false;
     }
@@ -295,10 +290,17 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
         { -30, 4000 }, // end of pre-unload
     };
 
+    constexpr size_t pre_unload_begin_pos = 6;
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
-    for (size_t i = 0; i < ramUnloadSeqSize; ++i) {
-        plan_pause_e_move(ramUnloadSeq[i].e * mix_multiplier, ramUnloadSeq[i].feedrate * mix_multiplier * mm_per_minute);
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::PreparingToRam), 50, 0);
+    for (size_t i = 0; i < pre_unload_begin_pos; ++i) {
+        plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
+    }
+
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Ramming), 75, 0);
+    for (size_t i = pre_unload_begin_pos; i < ramUnloadSeqSize; ++i) {
+        plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
     }
 #endif
 
@@ -315,9 +317,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     //    } else
 
     // subtract the already performed extruder movement (-30mm) from the total unload length
-    do_pause_e_move(
-        (unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e) * mix_multiplier,
-        (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
+    do_pause_e_move((unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e), (FILAMENT_CHANGE_UNLOAD_FEEDRATE));
 
 #if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
     planner.settings.retract_acceleration = saved_acceleration;
