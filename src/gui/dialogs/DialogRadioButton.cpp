@@ -35,15 +35,19 @@ RadioButton::RadioButton(const Window &window, const PhaseTexts &labels)
 
 //no overflow
 RadioButton &RadioButton::operator++() {
-    if ((selected_index + 1) < btn_count)
+    if ((selected_index + 1) < btn_count) {
         ++selected_index; //btn_count can be 0
+        need_redraw = true;
+    }
     return *this;
 }
 
 //no underflow
 RadioButton &RadioButton::operator--() {
-    if (selected_index > 0)
+    if (selected_index > 0) {
         --selected_index;
+        need_redraw = true;
+    }
     return *this;
 }
 
