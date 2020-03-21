@@ -56,7 +56,25 @@ void DialogHandler::open(dialog_t dialog, uint8_t data) {
 
     if (dialog == DLG_load_unload) {
         if (!ptr) {
-            static const char *name = "SOME NAME";
+            static const char *change = "CHANGE FILAMENT";
+            static const char *load = "LOAD FILAMENT";
+            static const char *unload = "UNLOAD FILAMENT";
+            static const char *def = "INDEX ERROR";
+
+            const char *name;
+            switch (static_cast<load_unload_type_t>(data)) {
+            case DLG_type_change:
+                name = change;
+                break;
+            case DLG_type_load:
+                name = load;
+                break;
+            case DLG_type_unload:
+                name = unload;
+                break;
+            default:
+                name = def;
+            }
             ptr = make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, name);
         }
     }
