@@ -98,7 +98,7 @@
  * can be used.
  */
 #if !defined LWIP_HTTPD_SSI || defined __DOXYGEN__
-    #define LWIP_HTTPD_SSI 1
+    #define LWIP_HTTPD_SSI 0
 #endif
 
 /** Set this to 1 to implement an SSI tag handler callback that gets a const char*
@@ -118,7 +118,7 @@
  * supporting the "-ssi" option, this info is already present in
  */
 #if !defined LWIP_HTTPD_SSI_BY_FILE_EXTENSION || defined __DOXYGEN__
-    #define LWIP_HTTPD_SSI_BY_FILE_EXTENSION 1
+    #define LWIP_HTTPD_SSI_BY_FILE_EXTENSION 0
 #endif
 
 /** Set this to 1 to support HTTP POST */
@@ -293,7 +293,7 @@
 /** Set this to 0 to not send the SSI tag (default is on, so the tag will
  * be sent in the HTML page */
 #if !defined LWIP_HTTPD_SSI_INCLUDE_TAG || defined __DOXYGEN__
-    #define LWIP_HTTPD_SSI_INCLUDE_TAG 1
+    #define LWIP_HTTPD_SSI_INCLUDE_TAG 0
 #endif
 
 /** Set this to 1 to call tcp_abort when tcp_close fails with memory error.

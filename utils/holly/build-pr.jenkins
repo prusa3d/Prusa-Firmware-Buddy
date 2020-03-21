@@ -14,6 +14,7 @@ pipeline {
                     def configurations = [
                         [printer: "mini", build_type: "release", bootloader: "no"],
                         [printer: "mini", build_type: "release", bootloader: "empty"],
+                        [printer: "mini", build_type: "release", bootloader: "yes"],
                     ]
 
                     // prepare version suffix
@@ -44,6 +45,7 @@ pipeline {
                                     --build-type ${config.build_type} \
                                     --bootloader ${config.bootloader} \
                                     --generate-bbf \
+                                    --generate-dfu \
                                     --no-store-output \
                                     --version-suffix=${full_suffix} \
                                     --version-suffix-short=${short_suffix}

@@ -157,6 +157,8 @@ add_library(
   )
 
 target_compile_features(Marlin PUBLIC cxx_std_14)
-target_include_directories(Marlin PUBLIC Marlin/Marlin/src Marlin/Marlin Marlin)
+target_include_directories(
+  Marlin PUBLIC Marlin/Marlin/src Marlin/Marlin/src/gcode/lcd Marlin/Marlin Marlin
+  )
 
 target_link_libraries(Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config)

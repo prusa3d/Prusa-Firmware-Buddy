@@ -25,6 +25,25 @@ function(get_recommended_gcc_version var)
       )
 endfunction()
 
+function(get_dependency_directory dependency var)
+  execute_process(
+    COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/bootstrap.py"
+            "--print-dependency-directory" "${dependency}"
+    OUTPUT_VARIABLE DEPENDENCY_DIRECTORY
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE RETVAL
+    )
+
+  if(NOT "${RETVAL}" STREQUAL "0")
+    message(FATAL_ERROR "Failed to find directory with ${dependency}")
+  endif()
+
+  set(${var}
+      ${DEPENDENCY_DIRECTORY}
+      PARENT_SCOPE
+      )
+endfunction()
+
 function(objcopy target format suffix)
   add_custom_command(
     TARGET ${target} POST_BUILD
@@ -58,6 +77,19 @@ function(pack_firmware target fw_version build_number printer_type signing_key)
       "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${fw_version}"
       --printer-type "${printer_type}" --printer-version "1" ${sign_opts} "${bin_firmware_path}"
       --build-number "${build_number}"
+    )
+endfunction()
+
+function(create_dfu)
+  set(options)
+  set(one_value_args OUTPUT TARGET)
+  set(multi_value_args INPUT)
+  cmake_parse_arguments(CREATE_DFU "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
+  add_custom_command(
+    TARGET "${CREATE_DFU_TARGET}" POST_BUILD
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/dfu.py" create ${CREATE_DFU_INPUT}
+            "${CREATE_DFU_OUTPUT}"
     )
 endfunction()
 

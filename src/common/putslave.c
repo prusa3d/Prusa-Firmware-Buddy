@@ -4,7 +4,7 @@
 #include "dbg.h"
 #include "version.h"
 #include "gpio.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "sys.h"
 #include "diag.h"
 #include "app.h"
@@ -375,8 +375,8 @@ int putslave_do_cmd_a_stop(uartslave_t *pslave) {
         HAL_SPI_MspDeInit(&hspi2);
 #endif
         NVIC_DisableIRQ(TIM7_IRQn);
-        hwio_pwm_set_val(_PWM_HEATER_BED, 0);
-        hwio_pwm_set_val(_PWM_HEATER_0, 0);
+        hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
+        hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
         //SCK - PB10
         gpio_init(PB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
         //MISO - PC2
@@ -636,8 +636,8 @@ void putslave_init(uartslave_t *pslave) {
         HAL_SPI_MspDeInit(&hspi2);
 #endif
         NVIC_DisableIRQ(TIM7_IRQn);
-        hwio_pwm_set_val(_PWM_HEATER_BED, 0);
-        hwio_pwm_set_val(_PWM_HEATER_0, 0);
+        hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
+        hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
         //SCK - PB10
         gpio_init(PB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
         //MISO - PC2

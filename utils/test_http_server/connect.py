@@ -20,13 +20,14 @@ class TestTCPHandler(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print("{} wrote:".format(self.client_address[0]))
         print(self.data)
-        # just send back the same data, but upper-cased
-        self.request.sendall(self.data.upper())
+        ret_data = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"command\":\"g28\"}"
+        self.request.sendall(ret_data.encode('utf-8'))
 
 
 HOST = args.ip_address
 print('IP address of server connected:' + str(HOST))
-httpd = socketserver.TCPServer((str(HOST), PORT),
-                               http.server.SimpleHTTPRequestHandler)
-#httpd = socketserver.TCPServer((HOST, PORT), TestTCPHandler)
+# standard http server
+#httpd = socketserver.TCPServer((str(HOST), PORT), http.server.SimpleHTTPRequestHandler)
+#custom server
+httpd = socketserver.TCPServer((str(HOST), PORT), TestTCPHandler)
 httpd.serve_forever()

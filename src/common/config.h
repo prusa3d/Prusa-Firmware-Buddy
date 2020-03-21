@@ -80,6 +80,10 @@
 //PID calibration service screen
 #define PIDCALIBRATION
 
+//CRC32 config - use hardware CRC32 with RTOS
+#define CRC32_USE_HW
+#define CRC32_USE_RTOS
+
 //guiconfig.h included with config
 #include "guiconfig.h"
 

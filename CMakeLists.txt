@@ -49,6 +49,10 @@ set(GENERATE_BBF
     "NO"
     CACHE STRING "Whether a .bbf version should be generated."
     )
+set(GENERATE_DFU
+    "NO"
+    CACHE BOOL "Whether a .dfu file should be generated. Implies GENERATE_BBF."
+    )
 set(SIGNING_KEY
     ""
     CACHE FILEPATH "Path to a PEM EC private key to be used to sign the firmware."
@@ -73,6 +77,10 @@ set(CUSTOM_COMPILE_OPTIONS
     ""
     CACHE STRING "Allows adding custom C/C++ flags"
     )
+set(WUI
+    "YES"
+    CACHE BOOL "Enable Web User Interface"
+    )
 
 # Validate options
 foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
@@ -80,6 +88,11 @@ foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
     message(FATAL_ERROR "Invalid ${OPTION} ${${OPTION}}: Valid values are ${${OPTION}_VALID_OPTS}")
   endif()
 endforeach()
+
+# in order to generate DFU file for bootloader, we need a BFU
+if(GENERATE_DFU AND BOOTLOADER)
+  set(GENERATE_BBF "YES")
+endif()
 
 # Resolve BUILD_NUMBER and PROJECT_VERSION_* variables
 resolve_version_variables()
@@ -101,6 +114,7 @@ message(
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
 message(STATUS "Printer: ${PRINTER}")
+message(STATUS "Web User Interface: ${WUI}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
@@ -109,7 +123,6 @@ set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
-set(WUI YES)
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
@@ -122,6 +135,7 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
 else()
   set(GUI NO)
 endif()
+message(STATUS "GUI: ${GUI}")
 
 # append custom C/C++ flags
 if(CUSTOM_COMPILE_OPTIONS)
@@ -202,8 +216,18 @@ target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 #
 
 add_library(LwIP_Config INTERFACE)
-target_include_directories(LwIP_Config INTERFACE src/wui src/wui/resources)
 target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
+
+#
+# Configure WUI
+#
+
+if(WUI)
+  add_library(WUI_Config INTERFACE)
+  target_include_directories(WUI_Config INTERFACE src/common src/gui src/guiapi/include)
+  target_compile_definitions(WUI_Config INTERFACE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
+  target_link_libraries(WUI_Config INTERFACE A3idesHeaders QR)
+endif()
 
 #
 # Configure FatFs
@@ -280,6 +304,9 @@ add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 #
 
 add_subdirectory(lib)
+if(WUI)
+  add_subdirectory(src/wui)
+endif()
 
 #
 # A3ides firmware
@@ -288,6 +315,10 @@ add_subdirectory(lib)
 add_executable(firmware)
 
 set_target_properties(firmware PROPERTIES CXX_STANDARD 11)
+
+if(WUI)
+  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
+endif()
 
 # generate firmware.bin file
 objcopy(firmware "binary" ".bin")
@@ -327,15 +358,33 @@ elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
 endif()
 
+# generate .dfu version if requested
+if(GENERATE_DFU)
+  if(BOOTLOADER)
+    set(firmware_addr "0x08020000")
+    if(BOOTLOADER STREQUAL "YES")
+      string(TOLOWER ${PRINTER} printer_low)
+      get_dependency_directory("bootloader-${printer_low}" bootloader_dir)
+      set(bootloader_input "0x08000000:${bootloader_dir}/bootloader.bin")
+    endif()
+    set(firmware_input "0x08020000:${CMAKE_BINARY_DIR}/firmware.bbf")
+  else()
+    set(firmware_input "0x08000000:${CMAKE_BINARY_DIR}/firmware.bin")
+  endif()
+
+  create_dfu(
+    TARGET
+    firmware
+    INPUT
+    "${bootloader_input}"
+    "${firmware_input}"
+    OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/firmware.dfu"
+    )
+endif()
+
 target_include_directories(
-  firmware
-  PRIVATE include
-          src/common
-          src/gui
-          src/gui/dialogs
-          src/guiapi/include
-          src/wui
-          src/wui/http
+  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -354,6 +403,8 @@ target_link_libraries(
           STM32::USBDevice
           CPU
           inih::inih
+          $<$<BOOL:${WUI}>:WUI>
+          jsmn::jsmn
           QR
           CRC
   )
@@ -385,6 +436,7 @@ target_sources(
           src/common/diag.c
           src/common/dialogs.c
           src/common/eeprom.c
+          src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
           src/common/marlin_host.c
           src/common/sim_bed.c
@@ -393,7 +445,7 @@ target_sources(
           src/common/hwio_a3ides_2209_02.c
           src/common/putslave.c
           src/common/safe_state.c
-          src/common/variant8.c
+          src/common/variant8.cpp
           src/common/dbg.c
           src/common/dump.c
           src/common/marlin_client.c
@@ -416,13 +468,14 @@ target_sources(
           src/common/gcode_file.cpp
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
-          src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
           src/common/dialog_commands.cpp
           src/common/dialog_commands_server.cpp
+          src/common/crc32.c
+          src/common/ini_handler.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
           src/marlin_stubs/M876.cpp
@@ -432,6 +485,8 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/gui/guimain.c
+          src/gui/filament.cpp
   )
 
 if(GUI)
@@ -453,7 +508,6 @@ if(GUI)
             src/gui/resource.c
             src/gui/window_file_list.c
             src/gui/pngview.c
-            src/gui/guimain.c
             src/gui/wizard/selftest_temp.c
             src/gui/window_temp_graph.c
             src/gui/screen_menu_settings.c
@@ -498,7 +552,6 @@ if(GUI)
             src/gui/screen_filebrowser.cpp
             src/gui/screen_menu_preheat.cpp
             src/gui/status_footer.cpp
-            src/gui/filament.cpp
             src/gui/menu_vars.cpp
             src/gui/screen_printing.cpp
             src/gui/screen_printing_serial.cpp
@@ -532,13 +585,6 @@ if(GUI)
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
     )
-endif()
-
-if(WUI)
-  target_sources(
-    firmware PRIVATE src/wui/wui.c src/wui/wui_api.c src/wui/http/fs.c src/wui/http/httpd.c
-    )
-  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
 endif()
 
 set_property(
