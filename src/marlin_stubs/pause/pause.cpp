@@ -231,47 +231,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
         return false;
     }
 
-#if 0
-    // Retract filament
-    do_pause_e_move(-(FILAMENT_UNLOAD_RETRACT_LENGTH)*mix_multiplier, (PAUSE_PARK_RETRACT_FEEDRATE)*mix_multiplier);
-
-    // Wait for filament to cool
-    safe_delay(FILAMENT_UNLOAD_DELAY);
-
-    // Quickly purge
-    do_pause_e_move((FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH) * mix_multiplier,
-        FILAMENT_UNLOAD_PURGE_FEEDRATE * mix_multiplier);
-
-#else
     constexpr float mm_per_minute = 1 / 60.f;
-    // debug code:
-    //     plan_pause_e_move(1*mix_multiplier, 100*mix_multiplier * mm_per_minute);
-    // // G1 F300
-    // // G1 E1
-    //     plan_pause_e_move(1*mix_multiplier, 300*mix_multiplier * mm_per_minute);
-    // // G1 F800
-    // // G1 E3
-    //     plan_pause_e_move(3*mix_multiplier, 800*mix_multiplier * mm_per_minute);
-    // // G1 F1200
-    // // G1 E2
-    //     plan_pause_e_move(2*mix_multiplier, 1200*mix_multiplier * mm_per_minute);
-    // // G1 F2200
-    // // G1 E2
-    //     plan_pause_e_move(2*mix_multiplier, 2200*mix_multiplier * mm_per_minute);
-    // // G1 F2600
-    // // G1 E2
-    //     plan_pause_e_move(2*mix_multiplier, 2600*mix_multiplier * mm_per_minute);
-
-    // // ; unload
-    // // G1 F2200
-    // // G1 E-2
-    //     plan_pause_e_move(-2*mix_multiplier, 2200*mix_multiplier * mm_per_minute);
-    // // G1 F3000
-    // // G1 E-20
-    //     plan_pause_e_move(-20*mix_multiplier, 3000*mix_multiplier * mm_per_minute);
-    // // G1 F4000
-    // // G1 E-30
-    //     plan_pause_e_move(-30*mix_multiplier, 4000*mix_multiplier * mm_per_minute);
 
     struct RamUnloadSeqItem {
         int16_t e;        ///< relative movement of Extruder
@@ -302,19 +262,12 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     for (size_t i = pre_unload_begin_pos; i < ramUnloadSeqSize; ++i) {
         plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
     }
-#endif
 
 // Unload filament
 #if FILAMENT_CHANGE_UNLOAD_ACCEL > 0
     const float saved_acceleration = planner.settings.retract_acceleration;
     planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
 #endif
-
-    //    if (unload_length < -(FILAMENT_UNLOAD_PHASE1_LENGHT + FILAMENT_UNLOAD_PHASE2_LENGHT)) {
-    //        do_pause_e_move(-FILAMENT_UNLOAD_PHASE1_LENGHT * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
-    //        do_pause_e_move(-FILAMENT_UNLOAD_PHASE2_LENGHT * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE / 4) * mix_multiplier);
-    //        do_pause_e_move((unload_length + (FILAMENT_UNLOAD_PHASE1_LENGHT + FILAMENT_UNLOAD_PHASE2_LENGHT)) * mix_multiplier, (FILAMENT_CHANGE_UNLOAD_FEEDRATE)*mix_multiplier);
-    //    } else
 
     // subtract the already performed extruder movement (-30mm) from the total unload length
     do_pause_e_move((unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e), (FILAMENT_CHANGE_UNLOAD_FEEDRATE));
@@ -424,15 +377,8 @@ bool pause_print(const float &retract, const xyz_pos_t &park_point, const float 
  * Used by M125 and M600
  */
 
-void show_continue_prompt(const bool is_reload) {
-    SERIAL_ECHO_START();
-    serialprintPGM(is_reload ? PSTR(_PMSG(MSG_FILAMENT_CHANGE_INSERT) "\n") : PSTR(_PMSG(MSG_FILAMENT_CHANGE_WAIT) "\n"));
-}
-
 void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_beep_count /*=0*/ DXC_ARGS) {
     bool nozzle_timed_out = false;
-
-    show_continue_prompt(is_reload);
 
     filament_change_beep(max_beep_count, true);
 
@@ -445,11 +391,10 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
     // Wait for filament insert by user and press button
     KEEPALIVE_STATE(PAUSED_FOR_USER);
     wait_for_user = true; // LCD click or M108 will clear this
-#if ENABLED(HOST_PROMPT_SUPPORT)
-    host_prompt_do(PROMPT_USER_CONTINUE, PSTR("Nozzle Parked"), PSTR("Continue"));
-#endif
-    ExtUI::onUserConfirmRequired_P(PSTR("Nozzle Parked"));
-    while (wait_for_user) {
+
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
+
+    while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::CONTINUE)) {
         filament_change_beep(max_beep_count);
 
         // If the nozzle has timed out...
@@ -462,18 +407,10 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
         if (nozzle_timed_out) {
             SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_HEAT));
 
-#if ENABLED(HOST_PROMPT_SUPPORT)
-            host_prompt_do(PROMPT_USER_CONTINUE, PSTR("HeaterTimeout"), PSTR("Reheat"));
-#endif
-            ExtUI::onUserConfirmRequired_P(PSTR("HeaterTimeout"));
             // Wait for LCD click or M108
-            while (wait_for_user)
+            change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
+            while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::NozzleTimeout) != Command::REHEAT))
                 idle(true);
-
-#if ENABLED(HOST_PROMPT_SUPPORT)
-            host_prompt_do(PROMPT_INFO, PSTR("Reheating"));
-#endif
-            ExtUI::onStatusChanged(PSTR("Reheating..."));
 
             // Re-enable the heaters if they timed out
             HOTEND_LOOP()
@@ -482,18 +419,12 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             // Wait for the heaters to reach the target temperatures
             ensure_safe_temperature();
 
-            // Show the prompt to continue
-            show_continue_prompt(is_reload);
-
             // Start the heater idle timers
             const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL;
 
             HOTEND_LOOP()
             thermalManager.hotend_idle[e].start(nozzle_timeout);
-#if ENABLED(HOST_PROMPT_SUPPORT)
-            host_prompt_do(PROMPT_USER_CONTINUE, PSTR("Reheat Done"), PSTR("Continue"));
-#endif
-            ExtUI::onUserConfirmRequired_P(PSTR("Reheat finished."));
+
             wait_for_user = true;
             nozzle_timed_out = false;
 

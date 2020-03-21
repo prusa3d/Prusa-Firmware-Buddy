@@ -19,7 +19,8 @@ enum class Command : uint8_t {
     OK,
     BACK,
     RETRY,
-    PURGE_MORE
+    PURGE_MORE,
+    REHEAT
 };
 
 using PhaseCommands = std::array<Command, MAX_COMMANDS>;
@@ -55,6 +56,7 @@ enum class PhasesLoadUnload : uint16_t {
     Unloading,
     Unloading2,
     UserPush,
+    NozzleTimeout,
     MakeSureInserted,
     Inserting,
     Loading,

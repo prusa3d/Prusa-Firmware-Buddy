@@ -9,6 +9,7 @@ const PhaseCommands DialogCommands::LoadUnloadButtons[CountPhases<PhasesLoadUnlo
     {},                                         //Unloading,
     {},                                         //Unloading2,
     { Command::CONTINUE },                      //UserPush,
+    { Command::REHEAT },                        //NozzleTimeout,
     {},                                         //MakeSureInserted,
     {},                                         //Inserting,
     {},                                         //Loading,
