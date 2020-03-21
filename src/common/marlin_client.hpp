@@ -14,6 +14,6 @@ bool marlin_dialog_command(T phase, Command command) {
     if (encoded == uint32_t(-1))
         return false;
 
-    marlin_button_click_encoded(encoded);
+    marlin_radio_button_click_encoded(encoded);
     return true;
 }

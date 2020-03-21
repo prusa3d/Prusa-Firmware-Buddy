@@ -11,6 +11,7 @@ int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
 }
 #endif //__cplusplus
 
+//todo move button texts
 static const char *txt_none = "";
 static const char *txt_stop = "STOP";
 static const char *txt_cont = "CONTINUE";
@@ -59,7 +60,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 }
 
 DialogLoadUnload::DialogLoadUnload(const char *name)
-    : DialogStateful<CountPhases<PhasesLoadUnload>()>(name, WINDOW_CLS_DLG_LOADUNLOAD, LoadUnloadFactory()) {}
+    : DialogStateful<PhasesLoadUnload>(name, WINDOW_CLS_DLG_LOADUNLOAD, LoadUnloadFactory()) {}
 
 void DialogLoadUnload::c_draw(window_t *win) {
     IDialog *ptr = cast(win);

@@ -3,6 +3,8 @@
 #include "IDialog.hpp"
 #include <array>
 #include "DialogRadioButton.hpp"
+#include "marlin_client.hpp"
+#include "dialog_commands.hpp"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -92,10 +94,13 @@ protected:
     void draw_progress();
 };
 
+/*****************************************************************************/
 //parent for stateful dialogs dialog
-template <int SZ>
+//use one of enumclass from "dialog_commands.hpp" as T
+template <class T>
 class DialogStateful : public IDialogStateful {
 public:
+    enum { SZ = CountPhases<T>() };
     using States = std::array<State, SZ>;
 
 protected:
@@ -116,8 +121,9 @@ public:
 
 /*****************************************************************************/
 //template definitions
-template <int SZ>
-void DialogStateful<SZ>::draw() {
+
+template <class T>
+void DialogStateful<T>::draw() {
     if ((f_visible)
         //&& ((size_t)(dlg_vars.phase) < states.size()) // no need to check
     ) {
@@ -160,15 +166,17 @@ void DialogStateful<SZ>::draw() {
     }
 }
 
-template <int SZ>
-void DialogStateful<SZ>::event(uint8_t event, void *param) {
+template <class T>
+void DialogStateful<T>::event(uint8_t event, void *param) {
     RadioButton &radio = states[dlg_vars.phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     //case WINDOW_EVENT_BTN_UP:
-    case WINDOW_EVENT_CLICK:
-        radio.Click();
+    case WINDOW_EVENT_CLICK: {
+        Command command = radio.Click();
+        marlin_dialog_command(GetEnumFromPhaseIndex<T>(dlg_vars.phase), command);
         return;
+    }
     case WINDOW_EVENT_ENC_UP:
         ++radio;
         return;

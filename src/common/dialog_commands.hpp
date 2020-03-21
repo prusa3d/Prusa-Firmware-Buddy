@@ -36,6 +36,11 @@ constexpr uint8_t GetPhaseIndex(T phase) {
     return static_cast<size_t>(phase) - static_cast<size_t>(T::_first);
 }
 
+template <class T>
+constexpr T GetEnumFromPhaseIndex(size_t index) {
+    return static_cast<T>(static_cast<size_t>(T::_first) + index);
+}
+
 //define enum classes for buttons here
 //and YES radio button can have 0 buttons
 //every enum must have "_first" and "_last"
@@ -112,8 +117,6 @@ public:
     //use on client side
     template <class T>
     static uint32_t Encode(T phase, Command command) {
-        if (phase == T::NoBtn_Count)
-            return -1; //count cannot be used
         uint8_t clicked_index = GetIndex(phase, command);
         if (clicked_index > MAX_COMMANDS)
             return -1; // this radio button does not have so many buttons
