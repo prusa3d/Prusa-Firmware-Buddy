@@ -18,9 +18,11 @@ static const char *txt_cont = "CONTINUE";
 static const char *txt_disa = "DISABLE SENSOR";
 static const char *txt_yes = "YES";
 static const char *txt_no = "NO";
+static const char *txt_reheat = "REHEAT";
 
 static const PhaseTexts ph_txt_stop = { txt_stop, txt_none, txt_none, txt_none };
 static const PhaseTexts ph_txt_cont = { txt_cont, txt_none, txt_none, txt_none };
+static const PhaseTexts ph_txt_reheat = { txt_reheat, txt_none, txt_none, txt_none };
 static const PhaseTexts ph_txt_disa = { txt_disa, txt_none, txt_none, txt_none };
 static const PhaseTexts ph_txt_none = { txt_none, txt_none, txt_none, txt_none };
 static const PhaseTexts ph_txt_yesno = { txt_yes, txt_no, txt_none, txt_none };
@@ -36,6 +38,7 @@ static const char *txt_inserting = "Inserting";
 static const char *txt_loading = "Loading to nozzle";
 static const char *txt_purging = "Purging";
 static const char *txt_is_color = "Is color correct?";
+static const char *txt_nozzle_cold = "Nozzle is too cold.";
 
 static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_defaults.color_back, IDialogStateful::get_radio_button_size() };
 
@@ -48,6 +51,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_unload, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading), ph_txt_stop) },
         DialogLoadUnload::State { txt_unload, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Unloading2), ph_txt_stop) },
         DialogLoadUnload::State { txt_push_fil, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::UserPush), ph_txt_cont) },
+        DialogLoadUnload::State { txt_nozzle_cold, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::NozzleTimeout), ph_txt_reheat) },
         DialogLoadUnload::State { txt_make_sure_inserted, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::MakeSureInserted), ph_txt_cont) },
         DialogLoadUnload::State { txt_inserting, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Inserting), ph_txt_stop) },
         DialogLoadUnload::State { txt_loading, RadioButton(radio_win, DialogCommands::GetCommands(PhasesLoadUnload::Loading), ph_txt_stop) },

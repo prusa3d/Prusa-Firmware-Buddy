@@ -975,34 +975,6 @@ void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t req_client_mask, uint8_t cl
     }
 }
 
-void _force_M600_notify(MARLIN_EVT_t evt_id, uint8_t req_client_mask) {
-    uint8_t client_mask = _send_notify_event(evt_id, MARLIN_CMD_M600, 0);
-    _ensure_event_sent(evt_id, req_client_mask, client_mask);
-}
-
-// this is called in main thread directly from M600
-void force_M600_begin_notify() {
-    marlin_server.command = MARLIN_CMD_M600;
-    marlin_server.command_begin = MARLIN_CMD_M600;
-    marlin_server.command_end = MARLIN_CMD_M600;
-    // notification will wait until successfully sent to gui client
-    _force_M600_notify(MARLIN_EVT_CommandBegin, 1 << gui_marlin_client_id);
-#ifdef DEBUG_FSENSOR_IN_HEADER
-    _is_in_M600_flg = 1;
-#endif
-}
-
-// this is called in main thread directly from M600
-void force_M600_end_notify() {
-    marlin_server.command = MARLIN_CMD_NONE;
-    // notification will wait until successfully sent to gui client
-    _force_M600_notify(MARLIN_EVT_CommandEnd, 1 << gui_marlin_client_id);
-    fs_clr_sent();
-#ifdef DEBUG_FSENSOR_IN_HEADER
-    _is_in_M600_flg = 0;
-#endif
-}
-
 //-----------------------------------------------------------------------------
 // ExtUI event handlers
 
