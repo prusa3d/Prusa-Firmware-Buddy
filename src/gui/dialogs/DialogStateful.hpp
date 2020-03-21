@@ -9,15 +9,6 @@
 #pragma pack(push)
 #pragma pack(1)
 
-//universal dialog vars
-struct DlgVars {
-    int8_t phase;
-    int8_t prev_phase;
-    uint8_t progress;
-    uint8_t prev_progress;
-    DlgVars();
-};
-
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
 //general foe any number of phases
@@ -63,9 +54,10 @@ protected:
     padding_ui8_t padding;
     uint16_t flags;
     uint8_t last_text_h; //hack todo remove me
+    uint8_t phase;
+    uint8_t progress;
 
     const char *title;
-    DlgVars dlg_vars;
 
     virtual bool can_change(uint8_t phase) = 0;
 
@@ -125,10 +117,10 @@ public:
 template <class T>
 void DialogStateful<T>::draw() {
     if ((f_visible)
-        //&& ((size_t)(dlg_vars.phase) < states.size()) // no need to check
+        //&& ((size_t)(phase) < states.size()) // no need to check
     ) {
-        RadioButton &radio = states[dlg_vars.phase].button;
-        const char *text = states[dlg_vars.phase].label;
+        RadioButton &radio = states[phase].button;
+        const char *text = states[phase].label;
         rect_ui16_t rc = rect;
 
         if (f_invalid) {
@@ -168,13 +160,13 @@ void DialogStateful<T>::draw() {
 
 template <class T>
 void DialogStateful<T>::event(uint8_t event, void *param) {
-    RadioButton &radio = states[dlg_vars.phase].button;
+    RadioButton &radio = states[phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     //case WINDOW_EVENT_BTN_UP:
     case WINDOW_EVENT_CLICK: {
         Command command = radio.Click();
-        marlin_dialog_command(GetEnumFromPhaseIndex<T>(dlg_vars.phase), command);
+        marlin_dialog_command(GetEnumFromPhaseIndex<T>(phase), command);
         return;
     }
     case WINDOW_EVENT_ENC_UP:

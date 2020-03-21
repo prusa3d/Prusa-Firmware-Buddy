@@ -13,16 +13,6 @@
 
 extern window_t *window_1; //current popup window, C-code remain
 
-const char *const test_title = "TEST";
-
-//*****************************************************************************
-//DlgVars
-DlgVars::DlgVars()
-    : phase(0)
-    , prev_phase(-1)
-    , progress(0)
-    , prev_progress(-1) {}
-
 //*****************************************************************************
 
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
@@ -36,24 +26,26 @@ IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     , padding(gui_defaults.padding)
     , flags(0)
     , last_text_h(0)
+    , phase(0)
+    , progress(0)
     , title(name) {
-    //  err dlg nezna stavy a count
-    //, id(window_create_ptr(WINDOW_CLS_DLG_LOADUNLOAD, 0, gui_defaults.msg_box_sz, &dlg))
-
     window_1 = this; //todo
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);
 }
 
-bool IDialogStateful::Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    if (!can_change(phase))
+bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t progr) {
+    if (!can_change(phs))
         return false;
-    dlg_vars.phase = phase;
-    flags |= DLG_PHA_CH;
-#warning do progress here
-    //dlg.vars.phase = phase;
-    //dlg.flags |= DLG_PHA_CH;
+    if (phase != phs) {
+        phase = phs;
+        flags |= DLG_PHA_CH;
+    }
+    if (progress_tot != progress) {
+        progress = progress_tot;
+        flags |= DLG_PRO_CH;
+    }
     gui_invalidate();
     return true;
 }
@@ -112,10 +104,11 @@ void progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
 }
 
 void IDialogStateful::draw_progress() {
-    if (dlg_vars.progress <= 100) {
+    if (progress <= 100) {
         if (flags & DLG_PRO_CH)
-            progress_draw(rect, font_title, color_back, color_text, padding, dlg_vars.progress);
+            progress_draw(rect, font_title, color_back, color_text, padding, progress);
     } else {
+        //do not draw progress at all
         progress_clr(rect, font_title, color_back);
     }
 }
