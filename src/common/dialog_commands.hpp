@@ -42,14 +42,14 @@ constexpr T GetEnumFromPhaseIndex(size_t index) {
     return static_cast<T>(static_cast<size_t>(T::_first) + index);
 }
 
-//define enum classes for buttons here
-//and YES radio button can have 0 buttons
+//define enum classes for commands here
+//and YES phase can have 0 commands
 //every enum must have "_first" and "_last"
 //"_first" ==  "previous_enum::_last" + 1
-//EVERY radio button shall have unique ID
+//EVERY command shall have unique ID (so every button in GIU is unique)
 enum class PhasesLoadUnload : uint16_t {
     _first = 0,
-    Parking = _first,
+    Parking,
     WaitingTemp,
     PreparingToRam,
     Ramming,
@@ -69,7 +69,7 @@ enum class PhasesLoadUnload : uint16_t {
 
 enum class PhasesTest : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
-    Test1 = _first,
+    Test1,
     Test2,
     _last = Test2
 };

@@ -2,6 +2,7 @@
 
 //define available commands for every phase
 const PhaseCommands DialogCommands::LoadUnloadButtons[CountPhases<PhasesLoadUnload>()] = {
+    {},                                         //_init
     {},                                         //Parking
     {},                                         //WaitingTemp,
     {},                                         //PreparingToRam,
@@ -20,6 +21,7 @@ const PhaseCommands DialogCommands::LoadUnloadButtons[CountPhases<PhasesLoadUnlo
 };
 
 const PhaseCommands DialogCommands::TestButtons[CountPhases<PhasesTest>()] = {
+    {},
     {},
     {}
 };
