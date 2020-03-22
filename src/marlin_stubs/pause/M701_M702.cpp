@@ -39,6 +39,7 @@
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "marlin_server.h" //open_dialog_handler, close_dialog_handler
+#include "dialog_commands_server.hpp"
 
 typedef void (*load_unload_fnc)(const int8_t target_extruder);
 
@@ -57,15 +58,18 @@ static void load_unload(load_unload_type_t type, load_unload_fnc load_unload) {
         park_point.z = parser.linearval('Z');
 
     // Lift Z axis
-    if (park_point.z > 0)
+    if (park_point.z > 0) {
+        change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), -1, 0);
         do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-
+    }
     // Load/Unload filament
     load_unload(target_extruder);
 
     // Restore Z axis
-    if (park_point.z > 0)
+    if (park_point.z > 0) {
+        change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), -1, 0);
         do_blocking_move_to_z(_MAX(current_position.z - park_point.z, 0), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+    }
     close_dialog_handler(DLG_load_unload);
 }
 

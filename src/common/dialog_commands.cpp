@@ -17,7 +17,7 @@ const PhaseCommands DialogCommands::LoadUnloadButtons[CountPhases<PhasesLoadUnlo
     {},                                         //Purging,
     {},                                         //Purging2,
     { Command::CONTINUE, Command::PURGE_MORE }, //IsColor,
-    {},                                         //Purging3,
+    {},                                         //Unparking,
 };
 
 const PhaseCommands DialogCommands::TestButtons[CountPhases<PhasesTest>()] = {
