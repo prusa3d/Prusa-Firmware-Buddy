@@ -59,16 +59,16 @@ char fs_get_send_M600_on() {
 //local functions
 static void _init();
 
-static int serial_printing = 0;
+static int block_M600_injection = 0;
 //called when Serial print screen is openned
 //printer is not in sd printing mode, so filament sensor does not trigger M600
 static void dialog_open_cb(dialog_t dialog, uint8_t data) {
     if (dialog == DLG_serial_printing)
-        serial_printing = 1;
+        block_M600_injection = 1;
 }
 static void dialog_close_cb(dialog_t dialog) {
-    if (dialog == DLG_serial_printing)
-        serial_printing = 0;
+    if (dialog == DLG_serial_printing || dialog == DLG_load_unload)
+        block_M600_injection = 0;
 }
 
 //simple filter
@@ -197,7 +197,7 @@ void fs_init_never() {
 //methods called only in fs_cycle
 static void _injectM600() {
     marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
-    if (status.M600_sent == 0 && (vars->sd_printing || serial_printing)) {
+    if (status.M600_sent == 0 && (vars->sd_printing || block_M600_injection)) {
         marlin_gcode_push_front("M600"); //change filament
         status.M600_sent = 1;
     }
