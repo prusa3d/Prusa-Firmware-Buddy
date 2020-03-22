@@ -40,18 +40,13 @@
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "marlin_server.h" //open_dialog_handler, close_dialog_handler
 
+typedef void (*load_unload_fnc)(const int8_t target_extruder);
+
 /**
- * M701: Load filament
- *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  Z<distance> - Move the Z axis by this distance
- *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
- *
- *  Default values are used for omitted arguments.
+ * Shared code for load/unload filament
  */
-void GcodeSuite::M701() {
-    const int8_t target_extruder = get_target_extruder_from_command();
+static void load_unload(load_unload_type_t type, load_unload_fnc load_unload) {
+    const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
 
@@ -65,7 +60,19 @@ void GcodeSuite::M701() {
     if (park_point.z > 0)
         do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
 
-    // Load filament
+    // Load/Unload filament
+    load_unload(target_extruder);
+
+    // Restore Z axis
+    if (park_point.z > 0)
+        do_blocking_move_to_z(_MAX(current_position.z - park_point.z, 0), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+    close_dialog_handler(DLG_load_unload);
+}
+
+/**
+ * Load filament special code
+ */
+static void load(const int8_t target_extruder) {
     constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH,
                     slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
@@ -77,11 +84,30 @@ void GcodeSuite::M701() {
         thermalManager.still_heating(target_extruder), // pause_for_user
         PAUSE_MODE_LOAD_FILAMENT                       // pause_mode
     );
+}
 
-    // Restore Z axis
-    if (park_point.z > 0)
-        do_blocking_move_to_z(_MAX(current_position.z - park_point.z, 0), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-    close_dialog_handler(DLG_load_unload);
+/**
+ * Unload filament special code
+ */
+static void unload(const int8_t target_extruder) {
+    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
+                                                      : fc_settings[target_extruder].unload_length);
+
+    unload_filament(unload_length, true, PAUSE_MODE_UNLOAD_FILAMENT);
+}
+
+/**
+ * M701: Load filament
+ *
+ *  T<extruder> - Extruder number. Required for mixing extruder.
+ *                For non-mixing, current extruder if omitted.
+ *  Z<distance> - Move the Z axis by this distance
+ *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
+ *
+ *  Default values are used for omitted arguments.
+ */
+void GcodeSuite::M701() {
+    load_unload(DLG_type_load, load);
 }
 
 /**
@@ -96,28 +122,5 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    const int8_t target_extruder = get_target_extruder_from_command();
-    if (target_extruder < 0)
-        return;
-
-    open_dialog_handler(DLG_load_unload, DLG_type_unload);
-    xyz_pos_t park_point = NOZZLE_PARK_POINT;
-    // Z axis lift
-    if (parser.seenval('Z'))
-        park_point.z = parser.linearval('Z');
-
-    // Lift Z axis
-    if (park_point.z > 0)
-        do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-
-    // Unload filament
-    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                      : fc_settings[target_extruder].unload_length);
-
-    unload_filament(unload_length, true, PAUSE_MODE_UNLOAD_FILAMENT);
-
-    // Restore Z axis
-    if (park_point.z > 0)
-        do_blocking_move_to_z(_MAX(current_position.z - park_point.z, 0), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
-    close_dialog_handler(DLG_load_unload);
+    load_unload(DLG_type_unload, unload);
 }
