@@ -63,8 +63,8 @@ enum class PhasesLoadUnload : uint16_t {
     Purging,
     Purging2,
     IsColor,
-    Purging3,
-    _last = Purging3
+    Unparking,
+    _last = Unparking
 };
 
 enum class PhasesTest : uint16_t {

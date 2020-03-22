@@ -38,6 +38,7 @@ static const PhaseTexts ph_txt_none   = { txt_none,   txt_none, txt_none, txt_no
 static const PhaseTexts ph_txt_yesno  = { txt_yes,    txt_no,   txt_none, txt_none };
 
 static const char *txt_parking            = "Parking";
+static const char *txt_unparking          = "Unparking";
 static const char *txt_wait_temp          = "Waiting for temp.";
 static const char *txt_prep_ram           = "Preparing to ram";
 static const char *txt_ram                = "Ramming";
@@ -67,7 +68,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging,          ph_txt_stop) },
         DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging2,         ph_txt_none) },
         DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColor,          ph_txt_yesno) },
-        DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging3,         ph_txt_yesno) },
+        DialogLoadUnload::State { txt_unparking,          btn(PhasesLoadUnload::Unparking,        ph_txt_stop) },
     };
     return ret;
 }
