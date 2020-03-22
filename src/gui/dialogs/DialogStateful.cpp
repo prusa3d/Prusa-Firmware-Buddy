@@ -27,7 +27,7 @@ IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     , flags(0)
     , last_text_h(0)
     , phase(0)
-    , progress(0)
+    , progress(-1)
     , title(name) {
     window_1 = this; //todo
     gui_reset_jogwheel();

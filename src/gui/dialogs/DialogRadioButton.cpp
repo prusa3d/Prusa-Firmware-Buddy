@@ -6,7 +6,7 @@
 static const PhaseCommands disabled_commands = { Command::_NONE, Command::_NONE, Command::_NONE, Command::_NONE }; //used in constructor
 
 size_t RadioButton::cnt_labels(const PhaseTexts &labels) {
-    return (std::find_if(labels.begin(), labels.end(), [](const char *s) { return strcmp(s, ""); })) - labels.begin();
+    return (std::find_if(labels.begin(), labels.end(), [](const char *s) { return s[0] == '\0'; })) - labels.begin();
 }
 
 size_t RadioButton::cnt_commands(const PhaseCommands &cmmnds) {

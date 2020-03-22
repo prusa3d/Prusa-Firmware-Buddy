@@ -111,13 +111,10 @@ void GcodeSuite::M702() {
         do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
 
     // Unload filament
-    {
-        // Unload length
-        const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                          : fc_settings[target_extruder].unload_length);
+    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
+                                                      : fc_settings[target_extruder].unload_length);
 
-        unload_filament(unload_length, true, PAUSE_MODE_UNLOAD_FILAMENT);
-    }
+    unload_filament(unload_length, true, PAUSE_MODE_UNLOAD_FILAMENT);
 
     // Restore Z axis
     if (park_point.z > 0)
