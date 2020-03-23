@@ -126,22 +126,25 @@ extern void change_dialog_handler(dialog_t type, uint8_t phase, uint8_t progress
 //use this class to automatically notyfi progress
 //just create an instance and progress will be notyfied while it exists
 class Dialog_notifier {
+    struct data {
+        dialog_t type;
+        uint8_t phase;
+        cvariant8 min;
+        cvariant8 range;
+        uint8_t var_id;
+        uint8_t last_progress_sent;
+        data()
+            : type(DLG_no_dialog)
+            , phase(0)
+            , var_id(0)
+            , last_progress_sent(-1) {}
+    };
     //static members
-    static dialog_t static_type;
-    static uint8_t static_phase;
-    static cvariant8 static_min;
-    static cvariant8 static_range;
-    static uint8_t static_var_id;
-    static uint8_t static_last_progress_sent;
+    static data s_data;
 
     //temporary members
     //to store previous state
-    dialog_t temp_type;
-    uint8_t temp_phase;
-    cvariant8 temp_min;
-    cvariant8 temp_range;
-    uint8_t temp_var_id;
-    uint8_t temp_last_progress_sent;
+    data temp_data;
 
 public:
     Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t var_id);

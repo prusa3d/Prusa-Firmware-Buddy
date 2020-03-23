@@ -1303,48 +1303,34 @@ void host_prompt_do(const PromptReason type, const char *const pstr, const char 
 
 /*****************************************************************************/
 //Dialog_notifier
-dialog_t Dialog_notifier::static_type = DLG_no_dialog;
-uint8_t Dialog_notifier::static_phase = 0;
-cvariant8 Dialog_notifier::static_min;
-cvariant8 Dialog_notifier::static_range;
-uint8_t Dialog_notifier::static_var_id = 0;
-uint8_t Dialog_notifier::static_last_progress_sent = -1;
+Dialog_notifier::data Dialog_notifier::s_data;
 
 Dialog_notifier::Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t var_id)
-    : temp_type(static_type)
-    , temp_phase(static_phase)
-    , temp_min(static_min)
-    , temp_range(static_range)
-    , temp_var_id(static_var_id)
-    , temp_last_progress_sent(static_last_progress_sent) {
-    static_type = type;
-    static_phase = phase;
-    static_min = min;
-    static_range = max - min;
-    static_var_id = var_id;
-    static_last_progress_sent = -1;
+    : temp_data(s_data) {
+    s_data.type = type;
+    s_data.phase = phase;
+    s_data.min = min;
+    s_data.range = max - min;
+    s_data.var_id = var_id;
+    s_data.last_progress_sent = -1;
 }
 
 //static method
 void Dialog_notifier::SendNotification() {
-    if (static_type == DLG_no_dialog)
+    if (s_data.type == DLG_no_dialog)
         return;
 
     cvariant8 actual;
-    actual.attach(marlin_vars_get_var(&(marlin_server.vars), static_var_id));
-    actual = static_range / (actual - static_min);
+    actual.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
+    actual = s_data.range / (actual - s_data.min);
     uint8_t progress = uint8_t(actual);
 
-    if (progress != static_last_progress_sent) {
-        static_last_progress_sent = progress;
-        change_dialog_handler(static_type, static_phase, progress, 0);
+    if (progress != s_data.last_progress_sent) {
+        s_data.last_progress_sent = progress;
+        change_dialog_handler(s_data.type, s_data.phase, progress, 0);
     }
 }
 
 Dialog_notifier::~Dialog_notifier() {
-    static_type = temp_type;
-    static_phase = temp_phase;
-    static_min = temp_min;
-    static_range = temp_range;
-    static_var_id = temp_var_id;
+    s_data = temp_data;
 }
