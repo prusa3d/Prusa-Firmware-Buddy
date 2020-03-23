@@ -41,41 +41,37 @@
 #include "marlin_server.h" //open_dialog_handler, close_dialog_handler
 #include "dialog_commands_server.hpp"
 
-#define DO_NOT_RESTORE_Z_AXIS
-#define Z_AXIS_LOAD_POS   40
-#define Z_AXIS_UNLOAD_POS 2 //just to do not touch build plate
-
 typedef void (*load_unload_fnc)(const int8_t target_extruder);
 
 /**
  * Shared code for load/unload filament
  */
-static void load_unload(load_unload_type_t type, load_unload_fnc load_unload, uint32_t min_Z_pos) {
+static void load_unload(load_unload_type_t type, load_unload_fnc load_unload) {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
 
     open_dialog_handler(DLG_load_unload, DLG_type_load);
+    xyz_pos_t park_point = NOZZLE_PARK_POINT;
     // Z axis lift
     if (parser.seenval('Z'))
-        min_Z_pos = parser.linearval('Z');
+        park_point.z = parser.linearval('Z');
 
     // Lift Z axis
-    if (min_Z_pos > 0) {
-        const float target_Z = _MIN(current_position.z + min_Z_pos, Z_MAX_POS);
+    if (park_point.z > 0) {
+        const float target_Z = _MIN(current_position.z + park_point.z, Z_MAX_POS);
         Notifier_POS_Z N(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     // Load/Unload filament
     load_unload(target_extruder);
-#ifndef DO_NOT_RESTORE_Z_AXIS
+
     // Restore Z axis
-    if (min_Z_pos > 0) {
-        const float target_Z = _MAX(current_position.z - min_Z_pos, 0);
+    if (park_point.z > 0) {
+        const float target_Z = _MAX(current_position.z - park_point.z, 0);
         Notifier_POS_Z N(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
-#endif
     close_dialog_handler(DLG_load_unload);
 }
 
@@ -117,7 +113,7 @@ static void unload(const int8_t target_extruder) {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    load_unload(DLG_type_load, load, Z_AXIS_LOAD_POS);
+    load_unload(DLG_type_load, load);
 }
 
 /**
@@ -132,5 +128,5 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    load_unload(DLG_type_unload, unload, Z_AXIS_UNLOAD_POS);
+    load_unload(DLG_type_unload, unload);
 }
