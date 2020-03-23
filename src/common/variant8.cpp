@@ -67,7 +67,7 @@ void variant8_done(variant8_t *pvar8) {
     }
 }
 
-variant8_t variant8_copy(variant8_t *pvar8) {
+variant8_t variant8_copy(const variant8_t *pvar8) {
     variant8_t var8 = pvar8 ? (*pvar8) : _VARIANT8_EMPTY();
     if ((var8.type & VARIANT8_PTR) && var8.size && var8.ptr) {
         void *ptr = var8.ptr;
@@ -575,17 +575,17 @@ cvariant8 &cvariant8::change_type(uint8_t new_type) {
     return *this;
 }
 
-bool cvariant8::is_empty() { return (type == VARIANT8_EMPTY) ? true : false; }
+bool cvariant8::is_empty() const { return (type == VARIANT8_EMPTY) ? true : false; }
 
-bool cvariant8::is_error() { return (type == VARIANT8_ERROR) ? true : false; }
+bool cvariant8::is_error() const { return (type == VARIANT8_ERROR) ? true : false; }
 
-bool cvariant8::is_signed() { return variant8_is_signed(this) ? true : false; }
+bool cvariant8::is_signed() const { return variant8_is_signed(this) ? true : false; }
 
-bool cvariant8::is_unsigned() { return variant8_is_unsigned(this) ? true : false; }
+bool cvariant8::is_unsigned() const { return variant8_is_unsigned(this) ? true : false; }
 
-bool cvariant8::is_integer() { return variant8_is_integer(this) ? true : false; }
+bool cvariant8::is_integer() const { return variant8_is_integer(this) ? true : false; }
 
-bool cvariant8::is_number() { return variant8_is_number(this) ? true : false; }
+bool cvariant8::is_number() const { return variant8_is_number(this) ? true : false; }
 
 cvariant8 &cvariant8::operator=(const cvariant8 &var8) {
     variant8_done(this);
@@ -647,5 +647,64 @@ cvariant8 &cvariant8::operator=(float val) {
 cvariant8 &cvariant8::operator=(const char *val) {
     variant8_done(this);
     *((variant8_t *)this) = variant8_pchar((char *)val, 0, 1);
+    return *this;
+}
+
+//helper for extractors
+//works ony on integer values
+int32_t cvariant8::get_valid_int() const {
+    switch (type) {
+    case VARIANT8_I8:
+        return i8;
+    case VARIANT8_UI8:
+        return ui8;
+    case VARIANT8_I16:
+        return i16;
+    case VARIANT8_UI16:
+        return ui16;
+    case VARIANT8_I32:
+        return i32;
+    case VARIANT8_UI32:
+        return ui32;
+    default: //wrong type
+        return 0;
+    }
+}
+
+//used by assigment operators like +=
+cvariant8 &cvariant8::assigment_operator_x(const cvariant8 &rhs, cvariant8::operator_x op) {
+    if (type == rhs.type) {
+        switch (type) {
+        case VARIANT8_I8:
+            i8 = calc(i8, rhs.i8, op);
+            break;
+        case VARIANT8_UI8:
+            ui8 = calc(ui8, rhs.ui8, op);
+            break;
+        case VARIANT8_I16:
+            i16 = calc(i16, rhs.i16, op);
+            break;
+        case VARIANT8_UI16:
+            ui16 = calc(ui16, rhs.ui16, op);
+            break;
+        case VARIANT8_I32:
+            i32 = calc(i32, rhs.i32, op);
+            break;
+        case VARIANT8_UI32:
+            ui32 = calc(ui32, rhs.ui32, op);
+            break;
+        case VARIANT8_FLT:
+            flt = calc(flt, rhs.flt, op);
+            break;
+        case VARIANT8_EMPTY: //empty is fine
+            break;
+        default:
+            //unsuported types set error
+            type = VARIANT8_ERROR;
+            break;
+        }
+    } else {
+        type = VARIANT8_ERROR;
+    }
     return *this;
 }
