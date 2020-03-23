@@ -125,15 +125,16 @@ public: // assignment operators
 private:
     int32_t get_valid_int() const; //helper for extractors, works ony on integer values
 public:                            // extractors
-    operator int8_t() const { return (is_integer()) ? int8_t(get_valid_int()) : (type == VARIANT8_FLT) ? int8_t(flt) : 0; }
-    operator uint8_t() const { return (is_integer()) ? uint8_t(get_valid_int()) : (type == VARIANT8_FLT) ? uint8_t(flt) : 0; }
-    operator int16_t() const { return (is_integer()) ? int16_t(get_valid_int()) : (type == VARIANT8_FLT) ? int16_t(flt) : 0; }
-    operator uint16_t() const { return (is_integer()) ? uint16_t(get_valid_int()) : (type == VARIANT8_FLT) ? uint16_t(flt) : 0; }
-    operator int32_t() const { return (is_integer()) ? int32_t(get_valid_int()) : (type == VARIANT8_FLT) ? int32_t(flt) : 0; }
-    operator uint32_t() const { return (is_integer()) ? uint32_t(get_valid_int()) : (type == VARIANT8_FLT) ? uint32_t(flt) : 0; }
-    operator float() const { return (type == VARIANT8_FLT) ? flt : (is_integer()) ? float(get_valid_int()) : 0; }
+    // clang-format off
+    operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?   int8_t(flt)           : 0); }
+    operator uint8_t()      const { return (is_integer())           ?  uint8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  uint8_t(flt)           : 0); }
+    operator int16_t()      const { return (is_integer())           ?  int16_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  int16_t(flt)           : 0); }
+    operator uint16_t()     const { return (is_integer())           ? uint16_t(get_valid_int()) : ((type == VARIANT8_FLT) ? uint16_t(flt)           : 0); }
+    operator int32_t()      const { return (is_integer())           ?  int32_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  int32_t(flt)           : 0); }
+    operator uint32_t()     const { return (is_integer())           ? uint32_t(get_valid_int()) : ((type == VARIANT8_FLT) ? uint32_t(flt)           : 0); }
+    operator float()        const { return (type == VARIANT8_FLT)   ? flt                       : ((is_integer())         ? float(get_valid_int())  : 0); }
     operator const char *() const { return (type == VARIANT8_PCHAR) ? pch : 0; }
-
+    // clang-format on
 private:
     enum class operator_x { plus,
         minus,
