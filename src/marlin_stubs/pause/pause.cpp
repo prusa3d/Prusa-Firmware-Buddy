@@ -49,8 +49,7 @@
 #include "../../lib/Marlin/Marlin/src/libs/nozzle.h"
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
-#include "marlin_server.h"
-#include "dialog_commands_server.hpp"
+#include "marlin_server.hpp"
 // private:
 //check unsupported feacures
 //filament sensor is no longre part of marlin thus it must be disabled

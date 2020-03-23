@@ -473,7 +473,6 @@ target_sources(
           src/common/errors.c
           src/common/lang.c
           src/common/dialog_commands.cpp
-          src/common/dialog_commands_server.cpp
           src/common/crc32.c
           src/common/ini_handler.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>

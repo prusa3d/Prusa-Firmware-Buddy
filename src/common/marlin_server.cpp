@@ -1,6 +1,7 @@
 // marlin_server.cpp
 
 #include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "dialogs.h" //dialog_t
 #include <stdarg.h>
 #include <stdio.h>
@@ -29,7 +30,6 @@
 #include "hwio.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-#include "dialog_commands_server.hpp"
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
@@ -1337,3 +1337,8 @@ void Dialog_notifier::SendNotification() {
 Dialog_notifier::~Dialog_notifier() {
     s_data = temp_data;
 }
+
+/*****************************************************************************/
+//ServerDialogCommands
+//define static member
+uint32_t ServerDialogCommands::server_side_encoded_dialog_command = -1;
