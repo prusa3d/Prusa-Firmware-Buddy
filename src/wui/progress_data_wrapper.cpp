@@ -16,20 +16,20 @@ void progress_format_time2end(char *dest, uint16_t feedrate) {
     return oProgressData.oTime2End.mFormatSeconds(dest, feedrate);
 }
 
-void print_dur_to_string(char *buffer, uint32_t print_dur) {
+void print_dur_to_string(char *buffer, size_t buffer_len, uint32_t print_dur) {
     int d = ((print_dur / 60) / 60) / 24,
         h = ((print_dur / 60) / 60) % 24,
         m = (print_dur / 60) % 60,
         s = print_dur % 60;
 
     if (d) {
-        snprintf(buffer, 13, "%3id %2ih %2im", d, h, m);
+        snprintf(buffer, buffer_len, "%3id %2ih %2im", d, h, m);
     } else if (h) {
-        snprintf(buffer, 13, "     %2ih %2im", h, m);
+        snprintf(buffer, buffer_len, "     %2ih %2im", h, m);
     } else if (m) {
-        snprintf(buffer, 13, "     %2im %2is", m, s);
+        snprintf(buffer, buffer_len, "     %2im %2is", m, s);
     } else {
-        snprintf(buffer, 13, "         %2is", s);
+        snprintf(buffer, buffer_len, "         %2is", s);
     }
 }
 }
