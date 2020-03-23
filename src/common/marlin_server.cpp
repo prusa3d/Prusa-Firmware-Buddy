@@ -1305,12 +1305,15 @@ void host_prompt_do(const PromptReason type, const char *const pstr, const char 
 //Dialog_notifier
 Dialog_notifier::data Dialog_notifier::s_data;
 
-Dialog_notifier::Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t var_id)
+Dialog_notifier::Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max,
+    cvariant8 progress_min, cvariant8 progress_max, uint8_t var_id)
     : temp_data(s_data) {
     s_data.type = type;
     s_data.phase = phase;
     s_data.min = min;
     s_data.range = max - min;
+    s_data.progress_min = progress_min;
+    s_data.progress_range = progress_max - progress_min;
     s_data.var_id = var_id;
     s_data.last_progress_sent = -1;
 }
@@ -1322,7 +1325,7 @@ void Dialog_notifier::SendNotification() {
 
     cvariant8 actual;
     actual.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
-    actual = s_data.range / (actual - s_data.min);
+    actual = ((actual - s_data.min) * s_data.progress_range) / s_data.range + s_data.progress_min;
     uint8_t progress = uint8_t(actual);
 
     if (progress != s_data.last_progress_sent) {
