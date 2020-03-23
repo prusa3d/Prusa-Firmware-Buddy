@@ -215,8 +215,8 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         Command command;
         do {
             // Extrude filament to get into hotend
-            do_pause_e_move_notify_progress(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 90);
-            change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::IsColor), 90, 0);
+            do_pause_e_move_notify_progress(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
+            change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::IsColor), 99, 0);
             do {
                 idle();
                 command = ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::IsColor);
