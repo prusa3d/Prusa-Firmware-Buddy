@@ -14,7 +14,7 @@
 #include "filament_sensor.h"
 
 static dlg_result_t _gui_dlg_load(void) {
-    marlin_gcode("M701 Z0");
+    marlin_gcode("M701");
     dlg_result_t ret; //todo get info from marlin thread
     if (ret != DLG_OK)
         set_filament(FILAMENT_NONE); //todo this must be in marlin

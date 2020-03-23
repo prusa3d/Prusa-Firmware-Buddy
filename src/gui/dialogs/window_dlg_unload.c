@@ -9,7 +9,7 @@
 #include "filament.h"
 
 static dlg_result_t _gui_dlg_unload(void) {
-    marlin_gcode("M702 Z0");
+    marlin_gcode("M702");
     dlg_result_t ret;            //todo get info from marlin thread
     set_filament(FILAMENT_NONE); //todo this must be in marlin
     return ret;
