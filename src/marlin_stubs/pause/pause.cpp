@@ -130,8 +130,32 @@ static bool ensure_safe_temperature(const PauseMode mode = PAUSE_MODE_SAME) {
     return thermalManager.wait_for_hotend(active_extruder);
 }
 
+static bool ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
+
+    if (!DEBUGGING(DRYRUN) && thermalManager.targetTooColdToExtrude(active_extruder)) {
+        SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
+        return false;
+    }
+
+    Notifier_TEMP_NOZ N(DLG_load_unload, GetPhaseIndex(phase),
+        Temperature::degHotend(active_extruder), Temperature::degTargetHotend(active_extruder), progress_min, progress_max);
+
+    return thermalManager.wait_for_hotend(active_extruder);
+}
+
 void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
     current_position.e += length / planner.e_factor[active_extruder];
+    line_to_current_position(fr_mm_s);
+    planner.synchronize();
+}
+
+void do_pause_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
+    //Not sure if folowing code would not be better
+    //const float actual_e = planner.get_axis_position_mm(E_AXIS);
+    //Notifier_POS_E N(DLG_load_unload, GetPhaseIndex(phase), actual_e, actual_e + length, progress_min,progress_max);
+    const float actual_e = current_position.e;
+    current_position.e += length / planner.e_factor[active_extruder];
+    Notifier_POS_E N(DLG_load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
     line_to_current_position(fr_mm_s);
     planner.synchronize();
 }
@@ -162,42 +186,37 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         DXC_ARGS) {
     UNUSED(show_lcd);
 
-    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::WaitingTemp), 25, 0);
-    if (!ensure_safe_temperature(mode)) {
+    if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30)) {
         return false;
     }
 
-    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 50, 0);
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 30, 0);
     while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::CONTINUE)
         idle(true);
 
+    //check FILAMET SENSOR
+    //todo
+
     // Slow Load filament
     if (slow_load_length) {
-        change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Inserting), 55, 0);
-        do_pause_e_move(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE);
+        do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 30, 50);
     }
 
     // Fast Load Filament
-    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Loading), 56, 0);
     if (fast_load_length) {
-#if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
         const float saved_acceleration = planner.settings.retract_acceleration;
         planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
-#endif
 
-        do_pause_e_move(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE);
+        do_pause_e_move_notify_progress(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, PhasesLoadUnload::Loading, 50, 70);
 
-#if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
         planner.settings.retract_acceleration = saved_acceleration;
-#endif
     }
 
     if (purge_length > 0) {
         Command command;
         do {
-            change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Purging), 90, 0);
             // Extrude filament to get into hotend
-            do_pause_e_move(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE);
+            do_pause_e_move_notify_progress(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 90);
             change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::IsColor), 90, 0);
             do {
                 idle();
@@ -261,18 +280,14 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
         plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
     }
 
-// Unload filament
-#if FILAMENT_CHANGE_UNLOAD_ACCEL > 0
+    // Unload filament
     const float saved_acceleration = planner.settings.retract_acceleration;
     planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
-#endif
 
     // subtract the already performed extruder movement (-30mm) from the total unload length
     do_pause_e_move((unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e), (FILAMENT_CHANGE_UNLOAD_FEEDRATE));
 
-#if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
     planner.settings.retract_acceleration = saved_acceleration;
-#endif
 
 // Disable E steppers for manual change
 #if HAS_E_STEPPER_ENABLE
