@@ -2,15 +2,6 @@
 #include "DialogRadioButton.hpp"
 #include "gui.h"
 
-#include "display_helper.h"
-#include "stm32f4xx_hal.h"
-#include <limits.h>
-#include "button_draw.h"
-#include "window_dlg_change.h"
-#include "marlin_client.h"
-#include "menu_vars.h"
-#include "window_msgbox.h"
-
 extern window_t *window_1; //current popup window, C-code remain
 
 //*****************************************************************************
