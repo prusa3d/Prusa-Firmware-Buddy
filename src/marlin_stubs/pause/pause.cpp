@@ -127,8 +127,6 @@ static bool ensure_safe_temperature(const PauseMode mode = PAUSE_MODE_SAME) {
 
     UNUSED(mode);
 
-    if (mode == PAUSE_MODE_LOAD_FILAMENT || mode == PAUSE_MODE_UNLOAD_FILAMENT)
-        return true;
     return thermalManager.wait_for_hotend(active_extruder);
 }
 
