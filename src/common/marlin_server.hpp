@@ -98,3 +98,17 @@ using Notifier_WAITUSER = Notifier<MARLIN_VAR_WAITUSER, uint8_t>;
 using Notifier_SD_PRINT = Notifier<MARLIN_VAR_SD_PRINT, uint8_t>;
 using Notifier_SD_PDONE = Notifier<MARLIN_VAR_SD_PDONE, uint8_t>;
 using Notifier_DURATION = Notifier<MARLIN_VAR_DURATION, uint32_t>;
+
+//create dialog and automatically destroy it at the end of scope
+class DialogRAII {
+    dialog_t dialog;
+
+public:
+    DialogRAII(dialog_t type, uint8_t data)
+        : dialog(type) {
+        open_dialog_handler(type, data);
+    }
+    ~DialogRAII() {
+        close_dialog_handler(dialog);
+    }
+};

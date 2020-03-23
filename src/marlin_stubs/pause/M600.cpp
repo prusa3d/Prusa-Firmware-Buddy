@@ -37,7 +37,7 @@
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
-#include "marlin_server.h" //open_dialog_handler, close_dialog_handler
+#include "marlin_server.hpp"
 
 /**
  * M600: Pause for filament change
@@ -59,7 +59,7 @@ void GcodeSuite::M600() {
     if (target_extruder < 0)
         return;
 
-    open_dialog_handler(DLG_load_unload, DLG_type_change);
+    DialogRAII D(DLG_load_unload, DLG_type_change);
 #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
     // Don't allow filament change without homing first
     if (axes_need_homing())
@@ -112,5 +112,4 @@ void GcodeSuite::M600() {
         wait_for_confirmation(true, beep_count DXC_PASS);
         resume_print(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH, beep_count DXC_PASS);
     }
-    close_dialog_handler(DLG_load_unload);
 }
