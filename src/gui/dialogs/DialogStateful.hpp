@@ -137,14 +137,19 @@ void DialogStateful<T>::draw() {
             f_invalid = 0;
             flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
         }
-        //DLG_PHA_CH == DLG_TXT_CH
+
+        //button knows when it needs to be repainted except when phase changes
+        if (flags & DLG_PHA_CH) {
+            //do not clear DLG_PHA_CH
+            radio.DrawForced();
+        } else
+            radio.Draw();
+
         if (flags & DLG_TXT_CH) //text changed
         {
             draw_phase_text(text);
             flags &= ~DLG_TXT_CH;
         }
-        //button knows when it needs to be repainted
-        radio.Draw();
 
         if (flags & DLG_PRX_CH) //any progress changed
         {
