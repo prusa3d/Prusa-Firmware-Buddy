@@ -38,8 +38,7 @@
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
-#include "marlin_server.h" //open_dialog_handler, close_dialog_handler
-#include "dialog_commands_server.hpp"
+#include "marlin_server.hpp" //open_dialog_handler, close_dialog_handler
 
 typedef void (*load_unload_fnc)(const int8_t target_extruder);
 
