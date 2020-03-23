@@ -38,7 +38,7 @@
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
-#include "marlin_server.hpp" //open_dialog_handler, close_dialog_handler
+#include "marlin_server.hpp"
 
 #define DO_NOT_RESTORE_Z_AXIS
 #define Z_AXIS_LOAD_POS   40
@@ -54,7 +54,7 @@ static void load_unload(load_unload_type_t type, load_unload_fnc load_unload, ui
     if (target_extruder < 0)
         return;
 
-    open_dialog_handler(DLG_load_unload, DLG_type_load);
+    DialogRAII D(DLG_load_unload, DLG_type_load);
     // Z axis lift
     if (parser.seenval('Z'))
         min_Z_pos = parser.linearval('Z');
@@ -75,7 +75,6 @@ static void load_unload(load_unload_type_t type, load_unload_fnc load_unload, ui
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 #endif
-    close_dialog_handler(DLG_load_unload);
 }
 
 /**
