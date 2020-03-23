@@ -59,16 +59,18 @@ static void load_unload(load_unload_type_t type, load_unload_fnc load_unload) {
 
     // Lift Z axis
     if (park_point.z > 0) {
-        change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), -1, 0);
-        do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        const float target_Z = _MIN(current_position.z + park_point.z, Z_MAX_POS);
+        Notifier_POS_Z N(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
+        do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     // Load/Unload filament
     load_unload(target_extruder);
 
     // Restore Z axis
     if (park_point.z > 0) {
-        change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), -1, 0);
-        do_blocking_move_to_z(_MAX(current_position.z - park_point.z, 0), feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        const float target_Z = _MAX(current_position.z - park_point.z, 0);
+        Notifier_POS_Z N(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
+        do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     close_dialog_handler(DLG_load_unload);
 }
