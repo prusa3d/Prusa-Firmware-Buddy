@@ -6,7 +6,7 @@
 #include "marlin_vars.h"
 #include "marlin_errors.h"
 #include "marlin_host.h"
-#include "dialogs.h"
+#include "client_fsm_types.h"
 
 // server flags
 #define MARLIN_SFLG_STARTED 0x0001 // server started (set in marlin_server_init)
@@ -111,46 +111,8 @@ extern int marlin_all_axes_homed(void);
 //
 extern int marlin_all_axes_known(void);
 
-//must match dialog_open_cb_t signature
-extern void open_dialog_handler(dialog_t type, uint8_t data);
-
-//must match dialog_close_cb_t signature
-extern void close_dialog_handler(dialog_t type);
-
-//must match dialog_change_cb_t signature
-extern void change_dialog_handler(dialog_t type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
-
 #ifdef __cplusplus
 }
-
-//C++ only features
-
-//Dialog_notifier
-//use this class to automatically notyfi progress
-//just create an instance and progress will be notyfied while it exists
-class Dialog_notifier {
-    //static members
-    static dialog_t static_type;
-    static uint8_t static_phase;
-    static cvariant8 static_min;
-    static cvariant8 static_range;
-    static uint8_t static_var_id;
-    static uint8_t static_last_progress_sent;
-
-    //temporary members
-    //to store previous state
-    dialog_t temp_type;
-    uint8_t temp_phase;
-    cvariant8 temp_min;
-    cvariant8 temp_range;
-    uint8_t temp_var_id;
-    uint8_t temp_last_progress_sent;
-
-public:
-    Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t var_id);
-    static void SendNotification();
-    ~Dialog_notifier();
-};
 #endif //__cplusplus
 
 #endif //_MARLIN_SERVER_H
