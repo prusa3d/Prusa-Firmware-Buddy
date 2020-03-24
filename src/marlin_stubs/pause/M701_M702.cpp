@@ -42,7 +42,7 @@
 
 #define DO_NOT_RESTORE_Z_AXIS
 #define Z_AXIS_LOAD_POS   40
-#define Z_AXIS_UNLOAD_POS 2 //just to do not touch build plate
+#define Z_AXIS_UNLOAD_POS 20
 
 typedef void (*load_unload_fnc)(const int8_t target_extruder);
 
