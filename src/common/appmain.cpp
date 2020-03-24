@@ -57,7 +57,9 @@ void app_setup(void) {
     setup();
 
     // variables from eeprom - temporary solution
+#if HAS_BED_PROBE
     probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
+#endif
     Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
     Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
     Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
