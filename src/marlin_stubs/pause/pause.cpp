@@ -411,13 +411,10 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
     HOTEND_LOOP()
     thermalManager.hotend_idle[e].start(nozzle_timeout);
 
-    // Wait for filament insert by user and press button
-    KEEPALIVE_STATE(PAUSED_FOR_USER);
-    wait_for_user = true; // LCD click or M108 will clear this
+    //wait until user removes filament
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::RemoveFilament), 30, 0);
 
-    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
-
-    while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::CONTINUE)) {
+    while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::RemoveFilament) != Command::FILAMENT_REMOVED) {
         filament_change_beep(max_beep_count);
 
         // If the nozzle has timed out...
@@ -431,9 +428,13 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_HEAT));
 
             // Wait for LCD click or M108
-            change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
-            while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::NozzleTimeout) != Command::REHEAT))
+            //change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
+            //while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::NozzleTimeout) != Command::REHEAT)
+            while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::RemoveFilament) != Command::FILAMENT_REMOVED)
                 idle(true);
+
+            //reheating todo create state REHEATING
+            ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30);
 
             // Re-enable the heaters if they timed out
             HOTEND_LOOP()
@@ -442,13 +443,15 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             // Wait for the heaters to reach the target temperatures
             ensure_safe_temperature();
 
+            //user push filament
+            change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::RemoveFilament), 30, 0);
+
             // Start the heater idle timers
             const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL;
 
             HOTEND_LOOP()
             thermalManager.hotend_idle[e].start(nozzle_timeout);
 
-            wait_for_user = true;
             nozzle_timed_out = false;
 
             filament_change_beep(max_beep_count, true);
@@ -477,14 +480,6 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
  * - Resume the current SD print job, if any
  */
 void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_length /*=0*/, const float &purge_length /*=ADVANCED_PAUSE_PURGE_LENGTH*/, const int8_t max_beep_count /*=0*/ DXC_ARGS) {
-    /*
-  SERIAL_ECHOLNPAIR(
-    "start of resume_print()\ndual_x_carriage_mode:", dual_x_carriage_mode,
-    "\nextruder_duplication_enabled:", extruder_duplication_enabled,
-    "\nactive_extruder:", active_extruder,
-    "\n"
-  );
-  //*/
 
     if (!did_pause_print)
         return;

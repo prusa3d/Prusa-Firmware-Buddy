@@ -8,7 +8,7 @@ const PhaseCommands DialogCommands::LoadUnloadButtons[CountPhases<PhasesLoadUnlo
     {},                                         //PreparingToRam,
     {},                                         //Ramming,
     {},                                         //Unloading,
-    {},                                         //Unloading2,
+    { Command::FILAMENT_REMOVED },              //RemoveFilament,
     { Command::CONTINUE },                      //UserPush,
     { Command::REHEAT },                        //NozzleTimeout,
     {},                                         //MakeSureInserted,
