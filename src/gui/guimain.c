@@ -20,7 +20,6 @@
         #include "window_dlg_popup.h"
     #endif //_DEBUG
     #include "window_dlg_preheat.h"
-    #include "window_dlg_change.h"
     #include "screen_print_preview.h"
 #endif //LCDSIM
 
@@ -139,20 +138,6 @@ size_t const m876_blacklist_sz = sizeof(m876_blacklist) / sizeof(m876_blacklist[
 void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
-    /* static uint8_t m600_lock = 0;
-
-    if (!m600_lock) {
-        m600_lock = 1;
-        if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
-            if (marlin_command() == MARLIN_CMD_M600) {
-                _dbg("M600 start");
-                gui_dlg_change();
-                _dbg("M600 end");
-            }
-        }
-        m600_lock = 0;
-    }*/
-
     marlin_client_loop();
 }
 
