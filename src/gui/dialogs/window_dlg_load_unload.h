@@ -1,8 +1,6 @@
-// window_dlg_load.h
+// window_dlg_load_unload.h
 
-#ifndef _WINDOW_DLG_LOAD_H
-#define _WINDOW_DLG_LOAD_H
-
+#pragma once
 #include "dlg_result.h"
 
 #ifdef __cplusplus
@@ -13,8 +11,10 @@ extern dlg_result_t gui_dlg_load(void);
 
 extern dlg_result_t gui_dlg_load_forced(void); //no return option
 
+extern dlg_result_t gui_dlg_unload(void);
+
+extern dlg_result_t gui_dlg_unload_forced(void); //no return option + no skipping preheat
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_WINDOW_DLG_LOAD_H

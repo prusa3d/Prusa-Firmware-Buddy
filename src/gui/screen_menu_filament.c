@@ -6,8 +6,7 @@
 #include "filament_sensor.h"
 #include "marlin_client.h"
 #include "menu_vars.h"
-#include "window_dlg_load.h"
-#include "window_dlg_unload.h"
+#include "window_dlg_load_unload.h"
 #include "dbg.h"
 
 #define FKNOWN      0x01 //filament is known

@@ -2,8 +2,7 @@
 
 #include "wizard_load_unload.h"
 #include "wizard_ui.h"
-#include "window_dlg_load.h"
-#include "window_dlg_unload.h"
+#include "window_dlg_load_unload.h"
 #include "window_dlg_preheat.h"
 #include "filament.h"
 #include "filament_sensor.h"
