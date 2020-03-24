@@ -101,12 +101,12 @@ public: // public functions
     cvariant8 &change_type(uint8_t new_type);
 
 public: //
-    bool is_empty();
-    bool is_error();
-    bool is_signed();
-    bool is_unsigned();
-    bool is_integer();
-    bool is_number();
+    bool is_empty() const;
+    bool is_error() const;
+    bool is_signed() const;
+    bool is_unsigned() const;
+    bool is_integer() const;
+    bool is_number() const;
 
 public: // assignment operators
     cvariant8 &operator=(const cvariant8 &var8);
@@ -122,15 +122,75 @@ public: // assignment operators
     cvariant8 &operator=(float val);
     cvariant8 &operator=(const char *val);
 
-public: // extractors
-    operator int8_t() { return (type == VARIANT8_I8) ? i8 : 0; }
-    operator uint8_t() { return (type == VARIANT8_UI8) ? ui8 : 0; }
-    operator int16_t() { return (type == VARIANT8_I16) ? i16 : 0; }
-    operator uint16_t() { return (type == VARIANT8_UI16) ? ui16 : 0; }
-    operator int32_t() { return (type == VARIANT8_I32) ? i32 : 0; }
-    operator uint32_t() { return (type == VARIANT8_UI32) ? ui32 : 0; }
-    operator float() { return (type == VARIANT8_FLT) ? flt : 0; }
-    operator const char *() { return (type == VARIANT8_PCHAR) ? pch : 0; }
+private:
+    int32_t get_valid_int() const; //helper for extractors, works ony on integer values
+public:                            // extractors
+    // clang-format off
+    operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?   int8_t(flt)           : 0); }
+    operator uint8_t()      const { return (is_integer())           ?  uint8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  uint8_t(flt)           : 0); }
+    operator int16_t()      const { return (is_integer())           ?  int16_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  int16_t(flt)           : 0); }
+    operator uint16_t()     const { return (is_integer())           ? uint16_t(get_valid_int()) : ((type == VARIANT8_FLT) ? uint16_t(flt)           : 0); }
+    operator int32_t()      const { return (is_integer())           ?  int32_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  int32_t(flt)           : 0); }
+    operator uint32_t()     const { return (is_integer())           ? uint32_t(get_valid_int()) : ((type == VARIANT8_FLT) ? uint32_t(flt)           : 0); }
+    operator float()        const { return (type == VARIANT8_FLT)   ? flt                       : ((is_integer())         ? float(get_valid_int())  : 0); }
+    operator const char *() const { return (type == VARIANT8_PCHAR) ? pch : 0; }
+    // clang-format on
+private:
+    enum class operator_x { plus,
+        minus,
+        multiplies,
+        divides }; //float has no modulus
+    //T should be int types or float - better pass by value
+    template <class T>
+    T calc(T lhs, T rhs, operator_x op) {
+        switch (op) {
+        case operator_x::minus:
+            return lhs - rhs;
+        case operator_x::multiplies:
+            return lhs * rhs;
+        case operator_x::divides:
+            return lhs / rhs;
+        case operator_x::plus:
+        default: //avoid warning
+            return lhs + rhs;
+        }
+    }
+    //used by assigment operators like +=
+    cvariant8 &assigment_operator_x(const cvariant8 &rhs, operator_x op);
+
+public: //arithmetic operators
+    cvariant8 &operator+=(const cvariant8 &rhs) {
+        return assigment_operator_x(rhs, operator_x::plus);
+    }
+    cvariant8 &operator-=(const cvariant8 &rhs) {
+        return assigment_operator_x(rhs, operator_x::minus);
+    }
+    cvariant8 &operator*=(const cvariant8 &rhs) {
+        return assigment_operator_x(rhs, operator_x::multiplies);
+    }
+    cvariant8 &operator/=(const cvariant8 &rhs) {
+        return assigment_operator_x(rhs, operator_x::divides);
+    }
+
+    // friends defined inside class body are inline and are hidden from non-ADL lookup
+    // passing lhs by value helps optimize chained a+b+c
+    // otherwise, both parameters may be const references
+    friend cvariant8 operator+(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs += rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator-(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs -= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator*(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs *= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
+    friend cvariant8 operator/(cvariant8 lhs, const cvariant8 &rhs) {
+        lhs /= rhs; // reuse compound assignment
+        return lhs; // return the result by value (uses move constructor)
+    }
 
 protected:
 };
@@ -145,7 +205,7 @@ extern variant8_t variant8_init(uint8_t type, uint16_t size, void *pdata);
 extern void variant8_done(variant8_t *pvar8);
 
 // returns copy of pvar8, allocate pointer and copy data for VARIANT8_PTR types
-extern variant8_t variant8_copy(variant8_t *pvar8);
+extern variant8_t variant8_copy(const variant8_t *pvar8);
 
 // perform implicit conversion to desired data type (supported conversions described at end of .c file)
 extern int variant8_change_type(variant8_t *pvar8, uint8_t type);
@@ -236,16 +296,16 @@ extern void variant8_free(void *ptr);
 extern void *variant8_realloc(void *ptr, uint16_t size);
 
 // returns 1 for signed integer types (I8, I16, I32), otherwise returns 0
-inline static int variant8_is_signed(variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
+inline static int variant8_is_signed(const variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
 
 // returns 1 for unsigned integer types (UI8, UI16, UI32), otherwise returns 0
-inline static int variant8_is_unsigned(variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
+inline static int variant8_is_unsigned(const variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
 
 // returns 1 for integer types (I8, I16, I32, UI8, UI16, UI32), otherwise returns 0
-inline static int variant8_is_integer(variant8_t *pvar8) { return (pvar8) ? ((variant8_is_signed(pvar8) || variant8_is_unsigned(pvar8)) ? 1 : 0) : 0; }
+inline static int variant8_is_integer(const variant8_t *pvar8) { return (pvar8) ? ((variant8_is_signed(pvar8) || variant8_is_unsigned(pvar8)) ? 1 : 0) : 0; }
 
 // returns 1 for numeric types (I8, I16, I32, UI8, UI16, UI32, float), otherwise returns 0
-inline static int variant8_is_number(variant8_t *pvar8) { return (pvar8) ? ((variant8_is_integer(pvar8) || (pvar8->type == VARIANT8_FLT)) ? 1 : 0) : 0; }
+inline static int variant8_is_number(const variant8_t *pvar8) { return (pvar8) ? ((variant8_is_integer(pvar8) || (pvar8->type == VARIANT8_FLT)) ? 1 : 0) : 0; }
 
 #ifdef __cplusplus
 }
