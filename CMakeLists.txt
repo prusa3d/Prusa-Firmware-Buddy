@@ -114,7 +114,7 @@ set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
 set(PRINTERS_WITH_GUI "MINI")
-set(PRINTERS_WITH_MARLIN_ONLY_DRIVER)
+set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
   set(FILAMENT_SENSOR YES)
@@ -129,10 +129,10 @@ else()
 endif()
 message(STATUS "GUI: ${GUI}")
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_MARLIN_ONLY_DRIVER)
-  set(MARLIN_ONLY_DRIVER YES)
+if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
+  set(INIT_TRINAMIC_FROM_MARLIN_ONLY YES)
 else()
-  set(MARLIN_ONLY_DRIVER NO)
+  set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
 endif()
 
 # append custom C/C++ flags
@@ -434,7 +434,7 @@ target_sources(
           src/common/marlin_server.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
-          $<$<STREQUAL:${MARLIN_ONLY_DRIVER},NO>:src/common/trinamic.cpp>
+          $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
           src/common/w25x.c
           src/common/gcode_file.cpp
           src/common/gcode_thumb_decoder.cpp
@@ -574,5 +574,6 @@ set_property(
 set_property(
   SOURCE src/common/appmain.cpp src/common/putslave.c
   APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_MARLIN_ONLY_DRIVER=$<BOOL:${MARLIN_ONLY_DRIVER}>
+  PROPERTY COMPILE_DEFINITIONS
+           INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
   )
