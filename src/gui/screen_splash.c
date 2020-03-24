@@ -3,7 +3,6 @@
 #include "gui.h"
 #include "config.h"
 #include "version.h"
-#include "window_logo.h"
 #include "wizard/wizard.h"
 #include "eeprom.h"
 
@@ -30,7 +29,7 @@ extern screen_t *pscreen_test;
 typedef struct
 {
     window_frame_t frame;
-    window_logo_t logo_prusa_mini;
+    window_icon_t logo_prusa_mini;
     window_text_t text_progress;
     window_progress_t progress;
     window_text_t text_version;
@@ -56,7 +55,7 @@ void screen_splash_init(screen_t *screen) {
     id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0),
         &(_psd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_LOGO, id0, rect_ui16(0, 91, 240, 62),
+    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 91, 240, 62),
         &(_psd->logo_prusa_mini));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 171, 220, 20),
