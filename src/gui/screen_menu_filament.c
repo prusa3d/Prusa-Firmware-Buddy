@@ -30,10 +30,6 @@ const menu_item_t _menu_filament_items[] = {
     { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Purge Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
-/*
-static void _load_dis(screen_t *screen) {
-    psmd->items[MI_LOAD].item.type |= WI_DISABLED;
-}*/
 
 static void _load_ena(screen_t *screen) {
     psmd->items[MI_LOAD].item.type &= ~WI_DISABLED;
@@ -52,7 +48,6 @@ static void _deactivate_item(screen_t *screen) {
     filament |= fs_get_state() == FS_NO_FILAMENT ? F_NOTSENSED : 0;
     switch (filament) {
     case FKNOWN: //known and not "unsensed" - do not allow load
-        //_load_dis(screen);
         _change_ena(screen);
         break;
     case FKNOWN | F_NOTSENSED: //allow both load and change
