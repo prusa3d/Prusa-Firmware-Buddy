@@ -57,6 +57,7 @@ void screen_splash_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 91, 240, 62),
         &(_psd->logo_prusa_mini));
+    window_set_icon_id(id, IDR_PNG_status_logo_prusa_prn);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 171, 220, 20),
         &(_psd->text_progress));
