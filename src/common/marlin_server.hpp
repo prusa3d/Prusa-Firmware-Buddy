@@ -32,13 +32,13 @@ public:
 
 //Dialog_notifier
 class Dialog_notifier {
-    struct data {
+    struct data { //used floats - no need to retype
         dialog_t type;
         uint8_t phase;
-        cvariant8 min;
-        cvariant8 range;
-        cvariant8 progress_min;
-        cvariant8 progress_range;
+        float scale;  //scale from value to progress
+        float offset; //offset from lowest value
+        uint8_t progress_min;
+        uint8_t progress_max;
         uint8_t var_id;
         uint8_t last_progress_sent;
         data()
@@ -56,7 +56,7 @@ class Dialog_notifier {
 
 protected:
     //protected ctor so this instance cannot be created
-    Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max, cvariant8 progress_min, cvariant8 progress_max, uint8_t var_id);
+    Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
     Dialog_notifier(const Dialog_notifier &) = delete;
 
 public:
@@ -69,7 +69,7 @@ template <int VAR_ID, class T>
 class Notifier : public Dialog_notifier {
 public:
     Notifier(dialog_t type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
-        : Dialog_notifier(type, phase, cvariant8(min), cvariant8(max), cvariant8((T)progress_min), cvariant8((T)progress_max), VAR_ID) {}
+        : Dialog_notifier(type, phase, cvariant8(min), cvariant8(max), progress_min, progress_max, VAR_ID) {}
 };
 
 //use an alias to automatically notyfi progress

@@ -1306,34 +1306,41 @@ void host_prompt_do(const PromptReason type, const char *const pstr, const char 
 Dialog_notifier::data Dialog_notifier::s_data;
 
 Dialog_notifier::Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max,
-    cvariant8 progress_min, cvariant8 progress_max, uint8_t var_id)
+    uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
     : temp_data(s_data) {
     s_data.type = type;
     s_data.phase = phase;
-    s_data.min = min;
-    s_data.range = max - min;
+    s_data.scale = static_cast<float>(progress_max - progress_min) / static_cast<float>(max - min);
+    s_data.offset = -static_cast<float>(min) * s_data.scale + static_cast<float>(progress_min);
     s_data.progress_min = progress_min;
-    s_data.progress_range = progress_max - progress_min;
+    s_data.progress_max = progress_max;
     s_data.var_id = var_id;
     s_data.last_progress_sent = -1;
 }
 
 //static method
+//x = (actual - s_data.min) * s_data.scale + s_data.progress_min;
+//x = actual * s_data.scale - s_data.min * s_data.scale + s_data.progress_min;
+// s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
+//x = actual * s_data.scale + s_data.offset;
 void Dialog_notifier::SendNotification() {
     if (s_data.type == DLG_no_dialog)
         return;
 
-    cvariant8 actual;
-    actual.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
-    actual = ((actual - s_data.min) * s_data.progress_range) / s_data.range + s_data.progress_min;
-    uint8_t progress = uint8_t(actual);
-    if (progress < (uint8_t)s_data.progress_min)
-        progress = (uint8_t)s_data.progress_min;
-    uint8_t max = (uint8_t)s_data.progress_min + (uint8_t)s_data.progress_range;
-    if (progress > max)
-        progress = max;
+    cvariant8 temp;
+    temp.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
 
-    if (progress != s_data.last_progress_sent) {
+    float actual = static_cast<float>(temp);
+    actual = actual * s_data.scale + s_data.offset;
+
+    int progress = int(actual); //int - must be signed
+    if (progress < s_data.progress_min)
+        progress = s_data.progress_min;
+    if (progress > s_data.progress_max)
+        progress = s_data.progress_max;
+
+    // after first sent, progress can only rise
+    if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
         s_data.last_progress_sent = progress;
         change_dialog_handler(s_data.type, s_data.phase, progress, 0);
     }
