@@ -9,7 +9,6 @@ extern window_t *window_1; //current popup window, C-code remain
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     : IDialog(WINDOW_CLS_)
     , id_capture(window_capture())
-#warning check id_capture(window_capture())
     , color_back(gui_defaults.color_back)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)

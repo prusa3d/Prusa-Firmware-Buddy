@@ -30,10 +30,10 @@ const menu_item_t _menu_filament_items[] = {
     { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Purge Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
-
+/*
 static void _load_dis(screen_t *screen) {
     psmd->items[MI_LOAD].item.type |= WI_DISABLED;
-}
+}*/
 
 static void _load_ena(screen_t *screen) {
     psmd->items[MI_LOAD].item.type &= ~WI_DISABLED;
