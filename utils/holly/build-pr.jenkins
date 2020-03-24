@@ -48,7 +48,8 @@ pipeline {
                                     --generate-dfu \
                                     --no-store-output \
                                     --version-suffix=${full_suffix} \
-                                    --version-suffix-short=${short_suffix}
+                                    --version-suffix-short=${short_suffix} \
+                                    -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror
                             """
                         }
                     }

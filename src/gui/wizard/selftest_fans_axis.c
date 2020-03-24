@@ -251,12 +251,6 @@ static int ph_restore_Yaxis(selftest_fans_axis_data_t *p_data,
     return 1;
 }
 
-static int ph_restore_Zaxis(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
-    marlin_gcode_printf("%s", Z_home_gcode); /*Set pos */
-    return 1;
-}
-
 static int ph_wait_autohome(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     if (marlin_event_clr(MARLIN_EVT_CommandEnd))

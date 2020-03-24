@@ -34,7 +34,7 @@ enum {
     ADC_TEMP_HEATBREAK, //!< PA6 - chan 6
     ADC_TEMP_0,         //!< PC0 - chan 10
     ONE_BEHIND_LAST_ADC,
-} typedef Adc;
+} typedef ADC_t;
 
 //--------------------------------------
 // low level I/O functions
@@ -47,9 +47,9 @@ extern int hwio_do_get_cnt(void);               //number of digital outputs
 extern void hwio_do_set_val(int i_do, int val); //set digital output state
 
 //analog inputs
-extern int hwio_adc_get_cnt(void);      //number of analog inputs
-extern int hwio_adc_get_max(int i_adc); //analog input maximum value
-extern int hwio_adc_get_val(Adc i_adc); //read analog input
+extern int hwio_adc_get_cnt(void);        //number of analog inputs
+extern int hwio_adc_get_max(int i_adc);   //analog input maximum value
+extern int hwio_adc_get_val(ADC_t i_adc); //read analog input
 extern void adc_ready(uint8_t index);
 extern uint8_t adc_seq2idx(uint8_t seq);
 

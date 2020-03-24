@@ -155,7 +155,6 @@ static inline void eeprom_unlock(void) {
 
 static uint16_t eeprom_var_size(uint8_t id);
 static uint16_t eeprom_var_addr(uint8_t id);
-static void eeprom_dump(void);
 static void eeprom_print_vars(void);
 static int eeprom_convert_from_v2(void);
 static int eeprom_convert_from(uint16_t version, uint16_t features);
@@ -173,12 +172,6 @@ uint8_t eeprom_init(void) {
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
 
-    //eeprom_clear();
-    //eeprom_dump();
-    //osDelay(2000);
-    //eeprom_save_bin_to_usb("eeprom.bin");
-    //while (1);
-
     version = eeprom_get_var(EEVAR_VERSION).ui16;
     features = (version >= 4) ? eeprom_get_var(EEVAR_FEATURES).ui16 : 0;
     if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
@@ -190,7 +183,6 @@ uint8_t eeprom_init(void) {
     if (defaults)
         eeprom_defaults();
     eeprom_print_vars();
-    //eeprom_dump();
     return defaults;
 }
 
@@ -304,22 +296,6 @@ static uint16_t eeprom_var_addr(uint8_t id) {
     while (id)
         addr += eeprom_var_size(--id);
     return addr;
-}
-
-static void eeprom_dump(void) {
-    int i;
-    int j;
-    uint8_t b;
-    char line[64];
-    for (i = 0; i < 128; i++) // 128 lines = 2048 bytes
-    {
-        sprintf(line, "%04x", i * 16);
-        for (j = 0; j < 16; j++) {
-            b = st25dv64k_user_read(j + i * 16);
-            sprintf(line + 4 + j * 3, " %02x", b);
-        }
-        _dbg("%s", line);
-    }
 }
 
 static void eeprom_print_vars(void) {
