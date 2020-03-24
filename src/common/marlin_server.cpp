@@ -1327,6 +1327,11 @@ void Dialog_notifier::SendNotification() {
     actual.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
     actual = ((actual - s_data.min) * s_data.progress_range) / s_data.range + s_data.progress_min;
     uint8_t progress = uint8_t(actual);
+    if (progress < (uint8_t)s_data.progress_min)
+        progress = (uint8_t)s_data.progress_min;
+    uint8_t max = (uint8_t)s_data.progress_min + (uint8_t)s_data.progress_range;
+    if (progress > max)
+        progress = max;
 
     if (progress != s_data.last_progress_sent) {
         s_data.last_progress_sent = progress;

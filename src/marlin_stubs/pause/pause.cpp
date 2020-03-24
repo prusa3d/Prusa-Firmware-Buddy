@@ -167,6 +167,16 @@ void plan_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
     }
 }
 
+void plan_pause_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
+    const float actual_e = current_position.e;
+    current_position.e += length / planner.e_factor[active_extruder];
+    Notifier_POS_E N(DLG_load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
+    //line_to_current_position(fr_mm_s);
+    while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
+        delay(50);
+    }
+}
+
 /**
  * Load filament into the hotend
  *
@@ -242,8 +252,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
 ) {
     UNUSED(show_lcd);
 
-    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::WaitingTemp), 25, 0);
-    if (!ensure_safe_temperature(mode)) {
+    if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 50)) {
         return false;
     }
 
@@ -269,22 +278,24 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     constexpr size_t pre_unload_begin_pos = 6;
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
-    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::PreparingToRam), 50, 0);
+    //cannot draw progress in plan_pause_e_move, so just change phase to ramming
+    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Ramming), 50, 0);
     for (size_t i = 0; i < pre_unload_begin_pos; ++i) {
         plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
     }
 
-    change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Ramming), 75, 0);
     for (size_t i = pre_unload_begin_pos; i < ramUnloadSeqSize; ++i) {
-        plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
+        plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute); //cannot draw progress in plan_pause_e_move
     }
 
     // Unload filament
     const float saved_acceleration = planner.settings.retract_acceleration;
     planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
 
+    planner.synchronize(); //do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
+
     // subtract the already performed extruder movement (-30mm) from the total unload length
-    do_pause_e_move((unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e), (FILAMENT_CHANGE_UNLOAD_FEEDRATE));
+    do_pause_e_move_notify_progress((unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), PhasesLoadUnload::Unloading, 51, 99);
 
     planner.settings.retract_acceleration = saved_acceleration;
 
