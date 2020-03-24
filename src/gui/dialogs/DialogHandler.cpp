@@ -24,7 +24,6 @@ public:
 
 DialogHandler dlg_hndlr;
 
-#include "window_dlg_change.h" //testcode
 //static std::aligned_union<0, DialogNONE>::type all_dialogs;
 
 void dialog_open_cb(dialog_t dialog, uint8_t data) {
@@ -78,7 +77,6 @@ void DialogHandler::open(dialog_t dialog, uint8_t data) {
             ptr = make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, name);
         }
     }
-    //gui_dlg_change(); //testcode
 }
 
 void DialogHandler::close(dialog_t dialog) {
