@@ -25,7 +25,7 @@ public:
 DialogHandler dlg_hndlr;
 
 //static std::aligned_union<0, DialogNONE>::type all_dialogs;
-
+extern "C" {
 void dialog_open_cb(dialog_t dialog, uint8_t data) {
     dlg_hndlr.open(dialog, data);
 }
@@ -36,6 +36,7 @@ void dialog_close_cb(dialog_t dialog) {
 
 void dialog_change_cb(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     dlg_hndlr.change(dialog, phase, progress_tot, progress);
+}
 }
 //*****************************************************************************
 //method definitions
