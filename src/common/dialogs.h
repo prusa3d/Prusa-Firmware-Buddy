@@ -9,7 +9,7 @@ extern "C" {
 typedef enum {
     DLG_serial_printing,
     DLG_load_unload,
-    DLG_no_dialog,
+    DLG_no_dialog, //cannot be created, must have same index as DLG_count
     DLG_count = DLG_no_dialog
 } dialog_t;
 
