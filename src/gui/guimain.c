@@ -6,7 +6,6 @@
 #include "config.h"
 #include "marlin_client.h"
 
-
 #ifdef LCDSIM
     #include "window_lcdsim.h"
 #else //LCDSIM

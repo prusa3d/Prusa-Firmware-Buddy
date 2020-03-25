@@ -139,8 +139,8 @@ void screen_home_done(screen_t *screen) {
 }
 
 void screen_home_draw(screen_t *screen) {
-	if (pw->logo.win.f_invalid)
-	    pw->logo_invalid = 1;
+    if (pw->logo.win.f_invalid)
+        pw->logo_invalid = 1;
 }
 
 static void on_print_preview_action(print_preview_action_t action) {
