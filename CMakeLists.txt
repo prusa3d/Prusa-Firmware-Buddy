@@ -503,6 +503,7 @@ if(GUI)
     firmware
     PRIVATE src/gui/screen_menu_filament.c
             src/gui/dialogs/IDialog.cpp
+            src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
             src/gui/dialogs/DialogStateful.cpp
             src/gui/dialogs/DialogRadioButton.cpp
