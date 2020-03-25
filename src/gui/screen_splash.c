@@ -40,6 +40,7 @@ typedef struct
     window_icon_t icon_debug;
 
     uint32_t last_timer;
+    uint8_t logo_invalid;
 } screen_splash_data_t;
 
 #pragma pack(pop)
@@ -82,6 +83,8 @@ void screen_splash_init(screen_t *screen) {
     snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
     window_set_text(id, _psd->text_version_buffer);
+
+    _psd->logo_invalid = 0;
 }
 
 void screen_splash_done(screen_t *screen) {
@@ -89,11 +92,16 @@ void screen_splash_done(screen_t *screen) {
 }
 
 void screen_splash_draw(screen_t *screen) {
+	if (_psd->logo_prusa_mini.win.f_invalid)
+	    _psd->logo_invalid = 1;
 }
 
 int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     screen_splash_timer(screen, HAL_GetTick());
-
+    if ((event == WINDOW_EVENT_LOOP) && _psd->logo_invalid) {
+        display->draw_text(rect_ui16(180, 91, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        _psd->logo_invalid = 0;
+    }
 #ifdef _EXTUI
     if (marlin_event(MARLIN_EVT_Startup)) {
         screen_close();
