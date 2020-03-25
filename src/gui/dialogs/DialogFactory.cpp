@@ -2,6 +2,10 @@
 
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
+static_unique_ptr<IDialogStateful> DialogFactory::serial_printing(uint8_t data) {
+    return nullptr; //DLG_serial_printing hack it is a screen
+}
+
 static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
     static const char *change = "CHANGE FILAMENT";
     static const char *load = "LOAD FILAMENT";
@@ -22,4 +26,12 @@ static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
         name = def;
     }
     return make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, name);
+}
+
+DialogFactory::Ctors DialogFactory::GetAll() {
+    std::array<fnc, DLG_count> ret = {
+        serial_printing, //DLG_serial_printing hack it is a screen
+        load_unload      //DLG_load_unload
+    };
+    return ret;
 }
