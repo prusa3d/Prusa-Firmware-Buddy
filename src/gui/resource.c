@@ -10,11 +10,8 @@
 
 #include "res/cc/png_splashscreen_logo_marlin.c" //IDR_PNG_splash_logo_marlin
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #ifdef _DEBUG
-        #include "res/cc/png_statusscreen_logo_prusamini_debug.c" //IDR_PNG_status_logo_prusa_prn
-    #else                                                         //_DEBUG
+        #include "res/cc/png_splashscreen_logo_prusamini.c"       //IDR_PNG_splash_logo_prusa_prn
         #include "res/cc/png_statusscreen_logo_prusamini.c"       //IDR_PNG_status_logo_prusa_prn
-    #endif                                                        //_DEBUG
 #else
     #error "Unknown PRINTER_TYPE."
 #endif // PRINTER_TYPE
@@ -87,6 +84,7 @@ RESOURCE_ENTRY_FNT(font_9x16)  //IDR_FNT_SPECIAL
 
 //pngs
 RESOURCE_ENTRY_PNG(png_splashscreen_logo_marlin)    //IDR_PNG_splash_logo_marlin
+RESOURCE_ENTRY_PNG(png_splashscreen_logo_prusa_prn) //IDR_PNG_splash_logo_prusa_prn
 RESOURCE_ENTRY_PNG(png_statusscreen_logo_prusa_prn) //IDR_PNG_status_logo_prusa_prn
 
 RESOURCE_ENTRY_PNG(png_statusscreen_icon_nozzle)
