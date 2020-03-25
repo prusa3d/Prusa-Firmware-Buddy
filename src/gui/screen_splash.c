@@ -92,8 +92,8 @@ void screen_splash_done(screen_t *screen) {
 }
 
 void screen_splash_draw(screen_t *screen) {
-	if (_psd->logo_prusa_mini.win.f_invalid)
-	    _psd->logo_invalid = 1;
+    if (_psd->logo_prusa_mini.win.f_invalid)
+        _psd->logo_invalid = 1;
 }
 
 int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void *param) {

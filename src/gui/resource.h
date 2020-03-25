@@ -6,11 +6,11 @@
 #define IDR_NULL 0x0000
 
 //fonts
-#define IDR_FNT_SMALL          0x0001
-#define IDR_FNT_NORMAL         0x0002
-#define IDR_FNT_BIG            0x0003
-#define IDR_FNT_TERMINAL       0x0004
-#define IDR_FNT_SPECIAL        0x0005
+#define IDR_FNT_SMALL    0x0001
+#define IDR_FNT_NORMAL   0x0002
+#define IDR_FNT_BIG      0x0003
+#define IDR_FNT_TERMINAL 0x0004
+#define IDR_FNT_SPECIAL  0x0005
 
 //pngs
 #define IDR_PNG_splash_logo_marlin    0x0006
