@@ -1,3 +1,5 @@
+#pragma once
+
 #include "DialogLoadUnload.hpp"
 #include "static_alocation_ptr.hpp"
 #include <array>
