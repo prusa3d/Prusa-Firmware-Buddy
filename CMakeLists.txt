@@ -477,7 +477,7 @@ target_sources(
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
-          src/common/dialog_commands.cpp
+          src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
           src/common/radio_buttons.cpp

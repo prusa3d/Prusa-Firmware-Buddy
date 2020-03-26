@@ -4,7 +4,7 @@
 #include <array>
 #include "DialogRadioButton.hpp"
 #include "marlin_client.hpp"
-#include "dialog_commands.hpp"
+#include "client_response.hpp"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -89,7 +89,7 @@ protected:
 
 /*****************************************************************************/
 //parent for stateful dialogs dialog
-//use one of enumclass from "dialog_commands.hpp" as T
+//use one of enumclass from "client_response.hpp" as T
 template <class T>
 class DialogStateful : public IDialogStateful {
 public:
