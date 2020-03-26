@@ -21,19 +21,19 @@ class ClientResponseHandler : public ClientResponses {
     static uint32_t server_side_encoded_response;
 
 public:
-    //call inside marlin server on received command from client
+    //call inside marlin server on received response from client
     static void SetResponse(uint32_t encoded_bt) {
         server_side_encoded_response = encoded_bt;
     }
-    //return command state and erase it
+    //return response and erase it
     //return -1 if button does not match
     template <class T>
     static Response GetResponseFromPhase(T phase) {
         uint32_t _phase = server_side_encoded_response >> RESPONSE_BITS;
         if ((static_cast<uint32_t>(phase)) != _phase)
             return Response::_none;
-        uint32_t index = server_side_encoded_response & uint32_t(MAX_RESPONSES - 1); //get command index
-        server_side_encoded_response = -1;                                           //erase command
+        uint32_t index = server_side_encoded_response & uint32_t(MAX_RESPONSES - 1); //get response index
+        server_side_encoded_response = -1;                                           //erase response
         return GetResponse(phase, index);
     }
 };

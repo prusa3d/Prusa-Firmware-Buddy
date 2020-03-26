@@ -1,6 +1,6 @@
 #include "client_response.hpp"
 
-//define available commands for every phase
+//define available responses for every phase
 const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoadUnload>()] = {
     {},                                           //_init
     {},                                           //Parking

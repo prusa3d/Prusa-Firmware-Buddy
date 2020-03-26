@@ -1,5 +1,5 @@
 // every phase in dialog can have some buttons
-// buttons are generalized on this level as commands
+// buttons are generalized on this level as responses
 // because non GUI/WUI client can also use them
 
 #pragma once
@@ -42,11 +42,11 @@ constexpr T GetEnumFromPhaseIndex(size_t index) {
     return static_cast<T>(static_cast<size_t>(T::_first) + index);
 }
 
-//define enum classes for commands here
-//and YES phase can have 0 commands
+//define enum classes for responses here
+//and YES phase can have 0 responses
 //every enum must have "_first" and "_last"
 //"_first" ==  "previous_enum::_last" + 1
-//EVERY command shall have unique ID (so every button in GIU is unique)
+//EVERY response shall have unique ID (so every button in GIU is unique)
 enum class PhasesLoadUnload : uint16_t {
     _first = 0,
     Parking,
@@ -74,8 +74,8 @@ enum class PhasesTest : uint16_t {
     _last = Test2
 };
 
-//static class for work with dialog commands
-//encode commands - get them from marlin client, to marlin server and decode them again
+//static class for work with fsm responses (like button click)
+//encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
     ClientResponses() = delete;
     ClientResponses(ClientResponses &) = delete;
@@ -89,12 +89,12 @@ class ClientResponses {
     static const PhaseResponses &getResponsesInPhase(PhasesTest phase) { return TestResponses[static_cast<size_t>(phase)]; }
 
 protected:
-    //get index of single command in PhaseResponses
+    //get index of single response in PhaseResponses
     template <class T>
-    static uint8_t GetIndex(T phase, Response command) {
+    static uint8_t GetIndex(T phase, Response response) {
         const PhaseResponses &cmds = getResponsesInPhase(phase);
         for (size_t i = 0; i < MAX_RESPONSES; ++i) {
-            if (cmds[i] == command)
+            if (cmds[i] == response)
                 return i;
         }
         return -1;
@@ -110,7 +110,7 @@ protected:
     }
 
 public:
-    //get all commands for phase
+    //get all responses accepted in phase
     template <class T>
     static const PhaseResponses &GetResponses(T phase) {
         return getResponsesInPhase(phase);
@@ -119,8 +119,8 @@ public:
     //encode radio button and clicked index into int
     //use on client side
     template <class T>
-    static uint32_t Encode(T phase, Response command) {
-        uint8_t clicked_index = GetIndex(phase, command);
+    static uint32_t Encode(T phase, Response response) {
+        uint8_t clicked_index = GetIndex(phase, response);
         if (clicked_index > MAX_RESPONSES)
             return -1; // this radio button does not have so many buttons
         return ((static_cast<uint32_t>(phase)) << RESPONSE_BITS) + uint32_t(clicked_index);

@@ -861,7 +861,7 @@ int _process_server_request(char *request) {
     } else if (sscanf(request, "!hclick %d", &ival) == 1) {
         host_prompt_button_clicked = (host_prompt_button_t)ival;
         processed = 1;
-    } else if (sscanf(request, "!rclick %d", &ival) == 1) { //radiobutton click
+    } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);
         processed = 1;
     }

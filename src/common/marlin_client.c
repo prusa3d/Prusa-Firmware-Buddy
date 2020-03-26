@@ -634,13 +634,13 @@ int marlin_reheating(void) {
 }
 
 //-----------------------------------------------------------------------------
-// radio buttons
+// responses fromclient finite state machine (like button click)
 void marlin_encoded_response(uint32_t enc_phase_and_response) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    sprintf(request, "!rclick %d", (int)enc_phase_and_response);
+    sprintf(request, "!fsm_r %d", (int)enc_phase_and_response);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
