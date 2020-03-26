@@ -35,9 +35,9 @@ typedef enum {
     MARLIN_EVT_SafetyTimerExpired,  // host action from marlin, hotends and bed turned off
     MARLIN_EVT_Message,             //
     MARLIN_EVT_Reheat,              //
-    MARLIN_EVT_DialogOpen,          //
-    MARLIN_EVT_DialogClose,         //
-    MARLIN_EVT_DialogChange,        //
+    MARLIN_EVT_FSM_Create,          // create finite state machine in client
+    MARLIN_EVT_FSM_Destroy,         // destroy finite state machine in client
+    MARLIN_EVT_FSM_Change,          // change phase/state/progress in client fsm
     MARLIN_EVT_GFileChange,         // when gcode file changed on start print
     MARLIN_EVT_Acknowledge          // onAcknowledge - lowest priority
 } MARLIN_EVT_t;

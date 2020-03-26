@@ -216,7 +216,7 @@ static void print_Z_probe_cnt() {
 }
 #endif
 int marlin_server_cycle(void) {
-    Dialog_notifier::SendNotification();
+    FSM_notifier::SendNotification();
     print_fan_spd();
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
@@ -539,9 +539,9 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_Reheat:
 
             //do not resend open close dialog, send is forced
-            case MARLIN_EVT_DialogOpen:
-            case MARLIN_EVT_DialogClose:
-            case MARLIN_EVT_DialogChange:
+            case MARLIN_EVT_FSM_Create:
+            case MARLIN_EVT_FSM_Destroy:
+            case MARLIN_EVT_FSM_Change:
                 break;
             }
         msk <<= 1;
@@ -862,7 +862,7 @@ int _process_server_request(char *request) {
         host_prompt_button_clicked = (host_prompt_button_t)ival;
         processed = 1;
     } else if (sscanf(request, "!rclick %d", &ival) == 1) { //radiobutton click
-        ServerDialogCommands::SetCommand(ival);
+        ClientResponseHandler::SetResponse(ival);
         processed = 1;
     }
     if (processed)
@@ -1173,32 +1173,32 @@ void host_action_resumed() {
 }
 
 //must match fsm_create_t signature
-void open_dialog_handler(ClinetFSM type, uint8_t data) {
+void fsm_create(ClinetFSM type, uint8_t data) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
-    DBG_HOST("open_dialog_handler %d", usr32);
+    DBG_HOST("fsm_create %d", usr32);
 
-    const MARLIN_EVT_t evt_id = MARLIN_EVT_DialogOpen;
+    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Create;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }
 
 //must match fsm_destroy_t signature
-void close_dialog_handler(ClinetFSM type) {
-    DBG_HOST("close_dialog_handler %d", (int)type);
+void fsm_destroy(ClinetFSM type) {
+    DBG_HOST("fsm_destroy %d", (int)type);
 
-    const MARLIN_EVT_t evt_id = MARLIN_EVT_DialogClose;
+    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
     uint8_t client_mask = _send_notify_event(evt_id, uint32_t(type), 0);
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }
 
 //must match fsm_change_t signature
-void change_dialog_handler(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
-    DBG_HOST("change_dialog_handler %d", usr32);
+    DBG_HOST("fsm_change %d", usr32);
 
-    const MARLIN_EVT_t evt_id = MARLIN_EVT_DialogChange;
+    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
@@ -1301,10 +1301,10 @@ void host_prompt_do(const PromptReason type, const char *const pstr, const char 
 }
 
 /*****************************************************************************/
-//Dialog_notifier
-Dialog_notifier::data Dialog_notifier::s_data;
+//FSM_notifier
+FSM_notifier::data FSM_notifier::s_data;
 
-Dialog_notifier::Dialog_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
+FSM_notifier::FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
     uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
     : temp_data(s_data) {
     s_data.type = type;
@@ -1322,7 +1322,7 @@ Dialog_notifier::Dialog_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, c
 //x = actual * s_data.scale - s_data.min * s_data.scale + s_data.progress_min;
 // s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
 //x = actual * s_data.scale + s_data.offset;
-void Dialog_notifier::SendNotification() {
+void FSM_notifier::SendNotification() {
     if (s_data.type == ClinetFSM::_none)
         return;
 
@@ -1341,15 +1341,15 @@ void Dialog_notifier::SendNotification() {
     // after first sent, progress can only rise
     if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
         s_data.last_progress_sent = progress;
-        change_dialog_handler(s_data.type, s_data.phase, progress, 0);
+        fsm_change(s_data.type, s_data.phase, progress, 0);
     }
 }
 
-Dialog_notifier::~Dialog_notifier() {
+FSM_notifier::~FSM_notifier() {
     s_data = temp_data;
 }
 
 /*****************************************************************************/
-//ServerDialogCommands
+//ClientResponseHandler
 //define static member
-uint32_t ServerDialogCommands::server_side_encoded_dialog_command = -1;
+uint32_t ClientResponseHandler::server_side_encoded_response = -1;

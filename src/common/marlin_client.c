@@ -635,12 +635,12 @@ int marlin_reheating(void) {
 
 //-----------------------------------------------------------------------------
 // radio buttons
-void marlin_radio_button_click_encoded(uint32_t btn_and_blicked_index) {
+void marlin_encoded_response(uint32_t enc_phase_and_response) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    sprintf(request, "!rclick %d", (int)btn_and_blicked_index);
+    sprintf(request, "!rclick %d", (int)enc_phase_and_response);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
@@ -752,15 +752,15 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_Acknowledge:
             client->ack = msg.ui32;
             break;
-        case MARLIN_EVT_DialogOpen:
+        case MARLIN_EVT_FSM_Create:
             if (client->fsm_create_cb)
                 client->fsm_create_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8));
             break;
-        case MARLIN_EVT_DialogClose:
+        case MARLIN_EVT_FSM_Destroy:
             if (client->fsm_destroy_cb)
                 client->fsm_destroy_cb((uint8_t)msg.ui32);
             break;
-        case MARLIN_EVT_DialogChange:
+        case MARLIN_EVT_FSM_Change:
             if (client->fsm_change_cb)
                 client->fsm_change_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8), (uint8_t)(msg.ui32 >> 16), (uint8_t)(msg.ui32 >> 24));
             break;

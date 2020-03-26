@@ -191,7 +191,7 @@ extern void marlin_host_button_click(host_prompt_button_t button);
 extern int marlin_reheating(void);
 
 // radio button click
-extern void marlin_radio_button_click_encoded(uint32_t btn_and_blicked_index);
+extern void marlin_encoded_response(uint32_t enc_phase_and_response);
 #ifdef __cplusplus
 }
 #endif //__cplusplus

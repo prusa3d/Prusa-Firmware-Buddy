@@ -7,11 +7,11 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
-enum { COMMAND_BITS = 2,
-    MAX_COMMANDS = (1 << COMMAND_BITS) };
+enum { RESPONSE_BITS = 2,
+    MAX_RESPONSES = (1 << RESPONSE_BITS) };
 
 //list of all button types
-enum class Command : uint8_t {
+enum class Response : uint8_t {
     _none = 0, //none must be zero becouse of empty initialization of array
     Yes,
     No,
@@ -23,7 +23,7 @@ enum class Command : uint8_t {
     Reheat
 };
 
-using PhaseCommands = std::array<Command, MAX_COMMANDS>;
+using PhaseResponses = std::array<Response, MAX_RESPONSES>;
 
 //count cenum class members (if "_first" and "_last" is defined)
 template <class T>
@@ -76,52 +76,53 @@ enum class PhasesTest : uint16_t {
 
 //static class for work with dialog commands
 //encode commands - get them from marlin client, to marlin server and decode them again
-class DialogCommands {
-    DialogCommands() = delete;
+class ClientResponses {
+    ClientResponses() = delete;
+    ClientResponses(ClientResponses &) = delete;
 
     //declare 2d arrays of single buttons for radio buttons
-    static const PhaseCommands LoadUnloadButtons[CountPhases<PhasesLoadUnload>()];
-    static const PhaseCommands TestButtons[CountPhases<PhasesTest>()];
+    static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
+    static const PhaseResponses TestResponses[CountPhases<PhasesTest>()];
 
     //methods to "bind" button array with enum type
-    static const PhaseCommands &getCommandsInPhase(PhasesLoadUnload phase) { return LoadUnloadButtons[static_cast<size_t>(phase)]; }
-    static const PhaseCommands &getCommandsInPhase(PhasesTest phase) { return TestButtons[static_cast<size_t>(phase)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesTest phase) { return TestResponses[static_cast<size_t>(phase)]; }
 
 protected:
-    //get index of single command in PhaseCommands
+    //get index of single command in PhaseResponses
     template <class T>
-    static uint8_t GetIndex(T phase, Command command) {
-        const PhaseCommands &cmds = getCommandsInPhase(phase);
-        for (size_t i = 0; i < MAX_COMMANDS; ++i) {
+    static uint8_t GetIndex(T phase, Response command) {
+        const PhaseResponses &cmds = getResponsesInPhase(phase);
+        for (size_t i = 0; i < MAX_RESPONSES; ++i) {
             if (cmds[i] == command)
                 return i;
         }
         return -1;
     }
 
-    //get command from PhaseCommands by index
+    //get response from PhaseResponses by index
     template <class T>
-    static Command GetCommand(T phase, uint8_t index) {
-        if (index > MAX_COMMANDS)
-            return Command::_none;
-        const PhaseCommands &cmds = getCommandsInPhase(phase);
+    static Response GetResponse(T phase, uint8_t index) {
+        if (index > MAX_RESPONSES)
+            return Response::_none;
+        const PhaseResponses &cmds = getResponsesInPhase(phase);
         return cmds[index];
     }
 
 public:
     //get all commands for phase
     template <class T>
-    static const PhaseCommands &GetCommands(T phase) {
-        return getCommandsInPhase(phase);
+    static const PhaseResponses &GetResponses(T phase) {
+        return getResponsesInPhase(phase);
     }
 
     //encode radio button and clicked index into int
     //use on client side
     template <class T>
-    static uint32_t Encode(T phase, Command command) {
+    static uint32_t Encode(T phase, Response command) {
         uint8_t clicked_index = GetIndex(phase, command);
-        if (clicked_index > MAX_COMMANDS)
+        if (clicked_index > MAX_RESPONSES)
             return -1; // this radio button does not have so many buttons
-        return ((static_cast<uint32_t>(phase)) << COMMAND_BITS) + uint32_t(clicked_index);
+        return ((static_cast<uint32_t>(phase)) << RESPONSE_BITS) + uint32_t(clicked_index);
     }
 };

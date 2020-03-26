@@ -16,7 +16,7 @@ static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_d
 
 //shorter creation of single state
 inline RadioButton btn(PhasesLoadUnload phase, const PhaseTexts &texts) {
-    return RadioButton(radio_win, DialogCommands::GetCommands(phase), texts);
+    return RadioButton(radio_win, ClientResponses::GetResponses(phase), texts);
 }
 
 /*****************************************************************************/
