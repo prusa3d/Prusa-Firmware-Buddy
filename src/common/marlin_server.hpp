@@ -104,7 +104,7 @@ class DialogRAII {
     dialog_t dialog;
 
 public:
-    DialogRAII(dialog_t type, uint8_t data)
+    DialogRAII(dialog_t type, uint8_t data) //any data to send to dialog, could have different meaning for different dialogs
         : dialog(type) {
         open_dialog_handler(type, data);
     }

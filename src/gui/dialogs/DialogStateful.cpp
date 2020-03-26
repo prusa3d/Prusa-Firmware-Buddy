@@ -46,8 +46,6 @@ IDialogStateful::~IDialogStateful() {
     window_invalidate(0);
 }
 
-extern window_t *window_1; //current popup window
-
 void IDialogStateful::draw_frame() {
     rect_ui16_t rc = rect;
     display->draw_line(point_ui16(rc.x, rc.y), point_ui16(239, rc.y), COLOR_GRAY);
