@@ -54,7 +54,7 @@ static void load_unload(load_unload_type_t type, load_unload_fnc load_unload, ui
     if (target_extruder < 0)
         return;
 
-    DialogRAII D(DLG_load_unload, DLG_type_load);
+    DialogRAII D(FSM_load_unload, DLG_type_load);
     // Z axis lift
     if (parser.seenval('Z'))
         min_Z_pos = parser.linearval('Z');
@@ -62,7 +62,7 @@ static void load_unload(load_unload_type_t type, load_unload_fnc load_unload, ui
     // Lift Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MIN(_MAX(current_position.z, min_Z_pos), Z_MAX_POS);
-        Notifier_POS_Z N(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
+        Notifier_POS_Z N(FSM_load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     // Load/Unload filament
@@ -71,7 +71,7 @@ static void load_unload(load_unload_type_t type, load_unload_fnc load_unload, ui
     // Restore Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MAX(current_position.z - min_Z_pos, 0);
-        Notifier_POS_Z N(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
+        Notifier_POS_Z N(FSM_load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 #endif

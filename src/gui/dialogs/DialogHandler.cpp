@@ -16,9 +16,9 @@ public:
     DialogHandler(DialogFactory::Ctors ctors)
         : dialog_ctors(ctors) {}
 
-    void open(dialog_t dialog, uint8_t data);
-    void close(dialog_t dialog);
-    void change(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress);
+    void open(ClinetFSM dialog, uint8_t data);
+    void close(ClinetFSM dialog);
+    void change(ClinetFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress);
 };
 
 //*****************************************************************************
@@ -30,7 +30,7 @@ DialogHandler &dlg_hndlr() {
 
 //*****************************************************************************
 //method definitions
-void DialogHandler::open(dialog_t dialog, uint8_t data) {
+void DialogHandler::open(ClinetFSM dialog, uint8_t data) {
     if (ptr)
         return; //an dialog is already openned
 
@@ -43,7 +43,7 @@ void DialogHandler::open(dialog_t dialog, uint8_t data) {
 
     //todo pscreen_printing_serial is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
-    if (dialog == DLG_serial_printing) {
+    if (dialog == FSM_serial_printing) {
         screen_unloop(m876_blacklist, m876_blacklist_sz);
 
         if (screen_get_curr() != pscreen_printing_serial)
@@ -52,16 +52,16 @@ void DialogHandler::open(dialog_t dialog, uint8_t data) {
         ptr = dialog_ctors[dialog](data);
     }
     /*
-    if (dialog == DLG_load_unload)
+    if (dialog == FSM_load_unload)
         DialogFactory::load_unload(data);*/
 }
 
-void DialogHandler::close(dialog_t dialog) {
+void DialogHandler::close(ClinetFSM dialog) {
     if (gui_get_nesting() > 1) //test if dialog is openned todo remove after gui refactoring
         return;
 
     //hack pscreen_printing_serial is no dialog but screen ... todo change to dialog?
-    if (dialog == DLG_serial_printing) {
+    if (dialog == FSM_serial_printing) {
         if (screen_get_curr() == pscreen_printing_serial)
             screen_close();
     }
@@ -69,22 +69,22 @@ void DialogHandler::close(dialog_t dialog) {
     ptr = nullptr; //destroy current dialog
 }
 
-void DialogHandler::change(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void DialogHandler::change(ClinetFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     if (ptr)
         ptr->Change(phase, progress_tot, progress);
 }
 
 //functions for C API
 extern "C" {
-void dialog_open_cb(dialog_t dialog, uint8_t data) {
+void dialog_open_cb(ClinetFSM dialog, uint8_t data) {
     dlg_hndlr().open(dialog, data);
 }
 
-void dialog_close_cb(dialog_t dialog) {
+void dialog_close_cb(ClinetFSM dialog) {
     dlg_hndlr().close(dialog);
 }
 
-void dialog_change_cb(dialog_t dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void dialog_change_cb(ClinetFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     dlg_hndlr().change(dialog, phase, progress_tot, progress);
 }
 }
