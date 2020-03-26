@@ -1172,7 +1172,7 @@ void host_action_resumed() {
     DBG_HOST("host_action_resumed");
 }
 
-//must match dialog_open_cb_t signature
+//must match fsm_create_t signature
 void open_dialog_handler(ClinetFSM type, uint8_t data) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
     DBG_HOST("open_dialog_handler %d", usr32);
@@ -1183,7 +1183,7 @@ void open_dialog_handler(ClinetFSM type, uint8_t data) {
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }
 
-//must match dialog_close_cb_t signature
+//must match fsm_destroy_t signature
 void close_dialog_handler(ClinetFSM type) {
     DBG_HOST("close_dialog_handler %d", (int)type);
 
@@ -1193,7 +1193,7 @@ void close_dialog_handler(ClinetFSM type) {
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }
 
-//must match dialog_change_cb_t signature
+//must match fsm_change_t signature
 void change_dialog_handler(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
     DBG_HOST("change_dialog_handler %d", usr32);
@@ -1323,7 +1323,7 @@ Dialog_notifier::Dialog_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, c
 // s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
 //x = actual * s_data.scale + s_data.offset;
 void Dialog_notifier::SendNotification() {
-    if (s_data.type == ClinetFSM::_no_dialog)
+    if (s_data.type == ClinetFSM::_none)
         return;
 
     cvariant8 temp;

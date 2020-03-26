@@ -9,8 +9,8 @@
 enum class ClinetFSM : uint8_t {
     Serial_printing,
     Load_unload,
-    _no_dialog, //cannot be created, must have same index as _count
-    _count = _no_dialog
+    _none, //cannot be created, must have same index as _count
+    _count = _none
 };
 
 enum class LoadUnloadMode : uint8_t {
@@ -23,13 +23,13 @@ enum class LoadUnloadMode : uint8_t {
 //because I need to set caption of change filament dialog (load / unload / change)
 //use extra state of statemachine to set caption woud be cleaner, but I can miss events
 //only last sent event is guaranteed  to pass its data
-using dialog_open_cb_t = void (*)(ClinetFSM, uint8_t);                                                 //open dialog
-using dialog_close_cb_t = void (*)(ClinetFSM);                                                         //close dialog
-using dialog_change_cb_t = void (*)(ClinetFSM, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change dialog state or progress
+using fsm_create_t = void (*)(ClinetFSM, uint8_t);                                               //create finite state machine
+using fsm_destroy_t = void (*)(ClinetFSM);                                                       //destroy finite state machine
+using fsm_change_t = void (*)(ClinetFSM, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change fsm state or progress
 
 #else  // !__cplusplus
 //C
-typedef void (*dialog_open_cb_t)(uint8_t, uint8_t);                                                 //open dialog
-typedef void (*dialog_close_cb_t)(uint8_t);                                                         //close dialog
-typedef void (*dialog_change_cb_t)(uint8_t, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change dialog state or progress
+typedef void (*fsm_create_t)(uint8_t, uint8_t);                                               //create finite state machine
+typedef void (*fsm_destroy_t)(uint8_t);                                                       //destroy finite state machine
+typedef void (*fsm_change_t)(uint8_t, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change fsm state or progress
 #endif //__cplusplus

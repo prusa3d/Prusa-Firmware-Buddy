@@ -7,13 +7,13 @@
 /*****************************************************************************/
 //C++ only features
 
-//must match dialog_open_cb_t signature
+//must match fsm_create_t signature
 extern void open_dialog_handler(ClinetFSM type, uint8_t data);
 
-//must match dialog_close_cb_t signature
+//must match fsm_destroy_t signature
 extern void close_dialog_handler(ClinetFSM type);
 
-//must match dialog_change_cb_t signature
+//must match fsm_change_t signature
 extern void change_dialog_handler(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
 
 //inheritred class for server side to be able to work with server_side_encoded_dialog_command
@@ -51,7 +51,7 @@ class Dialog_notifier {
         uint8_t var_id;
         uint8_t last_progress_sent;
         data()
-            : type(ClinetFSM::_no_dialog)
+            : type(ClinetFSM::_none)
             , phase(0)
             , var_id(0)
             , last_progress_sent(-1) {}
