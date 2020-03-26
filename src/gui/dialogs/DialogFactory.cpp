@@ -3,7 +3,7 @@
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
 static_unique_ptr<IDialogStateful> DialogFactory::serial_printing(uint8_t data) {
-    return nullptr; //ClinetFSM::serial_printing hack it is a screen
+    return nullptr; //ClinetFSM::Serial_printing hack it is a screen
 }
 
 static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {

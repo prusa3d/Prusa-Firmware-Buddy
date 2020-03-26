@@ -7,8 +7,8 @@
 
 //Client finite state machines
 enum class ClinetFSM : uint8_t {
-    serial_printing,
-    load_unload,
+    Serial_printing,
+    Load_unload,
     _no_dialog, //cannot be created, must have same index as _count
     _count = _no_dialog
 };
