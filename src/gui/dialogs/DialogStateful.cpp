@@ -2,10 +2,7 @@
 #include "DialogRadioButton.hpp"
 #include "gui.h"
 
-extern window_t *window_1; //current popup window, C-code remain
-
 //*****************************************************************************
-
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     : IDialog(WINDOW_CLS_)
     , id_capture(window_capture())
@@ -19,7 +16,7 @@ IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     , phase(0)
     , progress(-1)
     , title(name) {
-    window_1 = this; //todo
+    window_popup_ptr = this;
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);
