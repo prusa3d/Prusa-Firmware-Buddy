@@ -3,34 +3,34 @@
 #include "button_draw.h"
 /*****************************************************************************/
 //static variables and methods
-static const PhaseResponses disabled_commands = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor
+static const PhaseResponses no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor
 
 size_t RadioButton::cnt_labels(const PhaseTexts &labels) {
     return (std::find_if(labels.begin(), labels.end(), [](const char *s) { return s[0] == '\0'; })) - labels.begin();
 }
 
-size_t RadioButton::cnt_commands(const PhaseResponses &cmmnds) {
-    return (std::find(cmmnds.begin(), cmmnds.end(), Response::_none)) - cmmnds.begin();
+size_t RadioButton::cnt_responses(const PhaseResponses &resp) {
+    return (std::find(resp.begin(), resp.end(), Response::_none)) - resp.begin();
 }
 
-size_t RadioButton::cnt_buttons(const PhaseTexts &labels, const PhaseResponses &cmmnds) {
+size_t RadioButton::cnt_buttons(const PhaseTexts &labels, const PhaseResponses &resp) {
     size_t lbls = cnt_labels(labels);
-    size_t cmds = cnt_commands(cmmnds);
+    size_t cmds = cnt_responses(resp);
     return lbls > cmds ? lbls : cmds;
 }
 /*****************************************************************************/
 //nonstatic variables and methods
-RadioButton::RadioButton(const Window &window, const PhaseResponses &cmmnds, const PhaseTexts &labels)
+RadioButton::RadioButton(const Window &window, const PhaseResponses &resp, const PhaseTexts &labels)
     : win(window)
-    , commands(cmmnds)
+    , responses(resp)
     , texts(labels)
-    , btn_count(cnt_buttons(labels, cmmnds))
+    , btn_count(cnt_buttons(labels, resp))
     , selected_index(0)
     , need_redraw(true) {
 }
 
 RadioButton::RadioButton(const Window &window, const PhaseTexts &labels)
-    : RadioButton(window, disabled_commands, labels) {
+    : RadioButton(window, no_responses, labels) {
 }
 
 //no overflow
@@ -75,7 +75,7 @@ void RadioButton::DrawForced() {
 }
 
 Response RadioButton::Click() const {
-    return commands[selected_index];
+    return responses[selected_index];
 }
 
 void RadioButton::draw_0_btn() const {
@@ -108,5 +108,5 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
 }
 
 bool RadioButton::IsEnabled() const {
-    return commands[0] != Response::_none; //faster than cnt_commands(cmmnds)!=0
+    return responses[0] != Response::_none; //faster than cnt_responses(responses)!=0
 }
