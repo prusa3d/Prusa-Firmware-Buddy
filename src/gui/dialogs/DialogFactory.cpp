@@ -12,14 +12,14 @@ static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
     static const char *unload = "UNLOAD FILAMENT";
     static const char *def = "INDEX ERROR";
     const char *name;
-    switch (static_cast<load_unload_type_t>(data)) {
-    case DLG_type_change:
+    switch (static_cast<LoadUnloadMode>(data)) {
+    case LoadUnloadMode::Change:
         name = change;
         break;
-    case DLG_type_load:
+    case LoadUnloadMode::Load:
         name = load;
         break;
-    case DLG_type_unload:
+    case LoadUnloadMode::Unload:
         name = unload;
         break;
     default:

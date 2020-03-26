@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "client_fsm_types.h" //ClinetFSM
+#include "client_fsm_types.h"
 #include "DialogFactory.hpp"
 
 class DialogHandler {
