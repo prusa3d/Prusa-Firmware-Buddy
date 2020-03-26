@@ -11,7 +11,8 @@
 
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
-//general foe any number of phases
+
+//abstract parent containing general code for any number of phases
 class IDialogStateful : public IDialog {
 protected:
     //dialog flags bitshift

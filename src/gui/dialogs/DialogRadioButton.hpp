@@ -27,7 +27,7 @@ private:
 
     void draw_0_btn() const;
     void draw_1_btn() const;
-    void draw_n_btn(size_t btn_count) const;
+    void draw_n_btns(size_t btn_count) const;
 
     static size_t cnt_labels(const PhaseTexts &labels);
     static size_t cnt_commands(const PhaseCommands &cmmnds);
