@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "dialog_commands.hpp"
+#include "client_response.hpp"
 #include "gui.h"
 
 using PhaseTexts = std::array<const char *, MAX_RESPONSES>;

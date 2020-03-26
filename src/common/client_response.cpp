@@ -1,4 +1,4 @@
-#include "dialog_commands.hpp"
+#include "client_response.hpp"
 
 //define available commands for every phase
 const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoadUnload>()] = {

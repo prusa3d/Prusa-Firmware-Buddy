@@ -2,7 +2,7 @@
 #pragma once
 
 #include "marlin_server.h"
-#include "dialog_commands.hpp"
+#include "client_response.hpp"
 
 /*****************************************************************************/
 //C++ only features

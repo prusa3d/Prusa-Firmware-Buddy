@@ -2,7 +2,7 @@
 #pragma once
 
 #include "marlin_client.h"
-#include "dialog_commands.hpp"
+#include "client_response.hpp"
 
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
