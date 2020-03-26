@@ -2,7 +2,6 @@
 
 #include "marlin_server.h"
 #include "marlin_server.hpp"
-#include "dialogs.h" //dialog_t
 #include <stdarg.h>
 #include <stdio.h>
 #include "dbg.h"
