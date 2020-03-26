@@ -3,14 +3,14 @@
 #include "button_draw.h"
 /*****************************************************************************/
 //static variables and methods
-static const PhaseCommands disabled_commands = { Command::_NONE, Command::_NONE, Command::_NONE, Command::_NONE }; //used in constructor
+static const PhaseCommands disabled_commands = { Command::_none, Command::_none, Command::_none, Command::_none }; //used in constructor
 
 size_t RadioButton::cnt_labels(const PhaseTexts &labels) {
     return (std::find_if(labels.begin(), labels.end(), [](const char *s) { return s[0] == '\0'; })) - labels.begin();
 }
 
 size_t RadioButton::cnt_commands(const PhaseCommands &cmmnds) {
-    return (std::find(cmmnds.begin(), cmmnds.end(), Command::_NONE)) - cmmnds.begin();
+    return (std::find(cmmnds.begin(), cmmnds.end(), Command::_none)) - cmmnds.begin();
 }
 
 size_t RadioButton::cnt_buttons(const PhaseTexts &labels, const PhaseCommands &cmmnds) {
@@ -110,5 +110,5 @@ void RadioButton::draw_n_btn(size_t btn_count) const {
 }
 
 bool RadioButton::IsEnabled() const {
-    return commands[0] != Command::_NONE; //faster than cnt_commands(cmmnds)!=0
+    return commands[0] != Command::_none; //faster than cnt_commands(cmmnds)!=0
 }

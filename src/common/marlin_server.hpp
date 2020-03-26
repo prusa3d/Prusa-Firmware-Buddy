@@ -23,7 +23,7 @@ public:
     static Command GetCommandFromPhase(T phase) {
         uint32_t _phase = server_side_encoded_dialog_command >> COMMAND_BITS;
         if ((static_cast<uint32_t>(phase)) != _phase)
-            return Command::_NONE;
+            return Command::_none;
         uint32_t index = server_side_encoded_dialog_command & uint32_t(MAX_COMMANDS - 1); //get command index
         server_side_encoded_dialog_command = -1;                                          //erase command
         return GetCommand(phase, index);

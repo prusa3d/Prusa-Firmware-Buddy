@@ -12,15 +12,15 @@ enum { COMMAND_BITS = 2,
 
 //list of all button types
 enum class Command : uint8_t {
-    _NONE = 0, //none must be zero becouse of empty initialization of array
-    YES,
-    NO,
-    CONTINUE,
-    OK,
-    BACK,
-    RETRY,
-    PURGE_MORE,
-    REHEAT
+    _none = 0, //none must be zero becouse of empty initialization of array
+    Yes,
+    No,
+    Continue,
+    Ok,
+    Back,
+    Retry,
+    Purge_more,
+    Reheat
 };
 
 using PhaseCommands = std::array<Command, MAX_COMMANDS>;
@@ -103,7 +103,7 @@ protected:
     template <class T>
     static Command GetCommand(T phase, uint8_t index) {
         if (index > MAX_COMMANDS)
-            return Command::_NONE;
+            return Command::_none;
         const PhaseCommands &cmds = getCommandsInPhase(phase);
         return cmds[index];
     }

@@ -43,6 +43,6 @@ public:
 
     bool Draw();           //draw only when need_redraw, return if did
     void DrawForced();     //draw no matter need_redraw
-    Command Click() const; //click returns command to be send, 0 buttons will return Command::_NONE
+    Command Click() const; //click returns command to be send, 0 buttons will return Command::_none
     bool IsEnabled() const;
 };

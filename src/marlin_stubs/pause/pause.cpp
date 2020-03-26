@@ -200,7 +200,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     }
 
     change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 30, 0);
-    while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::CONTINUE)
+    while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::Continue)
         idle(true);
 
     //check FILAMET SENSOR
@@ -230,8 +230,8 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
             do {
                 idle();
                 command = ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::IsColor);
-            } while (command == Command::_NONE);  //no button
-        } while (command == Command::PURGE_MORE); //purge more or continue .. exit loop
+            } while (command == Command::_none);  //no button
+        } while (command == Command::Purge_more); //purge more or continue .. exit loop
     }
 
     return true;
@@ -417,7 +417,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
 
     change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
 
-    while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::CONTINUE)) {
+    while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::Continue)) {
         filament_change_beep(max_beep_count);
 
         // If the nozzle has timed out...
@@ -432,7 +432,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
 
             // Wait for LCD click or M108
             change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
-            while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::NozzleTimeout) != Command::REHEAT))
+            while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::NozzleTimeout) != Command::Reheat))
                 idle(true);
 
             // Re-enable the heaters if they timed out
