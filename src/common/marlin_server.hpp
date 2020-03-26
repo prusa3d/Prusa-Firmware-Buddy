@@ -51,7 +51,7 @@ class Dialog_notifier {
         uint8_t var_id;
         uint8_t last_progress_sent;
         data()
-            : type(FSM_no_dialog)
+            : type(ClinetFSM::_no_dialog)
             , phase(0)
             , var_id(0)
             , last_progress_sent(-1) {}
