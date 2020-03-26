@@ -155,8 +155,11 @@ int marlin_client_id(void) {
     return 0;
 }
 
+<<<<<<< HEAD
 //register callback to fsm creation
 //return success
+=======
+>>>>>>> renaming
 int marlin_client_set_fsm_create_cb(fsm_create_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -166,8 +169,11 @@ int marlin_client_set_fsm_create_cb(fsm_create_t cb) {
     return 0;
 }
 
+<<<<<<< HEAD
 //register callback to fsm destruction
 //return success
+=======
+>>>>>>> renaming
 int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -177,8 +183,11 @@ int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb) {
     return 0;
 }
 
+<<<<<<< HEAD
 //register callback to fsm change
 //return success
+=======
+>>>>>>> renaming
 int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -786,6 +795,7 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_Acknowledge:
             client->ack = msg.ui32;
             break;
+<<<<<<< HEAD
         case MARLIN_EVT_FSM_Create:
             if (client->fsm_create_cb)
                 client->fsm_create_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8));
@@ -795,6 +805,17 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
                 client->fsm_destroy_cb((uint8_t)msg.ui32);
             break;
         case MARLIN_EVT_FSM_Change:
+=======
+        case MARLIN_EVT_DialogOpen:
+            if (client->fsm_create_cb)
+                client->fsm_create_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8));
+            break;
+        case MARLIN_EVT_DialogClose:
+            if (client->fsm_destroy_cb)
+                client->fsm_destroy_cb((uint8_t)msg.ui32);
+            break;
+        case MARLIN_EVT_DialogChange:
+>>>>>>> renaming
             if (client->fsm_change_cb)
                 client->fsm_change_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8), (uint8_t)(msg.ui32 >> 16), (uint8_t)(msg.ui32 >> 24));
             break;

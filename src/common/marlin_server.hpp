@@ -7,6 +7,7 @@
 /*****************************************************************************/
 //C++ only features
 
+<<<<<<< HEAD
 //todo ensure signature match
 //notify all clients to create finit statemachine, must match fsm_create_t signature
 void fsm_create(ClinetFSM type, uint8_t data);
@@ -20,6 +21,21 @@ class ClientResponseHandler : public ClientResponses {
     ClientResponseHandler() = delete;
     ClientResponseHandler(ClientResponseHandler &) = delete;
     static uint32_t server_side_encoded_response;
+=======
+//must match fsm_create_t signature
+extern void open_dialog_handler(ClinetFSM type, uint8_t data);
+
+//must match fsm_destroy_t signature
+extern void close_dialog_handler(ClinetFSM type);
+
+//must match fsm_change_t signature
+extern void change_dialog_handler(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
+
+//inheritred class for server side to be able to work with server_side_encoded_dialog_command
+class ServerDialogCommands : public DialogCommands {
+    ServerDialogCommands() = delete;
+    static uint32_t server_side_encoded_dialog_command;
+>>>>>>> renaming
 
 public:
     //call inside marlin server on received response from client

@@ -1219,7 +1219,11 @@ void host_action_resumed() {
 }
 
 //must match fsm_create_t signature
+<<<<<<< HEAD
 void fsm_create(ClinetFSM type, uint8_t data) {
+=======
+void open_dialog_handler(ClinetFSM type, uint8_t data) {
+>>>>>>> renaming
     uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
     DBG_HOST("fsm_create %d", usr32);
 
@@ -1230,8 +1234,13 @@ void fsm_create(ClinetFSM type, uint8_t data) {
 }
 
 //must match fsm_destroy_t signature
+<<<<<<< HEAD
 void fsm_destroy(ClinetFSM type) {
     DBG_HOST("fsm_destroy %d", (int)type);
+=======
+void close_dialog_handler(ClinetFSM type) {
+    DBG_HOST("close_dialog_handler %d", (int)type);
+>>>>>>> renaming
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
     uint8_t client_mask = _send_notify_event(evt_id, uint32_t(type), 0);
@@ -1240,7 +1249,11 @@ void fsm_destroy(ClinetFSM type) {
 }
 
 //must match fsm_change_t signature
+<<<<<<< HEAD
 void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+=======
+void change_dialog_handler(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+>>>>>>> renaming
     uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
     DBG_HOST("fsm_change %d", usr32);
 
@@ -1371,7 +1384,11 @@ FSM_notifier::FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvarian
 //s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
 //simplified formula
 //x = actual * s_data.scale + s_data.offset;
+<<<<<<< HEAD
 void FSM_notifier::SendNotification() {
+=======
+void Dialog_notifier::SendNotification() {
+>>>>>>> renaming
     if (s_data.type == ClinetFSM::_none)
         return;
 
