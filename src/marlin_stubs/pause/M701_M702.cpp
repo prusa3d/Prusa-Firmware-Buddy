@@ -49,12 +49,12 @@ typedef void (*load_unload_fnc)(const int8_t target_extruder);
 /**
  * Shared code for load/unload filament
  */
-static void load_unload(load_unload_type_t type, load_unload_fnc f_load_unload, uint32_t min_Z_pos) {
+static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint32_t min_Z_pos) {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
 
-    DialogRAII D(ClinetFSM::load_unload, DLG_type_load);
+    DialogRAII D(ClinetFSM::load_unload, uint8_t(type));
     // Z axis lift
     if (parser.seenval('Z'))
         min_Z_pos = parser.linearval('Z');
@@ -115,7 +115,7 @@ static void unload(const int8_t target_extruder) {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    load_unload(DLG_type_load, load, Z_AXIS_LOAD_POS);
+    load_unload(LoadUnloadMode::Load, load, Z_AXIS_LOAD_POS);
 }
 
 /**
@@ -130,5 +130,5 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    load_unload(DLG_type_unload, unload, Z_AXIS_UNLOAD_POS);
+    load_unload(LoadUnloadMode::Unload, unload, Z_AXIS_UNLOAD_POS);
 }
