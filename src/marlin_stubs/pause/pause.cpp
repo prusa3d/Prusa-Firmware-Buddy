@@ -136,7 +136,7 @@ static bool ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint
         return false;
     }
 
-    Notifier_TEMP_NOZ N(ClinetFSM::load_unload, GetPhaseIndex(phase),
+    Notifier_TEMP_NOZ N(ClinetFSM::Load_unload, GetPhaseIndex(phase),
         Temperature::degHotend(active_extruder), Temperature::degTargetHotend(active_extruder), progress_min, progress_max);
 
     return thermalManager.wait_for_hotend(active_extruder);
@@ -151,10 +151,10 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 void do_pause_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
     //Not sure if folowing code would not be better
     //const float actual_e = planner.get_axis_position_mm(E_AXIS);
-    //Notifier_POS_E N(ClinetFSM::load_unload, GetPhaseIndex(phase), actual_e, actual_e + length, progress_min,progress_max);
+    //Notifier_POS_E N(ClinetFSM::Load_unload, GetPhaseIndex(phase), actual_e, actual_e + length, progress_min,progress_max);
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
-    Notifier_POS_E N(ClinetFSM::load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
+    Notifier_POS_E N(ClinetFSM::Load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
     line_to_current_position(fr_mm_s);
     planner.synchronize();
 }
@@ -170,7 +170,7 @@ void plan_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 void plan_pause_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
-    Notifier_POS_E N(ClinetFSM::load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
+    Notifier_POS_E N(ClinetFSM::Load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
     //line_to_current_position(fr_mm_s);
     while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
         delay(50);
@@ -199,7 +199,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         return false;
     }
 
-    change_dialog_handler(ClinetFSM::load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 30, 0);
+    change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 30, 0);
     while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::Continue)
         idle(true);
 
@@ -226,7 +226,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         do {
             // Extrude filament to get into hotend
             do_pause_e_move_notify_progress(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
-            change_dialog_handler(ClinetFSM::load_unload, GetPhaseIndex(PhasesLoadUnload::IsColor), 99, 0);
+            change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::IsColor), 99, 0);
             do {
                 idle();
                 command = ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::IsColor);
@@ -279,7 +279,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
     //cannot draw progress in plan_pause_e_move, so just change phase to ramming
-    change_dialog_handler(ClinetFSM::load_unload, GetPhaseIndex(PhasesLoadUnload::Ramming), 50, 0);
+    change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Ramming), 50, 0);
     for (size_t i = 0; i < pre_unload_begin_pos; ++i) {
         plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
     }
@@ -415,7 +415,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
     KEEPALIVE_STATE(PAUSED_FOR_USER);
     wait_for_user = true; // LCD click or M108 will clear this
 
-    change_dialog_handler(ClinetFSM::load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
+    change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
 
     while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::Continue)) {
         filament_change_beep(max_beep_count);
@@ -431,7 +431,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_HEAT));
 
             // Wait for LCD click or M108
-            change_dialog_handler(ClinetFSM::load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
+            change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
             while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::NozzleTimeout) != Command::Reheat))
                 idle(true);
 

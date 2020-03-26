@@ -23,7 +23,7 @@ void DialogHandler::open(ClinetFSM dialog, uint8_t data) {
 
     //todo pscreen_printing_serial is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
-    if (dialog == ClinetFSM::serial_printing) {
+    if (dialog == ClinetFSM::Serial_printing) {
         screen_unloop(m876_blacklist, m876_blacklist_sz);
 
         if (screen_get_curr() != pscreen_printing_serial)
@@ -38,7 +38,7 @@ void DialogHandler::close(ClinetFSM dialog) {
         return;
 
     //hack pscreen_printing_serial is no dialog but screen ... todo change to dialog?
-    if (dialog == ClinetFSM::serial_printing) {
+    if (dialog == ClinetFSM::Serial_printing) {
         if (screen_get_curr() == pscreen_printing_serial)
             screen_close();
     }
