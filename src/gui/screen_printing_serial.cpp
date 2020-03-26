@@ -59,7 +59,9 @@ screen_t screen_printing_serial = {
     sizeof(screen_printing_serial_data_t), //data_size
     0,                                     //pdata
 };
+extern "C" {
 const screen_t *pscreen_printing_serial = &screen_printing_serial;
+}
 
 #define pw ((screen_printing_serial_data_t *)screen->pdata)
 

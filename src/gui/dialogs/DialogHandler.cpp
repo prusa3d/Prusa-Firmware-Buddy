@@ -4,7 +4,9 @@
 #include "DialogFactory.hpp"
 
 //screens do not have headers, have to use extern
+extern "C" {
 extern screen_t *pscreen_printing_serial;
+}
 
 //*****************************************************************************
 //DialogHandler declaration
