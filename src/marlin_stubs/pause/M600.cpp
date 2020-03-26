@@ -59,7 +59,7 @@ void GcodeSuite::M600() {
     if (target_extruder < 0)
         return;
 
-    DialogRAII D(FSM_load_unload, DLG_type_change);
+    DialogRAII D(ClinetFSM::load_unload, DLG_type_change);
 #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
     // Don't allow filament change without homing first
     if (axes_need_homing())

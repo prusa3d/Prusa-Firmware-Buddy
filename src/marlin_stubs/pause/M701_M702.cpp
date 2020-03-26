@@ -49,12 +49,12 @@ typedef void (*load_unload_fnc)(const int8_t target_extruder);
 /**
  * Shared code for load/unload filament
  */
-static void load_unload(load_unload_type_t type, load_unload_fnc load_unload, uint32_t min_Z_pos) {
+static void load_unload(load_unload_type_t type, load_unload_fnc f_load_unload, uint32_t min_Z_pos) {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
 
-    DialogRAII D(FSM_load_unload, DLG_type_load);
+    DialogRAII D(ClinetFSM::load_unload, DLG_type_load);
     // Z axis lift
     if (parser.seenval('Z'))
         min_Z_pos = parser.linearval('Z');
@@ -62,16 +62,16 @@ static void load_unload(load_unload_type_t type, load_unload_fnc load_unload, ui
     // Lift Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MIN(_MAX(current_position.z, min_Z_pos), Z_MAX_POS);
-        Notifier_POS_Z N(FSM_load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
+        Notifier_POS_Z N(ClinetFSM::load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     // Load/Unload filament
-    load_unload(target_extruder);
+    f_load_unload(target_extruder);
 #ifndef DO_NOT_RESTORE_Z_AXIS
     // Restore Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MAX(current_position.z - min_Z_pos, 0);
-        Notifier_POS_Z N(FSM_load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
+        Notifier_POS_Z N(ClinetFSM::load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 #endif

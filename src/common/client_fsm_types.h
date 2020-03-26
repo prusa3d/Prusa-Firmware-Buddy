@@ -3,16 +3,14 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-//extern "C" {
-//#endif //__cplusplus
 
 //Client finite state machines
-typedef enum {
-    FSM_serial_printing,
-    FSM_load_unload,
-    FSM_no_dialog, //cannot be created, must have same index as FSM_count
-    FSM_count = FSM_no_dialog
-} ClinetFSM;
+enum class ClinetFSM {
+    serial_printing,
+    load_unload,
+    _no_dialog, //cannot be created, must have same index as _count
+    _count = _no_dialog
+};
 
 typedef enum {
     DLG_type_change,
@@ -28,8 +26,6 @@ typedef void (*dialog_open_cb_t)(ClinetFSM, uint8_t);                           
 typedef void (*dialog_close_cb_t)(ClinetFSM);                                                         //close dialog
 typedef void (*dialog_change_cb_t)(ClinetFSM, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change dialog state or progress
 
-//#ifdef __cplusplus
-//}
 #else
 typedef void (*dialog_open_cb_t)(int, uint8_t);                                                 //open dialog
 typedef void (*dialog_close_cb_t)(int);                                                         //close dialog
