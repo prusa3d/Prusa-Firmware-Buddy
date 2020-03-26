@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "dialogs.h" //dialog_t
+#include "client_fsm_types.h" //dialog_t
 
 #ifdef __cplusplus
 //******************
