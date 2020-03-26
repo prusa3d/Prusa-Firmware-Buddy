@@ -441,7 +441,6 @@ target_sources(
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.c>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
-          src/common/dialogs.c
           src/common/eeprom.c
           src/common/eeprom_loadsave.c
           src/common/marlin_vars.c

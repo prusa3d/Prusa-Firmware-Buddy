@@ -1,6 +1,6 @@
 #pragma once
 
-#include "marlin_events.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
