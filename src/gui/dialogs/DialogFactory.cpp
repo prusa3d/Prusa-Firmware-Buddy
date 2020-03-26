@@ -3,7 +3,7 @@
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
 static_unique_ptr<IDialogStateful> DialogFactory::serial_printing(uint8_t data) {
-    return nullptr; //DLG_serial_printing hack it is a screen
+    return nullptr; //FSM_serial_printing hack it is a screen
 }
 
 static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
@@ -29,9 +29,9 @@ static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
 }
 
 DialogFactory::Ctors DialogFactory::GetAll() {
-    std::array<fnc, DLG_count> ret = {
-        serial_printing, //DLG_serial_printing hack it is a screen
-        load_unload      //DLG_load_unload
+    std::array<fnc, FSM_count> ret = {
+        serial_printing, //FSM_serial_printing hack it is a screen
+        load_unload      //FSM_load_unload
     };
     return ret;
 }

@@ -754,15 +754,15 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case MARLIN_EVT_DialogOpen:
             if (client->dialog_open_cb)
-                client->dialog_open_cb((dialog_t)msg.ui32, (uint8_t)(msg.ui32 >> 8));
+                client->dialog_open_cb((ClinetFSM)msg.ui32, (uint8_t)(msg.ui32 >> 8));
             break;
         case MARLIN_EVT_DialogClose:
             if (client->dialog_close_cb)
-                client->dialog_close_cb((dialog_t)msg.ui32);
+                client->dialog_close_cb((ClinetFSM)msg.ui32);
             break;
         case MARLIN_EVT_DialogChange:
             if (client->dialog_change_cb)
-                client->dialog_change_cb((dialog_t)msg.ui32, (uint8_t)(msg.ui32 >> 8), (uint8_t)(msg.ui32 >> 16), (uint8_t)(msg.ui32 >> 24));
+                client->dialog_change_cb((ClinetFSM)msg.ui32, (uint8_t)(msg.ui32 >> 8), (uint8_t)(msg.ui32 >> 16), (uint8_t)(msg.ui32 >> 24));
             break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added

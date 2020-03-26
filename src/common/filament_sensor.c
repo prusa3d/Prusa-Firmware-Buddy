@@ -62,12 +62,12 @@ static void _init();
 static int block_M600_injection = 0;
 //called when Serial print screen is openned
 //printer is not in sd printing mode, so filament sensor does not trigger M600
-static void dialog_open_cb(dialog_t dialog, uint8_t data) {
-    if (dialog == DLG_serial_printing)
+static void dialog_open_cb(ClinetFSM dialog, uint8_t data) {
+    if (dialog == FSM_serial_printing)
         block_M600_injection = 1;
 }
-static void dialog_close_cb(dialog_t dialog) {
-    if (dialog == DLG_serial_printing || dialog == DLG_load_unload)
+static void dialog_close_cb(ClinetFSM dialog) {
+    if (dialog == FSM_serial_printing || dialog == FSM_load_unload)
         block_M600_injection = 0;
 }
 

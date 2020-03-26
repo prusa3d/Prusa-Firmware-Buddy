@@ -33,7 +33,7 @@ public:
 //Dialog_notifier
 class Dialog_notifier {
     struct data { //used floats - no need to retype
-        dialog_t type;
+        ClinetFSM type;
         uint8_t phase;
         float scale;  //scale from value to progress
         float offset; //offset from lowest value
@@ -42,7 +42,7 @@ class Dialog_notifier {
         uint8_t var_id;
         uint8_t last_progress_sent;
         data()
-            : type(DLG_no_dialog)
+            : type(FSM_no_dialog)
             , phase(0)
             , var_id(0)
             , last_progress_sent(-1) {}
@@ -56,7 +56,7 @@ class Dialog_notifier {
 
 protected:
     //protected ctor so this instance cannot be created
-    Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
+    Dialog_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
     Dialog_notifier(const Dialog_notifier &) = delete;
 
 public:
@@ -68,7 +68,7 @@ public:
 template <int VAR_ID, class T>
 class Notifier : public Dialog_notifier {
 public:
-    Notifier(dialog_t type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
+    Notifier(ClinetFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
         : Dialog_notifier(type, phase, cvariant8(min), cvariant8(max), progress_min, progress_max, VAR_ID) {}
 };
 
@@ -101,10 +101,10 @@ using Notifier_DURATION = Notifier<MARLIN_VAR_DURATION, uint32_t>;
 
 //create dialog and automatically destroy it at the end of scope
 class DialogRAII {
-    dialog_t dialog;
+    ClinetFSM dialog;
 
 public:
-    DialogRAII(dialog_t type, uint8_t data) //any data to send to dialog, could have different meaning for different dialogs
+    DialogRAII(ClinetFSM type, uint8_t data) //any data to send to dialog, could have different meaning for different dialogs
         : dialog(type) {
         open_dialog_handler(type, data);
     }
