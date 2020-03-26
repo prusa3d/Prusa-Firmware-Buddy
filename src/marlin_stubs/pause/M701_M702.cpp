@@ -54,7 +54,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
     if (target_extruder < 0)
         return;
 
-    DialogRAII D(ClinetFSM::Load_unload, uint8_t(type));
+    FSM_Holder D(ClinetFSM::Load_unload, uint8_t(type));
     // Z axis lift
     if (parser.seenval('Z'))
         min_Z_pos = parser.linearval('Z');

@@ -171,8 +171,8 @@ void DialogStateful<T>::event(uint8_t event, void *param) {
     case WINDOW_EVENT_BTN_DN:
     //case WINDOW_EVENT_BTN_UP:
     case WINDOW_EVENT_CLICK: {
-        Command command = radio.Click();
-        marlin_dialog_command(GetEnumFromPhaseIndex<T>(phase), command);
+        Response command = radio.Click();
+        marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), command);
         return;
     }
     case WINDOW_EVENT_ENC_UP:

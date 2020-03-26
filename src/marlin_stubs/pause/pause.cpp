@@ -199,8 +199,8 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         return false;
     }
 
-    change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 30, 0);
-    while (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::Continue)
+    fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 30, 0);
+    while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue)
         idle(true);
 
     //check FILAMET SENSOR
@@ -222,16 +222,16 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     }
 
     if (purge_length > 0) {
-        Command command;
+        Response response;
         do {
             // Extrude filament to get into hotend
             do_pause_e_move_notify_progress(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
-            change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::IsColor), 99, 0);
+            fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::IsColor), 99, 0);
             do {
                 idle();
-                command = ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::IsColor);
-            } while (command == Command::_none);  //no button
-        } while (command == Command::Purge_more); //purge more or continue .. exit loop
+                response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor);
+            } while (response == Response::_none);  //no button
+        } while (response == Response::Purge_more); //purge more or continue .. exit loop
     }
 
     return true;
@@ -279,7 +279,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
     //cannot draw progress in plan_pause_e_move, so just change phase to ramming
-    change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Ramming), 50, 0);
+    fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Ramming), 50, 0);
     for (size_t i = 0; i < pre_unload_begin_pos; ++i) {
         plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
     }
@@ -415,9 +415,9 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
     KEEPALIVE_STATE(PAUSED_FOR_USER);
     wait_for_user = true; // LCD click or M108 will clear this
 
-    change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
+    fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
 
-    while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::UserPush) != Command::Continue)) {
+    while (wait_for_user && (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue)) {
         filament_change_beep(max_beep_count);
 
         // If the nozzle has timed out...
@@ -431,8 +431,8 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_HEAT));
 
             // Wait for LCD click or M108
-            change_dialog_handler(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
-            while (wait_for_user && (ServerDialogCommands::GetCommandFromPhase(PhasesLoadUnload::NozzleTimeout) != Command::Reheat))
+            fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
+            while (wait_for_user && (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::NozzleTimeout) != Response::Reheat))
                 idle(true);
 
             // Re-enable the heaters if they timed out

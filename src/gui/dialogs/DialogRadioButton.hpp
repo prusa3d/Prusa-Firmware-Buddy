@@ -3,7 +3,7 @@
 #include "dialog_commands.hpp"
 #include "gui.h"
 
-using PhaseTexts = std::array<const char *, MAX_COMMANDS>;
+using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
 
 //created from array of commands and array of labels
 //commands are counted and stored into btn_count
@@ -19,10 +19,10 @@ public:
 
 private:
     const Window &win;
-    const PhaseCommands &commands;
+    const PhaseResponses &commands;
     const PhaseTexts &texts;
-    const uint8_t btn_count : COMMAND_BITS + 1;
-    uint8_t selected_index : COMMAND_BITS;
+    const uint8_t btn_count : RESPONSE_BITS + 1;
+    uint8_t selected_index : RESPONSE_BITS;
     bool need_redraw : 1;
 
     void draw_0_btn() const;
@@ -30,19 +30,19 @@ private:
     void draw_n_btns(size_t btn_count) const;
 
     static size_t cnt_labels(const PhaseTexts &labels);
-    static size_t cnt_commands(const PhaseCommands &cmmnds);
-    static size_t cnt_buttons(const PhaseTexts &labels, const PhaseCommands &cmmnds);
+    static size_t cnt_commands(const PhaseResponses &cmmnds);
+    static size_t cnt_buttons(const PhaseTexts &labels, const PhaseResponses &cmmnds);
 
 public:
-    RadioButton(const Window &window, const PhaseCommands &cmmnds, const PhaseTexts &labels); //has commands == buttons enabled
-    RadioButton(const Window &window, const PhaseTexts &labels);                              //does not have commands == buttons disabled
+    RadioButton(const Window &window, const PhaseResponses &cmmnds, const PhaseTexts &labels); //has commands == buttons enabled
+    RadioButton(const Window &window, const PhaseTexts &labels);                               //does not have commands == buttons disabled
     // No postfix increment/decrement operator, it would have to return button by value.
     // it would not be a problem, but buttons are not ment to be used that way
     RadioButton &operator++(); // Prefix increment operator no overflow
     RadioButton &operator--(); // Prefix decrement operator no underflow
 
-    bool Draw();           //draw only when need_redraw, return if did
-    void DrawForced();     //draw no matter need_redraw
-    Command Click() const; //click returns command to be send, 0 buttons will return Command::_none
+    bool Draw();            //draw only when need_redraw, return if did
+    void DrawForced();      //draw no matter need_redraw
+    Response Click() const; //click returns command to be send, 0 buttons will return Command::_none
     bool IsEnabled() const;
 };
