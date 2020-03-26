@@ -56,7 +56,7 @@ void IDialogStateful::draw_frame() {
     display->draw_line(point_ui16(rc.x, 320 - 67), point_ui16(239, 320 - 67), COLOR_GRAY);
 }
 
-//this should be moved elswhere
+//todo this should be moved elswhere
 void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     color_t color_text, padding_ui8_t padding, uint8_t progress) {
     rect_ui16_t rc_pro = win_rect; //must copy it
@@ -78,7 +78,8 @@ void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     sprintf(text, "%d%%", progress);
     render_text_align(rc_pro, text, font, color_back, color_text, padding, ALIGN_CENTER);
 }
-//this should be moved elswhere
+
+//todo this should be moved elswhere
 void progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
     rect_ui16_t rc_pro = win_rect; //must copy it
     rc_pro.x += 10;

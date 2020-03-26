@@ -72,7 +72,7 @@ public:
         : Dialog_notifier(type, phase, cvariant8(min), cvariant8(max), progress_min, progress_max, VAR_ID) {}
 };
 
-//use an alias to automatically notyfi progress
+//use an alias to automatically notify progress
 //just create an instance and progress will be notyfied while it exists
 using Notifier_MOTION = Notifier<MARLIN_VAR_MOTION, uint8_t>;
 using Notifier_GQUEUE = Notifier<MARLIN_VAR_GQUEUE, uint8_t>;

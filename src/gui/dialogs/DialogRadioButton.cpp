@@ -61,13 +61,13 @@ bool RadioButton::Draw() {
 void RadioButton::DrawForced() {
     switch (btn_count) {
     case 0:
-        draw_0_btn(); //cannot use draw_n_btn, would div by 0
+        draw_0_btn(); //cannot use draw_n_btns, would div by 0
         break;
     case 1:
-        draw_1_btn(); //could use draw_n_btn, but this is much faster
+        draw_1_btn(); //could use draw_n_btns, but this is much faster
         break;
     default:
-        draw_n_btn(btn_count);
+        draw_n_btns(btn_count);
         break;
     }
 
@@ -86,13 +86,11 @@ void RadioButton::draw_1_btn() const {
     button_draw(win.rect, texts[0], win.pfont, IsEnabled());
 }
 
-void RadioButton::draw_n_btn(size_t btn_count) const {
+void RadioButton::draw_n_btns(size_t btn_count) const {
     rect_ui16_t rc_btn = win.rect;
-
     int16_t btn_width = rc_btn.w / btn_count - gui_defaults.btn_spacing * (btn_count - 1);
-
     rc_btn.w = btn_width;
-    //lhs button
+
     for (size_t i = 0; i < btn_count; ++i) {
         button_draw(rc_btn, texts[i], win.pfont, selected_index == i && IsEnabled());
 
