@@ -9,14 +9,14 @@ const PhaseCommands DialogCommands::LoadUnloadButtons[CountPhases<PhasesLoadUnlo
     {},                                         //Ramming,
     {},                                         //Unloading,
     {},                                         //Unloading2,
-    { Command::CONTINUE },                      //UserPush,
-    { Command::REHEAT },                        //NozzleTimeout,
+    { Command::Continue },                      //UserPush,
+    { Command::Reheat },                        //NozzleTimeout,
     {},                                         //MakeSureInserted,
     {},                                         //Inserting,
     {},                                         //Loading,
     {},                                         //Purging,
     {},                                         //Purging2,
-    { Command::CONTINUE, Command::PURGE_MORE }, //IsColor,
+    { Command::Continue, Command::Purge_more }, //IsColor,
     {},                                         //Unparking,
 };
 
