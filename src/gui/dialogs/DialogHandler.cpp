@@ -1,4 +1,4 @@
-#include "DialogHandler.h"
+#include "DialogHandler.hpp"
 #include "gui.h"
 #include "DialogLoadUnload.hpp"
 #include "DialogFactory.hpp"
@@ -6,28 +6,6 @@
 //screens do not have headers, have to use extern
 extern "C" {
 extern screen_t *pscreen_printing_serial;
-}
-
-//*****************************************************************************
-//DialogHandler declaration
-class DialogHandler {
-    static_unique_ptr<IDialogStateful> ptr;
-    DialogFactory::Ctors dialog_ctors;
-
-public:
-    DialogHandler(DialogFactory::Ctors ctors)
-        : dialog_ctors(ctors) {}
-
-    void open(ClinetFSM dialog, uint8_t data);
-    void close(ClinetFSM dialog);
-    void change(ClinetFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress);
-};
-
-//*****************************************************************************
-//Meyers singleton
-DialogHandler &dlg_hndlr() {
-    static DialogHandler ret(DialogFactory::GetAll());
-    return ret;
 }
 
 //*****************************************************************************
@@ -53,9 +31,6 @@ void DialogHandler::open(ClinetFSM dialog, uint8_t data) {
     } else {
         ptr = dialog_ctors[dialog](data);
     }
-    /*
-    if (dialog == FSM_load_unload)
-        DialogFactory::load_unload(data);*/
 }
 
 void DialogHandler::close(ClinetFSM dialog) {
@@ -76,17 +51,19 @@ void DialogHandler::change(ClinetFSM dialog, uint8_t phase, uint8_t progress_tot
         ptr->Change(phase, progress_tot, progress);
 }
 
-//functions for C API
-extern "C" {
-void dialog_open_cb(ClinetFSM dialog, uint8_t data) {
-    dlg_hndlr().open(dialog, data);
+//*****************************************************************************
+//Meyers singleton
+DialogHandler &DialogHandler::Access() {
+    static DialogHandler ret(DialogFactory::GetAll());
+    return ret;
 }
 
-void dialog_close_cb(ClinetFSM dialog) {
-    dlg_hndlr().close(dialog);
+void DialogHandler::Open(ClinetFSM dialog, uint8_t data) {
+    Access().open(dialog, data);
 }
-
-void dialog_change_cb(ClinetFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
-    dlg_hndlr().change(dialog, phase, progress_tot, progress);
+void DialogHandler::Close(ClinetFSM dialog) {
+    Access().close(dialog);
 }
+void DialogHandler::Change(ClinetFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+    Access().change(dialog, phase, progress_tot, progress);
 }

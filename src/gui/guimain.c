@@ -23,7 +23,7 @@
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
-#include "DialogHandler.h"
+#include "Dialog_C_wrapper.h"
 
 extern screen_t *pscreen_splash;
 extern screen_t *pscreen_watchdog;
@@ -167,9 +167,7 @@ void gui_run(void) {
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_client_id = marlin_client_id();
-    marlin_client_set_dialog_open_cb(dialog_open_cb);
-    marlin_client_set_dialog_close_cb(dialog_close_cb);
-    marlin_client_set_dialog_change_cb(dialog_change_cb);
+    register_dialog_callbacks();
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
     screen_register(pscreen_splash);
