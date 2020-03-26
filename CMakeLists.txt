@@ -438,7 +438,7 @@ target_sources(
           src/usbh_conf.c
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
-          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.c>
+          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
           src/common/eeprom.c
@@ -497,6 +497,7 @@ if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.c
+            src/gui/dialogs/Dialog_C_wrapper.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp

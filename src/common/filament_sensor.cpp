@@ -39,6 +39,8 @@ static status_t status = { 0, M600_on_edge, 0 };
 /*---------------------------------------------------------------------------*/
 //debug functions
 
+extern "C" {
+
 int fs_was_M600_send() {
     return status.M600_sent != 0;
 }
@@ -253,3 +255,5 @@ void fs_cycle() {
         _cycle1();
     }
 }
+
+} //extern "C"

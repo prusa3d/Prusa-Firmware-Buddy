@@ -3,8 +3,8 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+//extern "C" {
+//#endif //__cplusplus
 
 //Client finite state machines
 typedef enum {
@@ -28,6 +28,10 @@ typedef void (*dialog_open_cb_t)(ClinetFSM, uint8_t);                           
 typedef void (*dialog_close_cb_t)(ClinetFSM);                                                         //close dialog
 typedef void (*dialog_change_cb_t)(ClinetFSM, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change dialog state or progress
 
-#ifdef __cplusplus
-}
+//#ifdef __cplusplus
+//}
+#else
+typedef void (*dialog_open_cb_t)(int, uint8_t);                                                 //open dialog
+typedef void (*dialog_close_cb_t)(int);                                                         //close dialog
+typedef void (*dialog_change_cb_t)(int, uint8_t phase, uint8_t progress_tot, uint8_t progress); //change dialog state or progress
 #endif //__cplusplus
