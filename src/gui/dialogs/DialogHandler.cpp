@@ -5,6 +5,7 @@
 
 //screens do not have headers, have to use extern
 extern "C" {
+extern screen_t *pscreen_menu_tune;
 extern screen_t *pscreen_printing_serial;
 }
 
@@ -39,6 +40,9 @@ void DialogHandler::close(ClinetFSM dialog) {
 
     //hack pscreen_printing_serial is no dialog but screen ... todo change to dialog?
     if (dialog == ClinetFSM::Serial_printing) {
+        if (screen_get_curr() == pscreen_menu_tune)
+            screen_close();
+
         if (screen_get_curr() == pscreen_printing_serial)
             screen_close();
     }

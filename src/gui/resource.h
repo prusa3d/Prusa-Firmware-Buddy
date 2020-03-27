@@ -6,15 +6,15 @@
 #define IDR_NULL 0x0000
 
 //fonts
-#define IDR_FNT_SMALL          0x0001
-#define IDR_FNT_NORMAL         0x0002
-#define IDR_FNT_BIG            0x0003
-#define IDR_FNT_TERMINAL       0x0004
-#define IDR_FNT_SPECIAL        0x0005
-#define IDR_FNT_original_prusa 0x0006
+#define IDR_FNT_SMALL    0x0001
+#define IDR_FNT_NORMAL   0x0002
+#define IDR_FNT_BIG      0x0003
+#define IDR_FNT_TERMINAL 0x0004
+#define IDR_FNT_SPECIAL  0x0005
 
 //pngs
-#define IDR_PNG_splash_logo_marlin    0x0007
+#define IDR_PNG_splash_logo_marlin    0x0006
+#define IDR_PNG_splash_logo_prusa_prn 0x0007
 #define IDR_PNG_status_logo_prusa_prn 0x0008
 
 #define IDR_PNG_status_icon_nozzle   0x0009

@@ -53,6 +53,7 @@ extern window_t *window_0;
 
 void gui_redraw(void) {
     if (gui_flags & GUI_FLG_INVALID) {
+        screen_draw();
         if (window_0)
             window_0->cls->draw(window_0);
         if (window_popup_ptr)
