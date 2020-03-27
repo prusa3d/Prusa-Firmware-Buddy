@@ -9,15 +9,9 @@
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 
-<<<<<<< HEAD
 extern "C" {
 extern screen_t *pscreen_menu_tune;
 }
-=======
-#define BUTTON_TUNE 1
-extern screen_t *pscreen_menu_tune;
-
->>>>>>> Adden button tune to sereial printing screen
 #pragma pack(push)
 #pragma pack(1)
 
@@ -110,11 +104,8 @@ void screen_printing_serial_init(screen_t *screen) {
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_CENTER);
     window_set_text(id, "Tune");
-<<<<<<< HEAD
     window_set_tag(id, Tag_bt_tune);
     window_set_focus(id);
-=======
->>>>>>> Adden button tune to sereial printing screen
 
     //text
     const point_ui16_t pt_txt = font_meas_text(resource_font(IDR_FNT_NORMAL), txt0);
@@ -150,16 +141,11 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         return 0;
     lock = 1;
 
-<<<<<<< HEAD
     if (event == WINDOW_EVENT_BTN_DN) {
         screen_open(pscreen_menu_tune->id);
         lock = 0;
-        return 0; //here MUST BE return. Screen is no longer valid.
+        return 1; //here MUST BE return 1. Screen is no longer valid.
     }
-=======
-    if (event == WINDOW_EVENT_BTN_DN)
-        screen_open(pscreen_menu_tune->id);
->>>>>>> Adden button tune to sereial printing screen
 
     int now = HAL_GetTick();
 
