@@ -16,8 +16,6 @@
 #include "screen_printing.h"
 #include "print_utils.h"
 
-#include "../Marlin/src/sd/cardreader.h"
-
 extern screen_t *pscreen_filebrowser;
 extern screen_t *pscreen_menu_preheat;
 extern uint8_t menu_preheat_type;
@@ -127,7 +125,7 @@ void screen_home_init(screen_t *screen) {
         }
     }
 
-    if (!IS_SD_INSERTED())
+    if (!marlin_vars()->media_inserted)
         screen_home_disable_print_button(screen);
 
     status_footer_init(&(pw->footer), root);

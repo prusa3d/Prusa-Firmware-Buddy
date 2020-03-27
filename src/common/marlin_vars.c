@@ -30,7 +30,7 @@ const char *__var_name[] = {
     "SD_PRINT",
     "SD_PDONE",
     "DURATION",
-    "FSENSOR",
+    "MEDIAINS",
 };
 
 const char *marlin_vars_get_name(uint8_t var_id) {
@@ -98,6 +98,8 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
             return variant8_ui8(vars->sd_percent_done);
         case MARLIN_VAR_DURATION:
             return variant8_ui32(vars->print_duration);
+        case MARLIN_VAR_MEDIAINS:
+            return variant8_ui8(vars->media_inserted);
         }
     return variant8_empty();
 }
@@ -177,6 +179,9 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         case MARLIN_VAR_DURATION:
             vars->print_duration = var.ui32;
             break;
+        case MARLIN_VAR_MEDIAINS:
+            vars->media_inserted = var.ui8;
+            break;
         }
 }
 
@@ -242,6 +247,9 @@ void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
             break;
         case MARLIN_VAR_DURATION:
             sprintf(str, "%lu", (long unsigned int)(vars->print_duration));
+            break;
+        case MARLIN_VAR_MEDIAINS:
+            sprintf(str, "%u", (unsigned int)(vars->media_inserted));
             break;
         default:
             sprintf(str, "???");
@@ -311,6 +319,9 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
             break;
         case MARLIN_VAR_DURATION:
             ret = sscanf(str, "%lu", &(vars->print_duration));
+            break;
+        case MARLIN_VAR_MEDIAINS:
+            ret = sscanf(str, "%hhu", &(vars->media_inserted));
             break;
         }
     return ret;

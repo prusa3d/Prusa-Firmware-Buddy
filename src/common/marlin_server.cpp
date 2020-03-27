@@ -22,7 +22,6 @@
 #include "../Marlin/src/feature/host_actions.h"
 #include "../Marlin/src/feature/babystep.h"
 #include "../Marlin/src/feature/pause.h"
-#include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/libs/nozzle.h"
 #include "../Marlin/src/core/language.h" //GET_TEXT(MSG)
 
@@ -272,6 +271,7 @@ int marlin_server_cycle(void) {
         marlin_server.last_update = tick;
         changes = _server_update_vars(marlin_server.notify_changes);
     }
+
     // send notifications
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if ((queue = marlin_client_queue[client_id]) != 0) {
@@ -399,24 +399,26 @@ void marlin_server_quick_stop(void) {
     planner.quick_stop();
 }
 
+void marlin_server_print_start(const char *filename) {
+    app_fileprint_start(filename);
+    print_job_timer.start();
+}
+
 void marlin_server_print_abort(void) {
     wait_for_heatup = wait_for_user = false;
-    card.flag.abort_sd_printing = true;
+    app_fileprint_stop();
     print_job_timer.stop();
     queue.clear();
-    //	planner.quick_stop();
-    //	marlin_server_park_head();
-    //	planner.synchronize();
-    //	queue.inject_P("M125");
 }
 
 void marlin_server_print_pause(void) {
-    card.pauseSDPrint();
+    app_fileprint_pause();
     print_job_timer.pause();
     queue.inject_P("M125");
 }
 
 void marlin_server_print_resume(void) {
+    app_fileprint_resume();
     wait_for_user = false;
     host_prompt_button_clicked = HOST_PROMPT_BTN_Continue;
     queue.inject_P("M24");
@@ -747,7 +749,7 @@ uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT)) {
-        v.ui8 = card.flag.sdprinting ? 1 : 0;
+        v.ui8 = (app_fileprint_get_state() != APP_FILEPRINT_NONE);
         if (marlin_server.vars.sd_printing != v.ui8) {
             marlin_server.vars.sd_printing = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT);
@@ -755,7 +757,7 @@ uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
-        v.ui8 = card.percentDone();
+        v.ui8 = (uint8_t)(100 * (float)app_fileprint_get_position() / (float)app_fileprint_get_size());
         if (marlin_server.vars.sd_percent_done != v.ui8) {
             marlin_server.vars.sd_percent_done = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
@@ -769,6 +771,16 @@ uint64_t _server_update_vars(uint64_t update) {
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_DURATION);
         }
     }
+
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS)) {
+        v.ui8 = app_media_is_inserted() ? 1 : 0;
+        if (marlin_server.vars.media_inserted != v.ui8) {
+            marlin_server.vars.media_inserted = v.ui8;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS);
+            _send_notify_event(marlin_server.vars.media_inserted ? MARLIN_EVT_MediaInserted : MARLIN_EVT_MediaRemoved, 0, 0);
+        }
+    }
+
     return changes;
 }
 
@@ -843,6 +855,9 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (strcmp("!qstop", request) == 0) {
         marlin_server_quick_stop();
+        processed = 1;
+    } else if (strncmp("!pstart ", request, 8) == 0) {
+        marlin_server_print_start(request + 8);
         processed = 1;
     } else if (strcmp("!pabort", request) == 0) {
         marlin_server_print_abort();

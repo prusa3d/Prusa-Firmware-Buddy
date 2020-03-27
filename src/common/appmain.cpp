@@ -26,12 +26,14 @@
 #include "diag.h"
 #include "safe_state.h"
 #include "crc32.h"
+#include "ff.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
 #include "../Marlin/src/module/temperature.h"
 #include "../Marlin/src/module/probe.h"
+#include "../Marlin/src/gcode/queue.h"
 
 #define DBG _dbg0 //debug level 0
 //#define DBG(...)  //disable debug
@@ -128,6 +130,7 @@ void app_run(void) {
         uartslave_cycle(&uart6slave);
         marlin_server_loop();
         app_usbhost_reenum();
+        app_fileprint_loop();
         osDelay(0); // switch to other threads - without this is UI slow
 #ifdef JOGWHEEL_TRACE
         static int signals = jogwheel_signals;
@@ -219,6 +222,68 @@ void app_usbhost_reenum(void) {
             }
         } else // otherwise update timer
             timer = tick;
+    }
+}
+
+uint8_t app_media_inserted = 0;
+
+uint8_t app_media_is_inserted() {
+    return app_media_inserted;
+}
+
+void app_media_set_inserted(uint8_t inserted) {
+    app_media_inserted = inserted ? 1 : 0;
+}
+
+void app_media_error(uint8_t media_error) {
+    //TODO: maybe new variable and event in marlinapi
+}
+
+uint8_t app_fileprint_state = APP_FILEPRINT_NONE;
+
+FIL app_fileprint_fil;
+
+void app_fileprint_start(const char *filename) {
+    f_open(&app_fileprint_fil, filename, FA_READ);
+    app_fileprint_state = APP_FILEPRINT_RUNNING;
+}
+
+void app_fileprint_stop(void) {
+    f_close(&app_fileprint_fil);
+    app_fileprint_state = APP_FILEPRINT_NONE;
+}
+
+void app_fileprint_pause(void) {
+    app_fileprint_state = APP_FILEPRINT_PAUSED;
+}
+
+void app_fileprint_resume(void) {
+    app_fileprint_state = APP_FILEPRINT_RUNNING;
+}
+
+uint8_t app_fileprint_get_state(void) {
+    return app_fileprint_state;
+}
+
+uint32_t app_fileprint_get_size(void) {
+    return f_size(&app_fileprint_fil);
+}
+
+uint32_t app_fileprint_get_position(void) {
+    return f_tell(&app_fileprint_fil);
+}
+
+void app_fileprint_loop(void) {
+    char buffer[MAX_CMD_SIZE + 1];
+    if (app_fileprint_state == 1) {
+        if (!f_eof(&app_fileprint_fil))
+            while (queue.length < BUFSIZE) {
+                if (f_gets(buffer, MAX_CMD_SIZE, &app_fileprint_fil)) {
+                    queue.enqueue_one(buffer);
+                }
+            }
+        else
+            app_fileprint_stop();
     }
 }
 

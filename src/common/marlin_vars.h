@@ -29,7 +29,8 @@
 #define MARLIN_VAR_SD_PRINT 0x15 // R:  uint8, card.flag.sdprinting
 #define MARLIN_VAR_SD_PDONE 0x16 // R:  uint8, card.percentDone()
 #define MARLIN_VAR_DURATION 0x17 // R:  uint32, print_job_timer.duration()
-#define MARLIN_VAR_MAX      MARLIN_VAR_DURATION
+#define MARLIN_VAR_MEDIAINS 0x18 // R:  uint8, media_is_inserted()
+#define MARLIN_VAR_MAX      MARLIN_VAR_MEDIAINS
 
 // variable masks
 #define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (v_id))
@@ -50,7 +51,7 @@
     MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED))
 
 #define MARLIN_VAR_MSK_DEF ( \
-    MARLIN_VAR_MSK(MARLIN_VAR_MOTION) | MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | MARLIN_VAR_MSK_POS_XYZE | MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE) | MARLIN_VAR_MSK(MARLIN_VAR_DURATION))
+    MARLIN_VAR_MSK(MARLIN_VAR_MOTION) | MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | MARLIN_VAR_MSK_POS_XYZE | MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE) | MARLIN_VAR_MSK(MARLIN_VAR_DURATION) | MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS))
 
 #define MARLIN_VAR_MSK_WUI ( \
     MARLIN_VAR_MSK_TEMP_CURR | MARLIN_VAR_MSK(MARLIN_VAR_POS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT) | MARLIN_VAR_MSK(MARLIN_VAR_DURATION) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT))
@@ -98,39 +99,9 @@ typedef struct _marlin_vars_t {
     uint8_t sd_printing;     // card.flag.sdprinting
     uint8_t sd_percent_done; // card.percentDone()
     uint32_t print_duration; // print_job_timer.duration()
+    uint8_t media_inserted;  // app_media_is_inserted()
 } marlin_vars_t;
 
-typedef union _marlin_changes_t {
-    uint64_t var;
-    struct
-    {
-        uint8_t var_motion : 1;
-        uint8_t var_gqueue : 1;
-        uint8_t var_pqueue : 1;
-        uint8_t var_ipos_x : 1;
-        uint8_t var_ipos_y : 1;
-        uint8_t var_ipos_z : 1;
-        uint8_t var_ipos_e : 1;
-        uint8_t var_pos_x : 1;
-        uint8_t var_pos_y : 1;
-        uint8_t var_pos_z : 1;
-        uint8_t var_pos_e : 1;
-        uint8_t var_temp_nozzle : 1;
-        uint8_t var_temp_bed : 1;
-        uint8_t var_target_nozzle : 1;
-        uint8_t var_target_bed : 1;
-        uint8_t var_z_offset : 1;
-        uint8_t var_fan_speed : 1;
-        uint8_t var_print_speed : 1;
-        uint8_t var_flow_factor : 1;
-        uint8_t var_wait_heat : 1;
-        uint8_t var_wait_user : 1;
-        uint8_t var_sd_printing : 1;
-        uint8_t var_sd_percent_done : 1;
-        uint8_t var_print_duration : 1;
-        uint64_t var_reserved : 42;
-    };
-} marlin_changes_t;
 
 #pragma pack(pop)
 

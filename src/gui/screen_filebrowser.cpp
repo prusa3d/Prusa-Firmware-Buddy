@@ -18,7 +18,6 @@
 #include "screen_printing.h"
 #include "print_utils.h"
 
-#include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 
