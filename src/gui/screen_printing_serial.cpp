@@ -137,8 +137,10 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         return 0;
     lock = 1;
 
-    if (event == WINDOW_EVENT_BTN_DN)
+    if (event == WINDOW_EVENT_BTN_DN) {
         screen_open(pscreen_menu_tune->id);
+        return 0; //here MUST BE return. Screen is no longer valid.
+    }
 
     int now = HAL_GetTick();
 
