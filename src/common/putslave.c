@@ -223,6 +223,10 @@ int putslave_do_cmd_q_uart(uartslave_t *pslave) {
     return UARTSLAVE_ERR_ONP;
 }
 
+#ifndef INIT_TRINAMIC_FROM_MARLIN_ONLY
+    #error "INIT_TRINAMIC_FROM_MARLIN_ONLY not defined"
+#endif
+#if !INIT_TRINAMIC_FROM_MARLIN_ONLY
 int putslave_do_cmd_q_tdg(uartslave_t *pslave) {
     tmc_set_sgthrs(255);
     int tmc_stg = 0;
@@ -232,6 +236,7 @@ int putslave_do_cmd_q_tdg(uartslave_t *pslave) {
     uartslave_printf(pslave, "%d ", tmc_stg);
     return UARTSLAVE_ERR_ONP;
 }
+#endif //!INIT_TRINAMIC_FROM_MARLIN_ONLY
 
 int putslave_do_cmd_a_rst(uartslave_t *pslave) {
     sys_reset();
@@ -497,6 +502,7 @@ int putslave_do_cmd_a_i2c(uartslave_t *pslave) {
     return UARTSLAVE_ERR_ONP;
 }
 
+#if !INIT_TRINAMIC_FROM_MARLIN_ONLY
 int putslave_do_cmd_a_ten(uartslave_t *pslave, char *pstr) {
     int state;
     if (sscanf(pstr, "%d", &state) != 1)
@@ -541,7 +547,7 @@ int putslave_do_cmd_a_move(uartslave_t *pslave, char *pstr) {
     tmc_set_move(stepper, steps, dir, speed);
     return UARTSLAVE_OK;
 }
-
+#endif //!INIT_TRINAMIC_FROM_MARLIN_ONLY
 int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cmd_id, char *pstr) {
     if (cmd == '?') {
         if (mod_msk == 0)
@@ -574,8 +580,10 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_q_diag(pslave, pstr);
             case PUTSLAVE_CMD_ID_UART:
                 return putslave_do_cmd_q_uart(pslave);
+#if !INIT_TRINAMIC_FROM_MARLIN_ONLY
             case PUTSLAVE_CMD_ID_TDG:
                 return putslave_do_cmd_q_tdg(pslave);
+#endif
             case PUTSLAVE_CMD_ID_GPUP:
                 return putslave_do_cmd_q_gpup(pslave, pstr);
             }
@@ -616,10 +624,12 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_inval(pslave);
             case PUTSLAVE_CMD_ID_I2C:
                 return putslave_do_cmd_a_i2c(pslave);
+#if !INIT_TRINAMIC_FROM_MARLIN_ONLY
             case PUTSLAVE_CMD_ID_TEN:
                 return putslave_do_cmd_a_ten(pslave, pstr);
             case PUTSLAVE_CMD_ID_MOVE:
                 return putslave_do_cmd_a_move(pslave, pstr);
+#endif
             }
     }
     return UARTSLAVE_ERR_CNF;

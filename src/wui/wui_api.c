@@ -54,7 +54,7 @@ const char *get_update_str(const char *header) {
     }
 
     uint8_t percent_done;
-    char time_2_end[9], print_time[13];
+    char time_2_end[9], print_time[15];
     if (is_percentage_valid(web_vars_copy.print_dur)) {
         percent_done = progress_get_percentage();
         progress_format_time2end(time_2_end, web_vars_copy.print_speed);
@@ -63,7 +63,7 @@ const char *get_update_str(const char *header) {
         percent_done = web_vars_copy.sd_precent_done;
     }
 
-    print_dur_to_string(print_time, web_vars_copy.print_dur);
+    print_dur_to_string(print_time, sizeof(print_time), web_vars_copy.print_dur);
 
     return char_streamer("%s{"
                          "\"temp_nozzle\":%d,"
