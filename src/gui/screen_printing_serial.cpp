@@ -9,7 +9,6 @@
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 
-#define BUTTON_TUNE 1
 extern screen_t *pscreen_menu_tune;
 
 #pragma pack(push)
@@ -89,7 +88,6 @@ void screen_printing_serial_init(screen_t *screen) {
         rect_bt_tune,
         &(pw->tune_button));
     window_set_color_back(id, COLOR_GRAY);
-    window_set_tag(id, BUTTON_TUNE);
     window_enable(id);
     window_set_icon_id(id, IDR_PNG_menu_icon_settings);
 
