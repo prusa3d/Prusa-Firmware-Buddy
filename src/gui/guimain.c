@@ -169,6 +169,9 @@ static void dialog_close_cb(dialog_t dialog) {
     if (gui_get_nesting() > 1)
         return; //todo notify octoprint
     if (dialog == DLG_serial_printing) {
+        if (screen_get_curr() == pscreen_menu_tune)
+            screen_close();
+
         if (screen_get_curr() == pscreen_printing_serial)
             screen_close();
     }
