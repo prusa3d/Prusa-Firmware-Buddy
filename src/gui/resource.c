@@ -2,20 +2,16 @@
 
 #include "gui.h"
 #include "config.h"
-#include "res/cc/font_7x13.c"                //IDR_FNT_SMALL
-#include "res/cc/font_11x18.c"               //IDR_FNT_NORMAL
-#include "res/cc/font_12x21.c"               //IDR_FNT_BIG
-#include "res/cc/font_9x15.c"                //IDR_FNT_TERMINAL
-#include "res/cc/font_9x16.c"                //IDR_FNT_SPECIAL
-#include "res/cc/font_original_prusa_mini.c" //IDR_FNT_original_prusa
+#include "res/cc/font_7x13.c"  //IDR_FNT_SMALL
+#include "res/cc/font_11x18.c" //IDR_FNT_NORMAL
+#include "res/cc/font_12x21.c" //IDR_FNT_BIG
+#include "res/cc/font_9x15.c"  //IDR_FNT_TERMINAL
+#include "res/cc/font_9x16.c"  //IDR_FNT_SPECIAL
 
 #include "res/cc/png_splashscreen_logo_marlin.c" //IDR_PNG_splash_logo_marlin
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #ifdef _DEBUG
-        #include "res/cc/png_statusscreen_logo_prusamini_debug.c" //IDR_PNG_status_logo_prusa_prn
-    #else                                                         //_DEBUG
-        #include "res/cc/png_statusscreen_logo_prusamini.c"       //IDR_PNG_status_logo_prusa_prn
-    #endif                                                        //_DEBUG
+    #include "res/cc/png_splashscreen_logo_prusamini.c" //IDR_PNG_splash_logo_prusa_prn
+    #include "res/cc/png_statusscreen_logo_prusamini.c" //IDR_PNG_status_logo_prusa_prn
 #else
     #error "Unknown PRINTER_TYPE."
 #endif // PRINTER_TYPE
@@ -85,10 +81,10 @@ RESOURCE_ENTRY_FNT(font_11x18) //IDR_FNT_NORMAL
 RESOURCE_ENTRY_FNT(font_12x21) //IDR_FNT_BIG
 RESOURCE_ENTRY_FNT(font_9x15)  //IDR_FNT_TERMINAL
 RESOURCE_ENTRY_FNT(font_9x16)  //IDR_FNT_SPECIAL
-RESOURCE_ENTRY_FNT(font_original_prusa_mini)
 
 //pngs
 RESOURCE_ENTRY_PNG(png_splashscreen_logo_marlin)    //IDR_PNG_splash_logo_marlin
+RESOURCE_ENTRY_PNG(png_splashscreen_logo_prusa_prn) //IDR_PNG_splash_logo_prusa_prn
 RESOURCE_ENTRY_PNG(png_statusscreen_logo_prusa_prn) //IDR_PNG_status_logo_prusa_prn
 
 RESOURCE_ENTRY_PNG(png_statusscreen_icon_nozzle)

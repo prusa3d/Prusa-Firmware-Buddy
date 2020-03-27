@@ -6,8 +6,6 @@
 #include "config.h"
 #include "marlin_client.h"
 
-#include "window_logo.h"
-
 #ifdef LCDSIM
     #include "window_lcdsim.h"
 #else //LCDSIM
@@ -209,7 +207,6 @@ void gui_run(void) {
     screen_register(pscreen_splash);
     screen_register(pscreen_watchdog);
 
-    WINDOW_CLS_LOGO = window_register_class((window_class_t *)&window_class_logo);
 #ifdef LCDSIM
     WINDOW_CLS_LCDSIM = window_register_class((window_class_t *)&window_class_lcdsim);
     screen_register(pscreen_marlin);

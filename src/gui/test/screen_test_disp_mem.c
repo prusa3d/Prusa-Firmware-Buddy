@@ -7,7 +7,6 @@
 
 #include "gui.h"
 #include "config.h"
-#include "window_logo.h"
 #include "stm32f4xx_hal.h"
 
 #include "st7789v.h"
