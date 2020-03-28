@@ -79,6 +79,10 @@ void screen_menu_init(screen_t *screen, const char *label,
 
 void screen_menu_done(screen_t *screen) {
     window_destroy(psmd->root.win.id);
+<<<<<<< HEAD
+=======
+    free(psmd->items);
+>>>>>>> remove dynamic alocation fom BigMac menu
 }
 
 void screen_menu_draw(screen_t *screen) {}
