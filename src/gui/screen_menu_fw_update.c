@@ -30,8 +30,8 @@ void screen_menu_fw_update_init(screen_t *screen) {
         psmd->items[MI_ALWAYS].item.wi_switch_select.index = 1;
         psmd->items[MI_ON_RESTART].item.wi_switch_select.index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
     }
-    psmd->phelp[0].font = resource_font(IDR_FNT_SPECIAL);
-    window_set_text(psmd->phelp[0].win.id, "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk.");
+    psmd->help.font = resource_font(IDR_FNT_SPECIAL);
+    window_set_text(psmd->help.win.id, "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk.");
 }
 
 int screen_menu_fw_update_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
