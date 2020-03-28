@@ -10,6 +10,7 @@
 #include "screen_menu.h"
 #include <stdlib.h>
 #include "version.h"
+#include "resource.h"
 
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
 #define OTP_START_ADDR             0x1FFF7800
@@ -37,9 +38,8 @@ void screen_menu_version_info_init(screen_t *screen) {
 
     psmd->items[0] = menu_item_return;
 
-    psmd->phelp = (window_text_t *)gui_malloc(sizeof(window_text_t));
-    uint16_t id = window_create_ptr(WINDOW_CLS_TEXT, psmd->root.win.id, rect_ui16(10, 80, 220, 200), &(psmd->phelp[0]));
-    psmd->phelp[0].font = resource_font(IDR_FNT_NORMAL);
+    uint16_t id = window_create_ptr(WINDOW_CLS_TEXT, psmd->root.win.id, rect_ui16(10, 80, 220, 200), &(psmd->help));
+    psmd->help.font = resource_font(IDR_FNT_NORMAL);
 
     //=============VARIABLES=================
 
