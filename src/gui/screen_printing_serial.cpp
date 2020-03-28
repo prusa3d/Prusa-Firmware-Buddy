@@ -57,6 +57,7 @@ extern "C" {
 const screen_t *pscreen_printing_serial = &screen_printing_serial;
 }
 
+static const uint8_t Tag_bt_tune = 1;
 #define pw ((screen_printing_serial_data_t *)screen->pdata)
 
 void screen_printing_serial_init(screen_t *screen) {
@@ -102,6 +103,8 @@ void screen_printing_serial_init(screen_t *screen) {
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_CENTER);
     window_set_text(id, "Tune");
+    window_set_tag(id, Tag_bt_tune);
+    window_set_focus(id);
 
     //text
     const point_ui16_t pt_txt = font_meas_text(resource_font(IDR_FNT_NORMAL), txt0);
