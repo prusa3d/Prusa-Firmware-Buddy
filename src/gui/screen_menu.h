@@ -51,8 +51,8 @@ extern "C" {
 
 extern const menu_item_t menu_item_return;
 
-void screen_menu_init(screen_t *screen,
-    const char *label, int count, uint8_t footer, uint8_t help);
+void screen_menu_init(screen_t *screen, const char *label,
+    menu_item_t *p_items, size_t count, uint8_t footer, uint8_t help);
 
 void screen_menu_done(screen_t *screen);
 
