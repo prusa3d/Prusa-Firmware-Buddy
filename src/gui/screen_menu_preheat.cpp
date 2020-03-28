@@ -20,7 +20,7 @@ void screen_menu_preheat_init(screen_t *screen) {
         break;
     case 1:
         screen_menu_init(screen, "LOAD FILAMENT", FILAMENTS_END, 1, 1);
-        window_set_text(psmd->phelp->win.id,
+        window_set_text(psmd->help.win.id,
             "The nozzle must be\npreheated before\ninserting the filament.\n"
             "Please, select the type\nof material");
         break;
