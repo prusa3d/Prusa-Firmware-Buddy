@@ -17,8 +17,21 @@ typedef enum {
     MI_COUNT,
 } MI_t;
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_fw_update_init(screen_t *screen) {
-    screen_menu_init(screen, "FW UPDATE", MI_COUNT, 1, 1);
+    screen_menu_init(screen, "FW UPDATE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 1);
     psmd->items[MI_RETURN] = menu_item_return;
     psmd->items[MI_ALWAYS] = (menu_item_t) { { "Always", 0, WI_SWITCH, .wi_switch_select = { 0, opt_on_off } }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_ON_RESTART] = (menu_item_t) { { "On restart", 0, WI_SWITCH, .wi_switch_select = { 0, opt_on_off } }, SCREEN_MENU_NO_SCREEN };
@@ -68,7 +81,7 @@ screen_t screen_menu_fw_update = {
     screen_menu_done,
     screen_menu_draw,
     screen_menu_fw_update_event,
-    sizeof(screen_menu_data_t), //data_size
+    sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
 

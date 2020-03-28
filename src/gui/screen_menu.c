@@ -23,9 +23,10 @@ void screen_menu_item(window_menu_t *pwindow_menu, uint16_t index,
     *ppitem = &(psmd->items[index].item);
 }
 
-void screen_menu_init(screen_t *screen,
-    const char *label, int count, uint8_t footer, uint8_t help) {
-    psmd->items = (menu_item_t *)malloc(sizeof(menu_item_t) * count);
+void screen_menu_init(screen_t *screen, const char *label,
+    menu_item_t *p_items, size_t count, uint8_t footer, uint8_t help) {
+
+    psmd->items = p_items;
     memset(psmd->items, '\0', sizeof(menu_item_t) * count);
 
     rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278);
@@ -78,7 +79,6 @@ void screen_menu_init(screen_t *screen,
 
 void screen_menu_done(screen_t *screen) {
     window_destroy(psmd->root.win.id);
-    free(psmd->items);
 }
 
 void screen_menu_draw(screen_t *screen) {}

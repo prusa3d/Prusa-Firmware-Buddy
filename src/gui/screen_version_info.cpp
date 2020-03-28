@@ -29,9 +29,22 @@ struct version_t {
 #define VERSION_INFO_STR_MAXLEN 150
 char *version_info_str = nullptr;
 
+#pragma pack(push)
+#pragma pack(1)
+
+//"C inheritance" of screen_menu_data_t with data items
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[1];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_version_info_init(screen_t *screen) {
     //=============SCREEN INIT===============
-    screen_menu_init(screen, "VERSION INFO", 1, 0, 0);
+    screen_menu_init(screen, "VERSION INFO", ((this_screen_data_t *)screen->pdata)->items, 1, 0, 0);
     version_info_str = (char *)gui_malloc(VERSION_INFO_STR_MAXLEN * sizeof(char));
 
     p_window_header_set_icon(&(psmd->header), IDR_PNG_header_icon_info);
@@ -100,7 +113,7 @@ screen_t screen_version_info = {
     screen_menu_version_info_done,
     screen_menu_draw,
     screen_menu_event,
-    sizeof(screen_menu_data_t), //data_size
+    sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
 
