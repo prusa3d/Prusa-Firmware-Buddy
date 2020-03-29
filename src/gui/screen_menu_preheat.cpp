@@ -13,14 +13,27 @@
 
 uint8_t menu_preheat_type = 0; // 0 - preheat, 1 - load filament, 2 - unload filament
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[FILAMENTS_END + 1];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_preheat_init(screen_t *screen) {
     switch (menu_preheat_type) {
     case 0:
-        screen_menu_init(screen, "PREHEAT", FILAMENTS_END + 1, 1, 0);
+        screen_menu_init(screen, "PREHEAT", ((this_screen_data_t *)screen->pdata)->items, FILAMENTS_END + 1, 1, 0);
         break;
     case 1:
-        screen_menu_init(screen, "LOAD FILAMENT", FILAMENTS_END, 1, 1);
-        window_set_text(psmd->phelp->win.id,
+        screen_menu_init(screen, "LOAD FILAMENT", ((this_screen_data_t *)screen->pdata)->items, FILAMENTS_END, 1, 1);
+        window_set_text(psmd->help.win.id,
             "The nozzle must be\npreheated before\ninserting the filament.\n"
             "Please, select the type\nof material");
         break;
@@ -86,7 +99,7 @@ screen_t screen_menu_preheat = {
     screen_menu_preheat_done,
     screen_menu_draw,
     screen_menu_preheat_event,
-    sizeof(screen_menu_data_t), //data_size
+    sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
 
