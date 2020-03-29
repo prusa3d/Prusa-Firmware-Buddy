@@ -9,8 +9,9 @@
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 
+extern "C" {
 extern screen_t *pscreen_menu_tune;
-
+}
 #pragma pack(push)
 #pragma pack(1)
 
@@ -142,6 +143,7 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
 
     if (event == WINDOW_EVENT_BTN_DN) {
         screen_open(pscreen_menu_tune->id);
+        lock = 0;
         return 0; //here MUST BE return. Screen is no longer valid.
     }
 
