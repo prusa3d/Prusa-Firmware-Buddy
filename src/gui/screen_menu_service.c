@@ -34,6 +34,19 @@ typedef enum {
     MI_COUNT
 } MI_t;
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 int16_t sscg_freq_kHz = 5;
 int16_t sscg_depth = 5;
 int16_t spi_prescaler = 0;
@@ -44,7 +57,7 @@ const int32_t opt_sscg_depth[] = { 1000, 20000, 1000 };
 const char *opt_spi[] = { "21M", "10.5M", "5.25M", "2.63M", "1.31M", "656k", "328k", "164k", NULL };
 
 void screen_menu_service_init(screen_t *screen) {
-    screen_menu_init(screen, "SERVICE", MI_COUNT, 0, 0);
+    screen_menu_init(screen, "SERVICE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 0, 0);
 
     psmd->items[MI_RETURN] = menu_item_return;
     psmd->items[MI_SYS_RESET] = (menu_item_t) { { "System reset", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
@@ -140,7 +153,7 @@ screen_t screen_menu_service = {
     screen_menu_done,
     screen_menu_draw,
     screen_menu_service_event,
-    sizeof(screen_menu_data_t), //data_size
+    sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
 
