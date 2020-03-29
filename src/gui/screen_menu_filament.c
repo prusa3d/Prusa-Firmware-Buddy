@@ -23,6 +23,7 @@ typedef enum {
     MI_UNLOAD,
     MI_CHANGE,
     MI_PURGE,
+    MI_COUNT
 } MI_t;
 
 const menu_item_t _menu_filament_items[] = {
@@ -64,12 +65,24 @@ static void _deactivate_item(screen_t *screen) {
     }
 }
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_filament_init(screen_t *screen) {
     //filament_not_loaded = -1;
-    int count = sizeof(_menu_filament_items) / sizeof(menu_item_t);
-    screen_menu_init(screen, "FILAMENT", count + 1, 1, 0);
+    screen_menu_init(screen, "FILAMENT", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[0] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_filament_items, count * sizeof(menu_item_t));
+    memcpy(psmd->items + 1, _menu_filament_items, (MI_COUNT - 1) * sizeof(menu_item_t));
     _deactivate_item(screen);
 }
 
@@ -110,7 +123,7 @@ screen_t screen_menu_filament = {
     screen_menu_done,
     screen_menu_draw,
     screen_menu_filament_event,
-    sizeof(screen_menu_data_t), //data_size
+    sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
 

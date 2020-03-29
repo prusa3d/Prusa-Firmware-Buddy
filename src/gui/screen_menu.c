@@ -8,6 +8,7 @@
 #include "screen_menu.h"
 #include "config.h"
 #include "stdlib.h"
+#include "resource.h"
 
 void window_set_capture(int16_t id);
 
@@ -22,9 +23,10 @@ void screen_menu_item(window_menu_t *pwindow_menu, uint16_t index,
     *ppitem = &(psmd->items[index].item);
 }
 
-void screen_menu_init(screen_t *screen,
-    const char *label, int count, uint8_t footer, uint8_t help) {
-    psmd->items = (menu_item_t *)malloc(sizeof(menu_item_t) * count);
+void screen_menu_init(screen_t *screen, const char *label,
+    menu_item_t *p_items, size_t count, uint8_t footer, uint8_t help) {
+
+    psmd->items = p_items;
     memset(psmd->items, '\0', sizeof(menu_item_t) * count);
 
     rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278);
@@ -58,41 +60,33 @@ void screen_menu_init(screen_t *screen,
     window_set_focus(id);
 
     if (help) {
-        psmd->phelp = (window_text_t *)gui_malloc(sizeof(window_text_t));
+        psmd->flags.has_help = 1;
         id = window_create_ptr(WINDOW_CLS_TEXT, root,
             (footer) ? rect_ui16(10, 154, 220, 115) : rect_ui16(10, 195, 220, 115),
-            psmd->phelp);
-        psmd->phelp->font = resource_font(IDR_FNT_SPECIAL);
+            &psmd->help);
+        psmd->help.font = resource_font(IDR_FNT_SPECIAL);
     } else {
-        psmd->phelp = NULL;
+        psmd->flags.has_help = 0;
     }
 
     if (footer) {
-        psmd->pfooter = (status_footer_t *)gui_malloc(sizeof(status_footer_t));
-        status_footer_init(psmd->pfooter, root);
+        psmd->flags.has_footer = 1;
+        status_footer_init(&psmd->footer, root);
     } else {
-        psmd->pfooter = NULL;
+        psmd->flags.has_footer = 0;
     }
 }
 
 void screen_menu_done(screen_t *screen) {
     window_destroy(psmd->root.win.id);
-    if (psmd->phelp) {
-        free(psmd->phelp);
-    }
-
-    if (psmd->pfooter) {
-        free(psmd->pfooter);
-    }
-    free(psmd->items);
 }
 
 void screen_menu_draw(screen_t *screen) {}
 
 int screen_menu_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
-    if (psmd->pfooter) {
-        status_footer_event(psmd->pfooter, window, event, param);
+    if (psmd->flags.has_footer) {
+        status_footer_event(&psmd->footer, window, event, param);
     }
 
     window_header_events(&(psmd->header));

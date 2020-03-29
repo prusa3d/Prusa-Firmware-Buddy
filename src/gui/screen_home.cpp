@@ -156,7 +156,9 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
         return 1;
     }
     if ((event == WINDOW_EVENT_LOOP) && pw->logo_invalid) {
+#ifdef _DEBUG
         display->draw_text(rect_ui16(180, 31, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+#endif //_DEBUG
         pw->logo_invalid = 0;
     }
 

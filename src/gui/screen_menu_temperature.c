@@ -12,6 +12,7 @@ typedef enum {
     MI_HEATBED,
     MI_PRINTFAN,
     MI_COOLDOWN,
+    MI_COUNT
 } MI_t;
 
 const menu_item_t _menu_temperature_items[] = {
@@ -21,12 +22,24 @@ const menu_item_t _menu_temperature_items[] = {
     { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_temperature_init(screen_t *screen) {
     marlin_vars_t *vars;
-    int count = sizeof(_menu_temperature_items) / sizeof(menu_item_t);
-    screen_menu_init(screen, "TEMPERATURE", count + 1, 1, 0);
+    screen_menu_init(screen, "TEMPERATURE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_temperature_items, count * sizeof(menu_item_t));
+    memcpy(psmd->items + 1, _menu_temperature_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
     vars = marlin_update_vars(
         MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED));
@@ -69,7 +82,7 @@ screen_t screen_menu_temperature = {
     screen_menu_done,
     screen_menu_draw,
     screen_menu_temperature_event,
-    sizeof(screen_menu_data_t), //data_size
+    sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
 
