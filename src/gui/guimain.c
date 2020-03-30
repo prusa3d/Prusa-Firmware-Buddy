@@ -6,20 +6,16 @@
 #include "config.h"
 #include "marlin_client.h"
 
-#ifdef LCDSIM
-    #include "window_lcdsim.h"
-#else //LCDSIM
-    #include "window_file_list.h"
-    #include "window_header.h"
-    #include "window_temp_graph.h"
-    #include "DialogLoadUnload.h"
-    #include "window_dlg_wait.h"
-    #ifdef _DEBUG
-        #include "window_dlg_popup.h"
-    #endif //_DEBUG
-    #include "window_dlg_preheat.h"
-    #include "screen_print_preview.h"
-#endif //LCDSIM
+#include "window_file_list.h"
+#include "window_header.h"
+#include "window_temp_graph.h"
+#include "DialogLoadUnload.h"
+#include "window_dlg_wait.h"
+#ifdef _DEBUG
+    #include "window_dlg_popup.h"
+#endif //_DEBUG
+#include "window_dlg_preheat.h"
+#include "screen_print_preview.h"
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
@@ -28,9 +24,6 @@
 extern screen_t *pscreen_splash;
 extern screen_t *pscreen_watchdog;
 
-#ifdef LCDSIM
-extern screen_t *pscreen_marlin;
-#else //LCDSIM
 extern screen_t *pscreen_test;
 extern screen_t *pscreen_test_gui;
 extern screen_t *pscreen_test_term;
@@ -57,12 +50,11 @@ extern screen_t *pscreen_qr_info;
 extern screen_t *pscreen_qr_error;
 extern screen_t *pscreen_test_disp_mem;
 extern screen_t *pscreen_messages;
-    #ifdef PIDCALIBRATION
+#ifdef PIDCALIBRATION
 extern screen_t *pscreen_PID;
-    #endif //PIDCALIBRATION
+#endif //PIDCALIBRATION
 extern screen_t *pscreen_mesh_bed_lv;
 extern screen_t *pscreen_wizard;
-#endif     // LCDSIM
 
 extern int HAL_IWDG_Reset;
 
@@ -173,18 +165,14 @@ void gui_run(void) {
     screen_register(pscreen_splash);
     screen_register(pscreen_watchdog);
 
-#ifdef LCDSIM
-    WINDOW_CLS_LCDSIM = window_register_class((window_class_t *)&window_class_lcdsim);
-    screen_register(pscreen_marlin);
-#else //LCDSIM
     WINDOW_CLS_FILE_LIST = window_register_class((window_class_t *)&window_class_file_list);
     WINDOW_CLS_HEADER = window_register_class((window_class_t *)&window_class_header);
     WINDOW_CLS_TEMP_GRAPH = window_register_class((window_class_t *)&window_class_temp_graph);
     WINDOW_CLS_DLG_LOADUNLOAD = window_register_class((window_class_t *)&window_class_dlg_statemachine);
     WINDOW_CLS_DLG_WAIT = window_register_class((window_class_t *)&window_class_dlg_wait);
-    #ifdef _DEBUG
+#ifdef _DEBUG
     WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
-    #endif //_DEBUG
+#endif //_DEBUG
     WINDOW_CLS_DLG_PREHEAT = window_register_class((window_class_t *)&window_class_dlg_preheat);
     screen_register(pscreen_test);
     screen_register(pscreen_test_gui);
@@ -211,15 +199,14 @@ void gui_run(void) {
     screen_register(pscreen_qr_error);
     screen_register(pscreen_test_disp_mem);
     screen_register(pscreen_messages);
-    #ifdef PIDCALIBRATION
+#ifdef PIDCALIBRATION
     screen_register(pscreen_PID);
-    #endif //PIDCALIBRATION
+#endif //PIDCALIBRATION
     screen_register(pscreen_mesh_bed_lv);
     screen_register(pscreen_wizard);
     screen_register(pscreen_print_preview);
     screen_register(pscreen_lan_settings);
     screen_register(pscreen_menu_fw_update);
-#endif     // LCDSIM
 
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
@@ -244,7 +231,6 @@ void gui_run(void) {
             gui_msgbox("Heating disabled due to 30 minutes of inactivity.", MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
         }
         gui_loop();
-#ifndef LCDSIM
         if (marlin_message_received()) {
             screen_t *curr = screen_get_curr();
             if (curr == pscreen_printing) {
@@ -258,7 +244,6 @@ void gui_run(void) {
                 gui_timer_delete(gui_timeout_id);
             }
         }
-#endif //LCDSIM
     }
 }
 

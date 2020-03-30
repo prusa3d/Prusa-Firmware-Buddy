@@ -14,13 +14,7 @@
 extern screen_t *pscreen_home;
 
 #else // MARLIN LCD UI
-
-    #ifdef LCDSIM
-extern screen_t *pscreen_marlin;
-    #else
 extern screen_t *pscreen_test;
-    #endif
-
 #endif
 
 #pragma pack(push)
@@ -127,11 +121,7 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
 #else
     if (HAL_GetTick() > 3000) {
         screen_close();
-    #ifdef LCDSIM
-        screen_open(pscreen_marlin->id);
-    #else
         screen_open(pscreen_test->id);
-    #endif
 #endif
         return 1;
     }

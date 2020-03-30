@@ -33,10 +33,6 @@
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
 
-#ifdef LCDSIM
-    #include "lcdsim.h"
-#endif // LCDSIM
-
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 
@@ -1140,11 +1136,6 @@ void host_action(const char *const pstr, const bool eol) {
 //  _temp_error(0, PSTR(MSG_REDUNDANCY), PSTR(MSG_ERR_REDUNDANT_TEMP)) "Heater switched off. Temperature difference between temp sensors is too high !"
 //   Marlin/src/module/temperature.cpp, line 968
 void host_action_kill() {
-#ifdef LCDSIM
-    char text[85];          //max 4 lines of 20 chars + 4x '\n' + '\x00'
-    lcdsim_grab_text(text); //grab text from display buffer
-    bsod(text);             //BSOD (endless loop with disabled interrupts)
-#endif                      // LCDSIM
 }
 
 void host_action_safety_timer_expired() {
