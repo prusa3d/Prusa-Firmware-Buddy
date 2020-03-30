@@ -14,6 +14,7 @@
 #endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
+#include "screen_pointers.h"
 #include "dump.h"
 
 extern screen_t screen_menu_temperature;
@@ -218,4 +219,4 @@ screen_t screen_menu_settings = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_settings = &screen_menu_settings;
+screen_t *pscreen_menu_settings = &screen_menu_settings;

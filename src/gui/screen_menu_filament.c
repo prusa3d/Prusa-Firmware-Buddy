@@ -7,6 +7,7 @@
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "window_dlg_load_unload.h"
+#include "screen_pointers.h"
 #include "dbg.h"
 
 #define FKNOWN      0x01 //filament is known
@@ -125,4 +126,4 @@ screen_t screen_menu_filament = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_filament = &screen_menu_filament;
+screen_t *pscreen_menu_filament = &screen_menu_filament;

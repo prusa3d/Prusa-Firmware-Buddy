@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "screen_pointers.h"
 
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE     6

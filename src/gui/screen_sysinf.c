@@ -6,6 +6,7 @@
  */
 
 #include "gui.h"
+#include "screen_pointers.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"
 
@@ -119,4 +120,4 @@ screen_t screen_sysinfo = {
     0,                             //pdata
 };
 
-const screen_t *pscreen_sysinfo = &screen_sysinfo;
+screen_t *pscreen_sysinfo = &screen_sysinfo;

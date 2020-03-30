@@ -5,13 +5,7 @@
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
-
-extern screen_t *pscreen_test_gui;
-extern screen_t *pscreen_test_term;
-extern screen_t *pscreen_test_msgbox;
-extern screen_t *pscreen_test_graph;
-extern screen_t *pscreen_test_temperature;
-extern screen_t *pscreen_test_disp_mem;
+#include "screen_pointers.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -184,4 +178,4 @@ screen_t screen_test = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_test = &screen_test;
+screen_t *pscreen_test = &screen_test;

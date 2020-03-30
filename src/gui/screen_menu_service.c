@@ -8,12 +8,7 @@
 #include "dbg.h"
 #include "bsod.h"
 #include "eeprom.h"
-
-#ifdef PIDCALIBRATION
-extern screen_t *pscreen_PID;
-#endif //PIDCALIBRATION
-extern screen_t *pscreen_mesh_bed_lv;
-extern screen_t *pscreen_test_disp_mem;
+#include "screen_pointers.h"
 
 typedef enum {
     MI_RETURN,
@@ -157,4 +152,4 @@ screen_t screen_menu_service = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_service = &screen_menu_service;
+screen_t *pscreen_menu_service = &screen_menu_service;

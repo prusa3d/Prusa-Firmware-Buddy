@@ -9,6 +9,7 @@
 #include "screen_menu.h"
 #include "marlin_server.h"
 #include <stdlib.h>
+#include "screen_pointers.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -119,4 +120,4 @@ screen_t screen_messages = {
     0,                              //pdata
 };
 
-const screen_t *pscreen_messages = &screen_messages;
+screen_t *pscreen_messages = &screen_messages;

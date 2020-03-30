@@ -5,12 +5,12 @@
 #include "window_temp_graph.h"
 #include "cmsis_os.h"
 #include <stdlib.h>
+#include "screen_pointers.h"
+
+extern void window_temp_scope_add(float temp_ext, float temp_bed);
 
 #pragma pack(push)
 #pragma pack(1)
-
-extern void window_temp_scope_add(float temp_ext, float temp_bed);
-extern screen_t *pscreen_menu_service;
 typedef struct
 {
     window_frame_t frame;
@@ -108,4 +108,4 @@ screen_test_term_t screen_test_graph = {
     0,
 };
 
-const screen_t *pscreen_test_graph = (screen_t *)(&screen_test_graph);
+screen_t *pscreen_test_graph = (screen_t *)(&screen_test_graph);

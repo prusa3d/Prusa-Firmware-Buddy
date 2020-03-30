@@ -7,14 +7,10 @@
 #include "eeprom.h"
 
 #include "stm32f4xx_hal.h"
+#include "screen_pointers.h"
 
 #ifdef _EXTUI
-
     #include "marlin_client.h"
-extern screen_t *pscreen_home;
-
-#else // MARLIN LCD UI
-extern screen_t *pscreen_test;
 #endif
 
 #pragma pack(push)
@@ -144,4 +140,4 @@ screen_t screen_splash = {
     0,                            //pdata
 };
 
-const screen_t *pscreen_splash = &screen_splash;
+screen_t *pscreen_splash = &screen_splash;

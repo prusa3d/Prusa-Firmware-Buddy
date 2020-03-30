@@ -5,6 +5,7 @@
 #include "marlin_client.h"
 #include "filament.h"
 #include "menu_vars.h"
+#include "screen_pointers.h"
 
 #ifdef _DEBUG
 extern screen_t screen_test;
@@ -214,5 +215,5 @@ screen_t screen_menu_tune = {
 };
 
 extern "C" {
-const screen_t *pscreen_menu_tune = &screen_menu_tune;
+screen_t *pscreen_menu_tune = &screen_menu_tune;
 }

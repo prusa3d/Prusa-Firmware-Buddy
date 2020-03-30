@@ -2,10 +2,9 @@
 
 #include "gui.h"
 #include "config.h"
-#include "window_lcdsim.h"
 #include "cmsis_os.h"
 #include "hwio.h"
-#include "lcdsim.h"
+#include "screen_pointers.h"
 
 extern osThreadId displayTaskHandle;
 
@@ -29,7 +28,7 @@ typedef struct _screen_marlin_t {
 extern void pngview(void);
 
 screen_marlin_t screen_marlin;
-const screen_t *pscreen_marlin = (screen_t *)&screen_marlin;
+screen_t *pscreen_marlin = (screen_t *)&screen_marlin;
 
 #define _psd ((screen_marlin_data_t *)screen_marlin.scr.pdata)
 

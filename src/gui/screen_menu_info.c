@@ -2,6 +2,7 @@
 
 #include "gui.h"
 #include "screen_menu.h"
+#include "screen_pointers.h"
 
 extern screen_t screen_sysinfo;
 extern screen_t screen_version_info;
@@ -82,4 +83,4 @@ screen_t screen_menu_info = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_info = &screen_menu_info;
+screen_t *pscreen_menu_info = &screen_menu_info;

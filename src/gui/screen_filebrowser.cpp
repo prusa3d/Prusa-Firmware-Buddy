@@ -17,6 +17,7 @@
 #include "screen_print_preview.h"
 #include "screen_printing.h"
 #include "print_utils.h"
+#include "screen_pointers.h"
 
 #include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -174,4 +175,6 @@ static screen_t screen_filebrowser = {
     0
 };
 
-const screen_t *pscreen_filebrowser = &screen_filebrowser;
+extern "C" {
+screen_t *pscreen_filebrowser = &screen_filebrowser;
+}

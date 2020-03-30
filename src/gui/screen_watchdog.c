@@ -2,6 +2,7 @@
 
 #include "gui.h"
 #include "config.h"
+#include "screen_pointers.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -75,4 +76,4 @@ screen_watchdog_t screen_watchdog = {
     0,
 };
 
-const screen_t *pscreen_watchdog = (screen_t *)&screen_watchdog;
+screen_t *pscreen_watchdog = (screen_t *)&screen_watchdog;

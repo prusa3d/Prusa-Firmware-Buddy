@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "eeprom.h"
+#include "screen_pointers.h"
 
 #ifdef PIDCALIBRATION
 
@@ -543,7 +544,7 @@ screen_t screen_PID = {
     0,                         //pdata
 };
 
-const screen_t *pscreen_PID = &screen_PID;
+screen_t *pscreen_PID = &screen_PID;
 }
 
 //-----------------------------------------------------------------------------

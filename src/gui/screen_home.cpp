@@ -15,16 +15,10 @@
 #include "screen_print_preview.h"
 #include "screen_printing.h"
 #include "print_utils.h"
-
+#include "screen_pointers.h"
 #include "../Marlin/src/sd/cardreader.h"
 
-extern screen_t *pscreen_filebrowser;
-extern screen_t *pscreen_menu_preheat;
 extern uint8_t menu_preheat_type;
-extern screen_t *pscreen_menu_filament;
-extern screen_t *pscreen_menu_calibration;
-extern screen_t *pscreen_menu_settings;
-extern screen_t *pscreen_menu_info;
 
 #define BUTTON_PRINT       0
 #define BUTTON_PREHEAT     1
@@ -284,4 +278,6 @@ screen_t screen_home = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_home = &screen_home;
+extern "C" {
+screen_t *pscreen_home = &screen_home;
+}

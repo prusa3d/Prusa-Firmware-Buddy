@@ -10,6 +10,7 @@
 #include "filament_sensor.h"
 #include <stdarg.h>
 #include <stdbool.h>
+#include "screen_pointers.h"
 
 #define DBG _dbg0
 

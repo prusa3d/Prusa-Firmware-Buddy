@@ -2,12 +2,7 @@
 #include "gui.h"
 #include "DialogLoadUnload.hpp"
 #include "DialogFactory.hpp"
-
-//screens do not have headers, have to use extern
-extern "C" {
-extern screen_t *pscreen_menu_tune;
-extern screen_t *pscreen_printing_serial;
-}
+#include "screen_pointers.h"
 
 //*****************************************************************************
 //method definitions

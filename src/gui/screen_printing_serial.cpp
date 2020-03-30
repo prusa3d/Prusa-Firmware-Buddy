@@ -8,10 +8,8 @@
 #include "marlin_server.h"
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
+#include "screen_pointers.h"
 
-extern "C" {
-extern screen_t *pscreen_menu_tune;
-}
 #pragma pack(push)
 #pragma pack(1)
 
@@ -55,7 +53,7 @@ screen_t screen_printing_serial = {
     0,                                     //pdata
 };
 extern "C" {
-const screen_t *pscreen_printing_serial = &screen_printing_serial;
+screen_t *pscreen_printing_serial = &screen_printing_serial;
 }
 
 static const uint8_t Tag_bt_tune = 1;

@@ -15,6 +15,7 @@
 #include "screen_printing.h"
 #include "marlin_server.h"
 #include "print_utils.h"
+#include "screen_pointers.h"
 
 #include "ffconf.h"
 
@@ -25,11 +26,6 @@
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"
 #endif
-
-extern "C" {
-extern screen_t *pscreen_home;
-extern screen_t *pscreen_menu_tune;
-}
 
 #define COLOR_VALUE_VALID COLOR_WHITE
 //#define COLOR_VALUE_INVALID COLOR_YELLOW
@@ -181,7 +177,7 @@ screen_t screen_printing = {
     sizeof(screen_printing_data_t), //data_size
     0,                              //pdata
 };
-const screen_t *pscreen_printing = &screen_printing;
+screen_t *pscreen_printing = &screen_printing;
 
 //TODO: rework this, save memory
 char screen_printing_file_name[_MAX_LFN + 1] = { '\0' }; //+1 for '\0' character (avoid warning)

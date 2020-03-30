@@ -3,6 +3,7 @@
 #include "screen_menu.h"
 #include <stdlib.h>
 #include "support_utils.h"
+#include "screen_pointers.h"
 
 #include "../../gui/wizard/selftest.h"
 #include "stm32f4xx_hal.h"
@@ -77,4 +78,6 @@ screen_t screen_qr_info = {
     0,                             //pdata
 };
 
-const screen_t *pscreen_qr_info = &screen_qr_info;
+extern "C" {
+screen_t *pscreen_qr_info = &screen_qr_info;
+}
