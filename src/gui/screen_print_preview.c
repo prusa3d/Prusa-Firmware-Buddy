@@ -75,7 +75,7 @@ const uint16_t menu_icons[2] = {
     IDR_PNG_menu_icon_stop,
 };
 
-screen_t *const pscreen_print_preview = &screen_print_preview;
+screen_t *const get_scr_print_preview() { return &screen_print_preview; }
 
 #define pd ((screen_print_preview_data_t *)screen->pdata)
 

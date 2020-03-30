@@ -128,8 +128,8 @@ void gui_run(void) {
     register_dialog_callbacks();
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
-    screen_register(pscreen_splash);
-    screen_register(pscreen_watchdog);
+    screen_register(get_scr_splash());
+    screen_register(get_scr_watchdog());
 
     WINDOW_CLS_FILE_LIST = window_register_class((window_class_t *)&window_class_file_list);
     WINDOW_CLS_HEADER = window_register_class((window_class_t *)&window_class_header);
@@ -140,47 +140,47 @@ void gui_run(void) {
     WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
 #endif //_DEBUG
     WINDOW_CLS_DLG_PREHEAT = window_register_class((window_class_t *)&window_class_dlg_preheat);
-    screen_register(pscreen_test);
-    screen_register(pscreen_test_gui);
-    screen_register(pscreen_test_term);
-    screen_register(pscreen_test_msgbox);
-    screen_register(pscreen_test_graph);
-    screen_register(pscreen_test_temperature);
-    screen_register(pscreen_home);
-    screen_register(pscreen_filebrowser);
-    screen_register(pscreen_printing);
-    screen_register(pscreen_printing_serial);
-    screen_register(pscreen_menu_preheat);
-    screen_register(pscreen_menu_filament);
-    screen_register(pscreen_menu_calibration);
-    screen_register(pscreen_menu_settings);
-    screen_register(pscreen_menu_temperature);
-    screen_register(pscreen_menu_move);
-    screen_register(pscreen_menu_info);
-    screen_register(pscreen_menu_tune);
-    screen_register(pscreen_menu_service);
-    screen_register(pscreen_sysinfo);
-    screen_register(pscreen_version_info);
-    screen_register(pscreen_qr_info);
-    screen_register(pscreen_qr_error);
-    screen_register(pscreen_test_disp_mem);
-    screen_register(pscreen_messages);
+    screen_register(get_scr_test());
+    screen_register(get_scr_test_gui());
+    screen_register(get_scr_test_term());
+    screen_register(get_scr_test_msgbox());
+    screen_register(get_scr_test_graph());
+    screen_register(get_scr_test_temperature());
+    screen_register(get_scr_home());
+    screen_register(get_scr_filebrowser());
+    screen_register(get_scr_printing());
+    screen_register(get_scr_printing_serial());
+    screen_register(get_scr_menu_preheat());
+    screen_register(get_scr_menu_filament());
+    screen_register(get_scr_menu_calibration());
+    screen_register(get_scr_menu_settings());
+    screen_register(get_scr_menu_temperature());
+    screen_register(get_scr_menu_move());
+    screen_register(get_scr_menu_info());
+    screen_register(get_scr_menu_tune());
+    screen_register(get_scr_menu_service());
+    screen_register(get_scr_sysinfo());
+    screen_register(get_scr_version_info());
+    screen_register(get_scr_qr_info());
+    screen_register(get_scr_qr_error());
+    screen_register(get_scr_test_disp_mem());
+    screen_register(get_scr_messages());
 #ifdef PIDCALIBRATION
-    screen_register(pscreen_PID);
+    screen_register(get_scr_PID());
 #endif //PIDCALIBRATION
-    screen_register(pscreen_mesh_bed_lv);
-    screen_register(pscreen_wizard);
-    screen_register(pscreen_print_preview);
-    screen_register(pscreen_lan_settings);
-    screen_register(pscreen_menu_fw_update);
+    screen_register(get_scr_mesh_bed_lv());
+    screen_register(get_scr_wizard());
+    screen_register(get_scr_print_preview());
+    screen_register(get_scr_lan_settings());
+    screen_register(get_scr_menu_fw_update());
 
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
-        screen_stack_push(pscreen_splash->id);
-        screen_open(pscreen_watchdog->id);
+        screen_stack_push(get_scr_splash()->id);
+        screen_open(get_scr_watchdog()->id);
     } else
 #endif // _DEBUG
-        screen_open(pscreen_splash->id);
+        screen_open(get_scr_splash()->id);
 
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
@@ -199,7 +199,7 @@ void gui_run(void) {
         gui_loop();
         if (marlin_message_received()) {
             screen_t *curr = screen_get_curr();
-            if (curr == pscreen_printing) {
+            if (curr == get_scr_printing()) {
                 screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
             }
         }

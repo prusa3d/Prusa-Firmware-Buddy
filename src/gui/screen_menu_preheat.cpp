@@ -105,5 +105,5 @@ screen_t screen_menu_preheat = {
 };
 
 extern "C" {
-screen_t *pscreen_menu_preheat = &screen_menu_preheat;
+screen_t *const get_scr_menu_preheat() { return &screen_menu_preheat; }
 }

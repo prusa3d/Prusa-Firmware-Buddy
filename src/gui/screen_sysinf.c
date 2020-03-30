@@ -120,4 +120,4 @@ screen_t screen_sysinfo = {
     0,                             //pdata
 };
 
-screen_t *pscreen_sysinfo = &screen_sysinfo;
+screen_t *const get_scr_sysinfo() { return &screen_sysinfo; }

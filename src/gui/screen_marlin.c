@@ -28,7 +28,7 @@ typedef struct _screen_marlin_t {
 extern void pngview(void);
 
 screen_marlin_t screen_marlin;
-screen_t *pscreen_marlin = (screen_t *)&screen_marlin;
+screen_t *const get_scr_marlin() { return (screen_t *)&screen_marlin; }
 
 #define _psd ((screen_marlin_data_t *)screen_marlin.scr.pdata)
 

@@ -119,5 +119,5 @@ screen_t screen_version_info = {
 };
 
 extern "C" {
-screen_t *pscreen_version_info = &screen_version_info;
+screen_t *const get_scr_version_info() { return &screen_version_info; }
 }

@@ -96,4 +96,4 @@ screen_t screen_menu_move = {
     0,                          //pdata
 };
 
-screen_t *pscreen_menu_move = &screen_menu_move;
+screen_t *const get_scr_menu_move() { return &screen_menu_move; }

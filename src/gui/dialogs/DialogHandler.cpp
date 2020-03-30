@@ -13,17 +13,17 @@ void DialogHandler::open(ClinetFSM dialog, uint8_t data) {
     if (gui_get_nesting() > 1) //another test if dialog is openned todo remove after gui refactoring
         return;
 
-    //todo pscreen_printing_serial is no dialog but screen ... change to dialog?
-    if ((screen_get_curr() == pscreen_printing_serial))
+    //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
+    if ((screen_get_curr() == get_scr_printing_serial()))
         return;
 
-    //todo pscreen_printing_serial is no dialog but screen ... change to dialog?
+    //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
     if (dialog == ClinetFSM::Serial_printing) {
         screen_unloop(m876_blacklist, m876_blacklist_sz);
 
-        if (screen_get_curr() != pscreen_printing_serial)
-            screen_open(pscreen_printing_serial->id);
+        if (screen_get_curr() != get_scr_printing_serial())
+            screen_open(get_scr_printing_serial()->id);
     } else {
         ptr = dialog_ctors[size_t(dialog)](data);
     }
@@ -33,12 +33,12 @@ void DialogHandler::close(ClinetFSM dialog) {
     if (gui_get_nesting() > 1) //test if dialog is openned todo remove after gui refactoring
         return;
 
-    //hack pscreen_printing_serial is no dialog but screen ... todo change to dialog?
+    //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
     if (dialog == ClinetFSM::Serial_printing) {
-        if (screen_get_curr() == pscreen_menu_tune)
+        if (screen_get_curr() == get_scr_menu_tune())
             screen_close();
 
-        if (screen_get_curr() == pscreen_printing_serial)
+        if (screen_get_curr() == get_scr_printing_serial())
             screen_close();
     }
 

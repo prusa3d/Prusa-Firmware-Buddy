@@ -87,4 +87,4 @@ screen_t screen_menu_temperature = {
     0,                          //pdata
 };
 
-screen_t *pscreen_menu_temperature = &screen_menu_temperature;
+screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }

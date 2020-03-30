@@ -52,11 +52,9 @@ void ui_loop(void)
 
 #include "screen.h"
 
-extern const screen_t *pscreen_test;
-
 void test_window(void) {
-    //	pscreen_test->init(pscreen_test);
-    //	pscreen_test->init(pscreen_test);
+    //	get_scr_test()->init(get_scr_test());
+    //	get_scr_test()->init(get_scr_test());
     /*
 	font_t* font = resource_font(IDR_FNT_11x18_4);
 	int16_t id0 = window_frame_create(-1, rect_ui16(0,0,0,0), COLOR_GRAY);

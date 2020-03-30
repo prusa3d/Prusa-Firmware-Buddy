@@ -462,4 +462,4 @@ screen_t screen_lan_settings = {
     0,                                  //pdata
 };
 
-screen_t *const pscreen_lan_settings = &screen_lan_settings;
+screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

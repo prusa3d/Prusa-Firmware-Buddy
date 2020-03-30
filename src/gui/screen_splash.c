@@ -103,21 +103,21 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
         uint8_t run_wizard = (run_selftest && run_xyzcalib && run_firstlay) ? 1 : 0;
         if ((run_wizard || run_firstlay)) {
             if (run_wizard) {
-                screen_stack_push(pscreen_home->id);
+                screen_stack_push(get_scr_home()->id);
                 wizard_run_complete();
             } else if (run_firstlay) {
                 if (gui_msgbox("The printer is not calibrated. Start First Layer Calibration?", MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
-                    screen_stack_push(pscreen_home->id);
+                    screen_stack_push(get_scr_home()->id);
                     wizard_run_firstlay();
                 } else
-                    screen_open(pscreen_home->id);
+                    screen_open(get_scr_home()->id);
             }
         } else
-            screen_open(pscreen_home->id);
+            screen_open(get_scr_home()->id);
 #else
     if (HAL_GetTick() > 3000) {
         screen_close();
-        screen_open(pscreen_test->id);
+        screen_open(get_scr_test()->id);
 #endif
         return 1;
     }
@@ -140,4 +140,4 @@ screen_t screen_splash = {
     0,                            //pdata
 };
 
-screen_t *pscreen_splash = &screen_splash;
+screen_t *const get_scr_splash() { return &screen_splash; }

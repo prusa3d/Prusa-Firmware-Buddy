@@ -219,4 +219,4 @@ screen_t screen_menu_settings = {
     0,                          //pdata
 };
 
-screen_t *pscreen_menu_settings = &screen_menu_settings;
+screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }

@@ -113,4 +113,4 @@ screen_t screen_menu_calibration = {
     0,                          //pdata
 };
 
-screen_t *pscreen_menu_calibration = &screen_menu_calibration;
+screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }

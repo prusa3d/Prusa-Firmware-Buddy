@@ -225,5 +225,5 @@ screen_t screen_mesh_bed_lv = {
     0,                                 //pdata
 };
 
-const screen_t *pscreen_mesh_bed_lv = &screen_mesh_bed_lv;
+screen_t *const get_scr_mesh_bed_lv() { return &screen_mesh_bed_lv; }
 }

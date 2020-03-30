@@ -120,4 +120,4 @@ screen_t screen_messages = {
     0,                              //pdata
 };
 
-screen_t *pscreen_messages = &screen_messages;
+screen_t *const get_scr_messages() { return &screen_messages; }

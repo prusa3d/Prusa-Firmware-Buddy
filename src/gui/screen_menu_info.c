@@ -83,4 +83,4 @@ screen_t screen_menu_info = {
     0,                          //pdata
 };
 
-screen_t *pscreen_menu_info = &screen_menu_info;
+screen_t *const get_scr_menu_info() { return &screen_menu_info; }
