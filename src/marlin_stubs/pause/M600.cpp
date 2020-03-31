@@ -22,27 +22,22 @@
 
 #include "../../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE)
-    #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-    #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
-    #include "../../../lib/Marlin/Marlin/src/module/motion.h"
-    #include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
+// clang-format off
+#if (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
+    EXTRUDERS > 1 || \
+    HAS_LCD_MENU || \
+    ENABLED(MMU2_MENUS) || \
+    ENABLED(MIXING_EXTRUDER) || \
+    ENABLED(DUAL_X_CARRIAGE)
+    #error unsupported
+#endif
+// clang-format on
 
-    #if EXTRUDERS > 1
-        #include "../../../lib/Marlin/Marlin/src/module/tool_change.h"
-    #endif
-
-    #if HAS_LCD_MENU
-        #include "../../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
-    #endif
-
-    #if ENABLED(MMU2_MENUS)
-        #include "../../../lib/Marlin/Marlin/src/lcd/menu/menu_mmu2.h"
-    #endif
-
-    #if ENABLED(MIXING_EXTRUDER)
-        #include "../../../lib/Marlin/Marlin/src/feature/mixing.h"
-    #endif
+#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
+#include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
+#include "marlin_server.hpp"
 
 /**
  * M600: Pause for filament change
@@ -59,71 +54,23 @@
  *  Default values are used for omitted arguments.
  */
 
-extern void force_M600_begin_notify(); //Workaround
-extern void force_M600_end_notify();   //Workaround
-
 void GcodeSuite::M600() {
-    force_M600_begin_notify(); //Workaround
-    #if ENABLED(MIXING_EXTRUDER)
-    const int8_t target_e_stepper = get_target_e_stepper_from_command();
-    if (target_e_stepper < 0)
-        return;
-
-    const uint8_t old_mixing_tool = mixer.get_current_vtool();
-    mixer.T(MIXER_DIRECT_SET_TOOL);
-
-    MIXER_STEPPER_LOOP(i)
-    mixer.set_collector(i, i == uint8_t(target_e_stepper) ? 1.0 : 0.0);
-    mixer.normalize();
-
-    const int8_t target_extruder = active_extruder;
-    #else
     const int8_t target_extruder = get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
-    #endif
 
-    #if ENABLED(DUAL_X_CARRIAGE)
-    int8_t DXC_ext = target_extruder;
-    if (!parser.seen('T')) { // If no tool index is specified, M600 was (probably) sent in response to filament runout.
-                             // In this case, for duplicating modes set DXC_ext to the extruder that ran out.
-        #if HAS_FILAMENT_SENSOR && NUM_RUNOUT_SENSORS > 1
-        if (dxc_is_duplicating())
-            DXC_ext = (READ(FIL_RUNOUT2_PIN) == FIL_RUNOUT_INVERTING) ? 1 : 0;
-        #else
-        DXC_ext = active_extruder;
-        #endif
-    }
-    #endif
-
-    // Show initial "wait for start" message
-    #if HAS_LCD_MENU && DISABLED(MMU2_MENUS)
-    lcd_pause_show_message(PAUSE_MESSAGE_CHANGING, PAUSE_MODE_PAUSE_PRINT, target_extruder);
-    #endif
-
-    #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
+    FSM_Holder D(ClinetFSM::Load_unload, uint8_t(LoadUnloadMode::Change));
+#if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
     // Don't allow filament change without homing first
     if (axes_need_homing())
         home_all_axes();
-    #endif
-
-    #if EXTRUDERS > 1
-    // Change toolhead if specified
-    const uint8_t active_extruder_before_filament_change = active_extruder;
-    if (
-        active_extruder != target_extruder
-        #if ENABLED(DUAL_X_CARRIAGE)
-        && dual_x_carriage_mode != DXC_DUPLICATION_MODE && dual_x_carriage_mode != DXC_MIRRORED_MODE
-        #endif
-    )
-        tool_change(target_extruder, false);
-    #endif
+#endif
 
     // Initial retract before move to filament change position
     const float retract = -ABS(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
-    #ifdef PAUSE_PARK_RETRACT_LENGTH
+#ifdef PAUSE_PARK_RETRACT_LENGTH
                 + (PAUSE_PARK_RETRACT_LENGTH)
-    #endif
+#endif
     );
 
     xyz_pos_t park_point NOZZLE_PARK_POINT;
@@ -138,16 +85,10 @@ void GcodeSuite::M600() {
     if (parser.seenval('Y'))
         park_point.y = parser.linearval('Y');
 
-    #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA)
+#if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA)
     park_point += hotend_offset[active_extruder];
-    #endif
+#endif
 
-    #if ENABLED(MMU2_MENUS)
-    // For MMU2 reset retract and load/unload values so they don't mess with MMU filament handling
-    constexpr float unload_length = 0.5f,
-                    slow_load_length = 0.0f,
-                    fast_load_length = 0.0f;
-    #else
     // Unload filament
     const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
                                                       : fc_settings[active_extruder].unload_length);
@@ -158,36 +99,17 @@ void GcodeSuite::M600() {
     // Fast load filament
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
                                                         : fc_settings[active_extruder].load_length);
-    #endif
 
     const int beep_count = parser.intval('B',
-    #ifdef FILAMENT_CHANGE_ALERT_BEEPS
+#ifdef FILAMENT_CHANGE_ALERT_BEEPS
         FILAMENT_CHANGE_ALERT_BEEPS
-    #else
+#else
         -1
-    #endif
+#endif
     );
 
     if (pause_print(retract, park_point, unload_length, true DXC_PASS)) {
-    #if ENABLED(MMU2_MENUS)
-        mmu2_M600();
-        resume_print(slow_load_length, fast_load_length, 0, beep_count DXC_PASS);
-    #else
         wait_for_confirmation(true, beep_count DXC_PASS);
         resume_print(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH, beep_count DXC_PASS);
-    #endif
     }
-
-    #if EXTRUDERS > 1
-    // Restore toolhead if it was changed
-    if (active_extruder_before_filament_change != active_extruder)
-        tool_change(active_extruder_before_filament_change, false);
-    #endif
-
-    #if ENABLED(MIXING_EXTRUDER)
-    mixer.T(old_mixing_tool); // Restore original mixing tool
-    #endif
-    force_M600_end_notify(); //Workaround
 }
-
-#endif // ADVANCED_PAUSE_FEATURE

@@ -24,8 +24,6 @@
 
 int16_t WINDOW_CLS_DLG_WAIT = 0;
 
-extern window_t *window_1; //current popup window
-
 void window_dlg_wait_init(window_dlg_wait_t *window) {
     //if (rect_empty_ui16(window->win.rect)) //use display rect if current rect is empty
     //window->win.rect = rect_ui16(0, 0, display->w, display->h);
@@ -142,7 +140,7 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
 
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_WAIT, 0, gui_defaults.msg_box_sz, &dlg);
-    window_1 = (window_t *)&dlg;
+    window_popup_ptr = (window_t *)&dlg;
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);

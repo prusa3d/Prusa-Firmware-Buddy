@@ -213,4 +213,6 @@ screen_t screen_menu_tune = {
     0,                          //pdata
 };
 
+extern "C" {
 const screen_t *pscreen_menu_tune = &screen_menu_tune;
+}

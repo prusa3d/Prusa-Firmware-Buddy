@@ -46,12 +46,13 @@ typedef struct _marlin_client_t {
     uint32_t ack;        // cached ack value from last Acknowledge event
     uint16_t last_count; // number of messages received in last client loop
     uint64_t errors;
-    marlin_mesh_t mesh;                // meshbed leveling
-    uint32_t command;                  // processed command (G28,G29,M701,M702,M600)
-    marlin_host_prompt_t prompt;       // current host prompt structure (type and buttons)
-    uint8_t reheating;                 // reheating in progress
-    dialog_open_cb_t dialog_open_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
-    dialog_close_cb_t dialog_close_cb; // to register callback for screen destruction
+    marlin_mesh_t mesh;           // meshbed leveling
+    uint32_t command;             // processed command (G28,G29,M701,M702,M600)
+    marlin_host_prompt_t prompt;  // current host prompt structure (type and buttons)
+    uint8_t reheating;            // reheating in progress
+    fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
+    fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
+    fsm_change_t fsm_change_cb;   // to register callback for change of state
 } marlin_client_t;
 
 #pragma pack(pop)
@@ -108,8 +109,8 @@ marlin_vars_t *marlin_client_init(void) {
         client->mesh.yc = 4;
         client->command = MARLIN_CMD_NONE;
         client->reheating = 0;
-        client->dialog_open_cb = NULL;
-        client->dialog_close_cb = NULL;
+        client->fsm_create_cb = NULL;
+        client->fsm_destroy_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -154,24 +155,38 @@ int marlin_client_id(void) {
     return 0;
 }
 
-int marlin_client_set_dialog_open_cb(dialog_open_cb_t cb) {
+//register callback to fsm creation
+//return success
+int marlin_client_set_fsm_create_cb(fsm_create_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
-        client->dialog_open_cb = cb;
+        client->fsm_create_cb = cb;
         return 1;
     }
     return 0;
 }
 
-int marlin_client_set_dialog_close_cb(dialog_close_cb_t cb) {
+//register callback to fsm destruction
+//return success
+int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
-        client->dialog_close_cb = cb;
+        client->fsm_destroy_cb = cb;
         return 1;
     }
     return 0;
 }
 
+//register callback to fsm change
+//return success
+int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->fsm_change_cb = cb;
+        return 1;
+    }
+    return 0;
+}
 int marlin_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
@@ -625,6 +640,18 @@ int marlin_reheating(void) {
 }
 
 //-----------------------------------------------------------------------------
+// responses from client finite state machine (like button click)
+void marlin_encoded_response(uint32_t enc_phase_and_response) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    sprintf(request, "!fsm_r %d", (int)enc_phase_and_response);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
+//-----------------------------------------------------------------------------
 // private functions
 
 // wait while server not started (called from client thread in marlin_client_init)
@@ -731,18 +758,21 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_Acknowledge:
             client->ack = msg.ui32;
             break;
-        case MARLIN_EVT_DialogOpen:
-            if (client->dialog_open_cb)
-                client->dialog_open_cb((dialog_t)msg.ui32);
+        case MARLIN_EVT_FSM_Create:
+            if (client->fsm_create_cb)
+                client->fsm_create_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8));
             break;
-        case MARLIN_EVT_DialogClose:
-            if (client->dialog_close_cb)
-                client->dialog_close_cb((dialog_t)msg.ui32);
+        case MARLIN_EVT_FSM_Destroy:
+            if (client->fsm_destroy_cb)
+                client->fsm_destroy_cb((uint8_t)msg.ui32);
+            break;
+        case MARLIN_EVT_FSM_Change:
+            if (client->fsm_change_cb)
+                client->fsm_change_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8), (uint8_t)(msg.ui32 >> 16), (uint8_t)(msg.ui32 >> 24));
             break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added
         case MARLIN_EVT_Startup:
-        case MARLIN_EVT_Idle:
         case MARLIN_EVT_PrinterKilled:
         case MARLIN_EVT_MediaInserted:
         case MARLIN_EVT_MediaError:

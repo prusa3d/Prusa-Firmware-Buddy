@@ -42,6 +42,9 @@ extern "C" {
 extern osThreadId gui_task_handle;
 #endif //GUI_USE_RTOS
 
+extern screen_t *const m876_blacklist[]; //used in screen unlooping
+extern const size_t m876_blacklist_sz;
+
 extern gui_defaults_t gui_defaults;
 
 extern gui_loop_cb_t *gui_loop_cb;

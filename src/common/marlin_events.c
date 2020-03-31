@@ -6,7 +6,6 @@
 // event name constants (dbg)
 const char *__evt_name[] = {
     "Startup",
-    "Idle",
     "PrinterKilled",
     "MediaInserted",
     "MediaError",
@@ -35,6 +34,7 @@ const char *__evt_name[] = {
     "Reheat",
     "DialogOpen",
     "DialogClose",
+    "DialogChange",
     "GFileChange",
     "Acknowledge",
 };

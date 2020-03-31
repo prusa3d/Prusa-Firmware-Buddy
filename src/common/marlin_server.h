@@ -6,6 +6,7 @@
 #include "marlin_vars.h"
 #include "marlin_errors.h"
 #include "marlin_host.h"
+#include "client_fsm_types.h"
 
 // server flags
 #define MARLIN_SFLG_STARTED 0x0001 // server started (set in marlin_server_init)
@@ -106,8 +107,6 @@ extern int marlin_all_axes_homed(void);
 
 //
 extern int marlin_all_axes_known(void);
-
-extern void host_dialog_creation_handler(const uint8_t is_host);
 
 #ifdef __cplusplus
 }
