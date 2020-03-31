@@ -1309,9 +1309,12 @@ FSM_notifier::FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvarian
 }
 
 //static method
+//notifies clients about progress rise
+//scales "binded" variable via following formula to calculate progress
 //x = (actual - s_data.min) * s_data.scale + s_data.progress_min;
 //x = actual * s_data.scale - s_data.min * s_data.scale + s_data.progress_min;
-// s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
+//s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
+//simplified formula
 //x = actual * s_data.scale + s_data.offset;
 void FSM_notifier::SendNotification() {
     if (s_data.type == ClinetFSM::_none)
@@ -1323,7 +1326,7 @@ void FSM_notifier::SendNotification() {
     float actual = static_cast<float>(temp);
     actual = actual * s_data.scale + s_data.offset;
 
-    int progress = int(actual); //int - must be signed
+    int progress = static_cast<int>(actual); //int - must be signed
     if (progress < s_data.progress_min)
         progress = s_data.progress_min;
     if (progress > s_data.progress_max)
@@ -1343,4 +1346,5 @@ FSM_notifier::~FSM_notifier() {
 /*****************************************************************************/
 //ClientResponseHandler
 //define static member
+//-1 (maxval) is used as no response from client
 uint32_t ClientResponseHandler::server_side_encoded_response = -1;
