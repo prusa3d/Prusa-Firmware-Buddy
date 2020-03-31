@@ -30,8 +30,21 @@ typedef enum {
     MI_COUNT
 } MI_t;
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_test_temperature_init(screen_t *screen) {
-    screen_menu_init(screen, "TEMPERATURE", MI_COUNT, 1, 0);
+    screen_menu_init(screen, "TEMPERATURE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
 
     psmd->items[MI_RETURN] = menu_item_return;
 
@@ -102,7 +115,7 @@ screen_t screen_test_temperature = {
     screen_menu_done,
     screen_menu_draw,
     screen_test_temperature_event,
-    sizeof(screen_menu_data_t), //data_size
+    sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
 
