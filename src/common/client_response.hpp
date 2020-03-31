@@ -7,12 +7,13 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
-enum { RESPONSE_BITS = 2,
-    MAX_RESPONSES = (1 << RESPONSE_BITS) };
+
+enum { RESPONSE_BITS = 2,                   //number of bits used to encode response
+    MAX_RESPONSES = (1 << RESPONSE_BITS) }; //maximum number of responses in one phase
 
 //list of all button types
 enum class Response : uint8_t {
-    _none = 0, //none must be zero becouse of empty initialization of array
+    _none = 0, //none must be zero because of empty initialization of array
     Yes,
     No,
     Continue,
@@ -25,13 +26,13 @@ enum class Response : uint8_t {
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
 
-//count cenum class members (if "_first" and "_last" is defined)
+//count enum class members (if "_first" and "_last" is defined)
 template <class T>
 constexpr size_t CountPhases() {
     return static_cast<size_t>(T::_last) - static_cast<size_t>(T::_first) + 1;
 }
 //use this when creating an event
-//encodes enum to position in Enem
+//encodes enum to position in phase
 template <class T>
 constexpr uint8_t GetPhaseIndex(T phase) {
     return static_cast<size_t>(phase) - static_cast<size_t>(T::_first);
@@ -90,6 +91,7 @@ class ClientResponses {
 
 protected:
     //get index of single response in PhaseResponses
+    //return -1 (maxval) if does not exist
     template <class T>
     static uint8_t GetIndex(T phase, Response response) {
         const PhaseResponses &cmds = getResponsesInPhase(phase);
@@ -116,13 +118,14 @@ public:
         return getResponsesInPhase(phase);
     }
 
-    //encode radio button and clicked index into int
+    //encode phase and client response (in GUI radio button and clicked index) into int
     //use on client side
+    //return -1 (maxval) if does not exist
     template <class T>
     static uint32_t Encode(T phase, Response response) {
         uint8_t clicked_index = GetIndex(phase, response);
         if (clicked_index > MAX_RESPONSES)
-            return -1; // this radio button does not have so many buttons
+            return -1; // this phase does not have response with this index
         return ((static_cast<uint32_t>(phase)) << RESPONSE_BITS) + uint32_t(clicked_index);
     }
 };

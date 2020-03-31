@@ -155,6 +155,8 @@ int marlin_client_id(void) {
     return 0;
 }
 
+//register callback to fsm creation
+//return success
 int marlin_client_set_fsm_create_cb(fsm_create_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -164,6 +166,8 @@ int marlin_client_set_fsm_create_cb(fsm_create_t cb) {
     return 0;
 }
 
+//register callback to fsm destruction
+//return success
 int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -173,6 +177,8 @@ int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb) {
     return 0;
 }
 
+//register callback to fsm change
+//return success
 int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -634,7 +640,7 @@ int marlin_reheating(void) {
 }
 
 //-----------------------------------------------------------------------------
-// responses fromclient finite state machine (like button click)
+// responses from client finite state machine (like button click)
 void marlin_encoded_response(uint32_t enc_phase_and_response) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();

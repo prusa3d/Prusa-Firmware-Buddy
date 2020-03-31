@@ -7,14 +7,15 @@
 /*****************************************************************************/
 //C++ only features
 
-//notyfy all clients to create finit statemachine, must match fsm_create_t signature
+//todo ensure signature match
+//notify all clients to create finit statemachine, must match fsm_create_t signature
 void fsm_create(ClinetFSM type, uint8_t data);
-//notyfy all clients to destroy finit statemachine, must match fsm_destroy_t signature
+//notify all clients to destroy finit statemachine, must match fsm_destroy_t signature
 void fsm_destroy(ClinetFSM type);
-//notyfy all clients to change state of finit statemachine, must match fsm_change_t signature
+//notify all clients to change state of finit statemachine, must match fsm_change_t signature
 void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
 
-//inheritred class for server side to be able to work with server_side_encoded_response
+//inherited class for server side to be able to work with server_side_encoded_response
 class ClientResponseHandler : public ClientResponses {
     ClientResponseHandler() = delete;
     ClientResponseHandler(ClientResponseHandler &) = delete;
@@ -56,10 +57,11 @@ class FSM_notifier {
             , last_progress_sent(-1) {}
     };
     //static members
+    //there can be only one active instance of FSM_notifier, which use this data
     static data s_data;
 
     //temporary members
-    //to store previous state
+    //constructor stores previous state of FSM_notifier (its static data), destructor restores it
     data temp_data;
 
 protected:
