@@ -108,7 +108,7 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
                 break;
             case MI_PURGE:
                 p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
-                //   gui_dlg_purge();
+                // todo purge dialog
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
                 break;
             }
