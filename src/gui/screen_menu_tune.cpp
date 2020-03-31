@@ -7,12 +7,6 @@
 #include "menu_vars.h"
 #include "screen_pointers.h"
 
-#ifdef _DEBUG
-extern screen_t screen_test;
-#endif //_DEBUG
-extern screen_t screen_menu_info;
-extern screen_t screen_messages;
-
 enum {
     MI_RETURN,
     MI_SPEED,
@@ -40,11 +34,11 @@ const menu_item_t _menu_tune_items[] = {
     { { "Flow Factor", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },      //set later
     { { "Live Adjust Z", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
     { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Info", 0, WI_LABEL | WI_DISABLED }, &screen_menu_info },
+    { { "Info", 0, WI_LABEL | WI_DISABLED }, get_scr_menu_info() },
 #ifdef _DEBUG
-    { { "Test", 0, WI_LABEL }, &screen_test },
+    { { "Test", 0, WI_LABEL }, get_scr_test() },
 #endif //_DEBUG
-    { { "Messages", 0, WI_LABEL }, &screen_messages },
+    { { "Messages", 0, WI_LABEL }, get_scr_messages() },
 };
 
 //"C inheritance" of screen_menu_data_t with data items
