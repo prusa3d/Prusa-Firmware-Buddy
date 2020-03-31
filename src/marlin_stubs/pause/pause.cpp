@@ -51,8 +51,8 @@
 
 #include "marlin_server.hpp"
 // private:
-//check unsupported feacures
-//filament sensor is no longre part of marlin thus it must be disabled
+//check unsupported features
+//filament sensor is no longer part of marlin thus it must be disabled
 // clang-format off
 #if (!ENABLED(EXTENSIBLE_UI)) || \
     (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
@@ -161,7 +161,6 @@ void do_pause_e_move_notify_progress(const float &length, const feedRate_t &fr_m
 
 void plan_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
     current_position.e += length / planner.e_factor[active_extruder];
-    //line_to_current_position(fr_mm_s);
     while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
         delay(50);
     }
@@ -171,7 +170,6 @@ void plan_pause_e_move_notify_progress(const float &length, const feedRate_t &fr
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
     Notifier_POS_E N(ClinetFSM::Load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
-    //line_to_current_position(fr_mm_s);
     while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
         delay(50);
     }
@@ -203,8 +201,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue)
         idle(true);
 
-    //check FILAMET SENSOR
-    //todo
+    //todo check FILAMET SENSOR
 
     // Slow Load filament
     if (slow_load_length) {
