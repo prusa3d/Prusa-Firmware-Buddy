@@ -21,6 +21,7 @@
 #include "screen_menu_fw_update.h"
 #include "Dialog_C_wrapper.h"
 #include "screen_pointers.h"
+#include "screen_unloop.h"
 
 extern int HAL_IWDG_Reset;
 
@@ -59,37 +60,6 @@ const jogwheel_config_t jogwheel_cfg = {
 marlin_vars_t *gui_marlin_vars = 0;
 int gui_marlin_client_id = -1;
 int8_t menu_timeout_enabled = 1; // Default: enabled
-
-extern screen_t screen_home;
-extern screen_t screen_printing;
-
-extern screen_t screen_printing_serial;
-extern screen_t screen_menu_tune;
-extern screen_t screen_wizard;
-extern screen_t screen_print_preview;
-extern screen_t screen_PID;
-
-static screen_t *const timeout_blacklist[] = {
-    &screen_home,
-    &screen_printing,
-    &screen_menu_tune,
-    &screen_wizard,
-    &screen_print_preview
-#ifdef PIDCALIBRATION
-    ,
-    &screen_PID
-#endif //PIDCALIBRATION
-};
-
-screen_t *const m876_blacklist[] = {
-    &screen_printing_serial,
-    &screen_home
-#ifdef PIDCALIBRATION
-    ,
-    &screen_PID
-#endif //PIDCALIBRATION
-};
-size_t const m876_blacklist_sz = sizeof(m876_blacklist) / sizeof(m876_blacklist[0]);
 
 void update_firmware_screen(void);
 
@@ -206,7 +176,7 @@ void gui_run(void) {
         if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
-                screen_unloop(timeout_blacklist, sizeof(timeout_blacklist) / sizeof(timeout_blacklist[0]));
+                screen_unloop(sculp_timeout);
                 gui_timer_delete(gui_timeout_id);
             }
         }
