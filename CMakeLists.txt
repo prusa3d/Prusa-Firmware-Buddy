@@ -432,6 +432,7 @@ target_sources(
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
           src/stm32f4xx_hal_msp.c
+          src/stm32f4xx_hal_can.c
           src/stm32f4xx_it.c
           src/fatfs.c
           src/usb_host.c

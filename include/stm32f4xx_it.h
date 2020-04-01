@@ -79,7 +79,10 @@ void ETH_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
 void OTG_HS_IRQHandler(void);
 /* USER CODE BEGIN EFP */
-
+void CAN2_TX_IRQHandler(void);
+void CAN2_RX0_IRQHandler(void);
+void CAN2_RX1_IRQHandler(void);
+void CAN2_SCE_IRQHandler(void);
 /* USER CODE END EFP */
 
     #ifdef __cplusplus
