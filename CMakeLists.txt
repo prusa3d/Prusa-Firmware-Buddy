@@ -441,6 +441,7 @@ target_sources(
           src/stm32f4xx_hal_timebase_tim.c
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
+          src/common/can.c
           src/common/diag.c
           src/common/eeprom.c
           src/common/eeprom_loadsave.c

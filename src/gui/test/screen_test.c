@@ -4,6 +4,7 @@
 #include "config.h"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
+#include "can.h"
 #include "bsod.h"
 
 extern screen_t *pscreen_test_gui;
@@ -21,6 +22,7 @@ typedef struct
     window_frame_t frame;
     window_text_t tst;
     window_text_t back;
+    window_text_t tst_can_tx;
     window_text_t tst_gui;
     window_text_t tst_term;
     window_text_t tst_msgbox;
@@ -40,6 +42,7 @@ typedef struct
 typedef enum {
     STI_back = 1,
     STI_tst_gui,
+    STI_tst_can_tx,
     STI_tst_term,
     STI_tst_msgbox,
     STI_tst_graph,
@@ -64,6 +67,12 @@ void screen_test_init(screen_t *screen) {
     window_set_text(id, (const char *)"back");
     window_enable(id);
     window_set_tag(id, STI_back);
+    y += 22;
+
+    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_can_tx));
+    window_set_text(id, (const char *)"CAN TX");
+    window_enable(id);
+    window_set_tag(id, STI_tst_can_tx);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_gui));
@@ -131,12 +140,15 @@ static volatile void recursive(uint64_t i) {
     if (_recursive)
         recursive(x);
 }
-
+static uint8_t canData[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case STI_back:
             screen_close();
+            return 1;
+        case STI_tst_can_tx:
+            CAN2_Tx8(canData);
             return 1;
         case STI_tst_gui:
             screen_open(pscreen_test_gui->id);
