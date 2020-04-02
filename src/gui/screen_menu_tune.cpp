@@ -9,7 +9,8 @@
 #ifdef _DEBUG
 extern screen_t screen_test;
 #endif //_DEBUG
-extern screen_t screen_menu_info;
+extern screen_t screen_tune_info;
+// extern screen_t screen_menu_info;
 extern screen_t screen_messages;
 
 enum {
@@ -21,7 +22,7 @@ enum {
     MI_FLOWFACT,
     MI_BABYSTEP,
     MI_FILAMENT,
-    MI_INFO,
+    MI_TUNE_INFO,
 #ifdef _DEBUG
     MI_TEST,
 #endif //_DEBUG
@@ -39,7 +40,8 @@ const menu_item_t _menu_tune_items[] = {
     { { "Flow Factor", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },      //set later
     { { "Live Adjust Z", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
     { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Info", 0, WI_LABEL | WI_DISABLED }, &screen_menu_info },
+    // { { "Info", 0, WI_LABEL | WI_DISABLED }, &screen_menu_info },
+    { { "Info", 0, WI_LABEL }, &screen_tune_info },
 #ifdef _DEBUG
     { { "Test", 0, WI_LABEL }, &screen_test },
 #endif //_DEBUG
@@ -63,7 +65,7 @@ void screen_menu_tune_timer(screen_t *screen, uint32_t mseconds);
 void screen_menu_tune_chanege_filament(screen_t *screen);
 
 void screen_menu_tune_init(screen_t *screen) {
-    marlin_vars_t *vars;
+    marlin_vars_t *vars;         //set later
     screen_menu_init(screen, "TUNE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
     memcpy(psmd->items + 1, _menu_tune_items, (MI_COUNT - 1) * sizeof(menu_item_t));
@@ -161,9 +163,11 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
         case MI_BABYSTEP:
             z_offs = psmd->items[MI_BABYSTEP].item.wi_spin_fl.value;
             break;
-        case MI_MESSAGES:
-            screen_open(psmd->items[(int)param].screen->id);
-            break;
+            // neni potreba mit - stara se o to menu_screen_event
+        // case MI_MESSAGES:
+        // // case MI_TUNE_INFO:
+        //     // screen_open(psmd->items[(int)param].screen->id);
+        //     break;
         }
     }
 

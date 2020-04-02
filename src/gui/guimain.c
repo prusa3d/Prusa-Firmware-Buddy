@@ -50,6 +50,7 @@ extern screen_t *pscreen_menu_temperature;
 extern screen_t *pscreen_menu_move;
 extern screen_t *pscreen_menu_info;
 extern screen_t *pscreen_menu_tune;
+extern screen_t *pscreen_tune_info;
 extern screen_t *pscreen_menu_service;
 extern screen_t *pscreen_sysinfo;
 extern screen_t *pscreen_version_info;
@@ -218,6 +219,7 @@ void gui_run(void) {
     screen_register(pscreen_wizard);
     screen_register(pscreen_print_preview);
     screen_register(pscreen_lan_settings);
+    screen_register(pscreen_tune_info);
     screen_register(pscreen_menu_fw_update);
 #endif     // LCDSIM
 
@@ -246,6 +248,7 @@ void gui_run(void) {
         gui_loop();
 #ifndef LCDSIM
         if (marlin_message_received()) {
+
             screen_t *curr = screen_get_curr();
             if (curr == pscreen_printing) {
                 screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
