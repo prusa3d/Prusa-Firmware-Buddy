@@ -10,6 +10,8 @@
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 #include "cmath_ext.h"
+#include "bsod.h"
+
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"
 #endif //ST7789V_USE_RTOS
@@ -382,23 +384,21 @@ enum {
     PNG_MAX_CHUNKS = 10
 };
 
+uint8_t png_mem_pool[49152] __attribute__((section(".ccmram")));
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
-uint32_t png_mem_max = 0;
 void *png_mem_ptrs[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_sizes[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
 
 png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
-    //	return malloc(size);
-    //	return pvPortMalloc(size);
-    if (png_mem_ptr0 == 0)
-        //png_mem_ptr0 = pvPortMalloc(0xc000); //48k
-        png_mem_ptr0 = (void *)0x10000000; //ccram
+    if (png_mem_ptr0 == NULL) {
+        png_mem_ptr0 = (void *)png_mem_pool;
+    }
+    if (png_mem_total + size >= sizeof(png_mem_pool)) {
+        general_error("pngmalloc", "out of memory");
+    }
     void *p = ((uint8_t *)png_mem_ptr0) + png_mem_total;
-    //	if (p == 0)
-    //		while (1);
-    //	else
     {
         int i;
         for (i = 0; i < PNG_MAX_CHUNKS; i++)
@@ -410,14 +410,11 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
         png_mem_sizes[i] = size;
         png_mem_total += size;
         png_mem_cnt++;
-        if (png_mem_max < png_mem_total)
-            png_mem_max = png_mem_total;
     }
     return p;
 }
 
 void _pngfree(png_structp pp, png_voidp mem) {
-    //	free(mem);
     int i;
 
     for (i = 0; i < 10; i++)
@@ -428,7 +425,6 @@ void _pngfree(png_structp pp, png_voidp mem) {
             png_mem_total -= size;
             png_mem_cnt--;
         }
-    //	vPortFree(mem);
 }
 
 void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
