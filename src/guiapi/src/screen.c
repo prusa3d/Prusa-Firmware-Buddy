@@ -111,7 +111,7 @@ void screen_unloop(screen_t *const *unl_blacklist, size_t sz) {
 }
 
 void screen_draw(void) {
-    if (screen_0)
+    if (screen_0 && screen_0->draw)
         screen_0->draw(screen_0);
 }
 
