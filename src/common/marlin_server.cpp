@@ -37,6 +37,8 @@
     #include "lcdsim.h"
 #endif // LCDSIM
 
+#include "menu_vars.h"
+
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 
@@ -216,7 +218,14 @@ static void print_Z_probe_cnt() {
 }
 #endif
 int marlin_server_cycle(void) {
+
+    static int processing = 0;
+    if (processing)
+        return 0;
+    processing = 1;
+
     FSM_notifier::SendNotification();
+
     print_fan_spd();
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
@@ -287,6 +296,7 @@ int marlin_server_cycle(void) {
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
         HAL_IWDG_Refresh(&hiwdg); // this prevents iwdg reset while processing disabled
 #endif                            //_DEBUG
+    processing = 0;
     return count;
 }
 
@@ -384,11 +394,31 @@ int marlin_server_inject_gcode(const char *gcode) {
 }
 
 void marlin_server_settings_save(void) {
-    (void)settings.save();
+    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(probe_offset.z));
+    eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
+    eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
+    eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+    eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
+    eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
+    eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
 }
 
 void marlin_server_settings_load(void) {
-    (void)settings.load();
+    (void)settings.reset();
+#if HAS_BED_PROBE
+    probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
+#endif
+    Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
+    Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
+    Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
+    Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
+    Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
+    Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
+    thermalManager.updatePID();
+}
+
+void marlin_server_settings_reset(void) {
+    (void)settings.reset();
 }
 
 void marlin_server_manage_heater(void) {
@@ -400,14 +430,7 @@ void marlin_server_quick_stop(void) {
 }
 
 void marlin_server_print_abort(void) {
-    wait_for_heatup = wait_for_user = false;
     card.flag.abort_sd_printing = true;
-    print_job_timer.stop();
-    queue.clear();
-    //	planner.quick_stop();
-    //	marlin_server_park_head();
-    //	planner.synchronize();
-    //	queue.inject_P("M125");
 }
 
 void marlin_server_print_pause(void) {
@@ -425,6 +448,14 @@ void marlin_server_print_resume(void) {
 void marlin_server_park_head(void) {
     //homed check
     if (all_axes_homed() && all_axes_known()) {
+        float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
+        float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
+        float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
+        current_position.x = x;
+        current_position.y = y;
+        current_position.z = z;
+        current_position.e = 0;
+        planner.set_position_mm(x, y, z, 0);
         xyz_pos_t park_point = NOZZLE_PARK_POINT;
         nozzle.park(2, park_point);
     }
@@ -828,11 +859,14 @@ int _process_server_request(char *request) {
     } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
         marlin_server_do_babystep_Z(offs);
         processed = 1;
-    } else if (strcmp("!save", request) == 0) {
+    } else if (strcmp("!cfg_save", request) == 0) {
         marlin_server_settings_save();
         processed = 1;
-    } else if (strcmp("!load", request) == 0) {
+    } else if (strcmp("!cfg_load", request) == 0) {
         marlin_server_settings_load();
+        processed = 1;
+    } else if (strcmp("!cfg_reset", request) == 0) {
+        marlin_server_settings_reset();
         processed = 1;
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();

@@ -161,6 +161,8 @@ extern void marlin_settings_save(void);
 
 extern void marlin_settings_load(void);
 
+extern void marlin_settings_reset(void);
+
 extern void marlin_manage_heater(void);
 
 extern void marlin_quick_stop(void);
