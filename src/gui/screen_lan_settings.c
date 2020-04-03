@@ -278,16 +278,15 @@ static uint8_t _load_config(void) {
             eth0.hostname = interface_hostname;
             variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
             eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
-            variant8_done(&hostname);
         }
-        if (tmp_config.lan_flag & LAN_EEFLG_TYPE) {
+        if (tmp_config.set_flag & NETVAR_SETFLG_LAN_FLAGS) {
             _change_static_to_dhcp();
         }
 #ifdef BUDDY_ENABLE_CONNECT
         if (tmp_config.set_flag & NETVAR_SETFLG_CONNECT_TOKEN) {
             variant8_t token = variant8_pchar(tmp_config.connect_token, 0, 0);
             eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
-            variant8_done(&token);
+            //variant8_done() is not called because variant_pchar with init flag 0 doesnt hold its memory
         }
         if (tmp_config.set_flag & NETVAR_SETFLG_CONNECT_IP4) {
             eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(tmp_config.connect_ip4.addr));
@@ -301,15 +300,15 @@ static uint8_t _load_config(void) {
             if (tmp_config.set_flag & NETVAR_SETFLG_HOSTNAME) {
                 strlcpy(interface_hostname, tmp_config.hostname, LAN_HOSTNAME_MAX_LEN + 1);
                 eth0.hostname = interface_hostname;
-                variant8_t hostname = variant8_pchar(interface_hostname, 0, 0);
+                variant8_t hostname = variant8_pchar(tmp_config.hostname, 0, 0);
                 eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
-                variant8_done(&hostname);
+                //variant8_done() is not called because variant_pchar with init flag 0 doesnt hold its memory
             }
 #ifdef BUDDY_ENABLE_CONNECT
             if (tmp_config.set_flag & NETVAR_SETFLG_CONNECT_TOKEN) {
                 variant8_t token = variant8_pchar(tmp_config.connect_token, 0, 0);
                 eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
-                variant8_done(&token);
+                //variant8_done() is not called because variant_pchar with init flag 0 doesnt hold its memory
             }
             if (tmp_config.set_flag & NETVAR_SETFLG_CONNECT_IP4) {
                 eeprom_set_var(EEVAR_CONNECT_IP4, variant8_ui32(tmp_config.connect_ip4.addr));

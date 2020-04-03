@@ -1,7 +1,7 @@
 // marlin_server.cpp
 
 #include "marlin_server.h"
-#include "dialogs.h" //dialog_t
+#include "marlin_server.hpp"
 #include <stdarg.h>
 #include <stdio.h>
 #include "dbg.h"
@@ -35,6 +35,8 @@
 #ifdef LCDSIM
     #include "lcdsim.h"
 #endif // LCDSIM
+
+#include "menu_vars.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -216,6 +218,13 @@ static void print_Z_probe_cnt() {
 #endif
 int marlin_server_cycle(void) {
 
+    static int processing = 0;
+    if (processing)
+        return 0;
+    processing = 1;
+
+    FSM_notifier::SendNotification();
+
     print_fan_spd();
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
@@ -287,6 +296,7 @@ int marlin_server_cycle(void) {
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
         HAL_IWDG_Refresh(&hiwdg); // this prevents iwdg reset while processing disabled
 #endif                            //_DEBUG
+    processing = 0;
     return count;
 }
 
@@ -384,11 +394,31 @@ int marlin_server_inject_gcode(const char *gcode) {
 }
 
 void marlin_server_settings_save(void) {
-    (void)settings.save();
+    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(probe_offset.z));
+    eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
+    eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
+    eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+    eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
+    eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
+    eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
 }
 
 void marlin_server_settings_load(void) {
-    (void)settings.load();
+    (void)settings.reset();
+#if HAS_BED_PROBE
+    probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
+#endif
+    Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
+    Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
+    Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
+    Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
+    Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
+    Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
+    thermalManager.updatePID();
+}
+
+void marlin_server_settings_reset(void) {
+    (void)settings.reset();
 }
 
 void marlin_server_manage_heater(void) {
@@ -427,6 +457,14 @@ void marlin_server_print_resume(void) {
 void marlin_server_park_head(void) {
     //homed check
     if (all_axes_homed() && all_axes_known()) {
+        float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
+        float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
+        float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
+        current_position.x = x;
+        current_position.y = y;
+        current_position.z = z;
+        current_position.e = 0;
+        planner.set_position_mm(x, y, z, 0);
         xyz_pos_t park_point = NOZZLE_PARK_POINT;
         nozzle.park(2, park_point);
     }
@@ -487,8 +525,6 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_StopProcessing:
             case MARLIN_EVT_Busy:
             case MARLIN_EVT_Ready:
-            case MARLIN_EVT_DialogOpen:
-            case MARLIN_EVT_DialogClose:
             case MARLIN_EVT_GFileChange:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
@@ -533,7 +569,6 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
                     sent |= msk; // event sent, set bit
                 break;
             //unused events
-            case MARLIN_EVT_Idle:
             case MARLIN_EVT_PrinterKilled:
             case MARLIN_EVT_Error:
             case MARLIN_EVT_PlayTone:
@@ -542,6 +577,11 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_SafetyTimerExpired:
             case MARLIN_EVT_Message:
             case MARLIN_EVT_Reheat:
+
+            //do not resend open close dialog, send is forced
+            case MARLIN_EVT_FSM_Create:
+            case MARLIN_EVT_FSM_Destroy:
+            case MARLIN_EVT_FSM_Change:
                 break;
             }
         msk <<= 1;
@@ -838,11 +878,14 @@ int _process_server_request(char *request) {
     } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
         marlin_server_do_babystep_Z(offs);
         processed = 1;
-    } else if (strcmp("!save", request) == 0) {
+    } else if (strcmp("!cfg_save", request) == 0) {
         marlin_server_settings_save();
         processed = 1;
-    } else if (strcmp("!load", request) == 0) {
+    } else if (strcmp("!cfg_load", request) == 0) {
         marlin_server_settings_load();
+        processed = 1;
+    } else if (strcmp("!cfg_reset", request) == 0) {
+        marlin_server_settings_reset();
         processed = 1;
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();
@@ -873,6 +916,9 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (sscanf(request, "!hclick %d", &ival) == 1) {
         host_prompt_button_clicked = (host_prompt_button_t)ival;
+        processed = 1;
+    } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
+        ClientResponseHandler::SetResponse(ival);
         processed = 1;
     }
     if (processed)
@@ -952,34 +998,6 @@ void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t req_client_mask, uint8_t cl
             if ((marlin_server.client_events[client_id] & ((uint64_t)1 << evt_id)) == 0)
                 client_mask |= (1 << client_id);
     }
-}
-
-void _force_M600_notify(MARLIN_EVT_t evt_id, uint8_t req_client_mask) {
-    uint8_t client_mask = _send_notify_event(evt_id, MARLIN_CMD_M600, 0);
-    _ensure_event_sent(evt_id, req_client_mask, client_mask);
-}
-
-// this is called in main thread directly from M600
-void force_M600_begin_notify() {
-    marlin_server.command = MARLIN_CMD_M600;
-    marlin_server.command_begin = MARLIN_CMD_M600;
-    marlin_server.command_end = MARLIN_CMD_M600;
-    // notification will wait until successfully sent to gui client
-    _force_M600_notify(MARLIN_EVT_CommandBegin, 1 << gui_marlin_client_id);
-#ifdef DEBUG_FSENSOR_IN_HEADER
-    _is_in_M600_flg = 1;
-#endif
-}
-
-// this is called in main thread directly from M600
-void force_M600_end_notify() {
-    marlin_server.command = MARLIN_CMD_NONE;
-    // notification will wait until successfully sent to gui client
-    _force_M600_notify(MARLIN_EVT_CommandEnd, 1 << gui_marlin_client_id);
-    fs_clr_sent();
-#ifdef DEBUG_FSENSOR_IN_HEADER
-    _is_in_M600_flg = 0;
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1210,11 +1228,34 @@ void host_action_resumed() {
     DBG_HOST("host_action_resumed");
 }
 
-void host_dialog_creation_handler(const uint8_t is_host) {
-    DBG_HOST("host_dialog_creation_handler %d", (int)is_host);
+//must match fsm_create_t signature
+void fsm_create(ClinetFSM type, uint8_t data) {
+    uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
+    DBG_HOST("fsm_create %d", usr32);
 
-    const MARLIN_EVT_t evt_id = is_host ? MARLIN_EVT_DialogOpen : MARLIN_EVT_DialogClose;
-    uint8_t client_mask = _send_notify_event(evt_id, DLG_serial_printing, 0);
+    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Create;
+    uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
+    // notification will wait until successfully sent to gui client
+    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+}
+
+//must match fsm_destroy_t signature
+void fsm_destroy(ClinetFSM type) {
+    DBG_HOST("fsm_destroy %d", (int)type);
+
+    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
+    uint8_t client_mask = _send_notify_event(evt_id, uint32_t(type), 0);
+    // notification will wait until successfully sent to gui client
+    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+}
+
+//must match fsm_change_t signature
+void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+    uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
+    DBG_HOST("fsm_change %d", usr32);
+
+    const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
+    uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }
@@ -1314,3 +1355,61 @@ void host_prompt_do(const PromptReason type, const char *const pstr, const char 
         break;
     }
 }
+
+/*****************************************************************************/
+//FSM_notifier
+FSM_notifier::data FSM_notifier::s_data;
+
+FSM_notifier::FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
+    uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
+    : temp_data(s_data) {
+    s_data.type = type;
+    s_data.phase = phase;
+    s_data.scale = static_cast<float>(progress_max - progress_min) / static_cast<float>(max - min);
+    s_data.offset = -static_cast<float>(min) * s_data.scale + static_cast<float>(progress_min);
+    s_data.progress_min = progress_min;
+    s_data.progress_max = progress_max;
+    s_data.var_id = var_id;
+    s_data.last_progress_sent = -1;
+}
+
+//static method
+//notifies clients about progress rise
+//scales "binded" variable via following formula to calculate progress
+//x = (actual - s_data.min) * s_data.scale + s_data.progress_min;
+//x = actual * s_data.scale - s_data.min * s_data.scale + s_data.progress_min;
+//s_data.offset == -s_data.min * s_data.scale + s_data.progress_min
+//simplified formula
+//x = actual * s_data.scale + s_data.offset;
+void FSM_notifier::SendNotification() {
+    if (s_data.type == ClinetFSM::_none)
+        return;
+
+    cvariant8 temp;
+    temp.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
+
+    float actual = static_cast<float>(temp);
+    actual = actual * s_data.scale + s_data.offset;
+
+    int progress = static_cast<int>(actual); //int - must be signed
+    if (progress < s_data.progress_min)
+        progress = s_data.progress_min;
+    if (progress > s_data.progress_max)
+        progress = s_data.progress_max;
+
+    // after first sent, progress can only rise
+    if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
+        s_data.last_progress_sent = progress;
+        fsm_change(s_data.type, s_data.phase, progress, 0);
+    }
+}
+
+FSM_notifier::~FSM_notifier() {
+    s_data = temp_data;
+}
+
+/*****************************************************************************/
+//ClientResponseHandler
+//define static member
+//-1 (maxval) is used as no response from client
+uint32_t ClientResponseHandler::server_side_encoded_response = -1;

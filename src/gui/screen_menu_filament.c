@@ -6,9 +6,7 @@
 #include "filament_sensor.h"
 #include "marlin_client.h"
 #include "menu_vars.h"
-#include "window_dlg_load.h"
-#include "window_dlg_unload.h"
-#include "window_dlg_purge.h"
+#include "window_dlg_load_unload.h"
 #include "dbg.h"
 
 #define FKNOWN      0x01 //filament is known
@@ -109,7 +107,7 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
                 break;
             case MI_PURGE:
                 p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
-                gui_dlg_purge();
+                //   gui_dlg_purge();
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
                 break;
             }

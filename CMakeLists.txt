@@ -438,7 +438,7 @@ target_sources(
           src/usbh_conf.c
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
-          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.c>
+          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
           src/common/eeprom.c
@@ -476,6 +476,7 @@ target_sources(
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
+          src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
@@ -495,15 +496,17 @@ if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.c
-            src/gui/dialogs/window_dlg_change.c
-            src/gui/dialogs/window_dlg_loadunload_shared.c
-            src/gui/dialogs/window_dlg_statemachine.c
-            src/gui/dialogs/window_dlg_load.c
+            src/gui/dialogs/Dialog_C_wrapper.cpp
+            src/gui/dialogs/IDialog.cpp
+            src/gui/dialogs/DialogFactory.cpp
+            src/gui/dialogs/DialogHandler.cpp
+            src/gui/dialogs/DialogStateful.cpp
+            src/gui/dialogs/DialogRadioButton.cpp
+            src/gui/dialogs/DialogLoadUnload.cpp
+            src/gui/dialogs/window_dlg_load_unload.c
             src/gui/dialogs/window_dlg_wait.c
             src/gui/dialogs/window_dlg_popup.c
-            src/gui/dialogs/window_dlg_purge.c
             src/gui/dialogs/window_dlg_preheat.c
-            src/gui/dialogs/window_dlg_unload.c
             src/gui/screen_menu_temperature.c
             src/gui/resource.c
             src/gui/window_file_list.c
