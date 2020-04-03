@@ -5,6 +5,7 @@
 #include "marlin_client.h"
 #include "filament.h"
 #include "menu_vars.h"
+#include "eeprom.h"
 
 #ifdef _DEBUG
 extern screen_t screen_test;
@@ -146,7 +147,7 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
             break;
         case MI_BABYSTEP:
             marlin_set_z_offset(psmd->items[MI_BABYSTEP].item.wi_spin_fl.value);
-            marlin_settings_save();
+            eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
             break;
         }
     } else if (event == WINDOW_EVENT_CLICK) {
