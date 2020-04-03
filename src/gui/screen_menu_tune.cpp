@@ -63,7 +63,7 @@ void screen_menu_tune_timer(screen_t *screen, uint32_t mseconds);
 void screen_menu_tune_chanege_filament(screen_t *screen);
 
 void screen_menu_tune_init(screen_t *screen) {
-    marlin_vars_t *vars;         //set later
+    marlin_vars_t *vars; //set later
     screen_menu_init(screen, "TUNE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
     memcpy(psmd->items + 1, _menu_tune_items, (MI_COUNT - 1) * sizeof(menu_item_t));
@@ -161,8 +161,8 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
         case MI_BABYSTEP:
             z_offs = psmd->items[MI_BABYSTEP].item.wi_spin_fl.value;
             break;
-        // je potreba mit ? - stara se o to menu_screen_event
-        /*case MI_MESSAGES:
+            // je potreba mit ? - stara se o to menu_screen_event
+            /*case MI_MESSAGES:
         case MI_TUNE_INFO:
             screen_open(psmd->items[(int)param].screen->id);
             break;*/

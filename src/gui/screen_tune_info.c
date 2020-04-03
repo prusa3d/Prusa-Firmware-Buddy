@@ -52,4 +52,3 @@ screen_t screen_tune_info = {
 };
 
 const screen_t *pscreen_tune_info = &screen_tune_info;
-
