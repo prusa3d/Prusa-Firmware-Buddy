@@ -11,13 +11,26 @@
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+
+typedef struct {
+    uint32_t is_29_ID : 1; //1 == 29 bit ID, 0 == 11 bit
+    uint32_t ID : 29;
+    //uncomment DLC if needed, but i think it is not
+    //uint32_t DLC : 4; //data 0 - 8B
+} CAN_HEADER_t;
+
+typedef struct {
+    CAN_HEADER_t header;
+    uint8_t data[8];
+} CAN_MSG_t;
+
 extern int CAN2_Init();
 extern int CAN2_Start();
 extern void CAN2_Stop();
 extern int CAN2_is_initialized();
 extern void CAN2_Tx(uint8_t *data, size_t sz);
 extern void CAN2_Tx8(uint8_t *data_8byte);
-extern int CAN2_try_Rx(uint8_t *data);
+extern int CAN2_try_Rx(CAN_MSG_t *msg);
 
 //TX setting
 extern int CAN2_set_tx_DLC(uint32_t DLC);
@@ -27,9 +40,11 @@ extern int CAN2_set_tx_StdId(uint32_t id);
 extern int CAN2_set_tx_ExtId(uint32_t id);
 
 //RX setting
-void CAN2_set_rx_filter_MASK32(uint32_t mask);                 //1 32bit filter mask
+void CAN2_set_rx_filter_MASK32_STD(uint32_t mask);             //1 32bit filter mask for 11bit ID
+void CAN2_set_rx_filter_MASK32_EXT(uint32_t mask);             //1 32bit filter mask for 29bit ID
 void CAN2_set_rx_filter_MASK16(uint16_t first, uint16_t next); //2 16bit filter mask
-void CAN2_set_rx_filter_LIST32(uint32_t list);                 //1 32bit filter list
+void CAN2_set_rx_filter_LIST32_STD(uint32_t list);             //1 32bit filter list for 11bit ID
+void CAN2_set_rx_filter_LIST32_EXT(uint32_t list);             //1 32bit filter list for 29bit ID
 void CAN2_set_rx_filter_LIST16(uint16_t first, uint16_t next); //2 16bit filter list
 void CAN2_set_rx_filter_fifo0();
 void CAN2_set_rx_filter_fifo1();

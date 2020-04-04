@@ -34,7 +34,7 @@ void screen_test_term_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
     pd->id_text = id;
-    window_set_text(id, (const char *)"Test");
+    window_set_text(id, (const char *)"CAN RX TERMINAL");
 
     id = window_create_ptr(WINDOW_CLS_TERM, id0, rect_ui16(10, 28, 11 * 20, 18 * 16), &(pd->term));
     pd->id_term = id;
@@ -62,11 +62,14 @@ int screen_test_term_event(screen_t *screen, window_t *window, uint8_t event, vo
         window_invalidate(pd->term.win.id);
     }*/
 
-    uint8_t data[8];
-    if (CAN2_try_Rx(data))
-        term_printf(pd->term.term, "%02X %02X %02X %02X %02X %02X %02X %02X\n",
-            data[0], data[1], data[2], data[3],
-            data[4], data[5], data[6], data[7]);
+    static const char *s11 = "Std";
+    static const char *s29 = "E";
+    CAN_MSG_t msg;
+    if (CAN2_try_Rx(&msg))
+        term_printf(pd->term.term, "%sId:%X data:%02X %02X %02X %02X %02X %02X %02X %02X\n",
+            msg.header.is_29_ID ? s29 : s11, msg.header.ID,
+            msg.data[0], msg.data[1], msg.data[2], msg.data[3],
+            msg.data[4], msg.data[5], msg.data[6], msg.data[7]);
     window_invalidate(pd->term.win.id);
     return 0;
 }

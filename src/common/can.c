@@ -78,10 +78,14 @@ void CAN2_Tx8(uint8_t *data_8byte) {
     CAN2_Tx(data_8byte, 8);
 }
 
-int CAN2_try_Rx(uint8_t *data) {
+int CAN2_try_Rx(CAN_MSG_t *msg) {
     int ret = HAL_CAN_GetRxFifoFillLevel(&hcan2, CAN_RX_FIFO0);
-    if (ret)
-        HAL_CAN_GetRxMessage(&hcan2, CAN_RX_FIFO0, &canRxHeader, data);
+    if (ret) {
+        HAL_CAN_GetRxMessage(&hcan2, CAN_RX_FIFO0, &canRxHeader, msg->data);
+        msg->header.is_29_ID = canRxHeader.IDE == CAN_ID_EXT ? 1 : 0;
+        msg->header.ID = canRxHeader.IDE == CAN_ID_EXT ? canRxHeader.ExtId : canRxHeader.StdId;
+    }
+
     return ret;
 }
 
@@ -121,33 +125,45 @@ int CAN2_set_tx_ExtId(uint32_t id) {
 /*****************************************************************************/
 //RX setting
 //1 32bit filter list
-void CAN2_set_rx_filter_MASK32(uint32_t mask) {
+void _CAN2_set_rx_filter_MASK32(uint32_t mask) {
     sFilterConfig.FilterMaskIdHigh = mask >> 16;
     sFilterConfig.FilterMaskIdLow = (uint16_t)mask;
     sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
     sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
 }
+void CAN2_set_rx_filter_MASK32_STD(uint32_t mask) {
+    _CAN2_set_rx_filter_MASK32(mask << (32 - 11));
+}
+void CAN2_set_rx_filter_MASK32_EXT(uint32_t mask) {
+    _CAN2_set_rx_filter_MASK32(mask << (32 - 29));
+}
 
 //2 16bit filter list
 void CAN2_set_rx_filter_MASK16(uint16_t first, uint16_t next) {
-    sFilterConfig.FilterMaskIdHigh = first;
-    sFilterConfig.FilterMaskIdLow = next;
+    sFilterConfig.FilterMaskIdHigh = first << (16 - 11);
+    sFilterConfig.FilterMaskIdLow = next << (16 - 11);
     sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
     sFilterConfig.FilterScale = CAN_FILTERSCALE_16BIT;
 }
 
 //1 32bit filter mask
-void CAN2_set_rx_filter_LIST32(uint32_t list) {
+void _CAN2_set_rx_filter_LIST32(uint32_t list) {
     sFilterConfig.FilterIdHigh = list >> 16;
     sFilterConfig.FilterIdLow = (uint16_t)list;
     sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST;
     sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
 }
+void CAN2_set_rx_filter_LIST32_STD(uint32_t mask) {
+    _CAN2_set_rx_filter_LIST32(mask << (32 - 11));
+}
+void CAN2_set_rx_filter_LIST32_EXT(uint32_t mask) {
+    _CAN2_set_rx_filter_LIST32(mask << (32 - 29));
+}
 
 //2 16bit filter mask
 void CAN2_set_rx_filter_LIST16(uint16_t first, uint16_t next) {
-    sFilterConfig.FilterIdHigh = first;
-    sFilterConfig.FilterIdLow = next;
+    sFilterConfig.FilterIdHigh = first << (16 - 11);
+    sFilterConfig.FilterIdLow = next << (16 - 11);
     sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST;
     sFilterConfig.FilterScale = CAN_FILTERSCALE_16BIT;
 }
@@ -171,8 +187,10 @@ int CAN2_set_rx_filter_bank(uint32_t bank) {
 
 void CAN2_set_rx_filter_activate() {
     sFilterConfig.FilterActivation = CAN_FILTER_ENABLE;
+    HAL_CAN_ConfigFilter(&hcan2, &sFilterConfig);
 }
 
 void CAN2_set_rx_filter_deactivate() {
     sFilterConfig.FilterActivation = CAN_FILTER_DISABLE;
+    HAL_CAN_ConfigFilter(&hcan2, &sFilterConfig);
 }

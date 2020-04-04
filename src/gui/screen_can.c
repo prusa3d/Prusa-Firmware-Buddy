@@ -9,6 +9,7 @@
 
 #define CHAR_W 12
 #define ROW_H  22
+extern screen_t *pscreen_test_term;
 
 #pragma pack(push)
 #pragma pack(1)
@@ -57,9 +58,9 @@ static void create_float_spin(window_spin_t *p_spin, int16_t id0, point_ui16_t p
 
 //1 byte == max 0xff
 static void create_float_spin2digit(window_spin_t *p_spin, int16_t id0, point_ui16_t pt) {
-    create_float_spin(&p_spin[0], id0, pt, 15);
-    pt.x += CHAR_W;
     create_float_spin(&p_spin[1], id0, pt, 15);
+    pt.x += CHAR_W;
+    create_float_spin(&p_spin[0], id0, pt, 15);
 }
 
 void screen_can_init(screen_t *screen) {
@@ -142,7 +143,7 @@ void screen_can_init(screen_t *screen) {
 
     //RX button -terminal
     id = window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(col, row2draw, 100, ROW_H),
+        id0, rect_ui16(col, row2draw, 200, ROW_H),
         &(pd->bt_open_rx_term));
     window_set_text(id, "Open RX terminal");
     window_enable(id);
@@ -181,6 +182,7 @@ int screen_can_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             //tx id
             CAN2_set_tx_StdId(
                 (window_get_item_index(pd->spin_11bitID[2].window.win.id) << 8) + (window_get_item_index(pd->spin_11bitID[1].window.win.id) << 4) + (window_get_item_index(pd->spin_11bitID[0].window.win.id)));
+            CAN2_set_rx_filter_deactivate(); //deactivated filter will prevent msg receive
             CAN2_Start();
             for (size_t i = 0; i < 8; ++i)
                 pd->data[i] = _get_spin_data(screen, i);
@@ -189,9 +191,11 @@ int screen_can_event(screen_t *screen, window_t *window, uint8_t event, void *pa
         case TAG_RX_TERM:
             CAN2_is_initialized() ? CAN2_Stop() : CAN2_Init();
             //rx list (expected id)
-            CAN2_set_rx_filter_LIST32(
+            CAN2_set_rx_filter_LIST32_STD(
                 (window_get_item_index(pd->spin_11bit_filter_list[2].window.win.id) << 8) + (window_get_item_index(pd->spin_11bit_filter_list[1].window.win.id) << 4) + (window_get_item_index(pd->spin_11bit_filter_list[0].window.win.id)));
+            CAN2_set_rx_filter_activate();
             CAN2_Start();
+            screen_open(pscreen_test_term->id);
             break;
         }
 
