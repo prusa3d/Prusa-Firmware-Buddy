@@ -681,7 +681,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
 */
 
 void HAL_UART_MspDeInit(UART_HandleTypeDef *huart) {
-#if 0
+
     if (huart->Instance == USART1) {
         /* USER CODE BEGIN USART1_MspDeInit 0 */
 
@@ -737,7 +737,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart) {
 
         /* USER CODE END USART6_MspDeInit 1 */
     }
-#endif
 }
 
 /* USER CODE BEGIN 1 */
