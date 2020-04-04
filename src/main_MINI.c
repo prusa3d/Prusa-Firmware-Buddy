@@ -208,7 +208,7 @@ int main(void) {
     MX_I2C1_Init();
     MX_IWDG_Init();
     MX_ADC1_Init();
-    MX_USART1_UART_Init();
+    //MX_USART1_UART_Init();
     MX_TIM1_Init();
     MX_TIM3_Init();
     MX_SPI2_Init();
@@ -218,8 +218,6 @@ int main(void) {
     MX_TIM2_Init();
     MX_TIM14_Init();
     /* USER CODE BEGIN 2 */
-    CAN2_Start();
-
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
     HAL_PWM_Initialized = 1;
@@ -233,6 +231,7 @@ int main(void) {
     uartslave_init(&uart6slave, &uart6rxbuff, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
 
+    CAN2_Start();
     /* USER CODE END 2 */
 
     /* USER CODE BEGIN RTOS_MUTEX */

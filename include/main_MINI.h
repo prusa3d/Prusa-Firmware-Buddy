@@ -189,16 +189,16 @@ void Error_Handler(void);
 #define FLASH_CSN_GPIO_Port   GPIOD
 #define FIL_SENSOR_Pin        GPIO_PIN_4
 #define FIL_SENSOR_GPIO_Port  GPIOB
-#define WP2_Pin               GPIO_PIN_5
-#define WP2_GPIO_Port         GPIOB
-#define TX1_Pin               GPIO_PIN_6
-#define TX1_GPIO_Port         GPIOB
-#define RX1_Pin               GPIO_PIN_7
-#define RX1_GPIO_Port         GPIOB
-#define WP1_Pin               GPIO_PIN_0
-#define WP1_GPIO_Port         GPIOE
-#define Z_DIAGE1_Pin          GPIO_PIN_1
-#define Z_DIAGE1_GPIO_Port    GPIOE
+//#define WP2_Pin               GPIO_PIN_5
+//#define WP2_GPIO_Port         GPIOB
+#define TX1_Pin            GPIO_PIN_6
+#define TX1_GPIO_Port      GPIOB
+#define RX1_Pin            GPIO_PIN_7
+#define RX1_GPIO_Port      GPIOB
+#define WP1_Pin            GPIO_PIN_0
+#define WP1_GPIO_Port      GPIOE
+#define Z_DIAGE1_Pin       GPIO_PIN_1
+#define Z_DIAGE1_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

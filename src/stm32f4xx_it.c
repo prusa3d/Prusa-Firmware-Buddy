@@ -39,6 +39,7 @@
 #include "cmsis_os.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "can.h"
 #include "bsod.h"
 #include "dump.h"
 /* USER CODE END Includes */
