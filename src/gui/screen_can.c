@@ -30,6 +30,7 @@ typedef struct
     window_text_t bt_open_rx_term;
 
     window_text_t textExit;
+    uint8_t data[8];
 
 } screen_can_data_t;
 
@@ -77,41 +78,41 @@ void screen_can_init(screen_t *screen) {
     row2draw = ROW_H;
 
     //text can ID
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, 100, ROW_H),
+    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, 180, ROW_H),
         &(pd->text_11bitID));
     window_set_text(id, "11bit ID");
     window_enable(id);
 
     //ID 11bit 7ff max
-    row2draw += ROW_H;
+    col = 180 + 2;
     create_float_spin(&(pd->spin_11bitID[2]), id0, point_ui16(col, row2draw), 7);
     col += CHAR_W;
     create_float_spin(&(pd->spin_11bitID[1]), id0, point_ui16(col, row2draw), 15);
     col += CHAR_W;
     create_float_spin(&(pd->spin_11bitID[0]), id0, point_ui16(col, row2draw), 15);
 
-    row2draw = ROW_H;
+    row2draw += ROW_H;
 
     //TX data
+    col = 2;
     create_float_spin2digit(pd->spin_data[0], id0, point_ui16(col, row2draw));
-    col += CHAR_W * 3;
+    col += CHAR_W * 2 + 2;
     create_float_spin2digit(pd->spin_data[1], id0, point_ui16(col, row2draw));
-    col += CHAR_W * 3;
+    col += CHAR_W * 2 + 2;
     create_float_spin2digit(pd->spin_data[2], id0, point_ui16(col, row2draw));
-    col += CHAR_W * 3;
+    col += CHAR_W * 2 + 2;
     create_float_spin2digit(pd->spin_data[3], id0, point_ui16(col, row2draw));
-
-    row2draw = ROW_H;
-
+    col += CHAR_W * 2 + 2;
     create_float_spin2digit(pd->spin_data[4], id0, point_ui16(col, row2draw));
-    col += CHAR_W * 3;
+    col += CHAR_W * 2 + 2;
     create_float_spin2digit(pd->spin_data[5], id0, point_ui16(col, row2draw));
-    col += CHAR_W * 3;
+    col += CHAR_W * 2 + 2;
     create_float_spin2digit(pd->spin_data[6], id0, point_ui16(col, row2draw));
-    col += CHAR_W * 3;
+    col += CHAR_W * 2 + 2;
     create_float_spin2digit(pd->spin_data[7], id0, point_ui16(col, row2draw));
 
-    row2draw = ROW_H;
+    col = 2;
+    row2draw += ROW_H;
 
     //TX button
     id = window_create_ptr(WINDOW_CLS_TEXT,
@@ -121,28 +122,35 @@ void screen_can_init(screen_t *screen) {
     window_enable(id);
     window_set_tag(id, TAG_TX_SEND);
 
-    row2draw = ROW_H;
-
+    row2draw += ROW_H * 2;
     //RX filter can ID
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, 100, ROW_H),
+    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, 180, ROW_H),
         &(pd->text_11bit_filter_list));
     window_set_text(id, "RX filter list");
     window_enable(id);
 
     //ID 11bit 7ff max
-    row2draw += ROW_H;
+    col = 180 + 2;
     create_float_spin(&(pd->spin_11bit_filter_list[2]), id0, point_ui16(col, row2draw), 7);
     col += CHAR_W;
     create_float_spin(&(pd->spin_11bit_filter_list[1]), id0, point_ui16(col, row2draw), 15);
     col += CHAR_W;
     create_float_spin(&(pd->spin_11bit_filter_list[0]), id0, point_ui16(col, row2draw), 15);
 
-    row2draw = ROW_H;
+    col = 2;
+    row2draw += ROW_H;
 
-    //exit and footer
-
+    //RX button -terminal
     id = window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(col, row2draw, 100, ROW_H), &(pd->textExit));
+        id0, rect_ui16(col, row2draw, 100, ROW_H),
+        &(pd->bt_open_rx_term));
+    window_set_text(id, "Open RX terminal");
+    window_enable(id);
+    window_set_tag(id, TAG_RX_TERM);
+
+    //exit
+    id = window_create_ptr(WINDOW_CLS_TEXT,
+        id0, rect_ui16(180, 290, 60, ROW_H), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"EXIT");
     window_enable(id);
@@ -156,11 +164,16 @@ void screen_can_done(screen_t *screen) {
 void screen_can_draw(screen_t *screen) {
 }
 
+static uint8_t _get_spin_data(screen_t *screen, size_t index) {
+    return (window_get_item_index(pd->spin_data[index][1].window.win.id) << 4) + window_get_item_index(pd->spin_data[index][0].window.win.id);
+}
+
 int screen_can_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
 
     if (event == WINDOW_EVENT_CLICK) //buttons
         switch ((int)param) {
         case TAG_QUIT:
+            CAN2_Stop();
             screen_close();
             return 1;
         case TAG_TX_SEND:
@@ -169,6 +182,9 @@ int screen_can_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             CAN2_set_tx_StdId(
                 (window_get_item_index(pd->spin_11bitID[2].window.win.id) << 8) + (window_get_item_index(pd->spin_11bitID[1].window.win.id) << 4) + (window_get_item_index(pd->spin_11bitID[0].window.win.id)));
             CAN2_Start();
+            for (size_t i = 0; i < 8; ++i)
+                pd->data[i] = _get_spin_data(screen, i);
+            CAN2_Tx8(pd->data);
             break;
         case TAG_RX_TERM:
             CAN2_is_initialized() ? CAN2_Stop() : CAN2_Init();
