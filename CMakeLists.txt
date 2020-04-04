@@ -525,6 +525,7 @@ if(GUI)
             src/gui/screen_version_info.cpp
             src/gui/test_display.c
             src/gui/screen_splash.c
+            src/gui/screen_can.c
             src/gui/screen_menu_service.c
             src/gui/screen_menu_calibration.c
             src/gui/screen_menu.c

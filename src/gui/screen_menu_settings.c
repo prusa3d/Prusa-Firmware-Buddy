@@ -21,6 +21,7 @@ extern screen_t screen_menu_move;
 #ifdef _DEBUG
 extern screen_t screen_menu_service;
 extern screen_t screen_test;
+extern screen_t screen_can;
 #endif //_DEBUG
 extern osThreadId webServerTaskHandle;
 
@@ -33,6 +34,7 @@ typedef enum {
     MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS,
 #ifdef _DEBUG
+    MI_CAN,
     MI_SERVICE,
     MI_TEST,
 #endif //_DEBUG
@@ -66,6 +68,7 @@ const menu_item_t _menu_settings_items[] = {
     { { "Disable Steppers", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Factory Reset", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 #ifdef _DEBUG
+    { { "CAN", 0, WI_LABEL }, &screen_can },
     { { "Service", 0, WI_LABEL }, &screen_menu_service },
     { { "Test", 0, WI_LABEL }, &screen_test },
 #endif //_DEBUG

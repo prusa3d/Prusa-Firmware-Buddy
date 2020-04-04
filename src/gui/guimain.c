@@ -31,6 +31,7 @@ extern screen_t *pscreen_watchdog;
 #ifdef LCDSIM
 extern screen_t *pscreen_marlin;
 #else //LCDSIM
+extern screen_t *pscreen_can;
 extern screen_t *pscreen_test;
 extern screen_t *pscreen_test_gui;
 extern screen_t *pscreen_test_term;
@@ -186,6 +187,7 @@ void gui_run(void) {
     WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
     #endif //_DEBUG
     WINDOW_CLS_DLG_PREHEAT = window_register_class((window_class_t *)&window_class_dlg_preheat);
+    screen_register(pscreen_can);
     screen_register(pscreen_test);
     screen_register(pscreen_test_gui);
     screen_register(pscreen_test_term);
