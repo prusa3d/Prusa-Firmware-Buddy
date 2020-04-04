@@ -32,6 +32,25 @@ int CAN2_Init(void) {
     hcan2.Init.ReceiveFifoLocked = DISABLE;
     hcan2.Init.TransmitFifoPriority = DISABLE;
     can_inicialized = HAL_CAN_Init(&hcan2) == HAL_OK;
+
+    canTxHeader.DLC = 8; //data bytes
+    canTxHeader.IDE = CAN_ID_STD;
+    canTxHeader.RTR = CAN_RTR_DATA;
+    canTxHeader.StdId = TX_ID;
+
+    sFilterConfig.FilterIdHigh = RX_ID << 5;               //11bit ID into 16 bit number
+    sFilterConfig.FilterIdLow = 0;                         //unused for 11bit ID
+    sFilterConfig.FilterMaskIdHigh = 0;                    //mask not used
+    sFilterConfig.FilterMaskIdLow = 0;                     //mask not used
+    sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0; //this filter is for FIFO0
+    //sFilterConfig.FilterBank = 0;
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST; //CAN_FILTERMODE_IDMASK;
+    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+    sFilterConfig.FilterActivation = CAN_FILTER_ENABLE;
+    //sFilterConfig.SlaveStartFilterBank = 0;// For single CAN instances, this parameter is meaningless.
+
+    HAL_CAN_ConfigFilter(&hcan2, &sFilterConfig);
+
     return can_inicialized;
 }
 
@@ -40,28 +59,12 @@ int CAN2_Start() {
         if (!CAN2_Init())
             return can_inicialized;
     }
-    canTxHeader.DLC = 8; //data bytes
-    canTxHeader.IDE = CAN_ID_STD;
-    canTxHeader.RTR = CAN_RTR_DATA;
-    canTxHeader.StdId = TX_ID;
-
-    sFilterConfig.FilterIdHigh = RX_ID << 5; //11bit ID?
-    sFilterConfig.FilterIdLow = 0;
-    sFilterConfig.FilterMaskIdHigh = 0; //mask not used
-    sFilterConfig.FilterMaskIdLow = 0;  //mask not used
-    sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    //sFilterConfig.FilterBank = 0;
-    sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST; //CAN_FILTERMODE_IDMASK;
-    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
-    sFilterConfig.FilterActivation = CAN_FILTER_ENABLE; //todo use CAN_FILTER_DISABLE
-    //sFilterConfig.SlaveStartFilterBank = 0;// For single CAN instances, this parameter is meaningless.
-
-    HAL_CAN_ConfigFilter(&hcan2, &sFilterConfig);
-
-    HAL_CAN_Start(&hcan2);
+    return HAL_CAN_Start(&hcan2) == HAL_OK;
     //HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);//use for interrupt
+}
 
-    return can_inicialized;
+void CAN2_Stop() {
+    HAL_CAN_Stop(&hcan2);
 }
 
 int CAN2_is_initialized() { return can_inicialized; }
@@ -80,4 +83,96 @@ int CAN2_try_Rx(uint8_t *data) {
     if (ret)
         HAL_CAN_GetRxMessage(&hcan2, CAN_RX_FIFO0, &canRxHeader, data);
     return ret;
+}
+
+/*****************************************************************************/
+//TX setting
+int CAN2_set_tx_DLC(uint32_t DLC) {
+    if (DLC > 8)
+        return 0;
+    canTxHeader.DLC = DLC;
+    return 1;
+}
+
+void CAN2_set_tx_RTR_data() {
+    canTxHeader.RTR = CAN_RTR_DATA;
+}
+
+void CAN2_set_tx_RTR_remote() {
+    canTxHeader.RTR = CAN_RTR_REMOTE;
+}
+
+int CAN2_set_tx_StdId(uint32_t id) {
+    if (id >= (1U << 11))
+        return 0; //11bit ID
+    canTxHeader.StdId = id;
+    canTxHeader.IDE = CAN_ID_STD;
+    return 1;
+}
+
+int CAN2_set_tx_ExtId(uint32_t id) {
+    if (id >= (1U << 29))
+        return 0; //29bit ID
+    canTxHeader.StdId = id;
+    canTxHeader.IDE = CAN_ID_EXT;
+    return 1;
+}
+
+/*****************************************************************************/
+//RX setting
+//1 32bit filter list
+void CAN2_set_rx_filter_MASK32(uint32_t mask) {
+    sFilterConfig.FilterMaskIdHigh = mask >> 16;
+    sFilterConfig.FilterMaskIdLow = (uint16_t)mask;
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+}
+
+//2 16bit filter list
+void CAN2_set_rx_filter_MASK16(uint16_t first, uint16_t next) {
+    sFilterConfig.FilterMaskIdHigh = first;
+    sFilterConfig.FilterMaskIdLow = next;
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+    sFilterConfig.FilterScale = CAN_FILTERSCALE_16BIT;
+}
+
+//1 32bit filter mask
+void CAN2_set_rx_filter_LIST32(uint32_t list) {
+    sFilterConfig.FilterIdHigh = list >> 16;
+    sFilterConfig.FilterIdLow = (uint16_t)list;
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST;
+    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+}
+
+//2 16bit filter mask
+void CAN2_set_rx_filter_LIST16(uint16_t first, uint16_t next) {
+    sFilterConfig.FilterIdHigh = first;
+    sFilterConfig.FilterIdLow = next;
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST;
+    sFilterConfig.FilterScale = CAN_FILTERSCALE_16BIT;
+}
+
+void CAN2_set_rx_filter_fifo0() {
+    sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+}
+
+void CAN2_set_rx_filter_fifo1() {
+    sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO1;
+}
+
+//single instance max 13
+//SlaveStartFilterBank - For single CAN instances, this parameter is meaningless.
+int CAN2_set_rx_filter_bank(uint32_t bank) {
+    if (bank > 13)
+        return 0;
+    sFilterConfig.FilterBank = bank;
+    return 1;
+}
+
+void CAN2_set_rx_filter_activate() {
+    sFilterConfig.FilterActivation = CAN_FILTER_ENABLE;
+}
+
+void CAN2_set_rx_filter_deactivate() {
+    sFilterConfig.FilterActivation = CAN_FILTER_DISABLE;
 }

@@ -3,7 +3,7 @@
 #include "gui.h"
 #include "config.h"
 #include "window_progress.h"
-
+#include "can.h"
 #include "stm32f4xx_hal.h"
 
 #pragma pack(push)
@@ -50,17 +50,24 @@ void screen_test_term_draw(screen_t *screen) {
 }
 
 int screen_test_term_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    int winid = -1;
+    //int winid = -1;
     if (event == WINDOW_EVENT_BTN_DN) {
         screen_close();
         return 1;
     }
-    if (event != WINDOW_EVENT_LOOP) {
+    /*if (event != WINDOW_EVENT_LOOP) {
         term_printf(pd->term.term, "%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
         //	else
         //		if (pd->term.term->flg & TERM_FLG_CHANGED)
         window_invalidate(pd->term.win.id);
-    }
+    }*/
+
+    uint8_t data[8];
+    if (CAN2_try_Rx(data))
+        term_printf(pd->term.term, "%02X %02X %02X %02X %02X %02X %02X %02X\n",
+            data[0], data[1], data[2], data[3],
+            data[4], data[5], data[6], data[7]);
+    window_invalidate(pd->term.win.id);
     return 0;
 }
 

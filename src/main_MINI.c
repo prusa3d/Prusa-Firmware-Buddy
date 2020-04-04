@@ -90,7 +90,7 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim14;
 
-static UART_HandleTypeDef huart1;
+//static UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -115,7 +115,7 @@ static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_USART1_UART_Init(void);
+//static void MX_USART1_UART_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_SPI2_Init(void);
@@ -140,7 +140,7 @@ extern void Error_Handler(void);
 #include "putslave.h"
 
 uartrxbuff_t uart1rxbuff;
-static uint8_t uart1rx_data[200];
+//static uint8_t uart1rx_data[200];
 
 uartrxbuff_t uart6rxbuff;
 uint8_t uart6rx_data[32];
@@ -223,8 +223,8 @@ int main(void) {
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
 
-    uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
-    uartrxbuff_open(&uart1rxbuff);
+    //uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
+    //uartrxbuff_open(&uart1rxbuff);
 
     uartrxbuff_init(&uart6rxbuff, &huart6, &hdma_usart6_rx, sizeof(uart6rx_data), uart6rx_data);
     uartrxbuff_open(&uart6rxbuff);
@@ -704,7 +704,7 @@ static void MX_TIM14_Init(void) {
     HAL_TIM_Base_Start_IT(&htim14);
     /* USER CODE END TIM14_Init 2 */
 }
-
+#if 0
 /**
   * @brief USART1 Initialization Function
   * @param None
@@ -734,7 +734,7 @@ static void MX_USART1_UART_Init(void) {
 
     /* USER CODE END USART1_Init 2 */
 }
-
+#endif
 /**
   * @brief USART2 Initialization Function
   * @param None
@@ -923,9 +923,10 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart == &huart1)
-        uartrxbuff_rxcplt_cb(&uart1rxbuff);
-    else if (huart == &huart2)
+    //if (huart == &huart1)
+    //    uartrxbuff_rxcplt_cb(&uart1rxbuff);
+    //else
+    if (huart == &huart2)
         osSignalSet(defaultTaskHandle, 0x04);
     else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);

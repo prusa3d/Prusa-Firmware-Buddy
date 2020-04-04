@@ -22,6 +22,7 @@ typedef struct
     window_frame_t frame;
     window_text_t tst;
     window_text_t back;
+    window_text_t tst_can_rx_tx;
     window_text_t tst_can_tx;
     window_text_t tst_gui;
     window_text_t tst_term;
