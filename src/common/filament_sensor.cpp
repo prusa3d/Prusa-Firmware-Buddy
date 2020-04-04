@@ -11,15 +11,14 @@
 //Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
 #include "filament_sensor.h"
-#if 0
-    #include "hwio_pindef.h" //PIN_FSENSOR
-    #include "stm32f4xx_hal.h"
-    #include "gpio.h"
-    #include "eeprom.h"
-    #include "FreeRTOS.h"      //must apper before include task.h
-    #include "task.h"          //critical sections
-    #include "cmsis_os.h"      //osDelay
-    #include "marlin_client.h" //enable/disable fs in marlin
+#include "hwio_pindef.h" //PIN_FSENSOR
+#include "stm32f4xx_hal.h"
+#include "gpio.h"
+#include "eeprom.h"
+#include "FreeRTOS.h"      //must apper before include task.h
+#include "task.h"          //critical sections
+#include "cmsis_os.h"      //osDelay
+#include "marlin_client.h" //enable/disable fs in marlin
 
 static volatile fsensor_t state = FS_NOT_INICIALIZED;
 static volatile fsensor_t last_state = FS_NOT_INICIALIZED;
@@ -258,35 +257,3 @@ void fs_cycle() {
 }
 
 } //extern "C"
-#else
-
-extern "C" {
-//thread safe functions
-fsensor_t fs_get_state() { return FS_DISABLED; }
-int fs_did_filament_runout() { return 0; } //for arduino / marlin
-
-//switch behavior when M600 should be send
-void fs_send_M600_on_edge() {} //default behavior
-void fs_send_M600_on_level() {}
-void fs_send_M600_never() {}
-
-//thread safe functions, but cannot be called from interrupt
-void fs_enable() {}
-void fs_disable() {}
-
-uint8_t fs_get__send_M600_on__and_disable() { return 'e'; }
-void fs_restore__send_M600_on(uint8_t send_M600_on) {}
-fsensor_t fs_wait_inicialized() { return FS_DISABLED; }
-void fs_clr_sent() {}
-
-//not thread safe functions
-void fs_init_on_edge() {}
-void fs_init_on_level() {}
-void fs_init_never() {}
-void fs_cycle() {} //call it in thread, max call speed 1MHz
-
-//for debug
-int fs_was_M600_send() { return 1; }
-char fs_get_send_M600_on() { return 'e'; }
-} //extern "C"
-#endif
