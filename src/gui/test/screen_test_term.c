@@ -4,7 +4,6 @@
 #include "config.h"
 #include "window_progress.h"
 #include "can.h"
-#include "stm32f4xx_hal.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -34,8 +33,11 @@ void screen_test_term_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
     pd->id_text = id;
+#ifdef HAL_CAN_MODULE_ENABLED
     window_set_text(id, (const char *)"CAN RX TERMINAL");
-
+#else
+    window_set_text(id, (const char *)"TEST");
+#endif
     id = window_create_ptr(WINDOW_CLS_TERM, id0, rect_ui16(10, 28, 11 * 20, 18 * 16), &(pd->term));
     pd->id_term = id;
     term_init(&(pd->terminal), 20, 16, pd->term_buff);
@@ -50,18 +52,11 @@ void screen_test_term_draw(screen_t *screen) {
 }
 
 int screen_test_term_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    //int winid = -1;
     if (event == WINDOW_EVENT_BTN_DN) {
         screen_close();
         return 1;
     }
-    /*if (event != WINDOW_EVENT_LOOP) {
-        term_printf(pd->term.term, "%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
-        //	else
-        //		if (pd->term.term->flg & TERM_FLG_CHANGED)
-        window_invalidate(pd->term.win.id);
-    }*/
-
+#ifdef HAL_CAN_MODULE_ENABLED
     static const char *s11 = "Std";
     static const char *s29 = "E";
     CAN_MSG_t msg;
@@ -71,6 +66,15 @@ int screen_test_term_event(screen_t *screen, window_t *window, uint8_t event, vo
             msg.data[0], msg.data[1], msg.data[2], msg.data[3],
             msg.data[4], msg.data[5], msg.data[6], msg.data[7]);
     window_invalidate(pd->term.win.id);
+#else
+    int winid = -1;
+    if (event != WINDOW_EVENT_LOOP) {
+        term_printf(pd->term.term, "%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
+        //	else
+        //		if (pd->term.term->flg & TERM_FLG_CHANGED)
+        window_invalidate(pd->term.win.id);
+    }
+#endif
     return 0;
 }
 

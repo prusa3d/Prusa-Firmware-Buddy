@@ -1,10 +1,11 @@
 //can.c
 #include "can.h"
-#include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal_can.h"
+#ifdef HAL_CAN_MODULE_ENABLED
+    #include "stm32f4xx_hal.h"
+    #include "stm32f4xx_hal_can.h"
 
-#define TX_ID 0x100
-#define RX_ID 0x200
+    #define TX_ID 0x100
+    #define RX_ID 0x200
 
 uint8_t can_inicialized;
 
@@ -194,3 +195,131 @@ void CAN2_set_rx_filter_deactivate() {
     sFilterConfig.FilterActivation = CAN_FILTER_DISABLE;
     HAL_CAN_ConfigFilter(&hcan2, &sFilterConfig);
 }
+
+/**
+  * @brief This function handles CAN2 TX interrupts.
+  */
+void CAN2_TX_IRQHandler(void) {
+    /* USER CODE BEGIN CAN2_TX_IRQn 0 */
+
+    /* USER CODE END CAN2_TX_IRQn 0 */
+    HAL_CAN_IRQHandler(&hcan2);
+    /* USER CODE BEGIN CAN2_TX_IRQn 1 */
+
+    /* USER CODE END CAN2_TX_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN2 RX0 interrupts.
+  */
+void CAN2_RX0_IRQHandler(void) {
+    /* USER CODE BEGIN CAN2_RX0_IRQn 0 */
+
+    /* USER CODE END CAN2_RX0_IRQn 0 */
+    HAL_CAN_IRQHandler(&hcan2);
+    /* USER CODE BEGIN CAN2_RX0_IRQn 1 */
+
+    /* USER CODE END CAN2_RX0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN2 RX1 interrupt.
+  */
+void CAN2_RX1_IRQHandler(void) {
+    /* USER CODE BEGIN CAN2_RX1_IRQn 0 */
+
+    /* USER CODE END CAN2_RX1_IRQn 0 */
+    HAL_CAN_IRQHandler(&hcan2);
+    /* USER CODE BEGIN CAN2_RX1_IRQn 1 */
+
+    /* USER CODE END CAN2_RX1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN2 SCE interrupt.
+  */
+void CAN2_SCE_IRQHandler(void) {
+    /* USER CODE BEGIN CAN2_SCE_IRQn 0 */
+
+    /* USER CODE END CAN2_SCE_IRQn 0 */
+    HAL_CAN_IRQHandler(&hcan2);
+    /* USER CODE BEGIN CAN2_SCE_IRQn 1 */
+
+    /* USER CODE END CAN2_SCE_IRQn 1 */
+}
+
+/**
+* @brief CAN MSP Initialization
+* This function configures the hardware resources used in this example
+* @param hcan: CAN handle pointer
+* @retval None
+*/
+void HAL_CAN_MspInit(CAN_HandleTypeDef *hcan) {
+    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    if (hcan->Instance == CAN2) {
+        /* USER CODE BEGIN CAN2_MspInit 0 */
+
+        /* USER CODE END CAN2_MspInit 0 */
+        /* Peripheral clock enable */
+        __HAL_RCC_CAN2_CLK_ENABLE();
+        __HAL_RCC_CAN1_CLK_ENABLE();
+
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        /**CAN2 GPIO Configuration
+    PB5     ------> CAN2_RX
+    PB6     ------> CAN2_TX
+    */
+        GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+        /* CAN2 interrupt Init */
+        HAL_NVIC_SetPriority(CAN2_TX_IRQn, 5, 0);
+        HAL_NVIC_EnableIRQ(CAN2_TX_IRQn);
+        HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 5, 0);
+        HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
+        HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 5, 0);
+        HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
+        HAL_NVIC_SetPriority(CAN2_SCE_IRQn, 5, 0);
+        HAL_NVIC_EnableIRQ(CAN2_SCE_IRQn);
+        /* USER CODE BEGIN CAN2_MspInit 1 */
+
+        /* USER CODE END CAN2_MspInit 1 */
+    }
+}
+
+/**
+* @brief CAN MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param hcan: CAN handle pointer
+* @retval None
+*/
+void HAL_CAN_MspDeInit(CAN_HandleTypeDef *hcan) {
+    if (hcan->Instance == CAN2) {
+        /* USER CODE BEGIN CAN2_MspDeInit 0 */
+
+        /* USER CODE END CAN2_MspDeInit 0 */
+        /* Peripheral clock disable */
+        __HAL_RCC_CAN2_CLK_DISABLE();
+        __HAL_RCC_CAN1_CLK_DISABLE();
+
+        /**CAN2 GPIO Configuration
+    PB5     ------> CAN2_RX
+    PB6     ------> CAN2_TX
+    */
+        HAL_GPIO_DeInit(GPIOB, GPIO_PIN_5 | GPIO_PIN_6);
+
+        /* CAN2 interrupt DeInit */
+        HAL_NVIC_DisableIRQ(CAN2_TX_IRQn);
+        HAL_NVIC_DisableIRQ(CAN2_RX0_IRQn);
+        HAL_NVIC_DisableIRQ(CAN2_RX1_IRQn);
+        HAL_NVIC_DisableIRQ(CAN2_SCE_IRQn);
+        /* USER CODE BEGIN CAN2_MspDeInit 1 */
+
+        /* USER CODE END CAN2_MspDeInit 1 */
+    }
+}
+#endif //HAL_CAN_MODULE_ENABLED

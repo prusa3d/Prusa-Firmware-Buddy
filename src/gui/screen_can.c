@@ -1,18 +1,18 @@
 //screen_can.c
-
-#include "config.h"
 #include "can.h"
+#ifdef HAL_CAN_MODULE_ENABLED
 
-#include "gui.h"
-#include "status_footer.h"
-#include "math.h"
+    #include "config.h"
+    #include "gui.h"
+    #include "status_footer.h"
+    #include "math.h"
 
-#define CHAR_W 12
-#define ROW_H  22
+    #define CHAR_W 12
+    #define ROW_H  22
 extern screen_t *pscreen_test_term;
 
-#pragma pack(push)
-#pragma pack(1)
+    #pragma pack(push)
+    #pragma pack(1)
 
 typedef struct
 {
@@ -35,9 +35,9 @@ typedef struct
 
 } screen_can_data_t;
 
-#pragma pack(pop)
+    #pragma pack(pop)
 
-#define pd ((screen_can_data_t *)screen->pdata)
+    #define pd ((screen_can_data_t *)screen->pdata)
 
 // #define AUTO_TN_DEFAULT_CL COLOR_WHITE
 // #define AUTO_TN_ACTIVE_CL  COLOR_RED
@@ -214,3 +214,4 @@ screen_t screen_can = {
 };
 
 screen_t *const pscreen_can = &screen_can;
+#endif //HAL_CAN_MODULE_ENABLED

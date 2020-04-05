@@ -31,7 +31,9 @@ extern screen_t *pscreen_watchdog;
 #ifdef LCDSIM
 extern screen_t *pscreen_marlin;
 #else //LCDSIM
+    #ifdef HAL_CAN_MODULE_ENABLED
 extern screen_t *pscreen_can;
+    #endif //HAL_CAN_MODULE_ENABLED
 extern screen_t *pscreen_test;
 extern screen_t *pscreen_test_gui;
 extern screen_t *pscreen_test_term;
@@ -187,7 +189,9 @@ void gui_run(void) {
     WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
     #endif //_DEBUG
     WINDOW_CLS_DLG_PREHEAT = window_register_class((window_class_t *)&window_class_dlg_preheat);
+    #ifdef HAL_CAN_MODULE_ENABLED
     screen_register(pscreen_can);
+    #endif //HAL_CAN_MODULE_ENABLED
     screen_register(pscreen_test);
     screen_register(pscreen_test_gui);
     screen_register(pscreen_test_term);

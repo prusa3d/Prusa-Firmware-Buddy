@@ -4,13 +4,19 @@
 //single tx instance
 //to be extended
 
+//to enable can define HAL_CAN_MODULE_ENABLED
+//in stm32f4xx_hal_conf
+//CAN2 share pins with uart1 and WP2_pin
 #pragma once
-#include <stdint.h>
-#include <stdlib.h> //size_t
+#include "stm32f4xx_hal.h"
+#ifdef HAL_CAN_MODULE_ENABLED
 
-#ifdef __cplusplus
+    #include <stdint.h>
+    #include <stdlib.h> //size_t
+
+    #ifdef __cplusplus
 extern "C" {
-#endif //__cplusplus
+    #endif //__cplusplus
 
 typedef struct {
     uint32_t is_29_ID : 1; //1 == 29 bit ID, 0 == 11 bit
@@ -52,6 +58,12 @@ int CAN2_set_rx_filter_bank(uint32_t bank); //single instance max 13
 void CAN2_set_rx_filter_activate();
 void CAN2_set_rx_filter_deactivate();
 
-#ifdef __cplusplus
+void CAN2_TX_IRQHandler(void);
+void CAN2_RX0_IRQHandler(void);
+void CAN2_RX1_IRQHandler(void);
+void CAN2_SCE_IRQHandler(void);
+    #ifdef __cplusplus
 }
-#endif //__cplusplus
+    #endif //__cplusplus
+
+#endif //HAL_CAN_MODULE_ENABLED

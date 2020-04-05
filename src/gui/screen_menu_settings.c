@@ -21,8 +21,12 @@ extern screen_t screen_menu_move;
 #ifdef _DEBUG
 extern screen_t screen_menu_service;
 extern screen_t screen_test;
-extern screen_t screen_can;
 #endif //_DEBUG
+
+#ifdef HAL_CAN_MODULE_ENABLED
+extern screen_t screen_can;
+#endif //HAL_CAN_MODULE_ENABLED
+
 extern osThreadId webServerTaskHandle;
 
 const char *settings_opt_enable_disable[] = { "Off", "On", NULL };
@@ -33,8 +37,10 @@ typedef enum {
     MI_MOVE_AXIS,
     MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS,
-#ifdef _DEBUG
+#ifdef HAL_CAN_MODULE_ENABLED
     MI_CAN,
+#endif //HAL_CAN_MODULE_ENABLED
+#ifdef _DEBUG
     MI_SERVICE,
     MI_TEST,
 #endif //_DEBUG
@@ -67,8 +73,10 @@ const menu_item_t _menu_settings_items[] = {
     { { "Move Axis", 0, WI_LABEL }, &screen_menu_move },
     { { "Disable Steppers", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Factory Reset", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#ifdef _DEBUG
+#ifdef HAL_CAN_MODULE_ENABLED
     { { "CAN", 0, WI_LABEL }, &screen_can },
+#endif //HAL_CAN_MODULE_ENABLED
+#ifdef _DEBUG
     { { "Service", 0, WI_LABEL }, &screen_menu_service },
     { { "Test", 0, WI_LABEL }, &screen_test },
 #endif //_DEBUG
