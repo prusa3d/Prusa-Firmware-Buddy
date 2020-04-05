@@ -79,6 +79,7 @@ void ETH_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
 void OTG_HS_IRQHandler(void);
 /* USER CODE BEGIN EFP */
+
 /* USER CODE END EFP */
 
     #ifdef __cplusplus

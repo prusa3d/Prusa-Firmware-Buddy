@@ -39,7 +39,6 @@
 #include "cmsis_os.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "can.h"
 #include "bsod.h"
 #include "dump.h"
 /* USER CODE END Includes */
@@ -86,6 +85,7 @@ extern DMA_HandleTypeDef hdma_usart6_rx;
 extern TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN EV */
+
 /* USER CODE END EV */
 
 /******************************************************************************/
