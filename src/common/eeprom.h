@@ -54,6 +54,9 @@
     #define EEVAR_LAN_HOSTNAME  0x1A // 20char string
 #endif                               // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
 
+// sound variable
+#define EEVAR_SOUND_MODE        0x1D // uint8_t
+
 #define EEVAR__PADDING 0x19 // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
 #define EEVAR_CRC32 0x1a // uint32_t crc32 for
@@ -62,9 +65,6 @@
 #define CONNECT_TOKEN_SIZE   20
 #define LAN_EEFLG_ONOFF      1 //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
 #define LAN_EEFLG_TYPE       2 //EEPROM flag for user-defined settings (Switch between dhcp and static)
-
-// sound variable
-#define EEPROM_SOUND_MODE // uint8_t
 
 #ifdef __cplusplus
 extern "C" {

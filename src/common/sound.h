@@ -4,9 +4,9 @@
 // #pragma pack(push)
 // #pragma pack(1)
 
-#ifndef SOUND_H
+// #ifndef SOUND_H
 
-#define SOUND_H
+// #define SOUND_H
 
 // typedef enum {
 //     eSOUND_MODE_ONCE,
@@ -40,8 +40,8 @@ class Sound
     private:
         // -- singleton
         Sound(){};
-        Sound(Sound const&){};
-        Sound& operator=(Sound const&){};
+        // Sound(Sound const&){};
+        // Sound& operator=(Sound const&){};
         static Sound* m_pInstance;
 
         // -- main fnc
@@ -64,7 +64,7 @@ class Sound
 //     Sound::getInstance()->doSound(eSoundType);
 // }
 
-#endif // -- SOUND_H
+// #endif // -- SOUND_H
 // #endif //__cplusplus
 
 // #pragma pack(pop)

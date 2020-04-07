@@ -1,4 +1,4 @@
-#include "sound.hpp"
+#include "sound.h"
 #include "hwio.h"
 #include "eeprom.h"
 
@@ -22,7 +22,8 @@ Sound* Sound::getInstance(){
 }
 
 void Sound::soundInit(){
-    eSoundMode = (eSOUND_MODE)eeprom_read_byte((uint8_t*)EEPROM_SOUND_MODE);
+    // eSoundMode = (eSOUND_MODE)eeprom_read_byte((uint8_t*)EEPROM_SOUND_MODE);
+    eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).i8;
     if(eSoundMode == (uint8_t)eSOUND_MODE_NULL){
         this->setMode(eSOUND_MODE_DEFAULT);
     }
@@ -34,7 +35,7 @@ void Sound::setMode(eSOUND_MODE eSMode){
 }
 
 void Sound::saveMode(){
-    eeprom_update_byte((uint8_t*)EEPROM_SOUND_MODE,(uint8_t)eSoundMode);
+    // eeprom_update_byte((uint8_t*)EEPROM_SOUND_MODE,(uint8_t)eSoundMode);
 }
 
 void Sound::doSound(eSOUND_TYPE eSoundType){
@@ -76,3 +77,5 @@ void Sound::_sound(int rep, float frq, uint32_t del, float vol){
         hwio_beeper_tone2(frq, del, vol);
     }
 }
+
+Sound * s_sound = Sound::getInstance();

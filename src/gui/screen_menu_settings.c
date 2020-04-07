@@ -115,6 +115,8 @@ void screen_menu_settings_init(screen_t *screen) {
     psmd->items[MI_RETURN] = menu_item_return;
     memcpy(psmd->items + 1, _menu_settings_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
+    Sound_SetMode(eSOUND_MODE_LOUD);
+
     fsensor_t fs = fs_wait_inicialized();
     if (fs == FS_NOT_CONNECTED) {
         fs_disable();
@@ -207,10 +209,10 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
                 gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
             }
         } break;
-        case MI_SOUND_MODE: {
-            Sound_SetMode(eSOUND_MODE_LOUD);
+        case MI_SOUND_MODE: 
+            // Sound_SetMode(eSOUND_MODE_LOUD);
             // Sound_SetMode(0);
-        }
+        
             // Sound_SetMode(eSOUND_MODE_LOUD);
             // uint8_t sm_index = (uint8_t)psmd->items[MI_SOUND_MODE].item.wi_switch_select.index;
             // eSOUND_MODE sm = e_sound_modes[psmd->items[MI_SOUND_MODE].item.wi_switch_select.index];
