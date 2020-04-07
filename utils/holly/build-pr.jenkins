@@ -11,6 +11,10 @@ pipeline {
         string(name: 'VERSION_SUFFIX_SHORT', defaultValue: '<default>', description: 'Specify custom version suffix for the build (e.g. "-RC1"). Set to "<default>" to use the default one. Leave empty to make a final-version build without any suffix.')
     }
 
+    options {
+        copyArtifactPermission('/Prusa-Firmware-Buddy/*')
+    }
+
     stages {
         stage('Prepare Build Stages') {
             steps {
