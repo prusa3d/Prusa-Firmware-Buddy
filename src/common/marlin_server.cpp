@@ -69,7 +69,6 @@ typedef struct _marlin_server_t {
     int request_len;
     uint64_t client_events[MARLIN_MAX_CLIENTS];              // client event mask
     uint64_t client_changes[MARLIN_MAX_CLIENTS];             // client variable change mask
-    variant8_t client_events_notsent[MARLIN_MAX_CLIENTS][4]; // buffer for events that are not sent
     uint32_t last_update;                                    // last update tick count
     uint8_t idle_cnt;                                        // idle call counter
     uint8_t pqueue_head;                                     // copy of planner.block_buffer_head
