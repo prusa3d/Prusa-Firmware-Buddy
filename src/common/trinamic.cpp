@@ -9,7 +9,7 @@
 #define DBG _dbg3 //debug level 3
 //#define DBG(...)  //disable debug
 
-#if ((BOARD == A3IDES2209_REV01) || (MOTHERBOARD == 1823))
+#if ((MOTHERBOARD == 1823))
 
 extern TMC2209Stepper stepperX;
 extern TMC2209Stepper stepperY;
@@ -147,14 +147,8 @@ void tmc_set_move(uint8_t tmc, uint16_t step, uint8_t dir, uint8_t speed) {
 
 } //extern "C"
 
-#elif (BOARD == A3IDES2130_REV01)
-
-void init_tmc(void) {
-    //no init required
-}
-
 #else
 
-    #error "BOARD not defined"
+    #error "MOTHERBOARD not defined"
 
 #endif
