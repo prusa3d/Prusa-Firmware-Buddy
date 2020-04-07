@@ -967,10 +967,6 @@ int _server_set_var(char *name_val_str) {
     return 1;
 }
 
-// this is extern from guimain.c, used in temporary fix (force_M600_notify)
-// this variable is set imediately after
-extern int gui_marlin_client_id;
-
 } // extern "C"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -978,16 +974,21 @@ int _is_in_M600_flg = 0;
 #endif
 
 // force send M600 begin/end notify
-void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t req_client_mask, uint8_t client_mask) {
+void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t client_mask) {
     int client_id;
-    // loop until event successfully sent to requested clients
-    while ((client_mask & req_client_mask) != req_client_mask) {
-        idle(); // call marlin idle
+    // loop until event successfully sent to all clients
+    // clients that have not enabled the event will be skipped because sending is filtered in _send_notify_event
+    // and bit in marlin_server.client_events will be always zero for these clients
+    //while (client_mask != ((1 << MARLIN_MAX_CLIENTS) - 1)) {
+    do {
         // check that event sent inside idle and update mask
         for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
             if ((marlin_server.client_events[client_id] & ((uint64_t)1 << evt_id)) == 0)
                 client_mask |= (1 << client_id);
-    }
+        if (client_mask == ((1 << MARLIN_MAX_CLIENTS) - 1))
+            break;
+        idle(); // call marlin idle
+    } while (1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1226,7 +1227,7 @@ void fsm_create(ClinetFSM type, uint8_t data) {
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Create;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
-    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+    _ensure_event_sent(evt_id, client_mask);
 }
 
 //must match fsm_destroy_t signature
@@ -1236,7 +1237,7 @@ void fsm_destroy(ClinetFSM type) {
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
     uint8_t client_mask = _send_notify_event(evt_id, uint32_t(type), 0);
     // notification will wait until successfully sent to gui client
-    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+    _ensure_event_sent(evt_id, client_mask);
 }
 
 //must match fsm_change_t signature
@@ -1247,7 +1248,7 @@ void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pro
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
-    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+    _ensure_event_sent(evt_id, client_mask);
 }
 void host_response_handler(const uint8_t response) {
     DBG_HOST("host_response_handler %d", (int)response);
