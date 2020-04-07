@@ -195,9 +195,12 @@ void gui_run(void) {
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     gui_marlin_client_id = marlin_client_id();
 >>>>>>> MarlinAPI - event and change notification mask separate for each client
+=======
+>>>>>>> Removed int gui_marlin_client_id
     register_dialog_callbacks();
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
