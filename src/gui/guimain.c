@@ -166,6 +166,8 @@ void gui_run(void) {
         update_firmware_screen();
 
     gui_marlin_vars = marlin_client_init();
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     gui_marlin_client_id = marlin_client_id();
     register_dialog_callbacks();
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep

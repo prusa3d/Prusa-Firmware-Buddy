@@ -60,26 +60,27 @@
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
-    char gcode_name[GCODE_NAME_MAX_LEN + 1]; // printing gcode name
-    uint16_t flags;                          // server flags (MARLIN_SFLG)
-    uint64_t notify_events;                  // event notification mask
-    uint64_t notify_changes;                 // variable change notification mask
-    marlin_vars_t vars;                      // cached variables
-    char request[MARLIN_MAX_REQUEST];
-    int request_len;
-    uint64_t client_events[MARLIN_MAX_CLIENTS];              // client event mask
-    uint64_t client_changes[MARLIN_MAX_CLIENTS];             // client variable change mask
-    uint32_t last_update;                                    // last update tick count
-    uint8_t idle_cnt;                                        // idle call counter
-    uint8_t pqueue_head;                                     // copy of planner.block_buffer_head
-    uint8_t pqueue_tail;                                     // copy of planner.block_buffer_tail
-    uint8_t pqueue;                                          // calculated number of records in planner queue
-    uint8_t gqueue;                                          // copy of queue.length - number of commands in gcode queue
-    uint32_t command;                                        // actually running command
-    uint32_t command_begin;                                  // variable for notification
-    uint32_t command_end;                                    // variable for notification
-    marlin_mesh_t mesh;                                      // meshbed leveling
-    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS];         // mesh point mask (points that are not sent)
+    char gcode_name[GCODE_NAME_MAX_LEN + 1];         // printing gcode name
+    uint16_t flags;                                  // server flags (MARLIN_SFLG)
+    uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask
+    uint64_t notify_changes[MARLIN_MAX_CLIENTS];     // variable change notification mask
+    marlin_vars_t vars;                              // cached variables
+    char request[MARLIN_MAX_REQUEST];                //
+    int request_len;                                 //
+    uint64_t client_events[MARLIN_MAX_CLIENTS];      // client event mask
+    uint64_t client_changes[MARLIN_MAX_CLIENTS];     // client variable change mask
+    uint32_t last_update;                            // last update tick count
+    uint8_t idle_cnt;                                // idle call counter
+    uint8_t pqueue_head;                             // copy of planner.block_buffer_head
+    uint8_t pqueue_tail;                             // copy of planner.block_buffer_tail
+    uint8_t pqueue;                                  // calculated number of records in planner queue
+    uint8_t gqueue;                                  // copy of queue.length - number of commands in gcode queue
+    uint32_t command;                                // actually running command
+    uint32_t command_begin;                          // variable for notification
+    uint32_t command_end;                            // variable for notification
+    marlin_mesh_t mesh;                              // meshbed leveling
+    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
+    uint64_t update_vars;                            // variable update mask
 } marlin_server_t;
 
 #pragma pack(pop)
@@ -166,18 +167,22 @@ int _server_set_var(char *name_val_str);
 // server side functions
 
 void marlin_server_init(void) {
+    int i;
     memset(&marlin_server, 0, sizeof(marlin_server_t));
     osMessageQDef(serverQueue, 64, uint8_t);
     marlin_server_queue = osMessageCreate(osMessageQ(serverQueue), NULL);
     osSemaphoreDef(serverSema);
     marlin_server_sema = osSemaphoreCreate(osSemaphore(serverSema), 1);
     marlin_server.flags = MARLIN_SFLG_PROCESS | MARLIN_SFLG_STARTED;
-    marlin_server.notify_events = MARLIN_EVT_MSK_DEF;
-    marlin_server.notify_changes = MARLIN_VAR_MSK_DEF;
+    for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
+        marlin_server.notify_events[i] = MARLIN_EVT_Acknowledge; // by default only ack
+        marlin_server.notify_changes[i] = 0;                     // by default nothing
+    }
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
     marlin_server.gcode_name[0] = '\0';
+    marlin_server.update_vars = MARLIN_VAR_MSK_DEF;
 }
 
 void print_fan_spd() {
@@ -278,12 +283,12 @@ int marlin_server_cycle(void) {
     tick = HAL_GetTick();
     if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
         marlin_server.last_update = tick;
-        changes = _server_update_vars(marlin_server.notify_changes);
+        changes = _server_update_vars(marlin_server.update_vars);
     }
     // send notifications
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if ((queue = marlin_client_queue[client_id]) != 0) {
-            marlin_server.client_changes[client_id] |= changes;
+            marlin_server.client_changes[client_id] |= (changes & marlin_server.notify_changes[client_id]);
             // send change notifications, clear bits for successful sent notification
             if ((msk = marlin_server.client_changes[client_id]) != 0)
                 marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
@@ -495,6 +500,7 @@ int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t
 uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
     uint64_t sent = 0;
     uint64_t msk = 1;
+    evt_msk &= marlin_server.notify_events[client_id]; //for sure
     for (uint8_t evt_int = 0; evt_int <= MARLIN_EVT_MAX; evt_int++) {
         MARLIN_EVT_t evt_id = (MARLIN_EVT_t)evt_int;
         if (msk & evt_msk)
@@ -583,20 +589,20 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
 // returns bitmask - bit0 = notify for client0 successfully send, bit1 for client1...
 uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     uint8_t client_msk = 0;
-    if ((marlin_server.notify_events & ((uint64_t)1 << evt_id)) == 0)
-        return client_msk;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if (_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
-            marlin_server.client_events[client_id] |= ((uint64_t)1 << evt_id); // event not sent, set bit
-            if (evt_id == MARLIN_EVT_MeshUpdate) {
-                uint8_t x = usr16 & 0xff;                      // x index
-                uint8_t y = usr16 >> 8;                        // y index
-                uint8_t index = x + marlin_server.mesh.xc * y; // index
-                uint64_t mask = ((uint64_t)1 << index);        // mask
-                marlin_server.mesh_point_notsent[client_id] |= mask;
-            }
-        } else
-            client_msk |= (1 << client_id);
+        if (marlin_server.notify_events[client_id] & ((uint64_t)1 << evt_id)) {
+            if (_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
+                marlin_server.client_events[client_id] |= ((uint64_t)1 << evt_id); // event not sent, set bit
+                if (evt_id == MARLIN_EVT_MeshUpdate) {
+                    uint8_t x = usr16 & 0xff;                      // x index
+                    uint8_t y = usr16 >> 8;                        // y index
+                    uint8_t index = x + marlin_server.mesh.xc * y; // index
+                    uint64_t mask = ((uint64_t)1 << index);        // mask
+                    marlin_server.mesh_point_notsent[client_id] |= mask;
+                }
+            } else
+                client_msk |= (1 << client_id);
+        }
     return client_msk;
 }
 
@@ -611,6 +617,7 @@ uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint6
     variant8_t var;
     uint64_t sent = 0;
     uint64_t msk = 1;
+    var_msk &= marlin_server.notify_changes[client_id]; //for sure
     for (uint8_t var_id = 0; var_id < 64; var_id++) {
         if (msk & var_msk) {
             var = marlin_vars_get_var(&(marlin_server.vars), var_id);
@@ -896,6 +903,12 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);
+        processed = 1;
+    } else if (sscanf(request, "!event_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        marlin_server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
+        processed = 1;
+    } else if (sscanf(request, "!change_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         processed = 1;
     }
     if (processed)
