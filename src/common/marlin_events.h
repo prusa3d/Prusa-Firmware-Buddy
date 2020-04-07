@@ -48,6 +48,8 @@ typedef enum {
 
 #define MARLIN_EVT_MSK_ALL (MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1)
 #define MARLIN_EVT_MSK_DEF (MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled)))
+#define MARLIN_EVT_MSK_FSM (MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create))
+
 // commands
 #define MARLIN_CMD_NONE 0
 #define MARLIN_CMD_G    (((uint32_t)'G') << 16)

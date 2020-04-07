@@ -99,7 +99,6 @@ const jogwheel_config_t jogwheel_cfg = {
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
-int gui_marlin_client_id = -1;
 int8_t menu_timeout_enabled = 1; // Default: enabled
 
 extern screen_t screen_home;
@@ -166,7 +165,8 @@ void gui_run(void) {
         update_firmware_screen();
 
     gui_marlin_vars = marlin_client_init();
-    gui_marlin_client_id = marlin_client_id();
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     register_dialog_callbacks();
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 

@@ -60,6 +60,8 @@ void StartWebServerTask(void const *argument) {
     tcpclient_wui_sema = osSemaphoreCreate(osSemaphore(wuiSema), 1);
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
     wui.wui_marlin_vars = marlin_client_init(); // init the client
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     if (wui.wui_marlin_vars) {
         wui.wui_marlin_vars = marlin_update_vars(MARLIN_VAR_MSK_WUI);
         update_web_vars();
