@@ -15,6 +15,7 @@
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
 #include "dump.h"
+#include "sound.hpp"
 
 extern screen_t screen_menu_temperature;
 extern screen_t screen_menu_move;
@@ -25,6 +26,7 @@ extern screen_t screen_test;
 extern osThreadId webServerTaskHandle;
 
 const char *settings_opt_enable_disable[] = { "Off", "On", NULL };
+const char *sound_opt_modes[] = { "Once", "Loud", "Silent", "Assist", NULL };
 
 typedef enum {
     MI_RETURN,
@@ -43,6 +45,7 @@ typedef enum {
     MI_LAN_SETTINGS,
 #endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP,
+    MI_SOUND_MODE,
 #ifdef _DEBUG
     MI_HF_TEST_0,
     MI_HF_TEST_1,
@@ -76,6 +79,7 @@ const menu_item_t _menu_settings_items[] = {
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
 #endif //BUDDY_ENABLE_ETHERNET
     { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "Sound Mode", 0, WI_SWITCH, .wi_switch_select = { 0, sound_opt_modes } }, SCREEN_MENU_NO_SCREEN },
 #ifdef _DEBUG
     { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
@@ -203,6 +207,15 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             }
         } break;
         }
+    if (event == WINDOW_EVENT_CHANGE) {
+        switch ((int)param){
+        case MI_SOUND_MODE:
+            // -- sound mode
+            break;
+        default:
+            break;
+        }
+    }
     }
     return 0;
 }

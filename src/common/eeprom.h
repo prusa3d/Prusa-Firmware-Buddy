@@ -63,6 +63,9 @@
 #define LAN_EEFLG_ONOFF      1 //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
 #define LAN_EEFLG_TYPE       2 //EEPROM flag for user-defined settings (Switch between dhcp and static)
 
+// sound variable
+#define EEPROM_SOUND_MODE // uint8_t
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
