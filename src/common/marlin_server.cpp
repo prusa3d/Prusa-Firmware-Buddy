@@ -60,6 +60,9 @@
 
 typedef struct _marlin_server_t {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> MarlinAPI - event and change notification mask separate for each client
     char gcode_name[GCODE_NAME_MAX_LEN + 1];         // printing gcode name
     uint16_t flags;                                  // server flags (MARLIN_SFLG)
     uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask
@@ -81,6 +84,7 @@ typedef struct _marlin_server_t {
     marlin_mesh_t mesh;                              // meshbed leveling
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
     uint64_t update_vars;                            // variable update mask
+<<<<<<< HEAD
 =======
     char gcode_name[GCODE_NAME_MAX_LEN + 1]; // printing gcode name
     uint16_t flags;                          // server flags (MARLIN_SFLG)
@@ -103,6 +107,8 @@ typedef struct _marlin_server_t {
     marlin_mesh_t mesh;                                      // meshbed leveling
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS];         // mesh point mask (points that are not sent)
 >>>>>>> Removed unused variable from marlin_server structure
+=======
+>>>>>>> MarlinAPI - event and change notification mask separate for each client
 } marlin_server_t;
 
 #pragma pack(pop)
