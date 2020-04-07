@@ -3,12 +3,12 @@
 #include "eeprom.h"
 
 // -- C API
-extern "C" void Sound_SetMode(eSOUND_MODE eSMode){
-    Sound::getInstance()->setMode(eSMode);
-}
-extern "C" void Sound_DoSound(eSOUND_TYPE eSoundType){
-    Sound::getInstance()->doSound(eSoundType);
-}
+// extern "C" void Sound_SetMode(eSOUND_MODE eSMode){
+//     Sound::getInstance()->setMode(eSMode);
+// }
+// extern "C" void Sound_DoSound(eSOUND_TYPE eSoundType){
+//     Sound::getInstance()->doSound(eSoundType);
+// }
 
 // -- Singleton class
 Sound* Sound::m_pInstance = nullptr;

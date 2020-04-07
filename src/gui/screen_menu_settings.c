@@ -15,7 +15,7 @@
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
 #include "dump.h"
-#include "sound.hpp"
+#include "sound_C_wrapper.h"
 
 extern screen_t screen_menu_temperature;
 extern screen_t screen_menu_move;
@@ -27,6 +27,7 @@ extern osThreadId webServerTaskHandle;
 
 const char *settings_opt_enable_disable[] = { "Off", "On", NULL };
 const char *sound_opt_modes[] = { "Once", "Loud", "Silent", "Assist", NULL };
+// const eSOUND_MODE e_sound_modes[] = { eSOUND_MODE_ONCE, eSOUND_MODE_LOUD, eSOUND_MODE_SILENT, eSOUND_MODE_ASSIST };
 
 typedef enum {
     MI_RETURN,
@@ -206,16 +207,25 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
                 gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
             }
         } break;
+        case MI_SOUND_MODE: {
+            Sound_SetMode(eSOUND_MODE_LOUD);
+            // Sound_SetMode(0);
         }
-    if (event == WINDOW_EVENT_CHANGE) {
-        switch ((int)param){
-        case MI_SOUND_MODE:
-            // -- sound mode
-            break;
-        default:
+            // Sound_SetMode(eSOUND_MODE_LOUD);
+            // uint8_t sm_index = (uint8_t)psmd->items[MI_SOUND_MODE].item.wi_switch_select.index;
+            // eSOUND_MODE sm = e_sound_modes[psmd->items[MI_SOUND_MODE].item.wi_switch_select.index];
+            // Sound_SetMode(e_sound_modes[psmd->items[MI_SOUND_MODE].item.wi_switch_select.index]);
             break;
         }
-    }
+    // if (event == WINDOW_EVENT_CHANGE) {
+    //     switch ((int)param){
+    //     case MI_SOUND_MODE:
+    //         // -- sound mode
+    //         break;
+    //     default:
+    //         break;
+    //     }
+    // }
     }
     return 0;
 }
