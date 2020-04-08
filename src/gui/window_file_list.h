@@ -11,25 +11,16 @@
 #include "window.h"
 #include "ffconf.h"
 #include "ff.h"
+#include <stdbool.h>
 
 /*
  * Using limits from marlin:
- * SDSORT_LIMIT					64
- * FOLDER_SORTING				-1 dir above
  * FILENAME_LENGTH				13
  * LONG_FILENAME_LENGTH			13 * 5 + 1
  * MAX_DIR_DEPTH				10
  * MAXDIRNAMELENGTH   			8
  * MAXPATHNAMELENGTH			(1 + (MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + FILENAME_LENGTH)
  * */
-
-#ifndef SDSORT_LIMIT
-    #define SDSORT_LIMIT 64 // DOS folder name size
-#endif
-
-#ifndef FOLDER_SORTING
-    #define FOLDER_SORTING -1 // DOS folder name size
-#endif
 
 #ifndef MAX_DIR_DEPTH
     #define MAX_DIR_DEPTH 10 // Maximum folder depth
@@ -51,14 +42,7 @@ typedef struct _window_file_list_t window_file_list_t;
 typedef struct _window_class_file_list_t {
     window_class_t cls;
 } window_class_file_list_t;
-/*
-typedef struct _file_item_t {
-	char name[_MAX_LFN];
-	uint8_t dir;
-	WORD ftime;
-	WORD fdate;
-} file_item_t;
-*/
+
 typedef struct _window_file_list_t {
     window_t win;
     color_t color_back;
@@ -66,12 +50,10 @@ typedef struct _window_file_list_t {
     font_t *font;
     padding_ui8_t padding;
     uint8_t alignment;
-    int count;
-    int index;
-    int top_index;
-    //char path[F_MAXPATHNAMELENGTH-_MAX_LFN];
-    char altpath[F_MAXPATHNAMELENGTH - 12];
-    FILINFO file_items[SDSORT_LIMIT];
+    int count;                              // total number of files/entries in a dir
+    int index;                              // selected index - cursor position within the visible items
+    char altpath[F_MAXPATHNAMELENGTH - 12]; // this is a path where we start the file dialog
+    void *ldv;                              // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
 } window_file_list_t;
 
 #pragma pack(pop)
@@ -91,10 +73,11 @@ extern int16_t WINDOW_CLS_FILE_LIST;
 
 extern const window_class_file_list_t window_class_file_list;
 
-extern void window_file_list_load(window_file_list_t *window, const char **filters,
-    size_t filters_cnt, WF_Sort_t sort);
+extern void window_file_list_load(window_file_list_t *window, WF_Sort_t sort);
 
 extern void window_file_set_item_index(window_file_list_t *window, int index);
+
+extern const char *window_file_current_fname(window_file_list_t *window, bool *isFile);
 
 #ifdef __cplusplus
 }
