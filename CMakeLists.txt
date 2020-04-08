@@ -566,7 +566,6 @@ if(GUI)
             src/gui/screen_menu_tune.cpp
             src/gui/screen_PID.cpp
             src/gui/screen_menu_fw_update.c
-            src/gui/screen_tune_info.c
             src/gui/test/screen_test_temperature.cpp
             src/gui/wizard/selftest_fans_axis.c
             src/gui/test/screen_mesh_bed_lv.cpp
