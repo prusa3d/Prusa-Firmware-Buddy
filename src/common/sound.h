@@ -23,10 +23,10 @@ class Sound
 
         // -- sound types
         void soundButtonEcho(int rep, uint32_t del);
-        void soundStandardPrompt();
-        void soundStandardAlert();
-        void soundEncoderMove();
-        void soundBlindAlert();
+        void soundStandardPrompt(int rep, uint32_t del);
+        void soundStandardAlert(int rep, uint32_t del);
+        void soundEncoderMove(int rep, uint32_t del);
+        void soundBlindAlert(int rep, uint32_t del);
 };
 
 // extern "C" void Sound_SetMode(eSOUND_MODE eSMode){
@@ -35,8 +35,3 @@ class Sound
 // extern "C" void Sound_DoSound(eSOUND_TYPE eSoundType){
 //     Sound::getInstance()->doSound(eSoundType);
 // }
-
-// #endif // -- SOUND_H
-// #endif //__cplusplus
-
-// #pragma pack(pop)

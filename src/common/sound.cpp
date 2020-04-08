@@ -2,14 +2,6 @@
 #include "hwio.h"
 #include "eeprom.h"
 
-// -- C API
-// extern "C" void Sound_SetMode(eSOUND_MODE eSMode){
-//     Sound::getInstance()->setMode(eSMode);
-// }
-// extern "C" void Sound_DoSound(eSOUND_TYPE eSoundType){
-//     Sound::getInstance()->doSound(eSoundType);
-// }
-
 // -- Singleton class
 Sound* Sound::m_pInstance = nullptr;
 
@@ -47,24 +39,24 @@ void Sound::saveMode(){
 void Sound::doSound(eSOUND_TYPE eSoundType){
     switch (eSoundMode){
         case eSOUND_MODE_ONCE:
-            if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(1, 100.0f); }
-            // if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(); }
-            // if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(); }
+            if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(1, 100.f); }
+            if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(1, 500.f); }
+            if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(1, 200.f); }
             break;
         case eSOUND_MODE_LOUD:
             if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(1, 100.0f); }
-            // if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(); }
-            // if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(); }
+            if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(5, 500.f); }
+            if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(3, 200.f); }
             break;
         case eSOUND_MODE_SILENT:
-            // if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(); }
-            // if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(); }
-            // if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(); }
+            if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(1, 200.f); }
             break;
         case eSOUND_MODE_ASSIST:
-            // if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(); }
-            // if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(); }
-            // if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(); }
+            if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(1, 100.0f); }
+            if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(5, 500.f); }
+            if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(3, 200.f); }
+            if(eSoundType == eSOUND_TYPE_EncoderMove) { this->soundEncoderMove(1, 50.f); }
+            if(eSoundType == eSOUND_TYPE_BlindAlert) { this->soundBlindAlert(1, 100.f); }
             break;
         default:
             break;
@@ -73,7 +65,31 @@ void Sound::doSound(eSOUND_TYPE eSoundType){
 
 void Sound::soundButtonEcho(int rep, uint32_t del){
     float vol = (double)(0.01F * 0.125F);
-    float frq = 200.0f;
+    float frq = 100.0f;
+    this->_sound(rep, frq, del, vol);
+}
+
+void Sound::soundStandardPrompt(int rep, uint32_t del){
+    float vol = (double)(0.01F * 0.125F);
+    float frq = 500.0f;
+    this->_sound(rep, frq, del, vol);
+}
+
+void Sound::soundStandardAlert(int rep, uint32_t del){
+    float vol = (double)(0.01F * 0.125F);
+    float frq = 500.0f;
+    this->_sound(rep, frq, del, vol);
+}
+
+void Sound::soundEncoderMove(int rep, uint32_t del){
+    float vol = (double)(0.01F * 0.125F);
+    float frq = 500.0f;
+    this->_sound(rep, frq, del, vol);
+}
+
+void Sound::soundBlindAlert(int rep, uint32_t del){
+    float vol = (double)(0.01F * 0.125F);
+    float frq = 500.0f;
     this->_sound(rep, frq, del, vol);
 }
 
@@ -83,5 +99,3 @@ void Sound::_sound(int rep, float frq, uint32_t del, float vol){
         hwio_beeper_tone2(frq, del, vol);
     }
 }
-
-// Sound * s_sound = Sound::getInstance();

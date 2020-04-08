@@ -139,7 +139,6 @@ void screen_menu_settings_init(screen_t *screen) {
             break;
         }   
     }
-    // psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = Sound_GetMode();
 }
 
 int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -228,19 +227,12 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
         case MI_SOUND_MODE:
             Sound_SetMode(e_sound_modes[psmd->items[MI_SOUND_MODE].item.wi_switch_select.index]);
             break;
+        #ifdef _DEBUG
         case MI_SOUND_TYPE:
             Sound_DoSound(e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index]);
             break;
+        #endif // _DEBUG
         }
-    // if (event == WINDOW_EVENT_CHANGE) {
-    //     switch ((int)param){
-    //     case MI_SOUND_MODE:
-    //         // -- sound mode
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // }
     }
     return 0;
 }
