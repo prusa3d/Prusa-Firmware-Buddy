@@ -4,27 +4,13 @@
 #include "cmsis_os.h"
 
 // -- Singleton class
-// Sound* Sound::m_pInstance = nullptr;
-
-// Sound* Sound::getInstance(){
-//     if(m_pInstance == nullptr){
-//         m_pInstance = new Sound();
-//         m_pInstance->soundInit();
-//     }
-//     return m_pInstance;
-// }
-
-// static Sound& Sound::s = nullptr;
-
 Sound* Sound::getInstance(){
     static Sound s;
     if (!s._inited){ s.soundInit(); }
-    // s.soundInit();
     return &s;
 }
 
 void Sound::soundInit(){
-    // eSoundMode = (eSOUND_MODE)eeprom_read_byte((uint8_t*)EEPROM_SOUND_MODE);
     eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).ui8;
     if((uint8_t)eSoundMode == (uint8_t)eSOUND_MODE_NULL){
         this->setMode(eSOUND_MODE_DEFAULT);
@@ -43,8 +29,6 @@ void Sound::setMode(eSOUND_MODE eSMode){
 
 void Sound::saveMode(){
     eeprom_set_var(EEVAR_SOUND_MODE, variant8_ui8((uint8_t)eSoundMode));
-    // eeprom_set_var((uint8_t)eSoundMode, EEVAR_SOUND_MODE);
-    // eeprom_update_byte((uint8_t*)EEPROM_SOUND_MODE,(uint8_t)eSoundMode);
 }
 
 void Sound::doSound(eSOUND_TYPE eSoundType){
