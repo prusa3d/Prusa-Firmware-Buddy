@@ -93,6 +93,6 @@ void Sound::_sound(int rep, float frq, uint32_t del, float vol){
     hwio_beeper_set_pwm(0, 0);
     for (nI=0; nI<rep; nI++){
         hwio_beeper_tone2(frq, del, vol);
-        osDelay(del);
+        if (rep > 1) { osDelay(del); }
     }
 }
