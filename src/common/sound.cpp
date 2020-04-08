@@ -29,12 +29,18 @@ void Sound::soundInit(){
     }
 }
 
+eSOUND_MODE Sound::getMode(){
+    return eSoundMode;
+}
+
 void Sound::setMode(eSOUND_MODE eSMode){
     eSoundMode = eSMode;
     this->saveMode();
 }
 
 void Sound::saveMode(){
+    eeprom_set_var(EEVAR_SOUND_MODE, variant8_ui8(eSoundMode));
+    // eeprom_set_var((uint8_t)eSoundMode, EEVAR_SOUND_MODE);
     // eeprom_update_byte((uint8_t*)EEPROM_SOUND_MODE,(uint8_t)eSoundMode);
 }
 
@@ -78,4 +84,4 @@ void Sound::_sound(int rep, float frq, uint32_t del, float vol){
     }
 }
 
-Sound * s_sound = Sound::getInstance();
+// Sound * s_sound = Sound::getInstance();
