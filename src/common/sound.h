@@ -4,17 +4,16 @@
 class Sound
 {
     public:
+        static Sound& s;
         eSOUND_MODE eSoundMode;
         static Sound* getInstance();
         void doSound(eSOUND_TYPE eSoundType);
         void setMode(eSOUND_MODE eSMode);
         eSOUND_MODE getMode();
     private:
+        bool _inited = false;
         // -- singleton
         Sound(){};
-        // Sound(Sound const&){};
-        // Sound& operator=(Sound const&){};
-        static Sound* m_pInstance;
 
         // -- main fnc
         void soundInit();

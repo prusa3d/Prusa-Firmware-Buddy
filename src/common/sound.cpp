@@ -1,28 +1,39 @@
 #include "sound.h"
 #include "hwio.h"
 #include "eeprom.h"
+#include "cmsis_os.h"
 
 // -- Singleton class
-Sound* Sound::m_pInstance = nullptr;
+// Sound* Sound::m_pInstance = nullptr;
+
+// Sound* Sound::getInstance(){
+//     if(m_pInstance == nullptr){
+//         m_pInstance = new Sound();
+//         m_pInstance->soundInit();
+//     }
+//     return m_pInstance;
+// }
+
+// static Sound& Sound::s = nullptr;
 
 Sound* Sound::getInstance(){
-    if(m_pInstance == nullptr){
-        m_pInstance = new Sound();
-        m_pInstance->soundInit();
-    }
-    return m_pInstance;
+    static Sound s;
+    if (!s._inited){ s.soundInit(); }
+    // s.soundInit();
+    return &s;
 }
 
 void Sound::soundInit(){
     // eSoundMode = (eSOUND_MODE)eeprom_read_byte((uint8_t*)EEPROM_SOUND_MODE);
-    eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).i8;
-    if(eSoundMode == (uint8_t)eSOUND_MODE_NULL){
+    eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).ui8;
+    if((uint8_t)eSoundMode == (uint8_t)eSOUND_MODE_NULL){
         this->setMode(eSOUND_MODE_DEFAULT);
     }
+    _inited = true;
 }
 
 eSOUND_MODE Sound::getMode(){
-    return eSoundMode;
+    return eSoundMode;  
 }
 
 void Sound::setMode(eSOUND_MODE eSMode){
@@ -31,7 +42,7 @@ void Sound::setMode(eSOUND_MODE eSMode){
 }
 
 void Sound::saveMode(){
-    eeprom_set_var(EEVAR_SOUND_MODE, variant8_ui8(eSoundMode));
+    eeprom_set_var(EEVAR_SOUND_MODE, variant8_ui8((uint8_t)eSoundMode));
     // eeprom_set_var((uint8_t)eSoundMode, EEVAR_SOUND_MODE);
     // eeprom_update_byte((uint8_t*)EEPROM_SOUND_MODE,(uint8_t)eSoundMode);
 }
@@ -95,7 +106,9 @@ void Sound::soundBlindAlert(int rep, uint32_t del){
 
 void Sound::_sound(int rep, float frq, uint32_t del, float vol){
     uint8_t nI;
+    hwio_beeper_set_pwm(0, 0);
     for (nI=0; nI<rep; nI++){
         hwio_beeper_tone2(frq, del, vol);
+        osDelay(del);
     }
 }
