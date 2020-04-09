@@ -12,10 +12,18 @@ class Sound
 
         void doSound(eSOUND_TYPE eSoundType);
         void setMode(eSOUND_MODE eSMode);
-        void soundUpdate1ms();
+        void stopSound();
+        static void soundUpdate1ms();
+        static void nextRepeat();
+
+        static uint32_t _duration;
+        static uint32_t duration;
+        static uint8_t repeat;
+        static double frequency;
+        static double volume;
     private:
         bool _inited = false;
-        uint32_t _del = 0;
+
 
         // -- singleton
         Sound(){};

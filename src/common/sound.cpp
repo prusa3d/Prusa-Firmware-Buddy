@@ -1,7 +1,7 @@
 #include "sound.h"
 #include "hwio.h"
 #include "eeprom.h"
-#include "cmsis_os.h"
+// #include "cmsis_os.h"
 
 // -- Singleton class
 Sound* Sound::getInstance(){
@@ -9,6 +9,12 @@ Sound* Sound::getInstance(){
     if (!s._inited){ s.soundInit(); }
     return &s;
 }
+
+uint32_t Sound::_duration = 0;
+uint32_t Sound::duration = 0;
+uint8_t Sound::repeat = 0;
+double Sound::frequency = 100.0;
+double Sound::volume = 0.0125;
 
 void Sound::soundInit(){
     eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).ui8;
@@ -29,6 +35,10 @@ void Sound::setMode(eSOUND_MODE eSMode){
 
 void Sound::saveMode(){
     eeprom_set_var(EEVAR_SOUND_MODE, variant8_ui8((uint8_t)eSoundMode));
+}
+
+void Sound::stopSound(){
+    _duration = 0;
 }
 
 void Sound::doSound(eSOUND_TYPE eSoundType){
@@ -89,18 +99,33 @@ void Sound::soundBlindAlert(int rep, uint32_t del){
 }
 
 void Sound::_sound(int rep, float frq, uint32_t del, float vol){
-    uint8_t nI;
-    hwio_beeper_set_pwm(0, 0);
-    for (nI=0; nI<rep; nI++){
-        hwio_beeper_tone2(frq, del, vol);
-        if (rep > 1) { osDelay(del); }
-    }
+    repeat = rep;
+    frequency = frq;
+    duration = del;
+    _duration = del;
+    volume = vol;
+    // uint8_t nI;
+    hwio_beeper_set_pwm(0, 0); // -- end previous beep
+    Sound::nextRepeat();
+
+    // for (nI=0; nI<rep; nI++){
+    //     hwio_beeper_tone2(frq, del, vol);
+    //     // if (rep > 1) { osDelay(del); }
+    // }
+}
+
+void Sound::nextRepeat(){
+    _duration = duration;
+    hwio_beeper_tone2(frequency, duration, volume);
 }
 
 void  Sound::soundUpdate1ms(){
-    if ((_del) && (--_del == 0)){
-        /* code */
+    // -- timing logic without osDelay for repeating Beep(s) - viva la Kenshi
+    if ((_duration) && (--_duration == 0)){
+        if((repeat) && (--repeat != 0)){
+            Sound::nextRepeat();
+        }
     }
-    
+    // -- call hwio update
     hwio_update_1ms();
 }
