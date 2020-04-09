@@ -12,8 +12,6 @@ typedef enum {
 
 typedef void (*print_preview_action_handler_t)(print_preview_action_t action);
 
-extern screen_t *const pscreen_print_preview;
-
 void screen_print_preview_set_on_action(print_preview_action_handler_t handler);
 
 // FIXME: the screen_print_preview currently does not copy fpath and fname

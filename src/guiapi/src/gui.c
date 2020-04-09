@@ -50,14 +50,14 @@ void gui_init(void) {
 }
 
 extern window_t *window_0;
-extern window_t *window_1;
 
 void gui_redraw(void) {
     if (gui_flags & GUI_FLG_INVALID) {
+        screen_draw();
         if (window_0)
             window_0->cls->draw(window_0);
-        if (window_1)
-            window_1->cls->draw(window_1);
+        if (window_popup_ptr)
+            window_popup_ptr->cls->draw(window_popup_ptr);
         //window_draw(0);
         gui_flags &= ~GUI_FLG_INVALID;
     }
@@ -145,7 +145,7 @@ void gui_loop(void) {
 int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
     window_msgbox_t msgbox;
-    window_t *window_1_tmp = window_1; //save current window_1
+    window_t *window_popup_tmp = window_popup_ptr; //save current window_popup_ptr
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
     msgbox.title = title;
@@ -158,16 +158,16 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
         int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
         memcpy(msgbox.buttons, buttons, count * sizeof(char *));
     }
-    window_1 = (window_t *)&msgbox;
+    window_popup_ptr = (window_t *)&msgbox;
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);
-    //window_1 is set null after destroying msgbox
+    //window_popup_ptr is set null after destroying msgbox
     //msgbox destroys itself when user pres any button
-    while (window_1) {
+    while (window_popup_ptr) {
         gui_loop();
     }
-    window_1 = window_1_tmp; // restore previos window_1
+    window_popup_ptr = window_popup_tmp; // restore previos window_popup_ptr
     window_invalidate(0);
     window_set_capture(id_capture);
     return msgbox.res;

@@ -6,7 +6,7 @@
 #include "marlin_vars.h"
 #include "marlin_errors.h"
 #include "marlin_host.h"
-#include "dialogs.h"
+#include "client_fsm_types.h"
 
 // server flags
 #define MARLIN_SFLG_STARTED 0x0001 // server started (set in marlin_server_init)
@@ -84,6 +84,9 @@ extern void marlin_server_settings_save(void);
 // direct call of settings.load()
 extern void marlin_server_settings_load(void);
 
+// direct call of settings.reset()
+extern void marlin_server_settings_reset(void);
+
 // direct call of thermalManager.manage_heater()
 extern void marlin_server_manage_heater(void);
 
@@ -107,15 +110,6 @@ extern int marlin_all_axes_homed(void);
 
 //
 extern int marlin_all_axes_known(void);
-
-//must match dialog_open_cb_t signature
-extern void open_dialog_handler(dialog_t type, uint8_t data);
-
-//must match dialog_close_cb_t signature
-extern void close_dialog_handler(dialog_t type);
-
-//must match dialog_change_cb_t signature
-extern void change_dialog_handler(dialog_t type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
 
 #ifdef __cplusplus
 }

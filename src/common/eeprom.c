@@ -9,6 +9,7 @@
 #include "cmsis_os.h"
 #include "ff.h"
 #include "crc32.h"
+#include "version.h"
 
 #define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
 #define EEPROM_DATASIZE sizeof(eeprom_vars_t)
@@ -110,8 +111,8 @@ static const eeprom_vars_t eeprom_var_defaults = {
     EEPROM_VERSION,  // EEVAR_VERSION
     EEPROM_FEATURES, // EEVAR_FEATURES
     EEPROM_DATASIZE, // EEVAR_DATASIZE
-    0,               // EEVAR_FW_VERSION TODO: default value
-    0,               // EEVAR_FW_BUILD   TODO: default value
+    0,               // EEVAR_FW_VERSION
+    0,               // EEVAR_FW_BUILD
     0,               // EEVAR_FILAMENT_TYPE
     0,               // EEVAR_FILAMENT_COLOR
     1,               // EEVAR_RUN_SELFTEST
@@ -155,13 +156,14 @@ static inline void eeprom_unlock(void) {
 
 static uint16_t eeprom_var_size(uint8_t id);
 static uint16_t eeprom_var_addr(uint8_t id);
-static void eeprom_dump(void);
 static void eeprom_print_vars(void);
 static int eeprom_convert_from_v2(void);
 static int eeprom_convert_from(uint16_t version, uint16_t features);
 
 static int eeprom_check_crc32(void);
 static void eeprom_update_crc32(uint16_t addr, uint16_t size);
+
+static uint16_t eeprom_fwversion_ui16(void);
 
 // public functions - described in header
 
@@ -172,12 +174,6 @@ uint8_t eeprom_init(void) {
     osSemaphoreDef(eepromSema);
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
-
-    //eeprom_clear();
-    //eeprom_dump();
-    //osDelay(2000);
-    //eeprom_save_bin_to_usb("eeprom.bin");
-    //while (1);
 
     version = eeprom_get_var(EEVAR_VERSION).ui16;
     features = (version >= 4) ? eeprom_get_var(EEVAR_FEATURES).ui16 : 0;
@@ -190,12 +186,13 @@ uint8_t eeprom_init(void) {
     if (defaults)
         eeprom_defaults();
     eeprom_print_vars();
-    //eeprom_dump();
     return defaults;
 }
 
 void eeprom_defaults(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
+    vars.FWBUILD = project_build_number;
+    vars.FWVERSION = eeprom_fwversion_ui16();
     eeprom_lock();
     // calculate crc32
     vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
@@ -306,22 +303,6 @@ static uint16_t eeprom_var_addr(uint8_t id) {
     return addr;
 }
 
-static void eeprom_dump(void) {
-    int i;
-    int j;
-    uint8_t b;
-    char line[64];
-    for (i = 0; i < 128; i++) // 128 lines = 2048 bytes
-    {
-        sprintf(line, "%04x", i * 16);
-        for (j = 0; j < 16; j++) {
-            b = st25dv64k_user_read(j + i * 16);
-            sprintf(line + 4 + j * 3, " %02x", b);
-        }
-        _dbg("%s", line);
-    }
-}
-
 static void eeprom_print_vars(void) {
     uint8_t id;
     char text[128];
@@ -344,6 +325,8 @@ static void eeprom_print_vars(void) {
 // conversion function for old version 2 format (marlin eeprom)
 static int eeprom_convert_from_v2(void) {
     eeprom_vars_t vars = eeprom_var_defaults;
+    vars.FWBUILD = project_build_number;
+    vars.FWVERSION = eeprom_fwversion_ui16();
     // read FILAMENT_TYPE (uint8_t)
     st25dv64k_user_read_bytes(ADDR_V2_FILAMENT_TYPE, &(vars.FILAMENT_TYPE), sizeof(uint8_t));
     // initialize to zero, maybe not necessary
@@ -412,6 +395,15 @@ static void eeprom_update_crc32(uint16_t addr, uint16_t size) {
     time = _microseconds() - time;
     _dbg("crc update %u us", time);
 #endif
+}
+
+static uint16_t eeprom_fwversion_ui16(void) {
+    int maj = 0;
+    int min = 0;
+    int sub = 0;
+    if (sscanf(project_version, "%d.%d.%d", &maj, &min, &sub) == 3)
+        return sub + 10 * (min + 10 * maj);
+    return 0;
 }
 
 int8_t eeprom_test_PUT(const unsigned int bytes) {

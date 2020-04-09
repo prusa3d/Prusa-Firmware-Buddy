@@ -60,6 +60,8 @@ void StartWebServerTask(void const *argument) {
     tcpclient_wui_sema = osSemaphoreCreate(osSemaphore(wuiSema), 1);
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
     wui.wui_marlin_vars = marlin_client_init(); // init the client
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     if (wui.wui_marlin_vars) {
         wui.wui_marlin_vars = marlin_update_vars(MARLIN_VAR_MSK_WUI);
         update_web_vars();
@@ -128,11 +130,11 @@ static int process_wui_request() {
     } else if (strncmp(wui.request, "!ck ", 4) == 0) {
         variant8_t token = variant8_pchar(wui.request + 4, 0, 0);
         eeprom_set_var(EEVAR_CONNECT_TOKEN, token);
-        variant8_done(&token);
+        //variant8_done() is not called because variant_pchar with init flag 0 doesnt hold its memory
     } else if (strncmp(wui.request, "!cn ", 4) == 0) {
         variant8_t hostname = variant8_pchar(wui.request + 4, 0, 0);
         eeprom_set_var(EEVAR_LAN_HOSTNAME, hostname);
-        variant8_done(&hostname);
+        //variant8_done() is not called because variant_pchar with init flag 0 doesnt hold its memory
     } else {
         marlin_json_gcode(wui.request);
     }

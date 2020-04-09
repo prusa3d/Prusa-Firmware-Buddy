@@ -6,6 +6,7 @@
 
 #include "display.h"
 #include "errors.h"
+#include "screens.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -84,4 +85,4 @@ screen_t screen_qr_error = {
     0,                              //pdata
 };
 
-const screen_t *pscreen_qr_error = &screen_qr_error;
+extern "C" screen_t *const get_scr_qr_error() { return &screen_qr_error; }

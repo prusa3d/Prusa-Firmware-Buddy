@@ -234,6 +234,7 @@ static int ph_home_all_axis(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode("G90"); /*use absolute coordinates*/
 
+    marlin_event_clr(MARLIN_EVT_CommandEnd); // clear event CommandEnd used for synchronization in ph_wait_autohome
     marlin_gcode("G28");
     marlin_wait_motion(250);
     return 1;
@@ -248,12 +249,6 @@ static int ph_restore_Xaxis(selftest_fans_axis_data_t *p_data,
 static int ph_restore_Yaxis(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", Y_home_gcode); /*Set pos */
-    return 1;
-}
-
-static int ph_restore_Zaxis(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
-    marlin_gcode_printf("%s", Z_home_gcode); /*Set pos */
     return 1;
 }
 
@@ -310,6 +305,7 @@ static const _cl_st_ax axisY = {
 static const selftest_phase phasesZ[] = {
     ph_home_all_axis,
     ph_wait_autohome,
+    ph_init, // this phase added here because we need disable sw endstops immediately before move
     ph_move_to_max,
     ph_wait_motion,
     ph_measure_max,

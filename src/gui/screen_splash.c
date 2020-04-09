@@ -3,25 +3,14 @@
 #include "gui.h"
 #include "config.h"
 #include "version.h"
-#include "window_logo.h"
 #include "wizard/wizard.h"
 #include "eeprom.h"
 
 #include "stm32f4xx_hal.h"
+#include "screens.h"
 
 #ifdef _EXTUI
-
     #include "marlin_client.h"
-extern screen_t *pscreen_home;
-
-#else // MARLIN LCD UI
-
-    #ifdef LCDSIM
-extern screen_t *pscreen_marlin;
-    #else
-extern screen_t *pscreen_test;
-    #endif
-
 #endif
 
 #pragma pack(push)
@@ -30,7 +19,7 @@ extern screen_t *pscreen_test;
 typedef struct
 {
     window_frame_t frame;
-    window_logo_t logo_prusa_mini;
+    window_icon_t logo_prusa_mini;
     window_text_t text_progress;
     window_progress_t progress;
     window_text_t text_version;
@@ -41,6 +30,7 @@ typedef struct
     window_icon_t icon_debug;
 
     uint32_t last_timer;
+    uint8_t logo_invalid;
 } screen_splash_data_t;
 
 #pragma pack(pop)
@@ -56,8 +46,9 @@ void screen_splash_init(screen_t *screen) {
     id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0),
         &(_psd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_LOGO, id0, rect_ui16(0, 91, 240, 62),
+    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 84, 240, 62),
         &(_psd->logo_prusa_mini));
+    window_set_icon_id(id, IDR_PNG_splash_logo_prusa_prn);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 171, 220, 20),
         &(_psd->text_progress));
@@ -82,6 +73,8 @@ void screen_splash_init(screen_t *screen) {
     snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
     window_set_text(id, _psd->text_version_buffer);
+
+    _psd->logo_invalid = 0;
 }
 
 void screen_splash_done(screen_t *screen) {
@@ -89,11 +82,18 @@ void screen_splash_done(screen_t *screen) {
 }
 
 void screen_splash_draw(screen_t *screen) {
+    if (_psd->logo_prusa_mini.win.f_invalid)
+        _psd->logo_invalid = 1;
 }
 
 int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     screen_splash_timer(screen, HAL_GetTick());
-
+    if ((event == WINDOW_EVENT_LOOP) && _psd->logo_invalid) {
+#ifdef _DEBUG
+        display->draw_text(rect_ui16(180, 91, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+#endif //_DEBUG
+        _psd->logo_invalid = 0;
+    }
 #ifdef _EXTUI
     if (marlin_event(MARLIN_EVT_Startup)) {
         screen_close();
@@ -103,25 +103,21 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
         uint8_t run_wizard = (run_selftest && run_xyzcalib && run_firstlay) ? 1 : 0;
         if ((run_wizard || run_firstlay)) {
             if (run_wizard) {
-                screen_stack_push(pscreen_home->id);
+                screen_stack_push(get_scr_home()->id);
                 wizard_run_complete();
             } else if (run_firstlay) {
                 if (gui_msgbox("The printer is not calibrated. Start First Layer Calibration?", MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
-                    screen_stack_push(pscreen_home->id);
+                    screen_stack_push(get_scr_home()->id);
                     wizard_run_firstlay();
                 } else
-                    screen_open(pscreen_home->id);
+                    screen_open(get_scr_home()->id);
             }
         } else
-            screen_open(pscreen_home->id);
+            screen_open(get_scr_home()->id);
 #else
     if (HAL_GetTick() > 3000) {
         screen_close();
-    #ifdef LCDSIM
-        screen_open(pscreen_marlin->id);
-    #else
-        screen_open(pscreen_test->id);
-    #endif
+        screen_open(get_scr_test()->id);
 #endif
         return 1;
     }
@@ -144,4 +140,4 @@ screen_t screen_splash = {
     0,                            //pdata
 };
 
-const screen_t *pscreen_splash = &screen_splash;
+screen_t *const get_scr_splash() { return &screen_splash; }

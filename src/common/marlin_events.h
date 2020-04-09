@@ -35,9 +35,9 @@ typedef enum {
     MARLIN_EVT_SafetyTimerExpired,  // host action from marlin, hotends and bed turned off
     MARLIN_EVT_Message,             //
     MARLIN_EVT_Reheat,              //
-    MARLIN_EVT_DialogOpen,          //
-    MARLIN_EVT_DialogClose,         //
-    MARLIN_EVT_DialogChange,        //
+    MARLIN_EVT_FSM_Create,          // create finite state machine in client
+    MARLIN_EVT_FSM_Destroy,         // destroy finite state machine in client
+    MARLIN_EVT_FSM_Change,          // change phase/state/progress in client fsm
     MARLIN_EVT_GFileChange,         // when gcode file changed on start print
     MARLIN_EVT_Acknowledge          // onAcknowledge - lowest priority
 } MARLIN_EVT_t;
@@ -48,6 +48,8 @@ typedef enum {
 
 #define MARLIN_EVT_MSK_ALL (MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1)
 #define MARLIN_EVT_MSK_DEF (MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled)))
+#define MARLIN_EVT_MSK_FSM (MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create))
+
 // commands
 #define MARLIN_CMD_NONE 0
 #define MARLIN_CMD_G    (((uint32_t)'G') << 16)

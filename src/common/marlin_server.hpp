@@ -2,77 +2,87 @@
 #pragma once
 
 #include "marlin_server.h"
-#include "dialog_commands.hpp"
+#include "client_response.hpp"
 
 /*****************************************************************************/
 //C++ only features
 
-//inheritred class for server side to be able to work with server_side_encoded_dialog_command
-class ServerDialogCommands : public DialogCommands {
-    ServerDialogCommands() = delete;
-    static uint32_t server_side_encoded_dialog_command;
+//todo ensure signature match
+//notify all clients to create finit statemachine, must match fsm_create_t signature
+void fsm_create(ClinetFSM type, uint8_t data);
+//notify all clients to destroy finit statemachine, must match fsm_destroy_t signature
+void fsm_destroy(ClinetFSM type);
+//notify all clients to change state of finit statemachine, must match fsm_change_t signature
+void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
+
+//inherited class for server side to be able to work with server_side_encoded_response
+class ClientResponseHandler : public ClientResponses {
+    ClientResponseHandler() = delete;
+    ClientResponseHandler(ClientResponseHandler &) = delete;
+    static uint32_t server_side_encoded_response;
 
 public:
-    //call inside marlin server on received command from client
-    static void SetCommand(uint32_t encoded_bt) {
-        server_side_encoded_dialog_command = encoded_bt;
+    //call inside marlin server on received response from client
+    static void SetResponse(uint32_t encoded_bt) {
+        server_side_encoded_response = encoded_bt;
     }
-    //return command state and erase it
+    //return response and erase it
     //return -1 if button does not match
     template <class T>
-    static Command GetCommandFromPhase(T phase) {
-        uint32_t _phase = server_side_encoded_dialog_command >> COMMAND_BITS;
+    static Response GetResponseFromPhase(T phase) {
+        uint32_t _phase = server_side_encoded_response >> RESPONSE_BITS;
         if ((static_cast<uint32_t>(phase)) != _phase)
-            return Command::_NONE;
-        uint32_t index = server_side_encoded_dialog_command & uint32_t(MAX_COMMANDS - 1); //get command index
-        server_side_encoded_dialog_command = -1;                                          //erase command
-        return GetCommand(phase, index);
+            return Response::_none;
+        uint32_t index = server_side_encoded_response & uint32_t(MAX_RESPONSES - 1); //get response index
+        server_side_encoded_response = -1;                                           //erase response
+        return GetResponse(phase, index);
     }
 };
 
-//Dialog_notifier
-class Dialog_notifier {
-    struct data {
-        dialog_t type;
+//FSM_notifier
+class FSM_notifier {
+    struct data { //used floats - no need to retype
+        ClinetFSM type;
         uint8_t phase;
-        cvariant8 min;
-        cvariant8 range;
-        cvariant8 progress_min;
-        cvariant8 progress_range;
+        float scale;  //scale from value to progress
+        float offset; //offset from lowest value
+        uint8_t progress_min;
+        uint8_t progress_max;
         uint8_t var_id;
         uint8_t last_progress_sent;
         data()
-            : type(DLG_no_dialog)
+            : type(ClinetFSM::_none)
             , phase(0)
             , var_id(0)
             , last_progress_sent(-1) {}
     };
     //static members
+    //there can be only one active instance of FSM_notifier, which use this data
     static data s_data;
 
     //temporary members
-    //to store previous state
+    //constructor stores previous state of FSM_notifier (its static data), destructor restores it
     data temp_data;
 
 protected:
     //protected ctor so this instance cannot be created
-    Dialog_notifier(dialog_t type, uint8_t phase, cvariant8 min, cvariant8 max, cvariant8 progress_min, cvariant8 progress_max, uint8_t var_id);
-    Dialog_notifier(const Dialog_notifier &) = delete;
+    FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
+    FSM_notifier(const FSM_notifier &) = delete;
 
 public:
-    ~Dialog_notifier();
+    ~FSM_notifier();
     static void SendNotification();
 };
 
 //template used by using statement
 template <int VAR_ID, class T>
-class Notifier : public Dialog_notifier {
+class Notifier : public FSM_notifier {
 public:
-    Notifier(dialog_t type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
-        : Dialog_notifier(type, phase, cvariant8(min), cvariant8(max), cvariant8((T)progress_min), cvariant8((T)progress_max), VAR_ID) {}
+    Notifier(ClinetFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
+        : FSM_notifier(type, phase, cvariant8(min), cvariant8(max), progress_min, progress_max, VAR_ID) {}
 };
 
-//use an alias to automatically notyfi progress
+//use an alias to automatically notify progress
 //just create an instance and progress will be notyfied while it exists
 using Notifier_MOTION = Notifier<MARLIN_VAR_MOTION, uint8_t>;
 using Notifier_GQUEUE = Notifier<MARLIN_VAR_GQUEUE, uint8_t>;
@@ -99,16 +109,16 @@ using Notifier_SD_PRINT = Notifier<MARLIN_VAR_SD_PRINT, uint8_t>;
 using Notifier_SD_PDONE = Notifier<MARLIN_VAR_SD_PDONE, uint8_t>;
 using Notifier_DURATION = Notifier<MARLIN_VAR_DURATION, uint32_t>;
 
-//create dialog and automatically destroy it at the end of scope
-class DialogRAII {
-    dialog_t dialog;
+//create finite state machine and automatically destroy it at the end of scope
+class FSM_Holder {
+    ClinetFSM dialog;
 
 public:
-    DialogRAII(dialog_t type, uint8_t data)
+    FSM_Holder(ClinetFSM type, uint8_t data) //any data to send to dialog, could have different meaning for different dialogs
         : dialog(type) {
-        open_dialog_handler(type, data);
+        fsm_create(type, data);
     }
-    ~DialogRAII() {
-        close_dialog_handler(dialog);
+    ~FSM_Holder() {
+        fsm_destroy(dialog);
     }
 };

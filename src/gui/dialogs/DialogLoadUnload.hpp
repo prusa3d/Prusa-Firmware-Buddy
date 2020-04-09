@@ -2,8 +2,6 @@
 
 #include "DialogStateful.hpp"
 
-//constexpr size_t DialogLoadUnloadPhases = CountPhases<PhasesLoadUnload>();
-
 #pragma pack(push)
 #pragma pack(1)
 //load unload and change filament dialog

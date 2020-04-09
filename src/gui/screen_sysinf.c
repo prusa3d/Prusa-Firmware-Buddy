@@ -6,8 +6,8 @@
  */
 
 #include "gui.h"
+#include "screens.h"
 #include "config.h"
-#include "window_logo.h"
 #include "stm32f4xx_hal.h"
 
 #include "sys.h"
@@ -120,4 +120,4 @@ screen_t screen_sysinfo = {
     0,                             //pdata
 };
 
-const screen_t *pscreen_sysinfo = &screen_sysinfo;
+screen_t *const get_scr_sysinfo() { return &screen_sysinfo; }

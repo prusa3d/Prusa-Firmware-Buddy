@@ -4,14 +4,15 @@
 #include <array>
 #include "DialogRadioButton.hpp"
 #include "marlin_client.hpp"
-#include "dialog_commands.hpp"
+#include "client_response.hpp"
 
 #pragma pack(push)
 #pragma pack(1)
 
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
-//general foe any number of phases
+
+//abstract parent containing general code for any number of phases
 class IDialogStateful : public IDialog {
 protected:
     //dialog flags bitshift
@@ -88,7 +89,7 @@ protected:
 
 /*****************************************************************************/
 //parent for stateful dialogs dialog
-//use one of enumclass from "dialog_commands.hpp" as T
+//use one of enumclass from "client_response.hpp" as T
 template <class T>
 class DialogStateful : public IDialogStateful {
 public:
@@ -168,10 +169,9 @@ void DialogStateful<T>::event(uint8_t event, void *param) {
     RadioButton &radio = states[phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-    //case WINDOW_EVENT_BTN_UP:
     case WINDOW_EVENT_CLICK: {
-        Command command = radio.Click();
-        marlin_dialog_command(GetEnumFromPhaseIndex<T>(phase), command);
+        Response response = radio.Click();
+        marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
         return;
     }
     case WINDOW_EVENT_ENC_UP:

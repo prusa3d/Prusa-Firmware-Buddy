@@ -11,7 +11,7 @@ extern osThreadId displayTaskHandle;
 
 window_t *window_0 = 0; //current screen window
 
-window_t *window_1 = 0; //current popup window
+window_t *window_popup_ptr = 0; //current popup window
 
 window_t *windows[WINDOW_MAX_WINDOWS];
 uint16_t window_count = 0;
@@ -147,8 +147,8 @@ void window_destroy(int16_t id) {
             window_capture_ptr = 0;
         if (window == window_focused_ptr)
             window_focused_ptr = 0;
-        if (window == window_1)
-            window_1 = 0;
+        if (window == window_popup_ptr)
+            window_popup_ptr = 0;
         //if (window == window_0) window_0 = 0;
         if (count == 0)
             window_0 = 0;
@@ -287,8 +287,8 @@ void window_draw_children(int16_t id) {
     int16_t id_child;
     for (id_child = 0; id_child < WINDOW_MAX_WINDOWS; id_child++)
         if (((window = windows[id_child]) != 0) && (window->id_parent == id)) {
-            if (window_1 && window_1->id != window->id_parent) {
-                if (rect_empty_ui16(rect_intersect_ui16(window_1->rect, window->rect)))
+            if (window_popup_ptr && window_popup_ptr->id != window->id_parent) {
+                if (rect_empty_ui16(rect_intersect_ui16(window_popup_ptr->rect, window->rect)))
                     if (window->cls->draw)
                         window->cls->draw(window);
             } else if (window->cls->draw)

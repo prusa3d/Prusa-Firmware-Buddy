@@ -2,14 +2,10 @@
 #include "DialogRadioButton.hpp"
 #include "gui.h"
 
-extern window_t *window_1; //current popup window, C-code remain
-
 //*****************************************************************************
-
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     : IDialog(WINDOW_CLS_)
     , id_capture(window_capture())
-#warning check id_capture(window_capture())
     , color_back(gui_defaults.color_back)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
@@ -20,7 +16,7 @@ IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     , phase(0)
     , progress(-1)
     , title(name) {
-    window_1 = this; //todo
+    window_popup_ptr = this;
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);
@@ -47,8 +43,6 @@ IDialogStateful::~IDialogStateful() {
     window_invalidate(0);
 }
 
-extern window_t *window_1; //current popup window
-
 void IDialogStateful::draw_frame() {
     rect_ui16_t rc = rect;
     display->draw_line(point_ui16(rc.x, rc.y), point_ui16(239, rc.y), COLOR_GRAY);
@@ -57,7 +51,7 @@ void IDialogStateful::draw_frame() {
     display->draw_line(point_ui16(rc.x, 320 - 67), point_ui16(239, 320 - 67), COLOR_GRAY);
 }
 
-//this should be moved elswhere
+//todo this should be moved elswhere
 void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     color_t color_text, padding_ui8_t padding, uint8_t progress) {
     rect_ui16_t rc_pro = win_rect; //must copy it
@@ -79,7 +73,8 @@ void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     sprintf(text, "%d%%", progress);
     render_text_align(rc_pro, text, font, color_back, color_text, padding, ALIGN_CENTER);
 }
-//this should be moved elswhere
+
+//todo this should be moved elswhere
 void progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
     rect_ui16_t rc_pro = win_rect; //must copy it
     rc_pro.x += 10;

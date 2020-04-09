@@ -109,6 +109,8 @@ typedef struct _window_t {
 extern "C" {
 #endif //__cplusplus
 
+extern window_t *window_popup_ptr; //current popup window
+
 extern window_t *window_focused_ptr; //current focused window
 
 extern window_t *window_capture_ptr; //current capture window

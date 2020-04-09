@@ -14,14 +14,9 @@
 #endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
+#include "screens.h"
 #include "dump.h"
 
-extern screen_t screen_menu_temperature;
-extern screen_t screen_menu_move;
-#ifdef _DEBUG
-extern screen_t screen_menu_service;
-extern screen_t screen_test;
-#endif //_DEBUG
 extern osThreadId webServerTaskHandle;
 
 const char *settings_opt_enable_disable[] = { "Off", "On", NULL };
@@ -57,6 +52,7 @@ typedef enum {
     MI_EE_SAVE,
     MI_EE_SAVEXML,
 #endif //_DEBUG
+    MI_COUNT
 } MI_t;
 
 const menu_item_t _menu_settings_items[] = {
@@ -91,11 +87,23 @@ const menu_item_t _menu_settings_items[] = {
 #endif //_DEBUG
 };
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_settings_init(screen_t *screen) {
-    int count = sizeof(_menu_settings_items) / sizeof(menu_item_t);
-    screen_menu_init(screen, "SETTINGS", count + 1, 1, 0);
+    screen_menu_init(screen, "SETTINGS", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_settings_items, count * sizeof(menu_item_t));
+    memcpy(psmd->items + 1, _menu_settings_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
     fsensor_t fs = fs_wait_inicialized();
     if (fs == FS_NOT_CONNECTED) {
@@ -201,8 +209,8 @@ screen_t screen_menu_settings = {
     screen_menu_done,
     screen_menu_draw,
     screen_menu_settings_event,
-    sizeof(screen_menu_data_t), //data_size
+    sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_settings = &screen_menu_settings;
+screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }

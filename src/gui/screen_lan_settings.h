@@ -49,6 +49,5 @@ typedef struct {
 } networkconfig_t;
 
 extern screen_t screen_lan_settings;
-extern screen_t *const pscreen_lan_settings;
 
 #endif /* SRC_GUI_SCREEN_LAN_SETTINGS_H_ */

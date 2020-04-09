@@ -5,12 +5,12 @@
 #include "window_temp_graph.h"
 #include "cmsis_os.h"
 #include <stdlib.h>
+#include "screens.h"
+
+extern void window_temp_scope_add(float temp_ext, float temp_bed);
 
 #pragma pack(push)
 #pragma pack(1)
-
-extern void window_temp_scope_add(float temp_ext, float temp_bed);
-extern screen_t *pscreen_menu_service;
 typedef struct
 {
     window_frame_t frame;
@@ -86,7 +86,7 @@ int screen_test_graph_event(screen_test_term_t *screen, window_t *window, uint8_
     } else if (event == WINDOW_EVENT_CLICK) {
         switch ((int)param) {
         case 1:
-            //screen_open(pscreen_menu_service->id);
+            //screen_open(get_scr_menu_service()->id);
             screen_close();
             break;
         }
@@ -108,4 +108,4 @@ screen_test_term_t screen_test_graph = {
     0,
 };
 
-const screen_t *pscreen_test_graph = (screen_t *)(&screen_test_graph);
+screen_t *const get_scr_test_graph() { return (screen_t *)(&screen_test_graph); }

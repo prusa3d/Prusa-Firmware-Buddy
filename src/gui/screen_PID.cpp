@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "eeprom.h"
+#include "screens.h"
 
 #ifdef PIDCALIBRATION
 
@@ -374,7 +375,6 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
                 eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
                 eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
-                //                marlin_gcode("M500"); //store to eeprom
             }
             break;
         case TAG_AUTOTUNE_APPLY_B:
@@ -393,7 +393,6 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
                 eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
                 eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
-                //                marlin_gcode("M500"); //store to eeprom
             }
             break;
         case TAG_CHANGE_VAL_E:
@@ -543,7 +542,7 @@ screen_t screen_PID = {
     0,                         //pdata
 };
 
-const screen_t *pscreen_PID = &screen_PID;
+screen_t *const get_scr_PID() { return &screen_PID; }
 }
 
 //-----------------------------------------------------------------------------
@@ -560,7 +559,15 @@ void _PID_copy_and_scale_PID_d(_PID_t *ths) {
 
 void _PID_autotune(_PID_t *ths) {
     marlin_gcode_printf("M303 U1 E%i S%i", ths->ID, int(*ths->autotune_temp));
-    //    marlin_gcode("M500");
+    if (ths->ID >= 0) {
+        eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
+        eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
+        eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
+    } else {
+        eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
+        eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
+        eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+    }
 }
 
 //0	the contents of both memory blocks are equal

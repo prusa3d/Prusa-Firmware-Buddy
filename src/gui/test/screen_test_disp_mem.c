@@ -7,7 +7,6 @@
 
 #include "gui.h"
 #include "config.h"
-#include "window_logo.h"
 #include "stm32f4xx_hal.h"
 
 #include "st7789v.h"
@@ -626,4 +625,4 @@ screen_t screen_test_disp_mem = {
     0,                                   //pdata
 };
 
-const screen_t *pscreen_test_disp_mem = &screen_test_disp_mem;
+screen_t *const get_scr_test_disp_mem() { return &screen_test_disp_mem; }

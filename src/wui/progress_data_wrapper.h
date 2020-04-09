@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -15,7 +16,7 @@ uint8_t progress_get_percentage();
 
 void progress_format_time2end(char *dest, uint16_t feedrate);
 
-void print_dur_to_string(char *buffer, uint32_t print_dur);
+void print_dur_to_string(char *buffer, size_t buffer_len, uint32_t print_dur);
 
 #ifdef __cplusplus
 }
