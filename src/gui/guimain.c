@@ -279,7 +279,6 @@ void gui_run(void) {
         gui_loop();
 #ifndef LCDSIM
         if (marlin_message_received()) {
-
             screen_t *curr = screen_get_curr();
             if (curr == pscreen_printing) {
                 screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);

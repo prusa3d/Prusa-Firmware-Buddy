@@ -165,11 +165,6 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
         case MI_BABYSTEP:
             z_offs = psmd->items[MI_BABYSTEP].item.wi_spin_fl.value;
             break;
-            // je potreba mit ? - stara se o to menu_screen_event
-            /*case MI_MESSAGES:
-        case MI_TUNE_INFO:
-            screen_open(psmd->items[(int)param].screen->id);
-            break;*/
         }
     }
 
