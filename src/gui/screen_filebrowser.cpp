@@ -175,6 +175,4 @@ static screen_t screen_filebrowser = {
     0
 };
 
-extern "C" {
-screen_t *const get_scr_filebrowser() { return &screen_filebrowser; }
-}
+extern "C" screen_t *const get_scr_filebrowser() { return &screen_filebrowser; }

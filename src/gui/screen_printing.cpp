@@ -177,7 +177,7 @@ screen_t screen_printing = {
     sizeof(screen_printing_data_t), //data_size
     0,                              //pdata
 };
-screen_t *const get_scr_printing() { return &screen_printing; }
+extern "C" screen_t *const get_scr_printing() { return &screen_printing; }
 
 //TODO: rework this, save memory
 char screen_printing_file_name[_MAX_LFN + 1] = { '\0' }; //+1 for '\0' character (avoid warning)

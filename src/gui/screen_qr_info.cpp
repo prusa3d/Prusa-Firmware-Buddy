@@ -78,6 +78,4 @@ screen_t screen_qr_info = {
     0,                             //pdata
 };
 
-extern "C" {
-screen_t *const get_scr_qr_info() { return &screen_qr_info; }
-}
+extern "C" screen_t *const get_scr_qr_info() { return &screen_qr_info; }

@@ -52,9 +52,7 @@ screen_t screen_printing_serial = {
     sizeof(screen_printing_serial_data_t), //data_size
     0,                                     //pdata
 };
-extern "C" {
-screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
-}
+extern "C" screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
 static const uint8_t Tag_bt_tune = 1;
 #define pw ((screen_printing_serial_data_t *)screen->pdata)

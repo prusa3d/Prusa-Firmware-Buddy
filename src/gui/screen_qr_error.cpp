@@ -85,6 +85,4 @@ screen_t screen_qr_error = {
     0,                              //pdata
 };
 
-extern "C" {
-screen_t *const get_scr_qr_error() { return &screen_qr_error; }
-}
+extern "C" screen_t *const get_scr_qr_error() { return &screen_qr_error; }
