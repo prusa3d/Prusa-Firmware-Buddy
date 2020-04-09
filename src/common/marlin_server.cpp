@@ -39,9 +39,12 @@
 #endif // LCDSIM
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> MarlinAPI - fixed dependency to GUI, removed #include "menu_vars.h"
+=======
+>>>>>>> clang-format
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 
