@@ -7,7 +7,7 @@
 
 #include "config.h"
 #include "eeprom.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #ifdef PIDCALIBRATION
 

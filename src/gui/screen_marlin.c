@@ -4,7 +4,7 @@
 #include "config.h"
 #include "cmsis_os.h"
 #include "hwio.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 extern osThreadId displayTaskHandle;
 

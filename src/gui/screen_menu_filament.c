@@ -7,7 +7,7 @@
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "window_dlg_load_unload.h"
-#include "screen_pointers.h"
+#include "screens.h"
 #include "dbg.h"
 
 #define FKNOWN      0x01 //filament is known

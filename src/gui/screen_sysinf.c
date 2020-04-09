@@ -6,7 +6,7 @@
  */
 
 #include "gui.h"
-#include "screen_pointers.h"
+#include "screens.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"
 

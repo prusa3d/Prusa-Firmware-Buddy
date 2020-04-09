@@ -14,7 +14,7 @@
 #endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
-#include "screen_pointers.h"
+#include "screens.h"
 #include "dump.h"
 
 extern osThreadId webServerTaskHandle;

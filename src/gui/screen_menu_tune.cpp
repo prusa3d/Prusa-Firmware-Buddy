@@ -5,7 +5,7 @@
 #include "marlin_client.h"
 #include "filament.h"
 #include "menu_vars.h"
-#include "screen_pointers.h"
+#include "screens.h"
 #include "eeprom.h"
 
 enum {

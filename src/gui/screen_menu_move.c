@@ -3,7 +3,7 @@
 #include "gui.h"
 #include "screen_menu.h"
 #include "marlin_client.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #include "menu_vars.h"
 

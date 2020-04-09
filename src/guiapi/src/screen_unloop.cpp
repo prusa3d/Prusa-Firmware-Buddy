@@ -3,7 +3,7 @@
 
 #include "screen_unloop.h"
 #include "gui.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 //I could not use functions to initialize those arrays in C
 static screen_t *const timeout_blacklist[] = {

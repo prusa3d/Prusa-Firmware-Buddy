@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "version.h"
 #include "resource.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
 #define OTP_START_ADDR             0x1FFF7800

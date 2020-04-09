@@ -5,7 +5,7 @@
 #include "window_temp_graph.h"
 #include "cmsis_os.h"
 #include <stdlib.h>
-#include "screen_pointers.h"
+#include "screens.h"
 
 extern void window_temp_scope_add(float temp_ext, float temp_bed);
 

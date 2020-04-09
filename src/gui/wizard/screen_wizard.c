@@ -13,7 +13,7 @@
 #include "menu_vars.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-#include "screen_pointers.h"
+#include "screens.h"
 uint64_t wizard_mask = 0;
 
 static int is_state_in_wizard_mask(wizard_state_t st) {

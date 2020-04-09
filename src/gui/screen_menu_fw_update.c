@@ -6,7 +6,7 @@
  */
 
 #include "screen_menu_fw_update.h"
-#include "screen_pointers.h"
+#include "screens.h"
 #include "sys.h"
 
 const char *opt_on_off[] = { "On", "Off", NULL };

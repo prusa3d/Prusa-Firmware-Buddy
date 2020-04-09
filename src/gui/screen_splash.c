@@ -7,7 +7,7 @@
 #include "eeprom.h"
 
 #include "stm32f4xx_hal.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #ifdef _EXTUI
     #include "marlin_client.h"

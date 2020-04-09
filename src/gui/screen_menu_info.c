@@ -2,7 +2,7 @@
 
 #include "gui.h"
 #include "screen_menu.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 typedef enum {
     MI_RETURN,

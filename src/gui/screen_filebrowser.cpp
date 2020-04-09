@@ -17,7 +17,7 @@
 #include "screen_print_preview.h"
 #include "screen_printing.h"
 #include "print_utils.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/gcode/queue.h"

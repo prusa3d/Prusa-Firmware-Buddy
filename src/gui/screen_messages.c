@@ -9,7 +9,7 @@
 #include "screen_menu.h"
 #include "marlin_server.h"
 #include <stdlib.h>
-#include "screen_pointers.h"
+#include "screens.h"
 
 #pragma pack(push)
 #pragma pack(1)

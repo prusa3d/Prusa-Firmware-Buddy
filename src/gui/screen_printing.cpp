@@ -15,7 +15,7 @@
 #include "screen_printing.h"
 #include "marlin_server.h"
 #include "print_utils.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #include "ffconf.h"
 

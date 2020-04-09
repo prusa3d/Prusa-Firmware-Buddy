@@ -5,7 +5,7 @@
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #pragma pack(push)
 #pragma pack(1)

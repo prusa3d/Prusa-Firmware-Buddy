@@ -5,7 +5,7 @@
 #include "marlin_client.h"
 #include "wizard/wizard.h"
 #include "window_dlg_wait.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #include "menu_vars.h"
 #include "eeprom.h"

@@ -8,7 +8,7 @@
 #include "marlin_server.h"
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
-#include "screen_pointers.h"
+#include "screens.h"
 
 #pragma pack(push)
 #pragma pack(1)

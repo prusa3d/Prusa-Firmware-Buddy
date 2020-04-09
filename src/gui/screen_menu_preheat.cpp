@@ -10,7 +10,7 @@
 #include "screen_menu.h"
 #include "filament.h"
 #include "marlin_client.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 uint8_t menu_preheat_type = 0; // 0 - preheat, 1 - load filament, 2 - unload filament
 

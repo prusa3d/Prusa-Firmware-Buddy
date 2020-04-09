@@ -3,7 +3,7 @@
 #include "screen_menu.h"
 #include <stdlib.h>
 #include "support_utils.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 #include "../../gui/wizard/selftest.h"
 #include "stm32f4xx_hal.h"

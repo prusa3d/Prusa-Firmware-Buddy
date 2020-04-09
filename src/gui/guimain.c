@@ -20,7 +20,7 @@
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
 #include "Dialog_C_wrapper.h"
-#include "screen_pointers.h"
+#include "screens.h"
 #include "screen_unloop.h"
 
 extern int HAL_IWDG_Reset;

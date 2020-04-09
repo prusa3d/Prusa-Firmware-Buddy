@@ -5,7 +5,7 @@
 #include "dbg.h"
 #include "config.h"
 #include "screen_wizard.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 extern uint64_t wizard_mask;
 

@@ -8,7 +8,7 @@
 #include "dbg.h"
 #include "bsod.h"
 #include "eeprom.h"
-#include "screen_pointers.h"
+#include "screens.h"
 
 typedef enum {
     MI_RETURN,
