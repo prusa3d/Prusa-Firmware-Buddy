@@ -65,7 +65,7 @@ echo 'SUBSYSTEM=="usb",GROUP="users",MODE="0666"' > /etc/udev/rules.d/90-usbperm
 udevadm control --reload-rules
 ```
 
-Unplug a plug the STlink back and it should work.
+Unplug and plug the STlink back and it should work.
 
 #### Linux/Ubuntu: Error: couldn't bind tcl to socket on port 6666: Address already in use
 
@@ -89,7 +89,7 @@ $ ldd gcc-arm-none-eabi-7.3.1/bin/arm-none-eabi-gdb
 ```
 
 On Ubuntu 19.10 this is exacty the case, the system contains `libncurses.so.6` and not `libncurses.so.5`.
-This may be hacked similarly like this:
+This may be _hacked_ similarly like this:
 
 ```bash
 ln -s /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
