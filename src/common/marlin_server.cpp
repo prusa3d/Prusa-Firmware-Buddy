@@ -38,6 +38,10 @@
     #include "lcdsim.h"
 #endif // LCDSIM
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> MarlinAPI - fixed dependency to GUI, removed #include "menu_vars.h"
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 
