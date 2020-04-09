@@ -13,9 +13,6 @@
 #define FKNOWN      0x01 //filament is known
 #define F_NOTSENSED 0x02 //filament is not in sensor
 
-extern screen_t screen_menu_preheat;
-extern screen_t screen_preheating;
-
 typedef enum {
     MI_RETURN,
     MI_LOAD,

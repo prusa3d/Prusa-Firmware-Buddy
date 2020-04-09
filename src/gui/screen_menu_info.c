@@ -4,11 +4,6 @@
 #include "screen_menu.h"
 #include "screen_pointers.h"
 
-extern screen_t screen_sysinfo;
-extern screen_t screen_version_info;
-extern screen_t screen_qr_info;
-extern screen_t screen_qr_error;
-
 typedef enum {
     MI_RETURN,
 #ifdef _DEBUG

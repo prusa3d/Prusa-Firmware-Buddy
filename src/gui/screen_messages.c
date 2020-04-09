@@ -24,7 +24,6 @@ typedef struct _screen_messages_data_t {
 
 #pragma pack(pop)
 
-extern screen_t screen_messages;
 extern msg_stack_t msg_stack;
 
 #define pmsg ((screen_messages_data_t *)screen->pdata)

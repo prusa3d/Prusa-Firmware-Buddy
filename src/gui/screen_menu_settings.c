@@ -17,12 +17,6 @@
 #include "screen_pointers.h"
 #include "dump.h"
 
-extern screen_t screen_menu_temperature;
-extern screen_t screen_menu_move;
-#ifdef _DEBUG
-extern screen_t screen_menu_service;
-extern screen_t screen_test;
-#endif //_DEBUG
 extern osThreadId webServerTaskHandle;
 
 const char *settings_opt_enable_disable[] = { "Off", "On", NULL };
