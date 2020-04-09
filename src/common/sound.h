@@ -6,12 +6,17 @@ class Sound
     public:
         static Sound& s;
         eSOUND_MODE eSoundMode;
+        
         static Sound* getInstance();
+        eSOUND_MODE getMode();
+
         void doSound(eSOUND_TYPE eSoundType);
         void setMode(eSOUND_MODE eSMode);
-        eSOUND_MODE getMode();
+        void soundUpdate1ms();
     private:
         bool _inited = false;
+        uint32_t _del = 0;
+
         // -- singleton
         Sound(){};
 
@@ -27,10 +32,3 @@ class Sound
         void soundEncoderMove(int rep, uint32_t del);
         void soundBlindAlert(int rep, uint32_t del);
 };
-
-// extern "C" void Sound_SetMode(eSOUND_MODE eSMode){
-//     Sound::getInstance()->setMode(eSMode);
-// }
-// extern "C" void Sound_DoSound(eSOUND_TYPE eSoundType){
-//     Sound::getInstance()->doSound(eSoundType);
-// }

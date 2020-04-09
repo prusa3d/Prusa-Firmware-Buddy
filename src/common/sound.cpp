@@ -96,3 +96,11 @@ void Sound::_sound(int rep, float frq, uint32_t del, float vol){
         if (rep > 1) { osDelay(del); }
     }
 }
+
+void  Sound::soundUpdate1ms(){
+    if ((_del) && (--_del == 0)){
+        /* code */
+    }
+    
+    hwio_update_1ms();
+}
