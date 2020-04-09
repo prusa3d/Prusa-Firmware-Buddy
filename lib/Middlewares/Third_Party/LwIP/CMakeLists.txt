@@ -74,7 +74,6 @@ add_library(
   src/netif/ppp/utils.c
   src/netif/ppp/vj.c
   src/netif/slipif.c
-  src/apps/sntp.c
   system/OS/sys_arch.c
   )
 
