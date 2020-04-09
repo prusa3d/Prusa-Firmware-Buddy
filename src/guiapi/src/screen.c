@@ -3,9 +3,9 @@
 #include "screen.h"
 #include "gui.h"
 
-#define SCREEN_MAX_SCREENS 33
+#define SCREEN_MAX_SCREENS 32
 
-#define SCREEN_MAX_HISTORY 33
+#define SCREEN_MAX_HISTORY 32
 
 screen_t *screen_0 = 0; //current screen
 
