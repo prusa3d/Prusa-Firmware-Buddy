@@ -31,6 +31,18 @@
             "toolchainPrefix": "arm-none-eabi",
             "rtos": "FreeRTOS",
             "device": "STM32F407VG"
+        },
+        {
+            "name": "JLink attach",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
+            "toolchainPrefix": "arm-none-eabi",
+            "rtos": "FreeRTOS",
+            "device": "STM32F407VG"
         }
     ]
 }
