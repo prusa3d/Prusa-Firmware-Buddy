@@ -29,6 +29,7 @@
 #include "hwio.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
+
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
@@ -54,27 +55,27 @@
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
-    char gcode_name[GCODE_NAME_MAX_LEN + 1]; // printing gcode name
-    uint16_t flags;                          // server flags (MARLIN_SFLG)
-    uint64_t notify_events;                  // event notification mask
-    uint64_t notify_changes;                 // variable change notification mask
-    marlin_vars_t vars;                      // cached variables
-    char request[MARLIN_MAX_REQUEST];
-    int request_len;
-    uint64_t client_events[MARLIN_MAX_CLIENTS];              // client event mask
-    uint64_t client_changes[MARLIN_MAX_CLIENTS];             // client variable change mask
-    variant8_t client_events_notsent[MARLIN_MAX_CLIENTS][4]; // buffer for events that are not sent
-    uint32_t last_update;                                    // last update tick count
-    uint8_t idle_cnt;                                        // idle call counter
-    uint8_t pqueue_head;                                     // copy of planner.block_buffer_head
-    uint8_t pqueue_tail;                                     // copy of planner.block_buffer_tail
-    uint8_t pqueue;                                          // calculated number of records in planner queue
-    uint8_t gqueue;                                          // copy of queue.length - number of commands in gcode queue
-    uint32_t command;                                        // actually running command
-    uint32_t command_begin;                                  // variable for notification
-    uint32_t command_end;                                    // variable for notification
-    marlin_mesh_t mesh;                                      // meshbed leveling
-    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS];         // mesh point mask (points that are not sent)
+    char gcode_name[GCODE_NAME_MAX_LEN + 1];         // printing gcode name
+    uint16_t flags;                                  // server flags (MARLIN_SFLG)
+    uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask
+    uint64_t notify_changes[MARLIN_MAX_CLIENTS];     // variable change notification mask
+    marlin_vars_t vars;                              // cached variables
+    char request[MARLIN_MAX_REQUEST];                //
+    int request_len;                                 //
+    uint64_t client_events[MARLIN_MAX_CLIENTS];      // client event mask
+    uint64_t client_changes[MARLIN_MAX_CLIENTS];     // client variable change mask
+    uint32_t last_update;                            // last update tick count
+    uint8_t idle_cnt;                                // idle call counter
+    uint8_t pqueue_head;                             // copy of planner.block_buffer_head
+    uint8_t pqueue_tail;                             // copy of planner.block_buffer_tail
+    uint8_t pqueue;                                  // calculated number of records in planner queue
+    uint8_t gqueue;                                  // copy of queue.length - number of commands in gcode queue
+    uint32_t command;                                // actually running command
+    uint32_t command_begin;                          // variable for notification
+    uint32_t command_end;                            // variable for notification
+    marlin_mesh_t mesh;                              // meshbed leveling
+    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
+    uint64_t update_vars;                            // variable update mask
 } marlin_server_t;
 
 #pragma pack(pop)
@@ -161,18 +162,22 @@ int _server_set_var(char *name_val_str);
 // server side functions
 
 void marlin_server_init(void) {
+    int i;
     memset(&marlin_server, 0, sizeof(marlin_server_t));
     osMessageQDef(serverQueue, 64, uint8_t);
     marlin_server_queue = osMessageCreate(osMessageQ(serverQueue), NULL);
     osSemaphoreDef(serverSema);
     marlin_server_sema = osSemaphoreCreate(osSemaphore(serverSema), 1);
     marlin_server.flags = MARLIN_SFLG_PROCESS | MARLIN_SFLG_STARTED;
-    marlin_server.notify_events = MARLIN_EVT_MSK_DEF;
-    marlin_server.notify_changes = MARLIN_VAR_MSK_DEF;
+    for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
+        marlin_server.notify_events[i] = MARLIN_EVT_Acknowledge; // by default only ack
+        marlin_server.notify_changes[i] = 0;                     // by default nothing
+    }
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
     marlin_server.gcode_name[0] = '\0';
+    marlin_server.update_vars = MARLIN_VAR_MSK_DEF;
 }
 
 void print_fan_spd() {
@@ -212,7 +217,14 @@ static void print_Z_probe_cnt() {
 }
 #endif
 int marlin_server_cycle(void) {
+
+    static int processing = 0;
+    if (processing)
+        return 0;
+    processing = 1;
+
     FSM_notifier::SendNotification();
+
     print_fan_spd();
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
@@ -266,12 +278,12 @@ int marlin_server_cycle(void) {
     tick = HAL_GetTick();
     if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
         marlin_server.last_update = tick;
-        changes = _server_update_vars(marlin_server.notify_changes);
+        changes = _server_update_vars(marlin_server.update_vars);
     }
     // send notifications
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if ((queue = marlin_client_queue[client_id]) != 0) {
-            marlin_server.client_changes[client_id] |= changes;
+            marlin_server.client_changes[client_id] |= (changes & marlin_server.notify_changes[client_id]);
             // send change notifications, clear bits for successful sent notification
             if ((msk = marlin_server.client_changes[client_id]) != 0)
                 marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
@@ -283,6 +295,7 @@ int marlin_server_cycle(void) {
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
         HAL_IWDG_Refresh(&hiwdg); // this prevents iwdg reset while processing disabled
 #endif                            //_DEBUG
+    processing = 0;
     return count;
 }
 
@@ -380,11 +393,31 @@ int marlin_server_inject_gcode(const char *gcode) {
 }
 
 void marlin_server_settings_save(void) {
-    (void)settings.save();
+    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(probe_offset.z));
+    eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
+    eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
+    eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+    eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
+    eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
+    eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
 }
 
 void marlin_server_settings_load(void) {
-    (void)settings.load();
+    (void)settings.reset();
+#if HAS_BED_PROBE
+    probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
+#endif
+    Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
+    Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
+    Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
+    Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
+    Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
+    Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
+    thermalManager.updatePID();
+}
+
+void marlin_server_settings_reset(void) {
+    (void)settings.reset();
 }
 
 void marlin_server_manage_heater(void) {
@@ -396,14 +429,7 @@ void marlin_server_quick_stop(void) {
 }
 
 void marlin_server_print_abort(void) {
-    wait_for_heatup = wait_for_user = false;
     card.flag.abort_sd_printing = true;
-    print_job_timer.stop();
-    queue.clear();
-    //	planner.quick_stop();
-    //	marlin_server_park_head();
-    //	planner.synchronize();
-    //	queue.inject_P("M125");
 }
 
 void marlin_server_print_pause(void) {
@@ -421,6 +447,14 @@ void marlin_server_print_resume(void) {
 void marlin_server_park_head(void) {
     //homed check
     if (all_axes_homed() && all_axes_known()) {
+        float x = ((float)stepper.position(X_AXIS)) / planner.settings.axis_steps_per_mm[X_AXIS];
+        float y = ((float)stepper.position(Y_AXIS)) / planner.settings.axis_steps_per_mm[Y_AXIS];
+        float z = ((float)stepper.position(Z_AXIS)) / planner.settings.axis_steps_per_mm[Z_AXIS];
+        current_position.x = x;
+        current_position.y = y;
+        current_position.z = z;
+        current_position.e = 0;
+        planner.set_position_mm(x, y, z, 0);
         xyz_pos_t park_point = NOZZLE_PARK_POINT;
         nozzle.park(2, park_point);
     }
@@ -461,6 +495,7 @@ int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t
 uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
     uint64_t sent = 0;
     uint64_t msk = 1;
+    evt_msk &= marlin_server.notify_events[client_id]; //for sure
     for (uint8_t evt_int = 0; evt_int <= MARLIN_EVT_MAX; evt_int++) {
         MARLIN_EVT_t evt_id = (MARLIN_EVT_t)evt_int;
         if (msk & evt_msk)
@@ -549,20 +584,20 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
 // returns bitmask - bit0 = notify for client0 successfully send, bit1 for client1...
 uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     uint8_t client_msk = 0;
-    if ((marlin_server.notify_events & ((uint64_t)1 << evt_id)) == 0)
-        return client_msk;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if (_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
-            marlin_server.client_events[client_id] |= ((uint64_t)1 << evt_id); // event not sent, set bit
-            if (evt_id == MARLIN_EVT_MeshUpdate) {
-                uint8_t x = usr16 & 0xff;                      // x index
-                uint8_t y = usr16 >> 8;                        // y index
-                uint8_t index = x + marlin_server.mesh.xc * y; // index
-                uint64_t mask = ((uint64_t)1 << index);        // mask
-                marlin_server.mesh_point_notsent[client_id] |= mask;
-            }
-        } else
-            client_msk |= (1 << client_id);
+        if (marlin_server.notify_events[client_id] & ((uint64_t)1 << evt_id)) {
+            if (_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
+                marlin_server.client_events[client_id] |= ((uint64_t)1 << evt_id); // event not sent, set bit
+                if (evt_id == MARLIN_EVT_MeshUpdate) {
+                    uint8_t x = usr16 & 0xff;                      // x index
+                    uint8_t y = usr16 >> 8;                        // y index
+                    uint8_t index = x + marlin_server.mesh.xc * y; // index
+                    uint64_t mask = ((uint64_t)1 << index);        // mask
+                    marlin_server.mesh_point_notsent[client_id] |= mask;
+                }
+            } else
+                client_msk |= (1 << client_id);
+        }
     return client_msk;
 }
 
@@ -577,6 +612,7 @@ uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint6
     variant8_t var;
     uint64_t sent = 0;
     uint64_t msk = 1;
+    var_msk &= marlin_server.notify_changes[client_id]; //for sure
     for (uint8_t var_id = 0; var_id < 64; var_id++) {
         if (msk & var_msk) {
             var = marlin_vars_get_var(&(marlin_server.vars), var_id);
@@ -824,11 +860,14 @@ int _process_server_request(char *request) {
     } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
         marlin_server_do_babystep_Z(offs);
         processed = 1;
-    } else if (strcmp("!save", request) == 0) {
+    } else if (strcmp("!cfg_save", request) == 0) {
         marlin_server_settings_save();
         processed = 1;
-    } else if (strcmp("!load", request) == 0) {
+    } else if (strcmp("!cfg_load", request) == 0) {
         marlin_server_settings_load();
+        processed = 1;
+    } else if (strcmp("!cfg_reset", request) == 0) {
+        marlin_server_settings_reset();
         processed = 1;
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();
@@ -859,6 +898,12 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);
+        processed = 1;
+    } else if (sscanf(request, "!event_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        marlin_server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
+        processed = 1;
+    } else if (sscanf(request, "!change_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
+        marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         processed = 1;
     }
     if (processed)
@@ -917,10 +962,6 @@ int _server_set_var(char *name_val_str) {
     return 1;
 }
 
-// this is extern from guimain.c, used in temporary fix (force_M600_notify)
-// this variable is set imediately after
-extern int gui_marlin_client_id;
-
 } // extern "C"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -928,16 +969,21 @@ int _is_in_M600_flg = 0;
 #endif
 
 // force send M600 begin/end notify
-void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t req_client_mask, uint8_t client_mask) {
+void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t client_mask) {
     int client_id;
-    // loop until event successfully sent to requested clients
-    while ((client_mask & req_client_mask) != req_client_mask) {
-        idle(); // call marlin idle
+    // loop until event successfully sent to all clients
+    // clients that have not enabled the event will be skipped because sending is filtered in _send_notify_event
+    // and bit in marlin_server.client_events will be always zero for these clients
+    //while (client_mask != ((1 << MARLIN_MAX_CLIENTS) - 1)) {
+    do {
         // check that event sent inside idle and update mask
         for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
             if ((marlin_server.client_events[client_id] & ((uint64_t)1 << evt_id)) == 0)
                 client_mask |= (1 << client_id);
-    }
+        if (client_mask == ((1 << MARLIN_MAX_CLIENTS) - 1))
+            break;
+        idle(); // call marlin idle
+    } while (1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1171,7 +1217,7 @@ void fsm_create(ClinetFSM type, uint8_t data) {
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Create;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
-    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+    _ensure_event_sent(evt_id, client_mask);
 }
 
 //must match fsm_destroy_t signature
@@ -1181,7 +1227,7 @@ void fsm_destroy(ClinetFSM type) {
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
     uint8_t client_mask = _send_notify_event(evt_id, uint32_t(type), 0);
     // notification will wait until successfully sent to gui client
-    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+    _ensure_event_sent(evt_id, client_mask);
 }
 
 //must match fsm_change_t signature
@@ -1192,7 +1238,7 @@ void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pro
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
-    _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
+    _ensure_event_sent(evt_id, client_mask);
 }
 void host_response_handler(const uint8_t response) {
     DBG_HOST("host_response_handler %d", (int)response);

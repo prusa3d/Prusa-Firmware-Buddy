@@ -409,7 +409,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
 
                     if (wizard_msgbox(buff, MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
                         marlin_set_z_offset(z_offset_def);
-                        marlin_gcode("M500"); //store to eeprom
+                        eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));
                     }
                 }
 
@@ -453,7 +453,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     == MSGBOX_RES_NO) {
                     pd->state = _STATE_FINISH;
                     marlin_set_z_offset(p_firstlay_screen->Z_offset);
-                    marlin_gcode("M500");                                //store to eeprom
+                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(p_firstlay_screen->Z_offset));
                     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
                     wizard_done_screen(screen);
                 } else {
@@ -479,7 +479,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                         }
                     }
                     marlin_set_z_offset(z_val_to_store);
-                    marlin_gcode("M500"); //store to eeprom
+                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_val_to_store));
                 }
                 break;
             case _STATE_FIRSTLAY_FAIL:

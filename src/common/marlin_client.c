@@ -194,6 +194,26 @@ int marlin_processing(void) {
     return 0;
 }
 
+void marlin_client_set_event_notify(uint64_t notify_events) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        sprintf(request, "!event_msk %08lx %08lx", (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
+}
+
+void marlin_client_set_change_notify(uint64_t notify_changes) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        sprintf(request, "!change_msk %08lx %08lx", (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
+}
+
 int marlin_busy(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
@@ -526,7 +546,7 @@ void marlin_settings_save(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    _send_request_to_server(client->id, "!save");
+    _send_request_to_server(client->id, "!cfg_save");
     _wait_ack_from_server(client->id);
 }
 
@@ -534,7 +554,15 @@ void marlin_settings_load(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    _send_request_to_server(client->id, "!load");
+    _send_request_to_server(client->id, "!cfg_load");
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_settings_reset(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!cfg_reset");
     _wait_ack_from_server(client->id);
 }
 
