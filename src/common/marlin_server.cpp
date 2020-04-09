@@ -29,6 +29,7 @@
 #include "hwio.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
+
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
@@ -36,8 +37,6 @@
 #ifdef LCDSIM
     #include "lcdsim.h"
 #endif // LCDSIM
-
-#include "menu_vars.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -452,9 +451,9 @@ void marlin_server_print_resume(void) {
 void marlin_server_park_head(void) {
     //homed check
     if (all_axes_homed() && all_axes_known()) {
-        float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
-        float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
-        float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
+        float x = ((float)stepper.position(X_AXIS)) / planner.settings.axis_steps_per_mm[X_AXIS];
+        float y = ((float)stepper.position(Y_AXIS)) / planner.settings.axis_steps_per_mm[Y_AXIS];
+        float z = ((float)stepper.position(Z_AXIS)) / planner.settings.axis_steps_per_mm[Z_AXIS];
         current_position.x = x;
         current_position.y = y;
         current_position.z = z;
