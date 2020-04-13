@@ -3,8 +3,6 @@
 #ifndef _HWIO_A3IDES_H
 #define _HWIO_A3IDES_H
 
-#include "hwio.h"
-
 //a3ides digital inputs
 #define _DI_Z_MIN   0 // PA8
 #define _DI_E_DIAG  1 // PA15
@@ -49,11 +47,5 @@
 //a3ides heater control
 #define _HEATER_0   0 //
 #define _HEATER_BED 1 //
-
-//a3ides pwm outputs
-#define HWIO_PWM_HEATER_BED 0 //BED PWM
-#define HWIO_PWM_HEATER_0   1 //NOZZLE PWM
-#define HWIO_PWM_FAN1       2 //PRINT FAN?
-#define HWIO_PWM_FAN        3 //NOZZLE FAN?
 
 #endif // _HWIO_A3IDES_H

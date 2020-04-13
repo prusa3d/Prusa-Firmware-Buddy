@@ -95,6 +95,7 @@
 #include "lwip/apps/fs.h"
 #include "httpd_structs.h"
 #include "lwip/def.h"
+#include "lwip.h"
 
 #include "lwip/altcp.h"
 #include "lwip/altcp_tcp.h"
@@ -114,6 +115,9 @@
 
 /*******   Customization ***************************************/
 #include "wui_api.h"
+#include "marlin_client.h"
+#include "wui_helper_funcs.h"
+#include "wui.h"
 #define WUI_API_ROOT_STR_LEN 5
 /***************************************************************/
 
@@ -180,9 +184,11 @@ static char httpd_req_buf[LWIP_HTTPD_MAX_REQ_LENGTH + 1];
         #define LWIP_HTTPD_URI_BUF_LEN LWIP_HTTPD_MAX_REQUEST_URI_LEN
     #endif
     #if LWIP_HTTPD_URI_BUF_LEN
+        #if LWIP_HTTPD_SUPPORT_POST
 /* Filename for response file to send when POST is finished or
  * search for default files when a directory is requested. */
 static char http_uri_buf[LWIP_HTTPD_URI_BUF_LEN + 1];
+        #endif
     #endif
 
     #if LWIP_HTTPD_DYNAMIC_HEADERS
@@ -337,6 +343,92 @@ const struct http_ssi_tag_description http_ssi_tag_desc[] = {
 };
 
     #endif /* LWIP_HTTPD_SSI */
+
+    //------------------------------OUR-CODE---------------------------
+    #if LWIP_HTTPD_SUPPORT_POST
+        #define MSG_BUFFSIZE           512
+        #define MAX_MARLIN_REQUEST_LEN 100
+        #define POST_URL_STR_MAX_LEN   50
+
+static char request_buf[MSG_BUFFSIZE];
+static char post_url_str[POST_URL_STR_MAX_LEN];
+
+static void *current_connection;
+static void *valid_connection;
+
+extern osMessageQId wui_queue; // input queue (uint8_t)
+extern osSemaphoreId wui_sema; // semaphore handle
+
+err_t httpd_post_begin(void *connection, const char *uri, const char *http_request,
+    u16_t http_request_len, int content_len, char *response_uri,
+    u16_t response_uri_len, u8_t *post_auto_wnd) {
+
+    strlcpy(post_url_str, "", 1);
+    LWIP_UNUSED_ARG(post_auto_wnd);
+
+    if (!memcmp(uri, "/api/g-code", 11)) {
+        if (current_connection != connection) {
+            current_connection = connection;
+            valid_connection = NULL;
+            /* default page */
+            response_uri_len = 12;
+            snprintf(response_uri, response_uri_len, "/api/g-code");
+            strlcpy(post_url_str, "g-code.json", 12);
+            return ERR_OK;
+        }
+    } else if (!memcmp(uri, "/admin.html", 11)) {
+        if (current_connection != connection) {
+            current_connection = connection;
+            valid_connection = NULL;
+            /* default page */
+            response_uri_len = 12;
+            snprintf(response_uri, response_uri_len, "/admin.html");
+            strlcpy(post_url_str, "admin.html", 10);
+            return ERR_OK;
+        }
+    }
+    return ERR_VAL;
+}
+
+err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
+    if (current_connection == connection) {
+        char request_part[(const u16_t)p->tot_len + 1];
+        char *payload = p->payload;
+        if (payload[0] == 0) {
+            return 0;
+        }
+        u16_t ret = pbuf_copy_partial(p, request_part, p->tot_len, 0);
+        if (ret && strlen(request_buf) + ret <= MSG_BUFFSIZE) {
+            request_part[ret] = 0;
+            strncat(request_buf, request_part, ret + 1);
+            valid_connection = connection;
+            return ERR_OK;
+        }
+        request_buf[0] = 0;
+    }
+    return ERR_VAL;
+}
+
+void httpd_post_finished(void *connection, char *response_uri, u16_t response_uri_len) {
+
+    if (current_connection == connection) {
+        if (valid_connection == connection) {
+            /*receiving data succeeded*/
+            //TODO: Send 200 OK
+            if (request_buf[0] != 0) {
+                http_json_parser(request_buf, strlen(request_buf));
+                response_uri_len = strlen(post_url_str);
+                strlcpy(response_uri, post_url_str, response_uri_len + 1);
+                request_buf[0] = 0;
+            }
+        }
+        current_connection = NULL;
+        valid_connection = NULL;
+    }
+}
+
+    //------------------------------------------------------------------------------------
+    #endif
 
     #if LWIP_HTTPD_CGI
 /* CGI handler information */
@@ -2079,7 +2171,8 @@ http_parse_request(struct pbuf *inp, struct http_state *hs, struct altcp_pcb *pc
     }
 }
 
-    #if LWIP_HTTPD_SSI && (LWIP_HTTPD_SSI_BY_FILE_EXTENSION == 1)
+    #if 0
+        #if LWIP_HTTPD_SSI && (LWIP_HTTPD_SSI_BY_FILE_EXTENSION == 1)
 /* Check if SSI should be parsed for this file/URL
  * (With LWIP_HTTPD_SSI_BY_FILE_EXTENSION == 2, this function can be
  * overridden by an external implementation.)
@@ -2117,134 +2210,7 @@ http_uri_is_ssi(struct fs_file *file, const char *uri) {
     }
     return tag_check;
 }
-    #endif /* LWIP_HTTPD_SSI */
-
-    #if 0
-/** Try to find the file specified by uri and, if found, initialize hs
- * accordingly.
- *
- * @param hs the connection state
- * @param uri the HTTP header URI
- * @param is_09 1 if the request is HTTP/0.9 (no HTTP headers in response)
- * @return ERR_OK if file was found and hs has been initialized correctly
- *         another err_t otherwise
- */
-static err_t
-http_find_file(struct http_state *hs, const char *uri, int is_09)
-{
-  size_t loop;
-  struct fs_file *file = NULL;
-  char *params = NULL;
-  err_t err;
-        #if LWIP_HTTPD_CGI
-  int i;
-        #endif /* LWIP_HTTPD_CGI */
-        #if !LWIP_HTTPD_SSI
-  const
-        #endif /* !LWIP_HTTPD_SSI */
-  /* By default, assume we will not be processing server-side-includes tags */
-  u8_t tag_check = 0;
-
-  /* Have we been asked for the default file (in root or a directory) ? */
-        #if LWIP_HTTPD_MAX_REQUEST_URI_LEN
-  size_t uri_len = strlen(uri);
-  if ((uri_len > 0) && (uri[uri_len - 1] == '/') &&
-      ((uri != http_uri_buf) || (uri_len == 1))) {
-    size_t copy_len = LWIP_MIN(sizeof(http_uri_buf) - 1, uri_len - 1);
-    if (copy_len > 0) {
-      MEMCPY(http_uri_buf, uri, copy_len);
-      http_uri_buf[copy_len] = 0;
-    }
-        #else  /* LWIP_HTTPD_MAX_REQUEST_URI_LEN */
-  if ((uri[0] == '/') &&  (uri[1] == 0)) {
-        #endif /* LWIP_HTTPD_MAX_REQUEST_URI_LEN */
-    /* Try each of the configured default filenames until we find one
-       that exists. */
-    for (loop = 0; loop < NUM_DEFAULT_FILENAMES; loop++) {
-      const char *file_name;
-        #if LWIP_HTTPD_MAX_REQUEST_URI_LEN
-      if (copy_len > 0) {
-        size_t len_left = sizeof(http_uri_buf) - copy_len - 1;
-        if (len_left > 0) {
-          size_t name_len = strlen(httpd_default_filenames[loop].name);
-          size_t name_copy_len = LWIP_MIN(len_left, name_len);
-          MEMCPY(&http_uri_buf[copy_len], httpd_default_filenames[loop].name, name_copy_len);
-          http_uri_buf[copy_len + name_copy_len] = 0;
-        }
-        file_name = http_uri_buf;
-      } else
-        #endif /* LWIP_HTTPD_MAX_REQUEST_URI_LEN */
-      {
-        file_name = httpd_default_filenames[loop].name;
-      }
-      LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Looking for %s...\n", file_name));
-      err = fs_open(&hs->file_handle, file_name);
-      if (err == ERR_OK) {
-        uri = file_name;
-        file = &hs->file_handle;
-        LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opened.\n"));
-        #if LWIP_HTTPD_SSI
-        tag_check = httpd_default_filenames[loop].shtml;
         #endif /* LWIP_HTTPD_SSI */
-        break;
-      }
-    }
-  }
-  if (file == NULL) {
-    /* No - we've been asked for a specific file. */
-    /* First, isolate the base URI (without any parameters) */
-    params = (char *)strchr(uri, '?');
-    if (params != NULL) {
-      /* URI contains parameters. NULL-terminate the base URI */
-      *params = '\0';
-      params++;
-    }
-
-        #if LWIP_HTTPD_CGI
-    http_cgi_paramcount = -1;
-    /* Does the base URI we have isolated correspond to a CGI handler? */
-    if (httpd_num_cgis && httpd_cgis) {
-      for (i = 0; i < httpd_num_cgis; i++) {
-        if (strcmp(uri, httpd_cgis[i].pcCGIName) == 0) {
-          /*
-           * We found a CGI that handles this URI so extract the
-           * parameters and call the handler.
-           */
-          http_cgi_paramcount = extract_uri_parameters(hs, params);
-          uri = httpd_cgis[i].pfnCGIHandler(i, http_cgi_paramcount, hs->params,
-                                         hs->param_vals);
-          break;
-        }
-      }
-    }
-        #endif /* LWIP_HTTPD_CGI */
-
-    LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Opening %s\n", uri));
-
-    err = fs_open(&hs->file_handle, uri);
-    if (err == ERR_OK) {
-      file = &hs->file_handle;
-    } else {
-      file = http_get_404_file(hs, &uri);
-    }
-        #if LWIP_HTTPD_SSI
-    if (file != NULL) {
-      if (file->flags & FS_FILE_FLAGS_SSI) {
-        tag_check = 1;
-      } else {
-            #if LWIP_HTTPD_SSI_BY_FILE_EXTENSION
-        tag_check = http_uri_is_ssi(file, uri);
-            #endif /* LWIP_HTTPD_SSI_BY_FILE_EXTENSION */
-      }
-    }
-        #endif     /* LWIP_HTTPD_SSI */
-  }
-  if (file == NULL) {
-    /* None of the default filenames exist so send back a 404 page */
-    file = http_get_404_file(hs, &uri);
-  }
-  return http_init_file(hs, file, is_09, uri, tag_check, params);
-}
     #endif
 
 /** Initialize a http connection with a file to send (if found).
@@ -2729,8 +2695,8 @@ static err_t http_find_file(struct http_state *hs, const char *uri, int is_09) {
     /* check with the wui api */
     if (file == NULL) {
         if (0 == strncmp(uri, "/api/", WUI_API_ROOT_STR_LEN)) {
-            file = wui_api_main(uri, hs);
-            strcat(uri, ".json"); // http server adds header info (data type) based on the file extension
+            file = wui_api_main(uri);
+            strcat((char *)uri, ".json"); // http server adds header info (data type) based on the file extension
         }
     }
 

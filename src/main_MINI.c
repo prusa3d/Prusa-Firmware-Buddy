@@ -98,7 +98,6 @@ DMA_HandleTypeDef hdma_usart6_rx;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
-osThreadId idleTaskHandle;
 osThreadId webServerTaskHandle;
 /* USER CODE BEGIN PV */
 int HAL_IWDG_Reset = 0;
@@ -126,7 +125,6 @@ static void MX_TIM2_Init(void);
 static void MX_TIM14_Init(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
-void StartIdleTask(void const *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -255,10 +253,6 @@ int main(void) {
     /* definition and creation of displayTask */
     osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 2048);
     displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
-
-    /* definition and creation of idleTask */
-    osThreadDef(idleTask, StartIdleTask, osPriorityIdle, 0, 128);
-    idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
 
 #ifdef BUDDY_ENABLE_WUI
     /* definition and creation of webServerTask */
@@ -996,22 +990,6 @@ void StartDisplayTask(void const *argument) {
         osDelay(1);
     }
     /* USER CODE END StartDisplayTask */
-}
-
-/* USER CODE BEGIN Header_StartIdleTask */
-/**
-* @brief Function implementing the idleTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartIdleTask */
-void StartIdleTask(void const *argument) {
-    /* USER CODE BEGIN StartIdleTask */
-    /* Infinite loop */
-    for (;;) {
-        osDelay(1);
-    }
-    /* USER CODE END StartIdleTask */
 }
 
 /**

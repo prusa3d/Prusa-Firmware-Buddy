@@ -8,6 +8,7 @@
 #include "bsod.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
+#include "ffconf.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -232,6 +233,17 @@ void marlin_gcode(const char *gcode) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_json_gcode(const char *gcode) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    strcpy(request, "!g ");
+    strlcat(request, gcode, MARLIN_MAX_REQUEST);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
 int marlin_gcode_printf(const char *format, ...) {
     int ret;
     char request[MARLIN_MAX_REQUEST];
@@ -405,6 +417,32 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
     return &(client->vars);
+}
+
+void marlin_set_printing_gcode_name(const char *filename_pntr) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0) {
+        return;
+    }
+    uint32_t filename_len = strnlen(filename_pntr, _MAX_LFN);
+    if (_MAX_LFN == filename_len) {
+        _dbg0("error!: filename string is not null terminated");
+    }
+    snprintf(request, MARLIN_MAX_REQUEST, "!gfileset %p", filename_pntr);
+    marlin_event_clr(MARLIN_EVT_GFileChange);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_get_printing_gcode_name(char *filename_pntr) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0) {
+        return;
+    }
+    snprintf(request, MARLIN_MAX_REQUEST, "!gfileget %p", filename_pntr);
+    _send_request_to_server(client->id, request);
 }
 
 uint8_t marlin_get_gqueue(void) {
@@ -720,6 +758,7 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_LoadSettings:
         case MARLIN_EVT_StoreSettings:
         case MARLIN_EVT_SafetyTimerExpired:
+        case MARLIN_EVT_GFileChange:
             break;
         }
 #ifdef DBG_EVT_MSK

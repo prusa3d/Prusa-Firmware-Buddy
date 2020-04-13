@@ -4,8 +4,7 @@
  *  Created on: 19. 7. 2019
  *      Author: mcbig
  */
-#include "new_eeprom.h"
-#include "st25dv64k.h"
+#include "eeprom.h"
 #include "assert.h"
 #include "dbg.h"
 #include "marlin_client.h"
@@ -35,12 +34,12 @@ void set_filament(FILAMENT_t filament) {
         return;
     }
     filament_selected = filament;
-    st25dv64k_user_write(FILAMENT_ADDRESS, filament);
+    eeprom_set_var(EEVAR_FILAMENT_TYPE, variant8_ui8(filament));
 }
 
 FILAMENT_t get_filament() {
     if (filament_selected == FILAMENTS_END) {
-        uint8_t fil = st25dv64k_user_read(FILAMENT_ADDRESS);
+        uint8_t fil = eeprom_get_var(EEVAR_FILAMENT_TYPE).ui8;
         if (fil >= FILAMENTS_END)
             fil = 0;
         filament_selected = (FILAMENT_t)fil;

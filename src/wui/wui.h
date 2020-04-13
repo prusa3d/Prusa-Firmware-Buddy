@@ -11,6 +11,7 @@
 
 #define BUDDY_WEB_STACK_SIZE 512
 #include <marlin_vars.h>
+#include "cmsis_os.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,10 @@ extern "C" {
 *****************************************************************************/
 void StartWebServerTask(void const *argument);
 
+extern osMessageQId tcpclient_wui_queue;
+extern osSemaphoreId tcpclient_wui_sema;
+
+extern osMutexId wui_thread_mutex_id;
 #ifdef __cplusplus
 }
 #endif // __cplusplus

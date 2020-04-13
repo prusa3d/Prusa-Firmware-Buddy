@@ -1,6 +1,9 @@
 
 #include "safe_state.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
+#include "wiring_digital.h"
+#include "hwio_pindef.h"
+#include "gpio.h"
 
 //! @brief Put hardware into safe state
 //!
@@ -14,8 +17,8 @@ void hwio_safe_state(void) {
         hwio_heater_set_pwm(i, 0);
 
     //enable 1 means disable :(
-    hwio_do_set_val(_DO_Z_ENABLE, 1);
-    hwio_do_set_val(_DO_X_ENABLE, 1);
-    hwio_do_set_val(_DO_E_ENABLE, 1);
-    hwio_do_set_val(_DO_Y_ENABLE, 1);
+    digitalWrite(PIN_X_ENABLE, 1);
+    digitalWrite(PIN_Y_ENABLE, 1);
+    digitalWrite(PIN_Z_ENABLE, 1);
+    digitalWrite(PIN_E_ENABLE, 1);
 }

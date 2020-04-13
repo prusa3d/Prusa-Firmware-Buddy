@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include "gui.h"
 #include "wizard_types.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 
 #ifdef __cplusplus
 extern "C" {
