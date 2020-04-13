@@ -66,11 +66,11 @@ typedef enum : int16_t {
 } err_item_t;
 
 typedef enum : int16_t {
-    ART_NONE = 0,
-    ART_OTHER = 999,
-    ART122 = 122,
-    ART124 = 124,
-} err_art_list_t;
+    ECODE_NONE = 0,
+    ECODE_OTHER = 999,
+    ECODE_122 = 122,
+    ECODE_124 = 124,
+} err_ext_code_t;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -89,7 +89,7 @@ typedef struct {
     const char *err_sign;
     const char *err_title;
     const char *err_text;
-    err_art_list_t err_article;
+    err_ext_code_t err_ext_code;
 } err_t;
 #pragma pack(pop)
 

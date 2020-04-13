@@ -417,6 +417,7 @@ target_sources(
           src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
           src/common/support_utils.cpp
+          src/common/str_utils.cpp
           src/common/errors.cpp
           src/common/lang.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>

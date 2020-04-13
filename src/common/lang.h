@@ -12,6 +12,7 @@ typedef enum : int16_t {
     LANG_FR,
     LANG_ES,
     LANG_IT,
+    LANG_JA,
     LANG_SK,
     LANG_PL,
     LANG_BMORD = 666,
