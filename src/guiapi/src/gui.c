@@ -3,6 +3,7 @@
 #include "gui.h"
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
+#include "sound_C_wrapper.h"
 
 #define GUI_FLG_INVALID 0x0001
 
@@ -84,6 +85,13 @@ void gui_loop(void) {
     uint32_t delay;
     uint32_t tick;
     #ifdef GUI_JOGWHEEL_SUPPORT
+
+    // if ((jogwheel_changed & 1) && jogwheel_button_down){      //button changed and pressed
+    //     Sound_DoSound(eSOUND_TYPE_ButtonEcho);
+    // } else if (jogwheel_changed & 2){                            // encoder changed
+    //     Sound_DoSound(eSOUND_TYPE_EncoderMove);
+    // }
+
     if (jogwheel_changed) {
         if (gui_loop_cb)
             gui_loop_cb();
@@ -120,6 +128,7 @@ void gui_loop(void) {
             }
         }
     }
+
     #endif //GUI_JOGWHEEL_SUPPORT
     delay = gui_timers_cycle();
     if (delay < GUI_DELAY_MIN)

@@ -1,39 +1,36 @@
 #include <stdint.h>
 #include "sound_enum.h"
 
-class Sound
-{
+class Sound {
     public:
-        static Sound& s;
+	Sound();
         eSOUND_MODE eSoundMode;
-        
-        static Sound* getInstance();
+       
+	inline static Sound &getInstance(){
+	    static Sound s;
+	    return s;
+	}
         eSOUND_MODE getMode();
 
         void doSound(eSOUND_TYPE eSoundType);
         void setMode(eSOUND_MODE eSMode);
         void stopSound();
-        static void soundUpdate1ms();
-        static void nextRepeat();
+        void soundUpdate1ms();
+        void nextRepeat();
 
-        static uint32_t _duration;
-        static uint32_t duration;
-        static uint8_t repeat;
-        static double frequency;
-        static double volume;
+        uint32_t _duration;
+        uint32_t duration;
+        uint8_t repeat;
+        double frequency;
+        double volume;
     private:
-        bool _inited = false;
-
-
-        // -- singleton
-        Sound(){};
-
         // -- main fnc
         void soundInit();
         void saveMode();
         void _sound(int rep, float frq, uint32_t del, float vol);
 
         // -- sound types
+        void soundStart(int rep, uint32_t del);
         void soundButtonEcho(int rep, uint32_t del);
         void soundStandardPrompt(int rep, uint32_t del);
         void soundStandardAlert(int rep, uint32_t del);

@@ -2,6 +2,7 @@
 #include "bsod.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "sound_C_wrapper.h"
 
 #ifndef HAS_GUI
     #error "HAS_GUI not defined"
@@ -177,6 +178,7 @@ void general_error(const char *error, const char *module) {
 
     jogwheel_init();
     gui_reset_jogwheel();
+    Sound_DoSound(eSOUND_TYPE_StandardAlert);
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {

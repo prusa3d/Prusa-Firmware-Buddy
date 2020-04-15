@@ -1,27 +1,23 @@
+#include "sound_C_wrapper.h"
 #include "sound.h"
 #include "hwio.h"
 #include "eeprom.h"
-// #include "cmsis_os.h"
 
-// -- Singleton class
-Sound* Sound::getInstance(){
-    static Sound s;
-    if (!s._inited){ s.soundInit(); }
-    return &s;
+Sound::Sound(){
+    _duration = 0;
+    duration = 0;
+    repeat = 0;
+    frequency = 100.f;
+    volume = 0.00125;
+    this->soundInit();
 }
-
-uint32_t Sound::_duration = 0;
-uint32_t Sound::duration = 0;
-uint8_t Sound::repeat = 0;
-double Sound::frequency = 100.0;
-double Sound::volume = 0.0125;
 
 void Sound::soundInit(){
     eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).ui8;
     if((uint8_t)eSoundMode == (uint8_t)eSOUND_MODE_NULL){
         this->setMode(eSOUND_MODE_DEFAULT);
     }
-    _inited = true;
+    SOUND_INIT = 1;
 }
 
 eSOUND_MODE Sound::getMode(){
@@ -39,24 +35,29 @@ void Sound::saveMode(){
 
 void Sound::stopSound(){
     _duration = 0;
+    repeat = 0;
 }
 
 void Sound::doSound(eSOUND_TYPE eSoundType){
     switch (eSoundMode){
         case eSOUND_MODE_ONCE:
+            if(eSoundType == eSOUND_TYPE_Start) { this->soundStart(1, 100.f); }
             if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(1, 100.f); }
             if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(1, 500.f); }
             if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(1, 200.f); }
             break;
         case eSOUND_MODE_LOUD:
+            if(eSoundType == eSOUND_TYPE_Start) { this->soundStart(1, 100.f); }
             if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(1, 100.0f); }
             if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(5, 500.f); }
             if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(3, 200.f); }
             break;
         case eSOUND_MODE_SILENT:
+            if(eSoundType == eSOUND_TYPE_Start) { this->soundStart(1, 100.f); }
             if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(1, 200.f); }
             break;
         case eSOUND_MODE_ASSIST:
+            if(eSoundType == eSOUND_TYPE_Start) { this->soundStart(1, 100.f); }
             if(eSoundType == eSOUND_TYPE_ButtonEcho) { this->soundButtonEcho(1, 100.0f); }
             if(eSoundType == eSOUND_TYPE_StandardPrompt) { this->soundStandardPrompt(5, 500.f); }
             if(eSoundType == eSOUND_TYPE_StandardAlert) { this->soundStandardAlert(3, 200.f); }
@@ -68,50 +69,53 @@ void Sound::doSound(eSOUND_TYPE eSoundType){
     }
 }
 
+void Sound::soundStart(int rep, uint32_t del){
+    float vol = 0.125;
+    float frq = 500.0f;
+    this->_sound(rep, frq, del, volume);
+}
+
 void Sound::soundButtonEcho(int rep, uint32_t del){
-    float vol = (double)(0.01F * 0.125F);
+    float vol = 0.125;
     float frq = 100.0f;
-    this->_sound(rep, frq, del, vol);
+    this->_sound(rep, frq, del, volume);
 }
 
 void Sound::soundStandardPrompt(int rep, uint32_t del){
-    float vol = (double)(0.01F * 0.125F);
+    float vol = 0.125;
     float frq = 500.0f;
-    this->_sound(rep, frq, del, vol);
+    this->_sound(rep, frq, del, volume);
 }
 
 void Sound::soundStandardAlert(int rep, uint32_t del){
-    float vol = (double)(0.01F * 0.125F);
+    float vol = 0.125;
     float frq = 500.0f;
-    this->_sound(rep, frq, del, vol);
+    this->_sound(rep, frq, del, volume);
 }
 
 void Sound::soundEncoderMove(int rep, uint32_t del){
-    float vol = (double)(0.01F * 0.125F);
+    float vol = 0.125;
     float frq = 500.0f;
-    this->_sound(rep, frq, del, vol);
+    this->_sound(rep, frq, del, volume);
 }
 
 void Sound::soundBlindAlert(int rep, uint32_t del){
-    float vol = (double)(0.01F * 0.125F);
+    float vol = 0.125;
     float frq = 500.0f;
-    this->_sound(rep, frq, del, vol);
+    this->_sound(rep, frq, del, volume);
 }
 
 void Sound::_sound(int rep, float frq, uint32_t del, float vol){
+    if (repeat-1 > 0 || repeat == -1){ return; }
+    
+    // store variables for timing method 
     repeat = rep;
     frequency = frq;
     duration = del;
-    _duration = del;
     volume = vol;
-    // uint8_t nI;
+    
     hwio_beeper_set_pwm(0, 0); // -- end previous beep
-    Sound::nextRepeat();
-
-    // for (nI=0; nI<rep; nI++){
-    //     hwio_beeper_tone2(frq, del, vol);
-    //     // if (rep > 1) { osDelay(del); }
-    // }
+    this->nextRepeat();
 }
 
 void Sound::nextRepeat(){
@@ -120,12 +124,10 @@ void Sound::nextRepeat(){
 }
 
 void  Sound::soundUpdate1ms(){
-    // -- timing logic without osDelay for repeating Beep(s) - viva la Kenshi
+    // -- timing logic without osDelay for repeating Beep(s)
     if ((_duration) && (--_duration == 0)){
-        if((repeat) && (--repeat != 0)){
-            Sound::nextRepeat();
-        }
+	if(((repeat) && (--repeat != 0)) || (repeat == -1)){
+            this->nextRepeat();
+	}
     }
-    // -- call hwio update
-    hwio_update_1ms();
 }

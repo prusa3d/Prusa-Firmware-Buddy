@@ -17,10 +17,8 @@ typedef enum {
     eSOUND_TYPE_StandardPrompt,
     eSOUND_TYPE_StandardAlert,
     eSOUND_TYPE_EncoderMove,
-    eSOUND_TYPE_BlindAlert
+    eSOUND_TYPE_BlindAlert,
+    eSOUND_TYPE_Start
 } eSOUND_TYPE;
-
-// #define eSOUND_MODE_NULL 0xFF
-// #define eSOUND_MODE_DEFAULT eSOUND_MODE_LOUD
 
 #pragma pack(pop)

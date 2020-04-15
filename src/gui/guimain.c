@@ -169,7 +169,8 @@ void gui_run(void) {
     gui_marlin_vars = marlin_client_init();
     gui_marlin_client_id = marlin_client_id();
     register_dialog_callbacks();
-    hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
+    // hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
+    Sound_DoSound(eSOUND_TYPE_Start);
 
     screen_register(pscreen_splash);
     screen_register(pscreen_watchdog);

@@ -11,6 +11,7 @@
 #include "sys.h"
 #include "gpio.h"
 #include "sound_C_wrapper.h"
+//#include "sound.h"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -192,7 +193,7 @@ void app_tim14_tick(void) {
     jogwheel_update_1ms();
 #endif
     Sound_UpdateSound1ms();
-    // hwio_update_1ms();
+    hwio_update_1ms();
     adc_tick_1ms();
 }
 
