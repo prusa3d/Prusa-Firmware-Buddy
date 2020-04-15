@@ -1,13 +1,17 @@
 // screen_menu_settings.c
 
 #include "gui.h"
+#include "config.h"
 #include "app.h"
 #include "marlin_client.h"
 #include "screen_menu.h"
 #include "cmsis_os.h"
 #include "sys.h"
 #include "eeprom.h"
-#include "screen_lan_settings.h"
+#include "eeprom_loadsave.h"
+#ifdef BUDDY_ENABLE_ETHERNET
+    #include "screen_lan_settings.h"
+#endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
 #include "dump.h"
@@ -35,12 +39,25 @@ typedef enum {
     MI_FW_UPDATE,
     MI_FILAMENT_SENSOR,
     MI_TIMEOUT,
+#ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
+#endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP,
 #ifdef _DEBUG
     MI_HF_TEST_0,
     MI_HF_TEST_1,
 #endif //_DEBUG
+#ifdef _DEBUG
+    MI_EE_LOAD_400,
+    MI_EE_LOAD_401,
+    MI_EE_LOAD_402,
+    MI_EE_LOAD_403RC1,
+    MI_EE_LOAD_403,
+    MI_EE_LOAD,
+    MI_EE_SAVE,
+    MI_EE_SAVEXML,
+#endif //_DEBUG
+    MI_COUNT
 } MI_t;
 
 const menu_item_t _menu_settings_items[] = {
@@ -55,19 +72,43 @@ const menu_item_t _menu_settings_items[] = {
     { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update },
     { { "Fil. sens.", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
     { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
+#ifdef BUDDY_ENABLE_ETHERNET
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
+#endif //BUDDY_ENABLE_ETHERNET
     { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 #ifdef _DEBUG
     { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 #endif //_DEBUG
+#ifdef _DEBUG
+    { { "EE 4.0.0", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE 4.0.1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE 4.0.2", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE 4.0.3-RC1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE 4.0.3", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE load", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE save", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "EE save xml", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+#endif //_DEBUG
 };
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_settings_init(screen_t *screen) {
-    int count = sizeof(_menu_settings_items) / sizeof(menu_item_t);
-    screen_menu_init(screen, "SETTINGS", count + 1, 1, 0);
+    screen_menu_init(screen, "SETTINGS", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_settings_items, count * sizeof(menu_item_t));
+    memcpy(psmd->items + 1, _menu_settings_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
     fsensor_t fs = fs_wait_inicialized();
     if (fs == FS_NOT_CONNECTED) {
@@ -97,21 +138,43 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             dump_hardfault_test_1();
             break;
 #endif //_DEBUG
+#ifdef _DEBUG
+        case MI_EE_LOAD_400:
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.0-final+1965.bin");
+            sys_reset();
+            break;
+        case MI_EE_LOAD_401:
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.1-final+1974.bin");
+            sys_reset();
+            break;
+        case MI_EE_LOAD_402:
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.2-final+1977.bin");
+            sys_reset();
+            break;
+        case MI_EE_LOAD_403RC1:
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
+            sys_reset();
+            break;
+        case MI_EE_LOAD_403:
+            eeprom_load_bin_from_usb("eeprom/eeprom_MINI-4.0.3-final+258.bin");
+            sys_reset();
+            break;
+        case MI_EE_LOAD:
+            eeprom_load_bin_from_usb("eeprom.bin");
+            sys_reset();
+            break;
+        case MI_EE_SAVE:
+            eeprom_save_bin_to_usb("eeprom.bin");
+            break;
+        case MI_EE_SAVEXML:
+            eeprom_save_xml_to_usb("eeprom.xml");
+            break;
+#endif //_DEBUG
         case MI_DISABLE_STEP:
             marlin_gcode("M18");
             break;
         case MI_FACTORY_DEFAULTS:
             if (gui_msgbox("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?", MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
-                marlin_event_clr(MARLIN_EVT_FactoryReset);
-                marlin_gcode("M502");
-                while (!marlin_event_clr(MARLIN_EVT_FactoryReset)) {
-                    gui_loop();
-                }
-                marlin_event_clr(MARLIN_EVT_StoreSettings);
-                marlin_gcode("M500");
-                while (!marlin_event_clr(MARLIN_EVT_StoreSettings)) {
-                    gui_loop();
-                }
                 eeprom_defaults();
                 gui_msgbox("Factory defaults loaded. The system will now restart.", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
                 sys_reset();
@@ -151,8 +214,8 @@ screen_t screen_menu_settings = {
     screen_menu_done,
     screen_menu_draw,
     screen_menu_settings_event,
-    sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    sizeof(this_screen_data_t), //data_size
+    0,                          //pdata
 };
 
 const screen_t *pscreen_menu_settings = &screen_menu_settings;

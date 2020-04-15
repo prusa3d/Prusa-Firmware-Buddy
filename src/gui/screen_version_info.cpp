@@ -10,10 +10,11 @@
 #include "screen_menu.h"
 #include <stdlib.h>
 #include "version.h"
+#include "resource.h"
 
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
-#define OTP_START_ADDR 0x1FFF7800
-#define SERIAL_NUM_ADDR 0x1FFF7808
+#define OTP_START_ADDR             0x1FFF7800
+#define SERIAL_NUM_ADDR            0x1FFF7808
 
 enum {
     TAG_QUIT = 10
@@ -28,18 +29,30 @@ struct version_t {
 #define VERSION_INFO_STR_MAXLEN 150
 char *version_info_str = nullptr;
 
+#pragma pack(push)
+#pragma pack(1)
+
+//"C inheritance" of screen_menu_data_t with data items
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[1];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_version_info_init(screen_t *screen) {
     //=============SCREEN INIT===============
-    screen_menu_init(screen, "VERSION INFO", 1, 0, 0);
+    screen_menu_init(screen, "VERSION INFO", ((this_screen_data_t *)screen->pdata)->items, 1, 0, 0);
     version_info_str = (char *)gui_malloc(VERSION_INFO_STR_MAXLEN * sizeof(char));
 
     p_window_header_set_icon(&(psmd->header), IDR_PNG_header_icon_info);
 
     psmd->items[0] = menu_item_return;
 
-    psmd->phelp = (window_text_t *)gui_malloc(sizeof(window_text_t));
-    uint16_t id = window_create_ptr(WINDOW_CLS_TEXT, psmd->root.win.id, rect_ui16(10, 80, 220, 200), &(psmd->phelp[0]));
-    psmd->phelp[0].font = resource_font(IDR_FNT_NORMAL);
+    uint16_t id = window_create_ptr(WINDOW_CLS_TEXT, psmd->root.win.id, rect_ui16(10, 80, 220, 200), &(psmd->help));
+    psmd->help.font = resource_font(IDR_FNT_NORMAL);
 
     //=============VARIABLES=================
 
@@ -70,12 +83,12 @@ void screen_menu_version_info_init(screen_t *screen) {
         else
             line_length = max_chars_per_line;
         snprintf(version_info_str + strlen(version_info_str),
-                 VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
-                 "%.*s\n", line_length, project_version_full + i);
+            VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
+            "%.*s\n", line_length, project_version_full + i);
     }
 
     snprintf(version_info_str + strlen(version_info_str),
-            VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
+        VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
         "\nBootloader version\n%d.%d.%d\n\nBuddy board\n%d.%d.%d\n%s",
         bootloader->major, bootloader->minor, bootloader->patch,
         board_version[0], board_version[1], board_version[2],
@@ -100,8 +113,8 @@ screen_t screen_version_info = {
     screen_menu_version_info_done,
     screen_menu_draw,
     screen_menu_event,
-    sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    sizeof(this_screen_data_t), //data_size
+    0,                          //pdata
 };
 
 const screen_t *pscreen_version_info = &screen_version_info;

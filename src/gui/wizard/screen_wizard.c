@@ -135,20 +135,44 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
             while (is_state_in_wizard_mask(pd->state) == 0)
                 pd->state++; //skip disabled steps
             switch (pd->state) {
-            case _STATE_START:
+            case _STATE_START: {
+#ifndef _DEBUG
                 if (wizard_msgbox(
+#else
+                const char *btns[3] = { "SetDone", "YES", "NO" };
+                switch (wizard_msgbox_btns(
+#endif
                         "Welcome to the     \n"
                         "Original Prusa MINI\n"
                         "setup wizard.      \n"
                         "Would you like to  \n"
                         "continue?           ",
+#ifndef _DEBUG
                         MSGBOX_BTN_YESNO, IDR_PNG_icon_pepa)
                     == MSGBOX_RES_YES) {
                     pd->state = _STATE_INIT;
                     window_show(footer_id);
                 } else
                     screen_close();
+#else
+                    MSGBOX_BTN_CUSTOM3, IDR_PNG_icon_pepa, btns)) {
+                case MSGBOX_RES_CUSTOM0:
+                    eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
+                    eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
+                    eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
+                    screen_close();
+                    break;
+                case MSGBOX_RES_CUSTOM1:
+                    pd->state = _STATE_INIT;
+                    window_show(footer_id);
+                    break;
+                case MSGBOX_RES_CUSTOM2:
+                default:
+                    screen_close();
+                }
+#endif
                 break;
+            }
             case _STATE_INIT:
                 //PID of nozzle does not work with low temperatures well
                 //have to preheat to lower temperature to avoid need of cooling
@@ -235,7 +259,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
             case _STATE_SELFTEST_PASS:
                 //need to show different msg box if XYZ calib shall not run
                 eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
-                if (is_state_in_wizard_mask(_STATE_XYZCALIB_INIT)) //run XYZ
+                if (is_state_in_wizard_mask(_STATE_XYZCALIB_INIT))   //run XYZ
                     wizard_msgbox(
                         "Everything is alright. "
                         "I will run XYZ "
@@ -347,16 +371,15 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     MSGBOX_BTN_DONE, 0);
                 screen_close();
                 break;
-            case _STATE_FIRSTLAY_INIT:
-                {
-                    pd->state = _STATE_FIRSTLAY_LOAD;
-                    window_show(footer_id);
-                    FILAMENT_t filament = get_filament();
-                    if (filament == FILAMENT_NONE || fs_get_state() == FS_NO_FILAMENT) filament = FILAMENT_PLA;
-                    wizard_init(filaments[filament].nozzle, filaments[filament].heatbed);
-                    p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
-                }
-                break;
+            case _STATE_FIRSTLAY_INIT: {
+                pd->state = _STATE_FIRSTLAY_LOAD;
+                window_show(footer_id);
+                FILAMENT_t filament = get_filament();
+                if (filament == FILAMENT_NONE || fs_get_state() == FS_NO_FILAMENT)
+                    filament = FILAMENT_PLA;
+                wizard_init(filaments[filament].nozzle, filaments[filament].heatbed);
+                p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
+            } break;
             case _STATE_FIRSTLAY_LOAD:
                 p_firstlay_screen->load_unload_state = wizard_load_unload(p_firstlay_screen->load_unload_state);
                 if (p_firstlay_screen->load_unload_state == LD_UNLD_DONE)
@@ -386,7 +409,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
 
                     if (wizard_msgbox(buff, MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
                         marlin_set_z_offset(z_offset_def);
-                        marlin_gcode("M500"); //store to eeprom
+                        eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));
                     }
                 }
 
@@ -430,7 +453,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     == MSGBOX_RES_NO) {
                     pd->state = _STATE_FINISH;
                     marlin_set_z_offset(p_firstlay_screen->Z_offset);
-                    marlin_gcode("M500"); //store to eeprom
+                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(p_firstlay_screen->Z_offset));
                     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
                     wizard_done_screen(screen);
                 } else {
@@ -456,7 +479,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                         }
                     }
                     marlin_set_z_offset(z_val_to_store);
-                    marlin_gcode("M500"); //store to eeprom
+                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_val_to_store));
                 }
                 break;
             case _STATE_FIRSTLAY_FAIL:
@@ -545,7 +568,7 @@ screen_t screen_wizard = {
     screen_wizard_draw,
     screen_wizard_event,
     sizeof(screen_wizard_data_t), //data_size
-    0, //pdata
+    0,                            //pdata
 };
 
 const screen_t *pscreen_wizard = &screen_wizard;

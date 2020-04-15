@@ -59,7 +59,11 @@ dependencies = {
             'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-noext-win.zip',
             'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-darwin.zip',
         }
-    }
+    },
+    'bootloader-mini': {
+        'version': '1.0.0',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-1.0.0.zip',
+    },
 }
 pip_dependencies = ['ecdsa']
 # yapf: enable
@@ -134,8 +138,10 @@ def install_dependency(dependency):
     specs = dependencies[dependency]
     installation_directory = directory_for_dependency(dependency,
                                                       specs['version'])
-    download_and_unzip(url=specs['url'][platform.system()],
-                       directory=installation_directory)
+    url = specs['url']
+    if isinstance(url, dict):
+        url = url[platform.system()]
+    download_and_unzip(url=url, directory=installation_directory)
     fix_executable_permissions(dependency, installation_directory)
 
 

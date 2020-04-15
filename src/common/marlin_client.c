@@ -8,6 +8,7 @@
 #include "bsod.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
+#include "ffconf.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -37,18 +38,21 @@
 
 // client
 typedef struct _marlin_client_t {
-    uint8_t id; // client id (0..MARLIN_MAX_CLIENTS-1)
-    uint16_t flags; // client flags (MARLIN_CFLG_xxx)
-    uint64_t events; // event mask
-    uint64_t changes; // variable change mask
-    marlin_vars_t vars; // cached variables
-    uint32_t ack; // cached ack value from last Acknowledge event
+    uint8_t id;          // client id (0..MARLIN_MAX_CLIENTS-1)
+    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
+    uint64_t events;     // event mask
+    uint64_t changes;    // variable change mask
+    marlin_vars_t vars;  // cached variables
+    uint32_t ack;        // cached ack value from last Acknowledge event
     uint16_t last_count; // number of messages received in last client loop
     uint64_t errors;
-    marlin_mesh_t mesh; // meshbed leveling
-    uint32_t command; // processed command (G28,G29,M701,M702,M600)
-    marlin_host_prompt_t prompt; // current host prompt structure (type and buttons)
-    uint8_t reheating; // reheating in progress
+    marlin_mesh_t mesh;           // meshbed leveling
+    uint32_t command;             // processed command (G28,G29,M701,M702,M600)
+    marlin_host_prompt_t prompt;  // current host prompt structure (type and buttons)
+    uint8_t reheating;            // reheating in progress
+    fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
+    fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
+    fsm_change_t fsm_change_cb;   // to register callback for change of state
 } marlin_client_t;
 
 #pragma pack(pop)
@@ -56,16 +60,16 @@ typedef struct _marlin_client_t {
 //-----------------------------------------------------------------------------
 // variables
 
-osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
+osThreadId marlin_client_task[MARLIN_MAX_CLIENTS];    // task handles
 osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
 
 marlin_client_t marlin_client[MARLIN_MAX_CLIENTS]; // client structure
-uint8_t marlin_clients = 0; // number of connected clients
+uint8_t marlin_clients = 0;                        // number of connected clients
 
 //-----------------------------------------------------------------------------
 // external variables from marlin_server
 
-extern osThreadId marlin_server_task; // task handle
+extern osThreadId marlin_server_task;    // task handle
 extern osMessageQId marlin_server_queue; // input queue (uint8_t)
 extern osSemaphoreId marlin_server_sema; // semaphore handle
 
@@ -105,6 +109,8 @@ marlin_vars_t *marlin_client_init(void) {
         client->mesh.yc = 4;
         client->command = MARLIN_CMD_NONE;
         client->reheating = 0;
+        client->fsm_create_cb = NULL;
+        client->fsm_destroy_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -133,28 +139,79 @@ void marlin_client_loop(void) {
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
                 *(((uint32_t *)(&msg)) + 1) = ose.value.v; //store high dword
-                _process_client_message(client, msg); //call handler
+                _process_client_message(client, msg);      //call handler
                 count++;
             } else
                 *(((uint32_t *)(&msg)) + 0) = ose.value.v; //store low dword
-            client->flags ^= MARLIN_CFLG_LOWHIGH; //flip flag
+            client->flags ^= MARLIN_CFLG_LOWHIGH;          //flip flag
         }
     client->last_count = count;
 }
 
-int marlin_client_id(void)
-{
+int marlin_client_id(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
         return client->id;
     return 0;
 }
 
+//register callback to fsm creation
+//return success
+int marlin_client_set_fsm_create_cb(fsm_create_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->fsm_create_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
+//register callback to fsm destruction
+//return success
+int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->fsm_destroy_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
+//register callback to fsm change
+//return success
+int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->fsm_change_cb = cb;
+        return 1;
+    }
+    return 0;
+}
 int marlin_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
         return (client->flags & MARLIN_CFLG_PROCESS) ? 1 : 0;
     return 0;
+}
+
+void marlin_client_set_event_notify(uint64_t notify_events) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        sprintf(request, "!event_msk %08lx %08lx", (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
+}
+
+void marlin_client_set_change_notify(uint64_t notify_changes) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        sprintf(request, "!change_msk %08lx %08lx", (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
 }
 
 int marlin_busy(void) {
@@ -211,6 +268,17 @@ void marlin_gcode(const char *gcode) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_json_gcode(const char *gcode) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    strcpy(request, "!g ");
+    strlcat(request, gcode, MARLIN_MAX_REQUEST);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
 int marlin_gcode_printf(const char *format, ...) {
     int ret;
     char request[MARLIN_MAX_REQUEST];
@@ -237,7 +305,7 @@ void marlin_gcode_push_front(const char *gcode) {
     _wait_ack_from_server(client->id);
 }
 
-int marlin_event(uint8_t evt_id) {
+int marlin_event(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -246,7 +314,7 @@ int marlin_event(uint8_t evt_id) {
     return ret;
 }
 
-int marlin_event_set(uint8_t evt_id) {
+int marlin_event_set(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -257,7 +325,7 @@ int marlin_event_set(uint8_t evt_id) {
     return ret;
 }
 
-int marlin_event_clr(uint8_t evt_id) {
+int marlin_event_clr(MARLIN_EVT_t evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << evt_id;
@@ -386,6 +454,32 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
     return &(client->vars);
 }
 
+void marlin_set_printing_gcode_name(const char *filename_pntr) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0) {
+        return;
+    }
+    uint32_t filename_len = strnlen(filename_pntr, _MAX_LFN);
+    if (_MAX_LFN == filename_len) {
+        _dbg0("error!: filename string is not null terminated");
+    }
+    snprintf(request, MARLIN_MAX_REQUEST, "!gfileset %p", filename_pntr);
+    marlin_event_clr(MARLIN_EVT_GFileChange);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_get_printing_gcode_name(char *filename_pntr) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0) {
+        return;
+    }
+    snprintf(request, MARLIN_MAX_REQUEST, "!gfileget %p", filename_pntr);
+    _send_request_to_server(client->id, request);
+}
+
 uint8_t marlin_get_gqueue(void) {
     return marlin_get_var(MARLIN_VAR_GQUEUE).ui8;
 }
@@ -452,7 +546,7 @@ void marlin_settings_save(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    _send_request_to_server(client->id, "!save");
+    _send_request_to_server(client->id, "!cfg_save");
     _wait_ack_from_server(client->id);
 }
 
@@ -460,7 +554,15 @@ void marlin_settings_load(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    _send_request_to_server(client->id, "!load");
+    _send_request_to_server(client->id, "!cfg_load");
+    _wait_ack_from_server(client->id);
+}
+
+void marlin_settings_reset(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!cfg_reset");
     _wait_ack_from_server(client->id);
 }
 
@@ -566,6 +668,18 @@ int marlin_reheating(void) {
 }
 
 //-----------------------------------------------------------------------------
+// responses from client finite state machine (like button click)
+void marlin_encoded_response(uint32_t enc_phase_and_response) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    sprintf(request, "!fsm_r %d", (int)enc_phase_and_response);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
+//-----------------------------------------------------------------------------
 // private functions
 
 // wait while server not started (called from client thread in marlin_client_init)
@@ -581,16 +695,16 @@ void _send_request_to_server(uint8_t client_id, const char *request) {
     osMessageQId queue = 0;
     int i;
     osSemaphoreWait(marlin_server_sema, osWaitForever); // lock
-    if ((queue = marlin_server_queue) != 0) // queue valid
+    if ((queue = marlin_server_queue) != 0)             // queue valid
     {
         marlin_client[client_id].events &= ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
         while (ret == 0) {
             if (osMessageAvailableSpace(queue) >= (uint32_t)(len + 1)) // check available space
             {
                 osMessagePut(queue, '0' + client_id, osWaitForever); // one character client id
-                for (i = 0; i < len; i++) // loop over every characters
-                    osMessagePut(queue, request[i], osWaitForever); //
-                if ((i > 0) && (request[i - 1] != '\n')) // automatically terminate with '\n'
+                for (i = 0; i < len; i++)                            // loop over every characters
+                    osMessagePut(queue, request[i], osWaitForever);  //
+                if ((i > 0) && (request[i - 1] != '\n'))             // automatically terminate with '\n'
                     osMessagePut(queue, '\n', osWaitForever);
                 ret = 1;
             } else {
@@ -632,7 +746,7 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
     } else if (msg.type == VARIANT8_USER) // event received
     {
         client->events |= ((uint64_t)1 << id);
-        switch (id) {
+        switch ((MARLIN_EVT_t)id) {
         case MARLIN_EVT_MeshUpdate: {
             uint8_t x = msg.usr16 & 0xff;
             uint8_t y = msg.usr16 >> 8;
@@ -671,6 +785,38 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case MARLIN_EVT_Acknowledge:
             client->ack = msg.ui32;
+            break;
+        case MARLIN_EVT_FSM_Create:
+            if (client->fsm_create_cb)
+                client->fsm_create_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8));
+            break;
+        case MARLIN_EVT_FSM_Destroy:
+            if (client->fsm_destroy_cb)
+                client->fsm_destroy_cb((uint8_t)msg.ui32);
+            break;
+        case MARLIN_EVT_FSM_Change:
+            if (client->fsm_change_cb)
+                client->fsm_change_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8), (uint8_t)(msg.ui32 >> 16), (uint8_t)(msg.ui32 >> 24));
+            break;
+            //not handled events
+            //do not use default, i want all events listed here, so new event will generate warning, when not added
+        case MARLIN_EVT_Startup:
+        case MARLIN_EVT_PrinterKilled:
+        case MARLIN_EVT_MediaInserted:
+        case MARLIN_EVT_MediaError:
+        case MARLIN_EVT_MediaRemoved:
+        case MARLIN_EVT_PlayTone:
+        case MARLIN_EVT_PrintTimerStarted:
+        case MARLIN_EVT_PrintTimerPaused:
+        case MARLIN_EVT_PrintTimerStopped:
+        case MARLIN_EVT_FilamentRunout:
+        case MARLIN_EVT_UserConfirmRequired:
+        case MARLIN_EVT_StatusChanged:
+        case MARLIN_EVT_FactoryReset:
+        case MARLIN_EVT_LoadSettings:
+        case MARLIN_EVT_StoreSettings:
+        case MARLIN_EVT_SafetyTimerExpired:
+        case MARLIN_EVT_GFileChange:
             break;
         }
 #ifdef DBG_EVT_MSK

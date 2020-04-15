@@ -47,7 +47,7 @@ typedef enum {
     STI_tst_heat_err,
     STI_tst_disp_memory,
     STI_tst_stack_overflow
-}STI_tag_t;
+} STI_tag_t;
 
 void screen_test_init(screen_t *screen) {
     int16_t id;
@@ -124,12 +124,12 @@ void screen_test_done(screen_t *screen) {
 void screen_test_draw(screen_t *screen) {
 }
 
-
 static volatile int _recursive = 1;
-static volatile void recursive(uint64_t i){
+static volatile void recursive(uint64_t i) {
     uint64_t x = i + (uint64_t)_recursive;
     osDelay(1);
-    if(_recursive)recursive(x);
+    if (_recursive)
+        recursive(x);
 }
 
 int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -181,7 +181,7 @@ screen_t screen_test = {
     screen_test_draw,
     screen_test_event,
     sizeof(screen_test_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_test = &screen_test;

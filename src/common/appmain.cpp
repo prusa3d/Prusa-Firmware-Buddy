@@ -7,7 +7,7 @@
 #include "dbg.h"
 #include "adc.h"
 #include "jogwheel.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
 
@@ -25,10 +25,13 @@
 #include "eeprom.h"
 #include "diag.h"
 #include "safe_state.h"
+#include "crc32.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
+#include "../Marlin/src/module/temperature.h"
+#include "../Marlin/src/module/probe.h"
 
 #define DBG _dbg0 //debug level 0
 //#define DBG(...)  //disable debug
@@ -37,24 +40,27 @@ extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
 
 extern void reset_trinamic_drivers();
 
-
 extern "C" {
 
 extern uartrxbuff_t uart6rxbuff; // PUT rx buffer
-extern uartslave_t uart6slave; // PUT slave
+extern uartslave_t uart6slave;   // PUT slave
 
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
-#endif //ETHERNET
+#endif                                 //BUDDY_ENABLE_ETHERNET
 
 #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif //_DEBUG
+#endif                           //_DEBUG
 
 void app_setup(void) {
     setup();
 
-    init_tmc();
+    marlin_server_settings_load(); // load marlin variables from eeprom
+
+    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+        init_tmc();
+    }
     //DBG("after init_tmc (%ld ms)", HAL_GetTick());
 }
 
@@ -65,10 +71,12 @@ void app_idle(void) {
 void app_run(void) {
     DBG("app_run");
 
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
     if (diag_fastboot)
         osThreadResume(webServerTaskHandle);
-#endif //ETHERNET
+#endif //BUDDY_ENABLE_ETHERNET
+
+    crc32_init();
 
     uint8_t defaults_loaded = eeprom_init();
 
@@ -91,13 +99,14 @@ void app_run(void) {
                 hwio_fan_set_pwm(i, 0); // disable fans
         }
         reset_trinamic_drivers();
-        init_tmc();
+        if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+            init_tmc();
+        }
     } else
         app_setup();
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (defaults_loaded && marlin_server_processing())
-    {
+    if (defaults_loaded && marlin_server_processing()) {
         settings.reset();
 #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg);
@@ -185,7 +194,6 @@ void app_tim14_tick(void) {
     adc_tick_1ms();
 }
 
-
 #include "usbh_core.h"
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
@@ -195,9 +203,9 @@ extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 // state is checked every 100ms, timeout for re-enumeration is 500ms
 // TODO: maybe we will change condition for states, because it can hang also in different state
 void app_usbhost_reenum(void) {
-    static uint32_t timer = 0;      // static timer variable
-    uint32_t tick = HAL_GetTick();  // read tick
-    if ((tick - timer) > 100) {     // every 100ms
+    static uint32_t timer = 0;     // static timer variable
+    uint32_t tick = HAL_GetTick(); // read tick
+    if ((tick - timer) > 100) {    // every 100ms
         // timer is valid, UsbHost is in enumeration state
         if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
             // longer than 500ms
@@ -205,8 +213,7 @@ void app_usbhost_reenum(void) {
                 _dbg("USB host reenumerating"); // trace
                 USBH_ReEnumerate(&hUsbHostHS);  // re-enumerate UsbHost
             }
-        }
-        else // otherwise update timer
+        } else // otherwise update timer
             timer = tick;
     }
 }

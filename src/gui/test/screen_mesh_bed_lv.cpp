@@ -61,7 +61,7 @@ const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed state"
 //methods
 
 #define MESH_DEFAULT_CL COLOR_WHITE
-#define MESH_ACTIVE_CL COLOR_RED
+#define MESH_ACTIVE_CL  COLOR_RED
 
 //mesh callbacks
 static void gui_state_mesh_off(screen_t *screen) {
@@ -222,7 +222,7 @@ screen_t screen_mesh_bed_lv = {
     screen_mesh_bed_lv_draw,
     screen_mesh_bed_lv_event,
     sizeof(screen_mesh_bed_lv_data_t), //data_size
-    0, //pdata
+    0,                                 //pdata
 };
 
 const screen_t *pscreen_mesh_bed_lv = &screen_mesh_bed_lv;

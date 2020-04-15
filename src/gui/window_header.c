@@ -9,8 +9,11 @@
 #include "window_header.h"
 #include "config.h"
 #include "marlin_client.h"
-#include "lwip/netif.h"
-#include "lwip/dhcp.h"
+#ifdef BUDDY_ENABLE_ETHERNET
+    #include "lwip/netif.h"
+    #include "lwip/dhcp.h"
+#endif //BUDDY_ENABLE_ETHERNET
+#include "eeprom.h"
 
 extern bool media_is_inserted();
 
@@ -22,6 +25,26 @@ extern struct netif wlan0;
 void window_frame_draw(window_frame_t *window);
 
 int16_t WINDOW_CLS_HEADER = 0;
+
+static void update_ETH_icon(bool link_up, window_header_t *window) {
+    if (link_up) {
+        if (eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE) {
+            if (netif_is_up(&eth0)) {
+                p_window_header_icon_active(window, HEADER_ICON_LAN);
+            } else {
+                p_window_header_icon_on(window, HEADER_ICON_LAN);
+            }
+        } else {
+            if (dhcp_supplied_address(&eth0)) {
+                p_window_header_icon_active(window, HEADER_ICON_LAN);
+            } else {
+                p_window_header_icon_on(window, HEADER_ICON_LAN);
+            }
+        }
+    } else {
+        p_window_header_icon_off(window, HEADER_ICON_LAN);
+    }
+}
 
 void window_header_init(window_header_t *window) {
     window->color_back = gui_defaults.color_back;
@@ -38,24 +61,9 @@ void window_header_init(window_header_t *window) {
     if (media_is_inserted()) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
     }
-
-    if (netif_is_up(&eth0)) {
-        if (dhcp_supplied_address(&eth0)) {
-            window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ACTIVE;
-        } else {
-            window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_ON;
-        }
-    }
-
-#if 0
-	if (netif_is_up(&wlan0)) {
-		if (dhcp_supplied_address(&wlan0)){
-			window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_ACTIVE;
-		} else {
-			window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_ON;
-		}
-	}
-#endif
+#ifdef BUDDY_ENABLE_ETHERNET
+    update_ETH_icon(netif_is_link_up(&eth0), window);
+#endif //BUDDY_ENABLE_ETHERNET
 }
 
 void window_header_done(window_header_t *window) {}
@@ -154,18 +162,11 @@ void p_window_header_set_text(window_header_t *window, const char *text) {
     _window_invalidate((window_t *)window);
 }
 
-int p_window_header_event_clr(window_header_t *window, uint8_t evt_id) {
+int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id) {
     /* lwip fces only read states, invalid states by another thread never mind */
-    if (netif_is_up(&eth0)) {
-        if (dhcp_supplied_address(&eth0)) {
-            p_window_header_icon_active(window, HEADER_ICON_LAN);
-        } else {
-            p_window_header_icon_on(window, HEADER_ICON_LAN);
-        }
-    } else {
-        p_window_header_icon_off(window, HEADER_ICON_LAN);
-    }
-
+#ifdef BUDDY_ENABLE_ETHERNET
+    update_ETH_icon(netif_is_link_up(&eth0), window);
+#endif //BUDDY_ENABLE_ETHERNET
     if (marlin_event_clr(evt_id)) {
         switch (evt_id) {
         case MARLIN_EVT_MediaInserted:
@@ -173,6 +174,8 @@ int p_window_header_event_clr(window_header_t *window, uint8_t evt_id) {
             break;
         case MARLIN_EVT_MediaRemoved:
             p_window_header_icon_on(window, HEADER_ICON_USB);
+            break;
+        default:
             break;
         }
         return 1;

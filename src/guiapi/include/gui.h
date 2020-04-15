@@ -24,6 +24,7 @@
     #include "window_menu.h"
     #include "window_msgbox.h"
     #include "window_progress.h"
+    #include "window_qr.h"
     #include "screen.h"
 #endif //GUI_WINDOW_SUPPORT
 
@@ -40,6 +41,9 @@ extern "C" {
 #ifdef GUI_USE_RTOS
 extern osThreadId gui_task_handle;
 #endif //GUI_USE_RTOS
+
+extern screen_t *const m876_blacklist[]; //used in screen unlooping
+extern const size_t m876_blacklist_sz;
 
 extern gui_defaults_t gui_defaults;
 
@@ -59,6 +63,7 @@ extern void gui_redraw(void);
 
 #ifdef GUI_WINDOW_SUPPORT
 
+extern uint8_t gui_get_nesting(void);
 extern void gui_loop(void);
 
 extern int gui_msgbox_ex(const char *title, const char *text, uint16_t flags, rect_ui16_t rect, uint16_t id_icon, const char **buttons);

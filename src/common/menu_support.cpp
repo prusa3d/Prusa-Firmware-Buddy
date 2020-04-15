@@ -10,14 +10,10 @@ void menu_support() {
     MENU_BACK(MSG_MAIN);
     //                 01234567890123456789
     //	STATIC_ITEM_P("");
-    #if (BOARD == A3IDES2209_REV01)
-    STATIC_ITEM_P("Marlin-A3ides 2209");
-    #elif (BOARD == A3IDES2209_REV02)
+    #if (MOTHERBOARD == 1823)
     STATIC_ITEM_P("Marlin-A3ides 2209-2");
-    #elif (BOARD == A3IDES2130_REV01)
-    STATIC_ITEM_P("Marlin-A3ides 2130");
     #else
-    STATIC_ITEM_P("Marlin - A3ides ????");
+        #error "Unknown MOTHERBOARD."
     #endif
     char version[32];
     char build[32];
@@ -33,7 +29,7 @@ void menu_support() {
     #endif
     #ifdef _DEBUG
     sprintf(build, " %d%s (DEBUG_%s)", version_build_nr, (char *)FW_BUILDSX, printer);
-    #else //_DEBUG
+    #else  //_DEBUG
     sprintf(build, " %d%s (%s)", version_build_nr, (char *)FW_BUILDSX, printer);
     #endif //_DEBUG
     STATIC_ITEM_P("version:            ");

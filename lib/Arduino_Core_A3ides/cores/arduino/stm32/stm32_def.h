@@ -14,9 +14,9 @@
  * F[0-9]: development
  */
 #define STM32_CORE_VERSION_EXTRA (0xF0U) /*!< [7:0]  extra version */
-#define STM32_CORE_VERSION ((STM32_CORE_VERSION_MAJOR << 24U) \
-    | (STM32_CORE_VERSION_MINOR << 16U)                       \
-    | (STM32_CORE_VERSION_PATCH << 8U)                        \
+#define STM32_CORE_VERSION       ((STM32_CORE_VERSION_MAJOR << 24U) \
+    | (STM32_CORE_VERSION_MINOR << 16U)                             \
+    | (STM32_CORE_VERSION_PATCH << 8U)                              \
     | (STM32_CORE_VERSION_EXTRA))
 
 #ifndef F_CPU

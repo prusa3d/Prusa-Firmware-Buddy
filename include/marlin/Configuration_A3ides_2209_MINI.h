@@ -21,6 +21,8 @@
  */
 #pragma once
 
+// clang-format off
+
 /**
  * Configuration.h
  *
@@ -126,12 +128,6 @@
 
 // Enable the Bluetooth serial interface on AT90USB devices
 //#define BLUETOOTH
-
-// The following define selects which electronics board you have.
-// Please choose the name from boards.h that matches your setup
-#ifndef MOTHERBOARD
-    #define MOTHERBOARD BOARD_RAMPS_14_EFB
-#endif
 
 // Optional custom name for your RepStrap or other custom machine
 // Displayed in the LCD "Ready" message
@@ -393,7 +389,13 @@
 #define HEATER_3_MAXTEMP 275
 #define HEATER_4_MAXTEMP 275
 #define HEATER_5_MAXTEMP 275
-#define BED_MAXTEMP 125
+// Beware: this is the absolute temperature limit.
+// The MINI cannot normally reach 110C.
+// Thus all usage in the UI must be lowered by 10C to offer a valid temperature limit.
+// Those 10C are a safety margin used throughout the whole Marlin code
+// (without a proper #define though :( )
+#define BED_MAXTEMP 110
+#define BED_MAXTEMP_SAFETY_MARGIN 10
 #define CHAMBER_MAXTEMP 100
 
 //===========================================================================
@@ -565,9 +567,18 @@
 
 // @section homing
 
+//! Move in opposite direction as first homing move
+//! useful for sensor-less homing to avoid clicking noise
+//! implemented only for Cartesian kinematics
+#define MOVE_BACK_BEFORE_HOMING
+#if ENABLED(MOVE_BACK_BEFORE_HOMING)
+    #define MOVE_BACK_BEFORE_HOMING_DISTANCE 1.92f
+#endif
+
 // Specify here all the endstop connectors that are connected to any endstop or probe.
 // Almost all printers will be using one per axis. Probes will use one or more of the
 // extra connectors. Leave undefined any used for non-endstop and non-probe purposes.
+#define MINDA_BROKEN_CABLE_DETECTION
 #define USE_XMIN_PLUG
 #define USE_YMIN_PLUG
 #define USE_ZMIN_PLUG
@@ -675,7 +686,7 @@
  */
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100, 100, 400, 280 } //E0 280 295
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 400, 317 } //E0 280 295
+    { 100, 100, 400, 325 } //E0 280 295
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 800, 800, 3200, 1120 } //E0 280 295
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100, 100, 400, 1120 } //E0 280 295
 
@@ -711,7 +722,7 @@
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
 //
-#define CLASSIC_JERK
+//#define JUNCTION_DEVIATION
 #if DISABLED(CLASSIC_JERK)
     #define JUNCTION_DEVIATION_MM 0.02 // (mm) Distance from real junction edge
 #endif
@@ -859,7 +870,7 @@
     { -29, -3, 0 }
 
 // Certain types of probes need to stay away from edges
-#define MIN_PROBE_EDGE 0
+#define MIN_PROBE_EDGE 5
 
 // X and Y axis travel speed (mm/m) between probes
 #define XY_PROBE_SPEED 5000
@@ -1342,7 +1353,7 @@
 // M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
 // M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to.
 //
-#define EEPROM_SETTINGS // Enable for M500 and M501 commands
+//#define EEPROM_SETTINGS // Enable for M500 and M501 commands
 //#define DISABLE_M503    // Saves ~2700 bytes of PROGMEM. Disable for release!
 //#define EEPROM_CHITCHAT   // Give feedback on EEPROM commands. Disable to save PROGMEM.
 

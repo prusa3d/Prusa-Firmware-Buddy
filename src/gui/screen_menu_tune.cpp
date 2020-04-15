@@ -5,11 +5,13 @@
 #include "marlin_client.h"
 #include "filament.h"
 #include "menu_vars.h"
+#include "eeprom.h"
 
 #ifdef _DEBUG
 extern screen_t screen_test;
 #endif //_DEBUG
-extern screen_t screen_menu_info;
+extern screen_t screen_lan_settings;
+extern screen_t screen_version_info;
 extern screen_t screen_messages;
 
 enum {
@@ -21,39 +23,54 @@ enum {
     MI_FLOWFACT,
     MI_BABYSTEP,
     MI_FILAMENT,
-    MI_INFO,
+    MI_LAN_SETTINGS,
+    MI_VERSION_INFO,
 #ifdef _DEBUG
     MI_TEST,
 #endif //_DEBUG
     MI_MESSAGES,
+    MI_COUNT
 };
 
 //cannot use .wi_spin = { 0, feedrate_range } ...
 //sorry, unimplemented: non-trivial designated initializers not supported
 const menu_item_t _menu_tune_items[] = {
-    { { "Speed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
-    { { "Nozzle", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
-    { { "HeatBed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
-    { { "Fan Speed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
-    { { "Flow Factor", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN }, //set later
+    { { "Speed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },            //set later
+    { { "Nozzle", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },           //set later
+    { { "HeatBed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },          //set later
+    { { "Fan Speed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },        //set later
+    { { "Flow Factor", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },      //set later
     { { "Live Adjust Z", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
     { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Info", 0, WI_LABEL | WI_DISABLED }, &screen_menu_info },
+    { { "LAN Setings", 0, WI_LABEL }, &screen_lan_settings },
+    { { "Version Info", 0, WI_LABEL }, &screen_version_info },
 #ifdef _DEBUG
     { { "Test", 0, WI_LABEL }, &screen_test },
 #endif //_DEBUG
     { { "Messages", 0, WI_LABEL }, &screen_messages },
 };
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_tune_timer(screen_t *screen, uint32_t mseconds);
 void screen_menu_tune_chanege_filament(screen_t *screen);
 
 void screen_menu_tune_init(screen_t *screen) {
-    marlin_vars_t *vars;
-    int count = sizeof(_menu_tune_items) / sizeof(menu_item_t);
-    screen_menu_init(screen, "TUNE", count + 1, 1, 0);
+    marlin_vars_t *vars; //set later
+    screen_menu_init(screen, "TUNE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_tune_items, count * sizeof(menu_item_t));
+    memcpy(psmd->items + 1, _menu_tune_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
     vars = marlin_update_vars(
         MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
@@ -133,7 +150,7 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
             break;
         case MI_BABYSTEP:
             marlin_set_z_offset(psmd->items[MI_BABYSTEP].item.wi_spin_fl.value);
-            marlin_settings_save();
+            eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
             break;
         }
     } else if (event == WINDOW_EVENT_CLICK) {
@@ -147,9 +164,6 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
             break;
         case MI_BABYSTEP:
             z_offs = psmd->items[MI_BABYSTEP].item.wi_spin_fl.value;
-            break;
-        case MI_MESSAGES:
-            screen_open(psmd->items[(int)param].screen->id);
             break;
         }
     }
@@ -196,8 +210,10 @@ screen_t screen_menu_tune = {
     screen_menu_done,
     screen_menu_draw,
     screen_menu_tune_event,
-    sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    sizeof(this_screen_data_t), //data_size
+    0,                          //pdata
 };
 
+extern "C" {
 const screen_t *pscreen_menu_tune = &screen_menu_tune;
+}

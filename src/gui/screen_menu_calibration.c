@@ -7,6 +7,7 @@
 #include "window_dlg_wait.h"
 
 #include "menu_vars.h"
+#include "eeprom.h"
 
 typedef enum {
     MI_RETURN,
@@ -21,6 +22,7 @@ typedef enum {
 #endif
     //	MI_CALIB_XY,
     MI_CALIB_FIRST,
+    MI_COUNT
 } MI_t;
 
 const menu_item_t _menu_calibration_items[] = {
@@ -37,12 +39,24 @@ const menu_item_t _menu_calibration_items[] = {
     { { "First Layer Cal.", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
 
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[MI_COUNT];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
+
 void screen_menu_calibration_init(screen_t *screen) {
     marlin_vars_t *vars;
-    int count = sizeof(_menu_calibration_items) / sizeof(menu_item_t);
-    screen_menu_init(screen, "CALIBRATION", count + 1, 0, 0);
+    screen_menu_init(screen, "CALIBRATION", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 0, 0);
     psmd->items[MI_RETURN] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_calibration_items, count * sizeof(menu_item_t));
+    memcpy(psmd->items + 1, _menu_calibration_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
     vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
     psmd->items[MI_Z_OFFSET].item.wi_spin_fl.value = vars->z_offset;
@@ -56,7 +70,7 @@ int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t ev
     if ((event == WINDOW_EVENT_CHANGING) && ((int)param == MI_Z_OFFSET))
         marlin_set_z_offset(psmd->items[MI_Z_OFFSET].item.wi_spin_fl.value);
     else if ((event == WINDOW_EVENT_CHANGE) && ((int)param == MI_Z_OFFSET))
-        marlin_gcode("M500"); // store config when lose capture
+        eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
     else if (event == WINDOW_EVENT_CLICK) {
         switch ((int)param) {
         case MI_WIZARD:
@@ -94,8 +108,8 @@ screen_t screen_menu_calibration = {
     screen_menu_done,
     screen_menu_draw,
     screen_menu_calibration_event,
-    sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    sizeof(this_screen_data_t), //data_size
+    0,                          //pdata
 };
 
 const screen_t *pscreen_menu_calibration = &screen_menu_calibration;

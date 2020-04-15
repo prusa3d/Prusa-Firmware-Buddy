@@ -26,12 +26,12 @@ extern screen_t *pscreen_menu_calibration;
 extern screen_t *pscreen_menu_settings;
 extern screen_t *pscreen_menu_info;
 
-#define BUTTON_PRINT 0
-#define BUTTON_PREHEAT 1
-#define BUTTON_FILAMENT 2
+#define BUTTON_PRINT       0
+#define BUTTON_PREHEAT     1
+#define BUTTON_FILAMENT    2
 #define BUTTON_CALIBRATION 3
-#define BUTTON_SETTINGS 4
-#define BUTTON_INFO 5
+#define BUTTON_SETTINGS    4
+#define BUTTON_INFO        5
 
 const uint16_t icons[6] = {
     IDR_PNG_menu_icon_print,
@@ -69,6 +69,7 @@ typedef struct
 
     uint8_t is_starting;
     uint32_t time;
+    uint8_t logo_invalid;
 } screen_home_data_t;
 
 #pragma pack(pop)
@@ -138,6 +139,8 @@ void screen_home_done(screen_t *screen) {
 }
 
 void screen_home_draw(screen_t *screen) {
+    if (pw->logo.win.f_invalid)
+        pw->logo_invalid = 1;
 }
 
 static void on_print_preview_action(print_preview_action_t action) {
@@ -153,6 +156,12 @@ static void on_print_preview_action(print_preview_action_t action) {
 int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
+    }
+    if ((event == WINDOW_EVENT_LOOP) && pw->logo_invalid) {
+#ifdef _DEBUG
+        display->draw_text(rect_ui16(180, 31, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+#endif //_DEBUG
+        pw->logo_invalid = 0;
     }
 
     if (pw->is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
@@ -272,7 +281,7 @@ screen_t screen_home = {
     screen_home_draw,
     screen_home_event,
     sizeof(screen_home_data_t), //data_size
-    0, //pdata
+    0,                          //pdata
 };
 
 const screen_t *pscreen_home = &screen_home;

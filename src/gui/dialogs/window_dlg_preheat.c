@@ -21,8 +21,6 @@ extern void window_frame_event(window_frame_t *window, uint8_t event, void *para
 
 int16_t WINDOW_CLS_DLG_PREHEAT = 0;
 
-extern window_t *window_1; //current popup window
-
 #define _PREHEAT_FILAMENT_CNT (FILAMENTS_END - FILAMENT_PLA)
 
 //no return option
@@ -101,7 +99,7 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
     case WINDOW_EVENT_ENC_UP:
     case WINDOW_EVENT_ENC_DN: //forward up/dn events to list window
         window->list.win.cls->event(&(window->list.win), event, param);
-		break;
+        break;
     case WINDOW_EVENT_BTN_DN:
         if (window->timer != -1) {
             window->timer = -1; //close
@@ -178,7 +176,6 @@ int gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
     return fil;
 }
 
-
 //returns index or -1 on timeout
 //todo make this independet on preheat, in separate file
 //todo caption is not showing
@@ -197,9 +194,9 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
 
     window_set_item_count(dlg.list.win.id, count);
 
-    window_t* tmp_window_1 = window_1; //save current window_1
+    window_t *tmp_window_1 = window_popup_ptr; //save current window_popup_ptr
 
-    window_1 = (window_t *)&dlg;
+    window_popup_ptr = (window_t *)&dlg;
     window_set_capture(id); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
 
     gui_reset_jogwheel();
@@ -221,8 +218,8 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
         ret = dlg.list.index;
     }
 
-    window_destroy(id); //msgbox call this inside (destroys its own window)
-    window_1 = tmp_window_1; //restore current window_1
+    window_destroy(id);              //msgbox call this inside (destroys its own window)
+    window_popup_ptr = tmp_window_1; //restore current window_popup_ptr
     window_invalidate(0);
     window_set_capture(id_capture);
     return ret;

@@ -14,11 +14,11 @@
 
 //extern ApplicationTypeDef Appli_state;
 
-int pattern_matching(/* 0:not matched, 1:matched */
+int pattern_matching( /* 0:not matched, 1:matched */
     const TCHAR *pat, /* Matching pattern */
     const TCHAR *nam, /* String to be tested */
-    int skip, /* Number of pre-skip chars (number of ?s) */
-    int inf /* Infinite search (* specified) */
+    int skip,         /* Number of pre-skip chars (number of ?s) */
+    int inf           /* Infinite search (* specified) */
 );
 
 int16_t WINDOW_CLS_FILE_LIST = 0;
@@ -81,7 +81,7 @@ void window_file_list_load(window_file_list_t *window, const char **filters, siz
 
     int pattern_match;
     while (fres == FR_OK && info.fname[0] && i < SDSORT_LIMIT) { /* Repeat while an item is found */
-        pattern_match = info.fattrib & AM_DIR; //print directory
+        pattern_match = info.fattrib & AM_DIR;                   //print directory
         for (size_t filt_no = 0; (!pattern_match) && (filt_no < filters_cnt); ++filt_no) {
             if (pattern_matching(filters[filt_no], info.fname, 0, 0))
                 pattern_match = 1;

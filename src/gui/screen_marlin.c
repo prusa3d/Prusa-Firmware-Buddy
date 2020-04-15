@@ -3,9 +3,8 @@
 #include "gui.h"
 #include "config.h"
 #include "window_lcdsim.h"
-#include "window_logo.h"
 #include "cmsis_os.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "lcdsim.h"
 
 extern osThreadId displayTaskHandle;
@@ -16,7 +15,7 @@ extern osThreadId displayTaskHandle;
 typedef struct
 {
     window_frame_t frame;
-    window_logo_t logo_prusa_mini;
+    window_icon_t logo_prusa_mini;
     window_lcdsim_t lcdsim;
 } screen_marlin_data_t;
 
@@ -41,7 +40,7 @@ void screen_marlin_init(screen_marlin_t *screen) {
     id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(_psd->frame));
     //window_set_color_back(id0, COLOR_GRAY);
 
-    id = window_create_ptr(WINDOW_CLS_LOGO, id0, rect_ui16(0, 20, 240, 64), &(_psd->logo_prusa_mini));
+    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 20, 240, 64), &(_psd->logo_prusa_mini));
     window_set_tag(id, 1);
     //window_enable(id);
 
@@ -86,7 +85,7 @@ screen_marlin_t screen_marlin = {
         (screen_draw_t *)screen_marlin_draw,
         (screen_event_t *)screen_marlin_event,
         sizeof(screen_marlin_data_t), //data_size
-        0, //pdata
+        0,                            //pdata
     },
     0, //lcdsim_initialized
 };

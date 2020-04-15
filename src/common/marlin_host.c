@@ -5,17 +5,17 @@
 
 // host prompt text constants (dbg)
 const char *__prompt_text[] = {
-    "", // HOST_PROMPT_None = 0
-    "Paused", // HOST_PROMPT_Paused
+    "",                 // HOST_PROMPT_None = 0
+    "Paused",           // HOST_PROMPT_Paused
     "FilamentRunout T", // HOST_PROMPT_FilamentRunout
-    "LoadFilament T", // HOST_PROMPT_LoadFilament
+    "LoadFilament T",   // HOST_PROMPT_LoadFilament
 };
 
 // host prompt button text constants (dbg)
 const char *__prompt_button_text[] = {
-    "", // HOST_PROMPT_BTN_None = 0
-    "Continue", // HOST_PROMPT_BTN_Continue
-    "PurgeMore", // HOST_PROMPT_BTN_PurgeMore
+    "",              // HOST_PROMPT_BTN_None = 0
+    "Continue",      // HOST_PROMPT_BTN_Continue
+    "PurgeMore",     // HOST_PROMPT_BTN_PurgeMore
     "DisableRunout", // HOST_PROMPT_BTN_DisableRunout
 };
 
