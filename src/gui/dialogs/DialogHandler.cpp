@@ -21,7 +21,7 @@ void DialogHandler::open(ClinetFSM dialog, uint8_t data) {
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
     if (dialog == ClinetFSM::Serial_printing) {
-        screen_unloop(sculp_M876);
+        screen_unloop(scrn_unlp_M876);
 
         if (screen_get_curr() != get_scr_printing_serial())
             screen_open(get_scr_printing_serial()->id);

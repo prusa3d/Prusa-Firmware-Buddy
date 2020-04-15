@@ -28,7 +28,7 @@ static screen_t *const m876_blacklist[] = {
 #endif //PIDCALIBRATION
 };
 
-int _current_in_list(screen_t *const *list, size_t sz) {
+static int _current_in_list(screen_t *const *list, size_t sz) {
     screen_t *curr = screen_get_curr();
     for (size_t i = 0; i < sz; ++sz)
         if (curr == list[sz])
@@ -44,11 +44,11 @@ void screen_unloop(screen_unloop_t type) {
     size_t sz;
 
     switch (type) {
-    case sculp_timeout:
+    case scrn_unlp_timeout:
         unl_blacklist = timeout_blacklist;
         sz = sizeof(timeout_blacklist) / sizeof(timeout_blacklist[0]);
         break;
-    case sculp_M876:
+    case scrn_unlp_M876:
         unl_blacklist = m876_blacklist;
         sz = sizeof(m876_blacklist) / sizeof(m876_blacklist[0]);
         break;

@@ -8,8 +8,8 @@ extern "C" {
 #endif //__cplusplus
 
 typedef enum {
-    sculp_timeout,
-    sculp_M876
+    scrn_unlp_timeout,
+    scrn_unlp_M876
 } screen_unloop_t;
 
 extern void screen_unloop(screen_unloop_t type);
