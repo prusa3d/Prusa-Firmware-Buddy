@@ -14,6 +14,11 @@
 //#define DBG_SWO        // trace to swo port
 #endif //_DEBUG
 
+//--------------------------------------
+//WDT - watchdog timers (IWDG, WWDG)
+#define WDT_IWDG_ENABLED
+//#define WDT_WWDG_ENABLED
+
 //show filament sensor status in header
 //#define DEBUG_FSENSOR_IN_HEADER
 
