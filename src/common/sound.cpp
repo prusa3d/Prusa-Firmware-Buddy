@@ -26,6 +26,7 @@ void Sound::soundInit(){
     if((uint8_t)eSoundMode == (uint8_t)eSOUND_MODE_NULL){
         this->setMode(eSOUND_MODE_DEFAULT);
     }
+    // GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = 1;
 }
 
@@ -38,15 +39,19 @@ void Sound::setMode(eSOUND_MODE eSMode){
     this->saveMode();
 }
 
+// Store new Sound mode value into a EEPROM. Stored value size is 1byte
 void Sound::saveMode(){
     eeprom_set_var(EEVAR_SOUND_MODE, variant8_ui8((uint8_t)eSoundMode));
 }
 
+// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
 void Sound::stopSound(){
     _duration = 0;
     repeat = 0;
 }
 
+// Generag [doSound] method with sound type parameter where dependetly on set mode is played.
+// Every mode handle just his own signal types.
 void Sound::doSound(eSOUND_TYPE eSoundType){
     switch (eSoundMode){
         case eSOUND_MODE_ONCE:
@@ -78,42 +83,49 @@ void Sound::doSound(eSOUND_TYPE eSoundType){
     }
 }
 
+// Sound signal played once just after boot
 void Sound::soundStart(int rep, uint32_t del){
     float vol = 0.125;
     float frq = 500.0f;
     this->_sound(rep, frq, del, volume);
 }
 
+// Sound signal for encoder button click
 void Sound::soundButtonEcho(int rep, uint32_t del){
     float vol = 0.125;
     float frq = 200.0f;
     this->_sound(rep, frq, del, volume);
 }
 
+// Sound signal for user needed input on prompt screens (filament runout, etc.)
 void Sound::soundStandardPrompt(int rep, uint32_t del){
     float vol = 0.125;
     float frq = 500.0f;
     this->_sound(rep, frq, del, volume);
 }
 
+// Souns signal for errors, bsod, and others Alert type's events
 void Sound::soundStandardAlert(int rep, uint32_t del){
     float vol = 0.005;
     float frq = 800.0f;
     this->_sound(rep, frq, del, vol);
 }
 
+// Sound signal every time when encoder nove
 void Sound::soundEncoderMove(int rep, uint32_t del){
     float vol = 0.125;
     float frq = 50.0f;
     this->_sound(rep, frq, del, volume);
 }
 
+// Sound signal for signaling start and end of the menu or items selecting on screen
 void Sound::soundBlindAlert(int rep, uint32_t del){
     float vol = 0.125;
     float frq = 900.0f;
     this->_sound(rep, frq, del, volume);
 }
 
+// Generic [_sound[ method with setting values and repeating logic
 void Sound::_sound(int rep, float frq, uint32_t del, float vol){
     if (repeat-1 > 0 || repeat == -1){ return; }
     
@@ -123,21 +135,26 @@ void Sound::_sound(int rep, float frq, uint32_t del, float vol){
     duration = del;
     volume = vol;
     
-    hwio_beeper_set_pwm(0, 0); // -- end previous beep
+    // end previous beep
+    hwio_beeper_set_pwm(0, 0);
     this->nextRepeat();
 }
 
+// Another repeat of sound signal. Just set live variable with duration of the beep and play it
 void Sound::nextRepeat(){
     _duration = duration;
     hwio_beeper_tone2(frequency, duration, volume);
 }
 
+// Update method to control duration of sound signals and repeating count.
+// When variable [repeat] is -1, then repeating will be infinite until [stopSound] is called.
 void  Sound::soundUpdate1ms(){
     // -- timing logic without osDelay for repeating Beep(s)
     if ((_duration) && (--_duration == 0)){
-	if(((repeat) && (--repeat != 0)) || (repeat == -1)){
+	    if(((repeat) && (--repeat != 0)) || (repeat == -1)){
             this->nextRepeat();
-	}
+	    }
     }
+    // calling hwio update fnc
     hwio_update_1ms();
 }

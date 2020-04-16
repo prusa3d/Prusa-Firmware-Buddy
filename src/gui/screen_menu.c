@@ -9,7 +9,6 @@
 #include "config.h"
 #include "stdlib.h"
 #include "resource.h"
-#include "sound_C_wrapper.h"
 
 void window_set_capture(int16_t id);
 
