@@ -193,7 +193,7 @@ void app_tim14_tick(void) {
     jogwheel_update_1ms();
 #endif
     Sound_UpdateSound1ms();
-    hwio_update_1ms();
+    //hwio_update_1ms();
     adc_tick_1ms();
 }
 

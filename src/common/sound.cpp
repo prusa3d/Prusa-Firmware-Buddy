@@ -2,16 +2,25 @@
 #include "sound.h"
 #include "hwio.h"
 #include "eeprom.h"
+#include "cmsis_os.h"
 
+// -- Sound signals implementation Singleton Class
+// Simple sound implementation supporting few sound modes and having different sound types.
+// [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for meassured durations of sound signals for non-blocking GUI.
+// Beeper is controled over [hwio_a3ides_2209_02.c] functions for beeper.
 Sound::Sound(){
-    _duration = 0;
-    duration = 0;
-    repeat = 0;
-    frequency = 100.f;
-    volume = 0.00125;
+    _duration = 0; 	// live variable used for meassure
+    duration = 0; 	// added variable to set _duration for repeating 
+    repeat = 0; 	// how many times is sound played
+    frequency = 100.f; 	// frequency of sound signal (0-1000)
+    volume = 0.00125; 	// volume of sound signal (0-1)
+
     this->soundInit();
 }
 
+// Inicialization of Singleton Class needs to be AFTER eeprom inicialization.
+// [soundInit] is getting stored EEPROM value of his sound mode.
+// [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
 void Sound::soundInit(){
     eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).ui8;
     if((uint8_t)eSoundMode == (uint8_t)eSOUND_MODE_NULL){
@@ -77,7 +86,7 @@ void Sound::soundStart(int rep, uint32_t del){
 
 void Sound::soundButtonEcho(int rep, uint32_t del){
     float vol = 0.125;
-    float frq = 100.0f;
+    float frq = 200.0f;
     this->_sound(rep, frq, del, volume);
 }
 
@@ -88,20 +97,20 @@ void Sound::soundStandardPrompt(int rep, uint32_t del){
 }
 
 void Sound::soundStandardAlert(int rep, uint32_t del){
-    float vol = 0.125;
-    float frq = 500.0f;
-    this->_sound(rep, frq, del, volume);
+    float vol = 0.005;
+    float frq = 800.0f;
+    this->_sound(rep, frq, del, vol);
 }
 
 void Sound::soundEncoderMove(int rep, uint32_t del){
     float vol = 0.125;
-    float frq = 500.0f;
+    float frq = 50.0f;
     this->_sound(rep, frq, del, volume);
 }
 
 void Sound::soundBlindAlert(int rep, uint32_t del){
     float vol = 0.125;
-    float frq = 500.0f;
+    float frq = 900.0f;
     this->_sound(rep, frq, del, volume);
 }
 
@@ -130,4 +139,5 @@ void  Sound::soundUpdate1ms(){
             this->nextRepeat();
 	}
     }
+    hwio_update_1ms();
 }

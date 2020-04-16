@@ -169,7 +169,6 @@ void gui_run(void) {
     gui_marlin_vars = marlin_client_init();
     gui_marlin_client_id = marlin_client_id();
     register_dialog_callbacks();
-    // hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
     Sound_DoSound(eSOUND_TYPE_Start);
 
     screen_register(pscreen_splash);
@@ -236,13 +235,13 @@ void gui_run(void) {
     int8_t gui_timeout_id;
     while (1) {
         // float vol = 0.01F;
-        //simple jogwheel acoustic feedback
-        if ((jogwheel_changed & 1) && jogwheel_button_down)       //button changed and pressed
-            Sound_DoSound(eSOUND_TYPE_ButtonEcho);
-            // hwio_beeper_tone2(200.0, 50, (double)(vol * 0.125F)); //beep
-        else if (jogwheel_changed & 2)                            // encoder changed
-            Sound_DoSound(eSOUND_TYPE_EncoderMove);
-            // hwio_beeper_tone2(50.0, 25, (double)(vol * 0.125F));  //short click
+        // //simple jogwheel acoustic feedback
+        //  if ((jogwheel_changed & 1) && jogwheel_button_down)       //button changed and pressed
+        //      //Sound_DoSound(eSOUND_TYPE_ButtonEcho);
+	//      hwio_beeper_tone2(200.0, 50, (double)(vol * 0.125F)); //beep
+        //  else if (jogwheel_changed & 2)                            // encoder changed
+        //      //Sound_DoSound(eSOUND_TYPE_EncoderMove);
+        //      hwio_beeper_tone2(50.0, 25, (double)(vol * 0.125F));  //short click
         // show warning dialog on safety timer expiration
         if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
             gui_msgbox("Heating disabled due to 30 minutes of inactivity.", MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
