@@ -211,7 +211,7 @@ screen_t screen_menu_tune = {
     screen_menu_draw,
     screen_menu_tune_event,
     sizeof(this_screen_data_t), //data_size
-    0,                             //pdata
+    0,                          //pdata
 };
 
 extern "C" {

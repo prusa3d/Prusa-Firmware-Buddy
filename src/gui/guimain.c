@@ -238,7 +238,7 @@ void gui_run(void) {
         // //simple jogwheel acoustic feedback
         //  if ((jogwheel_changed & 1) && jogwheel_button_down)       //button changed and pressed
         //      //Sound_DoSound(eSOUND_TYPE_ButtonEcho);
-	//      hwio_beeper_tone2(200.0, 50, (double)(vol * 0.125F)); //beep
+        //      hwio_beeper_tone2(200.0, 50, (double)(vol * 0.125F)); //beep
         //  else if (jogwheel_changed & 2)                            // encoder changed
         //      //Sound_DoSound(eSOUND_TYPE_EncoderMove);
         //      hwio_beeper_tone2(50.0, 25, (double)(vol * 0.125F));  //short click

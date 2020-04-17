@@ -37,19 +37,27 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_ENC_DN:
         dif = (int)param;
         id = window_focused();
-        while (dif--){
+        while (dif--) {
             id = window_prev_enabled(id);
-            if (id >= 0){ window_set_focus(id); }
-            if (id < 0){ Sound_DoSound(eSOUND_TYPE_BlindAlert); }
+            if (id >= 0) {
+                window_set_focus(id);
+            }
+            if (id < 0) {
+                Sound_DoSound(eSOUND_TYPE_BlindAlert);
+            }
         }
         break;
     case WINDOW_EVENT_ENC_UP:
         dif = (int)param;
         id = window_focused();
-        while (dif--){
+        while (dif--) {
             id = window_next_enabled(id);
-            if (id >= 0){ window_set_focus(id); }
-            if (id < 0){ Sound_DoSound(eSOUND_TYPE_BlindAlert); }
+            if (id >= 0) {
+                window_set_focus(id);
+            }
+            if (id < 0) {
+                Sound_DoSound(eSOUND_TYPE_BlindAlert);
+            }
         }
         break;
     case WINDOW_EVENT_CAPT_0:

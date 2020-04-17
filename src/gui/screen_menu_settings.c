@@ -133,11 +133,11 @@ void screen_menu_settings_init(screen_t *screen) {
     psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = (fs != FS_DISABLED);
     psmd->items[MI_TIMEOUT].item.wi_switch_select.index = menu_timeout_enabled; //st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS)
 
-    for (int i = 0; i < sizeof(e_sound_modes); i++){
+    for (int i = 0; i < sizeof(e_sound_modes); i++) {
         if (e_sound_modes[i] == Sound_GetMode()) {
-            psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = i;   
+            psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = i;
             break;
-        }   
+        }
     }
 }
 
@@ -227,11 +227,11 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
         case MI_SOUND_MODE:
             Sound_SetMode(e_sound_modes[psmd->items[MI_SOUND_MODE].item.wi_switch_select.index]);
             break;
-        #ifdef _DEBUG
+#ifdef _DEBUG
         case MI_SOUND_TYPE:
             Sound_DoSound(e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index]);
             break;
-        #endif // _DEBUG
+#endif // _DEBUG
         }
     }
     return 0;
