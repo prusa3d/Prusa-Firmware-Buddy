@@ -71,7 +71,7 @@ public:
         } else {
             // find the file in the directory using pattern search
             F_DIR_RAII_Find_One dir(path, firstDirEntry);
-            if (dir.result != FR_OK || dir.fno.fname[0] == 0){
+            if (dir.result != FR_OK || dir.fno.fname[0] == 0) {
                 // the filename was not found, discard the firstDirEntry and start from the beginning
                 // of the directory like if firstDirEntry was nullptr
                 files[0].SetDirUp();
