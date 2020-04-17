@@ -41,7 +41,7 @@ typedef struct _display_t {
 extern "C" {
 #endif //__cplusplus
 
-extern display_t *display;
+extern const display_t *const display;
 
 #ifdef __cplusplus
 }

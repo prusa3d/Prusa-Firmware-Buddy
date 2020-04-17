@@ -26,8 +26,10 @@
     #include "filament_sensor.h"
 #endif
 
+extern "C" {
 extern screen_t *pscreen_home;
 extern screen_t *pscreen_menu_tune;
+}
 
 #define COLOR_VALUE_VALID COLOR_WHITE
 //#define COLOR_VALUE_INVALID COLOR_YELLOW

@@ -6,26 +6,24 @@
 #include "config.h"
 #include "marlin_client.h"
 
-#include "window_logo.h"
-
 #ifdef LCDSIM
     #include "window_lcdsim.h"
 #else //LCDSIM
     #include "window_file_list.h"
     #include "window_header.h"
     #include "window_temp_graph.h"
-    #include "window_dlg_statemachine.h"
+    #include "DialogLoadUnload.h"
     #include "window_dlg_wait.h"
     #ifdef _DEBUG
         #include "window_dlg_popup.h"
     #endif //_DEBUG
     #include "window_dlg_preheat.h"
-    #include "window_dlg_change.h"
     #include "screen_print_preview.h"
 #endif //LCDSIM
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
+#include "Dialog_C_wrapper.h"
 
 extern screen_t *pscreen_splash;
 extern screen_t *pscreen_watchdog;
@@ -101,7 +99,6 @@ const jogwheel_config_t jogwheel_cfg = {
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
-int gui_marlin_client_id = -1;
 int8_t menu_timeout_enabled = 1; // Default: enabled
 
 extern screen_t screen_home;
@@ -125,7 +122,7 @@ static screen_t *const timeout_blacklist[] = {
 #endif //PIDCALIBRATION
 };
 
-static screen_t *const m876_blacklist[] = {
+screen_t *const m876_blacklist[] = {
     &screen_printing_serial,
     &screen_home
 #ifdef PIDCALIBRATION
@@ -133,45 +130,12 @@ static screen_t *const m876_blacklist[] = {
     &screen_PID
 #endif //PIDCALIBRATION
 };
+size_t const m876_blacklist_sz = sizeof(m876_blacklist) / sizeof(m876_blacklist[0]);
 
 void update_firmware_screen(void);
 
 static void _gui_loop_cb() {
-    static uint8_t m600_lock = 0;
-
-    if (!m600_lock) {
-        m600_lock = 1;
-        if (marlin_event_clr(MARLIN_EVT_CommandBegin)) {
-            if (marlin_command() == MARLIN_CMD_M600) {
-                _dbg("M600 start");
-                gui_dlg_change();
-                _dbg("M600 end");
-            }
-        }
-        m600_lock = 0;
-    }
-
     marlin_client_loop();
-}
-
-static void dialog_open_cb(dialog_t dialog) {
-    if (gui_get_nesting() > 1)
-        return; //todo notify octoprint
-    if (dialog == DLG_serial_printing) {
-        screen_unloop(m876_blacklist, sizeof(m876_blacklist) / sizeof(m876_blacklist[0]));
-
-        if (screen_get_curr() != pscreen_printing_serial)
-            screen_open(pscreen_printing_serial->id);
-    }
-}
-
-static void dialog_close_cb(dialog_t dialog) {
-    if (gui_get_nesting() > 1)
-        return; //todo notify octoprint
-    if (dialog == DLG_serial_printing) {
-        if (screen_get_curr() == pscreen_printing_serial)
-            screen_close();
-    }
 }
 
 void gui_run(void) {
@@ -201,15 +165,14 @@ void gui_run(void) {
         update_firmware_screen();
 
     gui_marlin_vars = marlin_client_init();
-    gui_marlin_client_id = marlin_client_id();
-    marlin_client_set_dialog_open_cb(dialog_open_cb);
-    marlin_client_set_dialog_close_cb(dialog_close_cb);
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
+    register_dialog_callbacks();
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
     screen_register(pscreen_splash);
     screen_register(pscreen_watchdog);
 
-    WINDOW_CLS_LOGO = window_register_class((window_class_t *)&window_class_logo);
 #ifdef LCDSIM
     WINDOW_CLS_LCDSIM = window_register_class((window_class_t *)&window_class_lcdsim);
     screen_register(pscreen_marlin);

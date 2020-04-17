@@ -2,7 +2,6 @@
 
 #include "gui.h"
 #include "config.h"
-#include "window_logo.h"
 #include "stm32f4xx_hal.h"
 
 #pragma pack(push)
@@ -11,7 +10,7 @@
 typedef struct
 {
     window_frame_t frame;
-    window_logo_t logo_prusa_mini;
+    window_icon_t logo_prusa_mini;
     window_text_t text0;
     window_text_t text1;
     window_text_t text2;
@@ -36,7 +35,7 @@ void screen_test_gui_init(screen_t *screen) {
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_LOGO, id0, rect_ui16(10, 0, 0, 0), &(pd->logo_prusa_mini));
+    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 0, 0, 0), &(pd->logo_prusa_mini));
     window_enable(id);
     window_set_tag(id, 10);
 

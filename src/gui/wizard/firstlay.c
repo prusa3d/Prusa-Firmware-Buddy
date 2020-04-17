@@ -227,7 +227,6 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         window_invalidate(p_screen->term.win.id);
 #endif
         p_data->state_print = _TEST_PASSED;
-        //marlin_settings_save();
         p_screen->Z_offset_request = 0;
         return 100;
     }

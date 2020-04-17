@@ -2,6 +2,7 @@
 
 #include "screen.h"
 #include "gui.h"
+#include "bsod.h"
 
 #define SCREEN_MAX_SCREENS 32
 
@@ -36,6 +37,8 @@ int16_t screen_register(screen_t *pscreen) {
             screen_count++; //increment count
         } else
             id = -1;
+    } else {
+        general_error("GUI", "Maximum number of screens reached.");
     }
     return id;
 }
@@ -111,7 +114,7 @@ void screen_unloop(screen_t *const *unl_blacklist, size_t sz) {
 }
 
 void screen_draw(void) {
-    if (screen_0)
+    if (screen_0 && screen_0->draw)
         screen_0->draw(screen_0);
 }
 

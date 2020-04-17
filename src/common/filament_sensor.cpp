@@ -39,6 +39,8 @@ static status_t status = { 0, M600_on_edge, 0 };
 /*---------------------------------------------------------------------------*/
 //debug functions
 
+extern "C" {
+
 int fs_was_M600_send() {
     return status.M600_sent != 0;
 }
@@ -59,16 +61,16 @@ char fs_get_send_M600_on() {
 //local functions
 static void _init();
 
-static int serial_printing = 0;
+static int block_M600_injection = 0;
 //called when Serial print screen is openned
 //printer is not in sd printing mode, so filament sensor does not trigger M600
-static void dialog_open_cb(dialog_t dialog) {
-    if (dialog == DLG_serial_printing)
-        serial_printing = 1;
+static void fsm_create_cb(ClinetFSM fsm, uint8_t data) {
+    if (fsm == ClinetFSM::Serial_printing)
+        block_M600_injection = 1;
 }
-static void dialog_close_cb(dialog_t dialog) {
-    if (dialog == DLG_serial_printing)
-        serial_printing = 0;
+static void fsm_destroy_cb(ClinetFSM fsm) {
+    if (fsm == ClinetFSM::Serial_printing || fsm == ClinetFSM::Load_unload)
+        block_M600_injection = 0;
 }
 
 //simple filter
@@ -172,8 +174,8 @@ void fs_clr_sent() {
 //global not thread safe functions
 static void _init() {
     int enabled = eeprom_get_var(EEVAR_FSENSOR_ENABLED).ui8 ? 1 : 0;
-    marlin_client_set_dialog_open_cb(dialog_open_cb);
-    marlin_client_set_dialog_close_cb(dialog_close_cb);
+    marlin_client_set_fsm_create_cb(fsm_create_cb);
+    marlin_client_set_fsm_destroy_cb(fsm_destroy_cb);
     if (enabled)
         _enable();
     else
@@ -197,7 +199,7 @@ void fs_init_never() {
 //methods called only in fs_cycle
 static void _injectM600() {
     marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
-    if (status.M600_sent == 0 && (vars->sd_printing || serial_printing)) {
+    if (status.M600_sent == 0 && (vars->sd_printing || block_M600_injection)) {
         marlin_gcode_push_front("M600"); //change filament
         status.M600_sent = 1;
     }
@@ -253,3 +255,5 @@ void fs_cycle() {
         _cycle1();
     }
 }
+
+} //extern "C"

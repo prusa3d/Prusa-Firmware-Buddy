@@ -9,12 +9,9 @@
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 
-//uncomment to use tune button
-//#define BUTTON_TUNE 1
-#ifdef BUTTON_TUNE
+extern "C" {
 extern screen_t *pscreen_menu_tune;
-#endif //BUTTON_TUNE
-
+}
 #pragma pack(push)
 #pragma pack(1)
 
@@ -27,10 +24,8 @@ typedef struct
 
     window_text_t w_message; //Messages from onStatusChanged()
     window_icon_t octo_icon;
-#ifdef BUTTON_TUNE
     window_icon_t tune_button;
     window_text_t tune_label;
-#endif //BUTTON_TUNE
     int last_tick;
 
 } screen_printing_serial_data_t;
@@ -42,10 +37,10 @@ void screen_printing_serial_done(screen_t *screen);
 void screen_printing_serial_draw(screen_t *screen);
 int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t event, void *param);
 
-static const char txt0[] = "Remote printing\nin progress    ";
-static const char txt1[] = "Remote printing\nin progress .  ";
-static const char txt2[] = "Remote printing\nin progress .. ";
-static const char txt3[] = "Remote printing\nin progress ...";
+static const char txt0[] = "Remote\nprinting\nin progress\n   ";
+static const char txt1[] = "Remote\nprinting\nin progress\n.  ";
+static const char txt2[] = "Remote\nprinting\nin progress\n.. ";
+static const char txt3[] = "Remote\nprinting\nin progress\n...";
 
 static const char *txts[] = { txt0, txt1, txt2, txt3 };
 
@@ -59,8 +54,11 @@ screen_t screen_printing_serial = {
     sizeof(screen_printing_serial_data_t), //data_size
     0,                                     //pdata
 };
+extern "C" {
 const screen_t *pscreen_printing_serial = &screen_printing_serial;
+}
 
+static const uint8_t Tag_bt_tune = 1;
 #define pw ((screen_printing_serial_data_t *)screen->pdata)
 
 void screen_printing_serial_init(screen_t *screen) {
@@ -87,25 +85,17 @@ void screen_printing_serial_init(screen_t *screen) {
     pw->octo_icon.win.f_enabled = 0;
     pw->octo_icon.win.f_disabled = 0;
 
-    //text
-    point_ui16_t pt_txt = font_meas_text(resource_font(IDR_FNT_NORMAL), txt0);
-    id = window_create_ptr(WINDOW_CLS_TEXT, root,
-        rect_ui16((240 - pt_txt.x) / 2, gui_defaults.msg_box_sz.y + pt_ico.y, 240, 95),
-        &(pw->w_message));
-    window_set_alignment(id, ALIGN_LEFT_TOP);
-    //window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, txts[0]);
-
-#ifdef BUTTON_TUNE
+    //button tune
+    const rect_ui16_t rect_bt_tune = rect_ui16(8, 185, 64, 64);
     id = window_create_ptr(
         WINDOW_CLS_ICON, root,
-        rect_ui16(8, 185, 64, 64),
+        rect_bt_tune,
         &(pw->tune_button));
     window_set_color_back(id, COLOR_GRAY);
-    window_set_tag(id, BUTTON_TUNE);
     window_enable(id);
     window_set_icon_id(id, IDR_PNG_menu_icon_settings);
 
+    //button tune text
     id = window_create_ptr(
         WINDOW_CLS_TEXT, root,
         rect_ui16(0, 196 + 48 + 8, 80, 22),
@@ -113,9 +103,22 @@ void screen_printing_serial_init(screen_t *screen) {
     pw->tune_label.font = resource_font(IDR_FNT_SMALL);
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_CENTER);
-
     window_set_text(id, "Tune");
-#endif //BUTTON_TUNE
+    window_set_tag(id, Tag_bt_tune);
+    window_set_focus(id);
+
+    //text
+    const point_ui16_t pt_txt = font_meas_text(resource_font(IDR_FNT_NORMAL), txt0);
+    const rect_ui16_t rect_txt = rect_ui16(
+        (240 + rect_bt_tune.x + rect_bt_tune.w - pt_txt.x) / 2,
+        gui_defaults.msg_box_sz.y + pt_ico.y,
+        240 - (240 + rect_bt_tune.x + rect_bt_tune.w - pt_txt.x) / 2, //cannot use 240-rect_txt.x .. stupid C
+        95);
+    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_txt, &(pw->w_message));
+    window_set_alignment(id, ALIGN_LEFT_TOP);
+    //window_set_padding(id, padding_ui8(0, 2, 0, 2));
+    window_set_text(id, txts[0]);
+
     status_footer_init(&(pw->footer), root);
 }
 
@@ -132,20 +135,17 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
     }
-#ifdef BUTTON_TUNE
-    switch ((int)param) {
-        //todo click
-    case BUTTON_TUNE:
-        screen_open(pscreen_menu_tune->id);
-        break;
-    default:
-        break;
-    }
-#endif //BUTTON_TUNE
+
     static char lock = 0;
     if (lock)
         return 0;
     lock = 1;
+
+    if (event == WINDOW_EVENT_BTN_DN) {
+        screen_open(pscreen_menu_tune->id);
+        lock = 0;
+        return 1; //here MUST BE return 1. Screen is no longer valid.
+    }
 
     int now = HAL_GetTick();
 
