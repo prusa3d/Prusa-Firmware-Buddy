@@ -101,8 +101,6 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
         return 0;
     }
 
-    // const FILINFO *file_item = &(filelist->file_items[(intptr_t)param]);
-
     bool currentIsFile;
     // displayed text - can be a 8.3 DOS name or a LFN
     const char *currentFName = window_file_current_fname(filelist, &currentIsFile);

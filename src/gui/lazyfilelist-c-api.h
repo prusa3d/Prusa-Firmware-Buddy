@@ -13,7 +13,7 @@ uint32_t LDV_VisibleFilesCount(void *LDV);
 bool LDV_MoveUp(void *LDV);
 bool LDV_MoveDown(void *LDV);
 const char *LDV_FileAt(void *LDV, int index, bool *isFile);
-void *LDV_Create(void);
+void *LDV_Get(void);
 
 #ifdef __cplusplus
 }
