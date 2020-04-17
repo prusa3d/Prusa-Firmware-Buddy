@@ -54,6 +54,7 @@
 #include "dbg.h"
 #include "wdt.h"
 #include "diag.h"
+#include "dump.h"
 #include "timer_defaults.h"
 #include "thread_measurement.h"
 #include "Z_probe.h"
@@ -123,6 +124,7 @@ static void MX_TIM2_Init(void);
 static void MX_TIM14_Init(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
+void iwdg_warning_cb(void);
 
 /* USER CODE BEGIN PFP */
 
@@ -227,7 +229,7 @@ int main(void) {
     uartrxbuff_open(&uart6rxbuff);
     uartslave_init(&uart6slave, &uart6rxbuff, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
-    wdt_wwdg_init();
+    wdt_iwdg_warning_cb = iwdg_warning_cb;
     /* USER CODE END 2 */
 
     /* USER CODE BEGIN RTOS_MUTEX */
@@ -999,6 +1001,13 @@ void Error_Handler(void) {
     /* User can add his own implementation to report the HAL error return state */
     app_error();
     /* USER CODE END Error_Handler_Debug */
+}
+
+void iwdg_warning_cb(void)
+{
+	wdt_iwdg_refresh();
+	dump_to_xflash();
+	while (1);
 }
 
 #ifdef USE_FULL_ASSERT
