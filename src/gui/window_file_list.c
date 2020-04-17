@@ -68,7 +68,7 @@ void window_file_list_draw(window_file_list_t *window) {
     for (i = 0; i < visible_count && i < window->count; i++) {
         bool isFile = true;
         const char *item = LDV_FileAt(window->ldv, i, &isFile);
-        if( ! item ){
+        if (!item) {
             // this should normally not happen, visible_count shall limit indices to valid items only
             continue; // ... but getting ready for the unexpected
         }
