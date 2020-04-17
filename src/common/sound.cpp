@@ -117,44 +117,44 @@ void Sound::doSound(eSOUND_TYPE eSoundType) {
 
 // Sound signal played once just after boot
 void Sound::soundStart(int rep, uint32_t del) {
-    float vol = 0.125;
+    float vol = 0.00125;
     float frq = 500.0f;
     this->_sound(rep, frq, del, vol);
 }
 
 // Sound signal for encoder button click
 void Sound::soundButtonEcho(int rep, uint32_t del) {
-    float vol = 0.125;
+    float vol = 0.00125;
     float frq = 200.0f;
     this->_sound(rep, frq, del, vol);
 }
 
 // Sound signal for user needed input on prompt screens (filament runout, etc.)
 void Sound::soundStandardPrompt(int rep, uint32_t del) {
-    float vol = 0.125;
+    float vol = 0.00125;
     float frq = 500.0f;
     this->_sound(rep, frq, del, vol);
 }
 
 // Souns signal for errors, bsod, and others Alert type's events
 void Sound::soundStandardAlert(int rep, uint32_t del) {
-    float vol = 0.005;
+    float vol = 0.05;
     float frq = 800.0f;
     this->_sound(rep, frq, del, vol);
 }
 
 // Sound signal every time when encoder nove
 void Sound::soundEncoderMove(int rep, uint32_t del) {
-    float vol = 0.125;
+    float vol = 0.00125;
     float frq = 50.0f;
     this->_sound(rep, frq, del, vol);
 }
 
 // Sound signal for signaling start and end of the menu or items selecting on screen
 void Sound::soundBlindAlert(int rep, uint32_t del) {
-    float vol = 0.125;
+    float vol = 0.00125;
     float frq = 900.0f;
-    this->_sound(rep, frq, del, volume);
+    this->_sound(rep, frq, del, vol);
 }
 
 // Generic [_sound[ method with setting values and repeating logic
