@@ -9,30 +9,9 @@
 #define API_WINDOW_FILE_LIST_H_
 
 #include "window.h"
-#include "ffconf.h"
 #include "ff.h"
 #include <stdbool.h>
-
-/*
- * Using limits from marlin:
- * FILENAME_LENGTH				13
- * LONG_FILENAME_LENGTH			13 * 5 + 1
- * MAX_DIR_DEPTH				10
- * MAXDIRNAMELENGTH   			8
- * MAXPATHNAMELENGTH			(1 + (MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + FILENAME_LENGTH)
- * */
-
-#ifndef MAX_DIR_DEPTH
-    #define MAX_DIR_DEPTH 10 // Maximum folder depth
-#endif
-
-#ifndef MAXDIRNAMELENGTH
-    #define F_MAXDIRNAMELENGTH _MAX_LFN + 1
-#endif
-
-#ifndef MAXPATHNAMELENGTH
-    #define F_MAXPATHNAMELENGTH (1 + (F_MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + _MAX_LFN)
-#endif
+#include "file_list_defs.h"
 
 typedef struct _window_file_list_t window_file_list_t;
 

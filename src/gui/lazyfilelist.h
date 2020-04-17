@@ -4,6 +4,7 @@
 #include "fatfs.h"
 #include <string.h>
 #include <limits.h>
+#include "file_list_defs.h"
 
 /// Lazy Dir View
 /// Implements a fixed size view over a directory's content.
@@ -32,8 +33,7 @@ public:
     };
 
     LazyDirView()
-        : filesInWindow(0)
-        , totalFiles(0)
+        : totalFiles(0)
         , windowStartingFrom(0) {
         std::for_each(files.begin(), files.end(), [](Entry &e) { e.Clear(); });
     }
@@ -61,21 +61,26 @@ public:
     /// @param firstDirEntry filename to be placed at the 0th index of the window - the rest is computed accordingly - useful for restoring the view's content.
     ///                      A value of nullptr means put ".." first
     void ChangeDirectory(const char *p, SortPolicy sp = SortPolicy::BY_NAME, const char *firstDirEntry = nullptr) {
-        filesInWindow = 0;
+        size_t filesInWindow = 0; // number of files populated in the window - less than WINDOW_SIZE when there are less files in the dir
         totalFiles = 0;
         sortPolicy = sp;
-        strncpy(path, p, 256);
+        strlcpy(path, p, sizeof(path));
         if (!firstDirEntry) {
             files[0].SetDirUp(); // this is always the first (zeroth) one
             windowStartingFrom = -1;
         } else {
             // find the file in the directory using pattern search
             F_DIR_RAII_Find_One dir(path, firstDirEntry);
-            if (dir.result != FR_OK || dir.fno.fname[0] == 0) // fail if the filename is not found
-                return;
-            files[0].CopyFrom(dir.fno);
-            // windowStartsFrom will be fine tuned later during iteration over the whole dir content
-            // And the dir must closed here, because the search cycle uses a different search pattern
+            if (dir.result != FR_OK || dir.fno.fname[0] == 0){
+                // the filename was not found, discard the firstDirEntry and start from the beginning
+                // of the directory like if firstDirEntry was nullptr
+                files[0].SetDirUp();
+                windowStartingFrom = -1;
+            } else {
+                files[0].CopyFrom(dir.fno);
+                // windowStartsFrom will be fine tuned later during iteration over the whole dir content
+                // And the dir must closed here, because the search cycle uses a different search pattern
+            }
         }
 
         switch (sortPolicy) {
@@ -174,7 +179,7 @@ public:
 private:
     struct Entry {
         bool isFile;
-        char name[96];
+        char name[_MAX_LFN];
         uint16_t date, time;
         void Clear() {
             isFile = false;
@@ -182,7 +187,7 @@ private:
             date = time = 0;
         }
         void CopyFrom(const FILINFO &fno) {
-            strncpy(name, fno.fname, 96);
+            strlcpy(name, fno.fname, sizeof(name));
             isFile = (fno.fattrib & AM_DIR) == 0;
             date = fno.fdate;
             time = fno.ftime;
@@ -191,7 +196,7 @@ private:
             name[0] = name[1] = '.';
             name[2] = 0;
             isFile = false;
-            date = time = USHRT_MAX;
+            date = time = UINT16_MAX;
         }
         void MakeLastFName() {
             isFile = true;
@@ -201,11 +206,10 @@ private:
     };
 
     std::array<Entry, WINDOW_SIZE> files; ///< roughly WINDOW_SIZE * 100B, can be placed in CCRAM if needed. For MINI it is only 9 entries -> only 900B
-    size_t filesInWindow;                 ///< number of files populated in the window - less than WINDOW_SIZE when there are less files in the dir
     size_t totalFiles;                    ///< total number of entries in the directory
     int windowStartingFrom;               ///< from which entry index the window starts (e.g. from the 3rd file in dir).
                                           ///< intentionally int, because -1 means ".."
-    char path[256];                       ///< current directory path - @@TODO this may not be enough - needs checking
+    char path[F_MAXPATHNAMELENGTH];       ///< current directory path - @@TODO this may not be enough - needs checking
     SortPolicy sortPolicy;                ///< sort policy set in ChangeDirectory - @@TODO probably not needed at runtime
 
     /// Current selected sort policy compare functions

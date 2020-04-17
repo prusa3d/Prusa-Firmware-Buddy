@@ -38,7 +38,7 @@ extern "C" const char *LDV_FileAt(void *LDV, int index, bool *isFile) {
     return i.first;
 }
 
-extern "C" void *LDV_Create(void) {
+extern "C" void *LDV_Get(void) {
     static LDV9 ldv;
     return &ldv;
 }

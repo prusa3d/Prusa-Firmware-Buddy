@@ -54,7 +54,7 @@ void window_file_list_init(window_file_list_t *window) {
 
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
-    window->ldv = LDV_Create();
+    window->ldv = LDV_Get();
 }
 
 void window_file_list_done(window_file_list_t *window) {}
@@ -68,6 +68,10 @@ void window_file_list_draw(window_file_list_t *window) {
     for (i = 0; i < visible_count && i < window->count; i++) {
         bool isFile = true;
         const char *item = LDV_FileAt(window->ldv, i, &isFile);
+        if( ! item ){
+            // this should normally not happen, visible_count shall limit indices to valid items only
+            continue; // ... but getting ready for the unexpected
+        }
         uint16_t id_icon = isFile ? IDR_NULL : IDR_PNG_filescreen_icon_folder;
 
         // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
