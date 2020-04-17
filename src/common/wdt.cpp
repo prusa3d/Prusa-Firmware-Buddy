@@ -14,28 +14,35 @@
 
 extern "C" {
 
-IWDG_HandleTypeDef hiwdg;
-WWDG_HandleTypeDef hwwdg;
+IWDG_HandleTypeDef hiwdg = {0}; // set Instance member to null
+WWDG_HandleTypeDef hwwdg = {0}; // ..
 
 extern void Error_Handler(void);
 
-volatile unsigned int wdt_counter = 0;
+volatile unsigned int wdt_iwdg_counter = 0;
+volatile unsigned char wdt_wwdg_counter = 0;
 
 wdt_iwdg_warning_cb_t* wdt_iwdg_warning_cb = 0;
 
 
 void wdt_iwdg_init(void) {
+#ifdef WDT_IWDG_ENABLED
 	hiwdg.Instance = IWDG;
 	hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
 	hiwdg.Init.Reload = WDT_IWDG_RELOAD;
 	if (HAL_IWDG_Init(&hiwdg) != HAL_OK) {
 		Error_Handler();
 	}
+#endif //WDT_IWDG_ENABLED
 }
 
 void wdt_iwdg_refresh(void) {
-    HAL_IWDG_Refresh(&hiwdg);
-    wdt_counter = 0;
+#ifdef WDT_IWDG_ENABLED
+	if (hiwdg.Instance) {
+		HAL_IWDG_Refresh(&hiwdg);
+		wdt_iwdg_counter = 0;
+	}
+#endif //WDT_IWDG_ENABLED
 }
 
 //38-48ms
@@ -49,19 +56,26 @@ void wdt_wwdg_init(void) {
 
 void wdt_tick_1ms(void) {
 #ifdef WDT_WWDG_ENABLED
-	if ((wdt_counter % WDT_WWDG_REFRESH_DELAY) == 0) {
-		if (__HAL_RCC_WWDG_IS_CLK_DISABLED()) {
-			HAL_WWDG_Init(&hwwdg);
-		}
-		else {
-			HAL_WWDG_Refresh(&hwwdg);
+	if (hwwdg.Instance) {
+		if (wdt_wwdg_counter++ >= WDT_WWDG_REFRESH_DELAY) {
+			if (__HAL_RCC_WWDG_IS_CLK_DISABLED()) {
+				HAL_WWDG_Init(&hwwdg);
+			}
+			else {
+				HAL_WWDG_Refresh(&hwwdg);
+			}
+			wdt_wwdg_counter = 0;
 		}
 	}
 #endif //WDT_WWDG_ENABLED
-	if (wdt_counter++ < WDT_IWDG_WARNING_DELAY)
-		return;
-	if (wdt_iwdg_warning_cb)
-		wdt_iwdg_warning_cb();
+#ifdef WDT_IWDG_ENABLED
+	if (hiwdg.Instance) {
+		if (wdt_iwdg_counter++ < WDT_IWDG_WARNING_DELAY)
+			return;
+		if (wdt_iwdg_warning_cb)
+			wdt_iwdg_warning_cb();
+	}
+#endif //WDT_IWDG_ENABLED
 }
 
 void HAL_WWDG_EarlyWakeupCallback(WWDG_HandleTypeDef* hwwdg)
