@@ -17,8 +17,8 @@
 //--------------------------------------
 //WDT - watchdog timers (IWDG, WWDG)
 #ifndef _DEBUG
-	#define WDT_IWDG_ENABLED
-	//#define WDT_WWDG_ENABLED
+    #define WDT_IWDG_ENABLED
+    //#define WDT_WWDG_ENABLED
 #endif //_DEBUG
 
 //show filament sensor status in header

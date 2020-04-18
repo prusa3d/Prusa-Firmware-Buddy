@@ -180,15 +180,14 @@ void DebugMon_Handler(void) {
 /**
   * @brief This function handles Window watchdog interrupt.
   */
-void WWDG_IRQHandler(void)
-{
-  /* USER CODE BEGIN WWDG_IRQn 0 */
+void WWDG_IRQHandler(void) {
+    /* USER CODE BEGIN WWDG_IRQn 0 */
 
-  /* USER CODE END WWDG_IRQn 0 */
-  HAL_WWDG_IRQHandler(&hwwdg);
-  /* USER CODE BEGIN WWDG_IRQn 1 */
+    /* USER CODE END WWDG_IRQn 0 */
+    HAL_WWDG_IRQHandler(&hwwdg);
+    /* USER CODE BEGIN WWDG_IRQn 1 */
 
-  /* USER CODE END WWDG_IRQn 1 */
+    /* USER CODE END WWDG_IRQn 1 */
 }
 
 /**

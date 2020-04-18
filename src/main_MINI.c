@@ -978,8 +978,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM6) {
         wdt_tick_1ms();
         HAL_IncTick();
-    }
-    else if (htim->Instance == TIM14) {
+    } else if (htim->Instance == TIM14) {
         app_tim14_tick();
     }
     /* USER CODE END Callback 1 */
@@ -996,13 +995,13 @@ void Error_Handler(void) {
     /* USER CODE END Error_Handler_Debug */
 }
 
-void iwdg_warning_cb(void)
-{
+void iwdg_warning_cb(void) {
     DUMP_IWDGW_TO_CCRAM(0x10);
-	wdt_iwdg_refresh();
+    wdt_iwdg_refresh();
     dump_to_xflash();
-    while(1);
-//	sys_reset();
+    while (1)
+        ;
+    //	sys_reset();
 }
 
 #ifdef USE_FULL_ASSERT

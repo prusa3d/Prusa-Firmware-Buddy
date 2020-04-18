@@ -6,10 +6,10 @@
 #include "stm32f4xx_hal.h"
 
 // dump types and flags
-#define DUMP_UNDEFINED     0xff // undefined - memory erased/empty
-#define DUMP_HARDFAULT     0x01 // hardfault dump
-#define DUMP_IWDGW         0x02 // IWDG warning dump
-#define DUMP_NOT_SAVED     0x80 // dump not saved flag - (unsaved dump cannot be overwritten)
+#define DUMP_UNDEFINED 0xff // undefined - memory erased/empty
+#define DUMP_HARDFAULT 0x01 // hardfault dump
+#define DUMP_IWDGW     0x02 // IWDG warning dump
+#define DUMP_NOT_SAVED 0x80 // dump not saved flag - (unsaved dump cannot be overwritten)
 
 // dumped ram area (128kb)
 #define DUMP_RAM_ADDR 0x20000000
@@ -40,32 +40,31 @@
 #define DUMP_INFO_SIZE 0x00000010
 
 // prepare R0 and R3 for DUMP_REGS_GEN_EXC_TO_CCRAM in fault handlers
-#define DUMP_REGS_GEN_FAULT_BEGIN()                                                     \
-    asm volatile(                                                                       \
-        "    mov r3, lr             \n" /* save lrexc  */                               \
-        "    tst lr, #4             \n"                                                 \
-        "    ite eq                 \n"                                                 \
-        "    mrseq r0, MSP          \n" /* MSP -> r0  */                                \
-        "    mrsne r0, PSP          \n" /* PSP -> r0  */                                \
+#define DUMP_REGS_GEN_FAULT_BEGIN()                       \
+    asm volatile(                                         \
+        "    mov r3, lr             \n" /* save lrexc  */ \
+        "    tst lr, #4             \n"                   \
+        "    ite eq                 \n"                   \
+        "    mrseq r0, MSP          \n" /* MSP -> r0  */  \
+        "    mrsne r0, PSP          \n" /* PSP -> r0  */  \
     )
 
 // prepare R0 and R3 for DUMP_REGS_GEN_EXC_TO_CCRAM in IWDG warning callback
-#define DUMP_REGS_GEN_IWDGW_BEGIN(depth)                                                \
-    asm volatile(                                                                       \
-        "    mrs r1, MSP            \n"                                                 \
-        "    add r1, #" #depth "    \n"                                                 \
-        "    ldr r2, [r1, #0x04]    \n"                                                 \
-        "    mov r3, r2             \n"                                                 \
-        "    tst r2, #4             \n"                                                 \
-        "    ite eq                 \n"                                                 \
-        "    moveq r0, r1           \n"                                                 \
-        "    mrsne r0, PSP          \n"                                                 \
-    )
+#define DUMP_REGS_GEN_IWDGW_BEGIN(depth) \
+    asm volatile(                        \
+        "    mrs r1, MSP            \n"  \
+        "    add r1, #" #depth "    \n"  \
+        "    ldr r2, [r1, #0x04]    \n"  \
+        "    mov r3, r2             \n"  \
+        "    tst r2, #4             \n"  \
+        "    ite eq                 \n"  \
+        "    moveq r0, r1           \n"  \
+        "    mrsne r0, PSP          \n")
 
 // Store general registers from exception to ccram for dump.
 // R0 must point to stack frame containing saved R0-R3, R12, LR, PC, xPSR (4x8bytes=32bytes)
 // R3 contain lrexc
-#define DUMP_REGS_GEN_EXC_TO_CCRAM()                                                             \
+#define DUMP_REGS_GEN_EXC_TO_CCRAM()                                                    \
     asm volatile(                                                                       \
         "    ldr r1, =0x1000ff00    \n" /* hardcoded ccram addres - todo: use macro  */ \
         "    ldr r2, [r0, #0x00]    \n" /* load r0 from stack frame  */                 \
@@ -109,27 +108,26 @@
         "    str r0, [r1, #0xf0]    \n"                                                 \
         "    str r0, [r1, #0xf4]    \n"                                                 \
         "    str r0, [r1, #0xf8]    \n"                                                 \
-        "    str r0, [r1, #0xfc]    \n"                                                 \
-    )
+        "    str r0, [r1, #0xfc]    \n")
 
 // fill dumpinfo
 #define DUMP_INFO_TO_CCRAM(type) \
-    *((unsigned char*)DUMP_INFO_ADDR) = type | DUMP_NOT_SAVED;
+    *((unsigned char *)DUMP_INFO_ADDR) = type | DUMP_NOT_SAVED;
 
 // perform hardfault dump (directly from HardFault_Handler that must be "naked")
-#define DUMP_HARDFAULT_TO_CCRAM()               \
-    {                                           \
-        DUMP_REGS_GEN_FAULT_BEGIN();            \
-        DUMP_REGS_GEN_EXC_TO_CCRAM();           \
-        DUMP_INFO_TO_CCRAM(DUMP_HARDFAULT);     \
+#define DUMP_HARDFAULT_TO_CCRAM()           \
+    {                                       \
+        DUMP_REGS_GEN_FAULT_BEGIN();        \
+        DUMP_REGS_GEN_EXC_TO_CCRAM();       \
+        DUMP_INFO_TO_CCRAM(DUMP_HARDFAULT); \
     }
 
 // perform iwdg warning dump (from wdt_iwdg_warning_cb, depth is exception MSP offset from current MSP)
-#define DUMP_IWDGW_TO_CCRAM(depth)              \
-    {                                           \
-        DUMP_REGS_GEN_IWDGW_BEGIN(depth);       \
-        DUMP_REGS_GEN_EXC_TO_CCRAM();           \
-        DUMP_INFO_TO_CCRAM(DUMP_IWDGW);         \
+#define DUMP_IWDGW_TO_CCRAM(depth)        \
+    {                                     \
+        DUMP_REGS_GEN_IWDGW_BEGIN(depth); \
+        DUMP_REGS_GEN_EXC_TO_CCRAM();     \
+        DUMP_INFO_TO_CCRAM(DUMP_IWDGW);   \
     }
 
 #ifdef __cplusplus

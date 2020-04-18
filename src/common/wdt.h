@@ -8,7 +8,7 @@ typedef void(wdt_iwdg_warning_cb_t)(void); // IWDG warning callback prototype
 extern "C" {
 #endif //defined(__cplusplus)
 
-extern wdt_iwdg_warning_cb_t* wdt_iwdg_warning_cb; // IWDG warning callback
+extern wdt_iwdg_warning_cb_t *wdt_iwdg_warning_cb; // IWDG warning callback
 
 extern void wdt_iwdg_refresh(void); // IWDG refresh, called from C code
 

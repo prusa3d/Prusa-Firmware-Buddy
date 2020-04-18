@@ -11,19 +11,17 @@
 #define WDT_WWDG_WINDOW        100 // ~22ms min period
 #define WDT_WWDG_RELOAD        127 // ~48ms max period
 
-
 extern "C" {
 
-IWDG_HandleTypeDef hiwdg = {0}; // set Instance member to null
-WWDG_HandleTypeDef hwwdg = {0}; // ..
+IWDG_HandleTypeDef hiwdg = { 0 }; // set Instance member to null
+WWDG_HandleTypeDef hwwdg = { 0 }; // ..
 
 extern void Error_Handler(void);
 
 volatile unsigned int wdt_iwdg_counter = 0;
 volatile unsigned char wdt_wwdg_counter = 0;
 
-wdt_iwdg_warning_cb_t* wdt_iwdg_warning_cb = 0;
-
+wdt_iwdg_warning_cb_t *wdt_iwdg_warning_cb = 0;
 
 void wdt_iwdg_init(void) {
 #ifdef WDT_IWDG_ENABLED
@@ -59,8 +57,7 @@ void wdt_tick_1ms(void) {
         if (wdt_wwdg_counter++ >= WDT_WWDG_REFRESH_DELAY) {
             if (__HAL_RCC_WWDG_IS_CLK_DISABLED()) {
                 HAL_WWDG_Init(&hwwdg);
-            }
-            else {
+            } else {
                 HAL_WWDG_Refresh(&hwwdg);
             }
             wdt_wwdg_counter = 0;
@@ -77,14 +74,12 @@ void wdt_tick_1ms(void) {
 #endif //WDT_IWDG_ENABLED
 }
 
-void HAL_WWDG_EarlyWakeupCallback(WWDG_HandleTypeDef* hwwdg)
-{
+void HAL_WWDG_EarlyWakeupCallback(WWDG_HandleTypeDef *hwwdg) {
     // TODO: handle this callback
 }
 
-void HAL_WWDG_MspInit(WWDG_HandleTypeDef* hwwdg)
-{
-    if(hwwdg->Instance == WWDG) {
+void HAL_WWDG_MspInit(WWDG_HandleTypeDef *hwwdg) {
+    if (hwwdg->Instance == WWDG) {
         // Peripheral clock enable
         __HAL_RCC_WWDG_CLK_ENABLE();
         // WWDG interrupt Init
@@ -92,7 +87,6 @@ void HAL_WWDG_MspInit(WWDG_HandleTypeDef* hwwdg)
         HAL_NVIC_EnableIRQ(WWDG_IRQn);
     }
 }
-
 
 } //extern "C"
 
