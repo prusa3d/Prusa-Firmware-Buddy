@@ -12,6 +12,7 @@ The currently supported model is:
 ### Requirements
 
 - Python 3.6 or newer
+- python3-pip
 
 ### Cloning this repository
 
