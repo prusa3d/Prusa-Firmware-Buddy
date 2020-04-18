@@ -44,6 +44,19 @@ void dump_to_xflash(void) {
     }
 }
 
+int dump_in_xflash_is_valid(void) {
+    unsigned char dumpinfo[DUMP_INFO_SIZE];
+    w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, dumpinfo, DUMP_INFO_SIZE);
+    unsigned char dump = dumpinfo[0] & ~DUMP_NOT_SAVED;
+    return ((dump == DUMP_HARDFAULT) || (dump == DUMP_IWDGW));
+}
+
+int dump_in_xflash_is_saved(void) {
+    unsigned char dumpinfo[DUMP_INFO_SIZE];
+    w25x_rd_data(DUMP_OFFSET + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, dumpinfo, DUMP_INFO_SIZE);
+    return (dumpinfo[0] & DUMP_NOT_SAVED)?0:1;
+}
+
 int dump_save_to_usb(const char *fn) {
     FIL fil;
     uint32_t addr;
