@@ -68,8 +68,10 @@ typedef enum : int16_t {
 typedef enum : int16_t {
     ECODE_NONE = 0,
     ECODE_OTHER = 999,
-    ECODE_122 = 122,
-    ECODE_124 = 124,
+    ECODE_201 = 201,
+    ECODE_202 = 202,
+    ECODE_203 = 203,
+    ECODE_204 = 204,
 } err_ext_code_t;
 
 #pragma pack(push, 1)
