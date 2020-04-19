@@ -3,6 +3,8 @@
 #include "screen_menu.h"
 #include <stdlib.h>
 #include "support_utils.h"
+#include "qrcodegen.h"
+#include "qrcodegen_utils.h"
 
 #include "../../gui/wizard/selftest.h"
 #include "stm32f4xx_hal.h"
@@ -14,7 +16,7 @@ typedef struct
     window_text_t warning;
     window_text_t button;
     window_qr_t qr;
-    char qr_text[MAX_LEN_4QR + 1];
+    char qr_text[grcodegen_getDataSize(9, qrcodegen_Ecc_MEDIUM, qrcodegen_Mode_ALPHANUMERIC) + 1];
 } screen_qr_info_data_t;
 #pragma pack(pop)
 
