@@ -70,6 +70,8 @@ extern int gui_msgbox_ex(const char *title, const char *text, uint16_t flags, re
 
 extern int gui_msgbox(const char *text, uint16_t flags);
 
+extern int gui_msgbox_prompt(const char * text, uint16_t flags);
+
 #endif //GUI_WINDOW_SUPPORT
 
 #ifdef GUI_JOGWHEEL_SUPPORT

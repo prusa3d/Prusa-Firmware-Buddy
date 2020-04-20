@@ -76,7 +76,7 @@ void Sound::doSound(eSOUND_TYPE eSoundType) {
             this->soundButtonEcho(1, 100.0f);
         }
         if (eSoundType == eSOUND_TYPE_StandardPrompt) {
-            this->soundStandardPrompt(5, 500.f);
+            this->soundStandardPrompt(-1, 500.f);
         }
         if (eSoundType == eSOUND_TYPE_StandardAlert) {
             this->soundStandardAlert(3, 200.f);
@@ -98,7 +98,7 @@ void Sound::doSound(eSOUND_TYPE eSoundType) {
             this->soundButtonEcho(1, 100.0f);
         }
         if (eSoundType == eSOUND_TYPE_StandardPrompt) {
-            this->soundStandardPrompt(5, 500.f);
+            this->soundStandardPrompt(-1, 500.f);
         }
         if (eSoundType == eSOUND_TYPE_StandardAlert) {
             this->soundStandardAlert(3, 200.f);
