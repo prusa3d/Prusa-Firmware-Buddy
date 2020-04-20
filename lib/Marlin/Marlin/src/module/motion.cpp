@@ -1861,6 +1861,9 @@ void prepare_line_to_destination() {
       }
     }
   #endif
+  
+  // declare function used by homeaxis
+  static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir);
 
   /**
    * Home an individual "raw axis" to its endstop.
@@ -1894,11 +1897,32 @@ void prepare_line_to_destination() {
     const int axis_home_dir = TERN0(DUAL_X_CARRIAGE, axis == X_AXIS)
                 ? TOOL_X_HOME_DIR(active_extruder) : home_dir(axis);
 
+  #ifdef HOMING_MAX_ATTEMPTS
+    float probe_offset;
+
+    for (size_t i = 0; i < HOMING_MAX_ATTEMPTS; ++i) {
+      probe_offset = homeaxis_single_run(axis, axis_home_dir) * static_cast<float>(axis_home_dir);
+      if (axis_home_min_diff[axis] <= probe_offset && probe_offset <= axis_home_max_diff[axis]) return; // OK offset in range 
+    }
+    
+    kill("HOMING ERROR"); // not OK run out attempts
+  #else // HOMING_MAX_ATTEMPTS 
+    homeaxis_single_run(axis, axis_home_dir);
+  #endif // HOMING_MAX_ATTEMPTS
+}
+
+/**
+ * home axis and
+ * return distance between fast and slow probe
+ */
+static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir) {
+  int steps;
+
     //
     // Homing Z with a probe? Raise Z (maybe) and deploy the Z probe.
     //
     if (TERN0(HOMING_Z_WITH_PROBE, axis == Z_AXIS && probe.deploy()))
-      return;
+      return NAN;
 
     // Set flags for X, Y, Z motor locking
     #if HAS_EXTRA_ENDSTOPS
@@ -1916,8 +1940,8 @@ void prepare_line_to_destination() {
     //
     #if HOMING_Z_WITH_PROBE
       if (axis == Z_AXIS) {
-        if (TERN0(BLTOUCH, bltouch.deploy())) return;   // BLTouch was deployed above, but get the alarm state.
-        if (TERN0(PROBE_TARE, probe.tare())) return;
+        if (TERN0(BLTOUCH, bltouch.deploy())) return NAN;   // BLTouch was deployed above, but get the alarm state.
+        if (TERN0(PROBE_TARE, probe.tare())) return NAN;
       }
     #endif
 
@@ -1946,6 +1970,8 @@ void prepare_line_to_destination() {
     const float move_length = 1.5f * max_length(TERN(DELTA, Z_AXIS, axis)) * axis_home_dir;
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home Fast: ", move_length, "mm");
     do_homing_move(axis, move_length, 0.0, !use_probe_bump);
+    steps = stepper.position_from_startup(axis);
+
 
     #if BOTH(HOMING_Z_WITH_PROBE, BLTOUCH)
       if (axis == Z_AXIS && !bltouch.high_speed_mode) bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
@@ -1996,8 +2022,9 @@ void prepare_line_to_destination() {
 
       #if BOTH(HOMING_Z_WITH_PROBE, BLTOUCH)
         if (axis == Z_AXIS && !bltouch.high_speed_mode && bltouch.deploy())
-          return; // Intermediate DEPLOY (in LOW SPEED MODE)
+          return NAN; // Intermediate DEPLOY (in LOW SPEED MODE)
       #endif
+    steps -= stepper.position_from_startup(axis);
 
       // Slow move towards endstop until triggered
       const float rebump = bump * 2;
@@ -2151,7 +2178,7 @@ void prepare_line_to_destination() {
 
     // Check if any of the moves were aborted and avoid setting any state
     if (planner.draining())
-      return;
+      return NAN;
 
     #if IS_SCARA
 
@@ -2186,7 +2213,7 @@ void prepare_line_to_destination() {
 
     // Put away the Z probe
     #if HOMING_Z_WITH_PROBE
-      if (axis == Z_AXIS && probe.stow()) return;
+      if (axis == Z_AXIS && probe.stow()) return NAN;
     #endif
 
     #if DISABLED(DELTA) && defined(HOMING_BACKOFF_POST_MM)
@@ -2218,6 +2245,8 @@ void prepare_line_to_destination() {
 
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< homeaxis(", AS_CHAR(AXIS_CHAR(axis)), ")");
 
+  if (bump) return static_cast<float>(steps) * planner.mm_per_step[axis];
+  return 0; //no bump == no second sample == 0 offset
   } // homeaxis()
 
 #endif // HAS_ENDSTOPS
