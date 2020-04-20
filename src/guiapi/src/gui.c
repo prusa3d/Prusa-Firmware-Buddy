@@ -187,7 +187,7 @@ int gui_msgbox(const char *text, uint16_t flags) {
 }
 
 int gui_msgbox_prompt(const char *text, uint16_t flags) {
-		Sound_DoSound(eSOUND_TYPE_StandardPrompt);
+    Sound_DoSound(eSOUND_TYPE_StandardPrompt);
     return gui_msgbox_ex(0, text, flags, gui_defaults.msg_box_sz, 0, 0);
 }
 

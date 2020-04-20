@@ -133,7 +133,7 @@ void window_msgbox_click(window_msgbox_t *window) {
     //int count = window_msgbox_button_count[btn]; // get number of buttons from table
     int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
     window->res = window_msgbox_buttons[btn][idx];
-		Sound_StopSound();
+    Sound_StopSound();
     window_destroy(window->win.id);
 }
 
