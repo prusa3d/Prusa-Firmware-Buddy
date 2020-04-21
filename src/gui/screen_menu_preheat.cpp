@@ -32,15 +32,7 @@ void screen_menu_preheat_init(screen_t *screen) {
         screen_menu_init(screen, "PREHEAT", ((this_screen_data_t *)screen->pdata)->items, FILAMENTS_END + 1, 1, 0);
         break;
     case 1:
-<<<<<<< HEAD
-<<<<<<< HEAD
         screen_menu_init(screen, "LOAD FILAMENT", ((this_screen_data_t *)screen->pdata)->items, FILAMENTS_END, 1, 1);
-=======
-        screen_menu_init(screen, "LOAD FILAMENT", FILAMENTS_END, 1, 1);
->>>>>>> remove dynamic alocation fom BigMac menu
-=======
-        screen_menu_init(screen, "LOAD FILAMENT", ((this_screen_data_t *)screen->pdata)->items, FILAMENTS_END, 1, 1);
->>>>>>> removed remaining dynamic alocation in screen_menu
         window_set_text(psmd->help.win.id,
             "The nozzle must be\npreheated before\ninserting the filament.\n"
             "Please, select the type\nof material");

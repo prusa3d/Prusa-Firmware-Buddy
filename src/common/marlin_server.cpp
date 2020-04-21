@@ -38,13 +38,6 @@
     #include "lcdsim.h"
 #endif // LCDSIM
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> MarlinAPI - fixed dependency to GUI, removed #include "menu_vars.h"
-=======
->>>>>>> clang-format
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 
@@ -66,10 +59,6 @@
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> MarlinAPI - event and change notification mask separate for each client
     char gcode_name[GCODE_NAME_MAX_LEN + 1];         // printing gcode name
     uint16_t flags;                                  // server flags (MARLIN_SFLG)
     uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask
@@ -91,31 +80,6 @@ typedef struct _marlin_server_t {
     marlin_mesh_t mesh;                              // meshbed leveling
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
     uint64_t update_vars;                            // variable update mask
-<<<<<<< HEAD
-=======
-    char gcode_name[GCODE_NAME_MAX_LEN + 1]; // printing gcode name
-    uint16_t flags;                          // server flags (MARLIN_SFLG)
-    uint64_t notify_events;                  // event notification mask
-    uint64_t notify_changes;                 // variable change notification mask
-    marlin_vars_t vars;                      // cached variables
-    char request[MARLIN_MAX_REQUEST];
-    int request_len;
-    uint64_t client_events[MARLIN_MAX_CLIENTS];              // client event mask
-    uint64_t client_changes[MARLIN_MAX_CLIENTS];             // client variable change mask
-    uint32_t last_update;                                    // last update tick count
-    uint8_t idle_cnt;                                        // idle call counter
-    uint8_t pqueue_head;                                     // copy of planner.block_buffer_head
-    uint8_t pqueue_tail;                                     // copy of planner.block_buffer_tail
-    uint8_t pqueue;                                          // calculated number of records in planner queue
-    uint8_t gqueue;                                          // copy of queue.length - number of commands in gcode queue
-    uint32_t command;                                        // actually running command
-    uint32_t command_begin;                                  // variable for notification
-    uint32_t command_end;                                    // variable for notification
-    marlin_mesh_t mesh;                                      // meshbed leveling
-    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS];         // mesh point mask (points that are not sent)
->>>>>>> Removed unused variable from marlin_server structure
-=======
->>>>>>> MarlinAPI - event and change notification mask separate for each client
 } marlin_server_t;
 
 #pragma pack(pop)

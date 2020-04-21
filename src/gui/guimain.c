@@ -138,32 +138,6 @@ static void _gui_loop_cb() {
     marlin_client_loop();
 }
 
-<<<<<<< HEAD
-=======
-static void dialog_open_cb(dialog_t dialog) {
-    if (gui_get_nesting() > 1)
-        return; //todo notify octoprint
-    if (dialog == DLG_serial_printing) {
-        screen_unloop(m876_blacklist, sizeof(m876_blacklist) / sizeof(m876_blacklist[0]));
-
-        if (screen_get_curr() != pscreen_printing_serial)
-            screen_open(pscreen_printing_serial->id);
-    }
-}
-
-static void dialog_close_cb(dialog_t dialog) {
-    if (gui_get_nesting() > 1)
-        return; //todo notify octoprint
-    if (dialog == DLG_serial_printing) {
-        if (screen_get_curr() == pscreen_menu_tune)
-            screen_close();
-
-        if (screen_get_curr() == pscreen_printing_serial)
-            screen_close();
-    }
-}
-
->>>>>>> Adden button tune to sereial printing screen
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -193,13 +167,6 @@ void gui_run(void) {
     gui_marlin_vars = marlin_client_init();
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    gui_marlin_client_id = marlin_client_id();
->>>>>>> MarlinAPI - event and change notification mask separate for each client
-=======
->>>>>>> Removed int gui_marlin_client_id
     register_dialog_callbacks();
     hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
 
