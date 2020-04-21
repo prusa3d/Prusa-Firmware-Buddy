@@ -186,6 +186,9 @@ int gui_msgbox(const char *text, uint16_t flags) {
     return gui_msgbox_ex(0, text, flags, gui_defaults.msg_box_sz, 0, 0);
 }
 
+// specific function for PROMPT message box with soundStandardPrompt sound
+// This is because of infinitely repeating sound signal that has to be stopped
+// additionally
 int gui_msgbox_prompt(const char *text, uint16_t flags) {
     Sound_DoSound(eSOUND_TYPE_StandardPrompt);
     return gui_msgbox_ex(0, text, flags, gui_defaults.msg_box_sz, 0, 0);

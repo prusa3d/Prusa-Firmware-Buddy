@@ -2,6 +2,7 @@
 #include "DialogLoadUnload.h"
 #include "gui.h"      //resource_font
 #include "resource.h" //IDR_FNT_BIG
+#include "sound_C_wrapper.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,24 +52,27 @@ static const char *txt_purging            = "Purging";
 static const char *txt_is_color           = "Is color correct?";
 static const char *txt_nozzle_cold        = "Nozzle is too cold.";
 
+void userPushEnter (){  Sound_DoSound(eSOUND_TYPE_StandardPrompt); }
+void userPushExit (){  Sound_StopSound(); }
+
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {
-        DialogLoadUnload::State { txt_none,               btn(PhasesLoadUnload::_first,           ph_txt_none) },
-        DialogLoadUnload::State { txt_parking,            btn(PhasesLoadUnload::Parking,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_wait_temp,          btn(PhasesLoadUnload::WaitingTemp,      ph_txt_stop) },
-        DialogLoadUnload::State { txt_prep_ram,           btn(PhasesLoadUnload::PreparingToRam,   ph_txt_stop) },
-        DialogLoadUnload::State { txt_ram,                btn(PhasesLoadUnload::Ramming,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading,        ph_txt_stop) },
-        DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading2,       ph_txt_stop) },
-        DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont) },
-        DialogLoadUnload::State { txt_nozzle_cold,        btn(PhasesLoadUnload::NozzleTimeout,    ph_txt_reheat) },
-        DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont) },
-        DialogLoadUnload::State { txt_inserting,          btn(PhasesLoadUnload::Inserting,        ph_txt_stop) },
-        DialogLoadUnload::State { txt_loading,            btn(PhasesLoadUnload::Loading,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging2,         ph_txt_none) },
-        DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColor,          ph_txt_yesno) },
-        DialogLoadUnload::State { txt_unparking,          btn(PhasesLoadUnload::Unparking,        ph_txt_stop) },
+        DialogLoadUnload::State { txt_none,               btn(PhasesLoadUnload::_first,           ph_txt_none)},
+        DialogLoadUnload::State { txt_parking,            btn(PhasesLoadUnload::Parking,          ph_txt_stop)},
+        DialogLoadUnload::State { txt_wait_temp,          btn(PhasesLoadUnload::WaitingTemp,      ph_txt_stop)},
+        DialogLoadUnload::State { txt_prep_ram,           btn(PhasesLoadUnload::PreparingToRam,   ph_txt_stop)},
+        DialogLoadUnload::State { txt_ram,                btn(PhasesLoadUnload::Ramming,          ph_txt_stop)},
+        DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading,        ph_txt_stop)},
+        DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading2,       ph_txt_stop)},
+        DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont), userPushEnter, userPushExit},
+        DialogLoadUnload::State { txt_nozzle_cold,        btn(PhasesLoadUnload::NozzleTimeout,    ph_txt_reheat)},
+        DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont)},
+        DialogLoadUnload::State { txt_inserting,          btn(PhasesLoadUnload::Inserting,        ph_txt_stop)},
+        DialogLoadUnload::State { txt_loading,            btn(PhasesLoadUnload::Loading,          ph_txt_stop)},
+        DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging,          ph_txt_stop)},
+        DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging2,         ph_txt_none)},
+        DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColor,          ph_txt_yesno)},
+        DialogLoadUnload::State { txt_unparking,          btn(PhasesLoadUnload::Unparking,        ph_txt_stop)},
     };
     return ret;
 }
