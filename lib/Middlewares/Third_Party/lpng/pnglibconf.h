@@ -206,7 +206,7 @@
 #define PNG_TEXT_Z_DEFAULT_STRATEGY 0
 #define PNG_USER_CHUNK_CACHE_MAX 128 /* user chunks should be skipped anyway - see PR#215 */
 #define PNG_USER_CHUNK_MALLOC_MAX 32000
-#define PNG_USER_HEIGHT_MAX 320 
+#define PNG_USER_HEIGHT_MAX 320
 #define PNG_USER_WIDTH_MAX 240 /* this is important for amount of allocated memory for the row buffer */
 #define PNG_ZBUF_SIZE 1024 /* default was 8192 for read buffer - this saves 7KB of RAM while slowing the decoding speed 2x roughly */
 #define PNG_ZLIB_VERNUM 0 /* unknown */
