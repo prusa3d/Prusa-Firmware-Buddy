@@ -79,7 +79,6 @@ int guimain_spi_test = 0;
 #include "diag.h"
 #include "sys.h"
 #include "dbg.h"
-#include "marlin_host.h"
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
