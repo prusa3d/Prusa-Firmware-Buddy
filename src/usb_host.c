@@ -56,7 +56,7 @@
 /* USER CODE BEGIN Includes */
 #include "fatfs.h"
 #include "dbg.h"
-#include "app.h"
+#include "media.h"
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN PV */
@@ -131,7 +131,7 @@ static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id) {
 
     case HOST_USER_DISCONNECTION:
         Appli_state = APPLICATION_DISCONNECT;
-        app_media_set_inserted(0);
+        media_set_inserted(0);
         f_mount(0, (TCHAR const *)USBHPath, 1); //umount
         break;
 
@@ -139,9 +139,9 @@ static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id) {
         Appli_state = APPLICATION_READY;
         FRESULT result = f_mount(&USBHFatFS, (TCHAR const *)USBHPath, 0);
         if (result == FR_OK)
-            app_media_set_inserted(1);
+            media_set_inserted(1);
         else
-            app_media_error(APP_MEDIA_ERROR_MOUNT);
+            media_set_error(media_error_MOUNT);
         break;
 
     case HOST_USER_CONNECTION:
