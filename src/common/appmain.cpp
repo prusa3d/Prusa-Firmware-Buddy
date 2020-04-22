@@ -125,8 +125,6 @@ void app_run(void) {
         }
         uartslave_cycle(&uart6slave);
         marlin_server_loop();
-        app_usbhost_reenum();
-        app_fileprint_loop();
         osDelay(0); // switch to other threads - without this is UI slow
 #ifdef JOGWHEEL_TRACE
         static int signals = jogwheel_signals;
@@ -195,92 +193,6 @@ void app_tim14_tick(void) {
 #endif
     hwio_update_1ms();
     adc_tick_1ms();
-}
-
-#include "usbh_core.h"
-extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
-
-// Re-enumerate UsbHost in case that it hangs in enumeration state (HOST_ENUMERATION,ENUM_IDLE)
-// this is not solved in original UsbHost driver
-// this occurs e.g. when user connects and then quickly disconnects usb flash during connection process
-// state is checked every 100ms, timeout for re-enumeration is 500ms
-// TODO: maybe we will change condition for states, because it can hang also in different state
-void app_usbhost_reenum(void) {
-    static uint32_t timer = 0;     // static timer variable
-    uint32_t tick = HAL_GetTick(); // read tick
-    if ((tick - timer) > 100) {    // every 100ms
-        // timer is valid, UsbHost is in enumeration state
-        if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
-            // longer than 500ms
-            if ((tick - timer) > 500) {
-                _dbg("USB host reenumerating"); // trace
-                USBH_ReEnumerate(&hUsbHostHS);  // re-enumerate UsbHost
-            }
-        } else // otherwise update timer
-            timer = tick;
-    }
-}
-
-uint8_t app_media_inserted = 0;
-
-uint8_t app_media_is_inserted() {
-    return app_media_inserted;
-}
-
-void app_media_set_inserted(uint8_t inserted) {
-    app_media_inserted = inserted ? 1 : 0;
-}
-
-void app_media_error(uint8_t media_error) {
-    //TODO: maybe new variable and event in marlinapi
-}
-
-uint8_t app_fileprint_state = APP_FILEPRINT_NONE;
-
-FIL app_fileprint_fil;
-
-void app_fileprint_start(const char *filename) {
-    f_open(&app_fileprint_fil, filename, FA_READ);
-    app_fileprint_state = APP_FILEPRINT_RUNNING;
-}
-
-void app_fileprint_stop(void) {
-    f_close(&app_fileprint_fil);
-    app_fileprint_state = APP_FILEPRINT_NONE;
-}
-
-void app_fileprint_pause(void) {
-    app_fileprint_state = APP_FILEPRINT_PAUSED;
-}
-
-void app_fileprint_resume(void) {
-    app_fileprint_state = APP_FILEPRINT_RUNNING;
-}
-
-uint8_t app_fileprint_get_state(void) {
-    return app_fileprint_state;
-}
-
-uint32_t app_fileprint_get_size(void) {
-    return f_size(&app_fileprint_fil);
-}
-
-uint32_t app_fileprint_get_position(void) {
-    return f_tell(&app_fileprint_fil);
-}
-
-void app_fileprint_loop(void) {
-    char buffer[MAX_CMD_SIZE + 1];
-    if (app_fileprint_state == 1) {
-        if (!f_eof(&app_fileprint_fil))
-            while (queue.length < BUFSIZE) {
-                if (f_gets(buffer, MAX_CMD_SIZE, &app_fileprint_fil)) {
-                    queue.enqueue_one(buffer);
-                }
-            }
-        else
-            app_fileprint_stop();
-    }
 }
 
 } // extern "C"
