@@ -31,6 +31,7 @@ const char *__var_name[] = {
     "SD_PDONE",
     "DURATION",
     "MEDIAINS",
+    "PRN_STAT",
 };
 
 const char *marlin_vars_get_name(uint8_t var_id) {
@@ -100,6 +101,8 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
             return variant8_ui32(vars->print_duration);
         case MARLIN_VAR_MEDIAINS:
             return variant8_ui8(vars->media_inserted);
+        case MARLIN_VAR_PRNSTATE:
+            return variant8_ui8(vars->print_state);
         }
     return variant8_empty();
 }
@@ -182,7 +185,10 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         case MARLIN_VAR_MEDIAINS:
             vars->media_inserted = var.ui8;
             break;
-        }
+        case MARLIN_VAR_PRNSTATE:
+            vars->print_state = var.ui8;
+            break;
+       }
 }
 
 void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
@@ -250,6 +256,9 @@ void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
             break;
         case MARLIN_VAR_MEDIAINS:
             sprintf(str, "%u", (unsigned int)(vars->media_inserted));
+            break;
+        case MARLIN_VAR_PRNSTATE:
+            sprintf(str, "%u", (unsigned int)(vars->print_state));
             break;
         default:
             sprintf(str, "???");
@@ -322,6 +331,9 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
             break;
         case MARLIN_VAR_MEDIAINS:
             ret = sscanf(str, "%hhu", &(vars->media_inserted));
+            break;
+        case MARLIN_VAR_PRNSTATE:
+            ret = sscanf(str, "%hhu", &(vars->print_state));
             break;
         }
     return ret;

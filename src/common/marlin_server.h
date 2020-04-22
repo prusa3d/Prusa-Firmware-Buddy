@@ -106,6 +106,9 @@ extern void marlin_server_print_resume(void);
 extern void marlin_server_park_head(void);
 
 //
+extern void marlin_server_unpark_head(void);
+
+//
 extern int marlin_all_axes_homed(void);
 
 //

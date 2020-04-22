@@ -27,6 +27,7 @@
 
 #include "hwio.h"
 #include "eeprom.h"
+#include "media.h"
 #include "filament_sensor.h"
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.h" //get_Z_probe_endstop_hits
@@ -41,14 +42,14 @@
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 
-#define DBG_XUI DBG //trace ExtUI events
-//#define DBG_XUI(...)    //disable trace
+//#define DBG_XUI DBG //trace ExtUI events
+#define DBG_XUI(...)    //disable trace
 
 //#define DBG_REQ  DBG    //trace requests
 #define DBG_REQ(...) //disable trace
 
-#define DBG_HOST DBG //trace host_actions
-//#define DBG_HOST(...)   //disable trace
+//#define DBG_HOST DBG //trace host_actions
+#define DBG_HOST(...)   //disable trace
 
 // host_actions definitions
 #define HOST_PROMPT_LEN_MAX 32 // max 32 chars prompt text
@@ -80,11 +81,15 @@ typedef struct _marlin_server_t {
     uint32_t command_end;                                    // variable for notification
     marlin_mesh_t mesh;                                      // meshbed leveling
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS];         // mesh point mask (points that are not sent)
+    marlin_print_state_t print_state;
+    float resume_pos[4];
 } marlin_server_t;
 
 #pragma pack(pop)
 
+#if ENABLED(HOST_PROMPT_SUPPORT)
 PromptReason host_prompt_reason = PROMPT_NOT_DEFINED;
+#endif //ENABLED(HOST_PROMPT_SUPPORT)
 
 extern "C" {
 
@@ -150,6 +155,7 @@ extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue hand
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
+void _server_print_loop(void);
 int _send_notify_to_client(osMessageQId queue, variant8_t msg);
 int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
 uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
@@ -314,6 +320,8 @@ int marlin_server_loop(void) {
             }
         }
     marlin_server.idle_cnt = 0;
+    _server_print_loop();
+    media_loop();
     return marlin_server_cycle();
 }
 
@@ -430,43 +438,150 @@ void marlin_server_quick_stop(void) {
 }
 
 void marlin_server_print_start(const char *filename) {
-    app_fileprint_start(filename);
-    print_job_timer.start();
+	if (marlin_server.print_state == mpsIdle) {
+		media_print_start(filename);
+		print_job_timer.start();
+		marlin_server.print_state = mpsPrinting;
+	}
 }
 
 void marlin_server_print_abort(void) {
-    wait_for_heatup = wait_for_user = false;
-    app_fileprint_stop();
-    print_job_timer.stop();
-    queue.clear();
+	if (marlin_server.print_state == mpsPrinting) {
+		marlin_server.print_state = mpsAborting_Begin;
+	}
 }
 
 void marlin_server_print_pause(void) {
-    app_fileprint_pause();
-    print_job_timer.pause();
-    queue.inject_P("M125");
+	if (marlin_server.print_state == mpsPrinting) {
+		marlin_server.print_state = mpsPausing_Begin;
+	}
 }
 
 void marlin_server_print_resume(void) {
-    app_fileprint_resume();
-    wait_for_user = false;
-    host_prompt_button_clicked = HOST_PROMPT_BTN_Continue;
-    queue.inject_P("M24");
+	if (marlin_server.print_state == mpsPaused) {
+		marlin_server.print_state = mpsResuming_Begin;
+	}
+}
+
+void _server_print_loop(void) {
+	switch (marlin_server.print_state) {
+	case mpsIdle:
+        break;
+	case mpsPrinting:
+		switch (media_print_get_state()) {
+		case media_print_state_PRINTING:
+			break;
+		case media_print_state_PAUSED:
+			marlin_server.print_state = mpsPausing_Begin;
+			break;
+		case media_print_state_NONE:
+			marlin_server.print_state = mpsFinishing_WaitIdle;
+			break;
+		}
+        break;
+	case mpsPausing_Begin:
+		media_print_pause();
+		print_job_timer.pause();
+		marlin_server.print_state = mpsPausing_WaitIdle;
+        break;
+	case mpsPausing_WaitIdle:
+		if ((planner.movesplanned() == 0) && (queue.length == 0))
+		{
+			marlin_server_park_head();
+			marlin_server.print_state = mpsPausing_ParkHead;
+		}
+		break;
+	case mpsPausing_ParkHead:
+		if (planner.movesplanned() == 0)
+			marlin_server.print_state = mpsPaused;
+		break;
+	case mpsResuming_Begin:
+		marlin_server_unpark_head();
+		marlin_server.print_state = mpsResuming_UnparkHead;
+		break;
+	case mpsResuming_UnparkHead:
+		if (planner.movesplanned() == 0)
+		{
+			media_print_resume();
+			print_job_timer.resume(0);
+			marlin_server.print_state = mpsPrinting;
+		}
+		break;
+	case mpsAborting_Begin:
+		media_print_stop();
+		print_job_timer.stop();
+		planner.quick_stop();
+		marlin_server.print_state = mpsAborting_WaitIdle;
+		break;
+	case mpsAborting_WaitIdle:
+		if (planner.movesplanned() == 0)
+		{
+			float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
+			float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
+			float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
+			current_position.x = x;
+			current_position.y = y;
+			current_position.z = z;
+			current_position.e = 0;
+			planner.set_position_mm(x, y, z, 0);
+			marlin_server_park_head();
+			marlin_server.print_state = mpsAborting_ParkHead;
+		}
+		break;
+	case mpsAborting_ParkHead:
+		if (planner.movesplanned() == 0)
+		{
+			marlin_server.print_state = mpsAborted;
+		}
+		break;
+	case mpsFinishing_WaitIdle:
+		if (planner.movesplanned() == 0)
+		{
+			marlin_server_park_head();
+			marlin_server.print_state = mpsFinishing_ParkHead;
+		}
+		break;
+	case mpsFinishing_ParkHead:
+		if (planner.movesplanned() == 0)
+		{
+			marlin_server.print_state = mpsFinished;
+		}
+		break;
+	default:
+		break;
+	}
 }
 
 void marlin_server_park_head(void) {
+	constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
+	constexpr xyz_pos_t park = NOZZLE_PARK_POINT;
     //homed check
     if (all_axes_homed() && all_axes_known()) {
-        float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
-        float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
-        float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
-        current_position.x = x;
-        current_position.y = y;
-        current_position.z = z;
-        current_position.e = 0;
-        planner.set_position_mm(x, y, z, 0);
-        xyz_pos_t park_point = NOZZLE_PARK_POINT;
-        nozzle.park(2, park_point);
+    	planner.synchronize();
+    	marlin_server.resume_pos[0] = current_position.x;
+    	marlin_server.resume_pos[1] = current_position.y;
+    	marlin_server.resume_pos[2] = current_position.z;
+    	marlin_server.resume_pos[3] = current_position.e;
+        current_position.e -= 2 / planner.e_factor[active_extruder];
+        line_to_current_position(2000);
+        current_position.z = _MIN(current_position.z + park.z, Z_MAX_POS);
+        line_to_current_position(fr_z);
+        current_position.set(park.x, park.y);
+        line_to_current_position(fr_xy);
+    }
+}
+
+void marlin_server_unpark_head(void) {
+	constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
+    if (all_axes_homed() && all_axes_known()) {
+    	planner.synchronize();
+        current_position.set(marlin_server.resume_pos[0], marlin_server.resume_pos[1]);
+        line_to_current_position(fr_xy);
+        current_position.z = marlin_server.resume_pos[2];
+        line_to_current_position(fr_z);
+        current_position.e += 2 / planner.e_factor[active_extruder];
+        line_to_current_position(2000);
+        current_position.e = marlin_server.resume_pos[3];
     }
 }
 
@@ -789,7 +904,7 @@ uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT)) {
-        v.ui8 = (app_fileprint_get_state() != APP_FILEPRINT_NONE);
+        v.ui8 = (media_print_get_state() != media_print_state_NONE);
         if (marlin_server.vars.sd_printing != v.ui8) {
             marlin_server.vars.sd_printing = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT);
@@ -797,7 +912,7 @@ uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
-        v.ui8 = (uint8_t)(100 * (float)app_fileprint_get_position() / (float)app_fileprint_get_size());
+        v.ui8 = (uint8_t)(100 * (float)media_print_get_position() / (float)media_print_get_size());
         if (marlin_server.vars.sd_percent_done != v.ui8) {
             marlin_server.vars.sd_percent_done = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
@@ -813,11 +928,19 @@ uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS)) {
-        v.ui8 = app_media_is_inserted() ? 1 : 0;
+        v.ui8 = media_is_inserted() ? 1 : 0;
         if (marlin_server.vars.media_inserted != v.ui8) {
             marlin_server.vars.media_inserted = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS);
             _send_notify_event(marlin_server.vars.media_inserted ? MARLIN_EVT_MediaInserted : MARLIN_EVT_MediaRemoved, 0, 0);
+        }
+    }
+
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE)) {
+        v.ui8 = marlin_server.print_state;
+        if (marlin_server.vars.print_state != v.ui8) {
+            marlin_server.vars.print_state = (marlin_print_state_t)(v.ui8);
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE);
         }
     }
 
@@ -1158,6 +1281,8 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 //-----------------------------------------------------------------------------
 // host_actions callbacks
 
+#if ENABLED(HOST_PROMPT_SUPPORT)
+
 void host_action(const char *const pstr, const bool eol) {
 }
 
@@ -1228,6 +1353,9 @@ void host_action_resumed() {
     DBG_HOST("host_action_resumed");
 }
 
+#endif //ENABLED(HOST_PROMPT_SUPPORT)
+
+
 //must match fsm_create_t signature
 void fsm_create(ClinetFSM type, uint8_t data) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
@@ -1259,6 +1387,9 @@ void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pro
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }
+
+#if ENABLED(HOST_PROMPT_SUPPORT)
+
 void host_response_handler(const uint8_t response) {
     DBG_HOST("host_response_handler %d", (int)response);
 }
@@ -1355,6 +1486,9 @@ void host_prompt_do(const PromptReason type, const char *const pstr, const char 
         break;
     }
 }
+
+#endif //ENABLED(HOST_PROMPT_SUPPORT)
+
 
 /*****************************************************************************/
 //FSM_notifier
