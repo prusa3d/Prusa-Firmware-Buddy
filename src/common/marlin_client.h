@@ -5,7 +5,6 @@
 #include "marlin_events.h"
 #include "marlin_vars.h"
 #include "marlin_errors.h"
-#include "marlin_host.h"
 #include "client_fsm_types.h"
 
 // client flags
@@ -178,18 +177,6 @@ extern void marlin_print_resume(void);
 extern void marlin_park_head(void);
 
 extern uint8_t marlin_message_received(void);
-
-// returns current host prompt type
-extern host_prompt_type_t marlin_host_prompt_type(void);
-
-// returns number of buttons in current host prompt
-extern uint8_t marlin_host_button_count(void);
-
-// returns button type in current prompt by button index
-extern host_prompt_button_t marlin_host_button_type(uint8_t index);
-
-// click host promt button
-extern void marlin_host_button_click(host_prompt_button_t button);
 
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);

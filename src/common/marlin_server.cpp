@@ -19,7 +19,6 @@
 #include "../Marlin/src/module/probe.h"
 #include "../Marlin/src/module/configuration_store.h"
 #include "../Marlin/src/module/printcounter.h"
-#include "../Marlin/src/feature/host_actions.h"
 #include "../Marlin/src/feature/babystep.h"
 #include "../Marlin/src/feature/pause.h"
 #include "../Marlin/src/libs/nozzle.h"
@@ -45,16 +44,12 @@
 //#define DBG_XUI DBG //trace ExtUI events
 #define DBG_XUI(...)    //disable trace
 
-//#define DBG_REQ  DBG    //trace requests
-#define DBG_REQ(...) //disable trace
+#define DBG_REQ  DBG    //trace requests
+//#define DBG_REQ(...) //disable trace
 
-//#define DBG_HOST DBG //trace host_actions
-#define DBG_HOST(...)   //disable trace
+//#define DBG_FSM DBG //trace fsm
+#define DBG_FSM(...)   //disable trace
 
-// host_actions definitions
-#define HOST_PROMPT_LEN_MAX 32 // max 32 chars prompt text
-#define HOST_BUTTON_LEN_MAX 16 // max 16 chars button text
-#define HOST_BUTTON_CNT_MAX 4  // max 4 buttons
 
 #pragma pack(push)
 #pragma pack(1)
@@ -87,9 +82,6 @@ typedef struct _marlin_server_t {
 
 #pragma pack(pop)
 
-#if ENABLED(HOST_PROMPT_SUPPORT)
-PromptReason host_prompt_reason = PROMPT_NOT_DEFINED;
-#endif //ENABLED(HOST_PROMPT_SUPPORT)
 
 extern "C" {
 
@@ -139,12 +131,6 @@ void _add_status_msg(const char *const popup_msg) {
     if (msg_stack.count < MSG_STACK_SIZE)
         msg_stack.count++;
 }
-
-// host_actions vars
-char host_prompt[HOST_PROMPT_LEN_MAX] = "";
-char host_prompt_button[HOST_BUTTON_CNT_MAX][HOST_PROMPT_LEN_MAX];
-uint8_t host_prompt_buttons = 0;
-host_prompt_button_t host_prompt_button_clicked = HOST_PROMPT_BTN_None;
 
 //-----------------------------------------------------------------------------
 // external variables from marlin_client
@@ -687,7 +673,6 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_PrinterKilled:
             case MARLIN_EVT_Error:
             case MARLIN_EVT_PlayTone:
-            case MARLIN_EVT_HostPrompt:
             case MARLIN_EVT_UserConfirmRequired:
             case MARLIN_EVT_SafetyTimerExpired:
             case MARLIN_EVT_Message:
@@ -977,6 +962,7 @@ int _process_server_request(char *request) {
     uint32_t msk32[2];
     float offs;
     int ival;
+    int ival2;
     int client_id = *(request++) - '0';
     if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS))
         return 1;
@@ -998,7 +984,7 @@ int _process_server_request(char *request) {
     } else if (sscanf(request, "!update %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server_update(msk32[0] + (((uint64_t)msk32[1]) << 32));
         processed = 1;
-    } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
+    } else if ((ival2 = sscanf(request, "!babystep_Z %f", &offs)) == 1) {
         marlin_server_do_babystep_Z(offs);
         processed = 1;
     } else if (strcmp("!cfg_save", request) == 0) {
@@ -1037,12 +1023,11 @@ int _process_server_request(char *request) {
     } else if (strcmp("!park", request) == 0) {
         marlin_server_park_head();
         processed = 1;
-    } else if (sscanf(request, "!hclick %d", &ival) == 1) {
-        host_prompt_button_clicked = (host_prompt_button_t)ival;
-        processed = 1;
     } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);
         processed = 1;
+    } else {
+    	//TODO: BSOD
     }
     if (processed)
         _send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0);
@@ -1278,88 +1263,11 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 
 }
 
-//-----------------------------------------------------------------------------
-// host_actions callbacks
-
-#if ENABLED(HOST_PROMPT_SUPPORT)
-
-void host_action(const char *const pstr, const bool eol) {
-}
-
-//Marlin kill handler
-// message reported to serial: MSG_ERR_KILLED "Printer halted. kill() called!"
-// known kill calls:
-//  kill()
-//   Marlin/src/gcode/control/M108_M112_M410.cpp, line 44
-//   Marlin/src/gcode/queue.cpp, line 666
-//   Marlin/src/module/temperature.cpp, line 921
-//   Marlin/src/module/temperature.cpp, line 1141
-//   Marlin/src/Marlin.cpp, line 446
-//   Marlin/src/Marlin.cpp, line 514
-//  kill("Driver error")
-//   Marlin/src/feature/tmc_util.cpp, line 215
-//  kill(PSTR(MSG_ERR_PROBING_FAILED)) "Probing failed"
-//   Marlin/src/Marlin.cpp, line 401
-//  kill(PSTR(MSG_ERR_HOMING_FAILED)) "Homing failed"
-//   Marlin/src/module/endstops.cpp, line 290
-//  _temp_error(heater, PSTR(MSG_T_HEATING_FAILED), TEMP_ERR_PSTR(MSG_HEATING_FAILED_LCD, heater)) "Heating failed"
-//   Marlin/src/module/temperature.cpp, line 514
-//  _temp_error(e, PSTR(MSG_T_HEATING_FAILED), TEMP_ERR_PSTR(MSG_HEATING_FAILED_LCD, e)) "Heating failed"
-//   Marlin/src/module/temperature.cpp, line 959
-//  _temp_error(-1, PSTR(MSG_T_HEATING_FAILED), TEMP_ERR_PSTR(MSG_HEATING_FAILED_LCD, -1)) "Heating failed"
-//   Marlin/src/module/temperature.cpp, line 999
-//  _temp_error(-2, PSTR(MSG_T_HEATING_FAILED), TEMP_ERR_PSTR(MSG_HEATING_FAILED_LCD, -2)) "Heating failed"
-//   Marlin/src/module/temperature.cpp, line 1069
-//  _temp_error(heater, PSTR(MSG_T_THERMAL_RUNAWAY), TEMP_ERR_PSTR(MSG_THERMAL_RUNAWAY, heater)) "Thermal Runaway"
-//   Marlin/src/module/temperature.cpp, line 517
-//  _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), TEMP_ERR_PSTR(MSG_THERMAL_RUNAWAY, heater_id)) "Thermal Runaway"
-//   Marlin/src/module/temperature.cpp, line 1914
-//  _temp_error(heater, PSTR(MSG_T_MAXTEMP), TEMP_ERR_PSTR(MSG_ERR_MAXTEMP, heater)) "MAXTEMP triggered"
-//   Marlin/src/module/temperature.cpp, line 732
-//  _temp_error(heater, PSTR(MSG_T_MINTEMP), TEMP_ERR_PSTR(MSG_ERR_MINTEMP, heater)) "MINTEMP triggered"
-//   Marlin/src/module/temperature.cpp, line 736
-//  _temp_error(0, PSTR(MSG_REDUNDANCY), PSTR(MSG_ERR_REDUNDANT_TEMP)) "Heater switched off. Temperature difference between temp sensors is too high !"
-//   Marlin/src/module/temperature.cpp, line 968
-void host_action_kill() {
-#ifdef LCDSIM
-    char text[85];          //max 4 lines of 20 chars + 4x '\n' + '\x00'
-    lcdsim_grab_text(text); //grab text from display buffer
-    bsod(text);             //BSOD (endless loop with disabled interrupts)
-#endif                      // LCDSIM
-}
-
-void host_action_safety_timer_expired() {
-    DBG_HOST("host_action_safety_timer_expired");
-    _send_notify_event(MARLIN_EVT_SafetyTimerExpired, 0, 0);
-}
-
-void host_action_pause(const bool eol /*=true*/) {
-    DBG_HOST("host_action_pause");
-}
-
-void host_action_resume() {
-    DBG_HOST("host_action_resume");
-}
-
-void host_action_cancel() {
-    DBG_HOST("host_action_cancel");
-}
-
-void host_action_paused(const bool eol /*=true*/) {
-    DBG_HOST("host_action_paused");
-}
-
-void host_action_resumed() {
-    DBG_HOST("host_action_resumed");
-}
-
-#endif //ENABLED(HOST_PROMPT_SUPPORT)
-
 
 //must match fsm_create_t signature
 void fsm_create(ClinetFSM type, uint8_t data) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
-    DBG_HOST("fsm_create %d", usr32);
+    DBG_FSM("fsm_create %d", usr32);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Create;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
@@ -1369,7 +1277,7 @@ void fsm_create(ClinetFSM type, uint8_t data) {
 
 //must match fsm_destroy_t signature
 void fsm_destroy(ClinetFSM type) {
-    DBG_HOST("fsm_destroy %d", (int)type);
+    DBG_FSM("fsm_destroy %d", (int)type);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
     uint8_t client_mask = _send_notify_event(evt_id, uint32_t(type), 0);
@@ -1380,114 +1288,13 @@ void fsm_destroy(ClinetFSM type) {
 //must match fsm_change_t signature
 void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
-    DBG_HOST("fsm_change %d", usr32);
+    DBG_FSM("fsm_change %d", usr32);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }
-
-#if ENABLED(HOST_PROMPT_SUPPORT)
-
-void host_response_handler(const uint8_t response) {
-    DBG_HOST("host_response_handler %d", (int)response);
-}
-
-void host_action_prompt_begin(const char *const pstr, const bool eol) {
-    DBG_HOST("host_action_prompt_begin '%s' %d", pstr, (int)eol);
-    strcpy(host_prompt, pstr);
-    host_prompt_buttons = 0;
-}
-
-void host_action_prompt_button(const char *const pstr) {
-    DBG_HOST("host_action_prompt_button '%s'", pstr);
-    if (host_prompt_buttons < HOST_BUTTON_CNT_MAX) {
-        strcpy(host_prompt_button[host_prompt_buttons], pstr);
-        host_prompt_buttons++;
-    }
-}
-
-void host_action_prompt_end() {
-    DBG_HOST("host_action_prompt_end");
-    *host_prompt = 0;
-    host_prompt_buttons = 0;
-}
-
-void host_action_prompt_show() {
-    DBG_HOST("host_action_prompt_show");
-    marlin_host_prompt_t prompt = {
-        marlin_host_prompt_by_text(host_prompt),
-        host_prompt_buttons,
-        {
-            (host_prompt_buttons > 0) ? marlin_host_prompt_button_by_text(host_prompt_button[0]) : HOST_PROMPT_BTN_None,
-            (host_prompt_buttons > 1) ? marlin_host_prompt_button_by_text(host_prompt_button[1]) : HOST_PROMPT_BTN_None,
-            (host_prompt_buttons > 2) ? marlin_host_prompt_button_by_text(host_prompt_button[2]) : HOST_PROMPT_BTN_None,
-            (host_prompt_buttons > 3) ? marlin_host_prompt_button_by_text(host_prompt_button[3]) : HOST_PROMPT_BTN_None,
-        }
-    };
-    int paused = 0;
-    uint32_t ui32 = marlin_host_prompt_encode(&prompt);
-    _send_notify_event(MARLIN_EVT_HostPrompt, ui32, 0);
-    switch (prompt.type) {
-    case HOST_PROMPT_Paused:
-        paused = 0;
-        if ((marlin_server.command == MARLIN_CMD_M600) || (marlin_server.command == MARLIN_CMD_M701))
-            paused = 1; // pause only for M600 or M701
-        while (paused) {
-            host_prompt_button_clicked = HOST_PROMPT_BTN_None;
-            while (host_prompt_button_clicked == HOST_PROMPT_BTN_None) {
-                idle(); // call Marlin idle()
-            }
-            switch (host_prompt_button_clicked) {
-            case HOST_PROMPT_BTN_Continue:
-                paused = 0;
-                break;
-            case HOST_PROMPT_BTN_PurgeMore:
-#if ENABLED(ADVANCED_PAUSE_FEATURE)
-                do_pause_e_move(ADVANCED_PAUSE_PURGE_LENGTH, ADVANCED_PAUSE_PURGE_FEEDRATE);
-#endif
-                _send_notify_event(MARLIN_EVT_HostPrompt, ui32, 0);
-                paused = 1; //TODO: temporarily skip the loop because of unload UI
-                break;
-            default:
-                paused = 0;
-                break;
-            }
-        }
-    case HOST_PROMPT_LoadFilament:
-        wait_for_user = false; //hack - skip waiting
-        break;
-    case HOST_PROMPT_FilamentRunout:
-        break;
-    default:
-        break;
-    }
-    *host_prompt = 0;
-    host_prompt_buttons = 0;
-}
-
-void host_prompt_do(const PromptReason type, const char *const pstr, const char *const pbtn) {
-    DBG_HOST("host_prompt_do %d '%s' '%s'", (int)type, pstr, pbtn);
-
-    switch (type) {
-    case PROMPT_INFO:
-        if (strcmp(pstr, "Reheating") == 0) {
-            _send_notify_event(MARLIN_EVT_Reheat, 1, 0);
-        }
-        break;
-    case PROMPT_USER_CONTINUE:
-        //gui must call marlin_print_resume();
-        if (strcmp(pstr, "Reheat Done") == 0) {
-            _send_notify_event(MARLIN_EVT_Reheat, 0, 0);
-        }
-        break;
-    default:
-        break;
-    }
-}
-
-#endif //ENABLED(HOST_PROMPT_SUPPORT)
 
 
 /*****************************************************************************/

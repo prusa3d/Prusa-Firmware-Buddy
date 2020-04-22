@@ -5,7 +5,6 @@
 #include "marlin_events.h"
 #include "marlin_vars.h"
 #include "marlin_errors.h"
-#include "marlin_host.h"
 #include "client_fsm_types.h"
 
 // server flags

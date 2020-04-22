@@ -21,7 +21,6 @@ const char *__evt_name[] = {
     "LoadSettings",
     "StoreSettings",
     "MeshUpdate",
-    "HostPrompt",
     "StartProcessing",
     "StopProcessing",
     "Busy",

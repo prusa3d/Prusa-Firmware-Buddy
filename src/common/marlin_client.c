@@ -16,13 +16,13 @@
 //#define DBG_REQ  DBG    //trace requests (client side)
 #define DBG_REQ(...) //disable trace
 
-//#define DBG_EVT DBG //trace events (client side)
-#define DBG_EVT(...)    //disable trace
+#define DBG_EVT DBG //trace events (client side)
+//#define DBG_EVT(...)    //disable trace
 #define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
 #define DBG_VAR  DBG    //trace variable change notifications  (client side)
-//#define DBG_VAR(...) //disable trace
-#define DBG_VAR_MSK     MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE)
+#define DBG_VAR(...) //disable trace
+//#define DBG_VAR_MSK     MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE)
 //#define DBG_VAR_MSK     MARLIN_VAR_MSK_ALL
 //#define DBG_VAR_MSK     (MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE))
 /*#define DBG_VAR_MSK     ( \
@@ -49,7 +49,6 @@ typedef struct _marlin_client_t {
     uint64_t errors;
     marlin_mesh_t mesh;           // meshbed leveling
     uint32_t command;             // processed command (G28,G29,M701,M702,M600)
-    marlin_host_prompt_t prompt;  // current host prompt structure (type and buttons)
     uint8_t reheating;            // reheating in progress
     fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
     fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
@@ -616,39 +615,6 @@ uint8_t marlin_message_received(void) {
         return 0;
 }
 
-//-----------------------------------------------------------------------------
-// host functions
-
-host_prompt_type_t marlin_host_prompt_type(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client)
-        return client->prompt.type;
-    return HOST_PROMPT_None;
-}
-
-uint8_t marlin_host_button_count(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client)
-        return client->prompt.button_count;
-    return 0;
-}
-
-host_prompt_button_t marlin_host_button_type(uint8_t index) {
-    marlin_client_t *client = _client_ptr();
-    if (client && (index < client->prompt.button_count))
-        return client->prompt.button[index];
-    return HOST_PROMPT_BTN_None;
-}
-
-void marlin_host_button_click(host_prompt_button_t button) {
-    char request[MARLIN_MAX_REQUEST];
-    marlin_client_t *client = _client_ptr();
-    if (client == 0)
-        return;
-    sprintf(request, "!hclick %d", (int)button);
-    _send_request_to_server(client->id, request);
-    _wait_ack_from_server(client->id);
-}
 
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating(void) {
@@ -744,9 +710,6 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
             float z = msg.flt;
             client->mesh.z[x + client->mesh.xc * y] = z;
         } break;
-        case MARLIN_EVT_HostPrompt:
-            marlin_host_prompt_decode(msg.ui32, &(client->prompt));
-            break;
         case MARLIN_EVT_StartProcessing:
             client->flags |= MARLIN_CFLG_PROCESS;
             break;
