@@ -41,8 +41,8 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
             id = window_prev_enabled(id);
             if (id >= 0) {
                 window_set_focus(id);
-            }
-            if (id < 0) {
+            } else {
+								// End indicator of the frames list ->
                 Sound_DoSound(eSOUND_TYPE_BlindAlert);
             }
         }
@@ -54,8 +54,8 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
             id = window_next_enabled(id);
             if (id >= 0) {
                 window_set_focus(id);
-            }
-            if (id < 0) {
+            } else {
+								// Start indicator of the frames list <-
                 Sound_DoSound(eSOUND_TYPE_BlindAlert);
             }
         }

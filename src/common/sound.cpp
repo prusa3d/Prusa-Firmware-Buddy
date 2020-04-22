@@ -2,7 +2,6 @@
 #include "sound.h"
 #include "hwio.h"
 #include "eeprom.h"
-#include "cmsis_os.h"
 
 // -- Sound signals implementation Singleton Class
 // Simple sound implementation supporting few sound modes and having different sound types.

@@ -1,11 +1,15 @@
 #include <stdint.h>
 #include "sound_enum.h"
 
+// Simple dump Sound singleton class
+// This class just play sound types/signals and read & store sound mode which user can choose from Settings.
+// Every mode then have different settings for they sound signals.
 class Sound {
 public:
     Sound();
     eSOUND_MODE eSoundMode;
 
+		// we want this as a singleton
     inline static Sound &getInstance() {
         static Sound s;
         return s;
