@@ -9,7 +9,7 @@ public:
     Sound();
     eSOUND_MODE eSoundMode;
 
-		// we want this as a singleton
+    // we want this as a singleton
     inline static Sound &getInstance() {
         static Sound s;
         return s;

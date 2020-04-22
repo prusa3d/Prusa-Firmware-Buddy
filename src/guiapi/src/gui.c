@@ -86,8 +86,8 @@ void gui_loop(void) {
     uint32_t tick;
     #ifdef GUI_JOGWHEEL_SUPPORT
 
-		// Encoder sound moved from guimain to gui loop to control encoder sounds in
-		// every gui screens. Previous method wasn't everywhere.
+    // Encoder sound moved from guimain to gui loop to control encoder sounds in
+    // every gui screens. Previous method wasn't everywhere.
     if ((jogwheel_changed & 1) && jogwheel_button_down) { //button changed and pressed
         Sound_DoSound(eSOUND_TYPE_ButtonEcho);
     } else if (jogwheel_changed & 2) { // encoder changed
