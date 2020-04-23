@@ -87,10 +87,14 @@ public:
         case SortPolicy::BY_NAME:
             LessEF = &LessByFNameEF;
             LessFE = &LessByFNameFE;
+            MakeFirstEntry = &MakeFirstEntryByFName;
+            MakeLastEntry = &MakeLastEntryByFName;
             break;
         case SortPolicy::BY_CRMOD_DATETIME:
             LessEF = &LessByTimeEF;
             LessFE = &LessByTimeFE;
+            MakeFirstEntry = &MakeFirstEntryByTime;
+            MakeLastEntry = &MakeLastEntryByTime;
             break;
         };
 
@@ -143,8 +147,8 @@ public:
         }
 
         F_DIR_RAII_Iterator dir(path);
-        // clear the item at the zeroth position
-        files[0].Clear();
+        // prepare the item at the zeroth position according to sort policy
+        files[0] = MakeFirstEntry();
         while (dir.FindNext()) {
             if (LessEF(files[0], dir.fno) && LessFE(dir.fno, files[1])) {
                 // to be inserted, the entry must be greater than zeroth entry AND less than the first entry
@@ -164,8 +168,8 @@ public:
         std::rotate(files.begin(), files.begin() + 1, files.end());
 
         F_DIR_RAII_Iterator dir(path);
-        // prepare the last entry for comparison in the do-while cycle
-        files[WINDOW_SIZE - 1].MakeLastFName();
+        // prepare the last item according to sort policy
+        files[WINDOW_SIZE - 1] = MakeLastEntry();
         while (dir.FindNext()) {
             if (LessFE(dir.fno, files[WINDOW_SIZE - 1]) && LessEF(files[WINDOW_SIZE - 2], dir.fno)) {
                 // to be inserted, the entry must be greater than the pre-last entry AND less than the last entry
@@ -198,11 +202,6 @@ private:
             isFile = false;
             date = time = UINT16_MAX;
         }
-        void MakeLastFName() {
-            isFile = true;
-            name[0] = 0;
-            date = time = 0;
-        }
     };
 
     std::array<Entry, WINDOW_SIZE> files; ///< roughly WINDOW_SIZE * 100B, can be placed in CCRAM if needed. For MINI it is only 9 entries -> only 900B
@@ -216,6 +215,8 @@ private:
     /// Could have been some std::function or some other advanced c++ method, but KISS ;)
     bool (*LessEF)(const Entry &, const FILINFO &);
     bool (*LessFE)(const FILINFO &, const Entry &);
+    Entry (*MakeFirstEntry)();
+    Entry (*MakeLastEntry)();
 
     /// This is just a simple RAII struct for finding one particular file/dir name using FATfs tools
     /// and closing the control structures accordingly
@@ -315,6 +316,16 @@ private:
         return std::tie(fnoIsFile, fnoName) < std::tie(e.isFile, eName);
     }
 
+    static Entry MakeFirstEntryByFName() {
+        static const Entry e = { false, "", 0U, 0U };
+        return e;
+    }
+    static Entry MakeLastEntryByFName() {
+        Entry e = { true, "", 0xffff, 0xffff };
+        std::fill(e.name, e.name + sizeof(e.name) - 1, 0xff);
+        e.name[sizeof(e.name) - 1] = 0;
+        return e;
+    }
     // This may look confusing - from the sorting perspective, the higher time stamp (the more recent one)
     // is less than an older time stamp - we want the newer files up higher in the list.
     // Therefore the condition must be inverted including the comparison sequence parameter meaning
@@ -322,12 +333,27 @@ private:
     static bool LessByTimeEF(const Entry &e, const FILINFO &fno) {
         bool fnoIsDir = (fno.fattrib & AM_DIR) != 0;
         bool eIsDir = !e.isFile;
-        return std::tie(fnoIsDir, fno.fdate, fno.ftime) < std::tie(eIsDir, e.date, e.time);
+        // beware - multiple files may have identical time stamps!
+        // In such case, the file name is the only unique identifier and thus must be included in the comparison
+        string_view_light fnoName(fno.fname);
+        string_view_light eName(e.name);
+        return std::tie(fnoIsDir, fno.fdate, fno.ftime, fnoName) < std::tie(eIsDir, e.date, e.time, eName);
     }
     static bool LessByTimeFE(const FILINFO &fno, const Entry &e) {
-        // bool fnoIsFile = (fno.fattrib & AM_DIR) == 0;
         bool fnoIsDir = (fno.fattrib & AM_DIR) != 0;
         bool eIsDir = !e.isFile;
-        return std::tie(eIsDir, e.date, e.time) < std::tie(fnoIsDir, fno.fdate, fno.ftime);
+        string_view_light fnoName(fno.fname);
+        string_view_light eName(e.name);
+        return std::tie(eIsDir, e.date, e.time, eName) < std::tie(fnoIsDir, fno.fdate, fno.ftime, fnoName);
+    }
+    static Entry MakeFirstEntryByTime() {
+        Entry e = { false, "", 0xffff, 0xffff };
+        std::fill(e.name, e.name + sizeof(e.name) - 1, 0xff);
+        e.name[sizeof(e.name) - 1] = 0;
+        return e;
+    }
+    static Entry MakeLastEntryByTime() {
+        static const Entry e = { true, "", 0U, 0U };
+        return e;
     }
 };

@@ -76,7 +76,7 @@ void window_file_list_draw(window_file_list_t *window) {
 
         // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
         // and will get a nice house-like icon
-        static const char home[] = "Home";                                            //@@TODO reuse from elsewhere ...
+        static const char home[] = "Home";                                            // @@TODO reuse from elsewhere ...
         if (i == 0 && strcmp(item, "..") == 0 && strcmp(window->altpath, "/") == 0) { // @@TODO clean up, this is probably unnecessarily complex
             id_icon = IDR_PNG_filescreen_icon_home;
             item = home;
