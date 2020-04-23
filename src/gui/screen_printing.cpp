@@ -311,7 +311,7 @@ void screen_printing_init(screen_t *screen) {
     change_print_state(screen, state__readonly__use_change_print_state);
 
     status_footer_init(&(pw->footer), root);
-//    screen_printing_timer(screen, 1000); // first fast value s update
+    //    screen_printing_timer(screen, 1000); // first fast value s update
     screen_printing_update_remaining_time_progress(screen);
 }
 
@@ -321,7 +321,6 @@ void screen_printing_done(screen_t *screen) {
 
 void screen_printing_draw(screen_t *screen) {
 }
-
 
 static void open_popup_message(screen_t *screen) {
     window_hide(pw->w_etime_label.win.id);
@@ -373,7 +372,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     }
 
 #endif
-/*    if (Lock::IsLocked())
+    /*    if (Lock::IsLocked())
         return 0;
     Lock l;
 
@@ -412,7 +411,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     }
     window_header_events(&(pw->header));*/
 
-//    screen_printing_timer(screen, (HAL_GetTick() / 50) * 50);
+    //    screen_printing_timer(screen, (HAL_GetTick() / 50) * 50);
 
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
@@ -444,8 +443,8 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
             marlin_print_pause();
             break;
         case P_PAUSED:
-        	marlin_print_resume();
-        	break;
+            marlin_print_resume();
+            break;
         case P_PRINTED:
             screen_printing_reprint(screen);
             break;
@@ -469,8 +468,8 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
                     MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
                 == MSGBOX_RES_YES) {
                 marlin_print_abort();
-                screen_close();
-                return 1;
+                //                screen_close();
+                //                return 1;
             } else
                 return 0;
         }
@@ -755,37 +754,43 @@ void change_print_state(screen_t *screen, printing_state_t st) {
     //_dbg("printstate %d entered", (int)st);
     //todo it is static, because menu tune is not dialog
     //pw->state__readonly__use_change_print_state = st;
-	switch (marlin_vars()->print_state)
-	{
-	case mpsIdle:
-		st = P_INITIAL;
-		break;
-	case mpsPrinting:
-		st = P_PRINTING;
-		break;
-	case mpsPaused:
-		st = P_PAUSED;
-		break;
-	case mpsPausing_Begin:
-	case mpsPausing_WaitIdle:
-	case mpsPausing_ParkHead:
-		st = P_PAUSING;
-		break;
-	case mpsResuming_Begin:
-	case mpsResuming_UnparkHead:
-		st = P_RESUMING;
-		break;
-	case mpsAborting_Begin:
-	case mpsAborting_WaitIdle:
-	case mpsAborting_ParkHead:
-		st = P_PAUSING;
-		break;
-	}
-	if (state__readonly__use_change_print_state != st)
-	{
-		state__readonly__use_change_print_state = st;
-		set_pause_icon_and_label(screen);
-		set_tune_icon_and_label(screen);
-		set_stop_icon_and_label(screen);
-	}
+    switch (marlin_vars()->print_state) {
+    case mpsIdle:
+        st = P_INITIAL;
+        break;
+    case mpsPrinting:
+        st = P_PRINTING;
+        break;
+    case mpsPaused:
+        st = P_PAUSED;
+        break;
+    case mpsPausing_Begin:
+    case mpsPausing_WaitIdle:
+    case mpsPausing_ParkHead:
+        st = P_PAUSING;
+        break;
+    case mpsResuming_Begin:
+    case mpsResuming_UnparkHead:
+        st = P_RESUMING;
+        break;
+    case mpsFinishing_WaitIdle:
+    case mpsFinishing_ParkHead:
+    case mpsAborting_Begin:
+    case mpsAborting_WaitIdle:
+    case mpsAborting_ParkHead:
+        st = P_PRINTING;
+        break;
+    case mpsAborted:
+        st = P_PRINTED;
+        break;
+    case mpsFinished:
+        st = P_PRINTED;
+        break;
+    }
+    if (state__readonly__use_change_print_state != st) {
+        state__readonly__use_change_print_state = st;
+        set_pause_icon_and_label(screen);
+        set_tune_icon_and_label(screen);
+        set_stop_icon_and_label(screen);
+    }
 }
