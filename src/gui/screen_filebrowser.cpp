@@ -63,7 +63,7 @@ static void screen_filebrowser_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_FILE_LIST, root,
         rect_ui16(10, 32, 220, 278),
         &(pd->w_filelist));
-    window_file_list_load(&(pd->w_filelist), filters, filt_cnt, screen_filebrowser_sort);
+    window_file_list_load(&(pd->w_filelist), screen_filebrowser_sort);
     window_file_set_item_index(&(pd->w_filelist), 1);
     window_set_capture(id); // hack for do not change capture
     window_set_focus(id);   // hack for do not change capture
@@ -101,57 +101,53 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
         return 0;
     }
 
-    const FILINFO *file_item = &(filelist->file_items[(intptr_t)param]);
+    bool currentIsFile;
+    // displayed text - can be a 8.3 DOS name or a LFN
+    const char *currentFName = window_file_current_fname(filelist, &currentIsFile);
+
     //there must be fname, not altname
-    if (!strcmp(file_item->fname, "..") && !strcmp(filelist->altpath, "/")) {
+    if (!strcmp(currentFName, "..") && !strcmp(filelist->altpath, "/")) {
         screen_close();
         return 1;
     }
 
-    if (file_item->fattrib & AM_DIR) {        // directory selected
-        if (strcmp(file_item->fname, "..")) { // not same -> not ..
-            if ((strlen(filelist->altpath) + strlen(file_item->altname) + 1) >= MAXPATHNAMELENGTH) {
-                LOG_ERROR("path too long");
-                return 0;
+    size_t altPathLen = strlen(filelist->altpath);
+    if ((altPathLen + strlen(currentFName) + 1) >= MAXPATHNAMELENGTH) {
+        LOG_ERROR("path too long");
+        return 0;
+    }
+    if (!currentIsFile) {                 // directory selected
+        if (strcmp(currentFName, "..")) { // not same -> not ..
+            // append the dir name at the end of altPath
+            if (filelist->altpath[altPathLen - 1] != '/') {
+                filelist->altpath[altPathLen++] = '/';
             }
-
-            size_t len = strlen(filelist->altpath);
-            if (filelist->altpath[len - 1] != '/') {
-                filelist->altpath[len++] = '/';
-            }
-            strcpy(filelist->altpath + len, file_item->altname[0] == 0 ? file_item->fname : file_item->altname);
-            window_file_list_load(filelist, filters, filt_cnt, screen_filebrowser_sort);
-            window_set_text(pd->header.win.id, strrchr(filelist->altpath, '/'));
+            strcpy(filelist->altpath + altPathLen, currentFName);
         } else {
             char *last = strrchr(filelist->altpath, '/');
             if (last == filelist->altpath) {
-                strcpy(last, "/");
+                strcpy(last, "/"); // reached top level dir
             } else {
-                last[0] = '\0'; // stop the string :D
+                *last = '\0'; // truncate the string after the last "/"
             }
-            window_file_list_load(filelist, filters, filt_cnt, screen_filebrowser_sort);
-            window_set_text(pd->header.win.id, strrchr(filelist->altpath, '/'));
         }
+        window_file_list_load(filelist, screen_filebrowser_sort);
+        window_set_text(pd->header.win.id, strrchr(filelist->altpath, '/'));
     } else { // print the file
-        if ((strlen(filelist->altpath) + strlen(file_item->altname) + 1) >= MAXPATHNAMELENGTH) {
-            LOG_ERROR("path too long");
-            return 0;
-        }
-
         int written;
         if (!strcmp(filelist->altpath, "/"))
             written = snprintf(screen_printing_file_path, sizeof(screen_printing_file_path),
-                "/%s", file_item->altname);
+                "/%s", currentFName);
         else
             written = snprintf(screen_printing_file_path, sizeof(screen_printing_file_path),
-                "%s/%s", filelist->altpath, file_item->altname);
+                "%s/%s", filelist->altpath, currentFName);
 
         if (written < 0 || written >= (int)sizeof(screen_printing_file_path)) {
             LOG_ERROR("failed to prepare file path for print");
             return 0;
         }
 
-        strcpy(screen_printing_file_name, file_item->fname);
+        strcpy(screen_printing_file_name, currentFName);
 
         screen_print_preview_set_on_action(on_print_preview_action);
         screen_print_preview_set_gcode_filename(screen_printing_file_name);
@@ -171,7 +167,7 @@ static screen_t screen_filebrowser = {
     screen_filebrowser_draw,
     screen_filebrowser_event,
     sizeof(screen_filebrowser_data_t),
-    0
+    nullptr
 };
 
 const screen_t *pscreen_filebrowser = &screen_filebrowser;
