@@ -53,6 +53,7 @@
 // private:
 //check unsupported features
 //filament sensor is no longer part of marlin thus it must be disabled
+//HAS_BUZZER must be disabled, because we handle it differently than marlin
 // clang-format off
 #if (!ENABLED(EXTENSIBLE_UI)) || \
     (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
@@ -82,30 +83,6 @@ fil_change_settings_t fc_settings[EXTRUDERS];
     #define _PMSG(L) L##_M108
 #else
     #define _PMSG(L) L##_LCD
-#endif
-
-#if HAS_BUZZER
-    #include "../../lib/Marlin/Marlin/src/libs/buzzer.h"
-static void filament_change_beep(const int8_t max_beep_count, const bool init = false) {
-    if (pause_mode == PAUSE_MODE_PAUSE_PRINT)
-        return;
-    static millis_t next_buzz = 0;
-    static int8_t runout_beep = 0;
-
-    if (init)
-        next_buzz = runout_beep = 0;
-
-    const millis_t ms = millis();
-    if (ELAPSED(ms, next_buzz)) {
-        if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
-            next_buzz = ms + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 1000 : 500);
-            BUZZ(50, 880 - (runout_beep & 1) * 220);
-            runout_beep++;
-        }
-    }
-}
-#else
-static void filament_change_beep(const int8_t max_beep_count, const bool init = false) {}
 #endif
 
 /**
@@ -400,8 +377,6 @@ bool pause_print(const float &retract, const xyz_pos_t &park_point, const float 
 void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_beep_count /*=0*/ DXC_ARGS) {
     bool nozzle_timed_out = false;
 
-    filament_change_beep(max_beep_count, true);
-
     // Start the heater idle timers
     const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL;
 
@@ -414,8 +389,6 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
     fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
 
     while (wait_for_user && (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue)) {
-        filament_change_beep(max_beep_count);
-
         // If the nozzle has timed out...
         if (!nozzle_timed_out)
             HOTEND_LOOP()
@@ -451,8 +424,6 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             thermalManager.hotend_idle[e].start(nozzle_timeout);
 
             nozzle_timed_out = false;
-
-            filament_change_beep(max_beep_count, true);
         }
 
         idle(true);
