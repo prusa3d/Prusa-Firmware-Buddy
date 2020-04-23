@@ -17,7 +17,6 @@ enum {
     MI_FLOWFACT,
     MI_BABYSTEP,
     MI_FILAMENT,
-    MI_INFO,
     MI_LAN_SETTINGS,
     MI_VERSION_INFO,
 #ifdef _DEBUG
@@ -37,7 +36,6 @@ const menu_item_t _menu_tune_items[] = {
     { { "Flow Factor", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },      //set later
     { { "Live Adjust Z", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
     { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Info", 0, WI_LABEL | WI_DISABLED }, get_scr_menu_info() },
     { { "LAN Setings", 0, WI_LABEL }, get_scr_lan_settings() },
     { { "Version Info", 0, WI_LABEL }, get_scr_version_info() },
 #ifdef _DEBUG
