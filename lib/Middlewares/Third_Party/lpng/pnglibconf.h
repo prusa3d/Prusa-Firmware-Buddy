@@ -204,16 +204,18 @@
 #define PNG_QUANTIZE_RED_BITS 5
 #define PNG_TEXT_Z_DEFAULT_COMPRESSION (-1)
 #define PNG_TEXT_Z_DEFAULT_STRATEGY 0
-#define PNG_USER_CHUNK_CACHE_MAX 1000
-#define PNG_USER_CHUNK_MALLOC_MAX 8000000
-#define PNG_USER_HEIGHT_MAX 1000000
-#define PNG_USER_WIDTH_MAX 1000000
-#define PNG_ZBUF_SIZE 8192
+#define PNG_USER_CHUNK_CACHE_MAX 128 /* user chunks should be skipped anyway - see PR#215 */
+#define PNG_USER_CHUNK_MALLOC_MAX 32000
+#define PNG_USER_HEIGHT_MAX 320
+#define PNG_USER_WIDTH_MAX 240 /* this is important for amount of allocated memory for the row buffer */
+#define PNG_ZBUF_SIZE 1024 /* default was 8192 for read buffer - this saves 7KB of RAM while slowing the decoding speed 2x roughly */
 #define PNG_ZLIB_VERNUM 0 /* unknown */
 #define PNG_Z_DEFAULT_COMPRESSION (-1)
 #define PNG_Z_DEFAULT_NOFILTER_STRATEGY 0
 #define PNG_Z_DEFAULT_STRATEGY 1
 #define PNG_sCAL_PRECISION 5
 #define PNG_sRGB_PROFILE_CHECKS 2
+#define PNG_NO_READ_iCCP
+#define PNG_NO_READ_TEXT /* disables tEXt, zTXt, and iTXt */
 /* end of settings */
 #endif /* PNGLCONF_H */
