@@ -154,7 +154,7 @@ bool GCodeQueue::_enqueue(const char* cmd, bool say_ok/*=false*/
  * Enqueue with Serial Echo
  * Return true if the command was consumed
  */
-bool GCodeQueue::enqueue_one(const char* cmd) {
+bool GCodeQueue::enqueue_one(const char* cmd, bool echo/*=true*/) {
 
   //SERIAL_ECHOPGM("enqueue_one(\"");
   //SERIAL_ECHO(cmd);
@@ -163,8 +163,10 @@ bool GCodeQueue::enqueue_one(const char* cmd) {
   if (*cmd == 0 || *cmd == '\n' || *cmd == '\r') return true;
 
   if (_enqueue(cmd)) {
-    SERIAL_ECHO_START();
-    SERIAL_ECHOLNPAIR(MSG_ENQUEUEING, cmd, "\"");
+	if (echo) {
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLNPAIR(MSG_ENQUEUEING, cmd, "\"");
+	}
     return true;
   }
   return false;

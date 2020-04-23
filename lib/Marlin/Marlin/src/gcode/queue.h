@@ -146,10 +146,10 @@ private:
 
 public:
   /**
-   * Enqueue with Serial Echo
+   * Enqueue with Serial Echo (optionaly without)
    * Return true on success
    */
-  static bool enqueue_one(const char* cmd);
+  static bool enqueue_one(const char* cmd, bool echo=true);
 
 private:
   static void gcode_line_error(PGM_P const err, const int8_t port);
