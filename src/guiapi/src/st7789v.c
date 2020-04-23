@@ -704,9 +704,27 @@ void _pngfree(png_structp pp, png_voidp mem) {
 }
 
 void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
+    static const png_byte unused_chunks[] = {
+        98, 75, 71, 68, '\0',   /* bKGD */
+        99, 72, 82, 77, '\0',   /* cHRM */
+        104, 73, 83, 84, '\0',  /* hIST */
+        105, 67, 67, 80, '\0',  /* iCCP */
+        105, 84, 88, 116, '\0', /* iTXt */
+        111, 70, 70, 115, '\0', /* oFFs */
+        112, 67, 65, 76, '\0',  /* pCAL */
+        115, 67, 65, 76, '\0',  /* sCAL */
+        112, 72, 89, 115, '\0', /* pHYs */
+        115, 66, 73, 84, '\0',  /* sBIT */
+        115, 80, 76, 84, '\0',  /* sPLT */
+        116, 69, 88, 116, '\0', /* tEXt */
+        116, 73, 77, 69, '\0',  /* tIME */
+        122, 84, 88, 116, '\0'  /* zTXt */
+    };
     //	rewind(pf);
     //png_structp pp = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     png_structp pp = png_create_read_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, _pngmalloc, _pngfree);
+    // Ignore unused chunks: see https://libpng.sourceforge.io/decompression_bombs.html
+    png_set_keep_unknown_chunks(pp, 1, unused_chunks, (int)sizeof(unused_chunks) / 5);
     //png_set_mem_fn(pp, 0, _pngmalloc, _pngfree);
     if (pp == NULL)
         goto _e_0;
