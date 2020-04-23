@@ -39,12 +39,12 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
         id = window_focused();
         while (dif--) {
             id = window_prev_enabled(id);
-            if (id >= 0) {
-                window_set_focus(id);
-            } else {
-                // End indicator of the frames list ->
-                Sound_DoSound(eSOUND_TYPE_BlindAlert);
-            }
+        }
+        if (id >= 0) {
+            window_set_focus(id);
+        } else {
+            // End indicator of the frames list ->
+            Sound_DoSound(eSOUND_TYPE_BlindAlert);
         }
         break;
     case WINDOW_EVENT_ENC_UP:
@@ -52,12 +52,12 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
         id = window_focused();
         while (dif--) {
             id = window_next_enabled(id);
-            if (id >= 0) {
-                window_set_focus(id);
-            } else {
-                // Start indicator of the frames list <-
-                Sound_DoSound(eSOUND_TYPE_BlindAlert);
-            }
+        }
+        if (id >= 0) {
+            window_set_focus(id);
+        } else {
+            // Start indicator of the frames list <-
+            Sound_DoSound(eSOUND_TYPE_BlindAlert);
         }
         break;
     case WINDOW_EVENT_CAPT_0:
