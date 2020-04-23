@@ -126,13 +126,14 @@ bool GCodeQueue::RingBuffer::enqueue(const char *cmd, bool skip_ok/*=true*/
  * Enqueue with Serial Echo
  * Return true if the command was consumed
  */
-bool GCodeQueue::enqueue_one(const char * const cmd) {
+bool GCodeQueue::enqueue_one(const char * const cmd, bool echo /*=true*/) {
   //SERIAL_ECHOLNPGM("enqueue_one(\"", cmd, "\")");
 
   if (*cmd == 0 || ISEOL(*cmd)) return true;
 
   if (ring_buffer.enqueue(cmd)) {
-    SERIAL_ECHO_MSG(STR_ENQUEUEING, cmd, "\"");
+    if (echo) SERIAL_ECHO_MSG(STR_ENQUEUEING, cmd, "\"");
+	}
     return true;
   }
   return false;

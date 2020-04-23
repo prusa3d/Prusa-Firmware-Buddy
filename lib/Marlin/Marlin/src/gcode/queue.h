@@ -150,10 +150,10 @@ public:
   static bool enqueue_one(FSTR_P const fcmd);
 
   /**
-   * Enqueue with Serial Echo
+   * Enqueue with Serial Echo (optionaly without)
    * Return true on success
    */
-  static bool enqueue_one(const char *cmd);
+  static bool enqueue_one(const char *cmd, bool echo=true);
 
   /**
    * Enqueue from program memory and return only when commands are actually enqueued
