@@ -82,7 +82,7 @@ DialogLoadUnload::DialogLoadUnload(const char *name)
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
 void DialogLoadUnload::userPushEnter() { Sound_DoSound(eSOUND_TYPE_StandardPrompt); }
-void DialogLoadUnload::userPushExit (){  Sound_StopSound(); }
+void DialogLoadUnload::userPushExit() { Sound_StopSound(); }
 
 void DialogLoadUnload::c_draw(window_t *win) {
     IDialog *ptr = cast(win);
