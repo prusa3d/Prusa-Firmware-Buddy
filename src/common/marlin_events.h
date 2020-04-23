@@ -25,8 +25,6 @@ typedef enum {
                                     // Marlin events - other
     MARLIN_EVT_StartProcessing,     // sent from marlin_server_start_processing
     MARLIN_EVT_StopProcessing,      // sent from marlin_server_stop_processing
-    MARLIN_EVT_Busy,                // sent from marlin_server_idle
-    MARLIN_EVT_Ready,               // sent from marlin_server_loop
     MARLIN_EVT_Error,               // sent onStatusChanged etc.
     MARLIN_EVT_CommandBegin,        //
     MARLIN_EVT_CommandEnd,          //
@@ -54,6 +52,7 @@ typedef enum {
 #define MARLIN_CMD_G29  (MARLIN_CMD_G + 29)
 #define MARLIN_CMD_M109 (MARLIN_CMD_M + 109)
 #define MARLIN_CMD_M190 (MARLIN_CMD_M + 190)
+#define MARLIN_CMD_M303 (MARLIN_CMD_M + 303)
 #define MARLIN_CMD_M600 (MARLIN_CMD_M + 600)
 #define MARLIN_CMD_M701 (MARLIN_CMD_M + 701)
 #define MARLIN_CMD_M702 (MARLIN_CMD_M + 702)

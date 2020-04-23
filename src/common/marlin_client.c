@@ -16,11 +16,11 @@
 //#define DBG_REQ  DBG    //trace requests (client side)
 #define DBG_REQ(...) //disable trace
 
-#define DBG_EVT DBG //trace events (client side)
-//#define DBG_EVT(...)    //disable trace
-#define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
+//#define DBG_EVT DBG //trace events (client side)
+#define DBG_EVT(...) //disable trace
+#define DBG_EVT_MSK  (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
-#define DBG_VAR  DBG    //trace variable change notifications  (client side)
+//#define DBG_VAR  DBG    //trace variable change notifications  (client side)
 #define DBG_VAR(...) //disable trace
 //#define DBG_VAR_MSK     MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE)
 //#define DBG_VAR_MSK     MARLIN_VAR_MSK_ALL
@@ -191,13 +191,6 @@ int marlin_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
         return (client->flags & MARLIN_CFLG_PROCESS) ? 1 : 0;
-    return 0;
-}
-
-int marlin_busy(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client)
-        return (client->flags & MARLIN_CFLG_BUSY) ? 1 : 0;
     return 0;
 }
 
@@ -615,7 +608,6 @@ uint8_t marlin_message_received(void) {
         return 0;
 }
 
-
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating(void) {
     marlin_client_t *client = _client_ptr();
@@ -715,12 +707,6 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case MARLIN_EVT_StopProcessing:
             client->flags &= ~MARLIN_CFLG_PROCESS;
-            break;
-        case MARLIN_EVT_Busy:
-            client->flags |= MARLIN_CFLG_BUSY;
-            break;
-        case MARLIN_EVT_Ready:
-            client->flags &= ~MARLIN_CFLG_BUSY;
             break;
         case MARLIN_EVT_Error:
             client->errors |= MARLIN_ERR_MSK(msg.ui32);

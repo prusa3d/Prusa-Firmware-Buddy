@@ -41,9 +41,8 @@ int xyzcalib_home(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t 
         wizard_init_screen_xyzcalib(id_body, p_screen, p_data);
         window_set_icon_id(p_screen->icon.win.id, IDR_PNG_wizard_icon_autohome);
         marlin_gcode("G28");
-        while (!(marlin_busy() || marlin_motion()))
-            osDelay(10);
-    } else if (!(marlin_busy() || marlin_motion()))
+        marlin_event_clr(MARLIN_EVT_CommandEnd);
+    } else if (marlin_event_clr(MARLIN_EVT_CommandEnd))
         p_data->state_home = _TEST_PASSED;
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_home), _WIZ_TIMER);
     window_set_value(p_screen->progress.win.id, (float)progress);
@@ -80,9 +79,8 @@ int xyzcalib_xy_measure(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_d
             "points");
         window_set_icon_id(p_screen->icon.win.id, IDR_PNG_wizard_icon_measure);
         marlin_gcode("G29");
-        while (!(marlin_busy() || marlin_motion()))
-            osDelay(10);
-    } else if (!(marlin_busy() || marlin_motion()))
+        marlin_event_clr(MARLIN_EVT_CommandEnd);
+    } else if (marlin_event_clr(MARLIN_EVT_CommandEnd))
         p_data->state_xy_measure = _TEST_PASSED;
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_xy_measure), _WIZ_TIMER);
     window_set_value(p_screen->progress.win.id, (float)progress);

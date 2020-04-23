@@ -42,14 +42,13 @@
 //#define DBG(...)
 
 //#define DBG_XUI DBG //trace ExtUI events
-#define DBG_XUI(...)    //disable trace
+#define DBG_XUI(...) //disable trace
 
-#define DBG_REQ  DBG    //trace requests
-//#define DBG_REQ(...) //disable trace
+//#define DBG_REQ  DBG    //trace requests
+#define DBG_REQ(...) //disable trace
 
 //#define DBG_FSM DBG //trace fsm
-#define DBG_FSM(...)   //disable trace
-
+#define DBG_FSM(...) //disable trace
 
 #pragma pack(push)
 #pragma pack(1)
@@ -81,7 +80,6 @@ typedef struct _marlin_server_t {
 } marlin_server_t;
 
 #pragma pack(pop)
-
 
 extern "C" {
 
@@ -292,14 +290,13 @@ int marlin_server_cycle(void) {
     return count;
 }
 
-#define MARLIN_IDLE_CNT_BUSY 2
+#define MARLIN_IDLE_CNT_BUSY 1
 
 int marlin_server_loop(void) {
     if (marlin_server.idle_cnt >= MARLIN_IDLE_CNT_BUSY)
         if (marlin_server.flags & MARLIN_SFLG_BUSY) {
             //_dbg("SVR: READY");
             marlin_server.flags &= ~MARLIN_SFLG_BUSY;
-            _send_notify_event(MARLIN_EVT_Ready, 0, 0);
             if ((marlin_server.command != MARLIN_CMD_NONE) && (marlin_server.command != MARLIN_CMD_M600)) {
                 _send_notify_event(MARLIN_EVT_CommandEnd, marlin_server.command, 0);
                 marlin_server.command = MARLIN_CMD_NONE;
@@ -317,7 +314,6 @@ int marlin_server_idle(void) {
     else if ((marlin_server.flags & MARLIN_SFLG_BUSY) == 0) {
         //_dbg("SVR: BUSY");
         marlin_server.flags |= MARLIN_SFLG_BUSY;
-        _send_notify_event(MARLIN_EVT_Busy, 0, 0);
         if (parser.command_letter == 'G')
             switch (parser.codenum) {
             case 28:
@@ -329,6 +325,7 @@ int marlin_server_idle(void) {
             switch (parser.codenum) {
             case 109:
             case 190:
+            case 303:
             //case 600: // hacked in gcode (_force_M600_notify)
             case 701:
             case 702:
@@ -424,130 +421,124 @@ void marlin_server_quick_stop(void) {
 }
 
 void marlin_server_print_start(const char *filename) {
-	if (marlin_server.print_state == mpsIdle) {
-		media_print_start(filename);
-		print_job_timer.start();
-		marlin_server.print_state = mpsPrinting;
-	}
+    if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
+        media_print_start(filename);
+        print_job_timer.start();
+        marlin_server.print_state = mpsPrinting;
+    }
 }
 
 void marlin_server_print_abort(void) {
-	if (marlin_server.print_state == mpsPrinting) {
-		marlin_server.print_state = mpsAborting_Begin;
-	}
+    if (marlin_server.print_state == mpsPrinting) {
+        marlin_server.print_state = mpsAborting_Begin;
+    }
 }
 
 void marlin_server_print_pause(void) {
-	if (marlin_server.print_state == mpsPrinting) {
-		marlin_server.print_state = mpsPausing_Begin;
-	}
+    if (marlin_server.print_state == mpsPrinting) {
+        marlin_server.print_state = mpsPausing_Begin;
+    }
 }
 
 void marlin_server_print_resume(void) {
-	if (marlin_server.print_state == mpsPaused) {
-		marlin_server.print_state = mpsResuming_Begin;
-	}
+    if (marlin_server.print_state == mpsPaused) {
+        marlin_server.print_state = mpsResuming_Begin;
+    }
 }
 
 void _server_print_loop(void) {
-	switch (marlin_server.print_state) {
-	case mpsIdle:
+    switch (marlin_server.print_state) {
+    case mpsIdle:
         break;
-	case mpsPrinting:
-		switch (media_print_get_state()) {
-		case media_print_state_PRINTING:
-			break;
-		case media_print_state_PAUSED:
-			marlin_server.print_state = mpsPausing_Begin;
-			break;
-		case media_print_state_NONE:
-			marlin_server.print_state = mpsFinishing_WaitIdle;
-			break;
-		}
+    case mpsPrinting:
+        switch (media_print_get_state()) {
+        case media_print_state_PRINTING:
+            break;
+        case media_print_state_PAUSED:
+            marlin_server.print_state = mpsPausing_Begin;
+            break;
+        case media_print_state_NONE:
+            marlin_server.print_state = mpsFinishing_WaitIdle;
+            break;
+        }
         break;
-	case mpsPausing_Begin:
-		media_print_pause();
-		print_job_timer.pause();
-		marlin_server.print_state = mpsPausing_WaitIdle;
+    case mpsPausing_Begin:
+        media_print_pause();
+        print_job_timer.pause();
+        marlin_server.print_state = mpsPausing_WaitIdle;
         break;
-	case mpsPausing_WaitIdle:
-		if ((planner.movesplanned() == 0) && (queue.length == 0))
-		{
-			marlin_server_park_head();
-			marlin_server.print_state = mpsPausing_ParkHead;
-		}
-		break;
-	case mpsPausing_ParkHead:
-		if (planner.movesplanned() == 0)
-			marlin_server.print_state = mpsPaused;
-		break;
-	case mpsResuming_Begin:
-		marlin_server_unpark_head();
-		marlin_server.print_state = mpsResuming_UnparkHead;
-		break;
-	case mpsResuming_UnparkHead:
-		if (planner.movesplanned() == 0)
-		{
-			media_print_resume();
-			print_job_timer.resume(0);
-			marlin_server.print_state = mpsPrinting;
-		}
-		break;
-	case mpsAborting_Begin:
-		media_print_stop();
-		print_job_timer.stop();
-		planner.quick_stop();
-		marlin_server.print_state = mpsAborting_WaitIdle;
-		break;
-	case mpsAborting_WaitIdle:
-		if (planner.movesplanned() == 0)
-		{
-			float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
-			float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
-			float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
-			current_position.x = x;
-			current_position.y = y;
-			current_position.z = z;
-			current_position.e = 0;
-			planner.set_position_mm(x, y, z, 0);
-			marlin_server_park_head();
-			marlin_server.print_state = mpsAborting_ParkHead;
-		}
-		break;
-	case mpsAborting_ParkHead:
-		if (planner.movesplanned() == 0)
-		{
-			marlin_server.print_state = mpsAborted;
-		}
-		break;
-	case mpsFinishing_WaitIdle:
-		if (planner.movesplanned() == 0)
-		{
-			marlin_server_park_head();
-			marlin_server.print_state = mpsFinishing_ParkHead;
-		}
-		break;
-	case mpsFinishing_ParkHead:
-		if (planner.movesplanned() == 0)
-		{
-			marlin_server.print_state = mpsFinished;
-		}
-		break;
-	default:
-		break;
-	}
+    case mpsPausing_WaitIdle:
+        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+            marlin_server_park_head();
+            marlin_server.print_state = mpsPausing_ParkHead;
+        }
+        break;
+    case mpsPausing_ParkHead:
+        if (planner.movesplanned() == 0)
+            marlin_server.print_state = mpsPaused;
+        break;
+    case mpsResuming_Begin:
+        marlin_server_unpark_head();
+        marlin_server.print_state = mpsResuming_UnparkHead;
+        break;
+    case mpsResuming_UnparkHead:
+        if (planner.movesplanned() == 0) {
+            media_print_resume();
+            print_job_timer.resume(0);
+            marlin_server.print_state = mpsPrinting;
+        }
+        break;
+    case mpsAborting_Begin:
+        media_print_stop();
+        print_job_timer.stop();
+        planner.quick_stop();
+        marlin_server.print_state = mpsAborting_WaitIdle;
+        break;
+    case mpsAborting_WaitIdle:
+        if (planner.movesplanned() == 0) {
+            float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
+            float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
+            float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
+            current_position.x = x;
+            current_position.y = y;
+            current_position.z = z;
+            current_position.e = 0;
+            planner.set_position_mm(x, y, z, 0);
+            marlin_server_park_head();
+            marlin_server.print_state = mpsAborting_ParkHead;
+        }
+        break;
+    case mpsAborting_ParkHead:
+        if (planner.movesplanned() == 0) {
+            marlin_server.print_state = mpsAborted;
+        }
+        break;
+    case mpsFinishing_WaitIdle:
+        if (planner.movesplanned() == 0) {
+            marlin_server_park_head();
+            marlin_server.print_state = mpsFinishing_ParkHead;
+        }
+        break;
+    case mpsFinishing_ParkHead:
+        if (planner.movesplanned() == 0) {
+            marlin_server.print_state = mpsFinished;
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 void marlin_server_park_head(void) {
-	constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
-	constexpr xyz_pos_t park = NOZZLE_PARK_POINT;
+    constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
+    constexpr xyz_pos_t park = NOZZLE_PARK_POINT;
     //homed check
     if (all_axes_homed() && all_axes_known()) {
-    	planner.synchronize();
-    	marlin_server.resume_pos[0] = current_position.x;
-    	marlin_server.resume_pos[1] = current_position.y;
-    	marlin_server.resume_pos[2] = current_position.z;
-    	marlin_server.resume_pos[3] = current_position.e;
+        planner.synchronize();
+        marlin_server.resume_pos[0] = current_position.x;
+        marlin_server.resume_pos[1] = current_position.y;
+        marlin_server.resume_pos[2] = current_position.z;
+        marlin_server.resume_pos[3] = current_position.e;
         current_position.e -= 2 / planner.e_factor[active_extruder];
         line_to_current_position(2000);
         current_position.z = _MIN(current_position.z + park.z, Z_MAX_POS);
@@ -558,9 +549,9 @@ void marlin_server_park_head(void) {
 }
 
 void marlin_server_unpark_head(void) {
-	constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
+    constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
     if (all_axes_homed() && all_axes_known()) {
-    	planner.synchronize();
+        planner.synchronize();
         current_position.set(marlin_server.resume_pos[0], marlin_server.resume_pos[1]);
         line_to_current_position(fr_xy);
         current_position.z = marlin_server.resume_pos[2];
@@ -624,8 +615,6 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_StoreSettings:
             case MARLIN_EVT_StartProcessing:
             case MARLIN_EVT_StopProcessing:
-            case MARLIN_EVT_Busy:
-            case MARLIN_EVT_Ready:
             case MARLIN_EVT_GFileChange:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
@@ -1027,7 +1016,7 @@ int _process_server_request(char *request) {
         ClientResponseHandler::SetResponse(ival);
         processed = 1;
     } else {
-    	//TODO: BSOD
+        //TODO: BSOD
     }
     if (processed)
         _send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0);
@@ -1263,7 +1252,6 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 
 }
 
-
 //must match fsm_create_t signature
 void fsm_create(ClinetFSM type, uint8_t data) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
@@ -1295,7 +1283,6 @@ void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pro
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, 1 << gui_marlin_client_id, client_mask);
 }
-
 
 /*****************************************************************************/
 //FSM_notifier

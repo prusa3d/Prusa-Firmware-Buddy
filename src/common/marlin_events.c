@@ -23,8 +23,6 @@ const char *__evt_name[] = {
     "MeshUpdate",
     "StartProcessing",
     "StopProcessing",
-    "Busy",
-    "Ready",
     "Error",
     "CommandBegin",
     "CommandEnd",

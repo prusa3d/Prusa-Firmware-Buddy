@@ -10,7 +10,6 @@
 // client flags
 #define MARLIN_CFLG_STARTED 0x0001 // client started (set in marlin_client_init)
 #define MARLIN_CFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_CFLG_BUSY    0x0004 // loop is busy
 #define MARLIN_CFLG_LOWHIGH 0x0008 // receiving low/high part of client message
 #define MARLIN_CFLG_MESSAGE 0x0010 // receiving status change message
 
@@ -47,9 +46,6 @@ extern int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb);
 extern int marlin_client_set_fsm_change_cb(fsm_change_t cb);
 // returns enabled status of loop processing
 extern int marlin_processing(void);
-
-// returns busy status of marlin
-extern int marlin_busy(void);
 
 // returns currently running command or MARLIN_CMD_NONE
 extern uint32_t marlin_command(void);
