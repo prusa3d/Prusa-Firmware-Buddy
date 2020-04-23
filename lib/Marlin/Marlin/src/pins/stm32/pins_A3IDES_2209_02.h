@@ -136,7 +136,7 @@
 
 //#define PWR_LOSS               PA4         //Power loss / nAC_FAULT
 
-#define BEEPER_PIN             PA0
+//#define BEEPER_PIN             PA0         //comment to disable macro HAS_BUZZER 
 
 #define BTN_ENC                PE12
 #define BTN_EN1                PE15
