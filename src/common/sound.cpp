@@ -14,13 +14,13 @@ Sound::Sound() {
     frequency = 100.f; // frequency of sound signal (0-1000)
     volume = 0.00125;  // volume of sound signal (0-1)
 
-    this->soundInit();
+    this->init();
 }
 
 // Inicialization of Singleton Class needs to be AFTER eeprom inicialization.
 // [soundInit] is getting stored EEPROM value of his sound mode.
 // [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
-void Sound::soundInit() {
+void Sound::init() {
     eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).ui8;
     if ((uint8_t)eSoundMode == (uint8_t)eSOUND_MODE_NULL) {
         this->setMode(eSOUND_MODE_DEFAULT);
@@ -44,14 +44,14 @@ void Sound::saveMode() {
 }
 
 // [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
-void Sound::stopSound() {
+void Sound::stop() {
     _duration = 0;
     repeat = 0;
 }
 
-// Generag [doSound] method with sound type parameter where dependetly on set mode is played.
+// Generag [play] method with sound type parameter where dependetly on set mode is played.
 // Every mode handle just his own signal types.
-void Sound::doSound(eSOUND_TYPE eSoundType) {
+void Sound::play(eSOUND_TYPE eSoundType) {
     switch (eSoundMode) {
     case eSOUND_MODE_ONCE:
         if (eSoundType == eSOUND_TYPE_Start) {
@@ -181,7 +181,7 @@ void Sound::nextRepeat() {
 
 // Update method to control duration of sound signals and repeating count.
 // When variable [repeat] is -1, then repeating will be infinite until [stopSound] is called.
-void Sound::soundUpdate1ms() {
+void Sound::update1ms() {
     // -- timing logic without osDelay for repeating Beep(s)
     if ((_duration) && (--_duration == 0)) {
         if (((repeat) && (--repeat != 0)) || (repeat == -1)) {

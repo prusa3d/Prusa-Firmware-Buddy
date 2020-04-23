@@ -232,7 +232,7 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             if (e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index] == eSOUND_TYPE_StandardPrompt) {
                 gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
             } else {
-                Sound_DoSound(e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index]);
+                Sound_Play(e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index]);
             }
             break;
 #endif // _DEBUG

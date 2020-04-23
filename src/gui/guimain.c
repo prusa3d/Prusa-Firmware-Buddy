@@ -169,7 +169,7 @@ void gui_run(void) {
     gui_marlin_vars = marlin_client_init();
     gui_marlin_client_id = marlin_client_id();
     register_dialog_callbacks();
-    Sound_DoSound(eSOUND_TYPE_Start);
+    Sound_Play(eSOUND_TYPE_Start);
 
     screen_register(pscreen_splash);
     screen_register(pscreen_watchdog);

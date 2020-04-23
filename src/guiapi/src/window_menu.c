@@ -300,11 +300,11 @@ void window_menu_inc(window_menu_t *window, int dif) {
         // play sound at first or last index of menu
         if (window->index < 0) {
             window->index = 0;
-            Sound_DoSound(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE_BlindAlert);
         }
         if (window->index >= window->count) {
             window->index = window->count - 1;
-            Sound_DoSound(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE_BlindAlert);
         }
 
         if (window->index < window->top_index)

@@ -89,9 +89,9 @@ void gui_loop(void) {
     // Encoder sound moved from guimain to gui loop to control encoder sounds in
     // every gui screens. Previous method wasn't everywhere.
     if ((jogwheel_changed & 1) && jogwheel_button_down) { //button changed and pressed
-        Sound_DoSound(eSOUND_TYPE_ButtonEcho);
+        Sound_Play(eSOUND_TYPE_ButtonEcho);
     } else if (jogwheel_changed & 2) { // encoder changed
-        Sound_DoSound(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE_EncoderMove);
     }
 
     if (jogwheel_changed) {
@@ -192,7 +192,7 @@ int gui_msgbox(const char *text, uint16_t flags) {
 // This is because of infinitely repeating sound signal that has to be stopped
 // additionally
 int gui_msgbox_prompt(const char *text, uint16_t flags) {
-    Sound_DoSound(eSOUND_TYPE_StandardPrompt);
+    Sound_Play(eSOUND_TYPE_StandardPrompt);
     return gui_msgbox_ex(0, text, flags, gui_defaults.msg_box_sz, 0, 0);
 }
 

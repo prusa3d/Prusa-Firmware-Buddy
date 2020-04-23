@@ -192,7 +192,7 @@ void app_tim14_tick(void) {
 #elif HAS_GUI
     jogwheel_update_1ms();
 #endif
-    Sound_UpdateSound1ms();
+    Sound_Update1ms();
     //hwio_update_1ms();
     adc_tick_1ms();
 }

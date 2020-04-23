@@ -16,10 +16,10 @@ public:
     }
     eSOUND_MODE getMode();
 
-    void doSound(eSOUND_TYPE eSoundType);
+    void play(eSOUND_TYPE eSoundType);
     void setMode(eSOUND_MODE eSMode);
-    void stopSound();
-    void soundUpdate1ms();
+    void stop();
+    void update1ms();
     void nextRepeat();
 
     uint32_t _duration;
@@ -30,7 +30,7 @@ public:
 
 private:
     // -- main fnc
-    void soundInit();
+    void init();
     void saveMode();
     void _sound(int rep, float frq, uint32_t del, float vol);
 
