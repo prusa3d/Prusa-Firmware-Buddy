@@ -24,6 +24,7 @@
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
 #include "Dialog_C_wrapper.h"
+#include "sound_C_wrapper.h"
 
 extern screen_t *pscreen_splash;
 extern screen_t *pscreen_watchdog;
@@ -168,7 +169,7 @@ void gui_run(void) {
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     register_dialog_callbacks();
-    hwio_beeper_tone2(440.0, 100, 0.0125); //start beep
+    Sound_Play(eSOUND_TYPE_Start);
 
     screen_register(pscreen_splash);
     screen_register(pscreen_watchdog);
@@ -233,12 +234,6 @@ void gui_run(void) {
     gui_loop_cb = _gui_loop_cb;
     int8_t gui_timeout_id;
     while (1) {
-        float vol = 0.01F;
-        //simple jogwheel acoustic feedback
-        if ((jogwheel_changed & 1) && jogwheel_button_down)       //button changed and pressed
-            hwio_beeper_tone2(200.0, 50, (double)(vol * 0.125F)); //beep
-        else if (jogwheel_changed & 2)                            // encoder changed
-            hwio_beeper_tone2(50.0, 25, (double)(vol * 0.125F));  //short click
         // show warning dialog on safety timer expiration
         if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
             gui_msgbox("Heating disabled due to 30 minutes of inactivity.", MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);

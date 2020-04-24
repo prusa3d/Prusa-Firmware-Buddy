@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "resource.h"
 #include "button_draw.h"
+#include "sound_C_wrapper.h"
 
 //title for each icon type (empty text for 0)
 const char *window_msgbox_title_text[] = {
@@ -116,10 +117,14 @@ void window_msgbox_step(window_msgbox_t *window, int step) {
     int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
     int chg = (1 << idx);                                           // change mask - old button
     idx += step;                                                    // increment index
-    if (idx < 0)
+    if (idx < 0) {
         idx = 0; // check min
-    if (idx >= count)
-        idx = count - 1;                                // check max
+        Sound_Play(eSOUND_TYPE_BlindAlert);
+    }
+    if (idx >= count) {
+        idx = count - 1; // check max
+        Sound_Play(eSOUND_TYPE_BlindAlert);
+    }
     chg |= (1 << idx);                                  // change mask - new button
     window->flags = (window->flags & ~MSGBOX_MSK_IDX) | // clear index bits
         ((idx << MSGBOX_SHI_IDX) & MSGBOX_MSK_IDX) |    // set new index bits
@@ -132,6 +137,7 @@ void window_msgbox_click(window_msgbox_t *window) {
     //int count = window_msgbox_button_count[btn]; // get number of buttons from table
     int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
     window->res = window_msgbox_buttons[btn][idx];
+    Sound_Stop();
     window_destroy(window->win.id);
 }
 
