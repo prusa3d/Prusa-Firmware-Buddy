@@ -10,6 +10,8 @@
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
+#include "sound_C_wrapper.h"
+//#include "sound.h"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -190,7 +192,8 @@ void app_tim14_tick(void) {
 #elif HAS_GUI
     jogwheel_update_1ms();
 #endif
-    hwio_update_1ms();
+    Sound_Update1ms();
+    //hwio_update_1ms();
     adc_tick_1ms();
 }
 
