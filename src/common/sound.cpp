@@ -3,7 +3,7 @@
 #include "hwio.h"
 #include "eeprom.h"
 
-// -- Sound signals implementation Singleton Class
+// -- Sound signals implementation
 // Simple sound implementation supporting few sound modes and having different sound types.
 // [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for meassured durations of sound signals for non-blocking GUI.
 // Beeper is controled over [hwio_a3ides_2209_02.c] functions for beeper.
