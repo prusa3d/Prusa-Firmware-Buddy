@@ -32,7 +32,7 @@ public:
 
 private:
     Sound();
-    ~Sound(){};
+    ~Sound() {};
 
     // -- main fnc
     void init();
