@@ -77,7 +77,7 @@ To install custom firmware, you have to break the appendix on the board. Learn h
 
 ## Feedback
 
-- Feature Requests from Community (https://github.com/prusa3d/Prusa-Firmware-Buddy/labels/feature%20request) 
+- [Feature Requests from Community](https://github.com/prusa3d/Prusa-Firmware-Buddy/labels/feature%20request) 
 
 ## License
 
