@@ -1209,8 +1209,14 @@ void host_action_resumed() {
     DBG_HOST("host_action_resumed");
 }
 
+//remember last event
+static uint32_t fsm_change_last_usr32 = -1;
+
 //must match fsm_create_t signature
 void fsm_create(ClinetFSM type, uint8_t data) {
+    //erase info about last event
+    fsm_change_last_usr32 = -1;
+
     uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
     DBG_HOST("fsm_create %d", usr32);
 
@@ -1233,6 +1239,11 @@ void fsm_destroy(ClinetFSM type) {
 //must match fsm_change_t signature
 void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
+    if (usr32 == uint32_t(-1))
+        bsod("FATAL Invalid Event");
+    if (usr32 == fsm_change_last_usr32)
+        return;
+    fsm_change_last_usr32 = usr32;
     DBG_HOST("fsm_change %d", usr32);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
@@ -1240,6 +1251,7 @@ void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pro
     // notification will wait until successfully sent to gui client
     _ensure_event_sent(evt_id, client_mask);
 }
+
 void host_response_handler(const uint8_t response) {
     DBG_HOST("host_response_handler %d", (int)response);
 }

@@ -13,6 +13,7 @@ void fsm_create(ClinetFSM type, uint8_t data);
 //notify all clients to destroy finit statemachine, must match fsm_destroy_t signature
 void fsm_destroy(ClinetFSM type);
 //notify all clients to change state of finit statemachine, must match fsm_change_t signature
+//can be called inside while, notification is send only when is different from previous one
 void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
 
 //inherited class for server side to be able to work with server_side_encoded_response
