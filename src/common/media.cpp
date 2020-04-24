@@ -118,8 +118,8 @@ void media_loop(void) {
     if (media_print_state == media_print_state_PRINTING) {
         char buffer[MAX_CMD_SIZE + 1];
         char *pch;
-        if (!f_eof(&media_print_fil)) //check eof
-            while (queue.length < BUFSIZE) {
+        if (!f_eof(&media_print_fil))              //check eof
+            while (queue.length < (BUFSIZE - 1)) { //keep one free slot for serial commands
                 if (f_gets(buffer, MAX_CMD_SIZE, &media_print_fil)) {
                     pch = strchr(buffer, '\r');
                     if (pch)
