@@ -165,7 +165,7 @@ void general_error(const char *error, const char *module) {
 
     display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
-    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - PADDING, 30), COLOR_WHITE);
+    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - 1 - PADDING, 30), COLOR_WHITE);
 
     term_printf(&term, module);
     term_printf(&term, "\n");
