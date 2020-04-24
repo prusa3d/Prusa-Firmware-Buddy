@@ -53,27 +53,27 @@
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
-    char gcode_name[GCODE_NAME_MAX_LEN + 1]; // printing gcode name
-    uint16_t flags;                          // server flags (MARLIN_SFLG)
-    uint64_t notify_events;                  // event notification mask
-    uint64_t notify_changes;                 // variable change notification mask
-    marlin_vars_t vars;                      // cached variables
+    char gcode_name[GCODE_NAME_MAX_LEN + 1];     // printing gcode name
+    uint16_t flags;                              // server flags (MARLIN_SFLG)
+    uint64_t notify_events[MARLIN_MAX_CLIENTS];  // event notification mask
+    uint64_t notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask
+    marlin_vars_t vars;                          // cached variables
     char request[MARLIN_MAX_REQUEST];
     int request_len;
-    uint64_t client_events[MARLIN_MAX_CLIENTS];              // client event mask
-    uint64_t client_changes[MARLIN_MAX_CLIENTS];             // client variable change mask
-    uint32_t last_update;                                    // last update tick count
-    uint8_t idle_cnt;                                        // idle call counter
-    uint8_t pqueue_head;                                     // copy of planner.block_buffer_head
-    uint8_t pqueue_tail;                                     // copy of planner.block_buffer_tail
-    uint8_t pqueue;                                          // calculated number of records in planner queue
-    uint8_t gqueue;                                          // copy of queue.length - number of commands in gcode queue
-    uint32_t command;                                        // actually running command
-    uint32_t command_begin;                                  // variable for notification
-    uint32_t command_end;                                    // variable for notification
-    marlin_mesh_t mesh;                                      // meshbed leveling
-    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS];         // mesh point mask (points that are not sent)
-    uint64_t update_vars;                                    // variable update mask
+    uint64_t client_events[MARLIN_MAX_CLIENTS];      // client event mask
+    uint64_t client_changes[MARLIN_MAX_CLIENTS];     // client variable change mask
+    uint32_t last_update;                            // last update tick count
+    uint8_t idle_cnt;                                // idle call counter
+    uint8_t pqueue_head;                             // copy of planner.block_buffer_head
+    uint8_t pqueue_tail;                             // copy of planner.block_buffer_tail
+    uint8_t pqueue;                                  // calculated number of records in planner queue
+    uint8_t gqueue;                                  // copy of queue.length - number of commands in gcode queue
+    uint32_t command;                                // actually running command
+    uint32_t command_begin;                          // variable for notification
+    uint32_t command_end;                            // variable for notification
+    marlin_mesh_t mesh;                              // meshbed leveling
+    uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
+    uint64_t update_vars;                            // variable update mask
     marlin_print_state_t print_state;
     float resume_pos[4];
 } marlin_server_t;
@@ -163,8 +163,8 @@ void marlin_server_init(void) {
     marlin_server_sema = osSemaphoreCreate(osSemaphore(serverSema), 1);
     marlin_server.flags = MARLIN_SFLG_PROCESS | MARLIN_SFLG_STARTED;
     for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
-        marlin_server.notify_events[i] = MARLIN_EVT_Acknowledge; // by default only ack
-        marlin_server.notify_changes[i] = 0;                     // by default nothing
+        marlin_server.notify_events[i] = MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge) | MARLIN_EVT_MSK(MARLIN_EVT_Startup); // by default only ack and startup
+        marlin_server.notify_changes[i] = 0;                                                                          // by default nothing
     }
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
@@ -499,9 +499,9 @@ void _server_print_loop(void) {
         break;
     case mpsAborting_WaitIdle:
         if (planner.movesplanned() == 0) {
-            float x = ((float)stepper.position(X_AXIS)) / axis_steps_per_unit[X_AXIS];
-            float y = ((float)stepper.position(Y_AXIS)) / axis_steps_per_unit[Y_AXIS];
-            float z = ((float)stepper.position(Z_AXIS)) / axis_steps_per_unit[Z_AXIS];
+            float x = ((float)stepper.position(X_AXIS)) / planner.settings.axis_steps_per_mm[X_AXIS];
+            float y = ((float)stepper.position(Y_AXIS)) / planner.settings.axis_steps_per_mm[Y_AXIS];
+            float z = ((float)stepper.position(Z_AXIS)) / planner.settings.axis_steps_per_mm[Z_AXIS];
             current_position.x = x;
             current_position.y = y;
             current_position.z = z;
