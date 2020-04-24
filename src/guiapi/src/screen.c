@@ -2,10 +2,13 @@
 
 #include "screen.h"
 #include "gui.h"
+#include "bsod.h"
 
-#define SCREEN_MAX_SCREENS 32
+#define SCREEN_MAX_SCREENS 48
 
-#define SCREEN_MAX_HISTORY 32
+// potential dependency of SCREEN_MAX_HISTORY and SCREEN_MAX_SCREENS is unclear
+// but yet these two defines were kept in sync (same values)
+#define SCREEN_MAX_HISTORY 48
 
 screen_t *screen_0 = 0; //current screen
 
@@ -36,6 +39,8 @@ int16_t screen_register(screen_t *pscreen) {
             screen_count++; //increment count
         } else
             id = -1;
+    } else {
+        general_error("GUI", "Maximum number of screens reached.");
     }
     return id;
 }

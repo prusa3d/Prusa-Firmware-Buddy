@@ -47,6 +47,12 @@ extern int marlin_client_set_fsm_change_cb(fsm_change_t cb);
 // returns enabled status of loop processing
 extern int marlin_processing(void);
 
+//sets event notification mask
+extern void marlin_client_set_event_notify(uint64_t notify_events);
+
+//sets variable change notification mask
+extern void marlin_client_set_change_notify(uint64_t notify_changes);
+
 // returns currently running command or MARLIN_CMD_NONE
 extern uint32_t marlin_command(void);
 
