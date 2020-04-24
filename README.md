@@ -75,6 +75,10 @@ If you want to contribute, make sure to install [pre-commit](https://pre-commit.
 
 To install custom firmware, you have to break the appendix on the board. Learn how to in the following article https://help.prusa3d.com/article/zoiw36imrs-flashing-custom-firmware.
 
+## Feedback
+
+- Feature Requests from Community (https://github.com/prusa3d/Prusa-Firmware-Buddy/labels/feature%20request) 
+
 ## License
 
 The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). Fonts are licensed under different license (see [LICENSE](LICENSE.md)).
