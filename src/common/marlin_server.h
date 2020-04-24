@@ -59,9 +59,6 @@ extern void marlin_server_start_processing(void);
 // direct stop loop processing + disable heaters and safe state
 extern void marlin_server_stop_processing(void);
 
-// update variables at server side, defined by 'update' mask and send notification to all clients
-extern void marlin_server_update(uint64_t update);
-
 // set printing gcode name (for WUI)
 extern void marlin_server_set_gcode_name(const char *request);
 

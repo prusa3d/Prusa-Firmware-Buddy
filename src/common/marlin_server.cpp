@@ -43,7 +43,7 @@
 //#define DBG_XUI DBG //trace ExtUI events
 #define DBG_XUI(...) //disable trace
 
-//#define DBG_REQ  DBG    //trace requests
+//#define DBG_REQ DBG //trace requests
 #define DBG_REQ(...) //disable trace
 
 //#define DBG_FSM DBG //trace fsm
@@ -150,6 +150,7 @@ void _server_update_pqueue(void);
 uint64_t _server_update_vars(uint64_t force_update_msk);
 int _process_server_request(char *request);
 int _server_set_var(char *name_val_str);
+void _server_update_and_notify(int client_id, uint64_t update);
 
 //-----------------------------------------------------------------------------
 // server side functions
@@ -361,16 +362,6 @@ void marlin_server_stop_processing(void) {
 
 marlin_vars_t *marlin_server_vars(void) {
     return &(marlin_server.vars);
-}
-
-void marlin_server_update(uint64_t update) {
-    int client_id;
-    osMessageQId queue;
-    _server_update_vars(update);
-    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if ((queue = marlin_client_queue[client_id]) != 0)
-            marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, update);
-    //	_dbg0("UPDATE");
 }
 
 void marlin_server_do_babystep_Z(float offs) {
@@ -600,7 +591,6 @@ int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t
 uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
     uint64_t sent = 0;
     uint64_t msk = 1;
-    evt_msk &= marlin_server.notify_events[client_id]; //for sure
     for (uint8_t evt_int = 0; evt_int <= MARLIN_EVT_MAX; evt_int++) {
         MARLIN_EVT_t evt_id = (MARLIN_EVT_t)evt_int;
         if (msk & evt_msk)
@@ -714,7 +704,6 @@ uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint6
     variant8_t var;
     uint64_t sent = 0;
     uint64_t msk = 1;
-    var_msk &= marlin_server.notify_changes[client_id]; //for sure
     for (uint8_t var_id = 0; var_id < 64; var_id++) {
         if (msk & var_msk) {
             var = marlin_vars_get_var(&(marlin_server.vars), var_id);
@@ -976,7 +965,7 @@ int _process_server_request(char *request) {
         _server_set_var(request + 5);
         processed = 1;
     } else if (sscanf(request, "!update %08lx %08lx", msk32 + 0, msk32 + 1)) {
-        marlin_server_update(msk32[0] + (((uint64_t)msk32[1]) << 32));
+        _server_update_and_notify(client_id, msk32[0] + (((uint64_t)msk32[1]) << 32));
         processed = 1;
     } else if ((ival2 = sscanf(request, "!babystep_Z %f", &offs)) == 1) {
         marlin_server_do_babystep_Z(offs);
@@ -1037,52 +1026,73 @@ int _process_server_request(char *request) {
 // set variable from string request
 int _server_set_var(char *name_val_str) {
     int var_id;
-    bool var_change_update = false;
+    bool changed = false;
     char *val_str = strchr(name_val_str, ' ');
     *(val_str++) = 0;
     if ((var_id = marlin_vars_get_id_by_name(name_val_str)) >= 0) {
         if (marlin_vars_str_to_value(&(marlin_server.vars), var_id, val_str) == 1) {
             switch (var_id) {
             case MARLIN_VAR_TTEM_NOZ:
+                changed = (thermalManager.temp_hotend[0].target != marlin_server.vars.target_nozzle);
                 thermalManager.setTargetHotend(marlin_server.vars.target_nozzle, 0);
                 break;
             case MARLIN_VAR_TTEM_BED:
+                changed = (thermalManager.temp_bed.target != marlin_server.vars.target_bed);
                 thermalManager.setTargetBed(marlin_server.vars.target_bed);
                 break;
             case MARLIN_VAR_Z_OFFSET:
 #if HAS_BED_PROBE
+                changed = (probe_offset.z != marlin_server.vars.z_offset);
                 probe_offset.z = marlin_server.vars.z_offset;
-                var_change_update = true;
 #endif //HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
+                changed = (thermalManager.fan_speed[0] != marlin_server.vars.fan_speed);
                 thermalManager.set_fan_speed(0, marlin_server.vars.fan_speed);
-                var_change_update = true;
                 break;
             case MARLIN_VAR_PRNSPEED:
+                changed = (feedrate_percentage != (int16_t)marlin_server.vars.print_speed);
                 feedrate_percentage = (int16_t)marlin_server.vars.print_speed;
-                var_change_update = true;
                 break;
             case MARLIN_VAR_FLOWFACT:
+                changed = (planner.flow_percentage[0] != (int16_t)marlin_server.vars.flow_factor);
                 planner.flow_percentage[0] = (int16_t)marlin_server.vars.flow_factor;
                 planner.refresh_e_factor(0);
-                var_change_update = true;
                 break;
             case MARLIN_VAR_WAITHEAT:
+                changed = true;
                 wait_for_heatup = marlin_server.vars.wait_heat ? true : false;
                 break;
             case MARLIN_VAR_WAITUSER:
+                changed = true;
                 wait_for_user = marlin_server.vars.wait_user ? true : false;
                 break;
             }
-
-            if (var_change_update) {
-                marlin_server_update(MARLIN_VAR_MSK(var_id));
+            if (changed) {
+                int client_id;
+                uint64_t var_msk = MARLIN_VAR_MSK(var_id);
+                for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
+                    marlin_server.client_changes[client_id] |= (var_msk & marlin_server.notify_changes[client_id]);
             }
         }
     }
     //	_dbg("_server_set_var %d %s %s", var_id, name_val_str, val_str);
     return 1;
+}
+
+// update variables defined by 'update' mask and send notification to client that requested updating
+// other clients will receive notification in next cycle
+void _server_update_and_notify(int client_id, uint64_t update) {
+    int id;
+    osMessageQId queue;
+    uint64_t changes = _server_update_vars(update);
+    for (id = 0; id < MARLIN_MAX_CLIENTS; id++)
+        if (id == client_id) {
+            marlin_server.client_changes[id] |= changes;
+            if ((queue = marlin_client_queue[id]) != 0)
+                marlin_server.client_changes[id] &= ~_send_notify_changes_to_client(id, queue, update);
+        } else
+            marlin_server.client_changes[id] |= (changes & marlin_server.notify_changes[id]);
 }
 
 } // extern "C"
