@@ -2,6 +2,7 @@
 #include "DialogLoadUnload.h"
 #include "gui.h"      //resource_font
 #include "resource.h" //IDR_FNT_BIG
+#include "sound_C_wrapper.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,7 +61,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_ram,                btn(PhasesLoadUnload::Ramming,          ph_txt_stop) },
         DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading,        ph_txt_stop) },
         DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading2,       ph_txt_stop) },
-        DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont) },
+        DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont), DialogLoadUnload::userPushEnter, DialogLoadUnload::userPushExit },
         DialogLoadUnload::State { txt_nozzle_cold,        btn(PhasesLoadUnload::NozzleTimeout,    ph_txt_reheat) },
         DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont) },
         DialogLoadUnload::State { txt_inserting,          btn(PhasesLoadUnload::Inserting,        ph_txt_stop) },
@@ -77,6 +78,11 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 
 DialogLoadUnload::DialogLoadUnload(const char *name)
     : DialogStateful<PhasesLoadUnload>(name, WINDOW_CLS_DLG_LOADUNLOAD, LoadUnloadFactory()) {}
+
+// Phase callbacks to play a sound in specific moment at the start/end of
+// specified phase
+void DialogLoadUnload::userPushEnter() { Sound_Play(eSOUND_TYPE_StandardPrompt); }
+void DialogLoadUnload::userPushExit() { Sound_Stop(); }
 
 void DialogLoadUnload::c_draw(window_t *win) {
     IDialog *ptr = cast(win);

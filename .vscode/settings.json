@@ -9,6 +9,9 @@
         "-target",
         "thumbv7m-none-eabi",
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../arm-none-eabi/include/newlib-nano",
+        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/include/c++/7.3.1",
+        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/include/c++/7.3.1/arm-none-eabi",
+        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/include/c++/7.3.1/backward",
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../lib/gcc/arm-none-eabi/7.3.1/include",
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../lib/gcc/arm-none-eabi/7.3.1/include-fixed",
         "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-7.3.1/bin/../lib/gcc/arm-none-eabi/7.3.1/../../../../arm-none-eabi/include"

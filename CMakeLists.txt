@@ -474,6 +474,8 @@ target_sources(
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
+          src/common/sound_C_wrapper.cpp
+          src/common/sound.cpp
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
@@ -511,6 +513,7 @@ if(GUI)
             src/gui/screen_menu_temperature.c
             src/gui/resource.c
             src/gui/window_file_list.c
+            src/gui/lazyfilelist-c-api.cpp
             src/gui/pngview.c
             src/gui/wizard/selftest_temp.c
             src/gui/window_temp_graph.c
