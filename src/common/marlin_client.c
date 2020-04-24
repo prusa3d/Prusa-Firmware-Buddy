@@ -16,9 +16,9 @@
 //#define DBG_REQ  DBG    //trace requests (client side)
 #define DBG_REQ(...) //disable trace
 
-//#define DBG_EVT DBG //trace events (client side)
-#define DBG_EVT(...) //disable trace
-#define DBG_EVT_MSK  (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
+#define DBG_EVT DBG //trace events (client side)
+//#define DBG_EVT(...) //disable trace
+#define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
 //#define DBG_VAR  DBG    //trace variable change notifications  (client side)
 #define DBG_VAR(...) //disable trace

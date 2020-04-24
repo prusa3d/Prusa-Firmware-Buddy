@@ -188,7 +188,7 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         case MARLIN_VAR_PRNSTATE:
             vars->print_state = var.ui8;
             break;
-       }
+        }
 }
 
 void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
