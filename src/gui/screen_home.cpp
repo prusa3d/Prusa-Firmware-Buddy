@@ -176,17 +176,20 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
     if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted) &&
 
         (HAL_GetTick() > 5000)) {
-        // FIXME: currently, we are using the screen_printing_file_{name,path} buffers
-        // ... and we should not be
-        if (find_latest_gcode(
-                screen_printing_file_path,
-                sizeof(screen_printing_file_path),
-                screen_printing_file_name,
-                sizeof(screen_printing_file_name))) {
-            screen_print_preview_set_gcode_filepath(screen_printing_file_path);
-            screen_print_preview_set_gcode_filename(screen_printing_file_name);
-            screen_print_preview_set_on_action(on_print_preview_action);
-            screen_open(pscreen_print_preview->id);
+        // we are using marlin variables for filename and filepath buffers
+        marlin_vars_t *vars = marlin_vars();
+        //check if the variables filename and filepath allocated
+        if (vars->media_file_name && vars->media_file_name) {
+            if (find_latest_gcode(
+                    vars->media_file_path,
+                    FILE_PATH_MAX_LEN,
+                    vars->media_file_name,
+                    FILE_NAME_MAX_LEN)) {
+                screen_print_preview_set_gcode_filepath(vars->media_file_path);
+                screen_print_preview_set_gcode_filename(vars->media_file_name);
+                screen_print_preview_set_on_action(on_print_preview_action);
+                screen_open(pscreen_print_preview->id);
+            }
         }
         return 1;
     }

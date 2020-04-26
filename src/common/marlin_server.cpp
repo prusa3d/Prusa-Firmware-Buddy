@@ -43,8 +43,8 @@
 //#define DBG_XUI DBG //trace ExtUI events
 #define DBG_XUI(...) //disable trace
 
-//#define DBG_REQ DBG //trace requests
-#define DBG_REQ(...) //disable trace
+#define DBG_REQ DBG //trace requests
+//#define DBG_REQ(...) //disable trace
 
 //#define DBG_FSM DBG //trace fsm
 #define DBG_FSM(...) //disable trace
@@ -53,7 +53,6 @@
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
-    char gcode_name[GCODE_NAME_MAX_LEN + 1];     // printing gcode name
     uint16_t flags;                              // server flags (MARLIN_SFLG)
     uint64_t notify_events[MARLIN_MAX_CLIENTS];  // event notification mask
     uint64_t notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask
@@ -158,7 +157,7 @@ void _server_update_and_notify(int client_id, uint64_t update);
 void marlin_server_init(void) {
     int i;
     memset(&marlin_server, 0, sizeof(marlin_server_t));
-    osMessageQDef(serverQueue, 64, uint8_t);
+    osMessageQDef(serverQueue, 128, uint8_t);
     marlin_server_queue = osMessageCreate(osMessageQ(serverQueue), NULL);
     osSemaphoreDef(serverSema);
     marlin_server_sema = osSemaphoreCreate(osSemaphore(serverSema), 1);
@@ -170,8 +169,9 @@ void marlin_server_init(void) {
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
-    marlin_server.gcode_name[0] = '\0';
     marlin_server.update_vars = MARLIN_VAR_MSK_DEF;
+    marlin_server.vars.media_file_name = media_print_filename;
+    marlin_server.vars.media_file_path = media_print_filepath;
 }
 
 void print_fan_spd() {
@@ -417,6 +417,9 @@ void marlin_server_quick_stop(void) {
 void marlin_server_print_start(const char *filename) {
     if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
         media_print_start(filename);
+        for (int id = 0; id < MARLIN_MAX_CLIENTS; id++)
+            marlin_server.client_changes[id] |= MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH);
+        //_server_update_and_notify(-1, MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
     }
@@ -609,10 +612,6 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
             case MARLIN_EVT_StoreSettings:
             case MARLIN_EVT_StartProcessing:
             case MARLIN_EVT_StopProcessing:
-            case MARLIN_EVT_GFileChange:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
-                    sent |= msk; // event sent, set bit
-                break;
             // StatusChanged event - one string argument
             case MARLIN_EVT_StatusChanged:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
@@ -915,29 +914,6 @@ uint64_t _server_update_vars(uint64_t update) {
     return changes;
 }
 
-// set name of the printing gcode (for WUI)
-void marlin_server_set_gcode_name(const char *request) {
-    if (request == NULL)
-        return;
-    const char *ptr;
-    int ret = sscanf(request, "%p", &ptr);
-    if (ret != 1 || ptr == NULL)
-        return;
-    strlcpy(marlin_server.gcode_name, ptr, GCODE_NAME_MAX_LEN + 1);
-    _send_notify_event(MARLIN_EVT_GFileChange, 0, 0);
-}
-
-// fill pointer with name of the printing gcode (for WUI), dest param have to be at least 97 chars long!
-void marlin_server_get_gcode_name(const char *dest) {
-    if (dest == NULL)
-        return;
-    char *ptr;
-    int ret = sscanf(dest, "%p", &ptr);
-    if (ret != 1 || ptr == NULL)
-        return;
-    strlcpy(ptr, marlin_server.gcode_name, GCODE_NAME_MAX_LEN + 1);
-}
-
 // process request on server side
 int _process_server_request(char *request) {
     int processed = 0;
@@ -982,12 +958,6 @@ int _process_server_request(char *request) {
     } else if (strcmp("!updt", request) == 0) {
         marlin_server_manage_heater();
         processed = 1;
-    } else if (strncmp("!gfileset ", request, 10) == 0) {
-        marlin_server_set_gcode_name(request + 10);
-        processed = 1;
-    } else if (strncmp("!gfileget ", request, 10) == 0) {
-        marlin_server_get_gcode_name(request + 10);
-        processed = 1;
     } else if (strcmp("!qstop", request) == 0) {
         marlin_server_quick_stop();
         processed = 1;
@@ -1014,6 +984,7 @@ int _process_server_request(char *request) {
         processed = 1;
     } else if (sscanf(request, "!change_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
+        marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         processed = 1;
     } else {
         //TODO: BSOD

@@ -59,12 +59,6 @@ extern void marlin_server_start_processing(void);
 // direct stop loop processing + disable heaters and safe state
 extern void marlin_server_stop_processing(void);
 
-// set printing gcode name (for WUI)
-extern void marlin_server_set_gcode_name(const char *request);
-
-// get printing gcode name (for WUI)
-extern void marlin_server_get_gcode_name(const char *dest);
-
 // direct call of babystep.add_steps(Z_AXIS, ...)
 extern void marlin_server_do_babystep_Z(float offs);
 

@@ -137,6 +137,9 @@ static void _gui_loop_cb() {
     marlin_client_loop();
 }
 
+char gui_media_filename[FILE_NAME_MAX_LEN];
+char gui_media_filepath[FILE_PATH_MAX_LEN];
+
 void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -164,6 +167,9 @@ void gui_run(void) {
         update_firmware_screen();
 
     gui_marlin_vars = marlin_client_init();
+    gui_marlin_vars->media_file_name = gui_media_filename;
+    gui_marlin_vars->media_file_path = gui_media_filepath;
+
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     register_dialog_callbacks();

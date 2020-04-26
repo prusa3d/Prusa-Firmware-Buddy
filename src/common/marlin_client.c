@@ -16,23 +16,13 @@
 //#define DBG_REQ  DBG    //trace requests (client side)
 #define DBG_REQ(...) //disable trace
 
-#define DBG_EVT DBG //trace events (client side)
-//#define DBG_EVT(...) //disable trace
+//trace event notification (client side), to disable trace undef DBG_EVT_MSK
+#define DBG_EVT     DBG
 #define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
-//#define DBG_VAR  DBG    //trace variable change notifications  (client side)
-#define DBG_VAR(...) //disable trace
-//#define DBG_VAR_MSK     MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE)
-//#define DBG_VAR_MSK     MARLIN_VAR_MSK_ALL
-//#define DBG_VAR_MSK     (MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE))
-/*#define DBG_VAR_MSK     ( \
-						MARLIN_VAR_MSK(MARLIN_VAR_MOTION) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_POS_X) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_POS_Y) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_POS_Z) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_POS_E) )*/
+//trace variable change notifications (client side), to disable trace undef DBG_VAR_MSK
+#define DBG_VAR     DBG
+#define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
 
 #pragma pack(push)
 #pragma pack(1)
@@ -140,6 +130,7 @@ void marlin_client_loop(void) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
                 *(((uint32_t *)(&msg)) + 1) = ose.value.v; //store high dword
                 _process_client_message(client, msg);      //call handler
+                variant8_done(&msg);
                 count++;
             } else
                 *(((uint32_t *)(&msg)) + 0) = ose.value.v; //store low dword
@@ -447,32 +438,6 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
     return &(client->vars);
 }
 
-void marlin_set_printing_gcode_name(const char *filename_pntr) {
-    char request[MARLIN_MAX_REQUEST];
-    marlin_client_t *client = _client_ptr();
-    if (client == 0) {
-        return;
-    }
-    uint32_t filename_len = strnlen(filename_pntr, _MAX_LFN);
-    if (_MAX_LFN == filename_len) {
-        _dbg0("error!: filename string is not null terminated");
-    }
-    snprintf(request, MARLIN_MAX_REQUEST, "!gfileset %p", filename_pntr);
-    marlin_event_clr(MARLIN_EVT_GFileChange);
-    _send_request_to_server(client->id, request);
-    _wait_ack_from_server(client->id);
-}
-
-void marlin_get_printing_gcode_name(char *filename_pntr) {
-    char request[MARLIN_MAX_REQUEST];
-    marlin_client_t *client = _client_ptr();
-    if (client == 0) {
-        return;
-    }
-    snprintf(request, MARLIN_MAX_REQUEST, "!gfileget %p", filename_pntr);
-    _send_request_to_server(client->id, request);
-}
-
 uint8_t marlin_get_gqueue(void) {
     return marlin_get_var(MARLIN_VAR_GQUEUE).ui8;
 }
@@ -701,17 +666,17 @@ uint32_t _wait_ack_from_server(uint8_t client_id) {
 
 // process message on client side (set flags, update vars etc.)
 void _process_client_message(marlin_client_t *client, variant8_t msg) {
-    char var_str[16];
+    char var_str[128];
     uint8_t id = msg.usr8 & MARLIN_USR8_MSK_ID;
     if (msg.usr8 & MARLIN_USR8_VAR_FLG) // variable change received
     {
         marlin_vars_set_var(&(client->vars), id, msg);
         client->changes |= ((uint64_t)1 << id);
-        marlin_vars_value_to_str(&(client->vars), id, var_str);
 #ifdef DBG_VAR_MSK
+        marlin_vars_value_to_str(&(client->vars), id, var_str);
         if (DBG_VAR_MSK & ((uint64_t)1 << id))
-#endif //DBG_VAR_MSK
             DBG_VAR("CL%c: VAR %s %s", '0' + client->id, marlin_vars_get_name(id), var_str);
+#endif                                    //DBG_VAR_MSK
     } else if (msg.type == VARIANT8_USER) // event received
     {
         client->events |= ((uint64_t)1 << id);
@@ -776,12 +741,10 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_LoadSettings:
         case MARLIN_EVT_StoreSettings:
         case MARLIN_EVT_SafetyTimerExpired:
-        case MARLIN_EVT_GFileChange:
             break;
         }
 #ifdef DBG_EVT_MSK
         if (DBG_EVT_MSK & ((uint64_t)1 << id))
-#endif
             switch (id) {
             // Event MARLIN_EVT_MeshUpdate - ui32 is float z, ui16 low byte is x index, high byte y index
             case MARLIN_EVT_MeshUpdate: {
@@ -810,6 +773,7 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
                 DBG_EVT("CL%c: EVT %s", '0' + client->id, marlin_events_get_name(id));
                 break;
             }
+#endif //DBG_EVT_MSK
     }
 }
 

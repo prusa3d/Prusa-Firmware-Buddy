@@ -181,10 +181,6 @@ screen_t screen_printing = {
 };
 const screen_t *pscreen_printing = &screen_printing;
 
-//TODO: rework this, save memory
-char screen_printing_file_name[_MAX_LFN + 1] = { '\0' }; //+1 for '\0' character (avoid warning)
-char screen_printing_file_path[_MAX_LFN + 2] = { '\0' }; //+1 for '/' and '\0' characters (avoid warning)
-
 #define pw ((screen_printing_data_t *)screen->pdata)
 
 struct pduration_t : duration_t {
@@ -218,6 +214,8 @@ void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
     int16_t id;
 
+    marlin_vars_t *vars = marlin_vars();
+
     strcpy(pw->text_time, "0m");
     strcpy(pw->text_filament, "999m");
 
@@ -237,7 +235,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
-    window_set_text(id, screen_printing_file_name);
+    window_set_text(id, vars->media_file_name ? vars->media_file_name : "");
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
@@ -598,10 +596,7 @@ static void screen_printing_update_remaining_time_progress(screen_t *screen) {
 }*/
 
 void screen_printing_reprint(screen_t *screen) {
-    //    marlin_gcode_printf("M23 %s", screen_printing_file_path);
-    //    marlin_gcode("M24");
-    //    oProgressData.mInit();
-    print_begin(screen_printing_file_path);
+    print_begin(marlin_vars()->media_file_path);
     window_set_text(pw->w_etime_label.win.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
     window_set_text(pw->w_labels[BUTTON_STOP].win.id, printing_labels[iid_stop]);

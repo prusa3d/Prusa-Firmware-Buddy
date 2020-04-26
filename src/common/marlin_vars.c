@@ -32,6 +32,8 @@ const char *__var_name[] = {
     "DURATION",
     "MEDIAINS",
     "PRN_STAT",
+    "FILENAME",
+    "FILEPATH",
 };
 
 const char *marlin_vars_get_name(uint8_t var_id) {
@@ -103,6 +105,10 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
             return variant8_ui8(vars->media_inserted);
         case MARLIN_VAR_PRNSTATE:
             return variant8_ui8(vars->print_state);
+        case MARLIN_VAR_FILENAME:
+            return variant8_pchar(vars->media_file_name, 0, 1);
+        case MARLIN_VAR_FILEPATH:
+            return variant8_pchar(vars->media_file_path, 0, 1);
         }
     return variant8_empty();
 }
@@ -188,6 +194,16 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         case MARLIN_VAR_PRNSTATE:
             vars->print_state = var.ui8;
             break;
+        case MARLIN_VAR_FILENAME:
+            if (vars->media_file_name)
+                if (var.type == VARIANT8_PCHAR)
+                    strncpy(vars->media_file_name, var.pch, FILE_NAME_MAX_LEN);
+            break;
+        case MARLIN_VAR_FILEPATH:
+            if (vars->media_file_path)
+                if (var.type == VARIANT8_PCHAR)
+                    strncpy(vars->media_file_path, var.pch, FILE_PATH_MAX_LEN);
+            break;
         }
 }
 
@@ -259,6 +275,12 @@ void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
             break;
         case MARLIN_VAR_PRNSTATE:
             sprintf(str, "%u", (unsigned int)(vars->print_state));
+            break;
+        case MARLIN_VAR_FILENAME:
+            sprintf(str, "%s", vars->media_file_name);
+            break;
+        case MARLIN_VAR_FILEPATH:
+            sprintf(str, "%s", vars->media_file_path);
             break;
         default:
             sprintf(str, "???");
@@ -334,6 +356,12 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
             break;
         case MARLIN_VAR_PRNSTATE:
             ret = sscanf(str, "%hhu", &(vars->print_state));
+            break;
+        case MARLIN_VAR_FILENAME:
+            ret = sscanf(str, "%s", (vars->media_file_name));
+            break;
+        case MARLIN_VAR_FILEPATH:
+            ret = sscanf(str, "%s", (vars->media_file_path));
             break;
         }
     return ret;

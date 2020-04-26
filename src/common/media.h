@@ -19,9 +19,13 @@ typedef enum {
 extern "C" {
 #endif //__cplusplus
 
+extern char media_print_filename[128];
+
+extern char media_print_filepath[128];
+
 extern uint8_t media_is_inserted(void);
 
-extern void media_print_start(const char *filename);
+extern void media_print_start(const char *filepath);
 
 extern void media_print_stop(void);
 

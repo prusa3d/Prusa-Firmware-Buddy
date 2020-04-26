@@ -32,7 +32,8 @@ void _usbhost_reenum(void) {
 uint8_t media_inserted = 0;
 media_error_t media_error = media_error_OK;
 media_print_state_t media_print_state = media_print_state_NONE;
-char media_print_filename[256] = { 0 };
+char media_print_filename[128] = { 0 };
+char media_print_filepath[128] = { 0 };
 FIL media_print_fil;
 uint32_t media_current_position;
 uint32_t media_current_line;
@@ -43,13 +44,17 @@ uint8_t media_is_inserted(void) {
     return media_inserted;
 }
 
-void media_print_start(const char *filename) {
+void media_print_start(const char *filepath) {
+    FILINFO filinfo;
     if (media_print_state == media_print_state_NONE) {
-        strncpy(media_print_filename, filename, sizeof(media_print_filename) - 1);
-        if (f_open(&media_print_fil, media_print_filename, FA_READ) == FR_OK) {
-            media_current_position = 0;
-            media_current_line = 0;
-            media_print_state = media_print_state_PRINTING;
+        strncpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
+        if (f_stat(media_print_filepath, &filinfo) == FR_OK) {
+            strncpy(media_print_filepath, filinfo.fname, sizeof(media_print_filepath) - 1);
+            if (f_open(&media_print_fil, media_print_filepath, FA_READ) == FR_OK) {
+                media_current_position = 0;
+                media_current_line = 0;
+                media_print_state = media_print_state_PRINTING;
+            }
         }
     }
 }
@@ -92,7 +97,7 @@ void media_print_pause(void) {
 
 void media_print_resume(void) {
     if (media_print_state == media_print_state_PAUSED) {
-        if (f_open(&media_print_fil, media_print_filename, FA_READ) == FR_OK) {
+        if (f_open(&media_print_fil, media_print_filepath, FA_READ) == FR_OK) {
             if (f_lseek(&media_print_fil, media_current_position) == FR_OK)
                 media_print_state = media_print_state_PRINTING;
             else
