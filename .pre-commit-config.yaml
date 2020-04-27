@@ -1,8 +1,8 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
-- repo: https://github.com/dragomirecky/cmake-format-pre-commit-hook
-  rev: 'v0.6.0'
+- repo: https://github.com/cheshirekow/cmake-format-precommit
+  rev: 'v0.6.10'
   hooks:
     - id: cmake-format  # cmake formatter
 - repo: https://github.com/pre-commit/mirrors-yapf
