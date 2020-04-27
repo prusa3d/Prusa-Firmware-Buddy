@@ -485,7 +485,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
         }
         return;
     }
-    
+
     //adx == ady => diagonal line
     for (n = adx; n > 0; --n) {
         st7789v_set_pixel(pt0, clr);
@@ -498,7 +498,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
     point_ui16_t pt0 = { rc.x, rc.y };
     point_ui16_t pt1 = { rc.x + rc.w - 1, rc.y };
-    point_ui16_t pt2 = { rc.x , rc.y + rc.h - 1 };
+    point_ui16_t pt2 = { rc.x, rc.y + rc.h - 1 };
 
     st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, rc.w, 1), clr); // top
     st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, 1, rc.h), clr); // left
@@ -511,19 +511,19 @@ void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
     rc = rect_intersect_ui16(rc, st7789v_clip);
     if (rect_empty_ui16(rc))
         return;
-    
+
     uint16_t clr565 = _COLOR_TO_565(clr);
     uint32_t size = (uint32_t)rc.w * rc.h * 2; // area of rectangle
-    
-    st7789v_fill_ui16((uint16_t *)st7789v_buff, clr565, MIN(size, sizeof(st7789v_buff) / 2));    
+
+    st7789v_fill_ui16((uint16_t *)st7789v_buff, clr565, MIN(size, sizeof(st7789v_buff) / 2));
     st7789v_clr_cs();
     st7789v_cmd_caset(rc.x, rc.x + rc.w - 1);
     st7789v_cmd_raset(rc.y, rc.y + rc.h - 1);
     st7789v_cmd_ramwr(0, 0);
-    
+
     for (int i = 0; i < size / sizeof(st7789v_buff); i++) // writer buffer by buffer
         st7789v_wr(st7789v_buff, sizeof(st7789v_buff));
-    
+
     st7789v_wr(st7789v_buff, size % sizeof(st7789v_buff)); // write the remainder data
     st7789v_set_cs();
 }
@@ -534,20 +534,20 @@ void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
 // If font is not available for the character, solid rectangle will be drawn in background color
 // \returns character is available in the font and was drawn
 bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    const uint16_t w = pf->w;           //char width
-    const uint16_t h = pf->h;           //char height
+    const uint16_t w = pf->w; //char width
+    const uint16_t h = pf->h; //char height
 
     // character out of font range, display solid rectangle instead
-    if ((chr < pf->asc_min) || (chr > pf->asc_max)){
+    if ((chr < pf->asc_min) || (chr > pf->asc_max)) {
         display->fill_rect(rect_ui16(pt.x, pt.y, w, h), clr_bg);
         return false;
     }
 
     int i;
     int j;
-    uint8_t *pch;                       //character data pointer
-    uint8_t crd = 0;                    //current row byte data
-    uint8_t rb;                         //row byte
+    uint8_t *pch;    //character data pointer
+    uint8_t crd = 0; //current row byte data
+    uint8_t rb;      //row byte
     uint16_t *p = (uint16_t *)st7789v_buff;
     uint8_t *pc;
 
@@ -557,7 +557,7 @@ bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_
     const uint8_t ppb = 8 / bpp;        //pixels per byte
     const uint8_t pms = (1 << bpp) - 1; //pixel mask
 
-    pch = (uint8_t*) (pf->pcs) + ((chr - pf->asc_min) * bpc);
+    pch = (uint8_t *)(pf->pcs) + ((chr - pf->asc_min) * bpc);
     uint16_t clr565[16];
     for (i = 0; i <= pms; i++)
         clr565[i] = _COLOR_TO_565(color_alpha(clr_bg, clr_fg, 255 * i / pms));
@@ -600,8 +600,8 @@ bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_
 
     const uint16_t rc_end_x = rc.x + rc.w;
     const uint16_t rc_end_y = rc.y + rc.h;
-    const uint16_t w = pf->w;  //char width
-    const uint16_t h = pf->h;  //char height
+    const uint16_t w = pf->w; //char width
+    const uint16_t h = pf->h; //char height
 
     for (int i = 0; i < strlen(str); i++) {
         const char c = str[i];
@@ -612,7 +612,7 @@ bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_
                 return false;
             continue;
         }
-        
+
         st7789v_draw_char(point_ui16(x, y), c, pf, clr_bg, clr_fg);
         x += w;
         // FIXME Shouldn't it try to break the line first?
