@@ -1,7 +1,7 @@
-// screen_unloop.cpp
+// screen_close_multiple.cpp
 //unlooping screens via C++ with C interface
 
-#include "screen_unloop.h"
+#include "screen_close_multiple.h"
 #include "gui.h"
 #include "screens.h"
 
@@ -38,17 +38,17 @@ static int _current_in_list(screen_t *const *list, size_t sz) {
 
 extern "C" {
 
-void screen_unloop(screen_unloop_t type) {
+void screen_close_multiple(screen_close_multiple_t type) {
 
     screen_t *const *unl_blacklist;
     size_t sz;
 
     switch (type) {
-    case scrn_unlp_timeout:
+    case scrn_close_on_timeout:
         unl_blacklist = timeout_blacklist;
         sz = sizeof(timeout_blacklist) / sizeof(timeout_blacklist[0]);
         break;
-    case scrn_unlp_M876:
+    case scrn_close_on_M876:
         unl_blacklist = m876_blacklist;
         sz = sizeof(m876_blacklist) / sizeof(m876_blacklist[0]);
         break;
