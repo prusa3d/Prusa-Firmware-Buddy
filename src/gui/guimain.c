@@ -21,7 +21,7 @@
 #include "screen_menu_fw_update.h"
 #include "Dialog_C_wrapper.h"
 #include "screens.h"
-#include "screen_unloop.h"
+#include "screen_close_multiple.h"
 #include "sound_C_wrapper.h"
 
 extern int HAL_IWDG_Reset;
@@ -171,7 +171,7 @@ void gui_run(void) {
         if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
-                screen_unloop(scrn_unlp_timeout);
+                screen_close_multiple(scrn_close_on_timeout);
                 gui_timer_delete(gui_timeout_id);
             }
         }
