@@ -7,13 +7,11 @@
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "window_dlg_load_unload.h"
+#include "screens.h"
 #include "dbg.h"
 
 #define FKNOWN      0x01 //filament is known
 #define F_NOTSENSED 0x02 //filament is not in sensor
-
-extern screen_t screen_menu_preheat;
-extern screen_t screen_preheating;
 
 typedef enum {
     MI_RETURN,
@@ -107,7 +105,7 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
                 break;
             case MI_PURGE:
                 p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
-                //   gui_dlg_purge();
+                // todo purge dialog
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
                 break;
             }
@@ -125,4 +123,4 @@ screen_t screen_menu_filament = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_filament = &screen_menu_filament;
+screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

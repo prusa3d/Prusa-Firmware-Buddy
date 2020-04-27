@@ -3,6 +3,7 @@
 #include "gui.h"
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
+#include "sound_C_wrapper.h"
 
 #define GUI_FLG_INVALID 0x0001
 
@@ -84,6 +85,15 @@ void gui_loop(void) {
     uint32_t delay;
     uint32_t tick;
     #ifdef GUI_JOGWHEEL_SUPPORT
+
+    // Encoder sound moved from guimain to gui loop to control encoder sounds in
+    // every gui screens. Previous method wasn't everywhere.
+    if ((jogwheel_changed & 1) && jogwheel_button_down) { //button changed and pressed
+        Sound_Play(eSOUND_TYPE_ButtonEcho);
+    } else if (jogwheel_changed & 2) { // encoder changed
+        Sound_Play(eSOUND_TYPE_EncoderMove);
+    }
+
     if (jogwheel_changed) {
         if (gui_loop_cb)
             gui_loop_cb();
@@ -120,6 +130,7 @@ void gui_loop(void) {
             }
         }
     }
+
     #endif //GUI_JOGWHEEL_SUPPORT
     delay = gui_timers_cycle();
     if (delay < GUI_DELAY_MIN)
@@ -174,6 +185,14 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
 }
 
 int gui_msgbox(const char *text, uint16_t flags) {
+    return gui_msgbox_ex(0, text, flags, gui_defaults.msg_box_sz, 0, 0);
+}
+
+// specific function for PROMPT message box with soundStandardPrompt sound
+// This is because of infinitely repeating sound signal that has to be stopped
+// additionally
+int gui_msgbox_prompt(const char *text, uint16_t flags) {
+    Sound_Play(eSOUND_TYPE_StandardPrompt);
     return gui_msgbox_ex(0, text, flags, gui_defaults.msg_box_sz, 0, 0);
 }
 

@@ -26,8 +26,10 @@ bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t progr) {
     if (!can_change(phs))
         return false;
     if (phase != phs) {
+        phaseExit();
         phase = phs;
         flags |= DLG_PHA_CH;
+        phaseEnter();
     }
     if (progress_tot != progress) {
         progress = progress_tot;

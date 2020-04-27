@@ -8,12 +8,7 @@
 #include "dbg.h"
 #include "bsod.h"
 #include "eeprom.h"
-
-#ifdef PIDCALIBRATION
-extern screen_t *pscreen_PID;
-#endif //PIDCALIBRATION
-extern screen_t *pscreen_mesh_bed_lv;
-extern screen_t *pscreen_test_disp_mem;
+#include "screens.h"
 
 typedef enum {
     MI_RETURN,
@@ -69,9 +64,9 @@ void screen_menu_service_init(screen_t *screen) {
     psmd->items[MI_SSCG_DEPTH] = (menu_item_t) { { "SSCG depth", 0, WI_SPIN, .wi_spin = { 0, opt_sscg_depth } }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_SPI_PRESC] = (menu_item_t) { { "SPI freq", 0, WI_SELECT, .wi_switch_select = { 0, opt_spi } }, SCREEN_MENU_NO_SCREEN };
 #ifdef PIDCALIBRATION
-    psmd->items[MI_PID] = (menu_item_t) { { "PID calibration", 0, WI_LABEL }, pscreen_PID };
+    psmd->items[MI_PID] = (menu_item_t) { { "PID calibration", 0, WI_LABEL }, get_scr_PID() };
 #endif //PIDCALIBRATION
-    psmd->items[MI_MESH] = (menu_item_t) { { "Mesh bed leveling", 0, WI_LABEL }, pscreen_mesh_bed_lv };
+    psmd->items[MI_MESH] = (menu_item_t) { { "Mesh bed leveling", 0, WI_LABEL }, get_scr_mesh_bed_lv() };
     psmd->items[MI_BSOD] = (menu_item_t) { { "BSOD", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_BSOD_HARD_FAULT] = (menu_item_t) { { "BSOD_HARD_FAULT", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_PLL].item.wi_switch_select.index = sys_pll_is_enabled() ? 1 : 0;
@@ -157,4 +152,4 @@ screen_t screen_menu_service = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_service = &screen_menu_service;
+screen_t *const get_scr_menu_service() { return &screen_menu_service; }

@@ -17,6 +17,7 @@
 #include "screen_print_preview.h"
 #include "screen_printing.h"
 #include "print_utils.h"
+#include "screens.h"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
@@ -81,7 +82,7 @@ static void on_print_preview_action(print_preview_action_t action) {
         screen_close(); // close the print preview
         screen_close(); // close the file browser
         print_begin(screen_print_preview_get_gcode_filepath());
-        screen_open(pscreen_printing->id);
+        screen_open(get_scr_printing()->id);
     }
 }
 
@@ -156,7 +157,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
             screen_print_preview_set_on_action(on_print_preview_action);
             screen_print_preview_set_gcode_filepath(vars->media_file_path);
             screen_print_preview_set_gcode_filename(vars->media_file_name);
-            screen_open(pscreen_print_preview->id);
+            screen_open(get_scr_print_preview()->id);
 
             return 1;
         }
@@ -176,4 +177,4 @@ static screen_t screen_filebrowser = {
     nullptr
 };
 
-const screen_t *pscreen_filebrowser = &screen_filebrowser;
+extern "C" screen_t *const get_scr_filebrowser() { return &screen_filebrowser; }

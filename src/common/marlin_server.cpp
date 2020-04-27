@@ -33,10 +33,6 @@
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
 
-#ifdef LCDSIM
-    #include "lcdsim.h"
-#endif // LCDSIM
-
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 

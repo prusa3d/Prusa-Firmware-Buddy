@@ -10,6 +10,7 @@
 #include "screen_menu.h"
 #include "filament.h"
 #include "marlin_client.h"
+#include "screens.h"
 
 uint8_t menu_preheat_type = 0; // 0 - preheat, 1 - load filament, 2 - unload filament
 
@@ -103,4 +104,4 @@ screen_t screen_menu_preheat = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_preheat = &screen_menu_preheat;
+extern "C" screen_t *const get_scr_menu_preheat() { return &screen_menu_preheat; }
