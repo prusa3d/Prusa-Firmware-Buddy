@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "screens.h"
 
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE     6
@@ -460,4 +461,4 @@ screen_t screen_lan_settings = {
     0,                                  //pdata
 };
 
-screen_t *const pscreen_lan_settings = &screen_lan_settings;
+screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

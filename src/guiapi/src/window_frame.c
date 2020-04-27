@@ -1,6 +1,7 @@
 // window_frame.c
 #include "window_frame.h"
 #include "gui.h"
+#include "sound_C_wrapper.h"
 
 void window_frame_init(window_frame_t *window) {
     if (rect_empty_ui16(window->win.rect)) //use display rect curent is empty
@@ -36,18 +37,28 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_ENC_DN:
         dif = (int)param;
         id = window_focused();
-        while (dif--)
+        while (dif--) {
             id = window_prev_enabled(id);
-        if (id >= 0)
+        }
+        if (id >= 0) {
             window_set_focus(id);
+        } else {
+            // End indicator of the frames list ->
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
         break;
     case WINDOW_EVENT_ENC_UP:
         dif = (int)param;
         id = window_focused();
-        while (dif--)
+        while (dif--) {
             id = window_next_enabled(id);
-        if (id >= 0)
+        }
+        if (id >= 0) {
             window_set_focus(id);
+        } else {
+            // Start indicator of the frames list <-
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
         break;
     case WINDOW_EVENT_CAPT_0:
         break;
