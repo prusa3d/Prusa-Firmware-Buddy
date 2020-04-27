@@ -7,7 +7,7 @@
 #define Y_AXIS_POS 1
 #define Z_AXIS_POS 2
 typedef struct {
-    char* gcode_name;
+    char *gcode_name;
     float pos[4];
     float temp_nozzle;
     float temp_bed;
