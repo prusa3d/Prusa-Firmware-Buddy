@@ -4,9 +4,11 @@
 #include <guiconfig.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
-
+#include "cmath_ext.h"
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"
 #endif //ST7789V_USE_RTOS
@@ -63,9 +65,9 @@
 #define CLR565_BLUE    0x001f
 
 //color conversion
-#define _COLOR_565(clr) color_to_565(clr)
+#define _COLOR_TO_565(clr) color_to_565(clr)
 //color reverse conversion
-#define _565_COLOR(clr) color_from_565(clr)
+#define _565_TO_COLOR(clr) color_from_565(clr)
 
 //private flags (pin states)
 #define FLG_CS  0x01 // current CS pin state
@@ -90,14 +92,14 @@ osThreadId st7789v_task_handle = 0;
 //forward declarations
 void st7789v_init(void);
 void st7789v_done(void);
-void st7789v_clear(color_t clr);
+void st7789v_clear(const color_t clr);
 void st7789v_set_pixel(point_ui16_t pt, color_t clr);
 void st7789v_clip_rect(rect_ui16_t rc);
-void st7789v_draw_line(point_ui16_t pt, point_ui16_t pt1, color_t clr);
+void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
 void st7789v_draw_rect(rect_ui16_t rc, color_t clr);
 void st7789v_fill_rect(rect_ui16_t rc, color_t clr);
-void st7789v_draw_char(point_ui16_t pt, char chr, font_t *pf, color_t clr0, color_t clr1);
-void st7789v_draw_text(rect_ui16_t rc, const char *str, font_t *pf, color_t clr0, color_t clr1);
+bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg);
+bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 void st7789v_draw_png(point_ui16_t pt, FILE *pf);
 /*some functions are in header - excluded from display_t struct*/
 void st7789v_gamma_set_direct(uint8_t gamma_enu);
@@ -184,19 +186,19 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
     HAL_StatusTypeDef ret;
 #if 0
 //#ifdef ST7789V_DMA
-	if (size <= 4)
-		ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
-	else
-	{
+    if (size <= 4)
+        ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+    else
+    {
     #ifdef ST7789V_USE_RTOS
-		osSignalSet(0, ST7789V_SIG_SPI_TX);
-		osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
+        osSignalSet(0, ST7789V_SIG_SPI_TX);
+        osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     #endif //ST7789V_USE_RTOS
-		ret = HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
+        ret = HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
     #ifdef ST7789V_USE_RTOS
-		osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
+        osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     #endif     //ST7789V_USE_RTOS
-	}
+    }
 #else          //ST7789V_DMA
     ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
 #endif         //ST7789V_DMA
@@ -282,19 +284,19 @@ void st7789v_cmd_ramrd(uint8_t *pdata, uint16_t size) {
 /*void st7789v_test_miso(void)
 {
 //	uint16_t data_out[8] = {CLR565_WHITE, CLR565_WHITE, CLR565_RED, CLR565_RED, CLR565_GREEN, CLR565_GREEN, CLR565_BLUE, CLR565_BLUE};
-	uint8_t data_out[16] = {0xff, 0x00, 0xff, 0x00, 0xff, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	uint8_t data_in[32];
-	memset(data_in, 0, sizeof(data_in));
-	st7789v_clr_cs();
-	st7789v_cmd_caset(0, ST7789V_COLS - 1);
-	st7789v_cmd_raset(0, ST7789V_ROWS - 1);
-	st7789v_cmd_ramwr((uint8_t*)data_out, 16);
-	st7789v_set_cs();
-	st7789v_clr_cs();
-	st7789v_cmd_caset(0, ST7789V_COLS - 1);
-	st7789v_cmd_raset(0, ST7789V_ROWS - 1);
-	st7789v_cmd_ramrd(data_in, 32);
-	st7789v_set_cs();
+    uint8_t data_out[16] = {0xff, 0x00, 0xff, 0x00, 0xff, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t data_in[32];
+    memset(data_in, 0, sizeof(data_in));
+    st7789v_clr_cs();
+    st7789v_cmd_caset(0, ST7789V_COLS - 1);
+    st7789v_cmd_raset(0, ST7789V_ROWS - 1);
+    st7789v_cmd_ramwr((uint8_t*)data_out, 16);
+    st7789v_set_cs();
+    st7789v_clr_cs();
+    st7789v_cmd_caset(0, ST7789V_COLS - 1);
+    st7789v_cmd_raset(0, ST7789V_ROWS - 1);
+    st7789v_cmd_ramrd(data_in, 32);
+    st7789v_set_cs();
 }*/
 
 void st7789v_init_ctl_pins(void) {
@@ -348,9 +350,11 @@ void st7789v_init(void) {
 void st7789v_done(void) {
 }
 
+// Fills screen by this color
 void st7789v_clear(color_t clr) {
+    // FIXME similar to st7789v_fill_rect; join?
     int i;
-    uint16_t clr565 = _COLOR_565(clr);
+    const uint16_t clr565 = _COLOR_TO_565(clr);
     for (i = 0; i < ST7789V_COLS * 16; i++)
         ((uint16_t *)st7789v_buff)[i] = clr565;
     st7789v_clr_cs();
@@ -363,10 +367,11 @@ void st7789v_clear(color_t clr) {
     //	st7789v_test_miso();
 }
 
+// Turns the specified pixel to the specified color
 void st7789v_set_pixel(point_ui16_t pt, color_t clr) {
     if (!point_in_rect_ui16(pt, st7789v_clip))
         return;
-    uint16_t clr565 = _COLOR_565(clr);
+    uint16_t clr565 = _COLOR_TO_565(clr);
     st7789v_cmd_caset(pt.x, 1);
     st7789v_cmd_raset(pt.y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
@@ -379,7 +384,7 @@ color_t st7789v_get_pixel(point_ui16_t pt) {
     st7789v_cmd_caset(pt.x, 1);
     st7789v_cmd_raset(pt.y, 1);
     st7789v_cmd_ramrd((uint8_t *)(&clr565), 2);
-    return _565_COLOR(clr565);
+    return _565_TO_COLOR(clr565);
 }
 
 void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t directColor) {
@@ -437,169 +442,201 @@ void st7789v_clip_rect(rect_ui16_t rc) {
     st7789v_clip = rc;
 }
 
-void st7789v_draw_line(point_ui16_t pt, point_ui16_t pt1, color_t clr) {
+// Draws simple line (no antialiasing)
+// Both end points are drawn
+void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     int n;
-    int dx = pt1.x - pt.x;
-    int dy = pt1.y - pt.y;
-    int sx = (dx >= 0) ? 1 : -1;
-    int sy = (dy >= 0) ? 1 : -1;
-    int cx = (sx > 0) ? dx : -dx;
-    int cy = (sy > 0) ? dy : -dy;
-    dx = cx;
-    dy = cy;
-    if ((dx == 0) || (dy == 0)) { // orthogonal line
-        if (dx)                   // dy == 0
-            st7789v_fill_rect(rect_ui16((sx > 0) ? pt.x : pt1.x, pt.y, dx, 1), clr);
-        else // dx == 0
-            st7789v_fill_rect(rect_ui16(pt.x, (sy > 0) ? pt.y : pt1.y, 1, dy), clr);
-    } else if (dx > dy)
-        for (n = dx; n > 0; n--) {
-            st7789v_set_pixel(pt, clr);
+    const int dx = pt1.x - pt0.x;
+    const int dy = pt1.y - pt0.y;
+    int cx = ABS(dx);
+    int cy = ABS(dy);
+    const int adx = cx; // absolute difference in x ( = width - 1)
+    const int ady = cy; // absolute difference in y ( = height - 1)
+
+    if ((adx == 0) || (ady == 0)) { // orthogonal line
+        st7789v_fill_rect(rect_ui16(MIN(pt0.x, pt1.x), MIN(pt0.y, pt1.y), adx + 1, ady + 1), clr);
+        return;
+    }
+
+    const int sx = SIGN1(dx);
+    const int sy = SIGN1(dy);
+    //FIXME every st7789v_set_pixel call checks if point is not outside the screen - performance issue
+
+    if (adx > ady) { // likely vertical line
+        for (n = adx; n > 0; --n) {
+            st7789v_set_pixel(pt0, clr);
             if ((cx -= cy) <= 0) {
-                pt.y += sy;
-                cx += dx;
+                pt0.y += sy;
+                cx += adx;
             }
-            pt.x += sx;
+            pt0.x += sx;
         }
-    else if (dx < dy)
-        for (n = dy; n > 0; n--) {
-            st7789v_set_pixel(pt, clr);
+        return;
+    }
+
+    if (adx < ady) { // likely horizontal line
+        for (n = ady; n > 0; --n) {
+            st7789v_set_pixel(pt0, clr);
             if ((cy -= cx) <= 0) {
-                pt.x += sx;
-                cy += dy;
+                pt0.x += sx;
+                cy += ady;
             }
-            pt.y += sy;
+            pt0.y += sy;
         }
-    else //dx == dy
-        for (n = dx; n > 0; n--) {
-            st7789v_set_pixel(pt, clr);
-            pt.x += sx;
-            pt.y += sy;
-        }
+        return;
+    }
+    
+    //adx == ady => diagonal line
+    for (n = adx; n > 0; --n) {
+        st7789v_set_pixel(pt0, clr);
+        pt0.x += sx;
+        pt0.y += sy;
+    }
 }
 
+// Draws a rectangle boundary of defined color
 void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
-    point_ui16_t pt = { rc.x, rc.y };
+    point_ui16_t pt0 = { rc.x, rc.y };
     point_ui16_t pt1 = { rc.x + rc.w - 1, rc.y };
-    point_ui16_t pt2 = { rc.x + rc.w - 1, rc.y + rc.h - 1 };
-    point_ui16_t pt3 = { rc.x, rc.y + rc.h - 1 };
-    st7789v_draw_line(pt, pt1, clr);
-    st7789v_draw_line(pt1, pt2, clr);
-    st7789v_draw_line(pt2, pt3, clr);
-    st7789v_draw_line(pt3, pt, clr);
-    st7789v_set_pixel(pt2, clr); //hack, drawline is broken
+    point_ui16_t pt2 = { rc.x , rc.y + rc.h - 1 };
+
+    st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, rc.w, 1), clr); // top
+    st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, 1, rc.h), clr); // left
+    st7789v_fill_rect(rect_ui16(pt1.x, pt1.y, 1, rc.h), clr); // right
+    st7789v_fill_rect(rect_ui16(pt2.x, pt2.y, rc.w, 1), clr); // bottom
 }
 
+// Draws a solid rectangle of defined color
 void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
     rc = rect_intersect_ui16(rc, st7789v_clip);
     if (rect_empty_ui16(rc))
         return;
-    int i;
-    uint16_t clr565 = _COLOR_565(clr);
-    uint32_t size = (uint32_t)rc.w * rc.h * 2;
-    int n = size / sizeof(st7789v_buff);
-    int s = size % sizeof(st7789v_buff);
-    if (n)
-        st7789v_fill_ui16((uint16_t *)st7789v_buff, clr565, sizeof(st7789v_buff) / 2);
-    else
-        st7789v_fill_ui16((uint16_t *)st7789v_buff, clr565, size / 2);
+    
+    uint16_t clr565 = _COLOR_TO_565(clr);
+    uint32_t size = (uint32_t)rc.w * rc.h * 2; // area of rectangle
+    
+    st7789v_fill_ui16((uint16_t *)st7789v_buff, clr565, MIN(size, sizeof(st7789v_buff) / 2));    
     st7789v_clr_cs();
     st7789v_cmd_caset(rc.x, rc.x + rc.w - 1);
     st7789v_cmd_raset(rc.y, rc.y + rc.h - 1);
     st7789v_cmd_ramwr(0, 0);
-    for (i = 0; i < n; i++)
+    
+    for (int i = 0; i < size / sizeof(st7789v_buff); i++) // writer buffer by buffer
         st7789v_wr(st7789v_buff, sizeof(st7789v_buff));
-    if (s)
-        st7789v_wr(st7789v_buff, s);
+    
+    st7789v_wr(st7789v_buff, size % sizeof(st7789v_buff)); // write the remainder data
     st7789v_set_cs();
 }
 
-void st7789v_draw_char(point_ui16_t pt, char chr, font_t *pf, color_t clr0, color_t clr1) {
+// Draws a single character accorign to selected font
+// \param clr_bg background color
+// \param clr_fg font/foreground color
+// If font is not available for the character, solid rectangle will be drawn in background color
+// \returns character is available in the font and was drawn
+bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    const uint16_t w = pf->w;           //char width
+    const uint16_t h = pf->h;           //char height
+
+    // character out of font range, display solid rectangle instead
+    if ((chr < pf->asc_min) || (chr > pf->asc_max)){
+        display->fill_rect(rect_ui16(pt.x, pt.y, w, h), clr_bg);
+        return false;
+    }
+
     int i;
     int j;
-    uint8_t *pch;                 //character data pointer
-    uint8_t crd = 0;              //current row byte data
-    uint8_t rb;                   //row byte
-    uint16_t w = pf->w;           //cache width
-    uint16_t h = pf->h;           //..
-    uint8_t bpr = pf->bpr;        //bytes per row
-    uint16_t bpc = bpr * h;       //bytes per char
-    uint8_t bpp = 8 * bpr / w;    //bits per pixel
-    uint8_t ppb = 8 / bpp;        //pixels per byte
-    uint8_t pms = (1 << bpp) - 1; //pixel mask
+    uint8_t *pch;                       //character data pointer
+    uint8_t crd = 0;                    //current row byte data
+    uint8_t rb;                         //row byte
     uint16_t *p = (uint16_t *)st7789v_buff;
     uint8_t *pc;
-    if ((chr >= pf->asc_min) && (chr <= pf->asc_max)) {
-        pch = (pf->pcs) + ((chr - pf->asc_min) * bpc);
-        uint16_t clr565[16];
-        for (i = 0; i <= pms; i++)
-            clr565[i] = _COLOR_565(color_alpha(clr0, clr1, 255 * i / pms));
-        for (j = 0; j < h; j++) {
-            pc = pch + j * bpr;
-            for (i = 0; i < w; i++) {
-                if ((i % ppb) == 0) {
-                    if (pf->flg & FONT_FLG_SWAP) {
-                        rb = (i / ppb) ^ 1;
-                        crd = pch[rb + j * bpr];
-                    } else
-                        crd = *(pc++);
-                }
-                if (pf->flg & FONT_FLG_LSBF) {
-                    *(p++) = clr565[crd & pms];
-                    crd >>= bpp;
-                } else {
-                    *(p++) = clr565[crd >> (8 - bpp)];
-                    crd <<= bpp;
-                }
+
+    const uint8_t bpr = pf->bpr;        //bytes per row
+    const uint16_t bpc = bpr * h;       //bytes per char
+    const uint8_t bpp = 8 * bpr / w;    //bits per pixel
+    const uint8_t ppb = 8 / bpp;        //pixels per byte
+    const uint8_t pms = (1 << bpp) - 1; //pixel mask
+
+    pch = (uint8_t*) (pf->pcs) + ((chr - pf->asc_min) * bpc);
+    uint16_t clr565[16];
+    for (i = 0; i <= pms; i++)
+        clr565[i] = _COLOR_TO_565(color_alpha(clr_bg, clr_fg, 255 * i / pms));
+    for (j = 0; j < h; j++) {
+        pc = pch + j * bpr;
+        for (i = 0; i < w; i++) {
+            if ((i % ppb) == 0) {
+                if (pf->flg & FONT_FLG_SWAP) {
+                    rb = (i / ppb) ^ 1;
+                    crd = pch[rb + j * bpr];
+                } else
+                    crd = *(pc++);
+            }
+            if (pf->flg & FONT_FLG_LSBF) {
+                *(p++) = clr565[crd & pms];
+                crd >>= bpp;
+            } else {
+                *(p++) = clr565[crd >> (8 - bpp)];
+                crd <<= bpp;
             }
         }
-        st7789v_clr_cs();
-        st7789v_cmd_caset(pt.x, pt.x + w - 1);
-        st7789v_cmd_raset(pt.y, pt.y + h - 1);
-        st7789v_cmd_ramwr(st7789v_buff, 2 * w * h);
-        st7789v_set_cs();
-    } else
-        display->fill_rect(rect_ui16(pt.x, pt.y, w, h), clr0);
+    }
+    st7789v_clr_cs();
+    st7789v_cmd_caset(pt.x, pt.x + w - 1);
+    st7789v_cmd_raset(pt.y, pt.y + h - 1);
+    st7789v_cmd_ramwr(st7789v_buff, 2 * w * h);
+    st7789v_set_cs();
+
+    return true;
 }
 
-void st7789v_draw_text(rect_ui16_t rc, const char *str, font_t *pf, color_t clr0, color_t clr1) {
-    int i;
-    int len = strlen(str);
+// Draws a text into the specified rectangle @rc
+// If a character does not fit into the rectangle the drawing is stopped
+// \param clr_bg background color
+// \param clr_fg font/foreground color
+// \returns whole text was written
+bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     int x = rc.x;
     int y = rc.y;
-    for (i = 0; i < len; i++) {
-        char c = str[i];
+
+    const uint16_t rc_end_x = rc.x + rc.w;
+    const uint16_t rc_end_y = rc.y + rc.h;
+    const uint16_t w = pf->w;  //char width
+    const uint16_t h = pf->h;  //char height
+
+    for (int i = 0; i < strlen(str); i++) {
+        const char c = str[i];
         if (c == '\n') {
-            y += pf->h;
+            y += h;
             x = rc.x;
-            if ((y + pf->h) > (rc.y + rc.h))
-                break;
-        } else {
-            st7789v_draw_char(point_ui16(x, y), c, pf, clr0, clr1);
-            x += pf->w;
-            if ((x + pf->w) > (rc.x + rc.w))
-                break;
+            if (y + h > rc_end_y)
+                return false;
+            continue;
         }
+        
+        st7789v_draw_char(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+        x += w;
+        // FIXME Shouldn't it try to break the line first?
+        if (x + w > rc_end_x)
+            return false;
     }
+    return true;
 }
 
 static inline void rop_rgb888_invert(uint8_t *ppx888) {
-    uint8_t r = ppx888[0];
-    uint8_t g = ppx888[1];
-    uint8_t b = ppx888[2];
-    ppx888[0] = 255 - r;
-    ppx888[1] = 255 - g;
-    ppx888[2] = 255 - b;
+    ppx888[0] = 255 - ppx888[0];
+    ppx888[1] = 255 - ppx888[1];
+    ppx888[2] = 255 - ppx888[2];
 }
 
 #define SWAPBW_TOLERANCE 64
 static inline void rop_rgb888_swapbw(uint8_t *ppx888) {
-    uint8_t r = ppx888[0];
-    uint8_t g = ppx888[1];
-    uint8_t b = ppx888[2];
-    uint8_t l = (r + g + b) / 3;
-    uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
-    uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
+    const uint8_t r = ppx888[0];
+    const uint8_t g = ppx888[1];
+    const uint8_t b = ppx888[2];
+    const uint8_t l = (r + g + b) / 3;
+    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
+    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
+
     if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
         ppx888[0] = 255 - r;
         ppx888[1] = 255 - g;
@@ -608,12 +645,12 @@ static inline void rop_rgb888_swapbw(uint8_t *ppx888) {
 }
 
 static inline void rop_rgb888_disabled(uint8_t *ppx888) {
-    uint8_t r = ppx888[0];
-    uint8_t g = ppx888[1];
-    uint8_t b = ppx888[2];
-    uint8_t l = (r + g + b) / 3;
-    uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
-    uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
+    const uint8_t r = ppx888[0];
+    const uint8_t g = ppx888[1];
+    const uint8_t b = ppx888[2];
+    const uint8_t l = (r + g + b) / 3;
+    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
+    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
     if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
         ppx888[0] = r / 2;
         ppx888[1] = g / 2;
@@ -622,11 +659,11 @@ static inline void rop_rgb888_disabled(uint8_t *ppx888) {
 }
 
 static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
-    uint8_t r = ppx[0];
-    uint8_t g = ppx[1];
-    uint8_t b = ppx[2];
-    uint8_t a = ppx[3];
-    if ((r == g) && (g == b)) {
+    const uint8_t r = ppx[0];
+    const uint8_t g = ppx[1];
+    const uint8_t b = ppx[2];
+    const uint8_t a = ppx[3];
+    if ((r == g) && (r == b)) {
         ppx[0] = 255 - r;
         ppx[1] = 255 - g;
         ppx[2] = 255 - b;
@@ -636,7 +673,7 @@ static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
             ppx[2] = 255;
             ppx[3] = 255;
         }
-    } else if ((a < 128)) {
+    } else if (a < 128) {
         ppx[0] = 0;
         ppx[1] = 255;
         ppx[2] = 0;
@@ -780,7 +817,7 @@ void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
                     rop_rgb888_disabled(ppx888);
                     break;
                 }
-                *ppx565 = _COLOR_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                *ppx565 = _COLOR_TO_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
             }
         else if (pixsize == 4) //RGBA
         {
@@ -799,8 +836,8 @@ void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
                     rop_rgb888_disabled(ppx888);
                     break;
                 }
-                //*ppx565 = _COLOR_565(color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]));
-                *ppx565 = _COLOR_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                //*ppx565 = _COLOR_TO_565(color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]));
+                *ppx565 = _COLOR_TO_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
             }
         }
         st7789v_wr(st7789v_buff, 2 * w);
