@@ -61,9 +61,10 @@ enum class PhasesLoadUnload : uint16_t {
     NozzleTimeout,
     MakeSureInserted,
     Inserting,
+    IsFilamentInGear,
+    Ejecting,
     Loading,
     Purging,
-    Purging2,
     IsColor,
     Unparking,
     _last = Unparking

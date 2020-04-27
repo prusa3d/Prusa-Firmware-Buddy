@@ -64,7 +64,7 @@
 #define JOGWHEEL_PIN_ENC PE12 // button pin
 
 //Simulator configuration
-//#define SIM_HEATER
+#define SIM_HEATER
 //#define SIM_MOTION
 
 #ifdef SIM_HEATER

@@ -13,9 +13,10 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
     { Response::Reheat },                         //NozzleTimeout,
     {},                                           //MakeSureInserted,
     {},                                           //Inserting,
+    { Response::Yes, Response::No },              //IsFilamentInGear,
+    {},                                           //Ejecting,
     {},                                           //Loading,
     {},                                           //Purging,
-    {},                                           //Purging2,
     { Response::Continue, Response::Purge_more }, //IsColor,
     {},                                           //Unparking,
 };

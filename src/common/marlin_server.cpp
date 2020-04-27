@@ -1237,7 +1237,7 @@ void fsm_destroy(ClinetFSM type) {
 }
 
 //must match fsm_change_t signature
-void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void _fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
     if (usr32 == uint32_t(-1))
         bsod("FATAL Invalid Event");
@@ -1393,7 +1393,7 @@ void FSM_notifier::SendNotification() {
     // after first sent, progress can only rise
     if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
         s_data.last_progress_sent = progress;
-        fsm_change(s_data.type, s_data.phase, progress, 0);
+        _fsm_change(s_data.type, s_data.phase, progress, 0);
     }
 }
 

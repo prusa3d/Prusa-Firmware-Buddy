@@ -50,6 +50,7 @@
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
 
 #include "marlin_server.hpp"
+#include "filament_sensor.h"
 // private:
 //check unsupported features
 //filament sensor is no longer part of marlin thus it must be disabled
@@ -86,6 +87,15 @@ fil_change_settings_t fc_settings[EXTRUDERS];
     #define _PMSG(L) L##_LCD
 #endif
 
+static bool is_target_temperature_safe() {
+    if (!DEBUGGING(DRYRUN) && thermalManager.targetTooColdToExtrude(active_extruder)) {
+        SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
+        return false;
+    } else {
+        return true;
+    }
+}
+
 /**
  * Ensure a safe temperature for extrusion
  *
@@ -95,22 +105,18 @@ fil_change_settings_t fc_settings[EXTRUDERS];
  *
  * Returns 'true' if heating was completed, 'false' for abort
  */
-static bool ensure_safe_temperature(const PauseMode mode = PAUSE_MODE_SAME) {
+static bool ensure_safe_temperature() {
 
-    if (!DEBUGGING(DRYRUN) && thermalManager.targetTooColdToExtrude(active_extruder)) {
-        SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
+    if (!is_target_temperature_safe()) {
         return false;
     }
-
-    UNUSED(mode);
 
     return thermalManager.wait_for_hotend(active_extruder);
 }
 
 static bool ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
 
-    if (!DEBUGGING(DRYRUN) && thermalManager.targetTooColdToExtrude(active_extruder)) {
-        SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
+    if (!is_target_temperature_safe()) {
         return false;
     }
 
@@ -153,6 +159,22 @@ void plan_pause_e_move_notify_progress(const float &length, const feedRate_t &fr
     }
 }
 
+//todo move
+template <class T>
+class AutoRestore {
+    T &ref;
+    T val;
+
+public:
+    AutoRestore(T &ref, T val)
+        : ref(ref)
+        , val(val) {}
+    AutoRestore(T &ref)
+        : ref(ref)
+        , val(ref) {}
+    ~AutoRestore() { ref = val; }
+};
+
 /**
  * Load filament into the hotend
  *
@@ -167,33 +189,59 @@ void plan_pause_e_move_notify_progress(const float &length, const feedRate_t &fr
  */
 bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_length /*=0*/, const float &purge_length /*=0*/, const int8_t max_beep_count /*=0*/,
     const bool show_lcd /*=false*/, const bool pause_for_user /*=false*/,
-    const PauseMode mode /*=PAUSE_MODE_PAUSE_PRINT*/
-        DXC_ARGS) {
+    const PauseMode mode /*=PAUSE_MODE_PAUSE_PRINT*/) {
     UNUSED(show_lcd);
 
+    // actual temperature does not matter, only target
+    if (!is_target_temperature_safe())
+        return false;
+
+    AutoRestore<float> AR(planner.settings.retract_acceleration);
+
+    Response isFilamentInGear;
+    do {
+        // wait till filament sensor does not show "FS_NO_FILAMENT" in this block
+        // ask user to inset filament, than wait continue button
+        do {
+            while (fs_get_state() == FS_NO_FILAMENT) {
+                idle(true);
+                fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
+            }
+            idle(true);
+            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, 30, 0);
+        } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
+
+        // filamnet is being inserted
+        // Slow Load filament
+        if (slow_load_length) {
+            do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 30, 50);
+        }
+
+        fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
+
+        //wait until response
+        do {
+            idle(true);
+            isFilamentInGear = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentInGear);
+        } while (isFilamentInGear != Response::Yes && isFilamentInGear != Response::No);
+
+        //eject what was inserted
+        if (isFilamentInGear == Response::No) {
+            if (slow_load_length) {
+                do_pause_e_move_notify_progress(-slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 30);
+            }
+        }
+    } while (isFilamentInGear != Response::Yes);
+
+    //todo reheat
     if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30)) {
         return false;
     }
 
-    fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), 30, 0);
-    while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue)
-        idle(true);
-
-    //todo check FILAMET SENSOR
-
-    // Slow Load filament
-    if (slow_load_length) {
-        do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 30, 50);
-    }
-
     // Fast Load Filament
     if (fast_load_length) {
-        const float saved_acceleration = planner.settings.retract_acceleration;
         planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
-
         do_pause_e_move_notify_progress(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, PhasesLoadUnload::Loading, 50, 70);
-
-        planner.settings.retract_acceleration = saved_acceleration;
     }
 
     if (purge_length > 0) {
@@ -201,7 +249,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         do {
             // Extrude filament to get into hotend
             do_pause_e_move_notify_progress(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
-            fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::IsColor), 99, 0);
+            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0);
             do {
                 idle();
                 response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor);
@@ -254,7 +302,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
     //cannot draw progress in plan_pause_e_move, so just change phase to ramming
-    fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Ramming), 50, 0);
+    fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::Ramming, 50, 0);
     for (size_t i = 0; i < pre_unload_begin_pos; ++i) {
         plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
     }
@@ -300,7 +348,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
  */
 uint8_t did_pause_print = 0;
 
-bool pause_print(const float &retract, const xyz_pos_t &park_point, const float &unload_length /*=0*/, const bool show_lcd /*=false*/ DXC_ARGS) {
+bool pause_print(const float &retract, const xyz_pos_t &park_point, const float &unload_length /*=0*/, const bool show_lcd /*=false*/) {
 
     UNUSED(show_lcd);
 
@@ -375,7 +423,7 @@ bool pause_print(const float &retract, const xyz_pos_t &park_point, const float 
  * Used by M125 and M600
  */
 
-void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_beep_count /*=0*/ DXC_ARGS) {
+void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_beep_count /*=0*/) {
     bool nozzle_timed_out = false;
 
     // Start the heater idle timers
@@ -387,7 +435,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
     //wait until user removes filament
     //change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::RemoveFilament), 30, 0);
 
-    fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::UserPush), -1, 0);
+    fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, -1, 0);
 
     while (wait_for_user && (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue)) {
         // If the nozzle has timed out...
@@ -401,7 +449,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_HEAT));
 
             // Wait for LCD click or M108
-            fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::NozzleTimeout), -1, 0);
+            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::NozzleTimeout, -1, 0);
             while (wait_for_user && (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::NozzleTimeout) != Response::Reheat))
                 idle(true);
 
@@ -416,7 +464,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             ensure_safe_temperature();
 
             //user push filament
-            fsm_change(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::RemoveFilament), 30, 0);
+            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::RemoveFilament, 30, 0);
 
             // Start the heater idle timers
             const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL;
@@ -449,7 +497,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
  * - Send host action for resume, if configured
  * - Resume the current SD print job, if any
  */
-void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_length /*=0*/, const float &purge_length /*=ADVANCED_PAUSE_PURGE_LENGTH*/, const int8_t max_beep_count /*=0*/ DXC_ARGS) {
+void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_length /*=0*/, const float &purge_length /*=ADVANCED_PAUSE_PURGE_LENGTH*/, const int8_t max_beep_count /*=0*/) {
 
     if (!did_pause_print)
         return;
@@ -462,7 +510,7 @@ void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_l
     }
 
     if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(active_extruder)) // Load the new filament
-        load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out, PAUSE_MODE_PAUSE_PRINT DXC_PASS);
+        load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out, PAUSE_MODE_PAUSE_PRINT);
 
 // Intelligent resuming
 #if ENABLED(FWRETRACT)
