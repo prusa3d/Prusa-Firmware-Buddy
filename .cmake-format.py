@@ -8,7 +8,7 @@ dangle_align = 'child'
 autosort = True
 
 # How wide to allow formatted cmake files
-line_width = 100
+line_width = 130
 
 additional_commands = {
     "target_sources": {
