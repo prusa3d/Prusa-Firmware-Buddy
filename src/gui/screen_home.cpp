@@ -15,16 +15,10 @@
 #include "screen_print_preview.h"
 #include "screen_printing.h"
 #include "print_utils.h"
-
+#include "screens.h"
 #include "../Marlin/src/sd/cardreader.h"
 
-extern screen_t *pscreen_filebrowser;
-extern screen_t *pscreen_menu_preheat;
 extern uint8_t menu_preheat_type;
-extern screen_t *pscreen_menu_filament;
-extern screen_t *pscreen_menu_calibration;
-extern screen_t *pscreen_menu_settings;
-extern screen_t *pscreen_menu_info;
 
 #define BUTTON_PRINT       0
 #define BUTTON_PREHEAT     1
@@ -149,7 +143,7 @@ static void on_print_preview_action(print_preview_action_t action) {
     } else if (action == PRINT_PREVIEW_ACTION_PRINT) {
         screen_close(); // close the print preview
         print_begin(screen_print_preview_get_gcode_filepath());
-        screen_open(pscreen_printing->id);
+        screen_open(get_scr_printing()->id);
     }
 }
 
@@ -188,7 +182,7 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
             screen_print_preview_set_gcode_filepath(screen_printing_file_path);
             screen_print_preview_set_gcode_filename(screen_printing_file_name);
             screen_print_preview_set_on_action(on_print_preview_action);
-            screen_open(pscreen_print_preview->id);
+            screen_open(get_scr_print_preview()->id);
         }
         return 1;
     }
@@ -203,24 +197,24 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
 
     switch ((int)param) {
     case BUTTON_PRINT + 1:
-        screen_open(pscreen_filebrowser->id);
+        screen_open(get_scr_filebrowser()->id);
         return 1;
         break;
     case BUTTON_PREHEAT + 1:
         menu_preheat_type = 0;
-        screen_open(pscreen_menu_preheat->id);
+        screen_open(get_scr_menu_preheat()->id);
         return 1;
     case BUTTON_FILAMENT + 1:
-        screen_open(pscreen_menu_filament->id);
+        screen_open(get_scr_menu_filament()->id);
         return 1;
     case BUTTON_CALIBRATION + 1:
-        screen_open(pscreen_menu_calibration->id);
+        screen_open(get_scr_menu_calibration()->id);
         return 1;
     case BUTTON_SETTINGS + 1:
-        screen_open(pscreen_menu_settings->id);
+        screen_open(get_scr_menu_settings()->id);
         return 1;
     case BUTTON_INFO + 1:
-        screen_open(pscreen_menu_info->id);
+        screen_open(get_scr_menu_info()->id);
         return 1;
     }
     return 0;
@@ -284,4 +278,4 @@ screen_t screen_home = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_home = &screen_home;
+extern "C" screen_t *const get_scr_home() { return &screen_home; }

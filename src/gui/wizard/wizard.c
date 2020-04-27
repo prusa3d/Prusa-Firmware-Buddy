@@ -5,9 +5,9 @@
 #include "dbg.h"
 #include "config.h"
 #include "screen_wizard.h"
+#include "screens.h"
 
 extern uint64_t wizard_mask;
-extern const screen_t *pscreen_wizard;
 
 //detailed caption constants for debugging
 const char *wizard_caption[] = {
@@ -48,7 +48,7 @@ const char *wizard_caption[] = {
 
 void wizard_run_mask(uint64_t mask) {
     wizard_mask = mask;
-    screen_open(pscreen_wizard->id);
+    screen_open(get_scr_wizard()->id);
 }
 
 void wizard_run_complete(void) {
