@@ -1,13 +1,11 @@
 // window_menu.c
 #include "window_menu.h"
 #include "gui.h"
+#include "cmath_ext.h"
 
 #define WIO_MIN  0
 #define WIO_MAX  1
 #define WIO_STEP 2
-
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 extern osThreadId displayTaskHandle;
 
