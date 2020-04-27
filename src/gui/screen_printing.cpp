@@ -366,9 +366,6 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     }
 
 #endif
-    /*    if (Lock::IsLocked())
-        return 0;
-    Lock l;
 
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
         open_popup_message(screen);
@@ -378,6 +375,10 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (pw->message_flag != 0 && HAL_GetTick() - pw->message_timer >= POPUP_MSG_DUR_MS) {
         close_popup_message(screen);
     }
+
+    /*    if (Lock::IsLocked())
+        return 0;
+    Lock l;
 
     if (marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
