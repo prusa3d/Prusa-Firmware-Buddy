@@ -408,26 +408,26 @@ uint16_t directColorBuff[directColorBuff_sz];
 
 void printRGBWscale(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
     color_t clr;
-    uint32_t val = 0xff * rect_index / rect_count;
+    const uint32_t val = 0xff * rect_index / rect_count;
 
     //R
     clr = color_rgb(val, 0, 0);
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz), clr);
+    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 
     //G
     clr = color_rgb(0, val, 0);
     row += directColorBuff_sz + row_space;
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz), clr);
+    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 
     //B
     clr = color_rgb(0, 0, val);
     row += directColorBuff_sz + row_space;
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz), clr);
+    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 
     //W
     clr = color_rgb(val, val, val);
     row += directColorBuff_sz + row_space;
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz), clr);
+    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 }
 
 void printDirectHex(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
@@ -436,11 +436,11 @@ void printDirectHex(size_t rect_index, size_t rect_count, size_t col, size_t row
 
 void printRGB(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
     color_t clr = color_rgb(clrR, clrG, clrB);
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz), clr);
+    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 
     clr = color_rgb((uint8_t)(~clrR), (uint8_t)(~clrG), (uint8_t)(~clrB));
     row += directColorBuff_sz + row_space;
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz), clr);
+    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 }
 
 void printRGB_DirHx(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
