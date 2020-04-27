@@ -66,8 +66,8 @@ static void _gui_loop_cb() {
     marlin_client_loop();
 }
 
-char gui_media_filename[FILE_NAME_MAX_LEN];
-char gui_media_filepath[FILE_PATH_MAX_LEN];
+char gui_media_filename[FILE_NAME_MAX_LEN + 1];
+char gui_media_filepath[FILE_PATH_MAX_LEN + 1];
 
 void gui_run(void) {
     if (diag_fastboot)

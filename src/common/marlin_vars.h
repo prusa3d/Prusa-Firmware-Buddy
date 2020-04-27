@@ -77,9 +77,8 @@
 #define MARLIN_VAR_MOTION_MSK_Z (1 << MARLIN_VAR_INDEX_Z)
 #define MARLIN_VAR_MOTION_MSK_E (1 << MARLIN_VAR_INDEX_E)
 
-#define GCODE_NAME_MAX_LEN 96
-#define FILE_NAME_MAX_LEN  96
-#define FILE_PATH_MAX_LEN  96
+#define FILE_NAME_MAX_LEN (96 + 1 + 5 + 1)
+#define FILE_PATH_MAX_LEN (96 + 1 + 5 + 1)
 
 typedef enum {
     mpsIdle = 0,
