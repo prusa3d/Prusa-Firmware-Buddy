@@ -483,6 +483,7 @@ void _server_print_loop(void) {
         break;
     case mpsAborting_Begin:
         media_print_stop();
+        thermalManager.disable_all_heaters();
         print_job_timer.stop();
         planner.quick_stop();
         marlin_server.print_state = mpsAborting_WaitIdle;
