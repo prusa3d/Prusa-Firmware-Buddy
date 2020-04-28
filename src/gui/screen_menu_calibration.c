@@ -5,6 +5,7 @@
 #include "marlin_client.h"
 #include "wizard/wizard.h"
 #include "window_dlg_wait.h"
+#include "screens.h"
 
 #include "menu_vars.h"
 #include "eeprom.h"
@@ -112,4 +113,4 @@ screen_t screen_menu_calibration = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_calibration = &screen_menu_calibration;
+screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }

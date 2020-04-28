@@ -13,7 +13,7 @@
 #include "menu_vars.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-
+#include "screens.h"
 uint64_t wizard_mask = 0;
 
 static int is_state_in_wizard_mask(wizard_state_t st) {
@@ -571,4 +571,4 @@ screen_t screen_wizard = {
     0,                            //pdata
 };
 
-const screen_t *pscreen_wizard = &screen_wizard;
+screen_t *const get_scr_wizard() { return &screen_wizard; }

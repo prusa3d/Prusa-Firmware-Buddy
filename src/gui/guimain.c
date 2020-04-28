@@ -6,64 +6,23 @@
 #include "config.h"
 #include "marlin_client.h"
 
-#ifdef LCDSIM
-    #include "window_lcdsim.h"
-#else //LCDSIM
-    #include "window_file_list.h"
-    #include "window_header.h"
-    #include "window_temp_graph.h"
-    #include "DialogLoadUnload.h"
-    #include "window_dlg_wait.h"
-    #ifdef _DEBUG
-        #include "window_dlg_popup.h"
-    #endif //_DEBUG
-    #include "window_dlg_preheat.h"
-    #include "screen_print_preview.h"
-#endif //LCDSIM
+#include "window_file_list.h"
+#include "window_header.h"
+#include "window_temp_graph.h"
+#include "DialogLoadUnload.h"
+#include "window_dlg_wait.h"
+#ifdef _DEBUG
+    #include "window_dlg_popup.h"
+#endif //_DEBUG
+#include "window_dlg_preheat.h"
+#include "screen_print_preview.h"
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
 #include "Dialog_C_wrapper.h"
+#include "screens.h"
+#include "screen_close_multiple.h"
 #include "sound_C_wrapper.h"
-
-extern screen_t *pscreen_splash;
-extern screen_t *pscreen_watchdog;
-
-#ifdef LCDSIM
-extern screen_t *pscreen_marlin;
-#else //LCDSIM
-extern screen_t *pscreen_test;
-extern screen_t *pscreen_test_gui;
-extern screen_t *pscreen_test_term;
-extern screen_t *pscreen_test_msgbox;
-extern screen_t *pscreen_test_graph;
-extern screen_t *pscreen_test_temperature;
-extern screen_t *pscreen_home;
-extern screen_t *pscreen_filebrowser;
-extern screen_t *pscreen_printing;
-extern screen_t *pscreen_printing_serial;
-extern screen_t *pscreen_menu_preheat;
-extern screen_t *pscreen_menu_filament;
-extern screen_t *pscreen_preheating;
-extern screen_t *pscreen_menu_calibration;
-extern screen_t *pscreen_menu_settings;
-extern screen_t *pscreen_menu_temperature;
-extern screen_t *pscreen_menu_move;
-extern screen_t *pscreen_menu_info;
-extern screen_t *pscreen_menu_tune;
-extern screen_t *pscreen_menu_service;
-extern screen_t *pscreen_sysinfo;
-extern screen_t *pscreen_version_info;
-extern screen_t *pscreen_qr_info;
-extern screen_t *pscreen_qr_error;
-extern screen_t *pscreen_test_disp_mem;
-extern screen_t *pscreen_messages;
-    #ifdef PIDCALIBRATION
-extern screen_t *pscreen_PID;
-    #endif //PIDCALIBRATION
-extern screen_t *pscreen_mesh_bed_lv;
-extern screen_t *pscreen_wizard;
-#endif     // LCDSIM
 
 extern int HAL_IWDG_Reset;
 
@@ -101,37 +60,6 @@ const jogwheel_config_t jogwheel_cfg = {
 
 marlin_vars_t *gui_marlin_vars = 0;
 int8_t menu_timeout_enabled = 1; // Default: enabled
-
-extern screen_t screen_home;
-extern screen_t screen_printing;
-
-extern screen_t screen_printing_serial;
-extern screen_t screen_menu_tune;
-extern screen_t screen_wizard;
-extern screen_t screen_print_preview;
-extern screen_t screen_PID;
-
-static screen_t *const timeout_blacklist[] = {
-    &screen_home,
-    &screen_printing,
-    &screen_menu_tune,
-    &screen_wizard,
-    &screen_print_preview
-#ifdef PIDCALIBRATION
-    ,
-    &screen_PID
-#endif //PIDCALIBRATION
-};
-
-screen_t *const m876_blacklist[] = {
-    &screen_printing_serial,
-    &screen_home
-#ifdef PIDCALIBRATION
-    ,
-    &screen_PID
-#endif //PIDCALIBRATION
-};
-size_t const m876_blacklist_sz = sizeof(m876_blacklist) / sizeof(m876_blacklist[0]);
 
 void update_firmware_screen(void);
 
@@ -171,64 +99,59 @@ void gui_run(void) {
     register_dialog_callbacks();
     Sound_Play(eSOUND_TYPE_Start);
 
-    screen_register(pscreen_splash);
-    screen_register(pscreen_watchdog);
+    screen_register(get_scr_splash());
+    screen_register(get_scr_watchdog());
 
-#ifdef LCDSIM
-    WINDOW_CLS_LCDSIM = window_register_class((window_class_t *)&window_class_lcdsim);
-    screen_register(pscreen_marlin);
-#else //LCDSIM
     WINDOW_CLS_FILE_LIST = window_register_class((window_class_t *)&window_class_file_list);
     WINDOW_CLS_HEADER = window_register_class((window_class_t *)&window_class_header);
     WINDOW_CLS_TEMP_GRAPH = window_register_class((window_class_t *)&window_class_temp_graph);
     WINDOW_CLS_DLG_LOADUNLOAD = window_register_class((window_class_t *)&window_class_dlg_statemachine);
     WINDOW_CLS_DLG_WAIT = window_register_class((window_class_t *)&window_class_dlg_wait);
-    #ifdef _DEBUG
+#ifdef _DEBUG
     WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
-    #endif //_DEBUG
+#endif //_DEBUG
     WINDOW_CLS_DLG_PREHEAT = window_register_class((window_class_t *)&window_class_dlg_preheat);
-    screen_register(pscreen_test);
-    screen_register(pscreen_test_gui);
-    screen_register(pscreen_test_term);
-    screen_register(pscreen_test_msgbox);
-    screen_register(pscreen_test_graph);
-    screen_register(pscreen_test_temperature);
-    screen_register(pscreen_home);
-    screen_register(pscreen_filebrowser);
-    screen_register(pscreen_printing);
-    screen_register(pscreen_printing_serial);
-    screen_register(pscreen_menu_preheat);
-    screen_register(pscreen_menu_filament);
-    screen_register(pscreen_menu_calibration);
-    screen_register(pscreen_menu_settings);
-    screen_register(pscreen_menu_temperature);
-    screen_register(pscreen_menu_move);
-    screen_register(pscreen_menu_info);
-    screen_register(pscreen_menu_tune);
-    screen_register(pscreen_menu_service);
-    screen_register(pscreen_sysinfo);
-    screen_register(pscreen_version_info);
-    screen_register(pscreen_qr_info);
-    screen_register(pscreen_qr_error);
-    screen_register(pscreen_test_disp_mem);
-    screen_register(pscreen_messages);
-    #ifdef PIDCALIBRATION
-    screen_register(pscreen_PID);
-    #endif //PIDCALIBRATION
-    screen_register(pscreen_mesh_bed_lv);
-    screen_register(pscreen_wizard);
-    screen_register(pscreen_print_preview);
-    screen_register(pscreen_lan_settings);
-    screen_register(pscreen_menu_fw_update);
-#endif     // LCDSIM
+    screen_register(get_scr_test());
+    screen_register(get_scr_test_gui());
+    screen_register(get_scr_test_term());
+    screen_register(get_scr_test_msgbox());
+    screen_register(get_scr_test_graph());
+    screen_register(get_scr_test_temperature());
+    screen_register(get_scr_home());
+    screen_register(get_scr_filebrowser());
+    screen_register(get_scr_printing());
+    screen_register(get_scr_printing_serial());
+    screen_register(get_scr_menu_preheat());
+    screen_register(get_scr_menu_filament());
+    screen_register(get_scr_menu_calibration());
+    screen_register(get_scr_menu_settings());
+    screen_register(get_scr_menu_temperature());
+    screen_register(get_scr_menu_move());
+    screen_register(get_scr_menu_info());
+    screen_register(get_scr_menu_tune());
+    screen_register(get_scr_menu_service());
+    screen_register(get_scr_sysinfo());
+    screen_register(get_scr_version_info());
+    screen_register(get_scr_qr_info());
+    screen_register(get_scr_qr_error());
+    screen_register(get_scr_test_disp_mem());
+    screen_register(get_scr_messages());
+#ifdef PIDCALIBRATION
+    screen_register(get_scr_PID());
+#endif //PIDCALIBRATION
+    screen_register(get_scr_mesh_bed_lv());
+    screen_register(get_scr_wizard());
+    screen_register(get_scr_print_preview());
+    screen_register(get_scr_lan_settings());
+    screen_register(get_scr_menu_fw_update());
 
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
-        screen_stack_push(pscreen_splash->id);
-        screen_open(pscreen_watchdog->id);
+        screen_stack_push(get_scr_splash()->id);
+        screen_open(get_scr_watchdog()->id);
     } else
 #endif // _DEBUG
-        screen_open(pscreen_splash->id);
+        screen_open(get_scr_splash()->id);
 
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
@@ -239,21 +162,19 @@ void gui_run(void) {
             gui_msgbox("Heating disabled due to 30 minutes of inactivity.", MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
         }
         gui_loop();
-#ifndef LCDSIM
         if (marlin_message_received()) {
             screen_t *curr = screen_get_curr();
-            if (curr == pscreen_printing) {
+            if (curr == get_scr_printing()) {
                 screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
             }
         }
         if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
-                screen_unloop(timeout_blacklist, sizeof(timeout_blacklist) / sizeof(timeout_blacklist[0]));
+                screen_close_multiple(scrn_close_on_timeout);
                 gui_timer_delete(gui_timeout_id);
             }
         }
-#endif //LCDSIM
     }
 }
 
