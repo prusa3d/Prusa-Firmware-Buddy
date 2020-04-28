@@ -24,6 +24,9 @@
 #define DBG_VAR     DBG
 #define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
 
+//maximum string length for DBG_VAR
+#define DBG_VAR_STR_MAX_LEN 128
+
 #pragma pack(push)
 #pragma pack(1)
 
@@ -411,7 +414,7 @@ variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
         retval = marlin_vars_get_var(&(client->vars), var_id);
         marlin_vars_set_var(&(client->vars), var_id, val);
         n = sprintf(request, "!var %s ", marlin_vars_get_name(var_id));
-        marlin_vars_value_to_str(&(client->vars), var_id, request + n);
+        marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n);
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
     }
@@ -666,14 +669,14 @@ uint32_t _wait_ack_from_server(uint8_t client_id) {
 
 // process message on client side (set flags, update vars etc.)
 void _process_client_message(marlin_client_t *client, variant8_t msg) {
-    char var_str[128];
+    char var_str[DBG_VAR_STR_MAX_LEN + 1];
     uint8_t id = msg.usr8 & MARLIN_USR8_MSK_ID;
     if (msg.usr8 & MARLIN_USR8_VAR_FLG) // variable change received
     {
         marlin_vars_set_var(&(client->vars), id, msg);
         client->changes |= ((uint64_t)1 << id);
 #ifdef DBG_VAR_MSK
-        marlin_vars_value_to_str(&(client->vars), id, var_str);
+        marlin_vars_value_to_str(&(client->vars), id, var_str, sizeof(var_str) - 1);
         if (DBG_VAR_MSK & ((uint64_t)1 << id))
             DBG_VAR("CL%c: VAR %s %s", '0' + client->id, marlin_vars_get_name(id), var_str);
 #endif                                    //DBG_VAR_MSK
