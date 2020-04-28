@@ -12,15 +12,24 @@
 #include "marlin_client.h"
 #include "resource.h"
 
-//dialog flags bitmasks
+#define DLG_W8_FPS 2 //frames per second - hourglass animation speed
 
-#define DLG_W8_HOUR_CHNG  0x0300 //Hourglass change flag
-#define DLG_W8_HOUR_REDRW 0x0100 //Hourglass sand animation change
+////////////////////////////////////////////////////////////////////
+//dialog flags bitmasks
+//0x000? - not used
+//0x00?0 - controls progress of animation
+//0x0?00 - controls phase of animation
+//0x?000 - defines style (what to draw)
+
 #define DLG_W8_ANI_FLG    0x0010 //Hourglass sand animation start
-#define DLG_W8_FRAME_FLG  0x4000 //Draw grey frame
-#define DLG_W8_PROGRESS   0x8000 //Draw progressbar
-#define DLG_W8_HOUR_ROT   0x0200 //rotate hourglass
-#define DLG_W8_FPS        2      //frame per sec of hourglass animation
+#define DLG_W8_HOUR_REDRW 0x0100 //Hourglass sand animation change
+
+#define DLG_W8_HOUR_ROT  0x0200 //rotate hourglass
+#define DLG_W8_HOUR_CHNG 0x0300 //Hourglass change flag
+
+#define DLG_W8_FRAME_FLG 0x4000 //Draw grey frame
+#define DLG_W8_PROGRESS  0x8000 //Draw progressbar
+////////////////////////////////////////////////////////////////////
 
 int16_t WINDOW_CLS_DLG_WAIT = 0;
 
@@ -45,7 +54,7 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
         display->fill_rect(rc, window->color_back);
         rect_ui16_t rc_tit = rc;
         rc_tit.y += 10;
-        rc_tit.h = 30; // 30pixels for title
+        rc_tit.h = 30; // 30 pixels for title
         render_text_align(rc_tit, "Please wait", window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
         window->win.f_invalid = 0;
         if (window->flags & DLG_W8_FRAME_FLG) { //draw frame
@@ -71,30 +80,30 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
 
             render_icon_align(icon_rc, IDR_PNG_wizard_icon_hourglass, COLOR_BLACK, ALIGN_CENTER);
             if (window->flags & 0x0010) {
-                display->draw_line(point_ui16(x + 15, y + 24), point_ui16(x + 15, y + 29), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 13, y + 33), point_ui16(x + 17, y + 33), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 15, y + 24), point_ui16(x + 15, y + 29 - 1), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 13, y + 33), point_ui16(x + 17 - 1, y + 33), COLOR_ORANGE);
             } else if (window->flags & 0x0020) {
-                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20, y + 13), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 15, y + 19), point_ui16(x + 15, y + 24), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 15, y + 29), point_ui16(x + 15, y + 34), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 10, y + 33), point_ui16(x + 20, y + 33), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20 - 1, y + 13), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 15, y + 19), point_ui16(x + 15, y + 24 - 1), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 15, y + 29), point_ui16(x + 15, y + 34 - 1), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 10, y + 33), point_ui16(x + 20 - 1, y + 33), COLOR_ORANGE);
             } else if (window->flags & 0x0040) {
-                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20, y + 13), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 12, y + 14), point_ui16(x + 19, y + 14), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 15, y + 24), point_ui16(x + 15, y + 29), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 6, y + 33), point_ui16(x + 24, y + 33), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 12, y + 32), point_ui16(x + 18, y + 32), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20 - 1, y + 13), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 12, y + 14), point_ui16(x + 19 - 1, y + 14), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 15, y + 24), point_ui16(x + 15, y + 29 - 1), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 6, y + 33), point_ui16(x + 24 - 1, y + 33), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 12, y + 32), point_ui16(x + 18 - 1, y + 32), COLOR_ORANGE);
             } else if (window->flags & 0x0080) {
-                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20, y + 13), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 12, y + 14), point_ui16(x + 19, y + 14), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 13, y + 15), point_ui16(x + 18, y + 15), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 13, y + 16), point_ui16(x + 17, y + 16), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 14, y + 17), point_ui16(x + 17, y + 17), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 14, y + 18), point_ui16(x + 16, y + 18), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 15, y + 26), point_ui16(x + 15, y + 34), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 10, y + 31), point_ui16(x + 20, y + 31), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 6, y + 32), point_ui16(x + 24, y + 32), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 6, y + 33), point_ui16(x + 24, y + 33), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20 - 1, y + 13), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 12, y + 14), point_ui16(x + 19 - 1, y + 14), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 13, y + 15), point_ui16(x + 18 - 1, y + 15), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 13, y + 16), point_ui16(x + 17 - 1, y + 16), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 14, y + 17), point_ui16(x + 17 - 1, y + 17), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 14, y + 18), point_ui16(x + 16 - 1, y + 18), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 15, y + 26), point_ui16(x + 15, y + 34 - 1), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 10, y + 31), point_ui16(x + 20 - 1, y + 31), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 6, y + 32), point_ui16(x + 24 - 1, y + 32), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 6, y + 33), point_ui16(x + 24 - 1, y + 33), COLOR_ORANGE);
             }
         } else
             render_icon_align(icon_rc, IDR_PNG_wizard_icon_hourglass, COLOR_BLACK, ALIGN_CENTER); //change icon
@@ -156,12 +165,13 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
     dlg.flags |= DLG_W8_HOUR_REDRW; //redraw hourglass icon
 
     dlg.timer = HAL_GetTick();
-    uint32_t tmp = DLG_W8_ANI_FLG;
-    uint8_t tmp_timer, last_time = 0;
+    uint16_t tmp = DLG_W8_ANI_FLG;
+    uint32_t tmp_timer, last_time = 0;
 
     if (dlg.progress < 0) {
         while ((*callback)()) {
-            tmp_timer = ((HAL_GetTick() - dlg.timer) / (1000 / DLG_W8_FPS));
+            //FIXME duplicit code \/
+            tmp_timer = (HAL_GetTick() - dlg.timer) * DLG_W8_FPS / 1000;
             if (tmp_timer != last_time && tmp_timer < 5) {
                 if (tmp <= 0x0080) {
                     dlg.flags |= tmp; //redraw sand animation
@@ -180,6 +190,7 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
             }
             last_time = tmp_timer;
             gui_loop();
+            //FIXME duplicit code /\    /
         }
     } else {
 
@@ -189,7 +200,8 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
                 dlg.progress = tmp_progress;
                 dlg.flags |= DLG_W8_PROGRESS;
             }
-            tmp_timer = ((HAL_GetTick() - dlg.timer) / (1000 / DLG_W8_FPS));
+            //FIXME duplicit code \/
+            tmp_timer = (HAL_GetTick() - dlg.timer) * DLG_W8_FPS / 1000;
             if (tmp_timer != last_time && tmp_timer < 5) {
                 if (tmp <= 0x0080) {
                     dlg.flags |= tmp; //redraw sand animation and progressbar
@@ -205,6 +217,7 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
                 tmp = DLG_W8_ANI_FLG;
                 tmp_timer = last_time = 0;
                 gui_invalidate();
+                //FIXME duplicit code /\    /
             }
             last_time = tmp_timer;
             gui_loop();
