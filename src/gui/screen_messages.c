@@ -9,6 +9,7 @@
 #include "screen_menu.h"
 #include "marlin_server.h"
 #include <stdlib.h>
+#include "screens.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -23,7 +24,6 @@ typedef struct _screen_messages_data_t {
 
 #pragma pack(pop)
 
-extern screen_t screen_messages;
 extern msg_stack_t msg_stack;
 
 #define pmsg ((screen_messages_data_t *)screen->pdata)
@@ -119,4 +119,4 @@ screen_t screen_messages = {
     0,                              //pdata
 };
 
-const screen_t *pscreen_messages = &screen_messages;
+screen_t *const get_scr_messages() { return &screen_messages; }

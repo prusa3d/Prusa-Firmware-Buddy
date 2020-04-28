@@ -12,6 +12,9 @@
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
 
+// function pointer for onEnter & onExit callbacks
+typedef void (*change_state_cb_t)();
+
 //abstract parent containing general code for any number of phases
 class IDialogStateful : public IDialog {
 protected:
@@ -38,11 +41,16 @@ protected:
 
 public:
     struct State {
-        State(const char *lbl, RadioButton btn)
+        State(const char *lbl, RadioButton btn, change_state_cb_t enter_cb = NULL, change_state_cb_t exit_cb = NULL)
             : label(lbl)
-            , button(btn) {}
+            , button(btn)
+            , onEnter(enter_cb)
+            , onExit(exit_cb) {}
         const char *label;
         RadioButton button;
+        // callbacks for phase start/end
+        change_state_cb_t onEnter;
+        change_state_cb_t onExit;
     };
 
 protected:
@@ -61,6 +69,9 @@ protected:
     const char *title;
 
     virtual bool can_change(uint8_t phase) = 0;
+    // must be virtual because of `states` list is in template protected
+    virtual void phaseEnter() = 0;
+    virtual void phaseExit() = 0;
 
 public:
     IDialogStateful(const char *name, int16_t WINDOW_CLS_);
@@ -97,7 +108,7 @@ public:
     using States = std::array<State, SZ>;
 
 protected:
-    States states; //phase text and radiobutton
+    States states; //phase text and radiobutton + onEnter & onExit cb
 public:
     DialogStateful(const char *name, int16_t WINDOW_CLS_, States st)
         : IDialogStateful(name, WINDOW_CLS_)
@@ -105,6 +116,17 @@ public:
 
 protected:
     virtual bool can_change(uint8_t phase) { return phase < SZ; }
+    // get arguments callbacks and call them
+    virtual void phaseEnter() {
+        if (states[phase].onEnter) {
+            states[phase].onEnter();
+        }
+    }
+    virtual void phaseExit() {
+        if (states[phase].onExit) {
+            states[phase].onExit();
+        }
+    }
 
 public:
     void draw();
@@ -169,7 +191,6 @@ void DialogStateful<T>::event(uint8_t event, void *param) {
     RadioButton &radio = states[phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-    //case WINDOW_EVENT_BTN_UP:
     case WINDOW_EVENT_CLICK: {
         Response response = radio.Click();
         marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);

@@ -474,6 +474,8 @@ target_sources(
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
+          src/common/sound_C_wrapper.cpp
+          src/common/sound.cpp
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
@@ -577,6 +579,7 @@ if(GUI)
             src/guiapi/src/display_helper.c
             src/guiapi/src/window_menu.c
             src/guiapi/src/screen.c
+            src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.c
             src/guiapi/src/window_list.c
             src/guiapi/src/jogwheel.c

@@ -6,6 +6,7 @@
  */
 
 #include "screen_menu_fw_update.h"
+#include "screens.h"
 #include "sys.h"
 
 const char *opt_on_off[] = { "On", "Off", NULL };
@@ -85,4 +86,4 @@ screen_t screen_menu_fw_update = {
     0,                          //pdata
 };
 
-screen_t *const pscreen_menu_fw_update = &screen_menu_fw_update;
+screen_t *const get_scr_menu_fw_update() { return &screen_menu_fw_update; }

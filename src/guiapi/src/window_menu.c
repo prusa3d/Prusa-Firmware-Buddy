@@ -1,6 +1,7 @@
 // window_menu.c
 #include "window_menu.h"
 #include "gui.h"
+#include "sound_C_wrapper.h"
 
 #define WIO_MIN  0
 #define WIO_MAX  1
@@ -296,18 +297,24 @@ void window_menu_inc(window_menu_t *window, int dif) {
         int visible_count = window->win.rect.h / item_height;
         int old = window->index;
         window->index += dif;
-        if (window->index < 0)
+        // play sound at first or last index of menu
+        if (window->index < 0) {
             window->index = 0;
-        if (window->index >= window->count)
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
+        if (window->index >= window->count) {
             window->index = window->count - 1;
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
 
         if (window->index < window->top_index)
             window->top_index = window->index;
         if (window->index >= (window->top_index + visible_count))
             window->top_index = window->index - visible_count + 1;
 
-        if (window->index != old) // optimalization do not redraw when no change - still on end
+        if (window->index != old) { // optimalization do not redraw when no change - still on end
             _window_invalidate((window_t *)window);
+        }
     }
     }
 }

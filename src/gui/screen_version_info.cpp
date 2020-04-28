@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "version.h"
 #include "resource.h"
+#include "screens.h"
 
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
 #define OTP_START_ADDR             0x1FFF7800
@@ -117,4 +118,4 @@ screen_t screen_version_info = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_version_info = &screen_version_info;
+extern "C" screen_t *const get_scr_version_info() { return &screen_version_info; }

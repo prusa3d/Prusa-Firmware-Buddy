@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"
+#include "screens.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -127,4 +128,4 @@ screen_t screen_test_gui = {
     0,                              //pdata
 };
 
-const screen_t *pscreen_test_gui = &screen_test_gui;
+screen_t *const get_scr_test_gui() { return &screen_test_gui; }
