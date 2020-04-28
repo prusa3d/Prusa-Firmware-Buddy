@@ -37,85 +37,91 @@ void window_dlg_wait_init(window_dlg_wait_t *window) {
 }
 
 void window_dlg_wait_draw(window_dlg_wait_t *window) {
-    if (window->win.f_visible) {
-        rect_ui16_t rc = window->win.rect;
+    if (!window->win.f_visible)
+        return;
+    const rect_ui16_t rc = window->win.rect;
 
-        if (window->win.f_invalid) {
-            display->fill_rect(rc, window->color_back);
-            rect_ui16_t rc_tit = rc;
-            rc_tit.y += 10;
-            rc_tit.h = 30; // 30pixels for title
-            render_text_align(rc_tit, "Please wait", window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
-            window->win.f_invalid = 0;
-            if (window->flags & DLG_W8_FRAME_FLG) { //draw frame
-                display->draw_line(point_ui16(rc.x, rc.y), point_ui16(239, rc.y), COLOR_GRAY);
-                display->draw_line(point_ui16(rc.x, rc.y), point_ui16(rc.x, 320 - 67), COLOR_GRAY);
-                display->draw_line(point_ui16(239, rc.y), point_ui16(239, 320 - 67), COLOR_GRAY);
-                display->draw_line(point_ui16(rc.x, 320 - 67), point_ui16(239, 320 - 67), COLOR_GRAY);
+    if (window->win.f_invalid) {
+        display->fill_rect(rc, window->color_back);
+        rect_ui16_t rc_tit = rc;
+        rc_tit.y += 10;
+        rc_tit.h = 30; // 30pixels for title
+        render_text_align(rc_tit, "Please wait", window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
+        window->win.f_invalid = 0;
+        if (window->flags & DLG_W8_FRAME_FLG) { //draw frame
+            const uint16_t w = display->w;
+            const uint16_t h = display->h;
+
+            display->draw_line(point_ui16(rc.x, rc.y), point_ui16(w - 1, rc.y), COLOR_GRAY);
+            display->draw_line(point_ui16(rc.x, rc.y), point_ui16(rc.x, h - 67), COLOR_GRAY);
+            display->draw_line(point_ui16(w - 1, rc.y), point_ui16(w - 1, h - 67), COLOR_GRAY);
+            display->draw_line(point_ui16(rc.x, h - 67), point_ui16(w - 1, h - 67), COLOR_GRAY);
+        }
+    }
+
+    if (window->flags & DLG_W8_HOUR_CHNG) { //hourglass animation (just sand 0x0100, whole icon 0x0200)
+        rect_ui16_t icon_rc = rc;
+        icon_rc.h = icon_rc.w = 30;
+        icon_rc.x += 110;
+        icon_rc.y += 50;
+
+        if (window->flags & DLG_W8_HOUR_REDRW) {
+            const uint16_t x = icon_rc.x;
+            const uint16_t y = icon_rc.y;
+
+            render_icon_align(icon_rc, IDR_PNG_wizard_icon_hourglass, COLOR_BLACK, ALIGN_CENTER);
+            if (window->flags & 0x0010) {
+                display->draw_line(point_ui16(x + 15, y + 24), point_ui16(x + 15, y + 29), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 13, y + 33), point_ui16(x + 17, y + 33), COLOR_ORANGE);
+            } else if (window->flags & 0x0020) {
+                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20, y + 13), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 15, y + 19), point_ui16(x + 15, y + 24), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 15, y + 29), point_ui16(x + 15, y + 34), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 10, y + 33), point_ui16(x + 20, y + 33), COLOR_ORANGE);
+            } else if (window->flags & 0x0040) {
+                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20, y + 13), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 12, y + 14), point_ui16(x + 19, y + 14), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 15, y + 24), point_ui16(x + 15, y + 29), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 6, y + 33), point_ui16(x + 24, y + 33), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 12, y + 32), point_ui16(x + 18, y + 32), COLOR_ORANGE);
+            } else if (window->flags & 0x0080) {
+                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20, y + 13), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 12, y + 14), point_ui16(x + 19, y + 14), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 13, y + 15), point_ui16(x + 18, y + 15), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 13, y + 16), point_ui16(x + 17, y + 16), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 14, y + 17), point_ui16(x + 17, y + 17), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 14, y + 18), point_ui16(x + 16, y + 18), COLOR_BLACK);
+                display->draw_line(point_ui16(x + 15, y + 26), point_ui16(x + 15, y + 34), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 10, y + 31), point_ui16(x + 20, y + 31), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 6, y + 32), point_ui16(x + 24, y + 32), COLOR_ORANGE);
+                display->draw_line(point_ui16(x + 6, y + 33), point_ui16(x + 24, y + 33), COLOR_ORANGE);
             }
-        }
-        if (window->flags & DLG_W8_HOUR_CHNG) { //hourglass animation (just sand 0x0100, whole icon 0x0200)
+        } else
+            render_icon_align(icon_rc, IDR_PNG_wizard_icon_hourglass, COLOR_BLACK, ALIGN_CENTER); //change icon
 
-            rect_ui16_t icon_rc = rc;
-            icon_rc.h = icon_rc.w = 30;
-            icon_rc.x += 110;
-            icon_rc.y += 50;
+        window->flags &= 0xF00F; //reset animation flags
+    }
 
-            if (window->flags & DLG_W8_HOUR_REDRW) {
-                render_icon_align(icon_rc, IDR_PNG_wizard_icon_hourglass, COLOR_BLACK, ALIGN_CENTER);
-                if (window->flags & 0x0010) {
-                    display->draw_line(point_ui16(icon_rc.x + 15, icon_rc.y + 24), point_ui16(icon_rc.x + 15, icon_rc.y + 29), COLOR_ORANGE);
-                    display->draw_line(point_ui16(icon_rc.x + 13, icon_rc.y + 33), point_ui16(icon_rc.x + 17, icon_rc.y + 33), COLOR_ORANGE);
-                } else if (window->flags & 0x0020) {
-                    display->draw_line(point_ui16(icon_rc.x + 11, icon_rc.y + 13), point_ui16(icon_rc.x + 20, icon_rc.y + 13), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 15, icon_rc.y + 19), point_ui16(icon_rc.x + 15, icon_rc.y + 24), COLOR_ORANGE);
-                    display->draw_line(point_ui16(icon_rc.x + 15, icon_rc.y + 29), point_ui16(icon_rc.x + 15, icon_rc.y + 34), COLOR_ORANGE);
-                    display->draw_line(point_ui16(icon_rc.x + 10, icon_rc.y + 33), point_ui16(icon_rc.x + 20, icon_rc.y + 33), COLOR_ORANGE);
-                } else if (window->flags & 0x0040) {
-                    display->draw_line(point_ui16(icon_rc.x + 11, icon_rc.y + 13), point_ui16(icon_rc.x + 20, icon_rc.y + 13), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 12, icon_rc.y + 14), point_ui16(icon_rc.x + 19, icon_rc.y + 14), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 15, icon_rc.y + 24), point_ui16(icon_rc.x + 15, icon_rc.y + 29), COLOR_ORANGE);
-                    display->draw_line(point_ui16(icon_rc.x + 6, icon_rc.y + 33), point_ui16(icon_rc.x + 24, icon_rc.y + 33), COLOR_ORANGE);
-                    display->draw_line(point_ui16(icon_rc.x + 12, icon_rc.y + 32), point_ui16(icon_rc.x + 18, icon_rc.y + 32), COLOR_ORANGE);
-                } else if (window->flags & 0x0080) {
-                    display->draw_line(point_ui16(icon_rc.x + 11, icon_rc.y + 13), point_ui16(icon_rc.x + 20, icon_rc.y + 13), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 12, icon_rc.y + 14), point_ui16(icon_rc.x + 19, icon_rc.y + 14), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 13, icon_rc.y + 15), point_ui16(icon_rc.x + 18, icon_rc.y + 15), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 13, icon_rc.y + 16), point_ui16(icon_rc.x + 17, icon_rc.y + 16), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 14, icon_rc.y + 17), point_ui16(icon_rc.x + 17, icon_rc.y + 17), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 14, icon_rc.y + 18), point_ui16(icon_rc.x + 16, icon_rc.y + 18), COLOR_BLACK);
-                    display->draw_line(point_ui16(icon_rc.x + 15, icon_rc.y + 26), point_ui16(icon_rc.x + 15, icon_rc.y + 34), COLOR_ORANGE);
-                    display->draw_line(point_ui16(icon_rc.x + 10, icon_rc.y + 31), point_ui16(icon_rc.x + 20, icon_rc.y + 31), COLOR_ORANGE);
-                    display->draw_line(point_ui16(icon_rc.x + 6, icon_rc.y + 32), point_ui16(icon_rc.x + 24, icon_rc.y + 32), COLOR_ORANGE);
-                    display->draw_line(point_ui16(icon_rc.x + 6, icon_rc.y + 33), point_ui16(icon_rc.x + 24, icon_rc.y + 33), COLOR_ORANGE);
-                }
-            } else
-                render_icon_align(icon_rc, IDR_PNG_wizard_icon_hourglass, COLOR_BLACK, ALIGN_CENTER); //change icon
-
-            window->flags &= 0xF00F; //reset animation flags
-        }
-        if (window->flags & DLG_W8_PROGRESS) //progress changed
-        {
-            rect_ui16_t rc_pro = rc;
-            rc_pro.x = 10;
-            rc_pro.w -= 20;
-            char text[16];
-            rc_pro.h = 16;
-            rc_pro.y += 120;
-            uint16_t w = rc_pro.w;
-            rc_pro.w = w * window->progress / 100;
-            display->fill_rect(rc_pro, COLOR_ORANGE);
-            rc_pro.x += rc_pro.w;
-            rc_pro.w = w - rc_pro.w;
-            display->fill_rect(rc_pro, COLOR_GRAY);
-            rc_pro.y += rc_pro.h;
-            rc_pro.w = rc.w - 120;
-            rc_pro.x = rc.x + 60;
-            rc_pro.h = 30;
-            sprintf(text, "%d%%", window->progress);
-            render_text_align(rc_pro, text, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
-            window->flags &= 0x7FFF;
-        }
+    if (window->flags & DLG_W8_PROGRESS) { //progress changed
+        rect_ui16_t rc_pro = rc;
+        rc_pro.x = 10;
+        rc_pro.w -= 20;
+        char text[16];
+        rc_pro.h = 16;
+        rc_pro.y += 120;
+        const uint16_t w = rc_pro.w;
+        rc_pro.w = w * window->progress / 100;
+        display->fill_rect(rc_pro, COLOR_ORANGE);
+        rc_pro.x += rc_pro.w;
+        rc_pro.w = w - rc_pro.w;
+        display->fill_rect(rc_pro, COLOR_GRAY);
+        rc_pro.y += rc_pro.h;
+        rc_pro.w = rc.w - 120;
+        rc_pro.x = rc.x + 60;
+        rc_pro.h = 30;
+        sprintf(text, "%d%%", window->progress);
+        render_text_align(rc_pro, text, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
+        window->flags &= 0x7FFF;
     }
 }
 
@@ -214,6 +220,5 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
 int8_t gui_marlin_busy_callback() {
     if (marlin_motion() || marlin_busy())
         return -1;
-    else
-        return 0;
+    return 0;
 }

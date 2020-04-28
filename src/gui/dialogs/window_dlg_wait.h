@@ -26,7 +26,7 @@ typedef struct _window_dlg_wait_t {
     padding_ui8_t padding;
     uint32_t timer;
     int8_t progress;
-    uint16_t flags;
+    uint16_t flags; // description in .c file
 } window_dlg_wait_t;
 
 typedef struct _window_class_dlg_wait_t {
