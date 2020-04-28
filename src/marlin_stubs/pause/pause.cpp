@@ -51,6 +51,7 @@
 
 #include "marlin_server.hpp"
 #include "filament_sensor.h"
+#include "filament.h"
 // private:
 //check unsupported features
 //filament sensor is no longer part of marlin thus it must be disabled
@@ -233,6 +234,8 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         }
     } while (isFilamentInGear != Response::Yes);
 
+    set_filament(filament_to_load);
+
     //todo reheat
     if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30)) {
         return false;
@@ -321,6 +324,8 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     do_pause_e_move_notify_progress((unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), PhasesLoadUnload::Unloading, 51, 99);
 
     planner.settings.retract_acceleration = saved_acceleration;
+
+    set_filament(FILAMENT_NONE);
 
 // Disable E steppers for manual change
 #if HAS_E_STEPPER_ENABLE

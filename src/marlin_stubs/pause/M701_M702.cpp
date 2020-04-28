@@ -39,6 +39,7 @@
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "marlin_server.hpp"
+#include "filament.h"
 
 #define DO_NOT_RESTORE_Z_AXIS
 #define Z_AXIS_LOAD_POS   40
@@ -81,6 +82,21 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
  * Load filament special code
  */
 static void load(const int8_t target_extruder) {
+    filament_to_load = DEFAULT_FILAMENT;
+    if (parser.seen('S')) {
+        const char *text_begin = strchr(parser.string_arg, '"');
+        if (text_begin) {
+            ++text_begin; //move pointer from '"' to first letter
+            const char *text_end = strchr(text_begin, '"');
+            if (text_end) {
+                FILAMENT_t filament = get_filament_from_string(text_begin, text_end - text_begin);
+                if (filament != FILAMENT_NONE) {
+                    filament_to_load = filament;
+                }
+            }
+        }
+    }
+
     constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH,
                     slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
@@ -111,7 +127,7 @@ static void unload(const int8_t target_extruder) {
  *                For non-mixing, current extruder if omitted.
  *  Z<distance> - Move the Z axis by this distance
  *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
- *
+ *  S"Filament" - save filament by name, for example S"PLA". RepRap compatible.
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
