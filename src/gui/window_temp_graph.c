@@ -28,28 +28,26 @@ void window_temp_graph_init(window_temp_graph_t *window) {
 
 void window_temp_graph_draw(window_temp_graph_t *window) {
     if (window->win.flg & WINDOW_FLG_INVALID) {
-        rect_ui16_t rc = window->win.rect;
+        //const rect_ui16_t rc = window->win.rect;
         uint8_t j;
-        display->fill_rect(rc, window->color_back);
-        display->draw_line(point_ui16(window->win.rect.x, window->win.rect.y - 1),
-            point_ui16(window->win.rect.x, window->win.rect.y + window->win.rect.h - 1), COLOR_WHITE); //hotend
+        const uint16_t x = window->win.rect.x;
+        const uint16_t y = window->win.rect.y;
+        const uint16_t w = window->win.rect.w;
+        const uint16_t h = window->win.rect.h;
 
-        display->draw_line(point_ui16(window->win.rect.x, (window->win.rect.y + window->win.rect.h) - 1),
-            point_ui16((window->win.rect.x + window->win.rect.w), (window->win.rect.y + window->win.rect.h) - 1), COLOR_WHITE); //x
+        display->fill_rect(window->win.rect, window->color_back);
+        display->draw_line(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE);         //hotend
+        display->draw_line(point_ui16(x, y + h - 1), point_ui16(x + w, y + h - 1), COLOR_WHITE); //x
 
         for (j = 25; j < 175; j += 25) {
             display->draw_line(point_ui16(window->win.rect.x + 1, (window->win.rect.y + window->win.rect.h) - j),
                 point_ui16((window->win.rect.x + window->win.rect.w - 1) - 5, (window->win.rect.y + window->win.rect.h) - j), COLOR_GRAY); //x
         }
 
-        j = 0;
-
         for (j = 25; j < 175; j += 25) {
             display->draw_line(point_ui16(window->win.rect.x + j, window->win.rect.y + window->win.rect.h),
                 point_ui16(window->win.rect.x + j, window->win.rect.y + window->win.rect.h - 5), COLOR_WHITE); //-50
         }
-
-        j = 0;
 
         window->win.flg &= ~WINDOW_FLG_INVALID;
     }
