@@ -1,9 +1,5 @@
-if(NOT TARGET LwIP_Config)
-  message(FATAL_ERROR "Target LwIP_Config does not exist.")
-endif()
-
-add_library(
-  LwIP
+add_library(LwIP INTERFACE)
+target_sources(LwIP INTERFACE
   src/api/api_lib.c
   src/api/api_msg.c
   src/api/err.c
@@ -79,7 +75,7 @@ add_library(
 
 target_include_directories(
   LwIP
-  PUBLIC system
+  INTERFACE system
          src/include
          src/include/netif/ppp
          src/include/lwip
@@ -88,5 +84,3 @@ target_include_directories(
          src/include/netif
          src/include/posix
   )
-
-target_link_libraries(LwIP PUBLIC LwIP_Config)
