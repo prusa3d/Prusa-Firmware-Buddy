@@ -88,6 +88,7 @@ typedef enum {
     mpsPausing_ParkHead,
     mpsPaused,
     mpsResuming_Begin,
+    mpsResuming_Reheating,
     mpsResuming_UnparkHead,
     mpsAborting_Begin,
     mpsAborting_WaitIdle,

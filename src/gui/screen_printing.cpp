@@ -761,6 +761,9 @@ void change_print_state(screen_t *screen, printing_state_t st) {
     case mpsPausing_ParkHead:
         st = P_PAUSING;
         break;
+    case mpsResuming_Reheating:
+        st = P_REHEATING;
+        break;
     case mpsResuming_Begin:
     case mpsResuming_UnparkHead:
         st = P_RESUMING;

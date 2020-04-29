@@ -93,6 +93,12 @@ extern void marlin_server_print_pause(void);
 extern void marlin_server_print_resume(void);
 
 //
+extern void marlin_server_print_reheat_start(void);
+
+//
+extern int marlin_server_print_reheat_ready(void);
+
+//
 extern void marlin_server_park_head(void);
 
 //

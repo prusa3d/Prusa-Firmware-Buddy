@@ -23,6 +23,7 @@
 #include "../Marlin/src/feature/pause.h"
 #include "../Marlin/src/libs/nozzle.h"
 #include "../Marlin/src/core/language.h" //GET_TEXT(MSG)
+#include "../Marlin/src/gcode/gcode.h"
 
 #include "hwio.h"
 #include "eeprom.h"
@@ -69,8 +70,10 @@ typedef struct _marlin_server_t {
     marlin_mesh_t mesh;                              // meshbed leveling
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
     uint64_t update_vars;                            // variable update mask
-    marlin_print_state_t print_state;
-    float resume_pos[4];
+    marlin_print_state_t print_state;                // printing state (printing, paused, ...)
+    float resume_pos[4];                             // resume position for unpark_head
+    float resume_nozzle_temp;                        // resume nozzle temperature
+    uint32_t paused_ticks;                           // tick count in moment when printing paused
 } marlin_server_t;
 
 #pragma pack(pop)
@@ -439,6 +442,19 @@ void marlin_server_print_resume(void) {
     }
 }
 
+void marlin_server_print_reheat_start(void) {
+    if ((marlin_server.print_state == mpsPaused) && (marlin_server_print_reheat_ready() == 0)) {
+        thermalManager.setTargetHotend(marlin_server.resume_nozzle_temp, 0);
+    }
+}
+
+int marlin_server_print_reheat_ready(void) {
+    if (marlin_server.vars.target_nozzle == marlin_server.resume_nozzle_temp)
+        if (marlin_server.vars.temp_nozzle >= (marlin_server.vars.target_nozzle - 5))
+            return 1;
+    return 0;
+}
+
 void _server_print_loop(void) {
     switch (marlin_server.print_state) {
     case mpsIdle:
@@ -458,6 +474,7 @@ void _server_print_loop(void) {
     case mpsPausing_Begin:
         media_print_pause();
         print_job_timer.pause();
+        marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
     case mpsPausing_WaitIdle:
@@ -467,12 +484,30 @@ void _server_print_loop(void) {
         }
         break;
     case mpsPausing_ParkHead:
-        if (planner.movesplanned() == 0)
+        if (planner.movesplanned() == 0) {
+            marlin_server.paused_ticks = HAL_GetTick(); //time when printing paused
             marlin_server.print_state = mpsPaused;
+        }
+        break;
+    case mpsPaused:
+        if ((marlin_server.vars.target_nozzle > 0) && (HAL_GetTick() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
+            thermalManager.setTargetHotend(0, 0);
+        gcode.reset_stepper_timeout(); //prevent disable axis
         break;
     case mpsResuming_Begin:
-        marlin_server_unpark_head();
-        marlin_server.print_state = mpsResuming_UnparkHead;
+        if (marlin_server_print_reheat_ready()) {
+            marlin_server_unpark_head();
+            marlin_server.print_state = mpsResuming_UnparkHead;
+        } else {
+            thermalManager.setTargetHotend(marlin_server.resume_nozzle_temp, 0);
+            marlin_server.print_state = mpsResuming_Reheating;
+        }
+        break;
+    case mpsResuming_Reheating:
+        if (marlin_server_print_reheat_ready()) {
+            marlin_server_unpark_head();
+            marlin_server.print_state = mpsResuming_UnparkHead;
+        }
         break;
     case mpsResuming_UnparkHead:
         if (planner.movesplanned() == 0) {
