@@ -82,8 +82,6 @@ void window_temp_graph_draw(window_temp_graph_t *window) {
 
         const uint16_t x = window->win.rect.x;
         const uint16_t y = window->win.rect.y;
-        const uint16_t w = window->win.rect.w;
-        const uint16_t h = window->win.rect.h;
 
         for (i = 0; i < 178; i++) {
             redraw_point(x + i + 1, y, &window->y_nozzle_t[i], window->color_back, window->color_extruder_t);
