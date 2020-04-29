@@ -52,17 +52,19 @@ rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align) {
         break;
     case ALIGN_HCENTER:
         if (rc.w >= rc1.w)
-            rect.x = rc.x + ((rc.w - rc1.w) / 2);
+            rect.x = rc.x + (rc.w - rc1.w) / 2;
         else
-            rect.x = (rc.x > ((rc1.w - rc.w) / 2)) ? rc.x - ((rc1.w - rc.w) / 2) : 0;
+            rect.x = MAX(0, rc.x - (rc1.w - rc.w) / 2);
         break;
     }
+
     switch (align & ALIGN_VMASK) {
     case ALIGN_TOP:
         rect.y = rc.y;
         break;
     case ALIGN_BOTTOM:
         rect.y = ((rc.y + rc.h) > rc1.h) ? ((rc.y + rc.h) - rc1.h) : 0;
+        rect.y = MAX(0, (rc.y + rc.h) - rc1.h);
         break;
     case ALIGN_VCENTER:
         if (rc.h >= rc1.h)
@@ -82,9 +84,8 @@ point_ui16_t font_meas_text(const font_t *pf, const char *str) {
     const int8_t char_w = pf->w;
     const int8_t char_h = pf->h;
     int len = strlen(str);
-    char c;
     while (len--) {
-        c = *(str++);
+        const char c = *(str++);
         if (c == '\n') {
             if (x + char_w > w)
                 w = x + char_w;
@@ -102,12 +103,11 @@ int font_line_chars(const font_t *pf, const char *str, uint16_t line_width) {
     const int char_w = pf->w;
     int len = strlen(str);
     int n = 0;
-    char c;
     // This is generally about finding the closest '\n' character within the current line to be drawn.
     // Line is limited by pixel dimension, all characters have the same fixed pixel size
     // Such character may not be found, so n becomes > len
     while ((w + char_w) <= line_width) {
-        c = str[n++];
+        const char c = str[n++];
         if (c == '\n')
             break;
         w += char_w;
