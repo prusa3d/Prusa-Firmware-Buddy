@@ -69,11 +69,11 @@ extern osSemaphoreId marlin_server_sema; // semaphore handle
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-void _wait_server_started(void);
-void _send_request_to_server(uint8_t client_id, const char *request);
-uint32_t _wait_ack_from_server(uint8_t client_id);
-void _process_client_message(marlin_client_t *client, variant8_t msg);
-marlin_client_t *_client_ptr(void);
+static void _wait_server_started(void);
+static void _send_request_to_server(uint8_t client_id, const char *request);
+static uint32_t _wait_ack_from_server(uint8_t client_id);
+static void _process_client_message(marlin_client_t *client, variant8_t msg);
+static marlin_client_t *_client_ptr(void);
 
 //-----------------------------------------------------------------------------
 // client side public functions
@@ -623,13 +623,13 @@ void marlin_encoded_response(uint32_t enc_phase_and_response) {
 // private functions
 
 // wait while server not started (called from client thread in marlin_client_init)
-void _wait_server_started(void) {
+static void _wait_server_started(void) {
     while (marlin_server_task == 0)
         osDelay(1);
 }
 
 // send request to server (called from client thread), infinite timeout
-void _send_request_to_server(uint8_t client_id, const char *request) {
+static void _send_request_to_server(uint8_t client_id, const char *request) {
     int ret = 0;
     int len = strlen(request);
     osMessageQId queue = 0;
@@ -660,7 +660,7 @@ void _send_request_to_server(uint8_t client_id, const char *request) {
 }
 
 // wait for ack event, blocking - used for synchronization, called typicaly at end of client request functions
-uint32_t _wait_ack_from_server(uint8_t client_id) {
+static uint32_t _wait_ack_from_server(uint8_t client_id) {
     while ((marlin_client[client_id].events & MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge)) == 0) {
         marlin_client_loop();
         if (marlin_client[client_id].last_count == 0)
@@ -671,7 +671,7 @@ uint32_t _wait_ack_from_server(uint8_t client_id) {
 }
 
 // process message on client side (set flags, update vars etc.)
-void _process_client_message(marlin_client_t *client, variant8_t msg) {
+static void _process_client_message(marlin_client_t *client, variant8_t msg) {
     uint8_t id = msg.usr8 & MARLIN_USR8_MSK_ID;
     if (msg.usr8 & MARLIN_USR8_VAR_FLG) // variable change received
     {
@@ -784,7 +784,7 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
 }
 
 // returns client pointer for calling client thread (client thread)
-marlin_client_t *_client_ptr(void) {
+static marlin_client_t *_client_ptr(void) {
     osThreadId taskHandle = osThreadGetId();
     int client_id;
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
