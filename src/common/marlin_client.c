@@ -89,7 +89,7 @@ marlin_vars_t *marlin_client_init(void) {
     if (client_id < MARLIN_MAX_CLIENTS) {
         client = marlin_client + client_id;
         memset(client, 0, sizeof(marlin_client_t));
-        osMessageQDef(clientQueue, 32, uint32_t);
+        osMessageQDef(clientQueue, MARLIN_CLIENT_QUEUE * 2, uint32_t);
         marlin_client_queue[client_id] = osMessageCreate(osMessageQ(clientQueue), NULL);
         client->id = client_id;
         client->flags = 0;
