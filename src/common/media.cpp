@@ -8,19 +8,22 @@
 
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
+#define USBHOST_REENUM_DELAY   100 // pool delay [ms]
+#define USBHOST_REENUM_TIMEOUT 500 // state-hang timeout [ms]
+
 // Re-enumerate UsbHost in case that it hangs in enumeration state (HOST_ENUMERATION,ENUM_IDLE)
 // this is not solved in original UsbHost driver
 // this occurs e.g. when user connects and then quickly disconnects usb flash during connection process
 // state is checked every 100ms, timeout for re-enumeration is 500ms
 // TODO: maybe we will change condition for states, because it can hang also in different state
 void _usbhost_reenum(void) {
-    static uint32_t timer = 0;     // static timer variable
-    uint32_t tick = HAL_GetTick(); // read tick
-    if ((tick - timer) > 100) {    // every 100ms
+    static uint32_t timer = 0;                   // static timer variable
+    uint32_t tick = HAL_GetTick();               // read tick
+    if ((tick - timer) > USBHOST_REENUM_DELAY) { // every 100ms
         // timer is valid, UsbHost is in enumeration state
         if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
             // longer than 500ms
-            if ((tick - timer) > 500) {
+            if ((tick - timer) > USBHOST_REENUM_TIMEOUT) {
                 _dbg("USB host reenumerating"); // trace
                 USBH_ReEnumerate(&hUsbHostHS);  // re-enumerate UsbHost
             }
@@ -32,8 +35,8 @@ void _usbhost_reenum(void) {
 uint8_t media_inserted = 0;
 media_error_t media_error = media_error_OK;
 media_print_state_t media_print_state = media_print_state_NONE;
-char media_print_filename[128] = { 0 };
-char media_print_filepath[128] = { 0 };
+char media_print_filename[MEDIA_PRINT_FILENAME_SIZE] = { 0 };
+char media_print_filepath[MEDIA_PRINT_FILEPATH_SIZE] = { 0 };
 FIL media_print_fil;
 uint32_t media_current_position;
 uint32_t media_current_line;

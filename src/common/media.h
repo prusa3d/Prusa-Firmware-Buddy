@@ -4,6 +4,9 @@
 
 #include <inttypes.h>
 
+#define MEDIA_PRINT_FILENAME_SIZE 128
+#define MEDIA_PRINT_FILEPATH_SIZE 128
+
 typedef enum {
     media_error_OK = 0,    // no error
     media_error_MOUNT = 1, // error - mounting media - f_mount failed
@@ -19,9 +22,9 @@ typedef enum {
 extern "C" {
 #endif //__cplusplus
 
-extern char media_print_filename[128];
+extern char media_print_filename[MEDIA_PRINT_FILENAME_SIZE];
 
-extern char media_print_filepath[128];
+extern char media_print_filepath[MEDIA_PRINT_FILEPATH_SIZE];
 
 extern uint8_t media_is_inserted(void);
 
