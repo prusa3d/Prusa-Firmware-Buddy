@@ -55,7 +55,7 @@ pipeline {
                     // create the build stages
                     configurations.each { config ->
                         stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
-                            catchError{
+                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                 sh """
                                     python utils/build.py \
                                         --printer ${config.printer} \
