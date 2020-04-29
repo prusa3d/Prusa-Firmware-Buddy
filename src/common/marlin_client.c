@@ -17,11 +17,11 @@
 #define DBG_REQ(...) //disable trace
 
 //trace event notification (client side), to disable trace undef DBG_EVT_MSK
-#define DBG_EVT     DBG
+#define DBG_EVT DBG
 //#define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
 //trace variable change notifications (client side), to disable trace undef DBG_VAR_MSK
-#define DBG_VAR     DBG
+#define DBG_VAR DBG
 //#define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
 
 //maximum string length for DBG_VAR
@@ -414,7 +414,8 @@ variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
         retval = marlin_vars_get_var(&(client->vars), var_id);
         marlin_vars_set_var(&(client->vars), var_id, val);
         n = sprintf(request, "!var %s ", marlin_vars_get_name(var_id));
-        marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n);
+        if (marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n) >= (sizeof(request) - n))
+            bsod("Request too long.");
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
     }
