@@ -33,9 +33,6 @@
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
-#include "../Marlin/src/module/temperature.h"
-#include "../Marlin/src/module/probe.h"
-#include "../Marlin/src/gcode/queue.h"
 
 #define DBG _dbg0 //debug level 0
 //#define DBG(...)  //disable debug
