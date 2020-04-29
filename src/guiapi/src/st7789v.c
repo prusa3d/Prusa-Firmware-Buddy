@@ -97,7 +97,7 @@ void st7789v_draw_line(point_ui16_t pt, point_ui16_t pt1, color_t clr);
 void st7789v_draw_rect(rect_ui16_t rc, color_t clr);
 void st7789v_fill_rect(rect_ui16_t rc, color_t clr);
 void st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr0, color_t clr1);
-void st7789v_draw_text(rect_ui16_t rc, const char *str, font_t *pf, color_t clr0, color_t clr1);
+void st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr0, color_t clr1);
 void st7789v_draw_png(point_ui16_t pt, FILE *pf);
 /*some functions are in header - excluded from display_t struct*/
 void st7789v_gamma_set_direct(uint8_t gamma_enu);
@@ -562,7 +562,7 @@ void st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr0
         display->fill_rect(rect_ui16(pt.x, pt.y, w, h), clr0);
 }
 
-void st7789v_draw_text(rect_ui16_t rc, const char *str, font_t *pf, color_t clr0, color_t clr1) {
+void st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr0, color_t clr1) {
     int i;
     int len = strlen(str);
     int x = rc.x;
