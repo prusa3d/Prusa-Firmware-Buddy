@@ -55,18 +55,20 @@ pipeline {
                     // create the build stages
                     configurations.each { config ->
                         stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
-                            sh """
-                                python utils/build.py \
-                                    --printer ${config.printer} \
-                                    --build-type ${config.build_type} \
-                                    --bootloader ${config.bootloader} \
-                                    --generate-bbf \
-                                    --generate-dfu \
-                                    --no-store-output \
-                                    --version-suffix=${full_suffix} \
-                                    --version-suffix-short=${short_suffix} \
-                                    -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror
-                            """
+                            catchError{
+                                sh """
+                                    python utils/build.py \
+                                        --printer ${config.printer} \
+                                        --build-type ${config.build_type} \
+                                        --bootloader ${config.bootloader} \
+                                        --generate-bbf \
+                                        --generate-dfu \
+                                        --no-store-output \
+                                        --version-suffix=${full_suffix} \
+                                        --version-suffix-short=${short_suffix} \
+                                        -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror
+                                """
+                            }
                         }
                     }
                 }
