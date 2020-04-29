@@ -549,7 +549,9 @@ void marlin_print_start(const char *filename) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    sprintf(request, "!pstart %s", filename);
+    if (snprintf(request, sizeof(request), "!pstart %s", filename) >= sizeof(request))
+        ;
+    bsod("Request too long.");
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
