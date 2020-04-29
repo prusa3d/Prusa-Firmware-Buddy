@@ -247,8 +247,8 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
         if ((fname[0] == 0 || is_newer) && !skip) {
             const char *short_name = current_finfo.altname[0] ? current_finfo.altname : current_finfo.fname;
             fpath[0] = '/';
-            strncpy(fpath + 1, short_name, fpath_len - 1);
-            strncpy(fname, current_finfo.fname, fname_len);
+            strlcpy(fpath + 1, short_name, fpath_len - 1);
+            strlcpy(fname, current_finfo.fname, fname_len);
             latest_fdate = current_finfo.fdate;
             latest_ftime = current_finfo.ftime;
         }
