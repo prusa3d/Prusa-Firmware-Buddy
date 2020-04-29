@@ -50,9 +50,9 @@ media_state_t media_get_state(void) {
 void media_print_start(const char *filepath) {
     FILINFO filinfo;
     if (media_print_state == media_print_state_NONE) {
-        strncpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
+        strlcpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
         if (f_stat(media_print_filepath, &filinfo) == FR_OK) {
-            strncpy(media_print_filepath, filinfo.fname, sizeof(media_print_filepath) - 1);
+            strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filepath) - 1);
             if (f_open(&media_print_fil, media_print_filepath, FA_READ) == FR_OK) {
                 media_current_position = 0;
                 media_current_line = 0;
