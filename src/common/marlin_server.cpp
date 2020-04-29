@@ -146,17 +146,17 @@ extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue hand
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-int _send_notify_to_client(osMessageQId queue, variant8_t msg);
-int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
-uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
-uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
-int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var);
-uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk);
-void _server_update_gqueue(void);
-void _server_update_pqueue(void);
-uint64_t _server_update_vars(uint64_t force_update_msk);
-int _process_server_request(char *request);
-int _server_set_var(char *name_val_str);
+static int _send_notify_to_client(osMessageQId queue, variant8_t msg);
+static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
+static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
+static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
+static int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var);
+static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk);
+static void _server_update_gqueue(void);
+static void _server_update_pqueue(void);
+static uint64_t _server_update_vars(uint64_t force_update_msk);
+static int _process_server_request(char *request);
+static int _server_set_var(char *name_val_str);
 
 //-----------------------------------------------------------------------------
 // server side functions
@@ -472,7 +472,7 @@ int marlin_all_axes_known(void) {
 // private functions
 
 // send notify message (variant8_t) to client queue (called from server thread)
-int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
+static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
     //synchronization not necessary because only server thread can write to this queue
     if (queue == 0)
         return 0;
@@ -484,15 +484,28 @@ int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 }
 
 // send event notification to client (called from server thread)
-int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
+static int __send_notify_event_to_client(osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     variant8_t msg;
     msg = variant8_user(usr32, usr16, evt_id);
     return _send_notify_to_client(queue, msg);
 }
 
+//remember if ack not sent
+//and try to resend it each time for valid client
+static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
+    static uint32_t client_unsent_ACK_mask = 0;
+    if (client_unsent_ACK_mask & (1 << client_id))
+        if (__send_notify_event_to_client(queue, MARLIN_EVT_Acknowledge, 0, 0))
+            client_unsent_ACK_mask &= ~(1 << client_id);
+    int ret = __send_notify_event_to_client(queue, evt_id, usr32, usr16);
+    if (!ret && evt_id == MARLIN_EVT_Acknowledge)
+        client_unsent_ACK_mask |= (1 << client_id);
+    return ret;
+}
+
 // send event notification to client - multiple events (called from server thread)
 // returns mask of succesfull sent events
-uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
+static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
     uint64_t sent = 0;
     uint64_t msk = 1;
     evt_msk &= marlin_server.notify_events[client_id]; //for sure
@@ -582,7 +595,7 @@ uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64
 
 // send event notification to all clients (called from server thread)
 // returns bitmask - bit0 = notify for client0 successfully send, bit1 for client1...
-uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
+static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
     uint8_t client_msk = 0;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (marlin_server.notify_events[client_id] & ((uint64_t)1 << evt_id)) {
@@ -608,7 +621,7 @@ int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t
 }
 
 // send variable change notification to client - multiple vars (called from server thread)
-uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk) {
+static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk) {
     variant8_t var;
     uint64_t sent = 0;
     uint64_t msk = 1;
@@ -625,14 +638,14 @@ uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint6
     return sent;
 }
 
-void _server_update_gqueue(void) {
+static void _server_update_gqueue(void) {
     if (marlin_server.gqueue != queue.length) {
         marlin_server.gqueue = queue.length;
         //		_dbg("gqueue: %2d", marlin_server.gqueue);
     }
 }
 
-void _server_update_pqueue(void) {
+static void _server_update_pqueue(void) {
     if ((marlin_server.pqueue_head != planner.block_buffer_head) || (marlin_server.pqueue_tail != planner.block_buffer_tail)) {
         marlin_server.pqueue_head = planner.block_buffer_head;
         marlin_server.pqueue_tail = planner.block_buffer_tail;
@@ -642,7 +655,7 @@ void _server_update_pqueue(void) {
 }
 
 // update server variables defined by 'update', returns changed variables mask (called from server thread)
-uint64_t _server_update_vars(uint64_t update) {
+static uint64_t _server_update_vars(uint64_t update) {
     int i;
     variant8_t v;
     uint64_t changes = 0;
@@ -830,7 +843,7 @@ void marlin_server_get_gcode_name(const char *dest) {
 }
 
 // process request on server side
-int _process_server_request(char *request) {
+static int _process_server_request(char *request) {
     int processed = 0;
     //uint64_t msk;
     uint32_t msk32[2];
@@ -912,7 +925,7 @@ int _process_server_request(char *request) {
 }
 
 // set variable from string request
-int _server_set_var(char *name_val_str) {
+static int _server_set_var(char *name_val_str) {
     int var_id;
     bool var_change_update = false;
     char *val_str = strchr(name_val_str, ' ');
@@ -969,7 +982,7 @@ int _is_in_M600_flg = 0;
 #endif
 
 // force send M600 begin/end notify
-void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t client_mask) {
+static void _ensure_event_sent(MARLIN_EVT_t evt_id, uint8_t client_mask) {
     int client_id;
     // loop until event successfully sent to all clients
     // clients that have not enabled the event will be skipped because sending is filtered in _send_notify_event
