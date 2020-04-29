@@ -3,6 +3,7 @@
 #include "marlin_vars.h"
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 // variable name constants (dbg)
 const char *__var_name[] = {
@@ -35,6 +36,8 @@ const char *__var_name[] = {
     "FILENAME",
     "FILEPATH",
 };
+
+static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
 
 const char *marlin_vars_get_name(uint8_t var_id) {
     if (var_id <= MARLIN_VAR_MAX)
