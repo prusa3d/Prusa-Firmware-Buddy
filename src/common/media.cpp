@@ -32,7 +32,7 @@ void _usbhost_reenum(void) {
     }
 }
 
-uint8_t media_inserted = 0;
+media_state_t media_state = media_state_REMOVED;
 media_error_t media_error = media_error_OK;
 media_print_state_t media_print_state = media_print_state_NONE;
 char media_print_filename[MEDIA_PRINT_FILENAME_SIZE] = { 0 };
@@ -43,8 +43,8 @@ uint32_t media_current_line;
 uint32_t media_queue_position[BUFSIZE];
 uint32_t media_queue_line[BUFSIZE];
 
-uint8_t media_is_inserted(void) {
-    return media_inserted;
+media_state_t media_get_state(void) {
+    return media_state;
 }
 
 void media_print_start(const char *filepath) {
@@ -162,11 +162,18 @@ void media_loop(void) {
     }
 }
 
-void media_set_inserted(uint8_t inserted) {
-    media_inserted = inserted ? 1 : 0;
+void media_set_removed(void) {
+    media_state = media_state_REMOVED;
+    media_error = media_error_OK;
+}
+
+void media_set_inserted(void) {
+    media_state = media_state_INSERTED;
+    media_error = media_error_OK;
 }
 
 void media_set_error(media_error_t error) {
+    media_state = media_state_ERROR;
     media_error = error;
 }
 

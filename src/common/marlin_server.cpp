@@ -927,7 +927,7 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS)) {
-        v.ui8 = media_is_inserted() ? 1 : 0;
+        v.ui8 = (media_get_state() == media_state_INSERTED) ? 1 : 0;
         if (marlin_server.vars.media_inserted != v.ui8) {
             marlin_server.vars.media_inserted = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS);

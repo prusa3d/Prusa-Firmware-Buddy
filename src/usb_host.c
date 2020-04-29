@@ -131,7 +131,7 @@ static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id) {
 
     case HOST_USER_DISCONNECTION:
         Appli_state = APPLICATION_DISCONNECT;
-        media_set_inserted(0);
+        media_set_removed();
         f_mount(0, (TCHAR const *)USBHPath, 1); //umount
         break;
 
@@ -139,7 +139,7 @@ static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id) {
         Appli_state = APPLICATION_READY;
         FRESULT result = f_mount(&USBHFatFS, (TCHAR const *)USBHPath, 0);
         if (result == FR_OK)
-            media_set_inserted(1);
+            media_set_inserted();
         else
             media_set_error(media_error_MOUNT);
         break;
