@@ -96,7 +96,7 @@ void st7789v_clip_rect(rect_ui16_t rc);
 void st7789v_draw_line(point_ui16_t pt, point_ui16_t pt1, color_t clr);
 void st7789v_draw_rect(rect_ui16_t rc, color_t clr);
 void st7789v_fill_rect(rect_ui16_t rc, color_t clr);
-void st7789v_draw_char(point_ui16_t pt, char chr, font_t *pf, color_t clr0, color_t clr1);
+void st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr0, color_t clr1);
 void st7789v_draw_text(rect_ui16_t rc, const char *str, font_t *pf, color_t clr0, color_t clr1);
 void st7789v_draw_png(point_ui16_t pt, FILE *pf);
 /*some functions are in header - excluded from display_t struct*/
@@ -514,7 +514,7 @@ void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
     st7789v_set_cs();
 }
 
-void st7789v_draw_char(point_ui16_t pt, char chr, font_t *pf, color_t clr0, color_t clr1) {
+void st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr0, color_t clr1) {
     int i;
     int j;
     uint8_t *pch;                 //character data pointer
