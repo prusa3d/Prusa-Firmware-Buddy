@@ -215,6 +215,8 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         // filamnet is being inserted
         // Slow Load filament
         if (slow_load_length) {
+            AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
+            thermalManager.allow_cold_extrude = true;
             do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 30, 50);
         }
 
