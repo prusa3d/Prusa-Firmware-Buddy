@@ -91,7 +91,7 @@ static bool is_target_temperature_safe() {
         return true;
     }
 }
-
+#if 0
 /**
  * Ensure a safe temperature for extrusion
  *
@@ -109,7 +109,7 @@ static bool ensure_safe_temperature() {
 
     return thermalManager.wait_for_hotend(active_extruder);
 }
-
+#endif
 static bool ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
 
     if (!is_target_temperature_safe()) {
@@ -410,14 +410,15 @@ bool pause_print(const float &retract, const xyz_pos_t &park_point, const float 
  */
 
 void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_beep_count /*=0*/) {
+#if 0
     bool nozzle_timed_out = false;
-
+#endif
     // Start the heater idle timers
     const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL;
 
     HOTEND_LOOP()
     thermalManager.hotend_idle[e].start(nozzle_timeout);
-
+#if 0
     //wait until user removes filament
     //change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::RemoveFilament), 30, 0);
 
@@ -462,6 +463,7 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
 
         idle(true);
     }
+#endif
 }
 
 /**
