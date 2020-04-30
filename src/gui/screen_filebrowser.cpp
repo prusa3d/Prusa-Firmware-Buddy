@@ -19,7 +19,6 @@
 #include "print_utils.h"
 #include "screens.h"
 
-#include "../Marlin/src/sd/cardreader.h"
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 
@@ -135,26 +134,33 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
         window_file_list_load(filelist, screen_filebrowser_sort);
         window_set_text(pd->header.win.id, strrchr(filelist->altpath, '/'));
     } else { // print the file
-        int written;
-        if (!strcmp(filelist->altpath, "/"))
-            written = snprintf(screen_printing_file_path, sizeof(screen_printing_file_path),
-                "/%s", currentFName);
-        else
-            written = snprintf(screen_printing_file_path, sizeof(screen_printing_file_path),
-                "%s/%s", filelist->altpath, currentFName);
 
-        if (written < 0 || written >= (int)sizeof(screen_printing_file_path)) {
-            LOG_ERROR("failed to prepare file path for print");
-            return 0;
+        marlin_vars_t *vars = marlin_vars();
+
+        if (vars->media_file_name && vars->media_file_path) {
+
+            int written;
+            if (!strcmp(filelist->altpath, "/"))
+                written = snprintf(vars->media_file_path, FILE_PATH_MAX_LEN,
+                    "/%s", currentFName);
+            else
+                written = snprintf(vars->media_file_path, FILE_PATH_MAX_LEN,
+                    "%s/%s", filelist->altpath, currentFName);
+
+            if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
+                LOG_ERROR("failed to prepare file path for print");
+                return 0;
+            }
+
+            strcpy(vars->media_file_name, currentFName);
+
+            screen_print_preview_set_on_action(on_print_preview_action);
+            screen_print_preview_set_gcode_filepath(vars->media_file_path);
+            screen_print_preview_set_gcode_filename(vars->media_file_name);
+            screen_open(get_scr_print_preview()->id);
+
+            return 1;
         }
-
-        strcpy(screen_printing_file_name, currentFName);
-
-        screen_print_preview_set_on_action(on_print_preview_action);
-        screen_print_preview_set_gcode_filename(screen_printing_file_name);
-        screen_print_preview_set_gcode_filepath(screen_printing_file_path);
-        screen_open(get_scr_print_preview()->id);
-        return 1;
     }
 
     return 0;

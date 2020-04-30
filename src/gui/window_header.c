@@ -15,8 +15,6 @@
 #endif //BUDDY_ENABLE_ETHERNET
 #include "eeprom.h"
 
-extern bool media_is_inserted();
-
 extern struct netif eth0;
 #if 0
 extern struct netif wlan0;
@@ -58,7 +56,7 @@ void window_header_init(window_header_t *window) {
     window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_OFF;
     window->label = NULL;
 
-    if (media_is_inserted()) {
+    if (marlin_vars()->media_inserted) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
     }
 #ifdef BUDDY_ENABLE_ETHERNET

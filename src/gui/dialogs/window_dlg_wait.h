@@ -42,7 +42,6 @@ extern "C" {
 extern const window_class_dlg_wait_t window_class_dlg_wait;
 
 extern int gui_dlg_wait(int8_t (*callback)());
-int8_t gui_marlin_busy_callback(void);
 
 #ifdef __cplusplus
 }
