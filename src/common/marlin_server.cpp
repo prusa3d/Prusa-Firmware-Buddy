@@ -282,9 +282,9 @@ int marlin_server_cycle(void) {
             if ((msk = marlin_server.client_changes[client_id]) != 0)
                 marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
             // send events to client only when all changes already sent, clear bits for successful sent notification
-            if (marlin_server.client_changes[client_id]) == 0)
-				if ((msk = marlin_server.client_events[client_id]) != 0)
-					marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
+            if ((marlin_server.client_changes[client_id]) == 0)
+                if ((msk = marlin_server.client_events[client_id]) != 0)
+                    marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
 #ifndef _DEBUG
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
@@ -1032,7 +1032,7 @@ static int _process_server_request(char *request) {
     }
     if (processed)
         if (!_send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0))
-            marlin_server.notify_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
+            marlin_server.notify_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge); // set bit if notification not sent
     return processed;
 }
 
