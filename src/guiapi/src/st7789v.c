@@ -65,7 +65,7 @@
 #define CLR565_BLUE    0x001f
 
 //color conversion
-#define _COLOR_TO_565(clr) color_to_565(clr)
+#define COLOR_TO_565(clr) color_to_565(clr)
 //color reverse conversion
 #define C565_TO_COLOR(clr) color_from_565(clr)
 
