@@ -67,7 +67,7 @@
 //color conversion
 #define _COLOR_TO_565(clr) color_to_565(clr)
 //color reverse conversion
-#define _565_TO_COLOR(clr) color_from_565(clr)
+#define C565_TO_COLOR(clr) color_from_565(clr)
 
 //private flags (pin states)
 #define FLG_CS  0x01 // current CS pin state
@@ -350,11 +350,11 @@ void st7789v_init(void) {
 void st7789v_done(void) {
 }
 
-// Fills screen by this color
+/// Fills screen by this color
 void st7789v_clear(color_t clr) {
     // FIXME similar to st7789v_fill_rect; join?
     int i;
-    const uint16_t clr565 = _COLOR_TO_565(clr);
+    const uint16_t clr565 = COLOR_TO_565(clr);
     for (i = 0; i < ST7789V_COLS * 16; i++)
         ((uint16_t *)st7789v_buff)[i] = clr565;
     st7789v_clr_cs();
@@ -367,11 +367,11 @@ void st7789v_clear(color_t clr) {
     //	st7789v_test_miso();
 }
 
-// Turns the specified pixel to the specified color
+/// Turns the specified pixel to the specified color
 void st7789v_set_pixel(point_ui16_t pt, color_t clr) {
     if (!point_in_rect_ui16(pt, st7789v_clip))
         return;
-    uint16_t clr565 = _COLOR_TO_565(clr);
+    uint16_t clr565 = COLOR_TO_565(clr);
     st7789v_cmd_caset(pt.x, 1);
     st7789v_cmd_raset(pt.y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
@@ -384,7 +384,7 @@ color_t st7789v_get_pixel(point_ui16_t pt) {
     st7789v_cmd_caset(pt.x, 1);
     st7789v_cmd_raset(pt.y, 1);
     st7789v_cmd_ramrd((uint8_t *)(&clr565), 2);
-    return _565_TO_COLOR(clr565);
+    return C565_TO_COLOR(clr565);
 }
 
 void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t directColor) {
@@ -442,8 +442,8 @@ void st7789v_clip_rect(rect_ui16_t rc) {
     st7789v_clip = rc;
 }
 
-// Draws simple line (no antialiasing)
-// Both end points are drawn
+/// Draws simple line (no antialiasing)
+/// Both end points are drawn
 void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     int n;
     const int dx = pt1.x - pt0.x;
@@ -494,7 +494,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     }
 }
 
-// Draws a rectangle boundary of defined color
+/// Draws a rectangle boundary of defined color
 void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
     point_ui16_t pt0 = { rc.x, rc.y };
     point_ui16_t pt1 = { rc.x + rc.w - 1, rc.y };
@@ -506,13 +506,13 @@ void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
     st7789v_fill_rect(rect_ui16(pt2.x, pt2.y, rc.w, 1), clr); // bottom
 }
 
-// Draws a solid rectangle of defined color
+/// Draws a solid rectangle of defined color
 void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
     rc = rect_intersect_ui16(rc, st7789v_clip);
     if (rect_empty_ui16(rc))
         return;
 
-    uint16_t clr565 = _COLOR_TO_565(clr);
+    uint16_t clr565 = COLOR_TO_565(clr);
     uint32_t size = (uint32_t)rc.w * rc.h * 2; // area of rectangle
 
     st7789v_fill_ui16((uint16_t *)st7789v_buff, clr565, MIN(size, sizeof(st7789v_buff) / 2));
@@ -528,11 +528,11 @@ void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
     st7789v_set_cs();
 }
 
-// Draws a single character accorign to selected font
-// \param clr_bg background color
-// \param clr_fg font/foreground color
-// If font is not available for the character, solid rectangle will be drawn in background color
-// \returns character is available in the font and was drawn
+/// Draws a single character according to selected font
+/// \param clr_bg background color
+/// \param clr_fg font/foreground color
+/// If font is not available for the character, solid rectangle will be drawn in background color
+/// \returns true if character is available in the font and was drawn
 bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     const uint16_t w = pf->w; //char width
     const uint16_t h = pf->h; //char height
@@ -560,7 +560,7 @@ bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_
     pch = (uint8_t *)(pf->pcs) + ((chr - pf->asc_min) * bpc);
     uint16_t clr565[16];
     for (i = 0; i <= pms; i++)
-        clr565[i] = _COLOR_TO_565(color_alpha(clr_bg, clr_fg, 255 * i / pms));
+        clr565[i] = COLOR_TO_565(color_alpha(clr_bg, clr_fg, 255 * i / pms));
     for (j = 0; j < h; j++) {
         pc = pch + j * bpr;
         for (i = 0; i < w; i++) {
@@ -589,11 +589,11 @@ bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_
     return true;
 }
 
-// Draws a text into the specified rectangle @rc
-// If a character does not fit into the rectangle the drawing is stopped
-// \param clr_bg background color
-// \param clr_fg font/foreground color
-// \returns whole text was written
+/// Draws a text into the specified rectangle @rc
+/// If a character does not fit into the rectangle the drawing is stopped
+/// \param clr_bg background color
+/// \param clr_fg font/foreground color
+/// \returns true if whole text was written
 bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     int x = rc.x;
     int y = rc.y;
@@ -817,7 +817,7 @@ void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
                     rop_rgb888_disabled(ppx888);
                     break;
                 }
-                *ppx565 = _COLOR_TO_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                *ppx565 = COLOR_TO_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
             }
         else if (pixsize == 4) //RGBA
         {
@@ -836,8 +836,8 @@ void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
                     rop_rgb888_disabled(ppx888);
                     break;
                 }
-                //*ppx565 = _COLOR_TO_565(color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]));
-                *ppx565 = _COLOR_TO_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                //*ppx565 = COLOR_TO_565(color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]));
+                *ppx565 = COLOR_TO_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
             }
         }
         st7789v_wr(st7789v_buff, 2 * w);
