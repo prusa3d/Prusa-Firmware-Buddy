@@ -79,4 +79,7 @@
 //#define SIM_MOTION_TRACE_Z
 #endif //SIM_MOTION
 
+//new pause settings
+#define PAUSE_NOZZLE_TIMEOUT 45 // nozzle "sleep" after 45s inside paused state
+
 #endif //_CONFIG_A3IDES2209_02_H

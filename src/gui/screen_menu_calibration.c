@@ -65,6 +65,14 @@ void screen_menu_calibration_init(screen_t *screen) {
     psmd->items[MI_Z_OFFSET].item.wi_spin_fl.range = zoffset_fl_range;
 }
 
+int8_t gui_marlin_G28_or_G29_in_progress() {
+    uint32_t cmd = marlin_command();
+    if ((cmd == MARLIN_CMD_G28) || (cmd == MARLIN_CMD_G29))
+        return -1;
+    else
+        return 0;
+}
+
 int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     if (screen_menu_event(screen, window, event, param))
         return 1;
@@ -78,13 +86,25 @@ int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t ev
             wizard_run_complete();
             break;
         case MI_AUTO_HOME:
+            marlin_event_clr(MARLIN_EVT_CommandBegin);
             marlin_gcode("G28");
-            gui_dlg_wait(gui_marlin_busy_callback);
+            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+                marlin_client_loop();
+            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
             break;
         case MI_MESH_BED:
-            marlin_gcode("G28");
+            if (!marlin_all_axes_homed()) {
+                marlin_event_clr(MARLIN_EVT_CommandBegin);
+                marlin_gcode("G28");
+                while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+                    marlin_client_loop();
+                gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+            }
+            marlin_event_clr(MARLIN_EVT_CommandBegin);
             marlin_gcode("G29");
-            gui_dlg_wait(gui_marlin_busy_callback);
+            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+                marlin_client_loop();
+            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
             break;
         case MI_SELFTEST:
             wizard_run_selftest();

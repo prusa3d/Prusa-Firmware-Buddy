@@ -444,7 +444,7 @@ target_sources(
           src/common/eeprom.c
           src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
-          src/common/marlin_host.c
+          src/common/media.cpp
           src/common/sim_bed.c
           src/common/sys.cpp
           src/common/sim_nozzle.c
@@ -462,7 +462,6 @@ target_sources(
           src/common/marlin_events.c
           src/common/marlin_errors.c
           src/common/uartrxbuff.c
-          src/common/Marlin_CardReader.cpp
           src/common/appmain.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp

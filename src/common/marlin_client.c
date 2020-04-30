@@ -16,22 +16,16 @@
 //#define DBG_REQ  DBG    //trace requests (client side)
 #define DBG_REQ(...) //disable trace
 
-#define DBG_EVT DBG //trace events (client side)
-//#define DBG_EVT(...)    //disable trace
-#define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
+//trace event notification (client side), to disable trace undef DBG_EVT_MSK
+//#define DBG_EVT DBG
+//#define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
-//#define DBG_VAR  DBG    //trace variable change notifications  (client side)
-#define DBG_VAR(...) //disable trace
-//#define DBG_VAR_MSK     MARLIN_VAR_MSK_ALL
-//#define DBG_VAR_MSK     (MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE))
-/*#define DBG_VAR_MSK     ( \
-						MARLIN_VAR_MSK(MARLIN_VAR_MOTION) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_POS_X) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_POS_Y) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_POS_Z) | \
-						MARLIN_VAR_MSK(MARLIN_VAR_POS_E) )*/
+//trace variable change notifications (client side), to disable trace undef DBG_VAR_MSK
+//#define DBG_VAR DBG
+//#define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
+
+//maximum string length for DBG_VAR
+#define DBG_VAR_STR_MAX_LEN 128
 
 #pragma pack(push)
 #pragma pack(1)
@@ -48,7 +42,6 @@ typedef struct _marlin_client_t {
     uint64_t errors;
     marlin_mesh_t mesh;           // meshbed leveling
     uint32_t command;             // processed command (G28,G29,M701,M702,M600)
-    marlin_host_prompt_t prompt;  // current host prompt structure (type and buttons)
     uint8_t reheating;            // reheating in progress
     fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
     fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
@@ -76,11 +69,11 @@ extern osSemaphoreId marlin_server_sema; // semaphore handle
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-void _wait_server_started(void);
-void _send_request_to_server(uint8_t client_id, const char *request);
-uint32_t _wait_ack_from_server(uint8_t client_id);
-void _process_client_message(marlin_client_t *client, variant8_t msg);
-marlin_client_t *_client_ptr(void);
+static void _wait_server_started(void);
+static void _send_request_to_server(uint8_t client_id, const char *request);
+static uint32_t _wait_ack_from_server(uint8_t client_id);
+static void _process_client_message(marlin_client_t *client, variant8_t msg);
+static marlin_client_t *_client_ptr(void);
 
 //-----------------------------------------------------------------------------
 // client side public functions
@@ -96,7 +89,7 @@ marlin_vars_t *marlin_client_init(void) {
     if (client_id < MARLIN_MAX_CLIENTS) {
         client = marlin_client + client_id;
         memset(client, 0, sizeof(marlin_client_t));
-        osMessageQDef(clientQueue, 32, uint32_t);
+        osMessageQDef(clientQueue, MARLIN_CLIENT_QUEUE * 2, uint32_t);
         marlin_client_queue[client_id] = osMessageCreate(osMessageQ(clientQueue), NULL);
         client->id = client_id;
         client->flags = 0;
@@ -140,6 +133,7 @@ void marlin_client_loop(void) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
                 *(((uint32_t *)(&msg)) + 1) = ose.value.v; //store high dword
                 _process_client_message(client, msg);      //call handler
+                variant8_done(&msg);
                 count++;
             } else
                 *(((uint32_t *)(&msg)) + 0) = ose.value.v; //store low dword
@@ -212,13 +206,6 @@ void marlin_client_set_change_notify(uint64_t notify_changes) {
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
     }
-}
-
-int marlin_busy(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client)
-        return (client->flags & MARLIN_CFLG_BUSY) ? 1 : 0;
-    return 0;
 }
 
 uint32_t marlin_command(void) {
@@ -427,7 +414,8 @@ variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
         retval = marlin_vars_get_var(&(client->vars), var_id);
         marlin_vars_set_var(&(client->vars), var_id, val);
         n = sprintf(request, "!var %s ", marlin_vars_get_name(var_id));
-        marlin_vars_value_to_str(&(client->vars), var_id, request + n);
+        if (marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n) >= (sizeof(request) - n))
+            bsod("Request too long.");
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
     }
@@ -452,32 +440,6 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
     return &(client->vars);
-}
-
-void marlin_set_printing_gcode_name(const char *filename_pntr) {
-    char request[MARLIN_MAX_REQUEST];
-    marlin_client_t *client = _client_ptr();
-    if (client == 0) {
-        return;
-    }
-    uint32_t filename_len = strnlen(filename_pntr, _MAX_LFN);
-    if (_MAX_LFN == filename_len) {
-        _dbg0("error!: filename string is not null terminated");
-    }
-    snprintf(request, MARLIN_MAX_REQUEST, "!gfileset %p", filename_pntr);
-    marlin_event_clr(MARLIN_EVT_GFileChange);
-    _send_request_to_server(client->id, request);
-    _wait_ack_from_server(client->id);
-}
-
-void marlin_get_printing_gcode_name(char *filename_pntr) {
-    char request[MARLIN_MAX_REQUEST];
-    marlin_client_t *client = _client_ptr();
-    if (client == 0) {
-        return;
-    }
-    snprintf(request, MARLIN_MAX_REQUEST, "!gfileget %p", filename_pntr);
-    _send_request_to_server(client->id, request);
 }
 
 uint8_t marlin_get_gqueue(void) {
@@ -582,6 +544,17 @@ void marlin_quick_stop(void) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_print_start(const char *filename) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    if (snprintf(request, sizeof(request), "!pstart %s", filename) >= sizeof(request))
+        bsod("Request too long.");
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
+}
+
 void marlin_print_abort(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
@@ -625,40 +598,6 @@ uint8_t marlin_message_received(void) {
         return 0;
 }
 
-//-----------------------------------------------------------------------------
-// host functions
-
-host_prompt_type_t marlin_host_prompt_type(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client)
-        return client->prompt.type;
-    return HOST_PROMPT_None;
-}
-
-uint8_t marlin_host_button_count(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client)
-        return client->prompt.button_count;
-    return 0;
-}
-
-host_prompt_button_t marlin_host_button_type(uint8_t index) {
-    marlin_client_t *client = _client_ptr();
-    if (client && (index < client->prompt.button_count))
-        return client->prompt.button[index];
-    return HOST_PROMPT_BTN_None;
-}
-
-void marlin_host_button_click(host_prompt_button_t button) {
-    char request[MARLIN_MAX_REQUEST];
-    marlin_client_t *client = _client_ptr();
-    if (client == 0)
-        return;
-    sprintf(request, "!hclick %d", (int)button);
-    _send_request_to_server(client->id, request);
-    _wait_ack_from_server(client->id);
-}
-
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating(void) {
     marlin_client_t *client = _client_ptr();
@@ -683,13 +622,13 @@ void marlin_encoded_response(uint32_t enc_phase_and_response) {
 // private functions
 
 // wait while server not started (called from client thread in marlin_client_init)
-void _wait_server_started(void) {
+static void _wait_server_started(void) {
     while (marlin_server_task == 0)
         osDelay(1);
 }
 
 // send request to server (called from client thread), infinite timeout
-void _send_request_to_server(uint8_t client_id, const char *request) {
+static void _send_request_to_server(uint8_t client_id, const char *request) {
     int ret = 0;
     int len = strlen(request);
     osMessageQId queue = 0;
@@ -720,7 +659,7 @@ void _send_request_to_server(uint8_t client_id, const char *request) {
 }
 
 // wait for ack event, blocking - used for synchronization, called typicaly at end of client request functions
-uint32_t _wait_ack_from_server(uint8_t client_id) {
+static uint32_t _wait_ack_from_server(uint8_t client_id) {
     while ((marlin_client[client_id].events & MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge)) == 0) {
         marlin_client_loop();
         if (marlin_client[client_id].last_count == 0)
@@ -731,18 +670,18 @@ uint32_t _wait_ack_from_server(uint8_t client_id) {
 }
 
 // process message on client side (set flags, update vars etc.)
-void _process_client_message(marlin_client_t *client, variant8_t msg) {
-    char var_str[16];
+static void _process_client_message(marlin_client_t *client, variant8_t msg) {
     uint8_t id = msg.usr8 & MARLIN_USR8_MSK_ID;
     if (msg.usr8 & MARLIN_USR8_VAR_FLG) // variable change received
     {
         marlin_vars_set_var(&(client->vars), id, msg);
         client->changes |= ((uint64_t)1 << id);
-        marlin_vars_value_to_str(&(client->vars), id, var_str);
 #ifdef DBG_VAR_MSK
+        char var_str[DBG_VAR_STR_MAX_LEN + 1];
+        marlin_vars_value_to_str(&(client->vars), id, var_str, sizeof(var_str));
         if (DBG_VAR_MSK & ((uint64_t)1 << id))
-#endif //DBG_VAR_MSK
             DBG_VAR("CL%c: VAR %s %s", '0' + client->id, marlin_vars_get_name(id), var_str);
+#endif                                    //DBG_VAR_MSK
     } else if (msg.type == VARIANT8_USER) // event received
     {
         client->events |= ((uint64_t)1 << id);
@@ -753,20 +692,11 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
             float z = msg.flt;
             client->mesh.z[x + client->mesh.xc * y] = z;
         } break;
-        case MARLIN_EVT_HostPrompt:
-            marlin_host_prompt_decode(msg.ui32, &(client->prompt));
-            break;
         case MARLIN_EVT_StartProcessing:
             client->flags |= MARLIN_CFLG_PROCESS;
             break;
         case MARLIN_EVT_StopProcessing:
             client->flags &= ~MARLIN_CFLG_PROCESS;
-            break;
-        case MARLIN_EVT_Busy:
-            client->flags |= MARLIN_CFLG_BUSY;
-            break;
-        case MARLIN_EVT_Ready:
-            client->flags &= ~MARLIN_CFLG_BUSY;
             break;
         case MARLIN_EVT_Error:
             client->errors |= MARLIN_ERR_MSK(msg.ui32);
@@ -816,12 +746,10 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_LoadSettings:
         case MARLIN_EVT_StoreSettings:
         case MARLIN_EVT_SafetyTimerExpired:
-        case MARLIN_EVT_GFileChange:
             break;
         }
 #ifdef DBG_EVT_MSK
         if (DBG_EVT_MSK & ((uint64_t)1 << id))
-#endif
             switch (id) {
             // Event MARLIN_EVT_MeshUpdate - ui32 is float z, ui16 low byte is x index, high byte y index
             case MARLIN_EVT_MeshUpdate: {
@@ -850,11 +778,12 @@ void _process_client_message(marlin_client_t *client, variant8_t msg) {
                 DBG_EVT("CL%c: EVT %s", '0' + client->id, marlin_events_get_name(id));
                 break;
             }
+#endif //DBG_EVT_MSK
     }
 }
 
 // returns client pointer for calling client thread (client thread)
-marlin_client_t *_client_ptr(void) {
+static marlin_client_t *_client_ptr(void) {
     osThreadId taskHandle = osThreadGetId();
     int client_id;
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
