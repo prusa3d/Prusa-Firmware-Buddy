@@ -18,7 +18,7 @@ extern "C" {
 // this occurs e.g. when user connects and then quickly disconnects usb flash during connection process
 // state is checked every 100ms, timeout for re-enumeration is 500ms
 // TODO: maybe we will change condition for states, because it can hang also in different state
-void _usbhost_reenum(void) {
+static void _usbhost_reenum(void) {
     static uint32_t timer = 0;                   // static timer variable
     uint32_t tick = HAL_GetTick();               // read tick
     if ((tick - timer) > USBHOST_REENUM_DELAY) { // every 100ms
@@ -34,16 +34,17 @@ void _usbhost_reenum(void) {
     }
 }
 
-media_state_t media_state = media_state_REMOVED;
-media_error_t media_error = media_error_OK;
-media_print_state_t media_print_state = media_print_state_NONE;
 char media_print_filename[MEDIA_PRINT_FILENAME_SIZE] = { 0 };
 char media_print_filepath[MEDIA_PRINT_FILEPATH_SIZE] = { 0 };
-FIL media_print_fil;
-uint32_t media_current_position;
-uint32_t media_current_line;
-uint32_t media_queue_position[BUFSIZE];
-uint32_t media_queue_line[BUFSIZE];
+
+static media_state_t media_state = media_state_REMOVED;
+static media_error_t media_error = media_error_OK;
+static media_print_state_t media_print_state = media_print_state_NONE;
+static FIL media_print_fil;
+static uint32_t media_current_position;
+static uint32_t media_current_line;
+static uint32_t media_queue_position[BUFSIZE];
+static uint32_t media_queue_line[BUFSIZE];
 
 media_state_t media_get_state(void) {
     return media_state;
