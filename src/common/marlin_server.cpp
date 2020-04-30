@@ -274,16 +274,17 @@ int marlin_server_cycle(void) {
         changes = _server_update_vars(marlin_server.update_vars);
     }
 
-    // send notifications
+    // send notifications to clients
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if ((queue = marlin_client_queue[client_id]) != 0) {
             marlin_server.client_changes[client_id] |= (changes & marlin_server.notify_changes[client_id]);
             // send change notifications, clear bits for successful sent notification
             if ((msk = marlin_server.client_changes[client_id]) != 0)
                 marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
-            // send events, clear bits for successful sent notification
-            if ((msk = marlin_server.client_events[client_id]) != 0)
-                marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
+            // send events to client only when all changes already sent, clear bits for successful sent notification
+            if (marlin_server.client_changes[client_id]) == 0)
+				if ((msk = marlin_server.client_events[client_id]) != 0)
+					marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
 #ifndef _DEBUG
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
@@ -696,9 +697,14 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
             case MARLIN_EVT_FSM_Create:
             case MARLIN_EVT_FSM_Destroy:
             case MARLIN_EVT_FSM_Change:
+
+                sent |= msk; // fake event sent for unused and forced events
                 break;
             }
-        msk <<= 1;
+        if (sent & msk)
+            msk <<= 1;
+        else
+            break; //skip sending if queue is full
     }
     return sent;
 }
@@ -738,9 +744,12 @@ static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue
     for (uint8_t var_id = 0; var_id < 64; var_id++) {
         if (msk & var_msk) {
             var = marlin_vars_get_var(&(marlin_server.vars), var_id);
-            if (var.type != VARIANT8_EMPTY)
+            if (var.type != VARIANT8_EMPTY) {
                 if (_send_notify_change_to_client(queue, var_id, var))
                     sent |= msk;
+                else
+                    break; //skip sending if queue is full
+            }
         }
         msk <<= 1;
     }
@@ -1022,7 +1031,8 @@ static int _process_server_request(char *request) {
         //TODO: BSOD
     }
     if (processed)
-        _send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0);
+        if (!_send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0))
+            marlin_server.notify_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
     return processed;
 }
 
