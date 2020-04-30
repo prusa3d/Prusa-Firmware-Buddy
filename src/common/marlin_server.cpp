@@ -9,6 +9,7 @@
 #include "bsod.h"
 #include "cmsis_os.h"
 #include <string.h> //strncmp
+#include <assert.h>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -29,6 +30,8 @@
 #include "eeprom.h"
 #include "media.h"
 #include "filament_sensor.h"
+
+static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.h" //get_Z_probe_endstop_hits
