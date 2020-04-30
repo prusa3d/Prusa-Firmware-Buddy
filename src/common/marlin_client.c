@@ -678,7 +678,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         client->changes |= ((uint64_t)1 << id);
 #ifdef DBG_VAR_MSK
         char var_str[DBG_VAR_STR_MAX_LEN + 1];
-        marlin_vars_value_to_str(&(client->vars), id, var_str, sizeof(var_str) - 1);
+        marlin_vars_value_to_str(&(client->vars), id, var_str, sizeof(var_str));
         if (DBG_VAR_MSK & ((uint64_t)1 << id))
             DBG_VAR("CL%c: VAR %s %s", '0' + client->id, marlin_vars_get_name(id), var_str);
 #endif                                    //DBG_VAR_MSK
