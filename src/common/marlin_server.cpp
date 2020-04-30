@@ -40,8 +40,8 @@
 //#define DBG_XUI DBG //trace ExtUI events
 #define DBG_XUI(...) //disable trace
 
-#define DBG_REQ DBG //trace requests
-//#define DBG_REQ(...) //disable trace
+//#define DBG_REQ DBG //trace requests
+#define DBG_REQ(...) //disable trace
 
 //#define DBG_FSM DBG //trace fsm
 #define DBG_FSM(...) //disable trace
