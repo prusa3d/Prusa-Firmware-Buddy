@@ -11,6 +11,8 @@ extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 #define USBHOST_REENUM_DELAY   100 // pool delay [ms]
 #define USBHOST_REENUM_TIMEOUT 500 // state-hang timeout [ms]
 
+extern "C" {
+
 // Re-enumerate UsbHost in case that it hangs in enumeration state (HOST_ENUMERATION,ENUM_IDLE)
 // this is not solved in original UsbHost driver
 // this occurs e.g. when user connects and then quickly disconnects usb flash during connection process
@@ -73,26 +75,9 @@ void media_print_stop(void) {
 void media_print_pause(void) {
     if (media_print_state == media_print_state_PRINTING) {
         f_close(&media_print_fil);
-#if 0
-		int length = queue.length;
-		int index_r = queue.index_r + length - 1;
-		if (index_r >= BUFSIZE)
-			index_r -= BUFSIZE;
-		while (length--)
-		{
-			media_current_position = media_queue_position[index_r];
-			media_current_line = media_queue_line[index_r];
-			_dbg("dequeue %5u %s", media_current_line, queue.command_buffer[index_r]);
-			if (--index_r < 0)
-				index_r = BUFSIZE - 1;
-		}
-#else
         int index_r = queue.index_r;
         media_current_position = media_queue_position[index_r];
         media_current_line = media_queue_line[index_r];
-        _dbg("dequeue %5u %s", media_current_line, queue.command_buffer[index_r]);
-#endif
-
         queue.clear();
         media_print_state = media_print_state_PAUSED;
     }
@@ -145,7 +130,6 @@ void media_loop(void) {
                             index_w -= BUFSIZE;                                 //..
                         media_queue_position[index_w] = media_current_position; //save current position
                         media_queue_line[index_w] = media_current_line;         //save current line
-                        _dbg("enqueue %5u %s", media_current_line, buffer);
                     }
                     media_current_position = f_tell(&media_print_fil); //update current position
                     media_current_line++;                              //update current line
@@ -177,6 +161,4 @@ void media_set_error(media_error_t error) {
     media_error = error;
 }
 
-extern "C" void on_process_commad(const char *cmd) {
-    _dbg("process %5u %s", media_queue_line[queue.index_r], cmd);
-}
+} //extern "C"
