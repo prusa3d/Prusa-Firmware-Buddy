@@ -41,8 +41,9 @@ static media_state_t media_state = media_state_REMOVED;
 static media_error_t media_error = media_error_OK;
 static media_print_state_t media_print_state = media_print_state_NONE;
 static FIL media_print_fil;
-static uint32_t media_current_position;
-static uint32_t media_current_line;
+static uint32_t media_print_size = 0;
+static uint32_t media_current_position = 0;
+static uint32_t media_current_line = 0;
 static uint32_t media_queue_position[BUFSIZE];
 static uint32_t media_queue_line[BUFSIZE];
 
@@ -56,6 +57,7 @@ void media_print_start(const char *filepath) {
         strlcpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
         if (f_stat(media_print_filepath, &filinfo) == FR_OK) {
             strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filepath) - 1);
+            media_print_size = filinfo.fsize;
             if (f_open(&media_print_fil, media_print_filepath, FA_READ) == FR_OK) {
                 media_current_position = 0;
                 media_current_line = 0;
@@ -100,11 +102,17 @@ media_print_state_t media_print_get_state(void) {
 }
 
 uint32_t media_print_get_size(void) {
-    return f_size(&media_print_fil);
+    return media_print_size;
 }
 
 uint32_t media_print_get_position(void) {
-    return f_tell(&media_print_fil);
+    return media_current_position;
+}
+
+float media_print_get_percent_done(void) {
+    if (media_print_size)
+        return 100 * ((float)media_current_position / media_print_size);
+    return 0;
 }
 
 void media_loop(void) {

@@ -920,7 +920,7 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
-        v.ui8 = (uint8_t)(100 * (float)media_print_get_position() / (float)media_print_get_size());
+        v.ui8 = (uint8_t)media_print_get_percent_done();
         if (marlin_server.vars.sd_percent_done != v.ui8) {
             marlin_server.vars.sd_percent_done = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
