@@ -569,8 +569,8 @@ void marlin_server_park_head(void) {
         marlin_server.resume_pos[1] = current_position.y;
         marlin_server.resume_pos[2] = current_position.z;
         marlin_server.resume_pos[3] = current_position.e;
-        current_position.e -= 2 / planner.e_factor[active_extruder];
-        line_to_current_position(2000);
+        current_position.e -= (float)PAUSE_PARK_RETRACT_LENGTH / planner.e_factor[active_extruder];
+        line_to_current_position(PAUSE_PARK_RETRACT_FEEDRATE);
         current_position.z = _MIN(current_position.z + park.z, Z_MAX_POS);
         line_to_current_position(fr_z);
         current_position.set(park.x, park.y);
@@ -586,8 +586,8 @@ void marlin_server_unpark_head(void) {
         line_to_current_position(fr_xy);
         current_position.z = marlin_server.resume_pos[2];
         line_to_current_position(fr_z);
-        current_position.e += 2 / planner.e_factor[active_extruder];
-        line_to_current_position(2000);
+        current_position.e += (float)PAUSE_PARK_RETRACT_LENGTH / planner.e_factor[active_extruder];
+        line_to_current_position(PAUSE_PARK_RETRACT_FEEDRATE);
         current_position.e = marlin_server.resume_pos[3];
     }
 }
