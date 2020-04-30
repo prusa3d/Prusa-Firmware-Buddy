@@ -1288,6 +1288,9 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 
 }
 
+//remember last event
+static uint32_t fsm_change_last_usr32 = -1;
+
 //must match fsm_create_t signature
 void fsm_create(ClinetFSM type, uint8_t data) {
     //erase info about last event
