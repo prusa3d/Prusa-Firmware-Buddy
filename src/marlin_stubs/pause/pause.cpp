@@ -38,10 +38,6 @@
     #include "fwretract.h"
 #endif
 
-#if ENABLED(HOST_ACTION_COMMANDS)
-    #include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
-#endif
-
 #include "../../lib/Marlin/Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
@@ -66,8 +62,11 @@
     ENABLED(DUAL_X_CARRIAGE) || \
     (!ENABLED(PREVENT_COLD_EXTRUSION)) || \
     ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE) || \
-    BOTH(FILAMENT_UNLOAD_ALL_EXTRUDERS, MIXING_EXTRUDER)
-    #error unsupported
+    BOTH(FILAMENT_UNLOAD_ALL_EXTRUDERS, MIXING_EXTRUDER) || \
+    ENABLED(HOST_ACTION_COMMANDS) || \
+    ENABLED(HOST_PROMPT_SUPPORT) || \
+    ENABLED(SDSUPPORT)
+#error unsupported
 #endif
 // clang-format on
 static xyze_pos_t resume_position;
@@ -77,10 +76,6 @@ PauseMode pause_mode = PAUSE_MODE_PAUSE_PRINT;
 PauseMenuResponse pause_menu_response;
 
 fil_change_settings_t fc_settings[EXTRUDERS];
-
-#if ENABLED(SDSUPPORT)
-    #include "../../lib/Marlin/Marlin/src/sd/cardreader.h"
-#endif
 
 #if ENABLED(EMERGENCY_PARSER)
     #define _PMSG(L) L##_M108
@@ -231,6 +226,8 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         //eject what was inserted
         if (isFilamentInGear == Response::No) {
             if (slow_load_length) {
+                AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
+                thermalManager.allow_cold_extrude = true;
                 do_pause_e_move_notify_progress(-slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 30);
             }
         }
@@ -239,6 +236,8 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     set_filament(filament_to_load);
 
     //todo reheat
+    marlin_server_print_reheat_start();
+
     if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30)) {
         return false;
     }
@@ -362,18 +361,6 @@ bool pause_print(const float &retract, const xyz_pos_t &park_point, const float 
     if (did_pause_print)
         return false; // already paused
 
-#if ENABLED(HOST_ACTION_COMMANDS)
-    #ifdef ACTION_ON_PAUSED
-    host_action_paused();
-    #elif defined(ACTION_ON_PAUSE)
-    host_action_pause();
-    #endif
-#endif
-
-#if ENABLED(HOST_PROMPT_SUPPORT)
-    host_prompt_open(PROMPT_INFO, PSTR("Pause"), PSTR("Dismiss"));
-#endif
-
     if (!DEBUGGING(DRYRUN) && unload_length && thermalManager.targetTooColdToExtrude(active_extruder)) {
         SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
 
@@ -382,14 +369,6 @@ bool pause_print(const float &retract, const xyz_pos_t &park_point, const float 
 
     // Indicate that the printer is paused
     ++did_pause_print;
-
-// Pause the print job and timer
-#if ENABLED(SDSUPPORT)
-    if (IS_SD_PRINTING()) {
-        card.pauseSDPrint();
-        ++did_pause_print; // Indicate SD pause also
-    }
-#endif
 
     print_job_timer.pause();
 
@@ -460,7 +439,6 @@ void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_bee
             while (wait_for_user && (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::NozzleTimeout) != Response::Reheat))
                 idle(true);
 
-            //reheating todo create state REHEATING
             ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30);
 
             // Re-enable the heaters if they timed out
@@ -551,17 +529,6 @@ void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_l
 #endif
 
     --did_pause_print;
-
-#if ENABLED(HOST_PROMPT_SUPPORT)
-    host_prompt_open(PROMPT_INFO, PSTR("Resuming"), PSTR("Dismiss"));
-#endif
-
-#if ENABLED(SDSUPPORT)
-    if (did_pause_print) {
-        card.startFileprint();
-        --did_pause_print;
-    }
-#endif
 
 #if ENABLED(ADVANCED_PAUSE_FANS_PAUSE) && FAN_COUNT > 0
     thermalManager.set_fans_paused(false);

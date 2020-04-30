@@ -80,11 +80,15 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
 
 /**
  * Load filament special code
+ * filament type must be last parmaeter
+ * type name cannot contain 'Z'
+ * todo rewrite
  */
 static void load(const int8_t target_extruder) {
     filament_to_load = DEFAULT_FILAMENT;
+    const char *text_begin = 0;
     if (parser.seen('S')) {
-        const char *text_begin = strchr(parser.string_arg, '"');
+        text_begin = strchr(parser.string_arg, '"');
         if (text_begin) {
             ++text_begin; //move pointer from '"' to first letter
             const char *text_end = strchr(text_begin, '"');
@@ -99,8 +103,8 @@ static void load(const int8_t target_extruder) {
 
     constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH,
                     slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
-    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                        : fc_settings[active_extruder].load_length);
+    const float fast_load_length = ABS((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
+                                                                                                                          : fc_settings[active_extruder].load_length);
     load_filament(
         slow_load_length, fast_load_length, purge_length,
         FILAMENT_CHANGE_ALERT_BEEPS,
