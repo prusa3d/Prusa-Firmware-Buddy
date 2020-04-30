@@ -958,11 +958,9 @@ static uint64_t _server_update_vars(uint64_t update) {
 // process request on server side
 static int _process_server_request(char *request) {
     int processed = 0;
-    //uint64_t msk;
     uint32_t msk32[2];
     float offs;
     int ival;
-    int ival2;
     int client_id = *(request++) - '0';
     if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS))
         return 1;
@@ -984,7 +982,7 @@ static int _process_server_request(char *request) {
     } else if (sscanf(request, "!update %08lx %08lx", msk32 + 0, msk32 + 1)) {
         _server_update_and_notify(client_id, msk32[0] + (((uint64_t)msk32[1]) << 32));
         processed = 1;
-    } else if ((ival2 = sscanf(request, "!babystep_Z %f", &offs)) == 1) {
+    } else if (sscanf(request, "!babystep_Z %f", &offs) == 1) {
         marlin_server_do_babystep_Z(offs);
         processed = 1;
     } else if (strcmp("!cfg_save", request) == 0) {
@@ -1028,7 +1026,7 @@ static int _process_server_request(char *request) {
         marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         processed = 1;
     } else {
-        //TODO: BSOD
+        bsod("Unknown request %s", request);
     }
     if (processed)
         if (!_send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0))
