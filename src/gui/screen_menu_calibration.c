@@ -55,7 +55,7 @@ typedef struct
 
 void screen_menu_calibration_init(screen_t *screen) {
     marlin_vars_t *vars;
-    screen_menu_init(screen, "CALIBRATION", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 0, 0);
+    screen_menu_init(screen, "CALIBRATION", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
     memcpy(psmd->items + 1, _menu_calibration_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
