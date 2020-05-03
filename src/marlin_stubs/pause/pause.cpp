@@ -454,6 +454,8 @@ void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_l
     if (print_job_timer.isPaused())
         print_job_timer.start();
 
+    fs_clr_sent(); //reset filament sensor M600 sent flag
+
 #if HAS_DISPLAY
     ui.reset_status();
 #endif
