@@ -33,6 +33,7 @@ size_t strins(char *pstr, const char *pinstr, size_t repeater = 1, bool before_f
 void set_custom_set(const char *pstr);
 void set_withdraw_set(const char *pstr);
 void set_hyphen_distance(int dist);
+void set_defaults(void);
 
 size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set = "", char substitute_char = CHAR_SPACE);
 size_t str2plain(char *pstr, bool withdraw_flag = false);

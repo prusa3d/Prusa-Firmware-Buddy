@@ -48,6 +48,12 @@ void set_hyphen_distance(int dist) {
     hyphen_distance = dist;
 }
 
+void set_defaults(void) {
+    pcustom_set = "";
+    pwithdraw_set = "";
+    hyphen_distance = HYPHEN_DENY;
+}
+
 size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set, char substitute_char) {
     size_t counter = 0;
     bool flag;
