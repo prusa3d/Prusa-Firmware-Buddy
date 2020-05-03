@@ -1543,13 +1543,17 @@ void Temperature::min_temp_error(const heater_id_t heater_id) {
       temp_hotend[e].soft_pwm_amount = (temp_hotend[e].celsius > temp_range[e].mintemp || is_preheating(e)) && temp_hotend[e].celsius < temp_range[e].maxtemp ? (int)get_pid_output_hotend(e) >> 1 : 0;
 
       #if WATCH_HOTENDS
-        // Make sure temperature is increasing
-        if (watch_hotend[e].elapsed(ms)) {          // Enabled and time to check?
-          if (watch_hotend[e].check(degHotend(e)))  // Increased enough?
-            start_watching_hotend(e);               // If temp reached, turn off elapsed check
-          else {
-            TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
-            _temp_error((heater_id_t)e, FPSTR(str_t_heating_failed), GET_TEXT_F(MSG_HEATING_FAILED_LCD));
+        if (hotend_idle[e].timed_out) 
+          start_watching_hotend(e);
+        else {
+          // Make sure temperature is increasing
+          if (watch_hotend[e].elapsed(ms)) {          // Enabled and time to check?
+            if (watch_hotend[e].check(degHotend(e)))  // Increased enough?
+              start_watching_hotend(e);               // If temp reached, turn off elapsed check
+            else {
+              TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
+              _temp_error((heater_id_t)e, FPSTR(str_t_heating_failed), GET_TEXT_F(MSG_HEATING_FAILED_LCD));
+            }
           }
         }
       #endif
