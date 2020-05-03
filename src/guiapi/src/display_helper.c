@@ -2,6 +2,7 @@
 
 #include "display_helper.h"
 #include "display.h"
+#include "str_utils.h"
 
 void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
@@ -34,7 +35,12 @@ void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t c
         display->fill_rect(rc_l, clr0);
         display->fill_rect(rc_r, clr0);
     } else {
-        point_ui16_t wh_txt = font_meas_text(font, text);
+        char *str_tmp = (char *)0x10000000; // ~ PNG-buffer (CCM RAM)
+        strcpy(str_tmp, text);
+        if (flags & RENDER_FLG_WORDML) {
+            str2multiline(str_tmp, 20);
+        }
+        point_ui16_t wh_txt = font_meas_text(font, str_tmp);
         if (wh_txt.x && wh_txt.y) {
             rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
             rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
@@ -46,7 +52,7 @@ void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t c
             display->fill_rect(rc_b, clr0);
             display->fill_rect(rc_l, clr0);
             display->fill_rect(rc_r, clr0);
-            display->draw_text(rc_txt, text, font, clr0, clr1);
+            display->draw_text(rc_txt, str_tmp, font, clr0, clr1);
         } else
             display->fill_rect(rc, clr0);
     }

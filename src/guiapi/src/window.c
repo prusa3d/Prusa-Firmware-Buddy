@@ -559,7 +559,7 @@ void window_set_padding(int16_t id, padding_ui8_t padding) {
     }
 }
 
-void window_set_alignment(int16_t id, uint8_t alignment) {
+void window_set_alignment(int16_t id, uint16_t alignment) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {
         switch (window->cls->cls_id) {

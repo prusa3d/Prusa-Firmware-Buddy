@@ -19,7 +19,7 @@ typedef struct _window_text_t {
     font_t *font;
     char *text;
     padding_ui8_t padding;
-    uint8_t alignment;
+    uint16_t alignment;
 } window_text_t;
 
 #pragma pack(pop)

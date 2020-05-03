@@ -476,6 +476,7 @@ target_sources(
           src/common/sound_C_wrapper.cpp
           src/common/sound.cpp
           src/common/support_utils.cpp
+          src/common/str_utils.cpp
           src/common/errors.c
           src/common/lang.c
           src/common/client_response.cpp
