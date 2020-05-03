@@ -1244,13 +1244,16 @@ void Temperature::manage_heater() {
       temp_hotend[e].soft_pwm_amount = (temp_hotend[e].celsius > temp_range[e].mintemp || is_preheating(e)) && temp_hotend[e].celsius < temp_range[e].maxtemp ? (int)get_pid_output_hotend(e) >> 1 : 0;
 
       #if WATCH_HOTENDS
-        // Make sure temperature is increasing
-        if (watch_hotend[e].next_ms && ELAPSED(ms, watch_hotend[e].next_ms)) { // Time to check this extruder?
-          if (degHotend(e) < watch_hotend[e].target)                             // Failed to increase enough?
-            _temp_error((heater_ind_t)e, PSTR(MSG_T_HEATING_FAILED), GET_TEXT(MSG_HEATING_FAILED_LCD));
-          else                                                                 // Start again if the target is still far off
-            start_watching_hotend(e);
-        }
+        if (hotend_idle[e].timed_out) 
+          start_watching_hotend(e);
+        else  
+          // Make sure temperature is increasing
+          if (watch_hotend[e].next_ms && ELAPSED(ms, watch_hotend[e].next_ms)) { // Time to check this extruder?
+            if (degHotend(e) < watch_hotend[e].target)                           // Failed to increase enough?
+              _temp_error((heater_ind_t)e, PSTR(MSG_T_HEATING_FAILED), GET_TEXT(MSG_HEATING_FAILED_LCD));
+            else                                                                 // Start again if the target is still far off
+              start_watching_hotend(e);
+          }
       #endif
 
       #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
