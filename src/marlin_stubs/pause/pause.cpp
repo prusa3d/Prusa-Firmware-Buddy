@@ -153,6 +153,12 @@ public:
     ~AutoRestore() { ref = val; }
 };
 
+// Start the heater idle timers
+static void hotend_idle_start(uint32_t time) {
+    HOTEND_LOOP()
+    thermalManager.hotend_idle[e].start((millis_t)(time)*1000UL);
+}
+
 /**
  * Load filament into the hotend
  *
@@ -174,9 +180,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     if (!is_target_temperature_safe())
         return false;
 
-    // Start the heater idle timers
-    HOTEND_LOOP()
-    thermalManager.hotend_idle[e].start((millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL);
+    hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT);
 
     AutoRestore<float> AR(planner.settings.retract_acceleration);
 
@@ -192,6 +196,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
             idle(true);
             fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, 30, 0);
         } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
+        hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
 
         // filamnet is being inserted
         // Slow Load filament
@@ -223,8 +228,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
 
     // Re-enable the heaters if they timed out
     HOTEND_LOOP()
-    if (thermalManager.hotend_idle[e].timed_out)
-        thermalManager.reset_heater_idle_timer(e);
+    thermalManager.reset_heater_idle_timer(e);
     //reheat (30min timeout)
     marlin_server_print_reheat_start();
 
