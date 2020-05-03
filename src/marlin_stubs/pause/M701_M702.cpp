@@ -101,10 +101,11 @@ static void load(const int8_t target_extruder) {
         }
     }
 
-    constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH,
-                    slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
     const float fast_load_length = ABS((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
                                                                                                                           : fc_settings[active_extruder].load_length);
+    constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH;
+    const float slow_load_length = fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0;
+
     load_filament(
         slow_load_length, fast_load_length, purge_length,
         FILAMENT_CHANGE_ALERT_BEEPS,

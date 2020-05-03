@@ -184,47 +184,49 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
 
     AutoRestore<float> AR(planner.settings.retract_acceleration);
 
-    Response isFilamentInGear;
-    do {
-        // wait till filament sensor does not show "FS_NO_FILAMENT" in this block
-        // ask user to inset filament, than wait continue button
+    if (slow_load_length > 0) {
+        Response isFilamentInGear;
         do {
-            while (fs_get_state() == FS_NO_FILAMENT) {
+            // wait till filament sensor does not show "FS_NO_FILAMENT" in this block
+            // ask user to inset filament, than wait continue button
+            do {
+                while (fs_get_state() == FS_NO_FILAMENT) {
+                    idle(true);
+                    fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
+                }
                 idle(true);
-                fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
-            }
-            idle(true);
-            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, 30, 0);
-        } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
-        hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
+                fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, 30, 0);
+            } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
+            hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
 
-        // filamnet is being inserted
-        // Slow Load filament
-        if (slow_load_length) {
-            AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
-            thermalManager.allow_cold_extrude = true;
-            do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 30, 50);
-        }
-
-        fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
-
-        //wait until response
-        do {
-            idle(true);
-            isFilamentInGear = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentInGear);
-        } while (isFilamentInGear != Response::Yes && isFilamentInGear != Response::No);
-
-        //eject what was inserted
-        if (isFilamentInGear == Response::No) {
+            // filamnet is being inserted
+            // Slow Load filament
             if (slow_load_length) {
                 AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
                 thermalManager.allow_cold_extrude = true;
-                do_pause_e_move_notify_progress(-slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 30);
+                do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 30, 50);
             }
-        }
-    } while (isFilamentInGear != Response::Yes);
 
-    set_filament(filament_to_load);
+            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
+
+            //wait until response
+            do {
+                idle(true);
+                isFilamentInGear = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentInGear);
+            } while (isFilamentInGear != Response::Yes && isFilamentInGear != Response::No);
+
+            //eject what was inserted
+            if (isFilamentInGear == Response::No) {
+                if (slow_load_length) {
+                    AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
+                    thermalManager.allow_cold_extrude = true;
+                    do_pause_e_move_notify_progress(-slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 30);
+                }
+            }
+        } while (isFilamentInGear != Response::Yes);
+
+        set_filament(filament_to_load);
+    } //slow_load_length > 0
 
     // Re-enable the heaters if they timed out
     HOTEND_LOOP()
