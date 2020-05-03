@@ -102,7 +102,6 @@ void GcodeSuite::M600() {
                                                         : fc_settings[active_extruder].load_length);
 
     if (pause_print(retract, park_point, unload_length, true DXC_PASS)) {
-        wait_for_confirmation(true, 0 DXC_PASS);
         resume_print(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH, 0 DXC_PASS);
     }
 }

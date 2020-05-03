@@ -91,25 +91,7 @@ static bool is_target_temperature_safe() {
         return true;
     }
 }
-#if 0
-/**
- * Ensure a safe temperature for extrusion
- *
- * - Fail if the TARGET temperature is too low
- * - Display LCD placard with temperature status
- * - Return when heating is done or aborted
- *
- * Returns 'true' if heating was completed, 'false' for abort
- */
-static bool ensure_safe_temperature() {
 
-    if (!is_target_temperature_safe()) {
-        return false;
-    }
-
-    return thermalManager.wait_for_hotend(active_extruder);
-}
-#endif
 static bool ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
 
     if (!is_target_temperature_safe()) {
@@ -192,6 +174,10 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
     if (!is_target_temperature_safe())
         return false;
 
+    // Start the heater idle timers
+    HOTEND_LOOP()
+    thermalManager.hotend_idle[e].start((millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL);
+
     AutoRestore<float> AR(planner.settings.retract_acceleration);
 
     Response isFilamentInGear;
@@ -235,7 +221,11 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
 
     set_filament(filament_to_load);
 
-    //todo reheat
+    // Re-enable the heaters if they timed out
+    HOTEND_LOOP()
+    if (thermalManager.hotend_idle[e].timed_out)
+        thermalManager.reset_heater_idle_timer(e);
+    //reheat (30min timeout)
     marlin_server_print_reheat_start();
 
     if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30)) {
@@ -396,74 +386,8 @@ bool pause_print(const float &retract, const xyz_pos_t &park_point, const float 
     return true;
 }
 
-/**
- * For Paused Print:
- * - Show "Press button (or M108) to resume"
- *
- * For Filament Change:
- * - Show "Insert filament and press button to continue"
- *
- * - Wait for a click before returning
- * - Heaters can time out and must reheat before continuing
- *
- * Used by M125 and M600
- */
-
+//unsuported
 void wait_for_confirmation(const bool is_reload /*=false*/, const int8_t max_beep_count /*=0*/) {
-#if 0
-    bool nozzle_timed_out = false;
-#endif
-    // Start the heater idle timers
-    const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL;
-
-    HOTEND_LOOP()
-    thermalManager.hotend_idle[e].start(nozzle_timeout);
-#if 0
-    //wait until user removes filament
-    //change_dialog_handler(DLG_load_unload, GetPhaseIndex(PhasesLoadUnload::RemoveFilament), 30, 0);
-
-    fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, -1, 0);
-
-    while (wait_for_user && (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue)) {
-        // If the nozzle has timed out...
-        if (!nozzle_timed_out)
-            HOTEND_LOOP()
-        nozzle_timed_out |= thermalManager.hotend_idle[e].timed_out;
-
-        // Wait for the user to press the button to re-heat the nozzle, then
-        // re-heat the nozzle, re-show the continue prompt, restart idle timers, start over
-        if (nozzle_timed_out) {
-            SERIAL_ECHO_MSG(_PMSG(MSG_FILAMENT_CHANGE_HEAT));
-
-            // Wait for LCD click or M108
-            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::NozzleTimeout, -1, 0);
-            while (wait_for_user && (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::NozzleTimeout) != Response::Reheat))
-                idle(true);
-
-            ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30);
-
-            // Re-enable the heaters if they timed out
-            HOTEND_LOOP()
-            thermalManager.reset_heater_idle_timer(e);
-
-            // Wait for the heaters to reach the target temperatures
-            ensure_safe_temperature();
-
-            //user push filament
-            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::RemoveFilament, 30, 0);
-
-            // Start the heater idle timers
-            const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT)*1000UL;
-
-            HOTEND_LOOP()
-            thermalManager.hotend_idle[e].start(nozzle_timeout);
-
-            nozzle_timed_out = false;
-        }
-
-        idle(true);
-    }
-#endif
 }
 
 /**
@@ -489,15 +413,7 @@ void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_l
     if (!did_pause_print)
         return;
 
-    // Re-enable the heaters if they timed out
-    bool nozzle_timed_out = false;
-    HOTEND_LOOP() {
-        nozzle_timed_out |= thermalManager.hotend_idle[e].timed_out;
-        thermalManager.reset_heater_idle_timer(e);
-    }
-
-    if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(active_extruder)) // Load the new filament
-        load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out, PAUSE_MODE_PAUSE_PRINT);
+    load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, 0, PAUSE_MODE_PAUSE_PRINT);
 
 // Intelligent resuming
 #if ENABLED(FWRETRACT)
@@ -523,12 +439,6 @@ void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_l
     // Now all extrusion positions are resumed and ready to be confirmed
     // Set extruder to saved position
     planner.set_e_position_mm((destination.e = current_position.e = resume_position.e));
-
-#ifdef ACTION_ON_RESUMED
-    host_action_resumed();
-#elif defined(ACTION_ON_RESUME)
-    host_action_resume();
-#endif
 
     --did_pause_print;
 
