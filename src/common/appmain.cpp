@@ -7,9 +7,11 @@
 #include "dbg.h"
 #include "adc.h"
 #include "jogwheel.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
+#include "sound_C_wrapper.h"
+//#include "sound.h"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -25,6 +27,8 @@
 #include "eeprom.h"
 #include "diag.h"
 #include "safe_state.h"
+#include "crc32.h"
+#include "ff.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
@@ -35,23 +39,29 @@
 
 extern void USBSerial_put_rx_data(uint8_t *buffer, uint32_t length);
 
+extern void reset_trinamic_drivers();
+
 extern "C" {
 
 extern uartrxbuff_t uart6rxbuff; // PUT rx buffer
-extern uartslave_t uart6slave; // PUT slave
+extern uartslave_t uart6slave;   // PUT slave
 
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
-#endif //ETHERNET
+#endif                                 //BUDDY_ENABLE_ETHERNET
 
 #ifndef _DEBUG
 extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif //_DEBUG
+#endif                           //_DEBUG
 
 void app_setup(void) {
     setup();
 
-    init_tmc();
+    marlin_server_settings_load(); // load marlin variables from eeprom
+
+    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+        init_tmc();
+    }
     //DBG("after init_tmc (%ld ms)", HAL_GetTick());
 }
 
@@ -62,10 +72,12 @@ void app_idle(void) {
 void app_run(void) {
     DBG("app_run");
 
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
     if (diag_fastboot)
         osThreadResume(webServerTaskHandle);
-#endif //ETHERNET
+#endif //BUDDY_ENABLE_ETHERNET
+
+    crc32_init();
 
     uint8_t defaults_loaded = eeprom_init();
 
@@ -87,12 +99,15 @@ void app_run(void) {
             for (int i = 0; i < hwio_fan_get_cnt(); ++i)
                 hwio_fan_set_pwm(i, 0); // disable fans
         }
+        reset_trinamic_drivers();
+        if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+            init_tmc();
+        }
     } else
         app_setup();
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
-    if (defaults_loaded && marlin_server_processing())
-    {
+    if (defaults_loaded && marlin_server_processing()) {
         settings.reset();
 #ifndef _DEBUG
         HAL_IWDG_Refresh(&hiwdg);
@@ -153,7 +168,7 @@ void app_cdc_rx(uint8_t *buffer, uint32_t length) {
     USBSerial_put_rx_data(buffer, length);
 }
 
-void app_tim6_tick(void) {
+void adc_tick_1ms(void) {
     adc_cycle();
 #ifdef SIM_HEATER
     static uint8_t cnt_sim_heater = 0;
@@ -170,8 +185,14 @@ void app_tim6_tick(void) {
 }
 
 void app_tim14_tick(void) {
+#ifndef HAS_GUI
+    #error "HAS_GUI not defined."
+#elif HAS_GUI
     jogwheel_update_1ms();
-    hwio_update_1ms();
+#endif
+    Sound_Update1ms();
+    //hwio_update_1ms();
+    adc_tick_1ms();
 }
 
 } // extern "C"

@@ -1,6 +1,7 @@
 //----------------------------------------------------------------------------//
 // hwio_a3ides.c - hardware input output abstraction for a3ides board
 
+#include "hwio.h"
 #include "hwio_a3ides.h"
 #include <inttypes.h>
 #include "config.h"
@@ -16,6 +17,7 @@
 #include "hwio_pindef.h"
 #include "filament_sensor.h"
 #include "bsod.h"
+#include "main.h"
 
 //hwio arduino wrapper errors
 #define HWIO_ERR_UNINI_DIG_RD 0x01
@@ -27,26 +29,13 @@
 #define HWIO_ERR_UNDEF_ANA_RD 0x07
 #define HWIO_ERR_UNDEF_ANA_WR 0x08
 
-//initialization flags - defined in main.c
-extern int HAL_GPIO_Initialized;
-extern int HAL_ADC_Initialized;
-extern int HAL_PWM_Initialized;
-
-//HAL timer handles
-extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-
-//Main error handler
-extern void Error_Handler(void);
-
 // a3ides digital input pins
 const uint32_t _di_pin32[] = {
-    PIN_Z_MIN, // PA8
-    PIN_E_DIAG, // PA15
-    PIN_Y_DIAG, // PE1
-    PIN_X_DIAG, // PE2
-    PIN_Z_DIAG, // PE3
+    PIN_Z_MIN,   // PA8
+    PIN_E_DIAG,  // PA15
+    PIN_Y_DIAG,  // PE1
+    PIN_X_DIAG,  // PE2
+    PIN_Z_DIAG,  // PE3
     PIN_BTN_ENC, // PE12
     PIN_BTN_EN1, // PE13
     PIN_BTN_EN2, // PE15
@@ -92,11 +81,11 @@ const int _dac_max[] = { 0 };
 
 #define _FAN_ID_MIN HWIO_PWM_FAN1
 #define _FAN_ID_MAX HWIO_PWM_FAN
-#define _FAN_CNT (_FAN_ID_MAX - _FAN_ID_MIN + 1)
+#define _FAN_CNT    (_FAN_ID_MAX - _FAN_ID_MIN + 1)
 
 #define _HEATER_ID_MIN HWIO_PWM_HEATER_BED
 #define _HEATER_ID_MAX HWIO_PWM_HEATER_0
-#define _HEATER_CNT (_HEATER_ID_MAX - _HEATER_ID_MIN + 1)
+#define _HEATER_CNT    (_HEATER_ID_MAX - _HEATER_ID_MIN + 1)
 
 //this value is compared to new value (to avoid rounding errors)
 int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
@@ -136,11 +125,11 @@ const int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_
 #define _PWM_CNT (sizeof(_pwm_pin32) / sizeof(uint32_t))
 
 const TIM_OC_InitTypeDef sConfigOC_default = {
-    TIM_OCMODE_PWM1, //OCMode
-    0, //Pulse
-    TIM_OCPOLARITY_HIGH, //OCPolarity
-    TIM_OCNPOLARITY_HIGH, //OCNPolarity
-    TIM_OCFAST_DISABLE, //OCFastMode
+    TIM_OCMODE_PWM1,       //OCMode
+    0,                     //Pulse
+    TIM_OCPOLARITY_HIGH,   //OCPolarity
+    TIM_OCNPOLARITY_HIGH,  //OCNPolarity
+    TIM_OCFAST_DISABLE,    //OCFastMode
     TIM_OCIDLESTATE_RESET, //OCIdleState
     TIM_OCNIDLESTATE_RESET //OCNIdleState
 };
@@ -243,7 +232,7 @@ int hwio_adc_get_cnt(void) //number of analog inputs
 int hwio_adc_get_max(int i_adc) //analog input maximum value
 { return _adc_max[i_adc]; }
 
-int hwio_adc_get_val(int i_adc) //read analog input
+int hwio_adc_get_val(ADC_t i_adc) //read analog input
 {
     if ((i_adc >= 0) && (i_adc < _ADC_CNT))
         return _adc_val[i_adc];
@@ -374,7 +363,7 @@ TIM_HandleTypeDef *_pwm_get_htim(int i_pwm) {
     return _pwm_p_htim[i_pwm];
 }
 
-void hwio_pwm_set_val(int i_pwm, int val) //write pwm output and actualize _pwm_analogWrite_val
+void hwio_pwm_set_val(int i_pwm, uint32_t val) //write pwm output and actualize _pwm_analogWrite_val
 {
     if (!is_pwm_id_valid(i_pwm))
         return;
@@ -454,7 +443,7 @@ void hwio_fan_set_pwm(int i_fan, int val) {
 //--------------------------------------
 // heater control functions
 
-inline int hwio_heater_get_cnt(void) //number of heaters
+int hwio_heater_get_cnt(void) //number of heaters
 { return _HEATER_CNT; }
 
 void hwio_heater_set_pwm(int i_heater, int val) {
@@ -631,7 +620,7 @@ int hwio_arduino_digitalRead(uint32_t ulPin) {
             return sim_motion_get_diag(0);
         case PIN_Z_DIAG:
             return sim_motion_get_diag(2);
-#else //SIM_MOTION
+#else  //SIM_MOTION
         case PIN_Z_MIN:
             return hwio_di_get_val(_DI_Z_MIN);
         case PIN_E_DIAG:
@@ -727,7 +716,7 @@ void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         case PIN_Z_DIR:
             sim_motion_set_dir(2, ulVal ? 1 : 0);
             return;
-#else //SIM_MOTION
+#else  //SIM_MOTION
         case PIN_X_DIR:
             hwio_do_set_val(_DO_X_DIR, ulVal ? 1 : 0);
             return;

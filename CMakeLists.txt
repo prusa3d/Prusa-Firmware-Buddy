@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
+include(cmake/ProjectVersion.cmake)
 
-project(A3ides LANGUAGES C CXX ASM)
+project(
+  Buddy
+  LANGUAGES C CXX ASM
+  VERSION ${PROJECT_VERSION}
+  )
 
 if(NOT CMAKE_CROSSCOMPILING)
   #
@@ -44,17 +49,37 @@ set(GENERATE_BBF
     "NO"
     CACHE STRING "Whether a .bbf version should be generated."
     )
+set(GENERATE_DFU
+    "NO"
+    CACHE BOOL "Whether a .dfu file should be generated. Implies GENERATE_BBF."
+    )
 set(SIGNING_KEY
     ""
     CACHE FILEPATH "Path to a PEM EC private key to be used to sign the firmware."
     )
-set(PRERELEASE
-    "BETA"
-    CACHE STRING "Development stage of the firmware. Set to empty string for final release."
+set(PROJECT_VERSION_SUFFIX
+    "<auto>"
+    CACHE
+      STRING
+      "Full version suffix to be shown on the info screen in settings (e.g. full_version=4.0.3-BETA+1035.PR111.B4, suffix=-BETA+1035.PR111.B4). Defaults to '+<commit sha>.<dirty?>.<debug?>' if set to '<auto>'."
+    )
+set(PROJECT_VERSION_SUFFIX_SHORT
+    "<auto>"
+    CACHE
+      STRING
+      "Short version suffix to be shown on splash screen. Defaults to '+<BUILD_NUMBER>' if set to '<auto>'."
     )
 set(BUILD_NUMBER
     ""
     CACHE STRING "Build number of the firmware. Resolved automatically if not specified."
+    )
+set(CUSTOM_COMPILE_OPTIONS
+    ""
+    CACHE STRING "Allows adding custom C/C++ flags"
+    )
+set(WUI
+    "YES"
+    CACHE BOOL "Enable Web User Interface"
     )
 
 # Validate options
@@ -64,15 +89,13 @@ foreach(OPTION "PRINTER" "MOTHERBOARD" "BOOTLOADER")
   endif()
 endforeach()
 
-# Resolve Build Number if not specified
-if(NOT BUILD_NUMBER)
-  git_count_parent_commits(BUILD_NUMBER)
-  set(ERRORS "GIT-NOTFOUND" "HEAD-HASH-NOTFOUND")
-  if(BUILD_NUMBER IN_LIST ERRORS)
-    message(WARNING "Failed to resolve build number: ${BUILD_NUMBER}.")
-    set(BUILD_NUMBER "0")
-  endif()
+# in order to generate DFU file for bootloader, we need a BFU
+if(GENERATE_DFU AND BOOTLOADER)
+  set(GENERATE_BBF "YES")
 endif()
+
+# Resolve BUILD_NUMBER and PROJECT_VERSION_* variables
+resolve_version_variables()
 
 # Check GCC Version
 get_recommended_gcc_version(RECOMMENDED_TOOLCHAIN_VERSION)
@@ -83,17 +106,49 @@ if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ${RECOMMENDED_TOOLCHAIN_VERSION}
 endif()
 
 # Inform user about the resolved settings
-read_version_file(VER_MAJOR VER_MINOR VER_PATCH "${CMAKE_SOURCE_DIR}/version.txt")
-create_full_version_string(
-  FULL_VERSION ${VER_MAJOR} ${VER_MINOR} ${VER_PATCH} "${PRERELEASE}" ${BUILD_NUMBER}
+message(STATUS "Project version: ${PROJECT_VERSION}")
+message(STATUS "Project version with full suffix: ${PROJECT_VERSION_FULL}")
+message(
+  STATUS "Project version with short suffix: ${PROJECT_VERSION}${PROJECT_VERSION_SUFFIX_SHORT}"
   )
-message(STATUS "Project version: ${FULL_VERSION}")
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 message(STATUS "Bootloader: ${BOOTLOADER}")
+message(STATUS "Printer: ${PRINTER}")
+message(STATUS "Web User Interface: ${WUI}")
 
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
 set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
+
+# Set printer features
+set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
+set(PRINTERS_WITH_GUI "MINI")
+set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES)
+  set(FILAMENT_SENSOR YES)
+else()
+  set(FILAMENT_SENSOR NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_GUI)
+  set(GUI YES)
+else()
+  set(GUI NO)
+endif()
+message(STATUS "GUI: ${GUI}")
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
+  set(INIT_TRINAMIC_FROM_MARLIN_ONLY YES)
+else()
+  set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
+endif()
+
+# append custom C/C++ flags
+if(CUSTOM_COMPILE_OPTIONS)
+  string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
+  add_compile_options(${CUSTOM_COMPILE_OPTIONS})
+endif()
 
 #
 # A3idesHeaders
@@ -116,8 +171,6 @@ target_compile_definitions(
   INTERFACE
   MOTHERBOARD=${MOTHERBOARD}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
-  FW_VERSION=${VER_MAJOR}${VER_MINOR}${VER_PATCH}
-  $<$<BOOL:${PRERELEASE}>:PRERELEASE=${PRERELEASE}>
   MARLIN_DISABLE_INFINITE_LOOP
   STM32GENERIC
   STM32F4
@@ -163,13 +216,25 @@ add_library(STM32_Utilities_CPU_Config ALIAS A3idesHeaders)
 
 add_library(FreeRTOS_Config INTERFACE)
 target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
+target_link_libraries(FreeRTOS_Config INTERFACE STM32::CPU)
 
 #
 # Configure LwIP
 #
 
-set(LWIP_HTTPD_CUSTOM_FILES "1")
-add_library(LwIP_Config ALIAS A3idesHeaders)
+add_library(LwIP_Config INTERFACE)
+target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
+
+#
+# Configure WUI
+#
+
+if(WUI)
+  add_library(WUI_Config INTERFACE)
+  target_include_directories(WUI_Config INTERFACE src/common src/gui src/guiapi/include)
+  target_compile_definitions(WUI_Config INTERFACE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
+  target_link_libraries(WUI_Config INTERFACE A3idesHeaders QR)
+endif()
 
 #
 # Configure FatFs
@@ -195,6 +260,9 @@ target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
 set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
 add_compile_options(${MCU_FLAGS})
 add_link_options(${MCU_FLAGS})
+
+# Thread safe newlib
+add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
 
 # include symbols
 add_compile_options(-g)
@@ -243,6 +311,9 @@ add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 #
 
 add_subdirectory(lib)
+if(WUI)
+  add_subdirectory(src/wui)
+endif()
 
 #
 # A3ides firmware
@@ -252,8 +323,15 @@ add_executable(firmware)
 
 set_target_properties(firmware PROPERTIES CXX_STANDARD 11)
 
+if(WUI)
+  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
+endif()
+
 # generate firmware.bin file
 objcopy(firmware "binary" ".bin")
+
+# generate linker map file
+target_link_options(firmware PUBLIC -Wl,-Map=firmware.map)
 
 # inform about the firmware's size in terminal
 report_size(firmware)
@@ -270,18 +348,53 @@ if(GENERATE_BBF)
   else()
     message(FATAL_ERROR "Don't know how to encode printer type for ${PRINTER}.")
   endif()
-  pack_firmware(firmware "${FULL_VERSION}" "${PRINTER_TYPE}" "${SIGNING_KEY}")
+
+  if(PROJECT_VERSION_SUFFIX)
+    if(NOT "${PROJECT_VERSION_SUFFIX}" MATCHES "\\+${BUILD_NUMBER}")
+      message(WARNING "The generated .bbf is configured to use the build number ${BUILD_NUMBER},
+      but the version suffix (${PROJECT_VERSION_SUFFIX}) does not contain +${BUILD_NUMBER}.
+      Are you sure you know what you are doing?"
+              )
+    endif()
+  endif()
+
+  pack_firmware(
+    firmware "${PROJECT_VERSION_FULL}" "${BUILD_NUMBER}" "${PRINTER_TYPE}" "${SIGNING_KEY}"
+    )
+elseif(SIGNING_KEY)
+  message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
+endif()
+
+# generate .dfu version if requested
+if(GENERATE_DFU)
+  if(BOOTLOADER)
+    set(firmware_addr "0x08020000")
+    if(BOOTLOADER STREQUAL "YES")
+      string(TOLOWER ${PRINTER} printer_low)
+      get_dependency_directory("bootloader-${printer_low}" bootloader_dir)
+      set(bootloader_input "0x08000000:${bootloader_dir}/bootloader.bin")
+    endif()
+    set(firmware_input "0x08020000:${CMAKE_BINARY_DIR}/firmware.bbf")
+  else()
+    set(firmware_input "0x08000000:${CMAKE_BINARY_DIR}/firmware.bin")
+  endif()
+
+  create_dfu(
+    TARGET
+    firmware
+    INPUT
+    "${bootloader_input}"
+    "${firmware_input}"
+    OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/firmware.dfu"
+    )
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/wui
+  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
-
-# generate datetime string (RFC1123) to be used by web ui
-rfc1123_datetime(RFC1123_DATETIME)
-target_compile_definitions(firmware PRIVATE RFC1123_DATETIME="$RFC1123_DATETIME")
 
 target_link_libraries(
   firmware
@@ -297,6 +410,10 @@ target_link_libraries(
           STM32::USBDevice
           CPU
           inih::inih
+          $<$<BOOL:${WUI}>:WUI>
+          jsmn::jsmn
+          QR
+          CRC
   )
 
 target_sources(
@@ -310,9 +427,8 @@ target_sources(
           src/freertos_openocd.c
           src/usbh_diskio.c
           src/ethernetif.c
-          src/main.c
+          src/main_${PRINTER}.c
           src/usbd_desc.c
-          src/fs_custom.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/system_stm32f4xx.c>
           src/stm32f4xx_hal_msp.c
@@ -322,20 +438,22 @@ target_sources(
           src/usbh_conf.c
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
-          src/common/filament_sensor.c
-          src/common/thread_measurement.c
+          $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
+          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
           src/common/eeprom.c
+          src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
-          src/common/marlin_host.c
+          src/common/media.cpp
           src/common/sim_bed.c
           src/common/sys.cpp
           src/common/sim_nozzle.c
           src/common/hwio_a3ides_2209_02.c
           src/common/putslave.c
           src/common/safe_state.c
-          src/common/variant8.c
+          src/common/variant8.cpp
           src/common/dbg.c
+          src/common/dump.c
           src/common/marlin_client.c
           src/common/bsod.c
           src/common/adc.c
@@ -344,118 +462,157 @@ target_sources(
           src/common/marlin_events.c
           src/common/marlin_errors.c
           src/common/uartrxbuff.c
-          src/common/Marlin_CardReader.cpp
           src/common/appmain.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
-          src/common/trinamic.cpp
-          src/common/trinamic.h
+          $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
           src/common/w25x.c
           src/common/gcode_file.cpp
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
-          src/common/Marlin_eeprom.cpp
           src/common/base64_stream_decoder.cpp
-          src/gui/screen_menu_filament.c
-          src/gui/dialogs/window_dlg_change.c
-          src/gui/dialogs/window_dlg_loadunload_shared.c
-          src/gui/dialogs/window_dlg_statemachine.c
-          src/gui/dialogs/window_dlg_load.c
-          src/gui/dialogs/window_dlg_wait.c
-          src/gui/dialogs/window_dlg_popup.c
-          src/gui/dialogs/window_dlg_purge.c
-          src/gui/dialogs/window_dlg_preheat.c
-          src/gui/dialogs/window_dlg_unload.c
-          src/gui/screen_menu_temperature.c
-          src/gui/resource.c
-          src/gui/window_file_list.c
-          src/gui/pngview.c
+          src/common/sound_C_wrapper.cpp
+          src/common/sound.cpp
+          src/common/support_utils.cpp
+          src/common/errors.c
+          src/common/lang.c
+          src/common/client_response.cpp
+          src/common/crc32.c
+          src/common/ini_handler.c
+          $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
+          $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
+          src/marlin_stubs/M876.cpp
+          src/marlin_stubs/pause/G27.cpp
+          src/marlin_stubs/pause/M125.cpp
+          src/marlin_stubs/pause/M600.cpp
+          src/marlin_stubs/pause/M603.cpp
+          src/marlin_stubs/pause/M701_M702.cpp
+          src/marlin_stubs/pause/pause.cpp
           src/gui/guimain.c
-          src/gui/wizard/selftest_temp.c
-          src/gui/window_temp_graph.c
-          src/gui/screen_menu_settings.c
-          src/gui/wizard/wizard_progress_bar.c
-          src/gui/wizard/firstlay.c
-          src/gui/wizard/selftest_home.c
-          src/gui/wizard/selftest_cool.c
-          src/gui/window_header.c
-          src/gui/screen_sysinf.c
-          src/gui/screen_version_info.cpp
-          src/gui/test_display.c
-          src/gui/screen_splash.c
-          src/gui/window_logo.c
-          src/gui/screen_menu_service.c
-          src/gui/screen_menu_calibration.c
-          src/gui/screen_menu.c
-          src/gui/screen_print_preview.c
-          src/gui/screen_messages.c
-          src/gui/screen_menu_info.c
-          src/gui/screen_watchdog.c
-          src/gui/screen_menu_move.c
-          src/gui/screen_lan_settings.c
-          src/gui/test/screen_test.c
-          src/gui/test/screen_test_disp_mem.c
-          src/gui/test/screen_test_gui.c
-          src/gui/test/screen_test_term.c
-          src/gui/test/screen_test_msgbox.c
-          src/gui/test/screen_test_graph.c
-          src/gui/wizard/selftest_fans_axis.c
-          src/gui/wizard/selftest_home.c
-          src/gui/wizard/selftest_temp.c
-          src/gui/wizard/selftest_cool.c
-          src/gui/wizard/selftest.c
-          src/gui/wizard/firstlay.c
-          src/gui/wizard/wizard_load_unload.c
-          src/gui/wizard/wizard_ui.c
-          src/gui/wizard/wizard.c
-          src/gui/wizard/screen_wizard.c
-          src/gui/wizard/xyzcalib.c
-          src/gui/wizard/wizard_progress_bar.c
-          src/gui/screen_home.cpp
-          src/gui/screen_filebrowser.cpp
-          src/gui/screen_menu_preheat.cpp
-          src/gui/status_footer.cpp
           src/gui/filament.cpp
-          src/gui/menu_vars.cpp
-          src/gui/screen_printing.cpp
-          src/gui/screen_menu_tune.cpp
-          src/gui/screen_PID.cpp
-          src/gui/screen_menu_fw_update.c
-          src/gui/test/screen_test_temperature.cpp
-          src/gui/wizard/selftest_fans_axis.c
-          src/gui/test/screen_mesh_bed_lv.cpp
-          src/gui/wizard/Marlin_PID_wrapper.cpp
-          src/guiapi/src/button_draw.c
-          src/guiapi/src/display.c
-          src/guiapi/src/gui.c
-          src/guiapi/src/term.c
-          src/guiapi/src/guitypes.c
-          src/guiapi/src/window_progress.c
-          src/guiapi/src/window_frame.c
-          src/guiapi/src/gui_timer.c
-          src/guiapi/src/display_helper.c
-          src/guiapi/src/window_menu.c
-          src/guiapi/src/screen.c
-          src/guiapi/src/window_term.c
-          src/guiapi/src/window_list.c
-          src/guiapi/src/jogwheel.c
-          src/guiapi/src/window_numb.c
-          src/guiapi/src/st7789v.c
-          src/guiapi/src/window_icon.c
-          src/guiapi/src/window_spin.c
-          src/guiapi/src/window_text.c
-          src/guiapi/src/window_msgbox.c
-          src/guiapi/src/window.c
-          src/wui/http_states.c
-          src/wui/lwsapi.cpp
-          src/wui/connect.cpp
-          src/wui/connection.cpp
   )
+
+if(GUI)
+  target_sources(
+    firmware
+    PRIVATE src/gui/screen_menu_filament.c
+            src/gui/dialogs/Dialog_C_wrapper.cpp
+            src/gui/dialogs/IDialog.cpp
+            src/gui/dialogs/DialogFactory.cpp
+            src/gui/dialogs/DialogHandler.cpp
+            src/gui/dialogs/DialogStateful.cpp
+            src/gui/dialogs/DialogRadioButton.cpp
+            src/gui/dialogs/DialogLoadUnload.cpp
+            src/gui/dialogs/window_dlg_load_unload.c
+            src/gui/dialogs/window_dlg_wait.c
+            src/gui/dialogs/window_dlg_popup.c
+            src/gui/dialogs/window_dlg_preheat.c
+            src/gui/screen_menu_temperature.c
+            src/gui/resource.c
+            src/gui/window_file_list.c
+            src/gui/lazyfilelist-c-api.cpp
+            src/gui/pngview.c
+            src/gui/wizard/selftest_temp.c
+            src/gui/window_temp_graph.c
+            src/gui/screen_menu_settings.c
+            src/gui/wizard/wizard_progress_bar.c
+            src/gui/wizard/firstlay.c
+            src/gui/wizard/selftest_cool.c
+            src/gui/window_header.c
+            src/gui/screen_sysinf.c
+            src/gui/screen_version_info.cpp
+            src/gui/test_display.c
+            src/gui/screen_splash.c
+            src/gui/screen_menu_service.c
+            src/gui/screen_menu_calibration.c
+            src/gui/screen_menu.c
+            src/gui/screen_print_preview.c
+            src/gui/screen_messages.c
+            src/gui/screen_menu_info.c
+            src/gui/screen_watchdog.c
+            src/gui/screen_menu_move.c
+            src/gui/screen_lan_settings.c
+            src/gui/screen_qr_info.cpp
+            src/gui/screen_qr_error.cpp
+            src/gui/test/screen_test.c
+            src/gui/test/screen_test_disp_mem.c
+            src/gui/test/screen_test_gui.c
+            src/gui/test/screen_test_term.c
+            src/gui/test/screen_test_msgbox.c
+            src/gui/test/screen_test_graph.c
+            src/gui/wizard/selftest_fans_axis.c
+            src/gui/wizard/selftest_temp.c
+            src/gui/wizard/selftest_cool.c
+            src/gui/wizard/selftest.c
+            src/gui/wizard/firstlay.c
+            src/gui/wizard/wizard_load_unload.c
+            src/gui/wizard/wizard_ui.c
+            src/gui/wizard/wizard.c
+            src/gui/wizard/screen_wizard.c
+            src/gui/wizard/xyzcalib.c
+            src/gui/wizard/wizard_progress_bar.c
+            src/gui/screen_home.cpp
+            src/gui/screen_filebrowser.cpp
+            src/gui/screen_menu_preheat.cpp
+            src/gui/status_footer.cpp
+            src/gui/menu_vars.cpp
+            src/gui/screen_printing.cpp
+            src/gui/screen_printing_serial.cpp
+            src/gui/screen_menu_tune.cpp
+            src/gui/screen_PID.cpp
+            src/gui/screen_menu_fw_update.c
+            src/gui/test/screen_test_temperature.cpp
+            src/gui/wizard/selftest_fans_axis.c
+            src/gui/test/screen_mesh_bed_lv.cpp
+            src/gui/wizard/Marlin_PID_wrapper.cpp
+            src/guiapi/src/button_draw.c
+            src/guiapi/src/display.c
+            src/guiapi/src/gui.c
+            src/guiapi/src/term.c
+            src/guiapi/src/guitypes.c
+            src/guiapi/src/window_progress.c
+            src/guiapi/src/window_frame.c
+            src/guiapi/src/gui_timer.c
+            src/guiapi/src/display_helper.c
+            src/guiapi/src/window_menu.c
+            src/guiapi/src/screen.c
+            src/guiapi/src/screen_close_multiple.cpp
+            src/guiapi/src/window_term.c
+            src/guiapi/src/window_list.c
+            src/guiapi/src/jogwheel.c
+            src/guiapi/src/window_numb.c
+            src/guiapi/src/st7789v.c
+            src/guiapi/src/window_icon.c
+            src/guiapi/src/window_spin.c
+            src/guiapi/src/window_text.c
+            src/guiapi/src/window_msgbox.c
+            src/guiapi/src/window_qr.c
+            src/guiapi/src/window.c
+    )
+endif()
 
 set_property(
   SOURCE src/common/version.c
   APPEND
-  PROPERTY COMPILE_DEFINITIONS FW_BUILDNR=${BUILD_NUMBER}
+  PROPERTY COMPILE_DEFINITIONS
+           FW_BUILD_NUMBER=${BUILD_NUMBER}
+           FW_VERSION_FULL=${PROJECT_VERSION_FULL}
+           FW_VERSION=${PROJECT_VERSION}
+           FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
+           FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
+  )
+
+set_property(
+  SOURCE src/common/bsod.c src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
+  )
+
+set_property(
+  SOURCE src/common/appmain.cpp src/common/putslave.c
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS
+           INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
   )

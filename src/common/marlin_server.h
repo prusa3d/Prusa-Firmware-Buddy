@@ -5,18 +5,18 @@
 #include "marlin_events.h"
 #include "marlin_vars.h"
 #include "marlin_errors.h"
-#include "marlin_host.h"
+#include "client_fsm_types.h"
 
 // server flags
 #define MARLIN_SFLG_STARTED 0x0001 // server started (set in marlin_server_init)
 #define MARLIN_SFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_SFLG_BUSY 0x0004 // loop is busy
+#define MARLIN_SFLG_BUSY    0x0004 // loop is busy
 #define MARLIN_SFLG_PENDREQ 0x0008 // pending request
 
 // server variable update interval [ms]
 #define MARLIN_UPDATE_PERIOD 100
-#define MSG_STACK_SIZE 8 //status message stack size
-#define MSG_MAX_LENGTH 21 //status message max length
+#define MSG_STACK_SIZE       8  //status message stack size
+#define MSG_MAX_LENGTH       21 //status message max length
 
 typedef void(marlin_server_idle_t)(void);
 
@@ -59,9 +59,6 @@ extern void marlin_server_start_processing(void);
 // direct stop loop processing + disable heaters and safe state
 extern void marlin_server_stop_processing(void);
 
-// update variables at server side, defined by 'update' mask and send notification to all clients
-extern void marlin_server_update(uint64_t update);
-
 // direct call of babystep.add_steps(Z_AXIS, ...)
 extern void marlin_server_do_babystep_Z(float offs);
 
@@ -76,6 +73,9 @@ extern void marlin_server_settings_save(void);
 
 // direct call of settings.load()
 extern void marlin_server_settings_load(void);
+
+// direct call of settings.reset()
+extern void marlin_server_settings_reset(void);
 
 // direct call of thermalManager.manage_heater()
 extern void marlin_server_manage_heater(void);
@@ -93,7 +93,16 @@ extern void marlin_server_print_pause(void);
 extern void marlin_server_print_resume(void);
 
 //
+extern void marlin_server_print_reheat_start(void);
+
+//
+extern int marlin_server_print_reheat_ready(void);
+
+//
 extern void marlin_server_park_head(void);
+
+//
+extern void marlin_server_unpark_head(void);
 
 //
 extern int marlin_all_axes_homed(void);

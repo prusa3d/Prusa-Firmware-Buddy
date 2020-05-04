@@ -21,6 +21,8 @@
  */
 #pragma once
 
+// clang-format off
+
 /**
  * Configuration_adv.h
  *
@@ -660,8 +662,7 @@
 //#define MICROSTEP32 HIGH,LOW,HIGH
 
 // Microstep setting (Only functional when stepper driver microstep pins are connected to MCU.
-#define MICROSTEP_MODES \
-    { 16, 16, 16, 16, 16, 16 } // [1,2,4,8,16]
+//#define MICROSTEP_MODES { 16, 16, 16, 16, 16, 16 } // [1,2,4,8,16]
 
 /**
  *  @section  stepper motor current
@@ -1058,10 +1059,10 @@
 
 #if EITHER(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
 // Override the mesh area if the automatic (max) area is too large
-//#define MESH_MIN_X MESH_INSET
-//#define MESH_MIN_Y MESH_INSET
-//#define MESH_MAX_X X_BED_SIZE - (MESH_INSET)
-//#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET)
+#define MESH_MIN_X MESH_INSET
+#define MESH_MIN_Y MESH_INSET
+#define MESH_MAX_X X_BED_SIZE - (MESH_INSET) - 29
+#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET) - 3
 #endif
 
 /**
@@ -1354,7 +1355,7 @@
     #define FILAMENT_CHANGE_ALERT_BEEPS 10 // Number of alert beeps to play when a response is needed.
     #define PAUSE_PARK_NO_STEPPER_TIMEOUT // Enable for XYZ steppers to stay powered on during filament change.
 
-    #define PARK_HEAD_ON_PAUSE // Park the nozzle during pause and filament change.
+//    #define PARK_HEAD_ON_PAUSE // Park the nozzle during pause and filament change.
 //#define HOME_BEFORE_FILAMENT_CHANGE           // Ensure homing has been completed prior to parking for filament change
 
     #define FILAMENT_LOAD_UNLOAD_GCODES // Add M701/M702 Load/Unload G-codes, plus Load/Unload in the LCD Prepare menu.
@@ -2122,7 +2123,7 @@
  * Host Prompt Support enables Marlin to use the host for user prompts so
  * filament runout and other processes can be managed from the host side.
  */
-#define HOST_ACTION_COMMANDS
+//#define HOST_ACTION_COMMANDS
 #if ENABLED(HOST_ACTION_COMMANDS)
     #define HOST_PROMPT_SUPPORT
 #endif

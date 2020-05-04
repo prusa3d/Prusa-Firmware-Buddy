@@ -2,6 +2,7 @@
 
 #include "gui.h"
 #include "config.h"
+#include "screens.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -141,7 +142,7 @@ screen_t screen_test_msgbox = {
     screen_test_msgbox_draw,
     screen_test_msgbox_event,
     sizeof(screen_test_msgbox_data_t), //data_size
-    0, //pdata
+    0,                                 //pdata
 };
 
-const screen_t *pscreen_test_msgbox = &screen_test_msgbox;
+screen_t *const get_scr_test_msgbox() { return &screen_test_msgbox; }

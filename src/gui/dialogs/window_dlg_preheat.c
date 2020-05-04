@@ -21,8 +21,6 @@ extern void window_frame_event(window_frame_t *window, uint8_t event, void *para
 
 int16_t WINDOW_CLS_DLG_PREHEAT = 0;
 
-extern window_t *window_1; //current popup window
-
 #define _PREHEAT_FILAMENT_CNT (FILAMENTS_END - FILAMENT_PLA)
 
 //no return option
@@ -46,21 +44,17 @@ void window_list_filament_item_cb(window_list_t *pwindow_list, uint16_t index,
     }
 }
 
-static void _set_filament(FILAMENT_t index) {
-    marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
-    marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
-    set_filament(index);
-}
-
 void window_dlg_preheat_click_forced_cb(window_dlg_preheat_t *window) {
     FILAMENT_t index = window->list.index + FILAMENT_PLA;
-    _set_filament(index);
+    marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
+    marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
 }
 
 void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
     if (window->list.index > 0) {
         FILAMENT_t index = window->list.index + FILAMENT_PLA - 1;
-        _set_filament(index);
+        marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
+        marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
     }
 }
 
@@ -98,9 +92,11 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
     //todo, fixme, error i will not get WINDOW_EVENT_BTN_DN event here first time when it is clicked
     //but list reacts to it
     switch (event) {
+    case WINDOW_EVENT_ENC_UP:
+    case WINDOW_EVENT_ENC_DN: //forward up/dn events to list window
+        window->list.win.cls->event(&(window->list.win), event, param);
+        break;
     case WINDOW_EVENT_BTN_DN:
-    case WINDOW_EVENT_BTN_UP:
-    case WINDOW_EVENT_CLICK:
         if (window->timer != -1) {
             window->timer = -1; //close
             window->on_click(window);
@@ -123,16 +119,19 @@ const window_class_dlg_preheat_t window_class_dlg_preheat = {
     },
 };
 
-int gui_dlg_preheat(const char *caption) {
-    return gui_dlg_list(
+FILAMENT_t gui_dlg_preheat(const char *caption) {
+    int ret = gui_dlg_list(
         caption,
         window_list_filament_item_cb,
         window_dlg_preheat_click_cb,
         _PREHEAT_FILAMENT_CNT + 1, //+1 back option
         30000);
+    if (ret < 0)
+        return FILAMENT_NONE; //timeout
+    return (FILAMENT_t)ret;   //RETURN option will return FILAMENT_NONE
 }
 
-int gui_dlg_preheat_autoselect_if_able(const char *caption) {
+FILAMENT_t gui_dlg_preheat_autoselect_if_able(const char *caption) {
     const FILAMENT_t fil = get_filament();
     if (fil == FILAMENT_NONE) {
         //no filament selected
@@ -149,18 +148,22 @@ int gui_dlg_preheat_autoselect_if_able(const char *caption) {
 }
 
 //no return option
-int gui_dlg_preheat_forced(const char *caption) {
-    return gui_dlg_list(
+FILAMENT_t gui_dlg_preheat_forced(const char *caption) {
+    int ret = gui_dlg_list(
         caption,
         window_list_filament_item_forced_cb,
         window_dlg_preheat_click_forced_cb,
         _PREHEAT_FILAMENT_CNT,
         -1 //do not leave
     );
+
+    if (ret < 0)
+        return FILAMENT_NONE;   //should not happen
+    return (FILAMENT_t)(++ret); //first filament has position 0, have to change index
 }
 
 //no return option
-int gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
+FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
     const FILAMENT_t fil = get_filament();
     if (fil == FILAMENT_NONE) {
         //no filament selected
@@ -175,7 +178,6 @@ int gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
     }
     return fil;
 }
-
 
 //returns index or -1 on timeout
 //todo make this independet on preheat, in separate file
@@ -195,8 +197,10 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
 
     window_set_item_count(dlg.list.win.id, count);
 
-    window_1 = (window_t *)&dlg;
-    window_set_capture(dlg.list.win.id); //get inside list
+    window_t *tmp_window_1 = window_popup_ptr; //save current window_popup_ptr
+
+    window_popup_ptr = (window_t *)&dlg;
+    window_set_capture(id); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
 
     gui_reset_jogwheel();
     gui_invalidate();
@@ -217,7 +221,8 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
         ret = dlg.list.index;
     }
 
-    window_destroy(id); //msg box does not call this, should I
+    window_destroy(id);              //msgbox call this inside (destroys its own window)
+    window_popup_ptr = tmp_window_1; //restore current window_popup_ptr
     window_invalidate(0);
     window_set_capture(id_capture);
     return ret;

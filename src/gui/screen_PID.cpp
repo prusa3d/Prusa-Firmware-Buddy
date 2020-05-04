@@ -6,6 +6,8 @@
  */
 
 #include "config.h"
+#include "eeprom.h"
+#include "screens.h"
 
 #ifdef PIDCALIBRATION
 
@@ -15,8 +17,8 @@
     #include "../Marlin/src/module/temperature.h"
     #include "marlin_client.h"
 
-    #define SPIN_DIGITS 6
-    #define SPIN_PRECISION 2
+    #define SPIN_DIGITS     6
+    #define SPIN_PRECISION  2
     #define SPIN_INT_DIGITS (SPIN_DIGITS - SPIN_PRECISION)
 
 enum { _BED = -1,
@@ -115,7 +117,7 @@ typedef struct
     #define pd ((screen_PID_data_t *)screen->pdata)
 
     #define AUTO_TN_DEFAULT_CL COLOR_WHITE
-    #define AUTO_TN_ACTIVE_CL COLOR_RED
+    #define AUTO_TN_ACTIVE_CL  COLOR_RED
 
 enum {
     TAG_QUIT = 10,
@@ -370,7 +372,9 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                         SPIN_DIGITS, SPIN_PRECISION),
                     get_single_PIDparamFromDisp(pd->idsDigits_Kd_E,
                         SPIN_DIGITS, SPIN_PRECISION));
-                marlin_gcode("M500"); //store to eeprom
+                eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
+                eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
+                eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
             }
             break;
         case TAG_AUTOTUNE_APPLY_B:
@@ -386,7 +390,9 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                         SPIN_DIGITS, SPIN_PRECISION),
                     get_single_PIDparamFromDisp(pd->idsDigits_Kd_B,
                         SPIN_DIGITS, SPIN_PRECISION));
-                marlin_gcode("M500"); //store to eeprom
+                eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
+                eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
+                eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
             }
             break;
         case TAG_CHANGE_VAL_E:
@@ -407,7 +413,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
     if (event == WINDOW_EVENT_LOOP) {
 
         if (pd->autotune_state != AT_idle) {
-            if (marlin_event(MARLIN_EVT_Ready)) //wait for MARLIN_EVT_READY
+            if (marlin_event_clr(MARLIN_EVT_CommandEnd)) //wait for MARLIN_EVT_CommandEnd
             {
                 window_set_color_text(pd->btAutoTuneApply_B.win.id, AUTO_TN_DEFAULT_CL);
                 window_set_color_text(pd->btAutoTuneApply_E.win.id, AUTO_TN_DEFAULT_CL);
@@ -533,10 +539,10 @@ screen_t screen_PID = {
     screen_PID_draw,
     screen_PID_event,
     sizeof(screen_PID_data_t), //data_size
-    0, //pdata
+    0,                         //pdata
 };
 
-const screen_t *pscreen_PID = &screen_PID;
+screen_t *const get_scr_PID() { return &screen_PID; }
 }
 
 //-----------------------------------------------------------------------------
@@ -552,8 +558,17 @@ void _PID_copy_and_scale_PID_d(_PID_t *ths) {
 }
 
 void _PID_autotune(_PID_t *ths) {
+    marlin_event_clr(MARLIN_EVT_CommandEnd);
     marlin_gcode_printf("M303 U1 E%i S%i", ths->ID, int(*ths->autotune_temp));
-    marlin_gcode("M500");
+    if (ths->ID >= 0) {
+        eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
+        eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
+        eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
+    } else {
+        eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
+        eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
+        eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+    }
 }
 
 //0	the contents of both memory blocks are equal

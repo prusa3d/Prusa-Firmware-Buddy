@@ -13,6 +13,5 @@
 #include "screen_menu.h"
 
 extern screen_t screen_menu_fw_update;
-extern screen_t *const pscreen_menu_fw_update;
 
 #endif /* SRC_GUI_SCREEN_MENU_FW_UPDATE_H_ */

@@ -31,10 +31,11 @@ void jogwheel_update_1ms(void) {
         signals |= 2; //bit 1 - phase1
     if (jogwheel_config.flg & JOGWHEEL_FLG_INV_E12)
         signals ^= 3;
-    if (jogwheel_signals_new != signals) {
-        jogwheel_signals_new = signals;
-        return;
-    }
+    if (jogwheel_config.flg & JOGWHEEL_FLG_FILTER2)
+        if (jogwheel_signals_new != signals) {
+            jogwheel_signals_new = signals;
+            return;
+        }
     uint8_t change = signals ^ jogwheel_signals;
     if (change & 3) //encoder phase signals changed
     {
@@ -70,13 +71,13 @@ void jogwheel_update_1ms(void) {
     if (change & 7) //encoder phase signals or button changed
     {
         jogwheel_signals_old = jogwheel_signals; //save old signal state
-        jogwheel_signals = signals; //update signal state
+        jogwheel_signals = signals;              //update signal state
     }
     if (change & 12) //encoder changed or button changed
     {
         jogwheel_signals_old = jogwheel_signals; //save old signal state
-        jogwheel_signals = signals; //update signal state
-        jogwheel_changed |= (change >> 2); //synchronization is not necessary because we are inside interrupt
+        jogwheel_signals = signals;              //update signal state
+        jogwheel_changed |= (change >> 2);       //synchronization is not necessary because we are inside interrupt
     }
 }
 

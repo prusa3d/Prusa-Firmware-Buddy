@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------------
 //stringize macros
 #define QUOTE_ME(x) #x
-#define STR(x) QUOTE_ME(x)
+#define STR(x)      QUOTE_ME(x)
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +20,8 @@ extern const int z_axis_len;
 // tolerance (common for all axes)
 extern const int len_tol_abs; // length absolute tolerance (+-5mm)
 extern const int len_tol_rev; // length tolerance in reversed direction (3mm)
+
+extern const int axis_steps_per_unit[];
 
 extern const float nozzle_to_probe[3];
 

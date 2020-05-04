@@ -1,17 +1,26 @@
-//! @file
 #pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
-extern const char version_firmware_name[];
+/// Project's version (4.0.2)
+extern const char project_version[];
 
-extern const char version_version[];
+/// Full project's version (4.0.3-BETA+1035.PR111.B4)
+extern const char project_version_full[];
 
-extern const char version_build[];
+/// Project's version suffix (-BETA+1035.PR111.B4)
+extern const char project_version_suffix[];
 
-extern const int version_build_nr;
+/// Project's short version suffix (+1035)
+extern const char project_version_suffix_short[];
+
+/// Project's build number (number of commits in a branch)
+extern const int project_build_number;
+
+/// Firmware name
+extern const char project_firmware_name[];
 
 #ifdef __cplusplus
 }

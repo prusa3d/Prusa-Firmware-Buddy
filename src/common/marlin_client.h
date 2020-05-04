@@ -5,12 +5,11 @@
 #include "marlin_events.h"
 #include "marlin_vars.h"
 #include "marlin_errors.h"
-#include "marlin_host.h"
+#include "client_fsm_types.h"
 
 // client flags
 #define MARLIN_CFLG_STARTED 0x0001 // client started (set in marlin_client_init)
 #define MARLIN_CFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_CFLG_BUSY 0x0004 // loop is busy
 #define MARLIN_CFLG_LOWHIGH 0x0008 // receiving low/high part of client message
 #define MARLIN_CFLG_MESSAGE 0x0010 // receiving status change message
 
@@ -36,11 +35,23 @@ extern void marlin_client_shdn(void);
 // client loop - must be called periodically in client thread
 extern void marlin_client_loop(void);
 
+// returns client_id for calling thread (-1 for unattached thread)
+extern int marlin_client_id(void);
+
+//sets dialog callback, returns 1 on success
+extern int marlin_client_set_fsm_create_cb(fsm_create_t cb);
+//sets dialog callback, returns 1 on success
+extern int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb);
+//sets dialog callback, returns 1 on success
+extern int marlin_client_set_fsm_change_cb(fsm_change_t cb);
 // returns enabled status of loop processing
 extern int marlin_processing(void);
 
-// returns busy status of marlin
-extern int marlin_busy(void);
+//sets event notification mask
+extern void marlin_client_set_event_notify(uint64_t notify_events);
+
+//sets variable change notification mask
+extern void marlin_client_set_change_notify(uint64_t notify_changes);
 
 // returns currently running command or MARLIN_CMD_NONE
 extern uint32_t marlin_command(void);
@@ -60,6 +71,9 @@ extern int marlin_wait_motion(uint32_t timeout);
 // enqueue gcode - thread-safe version  (request '!g xxx')
 extern void marlin_gcode(const char *gcode);
 
+// enqueue gcode from ethernet command (json parsed)
+extern void marlin_json_gcode(const char *gcode);
+
 // enqueue gcode - printf-like, returns number of chars printed
 extern int marlin_gcode_printf(const char *format, ...);
 
@@ -67,13 +81,13 @@ extern int marlin_gcode_printf(const char *format, ...);
 extern void marlin_gcode_push_front(const char *gcode);
 
 // returns current event status for evt_id
-extern int marlin_event(uint8_t evt_id);
+extern int marlin_event(MARLIN_EVT_t evt_id);
 
 // returns current event status for evt_id and set event
-extern int marlin_event_set(uint8_t evt_id);
+extern int marlin_event_set(MARLIN_EVT_t evt_id);
 
 // returns current event status for evt_id and clear event
-extern int marlin_event_clr(uint8_t evt_id);
+extern int marlin_event_clr(MARLIN_EVT_t evt_id);
 
 // returns current event status for all events as 64bit mask
 extern uint64_t marlin_events(void);
@@ -142,9 +156,13 @@ extern void marlin_settings_save(void);
 
 extern void marlin_settings_load(void);
 
+extern void marlin_settings_reset(void);
+
 extern void marlin_manage_heater(void);
 
 extern void marlin_quick_stop(void);
+
+extern void marlin_print_start(const char *filename);
 
 extern void marlin_print_abort(void);
 
@@ -156,21 +174,11 @@ extern void marlin_park_head(void);
 
 extern uint8_t marlin_message_received(void);
 
-// returns current host prompt type
-extern host_prompt_type_t marlin_host_prompt_type(void);
-
-// returns number of buttons in current host prompt
-extern uint8_t marlin_host_button_count(void);
-
-// returns button type in current prompt by button index
-extern host_prompt_button_t marlin_host_button_type(uint8_t index);
-
-// click host promt button
-extern void marlin_host_button_click(host_prompt_button_t button);
-
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);
 
+// radio button click
+extern void marlin_encoded_response(uint32_t enc_phase_and_response);
 #ifdef __cplusplus
 }
 #endif //__cplusplus

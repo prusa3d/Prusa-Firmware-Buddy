@@ -14,17 +14,15 @@
 
 //dialog flags bitmasks
 
-#define DLG_W8_HOUR_CHNG 0x0300 //Hourglass change flag
+#define DLG_W8_HOUR_CHNG  0x0300 //Hourglass change flag
 #define DLG_W8_HOUR_REDRW 0x0100 //Hourglass sand animation change
-#define DLG_W8_ANI_FLG 0x0010 //Hourglass sand animation start
-#define DLG_W8_FRAME_FLG 0x4000 //Draw grey frame
-#define DLG_W8_PROGRESS 0x8000 //Draw progressbar
-#define DLG_W8_HOUR_ROT 0x0200 //rotate hourglass
-#define DLG_W8_FPS 2 //frame per sec of hourglass animation
+#define DLG_W8_ANI_FLG    0x0010 //Hourglass sand animation start
+#define DLG_W8_FRAME_FLG  0x4000 //Draw grey frame
+#define DLG_W8_PROGRESS   0x8000 //Draw progressbar
+#define DLG_W8_HOUR_ROT   0x0200 //rotate hourglass
+#define DLG_W8_FPS        2      //frame per sec of hourglass animation
 
 int16_t WINDOW_CLS_DLG_WAIT = 0;
-
-extern window_t *window_1; //current popup window
 
 void window_dlg_wait_init(window_dlg_wait_t *window) {
     //if (rect_empty_ui16(window->win.rect)) //use display rect if current rect is empty
@@ -142,13 +140,13 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
 
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_WAIT, 0, gui_defaults.msg_box_sz, &dlg);
-    window_1 = (window_t *)&dlg;
+    window_popup_ptr = (window_t *)&dlg;
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);
 
     dlg.progress = (*callback)();
-    dlg.flags |= DLG_W8_FRAME_FLG; //draw gray frame
+    dlg.flags |= DLG_W8_FRAME_FLG;  //draw gray frame
     dlg.flags |= DLG_W8_HOUR_REDRW; //redraw hourglass icon
 
     dlg.timer = HAL_GetTick();
@@ -211,11 +209,4 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
     window_set_capture(id_capture);
     window_invalidate(0);
     return 0;
-}
-
-int8_t gui_marlin_busy_callback() {
-    if (marlin_motion() || marlin_busy())
-        return -1;
-    else
-        return 0;
 }

@@ -11,7 +11,38 @@
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
             "configFiles": ["${workspaceRoot}/utils/cproject/A3ides-Debug-OpenOCD.cfg"],
             "toolchainPrefix": "arm-none-eabi",
-            "rtos": "FreeRTOS"
+            "rtos": "FreeRTOS",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 168000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [{"port": 0, "encoding": "ascii", "label": "swo", "type": "console"}]
+            }
+        },
+        {
+            "name": "JLink",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
+            "toolchainPrefix": "arm-none-eabi",
+            "rtos": "FreeRTOS",
+            "device": "STM32F407VG"
+        },
+        {
+            "name": "JLink attach",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode/firmware",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-7.3.1/bin",
+            "toolchainPrefix": "arm-none-eabi",
+            "rtos": "FreeRTOS",
+            "device": "STM32F407VG"
         }
     ]
 }

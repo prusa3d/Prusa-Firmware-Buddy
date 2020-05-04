@@ -10,22 +10,23 @@
 #include "screen_menu.h"
 #include "filament.h"
 #include "marlin_client.h"
+#include "screens.h"
 
-uint8_t menu_preheat_type = 0; // 0 - preheat, 1 - load filament, 2 - unload filament
+//"C inheritance" of screen_menu_data_t with data items
+#pragma pack(push)
+#pragma pack(1)
+
+typedef struct
+{
+    screen_menu_data_t base;
+    menu_item_t items[FILAMENTS_END + 1];
+
+} this_screen_data_t;
+
+#pragma pack(pop)
 
 void screen_menu_preheat_init(screen_t *screen) {
-    switch (menu_preheat_type) {
-    case 0:
-        screen_menu_init(screen, "PREHEAT", FILAMENTS_END + 1, 1, 0);
-        break;
-    case 1:
-        screen_menu_init(screen, "LOAD FILAMENT", FILAMENTS_END, 1, 1);
-        window_set_text(psmd->phelp->win.id,
-            "The nozzle must be\npreheated before\ninserting the filament.\n"
-            "Please, select the type\nof material");
-        break;
-    }
-
+    screen_menu_init(screen, "PREHEAT", ((this_screen_data_t *)screen->pdata)->items, FILAMENTS_END + 1, 1, 0);
     psmd->items[0] = menu_item_return;
 
     for (size_t i = 1; i < FILAMENTS_END; i++) {
@@ -35,11 +36,7 @@ void screen_menu_preheat_init(screen_t *screen) {
         sprintf((char *)psmd->items[i].item.label + 9, "%d/%d",
             filaments[i].nozzle, filaments[i].heatbed);
     }
-
-    if (!menu_preheat_type) {
-        psmd->items[FILAMENTS_END] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-    }
-
+    psmd->items[FILAMENTS_END] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     window_set_item_index(psmd->menu.win.id, get_filament());
 }
 
@@ -72,10 +69,6 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
 
     screen_close(); // skip this screen averytime
-
-    if (menu_preheat_type == 1) {
-        set_filament(fil_id); // store the filamen to eeprom
-    }
     return 1;
 }
 
@@ -86,8 +79,8 @@ screen_t screen_menu_preheat = {
     screen_menu_preheat_done,
     screen_menu_draw,
     screen_menu_preheat_event,
-    sizeof(screen_menu_data_t), //data_size
-    0, //pdata
+    sizeof(this_screen_data_t), //data_size
+    0,                          //pdata
 };
 
-const screen_t *pscreen_menu_preheat = &screen_menu_preheat;
+extern "C" screen_t *const get_scr_menu_preheat() { return &screen_menu_preheat; }

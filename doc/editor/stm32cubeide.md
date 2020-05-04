@@ -23,3 +23,10 @@ Generate and open the project:
 <img src="stm32cubeide_issue_path.png" height="300" alt="screenshot of the error" />
 
 This happens when a debug configuration contains an _absolute_ path to the firmware. Just change it to a relative one (beginning with `build/`, or `build\` on windows).
+
+#### Stepping by instruction before the RTOS starts
+
+Checkout the [README.md](https://github.com/Marus/cortex-debug) of the Cortex-Debug extension:
+> As a general rule do not try to use stepping instructions before the scheduler of your RTOS has started - in many cases this tends to crash the GDB servers or leave it in an inconsistent state.
+
+You can always disable FreeRTOS debugging by removing the line `"rtos": "FreeRTOS"` from `.vscode/launch.json`.

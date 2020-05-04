@@ -4,22 +4,26 @@
 #include "dbg.h"
 #include "version.h"
 #include "gpio.h"
-#include "hwio_a3ides.h"
+#include "hwio.h"
 #include "sys.h"
 #include "diag.h"
 #include "app.h"
 #include "marlin_server.h"
 #include "sim_motion.h"
 #include "otp.h"
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
     #include "lwip.h"
-#endif //ETHERNET
+#endif //BUDDY_ENABLE_ETHERNET
 #include "eeprom.h"
 #include "cmsis_os.h"
 #include "uartslave.h"
 #include "hwio_pindef.h"
 #include "trinamic.h"
 #include "main.h"
+
+#ifndef HAS_GUI
+    #error "HAS_GUI not defined."
+#endif
 
 int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
     int ret;
@@ -96,7 +100,7 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
 }
 
 int putslave_do_cmd_q_ver(uartslave_t *pslave) {
-    uartslave_printf(pslave, "%s-%s ", version_firmware_name, version_version);
+    uartslave_printf(pslave, "%s-%s ", project_firmware_name, project_version_full);
     return UARTSLAVE_OK;
 }
 
@@ -132,13 +136,13 @@ int putslave_do_cmd_q_uid(uartslave_t *pslave) {
 }
 
 int putslave_do_cmd_q_ip4(uartslave_t *pslave) {
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
     uint8_t *ptr = (uint8_t *)(&netif_default->ip_addr);
     uartslave_printf(pslave, "%u.%u.%u.%u ", ptr[0], ptr[1], ptr[2], ptr[3]);
     return UARTSLAVE_OK;
 #else
     return UARTSLAVE_ERR_ONP;
-#endif
+#endif //BUDDY_ENABLE_ETHERNET
 }
 
 int putslave_do_cmd_q_lock(uartslave_t *pslave) {
@@ -219,6 +223,10 @@ int putslave_do_cmd_q_uart(uartslave_t *pslave) {
     return UARTSLAVE_ERR_ONP;
 }
 
+#ifndef INIT_TRINAMIC_FROM_MARLIN_ONLY
+    #error "INIT_TRINAMIC_FROM_MARLIN_ONLY not defined"
+#endif
+#if !INIT_TRINAMIC_FROM_MARLIN_ONLY
 int putslave_do_cmd_q_tdg(uartslave_t *pslave) {
     tmc_set_sgthrs(255);
     int tmc_stg = 0;
@@ -228,6 +236,7 @@ int putslave_do_cmd_q_tdg(uartslave_t *pslave) {
     uartslave_printf(pslave, "%d ", tmc_stg);
     return UARTSLAVE_ERR_ONP;
 }
+#endif //!INIT_TRINAMIC_FROM_MARLIN_ONLY
 
 int putslave_do_cmd_a_rst(uartslave_t *pslave) {
     sys_reset();
@@ -238,7 +247,7 @@ int _validate_serial(const char *str) {
     unsigned int w2 = 0; // week of year (1-52)
     unsigned int y2 = 0; // year since 2000 (19-25)
     unsigned int p3 = 0; // product - 017 for MINI
-    char t1 = 0; // type - 'K' or 'C' (kit or complete)
+    char t1 = 0;         // type - 'K' or 'C' (kit or complete)
     unsigned int n5 = 0; // number - 0..99999
     if (sscanf(str, "%2u%2uX%3uX%c%5u", &w2, &y2, &p3, &t1, &n5) != 5)
         return 0;
@@ -338,19 +347,19 @@ extern osThreadId displayTaskHandle;
 extern osThreadId idleTaskHandle;
 
 extern osThreadId webServerTaskHandle;
-extern SPI_HandleTypeDef hspi2;
 
 int put_setup_done = 0;
 
+#if HAS_GUI
 int putslave_do_cmd_a_start(uartslave_t *pslave) {
     if (!marlin_server_processing()) {
         NVIC_EnableIRQ(TIM7_IRQn);
         HAL_SPI_MspInit(&hspi2);
         marlin_server_start_processing();
         osThreadResume(displayTaskHandle);
-#ifdef ETHERNET
+    #ifdef BUDDY_ENABLE_ETHERNET
         osThreadResume(webServerTaskHandle);
-#endif //ETHERNET
+    #endif //BUDDY_ENABLE_ETHERNET
         if (diag_fastboot && !put_setup_done) {
             app_setup();
             put_setup_done = 1;
@@ -358,18 +367,21 @@ int putslave_do_cmd_a_start(uartslave_t *pslave) {
     }
     return UARTSLAVE_OK;
 }
+#endif
 
 int putslave_do_cmd_a_stop(uartslave_t *pslave) {
     if (marlin_server_processing()) {
         marlin_server_stop_processing();
         osThreadSuspend(displayTaskHandle);
-#ifdef ETHERNET
+#ifdef BUDDY_ENABLE_ETHERNET
         osThreadSuspend(webServerTaskHandle);
-#endif //ETHERNET
+#endif //BUDDY_ENABLE_ETHERNET
+#if HAS_GUI
         HAL_SPI_MspDeInit(&hspi2);
+#endif
         NVIC_DisableIRQ(TIM7_IRQn);
-        hwio_pwm_set_val(_PWM_HEATER_BED, 0);
-        hwio_pwm_set_val(_PWM_HEATER_0, 0);
+        hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
+        hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
         //SCK - PB10
         gpio_init(PB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
         //MISO - PC2
@@ -490,6 +502,7 @@ int putslave_do_cmd_a_i2c(uartslave_t *pslave) {
     return UARTSLAVE_ERR_ONP;
 }
 
+#if !INIT_TRINAMIC_FROM_MARLIN_ONLY
 int putslave_do_cmd_a_ten(uartslave_t *pslave, char *pstr) {
     int state;
     if (sscanf(pstr, "%d", &state) != 1)
@@ -497,9 +510,9 @@ int putslave_do_cmd_a_ten(uartslave_t *pslave, char *pstr) {
     if ((state < 0) || (state > 1))
         return UARTSLAVE_ERR_OOR;
     tmc_set_mres();
-    gpio_set(PD3, state); //X
+    gpio_set(PD3, state);  //X
     gpio_set(PD14, state); //Y
-    gpio_set(PD2, state); //Z
+    gpio_set(PD2, state);  //Z
     gpio_set(PD10, state); //E
     return UARTSLAVE_OK;
 }
@@ -534,7 +547,7 @@ int putslave_do_cmd_a_move(uartslave_t *pslave, char *pstr) {
     tmc_set_move(stepper, steps, dir, speed);
     return UARTSLAVE_OK;
 }
-
+#endif //!INIT_TRINAMIC_FROM_MARLIN_ONLY
 int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cmd_id, char *pstr) {
     if (cmd == '?') {
         if (mod_msk == 0)
@@ -567,8 +580,10 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_q_diag(pslave, pstr);
             case PUTSLAVE_CMD_ID_UART:
                 return putslave_do_cmd_q_uart(pslave);
+#if !INIT_TRINAMIC_FROM_MARLIN_ONLY
             case PUTSLAVE_CMD_ID_TDG:
                 return putslave_do_cmd_q_tdg(pslave);
+#endif
             case PUTSLAVE_CMD_ID_GPUP:
                 return putslave_do_cmd_q_gpup(pslave, pstr);
             }
@@ -591,8 +606,10 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_tst(pslave, pstr);
             case PUTSLAVE_CMD_ID_TONE:
                 return putslave_do_cmd_a_tone(pslave, pstr);
+#if HAS_GUI
             case PUTSLAVE_CMD_ID_START:
                 return putslave_do_cmd_a_start(pslave);
+#endif
             case PUTSLAVE_CMD_ID_STOP:
                 return putslave_do_cmd_a_stop(pslave);
             case PUTSLAVE_CMD_ID_EECL:
@@ -607,10 +624,12 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_inval(pslave);
             case PUTSLAVE_CMD_ID_I2C:
                 return putslave_do_cmd_a_i2c(pslave);
+#if !INIT_TRINAMIC_FROM_MARLIN_ONLY
             case PUTSLAVE_CMD_ID_TEN:
                 return putslave_do_cmd_a_ten(pslave, pstr);
             case PUTSLAVE_CMD_ID_MOVE:
                 return putslave_do_cmd_a_move(pslave, pstr);
+#endif
             }
     }
     return UARTSLAVE_ERR_CNF;
@@ -623,10 +642,12 @@ void putslave_init(uartslave_t *pslave) {
     if (diag_fastboot) {
         uartslave_printf(pslave, "fastboot\n");
         marlin_server_stop_processing();
+#if HAS_GUI
         HAL_SPI_MspDeInit(&hspi2);
+#endif
         NVIC_DisableIRQ(TIM7_IRQn);
-        hwio_pwm_set_val(_PWM_HEATER_BED, 0);
-        hwio_pwm_set_val(_PWM_HEATER_0, 0);
+        hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
+        hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
         //SCK - PB10
         gpio_init(PB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
         //MISO - PC2

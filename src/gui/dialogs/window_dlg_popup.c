@@ -15,7 +15,6 @@
 
 int16_t WINDOW_CLS_DLG_POPUP = 0;
 
-extern window_t *window_1; //current popup window
 extern msg_stack_t msg_stack;
 
 void window_dlg_popup_init(window_dlg_popup_t *window) {
@@ -72,7 +71,7 @@ void gui_pop_up(void) {
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_POPUP, 0, rect_ui16(0, 32, 240, 120), &dlg);
     strncpy(dlg.text, msg_stack.msg_data[0], MSG_MAX_LENGTH);
     dlg.text[MSG_MAX_LENGTH - 1] = '\0';
-    window_1 = (window_t *)&dlg;
+    window_popup_ptr = (window_t *)&dlg;
     gui_invalidate();
     window_set_capture(id);
 

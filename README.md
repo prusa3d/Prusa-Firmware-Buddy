@@ -1,4 +1,6 @@
 # Buddy
+[![GitHub release](https://img.shields.io/github/release/prusa3d/Prusa-Firmware-Buddy.svg)](https://github.com/prusa3d/Prusa-Firmware-Buddy/releases)
+[![Build Status](https://holly.prusa3d.com/buildStatus/icon?job=Prusa-Firmware-Buddy%2FMultibranch%2Fmaster)](https://holly.prusa3d.com/job/Prusa-Firmware-Buddy/job/Multibranch/job/master/)
 
 This repository includes source code and firmware releases for the Original Prusa 3D printers based on the 32-bit ARM microcontrollers.
 
@@ -10,6 +12,7 @@ The currently supported model is:
 ### Requirements
 
 - Python 3.6 or newer
+- python3-pip
 
 ### Cloning this repository
 
@@ -58,9 +61,23 @@ The build process of this project is driven by CMake and `build.py` is just a hi
 - [Eclipse, STM32CubeIDE](doc/editor/stm32cubeide.md)
 - [Other LSP-based IDEs (Atom, Sublime Text, ...)](doc/editor/lsp-based-ides.md)
 
+#### Formatting
+
+All the source code in this repository is automatically formatted:
+
+- C/C++ files using [clang-format](https://clang.llvm.org/docs/ClangFormat.html),
+- Python files using [yapf](https://github.com/google/yapf),
+- and CMake files using [cmake-format](https://github.com/cheshirekow/cmake_format).
+
+If you want to contribute, make sure to install [pre-commit](https://pre-commit.com) and libtinfo5 and then run `pre-commit install` within the repository. This makes sure that all your future commits will be formatted appropriately. Our build server automatically rejects improperly formatted pull requests.
+
 ## Flashing Custom Firmware
 
 To install custom firmware, you have to break the appendix on the board. Learn how to in the following article https://help.prusa3d.com/article/zoiw36imrs-flashing-custom-firmware.
+
+## Feedback
+
+- [Feature Requests from Community](https://github.com/prusa3d/Prusa-Firmware-Buddy/labels/feature%20request) 
 
 ## License
 

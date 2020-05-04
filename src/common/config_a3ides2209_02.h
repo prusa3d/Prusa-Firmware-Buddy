@@ -14,6 +14,9 @@
 //#define DBG_SWO        // trace to swo port
 #endif //_DEBUG
 
+//show filament sensor status in header
+//#define DEBUG_FSENSOR_IN_HEADER
+
 //--------------------------------------
 //ADC configuration
 //channels:
@@ -26,13 +29,13 @@
 //--------------------------------------
 //  bit fedc ba98 7654 3210
 // mask 0000 0100 0111 1000 == 0x0478
-#define ADC_CHAN_MSK 0x0478 //used physical AD channels bit mask (3,4,5,6,10)
-#define ADC_CHAN_CNT 5 //number of used channels
-#define ADC_OVRSAMPL 4 //oversampling multiplier (common for all channels)
-#define ADC_SEQ_LEN 18 //sampling sequence length
-#define ADC_SEQ2IDX adc_seq2idx //callback function (convert seq to channel index)
-#define ADC_READY adc_ready //callback function (value for any channel is ready)
-#define ADC_VREF 5010 //reference voltage [mV]
+#define ADC_CHAN_MSK 0x0478      //used physical AD channels bit mask (3,4,5,6,10)
+#define ADC_CHAN_CNT 5           //number of used channels
+#define ADC_OVRSAMPL 4           //oversampling multiplier (common for all channels)
+#define ADC_SEQ_LEN  18          //sampling sequence length
+#define ADC_SEQ2IDX  adc_seq2idx //callback function (convert seq to channel index)
+#define ADC_READY    adc_ready   //callback function (value for any channel is ready)
+#define ADC_VREF     5010        //reference voltage [mV]
 //simulated values
 #define ADC_SIM_VAL0 512 * 4 //HW_IDENTIFY
 #define ADC_SIM_VAL1 966 * 4 //THERM1 (bed)     means 30C
@@ -50,9 +53,9 @@
 
 //--------------------------------------
 //Graphical display ST7789v configuration
-#define ST7789V_PIN_CS PC9 // CS signal pin
-#define ST7789V_PIN_RS PD11 // RS signal pin
-#define ST7789V_PIN_RST PC8 // RESET signal pin
+#define ST7789V_PIN_CS  PC9  // CS signal pin
+#define ST7789V_PIN_RS  PD11 // RS signal pin
+#define ST7789V_PIN_RST PC8  // RESET signal pin
 
 //--------------------------------------
 //Jogwheel configuration
@@ -65,15 +68,18 @@
 //#define SIM_MOTION
 
 #ifdef SIM_HEATER
-    #define ADC_SIM_MSK 0x0012 //simulated logical AD channels bit mask (1,4)
-    #define SIM_HEATER_NOZZLE_ADC 4 //
-    #define SIM_HEATER_BED_ADC 1 //
-#endif //SIM_HEATER
+    #define ADC_SIM_MSK           0x0012 //simulated logical AD channels bit mask (1,4)
+    #define SIM_HEATER_NOZZLE_ADC 4      //
+    #define SIM_HEATER_BED_ADC    1      //
+#endif                                   //SIM_HEATER
 
 #ifdef SIM_MOTION
 //#define SIM_MOTION_TRACE_X
 //#define SIM_MOTION_TRACE_Y
 //#define SIM_MOTION_TRACE_Z
 #endif //SIM_MOTION
+
+//new pause settings
+#define PAUSE_NOZZLE_TIMEOUT 45 // nozzle "sleep" after 45s inside paused state
 
 #endif //_CONFIG_A3IDES2209_02_H

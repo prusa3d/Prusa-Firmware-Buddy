@@ -3,6 +3,7 @@ import argparse
 import os
 import platform
 import random
+import re
 import shutil
 import subprocess
 import sys
@@ -38,6 +39,12 @@ def bootstrap(*args, interactive=False, check=False):
                             stdout=None if interactive else subprocess.PIPE,
                             stderr=None if interactive else subprocess.PIPE)
     return result
+
+
+def project_version():
+    """Return current project version (e. g. "4.0.3")"""
+    with open(project_root / 'version.txt', 'r') as f:
+        return f.read().strip()
 
 
 @lru_cache()
@@ -119,18 +126,24 @@ class FirmwareBuildConfiguration(BuildConfiguration):
                  build_type: BuildType,
                  toolchain: Path = None,
                  generator: str = None,
+                 generate_dfu: bool = False,
                  generate_bbf: bool = False,
                  signing_key: Path = None,
-                 prerelease: str = None):
+                 version_suffix: str = None,
+                 version_suffix_short: str = None,
+                 custom_entries: List[str] = None):
         self.printer = printer
         self.bootloader = bootloader
         self.build_type = build_type
         self.toolchain = toolchain or FirmwareBuildConfiguration.default_toolchain(
         )
         self.generator = generator
+        self.generate_dfu = generate_dfu
         self.generate_bbf = generate_bbf
         self.signing_key = signing_key
-        self.prerelease = prerelease.upper() if prerelease else None
+        self.version_suffix = version_suffix
+        self.version_suffix_short = version_suffix_short
+        self.custom_entries = custom_entries or []
 
     @staticmethod
     def default_toolchain() -> Path:
@@ -145,7 +158,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         else:
             generate_bbf = False
             signing_key_flg = ''
-        prerelease_flg = self.prerelease or ''
         entries = []
         if self.generator.lower() == 'ninja':
             entries.append(('CMAKE_MAKE_PROGRAM', 'FILEPATH',
@@ -155,11 +167,15 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             ('PRINTER', 'STRING', self.printer.value),
             ('BOOTLOADER', 'STRING', self.bootloader.value),
             ('GENERATE_BBF', 'STRING', str(generate_bbf).upper()),
+            ('GENERATE_DFU', 'BOOL', 'ON' if self.generate_dfu else 'OFF'),
             ('SIGNING_KEY', 'FILEPATH', str(signing_key_flg)),
             ('CMAKE_TOOLCHAIN_FILE', 'FILEPATH', str(self.toolchain)),
-            ('PRERELEASE', 'STRING', prerelease_flg),
             ('CMAKE_BUILD_TYPE', 'STRING', self.build_type.value.title()),
+            ('PROJECT_VERSION_SUFFIX', 'STRING', self.version_suffix or ''),
+            ('PROJECT_VERSION_SUFFIX_SHORT', 'STRING',
+             self.version_suffix_short or ''),
         ])
+        entries.extend(self.custom_entries)
         return entries
 
     def get_cmake_flags(self, build_dir: Path) -> List[str]:
@@ -177,8 +193,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             self.build_type.value,
             self.bootloader.file_component,
         ]
-        if self.prerelease:
-            components.append(self.prerelease)
         return '_'.join(components)
 
 
@@ -280,8 +294,8 @@ def build(configuration: BuildConfiguration,
                                        check=False)
         build_returncode = build_process.returncode
         products.extend(
-            build_dir / fname
-            for fname in ['firmware', 'firmware.bin', 'firmware.bbf']
+            build_dir / fname for fname in
+            ['firmware', 'firmware.bin', 'firmware.bbf', 'firmware.dfu']
             if (build_dir / fname).exists())
     else:
         build_returncode = None
@@ -431,8 +445,16 @@ def store_products(products: List[Path], build_config: BuildConfiguration,
     """Copy build products to a shared products directory."""
     products_dir.mkdir(parents=True, exist_ok=True)
     for product in products:
-        destination = products_dir / (build_config.name.lower() +
-                                      product.suffix)
+        is_firmware = isinstance(build_config, FirmwareBuildConfiguration)
+        has_custom_suffix = is_firmware and (build_config.version_suffix !=
+                                             '<auto>')
+        if has_custom_suffix:
+            version = project_version()
+            name = build_config.name.lower(
+            ) + '_' + version + build_config.version_suffix
+        else:
+            name = build_config.name.lower()
+        destination = products_dir / (name + product.suffix)
         shutil.copy(product, destination)
 
 
@@ -450,6 +472,13 @@ def list_of(EnumType):
 
     convert.__name__ = EnumType.__name__
     return convert
+
+
+def cmake_cache_entry(arg):
+    match = re.fullmatch(r'(.*):(.*)=(.*)', arg)
+    if not match:
+        raise ValueError('invalid cmake entry; must be <NAME>:<TYPE>=<VALUE>')
+    return (match.group(1), match.group(2), match.group(3))
 
 
 def main():
@@ -477,16 +506,19 @@ def main():
         type=Path,
         help='A PEM private key to be used to generate .bbf version.')
     parser.add_argument(
-        '--prerelease',
+        '--version-suffix',
         type=str,
-        default='beta',
-        help='Type of this release (default: beta; use --final for final builds).')
+        default='<auto>',
+        help='Version suffix (e.g. -BETA+1035.PR111.B4)')
+    parser.add_argument(
+        '--version-suffix-short',
+        type=str,
+        default='<auto>',
+        help='Version suffix (e.g. +1035)')
     parser.add_argument(
         '--final',
-        action='store_const',
-        const=None,
-        dest='prerelease',
-        help='Disable prerelease.')
+        action='store_true',
+        help='Set\'s --version-suffix and --version-suffix-short to empty string.')
     parser.add_argument(
         '--build-dir',
         type=Path,
@@ -516,6 +548,11 @@ def main():
               ' Use --signing-key to specify a private key to be used for signing.')
     )
     parser.add_argument(
+        '--generate-dfu',
+        action='store_true',
+        help='Generate .dfu versions of the firmware.'
+    )
+    parser.add_argument(
         '--host-tools',
         action='store_true',
         help=('Build host tools (png2font and others). '
@@ -531,12 +568,21 @@ def main():
         action='store_false',
         help='Do not write build output to files - print it to console instead.'
     )
+    parser.add_argument(
+        '-D', '--cmake-def',
+        action='append', type=cmake_cache_entry,
+        help='Custom CMake cache entries (e.g. -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror)'
+    )
     args = parser.parse_args(sys.argv[1:])
     # yapf: enable
 
     build_dir_root = args.build_dir or Path(
         __file__).resolve().parent.parent / 'build'
     products_dir_root = args.products_dir or (build_dir_root / 'products')
+
+    if args.final:
+        args.version_suffix = ''
+        args.version_suffix_short = ''
 
     if args.generate_cproject:
         args.build_type = list(BuildType)
@@ -550,15 +596,18 @@ def main():
 
     # prepare configurations
     configurations = [
-        FirmwareBuildConfiguration(printer=printer,
-                                   bootloader=bootloader,
-                                   build_type=build_type,
-                                   generate_bbf=args.generate_bbf,
-                                   signing_key=args.signing_key,
-                                   prerelease=args.prerelease,
-                                   generator=args.generator)
-        for printer in args.printer for build_type in args.build_type
-        for bootloader in args.bootloader
+        FirmwareBuildConfiguration(
+            printer=printer,
+            bootloader=bootloader,
+            build_type=build_type,
+            generate_dfu=args.generate_dfu,
+            generate_bbf=args.generate_bbf,
+            signing_key=args.signing_key,
+            version_suffix=args.version_suffix,
+            version_suffix_short=args.version_suffix_short,
+            generator=args.generator,
+            custom_entries=args.cmake_def) for printer in args.printer
+        for build_type in args.build_type for bootloader in args.bootloader
     ]
     if args.host_tools:
         configurations.extend([

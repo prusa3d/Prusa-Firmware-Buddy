@@ -6,10 +6,11 @@
 #include "marlin_client.h"
 #include "resource.h"
 #include "screen_printing.h"
-#include "window_dlg_load.h"
+#include "window_dlg_load_unload.h"
 #include "filament_sensor.h"
 #include <stdarg.h>
 #include <stdbool.h>
+#include "screens.h"
 
 #define DBG _dbg0
 
@@ -37,16 +38,16 @@ typedef struct {
     bool redraw_thumbnail;
 } screen_print_preview_data_t;
 
-#define HEADER_HEIGHT 24
-#define PADDING 10
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 320
+#define HEADER_HEIGHT    24
+#define PADDING          10
+#define SCREEN_WIDTH     240
+#define SCREEN_HEIGHT    320
 #define THUMBNAIL_HEIGHT 124
-#define TITLE_HEIGHT 24
-#define LINE_HEIGHT 15
-#define LINE_SPACING 5
+#define TITLE_HEIGHT     24
+#define LINE_HEIGHT      15
+#define LINE_SPACING     5
 
-#define BACK_BUTTON_ID 0x11
+#define BACK_BUTTON_ID  0x11
 #define PRINT_BUTTON_ID 0x12
 
 static const char *gcode_file_name = NULL;
@@ -58,7 +59,7 @@ static void screen_print_preview_draw(screen_t *screen);
 static int screen_print_preview_event(screen_t *screen, window_t *window,
     uint8_t event, void *param);
 
-static screen_t screen_print_preview = {
+screen_t screen_print_preview = {
     0, // screen identifier
     0, // flags
     screen_print_preview_init,
@@ -66,7 +67,7 @@ static screen_t screen_print_preview = {
     screen_print_preview_draw,
     screen_print_preview_event,
     sizeof(screen_print_preview_data_t), // dynamic data size
-    NULL // dynamic data pointer
+    NULL                                 // dynamic data pointer
 };
 
 const uint16_t menu_icons[2] = {
@@ -74,7 +75,7 @@ const uint16_t menu_icons[2] = {
     IDR_PNG_menu_icon_stop,
 };
 
-screen_t *const pscreen_print_preview = &screen_print_preview;
+screen_t *const get_scr_print_preview() { return &screen_print_preview; }
 
 #define pd ((screen_print_preview_data_t *)screen->pdata)
 

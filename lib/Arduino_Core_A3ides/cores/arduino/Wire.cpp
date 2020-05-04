@@ -3,8 +3,6 @@
 #include "Wire.h"
 #include "cmsis_os.h"
 
-extern I2C_HandleTypeDef hi2c1;
-
 uint16_t i2c_dev_address = 0;
 
 TwoWire::TwoWire(void) {
@@ -30,10 +28,6 @@ extern void lcdsim_expander_write(uint8_t data);
 }
 
 size_t TwoWire::write(uint8_t data) {
-#ifdef LCDSIM
-    lcdsim_expander_write(data);
-#endif // LCDSIM
-
     //HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(&hi2c1, i2c_dev_address, &data, 1, 100);
     return 1;
 }

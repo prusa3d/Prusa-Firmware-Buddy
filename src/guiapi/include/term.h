@@ -5,30 +5,30 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#define TERM_ATTR_BACK_MASK 0x00
+#define TERM_ATTR_BACK_MASK  0x00
 #define TERM_ATTR_BACK_BLACK 0x00
 #define TERM_ATTR_BACK_WHITE 0x00
 
-#define TERM_ATTR_TEXT_MASK 0x00
+#define TERM_ATTR_TEXT_MASK  0x00
 #define TERM_ATTR_TEXT_BLACK 0x00
 #define TERM_ATTR_TEXT_WHITE 0x00
 
 #define TERM_ATTR_INVERT 0x40
-#define TERM_ATTR_BLINK 0x80
+#define TERM_ATTR_BLINK  0x80
 
-#define TERM_COLOR_BLACK 0
-#define TERM_COLOR_RED 1
-#define TERM_COLOR_GREEN 2
-#define TERM_COLOR_YELLOW 3
-#define TERM_COLOR_BLUE 4
+#define TERM_COLOR_BLACK   0
+#define TERM_COLOR_RED     1
+#define TERM_COLOR_GREEN   2
+#define TERM_COLOR_YELLOW  3
+#define TERM_COLOR_BLUE    4
 #define TERM_COLOR_MAGENTA 5
-#define TERM_COLOR_CYAN 6
-#define TERM_COLOR_WHITE 7
+#define TERM_COLOR_CYAN    6
+#define TERM_COLOR_WHITE   7
 
 #define TERM_FLG_FREEMEM 0x0080
 #define TERM_FLG_CHANGED 0x0040
-#define TERM_FLG_ESCAPE 0x0020
-#define TERM_FLG_AUTOCR 0x0010
+#define TERM_FLG_ESCAPE  0x0020
+#define TERM_FLG_AUTOCR  0x0010
 
 #define TERM_DEF_CHAR ' '
 #define TERM_DEF_ATTR (TERM_ATTR_BACK_BLACK | TERM_ATTR_TEXT_WHITE)
@@ -79,8 +79,6 @@ extern void term_set_pos(term_t *pt, uint8_t col, uint8_t row);
 extern void term_write_char(term_t *pt, uint8_t ch);
 
 extern int term_printf(term_t *pt, const char *fmt, ...);
-
-extern int vterm_printf(term_t *pt, const char *fmt, va_list va);
 
 #ifdef __cplusplus
 }

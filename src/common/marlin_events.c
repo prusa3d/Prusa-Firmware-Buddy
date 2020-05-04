@@ -6,7 +6,6 @@
 // event name constants (dbg)
 const char *__evt_name[] = {
     "Startup",
-    "Idle",
     "PrinterKilled",
     "MediaInserted",
     "MediaError",
@@ -22,22 +21,24 @@ const char *__evt_name[] = {
     "LoadSettings",
     "StoreSettings",
     "MeshUpdate",
-    "HostPrompt",
     "StartProcessing",
     "StopProcessing",
-    "Busy",
-    "Ready",
     "Error",
     "CommandBegin",
     "CommandEnd",
     "SafetyTimerExpired",
     "Message",
     "Reheat",
+    "DialogOpen",
+    "DialogClose",
+    "DialogChange",
     "Acknowledge",
 };
 
+_Static_assert((sizeof(__evt_name) / sizeof(__evt_name[0])) == (MARLIN_EVT_MAX + 1), "Incorrect number of event names");
+
 // returns event name (dbg)
-const char *marlin_events_get_name(uint8_t evt_id) {
+const char *marlin_events_get_name(MARLIN_EVT_t evt_id) {
     if (evt_id <= MARLIN_EVT_MAX)
         return __evt_name[evt_id];
     return "";
