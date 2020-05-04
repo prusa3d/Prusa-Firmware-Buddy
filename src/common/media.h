@@ -60,6 +60,8 @@ extern void media_set_removed(void);
 
 extern void media_set_error(media_error_t error);
 
+extern void media_get_sfn_path(char *sfn, const char *filepath, char *aname);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

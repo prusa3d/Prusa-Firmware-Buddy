@@ -51,14 +51,54 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
+void media_get_sfn_path(char *sfn, const char *filepath, char *aname) {
+    DIR dir = { 0 };
+    uint i = 0;
+    uint sl = strlen(filepath);
+    uint j = 0;
+    uint k = 0;
+    char tmpPath[MEDIA_PRINT_FILEPATH_SIZE] = { 0 };
+    while (i < sl) {
+        if (filepath[i] == '/' || i == sl-1) {
+            FRESULT dirRes = f_opendir(&dir, tmpPath);
+            if (dirRes == FR_OK || dirRes == FR_NO_PATH) {
+                char *tmpDir1 = reinterpret_cast<char *>(&dir.fn);
+                for (j = 0; j < 8; j++) {
+                    if (tmpDir1[j] == '\0' || tmpDir1[j] == ' ') { break; }
+                    sfn[k] = tmpDir1[j];
+                    k++;
+                }
+                if (i != sl - 1) {
+                  sfn[k] = '/';
+                  k++;
+                } else {
+                    for (j = 0; j < 13; j++) {
+                        if (aname[j] == '\0' || aname[j] == ' ') {
+                            break;
+                        }
+                        sfn[k] = aname[j];
+                        k++;
+                    }
+                }
+            }
+        }
+        tmpPath[i] = filepath[i];
+        i++;
+    }
+}
+
 void media_print_start(const char *filepath) {
     FILINFO filinfo;
     if (media_print_state == media_print_state_NONE) {
         strlcpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
         if (f_stat(media_print_filepath, &filinfo) == FR_OK) {
+
+            char ffPath[MEDIA_PRINT_FILENAME_SIZE] = { 0 };
+            media_get_sfn_path(ffPath, media_print_filepath, filinfo.altname);
+
             strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filepath) - 1);
             media_print_size = filinfo.fsize;
-            if (f_open(&media_print_fil, media_print_filepath, FA_READ) == FR_OK) {
+            if (f_open(&media_print_fil, ffPath, FA_READ) == FR_OK) {
                 media_current_position = 0;
                 media_current_line = 0;
                 media_print_state = media_print_state_PRINTING;
