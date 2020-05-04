@@ -10,7 +10,7 @@
 #include "screen_menu.h"
 #include "cmsis_os.h"
 #include "hwio.h"
-
+#include "screens.h"
 #include "../Marlin/src/module/temperature.h"
 
 static const char *period_pwm_range[] = {
@@ -119,4 +119,4 @@ screen_t screen_test_temperature = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_test_temperature = &screen_test_temperature;
+extern "C" screen_t *const get_scr_test_temperature() { return &screen_test_temperature; }

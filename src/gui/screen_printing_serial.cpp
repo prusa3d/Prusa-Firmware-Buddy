@@ -8,10 +8,8 @@
 #include "marlin_server.h"
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
+#include "screens.h"
 
-extern "C" {
-extern screen_t *pscreen_menu_tune;
-}
 #pragma pack(push)
 #pragma pack(1)
 
@@ -54,9 +52,7 @@ screen_t screen_printing_serial = {
     sizeof(screen_printing_serial_data_t), //data_size
     0,                                     //pdata
 };
-extern "C" {
-const screen_t *pscreen_printing_serial = &screen_printing_serial;
-}
+extern "C" screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
 static const uint8_t Tag_bt_tune = 1;
 #define pw ((screen_printing_serial_data_t *)screen->pdata)
@@ -142,7 +138,7 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
     lock = 1;
 
     if (event == WINDOW_EVENT_BTN_DN) {
-        screen_open(pscreen_menu_tune->id);
+        screen_open(get_scr_menu_tune()->id);
         lock = 0;
         return 1; //here MUST BE return 1. Screen is no longer valid.
     }

@@ -22,13 +22,9 @@ typedef enum {
     MARLIN_EVT_LoadSettings,        // onLoadSettings()
     MARLIN_EVT_StoreSettings,       // onStoreSettings()
     MARLIN_EVT_MeshUpdate,          // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
-                                    // Marlin events - host actions
-    MARLIN_EVT_HostPrompt,          // host_action_prompt
                                     // Marlin events - other
     MARLIN_EVT_StartProcessing,     // sent from marlin_server_start_processing
     MARLIN_EVT_StopProcessing,      // sent from marlin_server_stop_processing
-    MARLIN_EVT_Busy,                // sent from marlin_server_idle
-    MARLIN_EVT_Ready,               // sent from marlin_server_loop
     MARLIN_EVT_Error,               // sent onStatusChanged etc.
     MARLIN_EVT_CommandBegin,        //
     MARLIN_EVT_CommandEnd,          //
@@ -38,7 +34,6 @@ typedef enum {
     MARLIN_EVT_FSM_Create,          // create finite state machine in client
     MARLIN_EVT_FSM_Destroy,         // destroy finite state machine in client
     MARLIN_EVT_FSM_Change,          // change phase/state/progress in client fsm
-    MARLIN_EVT_GFileChange,         // when gcode file changed on start print
     MARLIN_EVT_Acknowledge          // onAcknowledge - lowest priority
 } MARLIN_EVT_t;
 #define MARLIN_EVT_MAX MARLIN_EVT_Acknowledge
@@ -58,6 +53,7 @@ typedef enum {
 #define MARLIN_CMD_G29  (MARLIN_CMD_G + 29)
 #define MARLIN_CMD_M109 (MARLIN_CMD_M + 109)
 #define MARLIN_CMD_M190 (MARLIN_CMD_M + 190)
+#define MARLIN_CMD_M303 (MARLIN_CMD_M + 303)
 #define MARLIN_CMD_M600 (MARLIN_CMD_M + 600)
 #define MARLIN_CMD_M701 (MARLIN_CMD_M + 701)
 #define MARLIN_CMD_M702 (MARLIN_CMD_M + 702)

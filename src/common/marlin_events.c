@@ -21,11 +21,8 @@ const char *__evt_name[] = {
     "LoadSettings",
     "StoreSettings",
     "MeshUpdate",
-    "HostPrompt",
     "StartProcessing",
     "StopProcessing",
-    "Busy",
-    "Ready",
     "Error",
     "CommandBegin",
     "CommandEnd",
@@ -35,7 +32,6 @@ const char *__evt_name[] = {
     "DialogOpen",
     "DialogClose",
     "DialogChange",
-    "GFileChange",
     "Acknowledge",
 };
 

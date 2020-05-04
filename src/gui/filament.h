@@ -5,11 +5,8 @@
  *      Author: mcbig
  */
 
-#ifndef FILAMENT_H_
-#define FILAMENT_H_
-
-#include "gui.h"
-
+#pragma once
+#include <stdio.h>
 #pragma pack(push)
 #pragma pack(1)
 
@@ -31,11 +28,15 @@ typedef enum {
     FILAMENTS_END
 } FILAMENT_t;
 
+#define DEFAULT_FILAMENT FILAMENT_PLA
 //#define FILAMENT_COUNT ((uint32_t)FILAMENTS_END-1)
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+
+//todo remove this variable after pause refactoring
+extern FILAMENT_t filament_to_load;
 
 extern const filament_t filaments[FILAMENTS_END];
 
@@ -43,8 +44,8 @@ void set_filament(FILAMENT_t filament);
 
 FILAMENT_t get_filament();
 
+FILAMENT_t get_filament_from_string(const char *s, size_t len);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif /* FILAMENT_H_ */

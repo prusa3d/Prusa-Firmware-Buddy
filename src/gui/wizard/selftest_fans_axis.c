@@ -158,7 +158,7 @@ static int ph_move_to_max(selftest_fans_axis_data_t *p_data,
 
 static int ph_wait_motion(selftest_fans_axis_data_t *p_data,
     uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
-    if (marlin_motion() || marlin_busy())
+    if (marlin_motion())
         return 0; //wait
     else
         return 1; //next phase
