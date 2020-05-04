@@ -444,7 +444,7 @@ target_sources(
           src/common/eeprom.c
           src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
-          src/common/marlin_host.c
+          src/common/media.cpp
           src/common/sim_bed.c
           src/common/sys.cpp
           src/common/sim_nozzle.c
@@ -462,7 +462,6 @@ target_sources(
           src/common/marlin_events.c
           src/common/marlin_errors.c
           src/common/uartrxbuff.c
-          src/common/Marlin_CardReader.cpp
           src/common/appmain.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
@@ -474,6 +473,8 @@ target_sources(
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
+          src/common/sound_C_wrapper.cpp
+          src/common/sound.cpp
           src/common/support_utils.cpp
           src/common/errors.c
           src/common/lang.c
@@ -577,6 +578,7 @@ if(GUI)
             src/guiapi/src/display_helper.c
             src/guiapi/src/window_menu.c
             src/guiapi/src/screen.c
+            src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.c
             src/guiapi/src/window_list.c
             src/guiapi/src/jogwheel.c

@@ -11,6 +11,7 @@
 #include "window.h"
 #include "window_text.h"
 #include "window_list.h"
+#include "filament.h"
 
 typedef struct _window_dlg_preheat_t window_dlg_preheat_t;
 typedef void(dlg_on_click_cb)(window_dlg_preheat_t *);
@@ -48,10 +49,10 @@ extern "C" {
 #endif //__cplusplus
 
 extern const window_class_dlg_preheat_t window_class_dlg_preheat;
-extern int gui_dlg_preheat(const char *caption);
-extern int gui_dlg_preheat_autoselect_if_able(const char *caption);
-extern int gui_dlg_preheat_forced(const char *caption);                    //no return option
-extern int gui_dlg_preheat_autoselect_if_able_forced(const char *caption); //no return option
+extern FILAMENT_t gui_dlg_preheat(const char *caption);
+extern FILAMENT_t gui_dlg_preheat_autoselect_if_able(const char *caption);
+extern FILAMENT_t gui_dlg_preheat_forced(const char *caption);                    //no return option
+extern FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(const char *caption); //no return option
 extern int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     dlg_on_click_cb *on_click, size_t count, int32_t ttl);
 #ifdef __cplusplus

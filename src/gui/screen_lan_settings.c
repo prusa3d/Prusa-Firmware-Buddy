@@ -10,9 +10,11 @@
 #include "lwip/dhcp.h"
 #include "lwip/netifapi.h"
 #include "lwip.h"
+#include "marlin_client.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "screens.h"
 
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE     6
@@ -33,7 +35,6 @@ static bool conn_flg = false; // wait for dhcp to supply addresses
 static networkconfig_t config;
 static const char *LAN_switch_opt[] = { "On", "Off", NULL };
 static const char *LAN_type_opt[] = { "DHCP", "static", NULL };
-extern bool media_is_inserted();
 const menu_item_t _menu_lan_items[] = {
     { { "LAN", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_switch_opt } }, SCREEN_MENU_NO_SCREEN },
     { { "LAN IP", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_type_opt } }, SCREEN_MENU_NO_SCREEN },
@@ -387,7 +388,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
         break;
     }
     case MI_SAVE:
-        if (media_is_inserted() == false) {
+        if (!marlin_vars()->media_inserted) {
             if (gui_msgbox("Please insert a USB drive and try again.",
                     MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                 == MSGBOX_RES_OK) {
@@ -407,7 +408,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
         }
         break;
     case MI_LOAD:
-        if (media_is_inserted() == false) {
+        if (!marlin_vars()->media_inserted) {
             if (gui_msgbox("Please insert USB flash disk and try again.",
                     MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                 == MSGBOX_RES_OK) {
@@ -460,4 +461,4 @@ screen_t screen_lan_settings = {
     0,                                  //pdata
 };
 
-screen_t *const pscreen_lan_settings = &screen_lan_settings;
+screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

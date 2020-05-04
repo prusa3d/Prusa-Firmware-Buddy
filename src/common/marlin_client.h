@@ -5,13 +5,11 @@
 #include "marlin_events.h"
 #include "marlin_vars.h"
 #include "marlin_errors.h"
-#include "marlin_host.h"
 #include "client_fsm_types.h"
 
 // client flags
 #define MARLIN_CFLG_STARTED 0x0001 // client started (set in marlin_client_init)
 #define MARLIN_CFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_CFLG_BUSY    0x0004 // loop is busy
 #define MARLIN_CFLG_LOWHIGH 0x0008 // receiving low/high part of client message
 #define MARLIN_CFLG_MESSAGE 0x0010 // receiving status change message
 
@@ -54,9 +52,6 @@ extern void marlin_client_set_event_notify(uint64_t notify_events);
 
 //sets variable change notification mask
 extern void marlin_client_set_change_notify(uint64_t notify_changes);
-
-// returns busy status of marlin
-extern int marlin_busy(void);
 
 // returns currently running command or MARLIN_CMD_NONE
 extern uint32_t marlin_command(void);
@@ -133,12 +128,6 @@ extern marlin_vars_t *marlin_vars(void);
 // send request to update variables at server side and wait for change notification
 extern marlin_vars_t *marlin_update_vars(uint64_t msk);
 
-// set name of printing gcode
-extern void marlin_set_printing_gcode_name(const char *src);
-
-// get name of printing gcode
-extern void marlin_get_printing_gcode_name(char *src);
-
 // returns number of commands in gcode queue
 extern uint8_t marlin_get_gqueue(void);
 
@@ -173,6 +162,8 @@ extern void marlin_manage_heater(void);
 
 extern void marlin_quick_stop(void);
 
+extern void marlin_print_start(const char *filename);
+
 extern void marlin_print_abort(void);
 
 extern void marlin_print_pause(void);
@@ -182,18 +173,6 @@ extern void marlin_print_resume(void);
 extern void marlin_park_head(void);
 
 extern uint8_t marlin_message_received(void);
-
-// returns current host prompt type
-extern host_prompt_type_t marlin_host_prompt_type(void);
-
-// returns number of buttons in current host prompt
-extern uint8_t marlin_host_button_count(void);
-
-// returns button type in current prompt by button index
-extern host_prompt_button_t marlin_host_button_type(uint8_t index);
-
-// click host promt button
-extern void marlin_host_button_click(host_prompt_button_t button);
 
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);

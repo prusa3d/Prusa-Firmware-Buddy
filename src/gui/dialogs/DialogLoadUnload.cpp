@@ -2,6 +2,7 @@
 #include "DialogLoadUnload.h"
 #include "gui.h"      //resource_font
 #include "resource.h" //IDR_FNT_BIG
+#include "sound_C_wrapper.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +38,7 @@ static const PhaseTexts ph_txt_disa   = { txt_disa,   txt_none, txt_none, txt_no
 static const PhaseTexts ph_txt_none   = { txt_none,   txt_none, txt_none, txt_none };
 static const PhaseTexts ph_txt_yesno  = { txt_yes,    txt_no,   txt_none, txt_none };
 
+static const char *txt_first              = "Finishing         \nbuffered gcodes.  \n";
 static const char *txt_parking            = "Parking";
 static const char *txt_unparking          = "Unparking";
 static const char *txt_wait_temp          = "Waiting for temp.";
@@ -46,6 +48,8 @@ static const char *txt_unload             = "Unloading";
 static const char *txt_push_fil           = "Press CONTINUE and\npush filament into\nthe extruder.     ";
 static const char *txt_make_sure_inserted = "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ";
 static const char *txt_inserting          = "Inserting";
+static const char *txt_is_filament_in_gear= "Is filament in    \nextruder gear?    ";
+static const char *txt_ejecting           = "Ejecting";
 static const char *txt_loading            = "Loading to nozzle";
 static const char *txt_purging            = "Purging";
 static const char *txt_is_color           = "Is color correct?";
@@ -53,20 +57,21 @@ static const char *txt_nozzle_cold        = "Nozzle is too cold.";
 
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {
-        DialogLoadUnload::State { txt_none,               btn(PhasesLoadUnload::_first,           ph_txt_none) },
+        DialogLoadUnload::State { txt_first,              btn(PhasesLoadUnload::_first,           ph_txt_none) },
         DialogLoadUnload::State { txt_parking,            btn(PhasesLoadUnload::Parking,          ph_txt_stop) },
         DialogLoadUnload::State { txt_wait_temp,          btn(PhasesLoadUnload::WaitingTemp,      ph_txt_stop) },
         DialogLoadUnload::State { txt_prep_ram,           btn(PhasesLoadUnload::PreparingToRam,   ph_txt_stop) },
         DialogLoadUnload::State { txt_ram,                btn(PhasesLoadUnload::Ramming,          ph_txt_stop) },
         DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading,        ph_txt_stop) },
-        DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading2,       ph_txt_stop) },
-        DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont) },
+        DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::RemoveFilament,   ph_txt_stop) },
+        DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont), DialogLoadUnload::userPushEnter, DialogLoadUnload::userPushExit },
         DialogLoadUnload::State { txt_nozzle_cold,        btn(PhasesLoadUnload::NozzleTimeout,    ph_txt_reheat) },
         DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont) },
         DialogLoadUnload::State { txt_inserting,          btn(PhasesLoadUnload::Inserting,        ph_txt_stop) },
+        DialogLoadUnload::State { txt_is_filament_in_gear,btn(PhasesLoadUnload::IsFilamentInGear, ph_txt_yesno) },
+        DialogLoadUnload::State { txt_ejecting,           btn(PhasesLoadUnload::Ejecting,         ph_txt_none) },
         DialogLoadUnload::State { txt_loading,            btn(PhasesLoadUnload::Loading,          ph_txt_stop) },
         DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging2,         ph_txt_none) },
         DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColor,          ph_txt_yesno) },
         DialogLoadUnload::State { txt_unparking,          btn(PhasesLoadUnload::Unparking,        ph_txt_stop) },
     };
@@ -77,6 +82,11 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 
 DialogLoadUnload::DialogLoadUnload(const char *name)
     : DialogStateful<PhasesLoadUnload>(name, WINDOW_CLS_DLG_LOADUNLOAD, LoadUnloadFactory()) {}
+
+// Phase callbacks to play a sound in specific moment at the start/end of
+// specified phase
+void DialogLoadUnload::userPushEnter() { Sound_Play(eSOUND_TYPE_StandardPrompt); }
+void DialogLoadUnload::userPushExit() { Sound_Stop(); }
 
 void DialogLoadUnload::c_draw(window_t *win) {
     IDialog *ptr = cast(win);

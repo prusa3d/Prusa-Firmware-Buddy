@@ -16,15 +16,7 @@
 #include "screen_printing.h"
 #include "print_utils.h"
 
-#include "../Marlin/src/sd/cardreader.h"
-
-extern screen_t *pscreen_filebrowser;
-extern screen_t *pscreen_menu_preheat;
-extern uint8_t menu_preheat_type;
-extern screen_t *pscreen_menu_filament;
-extern screen_t *pscreen_menu_calibration;
-extern screen_t *pscreen_menu_settings;
-extern screen_t *pscreen_menu_info;
+#include "screens.h"
 
 #define BUTTON_PRINT       0
 #define BUTTON_PREHEAT     1
@@ -128,7 +120,7 @@ void screen_home_init(screen_t *screen) {
         }
     }
 
-    if (!IS_SD_INSERTED())
+    if (!marlin_vars()->media_inserted)
         screen_home_disable_print_button(screen);
 
     status_footer_init(&(pw->footer), root);
@@ -149,7 +141,7 @@ static void on_print_preview_action(print_preview_action_t action) {
     } else if (action == PRINT_PREVIEW_ACTION_PRINT) {
         screen_close(); // close the print preview
         print_begin(screen_print_preview_get_gcode_filepath());
-        screen_open(pscreen_printing->id);
+        screen_open(get_scr_printing()->id);
     }
 }
 
@@ -178,17 +170,20 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
     if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted) &&
 
         (HAL_GetTick() > 5000)) {
-        // FIXME: currently, we are using the screen_printing_file_{name,path} buffers
-        // ... and we should not be
-        if (find_latest_gcode(
-                screen_printing_file_path,
-                sizeof(screen_printing_file_path),
-                screen_printing_file_name,
-                sizeof(screen_printing_file_name))) {
-            screen_print_preview_set_gcode_filepath(screen_printing_file_path);
-            screen_print_preview_set_gcode_filename(screen_printing_file_name);
-            screen_print_preview_set_on_action(on_print_preview_action);
-            screen_open(pscreen_print_preview->id);
+        // we are using marlin variables for filename and filepath buffers
+        marlin_vars_t *vars = marlin_vars();
+        //check if the variables filename and filepath allocated
+        if (vars->media_file_name && vars->media_file_name) {
+            if (find_latest_gcode(
+                    vars->media_file_path,
+                    FILE_PATH_MAX_LEN,
+                    vars->media_file_name,
+                    FILE_NAME_MAX_LEN)) {
+                screen_print_preview_set_gcode_filepath(vars->media_file_path);
+                screen_print_preview_set_gcode_filename(vars->media_file_name);
+                screen_print_preview_set_on_action(on_print_preview_action);
+                screen_open(get_scr_print_preview()->id);
+            }
         }
         return 1;
     }
@@ -203,24 +198,23 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
 
     switch ((int)param) {
     case BUTTON_PRINT + 1:
-        screen_open(pscreen_filebrowser->id);
+        screen_open(get_scr_filebrowser()->id);
         return 1;
         break;
     case BUTTON_PREHEAT + 1:
-        menu_preheat_type = 0;
-        screen_open(pscreen_menu_preheat->id);
+        screen_open(get_scr_menu_preheat()->id);
         return 1;
     case BUTTON_FILAMENT + 1:
-        screen_open(pscreen_menu_filament->id);
+        screen_open(get_scr_menu_filament()->id);
         return 1;
     case BUTTON_CALIBRATION + 1:
-        screen_open(pscreen_menu_calibration->id);
+        screen_open(get_scr_menu_calibration()->id);
         return 1;
     case BUTTON_SETTINGS + 1:
-        screen_open(pscreen_menu_settings->id);
+        screen_open(get_scr_menu_settings()->id);
         return 1;
     case BUTTON_INFO + 1:
-        screen_open(pscreen_menu_info->id);
+        screen_open(get_scr_menu_info()->id);
         return 1;
     }
     return 0;
@@ -249,8 +243,9 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 
         if ((fname[0] == 0 || is_newer) && !skip) {
             const char *short_name = current_finfo.altname[0] ? current_finfo.altname : current_finfo.fname;
-            snprintf(fpath, fpath_len, "/%s", short_name);
-            snprintf(fname, fname_len, "%s", current_finfo.fname);
+            fpath[0] = '/';
+            strlcpy(fpath + 1, short_name, fpath_len - 1);
+            strlcpy(fname, current_finfo.fname, fname_len);
             latest_fdate = current_finfo.fdate;
             latest_ftime = current_finfo.ftime;
         }
@@ -284,4 +279,4 @@ screen_t screen_home = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_home = &screen_home;
+extern "C" screen_t *const get_scr_home() { return &screen_home; }

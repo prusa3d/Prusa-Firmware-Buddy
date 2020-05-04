@@ -229,9 +229,3 @@ int gui_dlg_wait(int8_t (*callback)()) { //callback
     window_invalidate(0);
     return 0;
 }
-
-int8_t gui_marlin_busy_callback() {
-    if (marlin_motion() || marlin_busy())
-        return -1;
-    return 0;
-}

@@ -27,6 +27,7 @@ osMutexId(wui_thread_mutex_id);       // Mutex ID
 typedef struct {
     uint32_t flags;
     marlin_vars_t *wui_marlin_vars;
+    char media_file_name[FILE_NAME_MAX_LEN + 1];
     char request[MAX_WUI_REQUEST_LEN];
     uint8_t request_len;
 } web_client_t;
@@ -47,9 +48,7 @@ void update_web_vars(void) {
     web_vars.print_dur = wui.wui_marlin_vars->print_duration;
     web_vars.sd_precent_done = wui.wui_marlin_vars->sd_percent_done;
     web_vars.sd_printing = wui.wui_marlin_vars->sd_printing;
-    if (marlin_event(MARLIN_EVT_GFileChange)) {
-        marlin_get_printing_gcode_name(web_vars.gcode_name);
-    }
+    web_vars.gcode_name = wui.wui_marlin_vars->media_file_name;
     osMutexRelease(wui_thread_mutex_id);
 }
 
@@ -60,6 +59,7 @@ void StartWebServerTask(void const *argument) {
     tcpclient_wui_sema = osSemaphoreCreate(osSemaphore(wuiSema), 1);
     wui_thread_mutex_id = osMutexCreate(osMutex(wui_thread_mutex));
     wui.wui_marlin_vars = marlin_client_init(); // init the client
+    wui.wui_marlin_vars->media_file_name = wui.media_file_name;
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     if (wui.wui_marlin_vars) {

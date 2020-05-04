@@ -14,17 +14,19 @@
 #endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
+#include "screens.h"
 #include "dump.h"
+#include "sound_C_wrapper.h"
 
-extern screen_t screen_menu_temperature;
-extern screen_t screen_menu_move;
-#ifdef _DEBUG
-extern screen_t screen_menu_service;
-extern screen_t screen_test;
-#endif //_DEBUG
 extern osThreadId webServerTaskHandle;
 
 const char *settings_opt_enable_disable[] = { "Off", "On", NULL };
+const char *sound_opt_modes[] = { "Once", "Loud", "Silent", "Assist", NULL };
+const eSOUND_MODE e_sound_modes[] = { eSOUND_MODE_ONCE, eSOUND_MODE_LOUD, eSOUND_MODE_SILENT, eSOUND_MODE_ASSIST };
+#ifdef _DEBUG
+const char *sound_opt_types[] = { "ButtonEcho", "StandardPrompt", "StandardAlert", "EncoderMove", "BlindAlert", NULL };
+const eSOUND_TYPE e_sound_types[] = { eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert };
+#endif // _DEBUG
 
 typedef enum {
     MI_RETURN,
@@ -43,6 +45,10 @@ typedef enum {
     MI_LAN_SETTINGS,
 #endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP,
+    MI_SOUND_MODE,
+#ifdef _DEBUG
+    MI_SOUND_TYPE,
+#endif
 #ifdef _DEBUG
     MI_HF_TEST_0,
     MI_HF_TEST_1,
@@ -76,6 +82,10 @@ const menu_item_t _menu_settings_items[] = {
     { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
 #endif //BUDDY_ENABLE_ETHERNET
     { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { { "Sound Mode", 0, WI_SWITCH, .wi_switch_select = { 0, sound_opt_modes } }, SCREEN_MENU_NO_SCREEN },
+#ifdef _DEBUG
+    { { "Sound Type", 0, WI_SWITCH, .wi_switch_select = { 0, sound_opt_types } }, SCREEN_MENU_NO_SCREEN },
+#endif
 #ifdef _DEBUG
     { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
@@ -117,6 +127,13 @@ void screen_menu_settings_init(screen_t *screen) {
     }
     psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = (fs != FS_DISABLED);
     psmd->items[MI_TIMEOUT].item.wi_switch_select.index = menu_timeout_enabled; //st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS)
+
+    for (int i = 0; i < sizeof(e_sound_modes); i++) {
+        if (e_sound_modes[i] == Sound_GetMode()) {
+            psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = i;
+            break;
+        }
+    }
 }
 
 int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -202,6 +219,18 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
                 gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
             }
         } break;
+        case MI_SOUND_MODE:
+            Sound_SetMode(e_sound_modes[psmd->items[MI_SOUND_MODE].item.wi_switch_select.index]);
+            break;
+#ifdef _DEBUG
+        case MI_SOUND_TYPE:
+            if (e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index] == eSOUND_TYPE_StandardPrompt) {
+                gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+            } else {
+                Sound_Play(e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index]);
+            }
+            break;
+#endif // _DEBUG
         }
     }
     return 0;
@@ -218,4 +247,4 @@ screen_t screen_menu_settings = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_settings = &screen_menu_settings;
+screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }
