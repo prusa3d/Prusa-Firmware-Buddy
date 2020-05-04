@@ -21,10 +21,11 @@ void status_footer_update_temperatures(status_footer_t *footer,
 void status_footer_update_feedrate(status_footer_t *footer);
 void status_footer_update_z_axis(status_footer_t *footer);
 void status_footer_update_filament(status_footer_t *footer);
-void status_footer_indicate_nozzle(window_text_t *nozzle, bool heating, bool cooling);
-void status_footer_indicate_heatbed(window_text_t *heatbed, bool heating, bool cooling);
+void status_footer_repaint_nozzle(const status_footer_t *footer);
+void status_footer_repaint_heatbed(const status_footer_t *footer);
 
 void status_footer_init(status_footer_t *footer, int16_t parent) {
+    footer->show_second_color = false;
     int16_t id;
 
     strcpy(footer->text_nozzle, "0/0\177C");
@@ -140,22 +141,19 @@ void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
     bool heating_heatbed = false;
     bool cooling_heatbed = false;
 
-    //if (mseconds % 1000 == 0){ // this is not OK, it assumes, that the timer ticks are coming in regularly
-    // which is not the case here
-    if ((mseconds - footer->last_timer_repaint_temperatures) >= 1000) {
+    if (mseconds - footer->last_timer_repaint_values >= REPAINT_VALUE_PERIOD) {
         status_footer_update_temperatures(footer, heating_nozzle, heating_heatbed,
             cooling_nozzle, cooling_heatbed);
         status_footer_update_feedrate(footer);
         status_footer_update_filament(footer);
-        footer->last_timer_repaint_temperatures = mseconds;
+        status_footer_update_z_axis(footer);
+        footer->last_timer_repaint_values = mseconds;
     }
 
-    if ((mseconds - footer->last_timer_repaint_z) >= 500) {
-        status_footer_update_z_axis(footer);
-        // WTF - heating_nozzle is false and occasionally true - is that what we want?
-        status_footer_indicate_nozzle(&(footer->wt_nozzle), heating_nozzle, cooling_nozzle);
-        status_footer_indicate_heatbed(&(footer->wt_heatbed), heating_heatbed, cooling_heatbed);
-        footer->last_timer_repaint_z = mseconds;
+    if ((mseconds - footer->last_timer_repaint_colors) >= BLINK_PERIOD) {
+        status_footer_repaint_nozzle(footer);
+        status_footer_repaint_heatbed(footer);
+        footer->last_timer_repaint_colors = mseconds;
     }
 }
 
@@ -169,15 +167,16 @@ void status_footer_update_temperatures(status_footer_t *footer,
 	float target_heatbed = ExtUI::getTargetTemp_celsius(ExtUI::heater_t::BED);
 	*/
 
-    float actual_nozzle = thermalManager.degHotend(0);
-    float target_nozzle = thermalManager.degTargetHotend(0);
-    float actual_heatbed = thermalManager.degBed();
-    float target_heatbed = thermalManager.degTargetBed();
+    /// get temperatures
+    const float actual_nozzle = thermalManager.degHotend(0);
+    const float target_nozzle = thermalManager.degTargetHotend(0);
+    const float actual_heatbed = thermalManager.degBed();
+    const float target_heatbed = thermalManager.degTargetBed();
 
     heating_nozzle = (target_nozzle > (actual_nozzle + HEATING_DIFFERENCE));
-    cooling_nozzle = (target_nozzle < (actual_nozzle - HEATING_DIFFERENCE) && actual_nozzle > 50);
+    cooling_nozzle = (target_nozzle < (actual_nozzle - HEATING_DIFFERENCE) && actual_nozzle > COOL_NOZZLE);
     heating_heatbed = (target_heatbed > (actual_heatbed + HEATING_DIFFERENCE));
-    cooling_heatbed = (target_heatbed < (actual_heatbed - HEATING_DIFFERENCE) && actual_heatbed > 45);
+    cooling_heatbed = (target_heatbed < (actual_heatbed - HEATING_DIFFERENCE) && actual_heatbed > COOL_BED);
 
     if (heating_nozzle && target_nozzle != footer->nozzle) {
         footer->nozzle = target_nozzle;
@@ -218,29 +217,44 @@ void status_footer_update_z_axis(status_footer_t *footer) {
 
 void status_footer_update_filament(status_footer_t *footer) {
     window_set_text(footer->wt_filament.win.id, filaments[get_filament()].name);
-#ifndef LCD_HEATBREAK_TO_FILAMENT
-    window_set_text(footer->wt_filament.win.id, filaments[get_filament()].name);
-#endif
+    // #ifndef LCD_HEATBREAK_TO_FILAMENT
+    //     window_set_text(footer->wt_filament.win.id, filaments[get_filament()].name);
+    // #endif
 }
 
-void status_footer_indicate_nozzle(window_text_t *nozzle, bool heating, bool cooling) {
-    const color_t clr = window_get_color_text(nozzle->win.id);
-    if (clr == COLOR_ORANGE || clr == COLOR_BLUE) {
-        window_set_color_text(nozzle->win.id, COLOR_WHITE);
-    } else if (heating) {
-        window_set_color_text(nozzle->win.id, COLOR_ORANGE);
-    } else if (cooling) {
-        window_set_color_text(nozzle->win.id, COLOR_BLUE);
+void status_footer_repaint_nozzle(const status_footer_t *footer) {
+    color_t clr = DEFAULT_COLOR;
+
+    switch (footer->nozzle_state) {
+    case HEATING:
+        clr = footer->show_second_color ? HEATING_COLOR : DEFAULT_COLOR;
+        break;
+    case COOLING:
+        clr = footer->show_second_color ? COOLING_COLOR : DEFAULT_COLOR;
+        break;
+    case PREHEAT:
+        clr = footer->show_second_color ? PREHEAT_COLOR : DEFAULT_COLOR;
+        break;
+    case STABLE:
+        clr = STABLE_COLOR;
     }
+
+    window_set_color_text(footer->nozzle->win.id, clr);
 }
 
-void status_footer_indicate_heatbed(window_text_t *heatbed, bool heating, bool cooling) {
-    const color_t clr = window_get_color_text(heatbed->win.id);
-    if (clr == COLOR_ORANGE || clr == COLOR_BLUE) {
-        window_set_color_text(heatbed->win.id, COLOR_WHITE);
-    } else if (heating) {
-        window_set_color_text(heatbed->win.id, COLOR_ORANGE);
-    } else if (cooling) {
-        window_set_color_text(heatbed->win.id, COLOR_BLUE);
+void status_footer_repaint_heatbed(const status_footer_t *footer) {
+    color_t clr = DEFAULT_COLOR;
+
+    switch (footer->heatbed_state) {
+    case HEATING:
+        clr = footer->show_second_color ? HEATING_COLOR : DEFAULT_COLOR;
+        break;
+    case COOLING:
+        clr = footer->show_second_color ? COOLING_COLOR : DEFAULT_COLOR;
+        break;
+    case STABLE:
+        clr = STABLE_COLOR;
     }
+
+    window_set_color_text(footer->heatbed->win.id, clr);
 }
