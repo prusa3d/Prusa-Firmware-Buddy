@@ -9,6 +9,8 @@ extern "C" {
 
 extern dlg_result_t gui_dlg_load(void);
 
+extern dlg_result_t gui_dlg_purge(void);
+
 extern dlg_result_t gui_dlg_load_forced(void); //no return option
 
 extern dlg_result_t gui_dlg_unload(void);

@@ -28,7 +28,8 @@
     HAS_LCD_MENU || \
     ENABLED(MMU2_MENUS) || \
     ENABLED(MIXING_EXTRUDER) || \
-    ENABLED(DUAL_X_CARRIAGE)
+    ENABLED(DUAL_X_CARRIAGE) || \
+    HAS_BUZZER
     #error unsupported
 #endif
 // clang-format on
@@ -59,7 +60,7 @@ void GcodeSuite::M600() {
     if (target_extruder < 0)
         return;
 
-    FSM_Holder D(ClinetFSM::Load_unload, uint8_t(LoadUnloadMode::Change));
+    FSM_Holder D(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Change));
 #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
     // Don't allow filament change without homing first
     if (axes_need_homing())
@@ -100,16 +101,7 @@ void GcodeSuite::M600() {
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
                                                         : fc_settings[active_extruder].load_length);
 
-    const int beep_count = parser.intval('B',
-#ifdef FILAMENT_CHANGE_ALERT_BEEPS
-        FILAMENT_CHANGE_ALERT_BEEPS
-#else
-        -1
-#endif
-    );
-
     if (pause_print(retract, park_point, unload_length, true DXC_PASS)) {
-        wait_for_confirmation(true, beep_count DXC_PASS);
-        resume_print(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH, beep_count DXC_PASS);
+        resume_print(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH, 0 DXC_PASS);
     }
 }

@@ -32,7 +32,7 @@
  */
 void GcodeSuite::M876() {
     if (parser.seenval('P'))
-        parser.value_int() ? fsm_create(ClinetFSM::Serial_printing, 0) : fsm_destroy(ClinetFSM::Serial_printing);
+        parser.value_int() ? fsm_create(ClientFSM::Serial_printing, 0) : fsm_destroy(ClientFSM::Serial_printing);
     if (parser.seenval('S'))
         host_response_handler((uint8_t)parser.value_int());
 }

@@ -18,8 +18,6 @@
 
 #include "screens.h"
 
-extern uint8_t menu_preheat_type;
-
 #define BUTTON_PRINT       0
 #define BUTTON_PREHEAT     1
 #define BUTTON_FILAMENT    2
@@ -204,7 +202,6 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
         return 1;
         break;
     case BUTTON_PREHEAT + 1:
-        menu_preheat_type = 0;
         screen_open(get_scr_menu_preheat()->id);
         return 1;
     case BUTTON_FILAMENT + 1:
