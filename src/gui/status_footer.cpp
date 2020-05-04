@@ -224,8 +224,8 @@ void status_footer_update_filament(status_footer_t *footer) {
 }
 
 void status_footer_indicate_nozzle(window_text_t *nozzle, bool heating, bool cooling) {
-    if (window_get_color_text(nozzle->win.id) == COLOR_ORANGE
-        || window_get_color_text(nozzle->win.id) == COLOR_BLUE) {
+    const color_t clr = window_get_color_text(nozzle->win.id);
+    if (clr == COLOR_ORANGE || clr == COLOR_BLUE) {
         window_set_color_text(nozzle->win.id, COLOR_WHITE);
     } else if (heating) {
         window_set_color_text(nozzle->win.id, COLOR_ORANGE);
@@ -235,8 +235,8 @@ void status_footer_indicate_nozzle(window_text_t *nozzle, bool heating, bool coo
 }
 
 void status_footer_indicate_heatbed(window_text_t *heatbed, bool heating, bool cooling) {
-    if (window_get_color_text(heatbed->win.id) == COLOR_ORANGE
-        || window_get_color_text(heatbed->win.id) == COLOR_BLUE) {
+    const color_t clr = window_get_color_text(heatbed->win.id);
+    if (clr == COLOR_ORANGE || clr == COLOR_BLUE) {
         window_set_color_text(heatbed->win.id, COLOR_WHITE);
     } else if (heating) {
         window_set_color_text(heatbed->win.id, COLOR_ORANGE);
