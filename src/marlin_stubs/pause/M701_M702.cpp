@@ -55,7 +55,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
     if (target_extruder < 0)
         return;
 
-    FSM_Holder D(ClinetFSM::Load_unload, uint8_t(type));
+    FSM_Holder D(ClientFSM::Load_unload, uint8_t(type));
     // Z axis lift
     if (parser.seenval('Z'))
         min_Z_pos = parser.linearval('Z');
@@ -63,7 +63,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
     // Lift Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MIN(_MAX(current_position.z, min_Z_pos), Z_MAX_POS);
-        Notifier_POS_Z N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
+        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     // Load/Unload filament
@@ -72,7 +72,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
     // Restore Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MAX(current_position.z - min_Z_pos, 0);
-        Notifier_POS_Z N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
+        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 #endif
@@ -80,7 +80,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
 
 /**
  * Load filament special code
- * filament type must be last parmaeter
+ * filament type must be last parameter
  * type name cannot contain 'Z'
  * todo rewrite
  */

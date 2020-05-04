@@ -1292,7 +1292,7 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 static uint32_t fsm_change_last_usr32 = -1;
 
 //must match fsm_create_t signature
-void fsm_create(ClinetFSM type, uint8_t data) {
+void fsm_create(ClientFSM type, uint8_t data) {
     //erase info about last event
     fsm_change_last_usr32 = -1;
 
@@ -1306,7 +1306,7 @@ void fsm_create(ClinetFSM type, uint8_t data) {
 }
 
 //must match fsm_destroy_t signature
-void fsm_destroy(ClinetFSM type) {
+void fsm_destroy(ClientFSM type) {
     DBG_FSM("fsm_destroy %d", (int)type);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
@@ -1316,7 +1316,7 @@ void fsm_destroy(ClinetFSM type) {
 }
 
 //must match fsm_change_t signature
-void _fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
     if (usr32 == uint32_t(-1))
         bsod("FATAL Invalid Event");
@@ -1334,7 +1334,7 @@ void _fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pr
 //FSM_notifier
 FSM_notifier::data FSM_notifier::s_data;
 
-FSM_notifier::FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
+FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
     uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
     : temp_data(s_data) {
     s_data.type = type;
@@ -1356,7 +1356,7 @@ FSM_notifier::FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvarian
 //simplified formula
 //x = actual * s_data.scale + s_data.offset;
 void FSM_notifier::SendNotification() {
-    if (s_data.type == ClinetFSM::_none)
+    if (s_data.type == ClientFSM::_none)
         return;
 
     cvariant8 temp;

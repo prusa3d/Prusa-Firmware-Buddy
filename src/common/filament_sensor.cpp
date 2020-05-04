@@ -64,12 +64,12 @@ static void _init();
 static int block_M600_injection = 0;
 //called when Serial print screen is openned
 //printer is not in sd printing mode, so filament sensor does not trigger M600
-static void fsm_create_cb(ClinetFSM fsm, uint8_t data) {
-    if (fsm == ClinetFSM::Serial_printing)
+static void fsm_create_cb(ClientFSM fsm, uint8_t data) {
+    if (fsm == ClientFSM::Serial_printing)
         block_M600_injection = 1;
 }
-static void fsm_destroy_cb(ClinetFSM fsm) {
-    if (fsm == ClinetFSM::Serial_printing || fsm == ClinetFSM::Load_unload)
+static void fsm_destroy_cb(ClientFSM fsm) {
+    if (fsm == ClientFSM::Serial_printing || fsm == ClientFSM::Load_unload)
         block_M600_injection = 0;
 }
 

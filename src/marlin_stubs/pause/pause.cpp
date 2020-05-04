@@ -48,6 +48,8 @@
 #include "marlin_server.hpp"
 #include "filament_sensor.h"
 #include "filament.h"
+#include "RAII.hpp"
+
 // private:
 //check unsupported features
 //filament sensor is no longer part of marlin thus it must be disabled
@@ -98,7 +100,7 @@ static bool ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint
         return false;
     }
 
-    Notifier_TEMP_NOZ N(ClinetFSM::Load_unload, GetPhaseIndex(phase),
+    Notifier_TEMP_NOZ N(ClientFSM::Load_unload, GetPhaseIndex(phase),
         Temperature::degHotend(active_extruder), Temperature::degTargetHotend(active_extruder), progress_min, progress_max);
 
     return thermalManager.wait_for_hotend(active_extruder);
@@ -113,10 +115,10 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 void do_pause_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
     //Not sure if folowing code would not be better
     //const float actual_e = planner.get_axis_position_mm(E_AXIS);
-    //Notifier_POS_E N(ClinetFSM::Load_unload, GetPhaseIndex(phase), actual_e, actual_e + length, progress_min,progress_max);
+    //Notifier_POS_E N(ClientFSM::Load_unload, GetPhaseIndex(phase), actual_e, actual_e + length, progress_min,progress_max);
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
-    Notifier_POS_E N(ClinetFSM::Load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
+    Notifier_POS_E N(ClientFSM::Load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
     line_to_current_position(fr_mm_s);
     planner.synchronize();
 }
@@ -131,27 +133,11 @@ void plan_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 void plan_pause_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, PhasesLoadUnload phase, uint8_t progress_min, uint8_t progress_max) {
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
-    Notifier_POS_E N(ClinetFSM::Load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
+    Notifier_POS_E N(ClientFSM::Load_unload, GetPhaseIndex(phase), actual_e, current_position.e, progress_min, progress_max);
     while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
         delay(50);
     }
 }
-
-//todo move
-template <class T>
-class AutoRestore {
-    T &ref;
-    T val;
-
-public:
-    AutoRestore(T &ref, T val)
-        : ref(ref)
-        , val(val) {}
-    AutoRestore(T &ref)
-        : ref(ref)
-        , val(ref) {}
-    ~AutoRestore() { ref = val; }
-};
 
 // Start the heater idle timers
 static void hotend_idle_start(uint32_t time) {
@@ -192,10 +178,10 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
             do {
                 while (fs_get_state() == FS_NO_FILAMENT) {
                     idle(true);
-                    fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
+                    fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
                 }
                 idle(true);
-                fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, 0, 0);
+                fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::UserPush, 0, 0);
             } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
             hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
 
@@ -207,7 +193,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
                 do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 10, 30);
             }
 
-            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
+            fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
 
             //wait until response
             do {
@@ -249,7 +235,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
         do {
             // Extrude filament to get into hotend
             do_pause_e_move_notify_progress(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
-            fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0);
+            fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0);
             do {
                 idle();
                 response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor);
@@ -302,7 +288,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
     //cannot draw progress in plan_pause_e_move, so just change phase to ramming
-    fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::Ramming, 50, 0);
+    fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::Ramming, 50, 0);
     for (size_t i = 0; i < pre_unload_begin_pos; ++i) {
         plan_pause_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
     }
@@ -333,6 +319,9 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     return true;
 }
 
+static const int Z_MOVE_PRECENT = 75;
+static const int XY_MOVE_PRECENT = 100 - Z_MOVE_PRECENT;
+
 static void park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_point) {
     // Initial retract before move to filament change position
     if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
@@ -341,7 +330,7 @@ static void park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_p
     // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
     if (!axes_need_homing()) {
         {
-            Notifier_POS_Z N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, park_point.z, 0, 60);
+            Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, park_point.z, 0, Z_MOVE_PRECENT);
             do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
         }
         {
@@ -349,14 +338,39 @@ static void park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_p
             const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
             const float &end_pos = x_greater_than_y ? park_point.x : park_point.y;
             if (x_greater_than_y) {
-                Notifier_POS_X N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), begin_pos, end_pos, end_pos > begin_pos ? 60 : 100, end_pos > begin_pos ? 100 : 75);
+                Notifier_POS_X N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
                 do_blocking_move_to_xy(park_point, NOZZLE_PARK_XY_FEEDRATE);
             } else {
-                Notifier_POS_Y N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), begin_pos, end_pos, end_pos > begin_pos ? 60 : 100, end_pos > begin_pos ? 100 : 75);
+                Notifier_POS_Y N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), begin_pos, end_pos, Z_MOVE_PRECENT, 100);
                 do_blocking_move_to_xy(park_point, NOZZLE_PARK_XY_FEEDRATE);
             }
         }
         report_current_position();
+    }
+}
+
+static void unpark_nozzle_and_notify() {
+    // If resume_position is negative
+    if (resume_position.e < 0)
+        do_pause_e_move(resume_position.e, feedRate_t(PAUSE_PARK_RETRACT_FEEDRATE));
+
+    // Move XY to starting position, then Z
+    {
+        const bool x_greater_than_y = ABS(current_position.x - resume_position.x) > ABS(current_position.y - resume_position.y);
+        const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
+        const float &end_pos = x_greater_than_y ? resume_position.x : resume_position.y;
+        if (x_greater_than_y) {
+            Notifier_POS_X N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
+            do_blocking_move_to_xy(resume_position, NOZZLE_PARK_XY_FEEDRATE);
+        } else {
+            Notifier_POS_Y N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), begin_pos, end_pos, 0, XY_MOVE_PRECENT);
+            do_blocking_move_to_xy(resume_position, NOZZLE_PARK_XY_FEEDRATE);
+        }
+    }
+    // Move Z_AXIS to saved position
+    {
+        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, resume_position.z, XY_MOVE_PRECENT, 100);
+        do_blocking_move_to_z(resume_position.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 }
 
@@ -449,15 +463,7 @@ void resume_print(const float &slow_load_length /*=0*/, const float &fast_load_l
         do_pause_e_move(-fwretract.settings.retract_length, fwretract.settings.retract_feedrate_mm_s);
 #endif
 
-    // If resume_position is negative
-    if (resume_position.e < 0)
-        do_pause_e_move(resume_position.e, feedRate_t(PAUSE_PARK_RETRACT_FEEDRATE));
-
-    // Move XY to starting position, then Z
-    do_blocking_move_to_xy(resume_position, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
-
-    // Move Z_AXIS to saved position
-    do_blocking_move_to_z(resume_position.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+    unpark_nozzle_and_notify();
 
 #if ADVANCED_PAUSE_RESUME_PRIME != 0
     do_pause_e_move(ADVANCED_PAUSE_RESUME_PRIME, feedRate_t(ADVANCED_PAUSE_PURGE_FEEDRATE));
