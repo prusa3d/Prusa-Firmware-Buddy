@@ -13,7 +13,7 @@
 #pragma pack(push)
 #pragma pack(1)
 
-typedef enum e {
+typedef enum heat_state_e {
     HEATING,
     COOLING,
     PREHEAT,
@@ -52,6 +52,7 @@ typedef struct
     heat_state_t nozzle_state;
     heat_state_t heatbed_state;
     bool show_second_color;
+    bool preheat_mode;
 
 } status_footer_t;
 
@@ -74,6 +75,8 @@ typedef struct
 #define HEATING_COLOR COLOR_ORANGE
 #define COOLING_COLOR COLOR_BLUE
 #define PREHEAT_COLOR COLOR_GREEN
+
+#define PREHEAT_TEMP 170
 
 #ifdef __cplusplus
 extern "C" {

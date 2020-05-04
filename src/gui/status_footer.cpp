@@ -26,6 +26,7 @@ void status_footer_repaint_heatbed(const status_footer_t *footer);
 
 void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
+    footer->preheat_mode = false;
     int16_t id;
 
     strcpy(footer->text_nozzle, "0/0\177C");
@@ -135,15 +136,10 @@ int status_footer_event(status_footer_t *footer, window_t *window,
     return 0;
 }
 
+/// Callback function which triggers update and repaint of values
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
-    bool heating_nozzle = false;
-    bool cooling_nozzle = false;
-    bool heating_heatbed = false;
-    bool cooling_heatbed = false;
-
     if (mseconds - footer->last_timer_repaint_values >= REPAINT_VALUE_PERIOD) {
-        status_footer_update_temperatures(footer, heating_nozzle, heating_heatbed,
-            cooling_nozzle, cooling_heatbed);
+        status_footer_update_temperatures(footer);
         status_footer_update_feedrate(footer);
         status_footer_update_filament(footer);
         status_footer_update_z_axis(footer);
@@ -157,40 +153,45 @@ void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
     }
 }
 
-void status_footer_update_temperatures(status_footer_t *footer,
-    bool &heating_nozzle, bool &heating_heatbed, bool &cooling_nozzle,
-    bool &cooling_heatbed) {
-    /*
-	float actual_nozzle = ExtUI::getActualTemp_celsius(ExtUI::extruder_t::E0);
-	float target_nozzle = ExtUI::getTargetTemp_celsius(ExtUI::extruder_t::E0);
-	float actual_heatbed = ExtUI::getActualTemp_celsius(ExtUI::heater_t::BED);
-	float target_heatbed = ExtUI::getTargetTemp_celsius(ExtUI::heater_t::BED);
-	*/
+/// Updates values in state from real values and repaint
+void status_footer_update_temperatures(status_footer_t *footer) {
 
-    /// get temperatures
+    /// get current temperatures
     const float actual_nozzle = thermalManager.degHotend(0);
     const float target_nozzle = thermalManager.degTargetHotend(0);
     const float actual_heatbed = thermalManager.degBed();
     const float target_heatbed = thermalManager.degTargetBed();
 
-    heating_nozzle = (target_nozzle > (actual_nozzle + HEATING_DIFFERENCE));
-    cooling_nozzle = (target_nozzle < (actual_nozzle - HEATING_DIFFERENCE) && actual_nozzle > COOL_NOZZLE);
-    heating_heatbed = (target_heatbed > (actual_heatbed + HEATING_DIFFERENCE));
-    cooling_heatbed = (target_heatbed < (actual_heatbed - HEATING_DIFFERENCE) && actual_heatbed > COOL_BED);
-
-    if (heating_nozzle && target_nozzle != footer->nozzle) {
-        footer->nozzle = target_nozzle;
-    } else if (!heating_nozzle && actual_nozzle != footer->nozzle) {
-        footer->nozzle = actual_nozzle;
+    // nozzle state
+    if (footer->preheat_mode) {
+        footer->nozzle_state = PREHEAT;
+        if (PREHEAT_TEMP > actual_nozzle + HEATING_DIFFERENCE) {
+            footer->nozzle_state = HEATING;
+        } else if (PREHEAT_TEMP < actual_nozzle - HEATING_DIFFERENCE) {
+            footer->nozzle_state = COOLING;
+        }
+    } else {
+        footer->nozzle_state = STABLE;
+        if (target_nozzle > actual_nozzle + HEATING_DIFFERENCE) {
+            footer->nozzle_state = HEATING;
+        } else if (target_nozzle < actual_nozzle - HEATING_DIFFERENCE && actual_nozzle > COOL_NOZZLE) {
+            footer->nozzle_state = COOLING;
+        }
     }
+
+    // heatbed state
+    footer->heatbed_state = STABLE;
+    if (target_heatbed > actual_heatbed + HEATING_DIFFERENCE) {
+        footer->heatbed_state = HEATING;
+    } else if (target_heatbed < actual_heatbed - HEATING_DIFFERENCE && actual_heatbed > COOL_BED) {
+        footer->heatbed_state = COOLING;
+    }
+
+    footer->nozzle = actual_nozzle;
     sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
     window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
 
-    if (heating_heatbed && target_heatbed != footer->heatbed) {
-        footer->heatbed = target_heatbed;
-    } else if (!heating_heatbed && actual_heatbed != footer->heatbed) {
-        footer->heatbed = actual_heatbed;
-    }
+    footer->heatbed = actual_heatbed;
     sprintf(footer->text_heatbed, "%.0f/%.0f\177C", (double)actual_heatbed, (double)target_heatbed);
     window_set_text(footer->wt_heatbed.win.id, footer->text_heatbed);
 
@@ -222,6 +223,7 @@ void status_footer_update_filament(status_footer_t *footer) {
     // #endif
 }
 
+/// Repaints nozzle temperature in proper color
 void status_footer_repaint_nozzle(const status_footer_t *footer) {
     color_t clr = DEFAULT_COLOR;
 
@@ -242,6 +244,7 @@ void status_footer_repaint_nozzle(const status_footer_t *footer) {
     window_set_color_text(footer->nozzle->win.id, clr);
 }
 
+/// Repaints heatbed temperature in proper color
 void status_footer_repaint_heatbed(const status_footer_t *footer) {
     color_t clr = DEFAULT_COLOR;
 
