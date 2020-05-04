@@ -74,7 +74,12 @@ void GcodeSuite::M600() {
 #endif
     );
 
-    xyz_pos_t park_point NOZZLE_PARK_POINT;
+    xyz_pos_t park_point =
+#ifdef NOZZLE_PARK_POINT_M600
+        NOZZLE_PARK_POINT_M600;
+#else
+        NOZZLE_PARK_POINT;
+#endif
 
     // Lift Z axis
     if (parser.seenval('Z'))
