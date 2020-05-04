@@ -195,7 +195,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
                     fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
                 }
                 idle(true);
-                fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, 30, 0);
+                fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::UserPush, 0, 0);
             } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
             hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
 
@@ -204,7 +204,7 @@ bool load_filament(const float &slow_load_length /*=0*/, const float &fast_load_
             if (slow_load_length) {
                 AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
                 thermalManager.allow_cold_extrude = true;
-                do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 30, 50);
+                do_pause_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 10, 30);
             }
 
             fsm_change(ClinetFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
@@ -275,7 +275,7 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
 ) {
     UNUSED(show_lcd);
 
-    if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 50)) {
+    if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 0, 50)) {
         return false;
     }
 
@@ -333,6 +333,33 @@ bool unload_filament(const float &unload_length, const bool show_lcd /*=false*/,
     return true;
 }
 
+static void park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_point) {
+    // Initial retract before move to filament change position
+    if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
+        do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
+
+    // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
+    if (!axes_need_homing()) {
+        {
+            Notifier_POS_Z N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, park_point.z, 0, 60);
+            do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
+        }
+        {
+            const bool x_greater_than_y = ABS(current_position.x - park_point.x) > ABS(current_position.y - park_point.y);
+            const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
+            const float &end_pos = x_greater_than_y ? park_point.x : park_point.y;
+            if (x_greater_than_y) {
+                Notifier_POS_X N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), begin_pos, end_pos, end_pos > begin_pos ? 60 : 100, end_pos > begin_pos ? 100 : 75);
+                do_blocking_move_to_xy(park_point, NOZZLE_PARK_XY_FEEDRATE);
+            } else {
+                Notifier_POS_Y N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), begin_pos, end_pos, end_pos > begin_pos ? 60 : 100, end_pos > begin_pos ? 100 : 75);
+                do_blocking_move_to_xy(park_point, NOZZLE_PARK_XY_FEEDRATE);
+            }
+        }
+        report_current_position();
+    }
+}
+
 // public:
 
 /**
@@ -378,13 +405,7 @@ bool pause_print(const float &retract, const xyz_pos_t &park_point, const float 
     thermalManager.set_fans_paused(true);
 #endif
 
-    // Initial retract before move to filament change position
-    if (retract && thermalManager.hotEnoughToExtrude(active_extruder))
-        do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
-
-    // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
-    if (!axes_need_homing())
-        nozzle.park(2, park_point);
+    park_nozzle_and_notify(retract, park_point);
 
     if (unload_length) // Unload the filament
         unload_filament(unload_length, show_lcd);
