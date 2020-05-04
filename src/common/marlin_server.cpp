@@ -1288,8 +1288,14 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 
 }
 
+//remember last event
+static uint32_t fsm_change_last_usr32 = -1;
+
 //must match fsm_create_t signature
-void fsm_create(ClinetFSM type, uint8_t data) {
+void fsm_create(ClientFSM type, uint8_t data) {
+    //erase info about last event
+    fsm_change_last_usr32 = -1;
+
     uint32_t usr32 = uint32_t(type) + (uint32_t(data) << 8);
     DBG_FSM("fsm_create %d", usr32);
 
@@ -1300,7 +1306,7 @@ void fsm_create(ClinetFSM type, uint8_t data) {
 }
 
 //must match fsm_destroy_t signature
-void fsm_destroy(ClinetFSM type) {
+void fsm_destroy(ClientFSM type) {
     DBG_FSM("fsm_destroy %d", (int)type);
 
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Destroy;
@@ -1310,10 +1316,14 @@ void fsm_destroy(ClinetFSM type) {
 }
 
 //must match fsm_change_t signature
-void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     uint32_t usr32 = uint32_t(type) + (uint32_t(phase) << 8) + (uint32_t(progress_tot) << 16) + (uint32_t(progress) << 24);
+    if (usr32 == uint32_t(-1))
+        bsod("FATAL Invalid Event");
+    if (usr32 == fsm_change_last_usr32)
+        return;
+    fsm_change_last_usr32 = usr32;
     DBG_FSM("fsm_change %d", usr32);
-
     const MARLIN_EVT_t evt_id = MARLIN_EVT_FSM_Change;
     uint8_t client_mask = _send_notify_event(evt_id, usr32, 0);
     // notification will wait until successfully sent to gui client
@@ -1324,7 +1334,7 @@ void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pro
 //FSM_notifier
 FSM_notifier::data FSM_notifier::s_data;
 
-FSM_notifier::FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
+FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
     uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
     : temp_data(s_data) {
     s_data.type = type;
@@ -1346,7 +1356,7 @@ FSM_notifier::FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvarian
 //simplified formula
 //x = actual * s_data.scale + s_data.offset;
 void FSM_notifier::SendNotification() {
-    if (s_data.type == ClinetFSM::_none)
+    if (s_data.type == ClientFSM::_none)
         return;
 
     cvariant8 temp;
@@ -1364,7 +1374,7 @@ void FSM_notifier::SendNotification() {
     // after first sent, progress can only rise
     if ((s_data.last_progress_sent == uint8_t(-1)) || (progress > s_data.last_progress_sent)) {
         s_data.last_progress_sent = progress;
-        fsm_change(s_data.type, s_data.phase, progress, 0);
+        _fsm_change(s_data.type, s_data.phase, progress, 0);
     }
 }
 
