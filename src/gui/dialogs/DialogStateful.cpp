@@ -44,14 +44,9 @@ IDialogStateful::~IDialogStateful() {
 }
 
 void IDialogStateful::draw_frame() {
-    const rect_ui16_t rc = rect;
-    const auto w = display->w;
-    const auto h = display->h;
-
-    display->draw_line(point_ui16(rc.x, rc.y), point_ui16(w - 1, rc.y), COLOR_GRAY);
-    display->draw_line(point_ui16(rc.x, rc.y), point_ui16(rc.x, h - 67), COLOR_GRAY);
-    display->draw_line(point_ui16(w - 1, rc.y), point_ui16(w - 1, h - 67), COLOR_GRAY);
-    display->draw_line(point_ui16(rc.x, 320 - 67), point_ui16(w - 1, h - 67), COLOR_GRAY);
+    const uint16_t w = display->w - 1 - x0 + 1;  /// last - first + 1
+    const uint16_t h = display->h - 67 - y0 + 1; /// last - first + 1
+    display->draw_rect(rect_ui16(rect.x, rect.y, w, h), COLOR_GRAY);
 }
 
 //todo this should be moved elswhere
