@@ -500,7 +500,7 @@ target_sources(
 if(GUI)
   target_sources(
     firmware
-    PRIVATE src/gui/screen_menu_filament.c
+    PRIVATE src/gui/screen_menu_filament.cpp
             src/gui/dialogs/Dialog_C_wrapper.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
@@ -529,13 +529,13 @@ if(GUI)
             src/gui/test_display.c
             src/gui/screen_splash.c
             src/gui/screen_menu_service.cpp
-            src/gui/screen_menu_calibration.c
+            src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.c
             src/gui/screen_print_preview.c
             src/gui/screen_messages.c
-            src/gui/screen_menu_info.c
+            src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.c
-            src/gui/screen_menu_move.c
+            src/gui/screen_menu_move.cpp
             src/gui/screen_lan_settings.c
             src/gui/screen_menu_qr_info.cpp
             src/gui/screen_menu_qr_error.cpp
@@ -565,7 +565,7 @@ if(GUI)
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
             src/gui/screen_PID.cpp
-            src/gui/screen_menu_fw_update.c
+            src/gui/screen_menu_fw_update.cpp
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/wizard/selftest_fans_axis.c
             src/gui/test/screen_mesh_bed_lv.cpp

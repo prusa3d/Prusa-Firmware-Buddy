@@ -17,11 +17,6 @@ typedef enum {
     MI_AUTO_HOME,
     MI_MESH_BED,
     MI_SELFTEST,
-//	MI_CALIB_XYZ,
-#ifdef WIZARD_Z_CALIBRATION
-//	MI_CALIB_Z,
-#endif
-    //	MI_CALIB_XY,
     MI_CALIB_FIRST,
     MI_COUNT
 } MI_t;
@@ -32,11 +27,6 @@ const menu_item_t _menu_calibration_items[] = {
     { { "Auto Home", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Mesh Bed Level.", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "SelfTest", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-//	{{"XYZ calibration",   0, WI_LABEL,  }, SCREEN_MENU_NO_SCREEN},
-#ifdef WIZARD_Z_CALIBRATION
-//	{{"Z calibration",     0, WI_LABEL,  }, SCREEN_MENU_NO_SCREEN},
-#endif
-    //	{{"XY calibration",    0, WI_LABEL   }, SCREEN_MENU_NO_SCREEN},
     { { "First Layer Cal.", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
 
@@ -109,11 +99,6 @@ int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t ev
         case MI_SELFTEST:
             wizard_run_selftest();
             break;
-            /*			case MI_CALIB_XYZ:   wizard_run_xyzcalib(); break;
-#ifdef WIZARD_Z_CALIBRATION
-			case MI_CALIB_Z:     wizard_run_xyzcalib_z(); break;
-#endif
-			case MI_CALIB_XY:    wizard_run_xyzcalib_xy(); break;*/
         case MI_CALIB_FIRST:
             wizard_run_firstlay();
             break;
@@ -133,4 +118,4 @@ screen_t screen_menu_calibration = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }
+extern "C" screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }

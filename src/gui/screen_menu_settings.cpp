@@ -62,39 +62,6 @@ typedef enum {
     MI_COUNT
 } MI_t;
 
-/*
-const menu_item_t _menu_settings_items[] = {
-    { { "Temperature", 0, WI_LABEL }, &screen_menu_temperature },
-    { { "Move Axis", 0, WI_LABEL }, &screen_menu_move },
-    { { "Disable Steppers", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Factory Reset", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#ifdef _DEBUG
-    { { "Service", 0, WI_LABEL }, &screen_menu_service },
-    { { "Test", 0, WI_LABEL }, &screen_test },
-#endif //_DEBUG
-    { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update },
-    { { "Fil. sens.", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
-    { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
-#ifdef BUDDY_ENABLE_ETHERNET
-    { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
-#endif //BUDDY_ENABLE_ETHERNET
-    { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Sound Mode", 0, WI_SWITCH, .wi_switch_select = { 0, sound_opt_modes } }, SCREEN_MENU_NO_SCREEN },
-#ifdef _DEBUG
-    { { "Sound Type", 0, WI_SWITCH, .wi_switch_select = { 0, sound_opt_types } }, SCREEN_MENU_NO_SCREEN },
-    { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.0", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.2", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.3-RC1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.3", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE load", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE save", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE save xml", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#endif //_DEBUG
-};*/
-
 //"C inheritance" of screen_menu_data_t with data items
 #pragma pack(push)
 #pragma pack(1)
@@ -279,4 +246,4 @@ screen_t screen_menu_settings = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }
+extern "C" screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }

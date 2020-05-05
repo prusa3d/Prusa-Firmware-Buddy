@@ -15,14 +15,7 @@ typedef enum {
     MI_COOLDOWN,
     MI_COUNT
 } MI_t;
-/*
-const menu_item_t _menu_temperature_items[] = {
-    { { "Nozzle", 0, WI_SPIN, .wi_spin = { 0, nozzle_range } }, SCREEN_MENU_NO_SCREEN },
-    { { "Heatbed", 0, WI_SPIN, .wi_spin = { 0, heatbed_range } }, SCREEN_MENU_NO_SCREEN },
-    { { "Print Fan", 0, WI_SPIN, .wi_spin = { 0, printfan_range } }, SCREEN_MENU_NO_SCREEN },
-    { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-};
-*/
+
 //"C inheritance" of screen_menu_data_t with data items
 #pragma pack(push)
 #pragma pack(1)
@@ -94,4 +87,4 @@ screen_t screen_menu_temperature = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }
+extern "C" screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }
