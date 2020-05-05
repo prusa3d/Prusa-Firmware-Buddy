@@ -13,6 +13,7 @@ extern int HAL_PWM_Initialized;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern RTC_HandleTypeDef hrtc;
 
 extern void Error_Handler(void);
 
