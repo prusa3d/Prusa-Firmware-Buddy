@@ -47,7 +47,7 @@ void screen_menu_preheat_done(screen_t *screen) {
 int screen_menu_preheat_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
     if (screen_menu_event(screen, window, event, param)) {
-        return 1; // Screen return return here ...
+        return 1; // Screen return here ...
     }
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
@@ -68,7 +68,7 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
 
-    screen_close(); // skip this screen averytime
+    screen_close(); // skip this screen everytime
     return 1;
 }
 
