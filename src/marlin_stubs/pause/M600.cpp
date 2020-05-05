@@ -35,10 +35,9 @@
 // clang-format on
 
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
-#include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
 #include "marlin_server.hpp"
+#include "pause_stubbed.hpp"
 
 /**
  * M600: Pause for filament change
@@ -74,7 +73,12 @@ void GcodeSuite::M600() {
 #endif
     );
 
-    xyz_pos_t park_point NOZZLE_PARK_POINT;
+    xyz_pos_t park_point =
+#ifdef NOZZLE_PARK_POINT_M600
+        NOZZLE_PARK_POINT_M600;
+#else
+        NOZZLE_PARK_POINT;
+#endif
 
     // Lift Z axis
     if (parser.seenval('Z'))
@@ -92,16 +96,16 @@ void GcodeSuite::M600() {
 
     // Unload filament
     const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                      : fc_settings[active_extruder].unload_length);
+                                                      : pause.GetUnloadLength());
 
     // Slow load filament
     constexpr float slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
 
     // Fast load filament
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                        : fc_settings[active_extruder].load_length);
+                                                        : pause.GetLoadLength());
 
-    if (pause_print(retract, park_point, unload_length, true DXC_PASS)) {
-        resume_print(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH, 0 DXC_PASS);
+    if (pause.PrintPause(retract, park_point, unload_length)) {
+        pause.PrintResume(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH);
     }
 }

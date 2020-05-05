@@ -249,7 +249,9 @@ target_link_libraries(FatFs_Config INTERFACE A3idesHeaders STM32::USBHost)
 
 add_library(Marlin_Config INTERFACE)
 # TODO: fix dependency on src/common and src/gui
-target_include_directories(Marlin_Config INTERFACE include/marlin src/common src/gui)
+target_include_directories(
+  Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
+  )
 target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
 
 #
@@ -453,6 +455,7 @@ target_sources(
           src/common/safe_state.c
           src/common/variant8.cpp
           src/common/dbg.c
+          src/common/wdt.cpp
           src/common/dump.c
           src/common/marlin_client.c
           src/common/bsod.c

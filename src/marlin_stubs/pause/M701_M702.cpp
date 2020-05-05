@@ -37,8 +37,8 @@
 #include "../../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
-#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "marlin_server.hpp"
+#include "pause_stubbed.hpp"
 #include "filament.h"
 
 #define DO_NOT_RESTORE_Z_AXIS
@@ -102,27 +102,20 @@ static void load(const int8_t target_extruder) {
     }
 
     const float fast_load_length = ABS((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
-                                                                                                                          : fc_settings[active_extruder].load_length);
+                                                                                                                          : pause.GetLoadLength());
     constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH;
     const float slow_load_length = fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0;
 
-    load_filament(
-        slow_load_length, fast_load_length, purge_length,
-        FILAMENT_CHANGE_ALERT_BEEPS,
-        true,                                          // show_lcd
-        thermalManager.still_heating(target_extruder), // pause_for_user
-        PAUSE_MODE_LOAD_FILAMENT                       // pause_mode
-    );
+    pause.FilamentLoad(slow_load_length, fast_load_length, purge_length);
 }
 
 /**
  * Unload filament special code
  */
 static void unload(const int8_t target_extruder) {
-    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                      : fc_settings[target_extruder].unload_length);
+    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetUnloadLength());
 
-    unload_filament(unload_length, true, PAUSE_MODE_UNLOAD_FILAMENT);
+    pause.FilamentUnload(unload_length);
 }
 
 /**

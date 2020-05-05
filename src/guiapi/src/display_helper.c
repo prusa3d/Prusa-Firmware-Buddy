@@ -3,7 +3,7 @@
 #include "display_helper.h"
 #include "display.h"
 
-void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
+void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP
