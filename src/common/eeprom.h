@@ -49,17 +49,16 @@
     #define EEVAR_LAN_IP4_GW    0x15 // X.X.X.X address encoded in uint32
     #define EEVAR_LAN_IP4_DNS1  0x16 // X.X.X.X address encoded in uint32
     #define EEVAR_LAN_IP4_DNS2  0x17 // X.X.X.X address encoded in uint32
-    #define EEVAR_CONNECT_IP4   0x18 // X.X.X.X address encoded in uint32
-    #define EEVAR_CONNECT_TOKEN 0x19 // 20char string
-    #define EEVAR_LAN_HOSTNAME  0x1a // 20char string
+    #define EEVAR_LAN_HOSTNAME  0x18 // 20char string
+    #define EEVAR_TIMEZONE      0x19 // int8_t hour difference from UTC
 #endif                               // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
 
 // sound variable
-#define EEVAR_SOUND_MODE 0x1b // uint8_t
+#define EEVAR_SOUND_MODE 0x1a // uint8_t
 
-#define EEVAR__PADDING 0x1c // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+#define EEVAR__PADDING 0x1b // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
-#define EEVAR_CRC32 0x1d // uint32_t crc32 for
+#define EEVAR_CRC32 0x1c // uint32_t crc32 for
 
 #define LAN_HOSTNAME_MAX_LEN 20
 #define CONNECT_TOKEN_SIZE   20
