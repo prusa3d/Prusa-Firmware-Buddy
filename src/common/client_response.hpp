@@ -21,7 +21,8 @@ enum class Response : uint8_t {
     Back,
     Retry,
     Purge_more,
-    Reheat
+    Reheat,
+    Filament_removed
 };
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
@@ -55,14 +56,15 @@ enum class PhasesLoadUnload : uint16_t {
     PreparingToRam,
     Ramming,
     Unloading,
-    Unloading2,
+    RemoveFilament,
     UserPush,
     NozzleTimeout,
     MakeSureInserted,
     Inserting,
+    IsFilamentInGear,
+    Ejecting,
     Loading,
     Purging,
-    Purging2,
     IsColor,
     Unparking,
     _last = Unparking

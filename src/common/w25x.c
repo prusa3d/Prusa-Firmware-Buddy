@@ -112,17 +112,6 @@ void w25x_page_program(uint32_t addr, uint8_t *data, uint16_t cnt) {
     _CS_HIGH();
 }
 
-void w25x_page_program_P(uint32_t addr, uint8_t *data, uint16_t cnt) {
-    _CS_LOW();
-    _SPI_TX(_CMD_PAGE_PROGRAM);     // send command 0x02
-    _SPI_TX(((uint8_t *)&addr)[2]); // send addr bits 16..23
-    _SPI_TX(((uint8_t *)&addr)[1]); // send addr bits 8..15
-    _SPI_TX(((uint8_t *)&addr)[0]); // send addr bits 0..7
-    while (cnt--)                   // send data
-        _SPI_TX(*(data++));
-    _CS_HIGH();
-}
-
 void w25x_erase(uint8_t cmd, uint32_t addr) {
     _CS_LOW();
     _SPI_TX(cmd);                   // send command 0x20

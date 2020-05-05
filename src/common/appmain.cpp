@@ -28,12 +28,11 @@
 #include "diag.h"
 #include "safe_state.h"
 #include "crc32.h"
+#include "ff.h"
 
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
-#include "../Marlin/src/module/temperature.h"
-#include "../Marlin/src/module/probe.h"
 
 #define DBG _dbg0 //debug level 0
 //#define DBG(...)  //disable debug
@@ -125,7 +124,6 @@ void app_run(void) {
         }
         uartslave_cycle(&uart6slave);
         marlin_server_loop();
-        app_usbhost_reenum();
         osDelay(0); // switch to other threads - without this is UI slow
 #ifdef JOGWHEEL_TRACE
         static int signals = jogwheel_signals;
@@ -195,30 +193,6 @@ void app_tim14_tick(void) {
     Sound_Update1ms();
     //hwio_update_1ms();
     adc_tick_1ms();
-}
-
-#include "usbh_core.h"
-extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
-
-// Re-enumerate UsbHost in case that it hangs in enumeration state (HOST_ENUMERATION,ENUM_IDLE)
-// this is not solved in original UsbHost driver
-// this occurs e.g. when user connects and then quickly disconnects usb flash during connection process
-// state is checked every 100ms, timeout for re-enumeration is 500ms
-// TODO: maybe we will change condition for states, because it can hang also in different state
-void app_usbhost_reenum(void) {
-    static uint32_t timer = 0;     // static timer variable
-    uint32_t tick = HAL_GetTick(); // read tick
-    if ((tick - timer) > 100) {    // every 100ms
-        // timer is valid, UsbHost is in enumeration state
-        if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
-            // longer than 500ms
-            if ((tick - timer) > 500) {
-                _dbg("USB host reenumerating"); // trace
-                USBH_ReEnumerate(&hUsbHostHS);  // re-enumerate UsbHost
-            }
-        } else // otherwise update timer
-            timer = tick;
-    }
 }
 
 } // extern "C"

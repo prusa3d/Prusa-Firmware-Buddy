@@ -39,6 +39,7 @@ extern screen_t *const get_scr_print_preview();
 extern screen_t *const get_scr_lan_settings();
 extern screen_t *const get_scr_marlin();
 extern screen_t *const get_scr_menu_fw_update();
+extern screen_t *const get_scr_print_preview();
 
 //todo remove this externs
 extern screen_t screen_menu_preheat;

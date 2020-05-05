@@ -5,7 +5,6 @@
 #include "marlin_events.h"
 #include "marlin_vars.h"
 #include "marlin_errors.h"
-#include "marlin_host.h"
 #include "client_fsm_types.h"
 
 // server flags
@@ -60,15 +59,6 @@ extern void marlin_server_start_processing(void);
 // direct stop loop processing + disable heaters and safe state
 extern void marlin_server_stop_processing(void);
 
-// update variables at server side, defined by 'update' mask and send notification to all clients
-extern void marlin_server_update(uint64_t update);
-
-// set printing gcode name (for WUI)
-extern void marlin_server_set_gcode_name(const char *request);
-
-// get printing gcode name (for WUI)
-extern void marlin_server_get_gcode_name(const char *dest);
-
 // direct call of babystep.add_steps(Z_AXIS, ...)
 extern void marlin_server_do_babystep_Z(float offs);
 
@@ -103,7 +93,16 @@ extern void marlin_server_print_pause(void);
 extern void marlin_server_print_resume(void);
 
 //
+extern void marlin_server_print_reheat_start(void);
+
+//
+extern int marlin_server_print_reheat_ready(void);
+
+//
 extern void marlin_server_park_head(void);
+
+//
+extern void marlin_server_unpark_head(void);
 
 //
 extern int marlin_all_axes_homed(void);
