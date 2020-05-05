@@ -15,7 +15,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "screens.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE     6

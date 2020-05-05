@@ -1,11 +1,4 @@
-/*
- * screen_menu.c
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
- */
-
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "config.h"
 #include "stdlib.h"
 #include "resource.h"

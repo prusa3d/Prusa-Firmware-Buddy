@@ -1,7 +1,7 @@
 // screen_menu_filament.c
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "filament.h"
 #include "filament_sensor.h"
 #include "marlin_client.h"

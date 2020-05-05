@@ -1,7 +1,7 @@
 // menu_tune.cpp
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "filament.h"
 #include "menu_vars.h"

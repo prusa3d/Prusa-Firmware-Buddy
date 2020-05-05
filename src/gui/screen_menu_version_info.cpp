@@ -7,7 +7,7 @@
 
 #include "gui.h"
 #include "config.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include <stdlib.h>
 #include "version.h"
 #include "resource.h"

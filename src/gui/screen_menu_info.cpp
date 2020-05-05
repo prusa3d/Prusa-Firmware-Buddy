@@ -1,7 +1,7 @@
 // screen_menu_info.c
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "screens.h"
 
 typedef enum {

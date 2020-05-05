@@ -1,7 +1,7 @@
 // screen_menu_calibration.c
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "wizard/wizard.h"
 #include "window_dlg_wait.h"

@@ -2,7 +2,7 @@
 
 #include "config.h"
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "stm32f4xx_hal.h"
 #include "sys.h"
 #include "dbg.h"

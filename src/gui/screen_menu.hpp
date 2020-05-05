@@ -8,28 +8,27 @@
 #pragma pack(push)
 #pragma pack(1)
 
-typedef struct {
+struct menu_flags_t {
     uint8_t has_footer : 1;
     uint8_t has_help : 1;
-} menu_flags_t;
+};
 
-typedef struct _menu_item_t {
+struct menu_item_t {
     window_menu_item_t item;
     screen_t *screen;
-} menu_item_t;
+};
 
-typedef struct
-{
+struct screen_menu_data_t {
     window_frame_t root;
     window_header_t header;
     window_menu_t menu;
+
     menu_item_t *items;
 
     menu_flags_t flags;
     window_text_t help;
     status_footer_t footer;
-
-} screen_menu_data_t;
+};
 
 #pragma pack(pop)
 

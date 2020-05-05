@@ -4,7 +4,7 @@
 #include "config.h"
 #include "app.h"
 #include "marlin_client.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "cmsis_os.h"
 #include "sys.h"
 #include "eeprom.h"
