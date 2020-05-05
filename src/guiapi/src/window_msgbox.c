@@ -218,15 +218,10 @@ void window_msgbox_draw(window_msgbox_t *window) {
     } else if (window->flags & MSGBOX_MSK_CHG)
         window_msgbox_draw_buttons(window);
 
-    if (window->flags & MSGBOX_GREY_FRAME) { //draw frame
-        rect_ui16_t rc = window->win.rect;
-        const uint16_t w = display->w;
-        const uint16_t h = display->h;
-
-        display->draw_line(point_ui16(rc.x, rc.y), point_ui16(w - 1, rc.y), COLOR_GRAY);
-        display->draw_line(point_ui16(rc.x, rc.y), point_ui16(rc.x, h - 67), COLOR_GRAY);
-        display->draw_line(point_ui16(w - 1, rc.y), point_ui16(w - 1, h - 67), COLOR_GRAY);
-        display->draw_line(point_ui16(rc.x, h - 67), point_ui16(w - 1, h - 67), COLOR_GRAY);
+    if (window->flags & MSGBOX_GREY_FRAME) {                         /// draw frame
+        const uint16_t w = display->w - 1 - window->win.rect.x + 1;  /// last - first + 1
+        const uint16_t h = display->h - 67 - window->win.rect.y + 1; /// last - first + 1
+        display->draw_rect(rect_ui16(window->win.rect.x, window->win.rect.y, w, h), COLOR_GRAY);
     }
 }
 
