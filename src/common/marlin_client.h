@@ -141,6 +141,9 @@ extern uint8_t marlin_get_pqueue(void);
 extern uint8_t marlin_get_pqueue_max(void);
 
 // variable setters (internally calls marlin_set_var)
+
+void marlin_set_printing_gcode_name(const char *filename_pntr);
+void marlin_get_printing_gcode_name(char *filename_pntr);
 extern float marlin_set_target_nozzle(float val);
 extern float marlin_set_target_bed(float val);
 extern float marlin_set_z_offset(float val);

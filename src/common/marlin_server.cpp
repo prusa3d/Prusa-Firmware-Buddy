@@ -53,6 +53,7 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
+    char gcode_name[FILE_NAME_MAX_LEN];     // printing gcode name
     uint16_t flags;                              // server flags (MARLIN_SFLG)
     uint64_t notify_events[MARLIN_MAX_CLIENTS];  // event notification mask
     uint64_t notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask
@@ -648,6 +649,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
             case MARLIN_EVT_StoreSettings:
             case MARLIN_EVT_StartProcessing:
             case MARLIN_EVT_StopProcessing:
+            case MARLIN_EVT_GFileChange:
             // StatusChanged event - one string argument
             case MARLIN_EVT_StatusChanged:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
@@ -958,6 +960,29 @@ static uint64_t _server_update_vars(uint64_t update) {
     return changes;
 }
 
+// set name of the printing gcode (for WUI)
+void marlin_server_set_gcode_name(const char *request) {
+    if (request == NULL)
+        return;
+    const char *ptr;
+    int ret = sscanf(request, "%p", &ptr);
+    if (ret != 1 || ptr == NULL)
+        return;
+    strlcpy(marlin_server.gcode_name, ptr, FILE_NAME_MAX_LEN);
+    _send_notify_event(MARLIN_EVT_GFileChange, 0, 0);
+}
+
+// fill pointer with name of the printing gcode (for WUI), dest param have to be at least 97 chars long!
+void marlin_server_get_gcode_name(const char *dest) {
+    if (dest == NULL)
+        return;
+    char *ptr;
+    int ret = sscanf(dest, "%p", &ptr);
+    if (ret != 1 || ptr == NULL)
+        return;
+    strlcpy(ptr, marlin_server.gcode_name, FILE_NAME_MAX_LEN);
+}
+
 // process request on server side
 static int _process_server_request(char *request) {
     int processed = 0;
@@ -1017,6 +1042,12 @@ static int _process_server_request(char *request) {
         processed = 1;
     } else if (strcmp("!park", request) == 0) {
         marlin_server_park_head();
+        processed = 1;
+    } else if (strncmp("!gfileset ", request, 10) == 0) {
+        marlin_server_set_gcode_name(request + 10);
+        processed = 1;
+    } else if (strncmp("!gfileget ", request, 10) == 0) {
+        marlin_server_get_gcode_name(request + 10);
         processed = 1;
     } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);
