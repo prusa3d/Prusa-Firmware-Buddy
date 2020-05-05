@@ -145,6 +145,7 @@ void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
     }
 
     if ((mseconds - footer->last_timer_repaint_colors) >= BLINK_PERIOD) {
+        footer->show_second_color = !footer->show_second_color;
         status_footer_repaint_nozzle(footer);
         status_footer_repaint_heatbed(footer);
         footer->last_timer_repaint_colors = mseconds;
@@ -186,7 +187,11 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     }
 
     footer->nozzle = actual_nozzle;
-    sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
+    if (footer->preheat_mode) {
+        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)footer->nozzle_target_temp);
+    } else {
+        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
+    }
     window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
 
     footer->heatbed = actual_heatbed;
@@ -236,8 +241,10 @@ void status_footer_repaint_nozzle(const status_footer_t *footer) {
         clr = footer->show_second_color ? PREHEAT_COLOR : DEFAULT_COLOR;
         break;
     case STABLE:
-    default:
         clr = STABLE_COLOR;
+        break;
+    default:
+        clr = DEFAULT_COLOR;
     }
 
     window_set_color_text(footer->wt_nozzle.win.id, clr);
@@ -255,8 +262,10 @@ void status_footer_repaint_heatbed(const status_footer_t *footer) {
         clr = footer->show_second_color ? COOLING_COLOR : DEFAULT_COLOR;
         break;
     case STABLE:
-    default:
         clr = STABLE_COLOR;
+        break;
+    default:
+        clr = DEFAULT_COLOR;
     }
 
     window_set_color_text(footer->wt_heatbed.win.id, clr);

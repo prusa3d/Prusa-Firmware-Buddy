@@ -65,12 +65,18 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     filament = filaments[fil_id];
 
     marlin_gcode("M86 S1800"); // enable safety timer
-    marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
 
-    screen_menu_data_t *screen_pd = (screen_menu_data_t *)screen->pdata;
-    if (screen_pd)
-        screen_pd->footer.preheat_mode = true;
+    if (filament.nozzle > PREHEAT_TEMP) {
+        marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
+        screen_menu_data_t *screen_pd = (screen_menu_data_t *)screen->pdata;
+        if (screen_pd) {
+            screen_pd->footer.preheat_mode = true;
+            screen_pd->footer.nozzle_target_temp = filament.nozzle;
+        }
+    } else {
+        marlin_gcode_printf("M104 S%d", (int)filament.nozzle); // cooldown typically
+    }
 
     screen_close(); // skip this screen everytime
     return 1;
