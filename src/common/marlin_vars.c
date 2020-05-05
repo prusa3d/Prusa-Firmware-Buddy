@@ -3,6 +3,7 @@
 #include "marlin_vars.h"
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 // variable name constants (dbg)
 const char *__var_name[] = {
@@ -30,8 +31,13 @@ const char *__var_name[] = {
     "SD_PRINT",
     "SD_PDONE",
     "DURATION",
-    "FSENSOR",
+    "MEDIAINS",
+    "PRN_STAT",
+    "FILENAME",
+    "FILEPATH",
 };
+
+static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
 
 const char *marlin_vars_get_name(uint8_t var_id) {
     if (var_id <= MARLIN_VAR_MAX)
@@ -98,6 +104,14 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
             return variant8_ui8(vars->sd_percent_done);
         case MARLIN_VAR_DURATION:
             return variant8_ui32(vars->print_duration);
+        case MARLIN_VAR_MEDIAINS:
+            return variant8_ui8(vars->media_inserted);
+        case MARLIN_VAR_PRNSTATE:
+            return variant8_ui8(vars->print_state);
+        case MARLIN_VAR_FILENAME:
+            return variant8_pchar(vars->media_file_name, 0, 1);
+        case MARLIN_VAR_FILEPATH:
+            return variant8_pchar(vars->media_file_path, 0, 1);
         }
     return variant8_empty();
 }
@@ -177,75 +191,105 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         case MARLIN_VAR_DURATION:
             vars->print_duration = var.ui32;
             break;
+        case MARLIN_VAR_MEDIAINS:
+            vars->media_inserted = var.ui8;
+            break;
+        case MARLIN_VAR_PRNSTATE:
+            vars->print_state = var.ui8;
+            break;
+        case MARLIN_VAR_FILENAME:
+            if (vars->media_file_name)
+                if (var.type == VARIANT8_PCHAR)
+                    strncpy(vars->media_file_name, var.pch, FILE_NAME_MAX_LEN);
+            break;
+        case MARLIN_VAR_FILEPATH:
+            if (vars->media_file_path)
+                if (var.type == VARIANT8_PCHAR)
+                    strncpy(vars->media_file_path, var.pch, FILE_PATH_MAX_LEN);
+            break;
         }
 }
 
-void marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str) {
+int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, unsigned int size) {
+    int ret = 0;
     if (vars)
         switch (var_id) {
         case MARLIN_VAR_MOTION:
-            sprintf(str, "%u", (unsigned int)(vars->motion));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->motion));
             break;
         case MARLIN_VAR_GQUEUE:
-            sprintf(str, "%u", (unsigned int)(vars->gqueue));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->gqueue));
             break;
         case MARLIN_VAR_PQUEUE:
-            sprintf(str, "%u", (unsigned int)(vars->pqueue));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->pqueue));
             break;
         case MARLIN_VAR_IPOS_X:
         case MARLIN_VAR_IPOS_Y:
         case MARLIN_VAR_IPOS_Z:
         case MARLIN_VAR_IPOS_E:
-            sprintf(str, "%li", (long int)vars->ipos[var_id - MARLIN_VAR_IPOS_X]);
+            ret = snprintf(str, size, "%li", (long int)vars->ipos[var_id - MARLIN_VAR_IPOS_X]);
             break;
         case MARLIN_VAR_POS_X:
         case MARLIN_VAR_POS_Y:
         case MARLIN_VAR_POS_Z:
         case MARLIN_VAR_POS_E:
-            sprintf(str, "%.3f", (double)(vars->pos[var_id - MARLIN_VAR_POS_X]));
+            ret = snprintf(str, size, "%.3f", (double)(vars->pos[var_id - MARLIN_VAR_POS_X]));
             break;
         case MARLIN_VAR_TEMP_NOZ:
-            sprintf(str, "%.1f", (double)(vars->temp_nozzle));
+            ret = snprintf(str, size, "%.1f", (double)(vars->temp_nozzle));
             break;
         case MARLIN_VAR_TEMP_BED:
-            sprintf(str, "%.1f", (double)(vars->temp_bed));
+            ret = snprintf(str, size, "%.1f", (double)(vars->temp_bed));
             break;
         case MARLIN_VAR_TTEM_NOZ:
-            sprintf(str, "%.1f", (double)(vars->target_nozzle));
+            ret = snprintf(str, size, "%.1f", (double)(vars->target_nozzle));
             break;
         case MARLIN_VAR_TTEM_BED:
-            sprintf(str, "%.1f", (double)(vars->target_bed));
+            ret = snprintf(str, size, "%.1f", (double)(vars->target_bed));
             break;
         case MARLIN_VAR_Z_OFFSET:
-            sprintf(str, "%.4f", (double)(vars->z_offset));
+            ret = snprintf(str, size, "%.4f", (double)(vars->z_offset));
             break;
         case MARLIN_VAR_FANSPEED:
-            sprintf(str, "%u", (unsigned int)(vars->fan_speed));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->fan_speed));
             break;
         case MARLIN_VAR_PRNSPEED:
-            sprintf(str, "%u", (unsigned int)(vars->print_speed));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->print_speed));
             break;
         case MARLIN_VAR_FLOWFACT:
-            sprintf(str, "%u", (unsigned int)(vars->flow_factor));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->flow_factor));
             break;
         case MARLIN_VAR_WAITHEAT:
-            sprintf(str, "%u", (unsigned int)(vars->wait_heat));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->wait_heat));
             break;
         case MARLIN_VAR_WAITUSER:
-            sprintf(str, "%u", (unsigned int)(vars->wait_user));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->wait_user));
             break;
         case MARLIN_VAR_SD_PRINT:
-            sprintf(str, "%u", (unsigned int)(vars->sd_printing));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->sd_printing));
             break;
         case MARLIN_VAR_SD_PDONE:
-            sprintf(str, "%u", (unsigned int)(vars->sd_percent_done));
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->sd_percent_done));
             break;
         case MARLIN_VAR_DURATION:
-            sprintf(str, "%lu", (long unsigned int)(vars->print_duration));
+            ret = snprintf(str, size, "%lu", (long unsigned int)(vars->print_duration));
+            break;
+        case MARLIN_VAR_MEDIAINS:
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->media_inserted));
+            break;
+        case MARLIN_VAR_PRNSTATE:
+            ret = snprintf(str, size, "%u", (unsigned int)(vars->print_state));
+            break;
+        case MARLIN_VAR_FILENAME:
+            ret = snprintf(str, size, "%s", vars->media_file_name);
+            break;
+        case MARLIN_VAR_FILEPATH:
+            ret = snprintf(str, size, "%s", vars->media_file_path);
             break;
         default:
-            sprintf(str, "???");
+            ret = snprintf(str, size, "???");
         }
+    return ret;
 }
 
 int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *str) {
@@ -311,6 +355,18 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
             break;
         case MARLIN_VAR_DURATION:
             ret = sscanf(str, "%lu", &(vars->print_duration));
+            break;
+        case MARLIN_VAR_MEDIAINS:
+            ret = sscanf(str, "%hhu", &(vars->media_inserted));
+            break;
+        case MARLIN_VAR_PRNSTATE:
+            ret = sscanf(str, "%hhu", &(vars->print_state));
+            break;
+        case MARLIN_VAR_FILENAME:
+            ret = sscanf(str, "%s", (vars->media_file_name));
+            break;
+        case MARLIN_VAR_FILEPATH:
+            ret = sscanf(str, "%s", (vars->media_file_path));
             break;
         }
     return ret;

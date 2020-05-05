@@ -12,7 +12,7 @@ class DialogFactory {
 
 public:
     typedef static_unique_ptr<IDialogStateful> (*fnc)(uint8_t data); //function pointer definition
-    using Ctors = std::array<fnc, size_t(ClinetFSM::_count)>;
+    using Ctors = std::array<fnc, size_t(ClientFSM::_count)>;
     //define factory methods for all dialogs here
     static static_unique_ptr<IDialogStateful> serial_printing(uint8_t data);
     static static_unique_ptr<IDialogStateful> load_unload(uint8_t data);

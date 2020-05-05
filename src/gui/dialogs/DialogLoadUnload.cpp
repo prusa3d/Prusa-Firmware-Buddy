@@ -38,6 +38,7 @@ static const PhaseTexts ph_txt_disa   = { txt_disa,   txt_none, txt_none, txt_no
 static const PhaseTexts ph_txt_none   = { txt_none,   txt_none, txt_none, txt_none };
 static const PhaseTexts ph_txt_yesno  = { txt_yes,    txt_no,   txt_none, txt_none };
 
+static const char *txt_first              = "Finishing         \nbuffered gcodes.  \n";
 static const char *txt_parking            = "Parking";
 static const char *txt_unparking          = "Unparking";
 static const char *txt_wait_temp          = "Waiting for temp.";
@@ -56,7 +57,7 @@ static const char *txt_nozzle_cold        = "Nozzle is too cold.";
 
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {
-        DialogLoadUnload::State { txt_none,               btn(PhasesLoadUnload::_first,           ph_txt_none) },
+        DialogLoadUnload::State { txt_first,              btn(PhasesLoadUnload::_first,           ph_txt_none) },
         DialogLoadUnload::State { txt_parking,            btn(PhasesLoadUnload::Parking,          ph_txt_stop) },
         DialogLoadUnload::State { txt_wait_temp,          btn(PhasesLoadUnload::WaitingTemp,      ph_txt_stop) },
         DialogLoadUnload::State { txt_prep_ram,           btn(PhasesLoadUnload::PreparingToRam,   ph_txt_stop) },

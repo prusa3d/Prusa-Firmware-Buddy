@@ -256,6 +256,8 @@ extern variant8_t variant8_pui32(uint32_t *pui32, uint16_t count, int init);
 extern variant8_t variant8_pflt(float *pflt, uint16_t count, int init);
 
 // returns VARIANT8_PCHAR
+// Because PCHAR is special case of pointer type, there is a simplification for defining size.
+// In case that count=0 and init=1 is used strlen to measure size of original string.
 extern variant8_t variant8_pchar(char *pch, uint16_t count, int init);
 
 // returns VARIANT8_USER

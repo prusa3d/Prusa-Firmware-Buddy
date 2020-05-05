@@ -14,6 +14,13 @@
 //#define DBG_SWO        // trace to swo port
 #endif //_DEBUG
 
+//--------------------------------------
+//WDT - watchdog timers (IWDG, WWDG)
+#ifndef _DEBUG
+    #define WDT_IWDG_ENABLED
+    //#define WDT_WWDG_ENABLED
+#endif //_DEBUG
+
 //show filament sensor status in header
 //#define DEBUG_FSENSOR_IN_HEADER
 
@@ -78,5 +85,8 @@
 //#define SIM_MOTION_TRACE_Y
 //#define SIM_MOTION_TRACE_Z
 #endif //SIM_MOTION
+
+//new pause settings
+#define PAUSE_NOZZLE_TIMEOUT 45 // nozzle "sleep" after 45s inside paused state
 
 #endif //_CONFIG_A3IDES2209_02_H
