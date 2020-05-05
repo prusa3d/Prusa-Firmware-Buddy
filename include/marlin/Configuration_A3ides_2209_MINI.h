@@ -407,7 +407,7 @@
 #define PIDTEMP
 #define BANG_MAX 255 // Limits current to nozzle while in bang-bang mode; 255=full current
 #define PID_MAX BANG_MAX // Limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
-#define PID_K1 0.95 // Smoothing factor within any PID loop
+#define PID_K1 0.97 // Derivative smoothing factor within any PID loop
 #if ENABLED(PIDTEMP)
     //#define PID_EDIT_MENU         // Add PID editing to the "Advanced Settings" menu. (~700 bytes of PROGMEM)
     //#define PID_AUTOTUNE_MENU     // Add PID auto-tuning to the "Advanced Settings" menu. (~250 bytes of PROGMEM)
@@ -416,7 +416,7 @@
     //#define SLOW_PWM_HEATERS      // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
     //#define PID_PARAMS_PER_HOTEND // Uses separate PID parameters for each extruder (useful for mismatched extruders)
     // Set/get with gcode: M301 E[extruder number, 0-2]
-    #define PID_FUNCTIONAL_RANGE 10 // If the temperature difference between the target temperature and the actual temperature
+    #define PID_FUNCTIONAL_RANGE 500 // If the temperature difference between the target temperature and the actual temperature
 // is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
 
     // If you are using a pre-configured hotend then you can use one of the value sets by uncommenting it
@@ -437,9 +437,9 @@
     //#define DEFAULT_Kd 45.43
 
     // Prusa MINI
-    #define DEFAULT_Kp 18.00
-    #define DEFAULT_Ki 1.84
-    #define DEFAULT_Kd 43.91
+    #define DEFAULT_Kp 7.00
+    #define DEFAULT_Ki 0.50
+    #define DEFAULT_Kd 45.00
 
 // MakerGear
 //#define DEFAULT_Kp 7.0
@@ -486,22 +486,10 @@
 
     //#define PID_BED_DEBUG // Sends debug data to the serial port.
 
-    //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
-    //from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
-    //#define DEFAULT_bedKp 10.00
-    //#define DEFAULT_bedKi .023
-    //#define DEFAULT_bedKd 305.4
-
-    //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
-    //from pidautotune
-    //#define DEFAULT_bedKp 97.1
-    //#define DEFAULT_bedKi 1.41
-    //#define DEFAULT_bedKd 1675.16
-
-    //24V Prusa MK3 bed
-    #define DEFAULT_bedKp 160.97
-    #define DEFAULT_bedKi 14.07
-    #define DEFAULT_bedKd 460.39
+    //24V Prusa MINI bed
+    #define DEFAULT_bedKp 120.00
+    #define DEFAULT_bedKi 1.50
+    #define DEFAULT_bedKd 600.00
 
 // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
@@ -722,7 +710,7 @@
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
 //
-//#define JUNCTION_DEVIATION
+#define CLASSIC_JERK
 #if DISABLED(CLASSIC_JERK)
     #define JUNCTION_DEVIATION_MM 0.02 // (mm) Distance from real junction edge
 #endif
@@ -1412,6 +1400,8 @@
     // Specify a park position as { X, Y, Z }
     #define NOZZLE_PARK_POINT \
         { (X_MAX_POS - 10), (Y_MAX_POS - 10), 20 }
+        #define NOZZLE_PARK_POINT_M600 \
+        { (X_MIN_POS + 10), (Y_MIN_POS + 10), 20 }
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
 #endif

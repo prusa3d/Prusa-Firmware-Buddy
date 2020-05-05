@@ -430,7 +430,7 @@ void marlin_server_print_start(const char *filename) {
 }
 
 void marlin_server_print_abort(void) {
-    if (marlin_server.print_state == mpsPrinting) {
+    if ((marlin_server.print_state == mpsPrinting) || (marlin_server.print_state == mpsPaused)) {
         marlin_server.print_state = mpsAborting_Begin;
     }
 }
