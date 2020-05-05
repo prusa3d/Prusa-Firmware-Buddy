@@ -2456,6 +2456,7 @@ void get_fileinfo (		/* No return code */
 
 
 	fno->fname[0] = 0;		/* Invaidate file info */
+	fno->altname[0] = 0;		/* Invaidate file info */	
 	if (!dp->sect) return;	/* Exit if read pointer has reached end of directory */
 
 #if _USE_LFN != 0	/* LFN configuration */
