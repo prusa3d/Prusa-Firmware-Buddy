@@ -1,12 +1,4 @@
-/*
- * screen_menu.h
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
- */
-
-#ifndef SCREEN_MENU_H_
-#define SCREEN_MENU_H_
+#pragma once
 
 #include "gui.h"
 #include "window_header.h"
@@ -64,5 +56,3 @@ void screen_menu_draw(screen_t *screen);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif /* SCREEN_MENU_H_ */
