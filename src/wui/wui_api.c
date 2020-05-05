@@ -14,6 +14,7 @@
 #include "progress_data_wrapper.h"
 
 #include "stdarg.h"
+#include <string.h>
 
 #define BDY_WUI_API_BUFFER_SIZE 512
 #define BDY_NO_FS_FLAGS         0  // no flags for fs_open

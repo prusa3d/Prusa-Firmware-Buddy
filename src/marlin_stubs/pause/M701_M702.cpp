@@ -37,8 +37,9 @@
 #include "../../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
-#include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "marlin_server.hpp"
+#include "pause_stubbed.hpp"
+#include "filament.h"
 
 #define DO_NOT_RESTORE_Z_AXIS
 #define Z_AXIS_LOAD_POS   40
@@ -54,7 +55,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
     if (target_extruder < 0)
         return;
 
-    FSM_Holder D(ClinetFSM::Load_unload, uint8_t(type));
+    FSM_Holder D(ClientFSM::Load_unload, uint8_t(type));
     // Z axis lift
     if (parser.seenval('Z'))
         min_Z_pos = parser.linearval('Z');
@@ -62,7 +63,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
     // Lift Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MIN(_MAX(current_position.z, min_Z_pos), Z_MAX_POS);
-        Notifier_POS_Z N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 10);
+        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     // Load/Unload filament
@@ -71,7 +72,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
     // Restore Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MAX(current_position.z - min_Z_pos, 0);
-        Notifier_POS_Z N(ClinetFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 90, 100);
+        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Unparking), current_position.z, target_Z, 0, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 #endif
@@ -79,29 +80,42 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
 
 /**
  * Load filament special code
+ * filament type must be last parameter
+ * type name cannot contain 'Z'
+ * todo rewrite
  */
 static void load(const int8_t target_extruder) {
-    constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH,
-                    slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
-    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                        : fc_settings[active_extruder].load_length);
-    load_filament(
-        slow_load_length, fast_load_length, purge_length,
-        FILAMENT_CHANGE_ALERT_BEEPS,
-        true,                                          // show_lcd
-        thermalManager.still_heating(target_extruder), // pause_for_user
-        PAUSE_MODE_LOAD_FILAMENT                       // pause_mode
-    );
+    filament_to_load = DEFAULT_FILAMENT;
+    const char *text_begin = 0;
+    if (parser.seen('S')) {
+        text_begin = strchr(parser.string_arg, '"');
+        if (text_begin) {
+            ++text_begin; //move pointer from '"' to first letter
+            const char *text_end = strchr(text_begin, '"');
+            if (text_end) {
+                FILAMENT_t filament = get_filament_from_string(text_begin, text_end - text_begin);
+                if (filament != FILAMENT_NONE) {
+                    filament_to_load = filament;
+                }
+            }
+        }
+    }
+
+    const float fast_load_length = ABS((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
+                                                                                                                          : pause.GetLoadLength());
+    constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH;
+    const float slow_load_length = fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0;
+
+    pause.FilamentLoad(slow_load_length, fast_load_length, purge_length);
 }
 
 /**
  * Unload filament special code
  */
 static void unload(const int8_t target_extruder) {
-    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                      : fc_settings[target_extruder].unload_length);
+    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetUnloadLength());
 
-    unload_filament(unload_length, true, PAUSE_MODE_UNLOAD_FILAMENT);
+    pause.FilamentUnload(unload_length);
 }
 
 /**
@@ -111,7 +125,7 @@ static void unload(const int8_t target_extruder) {
  *                For non-mixing, current extruder if omitted.
  *  Z<distance> - Move the Z axis by this distance
  *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
- *
+ *  S"Filament" - save filament by name, for example S"PLA". RepRap compatible.
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {

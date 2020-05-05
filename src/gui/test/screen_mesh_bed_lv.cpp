@@ -180,26 +180,32 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
             break;
         case MS_home:
             marlin_error_clr(MARLIN_ERR_ProbingFailed);
+            marlin_event_clr(MARLIN_EVT_CommandBegin);
+            marlin_event_clr(MARLIN_EVT_CommandEnd);
             marlin_gcode_printf("G28");
+            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+                marlin_client_loop();
             pd->mesh_state = MS_homeing;
             break;
         case MS_homeing:
-            if (marlin_event(MARLIN_EVT_Ready)) {
+            if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
                 pd->mesh_state = MS_homed;
-                marlin_event_clr(MARLIN_EVT_Ready);
             }
             break;
         case MS_homed:
             pd->mesh_state = MS_mesh;
             //there is no break;
         case MS_mesh:
+            marlin_event_clr(MARLIN_EVT_CommandBegin);
+            marlin_event_clr(MARLIN_EVT_CommandEnd);
             marlin_gcode_printf("G29");
+            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+                marlin_client_loop();
             pd->mesh_state = MS_meshing;
             break;
         case MS_meshing:
-            if (marlin_event(MARLIN_EVT_Ready)) {
+            if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
                 pd->mesh_state = MS_meshed;
-                marlin_event_clr(MARLIN_EVT_Ready);
             }
             break;
         case MS_meshed:

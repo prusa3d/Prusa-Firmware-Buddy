@@ -9,11 +9,17 @@
 
 //todo ensure signature match
 //notify all clients to create finit statemachine, must match fsm_create_t signature
-void fsm_create(ClinetFSM type, uint8_t data);
+void fsm_create(ClientFSM type, uint8_t data);
 //notify all clients to destroy finit statemachine, must match fsm_destroy_t signature
-void fsm_destroy(ClinetFSM type);
+void fsm_destroy(ClientFSM type);
 //notify all clients to change state of finit statemachine, must match fsm_change_t signature
-void fsm_change(ClinetFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
+//can be called inside while, notification is send only when is different from previous one
+void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t progress);
+
+template <class T>
+void fsm_change(ClientFSM type, T phase, uint8_t progress_tot, uint8_t progress) {
+    _fsm_change(type, GetPhaseIndex(phase), progress_tot, progress);
+}
 
 //inherited class for server side to be able to work with server_side_encoded_response
 class ClientResponseHandler : public ClientResponses {
@@ -42,7 +48,7 @@ public:
 //FSM_notifier
 class FSM_notifier {
     struct data { //used floats - no need to retype
-        ClinetFSM type;
+        ClientFSM type;
         uint8_t phase;
         float scale;  //scale from value to progress
         float offset; //offset from lowest value
@@ -51,7 +57,7 @@ class FSM_notifier {
         uint8_t var_id;
         uint8_t last_progress_sent;
         data()
-            : type(ClinetFSM::_none)
+            : type(ClientFSM::_none)
             , phase(0)
             , var_id(0)
             , last_progress_sent(-1) {}
@@ -66,7 +72,7 @@ class FSM_notifier {
 
 protected:
     //protected ctor so this instance cannot be created
-    FSM_notifier(ClinetFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
+    FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
     FSM_notifier(const FSM_notifier &) = delete;
 
 public:
@@ -78,7 +84,7 @@ public:
 template <int VAR_ID, class T>
 class Notifier : public FSM_notifier {
 public:
-    Notifier(ClinetFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
+    Notifier(ClientFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
         : FSM_notifier(type, phase, cvariant8(min), cvariant8(max), progress_min, progress_max, VAR_ID) {}
 };
 
@@ -111,10 +117,10 @@ using Notifier_DURATION = Notifier<MARLIN_VAR_DURATION, uint32_t>;
 
 //create finite state machine and automatically destroy it at the end of scope
 class FSM_Holder {
-    ClinetFSM dialog;
+    ClientFSM dialog;
 
 public:
-    FSM_Holder(ClinetFSM type, uint8_t data) //any data to send to dialog, could have different meaning for different dialogs
+    FSM_Holder(ClientFSM type, uint8_t data) //any data to send to dialog, could have different meaning for different dialogs
         : dialog(type) {
         fsm_create(type, data);
     }

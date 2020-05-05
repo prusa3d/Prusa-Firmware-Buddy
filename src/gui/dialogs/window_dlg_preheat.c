@@ -44,21 +44,17 @@ void window_list_filament_item_cb(window_list_t *pwindow_list, uint16_t index,
     }
 }
 
-static void _set_filament(FILAMENT_t index) {
-    marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
-    marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
-    set_filament(index);
-}
-
 void window_dlg_preheat_click_forced_cb(window_dlg_preheat_t *window) {
     FILAMENT_t index = window->list.index + FILAMENT_PLA;
-    _set_filament(index);
+    marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
+    marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
 }
 
 void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
     if (window->list.index > 0) {
         FILAMENT_t index = window->list.index + FILAMENT_PLA - 1;
-        _set_filament(index);
+        marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
+        marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
     }
 }
 
@@ -123,16 +119,19 @@ const window_class_dlg_preheat_t window_class_dlg_preheat = {
     },
 };
 
-int gui_dlg_preheat(const char *caption) {
-    return gui_dlg_list(
+FILAMENT_t gui_dlg_preheat(const char *caption) {
+    int ret = gui_dlg_list(
         caption,
         window_list_filament_item_cb,
         window_dlg_preheat_click_cb,
         _PREHEAT_FILAMENT_CNT + 1, //+1 back option
         30000);
+    if (ret < 0)
+        return FILAMENT_NONE; //timeout
+    return (FILAMENT_t)ret;   //RETURN option will return FILAMENT_NONE
 }
 
-int gui_dlg_preheat_autoselect_if_able(const char *caption) {
+FILAMENT_t gui_dlg_preheat_autoselect_if_able(const char *caption) {
     const FILAMENT_t fil = get_filament();
     if (fil == FILAMENT_NONE) {
         //no filament selected
@@ -149,18 +148,22 @@ int gui_dlg_preheat_autoselect_if_able(const char *caption) {
 }
 
 //no return option
-int gui_dlg_preheat_forced(const char *caption) {
-    return gui_dlg_list(
+FILAMENT_t gui_dlg_preheat_forced(const char *caption) {
+    int ret = gui_dlg_list(
         caption,
         window_list_filament_item_forced_cb,
         window_dlg_preheat_click_forced_cb,
         _PREHEAT_FILAMENT_CNT,
         -1 //do not leave
     );
+
+    if (ret < 0)
+        return FILAMENT_NONE;   //should not happen
+    return (FILAMENT_t)(++ret); //first filament has position 0, have to change index
 }
 
 //no return option
-int gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
+FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
     const FILAMENT_t fil = get_filament();
     if (fil == FILAMENT_NONE) {
         //no filament selected
