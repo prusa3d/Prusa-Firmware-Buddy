@@ -486,7 +486,7 @@ void window_set_focus(int16_t id) {
     window_t *window = window_ptr(id);
     if (window == 0)
         return;
-    if (!window->f_visible || !window->f_enabled))
+    if (!window->f_visible || !window->f_enabled)
         return;
 
     if (window_focused_ptr) {

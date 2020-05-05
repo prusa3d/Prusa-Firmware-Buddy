@@ -76,8 +76,6 @@ typedef struct
 #define COOLING_COLOR COLOR_BLUE
 #define PREHEAT_COLOR COLOR_GREEN
 
-#define PREHEAT_TEMP 170
-
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus

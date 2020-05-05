@@ -15,9 +15,7 @@
 #define HEATING_DIFFERENCE 2
 
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds);
-void status_footer_update_temperatures(status_footer_t *footer,
-    bool &heating_nozzle, bool &heating_heatbed, bool &cooling_nozzle,
-    bool &cooling_heatbed);
+void status_footer_update_temperatures(status_footer_t *footer);
 void status_footer_update_feedrate(status_footer_t *footer);
 void status_footer_update_z_axis(status_footer_t *footer);
 void status_footer_update_filament(status_footer_t *footer);
@@ -238,10 +236,11 @@ void status_footer_repaint_nozzle(const status_footer_t *footer) {
         clr = footer->show_second_color ? PREHEAT_COLOR : DEFAULT_COLOR;
         break;
     case STABLE:
+    default:
         clr = STABLE_COLOR;
     }
 
-    window_set_color_text(footer->nozzle->win.id, clr);
+    window_set_color_text(footer->wt_nozzle.win.id, clr);
 }
 
 /// Repaints heatbed temperature in proper color
@@ -256,8 +255,9 @@ void status_footer_repaint_heatbed(const status_footer_t *footer) {
         clr = footer->show_second_color ? COOLING_COLOR : DEFAULT_COLOR;
         break;
     case STABLE:
+    default:
         clr = STABLE_COLOR;
     }
 
-    window_set_color_text(footer->heatbed->win.id, clr);
+    window_set_color_text(footer->wt_heatbed.win.id, clr);
 }
