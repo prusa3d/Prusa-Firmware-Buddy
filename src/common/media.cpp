@@ -103,13 +103,15 @@ media_state_t media_get_state(void) {
 // }
 
 void media_get_sfn_path(char *sfn, const char *filepath) {
-    uint i = 0;
-    uint sl = strlen(filepath);
-    uint j = 0;
-    uint k = 0;
+    uint i = 0; // main index of char from filepath
+    uint sl = strlen(filepath); // length of filepath
+    uint j = 0; // loop index for some char arrays
+    uint k = 0; // index of SFN from altname of FILINFO
     char tmpPath[MEDIA_PRINT_FILEPATH_SIZE] = { 0 };
     while (i <= sl) {
+        // folder found -> begin
         if (filepath[i] == '/' || i == sl) {
+            // are we on the end ?
             bool ef = true;
             for(j=i;j<sl;j++){
                 if(filepath[j] == '/'){
@@ -117,10 +119,13 @@ void media_get_sfn_path(char *sfn, const char *filepath) {
                     break;
                 }
             }
+            // file info struct with fname & altname
             FILINFO fi = {};
             FRESULT fRes = f_stat(tmpPath, &fi);
             if(fRes == FR_OK){
+                // we got folder || end file info -> process
                 char *tmpDir1 = reinterpret_cast<char *>(&fi.altname);
+                // 8 chars for folder, 13 for file
                 uint jMax = ef ? 13 : 8;
                 for (j = 0; j < jMax; j++) {
                     if (tmpDir1[j] && (tmpDir1[j] == '\0' || tmpDir1[j] == ' ')) { break; }
@@ -129,9 +134,12 @@ void media_get_sfn_path(char *sfn, const char *filepath) {
                 }
                 sfn[k] = '/';
                 k++;
+                // SFN part of path saved
             }
+            // BUG - maybe in FATFS (it does not invalidate all first 8 chars)
             fi.altname[0] = 0;
         }
+        // continue --
         tmpPath[i] = filepath[i];
         i++;
     }
@@ -143,6 +151,7 @@ void media_print_start(const char *filepath) {
         strlcpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
         if (f_stat(media_print_filepath, &filinfo) == FR_OK) {
 
+            // get SFN path and put it to the f_open
             char ffPath[MEDIA_PRINT_FILENAME_SIZE] = { 0 };
             media_get_sfn_path(ffPath, media_print_filepath);
 
