@@ -51,57 +51,6 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
-// void media_get_sfn_path(char *sfn, const char *filepath, char *aname) {
-//     DIR dir = { 0 };
-//     uint i = 0;
-//     uint sl = strlen(filepath);
-//     uint j = 0;
-//     uint k = 0;
-//     // FILINFO fi;
-//     char tmpPath[MEDIA_PRINT_FILEPATH_SIZE] = { 0 };
-//     while (i < sl) {
-//         if (filepath[i] == '/' || i == sl-1) {
-//             bool ef = true;
-//             for(j=i;j<sl;j++){
-//                 if(filepath[j] == '/'){
-//                     ef = false;
-//                     break;
-//                 }
-//             }
-
-//             FRESULT dirRes = f_opendir(&dir, tmpPath);
-
-//             FILINFO fi = {};
-//             f_stat(tmpPath, &fi);
-
-//             if (dirRes == FR_OK/* || dirRes == FR_NO_PATH*/) {
-//                 char *tmpDir1 = reinterpret_cast<char *>(&dir.fn);
-//                 for (j = 0; j < 8; j++) {
-//                     if (tmpDir1[j] == '\0' || tmpDir1[j] == ' ') { break; }
-//                     sfn[k] = tmpDir1[j];
-//                     k++;
-//                 }
-//                 sfn[k] = '/';
-//                 k++;
-//             } else {
-//                 if(ef){
-//                     for (j = 0; j < 13; j++) {
-//                         if (aname[j] == '\0' || aname[j] == ' ') {
-//                             break;
-//                         }
-//                         sfn[k] = aname[j];
-//                         k++;
-//                     }
-//                 }
-//             }
-//             fi.altname[0] = 0;
-//             // fi.altname[0] = "\0";
-//         }
-//         tmpPath[i] = filepath[i];
-//         i++;
-//     }
-// }
-
 void media_get_sfn_path(char *sfn, const char *filepath) {
     uint i = 0; // main index of char from filepath
     uint sl = strlen(filepath); // length of filepath
@@ -111,33 +60,25 @@ void media_get_sfn_path(char *sfn, const char *filepath) {
     while (i <= sl) {
         // folder found -> begin
         if (filepath[i] == '/' || i == sl) {
-            // are we on the end ?
-            bool ef = true;
-            for(j=i;j<sl;j++){
-                if(filepath[j] == '/'){
-                    ef = false;
-                    break;
-                }
-            }
             // file info struct with fname & altname
-            FILINFO fi = {};
+            FILINFO fi;
+            memset(&fi, 0, sizeof(fi));
             FRESULT fRes = f_stat(tmpPath, &fi);
             if(fRes == FR_OK){
                 // we got folder || end file info -> process
-                char *tmpDir1 = reinterpret_cast<char *>(&fi.altname);
-                // 8 chars for folder, 13 for file
-                uint jMax = ef ? 13 : 8;
-                for (j = 0; j < jMax; j++) {
-                    if (tmpDir1[j] && (tmpDir1[j] == '\0' || tmpDir1[j] == ' ')) { break; }
-                    sfn[k] = tmpDir1[j];
+                const char *tmpDir = fi.altname; // LFN MUST BE TURNED ON (1||2)
+                _dbg(tmpDir);
+                for (j = 0; j < 12; j++) {
+                    if (j > 0 && tmpDir[j] == 0 /*|| tmpDir[j] == ' '*/) { break; }
+                    sfn[k] = tmpDir[j];
                     k++;
                 }
-                sfn[k] = '/';
-                k++;
+                if(i != sl){
+                    sfn[k] = '/';
+                    k++;
+                }
                 // SFN part of path saved
             }
-            // BUG - maybe in FATFS (it does not invalidate all first 8 chars)
-            fi.altname[0] = 0;
         }
         // continue --
         tmpPath[i] = filepath[i];
@@ -158,7 +99,7 @@ void media_print_start(const char *filepath) {
             strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filepath) - 1);
             media_print_size = filinfo.fsize;
             if (f_open(&media_print_fil, ffPath, FA_READ) == FR_OK) {
-                media_current_position = 0;5
+                media_current_position = 0;
                 media_current_line = 0;
                 media_print_state = media_print_state_PRINTING;
             }
