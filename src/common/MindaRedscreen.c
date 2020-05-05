@@ -101,7 +101,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
     display->clear(COLOR_RED_ALERT);
 
     display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), "MBL ERROR", gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
-    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - PADDING, 30), COLOR_WHITE);
+    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - 1 - PADDING, 30), COLOR_WHITE);
 
     //bed
     rect_ui16_t rect;

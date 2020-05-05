@@ -2,11 +2,7 @@
 
 #include "gui.h"
 #include "screen_menu.h"
-
-extern screen_t screen_sysinfo;
-extern screen_t screen_version_info;
-extern screen_t screen_qr_info;
-extern screen_t screen_qr_error;
+#include "screens.h"
 
 typedef enum {
     MI_RETURN,
@@ -82,4 +78,4 @@ screen_t screen_menu_info = {
     0,                          //pdata
 };
 
-const screen_t *pscreen_menu_info = &screen_menu_info;
+screen_t *const get_scr_menu_info() { return &screen_menu_info; }

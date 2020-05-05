@@ -1,19 +1,13 @@
 /*
- * filament.c
+ * filament.cpp
  *
  *  Created on: 19. 7. 2019
  *      Author: mcbig
  */
 #include "eeprom.h"
 #include "assert.h"
-#include "dbg.h"
-#include "marlin_client.h"
 #include "filament.h"
-#include "gui.h"
-
-#include "../Marlin/src/gcode/gcode.h"
-#include "../Marlin/src/module/planner.h"
-#include "../Marlin/src/lcd/extensible_ui/ui_api.h"
+#include <cstring>
 
 //fixme generating long names, takes too long
 const filament_t filaments[FILAMENTS_END] = {
@@ -23,10 +17,14 @@ const filament_t filaments[FILAMENTS_END] = {
     { "ASA", "ASA      260/100", 260, 100 },
     { "FLEX", "FLEX     240/ 50", 240, 50 },
 };
-
-#define FILAMENT_ADDRESS 0x400
+static_assert(sizeof(filaments) / sizeof(filaments[0]) == FILAMENTS_END, "Filament count error.");
 
 static FILAMENT_t filament_selected = FILAMENTS_END;
+
+extern "C" {
+
+//todo remove this variable after pause refactoring
+FILAMENT_t filament_to_load = DEFAULT_FILAMENT;
 
 void set_filament(FILAMENT_t filament) {
     assert(filament < FILAMENTS_END);
@@ -46,3 +44,14 @@ FILAMENT_t get_filament() {
     }
     return filament_selected;
 }
+
+FILAMENT_t get_filament_from_string(const char *s, size_t len) {
+    for (size_t i = FILAMENT_NONE + 1; i < FILAMENTS_END; ++i) {
+        if ((strlen(filaments[i].name) == len) && (!strncmp(s, filaments[i].name, len))) {
+            return static_cast<FILAMENT_t>(i);
+        }
+    }
+    return FILAMENT_NONE;
+}
+
+} //extern "C"

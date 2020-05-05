@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "eeprom.h"
+#include "screens.h"
 
 #ifdef PIDCALIBRATION
 
@@ -412,7 +413,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
     if (event == WINDOW_EVENT_LOOP) {
 
         if (pd->autotune_state != AT_idle) {
-            if (marlin_event(MARLIN_EVT_Ready)) //wait for MARLIN_EVT_READY
+            if (marlin_event_clr(MARLIN_EVT_CommandEnd)) //wait for MARLIN_EVT_CommandEnd
             {
                 window_set_color_text(pd->btAutoTuneApply_B.win.id, AUTO_TN_DEFAULT_CL);
                 window_set_color_text(pd->btAutoTuneApply_E.win.id, AUTO_TN_DEFAULT_CL);
@@ -541,7 +542,7 @@ screen_t screen_PID = {
     0,                         //pdata
 };
 
-const screen_t *pscreen_PID = &screen_PID;
+screen_t *const get_scr_PID() { return &screen_PID; }
 }
 
 //-----------------------------------------------------------------------------
@@ -557,6 +558,7 @@ void _PID_copy_and_scale_PID_d(_PID_t *ths) {
 }
 
 void _PID_autotune(_PID_t *ths) {
+    marlin_event_clr(MARLIN_EVT_CommandEnd);
     marlin_gcode_printf("M303 U1 E%i S%i", ths->ID, int(*ths->autotune_temp));
     if (ths->ID >= 0) {
         eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));

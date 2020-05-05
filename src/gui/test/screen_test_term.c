@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "config.h"
 #include "window_progress.h"
+#include "screens.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -75,4 +76,4 @@ screen_t screen_test_term = {
     0,                               //pdata
 };
 
-const screen_t *pscreen_test_term = &screen_test_term;
+screen_t *const get_scr_test_term() { return &screen_test_term; }
