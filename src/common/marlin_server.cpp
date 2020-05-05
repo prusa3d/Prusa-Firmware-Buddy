@@ -875,7 +875,9 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED)) {
+#if FAN_COUNT > 0
         v.ui8 = thermalManager.fan_speed[0];
+#endif
         if (marlin_server.vars.fan_speed != v.ui8) {
             marlin_server.vars.fan_speed = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED);
@@ -1061,8 +1063,10 @@ static int _server_set_var(char *name_val_str) {
 #endif //HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
+#if FAN_COUNT > 0
                 changed = (thermalManager.fan_speed[0] != marlin_server.vars.fan_speed);
                 thermalManager.set_fan_speed(0, marlin_server.vars.fan_speed);
+#endif
                 break;
             case MARLIN_VAR_PRNSPEED:
                 changed = (feedrate_percentage != (int16_t)marlin_server.vars.print_speed);
