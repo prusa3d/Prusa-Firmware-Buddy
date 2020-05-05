@@ -10,6 +10,7 @@
 
 #include "wui.h"
 #include "filament.h"
+#include <string.h>
 #include "wui_vars.h"
 #include "progress_data_wrapper.h"
 
@@ -53,7 +54,7 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
         percent_done = progress_get_percentage();
         progress_format_time2end(time_2_end, wui_vars_copy.print_speed);
     } else {
-        strlcpy(time_2_end, "N/A", 4);
+        strcpy(time_2_end, "N/A");
         percent_done = wui_vars_copy.sd_precent_done;
     }
 
