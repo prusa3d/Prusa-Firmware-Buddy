@@ -161,7 +161,12 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     const float actual_heatbed = thermalManager.degBed();
     const float target_heatbed = thermalManager.degTargetBed();
 
-    // nozzle state
+    /// automatic disabling of nozzle preheat style
+    /// easier and safer than handling all possible starts of printing
+    if (target_nozzle != PREHEAT_TEMP)
+        footer->preheat_mode = false;
+
+    /// nozzle state
     if (footer->preheat_mode) {
         footer->nozzle_state = PREHEAT;
         if (PREHEAT_TEMP > actual_nozzle + HEATING_DIFFERENCE) {
@@ -178,7 +183,7 @@ void status_footer_update_temperatures(status_footer_t *footer) {
         }
     }
 
-    // heatbed state
+    /// heatbed state
     footer->heatbed_state = STABLE;
     if (target_heatbed > actual_heatbed + HEATING_DIFFERENCE) {
         footer->heatbed_state = HEATING;
