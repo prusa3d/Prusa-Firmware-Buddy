@@ -139,7 +139,7 @@ rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, font_t *font, 
 
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     point_ui16_t wh_txt = font_meas_text(font, text);
-    rect_ui16_t rc_txt = {0,0,0,0};
+    rect_ui16_t rc_txt = { 0, 0, 0, 0 };
     if (wh_txt.x && wh_txt.y) {
         rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
         rc_txt = rect_intersect_ui16(rc_pad, rc_txt);

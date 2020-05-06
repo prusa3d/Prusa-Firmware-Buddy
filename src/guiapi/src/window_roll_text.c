@@ -26,7 +26,7 @@ void window_scroll_text_draw(window_roll_text_t *window) {
 
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
 
-        render_scroll_text_align( window->win.rect,
+        render_scroll_text_align(window->win.rect,
             window->text,
             window->font,
             window->padding,
@@ -49,7 +49,7 @@ void window_scroll_text_done(window_roll_text_t *window) {
     gui_timers_delete_by_window_id(window->win.id);
 }
 
-const window_class_roll_text_t window_class_scroll_text = {
+const window_class_roll_text_t window_class_roll_text = {
     {
         WINDOW_CLS_ROLL_TEXT,
         sizeof(window_roll_text_t),

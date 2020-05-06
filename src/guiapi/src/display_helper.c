@@ -41,7 +41,7 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
             rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
             rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
             uint8_t unused_pxls = 0;
-            if(strlen(text) * font->w > rc_txt.w){
+            if (strlen(text) * font->w > rc_txt.w) {
                 unused_pxls = rc_txt.w % font->w;
             }
             rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc_txt.y - rc.y };
@@ -76,44 +76,44 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
         display->fill_rect(rc, clr0);
 }
 
-void scroll_text_phasing(int16_t win_id, font_t * font, txtroll_t * roll){
-    if(roll->setup == 2)
+void scroll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
+    if (roll->setup == 2)
         return;
 
     switch (roll->phase) {
-        case ROLL_SETUP:
-            gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
-            if (roll->setup == 1)
-                roll->phase = ROLL_GO;
-            window_invalidate(win_id);
-            break;
-        case ROLL_GO:
-            if (roll->count > 0 || roll->px_cd > 0) {
-                if (roll->px_cd == 0) {
-                    roll->px_cd = font->w;
-                    roll->count--;
-                    roll->progress++;
-                }
-                roll->px_cd--;
-                window_invalidate(win_id);
-            } else {
-                roll->phase = ROLL_STOP;
+    case ROLL_SETUP:
+        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
+        if (roll->setup == 1)
+            roll->phase = ROLL_GO;
+        window_invalidate(win_id);
+        break;
+    case ROLL_GO:
+        if (roll->count > 0 || roll->px_cd > 0) {
+            if (roll->px_cd == 0) {
+                roll->px_cd = font->w;
+                roll->count--;
+                roll->progress++;
             }
-            break;
-        case ROLL_STOP:
-            roll->phase = ROLL_RESTART;
-            gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
-            break;
-        case ROLL_RESTART:
-            roll->setup = 0;
-            roll->phase = ROLL_SETUP;
+            roll->px_cd--;
             window_invalidate(win_id);
-            break;
+        } else {
+            roll->phase = ROLL_STOP;
+        }
+        break;
+    case ROLL_STOP:
+        roll->phase = ROLL_RESTART;
+        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
+        break;
+    case ROLL_RESTART:
+        roll->setup = 0;
+        roll->phase = ROLL_SETUP;
+        window_invalidate(win_id);
+        break;
     }
 }
 
 void render_scroll_text_align(rect_ui16_t rc, const char *text, font_t *font,
-    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, txtroll_t * roll) {
+    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, txtroll_t *roll) {
 
     if (text == 0) {
         display->fill_rect(rc, clr_back);
@@ -124,12 +124,12 @@ void render_scroll_text_align(rect_ui16_t rc, const char *text, font_t *font,
         roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
         roll->count = text_rolls_meas(roll->rect, text, font);
         roll->progress = roll->px_cd = roll->phase = 0;
-        if(roll->count == 0) {
+        if (roll->count == 0) {
             roll->setup = 2;
         } else {
             uint8_t unused_pxls = roll->rect.w % font->w;
             if (unused_pxls) {
-                rect_ui16_t rc_unused_pxls = {roll->rect.x + roll->rect.w - unused_pxls, roll->rect.y, unused_pxls, roll->rect.h};
+                rect_ui16_t rc_unused_pxls = { roll->rect.x + roll->rect.w - unused_pxls, roll->rect.y, unused_pxls, roll->rect.h };
                 display->fill_rect(rc_unused_pxls, clr_back);
             }
             roll->setup = 1;

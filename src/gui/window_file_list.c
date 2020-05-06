@@ -110,8 +110,8 @@ void window_file_list_draw(window_file_list_t *window) {
                 padding.left += 16;
             }
 
-            if((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == i){
-                if(window->index != window->last_index){
+            if ((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == i) {
+                if (window->index != window->last_index) {
                     window->last_index = window->index;
                     window->roll.setup = window->roll.phase = 0;
                     gui_timer_restart_txtroll(window->win.id);
@@ -126,7 +126,6 @@ void window_file_list_draw(window_file_list_t *window) {
                     color_back,
                     color_text,
                     &window->roll);
-
 
             } else {
                 render_text_align(rc, item, window->font,

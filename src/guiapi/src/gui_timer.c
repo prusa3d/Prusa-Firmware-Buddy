@@ -7,10 +7,10 @@
 
 #define GUI_MAX_TIMERS 6
 
-#define GUI_TIMER_NONE   0
-#define GUI_TIMER_1SHT   1
-#define GUI_TIMER_PERI   2
-#define GUI_MENU_TIMEOUT 3
+#define GUI_TIMER_NONE    0
+#define GUI_TIMER_1SHT    1
+#define GUI_TIMER_PERI    2
+#define GUI_MENU_TIMEOUT  3
 #define GUI_TIMER_TXTROLL 4
 
 #pragma pack(push)
@@ -145,10 +145,10 @@ void gui_timer_reset(int8_t id) {
         gui_timers[id].start = HAL_GetTick();
 }
 
-void gui_timer_change_txtroll_peri_delay(uint32_t ms, int16_t win_id){
-    if (gui_timer_count != -1){
-        for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++){
-            if (gui_timers[id].win_id == win_id){
+void gui_timer_change_txtroll_peri_delay(uint32_t ms, int16_t win_id) {
+    if (gui_timer_count != -1) {
+        for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++) {
+            if (gui_timers[id].win_id == win_id) {
                 gui_timers[id].delay = ms;
                 break;
             }
@@ -156,10 +156,10 @@ void gui_timer_change_txtroll_peri_delay(uint32_t ms, int16_t win_id){
     }
 }
 
-void gui_timer_restart_txtroll(int16_t win_id){
-    if (gui_timer_count != -1){
-        for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++){
-            if (gui_timers[id].win_id == win_id){
+void gui_timer_restart_txtroll(int16_t win_id) {
+    if (gui_timer_count != -1) {
+        for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++) {
+            if (gui_timers[id].win_id == win_id) {
                 gui_timers[id].start = HAL_GetTick();
                 break;
             }

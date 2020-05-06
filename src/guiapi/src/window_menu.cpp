@@ -157,8 +157,8 @@ void window_menu_draw(window_menu_t *window) {
             }
 
             // render
-            if((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == idx){
-                if(window->index != window->last_index){
+            if ((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == idx) {
+                if (window->index != window->last_index) {
                     window->last_index = window->index;
                     window->roll.setup = window->roll.phase = 0;
                     gui_timer_restart_txtroll(window->win.id);
@@ -216,7 +216,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
             }
             screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)window->index);
         }
-        if(window->roll.setup == 1){
+        if (window->roll.setup == 1) {
             gui_timers_delete_by_window_id(window->win.id);
             window->roll.setup = 0;
             gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
