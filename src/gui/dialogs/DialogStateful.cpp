@@ -51,42 +51,43 @@ void IDialogStateful::draw_frame() {
     display->draw_rect(rect_ui16(rect.x, rect.y, w, h), COLOR_GRAY);
 }
 
-//todo this should be moved elswhere
-void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
+//todo this should be moved elsewhere
+void progress_draw(rect_ui16_t win_rect, const font_t *font, color_t color_back,
     color_t color_text, padding_ui8_t padding, uint8_t progress) {
-    rect_ui16_t rc_pro = win_rect; //must copy it
-    char text[16];
-    rc_pro.x += 10;
-    rc_pro.w -= 20;
-    rc_pro.h = 16;
-    rc_pro.y += 30;
-    uint16_t w = rc_pro.w;
-    rc_pro.w = w * progress / 100;
-    display->fill_rect(rc_pro, COLOR_ORANGE);
-    rc_pro.x += rc_pro.w;
-    rc_pro.w = w - rc_pro.w;
-    display->fill_rect(rc_pro, COLOR_GRAY);
-    rc_pro.y += rc_pro.h;
-    rc_pro.w = win_rect.w - 120;
-    rc_pro.x = win_rect.x + 60;
-    rc_pro.h = 30;
+
+    const uint16_t progress_w = win_rect.w - 2 * PROGRESS_BAR_X_PAD;
+    const uint16_t done_w = (progress_w * progress) / 100;
+
+    const rect_ui16_t rc_done = rect_ui16(
+        win_rect.x + PROGRESS_BAR_X_PAD,
+        win_rect.y + PROGRESS_BAR_Y_PAD,
+        done_w,
+        PROGRESS_BAR_H);
+    display->fill_rect(rc_done, COLOR_ORANGE);
+
+    const rect_ui16_t rc_todo = rect_ui16(
+        rc_done.x + done_w,
+        rc_done.y,
+        progress_w - rc_done.w,
+        PROGRESS_BAR_H);
+    display->fill_rect(rc_todo, COLOR_GRAY);
+
+    const rect_ui16_t rc_text = rect_ui16(rc_done.x, rc_done.y + PROGRESS_BAR_H, progress_w, PROGRESS_BAR_TEXT_H);
+    char text[6];
     sprintf(text, "%d%%", progress);
-    render_text_align(rc_pro, text, font, color_back, color_text, padding, ALIGN_CENTER);
+    render_text_align(rc_text, text, font, color_back, color_text, padding, ALIGN_CENTER);
 }
 
-//todo this should be moved elswhere
-void progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back) {
-    rect_ui16_t rc_pro = win_rect; //must copy it
-    rc_pro.x += 10;
-    rc_pro.w -= 20;
-    rc_pro.h = 16;
-    rc_pro.y += 30;
-    display->fill_rect(rc_pro, color_back);
-    rc_pro.y += rc_pro.h;
-    rc_pro.w = win_rect.w - 120;
-    rc_pro.x = win_rect.x + 60;
-    rc_pro.h = 30;
-    display->fill_rect(rc_pro, color_back);
+//todo this should be moved elsewhere
+void progress_clr(rect_ui16_t win_rect, const font_t *font, color_t color_back) {
+
+    const rect_ui16_t rc = rect_ui16(
+        win_rect.x + PROGRESS_BAR_X_PAD,
+        win_rect.y + PROGRESS_BAR_Y_PAD,
+        win_rect.w - 2 * PROGRESS_BAR_X_PAD,
+        PROGRESS_BAR_H + PROGRESS_BAR_TEXT_H);
+
+    display->fill_rect(rc, color_back);
 }
 
 void IDialogStateful::draw_progress() {
@@ -103,8 +104,9 @@ void IDialogStateful::draw_phase_text(const char *text) {
     rect_ui16_t rc_sta = rect;
     size_t nl; //number of new lines
     const char *s = text;
+    //count '\n' in nl, search by moving start (s)
     for (nl = 0; s[nl]; s[nl] == '\n' ? nl++ : *s++)
-        ; //count '\n' in s
+        ; // ? s++ instead ?
     rc_sta.h = 30 + font_title->h * nl;
     rc_sta.y += (30 + 46);
     rc_sta.x += 2;
