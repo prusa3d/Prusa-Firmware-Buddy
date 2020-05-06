@@ -95,9 +95,9 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
 
     if (
         marlin_all_axes_homed() && marlin_all_axes_known() && (marlin_command() != MARLIN_CMD_G28) && (marlin_command() != MARLIN_CMD_G29) && (marlin_command() != MARLIN_CMD_M109) && (marlin_command() != MARLIN_CMD_M190)) {
-        psmd->items[MI_FILAMENT].item.type &= ~WI_DISABLED;
+        psmd->items[MI_FILAMENT].item.Enable();
     } else {
-        psmd->items[MI_FILAMENT].item.type |= WI_DISABLED;
+        psmd->items[MI_FILAMENT].item.Disable();
     }
 
     if (screen_menu_event(screen, window, event, param))
@@ -137,7 +137,7 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
         case MI_FILAMENT:
             //screen_menu_tune_chanege_filament(screen);
             //todo this should not be here
-            if (!(psmd->items[MI_FILAMENT].item.type & WI_DISABLED)) {
+            if ((psmd->items[MI_FILAMENT].item.IsEnabled())) {
                 marlin_gcode_push_front("M600");
             }
             break;

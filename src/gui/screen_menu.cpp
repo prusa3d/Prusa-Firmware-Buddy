@@ -89,12 +89,12 @@ int screen_menu_event(screen_t *screen, window_t *window,
     }
 
     const menu_item_t *item = &(psmd->items[(int)param]);
-    if (!(item->item.type & WI_DISABLED) && item->screen == SCREEN_MENU_RETURN) {
+    if (!(!item->item.IsEnabled()) && item->screen == SCREEN_MENU_RETURN) {
         screen_close();
         return 1;
     }
 
-    if (!(item->item.type & WI_DISABLED) && item->screen != SCREEN_MENU_NO_SCREEN) {
+    if (!(!item->item.IsEnabled()) && item->screen != SCREEN_MENU_NO_SCREEN) {
         screen_open(item->screen->id);
         return 1;
     }

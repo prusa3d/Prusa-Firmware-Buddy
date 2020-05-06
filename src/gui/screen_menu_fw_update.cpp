@@ -47,7 +47,7 @@ void screen_menu_fw_update_init(screen_t *screen) {
     psmd->items[MI_ON_RESTART].item.data.wi_switch.index = update_ena ? 0 : (sys_fw_update_on_restart_is_enabled() ? 0 : 1);
     psmd->items[MI_ON_RESTART].item.data.wi_switch.strings = opt_on_off;
     if (update_ena)
-        psmd->items[MI_ON_RESTART].item.type |= WI_DISABLED;
+        psmd->items[MI_ON_RESTART].item.Disable();
 
     psmd->help.font = resource_font(IDR_FNT_SPECIAL);
     window_set_text(psmd->help.win.id, "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk.");
@@ -63,15 +63,15 @@ int screen_menu_fw_update_event(screen_t *screen, window_t *window, uint8_t even
             if (sys_fw_update_is_enabled()) {
                 sys_fw_update_disable();
                 psmd->items[MI_ON_RESTART].item.data.wi_switch.index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
-                psmd->items[MI_ON_RESTART].item.type &= ~WI_DISABLED;
+                psmd->items[MI_ON_RESTART].item.Enable();
             } else {
                 sys_fw_update_enable();
-                psmd->items[MI_ON_RESTART].item.type |= WI_DISABLED;
+                psmd->items[MI_ON_RESTART].item.Disable();
                 psmd->items[MI_ON_RESTART].item.data.wi_switch.index = 0;
             }
             break;
         case MI_ON_RESTART:
-            if (!(psmd->items[MI_ON_RESTART].item.type & WI_DISABLED)) {
+            if ((psmd->items[MI_ON_RESTART].item.IsEnabled())) {
                 sys_fw_update_on_restart_is_enabled() ? sys_fw_update_on_restart_disable() : sys_fw_update_on_restart_enable();
             }
             break;

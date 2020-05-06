@@ -20,6 +20,19 @@ typedef enum {
     WI_HIDDEN = 1 << 9,
 } window_item_type_t;
 
+class IWindowItem {
+public:
+    virtual void Change(int dif) = 0;
+    virtual ~IWindowItem() {}
+};
+
+//WI_LABEL
+//where all values are divided by 1000
+class WI_LABEL_t {
+public:
+    virtual void Change(int dif);
+};
+
 //WI_SPIN
 //where all values are divided by 1000
 class WI_SPIN_t {
@@ -67,6 +80,15 @@ public:
 };
 
 class WindowMenuItem {
+    bool hidden : 1;
+    bool enabled : 1;
+    /**
+	 * Type : WI_LABEL || WI_SPIN || WI_SWITCH || WI_SELECT
+	 * visibility bit WI_DISABLED | WI_HIDDEN
+	 */
+    uint16_t type;
+    uint16_t id_icon : 10;
+
     WindowMenuItem(uint16_t type, const char *text, uint16_t id_icon);
 
 public:
@@ -75,12 +97,7 @@ public:
     WindowMenuItem(WI_SPIN_FL_t wi_spin_fl, const char *text, uint16_t id_icon = 0);
     WindowMenuItem(WI_SWITCH_t wi_switch, const char *text, uint16_t id_icon, bool switch_not_select);
     WindowMenuItem(WI_SELECT_t wi_select, const char *text, uint16_t id_icon, bool switch_not_select);
-    /**
-	 * Type : WI_LABEL || WI_SPIN || WI_SWITCH || WI_SELECT
-	 * visibility bit WI_DISABLED | WI_HIDDEN
-	 */
-    uint16_t type;
-    uint16_t id_icon;
+
     std::array<char, 23> label;
 
     union Data {
@@ -98,6 +115,19 @@ public:
     Data data;
 
     void Change(int dif);
+
+    using mem_space = std::aligned_union<0, WI_LABEL_t, WI_SPIN_t, WI_SPIN_FL_t, WI_SWITCH_t, WI_SELECT_t>::type;
+    mem_space data_mem;
+
+    //uint16_t GetType()
+    void Enable() { enabled = true; }
+    void Disable() { enabled = false; }
+    bool IsEnabled() const { return enabled; }
+    void SetHidden() { hidden = true; }
+    void SetNotHidden() { hidden = false; }
+    bool IsHidden() const { return hidden; }
+
+    IWindowItem &Get();
 };
 
 typedef void(window_menu_items_t)(window_menu_t *pwindow_menu,

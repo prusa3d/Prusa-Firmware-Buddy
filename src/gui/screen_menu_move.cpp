@@ -52,7 +52,7 @@ void screen_menu_move_init(screen_t *screen) {
     psmd->items[MI_MOVE_E].item.data.wi_spin.value = 0;
     psmd->items[MI_MOVE_E].item.data.wi_spin.range = move_e;
     if (vars->temp_nozzle < extrude_min_temp)
-        psmd->items[MI_MOVE_E].item.type |= WI_DISABLED;
+        psmd->items[MI_MOVE_E].item.Disable();
 
     gui_timer_create_periodical(500, 0);
 }
@@ -77,13 +77,13 @@ int screen_menu_move_event(screen_t *screen, window_t *window, uint8_t event, vo
     } else if (event == WINDOW_EVENT_TIMER) {
         vars = marlin_vars();
         if (vars->target_nozzle > extrude_min_temp) {
-            if (psmd->items[MI_MOVE_E].item.type & WI_DISABLED) {
-                psmd->items[MI_MOVE_E].item.type ^= WI_DISABLED;
+            if (!psmd->items[MI_MOVE_E].item.IsEnabled()) {
+                psmd->items[MI_MOVE_E].item.Enable();
                 psmd->menu.win.flg &= ~WINDOW_FLG_INVALID;
             }
         } else {
-            if (!(psmd->items[MI_MOVE_E].item.type & WI_DISABLED)) {
-                psmd->items[MI_MOVE_E].item.type ^= WI_DISABLED;
+            if ((psmd->items[MI_MOVE_E].item.IsEnabled())) {
+                psmd->items[MI_MOVE_E].item.Disable();
                 psmd->menu.win.flg &= ~WINDOW_FLG_INVALID;
             }
         }

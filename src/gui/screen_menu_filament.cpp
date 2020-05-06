@@ -30,13 +30,13 @@ const menu_item_t _menu_filament_items[] = {
 };
 
 static void _load_ena(screen_t *screen) {
-    psmd->items[MI_LOAD].item.type &= ~WI_DISABLED;
+    psmd->items[MI_LOAD].item.Enable();
 }
 static void _change_dis(screen_t *screen) {
-    psmd->items[MI_CHANGE].item.type |= WI_DISABLED;
+    psmd->items[MI_CHANGE].item.Disable();
 }
 static void _change_ena(screen_t *screen) {
-    psmd->items[MI_CHANGE].item.type &= ~WI_DISABLED;
+    psmd->items[MI_CHANGE].item.Enable();
 }
 
 static void _deactivate_item(screen_t *screen) {
@@ -85,7 +85,7 @@ void screen_menu_filament_init(screen_t *screen) {
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     _deactivate_item(screen);
     if (event == WINDOW_EVENT_CLICK)
-        if (!(psmd->items[(int)param].item.type & WI_DISABLED))
+        if ((psmd->items[(int)param].item.IsEnabled()))
             switch ((int)param) {
             case MI_LOAD:
                 p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");

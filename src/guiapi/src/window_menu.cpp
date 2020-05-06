@@ -134,7 +134,7 @@ void window_menu_draw(window_menu_t *window) {
         padding_ui8_t padding = window->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            if (item->type & WI_DISABLED) {
+            if (!item->IsEnabled()) {
                 color_text = window->color_disabled;
             }
 
@@ -210,7 +210,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
             window->menu_items(window, window->index, &item, window->data);
 
             //mask all flags but WI_DISABLED
-            if (!(item->type & WI_DISABLED)) {
+            if ((item->IsEnabled())) {
                 //"& 0xff" == mask all flags off
                 //switch does not set type, i is acting like label i suppose
                 if ((item->type & 0xff) == WI_SWITCH) {
@@ -373,6 +373,9 @@ void window_menu_item_select(window_menu_t *window, int dif) {
 }
 
 void WindowMenuItem::Change(int dif) {
+}
+
+void WI_LABEL_t::Change(int dif) {
 }
 
 void WI_SPIN_t::Change(int dif) {
