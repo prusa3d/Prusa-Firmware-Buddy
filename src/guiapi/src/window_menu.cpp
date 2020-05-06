@@ -2,14 +2,12 @@
 #include "window_menu.h" //C compatible, todo remove
 #include "window_menu.hpp"
 #include "gui.h"
+#include "cmath_ext.h"
 #include "sound_C_wrapper.h"
 
 #define WIO_MIN  0
 #define WIO_MAX  1
 #define WIO_STEP 2
-
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 extern osThreadId displayTaskHandle;
 
