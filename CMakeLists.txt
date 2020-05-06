@@ -500,7 +500,7 @@ target_sources(
 if(GUI)
   target_sources(
     firmware
-    PRIVATE src/gui/screen_menu_filament.c
+    PRIVATE src/gui/screen_menu_filament.cpp
             src/gui/dialogs/Dialog_C_wrapper.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
@@ -512,33 +512,33 @@ if(GUI)
             src/gui/dialogs/window_dlg_wait.c
             src/gui/dialogs/window_dlg_popup.c
             src/gui/dialogs/window_dlg_preheat.c
-            src/gui/screen_menu_temperature.c
+            src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
             src/gui/window_file_list.c
             src/gui/lazyfilelist-c-api.cpp
             src/gui/pngview.c
             src/gui/wizard/selftest_temp.c
             src/gui/window_temp_graph.c
-            src/gui/screen_menu_settings.c
+            src/gui/screen_menu_settings.cpp
             src/gui/wizard/wizard_progress_bar.c
             src/gui/wizard/firstlay.c
             src/gui/wizard/selftest_cool.c
             src/gui/window_header.c
             src/gui/screen_sysinf.c
-            src/gui/screen_version_info.cpp
+            src/gui/screen_menu_version_info.cpp
             src/gui/test_display.c
             src/gui/screen_splash.c
-            src/gui/screen_menu_service.c
-            src/gui/screen_menu_calibration.c
-            src/gui/screen_menu.c
+            src/gui/screen_menu_service.cpp
+            src/gui/screen_menu_calibration.cpp
+            src/gui/screen_menu.cpp
             src/gui/screen_print_preview.c
-            src/gui/screen_messages.c
-            src/gui/screen_menu_info.c
+            src/gui/screen_menu_messages.cpp
+            src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.c
-            src/gui/screen_menu_move.c
-            src/gui/screen_lan_settings.c
-            src/gui/screen_qr_info.cpp
-            src/gui/screen_qr_error.cpp
+            src/gui/screen_menu_move.cpp
+            src/gui/screen_menu_lan_settings.cpp
+            src/gui/screen_menu_qr_info.cpp
+            src/gui/screen_menu_qr_error.cpp
             src/gui/test/screen_test.c
             src/gui/test/screen_test_disp_mem.c
             src/gui/test/screen_test_gui.c
@@ -565,8 +565,8 @@ if(GUI)
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
             src/gui/screen_PID.cpp
-            src/gui/screen_menu_fw_update.c
-            src/gui/test/screen_test_temperature.cpp
+            src/gui/screen_menu_fw_update.cpp
+            src/gui/test/screen_menu_test_temperature.cpp
             src/gui/wizard/selftest_fans_axis.c
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/wizard/Marlin_PID_wrapper.cpp
@@ -579,7 +579,7 @@ if(GUI)
             src/guiapi/src/window_frame.c
             src/guiapi/src/gui_timer.c
             src/guiapi/src/display_helper.c
-            src/guiapi/src/window_menu.c
+            src/guiapi/src/window_menu.cpp
             src/guiapi/src/screen.c
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.c

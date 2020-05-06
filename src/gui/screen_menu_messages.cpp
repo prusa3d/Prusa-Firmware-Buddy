@@ -6,7 +6,7 @@
  */
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "marlin_server.h"
 #include <stdlib.h>
 #include "screens.h"

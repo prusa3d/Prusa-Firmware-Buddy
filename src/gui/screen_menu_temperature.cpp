@@ -1,7 +1,7 @@
 // screen_menu_temperature.c
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "screens.h"
 
@@ -15,13 +15,6 @@ typedef enum {
     MI_COOLDOWN,
     MI_COUNT
 } MI_t;
-
-const menu_item_t _menu_temperature_items[] = {
-    { { "Nozzle", 0, WI_SPIN, .wi_spin = { 0, nozzle_range } }, SCREEN_MENU_NO_SCREEN },
-    { { "Heatbed", 0, WI_SPIN, .wi_spin = { 0, heatbed_range } }, SCREEN_MENU_NO_SCREEN },
-    { { "Print Fan", 0, WI_SPIN, .wi_spin = { 0, printfan_range } }, SCREEN_MENU_NO_SCREEN },
-    { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-};
 
 //"C inheritance" of screen_menu_data_t with data items
 #pragma pack(push)
@@ -40,13 +33,20 @@ void screen_menu_temperature_init(screen_t *screen) {
     marlin_vars_t *vars;
     screen_menu_init(screen, "TEMPERATURE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_temperature_items, (MI_COUNT - 1) * sizeof(menu_item_t));
+    //memcpy(psmd->items + 1, _menu_temperature_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
     vars = marlin_update_vars(
         MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED));
+    psmd->items[MI_NOZZLE] = (menu_item_t) { { "Nozzle", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_NOZZLE].item.wi_spin.value = (int32_t)(vars->target_nozzle * 1000);
+    psmd->items[MI_NOZZLE].item.wi_spin.range = nozzle_range;
+    psmd->items[MI_HEATBED] = (menu_item_t) { { "Heatbed", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_HEATBED].item.wi_spin.value = (int32_t)(vars->target_bed * 1000);
+    psmd->items[MI_HEATBED].item.wi_spin.range = heatbed_range;
+    psmd->items[MI_PRINTFAN] = (menu_item_t) { { "Print Fan", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_PRINTFAN].item.wi_spin.value = (int32_t)(vars->fan_speed * 1000);
+    psmd->items[MI_PRINTFAN].item.wi_spin.range = printfan_range;
+    psmd->items[MI_COOLDOWN] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
 }
 
 int screen_menu_temperature_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -87,4 +87,4 @@ screen_t screen_menu_temperature = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }
+extern "C" screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }

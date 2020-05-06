@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "screens.h"
+#include "screen_menu.hpp"
 
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE     6
@@ -28,19 +29,39 @@ typedef enum {
     MI_TYPE,
     MI_SAVE,
     MI_LOAD,
+    MI_COUNT
 } MI_t;
 
 static char *plan_str = NULL;
 static bool conn_flg = false; // wait for dhcp to supply addresses
-static networkconfig_t config;
+
 static const char *LAN_switch_opt[] = { "On", "Off", NULL };
 static const char *LAN_type_opt[] = { "DHCP", "static", NULL };
-const menu_item_t _menu_lan_items[] = {
-    { { "LAN", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_switch_opt } }, SCREEN_MENU_NO_SCREEN },
-    { { "LAN IP", 0, WI_SWITCH, .wi_switch_select = { 0, LAN_type_opt } }, SCREEN_MENU_NO_SCREEN },
-    { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-};
+
+typedef struct {
+    window_frame_t root;
+    window_header_t header;
+    window_menu_t menu;
+
+    window_text_t text;
+    char mac_addr_str[MAC_ADDR_STR_SIZE];
+    menu_item_t items[MI_COUNT];
+} screen_lan_settings_data_t;
+
+typedef struct {
+    uint8_t lan_flag;
+    char hostname[LAN_HOSTNAME_MAX_LEN + 1];
+#ifdef BUDDY_ENABLE_CONNECT
+    char connect_token[CONNECT_TOKEN_SIZE + 1];
+    ip4_addr_t connect_ip4;
+#endif // BUDDY_ENABLE_CONNECT
+    ip4_addr_t lan_ip4_addr;
+    ip4_addr_t lan_ip4_msk;
+    ip4_addr_t lan_ip4_gw;
+    uint8_t set_flag;
+} networkconfig_t;
+
+static networkconfig_t config;
 
 static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t index,
     window_menu_item_t **ppitem, void *data) {
@@ -125,12 +146,6 @@ static void _parse_MAC_addr(char *mac_addr_str) {
 
 static void screen_lan_settings_init(screen_t *screen) {
     //============= SCREEN INIT ===============
-
-    size_t count = sizeof(_menu_lan_items) / sizeof(menu_item_t);
-
-    plsd->items = (menu_item_t *)malloc(sizeof(menu_item_t) * (count + 1));
-    memset(plsd->items, '\0', sizeof(menu_item_t) * (count + 1));
-
     rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 150);
 
     int16_t id;
@@ -143,7 +158,7 @@ static void screen_lan_settings_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_MENU, root, menu_rect, &(plsd->menu));
     plsd->menu.padding = padding_ui8(20, 6, 2, 6);
     plsd->menu.icon_rect = rect_ui16(0, 0, 16, 30);
-    plsd->menu.count = count + 1;
+    plsd->menu.count = MI_COUNT;
     plsd->menu.menu_items = _screen_lan_settings_item;
     plsd->menu.data = (void *)screen;
 
@@ -153,13 +168,18 @@ static void screen_lan_settings_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(10, 183, 230, 137), &(plsd->text));
     plsd->text.font = resource_font(IDR_FNT_SPECIAL);
 
-    plsd->items[0] = menu_item_return;
-    memcpy(plsd->items + 1, _menu_lan_items, count * sizeof(menu_item_t));
+    psmd->items[MI_RETURN] = menu_item_return;
+    psmd->items[MI_SWITCH] = (menu_item_t) { { "LAN", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    plsd->items[MI_SWITCH].item.wi_switch_select.index = config.lan_flag & LAN_EEFLG_ONOFF;
+    plsd->items[MI_SWITCH].item.wi_switch_select.strings = LAN_switch_opt;
+    psmd->items[MI_TYPE] = (menu_item_t) { { "LAN IP", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    plsd->items[MI_TYPE].item.wi_switch_select.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
+    plsd->items[MI_TYPE].item.wi_switch_select.strings = LAN_type_opt;
+    psmd->items[MI_SAVE] = (menu_item_t) { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_LOAD] = (menu_item_t) { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
 
     config.lan_flag = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
 
-    plsd->items[MI_SWITCH].item.wi_switch_select.index = config.lan_flag & LAN_EEFLG_ONOFF;
-    plsd->items[MI_TYPE].item.wi_switch_select.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
     if (!(config.lan_flag & LAN_EEFLG_ONOFF) && !(config.lan_flag & LAN_EEFLG_TYPE) && !dhcp_supplied_address(&eth0)) {
         conn_flg = true;
     }
@@ -461,4 +481,4 @@ screen_t screen_lan_settings = {
     0,                                  //pdata
 };
 
-screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }
+extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

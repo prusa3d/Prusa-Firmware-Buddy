@@ -1,7 +1,7 @@
 // screen_menu_info.c
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "screens.h"
 
 typedef enum {
@@ -78,4 +78,4 @@ screen_t screen_menu_info = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_info() { return &screen_menu_info; }
+extern "C" screen_t *const get_scr_menu_info() { return &screen_menu_info; }
