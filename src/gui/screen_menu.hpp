@@ -14,7 +14,7 @@ struct menu_flags_t {
 };
 
 struct menu_item_t {
-    window_menu_item_t item;
+    WindowMenuItem item;
     screen_t *screen;
 };
 

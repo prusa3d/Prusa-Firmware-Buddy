@@ -11,7 +11,7 @@ const menu_item_t menu_item_return = {
 };
 
 void screen_menu_item(window_menu_t *pwindow_menu, uint16_t index,
-    window_menu_item_t **ppitem, void *data) {
+    WindowMenuItem **ppitem, void *data) {
     screen_t *screen = (screen_t *)data;
     *ppitem = &(psmd->items[index].item);
 }

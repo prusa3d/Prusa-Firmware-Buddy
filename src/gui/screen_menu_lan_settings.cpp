@@ -64,7 +64,7 @@ typedef struct {
 static networkconfig_t config;
 
 static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t index,
-    window_menu_item_t **ppitem, void *data) {
+    WindowMenuItem **ppitem, void *data) {
     screen_t *screen = (screen_t *)data;
     *ppitem = &(plsd->items[index].item);
 }

@@ -9,7 +9,32 @@
 #define WIO_MAX  1
 #define WIO_STEP 2
 
-extern osThreadId displayTaskHandle;
+/*****************************************************************************/
+//WindowMenuItem
+WindowMenuItem::WindowMenuItem(uint16_t type, uint16_t id_icon, const char *label)
+    : type(type)
+    , id_icon(id_icon) {
+    strncpy(this->label.data, label, this->label.size);
+}
+
+WindowMenuItem(WI_LABEL_t wi_label, uint16_t id_icon, const char *label)
+    : WindowMenuItem(WI_LABEL, id_icon, label) {
+}
+
+WindowMenuItem::WindowMenuItem(WI_SPIN_t wi_spin, uint16_t id_icon, const char *label)
+    : WindowMenuItem(WI_SPIN, id_icon, label)
+    , wi_spin(wi_spin) {
+}
+
+WindowMenuItem::WindowMenuItem(WI_SPIN_FL_t wi_spin_fl, uint16_t id_icon, const char *label)
+    : WindowMenuItem(WI_SPIN_FL_t, id_icon, label)
+    , wi_spin_fl(wi_spin_fl) {
+}
+
+WindowMenuItem::WindowMenuItem(WI_SWITCH_SELECT_t wi_switch_select, uint16_t id_icon, const char *label)
+    : WindowMenuItem(WI_SWITCH_SELECT_t, id_icon, label)
+    , wi_switch_select(wi_switch_select) {
+}
 
 void window_menu_inc(window_menu_t *window, int dif);
 void window_menu_dec(window_menu_t *window, int dif);
@@ -18,10 +43,10 @@ void window_menu_item_spin_fl(window_menu_t *window, int dif);
 void window_menu_item_switch(window_menu_t *window);
 void window_menu_item_select(window_menu_t *window, int dif);
 
-window_menu_item_t undefined = { "No menu_items fce!", 0, WI_LABEL | WI_DISABLED };
+WindowMenuItem undefined = { "No menu_items fce!", 0, WI_LABEL | WI_DISABLED };
 
 void window_menu_items(window_menu_t *pwindow_menu, uint16_t index,
-    window_menu_item_t **ppitem, void *data) {
+    WindowMenuItem **ppitem, void *data) {
     *ppitem = &undefined;
 }
 
@@ -91,7 +116,7 @@ void window_menu_draw(window_menu_t *window) {
     int i;
     for (i = 0; i < visible_count && i < window->count; i++) {
         int idx = i + window->top_index;
-        window_menu_item_t *item;
+        WindowMenuItem *item;
         window->menu_items(window, idx, &item, window->data);
 
         color_t color_text = window->color_text;
@@ -175,7 +200,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
             window->mode = WI_LABEL;
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGE, (void *)window->index);
         } else {
-            window_menu_item_t *item;
+            WindowMenuItem *item;
             window->menu_items(window, window->index, &item, window->data);
 
             //mask all flags but WI_DISABLED
@@ -214,7 +239,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
 }
 
 void window_menu_item_spin(window_menu_t *window, int dif) {
-    window_menu_item_t *item;
+    WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
 
     const int32_t *range = item->wi_spin.range;
@@ -231,7 +256,7 @@ void window_menu_item_spin(window_menu_t *window, int dif) {
 }
 
 void window_menu_item_spin_fl(window_menu_t *window, int dif) {
-    window_menu_item_t *item;
+    WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
 
     const float *range = item->wi_spin_fl.range;
@@ -248,7 +273,7 @@ void window_menu_item_spin_fl(window_menu_t *window, int dif) {
 }
 
 void window_menu_item_switch(window_menu_t *window) {
-    window_menu_item_t *item;
+    WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
 
     const char **strings = item->wi_switch_select.strings;
@@ -263,7 +288,7 @@ void window_menu_item_switch(window_menu_t *window) {
 }
 
 void window_menu_item_select(window_menu_t *window, int dif) {
-    window_menu_item_t *item;
+    WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
 
     const char **strings = item->wi_switch_select.strings;
