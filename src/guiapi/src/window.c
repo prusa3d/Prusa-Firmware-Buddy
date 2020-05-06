@@ -1,6 +1,7 @@
 //window.c
 
 #include "window.h"
+#include "window_menu.h"
 #include "gui.h"
 
 #define WINDOW_MAX_WINDOWS 64
@@ -601,9 +602,7 @@ void window_set_item_index(int16_t id, int index) {
     if ((window = window_ptr(id)) != 0) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_MENU:
-            if (((window_menu_t *)window)->count > index) {
-                ((window_menu_t *)window)->index = index;
-            }
+            window_menu_set_item_index(window, index);
             break;
         case WINDOW_CLS_LIST:
             if (((window_list_t *)window)->count > index) {

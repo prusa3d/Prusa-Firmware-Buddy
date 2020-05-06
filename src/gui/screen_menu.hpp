@@ -3,7 +3,7 @@
 #include "gui.h"
 #include "window_header.h"
 #include "status_footer.h"
-#include "window_menu.h"
+#include "window_menu.hpp"
 
 #pragma pack(push)
 #pragma pack(1)

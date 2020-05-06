@@ -1,5 +1,6 @@
-// window_menu.c
-#include "window_menu.h"
+// window_menu.cpp
+#include "window_menu.h" //C compatible, todo remove
+#include "window_menu.hpp"
 #include "gui.h"
 #include "sound_C_wrapper.h"
 
@@ -58,6 +59,14 @@ void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
     else
         format = "%.f";
     sprintf(value, format, item->value * 0.001);
+}
+
+void window_menu_set_item_index(window_t *window, int index) {
+    if (window->cls->cls_id == WINDOW_CLS_MENU) {
+        if (((window_menu_t *)window)->count > index) {
+            ((window_menu_t *)window)->index = index;
+        }
+    }
 }
 
 void _window_menu_draw_value(window_menu_t *window, const char *value,

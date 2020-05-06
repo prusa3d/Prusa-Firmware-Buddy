@@ -579,7 +579,7 @@ if(GUI)
             src/guiapi/src/window_frame.c
             src/guiapi/src/gui_timer.c
             src/guiapi/src/display_helper.c
-            src/guiapi/src/window_menu.c
+            src/guiapi/src/window_menu.cpp
             src/guiapi/src/screen.c
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.c
