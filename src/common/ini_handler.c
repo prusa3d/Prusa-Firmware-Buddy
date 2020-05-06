@@ -4,6 +4,7 @@
 #include "ff.h"
 
 static const char network_ini_file_name[] = "/lan_settings.ini"; //change -> change msgboxes in screen_lan_settings
+char ini_file_str[MAX_INI_SIZE];
 
 uint8_t ini_save_file(const char *ini_save_str) {
 

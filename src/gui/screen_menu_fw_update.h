@@ -10,7 +10,6 @@
 
 #include "config.h"
 #include "gui.h"
-#include "screen_menu.h"
 
 extern screen_t screen_menu_fw_update;
 

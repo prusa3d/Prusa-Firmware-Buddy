@@ -1,14 +1,13 @@
-// window_menu.c
-#include "window_menu.h"
+// window_menu.cpp
+#include "window_menu.h" //C compatible, todo remove
+#include "window_menu.hpp"
 #include "gui.h"
+#include "cmath_ext.h"
 #include "sound_C_wrapper.h"
 
 #define WIO_MIN  0
 #define WIO_MAX  1
 #define WIO_STEP 2
-
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 extern osThreadId displayTaskHandle;
 
@@ -60,10 +59,18 @@ void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
     sprintf(value, format, item->value * 0.001);
 }
 
+void window_menu_set_item_index(window_t *window, int index) {
+    if (window->cls->cls_id == WINDOW_CLS_MENU) {
+        if (((window_menu_t *)window)->count > index) {
+            ((window_menu_t *)window)->index = index;
+        }
+    }
+}
+
 void _window_menu_draw_value(window_menu_t *window, const char *value,
     rect_ui16_t *p_rc, color_t color_text_option, color_t color_back) {
     rect_ui16_t vrc = {
-        p_rc->x + p_rc->w, p_rc->y, window->font->w * strlen(value) + window->padding.left + window->padding.right, p_rc->h
+        uint16_t(p_rc->x + p_rc->w), p_rc->y, uint16_t(window->font->w * strlen(value) + window->padding.left + window->padding.right), p_rc->h
     };
     vrc.x -= vrc.w;
     p_rc->w -= vrc.w;
@@ -91,8 +98,8 @@ void window_menu_draw(window_menu_t *window) {
         color_t color_back = window->color_back;
         uint8_t swap = 0;
 
-        rect_ui16_t rc = { rc_win.x, rc_win.y + i * item_height,
-            rc_win.w, item_height };
+        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
+            rc_win.w, uint16_t(item_height) };
         padding_ui8_t padding = window->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {

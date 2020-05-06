@@ -4,7 +4,7 @@
 #include "config.h"
 #include "app.h"
 #include "marlin_client.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "cmsis_os.h"
 #include "sys.h"
 #include "eeprom.h"
@@ -48,12 +48,8 @@ typedef enum {
     MI_SOUND_MODE,
 #ifdef _DEBUG
     MI_SOUND_TYPE,
-#endif
-#ifdef _DEBUG
     MI_HF_TEST_0,
     MI_HF_TEST_1,
-#endif //_DEBUG
-#ifdef _DEBUG
     MI_EE_LOAD_400,
     MI_EE_LOAD_401,
     MI_EE_LOAD_402,
@@ -65,42 +61,6 @@ typedef enum {
 #endif //_DEBUG
     MI_COUNT
 } MI_t;
-
-const menu_item_t _menu_settings_items[] = {
-    { { "Temperature", 0, WI_LABEL }, &screen_menu_temperature },
-    { { "Move Axis", 0, WI_LABEL }, &screen_menu_move },
-    { { "Disable Steppers", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Factory Reset", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#ifdef _DEBUG
-    { { "Service", 0, WI_LABEL }, &screen_menu_service },
-    { { "Test", 0, WI_LABEL }, &screen_test },
-#endif //_DEBUG
-    { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update },
-    { { "Fil. sens.", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
-    { { "Timeout", 0, WI_SWITCH, .wi_switch_select = { 0, settings_opt_enable_disable } }, SCREEN_MENU_NO_SCREEN },
-#ifdef BUDDY_ENABLE_ETHERNET
-    { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings },
-#endif //BUDDY_ENABLE_ETHERNET
-    { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Sound Mode", 0, WI_SWITCH, .wi_switch_select = { 0, sound_opt_modes } }, SCREEN_MENU_NO_SCREEN },
-#ifdef _DEBUG
-    { { "Sound Type", 0, WI_SWITCH, .wi_switch_select = { 0, sound_opt_types } }, SCREEN_MENU_NO_SCREEN },
-#endif
-#ifdef _DEBUG
-    { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#endif //_DEBUG
-#ifdef _DEBUG
-    { { "EE 4.0.0", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.2", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.3-RC1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE 4.0.3", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE load", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE save", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "EE save xml", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-#endif //_DEBUG
-};
 
 //"C inheritance" of screen_menu_data_t with data items
 #pragma pack(push)
@@ -118,7 +78,46 @@ typedef struct
 void screen_menu_settings_init(screen_t *screen) {
     screen_menu_init(screen, "SETTINGS", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
     psmd->items[MI_RETURN] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_settings_items, (MI_COUNT - 1) * sizeof(menu_item_t));
+
+    psmd->items[MI_TEMPERATURE] = (menu_item_t) { { "Temperature", 0, WI_LABEL }, &screen_menu_temperature };
+    psmd->items[MI_MOVE_AXIS] = (menu_item_t) { { "Move Axis", 0, WI_LABEL }, &screen_menu_move };
+    psmd->items[MI_DISABLE_STEP] = (menu_item_t) { { "Disable Steppers", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_FACTORY_DEFAULTS] = (menu_item_t) { { "Factory Reset", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+#ifdef _DEBUG
+    psmd->items[MI_SERVICE] = (menu_item_t) { { "Service", 0, WI_LABEL }, &screen_menu_service };
+    psmd->items[MI_TEST] = (menu_item_t) { { "Test", 0, WI_LABEL }, &screen_test };
+#endif //_DEBUG
+    psmd->items[MI_FW_UPDATE] = (menu_item_t) { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update };
+    psmd->items[MI_FILAMENT_SENSOR] = (menu_item_t) { { "Fil. sens.", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = 0;
+    psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.strings = settings_opt_enable_disable;
+    psmd->items[MI_TIMEOUT] = (menu_item_t) { { "Timeout", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_TIMEOUT].item.wi_switch_select.index = 0;
+    psmd->items[MI_TIMEOUT].item.wi_switch_select.strings = settings_opt_enable_disable;
+#ifdef BUDDY_ENABLE_ETHERNET
+    psmd->items[MI_LAN_SETTINGS] = (menu_item_t) { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings };
+#endif //BUDDY_ENABLE_ETHERNET
+    psmd->items[MI_SAVE_DUMP] = (menu_item_t) { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SOUND_MODE] = (menu_item_t) { { "Sound Mode", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = 0;
+    psmd->items[MI_SOUND_MODE].item.wi_switch_select.strings = sound_opt_modes;
+#ifdef _DEBUG
+    psmd->items[MI_SOUND_TYPE] = (menu_item_t) { { "Sound Type", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index = 0;
+    psmd->items[MI_SOUND_TYPE].item.wi_switch_select.strings = sound_opt_types;
+    psmd->items[MI_HF_TEST_0] = (menu_item_t) { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_HF_TEST_1] = (menu_item_t) { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_EE_LOAD_400] = (menu_item_t) { { "EE 4.0.0", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_EE_LOAD_401] = (menu_item_t) { { "EE 4.0.1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_EE_LOAD_402] = (menu_item_t) { { "EE 4.0.2", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_EE_LOAD_403RC1] = (menu_item_t) { { "EE 4.0.3-RC1", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_EE_LOAD_403] = (menu_item_t) { { "EE 4.0.3", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_EE_LOAD] = (menu_item_t) { { "EE load", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_EE_SAVE] = (menu_item_t) { { "EE save", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_EE_SAVEXML] = (menu_item_t) { { "EE save xml", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+#endif //_DEBUG
+
+    // memcpy(psmd->items + 1, _menu_settings_items, (MI_COUNT - 1) * sizeof(menu_item_t));
 
     fsensor_t fs = fs_wait_inicialized();
     if (fs == FS_NOT_CONNECTED) {
@@ -128,7 +127,7 @@ void screen_menu_settings_init(screen_t *screen) {
     psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = (fs != FS_DISABLED);
     psmd->items[MI_TIMEOUT].item.wi_switch_select.index = menu_timeout_enabled; //st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS)
 
-    for (int i = 0; i < sizeof(e_sound_modes); i++) {
+    for (size_t i = 0; i < sizeof(e_sound_modes); i++) {
         if (e_sound_modes[i] == Sound_GetMode()) {
             psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = i;
             break;
@@ -247,4 +246,4 @@ screen_t screen_menu_settings = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }
+extern "C" screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }

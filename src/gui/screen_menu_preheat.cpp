@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "filament.h"
 #include "marlin_client.h"
 #include "screens.h"

@@ -1,6 +1,6 @@
 #include "gui.h"
 #include "config.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include <stdlib.h>
 #include "support_utils.h"
 #include "screens.h"
