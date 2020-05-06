@@ -53,16 +53,16 @@ void screen_test_temperature_init(screen_t *screen) {
     psmd->items[MI_NOZZLE].item.data.wi_spin.range = nozzle_range;
 
     psmd->items[MI_HEAT_PWM_PERIOD] = (menu_item_t) { { "Ht. PWM T", 0, WI_SELECT }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch_select.index = hwio_pwm_get_prescaler_log2(HWIO_PWM_HEATER_BED);
-    psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch_select.strings = period_pwm_range;
+    psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch.index = hwio_pwm_get_prescaler_log2(HWIO_PWM_HEATER_BED);
+    psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch.strings = period_pwm_range;
 
     psmd->items[MI_HEATBED] = (menu_item_t) { { "Heatbed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_HEATBED].item.data.wi_spin.value = thermalManager.degTargetBed() * 1000;
     psmd->items[MI_HEATBED].item.data.wi_spin.range = heatbed_range;
 
     psmd->items[MI_FAN_PWM_PERIOD] = (menu_item_t) { { "Fan PWM T", 0, WI_SELECT }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_switch_select.index = hwio_pwm_get_prescaler_log2(HWIO_PWM_HEATER_BED);
-    psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_switch_select.strings = period_pwm_range;
+    psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_select.index = hwio_pwm_get_prescaler_log2(HWIO_PWM_HEATER_BED);
+    psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_select.strings = period_pwm_range;
 
     psmd->items[MI_PRINTFAN] = (menu_item_t) { { "Print Fan", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_PRINTFAN].item.data.wi_spin.value = thermalManager.fan_speed[0] * 1000;
@@ -89,10 +89,10 @@ int screen_test_temperature_event(screen_t *screen, window_t *window,
             thermalManager.set_fan_speed(0, psmd->items[MI_PRINTFAN].item.data.wi_spin.value / 1000);
             break;
         case MI_HEAT_PWM_PERIOD:
-            hwio_pwm_set_prescaler_exp2(HWIO_PWM_HEATER_BED, psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch_select.index);
+            hwio_pwm_set_prescaler_exp2(HWIO_PWM_HEATER_BED, psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch.index);
             break;
         case MI_FAN_PWM_PERIOD:
-            hwio_pwm_set_prescaler_exp2(HWIO_PWM_FAN, psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_switch_select.index);
+            hwio_pwm_set_prescaler_exp2(HWIO_PWM_FAN, psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_select.index);
             break;
         }
     } else if (event == WINDOW_EVENT_CLICK && (int)param == MI_COOLDOWN) {

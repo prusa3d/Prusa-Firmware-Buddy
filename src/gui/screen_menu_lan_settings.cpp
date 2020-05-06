@@ -170,11 +170,11 @@ static void screen_lan_settings_init(screen_t *screen) {
 
     psmd->items[MI_RETURN] = menu_item_return;
     psmd->items[MI_SWITCH] = (menu_item_t) { { "LAN", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
-    plsd->items[MI_SWITCH].item.data.wi_switch_select.index = config.lan_flag & LAN_EEFLG_ONOFF;
-    plsd->items[MI_SWITCH].item.data.wi_switch_select.strings = LAN_switch_opt;
+    plsd->items[MI_SWITCH].item.data.wi_switch.index = config.lan_flag & LAN_EEFLG_ONOFF;
+    plsd->items[MI_SWITCH].item.data.wi_switch.strings = LAN_switch_opt;
     psmd->items[MI_TYPE] = (menu_item_t) { { "LAN IP", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
-    plsd->items[MI_TYPE].item.data.wi_switch_select.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
-    plsd->items[MI_TYPE].item.data.wi_switch_select.strings = LAN_type_opt;
+    plsd->items[MI_TYPE].item.data.wi_switch.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
+    plsd->items[MI_TYPE].item.data.wi_switch.strings = LAN_type_opt;
     psmd->items[MI_SAVE] = (menu_item_t) { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_LOAD] = (menu_item_t) { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
 
@@ -389,7 +389,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                 if (gui_msgbox("Static IPv4 addresses were not set.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                     == MSGBOX_RES_OK) {
-                    plsd->items[MI_TYPE].item.data.wi_switch_select.index = 0;
+                    plsd->items[MI_TYPE].item.data.wi_switch.index = 0;
                 }
                 return 0;
             }
@@ -436,7 +436,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
         } else {
             if (_load_config()) {
                 if (gui_msgbox("Settings successfully loaded", MSGBOX_BTN_OK | MSGBOX_ICO_INFO) == MSGBOX_RES_OK) {
-                    plsd->items[MI_TYPE].item.data.wi_switch_select.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
+                    plsd->items[MI_TYPE].item.data.wi_switch.index = config.lan_flag & LAN_EEFLG_TYPE ? 1 : 0;
                     window_invalidate(plsd->menu.win.id);
                     if (!(config.lan_flag & LAN_EEFLG_TYPE)) {
                         _refresh_addresses(screen);

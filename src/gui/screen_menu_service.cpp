@@ -59,35 +59,30 @@ void screen_menu_service_init(screen_t *screen) {
     psmd->items[MI_CLR_EEPROM] = (menu_item_t) { { "Clear EEPROM", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_WDG_TEST] = (menu_item_t) { { "Watchdog test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_PLL] = (menu_item_t) { { "PLL", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PLL].item.data.wi_switch_select.index = 0;
-    psmd->items[MI_PLL].item.data.wi_switch_select.strings = opt_enable_disable;
+    psmd->items[MI_PLL].item.data.wi_switch.index = sys_pll_is_enabled() ? 1 : 0;
+    psmd->items[MI_PLL].item.data.wi_switch.strings = opt_enable_disable;
 
     psmd->items[MI_SSCG] = (menu_item_t) { { "SSCG", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG].item.data.wi_switch_select.index = 0;
-    psmd->items[MI_SSCG].item.data.wi_switch_select.strings = opt_enable_disable;
+    psmd->items[MI_SSCG].item.data.wi_switch.index = sys_sscg_is_enabled() ? 1 : 0;
+    psmd->items[MI_SSCG].item.data.wi_switch.strings = opt_enable_disable;
 
     psmd->items[MI_SSCG_FREQ] = (menu_item_t) { { "SSCG freq", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG_FREQ].item.data.wi_spin.value = 0;
+    psmd->items[MI_SSCG_FREQ].item.data.wi_spin.value = sscg_freq_kHz * 1000;
     psmd->items[MI_SSCG_FREQ].item.data.wi_spin.range = opt_sscg_freq;
 
     psmd->items[MI_SSCG_DEPTH] = (menu_item_t) { { "SSCG depth", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG_DEPTH].item.data.wi_spin.value = 0;
+    psmd->items[MI_SSCG_DEPTH].item.data.wi_spin.value = sscg_depth * 1000;
     psmd->items[MI_SSCG_DEPTH].item.data.wi_spin.range = opt_sscg_depth;
 
     psmd->items[MI_SPI_PRESC] = (menu_item_t) { { "SPI freq", 0, WI_SELECT }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SPI_PRESC].item.data.wi_switch_select.index = 0;
-    psmd->items[MI_SPI_PRESC].item.data.wi_switch_select.strings = opt_spi;
+    psmd->items[MI_SPI_PRESC].item.data.wi_select.index = spi_prescaler;
+    psmd->items[MI_SPI_PRESC].item.data.wi_select.strings = opt_spi;
 #ifdef PIDCALIBRATION
     psmd->items[MI_PID] = (menu_item_t) { { "PID calibration", 0, WI_LABEL }, get_scr_PID() };
 #endif //PIDCALIBRATION
     psmd->items[MI_MESH] = (menu_item_t) { { "Mesh bed leveling", 0, WI_LABEL }, get_scr_mesh_bed_lv() };
     psmd->items[MI_BSOD] = (menu_item_t) { { "BSOD", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_BSOD_HARD_FAULT] = (menu_item_t) { { "BSOD_HARD_FAULT", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PLL].item.data.wi_switch_select.index = sys_pll_is_enabled() ? 1 : 0;
-    psmd->items[MI_SSCG].item.data.wi_switch_select.index = sys_sscg_is_enabled() ? 1 : 0;
-    psmd->items[MI_SSCG_FREQ].item.data.wi_spin.value = sscg_freq_kHz * 1000;
-    psmd->items[MI_SSCG_DEPTH].item.data.wi_spin.value = sscg_depth * 1000;
-    psmd->items[MI_SPI_PRESC].item.data.wi_switch_select.index = spi_prescaler;
 }
 
 int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -109,13 +104,13 @@ int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event,
                 ;
             break;
         case MI_PLL:
-            if (psmd->items[MI_PLL].item.data.wi_switch_select.index)
+            if (psmd->items[MI_PLL].item.data.wi_switch.index)
                 sys_pll_enable();
             else
                 sys_pll_disable();
             break;
         case MI_SSCG:
-            if (psmd->items[MI_SSCG].item.data.wi_switch_select.index) {
+            if (psmd->items[MI_SSCG].item.data.wi_switch.index) {
                 sys_sscg_set_config(sscg_freq_kHz * 1000, sscg_depth);
                 sys_sscg_enable();
             } else
@@ -148,7 +143,7 @@ int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event,
             }
             break;
         case MI_SPI_PRESC:
-            sys_spi_set_prescaler(psmd->items[MI_SPI_PRESC].item.data.wi_switch_select.index);
+            sys_spi_set_prescaler(psmd->items[MI_SPI_PRESC].item.data.wi_select.index);
             break;
         }
     }

@@ -32,9 +32,14 @@ WindowMenuItem::WindowMenuItem(WI_SPIN_FL_t wi_spin_fl, const char *text, uint16
     data = wi_spin_fl;
 }
 
-WindowMenuItem::WindowMenuItem(WI_SWITCH_SELECT_t wi_switch_select, const char *text, uint16_t id_icon, bool switch_not_select)
-    : WindowMenuItem(switch_not_select ? WI_SWITCH : WI_SELECT, text, id_icon) {
-    data = wi_switch_select;
+WindowMenuItem::WindowMenuItem(WI_SWITCH_t wi_switch, const char *text, uint16_t id_icon, bool switch_not_select)
+    : WindowMenuItem(WI_SWITCH, text, id_icon) {
+    data = wi_switch;
+}
+
+WindowMenuItem::WindowMenuItem(WI_SELECT_t wi_select, const char *text, uint16_t id_icon, bool switch_not_select)
+    : WindowMenuItem(WI_SELECT, text, id_icon) {
+    data = wi_select;
 }
 
 void window_menu_inc(window_menu_t *window, int dif);
@@ -161,7 +166,7 @@ void window_menu_draw(window_menu_t *window) {
                 if (swap)
                     color_option = COLOR_ORANGE;
             case WI_SELECT: {
-                const char *value = ((const char **)item->data.wi_switch_select.strings)[item->data.wi_switch_select.index];
+                const char *value = ((const char **)item->data.wi_select.strings)[item->data.wi_select.index];
 
                 _window_menu_draw_value(window, value, &rc, color_option, color_back);
             } break;
@@ -239,79 +244,6 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     }
 }
 
-void window_menu_item_spin(window_menu_t *window, int dif) {
-    WindowMenuItem *item;
-    window->menu_items(window, window->index, &item, window->data);
-
-    const int32_t *range = item->data.wi_spin.range;
-    int32_t old = item->data.wi_spin.value;
-
-    if (dif > 0) {
-        item->data.wi_spin.value = MIN(item->data.wi_spin.value + dif * range[WIO_STEP], range[WIO_MAX]);
-    } else {
-        item->data.wi_spin.value = MAX(item->data.wi_spin.value + dif * range[WIO_STEP], range[WIO_MIN]);
-    }
-
-    if (old != item->data.wi_spin.value)
-        _window_invalidate((window_t *)window);
-}
-
-void window_menu_item_spin_fl(window_menu_t *window, int dif) {
-    WindowMenuItem *item;
-    window->menu_items(window, window->index, &item, window->data);
-
-    const float *range = item->data.wi_spin_fl.range;
-    float old = item->data.wi_spin_fl.value;
-
-    if (dif > 0) {
-        item->data.wi_spin_fl.value = MIN(item->data.wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MAX]);
-    } else {
-        item->data.wi_spin_fl.value = MAX(item->data.wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MIN]);
-    }
-
-    if (old != item->data.wi_spin_fl.value)
-        _window_invalidate((window_t *)window);
-}
-
-void window_menu_item_switch(window_menu_t *window) {
-    WindowMenuItem *item;
-    window->menu_items(window, window->index, &item, window->data);
-
-    const char **strings = item->data.wi_switch_select.strings;
-    size_t size = 0;
-    while (strings[size] != NULL) {
-        size++;
-    }
-    item->data.wi_switch_select.index++;
-    if (item->data.wi_switch_select.index >= size) {
-        item->data.wi_switch_select.index = 0;
-    }
-}
-
-void window_menu_item_select(window_menu_t *window, int dif) {
-    WindowMenuItem *item;
-    window->menu_items(window, window->index, &item, window->data);
-
-    const char **strings = item->data.wi_switch_select.strings;
-    size_t size = 0;
-    while (strings[size] != NULL) {
-        size++;
-    }
-
-    if (dif > 0) {
-        item->data.wi_switch_select.index++;
-        if (item->data.wi_switch_select.index >= size) {
-            item->data.wi_switch_select.index = 0;
-        }
-    } else {
-        item->data.wi_switch_select.index--;
-        if (item->data.wi_switch_select.index < 0) {
-            item->data.wi_switch_select.index = size - 1;
-        }
-    }
-    _window_invalidate((window_t *)window);
-}
-
 void window_menu_inc(window_menu_t *window, int dif) {
     switch (window->mode) {
     case WI_SPIN:
@@ -366,3 +298,91 @@ const window_class_menu_t window_class_menu = {
         (window_event_t *)window_menu_event,
     },
 };
+
+void window_menu_item_spin(window_menu_t *window, int dif) {
+    WindowMenuItem *item;
+    window->menu_items(window, window->index, &item, window->data);
+
+    const int32_t *range = item->data.wi_spin.range;
+    int32_t old = item->data.wi_spin.value;
+
+    if (dif > 0) {
+        item->data.wi_spin.value = MIN(item->data.wi_spin.value + dif * range[WIO_STEP], range[WIO_MAX]);
+    } else {
+        item->data.wi_spin.value = MAX(item->data.wi_spin.value + dif * range[WIO_STEP], range[WIO_MIN]);
+    }
+
+    if (old != item->data.wi_spin.value)
+        _window_invalidate((window_t *)window);
+}
+
+void window_menu_item_spin_fl(window_menu_t *window, int dif) {
+    WindowMenuItem *item;
+    window->menu_items(window, window->index, &item, window->data);
+
+    const float *range = item->data.wi_spin_fl.range;
+    float old = item->data.wi_spin_fl.value;
+
+    if (dif > 0) {
+        item->data.wi_spin_fl.value = MIN(item->data.wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MAX]);
+    } else {
+        item->data.wi_spin_fl.value = MAX(item->data.wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MIN]);
+    }
+
+    if (old != item->data.wi_spin_fl.value)
+        _window_invalidate((window_t *)window);
+}
+
+void window_menu_item_switch(window_menu_t *window) {
+    WindowMenuItem *item;
+    window->menu_items(window, window->index, &item, window->data);
+
+    const char **strings = item->data.wi_switch.strings;
+    size_t size = 0;
+    while (strings[size] != NULL) {
+        size++;
+    }
+    item->data.wi_switch.index++;
+    if (item->data.wi_switch.index >= size) {
+        item->data.wi_switch.index = 0;
+    }
+}
+
+void window_menu_item_select(window_menu_t *window, int dif) {
+    WindowMenuItem *item;
+    window->menu_items(window, window->index, &item, window->data);
+
+    const char **strings = item->data.wi_select.strings;
+    size_t size = 0;
+    while (strings[size] != NULL) {
+        size++;
+    }
+
+    if (dif > 0) {
+        item->data.wi_select.index++;
+        if (item->data.wi_select.index >= size) {
+            item->data.wi_select.index = 0;
+        }
+    } else {
+        item->data.wi_select.index--;
+        if (item->data.wi_select.index < 0) {
+            item->data.wi_select.index = size - 1;
+        }
+    }
+    _window_invalidate((window_t *)window);
+}
+
+void WindowMenuItem::Change(int dif) {
+}
+
+void WI_SPIN_t::Change(int dif) {
+}
+
+void WI_SPIN_FL_t::Change(int dif) {
+}
+
+void WI_SWITCH_t::Change(int dif) {
+}
+
+void WI_SELECT_t::Change(int dif) {
+}

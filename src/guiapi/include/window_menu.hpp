@@ -22,24 +22,48 @@ typedef enum {
 
 //WI_SPIN
 //where all values are divided by 1000
-struct WI_SPIN_t {
+class WI_SPIN_t {
+public: //todo private
     int32_t value;
     const int32_t *range;
+
+public:
+    void Change(int dif);
 };
 
 //WI_SPIN_FL
-struct WI_SPIN_FL_t {
+class WI_SPIN_FL_t {
+public: //todo private
     float value;
     const char *prt_format;
     const float *range;
+
+public:
+    void Change(int dif);
 };
 
-//WI_SWITCH | WI_SELECT
+//WI_SWITCH
 //array of char strings ended by NULL for array length variability.
 //char * strings[3] = {"Low", "High", "Medium", NULL}
-struct WI_SWITCH_SELECT_t {
+class WI_SWITCH_t {
+public: //todo private
     uint32_t index;
     const char **strings;
+
+public:
+    void Change(int dif);
+};
+
+//WI_SELECT
+//array of char strings ended by NULL for array length variability.
+//char * strings[3] = {"Low", "High", "Medium", NULL}
+class WI_SELECT_t {
+public: //todo private
+    uint32_t index;
+    const char **strings;
+
+public:
+    void Change(int dif);
 };
 
 class WindowMenuItem {
@@ -49,7 +73,8 @@ public:
     WindowMenuItem(const char *label, uint16_t id_icon = 0, uint16_t flags = WI_LABEL); // does not initialize union
     WindowMenuItem(WI_SPIN_t wi_spin, const char *text, uint16_t id_icon = 0);
     WindowMenuItem(WI_SPIN_FL_t wi_spin_fl, const char *text, uint16_t id_icon = 0);
-    WindowMenuItem(WI_SWITCH_SELECT_t wi_switch_select, const char *text, uint16_t id_icon, bool switch_not_select);
+    WindowMenuItem(WI_SWITCH_t wi_switch, const char *text, uint16_t id_icon, bool switch_not_select);
+    WindowMenuItem(WI_SELECT_t wi_select, const char *text, uint16_t id_icon, bool switch_not_select);
     /**
 	 * Type : WI_LABEL || WI_SPIN || WI_SWITCH || WI_SELECT
 	 * visibility bit WI_DISABLED | WI_HIDDEN
@@ -62,13 +87,17 @@ public:
         Data() {}
         Data(const WI_SPIN_t &r) { wi_spin = r; }
         Data(const WI_SPIN_FL_t &r) { wi_spin_fl = r; }
-        Data(const WI_SWITCH_SELECT_t &r) { wi_switch_select = r; }
+        Data(const WI_SWITCH_t &r) { wi_switch = r; }
+        Data(const WI_SELECT_t &r) { wi_select = r; }
 
         WI_SPIN_t wi_spin;
         WI_SPIN_FL_t wi_spin_fl;
-        WI_SWITCH_SELECT_t wi_switch_select;
+        WI_SWITCH_t wi_switch;
+        WI_SELECT_t wi_select;
     };
     Data data;
+
+    void Change(int dif);
 };
 
 typedef void(window_menu_items_t)(window_menu_t *pwindow_menu,
