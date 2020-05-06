@@ -94,16 +94,12 @@ void media_get_sfn_path(char *sfn, const char *filepath) {
 void media_print_start(const char *filepath) {
     FILINFO filinfo;
     if (media_print_state == media_print_state_NONE) {
-        strlcpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
+        // get SFN path
+        media_get_sfn_path(media_print_filepath, filepath);
         if (f_stat(media_print_filepath, &filinfo) == FR_OK) {
-
-            // get SFN path and put it to the f_open
-            char ffPath[MEDIA_PRINT_FILENAME_SIZE] = { 0 };
-            media_get_sfn_path(ffPath, media_print_filepath);
-
-            strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filepath) - 1);
+            strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filename) - 1);
             media_print_size = filinfo.fsize;
-            if (f_open(&media_print_fil, ffPath, FA_READ) == FR_OK) {
+            if (f_open(&media_print_fil, media_print_filepath, FA_READ) == FR_OK) {
                 media_current_position = 0;
                 media_current_line = 0;
                 media_print_state = media_print_state_PRINTING;
