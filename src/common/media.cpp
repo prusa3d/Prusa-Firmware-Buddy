@@ -61,17 +61,17 @@ void media_get_sfn_path(char *sfn, const char *filepath) {
         // folder || endfile found -> begin
         if (filepath[i] == '/' || i == sl) {
             // file info struct with fname & altname
-            strlcpy(tmpPath, filepath, i+1);
+            strlcpy(tmpPath, filepath, i + 1);
             FRESULT fRes = f_stat(tmpPath, &fi);
             if (fRes == FR_OK) {
                 // we got folder || end file info -> process
                 const char *tmpDir = fi.altname; // LFN MUST BE TURNED ON (1||2)
                 _dbg(tmpDir);
-								// FATFS flag for valid 8.3 fname - used instead of altname
+                // FATFS flag for valid 8.3 fname - used instead of altname
                 if (tmpDir[0] == 0 && fi.fname[0] != 0) {
                     tmpDir = fi.fname;
                 }
-								// save SFN part
+                // save SFN part
                 for (j = 0; j < 12; j++) {
                     if (tmpDir[j] == 0) {
                         break;
