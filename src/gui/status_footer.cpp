@@ -114,6 +114,18 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     status_footer_timer(footer, 0); // do update
 }
 
+static bool _preheat_mode = false;
+static float _nozzle_target_temp; /// value shown in case of preheat
+
+void preheat_mode_on(float nozzle_target_temp) {
+    _preheat_mode = true;
+    _nozzle_target_temp = nozzle_target_temp;
+}
+
+void preheat_mode_off() {
+    _preheat_mode = false;
+}
+
 int status_footer_event(status_footer_t *footer, window_t *window,
     uint8_t event, const void *param) {
     status_footer_timer(footer, (HAL_GetTick() / 50) * 50);
@@ -163,10 +175,10 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     /// automatic disabling of nozzle preheat style
     /// easier and safer than handling all possible starts of printing
     if (target_nozzle != PREHEAT_TEMP)
-        preheat_mode = false;
+        _preheat_mode = false;
 
     /// nozzle state
-    if (preheat_mode) {
+    if (_preheat_mode) {
         footer->nozzle_state = PREHEAT;
         if (PREHEAT_TEMP > actual_nozzle + HEATING_DIFFERENCE) {
             footer->nozzle_state = HEATING;
@@ -191,8 +203,8 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     }
 
     footer->nozzle = actual_nozzle;
-    if (preheat_mode) {
-        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)nozzle_target_temp);
+    if (_preheat_mode) {
+        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)_nozzle_target_temp);
     } else {
         sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
     }

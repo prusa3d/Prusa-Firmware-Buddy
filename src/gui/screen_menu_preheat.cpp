@@ -53,7 +53,6 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
-
     filament_t filament;
     FILAMENT_t fil_id;
 
@@ -71,11 +70,10 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     if (filament.nozzle > PREHEAT_TEMP) {
         marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
         /// save info directly to footer
-        preheat_mode = true;
-        nozzle_target_temp = filament.nozzle;
+        preheat_mode_on(filament.nozzle);
     } else {
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle); // cooldown typically
-        preheat_mode = false;
+        preheat_mode_off();
     }
 
     screen_close(); // skip this screen everytime
