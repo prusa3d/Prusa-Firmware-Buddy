@@ -34,6 +34,7 @@ typedef enum {
     MARLIN_EVT_FSM_Create,          // create finite state machine in client
     MARLIN_EVT_FSM_Destroy,         // destroy finite state machine in client
     MARLIN_EVT_FSM_Change,          // change phase/state/progress in client fsm
+    MARLIN_EVT_GFileChange,         // when gcode file changed on start print
     MARLIN_EVT_Acknowledge          // onAcknowledge - lowest priority
 } MARLIN_EVT_t;
 #define MARLIN_EVT_MAX MARLIN_EVT_Acknowledge
