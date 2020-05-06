@@ -416,9 +416,6 @@ static void MX_I2C1_Init(void) {
 }
 
 /**
-}
-
-/**
   * @brief RTC Initialization Function
   * @param None
   * @retval None
