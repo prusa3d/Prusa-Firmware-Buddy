@@ -49,7 +49,9 @@ void window_file_list_init(window_file_list_t *window) {
     window->padding = padding_ui8(2, 6, 2, 6);
     window->alignment = ALIGN_LEFT_CENTER;
     window->win.flg |= WINDOW_FLG_ENABLED;
-
+    window->roll.count = window->roll.px_cd = window->roll.phase = window->roll.setup = window->roll.progress = 0;
+    window->last_index = 0;
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
     strcpy(window->altpath, "/");
 
     // it is still the same address every time, no harm assigning it again.
@@ -57,7 +59,9 @@ void window_file_list_init(window_file_list_t *window) {
     window->ldv = LDV_Get();
 }
 
-void window_file_list_done(window_file_list_t *window) {}
+void window_file_list_done(window_file_list_t *window) {
+    gui_timers_delete_by_window_id(window->win.id);
+}
 
 void window_file_list_draw(window_file_list_t *window) {
     int item_height = window->font->h + window->padding.top + window->padding.bottom;
@@ -106,7 +110,29 @@ void window_file_list_draw(window_file_list_t *window) {
                 padding.left += 16;
             }
 
-            render_text_align(rc, item, window->font, color_back, color_text, padding, window->alignment);
+            if((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == i){
+                if(window->index != window->last_index){
+                    window->last_index = window->index;
+                    window->roll.setup = window->roll.phase = 0;
+                    gui_timer_restart_txtroll(window->win.id);
+                    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+                }
+
+                render_scroll_text_align(rc,
+                    item,
+                    window->font,
+                    padding,
+                    window->alignment,
+                    color_back,
+                    color_text,
+                    &window->roll);
+
+
+            } else {
+                render_text_align(rc, item, window->font,
+                    color_back, color_text,
+                    padding, window->alignment);
+            }
 
             /*	too slow
 				display->draw_line(
@@ -138,6 +164,9 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
         break;
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
+        break;
+    case WINDOW_EVENT_TIMER:
+        scroll_text_phasing(window->win.id, window->font, &window->roll);
         break;
     }
 }

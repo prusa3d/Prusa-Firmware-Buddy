@@ -12,6 +12,7 @@
 #include "ff.h"
 #include <stdbool.h>
 #include "file_list_defs.h"
+#include "display_helper.h"
 
 typedef struct _window_file_list_t window_file_list_t;
 
@@ -33,6 +34,8 @@ typedef struct _window_file_list_t {
     int index;                              // selected index - cursor position within the visible items
     char altpath[F_MAXPATHNAMELENGTH - 12]; // this is a path where we start the file dialog
     void *ldv;                              // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
+    txtroll_t roll;
+    uint8_t last_index;
 } window_file_list_t;
 
 #pragma pack(pop)
