@@ -11,6 +11,7 @@
 #include "filament.h"
 #include "marlin_client.h"
 #include "screens.h"
+#include "status_footer.h"
 
 //"C inheritance" of screen_menu_data_t with data items
 #pragma pack(push)
@@ -69,13 +70,12 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
 
     if (filament.nozzle > PREHEAT_TEMP) {
         marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
-        screen_menu_data_t *screen_pd = (screen_menu_data_t *)screen->pdata;
-        if (screen_pd) {
-            screen_pd->footer.preheat_mode = true;
-            screen_pd->footer.nozzle_target_temp = filament.nozzle;
-        }
+        /// save info directly to footer
+        preheat_mode = true;
+        nozzle_target_temp = filament.nozzle;
     } else {
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle); // cooldown typically
+        preheat_mode = false;
     }
 
     screen_close(); // skip this screen everytime

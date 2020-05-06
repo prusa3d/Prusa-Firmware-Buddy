@@ -22,9 +22,8 @@ typedef enum heat_state_e {
 
 typedef struct
 {
-    float nozzle_target_temp; /// value shown in case of preheat
-    float nozzle;             /// temperature of nozzle shown on display
-    float heatbed;            /// temperature of bed shown on display
+    float nozzle;  /// temperature of nozzle shown on display
+    float heatbed; /// temperature of bed shown on display
 
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
@@ -53,9 +52,11 @@ typedef struct
     heat_state_t nozzle_state;
     heat_state_t heatbed_state;
     bool show_second_color;
-    bool preheat_mode;
 
 } status_footer_t;
+
+static bool preheat_mode = false;
+static float nozzle_target_temp = 0; /// value shown in case of preheat
 
 #pragma pack(pop)
 

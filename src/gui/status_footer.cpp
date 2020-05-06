@@ -24,7 +24,6 @@ void status_footer_repaint_heatbed(const status_footer_t *footer);
 
 void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
-    footer->preheat_mode = false;
     int16_t id;
 
     strcpy(footer->text_nozzle, "0/0\177C");
@@ -164,10 +163,10 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     /// automatic disabling of nozzle preheat style
     /// easier and safer than handling all possible starts of printing
     if (target_nozzle != PREHEAT_TEMP)
-        footer->preheat_mode = false;
+        preheat_mode = false;
 
     /// nozzle state
-    if (footer->preheat_mode) {
+    if (preheat_mode) {
         footer->nozzle_state = PREHEAT;
         if (PREHEAT_TEMP > actual_nozzle + HEATING_DIFFERENCE) {
             footer->nozzle_state = HEATING;
@@ -192,8 +191,8 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     }
 
     footer->nozzle = actual_nozzle;
-    if (footer->preheat_mode) {
-        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)footer->nozzle_target_temp);
+    if (preheat_mode) {
+        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)nozzle_target_temp);
     } else {
         sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
     }
