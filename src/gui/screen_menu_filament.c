@@ -9,6 +9,7 @@
 #include "window_dlg_load_unload.h"
 #include "screens.h"
 #include "dbg.h"
+#include "status_footer.h"
 
 #define FKNOWN      0x01 //filament is known
 #define F_NOTSENSED 0x02 //filament is not in sensor
@@ -91,6 +92,7 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
                 p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
                 gui_dlg_load();
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
+                preheat();
                 break;
             case MI_UNLOAD:
                 p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
@@ -122,5 +124,17 @@ screen_t screen_menu_filament = {
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
+
+/// Decreases temperature of nozzle not to ooze during MBL
+void preheat() {
+    const float target_temp = thermalManager.degTargetHotend(0);
+
+    if (target_temp > PREHEAT_TEMP) {
+        marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
+        preheat_mode_on(target_temp);
+    } else {
+        preheat_mode_off();
+    }
+}
 
 screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }
