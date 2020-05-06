@@ -19,6 +19,7 @@
 #define WINDOW_CLS_MSGBOX   10  // MSGBOX - messagebox with configurable buttons and icon
 #define WINDOW_CLS_PROGRESS 11  // PROGRESS - progress bar with text
 #define WINDOW_CLS_QR       12  // QR - QR Code
+#define WINDOW_CLS_ROLL_TEXT    13  // ROLL text - text too long for display width
 #define WINDOW_CLS_USER     128 // USER - user defined window classes (WINDOW_CLS_USER+n)
 
 //window flags
