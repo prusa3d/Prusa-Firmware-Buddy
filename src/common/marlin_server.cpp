@@ -393,8 +393,6 @@ void marlin_server_settings_save(void) {
 
 void marlin_server_settings_load(void) {
     (void)settings.reset();
-    // 'dirty' hack because of bug (?) in settings.reset (planner.max_jerk.e = 0 with enabled CLASIC_JERK)
-    planner.max_jerk.e = DEFAULT_EJERK; // set max_jerk.e to default value
 #if HAS_BED_PROBE
     probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
 #endif
