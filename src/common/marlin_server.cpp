@@ -525,6 +525,7 @@ static void _server_print_loop(void) {
     case mpsAborting_Begin:
         media_print_stop();
         thermalManager.disable_all_heaters();
+        thermalManager.set_fan_speed(0, 0);
         print_job_timer.stop();
         planner.quick_stop();
         marlin_server.print_state = mpsAborting_WaitIdle;
