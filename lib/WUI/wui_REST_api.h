@@ -1,5 +1,5 @@
 /*
- * api.h
+ * wui_REST_api.h
  * \brief   interface functions for REST API calls from http server and clients
  *
  *  Created on: Jan 24, 2020

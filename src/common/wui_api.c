@@ -234,7 +234,7 @@ void sntp_get_system_time(char * dest){
 
     HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
 
-    snprintf(dest, 10, "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
+    snprintf(dest, 12, "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
   } else {
     strcpy(dest, "N/A");
   }
@@ -247,7 +247,7 @@ void sntp_get_system_date(char * dest){
 
     HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
 
-    snprintf(dest, 12, "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
+    snprintf(dest, 13, "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
   } else {
     strcpy(dest, "N/A");
   }
