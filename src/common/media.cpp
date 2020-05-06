@@ -52,36 +52,41 @@ media_state_t media_get_state(void) {
 }
 
 void media_get_sfn_path(char *sfn, const char *filepath) {
-    uint i = 0; // main index of char from filepath
+    uint i, j, k;
+    i = j = k = 0;
     uint sl = strlen(filepath); // length of filepath
-    uint j = 0; // loop index for some char arrays
-    uint k = 0; // index of SFN from altname of FILINFO
-    char tmpPath[MEDIA_PRINT_FILEPATH_SIZE] = { 0 };
+    FILINFO fi;
+    char tmpPath[sl] = { 0 };
     while (i <= sl) {
-        // folder found -> begin
+        // folder || endfile found -> begin
         if (filepath[i] == '/' || i == sl) {
             // file info struct with fname & altname
-            FILINFO fi;
-            memset(&fi, 0, sizeof(fi));
+            strlcpy(tmpPath, filepath, i+1);
             FRESULT fRes = f_stat(tmpPath, &fi);
-            if(fRes == FR_OK){
+            if (fRes == FR_OK) {
                 // we got folder || end file info -> process
                 const char *tmpDir = fi.altname; // LFN MUST BE TURNED ON (1||2)
                 _dbg(tmpDir);
+								// FATFS flag for valid 8.3 fname - used instead of altname
+                if (tmpDir[0] == 0 && fi.fname[0] != 0) {
+                    tmpDir = fi.fname;
+                }
+								// save SFN part
                 for (j = 0; j < 12; j++) {
-                    if (j > 0 && tmpDir[j] == 0 /*|| tmpDir[j] == ' '*/) { break; }
+                    if (tmpDir[j] == 0) {
+                        break;
+                    }
                     sfn[k] = tmpDir[j];
                     k++;
                 }
-                if(i != sl){
+                // add folder slash
+                if (i != sl) {
                     sfn[k] = '/';
                     k++;
                 }
                 // SFN part of path saved
             }
         }
-        // continue --
-        tmpPath[i] = filepath[i];
         i++;
     }
 }
