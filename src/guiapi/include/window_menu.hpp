@@ -39,7 +39,7 @@ typedef struct
 //char * strings[3] = {"Low", "High", "Medium", NULL}
 typedef struct
 {
-    int32_t index;
+    uint32_t index;
     const char **strings;
 } WI_SWITCH_SELECT_t;
 
