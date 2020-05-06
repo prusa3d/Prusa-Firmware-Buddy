@@ -39,13 +39,13 @@ void screen_menu_fw_update_init(screen_t *screen) {
 
     psmd->items[MI_RETURN] = menu_item_return;
 
-    psmd->items[MI_ALWAYS] = (menu_item_t) { { "Always", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_ALWAYS].item.wi_switch_select.index = update_ena ? 0 : 1;
-    psmd->items[MI_ALWAYS].item.wi_switch_select.strings = opt_on_off;
+    psmd->items[MI_ALWAYS] = (menu_item_t) { { "Always", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_ALWAYS].item.data.wi_switch_select.index = update_ena ? 0 : 1;
+    psmd->items[MI_ALWAYS].item.data.wi_switch_select.strings = opt_on_off;
 
-    psmd->items[MI_ON_RESTART] = (menu_item_t) { { "On restart", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_ON_RESTART].item.wi_switch_select.index = update_ena ? 0 : (sys_fw_update_on_restart_is_enabled() ? 0 : 1);
-    psmd->items[MI_ON_RESTART].item.wi_switch_select.strings = opt_on_off;
+    psmd->items[MI_ON_RESTART] = (menu_item_t) { { "On restart", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_ON_RESTART].item.data.wi_switch_select.index = update_ena ? 0 : (sys_fw_update_on_restart_is_enabled() ? 0 : 1);
+    psmd->items[MI_ON_RESTART].item.data.wi_switch_select.strings = opt_on_off;
     if (update_ena)
         psmd->items[MI_ON_RESTART].item.type |= WI_DISABLED;
 
@@ -62,12 +62,12 @@ int screen_menu_fw_update_event(screen_t *screen, window_t *window, uint8_t even
         case MI_ALWAYS:
             if (sys_fw_update_is_enabled()) {
                 sys_fw_update_disable();
-                psmd->items[MI_ON_RESTART].item.wi_switch_select.index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
+                psmd->items[MI_ON_RESTART].item.data.wi_switch_select.index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
                 psmd->items[MI_ON_RESTART].item.type &= ~WI_DISABLED;
             } else {
                 sys_fw_update_enable();
                 psmd->items[MI_ON_RESTART].item.type |= WI_DISABLED;
-                psmd->items[MI_ON_RESTART].item.wi_switch_select.index = 0;
+                psmd->items[MI_ON_RESTART].item.data.wi_switch_select.index = 0;
             }
             break;
         case MI_ON_RESTART:

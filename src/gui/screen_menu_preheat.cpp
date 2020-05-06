@@ -30,10 +30,10 @@ void screen_menu_preheat_init(screen_t *screen) {
     psmd->items[0] = menu_item_return;
 
     for (size_t i = 1; i < FILAMENTS_END; i++) {
-        memset((char *)psmd->items[i].item.label, ' ', sizeof(char) * 15);
-        strncpy((char *)psmd->items[i].item.label, filaments[i].name,
+        psmd->items[i].item.label.fill(' ');
+        strncpy(psmd->items[i].item.label.data(), filaments[i].name,
             strlen(filaments[i].name));
-        sprintf((char *)psmd->items[i].item.label + 9, "%d/%d",
+        sprintf(psmd->items[i].item.label.data() + 9, "%d/%d",
             filaments[i].nozzle, filaments[i].heatbed);
     }
     psmd->items[FILAMENTS_END] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };

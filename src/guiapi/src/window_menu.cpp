@@ -11,29 +11,30 @@
 
 /*****************************************************************************/
 //WindowMenuItem
-WindowMenuItem::WindowMenuItem(uint16_t type, uint16_t id_icon, const char *label)
+WindowMenuItem::WindowMenuItem(uint16_t type, const char *text, uint16_t id_icon)
     : type(type)
     , id_icon(id_icon) {
-    strncpy(this->label.data, label, this->label.size);
+    //strncpy(this->label.data, label, this->label.size);
 }
 
-WindowMenuItem(WI_LABEL_t wi_label, uint16_t id_icon, const char *label)
-    : WindowMenuItem(WI_LABEL, id_icon, label) {
+//ctor without param creates LABEL
+WindowMenuItem::WindowMenuItem(const char *text, uint16_t id_icon, uint16_t flags)
+    : WindowMenuItem(flags, text, id_icon) {
 }
 
-WindowMenuItem::WindowMenuItem(WI_SPIN_t wi_spin, uint16_t id_icon, const char *label)
-    : WindowMenuItem(WI_SPIN, id_icon, label)
-    , wi_spin(wi_spin) {
+WindowMenuItem::WindowMenuItem(WI_SPIN_t wi_spin, const char *text, uint16_t id_icon)
+    : WindowMenuItem(WI_SPIN, text, id_icon) {
+    data = wi_spin;
 }
 
-WindowMenuItem::WindowMenuItem(WI_SPIN_FL_t wi_spin_fl, uint16_t id_icon, const char *label)
-    : WindowMenuItem(WI_SPIN_FL_t, id_icon, label)
-    , wi_spin_fl(wi_spin_fl) {
+WindowMenuItem::WindowMenuItem(WI_SPIN_FL_t wi_spin_fl, const char *text, uint16_t id_icon)
+    : WindowMenuItem(WI_SPIN_FL, text, id_icon) {
+    data = wi_spin_fl;
 }
 
-WindowMenuItem::WindowMenuItem(WI_SWITCH_SELECT_t wi_switch_select, uint16_t id_icon, const char *label)
-    : WindowMenuItem(WI_SWITCH_SELECT_t, id_icon, label)
-    , wi_switch_select(wi_switch_select) {
+WindowMenuItem::WindowMenuItem(WI_SWITCH_SELECT_t wi_switch_select, const char *text, uint16_t id_icon, bool switch_not_select)
+    : WindowMenuItem(switch_not_select ? WI_SWITCH : WI_SELECT, text, id_icon) {
+    data = wi_switch_select;
 }
 
 void window_menu_inc(window_menu_t *window, int dif);
@@ -150,9 +151,9 @@ void window_menu_draw(window_menu_t *window) {
             case WI_SPIN_FL: {
                 char value[20] = { '\0' };
                 if (item->type & WI_SPIN_FL)
-                    sprintf(value, item->wi_spin_fl.prt_format, (double)item->wi_spin_fl.value);
+                    sprintf(value, item->data.wi_spin_fl.prt_format, (double)item->data.wi_spin_fl.value);
                 else
-                    window_menu_calculate_spin(&(item->wi_spin), value);
+                    window_menu_calculate_spin(&(item->data.wi_spin), value);
 
                 _window_menu_draw_value(window, value, &rc, color_option, color_back);
             } break;
@@ -160,7 +161,7 @@ void window_menu_draw(window_menu_t *window) {
                 if (swap)
                     color_option = COLOR_ORANGE;
             case WI_SELECT: {
-                const char *value = ((const char **)item->wi_switch_select.strings)[item->wi_switch_select.index];
+                const char *value = ((const char **)item->data.wi_switch_select.strings)[item->data.wi_switch_select.index];
 
                 _window_menu_draw_value(window, value, &rc, color_option, color_back);
             } break;
@@ -178,7 +179,7 @@ void window_menu_draw(window_menu_t *window) {
             }
 
             // render
-            render_text_align(rc, item->label, window->font,
+            render_text_align(rc, item->label.data(), window->font,
                 color_back, color_text,
                 padding, window->alignment);
         }
@@ -242,16 +243,16 @@ void window_menu_item_spin(window_menu_t *window, int dif) {
     WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
 
-    const int32_t *range = item->wi_spin.range;
-    int32_t old = item->wi_spin.value;
+    const int32_t *range = item->data.wi_spin.range;
+    int32_t old = item->data.wi_spin.value;
 
     if (dif > 0) {
-        item->wi_spin.value = MIN(item->wi_spin.value + dif * range[WIO_STEP], range[WIO_MAX]);
+        item->data.wi_spin.value = MIN(item->data.wi_spin.value + dif * range[WIO_STEP], range[WIO_MAX]);
     } else {
-        item->wi_spin.value = MAX(item->wi_spin.value + dif * range[WIO_STEP], range[WIO_MIN]);
+        item->data.wi_spin.value = MAX(item->data.wi_spin.value + dif * range[WIO_STEP], range[WIO_MIN]);
     }
 
-    if (old != item->wi_spin.value)
+    if (old != item->data.wi_spin.value)
         _window_invalidate((window_t *)window);
 }
 
@@ -259,16 +260,16 @@ void window_menu_item_spin_fl(window_menu_t *window, int dif) {
     WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
 
-    const float *range = item->wi_spin_fl.range;
-    float old = item->wi_spin_fl.value;
+    const float *range = item->data.wi_spin_fl.range;
+    float old = item->data.wi_spin_fl.value;
 
     if (dif > 0) {
-        item->wi_spin_fl.value = MIN(item->wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MAX]);
+        item->data.wi_spin_fl.value = MIN(item->data.wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MAX]);
     } else {
-        item->wi_spin_fl.value = MAX(item->wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MIN]);
+        item->data.wi_spin_fl.value = MAX(item->data.wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MIN]);
     }
 
-    if (old != item->wi_spin_fl.value)
+    if (old != item->data.wi_spin_fl.value)
         _window_invalidate((window_t *)window);
 }
 
@@ -276,14 +277,14 @@ void window_menu_item_switch(window_menu_t *window) {
     WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
 
-    const char **strings = item->wi_switch_select.strings;
+    const char **strings = item->data.wi_switch_select.strings;
     size_t size = 0;
     while (strings[size] != NULL) {
         size++;
     }
-    item->wi_switch_select.index++;
-    if (item->wi_switch_select.index >= size) {
-        item->wi_switch_select.index = 0;
+    item->data.wi_switch_select.index++;
+    if (item->data.wi_switch_select.index >= size) {
+        item->data.wi_switch_select.index = 0;
     }
 }
 
@@ -291,21 +292,21 @@ void window_menu_item_select(window_menu_t *window, int dif) {
     WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
 
-    const char **strings = item->wi_switch_select.strings;
+    const char **strings = item->data.wi_switch_select.strings;
     size_t size = 0;
     while (strings[size] != NULL) {
         size++;
     }
 
     if (dif > 0) {
-        item->wi_switch_select.index++;
-        if (item->wi_switch_select.index >= size) {
-            item->wi_switch_select.index = 0;
+        item->data.wi_switch_select.index++;
+        if (item->data.wi_switch_select.index >= size) {
+            item->data.wi_switch_select.index = 0;
         }
     } else {
-        item->wi_switch_select.index--;
-        if (item->wi_switch_select.index < 0) {
-            item->wi_switch_select.index = size - 1;
+        item->data.wi_switch_select.index--;
+        if (item->data.wi_switch_select.index < 0) {
+            item->data.wi_switch_select.index = size - 1;
         }
     }
     _window_invalidate((window_t *)window);

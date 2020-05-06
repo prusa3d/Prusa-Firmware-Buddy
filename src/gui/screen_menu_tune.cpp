@@ -69,24 +69,24 @@ void screen_menu_tune_init(screen_t *screen) {
     vars = marlin_update_vars(
         MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
 
-    psmd->items[MI_SPEED].item.wi_spin.value = (int32_t)(vars->print_speed * 1000);
-    psmd->items[MI_SPEED].item.wi_spin.range = feedrate_range;
+    psmd->items[MI_SPEED].item.data.wi_spin.value = (int32_t)(vars->print_speed * 1000);
+    psmd->items[MI_SPEED].item.data.wi_spin.range = feedrate_range;
 
-    psmd->items[MI_NOZZLE].item.wi_spin.value = (int32_t)(vars->target_nozzle * 1000);
-    psmd->items[MI_NOZZLE].item.wi_spin.range = nozzle_range;
+    psmd->items[MI_NOZZLE].item.data.wi_spin.value = (int32_t)(vars->target_nozzle * 1000);
+    psmd->items[MI_NOZZLE].item.data.wi_spin.range = nozzle_range;
 
-    psmd->items[MI_HEATBED].item.wi_spin.value = (int32_t)(vars->target_bed * 1000);
-    psmd->items[MI_HEATBED].item.wi_spin.range = heatbed_range;
+    psmd->items[MI_HEATBED].item.data.wi_spin.value = (int32_t)(vars->target_bed * 1000);
+    psmd->items[MI_HEATBED].item.data.wi_spin.range = heatbed_range;
 
-    psmd->items[MI_PRINTFAN].item.wi_spin.value = (int32_t)(vars->fan_speed * 1000);
-    psmd->items[MI_PRINTFAN].item.wi_spin.range = printfan_range;
+    psmd->items[MI_PRINTFAN].item.data.wi_spin.value = (int32_t)(vars->fan_speed * 1000);
+    psmd->items[MI_PRINTFAN].item.data.wi_spin.range = printfan_range;
 
-    psmd->items[MI_FLOWFACT].item.wi_spin.value = (int32_t)(vars->flow_factor * 1000);
-    psmd->items[MI_FLOWFACT].item.wi_spin.range = flowfact_range;
+    psmd->items[MI_FLOWFACT].item.data.wi_spin.value = (int32_t)(vars->flow_factor * 1000);
+    psmd->items[MI_FLOWFACT].item.data.wi_spin.range = flowfact_range;
 
-    psmd->items[MI_BABYSTEP].item.wi_spin_fl.value = vars->z_offset;
-    psmd->items[MI_BABYSTEP].item.wi_spin_fl.range = zoffset_fl_range;
-    psmd->items[MI_BABYSTEP].item.wi_spin_fl.prt_format = zoffset_fl_format;
+    psmd->items[MI_BABYSTEP].item.data.wi_spin_fl.value = vars->z_offset;
+    psmd->items[MI_BABYSTEP].item.data.wi_spin_fl.range = zoffset_fl_range;
+    psmd->items[MI_BABYSTEP].item.data.wi_spin_fl.prt_format = zoffset_fl_format;
 }
 
 int screen_menu_tune_event(screen_t *screen, window_t *window,
@@ -106,29 +106,29 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
     if (event == WINDOW_EVENT_CHANGING) {
         switch ((int)param) {
         case MI_BABYSTEP:
-            marlin_do_babysteps_Z(psmd->items[MI_BABYSTEP].item.wi_spin_fl.value - z_offs);
-            z_offs = psmd->items[MI_BABYSTEP].item.wi_spin_fl.value;
+            marlin_do_babysteps_Z(psmd->items[MI_BABYSTEP].item.data.wi_spin_fl.value - z_offs);
+            z_offs = psmd->items[MI_BABYSTEP].item.data.wi_spin_fl.value;
             break;
         }
     } else if (event == WINDOW_EVENT_CHANGE) {
         switch ((int)param) {
         case MI_SPEED:
-            marlin_set_print_speed((uint16_t)(psmd->items[MI_SPEED].item.wi_spin.value / 1000));
+            marlin_set_print_speed((uint16_t)(psmd->items[MI_SPEED].item.data.wi_spin.value / 1000));
             break;
         case MI_NOZZLE:
-            marlin_set_target_nozzle((float)(psmd->items[MI_NOZZLE].item.wi_spin.value) / 1000);
+            marlin_set_target_nozzle((float)(psmd->items[MI_NOZZLE].item.data.wi_spin.value) / 1000);
             break;
         case MI_HEATBED:
-            marlin_set_target_bed((float)(psmd->items[MI_HEATBED].item.wi_spin.value) / 1000);
+            marlin_set_target_bed((float)(psmd->items[MI_HEATBED].item.data.wi_spin.value) / 1000);
             break;
         case MI_PRINTFAN:
-            marlin_set_fan_speed((uint8_t)(psmd->items[MI_PRINTFAN].item.wi_spin.value / 1000));
+            marlin_set_fan_speed((uint8_t)(psmd->items[MI_PRINTFAN].item.data.wi_spin.value / 1000));
             break;
         case MI_FLOWFACT:
-            marlin_set_flow_factor((uint16_t)(psmd->items[MI_FLOWFACT].item.wi_spin.value / 1000));
+            marlin_set_flow_factor((uint16_t)(psmd->items[MI_FLOWFACT].item.data.wi_spin.value / 1000));
             break;
         case MI_BABYSTEP:
-            marlin_set_z_offset(psmd->items[MI_BABYSTEP].item.wi_spin_fl.value);
+            marlin_set_z_offset(psmd->items[MI_BABYSTEP].item.data.wi_spin_fl.value);
             eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
             break;
         }
@@ -142,7 +142,7 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
             }
             break;
         case MI_BABYSTEP:
-            z_offs = psmd->items[MI_BABYSTEP].item.wi_spin_fl.value;
+            z_offs = psmd->items[MI_BABYSTEP].item.data.wi_spin_fl.value;
             break;
         }
     }
@@ -159,23 +159,23 @@ void screen_menu_tune_timer(screen_t *screen, uint32_t mseconds) {
         bool editing = psmd->menu.mode > 0;
         int index = psmd->menu.index;
         if (!editing || index != MI_SPEED) {
-            psmd->items[MI_SPEED].item.wi_spin.value = vars->print_speed * 1000;
+            psmd->items[MI_SPEED].item.data.wi_spin.value = vars->print_speed * 1000;
             psmd->menu.win.flg |= WINDOW_FLG_INVALID;
         }
         if (!editing || index != MI_NOZZLE) {
-            psmd->items[MI_NOZZLE].item.wi_spin.value = vars->target_nozzle * 1000;
+            psmd->items[MI_NOZZLE].item.data.wi_spin.value = vars->target_nozzle * 1000;
             psmd->menu.win.flg |= WINDOW_FLG_INVALID;
         }
         if (!editing || index != MI_HEATBED) {
-            psmd->items[MI_HEATBED].item.wi_spin.value = vars->target_bed * 1000;
+            psmd->items[MI_HEATBED].item.data.wi_spin.value = vars->target_bed * 1000;
             psmd->menu.win.flg |= WINDOW_FLG_INVALID;
         }
         if (!editing || index != MI_PRINTFAN) {
-            psmd->items[MI_PRINTFAN].item.wi_spin.value = vars->fan_speed * 1000;
+            psmd->items[MI_PRINTFAN].item.data.wi_spin.value = vars->fan_speed * 1000;
             psmd->menu.win.flg |= WINDOW_FLG_INVALID;
         }
         if (!editing || index != MI_FLOWFACT) {
-            psmd->items[MI_FLOWFACT].item.wi_spin.value = vars->flow_factor * 1000;
+            psmd->items[MI_FLOWFACT].item.data.wi_spin.value = vars->flow_factor * 1000;
             psmd->menu.win.flg |= WINDOW_FLG_INVALID;
         }
         last_timer_repaint = mseconds;

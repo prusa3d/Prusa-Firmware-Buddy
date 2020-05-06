@@ -88,23 +88,23 @@ void screen_menu_settings_init(screen_t *screen) {
     psmd->items[MI_TEST] = (menu_item_t) { { "Test", 0, WI_LABEL }, &screen_test };
 #endif //_DEBUG
     psmd->items[MI_FW_UPDATE] = (menu_item_t) { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update };
-    psmd->items[MI_FILAMENT_SENSOR] = (menu_item_t) { { "Fil. sens.", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = 0;
-    psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.strings = settings_opt_enable_disable;
-    psmd->items[MI_TIMEOUT] = (menu_item_t) { { "Timeout", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_TIMEOUT].item.wi_switch_select.index = 0;
-    psmd->items[MI_TIMEOUT].item.wi_switch_select.strings = settings_opt_enable_disable;
+    psmd->items[MI_FILAMENT_SENSOR] = (menu_item_t) { { "Fil. sens.", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_FILAMENT_SENSOR].item.data.wi_switch_select.index = 0;
+    psmd->items[MI_FILAMENT_SENSOR].item.data.wi_switch_select.strings = settings_opt_enable_disable;
+    psmd->items[MI_TIMEOUT] = (menu_item_t) { { "Timeout", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_TIMEOUT].item.data.wi_switch_select.index = 0;
+    psmd->items[MI_TIMEOUT].item.data.wi_switch_select.strings = settings_opt_enable_disable;
 #ifdef BUDDY_ENABLE_ETHERNET
     psmd->items[MI_LAN_SETTINGS] = (menu_item_t) { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings };
 #endif //BUDDY_ENABLE_ETHERNET
     psmd->items[MI_SAVE_DUMP] = (menu_item_t) { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SOUND_MODE] = (menu_item_t) { { "Sound Mode", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = 0;
-    psmd->items[MI_SOUND_MODE].item.wi_switch_select.strings = sound_opt_modes;
+    psmd->items[MI_SOUND_MODE] = (menu_item_t) { { "Sound Mode", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SOUND_MODE].item.data.wi_switch_select.index = 0;
+    psmd->items[MI_SOUND_MODE].item.data.wi_switch_select.strings = sound_opt_modes;
 #ifdef _DEBUG
-    psmd->items[MI_SOUND_TYPE] = (menu_item_t) { { "Sound Type", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index = 0;
-    psmd->items[MI_SOUND_TYPE].item.wi_switch_select.strings = sound_opt_types;
+    psmd->items[MI_SOUND_TYPE] = (menu_item_t) { { "Sound Type", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SOUND_TYPE].item.data.wi_switch_select.index = 0;
+    psmd->items[MI_SOUND_TYPE].item.data.wi_switch_select.strings = sound_opt_types;
     psmd->items[MI_HF_TEST_0] = (menu_item_t) { { "HF0 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_HF_TEST_1] = (menu_item_t) { { "HF1 test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_EE_LOAD_400] = (menu_item_t) { { "EE 4.0.0", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
@@ -124,12 +124,12 @@ void screen_menu_settings_init(screen_t *screen) {
         fs_disable();
         fs = FS_DISABLED;
     }
-    psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = (fs != FS_DISABLED);
-    psmd->items[MI_TIMEOUT].item.wi_switch_select.index = menu_timeout_enabled; //st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS)
+    psmd->items[MI_FILAMENT_SENSOR].item.data.wi_switch_select.index = (fs != FS_DISABLED);
+    psmd->items[MI_TIMEOUT].item.data.wi_switch_select.index = menu_timeout_enabled; //st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS)
 
     for (size_t i = 0; i < sizeof(e_sound_modes); i++) {
         if (e_sound_modes[i] == Sound_GetMode()) {
-            psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = i;
+            psmd->items[MI_SOUND_MODE].item.data.wi_switch_select.index = i;
             break;
         }
     }
@@ -213,20 +213,20 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
             {
                 fs_disable();
-                psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = 0;
+                psmd->items[MI_FILAMENT_SENSOR].item.data.wi_switch_select.index = 0;
                 //todo need to invalidate that stupid item, but I cannot grrrr
                 gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
             }
         } break;
         case MI_SOUND_MODE:
-            Sound_SetMode(e_sound_modes[psmd->items[MI_SOUND_MODE].item.wi_switch_select.index]);
+            Sound_SetMode(e_sound_modes[psmd->items[MI_SOUND_MODE].item.data.wi_switch_select.index]);
             break;
 #ifdef _DEBUG
         case MI_SOUND_TYPE:
-            if (e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index] == eSOUND_TYPE_StandardPrompt) {
+            if (e_sound_types[psmd->items[MI_SOUND_TYPE].item.data.wi_switch_select.index] == eSOUND_TYPE_StandardPrompt) {
                 gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
             } else {
-                Sound_Play(e_sound_types[psmd->items[MI_SOUND_TYPE].item.wi_switch_select.index]);
+                Sound_Play(e_sound_types[psmd->items[MI_SOUND_TYPE].item.data.wi_switch_select.index]);
             }
             break;
 #endif // _DEBUG

@@ -23,10 +23,10 @@ typedef enum {
 } MI_t;
 
 const menu_item_t _menu_filament_items[] = {
-    { { "Load Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Unload Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Change Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Purge Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
+    { WindowMenuItem("Load Filament"), SCREEN_MENU_NO_SCREEN },
+    { WindowMenuItem("Unload Filament"), SCREEN_MENU_NO_SCREEN },
+    { WindowMenuItem("Change Filament"), SCREEN_MENU_NO_SCREEN },
+    { WindowMenuItem("Purge Filament"), SCREEN_MENU_NO_SCREEN },
 };
 
 static void _load_ena(screen_t *screen) {

@@ -37,15 +37,15 @@ void screen_menu_temperature_init(screen_t *screen) {
 
     vars = marlin_update_vars(
         MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED));
-    psmd->items[MI_NOZZLE] = (menu_item_t) { { "Nozzle", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_NOZZLE].item.wi_spin.value = (int32_t)(vars->target_nozzle * 1000);
-    psmd->items[MI_NOZZLE].item.wi_spin.range = nozzle_range;
-    psmd->items[MI_HEATBED] = (menu_item_t) { { "Heatbed", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_HEATBED].item.wi_spin.value = (int32_t)(vars->target_bed * 1000);
-    psmd->items[MI_HEATBED].item.wi_spin.range = heatbed_range;
-    psmd->items[MI_PRINTFAN] = (menu_item_t) { { "Print Fan", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PRINTFAN].item.wi_spin.value = (int32_t)(vars->fan_speed * 1000);
-    psmd->items[MI_PRINTFAN].item.wi_spin.range = printfan_range;
+    psmd->items[MI_NOZZLE] = (menu_item_t) { { "Nozzle", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_NOZZLE].item.data.wi_spin.value = (int32_t)(vars->target_nozzle * 1000);
+    psmd->items[MI_NOZZLE].item.data.wi_spin.range = nozzle_range;
+    psmd->items[MI_HEATBED] = (menu_item_t) { { "Heatbed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_HEATBED].item.data.wi_spin.value = (int32_t)(vars->target_bed * 1000);
+    psmd->items[MI_HEATBED].item.data.wi_spin.range = heatbed_range;
+    psmd->items[MI_PRINTFAN] = (menu_item_t) { { "Print Fan", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_PRINTFAN].item.data.wi_spin.value = (int32_t)(vars->fan_speed * 1000);
+    psmd->items[MI_PRINTFAN].item.data.wi_spin.range = printfan_range;
     psmd->items[MI_COOLDOWN] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
 }
 
@@ -55,22 +55,22 @@ int screen_menu_temperature_event(screen_t *screen, window_t *window, uint8_t ev
     if (event == WINDOW_EVENT_CHANGE) {
         switch ((int)param) {
         case MI_NOZZLE:
-            marlin_set_target_nozzle(psmd->items[MI_NOZZLE].item.wi_spin.value / 1000);
+            marlin_set_target_nozzle(psmd->items[MI_NOZZLE].item.data.wi_spin.value / 1000);
             break;
         case MI_HEATBED:
-            marlin_set_target_bed(psmd->items[MI_HEATBED].item.wi_spin.value / 1000);
+            marlin_set_target_bed(psmd->items[MI_HEATBED].item.data.wi_spin.value / 1000);
             break;
         case MI_PRINTFAN:
-            marlin_set_fan_speed(psmd->items[MI_PRINTFAN].item.wi_spin.value / 1000);
+            marlin_set_fan_speed(psmd->items[MI_PRINTFAN].item.data.wi_spin.value / 1000);
             break;
         }
     } else if ((event == WINDOW_EVENT_CLICK) && (int)param == MI_COOLDOWN) {
         marlin_set_target_nozzle(0);
         marlin_set_target_bed(0);
         marlin_set_fan_speed(0);
-        psmd->items[MI_NOZZLE].item.wi_spin.value = 0;
-        psmd->items[MI_HEATBED].item.wi_spin.value = 0;
-        psmd->items[MI_PRINTFAN].item.wi_spin.value = 0;
+        psmd->items[MI_NOZZLE].item.data.wi_spin.value = 0;
+        psmd->items[MI_HEATBED].item.data.wi_spin.value = 0;
+        psmd->items[MI_PRINTFAN].item.data.wi_spin.value = 0;
         _window_invalidate(&(psmd->root.win));
     }
     return 0;

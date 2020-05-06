@@ -4,6 +4,7 @@
 #include "window_header.h"
 #include "status_footer.h"
 #include "window_menu.hpp"
+#include <stdint.h>
 
 #pragma pack(push)
 #pragma pack(1)

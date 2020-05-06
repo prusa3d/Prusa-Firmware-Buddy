@@ -49,24 +49,24 @@ void screen_test_temperature_init(screen_t *screen) {
     psmd->items[MI_RETURN] = menu_item_return;
 
     psmd->items[MI_NOZZLE] = (menu_item_t) { { "Nozzle", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_NOZZLE].item.wi_spin.value = thermalManager.degTargetHotend(0) * 1000;
-    psmd->items[MI_NOZZLE].item.wi_spin.range = nozzle_range;
+    psmd->items[MI_NOZZLE].item.data.wi_spin.value = thermalManager.degTargetHotend(0) * 1000;
+    psmd->items[MI_NOZZLE].item.data.wi_spin.range = nozzle_range;
 
     psmd->items[MI_HEAT_PWM_PERIOD] = (menu_item_t) { { "Ht. PWM T", 0, WI_SELECT }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_HEAT_PWM_PERIOD].item.wi_switch_select.index = hwio_pwm_get_prescaler_log2(HWIO_PWM_HEATER_BED);
-    psmd->items[MI_HEAT_PWM_PERIOD].item.wi_switch_select.strings = period_pwm_range;
+    psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch_select.index = hwio_pwm_get_prescaler_log2(HWIO_PWM_HEATER_BED);
+    psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch_select.strings = period_pwm_range;
 
     psmd->items[MI_HEATBED] = (menu_item_t) { { "Heatbed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_HEATBED].item.wi_spin.value = thermalManager.degTargetBed() * 1000;
-    psmd->items[MI_HEATBED].item.wi_spin.range = heatbed_range;
+    psmd->items[MI_HEATBED].item.data.wi_spin.value = thermalManager.degTargetBed() * 1000;
+    psmd->items[MI_HEATBED].item.data.wi_spin.range = heatbed_range;
 
     psmd->items[MI_FAN_PWM_PERIOD] = (menu_item_t) { { "Fan PWM T", 0, WI_SELECT }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_FAN_PWM_PERIOD].item.wi_switch_select.index = hwio_pwm_get_prescaler_log2(HWIO_PWM_HEATER_BED);
-    psmd->items[MI_FAN_PWM_PERIOD].item.wi_switch_select.strings = period_pwm_range;
+    psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_switch_select.index = hwio_pwm_get_prescaler_log2(HWIO_PWM_HEATER_BED);
+    psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_switch_select.strings = period_pwm_range;
 
     psmd->items[MI_PRINTFAN] = (menu_item_t) { { "Print Fan", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PRINTFAN].item.wi_spin.value = thermalManager.fan_speed[0] * 1000;
-    psmd->items[MI_PRINTFAN].item.wi_spin.range = printfan_range;
+    psmd->items[MI_PRINTFAN].item.data.wi_spin.value = thermalManager.fan_speed[0] * 1000;
+    psmd->items[MI_PRINTFAN].item.data.wi_spin.range = printfan_range;
 
     psmd->items[MI_COOLDOWN] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
 }
@@ -80,28 +80,28 @@ int screen_test_temperature_event(screen_t *screen, window_t *window,
     if (event == WINDOW_EVENT_CHANGING) {
         switch ((int)param) {
         case MI_NOZZLE:
-            thermalManager.setTargetHotend(psmd->items[MI_NOZZLE].item.wi_spin.value / 1000, 0);
+            thermalManager.setTargetHotend(psmd->items[MI_NOZZLE].item.data.wi_spin.value / 1000, 0);
             break;
         case MI_HEATBED:
-            thermalManager.setTargetBed(psmd->items[MI_HEATBED].item.wi_spin.value / 1000);
+            thermalManager.setTargetBed(psmd->items[MI_HEATBED].item.data.wi_spin.value / 1000);
             break;
         case MI_PRINTFAN:
-            thermalManager.set_fan_speed(0, psmd->items[MI_PRINTFAN].item.wi_spin.value / 1000);
+            thermalManager.set_fan_speed(0, psmd->items[MI_PRINTFAN].item.data.wi_spin.value / 1000);
             break;
         case MI_HEAT_PWM_PERIOD:
-            hwio_pwm_set_prescaler_exp2(HWIO_PWM_HEATER_BED, psmd->items[MI_HEAT_PWM_PERIOD].item.wi_switch_select.index);
+            hwio_pwm_set_prescaler_exp2(HWIO_PWM_HEATER_BED, psmd->items[MI_HEAT_PWM_PERIOD].item.data.wi_switch_select.index);
             break;
         case MI_FAN_PWM_PERIOD:
-            hwio_pwm_set_prescaler_exp2(HWIO_PWM_FAN, psmd->items[MI_FAN_PWM_PERIOD].item.wi_switch_select.index);
+            hwio_pwm_set_prescaler_exp2(HWIO_PWM_FAN, psmd->items[MI_FAN_PWM_PERIOD].item.data.wi_switch_select.index);
             break;
         }
     } else if (event == WINDOW_EVENT_CLICK && (int)param == MI_COOLDOWN) {
         thermalManager.setTargetHotend(0, 0);
         thermalManager.setTargetBed(0);
         thermalManager.set_fan_speed(0, 0);
-        psmd->items[MI_NOZZLE].item.wi_spin.value = 0;
-        psmd->items[MI_HEATBED].item.wi_spin.value = 0;
-        psmd->items[MI_PRINTFAN].item.wi_spin.value = 0;
+        psmd->items[MI_NOZZLE].item.data.wi_spin.value = 0;
+        psmd->items[MI_HEATBED].item.data.wi_spin.value = 0;
+        psmd->items[MI_PRINTFAN].item.data.wi_spin.value = 0;
         _window_invalidate(&(psmd->root.win));
     }
 
