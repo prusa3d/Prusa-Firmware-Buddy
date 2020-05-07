@@ -207,6 +207,7 @@ void status_footer_update_temperatures(status_footer_t *footer) {
         sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)_nozzle_target_temp);
     } else {
         sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
+        footer->nozzle_target = target_nozzle;
     }
     window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
 

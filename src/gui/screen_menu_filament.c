@@ -83,6 +83,16 @@ void screen_menu_filament_init(screen_t *screen) {
     _deactivate_item(screen);
 }
 
+/// Decreases temperature of nozzle not to ooze during MBL
+void set_preheat_state(float target_temp) {
+    if (target_temp > PREHEAT_TEMP) {
+        marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
+        preheat_mode_on(target_temp);
+        return;
+    }
+    preheat_mode_off();
+}
+
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     _deactivate_item(screen);
     if (event == WINDOW_EVENT_CLICK)
@@ -92,7 +102,7 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
                 p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
                 gui_dlg_load();
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
-                preheat();
+                set_preheat_state(psmd->footer.nozzle_target);
                 break;
             case MI_UNLOAD:
                 p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
@@ -104,11 +114,13 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
                 gui_dlg_unload();
                 gui_dlg_load();
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
+                set_preheat_state(psmd->footer.nozzle_target);
                 break;
             case MI_PURGE:
                 p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
                 gui_dlg_purge();
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
+                set_preheat_state(psmd->footer.nozzle_target);
                 break;
             }
     return screen_menu_event(screen, window, event, param);
@@ -124,17 +136,5 @@ screen_t screen_menu_filament = {
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
-
-/// Decreases temperature of nozzle not to ooze during MBL
-void preheat() {
-    const float target_temp = thermalManager.degTargetHotend(0);
-
-    if (target_temp > PREHEAT_TEMP) {
-        marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
-        preheat_mode_on(target_temp);
-    } else {
-        preheat_mode_off();
-    }
-}
 
 screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

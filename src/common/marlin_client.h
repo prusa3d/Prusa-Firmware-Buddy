@@ -140,6 +140,9 @@ extern uint8_t marlin_get_pqueue(void);
 // returns maximum number of records in planner queue
 extern uint8_t marlin_get_pqueue_max(void);
 
+// variable getters (internally calls marlin_get_var)
+extern float marlin_get_target_nozzle();
+
 // variable setters (internally calls marlin_set_var)
 extern float marlin_set_target_nozzle(float val);
 extern float marlin_set_target_bed(float val);
