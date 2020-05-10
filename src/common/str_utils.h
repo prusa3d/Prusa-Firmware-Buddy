@@ -5,16 +5,16 @@
 #include <string.h>
 
 #define CHAR_SPACE  ' '
-#define CHAR_HSPACE '\x1F' // ~ <UnitSeparator>
+#define CHAR_HSPACE '\xA0' // ~ <NonBreakingSpace>
 #define CHAR_LF     '\n'   // ~ <LineFeed>
 #define CHAR_NL     CHAR_LF
-#define CHAR_HYPHEN '\x1A' // ~ <Substitute>
+#define CHAR_HYPHEN '\xAD' // ~ <SoftHyphen>
 #define CHAR_MINUS  '-'
 
-#define QT_HSPACE "\x1F" // ~ <UnitSeparator>
+#define QT_HSPACE "\xA0" // ~ <NonBreakingSpace>
 #define QT_LF     "\n"   // ~ <LineFeed>
 #define QT_NL     QT_LF
-#define QT_HYPHEN "\x1A" // ~ <Substitute>
+#define QT_HYPHEN "\xAD" // ~ <SoftHyphen>
 
 #define HYPHEN_ALLWAYS       0
 #define HYPHEN_DENY          -1
@@ -28,6 +28,16 @@ enum class delimiter_t : uint8_t { NONE,
     SPACE,
     HYPHEN,
     CUSTOM };
+
+typedef struct
+{
+    const char *pcustom_set = "";
+    const char *pwithdraw_set = "";
+    int hyphen_distance = HYPHEN_DENY;
+} ml_instance_t;
+
+void set_instance(ml_instance_t *pinst);
+void set_self_instance(void);
 
 size_t strdel(char *pstr, size_t n = 1);
 size_t strins(char *pstr, const char *pinstr, size_t repeater = 1, bool before_flag = false);

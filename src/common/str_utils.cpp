@@ -1,9 +1,16 @@
 #include "str_utils.h"
 #include <string.h>
 
-static const char *pcustom_set = "";
-static const char *pwithdraw_set = "";
-static int hyphen_distance = HYPHEN_DENY;
+static ml_instance_t self_instance;
+static ml_instance_t *pinstance = &self_instance;
+
+void set_instance(ml_instance_t *pinst) {
+    pinstance = pinst;
+}
+
+void set_self_instance(void) {
+    pinstance = &self_instance;
+}
 
 size_t strdel(char *pstr, size_t n) {
     size_t count, i;
@@ -37,21 +44,21 @@ size_t strins(char *pstr, const char *pinstr, size_t repeater, bool before_flag)
 }
 
 void set_custom_set(const char *pstr) {
-    pcustom_set = pstr;
+    pinstance->pcustom_set = pstr;
 }
 
 void set_withdraw_set(const char *pstr) {
-    pwithdraw_set = pstr;
+    pinstance->pwithdraw_set = pstr;
 }
 
 void set_hyphen_distance(int dist) {
-    hyphen_distance = dist;
+    pinstance->hyphen_distance = dist;
 }
 
 void set_defaults(void) {
-    pcustom_set = "";
-    pwithdraw_set = "";
-    hyphen_distance = HYPHEN_DENY;
+    pinstance->pcustom_set = "";
+    pinstance->pwithdraw_set = "";
+    pinstance->hyphen_distance = HYPHEN_DENY;
 }
 
 size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set, char substitute_char) {
@@ -78,7 +85,7 @@ size_t str2plain(char *pstr, bool withdraw_flag) {
     const char *pset = "";
 
     if (withdraw_flag)
-        pset = pwithdraw_set;
+        pset = pinstance->pwithdraw_set;
     return (str2plain(pstr, pset));
 }
 
@@ -110,7 +117,7 @@ size_t str2multiline(char *pstr, size_t line_width) {
             lines_count++;
             break;
         case CHAR_HYPHEN:
-            if ((hyphen_distance == HYPHEN_DENY) || (((delimiter_type == delimiter_t::SPACE) || (delimiter_type == delimiter_t::CUSTOM)) && ((pstr - last_delimiter_position) < hyphen_distance))) {
+            if ((pinstance->hyphen_distance == HYPHEN_DENY) || (((delimiter_type == delimiter_t::SPACE) || (delimiter_type == delimiter_t::CUSTOM)) && ((pstr - last_delimiter_position) < pinstance->hyphen_distance))) {
                 pstr -= strdel(pstr); // pointer correction needed
                 actual_width--;
                 break;
@@ -123,14 +130,14 @@ size_t str2multiline(char *pstr, size_t line_width) {
             delimiter_type = delimiter_t::HYPHEN;
             break;
         default:
-            if (strchr(pcustom_set, *pstr) != NULL) {
+            if (strchr(pinstance->pcustom_set, *pstr) != NULL) {
                 if (delimiter_type == delimiter_t::HYPHEN) {
                     pstr -= strdel(last_delimiter_position); // pointer correction needed
                     actual_width--;
                 }
                 last_delimiter_position = pstr;
                 delimiter_type = delimiter_t::CUSTOM;
-            } else if (strchr(pwithdraw_set, *pstr) != NULL) {
+            } else if (strchr(pinstance->pwithdraw_set, *pstr) != NULL) {
                 pstr -= strdel(pstr); // pointer correction needed
                 actual_width--;
             }
