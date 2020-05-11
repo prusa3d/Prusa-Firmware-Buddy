@@ -84,9 +84,12 @@ void screen_menu_filament_init(screen_t *screen) {
 }
 
 /// Decreases temperature of nozzle not to ooze during MBL
-void set_preheat_state(float target_temp) {
+void set_preheat_state(float tmp) {
+    const float target_temp = marlin_get_target_nozzle();
+
     if (target_temp > PREHEAT_TEMP) {
         marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
+        //wait
         preheat_mode_on(target_temp);
         return;
     }

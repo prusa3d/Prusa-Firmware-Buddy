@@ -174,15 +174,16 @@ void status_footer_update_temperatures(status_footer_t *footer) {
 
     /// automatic disabling of nozzle preheat style
     /// easier and safer than handling all possible starts of printing
-    if (target_nozzle != PREHEAT_TEMP)
-        _preheat_mode = false;
+    // if (target_nozzle != PREHEAT_TEMP)
+    //     _preheat_mode = false;
 
     /// nozzle state
     if (_preheat_mode) {
         footer->nozzle_state = PREHEAT;
         if (PREHEAT_TEMP > actual_nozzle + HEATING_DIFFERENCE) {
             footer->nozzle_state = HEATING;
-        } else if (PREHEAT_TEMP < actual_nozzle - HEATING_DIFFERENCE) {
+        } else if (_nozzle_target_temp < actual_nozzle - HEATING_DIFFERENCE) {
+            // _nozzle_target_temp is OK, because it's weird to show 200/215 and cooling color
             footer->nozzle_state = COOLING;
         }
     } else {
