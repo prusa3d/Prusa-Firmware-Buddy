@@ -4,55 +4,139 @@
 #include "window_header.h"
 #include "status_footer.h"
 #include "window_menu.hpp"
+#include "WinMenuContainer.hpp"
+#include "WindowMenuItems.hpp"
 #include <stdint.h>
+#include "resource.h"
 
 #pragma pack(push)
 #pragma pack(1)
-
+/*
 struct menu_flags_t {
     uint8_t has_footer : 1;
     uint8_t has_help : 1;
-};
-
+};*/
+/*
 struct menu_item_t {
     WindowMenuItem item;
     screen_t *screen;
-};
+};*/
 
-struct screen_menu_data_t {
+struct Iscreen_menu_data_t {
     window_frame_t root;
     window_header_t header;
-    window_menu_t menu;
+    //window_menu_t menu;
 
-    menu_item_t *items;
+    //menu_item_t *items;
 
-    menu_flags_t flags;
+    // menu_flags_t flags;
     window_text_t help;
     status_footer_t footer;
 };
 
+template <bool HEADER, bool FOOTER, bool HELP, class... T>
+struct screen_menu_data_t : public Iscreen_menu_data_t {
+    window_menu_t menu;
+    WinMenuContainer<T...> container;
+
+    void Init(const char *label, T... args);
+    void Done();
+    void Draw() {}
+    int Event(window_t *window, uint8_t event, void *param);
+};
+
 #pragma pack(pop)
 
-#define SCREEN_MENU_RETURN    (screen_t *)SIZE_MAX
-#define SCREEN_MENU_NO_SCREEN NULL
-#define psmd                  ((screen_menu_data_t *)screen->pdata)
+template <bool HEADER, bool FOOTER, bool HELP, class... T>
+void screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Init(const char *label, T... args) {
+    menu.pContainer = &container;
+    //todo label
+    container.Init(args...);
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+    rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278);
+    if (HELP) {
+        menu_rect.h -= 115;
+    }
+    if (FOOTER) {
+        menu_rect.h -= 41;
+    }
 
-extern const menu_item_t menu_item_return;
+    int16_t id;
+    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
+        rect_ui16(0, 0, 0, 0),
+        &(root));
+    window_disable(root);
 
-void screen_menu_init(screen_t *screen, const char *label,
-    menu_item_t *p_items, size_t count, uint8_t footer, uint8_t help);
+    id = window_create_ptr(WINDOW_CLS_HEADER, root,
+        rect_ui16(0, 0, 240, 31), &(header));
+    // p_window_header_set_icon(&(header), IDR_PNG_status_icon_menu);
+    p_window_header_set_text(&(header), label);
 
-void screen_menu_done(screen_t *screen);
+    id = window_create_ptr(WINDOW_CLS_MENU, root,
+        menu_rect, &(menu));
+    menu.padding = padding_ui8(20, 6, 2, 6);
+    menu.icon_rect = rect_ui16(0, 0, 16, 30);
+    //menu.count = count;
+    //menu.menu_items = screen_menu_item;
+    //menu.data = (void *)screen;
+    //window_set_item_index(id, 1);	// 0 = return
+    window_set_capture(id); // set capture to list
+    window_set_focus(id);
 
-int screen_menu_event(screen_t *screen, window_t *window,
-    uint8_t event, void *param);
+    if (HELP) {
+        id = window_create_ptr(WINDOW_CLS_TEXT, root,
+            (FOOTER) ? rect_ui16(10, 154, 220, 115) : rect_ui16(10, 195, 220, 115),
+            &help);
+        help.font = resource_font(IDR_FNT_SPECIAL);
+    }
 
-void screen_menu_draw(screen_t *screen);
-
-#ifdef __cplusplus
+    if (FOOTER) {
+        status_footer_init(&footer, root);
+    }
 }
-#endif //__cplusplus
+
+template <bool HEADER, bool FOOTER, bool HELP, class... T>
+void screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Done() {
+    window_destroy(root.win.id);
+}
+
+//helper functions to get Nth element in event at runtime
+template <std::size_t I = 0, typename... Tp>
+inline typename std::enable_if<I == sizeof...(Tp), void>::type
+for_index_OnClick(int, std::tuple<Tp...> &) {}
+
+template <std::size_t I = 0, typename... Tp>
+    inline typename std::enable_if < I<sizeof...(Tp), void>::type
+    for_index_OnClick(int index, std::tuple<Tp...> &t) {
+    if (index == 0)
+        (std::get<I>(t)).OnClick();
+    for_index_OnClick<I + 1, Tp...>(index - 1, t);
+}
+
+template <bool HEADER, bool FOOTER, bool HELP, class... T>
+int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint8_t event, void *param) {
+    if (FOOTER) {
+        status_footer_event(&footer, window, event, param);
+    }
+    if (HEADER) {
+        window_header_events(&header);
+    }
+
+    if (event != WINDOW_EVENT_CLICK) {
+        return 0;
+    }
+
+    /*    const menu_item_t *item = &(items[(int)param]);
+    if (!(!item->item.IsEnabled()) && item->screen == SCREEN_MENU_RETURN) {
+        screen_close();
+        return 1;
+    }
+
+
+    if (!(!item->item.IsEnabled()) && item->screen != SCREEN_MENU_NO_SCREEN) {
+        screen_open(item->screen->id);
+        return 1;
+    }*/
+
+    return for_index_OnClick((int)param, WinMenuContainer<T...>::menu_items);
+}

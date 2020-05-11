@@ -2,7 +2,7 @@
 #include "config.h"
 #include "stdlib.h"
 #include "resource.h"
-
+/*
 void window_set_capture(int16_t id);
 
 const menu_item_t menu_item_return = {
@@ -100,3 +100,4 @@ int screen_menu_event(screen_t *screen, window_t *window,
     }
     return 0;
 }
+*/

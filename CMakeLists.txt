@@ -593,6 +593,8 @@ if(GUI)
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
+            src/guiapi/src/IWindowMenuItem.cpp
+            src/guiapi/src/WindowMenuItems.cpp
     )
 endif()
 

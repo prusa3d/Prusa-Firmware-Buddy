@@ -4,57 +4,28 @@
 #include "gui.h"
 #include "cmath_ext.h"
 #include "sound_C_wrapper.h"
+#include "resource.h"
+#include "IWindowMenuItem.hpp"
 
 #define WIO_MIN  0
 #define WIO_MAX  1
 #define WIO_STEP 2
 
-/*****************************************************************************/
-//WindowMenuItem
-WindowMenuItem::WindowMenuItem(uint16_t type, const char *text, uint16_t id_icon)
-    : type(type)
-    , id_icon(id_icon) {
-    //strncpy(this->label.data, label, this->label.size);
-}
-
-//ctor without param creates LABEL
-WindowMenuItem::WindowMenuItem(const char *text, uint16_t id_icon, uint16_t flags)
-    : WindowMenuItem(flags, text, id_icon) {
-}
-
-WindowMenuItem::WindowMenuItem(WI_SPIN_t wi_spin, const char *text, uint16_t id_icon)
-    : WindowMenuItem(WI_SPIN, text, id_icon) {
-    data = wi_spin;
-}
-
-WindowMenuItem::WindowMenuItem(WI_SPIN_FL_t wi_spin_fl, const char *text, uint16_t id_icon)
-    : WindowMenuItem(WI_SPIN_FL, text, id_icon) {
-    data = wi_spin_fl;
-}
-
-WindowMenuItem::WindowMenuItem(WI_SWITCH_t wi_switch, const char *text, uint16_t id_icon, bool switch_not_select)
-    : WindowMenuItem(WI_SWITCH, text, id_icon) {
-    data = wi_switch;
-}
-
-WindowMenuItem::WindowMenuItem(WI_SELECT_t wi_select, const char *text, uint16_t id_icon, bool switch_not_select)
-    : WindowMenuItem(WI_SELECT, text, id_icon) {
-    data = wi_select;
-}
-
+/*
 void window_menu_inc(window_menu_t *window, int dif);
 void window_menu_dec(window_menu_t *window, int dif);
 void window_menu_item_spin(window_menu_t *window, int dif);
 void window_menu_item_spin_fl(window_menu_t *window, int dif);
 void window_menu_item_switch(window_menu_t *window);
 void window_menu_item_select(window_menu_t *window, int dif);
+*/
 
-WindowMenuItem undefined = { "No menu_items fce!", 0, WI_LABEL | WI_DISABLED };
+/*WindowMenuItem undefined = { "No menu_items fce!", 0, WI_LABEL | WI_DISABLED };
 
 void window_menu_items(window_menu_t *pwindow_menu, uint16_t index,
     WindowMenuItem **ppitem, void *data) {
     *ppitem = &undefined;
-}
+}*/
 
 void window_menu_init(window_menu_t *window) {
     window->color_back = gui_defaults.color_back;
@@ -67,15 +38,16 @@ void window_menu_init(window_menu_t *window) {
     window->count = 0;
     window->index = 0;
     window->top_index = 0;
-    window->mode = 0;
-    window->menu_items = window_menu_items;
+    //window->mode = 0;
+    window->selected = false;
+    //window->menu_items = window_menu_items;
     window->data = NULL;
     window->win.flg |= WINDOW_FLG_ENABLED;
 }
 
 void window_menu_done(window_menu_t *window) {
 }
-
+/*
 void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
     const char *format;
 
@@ -89,7 +61,7 @@ void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
         format = "%.f";
     sprintf(value, format, item->value * 0.001);
 }
-
+*/
 void window_menu_set_item_index(window_t *window, int index) {
     if (window->cls->cls_id == WINDOW_CLS_MENU) {
         if (((window_menu_t *)window)->count > index) {
@@ -122,8 +94,9 @@ void window_menu_draw(window_menu_t *window) {
     int i;
     for (i = 0; i < visible_count && i < window->count; i++) {
         int idx = i + window->top_index;
-        WindowMenuItem *item;
-        window->menu_items(window, idx, &item, window->data);
+        //WindowMenuItem *item;
+        //window->menu_items(window, idx, &item, window->data);
+        IWindowMenuItem *item = &window->pContainer->GetItem(idx);
 
         color_t color_text = window->color_text;
         color_t color_back = window->color_back;
@@ -134,7 +107,8 @@ void window_menu_draw(window_menu_t *window) {
         padding_ui8_t padding = window->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            if (!item->IsEnabled()) {
+            item->Print(rc);
+            /*if (!item->IsEnabled()) {
                 color_text = window->color_disabled;
             }
 
@@ -146,7 +120,8 @@ void window_menu_draw(window_menu_t *window) {
             }
 
             color_t color_option = color_text;
-            if (window->mode && swap) {
+            //if (window->mode && swap) {
+            if (window->selected && swap) {
                 color_option = COLOR_ORANGE;
             }
 
@@ -187,6 +162,7 @@ void window_menu_draw(window_menu_t *window) {
             render_text_align(rc, item->label.data(), window->font,
                 color_back, color_text,
                 padding, window->alignment);
+                */
         }
     }
     rc_win.h = rc_win.h - (i * item_height);
@@ -202,11 +178,13 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     window->src_param = param;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        if (window->mode != WI_LABEL) {
-            window->mode = WI_LABEL;
+        //if (window->mode != WI_LABEL) {
+        //    window->mode = WI_LABEL;
+        if (window->selected) {
+            window->selected = false;
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGE, (void *)window->index);
         } else {
-            WindowMenuItem *item;
+            IWindowMenuItem *item;
             window->menu_items(window, window->index, &item, window->data);
 
             //mask all flags but WI_DISABLED
@@ -298,7 +276,7 @@ const window_class_menu_t window_class_menu = {
         (window_event_t *)window_menu_event,
     },
 };
-
+/*
 void window_menu_item_spin(window_menu_t *window, int dif) {
     WindowMenuItem *item;
     window->menu_items(window, window->index, &item, window->data);
@@ -370,22 +348,4 @@ void window_menu_item_select(window_menu_t *window, int dif) {
         }
     }
     _window_invalidate((window_t *)window);
-}
-
-void WindowMenuItem::Change(int dif) {
-}
-
-void WI_LABEL_t::Change(int dif) {
-}
-
-void WI_SPIN_t::Change(int dif) {
-}
-
-void WI_SPIN_FL_t::Change(int dif) {
-}
-
-void WI_SWITCH_t::Change(int dif) {
-}
-
-void WI_SELECT_t::Change(int dif) {
-}
+}*/
