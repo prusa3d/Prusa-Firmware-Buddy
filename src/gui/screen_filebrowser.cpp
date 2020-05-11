@@ -191,6 +191,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
                 return 0;
             }
 
+            memset(vars->media_file_path, 0, FILE_PATH_MAX_LEN);
             get_sfn_path(vars->media_file_path, tmpFilePath);
 
             strcpy(vars->media_file_name, currentFName);
