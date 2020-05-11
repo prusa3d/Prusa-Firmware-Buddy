@@ -28,7 +28,7 @@ void window_roll_text_draw(window_roll_text_t *window) {
 
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
 
-        render_scroll_text_align(window->win.rect,
+        render_roll_text_align(window->win.rect,
             window->text,
             window->font,
             window->padding,

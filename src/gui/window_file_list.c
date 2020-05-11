@@ -121,7 +121,7 @@ void window_file_list_draw(window_file_list_t *window) {
                     gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
                 }
 
-                render_scroll_text_align(rc,
+                render_roll_text_align(rc,
                     item,
                     window->font,
                     padding,
