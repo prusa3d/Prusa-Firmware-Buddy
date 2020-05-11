@@ -4,11 +4,6 @@
 #include "jsmn.h"
 #include "dbg.h"
 
-#define HTTP_DUBAI_HACK 0
-
-#if HTTP_DUBAI_HACK
-    #include "version.h"
-#endif
 #define CMD_LIMIT 10 // number of commands accepted in low level command response
 
 #define MAX_ACK_SIZE 16
@@ -35,11 +30,7 @@ void httpd_json_parser(char *json, uint32_t len) {
 
     for (int i = 0; i < ret; i++) {
         wui_cmd_t request;
-#if HTTP_DUBAI_HACK
-        if (json_cmp(json, &t[i], project_firmware_name) == 0) {
-#else
         if (json_cmp(json, &t[i], "command") == 0) {
-#endif //HTTP_DUBAI_HACK
             strlcpy(request.arg, json + t[i + 1].start, (t[i + 1].end - t[i + 1].start + 1));
             request.lvl = LOW_LVL_CMD;
             i++;
