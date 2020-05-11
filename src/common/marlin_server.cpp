@@ -331,6 +331,7 @@ int marlin_server_idle(void) {
         else if (parser.command_letter == 'M')
             switch (parser.codenum) {
             case 109:
+            case 104:
             case 190:
             case 303:
             //case 600: // hacked in gcode (_force_M600_notify)

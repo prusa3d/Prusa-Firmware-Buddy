@@ -115,15 +115,24 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
 }
 
 static bool _preheat_mode = false;
+static bool _preheat_mode_delayed = false;
 static float _nozzle_target_temp; /// value shown in case of preheat
 
 void preheat_mode_on(float nozzle_target_temp) {
     _preheat_mode = true;
+    _preheat_mode_delayed = false;
+    _nozzle_target_temp = nozzle_target_temp;
+}
+
+void preheat_mode_on_await(float nozzle_target_temp) {
+    _preheat_mode = false;
+    _preheat_mode_delayed = true;
     _nozzle_target_temp = nozzle_target_temp;
 }
 
 void preheat_mode_off() {
     _preheat_mode = false;
+    _preheat_mode_delayed = false;
 }
 
 int status_footer_event(status_footer_t *footer, window_t *window,
@@ -172,10 +181,16 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     const float actual_heatbed = thermalManager.degBed();
     const float target_heatbed = thermalManager.degTargetBed();
 
+    /// waiting for PREHEAT_TEMP to run preheat mode
+    if (_preheat_mode_delayed && target_nozzle == PREHEAT_TEMP) {
+        _preheat_mode_delayed = false;
+        _preheat_mode = true;
+    }
+
     /// automatic disabling of nozzle preheat style
     /// easier and safer than handling all possible starts of printing
-    // if (target_nozzle != PREHEAT_TEMP)
-    //     _preheat_mode = false;
+    if (target_nozzle != PREHEAT_TEMP)
+        _preheat_mode = false;
 
     /// nozzle state
     if (_preheat_mode) {
