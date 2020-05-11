@@ -86,6 +86,45 @@ static void on_print_preview_action(print_preview_action_t action) {
     }
 }
 
+void get_sfn_path(char *sfn, const char *filepath) {
+    uint i, j, k;
+    i = j = k = 0;
+    uint sl = strlen(filepath); // length of filepath
+    FILINFO fi;
+    char tmpPath[sl] = { 0 };
+    while (i <= sl) {
+        // folder || endfile found -> begin
+        if (filepath[i] == '/' || i == sl) {
+            // file info struct with fname & altname
+            strlcpy(tmpPath, filepath, i + 1);
+            FRESULT fRes = f_stat(tmpPath, &fi);
+            if (fRes == FR_OK) {
+                // we got folder || end file info -> process
+                const char *tmpDir = fi.altname; // LFN MUST BE TURNED ON (1||2)
+                _dbg(tmpDir);
+                // FATFS flag for valid 8.3 fname - used instead of altname
+                if (tmpDir[0] == 0 && fi.fname[0] != 0) {
+                    tmpDir = fi.fname;
+                }
+                // save SFN part
+                for (j = 0; j < 12; j++) {
+                    if (tmpDir[j] == 0) {
+                        break;
+                    }
+                    sfn[k] = tmpDir[j];
+                    k++;
+                }
+                // add folder slash
+                if (i != sl) {
+                    sfn[k] = '/';
+                    k++;
+                }
+                // SFN part of path saved
+            }
+        }
+        i++;
+    }
+}
 static int screen_filebrowser_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
@@ -138,19 +177,21 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
         marlin_vars_t *vars = marlin_vars();
 
         if (vars->media_file_name && vars->media_file_path) {
-
+            char tmpFilePath[FILE_PATH_MAX_LEN] = { 0 };
             int written;
             if (!strcmp(filelist->altpath, "/"))
-                written = snprintf(vars->media_file_path, FILE_PATH_MAX_LEN,
+                written = snprintf(tmpFilePath, FILE_PATH_MAX_LEN,
                     "/%s", currentFName);
             else
-                written = snprintf(vars->media_file_path, FILE_PATH_MAX_LEN,
-                    "%s/%s", filelist->altpath, currentFName);
+                written = snprintf(tmpFilePath, FILE_PATH_MAX_LEN,
+                    "/%s/%s", filelist->altpath, currentFName);
 
             if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
                 LOG_ERROR("failed to prepare file path for print");
                 return 0;
             }
+
+            get_sfn_path(vars->media_file_path, tmpFilePath);
 
             strcpy(vars->media_file_name, currentFName);
 

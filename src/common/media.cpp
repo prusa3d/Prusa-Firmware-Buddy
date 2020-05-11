@@ -94,8 +94,9 @@ void media_get_sfn_path(char *sfn, const char *filepath) {
 void media_print_start(const char *filepath) {
     FILINFO filinfo;
     if (media_print_state == media_print_state_NONE) {
+        strlcpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
         // get SFN path
-        media_get_sfn_path(media_print_filepath, filepath);
+        // media_get_sfn_path(media_print_filepath, filepath);
         if (f_stat(media_print_filepath, &filinfo) == FR_OK) {
             strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filename) - 1);
             media_print_size = filinfo.fsize;
