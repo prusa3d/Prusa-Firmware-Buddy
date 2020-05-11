@@ -40,8 +40,10 @@ void window_menu_init(window_menu_t *window) {
     window->menu_items = window_menu_items;
     window->data = NULL;
     window->win.flg |= WINDOW_FLG_ENABLED;
-    window->roll.count = window->roll.px_cd = window->roll.phase = window->roll.setup = window->roll.progress = 0;
+    window->roll.count = window->roll.px_cd = window->roll.progress = 0;
     window->last_index = 0;
+    window->roll.phase = ROLL_SETUP;
+    window->roll.setup = TXTROLL_SETUP_INIT;
     gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
 }
 
@@ -160,7 +162,8 @@ void window_menu_draw(window_menu_t *window) {
             if ((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == idx) {
                 if (window->index != window->last_index) {
                     window->last_index = window->index;
-                    window->roll.setup = window->roll.phase = 0;
+                    window->roll.setup = TXTROLL_SETUP_INIT;
+                    window->roll.phase = ROLL_SETUP;
                     gui_timer_restart_txtroll(window->win.id);
                     gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
                 }
@@ -216,9 +219,9 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
             }
             screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)window->index);
         }
-        if (window->roll.setup == 1) {
+        if (window->roll.setup == TXTROLL_SETUP_DONE) {
             gui_timers_delete_by_window_id(window->win.id);
-            window->roll.setup = 0;
+            window->roll.setup = TXTROLL_SETUP_INIT;
             gui_timer_create_oneshot(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
         }
         _window_invalidate((window_t *)window);
@@ -239,7 +242,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         //TODO: change flag to checked
         break;
     case WINDOW_EVENT_TIMER:
-        scroll_text_phasing(window->win.id, window->font, &window->roll);
+        roll_text_phasing(window->win.id, window->font, &window->roll);
         break;
     }
 }

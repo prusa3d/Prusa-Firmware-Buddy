@@ -18,7 +18,9 @@ void window_roll_text_init(window_roll_text_t *window) {
     window->text = 0;
     window->padding = gui_defaults.padding;
     window->alignment = gui_defaults.alignment;
-    window->roll.phase = window->roll.setup = window->roll.px_cd = window->roll.count = 0;
+    window->roll.count = window->roll.px_cd = window->roll.progress = 0;
+    window->roll.phase = ROLL_SETUP;
+    window->roll.setup = TXTROLL_SETUP_INIT;
     gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
 }
 
@@ -41,7 +43,7 @@ void window_roll_text_draw(window_roll_text_t *window) {
 
 void window_roll_text_event(window_roll_text_t *window, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_TIMER) {
-        scroll_text_phasing(window->win.id, window->font, &window->roll);
+        roll_text_phasing(window->win.id, window->font, &window->roll);
     }
 }
 

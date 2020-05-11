@@ -76,14 +76,14 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
         display->fill_rect(rc, clr0);
 }
 
-void scroll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
-    if (roll->setup == 2)
+void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
+    if (roll->setup == TXTROLL_SETUP_IDLE)
         return;
 
     switch (roll->phase) {
     case ROLL_SETUP:
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
-        if (roll->setup == 1)
+        if (roll->setup == TXTROLL_SETUP_DONE)
             roll->phase = ROLL_GO;
         window_invalidate(win_id);
         break;
@@ -105,7 +105,7 @@ void scroll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
         break;
     case ROLL_RESTART:
-        roll->setup = 0;
+        roll->setup = TXTROLL_SETUP_INIT;
         roll->phase = ROLL_SETUP;
         window_invalidate(win_id);
         break;
@@ -120,19 +120,19 @@ void render_scroll_text_align(rect_ui16_t rc, const char *text, font_t *font,
         return;
     }
 
-    if (roll->setup == 0) {
+    if (roll->setup == TXTROLL_SETUP_INIT) {
         roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
         roll->count = text_rolls_meas(roll->rect, text, font);
         roll->progress = roll->px_cd = roll->phase = 0;
         if (roll->count == 0) {
-            roll->setup = 2;
+            roll->setup = TXTROLL_SETUP_IDLE;
         } else {
             uint8_t unused_pxls = roll->rect.w % font->w;
             if (unused_pxls) {
                 rect_ui16_t rc_unused_pxls = { roll->rect.x + roll->rect.w - unused_pxls, roll->rect.y, unused_pxls, roll->rect.h };
                 display->fill_rect(rc_unused_pxls, clr_back);
             }
-            roll->setup = 1;
+            roll->setup = TXTROLL_SETUP_DONE;
         }
     }
 

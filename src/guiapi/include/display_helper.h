@@ -10,6 +10,9 @@
 #define RENDER_FLG(a, r)           (a | r << 8) // render flag macro (ALIGN and ROPFN)
 #define TEXT_ROLL_DELAY_MS         50
 #define TEXT_ROLL_INITIAL_DELAY_MS 4000
+#define TXTROLL_SETUP_INIT         0
+#define TXTROLL_SETUP_DONE         1
+#define TXTROLL_SETUP_IDLE         2
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +38,7 @@ extern void render_text_align(rect_ui16_t rc, const char *text, const font_t *fo
 
 extern void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
 
-extern void scroll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll);
+extern void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll);
 
 extern void render_scroll_text_align(rect_ui16_t rc, const char *text, font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr0, color_t clr1, txtroll_t *roll);
 
