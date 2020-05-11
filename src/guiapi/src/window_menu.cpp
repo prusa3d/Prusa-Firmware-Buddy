@@ -6,12 +6,12 @@
 #include "sound_C_wrapper.h"
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
-
+/*
 #define WIO_MIN  0
 #define WIO_MAX  1
 #define WIO_STEP 2
 
-/*
+
 void window_menu_inc(window_menu_t *window, int dif);
 void window_menu_dec(window_menu_t *window, int dif);
 void window_menu_item_spin(window_menu_t *window, int dif);
@@ -39,9 +39,9 @@ void window_menu_init(window_menu_t *window) {
     window->index = 0;
     window->top_index = 0;
     //window->mode = 0;
-    window->selected = false;
+    //window->selected = false;
     //window->menu_items = window_menu_items;
-    window->data = NULL;
+    //window->data = NULL;
     window->win.flg |= WINDOW_FLG_ENABLED;
 }
 
@@ -173,14 +173,18 @@ void window_menu_draw(window_menu_t *window) {
     }
 }
 
+//i think I do not need
+//screen_dispatch_event
+//callback should handle it
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
-    window->src_event = event;
-    window->src_param = param;
+    //window->src_event = event;
+    //window->src_param = param;
+    IWindowMenuItem *item = &window->pContainer->GetItem(window->index);
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         //if (window->mode != WI_LABEL) {
         //    window->mode = WI_LABEL;
-        if (window->selected) {
+        /*if (window->selected) {
             window->selected = false;
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGE, (void *)window->index);
         } else {
@@ -201,20 +205,21 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
                 return;
             }
             screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)window->index);
-        }
-        _window_invalidate((window_t *)window);
+        }*/
+        item->Click();
+        //_window_invalidate((window_t *)window); //called inside click
         break;
     case WINDOW_EVENT_ENC_DN:
         window_menu_dec(window, (int)param);
-        if (window->mode != WI_LABEL) {
+        /* if (window->mode != WI_LABEL) {
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGING, (void *)window->index);
-        }
+        }*/
         break;
     case WINDOW_EVENT_ENC_UP:
         window_menu_inc(window, (int)param);
-        if (window->mode != WI_LABEL) {
+        /* if (window->mode != WI_LABEL) {
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGING, (void *)window->index);
-        }
+        }*/
         break;
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
@@ -223,7 +228,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
 }
 
 void window_menu_inc(window_menu_t *window, int dif) {
-    switch (window->mode) {
+    /* switch (window->mode) {
     case WI_SPIN:
         window_menu_item_spin(window, dif);
         break;
@@ -233,7 +238,13 @@ void window_menu_inc(window_menu_t *window, int dif) {
     case WI_SELECT:
         window_menu_item_select(window, dif);
         break;
-    default: {
+    default: */
+    IWindowMenuItem *item = &window->pContainer->GetItem(window->index);
+    if (item->IsSelected()) {
+        if (item->Change(dif)) {
+            _window_invalidate((window_t *)window);
+        }
+    } else {
         // WI_LABEL
         //all items can be in label mode
         int item_height = window->font->h + window->padding.top + window->padding.bottom;
@@ -258,7 +269,6 @@ void window_menu_inc(window_menu_t *window, int dif) {
         if (window->index != old) { // optimalization do not redraw when no change - still on end
             _window_invalidate((window_t *)window);
         }
-    }
     }
 }
 

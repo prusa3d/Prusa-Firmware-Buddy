@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "IWindowMenuItem.hpp"
 
 #pragma pack(push, 1)
 

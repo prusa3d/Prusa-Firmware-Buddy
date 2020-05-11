@@ -3,13 +3,14 @@
 #include <stdint.h>
 #include <array>
 #include "guitypes.h"
-#include "window_menu.hpp"
+#include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
 
 #pragma pack(push, 1)
 
+//todo make version with constant label
 class IWindowMenuItem {
 protected:
-    window_menu_t &window_menu;
+    Iwindow_menu_t &window_menu;
 
 private:
     std::array<char, 23> label;
@@ -24,7 +25,7 @@ protected:
     virtual void printText(rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
 
 public:
-    IWindowMenuItem(window_menu_t &window_menu, const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
+    IWindowMenuItem(Iwindow_menu_t &window_menu, const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
 
     void Enable() { enabled = true; }
     void Disable() { enabled = false; }
@@ -42,8 +43,9 @@ public:
 
     void Print(rect_ui16_t rect) const;
 
-    virtual int OnClick() = 0;
+    virtual void Click();
     virtual bool Change(int dif) = 0;
+    virtual bool IsSelected() { return false; }
 
     virtual ~IWindowMenuItem() {}
 };

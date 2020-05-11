@@ -9,26 +9,26 @@
 
 /*****************************************************************************/
 //ctors
-WI_LABEL_t::WI_LABEL_t(window_menu_t &window_menu, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+WI_LABEL_t::WI_LABEL_t(Iwindow_menu_t &window_menu, const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(window_menu, label, id_icon, enabled, hidden) {}
 
-WI_SPIN_t::WI_SPIN_t(window_menu_t &window_menu, int32_t value, const int32_t *range, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+WI_SPIN_t::WI_SPIN_t(Iwindow_menu_t &window_menu, int32_t value, const int32_t *range, const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(window_menu, label, id_icon, enabled, hidden)
     , value(value)
     , range(range) {}
 
-WI_SPIN_FL_t::WI_SPIN_FL_t(window_menu_t &window_menu, float value, const float *range, const char *prt_format, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+WI_SPIN_FL_t::WI_SPIN_FL_t(Iwindow_menu_t &window_menu, float value, const float *range, const char *prt_format, const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(window_menu, label, id_icon, enabled, hidden)
     , value(value)
     , range(range)
     , prt_format(prt_format) {}
 
-WI_SWITCH_t::WI_SWITCH_t(window_menu_t &window_menu, int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+WI_SWITCH_t::WI_SWITCH_t(Iwindow_menu_t &window_menu, int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(window_menu, label, id_icon, enabled, hidden)
     , index(index)
     , strings(strings) {}
 
-WI_SELECT_t::WI_SELECT_t(window_menu_t &window_menu, int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+WI_SELECT_t::WI_SELECT_t(Iwindow_menu_t &window_menu, int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(window_menu, label, id_icon, enabled, hidden)
     , index(index)
     , strings(strings) {}
@@ -100,7 +100,7 @@ bool WI_SELECT_t::Change(int dif) {
 //specific WindowMenuItems
 const char *const MI_RETURN::label = "Return";
 
-MI_RETURN::MI_RETURN(window_menu_t &window_menu)
+MI_RETURN::MI_RETURN(Iwindow_menu_t &window_menu)
     : WI_LABEL_t(window_menu, label, IDR_PNG_filescreen_icon_up_folder, true, false) {
 }
 

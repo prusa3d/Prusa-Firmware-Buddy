@@ -122,6 +122,10 @@ int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint
         window_header_events(&header);
     }
 
+    return 0;
+    //on return 0 screen_dispatch_event will
+    //call window_dispatch_event
+
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
