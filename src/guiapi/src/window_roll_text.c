@@ -11,7 +11,7 @@
 #include "stm32f4xx_hal.h"
 #include "display.h"
 
-void window_scroll_text_init(window_roll_text_t *window) {
+void window_roll_text_init(window_roll_text_t *window) {
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -22,7 +22,7 @@ void window_scroll_text_init(window_roll_text_t *window) {
     gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
 }
 
-void window_scroll_text_draw(window_roll_text_t *window) {
+void window_roll_text_draw(window_roll_text_t *window) {
 
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
 
@@ -39,13 +39,13 @@ void window_scroll_text_draw(window_roll_text_t *window) {
     }
 }
 
-void window_scroll_text_event(window_roll_text_t *window, uint8_t event, void *param) {
+void window_roll_text_event(window_roll_text_t *window, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_TIMER) {
         scroll_text_phasing(window->win.id, window->font, &window->roll);
     }
 }
 
-void window_scroll_text_done(window_roll_text_t *window) {
+void window_roll_text_done(window_roll_text_t *window) {
     gui_timers_delete_by_window_id(window->win.id);
 }
 
@@ -53,9 +53,9 @@ const window_class_roll_text_t window_class_roll_text = {
     {
         WINDOW_CLS_ROLL_TEXT,
         sizeof(window_roll_text_t),
-        (window_init_t *)window_scroll_text_init,
-        (window_done_t *)window_scroll_text_done,
-        (window_draw_t *)window_scroll_text_draw,
-        (window_event_t *)window_scroll_text_event,
+        (window_init_t *)window_roll_text_init,
+        (window_done_t *)window_roll_text_done,
+        (window_draw_t *)window_roll_text_draw,
+        (window_event_t *)window_roll_text_event,
     },
 };
