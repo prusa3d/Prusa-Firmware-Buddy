@@ -196,7 +196,7 @@ void sntp_get_system_time(system_time_t *system_time);
 /*!****************************************************************************
 * \brief Parses date from device's time storage in dest string in format dd.mm.yyyy
 *
-* \param dest - destination string for paresd date, wrapped as 13 chars string
+* \param system_date - destination string for paresd date, wrapped as 13 chars string
 *****************************************************************************/
 void sntp_get_system_date(system_date_t *system_date);
 
