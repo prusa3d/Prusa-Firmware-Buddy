@@ -125,6 +125,7 @@ void get_sfn_path(char *sfn, const char *filepath) {
         i++;
     }
 }
+
 static int screen_filebrowser_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
@@ -177,22 +178,20 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
         marlin_vars_t *vars = marlin_vars();
 
         if (vars->media_file_name && vars->media_file_path) {
-            char tmpFilePath[FILE_PATH_MAX_LEN] = { 0 };
             int written;
             if (!strcmp(filelist->altpath, "/"))
-                written = snprintf(tmpFilePath, FILE_PATH_MAX_LEN,
-                    "/%s", currentFName);
+                written = sprintf(vars->media_file_path, "/%s", currentFName);
             else
-                written = snprintf(tmpFilePath, FILE_PATH_MAX_LEN,
-                    "/%s/%s", filelist->altpath, currentFName);
+                written = sprintf(vars->media_file_path, "%s/%s", filelist->altpath, currentFName);
+
+            char tmpFilePath[FILE_PATH_MAX_LEN] = { 0 };
+            get_sfn_path(tmpFilePath, vars->media_file_path);
+            written = snprintf(vars->media_file_path, FILE_PATH_MAX_LEN, "%s", tmpFilePath);
 
             if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
                 LOG_ERROR("failed to prepare file path for print");
                 return 0;
             }
-
-            memset(vars->media_file_path, 0, FILE_PATH_MAX_LEN);
-            get_sfn_path(vars->media_file_path, tmpFilePath);
 
             strcpy(vars->media_file_name, currentFName);
 
