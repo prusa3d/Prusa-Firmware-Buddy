@@ -89,12 +89,6 @@ void set_preheat_state() {
 
     if (target_temp > PREHEAT_TEMP) {
         marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
-        // while (marlin_get_target_nozzle() != PREHEAT_TEMP) {
-        //     gui_loop();
-        // }
-
-        //marlin_set_target_nozzle(PREHEAT_TEMP); //wait for temperature change
-        //marlin_get_target_nozzle(); //wait for temperature change
         preheat_mode_on_await(target_temp);
         return;
     }
