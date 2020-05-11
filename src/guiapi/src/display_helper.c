@@ -2,11 +2,12 @@
 
 #include "display_helper.h"
 #include "display.h"
+#include "window_text.h"
 #include "str_utils.h"
 
-void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
+void render_text_align(void *context, rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint8_t alignment, uint8_t ml_mode) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
-    if (flags & RENDER_FLG_WORDB) {
+    if (ml_mode == ML_MODE_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP
         uint16_t x;
         uint16_t y = rc_pad.y;
@@ -37,12 +38,13 @@ void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t c
     } else {
         char *str_tmp = (char *)0x10000000; // ~ PNG-buffer (CCM RAM)
         strcpy(str_tmp, text);
-        if (flags & RENDER_FLG_WORDML) {
-            str2multiline(str_tmp, 20);
+        if (ml_mode == ML_MODE_EXT) {
+            set_instance(((window_text_t *)context)->pml_mode);
+            str2multiline(str_tmp, ((window_text_t *)context)->line_width);
         }
         point_ui16_t wh_txt = font_meas_text(font, str_tmp);
         if (wh_txt.x && wh_txt.y) {
-            rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
+            rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), alignment & ALIGN_MASK);
             rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
             rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc_txt.y - rc.y };
             rect_ui16_t rc_b = { rc.x, rc_txt.y + rc_txt.h, rc.w, (rc.y + rc.h) - (rc_txt.y + rc_txt.h) };

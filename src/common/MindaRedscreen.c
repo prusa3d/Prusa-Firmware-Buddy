@@ -186,8 +186,8 @@ void mbl_error(uint16_t moves, uint16_t points) {
         display->draw_rect(rect, COLOR_BLACK);
     }
 
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), "RESET PRINTER", gui_defaults.font,
-        COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
+    render_text_align(NULL, rect_ui16(PADDING, 260, X_MAX, 30), "RESET PRINTER", gui_defaults.font,
+        COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER, ML_MODE_NONE);
 
     jogwheel_init();
     gui_reset_jogwheel();

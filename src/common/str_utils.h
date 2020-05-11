@@ -36,7 +36,7 @@ typedef struct
     int hyphen_distance = HYPHEN_DENY;
 } ml_instance_t;
 
-void set_instance(ml_instance_t *pinst);
+extern "C" void set_instance(ml_instance_t *pinst);
 void set_self_instance(void);
 
 size_t strdel(char *pstr, size_t n = 1);
@@ -53,6 +53,15 @@ size_t str2plain(char *pstr, bool withdraw_flag = false);
 extern "C" size_t str2multiline(char *pstr, size_t line_width = LINE_WIDTH_UNLIMITED);
 
 #else
+
+typedef struct
+{
+    const char *pcustom_set;
+    const char *pwithdraw_set;
+    int hyphen_distance;
+} ml_instance_t;
+
+void set_instance(ml_instance_t *pinst);
 
 size_t str2multiline(char *pstr, size_t line_width);
 

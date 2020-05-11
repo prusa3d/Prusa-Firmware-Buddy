@@ -45,7 +45,7 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
             rect_ui16_t rc_tit = rc;
             rc_tit.y += 10;
             rc_tit.h = 30; // 30pixels for title
-            render_text_align(rc_tit, "Please wait", window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
+            render_text_align(NULL, rc_tit, "Please wait", window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER, ML_MODE_NONE);
             window->win.f_invalid = 0;
             if (window->flags & DLG_W8_FRAME_FLG) { //draw frame
                 display->draw_line(point_ui16(rc.x, rc.y), point_ui16(239, rc.y), COLOR_GRAY);
@@ -113,7 +113,7 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
             rc_pro.x = rc.x + 60;
             rc_pro.h = 30;
             sprintf(text, "%d%%", window->progress);
-            render_text_align(rc_pro, text, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
+            render_text_align(NULL, rc_pro, text, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER, ML_MODE_NONE);
             window->flags &= 0x7FFF;
         }
     }

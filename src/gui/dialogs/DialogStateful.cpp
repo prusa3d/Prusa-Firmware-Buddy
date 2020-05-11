@@ -73,7 +73,7 @@ void progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
     rc_pro.x = win_rect.x + 60;
     rc_pro.h = 30;
     sprintf(text, "%d%%", progress);
-    render_text_align(rc_pro, text, font, color_back, color_text, padding, ALIGN_CENTER);
+    render_text_align(nullptr, rc_pro, text, font, color_back, color_text, padding, ALIGN_CENTER, ML_MODE_NONE);
 }
 
 //todo this should be moved elswhere
@@ -124,6 +124,6 @@ void IDialogStateful::draw_phase_text(const char *text) {
 
     last_text_h = rc_sta.h;
 
-    render_text_align(rc_sta, text, font_title,
-        color_back, color_text, padding, ALIGN_CENTER);
+    render_text_align(nullptr, rc_sta, text, font_title,
+        color_back, color_text, padding, ALIGN_CENTER, ML_MODE_NONE);
 }

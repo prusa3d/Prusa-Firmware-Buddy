@@ -68,8 +68,8 @@ void _window_menu_draw_value(window_menu_t *window, const char *value,
     vrc.x -= vrc.w;
     p_rc->w -= vrc.w;
 
-    render_text_align(vrc, value, window->font,
-        color_back, color_text_option, window->padding, window->alignment);
+    render_text_align(NULL, vrc, value, window->font,
+        color_back, color_text_option, window->padding, window->alignment, ML_MODE_NONE);
 }
 
 void window_menu_draw(window_menu_t *window) {
@@ -146,9 +146,9 @@ void window_menu_draw(window_menu_t *window) {
             }
 
             // render
-            render_text_align(rc, item->label, window->font,
+            render_text_align(NULL, rc, item->label, window->font,
                 color_back, color_text,
-                padding, window->alignment);
+                padding, window->alignment, ML_MODE_NONE);
         }
     }
     rc_win.h = rc_win.h - (i * item_height);

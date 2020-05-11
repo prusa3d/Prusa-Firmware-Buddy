@@ -559,12 +559,24 @@ void window_set_padding(int16_t id, padding_ui8_t padding) {
     }
 }
 
-void window_set_alignment(int16_t id, uint16_t alignment) {
+void window_set_alignment(int16_t id, uint8_t alignment) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_TEXT:
             ((window_text_t *)window)->alignment = alignment;
+            break;
+        }
+        _window_invalidate((window_t *)window);
+    }
+}
+
+void window_set_ml_mode(int16_t id, ml_mode_t ml_mode) {
+    window_t *window;
+    if ((window = window_ptr(id)) != 0) {
+        switch (window->cls->cls_id) {
+        case WINDOW_CLS_TEXT:
+            ((window_text_t *)window)->ml_mode = ml_mode;
             break;
         }
         _window_invalidate((window_t *)window);

@@ -213,7 +213,9 @@ extern void window_hide(int16_t id);
 
 extern void window_set_padding(int16_t id, padding_ui8_t padding);
 
-extern void window_set_alignment(int16_t id, uint16_t alignment);
+extern void window_set_alignment(int16_t id, uint8_t alignment);
+
+extern void window_set_ml_mode(int16_t id, ml_mode_t ml_mode);
 
 extern void window_set_item_count(int16_t id, int count);
 

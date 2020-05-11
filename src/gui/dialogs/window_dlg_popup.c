@@ -38,10 +38,10 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
             text_rc.y += 20;
             text_rc.h = 30;
             text_rc.w -= 10;
-            render_text_align(text_rc, window->text,
+            render_text_align(NULL, text_rc, window->text,
                 window->font, window->color_back,
                 window->color_text, window->padding,
-                ALIGN_LEFT_CENTER);
+                ALIGN_LEFT_CENTER, ML_MODE_NONE);
             window->win.f_invalid = 0;
         }
     }

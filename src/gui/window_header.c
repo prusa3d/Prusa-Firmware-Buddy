@@ -118,9 +118,9 @@ void window_header_draw(window_header_t *window) {
     rc.w -= (icons_width + 10 + window->win.rect.h);
 
     if (window->label) { // label
-        render_text_align(rc, window->label, window->font,
+        render_text_align(NULL, rc, window->label, window->font,
             window->color_back, window->color_text,
-            window->padding, window->alignment);
+            window->padding, window->alignment, ML_MODE_NONE);
     }
 }
 
