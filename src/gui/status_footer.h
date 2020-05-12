@@ -82,9 +82,6 @@ extern "C" {
 
 void status_footer_init(status_footer_t *footer, int16_t parent);
 int status_footer_event(status_footer_t *footer, window_t *window, uint8_t event, const void *param);
-void preheat_mode_on(float nozzle_target_temp);
-void preheat_mode_on_await(float nozzle_target_temp);
-void preheat_mode_off();
 
 #ifdef __cplusplus
 }
