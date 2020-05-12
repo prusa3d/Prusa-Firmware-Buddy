@@ -190,6 +190,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window,
 
             if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
                 LOG_ERROR("failed to prepare file path for print");
+                gui_msgbox_prompt("File is nested too deep.", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
                 return 0;
             }
 
