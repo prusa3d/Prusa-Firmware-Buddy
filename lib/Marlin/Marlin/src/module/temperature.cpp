@@ -228,6 +228,11 @@ PGMSTR(str_t_heating_failed, STR_T_HEATING_FAILED);
 #else
   #define _COOLER_FSTR(h)
 #endif
+#if HAS_TEMP_BOARD_CONTROL
+  #define _BOARD_PSTR(h) (h) == H_BOARD ? GET_TEXT(MSG_BOARD) :
+#else
+  #define _BOARD_PSTR(h)
+#endif
 #define _E_FSTR(h,N) ((HOTENDS) > N && (h) == N) ? F(STR_E##N) :
 #define HEATER_FSTR(h) _BED_FSTR(h) _CHAMBER_FSTR(h) _COOLER_FSTR(h) _E_FSTR(h,1) _E_FSTR(h,2) _E_FSTR(h,3) _E_FSTR(h,4) _E_FSTR(h,5) _E_FSTR(h,6) _E_FSTR(h,7) F(STR_E0)
 
@@ -1831,6 +1836,55 @@ void Temperature::min_temp_error(const heater_id_t heater_id) {
   }
 
 #endif // HAS_COOLER
+
+#if HAS_TEMP_BOARD
+
+    #ifndef BOARD_CHECK_INTERVAL
+      #define BOARD_CHECK_INTERVAL 1000UL
+    #endif
+
+    #if ENABLED(THERMAL_PROTECTION_BOARD)
+      if (degChamber() > CHAMBER_MAXTEMP)
+        _temp_error(H_CHAMBER, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
+    #endif
+
+    #if WATCH_BOARD
+      // Make sure temperature is increasing
+      if (watch_board.elapsed(ms)) {              // Time to check the chamber?
+        if (degChamber() < watch_board.target)    // Failed to increase enough?
+          _temp_error(H_BOARD, PSTR(MSG_T_HEATING_FAILED), GET_TEXT(MSG_HEATING_FAILED_LCD));
+        else
+          start_watching_board();                 // Start again if the target is still far off
+      }
+    #endif
+
+    if (ELAPSED(ms, next_board_check_ms)) {
+      next_board_check_ms = ms + BOARD_CHECK_INTERVAL;
+
+      if (WITHIN(temp_board.celsius, BOARD_MINTEMP, BOARD_MAXTEMP)) {
+        #if ENABLED(BOARD_LIMIT_SWITCHING)
+          if (temp_board.celsius >= temp_board.target + TEMP_BOARD_HYSTERESIS)
+            temp_chamber.soft_pwm_amount = 0;
+          else if (temp_board.celsius <= temp_board.target - (TEMP_BOARD_HYSTERESIS))
+            temp_board.soft_pwm_amount = MAX_CHAMBER_POWER >> 1;
+        #else
+          //temp_board.soft_pwm_amount = temp_board.celsius < temp_board.target ? MAX_BOARD_POWER >> 1 : 0;
+        #endif
+      }
+      else {
+        //temp_board.soft_pwm_amount = 0;
+        //WRITE_HEATER_AMBIENT(LOW);
+      }
+
+      #if ENABLED(THERMAL_PROTECTION_BOARD)
+        thermal_runaway_protection(tr_state_machine_board, temp_board.celsius, temp_board.target, H_BOARD, THERMAL_PROTECTION_BOARD_PERIOD, THERMAL_PROTECTION_BOARD_HYSTERESIS);
+      #endif
+    }
+
+    // TODO: Implement true PID pwm
+    //temp_bed.soft_pwm_amount = WITHIN(temp_chamber.celsius, CHAMBER_MINTEMP, CHAMBER_MAXTEMP) ? (int)get_pid_output_chamber() >> 1 : 0;
+
+  #endif // HAS_TEMP_BOARD  
 
 /**
  * Manage heating activities for extruder hot-ends and a heated bed
