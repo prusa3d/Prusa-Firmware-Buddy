@@ -53,10 +53,6 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 #pragma pack(1)
 
 typedef struct _marlin_server_t {
-<<<<<<< HEAD
-    char gcode_name[FILE_NAME_MAX_LEN];          // printing gcode name
-=======
->>>>>>> parent of 38b7566... gcode file change reimplementation + wui_config.h
     uint16_t flags;                              // server flags (MARLIN_SFLG)
     uint64_t notify_events[MARLIN_MAX_CLIENTS];  // event notification mask
     uint64_t notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask

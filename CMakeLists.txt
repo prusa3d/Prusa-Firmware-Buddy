@@ -226,12 +226,6 @@ add_library(LwIP_Config INTERFACE)
 target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 
 #
-# Configure WUI
-#
-
-target_compile_definitions(firmware PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
-
-#
 # Configure FatFs
 #
 
@@ -586,6 +580,9 @@ if(GUI)
             src/guiapi/src/window.c
     )
 endif()
+
+# Set fsdata filename for HTTPServer
+target_compile_definitions(firmware PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
 
 set_property(
   SOURCE src/common/version.c
