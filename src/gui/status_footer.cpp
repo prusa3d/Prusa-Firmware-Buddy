@@ -114,26 +114,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     status_footer_timer(footer, 0); // do update
 }
 
-static bool _preheat_mode = false;
-static bool _preheat_mode_delayed = false;
 static float _nozzle_target_temp; /// value shown in case of preheat
-
-void preheat_mode_on(float nozzle_target_temp) {
-    _preheat_mode = true;
-    _preheat_mode_delayed = false;
-    _nozzle_target_temp = nozzle_target_temp;
-}
-
-void preheat_mode_on_await(float nozzle_target_temp) {
-    _preheat_mode = false;
-    _preheat_mode_delayed = true;
-    _nozzle_target_temp = nozzle_target_temp;
-}
-
-void preheat_mode_off() {
-    _preheat_mode = false;
-    _preheat_mode_delayed = false;
-}
 
 int status_footer_event(status_footer_t *footer, window_t *window,
     uint8_t event, const void *param) {
@@ -176,21 +157,17 @@ void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
 void status_footer_update_temperatures(status_footer_t *footer) {
 
     /// get current temperatures
-    const float actual_nozzle = thermalManager.degHotend(0);
+    const float actual_nozzle = //thermalManager.degHotend(0);
+        marlin_vars_get_var();
     const float target_nozzle = thermalManager.degTargetHotend(0);
     const float actual_heatbed = thermalManager.degBed();
     const float target_heatbed = thermalManager.degTargetBed();
 
-    /// waiting for PREHEAT_TEMP to run preheat mode
-    if (_preheat_mode_delayed && target_nozzle == PREHEAT_TEMP) {
-        _preheat_mode_delayed = false;
-        _preheat_mode = true;
-    }
-
-    /// automatic disabling of nozzle preheat style
-    /// easier and safer than handling all possible starts of printing
-    if (target_nozzle != PREHEAT_TEMP)
-        _preheat_mode = false;
+    /// turns preheat on/off automatically
+    const bool _preheat_mode = (target_nozzle == PREHEAT_TEMP);
+    /// save last value as a reference temperature
+    if (!_preheat_mode)
+        _nozzle_target_temp = target_nozzle;
 
     /// nozzle state
     if (_preheat_mode) {
@@ -225,10 +202,12 @@ void status_footer_update_temperatures(status_footer_t *footer) {
         sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
         footer->nozzle_target = target_nozzle;
     }
+    //FIXME don't repaint if the value hasn't changed
     window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
 
     footer->heatbed = actual_heatbed;
     sprintf(footer->text_heatbed, "%.0f/%.0f\177C", (double)actual_heatbed, (double)target_heatbed);
+    //FIXME don't repaint if the value hasn't changed
     window_set_text(footer->wt_heatbed.win.id, footer->text_heatbed);
 
 #ifdef LCD_HEATBREAK_TO_FILAMENT
