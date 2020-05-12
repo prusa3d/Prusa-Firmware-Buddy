@@ -8,6 +8,8 @@
 #include "config.h"
 #include "status_footer.h"
 #include "filament.h"
+#include "marlin_vars.h"
+#include "marlin_client.h"
 
 #include "../Marlin/src/module/temperature.h"
 #include "../Marlin/src/module/planner.h"
@@ -114,8 +116,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     status_footer_timer(footer, 0); // do update
 }
 
-static float _nozzle_target_temp; /// value shown in case of preheat
-
 int status_footer_event(status_footer_t *footer, window_t *window,
     uint8_t event, const void *param) {
     status_footer_timer(footer, (HAL_GetTick() / 50) * 50);
@@ -153,71 +153,89 @@ void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
     }
 }
 
-/// Updates values in state from real values and repaint
-void status_footer_update_temperatures(status_footer_t *footer) {
+void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *vars) {
+    if (footer->nozzle == vars->temp_nozzle
+        && footer->nozzle_target == vars->target_nozzle
+        && footer->nozzle_target_display == vars->display_nozzle)
+        return;
 
-    /// get current temperatures
-    const float actual_nozzle = //thermalManager.degHotend(0);
-        marlin_vars_get_var();
-    const float target_nozzle = thermalManager.degTargetHotend(0);
-    const float actual_heatbed = thermalManager.degBed();
-    const float target_heatbed = thermalManager.degTargetBed();
-
-    /// turns preheat on/off automatically
-    const bool _preheat_mode = (target_nozzle == PREHEAT_TEMP);
-    /// save last value as a reference temperature
-    if (!_preheat_mode)
-        _nozzle_target_temp = target_nozzle;
+    const bool _preheat_mode = (vars->target_nozzle != vars->display_nozzle);
 
     /// nozzle state
-    if (_preheat_mode) {
+    if (vars->target_nozzle != vars->display_nozzle) { /// preheat mode
         footer->nozzle_state = PREHEAT;
-        if (PREHEAT_TEMP > actual_nozzle + HEATING_DIFFERENCE) {
+        if (vars->display_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
             footer->nozzle_state = HEATING;
-        } else if (_nozzle_target_temp < actual_nozzle - HEATING_DIFFERENCE) {
-            // _nozzle_target_temp is OK, because it's weird to show 200/215 and cooling color
+        } else if (vars->target_nozzle < vars->temp_nozzle - HEATING_DIFFERENCE) {
+            // vars->target_nozzle (not display_nozzle) is OK, because it's weird to show 200/215 and cooling color
             footer->nozzle_state = COOLING;
         }
     } else {
         footer->nozzle_state = STABLE;
-        if (target_nozzle > actual_nozzle + HEATING_DIFFERENCE) {
+        if (vars->target_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
             footer->nozzle_state = HEATING;
-        } else if (target_nozzle < actual_nozzle - HEATING_DIFFERENCE && actual_nozzle > COOL_NOZZLE) {
+        } else if (vars->target_nozzle < vars->temp_nozzle - HEATING_DIFFERENCE && vars->temp_nozzle > COOL_NOZZLE) {
             footer->nozzle_state = COOLING;
         }
     }
 
+    /// update values
+    footer->nozzle = vars->temp_nozzle;
+    footer->nozzle_target = vars->target_nozzle;
+    footer->nozzle_target_display = vars->display_nozzle;
+
+    char text[10];
+    sprintf(text, "%.0f/%.0f\177C", (double)vars->temp_nozzle, (double)vars->display_nozzle);
+    window_set_text(footer->wt_nozzle.win.id, text);
+}
+
+void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *vars) {
+    if (footer->heatbed == vars->temp_bed && footer->heatbed_target == vars->target_bed)
+        return;
+
     /// heatbed state
     footer->heatbed_state = STABLE;
-    if (target_heatbed > actual_heatbed + HEATING_DIFFERENCE) {
+    if (vars->target_bed > vars->temp_bed + HEATING_DIFFERENCE) {
         footer->heatbed_state = HEATING;
-    } else if (target_heatbed < actual_heatbed - HEATING_DIFFERENCE && actual_heatbed > COOL_BED) {
+    } else if (vars->target_bed < vars->temp_bed - HEATING_DIFFERENCE && vars->temp_bed > COOL_BED) {
         footer->heatbed_state = COOLING;
     }
 
-    footer->nozzle = actual_nozzle;
-    if (_preheat_mode) {
-        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)_nozzle_target_temp);
-    } else {
-        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
-        footer->nozzle_target = target_nozzle;
-    }
-    //FIXME don't repaint if the value hasn't changed
-    window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
+    /// update values
+    footer->heatbed = vars->temp_bed;
+    footer->heatbed_target = vars->target_bed;
 
-    footer->heatbed = actual_heatbed;
-    sprintf(footer->text_heatbed, "%.0f/%.0f\177C", (double)actual_heatbed, (double)target_heatbed);
-    //FIXME don't repaint if the value hasn't changed
-    window_set_text(footer->wt_heatbed.win.id, footer->text_heatbed);
+    char text[10];
+    sprintf(text, "%.0f/%.0f\177C", (double)vars->temp_bed, (double)vars->target_bed);
+    window_set_text(footer->wt_heatbed.win.id, text);
+}
+
+/// Updates values in footer state from real values and repaint
+void status_footer_update_temperatures(status_footer_t *footer) {
+
+    /// force update of temperatures
+    uint64_t mask = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
+
+    const marlin_vars_t *vars = marlin_update_vars(mask);
+    if (!vars)
+        return;
+
+    status_footer_update_nozzle(footer, vars);
+    status_footer_update_heatbed(footer, vars);
 
 #ifdef LCD_HEATBREAK_TO_FILAMENT
-    float actual_heatbreak = thermalManager.degHeatbreak();
+    const float actual_heatbreak = thermalManager.degHeatbreak();
     //float actual_heatbreak = analogRead(6);
-    sprintf(footer->text_heatbreak, "%.0f\177C", (double)actual_heatbreak);
-    window_set_text(footer->wt_filament.win.id, footer->text_heatbreak);
+    char text[10];
+    sprintf(text, "%.0f\177C", (double)actual_heatbreak);
+    window_set_text(footer->wt_filament.win.id, footer->text);
 #endif //LCD_HEATBREAK_TO_FILAMENT
 }
 
+// TODO convert to marlin_vars
 void status_footer_update_feedrate(status_footer_t *footer) {
     if ((uint16_t)feedrate_percentage <= 999)
         snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "%d%%", feedrate_percentage);
@@ -226,11 +244,13 @@ void status_footer_update_feedrate(status_footer_t *footer) {
     window_set_text(footer->wt_prnspeed.win.id, footer->text_prnspeed);
 }
 
+// TODO convert to marlin_vars
 void status_footer_update_z_axis(status_footer_t *footer) {
     sprintf(footer->text_z_axis, "%.2f", (double)current_position[2]);
     window_set_text(footer->wt_z_axis.win.id, footer->text_z_axis);
 }
 
+// TODO convert to marlin_vars
 void status_footer_update_filament(status_footer_t *footer) {
     window_set_text(footer->wt_filament.win.id, filaments[get_filament()].name);
     // #ifndef LCD_HEATBREAK_TO_FILAMENT
