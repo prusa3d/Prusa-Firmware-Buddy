@@ -83,18 +83,6 @@ void screen_menu_filament_init(screen_t *screen) {
     _deactivate_item(screen);
 }
 
-/// Decreases temperature of nozzle not to ooze during MBL
-void set_preheat_state() {
-    const float target_temp = marlin_get_target_nozzle();
-
-    if (target_temp > PREHEAT_TEMP) {
-        marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
-        preheat_mode_on_await(target_temp);
-        return;
-    }
-    preheat_mode_off();
-}
-
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     _deactivate_item(screen);
     if (event == WINDOW_EVENT_CLICK)
@@ -104,7 +92,6 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
                 p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
                 gui_dlg_load();
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
-                set_preheat_state();
                 break;
             case MI_UNLOAD:
                 p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
@@ -116,13 +103,11 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
                 gui_dlg_unload();
                 gui_dlg_load();
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
-                set_preheat_state();
                 break;
             case MI_PURGE:
                 p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
                 gui_dlg_purge();
                 p_window_header_set_text(&(psmd->header), "FILAMENT");
-                set_preheat_state();
                 break;
             }
     return screen_menu_event(screen, window, event, param);

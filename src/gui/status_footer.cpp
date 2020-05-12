@@ -28,11 +28,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
     int16_t id;
 
-    strcpy(footer->text_nozzle, "0/0\177C");
-    strcpy(footer->text_heatbed, "0/0\177C");
-    strcpy(footer->text_prnspeed, "0%");
-    strcpy(footer->text_z_axis, "999.95");
-
     id = window_create_ptr( // nozzle
         WINDOW_CLS_ICON, parent,
         rect_ui16(8, 270, 16, 16), // 2px padding from right
@@ -47,7 +42,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_nozzle));
     footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, footer->text_nozzle);
+    window_set_text(id, "0/0\177C");
 
     id = window_create_ptr( // heatbed
         WINDOW_CLS_ICON, parent,
@@ -63,7 +58,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_heatbed));
     footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, footer->text_heatbed);
+    window_set_text(id, "0/0\177C");
 
     id = window_create_ptr( // prnspeed
         WINDOW_CLS_ICON, parent,
@@ -79,7 +74,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_prnspeed));
     footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, footer->text_prnspeed);
+    window_set_text(id, "0%");
 
     id = window_create_ptr( // z-axis
         WINDOW_CLS_ICON, parent,
@@ -95,7 +90,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_z_axis));
     footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, footer->text_z_axis);
+    window_set_text(id, "999.95");
 
     id = window_create_ptr( // filament
         WINDOW_CLS_ICON, parent,
@@ -158,8 +153,6 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
         && footer->nozzle_target == vars->target_nozzle
         && footer->nozzle_target_display == vars->display_nozzle)
         return;
-
-    const bool _preheat_mode = (vars->target_nozzle != vars->display_nozzle);
 
     /// nozzle state
     if (vars->target_nozzle != vars->display_nozzle) { /// preheat mode

@@ -70,10 +70,12 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     if (filament.nozzle > PREHEAT_TEMP) {
         marlin_gcode_printf("M104 S%d", (int)PREHEAT_TEMP);
         /// save info directly to footer
-        preheat_mode_on(filament.nozzle);
+        //TODO call M104 Sx R170
+        //preheat_mode_on(filament.nozzle);
     } else {
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle); // cooldown typically
-        preheat_mode_off();
+        //TODO call M104 Sx
+        //preheat_mode_off();
     }
 
     screen_close(); // skip this screen everytime
