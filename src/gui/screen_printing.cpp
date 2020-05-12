@@ -51,7 +51,8 @@ typedef enum {
     P_REHEATING,
     P_REHEATING_DONE,
     P_MBL_FAILED,
-    P_PRINTED
+    P_PRINTED,
+    P_COUNT //setting this state == forced update
 } printing_state_t;
 
 typedef enum {
@@ -93,8 +94,7 @@ const char *printing_labels[iid_count] = {
     "Home",
 };
 
-#pragma pack(push)
-#pragma pack(1)
+#pragma pack(push, 1)
 
 typedef struct
 {
@@ -131,13 +131,18 @@ typedef struct
 } screen_printing_data_t;
 
 static printing_state_t state__readonly__use_change_print_state;
-void reset_print_state(void) {
+
+static void invalidate_print_state() {
+    state__readonly__use_change_print_state = P_COUNT;
+}
+
+void reset_print_state() {
     marlin_set_print_speed(100);
-    state__readonly__use_change_print_state = P_INITIAL;
+    invalidate_print_state();
 }
 
 #pragma pack(pop)
-
+/*
 class Lock {
     static bool locked;
 
@@ -152,7 +157,7 @@ public:
         locked = false;
     }
 };
-bool Lock::locked = false;
+bool Lock::locked = false;*/
 
 void screen_printing_init(screen_t *screen);
 void screen_printing_done(screen_t *screen);
@@ -161,9 +166,9 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 //void screen_printing_timer(screen_t *screen, uint32_t seconds);
 //void screen_printing_update_progress(screen_t *screen);
 void screen_printing_reprint(screen_t *screen);
-void screen_printing_printed(screen_t *screen);
+//void screen_printing_printed(screen_t *screen);
 void screen_mesh_err_stop_print(screen_t *screen);
-void change_print_state(screen_t *screen, printing_state_t state);
+void change_print_state(screen_t *screen);
 
 screen_t screen_printing = {
     0,
@@ -301,8 +306,7 @@ void screen_printing_init(screen_t *screen) {
     }
 
     //todo it is static, because menu tune is not dialog
-    //change_print_state(screen, P_INITIAL);
-    change_print_state(screen, state__readonly__use_change_print_state);
+    invalidate_print_state();
 
     status_footer_init(&(pw->footer), root);
     //    screen_printing_timer(screen, 1000); // first fast value s update
@@ -412,7 +416,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 1;
     }
 
-    change_print_state(screen, state__readonly__use_change_print_state);
+    change_print_state(screen);
 
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
@@ -424,6 +428,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         case P_PRINTING:
         case P_PAUSED:
             screen_open(get_scr_menu_tune()->id);
+            invalidate_print_state();
             break;
         default:
             break;
@@ -499,7 +504,7 @@ void screen_printing_enable_tune_button(screen_t *screen) {
     p_button->win.f_enabled = 1; // can be focused
     window_invalidate(p_button->win.id);
 }
-
+/*
 void _state_loop(screen_t *screen) {
     //todo it is static, because menu tune is not dialog
     //switch (pw->state__readonly__use_change_print_state)
@@ -528,7 +533,7 @@ void _state_loop(screen_t *screen) {
         break;
     }
 }
-
+*/
 static void screen_printing_update_remaining_time_progress(screen_t *screen) {
     uint8_t nPercent;
     if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration)) {
@@ -603,7 +608,7 @@ void screen_printing_reprint(screen_t *screen) {
     p_window_header_set_text(&(pw->header), "PRINTING");
 #endif
 }
-
+/*
 void screen_printing_printed(screen_t *screen) {
     marlin_set_print_speed(100);
     change_print_state(screen, P_PRINTED);
@@ -618,7 +623,7 @@ void screen_printing_printed(screen_t *screen) {
     window_set_text(pw->w_etime_value.win.id, PSTR(""));
 
     //screen_printing_disable_tune_button(screen);
-}
+}*/
 
 void screen_mesh_err_stop_print(screen_t *screen) {
     float target_nozzle = marlin_vars()->target_nozzle;
@@ -667,6 +672,7 @@ void set_pause_icon_and_label(screen_t *screen) {
     //todo it is static, because menu tune is not dialog
     //switch (pw->state__readonly__use_change_print_state)
     switch (state__readonly__use_change_print_state) {
+    case P_COUNT:
     case P_INITIAL:
     case P_PRINTING:
     case P_MBL_FAILED:
@@ -742,7 +748,8 @@ void set_stop_icon_and_label(screen_t *screen) {
     }
 }
 
-void change_print_state(screen_t *screen, printing_state_t st) {
+void change_print_state(screen_t *screen) {
+    printing_state_t st = P_COUNT;
     //_dbg("printstate %d entered", (int)st);
     //todo it is static, because menu tune is not dialog
     //pw->state__readonly__use_change_print_state = st;
