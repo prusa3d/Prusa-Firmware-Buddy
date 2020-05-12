@@ -39,6 +39,10 @@
   #include "../../module/tool_change.h"
 #endif
 
+#if ENABLED(PRUSA_MARLIN_API)
+  #include "marlin_server.h"
+#endif
+
 /**
  * M104: Set hot end temperature
  */
@@ -79,6 +83,10 @@ void GcodeSuite::M104() {
       }
     #endif
   }
+
+  #if ENABLED(PRUSA_MARLIN_API)
+    marlin_server_set_temp_to_display(parser.seenval('R') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder));
+  #endif
 
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();
