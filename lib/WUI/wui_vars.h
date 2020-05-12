@@ -8,7 +8,7 @@
 #define Z_AXIS_POS 2
 
 typedef struct {
-    char gcode_name[FILE_NAME_MAX_LEN];
+    char gcode_name[GCODE_NAME_MAX_LEN + 1];
     float pos[4];
     float temp_nozzle;
     float temp_bed;
