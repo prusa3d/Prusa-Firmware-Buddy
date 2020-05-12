@@ -632,7 +632,6 @@ int16_t Temperature::getHeaterPower(const heater_ind_t heater_id) {
       case H_CHAMBER: return temp_chamber.soft_pwm_amount;
     #endif
     #if HAS_TEMP_BOARD
-      #warning "Temperature::getHeaterPower(H_BOARD): Not implemented."
       case H_BOARD: return 0;
     #endif //HAS_TEMP_BOARD  
     default:
