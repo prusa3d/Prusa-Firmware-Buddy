@@ -49,6 +49,10 @@
   #include "../../module/tool_change.h"
 #endif
 
+#if ENABLED(PRUSA_MARLIN_API)
+  #include "marlin_server.h"
+#endif
+
 /**
  * M104: Set Hotend Temperature target and return immediately
  * M109: Set Hotend Temperature target and wait
@@ -128,6 +132,10 @@ void GcodeSuite::M104_M109(const bool isM109) {
     if (thermalManager.isHeatingHotend(target_extruder) || !no_wait_for_cooling)
       thermalManager.set_heating_message(target_extruder, !isM109 && got_temp);
   }
+  
+  #if ENABLED(PRUSA_MARLIN_API)
+    marlin_server_set_temp_to_display(parser.seenval('R') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder));
+  #endif
 
   TERN_(AUTOTEMP, planner.autotemp_M104_M109());
 
