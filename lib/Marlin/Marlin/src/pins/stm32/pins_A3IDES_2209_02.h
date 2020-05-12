@@ -111,6 +111,7 @@
 #define TEMP_BED_PIN           PA4   // Analog Input
 
 #define TEMP_PINDA_PIN         PA6   // Analog Input
+#define TEMP_BOARD_PIN         PA5   // Analog Input
 
 
 //

@@ -26,7 +26,7 @@
 #define OVERSAMPLENR 16
 #define OV(N) int16_t((N) * (OVERSAMPLENR))
 
-#define ANY_THERMISTOR_IS(n) (THERMISTOR_HEATER_0 == n || THERMISTOR_HEATER_1 == n || THERMISTOR_HEATER_2 == n || THERMISTOR_HEATER_3 == n || THERMISTOR_HEATER_4 == n || THERMISTOR_HEATER_5 == n || THERMISTORBED == n || THERMISTORCHAMBER == n)
+#define ANY_THERMISTOR_IS(n) (THERMISTOR_HEATER_0 == n || THERMISTOR_HEATER_1 == n || THERMISTOR_HEATER_2 == n || THERMISTOR_HEATER_3 == n || THERMISTOR_HEATER_4 == n || THERMISTOR_HEATER_5 == n || THERMISTORBED == n || THERMISTORCHAMBER == n || TEMP_SENSOR_BOARD == n)
 
 // Pt1000 and Pt100 handling
 //
@@ -146,6 +146,9 @@
 #if ANY_THERMISTOR_IS(1047) // Pt1000 with 4k7 pullup
   #include "thermistor_1047.h"
 #endif
+#if ANY_THERMISTOR_IS(2000) // 100k TDK NTC Chip Thermistor NTCG104LH104JT1 with 4k7 pullup
+  #include "thermistor_2000.h"
+#endif
 #if ANY_THERMISTOR_IS(998) // User-defined table 1
   #include "thermistor_998.h"
 #endif
@@ -237,6 +240,15 @@
   #define CHAMBER_TEMPTABLE_LEN 0
 #endif
 
+#ifdef THERMISTORBOARD
+  #define BOARD_TEMPTABLE TT_NAME(TEMP_SENSOR_BOARD)
+  #define BOARD_TEMPTABLE_LEN COUNT(BOARD_TEMPTABLE)
+#elif defined(BOARD_USES_THERMISTOR)
+  #error "No board thermistor table specified"
+#else
+  #define BOARD_TEMPTABLE_LEN 0
+#endif  
+
 // The SCAN_THERMISTOR_TABLE macro needs alteration?
 static_assert(
      HEATER_0_TEMPTABLE_LEN < 256 && HEATER_1_TEMPTABLE_LEN < 256
@@ -319,6 +331,16 @@ static_assert(
   #else
     #define HEATER_CHAMBER_RAW_HI_TEMP 0
     #define HEATER_CHAMBER_RAW_LO_TEMP 16383
+  #endif
+#endif
+
+#ifndef BOARD_RAW_HI_TEMP
+  #if defined(REVERSE_TEMP_SENSOR_RANGE) || !defined(BOARD_USES_THERMISTOR)
+    #define BOARD_RAW_HI_TEMP 16383
+    #define BOARD_RAW_LO_TEMP 0
+  #else
+    #define BOARD_RAW_HI_TEMP 0
+    #define BOARD_RAW_LO_TEMP 16383
   #endif
 #endif
 
