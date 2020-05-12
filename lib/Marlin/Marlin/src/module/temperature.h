@@ -47,8 +47,8 @@
 
 // Identifiers for other heaters
 typedef enum : int8_t {
-  INDEX_NONE = -4,
-  H_REDUNDANT, H_CHAMBER, H_BED,
+  INDEX_NONE = -5,
+  H_REDUNDANT, H_CHAMBER, H_BED, H_BOARD,
   H_E0, H_E1, H_E2, H_E3, H_E4, H_E5
 } heater_ind_t;
 
@@ -95,6 +95,9 @@ enum ADCSensorState : char {
   #if HAS_TEMP_CHAMBER
     PrepareTemp_CHAMBER, MeasureTemp_CHAMBER,
   #endif
+    #if HAS_TEMP_BOARD
+    PrepareTemp_BOARD, MeasureTemp_BOARD,
+  #endif   
   #if HAS_TEMP_ADC_1
     PrepareTemp_1, MeasureTemp_1,
   #endif
@@ -189,6 +192,10 @@ struct PIDHeaterInfo : public HeaterInfo {
   typedef temp_info_t chamber_info_t;
 #endif
 
+#if HAS_TEMP_BOARD
+  typedef temp_info_t board_info_t;
+#endif 
+
 // Heater idle handling
 typedef struct {
   millis_t timeout_ms;
@@ -243,6 +250,9 @@ typedef struct { int16_t raw_min, raw_max, mintemp, maxtemp; } temp_range_t;
     #if ENABLED(HEATER_CHAMBER_USER_THERMISTOR)
       CTI_CHAMBER,
     #endif
+    #if ENABLED(BOARD_USER_THERMISTOR)
+      CTI_BOARD,
+    #endif  
     USER_THERMISTORS
   };
 
@@ -281,6 +291,9 @@ class Temperature {
     #if HAS_TEMP_CHAMBER
       static chamber_info_t temp_chamber;
     #endif
+    #if HAS_TEMP_BOARD
+      static board_info_t temp_board;
+    #endif 
 
     #if ENABLED(AUTO_POWER_E_FANS)
       static uint8_t autofan_speed[HOTENDS];
@@ -363,6 +376,18 @@ class Temperature {
       #endif
     #endif
 
+    #if HAS_TEMP_BOARD
+      #if WATCH_BOARD
+        static heater_watch_t watch_board;
+      #endif
+      static millis_t next_board_check_ms;  
+      #ifdef BOARD_MINTEMP
+        static int16_t mintemp_raw_BOARD;
+      #endif
+      #ifdef BOARD_MAXTEMP
+        static int16_t maxtemp_raw_BOARD;
+      #endif
+    #endif  
     #if HAS_HEATED_CHAMBER
       #if WATCH_CHAMBER
         static heater_watch_t watch_chamber;
@@ -453,6 +478,9 @@ class Temperature {
     #if HAS_TEMP_CHAMBER
       static float analog_to_celsius_chamber(const int raw);
     #endif
+    #if HAS_TEMP_BOARD
+      static float analog_to_celsius_board(const int raw);
+    #endif  
 
     #if FAN_COUNT > 0
 
@@ -677,6 +705,40 @@ class Temperature {
       }
     #endif // HAS_HEATED_CHAMBER
 
+
+
+    #if HAS_TEMP_BOARD
+      #if ENABLED(SHOW_TEMP_ADC_VALUES)
+        FORCE_INLINE static int16_t rawBoardTemp()    { return temp_board.raw; }
+      #endif
+      FORCE_INLINE static float degBoard()            { return temp_board.celsius; }
+      #if HAS_TEMP_BOARD_CONTROL
+        FORCE_INLINE static int16_t degTargetBoard()  { return temp_board.target; }
+        FORCE_INLINE static bool isHeatingBoard()     { return temp_board.target > temp_board.celsius; }
+        FORCE_INLINE static bool isCoolingBoard()     { return temp_board.target < temp_board.celsius; }
+
+        static bool wait_for_board(const bool no_wait_for_cooling=true);
+      #endif
+    #endif // HAS_TEMP_BOARD
+
+    #if WATCH_BOARD
+      static void start_watching_board();
+    #else
+      static inline void start_watching_board() {}
+    #endif
+
+    #if HAS_TEMP_BOARD_CONTROL
+      static void setTargetBoard(const int16_t celsius) {
+        temp_board.target =
+          #ifdef BOARD_MAXTEMP
+            _MIN(celsius, BOARD_MAXTEMP)
+          #else
+            celsius
+          #endif
+        ;
+        start_watching_board();
+      }
+    #endif // HAS_TEMP_BOARD
     /**
      * The software PWM power for a heater
      */
