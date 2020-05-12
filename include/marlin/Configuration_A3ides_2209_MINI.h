@@ -348,7 +348,6 @@
 #define TEMP_SENSOR_4 0
 #define TEMP_SENSOR_5 0
 #define TEMP_SENSOR_BED 1
-
 #define TEMP_SENSOR_BOARD 2000
 #define TEMP_SENSOR_CHAMBER 0
 #define HEATER_CHAMBER_PIN -1 // On/off pin for enclosure heating system
