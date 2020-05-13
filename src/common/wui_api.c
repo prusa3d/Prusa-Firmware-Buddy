@@ -226,29 +226,29 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
     return 1;
 }
 
-void sntp_get_system_time(char *dest) {
+void sntp_get_system_time(system_time_t *system_time) {
 
     if (sntp_time_init) {
         RTC_TimeTypeDef currTime;
 
         HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
 
-    snprintf(dest, 12, "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
+    snprintf(*system_time, 12, "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
   } else {
-    strcpy(dest, "N/A");
+    strcpy(*system_time, "N/A");
   }
 }
 
-void sntp_get_system_date(char *dest) {
+void sntp_get_system_date(system_date_t *system_date) {
 
     if (sntp_time_init) {
         RTC_DateTypeDef currDate;
 
         HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
 
-    snprintf(dest, 13, "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
+    snprintf(*system_date, 13, "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
   } else {
-    strcpy(dest, "N/A");
+    strcpy(*system_date, "N/A");
   }
 }
 

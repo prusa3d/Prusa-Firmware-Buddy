@@ -49,6 +49,9 @@ typedef struct {
     char printer_state[PRI_STATE_STR_LEN]; // state of the printer, have to be set in wui
 } printer_info_t;
 
+typedef char system_time_t[12]; // wrapped string to ensure useage of at least 12 chars
+typedef char system_date_t[13]; // wrapped string to ensure useage of at least 13 chars
+
 /*!****************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory
 *
@@ -186,16 +189,16 @@ uint8_t dhcp_addrs_are_supplied(void);
 /*!****************************************************************************
 * \brief Parses time from device's time storage in dest string in format hh:mm:ss
 *
-* \param dest - destination string for paresd time ! At least 12 chars !
+* \param system_time - destination string for paresd time, wrapped as 12 chars string
 *****************************************************************************/
-void sntp_get_system_time(char *dest);
+void sntp_get_system_time(system_time_t *system_time);
 
 /*!****************************************************************************
 * \brief Parses date from device's time storage in dest string in format dd.mm.yyyy
 *
-* \param dest - destination string for paresd date ! At least 13 chars !
+* \param dest - destination string for paresd date, wrapped as 13 chars string
 *****************************************************************************/
-void sntp_get_system_date(char *dest);
+void sntp_get_system_date(system_date_t *system_date);
 
 /*!****************************************************************************
 * \brief Sets time and date in device's RTC on some other time storage
