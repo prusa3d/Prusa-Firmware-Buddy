@@ -2,6 +2,8 @@
 #ifndef _CONFIG_A3IDES2209_02_H
 #define _CONFIG_A3IDES2209_02_H
 
+#define PRUSA_MARLIN_API
+
 //--------------------------------------
 //DBG - debug/trace configuration
 #define DBG_RTOS // use FreeRTOS (semaphore and osDelay instead of HAL_Delay)

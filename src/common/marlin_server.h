@@ -110,6 +110,9 @@ extern int marlin_all_axes_homed(void);
 //
 extern int marlin_all_axes_known(void);
 
+// display different value than target, used in preheat
+extern void marlin_server_set_temp_to_display(float value);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
