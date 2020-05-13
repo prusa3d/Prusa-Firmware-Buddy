@@ -25,6 +25,7 @@
 #include "../Marlin/src/libs/nozzle.h"
 #include "../Marlin/src/core/language.h" //GET_TEXT(MSG)
 #include "../Marlin/src/gcode/gcode.h"
+#include "../Marlin/src/gcode/lcd/M73_PE.h"
 
 #include "hwio.h"
 #include "eeprom.h"
@@ -523,6 +524,7 @@ static void _server_print_loop(void) {
     case mpsAborting_Begin:
         media_print_stop();
         thermalManager.disable_all_heaters();
+        thermalManager.set_fan_speed(0, 0);
         print_job_timer.stop();
         planner.quick_stop();
         marlin_server.print_state = mpsAborting_WaitIdle;
@@ -601,6 +603,10 @@ int marlin_all_axes_homed(void) {
 
 int marlin_all_axes_known(void) {
     return all_axes_known() ? 1 : 0;
+}
+
+void marlin_server_set_temp_to_display(float value) {
+    marlin_server.vars.display_nozzle = value;
 }
 
 //-----------------------------------------------------------------------------
@@ -925,7 +931,10 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
-        v.ui8 = (uint8_t)media_print_get_percent_done();
+        if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
+            v.ui8 = (uint8_t)oProgressData.oPercentDone.mGetValue();
+        else
+            v.ui8 = (uint8_t)media_print_get_percent_done();
         if (marlin_server.vars.sd_percent_done != v.ui8) {
             marlin_server.vars.sd_percent_done = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
@@ -954,6 +963,17 @@ static uint64_t _server_update_vars(uint64_t update) {
         if (marlin_server.vars.print_state != v.ui8) {
             marlin_server.vars.print_state = (marlin_print_state_t)(v.ui8);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE);
+        }
+    }
+
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND)) {
+        if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
+            v.ui32 = oProgressData.oTime2End.mGetValue();
+        else
+            v.ui32 = -1;
+        if (marlin_server.vars.time_to_end != v.ui32) {
+            marlin_server.vars.time_to_end = v.ui32;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND);
         }
     }
 
