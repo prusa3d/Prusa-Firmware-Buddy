@@ -40,8 +40,8 @@ typedef struct
     window_text_t wt_z_axis;
     window_text_t wt_filament;
 
-    // char text_nozzle[10]; // "215/215°C"
-    // char text_heatbed[10];
+    char text_nozzle[10]; // "215/215°C"
+    char text_heatbed[10];
     char text_prnspeed[5]; // "999%"
     char text_z_axis[7];   // "999.95"
 
