@@ -22,7 +22,7 @@ extern "C" {
 *
 *****************************************************************************/
 
-#define HIGH_CMD_MAX_ARGS_CNT   5
+#define HIGH_CMD_MAX_ARGS_CNT 5
 
 void StartWebServerTask(void const *argument);
 
@@ -46,7 +46,6 @@ typedef struct {
     char arg[100];
     // TODO: other possible arg's data types
 } wui_cmd_t;
-
 
 #ifdef __cplusplus
 }

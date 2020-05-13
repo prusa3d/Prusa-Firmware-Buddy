@@ -12,12 +12,12 @@
 #include <stdint.h>
 #include "netif_settings.h"
 
-#define FW_VER_STR_LEN          32          // length of full Firmware version string
-#define MAC_ADDR_STR_LEN        18          // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
-#define SER_NUM_STR_LEN         16          // length of serial number string
-#define UUID_STR_LEN            32          // length of unique identifier string
-#define PRI_STATE_STR_LEN       10          // length of printer state string
-#define IP4_ADDR_STR_SIZE       16          // length of ip4 address string ((0-255).(0-255).(0-255).(0-255))
+#define FW_VER_STR_LEN    32 // length of full Firmware version string
+#define MAC_ADDR_STR_LEN  18 // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
+#define SER_NUM_STR_LEN   16 // length of serial number string
+#define UUID_STR_LEN      32 // length of unique identifier string
+#define PRI_STATE_STR_LEN 10 // length of printer state string
+#define IP4_ADDR_STR_SIZE 16 // length of ip4 address string ((0-255).(0-255).(0-255).(0-255))
 
 #define ETHVAR_MSK(n_id) ((uint32_t)1 << (n_id))
 #define ETHVAR_STATIC_LAN_ADDRS \
@@ -31,12 +31,12 @@ extern "C" {
 #endif
 
 typedef enum {
-    ETHVAR_LAN_FLAGS,       // uint8_t, lan.flag
-    ETHVAR_HOSTNAME,        // char[20 + 1], hostname
-    ETHVAR_LAN_ADDR_IP4,    // ip4_addr_t, lan.addr_ip4
-    ETHVAR_LAN_MSK_IP4,     // ip4_addr_t, lan.msk_ip4
-    ETHVAR_LAN_GW_IP4,      // ip4_addr_t, lan.gw_ip4
-    ETHVAR_TIMEZONE,        // int8_t, timezone
+    ETHVAR_LAN_FLAGS,    // uint8_t, lan.flag
+    ETHVAR_HOSTNAME,     // char[20 + 1], hostname
+    ETHVAR_LAN_ADDR_IP4, // ip4_addr_t, lan.addr_ip4
+    ETHVAR_LAN_MSK_IP4,  // ip4_addr_t, lan.msk_ip4
+    ETHVAR_LAN_GW_IP4,   // ip4_addr_t, lan.gw_ip4
+    ETHVAR_TIMEZONE,     // int8_t, timezone
 } ETHVAR_t;
 
 typedef struct {
@@ -80,7 +80,7 @@ uint32_t load_eth_params(ETH_config_t *ethconfig);
 *
 * \retval   1 if successful
 *****************************************************************************/
-uint32_t load_ini_params(ETH_config_t * config);
+uint32_t load_ini_params(ETH_config_t *config);
 
 /*!****************************************************************************
 * \brief access user defined addresses in memory and aquire vital printer info
@@ -96,7 +96,7 @@ void get_printer_info(printer_info_t *printer_info);
 *
 * \param [out] destination (static MAC address string)
 *****************************************************************************/
-void parse_MAC_address(char * dest);
+void parse_MAC_address(char *dest);
 
 /*!*****************************************************************************************
 * \brief Parses all vital eth information in destination string according to ini file format
@@ -104,14 +104,14 @@ void parse_MAC_address(char * dest);
 * \param [out] destination string
 * \param [in] config - storage for ethernet configurations
 *******************************************************************************************/
-void stringify_eth_for_ini(char * dest, ETH_config_t *config);
+void stringify_eth_for_ini(char *dest, ETH_config_t *config);
 /*!*****************************************************************************************
 * \brief Parses all vital eth information in destination string according to screen format
 *
 * \param [out] destination string
 * \param [in] config - storage for ethernet configurations
 *******************************************************************************************/
-void stringify_eth_for_screen(char * dest, ETH_config_t *config);
+void stringify_eth_for_screen(char *dest, ETH_config_t *config);
 
 /*!****************************************************************************
 * \brief Parses MAC address from memory to static string
@@ -127,7 +127,7 @@ void parse_MAC_addr(void);
 *
 * \retval   1 if successful
 *****************************************************************************/
-uint32_t set_loaded_eth_params(ETH_config_t * config);
+uint32_t set_loaded_eth_params(ETH_config_t *config);
 /*!******************************************************************************************
 * \brief Updates ethernet addresses and their static strings according to ethconfig structure
 *
@@ -140,7 +140,7 @@ void update_eth_addrs(ETH_config_t *config);
 *
 * \param [in] config - structure that stores currnet ethernet configurations
 *****************************************************************************/
-void get_addrs_from_dhcp(ETH_config_t * config);
+void get_addrs_from_dhcp(ETH_config_t *config);
 /*!****************************************************************************
 * \brief Returns ethernet status
 *
@@ -148,7 +148,7 @@ void get_addrs_from_dhcp(ETH_config_t * config);
 *
 * \return ETH_STATUS_t status enum of possible cases (unlinked, netif down, netif up)
 *****************************************************************************/
-ETH_STATUS_t eth_status(ETH_config_t * config);
+ETH_STATUS_t eth_status(ETH_config_t *config);
 
 /*!****************************************************************************
 * \brief Turns software switch of ETH netif to OFF
@@ -188,14 +188,14 @@ uint8_t dhcp_addrs_are_supplied(void);
 *
 * \param dest - destination string for paresd time ! At least 12 chars !
 *****************************************************************************/
-void sntp_get_system_time(char * dest);
+void sntp_get_system_time(char *dest);
 
 /*!****************************************************************************
 * \brief Parses date from device's time storage in dest string in format dd.mm.yyyy
 *
 * \param dest - destination string for paresd date ! At least 13 chars !
 *****************************************************************************/
-void sntp_get_system_date(char * dest);
+void sntp_get_system_date(char *dest);
 
 /*!****************************************************************************
 * \brief Sets time and date in device's RTC on some other time storage

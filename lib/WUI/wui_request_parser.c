@@ -4,7 +4,6 @@
 #include "jsmn.h"
 #include "dbg.h"
 
-
 #define HTTP_DUBAI_HACK 0
 
 #if HTTP_DUBAI_HACK
