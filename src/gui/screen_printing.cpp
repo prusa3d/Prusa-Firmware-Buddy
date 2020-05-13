@@ -314,7 +314,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 0;
     }
 
-    if (pw->message_flag != 0 && HAL_GetTick() - pw->message_timer >= POPUP_MSG_DUR_MS) {
+    if ((!is_abort_state(marlin_vars()->print_state)) && pw->message_flag != 0 && (HAL_GetTick() - pw->message_timer >= POPUP_MSG_DUR_MS)) {
         close_popup_message(screen);
     }
 
