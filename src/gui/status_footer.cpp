@@ -177,9 +177,11 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     footer->nozzle_target = vars->target_nozzle;
     footer->nozzle_target_display = vars->display_nozzle;
 
-    char text[10];
-    sprintf(text, "%.0f/%.0f\177C", (double)vars->temp_nozzle, (double)vars->display_nozzle);
-    window_set_text(footer->wt_nozzle.win.id, text);
+    const uint8_t len = 10;
+    char text[len];
+    //sprintf(text, "%.0f/%.0f\177C", (double)vars->temp_nozzle, (double)vars->display_nozzle);
+    if (0 < snprintf(text, len, "%u/%u\177C", (int)10.0f, (int)200.0f))
+        window_set_text(footer->wt_nozzle.win.id, text);
 }
 
 void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *vars) {
@@ -198,9 +200,10 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
     footer->heatbed = vars->temp_bed;
     footer->heatbed_target = vars->target_bed;
 
-    char text[10];
-    sprintf(text, "%.0f/%.0f\177C", (double)vars->temp_bed, (double)vars->target_bed);
-    window_set_text(footer->wt_heatbed.win.id, text);
+    const uint8_t len = 10;
+    char text[len];
+    if (0 < snprintf(text, len, "%.0f/%.0f\177C", (double)vars->temp_bed, (double)vars->target_bed))
+        window_set_text(footer->wt_heatbed.win.id, text);
 }
 
 /// Updates values in footer state from real values and repaint
