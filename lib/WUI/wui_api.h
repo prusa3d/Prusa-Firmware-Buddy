@@ -18,6 +18,8 @@
 #define UUID_STR_LEN      32 // length of unique identifier string
 #define PRI_STATE_STR_LEN 10 // length of printer state string
 #define IP4_ADDR_STR_SIZE 16 // length of ip4 address string ((0-255).(0-255).(0-255).(0-255))
+#define MAX_INI_SIZE      200 // length of ini file string
+#define LAN_DESCP_SIZE    150 // length of lan description string with screen format
 
 #define ETHVAR_MSK(n_id) ((uint32_t)1 << (n_id))
 #define ETHVAR_STATIC_LAN_ADDRS \
@@ -39,18 +41,21 @@ typedef enum {
     ETHVAR_TIMEZONE,     // int8_t, timezone
 } ETHVAR_t;
 
+typedef char system_time_t[12];
+typedef char system_date_t[13];
+typedef char mac_address_t[MAC_ADDR_STR_LEN];
+typedef char ini_file_str_t[MAX_INI_SIZE];
+typedef char lan_descp_str_t[LAN_DESCP_SIZE];
+
 typedef struct {
     uint8_t printer_type;                  // Printer type (defined in CMakeLists.txt)
     uint8_t printer_version;               // Printer varsion (Stored in FLASH)
     char firmware_version[FW_VER_STR_LEN]; // Full project's version (4.0.3-BETA+1035.PR111.B4)
-    char mac_address[MAC_ADDR_STR_LEN];    // MAC address string "MM:MM:MM:SS:SS:SS"
+    mac_address_t mac_address;    // MAC address string "MM:MM:MM:SS:SS:SS"
     char serial_number[SER_NUM_STR_LEN];   // serial number without first four characters "CZPX" (total 15 chars, zero terminated)
     char mcu_uuid[UUID_STR_LEN];           // Unique identifier (96bits) into string format "%08lx-%08lx-%08lx"
     char printer_state[PRI_STATE_STR_LEN]; // state of the printer, have to be set in wui
 } printer_info_t;
-
-typedef char system_time_t[12];
-typedef char system_date_t[13];
 
 /*!****************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory
@@ -97,29 +102,24 @@ void get_printer_info(printer_info_t *printer_info);
 /*!****************************************************************************
 * \brief parses MAC address from device's memory to static string
 *
-* \param [out] destination (static MAC address string)
+* \param [out] dest - static MAC address null-terminated string
 *****************************************************************************/
-void parse_MAC_address(char *dest);
+void parse_MAC_address(mac_address_t *dest);
 
 /*!*****************************************************************************************
 * \brief Parses all vital eth information in destination string according to ini file format
 *
-* \param [out] destination string
+* \param [out] destination null-terminated string
 * \param [in] config - storage for ethernet configurations
 *******************************************************************************************/
-void stringify_eth_for_ini(char *dest, ETH_config_t *config);
+void stringify_eth_for_ini(ini_file_str_t *dest, ETH_config_t *config);
 /*!*****************************************************************************************
 * \brief Parses all vital eth information in destination string according to screen format
 *
-* \param [out] destination string
+* \param [out] destination null-terminated string
 * \param [in] config - storage for ethernet configurations
 *******************************************************************************************/
-void stringify_eth_for_screen(char *dest, ETH_config_t *config);
-
-/*!****************************************************************************
-* \brief Parses MAC address from memory to static string
-*****************************************************************************/
-void parse_MAC_addr(void);
+void stringify_eth_for_screen(lan_descp_str_t *dest, ETH_config_t *config);
 
 /*!****************************************************************************
 * \brief Sets up network interface according to loaded configuration values

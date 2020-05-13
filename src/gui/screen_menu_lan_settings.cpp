@@ -25,7 +25,6 @@ typedef enum {
     MI_COUNT
 } MI_t;
 
-static char plan_str[150];
 static bool conn_flg = false; // wait for dhcp to supply addresses
 static const char *LAN_switch_opt[] = { "On", "Off", NULL };
 static const char *LAN_type_opt[] = { "DHCP", "static", NULL };
@@ -36,6 +35,8 @@ typedef struct {
     window_menu_t menu;
     window_text_t text;
     menu_item_t items[MI_COUNT];
+    lan_descp_str_t plan_str;
+
 } screen_lan_settings_data_t;
 
 static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t index,
@@ -47,8 +48,8 @@ static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t inde
 static void refresh_addresses(screen_t *screen) {
     ETH_config_t ethconfig;
     update_eth_addrs(&ethconfig);
-    stringify_eth_for_screen(plan_str, &ethconfig);
-    plsd->text.text = plan_str;
+    stringify_eth_for_screen(&plsd->plan_str, &ethconfig);
+    plsd->text.text = (char *)plsd->plan_str;
     plsd->text.win.flg |= WINDOW_FLG_INVALID;
     gui_invalidate();
 }
@@ -84,24 +85,25 @@ static void screen_lan_settings_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(10, 183, 230, 137), &(plsd->text));
     plsd->text.font = resource_font(IDR_FNT_SPECIAL);
 
-    psmd->items[MI_RETURN] = menu_item_return;
-    psmd->items[MI_SWITCH] = (menu_item_t) { { "LAN", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    plsd->items[MI_RETURN] = menu_item_return;
+    plsd->items[MI_SWITCH] = (menu_item_t) { { "LAN", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
     plsd->items[MI_SWITCH].item.wi_switch_select.index = IS_LAN_OFF(ethconfig.lan.flag) ? 1 : 0;
     plsd->items[MI_SWITCH].item.wi_switch_select.strings = LAN_switch_opt;
-    psmd->items[MI_TYPE] = (menu_item_t) { { "LAN IP", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    plsd->items[MI_TYPE] = (menu_item_t) { { "LAN IP", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
     plsd->items[MI_TYPE].item.wi_switch_select.index = IS_LAN_STATIC(ethconfig.lan.flag) ? 1 : 0;
     plsd->items[MI_TYPE].item.wi_switch_select.strings = LAN_type_opt;
-    psmd->items[MI_SAVE] = (menu_item_t) { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_LOAD] = (menu_item_t) { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    plsd->items[MI_SAVE] = (menu_item_t) { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
+    plsd->items[MI_LOAD] = (menu_item_t) { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
 
     refresh_addresses(screen);
 }
 static uint8_t save_config(void) {
     ETH_config_t ethconfig;
+    ini_file_str_t ini_str;
     ethconfig.var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&ethconfig);
-    stringify_eth_for_ini(ini_file_str, &ethconfig);
-    return ini_save_file(ini_file_str);
+    stringify_eth_for_ini(&ini_str, &ethconfig);
+    return ini_save_file((const char*)&ini_str);
 }
 
 static int screen_lan_settings_event(screen_t *screen, window_t *window,
@@ -163,8 +165,8 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
             set_LAN_to_static(&ethconfig);
             ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
             save_eth_params(&ethconfig);
-            stringify_eth_for_screen(plan_str, &ethconfig);
-            plsd->text.text = plan_str;
+            stringify_eth_for_screen(&plsd->plan_str, &ethconfig);
+            plsd->text.text = (char*)plsd->plan_str;
             plsd->text.win.flg |= WINDOW_FLG_INVALID;
             gui_invalidate();
         } else {
@@ -217,8 +219,8 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                     } else {
                         ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
                         load_eth_params(&ethconfig);
-                        stringify_eth_for_screen(plan_str, &ethconfig);
-                        plsd->text.text = plan_str;
+                        stringify_eth_for_screen(&plsd->plan_str, &ethconfig);
+                        plsd->text.text = (char*)plsd->plan_str;
                         plsd->text.win.flg |= WINDOW_FLG_INVALID;
                     }
                 }
