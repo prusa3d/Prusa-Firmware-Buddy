@@ -49,8 +49,8 @@ typedef struct {
     char printer_state[PRI_STATE_STR_LEN]; // state of the printer, have to be set in wui
 } printer_info_t;
 
-typedef char system_time_t[12]; // wrapped string to ensure useage of at least 12 chars
-typedef char system_date_t[13]; // wrapped string to ensure useage of at least 13 chars
+typedef char system_time_t[12];
+typedef char system_date_t[13];
 
 /*!****************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory
@@ -182,22 +182,28 @@ void set_LAN_to_static(ETH_config_t *config);
 void set_LAN_to_dhcp(ETH_config_t *config);
 
 /*!****************************************************************************
-* \brief Returns if DHCP server already supplied ip addresses
+* \brief Determines whether DHCP server already supplied ip addresses
+*
+* \retval Returns 1 if DHCP server supplied ip addresses, 0 otherwise
 *****************************************************************************/
 uint8_t dhcp_addrs_are_supplied(void);
 
-/*!****************************************************************************
+/*!*********************************************************************************************************************
 * \brief Parses time from device's time storage in dest string in format hh:mm:ss
 *
-* \param system_time - destination string for paresd time, wrapped as 12 chars string
-*****************************************************************************/
+* \param [out] system_time - destination null-terminated string for parsed time
+*
+* If system time is valid it writes it's ASCII representation into system_time string, otherwise it writes "N/A"
+***********************************************************************************************************************/
 void sntp_get_system_time(system_time_t *system_time);
 
-/*!****************************************************************************
+/*!*************************************************************************************************************
 * \brief Parses date from device's time storage in dest string in format dd.mm.yyyy
 *
-* \param system_date - destination string for paresd date, wrapped as 13 chars string
-*****************************************************************************/
+* \param [out] system_date - destination null-terminated string for parsed date
+*
+* If system date is valid it writes it's ASCII representation into system_date string, otherwise it writes "N/A"
+***************************************************************************************************************/
 void sntp_get_system_date(system_date_t *system_date);
 
 /*!****************************************************************************
