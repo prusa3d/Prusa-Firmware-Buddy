@@ -31,6 +31,7 @@
 #include "eeprom.h"
 #include "media.h"
 #include "filament_sensor.h"
+#include "wdt.h"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -83,10 +84,6 @@ typedef struct _marlin_server_t {
 #pragma pack(pop)
 
 extern "C" {
-
-#ifndef _DEBUG
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
 
 //-----------------------------------------------------------------------------
 // variables
@@ -290,10 +287,8 @@ int marlin_server_cycle(void) {
                 if ((msk = marlin_server.client_events[client_id]) != 0)
                     marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
-#ifndef _DEBUG
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
-        HAL_IWDG_Refresh(&hiwdg); // this prevents iwdg reset while processing disabled
-#endif                            //_DEBUG
+        wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
     processing = 0;
     return count;
 }
@@ -1205,10 +1200,8 @@ int _is_thermal_error(PGM_P const msg) {
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
     if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
-        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-#ifndef _DEBUG
-    HAL_IWDG_Refresh(&hiwdg);     //watchdog reset
-#endif                            //_DEBUG
+        taskENTER_CRITICAL();     //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+    wdt_iwdg_refresh();           //watchdog reset
     if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
         const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
