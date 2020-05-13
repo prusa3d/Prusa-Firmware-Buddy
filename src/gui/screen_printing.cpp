@@ -4,16 +4,10 @@
 #include "window_header.h"
 #include "status_footer.h"
 #include "marlin_client.h"
-#include "filament.h"
 #include "marlin_server.h"
 #include "print_utils.h"
 #include "screens.h"
-
 #include "ffconf.h"
-
-#include "../Marlin/src/libs/duration_t.h"
-
-#include "../Marlin/src/gcode/lcd/M73_PE.h"
 
 #include <ctime>
 
