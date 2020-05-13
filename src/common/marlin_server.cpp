@@ -1254,19 +1254,29 @@ void onUserConfirmRequired(const char *const msg) {
 }
 
 void onStatusChanged(const char *const msg) {
+    static bool pending_err_msg = false;
+
     DBG_XUI("XUI: onStatusChanged: %s", msg);
     _send_notify_event(MARLIN_EVT_StatusChanged, 0, 0);
     if (strcmp(msg, "Prusa-mini Ready.") == 0) {
     } //TODO
     else if (strcmp(msg, "TMC CONNECTION ERROR") == 0)
         _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_TMCDriverError, 0);
-    else if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0)
-        _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_ProbingFailed, 0);
     else {
-        if (msg && msg[0] != 0) { //empty message filter
+        if (!is_abort_state(marlin_server.print_state))
+            pending_err_msg = false;
+        if (!pending_err_msg) {
+            if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
+                _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_ProbingFailed, 0);
+                marlin_server_print_abort();
+                pending_err_msg = true;
+            }
 
-            _add_status_msg(msg);
-            _send_notify_event(MARLIN_EVT_Message, 0, 0);
+            if (msg && msg[0] != 0) { //empty message filter
+
+                _add_status_msg(msg);
+                _send_notify_event(MARLIN_EVT_Message, 0, 0);
+            }
         }
     }
 }
