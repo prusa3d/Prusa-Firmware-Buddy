@@ -8,7 +8,7 @@
 #include "print_utils.h"
 #include "screens.h"
 #include "ffconf.h"
-
+#include <array>
 #include <ctime>
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -103,9 +103,9 @@ typedef struct
     uint32_t last_time_to_end;
     uint8_t last_sd_percent_done;
 
-    char text_time[9];
-    char text_etime[9];
-    char text_filament[5]; // 999m\0 | 1.2m\0
+    std::array<char, 9> text_time;
+    std::array<char, 9> text_etime;
+    std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
 
     window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
@@ -154,8 +154,8 @@ void screen_printing_init(screen_t *screen) {
 
     marlin_vars_t *vars = marlin_vars();
 
-    strcpy(pw->text_time, "0m");
-    strcpy(pw->text_filament, "999m");
+    strcpy(pw->text_time.data(), "0m");
+    strcpy(pw->text_filament.data(), "999m");
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
@@ -196,7 +196,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_etime);
+    window_set_text(id, pw->text_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 128, 101, 20),
@@ -212,7 +212,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_time);
+    window_set_text(id, pw->text_time.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
@@ -412,36 +412,38 @@ static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_sp
 
 static void update_remaining_time(screen_t *screen, time_t rawtime) {
     pw->w_etime_value.color_text = rawtime != time_t(-1) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
+    auto &array = pw->text_etime;
     if (rawtime != time_t(-1)) {
-        struct tm *timeinfo = localtime(&rawtime);
+        const struct tm *timeinfo = localtime(&rawtime);
         //standard would be:
-        //strftime(pw->text_etime, sizeof(pw->text_etime) / sizeof(pw->text_etime[0]), "%jd %Hh", timeinfo);
+        //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
         if (timeinfo->tm_yday) {
-            snprintf(pw->text_etime, sizeof(pw->text_etime) / sizeof(pw->text_etime[0]), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+            snprintf(array.data(), array.size(), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
         } else if (timeinfo->tm_hour) {
-            snprintf(pw->text_etime, sizeof(pw->text_etime) / sizeof(pw->text_etime[0]), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+            snprintf(array.data(), array.size(), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
         } else {
-            snprintf(pw->text_etime, sizeof(pw->text_etime) / sizeof(pw->text_etime[0]), "%im", timeinfo->tm_min);
+            snprintf(array.data(), array.size(), "%im", timeinfo->tm_min);
         }
     } else
-        strcpy_P(pw->text_etime, PSTR("N/A"));
+        strcpy_P(array.data(), PSTR("N/A"));
 
-    window_set_text(pw->w_etime_value.win.id, pw->text_etime);
+    window_set_text(pw->w_etime_value.win.id, array.data());
 }
 
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
-    struct tm *timeinfo = localtime(&rawtime);
+    auto &array = pw->text_time;
+    const struct tm *timeinfo = localtime(&rawtime);
     if (timeinfo->tm_yday) {
-        snprintf(pw->text_time, sizeof(pw->text_time) / sizeof(pw->text_time[0]), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+        snprintf(array.data(), array.size(), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
     } else if (timeinfo->tm_hour) {
-        snprintf(pw->text_time, sizeof(pw->text_time) / sizeof(pw->text_time[0]), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+        snprintf(array.data(), array.size(), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
     } else if (timeinfo->tm_min) {
-        snprintf(pw->text_time, sizeof(pw->text_time) / sizeof(pw->text_time[0]), "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+        snprintf(array.data(), array.size(), "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
     } else {
-        snprintf(pw->text_time, sizeof(pw->text_time) / sizeof(pw->text_time[0]), "%is", timeinfo->tm_sec);
+        snprintf(array.data(), array.size(), "%is", timeinfo->tm_sec);
     }
-    window_set_text(pw->w_time_value.win.id, pw->text_time);
+    window_set_text(pw->w_time_value.win.id, array.data());
 }
 
 static void screen_printing_reprint(screen_t *screen) {
