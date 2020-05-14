@@ -7,9 +7,9 @@
 //where all values are divided by 1000
 class WI_LABEL_t : public IWindowMenuItem {
 public:
-    WI_LABEL_t(Iwindow_menu_t &window_menu, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    WI_LABEL_t(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
 
-    virtual int OnClick() { return 0; } //to match template signature
+    //virtual int OnClick() { return 0; } //to match template signature
     virtual bool Change(int dif);
 };
 
@@ -21,7 +21,7 @@ public: //todo private
     const int32_t *range;
 
 public:
-    WI_SPIN_t(Iwindow_menu_t &window_menu, int32_t value, const int32_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    WI_SPIN_t(int32_t value, const int32_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
 };
 
@@ -33,7 +33,7 @@ public: //todo private
     const char *prt_format;
 
 public:
-    WI_SPIN_FL_t(Iwindow_menu_t &window_menu, float value, const float *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    WI_SPIN_FL_t(float value, const float *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
 };
 
@@ -46,7 +46,7 @@ public: //todo private
     const char **strings;
 
 public:
-    WI_SWITCH_t(Iwindow_menu_t &window_menu, int32_t index, const char **strings, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    WI_SWITCH_t(int32_t index, const char **strings, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
 };
 
@@ -59,7 +59,7 @@ public: //todo private
     const char **strings;
 
 public:
-    WI_SELECT_t(Iwindow_menu_t &window_menu, int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
+    WI_SELECT_t(int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
 };
 
@@ -104,32 +104,33 @@ class MI_RETURN : public WI_LABEL_t {
     static const char *const label;
 
 public:
-    MI_RETURN(Iwindow_menu_t &window_menu);
-    virtual int OnClick();
+    MI_RETURN();
+    //virtual int OnClick();
+    virtual void Click();
 };
 
 class MI_FILAMENT : public WI_LABEL_t {
     static const char *const label;
 
 public:
-    MI_FILAMENT(Iwindow_menu_t &window_menu);
-    virtual int OnClick();
+    MI_FILAMENT();
+    //virtual int OnClick();
 };
 
 class MI_LAN_SETTINGS : public WI_LABEL_t {
     static const char *const label;
 
 public:
-    MI_LAN_SETTINGS(Iwindow_menu_t &window_menu);
-    virtual int OnClick();
+    MI_LAN_SETTINGS();
+    //virtual int OnClick();
 };
 
 class MI_VERSION_INFO : public WI_LABEL_t {
     static const char *const label;
 
 public:
-    MI_VERSION_INFO(Iwindow_menu_t &window_menu);
-    virtual int OnClick();
+    MI_VERSION_INFO();
+    //virtual int OnClick();
 };
 
 #pragma pack(pop)

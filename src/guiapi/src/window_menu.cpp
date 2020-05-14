@@ -110,7 +110,7 @@ void window_menu_draw(window_menu_t *window) {
         padding_ui8_t padding = window->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            item->Print(rc);
+            item->Print(*window, rc);
             /*if (!item->IsEnabled()) {
                 color_text = window->color_disabled;
             }
@@ -209,7 +209,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
             }
             screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)window->index);
         }*/
-        item->Click();
+        item->Click(*window);
         //_window_invalidate((window_t *)window); //called inside click
         break;
     case WINDOW_EVENT_ENC_DN:

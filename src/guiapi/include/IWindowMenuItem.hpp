@@ -9,8 +9,8 @@
 
 //todo make version with constant label
 class IWindowMenuItem {
-protected:
-    Iwindow_menu_t &window_menu;
+    //protected:
+    //   Iwindow_menu_t &window_menu;
 
 private:
     std::array<char, 23> label;
@@ -19,13 +19,13 @@ private:
     bool focused : 1;
     uint16_t id_icon : 10;
 
-    void printIcon(rect_ui16_t &rect, uint8_t swap) const;
+    void printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, uint8_t swap) const;
 
 protected:
-    virtual void printText(rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
 
 public:
-    IWindowMenuItem(Iwindow_menu_t &window_menu, const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
+    IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
 
     void Enable() { enabled = true; }
     void Disable() { enabled = false; }
@@ -41,9 +41,9 @@ public:
     void SetLabel(const char *text);
     const char *GetLabel() const;
 
-    void Print(rect_ui16_t rect) const;
+    void Print(Iwindow_menu_t &window_menu, rect_ui16_t rect) const;
 
-    virtual void Click();
+    virtual void Click(Iwindow_menu_t &window_menu);
     virtual bool Change(int dif) = 0;
     virtual bool IsSelected() { return false; }
 

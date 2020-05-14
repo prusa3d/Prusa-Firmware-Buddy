@@ -1,9 +1,8 @@
 #include "IWindowMenuItem.hpp"
 #include "display_helper.h" //render_icon_align
 
-IWindowMenuItem::IWindowMenuItem(Iwindow_menu_t &window_menu, const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : window_menu(window_menu)
-    , hidden(hidden)
+IWindowMenuItem::IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled, bool hidden)
+    : hidden(hidden)
     , enabled(enabled)
     , focused(false)
     , id_icon(id_icon) {
@@ -18,7 +17,7 @@ const char *IWindowMenuItem::GetLabel() const {
     return label.data();
 }
 
-void IWindowMenuItem::Print(rect_ui16_t rect) const {
+void IWindowMenuItem::Print(Iwindow_menu_t &window_menu, rect_ui16_t rect) const {
     color_t color_text = IsEnabled() ? window_menu.color_text : window_menu.color_disabled;
     color_t color_back = window_menu.color_back;
     uint8_t swap = 0;
@@ -30,11 +29,11 @@ void IWindowMenuItem::Print(rect_ui16_t rect) const {
         swap = ROPFN_SWAPBW;
     }
 
-    printIcon(rect, swap);
-    printText(rect, color_text, color_back, swap);
+    printIcon(window_menu, rect, swap);
+    printText(window_menu, rect, color_text, color_back, swap);
 }
 
-void IWindowMenuItem::printIcon(rect_ui16_t &rect, uint8_t swap) const {
+void IWindowMenuItem::printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, uint8_t swap) const {
     if (id_icon) {
         rect_ui16_t irc = { rect.x, rect.y,
             window_menu.icon_rect.w, window_menu.icon_rect.h };
@@ -47,12 +46,12 @@ void IWindowMenuItem::printIcon(rect_ui16_t &rect, uint8_t swap) const {
     }
 }
 
-void IWindowMenuItem::printText(rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void IWindowMenuItem::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
     render_text_align(rect, label.data(), window_menu.font,
         color_back, color_text,
         window_menu.padding, window_menu.alignment);
 }
 
-void IWindowMenuItem::Click() {
+void IWindowMenuItem::Click(Iwindow_menu_t &window_menu) {
     _window_invalidate((window_t *)(&window_menu));
 }
