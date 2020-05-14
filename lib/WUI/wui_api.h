@@ -12,12 +12,12 @@
 #include <stdint.h>
 #include "netif_settings.h"
 
-#define FW_VER_STR_LEN    32 // length of full Firmware version string
-#define MAC_ADDR_STR_LEN  18 // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
-#define SER_NUM_STR_LEN   16 // length of serial number string
-#define UUID_STR_LEN      32 // length of unique identifier string
-#define PRI_STATE_STR_LEN 10 // length of printer state string
-#define IP4_ADDR_STR_SIZE 16 // length of ip4 address string ((0-255).(0-255).(0-255).(0-255))
+#define FW_VER_STR_LEN    32  // length of full Firmware version string
+#define MAC_ADDR_STR_LEN  18  // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
+#define SER_NUM_STR_LEN   16  // length of serial number string
+#define UUID_STR_LEN      32  // length of unique identifier string
+#define PRI_STATE_STR_LEN 10  // length of printer state string
+#define IP4_ADDR_STR_SIZE 16  // length of ip4 address string ((0-255).(0-255).(0-255).(0-255))
 #define MAX_INI_SIZE      200 // length of ini file string
 #define LAN_DESCP_SIZE    150 // length of lan description string with screen format
 
@@ -51,7 +51,7 @@ typedef struct {
     uint8_t printer_type;                  // Printer type (defined in CMakeLists.txt)
     uint8_t printer_version;               // Printer varsion (Stored in FLASH)
     char firmware_version[FW_VER_STR_LEN]; // Full project's version (4.0.3-BETA+1035.PR111.B4)
-    mac_address_t mac_address;    // MAC address string "MM:MM:MM:SS:SS:SS"
+    mac_address_t mac_address;             // MAC address string "MM:MM:MM:SS:SS:SS"
     char serial_number[SER_NUM_STR_LEN];   // serial number without first four characters "CZPX" (total 15 chars, zero terminated)
     char mcu_uuid[UUID_STR_LEN];           // Unique identifier (96bits) into string format "%08lx-%08lx-%08lx"
     char printer_state[PRI_STATE_STR_LEN]; // state of the printer, have to be set in wui

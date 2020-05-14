@@ -24,7 +24,7 @@
 
 static bool sntp_time_init = false;
 
-static bool ini_string_match(const char *section, const char *section_var, const char *name, const char *name_var){
+static bool ini_string_match(const char *section, const char *section_var, const char *name, const char *name_var) {
     return strcmp(section_var, section) == 0 && strcmp(name_var, name) == 0;
 }
 
@@ -236,10 +236,10 @@ void sntp_get_system_time(system_time_t *system_time) {
 
         HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
 
-    snprintf(*system_time, sizeof(system_time_t), "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
-  } else {
-    strlcpy(*system_time, "N/A", sizeof(system_time_t));
-  }
+        snprintf(*system_time, sizeof(system_time_t), "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
+    } else {
+        strlcpy(*system_time, "N/A", sizeof(system_time_t));
+    }
 }
 
 void sntp_get_system_date(system_date_t *system_date) {
@@ -249,10 +249,10 @@ void sntp_get_system_date(system_date_t *system_date) {
 
         HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
 
-    snprintf(*system_date, sizeof(system_date_t), "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
-  } else {
-    strlcpy(*system_date, "N/A", sizeof(system_date_t));
-  }
+        snprintf(*system_date, sizeof(system_date_t), "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
+    } else {
+        strlcpy(*system_date, "N/A", sizeof(system_date_t));
+    }
 }
 
 void sntp_set_system_time(uint32_t sec) {

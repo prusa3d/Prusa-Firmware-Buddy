@@ -103,7 +103,7 @@ static uint8_t save_config(void) {
     ethconfig.var_mask = ETHVAR_EEPROM_CONFIG;
     load_eth_params(&ethconfig);
     stringify_eth_for_ini(&ini_str, &ethconfig);
-    return ini_save_file((const char*)&ini_str);
+    return ini_save_file((const char *)&ini_str);
 }
 
 static int screen_lan_settings_event(screen_t *screen, window_t *window,
@@ -166,7 +166,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
             ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
             save_eth_params(&ethconfig);
             stringify_eth_for_screen(&plsd->plan_str, &ethconfig);
-            plsd->text.text = (char*)plsd->plan_str;
+            plsd->text.text = (char *)plsd->plan_str;
             plsd->text.win.flg |= WINDOW_FLG_INVALID;
             gui_invalidate();
         } else {
@@ -220,7 +220,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                         ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
                         load_eth_params(&ethconfig);
                         stringify_eth_for_screen(&plsd->plan_str, &ethconfig);
-                        plsd->text.text = (char*)plsd->plan_str;
+                        plsd->text.text = (char *)plsd->plan_str;
                         plsd->text.win.flg |= WINDOW_FLG_INVALID;
                     }
                 }
