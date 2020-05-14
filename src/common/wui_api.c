@@ -24,13 +24,15 @@
 
 static bool sntp_time_init = false;
 
+static bool ini_string_match(const char *section, const char *section_var, const char *name, const char *name_var){
+    return strcmp(section_var, section) == 0 && strcmp(name_var, name) == 0;
+}
+
 static int ini_handler_func(void *user, const char *section, const char *name, const char *value) {
 
     ETH_config_t *tmp_config = (ETH_config_t *)user;
 
-#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-
-    if (MATCH("lan_ip4", "type")) {
+    if (ini_string_match(section, "lan_ip4", name, "type")) {
         if (strncmp(value, "DHCP", 4) == 0 || strncmp(value, "dhcp", 4) == 0) {
             CHANGE_LAN_TO_DHCP(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
@@ -38,18 +40,18 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
             CHANGE_LAN_TO_STATIC(tmp_config->lan.flag);
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         }
-    } else if (MATCH("lan_ip4", "hostname")) {
+    } else if (ini_string_match(section, "lan_ip4", name, "hostname")) {
         strlcpy(tmp_config->hostname, value, ETH_HOSTNAME_LEN + 1);
         tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_HOSTNAME);
-    } else if (MATCH("lan_ip4", "address")) {
+    } else if (ini_string_match(section, "lan_ip4", name, "address")) {
         if (ip4addr_aton(value, &tmp_config->lan.addr_ip4)) {
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
         }
-    } else if (MATCH("lan_ip4", "mask")) {
+    } else if (ini_string_match(section, "lan_ip4", name, "mask")) {
         if (ip4addr_aton(value, &tmp_config->lan.msk_ip4)) {
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_MSK_IP4);
         }
-    } else if (MATCH("lan_ip4", "gateway")) {
+    } else if (ini_string_match(section, "lan_ip4", name, "gateway")) {
         if (ip4addr_aton(value, &tmp_config->lan.gw_ip4)) {
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_GW_IP4);
         }
@@ -59,14 +61,12 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
     return 1;
 }
 
-static ini_handler wui_ini_handler = ini_handler_func;
-
 uint32_t load_ini_params(ETH_config_t *config) {
     config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(config);
     config->var_mask = 0;
 
-    if (ini_load_file(wui_ini_handler, config)) {
+    if (ini_load_file(ini_handler_func, config)) {
         return set_loaded_eth_params(config);
     } else {
         return 0;
