@@ -99,7 +99,7 @@ void window_menu_draw(window_menu_t *window) {
         int idx = i + window->top_index;
         //WindowMenuItem *item;
         //window->menu_items(window, idx, &item, window->data);
-        IWindowMenuItem *item = &window->pContainer->GetItem(idx);
+        IWindowMenuItem *item = window->pContainer->GetItem(idx);
 
         color_t color_text = window->color_text;
         color_t color_back = window->color_back;
@@ -182,7 +182,7 @@ void window_menu_draw(window_menu_t *window) {
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     //window->src_event = event;
     //window->src_param = param;
-    IWindowMenuItem *item = &window->pContainer->GetItem(window->index);
+    IWindowMenuItem *item = window->pContainer->GetItem(window->index);
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         //if (window->mode != WI_LABEL) {
@@ -242,7 +242,7 @@ static void window_menu_inc(window_menu_t *window, int dif) {
         window_menu_item_select(window, dif);
         break;
     default: */
-    IWindowMenuItem *item = &window->pContainer->GetItem(window->index);
+    IWindowMenuItem *item = window->pContainer->GetItem(window->index);
     if (item->IsSelected()) {
         if (item->Change(dif)) {
             _window_invalidate((window_t *)window);

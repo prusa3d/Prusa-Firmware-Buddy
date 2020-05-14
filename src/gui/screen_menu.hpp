@@ -33,7 +33,7 @@ struct Iscreen_menu_data_t {
     window_text_t help;
     status_footer_t footer;
 };
-
+/*
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 struct screen_menu_data_t : public Iscreen_menu_data_t {
     //C code binding
@@ -50,15 +50,17 @@ struct screen_menu_data_t : public Iscreen_menu_data_t {
 
     //Parent should have: static void CInit(screen_t *screen) {...}
     //or use C function
-};
+};*/
 
-/*
+const char *no_label = "";
+
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 struct screen_menu_data_t : public Iscreen_menu_data_t {
     window_menu_t menu;
     WinMenuContainer<T...> container;
 
-    void Init(const char *label, T... args);
+    screen_menu_data_t(const char *label = no_label);
+    //screen_menu_data_t(const char *label, T... args);
     void Done();
     void Draw() {}
     int Event(window_t *window, uint8_t event, void *param);
@@ -76,15 +78,16 @@ struct screen_menu_data_t : public Iscreen_menu_data_t {
 
     //Parent should have: static void CInit(screen_t *screen) {...}
     //or use C function
-};*/
+};
 
 #pragma pack(pop)
-/*
+
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
-void screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Init(const char *label, T... args) {
+screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *label)
+    : container(std::make_tuple<T...>()) {
     menu.pContainer = &container;
     //todo label
-    container.Init(args...);
+    //container.Init(args...);
 
     rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278);
     if (HELP) {
@@ -162,13 +165,12 @@ int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
-#if(0)
-        const menu_item_t *item = &(items[(int)param]);
+#if (0)
+    const menu_item_t *item = &(items[(int)param]);
     if (!(!item->item.IsEnabled()) && item->screen == SCREEN_MENU_RETURN) {
         screen_close();
         return 1;
     }
-
 
     if (!(!item->item.IsEnabled()) && item->screen != SCREEN_MENU_NO_SCREEN) {
         screen_open(item->screen->id);
@@ -177,4 +179,3 @@ int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint
 #endif
     return for_index_OnClick((int)param, WinMenuContainer<T...>::menu_items);
 }
-*/
