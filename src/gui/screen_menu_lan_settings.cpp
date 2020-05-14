@@ -20,7 +20,7 @@
 #define MAC_ADDR_START    0x1FFF781A //MM:MM:MM:SS:SS:SS
 #define MAC_ADDR_SIZE     6
 #define IP4_ADDR_STR_SIZE 16
-
+/*
 #define _change_static_to_static() _change_dhcp_to_static()
 
 typedef enum {
@@ -88,13 +88,14 @@ static void _get_ip4_addrs(void) {
     config.lan_ip4_msk.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
     config.lan_ip4_gw.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
 }
-
+*/
 /** Puts wanted net info in the string.
 *
 *   It as two options:
 *       1) flg == 0: function creates string for LAN_SETTINGS display (param_str = mac address)
 *       2) flg == 1: function creates string for ini file (param_str = destination pointer)
 */
+/*
 static void stringify_netinfo(char *param_str, uint8_t flg) {
     static char ip4_addr_str[IP4_ADDR_STR_SIZE];
     static char ip4_msk_str[IP4_ADDR_STR_SIZE];
@@ -278,7 +279,7 @@ static int ini_load_handler(void *user, const char *section, const char *name, c
     }
 #endif // BUDDY_ENABLE_CONNECT
     else {
-        return 0; /* unknown section/name, error */
+        return 0; // unknown section/name, error
     }
     return 1;
 }
@@ -479,6 +480,29 @@ screen_t screen_lan_settings = {
     screen_lan_settings_event,
     sizeof(screen_lan_settings_data_t), //data_size
     0,                                  //pdata
+};
+*/
+
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_lan_settings = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

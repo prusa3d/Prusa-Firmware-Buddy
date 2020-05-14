@@ -17,7 +17,7 @@
 #include "screens.h"
 #include "dump.h"
 #include "sound_C_wrapper.h"
-
+/*
 extern osThreadId webServerTaskHandle;
 
 const char *settings_opt_enable_disable[] = { "Off", "On", NULL };
@@ -245,5 +245,27 @@ screen_t screen_menu_settings = {
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
 };
+*/
 
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_menu_settings = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
+};
 extern "C" screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }

@@ -10,7 +10,7 @@
 #include "marlin_server.h"
 #include <stdlib.h>
 #include "screens.h"
-
+/*
 #pragma pack(push)
 #pragma pack(1)
 
@@ -87,10 +87,10 @@ int screen_messages_event(screen_t *screen, window_t *window,
         if (pmsg->list.index == 0) {
             screen_close();
             return 1;
-        } /*else if (pmsg->list.index <= msg_stack.count) {		TODO: Deleted message stays on the screen
-			_msg_stack_del(pmsg->list.index - 1);
-			_window_invalidate((window_t*)&(pmsg->list));
-		} */
+        } //else if (pmsg->list.index <= msg_stack.count) {		TODO: Deleted message stays on the screen
+		//	_msg_stack_del(pmsg->list.index - 1);
+		//	_window_invalidate((window_t*)&(pmsg->list));
+		//}
         break;
     default:
         break;
@@ -117,6 +117,28 @@ screen_t screen_messages = {
     screen_messages_event,
     sizeof(screen_messages_data_t), //data_size
     0,                              //pdata
+};*/
+
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_messages = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 screen_t *const get_scr_messages() { return &screen_messages; }

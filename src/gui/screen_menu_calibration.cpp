@@ -9,7 +9,7 @@
 
 #include "menu_vars.h"
 #include "eeprom.h"
-
+/*
 typedef enum {
     MI_RETURN,
     MI_WIZARD,
@@ -107,6 +107,29 @@ screen_t screen_menu_calibration = {
     screen_menu_calibration_event,
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
+};
+*/
+
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_menu_calibration = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }

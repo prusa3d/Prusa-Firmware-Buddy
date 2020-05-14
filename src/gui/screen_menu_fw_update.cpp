@@ -9,7 +9,7 @@
 #include "screens.h"
 #include "sys.h"
 #include "screen_menu.hpp"
-
+/*
 const char *opt_on_off[] = { "On", "Off", NULL };
 
 typedef enum {
@@ -89,6 +89,28 @@ screen_t screen_menu_fw_update = {
     screen_menu_fw_update_event,
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
+};*/
+
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_menu_fw_update = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_fw_update() { return &screen_menu_fw_update; }

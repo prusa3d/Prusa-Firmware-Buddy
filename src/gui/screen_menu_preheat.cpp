@@ -11,7 +11,7 @@
 #include "filament.h"
 #include "marlin_client.h"
 #include "screens.h"
-
+/*
 //"C inheritance" of screen_menu_data_t with data items
 #pragma pack(push)
 #pragma pack(1)
@@ -81,6 +81,27 @@ screen_t screen_menu_preheat = {
     screen_menu_preheat_event,
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
+};*/
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_menu_preheat = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_preheat() { return &screen_menu_preheat; }

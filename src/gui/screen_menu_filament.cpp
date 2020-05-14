@@ -2,6 +2,7 @@
 
 #include "gui.h"
 #include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
 #include "filament.h"
 #include "filament_sensor.h"
 #include "marlin_client.h"
@@ -12,7 +13,7 @@
 
 #define FKNOWN      0x01 //filament is known
 #define F_NOTSENSED 0x02 //filament is not in sensor
-
+/*
 typedef enum {
     MI_RETURN,
     MI_LOAD,
@@ -28,7 +29,8 @@ const menu_item_t _menu_filament_items[] = {
     { WindowMenuItem("Change Filament"), SCREEN_MENU_NO_SCREEN },
     { WindowMenuItem("Purge Filament"), SCREEN_MENU_NO_SCREEN },
 };
-
+*/
+/*
 static void _load_ena(screen_t *screen) {
     psmd->items[MI_LOAD].item.Enable();
 }
@@ -59,10 +61,10 @@ static void _deactivate_item(screen_t *screen) {
         _change_dis(screen);
         break;
     }
-}
+}*/
 
 //"C inheritance" of screen_menu_data_t with data items
-#pragma pack(push)
+/*#pragma pack(push)
 #pragma pack(1)
 
 typedef struct
@@ -72,8 +74,31 @@ typedef struct
 
 } this_screen_data_t;
 
-#pragma pack(pop)
 
+#pragma pack(pop)*/
+#include <new>
+/*
+struct MyClass {
+  int data[100];
+  //MyClass() {std::cout << "constructed [" << this << "]\n";}
+};*/
+
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    /*
+  MyClass cl;
+
+  ::new (&cl) MyClass;*/
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+
+    //_deactivate_item(screen);
+}
+
+/*
 void screen_menu_filament_init(screen_t *screen) {
     //filament_not_loaded = -1;
     screen_menu_init(screen, "FILAMENT", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
@@ -111,16 +136,16 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
             }
     return screen_menu_event(screen, window, event, param);
 }
-
+*/
 screen_t screen_menu_filament = {
     0,
     0,
-    screen_menu_filament_init,
-    screen_menu_done,
-    screen_menu_draw,
-    screen_menu_filament_event,
-    sizeof(this_screen_data_t), //data_size
-    0,                          //pdata
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

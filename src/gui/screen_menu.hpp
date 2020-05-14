@@ -43,6 +43,20 @@ struct screen_menu_data_t : public Iscreen_menu_data_t {
     void Done();
     void Draw() {}
     int Event(window_t *window, uint8_t event, void *param);
+
+    //C code binding
+    static void CDone(screen_t *screen) {
+        reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Done();
+    }
+    static void CDraw(screen_t *screen) {
+        reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Draw();
+    }
+    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+        return reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Event(window, event, param);
+    }
+
+    //Parent should have: static void CInit(screen_t *screen) {...}
+    //or use C function
 };
 
 #pragma pack(pop)

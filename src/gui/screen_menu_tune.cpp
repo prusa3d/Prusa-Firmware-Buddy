@@ -7,7 +7,7 @@
 #include "menu_vars.h"
 #include "screens.h"
 #include "eeprom.h"
-
+/*
 enum {
     MI_RETURN,
     MI_SPEED,
@@ -27,7 +27,7 @@ enum {
 };
 
 //"C inheritance" of screen_menu_data_t with data items
-/*#pragma pack(push)
+#pragma pack(push)
 #pragma pack(1)
 
 typedef struct
@@ -35,7 +35,7 @@ typedef struct
     screen_menu_data_t base;
     menu_item_t items[MI_COUNT];
 
-} this_screen_data_t;*/
+} this_screen_data_t;
 
 #pragma pack(pop)
 
@@ -183,6 +183,29 @@ screen_t screen_menu_tune = {
     screen_menu_tune_event,
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
+};
+*/
+
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_menu_tune = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_tune() { return &screen_menu_tune; }

@@ -16,7 +16,7 @@
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
 #define OTP_START_ADDR             0x1FFF7800
 #define SERIAL_NUM_ADDR            0x1FFF7808
-
+/*
 enum {
     TAG_QUIT = 10
 };
@@ -116,6 +116,29 @@ screen_t screen_version_info = {
     screen_menu_event,
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
+};
+*/
+
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_version_info = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_version_info() { return &screen_version_info; }

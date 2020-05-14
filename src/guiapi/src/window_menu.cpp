@@ -20,6 +20,9 @@ void window_menu_item_switch(window_menu_t *window);
 void window_menu_item_select(window_menu_t *window, int dif);
 */
 
+static void window_menu_inc(window_menu_t *window, int dif);
+static void window_menu_dec(window_menu_t *window, int dif);
+
 /*WindowMenuItem undefined = { "No menu_items fce!", 0, WI_LABEL | WI_DISABLED };
 
 void window_menu_items(window_menu_t *pwindow_menu, uint16_t index,
@@ -227,7 +230,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     }
 }
 
-void window_menu_inc(window_menu_t *window, int dif) {
+static void window_menu_inc(window_menu_t *window, int dif) {
     /* switch (window->mode) {
     case WI_SPIN:
         window_menu_item_spin(window, dif);
@@ -272,7 +275,7 @@ void window_menu_inc(window_menu_t *window, int dif) {
     }
 }
 
-void window_menu_dec(window_menu_t *window, int dif) {
+static void window_menu_dec(window_menu_t *window, int dif) {
     window_menu_inc(window, -dif);
 }
 
