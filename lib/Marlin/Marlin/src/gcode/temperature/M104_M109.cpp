@@ -85,7 +85,7 @@ void GcodeSuite::M104() {
   }
 
   #if ENABLED(PRUSA_MARLIN_API)
-    marlin_server_set_temp_to_display(parser.seenval('R') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder));
+    marlin_server_set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder));
   #endif
 
   #if ENABLED(AUTOTEMP)
