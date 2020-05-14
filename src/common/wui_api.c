@@ -1,5 +1,5 @@
 /*
- * wui_api.h
+ * wui_api.c
  * \brief   interface functions for Web User Interface library
  *
  *  Created on: April 22, 2020
@@ -229,29 +229,33 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
     return 1;
 }
 
-void sntp_get_system_time(system_time_t *system_time) {
+uint32_t sntp_get_system_time(timestamp_t *system_time){
 
-    if (sntp_time_init) {
+    if(sntp_time_init){
         RTC_TimeTypeDef currTime;
-
-        HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
-
-        snprintf(*system_time, sizeof(system_time_t), "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
-    } else {
-        strlcpy(*system_time, "N/A", sizeof(system_time_t));
-    }
-}
-
-void sntp_get_system_date(system_date_t *system_date) {
-
-    if (sntp_time_init) {
         RTC_DateTypeDef currDate;
-
+        HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
         HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
+        struct tm t;
+        time_t secs;
+        t.tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
 
-        snprintf(*system_date, sizeof(system_date_t), "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
+        system_time->time.h = t.tm_hour = currTime.Hours;
+        system_time->time.m = t.tm_min = currTime.Minutes;
+        system_time->time.s = t.tm_sec = currTime.Seconds;
+        system_time->date.d = t.tm_mday = currDate.Date;
+        system_time->date.m = t.tm_mon = currDate.Month;
+        system_time->date.m += 1;       // months starts with 0
+        system_time->date.y = t.tm_year = currDate.Year;
+        system_time->date.y += 1900;    // epoch start
+        secs = mktime(&t);
+        system_time->epoch_secs = secs;
+        return 1;
     } else {
-        strlcpy(*system_date, "N/A", sizeof(system_date_t));
+        system_time->time.h = system_time->time.m = system_time->time.s = 0;
+        system_time->date.d = system_time->date.m = system_time->date.y = 0;
+        system_time->epoch_secs = 0;
+        return 0;
     }
 }
 
@@ -280,4 +284,33 @@ void sntp_set_system_time(uint32_t sec) {
     HAL_RTC_SetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
 
     sntp_time_init = true;
+}
+
+uint32_t stringify_timestamp(time_str_t * dest, timestamp_t * timestamp) {
+    if (sntp_time_init){
+        snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d:%02d:%02d", timestamp->time.h, timestamp->time.m, timestamp->time.s);
+        snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d.%02d.%d", timestamp->date.d, timestamp->date.m, timestamp->date.y);
+        return 1;
+    } else {
+        strlcpy(dest->time, "N/A", MAX_TIME_STR_SIZE);
+        strlcpy(dest->date, "N/A", MAX_DATE_STR_SIZE);
+        return 0;
+    }
+}
+
+void update_timestamp_from_epoch_secs(timestamp_t *timestamp){
+
+    if (timestamp->epoch_secs == 0){
+        return;
+    }
+    struct tm current_time_val;
+    time_t current_time = (time_t)timestamp->epoch_secs;
+    localtime_r(&current_time, &current_time_val);
+
+    timestamp->time.s = current_time_val.tm_sec;
+    timestamp->time.m = current_time_val.tm_min;
+    timestamp->time.h = current_time_val.tm_hour;
+    timestamp->date.d = current_time_val.tm_mday;
+    timestamp->date.m = current_time_val.tm_mon + 1;
+    timestamp->date.y = current_time_val.tm_year + 1900;    
 }
