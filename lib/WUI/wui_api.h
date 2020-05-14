@@ -21,7 +21,7 @@
 #define MAX_INI_SIZE      200 // length of ini file string
 #define LAN_DESCP_SIZE    150 // length of lan description string with screen format
 #define MAX_TIME_STR_SIZE 12  // length of time string hh:mm:ss (12 for warning-free compilation)
-#define MAX_DATE_STR_SIZE 13  // length of date string dd:mm:yyyy (13 for warning-free compilation)
+#define MAX_DATE_STR_SIZE 14  // length of date string dd:mm:yyyy (13 for warning-free compilation)
 
 #define ETHVAR_MSK(n_id) ((uint32_t)1 << (n_id))
 #define ETHVAR_STATIC_LAN_ADDRS \
