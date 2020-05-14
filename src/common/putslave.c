@@ -165,7 +165,7 @@ int putslave_do_cmd_q_gpio(uartslave_t *pslave, char *pstr) {
     int gpio = 0;
     if (sscanf(pstr, "%d", &gpio) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < PA0) || (gpio > PE15))
+    if ((gpio < TPA0) || (gpio > TPE15))
         return UARTSLAVE_ERR_OOR;
     uartslave_printf(pslave, "%d ", gpio_get(gpio));
     return UARTSLAVE_OK;
@@ -206,7 +206,7 @@ int putslave_do_cmd_q_gpup(uartslave_t *pslave, char *pstr) {
     int gpio = 0;
     if (sscanf(pstr, "%d", &gpio) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < PA0) || (gpio > PE15))
+    if ((gpio < TPA0) || (gpio > TPE15))
         return UARTSLAVE_ERR_OOR;
     gpio_init(gpio, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_LOW);
     uartslave_printf(pslave, "%d ", gpio_get(gpio));
@@ -383,11 +383,11 @@ int putslave_do_cmd_a_stop(uartslave_t *pslave) {
         hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
         hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
         //SCK - PB10
-        gpio_init(PB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+        gpio_init(TPB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
         //MISO - PC2
-        gpio_init(PC2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
+        gpio_init(TPC2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
         //MOSI - PC3
-        gpio_init(PC3, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+        gpio_init(TPC3, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
     }
     return UARTSLAVE_OK;
 }
@@ -403,14 +403,14 @@ int putslave_do_cmd_a_gpio(uartslave_t *pslave, char *pstr) {
     int n = 0;
     if (sscanf(pstr, "%d%n", &gpio, &n) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < PA0) || (gpio > PE15))
+    if ((gpio < TPA0) || (gpio > TPE15))
         return UARTSLAVE_ERR_OOR;
     pstr += n;
     if (sscanf(pstr, "%d%n", &state, &n) != 1)
         return UARTSLAVE_ERR_SYN;
     if ((state < 0) || (state > 1))
         return UARTSLAVE_ERR_OOR;
-    if (gpio == PA0) {
+    if (gpio == TPA0) {
         if (state)
             hwio_beeper_set_pwm(255, 255); // 1
         else
@@ -510,10 +510,10 @@ int putslave_do_cmd_a_ten(uartslave_t *pslave, char *pstr) {
     if ((state < 0) || (state > 1))
         return UARTSLAVE_ERR_OOR;
     tmc_set_mres();
-    gpio_set(PD3, state);  //X
-    gpio_set(PD14, state); //Y
-    gpio_set(PD2, state);  //Z
-    gpio_set(PD10, state); //E
+    gpio_set(TPD3, state);  //X
+    gpio_set(TPD14, state); //Y
+    gpio_set(TPD2, state);  //Z
+    gpio_set(TPD10, state); //E
     return UARTSLAVE_OK;
 }
 
@@ -649,10 +649,10 @@ void putslave_init(uartslave_t *pslave) {
         hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
         hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
         //SCK - PB10
-        gpio_init(PB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+        gpio_init(TPB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
         //MISO - PC2
-        gpio_init(PC2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
+        gpio_init(TPC2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
         //MOSI - PC3
-        gpio_init(PC3, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+        gpio_init(TPC3, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
     }
 }
