@@ -7,11 +7,8 @@
 #include "task.h"   //taskENTER_CRITICAL
 #include <string.h> //memset
 #include "MindaRedscreen.h"
+#include "wdt.h"
 
-#ifndef _DEBUG
-    #include "stm32f4xx_hal.h"   //HAL_IWDG_Refresh
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
 static uint32_t PRE_XYHOME = 0;
 static uint32_t POST_XYHOME = 0;
 
@@ -53,9 +50,7 @@ void MINDA_BROKEN_CABLE_DETECTION__END() {
     if (PRE_XYHOME != POST_XYHOME || endstop_status.i) {
 
         taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif                            //_DEBUG
+        wdt_iwdg_refresh();
         general_error("HOMING ERROR", "Please check minda\ncable");
     }
 }
@@ -101,10 +96,7 @@ void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {
     if (moves || points) {
         //error moves are not zero
         taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif                            //_DEBUG
-
+        wdt_iwdg_refresh();
         mbl_error(moves, points);
     }
 }
