@@ -12,7 +12,7 @@
 #include "hwio.h"
 #include "screens.h"
 #include "../Marlin/src/module/temperature.h"
-
+/*
 static const char *period_pwm_range[] = {
     "1.5us", "  3us", "  6us", " 12us", " 24us", " 48us", " 97us", "195us", "390us",
     "780us", "1.5ms", "3.1ms", "6.2ms", " 12ms", " 25ms", " 50ms", "100ms", NULL
@@ -117,6 +117,29 @@ screen_t screen_test_temperature = {
     screen_test_temperature_event,
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
+};
+*/
+
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+#include <new>
+using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
+
+static void init(screen_t *screen) {
+
+    Screen *ths = reinterpret_cast<Screen *>(screen);
+    ::new (ths) Screen;
+}
+
+screen_t screen_test_temperature = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_test_temperature() { return &screen_test_temperature; }

@@ -104,7 +104,7 @@ screen_t screen_menu_move = {
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include <new>
-using Screen = screen_menu_data_t<false, true, false /*, MI_RETURN*/>;
+using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
 
 static void init(screen_t *screen) {
 

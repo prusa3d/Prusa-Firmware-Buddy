@@ -36,6 +36,25 @@ struct Iscreen_menu_data_t {
 
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 struct screen_menu_data_t : public Iscreen_menu_data_t {
+    //C code binding
+    static void CDone(screen_t *screen) {
+        //reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Done();
+    }
+    static void CDraw(screen_t *screen) {
+        // reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Draw();
+    }
+    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+        //return reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Event(window, event, param);
+        return 0;
+    }
+
+    //Parent should have: static void CInit(screen_t *screen) {...}
+    //or use C function
+};
+
+/*
+template <bool HEADER, bool FOOTER, bool HELP, class... T>
+struct screen_menu_data_t : public Iscreen_menu_data_t {
     window_menu_t menu;
     WinMenuContainer<T...> container;
 
@@ -57,10 +76,10 @@ struct screen_menu_data_t : public Iscreen_menu_data_t {
 
     //Parent should have: static void CInit(screen_t *screen) {...}
     //or use C function
-};
+};*/
 
 #pragma pack(pop)
-
+/*
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 void screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Init(const char *label, T... args) {
     menu.pContainer = &container;
@@ -143,8 +162,8 @@ int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
-
-    /*    const menu_item_t *item = &(items[(int)param]);
+#if(0)
+        const menu_item_t *item = &(items[(int)param]);
     if (!(!item->item.IsEnabled()) && item->screen == SCREEN_MENU_RETURN) {
         screen_close();
         return 1;
@@ -154,7 +173,8 @@ int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint
     if (!(!item->item.IsEnabled()) && item->screen != SCREEN_MENU_NO_SCREEN) {
         screen_open(item->screen->id);
         return 1;
-    }*/
-
+    }
+#endif
     return for_index_OnClick((int)param, WinMenuContainer<T...>::menu_items);
 }
+*/
