@@ -28,11 +28,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
     int16_t id;
 
-    //strcpy(footer->text_nozzle, "0/0\177C");
-    //strcpy(footer->text_heatbed, "0/0\177C");
-    //strcpy(footer->text_prnspeed, "0%");
-    //strcpy(footer->text_z_axis, "999.95");
-
     id = window_create_ptr( // nozzle
         WINDOW_CLS_ICON, parent,
         rect_ui16(8, 270, 16, 16), // 2px padding from right
@@ -116,18 +111,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     status_footer_timer(footer, 0); // do update
 }
 
-static bool _preheat_mode = false;
-static float _nozzle_target_temp; /// value shown in case of preheat
-
-void preheat_mode_on(float nozzle_target_temp) {
-    _preheat_mode = true;
-    _nozzle_target_temp = nozzle_target_temp;
-}
-
-void preheat_mode_off() {
-    _preheat_mode = false;
-}
-
 int status_footer_event(status_footer_t *footer, window_t *window,
     uint8_t event, const void *param) {
     status_footer_timer(footer, (HAL_GetTick() / 50) * 50);
@@ -165,19 +148,13 @@ void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
     }
 }
 
-/// Updates values in state from real values and repaint
-void status_footer_update_temperatures(status_footer_t *footer) {
-
-    /// force update of temperatures
-    uint64_t mask = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)
-        | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)
-        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ)
-        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
-
-    const marlin_vars_t *vars = marlin_update_vars(mask);
-    if (!vars)
+void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *vars) {
+    if (footer->nozzle == vars->temp_nozzle
+        && footer->nozzle_target == vars->target_nozzle
+        && footer->nozzle_target_display == vars->display_nozzle)
         return;
 
+    /// nozzle state
     if (vars->target_nozzle != vars->display_nozzle) { /// preheat mode
         footer->nozzle_state = PREHEAT;
         if (vars->display_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
@@ -195,8 +172,18 @@ void status_footer_update_temperatures(status_footer_t *footer) {
         }
     }
 
-    sprintf(footer->text_nozzle, "%d/%d\177C", (int)vars->temp_nozzle, (int)vars->display_nozzle);
-    window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
+    /// update values
+    footer->nozzle = vars->temp_nozzle;
+    footer->nozzle_target = vars->target_nozzle;
+    footer->nozzle_target_display = vars->display_nozzle;
+
+    if (0 < snprintf(footer->text_nozzle, TEXT_LENGTH_NOZZLE, "%d/%d\177C", (int)vars->temp_nozzle, (int)vars->display_nozzle))
+        window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
+}
+
+void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *vars) {
+    if (footer->heatbed == vars->temp_bed && footer->heatbed_target == vars->target_bed)
+        return;
 
     /// heatbed state
     footer->heatbed_state = STABLE;
@@ -206,17 +193,40 @@ void status_footer_update_temperatures(status_footer_t *footer) {
         footer->heatbed_state = COOLING;
     }
 
-    sprintf(footer->text_heatbed, "%d/%d\177C", (int)vars->temp_bed, (int)vars->target_bed);
-    window_set_text(footer->wt_heatbed.win.id, footer->text_heatbed);
+    /// update values
+    footer->heatbed = vars->temp_bed;
+    footer->heatbed_target = vars->target_bed;
+
+    if (0 < snprintf(footer->text_heatbed, TEXT_LENGTH_HEATBED, "%d/%d\177C", (int)vars->temp_bed, (int)vars->target_bed))
+        window_set_text(footer->wt_heatbed.win.id, footer->text_heatbed);
+}
+
+/// Updates values in footer state from real values and repaint
+void status_footer_update_temperatures(status_footer_t *footer) {
+
+    /// force update of temperatures
+    uint64_t mask = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
+
+    const marlin_vars_t *vars = marlin_update_vars(mask);
+    if (!vars)
+        return;
+
+    status_footer_update_nozzle(footer, vars);
+    status_footer_update_heatbed(footer, vars);
 
 #ifdef LCD_HEATBREAK_TO_FILAMENT
-    float actual_heatbreak = thermalManager.degHeatbreak();
+    const float actual_heatbreak = thermalManager.degHeatbreak();
     //float actual_heatbreak = analogRead(6);
-    sprintf(footer->text_heatbreak, "%.0f\177C", (double)actual_heatbreak);
-    window_set_text(footer->wt_filament.win.id, footer->text_heatbreak);
+    char text[10];
+    sprintf(text, "%.0f\177C", (double)actual_heatbreak);
+    window_set_text(footer->wt_filament.win.id, footer->text);
 #endif //LCD_HEATBREAK_TO_FILAMENT
 }
 
+// TODO convert to marlin_vars
 void status_footer_update_feedrate(status_footer_t *footer) {
     if ((uint16_t)feedrate_percentage <= 999)
         snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "%d%%", feedrate_percentage);
@@ -225,11 +235,13 @@ void status_footer_update_feedrate(status_footer_t *footer) {
     window_set_text(footer->wt_prnspeed.win.id, footer->text_prnspeed);
 }
 
+// TODO convert to marlin_vars
 void status_footer_update_z_axis(status_footer_t *footer) {
     sprintf(footer->text_z_axis, "%.2f", (double)current_position[2]);
     window_set_text(footer->wt_z_axis.win.id, footer->text_z_axis);
 }
 
+// TODO convert to marlin_vars
 void status_footer_update_filament(status_footer_t *footer) {
     window_set_text(footer->wt_filament.win.id, filaments[get_filament()].name);
     // #ifndef LCD_HEATBREAK_TO_FILAMENT

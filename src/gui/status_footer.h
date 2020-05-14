@@ -10,6 +10,11 @@
 
 #include "gui.h"
 
+#define TEXT_LENGTH_NOZZLE  10
+#define TEXT_LENGTH_HEATBED 10
+#define TEXT_LENGTH_SPEED   5
+#define TEXT_LENGTH_Z       7
+
 #pragma pack(push)
 #pragma pack(1)
 
@@ -40,10 +45,13 @@ typedef struct
     window_text_t wt_z_axis;
     window_text_t wt_filament;
 
-    char text_nozzle[10]; // "215/215°C"
-    char text_heatbed[10];
-    char text_prnspeed[5]; // "999%"
-    char text_z_axis[7];   // "999.95"
+    /// these text has to be stored here
+    /// because window_set_text does not copy the text
+    /// and windows have delayed redrawing
+    char text_nozzle[TEXT_LENGTH_NOZZLE];   // "215/215°C"
+    char text_heatbed[TEXT_LENGTH_HEATBED]; // "110/110°C"
+    char text_prnspeed[TEXT_LENGTH_SPEED];  // "999%"
+    char text_z_axis[TEXT_LENGTH_Z];        // "999.95"
 
     uint32_t last_timer_repaint_values;
     uint32_t last_timer_repaint_colors;
