@@ -46,6 +46,7 @@ void Sound::saveMode() {
 
 // [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
 void Sound::stop() {
+		frequency = 100.f;
     _duration = 0;
     duration = 0;
     repeat = 0;
@@ -148,7 +149,7 @@ void Sound::soundStandardPrompt(int rep, uint32_t del) {
 
 // Souns signal for errors, bsod, and others Alert type's events
 void Sound::soundStandardAlert(int rep, uint32_t del) {
-    float frq = 900.0f;
+    float frq = 950.0f;
     this->_sound(rep, frq, del, volume);
 }
 
