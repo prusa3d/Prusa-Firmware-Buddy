@@ -37,6 +37,7 @@ const int32_t heatbed_range[3] = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN) 
 const int32_t printfan_range[3] = { 0, 255000, 1000 };
 const int32_t flowfact_range[3] = { 50000, 150000, 1000 };
 const int32_t feedrate_range[3] = { 10000, 255000, 1000 };
+const int32_t timezone_range[3] = { -12000, 12000, 1000 };
 
 const int32_t move_x[3] = { (int32_t)(X_MIN_POS * 1000), (int32_t)(X_MAX_POS * 1000), 1000 };
 const int32_t move_y[3] = { (int32_t)(Y_MIN_POS * 1000), (int32_t)(Y_MAX_POS * 1000), 1000 };
