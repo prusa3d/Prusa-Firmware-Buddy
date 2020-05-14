@@ -58,26 +58,26 @@ typedef struct {
 } printer_info_t;
 
 typedef struct {
-    char time[MAX_TIME_STR_SIZE];  // string representation of system time hh:mm:ss
-    char date[MAX_DATE_STR_SIZE];  // string representation of system date dd.mm.yyyy
+    char time[MAX_TIME_STR_SIZE]; // string representation of system time hh:mm:ss
+    char date[MAX_DATE_STR_SIZE]; // string representation of system date dd.mm.yyyy
 } time_str_t;
 
 typedef struct {
-    uint8_t h;              // system hours
-    uint8_t m;              // system minutes
-    uint8_t s;              // system seconds
+    uint8_t h; // system hours
+    uint8_t m; // system minutes
+    uint8_t s; // system seconds
 } time_of_day_t;
 
 typedef struct {
-    uint8_t d;              // system days
-    uint8_t m;              // system months
-    uint16_t y;             // system years
+    uint8_t d;  // system days
+    uint8_t m;  // system months
+    uint16_t y; // system years
 } date_t;
 
 typedef struct {
-    time_of_day_t time; // system time storage
-    date_t date;        // system date storage
-    uint32_t epoch_secs;    // system time and date in seconds since 1.1.1900
+    time_of_day_t time;  // system time storage
+    date_t date;         // system date storage
+    uint32_t epoch_secs; // system time and date in seconds since 1.1.1900
 } timestamp_t;
 
 /*!*************************************************************************************************
@@ -218,7 +218,7 @@ uint8_t dhcp_addrs_are_supplied(void);
 *
 * \retval 1 if time is initialized by sntp, else 0
 ***********************************************************************************************************************/
-uint32_t sntp_get_system_time(timestamp_t * system_time);
+uint32_t sntp_get_system_time(timestamp_t *system_time);
 
 /*!****************************************************************************
 * \brief Sets time and date in device's RTC on some other time storage
@@ -236,7 +236,7 @@ void sntp_set_system_time(uint32_t sec);
 *
 * \retval 1 if time is initialized by sntp, else 0
 *****************************************************************************/
-uint32_t stringify_timestamp(time_str_t * dest, timestamp_t * timestamp);
+uint32_t stringify_timestamp(time_str_t *dest, timestamp_t *timestamp);
 
 /*!********************************************************************************
 * \brief Updates timestamp from its epoch_secs value

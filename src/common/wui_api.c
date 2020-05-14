@@ -229,9 +229,9 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
     return 1;
 }
 
-uint32_t sntp_get_system_time(timestamp_t *system_time){
+uint32_t sntp_get_system_time(timestamp_t *system_time) {
 
-    if(sntp_time_init){
+    if (sntp_time_init) {
         RTC_TimeTypeDef currTime;
         RTC_DateTypeDef currDate;
         HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
@@ -245,9 +245,9 @@ uint32_t sntp_get_system_time(timestamp_t *system_time){
         system_time->time.s = t.tm_sec = currTime.Seconds;
         system_time->date.d = t.tm_mday = currDate.Date;
         system_time->date.m = t.tm_mon = currDate.Month;
-        system_time->date.m += 1;       // months starts with 0
+        system_time->date.m += 1; // months starts with 0
         system_time->date.y = t.tm_year = currDate.Year;
-        system_time->date.y += 1900;    // epoch start
+        system_time->date.y += 1900; // epoch start
         secs = mktime(&t);
         system_time->epoch_secs = secs;
         return 1;
@@ -286,8 +286,8 @@ void sntp_set_system_time(uint32_t sec) {
     sntp_time_init = true;
 }
 
-uint32_t stringify_timestamp(time_str_t * dest, timestamp_t * timestamp) {
-    if (sntp_time_init){
+uint32_t stringify_timestamp(time_str_t *dest, timestamp_t *timestamp) {
+    if (sntp_time_init) {
         snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d:%02d:%02d", timestamp->time.h, timestamp->time.m, timestamp->time.s);
         snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d.%02d.%d", timestamp->date.d, timestamp->date.m, timestamp->date.y);
         return 1;
@@ -298,9 +298,9 @@ uint32_t stringify_timestamp(time_str_t * dest, timestamp_t * timestamp) {
     }
 }
 
-void update_timestamp_from_epoch_secs(timestamp_t *timestamp){
+void update_timestamp_from_epoch_secs(timestamp_t *timestamp) {
 
-    if (timestamp->epoch_secs == 0){
+    if (timestamp->epoch_secs == 0) {
         return;
     }
     struct tm current_time_val;
@@ -312,5 +312,5 @@ void update_timestamp_from_epoch_secs(timestamp_t *timestamp){
     timestamp->time.h = current_time_val.tm_hour;
     timestamp->date.d = current_time_val.tm_mday;
     timestamp->date.m = current_time_val.tm_mon + 1;
-    timestamp->date.y = current_time_val.tm_year + 1900;    
+    timestamp->date.y = current_time_val.tm_year + 1900;
 }

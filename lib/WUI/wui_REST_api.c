@@ -67,8 +67,8 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
     time_str_t time_str;
     char print_time[13];
 
-    if (wui_vars_copy.time_to_end != TIME_TO_END_INVALID){
-        if(sntp_get_system_time(&timestamp)){
+    if (wui_vars_copy.time_to_end != TIME_TO_END_INVALID) {
+        if (sntp_get_system_time(&timestamp)) {
             timestamp.epoch_secs += (wui_vars_copy.time_to_end / 1000);
             update_timestamp_from_epoch_secs(&timestamp);
         }
@@ -94,6 +94,6 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
                             "\"project_name\":\"%s\""
                             "}",
         actual_nozzle, actual_heatbed, filament_material,
-        z_pos_mm, print_speed, flow_factor, wui_vars_copy.sd_precent_done, 
-        print_time, time_str.time, time_str.date,wui_vars_copy.gcode_name);
+        z_pos_mm, print_speed, flow_factor, wui_vars_copy.sd_precent_done,
+        print_time, time_str.time, time_str.date, wui_vars_copy.gcode_name);
 }
