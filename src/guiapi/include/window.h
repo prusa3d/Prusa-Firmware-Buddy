@@ -258,11 +258,10 @@ extern void gui_invalidate(void);
 #endif //__cplusplus
 
 static inline void _window_invalidate(window_t *window) {
-    if (!window)
-        return;
-
-    window->flg |= WINDOW_FLG_INVALID;
-    gui_invalidate();
+    if (window) {
+        window->flg |= WINDOW_FLG_INVALID;
+        gui_invalidate();
+    }
 }
 
 #endif //_WINDOW_H

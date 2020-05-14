@@ -9,7 +9,6 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 #include "ffconf.h"
-#include "cmath_ext.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -84,7 +83,6 @@ marlin_vars_t *marlin_client_init(void) {
     marlin_client_t *client = 0;
     _wait_server_started();
     osSemaphoreWait(marlin_server_sema, osWaitForever);
-
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (marlin_client_task[client_id] == 0)
             break;
@@ -108,7 +106,6 @@ marlin_vars_t *marlin_client_init(void) {
         client->fsm_destroy_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
-
     osSemaphoreRelease(marlin_server_sema);
     return (client) ? &(client->vars) : 0;
 }
@@ -124,8 +121,7 @@ void marlin_client_loop(void) {
     int client_id;
     marlin_client_t *client;
     osMessageQId queue;
-    const osThreadId taskHandle = osThreadGetId();
-
+    osThreadId taskHandle = osThreadGetId();
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (taskHandle == marlin_client_task[client_id])
             break;
@@ -148,122 +144,111 @@ void marlin_client_loop(void) {
 
 int marlin_client_id(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    return client->id;
+    if (client)
+        return client->id;
+    return 0;
 }
 
-/// register callback to fsm creation
-/// \returns 1 in case of success
+//register callback to fsm creation
+//return success
 int marlin_client_set_fsm_create_cb(fsm_create_t cb) {
     marlin_client_t *client = _client_ptr();
-    if (!client || !cb)
-        return 0;
-
-    client->fsm_create_cb = cb;
-    return 1;
+    if (client && cb) {
+        client->fsm_create_cb = cb;
+        return 1;
+    }
+    return 0;
 }
 
-/// register callback to fsm destruction
-/// \returns 1 in case of success
+//register callback to fsm destruction
+//return success
 int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb) {
     marlin_client_t *client = _client_ptr();
-    if (!client || !cb)
-        return 0;
-
-    client->fsm_destroy_cb = cb;
-    return 1;
+    if (client && cb) {
+        client->fsm_destroy_cb = cb;
+        return 1;
+    }
+    return 0;
 }
 
-/// register callback to fsm change
-/// \returns 1 in case of success
+//register callback to fsm change
+//return success
 int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
     marlin_client_t *client = _client_ptr();
-    if (!client || !cb)
-        return 0;
-
-    client->fsm_change_cb = cb;
-    return 1;
+    if (client && cb) {
+        client->fsm_change_cb = cb;
+        return 1;
+    }
+    return 0;
 }
-
 int marlin_processing(void) {
-    const marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    return SIGN(client->flags & MARLIN_CFLG_PROCESS);
+    marlin_client_t *client = _client_ptr();
+    if (client)
+        return (client->flags & MARLIN_CFLG_PROCESS) ? 1 : 0;
+    return 0;
 }
 
 void marlin_client_set_event_notify(uint64_t notify_events) {
-    const marlin_client_t *client = _client_ptr();
-    if (!client)
-        return;
-
-    const uint8_t cid = client->id;
     char request[MARLIN_MAX_REQUEST];
-    sprintf(request, "!event_msk %08lx %08lx", (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
-    _send_request_to_server(cid, request);
-    _wait_ack_from_server(cid);
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        sprintf(request, "!event_msk %08lx %08lx", (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
 }
 
 void marlin_client_set_change_notify(uint64_t notify_changes) {
-    const marlin_client_t *client = _client_ptr();
-    if (!client)
-        return;
-
-    const uint8_t cid = client->id;
     char request[MARLIN_MAX_REQUEST];
-    sprintf(request, "!change_msk %08lx %08lx", (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
-    _send_request_to_server(cid, request);
-    _wait_ack_from_server(cid);
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        sprintf(request, "!change_msk %08lx %08lx", (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
 }
 
 uint32_t marlin_command(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return MARLIN_CMD_NONE;
-
-    return client->command;
+    if (client)
+        return client->command;
+    return MARLIN_CMD_NONE;
 }
 
 void marlin_stop_processing(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
-
     _send_request_to_server(client->id, "!stop");
     _wait_ack_from_server(client->id);
 }
 
 void marlin_start_processing(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
-
     _send_request_to_server(client->id, "!start");
     _wait_ack_from_server(client->id);
 }
 
 int marlin_motion(void) {
-    const marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
-    return SIGN(vars->motion);
+    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
+    return (vars->motion) ? 1 : 0;
 }
 
 int marlin_wait_motion(uint32_t timeout) {
-    const marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
-    const uint32_t tick = HAL_GetTick();
+    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
+    uint32_t tick = HAL_GetTick();
     while ((vars->motion == 0) && ((HAL_GetTick() - tick) < timeout))
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MOTION));
-    return SIGN(vars->motion);
+    return (vars->motion) ? 1 : 0;
 }
 
 void marlin_gcode(const char *gcode) {
-    marlin_client_t *client = _client_ptr();
-    if (!client)
-        return;
-
     char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
     strcpy(request, "!g ");
     strcat(request, gcode);
     _send_request_to_server(client->id, request);
@@ -271,11 +256,10 @@ void marlin_gcode(const char *gcode) {
 }
 
 void marlin_json_gcode(const char *gcode) {
-    marlin_client_t *client = _client_ptr();
-    if (!client)
-        return;
-
     char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
     strcpy(request, "!g ");
     strlcat(request, gcode, MARLIN_MAX_REQUEST);
     _send_request_to_server(client->id, request);
@@ -283,61 +267,59 @@ void marlin_json_gcode(const char *gcode) {
 }
 
 int marlin_gcode_printf(const char *format, ...) {
-    marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
+    int ret;
     char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return 0;
     strcpy(request, "!g ");
     va_list ap;
     va_start(ap, format);
-    const int ret = vsprintf(request + 3, format, ap);
+    ret = vsprintf(request + 3, format, ap);
     va_end(ap);
-    const uint8_t cid = client->id;
-    _send_request_to_server(cid, request);
-    _wait_ack_from_server(cid);
+    _send_request_to_server(client->id, request);
+    _wait_ack_from_server(client->id);
     return ret;
 }
 
 void marlin_gcode_push_front(const char *gcode) {
-    marlin_client_t *client = _client_ptr();
-    if (!client)
-        return;
-
     char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
     snprintf(request, MARLIN_MAX_REQUEST, "!ig %p", gcode);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
 
 int marlin_event(MARLIN_EVT_t evt_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
     uint64_t msk = (uint64_t)1 << evt_id;
-    return SIGN(client->events & msk);
+    if (client)
+        ret = (client->events & msk) ? 1 : 0;
+    return ret;
 }
 
 int marlin_event_set(MARLIN_EVT_t evt_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    const uint64_t msk = (uint64_t)1 << evt_id;
-    const int ret = SIGN(client->events & msk);
-    client->events |= msk;
+    uint64_t msk = (uint64_t)1 << evt_id;
+    if (client) {
+        ret = (client->events & msk) ? 1 : 0;
+        client->events |= msk;
+    }
     return ret;
 }
 
 int marlin_event_clr(MARLIN_EVT_t evt_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    const uint64_t msk = (uint64_t)1 << evt_id;
-    const int ret = SIGN(client->events & msk);
-    client->events &= ~msk;
+    uint64_t msk = (uint64_t)1 << evt_id;
+    if (client) {
+        ret = (client->events & msk) ? 1 : 0;
+        client->events &= ~msk;
+    }
     return ret;
 }
 
@@ -347,33 +329,33 @@ uint64_t marlin_events(void) {
 }
 
 int marlin_change(uint8_t var_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    const uint64_t msk = (uint64_t)1 << var_id;
-    return SIGN(client->changes & msk);
+    uint64_t msk = (uint64_t)1 << var_id;
+    if (client)
+        ret = (client->changes & msk) ? 1 : 0;
+    return ret;
 }
 
 int marlin_change_set(uint8_t var_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    const uint64_t msk = (uint64_t)1 << var_id;
-    const int ret = SIGN(client->changes & msk);
-    client->changes |= msk;
+    uint64_t msk = (uint64_t)1 << var_id;
+    if (client) {
+        ret = (client->changes & msk) ? 1 : 0;
+        client->changes |= msk;
+    }
     return ret;
 }
 
 int marlin_change_clr(uint8_t var_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    const uint64_t msk = (uint64_t)1 << var_id;
-    const int ret = SIGN(client->changes & msk);
-    client->changes &= ~msk;
+    uint64_t msk = (uint64_t)1 << var_id;
+    if (client) {
+        ret = (client->changes & msk) ? 1 : 0;
+        client->changes &= ~msk;
+    }
     return ret;
 }
 
@@ -383,33 +365,33 @@ uint64_t marlin_changes(void) {
 }
 
 int marlin_error(uint8_t err_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    const uint64_t msk = (uint64_t)1 << err_id;
-    return SIGN(client->errors & msk);
+    uint64_t msk = (uint64_t)1 << err_id;
+    if (client)
+        ret = (client->errors & msk) ? 1 : 0;
+    return ret;
 }
 
 int marlin_error_set(uint8_t err_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
     uint64_t msk = (uint64_t)1 << err_id;
-    const int ret = SIGN(client->errors & msk);
-    client->errors |= msk;
+    if (client) {
+        ret = (client->errors & msk) ? 1 : 0;
+        client->errors |= msk;
+    }
     return ret;
 }
 
 int marlin_error_clr(uint8_t err_id) {
+    int ret = 0;
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
     uint64_t msk = (uint64_t)1 << err_id;
-    const int ret = SIGN(client->errors & msk);
-    client->errors &= ~msk;
+    if (client) {
+        ret = (client->errors & msk) ? 1 : 0;
+        client->errors &= ~msk;
+    }
     return ret;
 }
 
@@ -420,45 +402,40 @@ uint64_t marlin_errors(void) {
 
 variant8_t marlin_get_var(uint8_t var_id) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return variant8_empty();
-
-    return marlin_vars_get_var(&(client->vars), var_id);
+    return (client) ? marlin_vars_get_var(&(client->vars), var_id) : variant8_empty();
 }
 
 variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
-    marlin_client_t *client = _client_ptr();
-    if (!client)
-        return variant8_empty();
-
-    const variant8_t ret = marlin_vars_get_var(&(client->vars), var_id);
-    marlin_vars_set_var(&(client->vars), var_id, val);
+    variant8_t retval = variant8_empty();
     char request[MARLIN_MAX_REQUEST];
-    const int n = sprintf(request, "!var %s ", marlin_vars_get_name(var_id));
-    const int size = sizeof(request) - n;
-    if (marlin_vars_value_to_str(&(client->vars), var_id, request + n, size) >= size)
-        bsod("Request too long.");
-    _send_request_to_server(client->id, request);
-    _wait_ack_from_server(client->id);
-    return ret;
+    int n;
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        retval = marlin_vars_get_var(&(client->vars), var_id);
+        marlin_vars_set_var(&(client->vars), var_id, val);
+        n = sprintf(request, "!var %s ", marlin_vars_get_name(var_id));
+        if (marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n) >= (sizeof(request) - n))
+            bsod("Request too long.");
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
+    return retval;
 }
 
 marlin_vars_t *marlin_vars(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
-        return 0;
-
-    return &(client->vars);
+    if (client)
+        return &(client->vars);
+    return 0;
 }
 
 marlin_vars_t *marlin_update_vars(uint64_t msk) {
+    char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return 0;
-
     marlin_client_loop();
     client->changes &= ~msk;
-    char request[MARLIN_MAX_REQUEST];
     sprintf(request, "!update %08lx %08lx", (uint32_t)(msk & 0xffffffff), (uint32_t)(msk >> 32));
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
@@ -483,10 +460,6 @@ uint8_t marlin_get_pqueue_max(void) {
     //TODO: variable pqueue_max should be part of marlin_consts structure transmited from server
     //Marlin/planner, BLOCK_BUFFER_SIZE - 1
     return 16 - 1;
-}
-
-float marlin_get_target_nozzle() {
-    return marlin_get_var(MARLIN_VAR_TTEM_NOZ).flt;
 }
 
 float marlin_set_target_nozzle(float val) {
@@ -524,7 +497,7 @@ uint8_t marlin_set_wait_user(uint8_t val) {
 void marlin_do_babysteps_Z(float offs) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     sprintf(request, "!babystep_Z %.4f", (double)offs);
     _send_request_to_server(client->id, request);
@@ -533,7 +506,7 @@ void marlin_do_babysteps_Z(float offs) {
 
 void marlin_settings_save(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!cfg_save");
     _wait_ack_from_server(client->id);
@@ -541,7 +514,7 @@ void marlin_settings_save(void) {
 
 void marlin_settings_load(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!cfg_load");
     _wait_ack_from_server(client->id);
@@ -549,7 +522,7 @@ void marlin_settings_load(void) {
 
 void marlin_settings_reset(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!cfg_reset");
     _wait_ack_from_server(client->id);
@@ -557,7 +530,7 @@ void marlin_settings_reset(void) {
 
 void marlin_manage_heater(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!updt");
     _wait_ack_from_server(client->id);
@@ -565,7 +538,7 @@ void marlin_manage_heater(void) {
 
 void marlin_quick_stop(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!qstop");
     _wait_ack_from_server(client->id);
@@ -574,7 +547,7 @@ void marlin_quick_stop(void) {
 void marlin_print_start(const char *filename) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     if (snprintf(request, sizeof(request), "!pstart %s", filename) >= sizeof(request))
         bsod("Request too long.");
@@ -584,7 +557,7 @@ void marlin_print_start(const char *filename) {
 
 void marlin_print_abort(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!pabort");
     _wait_ack_from_server(client->id);
@@ -592,7 +565,7 @@ void marlin_print_abort(void) {
 
 void marlin_print_pause(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!ppause");
     _wait_ack_from_server(client->id);
@@ -600,7 +573,7 @@ void marlin_print_pause(void) {
 
 void marlin_print_resume(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!presume");
     _wait_ack_from_server(client->id);
@@ -608,7 +581,7 @@ void marlin_print_resume(void) {
 
 void marlin_park_head(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     _send_request_to_server(client->id, "!park");
     _wait_ack_from_server(client->id);
@@ -616,13 +589,13 @@ void marlin_park_head(void) {
 
 uint8_t marlin_message_received(void) {
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return 0;
     if (client->flags & MARLIN_CFLG_MESSAGE) {
         client->flags &= ~MARLIN_CFLG_MESSAGE;
         return 1;
-    }
-    return 0;
+    } else
+        return 0;
 }
 
 // returns 1 if reheating is in progress, otherwise 0
@@ -638,7 +611,7 @@ int marlin_reheating(void) {
 void marlin_encoded_response(uint32_t enc_phase_and_response) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
-    if (!client)
+    if (client == 0)
         return;
     sprintf(request, "!fsm_r %d", (int)enc_phase_and_response);
     _send_request_to_server(client->id, request);
@@ -657,7 +630,7 @@ static void _wait_server_started(void) {
 // send request to server (called from client thread), infinite timeout
 static void _send_request_to_server(uint8_t client_id, const char *request) {
     int ret = 0;
-    const int len = strlen(request);
+    int len = strlen(request);
     osMessageQId queue = 0;
     int i;
     osSemaphoreWait(marlin_server_sema, osWaitForever); // lock
@@ -698,7 +671,7 @@ static uint32_t _wait_ack_from_server(uint8_t client_id) {
 
 // process message on client side (set flags, update vars etc.)
 static void _process_client_message(marlin_client_t *client, variant8_t msg) {
-    const uint8_t id = msg.usr8 & MARLIN_USR8_MSK_ID;
+    uint8_t id = msg.usr8 & MARLIN_USR8_MSK_ID;
     if (msg.usr8 & MARLIN_USR8_VAR_FLG) // variable change received
     {
         marlin_vars_set_var(&(client->vars), id, msg);
@@ -714,9 +687,9 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         client->events |= ((uint64_t)1 << id);
         switch ((MARLIN_EVT_t)id) {
         case MARLIN_EVT_MeshUpdate: {
-            const uint8_t x = msg.usr16 & 0xff;
-            const uint8_t y = msg.usr16 >> 8;
-            const float z = msg.flt;
+            uint8_t x = msg.usr16 & 0xff;
+            uint8_t y = msg.usr16 >> 8;
+            float z = msg.flt;
             client->mesh.z[x + client->mesh.xc * y] = z;
         } break;
         case MARLIN_EVT_StartProcessing:
@@ -812,7 +785,8 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
 // returns client pointer for calling client thread (client thread)
 static marlin_client_t *_client_ptr(void) {
     osThreadId taskHandle = osThreadGetId();
-    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
+    int client_id;
+    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (taskHandle == marlin_client_task[client_id])
             return marlin_client + client_id;
     return 0;
