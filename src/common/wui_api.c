@@ -201,15 +201,17 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
         strlcpy(eth_hostname, config->hostname, ETH_HOSTNAME_LEN + 1);
     }
 
-    // ugly way to aquire lan flags before load
-    uint8_t swaper, prev_lan_flag = config->lan.flag;
-    uint32_t set_mask = config->var_mask;
-    config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(config);
-    swaper = prev_lan_flag;
-    prev_lan_flag = config->lan.flag;
-    config->lan.flag = swaper;
-    config->var_mask = set_mask;
+    // Aquire lan flags before load
+    uint8_t prev_lan_flag = config->lan.flag;
+    {
+        uint32_t set_mask = config->var_mask;
+        config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+        load_eth_params(config);
+        uint8_t swapper = prev_lan_flag;
+        prev_lan_flag = config->lan.flag;
+        config->lan.flag = swapper;
+        config->var_mask = set_mask;
+    }
 
     if (config->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
         // if there was a change from STATIC to DHCP
@@ -234,9 +236,9 @@ void sntp_get_system_time(system_time_t *system_time) {
 
         HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
 
-    snprintf(*system_time, 12, "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
+    snprintf(*system_time, sizeof(system_time_t), "%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
   } else {
-    strcpy(*system_time, "N/A");
+    strlcpy(*system_time, "N/A", sizeof(system_time_t));
   }
 }
 
@@ -247,9 +249,9 @@ void sntp_get_system_date(system_date_t *system_date) {
 
         HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
 
-    snprintf(*system_date, 13, "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
+    snprintf(*system_date, sizeof(system_date_t), "%02d.%02d.%d", currDate.Date, currDate.Month + 1, currDate.Year + 1900);
   } else {
-    strcpy(*system_date, "N/A");
+    strlcpy(*system_date, "N/A", sizeof(system_date_t));
   }
 }
 
