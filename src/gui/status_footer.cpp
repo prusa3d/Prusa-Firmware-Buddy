@@ -157,10 +157,10 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     /// nozzle state
     if (vars->target_nozzle != vars->display_nozzle) { /// preheat mode
         footer->nozzle_state = PREHEAT;
-        if (vars->display_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
+        if (vars->target_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
             footer->nozzle_state = HEATING;
-        } else if (vars->target_nozzle < vars->temp_nozzle - HEATING_DIFFERENCE) {
-            // vars->target_nozzle (not display_nozzle) is OK, because it's weird to show 200/215 and cooling color
+        } else if (vars->display_nozzle < vars->temp_nozzle - HEATING_DIFFERENCE) {
+            // vars->display_nozzle (not target_nozzle) is OK, because it's weird to show 200/215 and cooling color
             footer->nozzle_state = COOLING;
         }
     } else {
