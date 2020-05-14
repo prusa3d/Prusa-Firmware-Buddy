@@ -29,6 +29,8 @@ void StartWebServerTask(void const *argument);
 extern osMessageQId tcp_wui_queue_id;
 extern osSemaphoreId tcp_wui_semaphore_id;
 extern osMutexId wui_thread_mutex_id;
+extern osPoolId tcp_wui_mpool_id;
+extern osSemaphoreId tcp_wui_semaphore_id;
 
 typedef enum {
     CMD_UNKNOWN,

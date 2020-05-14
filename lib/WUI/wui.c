@@ -9,6 +9,7 @@
 #include "wui.h"
 #include "wui_vars.h"
 #include "marlin_client.h"
+#include "wui_helper_funcs.h"
 #include "wui_api.h"
 #include "lwip.h"
 #include "ethernetif.h"
