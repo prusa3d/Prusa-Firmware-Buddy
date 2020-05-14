@@ -8,6 +8,8 @@
 #include "config.h"
 #include "status_footer.h"
 #include "filament.h"
+#include "marlin_vars.h"
+#include "marlin_client.h"
 
 #include "../Marlin/src/module/temperature.h"
 #include "../Marlin/src/module/planner.h"
@@ -26,10 +28,10 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
     int16_t id;
 
-    strcpy(footer->text_nozzle, "0/0\177C");
-    strcpy(footer->text_heatbed, "0/0\177C");
-    strcpy(footer->text_prnspeed, "0%");
-    strcpy(footer->text_z_axis, "999.95");
+    //strcpy(footer->text_nozzle, "0/0\177C");
+    //strcpy(footer->text_heatbed, "0/0\177C");
+    //strcpy(footer->text_prnspeed, "0%");
+    //strcpy(footer->text_z_axis, "999.95");
 
     id = window_create_ptr( // nozzle
         WINDOW_CLS_ICON, parent,
@@ -45,7 +47,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_nozzle));
     footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, footer->text_nozzle);
+    window_set_text(id, "0/0\177C");
 
     id = window_create_ptr( // heatbed
         WINDOW_CLS_ICON, parent,
@@ -61,7 +63,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_heatbed));
     footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, footer->text_heatbed);
+    window_set_text(id, "0/0\177C");
 
     id = window_create_ptr( // prnspeed
         WINDOW_CLS_ICON, parent,
@@ -77,7 +79,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_prnspeed));
     footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, footer->text_prnspeed);
+    window_set_text(id, "0%");
 
     id = window_create_ptr( // z-axis
         WINDOW_CLS_ICON, parent,
@@ -93,7 +95,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_z_axis));
     footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, footer->text_z_axis);
+    window_set_text(id, "999.95");
 
     id = window_create_ptr( // filament
         WINDOW_CLS_ICON, parent,
@@ -166,52 +168,45 @@ void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
 /// Updates values in state from real values and repaint
 void status_footer_update_temperatures(status_footer_t *footer) {
 
-    /// get current temperatures
-    const float actual_nozzle = thermalManager.degHotend(0);
-    const float target_nozzle = thermalManager.degTargetHotend(0);
-    const float actual_heatbed = thermalManager.degBed();
-    const float target_heatbed = thermalManager.degTargetBed();
+    /// force update of temperatures
+    uint64_t mask = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ)
+        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
 
-    /// automatic disabling of nozzle preheat style
-    /// easier and safer than handling all possible starts of printing
-    if (target_nozzle != PREHEAT_TEMP)
-        _preheat_mode = false;
+    const marlin_vars_t *vars = marlin_update_vars(mask);
+    if (!vars)
+        return;
 
-    /// nozzle state
-    if (_preheat_mode) {
+    if (vars->target_nozzle != vars->display_nozzle) { /// preheat mode
         footer->nozzle_state = PREHEAT;
-        if (PREHEAT_TEMP > actual_nozzle + HEATING_DIFFERENCE) {
+        if (vars->display_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
             footer->nozzle_state = HEATING;
-        } else if (PREHEAT_TEMP < actual_nozzle - HEATING_DIFFERENCE) {
+        } else if (vars->target_nozzle < vars->temp_nozzle - HEATING_DIFFERENCE) {
+            // vars->target_nozzle (not display_nozzle) is OK, because it's weird to show 200/215 and cooling color
             footer->nozzle_state = COOLING;
         }
     } else {
         footer->nozzle_state = STABLE;
-        if (target_nozzle > actual_nozzle + HEATING_DIFFERENCE) {
+        if (vars->target_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
             footer->nozzle_state = HEATING;
-        } else if (target_nozzle < actual_nozzle - HEATING_DIFFERENCE && actual_nozzle > COOL_NOZZLE) {
+        } else if (vars->target_nozzle < vars->temp_nozzle - HEATING_DIFFERENCE && vars->temp_nozzle > COOL_NOZZLE) {
             footer->nozzle_state = COOLING;
         }
     }
 
+    sprintf(footer->text_nozzle, "%d/%d\177C", (int)vars->temp_nozzle, (int)vars->display_nozzle);
+    window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
+
     /// heatbed state
     footer->heatbed_state = STABLE;
-    if (target_heatbed > actual_heatbed + HEATING_DIFFERENCE) {
+    if (vars->target_bed > vars->temp_bed + HEATING_DIFFERENCE) {
         footer->heatbed_state = HEATING;
-    } else if (target_heatbed < actual_heatbed - HEATING_DIFFERENCE && actual_heatbed > COOL_BED) {
+    } else if (vars->target_bed < vars->temp_bed - HEATING_DIFFERENCE && vars->temp_bed > COOL_BED) {
         footer->heatbed_state = COOLING;
     }
 
-    footer->nozzle = actual_nozzle;
-    if (_preheat_mode) {
-        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)_nozzle_target_temp);
-    } else {
-        sprintf(footer->text_nozzle, "%.0f/%.0f\177C", (double)actual_nozzle, (double)target_nozzle);
-    }
-    window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
-
-    footer->heatbed = actual_heatbed;
-    sprintf(footer->text_heatbed, "%/%\177C", (double)actual_heatbed, (double)target_heatbed);
+    sprintf(footer->text_heatbed, "%d/%d\177C", (int)vars->temp_bed, (int)vars->target_bed);
     window_set_text(footer->wt_heatbed.win.id, footer->text_heatbed);
 
 #ifdef LCD_HEATBREAK_TO_FILAMENT
