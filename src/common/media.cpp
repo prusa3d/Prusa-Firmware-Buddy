@@ -51,12 +51,53 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
+void media_get_sfn_path(char *sfn, const char *filepath) {
+    uint i, j, k;
+    i = j = k = 0;
+    uint sl = strlen(filepath); // length of filepath
+    FILINFO fi;
+    char tmpPath[sl] = { 0 };
+    while (i <= sl) {
+        // folder || endfile found -> begin
+        if (filepath[i] == '/' || i == sl) {
+            // file info struct with fname & altname
+            strlcpy(tmpPath, filepath, i + 1);
+            FRESULT fRes = f_stat(tmpPath, &fi);
+            if (fRes == FR_OK) {
+                // we got folder || end file info -> process
+                const char *tmpDir = fi.altname; // LFN MUST BE TURNED ON (1||2)
+                _dbg(tmpDir);
+                // FATFS flag for valid 8.3 fname - used instead of altname
+                if (tmpDir[0] == 0 && fi.fname[0] != 0) {
+                    tmpDir = fi.fname;
+                }
+                // save SFN part
+                for (j = 0; j < 12; j++) {
+                    if (tmpDir[j] == 0) {
+                        break;
+                    }
+                    sfn[k] = tmpDir[j];
+                    k++;
+                }
+                // add folder slash
+                if (i != sl) {
+                    sfn[k] = '/';
+                    k++;
+                }
+                // SFN part of path saved
+            }
+        }
+        i++;
+    }
+}
+
 void media_print_start(const char *filepath) {
     FILINFO filinfo;
     if (media_print_state == media_print_state_NONE) {
-        strlcpy(media_print_filepath, filepath, sizeof(media_print_filepath) - 1);
+        // get SFN path
+        media_get_sfn_path(media_print_filepath, filepath);
         if (f_stat(media_print_filepath, &filinfo) == FR_OK) {
-            strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filepath) - 1);
+            strlcpy(media_print_filename, filinfo.fname, sizeof(media_print_filename) - 1);
             media_print_size = filinfo.fsize;
             if (f_open(&media_print_fil, media_print_filepath, FA_READ) == FR_OK) {
                 media_current_position = 0;

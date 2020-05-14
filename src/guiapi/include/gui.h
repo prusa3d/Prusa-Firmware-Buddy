@@ -21,7 +21,6 @@
     #include "window_list.h"
     #include "window_spin.h"
     #include "window_term.h"
-    #include "window_menu.h"
     #include "window_msgbox.h"
     #include "window_progress.h"
     #include "window_qr.h"

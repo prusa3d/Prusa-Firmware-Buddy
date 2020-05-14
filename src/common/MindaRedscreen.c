@@ -14,10 +14,7 @@
 #include "gpio.h"
 #include "sys.h"
 #include "hwio.h" //hwio_beeper_set_pwm
-
-#ifndef _DEBUG
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
+#include "wdt.h"
 
 #define PADDING 10
 #define X_MAX   (display->w - PADDING * 2)
@@ -194,9 +191,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg);
-#endif //_DEBUG
+        wdt_iwdg_refresh();
         if (!gpio_get(jogwheel_config.pinENC))
             sys_reset(); //button press
     }

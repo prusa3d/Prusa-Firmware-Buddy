@@ -11,19 +11,11 @@
 
 #define DBG _dbg3 //debug level 3
 
-#ifndef _DEBUG
-extern "C" {
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-}
-#endif //_DEBUG
-
 void eeprom_write_byte(uint8_t *pos, unsigned char value) {
     uint16_t adr = (uint16_t)(int)pos;
     st25dv64k_user_write(adr, value);
     DBG("EEwr %04x %02x", adr, value);
-#ifndef _DEBUG
-    HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif                        //_DEBUG
+    wdt_iwdg_refresh();
 }
 
 uint8_t eeprom_read_byte(uint8_t *pos) {
@@ -40,7 +32,5 @@ void eeprom_read_block(void *__dst, const void *__src, size_t __n) {
 
 void eeprom_update_block(const void *__src, void *__dst, size_t __n) {
     st25dv64k_user_write_bytes((uint16_t)(int)__dst, (void *)__src, __n);
-#ifndef _DEBUG
-    HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif                        //_DEBUG
+    wdt_iwdg_refresh();
 }

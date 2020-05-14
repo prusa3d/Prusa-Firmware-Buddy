@@ -138,6 +138,10 @@ typedef struct _marlin_vars_t {
 extern "C" {
 #endif //__cplusplus
 
+inline int is_abort_state(marlin_print_state_t st) {
+    return ((int)st) >= ((int)mpsAborting_Begin) && ((int)st) <= ((int)mpsAborted);
+}
+
 // returns variable name
 extern const char *marlin_vars_get_name(uint8_t var_id);
 

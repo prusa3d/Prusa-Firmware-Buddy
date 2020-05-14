@@ -1,7 +1,7 @@
 // screen_menu_filament.c
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "filament.h"
 #include "filament_sensor.h"
 #include "marlin_client.h"
@@ -137,4 +137,4 @@ screen_t screen_menu_filament = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }
+extern "C" screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

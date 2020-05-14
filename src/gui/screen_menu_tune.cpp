@@ -1,7 +1,7 @@
 // menu_tune.cpp
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "filament.h"
 #include "menu_vars.h"
@@ -105,21 +105,6 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
 
     if (event == WINDOW_EVENT_CHANGING) {
         switch ((int)param) {
-        /*case MI_SPEED:
-			marlin_set_print_speed((uint8_t)(psmd->items[MI_SPEED].item.value / 1000));
-			break;
-		case MI_NOZZLE:
-			marlin_set_target_nozzle((float)(psmd->items[MI_NOZZLE].item.value) / 1000);
-			break;
-		case MI_HEATBED:
-			marlin_set_target_bed((float)(psmd->items[MI_HEATBED].item.value) / 1000);
-			break;
-		case MI_PRINTFAN:
-			marlin_set_fan_speed((uint8_t)(psmd->items[MI_PRINTFAN].item.value / 1000));
-			break;
-		case MI_FLOWFACT:
-			marlin_set_flow_factor((uint16_t)(psmd->items[MI_FLOWFACT].item.value / 1000));
-			break;*/
         case MI_BABYSTEP:
             marlin_do_babysteps_Z(psmd->items[MI_BABYSTEP].item.wi_spin_fl.value - z_offs);
             z_offs = psmd->items[MI_BABYSTEP].item.wi_spin_fl.value;

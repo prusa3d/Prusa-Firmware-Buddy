@@ -31,6 +31,7 @@
 #include "eeprom.h"
 #include "media.h"
 #include "filament_sensor.h"
+#include "wdt.h"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -83,10 +84,6 @@ typedef struct _marlin_server_t {
 #pragma pack(pop)
 
 extern "C" {
-
-#ifndef _DEBUG
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
 
 //-----------------------------------------------------------------------------
 // variables
@@ -220,6 +217,8 @@ int marlin_server_cycle(void) {
         return 0;
     processing = 1;
 
+    _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
+
     FSM_notifier::SendNotification();
 
     print_fan_spd();
@@ -290,10 +289,8 @@ int marlin_server_cycle(void) {
                 if ((msk = marlin_server.client_events[client_id]) != 0)
                     marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
-#ifndef _DEBUG
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
-        HAL_IWDG_Refresh(&hiwdg); // this prevents iwdg reset while processing disabled
-#endif                            //_DEBUG
+        wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
     processing = 0;
     return count;
 }
@@ -311,7 +308,6 @@ int marlin_server_loop(void) {
             }
         }
     marlin_server.idle_cnt = 0;
-    _server_print_loop();
     media_loop();
     return marlin_server_cycle();
 }
@@ -524,6 +520,7 @@ static void _server_print_loop(void) {
     case mpsAborting_Begin:
         media_print_stop();
         thermalManager.disable_all_heaters();
+        thermalManager.set_fan_speed(0, 0);
         print_job_timer.stop();
         planner.quick_stop();
         marlin_server.print_state = mpsAborting_WaitIdle;
@@ -882,7 +879,9 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED)) {
+#if FAN_COUNT > 0
         v.ui8 = thermalManager.fan_speed[0];
+#endif
         if (marlin_server.vars.fan_speed != v.ui8) {
             marlin_server.vars.fan_speed = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED);
@@ -1082,8 +1081,10 @@ static int _server_set_var(char *name_val_str) {
 #endif //HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
+#if FAN_COUNT > 0
                 changed = (thermalManager.fan_speed[0] != marlin_server.vars.fan_speed);
                 thermalManager.set_fan_speed(0, marlin_server.vars.fan_speed);
+#endif
                 break;
             case MARLIN_VAR_PRNSPEED:
                 changed = (feedrate_percentage != (int16_t)marlin_server.vars.print_speed);
@@ -1200,10 +1201,8 @@ int _is_thermal_error(PGM_P const msg) {
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
     if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
-        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-#ifndef _DEBUG
-    HAL_IWDG_Refresh(&hiwdg);     //watchdog reset
-#endif                            //_DEBUG
+        taskENTER_CRITICAL();     //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+    wdt_iwdg_refresh();           //watchdog reset
     if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
         const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
@@ -1258,19 +1257,29 @@ void onUserConfirmRequired(const char *const msg) {
 }
 
 void onStatusChanged(const char *const msg) {
+    static bool pending_err_msg = false;
+
     DBG_XUI("XUI: onStatusChanged: %s", msg);
     _send_notify_event(MARLIN_EVT_StatusChanged, 0, 0);
     if (strcmp(msg, "Prusa-mini Ready.") == 0) {
     } //TODO
     else if (strcmp(msg, "TMC CONNECTION ERROR") == 0)
         _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_TMCDriverError, 0);
-    else if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0)
-        _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_ProbingFailed, 0);
     else {
-        if (msg && msg[0] != 0) { //empty message filter
+        if (!is_abort_state(marlin_server.print_state))
+            pending_err_msg = false;
+        if (!pending_err_msg) {
+            if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
+                _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_ProbingFailed, 0);
+                marlin_server_print_abort();
+                pending_err_msg = true;
+            }
 
-            _add_status_msg(msg);
-            _send_notify_event(MARLIN_EVT_Message, 0, 0);
+            if (msg && msg[0] != 0) { //empty message filter
+
+                _add_status_msg(msg);
+                _send_notify_event(MARLIN_EVT_Message, 0, 0);
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 // screen_menu_move.c
 
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "screens.h"
 
@@ -15,13 +15,6 @@ typedef enum {
     MI_MOVE_E,
     MI_COUNT
 } MI_t;
-
-const menu_item_t _menu_move_items[] = {
-    { { "Move X", 0, WI_SPIN, .wi_spin = { 0, move_x } }, SCREEN_MENU_NO_SCREEN },
-    { { "Move Y", 0, WI_SPIN, .wi_spin = { 0, move_y } }, SCREEN_MENU_NO_SCREEN },
-    { { "Move Z", 0, WI_SPIN, .wi_spin = { 0, move_z } }, SCREEN_MENU_NO_SCREEN },
-    { { "Extruder", 0, WI_SPIN, .wi_spin = { 0, move_e } }, SCREEN_MENU_NO_SCREEN },
-};
 
 //"C inheritance" of screen_menu_data_t with data items
 #pragma pack(push)
@@ -39,15 +32,28 @@ typedef struct
 void screen_menu_move_init(screen_t *screen) {
     marlin_vars_t *vars;
     screen_menu_init(screen, "MOVE AXIS", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
-    psmd->items[0] = menu_item_return;
-    memcpy(psmd->items + 1, _menu_move_items, (MI_COUNT - 1) * sizeof(menu_item_t));
-
     vars = marlin_update_vars(MARLIN_VAR_MSK_POS_XYZE | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ));
+
+    psmd->items[MI_RETURN] = menu_item_return;
+
+    psmd->items[MI_MOVE_X] = (menu_item_t) { { "Move X", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_MOVE_X].item.wi_spin.value = (int32_t)(vars->pos[0] * 1000);
+    psmd->items[MI_MOVE_X].item.wi_spin.range = move_x;
+
+    psmd->items[MI_MOVE_Y] = (menu_item_t) { { "Move Y", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_MOVE_Y].item.wi_spin.value = (int32_t)(vars->pos[1] * 1000);
+    psmd->items[MI_MOVE_Y].item.wi_spin.range = move_y;
+
+    psmd->items[MI_MOVE_Z] = (menu_item_t) { { "Move Z", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_MOVE_Z].item.wi_spin.value = (int32_t)(vars->pos[2] * 1000);
+    psmd->items[MI_MOVE_Z].item.wi_spin.range = move_z;
+
+    psmd->items[MI_MOVE_E] = (menu_item_t) { { "Extruder", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_MOVE_E].item.wi_spin.value = 0;
+    psmd->items[MI_MOVE_E].item.wi_spin.range = move_e;
     if (vars->temp_nozzle < extrude_min_temp)
         psmd->items[MI_MOVE_E].item.type |= WI_DISABLED;
+
     gui_timer_create_periodical(500, 0);
 }
 
@@ -96,4 +102,4 @@ screen_t screen_menu_move = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_move() { return &screen_menu_move; }
+extern "C" screen_t *const get_scr_menu_move() { return &screen_menu_move; }

@@ -7,7 +7,7 @@
 
 #include <menu_vars.h>
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "cmsis_os.h"
 #include "hwio.h"
 #include "screens.h"

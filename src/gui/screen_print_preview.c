@@ -5,7 +5,6 @@
 #include "gui.h"
 #include "marlin_client.h"
 #include "resource.h"
-#include "screen_printing.h"
 #include "window_dlg_load_unload.h"
 #include "filament_sensor.h"
 #include <stdarg.h>
@@ -221,7 +220,7 @@ static void initialize_gcode_file(screen_t *screen) {
 }
 
 static void screen_print_preview_init(screen_t *screen) {
-    reset_print_state();
+    marlin_set_print_speed(100);
     initialize_gcode_file(screen);
 
     int window_id = window_create_ptr(WINDOW_CLS_FRAME, -1,

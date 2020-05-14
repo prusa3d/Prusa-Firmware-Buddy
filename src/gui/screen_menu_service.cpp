@@ -2,7 +2,7 @@
 
 #include "config.h"
 #include "gui.h"
-#include "screen_menu.h"
+#include "screen_menu.hpp"
 #include "stm32f4xx_hal.h"
 #include "sys.h"
 #include "dbg.h"
@@ -58,11 +58,25 @@ void screen_menu_service_init(screen_t *screen) {
     psmd->items[MI_SYS_RESET] = (menu_item_t) { { "System reset", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_CLR_EEPROM] = (menu_item_t) { { "Clear EEPROM", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_WDG_TEST] = (menu_item_t) { { "Watchdog test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PLL] = (menu_item_t) { { "PLL", 0, WI_SWITCH, .wi_switch_select = { 0, opt_enable_disable } }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG] = (menu_item_t) { { "SSCG", 0, WI_SWITCH, .wi_switch_select = { 0, opt_enable_disable } }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG_FREQ] = (menu_item_t) { { "SSCG freq", 0, WI_SPIN, .wi_spin = { 0, opt_sscg_freq } }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG_DEPTH] = (menu_item_t) { { "SSCG depth", 0, WI_SPIN, .wi_spin = { 0, opt_sscg_depth } }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SPI_PRESC] = (menu_item_t) { { "SPI freq", 0, WI_SELECT, .wi_switch_select = { 0, opt_spi } }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_PLL] = (menu_item_t) { { "PLL", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_PLL].item.wi_switch_select.index = 0;
+    psmd->items[MI_PLL].item.wi_switch_select.strings = opt_enable_disable;
+
+    psmd->items[MI_SSCG] = (menu_item_t) { { "SSCG", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SSCG].item.wi_switch_select.index = 0;
+    psmd->items[MI_SSCG].item.wi_switch_select.strings = opt_enable_disable;
+
+    psmd->items[MI_SSCG_FREQ] = (menu_item_t) { { "SSCG freq", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SSCG_FREQ].item.wi_spin.value = 0;
+    psmd->items[MI_SSCG_FREQ].item.wi_spin.range = opt_sscg_freq;
+
+    psmd->items[MI_SSCG_DEPTH] = (menu_item_t) { { "SSCG depth", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SSCG_DEPTH].item.wi_spin.value = 0;
+    psmd->items[MI_SSCG_DEPTH].item.wi_spin.range = opt_sscg_depth;
+
+    psmd->items[MI_SPI_PRESC] = (menu_item_t) { { "SPI freq", 0, WI_SELECT, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SPI_PRESC].item.wi_switch_select.index = 0;
+    psmd->items[MI_SPI_PRESC].item.wi_switch_select.strings = opt_spi;
 #ifdef PIDCALIBRATION
     psmd->items[MI_PID] = (menu_item_t) { { "PID calibration", 0, WI_LABEL }, get_scr_PID() };
 #endif //PIDCALIBRATION
@@ -152,4 +166,4 @@ screen_t screen_menu_service = {
     0,                          //pdata
 };
 
-screen_t *const get_scr_menu_service() { return &screen_menu_service; }
+extern "C" screen_t *const get_scr_menu_service() { return &screen_menu_service; }

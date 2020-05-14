@@ -26,10 +26,6 @@
 
 extern int HAL_IWDG_Reset;
 
-#ifndef _DEBUG
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
-
 int guimain_spi_test = 0;
 
 #include "gpio.h"
@@ -39,6 +35,7 @@ int guimain_spi_test = 0;
 #include "diag.h"
 #include "sys.h"
 #include "dbg.h"
+#include "wdt.h"
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
@@ -195,8 +192,6 @@ void update_firmware_screen(void) {
         if (jogwheel_button_down > 50)
             sys_reset();
         osDelay(1);
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif                            //_DEBUG
+        wdt_iwdg_refresh();
     }
 }
