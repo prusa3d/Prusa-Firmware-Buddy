@@ -443,9 +443,11 @@ void httpd_post_finished(void *connection, char *response_uri,
         } else {
             if ((post_status.bytes_copied == post_status.post_data_len) && (post_status.bytes_copied < POST_REQUEST_BUFFSIZE)) {
                 request_buf[post_status.bytes_copied] = 0; // end of line placed
-                httpd_json_parser(request_buf, strlen(request_buf));
-
-                strlcpy(response_uri, "POST200", response_uri_len);
+                if (httpd_json_parser(request_buf, strlen(request_buf))){
+                    strlcpy(response_uri, "POST200", response_uri_len);     // OK
+                } else {
+                    strlcpy(response_uri, "POST400", response_uri_len);     // Bad Request
+                }
                 request_buf[0] = 0;
 
             } else {
