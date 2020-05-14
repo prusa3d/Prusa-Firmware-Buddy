@@ -48,7 +48,7 @@ static void update_wui_vars(void) {
     wui_vars.sd_precent_done = wui_marlin_vars->sd_percent_done;
     wui_vars.sd_printing = wui_marlin_vars->sd_printing;
     if (marlin_change_clr(MARLIN_VAR_FILENAME)) {
-        strlcpy(wui_vars.gcode_name, wui_marlin_vars->media_file_name, FILE_NAME_MAX_LEN);
+        strlcpy(wui_vars.gcode_name, wui_marlin_vars->media_LFN, FILE_NAME_MAX_LEN);
     }
 
     osMutexRelease(wui_thread_mutex_id);

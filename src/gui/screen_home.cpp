@@ -172,14 +172,14 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
         // we are using marlin variables for filename and filepath buffers
         marlin_vars_t *vars = marlin_vars();
         //check if the variables filename and filepath allocated
-        if (vars->media_file_name && vars->media_file_name) {
+        if (vars->media_LFN && vars->media_LFN) {
             if (find_latest_gcode(
-                    vars->media_file_path,
+                    vars->media_SFN_path,
                     FILE_PATH_MAX_LEN,
-                    vars->media_file_name,
+                    vars->media_LFN,
                     FILE_NAME_MAX_LEN)) {
-                screen_print_preview_set_gcode_filepath(vars->media_file_path);
-                screen_print_preview_set_gcode_filename(vars->media_file_name);
+                screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
+                screen_print_preview_set_gcode_filename(vars->media_LFN);
                 screen_print_preview_set_on_action(on_print_preview_action);
                 screen_open(get_scr_print_preview()->id);
             }

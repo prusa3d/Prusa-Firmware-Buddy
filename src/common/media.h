@@ -28,13 +28,17 @@ typedef enum {
 extern "C" {
 #endif //__cplusplus
 
-extern char media_print_filename[MEDIA_PRINT_FILENAME_SIZE];
-
-extern char media_print_filepath[MEDIA_PRINT_FILEPATH_SIZE];
+/// Do not use this anywhere - the accessor functions are here just because marlin_server.cpp needs the allocated buffer.
+/// @@TODO to be improved in the future
+extern char *media_print_filename();
+extern char *media_print_filepath();
 
 extern media_state_t media_get_state(void);
 
-extern void media_print_start(const char *filepath);
+/// Start printing by issuing M23 into Marlin with a file path.
+/// Copies the content of sfnFilePath into marlin_vars->media_SFN_path (aka media_print_filepath)
+/// Updates marlin_vars->media_LFN as a side-effect by opening the marlin_vars->media_SFN_path and reading its LFN
+extern void media_print_start(const char *sfnFilePath);
 
 extern void media_print_stop(void);
 
@@ -60,8 +64,11 @@ extern void media_set_removed(void);
 
 extern void media_set_error(media_error_t error);
 
-// extern void media_get_sfn_path(char *sfn, const char *filepath, char *aname);
-extern void media_get_sfn_path(char *sfn, const char *filepath);
+/// Computes short file name (SFN) path from a (potentially) long file name (LFN)
+/// path in filepath.
+/// @param sfn output buffer to store the SFN path
+/// @param filepath input LFN path, intentionally NOT const -
+extern void media_get_SFN_path(char *sfn, uint32_t sfn_size, char *filepath);
 
 #ifdef __cplusplus
 }

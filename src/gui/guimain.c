@@ -63,8 +63,8 @@ static void _gui_loop_cb() {
     marlin_client_loop();
 }
 
-char gui_media_filename[FILE_NAME_MAX_LEN + 1];
-char gui_media_filepath[FILE_PATH_MAX_LEN + 1];
+char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
+char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
 
 void gui_run(void) {
     if (diag_fastboot)
@@ -93,8 +93,8 @@ void gui_run(void) {
         update_firmware_screen();
 
     gui_marlin_vars = marlin_client_init();
-    gui_marlin_vars->media_file_name = gui_media_filename;
-    gui_marlin_vars->media_file_path = gui_media_filepath;
+    gui_marlin_vars->media_LFN = gui_media_LFN;
+    gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
