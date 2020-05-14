@@ -13,7 +13,7 @@ Sound::Sound() {
     repeat = 0;        // how many times is sound played
     frequency = 100.f; // frequency of sound signal (0-1000)
     //volume = 0.00125;  // volume of sound signal (0-1)
-    volume = 0.95;  // volume of sound signal (0-1)
+    volume = 0.95; // volume of sound signal (0-1)
 
     this->init();
 }
@@ -46,7 +46,7 @@ void Sound::saveMode() {
 
 // [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
 void Sound::stop() {
-		frequency = 100.f;
+    frequency = 100.f;
     _duration = 0;
     duration = 0;
     repeat = 0;
@@ -72,7 +72,7 @@ void Sound::play(eSOUND_TYPE eSoundType) {
         if (eSoundType == eSOUND_TYPE_CriticalAlert) {
             this->soundCriticalAlert(-1, 500.f);
         }
-       break;
+        break;
     case eSOUND_MODE_LOUD:
         if (eSoundType == eSOUND_TYPE_Start) {
             this->soundStart(1, 100.f);
@@ -174,7 +174,9 @@ void Sound::soundBlindAlert(int rep, uint32_t del) {
 // Generic [_sound[ method with setting values and repeating logic
 void Sound::_sound(int rep, float frq, uint32_t del, float vol) {
     // if sound is already playing, then don't interrupt
-    if (repeat - 1 > 0 || repeat == -1) { return; }
+    if (repeat - 1 > 0 || repeat == -1) {
+        return;
+    }
 
     // store variables for timing method
     repeat = rep;

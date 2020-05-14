@@ -94,8 +94,8 @@ void screen_menu_tune_init(screen_t *screen) {
     psmd->items[MI_BABYSTEP].item.wi_spin_fl.range = zoffset_fl_range;
     psmd->items[MI_BABYSTEP].item.wi_spin_fl.prt_format = zoffset_fl_format;
 
-		// select sound mode from eeprom var
-		for (size_t i = 0; i < sizeof(menu_tune_e_sound_modes); i++) {
+    // select sound mode from eeprom var
+    for (size_t i = 0; i < sizeof(menu_tune_e_sound_modes); i++) {
         if (menu_tune_e_sound_modes[i] == Sound_GetMode()) {
             psmd->items[MI_SOUND_MODE].item.wi_switch_select.index = i;
             break;
