@@ -217,6 +217,8 @@ int marlin_server_cycle(void) {
         return 0;
     processing = 1;
 
+    _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
+
     FSM_notifier::SendNotification();
 
     print_fan_spd();
@@ -306,7 +308,6 @@ int marlin_server_loop(void) {
             }
         }
     marlin_server.idle_cnt = 0;
-    _server_print_loop();
     media_loop();
     return marlin_server_cycle();
 }
