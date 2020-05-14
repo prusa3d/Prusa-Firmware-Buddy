@@ -6,7 +6,7 @@
  */
 
 #include "wui_REST_api.h"
-
+#include "wui_api.h"
 #include "wui.h"
 #include "filament.h"
 #include <string.h>
@@ -65,7 +65,6 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
 
     timestamp_t timestamp;
     time_str_t time_str;
-    uint8_t percent_done;
     char print_time[13];
 
     if (wui_vars_copy.time_to_end != TIME_TO_END_INVALID){
@@ -75,9 +74,8 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
         }
         stringify_timestamp(&time_str, &timestamp);
     } else {
-        strlcpy(time_str.time, "N/A", sizeof(time_str.time));
-        strlcpy(time_str.date, "N/A", sizeof(time_str.date));
-        percent_done = wui_vars_copy.sd_precent_done;
+        strlcpy(time_str.time, "N/A", MAX_TIME_STR_SIZE);
+        strlcpy(time_str.date, "N/A", MAX_DATE_STR_SIZE);
     }
 
     print_dur_to_string(print_time, sizeof(print_time), wui_vars_copy.print_dur);
@@ -91,11 +89,11 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
                             "\"flow_factor\":%d,"
                             "\"progress\":%d,"
                             "\"print_dur\":\"%s\","
-                            "\"time_est\":\"%s\","
+                            "\"end_time\":\"%s\","
+                            "\"end_date\":\"%s\","
                             "\"project_name\":\"%s\""
                             "}",
         actual_nozzle, actual_heatbed, filament_material,
-        z_pos_mm, print_speed, flow_factor, percent_done, 
-        print_time, time_str.time, time_str.date,
-        wui_vars_copy.gcode_name);
+        z_pos_mm, print_speed, flow_factor, wui_vars_copy.sd_precent_done, 
+        print_time, time_str.time, time_str.date,wui_vars_copy.gcode_name);
 }

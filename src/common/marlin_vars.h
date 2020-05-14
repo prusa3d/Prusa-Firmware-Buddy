@@ -81,6 +81,7 @@
 
 #define FILE_NAME_MAX_LEN (96 + 1 + 5 + 1)
 #define FILE_PATH_MAX_LEN (96 + 1 + 5 + 1)
+#define TIME_TO_END_INVALID ((uint32_t)-1)
 
 typedef enum {
     mpsIdle = 0,
