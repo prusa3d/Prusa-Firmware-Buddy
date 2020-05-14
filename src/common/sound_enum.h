@@ -16,6 +16,7 @@ typedef enum {
     eSOUND_TYPE_ButtonEcho,
     eSOUND_TYPE_StandardPrompt,
     eSOUND_TYPE_StandardAlert,
+    eSOUND_TYPE_CriticalAlert,
     eSOUND_TYPE_EncoderMove,
     eSOUND_TYPE_BlindAlert,
     eSOUND_TYPE_Start

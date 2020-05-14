@@ -46,4 +46,5 @@ private:
     void soundStandardAlert(int rep, uint32_t del);
     void soundEncoderMove(int rep, uint32_t del);
     void soundBlindAlert(int rep, uint32_t del);
+    void soundCriticalAlert(int rep, uint32_t del);
 };
