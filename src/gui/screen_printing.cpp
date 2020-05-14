@@ -429,6 +429,21 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
 
     window_set_text(pw->w_etime_value.win.id, array.data());
 }
+static void update_print_duration(screen_t *screen, time_t rawtime) {
+    pw->w_time_value.color_text = COLOR_VALUE_VALID;
+    auto &array = pw->text_time;
+    const struct tm *timeinfo = localtime(&rawtime);
+    if (timeinfo->tm_yday) {
+        snprintf(array.data(), array.size(), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+    } else if (timeinfo->tm_hour) {
+        snprintf(array.data(), array.size(), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+    } else if (timeinfo->tm_min) {
+        snprintf(array.data(), array.size(), "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+    } else {
+        snprintf(array.data(), array.size(), "%is", timeinfo->tm_sec);
+    }
+    window_set_text(pw->w_time_value.win.id, array.data());
+}
 
 static void screen_printing_reprint(screen_t *screen) {
     print_begin(marlin_vars()->media_SFN_path);
