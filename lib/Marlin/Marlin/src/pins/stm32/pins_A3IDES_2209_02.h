@@ -20,6 +20,8 @@
  *
  */
 
+#include "main.h"
+
 #if !defined(STM32F4) && !defined(STM32F4xx)
   #error "Oops! Select an A3ides board in 'Tools > Board.'"
 #endif
@@ -39,12 +41,12 @@
 //
 // Limit Switches
 //
-#define X_MIN_PIN              PE2
-#define X_MAX_PIN              PE2
-#define Y_MIN_PIN              PE1
-#define Y_MAX_PIN              PE1
-#define Z_MIN_PIN              PA8
-#define Z_MAX_PIN              PE3
+#define X_MIN_PIN              (X_DIAG_GPIO_Port + X_DIAG_Pin)
+#define X_MAX_PIN              (X_DIAG_GPIO_Port + X_DIAG_Pin)
+#define Y_MIN_PIN              (Z_DIAGE1_GPIO_Port + Z_DIAGE1_Pin) //todo this name doesn't look right
+#define Y_MAX_PIN              (Z_DIAGE1_GPIO_Port + Z_DIAGE1_Pin) //todo this name doesn't look right
+#define Z_MIN_PIN              (Z_MIN_GPIO_Port + Z_MIN_Pin)
+#define Z_MAX_PIN              (Z_DIAG_GPIO_Port + Z_DIAG_Pin)
 
 //
 // Z Probe (when not Z_MIN_PIN)
@@ -58,21 +60,21 @@
 // Steppers
 //
 
-#define X_STEP_PIN             PD1
-#define X_DIR_PIN              PD0
-#define X_ENABLE_PIN           PD3
+#define X_STEP_PIN             (X_STEP_GPIO_Port + X_STEP_Pin)
+#define X_DIR_PIN              (X_DIR_GPIO_Port + X_DIR_Pin)
+#define X_ENABLE_PIN           (X_ENA_GPIO_Port + X_ENA_Pin)
 
-#define Y_STEP_PIN             PD13
-#define Y_DIR_PIN              PD12
-#define Y_ENABLE_PIN           PD14
+#define Y_STEP_PIN             (Y_STEP_GPIO_Port + Y_STEP_Pin)
+#define Y_DIR_PIN              (Y_DIR_GPIO_Port + Y_DIR_Pin)
+#define Y_ENABLE_PIN           (Y_ENA_GPIO_Port + Y_ENA_Pin)
 
-#define Z_STEP_PIN             PD4
-#define Z_DIR_PIN              PD15
-#define Z_ENABLE_PIN           PD2
+#define Z_STEP_PIN             (Z_STEP_GPIO_Port + Z_STEP_Pin)
+#define Z_DIR_PIN              (Z_DIR_GPIO_Port + Z_DIR_Pin)
+#define Z_ENABLE_PIN           (Z_ENA_GPIO_Port + Z_ENA_Pin)
 
-#define E0_STEP_PIN            PD9
-#define E0_DIR_PIN             PD8
-#define E0_ENABLE_PIN          PD10
+#define E0_STEP_PIN            (E_STEP_GPIO_Port + E_STEP_Pin)
+#define E0_DIR_PIN             (E_DIR_GPIO_Port + E_DIR_Pin)
+#define E0_ENABLE_PIN          (E_ENA_GPIO_Port + E_ENA_Pin)
 
 
 #if HAS_DRIVER(TMC2208)
@@ -107,25 +109,24 @@
 // Temperature Sensors
 //
 
-#define TEMP_0_PIN             PC0   // Analog Input
-#define TEMP_BED_PIN           PA4   // Analog Input
+#define TEMP_0_PIN             (THERM_0_GPIO_Port + THERM_0_Pin)   // Analog Input
+#define TEMP_BED_PIN           (THERM_1_GPIO_Port + THERM_1_Pin)   // Analog Input
 
-#define TEMP_PINDA_PIN         PA6   // Analog Input
-#define TEMP_BOARD_PIN         PA5   // Analog Input
+#define TEMP_PINDA_PIN         PA6   // Analog Input //todo remove
+#define TEMP_BOARD_PIN         (THERM_2_GPIO_Port + THERM_2_Pin)   // Analog Input
 
 
 //
 // Heaters / Fans
 //
 
-#define HEATER_0_PIN           PB1
-#define HEATER_BED_PIN         PB0
+#define HEATER_0_PIN           (HEAT0_GPIO_Port + HEAT0_Pin)
+#define HEATER_BED_PIN         (BED_HEAT_GPIO_Port + BED_HEAT_Pin)
 
-#define FAN_PIN                PE11
+#define FAN_PIN                (FAN0_GPIO_Port + FAN0_Pin)
 
-//#define FAN1_PIN               PE9
-#undef E0_AUTO_FAN_PIN
-#define E0_AUTO_FAN_PIN        PE9
+#undef E0_AUTO_FAN_PIN         //todo fixme, remove other definition of E0_AUTO_FAN_PIN
+#define E0_AUTO_FAN_PIN        (FAN1_GPIO_Port + FAN1_Pin)
 
 //#define ORIG_E0_AUTO_FAN_PIN   PE9 // Use this by NOT overriding E0_AUTO_FAN_PIN
 
@@ -139,8 +140,8 @@
 
 //#define BEEPER_PIN             PA0         //comment to disable macro HAS_BUZZER 
 
-#define BTN_ENC                PE12
-#define BTN_EN1                PE15
-#define BTN_EN2                PE13
+#define BTN_ENC                PE12 //todo remove
+#define BTN_EN1                PE15 //todo remove
+#define BTN_EN2                PE13 //todo remove
 
-#define FIL_RUNOUT_PIN         PB4
+#define FIL_RUNOUT_PIN         PB4 //todo remove

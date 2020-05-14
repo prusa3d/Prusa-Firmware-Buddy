@@ -23,8 +23,8 @@
 #pragma once
 
 /**
- * Fast I/O interfaces for STM32
- * These use GPIO register access for fast port manipulation.
+ * Fast I/O interfaces for STM32F4/7
+ * These use GPIO functions instead of Direct Port Manipulation, as on AVR.
  */
 
 // ------------------------
@@ -44,48 +44,84 @@ void FastIO_init(); // Must be called before using fast io macros
 // Defines
 // ------------------------
 
-#define _BV32(b) (1UL << (b))
-
 #ifndef PWM
   #define PWM OUTPUT
 #endif
 
-#if defined(STM32F0xx) || defined(STM32F1xx) || defined(STM32F3xx) || defined(STM32L0xx) || defined(STM32L4xx)
-  #define _WRITE(IO, V) do { \
-    if (V) FastIOPortMap[STM_PORT(digitalPinToPinName(IO))]->BSRR = _BV32(STM_PIN(digitalPinToPinName(IO))) ; \
-    else   FastIOPortMap[STM_PORT(digitalPinToPinName(IO))]->BRR  = _BV32(STM_PIN(digitalPinToPinName(IO))) ; \
-  }while(0)
-#else
-  #define _WRITE(IO, V) (FastIOPortMap[STM_PORT(digitalPinToPinName(IO))]->BSRR = _BV32(STM_PIN(digitalPinToPinName(IO)) + ((V) ? 0 : 16)))
-#endif
-
-#define _READ(IO)               bool(READ_BIT(FastIOPortMap[STM_PORT(digitalPinToPinName(IO))]->IDR, _BV32(STM_PIN(digitalPinToPinName(IO)))))
-#define _TOGGLE(IO)             TBI32(FastIOPortMap[STM_PORT(digitalPinToPinName(IO))]->ODR, STM_PIN(digitalPinToPinName(IO)))
-
+#define READ(IO)                digitalRead(IO)
+#define WRITE(IO,V)             digitalWrite(IO,V)
+ 
 #define _GET_MODE(IO)
 #define _SET_MODE(IO,M)         pinMode(IO, M)
-#define _SET_OUTPUT(IO)         pinMode(IO, OUTPUT)                               //!< Output Push Pull Mode & GPIO_NOPULL
-#define _SET_OUTPUT_OD(IO)      pinMode(IO, OUTPUT_OPEN_DRAIN)
-
-#define WRITE(IO,V)             _WRITE(IO,V)
-#define READ(IO)                _READ(IO)
-#define TOGGLE(IO)              _TOGGLE(IO)
-
+#define _SET_OUTPUT(IO)         pinMode(IO, OUTPUT)                               /*!< Output Push Pull Mode & GPIO_NOPULL   */
+ 
 #define OUT_WRITE(IO,V)         do{ _SET_OUTPUT(IO); WRITE(IO,V); }while(0)
-#define OUT_WRITE_OD(IO,V)      do{ _SET_OUTPUT_OD(IO); WRITE(IO,V); }while(0)
-
-#define SET_INPUT(IO)           _SET_MODE(IO, INPUT)                              //!< Input Floating Mode
-#define SET_INPUT_PULLUP(IO)    _SET_MODE(IO, INPUT_PULLUP)                       //!< Input with Pull-up activation
-#define SET_INPUT_PULLDOWN(IO)  _SET_MODE(IO, INPUT_PULLDOWN)                     //!< Input with Pull-down activation
+ 
+#define SET_INPUT(IO)           _SET_MODE(IO, INPUT)                              /*!< Input Floating Mode                   */
+#define SET_INPUT_PULLUP(IO)    _SET_MODE(IO, INPUT_PULLUP)                       /*!< Input with Pull-up activation         */
+#define SET_INPUT_PULLDOWN(IO)  _SET_MODE(IO, INPUT_PULLDOWN)                     /*!< Input with Pull-down activation       */
 #define SET_OUTPUT(IO)          OUT_WRITE(IO, LOW)
 #define SET_PWM(IO)             _SET_MODE(IO, PWM)
-
+ 
+#define TOGGLE(IO)              OUT_WRITE(IO, !READ(IO))
+ 
 #define IS_INPUT(IO)
 #define IS_OUTPUT(IO)
-
-#define PWM_PIN(P)              digitalPinHasPWM(P)
-#define NO_COMPILE_TIME_PWM
+ 
+#define PWM_PIN(P)              true
 
 // digitalRead/Write wrappers
 #define extDigitalRead(IO)    digitalRead(IO)
 #define extDigitalWrite(IO,V) digitalWrite(IO,V)
+
+//
+// Pins Definitions
+//
+
+#undef GPIOA
+#define GPIOA (0 * 16)
+#undef GPIOB
+#define GPIOB (1 * 16)
+#undef GPIOC
+#define GPIOC (2 * 16)
+#undef GPIOD
+#define GPIOD (3 * 16)
+#undef GPIOE
+#define GPIOE (4 * 16)
+#undef GPIOF
+#define GPIOF (5 * 16)
+#undef GPIOG
+#define GPIOG (6 * 16)
+
+#undef GPIO_PIN_0
+#define GPIO_PIN_0 0
+#undef GPIO_PIN_1
+#define GPIO_PIN_1 1
+#undef GPIO_PIN_2
+#define GPIO_PIN_2 2
+#undef GPIO_PIN_3
+#define GPIO_PIN_3 3
+#undef GPIO_PIN_4
+#define GPIO_PIN_4 4
+#undef GPIO_PIN_5
+#define GPIO_PIN_5 5
+#undef GPIO_PIN_6
+#define GPIO_PIN_6 6
+#undef GPIO_PIN_7
+#define GPIO_PIN_7 7
+#undef GPIO_PIN_8
+#define GPIO_PIN_8 8
+#undef GPIO_PIN_9
+#define GPIO_PIN_9 9
+#undef GPIO_PIN_10
+#define GPIO_PIN_10 10
+#undef GPIO_PIN_11
+#define GPIO_PIN_11 11
+#undef GPIO_PIN_12
+#define GPIO_PIN_12 12
+#undef GPIO_PIN_13
+#define GPIO_PIN_13 13
+#undef GPIO_PIN_14
+#define GPIO_PIN_14 14
+#undef GPIO_PIN_15
+#define GPIO_PIN_15 15
