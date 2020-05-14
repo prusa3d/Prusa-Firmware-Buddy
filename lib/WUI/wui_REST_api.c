@@ -65,7 +65,7 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
 
     timestamp_t timestamp;
     time_str_t time_str;
-    char print_time[13];
+    char print_time[15];
 
     if (wui_vars_copy.time_to_end != TIME_TO_END_INVALID) {
         if (sntp_get_system_time(&timestamp)) {
