@@ -28,7 +28,7 @@ uint32_t httpd_json_parser(char *json, uint32_t len) {
         return 0;
     }
 
-    for (int i = 1; i < ret; i += 2) {
+    for (int i = 1; i < ret; i++) {
         if (t[i].size >= MAX_REQ_MARLIN_SIZE) {
             // Request is too long
             return 0;
