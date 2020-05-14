@@ -20,6 +20,10 @@ int16_t WINDOW_CLS_FILE_LIST = 0;
 void window_file_list_inc(window_file_list_t *window, int dif);
 void window_file_list_dec(window_file_list_t *window, int dif);
 
+bool window_file_list_path_is_root(const char *path) {
+    return (path[0] == 0 || strcmp(path, "/") == 0);
+}
+
 void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
     if (!LDV_ChangeDir(window->ldv, sort == WF_SORT_BY_NAME, window->sfn_path, topSFN)) {
         _dbg("LDV_ChangeDir error");
@@ -106,8 +110,8 @@ void window_file_list_draw(window_file_list_t *window) {
 
         // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
         // and will get a nice house-like icon
-        static const char home[] = "Home";                                             // @@TODO reuse from elsewhere ...
-        if (i == 0 && strcmp(item, "..") == 0 && strcmp(window->sfn_path, "/") == 0) { // @@TODO clean up, this is probably unnecessarily complex
+        static const char home[] = "Home";                                                          // @@TODO reuse from elsewhere ...
+        if (i == 0 && strcmp(item, "..") == 0 && window_file_list_path_is_root(window->sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
             id_icon = IDR_PNG_filescreen_icon_home;
             item = home;
         }

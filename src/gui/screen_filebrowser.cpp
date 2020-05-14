@@ -98,11 +98,16 @@ static void on_print_preview_action(print_preview_action_t action) {
     }
 }
 
+static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
+    vars->media_SFN_path[0] = '/';
+    vars->media_SFN_path[1] = 0;
+    firstVisibleSFN[0] = 0; // clear the last top item
+}
+
 static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     marlin_vars_t *vars = marlin_vars();
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
-        vars->media_SFN_path[0] = 0;
-        firstVisibleSFN[0] = 0; // clear the last top item
+        screen_filebrowser_clear_firstVisibleSFN(vars);
         screen_close();
         return 1;
     }
@@ -116,14 +121,13 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
     }
 
     static const char dirUp[] = "..";
-    static const char slash[] = "/";
+    static const char slash = '/';
 
     bool currentIsFile;
     const char *currentSFN = window_file_current_SFN(filelist, &currentIsFile);
 
-    if (!strcmp(currentSFN, dirUp) && !strcmp(filelist->sfn_path, slash)) {
-        vars->media_SFN_path[0] = 0;
-        firstVisibleSFN[0] = 0; // clear the last top item
+    if (!strcmp(currentSFN, dirUp) && window_file_list_path_is_root(filelist->sfn_path)) {
+        screen_filebrowser_clear_firstVisibleSFN(vars);
         screen_close();
         return 1;
     }
@@ -136,15 +140,15 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
     if (!currentIsFile) {                // directory selected
         if (strcmp(currentSFN, dirUp)) { // not same -> not ..
             // append the dir name at the end of sfnPath
-            if (filelist->sfn_path[sfnPathLen - 1] != slash[0]) {
-                filelist->sfn_path[sfnPathLen++] = slash[0];
+            if (filelist->sfn_path[sfnPathLen - 1] != slash) {
+                filelist->sfn_path[sfnPathLen++] = slash;
             }
             strcpy(filelist->sfn_path + sfnPathLen, currentSFN);
         } else {
-            char *last = strrchr(filelist->sfn_path, slash[0]);
+            char *last = strrchr(filelist->sfn_path, slash);
             if (last == filelist->sfn_path) {
                 // reached top level dir - ensure it only contains a slash
-                filelist->sfn_path[0] = slash[0];
+                filelist->sfn_path[0] = slash;
                 filelist->sfn_path[1] = 0;
             } else {
                 *last = '\0'; // truncate the string after the last "/"
@@ -159,7 +163,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
     } else { // print the file
         if (vars->media_LFN && vars->media_SFN_path) {
             int written;
-            if (!strcmp(filelist->sfn_path, slash)) {
+            if (window_file_list_path_is_root(filelist->sfn_path)) {
                 written = snprintf(vars->media_SFN_path, FILE_PATH_MAX_LEN, "/%s", currentSFN);
             } else {
                 written = snprintf(vars->media_SFN_path, FILE_PATH_MAX_LEN, "%s/%s", filelist->sfn_path, currentSFN);
@@ -170,8 +174,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
             }
 
             // displayed text - can be a 8.3 DOS name or a LFN
-            const char *currentLFN = window_file_current_LFN(filelist, &currentIsFile);
-            strcpy(vars->media_LFN, currentLFN);
+            strcpy(vars->media_LFN, window_file_current_LFN(filelist, &currentIsFile));
             // save the top browser item
             strcpy(firstVisibleSFN, window_file_list_top_item_SFN(filelist));
 

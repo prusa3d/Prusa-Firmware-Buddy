@@ -61,6 +61,9 @@ extern const char *window_file_list_top_item_SFN(window_file_list_t *window);
 extern const char *window_file_current_LFN(window_file_list_t *window, bool *isFile);
 extern const char *window_file_current_SFN(window_file_list_t *window, bool *isFile);
 
+/// @return true if path is either empty or contains just a "/"
+extern bool window_file_list_path_is_root(const char *path);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
