@@ -108,6 +108,6 @@ int MI_RETURN::OnClick() {
     screen_close();
     return 1;
 }*/
-void MI_RETURN::Click() {
+void MI_RETURN::Click(Iwindow_menu_t &window_menu) {
     screen_close();
 }

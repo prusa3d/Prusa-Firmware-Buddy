@@ -106,7 +106,7 @@ class MI_RETURN : public WI_LABEL_t {
 public:
     MI_RETURN();
     //virtual int OnClick();
-    virtual void Click();
+    virtual void Click(Iwindow_menu_t &window_menu);
 };
 
 class MI_FILAMENT : public WI_LABEL_t {
