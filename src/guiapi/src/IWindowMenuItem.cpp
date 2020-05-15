@@ -34,15 +34,14 @@ void IWindowMenuItem::Print(Iwindow_menu_t &window_menu, rect_ui16_t rect) const
 }
 
 void IWindowMenuItem::printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, uint8_t swap) const {
+    rect_ui16_t irc = { rect.x, rect.y,
+        window_menu.icon_rect.w, window_menu.icon_rect.h };
+    rect.x += irc.w;
+    rect.w -= irc.w;
+
     if (id_icon) {
-        rect_ui16_t irc = { rect.x, rect.y,
-            window_menu.icon_rect.w, window_menu.icon_rect.h };
-        rect.x += irc.w;
-        rect.w -= irc.w;
         render_icon_align(irc, id_icon,
             window_menu.color_back, RENDER_FLG(ALIGN_CENTER, swap));
-    } else {
-        window_menu.padding.left += window_menu.icon_rect.w;
     }
 }
 

@@ -2,6 +2,7 @@
 #include "resource.h"
 #include "cmath_ext.h"
 #include "screen.h" //screen_close
+#include "screens.h"
 
 #define WIO_MIN  0 //todo remove
 #define WIO_MAX  1
@@ -98,16 +99,20 @@ bool WI_SELECT_t::Change(int dif) {
 
 /*****************************************************************************/
 //specific WindowMenuItems
-const char *const MI_RETURN::label = "Return";
+//const char *const MI_RETURN::label = "Return";
 
 MI_RETURN::MI_RETURN()
     : WI_LABEL_t(label, IDR_PNG_filescreen_icon_up_folder, true, false) {
 }
-/*
-int MI_RETURN::OnClick() {
-    screen_close();
-    return 1;
-}*/
+
 void MI_RETURN::Click(Iwindow_menu_t &window_menu) {
     screen_close();
+}
+
+MI_VERSION_INFO::MI_VERSION_INFO()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_VERSION_INFO::Click(Iwindow_menu_t &window_menu) {
+    screen_open(get_scr_version_info()->id);
 }

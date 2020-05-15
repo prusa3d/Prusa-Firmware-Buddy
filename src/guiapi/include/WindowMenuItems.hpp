@@ -101,36 +101,33 @@ typedef void(window_menu_items_t)(window_menu_t *pwindow_menu,
 /*****************************************************************************/
 //advanced types
 class MI_RETURN : public WI_LABEL_t {
-    static const char *const label;
+    static constexpr const char *const label = "Return";
 
 public:
     MI_RETURN();
-    //virtual int OnClick();
     virtual void Click(Iwindow_menu_t &window_menu);
 };
 
 class MI_FILAMENT : public WI_LABEL_t {
-    static const char *const label;
+    static constexpr const char *const label = "Filament";
 
 public:
     MI_FILAMENT();
-    //virtual int OnClick();
 };
 
 class MI_LAN_SETTINGS : public WI_LABEL_t {
-    static const char *const label;
+    static constexpr const char *const label = "Lan settings";
 
 public:
     MI_LAN_SETTINGS();
-    //virtual int OnClick();
 };
 
 class MI_VERSION_INFO : public WI_LABEL_t {
-    static const char *const label;
+    static constexpr const char *const label = "Version Info";
 
 public:
     MI_VERSION_INFO();
-    //virtual int OnClick();
+    virtual void Click(Iwindow_menu_t &window_menu);
 };
 
 #pragma pack(pop)
