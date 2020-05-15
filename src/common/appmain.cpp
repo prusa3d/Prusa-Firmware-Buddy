@@ -50,10 +50,6 @@ extern uartslave_t uart6slave;   // PUT slave
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
 #endif                                 //BUDDY_ENABLE_ETHERNET
 
-#ifndef _DEBUG
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
-
 void app_setup(void) {
     setup();
 
@@ -109,13 +105,6 @@ void app_run(void) {
 
     if (defaults_loaded && marlin_server_processing()) {
         settings.reset();
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg);
-#endif //_DEBUG
-        settings.save();
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg);
-#endif //_DEBUG
     }
 
     while (1) {

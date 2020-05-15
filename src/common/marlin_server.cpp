@@ -25,11 +25,13 @@
 #include "../Marlin/src/libs/nozzle.h"
 #include "../Marlin/src/core/language.h" //GET_TEXT(MSG)
 #include "../Marlin/src/gcode/gcode.h"
+#include "../Marlin/src/gcode/lcd/M73_PE.h"
 
 #include "hwio.h"
 #include "eeprom.h"
 #include "media.h"
 #include "filament_sensor.h"
+#include "wdt.h"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -82,10 +84,6 @@ typedef struct _marlin_server_t {
 #pragma pack(pop)
 
 extern "C" {
-
-#ifndef _DEBUG
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
 
 //-----------------------------------------------------------------------------
 // variables
@@ -172,8 +170,8 @@ void marlin_server_init(void) {
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
     marlin_server.update_vars = MARLIN_VAR_MSK_DEF;
-    marlin_server.vars.media_file_name = media_print_filename;
-    marlin_server.vars.media_file_path = media_print_filepath;
+    marlin_server.vars.media_LFN = media_print_filename();
+    marlin_server.vars.media_SFN_path = media_print_filepath();
 }
 
 void print_fan_spd() {
@@ -218,6 +216,8 @@ int marlin_server_cycle(void) {
     if (processing)
         return 0;
     processing = 1;
+
+    _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
 
     FSM_notifier::SendNotification();
 
@@ -289,10 +289,8 @@ int marlin_server_cycle(void) {
                 if ((msk = marlin_server.client_events[client_id]) != 0)
                     marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
-#ifndef _DEBUG
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
-        HAL_IWDG_Refresh(&hiwdg); // this prevents iwdg reset while processing disabled
-#endif                            //_DEBUG
+        wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
     processing = 0;
     return count;
 }
@@ -310,7 +308,6 @@ int marlin_server_loop(void) {
             }
         }
     marlin_server.idle_cnt = 0;
-    _server_print_loop();
     media_loop();
     return marlin_server_cycle();
 }
@@ -393,8 +390,6 @@ void marlin_server_settings_save(void) {
 
 void marlin_server_settings_load(void) {
     (void)settings.reset();
-    // 'dirty' hack because of bug (?) in settings.reset (planner.max_jerk.e = 0 with enabled CLASIC_JERK)
-    planner.max_jerk.e = DEFAULT_EJERK; // set max_jerk.e to default value
 #if HAS_BED_PROBE
     probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
 #endif
@@ -604,6 +599,10 @@ int marlin_all_axes_homed(void) {
 
 int marlin_all_axes_known(void) {
     return all_axes_known() ? 1 : 0;
+}
+
+void marlin_server_set_temp_to_display(float value) {
+    marlin_server.vars.display_nozzle = value;
 }
 
 //-----------------------------------------------------------------------------
@@ -928,7 +927,10 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
-        v.ui8 = (uint8_t)media_print_get_percent_done();
+        if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
+            v.ui8 = (uint8_t)oProgressData.oPercentDone.mGetValue();
+        else
+            v.ui8 = (uint8_t)media_print_get_percent_done();
         if (marlin_server.vars.sd_percent_done != v.ui8) {
             marlin_server.vars.sd_percent_done = v.ui8;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
@@ -957,6 +959,17 @@ static uint64_t _server_update_vars(uint64_t update) {
         if (marlin_server.vars.print_state != v.ui8) {
             marlin_server.vars.print_state = (marlin_print_state_t)(v.ui8);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE);
+        }
+    }
+
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND)) {
+        if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
+            v.ui32 = oProgressData.oTime2End.mGetValue();
+        else
+            v.ui32 = -1;
+        if (marlin_server.vars.time_to_end != v.ui32) {
+            marlin_server.vars.time_to_end = v.ui32;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND);
         }
     }
 
@@ -1186,10 +1199,8 @@ int _is_thermal_error(PGM_P const msg) {
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     //_dbg("onPrinterKilled %s", msg);
     if (!(SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk))
-        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
-#ifndef _DEBUG
-    HAL_IWDG_Refresh(&hiwdg);     //watchdog reset
-#endif                            //_DEBUG
+        taskENTER_CRITICAL();     //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+    wdt_iwdg_refresh();           //watchdog reset
     if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
         const marlin_vars_t &vars = marlin_server.vars;
         temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
@@ -1244,19 +1255,29 @@ void onUserConfirmRequired(const char *const msg) {
 }
 
 void onStatusChanged(const char *const msg) {
+    static bool pending_err_msg = false;
+
     DBG_XUI("XUI: onStatusChanged: %s", msg);
     _send_notify_event(MARLIN_EVT_StatusChanged, 0, 0);
     if (strcmp(msg, "Prusa-mini Ready.") == 0) {
     } //TODO
     else if (strcmp(msg, "TMC CONNECTION ERROR") == 0)
         _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_TMCDriverError, 0);
-    else if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0)
-        _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_ProbingFailed, 0);
     else {
-        if (msg && msg[0] != 0) { //empty message filter
+        if (!is_abort_state(marlin_server.print_state))
+            pending_err_msg = false;
+        if (!pending_err_msg) {
+            if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
+                _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_ProbingFailed, 0);
+                marlin_server_print_abort();
+                pending_err_msg = true;
+            }
 
-            _add_status_msg(msg);
-            _send_notify_event(MARLIN_EVT_Message, 0, 0);
+            if (msg && msg[0] != 0) { //empty message filter
+
+                _add_status_msg(msg);
+                _send_notify_event(MARLIN_EVT_Message, 0, 0);
+            }
         }
     }
 }

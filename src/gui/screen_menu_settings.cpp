@@ -11,6 +11,7 @@
 #include "eeprom_loadsave.h"
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "screen_lan_settings.h"
+    #include "menu_vars.h"
 #endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
@@ -43,6 +44,7 @@ typedef enum {
     MI_TIMEOUT,
 #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
+    MI_TIMEZONE,
 #endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP,
     MI_SOUND_MODE,
@@ -77,6 +79,13 @@ typedef struct
 
 void screen_menu_settings_init(screen_t *screen) {
     screen_menu_init(screen, "SETTINGS", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
+
+    fsensor_t fs = fs_wait_inicialized();
+    if (fs == FS_NOT_CONNECTED) {
+        fs_disable();
+        fs = FS_DISABLED;
+    }
+
     psmd->items[MI_RETURN] = menu_item_return;
 
     psmd->items[MI_TEMPERATURE] = (menu_item_t) { { "Temperature", 0, WI_LABEL }, &screen_menu_temperature };
@@ -89,13 +98,16 @@ void screen_menu_settings_init(screen_t *screen) {
 #endif //_DEBUG
     psmd->items[MI_FW_UPDATE] = (menu_item_t) { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update };
     psmd->items[MI_FILAMENT_SENSOR] = (menu_item_t) { { "Fil. sens.", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = 0;
+    psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = (fs != FS_DISABLED);
     psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.strings = settings_opt_enable_disable;
     psmd->items[MI_TIMEOUT] = (menu_item_t) { { "Timeout", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_TIMEOUT].item.wi_switch_select.index = 0;
+    psmd->items[MI_TIMEOUT].item.wi_switch_select.index = menu_timeout_enabled; //st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS)
     psmd->items[MI_TIMEOUT].item.wi_switch_select.strings = settings_opt_enable_disable;
 #ifdef BUDDY_ENABLE_ETHERNET
     psmd->items[MI_LAN_SETTINGS] = (menu_item_t) { { "LAN Settings", 0, WI_LABEL }, &screen_lan_settings };
+    psmd->items[MI_TIMEZONE] = (menu_item_t) { { "TZ UTC(+/-)", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN },
+    psmd->items[MI_TIMEZONE].item.wi_spin.value = (int32_t)(eeprom_get_var(EEVAR_TIMEZONE).i8 * 1000);
+    psmd->items[MI_TIMEZONE].item.wi_spin.range = timezone_range;
 #endif //BUDDY_ENABLE_ETHERNET
     psmd->items[MI_SAVE_DUMP] = (menu_item_t) { { "Save Crash Dump", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_SOUND_MODE] = (menu_item_t) { { "Sound Mode", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
@@ -116,16 +128,6 @@ void screen_menu_settings_init(screen_t *screen) {
     psmd->items[MI_EE_SAVE] = (menu_item_t) { { "EE save", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_EE_SAVEXML] = (menu_item_t) { { "EE save xml", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
 #endif //_DEBUG
-
-    // memcpy(psmd->items + 1, _menu_settings_items, (MI_COUNT - 1) * sizeof(menu_item_t));
-
-    fsensor_t fs = fs_wait_inicialized();
-    if (fs == FS_NOT_CONNECTED) {
-        fs_disable();
-        fs = FS_DISABLED;
-    }
-    psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = (fs != FS_DISABLED);
-    psmd->items[MI_TIMEOUT].item.wi_switch_select.index = menu_timeout_enabled; //st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS)
 
     for (size_t i = 0; i < sizeof(e_sound_modes); i++) {
         if (e_sound_modes[i] == Sound_GetMode()) {
@@ -232,6 +234,17 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
 #endif // _DEBUG
         }
     }
+#ifdef BUDDY_ENABLE_ETHERNET
+    else if (event == WINDOW_EVENT_CHANGE) {
+        switch ((int)param) {
+        case MI_TIMEZONE: {
+            int8_t time_zone = (int8_t)(psmd->items[MI_TIMEZONE].item.wi_spin.value / 1000);
+            eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(time_zone));
+            break;
+        }
+        }
+    }
+#endif //BUDDY_ENABLE_ETHERNET
     return 0;
 }
 

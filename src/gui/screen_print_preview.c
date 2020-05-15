@@ -5,12 +5,12 @@
 #include "gui.h"
 #include "marlin_client.h"
 #include "resource.h"
-#include "screen_printing.h"
 #include "window_dlg_load_unload.h"
 #include "filament_sensor.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include "screens.h"
+#include "sound_C_wrapper.h"
 
 #define DBG _dbg0
 
@@ -221,7 +221,7 @@ static void initialize_gcode_file(screen_t *screen) {
 }
 
 static void screen_print_preview_init(screen_t *screen) {
-    reset_print_state();
+    marlin_set_print_speed(100);
     initialize_gcode_file(screen);
 
     int window_id = window_create_ptr(WINDOW_CLS_FRAME, -1,
@@ -313,6 +313,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
 
     if (!suppress_draw && fs_did_filament_runout()) {
         suppress_draw = 1;
+        Sound_Play(eSOUND_TYPE_StandardAlert);
         const char *btns[3] = { "YES", "NO", "IGNORE" };
         switch (gui_msgbox_ex(0,
             "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.",

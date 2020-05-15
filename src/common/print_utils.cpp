@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "marlin_client.h"
-#include "screen_printing.h"
 
 extern "C" void print_begin(const char *filename) {
     marlin_print_start(filename);

@@ -775,6 +775,8 @@ uint32_t hwio_arduino_analogRead(uint32_t ulPin) {
             return hwio_adc_get_val(_ADC_TEMP_0);
         case PIN_TEMP_HEATBREAK:
             return hwio_adc_get_val(_ADC_TEMP_HEATBREAK);
+        case PIN_THERM2:
+            return hwio_adc_get_val(_ADC_TEMP_2);
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); //error: undefined pin analog read
         }

@@ -10,24 +10,46 @@
 #include "gui.h"
 #include "config.h"
 #include "fatfs.h"
-//#include "usb_host.h"
 #include "dbg.h"
 #include "lazyfilelist-c-api.h"
-
-//extern ApplicationTypeDef Appli_state;
+#include "sound_C_wrapper.h"
+#include "../common/cmath_ext.h"
 
 int16_t WINDOW_CLS_FILE_LIST = 0;
 
 void window_file_list_inc(window_file_list_t *window, int dif);
 void window_file_list_dec(window_file_list_t *window, int dif);
 
-void window_file_list_load(window_file_list_t *window, WF_Sort_t sort) {
-    if (!LDV_ChangeDir(window->ldv, sort == WF_SORT_BY_NAME, window->altpath)) {
+bool window_file_list_path_is_root(const char *path) {
+    return (path[0] == 0 || strcmp(path, "/") == 0);
+}
+
+void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
+    if (!LDV_ChangeDir(window->ldv, sort == WF_SORT_BY_NAME, window->sfn_path, topSFN)) {
         _dbg("LDV_ChangeDir error");
     }
 
     window->count = LDV_TotalFilesCount(window->ldv);
-    window->index = 0;
+
+    bool tmp;
+    if (!topSFN) {
+        // we didn't get any requirements about the top item
+        window->index = window->count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
+    } else {
+        if (sfnAtCursor[0] == 0) { // empty file name to start with
+            window->index = 1;
+        } else {
+            // try to find the sfn to be highlighted
+            for (window->index = 0; window->index < LDV_VisibleFilesCount(window->ldv); ++window->index) {
+                if (!strcmp(sfnAtCursor, LDV_ShortFileNameAt(window->ldv, window->index, &tmp))) {
+                    break;
+                }
+            }
+            if (window->index == LDV_VisibleFilesCount(window->ldv)) {
+                window->index = window->count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
+            }
+        }
+    }
     _window_invalidate((window_t *)window);
 }
 
@@ -38,8 +60,17 @@ void window_file_set_item_index(window_file_list_t *window, int index) {
     }
 }
 
-const char *window_file_current_fname(window_file_list_t *window, bool *isFile) {
-    return LDV_FileAt(window->ldv, window->index, isFile);
+const char *window_file_current_LFN(window_file_list_t *window, bool *isFile) {
+    return LDV_LongFileNameAt(window->ldv, window->index, isFile);
+}
+
+const char *window_file_current_SFN(window_file_list_t *window, bool *isFile) {
+    return LDV_ShortFileNameAt(window->ldv, window->index, isFile);
+}
+
+const char *window_file_list_top_item_SFN(window_file_list_t *window) {
+    bool tmp;
+    return LDV_ShortFileNameAt(window->ldv, 0, &tmp);
 }
 
 void window_file_list_init(window_file_list_t *window) {
@@ -54,7 +85,7 @@ void window_file_list_init(window_file_list_t *window) {
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;
     gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
-    strcpy(window->altpath, "/");
+    strcpy(window->sfn_path, "/");
 
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
@@ -69,11 +100,14 @@ void window_file_list_draw(window_file_list_t *window) {
     int item_height = window->font->h + window->padding.top + window->padding.bottom;
     rect_ui16_t rc_win = window->win.rect;
 
-    int visible_count = rc_win.h / item_height;
+    int visible_slots = rc_win.h / item_height;
+    int ldv_visible_files = LDV_VisibleFilesCount(window->ldv);
+    int maxi = MIN(MIN(visible_slots, ldv_visible_files), window->count);
+
     int i;
-    for (i = 0; i < visible_count && i < window->count; i++) {
+    for (i = 0; i < maxi; i++) {
         bool isFile = true;
-        const char *item = LDV_FileAt(window->ldv, i, &isFile);
+        const char *item = LDV_LongFileNameAt(window->ldv, i, &isFile);
         if (!item) {
             // this should normally not happen, visible_count shall limit indices to valid items only
             continue; // ... but getting ready for the unexpected
@@ -82,8 +116,8 @@ void window_file_list_draw(window_file_list_t *window) {
 
         // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
         // and will get a nice house-like icon
-        static const char home[] = "Home";                                            // @@TODO reuse from elsewhere ...
-        if (i == 0 && strcmp(item, "..") == 0 && strcmp(window->altpath, "/") == 0) { // @@TODO clean up, this is probably unnecessarily complex
+        static const char home[] = "Home";                                                          // @@TODO reuse from elsewhere ...
+        if (i == 0 && strcmp(item, "..") == 0 && window_file_list_path_is_root(window->sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
             id_icon = IDR_PNG_filescreen_icon_home;
             item = home;
         }
@@ -175,13 +209,16 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
 
 void window_file_list_inc(window_file_list_t *window, int dif) {
     bool repaint = false;
-    if (window->index >= LDV_VisibleFilesCount(window->ldv) - 1) {
+    if (window->index >= LDV_WindowSize(window->ldv) - 1) {
+        Sound_Play(eSOUND_TYPE_BlindAlert);
         repaint = LDV_MoveDown(window->ldv);
     } else {
         // this 'if' solves a situation with less files than slots on the screen
         if (window->index < LDV_TotalFilesCount(window->ldv) - 1) {
             window->index += 1; // @@TODO dif > 1 pokud bude potreba;
             repaint = true;
+        } else {
+            Sound_Play(eSOUND_TYPE_BlindAlert);
         }
     }
 
@@ -193,6 +230,7 @@ void window_file_list_inc(window_file_list_t *window, int dif) {
 void window_file_list_dec(window_file_list_t *window, int dif) {
     bool repaint = false;
     if (window->index == 0) {
+        Sound_Play(eSOUND_TYPE_BlindAlert);
         // at the beginning of the window
         repaint = LDV_MoveUp(window->ldv);
     } else {

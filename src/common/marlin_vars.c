@@ -35,6 +35,8 @@ const char *__var_name[] = {
     "PRN_STAT",
     "FILENAME",
     "FILEPATH",
+    "DTEM_NOZ",
+    "TIMTOEND",
 };
 
 static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
@@ -109,9 +111,13 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
         case MARLIN_VAR_PRNSTATE:
             return variant8_ui8(vars->print_state);
         case MARLIN_VAR_FILENAME:
-            return variant8_pchar(vars->media_file_name, 0, 1);
+            return variant8_pchar(vars->media_LFN, 0, 1);
         case MARLIN_VAR_FILEPATH:
-            return variant8_pchar(vars->media_file_path, 0, 1);
+            return variant8_pchar(vars->media_SFN_path, 0, 1);
+        case MARLIN_VAR_DTEM_NOZ:
+            return variant8_flt(vars->display_nozzle);
+        case MARLIN_VAR_TIMTOEND:
+            return variant8_ui32(vars->time_to_end);
         }
     return variant8_empty();
 }
@@ -198,14 +204,20 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
             vars->print_state = var.ui8;
             break;
         case MARLIN_VAR_FILENAME:
-            if (vars->media_file_name)
+            if (vars->media_LFN)
                 if (var.type == VARIANT8_PCHAR)
-                    strncpy(vars->media_file_name, var.pch, FILE_NAME_MAX_LEN);
+                    strncpy(vars->media_LFN, var.pch, FILE_NAME_MAX_LEN);
             break;
         case MARLIN_VAR_FILEPATH:
-            if (vars->media_file_path)
+            if (vars->media_SFN_path)
                 if (var.type == VARIANT8_PCHAR)
-                    strncpy(vars->media_file_path, var.pch, FILE_PATH_MAX_LEN);
+                    strncpy(vars->media_SFN_path, var.pch, FILE_PATH_MAX_LEN);
+            break;
+        case MARLIN_VAR_DTEM_NOZ:
+            vars->display_nozzle = var.flt;
+            break;
+        case MARLIN_VAR_TIMTOEND:
+            vars->time_to_end = var.ui32;
             break;
         }
 }
@@ -281,10 +293,16 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uns
             ret = snprintf(str, size, "%u", (unsigned int)(vars->print_state));
             break;
         case MARLIN_VAR_FILENAME:
-            ret = snprintf(str, size, "%s", vars->media_file_name);
+            ret = snprintf(str, size, "%s", vars->media_LFN);
             break;
         case MARLIN_VAR_FILEPATH:
-            ret = snprintf(str, size, "%s", vars->media_file_path);
+            ret = snprintf(str, size, "%s", vars->media_SFN_path);
+            break;
+        case MARLIN_VAR_DTEM_NOZ:
+            ret = snprintf(str, size, "%.1f", (double)(vars->display_nozzle));
+            break;
+        case MARLIN_VAR_TIMTOEND:
+            ret = snprintf(str, size, "%lu", (long unsigned int)(vars->time_to_end));
             break;
         default:
             ret = snprintf(str, size, "???");
@@ -363,10 +381,16 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
             ret = sscanf(str, "%hhu", &(vars->print_state));
             break;
         case MARLIN_VAR_FILENAME:
-            ret = sscanf(str, "%s", (vars->media_file_name));
+            ret = sscanf(str, "%s", (vars->media_LFN));
             break;
         case MARLIN_VAR_FILEPATH:
-            ret = sscanf(str, "%s", (vars->media_file_path));
+            ret = sscanf(str, "%s", (vars->media_SFN_path));
+            break;
+        case MARLIN_VAR_DTEM_NOZ:
+            ret = sscanf(str, "%f", &(vars->display_nozzle));
+            break;
+        case MARLIN_VAR_TIMTOEND:
+            ret = sscanf(str, "%lu", &(vars->time_to_end));
             break;
         }
     return ret;

@@ -35,6 +35,7 @@ extern const int32_t heatbed_range[3];
 extern const int32_t printfan_range[3];
 extern const int32_t flowfact_range[3];
 extern const int32_t feedrate_range[3];
+extern const int32_t timezone_range[3];
 extern const int32_t move_x[3];
 extern const int32_t move_y[3];
 extern const int32_t move_z[3];
