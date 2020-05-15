@@ -7,21 +7,11 @@
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
 /*
-#define WIO_MIN  0
-#define WIO_MAX  1
-#define WIO_STEP 2
-
-
-void window_menu_inc(window_menu_t *window, int dif);
-void window_menu_dec(window_menu_t *window, int dif);
 void window_menu_item_spin(window_menu_t *window, int dif);
 void window_menu_item_spin_fl(window_menu_t *window, int dif);
 void window_menu_item_switch(window_menu_t *window);
 void window_menu_item_select(window_menu_t *window, int dif);
 */
-
-static void window_menu_inc(window_menu_t *window, int dif);
-static void window_menu_dec(window_menu_t *window, int dif);
 
 /*WindowMenuItem undefined = { "No menu_items fce!", 0, WI_LABEL | WI_DISABLED };
 
@@ -29,6 +19,74 @@ void window_menu_items(window_menu_t *pwindow_menu, uint16_t index,
     WindowMenuItem **ppitem, void *data) {
     *ppitem = &undefined;
 }*/
+
+bool window_menu_t::SetIndex(uint8_t index) {
+    if (index && (!pContainer))
+        return false; //cannot set non 0 without container
+    if (index >= GetCount())
+        return false;
+    if (this->index == index)
+        return true;
+    GetActiveItem()->ClrFocus(); //remove focus from old item
+    GetItem(index)->SetFocus();  //set focus on new item
+    this->index = index;
+    return true;
+}
+
+uint8_t window_menu_t::GetCount() const {
+    if (!pContainer)
+        return 0;
+    return pContainer->GetCount();
+}
+
+IWindowMenuItem *window_menu_t::GetItem(uint8_t index) {
+    if (!pContainer)
+        return NULL;
+    if (index >= GetCount())
+        return NULL;
+    return pContainer->GetItem(index);
+}
+
+IWindowMenuItem *window_menu_t::GetActiveItem() {
+    return GetItem(index);
+}
+
+void window_menu_t::Incement(int dif) {
+    IWindowMenuItem *item = GetActiveItem();
+    if (item->IsSelected()) {
+        if (item->Change(dif)) {
+            _window_invalidate((window_t *)this);
+        }
+    } else {
+        //all items can be in label mode
+        int item_height = font->h + padding.top + padding.bottom;
+        int visible_count = win.rect.h / item_height;
+        int old_index = GetIndex();
+        int new_index = old_index + dif;
+        // play sound at first or last index of menu
+        if (new_index < 0) {
+            new_index = 0;
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
+        if (new_index >= GetCount()) {
+            new_index = GetCount() - 1;
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
+
+        if (new_index < top_index)
+            top_index = new_index;
+        if (new_index >= (top_index + visible_count))
+            top_index = new_index - visible_count + 1;
+
+        if (new_index != old_index) { // optimalization do not redraw when no change - still on end
+            SetIndex(new_index);
+            _window_invalidate((window_t *)this);
+        }
+    }
+}
+
+/******************************************************************************/
+//non member fce
 
 void window_menu_init(window_menu_t *window) {
     window->color_back = gui_defaults.color_back;
@@ -38,14 +96,10 @@ void window_menu_init(window_menu_t *window) {
     window->padding = gui_defaults.padding;
     window->icon_rect = rect_ui16(0, 0, 16, 16);
     window->alignment = gui_defaults.alignment;
-    //window->count = 0;
-    window->index = 0;
+    window->SetIndex(0);
     window->top_index = 0;
-    //window->mode = 0;
-    //window->selected = false;
-    //window->menu_items = window_menu_items;
-    //window->data = NULL;
     window->win.flg |= WINDOW_FLG_ENABLED;
+    //window->pContainer = NULL;//set by screen_menu ctor
 }
 
 void window_menu_done(window_menu_t *window) {
@@ -67,9 +121,7 @@ void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
 */
 void window_menu_set_item_index(window_t *window, int index) {
     if (window->cls->cls_id == WINDOW_CLS_MENU) {
-        if (static_cast<int>(((window_menu_t *)window)->pContainer->GetCount()) > index) {
-            ((window_menu_t *)window)->index = index;
-        }
+        reinterpret_cast<window_menu_t *>(window)->SetIndex(index);
     }
 }
 
@@ -95,12 +147,15 @@ void window_menu_draw(window_menu_t *window) {
 
     size_t visible_count = rc_win.h / item_height;
     size_t i;
-    for (i = 0; i < visible_count && i < window->pContainer->GetCount(); i++) {
+    for (i = 0; i < visible_count && i < window->GetCount(); ++i) {
         int idx = i + window->top_index;
         //WindowMenuItem *item;
         //window->menu_items(window, idx, &item, window->data);
-        IWindowMenuItem *item = window->pContainer->GetItem(idx);
-
+        IWindowMenuItem *item = window->GetItem(idx);
+        if (!item) {
+            --i;
+            break;
+        }
         color_t color_text = window->color_text;
         color_t color_back = window->color_back;
         uint8_t swap = 0;
@@ -182,7 +237,7 @@ void window_menu_draw(window_menu_t *window) {
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     //window->src_event = event;
     //window->src_param = param;
-    IWindowMenuItem *item = window->pContainer->GetItem(window->index);
+    IWindowMenuItem *item = window->GetActiveItem();
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         //if (window->mode != WI_LABEL) {
@@ -213,13 +268,13 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         //_window_invalidate((window_t *)window); //called inside click
         break;
     case WINDOW_EVENT_ENC_DN:
-        window_menu_dec(window, (int)param);
+        window->Decrement((int)param);
         /* if (window->mode != WI_LABEL) {
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGING, (void *)window->index);
         }*/
         break;
     case WINDOW_EVENT_ENC_UP:
-        window_menu_inc(window, (int)param);
+        window->Incement((int)param);
         /* if (window->mode != WI_LABEL) {
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGING, (void *)window->index);
         }*/
@@ -228,55 +283,6 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         //TODO: change flag to checked
         break;
     }
-}
-
-static void window_menu_inc(window_menu_t *window, int dif) {
-    /* switch (window->mode) {
-    case WI_SPIN:
-        window_menu_item_spin(window, dif);
-        break;
-    case WI_SPIN_FL:
-        window_menu_item_spin_fl(window, dif);
-        break;
-    case WI_SELECT:
-        window_menu_item_select(window, dif);
-        break;
-    default: */
-    IWindowMenuItem *item = window->pContainer->GetItem(window->index);
-    if (item->IsSelected()) {
-        if (item->Change(dif)) {
-            _window_invalidate((window_t *)window);
-        }
-    } else {
-        // WI_LABEL
-        //all items can be in label mode
-        int item_height = window->font->h + window->padding.top + window->padding.bottom;
-        int visible_count = window->win.rect.h / item_height;
-        int old = window->index;
-        window->index += dif;
-        // play sound at first or last index of menu
-        if (window->index < 0) {
-            window->index = 0;
-            Sound_Play(eSOUND_TYPE_BlindAlert);
-        }
-        if (window->index >= window->pContainer->GetCount()) {
-            window->index = window->pContainer->GetCount() - 1;
-            Sound_Play(eSOUND_TYPE_BlindAlert);
-        }
-
-        if (window->index < window->top_index)
-            window->top_index = window->index;
-        if (window->index >= (window->top_index + visible_count))
-            window->top_index = window->index - visible_count + 1;
-
-        if (window->index != old) { // optimalization do not redraw when no change - still on end
-            _window_invalidate((window_t *)window);
-        }
-    }
-}
-
-static void window_menu_dec(window_menu_t *window, int dif) {
-    window_menu_inc(window, -dif);
 }
 
 const window_class_menu_t window_class_menu = {

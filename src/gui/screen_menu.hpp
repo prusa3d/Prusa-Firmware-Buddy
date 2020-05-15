@@ -95,9 +95,7 @@ screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *l
         menu_rect, &(menu));
     menu.padding = padding_ui8(20, 6, 2, 6);
     menu.icon_rect = rect_ui16(0, 0, 16, 30);
-    //menu.count = count;
-    //menu.menu_items = screen_menu_item;
-    //menu.data = (void *)screen;
+
     //window_set_item_index(id, 1);	// 0 = return
     window_set_capture(id); // set capture to list
     window_set_focus(id);
