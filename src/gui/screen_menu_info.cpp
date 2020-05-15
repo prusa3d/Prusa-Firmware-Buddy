@@ -1,7 +1,6 @@
 // screen_menu_info.c
 
 #include "gui.h"
-#include "screen_menu.hpp"
 #include "screens.h"
 /*
 typedef enum {
@@ -85,7 +84,8 @@ screen_t screen_menu_info = {
 using Screen = screen_menu_data_t<false, true, false, MI_RETURN, MI_VERSION_INFO>;
 
 static void init(screen_t *screen) {
-    Screen::CInit(screen);
+    constexpr static const char *label = "INFO";
+    Screen::Create(screen, label);
 }
 
 screen_t screen_menu_info = {

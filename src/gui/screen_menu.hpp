@@ -37,7 +37,7 @@ struct Iscreen_menu_data_t {
 */
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 struct screen_menu_data_t {
-    constexpr static const char *no_label = "";
+    constexpr static const char *no_label = "MISSING";
     window_frame_t root;
     window_header_t header;
     window_text_t help;
@@ -45,16 +45,15 @@ struct screen_menu_data_t {
     WinMenuContainer<T...> container;
     window_menu_t menu;
 
-    screen_menu_data_t(const char *label = no_label);
-    //screen_menu_data_t(const char *label, T... args);
+    screen_menu_data_t(const char *label);
     void Done();
     void Draw() {}
     int Event(window_t *window, uint8_t event, void *param);
 
     //C code binding
-    static void CInit(screen_t *screen) {
+    static void Create(screen_t *screen, const char *label = no_label) {
         auto *ths = reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata);
-        ::new (ths) screen_menu_data_t<HEADER, FOOTER, HELP, T...>;
+        ::new (ths) screen_menu_data_t<HEADER, FOOTER, HELP, T...>(label);
     }
     static void CDone(screen_t *screen) {
         reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata)->Done();
@@ -70,13 +69,8 @@ struct screen_menu_data_t {
 #pragma pack(pop)
 
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
-screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *label)
-// : container(std::make_tuple<T...>())
-{
+screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *label) {
     menu.pContainer = &container;
-
-    //todo label
-    //container.Init(args...);
 
     rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278);
     if (HELP) {

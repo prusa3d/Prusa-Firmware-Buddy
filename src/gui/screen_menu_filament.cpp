@@ -92,7 +92,7 @@ static void init(screen_t *screen) {
 
   ::new (&cl) MyClass;*/
 
-    Screen::CInit(screen);
+    Screen::Create(screen);
 
     //_deactivate_item(screen);
 }

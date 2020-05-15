@@ -125,7 +125,7 @@ screen_t screen_messages = {
 using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
 
 static void init(screen_t *screen) {
-    Screen::CInit(screen);
+    Screen::Create(screen);
 }
 screen_t screen_messages = {
     0,
