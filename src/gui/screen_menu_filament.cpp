@@ -76,7 +76,7 @@ typedef struct
 
 
 #pragma pack(pop)*/
-#include <new>
+
 /*
 struct MyClass {
   int data[100];
@@ -92,8 +92,7 @@ static void init(screen_t *screen) {
 
   ::new (&cl) MyClass;*/
 
-    Screen *ths = reinterpret_cast<Screen *>(screen->pdata);
-    ::new (ths) Screen;
+    Screen::CInit(screen);
 
     //_deactivate_item(screen);
 }

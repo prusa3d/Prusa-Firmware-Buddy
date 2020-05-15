@@ -8,6 +8,7 @@
 #include "WindowMenuItems.hpp"
 #include <stdint.h>
 #include "resource.h"
+#include <new>
 
 #pragma pack(push)
 #pragma pack(1)
@@ -51,6 +52,10 @@ struct screen_menu_data_t {
     int Event(window_t *window, uint8_t event, void *param);
 
     //C code binding
+    static void CInit(screen_t *screen) {
+        auto *ths = reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata);
+        ::new (ths) screen_menu_data_t<HEADER, FOOTER, HELP, T...>;
+    }
     static void CDone(screen_t *screen) {
         reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata)->Done();
     }
@@ -60,9 +65,6 @@ struct screen_menu_data_t {
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
         return reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata)->Event(window, event, param);
     }
-
-    //Parent should have: static void CInit(screen_t *screen) {...}
-    //or use C function
 };
 
 #pragma pack(pop)

@@ -122,13 +122,11 @@ screen_t screen_test_temperature = {
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-#include <new>
+
 using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
 
 static void init(screen_t *screen) {
-
-    Screen *ths = reinterpret_cast<Screen *>(screen);
-    ::new (ths) Screen;
+    Screen::CInit(screen);
 }
 
 screen_t screen_test_temperature = {
