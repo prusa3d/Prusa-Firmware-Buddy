@@ -12,6 +12,7 @@
 #include "ff.h"
 #include <stdbool.h>
 #include "file_list_defs.h"
+#include "display_helper.h"
 #include "../common/marlin_vars.h" // for FILE_PATH_MAX_LEN
 
 typedef struct _window_file_list_t window_file_list_t;
@@ -29,7 +30,9 @@ typedef struct _window_file_list_t {
     color_t color_text;
     font_t *font;
     padding_ui8_t padding;
+    txtroll_t roll;
     uint8_t alignment;
+    uint8_t last_index;
     int count;                        // total number of files/entries in a dir
     int index;                        // selected index - cursor position within the visible items
     char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog

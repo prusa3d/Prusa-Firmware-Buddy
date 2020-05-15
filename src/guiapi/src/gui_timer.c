@@ -5,12 +5,13 @@
 #include "stm32f4xx_hal.h"
 #include "screen.h"
 
-#define GUI_MAX_TIMERS 5
+#define GUI_MAX_TIMERS 6
 
-#define GUI_TIMER_NONE   0
-#define GUI_TIMER_1SHT   1
-#define GUI_TIMER_PERI   2
-#define GUI_MENU_TIMEOUT 3
+#define GUI_TIMER_NONE    0
+#define GUI_TIMER_1SHT    1
+#define GUI_TIMER_PERI    2
+#define GUI_MENU_TIMEOUT  3
+#define GUI_TIMER_TXTROLL 4
 
 #pragma pack(push)
 #pragma pack(1)
@@ -22,8 +23,8 @@ typedef struct _gui_timer_t {
         uint32_t flags : 8;
         struct
         {
-            uint32_t f_reserved0 : 6;
-            uint32_t f_timer : 2;
+            uint32_t f_reserved0 : 5;
+            uint32_t f_timer : 3;
         };
     };
     int16_t win_id;
@@ -76,6 +77,10 @@ int8_t gui_timer_create_timeout(uint32_t ms, int16_t win_id) {
     return gui_menu_timeout_id;
 }
 
+int8_t gui_timer_create_txtroll(uint32_t ms, int16_t win_id) {
+    return gui_timer_new(GUI_TIMER_TXTROLL, ms, win_id);
+}
+
 void gui_timer_delete(int8_t id) {
     if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE)) {
         gui_timers[id].start = 0;
@@ -120,6 +125,10 @@ uint32_t gui_timers_cycle(void) {
                     case GUI_MENU_TIMEOUT:
                         gui_timers[id].delay = 0;
                         break;
+                    case GUI_TIMER_TXTROLL:
+                        screen_dispatch_event(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
+                        gui_timers[id].start = tick;
+                        break;
                     }
                 } else if (diff_min < diff)
                     diff_min = diff;
@@ -134,6 +143,28 @@ void gui_timer_reset(int8_t id) {
 
     if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE))
         gui_timers[id].start = HAL_GetTick();
+}
+
+void gui_timer_change_txtroll_peri_delay(uint32_t ms, int16_t win_id) {
+    if (gui_timer_count != -1) {
+        for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++) {
+            if (gui_timers[id].win_id == win_id) {
+                gui_timers[id].delay = ms;
+                break;
+            }
+        }
+    }
+}
+
+void gui_timer_restart_txtroll(int16_t win_id) {
+    if (gui_timer_count != -1) {
+        for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++) {
+            if (gui_timers[id].win_id == win_id) {
+                gui_timers[id].start = HAL_GetTick();
+                break;
+            }
+        }
+    }
 }
 
 int8_t gui_timer_expired(int8_t id) {
