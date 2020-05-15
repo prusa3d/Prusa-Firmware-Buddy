@@ -92,7 +92,7 @@ static void init(screen_t *screen) {
 
   ::new (&cl) MyClass;*/
 
-    Screen *ths = reinterpret_cast<Screen *>(screen);
+    Screen *ths = reinterpret_cast<Screen *>(screen->pdata);
     ::new (ths) Screen;
 
     //_deactivate_item(screen);

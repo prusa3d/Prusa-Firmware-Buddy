@@ -21,7 +21,7 @@ struct menu_item_t {
     WindowMenuItem item;
     screen_t *screen;
 };*/
-
+/*
 struct Iscreen_menu_data_t {
     window_frame_t root;
     window_header_t header;
@@ -33,10 +33,14 @@ struct Iscreen_menu_data_t {
     window_text_t help;
     status_footer_t footer;
 };
-
+*/
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
-struct screen_menu_data_t : public Iscreen_menu_data_t {
+struct screen_menu_data_t {
     constexpr static const char *no_label = "";
+    window_frame_t root;
+    window_header_t header;
+    window_text_t help;
+    status_footer_t footer;
     WinMenuContainer<T...> container;
     window_menu_t menu;
 
@@ -48,13 +52,13 @@ struct screen_menu_data_t : public Iscreen_menu_data_t {
 
     //C code binding
     static void CDone(screen_t *screen) {
-        reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Done();
+        reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata)->Done();
     }
     static void CDraw(screen_t *screen) {
-        reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Draw();
+        reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata)->Draw();
     }
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-        return reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Event(window, event, param);
+        return reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata)->Event(window, event, param);
     }
 
     //Parent should have: static void CInit(screen_t *screen) {...}
@@ -81,17 +85,17 @@ screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *l
     }
 
     int16_t id;
-    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
+    int16_t root_id = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(root));
-    window_disable(root);
+    window_disable(root_id);
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root,
+    id = window_create_ptr(WINDOW_CLS_HEADER, root_id,
         rect_ui16(0, 0, 240, 31), &(header));
     // p_window_header_set_icon(&(header), IDR_PNG_status_icon_menu);
     p_window_header_set_text(&(header), label);
 
-    id = window_create_ptr(WINDOW_CLS_MENU, root,
+    id = window_create_ptr(WINDOW_CLS_MENU, root_id,
         menu_rect, &(menu));
     menu.padding = padding_ui8(20, 6, 2, 6);
     menu.icon_rect = rect_ui16(0, 0, 16, 30);
@@ -103,14 +107,14 @@ screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *l
     window_set_focus(id);
 
     if (HELP) {
-        id = window_create_ptr(WINDOW_CLS_TEXT, root,
+        id = window_create_ptr(WINDOW_CLS_TEXT, root_id,
             (FOOTER) ? rect_ui16(10, 154, 220, 115) : rect_ui16(10, 195, 220, 115),
             &help);
         help.font = resource_font(IDR_FNT_SPECIAL);
     }
 
     if (FOOTER) {
-        status_footer_init(&footer, root);
+        status_footer_init(&footer, root_id);
     }
 }
 
