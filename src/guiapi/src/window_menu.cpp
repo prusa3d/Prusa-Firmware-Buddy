@@ -38,7 +38,7 @@ void window_menu_init(window_menu_t *window) {
     window->padding = gui_defaults.padding;
     window->icon_rect = rect_ui16(0, 0, 16, 16);
     window->alignment = gui_defaults.alignment;
-    window->count = 0;
+    //window->count = 0;
     window->index = 0;
     window->top_index = 0;
     //window->mode = 0;
@@ -67,7 +67,7 @@ void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
 */
 void window_menu_set_item_index(window_t *window, int index) {
     if (window->cls->cls_id == WINDOW_CLS_MENU) {
-        if (((window_menu_t *)window)->count > index) {
+        if (static_cast<int>(((window_menu_t *)window)->pContainer->GetCount()) > index) {
             ((window_menu_t *)window)->index = index;
         }
     }
@@ -93,9 +93,9 @@ void window_menu_draw(window_menu_t *window) {
     int item_height = window->font->h + window->padding.top + window->padding.bottom;
     rect_ui16_t rc_win = window->win.rect;
 
-    int visible_count = rc_win.h / item_height;
-    int i;
-    for (i = 0; i < visible_count && i < window->count; i++) {
+    size_t visible_count = rc_win.h / item_height;
+    size_t i;
+    for (i = 0; i < visible_count && i < window->pContainer->GetCount(); i++) {
         int idx = i + window->top_index;
         //WindowMenuItem *item;
         //window->menu_items(window, idx, &item, window->data);
@@ -259,8 +259,8 @@ static void window_menu_inc(window_menu_t *window, int dif) {
             window->index = 0;
             Sound_Play(eSOUND_TYPE_BlindAlert);
         }
-        if (window->index >= window->count) {
-            window->index = window->count - 1;
+        if (window->index >= window->pContainer->GetCount()) {
+            window->index = window->pContainer->GetCount() - 1;
             Sound_Play(eSOUND_TYPE_BlindAlert);
         }
 

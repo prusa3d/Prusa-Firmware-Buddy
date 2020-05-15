@@ -8,9 +8,9 @@
 #pragma pack(push, 1)
 
 struct window_menu_t : public Iwindow_menu_t {
-    int count;
-    int index;
-    int top_index;
+    //int count;
+    uint8_t index;
+    uint8_t top_index;
     IWinMenuContainer *pContainer;
 
     //bool selected;
