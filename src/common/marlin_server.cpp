@@ -603,8 +603,6 @@ int marlin_all_axes_known(void) {
 
 void marlin_server_set_temp_to_display(float value) {
     marlin_server.vars.display_nozzle = value;
-    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        marlin_server.client_changes[client_id] |= MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ);
 }
 
 //-----------------------------------------------------------------------------

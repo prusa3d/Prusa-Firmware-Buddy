@@ -125,9 +125,7 @@ extern variant8_t marlin_set_var(uint8_t var_id, variant8_t val);
 // returns variable structure pointer for calling thread
 extern marlin_vars_t *marlin_vars(void);
 
-/// send request to update variables at server side and wait for change notification
-/// \param msk mask of wanted variables, use MARLIN_VAR_MSK(variable_id) to get proper mask value
-/// \returns pointer to updated variables
+// send request to update variables at server side and wait for change notification
 extern marlin_vars_t *marlin_update_vars(uint64_t msk);
 
 // returns number of commands in gcode queue
