@@ -11,6 +11,7 @@
 #include "filament.h"
 #include "marlin_client.h"
 #include "screens.h"
+#include "status_footer.h"
 
 //"C inheritance" of screen_menu_data_t with data items
 #pragma pack(push)
@@ -47,12 +48,11 @@ void screen_menu_preheat_done(screen_t *screen) {
 int screen_menu_preheat_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
     if (screen_menu_event(screen, window, event, param)) {
-        return 1; // Screen return return here ...
+        return 1; // Screen return here ...
     }
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
-
     filament_t filament;
     FILAMENT_t fil_id;
 
@@ -65,10 +65,17 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     filament = filaments[fil_id];
 
     marlin_gcode("M86 S1800"); // enable safety timer
-    marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
 
-    screen_close(); // skip this screen averytime
+    if (filament.nozzle > PREHEAT_TEMP) {
+        //FIXME temperatures should be swapped
+        marlin_gcode_printf("M104 S%d R%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
+    } else {
+        /// cooldown typically
+        marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
+    }
+
+    screen_close(); // skip this screen everytime
     return 1;
 }
 
