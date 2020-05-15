@@ -15,6 +15,7 @@ typedef struct {
     float target_nozzle;
     float target_bed;
     uint32_t print_dur;
+    uint32_t time_to_end;
     uint16_t print_speed;
     uint16_t flow_factor;
     uint8_t fan_speed;
