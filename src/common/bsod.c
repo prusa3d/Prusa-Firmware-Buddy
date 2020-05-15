@@ -180,7 +180,7 @@ void general_error(const char *error, const char *module) {
     //stopped and Sound class cannot update itself for timing sound signals.
     //GUI is in the middle of refactoring and should be showned after restart
     //when timers and everything else is running again (info by - Rober/Radek)
-    Sound_Play(eSOUND_TYPE_StandardAlert);
+    Sound_Play(eSOUND_TYPE_CriticalAlert);
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {

@@ -173,7 +173,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
-    window_set_text(id, vars->media_file_name ? vars->media_file_name : "");
+    window_set_text(id, vars->media_LFN ? vars->media_LFN : "");
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
@@ -429,7 +429,6 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
 
     window_set_text(pw->w_etime_value.win.id, array.data());
 }
-
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
     auto &array = pw->text_time;
@@ -447,7 +446,7 @@ static void update_print_duration(screen_t *screen, time_t rawtime) {
 }
 
 static void screen_printing_reprint(screen_t *screen) {
-    print_begin(marlin_vars()->media_file_path);
+    print_begin(marlin_vars()->media_SFN_path);
     window_set_text(pw->w_etime_label.win.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
     window_set_text(pw->w_labels[BUTTON_STOP].win.id, printing_labels[iid_stop]);

@@ -226,17 +226,6 @@ add_library(LwIP_Config INTERFACE)
 target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 
 #
-# Configure WUI
-#
-
-if(WUI)
-  add_library(WUI_Config INTERFACE)
-  target_include_directories(WUI_Config INTERFACE src/common src/gui src/guiapi/include)
-  target_compile_definitions(WUI_Config INTERFACE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
-  target_link_libraries(WUI_Config INTERFACE A3idesHeaders QR)
-endif()
-
-#
 # Configure FatFs
 #
 
@@ -313,9 +302,6 @@ add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 #
 
 add_subdirectory(lib)
-if(WUI)
-  add_subdirectory(src/wui)
-endif()
 
 #
 # A3ides firmware
@@ -422,13 +408,11 @@ target_sources(
   firmware
   PRIVATE $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/startup/startup_stm32f407xx_boot.s>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/startup/startup_stm32f407xx.s>
-          src/lwip.c
           src/usbd_cdc_if.c
           src/usb_device.c
           src/freertos.c
           src/freertos_openocd.c
           src/usbh_diskio.c
-          src/ethernetif.c
           src/main_${PRINTER}.c
           src/usbd_desc.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
@@ -484,6 +468,7 @@ target_sources(
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
+          src/common/wui_api.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
           src/marlin_stubs/M876.cpp
@@ -590,11 +575,15 @@ if(GUI)
             src/guiapi/src/window_icon.c
             src/guiapi/src/window_spin.c
             src/guiapi/src/window_text.c
+            src/guiapi/src/window_roll_text.c
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
     )
 endif()
+
+# Set fsdata filename for HTTPServer
+target_compile_definitions(firmware PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
 
 set_property(
   SOURCE src/common/version.c

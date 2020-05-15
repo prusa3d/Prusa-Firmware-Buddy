@@ -170,8 +170,8 @@ void marlin_server_init(void) {
     marlin_server.mesh.xc = 4;
     marlin_server.mesh.yc = 4;
     marlin_server.update_vars = MARLIN_VAR_MSK_DEF;
-    marlin_server.vars.media_file_name = media_print_filename;
-    marlin_server.vars.media_file_path = media_print_filepath;
+    marlin_server.vars.media_LFN = media_print_filename();
+    marlin_server.vars.media_SFN_path = media_print_filepath();
 }
 
 void print_fan_spd() {

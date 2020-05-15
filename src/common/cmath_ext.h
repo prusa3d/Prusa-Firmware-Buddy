@@ -17,7 +17,7 @@
     _a <= _b ? _a : _b; })
 
     /// -1 = negative, 1 = positive, 0 = 0
-    #define SIGN(x) \
+    #define SIGN0(x) \
         ({ __typeof__ (x) _x = (x); \
     (_x > 0) - (_x < 0); })
 

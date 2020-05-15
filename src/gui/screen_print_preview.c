@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include "screens.h"
+#include "sound_C_wrapper.h"
 
 #define DBG _dbg0
 
@@ -312,6 +313,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
 
     if (!suppress_draw && fs_did_filament_runout()) {
         suppress_draw = 1;
+        Sound_Play(eSOUND_TYPE_StandardAlert);
         const char *btns[3] = { "YES", "NO", "IGNORE" };
         switch (gui_msgbox_ex(0,
             "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.",

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "window_menu.h"
+#include "display_helper.h"
 
 typedef struct _window_menu_t window_menu_t;
 
@@ -81,6 +82,8 @@ typedef struct _window_menu_t {
     void *data;
     uint8_t src_event; // source event
     void *src_param;   // source event data
+    txtroll_t roll;    // text roll variables for too long text
+    uint8_t last_index;
 } window_menu_t;
 
 #pragma pack(pop)

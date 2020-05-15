@@ -126,8 +126,8 @@ typedef struct _marlin_vars_t {
     uint32_t print_duration;          // print_job_timer.duration() [ms]
     uint8_t media_inserted;           // media_is_inserted()
     marlin_print_state_t print_state; // marlin_server.print_state
-    char *media_file_name;            //
-    char *media_file_path;            //
+    char *media_LFN;                  // Long-File-Name of the currently selected file - a pointer to a global static buffer
+    char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
     float display_nozzle;             // nozzle temperature to display [C]
     uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [ms]
 } marlin_vars_t;

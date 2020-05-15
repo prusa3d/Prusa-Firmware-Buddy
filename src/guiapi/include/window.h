@@ -6,20 +6,21 @@
 #include "guitypes.h"
 
 //window class identifiers
-#define WINDOW_CLS_FRAME    0   // FRAME - basic container class
-#define WINDOW_CLS_TEXT     1   // TEXT - aligned singlecolor text
-#define WINDOW_CLS_NUMB     2   // NUMB - aligned singlecolor formated number
-#define WINDOW_CLS_ICON     3   // ICON - small image with left-top offset
-#define WINDOW_CLS_LIST     4   // LIST - vertical or horizontal list (text-icon pairs)
-#define WINDOW_CLS_EDIT     5   // EDIT - text editor (editable 'TEXT') - minor
-#define WINDOW_CLS_SPIN     6   // SPIN - numeric editor (editable 'NUMB')
-#define WINDOW_CLS_TXIC     7   // TXIC - text + icon
-#define WINDOW_CLS_TERM     8   // TERM - terminal
-#define WINDOW_CLS_MENU     9   // MENU - menu
-#define WINDOW_CLS_MSGBOX   10  // MSGBOX - messagebox with configurable buttons and icon
-#define WINDOW_CLS_PROGRESS 11  // PROGRESS - progress bar with text
-#define WINDOW_CLS_QR       12  // QR - QR Code
-#define WINDOW_CLS_USER     128 // USER - user defined window classes (WINDOW_CLS_USER+n)
+#define WINDOW_CLS_FRAME     0   // FRAME - basic container class
+#define WINDOW_CLS_TEXT      1   // TEXT - aligned singlecolor text
+#define WINDOW_CLS_NUMB      2   // NUMB - aligned singlecolor formated number
+#define WINDOW_CLS_ICON      3   // ICON - small image with left-top offset
+#define WINDOW_CLS_LIST      4   // LIST - vertical or horizontal list (text-icon pairs)
+#define WINDOW_CLS_EDIT      5   // EDIT - text editor (editable 'TEXT') - minor
+#define WINDOW_CLS_SPIN      6   // SPIN - numeric editor (editable 'NUMB')
+#define WINDOW_CLS_TXIC      7   // TXIC - text + icon
+#define WINDOW_CLS_TERM      8   // TERM - terminal
+#define WINDOW_CLS_MENU      9   // MENU - menu
+#define WINDOW_CLS_MSGBOX    10  // MSGBOX - messagebox with configurable buttons and icon
+#define WINDOW_CLS_PROGRESS  11  // PROGRESS - progress bar with text
+#define WINDOW_CLS_QR        12  // QR - QR Code
+#define WINDOW_CLS_ROLL_TEXT 13  // ROLL text - text too long for display width
+#define WINDOW_CLS_USER      128 // USER - user defined window classes (WINDOW_CLS_USER+n)
 
 //window flags
 #define WINDOW_FLG_VISIBLE  0x00000001 // is visible
