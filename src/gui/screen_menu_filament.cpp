@@ -86,7 +86,7 @@ void screen_menu_filament_init(screen_t *screen) {
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
     //FIXME temperatures should be swapped
-    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
+    marlin_gcode_printf("M104 S%d R%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
 }
 
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
