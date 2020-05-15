@@ -4,9 +4,8 @@
 #include "IWinMenuContainer.hpp"
 #include <tuple>
 
-#pragma pack(push, 1)
-
 //helper functions to get Nth element at runtime
+//todo make it member
 template <std::size_t I = 0, typename... Tp>
 inline typename std::enable_if<I == sizeof...(Tp), IWindowMenuItem *>::type
 get_ptr_for_index(int, std::tuple<Tp...> &) { return NULL; }
@@ -16,9 +15,10 @@ template <std::size_t I = 0, typename... Tp>
     get_ptr_for_index(int index, std::tuple<Tp...> &t) {
     if (index == 0)
         return &(std::get<I>(t));
-    get_ptr_for_index<I + 1, Tp...>(index - 1, t);
+    return get_ptr_for_index<I + 1, Tp...>(index - 1, t);
 }
 
+#pragma pack(push, 1)
 template <class... T>
 class WinMenuContainer : public IWinMenuContainer {
 public:

@@ -36,29 +36,9 @@ struct Iscreen_menu_data_t {
 
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 struct screen_menu_data_t : public Iscreen_menu_data_t {
-    MI_RETURN ret;
-    //C code binding
-    static void CDone(screen_t *screen) {
-        //reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Done();
-    }
-    static void CDraw(screen_t *screen) {
-        // reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Draw();
-    }
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-        //return reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen)->Event(window, event, param);
-        return 0;
-    }
-
-    //Parent should have: static void CInit(screen_t *screen) {...}
-    //or use C function
-};
-
-/*
-template <bool HEADER, bool FOOTER, bool HELP, class... T>
-struct screen_menu_data_t : public Iscreen_menu_data_t {
-    static const char *no_label = "";
-    window_menu_t menu;
+    constexpr static const char *no_label = "";
     WinMenuContainer<T...> container;
+    window_menu_t menu;
 
     screen_menu_data_t(const char *label = no_label);
     //screen_menu_data_t(const char *label, T... args);
@@ -85,9 +65,10 @@ struct screen_menu_data_t : public Iscreen_menu_data_t {
 
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *label)
-   // : container(std::make_tuple<T...>())
-    {
+// : container(std::make_tuple<T...>())
+{
     menu.pContainer = &container;
+
     //todo label
     //container.Init(args...);
 
@@ -131,8 +112,8 @@ screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *l
     if (FOOTER) {
         status_footer_init(&footer, root);
     }
-}*/
-/*
+}
+
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 void screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Done() {
     window_destroy(root.win.id);
@@ -150,8 +131,7 @@ template <std::size_t I = 0, typename... Tp>
         (std::get<I>(t)).OnClick();
     for_index_OnClick<I + 1, Tp...>(index - 1, t);
 }
-*/
-/*
+
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint8_t event, void *param) {
     if (FOOTER) {
@@ -182,4 +162,3 @@ int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint
 #endif
     //return for_index_OnClick((int)param, WinMenuContainer<T...>::menu_items);
 }
-*/
