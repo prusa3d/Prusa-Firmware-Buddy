@@ -46,13 +46,13 @@ void window_progress_draw(window_progress_t *window) {
         if (rc.h > window->height_progress) {
             rc.y += window->height_progress;
             rc.h -= window->height_progress;
-            render_text_align(NULL, rc,
+            render_text_align(rc,
                 text,
                 window->font,
                 window->color_back,
                 window->color_text,
                 window->padding,
-                window->alignment, ML_MODE_NONE);
+                window->alignment);
         }
         window->win.flg &= ~WINDOW_FLG_INVALID;
     }

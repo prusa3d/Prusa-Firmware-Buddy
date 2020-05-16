@@ -27,13 +27,13 @@ void window_numb_draw(window_numb_t *window) {
             sprintf(text, window->format, (double)window->value);
         }
 
-        render_text_align(NULL, window->win.rect,
+        render_text_align(window->win.rect,
             text,
             window->font,
             clr_back,
             clr_text,
             window->padding,
-            window->alignment, ML_MODE_NONE);
+            window->alignment);
         window->win.flg &= ~WINDOW_FLG_INVALID;
     }
 }

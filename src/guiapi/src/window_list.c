@@ -88,9 +88,9 @@ void window_list_draw(window_list_t *window) {
             }
 
             // render
-            render_text_align(NULL, rc, label, window->font,
+            render_text_align(rc, label, window->font,
                 color_back, color_text,
-                padding, window->alignment, ML_MODE_NONE);
+                padding, window->alignment);
         }
     }
     rc_win.h = rc_win.h - (i * item_height);

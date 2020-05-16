@@ -106,7 +106,7 @@ void window_file_list_draw(window_file_list_t *window) {
                 padding.left += 16;
             }
 
-            render_text_align(NULL, rc, item, window->font, color_back, color_text, padding, window->alignment, ML_MODE_NONE);
+            render_text_align(rc, item, window->font, color_back, color_text, padding, window->alignment);
 
             /*	too slow
 				display->draw_line(
