@@ -6,6 +6,8 @@
 #include "jogwheel.h"
 #include "dbg.h"
 
+#define FN_MAX_TEXT_LENGTH 16
+
 char png_fnames[256][8];
 int png_cnt = 0;
 FIL fil;
@@ -76,11 +78,10 @@ void pngview(void) {
     while (png_cnt > 0) {
         if (jogwheel_encoder != old_encoder) {
             old_encoder = jogwheel_encoder;
-            const unsigned int text_len = 16;
-            char fn[text_len] = "/";
+            char fn[FN_MAX_TEXT_LENGTH] = "/";
             _dbg("%d\n", jogwheel_encoder);
             strncpy(fn + 1, png_fnames[jogwheel_encoder], 8);
-            strlcat(fn, ".PNG", text_len);
+            strlcat(fn, ".PNG", FN_MAX_TEXT_LENGTH);
             _dbg("%s\n", fn);
             FILE *pf = f_fopen(fn);
             display->draw_png(point_ui16(0, 0), pf);
