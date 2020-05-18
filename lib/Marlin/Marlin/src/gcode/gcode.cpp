@@ -353,7 +353,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       case 17: M17(); break;                                      // M17: Enable all stepper motors
 
-      #if ENABLED(SDSUPPORT)
+      #if ENABLED(SDSUPPORT) || ENABLED(SDCARD_GCODES)
         case 20: M20(); break;                                    // M20: List SD card
         case 21: M21(); break;                                    // M21: Init SD card
         case 22: M22(); break;                                    // M22: Release SD card
@@ -375,6 +375,9 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
           case 34: M34(); break;                                  // M34: Set SD card sorting options
         #endif
 
+      #endif // SDSUPPORT
+
+      #if ENABLED(SDSUPPORT)
         case 928: M928(); break;                                  // M928: Start SD write
       #endif // SDSUPPORT
 
