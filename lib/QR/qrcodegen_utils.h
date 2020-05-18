@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "qrcodegen.h"
 
-// ***** assumed from QRCODEGEN-library
+/// ***** assumed from QRCODEGEN-library
 constexpr int8_t _CEXPR_ECC_CODEWORDS_PER_BLOCK[4][41] = {
     // Version: (note that index 0 is for padding, and is set to an illegal value)
     //0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40    Error correction level
@@ -60,6 +60,7 @@ constexpr mode_record_t data_table[] = {
     { { 8, 10, 12 }, 1, 13 },  // @ qrcodegen_Mode_KANJI
 };
 
+/// maximal data length calculation
 constexpr size_t grcodegen_getDataSize(int version, enum qrcodegen_Ecc ecl, enum qrcodegen_Mode mode) {
     size_t result = 0;                     // initialization due to 'constexpr'
     int version_index = 0, mode_index = 0; // initialization due to 'constexpr'

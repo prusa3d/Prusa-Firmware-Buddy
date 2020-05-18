@@ -15,15 +15,18 @@
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
 
+/// help function (end-of-string position)
 static char *eofstr(char *str) {
     return (str + strlen(str));
 }
 
+/// help function (binary data block to hex-string)
 static void block2hex(char *str, uint8_t *pdata, size_t length) {
     for (; length > 0; length--)
         sprintf(eofstr(str), "%02X", *(pdata++));
 }
 
+/// help function (calculate & append CRC to string)
 static void append_crc(char *str) {
     uint32_t crc;
 
@@ -32,6 +35,7 @@ static void append_crc(char *str) {
     sprintf(eofstr(str), "/%08lX", crc);
 }
 
+/// URL-formating function (for error-screen)
 void create_path_info_4error(char *str, int err_code) {
     strcpy(str, get_actual_lang()->err_url);
     sprintf(eofstr(str), "%d%d/", USBD_PID_FS, err_code);
@@ -40,6 +44,7 @@ void create_path_info_4error(char *str, int err_code) {
     sprintf(eofstr(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
 }
 
+/// URL-formating function (for info-screen)
 void create_path_info_4service(char *str) {
     char *substr4crc;
     const lang_t *plang;

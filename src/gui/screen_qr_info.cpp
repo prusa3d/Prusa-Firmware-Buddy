@@ -22,6 +22,7 @@ typedef struct
 
 #define pd ((screen_qr_info_data_t *)screen->pdata)
 
+/// screen-init call-back
 void screen_menu_qr_info_init(screen_t *screen) {
     int16_t id, root;
 
@@ -50,13 +51,16 @@ void screen_menu_qr_info_init(screen_t *screen) {
     pd->qr.text = pd->qr_text;
 }
 
+/// screen-draw call-back
 void screen_menu_qr_info_draw(screen_t *screen) {
 }
 
+/// screen-done call-back
 void screen_menu_qr_info_done(screen_t *screen) {
     window_destroy(pd->root.win.id);
 }
 
+/// screen-event call-back
 int screen_menu_qr_info_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
         screen_close();
@@ -65,6 +69,7 @@ int screen_menu_qr_info_event(screen_t *screen, window_t *window, uint8_t event,
     return (0);
 }
 
+/// screen definition
 screen_t screen_qr_info = {
     0,
     0,

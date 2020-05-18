@@ -6,6 +6,7 @@
 
 #include "qrcodegen.h"
 
+/// window-init call-back
 void window_qr_init(window_qr_t *window) {
     window->version = 9;
     window->ecc_level = qrcodegen_Ecc_HIGH;
@@ -21,6 +22,7 @@ void window_qr_init(window_qr_t *window) {
 #define X0     (window->win.rect.x + window->border * MSIZE)
 #define Y0     (window->win.rect.y + window->border * MSIZE)
 
+/// window-draw call-back
 void window_qr_draw(window_qr_t *window) {
     uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
     uint8_t qrcode_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
@@ -39,6 +41,7 @@ void window_qr_draw(window_qr_t *window) {
     }
 }
 
+/// window definition
 const window_class_qr_t window_class_qr = {
     {
         WINDOW_CLS_QR,

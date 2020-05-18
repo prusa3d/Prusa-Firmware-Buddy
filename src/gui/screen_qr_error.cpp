@@ -30,6 +30,7 @@ typedef struct
 
 #define pd ((screen_qr_error_data_t *)screen->pdata)
 
+/// screen-init call-back
 void screen_menu_qr_error_init(screen_t *screen) {
     int16_t id, root;
     const err_t *perr;
@@ -62,14 +63,17 @@ void screen_menu_qr_error_init(screen_t *screen) {
     pd->first_run_flag = true;
 }
 
+/// screen-draw call-back
 void screen_menu_qr_error_draw(screen_t *screen) {
     display->fill_rect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
 }
 
+/// screen-done call-back
 void screen_menu_qr_error_done(screen_t *screen) {
     window_destroy(pd->root.win.id);
 }
 
+/// screen-event call-back
 int screen_menu_qr_error_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
         screen_close();
@@ -82,6 +86,7 @@ int screen_menu_qr_error_event(screen_t *screen, window_t *window, uint8_t event
     return (0);
 }
 
+/// screen definition
 screen_t screen_qr_error = {
     0,
     0,
