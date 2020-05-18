@@ -216,7 +216,7 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     /// force update of temperatures
     uint64_t mask = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)
         | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)
-        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ)
+        | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ)
         | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
 
     const marlin_vars_t *vars = marlin_update_vars(mask);
