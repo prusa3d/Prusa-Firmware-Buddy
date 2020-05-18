@@ -82,10 +82,6 @@ const char *printing_labels[iid_count] = {
 
 #pragma pack(push, 1)
 
-#define TEXT_TIME_MAX_LENGTH     9
-#define TEXT_ETIME_MAX_LENGTH    9
-#define TEXT_FILAMENT_MAX_LENGTH 5
-
 typedef struct
 {
     window_frame_t root;
@@ -107,9 +103,9 @@ typedef struct
     uint32_t last_time_to_end;
     uint8_t last_sd_percent_done;
 
-    std::array<char, TEXT_TIME_MAX_LENGTH> text_time;
-    std::array<char, TEXT_ETIME_MAX_LENGTH> text_etime;
-    std::array<char, TEXT_FILAMENT_MAX_LENGTH> text_filament; // 999m\0 | 1.2m\0
+    std::array<char, 9> text_time;
+    std::array<char, 9> text_etime;
+    std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
 
     window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
@@ -158,8 +154,8 @@ void screen_printing_init(screen_t *screen) {
 
     marlin_vars_t *vars = marlin_vars();
 
-    strlcpy(pw->text_time.data(), "0m", TEXT_TIME_MAX_LENGTH);
-    strlcpy(pw->text_filament.data(), "999m", TEXT_FILAMENT_MAX_LENGTH);
+    strlcpy(pw->text_time.data(), "0m", pw->text_time.size());
+    strlcpy(pw->text_filament.data(), "999m", pw->text_filament.size());
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
@@ -429,7 +425,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
             snprintf(array.data(), array.size(), "%im", timeinfo->tm_min);
         }
     } else
-        strlcpy_P(array.data(), PSTR("N/A"), TEXT_ETIME_MAX_LENGTH);
+        strlcpy_P(array.data(), PSTR("N/A"), array.size());
 
     window_set_text(pw->w_etime_value.win.id, array.data());
 }
