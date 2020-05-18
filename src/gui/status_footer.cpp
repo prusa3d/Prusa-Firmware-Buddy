@@ -11,8 +11,10 @@
 #include "marlin_vars.h"
 #include "marlin_client.h"
 
-#include "../Marlin/src/module/temperature.h"
-#include "../Marlin/src/module/planner.h"
+#include "stm32f4xx_hal.h"
+
+// #include "../Marlin/src/module/temperature.h"
+// #include "../Marlin/src/module/planner.h"
 
 #define HEATING_DIFFERENCE 2
 
@@ -108,12 +110,15 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     window_set_alignment(id, ALIGN_CENTER);
     window_set_text(id, filaments[get_filament()].name);
 
+    footer->last_timer_repaint_values = 0;
+    footer->last_timer_repaint_z_pos = 0;
+    footer->last_timer_repaint_colors = 0;
     status_footer_timer(footer, 0); // do update
 }
 
 int status_footer_event(status_footer_t *footer, window_t *window,
     uint8_t event, const void *param) {
-    status_footer_timer(footer, (HAL_GetTick() / 50) * 50);
+    status_footer_timer(footer, HAL_GetTick());
 
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
@@ -136,8 +141,12 @@ void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
         status_footer_update_temperatures(footer);
         status_footer_update_feedrate(footer);
         status_footer_update_filament(footer);
-        status_footer_update_z_axis(footer);
         footer->last_timer_repaint_values = mseconds;
+    }
+
+    if (mseconds - footer->last_timer_repaint_z_pos >= REPAINT_Z_POS_PERIOD) {
+        status_footer_update_z_axis(footer);
+        footer->last_timer_repaint_z_pos = mseconds;
     }
 
     if ((mseconds - footer->last_timer_repaint_colors) >= BLINK_PERIOD) {
@@ -207,7 +216,7 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     /// force update of temperatures
     uint64_t mask = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)
         | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)
-        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ)
+        | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ)
         | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
 
     const marlin_vars_t *vars = marlin_update_vars(mask);
@@ -226,24 +235,43 @@ void status_footer_update_temperatures(status_footer_t *footer) {
 #endif //LCD_HEATBREAK_TO_FILAMENT
 }
 
-// TODO convert to marlin_vars
 void status_footer_update_feedrate(status_footer_t *footer) {
-    if ((uint16_t)feedrate_percentage <= 999)
-        snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "%d%%", feedrate_percentage);
+    const marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED));
+    if (!vars)
+        return;
+
+    const uint16_t speed = vars->print_speed;
+    if (speed == footer->print_speed)
+        return;
+
+    footer->print_speed = speed;
+    if (0 < speed && speed <= 999)
+        snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "%3d%%", speed);
     else
         snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "ERR");
     window_set_text(footer->wt_prnspeed.win.id, footer->text_prnspeed);
 }
 
-// TODO convert to marlin_vars
 void status_footer_update_z_axis(status_footer_t *footer) {
-    sprintf(footer->text_z_axis, "%.2f", (double)current_position[2]);
+    const marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_POS_Z));
+    if (!vars)
+        return;
+
+    const float pos = vars->pos[2];
+    if (pos == footer->z_pos)
+        return;
+
+    footer->z_pos = pos;
+    snprintf(footer->text_z_axis, sizeof(footer->text_z_axis) / sizeof(footer->text_z_axis[0]), "%.2f", (double)pos);
     window_set_text(footer->wt_z_axis.win.id, footer->text_z_axis);
 }
 
-// TODO convert to marlin_vars
 void status_footer_update_filament(status_footer_t *footer) {
-    window_set_text(footer->wt_filament.win.id, filaments[get_filament()].name);
+    if (0 == strcmp(footer->filament, filaments[get_filament()].name))
+        return;
+
+    strncpy(footer->filament, filaments[get_filament()].name, TEXT_LENGTH_FILAMENT);
+    window_set_text(footer->wt_filament.win.id, footer->filament);
     // #ifndef LCD_HEATBREAK_TO_FILAMENT
     //     window_set_text(footer->wt_filament.win.id, filaments[get_filament()].name);
     // #endif
