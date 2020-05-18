@@ -58,11 +58,12 @@ int screen_menu_temperature_event(screen_t *screen, window_t *window, uint8_t ev
 
     if (event == WINDOW_EVENT_CHANGE) {
         switch ((int)param) {
-        case MI_NOZZLE:
+        case MI_NOZZLE: {
             const float temp = psmd->items[MI_NOZZLE].item.wi_spin.value / 1000.0f;
             marlin_set_target_nozzle(temp);
             marlin_set_display_nozzle(temp);
             break;
+        }
         case MI_HEATBED:
             marlin_set_target_bed(psmd->items[MI_HEATBED].item.wi_spin.value / 1000);
             break;
