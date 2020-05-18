@@ -553,9 +553,11 @@ uint8_t adc_seq2idx(uint8_t seq) {
 // Arduino digital/analog read/write error handler
 
 void hwio_arduino_error(int err, uint32_t pin32) {
-    char text[64];
+    const int text_max_len = 64;
+    char text[text_max_len];
     if ((err == HWIO_ERR_UNINI_DIG_WR) && (pin32 == PIN_BEEPER))
         return; //ignore BEEPER write
+
     strcat(text, "HWIO error\n");
     switch (err) {
     case HWIO_ERR_UNINI_DIG_RD:
@@ -571,7 +573,9 @@ void hwio_arduino_error(int err, uint32_t pin32) {
         strcat(text, "undefined\n");
         break;
     }
-    sprintf(text + strlen(text), "pin #%u (0x%02x)\n", (int)pin32, (uint8_t)pin32);
+
+    snprintf(text + strlen(text), text_max_len - strlen(text), "pin #%u (0x%02x)\n", (int)pin32, (uint8_t)pin32);
+
     switch (err) {
     case HWIO_ERR_UNINI_DIG_RD:
     case HWIO_ERR_UNINI_DIG_WR:
@@ -586,6 +590,7 @@ void hwio_arduino_error(int err, uint32_t pin32) {
         strcat(text, "analog ");
         break;
     }
+
     switch (err) {
     case HWIO_ERR_UNINI_DIG_RD:
     case HWIO_ERR_UNDEF_DIG_RD:
