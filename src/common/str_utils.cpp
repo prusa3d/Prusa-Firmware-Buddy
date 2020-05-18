@@ -4,14 +4,17 @@
 static ml_instance_t self_instance;
 static ml_instance_t *pinstance = &self_instance;
 
+/// help function (context switching)
 void set_instance(ml_instance_t *pinst) {
     pinstance = pinst;
 }
 
+/// help function (context switching)
 void set_self_instance(void) {
     pinstance = &self_instance;
 }
 
+/// help function (deletion from string)
 size_t strdel(char *pstr, size_t n) {
     size_t count, i;
 
@@ -24,6 +27,7 @@ size_t strdel(char *pstr, size_t n) {
     return (n);
 }
 
+/// help function (insertion into string)
 size_t strins(char *pstr, const char *pinstr, size_t repeater, bool before_flag) {
     size_t count, n, n_ins;
     size_t i, r;
@@ -43,24 +47,29 @@ size_t strins(char *pstr, const char *pinstr, size_t repeater, bool before_flag)
     return (n_ins);
 }
 
+/// help function (parametr setter)
 void set_custom_set(const char *pstr) {
     pinstance->pcustom_set = pstr;
 }
 
+/// help function (parametr setter)
 void set_withdraw_set(const char *pstr) {
     pinstance->pwithdraw_set = pstr;
 }
 
+/// help function (parametr setter)
 void set_hyphen_distance(int dist) {
     pinstance->hyphen_distance = dist;
 }
 
+/// help function (parametr setter)
 void set_defaults(void) {
     pinstance->pcustom_set = "";
     pinstance->pwithdraw_set = "";
     pinstance->hyphen_distance = HYPHEN_DENY;
 }
 
+/// converts string to plain text
 size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set, char substitute_char) {
     size_t counter = 0;
     bool flag;
@@ -81,6 +90,7 @@ size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_se
     return (counter);
 }
 
+/// converts string to plain text
 size_t str2plain(char *pstr, bool withdraw_flag) {
     const char *pset = "";
 
@@ -89,6 +99,7 @@ size_t str2plain(char *pstr, bool withdraw_flag) {
     return (str2plain(pstr, pset));
 }
 
+/// converts string to multi-line text
 size_t str2multiline(char *pstr, size_t line_width) {
     size_t actual_width = 1;
     char *last_delimiter_position = nullptr; // initialization only due to compiler-warning
