@@ -6,7 +6,8 @@
 #include "jogwheel.h"
 #include "dbg.h"
 
-char png_fnames[256][8];
+#define PNG_FNAMES_MAX_LENGTH 8
+char png_fnames[256][PNG_FNAMES_MAX_LENGTH];
 int png_cnt = 0;
 FIL fil;
 
@@ -62,9 +63,9 @@ void pngview(void) {
         FILINFO info;
         fres = f_findfirst(&dir, &info, "", "*.png");
         while (fres == FR_OK) {
-            strncpy(png_fnames[png_cnt++], info.fname, 8);
+            strlcpy(png_fnames[png_cnt++], info.fname, PNG_FNAMES_MAX_LENGTH);
             fres = f_findnext(&dir, &info);
-            if (strncmp(png_fnames[png_cnt - 1], info.fname, 8) == 0) {
+            if (strncmp(png_fnames[png_cnt - 1], info.fname, PNG_FNAMES_MAX_LENGTH) == 0) {
                 png_cnt--;
                 break; //hack because f_findnext returns allways FR_OK
             }
@@ -76,9 +77,9 @@ void pngview(void) {
     while (png_cnt > 0) {
         if (jogwheel_encoder != old_encoder) {
             old_encoder = jogwheel_encoder;
-            char fn[16] = "/";
+            char fn[PNG_FNAMES_MAX_LENGTH + 5] = "/";
             _dbg("%d\n", jogwheel_encoder);
-            strncpy(fn + 1, png_fnames[jogwheel_encoder], 8);
+            strlcpy(fn + 1, png_fnames[jogwheel_encoder], PNG_FNAMES_MAX_LENGTH);
             strlcat(fn, ".PNG", sizeof(fn));
             _dbg("%s\n", fn);
             FILE *pf = f_fopen(fn);

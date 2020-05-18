@@ -31,11 +31,12 @@ void screen_menu_preheat_init(screen_t *screen) {
     psmd->items[0] = menu_item_return;
 
     for (size_t i = 1; i < FILAMENTS_END; i++) {
+        // FIXME do we need (char *)?
+        // FIXME why to put 15 spaces in (23-1) long string?
         memset((char *)psmd->items[i].item.label, ' ', sizeof(char) * 15);
-        strncpy((char *)psmd->items[i].item.label, filaments[i].name,
-            strlen(filaments[i].name));
+        strlcpy((char *)psmd->items[i].item.label, filaments[i].name, sizeof(psmd->items[i].item.label));
         snprintf((char *)psmd->items[i].item.label + 9,
-            LABEL_MAX_TEXT_LENGTH - 9,
+            sizeof(psmd->items[i].item.label) - 9,
             "%d/%d",
             filaments[i].nozzle,
             filaments[i].heatbed);
