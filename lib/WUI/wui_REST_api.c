@@ -63,20 +63,7 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
         return;
     }
 
-    timestamp_t timestamp;
-    time_str_t time_str;
     char print_time[15];
-
-    if (wui_vars_copy.time_to_end != TIME_TO_END_INVALID) {
-        if (sntp_get_system_time(&timestamp)) {
-            timestamp.epoch_secs += (wui_vars_copy.time_to_end / 1000);
-            update_timestamp_from_epoch_secs(&timestamp);
-        }
-        stringify_timestamp(&time_str, &timestamp);
-    } else {
-        strlcpy(time_str.time, "N/A", MAX_TIME_STR_SIZE);
-        strlcpy(time_str.date, "N/A", MAX_DATE_STR_SIZE);
-    }
 
     print_dur_to_string(print_time, sizeof(print_time), wui_vars_copy.print_dur);
 
@@ -89,11 +76,10 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
                             "\"flow_factor\":%d,"
                             "\"progress\":%d,"
                             "\"print_dur\":\"%s\","
-                            "\"end_time\":\"%s\","
-                            "\"end_date\":\"%s\","
+                            "\"time_est\":\"%lu\","
                             "\"project_name\":\"%s\""
                             "}",
         actual_nozzle, actual_heatbed, filament_material,
         z_pos_mm, print_speed, flow_factor, wui_vars_copy.sd_precent_done,
-        print_time, time_str.time, time_str.date, wui_vars_copy.gcode_name);
+        print_time, wui_vars_copy.time_to_end, wui_vars_copy.gcode_name);
 }
