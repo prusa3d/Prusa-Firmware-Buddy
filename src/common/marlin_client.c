@@ -250,7 +250,7 @@ void marlin_gcode(const char *gcode) {
     if (client == 0)
         return;
     strcpy(request, "!g ");
-    strcat(request, gcode);
+    strlcat(request, gcode, MARLIN_MAX_REQUEST);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }

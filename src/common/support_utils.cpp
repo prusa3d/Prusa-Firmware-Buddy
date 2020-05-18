@@ -44,23 +44,23 @@ void create_path_info_4service(char *str, uint32_t str_size) {
     snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
     // UniqueID
     block2hex(str, str_size, (uint8_t *)OTP_STM32_UUID_ADDR, OTP_STM32_UUID_SIZE);
-    strcat(str, "/");
+    strlcat(str, "/", str_size);
     // AppendixStatus
     snprintf(eofstr(str), str_size - strlen(str), "%s/", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
     // SerialNumber
     block2hex(str, str_size, (uint8_t *)OTP_SERIAL_NUMBER_ADDR, OTP_SERIAL_NUMBER_SIZE - 1); // "-1" ~ without "\x00"
-    strcat(str, "/");
+    strlcat(str, "/", str_size);
     // BootloaderVersion
     snprintf(eofstr(str), str_size - strlen(str), "%02X%02X%02X/", boot_version.major, boot_version.minor, boot_version.patch);
     // MacAddress
     block2hex(str, str_size, (uint8_t *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
-    strcat(str, "/");
+    strlcat(str, "/", str_size);
     // BoardVersion
     block2hex(str, str_size, (uint8_t *)OTP_BOARD_REVISION_ADDR, OTP_BOARD_REVISION_SIZE);
-    strcat(str, "/");
+    strlcat(str, "/", str_size);
     // TimeStamp
     block2hex(str, str_size, (uint8_t *)OTP_BOARD_TIME_STAMP_ADDR, OTP_BOARD_TIME_STAMP_SIZE);
-    strcat(str, "/");
+    strlcat(str, "/", str_size);
     // FWversion
     //!//     snprintf(eofstr(str), str_size - strlen(str), "%04X-", (uint16_t)(FW_VERSION));
     // BuildNumber
@@ -69,10 +69,10 @@ void create_path_info_4service(char *str, uint32_t str_size) {
     snprintf(eofstr(str), str_size - strlen(str), "%d/", lang_code);
     // SelfTestResult
     if (last_selftest_time == 0)
-        strcat(str, "0");
+        strlcat(str, "0", str_size);
     else
         snprintf(eofstr(str), str_size - strlen(str), "%lu-%lu", last_selftest_result, (HAL_GetTick() / 1000 - last_selftest_time));
-    strcat(str, "/");
+    strlcat(str, "/", str_size);
     // LockBlock
     block2hex(str, str_size, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
     append_crc(str, str_size);

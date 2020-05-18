@@ -76,10 +76,11 @@ void pngview(void) {
     while (png_cnt > 0) {
         if (jogwheel_encoder != old_encoder) {
             old_encoder = jogwheel_encoder;
-            char fn[16] = "/";
+            const unsigned int text_len = 16;
+            char fn[text_len] = "/";
             _dbg("%d\n", jogwheel_encoder);
             strncpy(fn + 1, png_fnames[jogwheel_encoder], 8);
-            strcat(fn, ".PNG");
+            strlcat(fn, ".PNG", text_len);
             _dbg("%s\n", fn);
             FILE *pf = f_fopen(fn);
             display->draw_png(point_ui16(0, 0), pf);
