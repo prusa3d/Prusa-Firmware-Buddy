@@ -636,7 +636,7 @@ private:
 
   static void M18_M84();
 
-  #if ENABLED(SDSUPPORT)
+  #if ENABLED(SDSUPPORT) || ENABLED(SDCARD_GCODES)
     static void M20();
     static void M21();
     static void M22();
@@ -652,7 +652,7 @@ private:
 
   static void M31();
 
-  #if ENABLED(SDSUPPORT)
+  #if ENABLED(SDSUPPORT) || ENABLED(SDCARD_GCODES)
     #if HAS_MEDIA_SUBCALLS
       static void M32();
     #endif
