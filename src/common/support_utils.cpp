@@ -8,6 +8,7 @@
 #include "string.h"
 #include "lang.h"
 #include "../../gui/wizard/selftest.h"
+#include <usbd_desc.h>
 
 //  #include "dbg.h"
 
@@ -33,7 +34,7 @@ static void append_crc(char *str) {
 
 void create_path_info_4error(char *str, int err_code) {
     strcpy(str, get_actual_lang()->err_url);
-    sprintf(eofstr(str), "%d%d/", PRINTER_TYPE, err_code);
+    sprintf(eofstr(str), "%d%d/", USBD_PID_FS, err_code);
     sprintf(eofstr(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     sprintf(eofstr(str), "%d%d%d/", project_version_major, project_version_minor, project_version_patch);
     sprintf(eofstr(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
