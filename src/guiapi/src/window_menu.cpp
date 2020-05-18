@@ -51,7 +51,7 @@ void window_menu_done(window_menu_t *window) {
     gui_timers_delete_by_window_id(window->win.id);
 }
 
-void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
+void window_menu_calculate_spin(const WI_SPIN_t *item, char *value, unsigned int value_size) {
     const char *format;
 
     if (item->range[WIO_STEP] < 10)
@@ -62,7 +62,7 @@ void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
         format = "%.1f";
     else
         format = "%.f";
-    sprintf(value, format, item->value * 0.001);
+    snprintf(value, value_size, format, item->value * 0.001);
 }
 
 void window_menu_set_item_index(window_t *window, int index) {
@@ -129,11 +129,12 @@ void window_menu_draw(window_menu_t *window) {
             {
             case WI_SPIN:
             case WI_SPIN_FL: {
-                char value[20] = { '\0' };
+                const unsigned int text_len = 20;
+                char value[text_len] = { '\0' };
                 if (item->type & WI_SPIN_FL)
-                    sprintf(value, item->wi_spin_fl.prt_format, (double)item->wi_spin_fl.value);
+                    snprintf(value, text_len, item->wi_spin_fl.prt_format, (double)item->wi_spin_fl.value);
                 else
-                    window_menu_calculate_spin(&(item->wi_spin), value);
+                    window_menu_calculate_spin(&(item->wi_spin), value, text_len);
 
                 _window_menu_draw_value(window, value, &rc, color_option, color_back);
             } break;
