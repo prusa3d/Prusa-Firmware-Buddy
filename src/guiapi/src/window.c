@@ -576,7 +576,7 @@ void window_set_ml_mode(int16_t id, ml_mode_t ml_mode) {
     if ((window = window_ptr(id)) != 0) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_TEXT:
-            ((window_text_t *)window)->ml_mode = ml_mode;
+            ((window_text_t *)window)->ml_instance.ml_mode = ml_mode;
             break;
         }
         _window_invalidate((window_t *)window);

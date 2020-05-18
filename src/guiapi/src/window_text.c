@@ -9,20 +9,19 @@ void window_text_init(window_text_t *window) {
     window->text = 0;
     window->padding = gui_defaults.padding;
     window->alignment = gui_defaults.alignment;
-    window->ml_mode = gui_defaults.ml_mode;
-    window->line_width = gui_defaults.line_width;
+    window->ml_instance = gui_defaults.ml_instance;
 }
 
 void window_text_draw(window_text_t *window) {
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        render_text_align(window, window->win.rect,
+        render_text_align_ml(window->win.rect,
             window->text,
             window->font,
             (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back,
             (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text,
             window->padding,
             window->alignment,
-            window->ml_mode);
+            window->ml_instance);
         window->win.flg &= ~WINDOW_FLG_INVALID;
     }
 }

@@ -1,5 +1,4 @@
-#ifndef _STR_UTILS_H
-#define _STR_UTILS_H
+#pragma once
 
 #include <inttypes.h>
 #include <string.h>
@@ -22,6 +21,14 @@
 
 #define EOS '\x00'
 
+#pragma pack(push, 1)
+typedef enum {
+    ML_MODE_NONE,
+    ML_MODE_WORDB,
+    ML_MODE_EXT
+} ml_mode_t;
+#pragma pack(pop)
+
 #ifdef __cplusplus
 
 enum class delimiter_t : uint8_t { NONE,
@@ -31,6 +38,8 @@ enum class delimiter_t : uint8_t { NONE,
 
 typedef struct
 {
+    ml_mode_t ml_mode = ML_MODE_NONE;
+    size_t line_width = LINE_WIDTH_UNLIMITED;
     const char *pcustom_set = "";
     const char *pwithdraw_set = "";
     int hyphen_distance = HYPHEN_DENY;
@@ -56,6 +65,8 @@ extern "C" size_t str2multiline(char *pstr, size_t line_width = LINE_WIDTH_UNLIM
 
 typedef struct
 {
+    ml_mode_t ml_mode;
+    size_t line_width;
     const char *pcustom_set;
     const char *pwithdraw_set;
     int hyphen_distance;
@@ -66,5 +77,3 @@ void set_instance(ml_instance_t *pinst);
 size_t str2multiline(char *pstr, size_t line_width);
 
 #endif // __cplusplus
-
-#endif // _STR_UTILS_H

@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include "str_utils.h"
 
 //alignment constants
 #define ALIGN_LEFT          0x00
@@ -25,13 +26,6 @@
 #define ALIGN_RIGHT_BOTTOM  (ALIGN_RIGHT | ALIGN_BOTTOM)
 #define ALIGN_CENTER_TOP    (ALIGN_HCENTER | ALIGN_TOP)
 #define ALIGN_CENTER_BOTTOM (ALIGN_HCENTER | ALIGN_BOTTOM)
-
-//multi-line modes
-typedef enum {
-    ML_MODE_NONE,
-    ML_MODE_WORDB,
-    ML_MODE_EXT
-} ml_mode_t;
 
 //raster operation function constants
 #define ROPFN_COPY    0x00 //copy (no operation)
@@ -120,8 +114,7 @@ typedef struct _gui_defaults_t {
     font_t *font_big;
     padding_ui8_t padding;
     uint8_t alignment;
-    ml_mode_t ml_mode;
-    size_t line_width;
+    ml_instance_t ml_instance;
     rect_ui16_t msg_box_sz;
     uint8_t btn_spacing;
 } gui_defaults_t;
