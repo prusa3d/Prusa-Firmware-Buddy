@@ -81,5 +81,5 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
                             "}",
         actual_nozzle, actual_heatbed, filament_material,
         z_pos_mm, print_speed, flow_factor, wui_vars_copy.sd_precent_done,
-        print_time, wui_vars_copy.time_to_end, wui_vars_copy.gcode_name);
+        print_time, (wui_vars_copy.time_to_end / 1000), wui_vars_copy.gcode_name);
 }
