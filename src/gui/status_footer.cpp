@@ -113,7 +113,14 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->last_timer_repaint_values = 0;
     footer->last_timer_repaint_z_pos = 0;
     footer->last_timer_repaint_colors = 0;
-    status_footer_timer(footer, 0); // do update
+
+    //read and draw real values
+    status_footer_update_temperatures(footer);
+    status_footer_update_feedrate(footer);
+    status_footer_update_filament(footer);
+    status_footer_update_z_axis(footer);
+    status_footer_repaint_nozzle(footer);
+    status_footer_repaint_heatbed(footer);
 }
 
 int status_footer_event(status_footer_t *footer, window_t *window,
