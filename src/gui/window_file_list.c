@@ -210,8 +210,10 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
 void window_file_list_inc(window_file_list_t *window, int dif) {
     bool repaint = false;
     if (window->index >= LDV_WindowSize(window->ldv) - 1) {
-        Sound_Play(eSOUND_TYPE_BlindAlert);
         repaint = LDV_MoveDown(window->ldv);
+        if (!repaint) {
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
     } else {
         // this 'if' solves a situation with less files than slots on the screen
         if (window->index < LDV_TotalFilesCount(window->ldv) - 1) {
@@ -230,9 +232,11 @@ void window_file_list_inc(window_file_list_t *window, int dif) {
 void window_file_list_dec(window_file_list_t *window, int dif) {
     bool repaint = false;
     if (window->index == 0) {
-        Sound_Play(eSOUND_TYPE_BlindAlert);
         // at the beginning of the window
         repaint = LDV_MoveUp(window->ldv);
+        if (!repaint) {
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
     } else {
         --window->index;
         repaint = true;
