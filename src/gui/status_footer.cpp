@@ -110,6 +110,9 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     window_set_alignment(id, ALIGN_CENTER);
     window_set_text(id, filaments[get_filament()].name);
 
+    footer->last_timer_repaint_values = 0;
+    footer->last_timer_repaint_z_pos = 0;
+    footer->last_timer_repaint_colors = 0;
     status_footer_timer(footer, 0); // do update
 }
 
@@ -243,7 +246,7 @@ void status_footer_update_feedrate(status_footer_t *footer) {
 
     footer->print_speed = speed;
     if (0 < speed && speed <= 999)
-        snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "% 3d%%", speed);
+        snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "%3d%%", speed);
     else
         snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "ERR");
     window_set_text(footer->wt_prnspeed.win.id, footer->text_prnspeed);
