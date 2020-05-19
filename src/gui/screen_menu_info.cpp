@@ -81,7 +81,7 @@ screen_t screen_menu_info = {
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN, MI_VERSION_INFO>;
+using Screen = screen_menu_data_t<false, true, false, MI_RETURN, MI_SYS_INFO, MI_VERSION_INFO>;
 
 static void init(screen_t *screen) {
     constexpr static const char *label = "INFO";

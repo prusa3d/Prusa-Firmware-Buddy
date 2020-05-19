@@ -116,3 +116,11 @@ MI_VERSION_INFO::MI_VERSION_INFO()
 void MI_VERSION_INFO::Click(Iwindow_menu_t &window_menu) {
     screen_open(get_scr_version_info()->id);
 }
+
+MI_SYS_INFO::MI_SYS_INFO()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_SYS_INFO::Click(Iwindow_menu_t &window_menu) {
+    screen_open(get_scr_sysinfo()->id);
+}

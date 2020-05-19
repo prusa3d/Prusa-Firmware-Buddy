@@ -130,4 +130,11 @@ public:
     virtual void Click(Iwindow_menu_t &window_menu);
 };
 
+class MI_SYS_INFO : public WI_LABEL_t {
+    static constexpr const char *const label = "System Info";
+
+public:
+    MI_SYS_INFO();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
 #pragma pack(pop)
