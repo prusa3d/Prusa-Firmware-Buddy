@@ -16,7 +16,7 @@ planned, not implemented
 offset  size   content  
 0x00    0x60   general registers  
 0x60    0x8c   SCB  
-0xf0    0x10   reserved  
+0xf0    0x10   dumpinfo  
 
 ##general registers
 0x00   r0  
@@ -66,3 +66,13 @@ offset  size   content
 0x60   ISAR     (R/ )  Instruction Set Attributes Register  
 0x84   RESERVED0  
 0x88   CPACR    (R/W)  Coprocessor Access Control  
+
+##dumpinfo
+offset  size   content  
+0x00    0x01   dump type and flags
+0x01    0x0f   reserved
+
+###dump types and flags
+0x01    HardFault
+0x02    IWDG warning callback
+0x80    Dump not saved (bit7)
