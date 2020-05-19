@@ -72,6 +72,8 @@ static void screen_filebrowser_init(screen_t *screen) {
     marlin_vars_t *vars = marlin_vars();
     // here the strncpy is meant to be - need the rest of the buffer zeroed
     strncpy(filelist->sfn_path, vars->media_SFN_path, sizeof(filelist->sfn_path));
+    // ensure null character at the end no matter what
+    filelist->sfn_path[sizeof(filelist->sfn_path) - 1] = '\0';
     // cut by the filename to retain only the directory path
     char *c = strrchr(filelist->sfn_path, '/');
     *c = 0; // even if we didn't find the '/', c will point to valid memory
