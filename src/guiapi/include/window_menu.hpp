@@ -7,10 +7,14 @@
 
 #pragma pack(push, 1)
 
+//todo
+//use template instead IWinMenuContainer *pContainer;
+//I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class window_menu_t : public Iwindow_menu_t {
     uint8_t index;
-
+    void setIndex(uint8_t index); //for ctor (cannot fail)
 public:
+    window_menu_t(IWinMenuContainer *pContainer, uint8_t index = 0);
     uint8_t top_index;
     IWinMenuContainer *pContainer;
     bool SetIndex(uint8_t index); //must check container

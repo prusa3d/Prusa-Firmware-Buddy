@@ -20,6 +20,31 @@ void window_menu_items(window_menu_t *pwindow_menu, uint16_t index,
     *ppitem = &undefined;
 }*/
 
+window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
+    : pContainer(pContainer) {
+    color_back = gui_defaults.color_back;
+    color_text = gui_defaults.color_text;
+    color_disabled = gui_defaults.color_disabled;
+    font = gui_defaults.font;
+    //padding = gui_defaults.padding;
+    //icon_rect = rect_ui16(0, 0, 16, 16);
+    alignment = gui_defaults.alignment;
+    setIndex(index);
+    top_index = 0;
+    win.flg |= WINDOW_FLG_ENABLED;
+}
+
+//private, for ctor (cannot fail)
+void window_menu_t::setIndex(uint8_t new_index) {
+    if (new_index && (!pContainer))
+        new_index = 0;
+    if (new_index >= GetCount())
+        new_index = 0;
+    GetItem(new_index)->SetFocus(); //set focus on new item
+    index = new_index;
+}
+
+//public version of setIndex
 bool window_menu_t::SetIndex(uint8_t index) {
     if (index && (!pContainer))
         return false; //cannot set non 0 without container
@@ -89,6 +114,7 @@ void window_menu_t::Incement(int dif) {
 //non member fce
 
 void window_menu_init(window_menu_t *window) {
+    /*
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->color_disabled = gui_defaults.color_disabled;
@@ -100,6 +126,7 @@ void window_menu_init(window_menu_t *window) {
     window->top_index = 0;
     window->win.flg |= WINDOW_FLG_ENABLED;
     //window->pContainer = NULL;//set by screen_menu ctor
+    */
 }
 
 void window_menu_done(window_menu_t *window) {

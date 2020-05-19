@@ -10,8 +10,7 @@
 #include "resource.h"
 #include <new>
 
-#pragma pack(push)
-#pragma pack(1)
+#pragma pack(push, 1)
 /*
 struct menu_flags_t {
     uint8_t has_footer : 1;
@@ -69,8 +68,9 @@ struct screen_menu_data_t {
 #pragma pack(pop)
 
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
-screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *label) {
-    menu.pContainer = &container;
+screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *label)
+    : menu(&container) {
+    // menu.pContainer = &container;
 
     rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278);
     if (HELP) {
@@ -95,6 +95,7 @@ screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *l
         menu_rect, &(menu));
     menu.padding = padding_ui8(20, 6, 2, 6);
     menu.icon_rect = rect_ui16(0, 0, 16, 30);
+    menu.win.flg |= WINDOW_FLG_ENABLED;
 
     //window_set_item_index(id, 1);	// 0 = return
     window_set_capture(id); // set capture to list

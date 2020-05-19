@@ -5,6 +5,9 @@
 
 #pragma pack(push, 1)
 
+//todo
+//use template instead IWinMenuContainer *pContainer;
+//I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N> .. need to add iterators
 class IWinMenuContainer {
 public:
     virtual size_t GetCount() = 0;
