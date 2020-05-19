@@ -137,4 +137,44 @@ public:
     MI_SYS_INFO();
     virtual void Click(Iwindow_menu_t &window_menu);
 };
+
+class MI_STATISTIC_disabled : public WI_LABEL_t {
+    static constexpr const char *const label = "Statistic";
+
+public:
+    MI_STATISTIC_disabled();
+    virtual void Click(Iwindow_menu_t &window_menu) {}
+};
+
+class MI_FAIL_STAT_disabled : public WI_LABEL_t {
+    static constexpr const char *const label = "Fail Stats";
+
+public:
+    MI_FAIL_STAT_disabled();
+    virtual void Click(Iwindow_menu_t &window_menu) {}
+};
+
+class MI_SUPPORT_disabled : public WI_LABEL_t {
+    static constexpr const char *const label = "Support";
+
+public:
+    MI_SUPPORT_disabled();
+    virtual void Click(Iwindow_menu_t &window_menu) {}
+};
+
+class MI_QR_test : public WI_LABEL_t {
+    static constexpr const char *const label = "QR test";
+
+public:
+    MI_QR_test();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_QR_info : public WI_LABEL_t {
+    static constexpr const char *const label = "Send Info by QR";
+
+public:
+    MI_QR_info();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
 #pragma pack(pop)
