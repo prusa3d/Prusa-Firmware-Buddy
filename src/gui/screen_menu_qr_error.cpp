@@ -35,11 +35,11 @@ void screen_menu_qr_error_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 0, 224, 25), &(pd->errText));
     window_set_color_back(id, COLOR_RED_ALERT);
     pd->errText.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, errors[0].error_text);
+    window_set_text(id, get_actual_error()->err_title);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 30, 224, 95), &(pd->errDescription));
     window_set_color_back(id, COLOR_RED_ALERT);
-    window_set_text(id, errors[0].error_description);
+    window_set_text(id, get_actual_error()->err_text);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 275, 224, 20), &(pd->info));
     window_set_color_back(id, COLOR_RED_ALERT);
