@@ -66,7 +66,7 @@ void create_path_info_4service(char *str) {
     // BuildNumber
     //!//     sprintf(eofstr(str), "%d/",FW_BUILDNR);
     // LanguageInfo
-    sprintf(eofstr(str), "%d/", lang_code);
+    sprintf(eofstr(str), "%d/", get_actual_lang()->lang_code);
     // SelfTestResult
     if (last_selftest_time == 0)
         strcat(str, "0");
