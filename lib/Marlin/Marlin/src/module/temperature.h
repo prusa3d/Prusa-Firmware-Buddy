@@ -376,11 +376,7 @@ class Temperature {
       #endif
     #endif
 
-    #if HAS_TEMP_BOARD
-      #if WATCH_BOARD
-        static heater_watch_t watch_board;
-      #endif
-      static millis_t next_board_check_ms;  
+    #if HAS_TEMP_BOARD 
       #ifdef BOARD_MINTEMP
         static int16_t mintemp_raw_BOARD;
       #endif
@@ -712,33 +708,8 @@ class Temperature {
         FORCE_INLINE static int16_t rawBoardTemp()    { return temp_board.raw; }
       #endif
       FORCE_INLINE static float degBoard()            { return temp_board.celsius; }
-      #if HAS_TEMP_BOARD_CONTROL
-        FORCE_INLINE static int16_t degTargetBoard()  { return temp_board.target; }
-        FORCE_INLINE static bool isHeatingBoard()     { return temp_board.target > temp_board.celsius; }
-        FORCE_INLINE static bool isCoolingBoard()     { return temp_board.target < temp_board.celsius; }
-
-        static bool wait_for_board(const bool no_wait_for_cooling=true);
-      #endif
     #endif // HAS_TEMP_BOARD
-
-    #if WATCH_BOARD
-      static void start_watching_board();
-    #else
-      static inline void start_watching_board() {}
-    #endif
-
-    #if HAS_TEMP_BOARD_CONTROL
-      static void setTargetBoard(const int16_t celsius) {
-        temp_board.target =
-          #ifdef BOARD_MAXTEMP
-            _MIN(celsius, BOARD_MAXTEMP)
-          #else
-            celsius
-          #endif
-        ;
-        start_watching_board();
-      }
-    #endif // HAS_TEMP_BOARD
+    
     /**
      * The software PWM power for a heater
      */
