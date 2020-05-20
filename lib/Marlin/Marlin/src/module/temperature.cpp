@@ -103,11 +103,6 @@ Temperature thermalManager;
 #else
   #define _CHAMBER_PSTR(h)
 #endif
-#if HAS_TEMP_BOARD_CONTROL
-  #define _BOARD_PSTR(h) (h) == H_BOARD ? GET_TEXT(MSG_BOARD) :
-#else
-  #define _BOARD_PSTR(h)
-#endif
 #define _E_PSTR(h,N) ((HOTENDS) > N && (h) == N) ? PSTR(LCD_STR_E##N) :
 #define HEATER_PSTR(h) _BED_PSTR(h) _CHAMBER_PSTR(h) _E_PSTR(h,1) _E_PSTR(h,2) _E_PSTR(h,3) _E_PSTR(h,4) _E_PSTR(h,5) PSTR(LCD_STR_E0)
 
@@ -213,12 +208,6 @@ Temperature thermalManager;
   #ifdef BOARD_MAXTEMP
     int16_t Temperature::maxtemp_raw_BOARD = BOARD_RAW_HI_TEMP;
   #endif
-
-  #if WATCH_BOARD
-      heater_watch_t Temperature::watch_board{0};
-    #endif
-    millis_t Temperature::next_board_check_ms;  
-
 #endif      
 
 #if HAS_HEATED_BED
@@ -631,9 +620,6 @@ int16_t Temperature::getHeaterPower(const heater_ind_t heater_id) {
     #if HAS_HEATED_CHAMBER
       case H_CHAMBER: return temp_chamber.soft_pwm_amount;
     #endif
-    #if HAS_TEMP_BOARD
-      case H_BOARD: return 0;
-    #endif //HAS_TEMP_BOARD  
     default:
       #if HOTENDS
         return temp_hotend[heater_id].soft_pwm_amount;
@@ -1430,55 +1416,6 @@ void Temperature::manage_heater() {
 
   #endif // HAS_HEATED_CHAMBER
 
-#if HAS_TEMP_BOARD
-
-    #ifndef BOARD_CHECK_INTERVAL
-      #define BOARD_CHECK_INTERVAL 1000UL
-    #endif
-
-    #if ENABLED(THERMAL_PROTECTION_BOARD)
-      if (degChamber() > CHAMBER_MAXTEMP)
-        _temp_error(H_CHAMBER, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
-    #endif
-
-    #if WATCH_BOARD
-      // Make sure temperature is increasing
-      if (watch_board.elapsed(ms)) {              // Time to check the chamber?
-        if (degChamber() < watch_board.target)    // Failed to increase enough?
-          _temp_error(H_BOARD, PSTR(MSG_T_HEATING_FAILED), GET_TEXT(MSG_HEATING_FAILED_LCD));
-        else
-          start_watching_board();                 // Start again if the target is still far off
-      }
-    #endif
-
-    if (ELAPSED(ms, next_board_check_ms)) {
-      next_board_check_ms = ms + BOARD_CHECK_INTERVAL;
-
-      if (WITHIN(temp_board.celsius, BOARD_MINTEMP, BOARD_MAXTEMP)) {
-        #if ENABLED(BOARD_LIMIT_SWITCHING)
-          if (temp_board.celsius >= temp_board.target + TEMP_BOARD_HYSTERESIS)
-            temp_chamber.soft_pwm_amount = 0;
-          else if (temp_board.celsius <= temp_board.target - (TEMP_BOARD_HYSTERESIS))
-            temp_board.soft_pwm_amount = MAX_CHAMBER_POWER >> 1;
-        #else
-          //temp_board.soft_pwm_amount = temp_board.celsius < temp_board.target ? MAX_BOARD_POWER >> 1 : 0;
-        #endif
-      }
-      else {
-        //temp_board.soft_pwm_amount = 0;
-        //WRITE_HEATER_AMBIENT(LOW);
-      }
-
-      #if ENABLED(THERMAL_PROTECTION_BOARD)
-        thermal_runaway_protection(tr_state_machine_board, temp_board.celsius, temp_board.target, H_BOARD, THERMAL_PROTECTION_BOARD_PERIOD, THERMAL_PROTECTION_BOARD_HYSTERESIS);
-      #endif
-    }
-
-    // TODO: Implement true PID pwm
-    //temp_bed.soft_pwm_amount = WITHIN(temp_chamber.celsius, CHAMBER_MINTEMP, CHAMBER_MAXTEMP) ? (int)get_pid_output_chamber() >> 1 : 0;
-
-  #endif // HAS_TEMP_BOARD  
-
   UNUSED(ms);
 }
 
@@ -1775,12 +1712,8 @@ void Temperature::manage_heater() {
   // For ambient temperature measurement.
   float Temperature::analog_to_celsius_board(const int raw) {
     #if ENABLED(BOARD_USER_THERMISTOR)
-      //_dbg0("BOARD_USER_THERMISTOR");
-      //_dbg0("[temp.cpp] BOARD_USER_THERMISTOR ENABLED BOARD ADC to Celsius - %f", user_thermistor_to_deg_c(CTI_BOARD, raw) );
       return user_thermistor_to_deg_c(CTI_BOARD, raw);
     #elif ENABLED(BOARD_USES_THERMISTOR)
-      //_dbg0("[temp.cpp] BOARD_USES_THERMISTOR ENABLED BOARD ADC to Celsius - %f", SCAN_THERMISTOR_TABLE(BOARD_TEMPTABLE, BOARD_TEMPTABLE_LEN) );
-      //_dbg0("BOARD_USES_THERMISTOR");
       SCAN_THERMISTOR_TABLE(BOARD_TEMPTABLE, BOARD_TEMPTABLE_LEN);
     #else
       return 0;
@@ -1818,7 +1751,6 @@ void Temperature::updateTemperaturesFromRawValues() {
   #endif
   #if HAS_TEMP_BOARD
     temp_board.celsius = analog_to_celsius_board(temp_board.raw);
-    //_dbg0("[temp.cpp] BOARD_USER_THERMISTOR ENABLED BOARD ADC to Celsius - %f, raw:%d", temp_board.celsius , temp_board.raw );
   #endif  
 
   // Reset the watchdog on good temperature measurement
@@ -2644,9 +2576,6 @@ void Temperature::readings_ready() {
     #else
       #define BOARDCMP(A,B) ((A)>=(B))
     #endif
-    //const bool chamber_on = (temp_chamber.target > 0);
-    //if (AMBIENTCMP(temp_ambient.raw, maxtemp_raw_AMBIENT)) max_temp_error(H_AMBIENT);
-    //if (AMBIENTCMP(mintemp_raw_AMBIENT, temp_ambient.raw)) min_temp_error(H_AMBIENT);
   #endif  
 
 }
@@ -3253,9 +3182,6 @@ void Temperature::isr() {
     #if HAS_HEATED_CHAMBER
       SERIAL_ECHOPAIR(" C@:", getHeaterPower(H_CHAMBER));
     #endif
-    #if HAS_TEMP_BOARD
-      SERIAL_ECHOPAIR(" BRD@:", getHeaterPower(H_BOARD));
-    #endif   
     #if HOTENDS > 1
       HOTEND_LOOP() {
         SERIAL_ECHOPAIR(" @", e);
