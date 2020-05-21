@@ -1,6 +1,5 @@
 #include "WindowMenuItems.hpp"
 #include "resource.h"
-#include "cmath_ext.h"
 #include "screen.h" //screen_close
 #include "screens.h"
 
@@ -22,11 +21,15 @@ WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, const char *label,
 /*****************************************************************************/
 //return changed (== invalidate)
 
-bool WI_LABEL_t::Change(int dif) {
+bool WI_LABEL_t::Incement(uint8_t dif) {
     return false;
 }
 
-bool WI_SWITCH_t::Change(int dif) {
+bool WI_LABEL_t::Decrement(uint8_t dif) {
+    return false;
+}
+
+bool WI_SWITCH_t::Incement(uint8_t) {
     size_t size = 0;
     while (strings[size] != NULL) {
         size++;
@@ -38,22 +41,33 @@ bool WI_SWITCH_t::Change(int dif) {
     return true;
 }
 
-bool WI_SELECT_t::Change(int dif) {
+bool WI_SWITCH_t::Decrement(uint8_t) {
+    return WI_SWITCH_t::Incement(0);
+}
+
+bool WI_SELECT_t::Incement(uint8_t) {
     size_t size = 0;
     while (strings[size] != NULL) {
         size++;
     }
 
-    if (dif > 0) {
-        ++index;
-        if (index >= size) {
-            index = 0;
-        }
-    } else {
-        --index;
-        if (index < 0) {
-            index = size - 1;
-        }
+    ++index;
+    if (index >= size) {
+        index = 0;
+    }
+
+    return true;
+}
+
+bool WI_SELECT_t::Decrement(uint8_t) {
+    size_t size = 0;
+    while (strings[size] != NULL) {
+        size++;
+    }
+
+    --index;
+    if (index < 0) {
+        index = size - 1;
     }
     return true;
 }

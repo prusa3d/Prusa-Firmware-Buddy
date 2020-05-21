@@ -5,6 +5,7 @@ IWindowMenuItem::IWindowMenuItem(const char *label, uint16_t id_icon, bool enabl
     : hidden(hidden)
     , enabled(enabled)
     , focused(false)
+    , selected(false)
     , id_icon(id_icon) {
     SetLabel(label);
 }
