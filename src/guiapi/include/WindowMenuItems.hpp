@@ -1,13 +1,15 @@
 #pragma once
 
 #include "IWindowMenuItem.hpp"
+#include <algorithm>
 
 #pragma pack(push, 1)
 //WI_LABEL
 class WI_LABEL_t : public IWindowMenuItem {
 public:
     WI_LABEL_t(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Change(int dif);
+    virtual bool Incement(uint8_t dif);
+    virtual bool Decrement(uint8_t dif);
 };
 
 //WI_SPIN
@@ -24,7 +26,10 @@ public: //todo private
 
 public:
     WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Change(int dif);
+    virtual bool Incement(uint8_t dif);
+    virtual bool Decrement(uint8_t dif);
+    virtual void Click(Iwindow_menu_t &window_menu) final;
+    virtual void OnClick() = 0;
 };
 
 //WI_SWITCH
@@ -37,7 +42,8 @@ public: //todo private
 
 public:
     WI_SWITCH_t(int32_t index, const char **strings, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Change(int dif);
+    virtual bool Incement(uint8_t dif);
+    virtual bool Decrement(uint8_t dif);
 };
 
 //WI_SELECT
@@ -50,11 +56,13 @@ public: //todo private
 
 public:
     WI_SELECT_t(int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
-    virtual bool Change(int dif);
+    virtual bool Incement(uint8_t dif);
+    virtual bool Decrement(uint8_t dif);
 };
 
 /*****************************************************************************/
 //template definitions
+//WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(label, id_icon, enabled, hidden)
@@ -63,51 +71,26 @@ WI_SPIN_t<T>::WI_SPIN_t(T value, const T *range, const char *prt_format, const c
     , prt_format(prt_format) {}
 
 template <class T>
-bool WI_SPIN_t<T>::Change(int dif) {
+bool WI_SPIN_t<T>::Incement(uint8_t dif) {
     T old = value;
-
-    if (dif > 0) {
-        value = MIN(value + (T)dif * range[WIO_STEP], range[WIO_MAX]);
-    } else {
-        value = MAX(value + (T)dif * range[WIO_STEP], range[WIO_MIN]);
-    }
-
+    value = std::min(value + (T)dif * range[WIO_STEP], range[WIO_MAX]);
     return old != value;
 }
-/*
-class WindowMenuItem {
-    using mem_space = std::aligned_union<0, IWindowMenuItem, WI_LABEL_t, WI_SPIN_t, WI_SPIN_FL_t, WI_SWITCH_t, WI_SELECT_t>::type;
-    mem_space data_mem;
-public:
-    WindowMenuItem(const WI_LABEL_t& label){}//{ ::new (static_cast<void*>(std::addressof(data_mem))) WI_LABEL_t(label);}
-    WindowMenuItem(const WI_SPIN_t& wi_spin){}//{ new (pdata) WI_SPIN_t (wi_spin); }
-    WindowMenuItem(const WI_SPIN_FL_t& wi_spin_fl){}//{ new WI_SPIN_FL_t(wi_spin_fl);}
-    WindowMenuItem(const WI_SWITCH_t& wi_switch){}
-    WindowMenuItem(const WI_SELECT_t& wi_select){}
 
+template <class T>
+bool WI_SPIN_t<T>::Decrement(uint8_t dif) {
+    T old = value;
+    value = std::max(value - (T)dif * range[WIO_STEP], range[WIO_MIN]);
+    return old != value;
+}
 
-
-    //recall virtual functions of IWindowMenuItem
-    void Enable() { Get().Enable(); }
-    void Disable() { Get().Disable(); }
-    bool IsEnabled() const { return Get().IsEnabled(); }
-    void SetHidden() { Get().SetHidden(); }
-    void SetNotHidden() { Get().SetNotHidden(); }
-    bool IsHidden() const { return Get().IsHidden(); }
-    void SetIconId(uint16_t id){Get().SetIconId(id);}
-    uint16_t GetIconId() const{ return Get().GetIconId(); }
-    void SetLabel(const char* text) {Get().SetLabel(text);}
-    const char* GetLabel() const {return Get().GetLabel();}
-    void Change(int dif){ Get().Change(dif); };
-
-    IWindowMenuItem &Get(){return *reinterpret_cast<IWindowMenuItem*>(&data_mem);}
-    const IWindowMenuItem &Get()const {return *reinterpret_cast<const IWindowMenuItem*>(&data_mem);}
-};
-
-typedef void(window_menu_items_t)(window_menu_t *pwindow_menu,
-    uint16_t index, WindowMenuItem **ppitem, void *data);
-
-*/
+template <class T>
+void WI_SPIN_t<T>::Click(Iwindow_menu_t &window_menu) {
+    if (selected) {
+        OnClick();
+    }
+    selected = !selected;
+}
 
 /*****************************************************************************/
 //advanced types

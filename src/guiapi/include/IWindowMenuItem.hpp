@@ -17,6 +17,10 @@ private:
     bool hidden : 1;
     bool enabled : 1;
     bool focused : 1;
+
+protected:
+    bool selected : 1; //should be in child, but is here because of size optimalization
+private:
     uint16_t id_icon : 10;
 
     void printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, uint8_t swap) const;
@@ -43,9 +47,11 @@ public:
 
     void Print(Iwindow_menu_t &window_menu, rect_ui16_t rect) const;
 
+    bool IsSelected() const { return selected; }
+    bool Change(int dif) { return dif >= 0 ? Incement(dif) : Decrement(-dif); }
+    virtual bool Incement(uint8_t dif) = 0;
+    virtual bool Decrement(uint8_t dif) = 0;
     virtual void Click(Iwindow_menu_t &window_menu);
-    virtual bool Change(int dif) = 0;
-    virtual bool IsSelected() { return false; }
 
     virtual ~IWindowMenuItem() {}
 };

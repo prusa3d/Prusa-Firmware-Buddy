@@ -113,7 +113,21 @@ screen_t screen_menu_calibration = {
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
+//psmd->items[MI_Z_OFFSET] = { WindowMenuItem(WI_SPIN_FL_t(vars->z_offset, zoffset_fl_range, zoffset_fl_format, "Z-offset")), SCREEN_MENU_NO_SCREEN };
+class MI_Z_OFFSET : public WI_SPIN_t<float> {
+    constexpr static const char *const label = "Z-offset";
+    float get_Z_offset() {
+        return marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET))->z_offset;
+    }
+
+public:
+    MI_Z_OFFSET()
+        : WI_SPIN_t<float>(get_Z_offset(), zoffset_fl_range, zoffset_fl_format, label, 0, true, false) {}
+    virtual void OnClick() {
+    }
+};
+
+using Screen = screen_menu_data_t<false, true, false, MI_RETURN, MI_Z_OFFSET>;
 
 static void init(screen_t *screen) {
     Screen::Create(screen);

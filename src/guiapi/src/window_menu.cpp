@@ -264,7 +264,8 @@ void window_menu_draw(window_menu_t *window) {
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     //window->src_event = event;
     //window->src_param = param;
-    IWindowMenuItem *item = window->GetActiveItem();
+    IWindowMenuItem *const item = window->GetActiveItem();
+    const int value = int(param);
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         //if (window->mode != WI_LABEL) {
@@ -295,13 +296,21 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         //_window_invalidate((window_t *)window); //called inside click
         break;
     case WINDOW_EVENT_ENC_DN:
-        window->Decrement((int)param);
+        if (item->IsSelected()) {
+            item->Decrement(value);
+        } else {
+            window->Decrement(value);
+        }
         /* if (window->mode != WI_LABEL) {
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGING, (void *)window->index);
         }*/
         break;
     case WINDOW_EVENT_ENC_UP:
-        window->Incement((int)param);
+        if (item->IsSelected()) {
+            item->Incement(value);
+        } else {
+            window->Incement(value);
+        }
         /* if (window->mode != WI_LABEL) {
             screen_dispatch_event(NULL, WINDOW_EVENT_CHANGING, (void *)window->index);
         }*/
