@@ -31,6 +31,8 @@ typedef enum {
 #define DEFAULT_FILAMENT FILAMENT_PLA
 //#define FILAMENT_COUNT ((uint32_t)FILAMENTS_END-1)
 
+#define PREHEAT_TEMP 170.01f // like 170 but user cannot set it
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus

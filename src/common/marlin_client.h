@@ -142,6 +142,7 @@ extern uint8_t marlin_get_pqueue_max(void);
 
 // variable setters (internally calls marlin_set_var)
 extern float marlin_set_target_nozzle(float val);
+extern float marlin_set_display_nozzle(float val);
 extern float marlin_set_target_bed(float val);
 extern float marlin_set_z_offset(float val);
 extern uint8_t marlin_set_fan_speed(uint8_t val);

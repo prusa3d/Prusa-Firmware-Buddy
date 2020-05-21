@@ -80,7 +80,11 @@ void window_file_list_init(window_file_list_t *window) {
     window->padding = padding_ui8(2, 6, 2, 6);
     window->alignment = ALIGN_LEFT_CENTER;
     window->win.flg |= WINDOW_FLG_ENABLED;
-
+    window->roll.count = window->roll.px_cd = window->roll.progress = 0;
+    window->last_index = 0;
+    window->roll.phase = ROLL_SETUP;
+    window->roll.setup = TXTROLL_SETUP_INIT;
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
     strcpy(window->sfn_path, "/");
 
     // it is still the same address every time, no harm assigning it again.
@@ -88,7 +92,9 @@ void window_file_list_init(window_file_list_t *window) {
     window->ldv = LDV_Get();
 }
 
-void window_file_list_done(window_file_list_t *window) {}
+void window_file_list_done(window_file_list_t *window) {
+    gui_timers_delete_by_window_id(window->win.id);
+}
 
 void window_file_list_draw(window_file_list_t *window) {
     int item_height = window->font->h + window->padding.top + window->padding.bottom;
@@ -140,7 +146,29 @@ void window_file_list_draw(window_file_list_t *window) {
                 padding.left += 16;
             }
 
-            render_text_align(rc, item, window->font, color_back, color_text, padding, window->alignment);
+            if ((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == i) {
+                if (window->index != window->last_index) {
+                    window->last_index = window->index;
+                    window->roll.setup = TXTROLL_SETUP_INIT;
+                    window->roll.phase = ROLL_SETUP;
+                    gui_timer_restart_txtroll(window->win.id);
+                    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+                }
+
+                render_roll_text_align(rc,
+                    item,
+                    window->font,
+                    padding,
+                    window->alignment,
+                    color_back,
+                    color_text,
+                    &window->roll);
+
+            } else {
+                render_text_align(rc, item, window->font,
+                    color_back, color_text,
+                    padding, window->alignment);
+            }
 
             /*	too slow
 				display->draw_line(
@@ -173,14 +201,19 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
         break;
+    case WINDOW_EVENT_TIMER:
+        roll_text_phasing(window->win.id, window->font, &window->roll);
+        break;
     }
 }
 
 void window_file_list_inc(window_file_list_t *window, int dif) {
     bool repaint = false;
     if (window->index >= LDV_WindowSize(window->ldv) - 1) {
-        Sound_Play(eSOUND_TYPE_BlindAlert);
         repaint = LDV_MoveDown(window->ldv);
+        if (!repaint) {
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
     } else {
         // this 'if' solves a situation with less files than slots on the screen
         if (window->index < LDV_TotalFilesCount(window->ldv) - 1) {
@@ -199,9 +232,11 @@ void window_file_list_inc(window_file_list_t *window, int dif) {
 void window_file_list_dec(window_file_list_t *window, int dif) {
     bool repaint = false;
     if (window->index == 0) {
-        Sound_Play(eSOUND_TYPE_BlindAlert);
         // at the beginning of the window
         repaint = LDV_MoveUp(window->ldv);
+        if (!repaint) {
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
     } else {
         --window->index;
         repaint = true;

@@ -9,6 +9,7 @@
 #include "window_dlg_load_unload.h"
 #include "screens.h"
 #include "dbg.h"
+#include "status_footer.h"
 
 #define FKNOWN      0x01 //filament is known
 #define F_NOTSENSED 0x02 //filament is not in sensor
@@ -82,33 +83,47 @@ void screen_menu_filament_init(screen_t *screen) {
     _deactivate_item(screen);
 }
 
+/// Sets temperature of nozzle not to ooze before print (MBL)
+void setPreheatTemp() {
+    //FIXME temperatures should be swapped
+    marlin_gcode_printf("M104 S%d R%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
+}
+
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     _deactivate_item(screen);
-    if (event == WINDOW_EVENT_CLICK)
-        if (!(psmd->items[(int)param].item.type & WI_DISABLED))
-            switch ((int)param) {
-            case MI_LOAD:
-                p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
-                gui_dlg_load();
-                p_window_header_set_text(&(psmd->header), "FILAMENT");
-                break;
-            case MI_UNLOAD:
-                p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
-                gui_dlg_unload();
-                p_window_header_set_text(&(psmd->header), "FILAMENT");
-                break;
-            case MI_CHANGE:
-                p_window_header_set_text(&(psmd->header), "CHANGE FILAM.");
-                gui_dlg_unload();
-                gui_dlg_load();
-                p_window_header_set_text(&(psmd->header), "FILAMENT");
-                break;
-            case MI_PURGE:
-                p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
-                gui_dlg_purge();
-                p_window_header_set_text(&(psmd->header), "FILAMENT");
-                break;
-            }
+
+    if (event != WINDOW_EVENT_CLICK)
+        return screen_menu_event(screen, window, event, param);
+
+    if (psmd->items[(int)param].item.type & WI_DISABLED)
+        return screen_menu_event(screen, window, event, param);
+
+    switch ((int)param) {
+    case MI_LOAD:
+        p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
+        gui_dlg_load();
+        setPreheatTemp();
+        p_window_header_set_text(&(psmd->header), "FILAMENT");
+        break;
+    case MI_UNLOAD:
+        p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
+        gui_dlg_unload();
+        p_window_header_set_text(&(psmd->header), "FILAMENT");
+        break;
+    case MI_CHANGE:
+        p_window_header_set_text(&(psmd->header), "CHANGE FILAM.");
+        gui_dlg_unload();
+        gui_dlg_load();
+        setPreheatTemp();
+        p_window_header_set_text(&(psmd->header), "FILAMENT");
+        break;
+    case MI_PURGE:
+        p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
+        gui_dlg_purge();
+        setPreheatTemp();
+        p_window_header_set_text(&(psmd->header), "FILAMENT");
+        break;
+    }
     return screen_menu_event(screen, window, event, param);
 }
 

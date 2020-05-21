@@ -16,6 +16,7 @@
     #include "window.h"
     #include "window_frame.h"
     #include "window_text.h"
+    #include "window_roll_text.h"
     #include "window_numb.h"
     #include "window_icon.h"
     #include "window_list.h"

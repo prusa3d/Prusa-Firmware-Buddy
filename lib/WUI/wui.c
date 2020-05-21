@@ -47,6 +47,7 @@ static void update_wui_vars(void) {
     wui_vars.print_dur = wui_marlin_vars->print_duration;
     wui_vars.sd_precent_done = wui_marlin_vars->sd_percent_done;
     wui_vars.sd_printing = wui_marlin_vars->sd_printing;
+    wui_vars.time_to_end = wui_marlin_vars->time_to_end;
     if (marlin_change_clr(MARLIN_VAR_FILENAME)) {
         strlcpy(wui_vars.gcode_name, wui_marlin_vars->media_LFN, FILE_NAME_MAX_LEN);
     }

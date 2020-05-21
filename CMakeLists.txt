@@ -427,7 +427,7 @@ target_sources(
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
-          src/common/eeprom.c
+          src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
           src/common/media.cpp
@@ -478,6 +478,7 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
           src/gui/guimain.c
           src/gui/filament.cpp
   )
@@ -575,6 +576,7 @@ if(GUI)
             src/guiapi/src/window_icon.c
             src/guiapi/src/window_spin.c
             src/guiapi/src/window_text.c
+            src/guiapi/src/window_roll_text.c
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
