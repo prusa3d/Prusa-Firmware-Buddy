@@ -4,25 +4,10 @@
 #include "screen.h" //screen_close
 #include "screens.h"
 
-#define WIO_MIN  0 //todo remove
-#define WIO_MAX  1
-#define WIO_STEP 2
-
 /*****************************************************************************/
 //ctors
 WI_LABEL_t::WI_LABEL_t(const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(label, id_icon, enabled, hidden) {}
-
-WI_SPIN_t::WI_SPIN_t(int32_t value, const int32_t *range, const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(label, id_icon, enabled, hidden)
-    , value(value)
-    , range(range) {}
-
-WI_SPIN_FL_t::WI_SPIN_FL_t(float value, const float *range, const char *prt_format, const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(label, id_icon, enabled, hidden)
-    , value(value)
-    , range(range)
-    , prt_format(prt_format) {}
 
 WI_SWITCH_t::WI_SWITCH_t(int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(label, id_icon, enabled, hidden)
@@ -39,30 +24,6 @@ WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, const char *label,
 
 bool WI_LABEL_t::Change(int dif) {
     return false;
-}
-
-bool WI_SPIN_t::Change(int dif) {
-    int32_t old = value;
-
-    if (dif > 0) {
-        value = MIN(value + dif * range[WIO_STEP], range[WIO_MAX]);
-    } else {
-        value = MAX(value + dif * range[WIO_STEP], range[WIO_MIN]);
-    }
-
-    return old != value;
-}
-
-bool WI_SPIN_FL_t::Change(int dif) {
-    float old = value;
-
-    if (dif > 0) {
-        value = MIN(value + (float)dif * range[WIO_STEP], range[WIO_MAX]);
-    } else {
-        value = MAX(value + (float)dif * range[WIO_STEP], range[WIO_MIN]);
-    }
-
-    return old != value;
 }
 
 bool WI_SWITCH_t::Change(int dif) {

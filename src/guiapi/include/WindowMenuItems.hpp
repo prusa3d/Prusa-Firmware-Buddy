@@ -11,26 +11,19 @@ public:
 };
 
 //WI_SPIN
-//where all values are divided by 1000
+template <class T>
 class WI_SPIN_t : public IWindowMenuItem {
-public: //todo private
-    int32_t value;
-    const int32_t *range;
+    enum { WIO_MIN = 0,
+        WIO_MAX = 1,
+        WIO_STEP = 2 };
 
-public:
-    WI_SPIN_t(int32_t value, const int32_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Change(int dif);
-};
-
-//WI_SPIN_FL
-class WI_SPIN_FL_t : public IWindowMenuItem {
 public: //todo private
-    float value;
-    const float *range;
+    T value;
+    const T *range;
     const char *prt_format;
 
 public:
-    WI_SPIN_FL_t(float value, const float *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
 };
 
@@ -60,6 +53,27 @@ public:
     virtual bool Change(int dif);
 };
 
+/*****************************************************************************/
+//template definitions
+template <class T>
+WI_SPIN_t<T>::WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+    : IWindowMenuItem(label, id_icon, enabled, hidden)
+    , value(value)
+    , range(range)
+    , prt_format(prt_format) {}
+
+template <class T>
+bool WI_SPIN_t<T>::Change(int dif) {
+    T old = value;
+
+    if (dif > 0) {
+        value = MIN(value + (T)dif * range[WIO_STEP], range[WIO_MAX]);
+    } else {
+        value = MAX(value + (T)dif * range[WIO_STEP], range[WIO_MIN]);
+    }
+
+    return old != value;
+}
 /*
 class WindowMenuItem {
     using mem_space = std::aligned_union<0, IWindowMenuItem, WI_LABEL_t, WI_SPIN_t, WI_SPIN_FL_t, WI_SWITCH_t, WI_SELECT_t>::type;
