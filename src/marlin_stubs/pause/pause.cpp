@@ -67,12 +67,12 @@
     (!ENABLED(PREVENT_COLD_EXTRUSION)) || \
     ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE) || \
     BOTH(FILAMENT_UNLOAD_ALL_EXTRUDERS, MIXING_EXTRUDER) || \
-    ENABLED(HOST_ACTION_COMMANDS) || \
-    ENABLED(HOST_PROMPT_SUPPORT) || \
     ENABLED(SDSUPPORT)
 #error unsupported
 #endif
 // clang-format on
+
+PauseMenuResponse pause_menu_response;
 
 //cannot be class member (externed in marlin)
 uint8_t did_pause_print = 0;
