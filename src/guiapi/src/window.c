@@ -349,9 +349,9 @@ void window_set_text(int16_t id, const char *text) {
     case WINDOW_CLS_TEXT:
         ((window_text_t *)window)->text = (char *)text;
         break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->text = (char *)text;
-            break;
+    case WINDOW_CLS_ROLL_TEXT:
+        ((window_roll_text_t *)window)->text = (char *)text;
+        break;
     }
     _window_invalidate((window_t *)window);
 }
@@ -364,8 +364,8 @@ char *window_get_text(int16_t id) {
     switch (window->cls->cls_id) {
     case WINDOW_CLS_TEXT:
         return ((window_text_t *)window)->text;
-        case WINDOW_CLS_ROLL_TEXT:
-            return ((window_roll_text_t *)window)->text;
+    case WINDOW_CLS_ROLL_TEXT:
+        return ((window_roll_text_t *)window)->text;
     }
     return 0;
 }
@@ -478,9 +478,9 @@ void window_set_color_text(int16_t id, color_t clr) {
     case WINDOW_CLS_TEXT:
         ((window_text_t *)window)->color_text = clr;
         break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->color_text = clr;
-            break;
+    case WINDOW_CLS_ROLL_TEXT:
+        ((window_roll_text_t *)window)->color_text = clr;
+        break;
     }
     _window_invalidate((window_t *)window);
 }
@@ -493,8 +493,8 @@ color_t window_get_color_text(int16_t id) {
     switch (window->cls->cls_id) {
     case WINDOW_CLS_TEXT:
         return ((window_text_t *)window)->color_text;
-        case WINDOW_CLS_ROLL_TEXT:
-            return ((window_roll_text_t *)window)->color_text;
+    case WINDOW_CLS_ROLL_TEXT:
+        return ((window_roll_text_t *)window)->color_text;
     }
     return COLOR_BLACK;
 }
