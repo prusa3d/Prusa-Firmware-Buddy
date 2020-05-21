@@ -88,7 +88,6 @@ void app_run(void) {
 
     //DBG("before setup (%ld ms)", HAL_GetTick());
     if (diag_fastboot || (!sys_fw_is_valid())) {
-        marlin_server_stop_processing();
         if (!sys_fw_is_valid()) // following code will be done only with invalidated firmware
         {
             hwio_safe_state(); // safe states
@@ -99,8 +98,10 @@ void app_run(void) {
         if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
             init_tmc();
         }
-    } else
+    } else {
         app_setup();
+        marlin_server_start_processing();
+    }
     //DBG("after setup (%ld ms)", HAL_GetTick());
 
     if (defaults_loaded && marlin_server_processing()) {

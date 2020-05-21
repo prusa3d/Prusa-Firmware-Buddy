@@ -161,10 +161,10 @@ void marlin_server_init(void) {
     marlin_server_queue = osMessageCreate(osMessageQ(serverQueue), NULL);
     osSemaphoreDef(serverSema);
     marlin_server_sema = osSemaphoreCreate(osSemaphore(serverSema), 1);
-    marlin_server.flags = MARLIN_SFLG_PROCESS | MARLIN_SFLG_STARTED;
+    marlin_server.flags = MARLIN_SFLG_STARTED;
     for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
-        marlin_server.notify_events[i] = MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge) | MARLIN_EVT_MSK(MARLIN_EVT_Startup); // by default only ack and startup
-        marlin_server.notify_changes[i] = 0;                                                                          // by default nothing
+        marlin_server.notify_events[i] = MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge) | MARLIN_EVT_MSK(MARLIN_EVT_Startup) | MARLIN_EVT_MSK(MARLIN_EVT_StartProcessing); // by default only ack, startup and processing
+        marlin_server.notify_changes[i] = 0;                                                                                                                       // by default nothing
     }
     marlin_server_task = osThreadGetId();
     marlin_server.mesh.xc = 4;
