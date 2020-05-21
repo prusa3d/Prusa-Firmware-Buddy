@@ -241,7 +241,7 @@ bool Pause::FilamentLoad(const float &slow_load_length, const float &fast_load_l
         //reheat (30min timeout)
         marlin_server_print_reheat_start();
 
-        if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30)) {
+        if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 30, 50)) {
             return false;
         }
 
