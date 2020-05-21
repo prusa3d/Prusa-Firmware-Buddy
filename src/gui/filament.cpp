@@ -1,9 +1,7 @@
 /*
  * filament.cpp
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
  */
+
 #include "eeprom.h"
 #include "assert.h"
 #include "filament.h"

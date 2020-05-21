@@ -4,12 +4,9 @@
 
 #pragma pack(push, 1)
 //WI_LABEL
-//where all values are divided by 1000
 class WI_LABEL_t : public IWindowMenuItem {
 public:
     WI_LABEL_t(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-
-    //virtual int OnClick() { return 0; } //to match template signature
     virtual bool Change(int dif);
 };
 

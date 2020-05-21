@@ -1,8 +1,5 @@
 /*
  * filament.h
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
  */
 
 #pragma once
@@ -29,7 +26,6 @@ typedef enum {
 } FILAMENT_t;
 
 #define DEFAULT_FILAMENT FILAMENT_PLA
-//#define FILAMENT_COUNT ((uint32_t)FILAMENTS_END-1)
 
 #ifdef __cplusplus
 extern "C" {
