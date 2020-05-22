@@ -69,6 +69,7 @@ void gui_pop_up(void) {
 
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_POPUP, 0, rect_ui16(0, 32, 240, 120), &dlg);
+    memset(dlg.text, '\0', sizeof(dlg.text) * sizeof(char)); // set to zeros to be on the safe side
     strlcpy(dlg.text, msg_stack.msg_data[0], sizeof(dlg.text));
     window_popup_ptr = (window_t *)&dlg;
     gui_invalidate();

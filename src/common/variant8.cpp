@@ -345,11 +345,11 @@ char *variant8_to_str(variant8_t *pvar8, const char *fmt) {
     char buff[VARIANT8_TO_STR_MAX_BUFF] = "";
     int n = variant8_snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt, pvar8);
     if (n <= 0)
-        return NULL;
+        return nullptr;
 
     char *str = (char *)variant8_malloc(n + 1);
     if (!str)
-        return NULL;
+        return nullptr;
 
     if (n > (VARIANT8_TO_STR_MAX_BUFF - 1))
         // FIXME will this ever happen?

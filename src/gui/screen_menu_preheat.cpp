@@ -31,10 +31,8 @@ void screen_menu_preheat_init(screen_t *screen) {
     psmd->items[0] = menu_item_return;
 
     for (size_t i = 1; i < FILAMENTS_END; i++) {
-        // FIXME do we need (char *)?
-        // FIXME why to put 15 spaces in (23-1) long string?
-        memset((char *)psmd->items[i].item.label, ' ', sizeof(char) * 15);
-        strlcpy((char *)psmd->items[i].item.label,, filaments[i].long_name, strlen(filaments[i].long_name));
+        memset(psmd->items[i].item.label, '\0', sizeof(psmd->items[i].item.label) * sizeof(char)); // set to zeros to be on the safe side
+        strlcpy(psmd->items[i].item.label, filaments[i].long_name, sizeof(psmd->items[i].item.label));
     }
     psmd->items[FILAMENTS_END] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     window_set_item_index(psmd->menu.win.id, get_filament());

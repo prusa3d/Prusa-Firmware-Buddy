@@ -107,14 +107,19 @@ msg_stack_t msg_stack = { '\0', 0 };
 
 void _add_status_msg(const char *const popup_msg) {
     char message[MSG_MAX_LENGTH];
+    memset(message, '\0', sizeof(message) * sizeof(char)); // set to zeros to be on the safe side
+
     strlcpy(message, popup_msg, MSG_MAX_LENGTH);
 
     for (uint8_t i = msg_stack.count; i; i--) {
         if (i == MSG_STACK_SIZE)
             i--; // last place of the limited stack will be always overwritten
+
+        memset(msg_stack.msg_data[i], '\0', sizeof(msg_stack.msg_data[i]) * sizeof(char)); // set to zeros to be on the safe side
         strlcpy(msg_stack.msg_data[i], msg_stack.msg_data[i - 1], sizeof(msg_stack.msg_data[i]));
     }
 
+    memset(msg_stack.msg_data[0], '\0', sizeof(msg_stack.msg_data[0]) * sizeof(char)); // set to zeros to be on the safe side
     strlcpy(msg_stack.msg_data[0], message, sizeof(msg_stack.msg_data[0]));
 
     if (msg_stack.count < MSG_STACK_SIZE)

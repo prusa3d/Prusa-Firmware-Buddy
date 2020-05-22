@@ -63,7 +63,9 @@ void pngview(void) {
         FILINFO info;
         fres = f_findfirst(&dir, &info, "", "*.png");
         while (fres == FR_OK) {
-            strlcpy(png_fnames[png_cnt++], info.fname, PNG_FNAMES_MAX_LENGTH);
+            memset(png_fnames[png_cnt], '\0', sizeof(png_fnames[png_cnt]) * sizeof(char)); // set to zeros to be on the safe side
+            strlcpy(png_fnames[png_cnt], info.fname, PNG_FNAMES_MAX_LENGTH);
+            png_cnt++;
             fres = f_findnext(&dir, &info);
             if (strncmp(png_fnames[png_cnt - 1], info.fname, PNG_FNAMES_MAX_LENGTH) == 0) {
                 png_cnt--;
@@ -79,6 +81,7 @@ void pngview(void) {
             old_encoder = jogwheel_encoder;
             char fn[PNG_FNAMES_MAX_LENGTH + 5] = "/";
             _dbg("%d\n", jogwheel_encoder);
+            memset(fn + 1, '\0', (sizeof(fn) - 1) * sizeof(char)); // set to zeros to be on the safe side
             strlcpy(fn + 1, png_fnames[jogwheel_encoder], PNG_FNAMES_MAX_LENGTH);
             strlcat(fn, ".PNG", sizeof(fn));
             _dbg("%s\n", fn);

@@ -44,10 +44,8 @@ typedef struct
     const char **strings;
 } WI_SWITCH_SELECT_t;
 
-#define LABEL_MAX_TEXT_LENGTH 23
-
 typedef struct _window_menu_item_t {
-    char label[LABEL_MAX_TEXT_LENGTH];
+    char label[23];
     uint16_t id_icon;
     /**
 	 * Type : WI_LABEL || WI_SPIN || WI_SWITCH || WI_SELECT

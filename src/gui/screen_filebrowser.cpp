@@ -43,7 +43,7 @@ static WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
 /// To save first/top visible item in the file browser
 /// This is something else than the selected file for print
 /// This is used to restore the content of the browser into previous state including the layout
-const unsigned int SFN_len = 13;
+constexpr unsigned int SFN_len = 13;
 static char firstVisibleSFN[SFN_len] = "";
 
 static void screen_filebrowser_init(screen_t *screen) {

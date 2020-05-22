@@ -377,7 +377,8 @@ void ScreenHardFault(void) {
     __disable_irq(); //disable irq
 
     char tskName[configMAX_TASK_NAME_LEN];
-    strlcpy(tskName, pxCurrentTCB->pcTaskName, sizeof(tsk_name));
+    memset(tskName, '\0', sizeof(tskName) * sizeof(char)); // set to zeros to be on the safe side
+    strlcpy(tskName, pxCurrentTCB->pcTaskName, sizeof(tskName));
     StackType_t *pTopOfStack = (StackType_t *)pxCurrentTCB->pxTopOfStack;
     StackType_t *pBotOfStack = pxCurrentTCB->pxStack;
 
