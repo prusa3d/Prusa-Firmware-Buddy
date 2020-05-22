@@ -10,6 +10,7 @@
 #include "ff.h"
 #include "crc32.h"
 #include "version.h"
+#include "../Marlin/src/module/temperature.h"
 
 #define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
 #define EEPROM_DATASIZE sizeof(eeprom_vars_t)
@@ -120,12 +121,12 @@ static const eeprom_vars_t eeprom_var_defaults = {
     1,               // EEVAR_RUN_FIRSTLAY
     1,               // EEVAR_FSENSOR_ENABLED
     0,               // EEVAR_ZOFFSET
-    18.000000,       // EEVAR_PID_NOZ_P
-    0.294400,        // EEVAR_PID_NOZ_I (unscaled)
-    274.437500,      // EEVAR_PID_NOZ_D (unscaled)
-    160.970001,      // EEVAR_PID_BED_P
-    2.251200,        // EEVAR_PID_BED_I (unscaled)
-    2877.437744,     // EEVAR_PID_BED_D (unscaled)
+    DEFAULT_Kp,      // EEVAR_PID_NOZ_P
+    scalePID_i(DEFAULT_Ki),      // EEVAR_PID_NOZ_I
+    scalePID_d(DEFAULT_Kd),      // EEVAR_PID_NOZ_D
+    DEFAULT_bedKp,   // EEVAR_PID_BED_P
+    scalePID_i(DEFAULT_bedKi),   // EEVAR_PID_BED_I
+    scalePID_d(DEFAULT_bedKd),   // EEVAR_PID_BED_D
     0,               // EEVAR_LAN_FLAG
     0,               // EEVAR_LAN_IP4_ADDR
     0,               // EEVAR_LAN_IP4_MSK

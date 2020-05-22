@@ -29,6 +29,8 @@ void append_crc(char *str, uint32_t str_size) {
 }
 
 void create_path_info_4error(char *str, uint32_t str_size, int error_code) {
+    // FIXME use std::vector or forward_list to make code cleaner/safer (implicit length check)
+
     strcpy(str, ER_URL);
     snprintf(eofstr(str), str_size - strlen(str), "%d/", error_code);
     snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
@@ -39,6 +41,8 @@ void create_path_info_4error(char *str, uint32_t str_size, int error_code) {
 }
 
 void create_path_info_4service(char *str, uint32_t str_size) {
+    // FIXME use std::vector or forward_list to make code cleaner/safer (implicit length check)
+
     strcpy(str, IR_URL);
     // PrinterType
     snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
@@ -66,7 +70,7 @@ void create_path_info_4service(char *str, uint32_t str_size) {
     // BuildNumber
     //!//     snprintf(eofstr(str), str_size - strlen(str), "%d/",FW_BUILDNR);
     // LanguageInfo
-    snprintf(eofstr(str), str_size - strlen(str), "%d/", lang_code);
+    snprintf(eofstr(str), str_size - strlen(str), "%d/", get_actual_lang()->lang_code);
     // SelfTestResult
     if (last_selftest_time == 0)
         strcat(str, "0");
