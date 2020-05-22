@@ -184,7 +184,7 @@ bool Pause::FilamentLoad(const float &slow_load_length, const float &fast_load_l
         Response isFilamentInGear;
         do {
             // wait till filament sensor does not show "FS_NO_FILAMENT" in this block
-            // ask user to inset filament, than wait continue button
+            // ask user to insert filament, than wait continue button
             do {
                 while (fs_get_state() == FS_NO_FILAMENT) {
                     idle(true);
@@ -195,7 +195,7 @@ bool Pause::FilamentLoad(const float &slow_load_length, const float &fast_load_l
             } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
             hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
 
-            // filamnet is being inserted
+            // filament is being inserted
             // Slow Load filament
             if (slow_load_length) {
                 AutoRestore<bool> CE(thermalManager.allow_cold_extrude);

@@ -46,7 +46,7 @@ void _dbg_swo(const char *fmt, ...) {
     char line[DBG_MAXLINE];
     va_list va;
     va_start(va, fmt);
-    int len = vsprintf(line, fmt, va);
+    int len = vsnprintf(line, DBG_MAXLINE, fmt, va);
     va_end(va);
     line[len++] = '\n';
     for (int i = 0; i < len; i++) {
@@ -78,7 +78,7 @@ void _dbg_uart(const char *fmt, ...) {
     char line[DBG_MAXLINE];
     va_list va;
     va_start(va, fmt);
-    int len = vsprintf(line, fmt, va);
+    int len = vsnprintf(line, DBG_MAXLINE, fmt, va);
     va_end(va);
     line[len++] = '\n';
     line[len] = 0;
@@ -97,7 +97,7 @@ void _dbg_cdc(const char *fmt, ...) {
     char line[DBG_MAXLINE];
     va_list va;
     va_start(va, fmt);
-    int len = vsprintf(line, fmt, va);
+    int len = vsnprintf(line, DBG_MAXLINE, fmt, va);
     va_end(va);
     line[len++] = '\n';
     line[len] = 0;

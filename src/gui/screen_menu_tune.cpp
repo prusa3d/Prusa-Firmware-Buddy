@@ -130,9 +130,12 @@ int screen_menu_tune_event(screen_t *screen, window_t *window,
         case MI_SPEED:
             marlin_set_print_speed((uint16_t)(psmd->items[MI_SPEED].item.wi_spin.value / 1000));
             break;
-        case MI_NOZZLE:
-            marlin_set_target_nozzle((float)(psmd->items[MI_NOZZLE].item.wi_spin.value) / 1000);
+        case MI_NOZZLE: {
+            const float temp = psmd->items[MI_NOZZLE].item.wi_spin.value / 1000.0f;
+            marlin_set_target_nozzle(temp);
+            marlin_set_display_nozzle(temp);
             break;
+        }
         case MI_HEATBED:
             marlin_set_target_bed((float)(psmd->items[MI_HEATBED].item.wi_spin.value) / 1000);
             break;

@@ -275,7 +275,7 @@ int marlin_gcode_printf(const char *format, ...) {
     strlcpy(request, "!g ", MARLIN_MAX_REQUEST);
     va_list ap;
     va_start(ap, format);
-    ret = vsprintf(request + 3, format, ap);
+    ret = vsnprintf(request + 3, MARLIN_MAX_REQUEST - 3, format, ap);
     va_end(ap);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
@@ -464,6 +464,10 @@ uint8_t marlin_get_pqueue_max(void) {
 
 float marlin_set_target_nozzle(float val) {
     return marlin_set_var(MARLIN_VAR_TTEM_NOZ, variant8_flt(val)).flt;
+}
+
+float marlin_set_display_nozzle(float val) {
+    return marlin_set_var(MARLIN_VAR_DTEM_NOZ, variant8_flt(val)).flt;
 }
 
 float marlin_set_target_bed(float val) {

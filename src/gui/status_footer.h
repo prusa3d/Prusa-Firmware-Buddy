@@ -10,10 +10,11 @@
 
 #include "gui.h"
 
-#define TEXT_LENGTH_NOZZLE  10
-#define TEXT_LENGTH_HEATBED 10
-#define TEXT_LENGTH_SPEED   5
-#define TEXT_LENGTH_Z       7
+#define TEXT_LENGTH_NOZZLE   10
+#define TEXT_LENGTH_HEATBED  10
+#define TEXT_LENGTH_SPEED    5
+#define TEXT_LENGTH_Z        7
+#define TEXT_LENGTH_FILAMENT 5
 
 #pragma pack(push)
 #pragma pack(1)
@@ -32,6 +33,8 @@ typedef struct
     float nozzle_target_display; /// target temperature of nozzle shown on display
     float heatbed;               /// temperature of bed shown on display
     float heatbed_target;        /// temperature of bed shown on display
+    float z_pos;                 /// z position
+    uint16_t print_speed;        /// print speed in percents
 
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
@@ -52,9 +55,11 @@ typedef struct
     char text_heatbed[TEXT_LENGTH_HEATBED]; // "110/110°C"
     char text_prnspeed[TEXT_LENGTH_SPEED];  // "999%"
     char text_z_axis[TEXT_LENGTH_Z];        // "999.95"
+    char filament[TEXT_LENGTH_FILAMENT];    // "PETG"
 
     uint32_t last_timer_repaint_values;
     uint32_t last_timer_repaint_colors;
+    uint32_t last_timer_repaint_z_pos;
 
     heat_state_t nozzle_state;
     heat_state_t heatbed_state;
@@ -70,8 +75,9 @@ typedef struct
 #define BUTTON_STATUS_Z_AXIS   0xf3
 #define BUTTON_STATUS_FILAMENT 0xf4
 
-#define REPAINT_VALUE_PERIOD 1000 /// time span between value repaint [miliseconds]
-#define BLINK_PERIOD         500  /// time span between color changes [miliseconds]
+#define REPAINT_Z_POS_PERIOD 512  /// time span between z position repaint [miliseconds]
+#define REPAINT_VALUE_PERIOD 1024 /// time span between value repaint [miliseconds]
+#define BLINK_PERIOD         512  /// time span between color changes [miliseconds]
 
 #define COOL_NOZZLE 50 /// highest temperature of nozzle to be considered as cool
 #define COOL_BED    45 /// highest temperature of bed to be considered as cool

@@ -102,7 +102,7 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
 
             //nextbutton coords
             rc_btn.x += gui_defaults.btn_spacing;
-            rc_btn.w = btn_width;
+            rc_btn.w = btn_width + gui_defaults.btn_spacing;
         }
     }
 }
