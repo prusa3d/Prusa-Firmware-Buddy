@@ -128,7 +128,7 @@ void screen_printing_serial_init(screen_t *screen) {
         window_set_alignment(id, ALIGN_CENTER);
     }
 
-		// -- CONTROLS
+    // -- CONTROLS
     window_icon_t *sp_button;
     // -- tune button
     sp_button = &pw->w_buttons[0];
@@ -178,4 +178,3 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
 
     return 0;
 }
-
