@@ -13,6 +13,35 @@
 #pragma pack(push)
 #pragma pack(1)
 
+typedef enum {
+    iid_tune,
+    iid_pause,
+    // iid_stop,
+    // iid_resume,
+    iid_disconnect,
+    iid_count
+} item_id_t;
+
+#pragma pack(pop)
+
+const uint16_t serial_printing_icons[iid_count] = {
+    IDR_PNG_menu_icon_settings,
+    IDR_PNG_menu_icon_pause,
+    // IDR_PNG_menu_icon_stop,
+    // IDR_PNG_menu_icon_resume,
+    IDR_PNG_menu_icon_stop // disconnect
+};
+
+const char *serial_printing_labels[iid_count] = {
+    "Tune",
+    "Pause",
+    // "Stop",
+    // "Resume",
+    "Disconnect"
+};
+
+#pragma pack(push, 1)
+
 typedef struct
 {
     window_frame_t root;
@@ -22,25 +51,19 @@ typedef struct
 
     window_text_t w_message; //Messages from onStatusChanged()
     window_icon_t octo_icon;
-    window_icon_t tune_button;
-    window_text_t tune_label;
+
+    window_icon_t w_buttons[3];
+    window_text_t w_labels[3];
     int last_tick;
 
 } screen_printing_serial_data_t;
-
-#pragma pack(pop)
 
 void screen_printing_serial_init(screen_t *screen);
 void screen_printing_serial_done(screen_t *screen);
 void screen_printing_serial_draw(screen_t *screen);
 int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t event, void *param);
 
-static const char txt0[] = "Remote\nprinting\nin progress\n   ";
-static const char txt1[] = "Remote\nprinting\nin progress\n.  ";
-static const char txt2[] = "Remote\nprinting\nin progress\n.. ";
-static const char txt3[] = "Remote\nprinting\nin progress\n...";
-
-static const char *txts[] = { txt0, txt1, txt2, txt3 };
+#define pw ((screen_printing_serial_data_t *)screen->pdata)
 
 screen_t screen_printing_serial = {
     0,
@@ -55,7 +78,14 @@ screen_t screen_printing_serial = {
 extern "C" screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
 static const uint8_t Tag_bt_tune = 1;
-#define pw ((screen_printing_serial_data_t *)screen->pdata)
+
+static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
+    if (window_get_icon_id(btn_id) != serial_printing_icons[id_to_set])
+        window_set_icon_id(btn_id, serial_printing_icons[id_to_set]);
+    //compare pointers to text, compare texts would take too long
+    if (window_get_text(lbl_id) != serial_printing_labels[id_to_set])
+        window_set_text(lbl_id, serial_printing_labels[id_to_set]);
+}
 
 void screen_printing_serial_init(screen_t *screen) {
     pw->last_tick = 0;
@@ -75,45 +105,40 @@ void screen_printing_serial_init(screen_t *screen) {
         WINDOW_CLS_ICON, root,
         rect_ui16((240 - pt_ico.x) / 2, gui_defaults.msg_box_sz.y, pt_ico.x, pt_ico.y),
         &(pw->octo_icon));
-    //window_set_color_back(id, COLOR_GRAY);
     window_enable(id);
     window_set_icon_id(id, IDR_PNG_serial_printing);
     pw->octo_icon.win.f_enabled = 0;
     pw->octo_icon.win.f_disabled = 0;
 
-    //button tune
-    const rect_ui16_t rect_bt_tune = rect_ui16(8, 185, 64, 64);
-    id = window_create_ptr(
-        WINDOW_CLS_ICON, root,
-        rect_bt_tune,
-        &(pw->tune_button));
-    window_set_color_back(id, COLOR_GRAY);
-    window_enable(id);
-    window_set_icon_id(id, IDR_PNG_menu_icon_settings);
+    for (uint8_t col = 0; col < 3; col++) {
+        id = window_create_ptr(
+            WINDOW_CLS_ICON, root,
+            rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
+            &(pw->w_buttons[col]));
+        window_set_color_back(id, COLOR_GRAY);
+        window_set_tag(id, col + 1);
+        window_enable(id);
 
-    //button tune text
-    id = window_create_ptr(
-        WINDOW_CLS_TEXT, root,
-        rect_ui16(0, 196 + 48 + 8, 80, 22),
-        &(pw->tune_label));
-    pw->tune_label.font = resource_font(IDR_FNT_SMALL);
-    window_set_padding(id, padding_ui8(0, 0, 0, 0));
-    window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "Tune");
-    window_set_tag(id, Tag_bt_tune);
-    window_set_focus(id);
+        id = window_create_ptr(
+            WINDOW_CLS_TEXT, root,
+            rect_ui16(80 * col, 196 + 48 + 8, 80, 22),
+            &(pw->w_labels[col]));
+        pw->w_labels[col].font = resource_font(IDR_FNT_SMALL);
+        window_set_padding(id, padding_ui8(0, 0, 0, 0));
+        window_set_alignment(id, ALIGN_CENTER);
+    }
 
-    //text
-    const point_ui16_t pt_txt = font_meas_text(resource_font(IDR_FNT_NORMAL), txt0);
-    const rect_ui16_t rect_txt = rect_ui16(
-        (240 + rect_bt_tune.x + rect_bt_tune.w - pt_txt.x) / 2,
-        gui_defaults.msg_box_sz.y + pt_ico.y,
-        240 - (240 + rect_bt_tune.x + rect_bt_tune.w - pt_txt.x) / 2, //cannot use 240-rect_txt.x .. stupid C
-        95);
-    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_txt, &(pw->w_message));
-    window_set_alignment(id, ALIGN_LEFT_TOP);
-    //window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, txts[0]);
+		// -- CONTROLS
+    window_icon_t *sp_button;
+    // -- tune button
+    sp_button = &pw->w_buttons[0];
+    set_icon_and_label(iid_tune, sp_button->win.id, pw->w_labels[0].win.id);
+    // -- pause
+    sp_button = &pw->w_buttons[1];
+    set_icon_and_label(iid_pause, sp_button->win.id, pw->w_labels[1].win.id);
+    // -- disconnect
+    sp_button = &pw->w_buttons[2];
+    set_icon_and_label(iid_disconnect, sp_button->win.id, pw->w_labels[2].win.id);
 
     status_footer_init(&(pw->footer), root);
 }
@@ -131,28 +156,26 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
     }
-
-    static char lock = 0;
-    if (lock)
+    if (event != WINDOW_EVENT_CLICK) {
         return 0;
-    lock = 1;
+    }
 
-    if (event == WINDOW_EVENT_BTN_DN) {
+    switch (((int)param) - 1) {
+    case 0: // -- tune
         screen_open(get_scr_menu_tune()->id);
-        lock = 0;
-        return 1; //here MUST BE return 1. Screen is no longer valid.
+        return 1;
+        break;
+    case 1: // -- pause
+        marlin_gcode("M118 A1 action:pause");
+        return 1;
+        break;
+    case 2: // -- disconnect
+        marlin_gcode("M118 A1 action:disconnect");
+        screen_close();
+        return 1;
+        break;
     }
 
-    int now = HAL_GetTick();
-
-    if ((now - pw->last_tick) > 500) {
-        pw->last_tick = now;
-        static int i = 0;
-        ++i;
-        i %= (sizeof(txts) / sizeof(txts[0]));
-        window_set_text(pw->w_message.win.id, txts[i]);
-    }
-
-    lock = 0;
     return 0;
 }
+
