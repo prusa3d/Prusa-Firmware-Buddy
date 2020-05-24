@@ -6,12 +6,12 @@
 #include "str_utils.h"
 
 void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint8_t alignment) {
-    render_text_align_ml(rc, text, font, clr0, clr1, padding, alignment, (ml_instance_t) { .ml_mode = ML_MODE_NONE });
+    render_text_align_ml(rc, text, font, clr0, clr1, padding, alignment, &(ml_data_t) { .ml_mode = ML_MODE_NONE });
 }
 
-void render_text_align_ml(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint8_t alignment, ml_instance_t ml_instance) {
+void render_text_align_ml(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint8_t alignment, ml_data_t *pml_data) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
-    if (ml_instance.ml_mode == ML_MODE_WORDB) {
+    if (pml_data->ml_mode == ML_MODE_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP
         uint16_t x;
         uint16_t y = rc_pad.y;
@@ -42,9 +42,9 @@ void render_text_align_ml(rect_ui16_t rc, const char *text, font_t *font, color_
     } else {
         char *str_tmp = (char *)0x10000000; // ~ PNG-buffer (CCM RAM)
         strcpy(str_tmp, text);
-        if (ml_instance.ml_mode == ML_MODE_EXT) {
-            set_instance(&ml_instance);
-            str2multiline(str_tmp, ml_instance.line_width);
+        if (pml_data->ml_mode == ML_MODE_EXT) {
+            set_instance(pml_data->pml_instance);
+            str2multiline(str_tmp, pml_data->line_width);
         }
         point_ui16_t wh_txt = font_meas_text(font, str_tmp);
         if (wh_txt.x && wh_txt.y) {

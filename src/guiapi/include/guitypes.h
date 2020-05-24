@@ -106,6 +106,12 @@ typedef struct _resource_entry_t {
     const uint16_t size; // 2 bytes - data size
 } resource_entry_t;
 
+typedef struct {
+    ml_mode_t ml_mode;
+    size_t line_width;
+    ml_instance_t *pml_instance;
+} ml_data_t;
+
 typedef struct _gui_defaults_t {
     color_t color_back;
     color_t color_text;

@@ -22,6 +22,7 @@ typedef struct _window_text_t {
     padding_ui8_t padding;
     uint8_t alignment;
     ml_instance_t ml_instance;
+    ml_data_t *pml_data;
 } window_text_t;
 
 #pragma pack(pop)

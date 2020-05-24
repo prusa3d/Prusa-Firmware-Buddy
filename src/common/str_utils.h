@@ -38,8 +38,6 @@ enum class delimiter_t : uint8_t { NONE,
 
 typedef struct
 {
-    ml_mode_t ml_mode = ML_MODE_NONE;
-    size_t line_width = LINE_WIDTH_UNLIMITED;
     const char *pcustom_set = "";
     const char *pwithdraw_set = "";
     int hyphen_distance = HYPHEN_DENY;
