@@ -171,6 +171,7 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         break;
     case BUTTON_DISCONNECT:
         marlin_gcode("M118 A1 action:disconnect");
+        marlin_gcode("M86 S1800"); // enable safety timer after disconnect
         screen_close();
         return 1;
         break;
