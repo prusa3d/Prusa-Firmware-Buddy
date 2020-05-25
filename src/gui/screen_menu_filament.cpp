@@ -126,7 +126,7 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
     switch ((int)param) {
     case MI_LOAD:
         p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
-        if (gui_dlg_load() == DLG_OK) {                                                            //user can pres return
+        if (gui_dlg_load() == DLG_OK) {                                                            //user can press return
             DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
             setPreheatTemp();
         }
@@ -134,7 +134,7 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
         break;
     case MI_UNLOAD:
         p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
-        if (gui_dlg_unload() == DLG_OK) {                                                            //user can pres return
+        if (gui_dlg_unload() == DLG_OK) {                                                            //user can press return
             DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload)); //opens dialog if it is not already openned
         }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
@@ -143,7 +143,7 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
         p_window_header_set_text(&(psmd->header), "CHANGE FILAM.");
         if (gui_dlg_unload() == DLG_OK) {                                                              //"CHANGE FILAM." is active only when filament is known so preheat is autoselected and should always return DLG_OK, better to check it anyway
             DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));   //opens dialog if it is not already openned
-            if (gui_dlg_load() == DLG_OK) {                                                            //user can pres return
+            if (gui_dlg_load() == DLG_OK) {                                                            //user can press return
                 DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
                 setPreheatTemp();
             } else {
