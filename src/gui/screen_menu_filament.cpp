@@ -104,8 +104,8 @@ using parent = screen_menu_data_t<false, true, false, MI_RETURN, MI_LOAD, MI_UNL
 #pragma pack(push, 1)
 class ScreenMenuFilament : public parent {
     enum {
-        FKNOWN = 0x01,     //filament is known
-        F_NOTSENSED = 0x02 //filament is not in sensor
+        F_EEPROM = 0x01, // filament is known
+        F_SENSED = 0x02  // filament is not in sensor
     };
 
 public:
@@ -117,10 +117,19 @@ private:
     void deactivate_item();
 
     //todo use std::get<MI_LOAD> on tuple - have to remove pContainer and use template
-    void load_dis() { this->menu.GetItem(1)->Disable(); }
-    void load_ena() { this->menu.GetItem(1)->Enable(); }
-    void change_dis() { this->menu.GetItem(3)->Disable(); }
-    void change_ena() { this->menu.GetItem(3)->Enable(); }
+    typedef enum { LOAD = 1,
+        CHANGE = 3,
+        PURGE = 4 } Type; // todo remove this enum and use MI_...
+    template <Type T>
+    void dis() {
+        this->menu.GetItem(uint8_t(T))->Disable();
+        menu.win.f_invalid = 1;
+    }
+    template <Type T>
+    void ena() {
+        this->menu.GetItem(uint8_t(T))->Enable();
+        menu.win.f_invalid = 1;
+    }
 };
 #pragma pack(pop)
 
@@ -149,26 +158,46 @@ int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event
 
 /*****************************************************************************/
 //non-static method definition
+
+/*
+ * +---------+--------+------+--------+--------+-------+--------------------------------------------------------+
+ * | FSENSOR | EEPROM | load | unload | change | purge | comment                                                |
+ * +---------+--------+------+--------+--------+-------+--------------------------------------------------------+
+ * |       0 |      0 |  YES |    YES |     NO |    NO | filament not loaded                                    |
+ * |       0 |      1 |   NO |    YES |    YES |    NO | filament loaded but just runout                        |
+ * |       1 |      0 |  YES |    YES |     NO |    NO | user pushed filament into sensor, but it is not loaded |
+ * |       1 |      1 |   NO |    YES |    YES |   YES | filament loaded                                        |
+ * +---------+--------+------+--------+--------+-------+--------------------------------------------------------+
+ */
 void ScreenMenuFilament::deactivate_item() {
 
     uint8_t filament = 0;
-    filament |= get_filament() != FILAMENT_NONE ? FKNOWN : 0;
-    filament |= fs_get_state() == FS_NO_FILAMENT ? F_NOTSENSED : 0;
+    filament |= get_filament() != FILAMENT_NONE ? F_EEPROM : 0;
+    filament |= fs_get_state() == FS_NO_FILAMENT ? 0 : F_SENSED;
     switch (filament) {
-    case FKNOWN: //known and not "unsensed" - do not allow load
-        change_ena();
+    case 0: //filament not loaded
+        ena<LOAD>();
+        dis<CHANGE>();
+        dis<PURGE>();
         break;
-    case FKNOWN | F_NOTSENSED: //allow both load and change
-        load_ena();
-        change_ena();
+    case F_EEPROM: //filament loaded but just runout
+        dis<LOAD>();
+        ena<CHANGE>();
+        dis<PURGE>();
         break;
-    case F_NOTSENSED: //allow load
-    case 0:           //filament is not known but is sensed == most likely same as F_NOTSENSED, but user inserted filament into sensor
+    case F_SENSED: //user pushed filament into sensor, but it is not loaded
+        ena<LOAD>();
+        dis<CHANGE>();
+        dis<PURGE>();
+        break;
+    case F_SENSED | F_EEPROM: //filament loaded
     default:
-        load_ena();
-        change_dis();
+        dis<LOAD>();
+        ena<CHANGE>();
+        ena<PURGE>();
         break;
     }
+    gui_invalidate();
 }
 
 screen_t screen_menu_filament = {
