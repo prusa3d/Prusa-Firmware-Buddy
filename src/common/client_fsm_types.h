@@ -16,7 +16,8 @@ enum class ClientFSM : uint8_t {
 enum class LoadUnloadMode : uint8_t {
     Change,
     Load,
-    Unload
+    Unload,
+    Purge
 };
 
 //open dialog has paramener
