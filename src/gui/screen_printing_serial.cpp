@@ -9,6 +9,7 @@
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "screens.h"
+#include "filament_sensor.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -55,6 +56,7 @@ typedef struct
     window_icon_t w_buttons[3];
     window_text_t w_labels[3];
     int last_tick;
+    int fs_runout;
 
 } screen_printing_serial_data_t;
 
@@ -89,6 +91,7 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
 
 void screen_printing_serial_init(screen_t *screen) {
     pw->last_tick = 0;
+    pw->fs_runout = 0;
     int16_t id;
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
@@ -152,6 +155,25 @@ void screen_printing_serial_draw(screen_t *screen) {
 
 int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     window_header_events(&(pw->header));
+
+    static int _last = 0;
+    if (HAL_GetTick() - _last > 300) {
+        _last = HAL_GetTick();
+		int fsr = fs_did_filament_runout();
+        if (fsr && fsr != pw->fs_runout) {
+			pw->fs_runout = fsr;
+            marlin_gcode("M118 A1 action:pause");
+            // marlin_gcode("M600");
+            // -- prompt for host
+            marlin_gcode("M118 A1 action:prompt_begin Filament runout detected!");
+            marlin_gcode("M118 A1 action:prompt_choice ok");
+            marlin_gcode("M118 A1 action:prompt_choice chleba s maslem");
+            // marlin_gcode("M118 A1 action:prompt_choice Cancel Print");
+            marlin_gcode("M118 A1 action:prompt_show");
+        } else {
+			pw->fs_runout = fsr;
+        }
+    }
 
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
