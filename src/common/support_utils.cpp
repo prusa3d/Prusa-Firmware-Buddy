@@ -29,6 +29,8 @@ void append_crc(char *str, uint32_t str_size) {
 }
 
 void create_path_info_4error(char *str, uint32_t str_size, int error_code) {
+    // FIXME use std::array instead
+
     strlcpy(str, ER_URL, str_size);
     snprintf(eofstr(str), str_size - strlen(str), "%d/", error_code);
     snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
@@ -39,6 +41,8 @@ void create_path_info_4error(char *str, uint32_t str_size, int error_code) {
 }
 
 void create_path_info_4service(char *str, uint32_t str_size) {
+    // FIXME use std::array instead
+
     strlcpy(str, IR_URL, str_size);
     // PrinterType
     snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
