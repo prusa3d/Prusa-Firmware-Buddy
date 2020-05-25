@@ -43,7 +43,8 @@ static WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
 /// To save first/top visible item in the file browser
 /// This is something else than the selected file for print
 /// This is used to restore the content of the browser into previous state including the layout
-static char firstVisibleSFN[13] = "";
+constexpr unsigned int SFN_len = 13;
+static char firstVisibleSFN[SFN_len] = "";
 
 static void screen_filebrowser_init(screen_t *screen) {
     // TODO: load screen_filebrowser_sort from eeprom
@@ -71,6 +72,8 @@ static void screen_filebrowser_init(screen_t *screen) {
     marlin_vars_t *vars = marlin_vars();
     // here the strncpy is meant to be - need the rest of the buffer zeroed
     strncpy(filelist->sfn_path, vars->media_SFN_path, sizeof(filelist->sfn_path));
+    // ensure null character at the end no matter what
+    filelist->sfn_path[sizeof(filelist->sfn_path) - 1] = '\0';
     // cut by the filename to retain only the directory path
     char *c = strrchr(filelist->sfn_path, '/');
     *c = 0; // even if we didn't find the '/', c will point to valid memory
@@ -143,7 +146,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
             if (filelist->sfn_path[sfnPathLen - 1] != slash) {
                 filelist->sfn_path[sfnPathLen++] = slash;
             }
-            strcpy(filelist->sfn_path + sfnPathLen, currentSFN);
+            strlcpy(filelist->sfn_path + sfnPathLen, currentSFN, FILE_PATH_MAX_LEN - sfnPathLen);
         } else {
             char *last = strrchr(filelist->sfn_path, slash);
             if (last == filelist->sfn_path) {
@@ -174,9 +177,9 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
             }
 
             // displayed text - can be a 8.3 DOS name or a LFN
-            strcpy(vars->media_LFN, window_file_current_LFN(filelist, &currentIsFile));
+            strlcpy(vars->media_LFN, window_file_current_LFN(filelist, &currentIsFile), FILE_NAME_MAX_LEN);
             // save the top browser item
-            strcpy(firstVisibleSFN, window_file_list_top_item_SFN(filelist));
+            strlcpy(firstVisibleSFN, window_file_list_top_item_SFN(filelist), SFN_len);
 
             screen_print_preview_set_on_action(on_print_preview_action);
             screen_print_preview_set_gcode_filepath(vars->media_SFN_path);

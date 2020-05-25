@@ -208,13 +208,17 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
         break;
     case MARLIN_VAR_FILENAME:
         if (vars->media_LFN)
-            if (var.type == VARIANT8_PCHAR)
-                strncpy(vars->media_LFN, var.pch, FILE_NAME_MAX_LEN);
+            if (var.type == VARIANT8_PCHAR) {
+                memset(vars->media_LFN, '\0', sizeof(vars->media_LFN) * sizeof(char)); // set to zeros to be on the safe side
+                strlcpy(vars->media_LFN, var.pch, FILE_NAME_MAX_LEN);
+            }
         break;
     case MARLIN_VAR_FILEPATH:
         if (vars->media_SFN_path)
-            if (var.type == VARIANT8_PCHAR)
-                strncpy(vars->media_SFN_path, var.pch, FILE_PATH_MAX_LEN);
+            if (var.type == VARIANT8_PCHAR) {
+                memset(vars->media_SFN_path, '\0', sizeof(vars->media_SFN_path) * sizeof(char)); // set to zeros to be on the safe side
+                strlcpy(vars->media_SFN_path, var.pch, FILE_PATH_MAX_LEN);
+            }
         break;
     case MARLIN_VAR_DTEM_NOZ:
         vars->display_nozzle = var.flt;
