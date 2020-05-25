@@ -10,6 +10,7 @@
 #include "screens.h"
 #include "dbg.h"
 #include "status_footer.h"
+#include "DialogHandler.hpp"
 
 enum { F_EEPROM = 0x01,
     F_SENSED = 0x02 };
@@ -126,24 +127,29 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
     case MI_LOAD:
         p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
         gui_dlg_load();
+        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
         setPreheatTemp();
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_UNLOAD:
         p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
         gui_dlg_unload();
+        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload)); //opens dialog if it is not already openned
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_CHANGE:
         p_window_header_set_text(&(psmd->header), "CHANGE FILAM.");
         gui_dlg_unload();
+        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload)); //opens dialog if it is not already openned
         gui_dlg_load();
+        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
         setPreheatTemp();
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_PURGE:
         p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
         gui_dlg_purge();
+        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
         setPreheatTemp();
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;

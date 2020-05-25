@@ -31,16 +31,20 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
 }
 
 void DialogHandler::close(ClientFSM dialog) {
-    if (gui_get_nesting() > 1) //test if dialog is openned todo remove after gui refactoring
-        return;
+    if (waiting_closed == dialog) {
+        waiting_closed = ClientFSM::_none;
+    } else {
+        if (gui_get_nesting() > 1) //test if dialog is openned todo remove after gui refactoring
+            return;
 
-    //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
-    if (dialog == ClientFSM::Serial_printing) {
-        if (screen_get_curr() == get_scr_menu_tune())
-            screen_close();
+        //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
+        if (dialog == ClientFSM::Serial_printing) {
+            if (screen_get_curr() == get_scr_menu_tune())
+                screen_close();
 
-        if (screen_get_curr() == get_scr_printing_serial())
-            screen_close();
+            if (screen_get_curr() == get_scr_printing_serial())
+                screen_close();
+        }
     }
 
     ptr = nullptr; //destroy current dialog
@@ -49,6 +53,13 @@ void DialogHandler::close(ClientFSM dialog) {
 void DialogHandler::change(ClientFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     if (ptr)
         ptr->Change(phase, progress_tot, progress);
+}
+
+void DialogHandler::wait_until_closed(ClientFSM dialog, uint8_t data) {
+    open(dialog, data);
+    waiting_closed = dialog;
+    while (waiting_closed == dialog)
+        gui_loop();
 }
 
 //*****************************************************************************
@@ -66,4 +77,7 @@ void DialogHandler::Close(ClientFSM dialog) {
 }
 void DialogHandler::Change(ClientFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     Access().change(dialog, phase, progress_tot, progress);
+}
+void DialogHandler::WaitUntilClosed(ClientFSM dialog, uint8_t data) {
+    Access().wait_until_closed(dialog, data);
 }
