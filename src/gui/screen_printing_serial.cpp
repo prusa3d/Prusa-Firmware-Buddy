@@ -11,17 +11,21 @@
 #include "screens.h"
 #include "filament_sensor.h"
 
+#define BUTTON_TUNE       0
+#define BUTTON_PAUSE      1
+#define BUTTON_DISCONNECT 2
+
 #pragma pack(push)
 #pragma pack(1)
 
-typedef enum {
+enum item_id_t {
     iid_tune,
     iid_pause,
     // iid_stop,
     // iid_resume,
     iid_disconnect,
     iid_count
-} item_id_t;
+};
 
 #pragma pack(pop)
 
@@ -79,8 +83,6 @@ screen_t screen_printing_serial = {
 };
 extern "C" screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
-static const uint8_t Tag_bt_tune = 1;
-
 static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
     if (window_get_icon_id(btn_id) != serial_printing_icons[id_to_set])
         window_set_icon_id(btn_id, serial_printing_icons[id_to_set]);
@@ -113,7 +115,7 @@ void screen_printing_serial_init(screen_t *screen) {
     pw->octo_icon.win.f_enabled = 0;
     pw->octo_icon.win.f_disabled = 0;
 
-    for (uint8_t col = 0; col < 3; col++) {
+    for (unsigned int col = 0; col < 3; col++) {
         id = window_create_ptr(
             WINDOW_CLS_ICON, root,
             rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
@@ -134,13 +136,13 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- CONTROLS
     window_icon_t *sp_button;
     // -- tune button
-    sp_button = &pw->w_buttons[0];
+    sp_button = &pw->w_buttons[BUTTON_TUNE];
     set_icon_and_label(iid_tune, sp_button->win.id, pw->w_labels[0].win.id);
     // -- pause
-    sp_button = &pw->w_buttons[1];
+    sp_button = &pw->w_buttons[BUTTON_PAUSE];
     set_icon_and_label(iid_pause, sp_button->win.id, pw->w_labels[1].win.id);
     // -- disconnect
-    sp_button = &pw->w_buttons[2];
+    sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
     set_icon_and_label(iid_disconnect, sp_button->win.id, pw->w_labels[2].win.id);
 
     status_footer_init(&(pw->footer), root);
@@ -159,18 +161,17 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
     static int _last = 0;
     if (HAL_GetTick() - _last > 300) {
         _last = HAL_GetTick();
-		int fsr = fs_did_filament_runout();
+        int fsr = fs_did_filament_runout();
         if (fsr && fsr != pw->fs_runout) {
-			pw->fs_runout = fsr;
+            pw->fs_runout = fsr;
             marlin_gcode("M118 A1 action:pause");
-            // marlin_gcode("M600");
             // -- prompt for host
             marlin_gcode("M118 A1 action:prompt_begin Filament runout detected!");
             marlin_gcode("M118 A1 action:prompt_choice ok");
             // marlin_gcode("M118 A1 action:prompt_choice Cancel Print");
             marlin_gcode("M118 A1 action:prompt_show");
         } else {
-			pw->fs_runout = fsr;
+            pw->fs_runout = fsr;
         }
     }
 
@@ -181,16 +182,17 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         return 0;
     }
 
-    switch (((int)param) - 1) {
-    case 0: // -- tune
+    int p = reinterpret_cast<int>(param) - 1;
+    switch (p) {
+    case BUTTON_TUNE:
         screen_open(get_scr_menu_tune()->id);
         return 1;
         break;
-    case 1: // -- pause
+    case BUTTON_PAUSE:
         marlin_gcode("M118 A1 action:pause");
         return 1;
         break;
-    case 2: // -- disconnect
+    case BUTTON_DISCONNECT:
         marlin_gcode("M118 A1 action:disconnect");
         screen_close();
         return 1;
