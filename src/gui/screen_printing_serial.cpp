@@ -167,7 +167,6 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
             // -- prompt for host
             marlin_gcode("M118 A1 action:prompt_begin Filament runout detected!");
             marlin_gcode("M118 A1 action:prompt_choice ok");
-            marlin_gcode("M118 A1 action:prompt_choice chleba s maslem");
             // marlin_gcode("M118 A1 action:prompt_choice Cancel Print");
             marlin_gcode("M118 A1 action:prompt_show");
         } else {
