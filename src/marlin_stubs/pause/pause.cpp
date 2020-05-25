@@ -52,7 +52,8 @@
 #include "filament.h"
 #include "RAII.hpp"
 
-#define MINIMAL_PURGE 1
+#define MINIMAL_PURGE                   1
+#define MIN_HOTEND_DIFF_TO_SHOW_HEATING 5.0F
 
 // private:
 //check unsupported features
@@ -120,6 +121,10 @@ bool Pause::ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint
 
     if (!is_target_temperature_safe()) {
         return false;
+    }
+
+    if (Temperature::degHotend(active_extruder) + MIN_HOTEND_DIFF_TO_SHOW_HEATING > Temperature::degTargetHotend(active_extruder)) { //do not disturb user with heating dialog
+        return true;
     }
 
     Notifier_TEMP_NOZ N(ClientFSM::Load_unload, GetPhaseIndex(phase),
