@@ -135,7 +135,7 @@ public:
                     if (strcmp(files[0].lfn, dir.fno.fname) != 0) {
                         // i.e. we didn't get the same entry as the zeroth entry (which may occur when populating the window with non-null firstDirEntry)
                         // Make place in the window by standard item rotation downwards (to the right)
-                        std::rotate(files.rbegin(), files.rbegin() + 1, std::make_reverse_iterator(i)); // solves also the case, when there are less files in the window
+                        std::rotate(files.rbegin(), files.rbegin() + 1, make_reverse_iterator(i)); // solves also the case, when there are less files in the window
                         // Save the entry
                         i->CopyFrom(dir.fno);
                         if (filesInWindow < WINDOW_SIZE) {
@@ -406,5 +406,11 @@ private:
     static Entry MakeLastEntryByTime() {
         static const Entry e = { true, "", "", 0U, 0U };
         return e;
+    }
+
+    /// Define our own make_reverse_iterator for backward compatibility with c++11
+    template <class Iter>
+    constexpr std::reverse_iterator<Iter> make_reverse_iterator(Iter i) {
+        return std::reverse_iterator<Iter>(i);
     }
 };
