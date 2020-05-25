@@ -10,8 +10,8 @@
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "screens.h"
 
-#define BUTTON_TUNE 0
-#define BUTTON_PAUSE 1
+#define BUTTON_TUNE       0
+#define BUTTON_PAUSE      1
 #define BUTTON_DISCONNECT 2
 
 #pragma pack(push)
