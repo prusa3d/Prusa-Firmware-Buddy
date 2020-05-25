@@ -115,7 +115,8 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
         rect_ui16_t rc_pro = rc;
         rc_pro.x = 10;
         rc_pro.w -= 20;
-        char text[16];
+        const unsigned int text_len = 16;
+        char text[text_len];
         rc_pro.h = 16;
         rc_pro.y += 120;
         const uint16_t w = rc_pro.w;
@@ -128,7 +129,7 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
         rc_pro.w = rc.w - 120;
         rc_pro.x = rc.x + 60;
         rc_pro.h = 30;
-        sprintf(text, "%d%%", window->progress);
+        snprintf(text, text_len, "%d%%", window->progress);
         render_text_align(rc_pro, text, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
         window->flags &= 0x7FFF;
     }

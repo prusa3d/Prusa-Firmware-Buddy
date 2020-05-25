@@ -236,8 +236,9 @@ void status_footer_update_temperatures(status_footer_t *footer) {
 #ifdef LCD_HEATBREAK_TO_FILAMENT
     const float actual_heatbreak = thermalManager.degHeatbreak();
     //float actual_heatbreak = analogRead(6);
-    char text[10];
-    sprintf(text, "%.0f\177C", (double)actual_heatbreak);
+    const unsigned int text_len = 10;
+    char text[text_len];
+    snprintf(text, text_len, "%.0f\177C", (double)actual_heatbreak);
     window_set_text(footer->wt_filament.win.id, footer->text);
 #endif //LCD_HEATBREAK_TO_FILAMENT
 }
