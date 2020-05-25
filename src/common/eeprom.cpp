@@ -367,7 +367,9 @@ static int eeprom_check_crc32(void) {
     uint16_t datasize;
     uint32_t crc;
     datasize = eeprom_get_var(EEVAR_DATASIZE).ui16;
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &crc, 4);
+    if (datasize > EEPROM_MAX_DATASIZE)
+        return 0;
+    st25dv64k_user_read_bytes(EEPROM_ADDRESS + datasize - 4, &crc, 4);
 #if 1 //simple method
     uint8_t data[EEPROM_MAX_DATASIZE];
     uint32_t crc2;
