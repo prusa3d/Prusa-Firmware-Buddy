@@ -130,13 +130,13 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- CONTROLS
     window_icon_t *sp_button;
     // -- tune button
-    sp_button = &pw->w_buttons[0];
+    sp_button = &pw->w_buttons[BUTTON_TUNE];
     set_icon_and_label(iid_tune, sp_button->win.id, pw->w_labels[0].win.id);
     // -- pause
-    sp_button = &pw->w_buttons[1];
+    sp_button = &pw->w_buttons[BUTTON_PAUSE];
     set_icon_and_label(iid_pause, sp_button->win.id, pw->w_labels[1].win.id);
     // -- disconnect
-    sp_button = &pw->w_buttons[2];
+    sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
     set_icon_and_label(iid_disconnect, sp_button->win.id, pw->w_labels[2].win.id);
 
     status_footer_init(&(pw->footer), root);
@@ -161,15 +161,15 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
 
     int p = reinterpret_cast<int>(param) - 1;
     switch (p) {
-    case BUTTON_TUNE: // -- tune
+    case BUTTON_TUNE:
         screen_open(get_scr_menu_tune()->id);
         return 1;
         break;
-    case BUTTON_PAUSE: // -- pause
+    case BUTTON_PAUSE:
         marlin_gcode("M118 A1 action:pause");
         return 1;
         break;
-    case BUTTON_DISCONNECT: // -- disconnect
+    case BUTTON_DISCONNECT:
         marlin_gcode("M118 A1 action:disconnect");
         screen_close();
         return 1;
