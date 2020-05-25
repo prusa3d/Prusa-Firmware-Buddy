@@ -11,8 +11,8 @@
 #include "dbg.h"
 #include "status_footer.h"
 
-#define F_EEPROM 0x01
-#define F_SENSED 0x02
+enum { F_EEPROM = 0x01,
+    F_SENSED = 0x02 };
 
 typedef enum {
     MI_RETURN,
