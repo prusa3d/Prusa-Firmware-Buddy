@@ -131,18 +131,19 @@ void screen_printing_serial_init(screen_t *screen) {
     window_icon_t *sp_button;
     // -- tune button
     sp_button = &pw->w_buttons[BUTTON_TUNE];
-    set_icon_and_label(iid_tune, sp_button->win.id, pw->w_labels[0].win.id);
+    set_icon_and_label(iid_tune, sp_button->win.id, pw->w_labels[BUTTON_TUNE].win.id);
     // -- pause
     sp_button = &pw->w_buttons[BUTTON_PAUSE];
-    set_icon_and_label(iid_pause, sp_button->win.id, pw->w_labels[1].win.id);
+    set_icon_and_label(iid_pause, sp_button->win.id, pw->w_labels[BUTTON_PAUSE].win.id);
     // -- disconnect
     sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
-    set_icon_and_label(iid_disconnect, sp_button->win.id, pw->w_labels[2].win.id);
+    set_icon_and_label(iid_disconnect, sp_button->win.id, pw->w_labels[BUTTON_DISCONNECT].win.id);
 
     status_footer_init(&(pw->footer), root);
 }
 
 void screen_printing_serial_done(screen_t *screen) {
+    marlin_gcode("M86 S1800"); // enable safety timer after disconnect
     window_destroy(pw->root.win.id);
 }
 
@@ -171,7 +172,6 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         break;
     case BUTTON_DISCONNECT:
         marlin_gcode("M118 A1 action:disconnect");
-        marlin_gcode("M86 S1800"); // enable safety timer after disconnect
         screen_close();
         return 1;
         break;
