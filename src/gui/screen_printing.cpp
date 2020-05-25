@@ -425,7 +425,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
             snprintf(array.data(), array.size(), "%im", timeinfo->tm_min);
         }
     } else
-        strlcpy_P(array.data(), PSTR("N/A"), array.size());
+        strlcpy(array.data(), "N/A", array.size());
 
     window_set_text(pw->w_etime_value.win.id, array.data());
 }
