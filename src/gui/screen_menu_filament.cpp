@@ -126,31 +126,40 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
     switch ((int)param) {
     case MI_LOAD:
         p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
-        gui_dlg_load();
-        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
-        setPreheatTemp();
+        if (gui_dlg_load() == DLG_OK) {                                                            //user can pres return
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+            setPreheatTemp();
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_UNLOAD:
         p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
-        gui_dlg_unload();
-        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload)); //opens dialog if it is not already openned
+        if (gui_dlg_unload() == DLG_OK) {                                                            //user can pres return
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload)); //opens dialog if it is not already openned
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_CHANGE:
         p_window_header_set_text(&(psmd->header), "CHANGE FILAM.");
-        gui_dlg_unload();
-        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload)); //opens dialog if it is not already openned
-        gui_dlg_load();
-        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
-        setPreheatTemp();
+        if (gui_dlg_unload() == DLG_OK) {                                                              //"CHANGE FILAM." is active only when filament is known so preheat is autoselected and should always return DLG_OK, better to check it anyway
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));   //opens dialog if it is not already openned
+            if (gui_dlg_load() == DLG_OK) {                                                            //user can pres return
+                DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+                setPreheatTemp();
+            } else {
+                //user aborted, clear temperatures
+                marlin_gcode("M104 S0");
+                marlin_gcode("M140 S0");
+            }
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_PURGE:
         p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
-        gui_dlg_purge();
-        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
-        setPreheatTemp();
+        if (gui_dlg_purge() == DLG_OK) {                                                           //"PURGE FILAM." is active only when filament is known so preheat is autoselected and should always return DLG_OK, better to check it anyway
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+            setPreheatTemp();
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     }
