@@ -341,29 +341,31 @@ uint8_t window_get_tag(int16_t id) {
 }
 
 void window_set_text(int16_t id, const char *text) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            ((window_text_t *)window)->text = (char *)text;
-            break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->text = (char *)text;
-            break;
-        }
-        _window_invalidate((window_t *)window);
+    window_t *window = window_ptr(id);
+    if (window == NULL)
+        return;
+
+    switch (window->cls->cls_id) {
+    case WINDOW_CLS_TEXT:
+        ((window_text_t *)window)->text = (char *)text;
+        break;
+    case WINDOW_CLS_ROLL_TEXT:
+        ((window_roll_text_t *)window)->text = (char *)text;
+        break;
     }
+    _window_invalidate((window_t *)window);
 }
 
 char *window_get_text(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            return ((window_text_t *)window)->text;
-        case WINDOW_CLS_ROLL_TEXT:
-            return ((window_roll_text_t *)window)->text;
-        }
+    window_t *window = window_ptr(id);
+    if (window == NULL)
+        return 0;
+
+    switch (window->cls->cls_id) {
+    case WINDOW_CLS_TEXT:
+        return ((window_text_t *)window)->text;
+    case WINDOW_CLS_ROLL_TEXT:
+        return ((window_roll_text_t *)window)->text;
     }
     return 0;
 }
@@ -468,51 +470,54 @@ color_t window_get_color_back(int16_t id) {
 }
 
 void window_set_color_text(int16_t id, color_t clr) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            ((window_text_t *)window)->color_text = clr;
-            break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->color_text = clr;
-            break;
-        }
-        _window_invalidate((window_t *)window);
+    window_t *window = window_ptr(id);
+    if (window == NULL)
+        return;
+
+    switch (window->cls->cls_id) {
+    case WINDOW_CLS_TEXT:
+        ((window_text_t *)window)->color_text = clr;
+        break;
+    case WINDOW_CLS_ROLL_TEXT:
+        ((window_roll_text_t *)window)->color_text = clr;
+        break;
     }
+    _window_invalidate((window_t *)window);
 }
 
 color_t window_get_color_text(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            return ((window_text_t *)window)->color_text;
-        case WINDOW_CLS_ROLL_TEXT:
-            return ((window_roll_text_t *)window)->color_text;
-        }
+    window_t *window = window_ptr(id);
+    if (window == NULL)
+        return COLOR_BLACK;
+
+    switch (window->cls->cls_id) {
+    case WINDOW_CLS_TEXT:
+        return ((window_text_t *)window)->color_text;
+    case WINDOW_CLS_ROLL_TEXT:
+        return ((window_roll_text_t *)window)->color_text;
     }
     return COLOR_BLACK;
 }
 
 void window_set_focus(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        if (window->f_visible && window->f_enabled) {
-            if (window_focused_ptr) {
-                window_focused_ptr->f_focused = 0;
-                window_focused_ptr->f_invalid = 1;
-                if (window_focused_ptr->event)
-                    window_focused_ptr->event(window_focused_ptr, WINDOW_EVENT_FOCUS0, 0);
-            }
-            window_focused_ptr = window;
-            window->f_focused = 1;
-            window->f_invalid = 1;
-            if (window->event)
-                window->event(window, WINDOW_EVENT_FOCUS1, 0);
-            gui_invalidate();
-        }
+    window_t *window = window_ptr(id);
+    if (window == 0)
+        return;
+    if (!window->f_visible || !window->f_enabled)
+        return;
+
+    if (window_focused_ptr) {
+        window_focused_ptr->f_focused = 0;
+        window_focused_ptr->f_invalid = 1;
+        if (window_focused_ptr->event)
+            window_focused_ptr->event(window_focused_ptr, WINDOW_EVENT_FOCUS0, 0);
     }
+    window_focused_ptr = window;
+    window->f_focused = 1;
+    window->f_invalid = 1;
+    if (window->event)
+        window->event(window, WINDOW_EVENT_FOCUS1, 0);
+    gui_invalidate();
 }
 
 void window_set_capture(int16_t id) {

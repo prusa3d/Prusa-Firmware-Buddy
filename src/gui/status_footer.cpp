@@ -113,7 +113,14 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->last_timer_repaint_values = 0;
     footer->last_timer_repaint_z_pos = 0;
     footer->last_timer_repaint_colors = 0;
-    status_footer_timer(footer, 0); // do update
+
+    //read and draw real values
+    status_footer_update_temperatures(footer);
+    status_footer_update_feedrate(footer);
+    status_footer_update_filament(footer);
+    status_footer_update_z_axis(footer);
+    status_footer_repaint_nozzle(footer);
+    status_footer_repaint_heatbed(footer);
 }
 
 int status_footer_event(status_footer_t *footer, window_t *window,
@@ -229,8 +236,9 @@ void status_footer_update_temperatures(status_footer_t *footer) {
 #ifdef LCD_HEATBREAK_TO_FILAMENT
     const float actual_heatbreak = thermalManager.degHeatbreak();
     //float actual_heatbreak = analogRead(6);
-    char text[10];
-    sprintf(text, "%.0f\177C", (double)actual_heatbreak);
+    const unsigned int text_len = 10;
+    char text[text_len];
+    snprintf(text, text_len, "%.0f\177C", (double)actual_heatbreak);
     window_set_text(footer->wt_filament.win.id, footer->text);
 #endif //LCD_HEATBREAK_TO_FILAMENT
 }
