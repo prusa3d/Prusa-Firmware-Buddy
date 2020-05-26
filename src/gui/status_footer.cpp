@@ -26,6 +26,8 @@ void status_footer_update_filament(status_footer_t *footer);
 void status_footer_repaint_nozzle(const status_footer_t *footer);
 void status_footer_repaint_heatbed(const status_footer_t *footer);
 
+extern "C" {
+
 void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
     int16_t id;
@@ -141,6 +143,8 @@ int status_footer_event(status_footer_t *footer, window_t *window,
     }
     return 0;
 }
+
+} //extern "C"
 
 /// Callback function which triggers update and repaint of values
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
