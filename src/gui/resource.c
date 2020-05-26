@@ -36,6 +36,7 @@
 #include "res/cc/png_menu_icon_resume.c"      //IDR_PNG_menu_icon_resume
 #include "res/cc/png_menu_icon_home.c"        //IDR_PNG_menu_icon_home
 #include "res/cc/png_menu_icon_back.c"        //IDR_PNG_menu_icon_back
+#include "res/cc/png_menu_icon_disconnect.c"  //IDR_PNG_menu_icon_disconnect
 
 #include "res/cc/png_filescreen_icon_home.c"      //IDR_PNG_filescreen_icon_home
 #include "res/cc/png_filescreen_icon_folder.c"    //IDR_PNG_filescreen_icon_folder
@@ -144,4 +145,5 @@ RESOURCE_ENTRY_PNG(png_arrow_down)
 RESOURCE_ENTRY_PNG(png_menu_icon_back)
 
 RESOURCE_ENTRY_PNG(png_serial_printing)
+RESOURCE_ENTRY_PNG(png_menu_icon_disconnect)
 RESOURCE_TABLE_END
