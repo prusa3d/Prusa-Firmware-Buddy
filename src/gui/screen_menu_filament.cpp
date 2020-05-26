@@ -10,9 +10,10 @@
 #include "screens.h"
 #include "dbg.h"
 #include "status_footer.h"
+#include "DialogHandler.hpp"
 
-#define FKNOWN      0x01 //filament is known
-#define F_NOTSENSED 0x02 //filament is not in sensor
+enum { F_EEPROM = 0x01,
+    F_SENSED = 0x02 };
 
 typedef enum {
     MI_RETURN,
@@ -30,36 +31,60 @@ const menu_item_t _menu_filament_items[] = {
     { { "Purge Filament", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
 };
 
-static void _load_ena(screen_t *screen) {
-    psmd->items[MI_LOAD].item.type &= ~WI_DISABLED;
+template <MI_t ENUM>
+static void disable_item(screen_t *screen) {
+    if (!(psmd->items[ENUM].item.type & WI_DISABLED)) {
+        psmd->items[ENUM].item.type |= WI_DISABLED;
+        psmd->menu.win.f_invalid = 1;
+    }
 }
-static void _change_dis(screen_t *screen) {
-    psmd->items[MI_CHANGE].item.type |= WI_DISABLED;
-}
-static void _change_ena(screen_t *screen) {
-    psmd->items[MI_CHANGE].item.type &= ~WI_DISABLED;
+template <MI_t ENUM>
+static void enable_item(screen_t *screen) {
+    if (psmd->items[ENUM].item.type & WI_DISABLED) {
+        psmd->items[ENUM].item.type &= ~WI_DISABLED;
+        psmd->menu.win.f_invalid = 1;
+    }
 }
 
+/*
+ * +---------+--------+------+--------+--------+-------+--------------------------------------------------------+
+ * | FSENSOR | EEPROM | load | unload | change | purge | comment                                                |
+ * +---------+--------+------+--------+--------+-------+--------------------------------------------------------+
+ * |       0 |      0 |  YES |    YES |     NO |    NO | filament not loaded                                    |
+ * |       0 |      1 |   NO |    YES |    YES |    NO | filament loaded but just runout                        |
+ * |       1 |      0 |  YES |    YES |     NO |    NO | user pushed filament into sensor, but it is not loaded |
+ * |       1 |      1 |   NO |    YES |    YES |   YES | filament loaded                                        |
+ * +---------+--------+------+--------+--------+-------+--------------------------------------------------------+
+ */
 static void _deactivate_item(screen_t *screen) {
 
     uint8_t filament = 0;
-    filament |= get_filament() != FILAMENT_NONE ? FKNOWN : 0;
-    filament |= fs_get_state() == FS_NO_FILAMENT ? F_NOTSENSED : 0;
+    filament |= get_filament() != FILAMENT_NONE ? F_EEPROM : 0;
+    filament |= fs_get_state() == FS_NO_FILAMENT ? 0 : F_SENSED;
     switch (filament) {
-    case FKNOWN: //known and not "unsensed" - do not allow load
-        _change_ena(screen);
+    case 0: //filament not loaded
+        enable_item<MI_LOAD>(screen);
+        disable_item<MI_CHANGE>(screen);
+        disable_item<MI_PURGE>(screen);
         break;
-    case FKNOWN | F_NOTSENSED: //allow both load and change
-        _load_ena(screen);
-        _change_ena(screen);
+    case F_EEPROM: //filament loaded but just runout
+        disable_item<MI_LOAD>(screen);
+        enable_item<MI_CHANGE>(screen);
+        disable_item<MI_PURGE>(screen);
         break;
-    case F_NOTSENSED: //allow load
-    case 0:           //filament is not known but is sensed == most likely same as F_NOTSENSED, but user inserted filament into sensor
+    case F_SENSED: //user pushed filament into sensor, but it is not loaded
+        enable_item<MI_LOAD>(screen);
+        disable_item<MI_CHANGE>(screen);
+        disable_item<MI_PURGE>(screen);
+        break;
+    case F_SENSED | F_EEPROM: //filament loaded
     default:
-        _load_ena(screen);
-        _change_dis(screen);
+        disable_item<MI_LOAD>(screen);
+        enable_item<MI_CHANGE>(screen);
+        enable_item<MI_PURGE>(screen);
         break;
     }
+    gui_invalidate();
 }
 
 //"C inheritance" of screen_menu_data_t with data items
@@ -86,7 +111,7 @@ void screen_menu_filament_init(screen_t *screen) {
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
     //FIXME temperatures should be swapped
-    marlin_gcode_printf("M104 S%d R%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
+    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
 }
 
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -101,26 +126,40 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
     switch ((int)param) {
     case MI_LOAD:
         p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
-        gui_dlg_load();
-        setPreheatTemp();
+        if (gui_dlg_load() == DLG_OK) {                                                            //user can press return
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+            setPreheatTemp();
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_UNLOAD:
         p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
-        gui_dlg_unload();
+        if (gui_dlg_unload() == DLG_OK) {                                                            //user can press return
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload)); //opens dialog if it is not already openned
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_CHANGE:
         p_window_header_set_text(&(psmd->header), "CHANGE FILAM.");
-        gui_dlg_unload();
-        gui_dlg_load();
-        setPreheatTemp();
+        if (gui_dlg_unload() == DLG_OK) {                                                              //"CHANGE FILAM." is active only when filament is known so preheat is autoselected and should always return DLG_OK, better to check it anyway
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));   //opens dialog if it is not already openned
+            if (gui_dlg_load() == DLG_OK) {                                                            //user can press return
+                DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+                setPreheatTemp();
+            } else {
+                //user aborted, clear temperatures
+                marlin_gcode("M104 S0");
+                marlin_gcode("M140 S0");
+            }
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_PURGE:
         p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
-        gui_dlg_purge();
-        setPreheatTemp();
+        if (gui_dlg_purge() == DLG_OK) {                                                           //"PURGE FILAM." is active only when filament is known so preheat is autoselected and should always return DLG_OK, better to check it anyway
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+            setPreheatTemp();
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     }

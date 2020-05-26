@@ -15,8 +15,8 @@ extern "C" {
 extern char *eofstr(char *str);
 extern void append_crc(char *str);
 
-extern void create_path_info_4error(char *str, int error_code);
-extern void create_path_info_4service(char *str);
+extern void create_path_info_4error(char *str, uint32_t str_size, int error_code);
+extern void create_path_info_4service(char *str, uint32_t str_size);
 
 #ifdef __cplusplus
 }

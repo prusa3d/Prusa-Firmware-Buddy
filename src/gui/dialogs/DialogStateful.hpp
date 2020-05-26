@@ -12,6 +12,11 @@
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
 
+#define PROGRESS_BAR_X_PAD  10
+#define PROGRESS_BAR_Y_PAD  30
+#define PROGRESS_BAR_H      16
+#define PROGRESS_BAR_TEXT_H 30
+
 // function pointer for onEnter & onExit callbacks
 typedef void (*change_state_cb_t)();
 
@@ -86,11 +91,6 @@ public:
         rc_btn.w -= 12;
         return rc_btn;
     }
-
-private:
-    void _progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
-        color_t color_text, padding_ui8_t padding, uint8_t progress);
-    void _progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back);
 
 protected:
     void draw_phase_text(const char *text);
