@@ -115,6 +115,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->last_timer_repaint_values = 0;
     footer->last_timer_repaint_z_pos = 0;
     footer->last_timer_repaint_colors = 0;
+    footer->z_pos = -1; //force redraw after init
 
     //read and draw real values
     status_footer_update_temperatures(footer);
