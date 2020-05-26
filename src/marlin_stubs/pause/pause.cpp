@@ -52,9 +52,6 @@
 #include "filament.h"
 #include "RAII.hpp"
 
-#define MINIMAL_PURGE                   1
-#define MIN_HOTEND_DIFF_TO_SHOW_HEATING 5.0F
-
 // private:
 //check unsupported features
 //filament sensor is no longer part of marlin thus it must be disabled
@@ -72,12 +69,13 @@
     BOTH(FILAMENT_UNLOAD_ALL_EXTRUDERS, MIXING_EXTRUDER) || \
     ENABLED(HOST_ACTION_COMMANDS) || \
     ENABLED(HOST_PROMPT_SUPPORT) || \
-    ENABLED(SDSUPPORT) || \
-    MINIMAL_PURGE <= 0
+    ENABLED(SDSUPPORT)
 #error unsupported
 #endif
 // clang-format on
 
+static const uint minimal_purge = 1;
+static const float heating_phase_min_hotend_diff = 5.0F;
 //cannot be class member (externed in marlin)
 uint8_t did_pause_print = 0;
 fil_change_settings_t fc_settings[EXTRUDERS];
@@ -123,7 +121,7 @@ bool Pause::ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint
         return false;
     }
 
-    if (Temperature::degHotend(active_extruder) + MIN_HOTEND_DIFF_TO_SHOW_HEATING > Temperature::degTargetHotend(active_extruder)) { //do not disturb user with heating dialog
+    if (Temperature::degHotend(active_extruder) + heating_phase_min_hotend_diff > Temperature::degTargetHotend(active_extruder)) { //do not disturb user with heating dialog
         return true;
     }
 
@@ -256,7 +254,7 @@ bool Pause::FilamentLoad(const float &slow_load_length, const float &fast_load_l
             do_e_move_notify_progress(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, PhasesLoadUnload::Loading, 50, 70);
         }
 
-        const float purge_ln = purge_length > MINIMAL_PURGE ? purge_length : MINIMAL_PURGE;
+        const float purge_ln = purge_length > minimal_purge ? purge_length : minimal_purge;
         do {
             // Extrude filament to get into hotend
             do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
