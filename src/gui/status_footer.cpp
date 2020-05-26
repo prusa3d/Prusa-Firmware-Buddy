@@ -223,14 +223,7 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
 
 /// Updates values in footer state from real values and repaint
 void status_footer_update_temperatures(status_footer_t *footer) {
-
-    /// force update of temperatures
-    uint64_t mask = MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)
-        | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)
-        | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ)
-        | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
-
-    const marlin_vars_t *vars = marlin_update_vars(mask);
+    const marlin_vars_t *vars = marlin_vars();
     if (!vars)
         return;
 
@@ -248,7 +241,7 @@ void status_footer_update_temperatures(status_footer_t *footer) {
 }
 
 void status_footer_update_feedrate(status_footer_t *footer) {
-    const marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED));
+    const marlin_vars_t *vars = marlin_vars();
     if (!vars)
         return;
 
@@ -265,7 +258,7 @@ void status_footer_update_feedrate(status_footer_t *footer) {
 }
 
 void status_footer_update_z_axis(status_footer_t *footer) {
-    const marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_POS_Z));
+    const marlin_vars_t *vars = marlin_vars();
     if (!vars)
         return;
 
