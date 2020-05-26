@@ -26,7 +26,7 @@ enum item_id_t {
 const uint16_t serial_printing_icons[iid_count] = {
     IDR_PNG_menu_icon_settings,
     IDR_PNG_menu_icon_pause,
-    IDR_PNG_menu_icon_stop // disconnect
+    IDR_PNG_menu_icon_disconnect
 };
 
 const char *serial_printing_labels[iid_count] = {
