@@ -78,6 +78,7 @@ typedef struct _marlin_server_t {
     marlin_print_state_t print_state;                // printing state (printing, paused, ...)
     float resume_pos[4];                             // resume position for unpark_head
     float resume_nozzle_temp;                        // resume nozzle temperature
+    uint8_t resume_fan_speed;                        // resume fan speed
     uint32_t paused_ticks;                           // tick count in moment when printing paused
 } marlin_server_t;
 
@@ -474,6 +475,8 @@ static void _server_print_loop(void) {
         media_print_pause();
         print_job_timer.pause();
         marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
+        marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       //save fan speed
+        thermalManager.set_fan_speed(0, 0);                                  //disable print fan
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
     case mpsPausing_WaitIdle:
@@ -512,6 +515,7 @@ static void _server_print_loop(void) {
         if (planner.movesplanned() == 0) {
             media_print_resume();
             print_job_timer.resume(0);
+            thermalManager.set_fan_speed(0, marlin_server.resume_fan_speed); // restore fan speed
             marlin_server.print_state = mpsPrinting;
         }
         break;
