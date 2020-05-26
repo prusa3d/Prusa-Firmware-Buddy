@@ -14,13 +14,11 @@
 #define BUTTON_PAUSE      1
 #define BUTTON_DISCONNECT 2
 
-#pragma pack(push)
+#pragma pack(push, 1)
 
 enum item_id_t {
     iid_tune,
     iid_pause,
-    // iid_stop,
-    // iid_resume,
     iid_disconnect,
     iid_count
 };
@@ -28,20 +26,14 @@ enum item_id_t {
 const uint16_t serial_printing_icons[iid_count] = {
     IDR_PNG_menu_icon_settings,
     IDR_PNG_menu_icon_pause,
-    // IDR_PNG_menu_icon_stop,
-    // IDR_PNG_menu_icon_resume,
     IDR_PNG_menu_icon_stop // disconnect
 };
 
 const char *serial_printing_labels[iid_count] = {
     "Tune",
     "Pause",
-    // "Stop",
-    // "Resume",
     "Disconnect"
 };
-
-#pragma pack(push, 1)
 
 typedef struct
 {
@@ -50,14 +42,16 @@ typedef struct
     window_header_t header;
     status_footer_t footer;
 
-    window_text_t w_message; //Messages from onStatusChanged()
     window_icon_t octo_icon;
 
-    window_icon_t w_buttons[3];
-    window_text_t w_labels[3];
+    window_icon_t w_buttons[iid_count];
+    window_text_t w_labels[iid_count];
+
     int last_tick;
 
 } screen_printing_serial_data_t;
+
+#pragma pack(pop)
 
 void screen_printing_serial_init(screen_t *screen);
 void screen_printing_serial_done(screen_t *screen);
@@ -109,7 +103,7 @@ void screen_printing_serial_init(screen_t *screen) {
     pw->octo_icon.win.f_enabled = 0;
     pw->octo_icon.win.f_disabled = 0;
 
-    for (unsigned int col = 0; col < 3; col++) {
+    for (unsigned int col = 0; col < iid_count; col++) {
         id = window_create_ptr(
             WINDOW_CLS_ICON, root,
             rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
@@ -130,12 +124,15 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- CONTROLS
     window_icon_t *sp_button;
     // -- tune button
+    static_assert(BUTTON_TUNE < iid_count, "BUTTON_TUNE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_TUNE];
     set_icon_and_label(iid_tune, sp_button->win.id, pw->w_labels[BUTTON_TUNE].win.id);
     // -- pause
+    static_assert(BUTTON_PAUSE < iid_count, "BUTTON_PAUSE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_PAUSE];
     set_icon_and_label(iid_pause, sp_button->win.id, pw->w_labels[BUTTON_PAUSE].win.id);
     // -- disconnect
+    static_assert(BUTTON_DISCONNECT < iid_count, "BUTTON_DISCONNECT not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
     set_icon_and_label(iid_disconnect, sp_button->win.id, pw->w_labels[BUTTON_DISCONNECT].win.id);
 
@@ -143,7 +140,7 @@ void screen_printing_serial_init(screen_t *screen) {
 }
 
 void screen_printing_serial_done(screen_t *screen) {
-    marlin_gcode("M86 S1800"); // enable safety timer after disconnect
+    marlin_gcode("M86 S1800"); // enable safety timer after screen is closed
     window_destroy(pw->root.win.id);
 }
 
