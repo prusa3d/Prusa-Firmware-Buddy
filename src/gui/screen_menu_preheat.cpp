@@ -65,7 +65,6 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
 
     if (filament.nozzle > PREHEAT_TEMP) {
-        //FIXME temperatures should be swapped
         marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
     } else {
         /// cooldown typically
