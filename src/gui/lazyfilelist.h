@@ -1,14 +1,17 @@
 #pragma once
 #include <memory>
+#include <iterator>
 #include <algorithm>
 #include "fatfs.h"
 #include <string.h>
 #include <limits.h>
-#include "file_list_defs.h"
+#include <array>
 
 #ifndef LAZYFILELIST_UNITTEST
+    #include "file_list_defs.h"
     #include "../common/marlin_vars.h" // for FILE_PATH_MAX_LEN
 #else
+    #define _MAX_LFN          103
     #define FILE_PATH_MAX_LEN 103
 #endif
 
@@ -207,7 +210,7 @@ private:
     struct Entry {
         bool isFile;
         char lfn[_MAX_LFN];
-        char sfn[MAX_SFN]; // cache the short filenames too, since they will be used in communication with Marlin
+        char sfn[LazyDirView::MAX_SFN]; // cache the short filenames too, since they will be used in communication with Marlin
         uint16_t date, time;
         void Clear() {
             isFile = false;

@@ -14,3 +14,6 @@ function(add_catch_test target)
   catch_discover_tests(${target})
   add_dependencies(tests ${target})
 endfunction()
+
+# now, include all the unit tests; they should add themselves using the add_catch_test function
+add_subdirectory(gui)
