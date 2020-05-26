@@ -140,7 +140,6 @@ void screen_printing_serial_init(screen_t *screen) {
 }
 
 void screen_printing_serial_done(screen_t *screen) {
-    marlin_gcode("M86 S1800"); // enable safety timer after screen is closed
     window_destroy(pw->root.win.id);
 }
 
