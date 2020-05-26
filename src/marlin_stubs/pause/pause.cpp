@@ -74,6 +74,8 @@
 #endif
 // clang-format on
 
+static const uint minimal_purge = 1;
+static const float heating_phase_min_hotend_diff = 5.0F;
 //cannot be class member (externed in marlin)
 uint8_t did_pause_print = 0;
 fil_change_settings_t fc_settings[EXTRUDERS];
@@ -119,6 +121,10 @@ bool Pause::ensure_safe_temperature_notify_progress(PhasesLoadUnload phase, uint
         return false;
     }
 
+    if (Temperature::degHotend(active_extruder) + heating_phase_min_hotend_diff > Temperature::degTargetHotend(active_extruder)) { //do not disturb user with heating dialog
+        return true;
+    }
+
     Notifier_TEMP_NOZ N(ClientFSM::Load_unload, GetPhaseIndex(phase),
         Temperature::degHotend(active_extruder), Temperature::degTargetHotend(active_extruder), progress_min, progress_max);
 
@@ -158,6 +164,9 @@ void Pause::hotend_idle_start(uint32_t time) {
     thermalManager.hotend_idle[e].start((millis_t)(time)*1000UL);
 }
 
+//uncomment to activate
+//#define ASK_FILAMENT_IN_GEAR
+
 /**
  * Load filament into the hotend
  *
@@ -176,82 +185,89 @@ bool Pause::FilamentLoad(const float &slow_load_length, const float &fast_load_l
     if (!is_target_temperature_safe())
         return false;
 
-    hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT);
+    Response response;
+    do {
+        hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT);
 
-    AutoRestore<float> AR(planner.settings.retract_acceleration);
+        AutoRestore<float> AR(planner.settings.retract_acceleration);
 
-    if (slow_load_length > 0) {
-        Response isFilamentInGear;
-        do {
-            // wait till filament sensor does not show "FS_NO_FILAMENT" in this block
-            // ask user to insert filament, than wait continue button
+        if (slow_load_length > 0) {
+#if ENABLED(ASK_FILAMENT_IN_GEAR)
+            Response isFilamentInGear;
             do {
-                while (fs_get_state() == FS_NO_FILAMENT) {
+#endif
+                // wait till filament sensor does not show "FS_NO_FILAMENT" in this block
+                // ask user to insert filament, than wait continue button
+                do {
+                    while (fs_get_state() == FS_NO_FILAMENT) {
+                        idle(true);
+                        fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
+                    }
                     idle(true);
-                    fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
-                }
-                idle(true);
-                fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::UserPush, 0, 0);
-            } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
-            hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
+                    fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::UserPush, 0, 0);
+                } while (ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::UserPush) != Response::Continue);
+                hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT * 2); //user just clicked - restart idle timers
 
-            // filament is being inserted
-            // Slow Load filament
-            if (slow_load_length) {
-                AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
-                thermalManager.allow_cold_extrude = true;
-                do_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 10, 30);
-            }
-
-            fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
-
-            //wait until response
-            do {
-                idle(true);
-                isFilamentInGear = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentInGear);
-            } while (isFilamentInGear != Response::Yes && isFilamentInGear != Response::No);
-
-            //eject what was inserted
-            if (isFilamentInGear == Response::No) {
+                // filament is being inserted
+                // Slow Load filament
                 if (slow_load_length) {
                     AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
                     thermalManager.allow_cold_extrude = true;
-                    do_e_move_notify_progress(-slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 30);
+                    do_e_move_notify_progress(slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Inserting, 10, 30);
                 }
-            }
-        } while (isFilamentInGear != Response::Yes);
 
-        set_filament(filament_to_load);
-    } //slow_load_length > 0
+                fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsFilamentInGear, 30, 0);
 
-    // Re-enable the heaters if they timed out
-    HOTEND_LOOP()
-    thermalManager.reset_heater_idle_timer(e);
-    //reheat (30min timeout)
-    marlin_server_print_reheat_start();
+#if ENABLED(ASK_FILAMENT_IN_GEAR)
+                //wait until response
+                do {
+                    idle(true);
+                    isFilamentInGear = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsFilamentInGear);
+                } while (isFilamentInGear != Response::Yes && isFilamentInGear != Response::No);
 
-    if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 10, 30)) {
-        return false;
-    }
+                //eject what was inserted
+                if (isFilamentInGear == Response::No) {
+                    if (slow_load_length) {
+                        AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
+                        thermalManager.allow_cold_extrude = true;
+                        do_e_move_notify_progress(-slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 30);
+                    }
+                }
+            } while (isFilamentInGear != Response::Yes);
+#endif
+            set_filament(filament_to_load);
+        } //slow_load_length > 0
 
-    // Fast Load Filament
-    if (fast_load_length) {
-        planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
-        do_e_move_notify_progress(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, PhasesLoadUnload::Loading, 50, 70);
-    }
+        // Re-enable the heaters if they timed out
+        HOTEND_LOOP()
+        thermalManager.reset_heater_idle_timer(e);
+        //reheat (30min timeout)
+        marlin_server_print_reheat_start();
 
-    if (purge_length > 0) {
-        Response response;
+        if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 30, 50)) {
+            return false;
+        }
+
+        // Fast Load Filament
+        if (fast_load_length) {
+            planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
+            do_e_move_notify_progress(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, PhasesLoadUnload::Loading, 50, 70);
+        }
+
+        const float purge_ln = purge_length > minimal_purge ? purge_length : minimal_purge;
         do {
             // Extrude filament to get into hotend
-            do_e_move_notify_progress(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
+            do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
             fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0);
             do {
                 idle();
                 response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor);
             } while (response == Response::_none);  //no button
         } while (response == Response::Purge_more); //purge more or continue .. exit loop
-    }
+        if (response == Response::Retry) {
+            do_e_move_notify_progress(-slow_load_length - fast_load_length - purge_ln, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 99);
+        }
+    } while (response == Response::Retry);
 
     return true;
 }
