@@ -44,7 +44,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_nozzle));
     footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "0/0\177C");
+    window_set_text(id, "");
 
     id = window_create_ptr( // heatbed
         WINDOW_CLS_ICON, parent,
@@ -60,7 +60,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_heatbed));
     footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "0/0\177C");
+    window_set_text(id, "");
 
     id = window_create_ptr( // prnspeed
         WINDOW_CLS_ICON, parent,
@@ -76,7 +76,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_prnspeed));
     footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "0%");
+    window_set_text(id, "");
 
     id = window_create_ptr( // z-axis
         WINDOW_CLS_ICON, parent,
@@ -92,7 +92,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_z_axis));
     footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "999.95");
+    window_set_text(id, "");
 
     id = window_create_ptr( // filament
         WINDOW_CLS_ICON, parent,

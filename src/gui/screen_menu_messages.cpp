@@ -47,8 +47,10 @@ void _window_list_add_message_item(window_list_t *pwindow_list, uint16_t index,
 void _msg_stack_del(uint8_t del_index) { // del_index = < 0 ; MSG_STACK_SIZE - 1 >
 
     // when we delete from last spot of the limited stack [MSG_STACK_SIZE - 1], no swapping is needed, for cycle won't start
-    for (uint8_t i = del_index; i + 1 < msg_stack.count; i++)
-        strncpy(msg_stack.msg_data[i], msg_stack.msg_data[i + 1], MSG_MAX_LENGTH);
+    for (uint8_t i = del_index; i + 1 < msg_stack.count; i++) {
+        memset(msg_stack.msg_data[i], '\0', sizeof(msg_stack.msg_data[i]) * sizeof(char)); // set to zeros to be on the safe side
+        strlcpy(msg_stack.msg_data[i], msg_stack.msg_data[i + 1], sizeof(msg_stack.msg_data[i]));
+    }
     msg_stack.count--;
 }
 

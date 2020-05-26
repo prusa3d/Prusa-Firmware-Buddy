@@ -249,8 +249,8 @@ void marlin_gcode(const char *gcode) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    strcpy(request, "!g ");
-    strcat(request, gcode);
+    strlcpy(request, "!g ", MARLIN_MAX_REQUEST);
+    strlcat(request, gcode, MARLIN_MAX_REQUEST);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
 }
@@ -260,7 +260,7 @@ void marlin_json_gcode(const char *gcode) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    strcpy(request, "!g ");
+    strlcpy(request, "!g ", MARLIN_MAX_REQUEST);
     strlcat(request, gcode, MARLIN_MAX_REQUEST);
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
@@ -272,7 +272,7 @@ int marlin_gcode_printf(const char *format, ...) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return 0;
-    strcpy(request, "!g ");
+    strlcpy(request, "!g ", MARLIN_MAX_REQUEST);
     va_list ap;
     va_start(ap, format);
     ret = vsnprintf(request + 3, MARLIN_MAX_REQUEST - 3, format, ap);

@@ -105,6 +105,12 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
             rc_btn.w = btn_width + gui_defaults.btn_spacing;
         }
     }
+    rc_btn.x += rc_btn.w; //start of black space after button (if exists)
+    int black_space_w = int(win.rect.x + win.rect.w) - int(rc_btn.x);
+    if (black_space_w > 0) {
+        rc_btn.w = black_space_w;
+        display->fill_rect(rc_btn, win.color_back);
+    }
 }
 
 bool RadioButton::IsEnabled() const {
