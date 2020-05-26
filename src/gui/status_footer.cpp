@@ -13,10 +13,15 @@
 
 #include "stm32f4xx_hal.h"
 
-// #include "../Marlin/src/module/temperature.h"
-// #include "../Marlin/src/module/planner.h"
+static const float heating_difference = 2.0F;
 
-#define HEATING_DIFFERENCE 2
+enum class ButtonStatus {
+    Nozzle = 0xf0,
+    Heatbed,
+    PrnSpeed,
+    Z_axis,
+    Filament
+};
 
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds);
 void status_footer_update_temperatures(status_footer_t *footer);
@@ -37,7 +42,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         rect_ui16(8, 270, 16, 16), // 2px padding from right
         &(footer->wi_nozzle));
     window_set_icon_id(id, IDR_PNG_status_icon_nozzle);
-    window_set_tag(id, BUTTON_STATUS_NOZZLE);
+    window_set_tag(id, uint8_t(ButtonStatus::Nozzle));
     // window_enable(id);
 
     id = window_create_ptr(
@@ -53,7 +58,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         rect_ui16(128, 270, 20, 16),
         &(footer->wi_heatbed));
     window_set_icon_id(id, IDR_PNG_status_icon_heatbed);
-    window_set_tag(id, BUTTON_STATUS_HEATBED);
+    window_set_tag(id, uint8_t(ButtonStatus::Heatbed));
     //window_enable(id);
 
     id = window_create_ptr(
@@ -69,7 +74,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         rect_ui16(10, 297, 16, 12),
         &(footer->wi_prnspeed));
     window_set_icon_id(id, IDR_PNG_status_icon_prnspeed);
-    window_set_tag(id, BUTTON_STATUS_PRNSPEED);
+    window_set_tag(id, uint8_t(ButtonStatus::PrnSpeed));
     //window_enable(id);
 
     id = window_create_ptr(
@@ -85,7 +90,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         rect_ui16(80, 297, 16, 16),
         &(footer->wi_z_axis));
     window_set_icon_id(id, IDR_PNG_status_icon_z_axis);
-    window_set_tag(id, BUTTON_STATUS_PRNSPEED);
+    window_set_tag(id, uint8_t(ButtonStatus::Z_axis));
     //window_enable(id);
 
     id = window_create_ptr(
@@ -101,7 +106,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         rect_ui16(163, 297, 16, 16),
         &(footer->wi_filament));
     window_set_icon_id(id, IDR_PNG_status_icon_filament);
-    window_set_tag(id, BUTTON_STATUS_PRNSPEED);
+    window_set_tag(id, uint8_t(ButtonStatus::Filament));
     //window_enable(id);
 
     id = window_create_ptr(
@@ -134,12 +139,12 @@ int status_footer_event(status_footer_t *footer, window_t *window,
         return 0;
     }
 
-    switch ((int)param) {
-    case BUTTON_STATUS_NOZZLE:
-    case BUTTON_STATUS_HEATBED:
-    case BUTTON_STATUS_PRNSPEED:
-    case BUTTON_STATUS_Z_AXIS:
-    case BUTTON_STATUS_FILAMENT:
+    switch (static_cast<ButtonStatus>((const int)param)) {
+    case ButtonStatus::Nozzle:
+    case ButtonStatus::Heatbed:
+    case ButtonStatus::PrnSpeed:
+    case ButtonStatus::Z_axis:
+    case ButtonStatus::Filament:
         return 0;
     }
     return 0;
@@ -178,17 +183,17 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     /// nozzle state
     if (vars->target_nozzle != vars->display_nozzle) { /// preheat mode
         footer->nozzle_state = PREHEAT;
-        if (vars->target_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
+        if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
             footer->nozzle_state = HEATING;
-        } else if (vars->display_nozzle < vars->temp_nozzle - HEATING_DIFFERENCE) {
+        } else if (vars->display_nozzle < vars->temp_nozzle - heating_difference) {
             // vars->display_nozzle (not target_nozzle) is OK, because it's weird to show 200/215 and cooling color
             footer->nozzle_state = COOLING;
         }
     } else {
         footer->nozzle_state = STABLE;
-        if (vars->target_nozzle > vars->temp_nozzle + HEATING_DIFFERENCE) {
+        if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
             footer->nozzle_state = HEATING;
-        } else if (vars->target_nozzle < vars->temp_nozzle - HEATING_DIFFERENCE && vars->temp_nozzle > COOL_NOZZLE) {
+        } else if (vars->target_nozzle < vars->temp_nozzle - heating_difference && vars->temp_nozzle > COOL_NOZZLE) {
             footer->nozzle_state = COOLING;
         }
     }
@@ -208,9 +213,9 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
 
     /// heatbed state
     footer->heatbed_state = STABLE;
-    if (vars->target_bed > vars->temp_bed + HEATING_DIFFERENCE) {
+    if (vars->target_bed > vars->temp_bed + heating_difference) {
         footer->heatbed_state = HEATING;
-    } else if (vars->target_bed < vars->temp_bed - HEATING_DIFFERENCE && vars->temp_bed > COOL_BED) {
+    } else if (vars->target_bed < vars->temp_bed - heating_difference && vars->temp_bed > COOL_BED) {
         footer->heatbed_state = COOLING;
     }
 
