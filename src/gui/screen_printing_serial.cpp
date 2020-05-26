@@ -20,7 +20,7 @@ enum item_id_t {
     iid_tune,
     iid_pause,
     iid_disconnect,
-    iid_count
+    iid_count // - MAIN COUNT INDEX for asert check
 };
 
 const uint16_t serial_printing_icons[iid_count] = {
