@@ -85,6 +85,27 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
  * todo rewrite
  */
 static void load(const int8_t target_extruder) {
+    pause.FilamentLoad();
+}
+
+/**
+ * Unload filament special code
+ */
+static void unload(const int8_t target_extruder) {
+    pause.FilamentUnload();
+}
+
+/**
+ * M701: Load filament
+ *
+ *  T<extruder> - Extruder number. Required for mixing extruder.
+ *                For non-mixing, current extruder if omitted.
+ *  Z<distance> - Move the Z axis by this distance
+ *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
+ *  S"Filament" - save filament by name, for example S"PLA". RepRap compatible.
+ *  Default values are used for omitted arguments.
+ */
+void GcodeSuite::M701() {
     filament_to_load = DEFAULT_FILAMENT;
     const char *text_begin = 0;
     if (parser.seen('S')) {
@@ -102,34 +123,14 @@ static void load(const int8_t target_extruder) {
     }
 
     const float fast_load_length = ABS((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
-                                                                                                                          : pause.GetLoadLength());
-    constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH;
-    const float slow_load_length = fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0;
+                                                                                                                          : pause.GetDefaultLoadLength());
+    pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
+    pause.SetSlowLoadLenght(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
 
-    pause.FilamentLoad(slow_load_length, fast_load_length, purge_length);
-}
-
-/**
- * Unload filament special code
- */
-static void unload(const int8_t target_extruder) {
-    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetUnloadLength());
-
-    pause.FilamentUnload(unload_length);
-}
-
-/**
- * M701: Load filament
- *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  Z<distance> - Move the Z axis by this distance
- *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
- *  S"Filament" - save filament by name, for example S"PLA". RepRap compatible.
- *  Default values are used for omitted arguments.
- */
-void GcodeSuite::M701() {
-    load_unload(LoadUnloadMode::Load, load, Z_AXIS_LOAD_POS);
+    if (fast_load_length)
+        load_unload(LoadUnloadMode::Load, load, Z_AXIS_LOAD_POS);
+    else
+        load_unload(LoadUnloadMode::Purge, load, Z_AXIS_LOAD_POS);
 }
 
 /**
@@ -144,5 +145,6 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
+    pause.SetUnloadLenght(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetDefaultUnloadLength());
     load_unload(LoadUnloadMode::Unload, unload, Z_AXIS_UNLOAD_POS);
 }

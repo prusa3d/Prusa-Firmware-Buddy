@@ -95,17 +95,20 @@ void GcodeSuite::M600() {
 #endif
 
     // Unload filament
-    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                      : pause.GetUnloadLength());
+    pause.SetUnloadLenght(parser.seen('U') ? parser.value_axis_units(E_AXIS)
+                                           : pause.GetDefaultUnloadLength());
 
     // Slow load filament
-    constexpr float slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
+    pause.SetSlowLoadLenght(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
 
     // Fast load filament
-    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                        : pause.GetLoadLength());
+    pause.SetFastLoadLenght(parser.seen('L') ? parser.value_axis_units(E_AXIS)
+                                             : pause.GetDefaultLoadLength());
 
-    if (pause.PrintPause(retract, park_point, unload_length)) {
-        pause.PrintResume(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH);
+    // Purge filament
+    pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
+
+    if (pause.PrintPause(retract, park_point)) {
+        pause.PrintResume();
     }
 }
