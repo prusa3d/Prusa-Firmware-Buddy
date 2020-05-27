@@ -40,17 +40,18 @@
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 #include "filament.h"
+#include <functional>
 
 #define DO_NOT_RESTORE_Z_AXIS
 #define Z_AXIS_LOAD_POS   40
 #define Z_AXIS_UNLOAD_POS 20
 
-typedef void (*load_unload_fnc)(const int8_t target_extruder);
+using Func = std::function<void()>;
 
 /**
  * Shared code for load/unload filament
  */
-static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint32_t min_Z_pos) {
+static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_pos) {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
@@ -67,7 +68,7 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     // Load/Unload filament
-    f_load_unload(target_extruder);
+    f_load_unload();
 #ifndef DO_NOT_RESTORE_Z_AXIS
     // Restore Z axis
     if (min_Z_pos > 0) {
@@ -76,23 +77,6 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 #endif
-}
-
-/**
- * Load filament special code
- * filament type must be last parameter
- * type name cannot contain 'Z'
- * todo rewrite
- */
-static void load(const int8_t target_extruder) {
-    pause.FilamentLoad();
-}
-
-/**
- * Unload filament special code
- */
-static void unload(const int8_t target_extruder) {
-    pause.FilamentUnload();
 }
 
 /**
@@ -128,9 +112,11 @@ void GcodeSuite::M701() {
     pause.SetSlowLoadLenght(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
 
     if (fast_load_length)
-        load_unload(LoadUnloadMode::Load, load, Z_AXIS_LOAD_POS);
+        load_unload(
+            LoadUnloadMode::Load, [] { pause.FilamentLoad(); }, Z_AXIS_LOAD_POS);
     else
-        load_unload(LoadUnloadMode::Purge, load, Z_AXIS_LOAD_POS);
+        load_unload(
+            LoadUnloadMode::Purge, [] { pause.FilamentLoad(); }, Z_AXIS_LOAD_POS);
 }
 
 /**
@@ -146,5 +132,6 @@ void GcodeSuite::M701() {
  */
 void GcodeSuite::M702() {
     pause.SetUnloadLenght(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetDefaultUnloadLength());
-    load_unload(LoadUnloadMode::Unload, unload, Z_AXIS_UNLOAD_POS);
+    load_unload(
+        LoadUnloadMode::Unload, [] { pause.FilamentUnload(); }, Z_AXIS_UNLOAD_POS);
 }
