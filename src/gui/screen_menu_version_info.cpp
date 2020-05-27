@@ -72,7 +72,7 @@ void screen_menu_version_info_init(screen_t *screen) {
     serial_numbers[14] = '\0';
 
     //=============SET TEXT================
-    snprintf(version_info_str, VERSION_INFO_STR_MAXLEN, "Firmware version\n");
+    snprintf(version_info_str, VERSION_INFO_STR_MAXLEN, "Firmware Version\n");
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
@@ -90,7 +90,7 @@ void screen_menu_version_info_init(screen_t *screen) {
 
     snprintf(version_info_str + strlen(version_info_str),
         VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
-        "\nBootloader version\n%d.%d.%d\n\nBuddy board\n%d.%d.%d\n%s",
+        "\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s",
         bootloader->major, bootloader->minor, bootloader->patch,
         board_version[0], board_version[1], board_version[2],
         serial_numbers);

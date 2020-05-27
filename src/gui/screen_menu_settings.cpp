@@ -97,7 +97,7 @@ void screen_menu_settings_init(screen_t *screen) {
     psmd->items[MI_TEST] = (menu_item_t) { { "Test", 0, WI_LABEL }, &screen_test };
 #endif //_DEBUG
     psmd->items[MI_FW_UPDATE] = (menu_item_t) { { "FW Update", 0, WI_LABEL }, &screen_menu_fw_update };
-    psmd->items[MI_FILAMENT_SENSOR] = (menu_item_t) { { "Fil. sens.", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_FILAMENT_SENSOR] = (menu_item_t) { { "Fil. Sens.", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.index = (fs != FS_DISABLED);
     psmd->items[MI_FILAMENT_SENSOR].item.wi_switch_select.strings = settings_opt_enable_disable;
     psmd->items[MI_TIMEOUT] = (menu_item_t) { { "Timeout", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
