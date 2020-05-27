@@ -67,8 +67,21 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
         Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
+
+    float disp_temp = marlin_server_get_temp_to_display();
+    float targ_temp = Temperature::degTargetHotend(target_extruder);
+
+    if (disp_temp > targ_temp) {
+        thermalManager.setTargetHotend(disp_temp, target_extruder);
+    }
+
     // Load/Unload filament
     f_load_unload();
+
+    if (disp_temp > targ_temp) {
+        thermalManager.setTargetHotend(targ_temp, target_extruder);
+    }
+
 #ifndef DO_NOT_RESTORE_Z_AXIS
     // Restore Z axis
     if (min_Z_pos > 0) {
@@ -110,6 +123,7 @@ void GcodeSuite::M701() {
                                                                                                                           : pause.GetDefaultLoadLength());
     pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
     pause.SetSlowLoadLenght(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
+    pause.SetFastLoadLenght(fast_load_length);
 
     if (fast_load_length)
         load_unload(

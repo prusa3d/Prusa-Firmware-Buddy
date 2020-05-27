@@ -606,6 +606,9 @@ int marlin_all_axes_known(void) {
 void marlin_server_set_temp_to_display(float value) {
     marlin_server.vars.display_nozzle = value;
 }
+float marlin_server_get_temp_to_display(void) {
+    return marlin_server.vars.display_nozzle;
+}
 
 //-----------------------------------------------------------------------------
 // private functions
