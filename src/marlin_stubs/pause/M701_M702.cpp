@@ -41,6 +41,7 @@
 #include "pause_stubbed.hpp"
 #include "filament.h"
 #include <functional>
+#include <cmath>
 
 #define DO_NOT_RESTORE_Z_AXIS
 #define Z_AXIS_LOAD_POS   40
@@ -119,8 +120,8 @@ void GcodeSuite::M701() {
         }
     }
 
-    const float fast_load_length = ABS((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
-                                                                                                                          : pause.GetDefaultLoadLength());
+    const float fast_load_length = std::abs((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
+                                                                                                                               : pause.GetDefaultLoadLength());
     pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
     pause.SetSlowLoadLenght(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
     pause.SetFastLoadLenght(fast_load_length);
