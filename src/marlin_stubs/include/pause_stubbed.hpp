@@ -20,15 +20,28 @@ class Pause {
         int16_t feedrate; ///< feedrate of the move
     };
 
+    static constexpr const float heating_phase_min_hotend_diff = 5.0F;
+
+    //this walues must be set before every load/unload
+    float unload_length = 0;
+    float slow_load_length = 0;
+    float fast_load_length = 0;
+    float purge_length = minimal_purge;
+
 public:
+    static constexpr const float minimal_purge = 1;
     static Pause &GetInstance();
 
-    float GetLoadLength() const;
-    float GetUnloadLength() const;
-    bool FilamentUnload(const float &unload_length);
-    bool FilamentLoad(const float &slow_load_length, const float &fast_load_length, const float &purge_length);
-    bool PrintPause(const float &retract, const xyz_pos_t &park_point, const float &unload_length);
-    void PrintResume(const float &slow_load_length, const float &fast_load_length, const float &purge_length);
+    void SetUnloadLenght(float len);
+    void SetSlowLoadLenght(float len);
+    void SetFastLoadLenght(float len);
+    void SetPurgeLenght(float len);
+    float GetDefaultLoadLength() const;
+    float GetDefaultUnloadLength() const;
+    bool FilamentUnload();
+    bool FilamentLoad();
+    bool PrintPause(float retract, const xyz_pos_t &park_point);
+    void PrintResume();
 
 private:
     void unpark_nozzle_and_notify();

@@ -74,9 +74,6 @@
 
 PauseMenuResponse pause_menu_response;
 
-static const uint minimal_purge = 1;
-static const float heating_phase_min_hotend_diff = 5.0F;
-
 //cannot be class member (externed in marlin)
 uint8_t did_pause_print = 0;
 fil_change_settings_t fc_settings[EXTRUDERS];
@@ -97,13 +94,28 @@ Pause &Pause::GetInstance() {
     return s;
 }
 
-//xyze_pos_t Pause::resume_position;
+void Pause::SetUnloadLenght(float len) {
+    unload_length = -ABS(len); // it is negative value
+}
 
-float Pause::GetLoadLength() const {
+void Pause::SetSlowLoadLenght(float len) {
+    slow_load_length = ABS(len);
+}
+
+void Pause::SetFastLoadLenght(float len) {
+    fast_load_length = ABS(len);
+}
+
+void Pause::SetPurgeLenght(float len) {
+    len = ABS(len);
+    purge_length = len > minimal_purge ? len : minimal_purge;
+}
+
+float Pause::GetDefaultLoadLength() const {
     return fc_settings[active_extruder].load_length;
 }
 
-float Pause::GetUnloadLength() const {
+float Pause::GetDefaultUnloadLength() const {
     return fc_settings[active_extruder].unload_length;
 }
 
@@ -180,7 +192,7 @@ void Pause::hotend_idle_start(uint32_t time) {
  *
  * Returns 'true' if load was completed, 'false' for abort
  */
-bool Pause::FilamentLoad(const float &slow_load_length, const float &fast_load_length, const float &purge_length) {
+bool Pause::FilamentLoad() {
 
     // actual temperature does not matter, only target
     if (!is_target_temperature_safe())
@@ -283,7 +295,7 @@ bool Pause::FilamentLoad(const float &slow_load_length, const float &fast_load_l
  *
  * Returns 'true' if unload was completed, 'false' for abort
  */
-bool Pause::FilamentUnload(const float &unload_length) {
+bool Pause::FilamentUnload() {
 
     if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 0, 50)) {
         return false;
@@ -404,7 +416,7 @@ void Pause::unpark_nozzle_and_notify() {
  *
  * Return 'true' if pause was completed, 'false' for abort
  */
-bool Pause::PrintPause(const float &retract, const xyz_pos_t &park_point, const float &unload_length /*=0*/) {
+bool Pause::PrintPause(float retract, const xyz_pos_t &park_point) {
 
     if (did_pause_print)
         return false; // already paused
@@ -433,7 +445,7 @@ bool Pause::PrintPause(const float &retract, const xyz_pos_t &park_point, const 
     park_nozzle_and_notify(retract, park_point);
 
     if (unload_length) // Unload the filament
-        FilamentUnload(unload_length);
+        FilamentUnload();
 
     return true;
 }
@@ -456,12 +468,12 @@ bool Pause::PrintPause(const float &retract, const xyz_pos_t &park_point, const 
  * - Send host action for resume, if configured
  * - Resume the current SD print job, if any
  */
-void Pause::PrintResume(const float &slow_load_length, const float &fast_load_length, const float &purge_length) {
+void Pause::PrintResume() {
 
     if (!did_pause_print)
         return;
 
-    FilamentLoad(slow_load_length, fast_load_length, purge_length);
+    FilamentLoad();
 
 // Intelligent resuming
 #if ENABLED(FWRETRACT)
