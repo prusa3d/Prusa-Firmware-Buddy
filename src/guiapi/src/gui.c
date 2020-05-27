@@ -174,12 +174,12 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);
-    //window_popup_ptr is set null after destroying msgbox
-    //msgbox destroys itself when user pres any button
+    //window_popup_ptr is set to null after destroying msgbox
+    //msgbox destroys itself when user presses any button
     while (window_popup_ptr) {
         gui_loop();
     }
-    window_popup_ptr = window_popup_tmp; // restore previos window_popup_ptr
+    window_popup_ptr = window_popup_tmp; // restore previous window_popup_ptr
     window_invalidate(0);
     window_set_capture(id_capture);
     return msgbox.res;
