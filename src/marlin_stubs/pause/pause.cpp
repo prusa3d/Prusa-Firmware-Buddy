@@ -51,6 +51,7 @@
 #include "filament_sensor.h"
 #include "filament.h"
 #include "RAII.hpp"
+#include <cmath>
 
 // private:
 //check unsupported features
@@ -95,19 +96,19 @@ Pause &Pause::GetInstance() {
 }
 
 void Pause::SetUnloadLenght(float len) {
-    unload_length = -ABS(len); // it is negative value
+    unload_length = -std::abs(len); // it is negative value
 }
 
 void Pause::SetSlowLoadLenght(float len) {
-    slow_load_length = ABS(len);
+    slow_load_length = std::abs(len);
 }
 
 void Pause::SetFastLoadLenght(float len) {
-    fast_load_length = ABS(len);
+    fast_load_length = std::abs(len);
 }
 
 void Pause::SetPurgeLenght(float len) {
-    len = ABS(len);
+    len = std::abs(len);
     purge_length = len > minimal_purge ? len : minimal_purge;
 }
 
@@ -361,7 +362,7 @@ void Pause::park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_p
             do_blocking_move_to_z(_MIN(current_position.z + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
         }
         {
-            const bool x_greater_than_y = ABS(current_position.x - park_point.x) > ABS(current_position.y - park_point.y);
+            const bool x_greater_than_y = std::abs(current_position.x - park_point.x) > std::abs(current_position.y - park_point.y);
             const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
             const float &end_pos = x_greater_than_y ? park_point.x : park_point.y;
             if (x_greater_than_y) {
@@ -379,7 +380,7 @@ void Pause::park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_p
 void Pause::unpark_nozzle_and_notify() {
     // Move XY to starting position, then Z
     {
-        const bool x_greater_than_y = ABS(current_position.x - resume_position.x) > ABS(current_position.y - resume_position.y);
+        const bool x_greater_than_y = std::abs(current_position.x - resume_position.x) > std::abs(current_position.y - resume_position.y);
         const float &begin_pos = x_greater_than_y ? current_position.x : current_position.y;
         const float &end_pos = x_greater_than_y ? resume_position.x : resume_position.y;
         if (x_greater_than_y) {

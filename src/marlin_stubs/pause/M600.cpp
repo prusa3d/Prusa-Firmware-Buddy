@@ -39,6 +39,7 @@
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
+#include <cmath>
 
 /**
  * M600: Pause for filament change
@@ -68,7 +69,7 @@ void GcodeSuite::M600() {
 #endif
 
     // Initial retract before move to filament change position
-    const float retract = -ABS(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
+    const float retract = -std::abs(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
 #ifdef PAUSE_PARK_RETRACT_LENGTH
                 + (PAUSE_PARK_RETRACT_LENGTH)
 #endif
