@@ -446,7 +446,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
     window_set_text(pw->w_etime_value.win.id, array.data());
 }
 
-static void update_end_timestamp(screen_t *screen, timestamp_t *timestamp) {
+static void update_end_timestamp(screen_t *screen, timestamp_t *now) {
 
     auto &array = pw->text_etime;
     char qmark[2] = "";
@@ -458,20 +458,24 @@ static void update_end_timestamp(screen_t *screen, timestamp_t *timestamp) {
         pw->w_etime_value.color_text = COLOR_VALUE_VALID;
     }
 
-    uint8_t today = timestamp->date.d;
-    timestamp->epoch_secs += (marlin_vars()->time_to_end / 1000);
-    update_timestamp_from_epoch_secs(timestamp);
+    timestamp_t print_end, tommorow;
+    print_end.epoch_secs = now->epoch_secs + (marlin_vars()->time_to_end / 1000);
+    tommorow.epoch_secs = now->epoch_secs += 86400; // now + one full day
+    update_timestamp_from_epoch_secs(&tommorow);
+    update_timestamp_from_epoch_secs(&print_end);
 
     time_str_t time_str;
 
-    if (today == timestamp->date.d) {
-        stringify_timestamp(&time_str, timestamp, TIME_STR_HOURS | TIME_STR_MINS);
+    if (now->date.d == print_end.date.d && // if print end is today
+        now->date.m == print_end.date.m && now->date.y == print_end.date.y) {
+        stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS);
         snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "Today at %s%s", time_str.time, qmark);
-    } else if (today + 1 == timestamp->date.d) {
-        stringify_timestamp(&time_str, timestamp, TIME_STR_HOURS | TIME_STR_MINS);
+    } else if (tommorow.date.y == print_end.date.d && // if print end is tommorow
+        tommorow.date.m == print_end.date.m && tommorow.date.d == print_end.date.y) {
+        stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS);
         snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "Tommorow at %s%s", time_str.time, qmark);
     } else {
-        stringify_timestamp(&time_str, timestamp, TIME_STR_HOURS | TIME_STR_MINS | TIME_STR_DAYS | TIME_STR_MONTHS);
+        stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS | TIME_STR_DAYS | TIME_STR_MONTHS);
         snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "%s at %s%s", time_str.date, time_str.time, qmark);
     }
 
