@@ -154,8 +154,8 @@ void screen_printing_init(screen_t *screen) {
 
     marlin_vars_t *vars = marlin_vars();
 
-    strcpy(pw->text_time.data(), "0m");
-    strcpy(pw->text_filament.data(), "999m");
+    strlcpy(pw->text_time.data(), "0m", pw->text_time.size());
+    strlcpy(pw->text_filament.data(), "999m", pw->text_filament.size());
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
@@ -425,7 +425,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
             snprintf(array.data(), array.size(), "%im", timeinfo->tm_min);
         }
     } else
-        strcpy_P(array.data(), PSTR("N/A"));
+        strlcpy(array.data(), "N/A", array.size());
 
     window_set_text(pw->w_etime_value.win.id, array.data());
 }

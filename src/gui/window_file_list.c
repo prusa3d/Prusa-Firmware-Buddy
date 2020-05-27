@@ -85,7 +85,7 @@ void window_file_list_init(window_file_list_t *window) {
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;
     gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
-    strcpy(window->sfn_path, "/");
+    strlcpy(window->sfn_path, "/", FILE_PATH_MAX_LEN);
 
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)

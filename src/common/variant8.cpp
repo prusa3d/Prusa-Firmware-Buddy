@@ -341,18 +341,21 @@ int variant8_snprintf(char *str, unsigned int size, const char *fmt, variant8_t 
 #define VARIANT8_TO_STR_MAX_BUFF 32
 
 char *variant8_to_str(variant8_t *pvar8, const char *fmt) {
+    // FIXME - do we need to print to buff and then to str?
     char buff[VARIANT8_TO_STR_MAX_BUFF] = "";
-    char *str = 0;
     int n = variant8_snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt, pvar8);
-    if (n > 0) {
-        str = (char *)variant8_malloc(n + 1);
-        if (str) {
-            if (n > (VARIANT8_TO_STR_MAX_BUFF - 1))
-                n = variant8_snprintf(str, n, fmt, pvar8);
-            else if (str)
-                strcpy(str, buff);
-        }
-    }
+    if (n <= 0)
+        return nullptr;
+
+    char *str = (char *)variant8_malloc(n + 1);
+    if (!str)
+        return nullptr;
+
+    if (n > (VARIANT8_TO_STR_MAX_BUFF - 1))
+        // FIXME will this ever happen?
+        variant8_snprintf(str, n, fmt, pvar8);
+    else
+        strlcpy(str, buff, n);
     return str;
 }
 

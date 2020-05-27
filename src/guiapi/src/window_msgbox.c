@@ -166,48 +166,43 @@ void window_msgbox_draw(window_msgbox_t *window) {
         rect_ui16_t rc_tit = window->win.rect;
 
         uint8_t red_line_offset = 0;
-        int ico = ((window->flags & MSGBOX_MSK_ICO) >> MSGBOX_SHI_ICO);
+        const int ico = ((window->flags & MSGBOX_MSK_ICO) >> MSGBOX_SHI_ICO);
         const char *title = window->title; // get title from window member
-        if (title == 0)                    // if null, set defaut title (info, warning, error...)
+        if (title == NULL)                 // if null, set defaut title (info, warning, error...)
             title = window_msgbox_title_text[ico];
-        int title_h = 0;             // title hight in pixels
-        int title_n = strlen(title); // number of chars in title
-        if (title_n)                 // if not empty, set title hight from font
+        int title_h = 0;                   // title hight in pixels
+        const int title_n = strlen(title); // number of chars in title
+        if (title_n)                       // if not empty, set title hight from font
             title_h = window->font_title->h;
-        uint16_t id_icon = window->id_icon; // get icon id from window member
-        if (ico < 1) {                      // for error, warning, info and question -> disable icon
-            if (id_icon == 0)
-                id_icon = window_msgbox_id_icon[ico];
-        }
-        const uint8_t *picon = 0;                           // icon resource pointer
-        point_ui16_t icon_wh = point_ui16(0, 0);            // icon width-height - default (0,0)
-        if ((id_icon) && (picon = resource_ptr(id_icon))) { // id_icon is set and resource pointer is not null
-            icon_wh = icon_meas(picon);                     // get icon dimensions
+
+        // get icon id from window member; for error, warning, info and question -> disable icon
+        const uint16_t id_icon = (ico < 1 && window->id_icon == 0) ? window_msgbox_id_icon[ico] : window->id_icon;
+        const uint8_t *picon = 0;                         // icon resource pointer
+        point_ui16_t icon_wh = point_ui16(0, 0);          // icon width-height - default (0,0)
+        if (id_icon && (picon = resource_ptr(id_icon))) { // id_icon is set and resource pointer is not null
+            icon_wh = icon_meas(picon);                   // get icon dimensions
             if (title_h < icon_wh.y)
                 title_h = icon_wh.y; // adjust title height
         }
-        if (title_h) // calculated title height != 0 means title will be rendered
-        {
+
+        if (title_h) {                                               // calculated title height != 0 means title will be rendered
             title_h += window->padding.top + window->padding.bottom; // add padding
             rc_tit.h = title_h;                                      // xxx pixels for title
-            if (title_n && picon)                                    // text not empty and icon resource not null
-            {                                                        // icon and text will be aligned left
-                int icon_w = icon_wh.x + window->padding.left + window->padding.right;
-                int title_w = rc_tit.w - icon_w;
+            if (title_n && picon) {                                  // text not empty and icon resource not null; icon and text will be aligned left
+                const int icon_w = icon_wh.x + window->padding.left + window->padding.right;
+                const int title_w = rc_tit.w - icon_w;
                 rc_tit.w = icon_w;
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
                 rc_tit.x = icon_w;
                 rc_tit.w = title_w;
                 render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
-            } else if (title_n) // text not empty and icon resource is null
-            {                   // text will be aligned left
+            } else if (title_n) { // text not empty and icon resource is null; text will be aligned left
                 render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
                 display->draw_line(point_ui16(rc_tit.x + window->padding.left, rc_tit.y + rc_tit.h),
                     point_ui16(rc_tit.x + rc_tit.w - (window->padding.left + window->padding.right), rc_tit.y + rc_tit.h),
                     COLOR_RED_ALERT);
                 red_line_offset = 1;
-            } else // text is empty, icon resource not null
-            {      // icon will be aligned to center
+            } else { // text is empty, icon resource not null; icon will be aligned to center
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
             }
         }
@@ -229,12 +224,10 @@ void window_msgbox_draw(window_msgbox_t *window) {
     } else if (window->flags & MSGBOX_MSK_CHG)
         window_msgbox_draw_buttons(window);
 
-    if (window->flags & MSGBOX_GREY_FRAME) { //draw frame
-        rect_ui16_t rc = window->win.rect;
-        display->draw_line(point_ui16(rc.x, rc.y), point_ui16(239, rc.y), COLOR_GRAY);
-        display->draw_line(point_ui16(rc.x, rc.y), point_ui16(rc.x, 320 - 67), COLOR_GRAY);
-        display->draw_line(point_ui16(239, rc.y), point_ui16(239, 320 - 67), COLOR_GRAY);
-        display->draw_line(point_ui16(rc.x, 320 - 67), point_ui16(239, 320 - 67), COLOR_GRAY);
+    if (window->flags & MSGBOX_GREY_FRAME) {                         /// draw frame
+        const uint16_t w = display->w - 1 - window->win.rect.x + 1;  /// last - first + 1
+        const uint16_t h = display->h - 67 - window->win.rect.y + 1; /// last - first + 1
+        display->draw_rect(rect_ui16(window->win.rect.x, window->win.rect.y, w, h), COLOR_GRAY);
     }
 }
 

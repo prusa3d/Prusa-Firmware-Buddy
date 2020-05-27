@@ -22,7 +22,7 @@ void window_progress_draw(window_progress_t *window) {
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         rect_ui16_t rc = window->win.rect;
         char text[WINDOW_PROGRESS_MAX_TEXT];
-        sprintf(text, window->format, (double)window->value);
+        snprintf(text, WINDOW_PROGRESS_MAX_TEXT, window->format, (double)window->value);
         int progress_w = (int)(rc.w * (window->value - window->min) / (window->max - window->min));
         rc.h = window->height_progress;
 

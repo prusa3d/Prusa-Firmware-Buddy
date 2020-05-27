@@ -31,11 +31,8 @@ void screen_menu_preheat_init(screen_t *screen) {
     psmd->items[0] = menu_item_return;
 
     for (size_t i = 1; i < FILAMENTS_END; i++) {
-        memset((char *)psmd->items[i].item.label, ' ', sizeof(char) * 15);
-        strncpy((char *)psmd->items[i].item.label, filaments[i].name,
-            strlen(filaments[i].name));
-        sprintf((char *)psmd->items[i].item.label + 9, "%d/%d",
-            filaments[i].nozzle, filaments[i].heatbed);
+        memset(psmd->items[i].item.label, '\0', sizeof(psmd->items[i].item.label) * sizeof(char)); // set to zeros to be on the safe side
+        strlcpy(psmd->items[i].item.label, filaments[i].long_name, sizeof(psmd->items[i].item.label));
     }
     psmd->items[FILAMENTS_END] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     window_set_item_index(psmd->menu.win.id, get_filament());
@@ -68,8 +65,7 @@ int screen_menu_preheat_event(screen_t *screen, window_t *window,
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
 
     if (filament.nozzle > PREHEAT_TEMP) {
-        //FIXME temperatures should be swapped
-        marlin_gcode_printf("M104 S%d R%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
+        marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
     } else {
         /// cooldown typically
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle);

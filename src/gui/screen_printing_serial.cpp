@@ -44,7 +44,6 @@ typedef struct
     status_footer_t footer;
 
     window_icon_t octo_icon;
-
     window_icon_t w_buttons[iid_count];
     window_text_t w_labels[iid_count];
 
