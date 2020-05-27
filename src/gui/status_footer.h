@@ -69,12 +69,6 @@ typedef struct
 
 #pragma pack(pop)
 
-#define BUTTON_STATUS_NOZZLE   0xf0
-#define BUTTON_STATUS_HEATBED  0xf1
-#define BUTTON_STATUS_PRNSPEED 0xf2
-#define BUTTON_STATUS_Z_AXIS   0xf3
-#define BUTTON_STATUS_FILAMENT 0xf4
-
 #define REPAINT_Z_POS_PERIOD 512  /// time span between z position repaint [miliseconds]
 #define REPAINT_VALUE_PERIOD 1024 /// time span between value repaint [miliseconds]
 #define BLINK_PERIOD         512  /// time span between color changes [miliseconds]

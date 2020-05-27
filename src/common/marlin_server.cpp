@@ -78,6 +78,7 @@ typedef struct _marlin_server_t {
     marlin_print_state_t print_state;                // printing state (printing, paused, ...)
     float resume_pos[4];                             // resume position for unpark_head
     float resume_nozzle_temp;                        // resume nozzle temperature
+    uint8_t resume_fan_speed;                        // resume fan speed
     uint32_t paused_ticks;                           // tick count in moment when printing paused
 } marlin_server_t;
 
@@ -107,22 +108,20 @@ msg_stack_t msg_stack = { '\0', 0 };
 
 void _add_status_msg(const char *const popup_msg) {
     char message[MSG_MAX_LENGTH];
-    size_t str_size = strlen(popup_msg);
-    if (str_size >= MSG_MAX_LENGTH - 1) {
-        strncpy(message, popup_msg, MSG_MAX_LENGTH - 1); // popup_msg is not always null-terminated...
-        message[MSG_MAX_LENGTH - 1] = '\0';
-    } else {
-        strncpy(message, popup_msg, str_size);
-        message[str_size] = '\0';
-    }
+    memset(message, '\0', sizeof(message) * sizeof(char)); // set to zeros to be on the safe side
+
+    strlcpy(message, popup_msg, MSG_MAX_LENGTH);
 
     for (uint8_t i = msg_stack.count; i; i--) {
         if (i == MSG_STACK_SIZE)
             i--; // last place of the limited stack will be always overwritten
-        strncpy(msg_stack.msg_data[i], msg_stack.msg_data[i - 1], MSG_MAX_LENGTH);
+
+        memset(msg_stack.msg_data[i], '\0', sizeof(msg_stack.msg_data[i]) * sizeof(char)); // set to zeros to be on the safe side
+        strlcpy(msg_stack.msg_data[i], msg_stack.msg_data[i - 1], sizeof(msg_stack.msg_data[i]));
     }
 
-    strncpy(msg_stack.msg_data[0], message, MSG_MAX_LENGTH);
+    memset(msg_stack.msg_data[0], '\0', sizeof(msg_stack.msg_data[0]) * sizeof(char)); // set to zeros to be on the safe side
+    strlcpy(msg_stack.msg_data[0], message, sizeof(msg_stack.msg_data[0]));
 
     if (msg_stack.count < MSG_STACK_SIZE)
         msg_stack.count++;
@@ -476,6 +475,8 @@ static void _server_print_loop(void) {
         media_print_pause();
         print_job_timer.pause();
         marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
+        marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       //save fan speed
+        thermalManager.set_fan_speed(0, 0);                                  //disable print fan
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
     case mpsPausing_WaitIdle:
@@ -514,6 +515,7 @@ static void _server_print_loop(void) {
         if (planner.movesplanned() == 0) {
             media_print_resume();
             print_job_timer.resume(0);
+            thermalManager.set_fan_speed(0, marlin_server.resume_fan_speed); // restore fan speed
             marlin_server.print_state = mpsPrinting;
         }
         break;

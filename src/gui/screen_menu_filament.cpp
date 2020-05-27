@@ -10,6 +10,7 @@
 #include "screens.h"
 #include "dbg.h"
 #include "status_footer.h"
+#include "DialogHandler.hpp"
 
 enum { F_EEPROM = 0x01,
     F_SENSED = 0x02 };
@@ -109,8 +110,7 @@ void screen_menu_filament_init(screen_t *screen) {
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
-    //FIXME temperatures should be swapped
-    marlin_gcode_printf("M104 S%d R%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
+    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
 }
 
 int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -125,26 +125,40 @@ int screen_menu_filament_event(screen_t *screen, window_t *window, uint8_t event
     switch ((int)param) {
     case MI_LOAD:
         p_window_header_set_text(&(psmd->header), "LOAD FILAMENT");
-        gui_dlg_load();
-        setPreheatTemp();
+        if (gui_dlg_load() == DLG_OK) {                                                            //user can press return
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+            setPreheatTemp();
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_UNLOAD:
         p_window_header_set_text(&(psmd->header), "UNLOAD FILAM.");
-        gui_dlg_unload();
+        if (gui_dlg_unload() == DLG_OK) {                                                            //user can press return
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload)); //opens dialog if it is not already openned
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_CHANGE:
         p_window_header_set_text(&(psmd->header), "CHANGE FILAM.");
-        gui_dlg_unload();
-        gui_dlg_load();
-        setPreheatTemp();
+        if (gui_dlg_unload() == DLG_OK) {                                                              //"CHANGE FILAM." is active only when filament is known so preheat is autoselected and should always return DLG_OK, better to check it anyway
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));   //opens dialog if it is not already openned
+            if (gui_dlg_load() == DLG_OK) {                                                            //user can press return
+                DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+                setPreheatTemp();
+            } else {
+                //user aborted, clear temperatures
+                marlin_gcode("M104 S0");
+                marlin_gcode("M140 S0");
+            }
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     case MI_PURGE:
         p_window_header_set_text(&(psmd->header), "PURGE FILAM.");
-        gui_dlg_purge();
-        setPreheatTemp();
+        if (gui_dlg_purge() == DLG_OK) {                                                           //"PURGE FILAM." is active only when filament is known so preheat is autoselected and should always return DLG_OK, better to check it anyway
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load)); //opens dialog if it is not already openned
+            setPreheatTemp();
+        }
         p_window_header_set_text(&(psmd->header), "FILAMENT");
         break;
     }
