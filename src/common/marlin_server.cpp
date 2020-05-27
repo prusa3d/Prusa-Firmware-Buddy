@@ -143,6 +143,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
 static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
 static int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var);
 static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk);
+static void _set_notify_change(uint8_t var_id);
 static void _server_update_gqueue(void);
 static void _server_update_pqueue(void);
 static uint64_t _server_update_vars(uint64_t force_update_msk);
@@ -606,8 +607,7 @@ int marlin_all_axes_known(void) {
 
 void marlin_server_set_temp_to_display(float value) {
     marlin_server.vars.display_nozzle = value;
-    for (int id = 0; id < MARLIN_MAX_CLIENTS; id++)
-        marlin_server.client_changes[id] |= MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ);
+    _set_notify_change(MARLIN_VAR_DTEM_NOZ); //set change flag
 }
 
 //-----------------------------------------------------------------------------
@@ -764,6 +764,12 @@ static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue
         msk <<= 1;
     }
     return sent;
+}
+
+static void _set_notify_change(uint8_t var_id) {
+    uint64_t msk = MARLIN_VAR_MSK(var_id);
+    for (int id = 0; id < MARLIN_MAX_CLIENTS; id++)
+        marlin_server.client_changes[id] |= msk;
 }
 
 static void _server_update_gqueue(void) {
