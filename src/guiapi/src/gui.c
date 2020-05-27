@@ -155,18 +155,19 @@ void gui_loop(void) {
 
 int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
+
     window_msgbox_t msgbox;
-    window_t *window_popup_tmp = window_popup_ptr; //save current window_popup_ptr
-    int16_t id_capture = window_capture();
-    int16_t id = window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
+    const window_t *window_popup_tmp = window_popup_ptr; //save current window_popup_ptr
+    const int16_t id_capture = window_capture();
+    const int16_t id = window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
     msgbox.title = title;
     msgbox.text = text;
     msgbox.flags = flags;
     msgbox.id_icon = id_icon;
     memset(msgbox.buttons, 0, 3 * sizeof(char *));
-    int btn = flags & MSGBOX_MSK_BTN;
+    const int btn = flags & MSGBOX_MSK_BTN;
     if ((btn >= MSGBOX_BTN_CUSTOM1) && (btn <= MSGBOX_BTN_CUSTOM3) && buttons) {
-        int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
+        const int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
         memcpy(msgbox.buttons, buttons, count * sizeof(char *));
     }
     window_popup_ptr = (window_t *)&msgbox;
