@@ -40,7 +40,10 @@
 // variable masks
 #define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (v_id))
 
-#if (MARLIN_VAR_MAX == 64)
+//maximum number of masks is 64
+//maximum mask index is 63
+#if (MARLIN_VAR_MAX == 63)
+    //in case MARLIN_VAR_MAX == 63 MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1) would fail
     #define MARLIN_VAR_MSK_ALL ((uint64_t)(-1))
 #else
     #define MARLIN_VAR_MSK_ALL (MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1)) - (uint64_t)(1))
