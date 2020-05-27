@@ -76,32 +76,36 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
             const uint16_t x = icon_rc.x;
             const uint16_t y = icon_rc.y;
 
-            // if (window->animation == ANIM_START) -> draw only icon
-            if (window->animation == ANIM_SAND_1) {
-                display->draw_line(point_ui16(x + 15, y + 24), point_ui16(x + 15, y + 29 - 1), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 13, y + 33), point_ui16(x + 17 - 1, y + 33), COLOR_ORANGE);
-            } else if (window->animation == ANIM_SAND_2) {
-                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20 - 1, y + 13), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 15, y + 19), point_ui16(x + 15, y + 24 - 1), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 15, y + 29), point_ui16(x + 15, y + 34 - 1), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 10, y + 33), point_ui16(x + 20 - 1, y + 33), COLOR_ORANGE);
-            } else if (window->animation == ANIM_SAND_3) {
-                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20 - 1, y + 13), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 12, y + 14), point_ui16(x + 19 - 1, y + 14), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 15, y + 24), point_ui16(x + 15, y + 29 - 1), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 6, y + 33), point_ui16(x + 24 - 1, y + 33), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 12, y + 32), point_ui16(x + 18 - 1, y + 32), COLOR_ORANGE);
-            } else if (window->animation == ANIM_SAND_4) {
-                display->draw_line(point_ui16(x + 11, y + 13), point_ui16(x + 20 - 1, y + 13), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 12, y + 14), point_ui16(x + 19 - 1, y + 14), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 13, y + 15), point_ui16(x + 18 - 1, y + 15), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 13, y + 16), point_ui16(x + 17 - 1, y + 16), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 14, y + 17), point_ui16(x + 17 - 1, y + 17), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 14, y + 18), point_ui16(x + 16 - 1, y + 18), COLOR_BLACK);
-                display->draw_line(point_ui16(x + 15, y + 26), point_ui16(x + 15, y + 34 - 1), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 10, y + 31), point_ui16(x + 20 - 1, y + 31), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 6, y + 32), point_ui16(x + 24 - 1, y + 32), COLOR_ORANGE);
-                display->draw_line(point_ui16(x + 6, y + 33), point_ui16(x + 24 - 1, y + 33), COLOR_ORANGE);
+            uint8_t x_start[] = { 15, 13, 11, 15, 15, 10, 11, 12, 15, 6, 12, 11, 12, 13, 13, 14, 14, 15, 10, 6, 6 };
+            uint8_t x_end[] = { 15, 16, 19, 15, 15, 19, 19, 18, 15, 23, 17, 19, 18, 17, 16, 16, 15, 15, 19, 23, 23 };
+            uint8_t y_start[] = { 24, 33, 13, 19, 29, 33, 13, 14, 24, 33, 32, 13, 14, 15, 16, 17, 18, 26, 31, 32, 33 };
+            uint8_t y_end[] = { 28, 33, 13, 23, 33, 33, 13, 14, 28, 33, 32, 13, 14, 15, 16, 17, 18, 33, 31, 32, 33 };
+            uint8_t color[] = { 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
+            uint32_t colors[] = { COLOR_BLACK, COLOR_ORANGE };
+            uint8_t i = 0, limit = 0;
+
+            switch (window->animation) {
+            case ANIM_SAND_1:
+                limit = 2;
+                break;
+            case ANIM_SAND_2:
+                i = 2;
+                limit = 6;
+                break;
+            case ANIM_SAND_3:
+                i = 6;
+                limit = 11;
+                break;
+            case ANIM_SAND_4:
+                i = 11;
+                limit = 21;
+                break;
+            default:
+                break;
+            }
+
+            for (int idx = i; idx < limit; idx++) {
+                display->draw_line(point_ui16(x + x_start[idx], y + y_start[idx]), point_ui16(x + x_end[idx], y + y_end[idx]), colors[color[idx]]);
             }
         }
     }
@@ -111,11 +115,11 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
             window->progress_chng = false;
 
             char text[8];
-            rect_ui16_t rc_pro = rc;
+            rect_ui16_t rc_pro;
             rc_pro.x = 10;
-            rc_pro.w -= 20;
+            rc_pro.w = rc.w - 20;
             rc_pro.h = 16;
-            rc_pro.y += 120;
+            rc_pro.y = rc.y + 120;
             display->fill_rect(rc_pro, COLOR_GRAY);
 
             if (window->progress != -1) {
@@ -124,9 +128,9 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
                 display->fill_rect(rc_pro, COLOR_ORANGE);
                 rc_pro.x += rc_pro.w;
                 rc_pro.w = w - rc_pro.w;
-                sprintf(text, "%d%%", window->progress);
+                snprintf(text, 8, "%d%%", window->progress);
             } else {
-                strcpy(text, "N/A");
+                strlcpy(text, "N/A", 8);
             }
 
             rc_pro.y += rc_pro.h;
