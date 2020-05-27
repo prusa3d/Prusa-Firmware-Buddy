@@ -9,6 +9,7 @@
 #define WINDOW_DLG_WAIT_H_
 
 #include "window.h"
+#include <stdbool.h>
 
 typedef struct _window_dlg_wait_t window_dlg_wait_t;
 
@@ -26,7 +27,10 @@ typedef struct _window_dlg_wait_t {
     padding_ui8_t padding;
     uint32_t timer;
     int8_t progress;
-    uint16_t flags; // description in .c file
+    uint8_t animation;
+    uint8_t components;
+    bool animation_chng;
+    bool progress_chng;
 } window_dlg_wait_t;
 
 typedef struct _window_class_dlg_wait_t {
@@ -35,13 +39,26 @@ typedef struct _window_class_dlg_wait_t {
 
 #pragma pack(pop)
 
+#define DLG_W8_DRAW_HOURGLASS 0x04 // Draw hourglass animation
+#define DLG_W8_DRAW_FRAME     0x01 // Draw grey frame
+#define DLG_W8_DRAW_PROGRESS  0x02 // Draw progress bar
+
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
 
 extern const window_class_dlg_wait_t window_class_dlg_wait;
 
-extern int gui_dlg_wait(int8_t (*callback)());
+/*!*********************************************************************************************************************
+* \brief GUI dialog for processes that require user to wait calmly.
+*
+* \param [in] progress_callback - function callback that returns current progress
+*
+* \param [in] comp_flag - stores which compoments to draw (DLG_W8_DRAW_HOURGLASS | DLG_W8_DRAW_FRANE | DLG_W8_DRAW_PROGRESS)
+*
+* It creates inner gui_loop cycle that keeps GUI running while waiting.
+*/
+extern void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag);
 
 #ifdef __cplusplus
 }

@@ -30,13 +30,15 @@ static const char *txt_disa   = "DISABLE SENSOR";
 static const char *txt_yes    = "YES";
 static const char *txt_no     = "NO";
 static const char *txt_reheat = "REHEAT";
+static const char *txt_retry  = "RETRY";
 
-static const PhaseTexts ph_txt_stop   = { txt_stop,   txt_none, txt_none, txt_none };
-static const PhaseTexts ph_txt_cont   = { txt_cont,   txt_none, txt_none, txt_none };
-static const PhaseTexts ph_txt_reheat = { txt_reheat, txt_none, txt_none, txt_none };
-static const PhaseTexts ph_txt_disa   = { txt_disa,   txt_none, txt_none, txt_none };
-static const PhaseTexts ph_txt_none   = { txt_none,   txt_none, txt_none, txt_none };
-static const PhaseTexts ph_txt_yesno  = { txt_yes,    txt_no,   txt_none, txt_none };
+static const PhaseTexts ph_txt_stop    = { txt_stop,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_cont    = { txt_cont,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_reheat  = { txt_reheat, txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_disa    = { txt_disa,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_none    = { txt_none,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_yesno   = { txt_yes,    txt_no,   txt_none,  txt_none };
+static const PhaseTexts ph_txt_iscolor = { txt_yes,    txt_no,   txt_retry, txt_none };
 
 static const char *txt_first              = "Finishing         \nbuffered gcodes.  \n";
 static const char *txt_parking            = "Parking";
@@ -72,7 +74,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_ejecting,           btn(PhasesLoadUnload::Ejecting,         ph_txt_none) },
         DialogLoadUnload::State { txt_loading,            btn(PhasesLoadUnload::Loading,          ph_txt_stop) },
         DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColor,          ph_txt_yesno) },
+        DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColor,          ph_txt_iscolor) },
         DialogLoadUnload::State { txt_unparking,          btn(PhasesLoadUnload::Unparking,        ph_txt_stop) },
     };
     return ret;

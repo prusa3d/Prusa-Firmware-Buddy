@@ -71,7 +71,8 @@
 #define IDR_PNG_arrow_up   0x0034
 #define IDR_PNG_arrow_down 0x0035
 
-#define IDR_PNG_menu_icon_back  0x0036
-#define IDR_PNG_serial_printing 0x0037
+#define IDR_PNG_menu_icon_back       0x0036
+#define IDR_PNG_serial_printing      0x0037
+#define IDR_PNG_menu_icon_disconnect 0x0038
 
 #endif //_RESOURCE_H

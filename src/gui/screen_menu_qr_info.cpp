@@ -48,7 +48,7 @@ void screen_menu_qr_info_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(28, 85, 224, 95), &(pd->qr));
     pd->qr.ecc_level = qrcodegen_Ecc_MEDIUM;
-    create_path_info_4service(pd->qr_text);
+    create_path_info_4service(pd->qr_text, MAX_LEN_4QR + 1);
     pd->qr.text = pd->qr_text;
 }
 

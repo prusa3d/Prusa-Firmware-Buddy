@@ -74,7 +74,7 @@ void progress_draw(rect_ui16_t win_rect, const font_t *font, color_t color_back,
 
     const rect_ui16_t rc_text = rect_ui16(rc_done.x, rc_done.y + PROGRESS_BAR_H, progress_w, PROGRESS_BAR_TEXT_H);
     char text[6];
-    sprintf(text, "%d%%", progress);
+    snprintf(text, sizeof(text), "%d%%", progress);
     render_text_align(rc_text, text, font, color_back, color_text, padding, ALIGN_CENTER);
 }
 
