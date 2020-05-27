@@ -523,6 +523,7 @@ static void _server_print_loop(void) {
         media_print_stop();
         thermalManager.disable_all_heaters();
         thermalManager.set_fan_speed(0, 0);
+        marlin_server_set_temp_to_display(0);
         print_job_timer.stop();
         planner.quick_stop();
         marlin_server.print_state = mpsAborting_WaitIdle;
@@ -605,6 +606,8 @@ int marlin_all_axes_known(void) {
 
 void marlin_server_set_temp_to_display(float value) {
     marlin_server.vars.display_nozzle = value;
+    for (int id = 0; id < MARLIN_MAX_CLIENTS; id++)
+        marlin_server.client_changes[id] |= MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ);
 }
 
 //-----------------------------------------------------------------------------
