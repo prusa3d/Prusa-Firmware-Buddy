@@ -80,7 +80,7 @@ int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t ev
             marlin_gcode("G28");
             while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
                 marlin_client_loop();
-            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
             break;
         case MI_MESH_BED:
             if (!marlin_all_axes_homed()) {
@@ -88,13 +88,13 @@ int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t ev
                 marlin_gcode("G28");
                 while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
                     marlin_client_loop();
-                gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+                gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
             }
             marlin_event_clr(MARLIN_EVT_CommandBegin);
             marlin_gcode("G29");
             while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
                 marlin_client_loop();
-            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
             break;
         case MI_SELFTEST:
             wizard_run_selftest();
