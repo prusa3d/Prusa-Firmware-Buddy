@@ -612,6 +612,9 @@ void marlin_server_set_temp_to_display(float value) {
     marlin_server.vars.display_nozzle = value;
     _set_notify_change(MARLIN_VAR_DTEM_NOZ); //set change flag
 }
+float marlin_server_get_temp_to_display(void) {
+    return marlin_server.vars.display_nozzle;
+}
 
 //-----------------------------------------------------------------------------
 // private functions

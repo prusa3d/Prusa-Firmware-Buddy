@@ -36,6 +36,7 @@
 
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 
@@ -108,7 +109,18 @@ void GcodeSuite::M600() {
     // Purge filament
     pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
 
+    float disp_temp = marlin_server_get_temp_to_display();
+    float targ_temp = Temperature::degTargetHotend(target_extruder);
+
+    if (disp_temp > targ_temp) {
+        thermalManager.setTargetHotend(disp_temp, target_extruder);
+    }
+
     if (pause.PrintPause(retract, park_point)) {
         pause.PrintResume();
+    }
+
+    if (disp_temp > targ_temp) {
+        thermalManager.setTargetHotend(targ_temp, target_extruder);
     }
 }
