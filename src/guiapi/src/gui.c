@@ -153,6 +153,8 @@ void gui_loop(void) {
     --guiloop_nesting;
 }
 
+/// Creates message box with provided informations
+/// \returns message box id
 int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
 
