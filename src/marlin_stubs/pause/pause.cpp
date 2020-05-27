@@ -377,10 +377,6 @@ void Pause::park_nozzle_and_notify(const float &retract, const xyz_pos_t &park_p
 }
 
 void Pause::unpark_nozzle_and_notify() {
-    // If resume_position is negative
-    if (resume_position.e < 0)
-        do_pause_e_move(resume_position.e, feedRate_t(PAUSE_PARK_RETRACT_FEEDRATE));
-
     // Move XY to starting position, then Z
     {
         const bool x_greater_than_y = ABS(current_position.x - resume_position.x) > ABS(current_position.y - resume_position.y);
@@ -461,8 +457,6 @@ bool Pause::PrintPause(float retract, const xyz_pos_t &park_point) {
  * - Display "wait for print to resume"
  * - Re-prime the nozzle...
  *   -  FWRETRACT: Recover/prime from the prior G10.
- *   - !FWRETRACT: Retract by resume_position.e, if negative.
- *                 Not sure how this logic comes into use.
  * - Move the nozzle back to resume_position
  * - Sync the planner E to resume_position.e
  * - Send host action for resume, if configured
