@@ -23,6 +23,14 @@
 #define MAX_TIME_STR_SIZE 12  // length of time string hh:mm:ss (12 for warning-free compilation)
 #define MAX_DATE_STR_SIZE 14  // length of date string dd:mm:yyyy (13 for warning-free compilation)
 
+#define TIME_STR_SECS   0x01 // flag bit for stringifying seconds
+#define TIME_STR_MINS   0x02 // flag bit for stringifying minutes
+#define TIME_STR_HOURS  0x04 // flag bit for stringifying hours
+#define TIME_STR_DAYS   0x08 // flag bit for stringifying days
+#define TIME_STR_MONTHS 0x10 // flag bit for stringifying months
+#define TIME_STR_YEARS  0x20 // flag bit for stringifying years
+#define TIME_STR_ALL    (TIME_STR_SECS | TIME_STR_MINS | TIME_STR_HOURS | TIME_STR_DAYS | TIME_STR_MONTHS | TIME_STR_YEARS)
+
 #define ETHVAR_MSK(n_id) ((uint32_t)1 << (n_id))
 #define ETHVAR_STATIC_LAN_ADDRS \
     (ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4) | ETHVAR_MSK(ETHVAR_LAN_MSK_IP4) | ETHVAR_MSK(ETHVAR_LAN_GW_IP4))
@@ -227,16 +235,18 @@ uint32_t sntp_get_system_time(timestamp_t *system_time);
 ******************************************************************************/
 void sntp_set_system_time(uint32_t sec);
 
-/*!****************************************************************************
+/*!***********************************************************************************
 * \brief Parses system time info into a destination string
 *
 * \param [out] dest - destination structure with strings for time and date
 *
 * \param [in] timestamp - system time aquired from device's time storage/clock
 *
+* \param [in] flag - stores flag bits, that decides what to stringify (TIME_STR_xxxx)
+*
 * \retval 1 if time is initialized by sntp, else 0
-*****************************************************************************/
-uint32_t stringify_timestamp(time_str_t *dest, timestamp_t *timestamp);
+*************************************************************************************/
+uint32_t stringify_timestamp(time_str_t *dest, timestamp_t *timestamp, uint8_t flag);
 
 /*!********************************************************************************
 * \brief Updates timestamp from its epoch_secs value

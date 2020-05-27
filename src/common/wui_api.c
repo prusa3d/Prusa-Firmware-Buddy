@@ -286,10 +286,53 @@ void sntp_set_system_time(uint32_t sec) {
     sntp_time_init = true;
 }
 
-uint32_t stringify_timestamp(time_str_t *dest, timestamp_t *timestamp) {
+uint32_t stringify_timestamp(time_str_t *dest, timestamp_t *timestamp, uint8_t flag) {
     if (sntp_time_init) {
-        snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d:%02d:%02d", timestamp->time.h, timestamp->time.m, timestamp->time.s);
-        snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d.%02d.%d", timestamp->date.d, timestamp->date.m, timestamp->date.y);
+
+        dest->time[0] = 0;
+        dest->date[0] = 0;
+
+        // TIME PARSING
+        if (flag & TIME_STR_HOURS) {
+            snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d", timestamp->time.h);
+        }
+        if (flag & TIME_STR_MINS) {
+            uint8_t length = strlen(dest->time);
+            if (length > 0) {
+                snprintf(dest->time + length, MAX_TIME_STR_SIZE - length, ":%02d", timestamp->time.m);
+            } else {
+                snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d", timestamp->time.m);
+            }
+        }
+        if (flag & TIME_STR_SECS) {
+            uint8_t length = strlen(dest->time);
+            if (length > 0) {
+                snprintf(dest->time + length, MAX_TIME_STR_SIZE - length, ":%02d", timestamp->time.s);
+            } else {
+                snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d", timestamp->time.s);
+            }
+        }
+
+        // DATE PARSING
+        if (flag & TIME_STR_DAYS) {
+            snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d", timestamp->date.d);
+        }
+        if (flag & TIME_STR_MONTHS) {
+            uint8_t length = strlen(dest->date);
+            if (length > 0) {
+                snprintf(dest->date + length, MAX_DATE_STR_SIZE - length, ".%02d", timestamp->date.m);
+            } else {
+                snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d", timestamp->date.m);
+            }
+        }
+        if (flag & TIME_STR_YEARS) {
+            uint8_t length = strlen(dest->date);
+            if (length > 0) {
+                snprintf(dest->date + length, MAX_DATE_STR_SIZE - length, ".%d", timestamp->date.y);
+            } else {
+                snprintf(dest->date, MAX_DATE_STR_SIZE, "%d", timestamp->date.y);
+            }
+        }
         return 1;
     } else {
         strlcpy(dest->time, "N/A", MAX_TIME_STR_SIZE);

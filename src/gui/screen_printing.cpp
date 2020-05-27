@@ -190,7 +190,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "End Timestamp");
+    window_set_text(id, "Print will end at");
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(30, 148, 201, 20),
@@ -433,13 +433,15 @@ static void update_end_timestamp(screen_t *screen) {
     update_timestamp_from_epoch_secs(&end);
 
     time_str_t time_str;
-    stringify_timestamp(&time_str, &end);
 
     if (now.date.d == end.date.d) {
+        stringify_timestamp(&time_str, &end, TIME_STR_HOURS | TIME_STR_MINS);
         snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "Today at %s", time_str.time);
     } else if (now.date.d + 1 == end.date.d) {
+        stringify_timestamp(&time_str, &end, TIME_STR_HOURS | TIME_STR_MINS);
         snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "Tommorow at %s", time_str.time);
     } else {
+        stringify_timestamp(&time_str, &end, TIME_STR_HOURS | TIME_STR_MINS | TIME_STR_DAYS | TIME_STR_MONTHS);
         snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "%s at %s", time_str.date, time_str.time);
     }
 
