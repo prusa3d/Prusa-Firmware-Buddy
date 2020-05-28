@@ -93,26 +93,20 @@ void window_msgbox_draw_buttons(window_msgbox_t *window) {
     const int btn_w = (rc_btn.w - (count * 2 * spacing2)) / count; // avg width of a button
     const font_t *pf = window->font_title;
     float chars = 0; // average number of chars in a button
-    const char *text;
 
-    int i;
-    for (i = 0; i < count; i++) {
-        text = window->buttons[i];
-        if (text == 0)
-            text = window_msgbox_button_text[buttons[i]];
-        chars += strlen(text);
+    for (int i = 0; i < count; i++) {
+        if (window->buttons[i] == NULL)
+            window->buttons[i] = window_msgbox_button_text[buttons[i]];
+        chars += strlen(window->buttons[i]);
     }
 
     chars /= count;
     rc_btn.x += spacing2;
 
-    for (i = 0; i < count; i++) {
-        text = window->buttons[i];
-        if (text == 0)
-            text = window_msgbox_button_text[buttons[i]];
-        rc_btn.w = btn_w + pf->w * (strlen(text) - chars);
+    for (int i = 0; i < count; i++) {
+        rc_btn.w = btn_w + pf->w * (strlen(window->buttons[i]) - chars);
         if (chg & (1 << i)) {
-            button_draw(rc_btn, text, pf, i == idx);
+            button_draw(rc_btn, window->buttons[i], pf, i == idx);
         }
         rc_btn.x += rc_btn.w + 2 * spacing2; // next button is 2x spacing to the right
     }
