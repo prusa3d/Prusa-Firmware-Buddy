@@ -12,8 +12,7 @@ Sound::Sound() {
     duration = 0;      // added variable to set _duration for repeating
     repeat = 0;        // how many times is sound played
     frequency = 100.f; // frequency of sound signal (0-1000)
-    //volume = 0.00125;  // volume of sound signal (0-1)
-    volume = 0.70; // volume of sound signal (0-1)
+    volume = 0.50;     // volume of sound signal (0-1)
 
     this->init();
 }
@@ -162,13 +161,13 @@ void Sound::soundCriticalAlert(int rep, uint32_t del) {
 // Sound signal every time when encoder nove
 void Sound::soundEncoderMove(int rep, uint32_t del) {
     float frq = 800.0f;
-    this->_sound(rep, frq, del, 0.40);
+    this->_sound(rep, frq, del, 0.25);
 }
 
 // Sound signal for signaling start and end of the menu or items selecting on screen
 void Sound::soundBlindAlert(int rep, uint32_t del) {
     float frq = 500.0f;
-    this->_sound(rep, frq, del, 0.40);
+    this->_sound(rep, frq, del, 0.25);
 }
 
 // Generic [_sound[ method with setting values and repeating logic

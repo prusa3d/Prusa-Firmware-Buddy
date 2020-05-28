@@ -13,5 +13,7 @@ public:
     // phase callbacks
     static void userPushEnter();
     static void userPushExit();
+    static void makeSureInsertedEnter();
+    static void makeSureInsertedExit();
 };
 #pragma pack(pop)
