@@ -176,7 +176,6 @@ void window_msgbox_done(window_msgbox_t *window) {
 void window_msgbox_draw(window_msgbox_t *window) {
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         display->fill_rect(window->win.rect, COLOR_BLACK); // clear window
-        rect_ui16_t rc_tit = window->win.rect;
 
         uint8_t red_line_offset = 0;
         const int ico = ((window->flags & MSGBOX_MSK_ICO) >> MSGBOX_SHI_ICO);
@@ -197,14 +196,14 @@ void window_msgbox_draw(window_msgbox_t *window) {
 
         if (title_h) {                                               // render visible text only (title_h > 0)
             title_h += window->padding.top + window->padding.bottom; // add padding
-            rc_tit.h = title_h;                                      // xxx pixels for title
-            if (title_n && p_icon) {                                 // text and icon available => all will be aligned left
+            rect_ui16_t rc_tit = window->win.rect;
+            rc_tit.h = title_h;      // xxx pixels for title
+            if (title_n && p_icon) { // text and icon available => all will be aligned left
                 const int icon_w = icon_dim.w + window->padding.left + window->padding.right;
-                const int title_w = rc_tit.w - icon_w;
                 rc_tit.w = icon_w;
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
                 rc_tit.x = icon_w;
-                rc_tit.w = title_w;
+                rc_tit.w = window->win.rect.w - icon_w;
                 render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
             } else if (title_n) { // text not empty but no icon => text will be aligned left
                 render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
@@ -217,23 +216,18 @@ void window_msgbox_draw(window_msgbox_t *window) {
             }
         }
 
-        rect_ui16_t rc_txt = window->win.rect;
-        rc_txt.h -= (button_h + title_h + red_line_offset);
-        rc_txt.y += title_h + red_line_offset; // put text bellow title and red line
-
+        const rect_ui16_t rc_txt = rect_ui16(window->win.rect.x,
+            window->win.rect.y + title_h + red_line_offset, // put text bellow title and red line
+            window->win.rect.w,
+            window->win.rect.h - (title_h + red_line_offset + button_h));
         render_text_align(rc_txt, window->text, window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
-        window->flags |= MSGBOX_MSK_CHG;
-
-        rect_ui16_t rc_btn_bg = window->win.rect;
-        rc_btn_bg.y += (rc_btn_bg.h - button_h - frame_width);
-        // FIXME this is weird
-        rc_btn_bg.h = 53; //This should be 40 but, there is 13px shortage of gui_defaults.msg_box_sz.h
 
         window_msgbox_draw_buttons(window);
+
+        window->flags |= MSGBOX_MSK_CHG;
         window->win.flg &= ~WINDOW_FLG_INVALID;
     } else if (window->flags & MSGBOX_MSK_CHG)
         window_msgbox_draw_buttons(window);
-
     if (window->flags & MSGBOX_GREY_FRAME) {                           /// draw frame
         const uint16_t w = (display->w - 1) - window->win.rect.x + 1;  /// last - first + 1
         const uint16_t h = (display->h - 67) - window->win.rect.y + 1; /// last - first + 1
