@@ -131,10 +131,10 @@ static void initialize_description_lines(screen_t *screen, int y) {
 
     // print time
     if (pd->gcode_printing_time[0]) {
-        initialize_description_line(screen, line_idx++, y, "print time", "%s",
+        initialize_description_line(screen, line_idx++, y, "Print Time", "%s",
             pd->gcode_printing_time);
     } else {
-        initialize_description_line(screen, line_idx++, y, "print time",
+        initialize_description_line(screen, line_idx++, y, "Print Time",
             "unknown");
     }
     y += LINE_HEIGHT + LINE_SPACING;
@@ -143,7 +143,7 @@ static void initialize_description_lines(screen_t *screen, int y) {
         // material
         if (pd->gcode_filament_type[0] && pd->gcode_filament_used_mm && pd->gcode_filament_used_g) {
             initialize_description_line(
-                screen, line_idx++, y, "material", "%s/%u g/%0.2f m",
+                screen, line_idx++, y, "Material", "%s/%u g/%0.2f m",
                 pd->gcode_filament_type, pd->gcode_filament_used_g,
                 (double)((float)pd->gcode_filament_used_mm / 1000.0F));
             y += LINE_HEIGHT + LINE_SPACING;
@@ -151,14 +151,14 @@ static void initialize_description_lines(screen_t *screen, int y) {
     } else {
         // material
         if (pd->gcode_filament_type[0]) {
-            initialize_description_line(screen, line_idx++, y, "material", "%s",
+            initialize_description_line(screen, line_idx++, y, "Material", "%s",
                 pd->gcode_filament_type);
             y += LINE_HEIGHT + LINE_SPACING;
         }
         // used filament
         if (pd->gcode_filament_used_mm && pd->gcode_filament_used_g) {
             initialize_description_line(
-                screen, line_idx++, y, "used filament", "%.2f m",
+                screen, line_idx++, y, "Used Filament", "%.2f m",
                 (double)((float)pd->gcode_filament_used_mm / 1000.0F));
             y += LINE_HEIGHT + LINE_SPACING;
 
@@ -269,14 +269,14 @@ static void screen_print_preview_init(screen_t *screen) {
     int print_label_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id, rect_ui16(PADDING, y, 64, LINE_HEIGHT),
         &pd->print_label);
-    window_set_text(print_label_id, "print");
+    window_set_text(print_label_id, "Print");
     window_set_alignment(print_label_id, ALIGN_CENTER);
     pd->print_label.font = resource_font(IDR_FNT_SMALL);
     int back_label_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, LINE_HEIGHT),
         &pd->back_label);
-    window_set_text(back_label_id, "back");
+    window_set_text(back_label_id, "Back");
     window_set_alignment(back_label_id, ALIGN_CENTER);
     pd->back_label.font = resource_font(IDR_FNT_SMALL);
 }
