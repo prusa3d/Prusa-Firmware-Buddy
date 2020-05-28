@@ -68,6 +68,11 @@ typedef struct _point_ui16_t {
     uint16_t y;
 } point_ui16_t;
 
+typedef struct _size_ui16_t {
+    uint16_t w;
+    uint16_t h;
+} size_ui16_t;
+
 typedef struct _rect_ui16_t {
     uint16_t x;
     uint16_t y;
@@ -158,6 +163,11 @@ static inline point_ui16_t point_ui16(uint16_t x, uint16_t y) {
     return point;
 }
 
+static inline size_ui16_t size_ui16(uint16_t w, uint16_t h) {
+    size_ui16_t size = { w, h };
+    return size;
+}
+
 static inline rect_ui16_t rect_ui16(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     rect_ui16_t rect = { x, y, w, h };
     return rect;
@@ -201,6 +211,7 @@ extern uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, font_t *pf);
 extern rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, font_t *font, padding_ui8_t padding, uint16_t flags);
 
 extern point_ui16_t icon_meas(const uint8_t *pi);
+extern size_ui16_t icon_size(const uint8_t *pi);
 
 extern const uint8_t *resource_ptr(uint16_t id);
 

@@ -110,11 +110,11 @@ void window_msgbox_draw_buttons(window_msgbox_t *window) {
         text = window->buttons[i];
         if (text == 0)
             text = window_msgbox_button_text[buttons[i]];
-        rc_btn.w = btn_w + pf->w * ((float)strlen(text) - chars);
+        rc_btn.w = btn_w + pf->w * (strlen(text) - chars);
         if (chg & (1 << i)) {
             button_draw(rc_btn, text, pf, i == idx);
         }
-        rc_btn.x += rc_btn.w + 2 * spacing2;
+        rc_btn.x += rc_btn.w + 2 * spacing2; // next button is 2x spacing to the right
     }
 
     window->flags &= ~MSGBOX_MSK_CHG;
@@ -172,7 +172,7 @@ void window_msgbox_init(window_msgbox_t *window) {
 void window_msgbox_done(window_msgbox_t *window) {
 }
 
-/// Draws parts of message box which require redraw
+/// Draws parts of message box that require redraw
 void window_msgbox_draw(window_msgbox_t *window) {
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         display->fill_rect(window->win.rect, COLOR_BLACK); // clear window
@@ -188,31 +188,31 @@ void window_msgbox_draw(window_msgbox_t *window) {
 
         // get icon id from window member; for error, warning, info and question -> disable icon
         const uint16_t id_icon = (ico < 1 && window->id_icon == 0) ? window_msgbox_id_icon[ico] : window->id_icon;
-        const uint8_t *picon = 0;                         // icon resource pointer
-        point_ui16_t icon_wh = point_ui16(0, 0);          // icon width-height - default (0,0)
-        if (id_icon && (picon = resource_ptr(id_icon))) { // id_icon is set and resource pointer is not null
-            icon_wh = icon_meas(picon);                   // get icon dimensions
-            title_h = MAX(title_h, icon_wh.y);            // adjust title height
+        size_ui16_t icon_dim = size_ui16(0, 0);
+        const uint8_t *p_icon = 0;                         // icon resource pointer
+        if (id_icon && (p_icon = resource_ptr(id_icon))) { // id_icon is set and resource pointer is not null
+            icon_dim = icon_size(p_icon);                  // get icon dimensions
+            title_h = MAX(title_h, icon_dim.h);            // adjust title height
         }
 
         if (title_h) {                                               // render visible text only (title_h > 0)
             title_h += window->padding.top + window->padding.bottom; // add padding
             rc_tit.h = title_h;                                      // xxx pixels for title
-            if (title_n && picon) {                                  // text not empty and icon resource not null; icon and text will be aligned left
-                const int icon_w = icon_wh.x + window->padding.left + window->padding.right;
+            if (title_n && p_icon) {                                 // text and icon available => all will be aligned left
+                const int icon_w = icon_dim.w + window->padding.left + window->padding.right;
                 const int title_w = rc_tit.w - icon_w;
                 rc_tit.w = icon_w;
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
                 rc_tit.x = icon_w;
                 rc_tit.w = title_w;
                 render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
-            } else if (title_n) { // text not empty and icon resource is null; text will be aligned left
+            } else if (title_n) { // text not empty but no icon => text will be aligned left
                 render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
                 display->draw_line(point_ui16(rc_tit.x + window->padding.left, rc_tit.y + rc_tit.h),
                     point_ui16(rc_tit.x + rc_tit.w - (window->padding.left + window->padding.right), rc_tit.y + rc_tit.h),
                     COLOR_RED_ALERT);
                 red_line_offset = 1;
-            } else { // text is empty, icon resource not null; icon will be aligned to center
+            } else { // no text but icon available => icon will be aligned to center
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
             }
         }
