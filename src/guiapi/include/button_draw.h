@@ -9,7 +9,7 @@
 extern "C" {
 #endif //__cplusplus
 
-extern void button_draw(rect_ui16_t rc_btn, const char *text, font_t *pf, bool is_selected);
+extern void button_draw(rect_ui16_t rc_btn, const char *text, const font_t *pf, bool is_selected);
 
 #ifdef __cplusplus
 }
