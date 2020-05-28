@@ -12,7 +12,7 @@ Sound::Sound() {
     duration = 0;      // added variable to set _duration for repeating
     repeat = 0;        // how many times is sound played
     frequency = 100.f; // frequency of sound signal (0-1000)
-    volume = 0.50; // volume of sound signal (0-1)
+    volume = 0.50;     // volume of sound signal (0-1)
 
     this->init();
 }
