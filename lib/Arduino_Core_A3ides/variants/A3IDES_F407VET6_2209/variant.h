@@ -47,178 +47,6 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 extern const PinName digitalPin[];
 
-#define PA0  0
-#define PA1  1
-#define PA2  2
-#define PA3  3
-#define PA4  4
-#define PA5  5
-#define PA6  6
-#define PA7  7
-#define PA8  8
-#define PA9  9
-#define PA10 10
-#define PA11 11
-#define PA12 12
-#define PA13 13
-#define PA14 14
-#define PA15 15
-#define PB0  16
-#define PB1  17
-#define PB2  18
-#define PB3  19
-#define PB4  20
-#define PB5  21
-#define PB6  22
-#define PB7  23
-#define PB8  24
-#define PB9  25
-#define PB10 26
-#define PB11 27
-#define PB12 28
-#define PB13 29
-#define PB14 30
-#define PB15 31
-#define PC0  32
-#define PC1  33
-#define PC2  34
-#define PC3  35
-#define PC4  36
-#define PC5  37
-#define PC6  38
-#define PC7  39
-#define PC8  40
-#define PC9  41
-#define PC10 42
-#define PC11 43
-#define PC12 44
-#define PC13 45
-#define PC14 46
-#define PC15 47
-#define PD0  48
-#define PD1  49
-#define PD2  50
-#define PD3  51
-#define PD4  52
-#define PD5  53
-#define PD6  54
-#define PD7  55
-#define PD8  56
-#define PD9  57
-#define PD10 58
-#define PD11 59
-#define PD12 60
-#define PD13 61
-#define PD14 62
-#define PD15 63
-#define PE0  64
-#define PE1  65
-#define PE2  66
-#define PE3  67
-#define PE4  68
-#define PE5  69
-#define PE6  70
-#define PE7  71
-#define PE8  72
-#define PE9  73
-#define PE10 74
-#define PE11 75
-#define PE12 76
-#define PE13 77
-#define PE14 78
-#define PE15 79
-/*
-#define PE2  1
-#define PE4  2
-#define PE6  3
-#define PC14 4  // OSC32_IN
-#define PC0  5  // A8
-#define PC2  6  // A10
-#define PA0  7  // A0
-#define PA1  8  // A1
-#define PA4  9  // A4
-#define PA6  10
-#define PC4  11 // A12
-#define PB0  12 // A6
-#define PB2  13
-#define PE8  14
-#define PE9  15
-#define PE11 16
-#define PE13 17
-#define PE15 18
-#define PB11 19
-#define PB13 20
-#define PB15 21
-#define PD9  22
-#define PD11 23
-#define PD13 24
-#define PD15 25
-#define PC6  26
-#define PC8  27
-#define PC9  28
-#define PA9  29
-#define PA11 30 // USB_DM
-#define PA13 31
-#define PA15 32
-#define PC11 33
-#define PC12 34
-#define PD1  35
-#define PD3  36
-#define PD5  37
-#define PD7  38
-#define PB4  39
-#define PB6  40
-#define PB8  41
-// GND
-// 3V3
-// GND
-// Internal (left to right)
-// GND
-// 3V3
-// 5V
-#define PE1  42
-#define PE3  43
-#define PE5  44
-#define PC13 45
-#define PC15 46 // OSC32_OUT
-#define PC1  47 // A9
-#define PC3  48 // A11
-#define PA2  49 // A2
-#define PA3  50 // A3
-#define PA5  51 // A5
-#define PA7  52
-#define PC5  53 // A13
-#define PB1  54 // A7
-#define PE7  55
-#define PE10 56
-#define PE12 57
-#define PE14 58
-#define PB10 59
-#define PB12 60
-#define PB14 61
-#define PD8  62
-#define PD10 63
-#define PD12 64
-#define PD14 65
-#define PC7  66
-#define PA8  67
-#define PA10 68
-#define PA12 69 // USB_DP
-#define PA14 70
-#define PC10 71
-#define PD0  72
-#define PD2  73
-#define PD4  74
-#define PD6  75
-#define PB3  76
-#define PB5  77
-#define PB7  78
-#define PB9  79 // LED
-*/
-// GND
-// 3V3
-// GND
-
 // This must be a literal
 #define NUM_DIGITAL_PINS 94
 // This must be a literal with a value less than or equal to MAX_ANALOG_INPUTS
@@ -237,7 +65,7 @@ extern const PinName digitalPin[];
 //#define PWM_MAX_DUTY_CYCLE      255
 
 // On-board LED pin number
-#define LED_BUILTIN PC13
+#define LED_BUILTIN TPC13
 
 // On-board user button
 //#define BTN_K_UP                PA0   - no user button
@@ -245,14 +73,97 @@ extern const PinName digitalPin[];
 // Below SPI and I2C definitions already done in the core
 // Could be redefined here if differs from the default one
 // SPI Definitions
-#define PIN_SPI_MOSI PB15
-#define PIN_SPI_MISO PB14
-#define PIN_SPI_SCK  PB13
-#define PIN_SPI_SS   PB12
+
+//TODO remove following temporary definitions
+#define TPA0  0
+#define TPA1  1
+#define TPA2  2
+#define TPA3  3
+#define TPA4  4
+#define TPA5  5
+#define TPA6  6
+#define TPA7  7
+#define TPA8  8
+#define TPA9  9
+#define TPA10 10
+#define TPA11 11
+#define TPA12 12
+#define TPA13 13
+#define TPA14 14
+#define TPA15 15
+#define TPB0  16
+#define TPB1  17
+#define TPB2  18
+#define TPB3  19
+#define TPB4  20
+#define TPB5  21
+#define TPB6  22
+#define TPB7  23
+#define TPB8  24
+#define TPB9  25
+#define TPB10 26
+#define TPB11 27
+#define TPB12 28
+#define TPB13 29
+#define TPB14 30
+#define TPB15 31
+#define TPC0  32
+#define TPC1  33
+#define TPC2  34
+#define TPC3  35
+#define TPC4  36
+#define TPC5  37
+#define TPC6  38
+#define TPC7  39
+#define TPC8  40
+#define TPC9  41
+#define TPC10 42
+#define TPC11 43
+#define TPC12 44
+#define TPC13 45
+#define TPC14 46
+#define TPC15 47
+#define TPD0  48
+#define TPD1  49
+#define TPD2  50
+#define TPD3  51
+#define TPD4  52
+#define TPD5  53
+#define TPD6  54
+#define TPD7  55
+#define TPD8  56
+#define TPD9  57
+#define TPD10 58
+#define TPD11 59
+#define TPD12 60
+#define TPD13 61
+#define TPD14 62
+#define TPD15 63
+#define TPE0  64
+#define TPE1  65
+#define TPE2  66
+#define TPE3  67
+#define TPE4  68
+#define TPE5  69
+#define TPE6  70
+#define TPE7  71
+#define TPE8  72
+#define TPE9  73
+#define TPE10 74
+#define TPE11 75
+#define TPE12 76
+#define TPE13 77
+#define TPE14 78
+#define TPE15 79
+
+#define PIN_SPI_MOSI TPB15
+#define PIN_SPI_MISO TPB14
+#define PIN_SPI_SCK  TPB13
+#define PIN_SPI_SS   TPB12
 
 // I2C Definitions
-#define PIN_WIRE_SDA PB7
-#define PIN_WIRE_SCL PB6
+#define PIN_WIRE_SDA TPB7
+#define PIN_WIRE_SCL TPB6
 
 // Timer Definitions
 //Do not use timer used by PWM pins when possible. See PinMap_PWM in PeripheralPins.c
