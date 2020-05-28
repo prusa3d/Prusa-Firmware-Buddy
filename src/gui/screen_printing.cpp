@@ -457,9 +457,10 @@ static void update_end_timestamp(screen_t *screen, timestamp_t *now) {
         pw->w_etime_value.color_text = COLOR_VALUE_VALID;
     }
 
+    static const uint32_t full_day_in_seconds = 86400;
     timestamp_t print_end, tommorow;
     print_end.epoch_secs = now->epoch_secs + (marlin_vars()->time_to_end / 1000);
-    tommorow.epoch_secs = now->epoch_secs += 86400; // now + one full day
+    tommorow.epoch_secs = now->epoch_secs += full_day_in_seconds;
     update_timestamp_from_epoch_secs(&tommorow);
     update_timestamp_from_epoch_secs(&print_end);
 
