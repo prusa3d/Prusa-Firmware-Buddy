@@ -106,8 +106,8 @@ typedef struct
     uint8_t last_sd_percent_done;
 
     std::array<char, 9> text_time;
-    std::array<char, MAX_END_TIMESTAMP_SIZE> text_etime;
-    std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end"
+    char text_etime[MAX_END_TIMESTAMP_SIZE];
+    char label_etime[15];              // "Remaining Time" or "Print will end"
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
 
     window_text_t w_message; //Messages from onStatusChanged()
@@ -192,8 +192,8 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    strlcpy(pw->label_etime.data(), "Remaining Time", 15);
-    window_set_text(id, pw->label_etime.data());
+    strlcpy(pw->label_etime, "Remaining Time", 15);
+    window_set_text(id, pw->label_etime);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(30, 148, 201, 20),
@@ -201,7 +201,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_etime.data());
+    window_set_text(id, pw->text_etime);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 128, 101, 20),
@@ -334,12 +334,12 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
         timestamp_t now;
         if (sntp_get_system_time(&now)) {
-            strlcpy(pw->label_etime.data(), "Print will end", 15);
-            window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
+            strlcpy(pw->label_etime, "Print will end", 15);
+            window_set_text(pw->w_etime_label.win.id, pw->label_etime);
             update_end_timestamp(screen, &now);
         } else {
-            strlcpy(pw->label_etime.data(), "Remaining Time", 15);
-            window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
+            strlcpy(pw->label_etime, "Remaining Time", 15);
+            window_set_text(pw->w_etime_label.win.id, pw->label_etime);
             update_remaining_time(screen, marlin_vars()->time_to_end);
         }
         pw->last_time_to_end = marlin_vars()->time_to_end;
@@ -428,32 +428,31 @@ static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_sp
 
 static void update_remaining_time(screen_t *screen, time_t rawtime) {
     pw->w_etime_value.color_text = rawtime != time_t(-1) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
-    auto &array = pw->text_etime;
+
     if (rawtime != time_t(-1)) {
         const struct tm *timeinfo = localtime(&rawtime);
         //standard would be:
         //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
         if (timeinfo->tm_yday) {
-            snprintf(array.data(), array.size(), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+            snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
         } else if (timeinfo->tm_hour) {
-            snprintf(array.data(), array.size(), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+            snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
         } else {
-            snprintf(array.data(), array.size(), "%im", timeinfo->tm_min);
+            snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
         }
     } else
-        strlcpy(array.data(), "N/A", array.size());
+        strlcpy(pw->text_etime, "N/A", MAX_END_TIMESTAMP_SIZE);
 
-    window_set_text(pw->w_etime_value.win.id, array.data());
+    window_set_text(pw->w_etime_value.win.id, pw->text_etime);
 }
 
 static void update_end_timestamp(screen_t *screen, timestamp_t *now) {
-
-    auto &array = pw->text_etime;
-    char qmark[2] = "";
+    static const char qmark[] = "?";
+    uint8_t q_idx = 0;
 
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
         pw->w_etime_value.color_text = COLOR_VALUE_INVALID;
-        strlcpy(qmark, "?", 2);
+        q_idx = 1;
     } else {
         pw->w_etime_value.color_text = COLOR_VALUE_VALID;
     }
@@ -469,17 +468,17 @@ static void update_end_timestamp(screen_t *screen, timestamp_t *now) {
     if (now->date.d == print_end.date.d && // if print end is today
         now->date.m == print_end.date.m && now->date.y == print_end.date.y) {
         stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS);
-        snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "Today at %s%s", time_str.time, qmark);
+        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Today at %s%s", time_str.time, qmark + q_idx);
     } else if (tommorow.date.y == print_end.date.d && // if print end is tommorow
         tommorow.date.m == print_end.date.m && tommorow.date.d == print_end.date.y) {
         stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS);
-        snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "Tommorow at %s%s", time_str.time, qmark);
+        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Tommorow at %s%s", time_str.time, qmark + q_idx);
     } else {
         stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS | TIME_STR_DAYS | TIME_STR_MONTHS);
-        snprintf(array.data(), MAX_END_TIMESTAMP_SIZE, "%s at %s%s", time_str.date, time_str.time, qmark);
+        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%s at %s%s", time_str.date, time_str.time, qmark + q_idx);
     }
 
-    window_set_text(pw->w_etime_value.win.id, array.data());
+    window_set_text(pw->w_etime_value.win.id, pw->text_etime);
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;

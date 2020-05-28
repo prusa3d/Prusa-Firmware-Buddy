@@ -314,23 +314,23 @@ uint32_t stringify_timestamp(time_str_t *dest, timestamp_t *timestamp, uint8_t f
         }
 
         // DATE PARSING
-        if (flag & TIME_STR_DAYS) {
-            snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d.", timestamp->date.d);
+        if (flag & TIME_STR_YEARS) {
+            snprintf(dest->date, MAX_DATE_STR_SIZE, "%d", timestamp->date.y);
         }
         if (flag & TIME_STR_MONTHS) {
             uint8_t length = strlen(dest->date);
             if (length > 0) {
-                snprintf(dest->date + length, MAX_DATE_STR_SIZE - length, "%02d.", timestamp->date.m);
+                snprintf(dest->date + length, MAX_DATE_STR_SIZE - length, "-%02d", timestamp->date.m);
             } else {
-                snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d.", timestamp->date.m);
+                snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d", timestamp->date.m);
             }
         }
-        if (flag & TIME_STR_YEARS) {
+        if (flag & TIME_STR_DAYS) {
             uint8_t length = strlen(dest->date);
             if (length > 0) {
-                snprintf(dest->date + length, MAX_DATE_STR_SIZE - length, "%d", timestamp->date.y);
+                snprintf(dest->date + length, MAX_DATE_STR_SIZE - length, "-%02d", timestamp->date.d);
             } else {
-                snprintf(dest->date, MAX_DATE_STR_SIZE, "%d", timestamp->date.y);
+                snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d", timestamp->date.d);
             }
         }
         return 1;
