@@ -641,11 +641,13 @@ static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLI
 // send event notification to client - multiple events (called from server thread)
 // returns mask of succesfull sent events
 static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
+    if (evt_msk == 0)
+        return 0;
     uint64_t sent = 0;
     uint64_t msk = 1;
     for (uint8_t evt_int = 0; evt_int <= MARLIN_EVT_MAX; evt_int++) {
         MARLIN_EVT_t evt_id = (MARLIN_EVT_t)evt_int;
-        if (msk & evt_msk)
+        if (msk & evt_msk) {
             switch ((MARLIN_EVT_t)evt_id) {
             // Events without arguments
             case MARLIN_EVT_Startup:
@@ -724,10 +726,10 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
                     sent |= msk; // event sent, set bit
                 break;
             }
-        if (sent & msk)
-            msk <<= 1;
-        else
-            break; //skip sending if queue is full
+            if ((sent & msk) == 0)
+                break; //skip sending if queue is full
+        }
+        msk <<= 1;
     }
     return sent;
 }
