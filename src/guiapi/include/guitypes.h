@@ -118,7 +118,9 @@ typedef struct _gui_defaults_t {
     font_t *font_big;
     padding_ui8_t padding;
     uint8_t alignment;
+    rect_ui16_t header_sz;
     rect_ui16_t msg_box_sz;
+    rect_ui16_t footer_sz;
     uint8_t btn_spacing;
 } gui_defaults_t;
 

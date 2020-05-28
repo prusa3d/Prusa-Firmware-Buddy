@@ -19,15 +19,17 @@ osThreadId gui_task_handle = 0;
 #endif //GUI_USE_RTOS
 
 gui_defaults_t gui_defaults = {
-    COLOR_BLACK,              //color_back;
-    COLOR_WHITE,              //color_text;
-    COLOR_SILVER,             //color_disabled;
-    0,                        //font;
-    0,                        //font_big;
-    { 2, 2, 2, 2 },           //padding; padding_ui8(2,2,2,2)
-    ALIGN_LEFT_TOP,           //alignment;
-    { 0, 32, 240, 320 - 96 }, //msg box size
-    6,                        // btn_spacing: 12 pixels spacing between buttons, 6 from margins
+    COLOR_BLACK,                //color_back;
+    COLOR_WHITE,                //color_text;
+    COLOR_SILVER,               //color_disabled;
+    0,                          //font;
+    0,                          //font_big;
+    { 2, 2, 2, 2 },             //padding; padding_ui8(2,2,2,2)
+    ALIGN_LEFT_TOP,             //alignment;
+    { 0, 0, 240, 32 - 0 },      // default header location & size
+    { 0, 32, 240, 267 - 32 },   // default message box location & size
+    { 0, 267, 240, 320 - 267 }, // default footer location & size
+    6,                          // btn_spacing: 12 pixels spacing between buttons, 6 from margins
 };
 
 gui_loop_cb_t *gui_loop_cb = 0;

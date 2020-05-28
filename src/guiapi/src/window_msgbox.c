@@ -95,7 +95,7 @@ void window_msgbox_draw_buttons(window_msgbox_t *window) {
     float chars = 0; // average number of chars in a button
 
     for (int i = 0; i < count; i++) {
-        if (window->buttons[i] == NULL)
+        if (window->buttons[i] == NULL) // set default button in case of missing one
             window->buttons[i] = window_msgbox_button_text[buttons[i]];
         chars += strlen(window->buttons[i]);
     }
@@ -210,15 +210,15 @@ void window_msgbox_draw(window_msgbox_t *window) {
             }
         }
 
-        const rect_ui16_t rc_txt = rect_ui16(window->win.rect.x,
+        const rect_ui16_t rc_txt = { window->win.rect.x,
             window->win.rect.y + title_h + red_line_offset, // put text bellow title and red line
             window->win.rect.w,
-            window->win.rect.h - (title_h + red_line_offset + button_h));
+            window->win.rect.h - (title_h + red_line_offset + button_h) };
         render_text_align(rc_txt, window->text, window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
 
+        window->flags |= MSGBOX_MSK_CHG;
         window_msgbox_draw_buttons(window);
 
-        window->flags |= MSGBOX_MSK_CHG;
         window->win.flg &= ~WINDOW_FLG_INVALID;
     } else if (window->flags & MSGBOX_MSK_CHG)
         window_msgbox_draw_buttons(window);
