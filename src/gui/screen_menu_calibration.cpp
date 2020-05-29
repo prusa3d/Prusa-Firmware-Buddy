@@ -112,6 +112,7 @@ screen_t screen_menu_calibration = {
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include "marlin_vars.h"
 
 //psmd->items[MI_Z_OFFSET] = { WindowMenuItem(WI_SPIN_FL_t(vars->z_offset, zoffset_fl_range, zoffset_fl_format, "Z-offset")), SCREEN_MENU_NO_SCREEN };
 class MI_Z_OFFSET : public WI_SPIN_t<float> {
@@ -124,6 +125,12 @@ public:
     MI_Z_OFFSET()
         : WI_SPIN_t<float>(get_Z_offset(), zoffset_fl_range, zoffset_fl_format, label, 0, true, false) {}
     virtual void OnClick() {
+        eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
+    }
+    virtual bool Change(int dif) {
+        bool ret = WI_SPIN_t<float>::Change(dif);
+        marlin_set_z_offset(value);
+        return ret;
     }
 };
 
