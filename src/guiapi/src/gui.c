@@ -19,13 +19,13 @@ osThreadId gui_task_handle = 0;
 #endif //GUI_USE_RTOS
 
 gui_defaults_t gui_defaults = {
-    COLOR_BLACK,                //color_back;
-    COLOR_WHITE,                //color_text;
-    COLOR_SILVER,               //color_disabled;
-    0,                          //font;
-    0,                          //font_big;
-    { 2, 2, 2, 2 },             //padding; padding_ui8(2,2,2,2)
-    ALIGN_LEFT_TOP,             //alignment;
+    COLOR_BLACK,                // color_back;
+    COLOR_WHITE,                // color_text;
+    COLOR_SILVER,               // color_disabled;
+    0,                          // font;
+    0,                          // font_big;
+    { 2, 2, 2, 2 },             // padding; padding_ui8(2,2,2,2)
+    ALIGN_LEFT_TOP,             // alignment;
     { 0, 0, 240, 32 - 0 },      // default header location & size
     { 0, 32, 240, 267 - 32 },   // default message box location & size
     { 0, 267, 240, 320 - 267 }, // default footer location & size
@@ -178,8 +178,8 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);
-    //window_popup_ptr is set to null after destroying msgbox
-    //msgbox destroys itself when user presses any button
+    // window_popup_ptr is set to null after destroying msgbox
+    // msgbox destroys itself when the user presses any button
     while (window_popup_ptr) {
         gui_loop();
     }
