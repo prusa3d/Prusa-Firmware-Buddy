@@ -9,8 +9,7 @@
 class WI_LABEL_t : public IWindowMenuItem {
 public:
     WI_LABEL_t(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Incement(uint8_t dif);
-    virtual bool Decrement(uint8_t dif);
+    virtual bool Change(int dif);
 };
 
 //WI_SPIN
@@ -30,8 +29,7 @@ protected:
 
 public:
     WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Incement(uint8_t dif);
-    virtual bool Decrement(uint8_t dif);
+    virtual bool Change(int dif);
     virtual void Click(Iwindow_menu_t &window_menu) final;
     virtual void OnClick() = 0;
 };
@@ -46,8 +44,7 @@ public: //todo private
 
 public:
     WI_SWITCH_t(int32_t index, const char **strings, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Incement(uint8_t dif);
-    virtual bool Decrement(uint8_t dif);
+    virtual bool Change(int dif);
 };
 
 //WI_SELECT
@@ -60,8 +57,7 @@ public: //todo private
 
 public:
     WI_SELECT_t(int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
-    virtual bool Incement(uint8_t dif);
-    virtual bool Decrement(uint8_t dif);
+    virtual bool Change(int dif);
 };
 
 /*****************************************************************************/
@@ -75,16 +71,11 @@ WI_SPIN_t<T>::WI_SPIN_t(T value, const T *range, const char *prt_format, const c
     , prt_format(prt_format) {}
 
 template <class T>
-bool WI_SPIN_t<T>::Incement(uint8_t dif) {
+bool WI_SPIN_t<T>::Change(int dif) {
     T old = value;
-    value = std::min(value + (T)dif * range[WIO_STEP], range[WIO_MAX]);
-    return old != value;
-}
-
-template <class T>
-bool WI_SPIN_t<T>::Decrement(uint8_t dif) {
-    T old = value;
-    value = std::max(value - (T)dif * range[WIO_STEP], range[WIO_MIN]);
+    value += (T)dif * range[WIO_STEP];
+    value = std::min(value, range[WIO_MAX]);
+    value = std::max(value, range[WIO_MIN]);
     return old != value;
 }
 

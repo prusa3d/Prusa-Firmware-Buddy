@@ -21,15 +21,11 @@ WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, const char *label,
 /*****************************************************************************/
 //return changed (== invalidate)
 
-bool WI_LABEL_t::Incement(uint8_t dif) {
+bool WI_LABEL_t::Change(int) {
     return false;
 }
 
-bool WI_LABEL_t::Decrement(uint8_t dif) {
-    return false;
-}
-
-bool WI_SWITCH_t::Incement(uint8_t) {
+bool WI_SWITCH_t::Change(int) {
     size_t size = 0;
     while (strings[size] != NULL) {
         size++;
@@ -41,34 +37,24 @@ bool WI_SWITCH_t::Incement(uint8_t) {
     return true;
 }
 
-bool WI_SWITCH_t::Decrement(uint8_t) {
-    return WI_SWITCH_t::Incement(0);
-}
-
-bool WI_SELECT_t::Incement(uint8_t) {
+bool WI_SELECT_t::Change(int dif) {
     size_t size = 0;
     while (strings[size] != NULL) {
         size++;
     }
 
-    ++index;
-    if (index >= size) {
-        index = 0;
+    if (dif >= 0) {
+        ++index;
+        if (index >= size) {
+            index = 0;
+        }
+    } else {
+        --index;
+        if (index < 0) {
+            index = size - 1;
+        }
     }
 
-    return true;
-}
-
-bool WI_SELECT_t::Decrement(uint8_t) {
-    size_t size = 0;
-    while (strings[size] != NULL) {
-        size++;
-    }
-
-    --index;
-    if (index < 0) {
-        index = size - 1;
-    }
     return true;
 }
 

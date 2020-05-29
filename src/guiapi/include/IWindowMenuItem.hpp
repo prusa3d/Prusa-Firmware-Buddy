@@ -48,9 +48,9 @@ public:
     void Print(Iwindow_menu_t &window_menu, rect_ui16_t rect) const;
 
     bool IsSelected() const { return selected; }
-    bool Change(int dif) { return dif >= 0 ? Incement(dif) : Decrement(-dif); }
-    virtual bool Incement(uint8_t dif) = 0;
-    virtual bool Decrement(uint8_t dif) = 0;
+    virtual bool Change(int dif) = 0;
+    bool Incement(uint8_t dif) { return Change(dif); }
+    bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     virtual void Click(Iwindow_menu_t &window_menu);
 
     virtual ~IWindowMenuItem() {}
