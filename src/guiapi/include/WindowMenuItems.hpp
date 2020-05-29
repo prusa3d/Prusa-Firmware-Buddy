@@ -186,4 +186,44 @@ public:
     MI_QR_info();
     virtual void Click(Iwindow_menu_t &window_menu);
 };
+
+class MI_WIZARD : public WI_LABEL_t {
+    static constexpr const char *const label = "Wizard";
+
+public:
+    MI_WIZARD();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_AUTO_HOME : public WI_LABEL_t {
+    static constexpr const char *const label = "Auto Home";
+
+public:
+    MI_AUTO_HOME();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_MESH_BED : public WI_LABEL_t {
+    static constexpr const char *const label = "Mesh Bed Level.";
+
+public:
+    MI_MESH_BED();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_SELFTEST : public WI_LABEL_t {
+    static constexpr const char *const label = "SelfTest";
+
+public:
+    MI_SELFTEST();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_CALIB_FIRST : public WI_LABEL_t {
+    static constexpr const char *const label = "First Layer Cal.";
+
+public:
+    MI_CALIB_FIRST();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
 #pragma pack(pop)

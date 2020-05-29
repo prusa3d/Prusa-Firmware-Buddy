@@ -2,6 +2,9 @@
 #include "resource.h"
 #include "screen.h" //screen_close
 #include "screens.h"
+#include "wizard/wizard.h"
+#include "marlin_client.h"
+#include "window_dlg_wait.h"
 
 /*****************************************************************************/
 //ctors
@@ -127,4 +130,79 @@ MI_QR_info::MI_QR_info()
 
 void MI_QR_info::Click(Iwindow_menu_t &window_menu) {
     screen_open(get_scr_qr_info()->id);
+}
+
+/*****************************************************************************/
+//MI_WIZARD
+MI_WIZARD::MI_WIZARD()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_WIZARD::Click(Iwindow_menu_t &window_menu) {
+    wizard_run_complete();
+}
+
+/*****************************************************************************/
+//workaroudn for MI_AUTO_HOME and MI_MESH_BED todo remove
+int8_t gui_marlin_G28_or_G29_in_progress() {
+    uint32_t cmd = marlin_command();
+    if ((cmd == MARLIN_CMD_G28) || (cmd == MARLIN_CMD_G29))
+        return -1;
+    else
+        return 0;
+}
+
+/*****************************************************************************/
+//MI_AUTO_HOME
+MI_AUTO_HOME::MI_AUTO_HOME()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_AUTO_HOME::Click(Iwindow_menu_t &window_menu) {
+    marlin_event_clr(MARLIN_EVT_CommandBegin);
+    marlin_gcode("G28");
+    while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+        marlin_client_loop();
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+}
+
+/*****************************************************************************/
+//MI_MESH_BED
+MI_MESH_BED::MI_MESH_BED()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_MESH_BED::Click(Iwindow_menu_t &window_menu) {
+    if (!marlin_all_axes_homed()) {
+        marlin_event_clr(MARLIN_EVT_CommandBegin);
+        marlin_gcode("G28");
+        while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+            marlin_client_loop();
+        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+    }
+    marlin_event_clr(MARLIN_EVT_CommandBegin);
+    marlin_gcode("G29");
+    while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+        marlin_client_loop();
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+}
+
+/*****************************************************************************/
+//MI_SELFTEST
+MI_SELFTEST::MI_SELFTEST()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_SELFTEST::Click(Iwindow_menu_t &window_menu) {
+    wizard_run_selftest();
+}
+
+/*****************************************************************************/
+//MI_CALIB_FIRST
+MI_CALIB_FIRST::MI_CALIB_FIRST()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_CALIB_FIRST::Click(Iwindow_menu_t &window_menu) {
+    wizard_run_firstlay();
 }
