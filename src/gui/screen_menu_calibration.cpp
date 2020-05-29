@@ -23,7 +23,7 @@ typedef enum {
 
 const menu_item_t _menu_calibration_items[] = {
     { { "Wizard", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Z-offset", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
+    { { "Live Adjust Z", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
     { { "Auto Home", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Mesh Bed Level.", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "SelfTest", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
@@ -83,7 +83,7 @@ int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t ev
             gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
             break;
         case MI_MESH_BED:
-            if (!marlin_all_axes_homed()) {
+            if (!marlin_all_axes_known() || !marlin_all_axes_homed()) {
                 marlin_event_clr(MARLIN_EVT_CommandBegin);
                 marlin_gcode("G28");
                 while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
