@@ -27,9 +27,12 @@ gui_defaults_t gui_defaults = {
     { 2, 2, 2, 2 },             // padding; padding_ui8(2,2,2,2)
     ALIGN_LEFT_TOP,             // alignment;
     { 0, 0, 240, 32 - 0 },      // default header location & size
-    { 0, 32, 240, 267 - 32 },   // default message box location & size
+    { 0, 32, 240, 267 - 32 },   // default screen body location & size
+    { 0, 32, 240, 320 - 32 },   // screen body without footer - location & size
     { 0, 267, 240, 320 - 267 }, // default footer location & size
+    30,                         // default button height
     6,                          // btn_spacing: 12 pixels spacing between buttons, 6 from margins
+    10,                         // default frame width
 };
 
 gui_loop_cb_t *gui_loop_cb = 0;
@@ -190,7 +193,7 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
 }
 
 int gui_msgbox(const char *text, uint16_t flags) {
-    return gui_msgbox_ex(0, text, flags, gui_defaults.msg_box_sz, 0, 0);
+    return gui_msgbox_ex(0, text, flags, gui_defaults.scr_body_sz, 0, 0);
 }
 
 // specific function for PROMPT message box with soundStandardPrompt sound
@@ -198,7 +201,7 @@ int gui_msgbox(const char *text, uint16_t flags) {
 // additionally
 int gui_msgbox_prompt(const char *text, uint16_t flags) {
     Sound_Play(eSOUND_TYPE_StandardPrompt);
-    return gui_msgbox_ex(0, text, flags, gui_defaults.msg_box_sz, 0, 0);
+    return gui_msgbox_ex(0, text, flags, gui_defaults.scr_body_sz, 0, 0);
 }
 
 #endif //GUI_WINDOW_SUPPORT

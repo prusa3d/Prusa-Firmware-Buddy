@@ -391,7 +391,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 static void disable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[BUTTON_TUNE];
     p_button->win.f_disabled = 1;
-    p_button->win.f_enabled = 0; // cant't be focused
+    p_button->win.f_enabled = 0; // can't be focused
 
     // move to reprint when tune is focused
     if (window_is_focused(p_button->win.id)) {

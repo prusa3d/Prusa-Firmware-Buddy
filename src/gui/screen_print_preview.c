@@ -38,7 +38,6 @@ typedef struct {
     bool redraw_thumbnail;
 } screen_print_preview_data_t;
 
-#define HEADER_HEIGHT    24
 #define PADDING          10
 #define SCREEN_WIDTH     240
 #define SCREEN_HEIGHT    320
@@ -180,7 +179,7 @@ static void initialize_gcode_file(screen_t *screen) {
     }
     pd->gcode_file_opened = true;
 
-    // thubnail presence check
+    // thumbnail presence check
     {
         FILE f = { 0 };
         if (f_gcode_thumb_open(&f, &pd->gcode_file) == 0) {
@@ -298,9 +297,9 @@ static bool gcode_file_exists(screen_t *screen) {
     return f_stat(gcode_file_path, &finfo) == FR_OK;
 }
 
-//todo simple solution to not breake functionality begore release
+//FIXME simple solution not to brake functionality before release
 //rewrite later
-static int suppress_draw = 0;
+static bool suppress_draw = false;
 
 static int screen_print_preview_event(screen_t *screen, window_t *window,
     uint8_t event, void *param) {
@@ -312,13 +311,13 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
     }
 
     if (!suppress_draw && fs_did_filament_runout()) {
-        suppress_draw = 1;
+        suppress_draw = true;
         Sound_Play(eSOUND_TYPE_StandardAlert);
         const char *btns[3] = { "YES", "NO", "IGNORE" };
         switch (gui_msgbox_ex(0,
             "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.",
             MSGBOX_BTN_CUSTOM3,
-            rect_ui16(0, gui_defaults.msg_box_sz.y, gui_defaults.msg_box_sz.w, 320 - gui_defaults.msg_box_sz.y),
+            gui_defaults.scr_body_no_foot_sz,
             0, btns)) {
         case MSGBOX_RES_CUSTOM0: //YES - load
             gui_dlg_load_forced();
@@ -327,13 +326,13 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
             if (action_handler) {
                 action_handler(PRINT_PREVIEW_ACTION_BACK);
             }
-            suppress_draw = 0;
+            suppress_draw = false;
             return 1;
         case MSGBOX_RES_CUSTOM2: //IGNORE - disable
             fs_disable();
             break;
         }
-        suppress_draw = 0;
+        suppress_draw = false;
         window_draw(pd->frame.win.id);
     }
 

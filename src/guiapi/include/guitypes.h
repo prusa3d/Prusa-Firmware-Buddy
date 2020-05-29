@@ -118,10 +118,13 @@ typedef struct _gui_defaults_t {
     font_t *font_big;
     padding_ui8_t padding;
     uint8_t alignment;
-    rect_ui16_t header_sz;
-    rect_ui16_t msg_box_sz;
-    rect_ui16_t footer_sz;
-    uint8_t btn_spacing;
+    rect_ui16_t header_sz;           // default header location & size
+    rect_ui16_t scr_body_sz;         // default screen body location & size
+    rect_ui16_t scr_body_no_foot_sz; // screen body without footer location & size
+    rect_ui16_t footer_sz;           // default footer location & size
+    uint8_t btn_h;                   // default button height
+    uint8_t btn_spacing;             // default button spacing
+    uint8_t frame_width;             // default frame width
 } gui_defaults_t;
 
 #pragma pack(pop)

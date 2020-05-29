@@ -96,7 +96,7 @@ void screen_printing_serial_init(screen_t *screen) {
     point_ui16_t pt_ico = icon_meas(resource_ptr(IDR_PNG_serial_printing));
     id = window_create_ptr(
         WINDOW_CLS_ICON, root,
-        rect_ui16((240 - pt_ico.x) / 2, gui_defaults.msg_box_sz.y, pt_ico.x, pt_ico.y),
+        rect_ui16((240 - pt_ico.x) / 2, gui_defaults.scr_body_sz.y, pt_ico.x, pt_ico.y),
         &(pw->octo_icon));
     window_enable(id);
     window_set_icon_id(id, IDR_PNG_serial_printing);

@@ -71,14 +71,12 @@ uint16_t window_msgbox_id_icon[5] = {
 };
 
 const padding_ui8_t window_padding = { 8, 2, 8, 2 }; // left, top, right, bottom
-const uint8_t button_h = 30;
-const uint8_t frame_width = 10;
 
 /// Draws window's buttons at the bottom
 void window_msgbox_draw_buttons(window_msgbox_t *window) {
     rect_ui16_t rc_btn = window->win.rect;
-    rc_btn.y += (rc_btn.h - button_h - frame_width);
-    rc_btn.h = button_h;
+    rc_btn.y += (rc_btn.h - gui_defaults.btn_h - gui_defaults.frame_width);
+    rc_btn.h = gui_defaults.btn_h;
 
     const int btn = ((window->flags & MSGBOX_MSK_BTN) >> MSGBOX_SHI_BTN); // button config
     if (btn > MSGBOX_BTN_MAX)
@@ -89,7 +87,7 @@ void window_msgbox_draw_buttons(window_msgbox_t *window) {
     const int chg = ((window->flags & MSGBOX_MSK_CHG) >> MSGBOX_SHI_CHG); // change mask
     if (chg == 7)
         display->fill_rect(rc_btn, window->color_back);            //clear background if all buttons changed
-    const int spacing2 = gui_defaults.btn_spacing;                 // 12 pixels spacing between buttons, 6 from margins
+    const int spacing2 = gui_defaults.btn_spacing;                 // button spacing
     const int btn_w = (rc_btn.w - (count * 2 * spacing2)) / count; // avg width of a button
     const font_t *pf = window->font_title;
     float chars = 0; // average number of chars in a button
@@ -213,7 +211,7 @@ void window_msgbox_draw(window_msgbox_t *window) {
         const rect_ui16_t rc_txt = { window->win.rect.x,
             window->win.rect.y + title_h + red_line_offset, // put text bellow title and red line
             window->win.rect.w,
-            window->win.rect.h - (title_h + red_line_offset + button_h) };
+            window->win.rect.h - (title_h + red_line_offset + gui_defaults.btn_h) };
         render_text_align(rc_txt, window->text, window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
 
         window->flags |= MSGBOX_MSK_CHG;
