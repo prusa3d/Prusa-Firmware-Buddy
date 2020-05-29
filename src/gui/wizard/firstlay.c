@@ -18,12 +18,14 @@
 const char *V2_gcodes_head_PLA[];
 const char *V2_gcodes_head_PETG[];
 const char *V2_gcodes_head_ASA[];
+const char *V2_gcodes_head_ABS[];
 const char *V2_gcodes_head_FLEX[];
 const char *V2_gcodes_body[];
 
 const size_t V2_gcodes_head_PLA_sz;
 const size_t V2_gcodes_head_PETG_sz;
 const size_t V2_gcodes_head_ASA_sz;
+const size_t V2_gcodes_head_ABS_sz;
 const size_t V2_gcodes_head_FLEX_sz;
 const size_t V2_gcodes_body_sz;
 
@@ -130,6 +132,10 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         case FILAMENT_ASA:
             head_gcode = V2_gcodes_head_ASA;
             head_gcode_sz = V2_gcodes_head_ASA_sz;
+            break;
+        case FILAMENT_ABS:
+            head_gcode = V2_gcodes_head_ABS;
+            head_gcode_sz = V2_gcodes_head_ABS_sz;
             break;
         case FILAMENT_FLEX:
             head_gcode = V2_gcodes_head_FLEX;
@@ -321,6 +327,16 @@ const char *V2_gcodes_head_ASA[] = {
     V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_ASA_sz = sizeof(V2_gcodes_head_ASA) / sizeof(V2_gcodes_head_ASA[0]);
+
+const char *V2_gcodes_head_ABS[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S255", //nozzle target 215C
+    "M140 S100", //bed target 60C
+    "M190 S100", //wait for bed temp 60C
+    "M109 S255", //wait for nozzle temp 215C
+    V__GCODES_HEAD_END
+};
+const size_t V2_gcodes_head_ABS_sz = sizeof(V2_gcodes_head_ABS) / sizeof(V2_gcodes_head_ABS[0]);
 
 const char *V2_gcodes_head_FLEX[] = {
     V__GCODES_HEAD_BEGIN
