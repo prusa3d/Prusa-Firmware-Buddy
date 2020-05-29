@@ -39,8 +39,8 @@ typedef struct {
 } screen_print_preview_data_t;
 
 #define PADDING          10
-#define SCREEN_WIDTH     240
-#define SCREEN_HEIGHT    320
+#define SCREEN_WIDTH     240 //FIXME should be in display.h
+#define SCREEN_HEIGHT    320 //FIXME should be in display.h
 #define THUMBNAIL_HEIGHT 124
 #define TITLE_HEIGHT     24
 #define LINE_HEIGHT      15

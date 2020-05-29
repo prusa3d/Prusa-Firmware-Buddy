@@ -69,7 +69,7 @@ static void screen_lan_settings_init(screen_t *screen) {
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(plsd->root));
     window_disable(root);
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, rect_ui16(0, 0, 240, 31), &(plsd->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(plsd->header));
     p_window_header_set_text(&(plsd->header), "LAN SETTINGS");
 
     id = window_create_ptr(WINDOW_CLS_MENU, root, menu_rect, &(plsd->menu));
