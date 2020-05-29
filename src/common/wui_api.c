@@ -229,32 +229,29 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
     return 1;
 }
 
-uint32_t sntp_get_system_time(timestamp_t *system_time) {
+uint32_t sntp_get_system_time(struct tm *system_time) {
 
     if (sntp_time_init) {
         RTC_TimeTypeDef currTime;
         RTC_DateTypeDef currDate;
         HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
         HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
-        struct tm t;
         time_t secs;
-        t.tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
+        system_time->tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
 
-        system_time->time.h = t.tm_hour = currTime.Hours;
-        system_time->time.m = t.tm_min = currTime.Minutes;
-        system_time->time.s = t.tm_sec = currTime.Seconds;
-        system_time->date.d = t.tm_mday = currDate.Date;
-        system_time->date.m = t.tm_mon = currDate.Month;
-        system_time->date.m += 1; // months starts with 0
-        system_time->date.y = t.tm_year = currDate.Year;
-        system_time->date.y += 1900; // epoch start
-        secs = mktime(&t);
-        system_time->epoch_secs = secs;
-        return 1;
+        system_time->tm_hour = currTime.Hours;
+        system_time->tm_min = currTime.Minutes;
+        system_time->tm_sec = currTime.Seconds;
+        system_time->tm_mday = currDate.Date;
+        system_time->tm_mon = currDate.Month;
+        system_time->tm_year = currDate.Year;
+        secs = mktime(system_time);
+        system_time->tm_mon += 1;     // months starts with 0
+        system_time->tm_year += 1900; // epoch start
+        return (uint32_t)secs;
     } else {
-        system_time->time.h = system_time->time.m = system_time->time.s = 0;
-        system_time->date.d = system_time->date.m = system_time->date.y = 0;
-        system_time->epoch_secs = 0;
+        system_time->tm_sec = system_time->tm_hour = system_time->tm_min = 0;
+        system_time->tm_mday = system_time->tm_mon = system_time->tm_year = 0;
         return 0;
     }
 }
@@ -286,74 +283,12 @@ void sntp_set_system_time(uint32_t sec) {
     sntp_time_init = true;
 }
 
-uint32_t stringify_timestamp(time_str_t *dest, timestamp_t *timestamp, uint8_t flag) {
-    if (sntp_time_init) {
+void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
 
-        dest->time[0] = 0;
-        dest->date[0] = 0;
-
-        // TIME PARSING
-        if (flag & TIME_STR_HOURS) {
-            snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d", timestamp->time.h);
-        }
-        if (flag & TIME_STR_MINS) {
-            uint8_t length = strlen(dest->time);
-            if (length > 0) {
-                snprintf(dest->time + length, MAX_TIME_STR_SIZE - length, ":%02d", timestamp->time.m);
-            } else {
-                snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d", timestamp->time.m);
-            }
-        }
-        if (flag & TIME_STR_SECS) {
-            uint8_t length = strlen(dest->time);
-            if (length > 0) {
-                snprintf(dest->time + length, MAX_TIME_STR_SIZE - length, ":%02d", timestamp->time.s);
-            } else {
-                snprintf(dest->time, MAX_TIME_STR_SIZE, "%02d", timestamp->time.s);
-            }
-        }
-
-        // DATE PARSING
-        if (flag & TIME_STR_YEARS) {
-            snprintf(dest->date, MAX_DATE_STR_SIZE, "%d", timestamp->date.y);
-        }
-        if (flag & TIME_STR_MONTHS) {
-            uint8_t length = strlen(dest->date);
-            if (length > 0) {
-                snprintf(dest->date + length, MAX_DATE_STR_SIZE - length, "-%02d", timestamp->date.m);
-            } else {
-                snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d", timestamp->date.m);
-            }
-        }
-        if (flag & TIME_STR_DAYS) {
-            uint8_t length = strlen(dest->date);
-            if (length > 0) {
-                snprintf(dest->date + length, MAX_DATE_STR_SIZE - length, "-%02d", timestamp->date.d);
-            } else {
-                snprintf(dest->date, MAX_DATE_STR_SIZE, "%02d", timestamp->date.d);
-            }
-        }
-        return 1;
-    } else {
-        strlcpy(dest->time, "N/A", MAX_TIME_STR_SIZE);
-        strlcpy(dest->date, "N/A", MAX_DATE_STR_SIZE);
-        return 0;
-    }
-}
-
-void update_timestamp_from_epoch_secs(timestamp_t *timestamp) {
-
-    if (timestamp->epoch_secs == 0) {
+    if (secs_to_add == 0) {
         return;
     }
-    struct tm current_time_val;
-    time_t current_time = (time_t)timestamp->epoch_secs;
-    localtime_r(&current_time, &current_time_val);
-
-    timestamp->time.s = current_time_val.tm_sec;
-    timestamp->time.m = current_time_val.tm_min;
-    timestamp->time.h = current_time_val.tm_hour;
-    timestamp->date.d = current_time_val.tm_mday;
-    timestamp->date.m = current_time_val.tm_mon + 1;
-    timestamp->date.y = current_time_val.tm_year + 1900;
+    time_t secs_from_epoch_start = mktime(timestamp);
+    time_t current_time = secs_from_epoch_start + secs_to_add;
+    localtime_r(&current_time, timestamp);
 }
