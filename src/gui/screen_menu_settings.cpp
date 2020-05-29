@@ -241,10 +241,11 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
         case MI_TIMEZONE: {
             int8_t time_zone = (int8_t)(psmd->items[MI_TIMEZONE].item.wi_spin.value / 1000);
             eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(time_zone));
-            timestamp_t now;
-            if (sntp_get_system_time(&now)) {
-                now.epoch_secs += (time_zone * 3600);
-                sntp_set_system_time(now.epoch_secs);
+            struct tm now;
+            uint32_t seconds = 0;
+            if ((seconds = sntp_get_system_time(&now))) {
+                seconds += (time_zone * 3600);
+                sntp_set_system_time(seconds);
             }
             break;
         }

@@ -25,7 +25,7 @@
 #define BUTTON_STOP  2
 
 #define POPUP_MSG_DUR_MS       5000
-#define MAX_END_TIMESTAMP_SIZE (MAX_DATE_STR_SIZE + MAX_TIME_STR_SIZE + 5) // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
+#define MAX_END_TIMESTAMP_SIZE (14 + 12 + 5) // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
 
 #pragma pack(push)
 #pragma pack(1)
@@ -137,7 +137,7 @@ static void screen_printing_reprint(screen_t *screen);
 static void change_print_state(screen_t *screen);
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed);
 static void update_remaining_time(screen_t *screen, time_t rawtime);
-static void update_end_timestamp(screen_t *screen, timestamp_t *now);
+static void update_end_timestamp(screen_t *screen, struct tm *now);
 static void update_print_duration(screen_t *screen, time_t print_duration);
 
 screen_t screen_printing = {
@@ -332,7 +332,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->print_duration != pw->last_print_duration)
         update_print_duration(screen, marlin_vars()->print_duration);
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
-        timestamp_t now;
+        struct tm now;
         if (sntp_get_system_time(&now)) {
             strlcpy(pw->label_etime, "Print will end", 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime);
@@ -446,37 +446,41 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
     window_set_text(pw->w_etime_value.win.id, pw->text_etime);
 }
 
-static void update_end_timestamp(screen_t *screen, timestamp_t *now) {
-    static const char qmark[] = "?";
-    uint8_t q_idx = 0;
+static void update_end_timestamp(screen_t *screen, struct tm *now) {
 
+    bool time_invalid = false;
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
         pw->w_etime_value.color_text = COLOR_VALUE_INVALID;
-        q_idx = 1;
+        time_invalid = true;
     } else {
         pw->w_etime_value.color_text = COLOR_VALUE_VALID;
     }
 
     static const uint32_t full_day_in_seconds = 86400;
-    timestamp_t print_end, tommorow;
-    print_end.epoch_secs = now->epoch_secs + (marlin_vars()->time_to_end / 1000);
-    tommorow.epoch_secs = now->epoch_secs += full_day_in_seconds;
-    update_timestamp_from_epoch_secs(&tommorow);
-    update_timestamp_from_epoch_secs(&print_end);
+    time_t print_end_sec, tommorow_sec, now_sec = mktime(now);
 
-    time_str_t time_str;
+    print_end_sec = now_sec + (marlin_vars()->time_to_end / 1000);
+    tommorow_sec = now_sec + full_day_in_seconds;
 
-    if (now->date.d == print_end.date.d && // if print end is today
-        now->date.m == print_end.date.m && now->date.y == print_end.date.y) {
-        stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS);
-        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Today at %s%s", time_str.time, qmark + q_idx);
-    } else if (tommorow.date.y == print_end.date.d && // if print end is tommorow
-        tommorow.date.m == print_end.date.m && tommorow.date.d == print_end.date.y) {
-        stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS);
-        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Tommorow at %s%s", time_str.time, qmark + q_idx);
+    struct tm tommorow, print_end;
+    localtime_r(&tommorow_sec, &tommorow);
+    localtime_r(&print_end_sec, &print_end);
+
+    if (now->tm_mday == print_end.tm_mday && // if print end is today
+        now->tm_mon == print_end.tm_mon && now->tm_year == print_end.tm_year) {
+        strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end);
+    } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
+        tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
+        strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Tommorow at %H:%M?", &print_end);
     } else {
-        stringify_timestamp(&time_str, &print_end, TIME_STR_HOURS | TIME_STR_MINS | TIME_STR_DAYS | TIME_STR_MONTHS);
-        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%s at %s%s", time_str.date, time_str.time, qmark + q_idx);
+        strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%M?", &print_end);
+    }
+
+    if (time_invalid == false) {
+        uint8_t length = strlen(pw->text_etime);
+        if (length > 0) {
+            pw->text_etime[length - 1] = 0;
+        }
     }
 
     window_set_text(pw->w_etime_value.win.id, pw->text_etime);
