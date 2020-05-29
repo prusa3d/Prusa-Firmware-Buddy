@@ -15,6 +15,7 @@ const filament_t filaments[FILAMENTS_END] = {
     { "PLA", "PLA      215/ 60", 215, 60 },
     { "PETG", "PETG     230/ 85", 230, 85 },
     { "ASA", "ASA      260/100", 260, 100 },
+    { "ABS", "ABS      255/100", 255, 100 },
     { "FLEX", "FLEX     240/ 50", 240, 50 },
 };
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == FILAMENTS_END, "Filament count error.");
