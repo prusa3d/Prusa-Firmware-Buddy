@@ -448,10 +448,10 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
 
 static void update_end_timestamp(screen_t *screen, struct tm *now) {
 
-    uint8_t qmark = 0;
+    bool time_invalid = false;
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
         pw->w_etime_value.color_text = COLOR_VALUE_INVALID;
-        qmark = 1;
+        time_invalid = true;
     } else {
         pw->w_etime_value.color_text = COLOR_VALUE_VALID;
     }
@@ -476,7 +476,7 @@ static void update_end_timestamp(screen_t *screen, struct tm *now) {
         strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%M?", &print_end);
     }
 
-    if (!qmark) {
+    if (time_invalid == false) {
         uint8_t length = strlen(pw->text_etime);
         if (length > 0) {
             pw->text_etime[length - 1] = 0;
