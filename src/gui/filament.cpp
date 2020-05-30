@@ -12,13 +12,13 @@
 //fixme generating long names, takes too long
 const filament_t filaments[FILAMENTS_END] = {
     { "---", "---", 0, 0 },
-    { "PLA", "PLA       215/ 60", 215, 60 },
-    { "PETG", "PETG     230/ 85", 230, 85 },
+    { "PLA", "PLA      215/ 60", 215, 60 },
+    { "PETG", "PETG    230/ 85", 230, 85 },
     { "ASA", "ASA      260/100", 260, 100 },
     { "ABS", "ABS      255/100", 255, 100 },
     { "HIPS", "HIPS    220/100", 220, 100 },
     { "PP", "PP        254/100", 254, 100 },
-    { "FLEX", "FLEX     240/ 50", 240, 50 },
+    { "FLEX", "FLEX    240/ 50", 240, 50 },
 };
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == FILAMENTS_END, "Filament count error.");
 
