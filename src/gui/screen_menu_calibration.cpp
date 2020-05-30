@@ -83,7 +83,7 @@ int screen_menu_calibration_event(screen_t *screen, window_t *window, uint8_t ev
             gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
             break;
         case MI_MESH_BED:
-            if (!marlin_all_axes_known() || !marlin_all_axes_homed()) {
+            if (!marlin_all_axes_homed() || !marlin_all_axes_known()) {
                 marlin_event_clr(MARLIN_EVT_CommandBegin);
                 marlin_gcode("G28");
                 while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
