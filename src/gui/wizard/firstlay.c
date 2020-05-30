@@ -19,6 +19,8 @@ const char *V2_gcodes_head_PLA[];
 const char *V2_gcodes_head_PETG[];
 const char *V2_gcodes_head_ASA[];
 const char *V2_gcodes_head_ABS[];
+const char *V2_gcodes_head_HIPS[];
+const char *V2_gcodes_head_PP[];
 const char *V2_gcodes_head_FLEX[];
 const char *V2_gcodes_body[];
 
@@ -26,6 +28,8 @@ const size_t V2_gcodes_head_PLA_sz;
 const size_t V2_gcodes_head_PETG_sz;
 const size_t V2_gcodes_head_ASA_sz;
 const size_t V2_gcodes_head_ABS_sz;
+const size_t V2_gcodes_head_HIPS_sz;
+const size_t V2_gcodes_head_PP_sz;
 const size_t V2_gcodes_head_FLEX_sz;
 const size_t V2_gcodes_body_sz;
 
@@ -137,7 +141,15 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             head_gcode = V2_gcodes_head_ABS;
             head_gcode_sz = V2_gcodes_head_ABS_sz;
             break;
-        case FILAMENT_FLEX:
+        case FILAMENT_HIPS:
+            head_gcode = V2_gcodes_head_HIPS;
+            head_gcode_sz = V2_gcodes_head_HIPS_sz;
+            break;
+         case FILAMENT_PP:
+            head_gcode = V2_gcodes_head_PP;
+            head_gcode_sz = V2_gcodes_head_PP_sz;
+            break;
+         case FILAMENT_FLEX:
             head_gcode = V2_gcodes_head_FLEX;
             head_gcode_sz = V2_gcodes_head_FLEX_sz;
             break;
@@ -337,6 +349,26 @@ const char *V2_gcodes_head_ABS[] = {
     V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_ABS_sz = sizeof(V2_gcodes_head_ABS) / sizeof(V2_gcodes_head_ABS[0]);
+
+const char *V2_gcodes_head_HIPS[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S220", //nozzle target 215C
+    "M140 S100", //bed target 60C
+    "M190 S100", //wait for bed temp 60C
+    "M109 S220", //wait for nozzle temp 215C
+    V__GCODES_HEAD_END
+};
+const size_t V2_gcodes_head_HIPS_sz = sizeof(V2_gcodes_head_HIPS) / sizeof(V2_gcodes_head_HIPS[0]);
+
+const char *V2_gcodes_head_PP[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S254", //nozzle target 215C
+    "M140 S100", //bed target 60C
+    "M190 S100", //wait for bed temp 60C
+    "M109 S254", //wait for nozzle temp 215C
+    V__GCODES_HEAD_END
+};
+const size_t V2_gcodes_head_PP_sz = sizeof(V2_gcodes_head_PP) / sizeof(V2_gcodes_head_PP[0]);
 
 const char *V2_gcodes_head_FLEX[] = {
     V__GCODES_HEAD_BEGIN
