@@ -23,7 +23,7 @@ typedef enum {
 
 const menu_item_t _menu_calibration_items[] = {
     { { "Wizard", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
-    { { "Live Adjust Z", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
+    { { "Z-offset", 0, WI_SPIN_FL }, SCREEN_MENU_NO_SCREEN }, //set later
     { { "Auto Home", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "Mesh Bed Level.", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
     { { "SelfTest", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN },
