@@ -2,6 +2,7 @@
 
 #include "IWindowMenuItem.hpp"
 #include <algorithm>
+#include <array>
 #include "display_helper.h"
 
 #pragma pack(push, 1)
@@ -34,29 +35,39 @@ public:
     virtual void OnClick() = 0;
 };
 
-//WI_SWITCH
-//array of char strings ended by NULL for array length variability.
-//char * strings[3] = {"Low", "High", "Medium", NULL}
+//WI_SWITCH == text version of WI_SPIN (non-numeric)
+//unlike WI_SPIN cannot be selected
+template <size_t SZ>
 class WI_SWITCH_t : public IWindowMenuItem {
 public: //todo private
     uint32_t index;
-    const char **strings;
+    const std::array<const char *, SZ> items;
+
+protected:
+    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
 
 public:
-    WI_SWITCH_t(int32_t index, const char **strings, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    WI_SWITCH_t(int32_t index, const std::array<const char *, SZ> &strings, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
+    virtual void ClrIndex() { index = 0; }
+    virtual void Click(Iwindow_menu_t &window_menu) final;
+    virtual void OnClick() = 0;
 };
 
-//WI_SELECT
-//array of char strings ended by NULL for array length variability.
-//char * strings[3] = {"Low", "High", "Medium", NULL}
+//WI_SELECT == switch with no label
+//but can be selected like WI_SPIN
 class WI_SELECT_t : public IWindowMenuItem {
+    constexpr static const char *no_lbl = "";
+
 public: //todo private
     uint32_t index;
     const char **strings;
 
+protected:
+    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+
 public:
-    WI_SELECT_t(int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
+    WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
 };
 
@@ -108,6 +119,45 @@ void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, colo
 }
 
 /*****************************************************************************/
+//template definitions
+//WI_SWITCH_t use std::array<const char* > (orr fifferent container for )
+
+template <size_t SZ>
+WI_SWITCH_t<SZ>::WI_SWITCH_t(int32_t index, const std::array<const char *, SZ> &strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+    : IWindowMenuItem(label, id_icon, enabled, hidden)
+    , index(index)
+    , items(strings) {}
+
+template <size_t SZ>
+bool WI_SWITCH_t<SZ>::Change(int) {
+    if ((++index) >= items.size()) {
+        index = 0;
+    }
+    return true;
+}
+
+template <size_t SZ>
+void WI_SWITCH_t<SZ>::Click(Iwindow_menu_t &window_menu) {
+    OnClick();
+    Change(0);
+}
+
+template <size_t SZ>
+void WI_SWITCH_t<SZ>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    IWindowMenuItem::printText(window_menu, rect, color_text, color_back, swap);
+    const char *txt = items[index];
+
+    rect_ui16_t vrc = {
+        uint16_t(rect.x + rect.w), rect.y, uint16_t(window_menu.font->w * strlen(txt) + window_menu.padding.left + window_menu.padding.right), rect.h
+    };
+    vrc.x -= vrc.w;
+    rect.w -= vrc.w;
+
+    render_text_align(vrc, txt, window_menu.font,
+        color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
+}
+
+/*****************************************************************************/
 //advanced types
 class MI_RETURN : public WI_LABEL_t {
     static constexpr const char *const label = "Return";
@@ -129,6 +179,7 @@ class MI_LAN_SETTINGS : public WI_LABEL_t {
 
 public:
     MI_LAN_SETTINGS();
+    virtual void Click(Iwindow_menu_t &window_menu);
 };
 
 class MI_VERSION_INFO : public WI_LABEL_t {

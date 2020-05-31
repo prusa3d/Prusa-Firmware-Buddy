@@ -5,19 +5,19 @@
 #include "wizard/wizard.h"
 #include "marlin_client.h"
 #include "window_dlg_wait.h"
+#include "dump.h"
+#include "eeprom.h"
+#include "eeprom_loadsave.h"
+#include "gui.h"
+#include "sys.h"
 
 /*****************************************************************************/
 //ctors
 WI_LABEL_t::WI_LABEL_t(const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(label, id_icon, enabled, hidden) {}
 
-WI_SWITCH_t::WI_SWITCH_t(int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(label, id_icon, enabled, hidden)
-    , index(index)
-    , strings(strings) {}
-
-WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(label, id_icon, enabled, hidden)
+WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled, bool hidden)
+    : IWindowMenuItem(no_lbl, id_icon, enabled, hidden)
     , index(index)
     , strings(strings) {}
 
@@ -26,18 +26,6 @@ WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, const char *label,
 
 bool WI_LABEL_t::Change(int) {
     return false;
-}
-
-bool WI_SWITCH_t::Change(int) {
-    size_t size = 0;
-    while (strings[size] != NULL) {
-        size++;
-    }
-    ++index;
-    if (index >= size) {
-        index = 0;
-    }
-    return true;
 }
 
 bool WI_SELECT_t::Change(int dif) {
@@ -59,6 +47,22 @@ bool WI_SELECT_t::Change(int dif) {
     }
 
     return true;
+}
+
+/*****************************************************************************/
+
+void WI_SELECT_t::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    IWindowMenuItem::printText(window_menu, rect, color_text, color_back, swap);
+    const char *txt = strings[index];
+
+    rect_ui16_t vrc = {
+        uint16_t(rect.x + rect.w), rect.y, uint16_t(window_menu.font->w * strlen(txt) + window_menu.padding.left + window_menu.padding.right), rect.h
+    };
+    vrc.x -= vrc.w;
+    rect.w -= vrc.w;
+
+    render_text_align(vrc, txt, window_menu.font,
+        color_back, color_text, window_menu.padding, window_menu.alignment);
 }
 
 /*****************************************************************************/
