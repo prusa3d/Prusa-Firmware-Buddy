@@ -47,7 +47,13 @@ protected:
     virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
 
 public:
-    WI_SWITCH_t(int32_t index, const std::array<const char *, SZ> &strings, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
+    //cannot create const std::array<const char *, SZ> with std::initializer_list<const char*>
+    //template<class ...E> and {{std::forward<E>(e)...}} is workaround
+    template <class... E>
+    WI_SWITCH_t(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden, E &&... e)
+        : IWindowMenuItem(label, id_icon, enabled, hidden)
+        , index(index)
+        , items { { std::forward<E>(e)... } } {}
     virtual bool Change(int dif);
     virtual void ClrIndex() { index = 0; }
     virtual void Click(Iwindow_menu_t &window_menu) final;
@@ -120,14 +126,6 @@ void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, colo
 
 /*****************************************************************************/
 //template definitions
-//WI_SWITCH_t use std::array<const char* > (orr fifferent container for )
-
-template <size_t SZ>
-WI_SWITCH_t<SZ>::WI_SWITCH_t(int32_t index, const std::array<const char *, SZ> &strings, const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(label, id_icon, enabled, hidden)
-    , index(index)
-    , items(strings) {}
-
 template <size_t SZ>
 bool WI_SWITCH_t<SZ>::Change(int) {
     if ((++index) >= items.size()) {

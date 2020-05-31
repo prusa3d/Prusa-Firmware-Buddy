@@ -136,7 +136,6 @@ constexpr const char *str_StandardAlert = "StandardAlert";
 constexpr const char *str_EncoderMove = "EncoderMove";
 constexpr const char *str_BlindAlert = "BlindAlert";
 
-constexpr const std::array<const char *, 2> off_on = { str_Off, str_On };
 constexpr const std::array<const char *, 4> sound_options = { str_Once, str_Loud, str_Silent, str_Assist };
 constexpr const std::array<const char *, 5> sound_types = { str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_EncoderMove, str_BlindAlert };
 /*
@@ -148,10 +147,10 @@ const eSOUND_TYPE e_sound_types[] = { eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_Standa
 
 #pragma pack(push, 1)
 
-class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t<off_on.size()> {
+class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t<2> {
 public:
     WI_SWITCH_OFF_ON_t(bool index, const char *const label, uint16_t id_icon, bool enabled, bool hidden)
-        : WI_SWITCH_t<off_on.size()>(size_t(index), off_on, label, id_icon, enabled, hidden) {}
+        : WI_SWITCH_t<2>(size_t(index), label, id_icon, enabled, hidden, str_Off, str_On) {}
 };
 
 /*****************************************************************************/
