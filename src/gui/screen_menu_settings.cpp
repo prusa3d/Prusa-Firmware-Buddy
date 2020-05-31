@@ -147,9 +147,16 @@ const eSOUND_TYPE e_sound_types[] = { eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_Standa
 */
 
 #pragma pack(push, 1)
+
+class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t<off_on.size()> {
+public:
+    WI_SWITCH_OFF_ON_t(bool index, const char *const label, uint16_t id_icon, bool enabled, bool hidden)
+        : WI_SWITCH_t<off_on.size()>(size_t(index), off_on, label, id_icon, enabled, hidden) {}
+};
+
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
-class MI_FILAMENT_SENSOR : public WI_SWITCH_t<off_on.size()> {
+class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = "Fil. sens.";
 
     size_t get_index() {
@@ -163,7 +170,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_t<off_on.size()> {
 
 public:
     MI_FILAMENT_SENSOR()
-        : WI_SWITCH_t<off_on.size()>(get_index(), off_on, label, 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(get_index(), label, 0, true, false) {}
     virtual void OnClick() {
         //index did not change yet, chage fsensor
         index == 0 ? fs_disable() : fs_enable();
@@ -182,13 +189,13 @@ public:
 //MI_TIMEOUT
 //if needed to remeber after poweroff
 //use st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS) st25dv64k_user_write((uint16_t)MENU_TIMEOUT_FLAG_ADDRESS, (uint8_t)1 or 0);
-class MI_TIMEOUT : public WI_SWITCH_t<off_on.size()> {
+class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = "Timeout";
     static bool timeout_enabled;
 
 public:
     MI_TIMEOUT()
-        : WI_SWITCH_t<off_on.size()>(timeout_enabled ? 0 : 1, off_on, label, 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(timeout_enabled ? 0 : 1, label, 0, true, false) {}
     virtual void OnClick() {
         //index did not change yet
         if (timeout_enabled) {
