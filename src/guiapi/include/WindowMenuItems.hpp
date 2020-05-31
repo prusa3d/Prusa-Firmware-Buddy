@@ -60,6 +60,16 @@ public:
     virtual void OnClick() = 0;
 };
 
+//most common version of WI_SWITCH with on/off options
+class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t<2> {
+    constexpr static const char *str_Off = "Off";
+    constexpr static const char *str_On = "On";
+
+public:
+    WI_SWITCH_OFF_ON_t(bool index, const char *const label, uint16_t id_icon, bool enabled, bool hidden)
+        : WI_SWITCH_t<2>(size_t(index), label, id_icon, enabled, hidden, str_Off, str_On) {}
+};
+
 //WI_SELECT == switch with no label
 //but can be selected like WI_SPIN
 class WI_SELECT_t : public IWindowMenuItem {

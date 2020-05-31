@@ -147,12 +147,6 @@ const eSOUND_TYPE e_sound_types[] = { eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_Standa
 
 #pragma pack(push, 1)
 
-class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t<2> {
-public:
-    WI_SWITCH_OFF_ON_t(bool index, const char *const label, uint16_t id_icon, bool enabled, bool hidden)
-        : WI_SWITCH_t<2>(size_t(index), label, id_icon, enabled, hidden, str_Off, str_On) {}
-};
-
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
