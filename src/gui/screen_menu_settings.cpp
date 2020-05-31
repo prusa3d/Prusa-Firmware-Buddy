@@ -20,13 +20,6 @@
 /*
 extern osThreadId webServerTaskHandle;
 
-const char *settings_opt_enable_disable[] = { "Off", "On", NULL };
-const char *sound_opt_modes[] = { "Once", "Loud", "Silent", "Assist", NULL };
-const eSOUND_MODE e_sound_modes[] = { eSOUND_MODE_ONCE, eSOUND_MODE_LOUD, eSOUND_MODE_SILENT, eSOUND_MODE_ASSIST };
-#ifdef _DEBUG
-const char *sound_opt_types[] = { "ButtonEcho", "StandardPrompt", "StandardAlert", "EncoderMove", "BlindAlert", NULL };
-const eSOUND_TYPE e_sound_types[] = { eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert };
-#endif // _DEBUG
 
 typedef enum {
     MI_RETURN,
@@ -123,17 +116,39 @@ typedef enum {
 
 */
 
-//psmd->items[MI_FILAMENT_SENSOR] = (menu_item_t) { { "Fil. sens.", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
 //psmd->items[MI_TIMEOUT] = (menu_item_t) { { "Timeout", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
 //psmd->items[MI_SOUND_MODE] = (menu_item_t) { { "Sound Mode", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
 //psmd->items[MI_SOUND_TYPE] = (menu_item_t) { { "Sound Type", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
-constexpr const char *str_off = "Off";
-constexpr const char *str_on = "On";
-constexpr const std::array<const char *, 2> off_on = { str_off, str_on };
+constexpr const char *str_Off = "Off";
+constexpr const char *str_On = "On";
 
+constexpr const char *str_Once = "Once";
+constexpr const char *str_Loud = "Loud";
+constexpr const char *str_Silent = "Silent";
+constexpr const char *str_Assist = "Assist";
+
+constexpr const char *str_ButtonEcho = "ButtonEcho";
+constexpr const char *str_StandardPrompt = "StandardPrompt";
+constexpr const char *str_StandardAlert = "StandardAlert";
+constexpr const char *str_EncoderMove = "EncoderMove";
+constexpr const char *str_BlindAlert = "BlindAlert";
+
+constexpr const std::array<const char *, 2> off_on = { str_Off, str_On };
+constexpr const std::array<const char *, 4> sound_options = { str_Once, str_Loud, str_Silent, str_Assist };
+constexpr const std::array<const char *, 5> sound_types = { str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_EncoderMove, str_BlindAlert };
+/*
+
+const eSOUND_MODE e_sound_modes[] = { eSOUND_MODE_ONCE, eSOUND_MODE_LOUD, eSOUND_MODE_SILENT, eSOUND_MODE_ASSIST };
+const eSOUND_TYPE e_sound_types[] = { eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert };
+
+*/
+
+#pragma pack(push, 1)
+/*****************************************************************************/
+//MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_t<off_on.size()> {
     constexpr static const char *const label = "Fil. sens.";
 
@@ -163,11 +178,31 @@ public:
     }
 };
 
+/*****************************************************************************/
+//MI_TIMEOUT
+//if needed to remeber after poweroff
+//use st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS) st25dv64k_user_write((uint16_t)MENU_TIMEOUT_FLAG_ADDRESS, (uint8_t)1 or 0);
+class MI_TIMEOUT : public WI_SWITCH_t<off_on.size()> {
+    constexpr static const char *const label = "Timeout";
+    static bool timeout_enabled;
+
+public:
+    MI_TIMEOUT()
+        : WI_SWITCH_t<off_on.size()>(timeout_enabled ? 0 : 1, off_on, label, 0, true, false) {}
+    virtual void OnClick() {
+        //index did not change yet
+        if (timeout_enabled) {
+            gui_timer_delete(gui_get_menu_timeout_id());
+        }
+        timeout_enabled = !timeout_enabled;
+    }
+};
+bool MI_TIMEOUT::timeout_enabled = true;
+#pragma pack(pop)
+
 #ifdef _DEBUG
 using Screen = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE,
-    MI_FILAMENT_SENSOR,
-    //MI_TIMEOUT,
+    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
 
     MI_LAN_SETTINGS,
 
