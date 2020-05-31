@@ -277,4 +277,149 @@ public:
     MI_CALIB_FIRST();
     virtual void Click(Iwindow_menu_t &window_menu);
 };
+
+class MI_TEMPERATURE : public WI_LABEL_t {
+    static constexpr const char *const label = "Temperature";
+
+public:
+    MI_TEMPERATURE();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_MOVE_AXIS : public WI_LABEL_t {
+    static constexpr const char *const label = "Move Axis";
+
+public:
+    MI_MOVE_AXIS();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_DISABLE_STEP : public WI_LABEL_t {
+    static constexpr const char *const label = "Disable Steppers";
+
+public:
+    MI_DISABLE_STEP();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_FACTORY_DEFAULTS : public WI_LABEL_t {
+    static constexpr const char *const label = "Factory Reset";
+
+public:
+    MI_FACTORY_DEFAULTS();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_SERVICE : public WI_LABEL_t {
+    static constexpr const char *const label = "Service";
+
+public:
+    MI_SERVICE();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_TEST : public WI_LABEL_t {
+    static constexpr const char *const label = "Test";
+
+public:
+    MI_TEST();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_FW_UPDATE : public WI_LABEL_t {
+    static constexpr const char *const label = "FW Update";
+
+public:
+    MI_FW_UPDATE();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_SAVE_DUMP : public WI_LABEL_t {
+    static constexpr const char *const label = "Save Crash Dump";
+
+public:
+    MI_SAVE_DUMP();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_HF_TEST_0 : public WI_LABEL_t {
+    static constexpr const char *const label = "HF0 test";
+
+public:
+    MI_HF_TEST_0();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_HF_TEST_1 : public WI_LABEL_t {
+    static constexpr const char *const label = "HF1 test";
+
+public:
+    MI_HF_TEST_1();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_EE_LOAD_400 : public WI_LABEL_t {
+    static constexpr const char *const label = "EE 4.0.0";
+
+public:
+    MI_EE_LOAD_400();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_EE_LOAD_401 : public WI_LABEL_t {
+    static constexpr const char *const label = "EE 4.0.1";
+
+public:
+    MI_EE_LOAD_401();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_EE_LOAD_402 : public WI_LABEL_t {
+    static constexpr const char *const label = "EE 4.0.2";
+
+public:
+    MI_EE_LOAD_402();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_EE_LOAD_403RC1 : public WI_LABEL_t {
+    static constexpr const char *const label = "EE 4.0.3-RC1";
+
+public:
+    MI_EE_LOAD_403RC1();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_EE_LOAD_403 : public WI_LABEL_t {
+    static constexpr const char *const label = "EE 4.0.3";
+
+public:
+    MI_EE_LOAD_403();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_EE_LOAD : public WI_LABEL_t {
+    static constexpr const char *const label = "EE load";
+
+public:
+    MI_EE_LOAD();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_EE_SAVE : public WI_LABEL_t {
+    static constexpr const char *const label = "EE save";
+
+public:
+    MI_EE_SAVE();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
+class MI_EE_SAVEXML : public WI_LABEL_t {
+    static constexpr const char *const label = "EE save xml";
+
+public:
+    MI_EE_SAVEXML();
+    virtual void Click(Iwindow_menu_t &window_menu);
+};
+
 #pragma pack(pop)
