@@ -57,15 +57,6 @@ typedef enum {
 
 
 
-    // memcpy(psmd->items + 1, _menu_settings_items, (MI_COUNT - 1) * sizeof(menu_item_t));
-
-    fsensor_t fs = fs_wait_inicialized();
-    if (fs == FS_NOT_CONNECTED) {
-        fs_disable();
-        fs = FS_DISABLED;
-    }
-    psmd->items[MI_FILAMENT_SENSOR].item.data.wi_switch.index = (fs != FS_DISABLED);
-    psmd->items[MI_TIMEOUT].item.data.wi_switch.index = menu_timeout_enabled; //st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS)
 
     for (size_t i = 0; i < sizeof(e_sound_modes); i++) {
         if (e_sound_modes[i] == Sound_GetMode()) {
@@ -76,30 +67,6 @@ typedef enum {
 }
 
 
-
-
-
-        case MI_TIMEOUT:
-            if (menu_timeout_enabled == 1) {
-                menu_timeout_enabled = 0;
-                gui_timer_delete(gui_get_menu_timeout_id());
-                //st25dv64k_user_write((uint16_t)MENU_TIMEOUT_FLAG_ADDRESS, (uint8_t)0);
-            } else {
-                menu_timeout_enabled = 1;
-                //st25dv64k_user_write((uint16_t)MENU_TIMEOUT_FLAG_ADDRESS, (uint8_t)1);
-            }
-            break;
-        case MI_FILAMENT_SENSOR: {
-            fsensor_t fs = fs_get_state();
-            fs == FS_DISABLED ? fs_enable() : fs_disable();
-            fs = fs_wait_inicialized();
-            if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
-            {
-                fs_disable();
-                psmd->items[MI_FILAMENT_SENSOR].item.data.wi_switch.index = 0;
-                //todo need to invalidate that stupid item, but I cannot grrrr
-                gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
-            }
         } break;
         case MI_SOUND_MODE:
             Sound_SetMode(e_sound_modes[psmd->items[MI_SOUND_MODE].item.data.wi_switch.index]);
@@ -116,34 +83,16 @@ typedef enum {
 
 */
 
-//psmd->items[MI_TIMEOUT] = (menu_item_t) { { "Timeout", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
-//psmd->items[MI_SOUND_MODE] = (menu_item_t) { { "Sound Mode", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+//psmd->items[MI_SOUND_MODE] = (menu_item_t) { { , 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
 //psmd->items[MI_SOUND_TYPE] = (menu_item_t) { { "Sound Type", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-
-constexpr const char *str_Off = "Off";
-constexpr const char *str_On = "On";
-
-constexpr const char *str_Once = "Once";
-constexpr const char *str_Loud = "Loud";
-constexpr const char *str_Silent = "Silent";
-constexpr const char *str_Assist = "Assist";
 
 constexpr const char *str_ButtonEcho = "ButtonEcho";
 constexpr const char *str_StandardPrompt = "StandardPrompt";
 constexpr const char *str_StandardAlert = "StandardAlert";
 constexpr const char *str_EncoderMove = "EncoderMove";
 constexpr const char *str_BlindAlert = "BlindAlert";
-
-constexpr const std::array<const char *, 4> sound_options = { str_Once, str_Loud, str_Silent, str_Assist };
-constexpr const std::array<const char *, 5> sound_types = { str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_EncoderMove, str_BlindAlert };
-/*
-
-const eSOUND_MODE e_sound_modes[] = { eSOUND_MODE_ONCE, eSOUND_MODE_LOUD, eSOUND_MODE_SILENT, eSOUND_MODE_ASSIST };
-const eSOUND_TYPE e_sound_types[] = { eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert };
-
-*/
 
 #pragma pack(push, 1)
 
@@ -152,7 +101,7 @@ const eSOUND_TYPE e_sound_types[] = { eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_Standa
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = "Fil. sens.";
 
-    size_t get_index() {
+    size_t init_index() const {
         fsensor_t fs = fs_wait_inicialized();
         if (fs == FS_NOT_CONNECTED) {
             fs_disable();
@@ -163,10 +112,9 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_FILAMENT_SENSOR()
-        : WI_SWITCH_OFF_ON_t(get_index(), label, 0, true, false) {}
-    virtual void OnClick() {
-        //index did not change yet, chage fsensor
-        index == 0 ? fs_disable() : fs_enable();
+        : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
+    virtual void OnChange(size_t old_index) {
+        old_index == 0 ? fs_disable() : fs_enable();
         fsensor_t fs = fs_wait_inicialized();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
@@ -189,8 +137,7 @@ class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
 public:
     MI_TIMEOUT()
         : WI_SWITCH_OFF_ON_t(timeout_enabled ? 0 : 1, label, 0, true, false) {}
-    virtual void OnClick() {
-        //index did not change yet
+    virtual void OnChange(size_t old_index) {
         if (timeout_enabled) {
             gui_timer_delete(gui_get_menu_timeout_id());
         }
@@ -198,16 +145,35 @@ public:
     }
 };
 bool MI_TIMEOUT::timeout_enabled = true;
+
+/*****************************************************************************/
+//MI_TIMEOUT
+class MI_SOUND_MODE : public WI_SWITCH_t<4> {
+    constexpr static const char *const label = "Sound Mode";
+
+    constexpr static const char *str_Once = "Once";
+    constexpr static const char *str_Loud = "Loud";
+    constexpr static const char *str_Silent = "Silent";
+    constexpr static const char *str_Assist = "Assist";
+    size_t init_index() const {
+        size_t sound_mode = Sound_GetMode();
+        return sound_mode > 4 ? eSOUND_MODE_DEFAULT : sound_mode;
+    }
+
+public:
+    MI_SOUND_MODE()
+        : WI_SWITCH_t<4>(init_index(), label, 0, true, false, str_Once, str_Loud, str_Silent, str_Assist) {}
+    virtual void OnChange(size_t old_index) {
+        Sound_SetMode(static_cast<eSOUND_MODE>(index));
+    }
+};
+
 #pragma pack(pop)
 
 #ifdef _DEBUG
 using Screen = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
-
-    MI_LAN_SETTINGS,
-
-    MI_SAVE_DUMP,
-    //MI_SOUND_MODE,
+    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT, MI_LAN_SETTINGS,
+    MI_SAVE_DUMP, MI_SOUND_MODE,
 
     //MI_SOUND_TYPE,
     MI_HF_TEST_0, MI_HF_TEST_1,

@@ -40,7 +40,7 @@ public:
 template <size_t SZ>
 class WI_SWITCH_t : public IWindowMenuItem {
 public: //todo private
-    uint32_t index;
+    size_t index;
     const std::array<const char *, SZ> items;
 
 protected:
@@ -57,7 +57,9 @@ public:
     virtual bool Change(int dif);
     virtual void ClrIndex() { index = 0; }
     virtual void Click(Iwindow_menu_t &window_menu) final;
-    virtual void OnClick() = 0;
+
+protected:
+    virtual void OnChange(size_t old_index) = 0;
 };
 
 //most common version of WI_SWITCH with on/off options
@@ -146,8 +148,9 @@ bool WI_SWITCH_t<SZ>::Change(int) {
 
 template <size_t SZ>
 void WI_SWITCH_t<SZ>::Click(Iwindow_menu_t &window_menu) {
-    OnClick();
+    size_t old_index = index;
     Change(0);
+    OnChange(old_index);
 }
 
 template <size_t SZ>
