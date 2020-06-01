@@ -26,7 +26,7 @@ gui_defaults_t gui_defaults = {
     0,              //font_big;
     { 2, 2, 2, 2 }, //padding; padding_ui8(2,2,2,2)
     ALIGN_LEFT_TOP, //alignment;
-    { ML_MODE_NONE, LINE_WIDTH_UNLIMITED, "", "", HYPHEN_DENY },
+    { "", "", HYPHEN_DENY },
     { 0, 32, 240, 320 - 96 }, //msg box size
     6,                        // btn_spacing: 12 pixels spacing between buttons, 6 from margins
 };

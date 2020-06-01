@@ -63,8 +63,6 @@ extern "C" size_t str2multiline(char *pstr, size_t line_width = LINE_WIDTH_UNLIM
 
 typedef struct
 {
-    ml_mode_t ml_mode;
-    size_t line_width;
     const char *pcustom_set;
     const char *pwithdraw_set;
     int hyphen_distance;

@@ -9,7 +9,6 @@ void window_text_init(window_text_t *window) {
     window->text = 0;
     window->padding = gui_defaults.padding;
     window->alignment = gui_defaults.alignment;
-    window->ml_instance = gui_defaults.ml_instance;
 }
 
 void window_text_draw(window_text_t *window) {
