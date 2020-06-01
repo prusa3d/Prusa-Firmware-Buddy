@@ -36,8 +36,7 @@ void screen_menu_init(screen_t *screen, const char *label,
         &(psmd->root));
     window_disable(root);
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root,
-        rect_ui16(0, 0, 240, 31), &(psmd->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(psmd->header));
     // p_window_header_set_icon(&(psmd->header), IDR_PNG_status_icon_menu);
     p_window_header_set_text(&(psmd->header), label);
 

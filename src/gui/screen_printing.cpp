@@ -165,8 +165,7 @@ void screen_printing_init(screen_t *screen) {
         rect_ui16(0, 0, 0, 0),
         &(pw->root));
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root,
-        rect_ui16(0, 0, 240, 31), &(pw->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
@@ -229,10 +228,13 @@ void screen_printing_init(screen_t *screen) {
     window_hide(id);
     pw->message_flag = 0;
 
+    // buttons
+    const uint16_t icon_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22 - 64;
+    const uint16_t text_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22;
     for (uint8_t col = 0; col < 3; col++) {
         id = window_create_ptr(
             WINDOW_CLS_ICON, root,
-            rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
+            rect_ui16(8 + (15 + 64) * col, icon_y, 64, 64),
             &(pw->w_buttons[col]));
         window_set_color_back(id, COLOR_GRAY);
         window_set_tag(id, col + 1);
@@ -240,7 +242,7 @@ void screen_printing_init(screen_t *screen) {
 
         id = window_create_ptr(
             WINDOW_CLS_TEXT, root,
-            rect_ui16(80 * col, 196 + 48 + 8, 80, 22),
+            rect_ui16(80 * col, text_y, 80, 22),
             &(pw->w_labels[col]));
         pw->w_labels[col].font = resource_font(IDR_FNT_SMALL);
         window_set_padding(id, padding_ui8(0, 0, 0, 0));
@@ -404,7 +406,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 static void disable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[BUTTON_TUNE];
     p_button->win.f_disabled = 1;
-    p_button->win.f_enabled = 0; // cant't be focused
+    p_button->win.f_enabled = 0; // can't be focused
 
     // move to reprint when tune is focused
     if (window_is_focused(p_button->win.id)) {
