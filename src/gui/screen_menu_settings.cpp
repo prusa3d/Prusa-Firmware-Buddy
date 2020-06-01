@@ -17,82 +17,7 @@
 #include "screens.h"
 #include "dump.h"
 #include "sound_C_wrapper.h"
-/*
-extern osThreadId webServerTaskHandle;
-
-
-typedef enum {
-    MI_RETURN,
-    MI_TEMPERATURE,
-    MI_MOVE_AXIS,
-    MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS,
-#ifdef _DEBUG
-    MI_SERVICE,
-    MI_TEST,
-#endif //_DEBUG
-    MI_FW_UPDATE,
-    MI_FILAMENT_SENSOR,
-    MI_TIMEOUT,
-#ifdef BUDDY_ENABLE_ETHERNET
-    MI_LAN_SETTINGS,
-#endif //BUDDY_ENABLE_ETHERNET
-    MI_SAVE_DUMP,
-    MI_SOUND_MODE,
-#ifdef _DEBUG
-    MI_SOUND_TYPE,
-    MI_HF_TEST_0,
-    MI_HF_TEST_1,
-    MI_EE_LOAD_400,
-    MI_EE_LOAD_401,
-    MI_EE_LOAD_402,
-    MI_EE_LOAD_403RC1,
-    MI_EE_LOAD_403,
-    MI_EE_LOAD,
-    MI_EE_SAVE,
-    MI_EE_SAVEXML,
-#endif //_DEBUG
-    MI_COUNT
-} MI_t;
-
-
-
-
-    for (size_t i = 0; i < sizeof(e_sound_modes); i++) {
-        if (e_sound_modes[i] == Sound_GetMode()) {
-            psmd->items[MI_SOUND_MODE].item.data.wi_switch.index = i;
-            break;
-        }
-    }
-}
-
-
-        } break;
-        case MI_SOUND_MODE:
-            Sound_SetMode(e_sound_modes[psmd->items[MI_SOUND_MODE].item.data.wi_switch.index]);
-            break;
-#ifdef _DEBUG
-        case MI_SOUND_TYPE:
-            if (e_sound_types[psmd->items[MI_SOUND_TYPE].item.data.wi_switch.index] == eSOUND_TYPE_StandardPrompt) {
-                gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
-            } else {
-                Sound_Play(e_sound_types[psmd->items[MI_SOUND_TYPE].item.data.wi_switch.index]);
-            }
-
-
-
-*/
-
-//psmd->items[MI_SOUND_MODE] = (menu_item_t) { { , 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
-//psmd->items[MI_SOUND_TYPE] = (menu_item_t) { { "Sound Type", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
-#include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-
-constexpr const char *str_ButtonEcho = "ButtonEcho";
-constexpr const char *str_StandardPrompt = "StandardPrompt";
-constexpr const char *str_StandardAlert = "StandardAlert";
-constexpr const char *str_EncoderMove = "EncoderMove";
-constexpr const char *str_BlindAlert = "BlindAlert";
 
 #pragma pack(push, 1)
 
@@ -168,15 +93,35 @@ public:
     }
 };
 
+/*****************************************************************************/
+//MI_SOUND_TYPE
+class MI_SOUND_TYPE : public WI_SWITCH_t<5> {
+    constexpr static const char *const label = "Sound Type";
+
+    constexpr static const char *str_ButtonEcho = "ButtonEcho";
+    constexpr static const char *str_StandardPrompt = "StandardPrompt";
+    constexpr static const char *str_StandardAlert = "StandardAlert";
+    constexpr static const char *str_EncoderMove = "EncoderMove";
+    constexpr static const char *str_BlindAlert = "BlindAlert";
+
+public:
+    MI_SOUND_TYPE()
+        : WI_SWITCH_t<5>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_EncoderMove, str_BlindAlert) {}
+    virtual void OnChange(size_t old_index) {
+        if (old_index == eSOUND_TYPE_StandardPrompt) {
+            gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        } else {
+            Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+        }
+    }
+};
+
 #pragma pack(pop)
 
 #ifdef _DEBUG
 using Screen = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT, MI_LAN_SETTINGS,
-    MI_SAVE_DUMP, MI_SOUND_MODE,
-
-    //MI_SOUND_TYPE,
-    MI_HF_TEST_0, MI_HF_TEST_1,
+    MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
 #else
