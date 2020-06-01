@@ -26,6 +26,7 @@
 
 #define POPUP_MSG_DUR_MS       5000
 #define MAX_END_TIMESTAMP_SIZE (14 + 12 + 5) // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
+#define MAX_TIMEDUR_STR_SIZE   9
 
 #pragma pack(push)
 #pragma pack(1)
@@ -105,7 +106,7 @@ typedef struct
     uint32_t last_time_to_end;
     uint8_t last_sd_percent_done;
 
-    std::array<char, 9> text_time;
+    char text_time_dur[MAX_TIMEDUR_STR_SIZE];
     char text_etime[MAX_END_TIMESTAMP_SIZE];
     char label_etime[15];              // "Remaining Time" or "Print will end"
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
@@ -158,7 +159,7 @@ void screen_printing_init(screen_t *screen) {
 
     marlin_vars_t *vars = marlin_vars();
 
-    strlcpy(pw->text_time.data(), "0m", pw->text_time.size());
+    strlcpy(pw->text_time_dur, "0m", MAX_TIMEDUR_STR_SIZE);
     strlcpy(pw->text_filament.data(), "999m", pw->text_filament.size());
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
@@ -217,7 +218,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_time.data());
+    window_set_text(id, pw->text_time_dur);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
@@ -491,15 +492,15 @@ static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
     const struct tm *timeinfo = localtime(&rawtime);
     if (timeinfo->tm_yday) {
-        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+        snprintf(pw->text_time_dur, MAX_TIMEDUR_STR_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
     } else if (timeinfo->tm_hour) {
-        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+        snprintf(pw->text_time_dur, MAX_TIMEDUR_STR_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
     } else if (timeinfo->tm_min) {
-        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+        snprintf(pw->text_time_dur, MAX_TIMEDUR_STR_SIZE, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
     } else {
-        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%is", timeinfo->tm_sec);
+        snprintf(pw->text_time_dur, MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
     }
-    window_set_text(pw->w_time_value.win.id, pw->text_etime);
+    window_set_text(pw->w_time_value.win.id, pw->text_time_dur);
 }
 
 static void screen_printing_reprint(screen_t *screen) {
