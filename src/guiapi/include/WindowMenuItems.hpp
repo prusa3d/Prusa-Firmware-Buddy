@@ -165,7 +165,7 @@ void WI_SWITCH_t<SZ>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, c
     rect.w -= vrc.w;
 
     render_text_align(vrc, txt, window_menu.font,
-        color_back, IsFocused() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
+        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 
 /*****************************************************************************/
