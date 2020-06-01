@@ -51,9 +51,14 @@ void window_header_init(window_header_t *window) {
 #ifdef BUDDY_ENABLE_ETHERNET
     update_ETH_icon(window);
 #endif //BUDDY_ENABLE_ETHERNET
+
+    display->fill_rect(gui_defaults.header_sz, window->color_back); // clear the window before drawing
 }
 
 void window_header_done(window_header_t *window) {}
+
+const uint16_t header_pad = 10;
+const uint8_t icon_width = 20;
 
 void window_header_draw(window_header_t *window) {
     if (!((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))
@@ -61,55 +66,55 @@ void window_header_draw(window_header_t *window) {
         return;
     }
 
-    rect_ui16_t rc = {
-        window->win.rect.x + 10, window->win.rect.y,
+    const rect_ui16_t first_icon_rc = {
+        window->win.rect.x + header_pad, window->win.rect.y,
         window->win.rect.h, window->win.rect.h
     };
 
     if (window->id_res) { // first icon
-        render_icon_align(rc, window->id_res,
-            window->color_back, RENDER_FLG(ALIGN_CENTER, 0));
+        render_icon_align(first_icon_rc, window->id_res, window->color_back, RENDER_FLG(ALIGN_CENTER, 0));
     } else {
-        display->fill_rect(rc, window->color_back);
+        display->fill_rect(first_icon_rc, window->color_back);
     }
 
     uint16_t icons_width = 10 + 36;
-    rc = rect_ui16( // usb icon is showed always
-        window->win.rect.x + window->win.rect.w - 10 - 34, window->win.rect.y,
-        36, window->win.rect.h);
-    uint8_t ropfn = (window->icons[HEADER_ICON_USB] == HEADER_ISTATE_ACTIVE) ? 0 : ROPFN_DISABLE;
-    render_icon_align(rc, IDR_PNG_header_icon_usb,
-        window->color_back, RENDER_FLG(ALIGN_CENTER, ropfn));
+    const rect_ui16_t usb_rc = { // usb icon is showed always
+        window->win.rect.x + window->win.rect.w - header_pad - 34, window->win.rect.y,
+        36, window->win.rect.h
+    };
+    const uint8_t ropfn_usb = (window->icons[HEADER_ICON_USB] == HEADER_ISTATE_ACTIVE) ? 0 : ROPFN_DISABLE;
+    render_icon_align(usb_rc, IDR_PNG_header_icon_usb, window->color_back, RENDER_FLG(ALIGN_CENTER, ropfn_usb));
 
-    for (int i = HEADER_ICON_USB + 1; i < HEADER_ICON_COUNT; i++) {
-        if (window->icons[i] > HEADER_ISTATE_OFF) {
-            icons_width += 20;
-            rc = rect_ui16(
-                window->win.rect.x + window->win.rect.w - icons_width,
-                window->win.rect.y, 20, window->win.rect.h);
-            ropfn = (window->icons[i] == HEADER_ISTATE_ACTIVE) ? 0 : ROPFN_DISABLE;
-            uint16_t id_res = 0;
-            switch (i) {
-            case HEADER_ICON_LAN:
-                id_res = IDR_PNG_header_icon_lan;
-                break;
-            case HEADER_ICON_WIFI:
-                id_res = IDR_PNG_header_icon_wifi;
-                break;
-            }
-            render_icon_align(rc, id_res,
-                window->color_back, RENDER_FLG(ALIGN_CENTER, ropfn));
+    for (int i = HEADER_ICON_USB + 1; i < HEADER_ICON_COUNT; ++i) {
+        if (window->icons[i] >= HEADER_ISTATE_OFF)
+            continue;
+
+        icons_width += icon_width;
+        const rect_ui16_t icon_rc = rect_ui16(
+            window->win.rect.x + window->win.rect.w - icons_width,
+            window->win.rect.y, icon_width, window->win.rect.h);
+        const uint8_t ropfn = (window->icons[i] == HEADER_ISTATE_ACTIVE) ? 0 : ROPFN_DISABLE;
+        uint16_t id_res = 0;
+        switch (i) {
+        case HEADER_ICON_LAN:
+            id_res = IDR_PNG_header_icon_lan;
+            break;
+        case HEADER_ICON_WIFI:
+            id_res = IDR_PNG_header_icon_wifi;
+            break;
         }
+        render_icon_align(icon_rc, id_res, window->color_back, RENDER_FLG(ALIGN_CENTER, ropfn));
     }
 
-    rc = window->win.rect;
-    rc.x += 10 + window->win.rect.h;
-    rc.w -= (icons_width + 10 + window->win.rect.h);
+    if (window->label) { // show label if exists
+        const rect_ui16_t label_rc = rect_ui16(
+            window->win.rect.x + header_pad + window->win.rect.h,
+            window->win.rect.y,
+            window->win.rect.w - header_pad - icons_width - window->win.rect.h,
+            window->win.rect.h);
 
-    if (window->label) { // label
-        render_text_align(rc, window->label, window->font,
-            window->color_back, window->color_text,
-            window->padding, window->alignment);
+        render_text_align(label_rc, window->label, window->font,
+            window->color_back, window->color_text, window->padding, window->alignment);
     }
 }
 
