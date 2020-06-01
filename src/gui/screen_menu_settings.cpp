@@ -12,6 +12,7 @@
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "screen_lan_settings.h"
     #include "menu_vars.h"
+    #include "wui_api.h"
 #endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
@@ -240,6 +241,12 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
         case MI_TIMEZONE: {
             int8_t time_zone = (int8_t)(psmd->items[MI_TIMEZONE].item.wi_spin.value / 1000);
             eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(time_zone));
+            struct tm now;
+            uint32_t seconds = 0;
+            if ((seconds = sntp_get_system_time(&now))) {
+                seconds += (time_zone * 3600);
+                sntp_set_system_time(seconds);
+            }
             break;
         }
         }
