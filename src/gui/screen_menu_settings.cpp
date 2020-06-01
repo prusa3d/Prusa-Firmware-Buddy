@@ -44,11 +44,11 @@ public:
 protected:
     virtual void OnChange(size_t old_index) {
         old_index == 0 ? fs_disable() : fs_enable();
-        fsensor_t fs = fs_get_state();
+        fsensor_t fs = fs_wait_inicialized();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
-            ClrIndex(); //set index 0
+            index = old_index;
             gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
         }
     }
