@@ -28,28 +28,18 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
 
     size_t init_index() const {
         fsensor_t fs = fs_wait_inicialized();
-        return (fs == FS_DISABLED || fs == FS_NOT_CONNECTED) ? 1 : 0;
+        if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
+        {
+            fs_disable();
+            gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
+            fs = FS_DISABLED;
+        }
+        return fs == FS_DISABLED ? 1 : 0;
     }
 
 public:
     MI_FILAMENT_SENSOR()
-        : WI_SWITCH_OFF_ON_t(init_index(), label, 0, fs_get_state() != FS_DISABLED, false) {}
-    void LoopEvent() {
-        fsensor_t fs = fs_get_state();
-        if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
-        {
-            fs_disable();
-            ClrIndex(); //set index 0
-            Disable();
-            gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
-        } else {
-            if (!IsEnabled()) {
-                fs_enable();
-                ClrIndex(); //set index 0
-                Enable();
-            }
-        }
-    }
+        : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
 
 protected:
     virtual void OnChange(size_t old_index) {
@@ -60,7 +50,6 @@ protected:
             fs_disable();
             ClrIndex(); //set index 0
             gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
-            Disable();
         }
     }
 };
@@ -158,9 +147,6 @@ public:
     constexpr static const char *label = "Settings";
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
-
-private:
-    void SendLoopEventToFs();
 };
 #pragma pack(pop)
 
@@ -173,16 +159,10 @@ void ScreenMenuSettings::Init(screen_t *screen) {
 int ScreenMenuSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
     ScreenMenuSettings *const ths = reinterpret_cast<ScreenMenuSettings *>(screen->pdata);
     if (event == WINDOW_EVENT_LOOP) {
-        ths->SendLoopEventToFs();
+        //todo handle if FS disconnects
     }
 
     return ths->Event(window, event, param);
-}
-
-/*****************************************************************************/
-//nonstatic meber method definition
-void ScreenMenuSettings::SendLoopEventToFs() {
-    reinterpret_cast<MI_FILAMENT_SENSOR *>(this->menu.GetItem(uint8_t(FsensorPos)))->LoopEvent();
 }
 
 screen_t screen_menu_settings = {
