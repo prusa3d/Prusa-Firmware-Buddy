@@ -28,25 +28,39 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
 
     size_t init_index() const {
         fsensor_t fs = fs_wait_inicialized();
-        /*if (fs == FS_NOT_CONNECTED) {
-            fs_disable();
-            fs = FS_DISABLED;
-        }*/
         return (fs == FS_DISABLED || fs == FS_NOT_CONNECTED) ? 1 : 0;
     }
 
 public:
     MI_FILAMENT_SENSOR()
         : WI_SWITCH_OFF_ON_t(init_index(), label, 0, fs_get_state() != FS_DISABLED, false) {}
-    virtual void OnChange(size_t old_index) {
-        old_index == 0 ? fs_disable() : fs_enable();
-        fsensor_t fs = fs_wait_inicialized();
+    void LoopEvent() {
+        fsensor_t fs = fs_get_state();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
             ClrIndex(); //set index 0
-            //todo need to invalidate
+            Disable();
             gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
+        } else {
+            if (!IsEnabled()) {
+                fs_enable();
+                ClrIndex(); //set index 0
+                Enable();
+            }
+        }
+    }
+
+protected:
+    virtual void OnChange(size_t old_index) {
+        old_index == 0 ? fs_disable() : fs_enable();
+        fsensor_t fs = fs_get_state();
+        if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
+        {
+            fs_disable();
+            ClrIndex(); //set index 0
+            gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
+            Disable();
         }
     }
 };
@@ -119,27 +133,66 @@ public:
 #pragma pack(pop)
 
 #ifdef _DEBUG
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT, MI_LAN_SETTINGS,
+enum { FsensorPos = 8 };
+using parent = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
+    #ifdef BUDDY_ENABLE_ETHERNET
+    MI_LAN_SETTINGS,
+    #endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
 #else
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
+enum { FsensorPos = 6 };
+using parent = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+    MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
+    #ifdef BUDDY_ENABLE_ETHERNET
+    MI_LAN_SETTINGS,
+    #endif //BUDDY_ENABLE_ETHERNET
+    MI_SAVE_DUMP, MI_SOUND_MODE>;
 #endif
-static void init(screen_t *screen) {
+
+#pragma pack(push, 1)
+class ScreenMenuSettings : public parent {
+public:
     constexpr static const char *label = "Settings";
-    Screen::Create(screen, label);
+    static void Init(screen_t *screen);
+    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+
+private:
+    void SendLoopEventToFs();
+};
+#pragma pack(pop)
+
+/*****************************************************************************/
+//static member method definition
+void ScreenMenuSettings::Init(screen_t *screen) {
+    Create(screen, label);
+}
+
+int ScreenMenuSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    ScreenMenuSettings *const ths = reinterpret_cast<ScreenMenuSettings *>(screen->pdata);
+    if (event == WINDOW_EVENT_LOOP) {
+        ths->SendLoopEventToFs();
+    }
+
+    return ths->Event(window, event, param);
+}
+
+/*****************************************************************************/
+//nonstatic meber method definition
+void ScreenMenuSettings::SendLoopEventToFs() {
+    reinterpret_cast<MI_FILAMENT_SENSOR *>(this->menu.GetItem(uint8_t(FsensorPos)))->LoopEvent();
 }
 
 screen_t screen_menu_settings = {
     0,
     0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    0,              //pdata
+    ScreenMenuSettings::Init,
+    ScreenMenuSettings::CDone,
+    ScreenMenuSettings::CDraw,
+    ScreenMenuSettings::CEvent,
+    sizeof(ScreenMenuSettings), //data_size
+    0,                          //pdata
 };
 extern "C" screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }
