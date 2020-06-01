@@ -28,16 +28,16 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
 
     size_t init_index() const {
         fsensor_t fs = fs_wait_inicialized();
-        if (fs == FS_NOT_CONNECTED) {
+        /*if (fs == FS_NOT_CONNECTED) {
             fs_disable();
             fs = FS_DISABLED;
-        }
-        return fs == FS_DISABLED ? 1 : 0;
+        }*/
+        return (fs == FS_DISABLED || fs == FS_NOT_CONNECTED) ? 1 : 0;
     }
 
 public:
     MI_FILAMENT_SENSOR()
-        : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(init_index(), label, 0, fs_get_state() != FS_DISABLED, false) {}
     virtual void OnChange(size_t old_index) {
         old_index == 0 ? fs_disable() : fs_enable();
         fsensor_t fs = fs_wait_inicialized();
