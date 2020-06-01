@@ -137,7 +137,7 @@ static void screen_printing_reprint(screen_t *screen);
 static void change_print_state(screen_t *screen);
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed);
 static void update_remaining_time(screen_t *screen, time_t rawtime);
-static void update_end_timestamp(screen_t *screen, struct tm *now);
+static void update_end_timestamp(screen_t *screen, time_t now_sec);
 static void update_print_duration(screen_t *screen, time_t print_duration);
 
 screen_t screen_printing = {
@@ -333,10 +333,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         update_print_duration(screen, marlin_vars()->print_duration);
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
         struct tm now;
-        if (sntp_get_system_time(&now)) {
+        time_t sec = (time_t)sntp_get_system_time(&now);
+        if (sec != 0) {
             strlcpy(pw->label_etime, "Print will end", 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime);
-            update_end_timestamp(screen, &now);
+            update_end_timestamp(screen, sec);
         } else {
             strlcpy(pw->label_etime, "Remaining Time", 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime);
@@ -446,7 +447,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
     window_set_text(pw->w_etime_value.win.id, pw->text_etime);
 }
 
-static void update_end_timestamp(screen_t *screen, struct tm *now) {
+static void update_end_timestamp(screen_t *screen, time_t now_sec) {
 
     bool time_invalid = false;
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
@@ -457,17 +458,18 @@ static void update_end_timestamp(screen_t *screen, struct tm *now) {
     }
 
     static const uint32_t full_day_in_seconds = 86400;
-    time_t print_end_sec, tommorow_sec, now_sec = mktime(now);
+    time_t print_end_sec, tommorow_sec;
 
-    print_end_sec = now_sec + (marlin_vars()->time_to_end / 1000);
+    print_end_sec = now_sec + marlin_vars()->time_to_end;
     tommorow_sec = now_sec + full_day_in_seconds;
 
-    struct tm tommorow, print_end;
+    struct tm tommorow, print_end, now;
+    localtime_r(&now_sec, &now);
     localtime_r(&tommorow_sec, &tommorow);
     localtime_r(&print_end_sec, &print_end);
 
-    if (now->tm_mday == print_end.tm_mday && // if print end is today
-        now->tm_mon == print_end.tm_mon && now->tm_year == print_end.tm_year) {
+    if (now.tm_mday == print_end.tm_mday && // if print end is today
+        now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
         strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end);
     } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
         tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
@@ -487,18 +489,17 @@ static void update_end_timestamp(screen_t *screen, struct tm *now) {
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
-    auto &array = pw->text_time;
     const struct tm *timeinfo = localtime(&rawtime);
     if (timeinfo->tm_yday) {
-        snprintf(array.data(), array.size(), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
     } else if (timeinfo->tm_hour) {
-        snprintf(array.data(), array.size(), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
     } else if (timeinfo->tm_min) {
-        snprintf(array.data(), array.size(), "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
     } else {
-        snprintf(array.data(), array.size(), "%is", timeinfo->tm_sec);
+        snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%is", timeinfo->tm_sec);
     }
-    window_set_text(pw->w_time_value.win.id, array.data());
+    window_set_text(pw->w_time_value.win.id, pw->text_etime);
 }
 
 static void screen_printing_reprint(screen_t *screen) {

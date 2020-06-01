@@ -256,7 +256,7 @@ uint32_t sntp_get_system_time(struct tm *system_time) {
     }
 }
 
-void sntp_set_system_time(uint32_t sec) {
+void sntp_set_system_time(uint32_t sec, int8_t last_timezone) {
     ETH_config_t config;
     config.var_mask = ETHVAR_MSK(ETHVAR_TIMEZONE);
     load_eth_params(&config);
@@ -265,7 +265,17 @@ void sntp_set_system_time(uint32_t sec) {
     RTC_DateTypeDef currDate;
 
     struct tm current_time_val;
-    time_t current_time = (time_t)sec + (config.timezone * 3600);
+    int8_t diff = 0;
+    if (last_timezone < config.timezone) {
+        while (last_timezone + diff != config.timezone) {
+            diff++;
+        }
+    } else if (last_timezone > config.timezone) {
+        while (last_timezone + diff != config.timezone) {
+            diff--;
+        }
+    }
+    time_t current_time = (time_t)sec + (diff * 3600);
 
     localtime_r(&current_time, &current_time_val);
 

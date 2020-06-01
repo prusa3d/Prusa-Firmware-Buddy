@@ -197,12 +197,14 @@ uint8_t dhcp_addrs_are_supplied(void);
 ***********************************************************************************************************************/
 uint32_t sntp_get_system_time(struct tm *system_time);
 
-/*!****************************************************************************
+/*!**********************************************************************************************************
 * \brief Sets time and date in device's RTC on some other time storage
 *
 * \param [in] sec - number of seconds from 1.1.1900
-******************************************************************************/
-void sntp_set_system_time(uint32_t sec);
+*
+* \param [in] last_timezone - to calculate difference between timezones we need to pass last saved timezone
+************************************************************************************************************/
+void sntp_set_system_time(uint32_t sec, int8_t last_timezone);
 
 /*!********************************************************************************
 * \brief Adds time in seconds to given timestamp
