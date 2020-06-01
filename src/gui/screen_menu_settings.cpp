@@ -75,7 +75,7 @@ public:
 bool MI_TIMEOUT::timeout_enabled = true;
 
 /*****************************************************************************/
-//MI_TIMEOUT
+//MI_SOUND_MODE
 class MI_SOUND_MODE : public WI_SWITCH_t<4> {
     constexpr static const char *const label = "Sound Mode";
 
