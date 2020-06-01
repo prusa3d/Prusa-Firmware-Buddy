@@ -214,7 +214,7 @@ void GcodeSuite::G28(const bool always_home_all) {
     }
   #endif
 
-  #ifdef PRUSA_MINI
+  #ifdef PRINTER_PRUSA_MINI
     // -- X & Y coords default position
     current_position.set(X_HOME_POS, Y_HOME_POS);
     constexpr const int X_home = X_HOME_DIR > 0 ? X_MAX_POS : X_MIN_POS;
