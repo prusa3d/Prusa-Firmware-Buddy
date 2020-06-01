@@ -27,6 +27,7 @@ private:
 
 protected:
     virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void click(Iwindow_menu_t &window_menu) = 0;
 
 public:
     IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
@@ -51,7 +52,7 @@ public:
     virtual bool Change(int dif) = 0;
     bool Incement(uint8_t dif) { return Change(dif); }
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
-    virtual void Click(Iwindow_menu_t &window_menu);
+    void Click(Iwindow_menu_t &window_menu);
 
     virtual ~IWindowMenuItem() {}
 };

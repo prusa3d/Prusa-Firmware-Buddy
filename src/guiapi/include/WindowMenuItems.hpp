@@ -27,11 +27,11 @@ public: //todo private
 
 protected:
     virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void click(Iwindow_menu_t &window_menu) final;
 
 public:
     WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
-    virtual void Click(Iwindow_menu_t &window_menu) final;
     virtual void OnClick() = 0;
 };
 
@@ -45,6 +45,7 @@ public: //todo private
 
 protected:
     virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void click(Iwindow_menu_t &window_menu) final;
 
 public:
     //cannot create const std::array<const char *, SZ> with std::initializer_list<const char*>
@@ -56,7 +57,6 @@ public:
         , items { { std::forward<E>(e)... } } {}
     virtual bool Change(int dif);
     virtual void ClrIndex() { index = 0; }
-    virtual void Click(Iwindow_menu_t &window_menu) final;
 
 protected:
     virtual void OnChange(size_t old_index) = 0;
@@ -109,7 +109,7 @@ bool WI_SPIN_t<T>::Change(int dif) {
 }
 
 template <class T>
-void WI_SPIN_t<T>::Click(Iwindow_menu_t &window_menu) {
+void WI_SPIN_t<T>::click(Iwindow_menu_t &window_menu) {
     if (selected) {
         OnClick();
     }
@@ -147,7 +147,7 @@ bool WI_SWITCH_t<SZ>::Change(int) {
 }
 
 template <size_t SZ>
-void WI_SWITCH_t<SZ>::Click(Iwindow_menu_t &window_menu) {
+void WI_SWITCH_t<SZ>::click(Iwindow_menu_t &window_menu) {
     size_t old_index = index;
     Change(0);
     OnChange(old_index);
@@ -175,7 +175,9 @@ class MI_RETURN : public WI_LABEL_t {
 
 public:
     MI_RETURN();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_FILAMENT : public WI_LABEL_t {
@@ -190,7 +192,9 @@ class MI_LAN_SETTINGS : public WI_LABEL_t {
 
 public:
     MI_LAN_SETTINGS();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_VERSION_INFO : public WI_LABEL_t {
@@ -198,7 +202,9 @@ class MI_VERSION_INFO : public WI_LABEL_t {
 
 public:
     MI_VERSION_INFO();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_SYS_INFO : public WI_LABEL_t {
@@ -206,7 +212,9 @@ class MI_SYS_INFO : public WI_LABEL_t {
 
 public:
     MI_SYS_INFO();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_STATISTIC_disabled : public WI_LABEL_t {
@@ -214,7 +222,9 @@ class MI_STATISTIC_disabled : public WI_LABEL_t {
 
 public:
     MI_STATISTIC_disabled();
-    virtual void Click(Iwindow_menu_t &window_menu) {}
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu) {}
 };
 
 class MI_FAIL_STAT_disabled : public WI_LABEL_t {
@@ -222,7 +232,9 @@ class MI_FAIL_STAT_disabled : public WI_LABEL_t {
 
 public:
     MI_FAIL_STAT_disabled();
-    virtual void Click(Iwindow_menu_t &window_menu) {}
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu) {}
 };
 
 class MI_SUPPORT_disabled : public WI_LABEL_t {
@@ -230,7 +242,9 @@ class MI_SUPPORT_disabled : public WI_LABEL_t {
 
 public:
     MI_SUPPORT_disabled();
-    virtual void Click(Iwindow_menu_t &window_menu) {}
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu) {}
 };
 
 class MI_QR_test : public WI_LABEL_t {
@@ -238,7 +252,9 @@ class MI_QR_test : public WI_LABEL_t {
 
 public:
     MI_QR_test();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_QR_info : public WI_LABEL_t {
@@ -246,7 +262,9 @@ class MI_QR_info : public WI_LABEL_t {
 
 public:
     MI_QR_info();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_WIZARD : public WI_LABEL_t {
@@ -254,7 +272,9 @@ class MI_WIZARD : public WI_LABEL_t {
 
 public:
     MI_WIZARD();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_AUTO_HOME : public WI_LABEL_t {
@@ -262,7 +282,9 @@ class MI_AUTO_HOME : public WI_LABEL_t {
 
 public:
     MI_AUTO_HOME();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_MESH_BED : public WI_LABEL_t {
@@ -270,7 +292,9 @@ class MI_MESH_BED : public WI_LABEL_t {
 
 public:
     MI_MESH_BED();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_SELFTEST : public WI_LABEL_t {
@@ -278,7 +302,9 @@ class MI_SELFTEST : public WI_LABEL_t {
 
 public:
     MI_SELFTEST();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_CALIB_FIRST : public WI_LABEL_t {
@@ -286,7 +312,9 @@ class MI_CALIB_FIRST : public WI_LABEL_t {
 
 public:
     MI_CALIB_FIRST();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_TEMPERATURE : public WI_LABEL_t {
@@ -294,7 +322,9 @@ class MI_TEMPERATURE : public WI_LABEL_t {
 
 public:
     MI_TEMPERATURE();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_MOVE_AXIS : public WI_LABEL_t {
@@ -302,7 +332,9 @@ class MI_MOVE_AXIS : public WI_LABEL_t {
 
 public:
     MI_MOVE_AXIS();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_DISABLE_STEP : public WI_LABEL_t {
@@ -310,7 +342,9 @@ class MI_DISABLE_STEP : public WI_LABEL_t {
 
 public:
     MI_DISABLE_STEP();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_FACTORY_DEFAULTS : public WI_LABEL_t {
@@ -318,7 +352,9 @@ class MI_FACTORY_DEFAULTS : public WI_LABEL_t {
 
 public:
     MI_FACTORY_DEFAULTS();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_SERVICE : public WI_LABEL_t {
@@ -326,7 +362,9 @@ class MI_SERVICE : public WI_LABEL_t {
 
 public:
     MI_SERVICE();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_TEST : public WI_LABEL_t {
@@ -334,7 +372,9 @@ class MI_TEST : public WI_LABEL_t {
 
 public:
     MI_TEST();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_FW_UPDATE : public WI_LABEL_t {
@@ -342,7 +382,9 @@ class MI_FW_UPDATE : public WI_LABEL_t {
 
 public:
     MI_FW_UPDATE();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_SAVE_DUMP : public WI_LABEL_t {
@@ -350,7 +392,9 @@ class MI_SAVE_DUMP : public WI_LABEL_t {
 
 public:
     MI_SAVE_DUMP();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_HF_TEST_0 : public WI_LABEL_t {
@@ -358,7 +402,9 @@ class MI_HF_TEST_0 : public WI_LABEL_t {
 
 public:
     MI_HF_TEST_0();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_HF_TEST_1 : public WI_LABEL_t {
@@ -366,7 +412,9 @@ class MI_HF_TEST_1 : public WI_LABEL_t {
 
 public:
     MI_HF_TEST_1();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_EE_LOAD_400 : public WI_LABEL_t {
@@ -374,7 +422,9 @@ class MI_EE_LOAD_400 : public WI_LABEL_t {
 
 public:
     MI_EE_LOAD_400();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_EE_LOAD_401 : public WI_LABEL_t {
@@ -382,7 +432,9 @@ class MI_EE_LOAD_401 : public WI_LABEL_t {
 
 public:
     MI_EE_LOAD_401();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_EE_LOAD_402 : public WI_LABEL_t {
@@ -390,7 +442,9 @@ class MI_EE_LOAD_402 : public WI_LABEL_t {
 
 public:
     MI_EE_LOAD_402();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_EE_LOAD_403RC1 : public WI_LABEL_t {
@@ -398,7 +452,9 @@ class MI_EE_LOAD_403RC1 : public WI_LABEL_t {
 
 public:
     MI_EE_LOAD_403RC1();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_EE_LOAD_403 : public WI_LABEL_t {
@@ -406,7 +462,9 @@ class MI_EE_LOAD_403 : public WI_LABEL_t {
 
 public:
     MI_EE_LOAD_403();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_EE_LOAD : public WI_LABEL_t {
@@ -414,7 +472,9 @@ class MI_EE_LOAD : public WI_LABEL_t {
 
 public:
     MI_EE_LOAD();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_EE_SAVE : public WI_LABEL_t {
@@ -422,7 +482,9 @@ class MI_EE_SAVE : public WI_LABEL_t {
 
 public:
     MI_EE_SAVE();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 class MI_EE_SAVEXML : public WI_LABEL_t {
@@ -430,7 +492,9 @@ class MI_EE_SAVEXML : public WI_LABEL_t {
 
 public:
     MI_EE_SAVEXML();
-    virtual void Click(Iwindow_menu_t &window_menu);
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
 };
 
 #pragma pack(pop)

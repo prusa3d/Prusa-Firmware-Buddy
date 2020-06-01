@@ -15,13 +15,16 @@
 /*****************************************************************************/
 //parent
 class MI_event_dispatcher : public WI_LABEL_t {
-public:
-    MI_event_dispatcher(const char *label)
-        : WI_LABEL_t(label, 0, true, false) {}
-    virtual void Click(Iwindow_menu_t &window_menu) {
+protected:
+    virtual void click(Iwindow_menu_t &window_menu) {
         //no way to change header on this level, have to dispatch event
         screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)this);
     }
+
+public:
+    MI_event_dispatcher(const char *label)
+        : WI_LABEL_t(label, 0, true, false) {}
+
     virtual const char *GetHeaderAlterLable() = 0;
     virtual void Do() = 0;
 };
