@@ -5,6 +5,8 @@
  *      Author: mcbig
  */
 
+#include "math.h"
+
 #include "config.h"
 #include "status_footer.h"
 #include "filament.h"
@@ -120,7 +122,15 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->last_timer_repaint_values = 0;
     footer->last_timer_repaint_z_pos = 0;
     footer->last_timer_repaint_colors = 0;
-    footer->z_pos = -1; //force redraw after init
+
+    // set to default to force redraw after init
+    footer->nozzle = -273;
+    footer->nozzle_target_display = -273;
+    footer->heatbed = -273;
+    footer->heatbed_target = -273;
+    footer->z_pos = -999;
+    footer->print_speed = 0;
+    footer->filament[0] = '\0';
 
     //read and draw real values
     status_footer_update_temperatures(footer);
@@ -203,7 +213,7 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     footer->nozzle_target = vars->target_nozzle;
     footer->nozzle_target_display = vars->display_nozzle;
 
-    if (0 < snprintf(footer->text_nozzle, TEXT_LENGTH_NOZZLE, "%d/%d\177C", (int)vars->temp_nozzle, (int)vars->display_nozzle))
+    if (0 < snprintf(footer->text_nozzle, TEXT_LENGTH_NOZZLE, "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle)))
         window_set_text(footer->wt_nozzle.win.id, footer->text_nozzle);
 }
 
@@ -223,7 +233,7 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
     footer->heatbed = vars->temp_bed;
     footer->heatbed_target = vars->target_bed;
 
-    if (0 < snprintf(footer->text_heatbed, TEXT_LENGTH_HEATBED, "%d/%d\177C", (int)vars->temp_bed, (int)vars->target_bed))
+    if (0 < snprintf(footer->text_heatbed, TEXT_LENGTH_HEATBED, "%d/%d\177C", (int)roundf(vars->temp_bed), (int)roundf(vars->target_bed)))
         window_set_text(footer->wt_heatbed.win.id, footer->text_heatbed);
 }
 
@@ -248,8 +258,10 @@ void status_footer_update_temperatures(status_footer_t *footer) {
 
 void status_footer_update_feedrate(status_footer_t *footer) {
     const marlin_vars_t *vars = marlin_vars();
-    if (!vars)
+    if (!vars) {
+        snprintf(footer->text_prnspeed, sizeof(footer->text_prnspeed) / sizeof(footer->text_prnspeed[0]), "ERR");
         return;
+    }
 
     const uint16_t speed = vars->print_speed;
     if (speed == footer->print_speed)
@@ -273,7 +285,8 @@ void status_footer_update_z_axis(status_footer_t *footer) {
         return;
 
     footer->z_pos = pos;
-    snprintf(footer->text_z_axis, sizeof(footer->text_z_axis) / sizeof(footer->text_z_axis[0]), "%.2f", (double)pos);
+    const int show = (int)round(pos * 100); // convert to 000.00 fix point number;
+    snprintf(footer->text_z_axis, sizeof(footer->text_z_axis) / sizeof(footer->text_z_axis[0]), "%d.%02d", show / 100, show % 100);
     window_set_text(footer->wt_z_axis.win.id, footer->text_z_axis);
 }
 

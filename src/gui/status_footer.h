@@ -28,11 +28,11 @@ typedef enum heat_state_e {
 
 typedef struct
 {
-    float nozzle;                /// temperature of nozzle shown on display
-    float nozzle_target;         /// target temperature of nozzle shown on display
+    float nozzle;                /// actual temperature of nozzle
+    float nozzle_target;         /// target temperature of nozzle (not shown)
     float nozzle_target_display; /// target temperature of nozzle shown on display
-    float heatbed;               /// temperature of bed shown on display
-    float heatbed_target;        /// temperature of bed shown on display
+    float heatbed;               /// actual temperature of bed
+    float heatbed_target;        /// target temperature of bed
     float z_pos;                 /// z position
     uint16_t print_speed;        /// print speed in percents
 
@@ -69,7 +69,7 @@ typedef struct
 
 #pragma pack(pop)
 
-#define REPAINT_Z_POS_PERIOD 512  /// time span between z position repaint [miliseconds]
+#define REPAINT_Z_POS_PERIOD 256  /// time span between z position repaint [miliseconds]
 #define REPAINT_VALUE_PERIOD 1024 /// time span between value repaint [miliseconds]
 #define BLINK_PERIOD         512  /// time span between color changes [miliseconds]
 
