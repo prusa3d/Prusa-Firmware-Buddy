@@ -215,14 +215,10 @@ void GcodeSuite::G28(const bool always_home_all) {
   #endif
 
   #ifdef PRUSA_MINI
-    current_position.set(X_HOME_POS, Y_HOME_POS);
     // -- X & Y coords default position
+    current_position.set(X_HOME_POS, Y_HOME_POS);
     constexpr const int X_home = X_HOME_DIR > 0 ? X_MAX_POS : X_MIN_POS;
     constexpr const int Y_home = Y_HOME_DIR > 0 ? Y_MAX_POS : Y_MIN_POS;
-
-    // -- clear position shift
-    // position_shift[X_AXIS] = 0;
-    // position_shift[Y_AXIS] = 0;
 
     float d;
     d = (LOGICAL_TO_NATIVE(X_home, X_AXIS) - current_position[X_AXIS]);
