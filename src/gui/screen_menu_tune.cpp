@@ -7,6 +7,8 @@
 #include "menu_vars.h"
 #include "screens.h"
 #include "eeprom.h"
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
 /*
 enum {
     MI_RETURN,
@@ -26,35 +28,8 @@ enum {
     MI_COUNT
 };
 
-//"C inheritance" of screen_menu_data_t with data items
-#pragma pack(push)
-#pragma pack(1)
 
-typedef struct
-{
-    screen_menu_data_t base;
-    menu_item_t items[MI_COUNT];
 
-} this_screen_data_t;
-
-#pragma pack(pop)
-
-WI_RETURN_t ret;
-
-using this_screen_data_t = screen_menu_data_t<
-    true,
-    false,
-    false,
-    MI_RETURN,
-    WI_SPIN_t,
-    WI_SPIN_t,
-    WI_SPIN_t,
-    WI_SPIN_t,
-    WI_SPIN_t,
-    WI_SPIN_FL_t,
-    WI_LABEL_t,
-    WI_LABEL_t,
-    WI_LABEL_t>;
 
 void screen_menu_tune_timer(screen_t *screen, uint32_t mseconds);
 void screen_menu_tune_chanege_filament(screen_t *screen);
@@ -174,36 +149,47 @@ void screen_menu_tune_timer(screen_t *screen, uint32_t mseconds) {
     }
 }
 
-screen_t screen_menu_tune = {
-    0,
-    0,
-    screen_menu_tune_init,
-    screen_menu_done,
-    screen_menu_draw,
-    screen_menu_tune_event,
-    sizeof(this_screen_data_t), //data_size
-    0,                          //pdata
-};
 */
 
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
+#pragma pack(push, 1)
 
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
+/*****************************************************************************/
+//parent alias
+using parent = screen_menu_data_t<false, true, false, MI_RETURN>;
 
-static void init(screen_t *screen) {
-    Screen::Create(screen);
+class ScreenMenuTune : public parent {
+public:
+    constexpr static const char *label = "TUNE";
+    static void Init(screen_t *screen);
+    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+};
+#pragma pack(pop)
+
+/*****************************************************************************/
+//static member method definition
+void ScreenMenuTune::Init(screen_t *screen) {
+    marlin_update_vars(
+        MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED));
+    Create(screen, label);
+}
+
+int ScreenMenuTune::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    ScreenMenuTune *const ths = reinterpret_cast<ScreenMenuTune *>(screen->pdata);
+    if (event == WINDOW_EVENT_CLICK) {
+    }
+
+    return ths->Event(window, event, param);
 }
 
 screen_t screen_menu_tune = {
     0,
     0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    0,              //pdata
+    ScreenMenuTune::Init,
+    ScreenMenuTune::CDone,
+    ScreenMenuTune::CDraw,
+    ScreenMenuTune::CEvent,
+    sizeof(ScreenMenuTune), //data_size
+    0,                      //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_tune() { return &screen_menu_tune; }

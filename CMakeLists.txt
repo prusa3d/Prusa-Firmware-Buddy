@@ -595,6 +595,9 @@ if(GUI)
             src/guiapi/src/window.c
             src/guiapi/src/IWindowMenuItem.cpp
             src/guiapi/src/WindowMenuItems.cpp
+            src/guiapi/src/MItem_menus.cpp
+            src/guiapi/src/MItem_print.cpp
+            src/guiapi/src/MItem_tools.cpp
     )
 endif()
 

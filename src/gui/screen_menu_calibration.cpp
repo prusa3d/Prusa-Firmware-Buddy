@@ -10,6 +10,7 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include "MItem_tools.hpp"
 #include "marlin_vars.h"
 
 class MI_Z_OFFSET : public WI_SPIN_t<float> {

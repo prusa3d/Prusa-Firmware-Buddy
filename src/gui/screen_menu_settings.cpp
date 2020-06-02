@@ -18,6 +18,8 @@
 #include "dump.h"
 #include "sound_C_wrapper.h"
 #include "WindowMenuItems.hpp"
+#include "MItem_menus.hpp"
+#include "MItem_tools.hpp"
 
 #pragma pack(push, 1)
 
