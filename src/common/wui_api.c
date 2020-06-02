@@ -261,16 +261,7 @@ void sntp_set_system_time(uint32_t sec, int8_t last_timezone) {
     RTC_DateTypeDef currDate;
 
     struct tm current_time_val;
-    int8_t diff = 0;
-    if (last_timezone < config.timezone) {
-        while (last_timezone + diff != config.timezone) {
-            diff++;
-        }
-    } else if (last_timezone > config.timezone) {
-        while (last_timezone + diff != config.timezone) {
-            diff--;
-        }
-    }
+    int8_t diff = config.timezone - last_timezone;
     time_t current_time = (time_t)sec + (diff * 3600);
 
     localtime_r(&current_time, &current_time_val);

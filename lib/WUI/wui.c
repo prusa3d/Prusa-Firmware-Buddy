@@ -32,7 +32,8 @@ osMutexDef(wui_thread_mutex);   // Mutex object for exchanging WUI thread TCP th
 osMutexId(wui_thread_mutex_id); // Mutex ID
 
 static marlin_vars_t *wui_marlin_vars;
-wui_vars_t wui_vars; // global vriable for data relevant to WUI
+wui_vars_t wui_vars;                              // global vriable for data relevant to WUI
+static char wui_media_LFN[FILE_NAME_MAX_LEN + 1]; // static buffer for gcode file name
 
 static void update_wui_vars(void) {
     osMutexWait(wui_thread_mutex_id, osWaitForever);
@@ -100,6 +101,9 @@ void StartWebServerTask(void const *argument) {
     // force update variables when starts
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF - MARLIN_EVT_MSK_FSM);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
+    if (wui_marlin_vars) {
+        wui_marlin_vars->media_LFN = wui_media_LFN;
+    }
     // get settings from ini file
     ETH_config_t config;
     load_ini_params(&config);
