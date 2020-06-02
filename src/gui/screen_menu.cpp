@@ -27,7 +27,7 @@ void screen_menu_init(screen_t *screen, const char *label,
         menu_rect.h -= 115;
     }
     if (footer) {
-        menu_rect.h -= 41;
+        menu_rect.h -= 41; //FIXME footer is taller, see guidefaults
     }
 
     int16_t id;

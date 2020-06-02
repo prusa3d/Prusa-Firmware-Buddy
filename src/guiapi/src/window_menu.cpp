@@ -45,6 +45,8 @@ void window_menu_init(window_menu_t *window) {
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;
     gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+
+    display->draw_rect(window->win.rect, window->color_back);
 }
 
 void window_menu_done(window_menu_t *window) {
