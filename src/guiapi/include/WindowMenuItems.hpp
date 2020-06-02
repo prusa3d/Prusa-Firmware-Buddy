@@ -33,6 +33,7 @@ public:
     WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
     virtual void OnClick() {}
+    void ClrVal() { value = static_cast<T>(0); }
 };
 
 //WI_SPIN_I08_t
