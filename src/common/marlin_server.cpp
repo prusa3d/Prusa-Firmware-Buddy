@@ -480,7 +480,9 @@ static void _server_print_loop(void) {
         print_job_timer.pause();
         marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
         marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       //save fan speed
-        thermalManager.set_fan_speed(0, 0);                                  //disable print fan
+#if FAN_COUNT > 0
+        thermalManager.set_fan_speed(0, 0); //disable print fan
+#endif
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
     case mpsPausing_WaitIdle:
@@ -519,14 +521,18 @@ static void _server_print_loop(void) {
         if (planner.movesplanned() == 0) {
             media_print_resume();
             print_job_timer.resume(0);
+#if FAN_COUNT > 0
             thermalManager.set_fan_speed(0, marlin_server.resume_fan_speed); // restore fan speed
+#endif
             marlin_server.print_state = mpsPrinting;
         }
         break;
     case mpsAborting_Begin:
         media_print_stop();
         thermalManager.disable_all_heaters();
+#if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0);
+#endif
         marlin_server_set_temp_to_display(0);
         print_job_timer.stop();
         planner.quick_stop();
