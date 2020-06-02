@@ -28,14 +28,6 @@ const float nozzle_to_probe[3] = NOZZLE_TO_PROBE_OFFSET;
 const float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
 const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
-const float zoffset_fl_range[3] = { z_offset_min, z_offset_max, z_offset_step };
-const char *zoffset_fl_format = "%.3f";
-
-// The MINI can heat up no more than 100C, for detection of thermal run away the bed is set 10C higher
-// Thus do not allow the user to set a higher bed temp in the UI here
-
-const int32_t flowfact_range[3] = { 50000, 150000, 1000 };
-const int32_t feedrate_range[3] = { 10000, 255000, 1000 };
 
 //must be in this file, need to access marlin
 constexpr const int park_points[3] = NOZZLE_PARK_POINT;
@@ -109,6 +101,9 @@ const int16_t MenuVars::extrude_min_temp = EXTRUDE_MINTEMP;
 const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::nozzle_range = { 0, (HEATER_0_MAXTEMP - 15), 1 };
 const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::bed_range = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 };
 const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::printfan_range = { 0, 255, 1 };
+const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::flowfact_range = { 50, 150, 1 };
+const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::feedrate_range = { 10, 255, 1 };
+const std::array<float, MenuVars::RANGE_SZ> MenuVars::zoffset_fl_range = { z_offset_min, z_offset_max, z_offset_step };
 
 constexpr const int32_t filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
 constexpr const int32_t filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;

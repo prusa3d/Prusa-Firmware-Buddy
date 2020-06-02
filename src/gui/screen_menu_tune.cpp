@@ -9,6 +9,7 @@
 #include "eeprom.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include "MItem_print.hpp"
 /*
 enum {
     MI_RETURN,
@@ -155,7 +156,7 @@ void screen_menu_tune_timer(screen_t *screen, uint32_t mseconds) {
 
 /*****************************************************************************/
 //parent alias
-using parent = screen_menu_data_t<false, true, false, MI_RETURN>;
+using parent = screen_menu_data_t<false, true, false, MI_RETURN, MI_SPEED>;
 
 class ScreenMenuTune : public parent {
 public:

@@ -28,4 +28,29 @@ public:
     virtual void OnClick();
 };
 
+class MI_SPEED : public WI_SPIN_U16_t {
+    constexpr static const char *label = "Speed";
+
+public:
+    MI_SPEED();
+    virtual void OnClick();
+};
+
+class MI_FLOWFACT : public WI_SPIN_U16_t {
+    constexpr static const char *label = "Flow Factor";
+
+public:
+    MI_FLOWFACT();
+    virtual void OnClick();
+};
+
+class MI_BABYSTEP : public WI_SPIN_t<float> {
+    constexpr static const char *const label = "Z-offset";
+
+public:
+    MI_BABYSTEP();
+    virtual void OnClick();
+    virtual bool Change(int dif);
+};
+
 #pragma pack(pop)
