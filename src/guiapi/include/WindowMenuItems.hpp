@@ -35,6 +35,26 @@ public:
     virtual void OnClick() {}
 };
 
+//WI_SPIN_I16_t
+//defines print format for int16_t version of WI_SPIN_t
+class WI_SPIN_I16_t : public WI_SPIN_t<int16_t> {
+    constexpr static const char *prt_format = "%d";
+
+public:
+    WI_SPIN_I16_t(int16_t value, const int16_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+        : WI_SPIN_t<int16_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
+};
+
+//WI_SPIN_I32_t
+//defines print format for int32_t version of WI_SPIN_t
+class WI_SPIN_I32_t : public WI_SPIN_t<int32_t> {
+    constexpr static const char *prt_format = "%d";
+
+public:
+    WI_SPIN_I32_t(int32_t value, const int32_t *range, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+        : WI_SPIN_t<int32_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
+};
+
 //WI_SWITCH == text version of WI_SPIN (non-numeric)
 //unlike WI_SPIN cannot be selected
 template <size_t SZ>

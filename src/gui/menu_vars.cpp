@@ -30,7 +30,7 @@ const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
 const float zoffset_fl_range[3] = { z_offset_min, z_offset_max, z_offset_step };
 const char *zoffset_fl_format = "%.3f";
-const int32_t nozzle_range[3] = { 0, (HEATER_0_MAXTEMP - 15) * 1000, 1000 };
+
 // The MINI can heat up no more than 100C, for detection of thermal run away the bed is set 10C higher
 // Thus do not allow the user to set a higher bed temp in the UI here
 const int32_t heatbed_range[3] = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN) * 1000, 1000 };
@@ -99,13 +99,15 @@ constexpr const char Z_home_gcode[] = {
 };
 } //extern "C"
 
-const std::array<std::array<int16_t, 3>, 4> MenuAxis::ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
+const std::array<std::array<int16_t, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
     { Y_MIN_POS, Y_MAX_POS, 1 },
     { Z_MIN_POS, Z_MAX_POS, 1 },
     { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } };
-const int32_t MenuAxis::manual_feedrate[4] = MANUAL_FEEDRATE;
-const char MenuAxis::axis_letters[4] = { 'X', 'Y', 'Z', 'E' };
-const int32_t extrude_min_temp = EXTRUDE_MINTEMP;
+const int16_t MenuVars::manual_feedrate[AXIS_CNT] = MANUAL_FEEDRATE;
+const char MenuVars::axis_letters[AXIS_CNT] = { 'X', 'Y', 'Z', 'E' };
+const int16_t MenuVars::extrude_min_temp = EXTRUDE_MINTEMP;
+
+const std::array<int16_t, MenuVars::RANGE_SZ> MenuVars::nozzle_range = { 0, (HEATER_0_MAXTEMP - 15), 1 };
 
 constexpr const int32_t filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
 constexpr const int32_t filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;

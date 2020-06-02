@@ -10,15 +10,15 @@
 #pragma pack(push, 1)
 
 template <size_t INDEX>
-class MI_AXIS : public WI_SPIN_t<int16_t> {
+class MI_AXIS : public WI_SPIN_I16_t {
 
 public:
     MI_AXIS<INDEX>()
-        : WI_SPIN_t<int16_t>(int32_t(marlin_vars()->pos[INDEX]),
-            MenuAxis::ranges[INDEX].data(), MenuAxis::prt_format, MenuAxis::labels[INDEX], 0, true, false) {}
+        : WI_SPIN_I16_t(int32_t(marlin_vars()->pos[INDEX]),
+            MenuVars::axis_ranges[INDEX].data(), MenuVars::labels[INDEX], 0, true, false) {}
     virtual bool Change(int dif) {
-        bool ret = WI_SPIN_t<int16_t>::Change(dif);
-        marlin_gcode_printf("G0 %c%d F%d", MenuAxis::axis_letters[INDEX], value, MenuAxis::manual_feedrate[INDEX]);
+        bool ret = WI_SPIN_I16_t::Change(dif);
+        marlin_gcode_printf("G0 %c%d F%d", MenuVars::axis_letters[INDEX], value, MenuVars::manual_feedrate[INDEX]);
         return ret;
     }
 };
@@ -59,7 +59,7 @@ int ScreenMenuMove::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
     ScreenMenuMove *const ths = reinterpret_cast<ScreenMenuMove *>(screen->pdata);
     if (event == WINDOW_EVENT_LOOP) {
 
-        bool temp_ok = (marlin_vars()->target_nozzle > extrude_min_temp);
+        bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::extrude_min_temp);
         IWindowMenuItem *pAxis_E = ths->menu.GetItem(4);
         if (temp_ok && (!pAxis_E->IsEnabled()))
             pAxis_E->Enable();
