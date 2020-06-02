@@ -123,6 +123,7 @@ template <class T>
 bool WI_SPIN_t<T>::Change(int dif) {
     T old = value;
     value += (T)dif * range[WIO_STEP];
+    value = dif >= 0 ? std::max(value, old) : std::min(value, old); //check overflow/underflow
     value = std::min(value, range[WIO_MAX]);
     value = std::max(value, range[WIO_MIN]);
     return old != value;
