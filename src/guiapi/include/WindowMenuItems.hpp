@@ -32,7 +32,7 @@ protected:
 public:
     WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif);
-    virtual void OnClick() = 0;
+    virtual void OnClick() {}
 };
 
 //WI_SWITCH == text version of WI_SPIN (non-numeric)

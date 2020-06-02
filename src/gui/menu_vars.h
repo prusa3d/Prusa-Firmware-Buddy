@@ -35,11 +35,7 @@ extern const int32_t heatbed_range[3];
 extern const int32_t printfan_range[3];
 extern const int32_t flowfact_range[3];
 extern const int32_t feedrate_range[3];
-extern const int32_t move_x[3];
-extern const int32_t move_y[3];
-extern const int32_t move_z[3];
-extern const int32_t move_e[3];
-extern const int32_t manual_feedrate[4];
+
 extern const int32_t extrude_min_temp;
 
 extern const int32_t _noz_park[3];
@@ -61,6 +57,26 @@ extern const float filament_unload_mini_length;
 
 #ifdef __cplusplus
 }
+#endif //__cplusplus
+
+#ifdef __cplusplus
+    #include <array>
+
+    #pragma pack(push, 1)
+//MenuAxis must be packed to prevent unaligned memory access
+struct MenuAxis {
+    constexpr static const char *const prt_format = "%d";
+    constexpr static const char *const labels[] = { "Move X", "Move Y", "Move Z", "Move E" };
+    static const std::array<std::array<int16_t, 3>, 4> ranges;
+    static const int32_t manual_feedrate[4];
+    static const char axis_letters[4];
+    static const int32_t extrude_min_temp;
+
+private:
+    MenuAxis() = delete;
+};
+    #pragma pack(pop)
+
 #endif //__cplusplus
 
 #endif //_MENU_VARS_H
