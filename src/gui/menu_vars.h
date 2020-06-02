@@ -31,8 +31,6 @@ extern const float z_offset_max;
 extern const float zoffset_fl_range[3];
 extern const char *zoffset_fl_format;
 
-extern const int32_t heatbed_range[3];
-extern const int32_t printfan_range[3];
 extern const int32_t flowfact_range[3];
 extern const int32_t feedrate_range[3];
 
@@ -72,7 +70,9 @@ struct MenuVars {
     static const char axis_letters[AXIS_CNT];
     static const int16_t extrude_min_temp;
 
-    static const std::array<int16_t, RANGE_SZ> nozzle_range;
+    static const std::array<uint16_t, RANGE_SZ> nozzle_range;
+    static const std::array<uint8_t, RANGE_SZ> bed_range;
+    static const std::array<uint8_t, RANGE_SZ> printfan_range;
 
 private:
     MenuVars() = delete;

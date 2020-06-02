@@ -4,108 +4,109 @@
 #include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "screens.h"
-
 #include "menu_vars.h"
-/*
-typedef enum {
-    MI_RETURN,
-    MI_NOZZLE,
-    MI_HEATBED,
-    MI_PRINTFAN,
-    MI_COOLDOWN,
-    MI_COUNT
-} MI_t;
-
-//"C inheritance" of screen_menu_data_t with data items
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct
-{
-    screen_menu_data_t base;
-    menu_item_t items[MI_COUNT];
-
-} this_screen_data_t;
-
-#pragma pack(pop)
-
-void screen_menu_temperature_init(screen_t *screen) {
-    marlin_vars_t *vars;
-    screen_menu_init(screen, "TEMPERATURE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);
-    psmd->items[MI_RETURN] = menu_item_return;
-    //memcpy(psmd->items + 1, _menu_temperature_items, (MI_COUNT - 1) * sizeof(menu_item_t));
-
-    vars = marlin_update_vars(
-        MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED));
-    psmd->items[MI_NOZZLE] = (menu_item_t) { { "Nozzle", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_NOZZLE].item.data.wi_spin.value = (int32_t)(vars->target_nozzle * 1000);
-    psmd->items[MI_NOZZLE].item.data.wi_spin.range = nozzle_range;
-    psmd->items[MI_HEATBED] = (menu_item_t) { { "Heatbed", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_HEATBED].item.data.wi_spin.value = (int32_t)(vars->target_bed * 1000);
-    psmd->items[MI_HEATBED].item.data.wi_spin.range = heatbed_range;
-    psmd->items[MI_PRINTFAN] = (menu_item_t) { { "Print Fan", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PRINTFAN].item.data.wi_spin.value = (int32_t)(vars->fan_speed * 1000);
-    psmd->items[MI_PRINTFAN].item.data.wi_spin.range = printfan_range;
-    psmd->items[MI_COOLDOWN] = (menu_item_t) { { "Cooldown", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-}
-
-int screen_menu_temperature_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    if (screen_menu_event(screen, window, event, param))
-        return 1;
-    if (event == WINDOW_EVENT_CHANGE) {
-        switch ((int)param) {
-        case MI_NOZZLE:
-            marlin_set_target_nozzle(psmd->items[MI_NOZZLE].item.data.wi_spin.value / 1000);
-            break;
-        case MI_HEATBED:
-            marlin_set_target_bed(psmd->items[MI_HEATBED].item.data.wi_spin.value / 1000);
-            break;
-        case MI_PRINTFAN:
-            marlin_set_fan_speed(psmd->items[MI_PRINTFAN].item.data.wi_spin.value / 1000);
-            break;
-        }
-    } else if ((event == WINDOW_EVENT_CLICK) && (int)param == MI_COOLDOWN) {
-        marlin_set_target_nozzle(0);
-        marlin_set_target_bed(0);
-        marlin_set_fan_speed(0);
-        psmd->items[MI_NOZZLE].item.data.wi_spin.value = 0;
-        psmd->items[MI_HEATBED].item.data.wi_spin.value = 0;
-        psmd->items[MI_PRINTFAN].item.data.wi_spin.value = 0;
-        _window_invalidate(&(psmd->root.win));
-    }
-    return 0;
-}
-
-screen_t screen_menu_temperature = {
-    0,
-    0,
-    screen_menu_temperature_init,
-    screen_menu_done,
-    screen_menu_draw,
-    screen_menu_temperature_event,
-    sizeof(this_screen_data_t), //data_size
-    0,                          //pdata
-};
-*/
-
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
+#pragma pack(push, 1)
 
-static void init(screen_t *screen) {
-    Screen::Create(screen);
+class MI_NOZZLE : public WI_SPIN_U16_t {
+    constexpr static const char *label = "Nozzle";
+
+public:
+    MI_NOZZLE()
+        : WI_SPIN_U16_t(uint16_t(marlin_vars()->target_nozzle),
+            MenuVars::nozzle_range.data(), label, 0, true, false) {}
+    virtual void OnClick() {
+        marlin_set_target_nozzle(value);
+    }
+};
+
+class MI_HEATBED : public WI_SPIN_U08_t {
+    constexpr static const char *label = "Heatbed";
+
+public:
+    MI_HEATBED()
+        : WI_SPIN_U08_t(uint8_t(marlin_vars()->target_bed),
+            MenuVars::bed_range.data(), label, 0, true, false) {}
+    virtual void OnClick() {
+        marlin_set_target_bed(value);
+    }
+};
+
+class MI_PRINTFAN : public WI_SPIN_U08_t {
+    constexpr static const char *label = "Print Fan";
+
+public:
+    MI_PRINTFAN()
+        : WI_SPIN_U08_t(uint8_t(marlin_vars()->fan_speed),
+            MenuVars::printfan_range.data(), label, 0, true, false) {}
+    virtual void OnClick() {
+        marlin_set_fan_speed(value);
+    }
+};
+
+class MI_COOLDOWN : public WI_LABEL_t {
+    static constexpr const char *const label = "Cooldown";
+
+public:
+    MI_COOLDOWN()
+        : WI_LABEL_t(label, 0, true, false) {
+    }
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu) {
+        screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)this);
+    }
+};
+
+/*****************************************************************************/
+//parent alias
+using parent = screen_menu_data_t<false, true, false, MI_RETURN, MI_NOZZLE, MI_HEATBED, MI_PRINTFAN, MI_COOLDOWN>;
+
+class ScreenMenuTenperature : public parent {
+public:
+    constexpr static const char *label = "TEMPERATURE";
+    static void Init(screen_t *screen);
+    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+};
+#pragma pack(pop)
+
+/*****************************************************************************/
+//static member method definition
+void ScreenMenuTenperature::Init(screen_t *screen) {
+    marlin_update_vars(
+        MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED));
+    Create(screen, label);
+}
+
+int ScreenMenuTenperature::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    ScreenMenuTenperature *const ths = reinterpret_cast<ScreenMenuTenperature *>(screen->pdata);
+    if (event == WINDOW_EVENT_CLICK) {
+        marlin_set_target_nozzle(0);
+        marlin_set_target_bed(0);
+        marlin_set_fan_speed(0);
+
+        MI_NOZZLE *noz = reinterpret_cast<MI_NOZZLE *>(ths->menu.GetItem(1));
+        MI_HEATBED *bed = reinterpret_cast<MI_HEATBED *>(ths->menu.GetItem(2));
+        MI_PRINTFAN *fan = reinterpret_cast<MI_PRINTFAN *>(ths->menu.GetItem(3));
+        noz->ClrVal();
+        bed->ClrVal();
+        fan->ClrVal();
+    }
+
+    return ths->Event(window, event, param);
 }
 
 screen_t screen_menu_temperature = {
     0,
     0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    0,              //pdata
+    ScreenMenuTenperature::Init,
+    ScreenMenuTenperature::CDone,
+    ScreenMenuTenperature::CDraw,
+    ScreenMenuTenperature::CEvent,
+    sizeof(ScreenMenuTenperature), //data_size
+    0,                             //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }
