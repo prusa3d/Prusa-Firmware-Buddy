@@ -532,7 +532,7 @@ if(GUI)
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
             src/gui/screen_print_preview.c
-            src/gui/screen_menu_messages.cpp
+            src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.c
             src/gui/screen_menu_move.cpp
