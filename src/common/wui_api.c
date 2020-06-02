@@ -229,7 +229,7 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
     return 1;
 }
 
-uint32_t sntp_get_system_time(struct tm *system_time) {
+time_t sntp_get_system_time(void) {
 
     if (sntp_time_init) {
         RTC_TimeTypeDef currTime;
@@ -237,21 +237,17 @@ uint32_t sntp_get_system_time(struct tm *system_time) {
         HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
         HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
         time_t secs;
-        system_time->tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
-
-        system_time->tm_hour = currTime.Hours;
-        system_time->tm_min = currTime.Minutes;
-        system_time->tm_sec = currTime.Seconds;
-        system_time->tm_mday = currDate.Date;
-        system_time->tm_mon = currDate.Month;
-        system_time->tm_year = currDate.Year;
-        secs = mktime(system_time);
-        system_time->tm_mon += 1;     // months starts with 0
-        system_time->tm_year += 1900; // epoch start
-        return (uint32_t)secs;
+        struct tm system_time;
+        system_time.tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
+        system_time.tm_hour = currTime.Hours;
+        system_time.tm_min = currTime.Minutes;
+        system_time.tm_sec = currTime.Seconds;
+        system_time.tm_mday = currDate.Date;
+        system_time.tm_mon = currDate.Month;
+        system_time.tm_year = currDate.Year;
+        secs = mktime(&system_time);
+        return secs;
     } else {
-        system_time->tm_sec = system_time->tm_hour = system_time->tm_min = 0;
-        system_time->tm_mday = system_time->tm_mon = system_time->tm_year = 0;
         return 0;
     }
 }

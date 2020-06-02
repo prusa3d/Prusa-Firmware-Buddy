@@ -242,9 +242,8 @@ int screen_menu_settings_event(screen_t *screen, window_t *window, uint8_t event
             int8_t timezone = (int8_t)(psmd->items[MI_TIMEZONE].item.wi_spin.value / 1000);
             int8_t last_timezone = eeprom_get_var(EEVAR_TIMEZONE).i8;
             eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(timezone));
-            struct tm now;
-            uint32_t seconds = 0;
-            if ((seconds = sntp_get_system_time(&now))) {
+            time_t seconds = 0;
+            if ((seconds = sntp_get_system_time())) {
                 sntp_set_system_time(seconds, last_timezone);
             }
             break;

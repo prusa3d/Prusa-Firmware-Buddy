@@ -210,7 +210,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "Printing Time");
+    window_set_text(id, "");
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 148, 101, 20),
@@ -333,8 +333,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->print_duration != pw->last_print_duration)
         update_print_duration(screen, marlin_vars()->print_duration);
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
-        struct tm now;
-        time_t sec = (time_t)sntp_get_system_time(&now);
+        time_t sec = sntp_get_system_time();
         if (sec != 0) {
             strlcpy(pw->label_etime, "Print will end", 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime);

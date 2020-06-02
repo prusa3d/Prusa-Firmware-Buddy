@@ -187,15 +187,13 @@ void set_LAN_to_dhcp(ETH_config_t *config);
 uint8_t dhcp_addrs_are_supplied(void);
 
 /*!*********************************************************************************************************************
-* \brief Parses time from device's time storage in dest string in format hh:mm:ss
+* \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900
 *
-* \param [out] system_time - destination structure for parsed time
-*
-* \retval number of seconds since epoch start (1.1.1900), if time is initialized by sntp
+* \retval number of seconds since epoch start (1.0.1900), if time is initialized by sntp
 *
 * \retval 0 if RTC time have not been initialized
 ***********************************************************************************************************************/
-uint32_t sntp_get_system_time(struct tm *system_time);
+time_t sntp_get_system_time(void);
 
 /*!**********************************************************************************************************
 * \brief Sets time and date in device's RTC on some other time storage
