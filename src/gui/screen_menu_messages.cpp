@@ -1,16 +1,18 @@
 /*
- * screen_messages.c
+ * screen_messages.cpp
  *
  *  Created on: Nov 13, 2019
  *      Author: Migi
  */
 
 #include "gui.h"
-#include "screen_menu.hpp"
 #include "marlin_server.h"
+#include "window_header.h"
+#include "status_footer.h"
 #include <stdlib.h>
+#include <stdint.h>
 #include "screens.h"
-/*
+
 #pragma pack(push)
 #pragma pack(1)
 
@@ -47,8 +49,10 @@ void _window_list_add_message_item(window_list_t *pwindow_list, uint16_t index,
 void _msg_stack_del(uint8_t del_index) { // del_index = < 0 ; MSG_STACK_SIZE - 1 >
 
     // when we delete from last spot of the limited stack [MSG_STACK_SIZE - 1], no swapping is needed, for cycle won't start
-    for (uint8_t i = del_index; i + 1 < msg_stack.count; i++)
-        strncpy(msg_stack.msg_data[i], msg_stack.msg_data[i + 1], MSG_MAX_LENGTH);
+    for (uint8_t i = del_index; i + 1 < msg_stack.count; i++) {
+        memset(msg_stack.msg_data[i], '\0', sizeof(msg_stack.msg_data[i]) * sizeof(char)); // set to zeros to be on the safe side
+        strlcpy(msg_stack.msg_data[i], msg_stack.msg_data[i + 1], sizeof(msg_stack.msg_data[i]));
+    }
     msg_stack.count--;
 }
 
@@ -87,10 +91,10 @@ int screen_messages_event(screen_t *screen, window_t *window,
         if (pmsg->list.index == 0) {
             screen_close();
             return 1;
-        } //else if (pmsg->list.index <= msg_stack.count) {		TODO: Deleted message stays on the screen
-		//	_msg_stack_del(pmsg->list.index - 1);
-		//	_window_invalidate((window_t*)&(pmsg->list));
-		//}
+        } /*else if (pmsg->list.index <= msg_stack.count) {		TODO: Deleted message stays on the screen
+			_msg_stack_del(pmsg->list.index - 1);
+			_window_invalidate((window_t*)&(pmsg->list));
+		} */
         break;
     default:
         break;
@@ -117,25 +121,6 @@ screen_t screen_messages = {
     screen_messages_event,
     sizeof(screen_messages_data_t), //data_size
     0,                              //pdata
-};*/
-
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
-
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
-
-static void init(screen_t *screen) {
-    Screen::Create(screen);
-}
-screen_t screen_messages = {
-    0,
-    0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    0,              //pdata
 };
 
 screen_t *const get_scr_messages() { return &screen_messages; }
