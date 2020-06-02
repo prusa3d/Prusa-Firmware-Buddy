@@ -125,6 +125,7 @@ void window_file_list_draw(window_file_list_t *window) {
 
         color_t color_text = window->color_text;
         color_t color_back = window->color_back;
+        uint8_t swap = 0;
 
         rect_ui16_t rc = { rc_win.x, rc_win.y + i * item_height, rc_win.w, item_height };
         padding_ui8_t padding = window->padding;
@@ -134,6 +135,7 @@ void window_file_list_draw(window_file_list_t *window) {
 
         if ((window->win.flg & WINDOW_FLG_FOCUSED) && (window->index == i)) {
             SWAP(color_text, color_back);
+            swap = ROPFN_SWAPBW;
         }
 
         if (id_icon) {
