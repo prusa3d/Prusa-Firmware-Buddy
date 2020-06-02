@@ -24,6 +24,8 @@ void window_temp_graph_init(window_temp_graph_t *window) {
         window->y_bed_t[i] = 179.0F;
         window->y_nozzle_t[i] = 179.0F;
     }
+
+    display->fill_rect(window->win.rect, window->color_back);
 }
 
 void redraw_point(uint16_t x, uint16_t y, uint8_t *data, color_t bg, color_t fg) {
