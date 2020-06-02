@@ -347,6 +347,10 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->sd_percent_done != pw->last_sd_percent_done)
         update_progress(screen, marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
 
+    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
+        screen_close();
+    }
+
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
