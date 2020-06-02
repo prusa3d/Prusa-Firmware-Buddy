@@ -19,10 +19,6 @@
 #define OTP_START_ADDR             0x1FFF7800
 #define SERIAL_NUM_ADDR            0x1FFF7808
 
-enum {
-    TAG_QUIT = 10
-};
-
 struct version_t {
     uint8_t major;
     uint8_t minor;
