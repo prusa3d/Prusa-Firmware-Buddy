@@ -12,8 +12,9 @@
 #include "filament.h"
 #include "marlin_vars.h"
 #include "marlin_client.h"
-
+#include "cmath_ext.h"
 #include "stm32f4xx_hal.h"
+#include "limits.h"
 
 static const float heating_difference = 2.0F;
 
@@ -128,7 +129,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->nozzle_target_display = -273;
     footer->heatbed = -273;
     footer->heatbed_target = -273;
-    footer->z_pos = -999;
+    footer->z_pos = INT_MIN;
     footer->print_speed = 0;
     footer->filament[0] = '\0';
 
@@ -277,16 +278,17 @@ void status_footer_update_feedrate(status_footer_t *footer) {
 
 void status_footer_update_z_axis(status_footer_t *footer) {
     const marlin_vars_t *vars = marlin_vars();
-    if (!vars)
+    if (!vars) {
+        window_set_text(footer->wt_z_axis.win.id, "ERR");
         return;
+    }
 
-    const float pos = vars->pos[2];
+    const int32_t pos = (int32_t)round(vars->pos[2] * 100); // convert to 000.00 fix point number;
     if (pos == footer->z_pos)
         return;
 
     footer->z_pos = pos;
-    const int show = (int)round(pos * 100); // convert to 000.00 fix point number;
-    snprintf(footer->text_z_axis, sizeof(footer->text_z_axis) / sizeof(footer->text_z_axis[0]), "%d.%02d", show / 100, show % 100);
+    snprintf(footer->text_z_axis, sizeof(footer->text_z_axis) / sizeof(footer->text_z_axis[0]), "%d.%02d", pos / 100, ABS(pos % 100));
     window_set_text(footer->wt_z_axis.win.id, footer->text_z_axis);
 }
 

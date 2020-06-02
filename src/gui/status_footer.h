@@ -33,7 +33,7 @@ typedef struct
     float nozzle_target_display; /// target temperature of nozzle shown on display
     float heatbed;               /// actual temperature of bed
     float heatbed_target;        /// target temperature of bed
-    float z_pos;                 /// z position
+    int32_t z_pos;               /// z position, 000.00 fixed point
     uint16_t print_speed;        /// print speed in percents
 
     window_icon_t wi_nozzle;
