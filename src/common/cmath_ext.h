@@ -12,17 +12,11 @@
     __typeof__ (b) _b = (b); \
     _a >= _b ? _a : _b; })
 
-    /// \returns maximum of the tree
-    #define MAX3(a, b, c) MAX(MAX(a, b), c)
-
     /// \returns minimum of the two
     #define MIN(a, b) \
         ({ __typeof__ (a) _a = (a); \
     __typeof__ (b) _b = (b); \
     _a <= _b ? _a : _b; })
-
-    /// \returns minimum of the tree
-    #define MIN3(a, b, c) MIN(MIN(a, b), c)
 
     /// -1 = negative, 1 = positive, 0 = 0
     #define SIGN0(x) \
