@@ -42,9 +42,8 @@ void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const cha
         } else {
             // try to find the sfn to be highlighted
             for (window->index = 0; window->index < LDV_VisibleFilesCount(window->ldv); ++window->index) {
-                if (!strcmp(sfnAtCursor, LDV_ShortFileNameAt(window->ldv, window->index, &tmp))) {
+                if (!strcmp(sfnAtCursor, LDV_ShortFileNameAt(window->ldv, window->index, &tmp)))
                     break;
-                }
             }
             if (window->index == LDV_VisibleFilesCount(window->ldv)) {
                 window->index = window->count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
@@ -216,7 +215,7 @@ void window_file_list_inc(window_file_list_t *window, int dif) {
     } else {
         // this 'if' solves a situation with less files than slots on the screen
         if (window->index < LDV_TotalFilesCount(window->ldv) - 1) {
-            window->index += 1; // @@TODO dif > 1 pokud bude potreba;
+            window->index += 1; // @@TODO dif > 1 if needed;
             repaint = true;
         } else {
             Sound_Play(eSOUND_TYPE_BlindAlert);
