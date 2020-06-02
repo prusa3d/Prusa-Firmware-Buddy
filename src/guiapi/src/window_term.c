@@ -16,13 +16,15 @@ void render_term(const rect_ui16_t rc, const term_t *pt, const font_t *font, col
     if (!pt || (pt->flg & TERM_FLG_CHANGED))
         display->fill_rect(rc, clr0);
 
+    const uint8_t cols = pt->cols;
+    const uint8_t rows = pt->rows;
     uint8_t *pb = pt->buff;
-    uint8_t *pm = pt->buff + (pt->cols * pt->rows * 2);
+    uint8_t *pm = pt->buff + (cols * rows * 2);
     uint8_t msk = 0x01;
     uint8_t c;
     int i = 0;
-    for (uint8_t r = 0; r < pt->rows; ++r)
-        for (c = 0; c < pt->cols; ++c) {
+    for (uint8_t r = 0; r < rows; ++r)
+        for (c = 0; c < cols; ++c) {
             if ((*pm) & msk) {
                 //character is followed by attribute
                 uint8_t ch = *(pb++);

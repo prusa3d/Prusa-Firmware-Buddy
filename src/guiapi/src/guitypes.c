@@ -24,20 +24,22 @@ rect_ui16_t rect_intersect_ui16(rect_ui16_t rc, rect_ui16_t rc1) {
 }
 
 rect_ui16_t rect_ui16_add_padding_ui8(rect_ui16_t rc, padding_ui8_t pad) {
-    rect_ui16_t rect = { 0, 0, rc.w + pad.left + pad.right, rc.h + pad.top + pad.bottom };
-    if (rc.x > pad.left)
-        rect.x = rc.x - pad.left;
-    if (rc.y > pad.top)
-        rect.y = rc.y - pad.top;
+    const rect_ui16_t rect = {
+        MAX(0, rc.x - pad.left),
+        MAX(0, rc.y - pad.top),
+        rc.w + pad.left + pad.right,
+        rc.h + pad.top + pad.bottom
+    };
     return rect;
 }
 
 rect_ui16_t rect_ui16_sub_padding_ui8(rect_ui16_t rc, padding_ui8_t pad) {
-    rect_ui16_t rect = { rc.x + pad.left, rc.y + pad.top, 0, 0 };
-    if (rc.w > (pad.left + pad.right))
-        rect.w = rc.w - (pad.left + pad.right);
-    if (rc.h > (pad.top + pad.bottom))
-        rect.h = rc.h - (pad.top + pad.bottom);
+    const rect_ui16_t rect = {
+        rc.x + pad.left,
+        rc.y + pad.top,
+        MAX(0, rc.w - pad.left - pad.right),
+        MAX(0, rc.h - pad.top - pad.bottom)
+    };
     return rect;
 }
 

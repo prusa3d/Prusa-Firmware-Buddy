@@ -5,6 +5,22 @@
 #include "gui_timer.h"
 #include "window.h"
 
+/// Fills space between two rectangles with a color
+/// @r_in has to be fully in @r_out, no check is done
+void fill_rect_in_rect(const rect_ui16_t *r_out, const rect_ui16_t *r_in, color_t color) {
+    const rect_ui16_t rc_t = { r_out->x, r_out->y, r_out->w, r_in->y - r_out->y };
+    display->fill_rect(rc_t, color);
+
+    const rect_ui16_t rc_b = { r_out->x, r_in->y + r_in->h, r_out->w, (r_out->y + r_out->h) - (r_in->y + r_in->h) };
+    display->fill_rect(rc_b, color);
+
+    const rect_ui16_t rc_l = { r_out->x, r_out->y, r_in->x - r_out->x, r_in->h };
+    display->fill_rect(rc_l, color);
+
+    const rect_ui16_t rc_r = { r_in->x + r_in->w, r_out->y, (r_out->x + r_out->w) - (r_in->x + r_in->w), r_in->h };
+    display->fill_rect(rc_r, color);
+}
+
 void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
@@ -12,10 +28,11 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
         uint16_t x;
         uint16_t y = rc_pad.y;
         int n;
+        int i;
         const char *str = text;
         while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
             x = rc_pad.x;
-            int i = 0;
+            i = 0;
             while (str[i] == ' ' || str[i] == '\n')
                 i++;
             for (; i < n; i++) {
@@ -27,14 +44,8 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
             y += font->h;
         }
         display->fill_rect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
-        rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc_pad.y - rc.y };
-        rect_ui16_t rc_b = { rc.x, rc_pad.y + rc_pad.h, rc.w, (rc.y + rc.h) - (rc_pad.y + rc_pad.h) };
-        rect_ui16_t rc_l = { rc.x, rc.y, rc_pad.x - rc.x, rc.h };
-        rect_ui16_t rc_r = { rc_pad.x + rc_pad.w, rc.y, (rc.x + rc.w) - (rc_pad.x + rc_pad.w), rc.h };
-        display->fill_rect(rc_t, clr0);
-        display->fill_rect(rc_b, clr0);
-        display->fill_rect(rc_l, clr0);
-        display->fill_rect(rc_r, clr0);
+
+        fill_rect_in_rect(&rc, &rc_pad, clr0);
     } else {
         point_ui16_t wh_txt = font_meas_text(font, text);
         if (wh_txt.x && wh_txt.y) {

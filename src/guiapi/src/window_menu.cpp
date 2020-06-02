@@ -92,10 +92,10 @@ void window_menu_draw(window_menu_t *window) {
         return;
     }
 
-    int item_height = window->font->h + window->padding.top + window->padding.bottom;
+    const int item_height = window->font->h + window->padding.top + window->padding.bottom;
     rect_ui16_t rc_win = window->win.rect;
 
-    int visible_count = rc_win.h / item_height;
+    const int visible_count = rc_win.h / item_height;
     int i;
     for (i = 0; i < visible_count && i < window->count; i++) {
         int idx = i + window->top_index;
@@ -255,7 +255,7 @@ void window_menu_item_spin(window_menu_t *window, int dif) {
     window->menu_items(window, window->index, &item, window->data);
 
     const int32_t *range = item->wi_spin.range;
-    int32_t old = item->wi_spin.value;
+    const int32_t old = item->wi_spin.value;
 
     if (dif > 0) {
         item->wi_spin.value = MIN(item->wi_spin.value + dif * range[WIO_STEP], range[WIO_MAX]);
@@ -272,7 +272,7 @@ void window_menu_item_spin_fl(window_menu_t *window, int dif) {
     window->menu_items(window, window->index, &item, window->data);
 
     const float *range = item->wi_spin_fl.range;
-    float old = item->wi_spin_fl.value;
+    const float old = item->wi_spin_fl.value;
 
     if (dif > 0) {
         item->wi_spin_fl.value = MIN(item->wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MAX]);
@@ -337,9 +337,9 @@ void window_menu_inc(window_menu_t *window, int dif) {
     default: {
         // WI_LABEL
         //all items can be in label mode
-        int item_height = window->font->h + window->padding.top + window->padding.bottom;
-        int visible_count = window->win.rect.h / item_height;
-        int old = window->index;
+        const int item_height = window->font->h + window->padding.top + window->padding.bottom;
+        const int visible_count = window->win.rect.h / item_height;
+        const int old = window->index;
         window->index += dif;
         // play sound at first or last index of menu
         if (window->index < 0) {
