@@ -45,7 +45,7 @@ public:
 };
 
 class MI_BABYSTEP : public WI_SPIN_t<float> {
-    constexpr static const char *const label = "Z-offset";
+    constexpr static const char *const label = "Live Adjust Z"; // or "Z-offset"?
 
 public:
     MI_BABYSTEP();

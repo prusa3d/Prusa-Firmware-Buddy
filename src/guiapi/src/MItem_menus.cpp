@@ -128,3 +128,13 @@ MI_LAN_SETTINGS::MI_LAN_SETTINGS()
 void MI_LAN_SETTINGS::click(Iwindow_menu_t &window_menu) {
     screen_open(get_scr_lan_settings()->id);
 }
+
+/*****************************************************************************/
+//MI_MESSAGES
+MI_MESSAGES::MI_MESSAGES()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_MESSAGES::click(Iwindow_menu_t &window_menu) {
+    screen_open(get_scr_messages()->id);
+}

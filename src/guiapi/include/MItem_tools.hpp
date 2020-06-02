@@ -184,4 +184,14 @@ protected:
     virtual void click(Iwindow_menu_t &window_menu);
 };
 
+class MI_M600 : public WI_LABEL_t {
+    static constexpr const char *const label = "Change Filament";
+
+public:
+    MI_M600();
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
+};
+
 #pragma pack(pop)

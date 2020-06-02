@@ -225,3 +225,12 @@ MI_EE_SAVEXML::MI_EE_SAVEXML()
 void MI_EE_SAVEXML::click(Iwindow_menu_t &window_menu) {
     eeprom_save_xml_to_usb("eeprom.xml");
 }
+
+/*****************************************************************************/
+//MI_M600
+MI_M600::MI_M600()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+void MI_M600::click(Iwindow_menu_t &window_menu) {
+    marlin_gcode_push_front("M600");
+}

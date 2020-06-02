@@ -144,4 +144,14 @@ protected:
     virtual void click(Iwindow_menu_t &window_menu);
 };
 
+class MI_MESSAGES : public WI_LABEL_t {
+    static constexpr const char *const label = "Messages";
+
+public:
+    MI_MESSAGES();
+
+protected:
+    virtual void click(Iwindow_menu_t &window_menu);
+};
+
 #pragma pack(pop)

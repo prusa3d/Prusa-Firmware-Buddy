@@ -11,29 +11,7 @@
 #include <new>
 
 #pragma pack(push, 1)
-/*
-struct menu_flags_t {
-    uint8_t has_footer : 1;
-    uint8_t has_help : 1;
-};*/
-/*
-struct menu_item_t {
-    WindowMenuItem item;
-    screen_t *screen;
-};*/
-/*
-struct Iscreen_menu_data_t {
-    window_frame_t root;
-    window_header_t header;
-    //window_menu_t menu;
 
-    //menu_item_t *items;
-
-    // menu_flags_t flags;
-    window_text_t help;
-    status_footer_t footer;
-};
-*/
 template <bool HEADER, bool FOOTER, bool HELP, class... T>
 struct screen_menu_data_t {
     constexpr static const char *no_label = "MISSING";
