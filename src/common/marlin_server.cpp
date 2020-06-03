@@ -421,7 +421,7 @@ void marlin_server_print_start(const char *filename) {
     if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
         media_print_start(filename);
         for (int id = 0; id < MARLIN_MAX_CLIENTS; id++)
-            marlin_server.client_changes[id] |= MARLIN_VAR_MSK(MARLIN_VAR_FILENAME);
+            marlin_server.client_changes[id] |= MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH) | MARLIN_VAR_MSK(MARLIN_VAR_FILENAME);
         //_server_update_and_notify(-1, MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
