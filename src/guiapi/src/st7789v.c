@@ -496,6 +496,9 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 
 /// Draws a rectangle boundary of defined color
 void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
+    if (rc.w <= 0 || rc.h <= 0)
+        return;
+
     point_ui16_t pt0 = { rc.x, rc.y };
     point_ui16_t pt1 = { rc.x + rc.w - 1, rc.y };
     point_ui16_t pt2 = { rc.x, rc.y + rc.h - 1 };

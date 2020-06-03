@@ -199,7 +199,7 @@ static inline int rect_empty_ui16(rect_ui16_t rc) {
 extern "C" {
 #endif //__cplusplus
 
-extern rect_ui16_t rect_intersect_ui16(rect_ui16_t rc, rect_ui16_t rc1);
+extern rect_ui16_t rect_intersect_ui16(rect_ui16_t rc1, rect_ui16_t rc2);
 
 extern rect_ui16_t rect_ui16_add_padding_ui8(rect_ui16_t rc, padding_ui8_t pad);
 
