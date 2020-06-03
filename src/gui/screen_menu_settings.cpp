@@ -125,7 +125,7 @@ public:
 
 #ifdef _DEBUG
 enum { FsensorPos = 8 };
-using parent = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
@@ -135,7 +135,7 @@ using parent = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE,
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
 #else
 enum { FsensorPos = 6 };
-using parent = screen_menu_data_t<false, true, false, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,

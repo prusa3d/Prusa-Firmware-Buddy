@@ -28,7 +28,7 @@ struct version_t {
 #define VERSION_INFO_STR_MAXLEN 150
 char *version_info_str = nullptr;
 
-using parent = screen_menu_data_t<true, true, true, MI_RETURN>;
+using parent = screen_menu_data_t<EHeader::On, EFooter::On, EHelp::On, MI_RETURN>;
 
 #pragma pack(push, 1)
 class ScreenMenuVersionInfo : public parent {

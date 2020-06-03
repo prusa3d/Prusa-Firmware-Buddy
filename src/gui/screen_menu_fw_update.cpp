@@ -38,7 +38,7 @@ public:
     }
 };
 
-using parent = screen_menu_data_t<false, true, true, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
+using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::On, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
 
 #pragma pack(push, 1)
 class ScreenMenuFwUpdate : public parent {

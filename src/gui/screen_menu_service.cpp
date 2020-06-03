@@ -165,7 +165,7 @@ screen_t screen_menu_service = {
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
+using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN>;
 
 static void init(screen_t *screen) {
     Screen::Create(screen);
