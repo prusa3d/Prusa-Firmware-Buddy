@@ -7,12 +7,7 @@
 
 void StartMeasurementTask(void const *argument) {
     marlin_client_init();
-
-    // wait for startup
-    while (!marlin_event_clr(MARLIN_EVT_StartProcessing)) {
-        marlin_client_loop();
-        osDelay(100);
-    }
+    marlin_client_wait_for_start_processing();
     uint8_t fs_counter = 0; // counter for fs_cycle timing
     fs_init_on_edge();
     /* Infinite loop */
