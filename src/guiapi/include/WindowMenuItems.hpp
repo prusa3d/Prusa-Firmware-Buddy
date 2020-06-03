@@ -26,6 +26,7 @@ public: //todo private
     const char *prt_format;
 
 protected:
+    void sn_prt(char *buff, size_t len) const;
     virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
     virtual void click(Iwindow_menu_t &window_menu) final;
 
@@ -182,11 +183,7 @@ template <class T>
 void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
     IWindowMenuItem::printText(window_menu, rect, color_text, color_back, swap);
     char buff[20] = { '\0' };
-    //value is template, it can be float in this case it would throw warning "-Wdouble-promotion"
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
-    snprintf(buff, 20, prt_format, value);
-#pragma GCC diagnostic pop
+    sn_prt(buff, 20);
 
     rect_ui16_t vrc = {
         uint16_t(rect.x + rect.w), rect.y, uint16_t(window_menu.font->w * strlen(buff) + window_menu.padding.left + window_menu.padding.right), rect.h
@@ -196,6 +193,16 @@ void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, colo
 
     render_text_align(vrc, buff, window_menu.font,
         color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
+}
+
+template <class T>
+void WI_SPIN_t<T>::sn_prt(char *buff, size_t len) const {
+    snprintf(buff, len, prt_format, value);
+}
+
+template <>
+inline void WI_SPIN_t<float>::sn_prt(char *buff, size_t len) const {
+    snprintf(buff, len, prt_format, static_cast<double>(value));
 }
 
 /*****************************************************************************/
