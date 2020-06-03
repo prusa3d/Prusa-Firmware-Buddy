@@ -1,13 +1,12 @@
 #include "gui.h"
 #include "config.h"
-#include "screen_menu.hpp"
 #include <stdlib.h>
 #include "support_utils.h"
 #include "screens.h"
 
 #include "../../gui/wizard/selftest.h"
 #include "stm32f4xx_hal.h"
-/*
+
 #pragma pack(push)
 #pragma pack(1)
 
@@ -76,27 +75,6 @@ screen_t screen_qr_info = {
     screen_menu_qr_info_event,
     sizeof(screen_qr_info_data_t), //data_size
     0,                             //pdata
-};
-*/
-
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
-
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
-
-static void init(screen_t *screen) {
-    Screen::Create(screen);
-}
-
-screen_t screen_qr_info = {
-    0,
-    0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_qr_info() { return &screen_qr_info; }

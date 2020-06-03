@@ -1,6 +1,5 @@
 #include "gui.h"
 #include "config.h"
-#include "screen_menu.hpp"
 #include <stdlib.h>
 #include "support_utils.h"
 
@@ -10,7 +9,7 @@
 
 #pragma pack(push)
 #pragma pack(1)
-/*
+
 typedef struct
 {
     window_frame_t root;
@@ -83,27 +82,6 @@ screen_t screen_qr_error = {
     screen_menu_qr_error_event,
     sizeof(screen_qr_error_data_t), //data_size
     0,                              //pdata
-};
-*/
-
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
-
-using Screen = screen_menu_data_t<false, true, false, MI_RETURN>;
-
-static void init(screen_t *screen) {
-    Screen::Create(screen);
-}
-
-screen_t screen_qr_error = {
-    0,
-    0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_qr_error() { return &screen_qr_error; }
