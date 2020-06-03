@@ -39,7 +39,7 @@ void MI_AUTO_HOME::click(Iwindow_menu_t &window_menu) {
     marlin_gcode("G28");
     while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
         marlin_client_loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
 }
 
 /*****************************************************************************/
@@ -54,13 +54,13 @@ void MI_MESH_BED::click(Iwindow_menu_t &window_menu) {
         marlin_gcode("G28");
         while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
             marlin_client_loop();
-        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
     }
     marlin_event_clr(MARLIN_EVT_CommandBegin);
     marlin_gcode("G29");
     while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
         marlin_client_loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
 }
 
 /*****************************************************************************/
@@ -233,4 +233,43 @@ MI_M600::MI_M600()
 }
 void MI_M600::click(Iwindow_menu_t &window_menu) {
     marlin_gcode_push_front("M600");
+}
+
+/*****************************************************************************/
+//MI_TIMEOUT
+//if needed to remeber after poweroff
+//use st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS) st25dv64k_user_write((uint16_t)MENU_TIMEOUT_FLAG_ADDRESS, (uint8_t)1 or 0);
+MI_TIMEOUT::MI_TIMEOUT()
+    : WI_SWITCH_OFF_ON_t(timeout_enabled ? 0 : 1, label, 0, true, false) {}
+void MI_TIMEOUT::OnChange(size_t old_index) {
+    if (timeout_enabled) {
+        gui_timer_delete(gui_get_menu_timeout_id());
+    }
+    timeout_enabled = !timeout_enabled;
+}
+
+bool MI_TIMEOUT::timeout_enabled = true;
+
+/*****************************************************************************/
+//MI_SOUND_MODE
+size_t MI_SOUND_MODE::init_index() const {
+    size_t sound_mode = Sound_GetMode();
+    return sound_mode > 4 ? eSOUND_MODE_DEFAULT : sound_mode;
+}
+MI_SOUND_MODE::MI_SOUND_MODE()
+    : WI_SWITCH_t<4>(init_index(), label, 0, true, false, str_Once, str_Loud, str_Silent, str_Assist) {}
+void MI_SOUND_MODE::OnChange(size_t old_index) {
+    Sound_SetMode(static_cast<eSOUND_MODE>(index));
+}
+
+/*****************************************************************************/
+//MI_SOUND_TYPE
+MI_SOUND_TYPE::MI_SOUND_TYPE()
+    : WI_SWITCH_t<5>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_EncoderMove, str_BlindAlert) {}
+void MI_SOUND_TYPE::OnChange(size_t old_index) {
+    if (old_index == eSOUND_TYPE_StandardPrompt) {
+        gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+    } else {
+        Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+    }
 }

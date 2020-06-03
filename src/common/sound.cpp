@@ -12,7 +12,7 @@ Sound::Sound() {
     duration = 0;      // added variable to set _duration for repeating
     repeat = 0;        // how many times is sound played
     frequency = 100.f; // frequency of sound signal (0-1000)
-    volume = 0.00125;  // volume of sound signal (0-1)
+    volume = 0.50;     // volume of sound signal (0-1)
 
     this->init();
 }
@@ -45,7 +45,9 @@ void Sound::saveMode() {
 
 // [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
 void Sound::stop() {
+    frequency = 100.f;
     _duration = 0;
+    duration = 0;
     repeat = 0;
 }
 
@@ -66,6 +68,9 @@ void Sound::play(eSOUND_TYPE eSoundType) {
         if (eSoundType == eSOUND_TYPE_StandardAlert) {
             this->soundStandardAlert(1, 200.f);
         }
+        if (eSoundType == eSOUND_TYPE_CriticalAlert) {
+            this->soundCriticalAlert(-1, 500.f);
+        }
         break;
     case eSOUND_MODE_LOUD:
         if (eSoundType == eSOUND_TYPE_Start) {
@@ -80,6 +85,9 @@ void Sound::play(eSOUND_TYPE eSoundType) {
         if (eSoundType == eSOUND_TYPE_StandardAlert) {
             this->soundStandardAlert(3, 200.f);
         }
+        if (eSoundType == eSOUND_TYPE_CriticalAlert) {
+            this->soundCriticalAlert(-1, 500.f);
+        }
         break;
     case eSOUND_MODE_SILENT:
         if (eSoundType == eSOUND_TYPE_Start) {
@@ -87,6 +95,9 @@ void Sound::play(eSOUND_TYPE eSoundType) {
         }
         if (eSoundType == eSOUND_TYPE_StandardAlert) {
             this->soundStandardAlert(1, 200.f);
+        }
+        if (eSoundType == eSOUND_TYPE_CriticalAlert) {
+            this->soundCriticalAlert(-1, 500.f);
         }
         break;
     case eSOUND_MODE_ASSIST:
@@ -108,6 +119,9 @@ void Sound::play(eSOUND_TYPE eSoundType) {
         if (eSoundType == eSOUND_TYPE_BlindAlert) {
             this->soundBlindAlert(1, 100.f);
         }
+        if (eSoundType == eSOUND_TYPE_CriticalAlert) {
+            this->soundCriticalAlert(-1, 500.f);
+        }
         break;
     default:
         break;
@@ -116,48 +130,49 @@ void Sound::play(eSOUND_TYPE eSoundType) {
 
 // Sound signal played once just after boot
 void Sound::soundStart(int rep, uint32_t del) {
-    float vol = 0.00125;
-    float frq = 500.0f;
-    this->_sound(rep, frq, del, vol);
+    float frq = 999.0f;
+    this->_sound(rep, frq, del, volume);
 }
 
 // Sound signal for encoder button click
 void Sound::soundButtonEcho(int rep, uint32_t del) {
-    float vol = 0.00125;
-    float frq = 200.0f;
-    this->_sound(rep, frq, del, vol);
+    float frq = 900.0f;
+    this->_sound(rep, frq, del, volume);
 }
 
 // Sound signal for user needed input on prompt screens (filament runout, etc.)
 void Sound::soundStandardPrompt(int rep, uint32_t del) {
-    float vol = 0.00125;
-    float frq = 500.0f;
-    this->_sound(rep, frq, del, vol);
+    float frq = 600.0f;
+    this->_sound(rep, frq, del, volume);
 }
 
 // Souns signal for errors, bsod, and others Alert type's events
 void Sound::soundStandardAlert(int rep, uint32_t del) {
-    float vol = 0.05;
-    float frq = 800.0f;
-    this->_sound(rep, frq, del, vol);
+    float frq = 950.0f;
+    this->_sound(rep, frq, del, volume);
+}
+
+// Souns signal for errors, bsod, and others Alert type's events
+void Sound::soundCriticalAlert(int rep, uint32_t del) {
+    float frq = 999.0f;
+    this->_sound(rep, frq, del, 1.0);
 }
 
 // Sound signal every time when encoder nove
 void Sound::soundEncoderMove(int rep, uint32_t del) {
-    float vol = 0.00125;
-    float frq = 50.0f;
-    this->_sound(rep, frq, del, vol);
+    float frq = 800.0f;
+    this->_sound(rep, frq, del, 0.25);
 }
 
 // Sound signal for signaling start and end of the menu or items selecting on screen
 void Sound::soundBlindAlert(int rep, uint32_t del) {
-    float vol = 0.00125;
-    float frq = 900.0f;
-    this->_sound(rep, frq, del, vol);
+    float frq = 500.0f;
+    this->_sound(rep, frq, del, 0.25);
 }
 
 // Generic [_sound[ method with setting values and repeating logic
 void Sound::_sound(int rep, float frq, uint32_t del, float vol) {
+    // if sound is already playing, then don't interrupt
     if (repeat - 1 > 0 || repeat == -1) {
         return;
     }
@@ -183,7 +198,7 @@ void Sound::nextRepeat() {
 // When variable [repeat] is -1, then repeating will be infinite until [stopSound] is called.
 void Sound::update1ms() {
     // -- timing logic without osDelay for repeating Beep(s)
-    if ((_duration) && (--_duration == 0)) {
+    if ((_duration) && (--_duration <= 0)) {
         if (((repeat) && (--repeat != 0)) || (repeat == -1)) {
             this->nextRepeat();
         }

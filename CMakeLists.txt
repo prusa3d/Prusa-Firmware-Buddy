@@ -11,10 +11,9 @@ project(
 
 if(NOT CMAKE_CROSSCOMPILING)
   #
-  # If we are not crosscompiling, include `utils` with host tools and exit.
+  # If we are not crosscompiling, include `utils` with host tools.
   #
   add_subdirectory(utils)
-  return()
 endif()
 
 #
@@ -99,10 +98,18 @@ resolve_version_variables()
 
 # Check GCC Version
 get_recommended_gcc_version(RECOMMENDED_TOOLCHAIN_VERSION)
-if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ${RECOMMENDED_TOOLCHAIN_VERSION})
+if(CMAKE_CROSSCOMPILING AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL
+                            ${RECOMMENDED_TOOLCHAIN_VERSION}
+   )
   message(WARNING "Recommended ARM toolchain is ${RECOMMENDED_TOOLCHAIN_VERSION}"
                   ", but you have ${CMAKE_CXX_COMPILER_VERSION}"
           )
+
+elseif(NOT CMAKE_CROSSCOMPILING AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  message(
+    WARNING
+      "Recommended compiler for host tools and unittests is GCC, you have ${CMAKE_CXX_COMPILER_ID}."
+    )
 endif()
 
 # Inform user about the resolved settings
@@ -226,17 +233,6 @@ add_library(LwIP_Config INTERFACE)
 target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 
 #
-# Configure WUI
-#
-
-if(WUI)
-  add_library(WUI_Config INTERFACE)
-  target_include_directories(WUI_Config INTERFACE src/common src/gui src/guiapi/include)
-  target_compile_definitions(WUI_Config INTERFACE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
-  target_link_libraries(WUI_Config INTERFACE A3idesHeaders QR)
-endif()
-
-#
 # Configure FatFs
 #
 
@@ -258,11 +254,6 @@ target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
 # Global Compiler & Linker Configuration
 #
 
-# mcu related settings
-set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
-add_compile_options(${MCU_FLAGS})
-add_link_options(${MCU_FLAGS})
-
 # Thread safe newlib
 add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
 
@@ -276,12 +267,19 @@ else()
   add_compile_options(-Os)
 endif()
 
-# better FreeRTOS support
-add_link_options(-Wl,--undefined=uxTopUsedPriority,--undefined=init_task)
+if(CMAKE_CROSSCOMPILING)
+  # mcu related settings
+  set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
+  add_compile_options(${MCU_FLAGS})
+  add_link_options(${MCU_FLAGS})
 
-# split and gc sections
-add_compile_options(-ffunction-sections -fdata-sections)
-add_link_options(-Wl,--gc-sections)
+  # better FreeRTOS support
+  add_link_options(-Wl,--undefined=uxTopUsedPriority,--undefined=init_task)
+
+  # split and gc sections
+  add_compile_options(-ffunction-sections -fdata-sections)
+  add_link_options(-Wl,--gc-sections)
+endif()
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall)
@@ -300,22 +298,21 @@ endif()
 #
 # add_compile_options(-mno-unaligned-access)
 
-# configure linker script
-if(BOOTLOADER)
-  set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
-else(NOT BOOTLOADER)
-  set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+if(CMAKE_CROSSCOMPILING)
+  # configure linker script
+  if(BOOTLOADER)
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
+  else(NOT BOOTLOADER)
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+  endif()
+  add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 endif()
-add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 
 #
 # Import definitions of all libraries
 #
 
 add_subdirectory(lib)
-if(WUI)
-  add_subdirectory(src/wui)
-endif()
 
 #
 # A3ides firmware
@@ -422,13 +419,11 @@ target_sources(
   firmware
   PRIVATE $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/startup/startup_stm32f407xx_boot.s>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/startup/startup_stm32f407xx.s>
-          src/lwip.c
           src/usbd_cdc_if.c
           src/usb_device.c
           src/freertos.c
           src/freertos_openocd.c
           src/usbh_diskio.c
-          src/ethernetif.c
           src/main_${PRINTER}.c
           src/usbd_desc.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
@@ -443,7 +438,7 @@ target_sources(
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
-          src/common/eeprom.c
+          src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
           src/common/media.cpp
@@ -479,11 +474,12 @@ target_sources(
           src/common/sound_C_wrapper.cpp
           src/common/sound.cpp
           src/common/support_utils.cpp
-          src/common/errors.c
-          src/common/lang.c
+          src/common/errors.cpp
+          src/common/lang.cpp
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
+          src/common/wui_api.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
           src/marlin_stubs/M876.cpp
@@ -493,6 +489,7 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
           src/gui/guimain.c
           src/gui/filament.cpp
   )
@@ -590,6 +587,7 @@ if(GUI)
             src/guiapi/src/window_icon.c
             src/guiapi/src/window_spin.c
             src/guiapi/src/window_text.c
+            src/guiapi/src/window_roll_text.c
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
@@ -600,6 +598,9 @@ if(GUI)
             src/guiapi/src/MItem_tools.cpp
     )
 endif()
+
+# Set fsdata filename for HTTPServer
+target_compile_definitions(firmware PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
 
 set_property(
   SOURCE src/common/version.c
@@ -624,3 +625,8 @@ set_property(
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
   )
+
+if(NOT CMAKE_CROSSCOMPILING)
+  enable_testing()
+  add_subdirectory(tests)
+endif()

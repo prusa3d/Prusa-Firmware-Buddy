@@ -10,6 +10,7 @@ static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
     static const char *change = "CHANGE FILAMENT";
     static const char *load = "LOAD FILAMENT";
     static const char *unload = "UNLOAD FILAMENT";
+    static const char *purge = "PURGE FILAMENT";
     static const char *def = "INDEX ERROR";
     const char *name;
     switch (static_cast<LoadUnloadMode>(data)) {
@@ -21,6 +22,9 @@ static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
         break;
     case LoadUnloadMode::Unload:
         name = unload;
+        break;
+    case LoadUnloadMode::Purge:
+        name = purge;
         break;
     default:
         name = def;

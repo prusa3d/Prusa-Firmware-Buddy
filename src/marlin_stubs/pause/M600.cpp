@@ -36,8 +36,10 @@
 
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
+#include <cmath>
 
 /**
  * M600: Pause for filament change
@@ -67,7 +69,7 @@ void GcodeSuite::M600() {
 #endif
 
     // Initial retract before move to filament change position
-    const float retract = -ABS(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
+    const float retract = -std::abs(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
 #ifdef PAUSE_PARK_RETRACT_LENGTH
                 + (PAUSE_PARK_RETRACT_LENGTH)
 #endif
@@ -95,17 +97,31 @@ void GcodeSuite::M600() {
 #endif
 
     // Unload filament
-    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                      : pause.GetUnloadLength());
+    pause.SetUnloadLenght(parser.seen('U') ? parser.value_axis_units(E_AXIS)
+                                           : pause.GetDefaultUnloadLength());
 
     // Slow load filament
-    constexpr float slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
+    pause.SetSlowLoadLenght(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
 
     // Fast load filament
-    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                        : pause.GetLoadLength());
+    pause.SetFastLoadLenght(parser.seen('L') ? parser.value_axis_units(E_AXIS)
+                                             : pause.GetDefaultLoadLength());
 
-    if (pause.PrintPause(retract, park_point, unload_length)) {
-        pause.PrintResume(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH);
+    // Purge filament
+    pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
+
+    float disp_temp = marlin_server_get_temp_to_display();
+    float targ_temp = Temperature::degTargetHotend(target_extruder);
+
+    if (disp_temp > targ_temp) {
+        thermalManager.setTargetHotend(disp_temp, target_extruder);
+    }
+
+    if (pause.PrintPause(retract, park_point)) {
+        pause.PrintResume();
+    }
+
+    if (disp_temp > targ_temp) {
+        thermalManager.setTargetHotend(targ_temp, target_extruder);
     }
 }

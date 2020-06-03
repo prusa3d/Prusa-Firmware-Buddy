@@ -12,6 +12,14 @@
 #include "dbg.h"
 #include "DialogHandler.hpp"
 
+/// Sets temperature of nozzle not to ooze before print (MBL)
+void setPreheatTemp() {
+    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
+}
+void clrPreheatTemp() {
+    marlin_gcode("M104 S0");
+}
+
 /*****************************************************************************/
 //parent
 class MI_event_dispatcher : public WI_LABEL_t {
@@ -42,7 +50,7 @@ public:
         return header_label;
     }
     virtual void Do() {
-        gui_dlg_load();
+        gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
     }
 };
 
@@ -81,7 +89,7 @@ public:
         //opens unload dialog if it is not already openned
         DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));
 
-        gui_dlg_load();
+        gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
     }
 };
 
@@ -98,7 +106,7 @@ public:
         return header_label;
     }
     virtual void Do() {
-        gui_dlg_purge();
+        gui_dlg_purge() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
     }
 };
 

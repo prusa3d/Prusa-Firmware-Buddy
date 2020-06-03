@@ -2123,7 +2123,7 @@
  * Host Prompt Support enables Marlin to use the host for user prompts so
  * filament runout and other processes can be managed from the host side.
  */
-//#define HOST_ACTION_COMMANDS
+#define HOST_ACTION_COMMANDS
 #if ENABLED(HOST_ACTION_COMMANDS)
     #define HOST_PROMPT_SUPPORT
 #endif
@@ -2337,6 +2337,9 @@
 
 // Prusa M73 implementation
 #define M73_PRUSA
+
+// Enable SDCARD gcodes M20 - M30
+#define SDCARD_GCODES
 
 // @section develop
 

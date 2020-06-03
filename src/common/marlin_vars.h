@@ -33,10 +33,21 @@
 #define MARLIN_VAR_PRNSTATE 0x19 // R:  marlin_print_state_t, marlin_server.print_state
 #define MARLIN_VAR_FILENAME 0x1a // R:  char*,
 #define MARLIN_VAR_FILEPATH 0x1b // R:  char*,
-#define MARLIN_VAR_MAX      MARLIN_VAR_FILEPATH
+#define MARLIN_VAR_DTEM_NOZ 0x1c // R:  float, nozzle temperature to display
+#define MARLIN_VAR_TIMTOEND 0x1d // R:  uint32, oProgressData.oTime2End.mGetValue() or -1 if not valid
+#define MARLIN_VAR_MAX      MARLIN_VAR_TIMTOEND
 
 // variable masks
 #define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (v_id))
+
+//maximum number of masks is 64
+//maximum mask index is 63
+#if (MARLIN_VAR_MAX == 63)
+    //in case MARLIN_VAR_MAX == 63 MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1) would fail
+    #define MARLIN_VAR_MSK_ALL ((uint64_t)(-1))
+#else
+    #define MARLIN_VAR_MSK_ALL (MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1)) - (uint64_t)(1))
+#endif
 
 #define MARLIN_VAR_MSK_IPOS_XYZE ( \
     MARLIN_VAR_MSK(MARLIN_VAR_IPOS_X) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_Y) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_E))
@@ -51,16 +62,13 @@
     MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED))
 
 #define MARLIN_VAR_MSK_TEMP_ALL ( \
-    MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED))
+    MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ))
 
 #define MARLIN_VAR_MSK_DEF ( \
-    MARLIN_VAR_MSK(MARLIN_VAR_MOTION) | MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | MARLIN_VAR_MSK_POS_XYZE | MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE) | MARLIN_VAR_MSK(MARLIN_VAR_DURATION) | MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE) | MARLIN_VAR_MSK(MARLIN_VAR_FILENAME))
+    MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) & ~MARLIN_VAR_MSK_IPOS_XYZE & ~MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) & ~MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH))
 
 #define MARLIN_VAR_MSK_WUI ( \
     MARLIN_VAR_MSK_TEMP_CURR | MARLIN_VAR_MSK(MARLIN_VAR_POS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT) | MARLIN_VAR_MSK(MARLIN_VAR_DURATION) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_FILENAME))
-
-#define MARLIN_VAR_MSK_ALL ( \
-    MARLIN_VAR_MSK(MARLIN_VAR_MOTION) | MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE) | MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) | MARLIN_VAR_MSK_IPOS_XYZE | MARLIN_VAR_MSK_POS_XYZE | MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT) | MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) | MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE) | MARLIN_VAR_MSK(MARLIN_VAR_DURATION) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE) | MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH))
 
 // usr8 in variant8_t message contains id (bit0..6) and variable/event flag (bit7)
 #define MARLIN_USR8_VAR_FLG 0x80 // usr8 - variable flag (bit7 set)
@@ -77,8 +85,9 @@
 #define MARLIN_VAR_MOTION_MSK_Z (1 << MARLIN_VAR_INDEX_Z)
 #define MARLIN_VAR_MOTION_MSK_E (1 << MARLIN_VAR_INDEX_E)
 
-#define FILE_NAME_MAX_LEN (96 + 1 + 5 + 1)
-#define FILE_PATH_MAX_LEN (96 + 1 + 5 + 1)
+#define FILE_NAME_MAX_LEN   (96 + 1 + 5 + 1)
+#define FILE_PATH_MAX_LEN   (96 + 1 + 5 + 1)
+#define TIME_TO_END_INVALID ((uint32_t)-1)
 
 typedef enum {
     mpsIdle = 0,
@@ -120,12 +129,14 @@ typedef struct _marlin_vars_t {
     uint8_t wait_heat;                // wait_for_heatup
     uint8_t wait_user;                // wait_for_user
     uint8_t sd_printing;              // card.flag.sdprinting
-    uint8_t sd_percent_done;          // card.percentDone()
-    uint32_t print_duration;          // print_job_timer.duration()
+    uint8_t sd_percent_done;          // card.percentDone() [%]
+    uint32_t print_duration;          // print_job_timer.duration() [ms]
     uint8_t media_inserted;           // media_is_inserted()
     marlin_print_state_t print_state; // marlin_server.print_state
-    char *media_file_name;            //
-    char *media_file_path;            //
+    char *media_LFN;                  // Long-File-Name of the currently selected file - a pointer to a global static buffer
+    char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
+    float display_nozzle;             // nozzle temperature to display [C]
+    uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [ms]
 } marlin_vars_t;
 
 #pragma pack(pop)
@@ -133,6 +144,10 @@ typedef struct _marlin_vars_t {
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+
+inline int is_abort_state(marlin_print_state_t st) {
+    return ((int)st) >= ((int)mpsAborting_Begin) && ((int)st) <= ((int)mpsAborted);
+}
 
 // returns variable name
 extern const char *marlin_vars_get_name(uint8_t var_id);

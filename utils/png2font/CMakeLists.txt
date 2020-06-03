@@ -1,4 +1,9 @@
-find_package(PNG REQUIRED)
+find_package(PNG)
+
+if(NOT PNG_FOUND)
+  message(WARNING "lib PNG not found; skipping png2font target")
+  return()
+endif()
 
 add_executable(png2font)
 

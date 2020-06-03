@@ -4,7 +4,6 @@
 
 #include <stdint.h>
 #include "ini.h"
-#define MAX_INI_SIZE 200
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,7 +11,6 @@ extern "C" {
 uint8_t ini_save_file(const char *ini_save_str);
 uint8_t ini_load_file(ini_handler handler, void *user_struct);
 
-extern char ini_file_str[MAX_INI_SIZE];
 #ifdef __cplusplus
 } // extern "C"
 #endif //__cplusplus

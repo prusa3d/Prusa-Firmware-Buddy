@@ -1,10 +1,10 @@
 // INI file handler (ini_handler.c)
 
 #include "ini_handler.h"
+#include "wui_api.h"
 #include "ff.h"
 
 static const char network_ini_file_name[] = "/lan_settings.ini"; //change -> change msgboxes in screen_lan_settings
-char ini_file_str[MAX_INI_SIZE];
 
 uint8_t ini_save_file(const char *ini_save_str) {
 
@@ -27,16 +27,17 @@ uint8_t ini_save_file(const char *ini_save_str) {
 uint8_t ini_load_file(ini_handler handler, void *user_struct) {
     UINT written_bytes = 0;
     FIL ini_file;
+    ini_file_str_t ini_str;
 
     uint8_t file_init = f_open(&ini_file, network_ini_file_name, FA_READ);
-    uint8_t file_read = f_read(&ini_file, ini_file_str, MAX_INI_SIZE, &written_bytes);
+    uint8_t file_read = f_read(&ini_file, &ini_str, MAX_INI_SIZE, &written_bytes);
     uint8_t file_close = f_close(&ini_file);
 
     if (file_init || file_read || file_close) {
         return 0;
     }
 
-    if (ini_parse_string(ini_file_str, handler, user_struct) < 0) {
+    if (ini_parse_string(ini_str, handler, user_struct) < 0) {
         return 0;
     }
     return 1;

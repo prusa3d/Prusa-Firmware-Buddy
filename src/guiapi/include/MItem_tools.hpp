@@ -194,4 +194,41 @@ protected:
     virtual void click(Iwindow_menu_t &window_menu);
 };
 
+class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = "Timeout";
+    static bool timeout_enabled;
+
+public:
+    MI_TIMEOUT();
+    virtual void OnChange(size_t old_index);
+};
+
+class MI_SOUND_MODE : public WI_SWITCH_t<4> {
+    constexpr static const char *const label = "Sound Mode";
+
+    constexpr static const char *str_Once = "Once";
+    constexpr static const char *str_Loud = "Loud";
+    constexpr static const char *str_Silent = "Silent";
+    constexpr static const char *str_Assist = "Assist";
+    size_t init_index() const;
+
+public:
+    MI_SOUND_MODE();
+    virtual void OnChange(size_t old_index);
+};
+
+class MI_SOUND_TYPE : public WI_SWITCH_t<5> {
+    constexpr static const char *const label = "Sound Type";
+
+    constexpr static const char *str_ButtonEcho = "ButtonEcho";
+    constexpr static const char *str_StandardPrompt = "StandardPrompt";
+    constexpr static const char *str_StandardAlert = "StandardAlert";
+    constexpr static const char *str_EncoderMove = "EncoderMove";
+    constexpr static const char *str_BlindAlert = "BlindAlert";
+
+public:
+    MI_SOUND_TYPE();
+    virtual void OnChange(size_t old_index);
+};
+
 #pragma pack(pop)

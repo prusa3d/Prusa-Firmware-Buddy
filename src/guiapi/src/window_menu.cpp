@@ -126,13 +126,19 @@ void window_menu_init(window_menu_t *window) {
     window->top_index = 0;
     window->win.flg |= WINDOW_FLG_ENABLED;
     //window->pContainer = NULL;//set by screen_menu ctor
-    */
+    window->roll.count = window->roll.px_cd = window->roll.progress = 0;
+    window->last_index = 0;
+    window->roll.phase = ROLL_SETUP;
+    window->roll.setup = TXTROLL_SETUP_INIT;
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+*/
 }
 
 void window_menu_done(window_menu_t *window) {
+    gui_timers_delete_by_window_id(window->win.id);
 }
 /*
-void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
+void window_menu_calculate_spin(const WI_SPIN_t *item, char *value, unsigned int value_size) {
     const char *format;
 
     if (item->range[WIO_STEP] < 10)
@@ -143,7 +149,7 @@ void window_menu_calculate_spin(WI_SPIN_t *item, char *value) {
         format = "%.1f";
     else
         format = "%.f";
-    sprintf(value, format, item->value * 0.001);
+    snprintf(value, value_size, format, item->value * 0.001);
 }
 */
 void window_menu_set_item_index(window_t *window, int index) {
@@ -214,11 +220,12 @@ void window_menu_draw(window_menu_t *window) {
             {
             case WI_SPIN:
             case WI_SPIN_FL: {
-                char value[20] = { '\0' };
+                const unsigned int text_len = 20;
+                char value[text_len] = { '\0' };
                 if (item->type & WI_SPIN_FL)
-                    sprintf(value, item->data.wi_spin_fl.prt_format, (double)item->data.wi_spin_fl.value);
+                    snprintf(value, text_len, item->wi_spin_fl.prt_format, (double)item->wi_spin_fl.value);
                 else
-                    window_menu_calculate_spin(&(item->data.wi_spin), value);
+                    window_menu_calculate_spin(&(item->wi_spin), value, text_len);
 
                 _window_menu_draw_value(window, value, &rc, color_option, color_back);
             } break;
@@ -244,10 +251,29 @@ void window_menu_draw(window_menu_t *window) {
             }
 
             // render
-            render_text_align(rc, item->label.data(), window->font,
-                color_back, color_text,
-                padding, window->alignment);
-                */
+            if ((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == idx) {
+                if (window->index != window->last_index) {
+                    window->last_index = window->index;
+                    window->roll.setup = TXTROLL_SETUP_INIT;
+                    window->roll.phase = ROLL_SETUP;
+                    gui_timer_restart_txtroll(window->win.id);
+                    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+                }
+
+                render_roll_text_align(rc,
+                    item->label,
+                    window->font,
+                    padding,
+                    window->alignment,
+                    color_back,
+                    color_text,
+                    &window->roll);
+            } else {
+                render_text_align(rc, item->label, window->font,
+                    color_back, color_text,
+                    padding, window->alignment);
+            }
+        */
         }
     }
     rc_win.h = rc_win.h - (i * item_height);
@@ -256,42 +282,18 @@ void window_menu_draw(window_menu_t *window) {
         rc_win.y += i * item_height;
         display->fill_rect(rc_win, window->color_back);
     }
+    window->win.flg &= ~WINDOW_FLG_INVALID;
 }
 
 //i think I do not need
 //screen_dispatch_event
 //callback should handle it
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
-    //window->src_event = event;
-    //window->src_param = param;
     IWindowMenuItem *const item = window->GetActiveItem();
     const int value = int(param);
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        //if (window->mode != WI_LABEL) {
-        //    window->mode = WI_LABEL;
-        /*if (window->selected) {
-            window->selected = false;
-            screen_dispatch_event(NULL, WINDOW_EVENT_CHANGE, (void *)window->index);
-        } else {
-            IWindowMenuItem *item;
-            window->menu_items(window, window->index, &item, window->data);
 
-            //mask all flags but WI_DISABLED
-            if ((item->IsEnabled())) {
-                //"& 0xff" == mask all flags off
-                //switch does not set type, i is acting like label i suppose
-                if ((item->type & 0xff) == WI_SWITCH) {
-                    window_menu_item_switch(window);
-                } else {
-                    window->mode = item->type & 0xff;
-                }
-            } else {
-                screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)window->index);
-                return;
-            }
-            screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)window->index);
-        }*/
         item->Click(*window);
         //_window_invalidate((window_t *)window); //called inside click
         break;
@@ -301,9 +303,6 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         } else {
             window->Decrement(value);
         }
-        /* if (window->mode != WI_LABEL) {
-            screen_dispatch_event(NULL, WINDOW_EVENT_CHANGING, (void *)window->index);
-        }*/
         break;
     case WINDOW_EVENT_ENC_UP:
         if (item->IsSelected()) {
@@ -311,13 +310,13 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         } else {
             window->Incement(value);
         }
-        /* if (window->mode != WI_LABEL) {
-            screen_dispatch_event(NULL, WINDOW_EVENT_CHANGING, (void *)window->index);
-        }*/
         break;
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
-        break;
+        break; /*
+    case WINDOW_EVENT_TIMER:
+        roll_text_phasing(window->win.id, window->font, &window->roll);
+        break;*/
     }
 }
 

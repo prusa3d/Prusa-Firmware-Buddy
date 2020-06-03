@@ -11,6 +11,8 @@
 #include "eeprom_loadsave.h"
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "screen_lan_settings.h"
+    #include "menu_vars.h"
+    #include "wui_api.h"
 #endif //BUDDY_ENABLE_ETHERNET
 #include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
@@ -52,71 +54,6 @@ protected:
             fs_disable();
             index = old_index;
             gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
-        }
-    }
-};
-
-/*****************************************************************************/
-//MI_TIMEOUT
-//if needed to remeber after poweroff
-//use st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS) st25dv64k_user_write((uint16_t)MENU_TIMEOUT_FLAG_ADDRESS, (uint8_t)1 or 0);
-class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = "Timeout";
-    static bool timeout_enabled;
-
-public:
-    MI_TIMEOUT()
-        : WI_SWITCH_OFF_ON_t(timeout_enabled ? 0 : 1, label, 0, true, false) {}
-    virtual void OnChange(size_t old_index) {
-        if (timeout_enabled) {
-            gui_timer_delete(gui_get_menu_timeout_id());
-        }
-        timeout_enabled = !timeout_enabled;
-    }
-};
-bool MI_TIMEOUT::timeout_enabled = true;
-
-/*****************************************************************************/
-//MI_SOUND_MODE
-class MI_SOUND_MODE : public WI_SWITCH_t<4> {
-    constexpr static const char *const label = "Sound Mode";
-
-    constexpr static const char *str_Once = "Once";
-    constexpr static const char *str_Loud = "Loud";
-    constexpr static const char *str_Silent = "Silent";
-    constexpr static const char *str_Assist = "Assist";
-    size_t init_index() const {
-        size_t sound_mode = Sound_GetMode();
-        return sound_mode > 4 ? eSOUND_MODE_DEFAULT : sound_mode;
-    }
-
-public:
-    MI_SOUND_MODE()
-        : WI_SWITCH_t<4>(init_index(), label, 0, true, false, str_Once, str_Loud, str_Silent, str_Assist) {}
-    virtual void OnChange(size_t old_index) {
-        Sound_SetMode(static_cast<eSOUND_MODE>(index));
-    }
-};
-
-/*****************************************************************************/
-//MI_SOUND_TYPE
-class MI_SOUND_TYPE : public WI_SWITCH_t<5> {
-    constexpr static const char *const label = "Sound Type";
-
-    constexpr static const char *str_ButtonEcho = "ButtonEcho";
-    constexpr static const char *str_StandardPrompt = "StandardPrompt";
-    constexpr static const char *str_StandardAlert = "StandardAlert";
-    constexpr static const char *str_EncoderMove = "EncoderMove";
-    constexpr static const char *str_BlindAlert = "BlindAlert";
-
-public:
-    MI_SOUND_TYPE()
-        : WI_SWITCH_t<5>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_EncoderMove, str_BlindAlert) {}
-    virtual void OnChange(size_t old_index) {
-        if (old_index == eSOUND_TYPE_StandardPrompt) {
-            gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
-        } else {
-            Sound_Play(static_cast<eSOUND_TYPE>(old_index));
         }
     }
 };

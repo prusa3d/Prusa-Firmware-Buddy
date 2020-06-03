@@ -64,6 +64,7 @@ extern "C" {
 /* USER CODE BEGIN EC */
 extern uartrxbuff_t uart1rxbuff;
 extern SPI_HandleTypeDef hspi2;
+extern TIM_HandleTypeDef htim1;
 
 /* USER CODE END EC */
 

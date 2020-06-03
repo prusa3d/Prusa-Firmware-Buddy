@@ -40,17 +40,19 @@
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 #include "filament.h"
+#include <functional>
+#include <cmath>
 
 #define DO_NOT_RESTORE_Z_AXIS
 #define Z_AXIS_LOAD_POS   40
 #define Z_AXIS_UNLOAD_POS 20
 
-typedef void (*load_unload_fnc)(const int8_t target_extruder);
+using Func = std::function<void()>;
 
 /**
  * Shared code for load/unload filament
  */
-static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint32_t min_Z_pos) {
+static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_pos) {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
@@ -66,8 +68,21 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
         Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
+
+    float disp_temp = marlin_server_get_temp_to_display();
+    float targ_temp = Temperature::degTargetHotend(target_extruder);
+
+    if (disp_temp > targ_temp) {
+        thermalManager.setTargetHotend(disp_temp, target_extruder);
+    }
+
     // Load/Unload filament
-    f_load_unload(target_extruder);
+    f_load_unload();
+
+    if (disp_temp > targ_temp) {
+        thermalManager.setTargetHotend(targ_temp, target_extruder);
+    }
+
 #ifndef DO_NOT_RESTORE_Z_AXIS
     // Restore Z axis
     if (min_Z_pos > 0) {
@@ -79,12 +94,16 @@ static void load_unload(LoadUnloadMode type, load_unload_fnc f_load_unload, uint
 }
 
 /**
- * Load filament special code
- * filament type must be last parameter
- * type name cannot contain 'Z'
- * todo rewrite
+ * M701: Load filament
+ *
+ *  T<extruder> - Extruder number. Required for mixing extruder.
+ *                For non-mixing, current extruder if omitted.
+ *  Z<distance> - Move the Z axis by this distance
+ *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
+ *  S"Filament" - save filament by name, for example S"PLA". RepRap compatible.
+ *  Default values are used for omitted arguments.
  */
-static void load(const int8_t target_extruder) {
+void GcodeSuite::M701() {
     filament_to_load = DEFAULT_FILAMENT;
     const char *text_begin = 0;
     if (parser.seen('S')) {
@@ -101,35 +120,18 @@ static void load(const int8_t target_extruder) {
         }
     }
 
-    const float fast_load_length = ABS((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
-                                                                                                                          : pause.GetLoadLength());
-    constexpr float purge_length = ADVANCED_PAUSE_PURGE_LENGTH;
-    const float slow_load_length = fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0;
+    const float fast_load_length = std::abs((parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin)) ? parser.value_axis_units(E_AXIS)
+                                                                                                                               : pause.GetDefaultLoadLength());
+    pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
+    pause.SetSlowLoadLenght(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
+    pause.SetFastLoadLenght(fast_load_length);
 
-    pause.FilamentLoad(slow_load_length, fast_load_length, purge_length);
-}
-
-/**
- * Unload filament special code
- */
-static void unload(const int8_t target_extruder) {
-    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetUnloadLength());
-
-    pause.FilamentUnload(unload_length);
-}
-
-/**
- * M701: Load filament
- *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  Z<distance> - Move the Z axis by this distance
- *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
- *  S"Filament" - save filament by name, for example S"PLA". RepRap compatible.
- *  Default values are used for omitted arguments.
- */
-void GcodeSuite::M701() {
-    load_unload(LoadUnloadMode::Load, load, Z_AXIS_LOAD_POS);
+    if (fast_load_length)
+        load_unload(
+            LoadUnloadMode::Load, [] { pause.FilamentLoad(); }, Z_AXIS_LOAD_POS);
+    else
+        load_unload(
+            LoadUnloadMode::Purge, [] { pause.FilamentLoad(); }, Z_AXIS_LOAD_POS);
 }
 
 /**
@@ -144,5 +146,7 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    load_unload(LoadUnloadMode::Unload, unload, Z_AXIS_UNLOAD_POS);
+    pause.SetUnloadLenght(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetDefaultUnloadLength());
+    load_unload(
+        LoadUnloadMode::Unload, [] { pause.FilamentUnload(); }, Z_AXIS_UNLOAD_POS);
 }

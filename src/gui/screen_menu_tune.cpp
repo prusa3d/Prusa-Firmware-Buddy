@@ -12,7 +12,7 @@
 /*****************************************************************************/
 //parent alias
 using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_SPEED, MI_NOZZLE,
-    MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_BABYSTEP, MI_M600, MI_LAN_SETTINGS, MI_VERSION_INFO,
+    MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_BABYSTEP, MI_M600, MI_SOUND_MODE, MI_LAN_SETTINGS, MI_VERSION_INFO,
 #ifdef _DEBUG
     MI_TEST,
 #endif //_DEBUG

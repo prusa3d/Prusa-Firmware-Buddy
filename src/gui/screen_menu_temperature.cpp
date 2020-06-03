@@ -47,6 +47,7 @@ int ScreenMenuTenperature::CEvent(screen_t *screen, window_t *window, uint8_t ev
     ScreenMenuTenperature *const ths = reinterpret_cast<ScreenMenuTenperature *>(screen->pdata);
     if (event == WINDOW_EVENT_CLICK) {
         marlin_set_target_nozzle(0);
+        marlin_set_display_nozzle(0);
         marlin_set_target_bed(0);
         marlin_set_fan_speed(0);
 
