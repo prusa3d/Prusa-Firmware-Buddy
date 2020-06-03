@@ -1,6 +1,5 @@
 /*
-/*
- * screen_lan_settings.c
+ * screen_lan_settings.cpp
  *
  *  Created on: Nov 27, 2019
  *      Author: Migi
@@ -14,91 +13,45 @@
 #include <string.h>
 #include "screens.h"
 #include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
 #include "wui_api.h"
 #include "config.h"
-/*
-typedef enum {
-    MI_RETURN,
-    MI_SWITCH,
-    MI_TYPE,
-    MI_SAVE,
-    MI_LOAD,
-    MI_COUNT
-} MI_t;
 
-static bool conn_flg = false; // wait for dhcp to supply addresses
-static const char *LAN_switch_opt[] = { "On", "Off", NULL };
-static const char *LAN_type_opt[] = { "DHCP", "static", NULL };
+/*****************************************************************************/
+//Eth static class used by menu and its items
+//And NO David a do not want to use singleton here
+#pragma pack(push, 1)
+class Eth {
+    static bool new_data_flg;
+    static bool conn_flg; // wait for dhcp to supply addresses
 
-typedef struct {
-    window_frame_t root;
-    window_header_t header;
-    window_menu_t menu;
-    window_text_t text;
-    menu_item_t items[MI_COUNT];
-    lan_descp_str_t plan_str;
+public:
+    static bool IsNewData(); //clear by read
+    static uint8_t GetFlag();
+    static uint8_t Save();
+    static void On();
+    static void Off();
+    static bool IsStatic();
+    static bool IsOn();
+    static void Init();
+    static bool IsUpdated();
+};
+#pragma pack(pop)
 
-} screen_lan_settings_data_t;
+bool Eth::conn_flg = false;
+bool Eth::new_data_flg = false;
 
-static void _screen_lan_settings_item(window_menu_t *pwindow_menu, uint16_t index,
-    window_menu_item_t **ppitem, void *data) {
-    screen_t *screen = (screen_t *)data;
-    *ppitem = &(plsd->items[index].item);
-}
-
-static void refresh_addresses(screen_t *screen) {
-    ETH_config_t ethconfig;
-    update_eth_addrs(&ethconfig);
-    stringify_eth_for_screen(&plsd->plan_str, &ethconfig);
-    plsd->text.text = (char *)plsd->plan_str;
-    plsd->text.win.flg |= WINDOW_FLG_INVALID;
-    gui_invalidate();
-}
-
-static void screen_lan_settings_init(screen_t *screen) {
-    //============= LOAD CONFIG ===============
+/*****************************************************************************/
+//Eth methods
+uint8_t Eth::GetFlag() {
     ETH_config_t ethconfig;
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
 
-    conn_flg = (IS_LAN_ON(ethconfig.lan.flag) && IS_LAN_DHCP(ethconfig.lan.flag) && dhcp_addrs_are_supplied());
-
-    //============= SCREEN INIT ===============
-    rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 150);
-
-    int16_t id;
-    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(plsd->root));
-    window_disable(root);
-
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, rect_ui16(0, 0, 240, 31), &(plsd->header));
-    p_window_header_set_text(&(plsd->header), "LAN SETTINGS");
-
-    id = window_create_ptr(WINDOW_CLS_MENU, root, menu_rect, &(plsd->menu));
-    plsd->menu.padding = padding_ui8(20, 6, 2, 6);
-    plsd->menu.icon_rect = rect_ui16(0, 0, 16, 30);
-    plsd->menu.count = MI_COUNT;
-    plsd->menu.menu_items = _screen_lan_settings_item;
-    plsd->menu.data = (void *)screen;
-
-    window_set_capture(id); // set capture to list
-    window_set_focus(id);
-
-    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(10, 183, 230, 137), &(plsd->text));
-    plsd->text.font = resource_font(IDR_FNT_SPECIAL);
-
-    plsd->items[MI_RETURN] = menu_item_return;
-    plsd->items[MI_SWITCH] = (menu_item_t) { { "LAN", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    plsd->items[MI_SWITCH].item.wi_switch_select.index = IS_LAN_OFF(ethconfig.lan.flag) ? 1 : 0;
-    plsd->items[MI_SWITCH].item.wi_switch_select.strings = LAN_switch_opt;
-    plsd->items[MI_TYPE] = (menu_item_t) { { "LAN IP", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    plsd->items[MI_TYPE].item.wi_switch_select.index = IS_LAN_STATIC(ethconfig.lan.flag) ? 1 : 0;
-    plsd->items[MI_TYPE].item.wi_switch_select.strings = LAN_type_opt;
-    plsd->items[MI_SAVE] = (menu_item_t) { { "Save settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-    plsd->items[MI_LOAD] = (menu_item_t) { { "Load settings", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-
-    refresh_addresses(screen);
+    return ethconfig.lan.flag;
 }
-static uint8_t save_config(void) {
+
+uint8_t Eth::Save() {
     ETH_config_t ethconfig;
     ini_file_str_t ini_str;
     ethconfig.var_mask = ETHVAR_EEPROM_CONFIG;
@@ -107,26 +60,155 @@ static uint8_t save_config(void) {
     return ini_save_file((const char *)&ini_str);
 }
 
-static int screen_lan_settings_event(screen_t *screen, window_t *window,
-    uint8_t event, void *param) {
+void Eth::Off() {
+    ETH_config_t ethconfig;
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    load_eth_params(&ethconfig);
+    turn_off_LAN(&ethconfig);
+    save_eth_params(&ethconfig);
+    new_data_flg = true;
+}
 
-    window_header_events(&(plsd->header));
+void Eth::On() {
+    ETH_config_t ethconfig;
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    load_eth_params(&ethconfig);
+    turn_on_LAN(&ethconfig);
+    save_eth_params(&ethconfig);
+    new_data_flg = true;
+    if (IS_LAN_DHCP(ethconfig.lan.flag)) {
+        conn_flg = true;
+    }
+}
 
+bool Eth::IsStatic() {
+    return IS_LAN_STATIC(GetFlag());
+}
+bool Eth::IsOn() {
+    return !IS_LAN_OFF(GetFlag());
+}
+
+void Eth::Init() {
+    uint8_t flg = GetFlag();
+    conn_flg = (IS_LAN_ON(flg) && IS_LAN_DHCP(flg) && dhcp_addrs_are_supplied());
+}
+
+bool Eth::IsUpdated() {
     if (conn_flg) {
-        ETH_config_t ethconfig;
-        ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        load_eth_params(&ethconfig);
-        if ((IS_LAN_DHCP(ethconfig.lan.flag) && dhcp_addrs_are_supplied()) || IS_LAN_STATIC(ethconfig.lan.flag)) {
+        uint8_t eth_flag = GetFlag();
+        if ((IS_LAN_DHCP(eth_flag) && dhcp_addrs_are_supplied()) || IS_LAN_STATIC(eth_flag)) {
             conn_flg = false;
-            refresh_addresses(screen);
+            return true;
         }
     }
+    return false;
+}
+
+/*****************************************************************************/
+//ITEMS
+#pragma pack(push, 1)
+class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = "LAN";
+
+public:
+    MI_LAN_ONOFF()
+        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 0 : 1, label, 0, true, false) {}
+    virtual void OnChange(size_t old_index) {
+        old_index == 0 ? Eth::Off() : Eth::On();
+    }
+};
+
+class MI_LAN_IP_t : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = "LAN IP";
+
+    constexpr static const char *str_static = "static";
+    constexpr static const char *str_DHCP = "DHCP";
+
+public:
+    MI_LAN_IP_t()
+        : WI_SWITCH_t<2>(Eth::IsStatic() ? 0 : 1, label, 0, true, false, str_static, str_DHCP) {}
+    virtual void OnChange(size_t old_index) {
+    }
+};
+
+class MI_SAVE : public WI_LABEL_t {
+    constexpr static const char *const label = "Save settings";
+
+public:
+    MI_SAVE()
+        : WI_LABEL_t(label, 0, true, false) {}
+    virtual void click(Iwindow_menu_t &window_menu) {
+    }
+};
+
+class MI_LOAD : public WI_LABEL_t {
+    constexpr static const char *const label = "Load settings";
+
+public:
+    MI_LOAD()
+        : WI_LABEL_t(label, 0, true, false) {}
+    virtual void click(Iwindow_menu_t &window_menu) {
+    }
+};
+#pragma pack(pop)
+
+/*****************************************************************************/
+//parent alias
+using parent = screen_menu_data_t<EHeader::On, EFooter::Off, EHelp::On,
+    MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_SAVE, MI_LOAD>;
+
+#pragma pack(push, 1)
+class ScreenMenuLanSettings : public parent {
+    lan_descp_str_t plan_str;
+    void refresh_addresses();
+
+public:
+    constexpr static const char *label = "LAN SETTINGS";
+    static void Init(screen_t *screen);
+    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+};
+
+#pragma pack(pop)
+
+/*****************************************************************************/
+//non static member function definition
+void ScreenMenuLanSettings::refresh_addresses() {
+    ETH_config_t ethconfig;
+    update_eth_addrs(&ethconfig);
+    stringify_eth_for_screen(&plan_str, &ethconfig);
+    help.text = (char *)plan_str;
+    help.win.flg |= WINDOW_FLG_INVALID;
+    gui_invalidate();
+}
+
+/*****************************************************************************/
+//static member function definition
+void ScreenMenuLanSettings::Init(screen_t *screen) {
+    marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
+    Create(screen, label);
+
+    //============= LOAD CONFIG ===============
+    Eth::Init();
+
+    //============= SCREEN INIT ===============
+    ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
+
+    ths->help.font = resource_font(IDR_FNT_SPECIAL);
+    ths->refresh_addresses();
+}
+
+int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
+
+    //window_header_events(&(ths->header)); //dodo check if needed
+    if (Eth::IsUpdated())
+        ths->refresh_addresses();
 
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
 
-    switch ((int)param) {
+    /*  switch ((int)param) {
     case MI_RETURN:
         screen_close();
         return 1;
@@ -157,7 +239,7 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
                 if (gui_msgbox("Static IPv4 addresses were not set.",
                         MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
                     == MSGBOX_RES_OK) {
-                    plsd->items[MI_TYPE].item.wi_switch_select.index = 0;
+                    ths->items[MI_TYPE].item.wi_switch_select.index = 0;
                 }
                 return 0;
             }
@@ -166,9 +248,9 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
             set_LAN_to_static(&ethconfig);
             ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
             save_eth_params(&ethconfig);
-            stringify_eth_for_screen(&plsd->plan_str, &ethconfig);
-            plsd->text.text = (char *)plsd->plan_str;
-            plsd->text.win.flg |= WINDOW_FLG_INVALID;
+            stringify_eth_for_screen(&ths->plan_str, &ethconfig);
+            ths->text.text = (char *)ths->plan_str;
+            ths->text.win.flg |= WINDOW_FLG_INVALID;
             gui_invalidate();
         } else {
             set_LAN_to_dhcp(&ethconfig);
@@ -212,17 +294,17 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
 
                     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
                     load_eth_params(&ethconfig);
-                    plsd->items[MI_TYPE].item.wi_switch_select.index = IS_LAN_STATIC(ethconfig.lan.flag) ? 1 : 0;
-                    window_invalidate(plsd->menu.win.id);
+                    ths->items[MI_TYPE].item.wi_switch_select.index = Eth::IsStatic() ? 1 : 0;
+                    window_invalidate(ths->menu.win.id);
                     if (IS_LAN_DHCP(ethconfig.lan.flag)) {
                         refresh_addresses(screen);
                         conn_flg = true;
                     } else {
                         ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
                         load_eth_params(&ethconfig);
-                        stringify_eth_for_screen(&plsd->plan_str, &ethconfig);
-                        plsd->text.text = (char *)plsd->plan_str;
-                        plsd->text.win.flg |= WINDOW_FLG_INVALID;
+                        stringify_eth_for_screen(&ths->plan_str, &ethconfig);
+                        ths->text.text = (char *)ths->plan_str;
+                        ths->text.win.flg |= WINDOW_FLG_INVALID;
                     }
                 }
 
@@ -235,49 +317,20 @@ static int screen_lan_settings_event(screen_t *screen, window_t *window,
         }
         break;
     }
-    return 0;
-}
+    return 0;*/
 
-static void screen_lan_settings_draw(screen_t *screen) {
-}
-
-static void screen_lan_settings_done(screen_t *screen) {
-    window_destroy(plsd->root.win.id);
+    return ths->Event(window, event, param);
 }
 
 screen_t screen_lan_settings = {
     0,
     0,
-    screen_lan_settings_init,
-    screen_lan_settings_done,
-    screen_lan_settings_draw,
-    screen_lan_settings_event,
-    sizeof(screen_lan_settings_data_t), //data_size
-    0,                                  //pdata
-};
-
-extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }
-};
-*/
-
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
-
-using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN>;
-
-static void init(screen_t *screen) {
-    Screen::Create(screen);
-}
-
-screen_t screen_lan_settings = {
-    0,
-    0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    0,              //pdata
+    ScreenMenuLanSettings::Init,
+    ScreenMenuLanSettings::CDone,
+    ScreenMenuLanSettings::CDraw,
+    ScreenMenuLanSettings::CEvent,
+    sizeof(ScreenMenuLanSettings), //data_size
+    0,                             //pdata
 };
 
 extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }
