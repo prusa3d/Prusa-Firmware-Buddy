@@ -17,10 +17,10 @@ void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, 
     const rect_ui16_t rc_b = { r_out->x, r_in->y + r_in->h, r_out->w, (r_out->y + r_out->h) - (r_in->y + r_in->h) };
     display->fill_rect(rc_b, color);
 
-    const rect_ui16_t rc_l = { r_out->x, r_out->y, r_in->x - r_out->x, r_in->h };
+    const rect_ui16_t rc_l = { r_out->x, r_in->y, r_in->x - r_out->x, r_in->h };
     display->fill_rect(rc_l, color);
 
-    const rect_ui16_t rc_r = { r_in->x + r_in->w, r_out->y, (r_out->x + r_out->w) - (r_in->x + r_in->w), r_in->h };
+    const rect_ui16_t rc_r = { r_in->x + r_in->w, r_in->y, (r_out->x + r_out->w) - (r_in->x + r_in->w), r_in->h };
     display->fill_rect(rc_r, color);
 }
 
