@@ -7,6 +7,7 @@
 #include "gui.h"
 #include "sys.h"
 #include "window_dlg_wait.h"
+#include "sound_C_wrapper.h"
 
 /*****************************************************************************/
 //MI_WIZARD
