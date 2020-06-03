@@ -28,6 +28,9 @@
 #define CRC32_USE_HW
 #define CRC32_USE_RTOS
 
+//uart2 rx complete signal
+#define UART2_SIG_RXCPL 0x0004
+
 //guiconfig.h included with config
 #include "guiconfig.h"
 

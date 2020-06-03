@@ -15,6 +15,8 @@ extern "C" {
 
 extern UART_HandleTypeDef huart2;
 extern DMA_HandleTypeDef hdma_usart2_rx;
+extern osThreadId uart2_thread;
+extern int32_t uart2_signal;
 
 uint8_t rbuff[10];
 unsigned int rbufc = 0;
@@ -63,6 +65,7 @@ size_t HardwareSerial::write(uint8_t c) {
     if ((cnt > 2) && (buf[2] & 0x80))
         len = 8;
     if (cnt >= len) {
+        uart2_thread = osThreadGetId();
         int retry = 3;
         while (retry--) {
             if (len == 4)
@@ -74,7 +77,7 @@ size_t HardwareSerial::write(uint8_t c) {
             {
                 DBG("tx %02x %02x %02x %02x", buf[0], buf[1], buf[2], buf[3]);
                 osEvent ose;
-                if ((ose = osSignalWait(4, 100)).status == osEventSignal) {
+                if ((ose = osSignalWait(uart2_signal, 100)).status == osEventSignal) {
                     DBG("signal, received %d", 12);
                     DBG("rx %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x", buf2[0], buf2[1], buf2[2], buf2[3], buf2[4], buf2[5], buf2[6], buf2[7], buf2[8], buf2[9], buf2[10], buf2[11]);
                     memcpy(rbuff, buf2 + 4, 8);
@@ -89,7 +92,7 @@ size_t HardwareSerial::write(uint8_t c) {
             {
                 DBG("tx %02x %02x %02x %02x %02x %02x %02x %02x", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
                 osEvent ose;
-                if ((ose = osSignalWait(4, 100)).status == osEventSignal) {
+                if ((ose = osSignalWait(uart2_signal, 100)).status == osEventSignal) {
                     DBG("signal, received %d", 4);
                     DBG("rx %02x %02x %02x %02x", buf2[0], buf2[1], buf2[2], buf2[3]);
                     memcpy(rbuff, buf2, 8);
@@ -106,6 +109,7 @@ size_t HardwareSerial::write(uint8_t c) {
             }
         }
         cnt = 0;
+        uart2_thread = 0;
     }
     return 1;
 }

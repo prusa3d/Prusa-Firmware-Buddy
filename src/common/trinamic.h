@@ -14,6 +14,7 @@ extern void tmc_set_sgthrs(uint8_t SGT);
 extern void tmc_get_sgt();
 extern void tmc_get_TPWMTHRS();
 extern void tmc_get_tstep();
+extern uint8_t tmc_sample();
 
 #ifdef __cplusplus
 }

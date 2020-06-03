@@ -98,6 +98,9 @@ DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
 
+osThreadId uart2_thread = 0;
+int32_t uart2_signal = UART2_SIG_RXCPL;
+
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId webServerTaskHandle;
@@ -938,9 +941,10 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart1)
         uartrxbuff_rxcplt_cb(&uart1rxbuff);
-    else if (huart == &huart2)
-        osSignalSet(defaultTaskHandle, 0x04);
-    else if (huart == &huart6)
+    else if (huart == &huart2) {
+        if (uart2_thread)
+            osSignalSet(uart2_thread, uart2_signal);
+    } else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);
 }
 
