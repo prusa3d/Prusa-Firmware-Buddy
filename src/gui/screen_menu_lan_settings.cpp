@@ -16,31 +16,42 @@
 #include "WindowMenuItems.hpp"
 #include "wui_api.h"
 #include "config.h"
+#include "RAII.hpp"
 
 /*****************************************************************************/
 //Eth static class used by menu and its items
 //And NO David a do not want to use singleton here
 #pragma pack(push, 1)
 class Eth {
+public:
+    enum class Msg : uint8_t { NoMsg,
+        StaicAddrErr,
+        NoUSB,
+        SaveOK,
+        SaveNOK };
     static bool new_data_flg;
     static bool conn_flg; // wait for dhcp to supply addresses
+    static Msg msg;
 
 public:
-    static bool IsNewData(); //clear by read
     static uint8_t GetFlag();
     static uint8_t Save();
     static void On();
     static void Off();
     static bool IsStatic();
+    static bool IsDHCP();
     static bool IsOn();
     static void Init();
     static bool IsUpdated();
+    static void SetStatic();
+    static void SetDHCP();
+    static Msg ConsumeMsg();
 };
 #pragma pack(pop)
 
 bool Eth::conn_flg = false;
 bool Eth::new_data_flg = false;
-
+Eth::Msg Eth::msg = Eth::Msg::NoMsg;
 /*****************************************************************************/
 //Eth methods
 uint8_t Eth::GetFlag() {
@@ -84,6 +95,11 @@ void Eth::On() {
 bool Eth::IsStatic() {
     return IS_LAN_STATIC(GetFlag());
 }
+
+bool Eth::IsDHCP() {
+    return IS_LAN_DHCP(GetFlag());
+}
+
 bool Eth::IsOn() {
     return !IS_LAN_OFF(GetFlag());
 }
@@ -94,14 +110,52 @@ void Eth::Init() {
 }
 
 bool Eth::IsUpdated() {
+    bool ret = false;
     if (conn_flg) {
         uint8_t eth_flag = GetFlag();
         if ((IS_LAN_DHCP(eth_flag) && dhcp_addrs_are_supplied()) || IS_LAN_STATIC(eth_flag)) {
             conn_flg = false;
-            return true;
+            ret = true;
         }
     }
-    return false;
+    ret |= new_data_flg;
+    new_data_flg = false;
+    return ret;
+}
+
+void Eth::SetStatic() {
+    ETH_config_t ethconfig;
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
+    load_eth_params(&ethconfig);
+
+    if (ethconfig.lan.addr_ip4.addr == 0) {
+        msg = Msg::StaicAddrErr;
+        return;
+    }
+    ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
+    load_eth_params(&ethconfig);
+    set_LAN_to_static(&ethconfig);
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    save_eth_params(&ethconfig);
+    new_data_flg = true;
+}
+
+void Eth::SetDHCP() {
+    ETH_config_t ethconfig;
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
+    load_eth_params(&ethconfig);
+
+    set_LAN_to_dhcp(&ethconfig);
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    save_eth_params(&ethconfig);
+    new_data_flg = true;
+    conn_flg = true;
+}
+
+Eth::Msg Eth::ConsumeMsg() {
+    Msg ret = msg;
+    msg = Msg::NoMsg;
+    return ret;
 }
 
 /*****************************************************************************/
@@ -160,7 +214,9 @@ using parent = screen_menu_data_t<EHeader::On, EFooter::Off, EHelp::On,
 #pragma pack(push, 1)
 class ScreenMenuLanSettings : public parent {
     lan_descp_str_t plan_str;
+    bool msg_shown;
     void refresh_addresses();
+    void show_msg(Eth::Msg msg);
 
 public:
     constexpr static const char *label = "LAN SETTINGS";
@@ -181,6 +237,29 @@ void ScreenMenuLanSettings::refresh_addresses() {
     gui_invalidate();
 }
 
+void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
+    if (msg_shown)
+        return;
+    AutoRestore<bool> AR(msg_shown);
+    msg_shown = true;
+    switch (msg) {
+    case Eth::Msg::StaicAddrErr:
+        gui_msgbox("Static IPv4 addresses were not set.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        break;
+    case Eth::Msg::NoUSB:
+        gui_msgbox("Please insert a USB drive and try again.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        break;
+    case Eth::Msg::SaveOK:
+        gui_msgbox("The settings have been saved successfully in the \"lan_settings.ini\" file.", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        break;
+    case Eth::Msg::SaveNOK:
+        gui_msgbox("There was an error saving the settings in the \"lan_settings.ini\" file.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        break;
+    default:
+        break;
+    }
+}
+
 /*****************************************************************************/
 //static member function definition
 void ScreenMenuLanSettings::Init(screen_t *screen) {
@@ -195,6 +274,7 @@ void ScreenMenuLanSettings::Init(screen_t *screen) {
 
     ths->help.font = resource_font(IDR_FNT_SPECIAL);
     ths->refresh_addresses();
+    ths->msg_shown = false;
 }
 
 int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -204,63 +284,9 @@ int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t ev
     if (Eth::IsUpdated())
         ths->refresh_addresses();
 
-    if (event != WINDOW_EVENT_CLICK) {
-        return 0;
-    }
+    ths->show_msg(Eth::ConsumeMsg());
 
-    /*  switch ((int)param) {
-    case MI_RETURN:
-        screen_close();
-        return 1;
-    case MI_SWITCH: {
-        ETH_config_t ethconfig;
-        ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        load_eth_params(&ethconfig);
-        if (IS_LAN_ON(ethconfig.lan.flag)) {
-            turn_off_LAN(&ethconfig);
-            save_eth_params(&ethconfig);
-            refresh_addresses(screen);
-        } else {
-            turn_on_LAN(&ethconfig);
-            save_eth_params(&ethconfig);
-            refresh_addresses(screen);
-            if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-                conn_flg = true;
-            }
-        }
-        break;
-    }
-    case MI_TYPE: {
-        ETH_config_t ethconfig;
-        ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
-        load_eth_params(&ethconfig);
-        if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-            if (ethconfig.lan.addr_ip4.addr == 0) {
-                if (gui_msgbox("Static IPv4 addresses were not set.",
-                        MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
-                    == MSGBOX_RES_OK) {
-                    ths->items[MI_TYPE].item.wi_switch_select.index = 0;
-                }
-                return 0;
-            }
-            ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
-            load_eth_params(&ethconfig);
-            set_LAN_to_static(&ethconfig);
-            ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-            save_eth_params(&ethconfig);
-            stringify_eth_for_screen(&ths->plan_str, &ethconfig);
-            ths->text.text = (char *)ths->plan_str;
-            ths->text.win.flg |= WINDOW_FLG_INVALID;
-            gui_invalidate();
-        } else {
-            set_LAN_to_dhcp(&ethconfig);
-            ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-            save_eth_params(&ethconfig);
-            refresh_addresses(screen);
-            conn_flg = true;
-        }
-        break;
-    }
+    /*
     case MI_SAVE:
         if (!(marlin_vars()->media_inserted)) {
             if (gui_msgbox("Please insert a USB drive and try again.",
