@@ -32,18 +32,21 @@ void tmc_delay(uint16_t time) // delay for switching tmc step pin level
 
 void init_tmc(void) {
 
-    pStep[0] = &stepperX;
-    pStep[1] = &stepperY;
-    pStep[2] = &stepperZ;
-    pStep[3] = &stepperE0;
-    pStep[0]->TCOOLTHRS(400);
-    pStep[1]->TCOOLTHRS(400);
-    pStep[2]->TCOOLTHRS(400);
-    pStep[3]->TCOOLTHRS(400);
-    pStep[0]->SGTHRS(140);
-    pStep[1]->SGTHRS(130);
-    pStep[2]->SGTHRS(100);
-    pStep[3]->SGTHRS(100);
+    //pointers to TMCStepper instances
+    pStep[X_AXIS] = &stepperX;
+    pStep[Y_AXIS] = &stepperY;
+    pStep[Z_AXIS] = &stepperZ;
+    pStep[E_AXIS] = &stepperE0;
+    //set TCOOLTHRS
+    pStep[X_AXIS]->TCOOLTHRS(400);
+    pStep[Y_AXIS]->TCOOLTHRS(400);
+    pStep[Z_AXIS]->TCOOLTHRS(400);
+    pStep[E_AXIS]->TCOOLTHRS(400);
+    //set SGTHRS
+    pStep[X_AXIS]->SGTHRS(140);
+    pStep[Y_AXIS]->SGTHRS(130);
+    pStep[Z_AXIS]->SGTHRS(100);
+    pStep[E_AXIS]->SGTHRS(100);
 }
 
 // this function performs stallguard sample for single axis
