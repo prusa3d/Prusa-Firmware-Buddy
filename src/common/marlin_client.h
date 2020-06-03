@@ -38,6 +38,9 @@ extern void marlin_client_loop(void);
 // returns client_id for calling thread (-1 for unattached thread)
 extern int marlin_client_id(void);
 
+// infinite loop while server not ready
+extern void marlin_client_wait_for_start_processing(void);
+
 //sets dialog callback, returns 1 on success
 extern int marlin_client_set_fsm_create_cb(fsm_create_t cb);
 //sets dialog callback, returns 1 on success
