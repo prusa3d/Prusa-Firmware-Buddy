@@ -14,7 +14,7 @@
 
 extern "C" {
 
-TMC2209Stepper *pStep[4] = { 0, 0, 0, 0 };
+TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 
 uint16_t tmc_step = 0;
 uint8_t tmc_stepper = -1;
