@@ -51,7 +51,6 @@ struct screen_menu_data_t {
 template <EHeader HEADER, EFooter FOOTER, EHelp HELP, class... T>
 screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *label)
     : menu(&container) {
-    // menu.pContainer = &container;
 
     rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278);
     if (HELP == EHelp::On) {
@@ -98,20 +97,7 @@ template <EHeader HEADER, EFooter FOOTER, EHelp HELP, class... T>
 void screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Done() {
     window_destroy(root.win.id);
 }
-/*
-//helper functions to get Nth element in event at runtime
-template <std::size_t I = 0, typename... Tp>
-inline typename std::enable_if<I == sizeof...(Tp), void>::type
-for_index_OnClick(int, std::tuple<Tp...> &) {}
 
-template <std::size_t I = 0, typename... Tp>
-    inline typename std::enable_if < I<sizeof...(Tp), void>::type
-    for_index_OnClick(int index, std::tuple<Tp...> &t) {
-    if (index == 0)
-        (std::get<I>(t)).OnClick();
-    for_index_OnClick<I + 1, Tp...>(index - 1, t);
-}
-*/
 template <EHeader HEADER, EFooter FOOTER, EHelp HELP, class... T>
 int screen_menu_data_t<HEADER, FOOTER, HELP, T...>::Event(window_t *window, uint8_t event, void *param) {
     if (FOOTER == EFooter::On) {

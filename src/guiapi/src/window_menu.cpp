@@ -101,24 +101,6 @@ void window_menu_t::Incement(int dif) {
 //non member fce
 
 void window_menu_init(window_menu_t *window) {
-    /*
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->color_disabled = gui_defaults.color_disabled;
-    window->font = gui_defaults.font;
-    window->padding = gui_defaults.padding;
-    window->icon_rect = rect_ui16(0, 0, 16, 16);
-    window->alignment = gui_defaults.alignment;
-    window->SetIndex(0);
-    window->top_index = 0;
-    window->win.flg |= WINDOW_FLG_ENABLED;
-    //window->pContainer = NULL;//set by screen_menu ctor
-    window->roll.count = window->roll.px_cd = window->roll.progress = 0;
-    window->last_index = 0;
-    window->roll.phase = ROLL_SETUP;
-    window->roll.setup = TXTROLL_SETUP_INIT;
-    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
-*/
 }
 
 void window_menu_done(window_menu_t *window) {
@@ -214,76 +196,3 @@ const window_class_menu_t window_class_menu = {
         (window_event_t *)window_menu_event,
     },
 };
-/*
-void window_menu_item_spin(window_menu_t *window, int dif) {
-    WindowMenuItem *item;
-    window->menu_items(window, window->index, &item, window->data);
-
-    const int32_t *range = item->data.wi_spin.range;
-    int32_t old = item->data.wi_spin.value;
-
-    if (dif > 0) {
-        item->data.wi_spin.value = MIN(item->data.wi_spin.value + dif * range[WIO_STEP], range[WIO_MAX]);
-    } else {
-        item->data.wi_spin.value = MAX(item->data.wi_spin.value + dif * range[WIO_STEP], range[WIO_MIN]);
-    }
-
-    if (old != item->data.wi_spin.value)
-        _window_invalidate((window_t *)window);
-}
-
-void window_menu_item_spin_fl(window_menu_t *window, int dif) {
-    WindowMenuItem *item;
-    window->menu_items(window, window->index, &item, window->data);
-
-    const float *range = item->data.wi_spin_fl.range;
-    float old = item->data.wi_spin_fl.value;
-
-    if (dif > 0) {
-        item->data.wi_spin_fl.value = MIN(item->data.wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MAX]);
-    } else {
-        item->data.wi_spin_fl.value = MAX(item->data.wi_spin_fl.value + (float)dif * range[WIO_STEP], range[WIO_MIN]);
-    }
-
-    if (old != item->data.wi_spin_fl.value)
-        _window_invalidate((window_t *)window);
-}
-
-void window_menu_item_switch(window_menu_t *window) {
-    WindowMenuItem *item;
-    window->menu_items(window, window->index, &item, window->data);
-
-    const char **strings = item->data.wi_switch.strings;
-    size_t size = 0;
-    while (strings[size] != NULL) {
-        size++;
-    }
-    item->data.wi_switch.index++;
-    if (item->data.wi_switch.index >= size) {
-        item->data.wi_switch.index = 0;
-    }
-}
-
-void window_menu_item_select(window_menu_t *window, int dif) {
-    WindowMenuItem *item;
-    window->menu_items(window, window->index, &item, window->data);
-
-    const char **strings = item->data.wi_select.strings;
-    size_t size = 0;
-    while (strings[size] != NULL) {
-        size++;
-    }
-
-    if (dif > 0) {
-        item->data.wi_select.index++;
-        if (item->data.wi_select.index >= size) {
-            item->data.wi_select.index = 0;
-        }
-    } else {
-        item->data.wi_select.index--;
-        if (item->data.wi_select.index < 0) {
-            item->data.wi_select.index = size - 1;
-        }
-    }
-    _window_invalidate((window_t *)window);
-}*/
