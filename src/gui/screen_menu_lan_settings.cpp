@@ -28,14 +28,19 @@ public:
         StaicAddrErr,
         NoUSB,
         SaveOK,
-        SaveNOK };
+        SaveNOK,
+        LoadOK,
+        LoadNOK };
+    static Msg msg;
     static bool new_data_flg;
     static bool conn_flg; // wait for dhcp to supply addresses
-    static Msg msg;
+    static bool reinit_flg;
+    static uint8_t save();
 
 public:
     static uint8_t GetFlag();
-    static uint8_t Save();
+    static void Save();
+    static void Load();
     static void On();
     static void Off();
     static bool IsStatic();
@@ -49,6 +54,7 @@ public:
 };
 #pragma pack(pop)
 
+bool Eth::reinit_flg = false; //default state is "does not need reinit"
 bool Eth::conn_flg = false;
 bool Eth::new_data_flg = false;
 Eth::Msg Eth::msg = Eth::Msg::NoMsg;
@@ -62,7 +68,7 @@ uint8_t Eth::GetFlag() {
     return ethconfig.lan.flag;
 }
 
-uint8_t Eth::Save() {
+uint8_t Eth::save() {
     ETH_config_t ethconfig;
     ini_file_str_t ini_str;
     ethconfig.var_mask = ETHVAR_EEPROM_CONFIG;
@@ -158,6 +164,36 @@ Eth::Msg Eth::ConsumeMsg() {
     return ret;
 }
 
+void Eth::Save() {
+    if (!(marlin_vars()->media_inserted)) {
+        msg = Msg::NoUSB;
+    } else {
+        if (save()) { // !its possible to save empty configurations!
+            msg = Msg::SaveOK;
+        } else {
+            msg = Msg::SaveNOK;
+        }
+    }
+}
+
+void Eth::Load() {
+    if (!(marlin_vars()->media_inserted)) {
+        msg = Msg::NoUSB;
+    } else {
+        ETH_config_t ethconfig;
+        if (load_ini_params(&ethconfig)) {
+            ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+            load_eth_params(&ethconfig);
+
+            new_data_flg = true;
+            conn_flg = true;
+            reinit_flg = true;
+            msg = Msg::LoadOK;
+        } else {
+            msg = Msg::LoadNOK;
+        }
+    }
+}
 /*****************************************************************************/
 //ITEMS
 #pragma pack(push, 1)
@@ -182,6 +218,7 @@ public:
     MI_LAN_IP_t()
         : WI_SWITCH_t<2>(Eth::IsStatic() ? 0 : 1, label, 0, true, false, str_static, str_DHCP) {}
     virtual void OnChange(size_t old_index) {
+        old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
     }
 };
 
@@ -192,6 +229,7 @@ public:
     MI_SAVE()
         : WI_LABEL_t(label, 0, true, false) {}
     virtual void click(Iwindow_menu_t &window_menu) {
+        Eth::Save();
     }
 };
 
@@ -202,6 +240,7 @@ public:
     MI_LOAD()
         : WI_LABEL_t(label, 0, true, false) {}
     virtual void click(Iwindow_menu_t &window_menu) {
+        Eth::Load();
     }
 };
 #pragma pack(pop)
@@ -255,6 +294,12 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
     case Eth::Msg::SaveNOK:
         gui_msgbox("There was an error saving the settings in the \"lan_settings.ini\" file.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
         break;
+    case Eth::Msg::LoadOK:
+        gui_msgbox("Settings successfully loaded", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        break;
+    case Eth::Msg::LoadNOK:
+        gui_msgbox("IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        break;
     default:
         break;
     }
@@ -285,65 +330,6 @@ int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t ev
         ths->refresh_addresses();
 
     ths->show_msg(Eth::ConsumeMsg());
-
-    /*
-    case MI_SAVE:
-        if (!(marlin_vars()->media_inserted)) {
-            if (gui_msgbox("Please insert a USB drive and try again.",
-                    MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
-                == MSGBOX_RES_OK) {
-            }
-        } else {
-            if (save_config()) { // !its possible to save empty configurations!
-                if (gui_msgbox("The settings have been saved successfully in the \"lan_settings.ini\" file.",
-                        MSGBOX_BTN_OK | MSGBOX_ICO_INFO)
-                    == MSGBOX_RES_OK) {
-                }
-            } else {
-                if (gui_msgbox("There was an error saving the settings in the \"lan_settings.ini\" file.",
-                        MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
-                    == MSGBOX_RES_OK) {
-                }
-            }
-        }
-        break;
-    case MI_LOAD:
-        if (!(marlin_vars()->media_inserted)) {
-            if (gui_msgbox("Please insert USB flash disk and try again.",
-                    MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
-                == MSGBOX_RES_OK) {
-            }
-        } else {
-            ETH_config_t ethconfig;
-            if (load_ini_params(&ethconfig)) {
-                if (gui_msgbox("Settings successfully loaded", MSGBOX_BTN_OK | MSGBOX_ICO_INFO) == MSGBOX_RES_OK) {
-
-                    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-                    load_eth_params(&ethconfig);
-                    ths->items[MI_TYPE].item.wi_switch_select.index = Eth::IsStatic() ? 1 : 0;
-                    window_invalidate(ths->menu.win.id);
-                    if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-                        refresh_addresses(screen);
-                        conn_flg = true;
-                    } else {
-                        ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
-                        load_eth_params(&ethconfig);
-                        stringify_eth_for_screen(&ths->plan_str, &ethconfig);
-                        ths->text.text = (char *)ths->plan_str;
-                        ths->text.win.flg |= WINDOW_FLG_INVALID;
-                    }
-                }
-
-            } else {
-                if (gui_msgbox("IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive.",
-                        MSGBOX_BTN_OK | MSGBOX_ICO_ERROR)
-                    == MSGBOX_RES_OK) {
-                }
-            }
-        }
-        break;
-    }
-    return 0;*/
 
     return ths->Event(window, event, param);
 }
