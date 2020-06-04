@@ -10,7 +10,10 @@ assignees: ''
 Please, before you create a new bug report, please make sure you searched in open and closed issues and couldn't find anything that matches.
 
 **Printer type** - [MINI]
+
 **Printer firmware version**-  [e.g. 4.0.5, ...]
+
+**Original or Custom firmware** [Original/Custom]
 
 **Options Upgrade** - [e.g. Filament Runout Sensor]
 
