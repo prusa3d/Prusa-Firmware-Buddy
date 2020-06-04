@@ -17,8 +17,8 @@ Please, before you create a new bug report, please make sure you searched in ope
 
 **Options Upgrade** - [e.g. Filament Runout Sensor]
 
-**USB stick or USB/Octoprint**
-  Please let us know if you print via USB stick or USB/Octoprint
+**USB drive or USB/Octoprint**
+  Please let us know if you print via USB flash drive or USB/Octoprint
 
 **Describe the bug**
   A clear and concise description of what the bug is.
