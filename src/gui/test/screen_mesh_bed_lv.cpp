@@ -11,15 +11,14 @@
 #include "math.h"
 #include "marlin_client.h"
 
-enum mesh_state_t {
-    MS_idle,
-    MS_home,
-    MS_homeing,
-    MS_homed,
-    MS_mesh,
-    MS_meshing,
-    MS_meshed //,
-    //MS_done
+enum class mesh_state_t : uint8_t {
+    idle,
+    home,
+    homeing,
+    homed,
+    mesh,
+    meshing,
+    meshed
 };
 
 struct screen_mesh_bed_lv_data_t {
@@ -30,17 +29,16 @@ struct screen_mesh_bed_lv_data_t {
     window_text_t text_mesh_state;
 
     window_term_t term;
-
-    int16_t id_term;
     term_t terminal;
     uint8_t term_buff[TERM_BUFF_SIZE(20, 16)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
 
     window_text_t textExit;
     status_footer_t footer;
 
-    mesh_state_t mesh_state;
     int exit_bt_id;
     int mesh_bt_id;
+    mesh_state_t mesh_state;
+    int16_t id_term;
 };
 
 #define pd ((screen_mesh_bed_lv_data_t *)screen->pdata)
@@ -65,7 +63,7 @@ static void gui_state_mesh_off(screen_t *screen) {
     window_set_color_text(pd->exit_bt_id, MESH_DEFAULT_CL);
     window_enable(pd->exit_bt_id);
     window_enable(pd->mesh_bt_id);
-    //pd->mesh_state = MS_idle;
+    //pd->mesh_state = mesh_state_t::idle;
 }
 
 static void gui_state_mesh_on(screen_t *screen) {
@@ -83,7 +81,7 @@ enum {
 };
 
 void screen_mesh_bed_lv_init(screen_t *screen) {
-    pd->mesh_state = MS_idle;
+    pd->mesh_state = mesh_state_t::idle;
     pd->exit_bt_id = -1;
     pd->mesh_bt_id = -1;
 
@@ -143,15 +141,15 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:
-            if (pd->mesh_state != MS_idle)
+            if (pd->mesh_state != mesh_state_t::idle)
                 return 0; //button should not be accessible
             screen_close();
             return 1;
 
         case TAG_MESH:
-            if (pd->mesh_state == MS_idle) {
+            if (pd->mesh_state == mesh_state_t::idle) {
                 gui_state_mesh_on(screen);
-                pd->mesh_state = MS_home;
+                pd->mesh_state = mesh_state_t::home;
             }
             break;
         }
@@ -168,42 +166,42 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
             window_set_text(pd->text_mesh_state.win.id, meshStrings[0]);
         }
         switch (pd->mesh_state) {
-        case MS_idle:
+        case mesh_state_t::idle:
             //do nothing
             break;
-        case MS_home:
+        case mesh_state_t::home:
             marlin_error_clr(MARLIN_ERR_ProbingFailed);
             marlin_event_clr(MARLIN_EVT_CommandBegin);
             marlin_event_clr(MARLIN_EVT_CommandEnd);
             marlin_gcode_printf("G28");
             while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
                 marlin_client_loop();
-            pd->mesh_state = MS_homeing;
+            pd->mesh_state = mesh_state_t::homeing;
             break;
-        case MS_homeing:
+        case mesh_state_t::homeing:
             if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
-                pd->mesh_state = MS_homed;
+                pd->mesh_state = mesh_state_t::homed;
             }
             break;
-        case MS_homed:
-            pd->mesh_state = MS_mesh;
+        case mesh_state_t::homed:
+            pd->mesh_state = mesh_state_t::mesh;
             //there is no break;
-        case MS_mesh:
+        case mesh_state_t::mesh:
             marlin_event_clr(MARLIN_EVT_CommandBegin);
             marlin_event_clr(MARLIN_EVT_CommandEnd);
             marlin_gcode_printf("G29");
             while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
                 marlin_client_loop();
-            pd->mesh_state = MS_meshing;
+            pd->mesh_state = mesh_state_t::meshing;
             break;
-        case MS_meshing:
+        case mesh_state_t::meshing:
             if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
-                pd->mesh_state = MS_meshed;
+                pd->mesh_state = mesh_state_t::meshed;
             }
             break;
-        case MS_meshed:
+        case mesh_state_t::meshed:
             gui_state_mesh_off(screen);
-            pd->mesh_state = MS_idle;
+            pd->mesh_state = mesh_state_t::idle;
             break;
         }
     }
