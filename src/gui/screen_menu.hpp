@@ -18,7 +18,8 @@ enum class EHelp { On,
     Off };
 
 template <EHeader HEADER, EFooter FOOTER, EHelp HELP, class... T>
-struct screen_menu_data_t {
+class screen_menu_data_t {
+protected:
     constexpr static const char *no_label = "MISSING";
     window_frame_t root;
     window_header_t header;
@@ -27,6 +28,7 @@ struct screen_menu_data_t {
     WinMenuContainer<T...> container;
     window_menu_t menu;
 
+public:
     screen_menu_data_t(const char *label);
     void Done();
     void Draw() {}
