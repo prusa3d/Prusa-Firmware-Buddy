@@ -13,9 +13,6 @@
 #define GUI_MENU_TIMEOUT  3
 #define GUI_TIMER_TXTROLL 4
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _gui_timer_t {
     uint32_t start;
     uint32_t delay : 24;
@@ -29,8 +26,6 @@ typedef struct _gui_timer_t {
     };
     int16_t win_id;
 } gui_timer_t;
-
-#pragma pack(pop)
 
 gui_timer_t gui_timers[GUI_MAX_TIMERS];
 int8_t gui_timer_count = -1;

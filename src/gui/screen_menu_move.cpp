@@ -7,8 +7,6 @@
 #include "menu_vars.h"
 #include "WindowMenuItems.hpp"
 
-#pragma pack(push, 1)
-
 template <size_t INDEX>
 class MI_AXIS : public WI_SPIN_I16_t {
 
@@ -46,7 +44,6 @@ public:
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //static member method definition

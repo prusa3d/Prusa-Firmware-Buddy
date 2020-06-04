@@ -30,7 +30,6 @@ char *version_info_str = nullptr;
 
 using parent = screen_menu_data_t<EHeader::On, EFooter::On, EHelp::On, MI_RETURN>;
 
-#pragma pack(push, 1)
 class ScreenMenuVersionInfo : public parent {
 public:
     constexpr static const char *label = "VERSION INFO";
@@ -38,7 +37,6 @@ public:
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
     static void CDone(screen_t *screen);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //static member method definition

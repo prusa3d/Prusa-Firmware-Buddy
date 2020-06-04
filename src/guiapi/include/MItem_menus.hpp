@@ -2,7 +2,6 @@
 //Screen openning menu items
 #pragma once
 #include "WindowMenuItems.hpp"
-#pragma pack(push, 1)
 
 class MI_VERSION_INFO : public WI_LABEL_t {
     static constexpr const char *const label = "Version Info";
@@ -153,5 +152,3 @@ public:
 protected:
     virtual void click(Iwindow_menu_t &window_menu) override;
 };
-
-#pragma pack(pop)

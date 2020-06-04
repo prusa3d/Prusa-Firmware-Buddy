@@ -2,7 +2,6 @@
 //print related menu items
 #pragma once
 #include "WindowMenuItems.hpp"
-#pragma pack(push, 1)
 
 class MI_NOZZLE : public WI_SPIN_U16_t {
     constexpr static const char *label = "Nozzle";
@@ -52,5 +51,3 @@ public:
     virtual void OnClick() override;
     virtual bool Change(int dif) override;
 };
-
-#pragma pack(pop)

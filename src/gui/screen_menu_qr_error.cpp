@@ -7,11 +7,7 @@
 #include "errors.h"
 #include "screens.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct
-{
+struct screen_qr_error_data_t {
     window_frame_t root;
     window_text_t errText;
     window_text_t errDescription;
@@ -19,9 +15,7 @@ typedef struct
     window_qr_t qr;
     char qr_text[MAX_LEN_4QR + 1];
     bool first_run_flag;
-} screen_qr_error_data_t;
-
-#pragma pack(pop)
+};
 
 #define pd ((screen_qr_error_data_t *)screen->pdata)
 

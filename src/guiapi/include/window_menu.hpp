@@ -5,8 +5,6 @@
 #include "IWinMenuContainer.hpp"
 #include <stdint.h>
 
-#pragma pack(push, 1)
-
 //todo
 //use template instead IWinMenuContainer *pContainer;
 //I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
@@ -25,5 +23,3 @@ public:
     IWindowMenuItem *GetItem(uint8_t index);
     IWindowMenuItem *GetActiveItem();
 };
-
-#pragma pack(pop)

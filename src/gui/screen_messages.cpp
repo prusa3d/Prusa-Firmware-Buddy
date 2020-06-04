@@ -13,18 +13,13 @@
 #include <stdint.h>
 #include "screens.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct _screen_messages_data_t {
+struct screen_messages_data_t {
     window_frame_t root;
     window_header_t header;
     window_list_t list;
 
     status_footer_t *pfooter;
-} screen_messages_data_t;
-
-#pragma pack(pop)
+};
 
 extern msg_stack_t msg_stack;
 

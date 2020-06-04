@@ -4,8 +4,6 @@
 
 #pragma once
 #include <stdio.h>
-#pragma pack(push)
-#pragma pack(1)
 
 typedef struct {
     const char *name;
@@ -13,8 +11,6 @@ typedef struct {
     uint16_t nozzle;
     uint16_t heatbed;
 } filament_t;
-
-#pragma pack(pop)
 
 typedef enum {
     FILAMENT_NONE = 0,

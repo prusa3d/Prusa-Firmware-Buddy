@@ -54,8 +54,6 @@ extern const float filament_unload_mini_length;
     #include <array>
     #include <cstdint>
 using std::size_t;
-    #pragma pack(push, 1)
-//MenuVars must be packed to prevent unaligned memory access
 struct MenuVars {
     constexpr static const size_t AXIS_CNT = 4;
     constexpr static const size_t RANGE_SZ = 3;
@@ -76,7 +74,6 @@ struct MenuVars {
 private:
     MenuVars() = delete;
 };
-    #pragma pack(pop)
 
 #endif //__cplusplus
 

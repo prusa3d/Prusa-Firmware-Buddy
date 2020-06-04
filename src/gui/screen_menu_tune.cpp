@@ -7,8 +7,6 @@
 #include "MItem_tools.hpp"
 #include "MItem_menus.hpp"
 
-#pragma pack(push, 1)
-
 /*****************************************************************************/
 //parent alias
 using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_SPEED, MI_NOZZLE,
@@ -24,7 +22,6 @@ public:
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //static member method definition

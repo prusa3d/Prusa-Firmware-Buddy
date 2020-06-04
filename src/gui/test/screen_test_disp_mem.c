@@ -15,9 +15,6 @@
 
 extern int sim_heater_temp2val(float temp);
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_frame_t frame;
@@ -56,8 +53,6 @@ typedef struct
 
     window_text_t textExit;
 } screen_test_disp_mem_data_t;
-
-#pragma pack(pop)
 
 #define pd ((screen_test_disp_mem_data_t *)screen->pdata)
 /******************************************************************************************************/

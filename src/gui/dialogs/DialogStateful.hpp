@@ -6,9 +6,6 @@
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 
-#pragma pack(push)
-#pragma pack(1)
-
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
 
@@ -132,7 +129,6 @@ public:
     void draw();
     void event(uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //template definitions

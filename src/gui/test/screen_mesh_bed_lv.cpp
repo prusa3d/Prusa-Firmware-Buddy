@@ -11,10 +11,7 @@
 #include "math.h"
 #include "marlin_client.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef enum {
+enum mesh_state_t {
     MS_idle,
     MS_home,
     MS_homeing,
@@ -23,10 +20,9 @@ typedef enum {
     MS_meshing,
     MS_meshed //,
     //MS_done
-} mesh_state_t;
+};
 
-typedef struct
-{
+struct screen_mesh_bed_lv_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
 
@@ -45,10 +41,7 @@ typedef struct
     mesh_state_t mesh_state;
     int exit_bt_id;
     int mesh_bt_id;
-
-} screen_mesh_bed_lv_data_t;
-
-#pragma pack(pop)
+};
 
 #define pd ((screen_mesh_bed_lv_data_t *)screen->pdata)
 

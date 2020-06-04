@@ -21,7 +21,6 @@
 /*****************************************************************************/
 //Eth static class used by menu and its items
 //And NO David a do not want to use singleton here
-#pragma pack(push, 1)
 class Eth {
 public:
     enum class Msg : uint8_t { NoMsg,
@@ -53,7 +52,6 @@ public:
     static Msg ConsumeMsg();
     static bool ConsumeReinit();
 };
-#pragma pack(pop)
 
 bool Eth::reinit_flg = false; //default state is "does not need reinit"
 bool Eth::conn_flg = false;
@@ -203,7 +201,6 @@ bool Eth::ConsumeReinit() {
 }
 /*****************************************************************************/
 //ITEMS
-#pragma pack(push, 1)
 class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = "LAN";
 
@@ -253,14 +250,12 @@ public:
         Eth::Load();
     }
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //parent alias
 using parent = screen_menu_data_t<EHeader::On, EFooter::Off, EHelp::On,
     MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_SAVE, MI_LOAD>;
 
-#pragma pack(push, 1)
 class ScreenMenuLanSettings : public parent {
     lan_descp_str_t plan_str;
     bool msg_shown;
@@ -272,8 +267,6 @@ public:
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
-
-#pragma pack(pop)
 
 /*****************************************************************************/
 //non static member function definition

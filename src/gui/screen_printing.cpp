@@ -27,10 +27,7 @@
 #define POPUP_MSG_DUR_MS       5000
 #define MAX_END_TIMESTAMP_SIZE (14 + 12 + 5) // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef enum {
+enum printing_state_t {
     P_INITIAL,
     P_PRINTING,
     P_PAUSING,
@@ -41,9 +38,9 @@ typedef enum {
     P_MBL_FAILED,
     P_PRINTED,
     P_COUNT //setting this state == forced update
-} printing_state_t;
+};
 
-typedef enum {
+enum item_id_t {
     iid_settings,
     iid_pause,
     iid_pausing,
@@ -54,11 +51,9 @@ typedef enum {
     iid_reprint,
     iid_home,
     iid_count
-} item_id_t;
+};
 
-#pragma pack(pop)
-
-const uint16_t printing_icons[iid_count] = {
+const uint16_t printing_icons[item_id_t::iid_count] = {
     IDR_PNG_menu_icon_settings,
     IDR_PNG_menu_icon_pause,
     IDR_PNG_menu_icon_pause, //same as pause
@@ -70,7 +65,7 @@ const uint16_t printing_icons[iid_count] = {
     IDR_PNG_menu_icon_home,
 };
 
-const char *printing_labels[iid_count] = {
+const char *printing_labels[item_id_t::iid_count] = {
     "Tune",
     "Pause",
     "Pausing...",
@@ -82,10 +77,7 @@ const char *printing_labels[iid_count] = {
     "Home",
 };
 
-#pragma pack(push, 1)
-
-typedef struct
-{
+struct screen_printing_data_t {
     window_frame_t root;
 
     window_header_t header;
@@ -114,9 +106,7 @@ typedef struct
     uint32_t message_timer;
     uint8_t message_flag;
     printing_state_t state__readonly__use_change_print_state;
-} screen_printing_data_t;
-
-#pragma pack(pop)
+};
 
 void screen_printing_init(screen_t *screen);
 void screen_printing_done(screen_t *screen);

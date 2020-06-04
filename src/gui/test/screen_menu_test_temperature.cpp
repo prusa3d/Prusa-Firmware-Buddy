@@ -31,17 +31,12 @@ typedef enum {
 } MI_t;
 
 //"C inheritance" of screen_menu_data_t with data items
-#pragma pack(push)
-#pragma pack(1)
 
-typedef struct
-{
+struct this_screen_data_t {
     screen_menu_data_t base;
     menu_item_t items[MI_COUNT];
 
-} this_screen_data_t;
-
-#pragma pack(pop)
+};
 
 void screen_test_temperature_init(screen_t *screen) {
     screen_menu_init(screen, "TEMPERATURE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 0);

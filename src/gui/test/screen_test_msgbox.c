@@ -4,9 +4,6 @@
 #include "config.h"
 #include "screens.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_frame_t frame;
@@ -24,8 +21,6 @@ typedef struct
     window_text_t tst_ico_warning;
     window_text_t tst_ico_info;
 } screen_test_msgbox_data_t;
-
-#pragma pack(pop)
 
 #define pd ((screen_test_msgbox_data_t *)screen->pdata)
 

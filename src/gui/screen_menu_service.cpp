@@ -30,17 +30,11 @@ typedef enum {
 } MI_t;
 
 //"C inheritance" of screen_menu_data_t with data items
-#pragma pack(push)
-#pragma pack(1)
 
-typedef struct
-{
+struct this_screen_data_t {
     screen_menu_data_t base;
     menu_item_t items[MI_COUNT];
-
-} this_screen_data_t;
-
-#pragma pack(pop)
+};
 
 int16_t sscg_freq_kHz = 5;
 int16_t sscg_depth = 5;

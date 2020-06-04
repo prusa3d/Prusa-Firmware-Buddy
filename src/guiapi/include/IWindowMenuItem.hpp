@@ -5,8 +5,6 @@
 #include "guitypes.h"
 #include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
 
-#pragma pack(push, 1)
-
 //todo make version with constant label
 class IWindowMenuItem {
     //protected:
@@ -56,4 +54,3 @@ public:
 
     virtual ~IWindowMenuItem() = default;
 };
-#pragma pack(pop)

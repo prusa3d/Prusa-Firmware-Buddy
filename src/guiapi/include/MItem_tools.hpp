@@ -2,7 +2,6 @@
 //menu items running tools
 #pragma once
 #include "WindowMenuItems.hpp"
-#pragma pack(push, 1)
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = "Wizard";
@@ -230,5 +229,3 @@ public:
     MI_SOUND_TYPE();
     virtual void OnChange(size_t old_index);
 };
-
-#pragma pack(pop)

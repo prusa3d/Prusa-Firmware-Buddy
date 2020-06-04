@@ -4,7 +4,6 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
-#pragma pack(push, 1)
 template <FILAMENT_t T>
 class MI_Filament : public WI_LABEL_t {
 public:
@@ -20,7 +19,6 @@ protected:
         screen_close(); // skip this screen averytime
     }
 };
-#pragma pack(pop)
 
 using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_Filament<FILAMENT_PLA>, MI_Filament<FILAMENT_PETG>,
     MI_Filament<FILAMENT_ASA>, MI_Filament<FILAMENT_FLEX>, MI_Filament<FILAMENT_NONE>>;

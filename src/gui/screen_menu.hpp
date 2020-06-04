@@ -17,8 +17,6 @@ enum class EFooter { On,
 enum class EHelp { On,
     Off };
 
-#pragma pack(push, 1)
-
 template <EHeader HEADER, EFooter FOOTER, EHelp HELP, class... T>
 struct screen_menu_data_t {
     constexpr static const char *no_label = "MISSING";
@@ -49,8 +47,6 @@ struct screen_menu_data_t {
         return reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata)->Event(window, event, param);
     }
 };
-
-#pragma pack(pop)
 
 template <EHeader HEADER, EFooter FOOTER, EHelp HELP, class... T>
 screen_menu_data_t<HEADER, FOOTER, HELP, T...>::screen_menu_data_t(const char *label)

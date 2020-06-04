@@ -9,8 +9,6 @@ using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
 //responses are counted and stored into btn_count
 //if there is more labels than buttons, "additional buttons" are not acessible
 //if there is less labels than buttons, "remaining buttons" have no labels
-#pragma pack(push)
-#pragma pack(1)
 class RadioButton {
 public:
     struct Window {
@@ -48,4 +46,3 @@ public:
     Response Click() const; //click returns response to be send, 0 buttons will return Response::_none
     bool IsEnabled() const;
 };
-#pragma pack(pop)

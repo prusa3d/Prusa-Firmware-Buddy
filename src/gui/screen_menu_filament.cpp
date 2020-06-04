@@ -112,7 +112,6 @@ public:
 
 using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
-#pragma pack(push, 1)
 class ScreenMenuFilament : public parent {
     enum {
         F_EEPROM = 0x01, // filament is known
@@ -142,7 +141,6 @@ private:
         menu.win.f_invalid = 1;
     }
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //static method definition

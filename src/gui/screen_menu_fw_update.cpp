@@ -40,14 +40,12 @@ public:
 
 using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::On, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
 
-#pragma pack(push, 1)
 class ScreenMenuFwUpdate : public parent {
 public:
     constexpr static const char *label = "FW UPDATE";
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //static member method definition

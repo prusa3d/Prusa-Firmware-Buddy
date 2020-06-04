@@ -23,8 +23,6 @@
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
 
-#pragma pack(push, 1)
-
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
@@ -58,8 +56,6 @@ protected:
     }
 };
 
-#pragma pack(pop)
-
 #ifdef _DEBUG
 enum { FsensorPos = 8 };
 using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
@@ -80,14 +76,12 @@ using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
     MI_SAVE_DUMP, MI_SOUND_MODE>;
 #endif
 
-#pragma pack(push, 1)
 class ScreenMenuSettings : public parent {
 public:
     constexpr static const char *label = "Settings";
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //static member method definition

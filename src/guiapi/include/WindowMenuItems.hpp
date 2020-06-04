@@ -5,7 +5,6 @@
 #include <array>
 #include "display_helper.h"
 
-#pragma pack(push, 1)
 //WI_LABEL
 class WI_LABEL_t : public IWindowMenuItem {
 public:
@@ -263,5 +262,3 @@ public:
 protected:
     virtual void click(Iwindow_menu_t &window_menu);
 };
-
-#pragma pack(pop)

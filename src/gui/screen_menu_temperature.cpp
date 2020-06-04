@@ -7,8 +7,6 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_print.hpp"
 
-#pragma pack(push, 1)
-
 class MI_COOLDOWN : public WI_LABEL_t {
     static constexpr const char *const label = "Cooldown";
 
@@ -33,7 +31,6 @@ public:
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //static member method definition

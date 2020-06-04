@@ -58,9 +58,6 @@
 
 #define COLOR_DARK_KHAKI 0x006BD7DBL
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef uint32_t color_t;
 
 typedef struct _point_ui16_t {
@@ -116,8 +113,6 @@ typedef struct _gui_defaults_t {
     rect_ui16_t msg_box_sz;
     uint8_t btn_spacing;
 } gui_defaults_t;
-
-#pragma pack(pop)
 
 static inline uint16_t swap_ui16(uint16_t val) {
     return (val >> 8) | ((val & 0xff) << 8);

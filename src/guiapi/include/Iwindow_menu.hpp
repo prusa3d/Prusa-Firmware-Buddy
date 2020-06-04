@@ -3,8 +3,6 @@
 #include "window_menu.h"
 #include <stdint.h>
 
-#pragma pack(push, 1)
-
 struct Iwindow_menu_t {
     window_t win;
     color_t color_back;
@@ -15,5 +13,3 @@ struct Iwindow_menu_t {
     rect_ui16_t icon_rect;
     uint8_t alignment;
 };
-
-#pragma pack(pop)

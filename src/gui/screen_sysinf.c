@@ -13,9 +13,6 @@
 #include "sys.h"
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_frame_t frame;
@@ -25,8 +22,6 @@ typedef struct
 
     window_text_t textExit;
 } screen_sysinfo_data_t;
-
-#pragma pack(pop)
 
 #define pd ((screen_sysinfo_data_t *)screen->pdata)
 /******************************************************************************************************/

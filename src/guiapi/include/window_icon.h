@@ -5,9 +5,6 @@
 
 #include "window.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_icon_t {
     window_t win;
     color_t color_back;
@@ -18,8 +15,6 @@ typedef struct _window_icon_t {
 typedef struct _window_class_icon_t {
     window_class_t cls;
 } window_class_icon_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

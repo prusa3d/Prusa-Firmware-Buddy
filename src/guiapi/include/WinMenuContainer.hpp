@@ -18,7 +18,6 @@ template <std::size_t I = 0, typename... Tp>
     return get_ptr_for_index<I + 1, Tp...>(index - 1, t);
 }
 
-#pragma pack(push, 1)
 template <class... T>
 class WinMenuContainer : public IWinMenuContainer {
 public:
@@ -44,5 +43,3 @@ public:
             return get_ptr_for_index((int)pos, menu_items);
     }
 };
-
-#pragma pack(pop)
