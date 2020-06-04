@@ -114,7 +114,7 @@ typedef struct
     window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
     uint8_t message_flag;
-    int stop_pressed;
+    bool stop_pressed;
     printing_state_t state__readonly__use_change_print_state;
 } screen_printing_data_t;
 
@@ -158,7 +158,7 @@ void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
     int16_t id;
 
-		pw->stop_pressed = 0;
+    pw->stop_pressed = false;
     marlin_vars_t *vars = marlin_vars();
 
     strlcpy(pw->text_time.data(), "0m", pw->text_time.size());
@@ -354,7 +354,14 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 0;
     }
 
-    switch (((int)param) - 1) {
+    int pi = reinterpret_cast<int>(param);
+    pi -= 1;
+    // -- pressed button is disabled - dont propagate event further
+    if (pw->w_buttons[pi].win.f_disabled) {
+        return 0;
+    }
+
+    switch (pi) {
     case BUTTON_TUNE:
         switch (get_state(screen)) {
         case P_PRINTING:
@@ -394,8 +401,8 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
             if (gui_msgbox("Are you sure to stop this printing?",
                     MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
                 == MSGBOX_RES_YES) {
-                pw->stop_pressed = 1;
-								change_print_state(screen);
+                pw->stop_pressed = true;
+                change_print_state(screen);
                 marlin_print_abort();
             } else
                 return 0;
@@ -597,7 +604,7 @@ static void set_pause_icon_and_label(screen_t *screen) {
     case P_ABORTING:
         disable_button(p_button);
         break;
-  }
+    }
 }
 
 void set_tune_icon_and_label(screen_t *screen) {
@@ -616,7 +623,7 @@ void set_tune_icon_and_label(screen_t *screen) {
     case P_ABORTING:
         disable_button(p_button);
         break;
-   default:
+    default:
         disable_tune_button(screen);
         break;
     }
@@ -675,7 +682,7 @@ static void change_print_state(screen_t *screen) {
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
     case mpsAborting_ParkHead:
-        pw->stop_pressed = 0;
+        pw->stop_pressed = false;
         st = P_ABORTING;
         break;
     case mpsFinishing_WaitIdle:
@@ -689,7 +696,9 @@ static void change_print_state(screen_t *screen) {
         st = P_PRINTED;
         break;
     }
-		if(pw->stop_pressed == 1){ st = P_ABORTING; }
+    if (pw->stop_pressed) {
+        st = P_ABORTING;
+    }
     if (pw->state__readonly__use_change_print_state != st) {
         pw->state__readonly__use_change_print_state = st;
         set_pause_icon_and_label(screen);
