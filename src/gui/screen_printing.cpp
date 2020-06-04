@@ -36,6 +36,7 @@ typedef enum {
     P_PAUSING,
     P_PAUSED,
     P_RESUMING,
+    P_ABORTING,
     P_REHEATING,
     P_REHEATING_DONE,
     P_MBL_FAILED,
@@ -113,6 +114,7 @@ typedef struct
     window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
     uint8_t message_flag;
+    int stop_pressed;
     printing_state_t state__readonly__use_change_print_state;
 } screen_printing_data_t;
 
@@ -156,6 +158,7 @@ void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
     int16_t id;
 
+		pw->stop_pressed = 0;
     marlin_vars_t *vars = marlin_vars();
 
     strlcpy(pw->text_time.data(), "0m", pw->text_time.size());
@@ -391,6 +394,8 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
             if (gui_msgbox("Are you sure to stop this printing?",
                     MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
                 == MSGBOX_RES_YES) {
+                pw->stop_pressed = 1;
+								change_print_state(screen);
                 marlin_print_abort();
             } else
                 return 0;
@@ -589,7 +594,10 @@ static void set_pause_icon_and_label(screen_t *screen) {
         enable_button(p_button);
         set_icon_and_label(iid_reprint, btn_id, lbl_id);
         break;
-    }
+    case P_ABORTING:
+        disable_button(p_button);
+        break;
+  }
 }
 
 void set_tune_icon_and_label(screen_t *screen) {
@@ -605,7 +613,10 @@ void set_tune_icon_and_label(screen_t *screen) {
     case P_PAUSED:
         enable_tune_button(screen);
         break;
-    default:
+    case P_ABORTING:
+        disable_button(p_button);
+        break;
+   default:
         disable_tune_button(screen);
         break;
     }
@@ -625,6 +636,9 @@ void set_stop_icon_and_label(screen_t *screen) {
     case P_RESUMING:
         disable_button(p_button);
         set_icon_and_label(iid_stop, btn_id, lbl_id);
+        break;
+    case P_ABORTING:
+        disable_button(p_button);
         break;
     default:
         enable_button(p_button);
@@ -658,11 +672,14 @@ static void change_print_state(screen_t *screen) {
     case mpsResuming_UnparkHead:
         st = P_RESUMING;
         break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
     case mpsAborting_ParkHead:
+        pw->stop_pressed = 0;
+        st = P_ABORTING;
+        break;
+    case mpsFinishing_WaitIdle:
+    case mpsFinishing_ParkHead:
         st = P_PRINTING;
         break;
     case mpsAborted:
@@ -672,6 +689,7 @@ static void change_print_state(screen_t *screen) {
         st = P_PRINTED;
         break;
     }
+		if(pw->stop_pressed == 1){ st = P_ABORTING; }
     if (pw->state__readonly__use_change_print_state != st) {
         pw->state__readonly__use_change_print_state = st;
         set_pause_icon_and_label(screen);
