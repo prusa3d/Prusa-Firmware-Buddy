@@ -38,15 +38,15 @@
 #define TERM_PRINTF_MAX 0xff
 
 typedef struct _term_t {
-    FILE *file;
-    uint16_t flg;
-    uint16_t size;
     uint8_t cols;
     uint8_t rows;
+    uint16_t flg;
     uint8_t *buff;
+    uint16_t size;
     uint8_t attr;
     uint8_t col;
     uint8_t row;
+    FILE *file;
 } term_t;
 
 #ifdef __cplusplus
