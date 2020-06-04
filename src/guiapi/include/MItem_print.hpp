@@ -9,7 +9,7 @@ class MI_NOZZLE : public WI_SPIN_U16_t {
 
 public:
     MI_NOZZLE();
-    virtual void OnClick();
+    virtual void OnClick() override;
 };
 
 class MI_HEATBED : public WI_SPIN_U08_t {
@@ -17,7 +17,7 @@ class MI_HEATBED : public WI_SPIN_U08_t {
 
 public:
     MI_HEATBED();
-    virtual void OnClick();
+    virtual void OnClick() override;
 };
 
 class MI_PRINTFAN : public WI_SPIN_U08_t {
@@ -25,7 +25,7 @@ class MI_PRINTFAN : public WI_SPIN_U08_t {
 
 public:
     MI_PRINTFAN();
-    virtual void OnClick();
+    virtual void OnClick() override;
 };
 
 class MI_SPEED : public WI_SPIN_U16_t {
@@ -33,7 +33,7 @@ class MI_SPEED : public WI_SPIN_U16_t {
 
 public:
     MI_SPEED();
-    virtual void OnClick();
+    virtual void OnClick() override;
 };
 
 class MI_FLOWFACT : public WI_SPIN_U16_t {
@@ -41,7 +41,7 @@ class MI_FLOWFACT : public WI_SPIN_U16_t {
 
 public:
     MI_FLOWFACT();
-    virtual void OnClick();
+    virtual void OnClick() override;
 };
 
 class MI_BABYSTEP : public WI_SPIN_t<float> {
@@ -49,8 +49,8 @@ class MI_BABYSTEP : public WI_SPIN_t<float> {
 
 public:
     MI_BABYSTEP();
-    virtual void OnClick();
-    virtual bool Change(int dif);
+    virtual void OnClick() override;
+    virtual bool Change(int dif) override;
 };
 
 #pragma pack(pop)

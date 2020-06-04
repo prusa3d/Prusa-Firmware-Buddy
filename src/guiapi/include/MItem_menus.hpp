@@ -11,7 +11,7 @@ public:
     MI_VERSION_INFO();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_FILAMENT : public WI_LABEL_t {
@@ -21,7 +21,7 @@ public:
     MI_FILAMENT();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_SYS_INFO : public WI_LABEL_t {
@@ -31,7 +31,7 @@ public:
     MI_SYS_INFO();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_STATISTIC_disabled : public WI_LABEL_t {
@@ -41,7 +41,7 @@ public:
     MI_STATISTIC_disabled();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu) {}
+    virtual void click(Iwindow_menu_t &window_menu) override {}
 };
 
 class MI_FAIL_STAT_disabled : public WI_LABEL_t {
@@ -51,7 +51,7 @@ public:
     MI_FAIL_STAT_disabled();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu) {}
+    virtual void click(Iwindow_menu_t &window_menu) override {}
 };
 
 class MI_SUPPORT_disabled : public WI_LABEL_t {
@@ -61,7 +61,7 @@ public:
     MI_SUPPORT_disabled();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu) {}
+    virtual void click(Iwindow_menu_t &window_menu) override {}
 };
 
 class MI_QR_test : public WI_LABEL_t {
@@ -81,7 +81,7 @@ public:
     MI_QR_info();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_TEMPERATURE : public WI_LABEL_t {
@@ -91,7 +91,7 @@ public:
     MI_TEMPERATURE();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_MOVE_AXIS : public WI_LABEL_t {
@@ -101,7 +101,7 @@ public:
     MI_MOVE_AXIS();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_SERVICE : public WI_LABEL_t {
@@ -111,7 +111,7 @@ public:
     MI_SERVICE();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_TEST : public WI_LABEL_t {
@@ -121,7 +121,7 @@ public:
     MI_TEST();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_FW_UPDATE : public WI_LABEL_t {
@@ -131,7 +131,7 @@ public:
     MI_FW_UPDATE();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_LAN_SETTINGS : public WI_LABEL_t {
@@ -141,7 +141,7 @@ public:
     MI_LAN_SETTINGS();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_MESSAGES : public WI_LABEL_t {
@@ -151,7 +151,7 @@ public:
     MI_MESSAGES();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 #pragma pack(pop)

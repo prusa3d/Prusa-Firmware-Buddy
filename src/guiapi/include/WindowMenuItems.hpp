@@ -10,7 +10,7 @@
 class WI_LABEL_t : public IWindowMenuItem {
 public:
     WI_LABEL_t(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Change(int dif);
+    virtual bool Change(int dif) override;
 };
 
 //WI_SPIN
@@ -27,12 +27,12 @@ public: //todo private
 
 protected:
     void sn_prt(char *buff, size_t len) const;
-    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
     virtual void click(Iwindow_menu_t &window_menu) final;
 
 public:
     WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
-    virtual bool Change(int dif);
+    virtual bool Change(int dif) override;
     virtual void OnClick() {}
     void ClrVal() { value = static_cast<T>(0); }
 };
@@ -106,7 +106,7 @@ public: //todo private
     const std::array<const char *, SZ> items;
 
 protected:
-    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
     virtual void click(Iwindow_menu_t &window_menu) final;
 
 public:
@@ -145,11 +145,11 @@ public: //todo private
     const char **strings;
 
 protected:
-    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:
     WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled = true, bool hidden = false);
-    virtual bool Change(int dif);
+    virtual bool Change(int dif) override;
 };
 
 /*****************************************************************************/

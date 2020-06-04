@@ -54,6 +54,6 @@ public:
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(Iwindow_menu_t &window_menu);
 
-    virtual ~IWindowMenuItem() {}
+    virtual ~IWindowMenuItem() = default;
 };
 #pragma pack(pop)
