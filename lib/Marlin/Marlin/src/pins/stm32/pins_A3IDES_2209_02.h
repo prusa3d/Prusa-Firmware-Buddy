@@ -113,7 +113,7 @@
 #define TEMP_BED_PIN           (THERM_1_GPIO_Port + THERM_1_Pin)   // Analog Input
 
 #define TEMP_PINDA_PIN         PA6   // Analog Input //todo remove
-#define TEMP_BOARD_PIN         (THERM_2_GPIO_Port + THERM_2_Pin)   // Analog Input
+#define TEMP_BOARD_PIN         (THERM_BOARD_GPIO_Port + THERM_BOARD_Pin) // Analog Input
 
 
 //
