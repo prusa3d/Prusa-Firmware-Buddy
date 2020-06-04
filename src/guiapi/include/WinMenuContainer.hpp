@@ -38,11 +38,11 @@ public:
         return std::get<TYPE>(menu_items);
     }
 
-    virtual size_t GetCount() {
+    virtual size_t GetCount() override {
         return std::tuple_size<std::tuple<T...>>::value;
     }
 
-    virtual IWindowMenuItem *GetItem(size_t pos) {
+    virtual IWindowMenuItem *GetItem(size_t pos) override {
         if (pos > GetCount())
             return NULL;
         else
