@@ -1,15 +1,6 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[BUG]"
-labels: bug
-assignees: ''
-
----
-
----
-name: Bug report
-about: Create a report to help us improve
 title: "[BUG]<Enter comprehensive title>"
 labels: bug
 assignees: ''
