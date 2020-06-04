@@ -22,13 +22,13 @@ Please, before you create a new bug report, please make sure you searched in ope
 
 **Describe the bug**
   A clear and concise description of what the bug is.
-  
+
 **To Reproduce**
   Please describe steps to reproduce the behavior.
-  
+
 **Expected behavior**
   A clear and concise description of what you expected to happen.
-  
+
 **G-code**
   Please attach a G-code. This will make it easier for us to replicate the error.
 
