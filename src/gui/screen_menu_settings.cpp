@@ -38,10 +38,19 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
         }
         return fs == FS_DISABLED ? 1 : 0;
     }
+    bool fs_not_connected;
 
 public:
     MI_FILAMENT_SENSOR()
         : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
+    void CheckDisconnected() {
+        fsensor_t fs = fs_wait_inicialized();
+        if (fs == FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
+            fs_disable();
+            index = 1;
+            gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
+        }
+    }
 
 protected:
     virtual void OnChange(size_t old_index) {
@@ -57,7 +66,6 @@ protected:
 };
 
 #ifdef _DEBUG
-enum { FsensorPos = 8 };
 using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
@@ -67,7 +75,6 @@ using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
 #else
-enum { FsensorPos = 6 };
 using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
@@ -92,7 +99,7 @@ void ScreenMenuSettings::Init(screen_t *screen) {
 int ScreenMenuSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
     ScreenMenuSettings *const ths = reinterpret_cast<ScreenMenuSettings *>(screen->pdata);
     if (event == WINDOW_EVENT_LOOP) {
-        //todo handle if FS disconnects
+        ths->Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 
     return ths->Event(window, event, param);
