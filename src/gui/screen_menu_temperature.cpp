@@ -48,9 +48,9 @@ int ScreenMenuTenperature::CEvent(screen_t *screen, window_t *window, uint8_t ev
         marlin_set_target_bed(0);
         marlin_set_fan_speed(0);
 
-        MI_NOZZLE *noz = reinterpret_cast<MI_NOZZLE *>(ths->menu.GetItem(1));
-        MI_HEATBED *bed = reinterpret_cast<MI_HEATBED *>(ths->menu.GetItem(2));
-        MI_PRINTFAN *fan = reinterpret_cast<MI_PRINTFAN *>(ths->menu.GetItem(3));
+        MI_NOZZLE *noz = &ths->Item<MI_NOZZLE>();
+        MI_HEATBED *bed = &ths->Item<MI_HEATBED>();
+        MI_PRINTFAN *fan = &ths->Item<MI_PRINTFAN>();
         noz->ClrVal();
         bed->ClrVal();
         fan->ClrVal();

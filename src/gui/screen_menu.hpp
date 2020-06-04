@@ -32,6 +32,17 @@ struct screen_menu_data_t {
     void Draw() {}
     int Event(window_t *window, uint8_t event, void *param);
 
+    //compiletime access by index
+    template <std::size_t I>
+    decltype(auto) Item() {
+        return std::get<I>(container.menu_items);
+    }
+    //compiletime access by type
+    template <class TYPE>
+    decltype(auto) Item() {
+        return std::get<TYPE>(container.menu_items);
+    }
+
     //C code binding
     static void Create(screen_t *screen, const char *label = no_label) {
         auto *ths = reinterpret_cast<screen_menu_data_t<HEADER, FOOTER, HELP, T...> *>(screen->pdata);

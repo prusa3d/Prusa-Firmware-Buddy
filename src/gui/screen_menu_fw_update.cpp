@@ -59,7 +59,7 @@ void ScreenMenuFwUpdate::Init(screen_t *screen) {
 int ScreenMenuFwUpdate::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
     ScreenMenuFwUpdate *const ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
     if (event == WINDOW_EVENT_CLICK) {
-        MI_ON_RESTART *mi_restart = reinterpret_cast<MI_ON_RESTART *>(ths->container.GetItem(2));
+        MI_ON_RESTART *mi_restart = &ths->Item<MI_ON_RESTART>();
         if (size_t(param) == 1) {
             mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
             mi_restart->Enable();

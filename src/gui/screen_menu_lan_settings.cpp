@@ -329,7 +329,7 @@ int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t ev
     ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
     if (Eth::ConsumeReinit()) {
         //todo ipmrove inner tuple handling and index by type
-        MI_LAN_IP_t *item = reinterpret_cast<MI_LAN_IP_t *>(ths->menu.GetItem(2));
+        MI_LAN_IP_t *item = &ths->Item<MI_LAN_IP_t>();
         item->ReInit();
     }
 

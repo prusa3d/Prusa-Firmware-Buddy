@@ -57,7 +57,7 @@ int ScreenMenuMove::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
     if (event == WINDOW_EVENT_LOOP) {
 
         bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::extrude_min_temp);
-        IWindowMenuItem *pAxis_E = ths->menu.GetItem(4);
+        IWindowMenuItem *pAxis_E = &ths->Item<MI_AXIS_E>();
         if (temp_ok && (!pAxis_E->IsEnabled()))
             pAxis_E->Enable();
         if ((!temp_ok) && pAxis_E->IsEnabled())

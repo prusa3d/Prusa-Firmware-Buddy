@@ -35,9 +35,9 @@ int ScreenMenuTune::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
 
     if (
         marlin_all_axes_homed() && marlin_all_axes_known() && (marlin_command() != MARLIN_CMD_G28) && (marlin_command() != MARLIN_CMD_G29) && (marlin_command() != MARLIN_CMD_M109) && (marlin_command() != MARLIN_CMD_M190)) {
-        ths->menu.GetItem(7)->Enable();
+        ths->Item<MI_M600>().Enable();
     } else {
-        ths->menu.GetItem(7)->Disable();
+        ths->Item<MI_M600>().Disable();
     }
 
     return ths->Event(window, event, param);

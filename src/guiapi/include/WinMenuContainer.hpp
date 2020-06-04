@@ -27,9 +27,15 @@ public:
         menu_items = std::tuple<T...>(args...);
     }
 
+    //compiletime access by index
     template <std::size_t I>
     decltype(auto) Item() {
         return std::get<I>(menu_items);
+    }
+    //compiletime access by type
+    template <class TYPE>
+    decltype(auto) Item() {
+        return std::get<TYPE>(menu_items);
     }
 
     virtual size_t GetCount() {
