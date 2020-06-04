@@ -17,11 +17,11 @@ typedef struct _gui_timer_t {
     uint32_t start;
     uint32_t delay : 24;
     union {
-        uint32_t flags : 8;
+        uint8_t flags : 8;
         struct
         {
-            uint32_t f_reserved0 : 5;
-            uint32_t f_timer : 3;
+            uint8_t f_reserved0 : 5;
+            uint8_t f_timer : 3;
         };
     };
     int16_t win_id;
