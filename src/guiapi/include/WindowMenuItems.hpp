@@ -182,17 +182,22 @@ void WI_SPIN_t<T>::click(Iwindow_menu_t &window_menu) {
 
 template <class T>
 void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    IWindowMenuItem::printText(window_menu, rect, color_text, color_back, swap);
     char buff[20] = { '\0' };
     sn_prt(buff, 20);
 
-    rect_ui16_t vrc = {
+    rect_ui16_t spin_rect = {
         uint16_t(rect.x + rect.w), rect.y, uint16_t(window_menu.font->w * strlen(buff) + window_menu.padding.left + window_menu.padding.right), rect.h
     };
-    vrc.x -= vrc.w;
-    rect.w -= vrc.w;
+    spin_rect.x -= spin_rect.w;
+    rect.w -= spin_rect.w;
 
-    render_text_align(vrc, buff, window_menu.font,
+    rect_ui16_t label_rect = rect;
+    label_rect.w = spin_rect.x - label_rect.x;
+
+    //draw label
+    IWindowMenuItem::printText(window_menu, label_rect, color_text, color_back, swap);
+    //draw spin
+    render_text_align(spin_rect, buff, window_menu.font,
         color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 
