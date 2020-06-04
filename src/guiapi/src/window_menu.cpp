@@ -172,6 +172,7 @@ void window_menu_draw(window_menu_t *window) {
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     IWindowMenuItem *const item = window->GetActiveItem();
     const int value = int(param);
+    bool invalid = false;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
 
@@ -180,14 +181,14 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_ENC_DN:
         if (item->IsSelected()) {
-            item->Decrement(value);
+            invalid |= item->Decrement(value);
         } else {
             window->Decrement(value);
         }
         break;
     case WINDOW_EVENT_ENC_UP:
         if (item->IsSelected()) {
-            item->Incement(value);
+            invalid |= item->Incement(value);
         } else {
             window->Incement(value);
         }
@@ -199,6 +200,8 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         roll_text_phasing(window->win.id, window->font, &window->roll);
         break;*/
     }
+    if (invalid)
+        _window_invalidate((window_t *)window);
 }
 
 const window_class_menu_t window_class_menu = {
