@@ -52,7 +52,8 @@ extern const float filament_unload_mini_length;
 
 #ifdef __cplusplus
     #include <array>
-
+    #include <cstdint>
+using std::size_t;
     #pragma pack(push, 1)
 //MenuVars must be packed to prevent unaligned memory access
 struct MenuVars {
