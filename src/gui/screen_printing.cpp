@@ -27,33 +27,33 @@
 #define POPUP_MSG_DUR_MS       5000
 #define MAX_END_TIMESTAMP_SIZE (14 + 12 + 5) // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
 
-enum printing_state_t {
-    P_INITIAL,
-    P_PRINTING,
-    P_PAUSING,
-    P_PAUSED,
-    P_RESUMING,
-    P_REHEATING,
-    P_REHEATING_DONE,
-    P_MBL_FAILED,
-    P_PRINTED,
-    P_COUNT //setting this state == forced update
+enum class printing_state_t : uint8_t {
+    INITIAL,
+    PRINTING,
+    PAUSING,
+    PAUSED,
+    RESUMING,
+    REHEATING,
+    REHEATING_DONE,
+    MBL_FAILED,
+    PRINTED,
+    COUNT //setting this state == forced update
 };
 
-enum item_id_t {
-    iid_settings,
-    iid_pause,
-    iid_pausing,
-    iid_stop,
-    iid_resume,
-    iid_resuming,
-    iid_reheating,
-    iid_reprint,
-    iid_home,
-    iid_count
+enum class item_id_t {
+    settings,
+    pause,
+    pausing,
+    stop,
+    resume,
+    resuming,
+    reheating,
+    reprint,
+    home,
+    count
 };
 
-const uint16_t printing_icons[item_id_t::iid_count] = {
+const uint16_t printing_icons[static_cast<size_t>(item_id_t::count)] = {
     IDR_PNG_menu_icon_settings,
     IDR_PNG_menu_icon_pause,
     IDR_PNG_menu_icon_pause, //same as pause
@@ -65,7 +65,7 @@ const uint16_t printing_icons[item_id_t::iid_count] = {
     IDR_PNG_menu_icon_home,
 };
 
-const char *printing_labels[item_id_t::iid_count] = {
+const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
     "Tune",
     "Pause",
     "Pausing...",
@@ -95,7 +95,6 @@ struct screen_printing_data_t {
 
     uint32_t last_print_duration;
     uint32_t last_time_to_end;
-    uint8_t last_sd_percent_done;
 
     std::array<char, 9> text_time;
     char text_etime[MAX_END_TIMESTAMP_SIZE];
@@ -104,8 +103,9 @@ struct screen_printing_data_t {
 
     window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
-    uint8_t message_flag;
     printing_state_t state__readonly__use_change_print_state;
+    uint8_t message_flag;
+    uint8_t last_sd_percent_done;
 };
 
 void screen_printing_init(screen_t *screen);
@@ -116,7 +116,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 #define pw ((screen_printing_data_t *)screen->pdata)
 
 static void invalidate_print_state(screen_t *screen) {
-    pw->state__readonly__use_change_print_state = P_COUNT;
+    pw->state__readonly__use_change_print_state = printing_state_t::COUNT;
 }
 static printing_state_t get_state(screen_t *screen) {
     return pw->state__readonly__use_change_print_state;
@@ -344,8 +344,8 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     switch (((int)param) - 1) {
     case BUTTON_TUNE:
         switch (get_state(screen)) {
-        case P_PRINTING:
-        case P_PAUSED:
+        case printing_state_t::PRINTING:
+        case printing_state_t::PAUSED:
             screen_open(get_scr_menu_tune()->id);
             break;
         default:
@@ -355,13 +355,13 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         break;
     case BUTTON_PAUSE: {
         switch (get_state(screen)) {
-        case P_PRINTING:
+        case printing_state_t::PRINTING:
             marlin_print_pause();
             break;
-        case P_PAUSED:
+        case printing_state_t::PAUSED:
             marlin_print_resume();
             break;
-        case P_PRINTED:
+        case printing_state_t::PRINTED:
             screen_printing_reprint(screen);
             break;
         default:
@@ -371,11 +371,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     }
     case BUTTON_STOP:
         switch (get_state(screen)) {
-        case P_PRINTED:
+        case printing_state_t::PRINTED:
             screen_close();
             return 1;
-        case P_PAUSING:
-        case P_RESUMING:
+        case printing_state_t::PAUSING:
+        case printing_state_t::RESUMING:
             return 0;
         default: {
             if (gui_msgbox("Are you sure to stop this printing?",
@@ -495,8 +495,8 @@ static void screen_printing_reprint(screen_t *screen) {
     print_begin(marlin_vars()->media_SFN_path);
     window_set_text(pw->w_etime_label.win.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
-    window_set_text(pw->w_labels[BUTTON_STOP].win.id, printing_labels[iid_stop]);
-    window_set_icon_id(pw->w_buttons[BUTTON_STOP].win.id, printing_icons[iid_stop]);
+    window_set_text(pw->w_labels[BUTTON_STOP].win.id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
+    window_set_icon_id(pw->w_buttons[BUTTON_STOP].win.id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
@@ -522,11 +522,12 @@ static void screen_printing_reprint(screen_t *screen) {
 }*/
 
 static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
-    if (window_get_icon_id(btn_id) != printing_icons[id_to_set])
-        window_set_icon_id(btn_id, printing_icons[id_to_set]);
+    size_t index = static_cast<size_t>(id_to_set);
+    if (window_get_icon_id(btn_id) != printing_icons[index])
+        window_set_icon_id(btn_id, printing_icons[index]);
     //compare pointers to text, compare texts would take too long
-    if (window_get_text(lbl_id) != printing_labels[id_to_set])
-        window_set_text(lbl_id, printing_labels[id_to_set]);
+    if (window_get_text(lbl_id) != printing_labels[index])
+        window_set_text(lbl_id, printing_labels[index]);
 }
 
 static void enable_button(window_icon_t *p_button) {
@@ -551,33 +552,33 @@ static void set_pause_icon_and_label(screen_t *screen) {
     //todo it is static, because menu tune is not dialog
     //switch (pw->state__readonly__use_change_print_state)
     switch (get_state(screen)) {
-    case P_COUNT:
-    case P_INITIAL:
-    case P_PRINTING:
-    case P_MBL_FAILED:
+    case printing_state_t::COUNT:
+    case printing_state_t::INITIAL:
+    case printing_state_t::PRINTING:
+    case printing_state_t::MBL_FAILED:
         enable_button(p_button);
-        set_icon_and_label(iid_pause, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::pause, btn_id, lbl_id);
         break;
-    case P_PAUSING:
+    case printing_state_t::PAUSING:
         disable_button(p_button);
-        set_icon_and_label(iid_pausing, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::pausing, btn_id, lbl_id);
         break;
-    case P_PAUSED:
+    case printing_state_t::PAUSED:
         enable_button(p_button);
-        set_icon_and_label(iid_resume, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::resume, btn_id, lbl_id);
         break;
-    case P_RESUMING:
+    case printing_state_t::RESUMING:
         disable_button(p_button);
-        set_icon_and_label(iid_resuming, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::resuming, btn_id, lbl_id);
         break;
-    case P_REHEATING:
-    case P_REHEATING_DONE:
+    case printing_state_t::REHEATING:
+    case printing_state_t::REHEATING_DONE:
         disable_button(p_button);
-        set_icon_and_label(iid_reheating, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::reheating, btn_id, lbl_id);
         break;
-    case P_PRINTED:
+    case printing_state_t::PRINTED:
         enable_button(p_button);
-        set_icon_and_label(iid_reprint, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::reprint, btn_id, lbl_id);
         break;
     }
 }
@@ -588,11 +589,11 @@ void set_tune_icon_and_label(screen_t *screen) {
     int16_t lbl_id = pw->w_labels[BUTTON_TUNE].win.id;
 
     //must be before switch
-    set_icon_and_label(iid_settings, btn_id, lbl_id);
+    set_icon_and_label(item_id_t::settings, btn_id, lbl_id);
 
     switch (get_state(screen)) {
-    case P_PRINTING:
-    case P_PAUSED:
+    case printing_state_t::PRINTING:
+    case printing_state_t::PAUSED:
         enable_tune_button(screen);
         break;
     default:
@@ -607,59 +608,59 @@ void set_stop_icon_and_label(screen_t *screen) {
     int16_t lbl_id = pw->w_labels[BUTTON_STOP].win.id;
 
     switch (get_state(screen)) {
-    case P_PRINTED:
+    case printing_state_t::PRINTED:
         enable_button(p_button);
-        set_icon_and_label(iid_home, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::home, btn_id, lbl_id);
         break;
-    case P_PAUSING:
-    case P_RESUMING:
+    case printing_state_t::PAUSING:
+    case printing_state_t::RESUMING:
         disable_button(p_button);
-        set_icon_and_label(iid_stop, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
         break;
     default:
         enable_button(p_button);
-        set_icon_and_label(iid_stop, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
         break;
     }
 }
 
 static void change_print_state(screen_t *screen) {
-    printing_state_t st = P_COUNT;
+    printing_state_t st = printing_state_t::COUNT;
 
     switch (marlin_vars()->print_state) {
     case mpsIdle:
-        st = P_INITIAL;
+        st = printing_state_t::INITIAL;
         break;
     case mpsPrinting:
-        st = P_PRINTING;
+        st = printing_state_t::PRINTING;
         break;
     case mpsPaused:
-        st = P_PAUSED;
+        st = printing_state_t::PAUSED;
         break;
     case mpsPausing_Begin:
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
-        st = P_PAUSING;
+        st = printing_state_t::PAUSING;
         break;
     case mpsResuming_Reheating:
-        st = P_REHEATING;
+        st = printing_state_t::REHEATING;
         break;
     case mpsResuming_Begin:
     case mpsResuming_UnparkHead:
-        st = P_RESUMING;
+        st = printing_state_t::RESUMING;
         break;
     case mpsFinishing_WaitIdle:
     case mpsFinishing_ParkHead:
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
     case mpsAborting_ParkHead:
-        st = P_PRINTING;
+        st = printing_state_t::PRINTING;
         break;
     case mpsAborted:
-        st = P_PRINTED;
+        st = printing_state_t::PRINTED;
         break;
     case mpsFinished:
-        st = P_PRINTED;
+        st = printing_state_t::PRINTED;
         break;
     }
     if (pw->state__readonly__use_change_print_state != st) {
