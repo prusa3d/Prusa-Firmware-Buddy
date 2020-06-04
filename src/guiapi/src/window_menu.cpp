@@ -131,18 +131,6 @@ void window_menu_set_item_index(window_t *window, int index) {
     }
 }
 
-void _window_menu_draw_value(window_menu_t *window, const char *value,
-    rect_ui16_t *p_rc, color_t color_text_option, color_t color_back) {
-    rect_ui16_t vrc = {
-        uint16_t(p_rc->x + p_rc->w), p_rc->y, uint16_t(window->font->w * strlen(value) + window->padding.left + window->padding.right), p_rc->h
-    };
-    vrc.x -= vrc.w;
-    p_rc->w -= vrc.w;
-
-    render_text_align(vrc, value, window->font,
-        color_back, color_text_option, window->padding, window->alignment);
-}
-
 void window_menu_draw(window_menu_t *window) {
     if (!((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         return;

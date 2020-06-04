@@ -40,10 +40,9 @@ void IWindowMenuItem::printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, 
     rect.x += irc.w;
     rect.w -= irc.w;
 
-    if (id_icon) {
-        render_icon_align(irc, id_icon,
-            window_menu.color_back, RENDER_FLG(ALIGN_CENTER, swap));
-    }
+    //do not check id
+    //id == 0 wil render as black, it is needed
+    render_icon_align(irc, id_icon, window_menu.color_back, RENDER_FLG(ALIGN_CENTER, swap));
 }
 
 void IWindowMenuItem::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
