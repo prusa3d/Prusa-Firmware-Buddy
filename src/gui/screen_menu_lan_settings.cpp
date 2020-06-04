@@ -51,6 +51,7 @@ public:
     static void SetStatic();
     static void SetDHCP();
     static Msg ConsumeMsg();
+    static bool ConsumeReinit();
 };
 #pragma pack(pop)
 
@@ -194,6 +195,12 @@ void Eth::Load() {
         }
     }
 }
+
+bool Eth::ConsumeReinit() {
+    bool ret = reinit_flg;
+    reinit_flg = false;
+    return ret;
+}
 /*****************************************************************************/
 //ITEMS
 #pragma pack(push, 1)
@@ -216,9 +223,12 @@ class MI_LAN_IP_t : public WI_SWITCH_t<2> {
 
 public:
     MI_LAN_IP_t()
-        : WI_SWITCH_t<2>(Eth::IsStatic() ? 0 : 1, label, 0, true, false, str_static, str_DHCP) {}
+        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_static, str_DHCP) {}
     virtual void OnChange(size_t old_index) {
         old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
+    }
+    void ReInit() {
+        index = Eth::IsStatic() ? 1 : 0;
     }
 };
 
@@ -324,6 +334,11 @@ void ScreenMenuLanSettings::Init(screen_t *screen) {
 
 int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
     ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
+    if (Eth::ConsumeReinit()) {
+        //todo ipmrove inner tuple handling and index by type
+        MI_LAN_IP_t *item = reinterpret_cast<MI_LAN_IP_t *>(ths->menu.GetItem(2));
+        item->ReInit();
+    }
 
     //window_header_events(&(ths->header)); //dodo check if needed
     if (Eth::IsUpdated())

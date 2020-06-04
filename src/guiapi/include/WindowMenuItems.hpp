@@ -119,6 +119,7 @@ public:
         , items { { std::forward<E>(e)... } } {}
     virtual bool Change(int dif);
     virtual void ClrIndex() { index = 0; }
+    virtual bool SetIndex(size_t idx);
 
 protected:
     virtual void OnChange(size_t old_index) = 0;
@@ -220,6 +221,15 @@ void WI_SWITCH_t<SZ>::click(Iwindow_menu_t &window_menu) {
     size_t old_index = index;
     Change(0);
     OnChange(old_index);
+}
+template <size_t SZ>
+bool WI_SWITCH_t<SZ>::SetIndex(size_t idx) {
+    if (idx >= SZ)
+        return false;
+    else {
+        index = idx;
+        return true;
+    }
 }
 
 template <size_t SZ>
