@@ -254,6 +254,7 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 void screen_home_disable_print_button(screen_t *screen, int disable) {
     pw->w_buttons[0].win.f_disabled = disable;
     pw->w_buttons[0].win.f_enabled = !disable; // cant't be focused
+    pw->w_buttons[0].win.f_invalid = 1;
     window_set_text(pw->w_labels[0].win.id, labels[(disable ? 6 : 0)]);
 
     // move to preheat when Print is focused
