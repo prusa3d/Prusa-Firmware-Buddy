@@ -33,10 +33,7 @@ const char *serial_printing_labels[iid_count] = {
     "Disconnect"
 };
 
-#pragma pack(push, 1)
-
-typedef struct
-{
+struct screen_printing_serial_data_t {
     window_frame_t root;
 
     window_header_t header;
@@ -48,10 +45,7 @@ typedef struct
     window_text_t w_labels[iid_count];
 
     int last_tick;
-
-} screen_printing_serial_data_t;
-
-#pragma pack(pop)
+};
 
 void screen_printing_serial_init(screen_t *screen);
 void screen_printing_serial_done(screen_t *screen);

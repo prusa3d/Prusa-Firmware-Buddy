@@ -1,0 +1,8 @@
+FROM gcc:10
+RUN apt-get clean && \
+    apt-get update -qq -y && \
+    apt-get install curl python3 -y
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3 get-pip.py
+RUN python3 -m pip install pre-commit ecdsa
+ADD utils/bootstrap.py bootstrap.py
+RUN python3 bootstrap.py

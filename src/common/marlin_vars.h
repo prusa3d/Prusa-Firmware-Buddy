@@ -38,7 +38,7 @@
 #define MARLIN_VAR_MAX      MARLIN_VAR_TIMTOEND
 
 // variable masks
-#define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (v_id))
+#define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (uint8_t)(v_id))
 
 //maximum number of masks is 64
 //maximum mask index is 63

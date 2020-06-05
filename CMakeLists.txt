@@ -11,10 +11,9 @@ project(
 
 if(NOT CMAKE_CROSSCOMPILING)
   #
-  # If we are not crosscompiling, include `utils` with host tools and exit.
+  # If we are not crosscompiling, include `utils` with host tools.
   #
   add_subdirectory(utils)
-  return()
 endif()
 
 #
@@ -99,10 +98,18 @@ resolve_version_variables()
 
 # Check GCC Version
 get_recommended_gcc_version(RECOMMENDED_TOOLCHAIN_VERSION)
-if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ${RECOMMENDED_TOOLCHAIN_VERSION})
+if(CMAKE_CROSSCOMPILING AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL
+                            ${RECOMMENDED_TOOLCHAIN_VERSION}
+   )
   message(WARNING "Recommended ARM toolchain is ${RECOMMENDED_TOOLCHAIN_VERSION}"
                   ", but you have ${CMAKE_CXX_COMPILER_VERSION}"
           )
+
+elseif(NOT CMAKE_CROSSCOMPILING AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  message(
+    WARNING
+      "Recommended compiler for host tools and unittests is GCC, you have ${CMAKE_CXX_COMPILER_ID}."
+    )
 endif()
 
 # Inform user about the resolved settings
@@ -247,11 +254,6 @@ target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
 # Global Compiler & Linker Configuration
 #
 
-# mcu related settings
-set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
-add_compile_options(${MCU_FLAGS})
-add_link_options(${MCU_FLAGS})
-
 # Thread safe newlib
 add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
 
@@ -265,12 +267,19 @@ else()
   add_compile_options(-Os)
 endif()
 
-# better FreeRTOS support
-add_link_options(-Wl,--undefined=uxTopUsedPriority,--undefined=init_task)
+if(CMAKE_CROSSCOMPILING)
+  # mcu related settings
+  set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
+  add_compile_options(${MCU_FLAGS})
+  add_link_options(${MCU_FLAGS})
 
-# split and gc sections
-add_compile_options(-ffunction-sections -fdata-sections)
-add_link_options(-Wl,--gc-sections)
+  # better FreeRTOS support
+  add_link_options(-Wl,--undefined=uxTopUsedPriority,--undefined=init_task)
+
+  # split and gc sections
+  add_compile_options(-ffunction-sections -fdata-sections)
+  add_link_options(-Wl,--gc-sections)
+endif()
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall)
@@ -289,13 +298,15 @@ endif()
 #
 # add_compile_options(-mno-unaligned-access)
 
-# configure linker script
-if(BOOTLOADER)
-  set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
-else(NOT BOOTLOADER)
-  set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+if(CMAKE_CROSSCOMPILING)
+  # configure linker script
+  if(BOOTLOADER)
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
+  else(NOT BOOTLOADER)
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+  endif()
+  add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 endif()
-add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 
 #
 # Import definitions of all libraries
@@ -518,13 +529,13 @@ if(GUI)
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
             src/gui/screen_print_preview.c
-            src/gui/screen_menu_messages.cpp
+            src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.c
             src/gui/screen_menu_move.cpp
             src/gui/screen_menu_lan_settings.cpp
-            src/gui/screen_menu_qr_info.cpp
-            src/gui/screen_menu_qr_error.cpp
+            src/gui/screen_qr_info.cpp
+            src/gui/screen_qr_error.cpp
             src/gui/test/screen_test.c
             src/gui/test/screen_test_disp_mem.c
             src/gui/test/screen_test_gui.c
@@ -580,6 +591,11 @@ if(GUI)
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
+            src/guiapi/src/IWindowMenuItem.cpp
+            src/guiapi/src/WindowMenuItems.cpp
+            src/guiapi/src/MItem_menus.cpp
+            src/guiapi/src/MItem_print.cpp
+            src/guiapi/src/MItem_tools.cpp
     )
 endif()
 
@@ -609,3 +625,8 @@ set_property(
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
   )
+
+if(NOT CMAKE_CROSSCOMPILING)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
