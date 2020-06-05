@@ -21,7 +21,7 @@ protected:
 };
 
 using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_Filament<FILAMENT_PLA>, MI_Filament<FILAMENT_PETG>,
-    MI_Filament<FILAMENT_ASA>, MI_Filament<FILAMENT_FLEX>, MI_Filament<FILAMENT_NONE>>;
+    MI_Filament<FILAMENT_ASA>, MI_Filament<FILAMENT_PC>, MI_Filament<FILAMENT_ABS>, MI_Filament<FILAMENT_HIPS>, MI_Filament<FILAMENT_PP>, MI_Filament<FILAMENT_FLEX>, MI_Filament<FILAMENT_NONE>>;
 
 static void init(screen_t *screen) {
     constexpr static const char *label = "PREHEAT";
