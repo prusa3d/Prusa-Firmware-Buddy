@@ -2,7 +2,7 @@
 #include "config.h"
 #include "stdlib.h"
 #include "resource.h"
-
+/*
 void window_set_capture(int16_t id);
 
 const menu_item_t menu_item_return = {
@@ -11,7 +11,7 @@ const menu_item_t menu_item_return = {
 };
 
 void screen_menu_item(window_menu_t *pwindow_menu, uint16_t index,
-    window_menu_item_t **ppitem, void *data) {
+    WindowMenuItem **ppitem, void *data) {
     screen_t *screen = (screen_t *)data;
     *ppitem = &(psmd->items[index].item);
 }
@@ -89,14 +89,15 @@ int screen_menu_event(screen_t *screen, window_t *window,
     }
 
     const menu_item_t *item = &(psmd->items[(int)param]);
-    if (!(item->item.type & WI_DISABLED) && item->screen == SCREEN_MENU_RETURN) {
+    if (!(!item->item.IsEnabled()) && item->screen == SCREEN_MENU_RETURN) {
         screen_close();
         return 1;
     }
 
-    if (!(item->item.type & WI_DISABLED) && item->screen != SCREEN_MENU_NO_SCREEN) {
+    if (!(!item->item.IsEnabled()) && item->screen != SCREEN_MENU_NO_SCREEN) {
         screen_open(item->screen->id);
         return 1;
     }
     return 0;
 }
+*/

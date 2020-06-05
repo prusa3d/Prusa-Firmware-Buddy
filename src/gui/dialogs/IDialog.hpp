@@ -4,8 +4,6 @@
 #include "window.h"
 
 //window_t has pragma pack, have to use here too
-#pragma pack(push)
-#pragma pack(1)
 //interface for dialog
 class IDialog : protected window_t {
 protected:
@@ -18,4 +16,3 @@ public:
 
     static IDialog *cast(window_t *win_addr);
 };
-#pragma pack(pop)

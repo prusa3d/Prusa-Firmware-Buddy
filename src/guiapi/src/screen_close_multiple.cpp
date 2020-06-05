@@ -31,7 +31,7 @@ static screen_t *const m876_blacklist[] = {
 static int _current_in_list(screen_t *const *list, size_t sz) {
     screen_t *curr = screen_get_curr();
     for (size_t i = 0; i < sz; ++sz)
-        if (curr == list[sz])
+        if (curr == list[i])
             return 1;
     return 0;
 }

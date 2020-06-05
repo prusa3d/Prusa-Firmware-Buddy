@@ -18,9 +18,6 @@ typedef void(dlg_on_click_cb)(window_dlg_preheat_t *);
 
 extern int16_t WINDOW_CLS_DLG_PREHEAT;
 
-#pragma pack(push)
-#pragma pack(1)
-
 //todo some items are most likely unused - remove them
 typedef struct _window_dlg_preheat_t {
     window_t win;
@@ -41,8 +38,6 @@ typedef struct _window_dlg_preheat_t {
 typedef struct _window_class_dlg_preheat_t {
     window_class_t cls;
 } window_class_dlg_preheat_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

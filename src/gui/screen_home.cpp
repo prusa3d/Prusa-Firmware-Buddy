@@ -43,11 +43,7 @@ const char *labels[7] = {
     "No USB" // label variant for first button
 };
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct
-{
+struct screen_home_data_t {
     window_frame_t root;
 
     window_header_t header;
@@ -61,9 +57,7 @@ typedef struct
     uint8_t is_starting;
     uint32_t time;
     uint8_t logo_invalid;
-} screen_home_data_t;
-
-#pragma pack(pop)
+};
 
 #define pw ((screen_home_data_t *)screen->pdata)
 
