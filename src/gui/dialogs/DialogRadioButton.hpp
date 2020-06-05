@@ -34,7 +34,7 @@ private:
     static size_t cnt_buttons(const PhaseTexts &labels, const PhaseResponses &resp);
 
 public:
-    RadioButton(const Window &window, const PhaseResponses &cmmnds, const PhaseTexts &labels); //has response == buttons enabled
+    RadioButton(const Window &window, const PhaseResponses &resp, const PhaseTexts &labels); //has response == buttons enabled
     RadioButton(const Window &window, const PhaseTexts &labels);                               //does not have response == buttons disabled
     // No postfix increment/decrement operator, it would have to return button by value.
     // it would not be a problem, but buttons are not ment to be used that way

@@ -45,7 +45,7 @@ void IWindowMenuItem::printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, 
     render_icon_align(irc, id_icon, window_menu.color_back, RENDER_FLG(ALIGN_CENTER, swap));
 }
 
-void IWindowMenuItem::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void IWindowMenuItem::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
     render_text_align(rect, label.data(), window_menu.font,
         color_back, color_text,
         window_menu.padding, window_menu.alignment);

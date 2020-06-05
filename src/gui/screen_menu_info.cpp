@@ -26,7 +26,7 @@ screen_t screen_menu_info = {
     Screen::CDraw,
     Screen::CEvent,
     sizeof(Screen), //data_size
-    0,              //pdata
+    nullptr,              //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_info() { return &screen_menu_info; }

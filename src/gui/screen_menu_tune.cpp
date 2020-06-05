@@ -51,7 +51,7 @@ screen_t screen_menu_tune = {
     ScreenMenuTune::CDraw,
     ScreenMenuTune::CEvent,
     sizeof(ScreenMenuTune), //data_size
-    0,                      //pdata
+    nullptr,                      //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_tune() { return &screen_menu_tune; }

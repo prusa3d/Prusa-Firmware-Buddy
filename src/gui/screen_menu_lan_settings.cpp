@@ -207,7 +207,7 @@ class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
 public:
     MI_LAN_ONOFF()
         : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 0 : 1, label, 0, true, false) {}
-    virtual void OnChange(size_t old_index) {
+    virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::Off() : Eth::On();
     }
 };
@@ -221,7 +221,7 @@ class MI_LAN_IP_t : public WI_SWITCH_t<2> {
 public:
     MI_LAN_IP_t()
         : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_static, str_DHCP) {}
-    virtual void OnChange(size_t old_index) {
+    virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
     }
     void ReInit() {
@@ -235,7 +235,7 @@ class MI_SAVE : public WI_LABEL_t {
 public:
     MI_SAVE()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t &window_menu) {
+    virtual void click(Iwindow_menu_t &/*window_menu*/) override {
         Eth::Save();
     }
 };
@@ -246,7 +246,7 @@ class MI_LOAD : public WI_LABEL_t {
 public:
     MI_LOAD()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t &window_menu) {
+    virtual void click(Iwindow_menu_t &/*window_menu*/) override {
         Eth::Load();
     }
 };
@@ -257,8 +257,8 @@ using parent = screen_menu_data_t<EHeader::On, EFooter::Off, EHelp::On,
     MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_SAVE, MI_LOAD>;
 
 class ScreenMenuLanSettings : public parent {
-    lan_descp_str_t plan_str;
-    bool msg_shown;
+    lan_descp_str_t plan_str; //todo not initialized in constructor
+    bool msg_shown; //todo not initialized in constructor
     void refresh_addresses();
     void show_msg(Eth::Msg msg);
 
@@ -350,7 +350,7 @@ screen_t screen_lan_settings = {
     ScreenMenuLanSettings::CDraw,
     ScreenMenuLanSettings::CEvent,
     sizeof(ScreenMenuLanSettings), //data_size
-    0,                             //pdata
+    nullptr,                             //pdata
 };
 
 extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

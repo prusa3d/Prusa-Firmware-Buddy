@@ -219,7 +219,7 @@ screen_t screen_mesh_bed_lv = {
     screen_mesh_bed_lv_draw,
     screen_mesh_bed_lv_event,
     sizeof(screen_mesh_bed_lv_data_t), //data_size
-    0,                                 //pdata
+    nullptr,                                 //pdata
 };
 
 screen_t *const get_scr_mesh_bed_lv() { return &screen_mesh_bed_lv; }

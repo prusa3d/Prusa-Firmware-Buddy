@@ -77,7 +77,7 @@ protected:
 
 public:
     IDialogStateful(const char *name, int16_t WINDOW_CLS_);
-    bool Change(uint8_t phase, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
+    bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
     virtual ~IDialogStateful();
 
     static constexpr rect_ui16_t get_radio_button_size() {

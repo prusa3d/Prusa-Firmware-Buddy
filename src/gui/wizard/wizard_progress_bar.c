@@ -43,7 +43,7 @@ int wiz_get_percent(int min, int max, int value) {
     if (value >= max)
         return 100;
 
-    return (float)(value - min) * (float)100 / (float)(max - min);
+    return (float)(value - min) * 100.F / (float)(max - min);
 }
 
 static void mix_cl(color_t *ret, color_t cl_0, color_t cl_100, int progress, int chan) {

@@ -8,7 +8,8 @@
 #include "IWindowMenuItem.hpp"
 
 window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
-    : pContainer(pContainer) {
+    : Iwindow_menu_t()
+    , pContainer(pContainer) {
     color_back = gui_defaults.color_back;
     color_text = gui_defaults.color_text;
     color_disabled = gui_defaults.color_disabled;
@@ -53,9 +54,9 @@ uint8_t window_menu_t::GetCount() const {
 
 IWindowMenuItem *window_menu_t::GetItem(uint8_t index) {
     if (!pContainer)
-        return NULL;
+        return nullptr;
     if (index >= GetCount())
-        return NULL;
+        return nullptr;
     return pContainer->GetItem(index);
 }
 

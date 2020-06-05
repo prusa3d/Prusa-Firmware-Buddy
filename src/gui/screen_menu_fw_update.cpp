@@ -19,9 +19,9 @@ class MI_ALWAYS : public WI_SWITCH_OFF_ON_t {
 public:
     MI_ALWAYS()
         : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 0 : 1, label, 0, true, false) {}
-    virtual void OnChange(size_t old_index) {
+    virtual void OnChange(size_t old_index) override {
         old_index == 0 ? sys_fw_update_disable() : sys_fw_update_enable();
-        screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)index);
+        screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)index);
     }
 };
 
@@ -32,8 +32,8 @@ class MI_ON_RESTART : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_ON_RESTART()
-        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 0 : (sys_fw_update_on_restart_is_enabled() ? 0 : 1), label, 0, sys_fw_update_is_enabled() ? false : true, false) {}
-    virtual void OnChange(size_t old_index) {
+        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? false : (sys_fw_update_on_restart_is_enabled() ? false : true), label, 0, sys_fw_update_is_enabled() ? false : true, false) {}
+    virtual void OnChange(size_t old_index) override {
         old_index == 0 ? sys_fw_update_on_restart_disable() : sys_fw_update_on_restart_enable();
     }
 };
@@ -80,7 +80,7 @@ screen_t screen_menu_fw_update = {
     ScreenMenuFwUpdate::CDraw,
     ScreenMenuFwUpdate::CEvent,
     sizeof(ScreenMenuFwUpdate), //data_size
-    0,                          //pdata
+    nullptr,                          //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_fw_update() { return &screen_menu_fw_update; }

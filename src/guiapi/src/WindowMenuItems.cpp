@@ -15,13 +15,13 @@ WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, 
 /*****************************************************************************/
 //return changed (== invalidate)
 
-bool WI_LABEL_t::Change(int) {
+bool WI_LABEL_t::Change(int /*dif*/) {
     return false;
 }
 
 bool WI_SELECT_t::Change(int dif) {
     size_t size = 0;
-    while (strings[size] != NULL) {
+    while (strings[size] != nullptr) {
         size++;
     }
 

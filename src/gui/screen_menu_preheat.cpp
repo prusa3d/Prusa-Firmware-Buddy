@@ -11,7 +11,7 @@ public:
         : WI_LABEL_t(filaments[T].long_name, 0, true, false) {}
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu) {
+    virtual void click(Iwindow_menu_t &/*window_menu*/) override {
         const filament_t filament = filaments[T];
         marlin_gcode("M86 S1800"); // enable safety timer
         marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
@@ -36,7 +36,7 @@ screen_t screen_menu_preheat = {
     Screen::CDraw,
     Screen::CEvent,
     sizeof(Screen), //data_size
-    0,              //pdata
+    nullptr,              //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_preheat() { return &screen_menu_preheat; }

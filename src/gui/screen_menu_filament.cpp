@@ -24,13 +24,13 @@ void clrPreheatTemp() {
 //parent
 class MI_event_dispatcher : public WI_LABEL_t {
 protected:
-    virtual void click(Iwindow_menu_t &window_menu) {
+    virtual void click(Iwindow_menu_t &/*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
-        screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)this);
+        screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
 
 public:
-    MI_event_dispatcher(const char *label)
+    explicit MI_event_dispatcher(const char *label)
         : WI_LABEL_t(label, 0, true, false) {}
 
     virtual const char *GetHeaderAlterLable() = 0;
@@ -46,10 +46,10 @@ class MI_LOAD : public MI_event_dispatcher {
 public:
     MI_LOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() {
+    virtual const char *GetHeaderAlterLable() override {
         return header_label;
     }
-    virtual void Do() {
+    virtual void Do() override {
         gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
     }
 };
@@ -63,10 +63,10 @@ class MI_UNLOAD : public MI_event_dispatcher {
 public:
     MI_UNLOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() {
+    virtual const char *GetHeaderAlterLable() override {
         return header_label;
     }
-    virtual void Do() {
+    virtual void Do() override {
         gui_dlg_unload();
     }
 };
@@ -80,10 +80,10 @@ class MI_CHANGE : public MI_event_dispatcher {
 public:
     MI_CHANGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() {
+    virtual const char *GetHeaderAlterLable() override {
         return header_label;
     }
-    virtual void Do() {
+    virtual void Do() override {
         gui_dlg_unload();
 
         //opens unload dialog if it is not already openned
@@ -102,10 +102,10 @@ class MI_PURGE : public MI_event_dispatcher {
 public:
     MI_PURGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() {
+    virtual const char *GetHeaderAlterLable() override {
         return header_label;
     }
-    virtual void Do() {
+    virtual void Do() override {
         gui_dlg_purge() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
     }
 };
@@ -213,7 +213,7 @@ screen_t screen_menu_filament = {
     ScreenMenuFilament::CDraw,
     ScreenMenuFilament::CEvent,
     sizeof(ScreenMenuFilament), //data_size
-    0,                          //pdata
+    nullptr,                          //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

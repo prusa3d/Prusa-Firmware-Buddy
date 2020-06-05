@@ -21,11 +21,9 @@ struct screen_messages_data_t {
     status_footer_t *pfooter;
 };
 
-extern msg_stack_t msg_stack;
-
 #define pmsg ((screen_messages_data_t *)screen->pdata)
 
-void _window_list_add_message_item(window_list_t *pwindow_list, uint16_t index,
+void _window_list_add_message_item(window_list_t */*pwindow_list*/, uint16_t index,
     const char **pptext, uint16_t *msg_icon) {
     static const char empty_str[] = "";
     static const char back_str[] = "BACK";
@@ -115,7 +113,7 @@ screen_t screen_messages = {
     screen_messages_draw,
     screen_messages_event,
     sizeof(screen_messages_data_t), //data_size
-    0,                              //pdata
+    nullptr,                              //pdata
 };
 
 screen_t *const get_scr_messages() { return &screen_messages; }

@@ -14,7 +14,7 @@ public:
     MI_AXIS<INDEX>()
         : WI_SPIN_I16_t(int32_t(marlin_vars()->pos[INDEX]),
             MenuVars::axis_ranges[INDEX].data(), MenuVars::labels[INDEX], 0, true, false) {}
-    virtual bool Change(int dif) {
+    virtual bool Change(int dif) override {
         bool ret = WI_SPIN_I16_t::Change(dif);
         marlin_gcode_printf("G0 %c%d F%d", MenuVars::axis_letters[INDEX], value, MenuVars::manual_feedrate[INDEX]);
         return ret;
@@ -23,7 +23,7 @@ public:
 
 class MI_AXIS_E : public MI_AXIS<3> {
 public:
-    virtual void OnClick() {
+    virtual void OnClick() override {
         marlin_gcode("G90");    // Set to Absolute Positioning
         marlin_gcode("M82");    // Set extruder to absolute mode
         marlin_gcode("G92 E0"); // Reset position before change
@@ -75,7 +75,7 @@ screen_t screen_menu_move = {
     ScreenMenuMove::CDraw,
     ScreenMenuMove::CEvent,
     sizeof(ScreenMenuMove), //data_size
-    0,                      //pdata
+    nullptr,                      //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_move() { return &screen_menu_move; }

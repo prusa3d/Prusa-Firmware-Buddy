@@ -120,7 +120,7 @@ screen_t screen_version_info = {
     ScreenMenuVersionInfo::CDraw,
     ScreenMenuVersionInfo::CEvent,
     sizeof(ScreenMenuVersionInfo), //data_size
-    0,                             //pdata
+    nullptr,                             //pdata
 };
 
 extern "C" screen_t *const get_scr_version_info() { return &screen_version_info; }

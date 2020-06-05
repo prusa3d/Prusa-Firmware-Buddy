@@ -47,7 +47,7 @@ void screen_menu_qr_error_init(screen_t *screen) {
     pd->first_run_flag = true;
 }
 
-void screen_menu_qr_error_draw(screen_t *screen) {
+void screen_menu_qr_error_draw(screen_t */*screen*/) {
     display->fill_rect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
 }
 
@@ -55,7 +55,7 @@ void screen_menu_qr_error_done(screen_t *screen) {
     window_destroy(pd->root.win.id);
 }
 
-int screen_menu_qr_error_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
+int screen_menu_qr_error_event(screen_t *screen, window_t */*window*/, uint8_t event, void */*param*/) {
     if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
         screen_close();
         return (1);
@@ -75,7 +75,7 @@ screen_t screen_qr_error = {
     screen_menu_qr_error_draw,
     screen_menu_qr_error_event,
     sizeof(screen_qr_error_data_t), //data_size
-    0,                              //pdata
+    nullptr,                              //pdata
 };
 
 extern "C" screen_t *const get_scr_qr_error() { return &screen_qr_error; }
