@@ -288,7 +288,7 @@ void status_footer_update_z_axis(status_footer_t *footer) {
         return;
 
     footer->z_pos = pos;
-    snprintf(footer->text_z_axis, sizeof(footer->text_z_axis) / sizeof(footer->text_z_axis[0]), "%d.%02d", pos / 100, ABS(pos % 100));
+    snprintf(footer->text_z_axis, sizeof(footer->text_z_axis) / sizeof(footer->text_z_axis[0]), "%d.%02d", (int)(pos / 100), (int)ABS(pos % 100));
     window_set_text(footer->wt_z_axis.win.id, footer->text_z_axis);
 }
 
