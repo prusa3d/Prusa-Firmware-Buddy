@@ -62,8 +62,6 @@ IWindowMenuItem *window_menu_t::GetItem(uint8_t index) {
 
 IWindowMenuItem *window_menu_t::GetActiveItem() {
     return GetItem(index);
-
-    display->draw_rect(window->win.rect, window->color_back);
 }
 
 void window_menu_t::Incement(int dif) {
@@ -104,6 +102,7 @@ void window_menu_t::Incement(int dif) {
 //non member fce
 
 void window_menu_init(window_menu_t *window) {
+    display->draw_rect(window->win.rect, window->color_back);
 }
 
 void window_menu_done(window_menu_t *window) {
