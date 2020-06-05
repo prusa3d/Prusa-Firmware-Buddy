@@ -79,7 +79,7 @@ void progress_draw(rect_ui16_t win_rect, const font_t *font, color_t color_back,
 }
 
 //todo this should be moved elsewhere
-void progress_clr(rect_ui16_t win_rect, const font_t */*font*/, color_t color_back) {
+void progress_clr(rect_ui16_t win_rect, const font_t * /*font*/, color_t color_back) {
 
     const rect_ui16_t rc = rect_ui16(
         win_rect.x + PROGRESS_BAR_X_PAD,
@@ -105,7 +105,7 @@ void IDialogStateful::draw_phase_text(const char *text) {
     size_t nl = 0; //number of new lines
     const char *s = text;
     //count '\n' in nl, search by moving start (s)
-    for ( ; s[nl]; s[nl] == '\n' ? nl++ : *s++)
+    for (; s[nl]; s[nl] == '\n' ? nl++ : *s++)
         ; // ? s++ instead ?
     rc_sta.h = 30 + font_title->h * nl;
     rc_sta.y += (30 + 46);

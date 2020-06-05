@@ -24,7 +24,7 @@ void clrPreheatTemp() {
 //parent
 class MI_event_dispatcher : public WI_LABEL_t {
 protected:
-    virtual void click(Iwindow_menu_t &/*window_menu*/) override {
+    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
         screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
@@ -213,7 +213,7 @@ screen_t screen_menu_filament = {
     ScreenMenuFilament::CDraw,
     ScreenMenuFilament::CEvent,
     sizeof(ScreenMenuFilament), //data_size
-    nullptr,                          //pdata
+    nullptr,                    //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

@@ -25,7 +25,7 @@ screen_t screen_menu_calibration = {
     Screen::CDraw,
     Screen::CEvent,
     sizeof(Screen), //data_size
-    nullptr,              //pdata
+    nullptr,        //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }
