@@ -10,7 +10,7 @@ public:
     MI_WIZARD();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_AUTO_HOME : public WI_LABEL_t {
@@ -20,7 +20,7 @@ public:
     MI_AUTO_HOME();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_MESH_BED : public WI_LABEL_t {
@@ -30,7 +30,7 @@ public:
     MI_MESH_BED();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_SELFTEST : public WI_LABEL_t {
@@ -40,7 +40,7 @@ public:
     MI_SELFTEST();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_CALIB_FIRST : public WI_LABEL_t {
@@ -50,7 +50,7 @@ public:
     MI_CALIB_FIRST();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_DISABLE_STEP : public WI_LABEL_t {
@@ -60,7 +60,7 @@ public:
     MI_DISABLE_STEP();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_FACTORY_DEFAULTS : public WI_LABEL_t {
@@ -70,7 +70,7 @@ public:
     MI_FACTORY_DEFAULTS();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_SAVE_DUMP : public WI_LABEL_t {
@@ -80,7 +80,7 @@ public:
     MI_SAVE_DUMP();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_HF_TEST_0 : public WI_LABEL_t {
@@ -90,7 +90,7 @@ public:
     MI_HF_TEST_0();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_HF_TEST_1 : public WI_LABEL_t {
@@ -100,7 +100,7 @@ public:
     MI_HF_TEST_1();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_EE_LOAD_400 : public WI_LABEL_t {
@@ -110,7 +110,7 @@ public:
     MI_EE_LOAD_400();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_EE_LOAD_401 : public WI_LABEL_t {
@@ -120,7 +120,7 @@ public:
     MI_EE_LOAD_401();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_EE_LOAD_402 : public WI_LABEL_t {
@@ -130,7 +130,7 @@ public:
     MI_EE_LOAD_402();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_EE_LOAD_403RC1 : public WI_LABEL_t {
@@ -140,7 +140,7 @@ public:
     MI_EE_LOAD_403RC1();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_EE_LOAD_403 : public WI_LABEL_t {
@@ -150,7 +150,7 @@ public:
     MI_EE_LOAD_403();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_EE_LOAD : public WI_LABEL_t {
@@ -160,7 +160,7 @@ public:
     MI_EE_LOAD();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_EE_SAVE : public WI_LABEL_t {
@@ -170,7 +170,7 @@ public:
     MI_EE_SAVE();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_EE_SAVEXML : public WI_LABEL_t {
@@ -180,7 +180,7 @@ public:
     MI_EE_SAVEXML();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_M600 : public WI_LABEL_t {
@@ -190,7 +190,7 @@ public:
     MI_M600();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(Iwindow_menu_t &window_menu) override;
 };
 
 class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
@@ -199,7 +199,7 @@ class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_TIMEOUT();
-    virtual void OnChange(size_t old_index);
+    virtual void OnChange(size_t old_index) override;
 };
 
 class MI_SOUND_MODE : public WI_SWITCH_t<4> {
@@ -213,7 +213,7 @@ class MI_SOUND_MODE : public WI_SWITCH_t<4> {
 
 public:
     MI_SOUND_MODE();
-    virtual void OnChange(size_t old_index);
+    virtual void OnChange(size_t old_index) override;
 };
 
 class MI_SOUND_TYPE : public WI_SWITCH_t<5> {
@@ -227,7 +227,7 @@ class MI_SOUND_TYPE : public WI_SWITCH_t<5> {
 
 public:
     MI_SOUND_TYPE();
-    virtual void OnChange(size_t old_index);
+    virtual void OnChange(size_t old_index) override;
 };
 
 class MI_TIMEZONE : public WI_SPIN_I08_t {
