@@ -75,7 +75,7 @@ screen_t screen_menu_move = {
     ScreenMenuMove::CDraw,
     ScreenMenuMove::CEvent,
     sizeof(ScreenMenuMove), //data_size
-    nullptr,                      //pdata
+    nullptr,                //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_move() { return &screen_menu_move; }

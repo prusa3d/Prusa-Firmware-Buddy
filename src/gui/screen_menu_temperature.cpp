@@ -16,7 +16,7 @@ public:
     }
 
 protected:
-    virtual void click(Iwindow_menu_t &/*window_menu*/) override {
+    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
         screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
 };
@@ -67,7 +67,7 @@ screen_t screen_menu_temperature = {
     ScreenMenuTenperature::CDraw,
     ScreenMenuTenperature::CEvent,
     sizeof(ScreenMenuTenperature), //data_size
-    nullptr,                             //pdata
+    nullptr,                       //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }

@@ -80,7 +80,7 @@ screen_t screen_menu_fw_update = {
     ScreenMenuFwUpdate::CDraw,
     ScreenMenuFwUpdate::CEvent,
     sizeof(ScreenMenuFwUpdate), //data_size
-    nullptr,                          //pdata
+    nullptr,                    //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_fw_update() { return &screen_menu_fw_update; }
