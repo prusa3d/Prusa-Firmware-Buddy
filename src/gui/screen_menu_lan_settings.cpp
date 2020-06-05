@@ -147,7 +147,7 @@ void Eth::SetStatic() {
 
 void Eth::SetDHCP() {
     ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
 
     set_LAN_to_dhcp(&ethconfig);
@@ -311,13 +311,9 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 /*****************************************************************************/
 //static member function definition
 void ScreenMenuLanSettings::Init(screen_t *screen) {
-    marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
     Create(screen, label);
-
-    //============= LOAD CONFIG ===============
     Eth::Init();
 
-    //============= SCREEN INIT ===============
     ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
 
     ths->help.font = resource_font(IDR_FNT_SPECIAL);
