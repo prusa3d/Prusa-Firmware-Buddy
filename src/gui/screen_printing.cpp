@@ -20,13 +20,15 @@
 //#define COLOR_VALUE_INVALID COLOR_YELLOW
 #define COLOR_VALUE_INVALID COLOR_WHITE
 
-#define BUTTON_TUNE  0
-#define BUTTON_PAUSE 1
-#define BUTTON_STOP  2
+enum class Btn {
+    Tune = 0,
+    Pause,
+    Stop
+};
 
-#define POPUP_MSG_DUR_MS       5000
-#define MAX_END_TIMESTAMP_SIZE (14 + 12 + 5) // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
-#define MAX_TIMEDUR_STR_SIZE   9
+constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
+constexpr static const size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
+constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
 
 enum class printing_state_t : uint8_t {
     INITIAL,
@@ -98,8 +100,8 @@ struct screen_printing_data_t {
     uint32_t last_time_to_end;
 
     std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;
-    char text_etime[MAX_END_TIMESTAMP_SIZE];
-    char label_etime[15];              // "Remaining Time" or "Print will end"
+    std::array<char, MAX_END_TIMESTAMP_SIZE> text_etime;
+    std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end"
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
 
     window_text_t w_message; //Messages from onStatusChanged()
@@ -183,8 +185,8 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    strlcpy(pw->label_etime, "Remaining Time", 15);
-    window_set_text(id, pw->label_etime);
+    strlcpy(pw->label_etime.data(), "Remaining Time", 15);
+    window_set_text(id, pw->label_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(30, 148, 201, 20),
@@ -192,7 +194,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_etime);
+    window_set_text(id, pw->text_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 128, 101, 20),
@@ -325,12 +327,12 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
         time_t sec = sntp_get_system_time();
         if (sec != 0) {
-            strlcpy(pw->label_etime, "Print will end", 15);
-            window_set_text(pw->w_etime_label.win.id, pw->label_etime);
+            strlcpy(pw->label_etime.data(), "Print will end", 15);
+            window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
             update_end_timestamp(screen, sec);
         } else {
-            strlcpy(pw->label_etime, "Remaining Time", 15);
-            window_set_text(pw->w_etime_label.win.id, pw->label_etime);
+            strlcpy(pw->label_etime.data(), "Remaining Time", 15);
+            window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
             update_remaining_time(screen, marlin_vars()->time_to_end);
         }
         pw->last_time_to_end = marlin_vars()->time_to_end;
@@ -342,8 +344,8 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 0;
     }
 
-    switch (((int)param) - 1) {
-    case BUTTON_TUNE:
+    switch (static_cast<Btn>(((int)param) - 1)) {
+    case Btn::Tune:
         switch (get_state(screen)) {
         case printing_state_t::PRINTING:
         case printing_state_t::PAUSED:
@@ -354,7 +356,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         }
         return 1;
         break;
-    case BUTTON_PAUSE: {
+    case Btn::Pause: {
         switch (get_state(screen)) {
         case printing_state_t::PRINTING:
             marlin_print_pause();
@@ -370,7 +372,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         }
         break;
     }
-    case BUTTON_STOP:
+    case Btn::Stop:
         switch (get_state(screen)) {
         case printing_state_t::PRINTED:
             screen_close();
@@ -393,19 +395,19 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 }
 
 static void disable_tune_button(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_TUNE];
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
     p_button->win.f_disabled = 1;
     p_button->win.f_enabled = 0; // cant't be focused
 
     // move to reprint when tune is focused
     if (window_is_focused(p_button->win.id)) {
-        window_set_focus(pw->w_buttons[BUTTON_PAUSE].win.id);
+        window_set_focus(pw->w_buttons[static_cast<size_t>(Btn::Pause)].win.id);
     }
     window_invalidate(p_button->win.id);
 }
 
 static void enable_tune_button(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_TUNE];
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
 
     p_button->win.f_disabled = 0;
     p_button->win.f_enabled = 1; // can be focused
@@ -425,16 +427,16 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
         //standard would be:
         //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
         if (timeinfo->tm_yday) {
-            snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+            snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
         } else if (timeinfo->tm_hour) {
-            snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+            snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
         } else {
-            snprintf(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
+            snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
         }
     } else
-        strlcpy(pw->text_etime, "N/A", MAX_END_TIMESTAMP_SIZE);
+        strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
 
-    window_set_text(pw->w_etime_value.win.id, pw->text_etime);
+    window_set_text(pw->w_etime_value.win.id, pw->text_etime.data());
 }
 
 static void update_end_timestamp(screen_t *screen, time_t now_sec) {
@@ -460,22 +462,22 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec) {
 
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
-        strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end);
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end);
     } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
         tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
-        strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Tommorow at %H:%M?", &print_end);
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Tommorow at %H:%M?", &print_end);
     } else {
-        strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%M?", &print_end);
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%M?", &print_end);
     }
 
     if (time_invalid == false) {
-        uint8_t length = strlen(pw->text_etime);
+        uint8_t length = strlen(pw->text_etime.data());
         if (length > 0) {
             pw->text_etime[length - 1] = 0;
         }
     }
 
-    window_set_text(pw->w_etime_value.win.id, pw->text_etime);
+    window_set_text(pw->w_etime_value.win.id, pw->text_etime.data());
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
@@ -496,8 +498,8 @@ static void screen_printing_reprint(screen_t *screen) {
     print_begin(marlin_vars()->media_SFN_path);
     window_set_text(pw->w_etime_label.win.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
-    window_set_text(pw->w_labels[BUTTON_STOP].win.id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
-    window_set_icon_id(pw->w_buttons[BUTTON_STOP].win.id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
+    window_set_text(pw->w_labels[static_cast<size_t>(Btn::Stop)].win.id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
+    window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].win.id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
@@ -546,9 +548,9 @@ static void disable_button(window_icon_t *p_button) {
 }
 
 static void set_pause_icon_and_label(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_PAUSE];
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Pause)];
     int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[BUTTON_PAUSE].win.id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Pause)].win.id;
 
     //todo it is static, because menu tune is not dialog
     //switch (pw->state__readonly__use_change_print_state)
@@ -585,9 +587,9 @@ static void set_pause_icon_and_label(screen_t *screen) {
 }
 
 void set_tune_icon_and_label(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_TUNE];
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
     int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[BUTTON_TUNE].win.id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Tune)].win.id;
 
     //must be before switch
     set_icon_and_label(item_id_t::settings, btn_id, lbl_id);
@@ -604,9 +606,9 @@ void set_tune_icon_and_label(screen_t *screen) {
 }
 
 void set_stop_icon_and_label(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_STOP];
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Stop)];
     int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[BUTTON_STOP].win.id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Stop)].win.id;
 
     switch (get_state(screen)) {
     case printing_state_t::PRINTED:
