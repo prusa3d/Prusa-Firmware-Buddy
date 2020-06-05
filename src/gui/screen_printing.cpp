@@ -592,7 +592,7 @@ static void set_pause_icon_and_label(screen_t *screen) {
         enable_button(p_button);
         set_icon_and_label(item_id_t::reprint, btn_id, lbl_id);
         break;
-    case P_ABORTING:
+		case printing_state_t::ABORTING:
         disable_button(p_button);
         break;
     }
@@ -611,7 +611,7 @@ void set_tune_icon_and_label(screen_t *screen) {
     case printing_state_t::PAUSED:
         enable_tune_button(screen);
         break;
-    case P_ABORTING:
+		case printing_state_t::ABORTING:
         disable_button(p_button);
         break;
     default:
@@ -635,7 +635,7 @@ void set_stop_icon_and_label(screen_t *screen) {
         disable_button(p_button);
         set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
         break;
-    case P_ABORTING:
+		case printing_state_t::ABORTING:
         disable_button(p_button);
         break;
     default:
