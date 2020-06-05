@@ -26,6 +26,7 @@
 
 #define POPUP_MSG_DUR_MS       5000
 #define MAX_END_TIMESTAMP_SIZE (14 + 12 + 5) // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
+#define MAX_TIMEDUR_STR_SIZE   9
 
 enum class printing_state_t : uint8_t {
     INITIAL,
@@ -96,7 +97,7 @@ struct screen_printing_data_t {
     uint32_t last_print_duration;
     uint32_t last_time_to_end;
 
-    std::array<char, 9> text_time;
+    std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;
     char text_etime[MAX_END_TIMESTAMP_SIZE];
     char label_etime[15];              // "Remaining Time" or "Print will end"
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
@@ -127,7 +128,7 @@ static void screen_printing_reprint(screen_t *screen);
 static void change_print_state(screen_t *screen);
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed);
 static void update_remaining_time(screen_t *screen, time_t rawtime);
-static void update_end_timestamp(screen_t *screen, struct tm *now);
+static void update_end_timestamp(screen_t *screen, time_t now_sec);
 static void update_print_duration(screen_t *screen, time_t print_duration);
 
 screen_t screen_printing = {
@@ -148,7 +149,7 @@ void screen_printing_init(screen_t *screen) {
 
     marlin_vars_t *vars = marlin_vars();
 
-    strlcpy(pw->text_time.data(), "0m", pw->text_time.size());
+    strlcpy(pw->text_time_dur.data(), "0m", pw->text_time_dur.size());
     strlcpy(pw->text_filament.data(), "999m", pw->text_filament.size());
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
@@ -199,7 +200,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "Printing Time");
+    window_set_text(id, "");
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 148, 101, 20),
@@ -207,7 +208,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_time.data());
+    window_set_text(id, pw->text_time_dur.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
@@ -322,11 +323,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->print_duration != pw->last_print_duration)
         update_print_duration(screen, marlin_vars()->print_duration);
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
-        struct tm now;
-        if (sntp_get_system_time(&now)) {
+        time_t sec = sntp_get_system_time();
+        if (sec != 0) {
             strlcpy(pw->label_etime, "Print will end", 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime);
-            update_end_timestamp(screen, &now);
+            update_end_timestamp(screen, sec);
         } else {
             strlcpy(pw->label_etime, "Remaining Time", 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime);
@@ -436,7 +437,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
     window_set_text(pw->w_etime_value.win.id, pw->text_etime);
 }
 
-static void update_end_timestamp(screen_t *screen, struct tm *now) {
+static void update_end_timestamp(screen_t *screen, time_t now_sec) {
 
     bool time_invalid = false;
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
@@ -447,17 +448,18 @@ static void update_end_timestamp(screen_t *screen, struct tm *now) {
     }
 
     static const uint32_t full_day_in_seconds = 86400;
-    time_t print_end_sec, tommorow_sec, now_sec = mktime(now);
+    time_t print_end_sec, tommorow_sec;
 
-    print_end_sec = now_sec + (marlin_vars()->time_to_end / 1000);
+    print_end_sec = now_sec + marlin_vars()->time_to_end;
     tommorow_sec = now_sec + full_day_in_seconds;
 
-    struct tm tommorow, print_end;
+    struct tm tommorow, print_end, now;
+    localtime_r(&now_sec, &now);
     localtime_r(&tommorow_sec, &tommorow);
     localtime_r(&print_end_sec, &print_end);
 
-    if (now->tm_mday == print_end.tm_mday && // if print end is today
-        now->tm_mon == print_end.tm_mon && now->tm_year == print_end.tm_year) {
+    if (now.tm_mday == print_end.tm_mday && // if print end is today
+        now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
         strftime(pw->text_etime, MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end);
     } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
         tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
@@ -477,18 +479,17 @@ static void update_end_timestamp(screen_t *screen, struct tm *now) {
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
-    auto &array = pw->text_time;
     const struct tm *timeinfo = localtime(&rawtime);
     if (timeinfo->tm_yday) {
-        snprintf(array.data(), array.size(), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+        snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
     } else if (timeinfo->tm_hour) {
-        snprintf(array.data(), array.size(), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+        snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
     } else if (timeinfo->tm_min) {
-        snprintf(array.data(), array.size(), "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+        snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
     } else {
-        snprintf(array.data(), array.size(), "%is", timeinfo->tm_sec);
+        snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
     }
-    window_set_text(pw->w_time_value.win.id, array.data());
+    window_set_text(pw->w_time_value.win.id, pw->text_time_dur.data());
 }
 
 static void screen_printing_reprint(screen_t *screen) {
