@@ -2,8 +2,6 @@
 
 #include "DialogStateful.hpp"
 
-#pragma pack(push)
-#pragma pack(1)
 //load unload and change filament dialog
 class DialogLoadUnload : public DialogStateful<PhasesLoadUnload> {
 public:
@@ -16,4 +14,3 @@ public:
     static void makeSureInsertedEnter();
     static void makeSureInsertedExit();
 };
-#pragma pack(pop)
