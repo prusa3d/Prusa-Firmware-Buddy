@@ -229,3 +229,11 @@ public:
     MI_SOUND_TYPE();
     virtual void OnChange(size_t old_index);
 };
+
+class MI_TIMEZONE : public WI_SPIN_I08_t {
+    constexpr static const char *const label = "TZ UTC(+/-)";
+
+public:
+    MI_TIMEZONE();
+    virtual void OnClick() override;
+};

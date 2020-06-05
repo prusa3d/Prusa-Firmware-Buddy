@@ -8,6 +8,7 @@
 #include "sys.h"
 #include "window_dlg_wait.h"
 #include "sound_C_wrapper.h"
+#include "wui_api.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -272,5 +273,20 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
         gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
     } else {
         Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+    }
+}
+
+/*****************************************************************************/
+//MI_TIMEZONE
+constexpr static const std::array<int8_t, 3> timezone_range = { { -12, 12, 1 } };
+MI_TIMEZONE::MI_TIMEZONE()
+    : WI_SPIN_I08_t(eeprom_get_var(EEVAR_TIMEZONE).i8, timezone_range.data(), label, 0, true, false) {}
+void MI_TIMEZONE::OnClick() {
+    eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(value));
+    struct tm now;
+    uint32_t seconds = 0;
+    if ((seconds = sntp_get_system_time(&now))) {
+        seconds += ((value - eeprom_get_var(EEVAR_TIMEZONE).i8) * 3600);
+        sntp_set_system_time(seconds);
     }
 }

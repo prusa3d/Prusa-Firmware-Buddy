@@ -9,12 +9,6 @@
 #include "sys.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
-#ifdef BUDDY_ENABLE_ETHERNET
-    #include "screen_lan_settings.h"
-    #include "menu_vars.h"
-    #include "wui_api.h"
-#endif //BUDDY_ENABLE_ETHERNET
-#include "screen_menu_fw_update.h"
 #include "filament_sensor.h"
 #include "screens.h"
 #include "dump.h"
@@ -70,6 +64,7 @@ using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
     MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
+    MI_TIMEZONE,
     #endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
@@ -79,6 +74,7 @@ using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
     MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
+    MI_TIMEZONE,
     #endif //BUDDY_ENABLE_ETHERNET
     MI_SAVE_DUMP, MI_SOUND_MODE>;
 #endif
