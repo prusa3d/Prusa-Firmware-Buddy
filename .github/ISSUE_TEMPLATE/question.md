@@ -9,4 +9,4 @@ assignees: ''
 
 Please, before you create a new question, please make sure you searched in open and closed issues and couldn't find anything that matches.
 
-**What is your question?**
+**Leave your comments or questions here.**
