@@ -57,9 +57,6 @@
 
 #define MSGBOX_GREY_FRAME 0x8000 // draw grey frame
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_msgbox_t {
     window_class_t cls;
 } window_class_msgbox_t;
@@ -79,8 +76,6 @@ typedef struct _window_msgbox_t {
     uint16_t flags;
     int res;
 } window_msgbox_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

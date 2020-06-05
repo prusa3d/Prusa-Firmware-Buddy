@@ -5,9 +5,6 @@
 #include "window.h"
 #include "term.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_term_t {
     window_class_t cls;
 } window_class_term_t;
@@ -19,8 +16,6 @@ typedef struct _window_term_t {
     font_t *font;
     term_t *term;
 } window_term_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

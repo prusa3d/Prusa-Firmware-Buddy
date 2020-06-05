@@ -15,9 +15,6 @@ typedef struct _window_dlg_popup_t window_dlg_popup_t;
 
 extern int16_t WINDOW_CLS_DLG_POPUP;
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_dlg_popup_t {
     window_t win;
     color_t color_back;
@@ -34,8 +31,6 @@ typedef struct _window_dlg_popup_t {
 typedef struct _window_class_dlg_popup_t {
     window_class_t cls;
 } window_class_dlg_popup_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

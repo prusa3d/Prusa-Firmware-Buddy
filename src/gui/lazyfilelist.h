@@ -1,14 +1,17 @@
 #pragma once
 #include <memory>
+#include <iterator>
 #include <algorithm>
 #include "fatfs.h"
 #include <string.h>
 #include <limits.h>
-#include "file_list_defs.h"
+#include <array>
 
 #ifndef LAZYFILELIST_UNITTEST
+    #include "file_list_defs.h"
     #include "../common/marlin_vars.h" // for FILE_PATH_MAX_LEN
 #else
+    #define _MAX_LFN          103
     #define FILE_PATH_MAX_LEN 103
 #endif
 
@@ -135,7 +138,7 @@ public:
                     if (strcmp(files[0].lfn, dir.fno.fname) != 0) {
                         // i.e. we didn't get the same entry as the zeroth entry (which may occur when populating the window with non-null firstDirEntry)
                         // Make place in the window by standard item rotation downwards (to the right)
-                        std::rotate(files.rbegin(), files.rbegin() + 1, std::make_reverse_iterator(i)); // solves also the case, when there are less files in the window
+                        std::rotate(files.rbegin(), files.rbegin() + 1, make_reverse_iterator(i)); // solves also the case, when there are less files in the window
                         // Save the entry
                         i->CopyFrom(dir.fno);
                         if (filesInWindow < WINDOW_SIZE) {
@@ -207,7 +210,7 @@ private:
     struct Entry {
         bool isFile;
         char lfn[_MAX_LFN];
-        char sfn[MAX_SFN]; // cache the short filenames too, since they will be used in communication with Marlin
+        char sfn[LazyDirView::MAX_SFN]; // cache the short filenames too, since they will be used in communication with Marlin
         uint16_t date, time;
         void Clear() {
             isFile = false;
@@ -406,5 +409,11 @@ private:
     static Entry MakeLastEntryByTime() {
         static const Entry e = { true, "", "", 0U, 0U };
         return e;
+    }
+
+    /// Define our own make_reverse_iterator for backward compatibility with c++11
+    template <class Iter>
+    constexpr std::reverse_iterator<Iter> make_reverse_iterator(Iter i) {
+        return std::reverse_iterator<Iter>(i);
     }
 };

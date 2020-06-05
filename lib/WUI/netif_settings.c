@@ -1,5 +1,5 @@
-#include "netifapi.h"
-#include "dhcp.h"
+#include "lwip/netifapi.h"
+#include "lwip/dhcp.h"
 #include "wui_api.h"
 #include "lwip.h"
 

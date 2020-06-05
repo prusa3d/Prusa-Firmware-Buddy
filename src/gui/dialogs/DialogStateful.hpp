@@ -6,9 +6,6 @@
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 
-#pragma pack(push)
-#pragma pack(1)
-
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
 
@@ -75,7 +72,7 @@ protected:
 
 public:
     IDialogStateful(const char *name, int16_t WINDOW_CLS_);
-    bool Change(uint8_t phase, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
+    bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
     virtual ~IDialogStateful();
 
     static rect_ui16_t get_radio_button_size() {                                // cannot be const(expr)
@@ -127,7 +124,6 @@ public:
     void draw();
     void event(uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //template definitions
