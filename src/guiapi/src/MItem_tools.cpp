@@ -282,11 +282,11 @@ constexpr static const std::array<int8_t, 3> timezone_range = { { -12, 12, 1 } }
 MI_TIMEZONE::MI_TIMEZONE()
     : WI_SPIN_I08_t(eeprom_get_var(EEVAR_TIMEZONE).i8, timezone_range.data(), label, 0, true, false) {}
 void MI_TIMEZONE::OnClick() {
-    eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(value));
-    struct tm now;
-    uint32_t seconds = 0;
-    if ((seconds = sntp_get_system_time(&now))) {
-        seconds += ((value - eeprom_get_var(EEVAR_TIMEZONE).i8) * 3600);
-        sntp_set_system_time(seconds);
+    int8_t timezone = value;
+    int8_t last_timezone = eeprom_get_var(EEVAR_TIMEZONE).i8;
+    eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(timezone));
+    time_t seconds = 0;
+    if ((seconds = sntp_get_system_time())) {
+        sntp_set_system_time(seconds, last_timezone);
     }
 }
