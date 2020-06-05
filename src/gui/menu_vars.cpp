@@ -28,24 +28,6 @@ const float nozzle_to_probe[3] = NOZZLE_TO_PROBE_OFFSET;
 const float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
 const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
-const float zoffset_fl_range[3] = { z_offset_min, z_offset_max, z_offset_step };
-const char *zoffset_fl_format = "%.3f";
-const int32_t nozzle_range[3] = { 0, (HEATER_0_MAXTEMP - 15) * 1000, 1000 };
-// The MINI can heat up no more than 100C, for detection of thermal run away the bed is set 10C higher
-// Thus do not allow the user to set a higher bed temp in the UI here
-const int32_t heatbed_range[3] = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN) * 1000, 1000 };
-const int32_t printfan_range[3] = { 0, 255000, 1000 };
-const int32_t flowfact_range[3] = { 50000, 150000, 1000 };
-const int32_t feedrate_range[3] = { 10000, 255000, 1000 };
-const int32_t timezone_range[3] = { -12000, 12000, 1000 };
-
-const int32_t move_x[3] = { (int32_t)(X_MIN_POS * 1000), (int32_t)(X_MAX_POS * 1000), 1000 };
-const int32_t move_y[3] = { (int32_t)(Y_MIN_POS * 1000), (int32_t)(Y_MAX_POS * 1000), 1000 };
-const int32_t move_z[3] = { (int32_t)(Z_MIN_POS * 1000), (int32_t)(Z_MAX_POS * 1000), 1000 };
-const int32_t move_e[3] = { -EXTRUDE_MAXLENGTH * 1000, EXTRUDE_MAXLENGTH * 1000, 1000 }; // +/- 2 ->will be reset to +/- 1
-const int32_t manual_feedrate[4] = MANUAL_FEEDRATE;
-
-const int32_t extrude_min_temp = EXTRUDE_MINTEMP;
 
 //must be in this file, need to access marlin
 constexpr const int park_points[3] = NOZZLE_PARK_POINT;
@@ -106,7 +88,22 @@ constexpr const char Z_home_gcode[] = {
     nth_char(Z_home, 7),
     nth_char(Z_home, 8)
 };
-}
+} //extern "C"
+
+const std::array<std::array<int16_t, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
+    { Y_MIN_POS, Y_MAX_POS, 1 },
+    { Z_MIN_POS, Z_MAX_POS, 1 },
+    { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } };
+const int16_t MenuVars::manual_feedrate[AXIS_CNT] = MANUAL_FEEDRATE;
+const char MenuVars::axis_letters[AXIS_CNT] = { 'X', 'Y', 'Z', 'E' };
+const int16_t MenuVars::extrude_min_temp = EXTRUDE_MINTEMP;
+
+const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::nozzle_range = { 0, (HEATER_0_MAXTEMP - 15), 1 };
+const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::bed_range = { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 };
+const std::array<uint8_t, MenuVars::RANGE_SZ> MenuVars::printfan_range = { 0, 255, 1 };
+const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::flowfact_range = { 50, 150, 1 };
+const std::array<uint16_t, MenuVars::RANGE_SZ> MenuVars::feedrate_range = { 10, 255, 1 };
+const std::array<float, MenuVars::RANGE_SZ> MenuVars::zoffset_fl_range = { z_offset_min, z_offset_max, z_offset_step };
 
 constexpr const int32_t filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
 constexpr const int32_t filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;

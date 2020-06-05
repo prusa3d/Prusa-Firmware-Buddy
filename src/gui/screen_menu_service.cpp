@@ -9,7 +9,7 @@
 #include "bsod.h"
 #include "eeprom.h"
 #include "screens.h"
-
+/*
 typedef enum {
     MI_RETURN,
     MI_SYS_RESET,
@@ -30,17 +30,11 @@ typedef enum {
 } MI_t;
 
 //"C inheritance" of screen_menu_data_t with data items
-#pragma pack(push)
-#pragma pack(1)
 
-typedef struct
-{
+struct this_screen_data_t {
     screen_menu_data_t base;
     menu_item_t items[MI_COUNT];
-
-} this_screen_data_t;
-
-#pragma pack(pop)
+};
 
 int16_t sscg_freq_kHz = 5;
 int16_t sscg_depth = 5;
@@ -58,36 +52,31 @@ void screen_menu_service_init(screen_t *screen) {
     psmd->items[MI_SYS_RESET] = (menu_item_t) { { "System reset", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_CLR_EEPROM] = (menu_item_t) { { "Clear EEPROM", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_WDG_TEST] = (menu_item_t) { { "Watchdog test", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PLL] = (menu_item_t) { { "PLL", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PLL].item.wi_switch_select.index = 0;
-    psmd->items[MI_PLL].item.wi_switch_select.strings = opt_enable_disable;
+    psmd->items[MI_PLL] = (menu_item_t) { { "PLL", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_PLL].item.data.wi_switch.index = sys_pll_is_enabled() ? 1 : 0;
+    psmd->items[MI_PLL].item.data.wi_switch.strings = opt_enable_disable;
 
-    psmd->items[MI_SSCG] = (menu_item_t) { { "SSCG", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG].item.wi_switch_select.index = 0;
-    psmd->items[MI_SSCG].item.wi_switch_select.strings = opt_enable_disable;
+    psmd->items[MI_SSCG] = (menu_item_t) { { "SSCG", 0, WI_SWITCH }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SSCG].item.data.wi_switch.index = sys_sscg_is_enabled() ? 1 : 0;
+    psmd->items[MI_SSCG].item.data.wi_switch.strings = opt_enable_disable;
 
-    psmd->items[MI_SSCG_FREQ] = (menu_item_t) { { "SSCG freq", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG_FREQ].item.wi_spin.value = 0;
-    psmd->items[MI_SSCG_FREQ].item.wi_spin.range = opt_sscg_freq;
+    psmd->items[MI_SSCG_FREQ] = (menu_item_t) { { "SSCG freq", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SSCG_FREQ].item.data.wi_spin.value = sscg_freq_kHz * 1000;
+    psmd->items[MI_SSCG_FREQ].item.data.wi_spin.range = opt_sscg_freq;
 
-    psmd->items[MI_SSCG_DEPTH] = (menu_item_t) { { "SSCG depth", 0, WI_SPIN, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SSCG_DEPTH].item.wi_spin.value = 0;
-    psmd->items[MI_SSCG_DEPTH].item.wi_spin.range = opt_sscg_depth;
+    psmd->items[MI_SSCG_DEPTH] = (menu_item_t) { { "SSCG depth", 0, WI_SPIN }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SSCG_DEPTH].item.data.wi_spin.value = sscg_depth * 1000;
+    psmd->items[MI_SSCG_DEPTH].item.data.wi_spin.range = opt_sscg_depth;
 
-    psmd->items[MI_SPI_PRESC] = (menu_item_t) { { "SPI freq", 0, WI_SELECT, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_SPI_PRESC].item.wi_switch_select.index = 0;
-    psmd->items[MI_SPI_PRESC].item.wi_switch_select.strings = opt_spi;
+    psmd->items[MI_SPI_PRESC] = (menu_item_t) { { "SPI freq", 0, WI_SELECT }, SCREEN_MENU_NO_SCREEN };
+    psmd->items[MI_SPI_PRESC].item.data.wi_select.index = spi_prescaler;
+    psmd->items[MI_SPI_PRESC].item.data.wi_select.strings = opt_spi;
 #ifdef PIDCALIBRATION
     psmd->items[MI_PID] = (menu_item_t) { { "PID calibration", 0, WI_LABEL }, get_scr_PID() };
 #endif //PIDCALIBRATION
     psmd->items[MI_MESH] = (menu_item_t) { { "Mesh bed leveling", 0, WI_LABEL }, get_scr_mesh_bed_lv() };
     psmd->items[MI_BSOD] = (menu_item_t) { { "BSOD", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
     psmd->items[MI_BSOD_HARD_FAULT] = (menu_item_t) { { "BSOD_HARD_FAULT", 0, WI_LABEL }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_PLL].item.wi_switch_select.index = sys_pll_is_enabled() ? 1 : 0;
-    psmd->items[MI_SSCG].item.wi_switch_select.index = sys_sscg_is_enabled() ? 1 : 0;
-    psmd->items[MI_SSCG_FREQ].item.wi_spin.value = sscg_freq_kHz * 1000;
-    psmd->items[MI_SSCG_DEPTH].item.wi_spin.value = sscg_depth * 1000;
-    psmd->items[MI_SPI_PRESC].item.wi_switch_select.index = spi_prescaler;
 }
 
 int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -109,13 +98,13 @@ int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event,
                 ;
             break;
         case MI_PLL:
-            if (psmd->items[MI_PLL].item.wi_switch_select.index)
+            if (psmd->items[MI_PLL].item.data.wi_switch.index)
                 sys_pll_enable();
             else
                 sys_pll_disable();
             break;
         case MI_SSCG:
-            if (psmd->items[MI_SSCG].item.wi_switch_select.index) {
+            if (psmd->items[MI_SSCG].item.data.wi_switch.index) {
                 sys_sscg_set_config(sscg_freq_kHz * 1000, sscg_depth);
                 sys_sscg_enable();
             } else
@@ -130,7 +119,7 @@ int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event,
             volatile uint32_t *crash = (uint32_t *)0x20020000 + 4; //0x08000000;
             *crash = 1;
             for (int i = 0; i < 1000; ++i) {
-                psmd->items[i].item.wi_spin.value = i;
+                psmd->items[i].item.data.wi_spin.value = i;
             }
             break;
         }
@@ -139,8 +128,8 @@ int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event,
         switch ((int)param) {
         case MI_SSCG_FREQ:
         case MI_SSCG_DEPTH:
-            sscg_freq_kHz = psmd->items[MI_SSCG_FREQ].item.wi_spin.value / 1000;
-            sscg_depth = psmd->items[MI_SSCG_DEPTH].item.wi_spin.value / 1000;
+            sscg_freq_kHz = psmd->items[MI_SSCG_FREQ].item.data.wi_spin.value / 1000;
+            sscg_depth = psmd->items[MI_SSCG_DEPTH].item.data.wi_spin.value / 1000;
             if (sys_sscg_is_enabled()) {
                 sys_sscg_disable();
                 sys_sscg_set_config(sscg_freq_kHz * 1000, sscg_depth);
@@ -148,7 +137,7 @@ int screen_menu_service_event(screen_t *screen, window_t *window, uint8_t event,
             }
             break;
         case MI_SPI_PRESC:
-            sys_spi_set_prescaler(psmd->items[MI_SPI_PRESC].item.wi_switch_select.index);
+            sys_spi_set_prescaler(psmd->items[MI_SPI_PRESC].item.data.wi_select.index);
             break;
         }
     }
@@ -164,6 +153,27 @@ screen_t screen_menu_service = {
     screen_menu_service_event,
     sizeof(this_screen_data_t), //data_size
     0,                          //pdata
+};
+*/
+
+#include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
+
+using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN>;
+
+static void init(screen_t *screen) {
+    Screen::Create(screen);
+}
+
+screen_t screen_menu_service = {
+    0,
+    0,
+    init,
+    Screen::CDone,
+    Screen::CDraw,
+    Screen::CEvent,
+    sizeof(Screen), //data_size
+    0,              //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_service() { return &screen_menu_service; }

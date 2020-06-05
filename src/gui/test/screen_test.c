@@ -7,9 +7,6 @@
 #include "bsod.h"
 #include "screens.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_frame_t frame;
@@ -26,8 +23,6 @@ typedef struct
     int8_t id_tim;
     int8_t id_tim1;
 } screen_test_data_t;
-
-#pragma pack(pop)
 
 #define pd ((screen_test_data_t *)screen->pdata)
 

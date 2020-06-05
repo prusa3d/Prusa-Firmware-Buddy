@@ -12,9 +12,6 @@ typedef void(window_temp_graph_point_t)(window_temp_graph_t *pwindow_graph, uint
 
 extern int16_t WINDOW_CLS_TEMP_GRAPH;
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_temp_graph_t {
     window_t win;
     color_t color_back;
@@ -34,8 +31,6 @@ typedef struct _window_temp_graph_t {
 typedef struct _window_class_temp_graph_t {
     window_class_t cls;
 } window_class_temp_graph_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

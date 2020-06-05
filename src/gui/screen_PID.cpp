@@ -31,9 +31,6 @@ typedef enum {
     //AT_bed_done
 } autotune_state_t;
 
-    #pragma pack(push)
-    #pragma pack(1)
-
 struct _PID_t {
     int16_t ID;
     float *autotune_temp;
@@ -111,8 +108,6 @@ typedef struct
     int redraw;
 
 } screen_PID_data_t;
-
-    #pragma pack(pop)
 
     #define pd ((screen_PID_data_t *)screen->pdata)
 
