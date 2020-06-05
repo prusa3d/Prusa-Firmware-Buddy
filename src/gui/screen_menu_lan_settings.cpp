@@ -147,7 +147,7 @@ void Eth::SetStatic() {
 
 void Eth::SetDHCP() {
     ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
 
     set_LAN_to_dhcp(&ethconfig);
@@ -235,7 +235,7 @@ class MI_SAVE : public WI_LABEL_t {
 public:
     MI_SAVE()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t &/*window_menu*/) override {
+    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
         Eth::Save();
     }
 };
@@ -246,7 +246,7 @@ class MI_LOAD : public WI_LABEL_t {
 public:
     MI_LOAD()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t &/*window_menu*/) override {
+    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
         Eth::Load();
     }
 };
@@ -258,7 +258,7 @@ using parent = screen_menu_data_t<EHeader::On, EFooter::Off, EHelp::On,
 
 class ScreenMenuLanSettings : public parent {
     lan_descp_str_t plan_str; //todo not initialized in constructor
-    bool msg_shown; //todo not initialized in constructor
+    bool msg_shown;           //todo not initialized in constructor
     void refresh_addresses();
     void show_msg(Eth::Msg msg);
 
@@ -311,13 +311,9 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 /*****************************************************************************/
 //static member function definition
 void ScreenMenuLanSettings::Init(screen_t *screen) {
-    marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
     Create(screen, label);
-
-    //============= LOAD CONFIG ===============
     Eth::Init();
 
-    //============= SCREEN INIT ===============
     ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
 
     ths->help.font = resource_font(IDR_FNT_SPECIAL);
@@ -350,7 +346,7 @@ screen_t screen_lan_settings = {
     ScreenMenuLanSettings::CDraw,
     ScreenMenuLanSettings::CEvent,
     sizeof(ScreenMenuLanSettings), //data_size
-    nullptr,                             //pdata
+    nullptr,                       //pdata
 };
 
 extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }
