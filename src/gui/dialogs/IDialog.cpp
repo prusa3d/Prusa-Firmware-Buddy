@@ -19,7 +19,7 @@ IDialog::IDialog(int16_t WINDOW_CLS_)
 IDialog *IDialog::cast(window_t *win_addr) {
     //ugly hack to retype window_t* to IDialog*
     //dialog_addr->cls is first member of cstruct window_t
-    IDialog *dialog_addr = 0;
+    IDialog *dialog_addr = nullptr;
     window_t *dialg_win_addr = (window_t *)(&(dialog_addr->cls));
     IDialog *ret = reinterpret_cast<IDialog *>(reinterpret_cast<uintptr_t>(win_addr) - reinterpret_cast<uintptr_t>(dialg_win_addr));
     return ret;

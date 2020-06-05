@@ -529,13 +529,13 @@ if(GUI)
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
             src/gui/screen_print_preview.c
-            src/gui/screen_menu_messages.cpp
+            src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.c
             src/gui/screen_menu_move.cpp
             src/gui/screen_menu_lan_settings.cpp
-            src/gui/screen_menu_qr_info.cpp
-            src/gui/screen_menu_qr_error.cpp
+            src/gui/screen_qr_info.cpp
+            src/gui/screen_qr_error.cpp
             src/gui/test/screen_test.c
             src/gui/test/screen_test_disp_mem.c
             src/gui/test/screen_test_gui.c
@@ -591,6 +591,11 @@ if(GUI)
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
+            src/guiapi/src/IWindowMenuItem.cpp
+            src/guiapi/src/WindowMenuItems.cpp
+            src/guiapi/src/MItem_menus.cpp
+            src/guiapi/src/MItem_print.cpp
+            src/guiapi/src/MItem_tools.cpp
     )
 endif()
 

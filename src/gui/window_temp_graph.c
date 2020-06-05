@@ -68,10 +68,10 @@ void window_temp_graph_draw(window_temp_graph_t *window) {
 
     marlin_vars_t *vars = marlin_vars();
 
-    window->y_bed_c[0] = (uint8_t)(179 - (vars->temp_bed * 0.5f));
-    window->y_nozzle_c[0] = (uint8_t)(179 - (vars->temp_nozzle * 0.5f));
-    window->y_nozzle_t[0] = (uint8_t)(179 - (vars->target_nozzle * 0.5f));
-    window->y_bed_t[0] = (uint8_t)(179 - (vars->target_bed * 0.5f));
+    window->y_bed_c[0] = (uint8_t)(179 - (vars->temp_bed * 0.5F));
+    window->y_nozzle_c[0] = (uint8_t)(179 - (vars->temp_nozzle * 0.5F));
+    window->y_nozzle_t[0] = (uint8_t)(179 - (vars->target_nozzle * 0.5F));
+    window->y_bed_t[0] = (uint8_t)(179 - (vars->target_bed * 0.5F));
 
     if (redraw_graph) {
         draw_axes(window, false, false); //draw now not overwrite real temperatures

@@ -10,9 +10,6 @@
 #include "selftest.h"
 #include "firstlay.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef union {
     selftest_fans_axis_screen_t selftest_fans_axis_screen;
     selftest_cool_screen_t selftest_cool_screen;
@@ -45,8 +42,6 @@ typedef struct
 	float Ki_noz;
 	float Kd_noz;*/
 } screen_wizard_data_t;
-
-#pragma pack(pop)
 
 #define pd ((screen_wizard_data_t *)screen->pdata)
 

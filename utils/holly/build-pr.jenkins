@@ -94,6 +94,7 @@ pipeline {
         stage('Test') {
             agent {
                 dockerfile {
+                    reuseNode true
                     filename 'utils/holly/TestDockerfile'
                     additionalBuildArgs '-t prusa-firmware-buddy-test'
                 }

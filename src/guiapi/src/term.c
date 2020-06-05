@@ -112,13 +112,12 @@ void term_set_pos(term_t *pt, uint8_t col, uint8_t row) {
 }
 
 void term_scroll_up(term_t *pt) {
-    int c;
     if (!pt || !(pt->buff))
         return;
     memcpy(pt->buff, pt->buff + 2 * pt->cols, pt->cols * (pt->rows - 1) * 2);
     pt->row--;
     uint8_t *p = pt->buff + pt->size - 2 * pt->cols;
-    for (c = 0; c < pt->cols; c++) {
+    for (int c = 0; c < pt->cols; c++) {
         *(p++) = TERM_DEF_CHAR;
         *(p++) = TERM_DEF_ATTR;
     }

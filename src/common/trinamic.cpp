@@ -5,26 +5,23 @@
 #include "TMCStepper.h"
 #include "gpio.h"
 #include "hwio_pindef.h"
+#include "../Marlin/src/module/stepper.h"
 
 #define DBG _dbg3 //debug level 3
 //#define DBG(...)  //disable debug
 
 #if ((MOTHERBOARD == 1823))
 
-extern TMC2209Stepper stepperX;
-extern TMC2209Stepper stepperY;
-extern TMC2209Stepper stepperZ;
-extern TMC2209Stepper stepperE0;
-
 extern "C" {
 
-TMC2209Stepper *pStepX = 0;
-TMC2209Stepper *pStepY = 0;
-TMC2209Stepper *pStepZ = 0;
-TMC2209Stepper *pStepE = 0;
+TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 
 uint16_t tmc_step = 0;
 uint8_t tmc_stepper = -1;
+
+uint16_t tmc_sg[4];      // stallguard result for each axis
+uint8_t tmc_sg_mask = 7; // stalguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
+uint8_t tmc_sg_axis = 0; // current axis for stalguard result sampling (0-x, 1-y, ...)
 
 void tmc_delay(uint16_t time) // delay for switching tmc step pin level
 {
@@ -35,51 +32,55 @@ void tmc_delay(uint16_t time) // delay for switching tmc step pin level
 
 void init_tmc(void) {
 
-    pStepX = &stepperX;
-    pStepY = &stepperY;
-    pStepZ = &stepperZ;
-    pStepE = &stepperE0;
-    //int i = 0;
-    pStepX->TCOOLTHRS(400);
-    pStepY->TCOOLTHRS(400);
-    pStepZ->TCOOLTHRS(400);
-    pStepE->TCOOLTHRS(400); //400
-    pStepX->SGTHRS(140);
-    pStepY->SGTHRS(130);
-    pStepZ->SGTHRS(100);
-    pStepE->SGTHRS(100);
+    //pointers to TMCStepper instances
+    pStep[X_AXIS] = &stepperX;
+    pStep[Y_AXIS] = &stepperY;
+    pStep[Z_AXIS] = &stepperZ;
+    pStep[E_AXIS] = &stepperE0;
+    //set TCOOLTHRS
+    pStep[X_AXIS]->TCOOLTHRS(400);
+    pStep[Y_AXIS]->TCOOLTHRS(400);
+    pStep[Z_AXIS]->TCOOLTHRS(400);
+    pStep[E_AXIS]->TCOOLTHRS(400);
+    //set SGTHRS
+    pStep[X_AXIS]->SGTHRS(140);
+    pStep[Y_AXIS]->SGTHRS(130);
+    pStep[Z_AXIS]->SGTHRS(100);
+    pStep[E_AXIS]->SGTHRS(100);
 }
 
-void tmc_sample(void) {
-    unsigned int sgx = pStepX->SG_RESULT();
-    //unsigned int sgy = pStepY->SG_RESULT();
-    unsigned int diag = 0;
-    //	diag |= hwio_di_get_val(_DI_Z_DIAG);
-    //diag |= hwio_di_get_val(_DI_Y_DIAG) << 1;
-    //diag |= hwio_di_get_val(_DI_Z_DIAG) << 2;
-    //diag |= hwio_di_get_val(_DI_E0_DIAG) << 3;
-    unsigned int tstepx = pStepX->TSTEP();
-    //unsigned int tstepy = pStepX->TSTEP();
-    //	int sgz = pStepZ->SG_RESULT();
-    //	int sge = pStepE->SG_RESULT();
-    //	_dbg("sg %d %d %d %d", sgx, sgy, sgz, sge);
-    sgx = sgx;       //prevent warning
-    tstepx = tstepx; //prevent warning
-    diag = diag;     //prevent warning
-    DBG("sg %u %u %u", sgx, diag, tstepx);
+// this function performs stallguard sample for single axis
+// return value contain bitmask of sampled axis, in case of nonzero return value this call take 5ms
+//  Now we are using stepper.axis_is_moving and value is set to zero for stopped motor,
+//  right way is reading tstep and comparing it to TCOOLTHRS, but it takes time (read register).
+//  Using stepper.axis_is_moving is simple but in some cases we get bad samples (tstep > TCOOLTHRS).
+//  Maybe we can improve this by calculating tstep from stepper variables.
+uint8_t tmc_sample(void) {
+    uint8_t mask = 0;
+    if (tmc_sg_mask) {
+        while ((tmc_sg_mask & (1 << tmc_sg_axis)) == 0)
+            tmc_sg_axis = (tmc_sg_axis + 1) & 0x03;
+        if (stepper.axis_is_moving((AxisEnum)tmc_sg_axis)) {
+            mask = (1 << tmc_sg_axis);
+            tmc_sg[tmc_sg_axis] = pStep[tmc_sg_axis]->SG_RESULT();
+        } else
+            tmc_sg[tmc_sg_axis] = 0;
+        tmc_sg_axis = (tmc_sg_axis + 1) & 0x03;
+    }
+    return mask;
 }
 
 void tmc_set_sgthrs(uint16_t SGT) {
-    pStepX->SGTHRS(SGT);
-    pStepY->SGTHRS(SGT);
-    pStepZ->SGTHRS(SGT);
-    pStepE->SGTHRS(SGT);
+    pStep[0]->SGTHRS(SGT);
+    pStep[1]->SGTHRS(SGT);
+    pStep[2]->SGTHRS(SGT);
+    pStep[3]->SGTHRS(SGT);
 }
 void tmc_set_mres() {
-    pStepX->mres(4);
-    pStepY->mres(4);
-    pStepZ->mres(4);
-    pStepE->mres(4);
+    pStep[0]->mres(4);
+    pStep[1]->mres(4);
+    pStep[2]->mres(4);
+    pStep[3]->mres(4);
 }
 uint8_t tmc_get_diag() //0 = X, 2 = Y, 4 = Z, 8 = E
 {
@@ -88,9 +89,9 @@ uint8_t tmc_get_diag() //0 = X, 2 = Y, 4 = Z, 8 = E
     uint16_t step = 3500;
     uint8_t step_mask = 15;
 
-    uint32_t gconf = pStepE->GCONF();
+    uint32_t gconf = pStep[3]->GCONF();
     gconf &= ~4;
-    pStepE->GCONF(gconf);
+    pStep[3]->GCONF(gconf);
     diag = 0;
 
     for (tmp_step = 0; tmp_step < step; step--) {

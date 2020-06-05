@@ -26,9 +26,6 @@ typedef enum {
 
 #define HEADER_ICON_COUNT HEADER_ICON_WIFI + 1
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_header_t {
     window_class_t cls;
 } window_class_header_t;
@@ -47,8 +44,6 @@ typedef struct _window_header_t {
 
     // char time[10];
 } window_header_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
