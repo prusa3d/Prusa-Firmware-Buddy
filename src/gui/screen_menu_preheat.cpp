@@ -25,10 +25,6 @@ MI_Filament<FILAMENT_ASA>, MI_Filament<FILAMENT_PC>, MI_Filament<FILAMENT_ABS>, 
 
 static void init(screen_t *screen) {
     constexpr static const char *label = "PREHEAT";
-
-
-static void init(screen_t *screen) {
-    constexpr static const char *label = "PREHEAT";
     Screen::Create(screen, label);
 }
 
