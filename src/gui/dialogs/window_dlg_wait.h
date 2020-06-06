@@ -15,9 +15,6 @@ typedef struct _window_dlg_wait_t window_dlg_wait_t;
 
 extern int16_t WINDOW_CLS_DLG_WAIT;
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_dlg_wait_t {
     window_t win;
     color_t color_back;
@@ -36,8 +33,6 @@ typedef struct _window_dlg_wait_t {
 typedef struct _window_class_dlg_wait_t {
     window_class_t cls;
 } window_class_dlg_wait_t;
-
-#pragma pack(pop)
 
 #define DLG_W8_DRAW_HOURGLASS 0x04 // Draw hourglass animation
 #define DLG_W8_DRAW_FRAME     0x01 // Draw grey frame

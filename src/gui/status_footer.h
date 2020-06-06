@@ -18,13 +18,16 @@
 
 #pragma pack(push)
 #pragma pack(1)
-
+//#pragma pack(1) makes enums 8 bit
+// which is an ugly and unreadable hack (probably a side effect)
 typedef enum heat_state_e {
     HEATING,
     COOLING,
     PREHEAT,
     STABLE,
 } heat_state_t;
+
+#pragma pack(pop)
 
 typedef struct
 {
@@ -66,8 +69,6 @@ typedef struct
     bool show_second_color;
 
 } status_footer_t;
-
-#pragma pack(pop)
 
 #define REPAINT_Z_POS_PERIOD 512  /// time span between z position repaint [miliseconds]
 #define REPAINT_VALUE_PERIOD 1024 /// time span between value repaint [miliseconds]

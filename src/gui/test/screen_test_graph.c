@@ -9,8 +9,6 @@
 
 extern void window_temp_scope_add(float temp_ext, float temp_bed);
 
-#pragma pack(push)
-#pragma pack(1)
 typedef struct
 {
     window_frame_t frame;
@@ -27,8 +25,6 @@ typedef struct _screen_test_term_t {
     screen_t scr;
     screen_test_term_data_t *pd;
 } screen_test_term_t;
-
-#pragma pack(pop)
 
 extern osThreadId displayTaskHandle;
 

@@ -50,7 +50,7 @@ void DialogHandler::close(ClientFSM dialog) {
     ptr = nullptr; //destroy current dialog
 }
 
-void DialogHandler::change(ClientFSM dialog, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
+void DialogHandler::change(ClientFSM /*dialog*/, uint8_t phase, uint8_t progress_tot, uint8_t progress) {
     if (ptr)
         ptr->Change(phase, progress_tot, progress);
 }

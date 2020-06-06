@@ -79,12 +79,15 @@ static_assert(_STATE_LAST < 64, "too many states in wizard_state_t");
 #define _SCREEN_SELFTEST_TEMP     2
 #define _SCREEN_XYZCALIB_HOME     3
 
+//pack to be 8 bit enum
+#pragma pack(push, 1)
 typedef enum {
     _TEST_START,
     _TEST_RUN,
     _TEST_PASSED,
     _TEST_FAILED
 } _TEST_STATE_t;
+#pragma pack(pop)
 
 static inline int _is_test_done(int result) {
     return (result == _TEST_PASSED) || (result == _TEST_FAILED);
