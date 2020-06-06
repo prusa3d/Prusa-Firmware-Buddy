@@ -51,7 +51,7 @@ MI_MESH_BED::MI_MESH_BED()
 }
 
 void MI_MESH_BED::click(Iwindow_menu_t & /*window_menu*/) {
-    if (!marlin_all_axes_homed()) {
+    if (!marlin_all_axes_homed() || !marlin_all_axes_known()) {
         marlin_event_clr(MARLIN_EVT_CommandBegin);
         marlin_gcode("G28");
         while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
