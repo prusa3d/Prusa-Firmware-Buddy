@@ -15,10 +15,10 @@ enum class EHeader { On,
 enum class EFooter { On,
     Off };
 
-constexpr static const size_t HelpHeight_None = 0;
-constexpr static const size_t HelpHeight_Default = 115;
+constexpr static const size_t HelpLines_None = 0;
+constexpr static const size_t HelpLines_Default = 4;
 
-template <EHeader HEADER, EFooter FOOTER, size_t HELP_H, class... T>
+template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
 class ScreenMenu {
 protected:
     constexpr static const char *no_label = "MISSING";
@@ -48,30 +48,38 @@ public:
 
     //C code binding
     static void Create(screen_t *screen, const char *label = no_label) {
-        auto *ths = reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_H, T...> *>(screen->pdata);
-        ::new (ths) ScreenMenu<HEADER, FOOTER, HELP_H, T...>(label);
+        auto *ths = reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_LINES, T...> *>(screen->pdata);
+        ::new (ths) ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>(label);
     }
     static void CDone(screen_t *screen) {
-        reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_H, T...> *>(screen->pdata)->Done();
+        reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_LINES, T...> *>(screen->pdata)->Done();
     }
     static void CDraw(screen_t *screen) {
-        reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_H, T...> *>(screen->pdata)->Draw();
+        reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_LINES, T...> *>(screen->pdata)->Draw();
     }
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-        return reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_H, T...> *>(screen->pdata)->Event(window, event, param);
+        return reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_LINES, T...> *>(screen->pdata)->Event(window, event, param);
     }
 };
 
-template <EHeader HEADER, EFooter FOOTER, size_t HELP_H, class... T>
-ScreenMenu<HEADER, FOOTER, HELP_H, T...>::ScreenMenu(const char *label)
+template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
+ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>::ScreenMenu(const char *label)
     : menu(&container) {
 
-    const uint16_t footer_sz = 41;
-    rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278 - HELP_H);
+    //todo bind those numeric constants to fonts and guidefaults
+    const padding_ui8_t padding = { 20, 6, 2, 6 };
+    const uint16_t win_h = 320;
+    const uint16_t footer_h = win_h - 269; //269 is smallest number i founs in footer implementation, todo it should be in guidefaults
+    const uint16_t help_h = HELP_LINES * (resource_font(IDR_FNT_SPECIAL)->h + gui_defaults.padding.top + gui_defaults.padding.bottom);
+    const uint16_t win_x = 10;
+    const uint16_t win_w = 240 - 20;
 
-    if (FOOTER == EFooter::On) {
-        menu_rect.h -= 41;
-    }
+    const uint16_t header_h = gui_defaults.msg_box_sz.y;
+    const uint16_t item_h = gui_defaults.font->h + padding.top + padding.bottom;
+
+    const uint16_t menu_rect_h = win_h - help_h - header_h - (FOOTER == EFooter::On ? footer_h : 0);
+
+    const rect_ui16_t menu_rect = rect_ui16(win_x, header_h, win_w, menu_rect_h - menu_rect_h % item_h);
 
     int16_t id;
     int16_t root_id = window_create_ptr(WINDOW_CLS_FRAME, -1,
@@ -86,17 +94,16 @@ ScreenMenu<HEADER, FOOTER, HELP_H, T...>::ScreenMenu(const char *label)
 
     id = window_create_ptr(WINDOW_CLS_MENU, root_id,
         menu_rect, &(menu));
-    menu.padding = padding_ui8(20, 6, 2, 6);
+    menu.padding = padding;
     menu.icon_rect = rect_ui16(0, 0, 16, 30);
     menu.win.flg |= WINDOW_FLG_ENABLED;
 
-    //window_set_item_index(id, 1);	// 0 = return
     window_set_capture(id); // set capture to list
     window_set_focus(id);
 
-    if (HELP_H > 0) {
+    if (HELP_LINES > 0) {
         id = window_create_ptr(WINDOW_CLS_TEXT, root_id,
-            rect_ui16(10, 310 - (FOOTER == EFooter::On ? footer_sz : 0) - HELP_H, 220, HELP_H),
+            rect_ui16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - help_h, win_w, help_h),
             &help);
         help.font = resource_font(IDR_FNT_SPECIAL);
     }
@@ -106,13 +113,13 @@ ScreenMenu<HEADER, FOOTER, HELP_H, T...>::ScreenMenu(const char *label)
     }
 }
 
-template <EHeader HEADER, EFooter FOOTER, size_t HELP_H, class... T>
-void ScreenMenu<HEADER, FOOTER, HELP_H, T...>::Done() {
+template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
+void ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>::Done() {
     window_destroy(root.win.id);
 }
 
-template <EHeader HEADER, EFooter FOOTER, size_t HELP_H, class... T>
-int ScreenMenu<HEADER, FOOTER, HELP_H, T...>::Event(window_t *window, uint8_t event, void *param) {
+template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
+int ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>::Event(window_t *window, uint8_t event, void *param) {
     if (FOOTER == EFooter::On) {
         status_footer_event(&footer, window, event, param);
     }
