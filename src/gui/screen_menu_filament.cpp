@@ -129,12 +129,12 @@ private:
     template <class T>
     void dis() {
         Item<T>().Disable();
-        menu.win.f_invalid = 1;
+        win.f_invalid = 1;
     }
     template <class T>
     void ena() {
         Item<T>().Enable();
-        menu.win.f_invalid = 1;
+        win.f_invalid = 1;
     }
 };
 
