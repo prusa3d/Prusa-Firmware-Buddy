@@ -23,7 +23,7 @@ protected:
 
 /*****************************************************************************/
 //parent alias
-using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_NOZZLE, MI_HEATBED, MI_PRINTFAN, MI_COOLDOWN>;
+using parent = screen_menu_data_t<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN, MI_NOZZLE, MI_HEATBED, MI_PRINTFAN, MI_COOLDOWN>;
 
 class ScreenMenuTenperature : public parent {
 public:
