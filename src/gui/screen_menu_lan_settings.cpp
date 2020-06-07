@@ -253,7 +253,7 @@ public:
 
 /*****************************************************************************/
 //parent alias
-using parent = ScreenMenu<EHeader::On, EFooter::Off, 150,
+using parent = ScreenMenu<EHeader::On, EFooter::Off, 6,
     MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
 
 class ScreenMenuLanSettings : public parent {
