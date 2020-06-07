@@ -19,7 +19,7 @@ constexpr static const size_t HelpLines_None = 0;
 constexpr static const size_t HelpLines_Default = 4;
 
 template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
-class ScreenMenu {
+class ScreenMenu : protected window_menu_t {
 protected:
     constexpr static const char *no_label = "MISSING";
     window_frame_t root;
@@ -27,7 +27,6 @@ protected:
     window_text_t help;
     status_footer_t footer;
     WinMenuContainer<T...> container;
-    window_menu_t menu;
 
 public:
     ScreenMenu(const char *label);
@@ -64,10 +63,13 @@ public:
 
 template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
 ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>::ScreenMenu(const char *label)
-    : menu(&container) {
+    : window_menu_t(nullptr) {
+    pContainer = &container;
+    GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 
     //todo bind those numeric constants to fonts and guidefaults
-    const padding_ui8_t padding = { 20, 6, 2, 6 };
+    padding = { 20, 6, 2, 6 };
+    icon_rect = rect_ui16(0, 0, 16, 30);
     const uint16_t win_h = 320;
     const uint16_t footer_h = win_h - 269; //269 is smallest number i founs in footer implementation, todo it should be in guidefaults
     const uint16_t help_h = HELP_LINES * (resource_font(IDR_FNT_SPECIAL)->h + gui_defaults.padding.top + gui_defaults.padding.bottom);
@@ -92,11 +94,9 @@ ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>::ScreenMenu(const char *label)
     // p_window_header_set_icon(&(header), IDR_PNG_status_icon_menu);
     p_window_header_set_text(&(header), label);
 
-    id = window_create_ptr(WINDOW_CLS_MENU, root_id,
-        menu_rect, &(menu));
-    menu.padding = padding;
-    menu.icon_rect = rect_ui16(0, 0, 16, 30);
-    menu.win.flg |= WINDOW_FLG_ENABLED;
+    id = window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
+
+    win.flg |= WINDOW_FLG_ENABLED;
 
     window_set_capture(id); // set capture to list
     window_set_focus(id);
