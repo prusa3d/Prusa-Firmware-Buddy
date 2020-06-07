@@ -7,10 +7,10 @@
 #include "MItem_menus.hpp"
 
 #ifdef _DEBUG
-using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN, MI_STATISTIC_disabled, MI_SYS_INFO, MI_FAIL_STAT_disabled,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN, MI_STATISTIC_disabled, MI_SYS_INFO, MI_FAIL_STAT_disabled,
     MI_SUPPORT_disabled, MI_VERSION_INFO, MI_QR_info, MI_QR_test>;
 #else
-using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN, MI_SYS_INFO, MI_VERSION_INFO>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN, MI_SYS_INFO, MI_VERSION_INFO>;
 #endif //_DEBUG
 
 static void init(screen_t *screen) {

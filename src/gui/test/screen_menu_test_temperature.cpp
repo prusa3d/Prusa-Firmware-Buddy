@@ -30,10 +30,10 @@ typedef enum {
     MI_COUNT
 } MI_t;
 
-//"C inheritance" of screen_menu_data_t with data items
+//"C inheritance" of ScreenMenu with data items
 
 struct this_screen_data_t {
-    screen_menu_data_t base;
+    ScreenMenu base;
     menu_item_t items[MI_COUNT];
 
 };
@@ -118,7 +118,7 @@ screen_t screen_test_temperature = {
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
-using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN>;
 
 static void init(screen_t *screen) {
     Screen::Create(screen);
