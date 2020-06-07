@@ -110,7 +110,7 @@ public:
     }
 };
 
-using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
+using parent = screen_menu_data_t<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
 class ScreenMenuFilament : public parent {
     enum {

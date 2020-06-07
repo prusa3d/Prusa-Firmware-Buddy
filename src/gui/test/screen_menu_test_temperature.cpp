@@ -118,7 +118,7 @@ screen_t screen_test_temperature = {
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
-using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN>;
+using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN>;
 
 static void init(screen_t *screen) {
     Screen::Create(screen);
