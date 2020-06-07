@@ -38,7 +38,7 @@ public:
     }
 };
 
-using parent = screen_menu_data_t<EHeader::Off, EFooter::On, HelpHeight_Default, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
+using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpHeight_Default, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
 
 class ScreenMenuFwUpdate : public parent {
 public:

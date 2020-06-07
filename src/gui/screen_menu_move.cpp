@@ -36,7 +36,7 @@ using MI_AXIS_X = MI_AXIS<0>;
 using MI_AXIS_Y = MI_AXIS<1>;
 using MI_AXIS_Z = MI_AXIS<2>;
 
-using parent = screen_menu_data_t<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E>;
+using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpHeight_None, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E>;
 
 class ScreenMenuMove : public parent {
 public:
