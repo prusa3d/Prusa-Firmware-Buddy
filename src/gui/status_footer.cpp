@@ -5,6 +5,9 @@
  *      Author: mcbig
  */
 
+/// don't draw above line specified in gui.c
+/// FIXME footer should receive window to know where to draw
+
 #include "config.h"
 #include "status_footer.h"
 #include "filament.h"

@@ -225,10 +225,13 @@ void screen_printing_init(screen_t *screen) {
     window_hide(id);
     pw->message_flag = false;
 
+    // buttons
+    const uint16_t icon_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22 - 64;
+    const uint16_t text_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22;
     for (uint8_t col = 0; col < 3; col++) {
         id = window_create_ptr(
             WINDOW_CLS_ICON, root,
-            rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
+            rect_ui16(8 + (15 + 64) * col, icon_y, 64, 64),
             &(pw->w_buttons[col]));
         window_set_color_back(id, COLOR_GRAY);
         window_set_tag(id, col + 1);
@@ -236,7 +239,7 @@ void screen_printing_init(screen_t *screen) {
 
         id = window_create_ptr(
             WINDOW_CLS_TEXT, root,
-            rect_ui16(80 * col, 196 + 48 + 8, 80, 22),
+            rect_ui16(80 * col, text_y, 80, 22),
             &(pw->w_labels[col]));
         pw->w_labels[col].font = resource_font(IDR_FNT_SMALL);
         window_set_padding(id, padding_ui8(0, 0, 0, 0));
@@ -342,6 +345,10 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     }
     if (marlin_vars()->sd_percent_done != pw->last_sd_percent_done)
         update_progress(screen, marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
+
+    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
+        screen_close();
+    }
 
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
