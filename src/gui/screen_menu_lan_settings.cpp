@@ -253,7 +253,8 @@ public:
 
 /*****************************************************************************/
 //parent alias
-using parent = ScreenMenu<EHeader::On, EFooter::Off, 8,
+static const size_t helper_lines = 8;
+using parent = ScreenMenu<EHeader::On, EFooter::Off, helper_lines,
     MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
 
 class ScreenMenuLanSettings : public parent {
