@@ -35,8 +35,9 @@ enum class ButtonStatus {
 static char text_nozzle[10];  // "215/215°C"
 static char text_heatbed[10]; // "110/110°C"
 static char text_prnspeed[5]; // "999%"
-static char text_z_axis[10];  // "999.95", more space than needed to avoid warning (sprintf)
+static char text_z_axis[7];   // "999.95", more space than needed to avoid warning (sprintf)
 static char filament[5];      // "PETG"
+static constexpr char *err = "ERR";
 
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds);
 void status_footer_update_temperatures(status_footer_t *footer);
@@ -272,7 +273,7 @@ void status_footer_update_temperatures(status_footer_t *footer) {
 void status_footer_update_feedrate(status_footer_t *footer) {
     const marlin_vars_t *vars = marlin_vars();
     if (!vars) {
-        snprintf(text_prnspeed, sizeof(text_prnspeed), "ERR");
+        snprintf(text_prnspeed, sizeof(text_prnspeed), err);
         return;
     }
 
@@ -284,14 +285,14 @@ void status_footer_update_feedrate(status_footer_t *footer) {
     if (0 < speed && speed <= 999)
         snprintf(text_prnspeed, sizeof(text_prnspeed), "%3d%%", speed);
     else
-        snprintf(text_prnspeed, sizeof(text_prnspeed), "ERR");
+        snprintf(text_prnspeed, sizeof(text_prnspeed), err);
     window_set_text(footer->wt_prnspeed.win.id, text_prnspeed);
 }
 
 void status_footer_update_z_axis(status_footer_t *footer) {
     const marlin_vars_t *vars = marlin_vars();
     if (!vars) {
-        window_set_text(footer->wt_z_axis.win.id, "ERR");
+        window_set_text(footer->wt_z_axis.win.id, err);
         return;
     }
 
@@ -300,7 +301,10 @@ void status_footer_update_z_axis(status_footer_t *footer) {
         return;
 
     footer->z_pos = pos;
-    snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)ABS(pos % 100));
+    if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)ABS(pos % 100))) {
+        window_set_text(footer->wt_z_axis.win.id, err);
+        return;
+    }
     window_set_text(footer->wt_z_axis.win.id, text_z_axis);
 }
 
