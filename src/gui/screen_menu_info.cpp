@@ -14,7 +14,7 @@ using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
 #endif //_DEBUG
 
 static void init(screen_t *screen) {
-    constexpr static const char *label = "INFO";
+    constexpr static const char *label = N_("INFO");
     Screen::Create(screen, label);
 }
 

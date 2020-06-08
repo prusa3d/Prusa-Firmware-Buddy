@@ -8,6 +8,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "screens.h"
+#include "../lang/i18n.h"
 
 #ifdef _EXTUI
     #include "marlin_client.h"
@@ -101,7 +102,7 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
                 screen_stack_push(get_scr_home()->id);
                 wizard_run_complete();
             } else if (run_firstlay) {
-                if (gui_msgbox("The printer is not calibrated. Start First Layer Calibration?", MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
+                if (gui_msgbox(_("The printer is not calibrated. Start First Layer Calibration?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
                     screen_stack_push(get_scr_home()->id);
                     wizard_run_firstlay();
                 } else

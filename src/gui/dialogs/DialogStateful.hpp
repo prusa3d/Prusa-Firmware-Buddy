@@ -5,6 +5,7 @@
 #include "DialogRadioButton.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
+#include "../lang/i18n.h"
 
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
@@ -150,7 +151,7 @@ void DialogStateful<T>::draw() {
             //			rc_tit.w -= 30;
             //			rc_tit.x += 30;
             //title
-            render_text_align(rc_tit, title, font_title,
+            render_text_align(rc_tit, _(title), font_title,
                 color_back, color_text, padding, ALIGN_CENTER);
 
             f_invalid = 0;

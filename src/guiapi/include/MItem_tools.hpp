@@ -2,9 +2,10 @@
 //menu items running tools
 #pragma once
 #include "WindowMenuItems.hpp"
+#include "../lang/i18n.h"
 
 class MI_WIZARD : public WI_LABEL_t {
-    static constexpr const char *const label = "Wizard";
+    static constexpr const char *const label = N_("Wizard");
 
 public:
     MI_WIZARD();
@@ -14,7 +15,7 @@ protected:
 };
 
 class MI_AUTO_HOME : public WI_LABEL_t {
-    static constexpr const char *const label = "Auto Home";
+    static constexpr const char *const label = N_("Auto Home");
 
 public:
     MI_AUTO_HOME();
@@ -24,7 +25,7 @@ protected:
 };
 
 class MI_MESH_BED : public WI_LABEL_t {
-    static constexpr const char *const label = "Mesh Bed Level.";
+    static constexpr const char *const label = N_("Mesh Bed Level.");
 
 public:
     MI_MESH_BED();
@@ -34,7 +35,7 @@ protected:
 };
 
 class MI_SELFTEST : public WI_LABEL_t {
-    static constexpr const char *const label = "SelfTest";
+    static constexpr const char *const label = N_("SelfTest");
 
 public:
     MI_SELFTEST();
@@ -44,7 +45,7 @@ protected:
 };
 
 class MI_CALIB_FIRST : public WI_LABEL_t {
-    static constexpr const char *const label = "First Layer Cal.";
+    static constexpr const char *const label = N_("First Layer Cal.");
 
 public:
     MI_CALIB_FIRST();
@@ -54,7 +55,7 @@ protected:
 };
 
 class MI_DISABLE_STEP : public WI_LABEL_t {
-    static constexpr const char *const label = "Disable Steppers";
+    static constexpr const char *const label = N_("Disable Steppers");
 
 public:
     MI_DISABLE_STEP();
@@ -64,7 +65,7 @@ protected:
 };
 
 class MI_FACTORY_DEFAULTS : public WI_LABEL_t {
-    static constexpr const char *const label = "Factory Reset";
+    static constexpr const char *const label = N_("Factory Reset");
 
 public:
     MI_FACTORY_DEFAULTS();
@@ -74,7 +75,7 @@ protected:
 };
 
 class MI_SAVE_DUMP : public WI_LABEL_t {
-    static constexpr const char *const label = "Save Crash Dump";
+    static constexpr const char *const label = N_("Save Crash Dump");
 
 public:
     MI_SAVE_DUMP();
@@ -84,7 +85,7 @@ protected:
 };
 
 class MI_HF_TEST_0 : public WI_LABEL_t {
-    static constexpr const char *const label = "HF0 test";
+    static constexpr const char *const label = "HF0 test"; // intentionally not translated, only for debugging
 
 public:
     MI_HF_TEST_0();
@@ -94,7 +95,7 @@ protected:
 };
 
 class MI_HF_TEST_1 : public WI_LABEL_t {
-    static constexpr const char *const label = "HF1 test";
+    static constexpr const char *const label = "HF1 test"; // intentionally not translated, only for debugging
 
 public:
     MI_HF_TEST_1();
@@ -104,7 +105,7 @@ protected:
 };
 
 class MI_EE_LOAD_400 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.0";
+    static constexpr const char *const label = "EE 4.0.0"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_LOAD_400();
@@ -114,7 +115,7 @@ protected:
 };
 
 class MI_EE_LOAD_401 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.1";
+    static constexpr const char *const label = "EE 4.0.1"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_LOAD_401();
@@ -124,7 +125,7 @@ protected:
 };
 
 class MI_EE_LOAD_402 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.2";
+    static constexpr const char *const label = "EE 4.0.2"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_LOAD_402();
@@ -134,7 +135,7 @@ protected:
 };
 
 class MI_EE_LOAD_403RC1 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.3-RC1";
+    static constexpr const char *const label = "EE 4.0.3-RC1"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_LOAD_403RC1();
@@ -144,7 +145,7 @@ protected:
 };
 
 class MI_EE_LOAD_403 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.3";
+    static constexpr const char *const label = "EE 4.0.3"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_LOAD_403();
@@ -154,7 +155,7 @@ protected:
 };
 
 class MI_EE_LOAD : public WI_LABEL_t {
-    static constexpr const char *const label = "EE load";
+    static constexpr const char *const label = "EE load"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_LOAD();
@@ -164,7 +165,7 @@ protected:
 };
 
 class MI_EE_SAVE : public WI_LABEL_t {
-    static constexpr const char *const label = "EE save";
+    static constexpr const char *const label = "EE save"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_SAVE();
@@ -174,7 +175,7 @@ protected:
 };
 
 class MI_EE_SAVEXML : public WI_LABEL_t {
-    static constexpr const char *const label = "EE save xml";
+    static constexpr const char *const label = "EE save xml"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_SAVEXML();
@@ -184,7 +185,7 @@ protected:
 };
 
 class MI_M600 : public WI_LABEL_t {
-    static constexpr const char *const label = "Change Filament";
+    static constexpr const char *const label = N_("Change Filament");
 
 public:
     MI_M600();
@@ -194,7 +195,7 @@ protected:
 };
 
 class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = "Timeout";
+    constexpr static const char *const label = N_("Timeout");
     static bool timeout_enabled;
 
 public:
@@ -203,12 +204,12 @@ public:
 };
 
 class MI_SOUND_MODE : public WI_SWITCH_t<4> {
-    constexpr static const char *const label = "Sound Mode";
+    constexpr static const char *const label = N_("Sound Mode");
 
-    constexpr static const char *str_Once = "Once";
-    constexpr static const char *str_Loud = "Loud";
-    constexpr static const char *str_Silent = "Silent";
-    constexpr static const char *str_Assist = "Assist";
+    constexpr static const char *str_Once = N_("Once");
+    constexpr static const char *str_Loud = N_("Loud");
+    constexpr static const char *str_Silent = N_("Silent");
+    constexpr static const char *str_Assist = N_("Assist");
     size_t init_index() const;
 
 public:
@@ -217,13 +218,13 @@ public:
 };
 
 class MI_SOUND_TYPE : public WI_SWITCH_t<5> {
-    constexpr static const char *const label = "Sound Type";
+    constexpr static const char *const label = N_("Sound Type");
 
-    constexpr static const char *str_ButtonEcho = "ButtonEcho";
-    constexpr static const char *str_StandardPrompt = "StandardPrompt";
-    constexpr static const char *str_StandardAlert = "StandardAlert";
-    constexpr static const char *str_EncoderMove = "EncoderMove";
-    constexpr static const char *str_BlindAlert = "BlindAlert";
+    constexpr static const char *str_ButtonEcho = N_("ButtonEcho");
+    constexpr static const char *str_StandardPrompt = N_("StandardPrompt");
+    constexpr static const char *str_StandardAlert = N_("StandardAlert");
+    constexpr static const char *str_EncoderMove = N_("EncoderMove");
+    constexpr static const char *str_BlindAlert = N_("BlindAlert");
 
 public:
     MI_SOUND_TYPE();
@@ -231,7 +232,7 @@ public:
 };
 
 class MI_TIMEZONE : public WI_SPIN_I08_t {
-    constexpr static const char *const label = "TZ UTC(+/-)";
+    constexpr static const char *const label = "TZ UTC(+/-)"; // intentionally not translated
 
 public:
     MI_TIMEZONE();

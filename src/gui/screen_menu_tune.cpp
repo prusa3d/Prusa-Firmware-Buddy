@@ -18,7 +18,7 @@ using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
 
 class ScreenMenuTune : public parent {
 public:
-    constexpr static const char *label = "TUNE";
+    constexpr static const char *label = N_("TUNE");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };

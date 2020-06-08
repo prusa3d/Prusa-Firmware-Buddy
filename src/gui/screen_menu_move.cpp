@@ -40,7 +40,7 @@ using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
 
 class ScreenMenuMove : public parent {
 public:
-    constexpr static const char *label = "Settings";
+    constexpr static const char *label = N_("Settings");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };

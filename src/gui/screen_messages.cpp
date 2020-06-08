@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "screens.h"
+#include "../lang/i18n.h"
 
 struct screen_messages_data_t {
     window_frame_t root;
@@ -26,7 +27,7 @@ struct screen_messages_data_t {
 void _window_list_add_message_item(window_list_t * /*pwindow_list*/, uint16_t index,
     const char **pptext, uint16_t *msg_icon) {
     static const char empty_str[] = "";
-    static const char back_str[] = "BACK";
+    static const char back_str[] = N_("BACK");
     if (index == 0) {
         *pptext = back_str;
         //*pid_icon = IDR_PNG_filescreen_icon_up_folder;
@@ -59,7 +60,7 @@ void screen_messages_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_HEADER, root, rect_ui16(0, 0, 240, 31), &(pmsg->header));
     // p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
-    p_window_header_set_text(&(pmsg->header), "MESSAGES");
+    p_window_header_set_text(&(pmsg->header), N_("MESSAGES"));
 
     id = window_create_ptr(WINDOW_CLS_LIST, root, rect_ui16(0, 32, 240, 320 - 83), &(pmsg->list));
     window_set_item_count(id, msg_stack.count + 1);

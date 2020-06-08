@@ -2,6 +2,7 @@
 #ifndef _MENU_VARS_H
 #define _MENU_VARS_H
 #include "stdint.h"
+#include "../lang/i18n.h"
 
 //-----------------------------------------------------------------------------
 //stringize macros
@@ -58,7 +59,7 @@ struct MenuVars {
     constexpr static const size_t AXIS_CNT = 4;
     constexpr static const size_t RANGE_SZ = 3;
     constexpr static const char *const zoffset_prt_format = "%.3f";
-    constexpr static const char *const labels[] = { "Move X", "Move Y", "Move Z", "Move E" };
+    constexpr static const char *const labels[] = { N_("Move X"), N_("Move Y"), N_("Move Z"), N_("Move E") };
     static const std::array<std::array<int16_t, RANGE_SZ>, AXIS_CNT> axis_ranges;
     static const int16_t manual_feedrate[AXIS_CNT];
     static const char axis_letters[AXIS_CNT];

@@ -10,11 +10,12 @@
 #include "sys.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include "../lang/i18n.h"
 
 /*****************************************************************************/
 //MI_ALWAYS
 class MI_ALWAYS : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = "Always";
+    constexpr static const char *const label = N_("Always");
 
 public:
     MI_ALWAYS()
@@ -28,7 +29,7 @@ public:
 /*****************************************************************************/
 //MI_ON_RESTART
 class MI_ON_RESTART : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = "On restart";
+    constexpr static const char *const label = N_("On restart");
 
 public:
     MI_ON_RESTART()
@@ -42,7 +43,7 @@ using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::On, MI_RETUR
 
 class ScreenMenuFwUpdate : public parent {
 public:
-    constexpr static const char *label = "FW UPDATE";
+    constexpr static const char *label = N_("FW UPDATE");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
@@ -53,7 +54,7 @@ void ScreenMenuFwUpdate::Init(screen_t *screen) {
     Create(screen, label);
     auto *ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
     ths->help.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_text(ths->help.win.id, "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk.");
+    window_set_text(ths->help.win.id, _("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
 }
 
 int ScreenMenuFwUpdate::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {

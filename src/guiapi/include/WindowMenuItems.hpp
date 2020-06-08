@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include "display_helper.h"
+#include "../lang/i18n.h"
 
 //WI_LABEL
 class WI_LABEL_t : public IWindowMenuItem {
@@ -196,7 +197,7 @@ void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, colo
     //draw label
     IWindowMenuItem::printText(window_menu, label_rect, color_text, color_back, swap);
     //draw spin
-    render_text_align(spin_rect, buff, window_menu.font,
+    render_text_align(spin_rect, _(buff), window_menu.font,
         color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 
@@ -247,7 +248,7 @@ void WI_SWITCH_t<SZ>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, c
     vrc.x -= vrc.w;
     rect.w -= vrc.w;
 
-    render_text_align(vrc, txt, window_menu.font,
+    render_text_align(vrc, _(txt), window_menu.font,
         color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 

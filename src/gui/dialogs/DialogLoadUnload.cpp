@@ -3,6 +3,7 @@
 #include "gui.h"      //resource_font
 #include "resource.h" //IDR_FNT_BIG
 #include "sound_C_wrapper.h"
+#include "../lang/i18n.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,13 +25,13 @@ inline RadioButton btn(PhasesLoadUnload phase, const PhaseTexts &texts) {
 // clang-format off
 //todo move button texts
 static const char *txt_none   = "";
-static const char *txt_stop   = "STOP";
-static const char *txt_cont   = "CONTINUE";
-static const char *txt_disa   = "DISABLE SENSOR";
-static const char *txt_yes    = "YES";
-static const char *txt_no     = "NO";
-static const char *txt_reheat = "REHEAT";
-static const char *txt_retry  = "RETRY";
+static const char *txt_stop   = N_("STOP");
+static const char *txt_cont   = N_("CONTINUE");
+static const char *txt_disa   = N_("DISABLE SENSOR");
+static const char *txt_yes    = N_("YES");
+static const char *txt_no     = N_("NO");
+static const char *txt_reheat = N_("REHEAT");
+static const char *txt_retry  = N_("RETRY");
 
 static const PhaseTexts ph_txt_stop    = { txt_stop,   txt_none, txt_none,  txt_none };
 static const PhaseTexts ph_txt_cont    = { txt_cont,   txt_none, txt_none,  txt_none };
@@ -40,22 +41,22 @@ static const PhaseTexts ph_txt_none    = { txt_none,   txt_none, txt_none,  txt_
 static const PhaseTexts ph_txt_yesno   = { txt_yes,    txt_no,   txt_none,  txt_none };
 static const PhaseTexts ph_txt_iscolor = { txt_yes,    txt_no,   txt_retry, txt_none };
 
-static const char *txt_first              = "Finishing         \nbuffered gcodes.  \n";
-static const char *txt_parking            = "Parking";
-static const char *txt_unparking          = "Unparking";
-static const char *txt_wait_temp          = "Waiting for temp.";
-static const char *txt_prep_ram           = "Preparing to ram";
-static const char *txt_ram                = "Ramming";
-static const char *txt_unload             = "Unloading";
-static const char *txt_push_fil           = "Press CONTINUE and\npush filament into\nthe extruder.     ";
-static const char *txt_make_sure_inserted = "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ";
-static const char *txt_inserting          = "Inserting";
-static const char *txt_is_filament_in_gear= "Is filament in    \nextruder gear?    ";
-static const char *txt_ejecting           = "Ejecting";
-static const char *txt_loading            = "Loading to nozzle";
-static const char *txt_purging            = "Purging";
-static const char *txt_is_color           = "Is color correct?";
-static const char *txt_nozzle_cold        = "Nozzle is too cold.";
+static const char *txt_first              = N_("Finishing         \nbuffered gcodes.  \n");
+static const char *txt_parking            = N_("Parking");
+static const char *txt_unparking          = N_("Unparking");
+static const char *txt_wait_temp          = N_("Waiting for temp.");
+static const char *txt_prep_ram           = N_("Preparing to ram");
+static const char *txt_ram                = N_("Ramming");
+static const char *txt_unload             = N_("Unloading");
+static const char *txt_push_fil           = N_("Press CONTINUE and\npush filament into\nthe extruder.     ");
+static const char *txt_make_sure_inserted = N_("Make sure the     \nfilament is       \ninserted through  \nthe sensor.       ");
+static const char *txt_inserting          = N_("Inserting");
+static const char *txt_is_filament_in_gear= N_("Is filament in    \nextruder gear?    ");
+static const char *txt_ejecting           = N_("Ejecting");
+static const char *txt_loading            = N_("Loading to nozzle");
+static const char *txt_purging            = N_("Purging");
+static const char *txt_is_color           = N_("Is color correct?");
+static const char *txt_nozzle_cold        = N_("Nozzle is too cold.");
 
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {

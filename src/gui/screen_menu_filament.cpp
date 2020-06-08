@@ -11,6 +11,7 @@
 #include "screens.h"
 #include "dbg.h"
 #include "DialogHandler.hpp"
+#include "../lang/i18n.h"
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
@@ -40,8 +41,8 @@ public:
 /*****************************************************************************/
 //MI_LOAD
 class MI_LOAD : public MI_event_dispatcher {
-    constexpr static const char *const label = "Load Filament";
-    constexpr static const char *const header_label = "LOAD FILAMENT";
+    constexpr static const char *const label = N_("Load Filament");
+    constexpr static const char *const header_label = N_("LOAD FILAMENT");
 
 public:
     MI_LOAD()
@@ -57,8 +58,8 @@ public:
 /*****************************************************************************/
 //MI_UNLOAD
 class MI_UNLOAD : public MI_event_dispatcher {
-    constexpr static const char *const label = "Unload Filament";
-    constexpr static const char *const header_label = "UNLOAD FILAMENT";
+    constexpr static const char *const label = N_("Unload Filament");
+    constexpr static const char *const header_label = N_("UNLOAD FILAMENT");
 
 public:
     MI_UNLOAD()
@@ -74,8 +75,8 @@ public:
 /*****************************************************************************/
 //MI_CHANGE
 class MI_CHANGE : public MI_event_dispatcher {
-    constexpr static const char *const label = "Change Filament";
-    constexpr static const char *const header_label = "CHANGE FILAMENT";
+    constexpr static const char *const label = N_("Change Filament");
+    constexpr static const char *const header_label = N_("CHANGE FILAMENT");
 
 public:
     MI_CHANGE()
@@ -96,8 +97,8 @@ public:
 /*****************************************************************************/
 //MI_LOAD
 class MI_PURGE : public MI_event_dispatcher {
-    constexpr static const char *const label = "Purge Filament";
-    constexpr static const char *const header_label = "PURGE FILAMENT";
+    constexpr static const char *const label = N_("Purge Filament");
+    constexpr static const char *const header_label = N_("PURGE FILAMENT");
 
 public:
     MI_PURGE()
@@ -119,7 +120,7 @@ class ScreenMenuFilament : public parent {
     };
 
 public:
-    constexpr static const char *label = "FILAMENT";
+    constexpr static const char *label = N_("FILAMENT");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 

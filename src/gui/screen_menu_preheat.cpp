@@ -3,12 +3,13 @@
 #include "marlin_client.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include "../lang/i18n.h"
 
 template <FILAMENT_t T>
 class MI_Filament : public WI_LABEL_t {
 public:
     MI_Filament()
-        : WI_LABEL_t(filaments[T].long_name, 0, true, false) {}
+        : WI_LABEL_t(_(filaments[T].long_name), 0, true, false) {}
 
 protected:
     virtual void click(Iwindow_menu_t & /*window_menu*/) override {
@@ -24,7 +25,7 @@ using Screen = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
     MI_Filament<FILAMENT_ASA>, MI_Filament<FILAMENT_FLEX>, MI_Filament<FILAMENT_NONE>>;
 
 static void init(screen_t *screen) {
-    constexpr static const char *label = "PREHEAT";
+    constexpr static const char *label = N_("PREHEAT");
     Screen::Create(screen, label);
 }
 

@@ -14,6 +14,7 @@
 #include "guitypes.h" //font_meas_text
 #include "menu_vars.h"
 #include "filament.h"
+#include "../lang/i18n.h"
 
 const char *V2_gcodes_head_PLA[];
 const char *V2_gcodes_head_PETG[];
@@ -181,7 +182,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             marlin_error_clr(MARLIN_ERR_ProbingFailed);
             marlin_gcode("G0 Z30"); //Z 30mm
             marlin_gcode("M84");    //Disable steppers
-            if (wizard_msgbox("Mesh bed leveling failed?", MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
+            if (wizard_msgbox(_("Mesh bed leveling failed?"), MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
                 //RETRY
                 line_head = G28_pos;
             } else {

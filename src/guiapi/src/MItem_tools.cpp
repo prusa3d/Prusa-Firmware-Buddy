@@ -9,6 +9,7 @@
 #include "window_dlg_wait.h"
 #include "sound_C_wrapper.h"
 #include "wui_api.h"
+#include "../lang/i18n.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -102,9 +103,9 @@ MI_FACTORY_DEFAULTS::MI_FACTORY_DEFAULTS()
 }
 
 void MI_FACTORY_DEFAULTS::click(Iwindow_menu_t & /*window_menu*/) {
-    if (gui_msgbox("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?", MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
+    if (gui_msgbox(_("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
         eeprom_defaults();
-        gui_msgbox("Factory defaults loaded. The system will now restart.", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        gui_msgbox(_("Factory defaults loaded. The system will now restart."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
         sys_reset();
     }
 }
@@ -117,9 +118,9 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 void MI_SAVE_DUMP::click(Iwindow_menu_t & /*window_menu*/) {
     if (dump_save_to_usb("dump.bin"))
-        gui_msgbox("A crash dump report (file dump.bin) has been saved to the USB drive.", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        gui_msgbox(_("A crash dump report (file dump.bin) has been saved to the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
     else
-        gui_msgbox("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        gui_msgbox(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
 }
 
 /*****************************************************************************/

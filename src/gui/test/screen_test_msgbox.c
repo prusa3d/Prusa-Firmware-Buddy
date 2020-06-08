@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "config.h"
 #include "screens.h"
+#include "../lang/i18n.h"
 
 typedef struct
 {
@@ -24,7 +25,7 @@ typedef struct
 
 #define pd ((screen_test_msgbox_data_t *)screen->pdata)
 
-const char *test_text = "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?";
+const char *test_text = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
 
 void screen_test_msgbox_init(screen_t *screen) {
     int16_t id;
@@ -110,14 +111,14 @@ int screen_test_msgbox_event(screen_t *screen, window_t *window, uint8_t event, 
         case MSGBOX_BTN_YESNO + 1:
         case MSGBOX_BTN_RETRYCANCEL + 1: {
             uint16_t btn = ((int)param - 1) & MSGBOX_MSK_BTN;
-            gui_msgbox(test_text, btn | MSGBOX_ICO_INFO);
+            gui_msgbox(_(test_text), btn | MSGBOX_ICO_INFO);
         } break;
         case MSGBOX_BTN_MAX + 3:
         case MSGBOX_BTN_MAX + 4:
         case MSGBOX_BTN_MAX + 5:
         case MSGBOX_BTN_MAX + 6: {
             uint16_t ico = (((int)param - (MSGBOX_BTN_MAX + 3)) << MSGBOX_SHI_ICO) & MSGBOX_MSK_ICO;
-            gui_msgbox(test_text, MSGBOX_BTN_OK | ico);
+            gui_msgbox(_(test_text), MSGBOX_BTN_OK | ico);
         } break;
         }
     /*	else if (event == WINDOW_EVENT_LOOP)

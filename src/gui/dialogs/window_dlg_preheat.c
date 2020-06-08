@@ -14,6 +14,8 @@
 #include "marlin_client.h"
 #include "resource.h"
 #include "stdlib.h"
+#include "../lang/i18n.h"
+
 //"inherit" those functions, to inherit frame behavior
 extern void window_frame_done(window_frame_t *window);
 extern void window_frame_draw(window_frame_t *window);
@@ -27,7 +29,7 @@ int16_t WINDOW_CLS_DLG_PREHEAT = 0;
 void window_list_filament_item_forced_cb(window_list_t *pwindow_list, uint16_t index,
     const char **pptext, uint16_t *pid_icon) {
     if (index <= pwindow_list->count) {
-        *pptext = filaments[index + FILAMENT_PLA].long_name;
+        *pptext = _(filaments[index + FILAMENT_PLA].long_name);
     } else
         *pptext = "Index ERROR";
 

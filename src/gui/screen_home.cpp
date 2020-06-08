@@ -17,6 +17,8 @@
 
 #include "screens.h"
 
+#include "../lang/i18n.h"
+
 #define BUTTON_PRINT       0
 #define BUTTON_PREHEAT     1
 #define BUTTON_FILAMENT    2
@@ -34,13 +36,13 @@ const uint16_t icons[6] = {
 };
 
 const char *labels[7] = {
-    "Print",
-    "Preheat",
-    "Filament",
-    "Calibration",
-    "Settings",
-    "Info",
-    "No USB" // label variant for first button
+    N_("Print"),
+    N_("Preheat"),
+    N_("Filament"),
+    N_("Calibration"),
+    N_("Settings"),
+    N_("Info"),
+    N_("No USB") // label variant for first button
 };
 
 struct screen_home_data_t {
@@ -78,7 +80,7 @@ void screen_home_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_HEADER, root,
         rect_ui16(0, 0, 240, 31), &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_home);
-    p_window_header_set_text(&(pw->header), "HOME");
+    p_window_header_set_text(&(pw->header), _("HOME"));
 
     id = window_create_ptr(WINDOW_CLS_ICON, root,
         rect_ui16(41, 31, 158, 40), &(pw->logo));
