@@ -25,10 +25,10 @@ typedef enum heat_state_e {
 
 typedef struct
 {
-    float nozzle;                /// actual temperature of nozzle
+    float nozzle;                /// current temperature of nozzle
     float nozzle_target;         /// target temperature of nozzle (not shown)
     float nozzle_target_display; /// target temperature of nozzle shown on display
-    float heatbed;               /// actual temperature of bed
+    float heatbed;               /// current temperature of bed
     float heatbed_target;        /// target temperature of bed
     int32_t z_pos;               /// z position, 000.00 fixed point
     uint32_t last_timer_repaint_values;

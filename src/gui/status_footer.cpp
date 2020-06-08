@@ -37,7 +37,7 @@ static char text_heatbed[10]; // "110/110°C"
 static char text_prnspeed[5]; // "999%"
 static char text_z_axis[7];   // "999.95", more space than needed to avoid warning (sprintf)
 static char filament[5];      // "PETG"
-static constexpr char *err = "ERR";
+static char const *err = "ERR";
 
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds);
 void status_footer_update_temperatures(status_footer_t *footer);
