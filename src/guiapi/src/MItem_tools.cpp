@@ -242,12 +242,12 @@ void MI_M600::click(Iwindow_menu_t & /*window_menu*/) {
 //if needed to remeber after poweroff
 //use st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS) st25dv64k_user_write((uint16_t)MENU_TIMEOUT_FLAG_ADDRESS, (uint8_t)1 or 0);
 MI_TIMEOUT::MI_TIMEOUT()
-    : WI_SWITCH_OFF_ON_t(timeout_enabled ? 0 : 1, label, 0, true, false) {}
-void MI_TIMEOUT::OnChange(size_t /*old_index*/) {
-    if (timeout_enabled) {
+    : WI_SWITCH_OFF_ON_t(timeout_enabled ? 1 : 0, label, 0, true, false) {}
+void MI_TIMEOUT::OnChange(size_t old_index) {
+    if (old_index) {
         gui_timer_delete(gui_get_menu_timeout_id());
     }
-    timeout_enabled = !timeout_enabled;
+    timeout_enabled = !old_index;
 }
 
 bool MI_TIMEOUT::timeout_enabled = true;
