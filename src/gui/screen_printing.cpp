@@ -158,8 +158,7 @@ void screen_printing_init(screen_t *screen) {
         rect_ui16(0, 0, 0, 0),
         &(pw->root));
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root,
-        rect_ui16(0, 0, 240, 31), &(pw->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
@@ -404,7 +403,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 static void disable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
     p_button->win.f_disabled = 1;
-    p_button->win.f_enabled = 0; // cant't be focused
+    p_button->win.f_enabled = 0; // can't be focused
 
     // move to reprint when tune is focused
     if (window_is_focused(p_button->win.id)) {
