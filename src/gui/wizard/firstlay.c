@@ -280,14 +280,10 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     p_screen->Z_offset_request = 0;
 }
 
-#define V__GCODES_HEAD_BEGIN                \
-    "M107",    /*fan off */                 \
-        "G90", /*use absolute coordinates*/ \
-        "M83", /*extruder relative mode*/
-
-#define V__GCODES_HEAD_END                   \
-    "G28",     /*autohome*/                  \
-        "G29", /*meshbed leveling*/          \
+#define V__GCODES_HEAD_BEGIN                 \
+    "M107",    /*fan off */                  \
+        "G90", /*use absolute coordinates*/  \
+        "M83", /*extruder relative mode*/    \
         "G21", /* set units to millimeters*/ \
         "G90", /* use absolute coordinates*/ \
         "M83", /* use relative distances for extrusion*/
@@ -303,7 +299,6 @@ const char *V2_gcodes_head_PLA[] = {
     "G29",                                /*meshbed leveling*/
     "M104 S215",                          //nozzle target
     "M109 S215",                          //wait for nozzle temp
-    V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_PLA_sz = sizeof(V2_gcodes_head_PLA) / sizeof(V2_gcodes_head_PLA[0]);
 
@@ -317,7 +312,6 @@ const char *V2_gcodes_head_PETG[] = {
     "G29",                                /*meshbed leveling*/
     "M104 S230",                          //nozzle target
     "M109 S230",                          //wait for nozzle temp
-    V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_PETG_sz = sizeof(V2_gcodes_head_PETG) / sizeof(V2_gcodes_head_PETG[0]);
 
@@ -331,7 +325,6 @@ const char *V2_gcodes_head_ASA[] = {
     "G29",                                /*meshbed leveling*/
     "M104 S260",                          //nozzle target
     "M109 S260",                          //wait for nozzle temp
-    V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_ASA_sz = sizeof(V2_gcodes_head_ASA) / sizeof(V2_gcodes_head_ASA[0]);
 
@@ -345,7 +338,6 @@ const char *V2_gcodes_head_FLEX[] = {
     "G29",                                /*meshbed leveling*/
     "M104 S240",                          //nozzle target
     "M109 S240",                          //wait for nozzle temp
-    V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_FLEX_sz = sizeof(V2_gcodes_head_FLEX) / sizeof(V2_gcodes_head_FLEX[0]);
 
@@ -450,10 +442,7 @@ const size_t V2_gcodes_body_sz = sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[
 
 int _get_progress() {
     //if ( _is_gcode_end_line() ) return 100;
-    int ret = 100 * (line_head + 1 + line_body + 1) / gcode_sz;
-    if (ret > 99)
-        return 99;
-    return ret;
+    return MIN(99, 100 * (line_head + 1 + line_body + 1) / gcode_sz);
 }
 
 //returns progress
