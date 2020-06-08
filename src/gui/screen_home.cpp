@@ -43,11 +43,7 @@ const char *labels[7] = {
     "No USB" // label variant for first button
 };
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct
-{
+struct screen_home_data_t {
     window_frame_t root;
 
     window_header_t header;
@@ -61,14 +57,12 @@ typedef struct
     uint8_t is_starting;
     uint32_t time;
     uint8_t logo_invalid;
-} screen_home_data_t;
-
-#pragma pack(pop)
+};
 
 #define pw ((screen_home_data_t *)screen->pdata)
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
-void screen_home_disable_print_button(screen_t *screen);
+void screen_home_disable_print_button(screen_t *screen, int disable);
 
 void screen_home_init(screen_t *screen) {
     // Every 49days and some time in 5 seconds window, auto filebrowser open did not work.
@@ -119,7 +113,7 @@ void screen_home_init(screen_t *screen) {
     }
 
     if (!marlin_vars()->media_inserted)
-        screen_home_disable_print_button(screen);
+        screen_home_disable_print_button(screen, 1);
 
     status_footer_init(&(pw->footer), root);
 }
@@ -182,12 +176,13 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
                 screen_print_preview_set_on_action(on_print_preview_action);
                 screen_open(get_scr_print_preview()->id);
             }
+            screen_home_disable_print_button(screen, 0);
         }
         return 1;
     }
 
     if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
-        screen_home_disable_print_button(screen);
+        screen_home_disable_print_button(screen, 1);
     }
 
     if (event != WINDOW_EVENT_CLICK) {
@@ -255,13 +250,14 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
     return result == FR_OK && fname[0] != 0 ? true : false;
 }
 
-void screen_home_disable_print_button(screen_t *screen) {
-    pw->w_buttons[0].win.f_disabled = 1;
-    pw->w_buttons[0].win.f_enabled = 0; // cant't be focused
-    window_set_text(pw->w_labels[0].win.id, labels[6]);
+void screen_home_disable_print_button(screen_t *screen, int disable) {
+    pw->w_buttons[0].win.f_disabled = disable;
+    pw->w_buttons[0].win.f_enabled = !disable; // cant't be focused
+    pw->w_buttons[0].win.f_invalid = 1;
+    window_set_text(pw->w_labels[0].win.id, labels[(disable ? 6 : 0)]);
 
     // move to preheat when Print is focused
-    if (window_is_focused(pw->w_buttons[0].win.id)) {
+    if (window_is_focused(pw->w_buttons[0].win.id) && disable) {
         window_set_focus(pw->w_buttons[1].win.id);
     }
 }

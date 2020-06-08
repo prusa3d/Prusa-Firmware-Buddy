@@ -6,9 +6,6 @@
 #include "window.h"
 #include "window_numb.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_spin_t {
     window_numb_t window;
     float min;
@@ -21,8 +18,6 @@ typedef struct _window_spin_t {
 typedef struct _window_class_spin_t {
     window_class_numb_t cls;
 } window_class_spin_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

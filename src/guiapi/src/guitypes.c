@@ -90,7 +90,7 @@ point_ui16_t font_meas_text(const font_t *pf, const char *str) {
     int h = 0;
     const int8_t char_w = pf->w;
     const int8_t char_h = pf->h;
-    int len = strlen(str);
+    size_t len = strlen(str);
     while (len--) {
         const char c = *(str++);
         if (c == '\n') {
@@ -108,7 +108,7 @@ point_ui16_t font_meas_text(const font_t *pf, const char *str) {
 int font_line_chars(const font_t *pf, const char *str, uint16_t line_width) {
     int w = 0;
     const int char_w = pf->w;
-    int len = strlen(str);
+    size_t len = strlen(str);
     int n = 0;
     // This is generally about finding the closest '\n' character within the current line to be drawn.
     // Line is limited by pixel dimension, all characters have the same fixed pixel size

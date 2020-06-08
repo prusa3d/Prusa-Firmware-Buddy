@@ -4,54 +4,76 @@
 #include "window_header.h"
 #include "status_footer.h"
 #include "window_menu.hpp"
+#include "WinMenuContainer.hpp"
+#include "WindowMenuItems.hpp"
+#include <stdint.h>
+#include "resource.h"
+#include <new>
 
-#pragma pack(push)
-#pragma pack(1)
+enum class EHeader { On,
+    Off }; //affect only events
+enum class EFooter { On,
+    Off };
 
-struct menu_flags_t {
-    uint8_t has_footer : 1;
-    uint8_t has_help : 1;
-};
+constexpr static const size_t HelpLines_None = 0;
+constexpr static const size_t HelpLines_Default = 4;
 
-struct menu_item_t {
-    window_menu_item_t item;
-    screen_t *screen;
-};
-
-struct screen_menu_data_t {
+//parent to not repet code in templates
+class IScreenMenu : protected window_menu_t {
+protected:
+    constexpr static const char *no_label = "MISSING";
     window_frame_t root;
     window_header_t header;
-    window_menu_t menu;
-
-    menu_item_t *items;
-
-    menu_flags_t flags;
     window_text_t help;
     status_footer_t footer;
+
+public:
+    IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines);
+    void Done();
+    void Draw() {}
+    int Event(window_t *window, uint8_t event, void *param);
+
+    static void CDone(screen_t *screen) {
+        reinterpret_cast<IScreenMenu *>(screen->pdata)->Done();
+    }
+
+    static void CDraw(screen_t *screen) {
+        reinterpret_cast<IScreenMenu *>(screen->pdata)->Draw();
+    }
+    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+        return reinterpret_cast<IScreenMenu *>(screen->pdata)->Event(window, event, param);
+    }
 };
 
-#pragma pack(pop)
+template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
+class ScreenMenu : public IScreenMenu {
+protected:
+    WinMenuContainer<T...> container;
 
-#define SCREEN_MENU_RETURN    (screen_t *)SIZE_MAX
-#define SCREEN_MENU_NO_SCREEN NULL
-#define psmd                  ((screen_menu_data_t *)screen->pdata)
+public:
+    ScreenMenu(const char *label);
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+    //compiletime access by index
+    template <std::size_t I>
+    decltype(auto) Item() {
+        return std::get<I>(container.menu_items);
+    }
+    //compiletime access by type
+    template <class TYPE>
+    decltype(auto) Item() {
+        return std::get<TYPE>(container.menu_items);
+    }
 
-extern const menu_item_t menu_item_return;
+    //C code binding
+    static void Create(screen_t *screen, const char *label = no_label) {
+        auto *ths = reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_LINES, T...> *>(screen->pdata);
+        ::new (ths) ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>(label);
+    }
+};
 
-void screen_menu_init(screen_t *screen, const char *label,
-    menu_item_t *p_items, size_t count, uint8_t footer, uint8_t help);
-
-void screen_menu_done(screen_t *screen);
-
-int screen_menu_event(screen_t *screen, window_t *window,
-    uint8_t event, void *param);
-
-void screen_menu_draw(screen_t *screen);
-
-#ifdef __cplusplus
+template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
+ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>::ScreenMenu(const char *label)
+    : IScreenMenu(label, FOOTER, HELP_LINES) {
+    pContainer = &container;
+    GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 }
-#endif //__cplusplus

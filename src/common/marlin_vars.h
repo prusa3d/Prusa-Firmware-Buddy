@@ -38,7 +38,7 @@
 #define MARLIN_VAR_MAX      MARLIN_VAR_TIMTOEND
 
 // variable masks
-#define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (v_id))
+#define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (uint8_t)(v_id))
 
 //maximum number of masks is 64
 //maximum mask index is 63
@@ -136,7 +136,7 @@ typedef struct _marlin_vars_t {
     char *media_LFN;                  // Long-File-Name of the currently selected file - a pointer to a global static buffer
     char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
     float display_nozzle;             // nozzle temperature to display [C]
-    uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [ms]
+    uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [s]
 } marlin_vars_t;
 
 #pragma pack(pop)

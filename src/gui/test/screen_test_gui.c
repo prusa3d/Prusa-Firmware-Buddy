@@ -5,9 +5,6 @@
 #include "stm32f4xx_hal.h"
 #include "screens.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_frame_t frame;
@@ -26,8 +23,6 @@ typedef struct
     window_progress_t progress;
     window_text_t text_terminal;
 } screen_test_gui_data_t;
-
-#pragma pack(pop)
 
 #define pd ((screen_test_gui_data_t *)screen->pdata)
 

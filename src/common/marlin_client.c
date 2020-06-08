@@ -149,6 +149,14 @@ int marlin_client_id(void) {
     return 0;
 }
 
+void marlin_client_wait_for_start_processing(void) {
+    // wait for startup
+    while (!marlin_event_clr(MARLIN_EVT_StartProcessing)) {
+        marlin_client_loop();
+        osDelay(100);
+    }
+}
+
 //register callback to fsm creation
 //return success
 int marlin_client_set_fsm_create_cb(fsm_create_t cb) {

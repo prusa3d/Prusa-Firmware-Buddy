@@ -109,8 +109,8 @@ const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
     {
         WINDOW_CLS_USER,
         sizeof(DialogLoadUnload),
-        0,
-        0,
+        nullptr,
+        nullptr,
         (window_draw_t *)DialogLoadUnload::c_draw,
         (window_event_t *)DialogLoadUnload::c_event,
     },

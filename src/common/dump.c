@@ -108,11 +108,9 @@ int dump_save_to_usb(const char *fn) {
     return 0;
 }
 
-#ifdef _DEBUG
-
 //
 void dump_hardfault_test_0(void) {
-    #define test_0_var (*((volatile unsigned long *)(0x4b000000)))
+#define test_0_var (*((volatile unsigned long *)(0x4b000000)))
     test_0_var = 0;
 }
 
@@ -123,5 +121,3 @@ void dump_hardfault_test_1(void) {
     volatile int c = a / b;
     c = c;
 }
-
-#endif //_DEBUG

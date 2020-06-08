@@ -2,7 +2,7 @@
 
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
-static_unique_ptr<IDialogStateful> DialogFactory::serial_printing(uint8_t data) {
+static_unique_ptr<IDialogStateful> DialogFactory::serial_printing(uint8_t /*data*/) {
     return nullptr; //ClientFSM::Serial_printing hack it is a screen
 }
 

@@ -3,14 +3,9 @@
 #include "window.h"
 #include "dlg_result.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_dlg_statemachine_t {
     window_class_t cls;
 } window_class_dlg_statemachine_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

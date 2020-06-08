@@ -12,7 +12,8 @@ static screen_t *const timeout_blacklist[] = {
     get_scr_printing_serial(),
     get_scr_menu_tune(),
     get_scr_wizard(),
-    get_scr_print_preview()
+    get_scr_print_preview(),
+    get_scr_lan_settings()
 #ifdef PIDCALIBRATION
         ,
     get_scr_PID()
@@ -30,8 +31,8 @@ static screen_t *const m876_blacklist[] = {
 
 static int _current_in_list(screen_t *const *list, size_t sz) {
     screen_t *curr = screen_get_curr();
-    for (size_t i = 0; i < sz; ++sz)
-        if (curr == list[sz])
+    for (size_t i = 0; i < sz; ++i)
+        if (curr == list[i])
             return 1;
     return 0;
 }

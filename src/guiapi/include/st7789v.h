@@ -13,9 +13,6 @@
 #define ST7789V_DEF_COLMOD 0x05 // interface pixel format (5-6-5, hi-color)
 #define ST7789V_DEF_MADCTL 0xC0 // memory data access control (mirror XY)
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _st7789v_config_t {
     SPI_HandleTypeDef *phspi; // spi handle pointer
     uint8_t pinCS;            // CS pin
@@ -30,8 +27,6 @@ typedef struct _st7789v_config_t {
     uint8_t is_inverted;
     uint8_t control;
 } st7789v_config_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
