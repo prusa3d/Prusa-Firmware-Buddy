@@ -19,15 +19,17 @@ osThreadId gui_task_handle = 0;
 #endif //GUI_USE_RTOS
 
 gui_defaults_t gui_defaults = {
-    COLOR_BLACK,              //color_back;
-    COLOR_WHITE,              //color_text;
-    COLOR_SILVER,             //color_disabled;
-    0,                        //font;
-    0,                        //font_big;
-    { 2, 2, 2, 2 },           //padding; padding_ui8(2,2,2,2)
-    ALIGN_LEFT_TOP,           //alignment;
-    { 0, 32, 240, 320 - 96 }, //msg box size
-    6,                        // btn_spacing: 12 pixels spacing between buttons, 6 from margins
+    COLOR_BLACK,                // color_back;
+    COLOR_WHITE,                // color_text;
+    COLOR_SILVER,               // color_disabled;
+    0,                          // font;
+    0,                          // font_big;
+    { 2, 2, 2, 2 },             // padding; padding_ui8(2,2,2,2)
+    ALIGN_LEFT_TOP,             // alignment;
+    { 0, 0, 240, 32 - 0 },      // default header location & size
+    { 0, 32, 240, 267 - 32 },   // default message box location & size
+    { 0, 267, 240, 320 - 267 }, // default footer location & size
+    6,                          // btn_spacing: 12 pixels spacing between buttons, 6 from margins
 };
 
 gui_loop_cb_t *gui_loop_cb = 0;
@@ -153,32 +155,35 @@ void gui_loop(void) {
     --guiloop_nesting;
 }
 
+/// Creates message box with provided informations
+/// \returns message box id
 int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
+
     window_msgbox_t msgbox;
     window_t *window_popup_tmp = window_popup_ptr; //save current window_popup_ptr
-    int16_t id_capture = window_capture();
-    int16_t id = window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
+    const int16_t id_capture = window_capture();
+    const int16_t id = window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
     msgbox.title = title;
     msgbox.text = text;
     msgbox.flags = flags;
     msgbox.id_icon = id_icon;
     memset(msgbox.buttons, 0, 3 * sizeof(char *));
-    int btn = flags & MSGBOX_MSK_BTN;
+    const int btn = flags & MSGBOX_MSK_BTN;
     if ((btn >= MSGBOX_BTN_CUSTOM1) && (btn <= MSGBOX_BTN_CUSTOM3) && buttons) {
-        int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
+        const int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
         memcpy(msgbox.buttons, buttons, count * sizeof(char *));
     }
     window_popup_ptr = (window_t *)&msgbox;
     gui_reset_jogwheel();
     gui_invalidate();
     window_set_capture(id);
-    //window_popup_ptr is set null after destroying msgbox
-    //msgbox destroys itself when user pres any button
+    // window_popup_ptr is set to null after destroying msgbox
+    // msgbox destroys itself when the user presses any button
     while (window_popup_ptr) {
         gui_loop();
     }
-    window_popup_ptr = window_popup_tmp; // restore previos window_popup_ptr
+    window_popup_ptr = window_popup_tmp; // restore previous window_popup_ptr
     window_invalidate(0);
     window_set_capture(id_capture);
     return msgbox.res;
