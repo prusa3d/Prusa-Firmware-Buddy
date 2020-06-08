@@ -136,7 +136,7 @@ typedef struct _marlin_vars_t {
     char *media_LFN;                  // Long-File-Name of the currently selected file - a pointer to a global static buffer
     char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
     float display_nozzle;             // nozzle temperature to display [C]
-    uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [ms]
+    uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [s]
 } marlin_vars_t;
 
 #pragma pack(pop)

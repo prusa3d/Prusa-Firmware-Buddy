@@ -2,101 +2,69 @@
 #include "config.h"
 #include "stdlib.h"
 #include "resource.h"
-/*
-void window_set_capture(int16_t id);
 
-const menu_item_t menu_item_return = {
-    { "Return", IDR_PNG_filescreen_icon_up_folder, WI_LABEL },
-    SCREEN_MENU_RETURN
-};
+static const uint32_t HasFooter_FLAG = WINDOW_FLG_USER;
+static const uint32_t HasHeaderEvents_FLAG = WINDOW_FLG_USER << 1;
 
-void screen_menu_item(window_menu_t *pwindow_menu, uint16_t index,
-    WindowMenuItem **ppitem, void *data) {
-    screen_t *screen = (screen_t *)data;
-    *ppitem = &(psmd->items[index].item);
-}
+IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines)
+    : window_menu_t(nullptr) { //pointer to container shall be provided by child
 
-void screen_menu_init(screen_t *screen, const char *label,
-    menu_item_t *p_items, size_t count, uint8_t footer, uint8_t help) {
+    //todo bind those numeric constants to fonts and guidefaults
+    padding = { 20, 6, 2, 6 };
+    icon_rect = rect_ui16(0, 0, 16, 30);
+    const uint16_t win_h = 320;
+    const uint16_t footer_h = win_h - 269; //269 is the smallest number I found in footer implementation, todo it should be in guidefaults
+    const uint16_t help_h = helper_lines * (resource_font(IDR_FNT_SPECIAL)->h + 1);
+    //I have no clue why +1, should be + gui_defaults.padding.top + gui_defaults.padding.bottom
+    const uint16_t win_x = 10;
+    const uint16_t win_w = 240 - 20;
 
-    psmd->items = p_items;
-    memset(psmd->items, '\0', sizeof(menu_item_t) * count);
+    const uint16_t header_h = gui_defaults.msg_box_sz.y;
+    const uint16_t item_h = gui_defaults.font->h + padding.top + padding.bottom;
 
-    rect_ui16_t menu_rect = rect_ui16(10, 32, 220, 278);
-    if (help) {
-        menu_rect.h -= 115;
-    }
-    if (footer) {
-        menu_rect.h -= 41; //FIXME footer is taller, see guidefaults
-    }
+    const uint16_t menu_rect_h = win_h - help_h - header_h - (FOOTER == EFooter::On ? footer_h : 0);
 
-    int16_t id;
-    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0),
-        &(psmd->root));
-    window_disable(root);
+    const rect_ui16_t menu_rect = rect_ui16(win_x, header_h, win_w, menu_rect_h - menu_rect_h % item_h);
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(psmd->header));
-    // p_window_header_set_icon(&(psmd->header), IDR_PNG_status_icon_menu);
-    p_window_header_set_text(&(psmd->header), label);
+    int16_t root_id = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(root));
+    window_disable(root_id);
 
-    id = window_create_ptr(WINDOW_CLS_MENU, root,
-        menu_rect, &(psmd->menu));
-    psmd->menu.padding = padding_ui8(20, 6, 2, 6);
-    psmd->menu.icon_rect = rect_ui16(0, 0, 16, 30);
-    psmd->menu.count = count;
-    psmd->menu.menu_items = screen_menu_item;
-    psmd->menu.data = (void *)screen;
-    //window_set_item_index(id, 1);	// 0 = return
+    int16_t id = window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
+    // p_window_header_set_icon(&(header), IDR_PNG_status_icon_menu);
+    p_window_header_set_text(&(header), label);
+
+    id = window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
+
+    win.flg |= WINDOW_FLG_ENABLED | (FOOTER == EFooter::On ? HasFooter_FLAG : 0) | (helper_lines > 0 ? HasHeaderEvents_FLAG : 0);
+
     window_set_capture(id); // set capture to list
     window_set_focus(id);
 
-    if (help) {
-        psmd->flags.has_help = 1;
-        id = window_create_ptr(WINDOW_CLS_TEXT, root,
-            (footer) ? rect_ui16(10, 154, 220, 115) : rect_ui16(10, 195, 220, 115),
-            &psmd->help);
-        psmd->help.font = resource_font(IDR_FNT_SPECIAL);
-    } else {
-        psmd->flags.has_help = 0;
+    if (helper_lines > 0) {
+        id = window_create_ptr(WINDOW_CLS_TEXT, root_id,
+            rect_ui16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - help_h, win_w, help_h),
+            &help);
+        help.font = resource_font(IDR_FNT_SPECIAL);
     }
 
-    if (footer) {
-        psmd->flags.has_footer = 1;
-        status_footer_init(&psmd->footer, root);
-    } else {
-        psmd->flags.has_footer = 0;
+    if (FOOTER == EFooter::On) {
+        status_footer_init(&footer, root_id);
     }
 }
 
-void screen_menu_done(screen_t *screen) {
-    window_destroy(psmd->root.win.id);
+void IScreenMenu::Done() {
+    window_destroy(root.win.id);
 }
 
-void screen_menu_draw(screen_t *screen) {}
-
-int screen_menu_event(screen_t *screen, window_t *window,
-    uint8_t event, void *param) {
-    if (psmd->flags.has_footer) {
-        status_footer_event(&psmd->footer, window, event, param);
+int IScreenMenu::Event(window_t *window, uint8_t event, void *param) {
+    if (win.flg & HasFooter_FLAG) {
+        status_footer_event(&footer, window, event, param);
+    }
+    if (win.flg & HasHeaderEvents_FLAG) {
+        window_header_events(&header);
     }
 
-    window_header_events(&(psmd->header));
-
-    if (event != WINDOW_EVENT_CLICK) {
-        return 0;
-    }
-
-    const menu_item_t *item = &(psmd->items[(int)param]);
-    if (!(!item->item.IsEnabled()) && item->screen == SCREEN_MENU_RETURN) {
-        screen_close();
-        return 1;
-    }
-
-    if (!(!item->item.IsEnabled()) && item->screen != SCREEN_MENU_NO_SCREEN) {
-        screen_open(item->screen->id);
-        return 1;
-    }
+    //on return 0 screen_dispatch_event will
+    //call window_dispatch_event
     return 0;
 }
-*/
