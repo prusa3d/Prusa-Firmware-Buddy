@@ -664,6 +664,7 @@ static void change_print_state(screen_t *screen) {
         st = printing_state_t::PRINTING;
         break;
     case mpsPaused:
+        pw->stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
     case mpsPausing_Begin:
@@ -672,10 +673,12 @@ static void change_print_state(screen_t *screen) {
         st = printing_state_t::PAUSING;
         break;
     case mpsResuming_Reheating:
+        pw->stop_pressed = false;
         st = printing_state_t::REHEATING;
         break;
     case mpsResuming_Begin:
     case mpsResuming_UnparkHead:
+        pw->stop_pressed = false;
         st = printing_state_t::RESUMING;
         break;
     case mpsAborting_Begin:
