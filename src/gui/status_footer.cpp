@@ -32,7 +32,7 @@ enum class ButtonStatus {
 static char text_nozzle[10];  // "215/215°C"
 static char text_heatbed[10]; // "110/110°C"
 static char text_prnspeed[5]; // "999%"
-static char text_z_axis[9];   // "999.95", more space than needed to avoid warning (sprintf)
+static char text_z_axis[10];  // "999.95", more space than needed to avoid warning (sprintf)
 static char filament[5];      // "PETG"
 
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds);
