@@ -10,12 +10,6 @@
 
 #include "gui.h"
 
-#define TEXT_LENGTH_NOZZLE   10
-#define TEXT_LENGTH_HEATBED  10
-#define TEXT_LENGTH_SPEED    5
-#define TEXT_LENGTH_Z        7
-#define TEXT_LENGTH_FILAMENT 5
-
 #pragma pack(push)
 #pragma pack(1)
 //#pragma pack(1) makes enums 8 bit
@@ -37,7 +31,9 @@ typedef struct
     float heatbed;               /// actual temperature of bed
     float heatbed_target;        /// target temperature of bed
     int32_t z_pos;               /// z position, 000.00 fixed point
-    uint16_t print_speed;        /// print speed in percents
+    uint32_t last_timer_repaint_values;
+    uint32_t last_timer_repaint_colors;
+    uint32_t last_timer_repaint_z_pos;
 
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
@@ -51,19 +47,7 @@ typedef struct
     window_text_t wt_z_axis;
     window_text_t wt_filament;
 
-    /// these text has to be stored here
-    /// because window_set_text does not copy the text
-    /// and windows have delayed redrawing
-    char text_nozzle[TEXT_LENGTH_NOZZLE];   // "215/215°C"
-    char text_heatbed[TEXT_LENGTH_HEATBED]; // "110/110°C"
-    char text_prnspeed[TEXT_LENGTH_SPEED];  // "999%"
-    char text_z_axis[TEXT_LENGTH_Z];        // "999.95"
-    char filament[TEXT_LENGTH_FILAMENT];    // "PETG"
-
-    uint32_t last_timer_repaint_values;
-    uint32_t last_timer_repaint_colors;
-    uint32_t last_timer_repaint_z_pos;
-
+    uint16_t print_speed; /// print speed in percents
     heat_state_t nozzle_state;
     heat_state_t heatbed_state;
     bool show_second_color;
