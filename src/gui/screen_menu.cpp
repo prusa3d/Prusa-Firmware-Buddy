@@ -14,7 +14,8 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines)
     icon_rect = rect_ui16(0, 0, 16, 30);
     const uint16_t win_h = 320;
     const uint16_t footer_h = win_h - 269; //269 is smallest number i found in footer implementation, todo it should be in guidefaults
-    const uint16_t help_h = helper_lines * (resource_font(IDR_FNT_SPECIAL)->h + gui_defaults.padding.top + gui_defaults.padding.bottom);
+    const uint16_t help_h = helper_lines * (resource_font(IDR_FNT_SPECIAL)->h + 1);
+    //I have no clue why +1, should be + gui_defaults.padding.top + gui_defaults.padding.bottom
     const uint16_t win_x = 10;
     const uint16_t win_w = 240 - 20;
 
