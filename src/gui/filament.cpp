@@ -1,9 +1,7 @@
 /*
  * filament.cpp
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
  */
+
 #include "eeprom.h"
 #include "assert.h"
 #include "filament.h"
@@ -11,7 +9,7 @@
 
 //fixme generating long names, takes too long
 const filament_t filaments[FILAMENTS_END] = {
-    { "---", "---", 0, 0 },
+    { "---", "Cooldown", 0, 0 },
     { "PLA", "PLA      215/ 60", 215, 60 },
     { "PETG", "PETG     230/ 85", 230, 85 },
     { "ASA", "ASA      260/100", 260, 100 },

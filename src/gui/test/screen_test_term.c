@@ -7,9 +7,6 @@
 
 #include "stm32f4xx_hal.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_frame_t frame;
@@ -21,8 +18,6 @@ typedef struct
     term_t terminal;
     uint8_t term_buff[TERM_BUFF_SIZE(20, 16)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
 } screen_test_term_data_t;
-
-#pragma pack(pop)
 
 #define pd ((screen_test_term_data_t *)screen->pdata)
 

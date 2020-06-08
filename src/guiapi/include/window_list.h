@@ -5,9 +5,6 @@
 
 #include "window.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_list_t {
     window_class_t cls;
 } window_class_list_t;
@@ -25,8 +22,6 @@ typedef struct _window_list_t {
     int top_index;
     window_list_item_t *list_item;
 } window_list_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

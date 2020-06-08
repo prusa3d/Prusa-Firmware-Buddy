@@ -9,86 +9,78 @@
 #include "screens.h"
 #include "sys.h"
 #include "screen_menu.hpp"
+#include "WindowMenuItems.hpp"
 
-const char *opt_on_off[] = { "On", "Off", NULL };
+/*****************************************************************************/
+//MI_ALWAYS
+class MI_ALWAYS : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = "Always";
 
-typedef enum {
-    MI_RETURN,
-    MI_ALWAYS,
-    MI_ON_RESTART,
-    MI_COUNT,
-} MI_t;
+public:
+    MI_ALWAYS()
+        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 0 : 1, label, 0, true, false) {}
+    virtual void OnChange(size_t old_index) override {
+        old_index == 0 ? sys_fw_update_disable() : sys_fw_update_enable();
+        screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)index);
+    }
+};
 
-//"C inheritance" of screen_menu_data_t with data items
-#pragma pack(push)
-#pragma pack(1)
+/*****************************************************************************/
+//MI_ON_RESTART
+class MI_ON_RESTART : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = "On restart";
 
-typedef struct
-{
-    screen_menu_data_t base;
-    menu_item_t items[MI_COUNT];
+public:
+    MI_ON_RESTART()
+        : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? false : (sys_fw_update_on_restart_is_enabled() ? false : true), label, 0, sys_fw_update_is_enabled() ? false : true, false) {}
+    virtual void OnChange(size_t old_index) override {
+        old_index == 0 ? sys_fw_update_on_restart_disable() : sys_fw_update_on_restart_enable();
+    }
+};
 
-} this_screen_data_t;
+using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
 
-#pragma pack(pop)
+class ScreenMenuFwUpdate : public parent {
+public:
+    constexpr static const char *label = "FW UPDATE";
+    static void Init(screen_t *screen);
+    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+};
 
-void screen_menu_fw_update_init(screen_t *screen) {
-    screen_menu_init(screen, "FW UPDATE", ((this_screen_data_t *)screen->pdata)->items, MI_COUNT, 1, 1);
-
-    const bool update_ena = sys_fw_update_is_enabled();
-
-    psmd->items[MI_RETURN] = menu_item_return;
-
-    psmd->items[MI_ALWAYS] = (menu_item_t) { { "Always", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_ALWAYS].item.wi_switch_select.index = update_ena ? 0 : 1;
-    psmd->items[MI_ALWAYS].item.wi_switch_select.strings = opt_on_off;
-
-    psmd->items[MI_ON_RESTART] = (menu_item_t) { { "On restart", 0, WI_SWITCH, 0 }, SCREEN_MENU_NO_SCREEN };
-    psmd->items[MI_ON_RESTART].item.wi_switch_select.index = update_ena ? 0 : (sys_fw_update_on_restart_is_enabled() ? 0 : 1);
-    psmd->items[MI_ON_RESTART].item.wi_switch_select.strings = opt_on_off;
-    if (update_ena)
-        psmd->items[MI_ON_RESTART].item.type |= WI_DISABLED;
-
-    psmd->help.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_text(psmd->help.win.id, "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk.");
+/*****************************************************************************/
+//static member method definition
+void ScreenMenuFwUpdate::Init(screen_t *screen) {
+    Create(screen, label);
+    auto *ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
+    ths->help.font = resource_font(IDR_FNT_SPECIAL);
+    window_set_text(ths->help.win.id, "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk.");
 }
 
-int screen_menu_fw_update_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    if (screen_menu_event(screen, window, event, param))
-        return 1;
-
+int ScreenMenuFwUpdate::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    ScreenMenuFwUpdate *const ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
     if (event == WINDOW_EVENT_CLICK) {
-        switch ((int)param) {
-        case MI_ALWAYS:
-            if (sys_fw_update_is_enabled()) {
-                sys_fw_update_disable();
-                psmd->items[MI_ON_RESTART].item.wi_switch_select.index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
-                psmd->items[MI_ON_RESTART].item.type &= ~WI_DISABLED;
-            } else {
-                sys_fw_update_enable();
-                psmd->items[MI_ON_RESTART].item.type |= WI_DISABLED;
-                psmd->items[MI_ON_RESTART].item.wi_switch_select.index = 0;
-            }
-            break;
-        case MI_ON_RESTART:
-            if (!(psmd->items[MI_ON_RESTART].item.type & WI_DISABLED)) {
-                sys_fw_update_on_restart_is_enabled() ? sys_fw_update_on_restart_disable() : sys_fw_update_on_restart_enable();
-            }
-            break;
+        MI_ON_RESTART *mi_restart = &ths->Item<MI_ON_RESTART>();
+        if (size_t(param) == 1) {
+            mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
+            mi_restart->Enable();
+        } else {
+            mi_restart->Disable();
+            mi_restart->index = 0;
         }
     }
-    return 0;
+
+    return ths->Event(window, event, param);
 }
 
 screen_t screen_menu_fw_update = {
     0,
     0,
-    screen_menu_fw_update_init,
-    screen_menu_done,
-    screen_menu_draw,
-    screen_menu_fw_update_event,
-    sizeof(this_screen_data_t), //data_size
-    0,                          //pdata
+    ScreenMenuFwUpdate::Init,
+    ScreenMenuFwUpdate::CDone,
+    ScreenMenuFwUpdate::CDraw,
+    ScreenMenuFwUpdate::CEvent,
+    sizeof(ScreenMenuFwUpdate), //data_size
+    nullptr,                    //pdata
 };
 
 extern "C" screen_t *const get_scr_menu_fw_update() { return &screen_menu_fw_update; }

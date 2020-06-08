@@ -13,9 +13,6 @@
     #include "marlin_client.h"
 #endif
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_frame_t frame;
@@ -32,8 +29,6 @@ typedef struct
     uint32_t last_timer;
     uint8_t logo_invalid;
 } screen_splash_data_t;
-
-#pragma pack(pop)
 
 #define _psd ((screen_splash_data_t *)screen->pdata)
 
