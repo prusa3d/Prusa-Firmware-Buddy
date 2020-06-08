@@ -146,6 +146,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 
         //G28 must be before G29, both must be present or head is invalid
         //find "G29" == MBL
+        //FIXME use strstr() instead
         for (G29_pos = 0; (G29_pos < head_gcode_sz) && strcmp(head_gcode[G29_pos], "G29"); ++G29_pos)
             ; //no body
         //find "G28" == autohome needed for retry
@@ -294,40 +295,56 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 //todo generate me
 const char *V2_gcodes_head_PLA[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S215", //nozzle target 215C
-    "M140 S60",  //bed target 60C
-    "M190 S60",  //wait for bed temp 60C
-    "M109 S215", //wait for nozzle temp 215C
+    "M104 S" PREHEAT_TEMP_STRING " D215", //nozzle target
+    "M140 S60",                           //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S60",                           //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S215",                          //nozzle target
+    "M109 S215",                          //wait for nozzle temp
     V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_PLA_sz = sizeof(V2_gcodes_head_PLA) / sizeof(V2_gcodes_head_PLA[0]);
 
 const char *V2_gcodes_head_PETG[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S230", //nozzle target 215C
-    "M140 S85",  //bed target 60C
-    "M190 S85",  //wait for bed temp 60C
-    "M109 S230", //wait for nozzle temp 215C
+    "M104 S" PREHEAT_TEMP_STRING " D230", //nozzle target
+    "M140 S85",                           //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S85",                           //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S230",                          //nozzle target
+    "M109 S230",                          //wait for nozzle temp
     V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_PETG_sz = sizeof(V2_gcodes_head_PETG) / sizeof(V2_gcodes_head_PETG[0]);
 
 const char *V2_gcodes_head_ASA[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S260", //nozzle target 215C
-    "M140 S100", //bed target 60C
-    "M190 S100", //wait for bed temp 60C
-    "M109 S260", //wait for nozzle temp 215C
+    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S260",                          //nozzle target
+    "M109 S260",                          //wait for nozzle temp
     V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_ASA_sz = sizeof(V2_gcodes_head_ASA) / sizeof(V2_gcodes_head_ASA[0]);
 
 const char *V2_gcodes_head_FLEX[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S240", //nozzle target 215C
-    "M140 S50",  //bed target 60C
-    "M190 S50",  //wait for bed temp 60C
-    "M109 S240", //wait for nozzle temp 215C
+    "M104 S" PREHEAT_TEMP_STRING " D240", //nozzle target
+    "M140 S50",                           //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S50",                           //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S240",                          //nozzle target
+    "M109 S240",                          //wait for nozzle temp
     V__GCODES_HEAD_END
 };
 const size_t V2_gcodes_head_FLEX_sz = sizeof(V2_gcodes_head_FLEX) / sizeof(V2_gcodes_head_FLEX[0]);
