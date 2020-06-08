@@ -5,6 +5,7 @@
 #include "button_draw.h"
 #include "sound_C_wrapper.h"
 #include "../lang/i18n.h"
+#include "cmath_ext.h"
 
 //title for each icon type (empty text for 0)
 const char *window_msgbox_title_text[] = {
@@ -69,55 +70,57 @@ uint16_t window_msgbox_id_icon[5] = {
     0, // info
 };
 
+const padding_ui8_t window_padding = { 8, 2, 8, 2 }; // left, top, right, bottom
+const uint8_t button_h = 30;
+const uint8_t frame_width = 10;
+
+/// Draws window's buttons at the bottom
 void window_msgbox_draw_buttons(window_msgbox_t *window) {
     rect_ui16_t rc_btn = window->win.rect;
-    rc_btn.y += (rc_btn.h - 40); // 30pixels for buttons + 10pix for grey frame
-    rc_btn.h = 30;
-    int btn = ((window->flags & MSGBOX_MSK_BTN) >> MSGBOX_SHI_BTN); // button config
+    rc_btn.y += (rc_btn.h - gui_defaults.btn_h - gui_defaults.frame_width);
+    rc_btn.h = gui_defaults.btn_h;
+
+    const int btn = ((window->flags & MSGBOX_MSK_BTN) >> MSGBOX_SHI_BTN); // button config
     if (btn > MSGBOX_BTN_MAX)
-        return;                                                     //invalid config - exit
-    int count = window_msgbox_button_count[btn];                    // get number of buttons from table
-    const uint8_t *buttons = window_msgbox_buttons[btn];            // get pointer to 3 element button array
-    int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
-    int chg = ((window->flags & MSGBOX_MSK_CHG) >> MSGBOX_SHI_CHG); // change mask
-    if (chg == 7)                                                   //clear background if all buttons changed
-        display->fill_rect(rc_btn, window->color_back);
-    int spacing2 = gui_defaults.btn_spacing;                 // 12 pixels spacing between buttons, 6 from margins
-    int btn_w = (rc_btn.w - (count * 2 * spacing2)) / count; // avg width of button
-    int i;
-    font_t *pf = window->font_title;
-    float chars = 0;
-    const char *text;
-    for (i = 0; i < count; i++) {
-        uint8_t b = buttons[i];
-        text = window->buttons[i];
-        if (text == 0)
-            text = window_msgbox_button_text[b];
-        chars += strlen(text);
+        return;                                                           //invalid config - exit
+    const int count = window_msgbox_button_count[btn];                    // get number of buttons from table
+    const uint8_t *buttons = window_msgbox_buttons[btn];                  // get pointer to 3 element button array
+    const int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
+    const int chg = ((window->flags & MSGBOX_MSK_CHG) >> MSGBOX_SHI_CHG); // change mask
+    if (chg == 7)
+        display->fill_rect(rc_btn, window->color_back);            //clear background if all buttons changed
+    const int spacing2 = gui_defaults.btn_spacing;                 // button spacing
+    const int btn_w = (rc_btn.w - (count * 2 * spacing2)) / count; // avg width of a button
+    const font_t *pf = window->font_title;
+    float chars = 0; // average number of chars in a button
+
+    for (int i = 0; i < count; i++) {
+        if (window->buttons[i] == NULL) // set default button in case of missing one
+            window->buttons[i] = window_msgbox_button_text[buttons[i]];
+        chars += strlen(window->buttons[i]);
     }
-    chars /= count; //avg chars for button
+
+    chars /= count;
     rc_btn.x += spacing2;
-    for (i = 0; i < count; i++) {
-        uint8_t b = buttons[i];
-        text = window->buttons[i];
-        if (text == 0)
-            text = window_msgbox_button_text[b];
-        rc_btn.w = btn_w + pf->w * ((float)strlen(text) - chars);
+
+    for (int i = 0; i < count; i++) {
+        rc_btn.w = btn_w + pf->w * (strlen(window->buttons[i]) - chars);
         if (chg & (1 << i)) {
-            int is_selected = (i == idx) ? 1 : 0; //state of button (1=selected)
-            button_draw(rc_btn, text, pf, is_selected);
+            button_draw(rc_btn, window->buttons[i], pf, i == idx);
         }
-        rc_btn.x += rc_btn.w + 2 * spacing2;
+        rc_btn.x += rc_btn.w + 2 * spacing2; // next button is 2x spacing to the right
     }
+
     window->flags &= ~MSGBOX_MSK_CHG;
 }
 
+/// Actions after knob has turned
 void window_msgbox_step(window_msgbox_t *window, int step) {
-    int btn = ((window->flags & MSGBOX_MSK_BTN) >> MSGBOX_SHI_BTN); // button config
-    int count = window_msgbox_button_count[btn];                    // get number of buttons from table
-    int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
-    int chg = (1 << idx);                                           // change mask - old button
-    idx += step;                                                    // increment index
+    const int btn = ((window->flags & MSGBOX_MSK_BTN) >> MSGBOX_SHI_BTN); // button config
+    const int count = window_msgbox_button_count[btn];                    // get number of buttons from table
+    int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX);       // selected button index
+    int chg = (1 << idx);                                                 // change mask - old button
+    idx += step;                                                          // increment index
     if (idx < 0) {
         idx = 0; // check min
         Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -133,15 +136,16 @@ void window_msgbox_step(window_msgbox_t *window, int step) {
     gui_invalidate();
 }
 
+/// Actions after knob was pushed
 void window_msgbox_click(window_msgbox_t *window) {
-    int btn = ((window->flags & MSGBOX_MSK_BTN) >> MSGBOX_SHI_BTN); // button config
-    //int count = window_msgbox_button_count[btn]; // get number of buttons from table
-    int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
+    const int btn = ((window->flags & MSGBOX_MSK_BTN) >> MSGBOX_SHI_BTN); // button config
+    const int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
     window->res = window_msgbox_buttons[btn][idx];
     Sound_Stop();
     window_destroy(window->win.id);
 }
 
+/// Init message box to default values
 void window_msgbox_init(window_msgbox_t *window) {
     if (rect_empty_ui16(window->win.rect)) //use display rect if current rect is empty
         window->win.rect = rect_ui16(0, 0, display->w, display->h);
@@ -150,7 +154,7 @@ void window_msgbox_init(window_msgbox_t *window) {
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
     window->font_title = gui_defaults.font_big;
-    window->padding = padding_ui8(8, 2, 8, 2);
+    window->padding = window_padding;
     window->alignment = ALIGN_CENTER;
     window->title = 0;
     window->id_icon = 0;
@@ -162,72 +166,65 @@ void window_msgbox_init(window_msgbox_t *window) {
 void window_msgbox_done(window_msgbox_t *window) {
 }
 
+/// Draws parts of message box that require redraw
 void window_msgbox_draw(window_msgbox_t *window) {
     if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        rect_ui16_t rc_tit = window->win.rect;
+        display->fill_rect(window->win.rect, COLOR_BLACK); // clear window
 
         uint8_t red_line_offset = 0;
         const int ico = ((window->flags & MSGBOX_MSK_ICO) >> MSGBOX_SHI_ICO);
-        const char *title = window->title; // get title from window member
-        if (title == NULL)                 // if null, set defaut title (info, warning, error...)
-            title = window_msgbox_title_text[ico];
-        int title_h = 0;                   // title hight in pixels
+        // get title from window member or set default (info, warning, error...)
+        const char *title = (window->title != NULL) ? window->title : window_msgbox_title_text[ico];
         const int title_n = strlen(title); // number of chars in title
-        if (title_n)                       // if not empty, set title hight from font
-            title_h = window->font_title->h;
+        // title height in pixels; if not empty, use font height
+        int title_h = (!title_n) ? 0 : window->font_title->h;
 
         // get icon id from window member; for error, warning, info and question -> disable icon
         const uint16_t id_icon = (ico < 1 && window->id_icon == 0) ? window_msgbox_id_icon[ico] : window->id_icon;
-        const uint8_t *picon = 0;                         // icon resource pointer
-        point_ui16_t icon_wh = point_ui16(0, 0);          // icon width-height - default (0,0)
-        if (id_icon && (picon = resource_ptr(id_icon))) { // id_icon is set and resource pointer is not null
-            icon_wh = icon_meas(picon);                   // get icon dimensions
-            if (title_h < icon_wh.y)
-                title_h = icon_wh.y; // adjust title height
+        size_ui16_t icon_dim = size_ui16(0, 0);
+        const uint8_t *p_icon = 0;                         // icon resource pointer
+        if (id_icon && (p_icon = resource_ptr(id_icon))) { // id_icon is set and resource pointer is not null
+            icon_dim = icon_size(p_icon);                  // get icon dimensions
+            title_h = MAX(title_h, icon_dim.h);            // adjust title height
         }
 
-        if (title_h) {                                               // calculated title height != 0 means title will be rendered
+        if (title_h) {                                               // render visible text only (title_h > 0)
             title_h += window->padding.top + window->padding.bottom; // add padding
-            rc_tit.h = title_h;                                      // xxx pixels for title
-            if (title_n && picon) {                                  // text not empty and icon resource not null; icon and text will be aligned left
-                const int icon_w = icon_wh.x + window->padding.left + window->padding.right;
-                const int title_w = rc_tit.w - icon_w;
+            rect_ui16_t rc_tit = window->win.rect;
+            rc_tit.h = title_h;      // xxx pixels for title
+            if (title_n && p_icon) { // text and icon available => all will be aligned left
+                const int icon_w = icon_dim.w + window->padding.left + window->padding.right;
                 rc_tit.w = icon_w;
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
                 rc_tit.x = icon_w;
-                rc_tit.w = title_w;
+                rc_tit.w = window->win.rect.w - icon_w;
                 render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
-            } else if (title_n) { // text not empty and icon resource is null; text will be aligned left
+            } else if (title_n) { // text not empty but no icon => text will be aligned left
                 render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
                 display->draw_line(point_ui16(rc_tit.x + window->padding.left, rc_tit.y + rc_tit.h),
                     point_ui16(rc_tit.x + rc_tit.w - (window->padding.left + window->padding.right), rc_tit.y + rc_tit.h),
                     COLOR_RED_ALERT);
                 red_line_offset = 1;
-            } else { // text is empty, icon resource not null; icon will be aligned to center
+            } else { // no text but icon available => icon will be aligned to center
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
             }
         }
 
-        rect_ui16_t rc_txt = window->win.rect;
-        rc_txt.h -= (30 + title_h + red_line_offset); // 30pixels for buttons
-        rc_txt.y += title_h + red_line_offset;
-
+        const rect_ui16_t rc_txt = { window->win.rect.x,
+            window->win.rect.y + title_h + red_line_offset, // put text bellow title and red line
+            window->win.rect.w,
+            window->win.rect.h - (title_h + red_line_offset + gui_defaults.btn_h) };
         render_text_align(rc_txt, _(window->text), window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
+
         window->flags |= MSGBOX_MSK_CHG;
-
-        rect_ui16_t rc_btn_bg = window->win.rect;
-        rc_btn_bg.y += (rc_btn_bg.h - 40);
-        rc_btn_bg.h = 53; //This should be 40 but, there is 13px shortage of gui_defaults.msg_box_sz.h
-        display->fill_rect(rc_btn_bg, COLOR_BLACK);
-
         window_msgbox_draw_buttons(window);
+
         window->win.flg &= ~WINDOW_FLG_INVALID;
     } else if (window->flags & MSGBOX_MSK_CHG)
         window_msgbox_draw_buttons(window);
-
-    if (window->flags & MSGBOX_GREY_FRAME) {                         /// draw frame
-        const uint16_t w = display->w - 1 - window->win.rect.x + 1;  /// last - first + 1
-        const uint16_t h = display->h - 67 - window->win.rect.y + 1; /// last - first + 1
+    if (window->flags & MSGBOX_GREY_FRAME) {                           /// draw frame
+        const uint16_t w = (display->w - 1) - window->win.rect.x + 1;  /// last - first + 1
+        const uint16_t h = (display->h - 67) - window->win.rect.y + 1; /// last - first + 1
         display->draw_rect(rect_ui16(window->win.rect.x, window->win.rect.y, w, h), COLOR_GRAY);
     }
 }

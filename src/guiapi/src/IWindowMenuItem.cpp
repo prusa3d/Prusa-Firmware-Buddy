@@ -53,6 +53,7 @@ void IWindowMenuItem::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, c
 }
 
 void IWindowMenuItem::Click(Iwindow_menu_t &window_menu) {
+    window_menu.win.f_invalid = 1;
     if (IsEnabled()) {
         click(window_menu);
     }

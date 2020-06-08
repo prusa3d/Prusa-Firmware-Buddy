@@ -176,7 +176,7 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
     window_dlg_wait_t dlg;
 
     int16_t id_capture = window_capture();
-    int16_t id = window_create_ptr(WINDOW_CLS_DLG_WAIT, 0, gui_defaults.msg_box_sz, &dlg);
+    int16_t id = window_create_ptr(WINDOW_CLS_DLG_WAIT, 0, gui_defaults.scr_body_sz, &dlg);
     window_t *tmp_popup_window = window_popup_ptr;
     window_popup_ptr = (window_t *)&dlg;
     gui_reset_jogwheel();

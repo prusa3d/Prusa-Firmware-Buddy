@@ -71,12 +71,12 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     window->padding = gui_defaults.padding;
 
     int16_t id;
-    rect_ui16_t rect = gui_defaults.msg_box_sz;
+    rect_ui16_t rect = gui_defaults.scr_body_sz;
     if (window->caption) {
         rect.h = window->font_title->h + 2;
         id = window_create_ptr(WINDOW_CLS_TEXT, window->win.id, rect, &(window->text));
         window_set_text(id, window->caption);
-        rect = gui_defaults.msg_box_sz;
+        rect = gui_defaults.scr_body_sz;
         rect.y += window->font_title->h + 4;
         rect.h -= window->font_title->h + 4;
     }
@@ -195,7 +195,7 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     //parent 0 would be first screen
     //here must be -1
     int16_t id_capture = window_capture();
-    int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.msg_box_sz, &dlg);
+    int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.scr_body_sz, &dlg);
 
     window_set_item_count(dlg.list.win.id, count);
 
