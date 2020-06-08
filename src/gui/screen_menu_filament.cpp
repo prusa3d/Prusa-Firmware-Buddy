@@ -110,7 +110,7 @@ public:
     }
 };
 
-using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
+using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
 class ScreenMenuFilament : public parent {
     enum {
@@ -129,12 +129,12 @@ private:
     template <class T>
     void dis() {
         Item<T>().Disable();
-        menu.win.f_invalid = 1;
+        win.f_invalid = 1;
     }
     template <class T>
     void ena() {
         Item<T>().Enable();
-        menu.win.f_invalid = 1;
+        win.f_invalid = 1;
     }
 };
 

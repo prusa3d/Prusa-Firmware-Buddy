@@ -34,18 +34,18 @@ void screen_wizard_init(screen_t *screen) {
 
     int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    int16_t id_foter = window_create_ptr(WINDOW_CLS_FRAME, id_frame, rect_ui16(0, 320 - 64, 240, 64), &(pd->frame_footer));
-    window_hide(id_foter);
+    int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.footer_sz, &(pd->frame_footer));
+    window_hide(id_footer);
 
-    int16_t id_body = window_create_ptr(WINDOW_CLS_FRAME, id_frame, rect_ui16(0, 32, 240, 320 - 96), &(pd->frame_body));
+    int16_t id_body = window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.scr_body_sz, &(pd->frame_body));
     window_hide(id_body);
 
-    int16_t id = window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, 30), &(pd->header));
+    int16_t id = window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, gui_defaults.header_sz.h), &(pd->header));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
 
     window_set_text(id, wizard_get_caption(screen));
 
-    status_footer_init(&(pd->footer), id_foter);
+    status_footer_init(&(pd->footer), id_footer);
 
     pd->selftest.fans_axis_data.state_fan0 = init_state(_STATE_SELFTEST_FAN0);
     pd->selftest.fans_axis_data.state_fan1 = init_state(_STATE_SELFTEST_FAN1);

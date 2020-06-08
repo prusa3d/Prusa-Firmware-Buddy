@@ -206,9 +206,9 @@ class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_LAN_ONOFF()
-        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 0 : 1, label, 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, label, 0, true, false) {}
     virtual void OnChange(size_t old_index) override {
-        old_index == 0 ? Eth::Off() : Eth::On();
+        old_index == 0 ? Eth::On() : Eth::Off();
     }
 };
 
@@ -220,7 +220,7 @@ class MI_LAN_IP_t : public WI_SWITCH_t<2> {
 
 public:
     MI_LAN_IP_t()
-        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_static, str_DHCP) {}
+        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_DHCP, str_static) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
     }
@@ -229,22 +229,22 @@ public:
     }
 };
 
-class MI_SAVE : public WI_LABEL_t {
+class MI_LAN_SAVE : public WI_LABEL_t {
     constexpr static const char *const label = "Save settings";
 
 public:
-    MI_SAVE()
+    MI_LAN_SAVE()
         : WI_LABEL_t(label, 0, true, false) {}
     virtual void click(Iwindow_menu_t & /*window_menu*/) override {
         Eth::Save();
     }
 };
 
-class MI_LOAD : public WI_LABEL_t {
+class MI_LAN_LOAD : public WI_LABEL_t {
     constexpr static const char *const label = "Load settings";
 
 public:
-    MI_LOAD()
+    MI_LAN_LOAD()
         : WI_LABEL_t(label, 0, true, false) {}
     virtual void click(Iwindow_menu_t & /*window_menu*/) override {
         Eth::Load();
@@ -253,8 +253,9 @@ public:
 
 /*****************************************************************************/
 //parent alias
-using parent = screen_menu_data_t<EHeader::On, EFooter::Off, EHelp::On,
-    MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_SAVE, MI_LOAD>;
+static const size_t helper_lines = 8;
+using parent = ScreenMenu<EHeader::On, EFooter::Off, helper_lines,
+    MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
 
 class ScreenMenuLanSettings : public parent {
     lan_descp_str_t plan_str; //todo not initialized in constructor

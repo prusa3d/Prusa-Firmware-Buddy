@@ -4,7 +4,7 @@
 
 static window_t winCreate(int16_t WINDOW_CLS_) {
     window_t ret;
-    window_create_ptr(WINDOW_CLS_, 0, gui_defaults.msg_box_sz, &ret);
+    window_create_ptr(WINDOW_CLS_, 0, gui_defaults.scr_body_sz, &ret);
     return ret;
 }
 

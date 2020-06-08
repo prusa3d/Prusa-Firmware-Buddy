@@ -30,7 +30,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
             gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
             fs = FS_DISABLED;
         }
-        return fs == FS_DISABLED ? 1 : 0;
+        return fs == FS_DISABLED ? 0 : 1;
     }
     bool fs_not_connected;
 
@@ -41,14 +41,14 @@ public:
         fsensor_t fs = fs_wait_inicialized();
         if (fs == FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
             fs_disable();
-            index = 1;
+            index = 0;
             gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
         }
     }
 
 protected:
     virtual void OnChange(size_t old_index) {
-        old_index == 0 ? fs_disable() : fs_enable();
+        old_index == 1 ? fs_disable() : fs_enable();
         fsensor_t fs = fs_wait_inicialized();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
@@ -60,7 +60,7 @@ protected:
 };
 
 #ifdef _DEBUG
-using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
@@ -70,7 +70,7 @@ using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETU
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
 #else
-using parent = screen_menu_data_t<EHeader::Off, EFooter::On, EHelp::Off, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
