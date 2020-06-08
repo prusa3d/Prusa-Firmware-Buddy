@@ -19,7 +19,7 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines)
     const uint16_t win_x = 10;
     const uint16_t win_w = 240 - 20;
 
-    const uint16_t header_h = gui_defaults.msg_box_sz.y;
+    const uint16_t header_h = gui_defaults.scr_body_sz.y;
     const uint16_t item_h = gui_defaults.font->h + padding.top + padding.bottom;
 
     const uint16_t menu_rect_h = win_h - help_h - header_h - (FOOTER == EFooter::On ? footer_h : 0);

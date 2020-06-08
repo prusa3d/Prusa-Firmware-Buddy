@@ -39,19 +39,17 @@ int wizard_msgbox_ex(const char *text, uint16_t flags, uint16_t id_icon, rect_ui
 }
 
 int wizard_msgbox(const char *text, uint16_t flags, uint16_t id_icon) {
-    return wizard_msgbox_ex(text, flags, id_icon,
-        rect_ui16(0, 32, 240, 320 - 96));
+    return wizard_msgbox_ex(text, flags, id_icon, gui_defaults.scr_body_sz);
 }
 
 int wizard_msgbox1(const char *text, uint16_t flags, uint16_t id_icon) {
     return wizard_msgbox_ex(text, flags, id_icon,
-        rect_ui16(0, 76, 240, 320 - 140));
+        rect_ui16(0, 76, 240, 320 - 140)); // FIXME looks like manual vertical center align
 }
 
 int wizard_msgbox_btns(const char *text, uint16_t flags, uint16_t id_icon, const char **buttons) {
     return gui_msgbox_ex(0, text, flags | MSGBOX_ICO_CUSTOM,
-        rect_ui16(0, 32, 240, 320 - 96),
-        id_icon, buttons);
+        gui_defaults.scr_body_sz, id_icon, buttons);
 }
 
 int wizard_timer(uint32_t *p_timer, uint32_t delay_ms, _TEST_STATE_t *pstate, _WIZ_TIMER_t type) {

@@ -2,6 +2,11 @@
 #include "DialogRadioButton.hpp"
 #include "gui.h"
 
+constexpr uint8_t PROGRESS_BAR_X_PAD = 10;
+constexpr uint8_t PROGRESS_BAR_Y_PAD = 30;
+constexpr uint8_t PROGRESS_BAR_H = 16;
+constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
+
 //*****************************************************************************
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     : IDialog(WINDOW_CLS_)
