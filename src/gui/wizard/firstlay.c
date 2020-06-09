@@ -1,5 +1,8 @@
 // firstlay.c
 
+#include <stdio.h>
+#include <string.h>
+
 #include "firstlay.h"
 #include "dbg.h"
 #include "config.h"
@@ -9,11 +12,10 @@
 #include "wizard_ui.h"
 #include "wizard_types.h"
 #include "wizard_progress_bar.h"
-#include <stdio.h>
-#include <string.h>
 #include "guitypes.h" //font_meas_text
 #include "menu_vars.h"
 #include "filament.h"
+#include "cmath_ext.h"
 
 const char *V2_gcodes_head_PLA[];
 const char *V2_gcodes_head_PETG[];
