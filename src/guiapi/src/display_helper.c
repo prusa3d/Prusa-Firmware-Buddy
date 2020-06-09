@@ -59,6 +59,7 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
 }
 
 void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags) {
+    color_t opt_clr = ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0;
     point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
     if (wh_ico.x && wh_ico.y) {
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
@@ -67,13 +68,13 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
         rect_ui16_t rc_b = { rc.x, rc_ico.y + rc_ico.h, rc.w, (rc.y + rc.h) - (rc_ico.y + rc_ico.h) };
         rect_ui16_t rc_l = { rc.x, rc.y, rc_ico.x - rc.x, rc.h };
         rect_ui16_t rc_r = { rc_ico.x + rc_ico.w, rc.y, (rc.x + rc.w) - (rc_ico.x + rc_ico.w), rc.h };
-        display->fill_rect(rc_t, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
-        display->fill_rect(rc_b, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
-        display->fill_rect(rc_l, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
-        display->fill_rect(rc_r, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
+        display->fill_rect(rc_t, opt_clr);
+        display->fill_rect(rc_b, opt_clr);
+        display->fill_rect(rc_l, opt_clr);
+        display->fill_rect(rc_r, opt_clr);
         display->draw_icon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
     } else
-        display->fill_rect(rc, clr0);
+        display->fill_rect(rc, opt_clr);
 }
 
 void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
