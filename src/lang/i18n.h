@@ -14,9 +14,7 @@
 // Lets create the Prusa-Firmware-Buddy.pot file.
 // Since the xgettext isn't too good at iterating over a directory subtree, we must use find + parallel (I don't like xargs)
 // $ touch src/lang/po/Prusa-Firmware-Buddy.pot
-//   find src -regextype posix-extended -regex "^.*\.c$|^.*\.cpp$|^.*\.h$|^.*\.hpp$" | \
-//   parallel -j1 xgettext --keyword=_ --keyword=N_ --language=C --add-comments \
-//   -j --sort-output -o src/lang/po/Prusa-Firmware-Buddy.pot {}
+//   find src -regextype posix-extended -regex "^.*\.c$|^.*\.cpp$|^.*\.h$|^.*\.hpp$" | parallel -j1 xgettext --keyword=_ --keyword=N_ --language=C --add-comments -j --sort-output -o src/lang/po/Prusa-Firmware-Buddy.pot {}
 // Please note:
 // - We have 2 keywords to extract.
 // - For xgettext the target directory must exist. That applies to the following tools too
