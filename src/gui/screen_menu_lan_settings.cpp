@@ -207,9 +207,9 @@ class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_LAN_ONOFF()
-        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 0 : 1, label, 0, true, false) {}
+        : WI_SWITCH_OFF_ON_t(Eth::IsOn() ? 1 : 0, label, 0, true, false) {}
     virtual void OnChange(size_t old_index) override {
-        old_index == 0 ? Eth::Off() : Eth::On();
+        old_index == 0 ? Eth::On() : Eth::Off();
     }
 };
 
@@ -221,7 +221,7 @@ class MI_LAN_IP_t : public WI_SWITCH_t<2> {
 
 public:
     MI_LAN_IP_t()
-        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_static, str_DHCP) {}
+        : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_DHCP, str_static) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
     }

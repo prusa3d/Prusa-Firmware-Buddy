@@ -110,14 +110,7 @@ void gui_loop(void) {
             else if (dif < 0)
                 screen_dispatch_event(window_capture_ptr, WINDOW_EVENT_ENC_DN, (void *)-dif);
             gui_jogwheel_encoder = jogwheel_encoder;
-
-            //=======MENU_TIMEOUT=========
-            if (menu_timeout_enabled == 1) {
-                if (gui_get_menu_timeout_id() >= 0)
-                    gui_timer_reset(gui_get_menu_timeout_id());
-                else
-                    gui_timer_create_timeout((uint32_t)MENU_TIMEOUT_MS, (int16_t)-1);
-            }
+            gui_reset_menu_timer();
         }
         if (!jogwheel_button_down ^ !gui_jogwheel_button_down) {
             if (gui_jogwheel_button_down)
@@ -125,14 +118,7 @@ void gui_loop(void) {
             else
                 screen_dispatch_event(window_capture_ptr, WINDOW_EVENT_BTN_DN, 0);
             gui_jogwheel_button_down = jogwheel_button_down;
-
-            //=======MENU_TIMEOUT=========
-            if (menu_timeout_enabled == 1) {
-                if (gui_get_menu_timeout_id() >= 0)
-                    gui_timer_reset(gui_get_menu_timeout_id());
-                else
-                    gui_timer_create_timeout((uint32_t)MENU_TIMEOUT_MS, (int16_t)-1);
-            }
+            gui_reset_menu_timer();
         }
     }
 
@@ -156,6 +142,21 @@ void gui_loop(void) {
         screen_dispatch_event(0, WINDOW_EVENT_LOOP, 0);
     }
     --guiloop_nesting;
+
+    // -- reset menu timer when we're in dialog
+    if (guiloop_nesting > 0) {
+        gui_reset_menu_timer();
+    }
+}
+
+void gui_reset_menu_timer() {
+    if (menu_timeout_enabled) {
+        if (gui_get_menu_timeout_id() >= 0) {
+            gui_timer_reset(gui_get_menu_timeout_id());
+        } else {
+            gui_timer_create_timeout((uint32_t)MENU_TIMEOUT_MS, (int16_t)-1);
+        }
+    }
 }
 
 /// Creates message box with provided informations
