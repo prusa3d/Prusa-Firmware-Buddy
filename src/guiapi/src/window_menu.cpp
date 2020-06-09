@@ -52,7 +52,7 @@ uint8_t window_menu_t::GetCount() const {
     return pContainer->GetCount();
 }
 
-IWindowMenuItem *window_menu_t::GetItem(uint8_t index) {
+IWindowMenuItem *window_menu_t::GetItem(uint8_t index) const {
     if (!pContainer)
         return nullptr;
     if (index >= GetCount())
@@ -125,7 +125,7 @@ void window_menu_draw(window_menu_t *window) {
     size_t visible_count = rc_win.h / item_height;
     size_t i;
     for (i = 0; i < visible_count && i < window->GetCount(); ++i) {
-        int idx = i + window->top_index;
+        size_t idx = i + window->top_index;
 
         IWindowMenuItem *item = window->GetItem(idx);
         if (!item) {

@@ -20,6 +20,6 @@ public:
     void Decrement(int dif) { Incement(-dif); }
     uint8_t GetIndex() const { return index; }
     uint8_t GetCount() const;
-    IWindowMenuItem *GetItem(uint8_t index);
+    IWindowMenuItem *GetItem(uint8_t index) const;
     IWindowMenuItem *GetActiveItem();
 };
