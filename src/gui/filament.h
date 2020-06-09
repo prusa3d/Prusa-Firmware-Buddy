@@ -1,14 +1,9 @@
 /*
  * filament.h
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
  */
 
 #pragma once
 #include <stdio.h>
-#pragma pack(push)
-#pragma pack(1)
 
 typedef struct {
     const char *name;
@@ -16,8 +11,6 @@ typedef struct {
     uint16_t nozzle;
     uint16_t heatbed;
 } filament_t;
-
-#pragma pack(pop)
 
 typedef enum {
     FILAMENT_NONE = 0,
@@ -29,7 +22,6 @@ typedef enum {
 } FILAMENT_t;
 
 #define DEFAULT_FILAMENT FILAMENT_PLA
-//#define FILAMENT_COUNT ((uint32_t)FILAMENTS_END-1)
 
 #define PREHEAT_TEMP        170.01f // like 170 but user cannot set it
 #define PREHEAT_TEMP_STRING "170"   // used for G codes

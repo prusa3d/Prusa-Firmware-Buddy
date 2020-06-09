@@ -17,9 +17,6 @@
 
 typedef struct _window_file_list_t window_file_list_t;
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_file_list_t {
     window_class_t cls;
 } window_class_file_list_t;
@@ -38,8 +35,6 @@ typedef struct _window_file_list_t {
     char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
     void *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
 } window_file_list_t;
-
-#pragma pack(pop)
 
 // This enum value is stored to eeprom as file sort settings
 typedef enum {

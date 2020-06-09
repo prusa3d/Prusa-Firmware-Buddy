@@ -28,20 +28,6 @@ extern const float nozzle_to_probe[3];
 extern const float z_offset_step;
 extern const float z_offset_min;
 extern const float z_offset_max;
-extern const float zoffset_fl_range[3];
-extern const char *zoffset_fl_format;
-extern const int32_t nozzle_range[3];
-extern const int32_t heatbed_range[3];
-extern const int32_t printfan_range[3];
-extern const int32_t flowfact_range[3];
-extern const int32_t feedrate_range[3];
-extern const int32_t timezone_range[3];
-extern const int32_t move_x[3];
-extern const int32_t move_y[3];
-extern const int32_t move_z[3];
-extern const int32_t move_e[3];
-extern const int32_t manual_feedrate[4];
-extern const int32_t extrude_min_temp;
 
 extern const int32_t _noz_park[3];
 extern const char *const gcode_nozzle_park;
@@ -62,6 +48,33 @@ extern const float filament_unload_mini_length;
 
 #ifdef __cplusplus
 }
+#endif //__cplusplus
+
+#ifdef __cplusplus
+    #include <array>
+    #include <cstdint>
+using std::size_t;
+struct MenuVars {
+    constexpr static const size_t AXIS_CNT = 4;
+    constexpr static const size_t RANGE_SZ = 3;
+    constexpr static const char *const zoffset_prt_format = "%.3f";
+    constexpr static const char *const labels[] = { "Move X", "Move Y", "Move Z", "Move E" };
+    static const std::array<std::array<int16_t, RANGE_SZ>, AXIS_CNT> axis_ranges;
+    static const int16_t manual_feedrate[AXIS_CNT];
+    static const char axis_letters[AXIS_CNT];
+    static const int16_t extrude_min_temp;
+
+    static const std::array<uint16_t, RANGE_SZ> nozzle_range;
+    static const std::array<uint8_t, RANGE_SZ> bed_range;
+    static const std::array<uint8_t, RANGE_SZ> printfan_range;
+    static const std::array<uint16_t, RANGE_SZ> flowfact_range;
+    static const std::array<uint16_t, RANGE_SZ> feedrate_range;
+    static const std::array<float, RANGE_SZ> zoffset_fl_range;
+
+private:
+    MenuVars() = delete;
+};
+
 #endif //__cplusplus
 
 #endif //_MENU_VARS_H

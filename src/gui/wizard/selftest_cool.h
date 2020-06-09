@@ -11,9 +11,6 @@
 extern "C" {
 #endif //__cplusplus
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_progress_t progress;
@@ -26,7 +23,6 @@ typedef struct
 
 } selftest_cool_screen_t;
 
-//#pragma pack(1) makes enums 8 bit
 typedef struct
 {
     _TEST_STATE_t state_cool;
@@ -36,8 +32,6 @@ typedef struct
     float start_nozzle_temp;
     float start_bed_temp;
 } selftest_cool_data_t;
-
-#pragma pack(pop)
 
 extern void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen,
     selftest_cool_data_t *p_data);

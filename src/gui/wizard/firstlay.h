@@ -18,12 +18,16 @@ extern "C" {
 #pragma pack(push)
 #pragma pack(1)
 
+//#pragma pack(1) makes enums 8 bit
+// which is an ugly and unreadable hack (probably a side effect)
 typedef enum {
     _FL_INIT,
     _FL_GCODE_HEAD,
     _FL_GCODE_BODY,
     _FL_GCODE_DONE
 } _FL_STATE;
+
+#pragma pack(pop)
 
 #define FIRSTLAY_SCREEN_TERM_X 25
 #define FIRSTLAY_SCREEN_TERM_Y 10
@@ -59,7 +63,6 @@ typedef struct
     uint32_t timer0;
 } firstlay_screen_t;
 
-//#pragma pack(1) makes enums 8 bit
 typedef struct
 {
     //_TEST_STATE_t state_heat;
@@ -67,8 +70,6 @@ typedef struct
     _TEST_STATE_t state_print;
 
 } firstlay_data_t;
-
-#pragma pack(pop)
 
 extern void wizard_firstlay_event_dn(firstlay_screen_t *p_screen);
 

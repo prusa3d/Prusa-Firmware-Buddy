@@ -6,16 +6,8 @@
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 
-#pragma pack(push)
-#pragma pack(1)
-
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
-
-#define PROGRESS_BAR_X_PAD  10
-#define PROGRESS_BAR_Y_PAD  30
-#define PROGRESS_BAR_H      16
-#define PROGRESS_BAR_TEXT_H 30
 
 // function pointer for onEnter & onExit callbacks
 typedef void (*change_state_cb_t)();
@@ -80,15 +72,15 @@ protected:
 
 public:
     IDialogStateful(const char *name, int16_t WINDOW_CLS_);
-    bool Change(uint8_t phase, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
+    bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
     virtual ~IDialogStateful();
 
-    static constexpr rect_ui16_t get_radio_button_size() {
-        rect_ui16_t rc_btn = { 0, 32, 240, 320 - 96 }; //msg box size
-        rc_btn.y += (rc_btn.h - 40);                   // 30pixels for button (+ 10 space for grey frame)
-        rc_btn.h = 30;
-        rc_btn.x += 6;
-        rc_btn.w -= 12;
+    static rect_ui16_t get_radio_button_size() {                                // cannot be const(expr)
+        rect_ui16_t rc_btn = gui_defaults.scr_body_sz;                          // msg box size
+        rc_btn.y += (rc_btn.h - gui_defaults.btn_h - gui_defaults.frame_width); // 30pixels for button (+ 10 space for grey frame)
+        rc_btn.h = gui_defaults.btn_h;
+        rc_btn.x += gui_defaults.btn_spacing;
+        rc_btn.w -= 2 * gui_defaults.btn_spacing;
         return rc_btn;
     }
 
@@ -132,7 +124,6 @@ public:
     void draw();
     void event(uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //template definitions

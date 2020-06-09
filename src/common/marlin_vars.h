@@ -38,7 +38,7 @@
 #define MARLIN_VAR_MAX      MARLIN_VAR_TIMTOEND
 
 // variable masks
-#define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (v_id))
+#define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (uint8_t)(v_id))
 
 //maximum number of masks is 64
 //maximum mask index is 63
@@ -64,8 +64,9 @@
 #define MARLIN_VAR_MSK_TEMP_ALL ( \
     MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ))
 
+// variables defined in this mask are automaticaly updated every 100ms in _server_update_vars
 #define MARLIN_VAR_MSK_DEF ( \
-    MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) & ~MARLIN_VAR_MSK_IPOS_XYZE & ~MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) & ~MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH))
+    MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE) & ~MARLIN_VAR_MSK_IPOS_XYZE & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT) & ~MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER) & ~MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH))
 
 #define MARLIN_VAR_MSK_WUI ( \
     MARLIN_VAR_MSK_TEMP_CURR | MARLIN_VAR_MSK(MARLIN_VAR_POS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT) | MARLIN_VAR_MSK(MARLIN_VAR_DURATION) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE) | MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT) | MARLIN_VAR_MSK(MARLIN_VAR_FILENAME))
@@ -136,7 +137,7 @@ typedef struct _marlin_vars_t {
     char *media_LFN;                  // Long-File-Name of the currently selected file - a pointer to a global static buffer
     char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
     float display_nozzle;             // nozzle temperature to display [C]
-    uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [ms]
+    uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [s]
 } marlin_vars_t;
 
 #pragma pack(pop)

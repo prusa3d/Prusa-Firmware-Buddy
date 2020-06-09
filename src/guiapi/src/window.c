@@ -21,6 +21,8 @@ window_t *window_focused_ptr = 0; //current focused window
 
 window_t *window_capture_ptr = 0; //current capture window
 
+// warning: initializing non-local variable with non-const expression depending on uninitialized non-local variable 'window_class_frame'
+// [cppcoreguidelines-interfaces-global-init]
 const window_class_t *window_classes[] = {
     (window_class_t *)(&window_class_frame),     //  0  FRAME
     (window_class_t *)(&window_class_text),      //  1  TEXT

@@ -83,7 +83,7 @@ point_ui16_t font_meas_text(const font_t *pf, const char *str) {
     int h = 0;
     const int8_t char_w = pf->w;
     const int8_t char_h = pf->h;
-    int len = strlen(str);
+    size_t len = strlen(str);
     while (len--) {
         const char c = *(str++);
         if (c == '\n') {
@@ -101,7 +101,7 @@ point_ui16_t font_meas_text(const font_t *pf, const char *str) {
 int font_line_chars(const font_t *pf, const char *str, uint16_t line_width) {
     int w = 0;
     const int char_w = pf->w;
-    int len = strlen(str);
+    size_t len = strlen(str);
     int n = 0;
     // This is generally about finding the closest '\n' character within the current line to be drawn.
     // Line is limited by pixel dimension, all characters have the same fixed pixel size
@@ -147,6 +147,7 @@ rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, font_t *font, 
     return rc_txt;
 }
 
+/// TODO refactor to icon_size
 point_ui16_t icon_meas(const uint8_t *pi) {
     point_ui16_t wh = { 0, 0 };
     if (memcmp(pi, "\x89PNG", 4) == 0) {
@@ -154,6 +155,12 @@ point_ui16_t icon_meas(const uint8_t *pi) {
         wh.y = swap_ui16(*((uint16_t *)(pi + 22)));
     }
     return wh;
+}
+
+size_ui16_t icon_size(const uint8_t *pi) {
+    const point_ui16_t p = icon_meas(pi);
+    const size_ui16_t size = { p.x, p.y };
+    return size;
 }
 
 extern const resource_entry_t resource_table[];

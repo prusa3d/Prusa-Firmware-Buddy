@@ -1,34 +1,29 @@
 /*
- * screen_messages.c
+ * screen_messages.cpp
  *
  *  Created on: Nov 13, 2019
  *      Author: Migi
  */
 
 #include "gui.h"
-#include "screen_menu.hpp"
 #include "marlin_server.h"
+#include "window_header.h"
+#include "status_footer.h"
 #include <stdlib.h>
+#include <stdint.h>
 #include "screens.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct _screen_messages_data_t {
+struct screen_messages_data_t {
     window_frame_t root;
     window_header_t header;
     window_list_t list;
 
     status_footer_t *pfooter;
-} screen_messages_data_t;
-
-#pragma pack(pop)
-
-extern msg_stack_t msg_stack;
+};
 
 #define pmsg ((screen_messages_data_t *)screen->pdata)
 
-void _window_list_add_message_item(window_list_t *pwindow_list, uint16_t index,
+void _window_list_add_message_item(window_list_t * /*pwindow_list*/, uint16_t index,
     const char **pptext, uint16_t *msg_icon) {
     static const char empty_str[] = "";
     static const char back_str[] = "BACK";
@@ -62,11 +57,11 @@ void screen_messages_init(screen_t *screen) {
         &(pmsg->root));
     window_disable(root);
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, rect_ui16(0, 0, 240, 31), &(pmsg->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
     // p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
     p_window_header_set_text(&(pmsg->header), "MESSAGES");
 
-    id = window_create_ptr(WINDOW_CLS_LIST, root, rect_ui16(0, 32, 240, 320 - 83), &(pmsg->list));
+    id = window_create_ptr(WINDOW_CLS_LIST, root, gui_defaults.scr_body_sz, &(pmsg->list));
     window_set_item_count(id, msg_stack.count + 1);
     window_set_item_index(id, 0);
     window_set_item_callback(id, _window_list_add_message_item);
@@ -118,7 +113,7 @@ screen_t screen_messages = {
     screen_messages_draw,
     screen_messages_event,
     sizeof(screen_messages_data_t), //data_size
-    0,                              //pdata
+    nullptr,                        //pdata
 };
 
 screen_t *const get_scr_messages() { return &screen_messages; }

@@ -63,9 +63,6 @@ typedef struct _window_list_t window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_t {
     int16_t cls_id;        // (2 bytes) window class id
     uint16_t size;         // (2 bytes) window structure size
@@ -103,8 +100,6 @@ typedef struct _window_t {
     rect_ui16_t rect;      // (8 bytes) display rectangle
     window_event_t *event; // (4 bytes) event callback
 } window_t;                // (24 bytes total)
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

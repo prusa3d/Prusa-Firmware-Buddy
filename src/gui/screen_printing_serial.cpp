@@ -33,10 +33,7 @@ const char *serial_printing_labels[iid_count] = {
     "Disconnect"
 };
 
-#pragma pack(push, 1)
-
-typedef struct
-{
+struct screen_printing_serial_data_t {
     window_frame_t root;
 
     window_header_t header;
@@ -48,10 +45,7 @@ typedef struct
     window_text_t w_labels[iid_count];
 
     int last_tick;
-
-} screen_printing_serial_data_t;
-
-#pragma pack(pop)
+};
 
 void screen_printing_serial_init(screen_t *screen);
 void screen_printing_serial_done(screen_t *screen);
@@ -87,8 +81,7 @@ void screen_printing_serial_init(screen_t *screen) {
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pw->root));
-    id = window_create_ptr(WINDOW_CLS_HEADER, root,
-        rect_ui16(0, 0, 240, 31), &(pw->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
     p_window_header_set_text(&(pw->header), "SERIAL PRT.");
 
@@ -96,7 +89,7 @@ void screen_printing_serial_init(screen_t *screen) {
     point_ui16_t pt_ico = icon_meas(resource_ptr(IDR_PNG_serial_printing));
     id = window_create_ptr(
         WINDOW_CLS_ICON, root,
-        rect_ui16((240 - pt_ico.x) / 2, gui_defaults.msg_box_sz.y, pt_ico.x, pt_ico.y),
+        rect_ui16((240 - pt_ico.x) / 2, gui_defaults.scr_body_sz.y, pt_ico.x, pt_ico.y),
         &(pw->octo_icon));
     window_enable(id);
     window_set_icon_id(id, IDR_PNG_serial_printing);

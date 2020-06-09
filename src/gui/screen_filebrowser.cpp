@@ -57,8 +57,7 @@ static void screen_filebrowser_init(screen_t *screen) {
         &(pd->root));
     window_disable(root); // hack for do not change capture
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root,
-        rect_ui16(0, 0, 240, 31), &(pd->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
     p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
     p_window_header_set_text(&(pd->header), "SELECT FILE");
 

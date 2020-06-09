@@ -64,10 +64,10 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
     }
 
     char print_time[15];
-    uint32_t time_to_end_milli = wui_vars_copy.time_to_end;
+    uint32_t time_to_end = wui_vars_copy.time_to_end;
 
     if (wui_vars_copy.time_to_end == TIME_TO_END_INVALID) {
-        time_to_end_milli = 0;
+        time_to_end = 0;
     }
 
     print_dur_to_string(print_time, sizeof(print_time), wui_vars_copy.print_dur);
@@ -86,5 +86,5 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
                             "}",
         actual_nozzle, actual_heatbed, filament_material,
         z_pos_mm, print_speed, flow_factor, wui_vars_copy.sd_precent_done,
-        print_time, time_to_end_milli, wui_vars_copy.gcode_name);
+        print_time, time_to_end, wui_vars_copy.gcode_name);
 }
