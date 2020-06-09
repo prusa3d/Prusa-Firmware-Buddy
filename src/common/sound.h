@@ -30,6 +30,15 @@ public:
     double frequency;
     double volume;
 
+		const uint32_t[eSOUND_TYPE_count] durations;
+		const double[eSOUND_TYPE_count] frequencies;
+		const double[eSOUND_TYPE_count] volumes;
+
+		eSOUND_TYPE[4] onceTypes = {eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert};
+		eSOUND_TYPE[5] loudTypes = {eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert};
+		eSOUND_TYPE[2] silentTypes = {eSOUND_TYPE_Start, eSOUND_TYPE_CriticalAlert};
+		eSOUND_TYPE[7] assistTypes = {eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert};
+
 private:
     Sound();
     ~Sound() {};

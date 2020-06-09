@@ -14,6 +14,33 @@ Sound::Sound() {
     frequency = 100.f; // frequency of sound signal (0-1000)
     volume = 0.50;     // volume of sound signal (0-1)
 
+		// -- durations of beep
+		durations[eSOUND_TYPE_ButtonEcho] = 100.f;
+		durations[eSOUND_TYPE_StandardPrompt] = 500.f;
+		durations[eSOUND_TYPE_StandardAlert] = 200.f;
+		durations[eSOUND_TYPE_CriticalAlert] = 500.f;
+		durations[eSOUND_TYPE_EncoderMove] = 50.f;
+		durations[eSOUND_TYPE_BlindAlert] = 100.f;
+		durations[eSOUND_TYPE_Start] = 100.f;
+
+		// -- frequencies of beep
+		frequencies[eSOUND_TYPE_ButtonEcho] = 900.f;
+		frequencies[eSOUND_TYPE_StandardPrompt] = 600.f;
+		frequencies[eSOUND_TYPE_StandardAlert] = 950.f;
+		frequencies[eSOUND_TYPE_CriticalAlert] = 999.f;
+		frequencies[eSOUND_TYPE_EncoderMove] = 800.f;
+		frequencies[eSOUND_TYPE_BlindAlert] = 500.f;
+		frequencies[eSOUND_TYPE_Start] = 999.f;
+
+		// -- volumes of bee8p
+		volumes[eSOUND_TYPE_ButtonEcho] = volume;
+		volumes[eSOUND_TYPE_StandardPrompt] = volume;
+		volumes[eSOUND_TYPE_StandardAlert] = volume;
+		volumes[eSOUND_TYPE_CriticalAlert] = volume;
+		volumes[eSOUND_TYPE_EncoderMove] = 0.25;
+		volumes[eSOUND_TYPE_BlindAlert] = 0.25;
+		volumes[eSOUND_TYPE_Start] = volume;
+
     this->init();
 }
 
