@@ -342,12 +342,6 @@ static int eeprom_convert_from_v2(void) {
     // check ZOFFSET valid range, cancel conversion if not of valid range (defaults will be loaded)
     if ((vars.ZOFFSET < -2) || (vars.ZOFFSET > 0))
         return 0;
-    // read PID_NOZ_P & PID_NOZ_I & PID_NOZ_D (3x float)
-    st25dv64k_user_read_bytes(ADDR_V2_PID_NOZ_P, &(vars.PID_NOZ_P), 3 * sizeof(float));
-    // TODO: validate nozzle PID constants
-    // read PID_BED_P & PID_BED_I & PID_BED_D (3x float)
-    st25dv64k_user_read_bytes(ADDR_V2_PID_BED_P, &(vars.PID_BED_P), 3 * sizeof(float));
-    // TODO: validate bed PID constants
     // calculate crc32
     vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
     // write data to eeprom
@@ -355,10 +349,46 @@ static int eeprom_convert_from_v2(void) {
     return 1;
 }
 
+// conversion function for old version 4 (v 4.0.5)
+static int eeprom_convert_from_v4(void) {
+    uint16_t addr_start;
+    uint16_t addr_end;
+    eeprom_vars_t vars = eeprom_var_defaults;
+
+    // these variables not initialised in eeprom_var_defaults
+    vars.FWBUILD = project_build_number;
+    vars.FWVERSION = eeprom_fwversion_ui16();
+
+    // start addres of imported data first block (FILAMENT_TYPE..EEVAR_ZOFFSET)
+    addr_start = eeprom_var_addr(EEVAR_FILAMENT_TYPE);
+    // end addres of imported data - we want not import PID constants
+    addr_end = eeprom_var_addr(EEVAR_PID_NOZ_P);
+    // read first block
+    st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
+
+    // start addres of imported data second block (EEVAR_LAN_FLAG..EEVAR_LAN_IP4_DNS2)
+    addr_start = eeprom_var_addr(EEVAR_LAN_FLAG);
+    // end addres of imported data - we want not import PID constants
+    addr_end = eeprom_var_addr(EEVAR_LAN_HOSTNAME);
+    // read first block
+    st25dv64k_user_read_bytes(addr_start, &(vars.LAN_FLAG), addr_end - addr_start);
+
+    // TODO: keep LAN host name (?)
+
+    // calculate crc32
+    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+
+    return 1;
+}
+
 // conversion function for new version format (features, firmware version/build)
 static int eeprom_convert_from(uint16_t version, uint16_t features) {
     if (version == 2)
         return eeprom_convert_from_v2();
+    if (version == 4)
+        return eeprom_convert_from_v4();
     return 0;
 }
 
