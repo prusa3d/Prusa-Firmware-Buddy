@@ -20,12 +20,20 @@
 const char *V2_gcodes_head_PLA[];
 const char *V2_gcodes_head_PETG[];
 const char *V2_gcodes_head_ASA[];
+const char *V2_gcodes_head_PC[];
+const char *V2_gcodes_head_ABS[];
+const char *V2_gcodes_head_HIPS[];
+const char *V2_gcodes_head_PP[];
 const char *V2_gcodes_head_FLEX[];
 const char *V2_gcodes_body[];
 
 const size_t V2_gcodes_head_PLA_sz;
 const size_t V2_gcodes_head_PETG_sz;
 const size_t V2_gcodes_head_ASA_sz;
+const size_t V2_gcodes_head_PC_sz;
+const size_t V2_gcodes_head_ABS_sz;
+const size_t V2_gcodes_head_HIPS_sz;
+const size_t V2_gcodes_head_PP_sz;
 const size_t V2_gcodes_head_FLEX_sz;
 const size_t V2_gcodes_body_sz;
 
@@ -133,6 +141,22 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             head_gcode = V2_gcodes_head_ASA;
             head_gcode_sz = V2_gcodes_head_ASA_sz;
             break;
+        case FILAMENT_PC:
+            head_gcode = V2_gcodes_head_PC;
+            head_gcode_sz = V2_gcodes_head_PC_sz;
+            break;
+        case FILAMENT_ABS:
+            head_gcode = V2_gcodes_head_ABS;
+            head_gcode_sz = V2_gcodes_head_ABS_sz;
+            break;
+         case FILAMENT_HIPS:
+            head_gcode = V2_gcodes_head_HIPS;
+            head_gcode_sz = V2_gcodes_head_HIPS_sz;
+            break;
+         case FILAMENT_PP:
+            head_gcode = V2_gcodes_head_PP;
+            head_gcode_sz = V2_gcodes_head_PP_sz;
+            break; 
         case FILAMENT_FLEX:
             head_gcode = V2_gcodes_head_FLEX;
             head_gcode_sz = V2_gcodes_head_FLEX_sz;
@@ -329,6 +353,58 @@ const char *V2_gcodes_head_ASA[] = {
     "M109 S260",                          //wait for nozzle temp
 };
 const size_t V2_gcodes_head_ASA_sz = sizeof(V2_gcodes_head_ASA) / sizeof(V2_gcodes_head_ASA[0]);
+
+const char *V2_gcodes_head_PC[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D275", //nozzle target
+    "M140 S105",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S105",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S275",                          //nozzle target
+    "M109 S275",                          //wait for nozzle temp
+};
+const size_t V2_gcodes_head_PC_sz = sizeof(V2_gcodes_head_PC) / sizeof(V2_gcodes_head_PC[0]);
+
+const char *V2_gcodes_head_ABS[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D255", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S255",                          //nozzle target
+    "M109 S255",                          //wait for nozzle temp
+};
+const size_t V2_gcodes_head_ABS_sz = sizeof(V2_gcodes_head_ABS) / sizeof(V2_gcodes_head_ABS[0]);
+
+const char *V2_gcodes_head_HIPS[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D220", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S220",                          //nozzle target
+    "M109 S220",                          //wait for nozzle temp
+};
+const size_t V2_gcodes_head_HIPS_sz = sizeof(V2_gcodes_head_HIPS) / sizeof(V2_gcodes_head_HIPS[0]);
+
+const char *V2_gcodes_head_PP[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D254", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S254",                          //nozzle target
+    "M109 S254",                          //wait for nozzle temp
+};
+const size_t V2_gcodes_head_PP_sz = sizeof(V2_gcodes_head_PP) / sizeof(V2_gcodes_head_PP[0]);
 
 const char *V2_gcodes_head_FLEX[] = {
     V__GCODES_HEAD_BEGIN

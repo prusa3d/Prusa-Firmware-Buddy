@@ -48,7 +48,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
 
     p_window_header_set_icon(&(ths->header), IDR_PNG_header_icon_info);
 
-    //uint16_t id = window_create_ptr(WINDOW_CLS_TEXT, ths->root.win.id, rect_ui16(10, 80, 220, 200), &(ths->help));//do I need this line?
+    uint16_t id = window_create_ptr(WINDOW_CLS_TEXT, ths->root.win.id, rect_ui16(10, 80, 220, 200), &(ths->help));//do I need this line?
     ths->help.font = resource_font(IDR_FNT_NORMAL);
 
     //=============VARIABLES=================

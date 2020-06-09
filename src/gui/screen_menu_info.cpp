@@ -10,7 +10,7 @@
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_STATISTIC_disabled, MI_SYS_INFO, MI_FAIL_STAT_disabled,
     MI_SUPPORT_disabled, MI_VERSION_INFO, MI_QR_info, MI_QR_test>;
 #else
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SYS_INFO, MI_VERSION_INFO>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_VERSION_INFO>;
 #endif //_DEBUG
 
 static void init(screen_t *screen) {
