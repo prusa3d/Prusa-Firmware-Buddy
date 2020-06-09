@@ -22,7 +22,7 @@ extern "C" {
 #endif //__cplusplus
 
 extern const window_class_term_t window_class_term;
-void render_term(rect_ui16_t rc, term_t *pt, font_t *font, color_t clr0, color_t clr1);
+void render_term(rect_ui16_t rc, term_t *pt, const font_t *font, color_t clr0, color_t clr1);
 
 #ifdef __cplusplus
 }

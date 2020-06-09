@@ -12,20 +12,19 @@ static void window_term_init(window_term_t *window) {
     display->fill_rect(window->win.rect, window->color_back);
 }
 
-void render_term(rect_ui16_t rc, term_t *pt, font_t *font, color_t clr0, color_t clr1) {
+void render_term(rect_ui16_t rc, term_t *pt, const font_t *font, color_t clr0, color_t clr1) {
     uint8_t char_w = font->w;
     uint8_t char_h = font->h;
     if (pt && (pt->flg & TERM_FLG_CHANGED)) {
-        uint8_t cols = pt->cols;
-        uint8_t rows = pt->rows;
+        const uint8_t cols = pt->cols;
+        const uint8_t rows = pt->rows;
         uint8_t *pb = pt->buff;
         uint8_t *pm = pt->buff + (cols * rows * 2);
         uint8_t msk = 0x01;
         uint8_t c;
-        uint8_t r;
         int i = 0;
-        for (r = 0; r < rows; r++)
-            for (c = 0; c < cols; c++) {
+        for (uint8_t r = 0; r < rows; ++r)
+            for (c = 0; c < cols; ++c) {
                 if ((*pm) & msk) {
                     //character is followed by attribute
                     uint8_t ch = *(pb++);
