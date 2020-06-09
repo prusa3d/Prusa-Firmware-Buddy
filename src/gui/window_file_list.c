@@ -90,6 +90,8 @@ void window_file_list_init(window_file_list_t *window) {
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
     window->ldv = LDV_Get();
+
+    display->fill_rect(window->win.rect, window->color_back);
 }
 
 void window_file_list_done(window_file_list_t *window) {

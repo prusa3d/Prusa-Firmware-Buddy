@@ -8,6 +8,8 @@ static void window_term_init(window_term_t *window) {
     window->font = gui_defaults.font;
     window->term = 0;
     window->win.flg |= WINDOW_FLG_ENABLED;
+
+    display->fill_rect(window->win.rect, window->color_back);
 }
 
 void render_term(rect_ui16_t rc, term_t *pt, font_t *font, color_t clr0, color_t clr1) {
@@ -25,7 +27,7 @@ void render_term(rect_ui16_t rc, term_t *pt, font_t *font, color_t clr0, color_t
         for (r = 0; r < rows; r++)
             for (c = 0; c < cols; c++) {
                 if ((*pm) & msk) {
-                    //character is followed by attribut
+                    //character is followed by attribute
                     uint8_t ch = *(pb++);
                     pb++; //uint8_t attr = *(pb++);
                     display->draw_char(point_ui16(rc.x + c * char_w, rc.y + r * char_h), ch, font, clr0, clr1);
