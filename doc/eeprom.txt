@@ -9,5 +9,8 @@ FW version         EE version  Marlin EE
 4.0.1-final+1974   2           V1
 4.0.2-final+1977   2           V1
 4.0.3-RC1+246      2           V2 - removed FS
-
-4.0.4-             3           N/A
+4.0.3-final+258    2           V2
+4.0.4-final+269    2           V2
+4.0.5-RC1+900      4           N/A - new eeprom implementation
+4.0.5-final+914    4           N/A
+4.1.0-beta5        6           N/A
