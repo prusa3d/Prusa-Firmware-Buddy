@@ -1,5 +1,4 @@
 // window_msgbox.c
-#include "stdbool.h"
 #include "window_msgbox.h"
 #include "gui.h"
 #include "resource.h"
