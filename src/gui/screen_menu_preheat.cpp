@@ -14,9 +14,14 @@ protected:
     virtual void click(Iwindow_menu_t & /*window_menu*/) override {
         const filament_t filament = filaments[T];
         marlin_gcode("M86 S1800"); // enable safety timer
-        marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
+        /// don't use preheat temp for cooldown
+        if (PREHEAT_TEMP >= filament.nozzle) {
+            marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
+        } else {
+            marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
+        }
         marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
-        screen_close(); // skip this screen averytime
+        screen_close(); // skip this screen everytime
     }
 };
 
