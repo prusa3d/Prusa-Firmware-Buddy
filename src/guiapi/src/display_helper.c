@@ -5,6 +5,25 @@
 #include "gui_timer.h"
 #include "window.h"
 
+/// Fills space between two rectangles with a color
+/// @r_in must be completely in @r_out, no check is done
+/// TODO move to display
+void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, color_t color) {
+    // FIXME add check r_in in r_out; use some guitypes.c function
+
+    const rect_ui16_t rc_t = { r_out->x, r_out->y, r_out->w, r_in->y - r_out->y };
+    display->fill_rect(rc_t, color);
+
+    const rect_ui16_t rc_b = { r_out->x, r_in->y + r_in->h, r_out->w, (r_out->y + r_out->h) - (r_in->y + r_in->h) };
+    display->fill_rect(rc_b, color);
+
+    const rect_ui16_t rc_l = { r_out->x, r_in->y, r_in->x - r_out->x, r_in->h };
+    display->fill_rect(rc_l, color);
+
+    const rect_ui16_t rc_r = { r_in->x + r_in->w, r_in->y, (r_out->x + r_out->w) - (r_in->x + r_in->w), r_in->h };
+    display->fill_rect(rc_r, color);
+}
+
 void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
@@ -12,10 +31,11 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
         uint16_t x;
         uint16_t y = rc_pad.y;
         int n;
+        int i;
         const char *str = text;
         while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
             x = rc_pad.x;
-            int i = 0;
+            i = 0;
             while (str[i] == ' ' || str[i] == '\n')
                 i++;
             for (; i < n; i++) {
@@ -27,14 +47,7 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
             y += font->h;
         }
         display->fill_rect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
-        rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc_pad.y - rc.y };
-        rect_ui16_t rc_b = { rc.x, rc_pad.y + rc_pad.h, rc.w, (rc.y + rc.h) - (rc_pad.y + rc_pad.h) };
-        rect_ui16_t rc_l = { rc.x, rc.y, rc_pad.x - rc.x, rc.h };
-        rect_ui16_t rc_r = { rc_pad.x + rc_pad.w, rc.y, (rc.x + rc.w) - (rc_pad.x + rc_pad.w), rc.h };
-        display->fill_rect(rc_t, clr0);
-        display->fill_rect(rc_b, clr0);
-        display->fill_rect(rc_l, clr0);
-        display->fill_rect(rc_r, clr0);
+        fill_between_rectangles(&rc, &rc_pad, clr0);
     } else {
         point_ui16_t wh_txt = font_meas_text(font, text);
         if (wh_txt.x && wh_txt.y) {
@@ -44,14 +57,9 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
             if (strlen(text) * font->w > rc_txt.w) {
                 unused_pxls = rc_txt.w % font->w;
             }
-            rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc_txt.y - rc.y };
-            rect_ui16_t rc_b = { rc.x, rc_txt.y + rc_txt.h, rc.w, (rc.y + rc.h) - (rc_txt.y + rc_txt.h) };
-            rect_ui16_t rc_l = { rc.x, rc.y, rc_txt.x - rc.x, rc.h };
-            rect_ui16_t rc_r = { rc_txt.x + rc_txt.w - unused_pxls, rc.y, (rc.x + rc.w) - (rc_txt.x + rc_txt.w) + unused_pxls, rc.h };
-            display->fill_rect(rc_t, clr0);
-            display->fill_rect(rc_b, clr0);
-            display->fill_rect(rc_l, clr0);
-            display->fill_rect(rc_r, clr0);
+
+            const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, rc_txt.w - unused_pxls, rc_txt.h };
+            fill_between_rectangles(&rc, &rect_in, clr0);
             display->draw_text(rc_txt, text, font, clr0, clr1);
         } else
             display->fill_rect(rc, clr0);
@@ -63,14 +71,7 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
     if (wh_ico.x && wh_ico.y) {
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
-        rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc_ico.y - rc.y };
-        rect_ui16_t rc_b = { rc.x, rc_ico.y + rc_ico.h, rc.w, (rc.y + rc.h) - (rc_ico.y + rc_ico.h) };
-        rect_ui16_t rc_l = { rc.x, rc.y, rc_ico.x - rc.x, rc.h };
-        rect_ui16_t rc_r = { rc_ico.x + rc_ico.w, rc.y, (rc.x + rc.w) - (rc_ico.x + rc_ico.w), rc.h };
-        display->fill_rect(rc_t, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
-        display->fill_rect(rc_b, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
-        display->fill_rect(rc_l, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
-        display->fill_rect(rc_r, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
+        fill_between_rectangles(&rc, &rc_ico, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
         display->draw_icon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
     } else
         display->fill_rect(rc, clr0);
@@ -146,15 +147,7 @@ void render_roll_text_align(rect_ui16_t rc, const char *text, font_t *font,
     }
 
     if (set_txt_rc.w && set_txt_rc.h) {
-        rect_ui16_t rc_t = { rc.x, rc.y, rc.w, set_txt_rc.y - rc.y };
-        rect_ui16_t rc_b = { rc.x, set_txt_rc.y + set_txt_rc.h, rc.w, (rc.y + rc.h) - (set_txt_rc.y + set_txt_rc.h) };
-        rect_ui16_t rc_l = { rc.x, rc.y, set_txt_rc.x - rc.x, rc.h };
-        rect_ui16_t rc_r = { set_txt_rc.x + set_txt_rc.w, rc.y, (rc.x + rc.w) - (set_txt_rc.x + set_txt_rc.w), rc.h };
-        display->fill_rect(rc_t, clr_back);
-        display->fill_rect(rc_b, clr_back);
-        display->fill_rect(rc_l, clr_back);
-        display->fill_rect(rc_r, clr_back);
-
+        fill_between_rectangles(&rc, &set_txt_rc, clr_back);
         display->draw_text(set_txt_rc, str, font, clr_back, clr_text);
     } else {
         display->fill_rect(rc, clr_back);
