@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <array>
 #include "guitypes.h"
+#include "display_helper.h"
 #include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
 
 //todo make version with constant label
@@ -20,6 +21,7 @@ protected:
     bool selected : 1; //should be in child, but is here because of size optimalization
 private:
     uint16_t id_icon : 10;
+    txtroll_t roll;
 
     void printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, uint8_t swap) const;
 
@@ -36,7 +38,7 @@ public:
     void SetHidden() { hidden = true; }
     void SetNotHidden() { hidden = false; }
     bool IsHidden() const { return hidden; }
-    void SetFocus() { focused = true; }
+    void SetFocus();
     void ClrFocus() { focused = false; }
     bool IsFocused() const { return focused; }
     void SetIconId(uint16_t id) { id_icon = id; }
@@ -48,9 +50,11 @@ public:
 
     bool IsSelected() const { return selected; }
     virtual bool Change(int dif) = 0;
-    bool Incement(uint8_t dif) { return Change(dif); }
+    bool Increment(uint8_t dif) { return Change(dif); }
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(Iwindow_menu_t &window_menu);
-
+    void Roll(Iwindow_menu_t &window_menu);
+    void RollInit(Iwindow_menu_t &window_menu, rect_ui16_t rect);
+    bool RollNeedInit() { return roll.setup == TXTROLL_SETUP_INIT; }
     virtual ~IWindowMenuItem() = default;
 };

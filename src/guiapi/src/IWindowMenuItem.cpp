@@ -6,7 +6,8 @@ IWindowMenuItem::IWindowMenuItem(const char *label, uint16_t id_icon, bool enabl
     , enabled(enabled)
     , focused(false)
     , selected(false)
-    , id_icon(id_icon) {
+    , id_icon(id_icon)
+    , roll({ 0 }) {
     SetLabel(label);
 }
 
@@ -46,9 +47,11 @@ void IWindowMenuItem::printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, 
 }
 
 void IWindowMenuItem::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
-    render_text_align(rect, label.data(), window_menu.font,
-        color_back, color_text,
-        window_menu.padding, window_menu.alignment);
+    if (focused && roll.setup == TXTROLL_SETUP_DONE) { //draw normally on TXTROLL_SETUP_INIT or TXTROLL_SETUP_IDLE
+        render_roll_text_align(rect, label.data(), window_menu.font, window_menu.padding, window_menu.alignment, color_back, color_text, &roll);
+    } else {
+        render_text_align(rect, label.data(), window_menu.font, color_back, color_text, window_menu.padding, window_menu.alignment);
+    }
 }
 
 void IWindowMenuItem::Click(Iwindow_menu_t &window_menu) {
@@ -56,4 +59,16 @@ void IWindowMenuItem::Click(Iwindow_menu_t &window_menu) {
     if (IsEnabled()) {
         click(window_menu);
     }
+}
+
+void IWindowMenuItem::RollInit(Iwindow_menu_t &window_menu, rect_ui16_t rect) {
+    roll_init(rect, label.data(), window_menu.font, window_menu.padding, window_menu.alignment, &roll);
+}
+void IWindowMenuItem::Roll(Iwindow_menu_t &window_menu) {
+    roll_text_phasing(window_menu.win.id, window_menu.font, &roll); //warning it is accessing gui timer
+}
+
+void IWindowMenuItem::SetFocus() {
+    focused = true;
+    roll.setup = TXTROLL_SETUP_INIT;
 }

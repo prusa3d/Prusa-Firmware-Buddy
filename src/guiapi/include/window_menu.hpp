@@ -16,8 +16,8 @@ public:
     uint8_t top_index;
     IWinMenuContainer *pContainer;
     bool SetIndex(uint8_t index); //must check container
-    void Incement(int dif);
-    void Decrement(int dif) { Incement(-dif); }
+    void Increment(int dif);
+    void Decrement(int dif) { Increment(-dif); }
     uint8_t GetIndex() const { return index; }
     uint8_t GetCount() const;
     IWindowMenuItem *GetItem(uint8_t index);
