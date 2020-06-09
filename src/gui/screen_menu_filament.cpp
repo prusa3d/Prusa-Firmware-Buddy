@@ -14,7 +14,12 @@
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
-    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
+    const marlin_vars_t *vars = marlin_vars();
+    if (!vars)
+        marlin_gcode_printf("M104 S0");
+
+    /// don't read from EEPROM since it's not in sync
+    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)vars->temp_nozzle);
 }
 void clrPreheatTemp() {
     marlin_gcode("M104 S0");
@@ -33,7 +38,7 @@ public:
     explicit MI_event_dispatcher(const char *label)
         : WI_LABEL_t(label, 0, true, false) {}
 
-    virtual const char *GetHeaderAlterLable() = 0;
+    virtual const char *GetHeaderAlterLabel() = 0;
     virtual void Do() = 0;
 };
 
@@ -46,7 +51,7 @@ class MI_LOAD : public MI_event_dispatcher {
 public:
     MI_LOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() override {
+    virtual const char *GetHeaderAlterLabel() override {
         return header_label;
     }
     virtual void Do() override {
@@ -63,7 +68,7 @@ class MI_UNLOAD : public MI_event_dispatcher {
 public:
     MI_UNLOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() override {
+    virtual const char *GetHeaderAlterLabel() override {
         return header_label;
     }
     virtual void Do() override {
@@ -80,7 +85,7 @@ class MI_CHANGE : public MI_event_dispatcher {
 public:
     MI_CHANGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() override {
+    virtual const char *GetHeaderAlterLabel() override {
         return header_label;
     }
     virtual void Do() override {
@@ -102,7 +107,7 @@ class MI_PURGE : public MI_event_dispatcher {
 public:
     MI_PURGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() override {
+    virtual const char *GetHeaderAlterLabel() override {
         return header_label;
     }
     virtual void Do() override {
@@ -151,7 +156,7 @@ int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event
     if (event == WINDOW_EVENT_CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
-            p_window_header_set_text(&ths->header, item->GetHeaderAlterLable()); //set new label
+            p_window_header_set_text(&ths->header, item->GetHeaderAlterLabel()); //set new label
             item->Do();                                                          //do action (load filament ...)
             p_window_header_set_text(&ths->header, label);                       //restore label
         }
