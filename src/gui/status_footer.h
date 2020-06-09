@@ -10,12 +10,6 @@
 
 #include "gui.h"
 
-#define TEXT_LENGTH_NOZZLE   10
-#define TEXT_LENGTH_HEATBED  10
-#define TEXT_LENGTH_SPEED    5
-#define TEXT_LENGTH_Z        7
-#define TEXT_LENGTH_FILAMENT 5
-
 #pragma pack(push)
 #pragma pack(1)
 //#pragma pack(1) makes enums 8 bit
@@ -31,13 +25,15 @@ typedef enum heat_state_e {
 
 typedef struct
 {
-    float nozzle;                /// temperature of nozzle shown on display
-    float nozzle_target;         /// target temperature of nozzle shown on display
+    float nozzle;                /// current temperature of nozzle
+    float nozzle_target;         /// target temperature of nozzle (not shown)
     float nozzle_target_display; /// target temperature of nozzle shown on display
-    float heatbed;               /// temperature of bed shown on display
-    float heatbed_target;        /// temperature of bed shown on display
-    float z_pos;                 /// z position
-    uint16_t print_speed;        /// print speed in percents
+    float heatbed;               /// current temperature of bed
+    float heatbed_target;        /// target temperature of bed
+    int32_t z_pos;               /// z position, 000.00 fixed point
+    uint32_t last_timer_repaint_values;
+    uint32_t last_timer_repaint_colors;
+    uint32_t last_timer_repaint_z_pos;
 
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
@@ -51,26 +47,14 @@ typedef struct
     window_text_t wt_z_axis;
     window_text_t wt_filament;
 
-    /// these text has to be stored here
-    /// because window_set_text does not copy the text
-    /// and windows have delayed redrawing
-    char text_nozzle[TEXT_LENGTH_NOZZLE];   // "215/215°C"
-    char text_heatbed[TEXT_LENGTH_HEATBED]; // "110/110°C"
-    char text_prnspeed[TEXT_LENGTH_SPEED];  // "999%"
-    char text_z_axis[TEXT_LENGTH_Z];        // "999.95"
-    char filament[TEXT_LENGTH_FILAMENT];    // "PETG"
-
-    uint32_t last_timer_repaint_values;
-    uint32_t last_timer_repaint_colors;
-    uint32_t last_timer_repaint_z_pos;
-
+    uint16_t print_speed; /// print speed in percents
     heat_state_t nozzle_state;
     heat_state_t heatbed_state;
     bool show_second_color;
 
 } status_footer_t;
 
-#define REPAINT_Z_POS_PERIOD 512  /// time span between z position repaint [miliseconds]
+#define REPAINT_Z_POS_PERIOD 256  /// time span between z position repaint [miliseconds]
 #define REPAINT_VALUE_PERIOD 1024 /// time span between value repaint [miliseconds]
 #define BLINK_PERIOD         512  /// time span between color changes [miliseconds]
 

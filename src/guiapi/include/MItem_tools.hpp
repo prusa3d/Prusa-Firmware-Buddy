@@ -195,7 +195,6 @@ protected:
 
 class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = "Timeout";
-    static bool timeout_enabled;
 
 public:
     MI_TIMEOUT();
