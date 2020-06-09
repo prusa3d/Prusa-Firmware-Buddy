@@ -53,6 +53,8 @@ void window_header_init(window_header_t *window) {
 #ifdef BUDDY_ENABLE_ETHERNET
     update_ETH_icon(window);
 #endif //BUDDY_ENABLE_ETHERNET
+
+    display->fill_rect(gui_defaults.header_sz, window->color_back); // clear the window before drawing
 }
 
 void window_header_done(window_header_t *window) {}

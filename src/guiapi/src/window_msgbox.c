@@ -71,8 +71,6 @@ uint16_t window_msgbox_id_icon[5] = {
 };
 
 const padding_ui8_t window_padding = { 8, 2, 8, 2 }; // left, top, right, bottom
-const uint8_t button_h = 30;
-const uint8_t frame_width = 10;
 
 /// Draws window's buttons at the bottom
 void window_msgbox_draw_buttons(window_msgbox_t *window) {

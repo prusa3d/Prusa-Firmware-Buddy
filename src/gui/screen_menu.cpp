@@ -13,7 +13,7 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines)
     padding = { 20, 6, 2, 6 };
     icon_rect = rect_ui16(0, 0, 16, 30);
     const uint16_t win_h = 320;
-    const uint16_t footer_h = win_h - 269; //269 is smallest number i found in footer implementation, todo it should be in guidefaults
+    const uint16_t footer_h = win_h - 269; //269 is the smallest number I found in footer implementation, todo it should be in guidefaults
     const uint16_t help_h = helper_lines * (resource_font(IDR_FNT_SPECIAL)->h + 1);
     //I have no clue why +1, should be + gui_defaults.padding.top + gui_defaults.padding.bottom
     const uint16_t win_x = 10;
@@ -26,12 +26,10 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines)
 
     const rect_ui16_t menu_rect = rect_ui16(win_x, header_h, win_w, menu_rect_h - menu_rect_h % item_h);
 
-    int16_t root_id = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0), &(root));
+    int16_t root_id = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(root));
     window_disable(root_id);
 
-    int16_t id = window_create_ptr(WINDOW_CLS_HEADER, root_id,
-        rect_ui16(0, 0, 240, 31), &(header));
+    int16_t id = window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
     // p_window_header_set_icon(&(header), IDR_PNG_status_icon_menu);
     p_window_header_set_text(&(header), label);
 
