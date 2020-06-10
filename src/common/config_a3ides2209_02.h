@@ -62,15 +62,15 @@
 
 //--------------------------------------
 //Graphical display ST7789v configuration
-#define ST7789V_PIN_CS  PC9  // CS signal pin
-#define ST7789V_PIN_RS  PD11 // RS signal pin
-#define ST7789V_PIN_RST PC8  // RESET signal pin
+#define ST7789V_PIN_CS  TPC9  // CS signal pin
+#define ST7789V_PIN_RS  TPD11 // RS signal pin
+#define ST7789V_PIN_RST TPC8  // RESET signal pin
 
 //--------------------------------------
 //Jogwheel configuration
-#define JOGWHEEL_PIN_EN1 PE15 // encoder signal 1 pin
-#define JOGWHEEL_PIN_EN2 PE13 // encoder signal 2 pin
-#define JOGWHEEL_PIN_ENC PE12 // button pin
+#define JOGWHEEL_PIN_EN1 TPE15 // encoder signal 1 pin
+#define JOGWHEEL_PIN_EN2 TPE13 // encoder signal 2 pin
+#define JOGWHEEL_PIN_ENC TPE12 // button pin
 
 //Simulator configuration
 //#define SIM_HEATER
