@@ -92,7 +92,7 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], int repeats
 
 // Generag [play] method with sound type parameter where dependetly on set mode is played.
 // Every mode handle just his own signal types.
-void Sound::play(eSOUND_TYPE eSoundType){
+void Sound::play(eSOUND_TYPE eSoundType) {
     int t_size = 0;
     switch (eSoundMode) {
     case eSOUND_MODE_ONCE:
