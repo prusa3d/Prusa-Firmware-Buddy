@@ -42,32 +42,7 @@ Sound::Sound() {
     volumes[eSOUND_TYPE_BlindAlert] = 0.25;
     volumes[eSOUND_TYPE_Start] = volume;
 
-		// -- signals repeats - how many times will sound signals repeat (-1 is
-		// infinite)
-		onceRepeats[eSOUND_TYPE_Start] = 1;
-		onceRepeats[eSOUND_TYPE_StandardPrompt] = 1;
-		onceRepeats[eSOUND_TYPE_StandardAlert] = 1;
-		onceRepeats[eSOUND_TYPE_CriticalAlert] = -1;
-
-		loudRepeats[eSOUND_TYPE_Start] = 1;
-		loudRepeats[eSOUND_TYPE_ButtonEcho] = -1;
-		loudRepeats[eSOUND_TYPE_StandardPrompt] = -1;
-		loudRepeats[eSOUND_TYPE_StandardAlert] = 3;
-		loudRepeats[eSOUND_TYPE_CriticalAlert] = -1;
-
-		silentRepeats[eSOUND_TYPE_Start] = 1;
-		silentRepeats[eSOUND_TYPE_StandardAlert] = 1;
-		silentRepeats[eSOUND_TYPE_CriticalAlert] = -1;
-		
-		assistRepeats[eSOUND_TYPE_Start] = 1;
-		assistRepeats[eSOUND_TYPE_ButtonEcho] = 1;
-		assistRepeats[eSOUND_TYPE_StandardPrompt] = -1;
-		assistRepeats[eSOUND_TYPE_StandardAlert] = 3;
-		assistRepeats[eSOUND_TYPE_EncoderMove] = 1;
-		assistRepeats[eSOUND_TYPE_BlindAlert] = 1;
-		assistRepeats[eSOUND_TYPE_CriticalAlert] = -1;
-
-		this->init();
+    this->init();
 }
 
 // Inicialization of Singleton Class needs to be AFTER eeprom inicialization.
@@ -104,12 +79,12 @@ void Sound::stop() {
     repeat = 0;
 }
 
-void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], int size) {
+void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], int repeats[], int size) {
     eSOUND_TYPE type;
     for (int i = 0; i < size; i++) {
         type = types[i];
-        if (types[i] == sound) {
-            this->_sound(1, frequencies[type], durations[type], volumes[type]);
+        if (type == sound) {
+            this->_sound(repeats[i], frequencies[type], durations[type], volumes[type]);
             break;
         }
     }
@@ -122,141 +97,22 @@ void Sound::play(eSOUND_TYPE eSoundType){
     switch (eSoundMode) {
     case eSOUND_MODE_ONCE:
         t_size = sizeof(onceTypes) / sizeof(onceTypes[0]);
-        this->_playSound(eSoundType, onceTypes, t_size);
+        this->_playSound(eSoundType, onceTypes, onceRepeats, t_size);
         break;
     case eSOUND_MODE_SILENT:
         t_size = sizeof(silentTypes) / sizeof(silentTypes[0]);
-        this->_playSound(eSoundType, silentTypes, t_size);
+        this->_playSound(eSoundType, silentTypes, silentRepeats, t_size);
         break;
     case eSOUND_MODE_ASSIST:
         t_size = sizeof(assistTypes) / sizeof(assistTypes[0]);
-        this->_playSound(eSoundType, assistTypes, t_size);
+        this->_playSound(eSoundType, assistTypes, assistRepeats, t_size);
         break;
     case eSOUND_MODE_LOUD:
     default:
         t_size = sizeof(loudTypes) / sizeof(loudTypes[0]);
-        this->_playSound(eSoundType, loudTypes, t_size);
+        this->_playSound(eSoundType, loudTypes, loudRepeats, t_size);
         break;
     }
-}
-
-// Generag [play] method with sound type parameter where dependetly on set mode is played.
-// Every mode handle just his own signal types.
-/* void Sound::play(eSOUND_TYPE eSoundType) {
-    switch (eSoundMode) {
-    case eSOUND_MODE_ONCE:
-        if (eSoundType == eSOUND_TYPE_Start) {
-            this->soundStart(1, 100.f);
-        }
-        if (eSoundType == eSOUND_TYPE_ButtonEcho) {
-            this->soundButtonEcho(1, 100.f);
-        }
-        if (eSoundType == eSOUND_TYPE_StandardPrompt) {
-            this->soundStandardPrompt(1, 500.f);
-        }
-        if (eSoundType == eSOUND_TYPE_StandardAlert) {
-            this->soundStandardAlert(1, 200.f);
-        }
-        if (eSoundType == eSOUND_TYPE_CriticalAlert) {
-            this->soundCriticalAlert(-1, 500.f);
-        }
-        break;
-    case eSOUND_MODE_LOUD:
-        if (eSoundType == eSOUND_TYPE_Start) {
-            this->soundStart(1, 100.f);
-        }
-        if (eSoundType == eSOUND_TYPE_ButtonEcho) {
-            this->soundButtonEcho(1, 100.0f);
-        }
-        if (eSoundType == eSOUND_TYPE_StandardPrompt) {
-            this->soundStandardPrompt(-1, 500.f);
-        }
-        if (eSoundType == eSOUND_TYPE_StandardAlert) {
-            this->soundStandardAlert(3, 200.f);
-        }
-        if (eSoundType == eSOUND_TYPE_CriticalAlert) {
-            this->soundCriticalAlert(-1, 500.f);
-        }
-        break;
-    case eSOUND_MODE_SILENT:
-        if (eSoundType == eSOUND_TYPE_Start) {
-            this->soundStart(1, 100.f);
-        }
-        if (eSoundType == eSOUND_TYPE_StandardAlert) {
-            this->soundStandardAlert(1, 200.f);
-        }
-        if (eSoundType == eSOUND_TYPE_CriticalAlert) {
-            this->soundCriticalAlert(-1, 500.f);
-        }
-        break;
-    case eSOUND_MODE_ASSIST:
-        if (eSoundType == eSOUND_TYPE_Start) {
-            this->soundStart(1, 100.f);
-        }
-        if (eSoundType == eSOUND_TYPE_ButtonEcho) {
-            this->soundButtonEcho(1, 100.0f);
-        }
-        if (eSoundType == eSOUND_TYPE_StandardPrompt) {
-            this->soundStandardPrompt(-1, 500.f);
-        }
-        if (eSoundType == eSOUND_TYPE_StandardAlert) {
-            this->soundStandardAlert(3, 200.f);
-        }
-        if (eSoundType == eSOUND_TYPE_EncoderMove) {
-            this->soundEncoderMove(1, 50.f);
-        }
-        if (eSoundType == eSOUND_TYPE_BlindAlert) {
-            this->soundBlindAlert(1, 100.f);
-        }
-        if (eSoundType == eSOUND_TYPE_CriticalAlert) {
-            this->soundCriticalAlert(-1, 500.f);
-        }
-        break;
-    default:
-        break;
-    }
-} */
-
-// Sound signal played once just after boot
-void Sound::soundStart(int rep, uint32_t del) {
-    float frq = 999.0f;
-    this->_sound(rep, frq, del, volume);
-}
-
-// Sound signal for encoder button click
-void Sound::soundButtonEcho(int rep, uint32_t del) {
-    float frq = 900.0f;
-    this->_sound(rep, frq, del, volume);
-}
-
-// Sound signal for user needed input on prompt screens (filament runout, etc.)
-void Sound::soundStandardPrompt(int rep, uint32_t del) {
-    float frq = 600.0f;
-    this->_sound(rep, frq, del, volume);
-}
-
-// Souns signal for errors, bsod, and others Alert type's events
-void Sound::soundStandardAlert(int rep, uint32_t del) {
-    float frq = 950.0f;
-    this->_sound(rep, frq, del, volume);
-}
-
-// Souns signal for errors, bsod, and others Alert type's events
-void Sound::soundCriticalAlert(int rep, uint32_t del) {
-    float frq = 999.0f;
-    this->_sound(rep, frq, del, 1.0);
-}
-
-// Sound signal every time when encoder nove
-void Sound::soundEncoderMove(int rep, uint32_t del) {
-    float frq = 800.0f;
-    this->_sound(rep, frq, del, 0.25);
-}
-
-// Sound signal for signaling start and end of the menu or items selecting on screen
-void Sound::soundBlindAlert(int rep, uint32_t del) {
-    float frq = 500.0f;
-    this->_sound(rep, frq, del, 0.25);
 }
 
 // Generic [_sound[ method with setting values and repeating logic

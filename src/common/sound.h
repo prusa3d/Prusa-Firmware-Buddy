@@ -34,10 +34,11 @@ public:
     double frequencies[eSOUND_TYPE_count];
     double volumes[eSOUND_TYPE_count];
 
-		const int8_t onceRepeats[4];
-		const int8_t loudRepeats[5];
-		const int8_t silentRepeats[3];
-		const int8_t assistRepeats[7];
+    // -- signals repeats - how many times will sound signals repeat (-1 is infinite)
+    int onceRepeats[4] = { 1, 1, 1, -1 };
+    int loudRepeats[5] = { 1, 1, -1, 3, -1 };
+    int silentRepeats[3] = { 1, 1, -1 };
+    int assistRepeats[7] = { 1, 1, -1, 3, 1, 1, -1 };
 
     const eSOUND_TYPE onceTypes[4]= { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert };
     const eSOUND_TYPE loudTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
@@ -52,14 +53,5 @@ private:
     void init();
     void saveMode();
     void _sound(int rep, float frq, uint32_t del, float vol);
-		void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], int size);
-
-    // -- sound types
-    void soundStart(int rep, uint32_t del);
-    void soundButtonEcho(int rep, uint32_t del);
-    void soundStandardPrompt(int rep, uint32_t del);
-    void soundStandardAlert(int rep, uint32_t del);
-    void soundEncoderMove(int rep, uint32_t del);
-    void soundBlindAlert(int rep, uint32_t del);
-    void soundCriticalAlert(int rep, uint32_t del);
+    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], int repeats[], int size);
 };
