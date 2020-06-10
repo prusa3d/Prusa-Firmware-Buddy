@@ -82,7 +82,6 @@ typedef struct
 extern "C" void set_instance(ml_instance_t *pinst);
 void set_self_instance(void);
 
-//size_t strdel(char *pstr, size_t n = 1);
 size_t strdel(char *str, const size_t &n = 1);
 size_t strins(char *pstr, const char *pinstr, size_t repeater = 1, bool before_flag = false);
 

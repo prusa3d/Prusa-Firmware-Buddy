@@ -23,8 +23,8 @@ void set_self_instance(void) {
 size_t strdel(char *str, const size_t &n) {
     if (str == nullptr)
         return 0;
-    size_t size = strlen(str);
 
+    size_t size = strlen(str);
     if (n >= size) {
         str[0] = '\0';
         return size;
@@ -36,29 +36,32 @@ size_t strdel(char *str, const size_t &n) {
     return n;
 }
 
-/// help function (insertion into string)
-size_t strins(char *pstr, const char *pinstr, size_t repeater, bool before_flag) {
-    size_t count, n, n_ins;
-    size_t i, r;
+/// Inserts \param ins into \param str \param times times
+/// \returns number of inserted characters
+size_t strins(char *str, const char *ins, size_t times, bool before_flag) {
+    // TODO check capacity of the \param str
+    if (str == nullptr || ins == nullptr)
+        return 0;
 
-    count = strlen(pstr);
-    n = strlen(pinstr);
-    n_ins = n * repeater;
-    pstr += count; // ~ EOS position
+    size_t count = strlen(str);
+    const size_t n = strlen(ins);
+    const size_t inserted = n * times;
+    str += count; // ~ EOS position
 
     if (before_flag)
         count++;
 
-    for (i = 0; i < count; i++, pstr--)
-        *(pstr + n_ins) = *pstr;
+    size_t i;
+    for (i = 0; i < count; i++, str--)
+        *(str + inserted) = *str;
 
-    pstr++;
+    str++;
 
-    for (r = 0; r < repeater; r++)
-        for (i = 0; i < n; i++, pstr++)
-            *pstr = *(pinstr + i);
+    for (size_t r = 0; r < times; r++)
+        for (i = 0; i < n; i++, str++)
+            *str = *(ins + i);
 
-    return (n_ins);
+    return inserted;
 }
 
 /// help function (parametr setter)
