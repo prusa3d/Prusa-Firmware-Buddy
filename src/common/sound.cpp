@@ -14,32 +14,32 @@ Sound::Sound() {
     frequency = 100.f; // frequency of sound signal (0-1000)
     volume = 0.50;     // volume of sound signal (0-1)
 
-		// -- durations of beep
-		durations[eSOUND_TYPE_ButtonEcho] = 100.f;
-		durations[eSOUND_TYPE_StandardPrompt] = 500.f;
-		durations[eSOUND_TYPE_StandardAlert] = 200.f;
-		durations[eSOUND_TYPE_CriticalAlert] = 500.f;
-		durations[eSOUND_TYPE_EncoderMove] = 50.f;
-		durations[eSOUND_TYPE_BlindAlert] = 100.f;
-		durations[eSOUND_TYPE_Start] = 100.f;
+    // -- durations of beep
+    durations[eSOUND_TYPE_ButtonEcho] = 100.f;
+    durations[eSOUND_TYPE_StandardPrompt] = 500.f;
+    durations[eSOUND_TYPE_StandardAlert] = 200.f;
+    durations[eSOUND_TYPE_CriticalAlert] = 500.f;
+    durations[eSOUND_TYPE_EncoderMove] = 50.f;
+    durations[eSOUND_TYPE_BlindAlert] = 100.f;
+    durations[eSOUND_TYPE_Start] = 100.f;
 
-		// -- frequencies of beep
-		frequencies[eSOUND_TYPE_ButtonEcho] = 900.f;
-		frequencies[eSOUND_TYPE_StandardPrompt] = 600.f;
-		frequencies[eSOUND_TYPE_StandardAlert] = 950.f;
-		frequencies[eSOUND_TYPE_CriticalAlert] = 999.f;
-		frequencies[eSOUND_TYPE_EncoderMove] = 800.f;
-		frequencies[eSOUND_TYPE_BlindAlert] = 500.f;
-		frequencies[eSOUND_TYPE_Start] = 999.f;
+    // -- frequencies of beep
+    frequencies[eSOUND_TYPE_ButtonEcho] = 900.f;
+    frequencies[eSOUND_TYPE_StandardPrompt] = 600.f;
+    frequencies[eSOUND_TYPE_StandardAlert] = 950.f;
+    frequencies[eSOUND_TYPE_CriticalAlert] = 999.f;
+    frequencies[eSOUND_TYPE_EncoderMove] = 800.f;
+    frequencies[eSOUND_TYPE_BlindAlert] = 500.f;
+    frequencies[eSOUND_TYPE_Start] = 999.f;
 
-		// -- volumes of bee8p
-		volumes[eSOUND_TYPE_ButtonEcho] = volume;
-		volumes[eSOUND_TYPE_StandardPrompt] = volume;
-		volumes[eSOUND_TYPE_StandardAlert] = volume;
-		volumes[eSOUND_TYPE_CriticalAlert] = volume;
-		volumes[eSOUND_TYPE_EncoderMove] = 0.25;
-		volumes[eSOUND_TYPE_BlindAlert] = 0.25;
-		volumes[eSOUND_TYPE_Start] = volume;
+    // -- volumes of bee8p
+    volumes[eSOUND_TYPE_ButtonEcho] = volume;
+    volumes[eSOUND_TYPE_StandardPrompt] = volume;
+    volumes[eSOUND_TYPE_StandardAlert] = volume;
+    volumes[eSOUND_TYPE_CriticalAlert] = volume;
+    volumes[eSOUND_TYPE_EncoderMove] = 0.25;
+    volumes[eSOUND_TYPE_BlindAlert] = 0.25;
+    volumes[eSOUND_TYPE_Start] = volume;
 
     this->init();
 }
@@ -78,9 +78,43 @@ void Sound::stop() {
     repeat = 0;
 }
 
+void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], int size) {
+    eSOUND_TYPE type;
+    for (int i = 0; i < size; i++) {
+        type = types[i];
+        if (types[i] == sound) {
+            this->_sound(1, frequencies[type], durations[type], volumes[type]);
+            break;
+        }
+    }
+}
+
+void Sound::play(eSOUND_TYPE eSoundType){
+    int t_size = 0;
+    switch (eSoundMode) {
+    case eSOUND_MODE_ONCE:
+        t_size = sizeof(onceTypes) / sizeof(onceTypes[0]);
+        this->_playSound(eSoundType, onceTypes, t_size);
+        break;
+    case eSOUND_MODE_SILENT:
+        t_size = sizeof(silentTypes) / sizeof(silentTypes[0]);
+        this->_playSound(eSoundType, silentTypes, t_size);
+        break;
+    case eSOUND_MODE_ASSIST:
+        t_size = sizeof(assistTypes) / sizeof(assistTypes[0]);
+        this->_playSound(eSoundType, assistTypes, t_size);
+        break;
+    case eSOUND_MODE_LOUD:
+    default:
+        t_size = sizeof(loudTypes) / sizeof(loudTypes[0]);
+        this->_playSound(eSoundType, loudTypes, t_size);
+        break;
+    }
+}
+
 // Generag [play] method with sound type parameter where dependetly on set mode is played.
 // Every mode handle just his own signal types.
-void Sound::play(eSOUND_TYPE eSoundType) {
+/* void Sound::play(eSOUND_TYPE eSoundType) {
     switch (eSoundMode) {
     case eSOUND_MODE_ONCE:
         if (eSoundType == eSOUND_TYPE_Start) {
@@ -153,7 +187,7 @@ void Sound::play(eSOUND_TYPE eSoundType) {
     default:
         break;
     }
-}
+} */
 
 // Sound signal played once just after boot
 void Sound::soundStart(int rep, uint32_t del) {

@@ -30,14 +30,14 @@ public:
     double frequency;
     double volume;
 
-		const uint32_t[eSOUND_TYPE_count] durations;
-		const double[eSOUND_TYPE_count] frequencies;
-		const double[eSOUND_TYPE_count] volumes;
+    uint32_t durations[eSOUND_TYPE_count];
+    double frequencies[eSOUND_TYPE_count];
+    double volumes[eSOUND_TYPE_count];
 
-		eSOUND_TYPE[4] onceTypes = {eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert};
-		eSOUND_TYPE[5] loudTypes = {eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert};
-		eSOUND_TYPE[2] silentTypes = {eSOUND_TYPE_Start, eSOUND_TYPE_CriticalAlert};
-		eSOUND_TYPE[7] assistTypes = {eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert};
+    const eSOUND_TYPE onceTypes[4]= { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert };
+    const eSOUND_TYPE loudTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
+    const eSOUND_TYPE silentTypes[2] = { eSOUND_TYPE_Start, eSOUND_TYPE_CriticalAlert };
+    const eSOUND_TYPE assistTypes[7] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert };
 
 private:
     Sound();
@@ -47,6 +47,7 @@ private:
     void init();
     void saveMode();
     void _sound(int rep, float frq, uint32_t del, float vol);
+		void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], int size);
 
     // -- sound types
     void soundStart(int rep, uint32_t del);
