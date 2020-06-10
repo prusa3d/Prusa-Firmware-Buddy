@@ -11,6 +11,7 @@
 #include <array>
 #include <ctime>
 #include "wui_api.h"
+#include "../lang/i18n.h"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"
@@ -187,7 +188,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    strlcpy(pw->label_etime.data(), "Remaining Time", 15);
+    strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
     window_set_text(id, pw->label_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
@@ -332,11 +333,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
         time_t sec = sntp_get_system_time();
         if (sec != 0) {
-            strlcpy(pw->label_etime.data(), "Print will end", 15);
+            strlcpy(pw->label_etime.data(), _("Print will end"), 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
             update_end_timestamp(screen, sec);
         } else {
-            strlcpy(pw->label_etime.data(), "Remaining Time", 15);
+            strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
             update_remaining_time(screen, marlin_vars()->time_to_end);
         }
@@ -396,7 +397,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         case printing_state_t::RESUMING:
             return 0;
         default: {
-            if (gui_msgbox("Are you sure to stop this printing?",
+            if (gui_msgbox(_("Are you sure to stop this printing?"),
                     MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
                 == MSGBOX_RES_YES) {
                 pw->stop_pressed = true;

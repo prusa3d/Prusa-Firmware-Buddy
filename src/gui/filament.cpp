@@ -6,15 +6,21 @@
 #include "assert.h"
 #include "filament.h"
 #include <cstring>
+#include "../lang/i18n.h"
 
 //fixme generating long names, takes too long
 const filament_t filaments[FILAMENTS_END] = {
-    { "---", "Cooldown", 0, 0 },
+    { "---", N_("Cooldown"), 0, 0 },
     { "PLA", "PLA      215/ 60", 215, 60 },
     { "PETG", "PETG     230/ 85", 230, 85 },
     { "ASA", "ASA      260/100", 260, 100 },
+    { "ABS", "ABS      255/100", 255, 100 },
+    { "PC", "PC       275/100", 275, 100 },
     { "FLEX", "FLEX     240/ 50", 240, 50 },
+    { "HIPS", "HIPS     220/100", 220, 100 },
+    { "PP", "PP       240/100", 240, 100 },
 };
+
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == FILAMENTS_END, "Filament count error.");
 
 static FILAMENT_t filament_selected = FILAMENTS_END;

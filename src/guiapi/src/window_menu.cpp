@@ -52,7 +52,7 @@ uint8_t window_menu_t::GetCount() const {
     return pContainer->GetCount();
 }
 
-IWindowMenuItem *window_menu_t::GetItem(uint8_t index) {
+IWindowMenuItem *window_menu_t::GetItem(uint8_t index) const {
     if (!pContainer)
         return nullptr;
     if (index >= GetCount())
@@ -121,15 +121,14 @@ void window_menu_draw(window_menu_t *window) {
         return;
     }
 
-    int item_height = window->font->h + window->padding.top + window->padding.bottom;
+    const int item_height = window->font->h + window->padding.top + window->padding.bottom;
     rect_ui16_t rc_win = window->win.rect;
 
-    size_t visible_count = rc_win.h / item_height;
+    const size_t visible_count = rc_win.h / item_height;
     size_t i;
     for (i = 0; i < visible_count && i < window->GetCount(); ++i) {
-        int idx = i + window->top_index;
 
-        IWindowMenuItem *item = window->GetItem(idx);
+        IWindowMenuItem *item = window->GetItem(i + window->top_index);
         if (!item) {
             --i;
             break;
@@ -156,7 +155,7 @@ void window_menu_draw(window_menu_t *window) {
     window->win.flg &= ~WINDOW_FLG_INVALID;
 }
 
-//i think I do not need
+//I think I do not need
 //screen_dispatch_event
 //callback should handle it
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {

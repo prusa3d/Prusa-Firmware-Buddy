@@ -1,5 +1,8 @@
 // firstlay.c
 
+#include <stdio.h>
+#include <string.h>
+
 #include "firstlay.h"
 #include "dbg.h"
 #include "config.h"
@@ -9,22 +12,30 @@
 #include "wizard_ui.h"
 #include "wizard_types.h"
 #include "wizard_progress_bar.h"
-#include <stdio.h>
-#include <string.h>
 #include "guitypes.h" //font_meas_text
 #include "menu_vars.h"
 #include "filament.h"
+#include "../lang/i18n.h"
+#include "cmath_ext.h"
 
 const char *V2_gcodes_head_PLA[];
 const char *V2_gcodes_head_PETG[];
 const char *V2_gcodes_head_ASA[];
+const char *V2_gcodes_head_ABS[];
+const char *V2_gcodes_head_PC[];
 const char *V2_gcodes_head_FLEX[];
+const char *V2_gcodes_head_HIPS[];
+const char *V2_gcodes_head_PP[];
 const char *V2_gcodes_body[];
 
 const size_t V2_gcodes_head_PLA_sz;
 const size_t V2_gcodes_head_PETG_sz;
 const size_t V2_gcodes_head_ASA_sz;
+const size_t V2_gcodes_head_ABS_sz;
+const size_t V2_gcodes_head_PC_sz;
 const size_t V2_gcodes_head_FLEX_sz;
+const size_t V2_gcodes_head_HIPS_sz;
+const size_t V2_gcodes_head_PP_sz;
 const size_t V2_gcodes_body_sz;
 
 //todo use marlin api
@@ -49,14 +60,14 @@ void _set_gcode_first_lines();
 
 //returns remaining lines
 #if DEBUG_TERM == 0
-static const char *_wizard_firstlay_text = "Once the printer   \n"
-                                           "starts extruding   \n"
-                                           "plastic, adjust    \n"
-                                           "the nozzle height  \n"
-                                           "by turning the knob\n"
-                                           "until the filament \n"
-                                           "sticks to the print\n"
-                                           "sheet.";
+static const char *_wizard_firstlay_text = N_("Once the printer   \n"
+                                              "starts extruding   \n"
+                                              "plastic, adjust    \n"
+                                              "the nozzle height  \n"
+                                              "by turning the knob\n"
+                                              "until the filament \n"
+                                              "sticks to the print\n"
+                                              "sheet.");
 int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count);
 #else
 int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term);
@@ -131,9 +142,25 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             head_gcode = V2_gcodes_head_ASA;
             head_gcode_sz = V2_gcodes_head_ASA_sz;
             break;
+        case FILAMENT_ABS:
+            head_gcode = V2_gcodes_head_ABS;
+            head_gcode_sz = V2_gcodes_head_ABS_sz;
+            break;
+        case FILAMENT_PC:
+            head_gcode = V2_gcodes_head_PC;
+            head_gcode_sz = V2_gcodes_head_PC_sz;
+            break;
         case FILAMENT_FLEX:
             head_gcode = V2_gcodes_head_FLEX;
             head_gcode_sz = V2_gcodes_head_FLEX_sz;
+            break;
+        case FILAMENT_HIPS:
+            head_gcode = V2_gcodes_head_HIPS;
+            head_gcode_sz = V2_gcodes_head_HIPS_sz;
+            break;
+        case FILAMENT_PP:
+            head_gcode = V2_gcodes_head_PP;
+            head_gcode_sz = V2_gcodes_head_PP_sz;
             break;
         case FILAMENT_PLA:
         default:
@@ -146,6 +173,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 
         //G28 must be before G29, both must be present or head is invalid
         //find "G29" == MBL
+        //FIXME use strstr() instead
         for (G29_pos = 0; (G29_pos < head_gcode_sz) && strcmp(head_gcode[G29_pos], "G29"); ++G29_pos)
             ; //no body
         //find "G28" == autohome needed for retry
@@ -181,7 +209,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             marlin_error_clr(MARLIN_ERR_ProbingFailed);
             marlin_gcode("G0 Z30"); //Z 30mm
             marlin_gcode("M84");    //Disable steppers
-            if (wizard_msgbox("Mesh bed leveling failed?", MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
+            if (wizard_msgbox(_("Mesh bed leveling failed?"), MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
                 //RETRY
                 line_head = G28_pos;
             } else {
@@ -279,14 +307,10 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     p_screen->Z_offset_request = 0;
 }
 
-#define V__GCODES_HEAD_BEGIN                \
-    "M107",    /*fan off */                 \
-        "G90", /*use absolute coordinates*/ \
-        "M83", /*extruder relative mode*/
-
-#define V__GCODES_HEAD_END                   \
-    "G28",     /*autohome*/                  \
-        "G29", /*meshbed leveling*/          \
+#define V__GCODES_HEAD_BEGIN                 \
+    "M107",    /*fan off */                  \
+        "G90", /*use absolute coordinates*/  \
+        "M83", /*extruder relative mode*/    \
         "G21", /* set units to millimeters*/ \
         "G90", /* use absolute coordinates*/ \
         "M83", /* use relative distances for extrusion*/
@@ -294,43 +318,107 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 //todo generate me
 const char *V2_gcodes_head_PLA[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S215", //nozzle target 215C
-    "M140 S60",  //bed target 60C
-    "M190 S60",  //wait for bed temp 60C
-    "M109 S215", //wait for nozzle temp 215C
-    V__GCODES_HEAD_END
+    "M104 S" PREHEAT_TEMP_STRING " D215", //nozzle target
+    "M140 S60",                           //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S60",                           //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S215",                          //nozzle target
+    "M109 S215",                          //wait for nozzle temp
 };
 const size_t V2_gcodes_head_PLA_sz = sizeof(V2_gcodes_head_PLA) / sizeof(V2_gcodes_head_PLA[0]);
 
 const char *V2_gcodes_head_PETG[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S230", //nozzle target 215C
-    "M140 S85",  //bed target 60C
-    "M190 S85",  //wait for bed temp 60C
-    "M109 S230", //wait for nozzle temp 215C
-    V__GCODES_HEAD_END
+    "M104 S" PREHEAT_TEMP_STRING " D230", //nozzle target
+    "M140 S85",                           //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S85",                           //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S230",                          //nozzle target
+    "M109 S230",                          //wait for nozzle temp
 };
 const size_t V2_gcodes_head_PETG_sz = sizeof(V2_gcodes_head_PETG) / sizeof(V2_gcodes_head_PETG[0]);
 
 const char *V2_gcodes_head_ASA[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S260", //nozzle target 215C
-    "M140 S100", //bed target 60C
-    "M190 S100", //wait for bed temp 60C
-    "M109 S260", //wait for nozzle temp 215C
-    V__GCODES_HEAD_END
+    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S260",                          //nozzle target
+    "M109 S260",                          //wait for nozzle temp
 };
 const size_t V2_gcodes_head_ASA_sz = sizeof(V2_gcodes_head_ASA) / sizeof(V2_gcodes_head_ASA[0]);
 
+const char *V2_gcodes_head_ABS[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S255",                          //nozzle target
+    "M109 S255",                          //wait for nozzle temp
+};
+const size_t V2_gcodes_head_ABS_sz = sizeof(V2_gcodes_head_ABS) / sizeof(V2_gcodes_head_ABS[0]);
+
+const char *V2_gcodes_head_PC[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S275",                          //nozzle target
+    "M109 S275",                          //wait for nozzle temp
+};
+const size_t V2_gcodes_head_PC_sz = sizeof(V2_gcodes_head_PC) / sizeof(V2_gcodes_head_PC[0]);
+
 const char *V2_gcodes_head_FLEX[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S240", //nozzle target 215C
-    "M140 S50",  //bed target 60C
-    "M190 S50",  //wait for bed temp 60C
-    "M109 S240", //wait for nozzle temp 215C
-    V__GCODES_HEAD_END
+    "M104 S" PREHEAT_TEMP_STRING " D240", //nozzle target
+    "M140 S50",                           //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S50",                           //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S240",                          //nozzle target
+    "M109 S240",                          //wait for nozzle temp
 };
 const size_t V2_gcodes_head_FLEX_sz = sizeof(V2_gcodes_head_FLEX) / sizeof(V2_gcodes_head_FLEX[0]);
+
+const char *V2_gcodes_head_HIPS[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S220",                          //nozzle target
+    "M109 S220",                          //wait for nozzle temp
+};
+const size_t V2_gcodes_head_HIPS_sz = sizeof(V2_gcodes_head_HIPS) / sizeof(V2_gcodes_head_HIPS[0]);
+
+const char *V2_gcodes_head_PP[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M140 S100",                          //bed target
+    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S100",                          //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S240",                          //nozzle target
+    "M109 S240",                          //wait for nozzle temp
+};
+const size_t V2_gcodes_head_PP_sz = sizeof(V2_gcodes_head_PP) / sizeof(V2_gcodes_head_PP[0]);
 
 //EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
 
@@ -433,10 +521,7 @@ const size_t V2_gcodes_body_sz = sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[
 
 int _get_progress() {
     //if ( _is_gcode_end_line() ) return 100;
-    int ret = 100 * (line_head + 1 + line_body + 1) / gcode_sz;
-    if (ret > 99)
-        return 99;
-    return ret;
+    return MIN(99, 100 * (line_head + 1 + line_body + 1) / gcode_sz);
 }
 
 //returns progress

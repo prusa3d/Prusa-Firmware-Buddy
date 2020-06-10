@@ -1,6 +1,7 @@
 #include "DialogStateful.hpp"
 #include "DialogRadioButton.hpp"
 #include "gui.h"
+#include "../lang/i18n.h"
 
 static constexpr uint8_t PROGRESS_BAR_X_PAD = 10;
 static constexpr uint8_t PROGRESS_BAR_Y_PAD = 30;
@@ -129,6 +130,6 @@ void IDialogStateful::draw_phase_text(const char *text) {
 
     last_text_h = rc_sta.h;
 
-    render_text_align(rc_sta, text, font_title,
+    render_text_align(rc_sta, _(text), font_title,
         color_back, color_text, padding, ALIGN_CENTER);
 }

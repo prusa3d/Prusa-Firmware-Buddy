@@ -2,9 +2,10 @@
 //Screen openning menu items
 #pragma once
 #include "WindowMenuItems.hpp"
+#include "../lang/i18n.h"
 
 class MI_VERSION_INFO : public WI_LABEL_t {
-    static constexpr const char *const label = "Version Info";
+    static constexpr const char *const label = N_("Version Info");
 
 public:
     MI_VERSION_INFO();
@@ -14,7 +15,7 @@ protected:
 };
 
 class MI_FILAMENT : public WI_LABEL_t {
-    static constexpr const char *const label = "Filament";
+    static constexpr const char *const label = N_("Filament");
 
 public:
     MI_FILAMENT();
@@ -24,7 +25,7 @@ protected:
 };
 
 class MI_SYS_INFO : public WI_LABEL_t {
-    static constexpr const char *const label = "System Info";
+    static constexpr const char *const label = N_("System Info");
 
 public:
     MI_SYS_INFO();
@@ -34,7 +35,7 @@ protected:
 };
 
 class MI_STATISTIC_disabled : public WI_LABEL_t {
-    static constexpr const char *const label = "Statistic";
+    static constexpr const char *const label = N_("Statistic");
 
 public:
     MI_STATISTIC_disabled();
@@ -44,7 +45,7 @@ protected:
 };
 
 class MI_FAIL_STAT_disabled : public WI_LABEL_t {
-    static constexpr const char *const label = "Fail Stats";
+    static constexpr const char *const label = N_("Fail Stats");
 
 public:
     MI_FAIL_STAT_disabled();
@@ -54,7 +55,7 @@ protected:
 };
 
 class MI_SUPPORT_disabled : public WI_LABEL_t {
-    static constexpr const char *const label = "Support";
+    static constexpr const char *const label = N_("Support");
 
 public:
     MI_SUPPORT_disabled();
@@ -64,7 +65,7 @@ protected:
 };
 
 class MI_QR_test : public WI_LABEL_t {
-    static constexpr const char *const label = "QR test";
+    static constexpr const char *const label = N_("QR test");
 
 public:
     MI_QR_test();
@@ -74,7 +75,7 @@ protected:
 };
 
 class MI_QR_info : public WI_LABEL_t {
-    static constexpr const char *const label = "Send Info by QR";
+    static constexpr const char *const label = N_("Send Info by QR");
 
 public:
     MI_QR_info();
@@ -84,7 +85,7 @@ protected:
 };
 
 class MI_TEMPERATURE : public WI_LABEL_t {
-    static constexpr const char *const label = "Temperature";
+    static constexpr const char *const label = N_("Temperature");
 
 public:
     MI_TEMPERATURE();
@@ -94,7 +95,7 @@ protected:
 };
 
 class MI_MOVE_AXIS : public WI_LABEL_t {
-    static constexpr const char *const label = "Move Axis";
+    static constexpr const char *const label = N_("Move Axis");
 
 public:
     MI_MOVE_AXIS();
@@ -104,7 +105,7 @@ protected:
 };
 
 class MI_SERVICE : public WI_LABEL_t {
-    static constexpr const char *const label = "Service";
+    static constexpr const char *const label = N_("Service");
 
 public:
     MI_SERVICE();
@@ -114,7 +115,7 @@ protected:
 };
 
 class MI_TEST : public WI_LABEL_t {
-    static constexpr const char *const label = "Test";
+    static constexpr const char *const label = N_("Test");
 
 public:
     MI_TEST();
@@ -124,7 +125,7 @@ protected:
 };
 
 class MI_FW_UPDATE : public WI_LABEL_t {
-    static constexpr const char *const label = "FW Update";
+    static constexpr const char *const label = N_("FW Update");
 
 public:
     MI_FW_UPDATE();
@@ -134,7 +135,7 @@ protected:
 };
 
 class MI_LAN_SETTINGS : public WI_LABEL_t {
-    static constexpr const char *const label = "Lan settings";
+    static constexpr const char *const label = N_("Lan settings");
 
 public:
     MI_LAN_SETTINGS();
@@ -144,7 +145,7 @@ protected:
 };
 
 class MI_MESSAGES : public WI_LABEL_t {
-    static constexpr const char *const label = "Messages";
+    static constexpr const char *const label = N_("Messages");
 
 public:
     MI_MESSAGES();

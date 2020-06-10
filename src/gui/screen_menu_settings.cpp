@@ -16,18 +16,19 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
+#include "../lang/i18n.h"
 
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = "Fil. sens.";
+    constexpr static const char *const label = N_("Fil. sens.");
 
     size_t init_index() const {
         fsensor_t fs = fs_wait_inicialized();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
-            gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
+            gui_msgbox(_("No filament sensor detected. Verify that the sensor is connected and try again."), MSGBOX_ICO_QUESTION);
             fs = FS_DISABLED;
         }
         return fs == FS_DISABLED ? 0 : 1;
@@ -42,7 +43,7 @@ public:
         if (fs == FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
             fs_disable();
             index = 0;
-            gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
+            gui_msgbox(_("No filament sensor detected. Verify that the sensor is connected and try again."), MSGBOX_ICO_QUESTION);
         }
     }
 
@@ -54,7 +55,7 @@ protected:
         {
             fs_disable();
             index = old_index;
-            gui_msgbox("No filament sensor detected. Verify that the sensor is connected and try again.", MSGBOX_ICO_QUESTION);
+            gui_msgbox(_("No filament sensor detected. Verify that the sensor is connected and try again."), MSGBOX_ICO_QUESTION);
         }
     }
 };
@@ -81,7 +82,7 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 
 class ScreenMenuSettings : public parent {
 public:
-    constexpr static const char *label = "Settings";
+    constexpr static const char *label = N_("Settings");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
