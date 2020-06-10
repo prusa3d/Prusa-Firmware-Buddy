@@ -18,19 +18,21 @@ void set_self_instance(void) {
     pinstance = &self_instance;
 }
 
-/// Deletes \param n characters from beginning of the \param text
+/// Deletes \param n characters from beginning of the \param str
 /// \returns number of deleted characters
-size_t strdel(char *text, const size_t &n) {
-    size_t size = strlen(text);
+size_t strdel(char *str, const size_t &n) {
+    if (str == nullptr)
+        return 0;
+    size_t size = strlen(str);
 
     if (n >= size) {
-        text[0] = '\0';
+        str[0] = '\0';
         return size;
     }
 
     size = size - n + 1; // copy \0 as well
-    for (size_t i = 0; i < size; ++i, ++text)
-        *text = *(text + n);
+    for (size_t i = 0; i < size; ++i, ++str)
+        *str = *(str + n);
     return n;
 }
 
