@@ -14,17 +14,20 @@ void set_self_instance(void) {
     pinstance = &self_instance;
 }
 
-/// help function (deletion from string)
-size_t strdel(char *pstr, size_t n) {
-    size_t count, i;
+/// Deletes \param n characters from beginning of the \param text
+/// \returns number of deleted characters
+size_t strdel(char *text, const size_t &n) {
+    size_t size = strlen(text);
 
-    count = strlen(pstr);
-    if (n > count)
-        n = count;
-    count = count - n + 1;
-    for (i = 0; i < count; i++, pstr++)
-        *pstr = *(pstr + n);
-    return (n);
+    if (n >= size) {
+        text[0] = '\0';
+        return size;
+    }
+
+    size = size - n + 1; // copy \0 as well
+    for (size_t i = 0; i < size; ++i, ++text)
+        *text = *(text + n);
+    return n;
 }
 
 /// help function (insertion into string)
@@ -36,14 +39,19 @@ size_t strins(char *pstr, const char *pinstr, size_t repeater, bool before_flag)
     n = strlen(pinstr);
     n_ins = n * repeater;
     pstr += count; // ~ EOS position
+
     if (before_flag)
         count++;
+
     for (i = 0; i < count; i++, pstr--)
         *(pstr + n_ins) = *pstr;
+
     pstr++;
+
     for (r = 0; r < repeater; r++)
         for (i = 0; i < n; i++, pstr++)
             *pstr = *(pinstr + i);
+
     return (n_ins);
 }
 
@@ -73,6 +81,16 @@ void set_defaults(void) {
 size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set, char substitute_char) {
     size_t counter = 0;
     bool flag;
+}
+
+size_t str2plain(char *pstr, bool withdraw_flag) {
+    const char *pset = "";
+
+    if (withdraw_flag)
+        pset = pwithdraw_set;
+    return (str2plain(pstr, pset));
+}
+
 static const char *pcustom_set = "";
 static const char *pwithdraw_set = "";
 static int hyphen_distance = HYPHEN_DENY;
@@ -87,25 +105,6 @@ size_t strdel(char *pstr, size_t n) {
     for (i = 0; i < count; i++, pstr++)
         *pstr = *(pstr + n);
     return (n);
-}
-
-size_t strins(char *pstr, const char *pinstr, size_t repeater, bool before_flag) {
-    size_t count, n, n_ins;
-    size_t i, r;
-
-    count = strlen(pstr);
-    n = strlen(pinstr);
-    n_ins = n * repeater;
-    pstr += count; // ~ EOS position
-    if (before_flag)
-        count++;
-    for (i = 0; i < count; i++, pstr--)
-        *(pstr + n_ins) = *pstr;
-    pstr++;
-    for (r = 0; r < repeater; r++)
-        for (i = 0; i < n; i++, pstr++)
-            *pstr = *(pinstr + i);
-    return (n_ins);
 }
 
 void set_custom_set(const char *pstr) {
@@ -144,15 +143,6 @@ size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_se
         pstr++;
     }
     return (counter);
-}
-
-
-size_t str2plain(char *pstr, bool withdraw_flag) {
-    const char *pset = "";
-
-    if (withdraw_flag)
-        pset = pwithdraw_set;
-    return (str2plain(pstr, pset));
 }
 
 size_t str2multiline(char *pstr, size_t line_width) {
@@ -239,20 +229,20 @@ size_t str2multiline(char *pstr, size_t line_width) {
     }
     return (lines_count);
 }
-    while (*pstr != EOS) {
-        if ((flag = (*pstr == CHAR_HSPACE)) || (strchr(substitute_set, *pstr) != NULL)) {
-            if (flag)
-                *pstr = CHAR_SPACE;
-            else
-                *pstr = substitute_char;
-            counter++;
-        } else if ((*pstr == CHAR_HYPHEN) || (strchr(withdraw_set, *pstr) != NULL)) {
-            pstr -= strdel(pstr); // pointer correction needed
-            counter++;
-        }
-        pstr++;
+while (*pstr != EOS) {
+    if ((flag = (*pstr == CHAR_HSPACE)) || (strchr(substitute_set, *pstr) != NULL)) {
+        if (flag)
+            *pstr = CHAR_SPACE;
+        else
+            *pstr = substitute_char;
+        counter++;
+    } else if ((*pstr == CHAR_HYPHEN) || (strchr(withdraw_set, *pstr) != NULL)) {
+        pstr -= strdel(pstr); // pointer correction needed
+        counter++;
     }
-    return (counter);
+    pstr++;
+}
+return (counter);
 }
 
 /// converts string to plain text
