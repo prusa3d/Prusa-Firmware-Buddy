@@ -67,14 +67,15 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
 }
 
 void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags) {
+    color_t opt_clr = ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0;
     point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
     if (wh_ico.x && wh_ico.y) {
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
-        fill_between_rectangles(&rc, &rc_ico, ((flags >> 8) & ROPFN_SWAPBW) ? clr0 ^ 0xffffffff : clr0);
+        fill_between_rectangles(&rc, &rc_ico, opt_clr);
         display->draw_icon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
     } else
-        display->fill_rect(rc, clr0);
+        display->fill_rect(rc, opt_clr);
 }
 
 void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
@@ -113,28 +114,32 @@ void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
     }
 }
 
-void render_roll_text_align(rect_ui16_t rc, const char *text, font_t *font,
-    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, txtroll_t *roll) {
+void roll_init(rect_ui16_t rc, const char *text, const font_t *font,
+    padding_ui8_t padding, uint8_t alignment, txtroll_t *roll) {
+    roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
+    roll->count = text_rolls_meas(roll->rect, text, font);
+    roll->progress = roll->px_cd = roll->phase = 0;
+    if (roll->count == 0) {
+        roll->setup = TXTROLL_SETUP_IDLE;
+    } else {
+        roll->setup = TXTROLL_SETUP_DONE;
+    }
+}
+
+void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font,
+    padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll) {
+    if (roll->setup == TXTROLL_SETUP_INIT)
+        return;
 
     if (text == 0) {
         display->fill_rect(rc, clr_back);
         return;
     }
 
-    if (roll->setup == TXTROLL_SETUP_INIT) {
-        roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
-        roll->count = text_rolls_meas(roll->rect, text, font);
-        roll->progress = roll->px_cd = roll->phase = 0;
-        if (roll->count == 0) {
-            roll->setup = TXTROLL_SETUP_IDLE;
-        } else {
-            uint8_t unused_pxls = roll->rect.w % font->w;
-            if (unused_pxls) {
-                rect_ui16_t rc_unused_pxls = { roll->rect.x + roll->rect.w - unused_pxls, roll->rect.y, unused_pxls, roll->rect.h };
-                display->fill_rect(rc_unused_pxls, clr_back);
-            }
-            roll->setup = TXTROLL_SETUP_DONE;
-        }
+    uint8_t unused_pxls = roll->rect.w % font->w;
+    if (unused_pxls) {
+        rect_ui16_t rc_unused_pxls = { roll->rect.x + roll->rect.w - unused_pxls, roll->rect.y, unused_pxls, roll->rect.h };
+        display->fill_rect(rc_unused_pxls, clr_back);
     }
 
     const char *str = text;

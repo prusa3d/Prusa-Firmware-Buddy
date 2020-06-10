@@ -156,6 +156,13 @@ void window_file_list_draw(window_file_list_t *window) {
                     window->roll.phase = ROLL_SETUP;
                     gui_timer_restart_txtroll(window->win.id);
                     gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+
+                    roll_init(rc,
+                        item,
+                        window->font,
+                        padding,
+                        window->alignment,
+                        &window->roll);
                 }
 
                 render_roll_text_align(rc,

@@ -3,12 +3,13 @@
 #include <stdint.h>
 #include <array>
 #include "guitypes.h"
+#include "display_helper.h"
 #include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
 
 //todo make version with constant label
 class IWindowMenuItem {
     //protected:
-    //   Iwindow_menu_t &window_menu;
+    //   IWindowMenu &window_menu;
 
 private:
     std::array<char, 23> label;
@@ -17,15 +18,19 @@ private:
     bool focused : 1;
 
 protected:
-    bool selected : 1; //should be in child, but is here because of size optimalization
+    bool selected : 1; //should be in child, but is here because of size optimization
 private:
     uint16_t id_icon : 10;
+    txtroll_t roll;
 
-    void printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, uint8_t swap) const;
+    void printIcon(IWindowMenu &window_menu, rect_ui16_t rect, uint8_t swap, color_t color_back) const;
 
 protected:
-    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
-    virtual void click(Iwindow_menu_t &window_menu) = 0;
+    void printLabel_into_rect(rect_ui16_t rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
+    virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void click(IWindowMenu &window_menu) = 0;
+    virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const;
+    rect_ui16_t getIconRect(IWindowMenu &window_menu, rect_ui16_t rect) const;
 
 public:
     IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
@@ -36,7 +41,7 @@ public:
     void SetHidden() { hidden = true; }
     void SetNotHidden() { hidden = false; }
     bool IsHidden() const { return hidden; }
-    void SetFocus() { focused = true; }
+    void SetFocus();
     void ClrFocus() { focused = false; }
     bool IsFocused() const { return focused; }
     void SetIconId(uint16_t id) { id_icon = id; }
@@ -44,13 +49,15 @@ public:
     void SetLabel(const char *text);
     const char *GetLabel() const;
 
-    void Print(Iwindow_menu_t &window_menu, rect_ui16_t rect) const;
+    void Print(IWindowMenu &window_menu, rect_ui16_t rect) const;
 
     bool IsSelected() const { return selected; }
     virtual bool Change(int dif) = 0;
-    bool Incement(uint8_t dif) { return Change(dif); }
+    bool Increment(uint8_t dif) { return Change(dif); }
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
-    void Click(Iwindow_menu_t &window_menu);
-
+    void Click(IWindowMenu &window_menu);
+    void Roll(IWindowMenu &window_menu);
+    void RollInit(IWindowMenu &window_menu, rect_ui16_t rect);
+    bool RollNeedInit() { return roll.setup == TXTROLL_SETUP_INIT; }
     virtual ~IWindowMenuItem() = default;
 };
