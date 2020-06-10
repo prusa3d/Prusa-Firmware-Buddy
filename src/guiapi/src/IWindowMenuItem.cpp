@@ -43,7 +43,7 @@ void IWindowMenuItem::printIcon(Iwindow_menu_t &window_menu, rect_ui16_t rect, u
 
 void IWindowMenuItem::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
     rect_ui16_t rolling_rect = getRollingRect(window_menu, rect);
-    printLabel_into_rect(rolling_rect, color_back, color_text, window_menu.font, window_menu.padding, window_menu.alignment);
+    printLabel_into_rect(rolling_rect, color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
 }
 
 void IWindowMenuItem::printLabel_into_rect(rect_ui16_t rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const {

@@ -10,8 +10,8 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines)
     : window_menu_t(nullptr) { //pointer to container shall be provided by child
 
     //todo bind those numeric constants to fonts and guidefaults
-    padding = { 20, 6, 2, 6 };
-    icon_rect = rect_ui16(0, 0, 16, 30);
+    padding = { 0, 6, 2, 6 };
+    icon_rect = rect_ui16(0, 0, 16 + 20, 30);
     const uint16_t win_h = 320;
     const uint16_t footer_h = win_h - 269; //269 is the smallest number I found in footer implementation, todo it should be in guidefaults
     const uint16_t help_h = helper_lines * (resource_font(IDR_FNT_SPECIAL)->h + 1);

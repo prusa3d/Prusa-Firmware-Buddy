@@ -45,7 +45,8 @@ bool WI_SELECT_t::Change(int dif) {
 /*****************************************************************************/
 
 void WI_SELECT_t::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    IWindowMenuItem::printText(window_menu, rect, color_text, color_back, swap);
+    rect_ui16_t rolling_rect = getRollingRect(window_menu, rect);
+    IWindowMenuItem::printText(window_menu, rolling_rect, color_text, color_back, swap);
     const char *txt = strings[index];
 
     rect_ui16_t vrc = {
