@@ -2,6 +2,8 @@
 #include "resource.h"
 #include "screen.h" //screen_close
 
+std::array<char, 10> IWiSpin::temp_buff;
+
 /*****************************************************************************/
 //ctors
 WI_LABEL_t::WI_LABEL_t(const char *label, uint16_t id_icon, bool enabled, bool hidden)

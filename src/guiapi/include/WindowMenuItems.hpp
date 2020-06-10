@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include "display_helper.h"
+#include "super.hpp"
 
 //WI_LABEL
 class WI_LABEL_t : public IWindowMenuItem {
@@ -12,12 +13,21 @@ public:
     virtual bool Change(int dif) override;
 };
 
-//WI_SPIN
-template <class T>
-class WI_SPIN_t : public IWindowMenuItem {
+//IWiSpin
+class IWiSpin : public IWindowMenuItem {
+protected:
     enum { WIO_MIN = 0,
         WIO_MAX = 1,
         WIO_STEP = 2 };
+    static std::array<char, 10> temp_buff; //temporary buffer to print value for text measurements
+public:
+    IWiSpin(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+        : IWindowMenuItem(label, id_icon, enabled, hidden) {}
+};
+
+//WI_SPIN
+template <class T>
+class WI_SPIN_t : public IWiSpin /*AddSuper<IWindowMenuItem>*/ {
 
 public: //todo private
     T value;
@@ -25,7 +35,9 @@ public: //todo private
     const char *prt_format;
 
 protected:
-    void sn_prt(char *buff, size_t len) const;
+    char *sn_prt() const;
+    rect_ui16_t getSpinRect(Iwindow_menu_t &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const;
+    virtual rect_ui16_t getRollingRect(Iwindow_menu_t &window_menu, rect_ui16_t rect) const override;
     virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
     virtual void click(Iwindow_menu_t &window_menu) final;
 
@@ -156,7 +168,7 @@ public:
 //WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(label, id_icon, enabled, hidden)
+    : IWiSpin(label, id_icon, enabled, hidden)
     , value(value)
     , range(range)
     , prt_format(prt_format) {}
@@ -179,35 +191,54 @@ void WI_SPIN_t<T>::click(Iwindow_menu_t &window_menu) {
     selected = !selected;
 }
 
+//helper method - to be used by getRollingRect
 template <class T>
-void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    char buff[20] = { '\0' };
-    sn_prt(buff, 20);
-
+rect_ui16_t WI_SPIN_t<T>::getSpinRect(Iwindow_menu_t &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const {
     rect_ui16_t spin_rect = {
-        uint16_t(rect.x + rect.w), rect.y, uint16_t(window_menu.font->w * strlen(buff) + window_menu.padding.left + window_menu.padding.right), rect.h
+        uint16_t(base_rolling_rect.x + base_rolling_rect.w), base_rolling_rect.y, uint16_t(window_menu.font->w * spin_strlen + window_menu.padding.left + window_menu.padding.right), base_rolling_rect.h
     };
     spin_rect.x -= spin_rect.w;
-    rect.w -= spin_rect.w;
+    return spin_rect;
+}
 
-    rect_ui16_t label_rect = rect;
-    label_rect.w = spin_rect.x - label_rect.x;
+template <class T>
+rect_ui16_t WI_SPIN_t<T>::getRollingRect(Iwindow_menu_t &window_menu, rect_ui16_t rect) const {
+    rect_ui16_t base_rolling_rect = IWiSpin::getRollingRect(window_menu, rect);
+    char *buff = sn_prt();
+    rect_ui16_t spin_rect = getSpinRect(window_menu, base_rolling_rect, strlen(buff));
+
+    rect_ui16_t rolling_rect = base_rolling_rect;
+    rolling_rect.w = spin_rect.x - rolling_rect.x;
+    return rolling_rect;
+}
+
+template <class T>
+void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    rect_ui16_t rolling_rect = getRollingRect(window_menu, rect);
+    rect_ui16_t spin_rect = { 0 };
+
+    spin_rect.x = rolling_rect.x + rolling_rect.w;
+    spin_rect.y = rolling_rect.y;
+    spin_rect.w = rect.w - spin_rect.x;
+    spin_rect.h = rolling_rect.h;
 
     //draw label
-    IWindowMenuItem::printText(window_menu, label_rect, color_text, color_back, swap);
+    IWindowMenuItem::printText(window_menu, rolling_rect, color_text, color_back, swap);
     //draw spin
-    render_text_align(spin_rect, buff, window_menu.font,
+    render_text_align(spin_rect, temp_buff.data(), window_menu.font,
         color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 
 template <class T>
-void WI_SPIN_t<T>::sn_prt(char *buff, size_t len) const {
-    snprintf(buff, len, prt_format, value);
+char *WI_SPIN_t<T>::sn_prt() const {
+    snprintf(temp_buff.data(), temp_buff.size(), prt_format, value);
+    return temp_buff.data();
 }
 
 template <>
-inline void WI_SPIN_t<float>::sn_prt(char *buff, size_t len) const {
-    snprintf(buff, len, prt_format, static_cast<double>(value));
+inline char *WI_SPIN_t<float>::sn_prt() const {
+    snprintf(temp_buff.data(), temp_buff.size(), prt_format, static_cast<double>(value));
+    return temp_buff.data();
 }
 
 /*****************************************************************************/

@@ -113,7 +113,7 @@ void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
     }
 }
 
-void roll_init(rect_ui16_t rc, const char *text, font_t *font,
+void roll_init(rect_ui16_t rc, const char *text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment, txtroll_t *roll) {
     roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
     roll->count = text_rolls_meas(roll->rect, text, font);
@@ -125,7 +125,7 @@ void roll_init(rect_ui16_t rc, const char *text, font_t *font,
     }
 }
 
-void render_roll_text_align(rect_ui16_t rc, const char *text, font_t *font,
+void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll) {
     if (roll->setup == TXTROLL_SETUP_INIT)
         return;

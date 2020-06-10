@@ -18,16 +18,19 @@ private:
     bool focused : 1;
 
 protected:
-    bool selected : 1; //should be in child, but is here because of size optimalization
+    bool selected : 1; //should be in child, but is here because of size optimization
 private:
     uint16_t id_icon : 10;
     txtroll_t roll;
 
-    void printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, uint8_t swap) const;
+    void printIcon(Iwindow_menu_t &window_menu, rect_ui16_t rect, uint8_t swap, color_t color_back) const;
 
 protected:
+    void printLabel_into_rect(rect_ui16_t rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
     virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
     virtual void click(Iwindow_menu_t &window_menu) = 0;
+    virtual rect_ui16_t getRollingRect(Iwindow_menu_t &window_menu, rect_ui16_t rect) const;
+    rect_ui16_t getIconRect(Iwindow_menu_t &window_menu, rect_ui16_t rect) const;
 
 public:
     IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
