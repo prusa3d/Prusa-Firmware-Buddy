@@ -14,7 +14,6 @@ import yaml
 
 class OpenAPIRequest(MockRequest):
     """requests.Request wrapper for openapi_core."""
-
     def __init__(self, request, path_pattern=None):
         url = urlparse(request.url)
         self.path_pattern = path_pattern or url.path
@@ -38,7 +37,6 @@ class OpenAPIRequest(MockRequest):
 
 class OpenAPIResponse(MockResponse):
     """requests.Response wrapper for openapi_core."""
-
     def __init__(self, response):
         ctype = parse_header(response.headers.get('Content-Type', ''))
         super(OpenAPIResponse, self).__init__(response.text,

@@ -149,14 +149,14 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             head_gcode = V2_gcodes_head_ABS;
             head_gcode_sz = V2_gcodes_head_ABS_sz;
             break;
-         case FILAMENT_HIPS:
+        case FILAMENT_HIPS:
             head_gcode = V2_gcodes_head_HIPS;
             head_gcode_sz = V2_gcodes_head_HIPS_sz;
             break;
-         case FILAMENT_PP:
+        case FILAMENT_PP:
             head_gcode = V2_gcodes_head_PP;
             head_gcode_sz = V2_gcodes_head_PP_sz;
-            break; 
+            break;
         case FILAMENT_FLEX:
             head_gcode = V2_gcodes_head_FLEX;
             head_gcode_sz = V2_gcodes_head_FLEX_sz;

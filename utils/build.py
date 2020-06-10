@@ -230,7 +230,6 @@ class HostToolBuildConfiguration(BuildConfiguration):
 
 class BuildResult:
     """Represents a result of an attempt to build the project."""
-
     def __init__(self, config_returncode: int, build_returncode: Optional[int],
                  stdout: Path, stderr: Path, products: List[Path]):
         self.config_returncode = config_returncode
@@ -460,7 +459,6 @@ def store_products(products: List[Path], build_config: BuildConfiguration,
 
 def list_of(EnumType):
     """Create an argument-parser for comma-separated list of values of some Enum subclass."""
-
     def convert(val):
         if val == '':
             return []
