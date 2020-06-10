@@ -14,8 +14,6 @@ window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
     color_text = gui_defaults.color_text;
     color_disabled = gui_defaults.color_disabled;
     font = gui_defaults.font;
-    //padding = gui_defaults.padding;
-    //icon_rect = rect_ui16(0, 0, 16, 16);
     alignment = gui_defaults.alignment;
     setIndex(index);
     top_index = 0;

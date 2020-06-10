@@ -72,14 +72,7 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
     if (wh_ico.x && wh_ico.y) {
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
-        rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc_ico.y - rc.y };
-        rect_ui16_t rc_b = { rc.x, rc_ico.y + rc_ico.h, rc.w, (rc.y + rc.h) - (rc_ico.y + rc_ico.h) };
-        rect_ui16_t rc_l = { rc.x, rc.y, rc_ico.x - rc.x, rc.h };
-        rect_ui16_t rc_r = { rc_ico.x + rc_ico.w, rc.y, (rc.x + rc.w) - (rc_ico.x + rc_ico.w), rc.h };
-        display->fill_rect(rc_t, opt_clr);
-        display->fill_rect(rc_b, opt_clr);
-        display->fill_rect(rc_l, opt_clr);
-        display->fill_rect(rc_r, opt_clr);
+        fill_between_rectangles(&rc, &rc_ico, opt_clr);
         display->draw_icon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
     } else
         display->fill_rect(rc, opt_clr);
