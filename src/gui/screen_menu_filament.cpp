@@ -28,7 +28,7 @@ void clrPreheatTemp() {
 //parent
 class MI_event_dispatcher : public WI_LABEL_t {
 protected:
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
         screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }

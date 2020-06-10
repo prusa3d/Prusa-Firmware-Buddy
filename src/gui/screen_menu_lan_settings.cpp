@@ -236,7 +236,7 @@ class MI_LAN_SAVE : public WI_LABEL_t {
 public:
     MI_LAN_SAVE()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::Save();
     }
 };
@@ -247,7 +247,7 @@ class MI_LAN_LOAD : public WI_LABEL_t {
 public:
     MI_LAN_LOAD()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::Load();
     }
 };

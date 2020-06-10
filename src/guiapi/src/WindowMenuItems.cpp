@@ -44,7 +44,7 @@ bool WI_SELECT_t::Change(int dif) {
 
 /*****************************************************************************/
 
-void WI_SELECT_t::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void WI_SELECT_t::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
     rect_ui16_t rolling_rect = getRollingRect(window_menu, rect);
     IWindowMenuItem::printText(window_menu, rolling_rect, color_text, color_back, swap);
     const char *txt = strings[index];
@@ -68,6 +68,6 @@ MI_RETURN::MI_RETURN()
     : WI_LABEL_t(label, IDR_PNG_filescreen_icon_up_folder, true, false) {
 }
 
-void MI_RETURN::click(Iwindow_menu_t &window_menu) {
+void MI_RETURN::click(IWindowMenu &window_menu) {
     screen_close();
 }

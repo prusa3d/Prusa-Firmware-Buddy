@@ -8,7 +8,7 @@
 #include "IWindowMenuItem.hpp"
 
 window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
-    : Iwindow_menu_t()
+    : IWindowMenu()
     , pContainer(pContainer) {
     color_back = gui_defaults.color_back;
     color_text = gui_defaults.color_text;

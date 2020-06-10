@@ -3,7 +3,7 @@
 #include "window_menu.h"
 #include <stdint.h>
 
-struct Iwindow_menu_t {
+struct IWindowMenu {
     window_t win;
     color_t color_back;
     color_t color_text;

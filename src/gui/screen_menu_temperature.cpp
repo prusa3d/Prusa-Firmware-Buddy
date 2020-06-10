@@ -16,7 +16,7 @@ public:
     }
 
 protected:
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
 };
