@@ -2,25 +2,72 @@
 #include "resource.h"
 #include "screen.h" //screen_close
 
-std::array<char, 10> IWiSpin::temp_buff;
-
 /*****************************************************************************/
-//ctors
+//WI_LABEL_t
 WI_LABEL_t::WI_LABEL_t(const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : IWindowMenuItem(label, id_icon, enabled, hidden) {}
 
-WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(no_lbl, id_icon, enabled, hidden)
-    , index(index)
-    , strings(strings) {}
-
-/*****************************************************************************/
-//return changed (== invalidate)
-
+/**
+ * return changed (== invalidate)
+ **/
 bool WI_LABEL_t::Change(int /*dif*/) {
     return false;
 }
 
+/*****************************************************************************/
+//IWiSpin
+std::array<char, 10> IWiSpin::temp_buff;
+
+void IWiSpin::click(IWindowMenu &window_menu) {
+    if (selected) {
+        OnClick();
+    }
+    selected = !selected;
+}
+
+rect_ui16_t IWiSpin::getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const {
+    return getRollingSpinRects(window_menu, rect)[0];
+}
+
+/**
+ * returns array<rect_ui16_t,2>
+ * with values of
+ * {rolling_rect, spin_rect}
+ **/
+std::array<rect_ui16_t, 2> IWiSpin::getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t rect) const {
+    rect_ui16_t base_rolling_rect = super::getRollingRect(window_menu, rect);
+    char *buff = sn_prt();
+    rect_ui16_t spin_rect = getSpinRect(window_menu, base_rolling_rect, strlen(buff));
+
+    rect_ui16_t rolling_rect = base_rolling_rect;
+    rolling_rect.w = spin_rect.x - rolling_rect.x;
+    return std::array<rect_ui16_t, 2> { rolling_rect, spin_rect };
+}
+
+//helper method - to be used by getRollingRect
+rect_ui16_t IWiSpin::getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const {
+    rect_ui16_t spin_rect = {
+        uint16_t(base_rolling_rect.x + base_rolling_rect.w), base_rolling_rect.y, uint16_t(window_menu.font->w * spin_strlen + window_menu.padding.left + window_menu.padding.right), base_rolling_rect.h
+    };
+    spin_rect.x -= spin_rect.w;
+    return spin_rect;
+}
+
+void IWiSpin::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    std::array<rect_ui16_t, 2> rects = getRollingSpinRects(window_menu, rect);
+
+    //draw label
+    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
+    //draw spin
+    render_text_align(rects[1], temp_buff.data(), window_menu.font,
+        color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
+}
+
+/*****************************************************************************/
+//WI_SELECT_t
+/**
+ * return changed (== invalidate)
+ **/
 bool WI_SELECT_t::Change(int dif) {
     size_t size = 0;
     while (strings[size] != nullptr) {
@@ -42,7 +89,10 @@ bool WI_SELECT_t::Change(int dif) {
     return true;
 }
 
-/*****************************************************************************/
+WI_SELECT_t::WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled, bool hidden)
+    : IWindowMenuItem(no_lbl, id_icon, enabled, hidden)
+    , index(index)
+    , strings(strings) {}
 
 void WI_SELECT_t::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
     rect_ui16_t rolling_rect = getRollingRect(window_menu, rect);
