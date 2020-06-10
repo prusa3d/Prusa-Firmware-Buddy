@@ -434,6 +434,7 @@ marlin_vars_t *marlin_vars(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
         return &(client->vars);
+    //TODO call PSOD - fatal error instead
     return 0;
 }
 

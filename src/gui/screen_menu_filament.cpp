@@ -15,8 +15,6 @@
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
     const marlin_vars_t *vars = marlin_vars();
-    if (!vars)
-        marlin_gcode_printf("M104 S0");
 
     /// don't read from EEPROM since it's not in sync
     marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)vars->temp_nozzle);
