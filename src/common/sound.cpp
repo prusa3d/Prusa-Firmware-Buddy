@@ -42,7 +42,32 @@ Sound::Sound() {
     volumes[eSOUND_TYPE_BlindAlert] = 0.25;
     volumes[eSOUND_TYPE_Start] = volume;
 
-    this->init();
+		// -- signals repeats - how many times will sound signals repeat (-1 is
+		// infinite)
+		onceRepeats[eSOUND_TYPE_Start] = 1;
+		onceRepeats[eSOUND_TYPE_StandardPrompt] = 1;
+		onceRepeats[eSOUND_TYPE_StandardAlert] = 1;
+		onceRepeats[eSOUND_TYPE_CriticalAlert] = -1;
+
+		loudRepeats[eSOUND_TYPE_Start] = 1;
+		loudRepeats[eSOUND_TYPE_ButtonEcho] = -1;
+		loudRepeats[eSOUND_TYPE_StandardPrompt] = -1;
+		loudRepeats[eSOUND_TYPE_StandardAlert] = 3;
+		loudRepeats[eSOUND_TYPE_CriticalAlert] = -1;
+
+		silentRepeats[eSOUND_TYPE_Start] = 1;
+		silentRepeats[eSOUND_TYPE_StandardAlert] = 1;
+		silentRepeats[eSOUND_TYPE_CriticalAlert] = -1;
+		
+		assistRepeats[eSOUND_TYPE_Start] = 1;
+		assistRepeats[eSOUND_TYPE_ButtonEcho] = 1;
+		assistRepeats[eSOUND_TYPE_StandardPrompt] = -1;
+		assistRepeats[eSOUND_TYPE_StandardAlert] = 3;
+		assistRepeats[eSOUND_TYPE_EncoderMove] = 1;
+		assistRepeats[eSOUND_TYPE_BlindAlert] = 1;
+		assistRepeats[eSOUND_TYPE_CriticalAlert] = -1;
+
+		this->init();
 }
 
 // Inicialization of Singleton Class needs to be AFTER eeprom inicialization.
