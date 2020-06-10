@@ -14,6 +14,7 @@ Sound::Sound() {
     frequency = 100.f; // frequency of sound signal (0-1000)
     volume = 0.50;     // volume of sound signal (0-1)
 
+    // -- values of sound signals - frequencies, volumes, durations
     // -- durations of beep
     durations[eSOUND_TYPE_ButtonEcho] = 100.f;
     durations[eSOUND_TYPE_StandardPrompt] = 500.f;
@@ -89,6 +90,8 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], int size) {
     }
 }
 
+// Generag [play] method with sound type parameter where dependetly on set mode is played.
+// Every mode handle just his own signal types.
 void Sound::play(eSOUND_TYPE eSoundType){
     int t_size = 0;
     switch (eSoundMode) {
