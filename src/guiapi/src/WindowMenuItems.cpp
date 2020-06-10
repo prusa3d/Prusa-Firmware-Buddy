@@ -64,6 +64,71 @@ void IWiSpin::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t colo
 }
 
 /*****************************************************************************/
+//IWiSwitch
+IWiSwitch::IWiSwitch(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden)
+    : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden)
+    , index(index) {}
+
+bool IWiSwitch::Change(int) {
+    if ((++index) >= size()) {
+        index = 0;
+    }
+    return true;
+}
+
+void IWiSwitch::click(IWindowMenu &window_menu) {
+    size_t old_index = index;
+    Change(0);
+    OnChange(old_index);
+}
+
+bool IWiSwitch::SetIndex(size_t idx) {
+    if (idx >= size())
+        return false;
+    else {
+        index = idx;
+        return true;
+    }
+}
+
+//helper method - to be used by getRollingRect
+rect_ui16_t IWiSwitch::getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const {
+    rect_ui16_t spin_rect = base_rolling_rect;
+    uint16_t spin_w = window_menu.font->w * spin_strlen + window_menu.padding.left + window_menu.padding.right;
+    spin_rect.x = base_rolling_rect.x + base_rolling_rect.w - spin_w;
+    spin_rect.w = spin_w;
+    return spin_rect;
+}
+
+/**
+ * returns array<rect_ui16_t,2>
+ * with values of
+ * {rolling_rect, spin_rect}
+ **/
+std::array<rect_ui16_t, 2> IWiSwitch::getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t rect) const {
+    rect_ui16_t base_rolling_rect = super::getRollingRect(window_menu, rect);
+    rect_ui16_t spin_rect = getSpinRect(window_menu, base_rolling_rect, strlen(get_item()));
+
+    rect_ui16_t rolling_rect = base_rolling_rect;
+    rolling_rect.w = spin_rect.x - rolling_rect.x;
+    return std::array<rect_ui16_t, 2> { rolling_rect, spin_rect };
+}
+
+rect_ui16_t IWiSwitch::getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const {
+    return getRollingSpinRects(window_menu, rect)[0];
+}
+
+void IWiSwitch::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+    std::array<rect_ui16_t, 2> rects = getRollingSpinRects(window_menu, rect);
+
+    //draw label
+    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
+    //draw spin
+    render_text_align(rects[1], get_item(), window_menu.font,
+        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
+}
+
+/*****************************************************************************/
 //WI_SELECT_t
 /**
  * return changed (== invalidate)

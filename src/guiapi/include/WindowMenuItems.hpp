@@ -112,36 +112,46 @@ public:
         : WI_SPIN_t<uint32_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
 };
 
-//WI_SWITCH == text version of WI_SPIN (non-numeric)
-//unlike WI_SPIN cannot be selected
-//todo try to inherit from WI_SPIN<const char**> lot of code could be reused
-template <size_t SZ>
-class WI_SWITCH_t : public AddSuper<IWindowMenuItem> {
-public: //todo private
-    size_t index;
-    const std::array<const char *, SZ> items;
+//todo inherit from WI_SPIN_t<const char**>
+class IWiSwitch : public AddSuper<IWindowMenuItem> {
+public:
+    size_t index; //todo private
+    IWiSwitch(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden);
+    virtual void ClrIndex() { index = 0; }
+    virtual size_t size() = 0;
+    virtual bool Change(int dif);
+    virtual bool SetIndex(size_t idx);
 
 protected:
+    virtual void OnChange(size_t old_index) = 0;
+    virtual void click(IWindowMenu &window_menu) final;
     rect_ui16_t getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const;
     std::array<rect_ui16_t, 2> getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect) const;
     virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const override;
     virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
-    virtual void click(IWindowMenu &window_menu) final;
+    virtual const char *get_item() const = 0;
+};
+
+/*****************************************************************************/
+//WI_SWITCH == text version of WI_SPIN (non-numeric)
+//unlike WI_SPIN cannot be selected
+//todo try to inherit from WI_SPIN<const char**> lot of code could be reused
+template <size_t SZ>
+class WI_SWITCH_t : public AddSuper<IWiSwitch> {
+public: //todo private
+    const std::array<const char *, SZ> items;
+    virtual size_t size() override { return items.size(); }
 
 public:
     //cannot create const std::array<const char *, SZ> with std::initializer_list<const char*>
     //template<class ...E> and {{std::forward<E>(e)...}} is workaround
     template <class... E>
     WI_SWITCH_t(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden, E &&... e)
-        : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden)
-        , index(index)
+        : AddSuper<IWiSwitch>(index, label, id_icon, enabled, hidden)
         , items { { std::forward<E>(e)... } } {}
-    virtual bool Change(int dif);
-    virtual void ClrIndex() { index = 0; }
-    virtual bool SetIndex(size_t idx);
 
 protected:
-    virtual void OnChange(size_t old_index) = 0;
+    virtual const char *get_item() const override { return items[index]; }
 };
 
 //most common version of WI_SWITCH with on/off options
@@ -206,70 +216,6 @@ inline char *WI_SPIN_t<float>::sn_prt() const {
 
 /*****************************************************************************/
 //template definitions
-template <size_t SZ>
-bool WI_SWITCH_t<SZ>::Change(int) {
-    if ((++index) >= items.size()) {
-        index = 0;
-    }
-    return true;
-}
-
-template <size_t SZ>
-void WI_SWITCH_t<SZ>::click(IWindowMenu &window_menu) {
-    size_t old_index = index;
-    Change(0);
-    OnChange(old_index);
-}
-template <size_t SZ>
-bool WI_SWITCH_t<SZ>::SetIndex(size_t idx) {
-    if (idx >= SZ)
-        return false;
-    else {
-        index = idx;
-        return true;
-    }
-}
-
-//helper method - to be used by getRollingRect
-template <size_t SZ>
-rect_ui16_t WI_SWITCH_t<SZ>::getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const {
-    rect_ui16_t spin_rect = base_rolling_rect;
-    uint16_t spin_w = window_menu.font->w * spin_strlen + window_menu.padding.left + window_menu.padding.right;
-    spin_rect.x = base_rolling_rect.x + base_rolling_rect.w - spin_w;
-    spin_rect.w = spin_w;
-    return spin_rect;
-}
-
-/**
- * returns array<rect_ui16_t,2>
- * with values of
- * {rolling_rect, spin_rect}
- **/
-template <size_t SZ>
-std::array<rect_ui16_t, 2> WI_SWITCH_t<SZ>::getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t rect) const {
-    rect_ui16_t base_rolling_rect = super::getRollingRect(window_menu, rect);
-    rect_ui16_t spin_rect = getSpinRect(window_menu, base_rolling_rect, strlen(items[index]));
-
-    rect_ui16_t rolling_rect = base_rolling_rect;
-    rolling_rect.w = spin_rect.x - rolling_rect.x;
-    return std::array<rect_ui16_t, 2> { rolling_rect, spin_rect };
-}
-
-template <size_t SZ>
-rect_ui16_t WI_SWITCH_t<SZ>::getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const {
-    return getRollingSpinRects(window_menu, rect)[0];
-}
-
-template <size_t SZ>
-void WI_SWITCH_t<SZ>::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    std::array<rect_ui16_t, 2> rects = getRollingSpinRects(window_menu, rect);
-
-    //draw label
-    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
-    //draw spin
-    render_text_align(rects[1], items[index], window_menu.font,
-        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
-}
 
 /*****************************************************************************/
 //advanced types
