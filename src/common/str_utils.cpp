@@ -81,20 +81,6 @@ void set_defaults(void) {
     pinstance->hyphen_distance = HYPHEN_DENY;
 }
 
-/// converts string to plain text
-size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set, char substitute_char) {
-    size_t counter = 0;
-    bool flag;
-}
-
-size_t str2plain(char *pstr, bool withdraw_flag) {
-    const char *pset = "";
-
-    if (withdraw_flag)
-        pset = pwithdraw_set;
-    return (str2plain(pstr, pset));
-}
-
 void set_custom_set(const char *pstr) {
     pcustom_set = pstr;
 }
@@ -111,6 +97,14 @@ void set_defaults(void) {
     pcustom_set = "";
     pwithdraw_set = "";
     hyphen_distance = HYPHEN_DENY;
+}
+
+size_t str2plain(char *pstr, bool withdraw_flag) {
+    const char *pset = "";
+
+    if (withdraw_flag)
+        pset = pwithdraw_set;
+    return (str2plain(pstr, pset));
 }
 
 /// converts string to plain text
@@ -131,7 +125,7 @@ size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_se
         }
         pstr++;
     }
-    return (counter);
+    return counter;
 }
 
 size_t str2multiline(char *pstr, size_t line_width) {
