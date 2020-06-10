@@ -1,6 +1,10 @@
 #include "str_utils.h"
 #include <string.h>
 
+static const char *pcustom_set = "";
+static const char *pwithdraw_set = "";
+static int hyphen_distance = HYPHEN_DENY;
+
 static ml_instance_t self_instance;
 static ml_instance_t *pinstance = &self_instance;
 
@@ -91,22 +95,6 @@ size_t str2plain(char *pstr, bool withdraw_flag) {
     return (str2plain(pstr, pset));
 }
 
-static const char *pcustom_set = "";
-static const char *pwithdraw_set = "";
-static int hyphen_distance = HYPHEN_DENY;
-
-size_t strdel(char *pstr, size_t n) {
-    size_t count, i;
-
-    count = strlen(pstr);
-    if (n > count)
-        n = count;
-    count = count - n + 1;
-    for (i = 0; i < count; i++, pstr++)
-        *pstr = *(pstr + n);
-    return (n);
-}
-
 void set_custom_set(const char *pstr) {
     pcustom_set = pstr;
 }
@@ -143,6 +131,15 @@ size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_se
         pstr++;
     }
     return (counter);
+}
+
+/// converts string to plain text
+size_t str2plain(char *pstr, bool withdraw_flag) {
+    const char *pset = "";
+
+    if (withdraw_flag)
+        pset = pinstance->pwithdraw_set;
+    return (str2plain(pstr, pset));
 }
 
 size_t str2multiline(char *pstr, size_t line_width) {
@@ -243,15 +240,6 @@ while (*pstr != EOS) {
     pstr++;
 }
 return (counter);
-}
-
-/// converts string to plain text
-size_t str2plain(char *pstr, bool withdraw_flag) {
-    const char *pset = "";
-
-    if (withdraw_flag)
-        pset = pinstance->pwithdraw_set;
-    return (str2plain(pstr, pset));
 }
 
 /// converts string to multi-line text
