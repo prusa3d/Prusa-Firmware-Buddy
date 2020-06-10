@@ -1,5 +1,6 @@
 #include "IWindowMenuItem.hpp"
 #include "display_helper.h" //render_icon_align
+#include "../lang/i18n.h"
 
 IWindowMenuItem::IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : hidden(hidden)
@@ -46,7 +47,7 @@ void IWindowMenuItem::printIcon(Iwindow_menu_t &window_menu, rect_ui16_t &rect, 
 }
 
 void IWindowMenuItem::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
-    render_text_align(rect, label.data(), window_menu.font,
+    render_text_align(rect, _(label.data()), window_menu.font,
         color_back, color_text,
         window_menu.padding, window_menu.alignment);
 }

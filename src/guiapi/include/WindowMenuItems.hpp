@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include "display_helper.h"
+#include "../lang/i18n.h"
 
 //WI_LABEL
 class WI_LABEL_t : public IWindowMenuItem {
@@ -126,8 +127,8 @@ protected:
 
 //most common version of WI_SWITCH with on/off options
 class WI_SWITCH_OFF_ON_t : public WI_SWITCH_t<2> {
-    constexpr static const char *str_Off = "Off";
-    constexpr static const char *str_On = "On";
+    constexpr static const char *str_Off = N_("Off");
+    constexpr static const char *str_On = N_("On");
 
 public:
     WI_SWITCH_OFF_ON_t(bool index, const char *const label, uint16_t id_icon, bool enabled, bool hidden)
@@ -196,7 +197,7 @@ void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, colo
     //draw label
     IWindowMenuItem::printText(window_menu, label_rect, color_text, color_back, swap);
     //draw spin
-    render_text_align(spin_rect, buff, window_menu.font,
+    render_text_align(spin_rect, _(buff), window_menu.font,
         color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 
@@ -247,7 +248,7 @@ void WI_SWITCH_t<SZ>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, c
     vrc.x -= vrc.w;
     rect.w -= vrc.w;
 
-    render_text_align(vrc, txt, window_menu.font,
+    render_text_align(vrc, _(txt), window_menu.font,
         color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 

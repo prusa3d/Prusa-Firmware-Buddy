@@ -52,7 +52,7 @@ uint8_t window_menu_t::GetCount() const {
     return pContainer->GetCount();
 }
 
-IWindowMenuItem *window_menu_t::GetItem(uint8_t index) {
+IWindowMenuItem *window_menu_t::GetItem(uint8_t index) const {
     if (!pContainer)
         return nullptr;
     if (index >= GetCount())

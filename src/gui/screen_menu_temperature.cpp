@@ -8,7 +8,7 @@
 #include "MItem_print.hpp"
 
 class MI_COOLDOWN : public WI_LABEL_t {
-    static constexpr const char *const label = "Cooldown";
+    static constexpr const char *const label = N_("Cooldown");
 
 public:
     MI_COOLDOWN()
@@ -27,7 +27,7 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 
 class ScreenMenuTenperature : public parent {
 public:
-    constexpr static const char *label = "TEMPERATURE";
+    constexpr static const char *label = N_("TEMPERATURE");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };

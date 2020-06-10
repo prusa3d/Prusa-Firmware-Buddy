@@ -9,6 +9,8 @@
 #include "window_header.h"
 #include "config.h"
 #include "marlin_client.h"
+#include "../lang/i18n.h"
+
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "wui_api.h"
 #endif //BUDDY_ENABLE_ETHERNET
@@ -108,8 +110,8 @@ void window_header_draw(window_header_t *window) {
     rc.x += 10 + window->win.rect.h;
     rc.w -= (icons_width + 10 + window->win.rect.h);
 
-    if (window->label) { // label
-        render_text_align(rc, window->label, window->font,
+    if (window->label) {                                      // label
+        render_text_align(rc, _(window->label), window->font, // @@TODO verify, that this is the right spot to translate window labels
             window->color_back, window->color_text,
             window->padding, window->alignment);
     }

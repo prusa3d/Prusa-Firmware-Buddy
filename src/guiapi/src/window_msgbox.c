@@ -4,6 +4,7 @@
 #include "resource.h"
 #include "button_draw.h"
 #include "sound_C_wrapper.h"
+#include "../lang/i18n.h"
 #include "cmath_ext.h"
 
 //title for each icon type (empty text for 0)
@@ -195,9 +196,9 @@ void window_msgbox_draw(window_msgbox_t *window) {
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
                 rc_tit.x = icon_w;
                 rc_tit.w = window->win.rect.w - icon_w;
-                render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
+                render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
             } else if (title_n) { // text not empty but no icon => text will be aligned left
-                render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
+                render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
                 display->draw_line(point_ui16(rc_tit.x + window->padding.left, rc_tit.y + rc_tit.h),
                     point_ui16(rc_tit.x + rc_tit.w - (window->padding.left + window->padding.right), rc_tit.y + rc_tit.h),
                     COLOR_RED_ALERT);
@@ -211,7 +212,7 @@ void window_msgbox_draw(window_msgbox_t *window) {
             window->win.rect.y + title_h + red_line_offset, // put text bellow title and red line
             window->win.rect.w,
             window->win.rect.h - (title_h + red_line_offset + gui_defaults.btn_h) };
-        render_text_align(rc_txt, window->text, window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
+        render_text_align(rc_txt, _(window->text), window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
 
         window->flags |= MSGBOX_MSK_CHG;
         window_msgbox_draw_buttons(window);

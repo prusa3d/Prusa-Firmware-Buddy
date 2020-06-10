@@ -8,6 +8,7 @@
 #include "config.h"
 #include "eeprom.h"
 #include "screens.h"
+#include "../lang/i18n.h"
 
 #ifdef PIDCALIBRATION
 
@@ -191,7 +192,7 @@ float get_single_PIDparamFromDisp(int16_t *ids, int numOfDigits, int precision);
 
 //-----------------------------------------------------------------------------
 //btn autotune / apply
-static const char *btnAutoTuneOrApplystrings[] = { "AutTn", "Apply" };
+static const char *btnAutoTuneOrApplystrings[] = { N_("AutTn"), N_("Apply") };
     #define btnAutoTuneOrApplystrings_sz (sizeof(btnAutoTuneOrApplystrings) / sizeof(const char *))
 
 void screen_PID_init(screen_t *screen) {
@@ -256,7 +257,7 @@ void screen_PID_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(col, row2draw, 68, row_h),
         &(pd->btAutoTuneApply_E));
-    window_set_text(id, btnAutoTuneOrApplystrings[0]);
+    window_set_text(id, _(btnAutoTuneOrApplystrings[0]));
     window_enable(id);
     window_set_tag(id, TAG_AUTOTUNE_APPLY_E);
 
@@ -305,7 +306,7 @@ void screen_PID_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(col, row2draw, 68, row_h),
         &(pd->btAutoTuneApply_B));
-    window_set_text(id, btnAutoTuneOrApplystrings[0]);
+    window_set_text(id, _(btnAutoTuneOrApplystrings[0]));
     window_enable(id);
     window_set_tag(id, TAG_AUTOTUNE_APPLY_B);
 
@@ -431,7 +432,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 disable_digits_write_mode(pd->idsDigits_Kd_E,
                     sizeof(pd->idsDigits_Kd_E) / sizeof(pd->idsDigits_Kd_E[0]));
                 window_set_text(pd->btAutoTuneApply_E.win.id,
-                    btnAutoTuneOrApplystrings[0]);
+                    _(btnAutoTuneOrApplystrings[0]));
             } else {
                 enable_digits_write_mode(pd->idsDigits_Kp_E,
                     sizeof(pd->idsDigits_Kp_E) / sizeof(pd->idsDigits_Kp_E[0]));
@@ -440,7 +441,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 enable_digits_write_mode(pd->idsDigits_Kd_E,
                     sizeof(pd->idsDigits_Kd_E) / sizeof(pd->idsDigits_Kd_E[0]));
                 window_set_text(pd->btAutoTuneApply_E.win.id,
-                    btnAutoTuneOrApplystrings[1]);
+                    _(btnAutoTuneOrApplystrings[1]));
             }
 
             pd->list_RW_E_index_last = pd->list_RW_E_index_actual;
@@ -456,7 +457,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 disable_digits_write_mode(pd->idsDigits_Kd_B,
                     sizeof(pd->idsDigits_Kd_B) / sizeof(pd->idsDigits_Kd_B[0]));
                 window_set_text(pd->btAutoTuneApply_B.win.id,
-                    btnAutoTuneOrApplystrings[0]);
+                    _(btnAutoTuneOrApplystrings[0]));
             } else {
                 enable_digits_write_mode(pd->idsDigits_Kp_B,
                     sizeof(pd->idsDigits_Kp_B) / sizeof(pd->idsDigits_Kp_B[0]));
@@ -465,7 +466,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 enable_digits_write_mode(pd->idsDigits_Kd_B,
                     sizeof(pd->idsDigits_Kd_B) / sizeof(pd->idsDigits_Kd_B[0]));
                 window_set_text(pd->btAutoTuneApply_B.win.id,
-                    btnAutoTuneOrApplystrings[1]);
+                    _(btnAutoTuneOrApplystrings[1]));
             }
 
             pd->list_RW_B_index_last = pd->list_RW_B_index_actual;
