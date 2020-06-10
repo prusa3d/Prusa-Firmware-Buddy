@@ -81,7 +81,7 @@ extern "C" {
     /*----- Value in opt.h for MEM_ALIGNMENT: 1 -----*/
     #define MEM_ALIGNMENT 4
     /*----- Value in opt.h for MEMP_NUM_SYS_TIMEOUT: (LWIP_TCP + IP_REASSEMBLY + LWIP_ARP + (2*LWIP_DHCP) + LWIP_AUTOIP + LWIP_IGMP + LWIP_DNS + (PPP_SUPPORT*6*MEMP_NUM_PPP_PCB) + (LWIP_IPV6 ? (1 + LWIP_IPV6_REASS + LWIP_IPV6_MLD) : 0)) -*/
-    #define MEMP_NUM_SYS_TIMEOUT 5
+    #define MEMP_NUM_SYS_TIMEOUT 6
     /*----- Value in opt.h for LWIP_ETHERNET: LWIP_ARP || PPPOE_SUPPORT -*/
     #define LWIP_ETHERNET 1
     /*----- Value in opt.h for LWIP_DNS_SECURE: (LWIP_DNS_SECURE_RAND_XID | LWIP_DNS_SECURE_NO_MULTIPLE_OUTSTANDING | LWIP_DNS_SECURE_RAND_SRC_PORT) -*/
@@ -154,9 +154,7 @@ extern "C" {
     #else
         #define HTTPD_SERVER_AGENT "Prusa Buddy"
     #endif
-    #define LWIP_DNS                 0
-    #define SNTP_CUSTOM_SET_SYS_TIME 1
-    #define SNTP_CUSTOM_HEADER       "wui_api.h"
+    #define LWIP_DNS 0
 
 /* USER CODE END 1 */
 

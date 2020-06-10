@@ -62,10 +62,7 @@
 
 #include <string.h>
 #include <time.h>
-
-#if defined(SNTP_CUSTOM_SET_SYS_TIME) && (SNTP_CUSTOM_SET_SYS_TIME != 0) && defined(SNTP_CUSTOM_HEADER)
-    #include SNTP_CUSTOM_HEADER
-#endif
+#include "wui_api.h"
 
 #if LWIP_UDP
 
