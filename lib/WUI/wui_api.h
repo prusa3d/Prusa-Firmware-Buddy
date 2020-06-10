@@ -10,6 +10,7 @@
 #define _WUI_API_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "netif_settings.h"
 
 #define FW_VER_STR_LEN    32  // length of full Firmware version string
@@ -54,6 +55,8 @@ typedef struct {
     char mcu_uuid[UUID_STR_LEN];           // Unique identifier (96bits) into string format "%08lx-%08lx-%08lx"
     char printer_state[PRI_STATE_STR_LEN]; // state of the printer, have to be set in wui
 } printer_info_t;
+
+extern bool internet_connected; // Is internet connected or not (implemented in netif_settings)
 
 /*!*************************************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory

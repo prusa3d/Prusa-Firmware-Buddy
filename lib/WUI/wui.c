@@ -110,12 +110,12 @@ void StartWebServerTask(void const *argument) {
     // LwIP related initalizations
     MX_LWIP_Init();
     http_server_init();
-    sntp_client_init();
 
     for (;;) {
 
         ethernetif_link(&eth0); // handles Ethernet link plug/un-plug events
         wui_queue_cycle();      // checks for commands to WUI
+        sntp_client_cycle();    // enables and disables sntp according to internet connection
 
         if (wui_marlin_vars) {
             marlin_client_loop();
