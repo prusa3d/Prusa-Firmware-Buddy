@@ -52,14 +52,14 @@ void _set_gcode_first_lines();
 
 //returns remaining lines
 #if DEBUG_TERM == 0
-static const char *_wizard_firstlay_text = "Once the printer   \n"
-                                           "starts extruding   \n"
-                                           "plastic, adjust    \n"
-                                           "the nozzle height  \n"
-                                           "by turning the knob\n"
-                                           "until the filament \n"
-                                           "sticks to the print\n"
-                                           "sheet.";
+static const char *_wizard_firstlay_text = N_("Once the printer   \n"
+                                              "starts extruding   \n"
+                                              "plastic, adjust    \n"
+                                              "the nozzle height  \n"
+                                              "by turning the knob\n"
+                                              "until the filament \n"
+                                              "sticks to the print\n"
+                                              "sheet.");
 int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count);
 #else
 int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term);
