@@ -37,9 +37,6 @@
 
 #define TERM_PRINTF_MAX 0xff
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _term_t {
     uint8_t cols;
     uint8_t rows;
@@ -51,8 +48,6 @@ typedef struct _term_t {
     uint8_t row;
     FILE *file;
 } term_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

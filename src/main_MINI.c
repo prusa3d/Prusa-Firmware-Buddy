@@ -50,9 +50,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "sys.h"
 #include "app.h"
 #include "dbg.h"
+#include "wdt.h"
 #include "diag.h"
+#include "dump.h"
 #include "timer_defaults.h"
 #include "thread_measurement.h"
 #include "Z_probe.h"
@@ -78,8 +81,7 @@ ADC_HandleTypeDef hadc1;
 
 I2C_HandleTypeDef hi2c1;
 
-IWDG_HandleTypeDef hiwdg;
-
+RTC_HandleTypeDef hrtc;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi2_tx;
@@ -95,6 +97,9 @@ UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
+
+osThreadId uart2_thread = 0;
+int32_t uart2_signal = UART2_SIG_RXCPL;
 
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
@@ -112,7 +117,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_IWDG_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM1_Init(void);
@@ -123,8 +127,10 @@ static void MX_USART6_UART_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM14_Init(void);
+static void MX_RTC_Init(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
+void iwdg_warning_cb(void);
 
 /* USER CODE BEGIN PFP */
 
@@ -206,7 +212,6 @@ int main(void) {
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_I2C1_Init();
-    MX_IWDG_Init();
     MX_ADC1_Init();
     MX_USART1_UART_Init();
     MX_TIM1_Init();
@@ -217,6 +222,7 @@ int main(void) {
     MX_SPI3_Init();
     MX_TIM2_Init();
     MX_TIM14_Init();
+    MX_RTC_Init();
     /* USER CODE BEGIN 2 */
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
@@ -230,7 +236,7 @@ int main(void) {
     uartrxbuff_open(&uart6rxbuff);
     uartslave_init(&uart6slave, &uart6rxbuff, sizeof(uart6slave_line), uart6slave_line);
     putslave_init(&uart6slave);
-
+    wdt_iwdg_warning_cb = iwdg_warning_cb;
     /* USER CODE END 2 */
 
     /* USER CODE BEGIN RTOS_MUTEX */
@@ -294,6 +300,7 @@ int main(void) {
 void SystemClock_Config(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
     RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = { 0 };
 
     /**Configure the main internal regulator output voltage
   */
@@ -323,6 +330,12 @@ void SystemClock_Config(void) {
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
+        Error_Handler();
+    }
+
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+    PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
         Error_Handler();
     }
 }
@@ -405,30 +418,34 @@ static void MX_I2C1_Init(void) {
 }
 
 /**
-  * @brief IWDG Initialization Function
+  * @brief RTC Initialization Function
   * @param None
   * @retval None
   */
-static void MX_IWDG_Init(void) {
+static void MX_RTC_Init(void) {
 
-    /* USER CODE BEGIN IWDG_Init 0 */
+    /* USER CODE BEGIN RTC_Init 0 */
 
-    /* USER CODE END IWDG_Init 0 */
+    /* USER CODE END RTC_Init 0 */
 
-    /* USER CODE BEGIN IWDG_Init 1 */
-    //Watchdog is enable in marlin init
-#if 0
-  /* USER CODE END IWDG_Init 1 */
-  hiwdg.Instance = IWDG;
-  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
-  hiwdg.Init.Reload = 4095;
-  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN IWDG_Init 2 */
-#endif
-    /* USER CODE END IWDG_Init 2 */
+    /* USER CODE BEGIN RTC_Init 1 */
+
+    /* USER CODE END RTC_Init 1 */
+    /** Initialize RTC Only
+  */
+    hrtc.Instance = RTC;
+    hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+    hrtc.Init.AsynchPrediv = 127;
+    hrtc.Init.SynchPrediv = 255;
+    hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+    hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+    hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+    if (HAL_RTC_Init(&hrtc) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN RTC_Init 2 */
+
+    /* USER CODE END RTC_Init 2 */
 }
 
 /**
@@ -924,9 +941,10 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart1)
         uartrxbuff_rxcplt_cb(&uart1rxbuff);
-    else if (huart == &huart2)
-        osSignalSet(defaultTaskHandle, 0x04);
-    else if (huart == &huart6)
+    else if (huart == &huart2) {
+        if (uart2_thread)
+            osSignalSet(uart2_thread, uart2_signal);
+    } else if (huart == &huart6)
         uartrxbuff_rxcplt_cb(&uart6rxbuff);
 }
 
@@ -1002,18 +1020,10 @@ void StartDisplayTask(void const *argument) {
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     /* USER CODE BEGIN Callback 0 */
-
     if (htim->Instance == TIM6) {
+        wdt_tick_1ms();
         HAL_IncTick();
-    }
-#if 0 // trick to disable following code generated by Cube
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM6) {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-#endif
-    else if (htim->Instance == TIM14) {
+    } else if (htim->Instance == TIM14) {
         app_tim14_tick();
     }
     /* USER CODE END Callback 1 */
@@ -1028,6 +1038,15 @@ void Error_Handler(void) {
     /* User can add his own implementation to report the HAL error return state */
     app_error();
     /* USER CODE END Error_Handler_Debug */
+}
+
+void iwdg_warning_cb(void) {
+    DUMP_IWDGW_TO_CCRAM(0x10);
+    wdt_iwdg_refresh();
+    dump_to_xflash();
+    while (1)
+        ;
+    //	sys_reset();
 }
 
 #ifdef USE_FULL_ASSERT

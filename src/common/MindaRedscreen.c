@@ -14,10 +14,8 @@
 #include "gpio.h"
 #include "sys.h"
 #include "hwio.h" //hwio_beeper_set_pwm
-
-#ifndef _DEBUG
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
+#include "wdt.h"
+#include "../lang/i18n.h"
 
 #define PADDING 10
 #define X_MAX   (display->w - PADDING * 2)
@@ -101,7 +99,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
     display->clear(COLOR_RED_ALERT);
 
     display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), "MBL ERROR", gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
-    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - PADDING, 30), COLOR_WHITE);
+    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - 1 - PADDING, 30), COLOR_WHITE);
 
     //bed
     rect_ui16_t rect;
@@ -186,7 +184,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
         display->draw_rect(rect, COLOR_BLACK);
     }
 
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), "RESET PRINTER", gui_defaults.font,
+    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), gui_defaults.font,
         COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
 
     jogwheel_init();
@@ -194,9 +192,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg);
-#endif //_DEBUG
+        wdt_iwdg_refresh();
         if (!gpio_get(jogwheel_config.pinENC))
             sys_reset(); //button press
     }

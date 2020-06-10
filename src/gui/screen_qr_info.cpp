@@ -1,6 +1,5 @@
 #include "gui.h"
 #include "config.h"
-#include "screen_menu.h"
 #include <stdlib.h>
 #include "support_utils.h"
 #include "screens.h"
@@ -8,19 +7,13 @@
 #include "../../gui/wizard/selftest.h"
 #include "stm32f4xx_hal.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct
-{
+struct screen_qr_info_data_t {
     window_frame_t root;
     window_text_t warning;
     window_text_t button;
     window_qr_t qr;
     char qr_text[MAX_LEN_4QR + 1];
-} screen_qr_info_data_t;
-
-#pragma pack(pop)
+};
 
 #define pd ((screen_qr_info_data_t *)screen->pdata)
 
@@ -48,7 +41,7 @@ void screen_menu_qr_info_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(28, 85, 224, 95), &(pd->qr));
     pd->qr.ecc_level = qrcodegen_Ecc_MEDIUM;
-    create_path_info_4service(pd->qr_text);
+    create_path_info_4service(pd->qr_text, MAX_LEN_4QR + 1);
     pd->qr.text = pd->qr_text;
 }
 

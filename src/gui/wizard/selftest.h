@@ -19,18 +19,12 @@
 extern "C" {
 #endif //__cplusplus
 
-#pragma pack(push)
-#pragma pack(1)
-
-//#pragma pack(1) makes enums 8 bit
 typedef struct
 {
     selftest_cool_data_t cool_data;
     selftest_temp_data_t temp_data;
     selftest_fans_axis_data_t fans_axis_data;
 } selftest_data_t;
-
-#pragma pack(pop)
 
 extern uint32_t last_selftest_result;
 extern uint32_t last_selftest_time;

@@ -9,40 +9,31 @@
 #include "window_header.h"
 #include "config.h"
 #include "marlin_client.h"
-#ifdef BUDDY_ENABLE_ETHERNET
-    #include "lwip/netif.h"
-    #include "lwip/dhcp.h"
-#endif //BUDDY_ENABLE_ETHERNET
-#include "eeprom.h"
+#include "../lang/i18n.h"
 
-extern struct netif eth0;
-#if 0
-extern struct netif wlan0;
-#endif
+#ifdef BUDDY_ENABLE_ETHERNET
+    #include "wui_api.h"
+#endif //BUDDY_ENABLE_ETHERNET
 
 void window_frame_draw(window_frame_t *window);
 
 int16_t WINDOW_CLS_HEADER = 0;
 
-static void update_ETH_icon(bool link_up, window_header_t *window) {
-    if (link_up) {
-        if (eeprom_get_var(EEVAR_LAN_FLAG).ui8 & LAN_EEFLG_TYPE) {
-            if (netif_is_up(&eth0)) {
-                p_window_header_icon_active(window, HEADER_ICON_LAN);
-            } else {
-                p_window_header_icon_on(window, HEADER_ICON_LAN);
-            }
-        } else {
-            if (dhcp_supplied_address(&eth0)) {
-                p_window_header_icon_active(window, HEADER_ICON_LAN);
-            } else {
-                p_window_header_icon_on(window, HEADER_ICON_LAN);
-            }
-        }
-    } else {
+#ifdef BUDDY_ENABLE_ETHERNET
+static void update_ETH_icon(window_header_t *window) {
+    ETH_config_t config;
+    config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    load_eth_params(&config);
+    ETH_STATUS_t status = eth_status(&config);
+    if (status == ETH_UNLINKED) {
         p_window_header_icon_off(window, HEADER_ICON_LAN);
+    } else if (status == ETH_NETIF_DOWN) {
+        p_window_header_icon_on(window, HEADER_ICON_LAN);
+    } else {
+        p_window_header_icon_active(window, HEADER_ICON_LAN);
     }
 }
+#endif // BUDDY_ENABLE_ETHERNET
 
 void window_header_init(window_header_t *window) {
     window->color_back = gui_defaults.color_back;
@@ -60,8 +51,10 @@ void window_header_init(window_header_t *window) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
     }
 #ifdef BUDDY_ENABLE_ETHERNET
-    update_ETH_icon(netif_is_link_up(&eth0), window);
+    update_ETH_icon(window);
 #endif //BUDDY_ENABLE_ETHERNET
+
+    display->fill_rect(gui_defaults.header_sz, window->color_back); // clear the window before drawing
 }
 
 void window_header_done(window_header_t *window) {}
@@ -117,8 +110,8 @@ void window_header_draw(window_header_t *window) {
     rc.x += 10 + window->win.rect.h;
     rc.w -= (icons_width + 10 + window->win.rect.h);
 
-    if (window->label) { // label
-        render_text_align(rc, window->label, window->font,
+    if (window->label) {                                      // label
+        render_text_align(rc, _(window->label), window->font, // @@TODO verify, that this is the right spot to translate window labels
             window->color_back, window->color_text,
             window->padding, window->alignment);
     }
@@ -163,7 +156,7 @@ void p_window_header_set_text(window_header_t *window, const char *text) {
 int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id) {
     /* lwip fces only read states, invalid states by another thread never mind */
 #ifdef BUDDY_ENABLE_ETHERNET
-    update_ETH_icon(netif_is_link_up(&eth0), window);
+    update_ETH_icon(window);
 #endif //BUDDY_ENABLE_ETHERNET
     if (marlin_event_clr(evt_id)) {
         switch (evt_id) {

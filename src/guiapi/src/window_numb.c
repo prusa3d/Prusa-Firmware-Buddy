@@ -22,13 +22,13 @@ void window_numb_draw(window_numb_t *window) {
             clr_text = COLOR_ORANGE;
         char text[WINDOW_NUMB_MAX_TEXT];
         if (window->win.flg & WINDOW_FLG_NUMB_FLOAT2INT) {
-            sprintf(text, window->format, (int)(window->value));
+            snprintf(text, WINDOW_NUMB_MAX_TEXT, window->format, (int)(window->value));
         } else {
-            sprintf(text, window->format, (double)window->value);
+            snprintf(text, WINDOW_NUMB_MAX_TEXT, window->format, (double)window->value);
         }
 
         render_text_align(window->win.rect,
-            text,
+            text, // @@TODO translate this string here?
             window->font,
             clr_back,
             clr_text,

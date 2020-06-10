@@ -7,9 +7,6 @@
 
 #include "qrcodegen.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct {
     window_class_t cls;
 } window_class_qr_t;
@@ -25,8 +22,6 @@ typedef struct {
     color_t bg_color;
     color_t px_color;
 } window_qr_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

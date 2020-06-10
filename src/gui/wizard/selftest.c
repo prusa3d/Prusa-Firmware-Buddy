@@ -6,6 +6,10 @@
 uint32_t last_selftest_result;
 uint32_t last_selftest_time = 0;
 
+// !!!!!
+// !!!!! if it is possible, insert new flags at the beginning (i.e. before the first one)
+// !!!!! all changes are best consulted with Content-Department
+// !!!!!
 static uint32_t get_and_store_selftest_result(int16_t id_body, selftest_data_t *p_data) {
     uint32_t mask = 0;
     mask = (mask << 1) | (p_data->fans_axis_data.state_fan0 != _TEST_PASSED);

@@ -5,9 +5,6 @@
 
 #include "window.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_lcdsim_t {
     window_class_t cls;
 } window_class_lcdsim_t;
@@ -18,8 +15,6 @@ typedef struct _window_lcdsim_t {
     color_t color_text;
     font_t *font;
 } window_lcdsim_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

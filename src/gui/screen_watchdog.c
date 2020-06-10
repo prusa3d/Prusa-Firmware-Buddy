@@ -4,9 +4,6 @@
 #include "config.h"
 #include "screens.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_frame_t frame;
@@ -18,8 +15,6 @@ typedef struct _screen_watchdog_t {
     screen_t scr;
     screen_watchdog_data_t *pd;
 } screen_watchdog_t;
-
-#pragma pack(pop)
 
 void screen_watchdog_init(screen_watchdog_t *screen) {
     if (screen->pd == 0) {

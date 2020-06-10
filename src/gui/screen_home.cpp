@@ -13,12 +13,11 @@
 #include "status_footer.h"
 #include "marlin_client.h"
 #include "screen_print_preview.h"
-#include "screen_printing.h"
 #include "print_utils.h"
 
 #include "screens.h"
 
-extern uint8_t menu_preheat_type;
+#include "../lang/i18n.h"
 
 #define BUTTON_PRINT       0
 #define BUTTON_PREHEAT     1
@@ -37,20 +36,16 @@ const uint16_t icons[6] = {
 };
 
 const char *labels[7] = {
-    "Print",
-    "Preheat",
-    "Filament",
-    "Calibration",
-    "Settings",
-    "Info",
-    "No USB" // label variant for first button
+    N_("Print"),
+    N_("Preheat"),
+    N_("Filament"),
+    N_("Calibration"),
+    N_("Settings"),
+    N_("Info"),
+    N_("No USB") // label variant for first button
 };
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct
-{
+struct screen_home_data_t {
     window_frame_t root;
 
     window_header_t header;
@@ -64,14 +59,12 @@ typedef struct
     uint8_t is_starting;
     uint32_t time;
     uint8_t logo_invalid;
-} screen_home_data_t;
-
-#pragma pack(pop)
+};
 
 #define pw ((screen_home_data_t *)screen->pdata)
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
-void screen_home_disable_print_button(screen_t *screen);
+void screen_home_disable_print_button(screen_t *screen, int disable);
 
 void screen_home_init(screen_t *screen) {
     // Every 49days and some time in 5 seconds window, auto filebrowser open did not work.
@@ -84,10 +77,9 @@ void screen_home_init(screen_t *screen) {
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0), &(pw->root));
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root,
-        rect_ui16(0, 0, 240, 31), &(pw->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_home);
-    p_window_header_set_text(&(pw->header), "HOME");
+    p_window_header_set_text(&(pw->header), _("HOME"));
 
     id = window_create_ptr(WINDOW_CLS_ICON, root,
         rect_ui16(41, 31, 158, 40), &(pw->logo));
@@ -123,7 +115,7 @@ void screen_home_init(screen_t *screen) {
     }
 
     if (!marlin_vars()->media_inserted)
-        screen_home_disable_print_button(screen);
+        screen_home_disable_print_button(screen, 1);
 
     status_footer_init(&(pw->footer), root);
 }
@@ -175,23 +167,24 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
         // we are using marlin variables for filename and filepath buffers
         marlin_vars_t *vars = marlin_vars();
         //check if the variables filename and filepath allocated
-        if (vars->media_file_name && vars->media_file_name) {
+        if (vars->media_LFN && vars->media_LFN) {
             if (find_latest_gcode(
-                    vars->media_file_path,
+                    vars->media_SFN_path,
                     FILE_PATH_MAX_LEN,
-                    vars->media_file_name,
+                    vars->media_LFN,
                     FILE_NAME_MAX_LEN)) {
-                screen_print_preview_set_gcode_filepath(vars->media_file_path);
-                screen_print_preview_set_gcode_filename(vars->media_file_name);
+                screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
+                screen_print_preview_set_gcode_filename(vars->media_LFN);
                 screen_print_preview_set_on_action(on_print_preview_action);
                 screen_open(get_scr_print_preview()->id);
             }
+            screen_home_disable_print_button(screen, 0);
         }
         return 1;
     }
 
     if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
-        screen_home_disable_print_button(screen);
+        screen_home_disable_print_button(screen, 1);
     }
 
     if (event != WINDOW_EVENT_CLICK) {
@@ -204,7 +197,6 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
         return 1;
         break;
     case BUTTON_PREHEAT + 1:
-        menu_preheat_type = 0;
         screen_open(get_scr_menu_preheat()->id);
         return 1;
     case BUTTON_FILAMENT + 1:
@@ -260,13 +252,14 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
     return result == FR_OK && fname[0] != 0 ? true : false;
 }
 
-void screen_home_disable_print_button(screen_t *screen) {
-    pw->w_buttons[0].win.f_disabled = 1;
-    pw->w_buttons[0].win.f_enabled = 0; // cant't be focused
-    window_set_text(pw->w_labels[0].win.id, labels[6]);
+void screen_home_disable_print_button(screen_t *screen, int disable) {
+    pw->w_buttons[0].win.f_disabled = disable;
+    pw->w_buttons[0].win.f_enabled = !disable; // cant't be focused
+    pw->w_buttons[0].win.f_invalid = 1;
+    window_set_text(pw->w_labels[0].win.id, labels[(disable ? 6 : 0)]);
 
     // move to preheat when Print is focused
-    if (window_is_focused(pw->w_buttons[0].win.id)) {
+    if (window_is_focused(pw->w_buttons[0].win.id) && disable) {
         window_set_focus(pw->w_buttons[1].win.id);
     }
 }

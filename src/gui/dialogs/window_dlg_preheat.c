@@ -14,6 +14,8 @@
 #include "marlin_client.h"
 #include "resource.h"
 #include "stdlib.h"
+#include "../lang/i18n.h"
+
 //"inherit" those functions, to inherit frame behavior
 extern void window_frame_done(window_frame_t *window);
 extern void window_frame_draw(window_frame_t *window);
@@ -27,7 +29,7 @@ int16_t WINDOW_CLS_DLG_PREHEAT = 0;
 void window_list_filament_item_forced_cb(window_list_t *pwindow_list, uint16_t index,
     const char **pptext, uint16_t *pid_icon) {
     if (index <= pwindow_list->count) {
-        *pptext = filaments[index + FILAMENT_PLA].long_name;
+        *pptext = _(filaments[index + FILAMENT_PLA].long_name);
     } else
         *pptext = "Index ERROR";
 
@@ -44,21 +46,17 @@ void window_list_filament_item_cb(window_list_t *pwindow_list, uint16_t index,
     }
 }
 
-static void _set_filament(FILAMENT_t index) {
-    marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
-    marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
-    set_filament(index);
-}
-
 void window_dlg_preheat_click_forced_cb(window_dlg_preheat_t *window) {
     FILAMENT_t index = window->list.index + FILAMENT_PLA;
-    _set_filament(index);
+    marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
+    marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
 }
 
 void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
     if (window->list.index > 0) {
         FILAMENT_t index = window->list.index + FILAMENT_PLA - 1;
-        _set_filament(index);
+        marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
+        marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
     }
 }
 
@@ -73,12 +71,12 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     window->padding = gui_defaults.padding;
 
     int16_t id;
-    rect_ui16_t rect = gui_defaults.msg_box_sz;
+    rect_ui16_t rect = gui_defaults.scr_body_sz;
     if (window->caption) {
         rect.h = window->font_title->h + 2;
         id = window_create_ptr(WINDOW_CLS_TEXT, window->win.id, rect, &(window->text));
         window_set_text(id, window->caption);
-        rect = gui_defaults.msg_box_sz;
+        rect = gui_defaults.scr_body_sz;
         rect.y += window->font_title->h + 4;
         rect.h -= window->font_title->h + 4;
     }
@@ -123,16 +121,19 @@ const window_class_dlg_preheat_t window_class_dlg_preheat = {
     },
 };
 
-int gui_dlg_preheat(const char *caption) {
-    return gui_dlg_list(
+FILAMENT_t gui_dlg_preheat(const char *caption) {
+    int ret = gui_dlg_list(
         caption,
         window_list_filament_item_cb,
         window_dlg_preheat_click_cb,
         _PREHEAT_FILAMENT_CNT + 1, //+1 back option
         30000);
+    if (ret < 0)
+        return FILAMENT_NONE; //timeout
+    return (FILAMENT_t)ret;   //RETURN option will return FILAMENT_NONE
 }
 
-int gui_dlg_preheat_autoselect_if_able(const char *caption) {
+FILAMENT_t gui_dlg_preheat_autoselect_if_able(const char *caption) {
     const FILAMENT_t fil = get_filament();
     if (fil == FILAMENT_NONE) {
         //no filament selected
@@ -149,18 +150,22 @@ int gui_dlg_preheat_autoselect_if_able(const char *caption) {
 }
 
 //no return option
-int gui_dlg_preheat_forced(const char *caption) {
-    return gui_dlg_list(
+FILAMENT_t gui_dlg_preheat_forced(const char *caption) {
+    int ret = gui_dlg_list(
         caption,
         window_list_filament_item_forced_cb,
         window_dlg_preheat_click_forced_cb,
         _PREHEAT_FILAMENT_CNT,
         -1 //do not leave
     );
+
+    if (ret < 0)
+        return FILAMENT_NONE;   //should not happen
+    return (FILAMENT_t)(++ret); //first filament has position 0, have to change index
 }
 
 //no return option
-int gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
+FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
     const FILAMENT_t fil = get_filament();
     if (fil == FILAMENT_NONE) {
         //no filament selected
@@ -190,7 +195,7 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     //parent 0 would be first screen
     //here must be -1
     int16_t id_capture = window_capture();
-    int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.msg_box_sz, &dlg);
+    int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.scr_body_sz, &dlg);
 
     window_set_item_count(dlg.list.win.id, count);
 

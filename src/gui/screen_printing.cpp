@@ -1,27 +1,17 @@
-/*
- * screen_prusa.c
- *
- *  Created on: 16. 7. 2019
- *      Author: mcbig
- */
-
 #include "dbg.h"
 #include "gui.h"
 #include "config.h"
 #include "window_header.h"
 #include "status_footer.h"
 #include "marlin_client.h"
-#include "filament.h"
-#include "screen_printing.h"
 #include "marlin_server.h"
 #include "print_utils.h"
 #include "screens.h"
-
 #include "ffconf.h"
-
-#include "../Marlin/src/libs/duration_t.h"
-
-#include "../Marlin/src/gcode/lcd/M73_PE.h"
+#include <array>
+#include <ctime>
+#include "wui_api.h"
+#include "../lang/i18n.h"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"
@@ -31,45 +21,44 @@
 //#define COLOR_VALUE_INVALID COLOR_YELLOW
 #define COLOR_VALUE_INVALID COLOR_WHITE
 
-#define BUTTON_TUNE  0
-#define BUTTON_PAUSE 1
-#define BUTTON_STOP  2
+enum class Btn {
+    Tune = 0,
+    Pause,
+    Stop
+};
 
-#define POPUP_MSG_DUR_MS 5000
+constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
+constexpr static const size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
+constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
 
-#define HEATING_DIFFERENCE 1
+enum class printing_state_t : uint8_t {
+    INITIAL,
+    PRINTING,
+    PAUSING,
+    PAUSED,
+    RESUMING,
+    ABORTING,
+    REHEATING,
+    REHEATING_DONE,
+    MBL_FAILED,
+    PRINTED,
+    COUNT //setting this state == forced update
+};
 
-#pragma pack(push)
-#pragma pack(1)
+enum class item_id_t {
+    settings,
+    pause,
+    pausing,
+    stop,
+    resume,
+    resuming,
+    reheating,
+    reprint,
+    home,
+    count
+};
 
-typedef enum {
-    P_INITIAL,
-    P_PRINTING,
-    P_PAUSING,
-    P_PAUSED,
-    P_RESUMING,
-    P_REHEATING,
-    P_REHEATING_DONE,
-    P_MBL_FAILED,
-    P_PRINTED
-} printing_state_t;
-
-typedef enum {
-    iid_settings,
-    iid_pause,
-    iid_pausing,
-    iid_stop,
-    iid_resume,
-    iid_resuming,
-    iid_reheating,
-    iid_reprint,
-    iid_home,
-    iid_count
-} item_id_t;
-
-#pragma pack(pop)
-
-const uint16_t printing_icons[iid_count] = {
+const uint16_t printing_icons[static_cast<size_t>(item_id_t::count)] = {
     IDR_PNG_menu_icon_settings,
     IDR_PNG_menu_icon_pause,
     IDR_PNG_menu_icon_pause, //same as pause
@@ -81,7 +70,7 @@ const uint16_t printing_icons[iid_count] = {
     IDR_PNG_menu_icon_home,
 };
 
-const char *printing_labels[iid_count] = {
+const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
     "Tune",
     "Pause",
     "Pausing...",
@@ -93,11 +82,7 @@ const char *printing_labels[iid_count] = {
     "Home",
 };
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct
-{
+struct screen_printing_data_t {
     window_frame_t root;
 
     window_header_t header;
@@ -107,63 +92,49 @@ typedef struct
     window_text_t w_time_value;
     window_text_t w_etime_label;
     window_text_t w_etime_value;
-    // window_text_t w_filament_label;
-    // window_text_t w_filament_value;
 
     window_icon_t w_buttons[3];
     window_text_t w_labels[3];
 
-    //printing_state_t state__readonly__use_change_print_state;
-    //todo it is static, because menu tune is not dialog
-
-    uint32_t last_timer_repaint;
-
     status_footer_t footer;
 
-    char text_time[13];    // 999d 23h 30m\0
-    char text_etime[9];    // 999X 23Y\0
-    char text_filament[5]; // 999m\0 | 1.2m\0
+    uint32_t last_print_duration;
+    uint32_t last_time_to_end;
+
+    std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;
+    std::array<char, MAX_END_TIMESTAMP_SIZE> text_etime;
+    std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end"
+    std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
 
     window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
-    uint8_t message_flag;
-
-} screen_printing_data_t;
-
-static printing_state_t state__readonly__use_change_print_state;
-void reset_print_state(void) {
-    marlin_set_print_speed(100);
-    state__readonly__use_change_print_state = P_INITIAL;
-}
-
-#pragma pack(pop)
-
-class Lock {
-    static bool locked;
-
-public:
-    Lock() {
-        locked = true;
-    }
-    static bool IsLocked() {
-        return locked;
-    }
-    ~Lock() {
-        locked = false;
-    }
+    bool message_flag;
+    bool stop_pressed;
+    printing_state_t state__readonly__use_change_print_state;
+    uint8_t last_sd_percent_done;
 };
-bool Lock::locked = false;
 
 void screen_printing_init(screen_t *screen);
 void screen_printing_done(screen_t *screen);
 void screen_printing_draw(screen_t *screen);
 int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, void *param);
-//void screen_printing_timer(screen_t *screen, uint32_t seconds);
-//void screen_printing_update_progress(screen_t *screen);
-void screen_printing_reprint(screen_t *screen);
-void screen_printing_printed(screen_t *screen);
-void screen_mesh_err_stop_print(screen_t *screen);
-void change_print_state(screen_t *screen, printing_state_t state);
+
+#define pw ((screen_printing_data_t *)screen->pdata)
+
+static void invalidate_print_state(screen_t *screen) {
+    pw->state__readonly__use_change_print_state = printing_state_t::COUNT;
+}
+static printing_state_t get_state(screen_t *screen) {
+    return pw->state__readonly__use_change_print_state;
+}
+
+static void screen_printing_reprint(screen_t *screen);
+//static void mesh_err_stop_print(screen_t *screen); //todo use it
+static void change_print_state(screen_t *screen);
+static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed);
+static void update_remaining_time(screen_t *screen, time_t rawtime);
+static void update_end_timestamp(screen_t *screen, time_t now_sec);
+static void update_print_duration(screen_t *screen, time_t print_duration);
 
 screen_t screen_printing = {
     0,
@@ -177,50 +148,21 @@ screen_t screen_printing = {
 };
 extern "C" screen_t *const get_scr_printing() { return &screen_printing; }
 
-#define pw ((screen_printing_data_t *)screen->pdata)
-
-struct pduration_t : duration_t {
-    pduration_t()
-        : pduration_t(0) {};
-
-    pduration_t(uint32_t const &seconds)
-        : duration_t(seconds) {}
-
-    void to_string(char *buffer) const {
-        int d = this->day(),
-            h = this->hour() % 24,
-            m = this->minute() % 60,
-            s = this->second() % 60;
-
-        if (d) {
-            sprintf(buffer, "%3id %2ih %2im", d, h, m);
-        } else if (h) {
-            sprintf(buffer, "     %2ih %2im", h, m);
-        } else if (m) {
-            sprintf(buffer, "     %2im %2is", m, s);
-        } else {
-            sprintf(buffer, "         %2is", s);
-        }
-    }
-};
-
-static void screen_printing_update_remaining_time_progress(screen_t *screen);
-
 void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
     int16_t id;
 
+    pw->stop_pressed = false;
     marlin_vars_t *vars = marlin_vars();
 
-    strcpy(pw->text_time, "0m");
-    strcpy(pw->text_filament, "999m");
+    strlcpy(pw->text_time_dur.data(), "0m", pw->text_time_dur.size());
+    strlcpy(pw->text_filament.data(), "999m", pw->text_filament.size());
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pw->root));
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root,
-        rect_ui16(0, 0, 240, 31), &(pw->header));
+    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
@@ -231,7 +173,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
-    window_set_text(id, vars->media_file_name ? vars->media_file_name : "");
+    window_set_text(id, vars->media_LFN ? vars->media_LFN : "");
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
@@ -246,15 +188,16 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "Remaining Time");
+    strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
+    window_set_text(id, pw->label_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
-        rect_ui16(130, 148, 101, 20),
+        rect_ui16(30, 148, 201, 20),
         &(pw->w_etime_value));
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_etime);
+    window_set_text(id, pw->text_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 128, 101, 20),
@@ -262,7 +205,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "Printing Time");
+    window_set_text(id, "");
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 148, 101, 20),
@@ -270,7 +213,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_time);
+    window_set_text(id, pw->text_time_dur.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
@@ -280,12 +223,15 @@ void screen_printing_init(screen_t *screen) {
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
     window_set_text(id, "No messages");
     window_hide(id);
-    pw->message_flag = 0;
+    pw->message_flag = false;
 
+    // buttons
+    const uint16_t icon_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22 - 64;
+    const uint16_t text_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22;
     for (uint8_t col = 0; col < 3; col++) {
         id = window_create_ptr(
             WINDOW_CLS_ICON, root,
-            rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
+            rect_ui16(8 + (15 + 64) * col, icon_y, 64, 64),
             &(pw->w_buttons[col]));
         window_set_color_back(id, COLOR_GRAY);
         window_set_tag(id, col + 1);
@@ -293,20 +239,20 @@ void screen_printing_init(screen_t *screen) {
 
         id = window_create_ptr(
             WINDOW_CLS_TEXT, root,
-            rect_ui16(80 * col, 196 + 48 + 8, 80, 22),
+            rect_ui16(80 * col, text_y, 80, 22),
             &(pw->w_labels[col]));
         pw->w_labels[col].font = resource_font(IDR_FNT_SMALL);
         window_set_padding(id, padding_ui8(0, 0, 0, 0));
         window_set_alignment(id, ALIGN_CENTER);
     }
 
-    //todo it is static, because menu tune is not dialog
-    //change_print_state(screen, P_INITIAL);
-    change_print_state(screen, state__readonly__use_change_print_state);
+    invalidate_print_state(screen); //must invalidate, to ensure correct draw of buttons
+
+    pw->last_print_duration = -1;
+    pw->last_time_to_end = -1;
+    pw->last_sd_percent_done = -1;
 
     status_footer_init(&(pw->footer), root);
-    //    screen_printing_timer(screen, 1000); // first fast value s update
-    screen_printing_update_remaining_time_progress(screen);
 }
 
 void screen_printing_done(screen_t *screen) {
@@ -327,7 +273,7 @@ static void open_popup_message(screen_t *screen) {
 
     window_show(pw->w_message.win.id);
     pw->message_timer = HAL_GetTick();
-    pw->message_flag = 1;
+    pw->message_flag = true;
 }
 
 static void close_popup_message(screen_t *screen) {
@@ -340,7 +286,7 @@ static void close_popup_message(screen_t *screen) {
     window_set_text(pw->w_message.win.id, "");
 
     window_hide(pw->w_message.win.id);
-    pw->message_flag = 0;
+    pw->message_flag = false;
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -372,57 +318,53 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 0;
     }
 
-    if (pw->message_flag != 0 && HAL_GetTick() - pw->message_timer >= POPUP_MSG_DUR_MS) {
+    if ((!is_abort_state(marlin_vars()->print_state)) && pw->message_flag && (HAL_GetTick() - pw->message_timer >= POPUP_MSG_DUR_MS)) {
         close_popup_message(screen);
     }
-
-    /*    if (Lock::IsLocked())
-        return 0;
-    Lock l;
-
-    if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-        marlin_error_clr(MARLIN_ERR_ProbingFailed);
-        if (state__readonly__use_change_print_state != P_MBL_FAILED) {
-            change_print_state(screen, P_MBL_FAILED);
-            screen_mesh_err_stop_print(screen);
-
-            if (gui_msgbox("Bed leveling failed. Try again?", MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
-                screen_printing_reprint(screen);
-                change_print_state(screen, P_PRINTING);
-            } else {
-                marlin_gcode("M104 S0");
-                marlin_gcode("M140 S0");
-                screen_close();
-            }
-        }
-    }
-
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) { // close screen when media removed
-        if (state__readonly__use_change_print_state == P_PRINTED) {
-            screen_close();
-            return 1;
-        }
-        marlin_print_pause();
-    }
-    window_header_events(&(pw->header));*/
-
-    //    screen_printing_timer(screen, (HAL_GetTick() / 50) * 50);
 
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
     }
 
-    change_print_state(screen, state__readonly__use_change_print_state);
+    change_print_state(screen);
+
+    if (marlin_vars()->print_duration != pw->last_print_duration)
+        update_print_duration(screen, marlin_vars()->print_duration);
+    if (marlin_vars()->time_to_end != pw->last_time_to_end) {
+        time_t sec = sntp_get_system_time();
+        if (sec != 0) {
+            strlcpy(pw->label_etime.data(), _("Print will end"), 15);
+            window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
+            update_end_timestamp(screen, sec);
+        } else {
+            strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
+            window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
+            update_remaining_time(screen, marlin_vars()->time_to_end);
+        }
+        pw->last_time_to_end = marlin_vars()->time_to_end;
+    }
+    if (marlin_vars()->sd_percent_done != pw->last_sd_percent_done)
+        update_progress(screen, marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
+
+    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
+        screen_close();
+    }
 
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
 
-    switch (((int)param) - 1) {
-    case BUTTON_TUNE:
-        switch (state__readonly__use_change_print_state) {
-        case P_PRINTING:
-        case P_PAUSED:
+    int pi = reinterpret_cast<int>(param) - 1;
+    // -- pressed button is disabled - dont propagate event further
+    if (pw->w_buttons[pi].win.f_disabled) {
+        return 0;
+    }
+
+    switch (static_cast<Btn>(pi)) {
+    case Btn::Tune:
+        switch (get_state(screen)) {
+        case printing_state_t::PRINTING:
+        case printing_state_t::PAUSED:
             screen_open(get_scr_menu_tune()->id);
             break;
         default:
@@ -430,17 +372,15 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         }
         return 1;
         break;
-    case BUTTON_PAUSE: {
-        //todo it is static, because menu tune is not dialog
-        //switch(pw->state__readonly__use_change_print_state)
-        switch (state__readonly__use_change_print_state) {
-        case P_PRINTING:
+    case Btn::Pause: {
+        switch (get_state(screen)) {
+        case printing_state_t::PRINTING:
             marlin_print_pause();
             break;
-        case P_PAUSED:
+        case printing_state_t::PAUSED:
             marlin_print_resume();
             break;
-        case P_PRINTED:
+        case printing_state_t::PRINTED:
             screen_printing_reprint(screen);
             break;
         default:
@@ -448,23 +388,21 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         }
         break;
     }
-    case BUTTON_STOP:
-        //todo it is static, because menu tune is not dialog
-        //if(pw->state__readonly__use_change_print_state == P_PRINTED)
-        switch (state__readonly__use_change_print_state) {
-        case P_PRINTED:
+    case Btn::Stop:
+        switch (get_state(screen)) {
+        case printing_state_t::PRINTED:
             screen_close();
             return 1;
-        case P_PAUSING:
-        case P_RESUMING:
+        case printing_state_t::PAUSING:
+        case printing_state_t::RESUMING:
             return 0;
         default: {
-            if (gui_msgbox("Are you sure to stop this printing?",
+            if (gui_msgbox(_("Are you sure to stop this printing?"),
                     MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
                 == MSGBOX_RES_YES) {
+                pw->stop_pressed = true;
+                change_print_state(screen);
                 marlin_print_abort();
-                //                screen_close();
-                //                return 1;
             } else
                 return 0;
         }
@@ -474,153 +412,120 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     return 0;
 }
 
-/*void screen_printing_timer(screen_t *screen, uint32_t mseconds) {
-    if ((mseconds - pw->last_timer_repaint) >= 1000) {
-        screen_printing_update_progress(screen);
-        pw->last_timer_repaint = mseconds;
-    }
-}*/
-void screen_printing_disable_tune_button(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_TUNE];
+static void disable_tune_button(screen_t *screen) {
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
     p_button->win.f_disabled = 1;
-    p_button->win.f_enabled = 0; // cant't be focused
+    p_button->win.f_enabled = 0; // can't be focused
 
     // move to reprint when tune is focused
     if (window_is_focused(p_button->win.id)) {
-        window_set_focus(pw->w_buttons[BUTTON_PAUSE].win.id);
+        window_set_focus(pw->w_buttons[static_cast<size_t>(Btn::Pause)].win.id);
     }
     window_invalidate(p_button->win.id);
 }
 
-void screen_printing_enable_tune_button(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_TUNE];
+static void enable_tune_button(screen_t *screen) {
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
 
     p_button->win.f_disabled = 0;
     p_button->win.f_enabled = 1; // can be focused
     window_invalidate(p_button->win.id);
 }
 
-void _state_loop(screen_t *screen) {
-    //todo it is static, because menu tune is not dialog
-    //switch (pw->state__readonly__use_change_print_state)
-
-    auto p_vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT));
-    switch (state__readonly__use_change_print_state) {
-    case P_PRINTING:
-        if ((!p_vars->sd_printing) && (marlin_command() != MARLIN_CMD_M600) && // prevent false trigering durring M600 TODO: better solution
-            !marlin_motion())                                                  // wait for motors idle
-            screen_printing_printed(screen);
-        else
-            screen_printing_update_remaining_time_progress(screen);
-        break;
-    case P_INITIAL:
-    case P_PAUSED:
-    case P_RESUMING:
-    case P_PRINTED:
-    case P_REHEATING_DONE:
-        //case P_MBL_FAILED:
-        if (p_vars->sd_printing) {
-            change_print_state(screen, P_PRINTING);
-        }
-        break;
-    case P_MBL_FAILED:
-    default:
-        break;
-    }
+static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed) {
+    pw->w_progress.color_text = (percent <= 100) && (print_speed == 100) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
+    window_set_value(pw->w_progress.win.id, percent);
 }
 
-static void screen_printing_update_remaining_time_progress(screen_t *screen) {
-    uint8_t nPercent;
-    if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration)) {
-        nPercent = (uint8_t)oProgressData.oPercentDone.mGetValue();
-        oProgressData.oTime2End.mFormatSeconds(pw->text_etime, marlin_vars()->print_speed);
-        pw->w_etime_value.color_text = ((marlin_vars()->print_speed == 100) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID);
-        pw->w_progress.color_text = COLOR_VALUE_VALID;
-        //_dbg(".progress: %d\r",nPercent);
+static void update_remaining_time(screen_t *screen, time_t rawtime) {
+    pw->w_etime_value.color_text = rawtime != time_t(-1) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
+
+    if (rawtime != time_t(-1)) {
+        const struct tm *timeinfo = localtime(&rawtime);
+        //standard would be:
+        //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
+        if (timeinfo->tm_yday) {
+            snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+        } else if (timeinfo->tm_hour) {
+            snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+        } else {
+            snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
+        }
+    } else
+        strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
+
+    window_set_text(pw->w_etime_value.win.id, pw->text_etime.data());
+}
+
+static void update_end_timestamp(screen_t *screen, time_t now_sec) {
+
+    bool time_invalid = false;
+    if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
+        pw->w_etime_value.color_text = COLOR_VALUE_INVALID;
+        time_invalid = true;
     } else {
-        nPercent = marlin_vars()->sd_percent_done;
-        strcpy_P(pw->text_etime, PSTR("N/A"));
         pw->w_etime_value.color_text = COLOR_VALUE_VALID;
-        pw->w_progress.color_text = COLOR_VALUE_INVALID;
-        //_dbg(".progress: %d ???\r",nPercent);
     }
-    window_set_value(pw->w_progress.win.id, nPercent);
-    window_set_text(pw->w_etime_value.win.id, pw->text_etime);
 
-    //-//		_dbg("progress: %d", ExtUI::getProgress_percent());
-    //_dbg("progress: %d", nPercent);
-    //_dbg("##% FeedRate %d",feedrate_percentage);
-}
+    static const uint32_t full_day_in_seconds = 86400;
+    time_t print_end_sec, tommorow_sec;
 
-/*void screen_printing_update_progress(screen_t *screen) {
-    if (marlin_reheating()) {
-        //todo it is static, because menu tune is not dialog
-        //if (pw->state__readonly__use_change_print_state != P_REHEATING)
-        if (state__readonly__use_change_print_state != P_REHEATING)
-            change_print_state(screen, P_REHEATING); //state change is not checked inside
+    print_end_sec = now_sec + marlin_vars()->time_to_end;
+    tommorow_sec = now_sec + full_day_in_seconds;
+
+    struct tm tommorow, print_end, now;
+    localtime_r(&now_sec, &now);
+    localtime_r(&tommorow_sec, &tommorow);
+    localtime_r(&print_end_sec, &print_end);
+
+    if (now.tm_mday == print_end.tm_mday && // if print end is today
+        now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end);
+    } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
+        tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Tommorow at %H:%M?", &print_end);
     } else {
-        //todo it is static, because menu tune is not dialog
-        //switch(pw->state__readonly__use_change_print_state)
-        switch (state__readonly__use_change_print_state) {
-        case P_REHEATING:
-            marlin_print_resume();
-            change_print_state(screen, P_REHEATING_DONE);
-            break;
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%M?", &print_end);
+    }
 
-        case P_PAUSING:
-            if (marlin_event_clr(MARLIN_EVT_UserConfirmRequired)) {
-                change_print_state(screen, P_PAUSED);
-            } //no break, need to do default
-        default:
-            _state_loop(screen);
+    if (time_invalid == false) {
+        uint8_t length = strlen(pw->text_etime.data());
+        if (length > 0) {
+            pw->text_etime[length - 1] = 0;
         }
     }
 
-    //const pduration_t e_time(ExtUI::getProgress_seconds_elapsed());
+    window_set_text(pw->w_etime_value.win.id, pw->text_etime.data());
+}
+static void update_print_duration(screen_t *screen, time_t rawtime) {
+    pw->w_time_value.color_text = COLOR_VALUE_VALID;
+    const struct tm *timeinfo = localtime(&rawtime);
+    if (timeinfo->tm_yday) {
+        snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+    } else if (timeinfo->tm_hour) {
+        snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+    } else if (timeinfo->tm_min) {
+        snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+    } else {
+        snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
+    }
+    window_set_text(pw->w_time_value.win.id, pw->text_time_dur.data());
+}
 
-    const pduration_t e_time(marlin_vars()->print_duration);
-    e_time.to_string(pw->text_time);
-    window_set_text(pw->w_time_value.win.id, pw->text_time);
-    //_dbg("#.. progress / p :: %d t0: %d ?: %d\r",oProgressData.oPercentDirectControl.mGetValue(),oProgressData.oPercentDirectControl.nTime,oProgressData.oPercentDirectControl.mIsActual(print_job_timer.duration()));
-    //_dbg("#.. progress / P :: %d t0: %d ?: %d\r",oProgressData.oPercentDone.mGetValue(),oProgressData.oPercentDone.nTime,oProgressData.oPercentDone.mIsActual(print_job_timer.duration()));
-    //_dbg("#.. progress / R :: %d t0: %d ?: %d\r",oProgressData.oTime2End.mGetValue(),oProgressData.oTime2End.nTime,oProgressData.oTime2End.mIsActual(print_job_timer.duration()));
-    //_dbg("#.. progress / T :: %d t0: %d ?: %d\r",oProgressData.oTime2Pause.mGetValue(),oProgressData.oTime2Pause.nTime,oProgressData.oTime2Pause.mIsActual(print_job_timer.duration()));
-
-
-	//sprintf(pw->text_filament, "1.2m");
-	//window_set_text(pw->w_filament_value.win.id, pw->text_filament);
-
-}*/
-
-void screen_printing_reprint(screen_t *screen) {
-    print_begin(marlin_vars()->media_file_path);
+static void screen_printing_reprint(screen_t *screen) {
+    print_begin(marlin_vars()->media_SFN_path);
     window_set_text(pw->w_etime_label.win.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
-    window_set_text(pw->w_labels[BUTTON_STOP].win.id, printing_labels[iid_stop]);
-    window_set_icon_id(pw->w_buttons[BUTTON_STOP].win.id, printing_icons[iid_stop]);
+    window_set_text(pw->w_labels[static_cast<size_t>(Btn::Stop)].win.id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
+    window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].win.id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
 #endif
 }
 
-void screen_printing_printed(screen_t *screen) {
-    marlin_set_print_speed(100);
-    change_print_state(screen, P_PRINTED);
-    window_set_value(pw->w_progress.win.id, 100);
-
-#ifndef DEBUG_FSENSOR_IN_HEADER
-    p_window_header_set_text(&(pw->header), "PRINT DONE"); // beware! this must not hit the ethernet icon, so keep it short
-#endif
-
-    pw->w_progress.color_text = COLOR_VALUE_VALID;
-    window_set_text(pw->w_etime_label.win.id, PSTR(""));
-    window_set_text(pw->w_etime_value.win.id, PSTR(""));
-
-    //screen_printing_disable_tune_button(screen);
-}
-
-void screen_mesh_err_stop_print(screen_t *screen) {
+//todo use it
+/*static void mesh_err_stop_print(screen_t *screen) {
     float target_nozzle = marlin_vars()->target_nozzle;
     float target_bed = marlin_vars()->target_bed;
     marlin_print_abort();
@@ -635,155 +540,170 @@ void screen_mesh_err_stop_print(screen_t *screen) {
     while (marlin_vars()->pqueue) {
         gui_loop();
     }
-}
+}*/
 
-void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
-    if (window_get_icon_id(btn_id) != printing_icons[id_to_set])
-        window_set_icon_id(btn_id, printing_icons[id_to_set]);
+static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
+    size_t index = static_cast<size_t>(id_to_set);
+    if (window_get_icon_id(btn_id) != printing_icons[index])
+        window_set_icon_id(btn_id, printing_icons[index]);
     //compare pointers to text, compare texts would take too long
-    if (window_get_text(lbl_id) != printing_labels[id_to_set])
-        window_set_text(lbl_id, printing_labels[id_to_set]);
+    if (window_get_text(lbl_id) != printing_labels[index])
+        window_set_text(lbl_id, printing_labels[index]);
 }
 
-void enable_button(window_icon_t *p_button) {
+static void enable_button(window_icon_t *p_button) {
     if (p_button->win.f_disabled) {
         p_button->win.f_disabled = 0;
         window_invalidate(p_button->win.id);
     }
 }
 
-void disable_button(window_icon_t *p_button) {
+static void disable_button(window_icon_t *p_button) {
     if (!p_button->win.f_disabled) {
         p_button->win.f_disabled = 1;
         window_invalidate(p_button->win.id);
     }
 }
 
-void set_pause_icon_and_label(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_PAUSE];
+static void set_pause_icon_and_label(screen_t *screen) {
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Pause)];
     int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[BUTTON_PAUSE].win.id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Pause)].win.id;
 
     //todo it is static, because menu tune is not dialog
     //switch (pw->state__readonly__use_change_print_state)
-    switch (state__readonly__use_change_print_state) {
-    case P_INITIAL:
-    case P_PRINTING:
-    case P_MBL_FAILED:
+    switch (get_state(screen)) {
+    case printing_state_t::COUNT:
+    case printing_state_t::INITIAL:
+    case printing_state_t::PRINTING:
+    case printing_state_t::MBL_FAILED:
         enable_button(p_button);
-        set_icon_and_label(iid_pause, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::pause, btn_id, lbl_id);
         break;
-    case P_PAUSING:
+    case printing_state_t::PAUSING:
         disable_button(p_button);
-        set_icon_and_label(iid_pausing, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::pausing, btn_id, lbl_id);
         break;
-    case P_PAUSED:
+    case printing_state_t::PAUSED:
         enable_button(p_button);
-        set_icon_and_label(iid_resume, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::resume, btn_id, lbl_id);
         break;
-    case P_RESUMING:
+    case printing_state_t::RESUMING:
         disable_button(p_button);
-        set_icon_and_label(iid_resuming, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::resuming, btn_id, lbl_id);
         break;
-    case P_REHEATING:
-    case P_REHEATING_DONE:
+    case printing_state_t::REHEATING:
+    case printing_state_t::REHEATING_DONE:
         disable_button(p_button);
-        set_icon_and_label(iid_reheating, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::reheating, btn_id, lbl_id);
         break;
-    case P_PRINTED:
+    case printing_state_t::PRINTED:
         enable_button(p_button);
-        set_icon_and_label(iid_reprint, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::reprint, btn_id, lbl_id);
+        break;
+    case printing_state_t::ABORTING:
+        disable_button(p_button);
         break;
     }
 }
 
 void set_tune_icon_and_label(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_TUNE];
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
     int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[BUTTON_TUNE].win.id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Tune)].win.id;
 
     //must be before switch
-    set_icon_and_label(iid_settings, btn_id, lbl_id);
+    set_icon_and_label(item_id_t::settings, btn_id, lbl_id);
 
-    //todo it is static, because menu tune is not dialog
-    //switch (pw->state__readonly__use_change_print_state)
-    switch (state__readonly__use_change_print_state) {
-    case P_PRINTING:
-    case P_PAUSED:
-        screen_printing_enable_tune_button(screen);
+    switch (get_state(screen)) {
+    case printing_state_t::PRINTING:
+    case printing_state_t::PAUSED:
+        enable_tune_button(screen);
+        break;
+    case printing_state_t::ABORTING:
+        disable_button(p_button);
         break;
     default:
-        screen_printing_disable_tune_button(screen);
+        disable_tune_button(screen);
         break;
     }
 }
 
 void set_stop_icon_and_label(screen_t *screen) {
-    window_icon_t *p_button = &pw->w_buttons[BUTTON_STOP];
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Stop)];
     int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[BUTTON_STOP].win.id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Stop)].win.id;
 
-    //todo it is static, because menu tune is not dialog
-    //switch (pw->state__readonly__use_change_print_state)
-    switch (state__readonly__use_change_print_state) {
-    case P_PRINTED:
+    switch (get_state(screen)) {
+    case printing_state_t::PRINTED:
         enable_button(p_button);
-        set_icon_and_label(iid_home, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::home, btn_id, lbl_id);
         break;
-    case P_PAUSING:
-    case P_RESUMING:
+    case printing_state_t::PAUSING:
+    case printing_state_t::RESUMING:
         disable_button(p_button);
-        set_icon_and_label(iid_stop, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
+        break;
+    case printing_state_t::ABORTING:
+        disable_button(p_button);
         break;
     default:
         enable_button(p_button);
-        set_icon_and_label(iid_stop, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
         break;
     }
 }
 
-void change_print_state(screen_t *screen, printing_state_t st) {
-    //_dbg("printstate %d entered", (int)st);
-    //todo it is static, because menu tune is not dialog
-    //pw->state__readonly__use_change_print_state = st;
+static void change_print_state(screen_t *screen) {
+    printing_state_t st = printing_state_t::COUNT;
+
     switch (marlin_vars()->print_state) {
     case mpsIdle:
-        st = P_INITIAL;
+        st = printing_state_t::INITIAL;
         break;
     case mpsPrinting:
-        st = P_PRINTING;
+        st = printing_state_t::PRINTING;
         break;
     case mpsPaused:
-        st = P_PAUSED;
+        pw->stop_pressed = false;
+        st = printing_state_t::PAUSED;
         break;
     case mpsPausing_Begin:
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
-        st = P_PAUSING;
+        st = printing_state_t::PAUSING;
         break;
     case mpsResuming_Reheating:
-        st = P_REHEATING;
+        pw->stop_pressed = false;
+        st = printing_state_t::REHEATING;
         break;
     case mpsResuming_Begin:
     case mpsResuming_UnparkHead:
-        st = P_RESUMING;
+        pw->stop_pressed = false;
+        st = printing_state_t::RESUMING;
         break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
     case mpsAborting_ParkHead:
-        st = P_PRINTING;
+        pw->stop_pressed = false;
+        st = printing_state_t::ABORTING;
+        break;
+    case mpsFinishing_WaitIdle:
+    case mpsFinishing_ParkHead:
+        st = printing_state_t::PRINTING;
         break;
     case mpsAborted:
-        st = P_PRINTED;
+        st = printing_state_t::PRINTED;
         break;
     case mpsFinished:
-        st = P_PRINTED;
+        st = printing_state_t::PRINTED;
         break;
     }
-    if (state__readonly__use_change_print_state != st) {
-        state__readonly__use_change_print_state = st;
+    if (pw->stop_pressed) {
+        st = printing_state_t::ABORTING;
+    }
+    if (pw->state__readonly__use_change_print_state != st) {
+        pw->state__readonly__use_change_print_state = st;
         set_pause_icon_and_label(screen);
         set_tune_icon_and_label(screen);
         set_stop_icon_and_label(screen);

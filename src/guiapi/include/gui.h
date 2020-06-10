@@ -16,12 +16,12 @@
     #include "window.h"
     #include "window_frame.h"
     #include "window_text.h"
+    #include "window_roll_text.h"
     #include "window_numb.h"
     #include "window_icon.h"
     #include "window_list.h"
     #include "window_spin.h"
     #include "window_term.h"
-    #include "window_menu.h"
     #include "window_msgbox.h"
     #include "window_progress.h"
     #include "window_qr.h"
@@ -62,6 +62,8 @@ extern void gui_redraw(void);
 
 extern uint8_t gui_get_nesting(void);
 extern void gui_loop(void);
+
+extern void gui_reset_menu_timer();
 
 extern int gui_msgbox_ex(const char *title, const char *text, uint16_t flags, rect_ui16_t rect, uint16_t id_icon, const char **buttons);
 

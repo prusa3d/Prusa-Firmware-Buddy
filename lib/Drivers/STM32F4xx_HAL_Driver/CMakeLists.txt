@@ -28,10 +28,13 @@ add_library(
   Src/stm32f4xx_hal_pwr_ex.c
   Src/stm32f4xx_hal_rcc.c
   Src/stm32f4xx_hal_rcc_ex.c
+  Src/stm32f4xx_hal_rtc.c
+  Src/stm32f4xx_hal_rtc_ex.c
   Src/stm32f4xx_hal_spi.c
   Src/stm32f4xx_hal_tim.c
   Src/stm32f4xx_hal_tim_ex.c
   Src/stm32f4xx_hal_uart.c
+  Src/stm32f4xx_hal_wwdg.c
   Src/stm32f4xx_ll_usb.c
   )
 

@@ -15,17 +15,12 @@
 //new encoder (1 steps per 1 count)
 #define JOGWHEEL_DEF_FLG (JOGWHEEL_FLG_INV_ENC | JOGWHEEL_FLG_2PULSES | JOGWHEEL_FLG_FILTER2)
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _jogwheel_config_t {
     uint8_t pinEN1; // encoder phase1 pin
     uint8_t pinEN2; // encoder phase2 pin
     uint8_t pinENC; // button pin
     uint8_t flg;    // flags
 } jogwheel_config_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

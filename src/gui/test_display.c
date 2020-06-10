@@ -6,6 +6,7 @@
 #include "dbg.h"
 #include "gui.h"
 #include "resource.h"
+#include "cmath_ext.h"
 
 typedef void(test_display_t)(uint16_t cnt);
 
@@ -54,118 +55,53 @@ void test_display(void) {
     }
 }
 
+point_ui16_t random_point() {
+    return point_ui16(RAND(display->w - 1), RAND(display->h - 1));
+}
+
+color_t random_color() {
+    return color_rgb(RAND(0xff), RAND(0xff), RAND(0xff));
+}
+
+rect_ui16_t random_rect() {
+    const uint16_t x0 = RAND(display->w - 1);
+    const uint16_t x1 = RAND(display->w - 1);
+    const uint16_t y0 = RAND(display->h - 1);
+    const uint16_t y1 = RAND(display->h - 1);
+    return rect_ui16(MIN(x0, x1), MIN(y0, y1), ABS(x1 - x0) + 1, ABS(y1 - y0) + 1);
+}
+
 void test_display_random_dots(uint16_t cnt) {
-    uint16_t x;
-    uint16_t y;
-    uint16_t n;
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    color_t clr;
-    for (n = 0; n < cnt; n++) {
-        x = display->w * ((float)rand() / RAND_MAX);
-        y = display->h * ((float)rand() / RAND_MAX);
-        r = 0xff * ((float)rand() / RAND_MAX);
-        g = 0xff * ((float)rand() / RAND_MAX);
-        b = 0xff * ((float)rand() / RAND_MAX);
-        clr = color_rgb(r, g, b);
-        display->set_pixel(point_ui16(x, y), clr);
-    }
+    for (uint16_t n = 0; n < cnt; ++n)
+        display->set_pixel(random_point(), random_color());
 }
 
 void test_display_random_lines(uint16_t cnt) {
-    uint16_t x;
-    uint16_t y;
-    uint16_t x1;
-    uint16_t y1;
-    uint16_t n;
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    color_t clr;
-    for (n = 0; n < cnt; n++) {
-        x = display->w * ((float)rand() / RAND_MAX);
-        y = display->h * ((float)rand() / RAND_MAX);
-        x1 = display->w * ((float)rand() / RAND_MAX);
-        y1 = display->h * ((float)rand() / RAND_MAX);
-        r = 0xff * ((float)rand() / RAND_MAX);
-        g = 0xff * ((float)rand() / RAND_MAX);
-        b = 0xff * ((float)rand() / RAND_MAX);
-        clr = color_rgb(r, g, b);
-        display->draw_line(point_ui16(x, y), point_ui16(x1, y1), clr);
-    }
+    for (uint16_t n = 0; n < cnt; ++n)
+        display->draw_line(random_point(), random_point(), random_color());
 }
 
 void test_display_random_rects(uint16_t cnt) {
-    uint16_t x;
-    uint16_t y;
-    uint16_t w;
-    uint16_t h;
-    uint16_t n;
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    color_t clr;
-    for (n = 0; n < cnt; n++) {
-        x = display->w * ((float)rand() / RAND_MAX);
-        y = display->h * ((float)rand() / RAND_MAX);
-        w = (display->w - x) * ((float)rand() / RAND_MAX);
-        h = (display->h - y) * ((float)rand() / RAND_MAX);
-        r = 0xff * ((float)rand() / RAND_MAX);
-        g = 0xff * ((float)rand() / RAND_MAX);
-        b = 0xff * ((float)rand() / RAND_MAX);
-        clr = color_rgb(r, g, b);
-        display->draw_rect(rect_ui16(x, y, w, h), clr);
-    }
+    for (uint16_t n = 0; n < cnt; ++n)
+        display->draw_rect(random_rect(), random_color());
 }
 
 void test_display_random_filled_rects(uint16_t cnt) {
-    uint16_t x;
-    uint16_t y;
-    uint16_t w;
-    uint16_t h;
-    uint16_t n;
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    color_t clr;
-    for (n = 0; n < cnt; n++) {
-        x = display->w * ((float)rand() / RAND_MAX);
-        y = display->h * ((float)rand() / RAND_MAX);
-        w = (display->w - x) * ((float)rand() / RAND_MAX);
-        h = (display->h - y) * ((float)rand() / RAND_MAX);
-        r = 0xff * ((float)rand() / RAND_MAX);
-        g = 0xff * ((float)rand() / RAND_MAX);
-        b = 0xff * ((float)rand() / RAND_MAX);
-        clr = color_rgb(r, g, b);
-        display->fill_rect(rect_ui16(x, y, w, h), clr);
-    }
+    for (uint16_t n = 0; n < cnt; ++n)
+        display->fill_rect(random_rect(), random_color());
 }
 
 void test_display_random_chars(uint16_t cnt, font_t *font) {
     uint16_t x;
     uint16_t y;
-    uint16_t n;
     char c;
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    color_t clr0;
-    color_t clr1;
-    for (n = 0; n < cnt; n++) {
-        x = (display->w - font->w) * ((float)rand() / RAND_MAX);
-        y = (display->h - font->h) * ((float)rand() / RAND_MAX);
+
+    for (uint16_t n = 0; n < cnt; ++n) {
+        x = RAND(display->w - font->w);
+        y = RAND(display->h - font->h);
         //		c = 'a' + ('z' - 'a' + 1) * ((float)rand() / RAND_MAX);
-        c = font->asc_min + (font->asc_max - font->asc_min) * ((float)rand() / RAND_MAX);
-        r = 0xff * ((float)rand() / RAND_MAX);
-        g = 0xff * ((float)rand() / RAND_MAX);
-        b = 0xff * ((float)rand() / RAND_MAX);
-        clr0 = color_rgb(r, g, b);
-        r = 0xff * ((float)rand() / RAND_MAX);
-        g = 0xff * ((float)rand() / RAND_MAX);
-        b = 0xff * ((float)rand() / RAND_MAX);
-        clr1 = color_rgb(r, g, b);
-        display->draw_char(point_ui16(x, y), c, font, clr0, clr1);
+        c = font->asc_min + RAND(font->asc_max - font->asc_min + 1);
+        display->draw_char(point_ui16(x, y), c, font, random_color(), random_color());
     }
 }
 
@@ -196,6 +132,7 @@ void spectral_color(float l, float *pr, float *pg, float *pb) {
     float r = 0.0F;
     float g = 0.0F;
     float b = 0.0F;
+
     if ((l >= 400.0F) && (l < 410.0F)) {
         t = (l - 400.0F) / (410.0F - 400.0F);
         r = +(0.33F * t) - (0.20F * t * t);
@@ -212,6 +149,7 @@ void spectral_color(float l, float *pr, float *pg, float *pb) {
         t = (l - 650.0F) / (700.0F - 650.0F);
         r = 0.65F - (0.84F * t) + (0.20F * t * t);
     }
+
     if ((l >= 415.0F) && (l < 475.0F)) {
         t = (l - 415.0F) / (475.0F - 415.0F);
         g = +(0.80F * t * t);
@@ -222,6 +160,7 @@ void spectral_color(float l, float *pr, float *pg, float *pb) {
         t = (l - 585.0F) / (639.0F - 585.0F);
         g = 0.84F - (0.84F * t);
     }
+
     if ((l >= 400.0F) && (l < 475.0F)) {
         t = (l - 400.0F) / (475.0F - 400.0F);
         b = +(2.20F * t) - (1.50F * t * t);
@@ -229,6 +168,7 @@ void spectral_color(float l, float *pr, float *pg, float *pb) {
         t = (l - 475.0F) / (560.0F - 475.0F);
         b = 0.70F - (t) + (0.30F * t * t);
     }
+
     if (pr)
         *pr = r;
     if (pg)
@@ -303,9 +243,8 @@ void test_display_spectrum(uint16_t cnt) {
     float g;
     float b;
     color_t clr;
-    int n;
-    for (n = 0; n < cnt; n++)
-        for (y = 0; y < display->h; y++) {
+    for (int n = 0; n < cnt; ++n)
+        for (y = 0; y < display->h; ++y) {
             l = 400.0F + (3.0F * y / 3.2F);
             spectral_color(l, &r, &g, &b);
             clr = color_rgb(255 * r, 255 * g, 255 * b);
@@ -325,15 +264,10 @@ extern const uint16_t png_icon_64x64_noise_size;
 void test_display_random_png_64x64(uint16_t count) {
     uint16_t x;
     uint16_t y;
-    uint16_t n;
-    //	uint16_t r;
-    //	uint16_t g;
-    //	uint16_t b;
-    //	uint16_t clr565;
     FILE *pf = fmemopen((void *)png_icon_64x64_noise, png_icon_64x64_noise_size, "rb");
-    for (n = 0; n < count; n++) {
-        x = (display->w - 64) * ((float)rand() / RAND_MAX);
-        y = (display->h - 64) * ((float)rand() / RAND_MAX);
+    for (uint16_t n = 0; n < count; n++) {
+        x = RAND(display->w - 64);
+        y = RAND(display->h - 64);
         display->draw_png(point_ui16(x, y), pf);
     }
     fclose(pf);

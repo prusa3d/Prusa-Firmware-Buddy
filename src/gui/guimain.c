@@ -23,12 +23,9 @@
 #include "screens.h"
 #include "screen_close_multiple.h"
 #include "sound_C_wrapper.h"
+#include "../lang/i18n.h"
 
 extern int HAL_IWDG_Reset;
-
-#ifndef _DEBUG
-extern IWDG_HandleTypeDef hiwdg; //watchdog handle
-#endif                           //_DEBUG
 
 int guimain_spi_test = 0;
 
@@ -39,6 +36,7 @@ int guimain_spi_test = 0;
 #include "diag.h"
 #include "sys.h"
 #include "dbg.h"
+#include "wdt.h"
 
 const st7789v_config_t st7789v_cfg = {
     &hspi2,             // spi handle pointer
@@ -66,8 +64,8 @@ static void _gui_loop_cb() {
     marlin_client_loop();
 }
 
-char gui_media_filename[FILE_NAME_MAX_LEN + 1];
-char gui_media_filepath[FILE_PATH_MAX_LEN + 1];
+char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
+char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
 
 void gui_run(void) {
     if (diag_fastboot)
@@ -96,8 +94,8 @@ void gui_run(void) {
         update_firmware_screen();
 
     gui_marlin_vars = marlin_client_init();
-    gui_marlin_vars->media_file_name = gui_media_filename;
-    gui_marlin_vars->media_file_path = gui_media_filepath;
+    gui_marlin_vars->media_LFN = gui_media_LFN;
+    gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
@@ -164,7 +162,7 @@ void gui_run(void) {
     while (1) {
         // show warning dialog on safety timer expiration
         if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
-            gui_msgbox("Heating disabled due to 30 minutes of inactivity.", MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
+            gui_msgbox(_("Heating disabled due to 30 minutes of inactivity."), MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
         }
         gui_loop();
         if (marlin_message_received()) {
@@ -186,17 +184,15 @@ void gui_run(void) {
 void update_firmware_screen(void) {
     font_t *font = resource_font(IDR_FNT_SPECIAL);
     font_t *font1 = resource_font(IDR_FNT_NORMAL);
-    display->fill_rect(rect_ui16(0, 0, 240, 320), COLOR_BLACK);
+    display->clear(COLOR_BLACK);
     render_icon_align(rect_ui16(70, 20, 100, 100), IDR_PNG_icon_pepa, COLOR_BLACK, RENDER_FLG(ALIGN_CENTER, 0));
-    display->draw_text(rect_ui16(10, 115, 240, 60), "Hi, this is your\nOriginal Prusa MINI.", font, COLOR_BLACK, COLOR_WHITE);
-    display->draw_text(rect_ui16(10, 160, 240, 80), "Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware", font, COLOR_BLACK, COLOR_WHITE);
-    render_text_align(rect_ui16(5, 250, 230, 40), "RESET PRINTER", font1, COLOR_ORANGE, COLOR_WHITE, padding_ui8(2, 6, 2, 2), ALIGN_CENTER);
+    display->draw_text(rect_ui16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
+    display->draw_text(rect_ui16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
+    render_text_align(rect_ui16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, padding_ui8(2, 6, 2, 2), ALIGN_CENTER);
     while (1) {
         if (jogwheel_button_down > 50)
             sys_reset();
         osDelay(1);
-#ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-#endif                            //_DEBUG
+        wdt_iwdg_refresh();
     }
 }

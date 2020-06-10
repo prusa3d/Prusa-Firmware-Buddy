@@ -10,6 +10,7 @@
 #include "gui.h"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
+#include "../lang/i18n.h"
 
 #define POPUP_DELAY_MS 1000
 
@@ -38,7 +39,7 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
             text_rc.y += 20;
             text_rc.h = 30;
             text_rc.w -= 10;
-            render_text_align(text_rc, window->text,
+            render_text_align(text_rc, _(window->text),
                 window->font, window->color_back,
                 window->color_text, window->padding,
                 ALIGN_LEFT_CENTER);
@@ -69,8 +70,8 @@ void gui_pop_up(void) {
 
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_POPUP, 0, rect_ui16(0, 32, 240, 120), &dlg);
-    strncpy(dlg.text, msg_stack.msg_data[0], MSG_MAX_LENGTH);
-    dlg.text[MSG_MAX_LENGTH - 1] = '\0';
+    memset(dlg.text, '\0', sizeof(dlg.text) * sizeof(char)); // set to zeros to be on the safe side
+    strlcpy(dlg.text, msg_stack.msg_data[0], sizeof(dlg.text));
     window_popup_ptr = (window_t *)&dlg;
     gui_invalidate();
     window_set_capture(id);

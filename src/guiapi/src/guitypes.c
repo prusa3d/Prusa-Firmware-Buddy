@@ -1,63 +1,50 @@
 //gui.c
 
 #include "guitypes.h"
+#include "cmath_ext.h"
 
 //intersection of positive intervals p0-p1 and p2-p3, result is stored in p4-p5
 //condition (not checked): (p1 >= p0) && (p3 >= p2)
 void interval_intersect_ui16(uint16_t *p) {
-    if (p[0] < p[2]) //p0 is left
-    {
-        if (p[1] > p[2]) //intersection exists
-        {
-            p[4] = p[2];     //result left point is p2
-            if (p[1] > p[3]) //intersection is equal p2-p3
-                p[5] = p[3]; //result right point is p3
-            else             //intersection is equal p2-p1
-                p[5] = p[1]; //result right point is p1
-        } else {
-            p[4] = 0;
-            p[5] = 0;
-        }
-    } else //p2 is left
-    {
-        if (p[3] > p[0]) //intersection exists
-        {
-            p[4] = p[0];     //result left point is p0
-            if (p[3] > p[1]) //intersection is equal p0-p1
-                p[5] = p[1]; //result right point is p1
-            else             //intersection is equal p0-p3
-                p[5] = p[3]; //result right point is p3
-        } else {
-            p[4] = 0;
-            p[5] = 0;
-        }
-    }
+    p[4] = MAX(p[0], p[2]);
+    p[5] = MIN(p[1], p[3]);
+
+    if (p[4] < p[5])
+        return;
+    p[4] = p[5] = 0;
 }
 
-rect_ui16_t rect_intersect_ui16(rect_ui16_t rc, rect_ui16_t rc1) {
-    uint16_t x[6] = { rc.x, rc.x + rc.w, rc1.x, rc1.x + rc1.w, 0, 0 };
-    uint16_t y[6] = { rc.y, rc.y + rc.h, rc1.y, rc1.y + rc1.h, 0, 0 };
+rect_ui16_t rect_intersect_ui16(rect_ui16_t rc1, rect_ui16_t rc2) {
+    if (rc1.w == 0 || rc1.h == 0 || rc2.w == 0 || rc2.h == 0) {
+        const rect_ui16_t rc_ret = { 0, 0, 0, 0 };
+        return rc_ret;
+    }
+
+    uint16_t x[6] = { rc1.x, rc1.x + rc1.w, rc2.x, rc2.x + rc2.w, 0, 0 };
+    uint16_t y[6] = { rc1.y, rc1.y + rc1.h, rc2.y, rc2.y + rc2.h, 0, 0 };
     interval_intersect_ui16(x);
     interval_intersect_ui16(y);
-    rect_ui16_t rc2 = { x[4], y[4], x[5] - x[4], y[5] - y[4] };
-    return rc2;
+    const rect_ui16_t rc_ret = { x[4], y[4], x[5] - x[4], y[5] - y[4] };
+    return rc_ret;
 }
 
 rect_ui16_t rect_ui16_add_padding_ui8(rect_ui16_t rc, padding_ui8_t pad) {
-    rect_ui16_t rect = { 0, 0, rc.w + pad.left + pad.right, rc.h + pad.top + pad.bottom };
-    if (rc.x > pad.left)
-        rect.x = rc.x - pad.left;
-    if (rc.y > pad.top)
-        rect.y = rc.y - pad.top;
+    const rect_ui16_t rect = {
+        MAX(0, rc.x - pad.left),
+        MAX(0, rc.y - pad.top),
+        rc.w + pad.left + pad.right,
+        rc.h + pad.top + pad.bottom
+    };
     return rect;
 }
 
 rect_ui16_t rect_ui16_sub_padding_ui8(rect_ui16_t rc, padding_ui8_t pad) {
-    rect_ui16_t rect = { rc.x + pad.left, rc.y + pad.top, 0, 0 };
-    if (rc.w > (pad.left + pad.right))
-        rect.w = rc.w - (pad.left + pad.right);
-    if (rc.h > (pad.top + pad.bottom))
-        rect.h = rc.h - (pad.top + pad.bottom);
+    const rect_ui16_t rect = {
+        rc.x + pad.left,
+        rc.y + pad.top,
+        MAX(0, rc.w - pad.left - pad.right),
+        MAX(0, rc.h - pad.top - pad.bottom)
+    };
     return rect;
 }
 
@@ -72,17 +59,19 @@ rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align) {
         break;
     case ALIGN_HCENTER:
         if (rc.w >= rc1.w)
-            rect.x = rc.x + ((rc.w - rc1.w) / 2);
+            rect.x = rc.x + (rc.w - rc1.w) / 2;
         else
-            rect.x = (rc.x > ((rc1.w - rc.w) / 2)) ? rc.x - ((rc1.w - rc.w) / 2) : 0;
+            rect.x = MAX(0, rc.x - (rc1.w - rc.w) / 2);
         break;
     }
+
     switch (align & ALIGN_VMASK) {
     case ALIGN_TOP:
         rect.y = rc.y;
         break;
     case ALIGN_BOTTOM:
         rect.y = ((rc.y + rc.h) > rc1.h) ? ((rc.y + rc.h) - rc1.h) : 0;
+        rect.y = MAX(0, (rc.y + rc.h) - rc1.h);
         break;
     case ALIGN_VCENTER:
         if (rc.h >= rc1.h)
@@ -94,17 +83,16 @@ rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align) {
     return rect;
 }
 
-point_ui16_t font_meas_text(font_t *pf, const char *str) {
+point_ui16_t font_meas_text(const font_t *pf, const char *str) {
     int x = 0;
     int y = 0;
     int w = 0;
     int h = 0;
-    int char_w = pf->w;
-    int char_h = pf->h;
-    int len = strlen(str);
-    char c;
+    const int8_t char_w = pf->w;
+    const int8_t char_h = pf->h;
+    size_t len = strlen(str);
     while (len--) {
-        c = *(str++);
+        const char c = *(str++);
         if (c == '\n') {
             if (x + char_w > w)
                 w = x + char_w;
@@ -114,26 +102,22 @@ point_ui16_t font_meas_text(font_t *pf, const char *str) {
             x += char_w;
         h = y + char_h;
     }
-    if (x > w)
-        w = x;
-    return point_ui16((uint16_t)w, (uint16_t)h);
+    return point_ui16((uint16_t)MAX(x, w), (uint16_t)h);
 }
 
-int font_line_chars(font_t *pf, const char *str, uint16_t line_width) {
+int font_line_chars(const font_t *pf, const char *str, uint16_t line_width) {
     int w = 0;
-    int char_w = pf->w;
-    int len = strlen(str);
+    const int char_w = pf->w;
+    size_t len = strlen(str);
     int n = 0;
-    char c;
     // This is generally about finding the closest '\n' character within the current line to be drawn.
     // Line is limited by pixel dimension, all characters have the same fixed pixel size
     // Such character may not be found, so n becomes > len
     while ((w + char_w) <= line_width) {
-        c = str[n++];
+        const char c = str[n++];
         if (c == '\n')
             break;
-        else
-            w += char_w;
+        w += char_w;
     }
 
     // if the line width is >= than characters to be printed, skip further search
@@ -147,11 +131,30 @@ int font_line_chars(font_t *pf, const char *str, uint16_t line_width) {
 
     if (n == 0)
         n = line_width / char_w;
-    if (n >= len)
-        return len;
-    return n;
+    return MIN(n, len);
 }
 
+uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, font_t *pf) {
+
+    uint16_t meas_x = 0, len = strlen(text);
+    if (len * pf->w > rc.w)
+        meas_x = len - rc.w / pf->w;
+    return meas_x;
+}
+
+rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, font_t *font, padding_ui8_t padding, uint16_t flags) {
+
+    rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
+    point_ui16_t wh_txt = font_meas_text(font, text);
+    rect_ui16_t rc_txt = { 0, 0, 0, 0 };
+    if (wh_txt.x && wh_txt.y) {
+        rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
+        rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
+    }
+    return rc_txt;
+}
+
+/// TODO refactor to icon_size
 point_ui16_t icon_meas(const uint8_t *pi) {
     point_ui16_t wh = { 0, 0 };
     if (memcmp(pi, "\x89PNG", 4) == 0) {
@@ -159,6 +162,12 @@ point_ui16_t icon_meas(const uint8_t *pi) {
         wh.y = swap_ui16(*((uint16_t *)(pi + 22)));
     }
     return wh;
+}
+
+size_ui16_t icon_size(const uint8_t *pi) {
+    const point_ui16_t p = icon_meas(pi);
+    const size_ui16_t size = { p.x, p.y };
+    return size;
 }
 
 extern const resource_entry_t resource_table[];

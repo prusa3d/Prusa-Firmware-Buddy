@@ -21,7 +21,8 @@ enum class Response : uint8_t {
     Back,
     Retry,
     Purge_more,
-    Reheat
+    Reheat,
+    Filament_removed
 };
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
@@ -47,7 +48,7 @@ constexpr T GetEnumFromPhaseIndex(size_t index) {
 //and YES phase can have 0 responses
 //every enum must have "_first" and "_last"
 //"_first" ==  "previous_enum::_last" + 1
-//EVERY response shall have unique ID (so every button in GIU is unique)
+//EVERY response shall have a unique ID (so every button in GUI is unique)
 enum class PhasesLoadUnload : uint16_t {
     _first = 0,
     Parking,
@@ -55,14 +56,15 @@ enum class PhasesLoadUnload : uint16_t {
     PreparingToRam,
     Ramming,
     Unloading,
-    Unloading2,
+    RemoveFilament,
     UserPush,
     NozzleTimeout,
     MakeSureInserted,
     Inserting,
+    IsFilamentInGear,
+    Ejecting,
     Loading,
     Purging,
-    Purging2,
     IsColor,
     Unparking,
     _last = Unparking

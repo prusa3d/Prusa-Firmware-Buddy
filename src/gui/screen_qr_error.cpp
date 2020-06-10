@@ -1,6 +1,5 @@
 #include "gui.h"
 #include "config.h"
-#include "screen_menu.h"
 #include <stdlib.h>
 #include "support_utils.h"
 
@@ -8,11 +7,7 @@
 #include "errors.h"
 #include "screens.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct
-{
+struct screen_qr_error_data_t {
     window_frame_t root;
     window_text_t errText;
     window_text_t errDescription;
@@ -20,9 +15,7 @@ typedef struct
     window_qr_t qr;
     char qr_text[MAX_LEN_4QR + 1];
     bool first_run_flag;
-} screen_qr_error_data_t;
-
-#pragma pack(pop)
+};
 
 #define pd ((screen_qr_error_data_t *)screen->pdata)
 
@@ -35,11 +28,11 @@ void screen_menu_qr_error_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 0, 224, 25), &(pd->errText));
     window_set_color_back(id, COLOR_RED_ALERT);
     pd->errText.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, errors[0].error_text);
+    window_set_text(id, get_actual_error()->err_title);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 30, 224, 95), &(pd->errDescription));
     window_set_color_back(id, COLOR_RED_ALERT);
-    window_set_text(id, errors[0].error_description);
+    window_set_text(id, get_actual_error()->err_text);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 275, 224, 20), &(pd->info));
     window_set_color_back(id, COLOR_RED_ALERT);
@@ -48,13 +41,13 @@ void screen_menu_qr_error_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(59, 140, 224, 95), &(pd->qr));
     pd->qr.px_per_module = 2;
-    create_path_info_4error(pd->qr_text, 1);
+    create_path_info_4error(pd->qr_text, MAX_LEN_4QR + 1, 1);
     pd->qr.text = pd->qr_text;
 
     pd->first_run_flag = true;
 }
 
-void screen_menu_qr_error_draw(screen_t *screen) {
+void screen_menu_qr_error_draw(screen_t * /*screen*/) {
     display->fill_rect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
 }
 
@@ -62,7 +55,7 @@ void screen_menu_qr_error_done(screen_t *screen) {
     window_destroy(pd->root.win.id);
 }
 
-int screen_menu_qr_error_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
+int screen_menu_qr_error_event(screen_t *screen, window_t * /*window*/, uint8_t event, void * /*param*/) {
     if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
         screen_close();
         return (1);
@@ -82,7 +75,7 @@ screen_t screen_qr_error = {
     screen_menu_qr_error_draw,
     screen_menu_qr_error_event,
     sizeof(screen_qr_error_data_t), //data_size
-    0,                              //pdata
+    nullptr,                        //pdata
 };
 
 extern "C" screen_t *const get_scr_qr_error() { return &screen_qr_error; }
