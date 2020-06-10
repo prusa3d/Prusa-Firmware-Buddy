@@ -3,6 +3,7 @@
 #include "wui_api.h"
 #include "lwip.h"
 
+bool internet_connected = false;
 struct netif eth0; // network interface for ETH
 char eth_hostname[ETH_HOSTNAME_LEN + 1] = { 0 };
 void get_addrs_from_dhcp(ETH_config_t *config) {
@@ -26,18 +27,23 @@ ETH_STATUS_t eth_status(ETH_config_t *config) {
         if (IS_LAN_STATIC(config->lan.flag)) {
             if (netif_is_up(&eth0)) {
                 ret = ETH_NETIF_UP;
+                internet_connected = true;
             } else {
                 ret = ETH_NETIF_DOWN;
+                internet_connected = false;
             }
         } else {
             if (dhcp_supplied_address(&eth0)) {
                 ret = ETH_NETIF_UP;
+                internet_connected = true;
             } else {
                 ret = ETH_NETIF_DOWN;
+                internet_connected = false;
             }
         }
     } else {
         ret = ETH_UNLINKED;
+        internet_connected = false;
     }
     return ret;
 }
