@@ -56,8 +56,19 @@ typedef struct {
     char printer_state[PRI_STATE_STR_LEN]; // state of the printer, have to be set in wui
 } printer_info_t;
 
-extern ETH_STATUS_t eth_status; // discribes state of internet connection
-extern bool dhcp_supplied;      // True DHCP is set and addresses are supplied to printer
+/*!*************************************************************************************************
+* \brief Returns ethernet status
+*
+* \retval eth_status - Current status of the ethernet connection
+***************************************************************************************************/
+const ETH_STATUS_t get_eth_status(void);
+
+/*!*************************************************************************************************
+* \brief get if DHCP supplied addresses
+*
+* \retval True if dhcp supplied addresses
+***************************************************************************************************/
+bool get_dhcp_supplied(void);
 
 /*!*************************************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory

@@ -2,8 +2,8 @@
 #include "sntp_client.h"
 #include "wui_api.h"
 
-static ip_addr_t ntp_server;         // testing ntp server located in Prague
-static bool sntp_processing = false; // describes if sntp is currently running or not
+static ip_addr_t ntp_server;      // testing ntp server located in Prague
+static bool sntp_running = false; // describes if sntp is currently running or not
 void sntp_client_init(void) {
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
 
@@ -17,11 +17,11 @@ void sntp_client_init(void) {
 }
 
 void sntp_client_step(void) {
-    if (!sntp_processing && eth_status == ETH_NETIF_UP) {
+    if (!sntp_running && get_eth_status() == ETH_NETIF_UP) {
         sntp_client_init();
-        sntp_processing = true;
-    } else if (sntp_processing && eth_status != ETH_NETIF_UP) {
+        sntp_running = true;
+    } else if (sntp_running && get_eth_status() != ETH_NETIF_UP) {
         sntp_stop();
-        sntp_processing = false;
+        sntp_running = false;
     }
 }

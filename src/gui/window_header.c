@@ -21,9 +21,9 @@ int16_t WINDOW_CLS_HEADER = 0;
 
 #ifdef BUDDY_ENABLE_ETHERNET
 static void update_ETH_icon(window_header_t *window) {
-    if (eth_status == ETH_UNLINKED) {
+    if (get_eth_status() == ETH_UNLINKED) {
         p_window_header_icon_off(window, HEADER_ICON_LAN);
-    } else if (eth_status == ETH_NETIF_DOWN) {
+    } else if (get_eth_status() == ETH_NETIF_DOWN) {
         p_window_header_icon_on(window, HEADER_ICON_LAN);
     } else {
         p_window_header_icon_active(window, HEADER_ICON_LAN);
