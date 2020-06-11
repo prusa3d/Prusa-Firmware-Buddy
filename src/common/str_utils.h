@@ -3,38 +3,19 @@
 #include <inttypes.h>
 #include <string.h>
 
-#define CHAR_SPACE     ' '
-#define NO_BREAK_SPACE '\xA0' // ~ <NonBreakingSpace>
-#define NEW_LINE       '\n'   // ~ <LineFeed>
+constexpr char CHAR_SPACE = ' ';
+constexpr char NBSP = '\xA0'; /// Non Breaking Space
+constexpr char NL = '\n';     /// New Line
+constexpr char EOS = '\0';    /// end of string
 
 #define LINE_WIDTH_UNLIMITED 0
 
-#define EOS '\x00'
-
-enum class delimiter_t {
+enum delimiter_t {
     NONE,
     SPACE,
     HYPHEN,
     CUSTOM
 };
-
-size_t strdel(char *pstr, size_t n = 1);
-size_t strins(char *pstr, const char *pinstr, size_t repeater = 1, bool before_flag = false);
-
-void set_custom_set(const char *pstr);
-void set_withdraw_set(const char *pstr);
-void set_hyphen_distance(int dist);
-void set_defaults(void);
-
-size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set = "", char substitute_char = CHAR_SPACE);
-size_t str2plain(char *pstr, bool withdraw_flag = false);
-
-size_t str2multiline(char *pstr, size_t line_width = LINE_WIDTH_UNLIMITED);
-
-#include <inttypes.h>
-#include <string.h>
-
-#define EOS '\x00'
 
 #pragma pack(push, 1)
 typedef enum {
@@ -46,28 +27,24 @@ typedef enum {
 
 #ifdef __cplusplus
 
-typedef struct
-{
+typedef struct {
     const char *pcustom_set = "";
     const char *pwithdraw_set = "";
-    int hyphen_distance = HYPHEN_DENY;
+    int hyphen_distance = 0;
 } ml_instance_t;
 
 extern "C" void set_instance(ml_instance_t *pinst);
 void set_self_instance(void);
 
 size_t strdel(char *str, const size_t &n = 1);
-size_t strins(char *pstr, const char *pinstr, size_t repeater = 1, bool before_flag = false);
+size_t strins(char *str, const char *ins, size_t times = 1);
 
 void set_custom_set(const char *pstr);
 void set_withdraw_set(const char *pstr);
 void set_hyphen_distance(int dist);
 void set_defaults(void);
 
-size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set = "", char substitute_char = CHAR_SPACE);
-size_t str2plain(char *pstr, bool withdraw_flag = false);
-
-extern "C" size_t str2multiline(char *pstr, size_t line_width = LINE_WIDTH_UNLIMITED);
+extern "C" size_t str2multiline(char *str, const size_t line_width);
 
 #else
 

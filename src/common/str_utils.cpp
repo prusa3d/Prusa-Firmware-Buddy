@@ -3,7 +3,6 @@
 
 static const char *pcustom_set = "";
 static const char *pwithdraw_set = "";
-static int hyphen_distance = HYPHEN_DENY;
 
 static ml_instance_t self_instance;
 static ml_instance_t *pinstance = &self_instance;
@@ -81,15 +80,9 @@ void set_withdraw_set(const char *pstr) {
 }
 
 /// help function (parametr setter)
-void set_hyphen_distance(int dist) {
-    pinstance->hyphen_distance = dist;
-}
-
-/// help function (parametr setter)
 void set_defaults(void) {
     pinstance->pcustom_set = "";
     pinstance->pwithdraw_set = "";
-    pinstance->hyphen_distance = HYPHEN_DENY;
 }
 
 void set_custom_set(const char *pstr) {
@@ -100,127 +93,57 @@ void set_withdraw_set(const char *pstr) {
     pwithdraw_set = pstr;
 }
 
-void set_hyphen_distance(int dist) {
-    hyphen_distance = dist;
-}
-
 void set_defaults(void) {
     pcustom_set = "";
     pwithdraw_set = "";
-    hyphen_distance = HYPHEN_DENY;
 }
 
-size_t str2plain(char *pstr, bool withdraw_flag) {
-    const char *pset = "";
+/// Replaces breakable spaces into line breaks in \param str
+/// to ensure that no line is longer than \param line_width.
+/// If \param line_width is too short,
+/// the text will be broken in the middle of the word.
+/// Existing line breaks are not removed.
+/// \returns number of lines or 0 if no change was done
+size_t str2multiline(char *str, const size_t line_width) {
+    if (str == nullptr || *str == EOS || line_width == 0)
+        return 0;
 
-    if (withdraw_flag)
-        pset = pwithdraw_set;
-    return (str2plain(pstr, pset));
-}
+    char *last_delimiter = nullptr;
+    size_t lines = 1;
+    size_t current_length = 0;
 
-/// converts string to plain text
-size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set, char substitute_char) {
-    size_t counter = 0;
-    bool flag;
-
-    while (*pstr != EOS) {
-        if ((flag = (*pstr == NO_BREAK_SPACE)) || (strchr(substitute_set, *pstr) != NULL)) {
-            if (flag)
-                *pstr = CHAR_SPACE;
-            else
-                *pstr = substitute_char;
-            counter++;
-        } else if ((*pstr == CHAR_HYPHEN) || (strchr(withdraw_set, *pstr) != NULL)) {
-            pstr -= strdel(pstr); // pointer correction needed
-            counter++;
-        }
-        pstr++;
-    }
-    return counter;
-}
-
-/// converts string to multi-line text
-size_t str2multiline(char *pstr, size_t line_width) {
-    size_t actual_width = 1;
-    char *last_delimiter_position = nullptr; // initialization only due to compiler-warning
-    delimiter_t delimiter_type = delimiter_t::NONE;
-    size_t lines_count = 1;
-
-    while (*pstr != EOS) {
-        switch (*pstr) {
+    /// analyze character
+    while (1) {
+        switch (*str) {
         case CHAR_SPACE:
-            if (delimiter_type == delimiter_t::HYPHEN) {
-                pstr -= strdel(last_delimiter_position); // pointer correction needed
-                actual_width--;
-            }
-            last_delimiter_position = pstr;
-            delimiter_type = delimiter_t::SPACE;
+            last_delimiter = str;
             break;
-        case NO_BREAK_SPACE:
-            *pstr = CHAR_SPACE;
-            break;
-        case CHAR_NL:
-            if (delimiter_type == delimiter_t::HYPHEN) {
-                pstr -= strdel(last_delimiter_position); // pointer correction needed
-            }
-            delimiter_type = delimiter_t::NONE;
-            actual_width = 0;
-            lines_count++;
-            break;
-        case CHAR_HYPHEN:
-            if ((pinstance->hyphen_distance == HYPHEN_DENY) || (((delimiter_type == delimiter_t::SPACE) || (delimiter_type == delimiter_t::CUSTOM)) && ((pstr - last_delimiter_position) < pinstance->hyphen_distance))) {
-                pstr -= strdel(pstr); // pointer correction needed
-                actual_width--;
-                break;
-            }
-            if (delimiter_type == delimiter_t::HYPHEN) {
-                pstr -= strdel(last_delimiter_position); // pointer correction needed
-                actual_width--;
-            }
-            last_delimiter_position = pstr;
-            delimiter_type = delimiter_t::HYPHEN;
+        case NL:
+            ++lines;
+            last_delimiter = nullptr;
             break;
         default:
-            if (strchr(pinstance->pcustom_set, *pstr) != NULL) {
-                if (delimiter_type == delimiter_t::HYPHEN) {
-                    pstr -= strdel(last_delimiter_position); // pointer correction needed
-                    actual_width--;
-                }
-                last_delimiter_position = pstr;
-                delimiter_type = delimiter_t::CUSTOM;
-            } else if (strchr(pinstance->pwithdraw_set, *pstr) != NULL) {
-                pstr -= strdel(pstr); // pointer correction needed
-                actual_width--;
-            }
+        }
+
+        ++str;
+        if (*str == EOS)
             break;
-        }
-        if ((line_width != LINE_WIDTH_UNLIMITED) && (actual_width > line_width)) {
-            switch (delimiter_type) {
-            case delimiter_t::NONE:
-                strins(pstr - 1, QT_NL);
-                actual_width = 0;
-                break;
-            case delimiter_t::SPACE:
-                *last_delimiter_position = CHAR_NL;
-                actual_width = pstr - last_delimiter_position;
-                delimiter_type = delimiter_t::NONE;
-                break;
-            case delimiter_t::HYPHEN:
-                *last_delimiter_position = CHAR_MINUS;
-                actual_width = pstr - last_delimiter_position;  // !before! "pstr" correction
-                pstr += strins(last_delimiter_position, QT_NL); // pointer correction needed / !after! "actual_width" (re)calculation
-                delimiter_type = delimiter_t::NONE;
-                break;
-            case delimiter_t::CUSTOM:
-                actual_width = pstr - last_delimiter_position;  // !before! "pstr" correction
-                pstr += strins(last_delimiter_position, QT_NL); // pointer correction needed / !after! "actual_width" (re)calculation
-                delimiter_type = delimiter_t::NONE;
-                break;
+        ++current_length;
+
+        if (current_length > line_width) { /// if the length is too big, break the line
+            if (last_delimiter == nullptr) {
+                /// no break point available - break a word
+                strins(str, &NL);
+                ++str;
+                if (*str == EOS)
+                    break;
+            } else {
+                /// break at space
+                *(last_delimiter) = NL;
+                last_delimiter = nullptr;
             }
-            lines_count++;
+            ++lines;
         }
-        pstr++;
-        actual_width++;
     }
-    return (lines_count);
+    return lines;
 }
