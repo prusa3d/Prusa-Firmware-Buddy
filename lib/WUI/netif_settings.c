@@ -3,10 +3,19 @@
 #include "wui_api.h"
 #include "lwip.h"
 
-ETH_STATUS_t eth_status = ETH_NETIF_DOWN;
-bool dhcp_supplied = false;
+static ETH_STATUS_t eth_status = ETH_NETIF_DOWN;
+static bool dhcp_supplied = false;
 struct netif eth0; // network interface for ETH
 char eth_hostname[ETH_HOSTNAME_LEN + 1] = { 0 };
+
+const ETH_STATUS_t get_eth_status(void) {
+    return eth_status;
+}
+
+bool get_dhcp_supplied(void) {
+    return dhcp_supplied;
+}
+
 void get_addrs_from_dhcp(ETH_config_t *config) {
 
     if (IS_LAN_ON(config->lan.flag)) {
