@@ -20,7 +20,7 @@ void set_self_instance(void) {
 
 /// Deletes \param n characters from beginning of the \param str
 /// \returns number of deleted characters
-size_t strdel(char *str, const size_t &n) {
+size_t strdel(char *str, const size_t &n = 1) {
     if (str == nullptr)
         return 0;
 
@@ -50,27 +50,22 @@ size_t strshift(char *str, const size_t n) {
     return n;
 }
 
-/// Inserts \param ins into \param str \param times times
+/// Inserts \param ins at the beginning of \param str \param times times
 /// \returns number of inserted characters
-size_t strins(char *str, const char *ins, size_t times, bool before_flag) {
-    // TODO check capacity of the \param str
+size_t strins(char *str, const char *ins, size_t times) {
     if (str == nullptr || ins == nullptr)
         return 0;
 
-    size_t count = strlen(str);
-    const size_t n = strlen(ins);
-    const size_t inserted = n * times;
-
-    if (before_flag)
-        count++;
+    const size_t ins_size = strlen(ins);
+    const size_t inserted = ins_size * times;
 
     if (0 == strshift(str, inserted))
         return 0;
 
     size_t i;
-    for (size_t r = 0; r < times; r++)
-        for (i = 0; i < n; i++, str++)
-            *str = *(ins + i);
+    for (size_t t = 0; t < times; ++t)
+        for (i = 0; i < ins_size; ++i, ++str)
+            *str = ins[i];
 
     return inserted;
 }
