@@ -12,6 +12,7 @@ class IWindowMenuItem {
     //   IWindowMenu &window_menu;
 
 private:
+    /// Prefer calling GetLabel() and GetLocalizedLabel() over accessing this field directly even within this class
     std::array<char, 23> label;
     bool hidden : 1;
     bool enabled : 1;
@@ -30,7 +31,7 @@ protected:
     virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
     virtual void click(IWindowMenu &window_menu) = 0;
     virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const;
-    rect_ui16_t getIconRect(IWindowMenu &window_menu, rect_ui16_t rect) const;
+    static rect_ui16_t getIconRect(IWindowMenu &window_menu, rect_ui16_t rect);
 
 public:
     IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
@@ -47,7 +48,12 @@ public:
     void SetIconId(uint16_t id) { id_icon = id; }
     uint16_t GetIconId() const { return id_icon; }
     void SetLabel(const char *text);
+    /// @returns the untranslated label
     const char *GetLabel() const;
+    /// @returns the label translated via gettext (in the future).
+    /// Use this function when you want to get the actual translated text
+    /// to be displayed to the user based on his language settings.
+    const char *GetLocalizedLabel() const;
 
     void Print(IWindowMenu &window_menu, rect_ui16_t rect) const;
 
