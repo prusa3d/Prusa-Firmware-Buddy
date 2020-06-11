@@ -36,6 +36,20 @@ size_t strdel(char *str, const size_t &n) {
     return n;
 }
 
+/// Shifts text in \param str by \param n characters
+/// \returns number of characters shifted
+size_t strshift(char *str, const size_t n) {
+    // TODO check capacity of the \param str
+    if (str == nullptr)
+        return 0;
+
+    const size_t size = strlen(str) + 1; /// mind the trailing \0
+    for (size_t i = 0; i < size; ++i)
+        str[i + n] = str[i];
+
+    return n;
+}
+
 /// Inserts \param ins into \param str \param times times
 /// \returns number of inserted characters
 size_t strins(char *str, const char *ins, size_t times, bool before_flag) {
@@ -46,17 +60,14 @@ size_t strins(char *str, const char *ins, size_t times, bool before_flag) {
     size_t count = strlen(str);
     const size_t n = strlen(ins);
     const size_t inserted = n * times;
-    str += count; // ~ EOS position
 
     if (before_flag)
         count++;
 
+    if (0 == strshift(str, inserted))
+        return 0;
+
     size_t i;
-    for (i = 0; i < count; i++, str--)
-        *(str + inserted) = *str;
-
-    str++;
-
     for (size_t r = 0; r < times; r++)
         for (i = 0; i < n; i++, str++)
             *str = *(ins + i);
