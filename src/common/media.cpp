@@ -177,7 +177,6 @@ void media_print_start(const char *sfnFilePath) {
         }
     }
 }
-// #pragma GCC pop_options
 
 void media_print_stop(void) {
     if ((media_print_state == media_print_state_PRINTING) || (media_print_state == media_print_state_PAUSED)) {
