@@ -14,8 +14,7 @@ Sound::Sound()
     , duration(0)
     , repeat(0)
     , frequency(100.F)
-    , volume(volumeInit)
-{
+    , volume(volumeInit) {
     init();
 }
 
