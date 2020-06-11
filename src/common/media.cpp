@@ -119,7 +119,7 @@ public:
     /// to break it IN PLACE into the separate path and the separate filename.
     /// This is fixed at the end of the function, so the sfnPath doesn't change from the outside perspective.
     f_stat_LFN(char *sfnPath) {
-        char *sfn = strchr(sfnPath, '/');
+        char *sfn = strrchr(sfnPath, '/');
         char *returnSlash = sfn;
         *returnSlash = 0; //
         ++sfn;
@@ -166,7 +166,7 @@ void media_print_start(const char *sfnFilePath) {
         // An updated version of FATfs may solve the problem, therefore the original line of code is left here as a comment
         // if (f_stat(media_print_SFN_path, &filinfo) == FR_OK) {
         f_stat_LFN fo(media_print_SFN_path);
-        if (fo.Success() == FR_OK) {
+        if (fo.Success()) {
             strlcpy(media_print_LFN, fo.LFName(), sizeof(media_print_LFN));
             media_print_size = fo.FSize(); //filinfo.fsize;
             if (f_open(&media_print_fil, media_print_SFN_path, FA_READ) == FR_OK) {
