@@ -24,7 +24,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) final;
     virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const override;
     std::array<rect_ui16_t, 2> getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t rect) const;
-    rect_ui16_t getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const;
+    static rect_ui16_t getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen);
     virtual char *sn_prt() const = 0;
     virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 

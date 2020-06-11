@@ -18,7 +18,7 @@ bool WI_LABEL_t::Change(int /*dif*/) {
 //IWiSpin
 std::array<char, 10> IWiSpin::temp_buff;
 
-void IWiSpin::click(IWindowMenu &window_menu) {
+void IWiSpin::click(IWindowMenu & /*window_menu*/) {
     if (selected) {
         OnClick();
     }
@@ -45,7 +45,7 @@ std::array<rect_ui16_t, 2> IWiSpin::getRollingSpinRects(IWindowMenu &window_menu
 }
 
 //helper method - to be used by getRollingRect
-rect_ui16_t IWiSpin::getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const {
+rect_ui16_t IWiSpin::getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) {
     rect_ui16_t spin_rect = {
         uint16_t(base_rolling_rect.x + base_rolling_rect.w), base_rolling_rect.y, uint16_t(window_menu.font->w * spin_strlen + window_menu.padding.left + window_menu.padding.right), base_rolling_rect.h
     };
@@ -53,7 +53,7 @@ rect_ui16_t IWiSpin::getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_roll
     return spin_rect;
 }
 
-void IWiSpin::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void IWiSpin::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
     std::array<rect_ui16_t, 2> rects = getRollingSpinRects(window_menu, rect);
 
     //draw label
@@ -69,14 +69,14 @@ IWiSwitch::IWiSwitch(int32_t index, const char *label, uint16_t id_icon, bool en
     : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden)
     , index(index) {}
 
-bool IWiSwitch::Change(int) {
+bool IWiSwitch::Change(int /*dif*/) {
     if ((++index) >= size()) {
         index = 0;
     }
     return true;
 }
 
-void IWiSwitch::click(IWindowMenu &window_menu) {
+void IWiSwitch::click(IWindowMenu & /*window_menu*/) {
     size_t old_index = index;
     Change(0);
     OnChange(old_index);
@@ -118,7 +118,7 @@ rect_ui16_t IWiSwitch::getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect
     return getRollingSpinRects(window_menu, rect)[0];
 }
 
-void IWiSwitch::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
+void IWiSwitch::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
     std::array<rect_ui16_t, 2> rects = getRollingSpinRects(window_menu, rect);
 
     //draw label
@@ -183,6 +183,6 @@ MI_RETURN::MI_RETURN()
     : WI_LABEL_t(label, IDR_PNG_filescreen_icon_up_folder, true, false) {
 }
 
-void MI_RETURN::click(IWindowMenu &window_menu) {
+void MI_RETURN::click(IWindowMenu & /*window_menu*/) {
     screen_close();
 }

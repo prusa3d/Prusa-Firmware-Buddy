@@ -20,6 +20,10 @@ const char *IWindowMenuItem::GetLabel() const {
     return label.data();
 }
 
+const char *IWindowMenuItem::GetLocalizedLabel() const {
+    return _(GetLabel());
+}
+
 void IWindowMenuItem::Print(IWindowMenu &window_menu, rect_ui16_t rect) const {
     color_t color_text = IsEnabled() ? window_menu.color_text : window_menu.color_disabled;
     color_t color_back = window_menu.color_back;
@@ -49,9 +53,9 @@ void IWindowMenuItem::printText(IWindowMenu &window_menu, rect_ui16_t rect, colo
 
 void IWindowMenuItem::printLabel_into_rect(rect_ui16_t rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const {
     if (focused && roll.setup == TXTROLL_SETUP_DONE) { //draw normally on TXTROLL_SETUP_INIT or TXTROLL_SETUP_IDLE
-        render_roll_text_align(rolling_rect, label.data(), font, padding, alignment, color_back, color_text, &roll);
+        render_roll_text_align(rolling_rect, GetLocalizedLabel(), font, padding, alignment, color_back, color_text, &roll);
     } else {
-        render_text_align(rolling_rect, label.data(), font, color_back, color_text, padding, alignment);
+        render_text_align(rolling_rect, GetLocalizedLabel(), font, color_back, color_text, padding, alignment);
     }
 }
 
@@ -63,7 +67,7 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
 }
 
 void IWindowMenuItem::RollInit(IWindowMenu &window_menu, rect_ui16_t rect) {
-    roll_init(getRollingRect(window_menu, rect), label.data(), window_menu.font, window_menu.padding, window_menu.alignment, &roll);
+    roll_init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.alignment, &roll);
 }
 void IWindowMenuItem::Roll(IWindowMenu &window_menu) {
     roll_text_phasing(window_menu.win.id, window_menu.font, &roll); //warning it is accessing gui timer
@@ -74,7 +78,7 @@ void IWindowMenuItem::SetFocus() {
     roll.setup = TXTROLL_SETUP_INIT;
 }
 
-rect_ui16_t IWindowMenuItem::getIconRect(IWindowMenu &window_menu, rect_ui16_t rect) const {
+rect_ui16_t IWindowMenuItem::getIconRect(IWindowMenu &window_menu, rect_ui16_t rect) {
     return { rect.x, rect.y,
         window_menu.icon_rect.w, window_menu.icon_rect.h };
 }
