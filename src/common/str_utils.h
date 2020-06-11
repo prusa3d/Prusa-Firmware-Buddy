@@ -3,20 +3,10 @@
 #include <inttypes.h>
 #include <string.h>
 
-#define CHAR_SPACE  ' '
-#define CHAR_HSPACE '\x1F' // ~ <UnitSeparator>
-#define CHAR_LF     '\n'   // ~ <LineFeed>
-#define CHAR_NL     CHAR_LF
-#define CHAR_HYPHEN '\x1A' // ~ <Substitute>
-#define CHAR_MINUS  '-'
+#define CHAR_SPACE     ' '
+#define NO_BREAK_SPACE '\xA0' // ~ <NonBreakingSpace>
+#define NEW_LINE       '\n'   // ~ <LineFeed>
 
-#define QT_HSPACE "\x1F" // ~ <UnitSeparator>
-#define QT_LF     "\n"   // ~ <LineFeed>
-#define QT_NL     QT_LF
-#define QT_HYPHEN "\x1A" // ~ <Substitute>
-
-#define HYPHEN_ALLWAYS       0
-#define HYPHEN_DENY          -1
 #define LINE_WIDTH_UNLIMITED 0
 
 #define EOS '\x00'
@@ -43,22 +33,6 @@ size_t str2multiline(char *pstr, size_t line_width = LINE_WIDTH_UNLIMITED);
 
 #include <inttypes.h>
 #include <string.h>
-
-#define CHAR_SPACE  ' '
-#define CHAR_HSPACE '\xA0' // ~ <NonBreakingSpace>
-#define CHAR_LF     '\n'   // ~ <LineFeed>
-#define CHAR_NL     CHAR_LF
-#define CHAR_HYPHEN '\xAD' // ~ <SoftHyphen>
-#define CHAR_MINUS  '-'
-
-#define QT_HSPACE "\xA0" // ~ <NonBreakingSpace>
-#define QT_LF     "\n"   // ~ <LineFeed>
-#define QT_NL     QT_LF
-#define QT_HYPHEN "\xAD" // ~ <SoftHyphen>
-
-#define HYPHEN_ALLWAYS       0
-#define HYPHEN_DENY          -1
-#define LINE_WIDTH_UNLIMITED 0
 
 #define EOS '\x00'
 

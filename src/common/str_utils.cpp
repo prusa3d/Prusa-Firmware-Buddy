@@ -124,7 +124,7 @@ size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_se
     bool flag;
 
     while (*pstr != EOS) {
-        if ((flag = (*pstr == CHAR_HSPACE)) || (strchr(substitute_set, *pstr) != NULL)) {
+        if ((flag = (*pstr == NO_BREAK_SPACE)) || (strchr(substitute_set, *pstr) != NULL)) {
             if (flag)
                 *pstr = CHAR_SPACE;
             else
@@ -156,7 +156,7 @@ size_t str2multiline(char *pstr, size_t line_width) {
             last_delimiter_position = pstr;
             delimiter_type = delimiter_t::SPACE;
             break;
-        case CHAR_HSPACE:
+        case NO_BREAK_SPACE:
             *pstr = CHAR_SPACE;
             break;
         case CHAR_NL:
