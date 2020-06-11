@@ -205,7 +205,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "");
+    window_set_text(id, _("Printing time"));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 148, 101, 20),
