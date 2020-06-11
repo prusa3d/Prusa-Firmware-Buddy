@@ -119,7 +119,7 @@ public:
     /// to break it IN PLACE into the separate path and the separate filename.
     /// This is fixed at the end of the function, so the sfnPath doesn't change from the outside perspective.
     f_stat_LFN(char *sfnPath) {
-        char *sfn = strchr(sfnPath, '/');
+        char *sfn = strrchr(sfnPath, '/');
         char *returnSlash = sfn;
         *returnSlash = 0; //
         ++sfn;
