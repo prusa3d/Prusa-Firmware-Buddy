@@ -56,7 +56,8 @@ typedef struct {
     char printer_state[PRI_STATE_STR_LEN]; // state of the printer, have to be set in wui
 } printer_info_t;
 
-extern bool internet_connected; // Is internet connected or not (implemented in netif_settings)
+extern ETH_STATUS_t eth_status; // discribes state of internet connection
+extern bool dhcp_supplied;      // True DHCP is set and addresses are supplied to printer
 
 /*!*************************************************************************************************
 * \brief saves the Ethernet specific parameters to non-volatile memory
@@ -145,14 +146,13 @@ void update_eth_addrs(ETH_config_t *config);
 * \param [in] config - structure that stores currnet ethernet configurations
 *****************************************************************************/
 void get_addrs_from_dhcp(ETH_config_t *config);
+
 /*!**********************************************************************************
-* \brief Returns ethernet status
+* \brief Checks and sets ethernet status
 *
 * \param [in] config - structure that stores currnet ethernet configurations
-*
-* \return ETH_STATUS_t status enum of possible cases (unlinked, netif down, netif up)
 ************************************************************************************/
-ETH_STATUS_t eth_status(ETH_config_t *config);
+void eth_status_step(ETH_config_t *config);
 
 /*!****************************************************************************
 * \brief Turns software switch of ETH netif to OFF
@@ -181,13 +181,6 @@ void set_LAN_to_static(ETH_config_t *config);
 * \param [out] config - structure that stores currnet ethernet configurations
 ******************************************************************************/
 void set_LAN_to_dhcp(ETH_config_t *config);
-
-/*!****************************************************************************
-* \brief Determines whether DHCP server already supplied ip addresses
-*
-* \retval Returns 1 if DHCP server supplied ip addresses, 0 otherwise
-******************************************************************************/
-uint8_t dhcp_addrs_are_supplied(void);
 
 /*!*********************************************************************************************************************
 * \brief Parses time from device's time storage to seconds. MONTHS are from 0 and YEARS are from 1900

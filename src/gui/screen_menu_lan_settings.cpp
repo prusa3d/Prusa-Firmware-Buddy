@@ -112,14 +112,14 @@ bool Eth::IsOn() {
 
 void Eth::Init() {
     uint8_t flg = GetFlag();
-    conn_flg = (IS_LAN_ON(flg) && IS_LAN_DHCP(flg) && dhcp_addrs_are_supplied());
+    conn_flg = (IS_LAN_ON(flg) && IS_LAN_DHCP(flg) && dhcp_supplied);
 }
 
 bool Eth::IsUpdated() {
     bool ret = false;
     if (conn_flg) {
         uint8_t eth_flag = GetFlag();
-        if ((IS_LAN_DHCP(eth_flag) && dhcp_addrs_are_supplied()) || IS_LAN_STATIC(eth_flag)) {
+        if ((IS_LAN_DHCP(eth_flag) && dhcp_supplied) || IS_LAN_STATIC(eth_flag)) {
             conn_flg = false;
             ret = true;
         }
