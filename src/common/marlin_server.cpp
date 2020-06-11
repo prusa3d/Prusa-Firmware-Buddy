@@ -519,7 +519,8 @@ static void _server_print_loop(void) {
     case mpsResuming_UnparkHead:
         if (planner.movesplanned() == 0) {
             media_print_resume();
-            print_job_timer.resume(0);
+            if(print_job_timer.isPaused())
+                print_job_timer.start();
 #if FAN_COUNT > 0
             thermalManager.set_fan_speed(0, marlin_server.resume_fan_speed); // restore fan speed
 #endif
