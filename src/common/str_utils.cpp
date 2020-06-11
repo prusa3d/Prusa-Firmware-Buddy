@@ -1,25 +1,9 @@
 #include "str_utils.h"
 #include <string.h>
 
-static const char *pcustom_set = "";
-static const char *pwithdraw_set = "";
-
-static ml_instance_t self_instance;
-static ml_instance_t *pinstance = &self_instance;
-
-/// help function (context switching)
-void set_instance(ml_instance_t *pinst) {
-    pinstance = pinst;
-}
-
-/// help function (context switching)
-void set_self_instance(void) {
-    pinstance = &self_instance;
-}
-
 /// Deletes \param n characters from beginning of the \param str
 /// \returns number of deleted characters
-size_t strdel(char *str, const size_t &n = 1) {
+size_t strdel(char *str, const size_t n) {
     if (str == nullptr)
         return 0;
 
@@ -69,35 +53,6 @@ size_t strins(char *str, const char *ins, size_t times) {
     return inserted;
 }
 
-/// help function (parametr setter)
-void set_custom_set(const char *pstr) {
-    pinstance->pcustom_set = pstr;
-}
-
-/// help function (parametr setter)
-void set_withdraw_set(const char *pstr) {
-    pinstance->pwithdraw_set = pstr;
-}
-
-/// help function (parametr setter)
-void set_defaults(void) {
-    pinstance->pcustom_set = "";
-    pinstance->pwithdraw_set = "";
-}
-
-void set_custom_set(const char *pstr) {
-    pcustom_set = pstr;
-}
-
-void set_withdraw_set(const char *pstr) {
-    pwithdraw_set = pstr;
-}
-
-void set_defaults(void) {
-    pcustom_set = "";
-    pwithdraw_set = "";
-}
-
 /// Replaces breakable spaces into line breaks in \param str
 /// to ensure that no line is longer than \param line_width.
 /// If \param line_width is too short,
@@ -118,11 +73,10 @@ size_t str2multiline(char *str, const size_t line_width) {
         case CHAR_SPACE:
             last_delimiter = str;
             break;
-        case NL:
+        case CHAR_NL:
             ++lines;
             last_delimiter = nullptr;
             break;
-        default:
         }
 
         ++str;
@@ -133,13 +87,13 @@ size_t str2multiline(char *str, const size_t line_width) {
         if (current_length > line_width) { /// if the length is too big, break the line
             if (last_delimiter == nullptr) {
                 /// no break point available - break a word
-                strins(str, &NL);
+                strins(str, NL);
                 ++str;
                 if (*str == EOS)
                     break;
             } else {
                 /// break at space
-                *(last_delimiter) = NL;
+                *(last_delimiter) = CHAR_NL;
                 last_delimiter = nullptr;
             }
             ++lines;
