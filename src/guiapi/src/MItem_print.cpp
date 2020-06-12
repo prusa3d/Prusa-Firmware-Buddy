@@ -55,7 +55,11 @@ void MI_BABYSTEP::OnClick() {
     eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
 }
 bool MI_BABYSTEP::Change(int dif) {
+    auto temp_value = value;
     bool ret = WI_SPIN_t<float>::Change(dif);
-    marlin_set_z_offset(value);
+    //todo marlin_set_z_offset(value); worked in 4.0.5
+    //findout why it no longer does
+    if (ret)
+        marlin_do_babysteps_Z(value - temp_value);
     return ret;
 }
