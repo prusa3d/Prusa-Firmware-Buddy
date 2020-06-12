@@ -2,7 +2,7 @@
 
 ```bash
 # create a build folder and run cmake within it
-mkdir build_tests && cd build_tests
+cd ../.. && mkdir build_tests && cd build_tests
 cmake .. -G Ninja
 
 # build all the unit tests
@@ -28,3 +28,8 @@ ctest .
 3. Add a CMakeLists.txt with description on how to build your tests.
     - See other unit tests for examples.
     - Don't forget to register any directory you add using `add_subdirectory` in CMakeLists.txt in the same directory.
+
+# Windows installation
+
+1. Download MinGw
+...
