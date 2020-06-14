@@ -22,8 +22,8 @@
 
 #define VERSION_INFO_STR_MAXLEN 150
 
-const size_t HelpLines = 11;
-using parent = ScreenMenu<EHeader::On, EFooter::On, HelpLines, MI_RETURN>;
+constexpr static const HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
+using parent = ScreenMenu<EHeader::On, EFooter::On, HelpCfg, MI_RETURN>;
 
 class ScreenMenuVersionInfo : public parent {
 public:
@@ -40,7 +40,6 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     ScreenMenuVersionInfo *const ths = reinterpret_cast<ScreenMenuVersionInfo *>(screen->pdata);
 
     p_window_header_set_icon(&(ths->header), IDR_PNG_header_icon_info);
-    ths->help.font = resource_font(IDR_FNT_NORMAL); //this makes HelpLines incorrect
 
     //=============VARIABLES=================
 

@@ -254,7 +254,7 @@ public:
 
 /*****************************************************************************/
 //parent alias
-static const size_t helper_lines = 8;
+constexpr static const HelperConfig helper_lines = { 8, IDR_FNT_SPECIAL };
 using parent = ScreenMenu<EHeader::On, EFooter::Off, helper_lines,
     MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
 
