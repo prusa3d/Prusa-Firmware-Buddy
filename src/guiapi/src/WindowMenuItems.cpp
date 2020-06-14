@@ -186,3 +186,11 @@ MI_RETURN::MI_RETURN()
 void MI_RETURN::click(IWindowMenu & /*window_menu*/) {
     screen_close();
 }
+
+MI_TEST_DISABLED_RETURN::MI_TEST_DISABLED_RETURN()
+    : WI_LABEL_t(label, IDR_PNG_filescreen_icon_up_folder, false, false) {
+}
+
+void MI_TEST_DISABLED_RETURN::click(IWindowMenu & /*window_menu*/) {
+    screen_close();
+}

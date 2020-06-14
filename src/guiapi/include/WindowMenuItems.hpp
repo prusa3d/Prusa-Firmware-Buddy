@@ -228,3 +228,13 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu);
 };
+
+class MI_TEST_DISABLED_RETURN : public WI_LABEL_t {
+    static constexpr const char *const label = "Disabled RETURN button";
+
+public:
+    MI_TEST_DISABLED_RETURN();
+
+protected:
+    virtual void click(IWindowMenu &window_menu);
+};
