@@ -27,15 +27,16 @@ const char *IWindowMenuItem::GetLocalizedLabel() const {
 void IWindowMenuItem::Print(IWindowMenu &window_menu, rect_ui16_t rect) const {
     color_t color_text = IsEnabled() ? window_menu.color_text : window_menu.color_disabled;
     color_t color_back = window_menu.color_back;
-    uint8_t swap = 0;
+    uint8_t swap = IsEnabled() ? 0 : ROPFN_DISABLE;
 
     if (IsFocused()) {
         color_t swp = color_text;
         color_text = color_back;
         color_back = swp;
-        swap = ROPFN_SWAPBW;
+        swap |= ROPFN_SWAPBW;
     }
 
+    //printIcon(window_menu, rect, 0, color_back);
     printIcon(window_menu, rect, swap, window_menu.color_back);
     printText(window_menu, rect, color_text, color_back, swap);
 }
