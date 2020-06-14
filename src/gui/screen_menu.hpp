@@ -16,8 +16,8 @@ enum class EFooter { On,
     Off };
 
 struct HelperConfig {
-    size_t lines;
-    uint32_t font_id;
+    uint16_t lines;
+    uint16_t font_id;
 };
 
 constexpr static const HelperConfig HelpLines_None = { 0, IDR_FNT_SPECIAL };
