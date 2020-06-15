@@ -20,6 +20,7 @@ typedef enum {
     eSOUND_TYPE_EncoderMove,
     eSOUND_TYPE_BlindAlert,
     eSOUND_TYPE_Start,
+    eSOUND_TYPE_SingleBeep,
     eSOUND_TYPE_count
 } eSOUND_TYPE;
 

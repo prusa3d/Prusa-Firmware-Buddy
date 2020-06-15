@@ -3,19 +3,19 @@
 #include "hwio.h"
 #include "eeprom.h"
 
-const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 50, 100, 100 };
-const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F };
-const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.25F, 0.25F, Sound::volumeInit };
+const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 50, 100, 100, 1000 };
+const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
+const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.25F, 0.25F, Sound::volumeInit, Sound::volumeInit };
 
-const eSOUND_TYPE Sound::onceTypes[4] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert };
-const eSOUND_TYPE Sound::loudTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
-const eSOUND_TYPE Sound::silentTypes[3] = { eSOUND_TYPE_Start, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
-const eSOUND_TYPE Sound::assistTypes[7] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert };
+const eSOUND_TYPE Sound::onceTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
+const eSOUND_TYPE Sound::loudTypes[6] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
+const eSOUND_TYPE Sound::silentTypes[4] = { eSOUND_TYPE_Start, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
+const eSOUND_TYPE Sound::assistTypes[8] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
 
-const int Sound::onceRepeats[4] = { 1, 1, 1, -1 };
-const int Sound::loudRepeats[5] = { 1, 1, -1, 3, -1 };
-const int Sound::silentRepeats[3] = { 1, 1, -1 };
-const int Sound::assistRepeats[7] = { 1, 1, -1, 3, 1, 1, -1 };
+const int Sound::onceRepeats[5] = { 1, 1, 1, -1, 1 };
+const int Sound::loudRepeats[6] = { 1, 1, -1, 3, -1, 1 };
+const int Sound::silentRepeats[4] = { 1, 1, -1, 1 };
+const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
 
 /*!
  * Sound signals implementation
@@ -28,7 +28,8 @@ Sound::Sound()
     , duration(0)
     , repeat(0)
     , frequency(100.F)
-    , volume(volumeInit) {
+    , volume(volumeInit)
+    , delay(100) {
     init();
 }
 
@@ -66,6 +67,7 @@ void Sound::stop() {
     _duration = 0;
     duration = 0;
     repeat = 0;
+    _delay = 0;
 }
 
 void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], unsigned size) {
@@ -126,6 +128,10 @@ void Sound::_sound(int rep, float frq, uint32_t dur, float vol) {
 /// Another repeat of sound signal. Just set live variable with duration of the beep and play it
 void Sound::nextRepeat() {
     _duration = duration;
+    _delay = 1;
+    if (repeat > 1 || repeat == -1) {
+        _delay = delay;
+    }
     hwio_beeper_tone2(frequency, duration, volume);
 }
 
@@ -135,11 +141,16 @@ void Sound::nextRepeat() {
  */
 void Sound::update1ms() {
     /// -- timing logic without osDelay for repeating Beep(s)
-    if ((_duration) && (--_duration <= 0)) {
-        if (((repeat != 0) && (--repeat != 0)) || (repeat == -1)) {
-            nextRepeat();
+    _duration = _duration <= 0 ? 0 : _duration - 1;
+    if (_duration <= 0) {
+        if (--_delay <= 0) {
+            repeat = repeat == -1 ? -1 : repeat - 1;
+            if ((repeat != 0) || (repeat == -1)) {
+                nextRepeat();
+            }
         }
     }
+
     /// calling hwio update fnc
     hwio_update_1ms();
 }

@@ -39,6 +39,8 @@ private:
     int repeat;         ///< how many times is sound played
     float frequency;    ///< frequency of sound signal (0-1000)
     float volume;       ///< volume of sound signal (0-1)
+    uint32_t _delay;    ///< live variable used for delay measure
+    uint32_t delay;     ///< added variable for delay betwen beeps
 
     static constexpr float volumeInit = 0.5F;
     /// values of sound signals - frequencies, volumes, durations
@@ -47,16 +49,16 @@ private:
     static const float volumes[eSOUND_TYPE_count];
 
     /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
-    static const eSOUND_TYPE onceTypes[4];
-    static const eSOUND_TYPE loudTypes[5];
-    static const eSOUND_TYPE silentTypes[3];
-    static const eSOUND_TYPE assistTypes[7];
+    static const eSOUND_TYPE onceTypes[5];
+    static const eSOUND_TYPE loudTypes[6];
+    static const eSOUND_TYPE silentTypes[4];
+    static const eSOUND_TYPE assistTypes[8];
 
     /// signals repeats - how many times will sound signals repeat (-1 is infinite)
-    static const int onceRepeats[4];
-    static const int loudRepeats[5];
-    static const int silentRepeats[3];
-    static const int assistRepeats[7];
+    static const int onceRepeats[5];
+    static const int loudRepeats[6];
+    static const int silentRepeats[4];
+    static const int assistRepeats[8];
 
     eSOUND_MODE eSoundMode;
 };

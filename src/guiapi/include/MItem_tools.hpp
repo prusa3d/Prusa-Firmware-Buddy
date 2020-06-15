@@ -216,7 +216,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_TYPE : public WI_SWITCH_t<7> {
+class MI_SOUND_TYPE : public WI_SWITCH_t<8> {
     constexpr static const char *const label = "Sound Type";
 
     constexpr static const char *str_ButtonEcho = "ButtonEcho";
@@ -226,6 +226,8 @@ class MI_SOUND_TYPE : public WI_SWITCH_t<7> {
     constexpr static const char *str_EncoderMove = "EncoderMove";
     constexpr static const char *str_BlindAlert = "BlindAlert";
     constexpr static const char *str_Start = "Start";
+    constexpr static const char *str_SingleBeep = "SingleBeep";
+
 public:
     MI_SOUND_TYPE();
     virtual void OnChange(size_t old_index) override;
