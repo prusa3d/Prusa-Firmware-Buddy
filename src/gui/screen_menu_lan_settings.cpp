@@ -131,18 +131,14 @@ bool Eth::IsUpdated() {
 
 bool Eth::SetStatic() {
     ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_STATIC_LAN_ADDRS;
     load_eth_params(&ethconfig);
 
     if (ethconfig.lan.addr_ip4.addr == 0) {
         msg = Msg::StaicAddrErr;
         return false;
     }
-    ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
-    load_eth_params(&ethconfig);
     set_LAN_to_static(&ethconfig);
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    save_eth_params(&ethconfig);
     new_data_flg = true;
     return true;
 }
@@ -151,10 +147,7 @@ bool Eth::SetDHCP() {
     ETH_config_t ethconfig;
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
-
     set_LAN_to_dhcp(&ethconfig);
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    save_eth_params(&ethconfig);
     new_data_flg = true;
     conn_flg = true;
     return true;

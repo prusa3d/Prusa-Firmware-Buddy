@@ -31,8 +31,12 @@ void get_addrs_from_dhcp(ETH_config_t *config) {
     config->lan.gw_ip4.addr = 0;
 }
 
-void eth_status_step(ETH_config_t *config) {
-    if (netif_is_link_up(&eth0)) {
+void eth_status_step(ETH_config_t *config, uint32_t eth_link) {
+    ETH_STATUS_t old_status = eth_status;
+    if (eth_link) {
+        if (old_status == ETH_UNLINKED) {
+            netifapi_netif_set_link_up(&eth0);
+        }
         if (IS_LAN_STATIC(config->lan.flag)) {
             if (netif_is_up(&eth0)) {
                 eth_status = ETH_NETIF_UP;
@@ -53,12 +57,15 @@ void eth_status_step(ETH_config_t *config) {
     } else {
         eth_status = ETH_UNLINKED;
         dhcp_supplied = false;
+        if (old_status != ETH_UNLINKED) {
+            netifapi_netif_set_link_down(&eth0);
+        }
     }
 }
 
 void turn_off_LAN(ETH_config_t *config) {
     if (eth_status == ETH_NETIF_UP) {
-        netifapi_netif_set_down(&eth0);
+        netifapi_netif_set_link_down(&eth0);
     }
     TURN_LAN_OFF(config->lan.flag);
 }
@@ -66,15 +73,17 @@ void turn_off_LAN(ETH_config_t *config) {
 void turn_on_LAN(ETH_config_t *config) {
     TURN_LAN_ON(config->lan.flag);
     if (eth_status != ETH_UNLINKED) {
-        netifapi_netif_set_up(&eth0);
+        netifapi_netif_set_link_up(&eth0);
     }
 }
 
 void set_LAN_to_static(ETH_config_t *config) {
     if (eth_status == ETH_NETIF_UP) {
-        netifapi_netif_set_down(&eth0);
+        netifapi_netif_set_link_down(&eth0);
     }
     CHANGE_LAN_TO_STATIC(config->lan.flag);
+    config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    save_eth_params(config);
     ipaddr.addr = config->lan.addr_ip4.addr;
     netmask.addr = config->lan.msk_ip4.addr;
     gw.addr = config->lan.gw_ip4.addr;
@@ -83,16 +92,18 @@ void set_LAN_to_static(ETH_config_t *config) {
         (const ip4_addr_t *)&netmask,
         (const ip4_addr_t *)&gw);
     if (eth_status != ETH_UNLINKED && IS_LAN_ON(config->lan.flag)) {
-        netifapi_netif_set_up(&eth0);
+        netifapi_netif_set_link_up(&eth0);
     }
 }
 
 void set_LAN_to_dhcp(ETH_config_t *config) {
     if (eth_status == ETH_NETIF_UP) {
-        netifapi_netif_set_down(&eth0);
+        netifapi_netif_set_link_down(&eth0);
     }
     CHANGE_LAN_TO_DHCP(config->lan.flag);
+    config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    save_eth_params(config);
     if (eth_status != ETH_UNLINKED && IS_LAN_ON(config->lan.flag)) {
-        netifapi_netif_set_up(&eth0);
+        netifapi_netif_set_link_up(&eth0);
     }
 }

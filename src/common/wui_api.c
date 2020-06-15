@@ -203,14 +203,14 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
 
     // Aquire lan flags before load
     uint8_t prev_lan_flag = config->lan.flag;
+    uint32_t save_mask = config->var_mask;
+    config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    load_eth_params(config);
+    config->var_mask = save_mask;
     {
-        uint32_t set_mask = config->var_mask;
-        config->var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-        load_eth_params(config);
         uint8_t swapper = prev_lan_flag;
         prev_lan_flag = config->lan.flag;
         config->lan.flag = swapper;
-        config->var_mask = set_mask;
     }
 
     if (config->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
@@ -223,7 +223,7 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
         }
         // from DHCP to DHCP: do nothing
     }
-
+    config->var_mask = save_mask;
     save_eth_params(config);
 
     return 1;

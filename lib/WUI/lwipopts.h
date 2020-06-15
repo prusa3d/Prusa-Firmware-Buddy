@@ -146,7 +146,6 @@ extern "C" {
     #define LWIP_NETIF_API             1 // enable LWIP_NETIF_API==1: Support netif api (in netifapi.c)
     #define LWIP_NETIF_LINK_CALLBACK   1 //LWIP_NETIF_LINK_CALLBACK==1: Support a callback function from an interface
     #define LWIP_HTTPD_DYNAMIC_HEADERS 1
-    #define LWIP_NETIF_STATUS_CALLBACK 1
     #define LWIP_NETIF_HOSTNAME        1
     #define LWIP_HTTPD_SUPPORT_POST    1
     #ifdef WUI_HOST_NAME
