@@ -201,7 +201,8 @@ void Error_Handler(void);
 #define Z_DIAGE1_Pin          GPIO_PIN_1
 #define Z_DIAGE1_GPIO_Port    GPIOE
 /* USER CODE BEGIN Private defines */
-
+#define THERM_BOARD_Pin       THERM_2_Pin
+#define THERM_BOARD_GPIO_Port THERM_2_GPIO_Port
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

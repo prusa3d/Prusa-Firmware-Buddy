@@ -8,14 +8,12 @@
 #include "IWindowMenuItem.hpp"
 
 window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
-    : Iwindow_menu_t()
+    : IWindowMenu()
     , pContainer(pContainer) {
     color_back = gui_defaults.color_back;
     color_text = gui_defaults.color_text;
     color_disabled = gui_defaults.color_disabled;
     font = gui_defaults.font;
-    //padding = gui_defaults.padding;
-    //icon_rect = rect_ui16(0, 0, 16, 16);
     alignment = gui_defaults.alignment;
     setIndex(index);
     top_index = 0;
@@ -52,7 +50,7 @@ uint8_t window_menu_t::GetCount() const {
     return pContainer->GetCount();
 }
 
-IWindowMenuItem *window_menu_t::GetItem(uint8_t index) {
+IWindowMenuItem *window_menu_t::GetItem(uint8_t index) const {
     if (!pContainer)
         return nullptr;
     if (index >= GetCount())
@@ -64,7 +62,7 @@ IWindowMenuItem *window_menu_t::GetActiveItem() {
     return GetItem(index);
 }
 
-void window_menu_t::Incement(int dif) {
+void window_menu_t::Increment(int dif) {
     IWindowMenuItem *item = GetActiveItem();
     if (item->IsSelected()) {
         if (item->Change(dif)) {
@@ -91,7 +89,7 @@ void window_menu_t::Incement(int dif) {
         if (new_index >= (top_index + visible_count))
             top_index = new_index - visible_count + 1;
 
-        if (new_index != old_index) { // optimalization do not redraw when no change - still on end
+        if (new_index != old_index) { // optimization do not redraw when no change - still on end
             SetIndex(new_index);
             _window_invalidate((window_t *)this);
         }
@@ -102,6 +100,8 @@ void window_menu_t::Incement(int dif) {
 //non member fce
 
 void window_menu_init(window_menu_t *window) {
+    display->draw_rect(window->win.rect, window->color_back);
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
 }
 
 void window_menu_done(window_menu_t *window) {
@@ -119,15 +119,14 @@ void window_menu_draw(window_menu_t *window) {
         return;
     }
 
-    int item_height = window->font->h + window->padding.top + window->padding.bottom;
+    const int item_height = window->font->h + window->padding.top + window->padding.bottom;
     rect_ui16_t rc_win = window->win.rect;
 
-    size_t visible_count = rc_win.h / item_height;
+    const size_t visible_count = rc_win.h / item_height;
     size_t i;
     for (i = 0; i < visible_count && i < window->GetCount(); ++i) {
-        int idx = i + window->top_index;
 
-        IWindowMenuItem *item = window->GetItem(idx);
+        IWindowMenuItem *item = window->GetItem(i + window->top_index);
         if (!item) {
             --i;
             break;
@@ -137,6 +136,11 @@ void window_menu_draw(window_menu_t *window) {
             rc_win.w, uint16_t(item_height) };
 
         if (rect_in_rect_ui16(rc, rc_win)) {
+            if (item->RollNeedInit()) {
+                gui_timer_restart_txtroll(window->win.id);
+                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+                item->RollInit(*window, rc);
+            }
             item->Print(*window, rc);
         }
     }
@@ -149,7 +153,7 @@ void window_menu_draw(window_menu_t *window) {
     window->win.flg &= ~WINDOW_FLG_INVALID;
 }
 
-//i think I do not need
+//I think I do not need
 //screen_dispatch_event
 //callback should handle it
 void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
@@ -171,17 +175,19 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_ENC_UP:
         if (item->IsSelected()) {
-            invalid |= item->Incement(value);
+            invalid |= item->Increment(value);
         } else {
-            window->Incement(value);
+            window->Increment(value);
         }
         break;
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
-        break; /*
+        break;
     case WINDOW_EVENT_TIMER:
-        roll_text_phasing(window->win.id, window->font, &window->roll);
-        break;*/
+        if (!item->RollNeedInit()) {
+            item->Roll(*window); //warning it is accessing gui timer
+        }
+        break;
     }
     if (invalid)
         _window_invalidate((window_t *)window);

@@ -14,6 +14,7 @@
 #include "screens.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include "../lang/i18n.h"
 
 #define BOOTLOADER_VERSION_ADDRESS 0x801FFFA
 #define OTP_START_ADDR             0x1FFF7800
@@ -32,7 +33,7 @@ using parent = ScreenMenu<EHeader::On, EFooter::On, HelpLines_Default, MI_RETURN
 
 class ScreenMenuVersionInfo : public parent {
 public:
-    constexpr static const char *label = "VERSION INFO";
+    constexpr static const char *label = N_("VERSION INFO");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
     static void CDone(screen_t *screen);
@@ -68,7 +69,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     serial_numbers[14] = '\0';
 
     //=============SET TEXT================
-    snprintf(version_info_str, VERSION_INFO_STR_MAXLEN, "Firmware Version\n");
+    snprintf(version_info_str, VERSION_INFO_STR_MAXLEN, _("Firmware Version\n"));
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
@@ -86,7 +87,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
 
     snprintf(version_info_str + strlen(version_info_str),
         VERSION_INFO_STR_MAXLEN - strlen(version_info_str),
-        "\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s",
+        _("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"),
         bootloader->major, bootloader->minor, bootloader->patch,
         board_version[0], board_version[1], board_version[2],
         serial_numbers);

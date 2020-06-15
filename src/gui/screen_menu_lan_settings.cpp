@@ -17,6 +17,7 @@
 #include "wui_api.h"
 #include "config.h"
 #include "RAII.hpp"
+#include "../lang/i18n.h"
 
 /*****************************************************************************/
 //Eth static class used by menu and its items
@@ -111,14 +112,14 @@ bool Eth::IsOn() {
 
 void Eth::Init() {
     uint8_t flg = GetFlag();
-    conn_flg = (IS_LAN_ON(flg) && IS_LAN_DHCP(flg) && dhcp_addrs_are_supplied());
+    conn_flg = (IS_LAN_ON(flg) && IS_LAN_DHCP(flg) && get_dhcp_supplied());
 }
 
 bool Eth::IsUpdated() {
     bool ret = false;
     if (conn_flg) {
         uint8_t eth_flag = GetFlag();
-        if ((IS_LAN_DHCP(eth_flag) && dhcp_addrs_are_supplied()) || IS_LAN_STATIC(eth_flag)) {
+        if ((IS_LAN_DHCP(eth_flag) && get_dhcp_supplied()) || IS_LAN_STATIC(eth_flag)) {
             conn_flg = false;
             ret = true;
         }
@@ -230,23 +231,23 @@ public:
 };
 
 class MI_LAN_SAVE : public WI_LABEL_t {
-    constexpr static const char *const label = "Save settings";
+    constexpr static const char *const label = N_("Save settings");
 
 public:
     MI_LAN_SAVE()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::Save();
     }
 };
 
 class MI_LAN_LOAD : public WI_LABEL_t {
-    constexpr static const char *const label = "Load settings";
+    constexpr static const char *const label = N_("Load settings");
 
 public:
     MI_LAN_LOAD()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::Load();
     }
 };
@@ -264,7 +265,7 @@ class ScreenMenuLanSettings : public parent {
     void show_msg(Eth::Msg msg);
 
 public:
-    constexpr static const char *label = "LAN SETTINGS";
+    constexpr static const char *label = N_("LAN SETTINGS");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
@@ -287,22 +288,22 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
     msg_shown = true;
     switch (msg) {
     case Eth::Msg::StaicAddrErr:
-        gui_msgbox("Static IPv4 addresses were not set.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        gui_msgbox(_("Static IPv4 addresses were not set."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
         break;
     case Eth::Msg::NoUSB:
-        gui_msgbox("Please insert a USB drive and try again.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        gui_msgbox(_("Please insert a USB drive and try again."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
         break;
     case Eth::Msg::SaveOK:
-        gui_msgbox("The settings have been saved successfully in the \"lan_settings.ini\" file.", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        gui_msgbox(_("The settings have been saved successfully in the \"lan_settings.ini\" file."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
         break;
     case Eth::Msg::SaveNOK:
-        gui_msgbox("There was an error saving the settings in the \"lan_settings.ini\" file.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        gui_msgbox(_("There was an error saving the settings in the \"lan_settings.ini\" file."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
         break;
     case Eth::Msg::LoadOK:
-        gui_msgbox("Settings successfully loaded", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        gui_msgbox(_("Settings successfully loaded"), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
         break;
     case Eth::Msg::LoadNOK:
-        gui_msgbox("IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive.", MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        gui_msgbox(_("IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
         break;
     default:
         break;

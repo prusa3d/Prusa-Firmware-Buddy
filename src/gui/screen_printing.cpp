@@ -11,6 +11,7 @@
 #include <array>
 #include <ctime>
 #include "wui_api.h"
+#include "../lang/i18n.h"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"
@@ -36,6 +37,7 @@ enum class printing_state_t : uint8_t {
     PAUSING,
     PAUSED,
     RESUMING,
+    ABORTING,
     REHEATING,
     REHEATING_DONE,
     MBL_FAILED,
@@ -106,8 +108,9 @@ struct screen_printing_data_t {
 
     window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
+    bool message_flag;
+    bool stop_pressed;
     printing_state_t state__readonly__use_change_print_state;
-    uint8_t message_flag;
     uint8_t last_sd_percent_done;
 };
 
@@ -149,6 +152,7 @@ void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
     int16_t id;
 
+    pw->stop_pressed = false;
     marlin_vars_t *vars = marlin_vars();
 
     strlcpy(pw->text_time_dur.data(), "0m", pw->text_time_dur.size());
@@ -184,7 +188,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    strlcpy(pw->label_etime.data(), "Remaining Time", 15);
+    strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
     window_set_text(id, pw->label_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
@@ -201,7 +205,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "");
+    window_set_text(id, _("Printing time"));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 148, 101, 20),
@@ -219,7 +223,7 @@ void screen_printing_init(screen_t *screen) {
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
     window_set_text(id, "No messages");
     window_hide(id);
-    pw->message_flag = 0;
+    pw->message_flag = false;
 
     // buttons
     const uint16_t icon_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22 - 64;
@@ -269,7 +273,7 @@ static void open_popup_message(screen_t *screen) {
 
     window_show(pw->w_message.win.id);
     pw->message_timer = HAL_GetTick();
-    pw->message_flag = 1;
+    pw->message_flag = true;
 }
 
 static void close_popup_message(screen_t *screen) {
@@ -282,7 +286,7 @@ static void close_popup_message(screen_t *screen) {
     window_set_text(pw->w_message.win.id, "");
 
     window_hide(pw->w_message.win.id);
-    pw->message_flag = 0;
+    pw->message_flag = false;
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -314,7 +318,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 0;
     }
 
-    if ((!is_abort_state(marlin_vars()->print_state)) && pw->message_flag != 0 && (HAL_GetTick() - pw->message_timer >= POPUP_MSG_DUR_MS)) {
+    if ((!is_abort_state(marlin_vars()->print_state)) && pw->message_flag && (HAL_GetTick() - pw->message_timer >= POPUP_MSG_DUR_MS)) {
         close_popup_message(screen);
     }
 
@@ -329,11 +333,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
         time_t sec = sntp_get_system_time();
         if (sec != 0) {
-            strlcpy(pw->label_etime.data(), "Print will end", 15);
+            strlcpy(pw->label_etime.data(), _("Print will end"), 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
             update_end_timestamp(screen, sec);
         } else {
-            strlcpy(pw->label_etime.data(), "Remaining Time", 15);
+            strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
             update_remaining_time(screen, marlin_vars()->time_to_end);
         }
@@ -350,7 +354,13 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 0;
     }
 
-    switch (static_cast<Btn>(((int)param) - 1)) {
+    int pi = reinterpret_cast<int>(param) - 1;
+    // -- pressed button is disabled - dont propagate event further
+    if (pw->w_buttons[pi].win.f_disabled) {
+        return 0;
+    }
+
+    switch (static_cast<Btn>(pi)) {
     case Btn::Tune:
         switch (get_state(screen)) {
         case printing_state_t::PRINTING:
@@ -387,9 +397,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         case printing_state_t::RESUMING:
             return 0;
         default: {
-            if (gui_msgbox("Are you sure to stop this printing?",
+            if (gui_msgbox(_("Are you sure to stop this printing?"),
                     MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
                 == MSGBOX_RES_YES) {
+                pw->stop_pressed = true;
+                change_print_state(screen);
                 marlin_print_abort();
             } else
                 return 0;
@@ -589,6 +601,9 @@ static void set_pause_icon_and_label(screen_t *screen) {
         enable_button(p_button);
         set_icon_and_label(item_id_t::reprint, btn_id, lbl_id);
         break;
+    case printing_state_t::ABORTING:
+        disable_button(p_button);
+        break;
     }
 }
 
@@ -604,6 +619,9 @@ void set_tune_icon_and_label(screen_t *screen) {
     case printing_state_t::PRINTING:
     case printing_state_t::PAUSED:
         enable_tune_button(screen);
+        break;
+    case printing_state_t::ABORTING:
+        disable_button(p_button);
         break;
     default:
         disable_tune_button(screen);
@@ -626,6 +644,9 @@ void set_stop_icon_and_label(screen_t *screen) {
         disable_button(p_button);
         set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
         break;
+    case printing_state_t::ABORTING:
+        disable_button(p_button);
+        break;
     default:
         enable_button(p_button);
         set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
@@ -644,6 +665,7 @@ static void change_print_state(screen_t *screen) {
         st = printing_state_t::PRINTING;
         break;
     case mpsPaused:
+        pw->stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
     case mpsPausing_Begin:
@@ -652,17 +674,22 @@ static void change_print_state(screen_t *screen) {
         st = printing_state_t::PAUSING;
         break;
     case mpsResuming_Reheating:
+        pw->stop_pressed = false;
         st = printing_state_t::REHEATING;
         break;
     case mpsResuming_Begin:
     case mpsResuming_UnparkHead:
+        pw->stop_pressed = false;
         st = printing_state_t::RESUMING;
         break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
     case mpsAborting_ParkHead:
+        pw->stop_pressed = false;
+        st = printing_state_t::ABORTING;
+        break;
+    case mpsFinishing_WaitIdle:
+    case mpsFinishing_ParkHead:
         st = printing_state_t::PRINTING;
         break;
     case mpsAborted:
@@ -671,6 +698,9 @@ static void change_print_state(screen_t *screen) {
     case mpsFinished:
         st = printing_state_t::PRINTED;
         break;
+    }
+    if (pw->stop_pressed) {
+        st = printing_state_t::ABORTING;
     }
     if (pw->state__readonly__use_change_print_state != st) {
         pw->state__readonly__use_change_print_state = st;

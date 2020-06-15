@@ -10,6 +10,7 @@
 #include "gui.h"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
+#include "../lang/i18n.h"
 
 #define POPUP_DELAY_MS 1000
 
@@ -38,7 +39,7 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
             text_rc.y += 20;
             text_rc.h = 30;
             text_rc.w -= 10;
-            render_text_align(text_rc, window->text,
+            render_text_align(text_rc, _(window->text),
                 window->font, window->color_back,
                 window->color_text, window->padding,
                 ALIGN_LEFT_CENTER);

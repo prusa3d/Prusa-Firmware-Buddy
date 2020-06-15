@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include "screens.h"
 #include "sound_C_wrapper.h"
+#include "DialogHandler.hpp"
 
 #define DBG _dbg0
 
@@ -321,6 +322,8 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
             0, btns)) {
         case MSGBOX_RES_CUSTOM0: //YES - load
             gui_dlg_load_forced();
+            //opens load dialog if it is not already openned
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Load));
             break;
         case MSGBOX_RES_CUSTOM1: //NO - cancel
             if (action_handler) {

@@ -109,7 +109,6 @@ add_library(
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/eeprom_emul.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/EmulatedEeprom.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/HAL.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/HAL_SPI.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/persistent_store_eeprom.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/Servo.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F4/timers.cpp

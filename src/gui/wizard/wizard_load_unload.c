@@ -6,6 +6,7 @@
 #include "window_dlg_preheat.h"
 #include "filament.h"
 #include "filament_sensor.h"
+#include "../lang/i18n.h"
 
 #define FKNOWN      0x01 //filament is known
 #define F_NOTSENSED 0x02 //filament is not in sensor
@@ -73,7 +74,7 @@ LD_UNLD_STATE_t wizard_load_unload(LD_UNLD_STATE_t state) {
     case LD_UNLD_MSG_DECIDE_CONTINUE_LOAD_UNLOAD:
         return _decide_continue_load_unload();
     case LD_UNLD_DIALOG_PREHEAT:
-        gui_dlg_preheat_forced("Select filament type");
+        gui_dlg_preheat_forced(_("Select filament type"));
         return LD_UNLD_DONE;
 
     case LD_UNLD_DIALOG_LOAD:

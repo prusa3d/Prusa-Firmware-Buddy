@@ -85,6 +85,16 @@ static void wui_queue_cycle() {
     }
 }
 
+void update_state_variables_step(void) {
+
+    ETH_config_t config;
+    config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    load_eth_params(&config);
+
+    eth_status_step(&config);
+    sntp_client_step();
+}
+
 void StartWebServerTask(void const *argument) {
     // semaphore for filling tcp - wui message qeue
     osSemaphoreDef(tcp_wui_semaphore);
@@ -110,12 +120,12 @@ void StartWebServerTask(void const *argument) {
     // LwIP related initalizations
     MX_LWIP_Init();
     http_server_init();
-    sntp_client_init();
 
     for (;;) {
 
         ethernetif_link(&eth0); // handles Ethernet link plug/un-plug events
         wui_queue_cycle();      // checks for commands to WUI
+        update_state_variables_step();
 
         if (wui_marlin_vars) {
             marlin_client_loop();

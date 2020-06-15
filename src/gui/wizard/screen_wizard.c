@@ -14,6 +14,8 @@
 #include "eeprom.h"
 #include "filament_sensor.h"
 #include "screens.h"
+#include "../lang/i18n.h"
+
 uint64_t wizard_mask = 0;
 
 static int is_state_in_wizard_mask(wizard_state_t st) {
@@ -442,13 +444,13 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     pd->state = p_firstlay_data->state_print == _TEST_PASSED ? _STATE_FIRSTLAY_MSBX_REPEAT_PRINT : _STATE_FIRSTLAY_FAIL;
                 break;
             case _STATE_FIRSTLAY_MSBX_REPEAT_PRINT:
-                if (wizard_msgbox(
-                        "Do you want to     \n"
-                        "repeat the last    \n"
-                        "step and readjust  \n"
-                        "the distance       \n"
-                        "between the nozzle \n"
-                        "and heatbed?",
+                if (wizard_msgbox(_(
+                                      "Do you want to     \n"
+                                      "repeat the last    \n"
+                                      "step and readjust  \n"
+                                      "the distance       \n"
+                                      "between the nozzle \n"
+                                      "and heatbed?"),
                         MSGBOX_BTN_YESNO | MSGBOX_DEF_BUTTON1, 0)
                     == MSGBOX_RES_NO) {
                     pd->state = _STATE_FINISH;
@@ -457,7 +459,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
                     wizard_done_screen(screen);
                 } else {
-                    wizard_msgbox("Clean steel sheet.", MSGBOX_BTN_NEXT, 0);
+                    wizard_msgbox(_("Clean steel sheet."), MSGBOX_BTN_NEXT, 0);
 
                     pd->state = _STATE_FIRSTLAY_PRINT;
                     pd->firstlay.state_print = _TEST_START;

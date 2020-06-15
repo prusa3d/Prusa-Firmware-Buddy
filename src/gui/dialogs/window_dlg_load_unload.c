@@ -4,6 +4,7 @@
 #include "marlin_client.h"
 #include "window_dlg_preheat.h"
 #include "filament.h"
+#include "../lang/i18n.h"
 
 dlg_result_t gui_dlg_load(void) {
     //todo must be called inside _gui_dlg, but nested dialogs are not supported now
@@ -27,7 +28,7 @@ dlg_result_t gui_dlg_purge(void) {
 
 dlg_result_t gui_dlg_load_forced(void) {
     //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    FILAMENT_t filament = gui_dlg_preheat_forced("PREHEAT for LOAD");
+    FILAMENT_t filament = gui_dlg_preheat_forced(_("PREHEAT for LOAD"));
     if (filament == FILAMENT_NONE) {
         return DLG_ABORTED; //DLG_ABORTED should not happen
     }
@@ -45,7 +46,7 @@ dlg_result_t gui_dlg_unload(void) {
 
 dlg_result_t gui_dlg_unload_forced(void) {
     //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    if (gui_dlg_preheat_autoselect_if_able_forced("PREHEAT for UNLOAD") == FILAMENT_NONE)
+    if (gui_dlg_preheat_autoselect_if_able_forced(_("PREHEAT for UNLOAD")) == FILAMENT_NONE)
         return DLG_ABORTED; //LD_ABORTED should not happen
     marlin_gcode("M702");
     return DLG_OK;

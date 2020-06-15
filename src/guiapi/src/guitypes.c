@@ -14,30 +14,37 @@ void interval_intersect_ui16(uint16_t *p) {
     p[4] = p[5] = 0;
 }
 
-rect_ui16_t rect_intersect_ui16(rect_ui16_t rc, rect_ui16_t rc1) {
-    uint16_t x[6] = { rc.x, rc.x + rc.w, rc1.x, rc1.x + rc1.w, 0, 0 };
-    uint16_t y[6] = { rc.y, rc.y + rc.h, rc1.y, rc1.y + rc1.h, 0, 0 };
+rect_ui16_t rect_intersect_ui16(rect_ui16_t rc1, rect_ui16_t rc2) {
+    if (rc1.w == 0 || rc1.h == 0 || rc2.w == 0 || rc2.h == 0) {
+        const rect_ui16_t rc_ret = { 0, 0, 0, 0 };
+        return rc_ret;
+    }
+
+    uint16_t x[6] = { rc1.x, rc1.x + rc1.w, rc2.x, rc2.x + rc2.w, 0, 0 };
+    uint16_t y[6] = { rc1.y, rc1.y + rc1.h, rc2.y, rc2.y + rc2.h, 0, 0 };
     interval_intersect_ui16(x);
     interval_intersect_ui16(y);
-    rect_ui16_t rc2 = { x[4], y[4], x[5] - x[4], y[5] - y[4] };
-    return rc2;
+    const rect_ui16_t rc_ret = { x[4], y[4], x[5] - x[4], y[5] - y[4] };
+    return rc_ret;
 }
 
 rect_ui16_t rect_ui16_add_padding_ui8(rect_ui16_t rc, padding_ui8_t pad) {
-    rect_ui16_t rect = { 0, 0, rc.w + pad.left + pad.right, rc.h + pad.top + pad.bottom };
-    if (rc.x > pad.left)
-        rect.x = rc.x - pad.left;
-    if (rc.y > pad.top)
-        rect.y = rc.y - pad.top;
+    const rect_ui16_t rect = {
+        MAX(0, rc.x - pad.left),
+        MAX(0, rc.y - pad.top),
+        rc.w + pad.left + pad.right,
+        rc.h + pad.top + pad.bottom
+    };
     return rect;
 }
 
 rect_ui16_t rect_ui16_sub_padding_ui8(rect_ui16_t rc, padding_ui8_t pad) {
-    rect_ui16_t rect = { rc.x + pad.left, rc.y + pad.top, 0, 0 };
-    if (rc.w > (pad.left + pad.right))
-        rect.w = rc.w - (pad.left + pad.right);
-    if (rc.h > (pad.top + pad.bottom))
-        rect.h = rc.h - (pad.top + pad.bottom);
+    const rect_ui16_t rect = {
+        rc.x + pad.left,
+        rc.y + pad.top,
+        MAX(0, rc.w - pad.left - pad.right),
+        MAX(0, rc.h - pad.top - pad.bottom)
+    };
     return rect;
 }
 
@@ -127,7 +134,7 @@ int font_line_chars(const font_t *pf, const char *str, uint16_t line_width) {
     return MIN(n, len);
 }
 
-uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, font_t *pf) {
+uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, const font_t *pf) {
 
     uint16_t meas_x = 0, len = strlen(text);
     if (len * pf->w > rc.w)
@@ -135,7 +142,7 @@ uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, font_t *pf) {
     return meas_x;
 }
 
-rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, font_t *font, padding_ui8_t padding, uint16_t flags) {
+rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, const font_t *font, padding_ui8_t padding, uint16_t flags) {
 
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     point_ui16_t wh_txt = font_meas_text(font, text);

@@ -14,6 +14,7 @@
 #include "lazyfilelist-c-api.h"
 #include "sound_C_wrapper.h"
 #include "../common/cmath_ext.h"
+#include "../lang/i18n.h"
 
 int16_t WINDOW_CLS_FILE_LIST = 0;
 
@@ -90,6 +91,8 @@ void window_file_list_init(window_file_list_t *window) {
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
     window->ldv = LDV_Get();
+
+    display->fill_rect(window->win.rect, window->color_back);
 }
 
 void window_file_list_done(window_file_list_t *window) {
@@ -116,10 +119,10 @@ void window_file_list_draw(window_file_list_t *window) {
 
         // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
         // and will get a nice house-like icon
-        static const char home[] = "Home";                                                          // @@TODO reuse from elsewhere ...
+        static const char home[] = N_("Home");                                                      // @@TODO reuse from elsewhere ...
         if (i == 0 && strcmp(item, "..") == 0 && window_file_list_path_is_root(window->sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
             id_icon = IDR_PNG_filescreen_icon_home;
-            item = home;
+            item = _(home);
         }
 
         color_t color_text = window->color_text;
@@ -153,6 +156,13 @@ void window_file_list_draw(window_file_list_t *window) {
                     window->roll.phase = ROLL_SETUP;
                     gui_timer_restart_txtroll(window->win.id);
                     gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+
+                    roll_init(rc,
+                        item,
+                        window->font,
+                        padding,
+                        window->alignment,
+                        &window->roll);
                 }
 
                 render_roll_text_align(rc,

@@ -9,6 +9,8 @@
 #include "window_header.h"
 #include "config.h"
 #include "marlin_client.h"
+#include "../lang/i18n.h"
+
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "wui_api.h"
 #endif //BUDDY_ENABLE_ETHERNET
@@ -19,13 +21,9 @@ int16_t WINDOW_CLS_HEADER = 0;
 
 #ifdef BUDDY_ENABLE_ETHERNET
 static void update_ETH_icon(window_header_t *window) {
-    ETH_config_t config;
-    config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&config);
-    ETH_STATUS_t status = eth_status(&config);
-    if (status == ETH_UNLINKED) {
+    if (get_eth_status() == ETH_UNLINKED) {
         p_window_header_icon_off(window, HEADER_ICON_LAN);
-    } else if (status == ETH_NETIF_DOWN) {
+    } else if (get_eth_status() == ETH_NETIF_DOWN) {
         p_window_header_icon_on(window, HEADER_ICON_LAN);
     } else {
         p_window_header_icon_active(window, HEADER_ICON_LAN);
@@ -51,6 +49,8 @@ void window_header_init(window_header_t *window) {
 #ifdef BUDDY_ENABLE_ETHERNET
     update_ETH_icon(window);
 #endif //BUDDY_ENABLE_ETHERNET
+
+    display->fill_rect(gui_defaults.header_sz, window->color_back); // clear the window before drawing
 }
 
 void window_header_done(window_header_t *window) {}
@@ -106,8 +106,8 @@ void window_header_draw(window_header_t *window) {
     rc.x += 10 + window->win.rect.h;
     rc.w -= (icons_width + 10 + window->win.rect.h);
 
-    if (window->label) { // label
-        render_text_align(rc, window->label, window->font,
+    if (window->label) {                                      // label
+        render_text_align(rc, _(window->label), window->font, // @@TODO verify, that this is the right spot to translate window labels
             window->color_back, window->color_text,
             window->padding, window->alignment);
     }

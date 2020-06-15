@@ -2,9 +2,10 @@
 //print related menu items
 #pragma once
 #include "WindowMenuItems.hpp"
+#include "../lang/i18n.h"
 
 class MI_NOZZLE : public WI_SPIN_U16_t {
-    constexpr static const char *label = "Nozzle";
+    constexpr static const char *label = N_("Nozzle");
 
 public:
     MI_NOZZLE();
@@ -12,7 +13,7 @@ public:
 };
 
 class MI_HEATBED : public WI_SPIN_U08_t {
-    constexpr static const char *label = "Heatbed";
+    constexpr static const char *label = N_("Heatbed");
 
 public:
     MI_HEATBED();
@@ -20,7 +21,7 @@ public:
 };
 
 class MI_PRINTFAN : public WI_SPIN_U08_t {
-    constexpr static const char *label = "Print Fan";
+    constexpr static const char *label = N_("Print Fan");
 
 public:
     MI_PRINTFAN();
@@ -28,7 +29,7 @@ public:
 };
 
 class MI_SPEED : public WI_SPIN_U16_t {
-    constexpr static const char *label = "Speed";
+    constexpr static const char *label = N_("Speed");
 
 public:
     MI_SPEED();
@@ -36,7 +37,7 @@ public:
 };
 
 class MI_FLOWFACT : public WI_SPIN_U16_t {
-    constexpr static const char *label = "Flow Factor";
+    constexpr static const char *label = N_("Flow Factor");
 
 public:
     MI_FLOWFACT();
@@ -44,7 +45,7 @@ public:
 };
 
 class MI_BABYSTEP : public WI_SPIN_t<float> {
-    constexpr static const char *const label = "Live Adjust Z"; // or "Z-offset"?
+    constexpr static const char *const label = N_("Live Adjust Z");
 
 public:
     MI_BABYSTEP();

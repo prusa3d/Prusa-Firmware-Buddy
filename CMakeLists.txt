@@ -528,7 +528,7 @@ if(GUI)
             src/gui/screen_menu_service.cpp
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
-            src/gui/screen_print_preview.c
+            src/gui/screen_print_preview.cpp
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.c

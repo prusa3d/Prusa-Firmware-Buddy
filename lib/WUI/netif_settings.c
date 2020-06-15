@@ -3,8 +3,19 @@
 #include "wui_api.h"
 #include "lwip.h"
 
+static ETH_STATUS_t eth_status = ETH_NETIF_DOWN;
+static bool dhcp_supplied = false;
 struct netif eth0; // network interface for ETH
 char eth_hostname[ETH_HOSTNAME_LEN + 1] = { 0 };
+
+const ETH_STATUS_t get_eth_status(void) {
+    return eth_status;
+}
+
+bool get_dhcp_supplied(void) {
+    return dhcp_supplied;
+}
+
 void get_addrs_from_dhcp(ETH_config_t *config) {
 
     if (IS_LAN_ON(config->lan.flag)) {
@@ -20,30 +31,33 @@ void get_addrs_from_dhcp(ETH_config_t *config) {
     config->lan.gw_ip4.addr = 0;
 }
 
-ETH_STATUS_t eth_status(ETH_config_t *config) {
-    ETH_STATUS_t ret;
+void eth_status_step(ETH_config_t *config) {
     if (netif_is_link_up(&eth0)) {
         if (IS_LAN_STATIC(config->lan.flag)) {
             if (netif_is_up(&eth0)) {
-                ret = ETH_NETIF_UP;
+                eth_status = ETH_NETIF_UP;
+                dhcp_supplied = false;
             } else {
-                ret = ETH_NETIF_DOWN;
+                eth_status = ETH_NETIF_DOWN;
+                dhcp_supplied = false;
             }
         } else {
             if (dhcp_supplied_address(&eth0)) {
-                ret = ETH_NETIF_UP;
+                dhcp_supplied = true;
+                eth_status = ETH_NETIF_UP;
             } else {
-                ret = ETH_NETIF_DOWN;
+                eth_status = ETH_NETIF_DOWN;
+                dhcp_supplied = false;
             }
         }
     } else {
-        ret = ETH_UNLINKED;
+        eth_status = ETH_UNLINKED;
+        dhcp_supplied = false;
     }
-    return ret;
 }
 
 void turn_off_LAN(ETH_config_t *config) {
-    if (netif_is_up(&eth0)) {
+    if (eth_status == ETH_NETIF_UP) {
         netifapi_netif_set_down(&eth0);
     }
     TURN_LAN_OFF(config->lan.flag);
@@ -51,13 +65,13 @@ void turn_off_LAN(ETH_config_t *config) {
 
 void turn_on_LAN(ETH_config_t *config) {
     TURN_LAN_ON(config->lan.flag);
-    if (netif_is_link_up(&eth0)) {
+    if (eth_status != ETH_UNLINKED) {
         netifapi_netif_set_up(&eth0);
     }
 }
 
 void set_LAN_to_static(ETH_config_t *config) {
-    if (netif_is_up(&eth0)) {
+    if (eth_status == ETH_NETIF_UP) {
         netifapi_netif_set_down(&eth0);
     }
     CHANGE_LAN_TO_STATIC(config->lan.flag);
@@ -68,21 +82,17 @@ void set_LAN_to_static(ETH_config_t *config) {
         (const ip4_addr_t *)&ipaddr,
         (const ip4_addr_t *)&netmask,
         (const ip4_addr_t *)&gw);
-    if (netif_is_link_up(&eth0) && IS_LAN_ON(config->lan.flag)) {
+    if (eth_status != ETH_UNLINKED && IS_LAN_ON(config->lan.flag)) {
         netifapi_netif_set_up(&eth0);
     }
 }
 
 void set_LAN_to_dhcp(ETH_config_t *config) {
-    if (netif_is_up(&eth0)) {
+    if (eth_status == ETH_NETIF_UP) {
         netifapi_netif_set_down(&eth0);
     }
     CHANGE_LAN_TO_DHCP(config->lan.flag);
-    if (netif_is_link_up(&eth0) && IS_LAN_ON(config->lan.flag)) {
+    if (eth_status != ETH_UNLINKED && IS_LAN_ON(config->lan.flag)) {
         netifapi_netif_set_up(&eth0);
     }
-}
-
-uint8_t dhcp_addrs_are_supplied(void) {
-    return dhcp_supplied_address(&eth0);
 }

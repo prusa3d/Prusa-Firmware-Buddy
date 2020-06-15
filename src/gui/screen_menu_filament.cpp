@@ -11,10 +11,14 @@
 #include "screens.h"
 #include "dbg.h"
 #include "DialogHandler.hpp"
+#include "../lang/i18n.h"
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
-    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filaments[get_filament()].nozzle);
+    const marlin_vars_t *vars = marlin_vars();
+
+    /// don't read from EEPROM since it's not in sync
+    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)vars->temp_nozzle);
 }
 void clrPreheatTemp() {
     marlin_gcode("M104 S0");
@@ -24,7 +28,7 @@ void clrPreheatTemp() {
 //parent
 class MI_event_dispatcher : public WI_LABEL_t {
 protected:
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
         screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
@@ -33,20 +37,20 @@ public:
     explicit MI_event_dispatcher(const char *label)
         : WI_LABEL_t(label, 0, true, false) {}
 
-    virtual const char *GetHeaderAlterLable() = 0;
+    virtual const char *GetHeaderAlterLabel() = 0;
     virtual void Do() = 0;
 };
 
 /*****************************************************************************/
 //MI_LOAD
 class MI_LOAD : public MI_event_dispatcher {
-    constexpr static const char *const label = "Load Filament";
-    constexpr static const char *const header_label = "LOAD FILAMENT";
+    constexpr static const char *const label = N_("Load Filament");
+    constexpr static const char *const header_label = N_("LOAD FILAMENT");
 
 public:
     MI_LOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() override {
+    virtual const char *GetHeaderAlterLabel() override {
         return header_label;
     }
     virtual void Do() override {
@@ -57,13 +61,13 @@ public:
 /*****************************************************************************/
 //MI_UNLOAD
 class MI_UNLOAD : public MI_event_dispatcher {
-    constexpr static const char *const label = "Unload Filament";
-    constexpr static const char *const header_label = "UNLOAD FILAMENT";
+    constexpr static const char *const label = N_("Unload Filament");
+    constexpr static const char *const header_label = N_("UNLOAD FILAMENT");
 
 public:
     MI_UNLOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() override {
+    virtual const char *GetHeaderAlterLabel() override {
         return header_label;
     }
     virtual void Do() override {
@@ -74,13 +78,13 @@ public:
 /*****************************************************************************/
 //MI_CHANGE
 class MI_CHANGE : public MI_event_dispatcher {
-    constexpr static const char *const label = "Change Filament";
-    constexpr static const char *const header_label = "CHANGE FILAMENT";
+    constexpr static const char *const label = N_("Change Filament");
+    constexpr static const char *const header_label = N_("CHANGE FILAMENT");
 
 public:
     MI_CHANGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() override {
+    virtual const char *GetHeaderAlterLabel() override {
         return header_label;
     }
     virtual void Do() override {
@@ -96,13 +100,13 @@ public:
 /*****************************************************************************/
 //MI_LOAD
 class MI_PURGE : public MI_event_dispatcher {
-    constexpr static const char *const label = "Purge Filament";
-    constexpr static const char *const header_label = "PURGE FILAMENT";
+    constexpr static const char *const label = N_("Purge Filament");
+    constexpr static const char *const header_label = N_("PURGE FILAMENT");
 
 public:
     MI_PURGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLable() override {
+    virtual const char *GetHeaderAlterLabel() override {
         return header_label;
     }
     virtual void Do() override {
@@ -119,7 +123,7 @@ class ScreenMenuFilament : public parent {
     };
 
 public:
-    constexpr static const char *label = "FILAMENT";
+    constexpr static const char *label = N_("FILAMENT");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 
@@ -151,7 +155,7 @@ int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event
     if (event == WINDOW_EVENT_CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
-            p_window_header_set_text(&ths->header, item->GetHeaderAlterLable()); //set new label
+            p_window_header_set_text(&ths->header, item->GetHeaderAlterLabel()); //set new label
             item->Do();                                                          //do action (load filament ...)
             p_window_header_set_text(&ths->header, label);                       //restore label
         }

@@ -17,13 +17,18 @@ typedef enum {
     FILAMENT_PLA,
     FILAMENT_PETG,
     FILAMENT_ASA,
+    FILAMENT_ABS,
+    FILAMENT_PC,
     FILAMENT_FLEX,
+    FILAMENT_HIPS,
+    FILAMENT_PP,
     FILAMENTS_END
 } FILAMENT_t;
 
 #define DEFAULT_FILAMENT FILAMENT_PLA
 
-#define PREHEAT_TEMP 170.01f // like 170 but user cannot set it
+#define PREHEAT_TEMP        170.01f // like 170 but user cannot set it
+#define PREHEAT_TEMP_STRING "170"   // used for G codes
 
 #ifdef __cplusplus
 extern "C" {
