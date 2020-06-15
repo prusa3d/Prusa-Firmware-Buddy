@@ -48,8 +48,8 @@ public:
     static bool IsOn();
     static void Init();
     static bool IsUpdated();
-    static void SetStatic();
-    static void SetDHCP();
+    static bool SetStatic();
+    static bool SetDHCP();
     static Msg ConsumeMsg();
     static bool ConsumeReinit();
 };
@@ -129,14 +129,14 @@ bool Eth::IsUpdated() {
     return ret;
 }
 
-void Eth::SetStatic() {
+bool Eth::SetStatic() {
     ETH_config_t ethconfig;
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
     load_eth_params(&ethconfig);
 
     if (ethconfig.lan.addr_ip4.addr == 0) {
         msg = Msg::StaicAddrErr;
-        return;
+        return false;
     }
     ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
     load_eth_params(&ethconfig);
@@ -144,9 +144,10 @@ void Eth::SetStatic() {
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     save_eth_params(&ethconfig);
     new_data_flg = true;
+    return true;
 }
 
-void Eth::SetDHCP() {
+bool Eth::SetDHCP() {
     ETH_config_t ethconfig;
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
@@ -156,6 +157,7 @@ void Eth::SetDHCP() {
     save_eth_params(&ethconfig);
     new_data_flg = true;
     conn_flg = true;
+    return true;
 }
 
 Eth::Msg Eth::ConsumeMsg() {
@@ -223,7 +225,9 @@ public:
     MI_LAN_IP_t()
         : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_DHCP, str_static) {}
     virtual void OnChange(size_t old_index) override {
-        old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
+        bool success = old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
+        if (!success)
+            this->SetIndex(old_index);
     }
     void ReInit() {
         index = Eth::IsStatic() ? 1 : 0;
@@ -326,7 +330,6 @@ void ScreenMenuLanSettings::Init(screen_t *screen) {
 int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
     ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
     if (Eth::ConsumeReinit()) {
-        //todo ipmrove inner tuple handling and index by type
         MI_LAN_IP_t *item = &ths->Item<MI_LAN_IP_t>();
         item->ReInit();
     }
