@@ -1,6 +1,6 @@
 
 # define the test executable
-add_executable(str_utils_tests str_utils_tests.cpp)
+add_executable(str_utils_tests str_utils.cpp)
 
 # define required search paths
 target_include_directories(str_utils_tests PUBLIC . /c/projects/Prusa/Prusa-Firmware-Buddy/src/common)

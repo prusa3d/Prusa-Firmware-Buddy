@@ -10,6 +10,7 @@ function addPath {
 }
 
 Catch2_SOURCE_DIR="../../../Catch2"
+CMAKE_SOURCE_DIR="../../../../"
 
 addPath "../../.dependencies/cmake-3.15.5/bin"
 addPath "../../.dependencies/ninja-1.9.0/"
