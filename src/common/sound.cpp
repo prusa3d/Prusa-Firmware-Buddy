@@ -54,7 +54,7 @@ void Sound::stop() {
     repeat = 0;
 }
 
-void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE *types, int *repeats, int size) {
+void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE *types, const int *repeats, int size) {
     eSOUND_TYPE type;
     for (int i = 0; i < size; i++) {
         type = types[i];
