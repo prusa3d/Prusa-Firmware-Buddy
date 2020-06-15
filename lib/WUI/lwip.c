@@ -88,8 +88,7 @@ void netif_link_callback(struct netif *eth) {
         }
     } else {
         if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-            dhcp_release(eth);
-            dhcp_stop(eth);
+            dhcp_release_and_stop(eth);
         }
         netif_set_down(eth);
     }
