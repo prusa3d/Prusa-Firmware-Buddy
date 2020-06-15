@@ -2393,17 +2393,20 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
                     sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
 
         vmax_junction_sqr = (junction_acceleration * junction_deviation_mm * sin_theta_d2) / (1.0f - sin_theta_d2);
-        if (block->millimeters < 1) {
+        #if ENABLED(JD_SMALL_SEGMENT_HANDLING)
+          if (block->millimeters < 1) {
 
-          // Fast acos approximation, minus the error bar to be safe
-          const float junction_theta = (RADIANS(-40) * sq(junction_cos_theta) - RADIANS(50)) * junction_cos_theta + RADIANS(90) - 0.18f;
+            // Fast acos approximation, minus the error bar to be safe
+            const float junction_theta = (RADIANS(-40) * sq(junction_cos_theta) - RADIANS(50)) * junction_cos_theta + RADIANS(90) - 0.18f;
 
-          // If angle is greater than 135 degrees (octagon), find speed for approximate arc
-          if (junction_theta > RADIANS(135)) {
-            const float limit_sqr = block->millimeters / (RADIANS(180) - junction_theta) * junction_acceleration;
-            NOMORE(vmax_junction_sqr, limit_sqr);
+            // If angle is greater than 135 degrees (octagon), find speed for approximate arc
+            if (junction_theta > RADIANS(135)) {
+              const float limit_sqr = block->millimeters / (RADIANS(180) - junction_theta) * junction_acceleration;
+              NOMORE(vmax_junction_sqr, limit_sqr);
+            }
           }
-        }
+        #endif //JD_SMALL_SEGMENT_HANDLING
+
       }
 
       // Get the lowest speed
