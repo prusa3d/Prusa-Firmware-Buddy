@@ -82,7 +82,6 @@ void Eth::Off() {
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
     turn_off_LAN(&ethconfig);
-    save_eth_params(&ethconfig);
     new_data_flg = true;
 }
 
@@ -91,7 +90,6 @@ void Eth::On() {
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
     turn_on_LAN(&ethconfig);
-    save_eth_params(&ethconfig);
     new_data_flg = true;
     if (IS_LAN_DHCP(ethconfig.lan.flag)) {
         conn_flg = true;

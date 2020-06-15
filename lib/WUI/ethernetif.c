@@ -210,14 +210,10 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth) {
 
 /* USER CODE BEGIN 4 */
 uint32_t ethernetif_link(const void *arg) {
-    struct netif *netif = (struct netif *)arg;
     uint32_t phyreg = 0U;
-    uint32_t eth_link;
 
     HAL_ETH_ReadPHYRegister(&heth, PHY_BSR, &phyreg);
-    eth_link = (phyreg & PHY_LINKED_STATUS) == PHY_LINKED_STATUS ? 1 : 0;
-
-    return eth_link;
+    return (phyreg & PHY_LINKED_STATUS) == PHY_LINKED_STATUS ? 1 : 0;
 }
 
 /* USER CODE END 4 */

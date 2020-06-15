@@ -64,14 +64,16 @@ void eth_status_step(ETH_config_t *config, uint32_t eth_link) {
 }
 
 void turn_off_LAN(ETH_config_t *config) {
+    TURN_LAN_OFF(config->lan.flag);
+    save_eth_params(config);
     if (eth_status == ETH_NETIF_UP) {
         netifapi_netif_set_link_down(&eth0);
     }
-    TURN_LAN_OFF(config->lan.flag);
 }
 
 void turn_on_LAN(ETH_config_t *config) {
     TURN_LAN_ON(config->lan.flag);
+    save_eth_params(config);
     if (eth_status != ETH_UNLINKED) {
         netifapi_netif_set_link_up(&eth0);
     }

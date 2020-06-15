@@ -129,7 +129,7 @@ void MX_LWIP_Init(void) {
     netif_set_link_callback(&eth0, netif_link_callback);
 
     // ETH force reset
-    if (eth0.flags & NETIF_FLAG_LINK_UP) {
+    if (eth0.flags & NETIF_FLAG_LINK_UP && IS_LAN_ON(ethconfig.lan.flag)) {
         eth0.flags &= ~NETIF_FLAG_LINK_UP;
         netifapi_netif_set_link_up(&eth0);
     } else {
