@@ -4,6 +4,7 @@
 #include "catch2/catch.hpp"
 using Catch::Matchers::Equals;
 
+#include "str_utils.cpp"
 #include "str_utils.h"
 #include <string.h>
 

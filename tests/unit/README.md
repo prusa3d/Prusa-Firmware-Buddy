@@ -32,4 +32,9 @@ ctest .
 # Windows installation
 
 1. Download MinGw
+2. Download Catch2 repository
+3. Set your install paths into define_paths.sh
+4. run Git Bash
+5. run `source define_paths`
+6. follow the beginning of this README
 ...
