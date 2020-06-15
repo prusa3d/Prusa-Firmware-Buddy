@@ -8,8 +8,6 @@
  */
 class Sound {
 public:
-    eSOUND_MODE eSoundMode;
-
     /// we want this as a singleton
     inline static Sound &getInstance() {
         static Sound s;
@@ -18,37 +16,11 @@ public:
     Sound(const Sound &) = delete;
     Sound &operator=(const Sound &) = delete;
 
-    eSOUND_MODE getMode();
-
-    void play(eSOUND_TYPE eSoundType);
+    eSOUND_MODE getMode() const;
     void setMode(eSOUND_MODE eSMode);
+    void play(eSOUND_TYPE eSoundType);
     void stop();
     void update1ms();
-    void nextRepeat();
-
-    uint32_t _duration; ///< live variable used for meassure
-    uint32_t duration;  ///< added variable to set _duration for repeating
-    uint8_t repeat;     ///< how many times is sound played
-    float frequency;    ///< frequency of sound signal (0-1000)
-    float volume;       ///< volume of sound signal (0-1)
-
-    static constexpr float volumeInit = 0.5F;
-    /// values of sound signals - frequencies, volumes, durations
-    uint32_t durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 50, 100, 100 };
-    float frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F };
-    float volumes[eSOUND_TYPE_count] = { volumeInit, volumeInit, volumeInit, volumeInit, 0.25F, 0.25F, volumeInit };
-
-    /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
-    const eSOUND_TYPE onceTypes[4] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert };
-    const eSOUND_TYPE loudTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
-    const eSOUND_TYPE silentTypes[3] = { eSOUND_TYPE_Start, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
-    const eSOUND_TYPE assistTypes[7] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert };
-
-    /// signals repeats - how many times will sound signals repeat (-1 is infinite)
-    const int onceRepeats[4] = { 1, 1, 1, -1 };
-    const int loudRepeats[5] = { 1, 1, -1, 3, -1 };
-    const int silentRepeats[3] = { 1, 1, -1 };
-    const int assistRepeats[7] = { 1, 1, -1, 3, 1, 1, -1 };
 
 private:
     Sound();
@@ -58,5 +30,33 @@ private:
     void init();
     void saveMode();
     void _sound(int rep, float frq, uint32_t dur, float vol);
-    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], int size);
+    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], unsigned size);
+
+    void nextRepeat();
+
+    uint32_t _duration; ///< live variable used for meassure
+    uint32_t duration;  ///< added variable to set _duration for repeating
+    int repeat;         ///< how many times is sound played
+    float frequency;    ///< frequency of sound signal (0-1000)
+    float volume;       ///< volume of sound signal (0-1)
+
+    static constexpr float volumeInit = 0.5F;
+    /// values of sound signals - frequencies, volumes, durations
+    static const uint32_t durations[eSOUND_TYPE_count];
+    static const float frequencies[eSOUND_TYPE_count];
+    static const float volumes[eSOUND_TYPE_count];
+
+    /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
+    static const eSOUND_TYPE onceTypes[4];
+    static const eSOUND_TYPE loudTypes[5];
+    static const eSOUND_TYPE silentTypes[3];
+    static const eSOUND_TYPE assistTypes[7];
+
+    /// signals repeats - how many times will sound signals repeat (-1 is infinite)
+    static const int onceRepeats[4];
+    static const int loudRepeats[5];
+    static const int silentRepeats[3];
+    static const int assistRepeats[7];
+
+    eSOUND_MODE eSoundMode;
 };
