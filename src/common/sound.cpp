@@ -3,6 +3,20 @@
 #include "hwio.h"
 #include "eeprom.h"
 
+const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 50, 100, 100 };
+const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F };
+const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.25F, 0.25F, Sound::volumeInit };
+
+const eSOUND_TYPE Sound::onceTypes[4] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert };
+const eSOUND_TYPE Sound::loudTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
+const eSOUND_TYPE Sound::silentTypes[3] = { eSOUND_TYPE_Start, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
+const eSOUND_TYPE Sound::assistTypes[7] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert };
+
+const int Sound::onceRepeats[4] = { 1, 1, 1, -1 };
+const int Sound::loudRepeats[5] = { 1, 1, -1, 3, -1 };
+const int Sound::silentRepeats[3] = { 1, 1, -1 };
+const int Sound::assistRepeats[7] = { 1, 1, -1, 3, 1, 1, -1 };
+
 /*!
  * Sound signals implementation
  * Simple sound implementation supporting few sound modes and having different sound types.
@@ -24,15 +38,15 @@ Sound::Sound()
  * [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
  */
 void Sound::init() {
-    eSoundMode = (eSOUND_MODE)eeprom_get_var(EEVAR_SOUND_MODE).ui8;
-    if ((uint8_t)eSoundMode == (uint8_t)eSOUND_MODE_NULL) {
+    eSoundMode = static_cast<eSOUND_MODE>(eeprom_get_var(EEVAR_SOUND_MODE).ui8);
+    if (eSoundMode == eSOUND_MODE_NULL) {
         setMode(eSOUND_MODE_DEFAULT);
     }
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = 1;
 }
 
-eSOUND_MODE Sound::getMode() {
+eSOUND_MODE Sound::getMode() const {
     return eSoundMode;
 }
 
@@ -54,10 +68,9 @@ void Sound::stop() {
     repeat = 0;
 }
 
-void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE *types, int *repeats, int size) {
-    eSOUND_TYPE type;
-    for (int i = 0; i < size; i++) {
-        type = types[i];
+void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], unsigned size) {
+    for (unsigned i = 0; i < size; i++) {
+        eSOUND_TYPE type = types[i];
         if (type == sound) {
             _sound(repeats[i], frequencies[type], durations[type], volumes[type]);
             break;
@@ -123,7 +136,7 @@ void Sound::nextRepeat() {
 void Sound::update1ms() {
     /// -- timing logic without osDelay for repeating Beep(s)
     if ((_duration) && (--_duration <= 0)) {
-        if (((repeat) && (--repeat != 0)) || (repeat == -1)) {
+        if (((repeat != 0) && (--repeat != 0)) || (repeat == -1)) {
             nextRepeat();
         }
     }
