@@ -9,6 +9,7 @@ MI_NOZZLE::MI_NOZZLE()
         MenuVars::nozzle_range.data(), label, 0, true, false) {}
 void MI_NOZZLE::OnClick() {
     marlin_set_target_nozzle(value);
+    marlin_set_display_nozzle(value);
 }
 
 /*****************************************************************************/
