@@ -9,7 +9,10 @@ cmake .. -G Ninja
 ninja tests
 
 # run the unit tests
-ctest .
+ctest . -V
+
+# or run all together
+ cmake .. -G Ninja && ninja tests && ctest -V
 ```
 
 > In case you don't have sufficient CMake or Ninja installed, you can use the ones downloaded by build.py/bootstrap.py:

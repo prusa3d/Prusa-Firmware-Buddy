@@ -8,30 +8,104 @@ using Catch::Matchers::Equals;
 #include "str_utils.h"
 #include <string.h>
 
-TEST_CASE("Helpers for multi-line conversion(s)", "[helpers][all]") {
-    char str[255];
+TEST_CASE("Delete string","[strdel]") {
+    char str[255] = "abcdXYZefgh";
+    char *nostr = nullptr;
     size_t n;
 
-    SECTION("helpers / delete-example 1") {
-        strcpy(str, "abcdXYZefgh");
-        n = strdel(str);
-        CHECK(n == 1);
-        REQUIRE_THAT(str, Equals("bcdXYZefgh"));
+    SECTION("void input") {
+        n = strdel(nostr);
+        REQUIRE(n == 0);
+        REQUIRE(nostr==nullptr);
     }
 
-//     SECTION("helpers / delete-example 2") {
-//         strcpy(str, "abcdXYZefgh");
-//         n = strdel(str + 4, 3);
-//         CHECK(n == 3);
-//         REQUIRE_THAT(str, Equals("abcdefgh"));
-//     }
+    SECTION("delete 0 chars") {
+        n = strdel(str,0);
+        REQUIRE(n == 0) ;
+        REQUIRE(0 == strcmp(str, "abcdXYZefgh"));
+    }
 
-//     SECTION("helpers / delete-example 3") {
-//         strcpy(str, "abcdXYZefgh");
-//         n = strdel(str + 7, 5);
-//         CHECK(n == 4);
-//         REQUIRE_THAT(str, Equals("abcdXYZ"));
-//     }
+    SECTION("empty string") {
+        strcpy(str, "");
+        n = strdel(str);
+        REQUIRE(n == 0) ;
+        REQUIRE(0 == strcmp(str, ""));
+    }
+
+    SECTION("single char at beginning") {
+        n = strdel(str);
+        REQUIRE(n == 1) ;
+        REQUIRE(0 == strcmp(str, "bcdXYZefgh"));
+    }
+
+
+    SECTION("single char inside") {
+        n = strdel(str + 4, 1);
+        REQUIRE(n == 1);
+        REQUIRE(0 == strcmp(str, "abcdYZefgh"));
+    }
+
+    SECTION("substring over the end") {
+        n = strdel(str + 7, 5);
+        REQUIRE(n == 4);
+        REQUIRE(0 == strcmp(str, "abcdXYZ"));
+    }
+
+    SECTION("substring inside") {
+        n = strdel(str + 7, 2);
+        REQUIRE(n == 2);
+        REQUIRE(0 == strcmp(str, "abcdXYZgh"));
+    }
+}
+
+TEST_CASE("Insert string","[strins]") {
+    // char str[255] = "abcdXYZefgh";
+    // char *nostr = nullptr;
+    // size_t n;
+
+    // SECTION("void input") {
+    //     n = strins(nostr);
+    //     REQUIRE(n == 0);
+    //     REQUIRE(nostr==nullptr);
+    // }
+
+    // SECTION("delete 0 chars") {
+    //     n = strdel(str,0);
+    //     REQUIRE(n == 0) ;
+    //     REQUIRE(0 == strcmp(str, "abcdXYZefgh"));
+    // }
+
+    // SECTION("empty string") {
+    //     strcpy(str, "");
+    //     n = strdel(str);
+    //     REQUIRE(n == 0) ;
+    //     REQUIRE(0 == strcmp(str, ""));
+    // }
+
+    // SECTION("single char at beginning") {
+    //     n = strdel(str);
+    //     REQUIRE(n == 1) ;
+    //     REQUIRE(0 == strcmp(str, "bcdXYZefgh"));
+    // }
+
+
+    // SECTION("single char inside") {
+    //     n = strdel(str + 4, 1);
+    //     REQUIRE(n == 1);
+    //     REQUIRE(0 == strcmp(str, "abcdYZefgh"));
+    // }
+
+    // SECTION("substring over the end") {
+    //     n = strdel(str + 7, 5);
+    //     REQUIRE(n == 4);
+    //     REQUIRE(0 == strcmp(str, "abcdXYZ"));
+    // }
+
+    // SECTION("substring inside") {
+    //     n = strdel(str + 7, 2);
+    //     REQUIRE(n == 2);
+    //     REQUIRE(0 == strcmp(str, "abcdXYZgh"));
+    // }
 
 //     SECTION("helpers / insert-example 1") {
 //         strcpy(str, "abcdefgh");
