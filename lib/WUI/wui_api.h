@@ -162,8 +162,10 @@ void get_addrs_from_dhcp(ETH_config_t *config);
 * \brief Checks and sets ethernet status
 *
 * \param [in] config - structure that stores currnet ethernet configurations
+*
+* \param [in] eth_link - stores whether ehternet is pluged, 0 otherwise
 ************************************************************************************/
-void eth_status_step(ETH_config_t *config);
+void eth_status_step(ETH_config_t *config, uint32_t eth_link);
 
 /*!****************************************************************************
 * \brief Turns software switch of ETH netif to OFF

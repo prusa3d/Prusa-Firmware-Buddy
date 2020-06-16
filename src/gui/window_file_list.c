@@ -82,7 +82,6 @@ void window_file_list_init(window_file_list_t *window) {
     window->alignment = ALIGN_LEFT_CENTER;
     window->win.flg |= WINDOW_FLG_ENABLED;
     window->roll.count = window->roll.px_cd = window->roll.progress = 0;
-    window->last_index = 0;
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;
     gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
@@ -150,19 +149,12 @@ void window_file_list_draw(window_file_list_t *window) {
             }
 
             if ((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == i) {
-                if (window->index != window->last_index) {
-                    window->last_index = window->index;
-                    window->roll.setup = TXTROLL_SETUP_INIT;
-                    window->roll.phase = ROLL_SETUP;
-                    gui_timer_restart_txtroll(window->win.id);
-                    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
-
-                    roll_init(rc,
-                        item,
-                        window->font,
-                        padding,
-                        window->alignment,
-                        &window->roll);
+                if (window->roll.phase == ROLL_SETUP) { // initiation of rolling is done in functions
+                    // which move cursor up or down. They can handle the situation, when the cursor
+                    // stays at one place (top or bottom), but the whole window list moves up/down.
+                    // Calling roll_init must be done here because of the rect.
+                    // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
+                    roll_init(rc, item, window->font, padding, window->alignment, &window->roll);
                 }
 
                 render_roll_text_align(rc,
@@ -217,6 +209,16 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
     }
 }
 
+/// First part of common setup/init of text rolling
+/// This is called in window_file_list_inc and window_file_list_inc when the selected item changes
+/// - that sometimes means the cursor stays on top or bottom and the whole window content moves
+void window_file_list_init_text_roll(window_file_list_t *window) {
+    window->roll.setup = TXTROLL_SETUP_INIT;
+    window->roll.phase = ROLL_SETUP;
+    gui_timer_restart_txtroll(window->win.id);
+    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+}
+
 void window_file_list_inc(window_file_list_t *window, int dif) {
     bool repaint = false;
     if (window->index >= LDV_WindowSize(window->ldv) - 1) {
@@ -235,6 +237,8 @@ void window_file_list_inc(window_file_list_t *window, int dif) {
     }
 
     if (repaint) {
+        // here we know exactly, that the selected item changed -> prepare text rolling
+        window_file_list_init_text_roll(window);
         _window_invalidate((window_t *)window);
     }
 }
@@ -253,6 +257,7 @@ void window_file_list_dec(window_file_list_t *window, int dif) {
     }
 
     if (repaint) {
+        window_file_list_init_text_roll(window);
         _window_invalidate((window_t *)window);
     }
 }

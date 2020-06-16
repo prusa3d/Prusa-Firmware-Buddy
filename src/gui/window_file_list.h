@@ -28,12 +28,11 @@ typedef struct _window_file_list_t {
     font_t *font;
     padding_ui8_t padding;
     txtroll_t roll;
-    uint8_t alignment;
-    uint8_t last_index;
     int count;                        // total number of files/entries in a dir
     int index;                        // selected index - cursor position within the visible items
-    char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
     void *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
+    char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
+    uint8_t alignment;
 } window_file_list_t;
 
 // This enum value is stored to eeprom as file sort settings

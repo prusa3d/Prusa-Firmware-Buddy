@@ -513,7 +513,6 @@ if(GUI)
             src/gui/resource.c
             src/gui/window_file_list.c
             src/gui/lazyfilelist-c-api.cpp
-            src/gui/pngview.c
             src/gui/wizard/selftest_temp.c
             src/gui/window_temp_graph.c
             src/gui/screen_menu_settings.cpp
@@ -528,7 +527,7 @@ if(GUI)
             src/gui/screen_menu_service.cpp
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
-            src/gui/screen_print_preview.c
+            src/gui/screen_print_preview.cpp
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.c

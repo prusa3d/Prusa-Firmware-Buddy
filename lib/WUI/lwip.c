@@ -58,6 +58,7 @@
 #include "lwip.h"
 #include "lwip/init.h"
 #include "lwip/netif.h"
+#include "netifapi.h"
 
 #include <string.h>
 
@@ -79,26 +80,17 @@ void netif_link_callback(struct netif *eth) {
     if (netif_is_link_up(eth)) {
         if (IS_LAN_ON(ethconfig.lan.flag)) {
             netif_set_up(eth);
+            if (IS_LAN_DHCP(ethconfig.lan.flag)) {
+                dhcp_start(eth);
+            } else {
+                dhcp_inform(eth);
+            }
         }
     } else {
+        if (IS_LAN_DHCP(ethconfig.lan.flag)) {
+            dhcp_release_and_stop(eth);
+        }
         netif_set_down(eth);
-    }
-}
-
-void netif_status_callback(struct netif *eth) {
-    ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&ethconfig);
-    if (netif_is_up(eth)) {
-        if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-            dhcp_start(eth);
-        } else {
-            dhcp_inform(eth);
-        }
-    } else {
-        if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-            dhcp_stop(eth);
-        }
     }
 }
 
@@ -122,7 +114,8 @@ void MX_LWIP_Init(void) {
     ETH_config_t ethconfig;
     ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS | ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_HOSTNAME);
     load_eth_params(&ethconfig);
-    eth0.hostname = ethconfig.hostname;
+    strlcpy(eth_hostname, ethconfig.hostname, ETH_HOSTNAME_LEN + 1);
+    eth0.hostname = eth_hostname;
     /* This won't execute until user loads static lan settings at least once (default is DHCP) */
     if (IS_LAN_STATIC(ethconfig.lan.flag)) {
 
@@ -132,20 +125,17 @@ void MX_LWIP_Init(void) {
 
         netif_set_addr(&eth0, &ipaddr, &netmask, &gw);
     }
-    if (IS_LAN_ON(ethconfig.lan.flag) && netif_is_link_up(&eth0)) {
-        /* When the netif is fully configured and switched on this function must be called */
-        netif_set_up(&eth0);
-        if (IS_LAN_DHCP(ethconfig.lan.flag)) {
-            /* Start DHCP negotiation for a network interface (IPv4) */
-            dhcp_start(&eth0);
-        }
-    } else {
-        /* When the netif link is down or software lan switch is off, this function must be called */
-        netif_set_down(&eth0);
-    }
     /* Setting necessary callbacks after initial setup */
     netif_set_link_callback(&eth0, netif_link_callback);
-    netif_set_status_callback(&eth0, netif_status_callback);
+
+    // ETH force reset
+    if (eth0.flags & NETIF_FLAG_LINK_UP && IS_LAN_ON(ethconfig.lan.flag)) {
+        eth0.flags &= ~NETIF_FLAG_LINK_UP;
+        netifapi_netif_set_link_up(&eth0);
+    } else {
+        eth0.flags |= NETIF_FLAG_LINK_UP;
+        netifapi_netif_set_link_down(&eth0);
+    }
 }
 
 /* MINI LwIP interface functions --------------------------------------------*/

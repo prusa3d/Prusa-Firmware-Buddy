@@ -61,6 +61,7 @@
 /* Within 'USER CODE' section, code will be kept by default at each generation */
 /* USER CODE BEGIN 0 */
 #include "lwip/netifapi.h"
+#include "wui_api.h"
 #include "otp.h"
 #include <stdbool.h>
 /* USER CODE END 0 */
@@ -208,31 +209,11 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth) {
 }
 
 /* USER CODE BEGIN 4 */
-void ethernetif_link(const void *arg) {
-    struct netif *netif = (struct netif *)arg;
-    uint8_t eth_link;
+uint32_t ethernetif_link(const void *arg) {
     uint32_t phyreg = 0U;
-    static bool wait = false;
 
     HAL_ETH_ReadPHYRegister(&heth, PHY_BSR, &phyreg);
-    eth_link = (phyreg & PHY_LINKED_STATUS) == PHY_LINKED_STATUS ? 1 : 0;
-
-    if (wait) {
-        if (netif_is_link_up(netif) || !eth_link) {
-            wait = false;
-        }
-    }
-
-    if (eth_link != netif_is_link_up(netif)) {
-        if (eth_link) {
-            if (!wait) {
-                netifapi_netif_set_link_up(netif); // thread safe variant
-                wait = true;
-            }
-        } else {
-            netifapi_netif_set_link_down(netif);
-        }
-    }
+    return (phyreg & PHY_LINKED_STATUS) == PHY_LINKED_STATUS ? 1 : 0;
 }
 
 /* USER CODE END 4 */
