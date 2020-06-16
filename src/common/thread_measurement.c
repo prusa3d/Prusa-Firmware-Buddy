@@ -10,6 +10,7 @@ void StartMeasurementTask(void const *argument) {
     marlin_client_wait_for_start_processing();
     uint8_t fs_counter = 0; // counter for fs_cycle timing
     fs_init_on_edge();
+    marlin_client_set_event_notify(MARLIN_EVT_MSK_FSM);
     /* Infinite loop */
     // there is no delay in this loop because tmc_sample is blocking and take always 5ms
     // waiting in tmc_sample is done using osSignalWait and osDelay (implementation of tmc hardware uart in arduino library)
