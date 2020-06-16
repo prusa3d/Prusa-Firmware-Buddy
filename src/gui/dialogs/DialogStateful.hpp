@@ -190,9 +190,11 @@ void DialogStateful<T>::event(uint8_t event, void *param) {
     }
     case WINDOW_EVENT_ENC_UP:
         ++radio;
+        gui_invalidate();
         return;
     case WINDOW_EVENT_ENC_DN:
         --radio;
+        gui_invalidate();
         return;
     }
 }
