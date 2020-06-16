@@ -15,10 +15,9 @@
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
-    const marlin_vars_t *vars = marlin_vars();
-
-    /// don't read from EEPROM since it's not in sync
-    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)vars->temp_nozzle);
+    /// read from Marlin, not from EEPROM since it's not in sync
+    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
+    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)vars->target_nozzle);
 }
 void clrPreheatTemp() {
     marlin_gcode("M104 S0");
@@ -98,7 +97,7 @@ public:
 };
 
 /*****************************************************************************/
-//MI_LOAD
+//MI_PURGE
 class MI_PURGE : public MI_event_dispatcher {
     constexpr static const char *const label = N_("Purge Filament");
     constexpr static const char *const header_label = N_("PURGE FILAMENT");
