@@ -53,7 +53,9 @@ void MI_FLOWFACT::OnClick() {
 MI_BABYSTEP::MI_BABYSTEP()
     : WI_SPIN_t<float>(marlin_vars()->z_offset, MenuVars::zoffset_fl_range.data(), MenuVars::zoffset_prt_format, label, 0, true, false) {}
 void MI_BABYSTEP::OnClick() {
-    eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
+    variant8_t var = variant8_flt(value);
+    eeprom_set_var(EEVAR_ZOFFSET, var);
+    marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
 }
 bool MI_BABYSTEP::Change(int dif) {
     auto temp_value = value;
