@@ -9,7 +9,8 @@ using Catch::Matchers::Equals;
 #include <string.h>
 
 TEST_CASE("Delete string","[strdel]") {
-    char str[255] = "abcdXYZefgh";
+    static constexpr char[12] text = "abcdXYZefgh";
+    char str[255] = text;
     char *nostr = nullptr;
     size_t n;
 
@@ -22,7 +23,7 @@ TEST_CASE("Delete string","[strdel]") {
     SECTION("delete 0 chars") {
         n = strdel(str,0);
         REQUIRE(n == 0) ;
-        REQUIRE(0 == strcmp(str, "abcdXYZefgh"));
+        REQUIRE(0 == strcmp(str, text));
     }
 
     SECTION("empty string") {
@@ -59,21 +60,29 @@ TEST_CASE("Delete string","[strdel]") {
 }
 
 TEST_CASE("Insert string","[strins]") {
-    // char str[255] = "abcdXYZefgh";
-    // char *nostr = nullptr;
-    // size_t n;
+    static constexpr char[12] text = "abcdXYZefgh";
+    char str[255] = text;
+    char *nostr = nullptr;
+    size_t n;
 
-    // SECTION("void input") {
-    //     n = strins(nostr);
-    //     REQUIRE(n == 0);
-    //     REQUIRE(nostr==nullptr);
-    // }
+    SECTION("void input") {
+        n = strins(nostr,str);
+        REQUIRE(n == 0);
+        REQUIRE(nostr==nullptr);
+        REQUIRE(0 == strcmp(str, "abcdXYZgh"));
+    }
 
-    // SECTION("delete 0 chars") {
-    //     n = strdel(str,0);
-    //     REQUIRE(n == 0) ;
-    //     REQUIRE(0 == strcmp(str, "abcdXYZefgh"));
-    // }
+    SECTION("void input") {
+        n = strins(str,nostr);
+        REQUIRE(n == 0);
+        REQUIRE(nostr==nullptr);
+    }
+
+    SECTION("insert 0 chars") {
+        n = strins(str,0);
+        REQUIRE(n == 0) ;
+        REQUIRE(0 == strcmp(str, text));
+    }
 
     // SECTION("empty string") {
     //     strcpy(str, "");
