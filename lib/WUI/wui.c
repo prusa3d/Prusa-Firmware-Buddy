@@ -10,7 +10,6 @@
 #include "wui_vars.h"
 #include "marlin_client.h"
 #include "wui_helper_funcs.h"
-#include "wui_api.h"
 #include "lwip.h"
 #include "ethernetif.h"
 #include <string.h>
@@ -119,9 +118,6 @@ void StartWebServerTask(void const *argument) {
     // LwIP related initalizations
     MX_LWIP_Init();
     http_server_init();
-    // get settings from ini file
-    ETH_config_t config;
-    load_ini_params(&config);
 
     for (;;) {
 
