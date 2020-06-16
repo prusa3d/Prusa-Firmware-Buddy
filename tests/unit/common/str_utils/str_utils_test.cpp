@@ -1,44 +1,45 @@
 /// str_utils tests
 
+#include <string.h>
+#include <iostream>
+
 #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch2/catch.hpp"
 using Catch::Matchers::Equals;
 
 #include "str_utils.cpp"
 #include "str_utils.h"
-#include <string.h>
 
-TEST_CASE("Delete string","[strdel]") {
-    static constexpr char[12] text = "abcdXYZefgh";
-    char str[255] = text;
+TEST_CASE("Delete string", "[strdel]") {
+    static constexpr char text[12] = "abcdXYZefgh";
+    char str[255] = "abcdXYZefgh";
     char *nostr = nullptr;
     size_t n;
 
     SECTION("void input") {
         n = strdel(nostr);
         REQUIRE(n == 0);
-        REQUIRE(nostr==nullptr);
+        REQUIRE(nostr == nullptr);
     }
 
     SECTION("delete 0 chars") {
-        n = strdel(str,0);
-        REQUIRE(n == 0) ;
+        n = strdel(str, 0);
+        REQUIRE(n == 0);
         REQUIRE(0 == strcmp(str, text));
     }
 
     SECTION("empty string") {
         strcpy(str, "");
         n = strdel(str);
-        REQUIRE(n == 0) ;
+        REQUIRE(n == 0);
         REQUIRE(0 == strcmp(str, ""));
     }
 
     SECTION("single char at beginning") {
         n = strdel(str);
-        REQUIRE(n == 1) ;
+        REQUIRE(n == 1);
         REQUIRE(0 == strcmp(str, "bcdXYZefgh"));
     }
-
 
     SECTION("single char inside") {
         n = strdel(str + 4, 1);
@@ -59,91 +60,78 @@ TEST_CASE("Delete string","[strdel]") {
     }
 }
 
-TEST_CASE("Insert string","[strins]") {
-    static constexpr char[12] text = "abcdXYZefgh";
-    char str[255] = text;
+TEST_CASE("Insert string", "[strins]") {
+    static constexpr char text[12] = "abcdXYZefgh";
+    char str[255] = "abcdXYZefgh";
     char *nostr = nullptr;
     size_t n;
 
-    SECTION("void input") {
-        n = strins(nostr,str);
-        REQUIRE(n == 0);
-        REQUIRE(nostr==nullptr);
-        REQUIRE(0 == strcmp(str, "abcdXYZgh"));
+    // SECTION("void input 1") {
+    //     n = strins(nostr, str);
+    //     REQUIRE(n == 0);
+    //     REQUIRE(nostr == nullptr);
+    //     REQUIRE_THAT(str, Equals(text));
+    // }
+
+    // SECTION("void input 2") {
+    //     n = strins(str, nostr);
+    //     REQUIRE(n == 0);
+    //     REQUIRE(nostr == nullptr);
+    //     REQUIRE_THAT(str, Equals(text));
+    // }
+
+    // SECTION("insert 0 chars") {
+    //     n = strins(str, 0);
+    //     REQUIRE(n == 0);
+    //     REQUIRE_THAT(str, Equals(text));
+    // }
+
+    // SECTION("empty string 1") {
+    //     n = strins(str, "");
+    //     REQUIRE(n == 0);
+    //     REQUIRE_THAT(str, Equals(text));
+    // }
+
+    // SECTION("empty string 2") {
+    //     char empty[255] = "";
+    //     n = strins(empty, str);
+    //     REQUIRE(n == strlen(empty));
+    //     REQUIRE(strlen(str) == strlen(empty));
+    //     REQUIRE_THAT(empty, Equals(text));
+    // }
+
+    // SECTION("single char at the beginning") {
+    //     n = strins(str, "a");
+    //     CHECK(n == 1);
+    //     REQUIRE_THAT(str, Equals("aabcdXYZefgh"));
+    // }
+
+    SECTION("single char inside") {
+        n = strins(str + 4, "a");
+        CHECK(n == 1);
+        REQUIRE_THAT(str, Equals("abcdaXYZefgh"));
     }
 
-    SECTION("void input") {
-        n = strins(str,nostr);
-        REQUIRE(n == 0);
-        REQUIRE(nostr==nullptr);
-    }
-
-    SECTION("insert 0 chars") {
-        n = strins(str,0);
-        REQUIRE(n == 0) ;
-        REQUIRE(0 == strcmp(str, text));
-    }
-
-    // SECTION("empty string") {
-    //     strcpy(str, "");
-    //     n = strdel(str);
-    //     REQUIRE(n == 0) ;
-    //     REQUIRE(0 == strcmp(str, ""));
+    // SECTION("string at the beginning") {
+    //     n = strins(str, "ABCD");
+    //     CHECK(n == 4);
+    //     REQUIRE_THAT(str, Equals("ABCDabcdXYZefgh"));
     // }
 
-    // SECTION("single char at beginning") {
-    //     n = strdel(str);
-    //     REQUIRE(n == 1) ;
-    //     REQUIRE(0 == strcmp(str, "bcdXYZefgh"));
+    // SECTION("string at the end") {
+    //     n = strins(str + strlen(str), "ABC");
+    //     CHECK(n == 3);
+    //     REQUIRE_THAT(str, Equals("abcdXYZefghABC"));
     // }
 
-
-    // SECTION("single char inside") {
-    //     n = strdel(str + 4, 1);
-    //     REQUIRE(n == 1);
-    //     REQUIRE(0 == strcmp(str, "abcdYZefgh"));
+    // SECTION("insert more times") {
+    //     n = strins(str, "123 ", 3);
+    //     CHECK(n == 12);
+    //     REQUIRE_THAT(str, Equals("123 123 123 abcdXYZefgh"));
     // }
-
-    // SECTION("substring over the end") {
-    //     n = strdel(str + 7, 5);
-    //     REQUIRE(n == 4);
-    //     REQUIRE(0 == strcmp(str, "abcdXYZ"));
-    // }
-
-    // SECTION("substring inside") {
-    //     n = strdel(str + 7, 2);
-    //     REQUIRE(n == 2);
-    //     REQUIRE(0 == strcmp(str, "abcdXYZgh"));
-    // }
-
-//     SECTION("helpers / insert-example 1") {
-//         strcpy(str, "abcdefgh");
-//         n = strins(str + 3, "XYZ");
-//         CHECK(n == 3);
-//         REQUIRE_THAT(str, Equals("abcdXYZefgh"));
-//     }
-
-//     SECTION("helpers / insert-example 2") {
-//         strcpy(str, "abcdefgh");
-//         n = strins(str, "XYZ", 1);
-//         CHECK(n == 3);
-//         REQUIRE_THAT(str, Equals("XYZabcdefgh"));
-//     }
-
-//     SECTION("helpers / insert-example 3") {
-//         strcpy(str, "abcdefgh");
-//         n = strins(str + 3, "*", 4);
-//         CHECK(n == 4);
-//         REQUIRE_THAT(str, Equals("abcd****efgh"));
-//     }
-
-//     SECTION("helpers / insert-example 4") {
-//         strcpy(str, "abcdefgh");
-//         n = strins(str, "");
-//         CHECK(n == 0);
-//         REQUIRE_THAT(str, Equals("abcdefgh"));
-//     }
 }
+
+//test strshift
 
 // TEST_CASE("String to multi-line conversion(s)", "[tools][all]") {
 // #define EXAMPLE_STR  "bla b" QT_HSPACE "l blabla bla" QT_HYPHEN "bla*bla" QT_NL "BLA BLA"

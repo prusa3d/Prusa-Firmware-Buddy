@@ -35,7 +35,7 @@ size_t strshift(char *str, const size_t n) {
 
 /// Inserts \param ins at the beginning of \param str \param times times
 /// \returns number of inserted characters
-size_t strins(char *str, const char *ins, size_t times) {
+size_t strins(char *str, const char *const ins, size_t times) {
     if (str == nullptr || ins == nullptr)
         return 0;
 
