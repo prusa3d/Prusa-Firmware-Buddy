@@ -108,8 +108,7 @@ void Pause::SetFastLoadLenght(float len) {
 }
 
 void Pause::SetPurgeLenght(float len) {
-    len = std::abs(len);
-    purge_length = len > minimal_purge ? len : minimal_purge;
+    purge_length = std::max(std::abs(len), (float)minimal_purge);
 }
 
 float Pause::GetDefaultLoadLength() const {

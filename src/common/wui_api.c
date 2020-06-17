@@ -196,6 +196,8 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
                 return 0;
             }
         }
+    } else {
+        return 0;
     }
     if (config->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
         strlcpy(eth_hostname, config->hostname, ETH_HOSTNAME_LEN + 1);
@@ -213,16 +215,15 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
         config->lan.flag = swapper;
     }
 
-    if (config->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
-        // if there was a change from STATIC to DHCP
-        if (IS_LAN_STATIC(prev_lan_flag) && IS_LAN_DHCP(config->lan.flag)) {
-            set_LAN_to_dhcp(config);
-            // or STATIC to STATIC
-        } else if (IS_LAN_STATIC(config->lan.flag)) {
-            set_LAN_to_static(config);
-        }
-        // from DHCP to DHCP: do nothing
+    // if there was a change from STATIC to DHCP
+    if (IS_LAN_STATIC(prev_lan_flag) && IS_LAN_DHCP(config->lan.flag)) {
+        set_LAN_to_dhcp(config);
+        // or STATIC to STATIC
+    } else if (IS_LAN_STATIC(config->lan.flag)) {
+        set_LAN_to_static(config);
     }
+    // from DHCP to DHCP: do nothing
+    config->var_mask = save_mask;
     config->var_mask = save_mask;
     save_eth_params(config);
 

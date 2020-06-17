@@ -64,12 +64,16 @@ static void _init();
 static int block_M600_injection = 0;
 //called when Serial print screen is openned
 //printer is not in sd printing mode, so filament sensor does not trigger M600
+
+//todo should I block ClientFSM::Serial_printing?
+//this code did not work in last builds and no one reported problem with octoscreen
+//i fear enebling it could break something
 static void fsm_create_cb(ClientFSM fsm, uint8_t data) {
-    if (fsm == ClientFSM::Serial_printing)
+    if (/*fsm == ClientFSM::Serial_printing ||*/ fsm == ClientFSM::Load_unload)
         block_M600_injection = 1;
 }
 static void fsm_destroy_cb(ClientFSM fsm) {
-    if (fsm == ClientFSM::Serial_printing || fsm == ClientFSM::Load_unload)
+    if (/*fsm == ClientFSM::Serial_printing ||*/ fsm == ClientFSM::Load_unload)
         block_M600_injection = 0;
 }
 

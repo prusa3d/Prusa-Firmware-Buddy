@@ -298,7 +298,7 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
         gui_msgbox(_("Settings successfully loaded"), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
         break;
     case Eth::Msg::LoadNOK:
-        gui_msgbox(_("IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        gui_msgbox(_("IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
         break;
     default:
         break;

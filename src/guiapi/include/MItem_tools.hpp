@@ -216,14 +216,17 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_TYPE : public WI_SWITCH_t<5> {
-    constexpr static const char *const label = N_("Sound Type");
+class MI_SOUND_TYPE : public WI_SWITCH_t<8> {
+    constexpr static const char *const label = "Sound Type";
 
-    constexpr static const char *str_ButtonEcho = N_("ButtonEcho");
-    constexpr static const char *str_StandardPrompt = N_("StandardPrompt");
-    constexpr static const char *str_StandardAlert = N_("StandardAlert");
-    constexpr static const char *str_EncoderMove = N_("EncoderMove");
-    constexpr static const char *str_BlindAlert = N_("BlindAlert");
+    constexpr static const char *str_ButtonEcho = "ButtonEcho";
+    constexpr static const char *str_StandardPrompt = "StandardPrompt";
+    constexpr static const char *str_StandardAlert = "StandardAlert";
+    constexpr static const char *str_CriticalAlert = "CriticalAlert";
+    constexpr static const char *str_EncoderMove = "EncoderMove";
+    constexpr static const char *str_BlindAlert = "BlindAlert";
+    constexpr static const char *str_Start = "Start";
+    constexpr static const char *str_SingleBeep = "SingleBeep";
 
 public:
     MI_SOUND_TYPE();
