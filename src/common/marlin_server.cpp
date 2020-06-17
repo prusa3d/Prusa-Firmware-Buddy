@@ -536,6 +536,7 @@ static void _server_print_loop(void) {
         marlin_server_set_temp_to_display(0);
         print_job_timer.stop();
         planner.quick_stop();
+        wait_for_heatup = false; // This is necessary because M109/wait_for_hotend can be in progress, we need abort it
         marlin_server.print_state = mpsAborting_WaitIdle;
         break;
     case mpsAborting_WaitIdle:
