@@ -41,12 +41,12 @@ void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const cha
             window->index = 1;
         } else {
             // try to find the sfn to be highlighted
-            for (window->index = 0; window->index < LDV_VisibleFilesCount(window->ldv); ++window->index) {
+            for (window->index = 0; uint32_t(window->index) < LDV_VisibleFilesCount(window->ldv); ++window->index) {
                 if (!strcmp(sfnAtCursor, LDV_ShortFileNameAt(window->ldv, window->index, &tmp))) {
                     break;
                 }
             }
-            if (window->index == LDV_VisibleFilesCount(window->ldv)) {
+            if (window->index == int(LDV_VisibleFilesCount(window->ldv))) {
                 window->index = window->count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
             }
         }
@@ -128,7 +128,7 @@ void window_file_list_draw(window_file_list_t *window) {
         color_t color_back = window->color_back;
         uint8_t swap = 0;
 
-        rect_ui16_t rc = { rc_win.x, rc_win.y + i * item_height, rc_win.w, item_height };
+        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height), rc_win.w, uint16_t(item_height) };
         padding_ui8_t padding = window->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
@@ -221,14 +221,14 @@ void window_file_list_init_text_roll(window_file_list_t *window) {
 
 void window_file_list_inc(window_file_list_t *window, int dif) {
     bool repaint = false;
-    if (window->index >= LDV_WindowSize(window->ldv) - 1) {
+    if (window->index >= int(LDV_WindowSize(window->ldv) - 1)) {
         repaint = LDV_MoveDown(window->ldv);
         if (!repaint) {
             Sound_Play(eSOUND_TYPE_BlindAlert);
         }
     } else {
         // this 'if' solves a situation with less files than slots on the screen
-        if (window->index < LDV_TotalFilesCount(window->ldv) - 1) {
+        if (window->index < int(LDV_TotalFilesCount(window->ldv) - 1)) {
             window->index += 1; // @@TODO dif > 1 pokud bude potreba;
             repaint = true;
         } else {

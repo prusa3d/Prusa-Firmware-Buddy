@@ -490,7 +490,7 @@ target_sources(
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
-          src/gui/guimain.c
+          src/gui/guimain.cpp
           src/gui/filament.cpp
   )
 
@@ -511,14 +511,14 @@ if(GUI)
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
-            src/gui/window_file_list.c
+            src/gui/window_file_list.cpp
             src/gui/lazyfilelist-c-api.cpp
-            src/gui/window_temp_graph.c
+            src/gui/window_temp_graph.cpp
             src/gui/screen_menu_settings.cpp
-            src/gui/window_header.c
+            src/gui/window_header.cpp
             src/gui/screen_sysinf.cpp
             src/gui/screen_menu_version_info.cpp
-            src/gui/test_display.c
+            src/gui/test_display.cpp
             src/gui/screen_splash.cpp
             src/gui/screen_menu_service.cpp
             src/gui/screen_menu_calibration.cpp

@@ -62,7 +62,7 @@ void window_header_draw(window_header_t *window) {
     }
 
     rect_ui16_t rc = {
-        window->win.rect.x + 10, window->win.rect.y,
+        uint16_t(window->win.rect.x + 10), window->win.rect.y,
         window->win.rect.h, window->win.rect.h
     };
 

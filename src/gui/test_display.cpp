@@ -22,7 +22,7 @@ void test_display_fade(uint16_t cnt);
 void test_display_rgbcolors(uint16_t cnt);
 void test_display_spectrum(uint16_t cnt);
 
-void do_test(test_display_t *func, int cnt, char *name, char *unit) {
+void do_test(test_display_t *func, int cnt, const char *name, const char *unit) {
     display->clear(COLOR_BLACK);
 
 #if (DBG_LEVEL >= 3)
@@ -189,10 +189,10 @@ void test_display_fade(uint16_t cnt) {
 }
 
 void display_fill_rect_sub_rect(rect_ui16_t rc, rect_ui16_t rc1, color_t clr) {
-    rect_ui16_t rc_t = { rc.x, rc.y, rc.w, rc1.y - rc.y };
-    rect_ui16_t rc_b = { rc.x, rc1.y + rc1.h, rc.w, (rc.y + rc.h) - (rc1.y + rc1.h) };
-    rect_ui16_t rc_l = { rc.x, rc.y, rc1.x - rc.x, rc.h };
-    rect_ui16_t rc_r = { rc1.x + rc1.w, rc.y, (rc.x + rc.w) - (rc1.x + rc1.w), rc.h };
+    rect_ui16_t rc_t = { rc.x, rc.y, rc.w, uint16_t(rc1.y - rc.y) };
+    rect_ui16_t rc_b = { rc.x, uint16_t(rc1.y + rc1.h), rc.w, uint16_t((rc.y + rc.h) - (rc1.y + rc1.h)) };
+    rect_ui16_t rc_l = { rc.x, rc.y, uint16_t(rc1.x - rc.x), rc.h };
+    rect_ui16_t rc_r = { uint16_t(rc1.x + rc1.w), rc.y, uint16_t((rc.x + rc.w) - (rc1.x + rc1.w)), rc.h };
     //display->fill_rect(rc, clr);
     display->fill_rect(rc_t, clr);
     display->fill_rect(rc_b, clr);
@@ -209,7 +209,7 @@ void test_display_rgbcolors(uint16_t cnt) {
         COLOR_MAROON, COLOR_OLIVE, COLOR_GREEN,
         COLOR_PURPLE, COLOR_TEAL, COLOR_NAVY
     };
-    char *names[] = {
+    const char *names[] = {
         "BLACK", "WHITE",
         "RED", "LIME", "BLUE",
         "YELLOW", "CYAN", "MAGENTA",
