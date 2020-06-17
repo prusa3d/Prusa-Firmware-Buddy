@@ -20,23 +20,28 @@ size_t strdel(char *str, const size_t n) {
 }
 
 /// Shifts text in \param str by \param n characters
+/// \param default_char is inserted if new undefined space appears
+/// if \param default_char is 0 then nothing is inserted but the resulting
+/// string could be shorter than expected
 /// \returns number of characters shifted
-size_t strshift(char *str, const size_t n) {
+size_t strshift(char *str, const size_t n, const char default_char) {
     // TODO check capacity of the \param str
     if (str == nullptr || n == 0)
         return 0;
 
     const size_t size = strlen(str);
-    /// remove the end of the string (avoids double end)
-    str[size] = 1;
-
-    /// copy text from the end
-    for (size_t i = size + n - 1; i >= n; --i) {
+    /// copy text, start from the last character including '\0'
+    for (size_t i = size + n; i >= n; --i) {
         str[i] = str[i - n];
     }
 
-    /// add the end of the string
-    str[size + n] = 0;
+    if (default_char == '\0')
+        return n;
+
+    /// fill the space between old and new text
+    for (size_t i = size; i < n; ++i) {
+        str[i] = default_char;
+    }
     return n;
 }
 
@@ -49,9 +54,11 @@ size_t strins(char *str, const char *const ins, size_t times) {
     const size_t ins_size = strlen(ins);
     const size_t inserted = ins_size * times;
 
-    if (0 == strshift(str, inserted))
+    /// shift the end
+    if (0 == strshift(str, inserted, 0))
         return 0;
 
+    /// insert text in the newly created space
     size_t i;
     for (size_t t = 0; t < times; ++t)
         for (i = 0; i < ins_size; ++i, ++str)

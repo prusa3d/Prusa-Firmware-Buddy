@@ -107,7 +107,7 @@ TEST_CASE("Insert string", "[strins]") {
     }
 
     SECTION("single char inside") {
-        n = strins(str, "a");
+        n = strins(str + 4, "a");
         CHECK(n == 1);
         REQUIRE_THAT(str, Equals("abcdaXYZefgh"));
     }
@@ -148,16 +148,28 @@ TEST_CASE("Shift string", "[strshift]") {
         REQUIRE_THAT(str, Equals(text));
     }
 
-    SECTION("at the beginning") {
-        n = strshift(str, 2);
-        CHECK(n == 2);
-        REQUIRE_THAT(str + 2, Equals(text));
+    SECTION("at the beginning; short text, long distance") {
+        size_t size = strlen(str);
+        size_t shift = 2 * size;
+        n = strshift(str, shift);
+        CHECK(n == shift);
+        CHECK(strlen(str) == size + shift);
+        REQUIRE_THAT(str + shift, Equals(text));
+    }
+
+    SECTION("at the beginning; long text, short distance") {
+        size_t size = strlen(str);
+        size_t shift = size / 2;
+        n = strshift(str, shift);
+        CHECK(n == shift);
+        CHECK(strlen(str) == size + shift);
+        REQUIRE_THAT(str + shift, Equals(text));
     }
 
     SECTION("in the middle") {
         n = strshift(str + 3, 3);
         CHECK(n == 3);
-        REQUIRE_THAT(str + 3 + 3, Equals(text));
+        REQUIRE_THAT(str + 3 + 3, Equals("dXYZefgh"));
     }
 }
 
