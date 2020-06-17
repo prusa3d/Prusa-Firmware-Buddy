@@ -54,7 +54,7 @@ void _wizard_temp_actualize_temperatures(selftest_temp_data_t *p_data) {
 //if timeout is reached, test fails
 int _wizard_selftest_preheat(_TEST_STATE_t *state, uint32_t *p_timer,
     uint32_t temp_rq, int temp_ms, uint8_t marlin_var_id, uint32_t max_preheat_time_ms) {
-    if (temp_ms >= temp_rq) {
+    if (temp_ms >= int(temp_rq)) {
         *state = _TEST_PASSED;
         return 100;
     }
