@@ -267,10 +267,10 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 /*****************************************************************************/
 //MI_SOUND_TYPE
 MI_SOUND_TYPE::MI_SOUND_TYPE()
-    : WI_SWITCH_t<5>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_EncoderMove, str_BlindAlert) {}
+    : WI_SWITCH_t<8>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
-    if (old_index == eSOUND_TYPE_StandardPrompt) {
-        gui_msgbox_prompt("eSOUND_TYPE_StandardPrompt - test", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+    if (old_index == eSOUND_TYPE_StandardPrompt || old_index == eSOUND_TYPE_CriticalAlert) {
+        gui_msgbox_prompt("Continual beeps test\n press button to stop", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
     } else {
         Sound_Play(static_cast<eSOUND_TYPE>(old_index));
     }

@@ -18,11 +18,11 @@ dlg_result_t gui_dlg_load(void) {
 
 dlg_result_t gui_dlg_purge(void) {
     //todo must be called inside _gui_dlg, but nested dialogs are not supported now
-    FILAMENT_t filament = gui_dlg_preheat(NULL);
-    if (filament == FILAMENT_NONE) {
+    FILAMENT_t filament = gui_dlg_preheat_autoselect_if_able(NULL);
+    if (filament == FILAMENT_NONE)
         return DLG_ABORTED;
-    }
-    marlin_gcode_printf("M701 L0", filaments[filament].name);
+
+    marlin_gcode("M701 L0");
     return DLG_OK;
 }
 

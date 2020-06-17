@@ -1,14 +1,14 @@
 #include <stdint.h>
 #include "sound_enum.h"
 
-// Simple Sound class
-// This class just play sound types/signals and read & store sound mode which user can choose from Settings.
-// Every mode then have different settings for they sound signals.
+/*!
+ * Simple Sound class
+ * This class just play sound types/signals and read & store sound mode which user can choose from Settings.
+ * Every mode then have different settings for they sound signals.
+ */
 class Sound {
 public:
-    eSOUND_MODE eSoundMode;
-
-    // we want this as a singleton
+    /// we want this as a singleton
     inline static Sound &getInstance() {
         static Sound s;
         return s;
@@ -16,35 +16,49 @@ public:
     Sound(const Sound &) = delete;
     Sound &operator=(const Sound &) = delete;
 
-    eSOUND_MODE getMode();
-
-    void play(eSOUND_TYPE eSoundType);
+    eSOUND_MODE getMode() const;
     void setMode(eSOUND_MODE eSMode);
+    void play(eSOUND_TYPE eSoundType);
     void stop();
     void update1ms();
-    void nextRepeat();
-
-    uint32_t _duration;
-    uint32_t duration;
-    uint8_t repeat;
-    double frequency;
-    double volume;
 
 private:
     Sound();
     ~Sound() {};
 
-    // -- main fnc
+    /// main fnc
     void init();
     void saveMode();
-    void _sound(int rep, float frq, uint32_t del, float vol);
+    void _sound(int rep, float frq, uint32_t dur, float vol);
+    void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], unsigned size);
 
-    // -- sound types
-    void soundStart(int rep, uint32_t del);
-    void soundButtonEcho(int rep, uint32_t del);
-    void soundStandardPrompt(int rep, uint32_t del);
-    void soundStandardAlert(int rep, uint32_t del);
-    void soundEncoderMove(int rep, uint32_t del);
-    void soundBlindAlert(int rep, uint32_t del);
-    void soundCriticalAlert(int rep, uint32_t del);
+    void nextRepeat();
+
+    uint32_t _duration; ///< live variable used for meassure
+    uint32_t duration;  ///< added variable to set _duration for repeating
+    int repeat;         ///< how many times is sound played
+    float frequency;    ///< frequency of sound signal (0-1000)
+    float volume;       ///< volume of sound signal (0-1)
+    uint32_t _delay;    ///< live variable used for delay measure
+    uint32_t delay;     ///< added variable for delay betwen beeps
+
+    static constexpr float volumeInit = 0.5F;
+    /// values of sound signals - frequencies, volumes, durations
+    static const uint32_t durations[eSOUND_TYPE_count];
+    static const float frequencies[eSOUND_TYPE_count];
+    static const float volumes[eSOUND_TYPE_count];
+
+    /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
+    static const eSOUND_TYPE onceTypes[5];
+    static const eSOUND_TYPE loudTypes[6];
+    static const eSOUND_TYPE silentTypes[4];
+    static const eSOUND_TYPE assistTypes[8];
+
+    /// signals repeats - how many times will sound signals repeat (-1 is infinite)
+    static const int onceRepeats[5];
+    static const int loudRepeats[6];
+    static const int silentRepeats[4];
+    static const int assistRepeats[8];
+
+    eSOUND_MODE eSoundMode;
 };

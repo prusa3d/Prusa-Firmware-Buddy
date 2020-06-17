@@ -1,6 +1,7 @@
 #include "DialogRadioButton.hpp"
 #include <algorithm> //find
 #include "button_draw.h"
+#include "sound_C_wrapper.h"
 /*****************************************************************************/
 //static variables and methods
 static const PhaseResponses no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor
@@ -38,6 +39,8 @@ RadioButton &RadioButton::operator++() {
     if ((selected_index + 1) < btn_count) {
         ++selected_index; //btn_count can be 0
         need_redraw = true;
+    } else {
+        Sound_Play(eSOUND_TYPE_BlindAlert);
     }
     return *this;
 }
@@ -47,6 +50,8 @@ RadioButton &RadioButton::operator--() {
     if (selected_index > 0) {
         --selected_index;
         need_redraw = true;
+    } else {
+        Sound_Play(eSOUND_TYPE_BlindAlert);
     }
     return *this;
 }
