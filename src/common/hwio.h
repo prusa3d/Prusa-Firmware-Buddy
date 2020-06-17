@@ -72,12 +72,6 @@ extern void hwio_pwm_set_prescaler_exp2(int i_pwm, int exp);  //changes prescale
 extern int hwio_pwm_get_prescaler_log2(int i_pwm);            //gets exponent of prescaler - reversion of hwio_pwm_set_prescaler_exp2
 
 // arduino compatibility functions
-extern uint32_t hwio_arduino_analogRead(uint32_t ulPin);
-extern void hwio_arduino_analogWrite(uint32_t ulPin, uint32_t ulValue);
-extern int hwio_arduino_digitalRead(uint32_t ulPin);
-extern void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal);
-extern void hwio_arduino_digitalToggle(uint32_t ulPin);
-extern void hwio_arduino_pinMode(uint32_t ulPin, uint32_t ulMode);
 //--------------------------------------
 // high level I/O functions
 

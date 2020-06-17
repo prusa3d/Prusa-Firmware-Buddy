@@ -612,7 +612,7 @@ void hwio_arduino_error(int err, uint32_t pin32) {
 //--------------------------------------
 // Arduino digital/analog wrapper functions
 
-int hwio_arduino_digitalRead(uint32_t ulPin) {
+int digitalRead(uint32_t ulPin) {
     if (HAL_GPIO_Initialized) {
         switch (ulPin) {
 #ifdef SIM_MOTION
@@ -654,7 +654,7 @@ int hwio_arduino_digitalRead(uint32_t ulPin) {
     return 0;
 }
 
-void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal) {
+void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
     if (HAL_GPIO_Initialized) {
         switch (ulPin) {
         case PIN_BEEPER:
@@ -767,12 +767,12 @@ void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         hwio_arduino_error(HWIO_ERR_UNINI_DIG_WR, ulPin); //error: uninitialized digital write
 }
 
-void hwio_arduino_digitalToggle(uint32_t ulPin) {
-    hwio_arduino_digitalWrite(ulPin, !hwio_arduino_digitalRead(ulPin));
+void digitalToggle(uint32_t ulPin) {
+    digitalWrite(ulPin, !digitalRead(ulPin));
     // TODO test me
 }
 
-uint32_t hwio_arduino_analogRead(uint32_t ulPin) {
+uint32_t analogRead(uint32_t ulPin) {
     if (HAL_ADC_Initialized) {
         switch (ulPin) {
         case PIN_TEMP_BED:
@@ -791,7 +791,7 @@ uint32_t hwio_arduino_analogRead(uint32_t ulPin) {
     return 0;
 }
 
-void hwio_arduino_analogWrite(uint32_t ulPin, uint32_t ulValue) {
+void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
         case PIN_FAN1:
@@ -815,6 +815,6 @@ void hwio_arduino_analogWrite(uint32_t ulPin, uint32_t ulValue) {
         hwio_arduino_error(HWIO_ERR_UNINI_ANA_WR, ulPin); //error: uninitialized analog write
 }
 
-void hwio_arduino_pinMode(uint32_t ulPin, uint32_t ulMode) {
+void pinMode(uint32_t ulPin, uint32_t ulMode) {
     // not supported, all pins are configured with Cube
 }
