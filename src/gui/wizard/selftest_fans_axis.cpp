@@ -124,7 +124,7 @@ static float _get_pos(int axis) {
 
 //returns phase modofication
 typedef int (*selftest_phase)(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos);
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos);
 
 typedef struct
 {
@@ -133,21 +133,21 @@ typedef struct
 } _cl_st_ax;
 
 static int ph_init(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode("M211 S0"); // disable software endstops
     marlin_gcode("M120");    // enable hw endstop detection
     return 1;                //next phase
 }
 
 static int ph_prepare_to_move_to_max(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("G92 %c%.3f", achar, (double)pos); // set position to current
     marlin_gcode_printf("G1 %c%.3f F%d", achar, (double)(pos - dir * (1.92F)), fr / 4);
     return 1; //next phase
 }
 
 static int ph_move_to_max(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("G92 %c%.3f", achar, (double)pos);        // set position to current
     p_data->axis_max[axis] = pos;                                 // save current position
     pos += dir * max;                                             // calc target position
@@ -157,7 +157,7 @@ static int ph_move_to_max(selftest_fans_axis_data_t *p_data,
 }
 
 static int ph_wait_motion(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     if (marlin_motion())
         return 0; //wait
     else
@@ -165,7 +165,7 @@ static int ph_wait_motion(selftest_fans_axis_data_t *p_data,
 }
 
 static int ph_move_to_min(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("G92 %c%.3f", achar, (double)pos);        // set position to current
     p_data->axis_min[axis] = pos;                                 // save current position
     pos -= dir * max;                                             // calc target position
@@ -175,7 +175,7 @@ static int ph_move_to_min(selftest_fans_axis_data_t *p_data,
 }
 
 static int ph_measure_min(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     float dis = dir * (p_data->axis_min[axis] - pos); // calculate traveled distance
     _dbg("dis = %.3f", (double)dis);
     if ((int)(dis + 0.5F) >= max) // check distance >= max
@@ -194,7 +194,7 @@ static int ph_measure_min(selftest_fans_axis_data_t *p_data,
 }
 
 static int ph_measure_max(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     float dis = dir * (pos - p_data->axis_max[axis]); // calculate traveled distance
     _dbg("dis = %.3f", (double)dis);
     if ((int)(dis + 0.5F) >= max) // check distance >= max
@@ -213,7 +213,7 @@ static int ph_measure_max(selftest_fans_axis_data_t *p_data,
 }
 
 static int ph_finish(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode("M211 S1"); // enable software endstops
     marlin_gcode("M121");    // disable hw endstop detection
     _dbg("finished");
@@ -222,7 +222,7 @@ static int ph_finish(selftest_fans_axis_data_t *p_data,
 }
 
 static int ph_home_axis(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode("G90"); /*use absolute coordinates*/
 
     marlin_gcode_printf("G28 %c", achar); /*HOME AXIS MUST BE ONLY currrent axis*/
@@ -231,7 +231,7 @@ static int ph_home_axis(selftest_fans_axis_data_t *p_data,
 }
 
 static int ph_home_all_axis(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode("G90"); /*use absolute coordinates*/
 
     marlin_event_clr(MARLIN_EVT_CommandEnd); // clear event CommandEnd used for synchronization in ph_wait_autohome
@@ -241,19 +241,19 @@ static int ph_home_all_axis(selftest_fans_axis_data_t *p_data,
 }
 
 static int ph_restore_Xaxis(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", X_home_gcode); /*Set pos */
     return 1;
 }
 
 static int ph_restore_Yaxis(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     marlin_gcode_printf("%s", Y_home_gcode); /*Set pos */
     return 1;
 }
 
 static int ph_wait_autohome(selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {
     if (marlin_event_clr(MARLIN_EVT_CommandEnd))
         return 1;
     else
@@ -332,7 +332,7 @@ static const _cl_st_ax axisZ = {
     phasesZ
 };
 void wizard_selftest_axis(const _cl_st_ax *_ths, selftest_fans_axis_data_t *p_data,
-    uint8_t *state, int axis, int fr, int min, int max, int dir) {
+    _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir) {
     static uint8_t phase = 0;
     char achar = _axis_char[axis];
     float pos = _get_pos(axis);

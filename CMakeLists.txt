@@ -513,12 +513,8 @@ if(GUI)
             src/gui/resource.c
             src/gui/window_file_list.c
             src/gui/lazyfilelist-c-api.cpp
-            src/gui/wizard/selftest_temp.c
             src/gui/window_temp_graph.c
             src/gui/screen_menu_settings.cpp
-            src/gui/wizard/wizard_progress_bar.c
-            src/gui/wizard/firstlay.c
-            src/gui/wizard/selftest_cool.c
             src/gui/window_header.c
             src/gui/screen_sysinf.cpp
             src/gui/screen_menu_version_info.cpp
@@ -541,17 +537,17 @@ if(GUI)
             src/gui/test/screen_test_term.cpp
             src/gui/test/screen_test_msgbox.cpp
             src/gui/test/screen_test_graph.cpp
-            src/gui/wizard/selftest_fans_axis.c
-            src/gui/wizard/selftest_temp.c
-            src/gui/wizard/selftest_cool.c
-            src/gui/wizard/selftest.c
-            src/gui/wizard/firstlay.c
-            src/gui/wizard/wizard_load_unload.c
-            src/gui/wizard/wizard_ui.c
-            src/gui/wizard/wizard.c
-            src/gui/wizard/screen_wizard.c
-            src/gui/wizard/xyzcalib.c
-            src/gui/wizard/wizard_progress_bar.c
+            src/gui/wizard/selftest_fans_axis.cpp
+            src/gui/wizard/selftest_temp.cpp
+            src/gui/wizard/selftest_cool.cpp
+            src/gui/wizard/selftest.cpp
+            src/gui/wizard/firstlay.cpp
+            src/gui/wizard/wizard_load_unload.cpp
+            src/gui/wizard/wizard_ui.cpp
+            src/gui/wizard/wizard.cpp
+            src/gui/wizard/screen_wizard.cpp
+            src/gui/wizard/xyzcalib.cpp
+            src/gui/wizard/wizard_progress_bar.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
             src/gui/screen_menu_preheat.cpp
@@ -563,7 +559,6 @@ if(GUI)
             src/gui/screen_PID.cpp
             src/gui/screen_menu_fw_update.cpp
             src/gui/test/screen_menu_test_temperature.cpp
-            src/gui/wizard/selftest_fans_axis.c
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/wizard/Marlin_PID_wrapper.cpp
             src/guiapi/src/button_draw.c
