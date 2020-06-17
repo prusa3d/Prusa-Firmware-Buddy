@@ -27,9 +27,10 @@ size_t strshift(char *str, const size_t n) {
         return 0;
 
     const size_t size = strlen(str) + 1; /// mind the trailing \0
-    for (size_t i = 0; i < size; ++i)
-        str[i + n] = str[i];
-
+    for (size_t i = size; i > 0; --i) {
+        const size_t j = i - 1; // avoids need of signed i; computes i-1 just once
+        str[j + n] = str[j];
+    }
     return n;
 }
 

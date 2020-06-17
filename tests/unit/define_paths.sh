@@ -9,10 +9,12 @@ function addPath {
 	export PATH="$fp:$PATH"
 }
 
-Catch2_SOURCE_DIR="../../../Catch2"
-CMAKE_SOURCE_DIR="../../../../"
+export Catch2_SOURCE_DIR="../../../Catch2"
+export CMAKE_SOURCE_DIR="../../../../"
 
 addPath "../../.dependencies/cmake-3.15.5/bin"
 addPath "../../.dependencies/ninja-1.9.0/"
 # path to compiler (g++)
 addPath "/c/Programs/MinGW/bin/"
+
+export CTEST_OUTPUT_ON_FAILURE=1

@@ -14,6 +14,7 @@ constexpr char EOS = '\0';          /// end of string
 
 size_t strdel(char *str, const size_t n = 1);
 size_t strins(char *str, const char *const ins, size_t times = 1);
+size_t strshift(char *str, const size_t n = 1);
 extern "C" size_t str2multiline(char *str, const size_t line_width);
 
 #else

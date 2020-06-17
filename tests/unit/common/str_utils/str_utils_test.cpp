@@ -66,72 +66,100 @@ TEST_CASE("Insert string", "[strins]") {
     char *nostr = nullptr;
     size_t n;
 
-    // SECTION("void input 1") {
-    //     n = strins(nostr, str);
-    //     REQUIRE(n == 0);
-    //     REQUIRE(nostr == nullptr);
-    //     REQUIRE_THAT(str, Equals(text));
-    // }
+    SECTION("void input 1") {
+        n = strins(nostr, str);
+        REQUIRE(n == 0);
+        REQUIRE(nostr == nullptr);
+        REQUIRE_THAT(str, Equals(text));
+    }
 
-    // SECTION("void input 2") {
-    //     n = strins(str, nostr);
-    //     REQUIRE(n == 0);
-    //     REQUIRE(nostr == nullptr);
-    //     REQUIRE_THAT(str, Equals(text));
-    // }
+    SECTION("void input 2") {
+        n = strins(str, nostr);
+        REQUIRE(n == 0);
+        REQUIRE(nostr == nullptr);
+        REQUIRE_THAT(str, Equals(text));
+    }
 
-    // SECTION("insert 0 chars") {
-    //     n = strins(str, 0);
-    //     REQUIRE(n == 0);
-    //     REQUIRE_THAT(str, Equals(text));
-    // }
+    SECTION("insert 0 chars") {
+        n = strins(str, 0);
+        REQUIRE(n == 0);
+        REQUIRE_THAT(str, Equals(text));
+    }
 
-    // SECTION("empty string 1") {
-    //     n = strins(str, "");
-    //     REQUIRE(n == 0);
-    //     REQUIRE_THAT(str, Equals(text));
-    // }
+    SECTION("empty string 1") {
+        n = strins(str, "");
+        REQUIRE(n == 0);
+        REQUIRE_THAT(str, Equals(text));
+    }
 
-    // SECTION("empty string 2") {
-    //     char empty[255] = "";
-    //     n = strins(empty, str);
-    //     REQUIRE(n == strlen(empty));
-    //     REQUIRE(strlen(str) == strlen(empty));
-    //     REQUIRE_THAT(empty, Equals(text));
-    // }
+    SECTION("empty string 2") {
+        char empty[255] = "";
+        n = strins(empty, str);
+        REQUIRE(n == strlen(empty));
+        REQUIRE(strlen(str) == strlen(empty));
+        REQUIRE_THAT(empty, Equals(text));
+    }
 
-    // SECTION("single char at the beginning") {
-    //     n = strins(str, "a");
-    //     CHECK(n == 1);
-    //     REQUIRE_THAT(str, Equals("aabcdXYZefgh"));
-    // }
+    SECTION("single char at the beginning") {
+        n = strins(str, "a");
+        CHECK(n == 1);
+        REQUIRE_THAT(str, Equals("aabcdXYZefgh"));
+    }
 
     SECTION("single char inside") {
-        n = strins(str + 4, "a");
+        n = strins(str, "a");
         CHECK(n == 1);
         REQUIRE_THAT(str, Equals("abcdaXYZefgh"));
     }
 
-    // SECTION("string at the beginning") {
-    //     n = strins(str, "ABCD");
-    //     CHECK(n == 4);
-    //     REQUIRE_THAT(str, Equals("ABCDabcdXYZefgh"));
-    // }
+    SECTION("string at the beginning") {
+        n = strins(str, "ABCD");
+        CHECK(n == 4);
+        REQUIRE_THAT(str, Equals("ABCDabcdXYZefgh"));
+    }
 
-    // SECTION("string at the end") {
-    //     n = strins(str + strlen(str), "ABC");
-    //     CHECK(n == 3);
-    //     REQUIRE_THAT(str, Equals("abcdXYZefghABC"));
-    // }
+    SECTION("string at the end") {
+        n = strins(str + strlen(str), "ABC");
+        CHECK(n == 3);
+        REQUIRE_THAT(str, Equals("abcdXYZefghABC"));
+    }
 
-    // SECTION("insert more times") {
-    //     n = strins(str, "123 ", 3);
-    //     CHECK(n == 12);
-    //     REQUIRE_THAT(str, Equals("123 123 123 abcdXYZefgh"));
-    // }
+    SECTION("insert more times") {
+        n = strins(str, "123 ", 3);
+        CHECK(n == 12);
+        REQUIRE_THAT(str, Equals("123 123 123 abcdXYZefgh"));
+    }
 }
 
-//test strshift
+TEST_CASE("Shift string", "[strshift]") {
+    static constexpr char text[12] = "abcdXYZefgh";
+    char str[255] = "abcdXYZefgh";
+    char *nostr = nullptr;
+    size_t n;
+
+    SECTION("void input") {
+        n = strshift(nostr);
+        CHECK(n == 0);
+    }
+
+    SECTION("by 0") {
+        n = strshift(str, 0);
+        CHECK(n == 0);
+        REQUIRE_THAT(str, Equals(text));
+    }
+
+    SECTION("at the beginning") {
+        n = strshift(str, 2);
+        CHECK(n == 2);
+        REQUIRE_THAT(str + 2, Equals(text));
+    }
+
+    SECTION("in the middle") {
+        n = strshift(str + 3, 3);
+        CHECK(n == 3);
+        REQUIRE_THAT(str + 3 + 3, Equals(text));
+    }
+}
 
 // TEST_CASE("String to multi-line conversion(s)", "[tools][all]") {
 // #define EXAMPLE_STR  "bla b" QT_HSPACE "l blabla bla" QT_HYPHEN "bla*bla" QT_NL "BLA BLA"
