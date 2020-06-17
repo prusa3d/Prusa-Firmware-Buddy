@@ -39,13 +39,6 @@ enum {
 //--------------------------------------
 // low level I/O functions
 
-//digital inputs
-extern int hwio_di_get_val(int i_di); //read digital input state
-
-//digital outputs
-extern int hwio_do_get_cnt(void);               //number of digital outputs
-extern void hwio_do_set_val(int i_do, int val); //set digital output state
-
 //analog inputs
 extern int hwio_adc_get_cnt(void);        //number of analog inputs
 extern int hwio_adc_get_max(int i_adc);   //analog input maximum value
