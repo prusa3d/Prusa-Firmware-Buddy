@@ -123,4 +123,4 @@ screen_t screen_test_gui = {
     0,                              //pdata
 };
 
-screen_t *const get_scr_test_gui() { return &screen_test_gui; }
+extern "C" screen_t *const get_scr_test_gui() { return &screen_test_gui; }

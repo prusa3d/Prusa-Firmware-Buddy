@@ -141,4 +141,4 @@ screen_t screen_test_msgbox = {
     0,                                 //pdata
 };
 
-screen_t *const get_scr_test_msgbox() { return &screen_test_msgbox; }
+extern "C" screen_t *const get_scr_test_msgbox() { return &screen_test_msgbox; }

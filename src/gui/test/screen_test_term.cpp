@@ -71,4 +71,4 @@ screen_t screen_test_term = {
     0,                               //pdata
 };
 
-screen_t *const get_scr_test_term() { return &screen_test_term; }
+extern "C" screen_t *const get_scr_test_term() { return &screen_test_term; }
