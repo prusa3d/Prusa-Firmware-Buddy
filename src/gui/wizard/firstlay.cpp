@@ -16,8 +16,7 @@
 #include "menu_vars.h"
 #include "filament.h"
 #include "../lang/i18n.h"
-#include "cmath_ext.h"
-
+#include <algorithm>
 #define V__GCODES_HEAD_BEGIN                 \
     "M107",    /*fan off */                  \
         "G90", /*use absolute coordinates*/  \
@@ -501,7 +500,7 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 
 int _get_progress() {
     //if ( _is_gcode_end_line() ) return 100;
-    return MIN(99, 100 * (line_head + 1 + line_body + 1) / gcode_sz);
+    return std::min(99, int(100 * (line_head + 1 + line_body + 1) / gcode_sz));
 }
 
 //returns progress

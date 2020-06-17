@@ -15,9 +15,9 @@
 #include "filament.h"
 #include "marlin_vars.h"
 #include "marlin_client.h"
-#include "cmath_ext.h"
 #include "stm32f4xx_hal.h"
 #include "limits.h"
+#include <algorithm>
 
 static const float heating_difference = 2.0F;
 
@@ -301,7 +301,7 @@ void status_footer_update_z_axis(status_footer_t *footer) {
         return;
 
     footer->z_pos = pos;
-    if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)ABS(pos % 100))) {
+    if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)std::abs(pos % 100))) {
         window_set_text(footer->wt_z_axis.win.id, err);
         return;
     }

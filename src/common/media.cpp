@@ -5,7 +5,7 @@
 #include "ff.h"
 #include "usbh_core.h"
 #include "../Marlin/src/gcode/queue.h"
-#include "cmath_ext.h"
+#include <algorithm>
 
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
@@ -97,7 +97,7 @@ void media_get_SFN_path(char *sfn, uint32_t sfn_size, char *filepath) {
             // FATFS flag for valid 8.3 fname - used instead of altname
             const char *fname = (fi.altname[0] == 0 && fi.fname[0] != 0) ? fi.fname : fi.altname;
             _dbg(fname);
-            uint32_t chars_added = strlcpy(sfn, fname, MIN(sfn_size, 12U));
+            uint32_t chars_added = strlcpy(sfn, fname, std::min(sfn_size, uint32_t(12)));
             sfn += chars_added;
             sfn_size -= chars_added;
         }
