@@ -23,14 +23,20 @@ size_t strdel(char *str, const size_t n) {
 /// \returns number of characters shifted
 size_t strshift(char *str, const size_t n) {
     // TODO check capacity of the \param str
-    if (str == nullptr)
+    if (str == nullptr || n == 0)
         return 0;
 
-    const size_t size = strlen(str) + 1; /// mind the trailing \0
-    for (size_t i = size; i > 0; --i) {
-        const size_t j = i - 1; // avoids need of signed i; computes i-1 just once
-        str[j + n] = str[j];
+    const size_t size = strlen(str);
+    /// remove the end of the string (avoids double end)
+    str[size] = 1;
+
+    /// copy text from the end
+    for (size_t i = size + n - 1; i >= n; --i) {
+        str[i] = str[i - n];
     }
+
+    /// add the end of the string
+    str[size + n] = 0;
     return n;
 }
 
