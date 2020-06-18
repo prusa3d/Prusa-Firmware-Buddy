@@ -209,9 +209,9 @@ void window_msgbox_draw(window_msgbox_t *window) {
         }
 
         const rect_ui16_t rc_txt = { window->win.rect.x,
-            window->win.rect.y + title_h + red_line_offset, // put text bellow title and red line
+            uint16_t(window->win.rect.y + title_h + red_line_offset), // put text bellow title and red line
             window->win.rect.w,
-            window->win.rect.h - (title_h + red_line_offset + gui_defaults.btn_h) };
+            uint16_t(window->win.rect.h - (title_h + red_line_offset + gui_defaults.btn_h)) };
         render_text_align(rc_txt, _(window->text), window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
 
         window->flags |= MSGBOX_MSK_CHG;

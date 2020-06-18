@@ -427,7 +427,7 @@ void window_set_format(int16_t id, const char *format) {
     }
 }
 
-char *window_get_format(int16_t id) {
+const char *window_get_format(int16_t id) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {
         switch (window->cls->cls_id) {

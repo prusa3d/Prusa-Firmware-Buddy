@@ -185,7 +185,7 @@ extern float window_get_value(int16_t id);
 
 extern void window_set_format(int16_t id, const char *format);
 
-extern char *window_get_format(int16_t id);
+extern const char *window_get_format(int16_t id);
 
 extern void window_set_color_back(int16_t id, color_t clr);
 

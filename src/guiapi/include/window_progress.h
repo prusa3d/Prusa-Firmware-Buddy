@@ -18,7 +18,7 @@ typedef struct _window_progress_t {
     padding_ui8_t padding;
     uint8_t alignment;
     uint8_t height_progress;
-    char *format;
+    const char *format;
     float value;
     float min;
     float max;

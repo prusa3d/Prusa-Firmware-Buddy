@@ -564,26 +564,26 @@ if(GUI)
             src/guiapi/src/button_draw.cpp
             src/guiapi/src/display.cpp
             src/guiapi/src/gui.cpp
-            src/guiapi/src/term.c
+            src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
-            src/guiapi/src/window_progress.c
-            src/guiapi/src/window_frame.c
+            src/guiapi/src/window_progress.cpp
+            src/guiapi/src/window_frame.cpp
             src/guiapi/src/gui_timer.cpp
             src/guiapi/src/display_helper.cpp
             src/guiapi/src/window_menu.cpp
             src/guiapi/src/screen.cpp
             src/guiapi/src/screen_close_multiple.cpp
-            src/guiapi/src/window_term.c
-            src/guiapi/src/window_list.c
+            src/guiapi/src/window_term.cpp
+            src/guiapi/src/window_list.cpp
             src/guiapi/src/jogwheel.cpp
-            src/guiapi/src/window_numb.c
+            src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
-            src/guiapi/src/window_icon.c
-            src/guiapi/src/window_spin.c
-            src/guiapi/src/window_text.c
-            src/guiapi/src/window_roll_text.c
-            src/guiapi/src/window_msgbox.c
-            src/guiapi/src/window_qr.c
+            src/guiapi/src/window_icon.cpp
+            src/guiapi/src/window_spin.cpp
+            src/guiapi/src/window_text.cpp
+            src/guiapi/src/window_roll_text.cpp
+            src/guiapi/src/window_msgbox.cpp
+            src/guiapi/src/window_qr.cpp
             src/guiapi/src/window.cpp
             src/guiapi/src/IWindowMenuItem.cpp
             src/guiapi/src/WindowMenuItems.cpp
