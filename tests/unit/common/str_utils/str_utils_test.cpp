@@ -173,90 +173,61 @@ TEST_CASE("Shift string", "[strshift]") {
     }
 }
 
-TEST_CASE("String to multi-line conversion(s)", "[str2multiline]") {
+TEST_CASE("String to multi-line", "[str2multiline]") {
+    char short_text[511] = "Lorem ipsum dolor sit amet";
+    char long_text[511] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ";
+
     size_t n;
+    size_t length;
 
     SECTION("short text, long line") {
-        char str[511] = "Lorem ipsum dolor sit amet";
-        const size_t length = 15;
-
-        n = str2multiline(str, length);
+        length = 15;
+        n = str2multiline(short_text, length);
         CHECK(n == 2);
-        REQUIRE_THAT(str, Equals("Lorem ipsum\ndolor sit amet"));
+        REQUIRE_THAT(short_text, Equals("Lorem ipsum\ndolor sit amet"));
     }
 
-    char str[511] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ";
+    SECTION("long text, long line") {
+        length = 15;
+        n = str2multiline(long_text, length);
+        CHECK(n == 7);
+        REQUIRE_THAT(long_text, Equals("Lorem ipsum\ndolor sit amet,\nconsectetur\nadipiscing\nelit, sed do\neiusmod tempor\nincididunt "));
+    }
 
-    //     SECTION("conversion to plain / example 2") {
-    //         set_withdraw_set("+-");
-    //         strcpy(str, "abcd-*+XYZefgh");
-    //         n = str2plain(str, true);
-    //         CHECK(n == 2);
-    //         REQUIRE_THAT(str, Equals("abcd*XYZefgh"));
-    //     }
+    SECTION("short text, short line") {
+        length = 8;
+        n = str2multiline(short_text, length);
+        CHECK(n == 4);
+        REQUIRE_THAT(short_text, Equals("Lorem\nipsum\ndolor\nsit amet"));
+    }
 
-    //     SECTION("conversion to plain / example 3") {
-    //         strcpy(str, "abcd-*+XYZefgh");
-    //         n = str2plain(str, "*+-");
-    //         CHECK(n == 3);
-    //         REQUIRE_THAT(str, Equals("abcdXYZefgh"));
-    //     }
+    SECTION("long text, short line") {
+        length = 8;
+        n = str2multiline(long_text, length);
+        CHECK(n == 14);
+        REQUIRE_THAT(long_text, Equals("Lorem\nipsum\ndolor\nsit\namet,\nconsecte\ntur\nadipisci\nng elit,\nsed do\neiusmod\ntempor\nincididu\nnt "));
+    }
 
-    //     SECTION("conversion to plain / example 4") {
-    //         strcpy(str, "abcd-*+XYZefgh\n123\n456");
-    //         n = str2plain(str, "", "\n", '|');
-    //         CHECK(n == 2);
-    //         REQUIRE_THAT(str, Equals("abcd-*+XYZefgh|123|456"));
-    //     }
+    SECTION("long text, very short line") {
+        length = 4;
+        n = str2multiline(long_text, length);
+        CHECK(n == 26);
+        REQUIRE_THAT(long_text, Equals("Lore\nm\nipsu\nm\ndolo\nr\nsit\namet\n,\ncons\necte\ntur\nadip\nisci\nng\nelit\n,\nsed\ndo\neius\nmod\ntemp\nor\ninci\ndidu\nnt "));
+    }
 
-    // #define RESULT1 "bla b l" QT_NL "blabla" QT_NL "bla-" QT_NL "bla*bla" QT_NL "BLA BLA"
-    //     SECTION("conversion to multiline / example 1") {
-    //         set_hyphen_distance(HYPHEN_ALLWAYS);
-    //         strcpy(str, EXAMPLE_STR);
-    //         n = str2multiline(str, LINE_WIDTH);
-    //         CHECK(n == 5);
-    //         REQUIRE_THAT(str, Equals(RESULT1));
-    //     }
+    SECTION("specific combination") {
+        char str[255] = "123 123 1234 1234";
+        length = 3;
+        n = str2multiline(str, length);
+        CHECK(n == 6);
+        REQUIRE_THAT(str, Equals("123\n123\n123\n4\n123\n4"));
+    }
 
-    // #define RESULT2 "bla b l" QT_NL "blabla" QT_NL "blabla*b" QT_NL "la" QT_NL "BLA BLA"
-    //     SECTION("conversion to multiline / example 2") {
-    //         strcpy(str, EXAMPLE_STR);
-    //         n = str2multiline(str, LINE_WIDTH);
-    //         CHECK(n == 5);
-    //         REQUIRE_THAT(str, Equals(RESULT2));
-    //     }
-
-    // #define RESULT3 "bla b l" QT_NL "blabla" QT_NL "blabla*" QT_NL "bla" QT_NL "BLA BLA"
-    //     SECTION("conversion to multiline / example 3") {
-    //         set_custom_set("*");
-    //         strcpy(str, EXAMPLE_STR);
-    //         n = str2multiline(str, LINE_WIDTH);
-    //         CHECK(n == 5);
-    //         REQUIRE_THAT(str, Equals(RESULT3));
-    //     }
-
-    // #define RESULT4 "bla b l" QT_NL "blabla" QT_NL "blablabl" QT_NL "a" QT_NL "BLA BLA"
-    //     SECTION("conversion to multiline / example 4") {
-    //         set_withdraw_set("*");
-    //         strcpy(str, EXAMPLE_STR);
-    //         n = str2multiline(str, LINE_WIDTH);
-    //         CHECK(n == 5);
-    //         REQUIRE_THAT(str, Equals(RESULT4));
-    //     }
-
-    // #define RESULT5 "bla b l blabla blabla*bla" QT_NL "BLA BLA"
-    //     SECTION("conversion to multiline / example 5") {
-    //         strcpy(str, EXAMPLE_STR);
-    //         n = str2multiline(str, LINE_WIDTH_UNLIMITED);
-    //         CHECK(n == 2);
-    //         REQUIRE_THAT(str, Equals(RESULT5));
-    //     }
-
-    // #define RESULT6 "bla" QT_NL "xxx bla" QT_NL "bla" QT_NL "blabla*b" QT_NL "la" QT_NL "BLA BLA"
-    //     SECTION("conversion to multiline / example 6") {
-    //         strcpy(str, EXAMPLE_STR2);
-    //         n = str2multiline(str, LINE_WIDTH);
-    //         CHECK(n == 6);
-    //         REQUIRE_THAT(str, Equals(RESULT6));
-    //     }
+    SECTION("long text, long line, forced new lines") {
+        char str[255] = "Lorem ipsum dolor sit\namet, consectetur adipiscing elit, sed\ndo eiusmod tempor incididunt ";
+        length = 15;
+        n = str2multiline(str, length);
+        CHECK(n == 9);
+        REQUIRE_THAT(str, Equals("Lorem ipsum\ndolor sit\namet,\nconsectetur\nadipiscing\nelit, sed\ndo eiusmod\ntempor\nincididunt "));
+    }
 }

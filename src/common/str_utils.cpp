@@ -90,28 +90,29 @@ size_t str2multiline(char *str, const size_t line_width) {
         case CHAR_NL:
             ++lines;
             last_delimiter = nullptr;
+            current_length = 0;
             break;
         }
 
         ++str;
-        if (*str == EOS)
-            break;
         ++current_length;
 
         if (current_length > line_width) { /// if the length is too big, break the line
             if (last_delimiter == nullptr) {
                 /// no break point available - break a word
-                strins(str, NL);
+                strins(str - 1, NL);
                 ++str;
-                if (*str == EOS)
-                    break;
+                current_length = 1;
             } else {
                 /// break at space
                 *(last_delimiter) = CHAR_NL;
+                current_length = str - last_delimiter - 1; // -1 because the space is replaced
                 last_delimiter = nullptr;
             }
             ++lines;
         }
+        if (*str == EOS)
+            break;
     }
     return lines;
 }
