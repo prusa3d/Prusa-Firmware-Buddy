@@ -173,91 +173,90 @@ TEST_CASE("Shift string", "[strshift]") {
     }
 }
 
-// TEST_CASE("String to multi-line conversion(s)", "[tools][all]") {
-// #define EXAMPLE_STR  "bla b" QT_HSPACE "l blabla bla" QT_HYPHEN "bla*bla" QT_NL "BLA BLA"
-// #define EXAMPLE_STR2 "bla xxx" QT_HSPACE "bla bla bla" QT_HYPHEN "bla*bla" QT_NL "BLA BLA"
+TEST_CASE("String to multi-line conversion(s)", "[str2multiline]") {
+    size_t n;
 
-// #define LINE_WIDTH 8
-//     char str[255];
-//     size_t n;
+    SECTION("short text, long line") {
+        char str[511] = "Lorem ipsum dolor sit amet";
+        const size_t length = 15;
 
-//     SECTION("conversion to plain / example 1") {
-//         strcpy(str, "ab" QT_HYPHEN "cd-*+XYZef" QT_HSPACE "gh");
-//         n = str2plain(str);
-//         CHECK(n == 2);
-//         REQUIRE_THAT(str, Equals("abcd-*+XYZef gh"));
-//     }
+        n = str2multiline(str, length);
+        CHECK(n == 2);
+        REQUIRE_THAT(str, Equals("Lorem ipsum\ndolor sit amet"));
+    }
 
-//     SECTION("conversion to plain / example 2") {
-//         set_withdraw_set("+-");
-//         strcpy(str, "abcd-*+XYZefgh");
-//         n = str2plain(str, true);
-//         CHECK(n == 2);
-//         REQUIRE_THAT(str, Equals("abcd*XYZefgh"));
-//     }
+    char str[511] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ";
 
-//     SECTION("conversion to plain / example 3") {
-//         strcpy(str, "abcd-*+XYZefgh");
-//         n = str2plain(str, "*+-");
-//         CHECK(n == 3);
-//         REQUIRE_THAT(str, Equals("abcdXYZefgh"));
-//     }
+    //     SECTION("conversion to plain / example 2") {
+    //         set_withdraw_set("+-");
+    //         strcpy(str, "abcd-*+XYZefgh");
+    //         n = str2plain(str, true);
+    //         CHECK(n == 2);
+    //         REQUIRE_THAT(str, Equals("abcd*XYZefgh"));
+    //     }
 
-//     SECTION("conversion to plain / example 4") {
-//         strcpy(str, "abcd-*+XYZefgh\n123\n456");
-//         n = str2plain(str, "", "\n", '|');
-//         CHECK(n == 2);
-//         REQUIRE_THAT(str, Equals("abcd-*+XYZefgh|123|456"));
-//     }
+    //     SECTION("conversion to plain / example 3") {
+    //         strcpy(str, "abcd-*+XYZefgh");
+    //         n = str2plain(str, "*+-");
+    //         CHECK(n == 3);
+    //         REQUIRE_THAT(str, Equals("abcdXYZefgh"));
+    //     }
 
-// #define RESULT1 "bla b l" QT_NL "blabla" QT_NL "bla-" QT_NL "bla*bla" QT_NL "BLA BLA"
-//     SECTION("conversion to multiline / example 1") {
-//         set_hyphen_distance(HYPHEN_ALLWAYS);
-//         strcpy(str, EXAMPLE_STR);
-//         n = str2multiline(str, LINE_WIDTH);
-//         CHECK(n == 5);
-//         REQUIRE_THAT(str, Equals(RESULT1));
-//     }
+    //     SECTION("conversion to plain / example 4") {
+    //         strcpy(str, "abcd-*+XYZefgh\n123\n456");
+    //         n = str2plain(str, "", "\n", '|');
+    //         CHECK(n == 2);
+    //         REQUIRE_THAT(str, Equals("abcd-*+XYZefgh|123|456"));
+    //     }
 
-// #define RESULT2 "bla b l" QT_NL "blabla" QT_NL "blabla*b" QT_NL "la" QT_NL "BLA BLA"
-//     SECTION("conversion to multiline / example 2") {
-//         strcpy(str, EXAMPLE_STR);
-//         n = str2multiline(str, LINE_WIDTH);
-//         CHECK(n == 5);
-//         REQUIRE_THAT(str, Equals(RESULT2));
-//     }
+    // #define RESULT1 "bla b l" QT_NL "blabla" QT_NL "bla-" QT_NL "bla*bla" QT_NL "BLA BLA"
+    //     SECTION("conversion to multiline / example 1") {
+    //         set_hyphen_distance(HYPHEN_ALLWAYS);
+    //         strcpy(str, EXAMPLE_STR);
+    //         n = str2multiline(str, LINE_WIDTH);
+    //         CHECK(n == 5);
+    //         REQUIRE_THAT(str, Equals(RESULT1));
+    //     }
 
-// #define RESULT3 "bla b l" QT_NL "blabla" QT_NL "blabla*" QT_NL "bla" QT_NL "BLA BLA"
-//     SECTION("conversion to multiline / example 3") {
-//         set_custom_set("*");
-//         strcpy(str, EXAMPLE_STR);
-//         n = str2multiline(str, LINE_WIDTH);
-//         CHECK(n == 5);
-//         REQUIRE_THAT(str, Equals(RESULT3));
-//     }
+    // #define RESULT2 "bla b l" QT_NL "blabla" QT_NL "blabla*b" QT_NL "la" QT_NL "BLA BLA"
+    //     SECTION("conversion to multiline / example 2") {
+    //         strcpy(str, EXAMPLE_STR);
+    //         n = str2multiline(str, LINE_WIDTH);
+    //         CHECK(n == 5);
+    //         REQUIRE_THAT(str, Equals(RESULT2));
+    //     }
 
-// #define RESULT4 "bla b l" QT_NL "blabla" QT_NL "blablabl" QT_NL "a" QT_NL "BLA BLA"
-//     SECTION("conversion to multiline / example 4") {
-//         set_withdraw_set("*");
-//         strcpy(str, EXAMPLE_STR);
-//         n = str2multiline(str, LINE_WIDTH);
-//         CHECK(n == 5);
-//         REQUIRE_THAT(str, Equals(RESULT4));
-//     }
+    // #define RESULT3 "bla b l" QT_NL "blabla" QT_NL "blabla*" QT_NL "bla" QT_NL "BLA BLA"
+    //     SECTION("conversion to multiline / example 3") {
+    //         set_custom_set("*");
+    //         strcpy(str, EXAMPLE_STR);
+    //         n = str2multiline(str, LINE_WIDTH);
+    //         CHECK(n == 5);
+    //         REQUIRE_THAT(str, Equals(RESULT3));
+    //     }
 
-// #define RESULT5 "bla b l blabla blabla*bla" QT_NL "BLA BLA"
-//     SECTION("conversion to multiline / example 5") {
-//         strcpy(str, EXAMPLE_STR);
-//         n = str2multiline(str, LINE_WIDTH_UNLIMITED);
-//         CHECK(n == 2);
-//         REQUIRE_THAT(str, Equals(RESULT5));
-//     }
+    // #define RESULT4 "bla b l" QT_NL "blabla" QT_NL "blablabl" QT_NL "a" QT_NL "BLA BLA"
+    //     SECTION("conversion to multiline / example 4") {
+    //         set_withdraw_set("*");
+    //         strcpy(str, EXAMPLE_STR);
+    //         n = str2multiline(str, LINE_WIDTH);
+    //         CHECK(n == 5);
+    //         REQUIRE_THAT(str, Equals(RESULT4));
+    //     }
 
-// #define RESULT6 "bla" QT_NL "xxx bla" QT_NL "bla" QT_NL "blabla*b" QT_NL "la" QT_NL "BLA BLA"
-//     SECTION("conversion to multiline / example 6") {
-//         strcpy(str, EXAMPLE_STR2);
-//         n = str2multiline(str, LINE_WIDTH);
-//         CHECK(n == 6);
-//         REQUIRE_THAT(str, Equals(RESULT6));
-//     }
-// }
+    // #define RESULT5 "bla b l blabla blabla*bla" QT_NL "BLA BLA"
+    //     SECTION("conversion to multiline / example 5") {
+    //         strcpy(str, EXAMPLE_STR);
+    //         n = str2multiline(str, LINE_WIDTH_UNLIMITED);
+    //         CHECK(n == 2);
+    //         REQUIRE_THAT(str, Equals(RESULT5));
+    //     }
+
+    // #define RESULT6 "bla" QT_NL "xxx bla" QT_NL "bla" QT_NL "blabla*b" QT_NL "la" QT_NL "BLA BLA"
+    //     SECTION("conversion to multiline / example 6") {
+    //         strcpy(str, EXAMPLE_STR2);
+    //         n = str2multiline(str, LINE_WIDTH);
+    //         CHECK(n == 6);
+    //         REQUIRE_THAT(str, Equals(RESULT6));
+    //     }
+}
