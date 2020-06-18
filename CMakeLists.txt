@@ -563,7 +563,7 @@ if(GUI)
             src/gui/wizard/Marlin_PID_wrapper.cpp
             src/guiapi/src/button_draw.c
             src/guiapi/src/display.c
-            src/guiapi/src/gui.c
+            src/guiapi/src/gui.cpp
             src/guiapi/src/term.c
             src/guiapi/src/guitypes.c
             src/guiapi/src/window_progress.c
@@ -571,11 +571,11 @@ if(GUI)
             src/guiapi/src/gui_timer.c
             src/guiapi/src/display_helper.c
             src/guiapi/src/window_menu.cpp
-            src/guiapi/src/screen.c
+            src/guiapi/src/screen.cpp
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.c
             src/guiapi/src/window_list.c
-            src/guiapi/src/jogwheel.c
+            src/guiapi/src/jogwheel.cpp
             src/guiapi/src/window_numb.c
             src/guiapi/src/st7789v.c
             src/guiapi/src/window_icon.c
@@ -584,7 +584,7 @@ if(GUI)
             src/guiapi/src/window_roll_text.c
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window_qr.c
-            src/guiapi/src/window.c
+            src/guiapi/src/window.cpp
             src/guiapi/src/IWindowMenuItem.cpp
             src/guiapi/src/WindowMenuItems.cpp
             src/guiapi/src/MItem_menus.cpp
