@@ -18,15 +18,15 @@
 #include "../lang/i18n.h"
 
 #define PADDING 10
-#define X_MAX   (display->w - PADDING * 2)
+#define X_MAX   (display::GetW() - PADDING * 2)
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
     hwio_safe_state();
     st7789v_enable_safe_mode();
     hwio_beeper_set_pwm(0, 0);
-    display->init();
-    display->init();
+    display::Init();
+    display::Init();
 }
 
 #define POINT_CNT           16
@@ -96,10 +96,10 @@ static const rect_ui16_t rct_moves[POINT_CNT] = {
 void mbl_error(uint16_t moves, uint16_t points) {
     __disable_irq();
     stop_common();
-    display->clear(COLOR_RED_ALERT);
+    display::Clear(COLOR_RED_ALERT);
 
-    display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), "MBL ERROR", gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
-    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - 1 - PADDING, 30), COLOR_WHITE);
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), "MBL ERROR", gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     //bed
     rect_ui16_t rect;
@@ -108,8 +108,8 @@ void mbl_error(uint16_t moves, uint16_t points) {
     rect.w = BED_W;
     rect.h = BED_H;
 
-    display->fill_rect(rect, COLOR_DARK_KHAKI);
-    display->draw_rect(rect, COLOR_BLACK);
+    display::FillRect(rect, COLOR_DARK_KHAKI);
+    display::DrawRect(rect, COLOR_BLACK);
 
     //top part surounding
     rect.x += BED_W / 2 - BED_TOP_W / 2;
@@ -117,13 +117,13 @@ void mbl_error(uint16_t moves, uint16_t points) {
     rect.w = BED_TOP_W;
     rect.h = BED_TOP_H;
 
-    display->draw_rect(rect, COLOR_BLACK);
+    display::DrawRect(rect, COLOR_BLACK);
     //top part filling
     ++rect.x;
     ++rect.y;
     rect.w -= 2;
     //h must remain the same
-    display->fill_rect(rect, COLOR_DARK_KHAKI);
+    display::FillRect(rect, COLOR_DARK_KHAKI);
 
     //bot left part surounding
     rect.x = POINT_BASE_X_OFFSET - BED_EDGE;
@@ -131,13 +131,13 @@ void mbl_error(uint16_t moves, uint16_t points) {
     rect.w = BED_BOT_W;
     rect.h = BED_BOT_H;
 
-    display->draw_rect(rect, COLOR_BLACK);
+    display::DrawRect(rect, COLOR_BLACK);
     //bot left part filling
     ++rect.x;
     --rect.y;
     rect.w -= 2;
     //h must remain the same
-    display->fill_rect(rect, COLOR_DARK_KHAKI);
+    display::FillRect(rect, COLOR_DARK_KHAKI);
 
     //bot right part surounding
     rect.x = POINT_BASE_X_OFFSET - BED_EDGE + BED_W - BED_BOT_W;
@@ -145,13 +145,13 @@ void mbl_error(uint16_t moves, uint16_t points) {
     rect.w = BED_BOT_W;
     rect.h = BED_BOT_H;
 
-    display->draw_rect(rect, COLOR_BLACK);
+    display::DrawRect(rect, COLOR_BLACK);
     //bot right part filling
     ++rect.x;
     --rect.y;
     rect.w -= 2;
     //h must remain the same
-    display->fill_rect(rect, COLOR_DARK_KHAKI);
+    display::FillRect(rect, COLOR_DARK_KHAKI);
 
     //points
     for (size_t i = 0; i < POINT_CNT; ++i) {
@@ -160,13 +160,13 @@ void mbl_error(uint16_t moves, uint16_t points) {
         rect.y += POINT_BASE_Y_OFFSET;
         if (points & (1 << i)) {
             //err
-            display->fill_rect(rect, COLOR_RED);
+            display::FillRect(rect, COLOR_RED);
 
         } else {
             //no err
-            display->fill_rect(rect, COLOR_GREEN);
+            display::FillRect(rect, COLOR_GREEN);
         }
-        display->draw_rect(rect, COLOR_BLACK);
+        display::DrawRect(rect, COLOR_BLACK);
     }
     //moves
     for (size_t i = 0; i < MOVE_CNT; ++i) {
@@ -175,13 +175,13 @@ void mbl_error(uint16_t moves, uint16_t points) {
         rect.y += POINT_BASE_Y_OFFSET;
         if (moves & (1 << i)) {
             //err
-            display->fill_rect(rect, COLOR_RED);
+            display::FillRect(rect, COLOR_RED);
 
         } else {
             //no err
-            display->fill_rect(rect, COLOR_GREEN);
+            display::FillRect(rect, COLOR_GREEN);
         }
-        display->draw_rect(rect, COLOR_BLACK);
+        display::DrawRect(rect, COLOR_BLACK);
     }
 
     render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), gui_defaults.font,

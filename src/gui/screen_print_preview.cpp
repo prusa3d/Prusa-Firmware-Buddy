@@ -345,7 +345,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
         FILE f = { 0 };
         f_lseek(&pd->gcode_file, 0);
         if (f_gcode_thumb_open(&f, &pd->gcode_file) == 0) {
-            display->draw_png(
+            display::DrawPng(
                 point_ui16(PADDING, PADDING + TITLE_HEIGHT + PADDING), &f);
             f_gcode_thumb_close(&f);
         } else {

@@ -11,7 +11,7 @@ void window_icon_init(window_icon_t *window) {
 void window_icon_draw(window_icon_t *window) {
     if (window->win.flg & WINDOW_FLG_INVALID) {
         //point_ui16_t pt = {window->win.rect.x, window->win.rect.y};
-        //display->draw_icon(pt, window->id_res, window->color_back, (window->win.flg & WINDOW_FLG_FOCUSED)?ROPFN_SWAPBW:0);
+        //display::DrawIcon(pt, window->id_res, window->color_back, (window->win.flg & WINDOW_FLG_FOCUSED)?ROPFN_SWAPBW:0);
         uint8_t ropfn = 0;
         if ((window->win.flg & WINDOW_FLG_DISABLED)) { // that could not be set, but what if
             ropfn |= ROPFN_DISABLE;

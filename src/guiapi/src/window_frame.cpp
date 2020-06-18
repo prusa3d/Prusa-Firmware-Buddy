@@ -5,7 +5,7 @@
 
 void window_frame_init(window_frame_t *window) {
     if (rect_empty_ui16(window->win.rect)) //use display rect curent is empty
-        window->win.rect = rect_ui16(0, 0, display->w, display->h);
+        window->win.rect = rect_ui16(0, 0, display::GetW(), display::GetH());
     window->win.flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;
     window->color_back = COLOR_BLACK;
 }
@@ -17,7 +17,7 @@ void window_frame_draw(window_frame_t *window) {
     if (window->win.f_visible) {
         if (window->win.f_invalid) {
             rect_ui16_t rc = window->win.rect;
-            display->fill_rect(rc, window->color_back);
+            display::FillRect(rc, window->color_back);
             window->win.f_invalid = 0;
             window_invalidate_children(window->win.id);
         }

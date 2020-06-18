@@ -54,7 +54,7 @@ void screen_sysinfo_init(screen_t *screen) {
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display->w, 22), &(pd->textMenuName));
+    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"Disp. TEST rd mem.");
 

@@ -48,7 +48,7 @@ void screen_menu_qr_error_init(screen_t *screen) {
 }
 
 void screen_menu_qr_error_draw(screen_t * /*screen*/) {
-    display->fill_rect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
+    display::FillRect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
 }
 
 void screen_menu_qr_error_done(screen_t *screen) {

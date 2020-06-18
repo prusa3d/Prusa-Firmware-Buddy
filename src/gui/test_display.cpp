@@ -23,7 +23,7 @@ void test_display_rgbcolors(uint16_t cnt);
 void test_display_spectrum(uint16_t cnt);
 
 void do_test(test_display_t *func, int cnt, const char *name, const char *unit) {
-    display->clear(COLOR_BLACK);
+    display::Clear(COLOR_BLACK);
 
 #if (DBG_LEVEL >= 3)
     uint32_t tim = _microseconds();
@@ -56,7 +56,7 @@ void test_display(void) {
 }
 
 point_ui16_t random_point() {
-    return point_ui16(rand() % display->w, rand() % display->h);
+    return point_ui16(rand() % display::GetW(), rand() % display::GetH());
 }
 
 color_t random_color() {
@@ -64,31 +64,31 @@ color_t random_color() {
 }
 
 rect_ui16_t random_rect() {
-    const uint16_t x0 = rand() % display->w;
-    const uint16_t x1 = rand() % display->w;
-    const uint16_t y0 = rand() % display->h;
-    const uint16_t y1 = rand() % display->h;
+    const uint16_t x0 = rand() % display::GetW();
+    const uint16_t x1 = rand() % display::GetW();
+    const uint16_t y0 = rand() % display::GetH();
+    const uint16_t y1 = rand() % display::GetH();
     return rect_ui16(std::min(x0, x1), std::min(y0, y1), std::abs(x1 - x0) + 1, std::abs(y1 - y0) + 1);
 }
 
 void test_display_random_dots(uint16_t cnt) {
     for (uint16_t n = 0; n < cnt; ++n)
-        display->set_pixel(random_point(), random_color());
+        display::SetPixel(random_point(), random_color());
 }
 
 void test_display_random_lines(uint16_t cnt) {
     for (uint16_t n = 0; n < cnt; ++n)
-        display->draw_line(random_point(), random_point(), random_color());
+        display::DrawLine(random_point(), random_point(), random_color());
 }
 
 void test_display_random_rects(uint16_t cnt) {
     for (uint16_t n = 0; n < cnt; ++n)
-        display->draw_rect(random_rect(), random_color());
+        display::DrawRect(random_rect(), random_color());
 }
 
 void test_display_random_filled_rects(uint16_t cnt) {
     for (uint16_t n = 0; n < cnt; ++n)
-        display->fill_rect(random_rect(), random_color());
+        display::FillRect(random_rect(), random_color());
 }
 
 void test_display_random_chars(uint16_t cnt, font_t *font) {
@@ -97,11 +97,11 @@ void test_display_random_chars(uint16_t cnt, font_t *font) {
     char c;
 
     for (uint16_t n = 0; n < cnt; ++n) {
-        x = rand() % (display->w - font->w + 1);
-        y = rand() % (display->h - font->h + 1);
+        x = rand() % (display::GetW() - font->w + 1);
+        y = rand() % (display::GetH() - font->h + 1);
         //		c = 'a' + ('z' - 'a' + 1) * ((float)rand() / RAND_MAX);
         c = font->asc_min + rand() % (font->asc_max - font->asc_min + 1 + 1);
-        display->draw_char(point_ui16(x, y), c, font, random_color(), random_color());
+        display::DrawChar(point_ui16(x, y), c, font, random_color(), random_color());
     }
 }
 
@@ -184,7 +184,7 @@ void test_display_fade(uint16_t cnt) {
     for (i = 0; i < cnt; i++) {
         b = 255 * i / (cnt - 1);
         clr = color_rgb(b, b, b);
-        display->clear(clr);
+        display::Clear(clr);
     }
 }
 
@@ -193,11 +193,11 @@ void display_fill_rect_sub_rect(rect_ui16_t rc, rect_ui16_t rc1, color_t clr) {
     rect_ui16_t rc_b = { rc.x, uint16_t(rc1.y + rc1.h), rc.w, uint16_t((rc.y + rc.h) - (rc1.y + rc1.h)) };
     rect_ui16_t rc_l = { rc.x, rc.y, uint16_t(rc1.x - rc.x), rc.h };
     rect_ui16_t rc_r = { uint16_t(rc1.x + rc1.w), rc.y, uint16_t((rc.x + rc.w) - (rc1.x + rc1.w)), rc.h };
-    //display->fill_rect(rc, clr);
-    display->fill_rect(rc_t, clr);
-    display->fill_rect(rc_b, clr);
-    display->fill_rect(rc_l, clr);
-    display->fill_rect(rc_r, clr);
+    //display::FillRect(rc, clr);
+    display::FillRect(rc_t, clr);
+    display::FillRect(rc_b, clr);
+    display::FillRect(rc_l, clr);
+    display::FillRect(rc_r, clr);
 }
 
 void test_display_rgbcolors(uint16_t cnt) {
@@ -229,9 +229,9 @@ void test_display_rgbcolors(uint16_t cnt) {
             int text_h = font->h;
             rect_ui16_t rc_item = rect_ui16(0, item_height * i, 240, item_height);
             rect_ui16_t rc_text = rect_ui16(10, item_height * i + 1, text_w, text_h);
-            //display->fill_rect(rc_item, colors[i]);
+            //display::FillRect(rc_item, colors[i]);
             display_fill_rect_sub_rect(rc_item, rc_text, colors[i]);
-            display->draw_text(rc_text, names[i], font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
+            display::DrawText(rc_text, names[i], font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
         }
 }
 
@@ -244,11 +244,11 @@ void test_display_spectrum(uint16_t cnt) {
     float b;
     color_t clr;
     for (int n = 0; n < cnt; ++n)
-        for (y = 0; y < display->h; ++y) {
+        for (y = 0; y < display::GetH(); ++y) {
             l = 400.0F + (3.0F * y / 3.2F);
             spectral_color(l, &r, &g, &b);
             clr = color_rgb(255 * r, 255 * g, 255 * b);
-            display->draw_line(point_ui16(0, y), point_ui16(display->w - 1, y), clr);
+            display::DrawLine(point_ui16(0, y), point_ui16(display::GetW() - 1, y), clr);
         }
 }
 
@@ -266,9 +266,9 @@ void test_display_random_png_64x64(uint16_t count) {
     uint16_t y;
     FILE *pf = fmemopen((void *)png_icon_64x64_noise, png_icon_64x64_noise_size, "rb");
     for (uint16_t n = 0; n < count; n++) {
-        x = rand() % (display->w - 64 + 1);
-        y = rand() % (display->h - 64 + 1);
-        display->draw_png(point_ui16(x, y), pf);
+        x = rand() % (display::GetW() - 64 + 1);
+        y = rand() % (display::GetH() - 64 + 1);
+        display::DrawPng(point_ui16(x, y), pf);
     }
     fclose(pf);
 }
@@ -315,13 +315,13 @@ void test_display2(void) {
 
 #if 0
 		tim = _microseconds();
-		display->clear(COLOR_BLACK);
+		display::Clear(COLOR_BLACK);
 		tim = _microseconds() - tim;
 		_dbg3("display_clear %u", tim);
 #endif
 
 #if 0
-		display->clear(COLOR_BLACK);
+		display::Clear(COLOR_BLACK);
 		tim = _microseconds();
 		test_display_random_png_64x64(100);
 		tim = _microseconds() - tim;
@@ -331,7 +331,7 @@ void test_display2(void) {
 #endif
 
         /*		tim = _microseconds();
-		display->fill_rect(64, 64, 128, 128, CLR565_BLUE);
+		display::FillRect(64, 64, 128, 128, CLR565_BLUE);
 		tim = _microseconds() - tim;
 		_dbg3("fill_rect %u", tim);
 		osDelay(1000);*/
@@ -343,7 +343,7 @@ void test_display2(void) {
         //	  	osDelay(1000);
 
         //		tim = _microseconds();
-        //		display->draw_png(0, 0, pf1);
+        //		display::DrawPng(0, 0, pf1);
         //		tim = _microseconds() - tim;
         //		_dbg3("draw_png %u", tim);
         //		osDelay(1000);

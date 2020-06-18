@@ -33,7 +33,7 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
         rc.h = 140;
 
         if (window->win.f_invalid) {
-            display->fill_rect(rc, window->color_back);
+            display::FillRect(rc, window->color_back);
             rect_ui16_t text_rc = rc;
             text_rc.x += 10;
             text_rc.y += 20;

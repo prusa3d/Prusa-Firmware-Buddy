@@ -5,7 +5,7 @@
 #include "guiconfig.h"
 #include "guitypes.h"
 #include "gui_timer.h"
-#include "display.h"
+//#include "display.h"
 #include "display_helper.h"
 
 #ifdef GUI_JOGWHEEL_SUPPORT
@@ -35,6 +35,7 @@
 typedef void(gui_loop_cb_t)(void);
 
 #ifdef __cplusplus
+    #include "display.h"
 extern "C" {
 #endif //__cplusplus
 

@@ -1,5 +1,5 @@
 // gui.c
-
+#include "display.h"
 #include "gui.h"
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
@@ -47,7 +47,7 @@ void gui_free(void *ptrx) {
 }
 
 void gui_init(void) {
-    display->init();
+    display::Init();
 #ifdef GUI_JOGWHEEL_SUPPORT
     jogwheel_init();
     gui_reset_jogwheel();

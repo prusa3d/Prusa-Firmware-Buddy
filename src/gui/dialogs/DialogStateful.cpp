@@ -52,9 +52,9 @@ IDialogStateful::~IDialogStateful() {
 }
 
 void IDialogStateful::draw_frame() {
-    const uint16_t w = display->w - 1 - rect.x + 1;  /// last - first + 1
-    const uint16_t h = display->h - 67 - rect.y + 1; /// last - first + 1
-    display->draw_rect(rect_ui16(rect.x, rect.y, w, h), COLOR_GRAY);
+    const uint16_t w = display::GetW() - 1 - rect.x + 1;  /// last - first + 1
+    const uint16_t h = display::GetH() - 67 - rect.y + 1; /// last - first + 1
+    display::DrawRect(rect_ui16(rect.x, rect.y, w, h), COLOR_GRAY);
 }
 
 //todo this should be moved elsewhere
@@ -69,14 +69,14 @@ void progress_draw(rect_ui16_t win_rect, const font_t *font, color_t color_back,
         win_rect.y + PROGRESS_BAR_Y_PAD,
         done_w,
         PROGRESS_BAR_H);
-    display->fill_rect(rc_done, COLOR_ORANGE);
+    display::FillRect(rc_done, COLOR_ORANGE);
 
     const rect_ui16_t rc_todo = rect_ui16(
         rc_done.x + done_w,
         rc_done.y,
         progress_w - rc_done.w,
         PROGRESS_BAR_H);
-    display->fill_rect(rc_todo, COLOR_GRAY);
+    display::FillRect(rc_todo, COLOR_GRAY);
 
     const rect_ui16_t rc_text = rect_ui16(rc_done.x, rc_done.y + PROGRESS_BAR_H, progress_w, PROGRESS_BAR_TEXT_H);
     char text[6];
@@ -93,7 +93,7 @@ void progress_clr(rect_ui16_t win_rect, const font_t * /*font*/, color_t color_b
         win_rect.w - 2 * PROGRESS_BAR_X_PAD,
         PROGRESS_BAR_H + PROGRESS_BAR_TEXT_H);
 
-    display->fill_rect(rc, color_back);
+    display::FillRect(rc, color_back);
 }
 
 void IDialogStateful::draw_progress() {
@@ -125,7 +125,7 @@ void IDialogStateful::draw_phase_text(const char *text) {
         rect_ui16_t rc = rc_sta;
         rc.h = last_text_h - rc_sta.h;
         rc.y += rc_sta.h;
-        display->fill_rect(rc, color_back);
+        display::FillRect(rc, color_back);
     }
 
     last_text_h = rc_sta.h;

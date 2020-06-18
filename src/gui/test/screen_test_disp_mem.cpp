@@ -177,7 +177,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display->w, 22), &(pd->textMenuName));
+    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"Disp. TEST rd mem.");
 
@@ -407,22 +407,22 @@ void printRGBWscale(size_t rect_index, size_t rect_count, size_t col, size_t row
 
     //R
     clr = color_rgb(val, 0, 0);
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
+    display::DrawLine(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 
     //G
     clr = color_rgb(0, val, 0);
     row += directColorBuff_sz + row_space;
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
+    display::DrawLine(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 
     //B
     clr = color_rgb(0, 0, val);
     row += directColorBuff_sz + row_space;
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
+    display::DrawLine(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 
     //W
     clr = color_rgb(val, val, val);
     row += directColorBuff_sz + row_space;
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
+    display::DrawLine(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 }
 
 void printDirectHex(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
@@ -431,11 +431,11 @@ void printDirectHex(size_t rect_index, size_t rect_count, size_t col, size_t row
 
 void printRGB(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
     color_t clr = color_rgb(clrR, clrG, clrB);
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
+    display::DrawLine(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 
     clr = color_rgb((uint8_t)(~clrR), (uint8_t)(~clrG), (uint8_t)(~clrB));
     row += directColorBuff_sz + row_space;
-    display->draw_line(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
+    display::DrawLine(point_ui16(col, row), point_ui16(col, row + directColorBuff_sz - 1), clr);
 }
 
 void printRGB_DirHx(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
@@ -449,7 +449,7 @@ void dispRamTest(size_t test_ID, size_t row) {
     const size_t rect_w = 12;
     const size_t rect_space = 1;
     const size_t rect_count = 16;
-    const size_t border_w = (display->w - (rect_w + rect_space) * rect_count) / 2;
+    const size_t border_w = (display::GetW() - (rect_w + rect_space) * rect_count) / 2;
     const size_t row_space = 1;
     const uint32_t ttl = 45; //time to live
 
@@ -493,19 +493,19 @@ int _getRectIndex(size_t col_x, size_t rect_w, size_t rect_space, size_t border_
 
 /*
 void drawPartLine(size_t partRow, size_t partDivider, color_t clr){
-	size_t partLen = display->w / partDivider;
+	size_t partLen = display::GetW() / partDivider;
 	size_t row     = partRow / partDivider;
 	size_t col     = (partRow % partDivider) * partLen;
 
 	//paint part of line
 	for (size_t i = 0; i < partLen; ++i){
-		display->set_pixel(point_ui16(col + i, row), clr);
+		display::SetPixel(point_ui16(col + i, row), clr);
 	}
 
 }
 
 void readPartLine(size_t partRow, size_t partDivider, color_t *buff){
-	size_t partLen = display->w / partDivider;
+	size_t partLen = display::GetW() / partDivider;
 	size_t row     = partRow / partDivider;
 	size_t col     = (partRow % partDivider) * partLen;
 

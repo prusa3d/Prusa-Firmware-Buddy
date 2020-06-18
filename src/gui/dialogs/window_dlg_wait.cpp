@@ -45,7 +45,7 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
     const rect_ui16_t rc = window->win.rect;
 
     if (window->win.f_invalid) {
-        display->fill_rect(rc, window->color_back);
+        display::FillRect(rc, window->color_back);
 
         rect_ui16_t rc_tit = rc;
         rc_tit.y += 10;
@@ -54,13 +54,13 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
         window->win.f_invalid = 0;
 
         if (window->components & DLG_W8_DRAW_FRAME) { // grey frame enabled
-            const uint16_t w = display->w;
-            const uint16_t h = display->h;
+            const uint16_t w = display::GetW();
+            const uint16_t h = display::GetH();
 
-            display->draw_line(point_ui16(rc.x, rc.y), point_ui16(w - 1, rc.y), COLOR_GRAY);
-            display->draw_line(point_ui16(rc.x, rc.y), point_ui16(rc.x, h - 67), COLOR_GRAY);
-            display->draw_line(point_ui16(w - 1, rc.y), point_ui16(w - 1, h - 67), COLOR_GRAY);
-            display->draw_line(point_ui16(rc.x, h - 67), point_ui16(w - 1, h - 67), COLOR_GRAY);
+            display::DrawLine(point_ui16(rc.x, rc.y), point_ui16(w - 1, rc.y), COLOR_GRAY);
+            display::DrawLine(point_ui16(rc.x, rc.y), point_ui16(rc.x, h - 67), COLOR_GRAY);
+            display::DrawLine(point_ui16(w - 1, rc.y), point_ui16(w - 1, h - 67), COLOR_GRAY);
+            display::DrawLine(point_ui16(rc.x, h - 67), point_ui16(w - 1, h - 67), COLOR_GRAY);
         }
     }
 
@@ -106,7 +106,7 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
             }
 
             for (int idx = i; idx < limit; idx++) {
-                display->draw_line(point_ui16(x + x_start[idx], y + y_start[idx]), point_ui16(x + x_end[idx], y + y_end[idx]), colors[color[idx]]);
+                display::DrawLine(point_ui16(x + x_start[idx], y + y_start[idx]), point_ui16(x + x_end[idx], y + y_end[idx]), colors[color[idx]]);
             }
         }
     }
@@ -121,12 +121,12 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
             rc_pro.w = rc.w - 20;
             rc_pro.h = 16;
             rc_pro.y = rc.y + 120;
-            display->fill_rect(rc_pro, COLOR_GRAY);
+            display::FillRect(rc_pro, COLOR_GRAY);
 
             if (window->progress != -1) {
                 const uint16_t w = rc_pro.w;
                 rc_pro.w = (w * window->progress) / 100;
-                display->fill_rect(rc_pro, COLOR_ORANGE);
+                display::FillRect(rc_pro, COLOR_ORANGE);
                 rc_pro.x += rc_pro.w;
                 rc_pro.w = w - rc_pro.w;
                 snprintf(text, 8, "%d%%", window->progress);

@@ -86,7 +86,7 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
     screen_splash_timer(screen, HAL_GetTick());
     if ((event == WINDOW_EVENT_LOOP) && _psd->logo_invalid) {
 #ifdef _DEBUG
-        display->draw_text(rect_ui16(180, 91, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        display::DrawText(rect_ui16(180, 91, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
         _psd->logo_invalid = 0;
     }

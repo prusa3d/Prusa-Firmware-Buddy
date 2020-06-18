@@ -12,7 +12,7 @@ IDialog::IDialog(int16_t WINDOW_CLS_)
     : window_t(winCreate(WINDOW_CLS_))
     , WINDOW_CLS(WINDOW_CLS_) {
     if (rect_empty_ui16(rect)) //use display rect if current rect is empty
-        rect = rect_ui16(0, 0, display->w, display->h);
+        rect = rect_ui16(0, 0, display::GetW(), display::GetH());
     flg |= WINDOW_FLG_ENABLED; //enabled by default
 }
 
