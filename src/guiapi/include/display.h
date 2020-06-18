@@ -7,8 +7,6 @@
 
 #include "guitypes.h"
 
-typedef struct _display_t display_t;
-
 typedef void(display_init_t)(void);
 typedef void(display_done_t)(void);
 typedef void(display_clear_t)(color_t clr);
@@ -20,22 +18,6 @@ typedef bool(display_draw_char_t)(point_ui16_t pt, char chr, const font_t *pf, c
 typedef bool(display_draw_text_t)(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_icon_t)(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
-
-typedef struct _display_t {
-    uint16_t w;
-    uint16_t h;
-    display_init_t *init;
-    display_done_t *done;
-    display_clear_t *clear;
-    display_set_pixel_t *set_pixel;
-    display_draw_line_t *draw_line;
-    display_draw_rect_t *draw_rect;
-    display_fill_rect_t *fill_rect;
-    display_draw_char_t *draw_char;
-    display_draw_text_t *draw_text;
-    display_draw_icon_t *draw_icon;
-    display_draw_png_t *draw_png;
-} display_t;
 
 #ifdef __cplusplus
 
@@ -57,13 +39,20 @@ public:
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
 
-extern "C" {
-#endif //__cplusplus
+    #include "st7789v.h"
+using display = Display<ST7789V_COLS, ST7789V_ROWS,
+    st7789v_init,
+    st7789v_done,
+    st7789v_clear,
+    st7789v_set_pixel,
+    st7789v_draw_line,
+    st7789v_draw_rect,
+    st7789v_fill_rect,
+    st7789v_draw_char,
+    st7789v_draw_text,
+    st7789v_draw_icon,
+    st7789v_draw_png>;
 
-extern const display_t *const display;
-
-#ifdef __cplusplus
-}
 #endif //__cplusplus
 /*
 

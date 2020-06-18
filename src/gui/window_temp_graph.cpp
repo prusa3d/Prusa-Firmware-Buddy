@@ -25,17 +25,17 @@ void window_temp_graph_init(window_temp_graph_t *window) {
         window->y_nozzle_t[i] = 179.0F;
     }
 
-    display->fill_rect(window->win.rect, window->color_back);
+    display::FillRect(window->win.rect, window->color_back);
 }
 
 void redraw_point(uint16_t x, uint16_t y, uint8_t *data, color_t bg, color_t fg) {
-    display->set_pixel(point_ui16(x, y + data[0]), bg);
-    display->set_pixel(point_ui16(x, y + data[1]), fg);
+    display::SetPixel(point_ui16(x, y + data[0]), bg);
+    display::SetPixel(point_ui16(x, y + data[1]), fg);
 }
 
 void redraw_last_point(uint16_t x, uint16_t y0, uint16_t y1, color_t bg, color_t fg) {
-    display->set_pixel(point_ui16(x, y0), bg);
-    display->set_pixel(point_ui16(x, y1), fg);
+    display::SetPixel(point_ui16(x, y0), bg);
+    display::SetPixel(point_ui16(x, y1), fg);
 }
 
 void draw_axes(window_temp_graph_t *window, bool wipe_before_draw, bool xy_only) {
@@ -45,16 +45,16 @@ void draw_axes(window_temp_graph_t *window, bool wipe_before_draw, bool xy_only)
     const uint16_t h = window->win.rect.h;
 
     if (wipe_before_draw)
-        display->fill_rect(window->win.rect, window->color_back);
-    display->draw_line(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE);             //y
-    display->draw_line(point_ui16(x, y + h - 1), point_ui16(x + w - 1, y + h - 1), COLOR_WHITE); //x
+        display::FillRect(window->win.rect, window->color_back);
+    display::DrawLine(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE);             //y
+    display::DrawLine(point_ui16(x, y + h - 1), point_ui16(x + w - 1, y + h - 1), COLOR_WHITE); //x
 
     if (!xy_only) {
         uint8_t j;
         for (j = 25; j < 175; j += 25)
-            display->draw_line(point_ui16(x + 1, y + h - j), point_ui16(x + w - 1, y + h - j), COLOR_GRAY); //x
+            display::DrawLine(point_ui16(x + 1, y + h - j), point_ui16(x + w - 1, y + h - j), COLOR_GRAY); //x
         for (j = 25; j < 175; j += 25)
-            display->draw_line(point_ui16(x + j, y + h), point_ui16(x + j, y + h - 5), COLOR_GRAY); //-50
+            display::DrawLine(point_ui16(x + j, y + h), point_ui16(x + j, y + h - 5), COLOR_GRAY); //-50
     }
 }
 

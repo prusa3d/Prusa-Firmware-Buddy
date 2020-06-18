@@ -91,7 +91,7 @@ void window_file_list_init(window_file_list_t *window) {
     // Will be removed when this file gets converted to c++ (and cleaned)
     window->ldv = LDV_Get();
 
-    display->fill_rect(window->win.rect, window->color_back);
+    display::FillRect(window->win.rect, window->color_back);
 }
 
 void window_file_list_done(window_file_list_t *window) {
@@ -173,7 +173,7 @@ void window_file_list_draw(window_file_list_t *window) {
             }
 
             /*	too slow
-				display->draw_line(
+				display::DrawLine(
 						point_ui16(rc_win.x, rc_win.y + (i+1) * item_height-1),
 						point_ui16(rc_win.x+rc_win.w, rc_win.y + (i+1) * item_height-1),
 						COLOR_GRAY);
@@ -185,7 +185,7 @@ void window_file_list_draw(window_file_list_t *window) {
 
     if (rc_win.h) {
         rc_win.y += i * item_height;
-        display->fill_rect(rc_win, window->color_back);
+        display::FillRect(rc_win, window->color_back);
     }
 }
 

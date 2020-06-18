@@ -453,7 +453,7 @@ target_sources(
           src/common/wdt.cpp
           src/common/dump.c
           src/common/marlin_client.c
-          src/common/bsod.c
+          src/common/bsod.cpp
           src/common/adc.c
           src/common/uartslave.c
           src/common/version.c
@@ -481,7 +481,7 @@ target_sources(
           src/common/ini_handler.c
           src/common/wui_api.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
-          $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
+          $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
@@ -562,7 +562,6 @@ if(GUI)
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/wizard/Marlin_PID_wrapper.cpp
             src/guiapi/src/button_draw.cpp
-            src/guiapi/src/display.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
@@ -608,7 +607,7 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/bsod.c src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
+  SOURCE src/common/bsod.cpp src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )

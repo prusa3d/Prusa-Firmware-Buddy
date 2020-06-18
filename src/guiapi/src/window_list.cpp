@@ -97,7 +97,7 @@ void window_list_draw(window_list_t *window) {
 
     if (rc_win.h) {
         rc_win.y += i * item_height;
-        display->fill_rect(rc_win, window->color_back);
+        display::FillRect(rc_win, window->color_back);
     }
 }
 

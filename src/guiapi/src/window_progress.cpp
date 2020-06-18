@@ -29,17 +29,17 @@ void window_progress_draw(window_progress_t *window) {
         if (1) { // TODO: border attribute, default is no border (Prusa GUI)
             rc.x += progress_w;
             rc.w -= progress_w;
-            display->fill_rect(rc, window->color_back);
+            display::FillRect(rc, window->color_back);
             rc.x = window->win.rect.x;
             rc.w = progress_w;
-            display->fill_rect(rc, window->color_progress);
+            display::FillRect(rc, window->color_progress);
         } else {
-            display->fill_rect(rc, window->color_progress);
+            display::FillRect(rc, window->color_progress);
             rc.x += progress_w;
             rc.w = window->win.rect.w - progress_w;
-            display->draw_rect(rc, window->color_progress);
+            display::DrawRect(rc, window->color_progress);
             rc = rect_ui16_sub_padding_ui8(rc, padding_ui8(1, 1, 1, 1));
-            display->fill_rect(rc, window->color_back);
+            display::FillRect(rc, window->color_back);
         }
 
         rc = window->win.rect;

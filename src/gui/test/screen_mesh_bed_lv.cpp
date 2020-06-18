@@ -92,7 +92,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
         -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     id = window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(0, 0, display->w, row_h), &(pd->textMenuName));
+        id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"MESH LEVELING");
 

@@ -217,7 +217,7 @@ void screen_PID_init(screen_t *screen) {
         -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     id = window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(0, 0, display->w, row_h), &(pd->textMenuName));
+        id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"PID adjustment");
 
@@ -474,42 +474,42 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
 
         if (pd->redraw) {
             pd->redraw = 0;
-            display->fill_rect(rect_ui16(pd->dot_coordsKp_E[0],
-                                   pd->dot_coordsKp_E[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKp_E[0],
+                                  pd->dot_coordsKp_E[1], 2, 2),
                 COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKi_E[0],
-                                   pd->dot_coordsKi_E[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKi_E[0],
+                                  pd->dot_coordsKi_E[1], 2, 2),
                 COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKd_E[0],
-                                   pd->dot_coordsKd_E[1], 2, 2),
-                COLOR_WHITE);
-
-            display->draw_text(pd->rect_E, "NOZZLE", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKp_E, "Kp", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKi_E, "Ki", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKd_E, "Kd", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-
-            display->fill_rect(rect_ui16(pd->dot_coordsKp_B[0],
-                                   pd->dot_coordsKp_B[1], 2, 2),
-                COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKi_B[0],
-                                   pd->dot_coordsKi_B[1], 2, 2),
-                COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKd_B[0],
-                                   pd->dot_coordsKd_B[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKd_E[0],
+                                  pd->dot_coordsKd_E[1], 2, 2),
                 COLOR_WHITE);
 
-            display->draw_text(pd->rect_B, "BED", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rect_E, "NOZZLE", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKp_B, "Kp", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKp_E, "Kp", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKi_B, "Ki", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKi_E, "Ki", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKd_B, "Kd", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKd_E, "Kd", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+
+            display::FillRect(rect_ui16(pd->dot_coordsKp_B[0],
+                                  pd->dot_coordsKp_B[1], 2, 2),
+                COLOR_WHITE);
+            display::FillRect(rect_ui16(pd->dot_coordsKi_B[0],
+                                  pd->dot_coordsKi_B[1], 2, 2),
+                COLOR_WHITE);
+            display::FillRect(rect_ui16(pd->dot_coordsKd_B[0],
+                                  pd->dot_coordsKd_B[1], 2, 2),
+                COLOR_WHITE);
+
+            display::DrawText(pd->rect_B, "BED", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKp_B, "Kp", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKi_B, "Ki", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKd_B, "Kd", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
         }
 

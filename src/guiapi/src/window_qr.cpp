@@ -35,7 +35,7 @@ void window_qr_draw(window_qr_t *window) {
             size = qrcodegen_getSize(qrcode_buff);
             for (int y = -BORDER; y < (size + BORDER); y++)
                 for (int x = -BORDER; x < (size + BORDER); x++)
-                    display->fill_rect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
+                    display::FillRect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
         }
         window->win.flg &= ~WINDOW_FLG_INVALID;
     }

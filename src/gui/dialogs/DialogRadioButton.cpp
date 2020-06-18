@@ -84,7 +84,7 @@ Response RadioButton::Click() const {
 }
 
 void RadioButton::draw_0_btn() const {
-    display->fill_rect(win.rect, win.color_back);
+    display::FillRect(win.rect, win.color_back);
 }
 
 void RadioButton::draw_1_btn() const {
@@ -103,7 +103,7 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
             //space between buttons
             rc_btn.x += btn_width;
             rc_btn.w = gui_defaults.btn_spacing;
-            display->fill_rect(rc_btn, win.color_back);
+            display::FillRect(rc_btn, win.color_back);
 
             //nextbutton coords
             rc_btn.x += gui_defaults.btn_spacing;
@@ -114,7 +114,7 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
     int black_space_w = int(win.rect.x + win.rect.w) - int(rc_btn.x);
     if (black_space_w > 0) {
         rc_btn.w = black_space_w;
-        display->fill_rect(rc_btn, win.color_back);
+        display::FillRect(rc_btn, win.color_back);
     }
 }
 

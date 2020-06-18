@@ -116,15 +116,15 @@ typedef tskTCB TCB_t;
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
     #define PADDING 10
-    #define X_MAX   (display->w - PADDING * 2)
+    #define X_MAX   (display::GetW() - PADDING * 2)
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
     hwio_safe_state();
     st7789v_enable_safe_mode();
     hwio_beeper_set_pwm(0, 0);
-    display->init();
-    display->init();
+    display::Init();
+    display::Init();
 }
 
 //! @brief print white error message on background
@@ -135,7 +135,7 @@ static void stop_common(void) {
 //! @param background_color background color
 static void print_error(term_t *term, color_t background_color) {
     render_term(rect_ui16(10, 10, 220, 288), term, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
-    display->draw_text(rect_ui16(10, 290, 220, 20), project_version_full, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    display::DrawText(rect_ui16(10, 290, 220, 20), project_version_full, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
 }
 
 //! @brief Marlin stopped
@@ -156,14 +156,14 @@ static void print_error(term_t *term, color_t background_color) {
 void general_error(const char *error, const char *module) {
     __disable_irq();
     stop_common();
-    display->clear(COLOR_RED_ALERT);
+    display::Clear(COLOR_RED_ALERT);
     term_t term;
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
 
-    display->draw_text(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
-    display->draw_line(point_ui16(PADDING, 30), point_ui16(display->w - 1 - PADDING, 30), COLOR_WHITE);
+    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     term_printf(&term, module);
     term_printf(&term, "\n");
@@ -211,12 +211,12 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     stop_common();
 
     #ifdef PSOD_BSOD
-    display->clear(COLOR_BLACK); //clear with black color
-    //display->draw_icon(point_ui16(75, 40), IDR_PNG_icon_pepa, COLOR_BLACK, 0);
-    display->draw_icon(point_ui16(75, 40), IDR_PNG_icon_pepa_psod, COLOR_BLACK, 0);
-    display->draw_text(rect_ui16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
+    display::Clear(COLOR_BLACK); //clear with black color
+    //display::DrawIcon(point_ui16(75, 40), IDR_PNG_icon_pepa, COLOR_BLACK, 0);
+    display::DrawIcon(point_ui16(75, 40), IDR_PNG_icon_pepa_psod, COLOR_BLACK, 0);
+    display::DrawText(rect_ui16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
     #else
-    display->clear(COLOR_NAVY);           //clear with dark blue color
+    display::Clear(COLOR_NAVY);           //clear with dark blue color
     term_t term;                          //terminal structure
     uint8_t buff[TERM_BUFF_SIZE(20, 16)]; //terminal buffer for 20x16
     term_init(&term, 20, 16, buff);       //initialize terminal structure (clear buffer etc)
@@ -283,7 +283,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 static TaskHandle_t tsk_hndl = 0;
 static signed char *tsk_name = 0;
 
-void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
+extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
     tsk_hndl = xTask;
     tsk_name = pcTaskName;
     if (strlen((const char *)pcTaskName) > 20)
@@ -384,7 +384,7 @@ void ScreenHardFault(void) {
 
     stop_common();
 
-    display->clear(COLOR_NAVY);               //clear with dark blue color
+    display::Clear(COLOR_NAVY);               //clear with dark blue color
     term_t term;                              //terminal structure
     uint8_t buff[TERM_BUFF_SIZE(COLS, ROWS)]; //terminal buffer for 20x16
     term_init(&term, COLS, ROWS, buff);       //initialize terminal structure (clear buffer etc)
@@ -518,7 +518,7 @@ void ScreenHardFault(void) {
     }
 
     render_term(rect_ui16(10, 10, 220, 288), &term, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
-    display->draw_text(rect_ui16(10, 290, 220, 20), project_version_full, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    display::DrawText(rect_ui16(10, 290, 220, 20), project_version_full, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 
     while (1) //endless loop
     {

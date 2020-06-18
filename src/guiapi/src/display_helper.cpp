@@ -13,16 +13,16 @@ void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, 
     // FIXME add check r_in in r_out; use some guitypes.c function
 
     const rect_ui16_t rc_t = { r_out->x, r_out->y, r_out->w, uint16_t(r_in->y - r_out->y) };
-    display->fill_rect(rc_t, color);
+    display::FillRect(rc_t, color);
 
     const rect_ui16_t rc_b = { r_out->x, uint16_t(r_in->y + r_in->h), r_out->w, uint16_t((r_out->y + r_out->h) - (r_in->y + r_in->h)) };
-    display->fill_rect(rc_b, color);
+    display::FillRect(rc_b, color);
 
     const rect_ui16_t rc_l = { r_out->x, r_in->y, uint16_t(r_in->x - r_out->x), r_in->h };
-    display->fill_rect(rc_l, color);
+    display::FillRect(rc_l, color);
 
     const rect_ui16_t rc_r = { uint16_t(r_in->x + r_in->w), r_in->y, uint16_t((r_out->x + r_out->w) - (r_in->x + r_in->w)), r_in->h };
-    display->fill_rect(rc_r, color);
+    display::FillRect(rc_r, color);
 }
 
 void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
@@ -40,14 +40,14 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
             while (str[i] == ' ' || str[i] == '\n')
                 i++;
             for (; i < n; i++) {
-                display->draw_char(point_ui16(x, y), str[i], font, clr0, clr1);
+                display::DrawChar(point_ui16(x, y), str[i], font, clr0, clr1);
                 x += font->w;
             }
-            display->fill_rect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr0);
+            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr0);
             str += n;
             y += font->h;
         }
-        display->fill_rect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
+        display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
         fill_between_rectangles(&rc, &rc_pad, clr0);
     } else {
         point_ui16_t wh_txt = font_meas_text(font, text);
@@ -61,9 +61,9 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
 
             const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
             fill_between_rectangles(&rc, &rect_in, clr0);
-            display->draw_text(rc_txt, text, font, clr0, clr1);
+            display::DrawText(rc_txt, text, font, clr0, clr1);
         } else
-            display->fill_rect(rc, clr0);
+            display::FillRect(rc, clr0);
     }
 }
 
@@ -88,9 +88,9 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
         fill_between_rectangles(&rc, &rc_ico, opt_clr);
-        display->draw_icon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
+        display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
     } else
-        display->fill_rect(rc, opt_clr);
+        display::FillRect(rc, opt_clr);
 }
 
 void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
@@ -147,14 +147,14 @@ void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font
         return;
 
     if (text == 0) {
-        display->fill_rect(rc, clr_back);
+        display::FillRect(rc, clr_back);
         return;
     }
 
     uint8_t unused_pxls = roll->rect.w % font->w;
     if (unused_pxls) {
         rect_ui16_t rc_unused_pxls = { uint16_t(roll->rect.x + roll->rect.w - unused_pxls), roll->rect.y, unused_pxls, roll->rect.h };
-        display->fill_rect(rc_unused_pxls, clr_back);
+        display::FillRect(rc_unused_pxls, clr_back);
     }
 
     const char *str = text;
@@ -168,8 +168,8 @@ void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font
 
     if (set_txt_rc.w && set_txt_rc.h) {
         fill_between_rectangles(&rc, &set_txt_rc, clr_back);
-        display->draw_text(set_txt_rc, str, font, clr_back, clr_text);
+        display::DrawText(set_txt_rc, str, font, clr_back, clr_text);
     } else {
-        display->fill_rect(rc, clr_back);
+        display::FillRect(rc, clr_back);
     }
 }
