@@ -5,13 +5,11 @@
  *      Author: mcbig
  */
 
-#ifndef STATUS_FOOTER_H_
-#define STATUS_FOOTER_H_
+#pragma once
 
 #include "gui.h"
 
-#pragma pack(push)
-#pragma pack(1)
+#pragma pack(push, 1)
 //#pragma pack(1) makes enums 8 bit
 // which is an ugly and unreadable hack (probably a side effect)
 typedef enum heat_state_e {
@@ -67,15 +65,5 @@ typedef struct
 #define COOLING_COLOR COLOR_BLUE
 #define PREHEAT_COLOR COLOR_GREEN
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 void status_footer_init(status_footer_t *footer, int16_t parent);
 int status_footer_event(status_footer_t *footer, window_t *window, uint8_t event, const void *param);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif /* STATUS_FOOTER_H_ */

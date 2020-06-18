@@ -1,6 +1,5 @@
 // firstlay.h
-#ifndef _FIRSTLAY_H
-#define _FIRSTLAY_H
+#pragma once
 
 //choose 0 off 1 on
 #define DEBUG_TERM 0
@@ -11,13 +10,7 @@
 #include "wizard_types.h"
 #include "wizard_load_unload.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
-#pragma pack(push)
-#pragma pack(1)
-
+#pragma pack(push, 1)
 //#pragma pack(1) makes enums 8 bit
 // which is an ugly and unreadable hack (probably a side effect)
 typedef enum {
@@ -86,9 +79,3 @@ extern int wizard_firstlay_load(int16_t id_body,
 */
 extern int wizard_firstlay_print(int16_t id_body,
     firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_FIRSTLAY_H

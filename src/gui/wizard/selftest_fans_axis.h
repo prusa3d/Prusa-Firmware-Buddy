@@ -1,14 +1,8 @@
 // selftest_fans_axis.h
-#ifndef _SELFTEST_FANS_AXIS_H
-#define _SELFTEST_FANS_AXIS_H
-
+#pragma once
 #include <inttypes.h>
 #include "gui.h"
 #include "wizard_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 //todo create multiple small structures inside this structure
 typedef struct
@@ -55,9 +49,3 @@ extern int wizard_selftest_x(int16_t id_body, selftest_fans_axis_screen_t *p_scr
 extern int wizard_selftest_y(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data);
 
 extern int wizard_selftest_z(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_SELFTEST_FANS_AXIS_H

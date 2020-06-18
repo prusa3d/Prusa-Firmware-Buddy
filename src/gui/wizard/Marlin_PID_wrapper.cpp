@@ -1,9 +1,6 @@
 // Marlin_PID_wrapper.c
 
 #include "../Marlin/src/module/temperature.h"
-
-extern "C" {
-
 //Kp is not scaled
 float get_Kp_Bed() {
     return Temperature::temp_bed.pid.Kp;
@@ -33,5 +30,3 @@ float get_Ki_Noz() {
 float get_Kd_Noz() {
     return unscalePID_d(PID_PARAM(Kd, 0));
 }
-
-} //extern "C"

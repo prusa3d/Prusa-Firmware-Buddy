@@ -54,4 +54,4 @@ screen_t screen_menu_tune = {
     nullptr,                //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_tune() { return &screen_menu_tune; }
+screen_t *const get_scr_menu_tune() { return &screen_menu_tune; }

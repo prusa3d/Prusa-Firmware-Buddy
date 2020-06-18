@@ -15,11 +15,8 @@
 #include "resource.h"
 #include "stdlib.h"
 #include "../lang/i18n.h"
-
-//"inherit" those functions, to inherit frame behavior
-extern void window_frame_done(window_frame_t *window);
-extern void window_frame_draw(window_frame_t *window);
-extern void window_frame_event(window_frame_t *window, uint8_t event, void *param);
+#include "window_frame.h"
+#include <limits>
 
 int16_t WINDOW_CLS_DLG_PREHEAT = 0;
 
@@ -47,14 +44,14 @@ void window_list_filament_item_cb(window_list_t *pwindow_list, uint16_t index,
 }
 
 void window_dlg_preheat_click_forced_cb(window_dlg_preheat_t *window) {
-    FILAMENT_t index = window->list.index + FILAMENT_PLA;
+    FILAMENT_t index = FILAMENT_t(window->list.index + FILAMENT_PLA);
     marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
     marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
 }
 
 void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
     if (window->list.index > 0) {
-        FILAMENT_t index = window->list.index + FILAMENT_PLA - 1;
+        FILAMENT_t index = FILAMENT_t(window->list.index + FILAMENT_PLA - 1);
         marlin_gcode_printf("M104 S%d", (int)filaments[index].nozzle);
         marlin_gcode_printf("M140 S%d", (int)filaments[index].heatbed);
     }
@@ -99,13 +96,13 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
         window->list.win.cls->event(&(window->list.win), event, param);
         break;
     case WINDOW_EVENT_BTN_DN:
-        if (window->timer != -1) {
+        if (window->timer != std::numeric_limits<uint32_t>::max()) {
             window->timer = -1; //close
             window->on_click(window);
         }
         return;
     default:
-        window_frame_event((void *)window, event, param);
+        window_frame_event((window_frame_t *)window, event, param);
     }
 }
 
@@ -211,13 +208,13 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
 
     dlg.timer = HAL_GetTick();
 
-    //ttl retyped to uint - so "-1" == for ever (or very long)
-    while ((dlg.timer != -1) && ((uint32_t)(HAL_GetTick() - dlg.timer) < (uint32_t)ttl)) {
+    //ttl for ever (or very long time)
+    while ((dlg.timer != std::numeric_limits<uint32_t>::max()) && ((uint32_t)(HAL_GetTick() - dlg.timer) < (uint32_t)ttl)) {
         gui_loop();
     }
 
     int ret;
-    if (dlg.timer != -1) {
+    if (dlg.timer != std::numeric_limits<uint32_t>::max()) {
         ret = -1;
     } else {
         ret = dlg.list.index;

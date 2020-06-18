@@ -17,7 +17,7 @@ typedef struct _window_numb_t {
     color_t color_text;
     font_t *font;
     float value;
-    char *format;
+    const char *format;
     padding_ui8_t padding;
     uint8_t alignment;
 } window_numb_t;

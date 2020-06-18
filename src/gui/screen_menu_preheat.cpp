@@ -53,4 +53,4 @@ screen_t screen_menu_preheat = {
     nullptr,        //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_preheat() { return &screen_menu_preheat; }
+screen_t *const get_scr_menu_preheat() { return &screen_menu_preheat; }

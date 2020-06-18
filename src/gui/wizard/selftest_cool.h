@@ -1,15 +1,9 @@
 // selftest_cool.h
-#ifndef _SELFTEST_COOL_H
-#define _SELFTEST_COOL_H
-
+#pragma once
 #include <inttypes.h>
 #include "gui.h"
 #include "wizard_types.h"
 #include "hwio.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 typedef struct
 {
@@ -38,9 +32,3 @@ extern void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_scre
 
 extern int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen,
     selftest_cool_data_t *p_data);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_SELFTEST_COOL_H

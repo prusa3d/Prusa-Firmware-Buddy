@@ -29,4 +29,4 @@ screen_t screen_menu_info = {
     nullptr,        //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_info() { return &screen_menu_info; }
+screen_t *const get_scr_menu_info() { return &screen_menu_info; }

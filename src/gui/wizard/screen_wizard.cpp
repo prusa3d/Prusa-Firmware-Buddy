@@ -135,7 +135,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
             window_set_text(pd->header.win.id, wizard_get_caption(screen));
             inside_handler = 1;
             while (is_state_in_wizard_mask(pd->state) == 0)
-                pd->state++; //skip disabled steps
+                pd->state = wizard_state_t(int(pd->state) + 1); //skip disabled steps
             switch (pd->state) {
             case _STATE_START: {
 #ifndef _DEBUG

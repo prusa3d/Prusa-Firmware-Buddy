@@ -275,4 +275,4 @@ screen_t screen_home = {
     0,                          //pdata
 };
 
-extern "C" screen_t *const get_scr_home() { return &screen_home; }
+screen_t *const get_scr_home() { return &screen_home; }

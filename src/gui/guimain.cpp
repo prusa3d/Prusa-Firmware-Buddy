@@ -67,7 +67,7 @@ static void _gui_loop_cb() {
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
 char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
 
-void gui_run(void) {
+extern "C" void gui_run(void) {
     if (diag_fastboot)
         return;
 

@@ -1,7 +1,5 @@
 // selftest.h
-#ifndef _SELFTEST_H
-#define _SELFTEST_H
-
+#pragma once
 #include <inttypes.h>
 #include "gui.h"
 #include "wizard_types.h"
@@ -15,10 +13,6 @@
     #define LAST_SELFTEST_TIMEOUT 30 // [s]
 #endif                               //_DEBUG
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 typedef struct
 {
     selftest_cool_data_t cool_data;
@@ -30,9 +24,3 @@ extern uint32_t last_selftest_result;
 extern uint32_t last_selftest_time;
 
 extern int wizard_selftest_is_ok(int16_t id_body, selftest_data_t *p_data);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_SELFTEST_

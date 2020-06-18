@@ -14,7 +14,7 @@ const char items[11][6] = {
     "item7",
     "item8",
     "item9",
-    "item10",
+    "itemA",
 };
 
 void window_list_item(window_list_t *pwindow_list, uint16_t index,
@@ -64,8 +64,8 @@ void window_list_draw(window_list_t *window) {
         color_t color_back = window->color_back;
         uint8_t swap = 0;
 
-        rect_ui16_t rc = { rc_win.x, rc_win.y + i * item_height,
-            rc_win.w, item_height };
+        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
+            rc_win.w, uint16_t(item_height) };
         padding_ui8_t padding = window->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {

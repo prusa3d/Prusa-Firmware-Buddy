@@ -15,9 +15,9 @@
 #include "filament.h"
 #include "marlin_vars.h"
 #include "marlin_client.h"
-#include "cmath_ext.h"
 #include "stm32f4xx_hal.h"
 #include "limits.h"
+#include <algorithm>
 
 static const float heating_difference = 2.0F;
 
@@ -46,8 +46,6 @@ void status_footer_update_z_axis(status_footer_t *footer);
 void status_footer_update_filament(status_footer_t *footer);
 void status_footer_repaint_nozzle(const status_footer_t *footer);
 void status_footer_repaint_heatbed(const status_footer_t *footer);
-
-extern "C" {
 
 void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
@@ -174,8 +172,6 @@ int status_footer_event(status_footer_t *footer, window_t *window,
     return 0;
 }
 
-} //extern "C"
-
 /// Callback function which triggers update and repaint of values
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds) {
     if (mseconds - footer->last_timer_repaint_values >= REPAINT_VALUE_PERIOD) {
@@ -301,7 +297,7 @@ void status_footer_update_z_axis(status_footer_t *footer) {
         return;
 
     footer->z_pos = pos;
-    if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)ABS(pos % 100))) {
+    if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)std::abs(pos % 100))) {
         window_set_text(footer->wt_z_axis.win.id, err);
         return;
     }
