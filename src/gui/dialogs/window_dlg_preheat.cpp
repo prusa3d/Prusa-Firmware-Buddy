@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include "../lang/i18n.h"
 #include "window_frame.h"
+#include <limits>
 
 int16_t WINDOW_CLS_DLG_PREHEAT = 0;
 
@@ -95,7 +96,7 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
         window->list.win.cls->event(&(window->list.win), event, param);
         break;
     case WINDOW_EVENT_BTN_DN:
-        if (window->timer != uint32_t(-1)) {
+        if (window->timer != std::numeric_limits<uint32_t>::max()) {
             window->timer = -1; //close
             window->on_click(window);
         }
@@ -207,13 +208,13 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
 
     dlg.timer = HAL_GetTick();
 
-    //ttl retyped to uint - so "-1" == for ever (or very long)
-    while ((dlg.timer != uint32_t(-1)) && ((uint32_t)(HAL_GetTick() - dlg.timer) < (uint32_t)ttl)) {
+    //ttl for ever (or very long time)
+    while ((dlg.timer != std::numeric_limits<uint32_t>::max()) && ((uint32_t)(HAL_GetTick() - dlg.timer) < (uint32_t)ttl)) {
         gui_loop();
     }
 
     int ret;
-    if (dlg.timer != uint32_t(-1)) {
+    if (dlg.timer != std::numeric_limits<uint32_t>::max()) {
         ret = -1;
     } else {
         ret = dlg.list.index;
