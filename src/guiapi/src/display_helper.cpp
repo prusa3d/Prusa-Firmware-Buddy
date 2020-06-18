@@ -12,16 +12,16 @@
 void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, color_t color) {
     // FIXME add check r_in in r_out; use some guitypes.c function
 
-    const rect_ui16_t rc_t = { r_out->x, r_out->y, r_out->w, r_in->y - r_out->y };
+    const rect_ui16_t rc_t = { r_out->x, r_out->y, r_out->w, uint16_t(r_in->y - r_out->y) };
     display->fill_rect(rc_t, color);
 
-    const rect_ui16_t rc_b = { r_out->x, r_in->y + r_in->h, r_out->w, (r_out->y + r_out->h) - (r_in->y + r_in->h) };
+    const rect_ui16_t rc_b = { r_out->x, uint16_t(r_in->y + r_in->h), r_out->w, uint16_t((r_out->y + r_out->h) - (r_in->y + r_in->h)) };
     display->fill_rect(rc_b, color);
 
-    const rect_ui16_t rc_l = { r_out->x, r_in->y, r_in->x - r_out->x, r_in->h };
+    const rect_ui16_t rc_l = { r_out->x, r_in->y, uint16_t(r_in->x - r_out->x), r_in->h };
     display->fill_rect(rc_l, color);
 
-    const rect_ui16_t rc_r = { r_in->x + r_in->w, r_in->y, (r_out->x + r_out->w) - (r_in->x + r_in->w), r_in->h };
+    const rect_ui16_t rc_r = { uint16_t(r_in->x + r_in->w), r_in->y, uint16_t((r_out->x + r_out->w) - (r_in->x + r_in->w)), r_in->h };
     display->fill_rect(rc_r, color);
 }
 
@@ -59,7 +59,7 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
                 unused_pxls = rc_txt.w % font->w;
             }
 
-            const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, rc_txt.w - unused_pxls, rc_txt.h };
+            const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
             fill_between_rectangles(&rc, &rect_in, clr0);
             display->draw_text(rc_txt, text, font, clr0, clr1);
         } else
@@ -153,7 +153,7 @@ void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font
 
     uint8_t unused_pxls = roll->rect.w % font->w;
     if (unused_pxls) {
-        rect_ui16_t rc_unused_pxls = { roll->rect.x + roll->rect.w - unused_pxls, roll->rect.y, unused_pxls, roll->rect.h };
+        rect_ui16_t rc_unused_pxls = { uint16_t(roll->rect.x + roll->rect.w - unused_pxls), roll->rect.y, unused_pxls, roll->rect.h };
         display->fill_rect(rc_unused_pxls, clr_back);
     }
 
