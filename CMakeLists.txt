@@ -491,7 +491,7 @@ target_sources(
           src/marlin_stubs/pause/pause.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
           src/gui/guimain.cpp
-          src/gui/filament.cpp
+          src/common/filament.cpp
   )
 
 if(GUI)
