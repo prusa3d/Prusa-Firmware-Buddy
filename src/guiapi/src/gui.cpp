@@ -1,5 +1,5 @@
 // gui.c
-
+#include "display.h"
 #include "gui.h"
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
