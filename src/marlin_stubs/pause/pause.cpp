@@ -178,7 +178,7 @@ void Pause::hotend_idle_start(uint32_t time) {
 }
 
 //uncomment to activate
-//#define ASK_FILAMENT_IN_GEAR
+#define ASK_FILAMENT_IN_GEAR
 
 /**
  * Load filament into the hotend
