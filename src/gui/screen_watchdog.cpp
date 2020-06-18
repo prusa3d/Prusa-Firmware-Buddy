@@ -71,4 +71,4 @@ screen_watchdog_t screen_watchdog = {
     0,
 };
 
-extern "C" screen_t *const get_scr_watchdog() { return (screen_t *)&screen_watchdog; }
+screen_t *const get_scr_watchdog() { return (screen_t *)&screen_watchdog; }

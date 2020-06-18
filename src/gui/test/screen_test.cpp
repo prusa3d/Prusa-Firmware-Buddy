@@ -173,4 +173,4 @@ screen_t screen_test = {
     0,                          //pdata
 };
 
-extern "C" screen_t *const get_scr_test() { return &screen_test; }
+screen_t *const get_scr_test() { return &screen_test; }

@@ -136,4 +136,4 @@ screen_t screen_splash = {
     0,                            //pdata
 };
 
-extern "C" screen_t *const get_scr_splash() { return &screen_splash; }
+screen_t *const get_scr_splash() { return &screen_splash; }

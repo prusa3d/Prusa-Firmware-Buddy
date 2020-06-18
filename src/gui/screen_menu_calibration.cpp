@@ -28,4 +28,4 @@ screen_t screen_menu_calibration = {
     nullptr,        //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }
+screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }

@@ -620,4 +620,4 @@ screen_t screen_test_disp_mem = {
     0,                                   //pdata
 };
 
-extern "C" screen_t *const get_scr_test_disp_mem() { return &screen_test_disp_mem; }
+screen_t *const get_scr_test_disp_mem() { return &screen_test_disp_mem; }

@@ -104,4 +104,4 @@ screen_test_term_t screen_test_graph = {
     0,
 };
 
-extern "C" screen_t *const get_scr_test_graph() { return (screen_t *)(&screen_test_graph); }
+screen_t *const get_scr_test_graph() { return (screen_t *)(&screen_test_graph); }

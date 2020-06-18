@@ -176,4 +176,4 @@ screen_t screen_menu_service = {
     0,              //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_service() { return &screen_menu_service; }
+screen_t *const get_scr_menu_service() { return &screen_menu_service; }

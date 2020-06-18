@@ -5,8 +5,7 @@
  *      Author: Migi
  */
 
-#ifndef WINDOW_DLG_WAIT_H_
-#define WINDOW_DLG_WAIT_H_
+#pragma once
 
 #include "window.h"
 #include <stdbool.h>
@@ -38,10 +37,6 @@ typedef struct _window_class_dlg_wait_t {
 #define DLG_W8_DRAW_FRAME     0x01 // Draw grey frame
 #define DLG_W8_DRAW_PROGRESS  0x02 // Draw progress bar
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_dlg_wait_t window_class_dlg_wait;
 
 /*!*********************************************************************************************************************
@@ -54,9 +49,3 @@ extern const window_class_dlg_wait_t window_class_dlg_wait;
 * It creates inner gui_loop cycle that keeps GUI running while waiting.
 */
 extern void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif /* WINDOW_DLG_WAIT_H_ */

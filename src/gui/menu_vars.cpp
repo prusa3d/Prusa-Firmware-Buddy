@@ -12,7 +12,6 @@
     #error "Unknown PRINTER_TYPE."
 #endif
 
-extern "C" {
 const int x_axis_len = X_LEN;
 const int y_axis_len = Y_LEN;
 const int z_axis_len = Z_LEN;
@@ -88,7 +87,6 @@ constexpr const char Z_home_gcode[] = {
     nth_char(Z_home, 7),
     nth_char(Z_home, 8)
 };
-} //extern "C"
 
 const std::array<std::array<int16_t, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::axis_ranges = { { { X_MIN_POS, X_MAX_POS, 1 },
     { Y_MIN_POS, Y_MAX_POS, 1 },

@@ -135,4 +135,4 @@ screen_t screen_test_temperature = {
     0,              //pdata
 };
 
-extern "C" screen_t *const get_scr_test_temperature() { return &screen_test_temperature; }
+screen_t *const get_scr_test_temperature() { return &screen_test_temperature; }

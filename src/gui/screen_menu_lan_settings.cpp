@@ -345,4 +345,4 @@ screen_t screen_lan_settings = {
     nullptr,                       //pdata
 };
 
-extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }
+screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

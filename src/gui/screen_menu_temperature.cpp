@@ -70,4 +70,4 @@ screen_t screen_menu_temperature = {
     nullptr,                       //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }
+screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }

@@ -219,4 +219,4 @@ screen_t screen_menu_filament = {
     nullptr,                    //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }
+screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

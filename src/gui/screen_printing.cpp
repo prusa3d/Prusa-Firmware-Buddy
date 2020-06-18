@@ -146,7 +146,7 @@ screen_t screen_printing = {
     sizeof(screen_printing_data_t), //data_size
     0,                              //pdata
 };
-extern "C" screen_t *const get_scr_printing() { return &screen_printing; }
+screen_t *const get_scr_printing() { return &screen_printing; }
 
 void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);

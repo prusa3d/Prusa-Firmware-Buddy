@@ -209,8 +209,6 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
     return 0;
 }
 
-extern "C" {
-
 screen_t screen_mesh_bed_lv = {
     0,
     0,
@@ -223,4 +221,3 @@ screen_t screen_mesh_bed_lv = {
 };
 
 screen_t *const get_scr_mesh_bed_lv() { return &screen_mesh_bed_lv; }
-}

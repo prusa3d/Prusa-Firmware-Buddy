@@ -1,6 +1,5 @@
 // menu_vars.h - shared arrays to be used in menus
-#ifndef _MENU_VARS_H
-#define _MENU_VARS_H
+#pragma once
 #include "stdint.h"
 #include "../lang/i18n.h"
 
@@ -8,10 +7,6 @@
 //stringize macros
 #define QUOTE_ME(x) #x
 #define STR(x)      QUOTE_ME(x)
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 // axis length [mm]
 extern const int x_axis_len;
@@ -47,13 +42,8 @@ extern const int32_t filament_change_slow_purge_length;
 extern const int32_t filament_change_full_purge_load_length;
 extern const float filament_unload_mini_length;
 
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#ifdef __cplusplus
-    #include <array>
-    #include <cstdint>
+#include <array>
+#include <cstdint>
 using std::size_t;
 struct MenuVars {
     constexpr static const size_t AXIS_CNT = 4;
@@ -75,7 +65,3 @@ struct MenuVars {
 private:
     MenuVars() = delete;
 };
-
-#endif //__cplusplus
-
-#endif //_MENU_VARS_H

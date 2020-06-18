@@ -573,4 +573,4 @@ screen_t screen_wizard = {
     0,                            //pdata
 };
 
-extern "C" screen_t *const get_scr_wizard() { return &screen_wizard; }
+screen_t *const get_scr_wizard() { return &screen_wizard; }

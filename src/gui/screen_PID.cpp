@@ -525,8 +525,6 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
     return 0;
 }
 
-extern "C" {
-
 screen_t screen_PID = {
     0,
     0,
@@ -539,7 +537,6 @@ screen_t screen_PID = {
 };
 
 screen_t *const get_scr_PID() { return &screen_PID; }
-}
 
 //-----------------------------------------------------------------------------
 

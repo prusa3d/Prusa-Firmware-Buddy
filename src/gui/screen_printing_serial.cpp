@@ -64,7 +64,7 @@ screen_t screen_printing_serial = {
     sizeof(screen_printing_serial_data_t), //data_size
     0,                                     //pdata
 };
-extern "C" screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
+screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
 static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
     if (window_get_icon_id(btn_id) != serial_printing_icons[id_to_set])
