@@ -5,7 +5,7 @@
 #include "button_draw.h"
 #include "sound_C_wrapper.h"
 #include "../lang/i18n.h"
-#include "cmath_ext.h"
+#include <algorithm>
 
 //title for each icon type (empty text for 0)
 const char *window_msgbox_title_text[] = {
@@ -180,10 +180,10 @@ void window_msgbox_draw(window_msgbox_t *window) {
         // get icon id from window member; for error, warning, info and question -> disable icon
         const uint16_t id_icon = (ico < 1 && window->id_icon == 0) ? window_msgbox_id_icon[ico] : window->id_icon;
         size_ui16_t icon_dim = size_ui16(0, 0);
-        const uint8_t *p_icon = 0;                         // icon resource pointer
-        if (id_icon && (p_icon = resource_ptr(id_icon))) { // id_icon is set and resource pointer is not null
-            icon_dim = icon_size(p_icon);                  // get icon dimensions
-            title_h = MAX(title_h, icon_dim.h);            // adjust title height
+        const uint8_t *p_icon = 0;                             // icon resource pointer
+        if (id_icon && (p_icon = resource_ptr(id_icon))) {     // id_icon is set and resource pointer is not null
+            icon_dim = icon_size(p_icon);                      // get icon dimensions
+            title_h = std::max(uint16_t(title_h), icon_dim.h); // adjust title height
         }
 
         if (title_h) {                                               // render visible text only (title_h > 0)

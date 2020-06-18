@@ -13,7 +13,6 @@
 #include "dbg.h"
 #include "lazyfilelist-c-api.h"
 #include "sound_C_wrapper.h"
-#include "../common/cmath_ext.h"
 #include "../lang/i18n.h"
 #include <algorithm>
 

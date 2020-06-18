@@ -6,7 +6,7 @@
 #include "dbg.h"
 #include "gui.h"
 #include "resource.h"
-#include "cmath_ext.h"
+#include <algorithm>
 
 typedef void(test_display_t)(uint16_t cnt);
 
@@ -56,19 +56,19 @@ void test_display(void) {
 }
 
 point_ui16_t random_point() {
-    return point_ui16(RAND(display->w - 1), RAND(display->h - 1));
+    return point_ui16(rand() % display->w, rand() % display->h);
 }
 
 color_t random_color() {
-    return color_rgb(RAND(0xff), RAND(0xff), RAND(0xff));
+    return color_rgb(rand() % 0x100, rand() % 0x100, rand() % 0x100);
 }
 
 rect_ui16_t random_rect() {
-    const uint16_t x0 = RAND(display->w - 1);
-    const uint16_t x1 = RAND(display->w - 1);
-    const uint16_t y0 = RAND(display->h - 1);
-    const uint16_t y1 = RAND(display->h - 1);
-    return rect_ui16(MIN(x0, x1), MIN(y0, y1), ABS(x1 - x0) + 1, ABS(y1 - y0) + 1);
+    const uint16_t x0 = rand() % display->w;
+    const uint16_t x1 = rand() % display->w;
+    const uint16_t y0 = rand() % display->h;
+    const uint16_t y1 = rand() % display->h;
+    return rect_ui16(std::min(x0, x1), std::min(y0, y1), std::abs(x1 - x0) + 1, std::abs(y1 - y0) + 1);
 }
 
 void test_display_random_dots(uint16_t cnt) {
@@ -97,10 +97,10 @@ void test_display_random_chars(uint16_t cnt, font_t *font) {
     char c;
 
     for (uint16_t n = 0; n < cnt; ++n) {
-        x = RAND(display->w - font->w);
-        y = RAND(display->h - font->h);
+        x = rand() % (display->w - font->w + 1);
+        y = rand() % (display->h - font->h + 1);
         //		c = 'a' + ('z' - 'a' + 1) * ((float)rand() / RAND_MAX);
-        c = font->asc_min + RAND(font->asc_max - font->asc_min + 1);
+        c = font->asc_min + rand() % (font->asc_max - font->asc_min + 1 + 1);
         display->draw_char(point_ui16(x, y), c, font, random_color(), random_color());
     }
 }
@@ -266,8 +266,8 @@ void test_display_random_png_64x64(uint16_t count) {
     uint16_t y;
     FILE *pf = fmemopen((void *)png_icon_64x64_noise, png_icon_64x64_noise_size, "rb");
     for (uint16_t n = 0; n < count; n++) {
-        x = RAND(display->w - 64);
-        y = RAND(display->h - 64);
+        x = rand() % (display->w - 64 + 1);
+        y = rand() % (display->h - 64 + 1);
         display->draw_png(point_ui16(x, y), pf);
     }
     fclose(pf);
