@@ -15,6 +15,7 @@
 #include "sound_C_wrapper.h"
 #include "../common/cmath_ext.h"
 #include "../lang/i18n.h"
+#include <algorithm>
 
 int16_t WINDOW_CLS_FILE_LIST = 0;
 
@@ -104,7 +105,7 @@ void window_file_list_draw(window_file_list_t *window) {
 
     int visible_slots = rc_win.h / item_height;
     int ldv_visible_files = LDV_VisibleFilesCount(window->ldv);
-    int maxi = MIN(MIN(visible_slots, ldv_visible_files), window->count);
+    int maxi = std::max(std::min(visible_slots, ldv_visible_files), window->count);
 
     int i;
     for (i = 0; i < maxi; i++) {
