@@ -1,10 +1,6 @@
 #pragma once
 #include "gui.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 typedef enum {
     PRINT_PREVIEW_ACTION_BACK,
     PRINT_PREVIEW_ACTION_PRINT,
@@ -19,7 +15,3 @@ void screen_print_preview_set_on_action(print_preview_action_handler_t handler);
 void screen_print_preview_set_gcode_filepath(const char *fpath);
 const char *screen_print_preview_get_gcode_filepath();
 void screen_print_preview_set_gcode_filename(const char *fname);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus

@@ -5,8 +5,7 @@
  *      Author: mcbig
  */
 
-#ifndef WINDOW_HEADER_H_
-#define WINDOW_HEADER_H_
+#pragma once
 
 #include "gui.h"
 #include "marlin_events.h"
@@ -45,10 +44,6 @@ typedef struct _window_header_t {
     // char time[10];
 } window_header_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern int16_t WINDOW_CLS_HEADER;
 
 extern const window_class_header_t window_class_header;
@@ -68,9 +63,3 @@ int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id);
     p_window_header_event_clr(window, MARLIN_EVT_MediaInserted); \
     p_window_header_event_clr(window, MARLIN_EVT_MediaRemoved);  \
     p_window_header_event_clr(window, MARLIN_EVT_MediaError);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif /* WINDOW_HEADER_H_ */

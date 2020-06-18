@@ -1,8 +1,6 @@
 // window_graph_y.h
 
-#ifndef _WINDOW_GRAPH_Y_H
-#define _WINDOW_GRAPH_Y_H
-
+#pragma once
 #include "window.h"
 
 #define WINDOW_FLG_GRAPH_INVALID (WINDOW_FLG_USER << 0)
@@ -32,14 +30,4 @@ typedef struct _window_class_temp_graph_t {
     window_class_t cls;
 } window_class_temp_graph_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_temp_graph_t window_class_temp_graph;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_GRAPH_Y_H

@@ -5,8 +5,7 @@
  *      Author: mcbig
  */
 
-#ifndef API_WINDOW_FILE_LIST_H_
-#define API_WINDOW_FILE_LIST_H_
+#pragma once
 
 #include "window.h"
 #include "ff.h"
@@ -42,10 +41,6 @@ typedef enum {
 
 } WF_Sort_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern int16_t WINDOW_CLS_FILE_LIST;
 
 extern const window_class_file_list_t window_class_file_list;
@@ -60,9 +55,3 @@ extern const char *window_file_current_SFN(window_file_list_t *window, bool *isF
 
 /// @return true if path is either empty or contains just a "/"
 extern bool window_file_list_path_is_root(const char *path);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif /* API_WINDOW_FILE_LIST_H_ */
