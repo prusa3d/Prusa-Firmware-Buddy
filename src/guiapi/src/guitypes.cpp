@@ -1,13 +1,13 @@
 //gui.c
 
 #include "guitypes.h"
-#include "cmath_ext.h"
+#include <algorithm>
 
 //intersection of positive intervals p0-p1 and p2-p3, result is stored in p4-p5
 //condition (not checked): (p1 >= p0) && (p3 >= p2)
 void interval_intersect_ui16(uint16_t *p) {
-    p[4] = MAX(p[0], p[2]);
-    p[5] = MIN(p[1], p[3]);
+    p[4] = std::max(p[0], p[2]);
+    p[5] = std::min(p[1], p[3]);
 
     if (p[4] < p[5])
         return;
@@ -20,30 +20,30 @@ rect_ui16_t rect_intersect_ui16(rect_ui16_t rc1, rect_ui16_t rc2) {
         return rc_ret;
     }
 
-    uint16_t x[6] = { rc1.x, rc1.x + rc1.w, rc2.x, rc2.x + rc2.w, 0, 0 };
-    uint16_t y[6] = { rc1.y, rc1.y + rc1.h, rc2.y, rc2.y + rc2.h, 0, 0 };
+    uint16_t x[6] = { rc1.x, uint16_t(rc1.x + rc1.w), rc2.x, uint16_t(rc2.x + rc2.w), 0, 0 };
+    uint16_t y[6] = { rc1.y, uint16_t(rc1.y + rc1.h), rc2.y, uint16_t(rc2.y + rc2.h), 0, 0 };
     interval_intersect_ui16(x);
     interval_intersect_ui16(y);
-    const rect_ui16_t rc_ret = { x[4], y[4], x[5] - x[4], y[5] - y[4] };
+    const rect_ui16_t rc_ret = { x[4], y[4], uint16_t(x[5] - x[4]), uint16_t(y[5] - y[4]) };
     return rc_ret;
 }
 
 rect_ui16_t rect_ui16_add_padding_ui8(rect_ui16_t rc, padding_ui8_t pad) {
     const rect_ui16_t rect = {
-        MAX(0, rc.x - pad.left),
-        MAX(0, rc.y - pad.top),
-        rc.w + pad.left + pad.right,
-        rc.h + pad.top + pad.bottom
+        uint16_t(std::max(0, int(rc.x - pad.left))),
+        uint16_t(std::max(0, int(rc.y - pad.top))),
+        uint16_t(rc.w + pad.left + pad.right),
+        uint16_t(rc.h + pad.top + pad.bottom)
     };
     return rect;
 }
 
 rect_ui16_t rect_ui16_sub_padding_ui8(rect_ui16_t rc, padding_ui8_t pad) {
     const rect_ui16_t rect = {
-        rc.x + pad.left,
-        rc.y + pad.top,
-        MAX(0, rc.w - pad.left - pad.right),
-        MAX(0, rc.h - pad.top - pad.bottom)
+        uint16_t(rc.x + pad.left),
+        uint16_t(rc.y + pad.top),
+        uint16_t(std::max(0, int(rc.w - pad.left - pad.right))),
+        uint16_t(std::max(0, int(rc.h - pad.top - pad.bottom)))
     };
     return rect;
 }
@@ -61,7 +61,7 @@ rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align) {
         if (rc.w >= rc1.w)
             rect.x = rc.x + (rc.w - rc1.w) / 2;
         else
-            rect.x = MAX(0, rc.x - (rc1.w - rc.w) / 2);
+            rect.x = std::max(0, rc.x - (rc1.w - rc.w) / 2);
         break;
     }
 
@@ -71,7 +71,7 @@ rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align) {
         break;
     case ALIGN_BOTTOM:
         rect.y = ((rc.y + rc.h) > rc1.h) ? ((rc.y + rc.h) - rc1.h) : 0;
-        rect.y = MAX(0, (rc.y + rc.h) - rc1.h);
+        rect.y = std::max(0, (rc.y + rc.h) - rc1.h);
         break;
     case ALIGN_VCENTER:
         if (rc.h >= rc1.h)
@@ -102,14 +102,14 @@ point_ui16_t font_meas_text(const font_t *pf, const char *str) {
             x += char_w;
         h = y + char_h;
     }
-    return point_ui16((uint16_t)MAX(x, w), (uint16_t)h);
+    return point_ui16((uint16_t)std::max(x, w), (uint16_t)h);
 }
 
 int font_line_chars(const font_t *pf, const char *str, uint16_t line_width) {
     int w = 0;
     const int char_w = pf->w;
     size_t len = strlen(str);
-    int n = 0;
+    size_t n = 0;
     // This is generally about finding the closest '\n' character within the current line to be drawn.
     // Line is limited by pixel dimension, all characters have the same fixed pixel size
     // Such character may not be found, so n becomes > len
@@ -131,7 +131,7 @@ int font_line_chars(const font_t *pf, const char *str, uint16_t line_width) {
 
     if (n == 0)
         n = line_width / char_w;
-    return MIN(n, len);
+    return std::min(n, len);
 }
 
 uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, const font_t *pf) {

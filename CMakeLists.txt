@@ -565,7 +565,7 @@ if(GUI)
             src/guiapi/src/display.c
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.c
-            src/guiapi/src/guitypes.c
+            src/guiapi/src/guitypes.cpp
             src/guiapi/src/window_progress.c
             src/guiapi/src/window_frame.c
             src/guiapi/src/gui_timer.c
