@@ -561,14 +561,14 @@ if(GUI)
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/wizard/Marlin_PID_wrapper.cpp
-            src/guiapi/src/button_draw.c
-            src/guiapi/src/display.c
+            src/guiapi/src/button_draw.cpp
+            src/guiapi/src/display.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.c
             src/guiapi/src/guitypes.cpp
             src/guiapi/src/window_progress.c
             src/guiapi/src/window_frame.c
-            src/guiapi/src/gui_timer.c
+            src/guiapi/src/gui_timer.cpp
             src/guiapi/src/display_helper.cpp
             src/guiapi/src/window_menu.cpp
             src/guiapi/src/screen.cpp
