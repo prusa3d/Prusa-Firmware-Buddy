@@ -505,7 +505,7 @@ if(GUI)
             src/gui/dialogs/DialogStateful.cpp
             src/gui/dialogs/DialogRadioButton.cpp
             src/gui/dialogs/DialogLoadUnload.cpp
-            src/gui/dialogs/window_dlg_load_unload.c
+            src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.c
             src/gui/dialogs/window_dlg_popup.c
             src/gui/dialogs/window_dlg_preheat.c
