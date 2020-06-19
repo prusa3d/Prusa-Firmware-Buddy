@@ -29,36 +29,6 @@
 #define HWIO_ERR_UNDEF_ANA_RD 0x07
 #define HWIO_ERR_UNDEF_ANA_WR 0x08
 
-// a3ides digital input pins
-const uint32_t _di_pin32[] = {
-    PIN_Z_MIN,   // PA8
-    PIN_E_DIAG,  // PA15
-    PIN_Y_DIAG,  // PE1
-    PIN_X_DIAG,  // PE2
-    PIN_Z_DIAG,  // PE3
-    PIN_BTN_ENC, // PE12
-    PIN_BTN_EN1, // PE13
-    PIN_BTN_EN2, // PE15
-};
-#define _DI_CNT (sizeof(_di_pin32) / sizeof(uint32_t))
-
-// a3ides digital output pins
-const uint32_t _do_pin32[] = {
-    PIN_X_DIR,
-    PIN_X_STEP,
-    PIN_Z_ENABLE,
-    PIN_X_ENABLE,
-    PIN_Z_STEP,
-    PIN_E_DIR,
-    PIN_E_STEP,
-    PIN_E_ENABLE,
-    PIN_Y_DIR,
-    PIN_Y_STEP,
-    PIN_Y_ENABLE,
-    PIN_Z_DIR,
-};
-#define _DO_CNT (sizeof(_do_pin32) / sizeof(uint32_t))
-
 // a3ides analog input pins
 const uint32_t _adc_pin32[] = {
     PIN_HW_IDENTIFY,
@@ -176,52 +146,6 @@ void _hwio_pwm_set_val(int i_pwm, int val);
 uint32_t _pwm_get_chan(int i_pwm);
 TIM_HandleTypeDef *_pwm_get_htim(int i_pwm);
 int is_pwm_id_valid(int i_pwm);
-
-//--------------------------------------
-//digital input functions
-
-int hwio_di_get_cnt(void) //number of digital inputs
-{ return _DI_CNT; }
-
-int hwio_di_get_val(int i_di) //read digital input state
-{
-    if ((i_di >= 0) && (i_di < _DI_CNT))
-        return gpio_get(_di_pin32[i_di]);
-    /*	{
-		uint32_t pin32 = ;
-		GPIO_TypeDef* gpio = (GPIO_TypeDef*)_gpio[pin32 >> 4];
-		uint16_t msk = (1 << (pin32 & 0x0f));
-		return HAL_GPIO_ReadPin(gpio, msk)?1:0;
-	}*/
-    //else //TODO: check
-    return 0;
-}
-
-//--------------------------------------
-//digital output functions
-
-int hwio_do_get_cnt(void) //number of digital outputs
-{ return _DO_CNT; }
-
-int hwio_do_get_val(int i_do) //read digital output state
-{
-    if ((i_do >= 0) && (i_do < _DO_CNT))
-        return gpio_get(_do_pin32[i_do]);
-    return INT32_MAX; // undefined state
-}
-
-void hwio_do_set_val(int i_do, int val) //set digital output state
-{
-    if ((i_do >= 0) && (i_do < _DO_CNT))
-        gpio_set(_do_pin32[i_do], val);
-    /*	{
-		uint32_t pin32 = _do_pin32[i_do];
-		GPIO_TypeDef* gpio = (GPIO_TypeDef*)_gpio[pin32 >> 4];
-		uint16_t msk = (1 << (pin32 & 0x0f));
-		HAL_GPIO_WritePin(gpio, msk, val?GPIO_PIN_SET:GPIO_PIN_RESET);
-	}*/
-    //else //TODO: check
-}
 
 //--------------------------------------
 //analog input functions
@@ -612,7 +536,7 @@ void hwio_arduino_error(int err, uint32_t pin32) {
 //--------------------------------------
 // Arduino digital/analog wrapper functions
 
-int hwio_arduino_digitalRead(uint32_t ulPin) {
+int digitalRead(uint32_t ulPin) {
     if (HAL_GPIO_Initialized) {
         switch (ulPin) {
 #ifdef SIM_MOTION
@@ -628,24 +552,17 @@ int hwio_arduino_digitalRead(uint32_t ulPin) {
             return sim_motion_get_diag(2);
 #else  //SIM_MOTION
         case PIN_Z_MIN:
-            return hwio_di_get_val(_DI_Z_MIN);
         case PIN_E_DIAG:
-            return hwio_di_get_val(_DI_E_DIAG);
         case PIN_Y_DIAG:
-            return hwio_di_get_val(_DI_Y_DIAG);
         case PIN_X_DIAG:
-            return hwio_di_get_val(_DI_X_DIAG);
         case PIN_Z_DIAG:
-            return hwio_di_get_val(_DI_Z_DIAG);
+        case PIN_Z_DIR:
+            return gpio_get(ulPin);
 #endif //SIM_MOTION
         case PIN_BTN_ENC:
-            return hwio_di_get_val(_DI_BTN_ENC) || !hwio_jogwheel_enabled;
         case PIN_BTN_EN1:
-            return hwio_di_get_val(_DI_BTN_EN1) || !hwio_jogwheel_enabled;
         case PIN_BTN_EN2:
-            return hwio_di_get_val(_DI_BTN_EN2) || !hwio_jogwheel_enabled;
-        case PIN_Z_DIR:
-            return hwio_do_get_val(_DO_Z_DIR);
+            return gpio_get(ulPin) || !hwio_jogwheel_enabled;
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_DIG_RD, ulPin); //error: undefined pin digital read
         }
@@ -654,7 +571,7 @@ int hwio_arduino_digitalRead(uint32_t ulPin) {
     return 0;
 }
 
-void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal) {
+void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
     if (HAL_GPIO_Initialized) {
         switch (ulPin) {
         case PIN_BEEPER:
@@ -724,40 +641,18 @@ void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal) {
             return;
 #else  //SIM_MOTION
         case PIN_X_DIR:
-            hwio_do_set_val(_DO_X_DIR, ulVal ? 1 : 0);
-            return;
         case PIN_X_STEP:
-            hwio_do_set_val(_DO_X_STEP, ulVal ? 1 : 0);
-            return;
         case PIN_Z_ENABLE:
-            hwio_do_set_val(_DO_Z_ENABLE, ulVal ? 1 : 0);
-            return;
         case PIN_X_ENABLE:
-            hwio_do_set_val(_DO_X_ENABLE, ulVal ? 1 : 0);
-            return;
         case PIN_Z_STEP:
-            hwio_do_set_val(_DO_Z_STEP, ulVal ? 1 : 0);
-            return;
         case PIN_E_DIR:
-            hwio_do_set_val(_DO_E_DIR, ulVal ? 1 : 0);
-            return;
         case PIN_E_STEP:
-            hwio_do_set_val(_DO_E_STEP, ulVal ? 1 : 0);
-            return;
         case PIN_E_ENABLE:
-            hwio_do_set_val(_DO_E_ENABLE, ulVal ? 1 : 0);
-            return;
         case PIN_Y_DIR:
-            hwio_do_set_val(_DO_Y_DIR, ulVal ? 1 : 0);
-            return;
         case PIN_Y_STEP:
-            hwio_do_set_val(_DO_Y_STEP, ulVal ? 1 : 0);
-            return;
         case PIN_Y_ENABLE:
-            hwio_do_set_val(_DO_Y_ENABLE, ulVal ? 1 : 0);
-            return;
         case PIN_Z_DIR:
-            hwio_do_set_val(_DO_Z_DIR, ulVal ? 1 : 0);
+            gpio_set(ulPin, ulVal ? 1 : 0);
             return;
 #endif //SIM_MOTION
         default:
@@ -767,12 +662,12 @@ void hwio_arduino_digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         hwio_arduino_error(HWIO_ERR_UNINI_DIG_WR, ulPin); //error: uninitialized digital write
 }
 
-void hwio_arduino_digitalToggle(uint32_t ulPin) {
-    hwio_arduino_digitalWrite(ulPin, !hwio_arduino_digitalRead(ulPin));
+void digitalToggle(uint32_t ulPin) {
+    digitalWrite(ulPin, !digitalRead(ulPin));
     // TODO test me
 }
 
-uint32_t hwio_arduino_analogRead(uint32_t ulPin) {
+uint32_t analogRead(uint32_t ulPin) {
     if (HAL_ADC_Initialized) {
         switch (ulPin) {
         case PIN_TEMP_BED:
@@ -791,7 +686,7 @@ uint32_t hwio_arduino_analogRead(uint32_t ulPin) {
     return 0;
 }
 
-void hwio_arduino_analogWrite(uint32_t ulPin, uint32_t ulValue) {
+void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
         case PIN_FAN1:
@@ -815,6 +710,6 @@ void hwio_arduino_analogWrite(uint32_t ulPin, uint32_t ulValue) {
         hwio_arduino_error(HWIO_ERR_UNINI_ANA_WR, ulPin); //error: uninitialized analog write
 }
 
-void hwio_arduino_pinMode(uint32_t ulPin, uint32_t ulMode) {
+void pinMode(uint32_t ulPin, uint32_t ulMode) {
     // not supported, all pins are configured with Cube
 }
