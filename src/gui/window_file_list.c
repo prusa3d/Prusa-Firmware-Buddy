@@ -25,10 +25,22 @@ bool window_file_list_path_is_root(const char *path) {
     return (path[0] == 0 || strcmp(path, "/") == 0);
 }
 
+/// First part of common setup/init of text rolling
+/// This is called in window_file_list_inc and window_file_list_inc when the selected item changes
+/// - that sometimes means the cursor stays on top or bottom and the whole window content moves
+void window_file_list_init_text_roll(window_file_list_t *window) {
+    window->roll.setup = TXTROLL_SETUP_INIT;
+    window->roll.phase = ROLL_SETUP;
+    gui_timer_restart_txtroll(window->win.id);
+    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+}
+
 void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
     if (!LDV_ChangeDir(window->ldv, sort == WF_SORT_BY_NAME, window->sfn_path, topSFN)) {
         _dbg("LDV_ChangeDir error");
     }
+
+    window_file_list_init_text_roll(window);
 
     window->count = LDV_TotalFilesCount(window->ldv);
 
@@ -207,16 +219,6 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
         roll_text_phasing(window->win.id, window->font, &window->roll);
         break;
     }
-}
-
-/// First part of common setup/init of text rolling
-/// This is called in window_file_list_inc and window_file_list_inc when the selected item changes
-/// - that sometimes means the cursor stays on top or bottom and the whole window content moves
-void window_file_list_init_text_roll(window_file_list_t *window) {
-    window->roll.setup = TXTROLL_SETUP_INIT;
-    window->roll.phase = ROLL_SETUP;
-    gui_timer_restart_txtroll(window->win.id);
-    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
 }
 
 void window_file_list_inc(window_file_list_t *window, int dif) {
