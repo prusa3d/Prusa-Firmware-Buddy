@@ -87,12 +87,12 @@ public:
         return header_label;
     }
     virtual void Do() override {
-        gui_dlg_unload();
+        if (gui_dlg_unload() == DLG_OK) {
+            //opens unload dialog if it is not already openned
+            DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));
 
-        //opens unload dialog if it is not already openned
-        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));
-
-        gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+            gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        }
     }
 };
 
