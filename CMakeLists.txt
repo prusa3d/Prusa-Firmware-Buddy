@@ -511,7 +511,6 @@ if(GUI)
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
             src/gui/window_file_list.cpp
-            src/gui/lazyfilelist-c-api.cpp
             src/gui/window_temp_graph.cpp
             src/gui/screen_menu_settings.cpp
             src/gui/window_header.cpp

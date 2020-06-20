@@ -13,6 +13,13 @@
 #include "file_list_defs.h"
 #include "display_helper.h"
 #include "../common/marlin_vars.h" // for FILE_PATH_MAX_LEN
+#include "lazyfilelist.h"
+using LDV9 = LazyDirView<9>;
+
+inline LDV9 *LDV_Get(void) {
+    static LDV9 ldv;
+    return &ldv;
+}
 
 typedef struct _window_file_list_t window_file_list_t;
 
@@ -29,7 +36,7 @@ typedef struct _window_file_list_t {
     txtroll_t roll;
     int count;                        // total number of files/entries in a dir
     int index;                        // selected index - cursor position within the visible items
-    void *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
+    LDV9 *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
     char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
     uint8_t alignment;
 } window_file_list_t;

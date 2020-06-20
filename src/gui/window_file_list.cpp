@@ -11,7 +11,6 @@
 #include "config.h"
 #include "fatfs.h"
 #include "dbg.h"
-#include "lazyfilelist-c-api.h"
 #include "sound_C_wrapper.h"
 #include "../lang/i18n.h"
 #include <algorithm>
@@ -26,13 +25,9 @@ bool window_file_list_path_is_root(const char *path) {
 }
 
 void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
-    if (!LDV_ChangeDir(window->ldv, sort == WF_SORT_BY_NAME, window->sfn_path, topSFN)) {
-        _dbg("LDV_ChangeDir error");
-    }
+    window->ldv->ChangeDirectory(window->sfn_path, LDV9::SortPolicy::BY_NAME, topSFN);
+    window->count = window->ldv->TotalFilesCount();
 
-    window->count = LDV_TotalFilesCount(window->ldv);
-
-    bool tmp;
     if (!topSFN) {
         // we didn't get any requirements about the top item
         window->index = window->count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
@@ -41,12 +36,12 @@ void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const cha
             window->index = 1;
         } else {
             // try to find the sfn to be highlighted
-            for (window->index = 0; uint32_t(window->index) < LDV_VisibleFilesCount(window->ldv); ++window->index) {
-                if (!strcmp(sfnAtCursor, LDV_ShortFileNameAt(window->ldv, window->index, &tmp))) {
+            for (window->index = 0; uint32_t(window->index) < window->ldv->VisibleFilesCount(); ++window->index) {
+                if (!strcmp(sfnAtCursor, window->ldv->ShortFileNameAt(window->index).first)) {
                     break;
                 }
             }
-            if (window->index == int(LDV_VisibleFilesCount(window->ldv))) {
+            if (window->index == int(window->ldv->VisibleFilesCount())) {
                 window->index = window->count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
             }
         }
@@ -62,16 +57,19 @@ void window_file_set_item_index(window_file_list_t *window, int index) {
 }
 
 const char *window_file_current_LFN(window_file_list_t *window, bool *isFile) {
-    return LDV_LongFileNameAt(window->ldv, window->index, isFile);
+    auto i = window->ldv->LongFileNameAt(window->index);
+    *isFile = i.second == LDV9::EntryType::FILE;
+    return i.first;
 }
 
 const char *window_file_current_SFN(window_file_list_t *window, bool *isFile) {
-    return LDV_ShortFileNameAt(window->ldv, window->index, isFile);
+    auto i = window->ldv->ShortFileNameAt(window->index);
+    *isFile = i.second == LDV9::EntryType::FILE;
+    return i.first;
 }
 
 const char *window_file_list_top_item_SFN(window_file_list_t *window) {
-    bool tmp;
-    return LDV_ShortFileNameAt(window->ldv, 0, &tmp);
+    return window->ldv->ShortFileNameAt(0).first;
 }
 
 void window_file_list_init(window_file_list_t *window) {
@@ -103,14 +101,15 @@ void window_file_list_draw(window_file_list_t *window) {
     rect_ui16_t rc_win = window->win.rect;
 
     int visible_slots = rc_win.h / item_height;
-    int ldv_visible_files = LDV_VisibleFilesCount(window->ldv);
+    int ldv_visible_files = window->ldv->VisibleFilesCount();
     int maxi = std::min(std::min(visible_slots, ldv_visible_files), window->count);
 
     int i;
     for (i = 0; i < maxi; i++) {
         bool isFile = true;
-        const char *item = LDV_LongFileNameAt(window->ldv, i, &isFile);
-        if (!item) {
+        auto item = window->ldv->LongFileNameAt(i);
+        isFile = item.second == LDV9::EntryType::FILE;
+        if (!item.first) {
             // this should normally not happen, visible_count shall limit indices to valid items only
             continue; // ... but getting ready for the unexpected
         }
@@ -118,10 +117,10 @@ void window_file_list_draw(window_file_list_t *window) {
 
         // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
         // and will get a nice house-like icon
-        static const char home[] = N_("Home");                                                      // @@TODO reuse from elsewhere ...
-        if (i == 0 && strcmp(item, "..") == 0 && window_file_list_path_is_root(window->sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
+        static const char home[] = N_("Home");                                                            // @@TODO reuse from elsewhere ...
+        if (i == 0 && strcmp(item.first, "..") == 0 && window_file_list_path_is_root(window->sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
             id_icon = IDR_PNG_filescreen_icon_home;
-            item = _(home);
+            item.first = _(home);
         }
 
         color_t color_text = window->color_text;
@@ -154,11 +153,11 @@ void window_file_list_draw(window_file_list_t *window) {
                     // stays at one place (top or bottom), but the whole window list moves up/down.
                     // Calling roll_init must be done here because of the rect.
                     // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
-                    roll_init(rc, item, window->font, padding, window->alignment, &window->roll);
+                    roll_init(rc, item.first, window->font, padding, window->alignment, &window->roll);
                 }
 
                 render_roll_text_align(rc,
-                    item,
+                    item.first,
                     window->font,
                     padding,
                     window->alignment,
@@ -167,7 +166,7 @@ void window_file_list_draw(window_file_list_t *window) {
                     &window->roll);
 
             } else {
-                render_text_align(rc, item, window->font,
+                render_text_align(rc, item.first, window->font,
                     color_back, color_text,
                     padding, window->alignment);
             }
@@ -221,14 +220,14 @@ void window_file_list_init_text_roll(window_file_list_t *window) {
 
 void window_file_list_inc(window_file_list_t *window, int dif) {
     bool repaint = false;
-    if (window->index >= int(LDV_WindowSize(window->ldv) - 1)) {
-        repaint = LDV_MoveDown(window->ldv);
+    if (window->index >= int(window->ldv->WindowSize() - 1)) {
+        repaint = window->ldv->MoveDown();
         if (!repaint) {
             Sound_Play(eSOUND_TYPE_BlindAlert);
         }
     } else {
         // this 'if' solves a situation with less files than slots on the screen
-        if (window->index < int(LDV_TotalFilesCount(window->ldv) - 1)) {
+        if (window->index < int(window->ldv->TotalFilesCount() - 1)) {
             window->index += 1; // @@TODO dif > 1 pokud bude potreba;
             repaint = true;
         } else {
@@ -247,7 +246,7 @@ void window_file_list_dec(window_file_list_t *window, int dif) {
     bool repaint = false;
     if (window->index == 0) {
         // at the beginning of the window
-        repaint = LDV_MoveUp(window->ldv);
+        repaint = window->ldv->MoveUp();
         if (!repaint) {
             Sound_Play(eSOUND_TYPE_BlindAlert);
         }
