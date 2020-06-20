@@ -9,7 +9,6 @@
 #include "selftest.h"
 #include "wizard_ui.h"
 #include "filament.h"
-#include "menu_vars.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
 #include "screens.h"
