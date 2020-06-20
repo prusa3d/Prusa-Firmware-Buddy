@@ -498,7 +498,6 @@ if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
-            src/gui/dialogs/Dialog_C_wrapper.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
@@ -560,7 +559,6 @@ if(GUI)
             src/gui/screen_menu_fw_update.cpp
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
-            src/gui/wizard/Marlin_PID_wrapper.cpp
             src/guiapi/src/button_draw.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp

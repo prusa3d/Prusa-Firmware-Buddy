@@ -8,7 +8,6 @@
 #include "wizard_config.h"
 #include "selftest.h"
 #include "wizard_ui.h"
-#include "Marlin_PID_wrapper.h"
 #include "filament.h"
 #include "menu_vars.h"
 #include "eeprom.h"

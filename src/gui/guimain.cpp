@@ -19,10 +19,10 @@
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
-#include "Dialog_C_wrapper.h"
 #include "screens.h"
 #include "screen_close_multiple.h"
 #include "sound_C_wrapper.h"
+#include "DialogHandler.hpp"
 #include "../lang/i18n.h"
 
 extern int HAL_IWDG_Reset;
@@ -99,7 +99,10 @@ extern "C" void gui_run(void) {
 
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
-    register_dialog_callbacks();
+    DialogHandler::Access(); //to create class NOW, not at first call of one of callback
+    marlin_client_set_fsm_create_cb(DialogHandler::Open);
+    marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
+    marlin_client_set_fsm_change_cb(DialogHandler::Change);
     Sound_Play(eSOUND_TYPE_Start);
 
     screen_register(get_scr_splash());
