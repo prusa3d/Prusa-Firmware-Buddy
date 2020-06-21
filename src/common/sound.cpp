@@ -9,12 +9,12 @@ const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volu
 
 const eSOUND_TYPE Sound::onceTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
 const eSOUND_TYPE Sound::loudTypes[6] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
-const eSOUND_TYPE Sound::silentTypes[4] = { eSOUND_TYPE_Start, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
+const eSOUND_TYPE Sound::silentTypes[3] = { eSOUND_TYPE_Start, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
 const eSOUND_TYPE Sound::assistTypes[8] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
 
 const int Sound::onceRepeats[5] = { 1, 1, 1, -1, 1 };
 const int Sound::loudRepeats[6] = { 1, 1, -1, 3, -1, 1 };
-const int Sound::silentRepeats[4] = { 1, 1, -1, 1 };
+const int Sound::silentRepeats[3] = { 1, 1, -1 };
 const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
 
 /*!
