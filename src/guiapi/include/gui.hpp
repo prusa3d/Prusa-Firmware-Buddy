@@ -43,7 +43,7 @@ extern void gui_reset_jogwheel(void);
     #include "window.hpp"
     #include "window_frame.hpp"
     #include "window_text.hpp"
-    #include "window_roll_text.h"
+    #include "window_roll_text.hpp"
     #include "window_numb.hpp"
     #include "window_icon.hpp"
     #include "window_list.hpp"

@@ -5,7 +5,7 @@
 *      Author: Migi - michal.rudolf<at>prusa3d.cz
 */
 
-#include "window_roll_text.h"
+#include "window_roll_text.hpp"
 #include "gui_timer.h"
 #include "gui.hpp"
 #include "stm32f4xx_hal.h"
@@ -21,34 +21,34 @@ void window_roll_text_init(window_roll_text_t *window) {
     window->roll.count = window->roll.px_cd = window->roll.progress = 0;
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;
-    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
 }
 
 void window_roll_text_draw(window_roll_text_t *window) {
 
-    if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
 
-        render_roll_text_align(window->win.rect,
+        render_roll_text_align(window->rect,
             window->text,
             window->font,
             window->padding,
             window->alignment,
-            (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back,
-            (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text,
+            (window->flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back,
+            (window->flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text,
             &window->roll);
 
-        window->win.flg &= ~WINDOW_FLG_INVALID;
+        window->flg &= ~WINDOW_FLG_INVALID;
     }
 }
 
 void window_roll_text_event(window_roll_text_t *window, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_TIMER) {
-        roll_text_phasing(window->win.id, window->font, &window->roll);
+        roll_text_phasing(window->id, window->font, &window->roll);
     }
 }
 
 void window_roll_text_done(window_roll_text_t *window) {
-    gui_timers_delete_by_window_id(window->win.id);
+    gui_timers_delete_by_window_id(window->id);
 }
 
 const window_class_roll_text_t window_class_roll_text = {
