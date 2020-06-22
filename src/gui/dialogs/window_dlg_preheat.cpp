@@ -124,7 +124,7 @@ FILAMENT_t gui_dlg_preheat(const char *caption) {
         window_list_filament_item_cb,
         window_dlg_preheat_click_cb,
         _PREHEAT_FILAMENT_CNT + 1, //+1 back option
-        30000);
+        -1);
     if (ret < 0)
         return FILAMENT_NONE; //timeout
     return (FILAMENT_t)ret;   //RETURN option will return FILAMENT_NONE
