@@ -14,7 +14,7 @@
 #ifdef _DEBUG
     #include "window_dlg_popup.hpp"
 #endif //_DEBUG
-#include "window_dlg_preheat.h"
+#include "window_dlg_preheat.hpp"
 #include "screen_print_preview.h"
 
 #include "screen_lan_settings.h"

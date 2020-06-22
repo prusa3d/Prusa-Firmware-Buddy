@@ -5,7 +5,7 @@
  *      Author: Vana Radek
  */
 
-#include "window_dlg_preheat.h"
+#include "window_dlg_preheat.hpp"
 #include "display_helper.h"
 #include "gui.hpp"
 #include "dbg.h"
@@ -60,7 +60,7 @@ void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
 void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     //inherit from frame
     window_class_frame.cls.init(window);
-    window->win.flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_INVALID;
+    window->flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_INVALID;
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -71,14 +71,14 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     rect_ui16_t rect = gui_defaults.scr_body_sz;
     if (window->caption) {
         rect.h = window->font_title->h + 2;
-        id = window_create_ptr(WINDOW_CLS_TEXT, window->win.id, rect, &(window->text));
+        id = window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
         window_set_text(id, window->caption);
         rect = gui_defaults.scr_body_sz;
         rect.y += window->font_title->h + 4;
         rect.h -= window->font_title->h + 4;
     }
 
-    id = window_create_ptr(WINDOW_CLS_LIST, window->win.id, rect, &(window->list));
+    id = window_create_ptr(WINDOW_CLS_LIST, window->id, rect, &(window->list));
     window->list.padding = padding_ui8(20, 6, 2, 6);
     window->list.icon_rect = rect_ui16(0, 0, 16, 30);
 
