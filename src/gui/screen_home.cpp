@@ -125,7 +125,7 @@ void screen_home_done(screen_t *screen) {
 }
 
 void screen_home_draw(screen_t *screen) {
-    if (pw->logo.win.f_invalid)
+    if (pw->logo.f_invalid)
         pw->logo_invalid = 1;
 }
 
@@ -253,14 +253,14 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 }
 
 void screen_home_disable_print_button(screen_t *screen, int disable) {
-    pw->w_buttons[0].win.f_disabled = disable;
-    pw->w_buttons[0].win.f_enabled = !disable; // cant't be focused
-    pw->w_buttons[0].win.f_invalid = 1;
+    pw->w_buttons[0].f_disabled = disable;
+    pw->w_buttons[0].f_enabled = !disable; // cant't be focused
+    pw->w_buttons[0].f_invalid = 1;
     window_set_text(pw->w_labels[0].win.id, labels[(disable ? 6 : 0)]);
 
     // move to preheat when Print is focused
-    if (window_is_focused(pw->w_buttons[0].win.id) && disable) {
-        window_set_focus(pw->w_buttons[1].win.id);
+    if (window_is_focused(pw->w_buttons[0].id) && disable) {
+        window_set_focus(pw->w_buttons[1].id);
     }
 }
 

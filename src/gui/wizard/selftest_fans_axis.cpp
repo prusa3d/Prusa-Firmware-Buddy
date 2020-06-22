@@ -93,7 +93,7 @@ int wizard_selftest_fan0(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
         marlin_start_processing();
     }
     window_set_value(p_screen->progress_fan.win.id, (float)progress / 2);
-    wizard_update_test_icon(p_screen->icon_extruder_fan.win.id, p_data->state_fan0);
+    wizard_update_test_icon(p_screen->icon_extruder_fan.id, p_data->state_fan0);
     return progress;
 }
 
@@ -112,7 +112,7 @@ int wizard_selftest_fan1(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
         marlin_start_processing();
     }
     window_set_value(p_screen->progress_fan.win.id, 50.0F + (float)progress / 2);
-    wizard_update_test_icon(p_screen->icon_print_fan.win.id, p_data->state_fan1);
+    wizard_update_test_icon(p_screen->icon_print_fan.id, p_data->state_fan1);
     return progress;
 }
 
@@ -354,7 +354,7 @@ int wizard_selftest_x(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
         _SELFTEST_X_FR, _SELFTEST_X_MIN, _SELFTEST_X_MAX, 1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_X_TIME, &(p_data->state_x), _WIZ_TIMER);
     window_set_value(p_screen->progress_axis.win.id, (float)progress / 3);
-    wizard_update_test_icon(p_screen->icon_x_axis.win.id, p_data->state_x);
+    wizard_update_test_icon(p_screen->icon_x_axis.id, p_data->state_x);
     return progress;
 }
 
@@ -365,7 +365,7 @@ int wizard_selftest_y(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
         _SELFTEST_Y_FR, _SELFTEST_Y_MIN, _SELFTEST_Y_MAX, -1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_Y_TIME, &(p_data->state_y), _WIZ_TIMER);
     window_set_value(p_screen->progress_axis.win.id, 33.3F + (float)progress / 3);
-    wizard_update_test_icon(p_screen->icon_y_axis.win.id, p_data->state_y);
+    wizard_update_test_icon(p_screen->icon_y_axis.id, p_data->state_y);
     return progress;
 }
 
@@ -376,6 +376,6 @@ int wizard_selftest_z(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
         _SELFTEST_Z_FR, _SELFTEST_Z_MIN, _SELFTEST_Z_MAX, 1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_Z_TIME, &(p_data->state_z), _WIZ_TIMER);
     window_set_value(p_screen->progress_axis.win.id, 66.6F + (float)progress / 3);
-    wizard_update_test_icon(p_screen->icon_z_axis.win.id, p_data->state_z);
+    wizard_update_test_icon(p_screen->icon_z_axis.id, p_data->state_z);
     return progress;
 }

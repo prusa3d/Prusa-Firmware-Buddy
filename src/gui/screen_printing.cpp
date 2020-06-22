@@ -356,7 +356,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
     int pi = reinterpret_cast<int>(param) - 1;
     // -- pressed button is disabled - dont propagate event further
-    if (pw->w_buttons[pi].win.f_disabled) {
+    if (pw->w_buttons[pi].f_disabled) {
         return 0;
     }
 
@@ -414,22 +414,22 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
 static void disable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
-    p_button->win.f_disabled = 1;
-    p_button->win.f_enabled = 0; // can't be focused
+    p_button->f_disabled = 1;
+    p_button->f_enabled = 0; // can't be focused
 
     // move to reprint when tune is focused
-    if (window_is_focused(p_button->win.id)) {
-        window_set_focus(pw->w_buttons[static_cast<size_t>(Btn::Pause)].win.id);
+    if (window_is_focused(p_button->id)) {
+        window_set_focus(pw->w_buttons[static_cast<size_t>(Btn::Pause)].id);
     }
-    window_invalidate(p_button->win.id);
+    window_invalidate(p_button->id);
 }
 
 static void enable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
 
-    p_button->win.f_disabled = 0;
-    p_button->win.f_enabled = 1; // can be focused
-    window_invalidate(p_button->win.id);
+    p_button->f_disabled = 0;
+    p_button->f_enabled = 1; // can be focused
+    window_invalidate(p_button->id);
 }
 
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed) {
@@ -517,7 +517,7 @@ static void screen_printing_reprint(screen_t *screen) {
     window_set_text(pw->w_etime_label.win.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
     window_set_text(pw->w_labels[static_cast<size_t>(Btn::Stop)].win.id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
-    window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].win.id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
+    window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
@@ -552,22 +552,22 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
 }
 
 static void enable_button(window_icon_t *p_button) {
-    if (p_button->win.f_disabled) {
-        p_button->win.f_disabled = 0;
-        window_invalidate(p_button->win.id);
+    if (p_button->f_disabled) {
+        p_button->f_disabled = 0;
+        window_invalidate(p_button->id);
     }
 }
 
 static void disable_button(window_icon_t *p_button) {
-    if (!p_button->win.f_disabled) {
-        p_button->win.f_disabled = 1;
-        window_invalidate(p_button->win.id);
+    if (!p_button->f_disabled) {
+        p_button->f_disabled = 1;
+        window_invalidate(p_button->id);
     }
 }
 
 static void set_pause_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Pause)];
-    int16_t btn_id = p_button->win.id;
+    int16_t btn_id = p_button->id;
     int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Pause)].win.id;
 
     //todo it is static, because menu tune is not dialog
@@ -609,7 +609,7 @@ static void set_pause_icon_and_label(screen_t *screen) {
 
 void set_tune_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
-    int16_t btn_id = p_button->win.id;
+    int16_t btn_id = p_button->id;
     int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Tune)].win.id;
 
     //must be before switch
@@ -631,7 +631,7 @@ void set_tune_icon_and_label(screen_t *screen) {
 
 void set_stop_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Stop)];
-    int16_t btn_id = p_button->win.id;
+    int16_t btn_id = p_button->id;
     int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Stop)].win.id;
 
     switch (get_state(screen)) {

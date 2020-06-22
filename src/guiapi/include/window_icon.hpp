@@ -1,11 +1,10 @@
-// window_icon.h
+// window_icon.hpp
 
 #pragma once
 
 #include "window.hpp"
 
-typedef struct _window_icon_t {
-    window_t win;
+typedef struct _window_icon_t : public window_t {
     color_t color_back;
     uint16_t id_res;
     uint8_t alignment;
