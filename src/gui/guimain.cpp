@@ -8,7 +8,7 @@
 
 #include "window_file_list.hpp"
 #include "window_header.hpp"
-#include "window_temp_graph.h"
+#include "window_temp_graph.hpp"
 #include "DialogLoadUnload.h"
 #include "window_dlg_wait.h"
 #ifdef _DEBUG

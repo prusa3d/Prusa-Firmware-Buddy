@@ -2,7 +2,7 @@
 
 #include "gui.hpp"
 #include "config.h"
-#include "window_temp_graph.h"
+#include "window_temp_graph.hpp"
 #include "cmsis_os.h"
 #include <stdlib.h>
 #include "screens.h"
@@ -73,7 +73,7 @@ int screen_test_graph_event(screen_test_term_t *screen, window_t *window, uint8_
 
     if (event == WINDOW_EVENT_LOOP) {
         if (i == 5) {
-            screen->pd->graph.win.flg |= WINDOW_FLG_GRAPH_INVALID;
+            screen->pd->graph.flg |= WINDOW_FLG_GRAPH_INVALID;
             //osSignalSet(displayTaskHandle, SIG_DISP_REDRAW);
             gui_invalidate();
             i = 0;

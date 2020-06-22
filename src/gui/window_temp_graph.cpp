@@ -1,5 +1,5 @@
 // window_graph_y.c
-#include <window_temp_graph.h>
+#include <window_temp_graph.hpp>
 #include "display_helper.h"
 #include "gui.hpp"
 #include "marlin_client.h"
@@ -25,7 +25,7 @@ void window_temp_graph_init(window_temp_graph_t *window) {
         window->y_nozzle_t[i] = 179.0F;
     }
 
-    display::FillRect(window->win.rect, window->color_back);
+    display::FillRect(window->rect, window->color_back);
 }
 
 void redraw_point(uint16_t x, uint16_t y, uint8_t *data, color_t bg, color_t fg) {
@@ -39,13 +39,13 @@ void redraw_last_point(uint16_t x, uint16_t y0, uint16_t y1, color_t bg, color_t
 }
 
 void draw_axes(window_temp_graph_t *window, bool wipe_before_draw, bool xy_only) {
-    const uint16_t x = window->win.rect.x;
-    const uint16_t y = window->win.rect.y;
-    const uint16_t w = window->win.rect.w;
-    const uint16_t h = window->win.rect.h;
+    const uint16_t x = window->rect.x;
+    const uint16_t y = window->rect.y;
+    const uint16_t w = window->rect.w;
+    const uint16_t h = window->rect.h;
 
     if (wipe_before_draw)
-        display::FillRect(window->win.rect, window->color_back);
+        display::FillRect(window->rect, window->color_back);
     display::DrawLine(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE);             //y
     display::DrawLine(point_ui16(x, y + h - 1), point_ui16(x + w - 1, y + h - 1), COLOR_WHITE); //x
 
@@ -59,10 +59,10 @@ void draw_axes(window_temp_graph_t *window, bool wipe_before_draw, bool xy_only)
 }
 
 void window_temp_graph_draw(window_temp_graph_t *window) {
-    const bool redraw_graph = window->win.flg & WINDOW_FLG_GRAPH_INVALID;
-    if (!redraw_graph && window->win.flg & WINDOW_FLG_INVALID) {
+    const bool redraw_graph = window->flg & WINDOW_FLG_GRAPH_INVALID;
+    if (!redraw_graph && window->flg & WINDOW_FLG_INVALID) {
         draw_axes(window, true, false);
-        window->win.flg &= ~WINDOW_FLG_INVALID;
+        window->flg &= ~WINDOW_FLG_INVALID;
         return;
     }
 
@@ -82,8 +82,8 @@ void window_temp_graph_draw(window_temp_graph_t *window) {
         uint8_t ync = window->y_nozzle_c[0];
         uint8_t ybc = window->y_bed_c[0];
 
-        const uint16_t x = window->win.rect.x;
-        const uint16_t y = window->win.rect.y;
+        const uint16_t x = window->rect.x;
+        const uint16_t y = window->rect.y;
 
         for (i = 0; i < 178; i++) {
             redraw_point(x + i + 1, y, &window->y_nozzle_t[i], window->color_back, window->color_extruder_t);
@@ -113,7 +113,7 @@ void window_temp_graph_draw(window_temp_graph_t *window) {
         window->y_bed_c[i] = ybc;
 
         draw_axes(window, false, true); //hides 0 values
-        window->win.flg &= ~WINDOW_FLG_GRAPH_INVALID;
+        window->flg &= ~WINDOW_FLG_GRAPH_INVALID;
     }
 }
 
