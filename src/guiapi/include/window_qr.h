@@ -3,7 +3,7 @@
 #ifndef _WINDOW_QR_H
 #define _WINDOW_QR_H
 
-#include "window.h"
+#include "window.hpp"
 
 #include "qrcodegen.h"
 

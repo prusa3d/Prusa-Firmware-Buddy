@@ -1,7 +1,7 @@
 // selftest_temp.h
 #pragma once
 #include <inttypes.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 
 typedef struct

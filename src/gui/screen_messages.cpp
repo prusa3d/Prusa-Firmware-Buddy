@@ -5,7 +5,7 @@
  *      Author: Migi
  */
 
-#include "gui.h"
+#include "gui.hpp"
 #include "marlin_server.h"
 #include "window_header.h"
 #include "status_footer.h"

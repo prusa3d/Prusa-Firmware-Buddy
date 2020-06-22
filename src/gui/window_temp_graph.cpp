@@ -1,7 +1,7 @@
 // window_graph_y.c
 #include <window_temp_graph.h>
 #include "display_helper.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "marlin_client.h"
 #include <stdlib.h>
 

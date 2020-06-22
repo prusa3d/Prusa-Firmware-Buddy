@@ -1,6 +1,6 @@
 //screen_splash.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "version.h"
 #include "wizard/wizard.h"

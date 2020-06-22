@@ -1,6 +1,6 @@
 // window_spin.c
 #include "window_spin.h"
-#include "gui.h"
+#include "gui.hpp"
 
 extern osThreadId displayTaskHandle;
 

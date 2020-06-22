@@ -3,7 +3,7 @@
 #ifndef _WINDOW_TEXT_H
 #define _WINDOW_TEXT_H
 
-#include "window.h"
+#include "window.hpp"
 
 typedef struct _window_class_text_t {
     window_class_t cls;

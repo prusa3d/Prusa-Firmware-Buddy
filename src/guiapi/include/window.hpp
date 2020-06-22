@@ -1,6 +1,5 @@
-//window.h
-#ifndef _WINDOW_H
-#define _WINDOW_H
+//window.hpp
+#pragma once
 
 #include <inttypes.h>
 #include "guitypes.h"
@@ -252,5 +251,3 @@ static inline void _window_invalidate(window_t *window) {
     window->flg |= WINDOW_FLG_INVALID;
     gui_invalidate();
 }
-
-#endif //_WINDOW_H

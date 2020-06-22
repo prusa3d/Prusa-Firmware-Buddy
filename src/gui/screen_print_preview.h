@@ -1,5 +1,5 @@
 #pragma once
-#include "gui.h"
+#include "gui.hpp"
 
 typedef enum {
     PRINT_PREVIEW_ACTION_BACK,

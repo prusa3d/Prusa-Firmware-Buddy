@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include "stm32f4xx_hal.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "marlin_client.h"
 

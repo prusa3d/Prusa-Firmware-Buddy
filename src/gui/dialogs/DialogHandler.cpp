@@ -1,5 +1,5 @@
 #include "DialogHandler.hpp"
-#include "gui.h"
+#include "gui.hpp"
 #include "DialogLoadUnload.hpp"
 #include "DialogFactory.hpp"
 #include "screens.h"

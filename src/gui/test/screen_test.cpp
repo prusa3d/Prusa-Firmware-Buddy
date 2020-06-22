@@ -1,6 +1,6 @@
 // screen_test.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"

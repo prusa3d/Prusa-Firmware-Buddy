@@ -1,7 +1,7 @@
 // selftest.h
 #pragma once
 #include <inttypes.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 #include "selftest_cool.h"
 #include "selftest_temp.h"

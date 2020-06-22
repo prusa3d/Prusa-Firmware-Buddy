@@ -3,7 +3,7 @@
 #ifndef _WINDOW_LIST_H
 #define _WINDOW_LIST_H
 
-#include "window.h"
+#include "window.hpp"
 
 typedef struct _window_class_list_t {
     window_class_t cls;

@@ -1,6 +1,6 @@
 // screen_watchdog.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "screens.h"
 

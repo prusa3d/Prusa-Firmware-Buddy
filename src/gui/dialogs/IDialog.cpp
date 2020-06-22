@@ -1,5 +1,5 @@
 #include "IDialog.hpp"
-#include "gui.h"
+#include "gui.hpp"
 #include <stdint.h>
 
 static window_t winCreate(int16_t WINDOW_CLS_) {

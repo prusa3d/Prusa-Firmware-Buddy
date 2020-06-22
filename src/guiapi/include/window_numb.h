@@ -3,7 +3,7 @@
 #ifndef _WINDOW_NUMB_H
 #define _WINDOW_NUMB_H
 
-#include "window.h"
+#include "window.hpp"
 
 #define WINDOW_FLG_NUMB_FLOAT2INT (WINDOW_FLG_USER << 1)
 

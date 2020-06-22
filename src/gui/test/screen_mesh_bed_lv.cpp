@@ -5,7 +5,7 @@
  *      Author: Radek Vana
  */
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "status_footer.h"
 #include "math.h"

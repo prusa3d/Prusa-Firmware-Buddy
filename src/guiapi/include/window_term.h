@@ -2,7 +2,7 @@
 #ifndef _WINDOW_TERM_H
 #define _WINDOW_TERM_H
 
-#include "window.h"
+#include "window.hpp"
 #include "term.h"
 
 typedef struct _window_class_term_t {

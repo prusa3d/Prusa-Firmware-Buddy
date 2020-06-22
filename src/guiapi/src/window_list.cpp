@@ -1,6 +1,6 @@
 // window_list.c
 #include "window_list.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "sound_C_wrapper.h"
 
 const char items[11][6] = {

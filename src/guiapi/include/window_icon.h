@@ -3,7 +3,7 @@
 #ifndef _WINDOW_ICON_H
 #define _WINDOW_ICON_H
 
-#include "window.h"
+#include "window.hpp"
 
 typedef struct _window_icon_t {
     window_t win;

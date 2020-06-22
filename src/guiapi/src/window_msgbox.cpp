@@ -1,6 +1,6 @@
 // window_msgbox.c
 #include "window_msgbox.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "resource.h"
 #include "button_draw.h"
 #include "sound_C_wrapper.h"

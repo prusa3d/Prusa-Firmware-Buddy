@@ -3,7 +3,7 @@
 #define _XYZCALIB_H
 
 #include <inttypes.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 
 typedef struct

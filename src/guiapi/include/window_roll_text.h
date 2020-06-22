@@ -8,7 +8,7 @@
 #ifndef WINDOW_ROLL_TEXT_H
 #define WINDOW_ROLL_TEXT_H
 
-#include "window.h"
+#include "window.hpp"
 #include "display_helper.h"
 
 typedef struct _window_class_roll_text_t {

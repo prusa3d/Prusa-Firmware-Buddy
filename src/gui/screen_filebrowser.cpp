@@ -5,7 +5,7 @@
  *      Author: mcbig
  */
 
-#include "gui.h"
+#include "gui.hpp"
 #include "dbg.h"
 #include "window_file_list.h"
 #include "window_header.h"

@@ -3,7 +3,7 @@
 #define _SCREEN_H
 
 #include <inttypes.h>
-#include "window.h"
+#include "window.hpp"
 
 typedef struct _screen_t screen_t;
 

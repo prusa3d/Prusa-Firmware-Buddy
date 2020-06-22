@@ -1,6 +1,6 @@
 // window_qr.c
 #include "window_qr.h"
-#include "gui.h"
+#include "gui.hpp"
 
 #include "display.h"
 

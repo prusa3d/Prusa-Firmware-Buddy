@@ -2,7 +2,7 @@
 //unlooping screens via C++ with C interface
 
 #include "screen_close_multiple.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "screens.h"
 
 //I could not use functions to initialize those arrays in C

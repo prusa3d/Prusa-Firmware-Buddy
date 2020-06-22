@@ -1,6 +1,6 @@
 // window_text.c
 #include "window_text.h"
-#include "gui.h"
+#include "gui.hpp"
 
 void window_text_init(window_text_t *window) {
     window->color_back = gui_defaults.color_back;

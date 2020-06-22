@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "window.h"
+#include "window.hpp"
 #include "marlin_server.h"
 
 typedef struct _window_dlg_popup_t window_dlg_popup_t;

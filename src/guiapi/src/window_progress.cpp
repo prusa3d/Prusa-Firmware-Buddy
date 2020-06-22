@@ -1,6 +1,6 @@
 // window_progress.c
 #include "window_progress.h"
-#include "gui.h"
+#include "gui.hpp"
 
 #define WINDOW_PROGRESS_MAX_TEXT 16
 

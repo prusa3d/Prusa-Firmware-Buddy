@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "gui.h"
+#include "gui.hpp"
 
 #pragma pack(push, 1)
 //#pragma pack(1) makes enums 8 bit

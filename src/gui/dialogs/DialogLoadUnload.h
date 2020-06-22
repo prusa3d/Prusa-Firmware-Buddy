@@ -1,6 +1,6 @@
 #pragma once
 
-#include "window.h"
+#include "window.hpp"
 #include "dlg_result.h"
 
 typedef struct _window_class_dlg_statemachine_t {

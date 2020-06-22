@@ -1,6 +1,6 @@
 // screen_test_msgbox.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "screens.h"
 #include "../lang/i18n.h"

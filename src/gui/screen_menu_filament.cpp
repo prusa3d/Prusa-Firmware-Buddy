@@ -1,6 +1,6 @@
 // screen_menu_filament.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "window.h"
+#include "window.hpp"
 
 typedef struct _window_class_menu_t {
     window_class_t cls;

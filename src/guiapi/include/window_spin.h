@@ -3,7 +3,7 @@
 #ifndef _WINDOW_SPIN_H
 #define _WINDOW_SPIN_H
 
-#include "window.h"
+#include "window.hpp"
 #include "window_numb.h"
 
 typedef struct _window_spin_t {

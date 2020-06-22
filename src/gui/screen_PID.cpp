@@ -12,7 +12,7 @@
 
 #ifdef PIDCALIBRATION
 
-    #include "gui.h"
+    #include "gui.hpp"
     #include "status_footer.h"
     #include "math.h"
     #include "../Marlin/src/module/temperature.h"

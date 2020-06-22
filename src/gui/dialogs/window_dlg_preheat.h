@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "window.h"
+#include "window.hpp"
 #include "window_text.h"
 #include "window_list.h"
 #include "filament.h"

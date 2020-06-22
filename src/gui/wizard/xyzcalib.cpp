@@ -1,7 +1,7 @@
 // xyzcalib.c
 
 #include "xyzcalib.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "dbg.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"

@@ -1,7 +1,7 @@
 // selftest_fans_axis.h
 #pragma once
 #include <inttypes.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 
 //todo create multiple small structures inside this structure

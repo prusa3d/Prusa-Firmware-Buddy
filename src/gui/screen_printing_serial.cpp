@@ -1,5 +1,5 @@
 #include "dbg.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "window_header.h"
 #include "status_footer.h"

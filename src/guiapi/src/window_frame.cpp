@@ -1,6 +1,6 @@
 // window_frame.c
 #include "window_frame.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "sound_C_wrapper.h"
 
 void window_frame_init(window_frame_t *window) {

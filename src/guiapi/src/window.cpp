@@ -1,8 +1,8 @@
 //window.c
 
-#include "window.h"
+#include "window.hpp"
 #include "window_menu.h"
-#include "gui.h"
+#include "gui.hpp"
 
 #define WINDOW_MAX_WINDOWS 64
 

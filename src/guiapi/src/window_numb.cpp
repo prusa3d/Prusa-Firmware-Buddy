@@ -1,6 +1,6 @@
 // window_numb.c
 #include "window_numb.h"
-#include "gui.h"
+#include "gui.hpp"
 
 #define WINDOW_NUMB_MAX_TEXT 16
 

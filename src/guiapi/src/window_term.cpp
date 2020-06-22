@@ -1,6 +1,6 @@
 // window_term.c
 #include "window_term.h"
-#include "gui.h"
+#include "gui.hpp"
 
 static void window_term_init(window_term_t *window) {
     window->color_back = gui_defaults.color_back;

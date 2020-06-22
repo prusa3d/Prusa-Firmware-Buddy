@@ -5,7 +5,7 @@
  *      Author: Michal Rudolf
  */
 //todo THIS SHOULD NOT BE MENU!!!
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "screen_menu.hpp"
 #include <stdlib.h>

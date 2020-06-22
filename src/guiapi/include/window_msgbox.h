@@ -2,7 +2,7 @@
 #ifndef _WINDOW_MSGBOX_H
 #define _WINDOW_MSGBOX_H
 
-#include "window.h"
+#include "window.hpp"
 
 //messagebox flags bitmasks
 #define MSGBOX_MSK_ICO 0x0070 // icon mask

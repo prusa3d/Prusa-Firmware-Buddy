@@ -1,7 +1,7 @@
 // selftest_temp_cool.h
 #pragma once
 #include <inttypes.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 
 extern int wiz_get_percent(int min, int max, int value);

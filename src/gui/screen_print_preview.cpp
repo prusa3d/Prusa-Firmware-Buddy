@@ -2,7 +2,7 @@
 #include "dbg.h"
 #include "ff.h"
 #include "gcode_file.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "marlin_client.h"
 #include "resource.h"
 #include "window_dlg_load_unload.h"

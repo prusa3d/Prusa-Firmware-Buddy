@@ -1,4 +1,4 @@
-// gui.h
+// gui.hpp
 #pragma once
 
 #include "guiconfig.h"
@@ -40,7 +40,7 @@ extern void gui_reset_jogwheel(void);
 #endif //GUI_JOGWHEEL_SUPPORT
 
 #ifdef GUI_WINDOW_SUPPORT
-    #include "window.h"
+    #include "window.hpp"
     #include "window_frame.h"
     #include "window_text.h"
     #include "window_roll_text.h"

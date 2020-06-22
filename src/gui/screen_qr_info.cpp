@@ -1,4 +1,4 @@
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include <stdlib.h>
 #include "support_utils.h"

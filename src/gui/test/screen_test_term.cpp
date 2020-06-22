@@ -1,6 +1,6 @@
 // screen_test_term.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "window_progress.h"
 #include "screens.h"

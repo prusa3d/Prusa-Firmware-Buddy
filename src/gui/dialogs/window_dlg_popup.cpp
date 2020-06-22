@@ -7,7 +7,7 @@
 
 #include "window_dlg_popup.h"
 #include "display_helper.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "../lang/i18n.h"

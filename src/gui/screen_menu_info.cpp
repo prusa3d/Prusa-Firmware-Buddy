@@ -1,6 +1,6 @@
 // screen_menu_info.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screens.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"

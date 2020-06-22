@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "window.h"
+#include "window.hpp"
 #include <stdbool.h>
 
 typedef struct _window_dlg_wait_t window_dlg_wait_t;

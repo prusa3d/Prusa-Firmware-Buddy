@@ -1,7 +1,7 @@
 // window_graph_y.h
 
 #pragma once
-#include "window.h"
+#include "window.hpp"
 
 #define WINDOW_FLG_GRAPH_INVALID (WINDOW_FLG_USER << 0)
 typedef struct _window_temp_graph_t window_temp_graph_t;

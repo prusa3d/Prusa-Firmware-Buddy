@@ -6,7 +6,7 @@
  */
 
 #include <menu_vars.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "cmsis_os.h"
 #include "hwio.h"

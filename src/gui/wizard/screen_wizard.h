@@ -2,7 +2,7 @@
 #ifndef _SCREEN_WIZARD
 #define _SCREEN_WIZARD
 
-#include "gui.h"
+#include "gui.hpp"
 #include "status_footer.h"
 #include "wizard_types.h"
 //#include "wizard_ui.h"

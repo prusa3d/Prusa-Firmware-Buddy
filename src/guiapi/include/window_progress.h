@@ -3,7 +3,7 @@
 #ifndef _WINDOW_PROGRESS_H
 #define _WINDOW_PROGRESS_H
 
-#include "window.h"
+#include "window.hpp"
 
 typedef struct _window_class_progress_t {
     window_class_t cls;

@@ -7,7 +7,7 @@
  */
 
 #include "window_file_list.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "fatfs.h"
 #include "dbg.h"

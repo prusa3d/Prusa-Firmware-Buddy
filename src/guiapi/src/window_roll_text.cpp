@@ -7,7 +7,7 @@
 
 #include "window_roll_text.h"
 #include "gui_timer.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "stm32f4xx_hal.h"
 #include "display.h"
 

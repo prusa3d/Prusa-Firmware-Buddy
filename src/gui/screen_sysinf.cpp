@@ -5,7 +5,7 @@
  *      Author: Radek Vana
  */
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screens.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"

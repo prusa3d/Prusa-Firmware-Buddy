@@ -1,6 +1,6 @@
 // window_icon.c
 #include "window_icon.h"
-#include "gui.h"
+#include "gui.hpp"
 
 void window_icon_init(window_icon_t *window) {
     window->color_back = COLOR_BLACK;

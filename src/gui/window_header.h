@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "gui.h"
+#include "gui.hpp"
 #include "marlin_events.h"
 
 typedef enum {

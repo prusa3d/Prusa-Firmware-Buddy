@@ -6,7 +6,7 @@
 //#define DEBUG_TERM 1
 
 #include <inttypes.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 #include "wizard_load_unload.h"
 

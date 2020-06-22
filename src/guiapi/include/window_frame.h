@@ -6,7 +6,7 @@
 #include <inttypes.h>
 
 #include "guitypes.h"
-#include "window.h"
+#include "window.hpp"
 
 typedef struct _window_class_frame_t {
     window_class_t cls;

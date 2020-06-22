@@ -4,7 +4,7 @@
 #include "eeprom_loadsave.h"
 #include "wizard/wizard.h"
 #include "marlin_client.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "sys.h"
 #include "window_dlg_wait.h"
 #include "sound_C_wrapper.h"
