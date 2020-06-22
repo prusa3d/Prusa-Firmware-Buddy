@@ -35,7 +35,7 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines,
 
     id = window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
 
-    win.flg |= WINDOW_FLG_ENABLED | (FOOTER == EFooter::On ? HasFooter_FLAG : 0) | (helper_lines > 0 ? HasHeaderEvents_FLAG : 0);
+    flg |= WINDOW_FLG_ENABLED | (FOOTER == EFooter::On ? HasFooter_FLAG : 0) | (helper_lines > 0 ? HasHeaderEvents_FLAG : 0);
 
     window_set_capture(id); // set capture to list
     window_set_focus(id);
@@ -57,10 +57,10 @@ void IScreenMenu::Done() {
 }
 
 int IScreenMenu::Event(window_t *window, uint8_t event, void *param) {
-    if (win.flg & HasFooter_FLAG) {
+    if (flg & HasFooter_FLAG) {
         status_footer_event(&footer, window, event, param);
     }
-    if (win.flg & HasHeaderEvents_FLAG) {
+    if (flg & HasHeaderEvents_FLAG) {
         window_header_events(&header);
     }
 
