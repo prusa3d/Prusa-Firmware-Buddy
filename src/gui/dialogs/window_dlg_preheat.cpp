@@ -93,7 +93,7 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
     switch (event) {
     case WINDOW_EVENT_ENC_UP:
     case WINDOW_EVENT_ENC_DN: //forward up/dn events to list window
-        window->list.win.cls->event(&(window->list.win), event, param);
+        window->list.cls->event(&(window->list), event, param);
         break;
     case WINDOW_EVENT_BTN_DN:
         if (window->timer != std::numeric_limits<uint32_t>::max()) {
@@ -194,7 +194,7 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.scr_body_sz, &dlg);
 
-    window_set_item_count(dlg.list.win.id, count);
+    window_set_item_count(dlg.list.id, count);
 
     window_t *tmp_window_1 = window_popup_ptr; //save current window_popup_ptr
 

@@ -555,7 +555,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
 	}*/
     if (event == WINDOW_EVENT_LOOP) {
 
-        isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.win.id);
+        isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.id);
         brightness_actual = window_get_value(pd->spinBrightness.window.win.id);
 
         if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
@@ -569,7 +569,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
             isBrightness_ena_last = isBrightness_ena_actual;
         }
 
-        mode = window_get_item_index(pd->spinMode.win.id);
+        mode = window_get_item_index(pd->spinMode.id);
 
         user_value = window_get_item_index(pd->spinStrHx0.window.win.id)
             | ((window_get_item_index(pd->spinStrHx1.window.win.id)) << 4)
@@ -586,7 +586,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
             gamma_last = gamma_actual;
         }
 
-        isInverted_actual = window_get_item_index(pd->spinInversion.win.id);
+        isInverted_actual = window_get_item_index(pd->spinInversion.id);
         if (isInverted_actual != isInverted_last) {
             if (isInverted_actual)
                 st7789v_inversion_on();
@@ -596,7 +596,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
         }
 
         //check if spin changed
-        spinSpiClkVal_actual = window_get_item_index(pd->spinSpiClk.win.id);
+        spinSpiClkVal_actual = window_get_item_index(pd->spinSpiClk.id);
         if (spinSpiClkVal_actual != spinSpiClkVal_last) {
             sys_spi_set_prescaler(spinSpiClkVal_actual);
             spinSpiClkVal_last = spinSpiClkVal_actual;

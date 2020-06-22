@@ -67,7 +67,7 @@ void screen_messages_init(screen_t *screen) {
     window_set_item_index(id, 0);
     window_set_item_callback(id, _window_list_add_message_item);
 
-    window_set_capture(pmsg->list.win.id);
+    window_set_capture(pmsg->list.id);
 
     pmsg->pfooter = (status_footer_t *)gui_malloc(sizeof(status_footer_t));
     status_footer_init(pmsg->pfooter, root);

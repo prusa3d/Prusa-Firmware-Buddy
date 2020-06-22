@@ -9,7 +9,7 @@
 
 #include "window.hpp"
 #include "window_text.h"
-#include "window_list.h"
+#include "window_list.hpp"
 #include "filament.h"
 
 typedef struct _window_dlg_preheat_t window_dlg_preheat_t;

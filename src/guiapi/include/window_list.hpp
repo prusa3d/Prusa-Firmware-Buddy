@@ -1,4 +1,4 @@
-// window_list.h
+// window_list.hpp
 
 #pragma once
 
@@ -8,8 +8,7 @@ typedef struct _window_class_list_t {
     window_class_t cls;
 } window_class_list_t;
 
-typedef struct _window_list_t {
-    window_t win;
+typedef struct _window_list_t : window_t {
     color_t color_back;
     color_t color_text;
     font_t *font;

@@ -422,7 +422,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
         pd->autotune_temp_E = window_get_value(pd->spinAutoTn_E.window.win.id);
         pd->autotune_temp_B = window_get_value(pd->spinAutoTn_B.window.win.id);
 
-        pd->list_RW_E_index_actual = window_get_item_index(pd->list_RW_E.win.id);
+        pd->list_RW_E_index_actual = window_get_item_index(pd->list_RW_E.id);
         if (pd->list_RW_E_index_actual != pd->list_RW_E_index_last) {
             if (pd->list_RW_E_index_actual == 0) {
                 disable_digits_write_mode(pd->idsDigits_Kp_E,
@@ -447,7 +447,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             pd->list_RW_E_index_last = pd->list_RW_E_index_actual;
         }
 
-        pd->list_RW_B_index_actual = window_get_item_index(pd->list_RW_B.win.id);
+        pd->list_RW_B_index_actual = window_get_item_index(pd->list_RW_B.id);
         if (pd->list_RW_B_index_actual != pd->list_RW_B_index_last) {
             if (pd->list_RW_B_index_actual == 0) {
                 disable_digits_write_mode(pd->idsDigits_Kp_B,
