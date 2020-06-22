@@ -7,7 +7,7 @@
 
 #include "gui.hpp"
 #include "marlin_server.h"
-#include "window_header.h"
+#include "window_header.hpp"
 #include "status_footer.h"
 #include <stdlib.h>
 #include <stdint.h>

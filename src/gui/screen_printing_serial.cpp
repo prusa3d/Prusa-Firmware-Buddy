@@ -1,7 +1,7 @@
 #include "dbg.h"
 #include "gui.hpp"
 #include "config.h"
-#include "window_header.h"
+#include "window_header.hpp"
 #include "status_footer.h"
 #include "marlin_client.h"
 #include "filament.h"

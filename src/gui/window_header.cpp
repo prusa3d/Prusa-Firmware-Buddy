@@ -1,12 +1,12 @@
 /*
- * window_header.c
+ * window_header.cpp
  *
  *  Created on: 19. 7. 2019
  *      Author: mcbig
  */
 
 #include <stdbool.h>
-#include "window_header.h"
+#include "window_header.hpp"
 #include "config.h"
 #include "marlin_client.h"
 #include "../lang/i18n.h"
@@ -56,14 +56,14 @@ void window_header_init(window_header_t *window) {
 void window_header_done(window_header_t *window) {}
 
 void window_header_draw(window_header_t *window) {
-    if (!((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))
+    if (!((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))
             == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         return;
     }
 
     rect_ui16_t rc = {
-        uint16_t(window->win.rect.x + 10), window->win.rect.y,
-        window->win.rect.h, window->win.rect.h
+        uint16_t(window->rect.x + 10), window->rect.y,
+        window->rect.h, window->rect.h
     };
 
     if (window->id_res) { // first icon
@@ -75,8 +75,8 @@ void window_header_draw(window_header_t *window) {
 
     uint16_t icons_width = 10 + 36;
     rc = rect_ui16( // usb icon is showed always
-        window->win.rect.x + window->win.rect.w - 10 - 34, window->win.rect.y,
-        36, window->win.rect.h);
+        window->rect.x + window->rect.w - 10 - 34, window->rect.y,
+        36, window->rect.h);
     uint8_t ropfn = (window->icons[HEADER_ICON_USB] == HEADER_ISTATE_ACTIVE) ? 0 : ROPFN_DISABLE;
     render_icon_align(rc, IDR_PNG_header_icon_usb,
         window->color_back, RENDER_FLG(ALIGN_CENTER, ropfn));
@@ -85,8 +85,8 @@ void window_header_draw(window_header_t *window) {
         if (window->icons[i] > HEADER_ISTATE_OFF) {
             icons_width += 20;
             rc = rect_ui16(
-                window->win.rect.x + window->win.rect.w - icons_width,
-                window->win.rect.y, 20, window->win.rect.h);
+                window->rect.x + window->rect.w - icons_width,
+                window->rect.y, 20, window->rect.h);
             ropfn = (window->icons[i] == HEADER_ISTATE_ACTIVE) ? 0 : ROPFN_DISABLE;
             uint16_t id_res = 0;
             switch (i) {
@@ -102,9 +102,9 @@ void window_header_draw(window_header_t *window) {
         }
     }
 
-    rc = window->win.rect;
-    rc.x += 10 + window->win.rect.h;
-    rc.w -= (icons_width + 10 + window->win.rect.h);
+    rc = window->rect;
+    rc.x += 10 + window->rect.h;
+    rc.w -= (icons_width + 10 + window->rect.h);
 
     if (window->label) {                                      // label
         render_text_align(rc, _(window->label), window->font, // @@TODO verify, that this is the right spot to translate window labels

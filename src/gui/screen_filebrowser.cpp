@@ -8,7 +8,7 @@
 #include "gui.hpp"
 #include "dbg.h"
 #include "window_file_list.hpp"
-#include "window_header.h"
+#include "window_header.hpp"
 #include "config.h"
 #include "stdlib.h"
 #include "usb_host.h"
@@ -160,7 +160,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
 
         // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
         // However, the text is not visible on the screen yet...
-        window_set_text(pd->header.win.id, strrchr(filelist->sfn_path, '/'));
+        window_set_text(pd->header.id, strrchr(filelist->sfn_path, '/'));
 
     } else { // print the file
         if (vars->media_LFN && vars->media_SFN_path) {
