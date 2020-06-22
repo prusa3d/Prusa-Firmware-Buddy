@@ -50,7 +50,7 @@ extern void gui_reset_jogwheel(void);
     #include "window_spin.hpp"
     #include "window_term.hpp"
     #include "window_msgbox.hpp"
-    #include "window_progress.h"
+    #include "window_progress.hpp"
     #include "window_qr.hpp"
     #include "screen.h"
 

@@ -452,7 +452,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 
     int progress = _get_progress(); //max 99
 
-    window_set_value(p_screen->progress.win.id, (float)progress);
+    window_set_value(p_screen->progress.id, (float)progress);
     return progress;
 }
 

@@ -1,4 +1,4 @@
-// window_progress.h
+// window_progress.hpp
 
 #pragma once
 
@@ -8,8 +8,7 @@ typedef struct _window_class_progress_t {
     window_class_t cls;
 } window_class_progress_t;
 
-typedef struct _window_progress_t {
-    window_t win;
+struct window_progress_t : public window_t {
     color_t color_back;
     color_t color_text;
     color_t color_progress;
@@ -21,6 +20,6 @@ typedef struct _window_progress_t {
     float value;
     float min;
     float max;
-} window_progress_t;
+};
 
 extern const window_class_progress_t window_class_progress;

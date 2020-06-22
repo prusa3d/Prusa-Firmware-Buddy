@@ -45,7 +45,7 @@ int xyzcalib_home(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t 
     } else if (marlin_event_clr(MARLIN_EVT_CommandEnd))
         p_data->state_home = _TEST_PASSED;
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_home), _WIZ_TIMER);
-    window_set_value(p_screen->progress.win.id, (float)progress);
+    window_set_value(p_screen->progress.id, (float)progress);
     return progress;
 }
 
@@ -55,7 +55,7 @@ int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_
         window_set_icon_id(p_screen->icon.id, IDR_PNG_wizard_icon_hourglass);
     }
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_z), _WIZ_TIMER_AUTOPASS);
-    window_set_value(p_screen->progress.win.id, (float)progress);
+    window_set_value(p_screen->progress.id, (float)progress);
     return progress;
 }
 
@@ -67,7 +67,7 @@ int xyzcalib_xy_search(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_da
         window_set_icon_id(p_screen->icon.id, IDR_PNG_wizard_icon_search);
     }
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_xy_search), _WIZ_TIMER_AUTOPASS);
-    window_set_value(p_screen->progress.win.id, (float)progress);
+    window_set_value(p_screen->progress.id, (float)progress);
     return progress;
 }
 
@@ -83,7 +83,7 @@ int xyzcalib_xy_measure(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_d
     } else if (marlin_event_clr(MARLIN_EVT_CommandEnd))
         p_data->state_xy_measure = _TEST_PASSED;
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_xy_measure), _WIZ_TIMER);
-    window_set_value(p_screen->progress.win.id, (float)progress);
+    window_set_value(p_screen->progress.id, (float)progress);
     return progress;
 }
 

@@ -1,5 +1,5 @@
 // window_progress.c
-#include "window_progress.h"
+#include "window_progress.hpp"
 #include "gui.hpp"
 
 #define WINDOW_PROGRESS_MAX_TEXT 16
@@ -19,8 +19,8 @@ void window_progress_init(window_progress_t *window) {
 }
 
 void window_progress_draw(window_progress_t *window) {
-    if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        rect_ui16_t rc = window->win.rect;
+    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+        rect_ui16_t rc = window->rect;
         char text[WINDOW_PROGRESS_MAX_TEXT];
         snprintf(text, WINDOW_PROGRESS_MAX_TEXT, window->format, (double)window->value);
         int progress_w = (int)(rc.w * (window->value - window->min) / (window->max - window->min));
@@ -30,19 +30,19 @@ void window_progress_draw(window_progress_t *window) {
             rc.x += progress_w;
             rc.w -= progress_w;
             display::FillRect(rc, window->color_back);
-            rc.x = window->win.rect.x;
+            rc.x = window->rect.x;
             rc.w = progress_w;
             display::FillRect(rc, window->color_progress);
         } else {
             display::FillRect(rc, window->color_progress);
             rc.x += progress_w;
-            rc.w = window->win.rect.w - progress_w;
+            rc.w = window->rect.w - progress_w;
             display::DrawRect(rc, window->color_progress);
             rc = rect_ui16_sub_padding_ui8(rc, padding_ui8(1, 1, 1, 1));
             display::FillRect(rc, window->color_back);
         }
 
-        rc = window->win.rect;
+        rc = window->rect;
         if (rc.h > window->height_progress) {
             rc.y += window->height_progress;
             rc.h -= window->height_progress;
@@ -54,7 +54,7 @@ void window_progress_draw(window_progress_t *window) {
                 window->padding,
                 window->alignment);
         }
-        window->win.flg &= ~WINDOW_FLG_INVALID;
+        window->flg &= ~WINDOW_FLG_INVALID;
     }
 }
 

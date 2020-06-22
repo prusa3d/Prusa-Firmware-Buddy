@@ -176,7 +176,7 @@ int wizard_selftest_temp(int16_t id_body, selftest_temp_screen_t *p_screen, self
     if (p_data->state_temp_bed == _TEST_FAILED)
         progress = 100;
 
-    window_set_value(p_screen->progress.win.id, (float)progress);
+    window_set_value(p_screen->progress.id, (float)progress);
     if (progress == 100) {
         //turn heaters off
         marlin_gcode("M104 S0"); //nozzle temp 0

@@ -2,7 +2,7 @@
 
 #include "gui.hpp"
 #include "config.h"
-#include "window_progress.h"
+#include "window_progress.hpp"
 #include "screens.h"
 
 #include "stm32f4xx_hal.h"
