@@ -1,5 +1,5 @@
 // window_msgbox.c
-#include "window_msgbox.h"
+#include "window_msgbox.hpp"
 #include "gui.hpp"
 #include "resource.h"
 #include "button_draw.h"
@@ -74,7 +74,7 @@ const padding_ui8_t window_padding = { 8, 2, 8, 2 }; // left, top, right, bottom
 
 /// Draws window's buttons at the bottom
 void window_msgbox_draw_buttons(window_msgbox_t *window) {
-    rect_ui16_t rc_btn = window->win.rect;
+    rect_ui16_t rc_btn = window->rect;
     rc_btn.y += (rc_btn.h - gui_defaults.btn_h - gui_defaults.frame_width);
     rc_btn.h = gui_defaults.btn_h;
 
@@ -140,14 +140,14 @@ void window_msgbox_click(window_msgbox_t *window) {
     const int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
     window->res = window_msgbox_buttons[btn][idx];
     Sound_Stop();
-    window_destroy(window->win.id);
+    window_destroy(window->id);
 }
 
 /// Init message box to default values
 void window_msgbox_init(window_msgbox_t *window) {
-    if (rect_empty_ui16(window->win.rect)) //use display rect if current rect is empty
-        window->win.rect = rect_ui16(0, 0, display::GetW(), display::GetH());
-    window->win.flg |= WINDOW_FLG_ENABLED; //enabled by default
+    if (rect_empty_ui16(window->rect)) //use display rect if current rect is empty
+        window->rect = rect_ui16(0, 0, display::GetW(), display::GetH());
+    window->flg |= WINDOW_FLG_ENABLED; //enabled by default
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -166,8 +166,8 @@ void window_msgbox_done(window_msgbox_t *window) {
 
 /// Draws parts of message box that require redraw
 void window_msgbox_draw(window_msgbox_t *window) {
-    if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        display::FillRect(window->win.rect, COLOR_BLACK); // clear window
+    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+        display::FillRect(window->rect, COLOR_BLACK); // clear window
 
         uint8_t red_line_offset = 0;
         const int ico = ((window->flags & MSGBOX_MSK_ICO) >> MSGBOX_SHI_ICO);
@@ -188,14 +188,14 @@ void window_msgbox_draw(window_msgbox_t *window) {
 
         if (title_h) {                                               // render visible text only (title_h > 0)
             title_h += window->padding.top + window->padding.bottom; // add padding
-            rect_ui16_t rc_tit = window->win.rect;
+            rect_ui16_t rc_tit = window->rect;
             rc_tit.h = title_h;      // xxx pixels for title
             if (title_n && p_icon) { // text and icon available => all will be aligned left
                 const int icon_w = icon_dim.w + window->padding.left + window->padding.right;
                 rc_tit.w = icon_w;
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
                 rc_tit.x = icon_w;
-                rc_tit.w = window->win.rect.w - icon_w;
+                rc_tit.w = window->rect.w - icon_w;
                 render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
             } else if (title_n) { // text not empty but no icon => text will be aligned left
                 render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
@@ -208,22 +208,22 @@ void window_msgbox_draw(window_msgbox_t *window) {
             }
         }
 
-        const rect_ui16_t rc_txt = { window->win.rect.x,
-            uint16_t(window->win.rect.y + title_h + red_line_offset), // put text bellow title and red line
-            window->win.rect.w,
-            uint16_t(window->win.rect.h - (title_h + red_line_offset + gui_defaults.btn_h)) };
+        const rect_ui16_t rc_txt = { window->rect.x,
+            uint16_t(window->rect.y + title_h + red_line_offset), // put text bellow title and red line
+            window->rect.w,
+            uint16_t(window->rect.h - (title_h + red_line_offset + gui_defaults.btn_h)) };
         render_text_align(rc_txt, _(window->text), window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
 
         window->flags |= MSGBOX_MSK_CHG;
         window_msgbox_draw_buttons(window);
 
-        window->win.flg &= ~WINDOW_FLG_INVALID;
+        window->flg &= ~WINDOW_FLG_INVALID;
     } else if (window->flags & MSGBOX_MSK_CHG)
         window_msgbox_draw_buttons(window);
-    if (window->flags & MSGBOX_GREY_FRAME) {                                /// draw frame
-        const uint16_t w = (display::GetW() - 1) - window->win.rect.x + 1;  /// last - first + 1
-        const uint16_t h = (display::GetH() - 67) - window->win.rect.y + 1; /// last - first + 1
-        display::DrawRect(rect_ui16(window->win.rect.x, window->win.rect.y, w, h), COLOR_GRAY);
+    if (window->flags & MSGBOX_GREY_FRAME) {                            /// draw frame
+        const uint16_t w = (display::GetW() - 1) - window->rect.x + 1;  /// last - first + 1
+        const uint16_t h = (display::GetH() - 67) - window->rect.y + 1; /// last - first + 1
+        display::DrawRect(rect_ui16(window->rect.x, window->rect.y, w, h), COLOR_GRAY);
     }
 }
 

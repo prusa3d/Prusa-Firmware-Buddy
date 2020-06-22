@@ -1,4 +1,4 @@
-// window_msgbox.h
+// window_msgbox.hpp
 #pragma once
 
 #include "window.hpp"
@@ -60,8 +60,7 @@ typedef struct _window_class_msgbox_t {
     window_class_t cls;
 } window_class_msgbox_t;
 
-typedef struct _window_msgbox_t {
-    window_t win;
+struct window_msgbox_t : public window_t {
     color_t color_back;
     color_t color_text;
     font_t *font;
@@ -74,7 +73,7 @@ typedef struct _window_msgbox_t {
     const char *buttons[3];
     uint16_t flags;
     int res;
-} window_msgbox_t;
+};
 
 extern uint16_t window_msgbox_id_icon[5];
 
