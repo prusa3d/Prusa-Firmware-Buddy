@@ -16,15 +16,15 @@ void window_spin_init(window_spin_t *window) {
     window->step = 1.0F;
     window->count = 101;
     window->index = 0;
-    window->window.win.flg |= WINDOW_FLG_ENABLED;
+    window->window.flg |= WINDOW_FLG_ENABLED;
 }
 
 void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        if ((window->window.win.flg & WINDOW_FLG_ENABLED) && window->window.win.f_tag)
-            screen_dispatch_event((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->window.win.f_tag);
-        window_set_capture(window->window.win.id_parent);
+        if ((window->window.flg & WINDOW_FLG_ENABLED) && window->window.f_tag)
+            screen_dispatch_event((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->window.f_tag);
+        window_set_capture(window->window.id_parent);
         break;
     case WINDOW_EVENT_ENC_DN:
         window_spin_dec(window, (int)param);
@@ -34,7 +34,7 @@ void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_CAPT_0:
     case WINDOW_EVENT_CAPT_1:
-        window_invalidate(window->window.win.id);
+        window_invalidate(window->window.id);
         break;
     }
 }

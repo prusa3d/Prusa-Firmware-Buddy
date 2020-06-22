@@ -120,15 +120,15 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- tune button
     static_assert(BUTTON_TUNE < iid_count, "BUTTON_TUNE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_TUNE];
-    set_icon_and_label(iid_tune, sp_button->id, pw->w_labels[BUTTON_TUNE].win.id);
+    set_icon_and_label(iid_tune, sp_button->id, pw->w_labels[BUTTON_TUNE].id);
     // -- pause
     static_assert(BUTTON_PAUSE < iid_count, "BUTTON_PAUSE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_PAUSE];
-    set_icon_and_label(iid_pause, sp_button->id, pw->w_labels[BUTTON_PAUSE].win.id);
+    set_icon_and_label(iid_pause, sp_button->id, pw->w_labels[BUTTON_PAUSE].id);
     // -- disconnect
     static_assert(BUTTON_DISCONNECT < iid_count, "BUTTON_DISCONNECT not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
-    set_icon_and_label(iid_disconnect, sp_button->id, pw->w_labels[BUTTON_DISCONNECT].win.id);
+    set_icon_and_label(iid_disconnect, sp_button->id, pw->w_labels[BUTTON_DISCONNECT].id);
 
     status_footer_init(&(pw->footer), root);
 }

@@ -96,7 +96,7 @@ int screen_sysinfo_event(screen_t *screen, window_t *window, uint8_t event, void
     if (event == WINDOW_EVENT_LOOP) {
         actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {
-            window_set_value(pd->textCPU_load_val.win.id, actual_CPU_load);
+            window_set_value(pd->textCPU_load_val.id, actual_CPU_load);
             last_CPU_load = actual_CPU_load;
         }
     }

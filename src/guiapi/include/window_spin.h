@@ -3,7 +3,7 @@
 #pragma once
 
 #include "window.hpp"
-#include "window_numb.h"
+#include "window_numb.hpp"
 
 typedef struct _window_spin_t {
     window_numb_t window;

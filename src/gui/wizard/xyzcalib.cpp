@@ -51,7 +51,7 @@ int xyzcalib_home(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t 
 
 int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_z == _TEST_START) {
-        window_set_text(p_screen->text_state.win.id, "Calibrating Z");
+        window_set_text(p_screen->text_state.id, "Calibrating Z");
         window_set_icon_id(p_screen->icon.id, IDR_PNG_wizard_icon_hourglass);
     }
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_z), _WIZ_TIMER_AUTOPASS);
@@ -61,7 +61,7 @@ int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_
 
 int xyzcalib_xy_search(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_xy_search == _TEST_START) {
-        window_set_text(p_screen->text_search.win.id,
+        window_set_text(p_screen->text_search.id,
             "Searching bed\n"
             "calibration points");
         window_set_icon_id(p_screen->icon.id, IDR_PNG_wizard_icon_search);
@@ -73,7 +73,7 @@ int xyzcalib_xy_search(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_da
 
 int xyzcalib_xy_measure(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_xy_measure == _TEST_START) {
-        window_set_text(p_screen->text_search.win.id,
+        window_set_text(p_screen->text_search.id,
             "Measuring reference\n"
             "height of calib.\n"
             "points");

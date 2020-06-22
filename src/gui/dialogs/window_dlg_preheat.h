@@ -8,7 +8,7 @@
 #pragma once
 
 #include "window.hpp"
-#include "window_text.h"
+#include "window_text.hpp"
 #include "window_list.hpp"
 #include "filament.h"
 

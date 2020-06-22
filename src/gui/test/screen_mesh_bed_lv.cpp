@@ -161,9 +161,9 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
     }
     if (event == WINDOW_EVENT_LOOP) {
         if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            window_set_text(pd->text_mesh_state.win.id, meshStrings[1]);
+            window_set_text(pd->text_mesh_state.id, meshStrings[1]);
         } else {
-            window_set_text(pd->text_mesh_state.win.id, meshStrings[0]);
+            window_set_text(pd->text_mesh_state.id, meshStrings[0]);
         }
         switch (pd->mesh_state) {
         case mesh_state_t::idle:

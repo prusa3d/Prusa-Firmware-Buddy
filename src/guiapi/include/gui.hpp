@@ -42,9 +42,9 @@ extern void gui_reset_jogwheel(void);
 #ifdef GUI_WINDOW_SUPPORT
     #include "window.hpp"
     #include "window_frame.hpp"
-    #include "window_text.h"
+    #include "window_text.hpp"
     #include "window_roll_text.h"
-    #include "window_numb.h"
+    #include "window_numb.hpp"
     #include "window_icon.hpp"
     #include "window_list.hpp"
     #include "window_spin.h"

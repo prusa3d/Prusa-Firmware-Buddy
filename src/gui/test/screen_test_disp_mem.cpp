@@ -256,25 +256,25 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     //cannot use normal spin with window_set_format(id, "%A");
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx3));
-    pd->spinStrHx3.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrHx3.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
     col += offset;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx2));
-    pd->spinStrHx2.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrHx2.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
     col += offset;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx1));
-    pd->spinStrHx1.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrHx1.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
     col += offset;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx0));
-    pd->spinStrHx0.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrHx0.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
@@ -292,14 +292,14 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     col += w_of_0xX;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR0));
-    pd->spinStrR0.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrR0.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
 
     col += offset;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR1));
-    pd->spinStrR1.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrR1.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
@@ -313,13 +313,13 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     col += w_of_0xX;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG0));
-    pd->spinStrG0.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrG0.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
     col += offset;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG1));
-    pd->spinStrG1.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrG1.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
@@ -333,13 +333,13 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     col += w_of_0xX;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB0));
-    pd->spinStrB0.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrB0.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
     col += offset;
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB1));
-    pd->spinStrB1.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pd->spinStrB1.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
     window_set_value(id, 0.0F);
@@ -534,7 +534,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
     /*if (event == WINDOW_EVENT_CHANGE){
 		switch ((int)param){
 		case TAG_BRIGHTNESS:
-			isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.window.win.id);
+			isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.window.id);
 			//if(isBrightness_ena_actual!=isBrightness_ena_last)
 			{
 				if(isBrightness_ena_actual) st7789v_brightness_enable();
@@ -543,7 +543,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
 			}
 
 
-			brightness_actual = window_get_item_index(pd->spinBrightness.window.win.id);
+			brightness_actual = window_get_item_index(pd->spinBrightness.window.id);
 			//if(brightness_actual!=brightness_last)
 			{
 				st7789v_brightness_set(brightness_actual);
@@ -556,7 +556,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
     if (event == WINDOW_EVENT_LOOP) {
 
         isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.id);
-        brightness_actual = window_get_value(pd->spinBrightness.window.win.id);
+        brightness_actual = window_get_value(pd->spinBrightness.window.id);
 
         if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
             st7789v_brightness_set(brightness_actual);
@@ -571,16 +571,16 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
 
         mode = window_get_item_index(pd->spinMode.id);
 
-        user_value = window_get_item_index(pd->spinStrHx0.window.win.id)
-            | ((window_get_item_index(pd->spinStrHx1.window.win.id)) << 4)
-            | ((window_get_item_index(pd->spinStrHx2.window.win.id)) << 8)
-            | ((window_get_item_index(pd->spinStrHx3.window.win.id)) << 12);
+        user_value = window_get_item_index(pd->spinStrHx0.window.id)
+            | ((window_get_item_index(pd->spinStrHx1.window.id)) << 4)
+            | ((window_get_item_index(pd->spinStrHx2.window.id)) << 8)
+            | ((window_get_item_index(pd->spinStrHx3.window.id)) << 12);
 
-        clrR = (window_get_item_index(pd->spinStrR0.window.win.id) << 4) | window_get_item_index(pd->spinStrR1.window.win.id);
-        clrG = (window_get_item_index(pd->spinStrG0.window.win.id) << 4) | window_get_item_index(pd->spinStrG1.window.win.id);
-        clrB = (window_get_item_index(pd->spinStrB0.window.win.id) << 4) | window_get_item_index(pd->spinStrB1.window.win.id);
+        clrR = (window_get_item_index(pd->spinStrR0.window.id) << 4) | window_get_item_index(pd->spinStrR1.window.id);
+        clrG = (window_get_item_index(pd->spinStrG0.window.id) << 4) | window_get_item_index(pd->spinStrG1.window.id);
+        clrB = (window_get_item_index(pd->spinStrB0.window.id) << 4) | window_get_item_index(pd->spinStrB1.window.id);
 
-        gamma_actual = window_get_item_index(pd->spinGamma.window.win.id);
+        gamma_actual = window_get_item_index(pd->spinGamma.window.id);
         if (gamma_actual != gamma_last) {
             st7789v_gamma_set(gamma_actual);
             gamma_last = gamma_actual;
