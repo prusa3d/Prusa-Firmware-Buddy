@@ -11,10 +11,9 @@ project(
 
 if(NOT CMAKE_CROSSCOMPILING)
   #
-  # If we are not crosscompiling, include `utils` with host tools and exit.
+  # If we are not crosscompiling, include `utils` with host tools.
   #
   add_subdirectory(utils)
-  return()
 endif()
 
 #
@@ -99,10 +98,18 @@ resolve_version_variables()
 
 # Check GCC Version
 get_recommended_gcc_version(RECOMMENDED_TOOLCHAIN_VERSION)
-if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ${RECOMMENDED_TOOLCHAIN_VERSION})
+if(CMAKE_CROSSCOMPILING AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL
+                            ${RECOMMENDED_TOOLCHAIN_VERSION}
+   )
   message(WARNING "Recommended ARM toolchain is ${RECOMMENDED_TOOLCHAIN_VERSION}"
                   ", but you have ${CMAKE_CXX_COMPILER_VERSION}"
           )
+
+elseif(NOT CMAKE_CROSSCOMPILING AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  message(
+    WARNING
+      "Recommended compiler for host tools and unittests is GCC, you have ${CMAKE_CXX_COMPILER_ID}."
+    )
 endif()
 
 # Inform user about the resolved settings
@@ -226,17 +233,6 @@ add_library(LwIP_Config INTERFACE)
 target_link_libraries(LwIP_Config INTERFACE A3idesHeaders)
 
 #
-# Configure WUI
-#
-
-if(WUI)
-  add_library(WUI_Config INTERFACE)
-  target_include_directories(WUI_Config INTERFACE src/common src/gui src/guiapi/include)
-  target_compile_definitions(WUI_Config INTERFACE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
-  target_link_libraries(WUI_Config INTERFACE A3idesHeaders QR)
-endif()
-
-#
 # Configure FatFs
 #
 
@@ -249,17 +245,14 @@ target_link_libraries(FatFs_Config INTERFACE A3idesHeaders STM32::USBHost)
 
 add_library(Marlin_Config INTERFACE)
 # TODO: fix dependency on src/common and src/gui
-target_include_directories(Marlin_Config INTERFACE include/marlin src/common src/gui)
+target_include_directories(
+  Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
+  )
 target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
 
 #
 # Global Compiler & Linker Configuration
 #
-
-# mcu related settings
-set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
-add_compile_options(${MCU_FLAGS})
-add_link_options(${MCU_FLAGS})
 
 # Thread safe newlib
 add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
@@ -274,12 +267,19 @@ else()
   add_compile_options(-Os)
 endif()
 
-# better FreeRTOS support
-add_link_options(-Wl,--undefined=uxTopUsedPriority,--undefined=init_task)
+if(CMAKE_CROSSCOMPILING)
+  # mcu related settings
+  set(MCU_FLAGS -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
+  add_compile_options(${MCU_FLAGS})
+  add_link_options(${MCU_FLAGS})
 
-# split and gc sections
-add_compile_options(-ffunction-sections -fdata-sections)
-add_link_options(-Wl,--gc-sections)
+  # better FreeRTOS support
+  add_link_options(-Wl,--undefined=uxTopUsedPriority,--undefined=init_task)
+
+  # split and gc sections
+  add_compile_options(-ffunction-sections -fdata-sections)
+  add_link_options(-Wl,--gc-sections)
+endif()
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall)
@@ -298,22 +298,21 @@ endif()
 #
 # add_compile_options(-mno-unaligned-access)
 
-# configure linker script
-if(BOOTLOADER)
-  set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
-else(NOT BOOTLOADER)
-  set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+if(CMAKE_CROSSCOMPILING)
+  # configure linker script
+  if(BOOTLOADER)
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH_boot.ld")
+  else(NOT BOOTLOADER)
+    set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/STM32F407VG_FLASH.ld")
+  endif()
+  add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 endif()
-add_link_options("-Wl,-T,${LINKER_SCRIPT}")
 
 #
 # Import definitions of all libraries
 #
 
 add_subdirectory(lib)
-if(WUI)
-  add_subdirectory(src/wui)
-endif()
 
 #
 # A3ides firmware
@@ -420,13 +419,11 @@ target_sources(
   firmware
   PRIVATE $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/startup/startup_stm32f407xx_boot.s>
           $<$<STREQUAL:${BOOTLOADER},NO>:src/startup/startup_stm32f407xx.s>
-          src/lwip.c
           src/usbd_cdc_if.c
           src/usb_device.c
           src/freertos.c
           src/freertos_openocd.c
           src/usbh_diskio.c
-          src/ethernetif.c
           src/main_${PRINTER}.c
           src/usbd_desc.c
           $<$<IN_LIST:${BOOTLOADER},YES;EMPTY>:src/system_stm32f4xx_boot.c>
@@ -441,7 +438,7 @@ target_sources(
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
           $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
           src/common/diag.c
-          src/common/eeprom.c
+          src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
           src/common/marlin_vars.c
           src/common/media.cpp
@@ -453,6 +450,7 @@ target_sources(
           src/common/safe_state.c
           src/common/variant8.cpp
           src/common/dbg.c
+          src/common/wdt.cpp
           src/common/dump.c
           src/common/marlin_client.c
           src/common/bsod.c
@@ -477,11 +475,12 @@ target_sources(
           src/common/sound.cpp
           src/common/support_utils.cpp
           src/common/str_utils.cpp
-          src/common/errors.c
-          src/common/lang.c
+          src/common/errors.cpp
+          src/common/lang.cpp
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
+          src/common/wui_api.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
           src/marlin_stubs/M876.cpp
@@ -491,6 +490,7 @@ target_sources(
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
+          src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
           src/gui/guimain.c
           src/gui/filament.cpp
   )
@@ -498,7 +498,7 @@ target_sources(
 if(GUI)
   target_sources(
     firmware
-    PRIVATE src/gui/screen_menu_filament.c
+    PRIVATE src/gui/screen_menu_filament.cpp
             src/gui/dialogs/Dialog_C_wrapper.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
@@ -510,31 +510,31 @@ if(GUI)
             src/gui/dialogs/window_dlg_wait.c
             src/gui/dialogs/window_dlg_popup.c
             src/gui/dialogs/window_dlg_preheat.c
-            src/gui/screen_menu_temperature.c
+            src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
             src/gui/window_file_list.c
             src/gui/lazyfilelist-c-api.cpp
             src/gui/pngview.c
             src/gui/wizard/selftest_temp.c
             src/gui/window_temp_graph.c
-            src/gui/screen_menu_settings.c
+            src/gui/screen_menu_settings.cpp
             src/gui/wizard/wizard_progress_bar.c
             src/gui/wizard/firstlay.c
             src/gui/wizard/selftest_cool.c
             src/gui/window_header.c
             src/gui/screen_sysinf.c
-            src/gui/screen_version_info.cpp
+            src/gui/screen_menu_version_info.cpp
             src/gui/test_display.c
             src/gui/screen_splash.c
-            src/gui/screen_menu_service.c
-            src/gui/screen_menu_calibration.c
-            src/gui/screen_menu.c
+            src/gui/screen_menu_service.cpp
+            src/gui/screen_menu_calibration.cpp
+            src/gui/screen_menu.cpp
             src/gui/screen_print_preview.c
-            src/gui/screen_messages.c
-            src/gui/screen_menu_info.c
+            src/gui/screen_messages.cpp
+            src/gui/screen_menu_info.cpp
             src/gui/screen_watchdog.c
-            src/gui/screen_menu_move.c
-            src/gui/screen_lan_settings.c
+            src/gui/screen_menu_move.cpp
+            src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_qr_info.cpp
             src/gui/screen_qr_error.cpp
             src/gui/test/screen_test.c
@@ -563,8 +563,8 @@ if(GUI)
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
             src/gui/screen_PID.cpp
-            src/gui/screen_menu_fw_update.c
-            src/gui/test/screen_test_temperature.cpp
+            src/gui/screen_menu_fw_update.cpp
+            src/gui/test/screen_menu_test_temperature.cpp
             src/gui/wizard/selftest_fans_axis.c
             src/gui/test/screen_mesh_bed_lv.cpp
             src/gui/wizard/Marlin_PID_wrapper.cpp
@@ -577,7 +577,7 @@ if(GUI)
             src/guiapi/src/window_frame.c
             src/guiapi/src/gui_timer.c
             src/guiapi/src/display_helper.c
-            src/guiapi/src/window_menu.c
+            src/guiapi/src/window_menu.cpp
             src/guiapi/src/screen.c
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.c
@@ -588,11 +588,20 @@ if(GUI)
             src/guiapi/src/window_icon.c
             src/guiapi/src/window_spin.c
             src/guiapi/src/window_text.c
+            src/guiapi/src/window_roll_text.c
             src/guiapi/src/window_msgbox.c
             src/guiapi/src/window_qr.c
             src/guiapi/src/window.c
+            src/guiapi/src/IWindowMenuItem.cpp
+            src/guiapi/src/WindowMenuItems.cpp
+            src/guiapi/src/MItem_menus.cpp
+            src/guiapi/src/MItem_print.cpp
+            src/guiapi/src/MItem_tools.cpp
     )
 endif()
+
+# Set fsdata filename for HTTPServer
+target_compile_definitions(firmware PRIVATE -DHTTPD_FSDATA_FILE="fsdata_wui_local.c")
 
 set_property(
   SOURCE src/common/version.c
@@ -617,3 +626,8 @@ set_property(
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
   )
+
+if(NOT CMAKE_CROSSCOMPILING)
+  enable_testing()
+  add_subdirectory(tests)
+endif()

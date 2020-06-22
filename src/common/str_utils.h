@@ -3,61 +3,19 @@
 #include <inttypes.h>
 #include <string.h>
 
-#define CHAR_SPACE  ' '
-#define CHAR_HSPACE '\xA0' // ~ <NonBreakingSpace>
-#define CHAR_LF     '\n'   // ~ <LineFeed>
-#define CHAR_NL     CHAR_LF
-#define CHAR_HYPHEN '\xAD' // ~ <SoftHyphen>
-#define CHAR_MINUS  '-'
-
-#define QT_HSPACE "\xA0" // ~ <NonBreakingSpace>
-#define QT_LF     "\n"   // ~ <LineFeed>
-#define QT_NL     QT_LF
-#define QT_HYPHEN "\xAD" // ~ <SoftHyphen>
-
-#define HYPHEN_ALLWAYS       0
-#define HYPHEN_DENY          -1
-#define LINE_WIDTH_UNLIMITED 0
-
-#define EOS '\x00'
-
-#pragma pack(push, 1)
-typedef enum {
-    ML_MODE_NONE,
-    ML_MODE_WORDB,
-    ML_MODE_EXT
-} ml_mode_t;
-#pragma pack(pop)
+constexpr char CHAR_SPACE = ' ';
+constexpr char CHAR_NBSP = '\xA0';  /// Non Breaking Space
+#define NBSP "\xA0"                 /// Non Breaking Space
+constexpr char CHAR_NL = '\n';      /// New Line
+constexpr char NL[2] = { CHAR_NL }; /// New Line
+constexpr char EOS = '\0';          /// end of string
 
 #ifdef __cplusplus
 
-enum class delimiter_t : uint8_t { NONE,
-    SPACE,
-    HYPHEN,
-    CUSTOM };
-
-typedef struct
-{
-    const char *pcustom_set = "";
-    const char *pwithdraw_set = "";
-    int hyphen_distance = HYPHEN_DENY;
-} ml_instance_t;
-
-extern "C" void set_instance(ml_instance_t *pinst);
-void set_self_instance(void);
-
-size_t strdel(char *pstr, size_t n = 1);
-size_t strins(char *pstr, const char *pinstr, size_t repeater = 1, bool before_flag = false);
-
-void set_custom_set(const char *pstr);
-void set_withdraw_set(const char *pstr);
-void set_hyphen_distance(int dist);
-void set_defaults(void);
-
-size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set = "", char substitute_char = CHAR_SPACE);
-size_t str2plain(char *pstr, bool withdraw_flag = false);
-
-extern "C" size_t str2multiline(char *pstr, size_t line_width = LINE_WIDTH_UNLIMITED);
+size_t strdel(char *str, const size_t n = 1);
+int strins(char *str, size_t max_size, const char *const ins, size_t times = 1);
+int strshift(char *str, size_t max_size, const size_t n = 1, const char default_char = ' ');
+extern "C" int str2multiline(char *str, size_t max_size, const size_t line_width);
 
 #else
 
