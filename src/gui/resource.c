@@ -1,6 +1,6 @@
 //resource.c - generated file - do not edit!
 
-#include "gui.h"
+#include "guitypes.h"
 #include "config.h"
 #include "res/cc/font_7x13.c"  //IDR_FNT_SMALL
 #include "res/cc/font_11x18.c" //IDR_FNT_NORMAL

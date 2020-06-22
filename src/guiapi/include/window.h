@@ -101,10 +101,6 @@ typedef struct _window_t {
     window_event_t *event; // (4 bytes) event callback
 } window_t;                // (24 bytes total)
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern window_t *window_popup_ptr; //current popup window
 
 extern window_t *window_focused_ptr; //current focused window
@@ -248,10 +244,6 @@ extern void window_dispatch_event(window_t *window, uint8_t event, void *param);
 extern void window_set_item_callback(int16_t id, window_list_item_t *fnc);
 
 extern void gui_invalidate(void);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
 
 static inline void _window_invalidate(window_t *window) {
     if (!window)
