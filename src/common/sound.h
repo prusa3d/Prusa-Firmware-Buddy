@@ -51,13 +51,13 @@ private:
     /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
     static const eSOUND_TYPE onceTypes[5];
     static const eSOUND_TYPE loudTypes[6];
-    static const eSOUND_TYPE silentTypes[4];
+    static const eSOUND_TYPE silentTypes[3];
     static const eSOUND_TYPE assistTypes[8];
 
     /// signals repeats - how many times will sound signals repeat (-1 is infinite)
     static const int onceRepeats[5];
     static const int loudRepeats[6];
-    static const int silentRepeats[4];
+    static const int silentRepeats[3];
     static const int assistRepeats[8];
 
     eSOUND_MODE eSoundMode;
