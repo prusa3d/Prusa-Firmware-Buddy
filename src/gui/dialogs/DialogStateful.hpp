@@ -5,9 +5,7 @@
 #include "DialogRadioButton.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
-
-#pragma pack(push)
-#pragma pack(1)
+#include "../lang/i18n.h"
 
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
@@ -75,22 +73,17 @@ protected:
 
 public:
     IDialogStateful(const char *name, int16_t WINDOW_CLS_);
-    bool Change(uint8_t phase, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
+    bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
     virtual ~IDialogStateful();
 
-    static constexpr rect_ui16_t get_radio_button_size() {
-        rect_ui16_t rc_btn = { 0, 32, 240, 320 - 96 }; //msg box size
-        rc_btn.y += (rc_btn.h - 40);                   // 30pixels for button (+ 10 space for grey frame)
-        rc_btn.h = 30;
-        rc_btn.x += 6;
-        rc_btn.w -= 12;
+    static rect_ui16_t get_radio_button_size() {                                // cannot be const(expr)
+        rect_ui16_t rc_btn = gui_defaults.scr_body_sz;                          // msg box size
+        rc_btn.y += (rc_btn.h - gui_defaults.btn_h - gui_defaults.frame_width); // 30pixels for button (+ 10 space for grey frame)
+        rc_btn.h = gui_defaults.btn_h;
+        rc_btn.x += gui_defaults.btn_spacing;
+        rc_btn.w -= 2 * gui_defaults.btn_spacing;
         return rc_btn;
     }
-
-private:
-    void _progress_draw(rect_ui16_t win_rect, font_t *font, color_t color_back,
-        color_t color_text, padding_ui8_t padding, uint8_t progress);
-    void _progress_clr(rect_ui16_t win_rect, font_t *font, color_t color_back);
 
 protected:
     void draw_phase_text(const char *text);
@@ -132,7 +125,6 @@ public:
     void draw();
     void event(uint8_t event, void *param);
 };
-#pragma pack(pop)
 
 /*****************************************************************************/
 //template definitions
@@ -147,14 +139,14 @@ void DialogStateful<T>::draw() {
         rect_ui16_t rc = rect;
 
         if (f_invalid) {
-            display->fill_rect(rc, color_back);
+            display::FillRect(rc, color_back);
             rect_ui16_t rc_tit = rc;
             rc_tit.h = 30; // 30pixels for title
             // TODO: - icon
             //			rc_tit.w -= 30;
             //			rc_tit.x += 30;
             //title
-            render_text_align(rc_tit, title, font_title,
+            render_text_align(rc_tit, _(title), font_title,
                 color_back, color_text, padding, ALIGN_CENTER);
 
             f_invalid = 0;
@@ -198,9 +190,11 @@ void DialogStateful<T>::event(uint8_t event, void *param) {
     }
     case WINDOW_EVENT_ENC_UP:
         ++radio;
+        gui_invalidate();
         return;
     case WINDOW_EVENT_ENC_DN:
         --radio;
+        gui_invalidate();
         return;
     }
 }

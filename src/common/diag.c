@@ -24,15 +24,15 @@ void diag_check_fastboot(void) {
     if (otp_lock_sector0) //not locked
     {
         __HAL_RCC_GPIOC_CLK_ENABLE();
-        gpio_init(PC7, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
+        gpio_init(TPC7, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
         diag_delay(100000);
         int i;
         for (i = 0; i < 10; i++) {
-            if (gpio_get(PC7))
+            if (gpio_get(TPC7))
                 break;
             diag_delay(10000);
         }
-        diag_fastboot = ((i == 10) && !gpio_get(PC7)) ? 1 : 0;
+        diag_fastboot = ((i == 10) && !gpio_get(TPC7)) ? 1 : 0;
     }
 }
 

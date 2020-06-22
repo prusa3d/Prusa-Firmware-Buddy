@@ -12,9 +12,6 @@ typedef void(screen_done_t)(screen_t *screen);
 typedef void(screen_draw_t)(screen_t *screen);
 typedef int(screen_event_t)(screen_t *screen, window_t *window, uint8_t event, void *param);
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _screen_t {
     int16_t id;            // (2 bytes) screen identifier (2bytes)
     uint32_t flg;          // (4 bytes) flags
@@ -25,8 +22,6 @@ typedef struct _screen_t {
     uint16_t data_size;    // (2 bytes) dynamic data size
     void *pdata;           // (4 bytes) data pointer - automaticaly allocated before init
 } screen_t;                // (28 bytes total)
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

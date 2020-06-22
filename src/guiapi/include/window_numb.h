@@ -7,9 +7,6 @@
 
 #define WINDOW_FLG_NUMB_FLOAT2INT (WINDOW_FLG_USER << 1)
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_numb_t {
     window_class_t cls;
 } window_class_numb_t;
@@ -20,12 +17,10 @@ typedef struct _window_numb_t {
     color_t color_text;
     font_t *font;
     float value;
-    char *format;
+    const char *format;
     padding_ui8_t padding;
     uint8_t alignment;
 } window_numb_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

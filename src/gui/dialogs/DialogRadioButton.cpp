@@ -1,6 +1,7 @@
 #include "DialogRadioButton.hpp"
 #include <algorithm> //find
 #include "button_draw.h"
+#include "sound_C_wrapper.h"
 /*****************************************************************************/
 //static variables and methods
 static const PhaseResponses no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor
@@ -38,6 +39,8 @@ RadioButton &RadioButton::operator++() {
     if ((selected_index + 1) < btn_count) {
         ++selected_index; //btn_count can be 0
         need_redraw = true;
+    } else {
+        Sound_Play(eSOUND_TYPE_BlindAlert);
     }
     return *this;
 }
@@ -47,6 +50,8 @@ RadioButton &RadioButton::operator--() {
     if (selected_index > 0) {
         --selected_index;
         need_redraw = true;
+    } else {
+        Sound_Play(eSOUND_TYPE_BlindAlert);
     }
     return *this;
 }
@@ -79,7 +84,7 @@ Response RadioButton::Click() const {
 }
 
 void RadioButton::draw_0_btn() const {
-    display->fill_rect(win.rect, win.color_back);
+    display::FillRect(win.rect, win.color_back);
 }
 
 void RadioButton::draw_1_btn() const {
@@ -98,12 +103,18 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
             //space between buttons
             rc_btn.x += btn_width;
             rc_btn.w = gui_defaults.btn_spacing;
-            display->fill_rect(rc_btn, win.color_back);
+            display::FillRect(rc_btn, win.color_back);
 
             //nextbutton coords
             rc_btn.x += gui_defaults.btn_spacing;
-            rc_btn.w = btn_width;
+            rc_btn.w = btn_width + gui_defaults.btn_spacing;
         }
+    }
+    rc_btn.x += rc_btn.w; //start of black space after button (if exists)
+    int black_space_w = int(win.rect.x + win.rect.w) - int(rc_btn.x);
+    if (black_space_w > 0) {
+        rc_btn.w = black_space_w;
+        display::FillRect(rc_btn, win.color_back);
     }
 }
 

@@ -5,11 +5,13 @@
 #include "window_text.h"
 #include "str_utils.h"
 
-void render_text_align(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint8_t alignment) {
-    render_text_align_ml(rc, text, font, clr0, clr1, padding, alignment, &(ml_data_t) { .ml_mode = ML_MODE_NONE });
-}
+/// TODO FIXME
 
-void render_text_align_ml(rect_ui16_t rc, const char *text, font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint8_t alignment, ml_data_t *pml_data) {
+// void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint8_t alignment) {
+//     render_text_align_ml(rc, text, font, clr0, clr1, padding, alignment, &(ml_data_t) { .ml_mode = ML_MODE_NONE });
+// }
+
+void render_text_align_ml(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint8_t alignment, ml_data_t *pml_data) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (pml_data->ml_mode == ML_MODE_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP

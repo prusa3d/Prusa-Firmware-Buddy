@@ -47,9 +47,7 @@ void menu_set_spi_prescaler() {
 
 void _menu_endless_loop() {
     while (1) {
-    #ifndef _DEBUG
-        HAL_IWDG_Refresh(&hiwdg); //watchdog reset
-    #endif                        //_DEBUG
+        wdt_iwdg_refresh();
         osDelay(1);
     }
 }

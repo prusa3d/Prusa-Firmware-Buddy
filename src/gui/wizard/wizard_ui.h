@@ -1,7 +1,5 @@
 // wizard_ui.h
-#ifndef _WIZARD_UI_H
-#define _WIZARD_UI_H
-
+#pragma once
 #include "gui.h"
 #include "wizard_types.h"
 
@@ -20,10 +18,6 @@ typedef enum {
     _WIZ_TIMER_AUTOPASS,
     _WIZ_TIMER_AUTOFAIL
 } _WIZ_TIMER_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 extern int wizard_timer(uint32_t *p_timer, uint32_t delay_ms, _TEST_STATE_t *pstate,
     _WIZ_TIMER_t type);
@@ -49,8 +43,3 @@ extern void wizard_init_footer(float t_noz, float t_bed, int16_t footer_id);
 
 extern void wizard_init_footer_disable_PID(float t_noz, float t_bed, int16_t footer_id);
 */
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WIZARD_UI_H

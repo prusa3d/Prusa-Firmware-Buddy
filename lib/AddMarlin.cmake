@@ -16,6 +16,7 @@ add_library(
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl_G29.cpp
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl_motion.cpp
   Marlin/Marlin/src/feature/binary_protocol.cpp
+  Marlin/Marlin/src/feature/host_actions.cpp
   Marlin/Marlin/src/feature/joystick.cpp
   Marlin/Marlin/src/feature/runout.cpp
   Marlin/Marlin/src/feature/safety_timer.cpp
@@ -108,13 +109,11 @@ add_library(
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/eeprom_emul.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/EmulatedEeprom.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/HAL.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/HAL_SPI.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/persistent_store_eeprom.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/Servo.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F4/timers.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F7/timers.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F7/TMC2660.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/watchdog.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/backtrace.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwarm.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwarm_arm.cpp

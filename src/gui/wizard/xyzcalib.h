@@ -6,9 +6,6 @@
 #include "gui.h"
 #include "wizard_types.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     window_progress_t progress;
@@ -18,7 +15,6 @@ typedef struct
     uint32_t timer0;
 } xyzcalib_screen_t;
 
-//#pragma pack(1) makes enums 8 bit
 typedef struct
 {
     _TEST_STATE_t state_home;
@@ -27,8 +23,6 @@ typedef struct
     _TEST_STATE_t state_xy_search;
     _TEST_STATE_t state_xy_measure;
 } xyzcalib_data_t;
-
-#pragma pack(pop)
 
 extern void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data);
 

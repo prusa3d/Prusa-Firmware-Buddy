@@ -5,9 +5,6 @@
 
 #include "window.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_progress_t {
     window_class_t cls;
 } window_class_progress_t;
@@ -21,13 +18,11 @@ typedef struct _window_progress_t {
     padding_ui8_t padding;
     uint8_t alignment;
     uint8_t height_progress;
-    char *format;
+    const char *format;
     float value;
     float min;
     float max;
 } window_progress_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

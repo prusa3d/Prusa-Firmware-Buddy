@@ -1,0 +1,654 @@
+# Prusa-Firmware-Buddy
+# Copyright (C) 2020 Prusa Research
+# This file is distributed under the same license as the Prusa-Firmware-Buddy package.
+# Prusa Research <info@prusa3d.com>, 2020
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
+"Report-Msgid-Bugs-To: info@prusa3d.com\n"
+"POT-Creation-Date: 2020-06-10 11:25+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/gui/screen_menu_version_info.cpp:90
+#, c-format
+msgid ""
+"\n"
+"Bootloader Version\n"
+"%d.%d.%d\n"
+"\n"
+"Buddy Board\n"
+"%d.%d.%d\n"
+"%s"
+msgstr ""
+
+#: src/guiapi/src/MItem_tools.cpp:121
+msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
+msgstr ""
+
+#: src/gui/screen_menu_fw_update.cpp:18
+msgid "Always"
+msgstr ""
+
+#: src/gui/screen_PID.cpp:195
+msgid "Apply"
+msgstr ""
+
+#: src/gui/screen_printing.cpp:382 src/gui/screen_printing.cpp:400
+msgid "Are you sure to stop this printing?"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:212
+#: src/guiapi/include/MItem_tools.hpp:211
+msgid "Assist"
+msgstr ""
+
+#. -----------------------------------------------------------------------------
+#. btn autotune / apply
+#: src/gui/screen_PID.cpp:195
+msgid "AutTn"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:18
+msgid "Auto Home"
+msgstr ""
+
+#: src/gui/screen_messages.cpp:30
+msgid "BACK"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:227
+#: src/guiapi/include/MItem_tools.hpp:226
+msgid "BlindAlert"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:223
+#: src/guiapi/include/MItem_tools.hpp:222
+msgid "ButtonEcho"
+msgstr ""
+
+#: src/gui/dialogs/DialogFactory.cpp:11 src/gui/screen_menu_filament.cpp:79
+msgid "CHANGE FILAMENT"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:29
+msgid "CONTINUE"
+msgstr ""
+
+#: src/gui/screen_menu_calibration.cpp:16 src/gui/screen_home.cpp:42
+msgid "Calibration"
+msgstr ""
+
+#: src/gui/screen_menu_filament.cpp:78 src/guiapi/include/MItem_tools.hpp:188
+msgid "Change Filament"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:462
+msgid "Clean steel sheet."
+msgstr ""
+
+#: src/gui/screen_menu_temperature.cpp:11 src/gui/filament.cpp:13
+msgid "Cooldown"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:30
+msgid "DISABLE SENSOR"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:58
+msgid "Disable Steppers"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:448
+msgid ""
+"Do you want to     \n"
+"repeat the last    \n"
+"step and readjust  \n"
+"the distance       \n"
+"between the nozzle \n"
+"and heatbed?"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:55
+msgid "Ejecting"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:226
+#: src/guiapi/include/MItem_tools.hpp:225
+msgid "EncoderMove"
+msgstr ""
+
+#: src/guiapi/src/MItem_tools.cpp:123
+msgid ""
+"Error saving crash dump report to the USB drive. Please reinsert the USB "
+"drive and try again."
+msgstr ""
+
+#: src/gui/screen_menu_filament.cpp:123
+msgid "FILAMENT"
+msgstr ""
+
+#: src/gui/screen_menu_fw_update.cpp:46
+msgid "FW UPDATE"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:128
+msgid "FW Update"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:68
+msgid "Factory Reset"
+msgstr ""
+
+#: src/guiapi/src/MItem_tools.cpp:108
+msgid "Factory defaults loaded. The system will now restart."
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:48
+msgid "Fail Stats"
+msgstr ""
+
+#: src/gui/screen_menu_settings.cpp:24
+msgid "Fil. sens."
+msgstr ""
+
+#: src/gui/screen_home.cpp:41 src/guiapi/include/MItem_menus.hpp:18
+msgid "Filament"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:44
+msgid ""
+"Finishing         \n"
+"buffered gcodes.  \n"
+msgstr ""
+
+#. =============SET TEXT================
+#: src/gui/screen_menu_version_info.cpp:72
+#, c-format
+msgid "Firmware Version\n"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:48
+msgid "First Layer Cal."
+msgstr ""
+
+#: src/guiapi/include/MItem_print.hpp:40
+msgid "Flow Factor"
+msgstr ""
+
+#: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
+msgid "HOME"
+msgstr ""
+
+#: src/guiapi/include/MItem_print.hpp:16
+msgid "Heatbed"
+msgstr ""
+
+#: src/gui/guimain.c:165
+msgid "Heating disabled due to 30 minutes of inactivity."
+msgstr ""
+
+#: src/gui/guimain.c:189
+msgid ""
+"Hi, this is your\n"
+"Original Prusa MINI."
+msgstr ""
+
+#. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
+#. and will get a nice house-like icon
+#: src/gui/window_file_list.c:120 src/gui/window_file_list.c:122
+msgid "Home"
+msgstr ""
+
+#: src/gui/screen_menu_info.cpp:17
+msgid "INFO"
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:305
+#: src/gui/screen_menu_lan_settings.cpp:306
+msgid ""
+"IP addresses are not valid or the file \"lan_settings.ini\" is not in the "
+"root directory of the USB drive."
+msgstr ""
+
+#: src/gui/screen_home.cpp:44
+msgid "Info"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:53
+msgid "Inserting"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:58
+msgid "Is color correct?"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:54
+msgid ""
+"Is filament in    \n"
+"extruder gear?    "
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:267
+#: src/gui/screen_menu_lan_settings.cpp:268
+msgid "LAN SETTINGS"
+msgstr ""
+
+#: src/gui/dialogs/DialogFactory.cpp:12 src/gui/screen_menu_filament.cpp:45
+msgid "LOAD FILAMENT"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:138
+msgid "Lan settings"
+msgstr ""
+
+#: src/guiapi/include/MItem_print.hpp:48
+msgid "Live Adjust Z"
+msgstr ""
+
+#: src/gui/screen_menu_filament.cpp:44
+msgid "Load Filament"
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:245
+msgid "Load settings"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:56
+msgid "Loading to nozzle"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:210
+#: src/guiapi/include/MItem_tools.hpp:209
+msgid "Loud"
+msgstr ""
+
+#. p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
+#: src/gui/screen_messages.cpp:63
+msgid "MESSAGES"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:52
+msgid ""
+"Make sure the     \n"
+"filament is       \n"
+"inserted through  \n"
+"the sensor.       "
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:28
+msgid "Mesh Bed Level."
+msgstr ""
+
+#. Z 30mm
+#. Disable steppers
+#: src/gui/wizard/firstlay.c:185 src/gui/wizard/firstlay.c:188
+msgid "Mesh bed leveling failed?"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:148
+msgid "Messages"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:98
+msgid "Move Axis"
+msgstr ""
+
+#: src/gui/menu_vars.h:62
+msgid "Move E"
+msgstr ""
+
+#: src/gui/menu_vars.h:62
+msgid "Move X"
+msgstr ""
+
+#: src/gui/menu_vars.h:62
+msgid "Move Y"
+msgstr ""
+
+#: src/gui/menu_vars.h:62
+msgid "Move Z"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:32
+msgid "NO"
+msgstr ""
+
+#: src/gui/screen_home.cpp:45
+msgid "No USB"
+msgstr ""
+
+#: src/gui/screen_menu_settings.cpp:31 src/gui/screen_menu_settings.cpp:46
+#: src/gui/screen_menu_settings.cpp:58
+msgid ""
+"No filament sensor detected. Verify that the sensor is connected and try "
+"again."
+msgstr ""
+
+#: src/guiapi/include/MItem_print.hpp:8
+msgid "Nozzle"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:59
+msgid "Nozzle is too cold."
+msgstr ""
+
+#: src/guiapi/include/WindowMenuItems.hpp:130
+msgid "Off"
+msgstr ""
+
+#: src/guiapi/include/WindowMenuItems.hpp:131
+msgid "On"
+msgstr ""
+
+#: src/gui/screen_menu_fw_update.cpp:32
+msgid "On restart"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:209
+#: src/guiapi/include/MItem_tools.hpp:208
+msgid "Once"
+msgstr ""
+
+#: src/gui/wizard/firstlay.c:55
+msgid ""
+"Once the printer   \n"
+"starts extruding   \n"
+"plastic, adjust    \n"
+"the nozzle height  \n"
+"by turning the knob\n"
+"until the filament \n"
+"sticks to the print\n"
+"sheet."
+msgstr ""
+
+#: src/gui/screen_menu_preheat.cpp:28
+msgid "PREHEAT"
+msgstr ""
+
+#. todo must be called inside _gui_dlg, but nested dialogs are not supported now
+#: src/gui/dialogs/window_dlg_load_unload.c:31
+msgid "PREHEAT for LOAD"
+msgstr ""
+
+#. todo must be called inside _gui_dlg, but nested dialogs are not supported now
+#: src/gui/dialogs/window_dlg_load_unload.c:49
+msgid "PREHEAT for UNLOAD"
+msgstr ""
+
+#: src/gui/dialogs/DialogFactory.cpp:14 src/gui/screen_menu_filament.cpp:101
+msgid "PURGE FILAMENT"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:45
+msgid "Parking"
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:293
+#: src/gui/screen_menu_lan_settings.cpp:294
+msgid "Please insert a USB drive and try again."
+msgstr ""
+
+#: src/gui/guimain.c:190
+msgid ""
+"Please insert the USB\n"
+"drive that came with\n"
+"your MINI and reset\n"
+"the printer to flash\n"
+"the firmware"
+msgstr ""
+
+#. 30 pixels for title
+#: src/gui/dialogs/window_dlg_wait.c:53
+msgid "Please wait"
+msgstr ""
+
+#: src/gui/screen_home.cpp:40
+msgid "Preheat"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:48
+msgid "Preparing to ram"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:51
+msgid ""
+"Press CONTINUE and\n"
+"push filament into\n"
+"the extruder.     "
+msgstr ""
+
+#: src/gui/screen_home.cpp:39
+msgid "Print"
+msgstr ""
+
+#: src/guiapi/include/MItem_print.hpp:24
+msgid "Print Fan"
+msgstr ""
+
+#: src/gui/screen_printing.cpp:336
+msgid "Print will end"
+msgstr ""
+
+#: src/gui/screen_menu_filament.cpp:100
+msgid "Purge Filament"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:57
+msgid "Purging"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:68
+msgid "QR test"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:33
+msgid "REHEAT"
+msgstr ""
+
+#: src/common/MindaRedscreen.c:187 src/gui/guimain.c:191
+msgid "RESET PRINTER"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:34
+msgid "RETRY"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:49
+msgid "Ramming"
+msgstr ""
+
+#: src/gui/screen_printing.cpp:191 src/gui/screen_printing.cpp:340
+msgid "Remaining Time"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:28
+msgid "STOP"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:78
+msgid "Save Crash Dump"
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:234
+msgid "Save settings"
+msgstr ""
+
+#: src/gui/wizard/wizard_load_unload.c:77
+msgid "Select filament type"
+msgstr ""
+
+#: src/gui/screen_menu_fw_update.cpp:57
+msgid ""
+"Select when you want\n"
+"to automatically flash\n"
+"updated firmware\n"
+"from USB flash disk."
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:38
+msgid "SelfTest"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:78
+msgid "Send Info by QR"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:108
+msgid "Service"
+msgstr ""
+
+#: src/gui/screen_menu_settings.cpp:85 src/gui/screen_menu_move.cpp:43
+#: src/gui/screen_home.cpp:43
+msgid "Settings"
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:302
+#: src/gui/screen_menu_lan_settings.cpp:303
+msgid "Settings successfully loaded"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:211
+#: src/guiapi/include/MItem_tools.hpp:210
+msgid "Silent"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:207
+#: src/guiapi/include/MItem_tools.hpp:206
+msgid "Sound Mode"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:221
+#: src/guiapi/include/MItem_tools.hpp:220
+msgid "Sound Type"
+msgstr ""
+
+#: src/guiapi/include/MItem_print.hpp:32
+msgid "Speed"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:225
+#: src/guiapi/include/MItem_tools.hpp:224
+msgid "StandardAlert"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:224
+#: src/guiapi/include/MItem_tools.hpp:223
+msgid "StandardPrompt"
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:290
+#: src/gui/screen_menu_lan_settings.cpp:291
+msgid "Static IPv4 addresses were not set."
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:38
+msgid "Statistic"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:58
+msgid "Support"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:28
+msgid "System Info"
+msgstr ""
+
+#: src/gui/screen_menu_temperature.cpp:30
+msgid "TEMPERATURE"
+msgstr ""
+
+#: src/gui/screen_menu_tune.cpp:21
+msgid "TUNE"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:88
+msgid "Temperature"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:118
+msgid "Test"
+msgstr ""
+
+#: src/gui/screen_splash.c:105
+msgid "The printer is not calibrated. Start First Layer Calibration?"
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:296
+#: src/gui/screen_menu_lan_settings.cpp:297
+msgid ""
+"The settings have been saved successfully in the \"lan_settings.ini\" file."
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:299
+#: src/gui/screen_menu_lan_settings.cpp:300
+msgid ""
+"There was an error saving the settings in the \"lan_settings.ini\" file."
+msgstr ""
+
+#. window_menu
+#: src/guiapi/src/MItem_tools.cpp:106
+msgid ""
+"This operation can't be undone, current configuration will be lost! Are you "
+"really sure to reset printer to factory defaults?"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:198
+msgid "Timeout"
+msgstr ""
+
+#: src/gui/dialogs/DialogFactory.cpp:13 src/gui/screen_menu_filament.cpp:62
+msgid "UNLOAD FILAMENT"
+msgstr ""
+
+#: src/usbh_diskio.c:185
+msgid "USB Disk is Write protected!"
+msgstr ""
+
+#: src/usbh_diskio.c:148 src/usbh_diskio.c:192
+msgid "USB Disk is not ready!"
+msgstr ""
+
+#: src/gui/screen_menu_filament.cpp:61
+msgid "Unload Filament"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:50
+msgid "Unloading"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:46
+msgid "Unparking"
+msgstr ""
+
+#: src/gui/screen_menu_version_info.cpp:36
+msgid "VERSION INFO"
+msgstr ""
+
+#: src/guiapi/include/MItem_menus.hpp:8
+msgid "Version Info"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:47
+msgid "Waiting for temp."
+msgstr ""
+
+#: src/gui/test/screen_test_msgbox.c:28
+msgid ""
+"Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:8
+msgid "Wizard"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:31
+msgid "YES"
+msgstr ""

@@ -6,9 +6,6 @@
 #include "window.h"
 #include "str_utils.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_text_t {
     window_class_t cls;
 } window_class_text_t;
@@ -23,8 +20,6 @@ typedef struct _window_text_t {
     uint8_t alignment;
     ml_data_t *pml_data;
 } window_text_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

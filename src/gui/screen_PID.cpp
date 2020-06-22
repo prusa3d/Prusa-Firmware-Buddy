@@ -8,6 +8,7 @@
 #include "config.h"
 #include "eeprom.h"
 #include "screens.h"
+#include "../lang/i18n.h"
 
 #ifdef PIDCALIBRATION
 
@@ -30,9 +31,6 @@ typedef enum {
     //AT_extruder_done,
     //AT_bed_done
 } autotune_state_t;
-
-    #pragma pack(push)
-    #pragma pack(1)
 
 struct _PID_t {
     int16_t ID;
@@ -111,8 +109,6 @@ typedef struct
     int redraw;
 
 } screen_PID_data_t;
-
-    #pragma pack(pop)
 
     #define pd ((screen_PID_data_t *)screen->pdata)
 
@@ -196,7 +192,7 @@ float get_single_PIDparamFromDisp(int16_t *ids, int numOfDigits, int precision);
 
 //-----------------------------------------------------------------------------
 //btn autotune / apply
-static const char *btnAutoTuneOrApplystrings[] = { "AutTn", "Apply" };
+static const char *btnAutoTuneOrApplystrings[] = { N_("AutTn"), N_("Apply") };
     #define btnAutoTuneOrApplystrings_sz (sizeof(btnAutoTuneOrApplystrings) / sizeof(const char *))
 
 void screen_PID_init(screen_t *screen) {
@@ -221,7 +217,7 @@ void screen_PID_init(screen_t *screen) {
         -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     id = window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(0, 0, display->w, row_h), &(pd->textMenuName));
+        id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"PID adjustment");
 
@@ -261,7 +257,7 @@ void screen_PID_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(col, row2draw, 68, row_h),
         &(pd->btAutoTuneApply_E));
-    window_set_text(id, btnAutoTuneOrApplystrings[0]);
+    window_set_text(id, _(btnAutoTuneOrApplystrings[0]));
     window_enable(id);
     window_set_tag(id, TAG_AUTOTUNE_APPLY_E);
 
@@ -310,7 +306,7 @@ void screen_PID_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(col, row2draw, 68, row_h),
         &(pd->btAutoTuneApply_B));
-    window_set_text(id, btnAutoTuneOrApplystrings[0]);
+    window_set_text(id, _(btnAutoTuneOrApplystrings[0]));
     window_enable(id);
     window_set_tag(id, TAG_AUTOTUNE_APPLY_B);
 
@@ -436,7 +432,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 disable_digits_write_mode(pd->idsDigits_Kd_E,
                     sizeof(pd->idsDigits_Kd_E) / sizeof(pd->idsDigits_Kd_E[0]));
                 window_set_text(pd->btAutoTuneApply_E.win.id,
-                    btnAutoTuneOrApplystrings[0]);
+                    _(btnAutoTuneOrApplystrings[0]));
             } else {
                 enable_digits_write_mode(pd->idsDigits_Kp_E,
                     sizeof(pd->idsDigits_Kp_E) / sizeof(pd->idsDigits_Kp_E[0]));
@@ -445,7 +441,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 enable_digits_write_mode(pd->idsDigits_Kd_E,
                     sizeof(pd->idsDigits_Kd_E) / sizeof(pd->idsDigits_Kd_E[0]));
                 window_set_text(pd->btAutoTuneApply_E.win.id,
-                    btnAutoTuneOrApplystrings[1]);
+                    _(btnAutoTuneOrApplystrings[1]));
             }
 
             pd->list_RW_E_index_last = pd->list_RW_E_index_actual;
@@ -461,7 +457,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 disable_digits_write_mode(pd->idsDigits_Kd_B,
                     sizeof(pd->idsDigits_Kd_B) / sizeof(pd->idsDigits_Kd_B[0]));
                 window_set_text(pd->btAutoTuneApply_B.win.id,
-                    btnAutoTuneOrApplystrings[0]);
+                    _(btnAutoTuneOrApplystrings[0]));
             } else {
                 enable_digits_write_mode(pd->idsDigits_Kp_B,
                     sizeof(pd->idsDigits_Kp_B) / sizeof(pd->idsDigits_Kp_B[0]));
@@ -470,7 +466,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 enable_digits_write_mode(pd->idsDigits_Kd_B,
                     sizeof(pd->idsDigits_Kd_B) / sizeof(pd->idsDigits_Kd_B[0]));
                 window_set_text(pd->btAutoTuneApply_B.win.id,
-                    btnAutoTuneOrApplystrings[1]);
+                    _(btnAutoTuneOrApplystrings[1]));
             }
 
             pd->list_RW_B_index_last = pd->list_RW_B_index_actual;
@@ -478,42 +474,42 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
 
         if (pd->redraw) {
             pd->redraw = 0;
-            display->fill_rect(rect_ui16(pd->dot_coordsKp_E[0],
-                                   pd->dot_coordsKp_E[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKp_E[0],
+                                  pd->dot_coordsKp_E[1], 2, 2),
                 COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKi_E[0],
-                                   pd->dot_coordsKi_E[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKi_E[0],
+                                  pd->dot_coordsKi_E[1], 2, 2),
                 COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKd_E[0],
-                                   pd->dot_coordsKd_E[1], 2, 2),
-                COLOR_WHITE);
-
-            display->draw_text(pd->rect_E, "NOZZLE", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKp_E, "Kp", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKi_E, "Ki", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKd_E, "Kd", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-
-            display->fill_rect(rect_ui16(pd->dot_coordsKp_B[0],
-                                   pd->dot_coordsKp_B[1], 2, 2),
-                COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKi_B[0],
-                                   pd->dot_coordsKi_B[1], 2, 2),
-                COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKd_B[0],
-                                   pd->dot_coordsKd_B[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKd_E[0],
+                                  pd->dot_coordsKd_E[1], 2, 2),
                 COLOR_WHITE);
 
-            display->draw_text(pd->rect_B, "BED", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rect_E, "NOZZLE", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKp_B, "Kp", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKp_E, "Kp", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKi_B, "Ki", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKi_E, "Ki", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKd_B, "Kd", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKd_E, "Kd", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+
+            display::FillRect(rect_ui16(pd->dot_coordsKp_B[0],
+                                  pd->dot_coordsKp_B[1], 2, 2),
+                COLOR_WHITE);
+            display::FillRect(rect_ui16(pd->dot_coordsKi_B[0],
+                                  pd->dot_coordsKi_B[1], 2, 2),
+                COLOR_WHITE);
+            display::FillRect(rect_ui16(pd->dot_coordsKd_B[0],
+                                  pd->dot_coordsKd_B[1], 2, 2),
+                COLOR_WHITE);
+
+            display::DrawText(pd->rect_B, "BED", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKp_B, "Kp", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKi_B, "Ki", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKd_B, "Kd", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
         }
 
@@ -529,8 +525,6 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
     return 0;
 }
 
-extern "C" {
-
 screen_t screen_PID = {
     0,
     0,
@@ -543,7 +537,6 @@ screen_t screen_PID = {
 };
 
 screen_t *const get_scr_PID() { return &screen_PID; }
-}
 
 //-----------------------------------------------------------------------------
 

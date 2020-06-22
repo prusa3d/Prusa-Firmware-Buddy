@@ -1,17 +1,9 @@
 // selftest_fans_axis.h
-#ifndef _SELFTEST_FANS_AXIS_H
-#define _SELFTEST_FANS_AXIS_H
-
+#pragma once
 #include <inttypes.h>
 #include "gui.h"
 #include "wizard_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
-#pragma pack(push)
-#pragma pack(1)
 //todo create multiple small structures inside this structure
 typedef struct
 {
@@ -33,7 +25,6 @@ typedef struct
     uint32_t timer1;
 } selftest_fans_axis_screen_t;
 
-//#pragma pack(1) makes enums 8 bit
 typedef struct
 {
     _TEST_STATE_t state_fan0;
@@ -45,8 +36,6 @@ typedef struct
     float axis_min[3];
     float axis_max[3];
 } selftest_fans_axis_data_t;
-
-#pragma pack(pop)
 
 extern void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
     selftest_fans_axis_data_t *p_data);
@@ -60,9 +49,3 @@ extern int wizard_selftest_x(int16_t id_body, selftest_fans_axis_screen_t *p_scr
 extern int wizard_selftest_y(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data);
 
 extern int wizard_selftest_z(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_SELFTEST_FANS_AXIS_H

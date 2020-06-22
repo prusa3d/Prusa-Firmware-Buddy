@@ -6,20 +6,21 @@
 #include "guitypes.h"
 
 //window class identifiers
-#define WINDOW_CLS_FRAME    0   // FRAME - basic container class
-#define WINDOW_CLS_TEXT     1   // TEXT - aligned singlecolor text
-#define WINDOW_CLS_NUMB     2   // NUMB - aligned singlecolor formated number
-#define WINDOW_CLS_ICON     3   // ICON - small image with left-top offset
-#define WINDOW_CLS_LIST     4   // LIST - vertical or horizontal list (text-icon pairs)
-#define WINDOW_CLS_EDIT     5   // EDIT - text editor (editable 'TEXT') - minor
-#define WINDOW_CLS_SPIN     6   // SPIN - numeric editor (editable 'NUMB')
-#define WINDOW_CLS_TXIC     7   // TXIC - text + icon
-#define WINDOW_CLS_TERM     8   // TERM - terminal
-#define WINDOW_CLS_MENU     9   // MENU - menu
-#define WINDOW_CLS_MSGBOX   10  // MSGBOX - messagebox with configurable buttons and icon
-#define WINDOW_CLS_PROGRESS 11  // PROGRESS - progress bar with text
-#define WINDOW_CLS_QR       12  // QR - QR Code
-#define WINDOW_CLS_USER     128 // USER - user defined window classes (WINDOW_CLS_USER+n)
+#define WINDOW_CLS_FRAME     0   // FRAME - basic container class
+#define WINDOW_CLS_TEXT      1   // TEXT - aligned singlecolor text
+#define WINDOW_CLS_NUMB      2   // NUMB - aligned singlecolor formated number
+#define WINDOW_CLS_ICON      3   // ICON - small image with left-top offset
+#define WINDOW_CLS_LIST      4   // LIST - vertical or horizontal list (text-icon pairs)
+#define WINDOW_CLS_EDIT      5   // EDIT - text editor (editable 'TEXT') - minor
+#define WINDOW_CLS_SPIN      6   // SPIN - numeric editor (editable 'NUMB')
+#define WINDOW_CLS_TXIC      7   // TXIC - text + icon
+#define WINDOW_CLS_TERM      8   // TERM - terminal
+#define WINDOW_CLS_MENU      9   // MENU - menu
+#define WINDOW_CLS_MSGBOX    10  // MSGBOX - messagebox with configurable buttons and icon
+#define WINDOW_CLS_PROGRESS  11  // PROGRESS - progress bar with text
+#define WINDOW_CLS_QR        12  // QR - QR Code
+#define WINDOW_CLS_ROLL_TEXT 13  // ROLL text - text too long for display width
+#define WINDOW_CLS_USER      128 // USER - user defined window classes (WINDOW_CLS_USER+n)
 
 //window flags
 #define WINDOW_FLG_VISIBLE  0x00000001 // is visible
@@ -62,9 +63,6 @@ typedef struct _window_list_t window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _window_class_t {
     int16_t cls_id;        // (2 bytes) window class id
     uint16_t size;         // (2 bytes) window structure size
@@ -102,8 +100,6 @@ typedef struct _window_t {
     rect_ui16_t rect;      // (8 bytes) display rectangle
     window_event_t *event; // (4 bytes) event callback
 } window_t;                // (24 bytes total)
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
@@ -189,7 +185,7 @@ extern float window_get_value(int16_t id);
 
 extern void window_set_format(int16_t id, const char *format);
 
-extern char *window_get_format(int16_t id);
+extern const char *window_get_format(int16_t id);
 
 extern void window_set_color_back(int16_t id, color_t clr);
 
@@ -260,10 +256,11 @@ extern void gui_invalidate(void);
 #endif //__cplusplus
 
 static inline void _window_invalidate(window_t *window) {
-    if (window) {
-        window->flg |= WINDOW_FLG_INVALID;
-        gui_invalidate();
-    }
+    if (!window)
+        return;
+
+    window->flg |= WINDOW_FLG_INVALID;
+    gui_invalidate();
 }
 
 #endif //_WINDOW_H

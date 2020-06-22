@@ -1,18 +1,9 @@
 // selftest_cool.h
-#ifndef _SELFTEST_COOL_H
-#define _SELFTEST_COOL_H
-
+#pragma once
 #include <inttypes.h>
 #include "gui.h"
 #include "wizard_types.h"
 #include "hwio.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
-#pragma pack(push)
-#pragma pack(1)
 
 typedef struct
 {
@@ -26,7 +17,6 @@ typedef struct
 
 } selftest_cool_screen_t;
 
-//#pragma pack(1) makes enums 8 bit
 typedef struct
 {
     _TEST_STATE_t state_cool;
@@ -37,16 +27,8 @@ typedef struct
     float start_bed_temp;
 } selftest_cool_data_t;
 
-#pragma pack(pop)
-
 extern void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen,
     selftest_cool_data_t *p_data);
 
 extern int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen,
     selftest_cool_data_t *p_data);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_SELFTEST_COOL_H

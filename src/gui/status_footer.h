@@ -5,18 +5,33 @@
  *      Author: mcbig
  */
 
-#ifndef STATUS_FOOTER_H_
-#define STATUS_FOOTER_H_
+#pragma once
 
 #include "gui.h"
 
-#pragma pack(push)
-#pragma pack(1)
+#pragma pack(push, 1)
+//#pragma pack(1) makes enums 8 bit
+// which is an ugly and unreadable hack (probably a side effect)
+typedef enum heat_state_e {
+    HEATING,
+    COOLING,
+    PREHEAT,
+    STABLE,
+} heat_state_t;
+
+#pragma pack(pop)
 
 typedef struct
 {
-    float nozzle;
-    float heatbed;
+    float nozzle;                /// current temperature of nozzle
+    float nozzle_target;         /// target temperature of nozzle (not shown)
+    float nozzle_target_display; /// target temperature of nozzle shown on display
+    float heatbed;               /// current temperature of bed
+    float heatbed_target;        /// target temperature of bed
+    int32_t z_pos;               /// z position, 000.00 fixed point
+    uint32_t last_timer_repaint_values;
+    uint32_t last_timer_repaint_colors;
+    uint32_t last_timer_repaint_z_pos;
 
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
@@ -30,36 +45,25 @@ typedef struct
     window_text_t wt_z_axis;
     window_text_t wt_filament;
 
-    char text_nozzle[10]; // "215/215°C"
-    char text_heatbed[10];
-    char text_prnspeed[5]; // "999%"
-    char text_z_axis[7];   // "999.95"
-
-#ifdef LCD_HEATBREAK_TO_FILAMENT
-    char text_heatbreak[5]; // "99°C"
-#endif
-
-    uint32_t last_timer_repaint_temperatures, last_timer_repaint_z;
+    uint16_t print_speed; /// print speed in percents
+    heat_state_t nozzle_state;
+    heat_state_t heatbed_state;
+    bool show_second_color;
 
 } status_footer_t;
 
-#pragma pack(pop)
+#define REPAINT_Z_POS_PERIOD 256  /// time span between z position repaint [miliseconds]
+#define REPAINT_VALUE_PERIOD 1024 /// time span between value repaint [miliseconds]
+#define BLINK_PERIOD         512  /// time span between color changes [miliseconds]
 
-#define BUTTON_STATUS_NOZZLE   0xf0
-#define BUTTON_STATUS_HEATBED  0xf1
-#define BUTTON_STATUS_PRNSPEED 0xf2
-#define BUTTON_STATUS_Z_AXIS   0xf3
-#define BUTTON_STATUS_FILAMENT 0xf4
+#define COOL_NOZZLE 50 /// highest temperature of nozzle to be considered as cool
+#define COOL_BED    45 /// highest temperature of bed to be considered as cool
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+#define DEFAULT_COLOR COLOR_WHITE
+#define STABLE_COLOR  COLOR_WHITE
+#define HEATING_COLOR COLOR_ORANGE
+#define COOLING_COLOR COLOR_BLUE
+#define PREHEAT_COLOR COLOR_GREEN
 
 void status_footer_init(status_footer_t *footer, int16_t parent);
 int status_footer_event(status_footer_t *footer, window_t *window, uint8_t event, const void *param);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif /* STATUS_FOOTER_H_ */

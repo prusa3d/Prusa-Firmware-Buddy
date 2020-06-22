@@ -38,6 +38,9 @@ extern void marlin_client_loop(void);
 // returns client_id for calling thread (-1 for unattached thread)
 extern int marlin_client_id(void);
 
+// infinite loop while server not ready
+extern void marlin_client_wait_for_start_processing(void);
+
 //sets dialog callback, returns 1 on success
 extern int marlin_client_set_fsm_create_cb(fsm_create_t cb);
 //sets dialog callback, returns 1 on success
@@ -142,6 +145,7 @@ extern uint8_t marlin_get_pqueue_max(void);
 
 // variable setters (internally calls marlin_set_var)
 extern float marlin_set_target_nozzle(float val);
+extern float marlin_set_display_nozzle(float val);
 extern float marlin_set_target_bed(float val);
 extern float marlin_set_z_offset(float val);
 extern uint8_t marlin_set_fan_speed(uint8_t val);
