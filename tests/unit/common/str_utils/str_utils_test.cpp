@@ -241,6 +241,14 @@ TEST_CASE("String to multi-line", "[str2multiline]") {
         REQUIRE_THAT(str, Equals("Lorem ipsum\ndolor sit\namet,\nconsectetur\nadipiscing\nelit, sed\ndo eiusmod\ntempor\nincididunt "));
     }
 
+    SECTION("long text, shorter line, nonbreaking spaces") {
+        char str[n511] = "Lorem ipsum dolor sit" NBSP "amet, consectetur adipiscing elit, sed" NBSP "do" NBSP "eiusmod tempor incididunt ";
+        length = 12;
+        n = str2multiline(str, n255, length);
+        CHECK(n == 10);
+        REQUIRE_THAT(str, Equals("Lorem ipsum\ndolor\nsit amet,\nconsectetur\nadipiscing\nelit,\nsed do\neiusmod\ntempor\nincididunt "));
+    }
+
     SECTION("too small buffer") {
         n = str2multiline(short_text, strlen(short_text), 1);
         CHECK(n < 0);

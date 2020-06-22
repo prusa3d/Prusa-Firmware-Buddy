@@ -45,11 +45,12 @@ mkdir -p build_tests \
 && cd build_tests \
 && export PATH="$(python ../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH" \
 && export PATH="$(python ../utils/bootstrap.py --print-dependency-directory ninja):$PATH" \
-&& export CTEST_OUTPUT_ON_FAILURE=1
+&& export CTEST_OUTPUT_ON_FAILURE=1 \
+&& cmake .. -G Ninja
 ```
 
-6. Run this to run the tests:
+6. Run the tests:
 
 ```bash
-cmake .. -G Ninja && ninja tests && ctest
+ninja tests && ctest
 ```

@@ -87,6 +87,7 @@ int str2multiline(char *str, size_t max_size, size_t line_width) {
         return 1;
 
     int last_delimiter = -1;
+    int last_NBSP = -1;
     size_t lines = 1;
     size_t current_length = 0;
     size_t i = 0;
@@ -97,9 +98,15 @@ int str2multiline(char *str, size_t max_size, size_t line_width) {
         case CHAR_SPACE:
             last_delimiter = i;
             break;
+        case CHAR_NBSP:
+            str[i] = ' ';
+            last_NBSP = i;
+            //last_delimiter = i;
+            break;
         case CHAR_NL:
             ++lines;
             last_delimiter = -1;
+            last_NBSP = -1;
             current_length = 0;
             break;
         }
@@ -108,21 +115,26 @@ int str2multiline(char *str, size_t max_size, size_t line_width) {
         ++current_length;
 
         if (current_length > line_width) { /// if the length is too big, break the line
-            if (last_delimiter < 0) {
-                /// no break point available - break a word
+            if (last_delimiter >= 0) {
+                /// break at space
+                str[last_delimiter] = CHAR_NL;
+                i = last_delimiter + 1;
+            } else if (last_NBSP >= 0) {
+                /// break at nonbreaking space - better than break a word
+                str[last_NBSP] = CHAR_NL;
+                i = last_NBSP + 1;
+            } else {
+                /// no break point available - break a word instead
                 const int inserted = strins(str + i - 1, max_size - i + 1, NL);
                 if (inserted < 0)
                     return -2;
-                ++i;
-                current_length = 1;
-            } else {
-                /// break at space
-                str[last_delimiter] = CHAR_NL;
-                current_length = i - last_delimiter - 1; // -1 because the space is replaced
-                last_delimiter = -1;
             }
             ++lines;
+            current_length = 0;
+            last_delimiter = -1;
+            last_NBSP = -1;
         }
+
         if (str[i] == EOS)
             break;
     }
