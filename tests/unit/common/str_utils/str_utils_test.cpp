@@ -21,45 +21,44 @@ TEST_CASE("Delete string", "[strdel]") {
 
     SECTION("void input") {
         n = strdel(nostr);
-        REQUIRE(n == 0);
-        REQUIRE(nostr == nullptr);
+        CHECK(n == 0);
     }
 
     SECTION("delete 0 chars") {
         n = strdel(str, 0);
-        REQUIRE(n == 0);
-        REQUIRE(0 == strcmp(str, text));
+        CHECK(n == 0);
+        CHECK(0 == strcmp(str, text));
     }
 
     SECTION("empty string") {
         strcpy(str, "");
         n = strdel(str);
-        REQUIRE(n == 0);
-        REQUIRE(0 == strcmp(str, ""));
+        CHECK(n == 0);
+        CHECK(0 == strcmp(str, ""));
     }
 
     SECTION("single char at beginning") {
         n = strdel(str);
-        REQUIRE(n == 1);
-        REQUIRE(0 == strcmp(str, "bcdXYZefgh"));
+        CHECK(n == 1);
+        CHECK(0 == strcmp(str, "bcdXYZefgh"));
     }
 
     SECTION("single char inside") {
         n = strdel(str + 4, 1);
-        REQUIRE(n == 1);
-        REQUIRE(0 == strcmp(str, "abcdYZefgh"));
+        CHECK(n == 1);
+        CHECK(0 == strcmp(str, "abcdYZefgh"));
     }
 
     SECTION("substring over the end") {
         n = strdel(str + 7, 5);
-        REQUIRE(n == 4);
-        REQUIRE(0 == strcmp(str, "abcdXYZ"));
+        CHECK(n == 4);
+        CHECK(0 == strcmp(str, "abcdXYZ"));
     }
 
     SECTION("substring inside") {
         n = strdel(str + 7, 2);
-        REQUIRE(n == 2);
-        REQUIRE(0 == strcmp(str, "abcdXYZgh"));
+        CHECK(n == 2);
+        CHECK(0 == strcmp(str, "abcdXYZgh"));
     }
 }
 
@@ -71,33 +70,33 @@ TEST_CASE("Insert string", "[strins]") {
 
     SECTION("void input 1") {
         n = strins(nostr, n255, str);
-        REQUIRE(n < 0);
+        CHECK(n < 0);
         REQUIRE_THAT(str, Equals(text));
     }
 
     SECTION("void input 2") {
         n = strins(str, n255, nostr);
-        REQUIRE(n < 0);
+        CHECK(n < 0);
         REQUIRE_THAT(str, Equals(text));
     }
 
     SECTION("insert a char 0 times") {
         n = strins(str, n255, "a", 0);
-        REQUIRE(n == 0);
+        CHECK(n == 0);
         REQUIRE_THAT(str, Equals(text));
     }
 
     SECTION("empty string 1") {
         n = strins(str, n255, "");
-        REQUIRE(n == 0);
+        CHECK(n == 0);
         REQUIRE_THAT(str, Equals(text));
     }
 
     SECTION("empty string 2") {
         char empty[255] = "";
         n = strins(empty, n255, str);
-        REQUIRE(n == int(strlen(empty)));
-        REQUIRE(strlen(str) == strlen(empty));
+        CHECK(n == int(strlen(empty)));
+        CHECK(strlen(str) == strlen(empty));
         REQUIRE_THAT(empty, Equals(text));
     }
 
@@ -133,7 +132,7 @@ TEST_CASE("Insert string", "[strins]") {
 
     SECTION("insert too much") {
         n = strins(str, strlen(str) + 9, "123 ", 3);
-        REQUIRE(n < 0);
+        CHECK(n < 0);
     }
 }
 
@@ -180,7 +179,7 @@ TEST_CASE("Shift string", "[strshift]") {
 
     SECTION("too much") {
         n = strshift(str, strlen(str) + 3, 3);
-        REQUIRE(n < 0);
+        CHECK(n < 0);
     }
 }
 
@@ -244,6 +243,6 @@ TEST_CASE("String to multi-line", "[str2multiline]") {
 
     SECTION("too small buffer") {
         n = str2multiline(short_text, strlen(short_text), 1);
-        REQUIRE(n < 0);
+        CHECK(n < 0);
     }
 }

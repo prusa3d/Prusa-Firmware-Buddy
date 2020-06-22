@@ -9,16 +9,16 @@ cmake .. -G Ninja
 ninja tests
 
 # run the unit tests
-ctest . -V
+ctest .
 
 # or run all together
- cmake .. -G Ninja && ninja tests && ctest -V
+ cmake .. -G Ninja && ninja tests && ctest
 ```
 
 > In case you don't have sufficient CMake or Ninja installed, you can use the ones downloaded by build.py/bootstrap.py:
 >   ```bash
->   export PATH="$(utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH"
->   export PATH="$(utils/bootstrap.py --print-dependency-directory ninja):$PATH"
+>   export PATH="$(../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH"
+>   export PATH="$(../utils/bootstrap.py --print-dependency-directory ninja):$PATH"
 >   ```
 
 > It is recommended to use GCC for compiling unit tests.
@@ -32,12 +32,24 @@ ctest . -V
     - See other unit tests for examples.
     - Don't forget to register any directory you add using `add_subdirectory` in CMakeLists.txt in the same directory.
 
-# Windows installation
+# Tests in Windows
 
-1. Download MinGw
-2. Download Catch2 repository
-3. Set your install paths into define_paths.sh
-4. run Git Bash
-5. run `source define_paths`
-6. follow the beginning of this README
-...
+1. Download & install MinGw and make sure .../MinGW/bin/ is in your path
+2. Download & install Python
+3. Download & install some bash (GIT bash could be already installed)
+4. Run bash and get to your repository directory (cd ...)
+5. Run these to prepare for test:
+
+```bash
+mkdir -p build_tests \
+&& cd build_tests \
+&& export PATH="$(python ../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH" \
+&& export PATH="$(python ../utils/bootstrap.py --print-dependency-directory ninja):$PATH" \
+&& export CTEST_OUTPUT_ON_FAILURE=1
+```
+
+6. Run this to run the tests:
+
+```bash
+cmake .. -G Ninja && ninja tests && ctest
+```
