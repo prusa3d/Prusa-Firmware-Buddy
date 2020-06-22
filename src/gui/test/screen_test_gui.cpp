@@ -105,7 +105,7 @@ int screen_test_gui_event(screen_t *screen, window_t *window, uint8_t event, voi
         }
     /*	if (event == WINDOW_EVENT_LOOP)
 	{
-		float temp = window_get_value(screen->pd->spin0.window.win.id);
+		float temp = window_get_value(screen->pd->spin0.win.id);
 		int val = sim_heater_temp2val(temp);
 		window_set_value(screen->pd->numb0.win.id, val);
 	}*/

@@ -419,8 +419,8 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             }
         }
 
-        pd->autotune_temp_E = window_get_value(pd->spinAutoTn_E.window.id);
-        pd->autotune_temp_B = window_get_value(pd->spinAutoTn_B.window.id);
+        pd->autotune_temp_E = window_get_value(pd->spinAutoTn_E.id);
+        pd->autotune_temp_B = window_get_value(pd->spinAutoTn_B.id);
 
         pd->list_RW_E_index_actual = window_get_item_index(pd->list_RW_E.id);
         if (pd->list_RW_E_index_actual != pd->list_RW_E_index_last) {
@@ -651,7 +651,7 @@ void generate_spin_single_digit(int16_t &id0, int16_t &id, window_spin_t &spin,
     uint16_t &col, uint16_t row, uint16_t offset, uint16_t row_h) {
     id = window_create_ptr(WINDOW_CLS_SPIN, id0,
         rect_ui16(col, row, offset, row_h), &spin);
-    spin.window.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    spin.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%d");
     window_set_min_max_step(id, 0.0F, 9.0F, 1.0F);
     window_set_value(id, 0.0F);

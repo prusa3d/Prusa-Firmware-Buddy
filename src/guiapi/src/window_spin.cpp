@@ -1,5 +1,5 @@
 // window_spin.c
-#include "window_spin.h"
+#include "window_spin.hpp"
 #include "gui.hpp"
 
 extern osThreadId displayTaskHandle;
@@ -16,15 +16,15 @@ void window_spin_init(window_spin_t *window) {
     window->step = 1.0F;
     window->count = 101;
     window->index = 0;
-    window->window.flg |= WINDOW_FLG_ENABLED;
+    window->flg |= WINDOW_FLG_ENABLED;
 }
 
 void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        if ((window->window.flg & WINDOW_FLG_ENABLED) && window->window.f_tag)
-            screen_dispatch_event((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->window.f_tag);
-        window_set_capture(window->window.id_parent);
+        if ((window->flg & WINDOW_FLG_ENABLED) && window->f_tag)
+            screen_dispatch_event((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->f_tag);
+        window_set_capture(window->id_parent);
         break;
     case WINDOW_EVENT_ENC_DN:
         window_spin_dec(window, (int)param);
@@ -34,7 +34,7 @@ void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_CAPT_0:
     case WINDOW_EVENT_CAPT_1:
-        window_invalidate(window->window.id);
+        window_invalidate(window->id);
         break;
     }
 }
@@ -43,7 +43,7 @@ void window_spin_inc(window_spin_t *window, int dif) {
     window->index += dif;
     if (window->index >= window->count)
         window->index = window->count - 1;
-    window->window.value = window->min + window->index * window->step;
+    window->value = window->min + window->index * window->step;
     _window_invalidate((window_t *)window);
 }
 
@@ -51,7 +51,7 @@ void window_spin_dec(window_spin_t *window, int dif) {
     window->index -= dif;
     if (window->index < 0)
         window->index = 0;
-    window->window.value = window->min + window->index * window->step;
+    window->value = window->min + window->index * window->step;
     _window_invalidate((window_t *)window);
 }
 
