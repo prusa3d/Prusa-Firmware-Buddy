@@ -4,11 +4,11 @@
 
 #include "window.hpp"
 
-typedef struct _window_class_list_t {
+struct window_class_list_t {
     window_class_t cls;
-} window_class_list_t;
+};
 
-typedef struct _window_list_t : window_t {
+struct window_list_t : window_t {
     color_t color_back;
     color_t color_text;
     font_t *font;
@@ -19,6 +19,6 @@ typedef struct _window_list_t : window_t {
     int index;
     int top_index;
     window_list_item_t *list_item;
-} window_list_t;
+};
 
 extern const window_class_list_t window_class_list;

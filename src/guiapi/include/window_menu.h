@@ -2,9 +2,9 @@
 
 #include "window.hpp"
 
-typedef struct _window_class_menu_t {
+struct window_class_menu_t {
     window_class_t cls;
-} window_class_menu_t;
+};
 
 void window_menu_set_item_index(window_t *window, int index);
 

@@ -4,9 +4,9 @@
 
 #include "window.hpp"
 
-typedef struct _window_class_progress_t {
+struct window_class_progress_t {
     window_class_t cls;
-} window_class_progress_t;
+};
 
 struct window_progress_t : public window_t {
     color_t color_back;

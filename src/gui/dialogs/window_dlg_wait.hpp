@@ -26,9 +26,9 @@ struct window_dlg_wait_t : public window_t {
     bool progress_chng;
 };
 
-typedef struct _window_class_dlg_wait_t {
+struct window_class_dlg_wait_t {
     window_class_t cls;
-} window_class_dlg_wait_t;
+};
 
 #define DLG_W8_DRAW_HOURGLASS 0x04 // Draw hourglass animation
 #define DLG_W8_DRAW_FRAME     0x01 // Draw grey frame

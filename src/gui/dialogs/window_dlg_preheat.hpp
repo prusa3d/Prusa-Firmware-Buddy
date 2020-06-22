@@ -33,9 +33,9 @@ struct window_dlg_preheat_t : public window_t {
     const char *caption;
 };
 
-typedef struct _window_class_dlg_preheat_t {
+struct window_class_dlg_preheat_t {
     window_class_t cls;
-} window_class_dlg_preheat_t;
+};
 
 extern const window_class_dlg_preheat_t window_class_dlg_preheat;
 extern FILAMENT_t gui_dlg_preheat(const char *caption);

@@ -1,4 +1,4 @@
-// screen_test.c
+// screen_test.cpp
 
 #include "gui.hpp"
 #include "config.h"
@@ -7,8 +7,7 @@
 #include "bsod.h"
 #include "screens.h"
 
-typedef struct
-{
+struct screen_test_data_t {
     window_frame_t frame;
     window_text_t tst;
     window_text_t back;
@@ -22,7 +21,7 @@ typedef struct
     window_text_t tst_stack_overflow;
     int8_t id_tim;
     int8_t id_tim1;
-} screen_test_data_t;
+};
 
 #define pd ((screen_test_data_t *)screen->pdata)
 

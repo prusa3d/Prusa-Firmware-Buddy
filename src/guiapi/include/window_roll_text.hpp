@@ -10,9 +10,9 @@
 #include "window_text.hpp"
 #include "display_helper.h"
 
-typedef struct _window_class_roll_text_t {
+struct window_class_roll_text_t {
     window_class_t cls;
-} window_class_roll_text_t;
+};
 
 struct window_roll_text_t : window_text_t {
     txtroll_t roll;

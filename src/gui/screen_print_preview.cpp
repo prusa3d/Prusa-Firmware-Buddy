@@ -15,13 +15,13 @@
 
 #define DBG _dbg0
 
-typedef struct {
+struct description_line_t {
     window_text_t title;
     window_text_t value;
     char value_buffer[32];
-} description_line_t;
+};
 
-typedef struct {
+struct screen_print_preview_data_t {
     window_frame_t frame;
     window_text_t title_text;
     description_line_t description_lines[4];
@@ -37,7 +37,7 @@ typedef struct {
     unsigned gcode_filament_used_g;
     unsigned gcode_filament_used_mm;
     bool redraw_thumbnail;
-} screen_print_preview_data_t;
+};
 
 #define PADDING          10
 #define SCREEN_WIDTH     240 //FIXME should be in display.h

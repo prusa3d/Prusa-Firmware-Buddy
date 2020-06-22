@@ -27,13 +27,12 @@
 
 #define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
 
-typedef struct
-{
+struct screen_filebrowser_data_t {
     window_frame_t root;
 
     window_header_t header;
     window_file_list_t w_filelist;
-} screen_filebrowser_data_t;
+};
 
 #define pd ((screen_filebrowser_data_t *)screen->pdata)
 

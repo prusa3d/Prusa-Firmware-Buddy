@@ -1,20 +1,19 @@
-// screen_watchdog.c
+// screen_watchdog.cpp
 
 #include "gui.hpp"
 #include "config.h"
 #include "screens.h"
 
-typedef struct
-{
+struct screen_watchdog_data_t {
     window_frame_t frame;
     window_text_t text0;
     window_text_t text1;
-} screen_watchdog_data_t;
+};
 
-typedef struct _screen_watchdog_t {
+struct screen_watchdog_t {
     screen_t scr;
     screen_watchdog_data_t *pd;
-} screen_watchdog_t;
+};
 
 void screen_watchdog_init(screen_watchdog_t *screen) {
     if (screen->pd == 0) {

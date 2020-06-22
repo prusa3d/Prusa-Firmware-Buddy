@@ -6,9 +6,9 @@
 
 #include "qrcodegen.h"
 
-typedef struct {
+struct window_class_qr_t {
     window_class_t cls;
-} window_class_qr_t;
+};
 
 struct window_qr_t : public window_t {
     char *text;

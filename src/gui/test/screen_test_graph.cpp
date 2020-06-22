@@ -1,4 +1,4 @@
-// screen_test_term.c
+// screen_test_graph.cpp
 
 #include "gui.hpp"
 #include "config.h"
@@ -9,8 +9,7 @@
 
 extern void window_temp_scope_add(float temp_ext, float temp_bed);
 
-typedef struct
-{
+struct screen_test_term_data_t {
     window_frame_t frame;
     window_text_t text;
     window_text_t button;
@@ -19,12 +18,12 @@ typedef struct
     int16_t id_button;
     int16_t id_graph;
     window_temp_graph_t graph;
-} screen_test_term_data_t;
+};
 
-typedef struct _screen_test_term_t {
+struct screen_test_term_t {
     screen_t scr;
     screen_test_term_data_t *pd;
-} screen_test_term_t;
+};
 
 extern osThreadId displayTaskHandle;
 

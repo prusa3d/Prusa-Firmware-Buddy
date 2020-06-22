@@ -13,8 +13,8 @@ struct window_spin_t : public window_numb_t {
     int index;
 };
 
-typedef struct _window_class_spin_t {
+struct window_class_spin_t {
     window_class_numb_t cls;
-} window_class_spin_t;
+};
 
 extern const window_class_spin_t window_class_spin;

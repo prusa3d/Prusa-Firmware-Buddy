@@ -56,9 +56,9 @@
 
 #define MSGBOX_GREY_FRAME 0x8000 // draw grey frame
 
-typedef struct _window_class_msgbox_t {
+struct window_class_msgbox_t {
     window_class_t cls;
-} window_class_msgbox_t;
+};
 
 struct window_msgbox_t : public window_t {
     color_t color_back;

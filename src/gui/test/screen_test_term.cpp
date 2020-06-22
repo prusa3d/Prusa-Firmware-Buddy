@@ -1,4 +1,4 @@
-// screen_test_term.c
+// screen_test_term.cpp
 
 #include "gui.hpp"
 #include "config.h"
@@ -7,8 +7,7 @@
 
 #include "stm32f4xx_hal.h"
 
-typedef struct
-{
+struct screen_test_term_data_t {
     window_frame_t frame;
     window_text_t text;
     window_term_t term;
@@ -17,7 +16,7 @@ typedef struct
     int16_t id_term;
     term_t terminal;
     uint8_t term_buff[TERM_BUFF_SIZE(20, 16)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
-} screen_test_term_data_t;
+};
 
 #define pd ((screen_test_term_data_t *)screen->pdata)
 

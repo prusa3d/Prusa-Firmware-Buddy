@@ -45,8 +45,7 @@ struct _PID_t {
     float Kd_last;
 };
 
-typedef struct
-{
+struct screen_PID_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
 
@@ -107,8 +106,7 @@ typedef struct
     autotune_state_t autotune_state;
 
     int redraw;
-
-} screen_PID_data_t;
+};
 
     #define pd ((screen_PID_data_t *)screen->pdata)
 

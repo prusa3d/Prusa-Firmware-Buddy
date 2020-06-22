@@ -1,5 +1,5 @@
 /*
- * screen_test_disp_mem.c
+ * screen_test_disp_mem.cpp
  *
  *  Created on: 2019-09-24
  *      Author: Radek Vana
@@ -15,8 +15,7 @@
 
 extern int sim_heater_temp2val(float temp);
 
-typedef struct
-{
+struct screen_test_disp_mem_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
     window_text_t textSpiClk;
@@ -52,7 +51,7 @@ typedef struct
     window_spin_t spinStrB1;
 
     window_text_t textExit;
-} screen_test_disp_mem_data_t;
+};
 
 #define pd ((screen_test_disp_mem_data_t *)screen->pdata)
 /******************************************************************************************************/

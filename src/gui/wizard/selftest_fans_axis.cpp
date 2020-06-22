@@ -126,11 +126,10 @@ static float _get_pos(int axis) {
 typedef int (*selftest_phase)(selftest_fans_axis_data_t *p_data,
     _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos);
 
-typedef struct
-{
+struct _cl_st_ax {
     const size_t sz;
     const selftest_phase *p_phases;
-} _cl_st_ax;
+};
 
 static int ph_init(selftest_fans_axis_data_t *p_data,
     _TEST_STATE_t *state, int axis, int fr, int min, int max, int dir, char achar, float pos) {

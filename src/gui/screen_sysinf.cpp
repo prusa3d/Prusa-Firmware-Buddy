@@ -1,5 +1,5 @@
 /*
- * screen_sysinf.c
+ * screen_sysinf.cpp
  *
  *  Created on: 2019-09-25
  *      Author: Radek Vana
@@ -13,15 +13,14 @@
 #include "sys.h"
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 
-typedef struct
-{
+struct screen_sysinfo_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
     window_text_t textCPU_load;
     window_numb_t textCPU_load_val;
 
     window_text_t textExit;
-} screen_sysinfo_data_t;
+};
 
 #define pd ((screen_sysinfo_data_t *)screen->pdata)
 /******************************************************************************************************/

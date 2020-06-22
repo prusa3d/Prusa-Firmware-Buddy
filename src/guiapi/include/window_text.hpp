@@ -4,9 +4,9 @@
 
 #include "window.hpp"
 
-typedef struct _window_class_text_t {
+struct window_class_text_t {
     window_class_t cls;
-} window_class_text_t;
+};
 
 struct window_text_t : public window_t {
     color_t color_back;

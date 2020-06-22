@@ -25,8 +25,8 @@ struct window_temp_graph_t : public window_t {
     uint8_t y_bed_c[180];
 };
 
-typedef struct _window_class_temp_graph_t {
+struct window_class_temp_graph_t {
     window_class_t cls;
-} window_class_temp_graph_t;
+};
 
 extern const window_class_temp_graph_t window_class_temp_graph;

@@ -1,12 +1,11 @@
-// screen_test_gui.c
+// screen_test_gui.cpp
 
 #include "gui.hpp"
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "screens.h"
 
-typedef struct
-{
+struct screen_test_gui_data_t {
     window_frame_t frame;
     window_icon_t logo_prusa_mini;
     window_text_t text0;
@@ -22,7 +21,7 @@ typedef struct
     window_icon_t icon2;
     window_progress_t progress;
     window_text_t text_terminal;
-} screen_test_gui_data_t;
+};
 
 #define pd ((screen_test_gui_data_t *)screen->pdata)
 

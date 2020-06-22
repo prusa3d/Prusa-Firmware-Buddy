@@ -23,9 +23,9 @@ struct window_dlg_popup_t : public window_t {
     char text[MSG_MAX_LENGTH];
 };
 
-typedef struct _window_class_dlg_popup_t {
+struct window_class_dlg_popup_t {
     window_class_t cls;
-} window_class_dlg_popup_t;
+};
 
 extern const window_class_dlg_popup_t window_class_dlg_popup;
 extern void gui_pop_up(void);

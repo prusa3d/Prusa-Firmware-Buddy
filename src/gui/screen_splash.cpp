@@ -14,8 +14,7 @@
     #include "marlin_client.h"
 #endif
 
-typedef struct
-{
+struct screen_splash_data_t {
     window_frame_t frame;
     window_icon_t logo_prusa_mini;
     window_text_t text_progress;
@@ -29,7 +28,7 @@ typedef struct
 
     uint32_t last_timer;
     uint8_t logo_invalid;
-} screen_splash_data_t;
+};
 
 #define _psd ((screen_splash_data_t *)screen->pdata)
 

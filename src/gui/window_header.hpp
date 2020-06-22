@@ -25,9 +25,9 @@ typedef enum {
 
 #define HEADER_ICON_COUNT HEADER_ICON_WIFI + 1
 
-typedef struct _window_class_header_t {
+struct window_class_header_t {
     window_class_t cls;
-} window_class_header_t;
+};
 
 struct window_header_t : public window_t {
     color_t color_back;

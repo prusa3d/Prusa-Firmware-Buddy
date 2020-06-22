@@ -51,27 +51,27 @@
 #define WINDOW_EVENT_TIMER    0x0d //gui timer
 #define WINDOW_EVENT_MESSAGE  0x0e //onStatusChange() message notification
 
-typedef struct _window_t window_t;
+struct window_t;
 
 typedef void(window_init_t)(void *window);
 typedef void(window_done_t)(void *window);
 typedef void(window_draw_t)(void *window);
 typedef void(window_event_t)(void *window, uint8_t event, void *param);
 
-typedef struct _window_list_t window_list_t;
+struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
-typedef struct _window_class_t {
+struct window_class_t {
     int16_t cls_id;        // (2 bytes) window class id
     uint16_t size;         // (2 bytes) window structure size
     window_init_t *init;   // (4 bytes) done callback
     window_done_t *done;   // (4 bytes) done callback
     window_draw_t *draw;   // (4 bytes) draw callback
     window_event_t *event; // (4 bytes) event callback
-} window_class_t;          // (20 bytes total)
+};                         // (20 bytes total)
 
-typedef struct _window_t {
+struct window_t {
     window_class_t *cls; // (4 bytes) window class pointer
     int16_t id_parent;   // (2 bytes) parent window identifier (2bytes)
     int16_t id;          // (2 bytes) window identifier (2bytes)
@@ -98,7 +98,7 @@ typedef struct _window_t {
     };
     rect_ui16_t rect;      // (8 bytes) display rectangle
     window_event_t *event; // (4 bytes) event callback
-} window_t;                // (24 bytes total)
+};                         // (24 bytes total)
 
 extern window_t *window_popup_ptr; //current popup window
 
