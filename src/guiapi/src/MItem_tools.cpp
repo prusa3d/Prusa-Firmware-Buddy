@@ -6,7 +6,7 @@
 #include "marlin_client.h"
 #include "gui.hpp"
 #include "sys.h"
-#include "window_dlg_wait.h"
+#include "window_dlg_wait.hpp"
 #include "sound_C_wrapper.h"
 #include "wui_api.h"
 #include "../lang/i18n.h"

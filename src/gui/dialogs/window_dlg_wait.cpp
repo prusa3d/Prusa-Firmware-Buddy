@@ -4,7 +4,7 @@
  *  Created on: Nov 5, 2019
  *      Author: Migi
  */
-#include "window_dlg_wait.h"
+#include "window_dlg_wait.hpp"
 #include "display_helper.h"
 #include "gui.hpp"
 #include "dbg.h"
@@ -27,7 +27,7 @@ typedef enum {
 int16_t WINDOW_CLS_DLG_WAIT = 0;
 
 void window_dlg_wait_init(window_dlg_wait_t *window) {
-    window->win.flg |= WINDOW_FLG_ENABLED; //enabled by default
+    window->flg |= WINDOW_FLG_ENABLED; //enabled by default
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -40,18 +40,18 @@ void window_dlg_wait_init(window_dlg_wait_t *window) {
 }
 
 void window_dlg_wait_draw(window_dlg_wait_t *window) {
-    if (!window->win.f_visible)
+    if (!window->f_visible)
         return;
-    const rect_ui16_t rc = window->win.rect;
+    const rect_ui16_t rc = window->rect;
 
-    if (window->win.f_invalid) {
+    if (window->f_invalid) {
         display::FillRect(rc, window->color_back);
 
         rect_ui16_t rc_tit = rc;
         rc_tit.y += 10;
         rc_tit.h = 30; // 30 pixels for title
         render_text_align(rc_tit, _("Please wait"), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
-        window->win.f_invalid = 0;
+        window->f_invalid = 0;
 
         if (window->components & DLG_W8_DRAW_FRAME) { // grey frame enabled
             const uint16_t w = display::GetW();

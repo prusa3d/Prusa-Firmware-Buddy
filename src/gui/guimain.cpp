@@ -10,7 +10,7 @@
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
 #include "DialogLoadUnload.h"
-#include "window_dlg_wait.h"
+#include "window_dlg_wait.hpp"
 #ifdef _DEBUG
     #include "window_dlg_popup.hpp"
 #endif //_DEBUG

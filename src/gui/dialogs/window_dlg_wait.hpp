@@ -1,5 +1,5 @@
 /*
- * window_dlg_wait.h
+ * window_dlg_wait.hpp
  *
  *  Created on: Nov 5, 2019
  *      Author: Migi
@@ -10,12 +10,9 @@
 #include "window.hpp"
 #include <stdbool.h>
 
-typedef struct _window_dlg_wait_t window_dlg_wait_t;
-
 extern int16_t WINDOW_CLS_DLG_WAIT;
 
-typedef struct _window_dlg_wait_t {
-    window_t win;
+struct window_dlg_wait_t : public window_t {
     color_t color_back;
     color_t color_text;
     font_t *font;
@@ -27,7 +24,7 @@ typedef struct _window_dlg_wait_t {
     uint8_t components;
     bool animation_chng;
     bool progress_chng;
-} window_dlg_wait_t;
+};
 
 typedef struct _window_class_dlg_wait_t {
     window_class_t cls;
