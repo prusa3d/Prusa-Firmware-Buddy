@@ -41,7 +41,7 @@ extern void gui_reset_jogwheel(void);
 
 #ifdef GUI_WINDOW_SUPPORT
     #include "window.hpp"
-    #include "window_frame.h"
+    #include "window_frame.hpp"
     #include "window_text.h"
     #include "window_roll_text.h"
     #include "window_numb.h"

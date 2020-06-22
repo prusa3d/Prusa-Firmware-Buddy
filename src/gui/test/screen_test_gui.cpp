@@ -90,7 +90,7 @@ void screen_test_gui_init(screen_t *screen) {
 }
 
 void screen_test_gui_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_test_gui_draw(screen_t *screen) {

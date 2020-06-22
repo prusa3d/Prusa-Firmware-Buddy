@@ -126,7 +126,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
 }
 
 void screen_mesh_bed_lv_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_mesh_bed_lv_draw(screen_t *screen) {

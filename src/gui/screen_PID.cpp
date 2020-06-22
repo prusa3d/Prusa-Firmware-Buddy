@@ -336,7 +336,7 @@ void screen_PID_init(screen_t *screen) {
 }
 
 void screen_PID_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_PID_draw(screen_t *screen) {

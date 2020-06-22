@@ -518,7 +518,7 @@ void readPartLine(size_t partRow, size_t partDivider, color_t *buff){
 */
 
 void screen_test_disp_mem_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_test_disp_mem_draw(screen_t *screen) {

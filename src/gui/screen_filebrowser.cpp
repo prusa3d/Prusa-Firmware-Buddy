@@ -84,7 +84,7 @@ static void screen_filebrowser_init(screen_t *screen) {
 }
 
 static void screen_filebrowser_done(_screen_t *screen) {
-    window_destroy(pd->root.win.id);
+    window_destroy(pd->root.id);
 }
 
 static void screen_filebrowser_draw(screen_t *screen) {}

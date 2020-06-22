@@ -136,7 +136,7 @@ void screen_printing_serial_init(screen_t *screen) {
 void screen_printing_serial_done(screen_t *screen) {
     marlin_gcode("G27 P2"); /// park nozzle and raise Z axis
     marlin_gcode("M86 S1"); /// enable safety timer
-    window_destroy(pw->root.win.id);
+    window_destroy(pw->root.id);
 }
 
 void screen_printing_serial_draw(screen_t *screen) {

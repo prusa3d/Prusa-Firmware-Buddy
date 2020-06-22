@@ -42,7 +42,7 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
 
 void screen_watchdog_done(screen_watchdog_t *screen) {
     if (screen->pd) {
-        window_destroy(screen->pd->frame.win.id);
+        window_destroy(screen->pd->frame.id);
         gui_free(screen->pd);
         screen->pd = 0;
     }

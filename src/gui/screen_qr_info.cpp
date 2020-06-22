@@ -49,7 +49,7 @@ void screen_menu_qr_info_draw(screen_t *screen) {
 }
 
 void screen_menu_qr_info_done(screen_t *screen) {
-    window_destroy(pd->root.win.id);
+    window_destroy(pd->root.id);
 }
 
 int screen_menu_qr_info_event(screen_t *screen, window_t *window, uint8_t event, void *param) {

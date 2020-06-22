@@ -121,7 +121,7 @@ void screen_home_init(screen_t *screen) {
 }
 
 void screen_home_done(screen_t *screen) {
-    window_destroy(pw->root.win.id);
+    window_destroy(pw->root.id);
 }
 
 void screen_home_draw(screen_t *screen) {

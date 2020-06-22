@@ -102,7 +102,7 @@ int screen_messages_event(screen_t *screen, window_t *window,
 }
 
 void screen_messages_done(screen_t *screen) {
-    window_destroy(pmsg->root.win.id);
+    window_destroy(pmsg->root.id);
     free(pmsg->pfooter);
 }
 

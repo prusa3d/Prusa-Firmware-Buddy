@@ -74,7 +74,7 @@ void screen_splash_init(screen_t *screen) {
 }
 
 void screen_splash_done(screen_t *screen) {
-    window_destroy(_psd->frame.win.id);
+    window_destroy(_psd->frame.id);
 }
 
 void screen_splash_draw(screen_t *screen) {

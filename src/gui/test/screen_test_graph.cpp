@@ -56,7 +56,7 @@ void screen_test_graph_init(screen_test_term_t *screen) {
 
 void screen_test_graph_done(screen_test_term_t *screen) {
     if (screen->pd) {
-        window_destroy(screen->pd->frame.win.id);
+        window_destroy(screen->pd->frame.id);
         gui_free(screen->pd);
         screen->pd = 0;
     }

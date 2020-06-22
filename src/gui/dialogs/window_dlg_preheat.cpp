@@ -15,7 +15,7 @@
 #include "resource.h"
 #include "stdlib.h"
 #include "../lang/i18n.h"
-#include "window_frame.h"
+#include "window_frame.hpp"
 #include <limits>
 
 int16_t WINDOW_CLS_DLG_PREHEAT = 0;

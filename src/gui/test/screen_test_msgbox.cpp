@@ -92,7 +92,7 @@ void screen_test_msgbox_init(screen_t *screen) {
 }
 
 void screen_test_msgbox_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_test_msgbox_draw(screen_t *screen) {

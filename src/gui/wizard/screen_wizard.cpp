@@ -91,7 +91,7 @@ void screen_wizard_done(screen_t *screen) {
 
     //turn heaters off
     wizard_init(0, 0);
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_wizard_draw(screen_t *screen) {
@@ -100,8 +100,8 @@ void screen_wizard_draw(screen_t *screen) {
 int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     static int inside_handler = 0;
 
-    int16_t footer_id = pd->frame_footer.win.id;
-    int16_t frame_id = pd->frame_body.win.id;
+    int16_t footer_id = pd->frame_footer.id;
+    int16_t frame_id = pd->frame_body.id;
     selftest_fans_axis_screen_t *p_selftest_fans_axis_screen = &(pd->screen_variant.selftest_fans_axis_screen);
     selftest_cool_screen_t *p_selftest_cool_screen = &(pd->screen_variant.selftest_cool_screen);
     selftest_temp_screen_t *p_selftest_temp_screen = &(pd->screen_variant.selftest_temp_screen);
@@ -114,7 +114,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     xyzcalib_screen_t *p_xyzcalib_screen = &(pd->screen_variant.xyzcalib_screen);
     xyzcalib_data_t *p_xyzcalib_data = &(pd->xyzcalib);
 
-    if (pd->frame_footer.win.flg & WINDOW_FLG_VISIBLE) {
+    if (pd->frame_footer.flg & WINDOW_FLG_VISIBLE) {
         status_footer_event(&(pd->footer), window, event, param);
     }
 
@@ -556,8 +556,8 @@ const char *wizard_get_caption(screen_t *screen) {
 }
 
 void wizard_done_screen(screen_t *screen) {
-    window_destroy_children(pd->frame_body.win.id);
-    window_invalidate(pd->frame_body.win.id);
+    window_destroy_children(pd->frame_body.id);
+    window_invalidate(pd->frame_body.id);
 }
 
 screen_t screen_wizard = {

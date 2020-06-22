@@ -53,7 +53,7 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines,
 }
 
 void IScreenMenu::Done() {
-    window_destroy(root.win.id);
+    window_destroy(root.id);
 }
 
 int IScreenMenu::Event(window_t *window, uint8_t event, void *param) {
