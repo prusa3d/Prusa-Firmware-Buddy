@@ -55,7 +55,7 @@ int screen_test_term_event(screen_t *screen, window_t *window, uint8_t event, vo
         term_printf(pd->term.term, "%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
         //	else
         //		if (pd->term.term->flg & TERM_FLG_CHANGED)
-        window_invalidate(pd->term.win.id);
+        window_invalidate(pd->term.id);
     }
     return 0;
 }

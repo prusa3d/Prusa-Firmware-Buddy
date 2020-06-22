@@ -48,7 +48,7 @@ extern void gui_reset_jogwheel(void);
     #include "window_icon.hpp"
     #include "window_list.hpp"
     #include "window_spin.hpp"
-    #include "window_term.h"
+    #include "window_term.hpp"
     #include "window_msgbox.hpp"
     #include "window_progress.h"
     #include "window_qr.hpp"
