@@ -9,6 +9,7 @@
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "screens.h"
+#include "../lang/i18n.h"
 
 #define BUTTON_TUNE       0
 #define BUTTON_PAUSE      1
@@ -133,6 +134,8 @@ void screen_printing_serial_init(screen_t *screen) {
 }
 
 void screen_printing_serial_done(screen_t *screen) {
+    marlin_gcode("G27 P2"); /// park nozzle and raise Z axis
+    marlin_gcode("M86 S1"); /// enable safety timer
     window_destroy(pw->root.win.id);
 }
 
@@ -160,8 +163,10 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         return 1;
         break;
     case BUTTON_DISCONNECT:
-        marlin_gcode("M118 A1 action:disconnect");
-        screen_close();
+        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
+            marlin_gcode("M118 A1 action:disconnect");
+            screen_close();
+        }
         return 1;
         break;
     }

@@ -6,7 +6,6 @@
 #include "filament.h"
 #include "filament_sensor.h"
 #include "marlin_client.h"
-#include "menu_vars.h"
 #include "window_dlg_load_unload.h"
 #include "screens.h"
 #include "dbg.h"
