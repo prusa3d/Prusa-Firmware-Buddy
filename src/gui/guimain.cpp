@@ -6,7 +6,7 @@
 #include "config.h"
 #include "marlin_client.h"
 
-#include "window_file_list.h"
+#include "window_file_list.hpp"
 #include "window_header.h"
 #include "window_temp_graph.h"
 #include "DialogLoadUnload.h"

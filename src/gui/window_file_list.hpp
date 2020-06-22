@@ -1,5 +1,5 @@
 /*
- * window_file_list.h
+ * window_file_list.hpp
  *
  *  Created on: 23. 7. 2019
  *      Author: mcbig
@@ -27,8 +27,7 @@ typedef struct _window_class_file_list_t {
     window_class_t cls;
 } window_class_file_list_t;
 
-typedef struct _window_file_list_t {
-    window_t win;
+typedef struct _window_file_list_t : public window_t {
     color_t color_back;
     color_t color_text;
     font_t *font;

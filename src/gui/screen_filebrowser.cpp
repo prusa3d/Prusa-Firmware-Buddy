@@ -7,7 +7,7 @@
 
 #include "gui.hpp"
 #include "dbg.h"
-#include "window_file_list.h"
+#include "window_file_list.hpp"
 #include "window_header.h"
 #include "config.h"
 #include "stdlib.h"
