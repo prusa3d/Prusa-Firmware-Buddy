@@ -1,7 +1,7 @@
 // screen.c
 
 #include "screen.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "bsod.h"
 
 #define SCREEN_MAX_SCREENS 48

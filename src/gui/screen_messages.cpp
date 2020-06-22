@@ -5,9 +5,9 @@
  *      Author: Migi
  */
 
-#include "gui.h"
+#include "gui.hpp"
 #include "marlin_server.h"
-#include "window_header.h"
+#include "window_header.hpp"
 #include "status_footer.h"
 #include <stdlib.h>
 #include <stdint.h>
@@ -67,7 +67,7 @@ void screen_messages_init(screen_t *screen) {
     window_set_item_index(id, 0);
     window_set_item_callback(id, _window_list_add_message_item);
 
-    window_set_capture(pmsg->list.win.id);
+    window_set_capture(pmsg->list.id);
 
     pmsg->pfooter = (status_footer_t *)gui_malloc(sizeof(status_footer_t));
     status_footer_init(pmsg->pfooter, root);
@@ -102,7 +102,7 @@ int screen_messages_event(screen_t *screen, window_t *window,
 }
 
 void screen_messages_done(screen_t *screen) {
-    window_destroy(pmsg->root.win.id);
+    window_destroy(pmsg->root.id);
     free(pmsg->pfooter);
 }
 

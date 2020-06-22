@@ -1,6 +1,6 @@
 #include "DialogLoadUnload.hpp"
 #include "DialogLoadUnload.h"
-#include "gui.h"      //resource_font
+#include "gui.hpp"    //resource_font
 #include "resource.h" //IDR_FNT_BIG
 #include "sound_C_wrapper.h"
 #include "../lang/i18n.h"

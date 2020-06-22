@@ -1,14 +1,13 @@
-// screen_test_term.c
+// screen_test_term.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
-#include "window_progress.h"
+#include "window_progress.hpp"
 #include "screens.h"
 
 #include "stm32f4xx_hal.h"
 
-typedef struct
-{
+struct screen_test_term_data_t {
     window_frame_t frame;
     window_text_t text;
     window_term_t term;
@@ -17,7 +16,7 @@ typedef struct
     int16_t id_term;
     term_t terminal;
     uint8_t term_buff[TERM_BUFF_SIZE(20, 16)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
-} screen_test_term_data_t;
+};
 
 #define pd ((screen_test_term_data_t *)screen->pdata)
 
@@ -39,7 +38,7 @@ void screen_test_term_init(screen_t *screen) {
 }
 
 void screen_test_term_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_test_term_draw(screen_t *screen) {
@@ -55,7 +54,7 @@ int screen_test_term_event(screen_t *screen, window_t *window, uint8_t event, vo
         term_printf(pd->term.term, "%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
         //	else
         //		if (pd->term.term->flg & TERM_FLG_CHANGED)
-        window_invalidate(pd->term.win.id);
+        window_invalidate(pd->term.id);
     }
     return 0;
 }

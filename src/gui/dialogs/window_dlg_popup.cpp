@@ -1,13 +1,13 @@
 /*
- * window_dlg_popup.c
+ * window_dlg_popup.cpp
  *
  *  Created on: Nov 11, 2019
  *      Author: Migi
  */
 
-#include "window_dlg_popup.h"
+#include "window_dlg_popup.hpp"
 #include "display_helper.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "../lang/i18n.h"
@@ -19,7 +19,7 @@ int16_t WINDOW_CLS_DLG_POPUP = 0;
 extern msg_stack_t msg_stack;
 
 void window_dlg_popup_init(window_dlg_popup_t *window) {
-    window->win.flg |= WINDOW_FLG_ENABLED;
+    window->flg |= WINDOW_FLG_ENABLED;
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -28,11 +28,11 @@ void window_dlg_popup_init(window_dlg_popup_t *window) {
 }
 
 void window_dlg_popup_draw(window_dlg_popup_t *window) {
-    if (window->win.f_visible) {
-        rect_ui16_t rc = window->win.rect;
+    if (window->f_visible) {
+        rect_ui16_t rc = window->rect;
         rc.h = 140;
 
-        if (window->win.f_invalid) {
+        if (window->f_invalid) {
             display::FillRect(rc, window->color_back);
             rect_ui16_t text_rc = rc;
             text_rc.x += 10;
@@ -43,7 +43,7 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
                 window->font, window->color_back,
                 window->color_text, window->padding,
                 ALIGN_LEFT_CENTER);
-            window->win.f_invalid = 0;
+            window->f_invalid = 0;
         }
     }
 }

@@ -1,6 +1,6 @@
 // wizard_ui.h
 #pragma once
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 
 #define WIZARD_MARGIN_LEFT  6

@@ -1,16 +1,15 @@
-// screen_test_term.c
+// screen_test_graph.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
-#include "window_temp_graph.h"
+#include "window_temp_graph.hpp"
 #include "cmsis_os.h"
 #include <stdlib.h>
 #include "screens.h"
 
 extern void window_temp_scope_add(float temp_ext, float temp_bed);
 
-typedef struct
-{
+struct screen_test_term_data_t {
     window_frame_t frame;
     window_text_t text;
     window_text_t button;
@@ -19,12 +18,12 @@ typedef struct
     int16_t id_button;
     int16_t id_graph;
     window_temp_graph_t graph;
-} screen_test_term_data_t;
+};
 
-typedef struct _screen_test_term_t {
+struct screen_test_term_t {
     screen_t scr;
     screen_test_term_data_t *pd;
-} screen_test_term_t;
+};
 
 extern osThreadId displayTaskHandle;
 
@@ -56,7 +55,7 @@ void screen_test_graph_init(screen_test_term_t *screen) {
 
 void screen_test_graph_done(screen_test_term_t *screen) {
     if (screen->pd) {
-        window_destroy(screen->pd->frame.win.id);
+        window_destroy(screen->pd->frame.id);
         gui_free(screen->pd);
         screen->pd = 0;
     }
@@ -73,7 +72,7 @@ int screen_test_graph_event(screen_test_term_t *screen, window_t *window, uint8_
 
     if (event == WINDOW_EVENT_LOOP) {
         if (i == 5) {
-            screen->pd->graph.win.flg |= WINDOW_FLG_GRAPH_INVALID;
+            screen->pd->graph.flg |= WINDOW_FLG_GRAPH_INVALID;
             //osSignalSet(displayTaskHandle, SIG_DISP_REDRAW);
             gui_invalidate();
             i = 0;

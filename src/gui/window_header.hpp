@@ -1,5 +1,5 @@
 /*
- * window_header.h
+ * window_header.hpp
  *
  *  Created on: 19. 7. 2019
  *      Author: mcbig
@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "gui.h"
+#include "gui.hpp"
 #include "marlin_events.h"
 
 typedef enum {
@@ -25,13 +25,11 @@ typedef enum {
 
 #define HEADER_ICON_COUNT HEADER_ICON_WIFI + 1
 
-typedef struct _window_class_header_t {
+struct window_class_header_t {
     window_class_t cls;
-} window_class_header_t;
+};
 
-typedef struct _window_header_t {
-    window_t win;
-
+struct window_header_t : public window_t {
     color_t color_back;
     color_t color_text;
     font_t *font;
@@ -42,7 +40,7 @@ typedef struct _window_header_t {
     const char *label;
 
     // char time[10];
-} window_header_t;
+};
 
 extern int16_t WINDOW_CLS_HEADER;
 

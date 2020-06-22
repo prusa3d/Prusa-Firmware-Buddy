@@ -1,11 +1,11 @@
 /*
- * screen_sysinf.c
+ * screen_sysinf.cpp
  *
  *  Created on: 2019-09-25
  *      Author: Radek Vana
  */
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screens.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"
@@ -13,15 +13,14 @@
 #include "sys.h"
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 
-typedef struct
-{
+struct screen_sysinfo_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
     window_text_t textCPU_load;
     window_numb_t textCPU_load_val;
 
     window_text_t textExit;
-} screen_sysinfo_data_t;
+};
 
 #define pd ((screen_sysinfo_data_t *)screen->pdata)
 /******************************************************************************************************/
@@ -79,7 +78,7 @@ void screen_sysinfo_init(screen_t *screen) {
 }
 
 void screen_sysinfo_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_sysinfo_draw(screen_t *screen) {
@@ -96,7 +95,7 @@ int screen_sysinfo_event(screen_t *screen, window_t *window, uint8_t event, void
     if (event == WINDOW_EVENT_LOOP) {
         actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {
-            window_set_value(pd->textCPU_load_val.win.id, actual_CPU_load);
+            window_set_value(pd->textCPU_load_val.id, actual_CPU_load);
             last_CPU_load = actual_CPU_load;
         }
     }

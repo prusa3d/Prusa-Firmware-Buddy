@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include "client_response.hpp"
-#include "gui.h"
+#include "gui.hpp"
 
 using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
 

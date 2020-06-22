@@ -1,6 +1,6 @@
 //screen_splash.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "version.h"
 #include "wizard/wizard.h"
@@ -14,8 +14,7 @@
     #include "marlin_client.h"
 #endif
 
-typedef struct
-{
+struct screen_splash_data_t {
     window_frame_t frame;
     window_icon_t logo_prusa_mini;
     window_text_t text_progress;
@@ -29,7 +28,7 @@ typedef struct
 
     uint32_t last_timer;
     uint8_t logo_invalid;
-} screen_splash_data_t;
+};
 
 #define _psd ((screen_splash_data_t *)screen->pdata)
 
@@ -74,11 +73,11 @@ void screen_splash_init(screen_t *screen) {
 }
 
 void screen_splash_done(screen_t *screen) {
-    window_destroy(_psd->frame.win.id);
+    window_destroy(_psd->frame.id);
 }
 
 void screen_splash_draw(screen_t *screen) {
-    if (_psd->logo_prusa_mini.win.f_invalid)
+    if (_psd->logo_prusa_mini.f_invalid)
         _psd->logo_invalid = 1;
 }
 
@@ -122,7 +121,7 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
 
 void screen_splash_timer(screen_t *screen, uint32_t mseconds) {
     float percent = mseconds / 3000.0 * 100;
-    window_set_value(_psd->progress.win.id, (percent < 95) ? percent : 95);
+    window_set_value(_psd->progress.id, (percent < 95) ? percent : 95);
 }
 
 screen_t screen_splash = {

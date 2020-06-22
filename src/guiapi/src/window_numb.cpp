@@ -1,6 +1,6 @@
 // window_numb.c
-#include "window_numb.h"
-#include "gui.h"
+#include "window_numb.hpp"
+#include "gui.hpp"
 
 #define WINDOW_NUMB_MAX_TEXT 16
 
@@ -15,26 +15,26 @@ void window_numb_init(window_numb_t *window) {
 }
 
 void window_numb_draw(window_numb_t *window) {
-    if (((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        color_t clr_back = (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back;
-        color_t clr_text = (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text;
-        if (window->win.flg & WINDOW_FLG_CAPTURE)
+    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+        color_t clr_back = (window->flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back;
+        color_t clr_text = (window->flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text;
+        if (window->flg & WINDOW_FLG_CAPTURE)
             clr_text = COLOR_ORANGE;
         char text[WINDOW_NUMB_MAX_TEXT];
-        if (window->win.flg & WINDOW_FLG_NUMB_FLOAT2INT) {
+        if (window->flg & WINDOW_FLG_NUMB_FLOAT2INT) {
             snprintf(text, WINDOW_NUMB_MAX_TEXT, window->format, (int)(window->value));
         } else {
             snprintf(text, WINDOW_NUMB_MAX_TEXT, window->format, (double)window->value);
         }
 
-        render_text_align(window->win.rect,
+        render_text_align(window->rect,
             text, // @@TODO translate this string here?
             window->font,
             clr_back,
             clr_text,
             window->padding,
             window->alignment);
-        window->win.flg &= ~WINDOW_FLG_INVALID;
+        window->flg &= ~WINDOW_FLG_INVALID;
     }
 }
 

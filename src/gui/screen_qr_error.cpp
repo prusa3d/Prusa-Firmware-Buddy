@@ -1,4 +1,4 @@
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include <stdlib.h>
 #include "support_utils.h"
@@ -52,7 +52,7 @@ void screen_menu_qr_error_draw(screen_t * /*screen*/) {
 }
 
 void screen_menu_qr_error_done(screen_t *screen) {
-    window_destroy(pd->root.win.id);
+    window_destroy(pd->root.id);
 }
 
 int screen_menu_qr_error_event(screen_t *screen, window_t * /*window*/, uint8_t event, void * /*param*/) {

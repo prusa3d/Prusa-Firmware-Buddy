@@ -6,7 +6,7 @@
  */
 
 #include <menu_vars.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "cmsis_os.h"
 #include "hwio.h"
@@ -97,7 +97,7 @@ int screen_test_temperature_event(screen_t *screen, window_t *window,
         psmd->items[MI_NOZZLE].item.data.wi_spin.value = 0;
         psmd->items[MI_HEATBED].item.data.wi_spin.value = 0;
         psmd->items[MI_PRINTFAN].item.data.wi_spin.value = 0;
-        _window_invalidate(&(psmd->root.win));
+        _window_invalidate(&(psmd->root));
     }
 
     return 0;

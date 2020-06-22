@@ -1,6 +1,6 @@
 // term.c
 #include "term.h"
-#include "gui.h"
+#include "gui.hpp"
 #include <stdarg.h>
 
 void term_init(term_t *pt, uint8_t cols, uint8_t rows, uint8_t *buff) {

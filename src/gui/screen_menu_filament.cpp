@@ -1,6 +1,6 @@
 // screen_menu_filament.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"
@@ -127,12 +127,12 @@ private:
     template <class T>
     void dis() {
         Item<T>().Disable();
-        win.f_invalid = 1;
+        f_invalid = 1;
     }
     template <class T>
     void ena() {
         Item<T>().Enable();
-        win.f_invalid = 1;
+        f_invalid = 1;
     }
 };
 

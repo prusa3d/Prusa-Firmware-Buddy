@@ -1,6 +1,6 @@
 // gui.c
 #include "display.h"
-#include "gui.h"
+#include "gui.hpp"
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
 #include "sound_C_wrapper.h"

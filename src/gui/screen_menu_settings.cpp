@@ -1,6 +1,6 @@
 // screen_menu_settings.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "app.h"
 #include "marlin_client.h"

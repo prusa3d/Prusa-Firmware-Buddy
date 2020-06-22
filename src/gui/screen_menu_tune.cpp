@@ -1,6 +1,6 @@
 // screen_menu_tune.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "MItem_print.hpp"

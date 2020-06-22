@@ -8,7 +8,7 @@
 #ifndef SRC_GUI_SCREEN_LAN_SETTINGS_H_
 #define SRC_GUI_SCREEN_LAN_SETTINGS_H_
 
-#include "gui.h"
+#include "gui.hpp"
 
 #define plsd ((screen_lan_settings_data_t *)screen->pdata)
 
