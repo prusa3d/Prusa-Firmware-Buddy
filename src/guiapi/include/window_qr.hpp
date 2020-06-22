@@ -1,4 +1,4 @@
-// window_qr.h
+// window_qr.hpp
 
 #pragma once
 
@@ -10,8 +10,7 @@ typedef struct {
     window_class_t cls;
 } window_class_qr_t;
 
-typedef struct {
-    window_t win;
+struct window_qr_t : public window_t {
     char *text;
     int version;
     enum qrcodegen_Ecc ecc_level;
@@ -20,6 +19,6 @@ typedef struct {
     uint8_t px_per_module;
     color_t bg_color;
     color_t px_color;
-} window_qr_t;
+};
 
 extern const window_class_qr_t window_class_qr;
