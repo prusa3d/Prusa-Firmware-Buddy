@@ -1,7 +1,6 @@
 // window_text.h
 
-#ifndef _WINDOW_TEXT_H
-#define _WINDOW_TEXT_H
+#pragma once
 
 #include "window.hpp"
 
@@ -19,14 +18,4 @@ typedef struct _window_text_t {
     uint8_t alignment;
 } window_text_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_text_t window_class_text;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_TEXT_H

@@ -5,8 +5,7 @@
 *      Author: Migi - michal.rudolf<at>prusa3d.cz
 */
 
-#ifndef WINDOW_ROLL_TEXT_H
-#define WINDOW_ROLL_TEXT_H
+#pragma once
 
 #include "window.hpp"
 #include "display_helper.h"
@@ -26,14 +25,4 @@ typedef struct _window_roll_text_t {
     txtroll_t roll;
 } window_roll_text_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_roll_text_t window_class_roll_text;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //WINDOW_SCROLL_TEXT_H

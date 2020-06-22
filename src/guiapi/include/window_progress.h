@@ -1,7 +1,6 @@
 // window_progress.h
 
-#ifndef _WINDOW_PROGRESS_H
-#define _WINDOW_PROGRESS_H
+#pragma once
 
 #include "window.hpp"
 
@@ -24,14 +23,4 @@ typedef struct _window_progress_t {
     float max;
 } window_progress_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_progress_t window_class_progress;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_PROGRESS_H

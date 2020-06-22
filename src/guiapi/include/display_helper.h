@@ -1,6 +1,5 @@
 //helper.h
-#ifndef _HELPER_H
-#define _HELPER_H
+#pragma once
 
 #include "guitypes.h"
 
@@ -13,10 +12,6 @@
 #define TXTROLL_SETUP_INIT         0
 #define TXTROLL_SETUP_DONE         1
 #define TXTROLL_SETUP_IDLE         2
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 typedef enum {
     ROLL_SETUP = 0,
@@ -43,9 +38,3 @@ extern void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll);
 extern void roll_init(rect_ui16_t rc, const char *text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);
 
 extern void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_HELPER_H

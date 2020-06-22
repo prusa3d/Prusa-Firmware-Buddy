@@ -1,7 +1,6 @@
 // window_qr.h
 
-#ifndef _WINDOW_QR_H
-#define _WINDOW_QR_H
+#pragma once
 
 #include "window.hpp"
 
@@ -23,14 +22,4 @@ typedef struct {
     color_t px_color;
 } window_qr_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_qr_t window_class_qr;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_QR_H

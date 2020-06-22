@@ -1,7 +1,6 @@
 // window_numb.h
 
-#ifndef _WINDOW_NUMB_H
-#define _WINDOW_NUMB_H
+#pragma once
 
 #include "window.hpp"
 
@@ -22,14 +21,4 @@ typedef struct _window_numb_t {
     uint8_t alignment;
 } window_numb_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_numb_t window_class_numb;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_NUMB_H

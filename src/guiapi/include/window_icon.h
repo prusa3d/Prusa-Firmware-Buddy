@@ -1,7 +1,6 @@
 // window_icon.h
 
-#ifndef _WINDOW_ICON_H
-#define _WINDOW_ICON_H
+#pragma once
 
 #include "window.hpp"
 
@@ -16,14 +15,4 @@ typedef struct _window_class_icon_t {
     window_class_t cls;
 } window_class_icon_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_icon_t window_class_icon;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_ICON_H

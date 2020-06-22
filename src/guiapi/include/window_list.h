@@ -1,7 +1,6 @@
 // window_list.h
 
-#ifndef _WINDOW_LIST_H
-#define _WINDOW_LIST_H
+#pragma once
 
 #include "window.hpp"
 
@@ -23,14 +22,4 @@ typedef struct _window_list_t {
     window_list_item_t *list_item;
 } window_list_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern const window_class_list_t window_class_list;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_LIST_H

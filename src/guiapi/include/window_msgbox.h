@@ -1,6 +1,5 @@
 // window_msgbox.h
-#ifndef _WINDOW_MSGBOX_H
-#define _WINDOW_MSGBOX_H
+#pragma once
 
 #include "window.hpp"
 
@@ -77,16 +76,6 @@ typedef struct _window_msgbox_t {
     int res;
 } window_msgbox_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern uint16_t window_msgbox_id_icon[5];
 
 extern const window_class_msgbox_t window_class_msgbox;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_MSGBOX_H
