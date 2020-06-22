@@ -271,10 +271,10 @@ bool Pause::FilamentLoad() {
         do {
             // Extrude filament to get into hotend
             do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
-            fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0);
+            fast_load_length ? fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0) : fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColorPurge, 99, 0);
             do {
                 idle();
-                response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor);
+                response = fast_load_length ? ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor) : ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColorPurge);
             } while (response == Response::_none);  //no button
         } while (response == Response::Purge_more); //purge more or continue .. exit loop
         if (response == Response::Retry) {
