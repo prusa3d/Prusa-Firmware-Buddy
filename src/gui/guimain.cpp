@@ -12,7 +12,7 @@
 #include "DialogLoadUnload.h"
 #include "window_dlg_wait.h"
 #ifdef _DEBUG
-    #include "window_dlg_popup.h"
+    #include "window_dlg_popup.hpp"
 #endif //_DEBUG
 #include "window_dlg_preheat.h"
 #include "screen_print_preview.h"
