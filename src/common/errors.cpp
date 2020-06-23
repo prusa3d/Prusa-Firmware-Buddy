@@ -1,5 +1,5 @@
 #include "errors.h"
-#include "str_utils.h"
+#include "str_utils.hpp"
 #include <inttypes.h>
 
 /// main error-table
