@@ -22,7 +22,7 @@
 #include "screens.h"
 #include "screen_close_multiple.h"
 #include "DialogHandler.hpp"
-#include "sound.h"
+#include "sound.hpp"
 #include "../lang/i18n.h"
 
 extern int HAL_IWDG_Reset;

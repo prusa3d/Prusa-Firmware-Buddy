@@ -1,7 +1,7 @@
 // window_frame.cpp
 #include "window_frame.hpp"
 #include "gui.hpp"
-#include "sound.h"
+#include "sound.hpp"
 
 void window_frame_init(window_frame_t *window) {
     if (rect_empty_ui16(window->rect)) //use display rect curent is empty

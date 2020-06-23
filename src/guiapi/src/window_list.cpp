@@ -1,7 +1,7 @@
 // window_list.c
 #include "window_list.hpp"
 #include "gui.hpp"
-#include "sound.h"
+#include "sound.hpp"
 
 const char items[11][6] = {
     "item0",

@@ -12,7 +12,7 @@
 #include "filament_sensor.h"
 #include "screens.h"
 #include "dump.h"
-#include "sound.h"
+#include "sound.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"

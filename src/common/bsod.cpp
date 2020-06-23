@@ -2,7 +2,7 @@
 #include "bsod.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "sound.h"
+#include "sound.hpp"
 #include "wdt.h"
 
 #ifndef HAS_GUI

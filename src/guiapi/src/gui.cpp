@@ -3,7 +3,7 @@
 #include "gui.hpp"
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
-#include "sound.h"
+#include "sound.hpp"
 
 #define GUI_FLG_INVALID 0x0001
 

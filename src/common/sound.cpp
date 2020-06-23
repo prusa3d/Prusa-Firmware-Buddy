@@ -1,4 +1,4 @@
-#include "sound.h"
+#include "sound.hpp"
 #include "hwio.h"
 #include "eeprom.h"
 
