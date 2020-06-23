@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gui.h"
-#include "window_header.h"
+#include "gui.hpp"
+#include "window_header.hpp"
 #include "status_footer.h"
 #include "window_menu.hpp"
 #include "WinMenuContainer.hpp"
@@ -15,10 +15,15 @@ enum class EHeader { On,
 enum class EFooter { On,
     Off };
 
-constexpr static const size_t HelpLines_None = 0;
-constexpr static const size_t HelpLines_Default = 4;
+struct HelperConfig {
+    uint16_t lines;
+    uint16_t font_id;
+};
 
-//parent to not repet code in templates
+constexpr static const HelperConfig HelpLines_None = { 0, IDR_FNT_SPECIAL };
+constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
+
+//parent to not repeat code in templates
 class IScreenMenu : protected window_menu_t {
 protected:
     constexpr static const char *no_label = "MISSING";
@@ -28,7 +33,7 @@ protected:
     status_footer_t footer;
 
 public:
-    IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines);
+    IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
     void Done();
     void Draw() {}
     int Event(window_t *window, uint8_t event, void *param);
@@ -45,7 +50,7 @@ public:
     }
 };
 
-template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
+template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
 class ScreenMenu : public IScreenMenu {
 protected:
     WinMenuContainer<T...> container;
@@ -66,14 +71,14 @@ public:
 
     //C code binding
     static void Create(screen_t *screen, const char *label = no_label) {
-        auto *ths = reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_LINES, T...> *>(screen->pdata);
-        ::new (ths) ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>(label);
+        auto *ths = reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_CNF, T...> *>(screen->pdata);
+        ::new (ths) ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>(label);
     }
 };
 
-template <EHeader HEADER, EFooter FOOTER, size_t HELP_LINES, class... T>
-ScreenMenu<HEADER, FOOTER, HELP_LINES, T...>::ScreenMenu(const char *label)
-    : IScreenMenu(label, FOOTER, HELP_LINES) {
+template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
+ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(const char *label)
+    : IScreenMenu(label, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
     pContainer = &container;
     GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 }

@@ -2,7 +2,7 @@
 //unlooping screens via C++ with C interface
 
 #include "screen_close_multiple.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "screens.h"
 
 //I could not use functions to initialize those arrays in C
@@ -38,8 +38,6 @@ static int _current_in_list(screen_t *const *list, size_t sz) {
     return 0;
 }
 
-extern "C" {
-
 void screen_close_multiple(screen_close_multiple_t type) {
 
     screen_t *const *unl_blacklist;
@@ -62,5 +60,3 @@ void screen_close_multiple(screen_close_multiple_t type) {
         screen_close();
     }
 }
-
-} //extern "C"

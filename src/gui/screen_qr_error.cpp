@@ -1,4 +1,4 @@
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include <stdlib.h>
 #include "support_utils.h"
@@ -48,11 +48,11 @@ void screen_menu_qr_error_init(screen_t *screen) {
 }
 
 void screen_menu_qr_error_draw(screen_t * /*screen*/) {
-    display->fill_rect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
+    display::FillRect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
 }
 
 void screen_menu_qr_error_done(screen_t *screen) {
-    window_destroy(pd->root.win.id);
+    window_destroy(pd->root.id);
 }
 
 int screen_menu_qr_error_event(screen_t *screen, window_t * /*window*/, uint8_t event, void * /*param*/) {
@@ -78,4 +78,4 @@ screen_t screen_qr_error = {
     nullptr,                        //pdata
 };
 
-extern "C" screen_t *const get_scr_qr_error() { return &screen_qr_error; }
+screen_t *const get_scr_qr_error() { return &screen_qr_error; }

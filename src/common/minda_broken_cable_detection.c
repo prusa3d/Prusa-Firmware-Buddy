@@ -1,13 +1,13 @@
 #include "minda_broken_cable_detection.h"
 #include "Z_probe.h"
-#include "hwio.h"
-#include "hwio_a3ides.h"
 #include "bsod.h"
 #include "FreeRTOS.h"
 #include "task.h"   //taskENTER_CRITICAL
 #include <string.h> //memset
 #include "MindaRedscreen.h"
 #include "wdt.h"
+#include "gpio.h"
+#include "hwio_pindef.h"
 
 static uint32_t PRE_XYHOME = 0;
 static uint32_t POST_XYHOME = 0;
@@ -32,18 +32,18 @@ void MINDA_BROKEN_CABLE_DETECTION__BEGIN() {
     endstop_status.i = 0;
 }
 void MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME() {
-    endstop_status.PRE_XYHOME = hwio_di_get_val(_DI_Z_MIN);
+    endstop_status.PRE_XYHOME = gpio_get(PIN_Z_MIN);
     PRE_XYHOME = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME() {
-    endstop_status.POST_XYHOME = hwio_di_get_val(_DI_Z_MIN);
+    endstop_status.POST_XYHOME = gpio_get(PIN_Z_MIN);
     POST_XYHOME = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0() {
-    endstop_status.POST_ZHOME_0 = hwio_di_get_val(_DI_Z_MIN);
+    endstop_status.POST_ZHOME_0 = gpio_get(PIN_Z_MIN);
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1() {
-    endstop_status.POST_ZHOME_1 = hwio_di_get_val(_DI_Z_MIN);
+    endstop_status.POST_ZHOME_1 = gpio_get(PIN_Z_MIN);
 }
 void MINDA_BROKEN_CABLE_DETECTION__END() {
 
@@ -70,11 +70,11 @@ void MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN() {
     actual_point = 0;
 }
 void MINDA_BROKEN_CABLE_DETECTION__PRE_XYMOVE() {
-    mbl_preposts[actual_point].pre_lvl = hwio_di_get_val(_DI_Z_MIN);
+    mbl_preposts[actual_point].pre_lvl = gpio_get(PIN_Z_MIN);
     mbl_preposts[actual_point].pre = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE() {
-    mbl_preposts[actual_point].post_lvl = hwio_di_get_val(_DI_Z_MIN);
+    mbl_preposts[actual_point].post_lvl = gpio_get(PIN_Z_MIN);
     mbl_preposts[actual_point].post = get_Z_probe_endstop_hits();
     actual_point = (actual_point + 1) % POINTS;
 }

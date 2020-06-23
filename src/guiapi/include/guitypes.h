@@ -1,6 +1,5 @@
 // guitypes.h
-#ifndef _GUITYPES_H
-#define _GUITYPES_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -206,9 +205,9 @@ extern point_ui16_t font_meas_text(const font_t *pf, const char *str);
 
 extern int font_line_chars(const font_t *pf, const char *str, uint16_t line_width);
 
-extern uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, font_t *pf);
+extern uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, const font_t *pf);
 
-extern rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, font_t *font, padding_ui8_t padding, uint16_t flags);
+extern rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, const font_t *font, padding_ui8_t padding, uint16_t flags);
 
 extern point_ui16_t icon_meas(const uint8_t *pi);
 extern size_ui16_t icon_size(const uint8_t *pi);
@@ -243,5 +242,3 @@ extern font_t *resource_font(uint16_t id);
 #define RESOURCE_ENTRY_NUL()  { 0, 0 },
 #define RESOURCE_ENTRY_PNG(v) { v, sizeof(v) },
 #define RESOURCE_ENTRY_FNT(v) { (uint8_t *)&v, sizeof(font_t) },
-
-#endif //_GUITYPES_H

@@ -10,7 +10,6 @@
 #include "wui_vars.h"
 #include "marlin_client.h"
 #include "wui_helper_funcs.h"
-#include "wui_api.h"
 #include "lwip.h"
 #include "ethernetif.h"
 #include <string.h>
@@ -85,6 +84,18 @@ static void wui_queue_cycle() {
     }
 }
 
+void update_state_variables_step(void) {
+
+    ETH_config_t config;
+    config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    load_eth_params(&config);
+
+    uint32_t eth_link = ethernetif_link(&eth0); // handles Ethernet link plug/un-plug events
+
+    eth_status_step(&config, eth_link);
+    sntp_client_step();
+}
+
 void StartWebServerTask(void const *argument) {
     // semaphore for filling tcp - wui message qeue
     osSemaphoreDef(tcp_wui_semaphore);
@@ -104,18 +115,17 @@ void StartWebServerTask(void const *argument) {
     if (wui_marlin_vars) {
         wui_marlin_vars->media_LFN = wui_media_LFN;
     }
-    // get settings from ini file
-    ETH_config_t config;
-    load_ini_params(&config);
     // LwIP related initalizations
     MX_LWIP_Init();
     http_server_init();
-    sntp_client_init();
+    // get settings from ini file
+    ETH_config_t config;
+    load_ini_params(&config);
 
     for (;;) {
 
-        ethernetif_link(&eth0); // handles Ethernet link plug/un-plug events
-        wui_queue_cycle();      // checks for commands to WUI
+        wui_queue_cycle(); // checks for commands to WUI
+        update_state_variables_step();
 
         if (wui_marlin_vars) {
             marlin_client_loop();

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include "display_helper.h"
+#include "super.hpp"
 #include "../lang/i18n.h"
 
 //WI_LABEL
@@ -13,12 +14,29 @@ public:
     virtual bool Change(int dif) override;
 };
 
-//WI_SPIN
-template <class T>
-class WI_SPIN_t : public IWindowMenuItem {
+//IWiSpin
+class IWiSpin : public AddSuper<IWindowMenuItem> {
+protected:
     enum { WIO_MIN = 0,
         WIO_MAX = 1,
         WIO_STEP = 2 };
+    static std::array<char, 10> temp_buff; //temporary buffer to print value for text measurements
+    virtual void click(IWindowMenu &window_menu) final;
+    virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const override;
+    std::array<rect_ui16_t, 2> getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t rect) const;
+    static rect_ui16_t getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen);
+    virtual char *sn_prt() const = 0;
+    virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+
+public:
+    IWiSpin(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
+        : AddSuper<IWindowMenuItem>(label, id_icon, enabled, hidden) {}
+    virtual void OnClick() {}
+};
+
+//WI_SPIN
+template <class T>
+class WI_SPIN_t : public AddSuper<IWiSpin> {
 
 public: //todo private
     T value;
@@ -26,14 +44,11 @@ public: //todo private
     const char *prt_format;
 
 protected:
-    void sn_prt(char *buff, size_t len) const;
-    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
-    virtual void click(Iwindow_menu_t &window_menu) final;
+    virtual char *sn_prt() const;
 
 public:
     WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false);
     virtual bool Change(int dif) override;
-    virtual void OnClick() {}
     void ClrVal() { value = static_cast<T>(0); }
 };
 
@@ -97,32 +112,46 @@ public:
         : WI_SPIN_t<uint32_t>(value, range, prt_format, label, id_icon, enabled, hidden) {}
 };
 
-//WI_SWITCH == text version of WI_SPIN (non-numeric)
-//unlike WI_SPIN cannot be selected
-template <size_t SZ>
-class WI_SWITCH_t : public IWindowMenuItem {
-public: //todo private
-    size_t index;
-    const std::array<const char *, SZ> items;
+//todo inherit from WI_SPIN_t<const char**>
+class IWiSwitch : public AddSuper<IWindowMenuItem> {
+public:
+    size_t index; //todo private
+    IWiSwitch(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden);
+    virtual void ClrIndex() { index = 0; }
+    virtual size_t size() = 0;
+    virtual bool Change(int dif);
+    virtual bool SetIndex(size_t idx);
 
 protected:
-    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
-    virtual void click(Iwindow_menu_t &window_menu) final;
+    virtual void OnChange(size_t old_index) = 0;
+    virtual void click(IWindowMenu &window_menu) final;
+    rect_ui16_t getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const;
+    std::array<rect_ui16_t, 2> getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect) const;
+    virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const override;
+    virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    virtual const char *get_item() const = 0;
+};
+
+/*****************************************************************************/
+//WI_SWITCH == text version of WI_SPIN (non-numeric)
+//unlike WI_SPIN cannot be selected
+//todo try to inherit from WI_SPIN<const char**> lot of code could be reused
+template <size_t SZ>
+class WI_SWITCH_t : public AddSuper<IWiSwitch> {
+public: //todo private
+    const std::array<const char *, SZ> items;
+    virtual size_t size() override { return items.size(); }
 
 public:
     //cannot create const std::array<const char *, SZ> with std::initializer_list<const char*>
     //template<class ...E> and {{std::forward<E>(e)...}} is workaround
     template <class... E>
     WI_SWITCH_t(int32_t index, const char *label, uint16_t id_icon, bool enabled, bool hidden, E &&... e)
-        : IWindowMenuItem(label, id_icon, enabled, hidden)
-        , index(index)
+        : AddSuper<IWiSwitch>(index, label, id_icon, enabled, hidden)
         , items { { std::forward<E>(e)... } } {}
-    virtual bool Change(int dif);
-    virtual void ClrIndex() { index = 0; }
-    virtual bool SetIndex(size_t idx);
 
 protected:
-    virtual void OnChange(size_t old_index) = 0;
+    virtual const char *get_item() const override { return items[index]; }
 };
 
 //most common version of WI_SWITCH with on/off options
@@ -135,6 +164,7 @@ public:
         : WI_SWITCH_t<2>(size_t(index), label, id_icon, enabled, hidden, str_Off, str_On) {}
 };
 
+//currently broken todo FIXME
 //WI_SELECT == switch with no label
 //but can be selected like WI_SPIN
 class WI_SELECT_t : public IWindowMenuItem {
@@ -145,7 +175,7 @@ public: //todo private
     const char **strings;
 
 protected:
-    virtual void printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:
     WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled = true, bool hidden = false);
@@ -157,7 +187,7 @@ public:
 //WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T value, const T *range, const char *prt_format, const char *label, uint16_t id_icon, bool enabled, bool hidden)
-    : IWindowMenuItem(label, id_icon, enabled, hidden)
+    : AddSuper<IWiSpin>(label, id_icon, enabled, hidden)
     , value(value)
     , range(range)
     , prt_format(prt_format) {}
@@ -173,84 +203,19 @@ bool WI_SPIN_t<T>::Change(int dif) {
 }
 
 template <class T>
-void WI_SPIN_t<T>::click(Iwindow_menu_t &window_menu) {
-    if (selected) {
-        OnClick();
-    }
-    selected = !selected;
-}
-
-template <class T>
-void WI_SPIN_t<T>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    char buff[20] = { '\0' };
-    sn_prt(buff, 20);
-
-    rect_ui16_t spin_rect = {
-        uint16_t(rect.x + rect.w), rect.y, uint16_t(window_menu.font->w * strlen(buff) + window_menu.padding.left + window_menu.padding.right), rect.h
-    };
-    spin_rect.x -= spin_rect.w;
-    rect.w -= spin_rect.w;
-
-    rect_ui16_t label_rect = rect;
-    label_rect.w = spin_rect.x - label_rect.x;
-
-    //draw label
-    IWindowMenuItem::printText(window_menu, label_rect, color_text, color_back, swap);
-    //draw spin
-    render_text_align(spin_rect, _(buff), window_menu.font,
-        color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
-}
-
-template <class T>
-void WI_SPIN_t<T>::sn_prt(char *buff, size_t len) const {
-    snprintf(buff, len, prt_format, value);
+char *WI_SPIN_t<T>::sn_prt() const {
+    snprintf(temp_buff.data(), temp_buff.size(), prt_format, value);
+    return temp_buff.data();
 }
 
 template <>
-inline void WI_SPIN_t<float>::sn_prt(char *buff, size_t len) const {
-    snprintf(buff, len, prt_format, static_cast<double>(value));
+inline char *WI_SPIN_t<float>::sn_prt() const {
+    snprintf(temp_buff.data(), temp_buff.size(), prt_format, static_cast<double>(value));
+    return temp_buff.data();
 }
 
 /*****************************************************************************/
 //template definitions
-template <size_t SZ>
-bool WI_SWITCH_t<SZ>::Change(int) {
-    if ((++index) >= items.size()) {
-        index = 0;
-    }
-    return true;
-}
-
-template <size_t SZ>
-void WI_SWITCH_t<SZ>::click(Iwindow_menu_t &window_menu) {
-    size_t old_index = index;
-    Change(0);
-    OnChange(old_index);
-}
-template <size_t SZ>
-bool WI_SWITCH_t<SZ>::SetIndex(size_t idx) {
-    if (idx >= SZ)
-        return false;
-    else {
-        index = idx;
-        return true;
-    }
-}
-
-template <size_t SZ>
-void WI_SWITCH_t<SZ>::printText(Iwindow_menu_t &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const {
-    IWindowMenuItem::printText(window_menu, rect, color_text, color_back, swap);
-    const char *txt = items[index];
-
-    rect_ui16_t vrc = {
-        uint16_t(rect.x + rect.w), rect.y, uint16_t(window_menu.font->w * strlen(txt) + window_menu.padding.left + window_menu.padding.right), rect.h
-    };
-    vrc.x -= vrc.w;
-    rect.w -= vrc.w;
-
-    render_text_align(vrc, _(txt), window_menu.font,
-        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
-}
 
 /*****************************************************************************/
 //advanced types
@@ -261,5 +226,15 @@ public:
     MI_RETURN();
 
 protected:
-    virtual void click(Iwindow_menu_t &window_menu);
+    virtual void click(IWindowMenu &window_menu);
+};
+
+class MI_TEST_DISABLED_RETURN : public WI_LABEL_t {
+    static constexpr const char *const label = "Disabled RETURN button";
+
+public:
+    MI_TEST_DISABLED_RETURN();
+
+protected:
+    virtual void click(IWindowMenu &window_menu);
 };

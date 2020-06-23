@@ -1,6 +1,6 @@
 // screen_menu_calibration.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "screen_menu.hpp"
@@ -28,4 +28,4 @@ screen_t screen_menu_calibration = {
     nullptr,        //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }
+screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }

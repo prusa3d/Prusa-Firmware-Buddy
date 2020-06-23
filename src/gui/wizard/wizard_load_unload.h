@@ -1,9 +1,7 @@
 // wizard_load_unload.h
-#ifndef _WIZARD_LOAD_UNLOAD_H
-#define _WIZARD_LOAD_UNLOAD_H
-
+#pragma once
 #include <inttypes.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 
 typedef enum {
@@ -15,14 +13,4 @@ typedef enum {
     LD_UNLD_DONE
 } LD_UNLD_STATE_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern LD_UNLD_STATE_t wizard_load_unload(LD_UNLD_STATE_t state);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WIZARD_LOAD_UNLOAD_H

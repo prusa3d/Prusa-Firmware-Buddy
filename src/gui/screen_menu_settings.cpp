@@ -1,6 +1,6 @@
 // screen_menu_settings.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "app.h"
 #include "marlin_client.h"
@@ -112,4 +112,4 @@ screen_t screen_menu_settings = {
     sizeof(ScreenMenuSettings), //data_size
     0,                          //pdata
 };
-extern "C" screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }
+screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }

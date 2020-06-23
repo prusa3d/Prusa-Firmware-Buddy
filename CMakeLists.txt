@@ -453,7 +453,7 @@ target_sources(
           src/common/wdt.cpp
           src/common/dump.c
           src/common/marlin_client.c
-          src/common/bsod.c
+          src/common/bsod.cpp
           src/common/adc.c
           src/common/uartslave.c
           src/common/version.c
@@ -482,7 +482,7 @@ target_sources(
           src/common/ini_handler.c
           src/common/wui_api.c
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
-          $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.c>
+          $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
@@ -491,69 +491,62 @@ target_sources(
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
-          src/gui/guimain.c
-          src/gui/filament.cpp
+          src/gui/guimain.cpp
+          src/common/filament.cpp
   )
 
 if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
-            src/gui/dialogs/Dialog_C_wrapper.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
             src/gui/dialogs/DialogStateful.cpp
             src/gui/dialogs/DialogRadioButton.cpp
             src/gui/dialogs/DialogLoadUnload.cpp
-            src/gui/dialogs/window_dlg_load_unload.c
-            src/gui/dialogs/window_dlg_wait.c
-            src/gui/dialogs/window_dlg_popup.c
-            src/gui/dialogs/window_dlg_preheat.c
+            src/gui/dialogs/window_dlg_load_unload.cpp
+            src/gui/dialogs/window_dlg_wait.cpp
+            src/gui/dialogs/window_dlg_popup.cpp
+            src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
-            src/gui/window_file_list.c
-            src/gui/lazyfilelist-c-api.cpp
-            src/gui/pngview.c
-            src/gui/wizard/selftest_temp.c
-            src/gui/window_temp_graph.c
+            src/gui/window_file_list.cpp
+            src/gui/window_temp_graph.cpp
             src/gui/screen_menu_settings.cpp
-            src/gui/wizard/wizard_progress_bar.c
-            src/gui/wizard/firstlay.c
-            src/gui/wizard/selftest_cool.c
-            src/gui/window_header.c
-            src/gui/screen_sysinf.c
+            src/gui/window_header.cpp
+            src/gui/screen_sysinf.cpp
             src/gui/screen_menu_version_info.cpp
-            src/gui/test_display.c
-            src/gui/screen_splash.c
+            src/gui/test_display.cpp
+            src/gui/screen_splash.cpp
             src/gui/screen_menu_service.cpp
             src/gui/screen_menu_calibration.cpp
             src/gui/screen_menu.cpp
-            src/gui/screen_print_preview.c
+            src/gui/screen_print_preview.cpp
             src/gui/screen_messages.cpp
             src/gui/screen_menu_info.cpp
-            src/gui/screen_watchdog.c
+            src/gui/screen_watchdog.cpp
             src/gui/screen_menu_move.cpp
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_qr_info.cpp
             src/gui/screen_qr_error.cpp
-            src/gui/test/screen_test.c
-            src/gui/test/screen_test_disp_mem.c
-            src/gui/test/screen_test_gui.c
-            src/gui/test/screen_test_term.c
-            src/gui/test/screen_test_msgbox.c
-            src/gui/test/screen_test_graph.c
-            src/gui/wizard/selftest_fans_axis.c
-            src/gui/wizard/selftest_temp.c
-            src/gui/wizard/selftest_cool.c
-            src/gui/wizard/selftest.c
-            src/gui/wizard/firstlay.c
-            src/gui/wizard/wizard_load_unload.c
-            src/gui/wizard/wizard_ui.c
-            src/gui/wizard/wizard.c
-            src/gui/wizard/screen_wizard.c
-            src/gui/wizard/xyzcalib.c
-            src/gui/wizard/wizard_progress_bar.c
+            src/gui/test/screen_test.cpp
+            src/gui/test/screen_test_disp_mem.cpp
+            src/gui/test/screen_test_gui.cpp
+            src/gui/test/screen_test_term.cpp
+            src/gui/test/screen_test_msgbox.cpp
+            src/gui/test/screen_test_graph.cpp
+            src/gui/wizard/selftest_fans_axis.cpp
+            src/gui/wizard/selftest_temp.cpp
+            src/gui/wizard/selftest_cool.cpp
+            src/gui/wizard/selftest.cpp
+            src/gui/wizard/firstlay.cpp
+            src/gui/wizard/wizard_load_unload.cpp
+            src/gui/wizard/wizard_ui.cpp
+            src/gui/wizard/wizard.cpp
+            src/gui/wizard/screen_wizard.cpp
+            src/gui/wizard/xyzcalib.cpp
+            src/gui/wizard/wizard_progress_bar.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
             src/gui/screen_menu_preheat.cpp
@@ -565,33 +558,30 @@ if(GUI)
             src/gui/screen_PID.cpp
             src/gui/screen_menu_fw_update.cpp
             src/gui/test/screen_menu_test_temperature.cpp
-            src/gui/wizard/selftest_fans_axis.c
             src/gui/test/screen_mesh_bed_lv.cpp
-            src/gui/wizard/Marlin_PID_wrapper.cpp
-            src/guiapi/src/button_draw.c
-            src/guiapi/src/display.c
-            src/guiapi/src/gui.c
-            src/guiapi/src/term.c
-            src/guiapi/src/guitypes.c
-            src/guiapi/src/window_progress.c
-            src/guiapi/src/window_frame.c
-            src/guiapi/src/gui_timer.c
-            src/guiapi/src/display_helper.c
+            src/guiapi/src/button_draw.cpp
+            src/guiapi/src/gui.cpp
+            src/guiapi/src/term.cpp
+            src/guiapi/src/guitypes.cpp
+            src/guiapi/src/window_progress.cpp
+            src/guiapi/src/window_frame.cpp
+            src/guiapi/src/gui_timer.cpp
+            src/guiapi/src/display_helper.cpp
             src/guiapi/src/window_menu.cpp
-            src/guiapi/src/screen.c
+            src/guiapi/src/screen.cpp
             src/guiapi/src/screen_close_multiple.cpp
-            src/guiapi/src/window_term.c
-            src/guiapi/src/window_list.c
-            src/guiapi/src/jogwheel.c
-            src/guiapi/src/window_numb.c
+            src/guiapi/src/window_term.cpp
+            src/guiapi/src/window_list.cpp
+            src/guiapi/src/jogwheel.cpp
+            src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
-            src/guiapi/src/window_icon.c
-            src/guiapi/src/window_spin.c
-            src/guiapi/src/window_text.c
-            src/guiapi/src/window_roll_text.c
-            src/guiapi/src/window_msgbox.c
-            src/guiapi/src/window_qr.c
-            src/guiapi/src/window.c
+            src/guiapi/src/window_icon.cpp
+            src/guiapi/src/window_spin.cpp
+            src/guiapi/src/window_text.cpp
+            src/guiapi/src/window_roll_text.cpp
+            src/guiapi/src/window_msgbox.cpp
+            src/guiapi/src/window_qr.cpp
+            src/guiapi/src/window.cpp
             src/guiapi/src/IWindowMenuItem.cpp
             src/guiapi/src/WindowMenuItems.cpp
             src/guiapi/src/MItem_menus.cpp
@@ -615,7 +605,7 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/bsod.c src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
+  SOURCE src/common/bsod.cpp src/common/appmain.cpp src/common/sys.cpp src/common/putslave.c
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )

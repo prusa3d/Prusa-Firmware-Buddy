@@ -1,24 +1,21 @@
 // screen_menu_filament.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"
 #include "filament_sensor.h"
 #include "marlin_client.h"
-#include "menu_vars.h"
 #include "window_dlg_load_unload.h"
 #include "screens.h"
 #include "dbg.h"
-#include "DialogHandler.hpp"
 #include "../lang/i18n.h"
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
-    const marlin_vars_t *vars = marlin_vars();
-
-    /// don't read from EEPROM since it's not in sync
-    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)vars->temp_nozzle);
+    /// read from Marlin, not from EEPROM since it's not in sync
+    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ));
+    marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)vars->target_nozzle);
 }
 void clrPreheatTemp() {
     marlin_gcode("M104 S0");
@@ -28,7 +25,7 @@ void clrPreheatTemp() {
 //parent
 class MI_event_dispatcher : public WI_LABEL_t {
 protected:
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
         screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
@@ -88,17 +85,14 @@ public:
         return header_label;
     }
     virtual void Do() override {
-        gui_dlg_unload();
-
-        //opens unload dialog if it is not already openned
-        DialogHandler::WaitUntilClosed(ClientFSM::Load_unload, uint8_t(LoadUnloadMode::Unload));
-
-        gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        if (gui_dlg_unload() == DLG_OK) {
+            gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        }
     }
 };
 
 /*****************************************************************************/
-//MI_LOAD
+//MI_PURGE
 class MI_PURGE : public MI_event_dispatcher {
     constexpr static const char *const label = N_("Purge Filament");
     constexpr static const char *const header_label = N_("PURGE FILAMENT");
@@ -133,12 +127,12 @@ private:
     template <class T>
     void dis() {
         Item<T>().Disable();
-        win.f_invalid = 1;
+        f_invalid = 1;
     }
     template <class T>
     void ena() {
         Item<T>().Enable();
-        win.f_invalid = 1;
+        f_invalid = 1;
     }
 };
 
@@ -220,4 +214,4 @@ screen_t screen_menu_filament = {
     nullptr,                    //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }
+screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

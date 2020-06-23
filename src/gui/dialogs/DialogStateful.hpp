@@ -139,7 +139,7 @@ void DialogStateful<T>::draw() {
         rect_ui16_t rc = rect;
 
         if (f_invalid) {
-            display->fill_rect(rc, color_back);
+            display::FillRect(rc, color_back);
             rect_ui16_t rc_tit = rc;
             rc_tit.h = 30; // 30pixels for title
             // TODO: - icon
@@ -190,9 +190,11 @@ void DialogStateful<T>::event(uint8_t event, void *param) {
     }
     case WINDOW_EVENT_ENC_UP:
         ++radio;
+        gui_invalidate();
         return;
     case WINDOW_EVENT_ENC_DN:
         --radio;
+        gui_invalidate();
         return;
     }
 }

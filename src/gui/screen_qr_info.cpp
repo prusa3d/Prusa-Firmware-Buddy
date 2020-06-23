@@ -1,4 +1,4 @@
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include <stdlib.h>
 #include "support_utils.h"
@@ -49,7 +49,7 @@ void screen_menu_qr_info_draw(screen_t *screen) {
 }
 
 void screen_menu_qr_info_done(screen_t *screen) {
-    window_destroy(pd->root.win.id);
+    window_destroy(pd->root.id);
 }
 
 int screen_menu_qr_info_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
@@ -71,4 +71,4 @@ screen_t screen_qr_info = {
     0,                             //pdata
 };
 
-extern "C" screen_t *const get_scr_qr_info() { return &screen_qr_info; }
+screen_t *const get_scr_qr_info() { return &screen_qr_info; }

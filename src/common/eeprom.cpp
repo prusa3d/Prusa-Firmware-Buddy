@@ -135,7 +135,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_LAN_IP4_DNS2
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
     0,               // EEVAR_TIMEZONE
-    0,               // EEVAR_SOUND_MODE
+    0xff,            // EEVAR_SOUND_MODE
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };

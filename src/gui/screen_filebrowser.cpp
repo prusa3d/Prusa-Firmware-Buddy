@@ -5,10 +5,10 @@
  *      Author: mcbig
  */
 
-#include "gui.h"
+#include "gui.hpp"
 #include "dbg.h"
-#include "window_file_list.h"
-#include "window_header.h"
+#include "window_file_list.hpp"
+#include "window_header.hpp"
 #include "config.h"
 #include "stdlib.h"
 #include "usb_host.h"
@@ -27,13 +27,12 @@
 
 #define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
 
-typedef struct
-{
+struct screen_filebrowser_data_t {
     window_frame_t root;
 
     window_header_t header;
     window_file_list_t w_filelist;
-} screen_filebrowser_data_t;
+};
 
 #define pd ((screen_filebrowser_data_t *)screen->pdata)
 
@@ -84,7 +83,7 @@ static void screen_filebrowser_init(screen_t *screen) {
 }
 
 static void screen_filebrowser_done(_screen_t *screen) {
-    window_destroy(pd->root.win.id);
+    window_destroy(pd->root.id);
 }
 
 static void screen_filebrowser_draw(screen_t *screen) {}
@@ -160,7 +159,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
 
         // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
         // However, the text is not visible on the screen yet...
-        window_set_text(pd->header.win.id, strrchr(filelist->sfn_path, '/'));
+        window_set_text(pd->header.id, strrchr(filelist->sfn_path, '/'));
 
     } else { // print the file
         if (vars->media_LFN && vars->media_SFN_path) {
@@ -203,4 +202,4 @@ static screen_t screen_filebrowser = {
     nullptr
 };
 
-extern "C" screen_t *const get_scr_filebrowser() { return &screen_filebrowser; }
+screen_t *const get_scr_filebrowser() { return &screen_filebrowser; }

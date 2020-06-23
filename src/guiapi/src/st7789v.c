@@ -13,9 +13,6 @@
     #include "cmsis_os.h"
 #endif //ST7789V_USE_RTOS
 
-#define ST7789V_COLS 240 //
-#define ST7789V_ROWS 320 //
-
 //st7789 commands
 #define CMD_SLPIN     0x10
 #define CMD_SLPOUT    0x11
@@ -89,18 +86,6 @@ rect_ui16_t st7789v_clip = { 0, 0, ST7789V_COLS, ST7789V_ROWS };
 osThreadId st7789v_task_handle = 0;
 #endif //ST7789V_USE_RTOS
 
-//forward declarations
-void st7789v_init(void);
-void st7789v_done(void);
-void st7789v_clear(const color_t clr);
-void st7789v_set_pixel(point_ui16_t pt, color_t clr);
-void st7789v_clip_rect(rect_ui16_t rc);
-void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
-void st7789v_draw_rect(rect_ui16_t rc, color_t clr);
-void st7789v_fill_rect(rect_ui16_t rc, color_t clr);
-bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg);
-bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg);
-void st7789v_draw_png(point_ui16_t pt, FILE *pf);
 /*some functions are in header - excluded from display_t struct*/
 void st7789v_gamma_set_direct(uint8_t gamma_enu);
 uint8_t st7789v_read_ctrl(void);
@@ -542,7 +527,7 @@ bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_
 
     // character out of font range, display solid rectangle instead
     if ((chr < pf->asc_min) || (chr > pf->asc_max)) {
-        display->fill_rect(rect_ui16(pt.x, pt.y, w, h), clr_bg);
+        st7789v_fill_rect(rect_ui16(pt.x, pt.y, w, h), clr_bg);
         return false;
     }
 
@@ -949,22 +934,6 @@ void st7789v_draw_png(point_ui16_t pt, FILE *pf) {}
 void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {}
 
 #endif //ST7789V_PNG_SUPPORT
-
-const display_t st7789v_display = {
-    ST7789V_COLS,
-    ST7789V_ROWS,
-    st7789v_init,
-    st7789v_done,
-    st7789v_clear,
-    st7789v_set_pixel,
-    st7789v_draw_line,
-    st7789v_draw_rect,
-    st7789v_fill_rect,
-    st7789v_draw_char,
-    st7789v_draw_text,
-    st7789v_draw_icon,
-    st7789v_draw_png,
-};
 
 st7789v_config_t st7789v_config = {
     0,            // spi handle pointer

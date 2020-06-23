@@ -5,7 +5,7 @@
  *      Author: Radek Vana
  */
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "status_footer.h"
 #include "math.h"
@@ -92,7 +92,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
         -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     id = window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(0, 0, display->w, row_h), &(pd->textMenuName));
+        id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"MESH LEVELING");
 
@@ -126,7 +126,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
 }
 
 void screen_mesh_bed_lv_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_mesh_bed_lv_draw(screen_t *screen) {
@@ -161,9 +161,9 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
     }
     if (event == WINDOW_EVENT_LOOP) {
         if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            window_set_text(pd->text_mesh_state.win.id, meshStrings[1]);
+            window_set_text(pd->text_mesh_state.id, meshStrings[1]);
         } else {
-            window_set_text(pd->text_mesh_state.win.id, meshStrings[0]);
+            window_set_text(pd->text_mesh_state.id, meshStrings[0]);
         }
         switch (pd->mesh_state) {
         case mesh_state_t::idle:
@@ -209,8 +209,6 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
     return 0;
 }
 
-extern "C" {
-
 screen_t screen_mesh_bed_lv = {
     0,
     0,
@@ -223,4 +221,3 @@ screen_t screen_mesh_bed_lv = {
 };
 
 screen_t *const get_scr_mesh_bed_lv() { return &screen_mesh_bed_lv; }
-}

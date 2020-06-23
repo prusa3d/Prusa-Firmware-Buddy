@@ -519,7 +519,8 @@ static void _server_print_loop(void) {
     case mpsResuming_UnparkHead:
         if (planner.movesplanned() == 0) {
             media_print_resume();
-            print_job_timer.resume(0);
+            if (print_job_timer.isPaused())
+                print_job_timer.start();
 #if FAN_COUNT > 0
             thermalManager.set_fan_speed(0, marlin_server.resume_fan_speed); // restore fan speed
 #endif
@@ -535,6 +536,7 @@ static void _server_print_loop(void) {
         marlin_server_set_temp_to_display(0);
         print_job_timer.stop();
         planner.quick_stop();
+        wait_for_heatup = false; // This is necessary because M109/wait_for_hotend can be in progress, we need abort it
         marlin_server.print_state = mpsAborting_WaitIdle;
         break;
     case mpsAborting_WaitIdle:

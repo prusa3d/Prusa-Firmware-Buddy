@@ -48,8 +48,8 @@ public:
     static bool IsOn();
     static void Init();
     static bool IsUpdated();
-    static void SetStatic();
-    static void SetDHCP();
+    static bool SetStatic();
+    static bool SetDHCP();
     static Msg ConsumeMsg();
     static bool ConsumeReinit();
 };
@@ -82,7 +82,6 @@ void Eth::Off() {
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
     turn_off_LAN(&ethconfig);
-    save_eth_params(&ethconfig);
     new_data_flg = true;
 }
 
@@ -91,7 +90,6 @@ void Eth::On() {
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
     turn_on_LAN(&ethconfig);
-    save_eth_params(&ethconfig);
     new_data_flg = true;
     if (IS_LAN_DHCP(ethconfig.lan.flag)) {
         conn_flg = true;
@@ -112,14 +110,14 @@ bool Eth::IsOn() {
 
 void Eth::Init() {
     uint8_t flg = GetFlag();
-    conn_flg = (IS_LAN_ON(flg) && IS_LAN_DHCP(flg) && dhcp_addrs_are_supplied());
+    conn_flg = (IS_LAN_ON(flg) && IS_LAN_DHCP(flg) && get_dhcp_supplied());
 }
 
 bool Eth::IsUpdated() {
     bool ret = false;
     if (conn_flg) {
         uint8_t eth_flag = GetFlag();
-        if ((IS_LAN_DHCP(eth_flag) && dhcp_addrs_are_supplied()) || IS_LAN_STATIC(eth_flag)) {
+        if ((IS_LAN_DHCP(eth_flag) && get_dhcp_supplied()) || IS_LAN_STATIC(eth_flag)) {
             conn_flg = false;
             ret = true;
         }
@@ -129,33 +127,28 @@ bool Eth::IsUpdated() {
     return ret;
 }
 
-void Eth::SetStatic() {
+bool Eth::SetStatic() {
     ETH_config_t ethconfig;
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4);
+    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_STATIC_LAN_ADDRS;
     load_eth_params(&ethconfig);
 
     if (ethconfig.lan.addr_ip4.addr == 0) {
         msg = Msg::StaicAddrErr;
-        return;
+        return false;
     }
-    ethconfig.var_mask = ETHVAR_STATIC_LAN_ADDRS;
-    load_eth_params(&ethconfig);
     set_LAN_to_static(&ethconfig);
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    save_eth_params(&ethconfig);
     new_data_flg = true;
+    return true;
 }
 
-void Eth::SetDHCP() {
+bool Eth::SetDHCP() {
     ETH_config_t ethconfig;
     ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
     load_eth_params(&ethconfig);
-
     set_LAN_to_dhcp(&ethconfig);
-    ethconfig.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    save_eth_params(&ethconfig);
     new_data_flg = true;
     conn_flg = true;
+    return true;
 }
 
 Eth::Msg Eth::ConsumeMsg() {
@@ -223,7 +216,9 @@ public:
     MI_LAN_IP_t()
         : WI_SWITCH_t<2>(Eth::IsStatic() ? 1 : 0, label, 0, true, false, str_DHCP, str_static) {}
     virtual void OnChange(size_t old_index) override {
-        old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
+        bool success = old_index == 0 ? Eth::SetStatic() : Eth::SetDHCP();
+        if (!success)
+            this->SetIndex(old_index);
     }
     void ReInit() {
         index = Eth::IsStatic() ? 1 : 0;
@@ -236,7 +231,7 @@ class MI_LAN_SAVE : public WI_LABEL_t {
 public:
     MI_LAN_SAVE()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::Save();
     }
 };
@@ -247,14 +242,14 @@ class MI_LAN_LOAD : public WI_LABEL_t {
 public:
     MI_LAN_LOAD()
         : WI_LABEL_t(label, 0, true, false) {}
-    virtual void click(Iwindow_menu_t & /*window_menu*/) override {
+    virtual void click(IWindowMenu & /*window_menu*/) override {
         Eth::Load();
     }
 };
 
 /*****************************************************************************/
 //parent alias
-static const size_t helper_lines = 8;
+constexpr static const HelperConfig helper_lines = { 8, IDR_FNT_SPECIAL };
 using parent = ScreenMenu<EHeader::On, EFooter::Off, helper_lines,
     MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
 
@@ -277,7 +272,7 @@ void ScreenMenuLanSettings::refresh_addresses() {
     update_eth_addrs(&ethconfig);
     stringify_eth_for_screen(&plan_str, &ethconfig);
     help.text = (char *)plan_str;
-    help.win.flg |= WINDOW_FLG_INVALID;
+    help.flg |= WINDOW_FLG_INVALID;
     gui_invalidate();
 }
 
@@ -303,7 +298,7 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
         gui_msgbox(_("Settings successfully loaded"), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
         break;
     case Eth::Msg::LoadNOK:
-        gui_msgbox(_("IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        gui_msgbox(_("IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
         break;
     default:
         break;
@@ -326,7 +321,6 @@ void ScreenMenuLanSettings::Init(screen_t *screen) {
 int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
     ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
     if (Eth::ConsumeReinit()) {
-        //todo ipmrove inner tuple handling and index by type
         MI_LAN_IP_t *item = &ths->Item<MI_LAN_IP_t>();
         item->ReInit();
     }
@@ -351,4 +345,4 @@ screen_t screen_lan_settings = {
     nullptr,                       //pdata
 };
 
-extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }
+screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

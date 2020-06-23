@@ -9,6 +9,7 @@ MI_NOZZLE::MI_NOZZLE()
         MenuVars::nozzle_range.data(), label, 0, true, false) {}
 void MI_NOZZLE::OnClick() {
     marlin_set_target_nozzle(value);
+    marlin_set_display_nozzle(value);
 }
 
 /*****************************************************************************/
@@ -52,10 +53,16 @@ void MI_FLOWFACT::OnClick() {
 MI_BABYSTEP::MI_BABYSTEP()
     : WI_SPIN_t<float>(marlin_vars()->z_offset, MenuVars::zoffset_fl_range.data(), MenuVars::zoffset_prt_format, label, 0, true, false) {}
 void MI_BABYSTEP::OnClick() {
-    eeprom_set_var(EEVAR_ZOFFSET, marlin_get_var(MARLIN_VAR_Z_OFFSET));
+    variant8_t var = variant8_flt(value);
+    eeprom_set_var(EEVAR_ZOFFSET, var);
+    marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
 }
 bool MI_BABYSTEP::Change(int dif) {
+    auto temp_value = value;
     bool ret = WI_SPIN_t<float>::Change(dif);
-    marlin_set_z_offset(value);
+    //todo marlin_set_z_offset(value); worked in 4.0.5
+    //findout why it no longer does
+    if (ret)
+        marlin_do_babysteps_Z(value - temp_value);
     return ret;
 }
