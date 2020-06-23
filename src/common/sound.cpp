@@ -2,6 +2,8 @@
 #include "hwio.h"
 #include "eeprom.h"
 
+uint8_t SOUND_INIT = 0;
+
 const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 50, 100, 100, 1000 };
 const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
 const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.25F, 0.25F, Sound::volumeInit, Sound::volumeInit };

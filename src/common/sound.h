@@ -4,7 +4,7 @@
 // Global variable inicialization flag for HAL tick in appmain.cpp.
 // HAL tick will start before eeprom is inicialized and Sound class is depending on that.
 // See - appmain.cpp -> app_tim14_tick
-uint8_t SOUND_INIT = 0;
+// uint8_t SOUND_INIT;
 
 eSOUND_MODE Sound_GetMode();
 void Sound_SetMode(eSOUND_MODE eSMode);
