@@ -15,16 +15,12 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
         return;
 
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
-    if ((screen_get_curr() == get_scr_printing_serial()))
-        return;
-
-    //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
     if (dialog == ClientFSM::Serial_printing) {
-        screen_close_multiple(scrn_close_on_M876);
-
-        if (screen_get_curr() != get_scr_printing_serial())
+        if (screen_get_curr() != get_scr_printing_serial()) {
+            screen_close_multiple(scrn_close_on_M876);
             screen_open(get_scr_printing_serial()->id);
+        }
     } else {
         ptr = dialog_ctors[size_t(dialog)](data);
     }
