@@ -73,4 +73,3 @@ private:
 
     eSOUND_MODE eSoundMode;
 };
-
