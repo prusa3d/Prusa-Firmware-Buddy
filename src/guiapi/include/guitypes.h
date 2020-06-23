@@ -116,7 +116,6 @@ typedef struct _gui_defaults_t {
     font_t *font_big;
     padding_ui8_t padding;
     uint8_t alignment;
-    ml_instance_t ml_instance;
     rect_ui16_t header_sz;           // default header location & size
     rect_ui16_t scr_body_sz;         // default screen body location & size
     rect_ui16_t scr_body_no_foot_sz; // screen body without footer location & size

@@ -4,7 +4,6 @@
 #define _WINDOW_TEXT_H
 
 #include "window.h"
-#include "str_utils.h"
 
 typedef struct _window_class_text_t {
     window_class_t cls;

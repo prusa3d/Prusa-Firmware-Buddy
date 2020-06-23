@@ -1,4 +1,4 @@
-#include "str_utils.h"
+#include "str_utils.hpp"
 #include <string.h>
 
 /// Deletes \param n characters from beginning of the \param str
@@ -26,13 +26,13 @@ size_t strdel(char *str, const size_t n) {
 /// \returns number of characters shifted or negative number in case of error
 int strshift(char *str, size_t max_size, const size_t n, const char default_char) {
     if (str == nullptr)
-        return -1;
+        return str_err::nullptr_err;
     if (n == 0)
         return 0;
 
     const size_t size = strlen(str);
     if (size + n >= max_size) /// too much to add
-        return -2;
+        return str_err::small_buffer;
 
     /// copy text, start from the last character including '\0'
     for (size_t i = size + n; i >= n; --i) {
@@ -53,7 +53,7 @@ int strshift(char *str, size_t max_size, const size_t n, const char default_char
 /// \returns number of inserted characters or negative number in case of error
 int strins(char *str, size_t max_size, const char *const ins, size_t times) {
     if (str == nullptr || ins == nullptr)
-        return -1;
+        return str_err::nullptr_err;
 
     const size_t ins_size = strlen(ins);
     const size_t inserted = ins_size * times;
@@ -82,7 +82,7 @@ int strins(char *str, size_t max_size, const char *const ins, size_t times) {
 /// \returns final number of lines or negative number in case of error
 int str2multiline(char *str, size_t max_size, size_t line_width) {
     if (str == nullptr || line_width == 0)
-        return -1;
+        return str_err::nullptr_err;
     if (*str == EOS)
         return 1;
 
@@ -127,7 +127,7 @@ int str2multiline(char *str, size_t max_size, size_t line_width) {
                 /// no break point available - break a word instead
                 const int inserted = strins(str + i - 1, max_size - i + 1, NL);
                 if (inserted < 0)
-                    return -2;
+                    return str_err::small_buffer;
             }
             ++lines;
             current_length = 0;
