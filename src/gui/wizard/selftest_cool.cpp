@@ -33,24 +33,29 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_nozzle_temp));
+    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->curr_nozzle_temp));
     window_set_format(id, (const char *)"Nozzle: %.1f\177C");
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_bed_temp));
+    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->curr_bed_temp));
     window_set_format(id, (const char *)"Bed: %.1f\177C");
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_nozzle));
-    window_set_format(id, (const char *)"Noz. target: %.0f\177C");
+    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(15, y, WIZARD_X_SPACE - 15, 22), &(p_screen->text_target_tp));
+    window_set_text(id, "Target temp");
+
+    y += 22;
+
+    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->target_nozzle));
+    window_set_format(id, (const char *)"Nozzle: %.0f\177C");
     window_set_value(id, _CALIB_TEMP_NOZ);
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_bed));
-    window_set_format(id, (const char *)"Bed. target: %.0f\177C");
+    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->target_bed));
+    window_set_format(id, (const char *)"Bed: %.0f\177C");
     window_set_value(id, _CALIB_TEMP_BED);
 
     y += 35;

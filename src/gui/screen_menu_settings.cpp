@@ -21,7 +21,7 @@
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Fil. sens.");
+    constexpr static const char *const label = N_("Filament sensor: ");
 
     size_t init_index() const {
         fsensor_t fs = fs_wait_inicialized();
@@ -82,7 +82,7 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 
 class ScreenMenuSettings : public parent {
 public:
-    constexpr static const char *label = N_("Settings");
+    constexpr static const char *label = N_("SETTINGS");
     static void Init(screen_t *screen);
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };

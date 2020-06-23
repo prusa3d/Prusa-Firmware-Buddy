@@ -67,7 +67,7 @@ const size_t V2_gcodes_head_ASA_sz = sizeof(V2_gcodes_head_ASA) / sizeof(V2_gcod
 
 const char *V2_gcodes_head_ABS[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M104 S" PREHEAT_TEMP_STRING " D255", //nozzle target
     "M140 S100",                          //bed target
     "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp
@@ -80,7 +80,7 @@ const size_t V2_gcodes_head_ABS_sz = sizeof(V2_gcodes_head_ABS) / sizeof(V2_gcod
 
 const char *V2_gcodes_head_PC[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M104 S" PREHEAT_TEMP_STRING " D275", //nozzle target
     "M140 S100",                          //bed target
     "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp
@@ -106,7 +106,7 @@ const size_t V2_gcodes_head_FLEX_sz = sizeof(V2_gcodes_head_FLEX) / sizeof(V2_gc
 
 const char *V2_gcodes_head_HIPS[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M104 S" PREHEAT_TEMP_STRING " D220", //nozzle target
     "M140 S100",                          //bed target
     "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp
@@ -119,7 +119,7 @@ const size_t V2_gcodes_head_HIPS_sz = sizeof(V2_gcodes_head_HIPS) / sizeof(V2_gc
 
 const char *V2_gcodes_head_PP[] = {
     V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
+    "M104 S" PREHEAT_TEMP_STRING " D240", //nozzle target
     "M140 S100",                          //bed target
     "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp

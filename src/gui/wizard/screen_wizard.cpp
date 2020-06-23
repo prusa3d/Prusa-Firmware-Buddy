@@ -513,7 +513,7 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_INIT:
     case _STATE_INFO:
     case _STATE_FIRST:
-        return "WIZARD";
+        return N_("WIZARD");
     case _STATE_SELFTEST_INIT:
     case _STATE_SELFTEST_FAN0:
     case _STATE_SELFTEST_FAN1:
@@ -525,7 +525,7 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_SELFTEST_TEMP:
     case _STATE_SELFTEST_PASS:
     case _STATE_SELFTEST_FAIL:
-        return "SELFTEST";
+        return N_("SELF TEST");
     case _STATE_XYZCALIB_INIT:
     case _STATE_XYZCALIB_HOME:
     case _STATE_XYZCALIB_Z:
@@ -538,7 +538,7 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_XYZCALIB_XY_MEASURE:
     case _STATE_XYZCALIB_PASS:
     case _STATE_XYZCALIB_FAIL:
-        return "XYZ CALIBRATION";
+        return N_("XYZ CALIBRATION");
     case _STATE_FIRSTLAY_INIT:
     case _STATE_FIRSTLAY_LOAD:
     case _STATE_FIRSTLAY_MSBX_CALIB:
@@ -546,9 +546,9 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_FIRSTLAY_PRINT:
     case _STATE_FIRSTLAY_MSBX_REPEAT_PRINT:
     case _STATE_FIRSTLAY_FAIL:
-        return "FIRST LAYER CALIB.";
+        return N_("FIRST LAYER CALIB.");
     case _STATE_FINISH:
-        return "WIZARD - OK";
+        return N_("WIZARD - OK");
     case _STATE_LAST:
         return "";
     }

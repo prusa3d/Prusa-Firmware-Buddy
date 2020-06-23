@@ -25,7 +25,7 @@ protected:
 };
 
 class MI_MESH_BED : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Mesh Bed Level.");
+    static constexpr const char *const label = N_("Mesh Bed Leveling");
 
 public:
     MI_MESH_BED();
@@ -35,7 +35,7 @@ protected:
 };
 
 class MI_SELFTEST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("SelfTest");
+    static constexpr const char *const label = N_("Self Test");
 
 public:
     MI_SELFTEST();
@@ -45,7 +45,7 @@ protected:
 };
 
 class MI_CALIB_FIRST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First Layer Cal.");
+    static constexpr const char *const label = N_("First Layer Calibration");
 
 public:
     MI_CALIB_FIRST();
@@ -195,7 +195,7 @@ protected:
 };
 
 class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Timeout");
+    constexpr static const char *const label = N_("Timeout:");
 
 public:
     MI_TIMEOUT();
@@ -203,7 +203,7 @@ public:
 };
 
 class MI_SOUND_MODE : public WI_SWITCH_t<4> {
-    constexpr static const char *const label = N_("Sound Mode");
+    constexpr static const char *const label = N_("Sound Mode: ");
 
     constexpr static const char *str_Once = N_("Once");
     constexpr static const char *str_Loud = N_("Loud");
@@ -217,7 +217,7 @@ public:
 };
 
 class MI_SOUND_TYPE : public WI_SWITCH_t<8> {
-    constexpr static const char *const label = "Sound Type";
+    constexpr static const char *const label = "Sound Type: ";
 
     constexpr static const char *str_ButtonEcho = "ButtonEcho";
     constexpr static const char *str_StandardPrompt = "StandardPrompt";
@@ -234,7 +234,7 @@ public:
 };
 
 class MI_TIMEZONE : public WI_SPIN_I08_t {
-    constexpr static const char *const label = "TZ UTC(+/-)"; // intentionally not translated
+    constexpr static const char *const label = N_("Time Zones UTC(+/-): "); // intentionally not translated
 
 public:
     MI_TIMEZONE();

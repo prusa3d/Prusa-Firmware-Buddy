@@ -79,7 +79,7 @@ void screen_home_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_home);
-    p_window_header_set_text(&(pw->header), _("HOME"));
+    p_window_header_set_text(&(pw->header), _("WELCOME"));
 
     id = window_create_ptr(WINDOW_CLS_ICON, root,
         rect_ui16(41, 31, 158, 40), &(pw->logo));

@@ -8,6 +8,7 @@
 struct selftest_cool_screen_t {
     window_progress_t progress;
     window_text_t text_waiting_cd;
+    window_text_t text_target_tp;
     window_numb_t target_nozzle;
     window_numb_t target_bed;
     window_icon_t icon_hourglass;

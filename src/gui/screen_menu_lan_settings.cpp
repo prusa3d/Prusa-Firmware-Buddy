@@ -196,7 +196,7 @@ bool Eth::ConsumeReinit() {
 /*****************************************************************************/
 //ITEMS
 class MI_LAN_ONOFF : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = "LAN";
+    constexpr static const char *const label = "LAN:";
 
 public:
     MI_LAN_ONOFF()
@@ -207,7 +207,7 @@ public:
 };
 
 class MI_LAN_IP_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "LAN IP";
+    constexpr static const char *const label = "LAN IP:";
 
     constexpr static const char *str_static = "static";
     constexpr static const char *str_DHCP = "DHCP";
