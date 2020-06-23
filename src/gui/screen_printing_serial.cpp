@@ -134,8 +134,6 @@ void screen_printing_serial_init(screen_t *screen) {
 }
 
 void screen_printing_serial_done(screen_t *screen) {
-    marlin_gcode("G27 P2"); /// park nozzle and raise Z axis
-    marlin_gcode("M86 S1"); /// enable safety timer
     window_destroy(pw->root.win.id);
 }
 
@@ -163,8 +161,11 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         return 1;
         break;
     case BUTTON_DISCONNECT:
-        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
+        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
             marlin_gcode("M118 A1 action:disconnect");
+            marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
+            marlin_gcode("M104 S0 D0"); /// set temperatures to zero
+            marlin_gcode("M140 S0"); /// set temperatures to zero
             screen_close();
         }
         return 1;

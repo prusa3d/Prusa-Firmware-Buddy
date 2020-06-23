@@ -23,6 +23,7 @@
 
 #if ENABLED(HOST_PROMPT_SUPPORT) && DISABLED(EMERGENCY_PARSER)
 
+		#include "../../lib/Marlin/Marlin/src/feature/safety_timer.h"
     #include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
     #include "../../lib/Marlin/Marlin/src/feature/safety_timer.h"
     #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
@@ -38,7 +39,7 @@ void GcodeSuite::M876() {
             fsm_create(ClientFSM::Serial_printing, 0);
         } else {
             fsm_destroy(ClientFSM::Serial_printing);
-            safety_timer_set_interval(1800000); //in miliseconds
+            safety_timer_set_interval(1800000); // in miliseconds
         }
     }
     if (parser.seenval('S'))
