@@ -1,4 +1,4 @@
-// gui_timer.c
+// gui_timer.cpp
 
 #include "gui_timer.h"
 #include <string.h>
@@ -13,7 +13,7 @@
 #define GUI_MENU_TIMEOUT  3
 #define GUI_TIMER_TXTROLL 4
 
-typedef struct _gui_timer_t {
+struct gui_timer_t {
     uint32_t start;
     uint32_t delay : 24;
     union {
@@ -25,7 +25,7 @@ typedef struct _gui_timer_t {
         };
     };
     int16_t win_id;
-} gui_timer_t;
+};
 
 gui_timer_t gui_timers[GUI_MAX_TIMERS];
 int8_t gui_timer_count = -1;

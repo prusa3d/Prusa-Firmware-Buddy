@@ -5,9 +5,9 @@
  *      Author: Vana Radek
  */
 
-#include "window_dlg_preheat.h"
+#include "window_dlg_preheat.hpp"
 #include "display_helper.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "filament.h"
@@ -15,7 +15,7 @@
 #include "resource.h"
 #include "stdlib.h"
 #include "../lang/i18n.h"
-#include "window_frame.h"
+#include "window_frame.hpp"
 #include <limits>
 
 int16_t WINDOW_CLS_DLG_PREHEAT = 0;
@@ -60,7 +60,7 @@ void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
 void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     //inherit from frame
     window_class_frame.cls.init(window);
-    window->win.flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_INVALID;
+    window->flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_INVALID;
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -71,14 +71,14 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     rect_ui16_t rect = gui_defaults.scr_body_sz;
     if (window->caption) {
         rect.h = window->font_title->h + 2;
-        id = window_create_ptr(WINDOW_CLS_TEXT, window->win.id, rect, &(window->text));
+        id = window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
         window_set_text(id, window->caption);
         rect = gui_defaults.scr_body_sz;
         rect.y += window->font_title->h + 4;
         rect.h -= window->font_title->h + 4;
     }
 
-    id = window_create_ptr(WINDOW_CLS_LIST, window->win.id, rect, &(window->list));
+    id = window_create_ptr(WINDOW_CLS_LIST, window->id, rect, &(window->list));
     window->list.padding = padding_ui8(20, 6, 2, 6);
     window->list.icon_rect = rect_ui16(0, 0, 16, 30);
 
@@ -93,7 +93,7 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
     switch (event) {
     case WINDOW_EVENT_ENC_UP:
     case WINDOW_EVENT_ENC_DN: //forward up/dn events to list window
-        window->list.win.cls->event(&(window->list.win), event, param);
+        window->list.cls->event(&(window->list), event, param);
         break;
     case WINDOW_EVENT_BTN_DN:
         if (window->timer != std::numeric_limits<uint32_t>::max()) {
@@ -194,7 +194,7 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.scr_body_sz, &dlg);
 
-    window_set_item_count(dlg.list.win.id, count);
+    window_set_item_count(dlg.list.id, count);
 
     window_t *tmp_window_1 = window_popup_ptr; //save current window_popup_ptr
 

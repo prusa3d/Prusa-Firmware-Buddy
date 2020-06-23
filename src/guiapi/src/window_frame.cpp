@@ -1,12 +1,12 @@
 // window_frame.c
-#include "window_frame.h"
-#include "gui.h"
+#include "window_frame.hpp"
+#include "gui.hpp"
 #include "sound_C_wrapper.h"
 
 void window_frame_init(window_frame_t *window) {
-    if (rect_empty_ui16(window->win.rect)) //use display rect curent is empty
-        window->win.rect = rect_ui16(0, 0, display::GetW(), display::GetH());
-    window->win.flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;
+    if (rect_empty_ui16(window->rect)) //use display rect curent is empty
+        window->rect = rect_ui16(0, 0, display::GetW(), display::GetH());
+    window->flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;
     window->color_back = COLOR_BLACK;
 }
 
@@ -14,14 +14,14 @@ void window_frame_done(window_frame_t *window) {
 }
 
 void window_frame_draw(window_frame_t *window) {
-    if (window->win.f_visible) {
-        if (window->win.f_invalid) {
-            rect_ui16_t rc = window->win.rect;
+    if (window->f_visible) {
+        if (window->f_invalid) {
+            rect_ui16_t rc = window->rect;
             display::FillRect(rc, window->color_back);
-            window->win.f_invalid = 0;
-            window_invalidate_children(window->win.id);
+            window->f_invalid = 0;
+            window_invalidate_children(window->id);
         }
-        window_draw_children(window->win.id);
+        window_draw_children(window->id);
     }
 }
 
@@ -63,7 +63,7 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_CAPT_0:
         break;
     case WINDOW_EVENT_CAPT_1:
-        if (window_parent(window_focused()) != window->win.id) {
+        if (window_parent(window_focused()) != window->id) {
             id = window_first_child(0);
             if (!window_is_enabled(id))
                 id = window_next_enabled(id);

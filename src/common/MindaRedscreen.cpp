@@ -2,7 +2,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "config.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "st7789v.h"
 #include <stdio.h>
 #include <stdarg.h>

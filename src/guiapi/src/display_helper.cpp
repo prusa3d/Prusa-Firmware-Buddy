@@ -3,8 +3,8 @@
 #include "display_helper.h"
 #include "display.h"
 #include "gui_timer.h"
-#include "window.h"
-#include "gui.h"
+#include "window.hpp"
+#include "gui.hpp"
 
 /// Fills space between two rectangles with a color
 /// @r_in must be completely in @r_out, no check is done

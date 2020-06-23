@@ -1,6 +1,6 @@
 // screen_menu_calibration.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "screen_menu.hpp"

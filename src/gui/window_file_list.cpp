@@ -1,13 +1,13 @@
 /*
- * window_file_list.c
+ * window_file_list.cpp
  *
  *  Created on: 23. 7. 2019
  *      Author: mcbig
  *  Refactoring by DRracer 2020-04-08
  */
 
-#include "window_file_list.h"
-#include "gui.h"
+#include "window_file_list.hpp"
+#include "gui.hpp"
 #include "config.h"
 #include "fatfs.h"
 #include "dbg.h"
@@ -30,8 +30,8 @@ bool window_file_list_path_is_root(const char *path) {
 void window_file_list_init_text_roll(window_file_list_t *window) {
     window->roll.setup = TXTROLL_SETUP_INIT;
     window->roll.phase = ROLL_SETUP;
-    gui_timer_restart_txtroll(window->win.id);
-    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+    gui_timer_restart_txtroll(window->id);
+    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
 }
 
 void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
@@ -88,27 +88,27 @@ void window_file_list_init(window_file_list_t *window) {
     window->font = gui_defaults.font;
     window->padding = padding_ui8(2, 6, 2, 6);
     window->alignment = ALIGN_LEFT_CENTER;
-    window->win.flg |= WINDOW_FLG_ENABLED;
+    window->flg |= WINDOW_FLG_ENABLED;
     window->roll.count = window->roll.px_cd = window->roll.progress = 0;
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;
-    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
     strlcpy(window->sfn_path, "/", FILE_PATH_MAX_LEN);
 
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
     window->ldv = LDV_Get();
 
-    display::FillRect(window->win.rect, window->color_back);
+    display::FillRect(window->rect, window->color_back);
 }
 
 void window_file_list_done(window_file_list_t *window) {
-    gui_timers_delete_by_window_id(window->win.id);
+    gui_timers_delete_by_window_id(window->id);
 }
 
 void window_file_list_draw(window_file_list_t *window) {
     int item_height = window->font->h + window->padding.top + window->padding.bottom;
-    rect_ui16_t rc_win = window->win.rect;
+    rect_ui16_t rc_win = window->rect;
 
     int visible_slots = rc_win.h / item_height;
     int ldv_visible_files = window->ldv->VisibleFilesCount();
@@ -141,7 +141,7 @@ void window_file_list_draw(window_file_list_t *window) {
         padding_ui8_t padding = window->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            if ((window->win.flg & WINDOW_FLG_FOCUSED) && (window->index == i)) {
+            if ((window->flg & WINDOW_FLG_FOCUSED) && (window->index == i)) {
                 color_t swp = color_text;
                 color_text = color_back;
                 color_back = swp;
@@ -157,7 +157,7 @@ void window_file_list_draw(window_file_list_t *window) {
                 padding.left += 16;
             }
 
-            if ((window->win.flg & WINDOW_FLG_FOCUSED) && window->index == i) {
+            if ((window->flg & WINDOW_FLG_FOCUSED) && window->index == i) {
                 if (window->roll.phase == ROLL_SETUP) { // initiation of rolling is done in functions
                     // which move cursor up or down. They can handle the situation, when the cursor
                     // stays at one place (top or bottom), but the whole window list moves up/down.
@@ -213,7 +213,7 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
         //TODO: change flag to checked
         break;
     case WINDOW_EVENT_TIMER:
-        roll_text_phasing(window->win.id, window->font, &window->roll);
+        roll_text_phasing(window->id, window->font, &window->roll);
         break;
     }
 }

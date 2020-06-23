@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "cmsis_os.h"
 #include "dbg.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "resource.h"
 #include <algorithm>
 

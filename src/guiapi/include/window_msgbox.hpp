@@ -1,8 +1,7 @@
-// window_msgbox.h
-#ifndef _WINDOW_MSGBOX_H
-#define _WINDOW_MSGBOX_H
+// window_msgbox.hpp
+#pragma once
 
-#include "window.h"
+#include "window.hpp"
 
 //messagebox flags bitmasks
 #define MSGBOX_MSK_ICO 0x0070 // icon mask
@@ -57,12 +56,11 @@
 
 #define MSGBOX_GREY_FRAME 0x8000 // draw grey frame
 
-typedef struct _window_class_msgbox_t {
+struct window_class_msgbox_t {
     window_class_t cls;
-} window_class_msgbox_t;
+};
 
-typedef struct _window_msgbox_t {
-    window_t win;
+struct window_msgbox_t : public window_t {
     color_t color_back;
     color_t color_text;
     font_t *font;
@@ -75,18 +73,8 @@ typedef struct _window_msgbox_t {
     const char *buttons[3];
     uint16_t flags;
     int res;
-} window_msgbox_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+};
 
 extern uint16_t window_msgbox_id_icon[5];
 
 extern const window_class_msgbox_t window_class_msgbox;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_MSGBOX_H

@@ -11,10 +11,10 @@
 
     #include "stm32f4xx_hal.h"
     #include "config.h"
-    #include "gui.h"
+    #include "gui.hpp"
     #include "term.h"
     #include "st7789v.h"
-    #include "window_term.h"
+    #include "window_term.hpp"
     #include <stdio.h>
     #include <stdarg.h>
     #include <stdlib.h>

@@ -1,7 +1,7 @@
 // wizard.c
 
 #include "wizard.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "dbg.h"
 #include "config.h"
 #include "screen_wizard.h"

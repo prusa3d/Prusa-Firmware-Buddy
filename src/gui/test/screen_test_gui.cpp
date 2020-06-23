@@ -1,12 +1,11 @@
-// screen_test_gui.c
+// screen_test_gui.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "screens.h"
 
-typedef struct
-{
+struct screen_test_gui_data_t {
     window_frame_t frame;
     window_icon_t logo_prusa_mini;
     window_text_t text0;
@@ -22,7 +21,7 @@ typedef struct
     window_icon_t icon2;
     window_progress_t progress;
     window_text_t text_terminal;
-} screen_test_gui_data_t;
+};
 
 #define pd ((screen_test_gui_data_t *)screen->pdata)
 
@@ -90,7 +89,7 @@ void screen_test_gui_init(screen_t *screen) {
 }
 
 void screen_test_gui_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_test_gui_draw(screen_t *screen) {
@@ -105,7 +104,7 @@ int screen_test_gui_event(screen_t *screen, window_t *window, uint8_t event, voi
         }
     /*	if (event == WINDOW_EVENT_LOOP)
 	{
-		float temp = window_get_value(screen->pd->spin0.window.win.id);
+		float temp = window_get_value(screen->pd->spin0.win.id);
 		int val = sim_heater_temp2val(temp);
 		window_set_value(screen->pd->numb0.win.id, val);
 	}*/

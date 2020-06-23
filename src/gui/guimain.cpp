@@ -2,19 +2,19 @@
 
 #include <stdio.h>
 #include "stm32f4xx_hal.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "marlin_client.h"
 
-#include "window_file_list.h"
-#include "window_header.h"
-#include "window_temp_graph.h"
+#include "window_file_list.hpp"
+#include "window_header.hpp"
+#include "window_temp_graph.hpp"
 #include "DialogLoadUnload.h"
-#include "window_dlg_wait.h"
+#include "window_dlg_wait.hpp"
 #ifdef _DEBUG
-    #include "window_dlg_popup.h"
+    #include "window_dlg_popup.hpp"
 #endif //_DEBUG
-#include "window_dlg_preheat.h"
+#include "window_dlg_preheat.hpp"
 #include "screen_print_preview.h"
 
 #include "screen_lan_settings.h"

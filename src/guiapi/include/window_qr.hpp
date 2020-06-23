@@ -1,18 +1,16 @@
-// window_qr.h
+// window_qr.hpp
 
-#ifndef _WINDOW_QR_H
-#define _WINDOW_QR_H
+#pragma once
 
-#include "window.h"
+#include "window.hpp"
 
 #include "qrcodegen.h"
 
-typedef struct {
+struct window_class_qr_t {
     window_class_t cls;
-} window_class_qr_t;
+};
 
-typedef struct {
-    window_t win;
+struct window_qr_t : public window_t {
     char *text;
     int version;
     enum qrcodegen_Ecc ecc_level;
@@ -21,16 +19,6 @@ typedef struct {
     uint8_t px_per_module;
     color_t bg_color;
     color_t px_color;
-} window_qr_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+};
 
 extern const window_class_qr_t window_class_qr;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_WINDOW_QR_H

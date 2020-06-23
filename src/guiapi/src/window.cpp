@@ -1,8 +1,8 @@
 //window.c
 
-#include "window.h"
+#include "window.hpp"
 #include "window_menu.h"
-#include "gui.h"
+#include "gui.hpp"
 
 #define WINDOW_MAX_WINDOWS 64
 
@@ -384,8 +384,8 @@ void window_set_value(int16_t id, float value) {
                 value = ((window_spin_t *)window)->min;
             if (value > ((window_spin_t *)window)->max)
                 value = ((window_spin_t *)window)->max;
-            ((window_spin_t *)window)->window.value = value;
-            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->window.value - ((window_spin_t *)window)->min) / ((window_spin_t *)window)->step);
+            ((window_spin_t *)window)->value = value;
+            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->value - ((window_spin_t *)window)->min) / ((window_spin_t *)window)->step);
             break;
         case WINDOW_CLS_PROGRESS:
             if (value < ((window_progress_t *)window)->min)
@@ -406,7 +406,7 @@ float window_get_value(int16_t id) {
         case WINDOW_CLS_NUMB:
             return ((window_numb_t *)window)->value;
         case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->window.value;
+            return ((window_spin_t *)window)->value;
         }
     }
     return 0;
@@ -420,7 +420,7 @@ void window_set_format(int16_t id, const char *format) {
             ((window_numb_t *)window)->format = (char *)format;
             break;
         case WINDOW_CLS_SPIN:
-            ((window_spin_t *)window)->window.format = (char *)format;
+            ((window_spin_t *)window)->format = (char *)format;
             break;
         }
         _window_invalidate((window_t *)window);
@@ -434,7 +434,7 @@ const char *window_get_format(int16_t id) {
         case WINDOW_CLS_NUMB:
             return ((window_numb_t *)window)->format;
         case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->window.format;
+            return ((window_spin_t *)window)->format;
         }
     }
     return 0;
@@ -641,7 +641,7 @@ void window_set_item_index(int16_t id, int index) {
         case WINDOW_CLS_SPIN:
             if (((window_spin_t *)window)->count > index) {
                 ((window_spin_t *)window)->index = index;
-                ((window_spin_t *)window)->window.value = ((window_spin_t *)window)->min + ((window_spin_t *)window)->step * ((window_spin_t *)window)->index;
+                ((window_spin_t *)window)->value = ((window_spin_t *)window)->min + ((window_spin_t *)window)->step * ((window_spin_t *)window)->index;
             }
             break;
         }
@@ -779,14 +779,14 @@ void window_set_min_max(int16_t id, float min, float max) {
     if ((window = window_ptr(id)) != 0) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_SPIN:
-            if (((window_spin_t *)window)->window.value < min)
-                ((window_spin_t *)window)->window.value = min;
-            if (((window_spin_t *)window)->window.value > max)
-                ((window_spin_t *)window)->window.value = max;
+            if (((window_spin_t *)window)->value < min)
+                ((window_spin_t *)window)->value = min;
+            if (((window_spin_t *)window)->value > max)
+                ((window_spin_t *)window)->value = max;
             ((window_spin_t *)window)->min = min;
             ((window_spin_t *)window)->max = max;
             ((window_spin_t *)window)->count = (int)((max - min) / ((window_spin_t *)window)->step + 1.5F);
-            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->window.value - min) / ((window_spin_t *)window)->step);
+            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->value - min) / ((window_spin_t *)window)->step);
             break;
         }
         _window_invalidate((window_t *)window);
@@ -798,15 +798,15 @@ void window_set_min_max_step(int16_t id, float min, float max, float step) {
     if ((window = window_ptr(id)) != 0) {
         switch (window->cls->cls_id) {
         case WINDOW_CLS_SPIN:
-            if (((window_spin_t *)window)->window.value < min)
-                ((window_spin_t *)window)->window.value = min;
-            if (((window_spin_t *)window)->window.value > max)
-                ((window_spin_t *)window)->window.value = max;
+            if (((window_spin_t *)window)->value < min)
+                ((window_spin_t *)window)->value = min;
+            if (((window_spin_t *)window)->value > max)
+                ((window_spin_t *)window)->value = max;
             ((window_spin_t *)window)->min = min;
             ((window_spin_t *)window)->max = max;
             ((window_spin_t *)window)->step = step;
             ((window_spin_t *)window)->count = (int)((max - min) / step + 1.5F);
-            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->window.value - min) / step);
+            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->value - min) / step);
             break;
         }
         _window_invalidate((window_t *)window);

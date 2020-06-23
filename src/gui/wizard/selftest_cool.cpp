@@ -125,9 +125,9 @@ int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, self
     }
     //-------------------------------------
 
-    window_set_value(p_screen->curr_nozzle_temp.win.id, p_data->temp_noz);
-    window_set_value(p_screen->curr_bed_temp.win.id, p_data->temp_bed);
+    window_set_value(p_screen->curr_nozzle_temp.id, p_data->temp_noz);
+    window_set_value(p_screen->curr_bed_temp.id, p_data->temp_bed);
     p_screen->progress.color_progress = lower_procentage >= time_progress ? COLOR_LIME : COLOR_ORANGE;
-    window_set_value(p_screen->progress.win.id, progress);
+    window_set_value(p_screen->progress.id, progress);
     return progress;
 }

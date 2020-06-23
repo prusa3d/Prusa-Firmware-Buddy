@@ -2,7 +2,7 @@
 #include "dbg.h"
 #include "ff.h"
 #include "gcode_file.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "marlin_client.h"
 #include "resource.h"
 #include "window_dlg_load_unload.h"
@@ -15,13 +15,13 @@
 
 #define DBG _dbg0
 
-typedef struct {
+struct description_line_t {
     window_text_t title;
     window_text_t value;
     char value_buffer[32];
-} description_line_t;
+};
 
-typedef struct {
+struct screen_print_preview_data_t {
     window_frame_t frame;
     window_text_t title_text;
     description_line_t description_lines[4];
@@ -37,7 +37,7 @@ typedef struct {
     unsigned gcode_filament_used_g;
     unsigned gcode_filament_used_mm;
     bool redraw_thumbnail;
-} screen_print_preview_data_t;
+};
 
 #define PADDING          10
 #define SCREEN_WIDTH     240 //FIXME should be in display.h
@@ -100,7 +100,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     const char *title,
     const char *value_fmt, ...) {
     description_line_t *line = &pd->description_lines[idx];
-    int window_id = pd->frame.win.id;
+    int window_id = pd->frame.id;
 
     int title_width = strlen(title) * resource_font(IDR_FNT_SMALL)->w;
     int title_id = window_create_ptr(
@@ -287,7 +287,7 @@ static void screen_print_preview_done(screen_t *screen) {
         pd->gcode_file_opened = false;
         pd->gcode_has_thumbnail = false;
     }
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 static void screen_print_preview_draw(screen_t *screen) {
@@ -334,7 +334,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
             break;
         }
         suppress_draw = false;
-        window_draw(pd->frame.win.id);
+        window_draw(pd->frame.id);
     }
 
     if (!suppress_draw && event == WINDOW_EVENT_LOOP && pd->gcode_has_thumbnail &&

@@ -1,7 +1,7 @@
 // window_menu.cpp
 #include "window_menu.h" //C compatible, todo remove
 #include "window_menu.hpp"
-#include "gui.h"
+#include "gui.hpp"
 #include "sound_C_wrapper.h"
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
@@ -16,7 +16,7 @@ window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
     alignment = gui_defaults.alignment;
     setIndex(index);
     top_index = 0;
-    win.flg |= WINDOW_FLG_ENABLED;
+    flg |= WINDOW_FLG_ENABLED;
 }
 
 //private, for ctor (cannot fail)
@@ -70,7 +70,7 @@ void window_menu_t::Increment(int dif) {
     } else {
         //all items can be in label mode
         int item_height = font->h + padding.top + padding.bottom;
-        int visible_count = win.rect.h / item_height;
+        int visible_count = rect.h / item_height;
         int old_index = GetIndex();
         int new_index = old_index + dif;
         // play sound at first or last index of menu
@@ -99,12 +99,12 @@ void window_menu_t::Increment(int dif) {
 //non member fce
 
 void window_menu_init(window_menu_t *window) {
-    display::DrawRect(window->win.rect, window->color_back);
-    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+    display::DrawRect(window->rect, window->color_back);
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
 }
 
 void window_menu_done(window_menu_t *window) {
-    gui_timers_delete_by_window_id(window->win.id);
+    gui_timers_delete_by_window_id(window->id);
 }
 
 void window_menu_set_item_index(window_t *window, int index) {
@@ -114,12 +114,12 @@ void window_menu_set_item_index(window_t *window, int index) {
 }
 
 void window_menu_draw(window_menu_t *window) {
-    if (!((window->win.flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+    if (!((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         return;
     }
 
     const int item_height = window->font->h + window->padding.top + window->padding.bottom;
-    rect_ui16_t rc_win = window->win.rect;
+    rect_ui16_t rc_win = window->rect;
 
     const size_t visible_count = rc_win.h / item_height;
     size_t i;
@@ -136,8 +136,8 @@ void window_menu_draw(window_menu_t *window) {
 
         if (rect_in_rect_ui16(rc, rc_win)) {
             if (item->RollNeedInit()) {
-                gui_timer_restart_txtroll(window->win.id);
-                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->win.id);
+                gui_timer_restart_txtroll(window->id);
+                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
                 item->RollInit(*window, rc);
             }
             item->Print(*window, rc);
@@ -149,7 +149,7 @@ void window_menu_draw(window_menu_t *window) {
         rc_win.y += i * item_height;
         display::FillRect(rc_win, window->color_back);
     }
-    window->win.flg &= ~WINDOW_FLG_INVALID;
+    window->flg &= ~WINDOW_FLG_INVALID;
 }
 
 //I think I do not need

@@ -8,7 +8,7 @@
 using Catch::Matchers::Equals;
 
 #include "str_utils.cpp"
-#include "str_utils.h"
+#include "str_utils.hpp"
 
 #define n255 255
 #define n511 511

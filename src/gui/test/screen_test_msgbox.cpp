@@ -1,12 +1,11 @@
-// screen_test_msgbox.c
+// screen_test_msgbox.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "screens.h"
 #include "../lang/i18n.h"
 
-typedef struct
-{
+struct screen_test_msgbox_data_t {
     window_frame_t frame;
     window_text_t tst;
     window_text_t back;
@@ -21,7 +20,7 @@ typedef struct
     window_text_t tst_ico_question;
     window_text_t tst_ico_warning;
     window_text_t tst_ico_info;
-} screen_test_msgbox_data_t;
+};
 
 #define pd ((screen_test_msgbox_data_t *)screen->pdata)
 
@@ -92,7 +91,7 @@ void screen_test_msgbox_init(screen_t *screen) {
 }
 
 void screen_test_msgbox_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_test_msgbox_draw(screen_t *screen) {

@@ -1,14 +1,13 @@
-// screen_test.c
+// screen_test.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
 #include "screens.h"
 
-typedef struct
-{
+struct screen_test_data_t {
     window_frame_t frame;
     window_text_t tst;
     window_text_t back;
@@ -22,7 +21,7 @@ typedef struct
     window_text_t tst_stack_overflow;
     int8_t id_tim;
     int8_t id_tim1;
-} screen_test_data_t;
+};
 
 #define pd ((screen_test_data_t *)screen->pdata)
 
@@ -107,7 +106,7 @@ void screen_test_init(screen_t *screen) {
 }
 
 void screen_test_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_test_draw(screen_t *screen) {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "window.h"
+#include "window.hpp"
 
 //window_t has pragma pack, have to use here too
 //interface for dialog

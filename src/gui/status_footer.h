@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "gui.h"
+#include "gui.hpp"
 
 #pragma pack(push, 1)
 //#pragma pack(1) makes enums 8 bit
@@ -21,8 +21,7 @@ typedef enum heat_state_e {
 
 #pragma pack(pop)
 
-typedef struct
-{
+struct status_footer_t {
     float nozzle;                /// current temperature of nozzle
     float nozzle_target;         /// target temperature of nozzle (not shown)
     float nozzle_target_display; /// target temperature of nozzle shown on display
@@ -49,8 +48,7 @@ typedef struct
     heat_state_t nozzle_state;
     heat_state_t heatbed_state;
     bool show_second_color;
-
-} status_footer_t;
+};
 
 #define REPAINT_Z_POS_PERIOD 256  /// time span between z position repaint [miliseconds]
 #define REPAINT_VALUE_PERIOD 1024 /// time span between value repaint [miliseconds]

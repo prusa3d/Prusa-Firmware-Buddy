@@ -1,7 +1,7 @@
 // screen_menu_service.c
 
 #include "config.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "stm32f4xx_hal.h"
 #include "sys.h"

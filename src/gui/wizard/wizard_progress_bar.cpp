@@ -22,7 +22,7 @@ int wiz_set_progressbar_range(window_progress_t *p_progress,
         p_progress->color_progress = COLOR_RED;
     else
         p_progress->color_progress = COLOR_LIME;
-    window_set_value(p_progress->win.id, percent);
+    window_set_value(p_progress->id, percent);
     return percent;
 }
 
@@ -33,7 +33,7 @@ int wiz_set_progressbar(window_progress_t *p_progress,
         p_progress->color_progress = COLOR_LIME;
     else
         p_progress->color_progress = COLOR_BLUE;
-    window_set_value(p_progress->win.id, percent);
+    window_set_value(p_progress->id, percent);
     return percent;
 }
 
@@ -72,5 +72,5 @@ void wiz_set_progressbar_dual_cl(window_progress_t *p_progress,
     }
 
     p_progress->color_progress = color;
-    window_set_value(p_progress->win.id, value);
+    window_set_value(p_progress->id, value);
 }

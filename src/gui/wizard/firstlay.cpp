@@ -384,14 +384,14 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         wizard_init_screen_firstlay(id_body, p_screen, p_data);
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "INITIALIZED\n");
-        window_invalidate(p_screen->term.win.id);
+        window_invalidate(p_screen->term.id);
 #endif
         _set_gcode_first_lines();
         p_screen->state = _FL_GCODE_HEAD;
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "HEAD\n");
-        window_invalidate(p_screen->term.win.id);
+        window_invalidate(p_screen->term.id);
 #endif
         break;
     case _FL_GCODE_HEAD:
@@ -420,11 +420,11 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             p_screen->state = _FL_GCODE_BODY;
 #if DEBUG_TERM == 1
             term_printf(&p_screen->terminal, "BODY\n");
-            window_invalidate(p_screen->term.win.id);
+            window_invalidate(p_screen->term.id);
 #endif
             p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
             p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-            window_invalidate(p_screen->spin_baby_step.win.id);
+            window_invalidate(p_screen->spin_baby_step.id);
         }
         break;
     case _FL_GCODE_BODY:
@@ -443,7 +443,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
     case _FL_GCODE_DONE:
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "PASSED\n");
-        window_invalidate(p_screen->term.win.id);
+        window_invalidate(p_screen->term.id);
 #endif
         p_data->state_print = _TEST_PASSED;
         p_screen->Z_offset_request = 0;
@@ -452,14 +452,14 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 
     int progress = _get_progress(); //max 99
 
-    window_set_value(p_screen->progress.win.id, (float)progress);
+    window_set_value(p_screen->progress.id, (float)progress);
     return progress;
 }
 
 void wizard_firstlay_event_dn(firstlay_screen_t *p_screen) {
 #if DEBUG_TERM == 1
     //todo term is bugged spinner can make it not showing
-    window_invalidate(p_screen->term.win.id);
+    window_invalidate(p_screen->term.id);
 #endif
     p_screen->Z_offset_request -= z_offset_step;
 }
@@ -467,14 +467,14 @@ void wizard_firstlay_event_dn(firstlay_screen_t *p_screen) {
 void wizard_firstlay_event_up(firstlay_screen_t *p_screen) {
 #if DEBUG_TERM == 1
     //todo term is bugged spinner can make it not showing
-    window_invalidate(p_screen->term.win.id);
+    window_invalidate(p_screen->term.id);
 #endif
     p_screen->Z_offset_request += z_offset_step;
 }
 
 void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
-    int16_t numb_id = p_screen->spin_baby_step.win.id;
-    int16_t arrow_id = p_screen->text_direction_arrow.win.id;
+    int16_t numb_id = p_screen->spin_baby_step.id;
+    int16_t arrow_id = p_screen->text_direction_arrow.id;
 
     //need last step to ensure correct behavior on limits
     float _step_last = p_screen->Z_offset;

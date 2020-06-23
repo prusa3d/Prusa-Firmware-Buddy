@@ -28,16 +28,17 @@ ctest .
 1. Create a corresponding directory for it.
     - For example, for a unit in `src/guiapi/src/gui_timer.c` create directory `tests/unit/guiapi/gui_timer`.
 2. Store your unittest cases within this directory together with their dependencies.
+    Don't use the same file name for testing file and source file. Use '.cpp' extension.
 3. Add a CMakeLists.txt with description on how to build your tests.
     - See other unit tests for examples.
     - Don't forget to register any directory you add using `add_subdirectory` in CMakeLists.txt in the same directory.
 
 # Tests in Windows
 
-1. Download & install MinGw and make sure .../MinGW/bin/ is in your path
-2. Download & install Python
-3. Download & install some bash (GIT bash could be already installed)
-4. Run bash and get to your repository directory (cd ...)
+1. Download & install MinGW and make sure .../MinGW/bin/ is in your path.
+2. Check if Python is installed.
+3. Download & install some bash (GIT bash could be already installed).
+4. Run bash and get to your repository directory (cd ...).
 5. Run these to prepare for test:
 
 ```bash
