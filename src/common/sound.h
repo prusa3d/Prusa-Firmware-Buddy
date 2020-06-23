@@ -1,6 +1,17 @@
 #include <stdint.h>
 #include "sound_enum.h"
 
+// Global variable inicialization flag for HAL tick in appmain.cpp.
+// HAL tick will start before eeprom is inicialized and Sound class is depending on that.
+// See - appmain.cpp -> app_tim14_tick
+uint8_t SOUND_INIT = 0;
+
+eSOUND_MODE Sound_GetMode();
+void Sound_SetMode(eSOUND_MODE eSMode);
+void Sound_Play(eSOUND_TYPE eSoundType);
+void Sound_Stop();
+void Sound_Update1ms();
+
 /*!
  * Simple Sound class
  * This class just play sound types/signals and read & store sound mode which user can choose from Settings.
@@ -62,3 +73,4 @@ private:
 
     eSOUND_MODE eSoundMode;
 };
+

@@ -11,7 +11,7 @@
 #include "config.h"
 #include "fatfs.h"
 #include "dbg.h"
-#include "sound_C_wrapper.h"
+#include "sound.h"
 #include "../lang/i18n.h"
 #include <algorithm>
 

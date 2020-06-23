@@ -10,8 +10,7 @@
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
-#include "sound_C_wrapper.h"
-//#include "sound.h"
+#include "sound.h"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"

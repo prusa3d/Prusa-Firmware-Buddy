@@ -2,7 +2,7 @@
 #include "DialogLoadUnload.h"
 #include "gui.hpp"    //resource_font
 #include "resource.h" //IDR_FNT_BIG
-#include "sound_C_wrapper.h"
+#include "sound.h"
 #include "../lang/i18n.h"
 
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;

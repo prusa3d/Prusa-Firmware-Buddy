@@ -21,8 +21,8 @@
 #include "screen_menu_fw_update.h"
 #include "screens.h"
 #include "screen_close_multiple.h"
-#include "sound_C_wrapper.h"
 #include "DialogHandler.hpp"
+#include "sound.h"
 #include "../lang/i18n.h"
 
 extern int HAL_IWDG_Reset;

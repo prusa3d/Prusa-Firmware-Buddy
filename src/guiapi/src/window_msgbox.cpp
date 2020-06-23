@@ -3,7 +3,7 @@
 #include "gui.hpp"
 #include "resource.h"
 #include "button_draw.h"
-#include "sound_C_wrapper.h"
+#include "sound.h"
 #include "../lang/i18n.h"
 #include <algorithm>
 

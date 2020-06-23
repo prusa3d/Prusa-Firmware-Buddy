@@ -1,4 +1,3 @@
-#include "sound_C_wrapper.h"
 #include "sound.h"
 #include "hwio.h"
 #include "eeprom.h"
@@ -16,6 +15,14 @@ const int Sound::onceRepeats[5] = { 1, 1, 1, -1, 1 };
 const int Sound::loudRepeats[6] = { 1, 1, -1, 3, -1, 1 };
 const int Sound::silentRepeats[3] = { 1, 1, -1 };
 const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
+
+eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
+void Sound_SetMode(eSOUND_MODE eSMode) { Sound::getInstance().setMode(eSMode); }
+void Sound_Play(eSOUND_TYPE eSoundType) { Sound::getInstance().play(eSoundType); }
+void Sound_Stop() { Sound::getInstance().stop(); }
+void Sound_Update1ms() {
+    if (SOUND_INIT) { Sound::getInstance().update1ms(); }
+}
 
 /*!
  * Sound signals implementation
