@@ -1,6 +1,5 @@
 // guitypes.h
-#ifndef _GUITYPES_H
-#define _GUITYPES_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -244,5 +243,3 @@ extern font_t *resource_font(uint16_t id);
 #define RESOURCE_ENTRY_NUL()  { 0, 0 },
 #define RESOURCE_ENTRY_PNG(v) { v, sizeof(v) },
 #define RESOURCE_ENTRY_FNT(v) { (uint8_t *)&v, sizeof(font_t) },
-
-#endif //_GUITYPES_H

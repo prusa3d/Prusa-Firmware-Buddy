@@ -19,8 +19,7 @@ void window_text_draw(window_text_t *window) {
             (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back,
             (window->win.flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text,
             window->padding,
-            window->alignment,
-            window->pml_data);
+            window->alignment);
         window->win.flg &= ~WINDOW_FLG_INVALID;
     }
 }

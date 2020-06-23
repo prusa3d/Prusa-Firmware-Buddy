@@ -44,10 +44,10 @@ void render_text_align_ml(rect_ui16_t rc, const char *text, const font_t *font, 
     } else {
         char *str_tmp = (char *)0x10000000; // ~ PNG-buffer (CCM RAM)
         strcpy(str_tmp, text);
-        if (pml_data->ml_mode == ML_MODE_EXT) {
-            set_instance(pml_data->pml_instance);
-            str2multiline(str_tmp, pml_data->line_width);
-        }
+        // if (pml_data->ml_mode == ML_MODE_EXT) {
+        //     set_instance(pml_data->pml_instance);
+        //     str2multiline(str_tmp, pml_data->line_width);
+        // }
         point_ui16_t wh_txt = font_meas_text(font, str_tmp);
         if (wh_txt.x && wh_txt.y) {
             rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), alignment & ALIGN_MASK);
