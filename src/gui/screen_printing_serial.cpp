@@ -145,6 +145,14 @@ void screen_printing_serial_done(screen_t *screen) {
 void screen_printing_serial_draw(screen_t *screen) {
 }
 
+static void disable_button(screen_t *screen, buttons_t b) {
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(b)];
+    if (!p_button->win.f_disabled) {
+        p_button->win.f_disabled = 1;
+        window_invalidate(p_button->win.id);
+    }
+}
+
 int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     window_header_events(&(pw->header));
 
@@ -179,6 +187,11 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
     case buttons_t::DISCONNECT:
         if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
             pw->disconnect_pressed = true;
+
+            disable_button(screen, buttons_t::TUNE);
+            disable_button(screen, buttons_t::PAUSE);
+            disable_button(screen, buttons_t::DISCONNECT);
+
             marlin_gcode("M118 A1 action:disconnect");
         }
         return 1;
