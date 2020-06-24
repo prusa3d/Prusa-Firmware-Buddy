@@ -100,9 +100,9 @@ public:
     void configure() {
         GPIO_InitTypeDef GPIO_InitStruct = { 0 };
         GPIO_InitStruct.Pin = PinBase::m_HalPin;
-        GPIO_InitStruct.Mode = m_iMode;
-        GPIO_InitStruct.Pull = m_pull;
         HAL_GPIO_Init(PinBase::m_HalPort, &GPIO_InitStruct);
+        GPIO_InitStruct.Mode = static_cast<uint32_t>(m_iMode);
+        GPIO_InitStruct.Pull = static_cast<uint32_t>(m_pull);
     }
 
 private:
