@@ -307,8 +307,13 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
     if (!gcode_file_exists(screen)) {
+        if (suppress_draw && window_popup_ptr) // msgbox "Filament not detected." is displayed
+        {
+            ((window_msgbox_t *)window_popup_ptr)->res = MSGBOX_RES_CLOSED; //set result
+            window_destroy(window_popup_ptr->id);                           //destroy messagebox window (loop inside messagebox will stop)
+        }
         screen_close();
-        return 0;
+        return 1;
     }
 
     if (!suppress_draw && fs_did_filament_runout()) {
@@ -320,6 +325,9 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
             MSGBOX_BTN_CUSTOM3,
             gui_defaults.scr_body_no_foot_sz,
             0, btns)) {
+        case MSGBOX_RES_CLOSED:
+            suppress_draw = false;
+            return 1;
         case MSGBOX_RES_CUSTOM0: //YES - load
             gui_dlg_load_forced();
             break;
