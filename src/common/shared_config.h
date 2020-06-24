@@ -11,8 +11,14 @@
 #define FW_UPDATE_ENABLE  0xAA
 #define FW_UPDATE_DISABLE 0x00
 
-// pin PA13 state
-#define APPENDIX_FLAG_MASK 0x01
+// appendix state
+typedef enum {
+    APNDX_EXISTS = 0, /**< Appendix not broken, signature authentication needed */
+    APNDX_BROKEN      /**< Appendix broken, no signature authentication needed */
+} BT_APNDX_STATUS;
+
+// model_specific_flags bit locations
+#define FLG_APPENDIX_STATUS_LOC 0b00000001
 
 #pragma pack(push)
 #pragma pack(1)
