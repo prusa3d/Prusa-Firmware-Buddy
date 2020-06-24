@@ -188,7 +188,9 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
         gui_loop();
     }
     window_popup_ptr = window_popup_tmp; // restore previous window_popup_ptr
-    window_invalidate(0);
+    window_t *pWin = window_ptr(0);
+    if (pWin != 0)
+        pWin->Invalidate();
     window_set_capture(id_capture);
     return msgbox.res;
 }

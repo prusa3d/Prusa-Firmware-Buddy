@@ -84,6 +84,8 @@ void gui_pop_up(void) {
 
     window_destroy(id);
     window_set_capture(id_capture);
-    window_invalidate(0);
+    window_t *pWin = window_ptr(0);
+    if (pWin != 0)
+        pWin->Invalidate();
     opened = 0;
 }

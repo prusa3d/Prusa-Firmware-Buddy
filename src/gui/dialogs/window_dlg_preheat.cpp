@@ -222,7 +222,9 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
 
     window_destroy(id);              //msgbox call this inside (destroys its own window)
     window_popup_ptr = tmp_window_1; //restore current window_popup_ptr
-    window_invalidate(0);
+    window_t *pWin = window_ptr(0);
+    if (pWin != 0)
+        pWin->Invalidate();
     window_set_capture(id_capture);
     return ret;
 }

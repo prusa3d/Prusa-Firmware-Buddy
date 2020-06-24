@@ -557,7 +557,7 @@ const char *wizard_get_caption(screen_t *screen) {
 
 void wizard_done_screen(screen_t *screen) {
     window_destroy_children(pd->frame_body.id);
-    window_invalidate(pd->frame_body.id);
+    pd->frame_body.Invalidate();
 }
 
 screen_t screen_wizard = {

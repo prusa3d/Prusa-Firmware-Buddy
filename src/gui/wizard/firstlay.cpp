@@ -274,7 +274,9 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     int16_t id;
     window_destroy_children(id_body);
     window_show(id_body);
-    window_invalidate(id_body);
+    window_t *pWin = window_ptr(id_body);
+    if (pWin != 0)
+        pWin->Invalidate();
 
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
@@ -384,14 +386,14 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         wizard_init_screen_firstlay(id_body, p_screen, p_data);
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "INITIALIZED\n");
-        window_invalidate(p_screen->term.id);
+        p_screen->term.id.Invalidate();
 #endif
         _set_gcode_first_lines();
         p_screen->state = _FL_GCODE_HEAD;
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "HEAD\n");
-        window_invalidate(p_screen->term.id);
+        p_screen->term.id.Invalidate();
 #endif
         break;
     case _FL_GCODE_HEAD:
@@ -420,11 +422,11 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             p_screen->state = _FL_GCODE_BODY;
 #if DEBUG_TERM == 1
             term_printf(&p_screen->terminal, "BODY\n");
-            window_invalidate(p_screen->term.id);
+            p_screen->term.Invalidate();
 #endif
             p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
             p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-            window_invalidate(p_screen->spin_baby_step.id);
+            p_screen->spin_baby_step.Invalidate();
         }
         break;
     case _FL_GCODE_BODY:
@@ -443,7 +445,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
     case _FL_GCODE_DONE:
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "PASSED\n");
-        window_invalidate(p_screen->term.id);
+        p_screen->term.Invalidate();
 #endif
         p_data->state_print = _TEST_PASSED;
         p_screen->Z_offset_request = 0;
@@ -459,7 +461,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 void wizard_firstlay_event_dn(firstlay_screen_t *p_screen) {
 #if DEBUG_TERM == 1
     //todo term is bugged spinner can make it not showing
-    window_invalidate(p_screen->term.id);
+    p_screen->term.Invalidate();
 #endif
     p_screen->Z_offset_request -= z_offset_step;
 }
@@ -467,7 +469,7 @@ void wizard_firstlay_event_dn(firstlay_screen_t *p_screen) {
 void wizard_firstlay_event_up(firstlay_screen_t *p_screen) {
 #if DEBUG_TERM == 1
     //todo term is bugged spinner can make it not showing
-    window_invalidate(p_screen->term.id);
+    p_screen->term.Invalidate();
 #endif
     p_screen->Z_offset_request += z_offset_step;
 }
@@ -525,7 +527,7 @@ int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count,
             marlin_gcode(gcodes[*p_line]);
 #if DEBUG_TERM == 1
             term_printf(term->term, "%s\n", gcodes[*p_line]);
-            window_invalidate(term->win.id);
+            term->win.Invalidate();
 #endif
             ++(*p_line);
         }

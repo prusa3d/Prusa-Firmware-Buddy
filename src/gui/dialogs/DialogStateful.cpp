@@ -48,7 +48,9 @@ bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*
 IDialogStateful::~IDialogStateful() {
     window_destroy(id);
     window_set_capture(id_capture);
-    window_invalidate(0);
+    window_t *pWin = window_ptr(0);
+    if (pWin != 0)
+        pWin->Invalidate();
 }
 
 void IDialogStateful::draw_frame() {

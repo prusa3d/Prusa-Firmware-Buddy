@@ -108,7 +108,12 @@ struct window_t {
 
     bool IsVisible() { return f_visible == 1; }
     bool IsEnabled() { return f_enabled == 1; }
-}; // (24 bytes total)
+    bool IsInvalid() { return f_invalid == 1; }
+    bool IsFocused() { return f_focused == 1; }
+    bool IsCapture() { return f_capture == 1; }
+    void Validate() { f_invalid = 0; }
+    void Invalidate();
+};
 
 extern window_t *window_popup_ptr; //current popup window
 
@@ -148,19 +153,9 @@ extern int window_child_count(int16_t id);
 
 extern int window_enabled_child_count(int16_t id);
 
-extern int window_is_invalid(int16_t id);
-
-extern int window_is_focused(int16_t id);
-
-extern int window_is_capture(int16_t id);
-
 extern void window_draw(int16_t id);
 
 extern void window_draw_children(int16_t id);
-
-extern void window_validate(int16_t id);
-
-extern void window_invalidate(int16_t id);
 
 extern void window_validate_children(int16_t id);
 

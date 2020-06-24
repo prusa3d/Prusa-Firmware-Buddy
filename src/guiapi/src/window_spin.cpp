@@ -34,7 +34,7 @@ void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_CAPT_0:
     case WINDOW_EVENT_CAPT_1:
-        window_invalidate(window->id);
+        window->Invalidate();
         break;
     }
 }

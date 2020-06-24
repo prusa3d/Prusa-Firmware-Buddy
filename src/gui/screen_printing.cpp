@@ -418,10 +418,10 @@ static void disable_tune_button(screen_t *screen) {
     p_button->f_enabled = 0; // can't be focused
 
     // move to reprint when tune is focused
-    if (window_is_focused(p_button->id)) {
+    if (p_button->IsFocused()) {
         window_set_focus(pw->w_buttons[static_cast<size_t>(Btn::Pause)].id);
     }
-    window_invalidate(p_button->id);
+    p_button->Invalidate();
 }
 
 static void enable_tune_button(screen_t *screen) {
@@ -429,7 +429,7 @@ static void enable_tune_button(screen_t *screen) {
 
     p_button->f_disabled = 0;
     p_button->f_enabled = 1; // can be focused
-    window_invalidate(p_button->id);
+    p_button->Invalidate();
 }
 
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed) {
@@ -554,14 +554,14 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
 static void enable_button(window_icon_t *p_button) {
     if (p_button->f_disabled) {
         p_button->f_disabled = 0;
-        window_invalidate(p_button->id);
+        p_button->Invalidate();
     }
 }
 
 static void disable_button(window_icon_t *p_button) {
     if (!p_button->f_disabled) {
         p_button->f_disabled = 1;
-        window_invalidate(p_button->id);
+        p_button->Invalidate();
     }
 }
 

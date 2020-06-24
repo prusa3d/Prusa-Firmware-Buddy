@@ -250,21 +250,6 @@ int window_enabled_child_count(int16_t id) {
     return count;
 }
 
-int window_is_invalid(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_invalid : 0;
-}
-
-int window_is_focused(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_focused : 0;
-}
-
-int window_is_capture(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_capture : 0;
-}
-
 void window_draw(int16_t id) {
     window_t *window;
     if ((window = window_ptr(id)) != 0)
@@ -286,18 +271,9 @@ void window_draw_children(int16_t id) {
         }
 }
 
-void window_validate(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        window->f_invalid = 0;
-}
-
-void window_invalidate(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        window->f_invalid = 1;
-        gui_invalidate();
-    }
+void window_t::Invalidate() {
+    f_invalid = 1;
+    gui_invalidate();
 }
 
 void window_validate_children(int16_t id) {
