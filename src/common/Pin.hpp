@@ -85,25 +85,19 @@ constexpr uint16_t IoPinToHal(IoPin ioPin) {
 static_assert(IoPinToHal(IoPin::p0) == 0x0001U, "IoPinToHal broken");
 static_assert(IoPinToHal(IoPin::p15) == 0x8000U, "IoPinToHal broken");
 
-template <IoPort ioPort, IoPin ioPin>
-class Pin : LinkedListItem {
-protected:
-    static constexpr IoPort m_port = ioPort;
-    static constexpr uint16_t m_HalPin = IoPinToHal(ioPin);
-};
-
 void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, IoPort ioPort);
 
 template <IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull>
-class InputPin : Pin<ioPort, ioPin> {
-    using PinBase = Pin<ioPort, ioPin>;
+class InputPin : LinkedListItem {
 
 public:
     void configure() {
-        InputPinGenericConfigure(PinBase::m_HalPin, m_iMode, m_pull, PinBase::m_port);
+        InputPinGenericConfigure(m_HalPin, m_iMode, m_pull, m_port);
     }
 
 private:
+    static constexpr IoPort m_port = ioPort;
+    static constexpr uint16_t m_HalPin = IoPinToHal(ioPin);
     static constexpr IMode m_iMode = iMode;
     static constexpr Pull m_pull = pull;
 };
