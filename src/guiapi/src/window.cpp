@@ -485,12 +485,6 @@ void window_t::SetCapture() {
     }
 }
 
-void window_disable(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        window->f_enabled = 0;
-}
-
 void window_show(int16_t id) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {

@@ -204,8 +204,6 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     gui_reset_jogwheel();
     gui_invalidate();
 
-    //window_disable(id);
-
     dlg.timer = HAL_GetTick();
 
     //ttl for ever (or very long time)

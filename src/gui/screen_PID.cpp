@@ -622,7 +622,7 @@ void _PID_set(_PID_t *ths, float Kp, float Ki, float Kd) {
 bool __autotune(screen_t *screen, autotune_state_t *a_tn_st) {
     if ((*a_tn_st) != AT_idle)
         return 0;
-    window_disable(pd->textExit.id);
+    pd->textExit.Disable();
     window_set_color_text(pd->textExit.id, AUTO_TN_ACTIVE_CL);
     return 1;
 }
@@ -663,7 +663,7 @@ void enable_digits_write_mode(int16_t *ids, size_t sz) {
 
 void disable_digits_write_mode(int16_t *ids, size_t sz) {
     for (size_t i = 0; i < sz; ++i)
-        window_disable(ids[i]);
+        window_ptr(ids[i])->Disable();
 }
 
 //i am not using size_t numOfDigits, size_t precision

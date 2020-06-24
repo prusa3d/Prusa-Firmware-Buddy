@@ -119,6 +119,7 @@ struct window_t {
     void SetFocus();
     void SetCapture();
     void Enable() { f_enabled = 1; }
+    void Disable() { f_enabled = 0; }
 };
 
 extern window_t *window_popup_ptr; //current popup window
@@ -186,8 +187,6 @@ extern color_t window_get_color_back(int16_t id);
 extern void window_set_color_text(int16_t id, color_t clr);
 
 extern color_t window_get_color_text(int16_t id);
-
-extern void window_disable(int16_t id);
 
 extern void window_show(int16_t id);
 

@@ -56,7 +56,7 @@ void screen_messages_init(screen_t *screen) {
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pmsg->root));
-    window_disable(root);
+    pmsg->root.Disable();
 
     id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
     // p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty

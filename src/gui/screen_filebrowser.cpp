@@ -50,19 +50,18 @@ static void screen_filebrowser_init(screen_t *screen) {
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
 
-    int16_t id;
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pd->root));
-    window_disable(root); // hack for do not change capture
+    pd->root.Disable(); // hack for do not change capture
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
+    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
     p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
     p_window_header_set_text(&(pd->header), "SELECT FILE");
 
     window_file_list_t *filelist = &(pd->w_filelist);
 
-    id = window_create_ptr(WINDOW_CLS_FILE_LIST, root,
+    window_create_ptr(WINDOW_CLS_FILE_LIST, root,
         rect_ui16(10, 32, 220, 278),
         filelist);
 

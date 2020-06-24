@@ -64,9 +64,9 @@ static void gui_state_mesh_off(screen_t *screen) {
 }
 
 static void gui_state_mesh_on(screen_t *screen) {
-    window_disable(pd->exit_bt_id);
+    pd->textExit.Disable();
     window_set_color_text(pd->exit_bt_id, MESH_ACTIVE_CL);
-    window_disable(pd->mesh_bt_id);
+    pd->text_mesh_state.Disable();
     window_set_text(pd->mesh_bt_id, btnMeshStrings[1]);
     window_set_color_text(pd->mesh_bt_id, MESH_ACTIVE_CL);
 }
