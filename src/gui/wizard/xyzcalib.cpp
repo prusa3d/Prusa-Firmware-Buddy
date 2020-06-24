@@ -13,10 +13,11 @@
 void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     int16_t id;
     window_destroy_children(id_body);
-    window_show(id_body);
     window_t *pWin = window_ptr(id_body);
-    if (pWin != 0)
+    if (pWin != 0) {
         pWin->Invalidate();
+        pWin->Show();
+    }
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
 

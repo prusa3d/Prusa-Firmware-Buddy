@@ -24,10 +24,10 @@ void wizard_init_screen_selftest_temp(int16_t id_body, selftest_temp_screen_t *p
     int16_t id;
     //	point_ui16_t pt,pt2;
     window_destroy_children(id_body);
-    window_show(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0)
-        pWin->Invalidate();
+        pWin->Show();
+    pWin->Invalidate();
 
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;

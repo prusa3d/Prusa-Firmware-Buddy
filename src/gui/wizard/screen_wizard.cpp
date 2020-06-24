@@ -100,7 +100,6 @@ void screen_wizard_draw(screen_t *screen) {
 int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     static int inside_handler = 0;
 
-    int16_t footer_id = pd->frame_footer.id;
     int16_t frame_id = pd->frame_body.id;
     selftest_fans_axis_screen_t *p_selftest_fans_axis_screen = &(pd->screen_variant.selftest_fans_axis_screen);
     selftest_cool_screen_t *p_selftest_cool_screen = &(pd->screen_variant.selftest_cool_screen);
@@ -151,7 +150,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                         MSGBOX_BTN_YESNO, IDR_PNG_icon_pepa)
                     == MSGBOX_RES_YES) {
                     pd->state = _STATE_INIT;
-                    window_show(footer_id);
+                    pd->frame_footer.Show();
                 } else
                     screen_close();
 #else
@@ -164,7 +163,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     break;
                 case MSGBOX_RES_CUSTOM1:
                     pd->state = _STATE_INIT;
-                    window_show(footer_id);
+                    pd->frame_footer.Show();
                     break;
                 case MSGBOX_RES_CUSTOM2:
                 default:
@@ -177,7 +176,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 //PID of nozzle does not work with low temperatures well
                 //have to preheat to lower temperature to avoid need of cooling
                 pd->state = _STATE_INFO;
-                window_show(footer_id);
+                pd->frame_footer.Show();
                 wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
                 if (fs_get_state() == FS_DISABLED) {
                     fs_enable();
@@ -214,7 +213,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 pd->state = _STATE_SELFTEST_FAN0;
                 //am i inicialized by screen before?
                 if (!is_state_in_wizard_mask(_STATE_INIT)) {
-                    window_show(footer_id);
+                    pd->frame_footer.Show();
                     wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
                 }
                 break;
@@ -245,7 +244,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
             case _STATE_SELFTEST_INIT_TEMP:
                 //must start marlin
                 pd->state = _STATE_SELFTEST_TEMP;
-                window_show(footer_id);
+                pd->frame_footer.Show();
                 wizard_init_disable_PID(_START_TEMP_NOZ, _START_TEMP_BED);
                 break;
             case _STATE_SELFTEST_TEMP:
@@ -286,7 +285,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 break;
             case _STATE_XYZCALIB_INIT:
                 pd->state = _STATE_XYZCALIB_HOME;
-                window_show(footer_id);
+                pd->frame_footer.Show();
                 wizard_init(0, 0);
                 break;
             case _STATE_XYZCALIB_HOME:
@@ -373,7 +372,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 break;
             case _STATE_FIRSTLAY_INIT: {
                 pd->state = _STATE_FIRSTLAY_LOAD;
-                window_show(footer_id);
+                pd->frame_footer.Show();
                 FILAMENT_t filament = get_filament();
                 if (filament == FILAMENT_NONE || fs_get_state() == FS_NO_FILAMENT)
                     filament = FILAMENT_PLA;

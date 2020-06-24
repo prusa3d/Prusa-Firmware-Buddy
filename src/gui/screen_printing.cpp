@@ -271,17 +271,17 @@ static void open_popup_message(screen_t *screen) {
 
     window_set_text(pw->w_message.id, msg_stack.msg_data[0]);
 
-    window_show(pw->w_message.id);
+    pw->w_message.Show();
     pw->message_timer = HAL_GetTick();
     pw->message_flag = true;
 }
 
 static void close_popup_message(screen_t *screen) {
-    window_show(pw->w_etime_label.id);
-    window_show(pw->w_etime_value.id);
-    window_show(pw->w_progress.id);
-    window_show(pw->w_time_label.id);
-    window_show(pw->w_time_value.id);
+    pw->w_etime_label.Show();
+    pw->w_etime_value.Show();
+    pw->w_progress.Show();
+    pw->w_time_label.Show();
+    pw->w_time_value.Show();
 
     window_set_text(pw->w_message.id, "");
 

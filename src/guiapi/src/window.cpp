@@ -485,13 +485,10 @@ void window_t::SetCapture() {
     }
 }
 
-void window_show(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        if ((window->f_visible) == 0) {
-            window->f_visible = 1;
-            _window_invalidate((window_t *)window);
-        }
+void window_t::Show() {
+    if ((f_visible) == 0) {
+        f_visible = 1;
+        _window_invalidate(this);
     }
 }
 
