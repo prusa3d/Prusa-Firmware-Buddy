@@ -11,6 +11,9 @@ struct window_spin_t : public window_numb_t {
     float step;
     int count;
     int index;
+
+protected:
+    virtual void setValue(float val) override;
 };
 
 struct window_class_spin_t {

@@ -20,6 +20,11 @@ struct window_numb_t : public window_t {
 
     void SetFormat(const char *frmt);
     const char *GetFormat() { return format; }
+    void SetValue(float val);
+    float GetValue() const { return value; }
+
+protected:
+    virtual void setValue(float val);
 };
 
 extern const window_class_numb_t window_class_numb;

@@ -286,46 +286,6 @@ void window_invalidate_children(int16_t id) {
     gui_invalidate();
 }
 
-void window_set_value(int16_t id, float value) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_NUMB:
-            ((window_numb_t *)window)->value = value;
-            break;
-        case WINDOW_CLS_SPIN:
-            if (value < ((window_spin_t *)window)->min)
-                value = ((window_spin_t *)window)->min;
-            if (value > ((window_spin_t *)window)->max)
-                value = ((window_spin_t *)window)->max;
-            ((window_spin_t *)window)->value = value;
-            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->value - ((window_spin_t *)window)->min) / ((window_spin_t *)window)->step);
-            break;
-        case WINDOW_CLS_PROGRESS:
-            if (value < ((window_progress_t *)window)->min)
-                value = ((window_progress_t *)window)->min;
-            if (value > ((window_progress_t *)window)->max)
-                value = ((window_progress_t *)window)->max;
-            ((window_progress_t *)window)->value = value;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-float window_get_value(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_NUMB:
-            return ((window_numb_t *)window)->value;
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->value;
-        }
-    }
-    return 0;
-}
-
 void window_t::SetFocus() {
     if (!f_visible || !f_enabled)
         return;

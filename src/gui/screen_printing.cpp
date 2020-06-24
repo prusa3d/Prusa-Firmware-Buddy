@@ -434,7 +434,7 @@ static void enable_tune_button(screen_t *screen) {
 
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed) {
     pw->w_progress.color_text = (percent <= 100) && (print_speed == 100) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
-    window_set_value(pw->w_progress.id, percent);
+    pw->w_progress.SetValue(percent);
 }
 
 static void update_remaining_time(screen_t *screen, time_t rawtime) {

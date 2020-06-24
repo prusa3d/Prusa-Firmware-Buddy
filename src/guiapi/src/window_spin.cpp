@@ -68,3 +68,12 @@ const window_class_spin_t window_class_spin = {
         },
     }
 };
+
+void window_spin_t::setValue(float val) {
+    if (val < min)
+        val = min;
+    if (val > max)
+        val = max;
+    value = value;
+    index = int((value - min) / step);
+}

@@ -121,7 +121,7 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
 
 void screen_splash_timer(screen_t *screen, uint32_t mseconds) {
     float percent = mseconds / 3000.0 * 100;
-    window_set_value(_psd->progress.id, (percent < 95) ? percent : 95);
+    _psd->progress.SetValue((percent < 95) ? percent : 95);
 }
 
 screen_t screen_splash = {

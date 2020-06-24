@@ -175,7 +175,7 @@ static void hexSpinInit(int16_t id0, rect_ui16_t rect, window_spin_t *pSpin) {
     pSpin->flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     pSpin->SetFormat("%X");
     window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    pSpin->SetValue(0.0F);
 }
 
 void screen_test_disp_mem_init(screen_t *screen) {
@@ -223,7 +223,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
     pd->spinGamma.SetFormat("%1.0f");
     window_set_min_max_step(id, 0.0F, 3.0F, 1.0F);
-    window_set_value(id, (float)st7789v_gamma_get());
+    pd->spinGamma.SetValue((float)st7789v_gamma_get());
 
     //INVERSION
     id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
@@ -240,7 +240,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
     pd->spinBrightness.SetFormat("%1.0f");
     window_set_min_max_step(id, 0.0F, 255.0F, 5.0F);
-    window_set_value(id, (float)st7789v_brightness_get());
+    pd->spinBrightness.SetValue((float)st7789v_brightness_get());
     pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
 
     //Brightness enabled
@@ -522,7 +522,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
     if (event == WINDOW_EVENT_LOOP) {
 
         isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.id);
-        brightness_actual = window_get_value(pd->spinBrightness.id);
+        brightness_actual = pd->spinBrightness.GetValue();
 
         if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
             st7789v_brightness_set(brightness_actual);

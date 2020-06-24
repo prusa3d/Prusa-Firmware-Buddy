@@ -48,29 +48,28 @@ enum {
 
 void screen_sysinfo_init(screen_t *screen) {
     int16_t row2draw = 0;
-    int16_t id;
     int16_t row_h = 20;
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     pd->textMenuName.SetText((const char *)"Disp. TEST rd mem.");
 
     row2draw += 25;
 
     //write pattern
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_load));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_load));
     pd->textCPU_load.font = resource_font(IDR_FNT_NORMAL);
     pd->textCPU_load.SetText((const char *)"CPU load");
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
+    window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
     pd->textCPU_load_val.SetFormat((const char *)"%.0f");
-    window_set_value(id, osGetCPUUsage());
+    pd->textCPU_load_val.SetValue(osGetCPUUsage());
 
     row2draw += 25;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     pd->textExit.SetText((const char *)"EXIT");
     pd->textExit.Enable();
@@ -95,7 +94,7 @@ int screen_sysinfo_event(screen_t *screen, window_t *window, uint8_t event, void
     if (event == WINDOW_EVENT_LOOP) {
         actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {
-            window_set_value(pd->textCPU_load_val.id, actual_CPU_load);
+            pd->textCPU_load_val.SetValue(actual_CPU_load);
             last_CPU_load = actual_CPU_load;
         }
     }

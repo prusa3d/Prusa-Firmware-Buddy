@@ -68,3 +68,11 @@ const window_class_progress_t window_class_progress = {
         0,
     },
 };
+
+void window_progress_t::setValue(float val) {
+    if (val < min)
+        val = min;
+    if (val > max)
+        val = max;
+    value = value;
+}

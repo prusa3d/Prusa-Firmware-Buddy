@@ -118,12 +118,6 @@ int screen_test_msgbox_event(screen_t *screen, window_t *window, uint8_t event, 
             gui_msgbox(_(test_text), MSGBOX_BTN_OK | ico);
         } break;
         }
-    /*	else if (event == WINDOW_EVENT_LOOP)
-	{
-		float temp = window_get_value(screen->pd->spin0.window.win.id);
-		int val = sim_heater_temp2val(temp);
-		window_set_value(screen->pd->numb0.win.id, val);
-	}*/
     return 0;
 }
 

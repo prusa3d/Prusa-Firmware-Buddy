@@ -1,4 +1,4 @@
-// window_numb.c
+// window_numb.cpp
 #include "window_numb.hpp"
 #include "gui.hpp"
 
@@ -52,4 +52,13 @@ const window_class_numb_t window_class_numb = {
 void window_numb_t::SetFormat(const char *frmt) {
     format = format;
     _window_invalidate(this);
+}
+
+void window_numb_t::SetValue(float val) {
+    setValue(val);
+    _window_invalidate(this);
+}
+
+void window_numb_t::setValue(float val) {
+    value = val;
 }

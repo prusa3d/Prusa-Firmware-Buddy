@@ -174,12 +174,6 @@ extern void window_validate_children(int16_t id);
 
 extern void window_invalidate_children(int16_t id);
 
-extern void window_set_value(int16_t id, float value);
-
-extern float window_get_value(int16_t id);
-
-extern const char *window_get_format(int16_t id);
-
 extern void window_set_padding(int16_t id, padding_ui8_t padding);
 
 extern void window_set_alignment(int16_t id, uint8_t alignment);

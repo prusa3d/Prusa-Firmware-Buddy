@@ -46,19 +46,19 @@ void screen_test_gui_init(screen_t *screen) {
     pd->text2.font = resource_font(IDR_FNT_SMALL);
     pd->text2.SetText((const char *)"Small");
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id0, rect_ui16(10, 100, 60, 22), &(pd->numb0));
+    window_create_ptr(WINDOW_CLS_NUMB, id0, rect_ui16(10, 100, 60, 22), &(pd->numb0));
     pd->numb0.SetFormat((const char *)"%.0f");
-    window_set_value(id, 100.0F);
+    pd->numb0.SetValue(100.0F);
 
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(80, 100, 60, 22), &(pd->spin0));
     pd->spin0.SetFormat("%1.0f");
     window_set_min_max_step(id, 0.0F, 270.0F, 1.0F);
-    window_set_value(id, 100.0F);
+    pd->spin0.SetValue(100.0F);
 
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(150, 100, 60, 22), &(pd->spin1));
     pd->spin1.SetFormat("%.3f");
     window_set_min_max_step(id, 0.0F, 1.0F, 0.001F);
-    window_set_value(id, 1.000F);
+    pd->spin1.SetValue(1.000F);
 
     id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(10, 130, 220, 66), &(pd->list));
     window_set_item_index(id, 2);
@@ -99,12 +99,6 @@ int screen_test_gui_event(screen_t *screen, window_t *window, uint8_t event, voi
             screen_close();
             return 1;
         }
-    /*	if (event == WINDOW_EVENT_LOOP)
-	{
-		float temp = window_get_value(screen->pd->spin0.win.id);
-		int val = sim_heater_temp2val(temp);
-		window_set_value(screen->pd->numb0.win.id, val);
-	}*/
     return 0;
 }
 

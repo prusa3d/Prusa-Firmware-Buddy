@@ -264,7 +264,7 @@ void screen_PID_init(screen_t *screen) {
         &(pd->spinAutoTn_E));
     pd->spinAutoTn_E.SetFormat("%f");
     window_set_min_max_step(id, 100.0F, 250.0F, 5.0F);
-    window_set_value(id, pd->autotune_temp_E);
+    pd->spinAutoTn_E.SetValue(pd->autotune_temp_E);
     row2draw += row_h;
 
     //BED
@@ -313,7 +313,7 @@ void screen_PID_init(screen_t *screen) {
         &(pd->spinAutoTn_B));
     pd->spinAutoTn_B.SetFormat("%.0f");
     window_set_min_max_step(id, 50.0F, 110.0F, 5.0F);
-    window_set_value(id, pd->autotune_temp_B);
+    pd->spinAutoTn_B.SetValue(pd->autotune_temp_B);
     row2draw += row_h;
 
     //exit and footer
@@ -417,8 +417,8 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             }
         }
 
-        pd->autotune_temp_E = window_get_value(pd->spinAutoTn_E.id);
-        pd->autotune_temp_B = window_get_value(pd->spinAutoTn_B.id);
+        pd->autotune_temp_E = pd->spinAutoTn_E.GetValue();
+        pd->autotune_temp_B = pd->spinAutoTn_B.GetValue();
 
         pd->list_RW_E_index_actual = window_get_item_index(pd->list_RW_E.id);
         if (pd->list_RW_E_index_actual != pd->list_RW_E_index_last) {
@@ -652,7 +652,7 @@ void generate_spin_single_digit(int16_t &id0, int16_t &id, window_spin_t &spin,
     spin.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     spin.SetFormat("%d");
     window_set_min_max_step(id, 0.0F, 9.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    spin.SetValue(0.0F);
     col += offset;
 };
 
@@ -693,7 +693,6 @@ void generate_spin_digits(screen_t *screen, int numOfDigits, int precision,
 void disp_single_PID_digit(uint8_t singlePIDdigit, int16_t id) {
     if (window_get_item_index(id) != singlePIDdigit) {
         window_set_item_index(id, singlePIDdigit);
-        //window_set_value(id,singlePIDdigit);
     }
 }
 
