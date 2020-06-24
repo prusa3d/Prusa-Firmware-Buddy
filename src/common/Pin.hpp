@@ -12,7 +12,6 @@ class LinkedListItem {
 public:
     LinkedListItem()
         : m_previous(s_last) { s_last = this; }
-    virtual ~LinkedListItem() = default;
     virtual void configure() = 0;
     static void configure_all();
 
