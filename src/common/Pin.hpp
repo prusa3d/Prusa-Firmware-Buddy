@@ -94,13 +94,15 @@ protected:
 
 template <IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull>
 class InputPin : Pin<ioPort, ioPin> {
+    using PinBase = Pin<ioPort, ioPin>;
+
 public:
     void configure() {
         GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-        GPIO_InitStruct.Pin = Pin<ioPort, ioPin>::m_HalPin;
+        GPIO_InitStruct.Pin = PinBase::m_HalPin;
         GPIO_InitStruct.Mode = m_iMode;
         GPIO_InitStruct.Pull = m_pull;
-        HAL_GPIO_Init(Pin<ioPort, ioPin>::m_HalPort, GPIO_InitStruct);
+        HAL_GPIO_Init(PinBase::m_HalPort, GPIO_InitStruct);
     }
 
 private:
