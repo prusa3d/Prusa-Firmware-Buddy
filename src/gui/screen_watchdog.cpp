@@ -34,7 +34,7 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
         pd->text1.font = resource_font(IDR_FNT_NORMAL);
         window_set_text(id, "press to continue...");
         window_set_alignment(id, ALIGN_CENTER);
-        window_enable(id);
+        pd->text1.Enable();
         pd->text1.SetTag(1);
     }
 }

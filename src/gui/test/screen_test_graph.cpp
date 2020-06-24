@@ -48,7 +48,7 @@ void screen_test_graph_init(screen_test_term_t *screen) {
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 220, 100, 22), &(pd->button));
         pd->id_button = id;
         window_set_text(id, (const char *)"Return");
-        window_enable(id);
+        pd->button.Enable();
         pd->button.SetTag(1);
     }
 }

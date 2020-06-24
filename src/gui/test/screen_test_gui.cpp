@@ -31,7 +31,7 @@ void screen_test_gui_init(screen_t *screen) {
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 0, 0, 0), &(pd->logo_prusa_mini));
-    window_enable(id);
+    pd->logo_prusa_mini.Enable();
     pd->logo_prusa_mini.SetTag(10);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 60, 22), &(pd->text0));
@@ -65,17 +65,17 @@ void screen_test_gui_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 234, 64, 64), &(pd->icon0));
     window_set_icon_id(id, IDR_PNG_menu_icon_print);
-    window_enable(id);
+    pd->icon0.Enable();
     pd->icon0.SetTag(1);
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(80, 234, 64, 64), &(pd->icon1));
     window_set_icon_id(id, IDR_PNG_menu_icon_preheat);
-    window_enable(id);
+    pd->icon1.Enable();
     pd->icon1.SetTag(2);
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(150, 234, 64, 64), &(pd->icon2));
     window_set_icon_id(id, IDR_PNG_menu_icon_spool);
-    window_enable(id);
+    pd->icon2.Enable();
     pd->icon2.SetTag(3);
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(0, 200, 240, 30), &(pd->progress));

@@ -348,7 +348,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"EXIT");
-    window_enable(id);
+    pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
 }
 

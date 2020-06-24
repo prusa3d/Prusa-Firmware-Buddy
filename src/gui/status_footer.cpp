@@ -57,7 +57,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wi_nozzle));
     window_set_icon_id(id, IDR_PNG_status_icon_nozzle);
     footer->wi_nozzle.SetTag(uint8_t(ButtonStatus::Nozzle));
-    // window_enable(id);
 
     id = window_create_ptr(
         WINDOW_CLS_TEXT, parent,
@@ -73,7 +72,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wi_heatbed));
     window_set_icon_id(id, IDR_PNG_status_icon_heatbed);
     footer->wi_heatbed.SetTag(uint8_t(ButtonStatus::Heatbed));
-    //window_enable(id);
 
     id = window_create_ptr(
         WINDOW_CLS_TEXT, parent,
@@ -89,7 +87,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wi_prnspeed));
     window_set_icon_id(id, IDR_PNG_status_icon_prnspeed);
     footer->wi_prnspeed.SetTag(uint8_t(ButtonStatus::PrnSpeed));
-    //window_enable(id);
 
     id = window_create_ptr(
         WINDOW_CLS_TEXT, parent,
@@ -105,7 +102,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wi_z_axis));
     window_set_icon_id(id, IDR_PNG_status_icon_z_axis);
     footer->wi_z_axis.SetTag(uint8_t(ButtonStatus::Z_axis));
-    //window_enable(id);
 
     id = window_create_ptr(
         WINDOW_CLS_TEXT, parent,
@@ -121,7 +117,6 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wi_filament));
     window_set_icon_id(id, IDR_PNG_status_icon_filament);
     footer->wi_filament.SetTag(uint8_t(ButtonStatus::Filament));
-    //window_enable(id);
 
     id = window_create_ptr(
         WINDOW_CLS_TEXT, parent,

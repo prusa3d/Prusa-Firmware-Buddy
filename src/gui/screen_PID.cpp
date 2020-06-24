@@ -256,7 +256,7 @@ void screen_PID_init(screen_t *screen) {
         id0, rect_ui16(col, row2draw, 68, row_h),
         &(pd->btAutoTuneApply_E));
     window_set_text(id, _(btnAutoTuneOrApplystrings[0]));
-    window_enable(id);
+    pd->btAutoTuneApply_E.Enable();
     pd->btAutoTuneApply_E.SetTag(TAG_AUTOTUNE_APPLY_E);
 
     id = window_create_ptr(WINDOW_CLS_SPIN,
@@ -305,7 +305,7 @@ void screen_PID_init(screen_t *screen) {
         id0, rect_ui16(col, row2draw, 68, row_h),
         &(pd->btAutoTuneApply_B));
     window_set_text(id, _(btnAutoTuneOrApplystrings[0]));
-    window_enable(id);
+    pd->btAutoTuneApply_B.Enable();
     pd->btAutoTuneApply_B.SetTag(TAG_AUTOTUNE_APPLY_B);
 
     id = window_create_ptr(WINDOW_CLS_SPIN,
@@ -322,7 +322,7 @@ void screen_PID_init(screen_t *screen) {
         id0, rect_ui16(2, 245, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"EXIT");
-    window_enable(id);
+    pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
 
     status_footer_init(&(pd->footer), id0);
@@ -412,7 +412,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                 window_set_color_text(pd->btAutoTuneApply_B.id, AUTO_TN_DEFAULT_CL);
                 window_set_color_text(pd->btAutoTuneApply_E.id, AUTO_TN_DEFAULT_CL);
                 window_set_color_text(pd->textExit.id, AUTO_TN_DEFAULT_CL);
-                window_enable(pd->textExit.id);
+                pd->textExit.Enable();
                 pd->autotune_state = AT_idle;
             }
         }
@@ -658,7 +658,7 @@ void generate_spin_single_digit(int16_t &id0, int16_t &id, window_spin_t &spin,
 
 void enable_digits_write_mode(int16_t *ids, size_t sz) {
     for (size_t i = 0; i < sz; ++i)
-        window_enable(ids[i]);
+        window_ptr(ids[i])->Enable();
 }
 
 void disable_digits_write_mode(int16_t *ids, size_t sz) {

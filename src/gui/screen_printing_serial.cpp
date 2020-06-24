@@ -92,7 +92,7 @@ void screen_printing_serial_init(screen_t *screen) {
         WINDOW_CLS_ICON, root,
         rect_ui16((240 - pt_ico.x) / 2, gui_defaults.scr_body_sz.y, pt_ico.x, pt_ico.y),
         &(pw->octo_icon));
-    window_enable(id);
+    pw->octo_icon.Enable();
     window_set_icon_id(id, IDR_PNG_serial_printing);
     pw->octo_icon.f_enabled = 0;
     pw->octo_icon.f_disabled = 0;
@@ -104,7 +104,7 @@ void screen_printing_serial_init(screen_t *screen) {
             &(pw->w_buttons[col]));
         window_set_color_back(id, COLOR_GRAY);
         pw->w_buttons[col].SetTag(col + 1);
-        window_enable(id);
+        pw->w_buttons[col].Enable();
 
         id = window_create_ptr(
             WINDOW_CLS_TEXT, root,

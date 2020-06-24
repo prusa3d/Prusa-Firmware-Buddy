@@ -235,7 +235,7 @@ void screen_printing_init(screen_t *screen) {
             &(pw->w_buttons[col]));
         window_set_color_back(id, COLOR_GRAY);
         pw->w_buttons[col].SetTag(col + 1);
-        window_enable(id);
+        pw->w_buttons[col].Enable();
 
         id = window_create_ptr(
             WINDOW_CLS_TEXT, root,

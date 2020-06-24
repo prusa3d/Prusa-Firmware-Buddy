@@ -94,15 +94,8 @@ void screen_home_init(screen_t *screen) {
             window_set_color_back(id, COLOR_GRAY);
             window_set_icon_id(id, icons[row * 3 + col]);
             pw->w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
-            window_enable(id);
+            pw->w_buttons[row * 3 + col].Enable();
 
-            /*
-				w_buttons[row*3+col] = window_icon_create(
-						win,
-						rect_ui16(8+(16+64)*col, 98+(14+64)*row, 64, 64),
-						IDR_PNG_menu_icon_square,
-						COLOR_BLACK);
-			 */
             id = window_create_ptr(
                 WINDOW_CLS_TEXT, root,
                 rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14),

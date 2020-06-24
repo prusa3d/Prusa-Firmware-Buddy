@@ -56,14 +56,11 @@ const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed state"
 
 //mesh callbacks
 static void gui_state_mesh_off(screen_t *screen) {
-    //if (pd->mesh_bt_id == -1)return;
-    //if (pd->exit_bt_id == -1)return;
     window_set_color_text(pd->mesh_bt_id, MESH_DEFAULT_CL);
     window_set_text(pd->mesh_bt_id, btnMeshStrings[0]);
     window_set_color_text(pd->exit_bt_id, MESH_DEFAULT_CL);
-    window_enable(pd->exit_bt_id);
-    window_enable(pd->mesh_bt_id);
-    //pd->mesh_state = mesh_state_t::idle;
+    pd->textExit.Enable();
+    pd->text_mesh_state.Enable();
 }
 
 static void gui_state_mesh_on(screen_t *screen) {
@@ -99,7 +96,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 50, 200, row_h), &(pd->btMesh));
     window_set_text(id, btnMeshStrings[0]);
-    window_enable(id);
+    pd->btMesh.Enable();
     pd->btMesh.SetTag(TAG_MESH);
 
     id = window_create_ptr(WINDOW_CLS_TEXT,
@@ -118,7 +115,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
         id0, rect_ui16(2, 245, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"EXIT");
-    window_enable(id);
+    pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
     pd->exit_bt_id = id;
 
