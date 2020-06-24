@@ -19,7 +19,7 @@
 #include "stm32f4xx_hal.h"
 #include "limits.h"
 
-static const float heating_difference = 2.0F;
+static const float heating_difference = 2.5F;
 
 enum class ButtonStatus {
     Nozzle = 0xf0,
