@@ -260,7 +260,7 @@ void screen_home_disable_print_button(screen_t *screen, int disable) {
 
     // move to preheat when Print is focused
     if (pw->w_buttons[0].IsFocused() && disable) {
-        window_set_focus(pw->w_buttons[1].id);
+        pw->w_buttons[1].SetFocus();
     }
 }
 

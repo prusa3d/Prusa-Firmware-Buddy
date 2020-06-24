@@ -41,7 +41,9 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
             id = window_prev_enabled(id);
         }
         if (id >= 0) {
-            window_set_focus(id);
+            window_t *pWin = window_ptr(id);
+            if (pWin)
+                pWin->SetFocus();
         } else {
             // End indicator of the frames list ->
             Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -54,7 +56,9 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
             id = window_next_enabled(id);
         }
         if (id >= 0) {
-            window_set_focus(id);
+            window_t *pWin = window_ptr(id);
+            if (pWin)
+                pWin->SetFocus();
         } else {
             // Start indicator of the frames list <-
             Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -67,7 +71,9 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
             id = window_first_child(0);
             if (!(window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0))
                 id = window_next_enabled(id);
-            window_set_focus(id);
+            window_t *pWin = window_ptr(id);
+            if (pWin)
+                pWin->SetFocus();
         }
         break;
     }

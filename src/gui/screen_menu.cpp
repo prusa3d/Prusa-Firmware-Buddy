@@ -38,7 +38,7 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines,
     flg |= WINDOW_FLG_ENABLED | (FOOTER == EFooter::On ? HasFooter_FLAG : 0) | (helper_lines > 0 ? HasHeaderEvents_FLAG : 0);
 
     window_set_capture(id); // set capture to list
-    window_set_focus(id);
+    SetFocus();
 
     if (helper_lines > 0) {
         id = window_create_ptr(WINDOW_CLS_TEXT, root_id,

@@ -106,15 +106,17 @@ struct window_t {
 
     virtual ~window_t() {}
 
-    bool IsVisible() { return f_visible == 1; }
-    bool IsEnabled() { return f_enabled == 1; }
-    bool IsInvalid() { return f_invalid == 1; }
-    bool IsFocused() { return f_focused == 1; }
-    bool IsCapture() { return f_capture == 1; }
+    bool IsVisible() const { return f_visible == 1; }
+    bool IsEnabled() const { return f_enabled == 1; }
+    bool IsInvalid() const { return f_invalid == 1; }
+    bool IsFocused() const { return f_focused == 1; }
+    bool IsCapture() const { return f_capture == 1; }
     void Validate() { f_invalid = 0; }
     void Invalidate();
     void SetTag(uint8_t tag) { f_tag = tag; };
-    uint8_t GetTag() { return f_tag; }
+    uint8_t GetTag() const { return f_tag; }
+
+    void SetFocus();
 };
 
 extern window_t *window_popup_ptr; //current popup window
@@ -182,8 +184,6 @@ extern color_t window_get_color_back(int16_t id);
 extern void window_set_color_text(int16_t id, color_t clr);
 
 extern color_t window_get_color_text(int16_t id);
-
-extern void window_set_focus(int16_t id);
 
 extern void window_set_capture(int16_t id);
 

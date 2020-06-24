@@ -452,11 +452,8 @@ color_t window_get_color_text(int16_t id) {
     return COLOR_BLACK;
 }
 
-void window_set_focus(int16_t id) {
-    window_t *window = window_ptr(id);
-    if (window == 0)
-        return;
-    if (!window->f_visible || !window->f_enabled)
+void window_t::SetFocus() {
+    if (!f_visible || !f_enabled)
         return;
 
     if (window_focused_ptr) {
@@ -465,11 +462,11 @@ void window_set_focus(int16_t id) {
         if (window_focused_ptr->event)
             window_focused_ptr->event(window_focused_ptr, WINDOW_EVENT_FOCUS0, 0);
     }
-    window_focused_ptr = window;
-    window->f_focused = 1;
-    window->f_invalid = 1;
-    if (window->event)
-        window->event(window, WINDOW_EVENT_FOCUS1, 0);
+    window_focused_ptr = this;
+    f_focused = 1;
+    f_invalid = 1;
+    if (event)
+        event(this, WINDOW_EVENT_FOCUS1, 0);
     gui_invalidate();
 }
 

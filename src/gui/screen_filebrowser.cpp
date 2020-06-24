@@ -79,7 +79,7 @@ static void screen_filebrowser_init(screen_t *screen) {
     window_file_list_load(filelist, screen_filebrowser_sort, c + 1, firstVisibleSFN);
     // window_file_set_item_index(filelist, 1); // this is automagically done in the window file list
     window_set_capture(id); // hack for do not change capture
-    window_set_focus(id);   // hack for do not change capture
+    filelist->SetFocus();   // hack for do not change capture
 }
 
 static void screen_filebrowser_done(_screen_t *screen) {
