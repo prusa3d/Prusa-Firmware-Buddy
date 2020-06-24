@@ -21,7 +21,7 @@ private:
     static LinkedListItem *s_last;
 };
 
-enum class IoPort {
+enum class IoPort : uint8_t {
     A = 0,
     B,
     C,
@@ -31,7 +31,7 @@ enum class IoPort {
     G,
 };
 
-enum class IoPin {
+enum class IoPin : uint8_t {
     p0 = 0,
     p1,
     p2,
@@ -56,7 +56,7 @@ enum class IMode {
     IT_faling = GPIO_MODE_IT_FALLING,
 };
 
-enum class Pull {
+enum class Pull : uint8_t {
     none = GPIO_NOPULL,
     up = GPIO_PULLUP,
     down = GPIO_PULLDOWN,
@@ -67,7 +67,7 @@ enum class Pull {
  *
  * see chapter 8.4.3 in RM0090 Reference Manual
  */
-enum class OSpeed {
+enum class OSpeed : uint8_t {
     low = GPIO_SPEED_FREQ_LOW,
     medium = GPIO_SPEED_FREQ_MEDIUM,
     high = GPIO_SPEED_FREQ_HIGH,
@@ -92,17 +92,15 @@ protected:
     static constexpr uint16_t m_HalPin = IoPinToHal(ioPin);
 };
 
+void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, IoPort ioPort);
+
 template <IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull>
 class InputPin : Pin<ioPort, ioPin> {
     using PinBase = Pin<ioPort, ioPin>;
 
 public:
     void configure() {
-        GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-        GPIO_InitStruct.Pin = PinBase::m_HalPin;
-        GPIO_InitStruct.Mode = static_cast<uint32_t>(m_iMode);
-        GPIO_InitStruct.Pull = static_cast<uint32_t>(m_pull);
-        HAL_GPIO_Init(IoPortToHal(PinBase::m_port), &GPIO_InitStruct);
+        InputPinGenericConfigure(PinBase::m_HalPin, m_iMode, m_pull, PinBase::m_port);
     }
 
 private:

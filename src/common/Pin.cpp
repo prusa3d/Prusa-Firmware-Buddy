@@ -14,3 +14,11 @@ void LinkedListItem::configure_all() {
         linkedListItem->configure();
     }
 }
+
+void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, IoPort ioPort) {
+    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitStruct.Pin = ioPin;
+    GPIO_InitStruct.Mode = static_cast<uint32_t>(iMode);
+    GPIO_InitStruct.Pull = static_cast<uint32_t>(pull);
+    HAL_GPIO_Init(IoPortToHal(ioPort), &GPIO_InitStruct);
+}
