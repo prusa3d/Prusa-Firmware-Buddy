@@ -78,7 +78,8 @@ void screen_open(int16_t screen_id) {
         if (screen_0->data_size)
             screen_0->pdata = gui_malloc(screen_0->data_size);
         screen_0->init(screen_0);
-        window_set_capture(0);
+        if (window_ptr(0))
+            window_ptr(0)->SetCapture();
     }
 }
 
@@ -96,7 +97,8 @@ void screen_close(void) {
         if (screen_0->data_size)
             screen_0->pdata = gui_malloc(screen_0->data_size);
         screen_0->init(screen_0);
-        window_set_capture(0);
+        if (window_ptr(0))
+            window_ptr(0)->SetCapture();
     }
 }
 

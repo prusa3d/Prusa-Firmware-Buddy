@@ -25,7 +25,7 @@ IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     window_popup_ptr = this;
     gui_reset_jogwheel();
     gui_invalidate();
-    window_set_capture(id);
+    SetCapture();
 }
 
 bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
@@ -47,7 +47,8 @@ bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*
 
 IDialogStateful::~IDialogStateful() {
     window_destroy(id);
-    window_set_capture(id_capture);
+    if (window_ptr(id_capture))
+        window_ptr(id_capture)->SetCapture();
     window_t *pWin = window_ptr(0);
     if (pWin != 0)
         pWin->Invalidate();

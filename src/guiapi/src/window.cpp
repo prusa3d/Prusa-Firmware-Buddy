@@ -470,20 +470,18 @@ void window_t::SetFocus() {
     gui_invalidate();
 }
 
-void window_set_capture(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        if (window->f_visible && window->f_enabled && window->event) {
-            if (window_capture_ptr) {
-                window_capture_ptr->f_capture = 0;
-                if (window_capture_ptr->event)
-                    window_capture_ptr->event(window_capture_ptr, WINDOW_EVENT_CAPT_0, 0);
-            }
-            window_capture_ptr = window;
-            window->f_capture = 1;
-            window->event(window, WINDOW_EVENT_CAPT_1, 0);
-            gui_invalidate();
+void window_t::SetCapture() {
+
+    if (f_visible && f_enabled && event) {
+        if (window_capture_ptr) {
+            window_capture_ptr->f_capture = 0;
+            if (window_capture_ptr->event)
+                window_capture_ptr->event(window_capture_ptr, WINDOW_EVENT_CAPT_0, 0);
         }
+        window_capture_ptr = this;
+        f_capture = 1;
+        event(this, WINDOW_EVENT_CAPT_1, 0);
+        gui_invalidate();
     }
 }
 

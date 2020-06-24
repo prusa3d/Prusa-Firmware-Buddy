@@ -32,7 +32,8 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_BTN_DN:
         if (window_focused_ptr && window_focused_ptr->f_tag)
             screen_dispatch_event(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
-        window_set_capture(window_focused());
+        if (window_ptr(window_focused()))
+            window_ptr(window_focused())->SetCapture();
         break;
     case WINDOW_EVENT_ENC_DN:
         dif = (int)param;

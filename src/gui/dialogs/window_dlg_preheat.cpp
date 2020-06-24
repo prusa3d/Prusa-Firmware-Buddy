@@ -199,7 +199,7 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     window_t *tmp_window_1 = window_popup_ptr; //save current window_popup_ptr
 
     window_popup_ptr = (window_t *)&dlg;
-    window_set_capture(id); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
+    dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
 
     gui_reset_jogwheel();
     gui_invalidate();
@@ -225,6 +225,7 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     window_t *pWin = window_ptr(0);
     if (pWin != 0)
         pWin->Invalidate();
-    window_set_capture(id_capture);
+    if (window_ptr(id_capture))
+        window_ptr(id_capture)->SetCapture();
     return ret;
 }

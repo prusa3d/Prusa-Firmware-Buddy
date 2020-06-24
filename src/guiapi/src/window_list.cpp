@@ -104,7 +104,8 @@ void window_list_draw(window_list_t *window) {
 void window_list_event(window_list_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        window_set_capture(window->id_parent);
+        if (window_ptr(window->id_parent))
+            window_ptr(window->id_parent)->SetCapture();
         break;
     case WINDOW_EVENT_ENC_DN:
         window_list_dec(window, (int)param);
