@@ -4,7 +4,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-#include "str_utils.h"
 
 //alignment constants
 #define ALIGN_LEFT          0x00
