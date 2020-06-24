@@ -188,27 +188,27 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 }
                 break;
             case _STATE_INFO:
-                wizard_msgbox(
-                    "The status bar is at\n"
-                    "the bottom of the  \n"
-                    "screen. It contains\n"
-                    "information about: \n"
-                    " - Nozzle temp.    \n"
-                    " - Heatbed temp.   \n"
-                    " - Printing speed  \n"
-                    " - Z-axis height   \n"
-                    " - Selected filament",
+                wizard_msgbox(_(
+                                  "The status bar is at\n"
+                                  "the bottom of the  \n"
+                                  "screen. It contains\n"
+                                  "information about: \n"
+                                  " - Nozzle temp.    \n"
+                                  " - Heatbed temp.   \n"
+                                  " - Printing speed  \n"
+                                  " - Z-axis height   \n"
+                                  " - Selected filament"),
                     MSGBOX_BTN_NEXT, 0);
                 pd->state = _STATE_FIRST;
                 break;
             case _STATE_FIRST:
-                wizard_msgbox(
-                    "Press NEXT to run  \n"
-                    "the Selftest, which\n"
-                    "checks for         \n"
-                    "potential issues   \n"
-                    "related to         \n"
-                    "the assembly.",
+                wizard_msgbox(_(
+                                  "Press NEXT to run  \n"
+                                  "the Selftest, which\n"
+                                  "checks for         \n"
+                                  "potential issues   \n"
+                                  "related to         \n"
+                                  "the assembly."),
                     MSGBOX_BTN_NEXT, 0);
                 pd->state = _STATE_SELFTEST_INIT;
                 break;
@@ -262,27 +262,28 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 //need to show different msg box if XYZ calib shall not run
                 eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
                 if (is_state_in_wizard_mask(_STATE_XYZCALIB_INIT))   //run XYZ
-                    wizard_msgbox(
-                        "Everything is alright. "
-                        "I will run XYZ "
-                        "calibration now. It will "
-                        "take approximately "
-                        "12 minutes.",
+                    wizard_msgbox(_(
+                                      "Everything is alright. "
+                                      "I will run XYZ "
+                                      "calibration now. It will "
+                                      "take approximately "
+                                      "12 minutes."),
                         MSGBOX_BTN_NEXT, IDR_PNG_icon_pepa);
                 else // do not run XYZ
-                    wizard_msgbox(
-                        "All tests finished successfully!", MSGBOX_BTN_DONE, IDR_PNG_icon_pepa);
+                    wizard_msgbox(_(
+                                      "All tests finished successfully!"),
+                        MSGBOX_BTN_DONE, IDR_PNG_icon_pepa);
                 pd->state = _STATE_XYZCALIB_INIT;
                 break;
             case _STATE_SELFTEST_FAIL:
-                wizard_msgbox(
-                    "The selftest failed\n"
-                    "to finish.         \n"
-                    "Double-check the   \n"
-                    "printer's wiring   \n"
-                    "and axes.          \n"
-                    "Then restart       \n"
-                    "the Selftest.      ",
+                wizard_msgbox(_(
+                                  "The selftest failed\n"
+                                  "to finish.         \n"
+                                  "Double-check the   \n"
+                                  "printer's wiring   \n"
+                                  "and axes.          \n"
+                                  "Then restart       \n"
+                                  "the Selftest.      "),
                     MSGBOX_BTN_DONE, 0);
                 screen_close();
                 break;
@@ -301,17 +302,17 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 break;
             case _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE:
                 window_set_text(pd->screen_variant.xyzcalib_screen.text_state.win.id, "Calibration XY");
-                wizard_msgbox1(
-                    "Please clean the nozzle "
-                    "for calibration. Click "
-                    "NEXT when done.",
+                wizard_msgbox1(_(
+                                   "Please clean the nozzle "
+                                   "for calibration. Click "
+                                   "NEXT when done."),
                     MSGBOX_BTN_NEXT, 0);
                 pd->state = _STATE_XYZCALIB_XY_MSG_IS_SHEET;
                 break;
             case _STATE_XYZCALIB_XY_MSG_IS_SHEET:
-                if (wizard_msgbox1(
-                        "Is steel sheet "
-                        "on heatbed?",
+                if (wizard_msgbox1(_(
+                                       "Is steel sheet "
+                                       "on heatbed?"),
                         MSGBOX_BTN_YESNO, 0)
                     == MSGBOX_RES_YES)
                     pd->state = _STATE_XYZCALIB_XY_MSG_REMOVE_SHEET;
@@ -319,21 +320,21 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     pd->state = _STATE_XYZCALIB_XY_MSG_PLACE_PAPER;
                 break;
             case _STATE_XYZCALIB_XY_MSG_REMOVE_SHEET:
-                wizard_msgbox1(
-                    "Please remove steel "
-                    "sheet from heatbed.",
+                wizard_msgbox1(_(
+                                   "Please remove steel "
+                                   "sheet from heatbed."),
                     MSGBOX_BTN_NEXT, 0);
                 pd->state = _STATE_XYZCALIB_XY_MSG_PLACE_PAPER;
                 break;
             case _STATE_XYZCALIB_XY_MSG_PLACE_PAPER:
-                wizard_msgbox1(
-                    "Place a sheet of paper "
-                    "under the nozzle during "
-                    "the calibration of first "
-                    "4 points. "
-                    "If the nozzle "
-                    "catches the paper, power "
-                    "off printer immediately!",
+                wizard_msgbox1(_(
+                                   "Place a sheet of paper "
+                                   "under the nozzle during "
+                                   "the calibration of first "
+                                   "4 points. "
+                                   "If the nozzle "
+                                   "catches the paper, power "
+                                   "off printer immediately!"),
                     MSGBOX_BTN_NEXT, 0);
                 pd->state = _STATE_XYZCALIB_XY_SEARCH;
                 break;
@@ -342,9 +343,9 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     pd->state = _STATE_XYZCALIB_XY_MSG_PLACE_SHEET;
                 break;
             case _STATE_XYZCALIB_XY_MSG_PLACE_SHEET:
-                wizard_msgbox1(
-                    "Please place steel sheet "
-                    "on heatbed.",
+                wizard_msgbox1(_(
+                                   "Please place steel sheet "
+                                   "on heatbed."),
                     MSGBOX_BTN_NEXT, 0);
                 pd->state = _STATE_XYZCALIB_XY_MEASURE;
                 break;
@@ -358,18 +359,18 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 break;
             case _STATE_XYZCALIB_PASS:
                 eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
-                wizard_msgbox(
-                    "Congratulations! "
-                    "XYZ calibration is ok. "
-                    "XY axes are "
-                    "perpendicular.",
+                wizard_msgbox(_(
+                                  "Congratulations! "
+                                  "XYZ calibration is ok. "
+                                  "XY axes are "
+                                  "perpendicular."),
                     MSGBOX_BTN_NEXT, IDR_PNG_icon_pepa);
                 pd->state = _STATE_FIRSTLAY_INIT;
                 break;
             case _STATE_XYZCALIB_FAIL:
-                wizard_msgbox(
-                    "The XYZ calibration failed to finish. "
-                    "Double-check the printer's wiring and axes, then restart the XYZ calibration.",
+                wizard_msgbox(_(
+                                  "The XYZ calibration failed to finish. "
+                                  "Double-check the printer's wiring and axes, then restart the XYZ calibration."),
                     MSGBOX_BTN_DONE, 0);
                 screen_close();
                 break;
@@ -388,12 +389,12 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     pd->state = _STATE_FIRSTLAY_MSBX_CALIB;
                 break;
             case _STATE_FIRSTLAY_MSBX_CALIB: {
-                wizard_msgbox(
-                    "Now, let's calibrate\n"
-                    "the distance       \n"
-                    "between the tip    \n"
-                    "of the nozzle and  \n"
-                    "the print sheet.   ",
+                wizard_msgbox(_(
+                                  "Now, let's calibrate\n"
+                                  "the distance       \n"
+                                  "between the tip    \n"
+                                  "of the nozzle and  \n"
+                                  "the print sheet.   "),
                     MSGBOX_BTN_NEXT, 0);
 
                 //show dialog only when values are not equal
@@ -401,12 +402,11 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
                     char buff[255];
                     //cannot use \n
-                    snprintf(buff, sizeof(buff) / sizeof(char),
-                        "Do you want to use\n"
-                        "the current value?\n"
-                        "Current: %0.3f.   \n"
-                        "Default: %0.3f.   \n"
-                        "Click NO to use the default value (recommended)",
+                    snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use\n"
+                                                                  "the current value?\n"
+                                                                  "Current: %0.3f.   \n"
+                                                                  "Default: %0.3f.   \n"
+                                                                  "Click NO to use the default value (recommended)"),
                         (double)vars->z_offset, (double)z_offset_def);
 
                     if (wizard_msgbox(buff, MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
@@ -427,15 +427,15 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     //					"Extruded plastic  \n"
                     //					"must stick to     \n"
                     //					"the print surface."
-                    "In the next step, \n"
-                    "use the knob to   \n"
-                    "adjust the nozzle \n"
-                    "height.           \n"
-                    "Check the pictures\n"
-                    "in the handbook   \n"
-                    "for reference."
+                    _("In the next step, \n"
+                      "use the knob to   \n"
+                      "adjust the nozzle \n"
+                      "height.           \n"
+                      "Check the pictures\n"
+                      "in the handbook   \n"
+                      "for reference.")
 
-                    ,
+                        ,
                     MSGBOX_BTN_NEXT, 0);
                 pd->state = _STATE_FIRSTLAY_PRINT;
                 break;
@@ -469,11 +469,10 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     float diff = z_val_to_store - z_offset_def;
                     if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
                         char buff[255];
-                        snprintf(buff, sizeof(buff) / sizeof(char),
-                            "Do you want to use last set value? "
-                            "Last:  %0.3f.   "
-                            "Default: %0.3f.   "
-                            "Click NO to use default value.",
+                        snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use last set value? "
+                                                                      "Last:  %0.3f.   "
+                                                                      "Default: %0.3f.   "
+                                                                      "Click NO to use default value."),
                             (double)p_firstlay_screen->Z_offset, (double)z_offset_def);
 
                         if (wizard_msgbox(buff, MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
@@ -485,16 +484,16 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 }
                 break;
             case _STATE_FIRSTLAY_FAIL:
-                wizard_msgbox(
-                    "The first layer calibration failed to finish. "
-                    "Double-check the printer's wiring, nozzle and axes, then restart the calibration.",
+                wizard_msgbox(_(
+                                  "The first layer calibration failed to finish. "
+                                  "Double-check the printer's wiring, nozzle and axes, then restart the calibration."),
                     MSGBOX_BTN_DONE, 0);
                 screen_close();
                 break;
             case _STATE_FINISH:
-                wizard_msgbox(
-                    "Calibration successful!\n"
-                    "Happy printing!",
+                wizard_msgbox(_(
+                                  "Calibration successful!\n"
+                                  "Happy printing!"),
                     MSGBOX_BTN_DONE, IDR_PNG_icon_pepa);
                 screen_close();
                 break;
@@ -515,7 +514,7 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_INIT:
     case _STATE_INFO:
     case _STATE_FIRST:
-        return "WIZARD";
+        return _("WIZARD");
     case _STATE_SELFTEST_INIT:
     case _STATE_SELFTEST_FAN0:
     case _STATE_SELFTEST_FAN1:
@@ -527,7 +526,7 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_SELFTEST_TEMP:
     case _STATE_SELFTEST_PASS:
     case _STATE_SELFTEST_FAIL:
-        return "SELFTEST";
+        return _("SELFTEST");
     case _STATE_XYZCALIB_INIT:
     case _STATE_XYZCALIB_HOME:
     case _STATE_XYZCALIB_Z:
@@ -540,7 +539,7 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_XYZCALIB_XY_MEASURE:
     case _STATE_XYZCALIB_PASS:
     case _STATE_XYZCALIB_FAIL:
-        return "XYZ CALIBRATION";
+        return _("XYZ CALIBRATION");
     case _STATE_FIRSTLAY_INIT:
     case _STATE_FIRSTLAY_LOAD:
     case _STATE_FIRSTLAY_MSBX_CALIB:
@@ -548,9 +547,9 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_FIRSTLAY_PRINT:
     case _STATE_FIRSTLAY_MSBX_REPEAT_PRINT:
     case _STATE_FIRSTLAY_FAIL:
-        return "FIRST LAYER CALIB.";
+        return _("FIRST LAYER CALIB.");
     case _STATE_FINISH:
-        return "WIZARD - OK";
+        return _("WIZARD - OK");
     case _STATE_LAST:
         return "";
     }

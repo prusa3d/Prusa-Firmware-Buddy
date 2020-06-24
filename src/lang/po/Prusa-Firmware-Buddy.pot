@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-06-10 11:25+0200\n"
+"POT-Creation-Date: 2020-06-23 16:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,6 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/gui/screen_menu_version_info.cpp:90
+#: src/gui/screen_menu_version_info.cpp:80
 #, c-format
 msgid ""
 "\n"
@@ -31,6 +32,10 @@ msgstr ""
 
 #: src/guiapi/src/MItem_tools.cpp:121
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:274
+msgid "All tests finished successfully!"
 msgstr ""
 
 #: src/gui/screen_menu_fw_update.cpp:18
@@ -75,6 +80,7 @@ msgid "ButtonEcho"
 msgstr ""
 
 #: src/gui/dialogs/DialogFactory.cpp:11 src/gui/screen_menu_filament.cpp:79
+#: src/gui/screen_menu_filament.cpp:80
 msgid "CHANGE FILAMENT"
 msgstr ""
 
@@ -86,12 +92,23 @@ msgstr ""
 msgid "Calibration"
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:496
+msgid ""
+"Calibration successful!\n"
+"Happy printing!"
+msgstr ""
+
 #: src/gui/screen_menu_filament.cpp:78 src/guiapi/include/MItem_tools.hpp:188
+#: src/gui/screen_menu_filament.cpp:79
 msgid "Change Filament"
 msgstr ""
 
 #: src/gui/wizard/screen_wizard.c:462
 msgid "Clean steel sheet."
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:362
+msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 msgstr ""
 
 #: src/gui/screen_menu_temperature.cpp:11 src/gui/filament.cpp:13
@@ -116,6 +133,23 @@ msgid ""
 "and heatbed?"
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:405
+#, c-format
+msgid ""
+"Do you want to use\n"
+"the current value?\n"
+"Current: %0.3f.   \n"
+"Default: %0.3f.   \n"
+"Click NO to use the default value (recommended)"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:473
+#, c-format
+msgid ""
+"Do you want to use last set value? Last:  %0.3f.   Default: %0.3f.   Click "
+"NO to use default value."
+msgstr ""
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:55
 msgid "Ejecting"
 msgstr ""
@@ -131,8 +165,18 @@ msgid ""
 "drive and try again."
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:123
+#: src/gui/wizard/screen_wizard.c:266
+msgid ""
+"Everything is alright. I will run XYZ calibration now. It will take "
+"approximately 12 minutes."
+msgstr ""
+
+#: src/gui/screen_menu_filament.cpp:123 src/gui/screen_menu_filament.cpp:120
 msgid "FILAMENT"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:551
+msgid "FIRST LAYER CALIB."
 msgstr ""
 
 #: src/gui/screen_menu_fw_update.cpp:46
@@ -171,6 +215,7 @@ msgstr ""
 
 #. =============SET TEXT================
 #: src/gui/screen_menu_version_info.cpp:72
+#: src/gui/screen_menu_version_info.cpp:62
 #, c-format
 msgid "Firmware Version\n"
 msgstr ""
@@ -204,6 +249,7 @@ msgstr ""
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
 #: src/gui/window_file_list.c:120 src/gui/window_file_list.c:122
+#: src/gui/window_file_list.c:133
 msgid "Home"
 msgstr ""
 
@@ -216,6 +262,31 @@ msgstr ""
 msgid ""
 "IP addresses are not valid or the file \"lan_settings.ini\" is not in the "
 "root directory of the USB drive."
+msgstr ""
+
+#: src/gui/screen_menu_lan_settings.cpp:301
+msgid ""
+"IP addresses or parameters are not valid or the file \"lan_settings.ini\" is "
+"not in the root directory of the USB drive."
+msgstr ""
+
+#. "Observe the pattern\n"
+#. "and turn the knob \n"
+#. "to adjust the     \n"
+#. "nozzle height in  \n"
+#. "real time.        \n"
+#. "Extruded plastic  \n"
+#. "must stick to     \n"
+#. "the print surface."
+#: src/gui/wizard/screen_wizard.c:430
+msgid ""
+"In the next step, \n"
+"use the knob to   \n"
+"adjust the nozzle \n"
+"height.           \n"
+"Check the pictures\n"
+"in the handbook   \n"
+"for reference."
 msgstr ""
 
 #: src/gui/screen_home.cpp:44
@@ -236,12 +307,18 @@ msgid ""
 "extruder gear?    "
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:313
+msgid "Is steel sheet on heatbed?"
+msgstr ""
+
 #: src/gui/screen_menu_lan_settings.cpp:267
 #: src/gui/screen_menu_lan_settings.cpp:268
+#: src/gui/screen_menu_lan_settings.cpp:263
 msgid "LAN SETTINGS"
 msgstr ""
 
 #: src/gui/dialogs/DialogFactory.cpp:12 src/gui/screen_menu_filament.cpp:45
+#: src/gui/screen_menu_filament.cpp:46
 msgid "LOAD FILAMENT"
 msgstr ""
 
@@ -253,11 +330,12 @@ msgstr ""
 msgid "Live Adjust Z"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:44
+#: src/gui/screen_menu_filament.cpp:44 src/gui/screen_menu_filament.cpp:45
 msgid "Load Filament"
 msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:245
+#: src/gui/screen_menu_lan_settings.cpp:240
 msgid "Load settings"
 msgstr ""
 
@@ -290,6 +368,7 @@ msgstr ""
 #. Z 30mm
 #. Disable steppers
 #: src/gui/wizard/firstlay.c:185 src/gui/wizard/firstlay.c:188
+#: src/gui/wizard/firstlay.c:212
 msgid "Mesh bed leveling failed?"
 msgstr ""
 
@@ -332,6 +411,15 @@ msgid ""
 "again."
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:392
+msgid ""
+"Now, let's calibrate\n"
+"the distance       \n"
+"between the tip    \n"
+"of the nozzle and  \n"
+"the print sheet.   "
+msgstr ""
+
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
 msgstr ""
@@ -341,10 +429,12 @@ msgid "Nozzle is too cold."
 msgstr ""
 
 #: src/guiapi/include/WindowMenuItems.hpp:130
+#: src/guiapi/include/WindowMenuItems.hpp:159
 msgid "Off"
 msgstr ""
 
 #: src/guiapi/include/WindowMenuItems.hpp:131
+#: src/guiapi/include/WindowMenuItems.hpp:160
 msgid "On"
 msgstr ""
 
@@ -357,7 +447,7 @@ msgstr ""
 msgid "Once"
 msgstr ""
 
-#: src/gui/wizard/firstlay.c:55
+#: src/gui/wizard/firstlay.c:55 src/gui/wizard/firstlay.c:63
 msgid ""
 "Once the printer   \n"
 "starts extruding   \n"
@@ -369,21 +459,24 @@ msgid ""
 "sheet."
 msgstr ""
 
-#: src/gui/screen_menu_preheat.cpp:28
+#: src/gui/screen_menu_preheat.cpp:28 src/gui/screen_menu_preheat.cpp:41
 msgid "PREHEAT"
 msgstr ""
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31
+#: src/gui/dialogs/window_dlg_load_unload.cpp:34
 msgid "PREHEAT for LOAD"
 msgstr ""
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:49
+#: src/gui/dialogs/window_dlg_load_unload.cpp:54
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
 #: src/gui/dialogs/DialogFactory.cpp:14 src/gui/screen_menu_filament.cpp:101
+#: src/gui/screen_menu_filament.cpp:98
 msgid "PURGE FILAMENT"
 msgstr ""
 
@@ -391,8 +484,19 @@ msgstr ""
 msgid "Parking"
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:330
+msgid ""
+"Place a sheet of paper under the nozzle during the calibration of first 4 "
+"points. If the nozzle catches the paper, power off printer immediately!"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:305
+msgid "Please clean the nozzle for calibration. Click NEXT when done."
+msgstr ""
+
 #: src/gui/screen_menu_lan_settings.cpp:293
 #: src/gui/screen_menu_lan_settings.cpp:294
+#: src/gui/screen_menu_lan_settings.cpp:289
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
@@ -403,6 +507,14 @@ msgid ""
 "your MINI and reset\n"
 "the printer to flash\n"
 "the firmware"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:346
+msgid "Please place steel sheet on heatbed."
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:323
+msgid "Please remove steel sheet from heatbed."
 msgstr ""
 
 #. 30 pixels for title
@@ -425,6 +537,16 @@ msgid ""
 "the extruder.     "
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:206
+msgid ""
+"Press NEXT to run  \n"
+"the Selftest, which\n"
+"checks for         \n"
+"potential issues   \n"
+"related to         \n"
+"the assembly."
+msgstr ""
+
 #: src/gui/screen_home.cpp:39
 msgid "Print"
 msgstr ""
@@ -437,7 +559,11 @@ msgstr ""
 msgid "Print will end"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:100
+#: src/gui/screen_printing.cpp:208
+msgid "Printing time"
+msgstr ""
+
+#: src/gui/screen_menu_filament.cpp:100 src/gui/screen_menu_filament.cpp:97
 msgid "Purge Filament"
 msgstr ""
 
@@ -469,6 +595,10 @@ msgstr ""
 msgid "Remaining Time"
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:530
+msgid "SELFTEST"
+msgstr ""
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:28
 msgid "STOP"
 msgstr ""
@@ -478,6 +608,7 @@ msgid "Save Crash Dump"
 msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:234
+#: src/gui/screen_menu_lan_settings.cpp:229
 msgid "Save settings"
 msgstr ""
 
@@ -512,6 +643,7 @@ msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
+#: src/gui/screen_menu_lan_settings.cpp:298
 msgid "Settings successfully loaded"
 msgstr ""
 
@@ -546,6 +678,7 @@ msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:290
 #: src/gui/screen_menu_lan_settings.cpp:291
+#: src/gui/screen_menu_lan_settings.cpp:286
 msgid "Static IPv4 addresses were not set."
 msgstr ""
 
@@ -577,18 +710,56 @@ msgstr ""
 msgid "Test"
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:371
+msgid ""
+"The XYZ calibration failed to finish. Double-check the printer's wiring and "
+"axes, then restart the XYZ calibration."
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:489
+msgid ""
+"The first layer calibration failed to finish. Double-check the printer's "
+"wiring, nozzle and axes, then restart the calibration."
+msgstr ""
+
 #: src/gui/screen_splash.c:105
 msgid "The printer is not calibrated. Start First Layer Calibration?"
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:279
+msgid ""
+"The selftest failed\n"
+"to finish.         \n"
+"Double-check the   \n"
+"printer's wiring   \n"
+"and axes.          \n"
+"Then restart       \n"
+"the Selftest.      "
+msgstr ""
+
 #: src/gui/screen_menu_lan_settings.cpp:296
 #: src/gui/screen_menu_lan_settings.cpp:297
+#: src/gui/screen_menu_lan_settings.cpp:292
 msgid ""
 "The settings have been saved successfully in the \"lan_settings.ini\" file."
 msgstr ""
 
+#: src/gui/wizard/screen_wizard.c:192
+msgid ""
+"The status bar is at\n"
+"the bottom of the  \n"
+"screen. It contains\n"
+"information about: \n"
+" - Nozzle temp.    \n"
+" - Heatbed temp.   \n"
+" - Printing speed  \n"
+" - Z-axis height   \n"
+" - Selected filament"
+msgstr ""
+
 #: src/gui/screen_menu_lan_settings.cpp:299
 #: src/gui/screen_menu_lan_settings.cpp:300
+#: src/gui/screen_menu_lan_settings.cpp:295
 msgid ""
 "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr ""
@@ -605,6 +776,7 @@ msgid "Timeout"
 msgstr ""
 
 #: src/gui/dialogs/DialogFactory.cpp:13 src/gui/screen_menu_filament.cpp:62
+#: src/gui/screen_menu_filament.cpp:63
 msgid "UNLOAD FILAMENT"
 msgstr ""
 
@@ -616,7 +788,7 @@ msgstr ""
 msgid "USB Disk is not ready!"
 msgstr ""
 
-#: src/gui/screen_menu_filament.cpp:61
+#: src/gui/screen_menu_filament.cpp:61 src/gui/screen_menu_filament.cpp:62
 msgid "Unload Filament"
 msgstr ""
 
@@ -629,11 +801,20 @@ msgid "Unparking"
 msgstr ""
 
 #: src/gui/screen_menu_version_info.cpp:36
+#: src/gui/screen_menu_version_info.cpp:31
 msgid "VERSION INFO"
 msgstr ""
 
 #: src/guiapi/include/MItem_menus.hpp:8
 msgid "Version Info"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:518
+msgid "WIZARD"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:553
+msgid "WIZARD - OK"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
@@ -647,6 +828,10 @@ msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:8
 msgid "Wizard"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.c:543
+msgid "XYZ CALIBRATION"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:31
