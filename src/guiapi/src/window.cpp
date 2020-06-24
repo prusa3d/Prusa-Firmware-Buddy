@@ -100,10 +100,6 @@ int16_t window_register_class(window_class_t *cls) {
     return -1;
 }
 
-int16_t window_create(int16_t cls_id, int16_t id_parent, rect_ui16_t rect) {
-    return window_create_ptr(cls_id, id_parent, rect, 0);
-}
-
 int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr) {
     window_class_t *cls = class_ptr(cls_id);
     if (cls) {
@@ -208,14 +204,14 @@ int16_t window_next(int16_t id) {
 
 int16_t window_prev_enabled(int16_t id) {
     while ((id = window_prev(id)) >= 0)
-        if (window_is_enabled(id))
+        if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
             return id;
     return -1;
 }
 
 int16_t window_next_enabled(int16_t id) {
     while ((id = window_next(id)) >= 0)
-        if (window_is_enabled(id))
+        if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
             return id;
     return -1;
 }
@@ -245,23 +241,13 @@ int window_child_count(int16_t id) {
 int window_enabled_child_count(int16_t id) {
     int count = 0;
     if ((id = window_first_child(id)) >= 0) {
-        if (window_is_enabled(id))
+        if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
             count++;
         while ((id = window_next(id)) >= 0)
-            if (window_is_enabled(id))
+            if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
                 count++;
     }
     return count;
-}
-
-int window_is_visible(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_visible : 0;
-}
-
-int window_is_enabled(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_enabled : 0;
 }
 
 int window_is_invalid(int16_t id) {

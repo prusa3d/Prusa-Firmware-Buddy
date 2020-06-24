@@ -65,7 +65,7 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_CAPT_1:
         if (window_parent(window_focused()) != window->id) {
             id = window_first_child(0);
-            if (!window_is_enabled(id))
+            if (!(window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0))
                 id = window_next_enabled(id);
             window_set_focus(id);
         }

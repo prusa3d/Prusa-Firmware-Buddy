@@ -87,7 +87,7 @@ struct window_t {
             uint32_t f_checked : 1;  // WINDOW_FLG_CHECKED  0x00000010
             uint32_t f_capture : 1;  // WINDOW_FLG_CAPTURE  0x00000020
             uint32_t f_disabled : 1; // WINDOW_FLG_DISABLED 0x00000040
-            uint32_t f_reserv0 : 6;  // reserved 7 bits
+            uint32_t f_reserv0 : 6;  // reserved 6 bits
             uint32_t f_freemem : 1;  // WINDOW_FLG_FREEMEM  0x00002000
             uint32_t f_timer : 1;    // WINDOW_FLG_TIMER    0x00004000
             uint32_t f_parent : 1;   // WINDOW_FLG_PARENT   0x00008000
@@ -98,7 +98,17 @@ struct window_t {
     };
     rect_ui16_t rect;      // (8 bytes) display rectangle
     window_event_t *event; // (4 bytes) event callback
-};                         // (24 bytes total)
+
+    virtual void Init() {} //do I need init, have ctor?
+    virtual void Done() {} //do I need done, have dtor?
+    virtual void Draw() {}
+    virtual void Event(uint8_t event, void *param) {}
+
+    virtual ~window_t() {}
+
+    bool IsVisible() { return f_visible == 1; }
+    bool IsEnabled() { return f_enabled == 1; }
+}; // (24 bytes total)
 
 extern window_t *window_popup_ptr; //current popup window
 
@@ -111,8 +121,6 @@ extern window_t *window_ptr(int16_t id);
 extern int16_t window_id(window_t *ptr);
 
 extern int16_t window_register_class(window_class_t *cls);
-
-extern int16_t window_create(int16_t cls_id, int16_t id_parent, rect_ui16_t rect);
 
 extern int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr);
 
@@ -139,10 +147,6 @@ extern int16_t window_first_child(int16_t id);
 extern int window_child_count(int16_t id);
 
 extern int window_enabled_child_count(int16_t id);
-
-extern int window_is_visible(int16_t id);
-
-extern int window_is_enabled(int16_t id);
 
 extern int window_is_invalid(int16_t id);
 
