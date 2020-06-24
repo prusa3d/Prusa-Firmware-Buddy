@@ -46,6 +46,7 @@ struct screen_printing_serial_data_t {
     window_text_t w_labels[iid_count];
 
     int last_tick;
+    bool disconnect_pressed;
 };
 
 void screen_printing_serial_init(screen_t *screen);
@@ -76,6 +77,7 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
 }
 
 void screen_printing_serial_init(screen_t *screen) {
+    pw->disconnect_pressed = false;
     pw->last_tick = 0;
     int16_t id;
 
@@ -143,6 +145,17 @@ void screen_printing_serial_draw(screen_t *screen) {
 int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     window_header_events(&(pw->header));
 
+    /// end sequence waiting for empty marlin gcode queue
+    /// parking -> cooldown hotend & bed -> turn off print fan
+    if (pw->disconnect_pressed && marlin_get_gqueue() < 1) {
+        marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
+        marlin_gcode("M104 S0 D0"); /// set temperatures to zero
+        marlin_gcode("M140 S0");    /// set temperatures to zero
+        marlin_gcode("M107");       /// print fan off
+        screen_close();
+        return 1;
+    }
+
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
     }
@@ -162,11 +175,12 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         break;
     case BUTTON_DISCONNECT:
         if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
+            pw->disconnect_pressed = true;
             marlin_gcode("M118 A1 action:disconnect");
-            marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
-            marlin_gcode("M104 S0 D0"); /// set temperatures to zero
-            marlin_gcode("M140 S0");    /// set temperatures to zero
-            screen_close();
+            // marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
+            // marlin_gcode("M104 S0 D0"); /// set temperatures to zero
+            // marlin_gcode("M140 S0");    /// set temperatures to zero
+            // screen_close();
         }
         return 1;
         break;
