@@ -65,7 +65,7 @@ void screen_sysinfo_init(screen_t *screen) {
     pd->textCPU_load.SetText((const char *)"CPU load");
 
     id = window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
-    window_set_format(id, (const char *)"%.0f");
+    pd->textCPU_load_val.SetFormat((const char *)"%.0f");
     window_set_value(id, osGetCPUUsage());
 
     row2draw += 25;

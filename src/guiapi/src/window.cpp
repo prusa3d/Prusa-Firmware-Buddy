@@ -326,34 +326,6 @@ float window_get_value(int16_t id) {
     return 0;
 }
 
-void window_set_format(int16_t id, const char *format) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_NUMB:
-            ((window_numb_t *)window)->format = (char *)format;
-            break;
-        case WINDOW_CLS_SPIN:
-            ((window_spin_t *)window)->format = (char *)format;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-const char *window_get_format(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_NUMB:
-            return ((window_numb_t *)window)->format;
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->format;
-        }
-    }
-    return 0;
-}
-
 void window_t::SetFocus() {
     if (!f_visible || !f_enabled)
         return;

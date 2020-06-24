@@ -48,3 +48,8 @@ const window_class_numb_t window_class_numb = {
         0,
     },
 };
+
+void window_numb_t::SetFormat(const char *frmt) {
+    format = format;
+    _window_invalidate(this);
+}

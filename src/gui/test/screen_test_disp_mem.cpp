@@ -169,6 +169,15 @@ enum {
 
 };
 
+//cannot use normal spin with format "%A"
+static void hexSpinInit(int16_t id0, rect_ui16_t rect, window_spin_t *pSpin) {
+    int16_t id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect, pSpin);
+    pSpin->flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pSpin->SetFormat("%X");
+    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
+    window_set_value(id, 0.0F);
+}
+
 void screen_test_disp_mem_init(screen_t *screen) {
     row2draw = 0;
     int16_t id;
@@ -212,7 +221,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.SetText((const char *)"Gamma");
 
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
-    window_set_format(id, "%1.0f");
+    pd->spinGamma.SetFormat("%1.0f");
     window_set_min_max_step(id, 0.0F, 3.0F, 1.0F);
     window_set_value(id, (float)st7789v_gamma_get());
 
@@ -229,7 +238,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textBrightness.SetText((const char *)"Brightn.");
 
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
-    window_set_format(id, "%1.0f");
+    pd->spinBrightness.SetFormat("%1.0f");
     window_set_min_max_step(id, 0.0F, 255.0F, 5.0F);
     window_set_value(id, (float)st7789v_brightness_get());
     pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
@@ -253,30 +262,13 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->text0x.SetText((const char *)"0x");
 
-    //cannot use normal spin with window_set_format(id, "%A");
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx3));
-    pd->spinStrHx3.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx3));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx2));
-    pd->spinStrHx2.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx2));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx1));
-    pd->spinStrHx1.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx1));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx0));
-    pd->spinStrHx0.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx0));
 
     //write pixels
     row2draw += 25;
@@ -290,18 +282,9 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textR0x.SetTextColor(COLOR_RED);
 
     col += w_of_0xX;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR0));
-    pd->spinStrR0.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
-
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR0));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR1));
-    pd->spinStrR1.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR1));
     col += offset;
     col += RGBspaceW;
 
@@ -311,17 +294,9 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textG0x.SetTextColor(COLOR_GREEN);
 
     col += w_of_0xX;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG0));
-    pd->spinStrG0.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG0));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG1));
-    pd->spinStrG1.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG1));
     col += offset;
     col += RGBspaceW;
 
@@ -331,17 +306,9 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textB0x.SetTextColor(COLOR_BLUE);
 
     col += w_of_0xX;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB0));
-    pd->spinStrB0.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB0));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB1));
-    pd->spinStrB1.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB1));
 
     row2draw += 25; //position for drawing - it is global in this file
 

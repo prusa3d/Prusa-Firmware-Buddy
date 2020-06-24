@@ -47,16 +47,16 @@ void screen_test_gui_init(screen_t *screen) {
     pd->text2.SetText((const char *)"Small");
 
     id = window_create_ptr(WINDOW_CLS_NUMB, id0, rect_ui16(10, 100, 60, 22), &(pd->numb0));
-    window_set_format(id, (const char *)"%.0f");
+    pd->numb0.SetFormat((const char *)"%.0f");
     window_set_value(id, 100.0F);
 
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(80, 100, 60, 22), &(pd->spin0));
-    window_set_format(id, "%1.0f");
+    pd->spin0.SetFormat("%1.0f");
     window_set_min_max_step(id, 0.0F, 270.0F, 1.0F);
     window_set_value(id, 100.0F);
 
     id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(150, 100, 60, 22), &(pd->spin1));
-    window_set_format(id, "%.3f");
+    pd->spin1.SetFormat("%.3f");
     window_set_min_max_step(id, 0.0F, 1.0F, 0.001F);
     window_set_value(id, 1.000F);
 

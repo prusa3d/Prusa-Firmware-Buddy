@@ -306,7 +306,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     p_screen->text_Z_pos.SetText("Z height:");
 
     id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x + 110, y, 70, 22), &(p_screen->spin_baby_step));
-    window_set_format(id, "%.3f");
+    p_screen->spin_baby_step.SetFormat("%.3f");
     window_set_value(id, p_screen->Z_offset);
     p_screen->spin_baby_step.color_text = COLOR_GRAY;
 

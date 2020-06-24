@@ -17,6 +17,9 @@ struct window_numb_t : public window_t {
     const char *format;
     padding_ui8_t padding;
     uint8_t alignment;
+
+    void SetFormat(const char *frmt);
+    const char *GetFormat() { return format; }
 };
 
 extern const window_class_numb_t window_class_numb;
