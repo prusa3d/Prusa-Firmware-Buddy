@@ -23,7 +23,6 @@
 
 #if ENABLED(HOST_PROMPT_SUPPORT) && DISABLED(EMERGENCY_PARSER)
 
-		#include "../../lib/Marlin/Marlin/src/feature/safety_timer.h"
     #include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
     #include "../../lib/Marlin/Marlin/src/feature/safety_timer.h"
     #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
