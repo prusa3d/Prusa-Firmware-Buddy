@@ -6,16 +6,11 @@
 
 #include "Pin.hpp"
 
-Pin *Pin::last = nullptr;
+LinkedListItem *LinkedListItem::s_last = nullptr;
 
-Pin::Pin()
-    : previous(last) {
-    last = this;
-}
-
-void Pin::configure_all() {
-    Pin *pin = last;
-    for (; pin != nullptr; pin = pin->previous) {
-        pin->configure();
+void LinkedListItem::configure_all() {
+    LinkedListItem *linkedListItem = s_last;
+    for (; linkedListItem != nullptr; linkedListItem = linkedListItem->m_previous) {
+        linkedListItem->configure();
     }
 }
