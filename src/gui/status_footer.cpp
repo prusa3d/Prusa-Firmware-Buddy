@@ -19,7 +19,7 @@
 #include "limits.h"
 #include <algorithm>
 
-static const float heating_difference = 2.45F;
+static const float heating_difference = 2.5F;
 
 enum class ButtonStatus {
     Nozzle = 0xf0,
