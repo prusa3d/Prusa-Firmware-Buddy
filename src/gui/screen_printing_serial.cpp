@@ -165,7 +165,7 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
             marlin_gcode("M118 A1 action:disconnect");
             marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
             marlin_gcode("M104 S0 D0"); /// set temperatures to zero
-            marlin_gcode("M140 S0"); /// set temperatures to zero
+            marlin_gcode("M140 S0");    /// set temperatures to zero
             screen_close();
         }
         return 1;
