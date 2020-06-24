@@ -74,7 +74,7 @@ void screen_sysinfo_init(screen_t *screen) {
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"EXIT");
     window_enable(id);
-    window_set_tag(id, TAG_QUIT);
+    pd->textExit.SetTag(TAG_QUIT);
 }
 
 void screen_sysinfo_done(screen_t *screen) {

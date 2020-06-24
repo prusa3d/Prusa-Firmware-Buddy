@@ -254,14 +254,14 @@ static void screen_print_preview_init(screen_t *screen) {
         rect_ui16(PADDING, y, 64, 64), &pd->print_button);
     window_set_color_back(print_button_id, COLOR_GRAY);
     window_set_icon_id(print_button_id, IDR_PNG_menu_icon_print);
-    window_set_tag(print_button_id, PRINT_BUTTON_ID);
+    pd->print_button.SetTag(PRINT_BUTTON_ID);
     window_enable(print_button_id);
     int back_button_id = window_create_ptr(
         WINDOW_CLS_ICON, window_id,
         rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, 64), &pd->back_button);
     window_set_color_back(back_button_id, COLOR_GRAY);
     window_set_icon_id(back_button_id, IDR_PNG_menu_icon_back);
-    window_set_tag(back_button_id, BACK_BUTTON_ID);
+    pd->back_button.SetTag(BACK_BUTTON_ID);
     window_enable(back_button_id);
 
     // Print and Back labels

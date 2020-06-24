@@ -35,7 +35,7 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
         window_set_text(id, "press to continue...");
         window_set_alignment(id, ALIGN_CENTER);
         window_enable(id);
-        window_set_tag(id, 1);
+        pd->text1.SetTag(1);
     }
 }
 

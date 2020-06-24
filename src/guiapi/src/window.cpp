@@ -293,17 +293,6 @@ void window_invalidate_children(int16_t id) {
     gui_invalidate();
 }
 
-void window_set_tag(int16_t id, uint8_t tag) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        window->f_tag = tag;
-}
-
-uint8_t window_get_tag(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_tag : 0;
-}
-
 void window_set_text(int16_t id, const char *text) {
     window_t *window = window_ptr(id);
     if (window == NULL)

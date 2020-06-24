@@ -234,7 +234,7 @@ void screen_printing_init(screen_t *screen) {
             rect_ui16(8 + (15 + 64) * col, icon_y, 64, 64),
             &(pw->w_buttons[col]));
         window_set_color_back(id, COLOR_GRAY);
-        window_set_tag(id, col + 1);
+        pw->w_buttons[col].SetTag(col + 1);
         window_enable(id);
 
         id = window_create_ptr(

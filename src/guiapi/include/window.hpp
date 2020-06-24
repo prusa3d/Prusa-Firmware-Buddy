@@ -113,6 +113,8 @@ struct window_t {
     bool IsCapture() { return f_capture == 1; }
     void Validate() { f_invalid = 0; }
     void Invalidate();
+    void SetTag(uint8_t tag) { f_tag = tag; };
+    uint8_t GetTag() { return f_tag; }
 };
 
 extern window_t *window_popup_ptr; //current popup window
@@ -160,14 +162,6 @@ extern void window_draw_children(int16_t id);
 extern void window_validate_children(int16_t id);
 
 extern void window_invalidate_children(int16_t id);
-
-extern void window_set_tag(int16_t id, uint8_t tag);
-
-extern void _window_set_tag(window_t *wnd, uint8_t tg);
-
-extern uint8_t window_get_tag(int16_t id);
-
-extern int _window_get_tag(window_t *wnd);
 
 extern void window_set_text(int16_t id, const char *text);
 

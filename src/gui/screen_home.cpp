@@ -93,7 +93,7 @@ void screen_home_init(screen_t *screen) {
                 &(pw->w_buttons[row * 3 + col]));
             window_set_color_back(id, COLOR_GRAY);
             window_set_icon_id(id, icons[row * 3 + col]);
-            window_set_tag(id, row * 3 + col + 1);
+            pw->w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
             window_enable(id);
 
             /*

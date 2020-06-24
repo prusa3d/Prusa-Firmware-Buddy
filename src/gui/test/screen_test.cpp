@@ -51,55 +51,55 @@ void screen_test_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->back));
     window_set_text(id, (const char *)"back");
     window_enable(id);
-    window_set_tag(id, STI_back);
+    pd->back.SetTag(STI_back);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_gui));
     window_set_text(id, (const char *)"test GUI");
     window_enable(id);
-    window_set_tag(id, STI_tst_gui);
+    pd->tst_gui.SetTag(STI_tst_gui);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_term));
     window_set_text(id, (const char *)"test TERM");
     window_enable(id);
-    window_set_tag(id, STI_tst_term);
+    pd->tst_term.SetTag(STI_tst_term);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_msgbox));
     window_set_text(id, (const char *)"test MSGBOX");
     window_enable(id);
-    window_set_tag(id, STI_tst_msgbox);
+    pd->tst_msgbox.SetTag(STI_tst_msgbox);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_graph));
     window_set_text(id, (const char *)"temp graph");
     window_enable(id);
-    window_set_tag(id, STI_tst_graph);
+    pd->tst_graph.SetTag(STI_tst_graph);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_temperature));
     window_set_text(id, (const char *)"temp - pwm");
     window_enable(id);
-    window_set_tag(id, STI_tst_temperature);
+    pd->tst_temperature.SetTag(STI_tst_temperature);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_heat_err));
     window_set_text(id, (const char *)"HEAT ERROR");
     window_enable(id);
-    window_set_tag(id, STI_tst_heat_err);
+    pd->tst_heat_err.SetTag(STI_tst_heat_err);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_disp_memory));
     window_set_text(id, (const char *)"Disp. R/W");
     window_enable(id);
-    window_set_tag(id, STI_tst_disp_memory);
+    pd->tst_disp_memory.SetTag(STI_tst_disp_memory);
     y += 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_stack_overflow));
     window_set_text(id, (const char *)"Stack overflow");
     window_enable(id);
-    window_set_tag(id, STI_tst_stack_overflow);
+    pd->tst_stack_overflow.SetTag(STI_tst_stack_overflow);
 
     pd->id_tim = gui_timer_create_oneshot(2000, id0);
     pd->id_tim1 = gui_timer_create_periodical(4000, id0);

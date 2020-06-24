@@ -232,14 +232,14 @@ void screen_test_disp_mem_init(screen_t *screen) {
     window_set_format(id, "%1.0f");
     window_set_min_max_step(id, 0.0F, 255.0F, 5.0F);
     window_set_value(id, (float)st7789v_brightness_get());
-    window_set_tag(id, TAG_BRIGHTNESS);
+    pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
 
     //Brightness enabled
     id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
     window_set_item_count(id, bright_enas_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_bright_enas_item);
-    window_set_tag(id, TAG_BRIGHTNESS);
+    pd->spinBrigt_ena.SetTag(TAG_BRIGHTNESS);
 
     row2draw += 25;
     int16_t w_of_0x = 23;
@@ -349,7 +349,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"EXIT");
     window_enable(id);
-    window_set_tag(id, TAG_QUIT);
+    pd->textExit.SetTag(TAG_QUIT);
 }
 
 //draw line in Y direction

@@ -100,7 +100,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
         id0, rect_ui16(2, 50, 200, row_h), &(pd->btMesh));
     window_set_text(id, btnMeshStrings[0]);
     window_enable(id);
-    window_set_tag(id, TAG_MESH);
+    pd->btMesh.SetTag(TAG_MESH);
 
     id = window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 75, 200, row_h),
@@ -119,7 +119,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"EXIT");
     window_enable(id);
-    window_set_tag(id, TAG_QUIT);
+    pd->textExit.SetTag(TAG_QUIT);
     pd->exit_bt_id = id;
 
     status_footer_init(&(pd->footer), id0);

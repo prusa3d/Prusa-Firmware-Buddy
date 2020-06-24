@@ -49,7 +49,7 @@ void screen_test_graph_init(screen_test_term_t *screen) {
         pd->id_button = id;
         window_set_text(id, (const char *)"Return");
         window_enable(id);
-        window_set_tag(id, 1);
+        pd->button.SetTag(1);
     }
 }
 

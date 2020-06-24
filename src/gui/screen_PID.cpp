@@ -230,7 +230,7 @@ void screen_PID_init(screen_t *screen) {
     window_set_item_count(id, list_RW_strings_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_RW_item);
-    window_set_tag(id, TAG_RW_E);
+    pd->list_RW_E.SetTag(TAG_RW_E);
 
     row2draw += 25;
 
@@ -257,7 +257,7 @@ void screen_PID_init(screen_t *screen) {
         &(pd->btAutoTuneApply_E));
     window_set_text(id, _(btnAutoTuneOrApplystrings[0]));
     window_enable(id);
-    window_set_tag(id, TAG_AUTOTUNE_APPLY_E);
+    pd->btAutoTuneApply_E.SetTag(TAG_AUTOTUNE_APPLY_E);
 
     id = window_create_ptr(WINDOW_CLS_SPIN,
         id0, rect_ui16(col + 70, row2draw, 40, row_h),
@@ -279,7 +279,7 @@ void screen_PID_init(screen_t *screen) {
     window_set_item_count(id, list_RW_strings_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_RW_item);
-    window_set_tag(id, TAG_RW_B);
+    pd->list_RW_B.SetTag(TAG_RW_B);
 
     row2draw += 25;
 
@@ -306,7 +306,7 @@ void screen_PID_init(screen_t *screen) {
         &(pd->btAutoTuneApply_B));
     window_set_text(id, _(btnAutoTuneOrApplystrings[0]));
     window_enable(id);
-    window_set_tag(id, TAG_AUTOTUNE_APPLY_B);
+    pd->btAutoTuneApply_B.SetTag(TAG_AUTOTUNE_APPLY_B);
 
     id = window_create_ptr(WINDOW_CLS_SPIN,
         id0, rect_ui16(col + 70, row2draw, 40, row_h),
@@ -323,7 +323,7 @@ void screen_PID_init(screen_t *screen) {
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"EXIT");
     window_enable(id);
-    window_set_tag(id, TAG_QUIT);
+    pd->textExit.SetTag(TAG_QUIT);
 
     status_footer_init(&(pd->footer), id0);
 
