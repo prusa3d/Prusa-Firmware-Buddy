@@ -82,7 +82,7 @@ void screen_printing_serial_init(screen_t *screen) {
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pw->root));
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
+    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
     p_window_header_set_text(&(pw->header), "SERIAL PRT.");
 
@@ -106,13 +106,13 @@ void screen_printing_serial_init(screen_t *screen) {
         pw->w_buttons[col].SetTag(col + 1);
         pw->w_buttons[col].Enable();
 
-        id = window_create_ptr(
+        window_create_ptr(
             WINDOW_CLS_TEXT, root,
             rect_ui16(80 * col, 196 + 48 + 8, 80, 22),
             &(pw->w_labels[col]));
         pw->w_labels[col].font = resource_font(IDR_FNT_SMALL);
         pw->w_labels[col].SetPadding(padding_ui8(0, 0, 0, 0));
-        window_set_alignment(id, ALIGN_CENTER);
+        pw->w_labels[col].SetAlignment(ALIGN_CENTER);
     }
 
     // -- CONTROLS

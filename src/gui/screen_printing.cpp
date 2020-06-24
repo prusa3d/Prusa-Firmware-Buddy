@@ -150,7 +150,6 @@ screen_t *const get_scr_printing() { return &screen_printing; }
 
 void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
-    int16_t id;
 
     pw->stop_pressed = false;
     marlin_vars_t *vars = marlin_vars();
@@ -162,65 +161,65 @@ void screen_printing_init(screen_t *screen) {
         rect_ui16(0, 0, 0, 0),
         &(pw->root));
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
+    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
 #endif
-    id = window_create_ptr(WINDOW_CLS_TEXT, root,
+    window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 33, 220, 29),
         &(pw->w_filename));
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
     pw->w_filename.SetPadding(padding_ui8(0, 0, 0, 0));
-    window_set_alignment(id, ALIGN_LEFT_BOTTOM);
+    pw->w_filename.SetAlignment(ALIGN_LEFT_BOTTOM);
     pw->w_filename.SetText(vars->media_LFN ? vars->media_LFN : "");
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
+    window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
         &(pw->w_progress));
     pw->w_progress.color_progress = COLOR_ORANGE;
     pw->w_progress.font = resource_font(IDR_FNT_BIG);
     pw->w_progress.height_progress = 14;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root,
+    window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(130, 128, 101, 20),
         &(pw->w_etime_label));
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
-    window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
+    pw->w_etime_label.SetAlignment(ALIGN_RIGHT_BOTTOM);
     pw->w_etime_label.SetPadding(padding_ui8(0, 2, 0, 2));
     strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
     pw->w_etime_label.SetText(pw->label_etime.data());
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root,
+    window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(30, 148, 201, 20),
         &(pw->w_etime_value));
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
-    window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
+    pw->w_etime_value.SetAlignment(ALIGN_RIGHT_BOTTOM);
     pw->w_etime_value.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_etime_value.SetText(pw->text_etime.data());
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root,
+    window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 128, 101, 20),
         &(pw->w_time_label));
     pw->w_time_label.font = resource_font(IDR_FNT_SMALL);
-    window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
+    pw->w_time_label.SetAlignment(ALIGN_RIGHT_BOTTOM);
     pw->w_time_label.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_time_label.SetText(_("Printing time"));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root,
+    window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 148, 101, 20),
         &(pw->w_time_value));
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
-    window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
+    pw->w_time_value.SetAlignment(ALIGN_RIGHT_BOTTOM);
     pw->w_time_value.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_time_value.SetText(pw->text_time_dur.data());
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root,
+    window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
         &(pw->w_message));
-    pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
-    window_set_alignment(id, ALIGN_LEFT_TOP);
-    pw->w_time_value.SetPadding(padding_ui8(0, 2, 0, 2));
+    pw->w_message.font = resource_font(IDR_FNT_SMALL);
+    pw->w_message.SetAlignment(ALIGN_LEFT_TOP);
+    pw->w_message.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_message.SetText("No messages");
     pw->w_message.Hide();
     pw->message_flag = false;
@@ -237,13 +236,13 @@ void screen_printing_init(screen_t *screen) {
         pw->w_buttons[col].SetTag(col + 1);
         pw->w_buttons[col].Enable();
 
-        id = window_create_ptr(
+        window_create_ptr(
             WINDOW_CLS_TEXT, root,
             rect_ui16(80 * col, text_y, 80, 22),
             &(pw->w_labels[col]));
         pw->w_labels[col].font = resource_font(IDR_FNT_SMALL);
         pw->w_labels[col].SetPadding(padding_ui8(0, 0, 0, 0));
-        window_set_alignment(id, ALIGN_CENTER);
+        pw->w_labels[col].SetAlignment(ALIGN_CENTER);
     }
 
     invalidate_print_state(screen); //must invalidate, to ensure correct draw of buttons

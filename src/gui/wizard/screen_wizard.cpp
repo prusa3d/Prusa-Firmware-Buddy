@@ -40,8 +40,8 @@ void screen_wizard_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.scr_body_sz, &(pd->frame_body));
     pd->frame_body.Hide();
 
-    int16_t id = window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, gui_defaults.header_sz.h), &(pd->header));
-    window_set_alignment(id, ALIGN_LEFT_BOTTOM);
+    window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, gui_defaults.header_sz.h), &(pd->header));
+    pd->header.SetAlignment(ALIGN_LEFT_BOTTOM);
 
     pd->header.SetText(wizard_get_caption(screen));
 

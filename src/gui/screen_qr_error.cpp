@@ -36,7 +36,7 @@ void screen_menu_qr_error_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 275, 224, 20), &(pd->info));
     pd->info.SetBackColor(COLOR_RED_ALERT);
-    window_set_alignment(id, ALIGN_CENTER);
+    pd->info.SetAlignment(ALIGN_CENTER);
     pd->info.SetText("help.prusa3d.com");
 
     id = window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(59, 140, 224, 95), &(pd->qr));

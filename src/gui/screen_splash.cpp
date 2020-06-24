@@ -45,13 +45,13 @@ void screen_splash_init(screen_t *screen) {
         &(_psd->logo_prusa_mini));
     window_set_icon_id(id, IDR_PNG_splash_logo_prusa_prn);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 171, 220, 20),
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 171, 220, 20),
         &(_psd->text_progress));
     _psd->text_progress.font = resource_font(IDR_FNT_NORMAL);
-    window_set_alignment(id, ALIGN_CENTER_BOTTOM);
+    _psd->text_progress.SetAlignment(ALIGN_CENTER_BOTTOM);
     _psd->text_progress.SetText("Loading ...");
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(10, 200, 220, 15),
+    window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(10, 200, 220, 15),
         &(_psd->progress));
     _psd->progress.color_back = COLOR_GRAY;
     _psd->progress.color_progress = COLOR_ORANGE;
@@ -62,9 +62,9 @@ void screen_splash_init(screen_t *screen) {
         &(_psd->icon_logo_marlin));
     window_set_icon_id(id, IDR_PNG_splash_logo_marlin);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(00, 295, 240, 22),
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(00, 295, 240, 22),
         &(_psd->text_version));
-    window_set_alignment(id, ALIGN_CENTER);
+    _psd->text_version.SetAlignment(ALIGN_CENTER);
     snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
     _psd->text_version.SetText(_psd->text_version_buffer);

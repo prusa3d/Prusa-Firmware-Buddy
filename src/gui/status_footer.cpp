@@ -58,12 +58,12 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     window_set_icon_id(id, IDR_PNG_status_icon_nozzle);
     footer->wi_nozzle.SetTag(uint8_t(ButtonStatus::Nozzle));
 
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, parent,
         rect_ui16(24, 269, 85, 20),
         &(footer->wt_nozzle));
     footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
+    footer->wt_nozzle.SetAlignment(ALIGN_CENTER);
     footer->wt_nozzle.SetText("");
 
     id = window_create_ptr( // heatbed
@@ -73,12 +73,12 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     window_set_icon_id(id, IDR_PNG_status_icon_heatbed);
     footer->wi_heatbed.SetTag(uint8_t(ButtonStatus::Heatbed));
 
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, parent,
         rect_ui16(150, 269, 85, 22),
         &(footer->wt_heatbed));
     footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
+    footer->wt_heatbed.SetAlignment(ALIGN_CENTER);
     footer->wt_heatbed.SetText("");
 
     id = window_create_ptr( // prnspeed
@@ -88,12 +88,12 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     window_set_icon_id(id, IDR_PNG_status_icon_prnspeed);
     footer->wi_prnspeed.SetTag(uint8_t(ButtonStatus::PrnSpeed));
 
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, parent,
         rect_ui16(28, 296, 40, 22),
         &(footer->wt_prnspeed));
     footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
+    footer->wt_prnspeed.SetAlignment(ALIGN_CENTER);
     footer->wt_prnspeed.SetText("");
 
     id = window_create_ptr( // z-axis
@@ -108,7 +108,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         rect_ui16(102, 296, 58, 22),
         &(footer->wt_z_axis));
     footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
+    footer->wt_z_axis.SetAlignment(ALIGN_CENTER);
     footer->wt_z_axis.SetText("");
 
     id = window_create_ptr( // filament
@@ -123,7 +123,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         rect_ui16(181, 296, 49, 22),
         &(footer->wt_filament));
     footer->wt_filament.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
+    footer->wt_filament.SetAlignment(ALIGN_CENTER);
     footer->wt_filament.SetText(filaments[get_filament()].name);
 
     footer->last_timer_repaint_values = 0;

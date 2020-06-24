@@ -49,3 +49,8 @@ void window_text_t::SetPadding(padding_ui8_t padd) {
     padding = padd;
     _window_invalidate(this);
 }
+
+void window_text_t::SetAlignment(uint8_t alignm) {
+    alignment = alignm;
+    _window_invalidate(this);
+}

@@ -17,7 +17,6 @@ struct screen_watchdog_t {
 
 void screen_watchdog_init(screen_watchdog_t *screen) {
     if (screen->pd == 0) {
-        int16_t id;
         int16_t id0;
         screen_watchdog_data_t *pd = (screen_watchdog_data_t *)gui_malloc(sizeof(screen_watchdog_data_t));
         screen->pd = pd;
@@ -25,15 +24,15 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
         id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
         pd->frame.SetBackColor(COLOR_RED);
 
-        id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 220, 24), &(pd->text0));
+        window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 220, 24), &(pd->text0));
         pd->text0.font = resource_font(IDR_FNT_BIG);
         pd->text0.SetText("WATCHDOG RESET");
-        window_set_alignment(id, ALIGN_CENTER);
+        pd->text0.SetAlignment(ALIGN_CENTER);
 
-        id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 110, 240, 24), &(pd->text1));
+        window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 110, 240, 24), &(pd->text1));
         pd->text1.font = resource_font(IDR_FNT_NORMAL);
         pd->text1.SetText("press to continue...");
-        window_set_alignment(id, ALIGN_CENTER);
+        pd->text1.SetAlignment(ALIGN_CENTER);
         pd->text1.Enable();
         pd->text1.SetTag(1);
     }

@@ -77,7 +77,7 @@ void screen_home_init(screen_t *screen) {
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0), &(pw->root));
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
+    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_home);
     p_window_header_set_text(&(pw->header), _("HOME"));
 
@@ -87,7 +87,7 @@ void screen_home_init(screen_t *screen) {
 
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
-            id = window_create_ptr(
+            window_create_ptr(
                 WINDOW_CLS_ICON, root,
                 rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64),
                 &(pw->w_buttons[row * 3 + col]));
@@ -96,12 +96,12 @@ void screen_home_init(screen_t *screen) {
             pw->w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
             pw->w_buttons[row * 3 + col].Enable();
 
-            id = window_create_ptr(
+            window_create_ptr(
                 WINDOW_CLS_TEXT, root,
                 rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14),
                 &(pw->w_labels[row * 3 + col]));
             pw->w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
-            window_set_alignment(id, ALIGN_CENTER);
+            pw->w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
             pw->w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
             pw->w_labels[row * 3 + col].SetText(labels[row * 3 + col]);
         }

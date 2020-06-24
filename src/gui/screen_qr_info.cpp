@@ -18,13 +18,13 @@ struct screen_qr_info_data_t {
 #define pd ((screen_qr_info_data_t *)screen->pdata)
 
 void screen_menu_qr_info_init(screen_t *screen) {
-    int16_t id, root;
+    int16_t root;
 
     root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->root));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 25, 224, 95), &(pd->warning));
+    window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 25, 224, 95), &(pd->warning));
     pd->warning.font = resource_font(IDR_FNT_TERMINAL);
-    window_set_alignment(id, ALIGN_HCENTER);
+    pd->warning.SetAlignment(ALIGN_HCENTER);
     if (last_selftest_time == 0)
         pd->warning.SetText("selfTest-data not\n    available");
     else if ((HAL_GetTick() / 1000 - last_selftest_time) > LAST_SELFTEST_TIMEOUT)
@@ -32,14 +32,14 @@ void screen_menu_qr_info_init(screen_t *screen) {
     else
         pd->warning.SetText("selfTest-data relevant");
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 280, 224, 30), &(pd->button));
+    window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 280, 224, 30), &(pd->button));
     pd->button.font = resource_font(IDR_FNT_BIG);
     pd->button.SetBackColor(COLOR_WHITE);
     pd->button.SetTextColor(COLOR_BLACK);
-    window_set_alignment(id, ALIGN_HCENTER);
+    pd->button.SetAlignment(ALIGN_HCENTER);
     pd->button.SetText("RETURN");
 
-    id = window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(28, 85, 224, 95), &(pd->qr));
+    window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(28, 85, 224, 95), &(pd->qr));
     pd->qr.ecc_level = qrcodegen_Ecc_MEDIUM;
     create_path_info_4service(pd->qr_text, MAX_LEN_4QR + 1);
     pd->qr.text = pd->qr_text;
