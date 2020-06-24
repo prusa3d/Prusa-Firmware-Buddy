@@ -15,10 +15,19 @@
 typedef enum {
     APNDX_EXISTS = 0, /**< Appendix not broken, signature authentication needed */
     APNDX_BROKEN      /**< Appendix broken, no signature authentication needed */
-} BT_APNDX_STATUS;
+} APNDX_STATUS;
 
-// model_specific_flags bit locations
-#define FLG_APPENDIX_STATUS_LOC 0b00000001
+// model_specific_flags bit locations from LSB
+typedef enum {
+    appednix_status = 0, /**< appendix status flag */
+    reserved_1,
+    reserved_2,
+    reserved_3,
+    reserved_4,
+    reserved_5,
+    reserved_6,
+    reserved_7
+} model_specific_flags;
 
 #pragma pack(push)
 #pragma pack(1)
