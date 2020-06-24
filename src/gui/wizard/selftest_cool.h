@@ -10,10 +10,14 @@ struct selftest_cool_screen_t {
     window_text_t text_waiting_cd;
     window_text_t text_target_tp;
     window_numb_t target_nozzle;
+    window_text_t target_nozzle_tx;
     window_numb_t target_bed;
+    window_text_t target_bed_tx;
     window_icon_t icon_hourglass;
     window_numb_t curr_nozzle_temp;
     window_numb_t curr_bed_temp;
+    window_text_t nozzle_tx;
+    window_text_t bed_tx;
 };
 
 struct selftest_cool_data_t {
