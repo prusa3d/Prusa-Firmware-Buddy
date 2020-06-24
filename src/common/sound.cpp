@@ -2,7 +2,7 @@
 #include "hwio.h"
 #include "eeprom.h"
 
-uint8_t SOUND_INIT = 0;
+static bool SOUND_INIT = false;
 
 const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 50, 100, 100, 1000 };
 const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
@@ -55,7 +55,7 @@ void Sound::init() {
         setMode(eSOUND_MODE_DEFAULT);
     }
     /// GLOBAL FLAG set on demand when first sound method is called
-    SOUND_INIT = 1;
+    SOUND_INIT = true;
 }
 
 eSOUND_MODE Sound::getMode() const {
