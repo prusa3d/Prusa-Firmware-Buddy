@@ -35,10 +35,10 @@ void screen_wizard_init(screen_t *screen) {
     int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.footer_sz, &(pd->frame_footer));
-    window_hide(id_footer);
+    pd->frame_footer.Hide();
 
     int16_t id_body = window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.scr_body_sz, &(pd->frame_body));
-    window_hide(id_body);
+    pd->frame_body.Hide();
 
     int16_t id = window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, gui_defaults.header_sz.h), &(pd->header));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);

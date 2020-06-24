@@ -222,7 +222,7 @@ void screen_printing_init(screen_t *screen) {
     window_set_alignment(id, ALIGN_LEFT_TOP);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
     window_set_text(id, "No messages");
-    window_hide(id);
+    pw->w_message.Hide();
     pw->message_flag = false;
 
     // buttons
@@ -263,11 +263,11 @@ void screen_printing_draw(screen_t *screen) {
 }
 
 static void open_popup_message(screen_t *screen) {
-    window_hide(pw->w_etime_label.id);
-    window_hide(pw->w_etime_value.id);
-    window_hide(pw->w_progress.id);
-    window_hide(pw->w_time_label.id);
-    window_hide(pw->w_time_value.id);
+    pw->w_etime_label.Hide();
+    pw->w_etime_value.Hide();
+    pw->w_progress.Hide();
+    pw->w_time_label.Hide();
+    pw->w_time_value.Hide();
 
     window_set_text(pw->w_message.id, msg_stack.msg_data[0]);
 
@@ -285,7 +285,7 @@ static void close_popup_message(screen_t *screen) {
 
     window_set_text(pw->w_message.id, "");
 
-    window_hide(pw->w_message.id);
+    pw->w_message.Hide();
     pw->message_flag = false;
 }
 

@@ -492,13 +492,10 @@ void window_t::Show() {
     }
 }
 
-void window_hide(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        if (window->f_visible) {
-            window->f_visible = 0;
-            _window_invalidate((window_t *)window);
-        }
+void window_t::Hide() {
+    if (f_visible) {
+        f_visible = 0;
+        _window_invalidate(this);
     }
 }
 

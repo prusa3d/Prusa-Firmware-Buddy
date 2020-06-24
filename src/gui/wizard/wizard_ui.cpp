@@ -101,7 +101,6 @@ static void _disable_PID() {
 }
 
 void wizard_init(float t_noz, float t_bed /*, int16_t footer_id*/) {
-    /*window_hide(footer_id);*/
     _wizard_init_test();
 
     //Set Hotend Temperature
@@ -112,7 +111,6 @@ void wizard_init(float t_noz, float t_bed /*, int16_t footer_id*/) {
 }
 
 void wizard_init_disable_PID(float t_noz, float t_bed /*, int16_t footer_id*/) {
-    /*window_hide(footer_id);*/
     _wizard_init_test();
     _disable_PID();
 
