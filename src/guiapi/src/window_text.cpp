@@ -44,3 +44,8 @@ void window_text_t::SetTextColor(color_t clr) {
     color_text = clr;
     _window_invalidate(this);
 }
+
+void window_text_t::SetPadding(padding_ui8_t padd) {
+    padding = padd;
+    _window_invalidate(this);
+}

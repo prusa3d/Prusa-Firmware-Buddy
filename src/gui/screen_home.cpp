@@ -102,7 +102,7 @@ void screen_home_init(screen_t *screen) {
                 &(pw->w_labels[row * 3 + col]));
             pw->w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
             window_set_alignment(id, ALIGN_CENTER);
-            window_set_padding(id, padding_ui8(0, 0, 0, 0));
+            pw->w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
             pw->w_labels[row * 3 + col].SetText(labels[row * 3 + col]);
         }
     }

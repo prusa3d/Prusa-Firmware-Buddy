@@ -108,7 +108,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
         rect_ui16(PADDING, y_pos, title_width, LINE_HEIGHT), &line->title);
     line->title.SetText(title);
     window_set_alignment(title_id, ALIGN_LEFT_BOTTOM);
-    window_set_padding(title_id, padding_ui8(0, 0, 0, 0));
+    line->title.SetPadding(padding_ui8(0, 0, 0, 0));
     line->title.font = resource_font(IDR_FNT_SMALL);
 
     int value_width = SCREEN_WIDTH - PADDING * 2 - title_width - 1;
@@ -122,7 +122,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     va_end(args);
     line->value.SetText(line->value_buffer);
     window_set_alignment(value_id, ALIGN_RIGHT_BOTTOM);
-    window_set_padding(value_id, padding_ui8(0, 0, 0, 0));
+    line->value.SetPadding(padding_ui8(0, 0, 0, 0));
     line->value.font = resource_font(IDR_FNT_SMALL);
 }
 

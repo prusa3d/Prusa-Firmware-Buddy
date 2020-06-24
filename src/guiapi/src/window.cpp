@@ -338,21 +338,6 @@ void window_t::SetBackColor(color_t clr) {
     _window_invalidate(this);
 }
 
-void window_set_padding(int16_t id, padding_ui8_t padding) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            ((window_text_t *)window)->padding = padding;
-            break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->padding = padding;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
 void window_set_alignment(int16_t id, uint8_t alignment) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {

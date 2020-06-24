@@ -20,6 +20,7 @@ struct window_text_t : public window_t {
     void SetTextColor(color_t clr);
 
     color_t GetTextColor() const { return color_text; }
+    void SetPadding(padding_ui8_t padd);
 };
 
 extern const window_class_text_t window_class_text;

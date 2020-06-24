@@ -111,7 +111,7 @@ void screen_printing_serial_init(screen_t *screen) {
             rect_ui16(80 * col, 196 + 48 + 8, 80, 22),
             &(pw->w_labels[col]));
         pw->w_labels[col].font = resource_font(IDR_FNT_SMALL);
-        window_set_padding(id, padding_ui8(0, 0, 0, 0));
+        pw->w_labels[col].SetPadding(padding_ui8(0, 0, 0, 0));
         window_set_alignment(id, ALIGN_CENTER);
     }
 

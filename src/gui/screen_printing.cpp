@@ -171,7 +171,7 @@ void screen_printing_init(screen_t *screen) {
         rect_ui16(10, 33, 220, 29),
         &(pw->w_filename));
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
-    window_set_padding(id, padding_ui8(0, 0, 0, 0));
+    pw->w_filename.SetPadding(padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
     pw->w_filename.SetText(vars->media_LFN ? vars->media_LFN : "");
 
@@ -187,7 +187,7 @@ void screen_printing_init(screen_t *screen) {
         &(pw->w_etime_label));
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
-    window_set_padding(id, padding_ui8(0, 2, 0, 2));
+    pw->w_etime_label.SetPadding(padding_ui8(0, 2, 0, 2));
     strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
     pw->w_etime_label.SetText(pw->label_etime.data());
 
@@ -196,7 +196,7 @@ void screen_printing_init(screen_t *screen) {
         &(pw->w_etime_value));
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
-    window_set_padding(id, padding_ui8(0, 2, 0, 2));
+    pw->w_etime_value.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_etime_value.SetText(pw->text_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
@@ -204,7 +204,7 @@ void screen_printing_init(screen_t *screen) {
         &(pw->w_time_label));
     pw->w_time_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
-    window_set_padding(id, padding_ui8(0, 2, 0, 2));
+    pw->w_time_label.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_time_label.SetText(_("Printing time"));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
@@ -212,7 +212,7 @@ void screen_printing_init(screen_t *screen) {
         &(pw->w_time_value));
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
-    window_set_padding(id, padding_ui8(0, 2, 0, 2));
+    pw->w_time_value.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_time_value.SetText(pw->text_time_dur.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
@@ -220,7 +220,7 @@ void screen_printing_init(screen_t *screen) {
         &(pw->w_message));
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_LEFT_TOP);
-    window_set_padding(id, padding_ui8(0, 2, 0, 2));
+    pw->w_time_value.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_message.SetText("No messages");
     pw->w_message.Hide();
     pw->message_flag = false;
@@ -242,7 +242,7 @@ void screen_printing_init(screen_t *screen) {
             rect_ui16(80 * col, text_y, 80, 22),
             &(pw->w_labels[col]));
         pw->w_labels[col].font = resource_font(IDR_FNT_SMALL);
-        window_set_padding(id, padding_ui8(0, 0, 0, 0));
+        pw->w_labels[col].SetPadding(padding_ui8(0, 0, 0, 0));
         window_set_alignment(id, ALIGN_CENTER);
     }
 
