@@ -88,7 +88,7 @@ static_assert(IoPinToHal(IoPin::p15) == 0x8000U, "IoPinToHal broken");
 template <IoPort ioPort, IoPin ioPin>
 class Pin : LinkedListItem {
 protected:
-    static constexpr GPIO_TypeDef *m_HalPort = IoPortToHal(ioPort);
+    static constexpr IoPort m_port = ioPort;
     static constexpr uint16_t m_HalPin = IoPinToHal(ioPin);
 };
 
@@ -100,9 +100,9 @@ public:
     void configure() {
         GPIO_InitTypeDef GPIO_InitStruct = { 0 };
         GPIO_InitStruct.Pin = PinBase::m_HalPin;
-        HAL_GPIO_Init(PinBase::m_HalPort, &GPIO_InitStruct);
         GPIO_InitStruct.Mode = static_cast<uint32_t>(m_iMode);
         GPIO_InitStruct.Pull = static_cast<uint32_t>(m_pull);
+        HAL_GPIO_Init(IoPortToHal(PinBase::m_port), &GPIO_InitStruct);
     }
 
 private:
