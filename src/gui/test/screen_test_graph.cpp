@@ -40,14 +40,14 @@ void screen_test_graph_init(screen_test_term_t *screen) {
 
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
         pd->id_text = id;
-        window_set_text(id, (const char *)"Test");
+        pd->text.SetText((const char *)"Test");
 
         id = window_create_ptr(WINDOW_CLS_TEMP_GRAPH, id0, rect_ui16(10, 28, 180, 180), &pd->graph);
         pd->id_graph = id;
 
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 220, 100, 22), &(pd->button));
         pd->id_button = id;
-        window_set_text(id, (const char *)"Return");
+        pd->button.SetText((const char *)"Return");
         pd->button.Enable();
         pd->button.SetTag(1);
     }

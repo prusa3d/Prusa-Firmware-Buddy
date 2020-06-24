@@ -27,7 +27,7 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
     uint16_t x = WIZARD_MARGIN_LEFT;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_waiting_cd));
-    window_set_text(id, "Waiting for cooldown");
+    p_screen->text_waiting_cd.SetText("Waiting for cooldown");
 
     y += 22;
 

@@ -30,7 +30,7 @@ enum class ButtonStatus {
 };
 
 /// these texts have to be stored here
-/// because window_set_text does not copy the text
+/// because window_text_t->SetText does not copy the text
 /// and windows have delayed redrawing
 static char text_nozzle[10];  // "215/215°C"
 static char text_heatbed[10]; // "110/110°C"
@@ -44,8 +44,8 @@ void status_footer_update_temperatures(status_footer_t *footer);
 void status_footer_update_feedrate(status_footer_t *footer);
 void status_footer_update_z_axis(status_footer_t *footer);
 void status_footer_update_filament(status_footer_t *footer);
-void status_footer_repaint_nozzle(const status_footer_t *footer);
-void status_footer_repaint_heatbed(const status_footer_t *footer);
+void status_footer_repaint_nozzle(status_footer_t *footer);
+void status_footer_repaint_heatbed(status_footer_t *footer);
 
 void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
@@ -64,7 +64,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_nozzle));
     footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    footer->wt_nozzle.SetText("");
 
     id = window_create_ptr( // heatbed
         WINDOW_CLS_ICON, parent,
@@ -79,7 +79,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_heatbed));
     footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    footer->wt_heatbed.SetText("");
 
     id = window_create_ptr( // prnspeed
         WINDOW_CLS_ICON, parent,
@@ -94,7 +94,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_prnspeed));
     footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    footer->wt_prnspeed.SetText("");
 
     id = window_create_ptr( // z-axis
         WINDOW_CLS_ICON, parent,
@@ -109,7 +109,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_z_axis));
     footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    footer->wt_z_axis.SetText("");
 
     id = window_create_ptr( // filament
         WINDOW_CLS_ICON, parent,
@@ -124,7 +124,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_filament));
     footer->wt_filament.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, filaments[get_filament()].name);
+    footer->wt_filament.SetText(filaments[get_filament()].name);
 
     footer->last_timer_repaint_values = 0;
     footer->last_timer_repaint_z_pos = 0;
@@ -219,7 +219,7 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     footer->nozzle_target_display = vars->display_nozzle;
 
     if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle)))
-        window_set_text(footer->wt_nozzle.id, text_nozzle);
+        footer->wt_nozzle.SetText(text_nozzle);
 }
 
 void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *vars) {
@@ -239,7 +239,7 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
     footer->heatbed_target = vars->target_bed;
 
     if (0 < snprintf(text_heatbed, sizeof(text_heatbed), "%d/%d\177C", (int)roundf(vars->temp_bed), (int)roundf(vars->target_bed)))
-        window_set_text(footer->wt_heatbed.id, text_heatbed);
+        footer->wt_heatbed.SetText(text_heatbed);
 }
 
 /// Updates values in footer state from real values and repaint
@@ -257,7 +257,7 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     const unsigned int text_len = 10;
     char text[text_len];
     snprintf(text, text_len, "%.0f\177C", (double)actual_heatbreak);
-    window_set_text(footer->wt_filament.id, footer->text);
+    footer->wt_filament.SetText(footer->text);
 #endif //LCD_HEATBREAK_TO_FILAMENT
 }
 
@@ -277,13 +277,13 @@ void status_footer_update_feedrate(status_footer_t *footer) {
         snprintf(text_prnspeed, sizeof(text_prnspeed), "%3d%%", speed);
     else
         snprintf(text_prnspeed, sizeof(text_prnspeed), err);
-    window_set_text(footer->wt_prnspeed.id, text_prnspeed);
+    footer->wt_prnspeed.SetText(text_prnspeed);
 }
 
 void status_footer_update_z_axis(status_footer_t *footer) {
     const marlin_vars_t *vars = marlin_vars();
     if (!vars) {
-        window_set_text(footer->wt_z_axis.id, err);
+        footer->wt_z_axis.SetText(err);
         return;
     }
 
@@ -293,10 +293,10 @@ void status_footer_update_z_axis(status_footer_t *footer) {
 
     footer->z_pos = pos;
     if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)std::abs(pos % 100))) {
-        window_set_text(footer->wt_z_axis.id, err);
+        footer->wt_z_axis.SetText(err);
         return;
     }
-    window_set_text(footer->wt_z_axis.id, text_z_axis);
+    footer->wt_z_axis.SetText(text_z_axis);
 }
 
 void status_footer_update_filament(status_footer_t *footer) {
@@ -304,14 +304,11 @@ void status_footer_update_filament(status_footer_t *footer) {
         return;
 
     strncpy(filament, filaments[get_filament()].name, sizeof(filament));
-    window_set_text(footer->wt_filament.id, filament);
-    // #ifndef LCD_HEATBREAK_TO_FILAMENT
-    //     window_set_text(footer->wt_filament.id, filaments[get_filament()].name);
-    // #endif
+    footer->wt_filament.SetText(filament);
 }
 
 /// Repaints nozzle temperature in proper color
-void status_footer_repaint_nozzle(const status_footer_t *footer) {
+void status_footer_repaint_nozzle(status_footer_t *footer) {
     color_t clr = DEFAULT_COLOR;
 
     switch (footer->nozzle_state) {
@@ -331,11 +328,11 @@ void status_footer_repaint_nozzle(const status_footer_t *footer) {
         clr = DEFAULT_COLOR;
     }
 
-    window_set_color_text(footer->wt_nozzle.id, clr);
+    footer->wt_nozzle.SetTextColor(clr);
 }
 
 /// Repaints heatbed temperature in proper color
-void status_footer_repaint_heatbed(const status_footer_t *footer) {
+void status_footer_repaint_heatbed(status_footer_t *footer) {
     color_t clr = DEFAULT_COLOR;
 
     switch (footer->heatbed_state) {
@@ -352,5 +349,5 @@ void status_footer_repaint_heatbed(const status_footer_t *footer) {
         clr = DEFAULT_COLOR;
     }
 
-    window_set_color_text(footer->wt_heatbed.id, clr);
+    footer->wt_heatbed.SetTextColor(clr);
 }

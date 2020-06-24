@@ -173,7 +173,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
-    window_set_text(id, vars->media_LFN ? vars->media_LFN : "");
+    pw->w_filename.SetText(vars->media_LFN ? vars->media_LFN : "");
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
@@ -189,7 +189,7 @@ void screen_printing_init(screen_t *screen) {
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
     strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
-    window_set_text(id, pw->label_etime.data());
+    pw->w_etime_label.SetText(pw->label_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(30, 148, 201, 20),
@@ -197,7 +197,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_etime.data());
+    pw->w_etime_value.SetText(pw->text_etime.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 128, 101, 20),
@@ -205,7 +205,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, _("Printing time"));
+    pw->w_time_label.SetText(_("Printing time"));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 148, 101, 20),
@@ -213,7 +213,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_time_dur.data());
+    pw->w_time_value.SetText(pw->text_time_dur.data());
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
@@ -221,7 +221,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_LEFT_TOP);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "No messages");
+    pw->w_message.SetText("No messages");
     pw->w_message.Hide();
     pw->message_flag = false;
 
@@ -269,7 +269,7 @@ static void open_popup_message(screen_t *screen) {
     pw->w_time_label.Hide();
     pw->w_time_value.Hide();
 
-    window_set_text(pw->w_message.id, msg_stack.msg_data[0]);
+    pw->w_message.SetText(msg_stack.msg_data[0]);
 
     pw->w_message.Show();
     pw->message_timer = HAL_GetTick();
@@ -283,7 +283,7 @@ static void close_popup_message(screen_t *screen) {
     pw->w_time_label.Show();
     pw->w_time_value.Show();
 
-    window_set_text(pw->w_message.id, "");
+    pw->w_message.SetText("");
 
     pw->w_message.Hide();
     pw->message_flag = false;
@@ -334,11 +334,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         time_t sec = sntp_get_system_time();
         if (sec != 0) {
             strlcpy(pw->label_etime.data(), _("Print will end"), 15);
-            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
+            pw->w_etime_label.SetText(pw->label_etime.data());
             update_end_timestamp(screen, sec);
         } else {
             strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
-            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
+            pw->w_etime_label.SetText(pw->label_etime.data());
             update_remaining_time(screen, marlin_vars()->time_to_end);
         }
         pw->last_time_to_end = marlin_vars()->time_to_end;
@@ -454,7 +454,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
     } else
         strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
 
-    window_set_text(pw->w_etime_value.id, pw->text_etime.data());
+    pw->w_etime_value.SetText(pw->text_etime.data());
 }
 
 static void update_end_timestamp(screen_t *screen, time_t now_sec) {
@@ -495,7 +495,7 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec) {
         }
     }
 
-    window_set_text(pw->w_etime_value.id, pw->text_etime.data());
+    pw->w_etime_value.SetText(pw->text_etime.data());
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
@@ -509,14 +509,14 @@ static void update_print_duration(screen_t *screen, time_t rawtime) {
     } else {
         snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
     }
-    window_set_text(pw->w_time_value.id, pw->text_time_dur.data());
+    pw->w_time_value.SetText(pw->text_time_dur.data());
 }
 
 static void screen_printing_reprint(screen_t *screen) {
     print_begin(marlin_vars()->media_SFN_path);
-    window_set_text(pw->w_etime_label.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
+    pw->w_etime_label.SetText(PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
-    window_set_text(pw->w_labels[static_cast<size_t>(Btn::Stop)].id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
+    pw->w_labels[static_cast<size_t>(Btn::Stop)].SetText(printing_labels[static_cast<size_t>(item_id_t::stop)]);
     window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
@@ -542,13 +542,13 @@ static void screen_printing_reprint(screen_t *screen) {
     }
 }*/
 
-static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
+static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, window_text_t *lbl) {
     size_t index = static_cast<size_t>(id_to_set);
     if (window_get_icon_id(btn_id) != printing_icons[index])
         window_set_icon_id(btn_id, printing_icons[index]);
     //compare pointers to text, compare texts would take too long
-    if (window_get_text(lbl_id) != printing_labels[index])
-        window_set_text(lbl_id, printing_labels[index]);
+    if (lbl->GetText() != printing_labels[index])
+        lbl->SetText(printing_labels[index]);
 }
 
 static void enable_button(window_icon_t *p_button) {
@@ -568,7 +568,7 @@ static void disable_button(window_icon_t *p_button) {
 static void set_pause_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Pause)];
     int16_t btn_id = p_button->id;
-    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Pause)].id;
+    window_text_t *pLabel = &pw->w_labels[static_cast<size_t>(Btn::Pause)];
 
     //todo it is static, because menu tune is not dialog
     //switch (pw->state__readonly__use_change_print_state)
@@ -578,28 +578,28 @@ static void set_pause_icon_and_label(screen_t *screen) {
     case printing_state_t::PRINTING:
     case printing_state_t::MBL_FAILED:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::pause, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::pause, btn_id, pLabel);
         break;
     case printing_state_t::PAUSING:
         disable_button(p_button);
-        set_icon_and_label(item_id_t::pausing, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::pausing, btn_id, pLabel);
         break;
     case printing_state_t::PAUSED:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::resume, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::resume, btn_id, pLabel);
         break;
     case printing_state_t::RESUMING:
         disable_button(p_button);
-        set_icon_and_label(item_id_t::resuming, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::resuming, btn_id, pLabel);
         break;
     case printing_state_t::REHEATING:
     case printing_state_t::REHEATING_DONE:
         disable_button(p_button);
-        set_icon_and_label(item_id_t::reheating, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::reheating, btn_id, pLabel);
         break;
     case printing_state_t::PRINTED:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::reprint, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::reprint, btn_id, pLabel);
         break;
     case printing_state_t::ABORTING:
         disable_button(p_button);
@@ -610,10 +610,10 @@ static void set_pause_icon_and_label(screen_t *screen) {
 void set_tune_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
     int16_t btn_id = p_button->id;
-    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Tune)].id;
+    window_text_t *pLabel = &pw->w_labels[static_cast<size_t>(Btn::Tune)];
 
     //must be before switch
-    set_icon_and_label(item_id_t::settings, btn_id, lbl_id);
+    set_icon_and_label(item_id_t::settings, btn_id, pLabel);
 
     switch (get_state(screen)) {
     case printing_state_t::PRINTING:
@@ -632,24 +632,24 @@ void set_tune_icon_and_label(screen_t *screen) {
 void set_stop_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Stop)];
     int16_t btn_id = p_button->id;
-    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Stop)].id;
+    window_text_t *pLabel = &pw->w_labels[static_cast<size_t>(Btn::Stop)];
 
     switch (get_state(screen)) {
     case printing_state_t::PRINTED:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::home, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::home, btn_id, pLabel);
         break;
     case printing_state_t::PAUSING:
     case printing_state_t::RESUMING:
         disable_button(p_button);
-        set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::stop, btn_id, pLabel);
         break;
     case printing_state_t::ABORTING:
         disable_button(p_button);
         break;
     default:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::stop, btn_id, lbl_id);
+        set_icon_and_label(item_id_t::stop, btn_id, pLabel);
         break;
     }
 }

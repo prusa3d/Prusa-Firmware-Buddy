@@ -55,14 +55,14 @@ void screen_sysinfo_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"Disp. TEST rd mem.");
+    pd->textMenuName.SetText((const char *)"Disp. TEST rd mem.");
 
     row2draw += 25;
 
     //write pattern
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_load));
     pd->textCPU_load.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"CPU load");
+    pd->textCPU_load.SetText((const char *)"CPU load");
 
     id = window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
     window_set_format(id, (const char *)"%.0f");
@@ -72,7 +72,7 @@ void screen_sysinfo_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"EXIT");
+    pd->textExit.SetText((const char *)"EXIT");
     pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
 }

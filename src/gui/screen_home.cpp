@@ -103,7 +103,7 @@ void screen_home_init(screen_t *screen) {
             pw->w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
             window_set_alignment(id, ALIGN_CENTER);
             window_set_padding(id, padding_ui8(0, 0, 0, 0));
-            window_set_text(id, labels[row * 3 + col]);
+            pw->w_labels[row * 3 + col].SetText(labels[row * 3 + col]);
         }
     }
 
@@ -249,7 +249,7 @@ void screen_home_disable_print_button(screen_t *screen, int disable) {
     pw->w_buttons[0].f_disabled = disable;
     pw->w_buttons[0].f_enabled = !disable; // cant't be focused
     pw->w_buttons[0].f_invalid = 1;
-    window_set_text(pw->w_labels[0].id, labels[(disable ? 6 : 0)]);
+    pw->w_labels[0].SetText(labels[(disable ? 6 : 0)]);
 
     // move to preheat when Print is focused
     if (pw->w_buttons[0].IsFocused() && disable) {

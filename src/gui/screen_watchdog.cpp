@@ -27,12 +27,12 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
 
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 220, 24), &(pd->text0));
         pd->text0.font = resource_font(IDR_FNT_BIG);
-        window_set_text(id, "WATCHDOG RESET");
+        pd->text0.SetText("WATCHDOG RESET");
         window_set_alignment(id, ALIGN_CENTER);
 
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 110, 240, 24), &(pd->text1));
         pd->text1.font = resource_font(IDR_FNT_NORMAL);
-        window_set_text(id, "press to continue...");
+        pd->text1.SetText("press to continue...");
         window_set_alignment(id, ALIGN_CENTER);
         pd->text1.Enable();
         pd->text1.SetTag(1);

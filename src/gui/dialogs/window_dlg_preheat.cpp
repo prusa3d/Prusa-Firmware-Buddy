@@ -72,7 +72,7 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     if (window->caption) {
         rect.h = window->font_title->h + 2;
         id = window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
-        window_set_text(id, window->caption);
+        window->text.SetText(window->caption);
         rect = gui_defaults.scr_body_sz;
         rect.y += window->font_title->h + 4;
         rect.h -= window->font_title->h + 4;

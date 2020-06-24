@@ -43,7 +43,7 @@ void screen_wizard_init(screen_t *screen) {
     int16_t id = window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, gui_defaults.header_sz.h), &(pd->header));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
 
-    window_set_text(id, wizard_get_caption(screen));
+    pd->header.SetText(wizard_get_caption(screen));
 
     status_footer_init(&(pd->footer), id_footer);
 
@@ -129,7 +129,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     if (event == WINDOW_EVENT_LOOP) {
         if (inside_handler == 0) {
             marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
-            window_set_text(pd->header.id, wizard_get_caption(screen));
+            pd->header.SetText(wizard_get_caption(screen));
             inside_handler = 1;
             while (is_state_in_wizard_mask(pd->state) == 0)
                 pd->state = wizard_state_t(int(pd->state) + 1); //skip disabled steps
@@ -297,7 +297,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     pd->state = _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE;
                 break;
             case _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE:
-                window_set_text(pd->screen_variant.xyzcalib_screen.text_state.id, "Calibration XY");
+                pd->screen_variant.xyzcalib_screen.text_state.SetText("Calibration XY");
                 wizard_msgbox1(
                     "Please clean the nozzle "
                     "for calibration. Click "

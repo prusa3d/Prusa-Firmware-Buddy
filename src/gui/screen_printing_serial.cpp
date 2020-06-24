@@ -67,12 +67,12 @@ screen_t screen_printing_serial = {
 };
 screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
-static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
+static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, window_text_t *lbl) {
     if (window_get_icon_id(btn_id) != serial_printing_icons[id_to_set])
         window_set_icon_id(btn_id, serial_printing_icons[id_to_set]);
     //compare pointers to text, compare texts would take too long
-    if (window_get_text(lbl_id) != serial_printing_labels[id_to_set])
-        window_set_text(lbl_id, serial_printing_labels[id_to_set]);
+    if (lbl->GetText() != serial_printing_labels[id_to_set])
+        lbl->SetText(serial_printing_labels[id_to_set]);
 }
 
 void screen_printing_serial_init(screen_t *screen) {
@@ -120,15 +120,15 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- tune button
     static_assert(BUTTON_TUNE < iid_count, "BUTTON_TUNE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_TUNE];
-    set_icon_and_label(iid_tune, sp_button->id, pw->w_labels[BUTTON_TUNE].id);
+    set_icon_and_label(iid_tune, sp_button->id, &pw->w_labels[BUTTON_TUNE]);
     // -- pause
     static_assert(BUTTON_PAUSE < iid_count, "BUTTON_PAUSE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_PAUSE];
-    set_icon_and_label(iid_pause, sp_button->id, pw->w_labels[BUTTON_PAUSE].id);
+    set_icon_and_label(iid_pause, sp_button->id, &pw->w_labels[BUTTON_PAUSE]);
     // -- disconnect
     static_assert(BUTTON_DISCONNECT < iid_count, "BUTTON_DISCONNECT not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
-    set_icon_and_label(iid_disconnect, sp_button->id, pw->w_labels[BUTTON_DISCONNECT].id);
+    set_icon_and_label(iid_disconnect, sp_button->id, &pw->w_labels[BUTTON_DISCONNECT]);
 
     status_footer_init(&(pw->footer), root);
 }

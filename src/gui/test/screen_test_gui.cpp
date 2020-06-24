@@ -36,15 +36,15 @@ void screen_test_gui_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 60, 22), &(pd->text0));
     pd->text0.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"Big");
+    pd->text0.SetText((const char *)"Big");
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(80, 70, 60, 22), &(pd->text1));
     pd->text1.font = resource_font(IDR_FNT_NORMAL); // ignore GUI_DEF_FONT
-    window_set_text(id, (const char *)"Normal");
+    pd->text1.SetText((const char *)"Normal");
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(150, 70, 60, 22), &(pd->text2));
     pd->text2.font = resource_font(IDR_FNT_SMALL);
-    window_set_text(id, (const char *)"Small");
+    pd->text2.SetText((const char *)"Small");
 
     id = window_create_ptr(WINDOW_CLS_NUMB, id0, rect_ui16(10, 100, 60, 22), &(pd->numb0));
     window_set_format(id, (const char *)"%.0f");
@@ -82,7 +82,7 @@ void screen_test_gui_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 298, 240, 22), &(pd->text_terminal));
     pd->text_terminal.font = resource_font(IDR_FNT_TERMINAL);
-    window_set_text(id, (const char *)"Terminal Font IBM ISO9");
+    pd->text_terminal.SetText((const char *)"Terminal Font IBM ISO9");
 }
 
 void screen_test_gui_done(screen_t *screen) {

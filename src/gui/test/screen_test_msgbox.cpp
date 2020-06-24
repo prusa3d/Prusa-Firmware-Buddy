@@ -27,65 +27,63 @@ struct screen_test_msgbox_data_t {
 const char *test_text = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
 
 void screen_test_msgbox_init(screen_t *screen) {
-    int16_t id;
-
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 32, 220, 22), &(pd->tst));
-    window_set_text(id, (const char *)"TEST MSGBOX");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 32, 220, 22), &(pd->tst));
+    pd->tst.SetText((const char *)"TEST MSGBOX");
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 54, 220, 22), &(pd->back));
-    window_set_text(id, (const char *)"back");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 54, 220, 22), &(pd->back));
+    pd->back.SetText((const char *)"back");
     pd->back.Enable();
     pd->back.SetTag(MSGBOX_BTN_MAX + 2);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 76, 220, 22), &(pd->tst_ok));
-    window_set_text(id, (const char *)"OK");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 76, 220, 22), &(pd->tst_ok));
+    pd->tst_ok.SetText((const char *)"OK");
     pd->tst_ok.Enable();
     pd->tst_ok.SetTag(MSGBOX_BTN_OK + 1);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 98, 220, 22), &(pd->tst_okcancel));
-    window_set_text(id, (const char *)"OK-CANCEL");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 98, 220, 22), &(pd->tst_okcancel));
+    pd->tst_okcancel.SetText((const char *)"OK-CANCEL");
     pd->tst_okcancel.Enable();
     pd->tst_okcancel.SetTag(MSGBOX_BTN_OKCANCEL + 1);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 120, 220, 22), &(pd->tst_abortretryignore));
-    window_set_text(id, (const char *)"ABORT-RETRY-IGNORE");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 120, 220, 22), &(pd->tst_abortretryignore));
+    pd->tst_abortretryignore.SetText((const char *)"ABORT-RETRY-IGNORE");
     pd->tst_abortretryignore.Enable();
     pd->tst_abortretryignore.SetTag(MSGBOX_BTN_ABORTRETRYIGNORE + 1);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 142, 220, 22), &(pd->tst_yesnocancel));
-    window_set_text(id, (const char *)"YES-NO-CANCEL");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 142, 220, 22), &(pd->tst_yesnocancel));
+    pd->tst_yesnocancel.SetText((const char *)"YES-NO-CANCEL");
     pd->tst_yesnocancel.Enable();
     pd->tst_yesnocancel.SetTag(MSGBOX_BTN_YESNOCANCEL + 1);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 164, 220, 22), &(pd->tst_yesno));
-    window_set_text(id, (const char *)"YES-NO");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 164, 220, 22), &(pd->tst_yesno));
+    pd->tst_yesno.SetText((const char *)"YES-NO");
     pd->tst_yesno.Enable();
     pd->tst_yesno.SetTag(MSGBOX_BTN_YESNO + 1);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 186, 220, 22), &(pd->tst_retrycancel));
-    window_set_text(id, (const char *)"RETRY-CANCEL");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 186, 220, 22), &(pd->tst_retrycancel));
+    pd->tst_retrycancel.SetText((const char *)"RETRY-CANCEL");
     pd->tst_retrycancel.Enable();
     pd->tst_retrycancel.SetTag(MSGBOX_BTN_RETRYCANCEL + 1);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(20, 208, 90, 22), &(pd->tst_ico_custom));
-    window_set_text(id, (const char *)"CUSTOM");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(20, 208, 90, 22), &(pd->tst_ico_custom));
+    pd->tst_ico_custom.SetText((const char *)"CUSTOM");
     pd->tst_ico_custom.Enable();
     pd->tst_ico_custom.SetTag(MSGBOX_BTN_MAX + 3);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(20, 230, 90, 22), &(pd->tst_ico_error));
-    window_set_text(id, (const char *)"ERROR");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(20, 230, 90, 22), &(pd->tst_ico_error));
+    pd->tst_ico_error.SetText((const char *)"ERROR");
     pd->tst_ico_error.Enable();
     pd->tst_ico_error.SetTag(MSGBOX_BTN_MAX + 4);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(110, 208, 90, 22), &(pd->tst_ico_question));
-    window_set_text(id, (const char *)"QUESTION");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(110, 208, 90, 22), &(pd->tst_ico_question));
+    pd->tst_ico_question.SetText((const char *)"QUESTION");
     pd->tst_ico_question.Enable();
     pd->tst_ico_question.SetTag(MSGBOX_BTN_MAX + 5);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(110, 230, 90, 22), &(pd->tst_ico_warning));
-    window_set_text(id, (const char *)"WARNING");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(110, 230, 90, 22), &(pd->tst_ico_warning));
+    pd->tst_ico_warning.SetText((const char *)"WARNING");
     pd->tst_ico_warning.Enable();
     pd->tst_ico_warning.SetTag(MSGBOX_BTN_MAX + 6);
 }

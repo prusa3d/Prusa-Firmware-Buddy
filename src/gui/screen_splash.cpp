@@ -49,7 +49,7 @@ void screen_splash_init(screen_t *screen) {
         &(_psd->text_progress));
     _psd->text_progress.font = resource_font(IDR_FNT_NORMAL);
     window_set_alignment(id, ALIGN_CENTER_BOTTOM);
-    window_set_text(id, "Loading ...");
+    _psd->text_progress.SetText("Loading ...");
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(10, 200, 220, 15),
         &(_psd->progress));
@@ -67,7 +67,7 @@ void screen_splash_init(screen_t *screen) {
     window_set_alignment(id, ALIGN_CENTER);
     snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
-    window_set_text(id, _psd->text_version_buffer);
+    _psd->text_version.SetText(_psd->text_version_buffer);
 
     _psd->logo_invalid = 0;
 }

@@ -22,7 +22,7 @@ void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, x
     uint16_t x = WIZARD_MARGIN_LEFT;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_state));
-    window_set_text(id, "Auto home");
+    p_screen->text_state.SetText("Auto home");
 
     y += 22;
 
@@ -31,7 +31,7 @@ void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, x
     y += 12;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 66), &(p_screen->text_search));
-    window_set_text(id, "");
+    p_screen->text_search.SetText("");
 
     y += 66;
 
@@ -53,7 +53,7 @@ int xyzcalib_home(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t 
 
 int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_z == _TEST_START) {
-        window_set_text(p_screen->text_state.id, "Calibrating Z");
+        p_screen->text_state.SetText("Calibrating Z");
         window_set_icon_id(p_screen->icon.id, IDR_PNG_wizard_icon_hourglass);
     }
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_z), _WIZ_TIMER_AUTOPASS);
@@ -63,7 +63,7 @@ int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_
 
 int xyzcalib_xy_search(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_xy_search == _TEST_START) {
-        window_set_text(p_screen->text_search.id,
+        p_screen->text_search.SetText(
             "Searching bed\n"
             "calibration points");
         window_set_icon_id(p_screen->icon.id, IDR_PNG_wizard_icon_search);
@@ -75,7 +75,7 @@ int xyzcalib_xy_search(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_da
 
 int xyzcalib_xy_measure(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_xy_measure == _TEST_START) {
-        window_set_text(p_screen->text_search.id,
+        p_screen->text_search.SetText(
             "Measuring reference\n"
             "height of calib.\n"
             "points");

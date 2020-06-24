@@ -106,7 +106,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     int title_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(PADDING, y_pos, title_width, LINE_HEIGHT), &line->title);
-    window_set_text(title_id, title);
+    line->title.SetText(title);
     window_set_alignment(title_id, ALIGN_LEFT_BOTTOM);
     window_set_padding(title_id, padding_ui8(0, 0, 0, 0));
     line->title.font = resource_font(IDR_FNT_SMALL);
@@ -120,7 +120,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     va_start(args, value_fmt);
     vsnprintf(line->value_buffer, sizeof(line->value_buffer), value_fmt, args);
     va_end(args);
-    window_set_text(value_id, line->value_buffer);
+    line->value.SetText(line->value_buffer);
     window_set_alignment(value_id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(value_id, padding_ui8(0, 0, 0, 0));
     line->value.font = resource_font(IDR_FNT_SMALL);
@@ -230,12 +230,12 @@ static void screen_print_preview_init(screen_t *screen) {
     int y = PADDING;
 
     // Title
-    int title_text_id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(PADDING, y, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT),
         &pd->title_text);
     pd->title_text.font = resource_font(IDR_FNT_BIG);
-    window_set_text(title_text_id, gcode_file_name);
+    pd->title_text.SetText(gcode_file_name);
     y += TITLE_HEIGHT + PADDING;
 
     // Thumbnail
@@ -269,14 +269,14 @@ static void screen_print_preview_init(screen_t *screen) {
     int print_label_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id, rect_ui16(PADDING, y, 64, LINE_HEIGHT),
         &pd->print_label);
-    window_set_text(print_label_id, "Print");
+    pd->print_label.SetText("Print");
     window_set_alignment(print_label_id, ALIGN_CENTER);
     pd->print_label.font = resource_font(IDR_FNT_SMALL);
     int back_label_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, LINE_HEIGHT),
         &pd->back_label);
-    window_set_text(back_label_id, "Back");
+    pd->back_label.SetText("Back");
     window_set_alignment(back_label_id, ALIGN_CENTER);
     pd->back_label.font = resource_font(IDR_FNT_SMALL);
 }

@@ -28,16 +28,16 @@ void screen_menu_qr_error_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 0, 224, 25), &(pd->errText));
     window_set_color_back(id, COLOR_RED_ALERT);
     pd->errText.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, get_actual_error()->err_title);
+    pd->errText.SetText(get_actual_error()->err_title);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 30, 224, 95), &(pd->errDescription));
     window_set_color_back(id, COLOR_RED_ALERT);
-    window_set_text(id, get_actual_error()->err_text);
+    pd->errDescription.SetText(get_actual_error()->err_text);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 275, 224, 20), &(pd->info));
     window_set_color_back(id, COLOR_RED_ALERT);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "help.prusa3d.com");
+    pd->info.SetText("help.prusa3d.com");
 
     id = window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(59, 140, 224, 95), &(pd->qr));
     pd->qr.px_per_module = 2;

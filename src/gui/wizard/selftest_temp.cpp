@@ -34,7 +34,7 @@ void wizard_init_screen_selftest_temp(int16_t id_body, selftest_temp_screen_t *p
     uint16_t row_h = 22;
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, row_h * 2), &(p_screen->text_checking_temp));
-    window_set_text(id,
+    p_screen->text_checking_temp.SetText(
         "Checking hotend and\n"
         "heatbed heaters");
     window_set_alignment(id, ALIGN_CENTER);

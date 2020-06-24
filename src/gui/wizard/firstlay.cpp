@@ -287,7 +287,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     pt.y += 5;
     id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, pt.x, pt.y), &(p_screen->text_state));
     p_screen->text_state.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, _wizard_firstlay_text);
+    p_screen->text_state.SetText(_wizard_firstlay_text);
 
     y += pt.y + 5;
 #else
@@ -303,7 +303,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     y += 18 * FIRSTLAY_SCREEN_TERM_Y + 3;
 #endif
     id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 110, 22), &(p_screen->text_Z_pos));
-    window_set_text(id, "Z height:");
+    p_screen->text_Z_pos.SetText("Z height:");
 
     id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x + 110, y, 70, 22), &(p_screen->spin_baby_step));
     window_set_format(id, "%.3f");
@@ -312,7 +312,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x + 110 + 70, y, WIZARD_X_SPACE - x - 110 - 70, 22),
         &(p_screen->text_direction_arrow));
-    window_set_text(id, "-|+");
+    p_screen->text_direction_arrow.SetText("-|+");
 
     y += 22 + 10;
 
@@ -491,10 +491,10 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 
     if (p_screen->Z_offset_request > 0) {
         window_set_value(numb_id, p_screen->Z_offset);
-        window_set_text(arrow_id, "+++");
+        p_screen->text_direction_arrow.SetText("+++");
     } else if (p_screen->Z_offset_request < 0) {
         window_set_value(numb_id, p_screen->Z_offset);
-        window_set_text(arrow_id, "---");
+        p_screen->text_direction_arrow.SetText("---");
     }
 
     p_screen->Z_offset_request = 0;

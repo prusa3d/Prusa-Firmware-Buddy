@@ -29,7 +29,7 @@ void screen_test_term_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
     pd->id_text = id;
-    window_set_text(id, (const char *)"Test");
+    pd->text.SetText((const char *)"Test");
 
     id = window_create_ptr(WINDOW_CLS_TERM, id0, rect_ui16(10, 28, 11 * 20, 18 * 16), &(pd->term));
     pd->id_term = id;
