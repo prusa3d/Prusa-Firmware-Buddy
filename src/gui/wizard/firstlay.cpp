@@ -476,7 +476,6 @@ void wizard_firstlay_event_up(firstlay_screen_t *p_screen) {
 
 void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     int16_t numb_id = p_screen->spin_baby_step.id;
-    int16_t arrow_id = p_screen->text_direction_arrow.id;
 
     //need last step to ensure correct behavior on limits
     float _step_last = p_screen->Z_offset;

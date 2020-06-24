@@ -9,7 +9,6 @@ struct window_class_progress_t {
 };
 
 struct window_progress_t : public window_t {
-    color_t color_back;
     color_t color_text;
     color_t color_progress;
     font_t *font;

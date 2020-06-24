@@ -11,7 +11,6 @@ struct window_class_numb_t {
 };
 
 struct window_numb_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     float value;

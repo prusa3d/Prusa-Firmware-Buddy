@@ -28,7 +28,6 @@ struct window_class_file_list_t {
 };
 
 struct window_file_list_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     padding_ui8_t padding;

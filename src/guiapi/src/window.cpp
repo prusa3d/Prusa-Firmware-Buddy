@@ -354,51 +354,6 @@ const char *window_get_format(int16_t id) {
     return 0;
 }
 
-void window_set_color_back(int16_t id, color_t clr) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_FRAME:
-            ((window_frame_t *)window)->color_back = clr;
-            break;
-        case WINDOW_CLS_TEXT:
-            ((window_text_t *)window)->color_back = clr;
-            break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->color_back = clr;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-color_t window_get_color_back(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            return ((window_text_t *)window)->color_back;
-        case WINDOW_CLS_ROLL_TEXT:
-            return ((window_roll_text_t *)window)->color_back;
-        }
-    }
-    return COLOR_BLACK;
-}
-
-color_t window_get_color_text(int16_t id) {
-    window_t *window = window_ptr(id);
-    if (window == NULL)
-        return COLOR_BLACK;
-
-    switch (window->cls->cls_id) {
-    case WINDOW_CLS_TEXT:
-        return ((window_text_t *)window)->color_text;
-    case WINDOW_CLS_ROLL_TEXT:
-        return ((window_roll_text_t *)window)->color_text;
-    }
-    return COLOR_BLACK;
-}
-
 void window_t::SetFocus() {
     if (!f_visible || !f_enabled)
         return;
@@ -444,6 +399,11 @@ void window_t::Hide() {
         f_visible = 0;
         _window_invalidate(this);
     }
+}
+
+void window_t::SetBackColor(color_t clr) {
+    color_back = clr;
+    _window_invalidate(this);
 }
 
 void window_set_padding(int16_t id, padding_ui8_t padding) {

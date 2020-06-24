@@ -12,7 +12,6 @@ static constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     : IDialog(WINDOW_CLS_)
     , id_capture(window_capture())
-    , color_back(gui_defaults.color_back)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , font_title(gui_defaults.font_big)

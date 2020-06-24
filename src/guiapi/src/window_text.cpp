@@ -34,3 +34,13 @@ const window_class_text_t window_class_text = {
         0,
     },
 };
+
+void window_text_t::SetText(const char *txt) {
+    text = txt;
+    _window_invalidate(this);
+}
+
+void window_text_t::SetTextColor(color_t clr) {
+    color_text = clr;
+    _window_invalidate(this);
+}

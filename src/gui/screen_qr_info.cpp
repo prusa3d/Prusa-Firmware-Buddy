@@ -34,7 +34,7 @@ void screen_menu_qr_info_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 280, 224, 30), &(pd->button));
     pd->button.font = resource_font(IDR_FNT_BIG);
-    window_set_color_back(id, COLOR_WHITE);
+    pd->button.SetBackColor(COLOR_WHITE);
     pd->button.SetTextColor(COLOR_BLACK);
     window_set_alignment(id, ALIGN_HCENTER);
     pd->button.SetText("RETURN");

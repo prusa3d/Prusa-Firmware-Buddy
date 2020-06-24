@@ -23,19 +23,19 @@ void screen_menu_qr_error_init(screen_t *screen) {
     int16_t id, root;
 
     root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->root));
-    window_set_color_back(root, COLOR_RED_ALERT);
+    pd->root.SetBackColor(COLOR_RED_ALERT);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 0, 224, 25), &(pd->errText));
-    window_set_color_back(id, COLOR_RED_ALERT);
+    pd->errText.SetBackColor(COLOR_RED_ALERT);
     pd->errText.font = resource_font(IDR_FNT_BIG);
     pd->errText.SetText(get_actual_error()->err_title);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 30, 224, 95), &(pd->errDescription));
-    window_set_color_back(id, COLOR_RED_ALERT);
+    pd->errDescription.SetBackColor(COLOR_RED_ALERT);
     pd->errDescription.SetText(get_actual_error()->err_text);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 275, 224, 20), &(pd->info));
-    window_set_color_back(id, COLOR_RED_ALERT);
+    pd->info.SetBackColor(COLOR_RED_ALERT);
     window_set_alignment(id, ALIGN_CENTER);
     pd->info.SetText("help.prusa3d.com");
 

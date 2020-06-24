@@ -36,7 +36,7 @@ void screen_test_graph_init(screen_test_term_t *screen) {
 
         int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
         pd->id_frame = id0;
-        window_set_color_back(id0, COLOR_BLACK);
+        pd->frame.SetBackColor(COLOR_BLACK);
 
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
         pd->id_text = id;

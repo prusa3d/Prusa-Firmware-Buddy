@@ -96,7 +96,8 @@ struct window_t {
             uint32_t f_tag : 8;      // (1 byte) window tag (user defined id)
         };
     };
-    rect_ui16_t rect;      // (8 bytes) display rectangle
+    rect_ui16_t rect; // (8 bytes) display rectangle
+    color_t color_back;
     window_event_t *event; // (4 bytes) event callback
 
     virtual void Init() {} //do I need init, have ctor?
@@ -122,6 +123,8 @@ struct window_t {
     void Disable() { f_enabled = 0; }
     void Show();
     void Hide();
+    void SetBackColor(color_t clr);
+    color_t GetBackColor() const { return color_back; }
 
     //To be removed
     int16_t IdParent() { return id_parent; }
@@ -178,12 +181,6 @@ extern float window_get_value(int16_t id);
 extern void window_set_format(int16_t id, const char *format);
 
 extern const char *window_get_format(int16_t id);
-
-extern void window_set_color_back(int16_t id, color_t clr);
-
-extern color_t window_get_color_back(int16_t id);
-
-extern color_t window_get_color_text(int16_t id);
 
 extern void window_set_padding(int16_t id, padding_ui8_t padding);
 

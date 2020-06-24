@@ -229,11 +229,11 @@ void screen_printing_init(screen_t *screen) {
     const uint16_t icon_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22 - 64;
     const uint16_t text_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22;
     for (uint8_t col = 0; col < 3; col++) {
-        id = window_create_ptr(
+        window_create_ptr(
             WINDOW_CLS_ICON, root,
             rect_ui16(8 + (15 + 64) * col, icon_y, 64, 64),
             &(pw->w_buttons[col]));
-        window_set_color_back(id, COLOR_GRAY);
+        pw->w_buttons[col].SetBackColor(COLOR_GRAY);
         pw->w_buttons[col].SetTag(col + 1);
         pw->w_buttons[col].Enable();
 

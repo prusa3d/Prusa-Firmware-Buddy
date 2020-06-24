@@ -54,7 +54,6 @@ public:
 protected:
     int16_t id_capture;
 
-    color_t color_back;
     color_t color_text;
     font_t *font;
     font_t *font_title;

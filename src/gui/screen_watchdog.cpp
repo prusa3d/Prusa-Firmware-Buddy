@@ -23,7 +23,7 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
         screen->pd = pd;
 
         id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
-        window_set_color_back(id0, COLOR_RED);
+        pd->frame.SetBackColor(COLOR_RED);
 
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 220, 24), &(pd->text0));
         pd->text0.font = resource_font(IDR_FNT_BIG);

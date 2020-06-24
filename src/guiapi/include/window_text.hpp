@@ -9,7 +9,6 @@ struct window_class_text_t {
 };
 
 struct window_text_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     const char *text;
@@ -17,14 +16,10 @@ struct window_text_t : public window_t {
     uint8_t alignment;
 
     const char *GetText() const { return text; }
-    void SetText(const char *txt) {
-        text = txt;
-        _window_invalidate(this);
-    }
-    void SetTextColor(color_t clr) {
-        color_text = clr;
-        _window_invalidate(this);
-    }
+    void SetText(const char *txt);
+    void SetTextColor(color_t clr);
+
+    color_t GetTextColor() const { return color_text; }
 };
 
 extern const window_class_text_t window_class_text;

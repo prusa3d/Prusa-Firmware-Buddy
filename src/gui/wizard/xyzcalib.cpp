@@ -11,7 +11,6 @@
 #include "wizard_ui.h"
 
 void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
-    int16_t id;
     window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0) {
@@ -21,21 +20,21 @@ void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, x
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_state));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_state));
     p_screen->text_state.SetText("Auto home");
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 
     y += 12;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 66), &(p_screen->text_search));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 66), &(p_screen->text_search));
     p_screen->text_search.SetText("");
 
     y += 66;
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16((240 - 100) / 2, y, 100, 100), &(p_screen->icon));
+    window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16((240 - 100) / 2, y, 100, 100), &(p_screen->icon));
 }
 
 int xyzcalib_home(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {

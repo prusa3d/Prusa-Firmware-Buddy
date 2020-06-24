@@ -98,11 +98,11 @@ void screen_printing_serial_init(screen_t *screen) {
     pw->octo_icon.f_disabled = 0;
 
     for (unsigned int col = 0; col < iid_count; col++) {
-        id = window_create_ptr(
+        window_create_ptr(
             WINDOW_CLS_ICON, root,
             rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
             &(pw->w_buttons[col]));
-        window_set_color_back(id, COLOR_GRAY);
+        pw->w_buttons[col].SetBackColor(COLOR_GRAY);
         pw->w_buttons[col].SetTag(col + 1);
         pw->w_buttons[col].Enable();
 

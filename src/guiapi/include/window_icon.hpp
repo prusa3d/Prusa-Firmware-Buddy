@@ -5,7 +5,6 @@
 #include "window.hpp"
 
 struct window_icon_t : public window_t {
-    color_t color_back;
     uint16_t id_res;
     uint8_t alignment;
 };
