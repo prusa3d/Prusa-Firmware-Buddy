@@ -42,9 +42,9 @@
 
 #define _CALIB_TEMP_BED    40
 #define _CALIB_TEMP_NOZ    40
-#define _COOLDOWN_TIMEOUT  300000
-#define _START_TEMP_BED    35 //there is a bit overshot on bed PID
-#define _START_TEMP_NOZ    20 //PID of nozzle is not stable with low temperatures - can be HUDGE overshot
+#define _COOLDOWN_TIMEOUT  500000
+#define _START_TEMP_BED    39 //there is a bit overshot on bed PID
+#define _START_TEMP_NOZ    39 //PID of nozzle is not stable with low temperatures - can be HUDGE overshot
 #define _MAX_TEMP_BED      100
 #define _MAX_TEMP_NOZ      280
 #define _PASS_MAX_TEMP_BED 65
