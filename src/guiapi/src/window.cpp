@@ -171,13 +171,6 @@ int16_t window_capture(void) {
     return window_capture_ptr ? window_capture_ptr->id : 0;
 }
 
-int16_t window_parent(int16_t id) {
-    window_t *win;
-    if ((id >= 0) && (id < WINDOW_MAX_WINDOWS) && ((win = windows[id]) != 0))
-        return win->id_parent;
-    return -1;
-}
-
 int16_t window_prev(int16_t id) {
     window_t *win;
     if ((id >= 0) && (id < WINDOW_MAX_WINDOWS) && ((win = windows[id]) != 0)) {

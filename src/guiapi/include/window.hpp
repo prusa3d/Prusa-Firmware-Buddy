@@ -122,6 +122,9 @@ struct window_t {
     void Disable() { f_enabled = 0; }
     void Show();
     void Hide();
+
+    //To be removed
+    int16_t IdParent() { return id_parent; }
 };
 
 extern window_t *window_popup_ptr; //current popup window
@@ -145,8 +148,6 @@ extern void window_destroy_children(int16_t id);
 extern int16_t window_focused(void);
 
 extern int16_t window_capture(void);
-
-extern int16_t window_parent(int16_t id);
 
 extern int16_t window_prev(int16_t id);
 
