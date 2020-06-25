@@ -12,6 +12,8 @@ struct window_spin_t : public window_numb_t {
     int count;
     int index;
 
+    int GetItemCount() const { return count; }
+
 protected:
     virtual void setValue(float val) override;
 };

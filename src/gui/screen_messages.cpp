@@ -63,7 +63,7 @@ void screen_messages_init(screen_t *screen) {
     p_window_header_set_text(&(pmsg->header), N_("MESSAGES"));
 
     id = window_create_ptr(WINDOW_CLS_LIST, root, gui_defaults.scr_body_sz, &(pmsg->list));
-    window_set_item_count(id, msg_stack.count + 1);
+    pmsg->list.SetItemCount(msg_stack.count + 1);
     window_set_item_index(id, 0);
     window_set_item_callback(id, _window_list_add_message_item);
 

@@ -174,10 +174,6 @@ extern void window_validate_children(int16_t id);
 
 extern void window_invalidate_children(int16_t id);
 
-extern void window_set_item_count(int16_t id, int count);
-
-extern int window_get_item_count(int16_t id);
-
 extern void window_set_item_index(int16_t id, int index);
 
 extern int window_get_item_index(int16_t id);

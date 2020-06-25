@@ -160,3 +160,8 @@ const window_class_list_t window_class_list = {
         (window_event_t *)window_list_event,
     },
 };
+
+void window_list_t::SetItemCount(int cnt) {
+    count = cnt;
+    _window_invalidate(this);
+}

@@ -82,7 +82,6 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     window->list.padding = padding_ui8(20, 6, 2, 6);
     window->list.icon_rect = rect_ui16(0, 0, 16, 30);
 
-    //window_set_item_count(id, window->filaments_count);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window->filament_items);
 }
@@ -194,7 +193,7 @@ int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.scr_body_sz, &dlg);
 
-    window_set_item_count(dlg.list.id, count);
+    dlg.list.SetItemCount(count);
 
     window_t *tmp_window_1 = window_popup_ptr; //save current window_popup_ptr
 

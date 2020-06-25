@@ -197,7 +197,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.SetText((const char *)"MODE");
 
     id = window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinMode));
-    window_set_item_count(id, modes_sz);
+    pd->spinMode.SetItemCount(modes_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_modes_item);
 
@@ -209,7 +209,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textSpiClk.SetText((const char *)"SPI clk");
 
     id = window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinSpiClk));
-    window_set_item_count(id, opt_spi_sz);
+    pd->spinSpiClk.SetItemCount(opt_spi_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_spi_item);
 
@@ -227,7 +227,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     //INVERSION
     id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
-    window_set_item_count(id, inversions_sz);
+    pd->spinInversion.SetItemCount(inversions_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_inversions_item);
 
@@ -245,7 +245,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     //Brightness enabled
     id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
-    window_set_item_count(id, bright_enas_sz);
+    pd->spinBrigt_ena.SetItemCount(bright_enas_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_bright_enas_item);
     pd->spinBrigt_ena.SetTag(TAG_BRIGHTNESS);

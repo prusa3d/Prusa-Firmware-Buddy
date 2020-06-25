@@ -18,6 +18,9 @@ struct window_list_t : window_t {
     int index;
     int top_index;
     window_list_item_t *list_item;
+
+    void SetItemCount(int cnt);
+    int GetItemCount() const { return count; }
 };
 
 extern const window_class_list_t window_class_list;

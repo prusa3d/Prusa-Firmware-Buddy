@@ -338,31 +338,6 @@ void window_t::SetBackColor(color_t clr) {
     _window_invalidate(this);
 }
 
-void window_set_item_count(int16_t id, int count) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            ((window_list_t *)window)->count = count;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-int window_get_item_count(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            return ((window_list_t *)window)->count;
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->count;
-        }
-    }
-    return -1;
-}
-
 void window_set_item_index(int16_t id, int index) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {

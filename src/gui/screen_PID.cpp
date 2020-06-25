@@ -227,7 +227,7 @@ void screen_PID_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_LIST,
         id0, rect_ui16(col, row2draw, 100, row_h), &(pd->list_RW_E));
-    window_set_item_count(id, list_RW_strings_sz);
+    pd->list_RW_E.SetItemCount(list_RW_strings_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_RW_item);
     pd->list_RW_E.SetTag(TAG_RW_E);
@@ -276,7 +276,7 @@ void screen_PID_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_LIST, id0,
         rect_ui16(col, row2draw, 100, row_h), &(pd->list_RW_B));
-    window_set_item_count(id, list_RW_strings_sz);
+    pd->list_RW_B.SetItemCount(list_RW_strings_sz);
     window_set_item_index(id, 0);
     window_set_item_callback(id, window_list_RW_item);
     pd->list_RW_B.SetTag(TAG_RW_B);
