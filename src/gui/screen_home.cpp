@@ -35,6 +35,9 @@ const uint16_t icons[6] = {
     IDR_PNG_menu_icon_info
 };
 
+constexpr size_t labelPrintId = 0;
+constexpr size_t labelNoUSBId = 6;
+
 const char *labels[7] = {
     N_("Print"),
     N_("Preheat"),
@@ -92,7 +95,7 @@ void screen_home_init(screen_t *screen) {
                 rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64),
                 &(pw->w_buttons[row * 3 + col]));
             pw->w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY);
-            window_set_icon_id(id, icons[row * 3 + col]);
+            window_set_icon_id(window_id(&pw->w_buttons[row * 3 + col]), icons[row * 3 + col]);
             pw->w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
             pw->w_buttons[row * 3 + col].Enable();
 
@@ -249,7 +252,7 @@ void screen_home_disable_print_button(screen_t *screen, int disable) {
     pw->w_buttons[0].f_disabled = disable;
     pw->w_buttons[0].f_enabled = !disable; // cant't be focused
     pw->w_buttons[0].f_invalid = 1;
-    pw->w_labels[0].SetText(labels[(disable ? 6 : 0)]);
+    pw->w_labels[0].SetText(labels[(disable ? labelNoUSBId : labelPrintId)]);
 
     // move to preheat when Print is focused
     if (pw->w_buttons[0].IsFocused() && disable) {
