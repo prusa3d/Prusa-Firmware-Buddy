@@ -20,10 +20,13 @@ struct window_list_t : window_t {
     window_list_item_t *list_item;
 
     void SetItemCount(int cnt);
-    int GetItemCount() const { return count; }
     void SetItemIndex(int idx);
-    int GetItemIndex() const { return index; }
     void SetCallback(window_list_item_t *fnc);
+    void SetTopIndex(int idx);
+
+    int GetItemCount() const { return count; }
+    int GetItemIndex() const { return index; }
+    int GetTopIndex() const { return top_index; }
 };
 
 extern const window_class_list_t window_class_list;

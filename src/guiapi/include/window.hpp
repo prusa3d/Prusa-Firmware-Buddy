@@ -175,8 +175,4 @@ extern void window_validate_children(int16_t id);
 
 extern void window_invalidate_children(int16_t id);
 
-extern void window_set_top_index(int16_t id, int index);
-
-extern int window_get_top_index(int16_t id);
-
 extern void gui_invalidate(void);

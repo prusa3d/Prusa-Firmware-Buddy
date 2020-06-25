@@ -173,6 +173,11 @@ void window_list_t::SetItemIndex(int idx) {
     Invalidate();
 }
 
+void window_list_t::SetTopIndex(int idx) {
+    top_index = idx;
+    Invalidate();
+}
+
 void window_list_t::SetCallback(window_list_item_t *fnc) {
     list_item = fnc;
 }
