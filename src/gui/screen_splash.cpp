@@ -35,15 +35,14 @@ struct screen_splash_data_t {
 void screen_splash_timer(screen_t *screen, uint32_t mseconds);
 
 void screen_splash_init(screen_t *screen) {
-    int16_t id;
     int16_t id0;
 
     id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0),
         &(_psd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 84, 240, 62),
+    window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 84, 240, 62),
         &(_psd->logo_prusa_mini));
-    window_set_icon_id(id, IDR_PNG_splash_logo_prusa_prn);
+    _psd->logo_prusa_mini.SetIdRes(IDR_PNG_splash_logo_prusa_prn);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 171, 220, 20),
         &(_psd->text_progress));
@@ -58,9 +57,9 @@ void screen_splash_init(screen_t *screen) {
     _psd->progress.font = resource_font(IDR_FNT_BIG);
     _psd->progress.height_progress = 15;
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(80, 240, 80, 80),
+    window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(80, 240, 80, 80),
         &(_psd->icon_logo_marlin));
-    window_set_icon_id(id, IDR_PNG_splash_logo_marlin);
+    _psd->icon_logo_marlin.SetIdRes(IDR_PNG_splash_logo_marlin);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(00, 295, 240, 22),
         &(_psd->text_version));

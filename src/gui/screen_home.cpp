@@ -75,8 +75,6 @@ void screen_home_init(screen_t *screen) {
     pw->time = HAL_GetTick();
     pw->is_starting = (pw->time < 5000) ? 1 : 0;
 
-    int16_t id;
-
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0), &(pw->root));
 
@@ -84,9 +82,9 @@ void screen_home_init(screen_t *screen) {
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_home);
     p_window_header_set_text(&(pw->header), _("HOME"));
 
-    id = window_create_ptr(WINDOW_CLS_ICON, root,
+    window_create_ptr(WINDOW_CLS_ICON, root,
         rect_ui16(41, 31, 158, 40), &(pw->logo));
-    window_set_icon_id(id, IDR_PNG_status_logo_prusa_prn);
+    pw->logo.SetIdRes(IDR_PNG_status_logo_prusa_prn);
 
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
@@ -95,7 +93,7 @@ void screen_home_init(screen_t *screen) {
                 rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64),
                 &(pw->w_buttons[row * 3 + col]));
             pw->w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY);
-            window_set_icon_id(window_id(&pw->w_buttons[row * 3 + col]), icons[row * 3 + col]);
+            pw->w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
             pw->w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
             pw->w_buttons[row * 3 + col].Enable();
 

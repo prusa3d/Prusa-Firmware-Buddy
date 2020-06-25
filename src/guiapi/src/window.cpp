@@ -361,18 +361,6 @@ int window_get_top_index(int16_t id) {
     return -1;
 }
 
-void window_set_icon_id(int16_t id, uint16_t id_res) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_ICON:
-            ((window_icon_t *)window)->id_res = id_res;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
 uint16_t window_get_icon_id(int16_t id) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {

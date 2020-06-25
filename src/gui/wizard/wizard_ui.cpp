@@ -20,8 +20,8 @@ uint16_t wizard_get_test_icon_resource(uint8_t state) {
     return 0;
 }
 
-void wizard_update_test_icon(int16_t win_id, uint8_t state) {
-    window_set_icon_id(win_id, wizard_get_test_icon_resource(state));
+void wizard_update_test_icon(window_icon_t &ico, uint8_t state) {
+    ico.SetIdRes(wizard_get_test_icon_resource(state));
 }
 
 // messagebox with custom buttons (NEXT and DONE), optionaly icon and rectangle

@@ -67,9 +67,9 @@ screen_t screen_printing_serial = {
 };
 screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
-static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, window_text_t *lbl) {
-    if (window_get_icon_id(btn_id) != serial_printing_icons[id_to_set])
-        window_set_icon_id(btn_id, serial_printing_icons[id_to_set]);
+static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
+    if (p_button->GetIdRes() != serial_printing_icons[id_to_set])
+        p_button->SetIdRes(serial_printing_icons[id_to_set]);
     //compare pointers to text, compare texts would take too long
     if (lbl->GetText() != serial_printing_labels[id_to_set])
         lbl->SetText(serial_printing_labels[id_to_set]);
@@ -93,7 +93,7 @@ void screen_printing_serial_init(screen_t *screen) {
         rect_ui16((240 - pt_ico.x) / 2, gui_defaults.scr_body_sz.y, pt_ico.x, pt_ico.y),
         &(pw->octo_icon));
     pw->octo_icon.Enable();
-    window_set_icon_id(id, IDR_PNG_serial_printing);
+    pw->octo_icon.SetIdRes(IDR_PNG_serial_printing);
     pw->octo_icon.f_enabled = 0;
     pw->octo_icon.f_disabled = 0;
 
@@ -120,15 +120,15 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- tune button
     static_assert(BUTTON_TUNE < iid_count, "BUTTON_TUNE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_TUNE];
-    set_icon_and_label(iid_tune, sp_button->id, &pw->w_labels[BUTTON_TUNE]);
+    set_icon_and_label(iid_tune, sp_button, &pw->w_labels[BUTTON_TUNE]);
     // -- pause
     static_assert(BUTTON_PAUSE < iid_count, "BUTTON_PAUSE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_PAUSE];
-    set_icon_and_label(iid_pause, sp_button->id, &pw->w_labels[BUTTON_PAUSE]);
+    set_icon_and_label(iid_pause, sp_button, &pw->w_labels[BUTTON_PAUSE]);
     // -- disconnect
     static_assert(BUTTON_DISCONNECT < iid_count, "BUTTON_DISCONNECT not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
-    set_icon_and_label(iid_disconnect, sp_button->id, &pw->w_labels[BUTTON_DISCONNECT]);
+    set_icon_and_label(iid_disconnect, sp_button, &pw->w_labels[BUTTON_DISCONNECT]);
 
     status_footer_init(&(pw->footer), root);
 }

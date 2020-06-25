@@ -64,17 +64,17 @@ void screen_test_gui_init(screen_t *screen) {
     pd->list.SetItemIndex(2);
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 234, 64, 64), &(pd->icon0));
-    window_set_icon_id(id, IDR_PNG_menu_icon_print);
+    pd->icon0.SetIdRes(IDR_PNG_menu_icon_print);
     pd->icon0.Enable();
     pd->icon0.SetTag(1);
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(80, 234, 64, 64), &(pd->icon1));
-    window_set_icon_id(id, IDR_PNG_menu_icon_preheat);
+    pd->icon1.SetIdRes(IDR_PNG_menu_icon_preheat);
     pd->icon1.Enable();
     pd->icon1.SetTag(2);
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(150, 234, 64, 64), &(pd->icon2));
-    window_set_icon_id(id, IDR_PNG_menu_icon_spool);
+    pd->icon2.SetIdRes(IDR_PNG_menu_icon_spool);
     pd->icon2.Enable();
     pd->icon2.SetTag(3);
 

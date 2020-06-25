@@ -36,7 +36,7 @@ void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_s
     p_screen->text_extruder_fan.SetText("Hotend fan");
 
     id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_extruder_fan));
-    window_set_icon_id(id, wizard_get_test_icon_resource(p_data->state_fan0));
+    p_screen->icon_extruder_fan.SetIdRes(wizard_get_test_icon_resource(p_data->state_fan0));
 
     y += 22;
 
@@ -44,7 +44,7 @@ void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_s
     p_screen->text_print_fan.SetText("Print fan");
 
     id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_print_fan));
-    window_set_icon_id(id, wizard_get_test_icon_resource(p_data->state_fan1));
+    p_screen->icon_print_fan.SetIdRes(wizard_get_test_icon_resource(p_data->state_fan1));
 
     y += 44;
 
@@ -61,7 +61,7 @@ void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_s
     p_screen->text_x_axis.SetText("X-axis");
 
     id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_x_axis));
-    window_set_icon_id(id, wizard_get_test_icon_resource(p_data->state_x));
+    p_screen->icon_x_axis.SetIdRes(wizard_get_test_icon_resource(p_data->state_x));
 
     y += 22;
 
@@ -69,7 +69,7 @@ void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_s
     p_screen->text_y_axis.SetText("Y-axis");
 
     id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_y_axis));
-    window_set_icon_id(id, wizard_get_test_icon_resource(p_data->state_y));
+    p_screen->icon_y_axis.SetIdRes(wizard_get_test_icon_resource(p_data->state_y));
 
     y += 22;
 
@@ -77,7 +77,7 @@ void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_s
     p_screen->text_z_axis.SetText("Z-axis");
 
     id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_z_axis));
-    window_set_icon_id(id, wizard_get_test_icon_resource(p_data->state_z));
+    p_screen->icon_z_axis.SetIdRes(wizard_get_test_icon_resource(p_data->state_z));
 }
 
 int wizard_selftest_fan0(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data) {
@@ -95,7 +95,7 @@ int wizard_selftest_fan0(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
         marlin_start_processing();
     }
     p_screen->progress_fan.SetValue(float(progress) / 2);
-    wizard_update_test_icon(p_screen->icon_extruder_fan.id, p_data->state_fan0);
+    wizard_update_test_icon(p_screen->icon_extruder_fan, p_data->state_fan0);
     return progress;
 }
 
@@ -114,7 +114,7 @@ int wizard_selftest_fan1(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
         marlin_start_processing();
     }
     p_screen->progress_fan.SetValue(50.0F + float(progress) / 2);
-    wizard_update_test_icon(p_screen->icon_print_fan.id, p_data->state_fan1);
+    wizard_update_test_icon(p_screen->icon_print_fan, p_data->state_fan1);
     return progress;
 }
 
@@ -355,7 +355,7 @@ int wizard_selftest_x(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
         _SELFTEST_X_FR, _SELFTEST_X_MIN, _SELFTEST_X_MAX, 1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_X_TIME, &(p_data->state_x), _WIZ_TIMER);
     p_screen->progress_axis.SetValue(float(progress) / 3);
-    wizard_update_test_icon(p_screen->icon_x_axis.id, p_data->state_x);
+    wizard_update_test_icon(p_screen->icon_x_axis, p_data->state_x);
     return progress;
 }
 
@@ -366,7 +366,7 @@ int wizard_selftest_y(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
         _SELFTEST_Y_FR, _SELFTEST_Y_MIN, _SELFTEST_Y_MAX, -1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_Y_TIME, &(p_data->state_y), _WIZ_TIMER);
     p_screen->progress_axis.SetValue(33.3F + float(progress) / 3);
-    wizard_update_test_icon(p_screen->icon_y_axis.id, p_data->state_y);
+    wizard_update_test_icon(p_screen->icon_y_axis, p_data->state_y);
     return progress;
 }
 
@@ -377,6 +377,6 @@ int wizard_selftest_z(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
         _SELFTEST_Z_FR, _SELFTEST_Z_MIN, _SELFTEST_Z_MAX, 1);
     int progress = wizard_timer(&p_screen->timer0, _SELFTEST_Z_TIME, &(p_data->state_z), _WIZ_TIMER);
     p_screen->progress_axis.SetValue(66.6F + float(progress) / 3);
-    wizard_update_test_icon(p_screen->icon_z_axis.id, p_data->state_z);
+    wizard_update_test_icon(p_screen->icon_z_axis, p_data->state_z);
     return progress;
 }

@@ -250,17 +250,14 @@ static void screen_print_preview_init(screen_t *screen) {
 
     // Print and Back buttons
     y = SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64;
-    int print_button_id = window_create_ptr(WINDOW_CLS_ICON, window_id,
-        rect_ui16(PADDING, y, 64, 64), &pd->print_button);
+    window_create_ptr(WINDOW_CLS_ICON, window_id, rect_ui16(PADDING, y, 64, 64), &pd->print_button);
     pd->print_button.SetBackColor(COLOR_GRAY);
-    window_set_icon_id(print_button_id, IDR_PNG_menu_icon_print);
+    pd->print_button.SetIdRes(IDR_PNG_menu_icon_print);
     pd->print_button.SetTag(PRINT_BUTTON_ID);
     pd->print_button.Enable();
-    int back_button_id = window_create_ptr(
-        WINDOW_CLS_ICON, window_id,
-        rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, 64), &pd->back_button);
+    window_create_ptr(WINDOW_CLS_ICON, window_id, rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, 64), &pd->back_button);
     pd->back_button.SetBackColor(COLOR_GRAY);
-    window_set_icon_id(back_button_id, IDR_PNG_menu_icon_back);
+    pd->back_button.SetIdRes(IDR_PNG_menu_icon_back);
     pd->back_button.SetTag(BACK_BUTTON_ID);
     pd->back_button.Enable();
 

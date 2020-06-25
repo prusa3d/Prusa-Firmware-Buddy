@@ -178,10 +178,6 @@ extern void window_set_top_index(int16_t id, int index);
 
 extern int window_get_top_index(int16_t id);
 
-extern void window_set_icon_id(int16_t id, uint16_t id_res);
-
-extern uint16_t window_get_icon_id(int16_t id);
-
 extern void window_set_min(int16_t id, float min);
 
 extern float window_get_min(int16_t id);

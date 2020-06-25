@@ -516,7 +516,7 @@ static void screen_printing_reprint(screen_t *screen) {
     pw->w_etime_label.SetText(PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
     pw->w_labels[static_cast<size_t>(Btn::Stop)].SetText(printing_labels[static_cast<size_t>(item_id_t::stop)]);
-    window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
+    pw->w_buttons[static_cast<size_t>(Btn::Stop)].SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
@@ -541,10 +541,10 @@ static void screen_printing_reprint(screen_t *screen) {
     }
 }*/
 
-static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, window_text_t *lbl) {
+static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
     size_t index = static_cast<size_t>(id_to_set);
-    if (window_get_icon_id(btn_id) != printing_icons[index])
-        window_set_icon_id(btn_id, printing_icons[index]);
+    if (p_button->GetIdRes() != printing_icons[index])
+        p_button->SetIdRes(printing_icons[index]);
     //compare pointers to text, compare texts would take too long
     if (lbl->GetText() != printing_labels[index])
         lbl->SetText(printing_labels[index]);
@@ -566,7 +566,6 @@ static void disable_button(window_icon_t *p_button) {
 
 static void set_pause_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Pause)];
-    int16_t btn_id = p_button->id;
     window_text_t *pLabel = &pw->w_labels[static_cast<size_t>(Btn::Pause)];
 
     //todo it is static, because menu tune is not dialog
@@ -577,28 +576,28 @@ static void set_pause_icon_and_label(screen_t *screen) {
     case printing_state_t::PRINTING:
     case printing_state_t::MBL_FAILED:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::pause, btn_id, pLabel);
+        set_icon_and_label(item_id_t::pause, p_button, pLabel);
         break;
     case printing_state_t::PAUSING:
         disable_button(p_button);
-        set_icon_and_label(item_id_t::pausing, btn_id, pLabel);
+        set_icon_and_label(item_id_t::pausing, p_button, pLabel);
         break;
     case printing_state_t::PAUSED:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::resume, btn_id, pLabel);
+        set_icon_and_label(item_id_t::resume, p_button, pLabel);
         break;
     case printing_state_t::RESUMING:
         disable_button(p_button);
-        set_icon_and_label(item_id_t::resuming, btn_id, pLabel);
+        set_icon_and_label(item_id_t::resuming, p_button, pLabel);
         break;
     case printing_state_t::REHEATING:
     case printing_state_t::REHEATING_DONE:
         disable_button(p_button);
-        set_icon_and_label(item_id_t::reheating, btn_id, pLabel);
+        set_icon_and_label(item_id_t::reheating, p_button, pLabel);
         break;
     case printing_state_t::PRINTED:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::reprint, btn_id, pLabel);
+        set_icon_and_label(item_id_t::reprint, p_button, pLabel);
         break;
     case printing_state_t::ABORTING:
         disable_button(p_button);
@@ -608,11 +607,10 @@ static void set_pause_icon_and_label(screen_t *screen) {
 
 void set_tune_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
-    int16_t btn_id = p_button->id;
     window_text_t *pLabel = &pw->w_labels[static_cast<size_t>(Btn::Tune)];
 
     //must be before switch
-    set_icon_and_label(item_id_t::settings, btn_id, pLabel);
+    set_icon_and_label(item_id_t::settings, p_button, pLabel);
 
     switch (get_state(screen)) {
     case printing_state_t::PRINTING:
@@ -630,25 +628,24 @@ void set_tune_icon_and_label(screen_t *screen) {
 
 void set_stop_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Stop)];
-    int16_t btn_id = p_button->id;
     window_text_t *pLabel = &pw->w_labels[static_cast<size_t>(Btn::Stop)];
 
     switch (get_state(screen)) {
     case printing_state_t::PRINTED:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::home, btn_id, pLabel);
+        set_icon_and_label(item_id_t::home, p_button, pLabel);
         break;
     case printing_state_t::PAUSING:
     case printing_state_t::RESUMING:
         disable_button(p_button);
-        set_icon_and_label(item_id_t::stop, btn_id, pLabel);
+        set_icon_and_label(item_id_t::stop, p_button, pLabel);
         break;
     case printing_state_t::ABORTING:
         disable_button(p_button);
         break;
     default:
         enable_button(p_button);
-        set_icon_and_label(item_id_t::stop, btn_id, pLabel);
+        set_icon_and_label(item_id_t::stop, p_button, pLabel);
         break;
     }
 }
