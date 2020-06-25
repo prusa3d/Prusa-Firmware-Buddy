@@ -200,10 +200,4 @@ extern void window_set_item_callback(int16_t id, window_list_item_t *fnc);
 
 extern void gui_invalidate(void);
 
-static inline void _window_invalidate(window_t *window) {
-    if (!window)
-        return;
-
-    window->flg |= WINDOW_FLG_INVALID;
-    gui_invalidate();
-}
+extern void _window_invalidate(window_t *window);

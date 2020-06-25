@@ -13,7 +13,6 @@ extern uint32_t Tacho_FAN1;
 
 void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
     selftest_fans_axis_data_t *p_data) {
-    int16_t id;
     window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0)
@@ -23,60 +22,60 @@ void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_s
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_fan_test));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_fan_test));
     p_screen->text_fan_test.SetText("Fan test");
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress_fan));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress_fan));
 
     y += 12;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_extruder_fan));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_extruder_fan));
     p_screen->text_extruder_fan.SetText("Hotend fan");
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_extruder_fan));
+    window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_extruder_fan));
     p_screen->icon_extruder_fan.SetIdRes(wizard_get_test_icon_resource(p_data->state_fan0));
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_print_fan));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_print_fan));
     p_screen->text_print_fan.SetText("Print fan");
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_print_fan));
+    window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_print_fan));
     p_screen->icon_print_fan.SetIdRes(wizard_get_test_icon_resource(p_data->state_fan1));
 
     y += 44;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_checking_axis));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_checking_axis));
     p_screen->text_checking_axis.SetText("Checking axes");
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress_axis));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress_axis));
 
     y += 12;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_x_axis));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_x_axis));
     p_screen->text_x_axis.SetText("X-axis");
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_x_axis));
+    window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_x_axis));
     p_screen->icon_x_axis.SetIdRes(wizard_get_test_icon_resource(p_data->state_x));
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_y_axis));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_y_axis));
     p_screen->text_y_axis.SetText("Y-axis");
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_y_axis));
+    window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_y_axis));
     p_screen->icon_y_axis.SetIdRes(wizard_get_test_icon_resource(p_data->state_y));
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_z_axis));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 200, 22), &(p_screen->text_z_axis));
     p_screen->text_z_axis.SetText("Z-axis");
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_z_axis));
+    window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_z_axis));
     p_screen->icon_z_axis.SetIdRes(wizard_get_test_icon_resource(p_data->state_z));
 }
 

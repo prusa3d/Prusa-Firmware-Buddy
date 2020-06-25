@@ -77,8 +77,6 @@ static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, win
 
 void screen_printing_serial_init(screen_t *screen) {
     pw->last_tick = 0;
-    int16_t id;
-
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pw->root));
@@ -88,7 +86,7 @@ void screen_printing_serial_init(screen_t *screen) {
 
     //octo icon
     point_ui16_t pt_ico = icon_meas(resource_ptr(IDR_PNG_serial_printing));
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_ICON, root,
         rect_ui16((240 - pt_ico.x) / 2, gui_defaults.scr_body_sz.y, pt_ico.x, pt_ico.y),
         &(pw->octo_icon));
