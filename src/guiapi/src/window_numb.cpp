@@ -50,7 +50,7 @@ const window_class_numb_t window_class_numb = {
 };
 
 void window_numb_t::SetFormat(const char *frmt) {
-    format = format;
+    format = frmt;
     _window_invalidate(this);
 }
 
