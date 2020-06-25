@@ -165,3 +165,10 @@ void window_list_t::SetItemCount(int cnt) {
     count = cnt;
     _window_invalidate(this);
 }
+
+void window_list_t::SetItemIndex(int idx) {
+    if (count > idx) {
+        index = idx;
+    }
+    _window_invalidate(this);
+}

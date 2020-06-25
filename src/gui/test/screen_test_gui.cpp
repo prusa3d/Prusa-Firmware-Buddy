@@ -60,8 +60,8 @@ void screen_test_gui_init(screen_t *screen) {
     window_set_min_max_step(id, 0.0F, 1.0F, 0.001F);
     pd->spin1.SetValue(1.000F);
 
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(10, 130, 220, 66), &(pd->list));
-    window_set_item_index(id, 2);
+    window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(10, 130, 220, 66), &(pd->list));
+    pd->list.SetItemIndex(2);
 
     id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 234, 64, 64), &(pd->icon0));
     window_set_icon_id(id, IDR_PNG_menu_icon_print);

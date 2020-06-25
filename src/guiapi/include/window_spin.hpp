@@ -13,6 +13,8 @@ struct window_spin_t : public window_numb_t {
     int index;
 
     int GetItemCount() const { return count; }
+    void SetItemIndex(int idx);
+    int GetItemIndex() const { return index; }
 
 protected:
     virtual void setValue(float val) override;

@@ -77,3 +77,11 @@ void window_spin_t::setValue(float val) {
     value = value;
     index = int((value - min) / step);
 }
+
+void window_spin_t::SetItemIndex(int idx) {
+    if (count > idx) {
+        index = idx;
+        value = min + step * index;
+    }
+    _window_invalidate(this);
+}

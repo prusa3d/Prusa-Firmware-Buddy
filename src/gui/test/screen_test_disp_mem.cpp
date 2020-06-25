@@ -198,7 +198,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinMode));
     pd->spinMode.SetItemCount(modes_sz);
-    window_set_item_index(id, 0);
+    pd->spinMode.SetItemIndex(0);
     window_set_item_callback(id, window_list_modes_item);
 
     row2draw += 25;
@@ -210,7 +210,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinSpiClk));
     pd->spinSpiClk.SetItemCount(opt_spi_sz);
-    window_set_item_index(id, 0);
+    pd->spinSpiClk.SetItemIndex(0);
     window_set_item_callback(id, window_list_spi_item);
 
     row2draw += 25;
@@ -228,7 +228,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     //INVERSION
     id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
     pd->spinInversion.SetItemCount(inversions_sz);
-    window_set_item_index(id, 0);
+    pd->spinInversion.SetItemIndex(0);
     window_set_item_callback(id, window_list_inversions_item);
 
     row2draw += 25;
@@ -246,7 +246,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     //Brightness enabled
     id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
     pd->spinBrigt_ena.SetItemCount(bright_enas_sz);
-    window_set_item_index(id, 0);
+    pd->spinBrigt_ena.SetItemIndex(0);
     window_set_item_callback(id, window_list_bright_enas_item);
     pd->spinBrigt_ena.SetTag(TAG_BRIGHTNESS);
 
@@ -497,31 +497,9 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
             screen_close();
             return 1;
         }
-    /*if (event == WINDOW_EVENT_CHANGE){
-		switch ((int)param){
-		case TAG_BRIGHTNESS:
-			isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.id);
-			//if(isBrightness_ena_actual!=isBrightness_ena_last)
-			{
-				if(isBrightness_ena_actual) st7789v_brightness_enable();
-				else                        st7789v_brightness_disable();
-				isBrightness_ena_last = isBrightness_ena_actual;
-			}
-
-
-			brightness_actual = window_get_item_index(pd->spinBrightness.id);
-			//if(brightness_actual!=brightness_last)
-			{
-				st7789v_brightness_set(brightness_actual);
-				brightness_last = brightness_actual;
-			}
-			break;
-		}
-
-	}*/
     if (event == WINDOW_EVENT_LOOP) {
 
-        isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.id);
+        isBrightness_ena_actual = pd->spinBrigt_ena.GetItemIndex();
         brightness_actual = pd->spinBrightness.GetValue();
 
         if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
@@ -535,24 +513,24 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
             isBrightness_ena_last = isBrightness_ena_actual;
         }
 
-        mode = window_get_item_index(pd->spinMode.id);
+        mode = pd->spinMode.GetItemIndex();
 
-        user_value = window_get_item_index(pd->spinStrHx0.id)
-            | ((window_get_item_index(pd->spinStrHx1.id)) << 4)
-            | ((window_get_item_index(pd->spinStrHx2.id)) << 8)
-            | ((window_get_item_index(pd->spinStrHx3.id)) << 12);
+        user_value = pd->spinStrHx0.GetItemIndex()
+            | ((pd->spinStrHx1.GetItemIndex()) << 4)
+            | ((pd->spinStrHx2.GetItemIndex()) << 8)
+            | ((pd->spinStrHx3.GetItemIndex()) << 12);
 
-        clrR = (window_get_item_index(pd->spinStrR0.id) << 4) | window_get_item_index(pd->spinStrR1.id);
-        clrG = (window_get_item_index(pd->spinStrG0.id) << 4) | window_get_item_index(pd->spinStrG1.id);
-        clrB = (window_get_item_index(pd->spinStrB0.id) << 4) | window_get_item_index(pd->spinStrB1.id);
+        clrR = (pd->spinStrR0.GetItemIndex() << 4) | pd->spinStrR1.GetItemIndex();
+        clrG = (pd->spinStrG0.GetItemIndex() << 4) | pd->spinStrG1.GetItemIndex();
+        clrB = (pd->spinStrB0.GetItemIndex() << 4) | pd->spinStrB1.GetItemIndex();
 
-        gamma_actual = window_get_item_index(pd->spinGamma.id);
+        gamma_actual = pd->spinGamma.GetItemIndex();
         if (gamma_actual != gamma_last) {
             st7789v_gamma_set(gamma_actual);
             gamma_last = gamma_actual;
         }
 
-        isInverted_actual = window_get_item_index(pd->spinInversion.id);
+        isInverted_actual = pd->spinInversion.GetItemIndex();
         if (isInverted_actual != isInverted_last) {
             if (isInverted_actual)
                 st7789v_inversion_on();
@@ -562,7 +540,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
         }
 
         //check if spin changed
-        spinSpiClkVal_actual = window_get_item_index(pd->spinSpiClk.id);
+        spinSpiClkVal_actual = pd->spinSpiClk.GetItemIndex();
         if (spinSpiClkVal_actual != spinSpiClkVal_last) {
             sys_spi_set_prescaler(spinSpiClkVal_actual);
             spinSpiClkVal_last = spinSpiClkVal_actual;

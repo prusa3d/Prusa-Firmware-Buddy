@@ -338,42 +338,6 @@ void window_t::SetBackColor(color_t clr) {
     _window_invalidate(this);
 }
 
-void window_set_item_index(int16_t id, int index) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_MENU:
-            window_menu_set_item_index(window, index);
-            break;
-        case WINDOW_CLS_LIST:
-            if (((window_list_t *)window)->count > index) {
-                ((window_list_t *)window)->index = index;
-            }
-            break;
-        case WINDOW_CLS_SPIN:
-            if (((window_spin_t *)window)->count > index) {
-                ((window_spin_t *)window)->index = index;
-                ((window_spin_t *)window)->value = ((window_spin_t *)window)->min + ((window_spin_t *)window)->step * ((window_spin_t *)window)->index;
-            }
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-int window_get_item_index(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            return ((window_list_t *)window)->index;
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->index;
-        }
-    }
-    return -1;
-}
-
 void window_set_top_index(int16_t id, int top_index) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {

@@ -89,14 +89,6 @@ struct screen_PID_data_t {
     rect_ui16_t rectKi_B;
     rect_ui16_t rectKd_B;
 
-    int16_t idsDigits_Kp_E[6];
-    int16_t idsDigits_Ki_E[6];
-    int16_t idsDigits_Kd_E[6];
-
-    int16_t idsDigits_Kp_B[6];
-    int16_t idsDigits_Ki_B[6];
-    int16_t idsDigits_Kd_B[6];
-
     float autotune_temp_B;
     float autotune_temp_E;
 
@@ -152,17 +144,17 @@ void _autotune_E(screen_t *screen, autotune_state_t *a_tn_st);
 
 //-----------------------------------------------------------------------------
 //gui spins
-void generate_spin_single_digit(int16_t &id0, int16_t &id, window_spin_t &spin,
+void generate_spin_single_digit(int16_t &id0, window_spin_t &spin,
     uint16_t &col, uint16_t row, uint16_t offset, uint16_t row_h);
 
-void enable_digits_write_mode(int16_t *ids, size_t sz);
+void enable_digits_write_mode(window_spin_t *spiners, size_t sz);
 
-void disable_digits_write_mode(int16_t *ids, size_t sz);
+void disable_digits_write_mode(window_spin_t *spiners, size_t sz);
 
 //i am not using size_t numOfDigits, size_t precision
 //need to be signed because of for cycles
 void generate_spin_digits(screen_t *screen, int numOfDigits, int precision,
-    int16_t &id0, int16_t *ids, window_spin_t *pSpin, uint16_t dot_coords[2],
+    int16_t &id0, window_spin_t *pSpin, uint16_t dot_coords[2],
     uint16_t col, uint16_t row, uint16_t row_h);
 
 //-----------------------------------------------------------------------------
@@ -175,18 +167,16 @@ void window_list_RW_item(window_list_t *pwindow_list, uint16_t index,
 
 //-----------------------------------------------------------------------------
 //screen update methods
-void disp_single_PID_digit(uint8_t singlePIDdigit, int16_t id);
+void disp_single_PID_digit(uint8_t singlePIDdigit, window_spin_t *pspin);
 
 void disp_single_PID_param(uint32_t singlePIDparam,
-    int16_t *ids, size_t numOfDigits);
+    window_spin_t *spins, size_t numOfDigits);
 
-void dispPID(_PID_t &PID, int16_t *KpIds, int16_t *KiIds, int16_t *KdIds,
+void dispPID(_PID_t &PID, window_spin_t *Kps, window_spin_t *Kis, window_spin_t *Kds,
     size_t numOfDigits, size_t precision);
 
-uint8_t get_single_PIDdigitFromDisp(int16_t id);
-
 //i am not using size_t, need negative values in for cycle
-float get_single_PIDparamFromDisp(int16_t *ids, int numOfDigits, int precision);
+float get_single_PIDparamFromDisp(window_spin_t *spins, int numOfDigits, int precision);
 
 //-----------------------------------------------------------------------------
 //btn autotune / apply
@@ -228,7 +218,7 @@ void screen_PID_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_LIST,
         id0, rect_ui16(col, row2draw, 100, row_h), &(pd->list_RW_E));
     pd->list_RW_E.SetItemCount(list_RW_strings_sz);
-    window_set_item_index(id, 0);
+    pd->list_RW_E.SetItemIndex(0);
     window_set_item_callback(id, window_list_RW_item);
     pd->list_RW_E.SetTag(TAG_RW_E);
 
@@ -236,19 +226,19 @@ void screen_PID_init(screen_t *screen) {
 
     pd->rectKp_E = rect_ui16(col, row2draw, 25, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->idsDigits_Kp_E, pd->spinKp_E, pd->dot_coordsKp_E,
+        id0, pd->spinKp_E, pd->dot_coordsKp_E,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
     pd->rectKi_E = rect_ui16(col, row2draw, 30, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->idsDigits_Ki_E, pd->spinKi_E, pd->dot_coordsKi_E,
+        id0, pd->spinKi_E, pd->dot_coordsKi_E,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
     pd->rectKd_E = rect_ui16(col, row2draw, 50, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->idsDigits_Kd_E, pd->spinKd_E, pd->dot_coordsKd_E,
+        id0, pd->spinKd_E, pd->dot_coordsKd_E,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
@@ -277,7 +267,7 @@ void screen_PID_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_LIST, id0,
         rect_ui16(col, row2draw, 100, row_h), &(pd->list_RW_B));
     pd->list_RW_B.SetItemCount(list_RW_strings_sz);
-    window_set_item_index(id, 0);
+    pd->list_RW_B.SetItemIndex(0);
     window_set_item_callback(id, window_list_RW_item);
     pd->list_RW_B.SetTag(TAG_RW_B);
 
@@ -285,19 +275,19 @@ void screen_PID_init(screen_t *screen) {
 
     pd->rectKp_B = rect_ui16(col, row2draw, 25, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->idsDigits_Kp_B, pd->spinKp_B, pd->dot_coordsKp_B,
+        id0, pd->spinKp_B, pd->dot_coordsKp_B,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
     pd->rectKi_B = rect_ui16(col, row2draw, 30, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->idsDigits_Ki_B, pd->spinKi_B, pd->dot_coordsKi_B,
+        id0, pd->spinKi_B, pd->dot_coordsKi_B,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
     pd->rectKd_B = rect_ui16(col, row2draw, 50, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->idsDigits_Kd_B, pd->spinKd_B, pd->dot_coordsKd_B,
+        id0, pd->spinKd_B, pd->dot_coordsKd_B,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
@@ -327,9 +317,9 @@ void screen_PID_init(screen_t *screen) {
 
     status_footer_init(&(pd->footer), id0);
 
-    dispPID((pd->_PID_E), pd->idsDigits_Kp_E, pd->idsDigits_Ki_E, pd->idsDigits_Kd_E,
+    dispPID((pd->_PID_E), pd->spinKp_E, pd->spinKi_E, pd->spinKd_E,
         SPIN_DIGITS, SPIN_PRECISION);
-    dispPID((pd->_PID_B), pd->idsDigits_Kp_B, pd->idsDigits_Ki_B, pd->idsDigits_Kd_B,
+    dispPID((pd->_PID_B), pd->spinKp_B, pd->spinKi_B, pd->spinKd_B,
         SPIN_DIGITS, SPIN_PRECISION);
 }
 
@@ -360,11 +350,11 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             } else {
                 //apply values
                 _PID_set(&(pd->_PID_E),
-                    get_single_PIDparamFromDisp(pd->idsDigits_Kp_E,
+                    get_single_PIDparamFromDisp(pd->spinKp_E,
                         SPIN_DIGITS, SPIN_PRECISION),
-                    get_single_PIDparamFromDisp(pd->idsDigits_Ki_E,
+                    get_single_PIDparamFromDisp(pd->spinKi_E,
                         SPIN_DIGITS, SPIN_PRECISION),
-                    get_single_PIDparamFromDisp(pd->idsDigits_Kd_E,
+                    get_single_PIDparamFromDisp(pd->spinKd_E,
                         SPIN_DIGITS, SPIN_PRECISION));
                 eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
                 eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
@@ -378,11 +368,11 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             } else {
                 //apply values
                 _PID_set(&(pd->_PID_B),
-                    get_single_PIDparamFromDisp(pd->idsDigits_Kp_B,
+                    get_single_PIDparamFromDisp(pd->spinKp_B,
                         SPIN_DIGITS, SPIN_PRECISION),
-                    get_single_PIDparamFromDisp(pd->idsDigits_Ki_B,
+                    get_single_PIDparamFromDisp(pd->spinKi_B,
                         SPIN_DIGITS, SPIN_PRECISION),
-                    get_single_PIDparamFromDisp(pd->idsDigits_Kd_B,
+                    get_single_PIDparamFromDisp(pd->spinKd_E,
                         SPIN_DIGITS, SPIN_PRECISION));
                 eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
                 eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
@@ -420,24 +410,24 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
         pd->autotune_temp_E = pd->spinAutoTn_E.GetValue();
         pd->autotune_temp_B = pd->spinAutoTn_B.GetValue();
 
-        pd->list_RW_E_index_actual = window_get_item_index(pd->list_RW_E.id);
+        pd->list_RW_E_index_actual = pd->list_RW_E.GetItemIndex();
         if (pd->list_RW_E_index_actual != pd->list_RW_E_index_last) {
             if (pd->list_RW_E_index_actual == 0) {
-                disable_digits_write_mode(pd->idsDigits_Kp_E,
-                    sizeof(pd->idsDigits_Kp_E) / sizeof(pd->idsDigits_Kp_E[0]));
-                disable_digits_write_mode(pd->idsDigits_Ki_E,
-                    sizeof(pd->idsDigits_Ki_E) / sizeof(pd->idsDigits_Ki_E[0]));
-                disable_digits_write_mode(pd->idsDigits_Kd_E,
-                    sizeof(pd->idsDigits_Kd_E) / sizeof(pd->idsDigits_Kd_E[0]));
+                disable_digits_write_mode(pd->spinKp_E,
+                    sizeof(pd->spinKp_E) / sizeof(pd->spinKp_E[0]));
+                disable_digits_write_mode(pd->spinKi_E,
+                    sizeof(pd->spinKi_E) / sizeof(pd->spinKi_E[0]));
+                disable_digits_write_mode(pd->spinKd_E,
+                    sizeof(pd->spinKd_E) / sizeof(pd->spinKd_E[0]));
                 pd->btAutoTuneApply_E.SetText(
                     _(btnAutoTuneOrApplystrings[0]));
             } else {
-                enable_digits_write_mode(pd->idsDigits_Kp_E,
-                    sizeof(pd->idsDigits_Kp_E) / sizeof(pd->idsDigits_Kp_E[0]));
-                enable_digits_write_mode(pd->idsDigits_Ki_E,
-                    sizeof(pd->idsDigits_Ki_E) / sizeof(pd->idsDigits_Ki_E[0]));
-                enable_digits_write_mode(pd->idsDigits_Kd_E,
-                    sizeof(pd->idsDigits_Kd_E) / sizeof(pd->idsDigits_Kd_E[0]));
+                enable_digits_write_mode(pd->spinKp_E,
+                    sizeof(pd->spinKp_E) / sizeof(pd->spinKp_E[0]));
+                enable_digits_write_mode(pd->spinKi_E,
+                    sizeof(pd->spinKi_E) / sizeof(pd->spinKi_E[0]));
+                enable_digits_write_mode(pd->spinKd_E,
+                    sizeof(pd->spinKd_E) / sizeof(pd->spinKd_E[0]));
                 pd->btAutoTuneApply_E.SetText(
                     _(btnAutoTuneOrApplystrings[1]));
             }
@@ -445,24 +435,24 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             pd->list_RW_E_index_last = pd->list_RW_E_index_actual;
         }
 
-        pd->list_RW_B_index_actual = window_get_item_index(pd->list_RW_B.id);
+        pd->list_RW_B_index_actual = pd->list_RW_B.GetItemIndex();
         if (pd->list_RW_B_index_actual != pd->list_RW_B_index_last) {
             if (pd->list_RW_B_index_actual == 0) {
-                disable_digits_write_mode(pd->idsDigits_Kp_B,
-                    sizeof(pd->idsDigits_Kp_B) / sizeof(pd->idsDigits_Kp_B[0]));
-                disable_digits_write_mode(pd->idsDigits_Ki_B,
-                    sizeof(pd->idsDigits_Ki_B) / sizeof(pd->idsDigits_Ki_B[0]));
-                disable_digits_write_mode(pd->idsDigits_Kd_B,
-                    sizeof(pd->idsDigits_Kd_B) / sizeof(pd->idsDigits_Kd_B[0]));
+                disable_digits_write_mode(pd->spinKp_B,
+                    sizeof(pd->spinKp_B) / sizeof(pd->spinKp_B[0]));
+                disable_digits_write_mode(pd->spinKi_B,
+                    sizeof(pd->spinKi_B) / sizeof(pd->spinKi_B[0]));
+                disable_digits_write_mode(pd->spinKd_B,
+                    sizeof(pd->spinKd_B) / sizeof(pd->spinKd_B[0]));
                 pd->btAutoTuneApply_B.SetText(
                     _(btnAutoTuneOrApplystrings[0]));
             } else {
-                enable_digits_write_mode(pd->idsDigits_Kp_B,
-                    sizeof(pd->idsDigits_Kp_B) / sizeof(pd->idsDigits_Kp_B[0]));
-                enable_digits_write_mode(pd->idsDigits_Ki_B,
-                    sizeof(pd->idsDigits_Ki_B) / sizeof(pd->idsDigits_Ki_B[0]));
-                enable_digits_write_mode(pd->idsDigits_Kd_B,
-                    sizeof(pd->idsDigits_Kd_B) / sizeof(pd->idsDigits_Kd_B[0]));
+                enable_digits_write_mode(pd->spinKp_B,
+                    sizeof(pd->spinKp_B) / sizeof(pd->spinKp_B[0]));
+                enable_digits_write_mode(pd->spinKi_B,
+                    sizeof(pd->spinKi_B) / sizeof(pd->spinKi_B[0]));
+                enable_digits_write_mode(pd->spinKd_B,
+                    sizeof(pd->spinKd_B) / sizeof(pd->spinKd_B[0]));
                 pd->btAutoTuneApply_B.SetText(
                     _(btnAutoTuneOrApplystrings[1]));
             }
@@ -512,11 +502,11 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
         }
 
         if (_PID_actualize(&(pd->_PID_E)) != 0) {
-            dispPID((pd->_PID_E), pd->idsDigits_Kp_E, pd->idsDigits_Ki_E, pd->idsDigits_Kd_E,
+            dispPID((pd->_PID_E), pd->spinKp_E, pd->spinKi_E, pd->spinKd_E,
                 SPIN_DIGITS, SPIN_PRECISION);
         }
         if (_PID_actualize(&(pd->_PID_B)) != 0) {
-            dispPID((pd->_PID_B), pd->idsDigits_Kp_B, pd->idsDigits_Ki_B, pd->idsDigits_Kd_B,
+            dispPID((pd->_PID_B), pd->spinKp_B, pd->spinKi_B, pd->spinKd_B,
                 SPIN_DIGITS, SPIN_PRECISION);
         }
     }
@@ -645,87 +635,83 @@ void _autotune_E(screen_t *screen, autotune_state_t *a_tn_st) {
 
 //-----------------------------------------------------------------------------
 //gui spins
-void generate_spin_single_digit(int16_t &id0, int16_t &id, window_spin_t &spin,
+void generate_spin_single_digit(int16_t &id0, window_spin_t &spin,
     uint16_t &col, uint16_t row, uint16_t offset, uint16_t row_h) {
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0,
+    window_create_ptr(WINDOW_CLS_SPIN, id0,
         rect_ui16(col, row, offset, row_h), &spin);
     spin.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     spin.SetFormat("%d");
-    window_set_min_max_step(id, 0.0F, 9.0F, 1.0F);
+    window_set_min_max_step(spin.id, 0.0F, 9.0F, 1.0F);
     spin.SetValue(0.0F);
     col += offset;
 };
 
-void enable_digits_write_mode(int16_t *ids, size_t sz) {
+void enable_digits_write_mode(window_spin_t *spiners, size_t sz) {
     for (size_t i = 0; i < sz; ++i)
-        window_ptr(ids[i])->Enable();
+        window_ptr(spiners[i].id)->Enable();
 }
 
-void disable_digits_write_mode(int16_t *ids, size_t sz) {
+void disable_digits_write_mode(window_spin_t *spiners, size_t sz) {
     for (size_t i = 0; i < sz; ++i)
-        window_ptr(ids[i])->Disable();
+        window_ptr(spiners[i].id)->Disable();
 }
 
 //i am not using size_t numOfDigits, size_t precision
 //need to be signed because of for cycles
 void generate_spin_digits(screen_t *screen, int numOfDigits, int precision,
-    int16_t &id0, int16_t *ids, window_spin_t *pSpin, uint16_t dot_coords[2],
+    int16_t &id0, window_spin_t *pSpin, uint16_t dot_coords[2],
     uint16_t col, uint16_t row, uint16_t row_h) {
     int16_t offset = 12;
     dot_coords[0] = col + offset * (numOfDigits - precision) + 1;
     dot_coords[1] = row + 14;
 
     for (int i = numOfDigits - 1; i >= precision; --i) {
-        generate_spin_single_digit(id0, ids[i], pSpin[i], col, row, offset, row_h);
+        generate_spin_single_digit(id0, pSpin[i], col, row, offset, row_h);
     }
 
     col += 3;
 
     for (int i = precision - 1; i >= 0; --i) {
-        generate_spin_single_digit(id0, ids[i], pSpin[i], col, row, offset, row_h);
+        generate_spin_single_digit(id0, pSpin[i], col, row, offset, row_h);
     }
 
-    disable_digits_write_mode(ids, numOfDigits);
+    disable_digits_write_mode(pSpin, numOfDigits);
 }
 
 //-----------------------------------------------------------------------------
 //screen update methods
-void disp_single_PID_digit(uint8_t singlePIDdigit, int16_t id) {
-    if (window_get_item_index(id) != singlePIDdigit) {
-        window_set_item_index(id, singlePIDdigit);
+void disp_single_PID_digit(uint8_t singlePIDdigit, window_spin_t *pspin) {
+    if (pspin->GetItemIndex() != singlePIDdigit) {
+        pspin->SetItemIndex(singlePIDdigit);
     }
 }
 
 void disp_single_PID_param(uint32_t singlePIDparam,
-    int16_t *ids, size_t numOfDigits) {
+    window_spin_t *spins, size_t numOfDigits) {
     for (size_t i = 0; i < numOfDigits; ++i) {
-        disp_single_PID_digit(singlePIDparam % 10, ids[i]);
+        disp_single_PID_digit(singlePIDparam % 10, &spins[i]);
         singlePIDparam = singlePIDparam / 10;
     }
 }
 
-void dispPID(_PID_t &PID, int16_t *KpIds, int16_t *KiIds, int16_t *KdIds,
+void dispPID(_PID_t &PID, window_spin_t *Kps, window_spin_t *Kis, window_spin_t *Kds,
     size_t numOfDigits, size_t precision) {
     float multiplier = pow(10.0F, float(precision));
     uint32_t Kp = PID.Kp_last * multiplier;
     uint32_t Ki = PID.raw_Ki * multiplier; //scaled
     uint32_t Kd = PID.raw_Kd * multiplier; //scaled
 
-    disp_single_PID_param(Kp, KpIds, numOfDigits);
-    disp_single_PID_param(Ki, KiIds, numOfDigits);
-    disp_single_PID_param(Kd, KdIds, numOfDigits);
-}
-
-uint8_t get_single_PIDdigitFromDisp(int16_t id) {
-    return window_get_item_index(id);
+    disp_single_PID_param(Kp, Kps, numOfDigits);
+    disp_single_PID_param(Ki, Kis, numOfDigits);
+    disp_single_PID_param(Kd, Kds, numOfDigits);
 }
 
 //i am not using size_t, need negative values in for cycle
-float get_single_PIDparamFromDisp(int16_t *ids, int numOfDigits, int precision) {
+float get_single_PIDparamFromDisp(window_spin_t *spins, int numOfDigits, int precision) {
     int val = 0;
     for (int i = numOfDigits - 1; i >= 0; --i) {
         val *= 10;
-        val += get_single_PIDdigitFromDisp(ids[i]);
+        val += spins[i].GetItemIndex();
     }
 
     float multiplier = pow(10.0F, float(precision));

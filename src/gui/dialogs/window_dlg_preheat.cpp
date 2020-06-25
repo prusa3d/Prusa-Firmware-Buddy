@@ -81,8 +81,7 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     id = window_create_ptr(WINDOW_CLS_LIST, window->id, rect, &(window->list));
     window->list.padding = padding_ui8(20, 6, 2, 6);
     window->list.icon_rect = rect_ui16(0, 0, 16, 30);
-
-    window_set_item_index(id, 0);
+    window->list.SetItemIndex(0);
     window_set_item_callback(id, window->filament_items);
 }
 
