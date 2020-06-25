@@ -11,29 +11,28 @@
 #define FW_UPDATE_ENABLE  0xAA
 #define FW_UPDATE_DISABLE 0x00
 
-// appendix state
 typedef enum {
-    APNDX_EXISTS = 0, /**< Appendix not broken, signature authentication needed */
-    APNDX_BROKEN      /**< Appendix broken, no signature authentication needed */
-} APNDX_STATUS;
+    BT_APPENDIX_EXISTS = 0, /**< Appendix not broken, signature authentication needed */
+	BT_APPENDIX_BROKEN	/**< Appendix broken, no signature authentication needed */
+} BT_APPENDIX_STATUS;
 
 // model_specific_flags bit locations from LSB
 typedef enum {
-    appednix_status = 0, /**< appendix status flag */
-    reserved_1,
-    reserved_2,
-    reserved_3,
-    reserved_4,
-    reserved_5,
-    reserved_6,
-    reserved_7
-} model_specific_flags;
+	BT_APPENDIX_STATUS_LOC = 0,
+	BT_BOOT_FLAG_1,
+	BT_BOOT_FLAG_2,
+	BT_BOOT_FLAG_3,
+	BT_BOOT_FLAG_4,
+	BT_BOOT_FLAG_5,
+	BT_BOOT_FLAG_6,
+	BT_BOOT_FLAG_7
+} BT_BOOT_FLAGS_LOC;
 
 #pragma pack(push)
 #pragma pack(1)
 typedef struct {
     uint8_t fw_update_flag;
-    uint8_t model_specific_flags; // ~ "reserved1" originally
+    uint8_t boot_flags;
     uint8_t reserved2;
     uint8_t reserved3;
     uint8_t reserved4;
