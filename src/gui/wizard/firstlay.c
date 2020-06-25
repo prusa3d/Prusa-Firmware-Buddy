@@ -320,7 +320,7 @@ const char *V2_gcodes_head_PLA[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S" PREHEAT_TEMP_STRING " D215", //nozzle target
     "M140 S60",                           //bed target
-    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S60",                           //wait for bed temp
     "G28",                                /*autohome*/
     "G29",                                /*meshbed leveling*/
@@ -333,7 +333,7 @@ const char *V2_gcodes_head_PETG[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S" PREHEAT_TEMP_STRING " D230", //nozzle target
     "M140 S85",                           //bed target
-    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S85",                           //wait for bed temp
     "G28",                                /*autohome*/
     "G29",                                /*meshbed leveling*/
@@ -346,7 +346,7 @@ const char *V2_gcodes_head_ASA[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
     "M140 S100",                          //bed target
-    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp
     "G28",                                /*autohome*/
     "G29",                                /*meshbed leveling*/
@@ -359,7 +359,7 @@ const char *V2_gcodes_head_ABS[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
     "M140 S100",                          //bed target
-    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp
     "G28",                                /*autohome*/
     "G29",                                /*meshbed leveling*/
@@ -372,7 +372,7 @@ const char *V2_gcodes_head_PC[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
     "M140 S100",                          //bed target
-    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp
     "G28",                                /*autohome*/
     "G29",                                /*meshbed leveling*/
@@ -385,7 +385,7 @@ const char *V2_gcodes_head_FLEX[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S" PREHEAT_TEMP_STRING " D240", //nozzle target
     "M140 S50",                           //bed target
-    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S50",                           //wait for bed temp
     "G28",                                /*autohome*/
     "G29",                                /*meshbed leveling*/
@@ -398,7 +398,7 @@ const char *V2_gcodes_head_HIPS[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
     "M140 S100",                          //bed target
-    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp
     "G28",                                /*autohome*/
     "G29",                                /*meshbed leveling*/
@@ -411,7 +411,7 @@ const char *V2_gcodes_head_PP[] = {
     V__GCODES_HEAD_BEGIN
     "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
     "M140 S100",                          //bed target
-    "M109 S" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
     "M190 S100",                          //wait for bed temp
     "G28",                                /*autohome*/
     "G29",                                /*meshbed leveling*/
