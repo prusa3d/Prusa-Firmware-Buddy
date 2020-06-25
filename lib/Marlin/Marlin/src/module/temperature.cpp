@@ -3299,7 +3299,7 @@ void Temperature::isr() {
             // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
             if (temp_diff < TEMP_WINDOW) {
               residency_start_ms = now;
-              if (first_loop) residency_start_ms += (TEMP_RESIDENCY_TIME) * 1000UL;
+              if (first_loop) residency_start_ms -= (TEMP_RESIDENCY_TIME) * 1000UL;
             }
           }
           else if (temp_diff > TEMP_HYSTERESIS) {
