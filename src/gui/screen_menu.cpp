@@ -63,7 +63,6 @@ int IScreenMenu::Event(window_t *window, uint8_t event, void *param) {
         window_header_events(&header);
     }
 
-    //on return 0 screen_dispatch_event will
-    //call window_dispatch_event
+    //on return 0 screen_dispatch_event will call DispatchEvent
     return 0;
 }

@@ -128,6 +128,7 @@ struct window_t {
 
     //To be removed
     int16_t IdParent() { return id_parent; }
+    void DispatchEvent(uint8_t ev, void *param);
 };
 
 extern window_t *window_popup_ptr; //current popup window
@@ -177,7 +178,5 @@ extern void window_invalidate_children(int16_t id);
 extern void window_set_top_index(int16_t id, int index);
 
 extern int window_get_top_index(int16_t id);
-
-extern void window_dispatch_event(window_t *window, uint8_t event, void *param);
 
 extern void gui_invalidate(void);

@@ -372,7 +372,7 @@ uint16_t window_get_icon_id(int16_t id) {
     return 0;
 }
 
-void window_dispatch_event(window_t *window, uint8_t event, void *param) {
-    if (window && window->event)
-        window->event(window, event, param);
+void window_t::DispatchEvent(uint8_t ev, void *param) {
+    if (event)
+        event(this, ev, param);
 }
