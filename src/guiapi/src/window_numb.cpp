@@ -54,11 +54,23 @@ void window_numb_t::SetFormat(const char *frmt) {
     _window_invalidate(this);
 }
 
+//todo use this later
+//virtual methods does not work yet - stupid memcpy
+/*
 void window_numb_t::SetValue(float val) {
     setValue(val);
     _window_invalidate(this);
 }
+*/
 
+//todo use this virtual methods does not work yet - stupid memcpy
+/*
 void window_numb_t::setValue(float val) {
     value = val;
+}
+*/
+
+void window_numb_t::SetValue(float val) {
+    value = val;
+    _window_invalidate(this);
 }

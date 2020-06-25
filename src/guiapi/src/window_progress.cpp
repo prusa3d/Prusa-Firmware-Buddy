@@ -68,11 +68,22 @@ const window_class_progress_t window_class_progress = {
         0,
     },
 };
-
+//todo use this virtual methods does not work yet - stupid memcpy
+/*
 void window_progress_t::setValue(float val) {
     if (val < min)
         val = min;
     if (val > max)
         val = max;
     value = value;
+}
+*/
+//todo erase me, virtual methods does not work yet - stupid memcpy
+void window_progress_t::SetValue(float val) {
+    if (val < min)
+        val = min;
+    if (val > max)
+        val = max;
+    value = value;
+    _window_invalidate(this);
 }

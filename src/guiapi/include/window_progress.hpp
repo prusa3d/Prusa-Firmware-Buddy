@@ -14,8 +14,10 @@ struct window_progress_t : public window_numb_t {
     float min;
     float max;
 
+    void SetValue(float val); //todo erase me, virtual methods does not work yet - stupid memcpy
 protected:
-    virtual void setValue(float val) override;
+    //todo use this virtual methods does not work yet - stupid memcpy
+    //virtual void setValue(float val) override;
 };
 
 extern const window_class_progress_t window_class_progress;

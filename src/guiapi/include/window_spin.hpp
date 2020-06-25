@@ -16,8 +16,10 @@ struct window_spin_t : public window_numb_t {
     void SetItemIndex(int idx);
     int GetItemIndex() const { return index; }
 
+    void SetValue(float val); //todo erase me, virtual methods does not work yet - stupid memcpy
 protected:
-    virtual void setValue(float val) override;
+    //todo use this virtual methods does not work yet - stupid memcpy
+    //virtual void setValue(float val) override;
 };
 
 struct window_class_spin_t {
