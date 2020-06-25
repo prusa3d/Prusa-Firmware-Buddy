@@ -477,16 +477,6 @@ void window_set_min_max_step(int16_t id, float min, float max, float step) {
     }
 }
 
-void window_set_item_callback(int16_t id, window_list_item_t *fnc) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            ((window_list_t *)window)->list_item = fnc;
-        }
-    }
-}
-
 void window_dispatch_event(window_t *window, uint8_t event, void *param) {
     if (window && window->event)
         window->event(window, event, param);

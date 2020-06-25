@@ -51,21 +51,19 @@ void _msg_stack_del(uint8_t del_index) { // del_index = < 0 ; MSG_STACK_SIZE - 1
 }
 
 void screen_messages_init(screen_t *screen) {
-
-    int16_t id;
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pmsg->root));
     pmsg->root.Disable();
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
+    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
     // p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
     p_window_header_set_text(&(pmsg->header), N_("MESSAGES"));
 
-    id = window_create_ptr(WINDOW_CLS_LIST, root, gui_defaults.scr_body_sz, &(pmsg->list));
+    window_create_ptr(WINDOW_CLS_LIST, root, gui_defaults.scr_body_sz, &(pmsg->list));
     pmsg->list.SetItemCount(msg_stack.count + 1);
     pmsg->list.SetItemIndex(0);
-    window_set_item_callback(id, _window_list_add_message_item);
+    pmsg->list.SetCallback(_window_list_add_message_item);
 
     pmsg->list.SetCapture();
 

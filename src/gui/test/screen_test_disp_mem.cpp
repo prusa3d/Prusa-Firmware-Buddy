@@ -180,7 +180,6 @@ static void hexSpinInit(int16_t id0, rect_ui16_t rect, window_spin_t *pSpin) {
 
 void screen_test_disp_mem_init(screen_t *screen) {
     row2draw = 0;
-    int16_t id;
     int16_t row_h = 22; //item_height from list
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
@@ -196,10 +195,10 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textMode.SetText((const char *)"MODE");
 
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinMode));
+    window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinMode));
     pd->spinMode.SetItemCount(modes_sz);
     pd->spinMode.SetItemIndex(0);
-    window_set_item_callback(id, window_list_modes_item);
+    pd->spinMode.SetCallback(window_list_modes_item);
 
     row2draw += 25;
 
@@ -208,32 +207,32 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textSpiClk.font = resource_font(IDR_FNT_NORMAL);
     pd->textSpiClk.SetText((const char *)"SPI clk");
 
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinSpiClk));
+    window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinSpiClk));
     pd->spinSpiClk.SetItemCount(opt_spi_sz);
     pd->spinSpiClk.SetItemIndex(0);
-    window_set_item_callback(id, window_list_spi_item);
+    pd->spinSpiClk.SetCallback(window_list_spi_item);
 
     row2draw += 25;
 
     //Gamma setting
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textGamma));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textGamma));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textMode.SetText((const char *)"Gamma");
 
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
+    int16_t id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
     pd->spinGamma.SetFormat("%1.0f");
     window_set_min_max_step(id, 0.0F, 3.0F, 1.0F);
     pd->spinGamma.SetValue((float)st7789v_gamma_get());
 
     //INVERSION
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
+    window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
     pd->spinInversion.SetItemCount(inversions_sz);
     pd->spinInversion.SetItemIndex(0);
-    window_set_item_callback(id, window_list_inversions_item);
+    pd->spinInversion.SetCallback(window_list_inversions_item);
 
     row2draw += 25;
     //Brightness setting
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textBrightness));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textBrightness));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textBrightness.SetText((const char *)"Brightn.");
 
@@ -244,10 +243,10 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
 
     //Brightness enabled
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
+    window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
     pd->spinBrigt_ena.SetItemCount(bright_enas_sz);
     pd->spinBrigt_ena.SetItemIndex(0);
-    window_set_item_callback(id, window_list_bright_enas_item);
+    pd->spinBrigt_ena.SetCallback(window_list_bright_enas_item);
     pd->spinBrigt_ena.SetTag(TAG_BRIGHTNESS);
 
     row2draw += 25;
@@ -255,10 +254,10 @@ void screen_test_disp_mem_init(screen_t *screen) {
     int16_t col = col_1 + w_of_0x;
     int16_t offset = 12;
     //user write pattern
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textSpiUserPattern1));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textSpiUserPattern1));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textSpiUserPattern1.SetText((const char *)"Wr-Rd-Wr");
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(1), &(pd->text0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(1), &(pd->text0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->text0x.SetText((const char *)"0x");
 
@@ -276,7 +275,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     int16_t RGBspaceW = 5;
 
     col = col_0;
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textR0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textR0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textR0x.SetText((const char *)"R 0x");
     pd->textR0x.SetTextColor(COLOR_RED);
@@ -288,7 +287,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     col += offset;
     col += RGBspaceW;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textG0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textG0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textG0x.SetText((const char *)"G 0x");
     pd->textG0x.SetTextColor(COLOR_GREEN);
@@ -300,7 +299,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     col += offset;
     col += RGBspaceW;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textB0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textB0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textB0x.SetText((const char *)"B 0x");
     pd->textB0x.SetTextColor(COLOR_BLUE);
@@ -312,7 +311,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     row2draw += 25; //position for drawing - it is global in this file
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     pd->textExit.SetText((const char *)"EXIT");
     pd->textExit.Enable();

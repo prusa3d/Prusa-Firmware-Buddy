@@ -67,22 +67,21 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     window->font_title = gui_defaults.font_big;
     window->padding = gui_defaults.padding;
 
-    int16_t id;
     rect_ui16_t rect = gui_defaults.scr_body_sz;
     if (window->caption) {
         rect.h = window->font_title->h + 2;
-        id = window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
+        window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
         window->text.SetText(window->caption);
         rect = gui_defaults.scr_body_sz;
         rect.y += window->font_title->h + 4;
         rect.h -= window->font_title->h + 4;
     }
 
-    id = window_create_ptr(WINDOW_CLS_LIST, window->id, rect, &(window->list));
+    window_create_ptr(WINDOW_CLS_LIST, window->id, rect, &(window->list));
     window->list.padding = padding_ui8(20, 6, 2, 6);
     window->list.icon_rect = rect_ui16(0, 0, 16, 30);
     window->list.SetItemIndex(0);
-    window_set_item_callback(id, window->filament_items);
+    window->list.SetCallback(window->filament_items);
 }
 
 void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void *param) {

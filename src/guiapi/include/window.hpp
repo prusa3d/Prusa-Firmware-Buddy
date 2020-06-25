@@ -196,8 +196,6 @@ extern void window_set_min_max_step(int16_t id, float min, float max, float step
 
 extern void window_dispatch_event(window_t *window, uint8_t event, void *param);
 
-extern void window_set_item_callback(int16_t id, window_list_item_t *fnc);
-
 extern void gui_invalidate(void);
 
 extern void _window_invalidate(window_t *window);

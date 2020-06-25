@@ -172,3 +172,7 @@ void window_list_t::SetItemIndex(int idx) {
     }
     _window_invalidate(this);
 }
+
+void window_list_t::SetCallback(window_list_item_t *fnc) {
+    list_item = fnc;
+}

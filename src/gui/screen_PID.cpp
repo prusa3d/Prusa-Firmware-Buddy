@@ -196,7 +196,6 @@ void screen_PID_init(screen_t *screen) {
     _PID_ctor(&(pd->_PID_E), _EXTRUDER, &pd->autotune_temp_E);
     _PID_ctor(&(pd->_PID_B), _BED, &pd->autotune_temp_B);
 
-    int16_t id;
     uint16_t col = 2;
     uint16_t row2draw = 0;
     uint16_t row_h = 22;
@@ -204,7 +203,7 @@ void screen_PID_init(screen_t *screen) {
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME,
         -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT,
+    window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     pd->textMenuName.SetText((const char *)"PID adjustment");
@@ -215,11 +214,11 @@ void screen_PID_init(screen_t *screen) {
     pd->rect_E = rect_ui16(col, row2draw, 100, row_h);
     row2draw += row_h;
 
-    id = window_create_ptr(WINDOW_CLS_LIST,
+    window_create_ptr(WINDOW_CLS_LIST,
         id0, rect_ui16(col, row2draw, 100, row_h), &(pd->list_RW_E));
     pd->list_RW_E.SetItemCount(list_RW_strings_sz);
     pd->list_RW_E.SetItemIndex(0);
-    window_set_item_callback(id, window_list_RW_item);
+    pd->list_RW_E.SetCallback(window_list_RW_item);
     pd->list_RW_E.SetTag(TAG_RW_E);
 
     row2draw += 25;
@@ -242,14 +241,14 @@ void screen_PID_init(screen_t *screen) {
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT,
+    window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(col, row2draw, 68, row_h),
         &(pd->btAutoTuneApply_E));
     pd->btAutoTuneApply_E.SetText(_(btnAutoTuneOrApplystrings[0]));
     pd->btAutoTuneApply_E.Enable();
     pd->btAutoTuneApply_E.SetTag(TAG_AUTOTUNE_APPLY_E);
 
-    id = window_create_ptr(WINDOW_CLS_SPIN,
+    int16_t id = window_create_ptr(WINDOW_CLS_SPIN,
         id0, rect_ui16(col + 70, row2draw, 40, row_h),
         &(pd->spinAutoTn_E));
     pd->spinAutoTn_E.SetFormat("%f");
@@ -264,11 +263,11 @@ void screen_PID_init(screen_t *screen) {
     pd->rect_B = rect_ui16(col, row2draw, 100, row_h);
     row2draw += row_h;
 
-    id = window_create_ptr(WINDOW_CLS_LIST, id0,
+    window_create_ptr(WINDOW_CLS_LIST, id0,
         rect_ui16(col, row2draw, 100, row_h), &(pd->list_RW_B));
     pd->list_RW_B.SetItemCount(list_RW_strings_sz);
     pd->list_RW_B.SetItemIndex(0);
-    window_set_item_callback(id, window_list_RW_item);
+    pd->list_RW_B.SetCallback(window_list_RW_item);
     pd->list_RW_B.SetTag(TAG_RW_B);
 
     row2draw += 25;
@@ -291,7 +290,7 @@ void screen_PID_init(screen_t *screen) {
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT,
+    window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(col, row2draw, 68, row_h),
         &(pd->btAutoTuneApply_B));
     pd->btAutoTuneApply_B.SetText(_(btnAutoTuneOrApplystrings[0]));
@@ -308,7 +307,7 @@ void screen_PID_init(screen_t *screen) {
 
     //exit and footer
 
-    id = window_create_ptr(WINDOW_CLS_TEXT,
+    window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 245, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     pd->textExit.SetText((const char *)"EXIT");

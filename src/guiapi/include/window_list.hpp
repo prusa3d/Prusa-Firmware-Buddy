@@ -23,6 +23,7 @@ struct window_list_t : window_t {
     int GetItemCount() const { return count; }
     void SetItemIndex(int idx);
     int GetItemIndex() const { return index; }
+    void SetCallback(window_list_item_t *fnc);
 };
 
 extern const window_class_list_t window_class_list;
