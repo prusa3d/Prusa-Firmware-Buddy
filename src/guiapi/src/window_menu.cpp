@@ -2,7 +2,7 @@
 #include "window_menu.h" //C compatible, todo remove
 #include "window_menu.hpp"
 #include "gui.hpp"
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
 

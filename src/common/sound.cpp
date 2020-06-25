@@ -1,7 +1,8 @@
-#include "sound_C_wrapper.h"
-#include "sound.h"
+#include "sound.hpp"
 #include "hwio.h"
 #include "eeprom.h"
+
+static bool SOUND_INIT = false;
 
 const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 50, 100, 100, 1000 };
 const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
@@ -16,6 +17,16 @@ const int Sound::onceRepeats[5] = { 1, 1, 1, -1, 1 };
 const int Sound::loudRepeats[6] = { 1, 1, -1, 3, -1, 1 };
 const int Sound::silentRepeats[3] = { 1, 1, -1 };
 const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
+
+eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
+void Sound_SetMode(eSOUND_MODE eSMode) { Sound::getInstance().setMode(eSMode); }
+void Sound_Play(eSOUND_TYPE eSoundType) { Sound::getInstance().play(eSoundType); }
+void Sound_Stop() { Sound::getInstance().stop(); }
+void Sound_Update1ms() {
+    if (SOUND_INIT) {
+        Sound::getInstance().update1ms();
+    }
+}
 
 /*!
  * Sound signals implementation
@@ -44,7 +55,7 @@ void Sound::init() {
         setMode(eSOUND_MODE_DEFAULT);
     }
     /// GLOBAL FLAG set on demand when first sound method is called
-    SOUND_INIT = 1;
+    SOUND_INIT = true;
 }
 
 eSOUND_MODE Sound::getMode() const {
