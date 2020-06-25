@@ -135,6 +135,7 @@ static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_sp
 static void update_remaining_time(screen_t *screen, time_t rawtime);
 static void update_end_timestamp(screen_t *screen, time_t now_sec);
 static void update_print_duration(screen_t *screen, time_t print_duration);
+static void set_pause_icon_and_label(screen_t *screen);
 
 screen_t screen_printing = {
     0,
@@ -346,8 +347,15 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->sd_percent_done != pw->last_sd_percent_done)
         update_progress(screen, marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
 
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved) && get_state(screen) == printing_state_t::PRINTED) {
-        screen_close();
+    /// -- check when media is or isn't inserted
+    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved) || p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted)) {
+        /// -- close screen when print is done / stopped and USB media is removed
+        if (!marlin_vars()->media_inserted && get_state(screen) == printing_state_t::PRINTED) {
+            screen_close();
+            return 1;
+        }
+        /// -- check for enable/disable resume button
+        set_pause_icon_and_label(screen);
     }
 
     if (event != WINDOW_EVENT_CLICK) {
@@ -554,6 +562,7 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
 static void enable_button(window_icon_t *p_button) {
     if (p_button->win.f_disabled) {
         p_button->win.f_disabled = 0;
+        p_button->win.f_enabled = 1;
         window_invalidate(p_button->win.id);
     }
 }
@@ -561,6 +570,7 @@ static void enable_button(window_icon_t *p_button) {
 static void disable_button(window_icon_t *p_button) {
     if (!p_button->win.f_disabled) {
         p_button->win.f_disabled = 1;
+        p_button->win.f_enabled = 0;
         window_invalidate(p_button->win.id);
     }
 }
@@ -587,6 +597,9 @@ static void set_pause_icon_and_label(screen_t *screen) {
     case printing_state_t::PAUSED:
         enable_button(p_button);
         set_icon_and_label(item_id_t::resume, btn_id, lbl_id);
+        if (!marlin_vars()->media_inserted) {
+            disable_button(p_button);
+        }
         break;
     case printing_state_t::RESUMING:
         disable_button(p_button);
