@@ -178,22 +178,6 @@ extern void window_set_top_index(int16_t id, int index);
 
 extern int window_get_top_index(int16_t id);
 
-extern void window_set_min(int16_t id, float min);
-
-extern float window_get_min(int16_t id);
-
-extern void window_set_max(int16_t id, float max);
-
-extern float window_get_max(int16_t id);
-
-extern void window_set_step(int16_t id, float step);
-
-extern float window_get_step(int16_t id);
-
-extern void window_set_min_max(int16_t id, float min, float max);
-
-extern void window_set_min_max_step(int16_t id, float min, float max, float step);
-
 extern void window_dispatch_event(window_t *window, uint8_t event, void *param);
 
 extern void gui_invalidate(void);

@@ -26,23 +26,21 @@ struct screen_test_gui_data_t {
 #define pd ((screen_test_gui_data_t *)screen->pdata)
 
 void screen_test_gui_init(screen_t *screen) {
-    int16_t id;
-
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 0, 0, 0), &(pd->logo_prusa_mini));
+    window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 0, 0, 0), &(pd->logo_prusa_mini));
     pd->logo_prusa_mini.Enable();
     pd->logo_prusa_mini.SetTag(10);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 60, 22), &(pd->text0));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 60, 22), &(pd->text0));
     pd->text0.font = resource_font(IDR_FNT_BIG);
     pd->text0.SetText((const char *)"Big");
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(80, 70, 60, 22), &(pd->text1));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(80, 70, 60, 22), &(pd->text1));
     pd->text1.font = resource_font(IDR_FNT_NORMAL); // ignore GUI_DEF_FONT
     pd->text1.SetText((const char *)"Normal");
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(150, 70, 60, 22), &(pd->text2));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(150, 70, 60, 22), &(pd->text2));
     pd->text2.font = resource_font(IDR_FNT_SMALL);
     pd->text2.SetText((const char *)"Small");
 
@@ -50,37 +48,37 @@ void screen_test_gui_init(screen_t *screen) {
     pd->numb0.SetFormat((const char *)"%.0f");
     pd->numb0.SetValue(100.0F);
 
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(80, 100, 60, 22), &(pd->spin0));
+    window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(80, 100, 60, 22), &(pd->spin0));
     pd->spin0.SetFormat("%1.0f");
-    window_set_min_max_step(id, 0.0F, 270.0F, 1.0F);
+    pd->spin0.SetMinMaxStep(0.0F, 270.0F, 1.0F);
     pd->spin0.SetValue(100.0F);
 
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(150, 100, 60, 22), &(pd->spin1));
+    window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(150, 100, 60, 22), &(pd->spin1));
     pd->spin1.SetFormat("%.3f");
-    window_set_min_max_step(id, 0.0F, 1.0F, 0.001F);
+    pd->spin1.SetMinMaxStep(0.0F, 1.0F, 0.001F);
     pd->spin1.SetValue(1.000F);
 
     window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(10, 130, 220, 66), &(pd->list));
     pd->list.SetItemIndex(2);
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 234, 64, 64), &(pd->icon0));
+    window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 234, 64, 64), &(pd->icon0));
     pd->icon0.SetIdRes(IDR_PNG_menu_icon_print);
     pd->icon0.Enable();
     pd->icon0.SetTag(1);
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(80, 234, 64, 64), &(pd->icon1));
+    window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(80, 234, 64, 64), &(pd->icon1));
     pd->icon1.SetIdRes(IDR_PNG_menu_icon_preheat);
     pd->icon1.Enable();
     pd->icon1.SetTag(2);
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(150, 234, 64, 64), &(pd->icon2));
+    window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(150, 234, 64, 64), &(pd->icon2));
     pd->icon2.SetIdRes(IDR_PNG_menu_icon_spool);
     pd->icon2.Enable();
     pd->icon2.SetTag(3);
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(0, 200, 240, 30), &(pd->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(0, 200, 240, 30), &(pd->progress));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 298, 240, 22), &(pd->text_terminal));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 298, 240, 22), &(pd->text_terminal));
     pd->text_terminal.font = resource_font(IDR_FNT_TERMINAL);
     pd->text_terminal.SetText((const char *)"Terminal Font IBM ISO9");
 }

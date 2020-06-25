@@ -68,17 +68,6 @@ const window_class_spin_t window_class_spin = {
         },
     }
 };
-//todo use this virtual methods does not work yet - stupid memcpy
-/*
-void window_spin_t::setValue(float val) {
-    if (val < min)
-        val = min;
-    if (val > max)
-        val = max;
-    value = value;
-    index = int((value - min) / step);
-}
-*/
 
 void window_spin_t::SetItemIndex(int idx) {
     if (count > idx) {
@@ -88,13 +77,54 @@ void window_spin_t::SetItemIndex(int idx) {
     _window_invalidate(this);
 }
 
+//todo use this virtual methods does not work yet - stupid memcpy
+/*
+void window_spin_t::setValue(float val) {
+    SetValMinMaxStep(val, min, max, step);
+}
+*/
 //todo erase me, virtual methods does not work yet - stupid memcpy
 void window_spin_t::SetValue(float val) {
-    if (val < min)
-        val = min;
-    if (val > max)
-        val = max;
-    value = value;
-    index = int((value - min) / step);
+    SetValMinMaxStep(val, min, max, step);
     _window_invalidate(this);
+}
+
+void window_spin_t::SetMin(float min_val) {
+    SetValMinMaxStep(value, min_val, max, step);
+    _window_invalidate(this);
+}
+
+void window_spin_t::SetMax(float max_val) {
+    SetValMinMaxStep(value, min, max_val, step);
+    _window_invalidate(this);
+}
+
+void window_spin_t::SetStep(float step_val) {
+    SetValMinMaxStep(value, min, max, step_val);
+    _window_invalidate(this);
+}
+
+void window_spin_t::SetMinMax(float min_val, float max_val) {
+    SetValMinMaxStep(value, min_val, max_val, step);
+    _window_invalidate(this);
+}
+
+void window_spin_t::SetMinMaxStep(float min_val, float max_val, float step_val) {
+    SetValMinMaxStep(value, min_val, max_val, step_val);
+    _window_invalidate(this);
+}
+
+void window_spin_t::SetValMinMaxStep(float val, float min_val, float max_val, float step_val) {
+    setValMinMaxStep(val, min_val, max_val, step_val);
+    _window_invalidate(this);
+}
+
+void window_spin_t::setValMinMaxStep(float val, float min_val, float max_val, float step_val) {
+    min = min_val;
+    max = max_val;
+    step = step_val;
+    value = (val < min) ? min : (max < val) ? max : val; //do not have C++ 17, cannot use clamp
+    //value = std::clamp(val, min,max); // need C++ 17
+    count = (int)((max - min) / step + 1.5F);
+    index = (int)((value - min) / step);
 }

@@ -171,10 +171,10 @@ enum {
 
 //cannot use normal spin with format "%A"
 static void hexSpinInit(int16_t id0, rect_ui16_t rect, window_spin_t *pSpin) {
-    int16_t id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect, pSpin);
+    window_create_ptr(WINDOW_CLS_SPIN, id0, rect, pSpin);
     pSpin->flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     pSpin->SetFormat("%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
+    pSpin->SetMinMaxStep(0.0F, 15.0F, 1.0F);
     pSpin->SetValue(0.0F);
 }
 
@@ -219,9 +219,9 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textMode.SetText((const char *)"Gamma");
 
-    int16_t id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
+    window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
     pd->spinGamma.SetFormat("%1.0f");
-    window_set_min_max_step(id, 0.0F, 3.0F, 1.0F);
+    pd->spinGamma.SetMinMaxStep(0.0F, 3.0F, 1.0F);
     pd->spinGamma.SetValue((float)st7789v_gamma_get());
 
     //INVERSION
@@ -236,9 +236,9 @@ void screen_test_disp_mem_init(screen_t *screen) {
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     pd->textBrightness.SetText((const char *)"Brightn.");
 
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
+    window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
     pd->spinBrightness.SetFormat("%1.0f");
-    window_set_min_max_step(id, 0.0F, 255.0F, 5.0F);
+    pd->spinBrightness.SetMinMaxStep(0.0F, 255.0F, 5.0F);
     pd->spinBrightness.SetValue((float)st7789v_brightness_get());
     pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
 
