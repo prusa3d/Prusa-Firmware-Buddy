@@ -1,168 +1,142 @@
-#include "str_utils.h"
+#include "str_utils.hpp"
 #include <string.h>
 
-static const char *pcustom_set = "";
-static const char *pwithdraw_set = "";
-static int hyphen_distance = HYPHEN_DENY;
+/// Deletes \param n characters from beginning of the \param str
+/// \returns number of deleted characters
+size_t strdel(char *str, const size_t n) {
+    if (str == nullptr)
+        return 0;
 
-size_t strdel(char *pstr, size_t n) {
-    size_t count, i;
-
-    count = strlen(pstr);
-    if (n > count)
-        n = count;
-    count = count - n + 1;
-    for (i = 0; i < count; i++, pstr++)
-        *pstr = *(pstr + n);
-    return (n);
-}
-
-size_t strins(char *pstr, const char *pinstr, size_t repeater, bool before_flag) {
-    size_t count, n, n_ins;
-    size_t i, r;
-
-    count = strlen(pstr);
-    n = strlen(pinstr);
-    n_ins = n * repeater;
-    pstr += count; // ~ EOS position
-    if (before_flag)
-        count++;
-    for (i = 0; i < count; i++, pstr--)
-        *(pstr + n_ins) = *pstr;
-    pstr++;
-    for (r = 0; r < repeater; r++)
-        for (i = 0; i < n; i++, pstr++)
-            *pstr = *(pinstr + i);
-    return (n_ins);
-}
-
-void set_custom_set(const char *pstr) {
-    pcustom_set = pstr;
-}
-
-void set_withdraw_set(const char *pstr) {
-    pwithdraw_set = pstr;
-}
-
-void set_hyphen_distance(int dist) {
-    hyphen_distance = dist;
-}
-
-void set_defaults(void) {
-    pcustom_set = "";
-    pwithdraw_set = "";
-    hyphen_distance = HYPHEN_DENY;
-}
-
-size_t str2plain(char *pstr, const char *withdraw_set, const char *substitute_set, char substitute_char) {
-    size_t counter = 0;
-    bool flag;
-
-    while (*pstr != EOS) {
-        if ((flag = (*pstr == CHAR_HSPACE)) || (strchr(substitute_set, *pstr) != NULL)) {
-            if (flag)
-                *pstr = CHAR_SPACE;
-            else
-                *pstr = substitute_char;
-            counter++;
-        } else if ((*pstr == CHAR_HYPHEN) || (strchr(withdraw_set, *pstr) != NULL)) {
-            pstr -= strdel(pstr); // pointer correction needed
-            counter++;
-        }
-        pstr++;
+    size_t size = strlen(str);
+    if (n >= size) {
+        str[0] = '\0';
+        return size;
     }
-    return (counter);
+
+    size = size - n + 1; // copy \0 as well
+    for (size_t i = 0; i < size; ++i, ++str)
+        *str = *(str + n);
+    return n;
 }
 
-size_t str2plain(char *pstr, bool withdraw_flag) {
-    const char *pset = "";
+/// Shifts text in \param str by \param n characters
+/// \param default_char is inserted if new undefined space appears
+/// if \param default_char is 0 then nothing is inserted but the resulting
+/// string could be shorter than expected
+/// \returns number of characters shifted or negative number in case of error
+int strshift(char *str, size_t max_size, const size_t n, const char default_char) {
+    if (str == nullptr)
+        return str_err::nullptr_err;
+    if (n == 0)
+        return 0;
 
-    if (withdraw_flag)
-        pset = pwithdraw_set;
-    return (str2plain(pstr, pset));
+    const size_t size = strlen(str);
+    if (size + n >= max_size) /// too much to add
+        return str_err::small_buffer;
+
+    /// copy text, start from the last character including '\0'
+    for (size_t i = size + n; i >= n; --i) {
+        str[i] = str[i - n];
+    }
+
+    if (default_char == '\0')
+        return n;
+
+    /// fill the space between old and new text
+    for (size_t i = size; i < n; ++i) {
+        str[i] = default_char;
+    }
+    return n;
 }
 
-size_t str2multiline(char *pstr, size_t line_width) {
-    size_t actual_width = 1;
-    char *last_delimiter_position = nullptr; // initialization only due to compiler-warning
-    delimiter_t delimiter_type = delimiter_t::NONE;
-    size_t lines_count = 1;
+/// Inserts \param ins at the beginning of \param str \param times times
+/// \returns number of inserted characters or negative number in case of error
+int strins(char *str, size_t max_size, const char *const ins, size_t times) {
+    if (str == nullptr || ins == nullptr)
+        return str_err::nullptr_err;
 
-    while (*pstr != EOS) {
-        switch (*pstr) {
+    const size_t ins_size = strlen(ins);
+    const size_t inserted = ins_size * times;
+    if (inserted <= 0)
+        return 0;
+
+    /// shift the end
+    const int shifted = strshift(str, max_size, inserted, 0);
+    if (shifted <= 0)
+        return shifted;
+
+    /// insert text in the newly created space
+    size_t i;
+    for (size_t t = 0; t < times; ++t)
+        for (i = 0; i < ins_size; ++i, ++str)
+            *str = ins[i];
+
+    return inserted;
+}
+
+/// Replaces breakable spaces into line breaks in \param str
+/// to ensure that no line is longer than \param line_width.
+/// If \param line_width is too short,
+/// the text will be broken in the middle of the word.
+/// Existing line breaks are not removed.
+/// \returns final number of lines or negative number in case of error
+int str2multiline(char *str, size_t max_size, size_t line_width) {
+    if (str == nullptr || line_width == 0)
+        return str_err::nullptr_err;
+    if (*str == EOS)
+        return 1;
+
+    int last_delimiter = -1;
+    int last_NBSP = -1;
+    size_t lines = 1;
+    size_t current_length = 0;
+    size_t i = 0;
+
+    while (1) {
+        /// analyze character
+        switch (str[i]) {
         case CHAR_SPACE:
-            if (delimiter_type == delimiter_t::HYPHEN) {
-                pstr -= strdel(last_delimiter_position); // pointer correction needed
-                actual_width--;
-            }
-            last_delimiter_position = pstr;
-            delimiter_type = delimiter_t::SPACE;
+            last_delimiter = i;
             break;
-        case CHAR_HSPACE:
-            *pstr = CHAR_SPACE;
+        case CHAR_NBSP:
+            str[i] = ' ';
+            last_NBSP = i;
+            //last_delimiter = i;
             break;
         case CHAR_NL:
-            if (delimiter_type == delimiter_t::HYPHEN) {
-                pstr -= strdel(last_delimiter_position); // pointer correction needed
-            }
-            delimiter_type = delimiter_t::NONE;
-            actual_width = 0;
-            lines_count++;
-            break;
-        case CHAR_HYPHEN:
-            if ((hyphen_distance == HYPHEN_DENY) || (((delimiter_type == delimiter_t::SPACE) || (delimiter_type == delimiter_t::CUSTOM)) && ((pstr - last_delimiter_position) < hyphen_distance))) {
-                pstr -= strdel(pstr); // pointer correction needed
-                actual_width--;
-                break;
-            }
-            if (delimiter_type == delimiter_t::HYPHEN) {
-                pstr -= strdel(last_delimiter_position); // pointer correction needed
-                actual_width--;
-            }
-            last_delimiter_position = pstr;
-            delimiter_type = delimiter_t::HYPHEN;
-            break;
-        default:
-            if (strchr(pcustom_set, *pstr) != NULL) {
-                if (delimiter_type == delimiter_t::HYPHEN) {
-                    pstr -= strdel(last_delimiter_position); // pointer correction needed
-                    actual_width--;
-                }
-                last_delimiter_position = pstr;
-                delimiter_type = delimiter_t::CUSTOM;
-            } else if (strchr(pwithdraw_set, *pstr) != NULL) {
-                pstr -= strdel(pstr); // pointer correction needed
-                actual_width--;
-            }
+            ++lines;
+            last_delimiter = -1;
+            last_NBSP = -1;
+            current_length = 0;
             break;
         }
-        if ((line_width != LINE_WIDTH_UNLIMITED) && (actual_width > line_width)) {
-            switch (delimiter_type) {
-            case delimiter_t::NONE:
-                strins(pstr - 1, QT_NL);
-                actual_width = 0;
-                break;
-            case delimiter_t::SPACE:
-                *last_delimiter_position = CHAR_NL;
-                actual_width = pstr - last_delimiter_position;
-                delimiter_type = delimiter_t::NONE;
-                break;
-            case delimiter_t::HYPHEN:
-                *last_delimiter_position = CHAR_MINUS;
-                actual_width = pstr - last_delimiter_position;  // !before! "pstr" correction
-                pstr += strins(last_delimiter_position, QT_NL); // pointer correction needed / !after! "actual_width" (re)calculation
-                delimiter_type = delimiter_t::NONE;
-                break;
-            case delimiter_t::CUSTOM:
-                actual_width = pstr - last_delimiter_position;  // !before! "pstr" correction
-                pstr += strins(last_delimiter_position, QT_NL); // pointer correction needed / !after! "actual_width" (re)calculation
-                delimiter_type = delimiter_t::NONE;
-                break;
+
+        ++i;
+        ++current_length;
+
+        if (current_length > line_width) { /// if the length is too big, break the line
+            if (last_delimiter >= 0) {
+                /// break at space
+                str[last_delimiter] = CHAR_NL;
+                i = last_delimiter + 1;
+            } else if (last_NBSP >= 0) {
+                /// break at nonbreaking space - better than break a word
+                str[last_NBSP] = CHAR_NL;
+                i = last_NBSP + 1;
+            } else {
+                /// no break point available - break a word instead
+                const int inserted = strins(str + i - 1, max_size - i + 1, NL);
+                if (inserted < 0)
+                    return str_err::small_buffer;
             }
-            lines_count++;
+            ++lines;
+            current_length = 0;
+            last_delimiter = -1;
+            last_NBSP = -1;
         }
-        pstr++;
-        actual_width++;
+
+        if (str[i] == EOS)
+            break;
     }
-    return (lines_count);
+    return lines;
 }

@@ -10,7 +10,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include "screens.h"
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 #include "DialogHandler.hpp"
 
 #define DBG _dbg0

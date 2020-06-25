@@ -471,9 +471,9 @@ target_sources(
           src/common/gcode_thumb_decoder.cpp
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
-          src/common/sound_C_wrapper.cpp
           src/common/sound.cpp
           src/common/support_utils.cpp
+          src/common/str_utils.cpp
           src/common/errors.cpp
           src/common/lang.cpp
           src/common/client_response.cpp
