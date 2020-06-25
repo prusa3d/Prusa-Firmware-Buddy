@@ -45,7 +45,7 @@ void window_spin_inc(window_spin_t *window, int dif) {
     if (window->index >= window->count)
         window->index = window->count - 1;
     window->value = window->min + window->index * window->step;
-    _window_invalidate((window_t *)window);
+    window->Invalidate();
 }
 
 void window_spin_dec(window_spin_t *window, int dif) {
@@ -53,7 +53,7 @@ void window_spin_dec(window_spin_t *window, int dif) {
     if (window->index < 0)
         window->index = 0;
     window->value = window->min + window->index * window->step;
-    _window_invalidate((window_t *)window);
+    window->Invalidate();
 }
 
 const window_class_spin_t window_class_spin = {
@@ -74,7 +74,7 @@ void window_spin_t::SetItemIndex(int idx) {
         index = idx;
         value = min + step * index;
     }
-    _window_invalidate(this);
+    Invalidate();
 }
 
 //todo use this virtual methods does not work yet - stupid memcpy
@@ -86,37 +86,37 @@ void window_spin_t::setValue(float val) {
 //todo erase me, virtual methods does not work yet - stupid memcpy
 void window_spin_t::SetValue(float val) {
     SetValMinMaxStep(val, min, max, step);
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_spin_t::SetMin(float min_val) {
     SetValMinMaxStep(value, min_val, max, step);
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_spin_t::SetMax(float max_val) {
     SetValMinMaxStep(value, min, max_val, step);
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_spin_t::SetStep(float step_val) {
     SetValMinMaxStep(value, min, max, step_val);
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_spin_t::SetMinMax(float min_val, float max_val) {
     SetValMinMaxStep(value, min_val, max_val, step);
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_spin_t::SetMinMaxStep(float min_val, float max_val, float step_val) {
     SetValMinMaxStep(value, min_val, max_val, step_val);
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_spin_t::SetValMinMaxStep(float val, float min_val, float max_val, float step_val) {
     setValMinMaxStep(val, min_val, max_val, step_val);
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_spin_t::setValMinMaxStep(float val, float min_val, float max_val, float step_val) {

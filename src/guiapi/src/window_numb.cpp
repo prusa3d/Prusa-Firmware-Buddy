@@ -51,7 +51,7 @@ const window_class_numb_t window_class_numb = {
 
 void window_numb_t::SetFormat(const char *frmt) {
     format = frmt;
-    _window_invalidate(this);
+    Invalidate();
 }
 
 //todo use this later
@@ -59,7 +59,7 @@ void window_numb_t::SetFormat(const char *frmt) {
 /*
 void window_numb_t::SetValue(float val) {
     setValue(val);
-    _window_invalidate(this);
+    Invalidate();
 }
 */
 
@@ -72,5 +72,5 @@ void window_numb_t::setValue(float val) {
 
 void window_numb_t::SetValue(float val) {
     value = val;
-    _window_invalidate(this);
+    Invalidate();
 }

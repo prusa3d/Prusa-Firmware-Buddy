@@ -83,10 +83,7 @@ int screen_messages_event(screen_t *screen, window_t *window,
         if (pmsg->list.index == 0) {
             screen_close();
             return 1;
-        } /*else if (pmsg->list.index <= msg_stack.count) {		TODO: Deleted message stays on the screen
-			_msg_stack_del(pmsg->list.index - 1);
-			_window_invalidate((window_t*)&(pmsg->list));
-		} */
+        }
         break;
     default:
         break;

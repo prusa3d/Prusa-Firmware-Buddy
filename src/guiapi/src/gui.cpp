@@ -76,14 +76,6 @@ void gui_invalidate(void) {
 #endif //GUI_USE_RTOS
 }
 
-void _window_invalidate(window_t *window) {
-    if (!window)
-        return;
-
-    window->flg |= WINDOW_FLG_INVALID;
-    gui_invalidate();
-}
-
 #define GUI_DELAY_MIN  1
 #define GUI_DELAY_MAX  10
 #define GUI_DELAY_LOOP 100

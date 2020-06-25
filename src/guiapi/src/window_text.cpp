@@ -37,20 +37,20 @@ const window_class_text_t window_class_text = {
 
 void window_text_t::SetText(const char *txt) {
     text = txt;
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_text_t::SetTextColor(color_t clr) {
     color_text = clr;
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_text_t::SetPadding(padding_ui8_t padd) {
     padding = padd;
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_text_t::SetAlignment(uint8_t alignm) {
     alignment = alignm;
-    _window_invalidate(this);
+    Invalidate();
 }

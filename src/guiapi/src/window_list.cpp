@@ -142,7 +142,7 @@ void window_list_inc(window_list_t *window, int dif) {
 
     if (window->index != old) {
         // optimalization do not redraw when no change - still on end
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
@@ -163,14 +163,14 @@ const window_class_list_t window_class_list = {
 
 void window_list_t::SetItemCount(int cnt) {
     count = cnt;
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_list_t::SetItemIndex(int idx) {
     if (count > idx) {
         index = idx;
     }
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_list_t::SetCallback(window_list_item_t *fnc) {

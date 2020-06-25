@@ -322,20 +322,20 @@ void window_t::SetCapture() {
 void window_t::Show() {
     if ((f_visible) == 0) {
         f_visible = 1;
-        _window_invalidate(this);
+        Invalidate();
     }
 }
 
 void window_t::Hide() {
     if (f_visible) {
         f_visible = 0;
-        _window_invalidate(this);
+        Invalidate();
     }
 }
 
 void window_t::SetBackColor(color_t clr) {
     color_back = clr;
-    _window_invalidate(this);
+    Invalidate();
 }
 
 void window_set_top_index(int16_t id, int top_index) {
@@ -346,7 +346,7 @@ void window_set_top_index(int16_t id, int top_index) {
             ((window_list_t *)window)->top_index = top_index;
             break;
         }
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 

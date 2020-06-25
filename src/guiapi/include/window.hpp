@@ -181,5 +181,3 @@ extern int window_get_top_index(int16_t id);
 extern void window_dispatch_event(window_t *window, uint8_t event, void *param);
 
 extern void gui_invalidate(void);
-
-extern void _window_invalidate(window_t *window);

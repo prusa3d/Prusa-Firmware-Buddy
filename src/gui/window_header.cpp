@@ -115,27 +115,27 @@ void window_header_draw(window_header_t *window) {
 
 void p_window_header_set_icon(window_header_t *window, uint16_t id_res) {
     window->id_res = id_res;
-    _window_invalidate((window_t *)window);
+    window->Invalidate();
 }
 
 void p_window_header_icon_off(window_header_t *window, header_icons_t icon) {
     if (window->icons[icon] != HEADER_ISTATE_OFF) {
         window->icons[icon] = HEADER_ISTATE_OFF;
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
 void p_window_header_icon_on(window_header_t *window, header_icons_t icon) {
     if (window->icons[icon] != HEADER_ISTATE_ON) {
         window->icons[icon] = HEADER_ISTATE_ON;
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
 void p_window_header_icon_active(window_header_t *window, header_icons_t icon) {
     if (window->icons[icon] != HEADER_ISTATE_ACTIVE) {
         window->icons[icon] = HEADER_ISTATE_ACTIVE;
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
@@ -146,7 +146,7 @@ header_states_t p_window_header_get_state(window_header_t *window,
 
 void p_window_header_set_text(window_header_t *window, const char *txt) {
     window->text = txt;
-    _window_invalidate((window_t *)window);
+    window->Invalidate();
 }
 
 int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id) {
