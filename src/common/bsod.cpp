@@ -5,6 +5,7 @@
 #include "sound_C_wrapper.h"
 #include "wdt.h"
 
+#define HAS_GUI 1
 #ifndef HAS_GUI
     #error "HAS_GUI not defined"
 #elif HAS_GUI
@@ -27,6 +28,8 @@
     #include "sys.h"
     #include "hwio.h"
     #include "version.h"
+    #include "window_qr.hpp"
+    #include "support_utils.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -190,12 +193,96 @@ void general_error(const char *error, const char *module) {
     }
 }
 
+void general_error_init() {
+    __disable_irq();
+    stop_common();
+
+    jogwheel_init();
+    gui_reset_jogwheel();
+
+    //questionable placement - where now, in almost every BSOD timers are
+    //stopped and Sound class cannot update itself for timing sound signals.
+    //GUI is in the middle of refactoring and should be showned after restart
+    //when timers and everything else is running again (info by - Rober/Radek)
+
+    // Sound_Play(eSOUND_TYPE_CriticalAlert); !!!!!!!!!!!!!!
+}
+
+void general_error_run() {
+    //cannot use jogwheel_signals  (disabled interrupt)
+    while (1) {
+        wdt_iwdg_refresh();
+        if (!gpio_get(jogwheel_config.pinENC))
+            sys_reset(); //button press
+    }
+}
+
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    char buff[128];
-    snprintf(buff, sizeof(buff),
+    char text[128];
+    snprintf(text, sizeof(text),
         "The requested %s\ntemperature was not\nreached.\n\nNozzle temp: %d/%d\nBed temp: %d/%d",
         module, (int)t_noz, (int)tt_noz, (int)t_bed, (int)tt_bed);
-    general_error(error, buff);
+
+    general_error_init();
+
+    display::Clear(COLOR_RED_ALERT);
+
+    // print text
+    term_t term;
+    uint8_t buff[TERM_BUFF_SIZE(20, 16)];
+    term_init(&term, 20, 16, buff);
+
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
+        COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
+
+    term_printf(&term, text);
+    term_printf(&term, "\n");
+
+    render_term(rect_ui16(PADDING, 100, 220, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+
+    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), "RESET PRINTER", gui_defaults.font,
+        COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
+
+    /// print QR
+    window_qr_t win;
+    window_qr_t *window = &win;
+    char qr_text[MAX_LEN_4QR + 1];
+    win.text = qr_text;
+    win.rect = rect_ui16(59, 140, 224, 95);
+
+    create_path_info_4error(qr_text, sizeof(qr_text), 12201);
+
+    window->version = 9;
+    window->ecc_level = qrcodegen_Ecc_HIGH;
+    window->mode = qrcodegen_Mode_ALPHANUMERIC;
+    window->border = 4;
+    window->px_per_module = 3;
+    window->bg_color = COLOR_WHITE;
+    window->px_color = COLOR_BLACK;
+
+    #define BORDER (window->border)
+    #define MSIZE  (window->px_per_module)
+    #define X0     (window->rect.x + window->border * MSIZE)
+    #define Y0     (window->rect.y + window->border * MSIZE)
+
+    uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
+    uint8_t qrcode_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
+    bool qr_ok;
+    int size;
+
+    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+        qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, window->ecc_level, window->version, window->version, qrcodegen_Mask_AUTO, true);
+        if (qr_ok) {
+            size = qrcodegen_getSize(qrcode_buff);
+            for (int y = -BORDER; y < (size + BORDER); y++)
+                for (int x = -BORDER; x < (size + BORDER); x++)
+                    display::FillRect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
+        }
+        window->flg &= ~WINDOW_FLG_INVALID;
+    }
+
+    general_error_run();
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
