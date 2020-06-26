@@ -139,8 +139,6 @@ extern window_t *window_capture_ptr; //current capture window
 
 extern window_t *window_ptr(int16_t id);
 
-extern int16_t window_id(window_t *ptr);
-
 extern int16_t window_register_class(window_class_t *cls);
 
 extern int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr);

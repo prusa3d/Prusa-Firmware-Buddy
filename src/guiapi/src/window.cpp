@@ -88,10 +88,6 @@ window_t *window_ptr(int16_t id) {
     return ((id >= 0) && (id < WINDOW_MAX_WINDOWS)) ? windows[id] : 0;
 }
 
-int16_t window_id(window_t *ptr) {
-    return (ptr) ? ptr->id : -1;
-}
-
 int16_t window_register_class(window_class_t *cls) {
     if ((cls) && (window_user_class_count < WINDOW_MAX_USERCLS)) {
         window_user_classes[window_user_class_count] = cls;
