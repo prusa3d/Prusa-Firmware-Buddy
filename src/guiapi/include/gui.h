@@ -71,6 +71,10 @@ extern int gui_msgbox(const char *text, uint16_t flags);
 
 extern int gui_msgbox_prompt(const char *text, uint16_t flags);
 
+// close currently displayed msgbox, returns 1 if msgbox successfully closed or 0 if no msgbox currently displayed
+// message box loop will stop and gui_msgbox function returns MSGBOX_RES_CLOSED
+extern int gui_msgbox_close(void);
+
 #endif //GUI_WINDOW_SUPPORT
 
 #ifdef GUI_JOGWHEEL_SUPPORT
