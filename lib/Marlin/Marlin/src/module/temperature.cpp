@@ -271,6 +271,7 @@ volatile bool Temperature::temp_meas_ready = false;
 
 #if ENABLED(PID_EXTRUSION_SCALING)
   uint32_t Temperature::last_e_position;
+  bool Temperature::extrusion_scaling_enabled = true;
 #endif
 
 #define TEMPDIR(N) ((HEATER_##N##_RAW_LO_TEMP) < (HEATER_##N##_RAW_HI_TEMP) ? 1 : -1)
@@ -954,7 +955,8 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
                 last_e_position = e_position;
 
                 work_pid[ee].Kc = e_pos_diff * planner.steps_to_mm[E_AXIS] * distance_to_volume_per_second * (temp_hotend[ee].celsius - ambient_temp) * PID_PARAM(Kc, ee);
-                pid_output += work_pid[ee].Kc;
+                if (extrusion_scaling_enabled)
+                  pid_output += work_pid[ee].Kc;
               }
             #endif // PID_EXTRUSION_SCALING
 
@@ -1072,7 +1074,8 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
                 last_e_position = e_position;
 
                 work_pid[ee].Kc = e_pos_diff * planner.steps_to_mm[E_AXIS] * distance_to_volume_per_second * (temp_hotend[ee].celsius - ambient_temp) * PID_PARAM(Kc, ee);
-                pid_output += work_pid[ee].Kc;
+                if (extrusion_scaling_enabled)
+                  pid_output += work_pid[ee].Kc;
               }
             #endif // PID_EXTRUSION_SCALING
 
