@@ -8,16 +8,24 @@
 
 #include "stm32f4xx_hal.h"
 
-class LinkedListItem {
+/**
+ * @brief Container for all instances of its class
+ *
+ * Use only for objects of static storage duration. It is not possible meaningfully destroy object
+ * of this class. (Do not allocate on stack or heap.)
+ * Implicitly creates linked list of all created objects of its class. To conserve RAM, pointers to
+ * previous items in list are constant.
+ */
+class ConfigurableIndestructible {
 public:
-    LinkedListItem()
+    static void configure_all();
+    ConfigurableIndestructible()
         : m_previous(s_last) { s_last = this; }
     virtual void configure() = 0;
-    static void configure_all();
 
 private:
-    LinkedListItem *const m_previous;
-    static LinkedListItem *s_last;
+    ConfigurableIndestructible *const m_previous; //!< previous instance, nullptr if this is first instance
+    static ConfigurableIndestructible *s_last;
 };
 
 enum class IoPort : uint8_t {
@@ -86,7 +94,7 @@ static_assert(IoPinToHal(IoPin::p15) == 0x8000U, "IoPinToHal broken");
 
 void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, IoPort ioPort);
 
-class InputPin : LinkedListItem {
+class InputPin : ConfigurableIndestructible {
 public:
     InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
         : m_port(ioPort)

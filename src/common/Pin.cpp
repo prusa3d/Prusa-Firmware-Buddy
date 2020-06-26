@@ -6,10 +6,18 @@
 
 #include "Pin.hpp"
 
-LinkedListItem *LinkedListItem::s_last = nullptr;
+/**
+ * @brief Points to last created object of this class, nullptr for none
+ */
+ConfigurableIndestructible *ConfigurableIndestructible::s_last = nullptr;
 
-void LinkedListItem::configure_all() {
-    LinkedListItem *linkedListItem = s_last;
+/**
+ * @brief Configure all instances of objects derived from ConfigurableIndestructible
+ *
+ * Objects are configured in opposite order as it was created.
+ */
+void ConfigurableIndestructible::configure_all() {
+    ConfigurableIndestructible *linkedListItem = s_last;
     for (; linkedListItem != nullptr; linkedListItem = linkedListItem->m_previous) {
         linkedListItem->configure();
     }
