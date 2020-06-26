@@ -198,6 +198,11 @@ bool Pause::FilamentLoad() {
     if (!is_target_temperature_safe())
         return false;
 
+#if ENABLED(PID_EXTRUSION_SCALING)
+    bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
+    thermalManager.setExtrusionScalingEnabled(false);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
+
     Response response;
     do {
         hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT);
@@ -258,6 +263,9 @@ bool Pause::FilamentLoad() {
         marlin_server_print_reheat_start();
 
         if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 30, 50)) {
+#if ENABLED(PID_EXTRUSION_SCALING)
+            thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
             return false;
         }
 
@@ -282,6 +290,10 @@ bool Pause::FilamentLoad() {
         }
     } while (response == Response::Retry);
 
+#if ENABLED(PID_EXTRUSION_SCALING)
+    thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
+
     return true;
 }
 
@@ -300,6 +312,11 @@ bool Pause::FilamentUnload() {
     if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 0, 50)) {
         return false;
     }
+
+#if ENABLED(PID_EXTRUSION_SCALING)
+    bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
+    thermalManager.setExtrusionScalingEnabled(false);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
 
     static const RamUnloadSeqItem ramUnloadSeq[] = {
         { 1, 100 },
@@ -345,6 +362,10 @@ bool Pause::FilamentUnload() {
     disable_e_stepper(active_extruder);
     safe_delay(100);
 #endif
+
+#if ENABLED(PID_EXTRUSION_SCALING)
+    thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
 
     return true;
 }
