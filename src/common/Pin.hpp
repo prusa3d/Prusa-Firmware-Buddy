@@ -100,6 +100,9 @@ public:
         , m_iMode(iMode)
         , m_pull(pull) {}
     void configure();
+    GPIO_PinState read() {
+        return HAL_GPIO_ReadPin(m_halPort, m_HalPin);
+    }
 
 private:
     GPIO_TypeDef *const m_halPort;
