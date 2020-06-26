@@ -75,7 +75,7 @@ void window_progress_t::setValue(float val) {
         val = min;
     if (val > max)
         val = max;
-    value = value;
+    value = val;
 }
 */
 //todo erase me, virtual methods does not work yet - stupid memcpy
