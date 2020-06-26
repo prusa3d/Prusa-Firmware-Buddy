@@ -3,8 +3,8 @@
 
 #include "qrcodegen.h"
 
-#define ER_URL "HTTP://HELP.PRUSA3D.COM/"
-#define IR_URL "HTTP://INFO.PRUSA3D.COM/"
+#define ER_URL "HTTPS://HELP.PRUSA3D.COM/"
+#define IR_URL "HTTPS://INFO.PRUSA3D.COM/"
 
 #define MAX_LEN_4QR 256 //143
 
