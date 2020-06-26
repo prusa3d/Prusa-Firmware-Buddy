@@ -86,17 +86,20 @@ static_assert(IoPinToHal(IoPin::p15) == 0x8000U, "IoPinToHal broken");
 
 void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, IoPort ioPort);
 
-template <IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull>
 class InputPin : LinkedListItem {
-
 public:
+    InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
+        : m_port(ioPort)
+        , m_HalPin(IoPinToHal(ioPin))
+        , m_iMode(iMode)
+        , m_pull(pull) {}
     void configure() {
         InputPinGenericConfigure(m_HalPin, m_iMode, m_pull, m_port);
     }
 
 private:
-    static constexpr IoPort m_port = ioPort;
-    static constexpr uint16_t m_HalPin = IoPinToHal(ioPin);
-    static constexpr IMode m_iMode = iMode;
-    static constexpr Pull m_pull = pull;
+    const IoPort m_port;
+    const uint16_t m_HalPin;
+    const IMode m_iMode;
+    const Pull m_pull;
 };
