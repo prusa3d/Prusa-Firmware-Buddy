@@ -16,8 +16,6 @@ add_library(
   cores/arduino/Stream.cpp
   cores/arduino/USBSerial.cpp
   cores/arduino/Wire.cpp
-  cores/arduino/wiring_analog.c
-  cores/arduino/wiring_digital.c
   cores/arduino/wiring_time.c
   cores/arduino/WMath.cpp
   )

@@ -1,9 +1,6 @@
 // pointers to all screens
 #pragma once
 #include "screen.h" //screen_t
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 extern screen_t *const get_scr_splash();
 extern screen_t *const get_scr_watchdog();
@@ -43,7 +40,3 @@ extern screen_t *const get_scr_print_preview();
 #ifdef PIDCALIBRATION
 extern screen_t *const get_scr_PID();
 #endif //PIDCALIBRATION
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus

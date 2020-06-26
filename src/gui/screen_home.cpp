@@ -7,9 +7,9 @@
 
 #include "ff.h"
 #include "dbg.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
-#include "window_header.h"
+#include "window_header.hpp"
 #include "status_footer.h"
 #include "marlin_client.h"
 #include "screen_print_preview.h"
@@ -121,11 +121,11 @@ void screen_home_init(screen_t *screen) {
 }
 
 void screen_home_done(screen_t *screen) {
-    window_destroy(pw->root.win.id);
+    window_destroy(pw->root.id);
 }
 
 void screen_home_draw(screen_t *screen) {
-    if (pw->logo.win.f_invalid)
+    if (pw->logo.f_invalid)
         pw->logo_invalid = 1;
 }
 
@@ -145,7 +145,7 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
     }
     if ((event == WINDOW_EVENT_LOOP) && pw->logo_invalid) {
 #ifdef _DEBUG
-        display->draw_text(rect_ui16(180, 31, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        display::DrawText(rect_ui16(180, 31, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
         pw->logo_invalid = 0;
     }
@@ -253,14 +253,14 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 }
 
 void screen_home_disable_print_button(screen_t *screen, int disable) {
-    pw->w_buttons[0].win.f_disabled = disable;
-    pw->w_buttons[0].win.f_enabled = !disable; // cant't be focused
-    pw->w_buttons[0].win.f_invalid = 1;
-    window_set_text(pw->w_labels[0].win.id, labels[(disable ? 6 : 0)]);
+    pw->w_buttons[0].f_disabled = disable;
+    pw->w_buttons[0].f_enabled = !disable; // cant't be focused
+    pw->w_buttons[0].f_invalid = 1;
+    window_set_text(pw->w_labels[0].id, labels[(disable ? 6 : 0)]);
 
     // move to preheat when Print is focused
-    if (window_is_focused(pw->w_buttons[0].win.id) && disable) {
-        window_set_focus(pw->w_buttons[1].win.id);
+    if (window_is_focused(pw->w_buttons[0].id) && disable) {
+        window_set_focus(pw->w_buttons[1].id);
     }
 }
 
@@ -275,4 +275,4 @@ screen_t screen_home = {
     0,                          //pdata
 };
 
-extern "C" screen_t *const get_scr_home() { return &screen_home; }
+screen_t *const get_scr_home() { return &screen_home; }

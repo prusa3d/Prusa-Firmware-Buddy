@@ -272,7 +272,7 @@ void ScreenMenuLanSettings::refresh_addresses() {
     update_eth_addrs(&ethconfig);
     stringify_eth_for_screen(&plan_str, &ethconfig);
     help.text = (char *)plan_str;
-    help.win.flg |= WINDOW_FLG_INVALID;
+    help.flg |= WINDOW_FLG_INVALID;
     gui_invalidate();
 }
 
@@ -345,4 +345,4 @@ screen_t screen_lan_settings = {
     nullptr,                       //pdata
 };
 
-extern "C" screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }
+screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

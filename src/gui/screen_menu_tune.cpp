@@ -1,6 +1,6 @@
 // screen_menu_tune.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "MItem_print.hpp"
@@ -54,4 +54,4 @@ screen_t screen_menu_tune = {
     nullptr,                //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_tune() { return &screen_menu_tune; }
+screen_t *const get_scr_menu_tune() { return &screen_menu_tune; }

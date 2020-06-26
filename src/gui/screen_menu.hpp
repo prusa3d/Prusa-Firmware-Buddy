@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gui.h"
-#include "window_header.h"
+#include "gui.hpp"
+#include "window_header.hpp"
 #include "status_footer.h"
 #include "window_menu.hpp"
 #include "WinMenuContainer.hpp"

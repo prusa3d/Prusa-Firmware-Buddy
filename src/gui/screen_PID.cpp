@@ -12,7 +12,7 @@
 
 #ifdef PIDCALIBRATION
 
-    #include "gui.h"
+    #include "gui.hpp"
     #include "status_footer.h"
     #include "math.h"
     #include "../Marlin/src/module/temperature.h"
@@ -45,8 +45,7 @@ struct _PID_t {
     float Kd_last;
 };
 
-typedef struct
-{
+struct screen_PID_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
 
@@ -107,8 +106,7 @@ typedef struct
     autotune_state_t autotune_state;
 
     int redraw;
-
-} screen_PID_data_t;
+};
 
     #define pd ((screen_PID_data_t *)screen->pdata)
 
@@ -217,7 +215,7 @@ void screen_PID_init(screen_t *screen) {
         -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     id = window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(0, 0, display->w, row_h), &(pd->textMenuName));
+        id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     window_set_text(id, (const char *)"PID adjustment");
 
@@ -336,7 +334,7 @@ void screen_PID_init(screen_t *screen) {
 }
 
 void screen_PID_done(screen_t *screen) {
-    window_destroy(pd->frame.win.id);
+    window_destroy(pd->frame.id);
 }
 
 void screen_PID_draw(screen_t *screen) {
@@ -411,18 +409,18 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
         if (pd->autotune_state != AT_idle) {
             if (marlin_event_clr(MARLIN_EVT_CommandEnd)) //wait for MARLIN_EVT_CommandEnd
             {
-                window_set_color_text(pd->btAutoTuneApply_B.win.id, AUTO_TN_DEFAULT_CL);
-                window_set_color_text(pd->btAutoTuneApply_E.win.id, AUTO_TN_DEFAULT_CL);
-                window_set_color_text(pd->textExit.win.id, AUTO_TN_DEFAULT_CL);
-                window_enable(pd->textExit.win.id);
+                window_set_color_text(pd->btAutoTuneApply_B.id, AUTO_TN_DEFAULT_CL);
+                window_set_color_text(pd->btAutoTuneApply_E.id, AUTO_TN_DEFAULT_CL);
+                window_set_color_text(pd->textExit.id, AUTO_TN_DEFAULT_CL);
+                window_enable(pd->textExit.id);
                 pd->autotune_state = AT_idle;
             }
         }
 
-        pd->autotune_temp_E = window_get_value(pd->spinAutoTn_E.window.win.id);
-        pd->autotune_temp_B = window_get_value(pd->spinAutoTn_B.window.win.id);
+        pd->autotune_temp_E = window_get_value(pd->spinAutoTn_E.id);
+        pd->autotune_temp_B = window_get_value(pd->spinAutoTn_B.id);
 
-        pd->list_RW_E_index_actual = window_get_item_index(pd->list_RW_E.win.id);
+        pd->list_RW_E_index_actual = window_get_item_index(pd->list_RW_E.id);
         if (pd->list_RW_E_index_actual != pd->list_RW_E_index_last) {
             if (pd->list_RW_E_index_actual == 0) {
                 disable_digits_write_mode(pd->idsDigits_Kp_E,
@@ -431,7 +429,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                     sizeof(pd->idsDigits_Ki_E) / sizeof(pd->idsDigits_Ki_E[0]));
                 disable_digits_write_mode(pd->idsDigits_Kd_E,
                     sizeof(pd->idsDigits_Kd_E) / sizeof(pd->idsDigits_Kd_E[0]));
-                window_set_text(pd->btAutoTuneApply_E.win.id,
+                window_set_text(pd->btAutoTuneApply_E.id,
                     _(btnAutoTuneOrApplystrings[0]));
             } else {
                 enable_digits_write_mode(pd->idsDigits_Kp_E,
@@ -440,14 +438,14 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                     sizeof(pd->idsDigits_Ki_E) / sizeof(pd->idsDigits_Ki_E[0]));
                 enable_digits_write_mode(pd->idsDigits_Kd_E,
                     sizeof(pd->idsDigits_Kd_E) / sizeof(pd->idsDigits_Kd_E[0]));
-                window_set_text(pd->btAutoTuneApply_E.win.id,
+                window_set_text(pd->btAutoTuneApply_E.id,
                     _(btnAutoTuneOrApplystrings[1]));
             }
 
             pd->list_RW_E_index_last = pd->list_RW_E_index_actual;
         }
 
-        pd->list_RW_B_index_actual = window_get_item_index(pd->list_RW_B.win.id);
+        pd->list_RW_B_index_actual = window_get_item_index(pd->list_RW_B.id);
         if (pd->list_RW_B_index_actual != pd->list_RW_B_index_last) {
             if (pd->list_RW_B_index_actual == 0) {
                 disable_digits_write_mode(pd->idsDigits_Kp_B,
@@ -456,7 +454,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                     sizeof(pd->idsDigits_Ki_B) / sizeof(pd->idsDigits_Ki_B[0]));
                 disable_digits_write_mode(pd->idsDigits_Kd_B,
                     sizeof(pd->idsDigits_Kd_B) / sizeof(pd->idsDigits_Kd_B[0]));
-                window_set_text(pd->btAutoTuneApply_B.win.id,
+                window_set_text(pd->btAutoTuneApply_B.id,
                     _(btnAutoTuneOrApplystrings[0]));
             } else {
                 enable_digits_write_mode(pd->idsDigits_Kp_B,
@@ -465,7 +463,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                     sizeof(pd->idsDigits_Ki_B) / sizeof(pd->idsDigits_Ki_B[0]));
                 enable_digits_write_mode(pd->idsDigits_Kd_B,
                     sizeof(pd->idsDigits_Kd_B) / sizeof(pd->idsDigits_Kd_B[0]));
-                window_set_text(pd->btAutoTuneApply_B.win.id,
+                window_set_text(pd->btAutoTuneApply_B.id,
                     _(btnAutoTuneOrApplystrings[1]));
             }
 
@@ -474,42 +472,42 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
 
         if (pd->redraw) {
             pd->redraw = 0;
-            display->fill_rect(rect_ui16(pd->dot_coordsKp_E[0],
-                                   pd->dot_coordsKp_E[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKp_E[0],
+                                  pd->dot_coordsKp_E[1], 2, 2),
                 COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKi_E[0],
-                                   pd->dot_coordsKi_E[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKi_E[0],
+                                  pd->dot_coordsKi_E[1], 2, 2),
                 COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKd_E[0],
-                                   pd->dot_coordsKd_E[1], 2, 2),
-                COLOR_WHITE);
-
-            display->draw_text(pd->rect_E, "NOZZLE", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKp_E, "Kp", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKi_E, "Ki", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKd_E, "Kd", resource_font(IDR_FNT_NORMAL),
-                COLOR_BLACK, COLOR_ORANGE);
-
-            display->fill_rect(rect_ui16(pd->dot_coordsKp_B[0],
-                                   pd->dot_coordsKp_B[1], 2, 2),
-                COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKi_B[0],
-                                   pd->dot_coordsKi_B[1], 2, 2),
-                COLOR_WHITE);
-            display->fill_rect(rect_ui16(pd->dot_coordsKd_B[0],
-                                   pd->dot_coordsKd_B[1], 2, 2),
+            display::FillRect(rect_ui16(pd->dot_coordsKd_E[0],
+                                  pd->dot_coordsKd_E[1], 2, 2),
                 COLOR_WHITE);
 
-            display->draw_text(pd->rect_B, "BED", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rect_E, "NOZZLE", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKp_B, "Kp", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKp_E, "Kp", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKi_B, "Ki", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKi_E, "Ki", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display->draw_text(pd->rectKd_B, "Kd", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKd_E, "Kd", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+
+            display::FillRect(rect_ui16(pd->dot_coordsKp_B[0],
+                                  pd->dot_coordsKp_B[1], 2, 2),
+                COLOR_WHITE);
+            display::FillRect(rect_ui16(pd->dot_coordsKi_B[0],
+                                  pd->dot_coordsKi_B[1], 2, 2),
+                COLOR_WHITE);
+            display::FillRect(rect_ui16(pd->dot_coordsKd_B[0],
+                                  pd->dot_coordsKd_B[1], 2, 2),
+                COLOR_WHITE);
+
+            display::DrawText(pd->rect_B, "BED", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKp_B, "Kp", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKi_B, "Ki", resource_font(IDR_FNT_NORMAL),
+                COLOR_BLACK, COLOR_ORANGE);
+            display::DrawText(pd->rectKd_B, "Kd", resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
         }
 
@@ -525,8 +523,6 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
     return 0;
 }
 
-extern "C" {
-
 screen_t screen_PID = {
     0,
     0,
@@ -539,7 +535,6 @@ screen_t screen_PID = {
 };
 
 screen_t *const get_scr_PID() { return &screen_PID; }
-}
 
 //-----------------------------------------------------------------------------
 
@@ -627,15 +622,15 @@ void _PID_set(_PID_t *ths, float Kp, float Ki, float Kd) {
 bool __autotune(screen_t *screen, autotune_state_t *a_tn_st) {
     if ((*a_tn_st) != AT_idle)
         return 0;
-    window_disable(pd->textExit.win.id);
-    window_set_color_text(pd->textExit.win.id, AUTO_TN_ACTIVE_CL);
+    window_disable(pd->textExit.id);
+    window_set_color_text(pd->textExit.id, AUTO_TN_ACTIVE_CL);
     return 1;
 }
 
 void _autotune_B(screen_t *screen, autotune_state_t *a_tn_st) {
     if (__autotune(screen, a_tn_st)) {
         _PID_autotune(&(pd->_PID_B));
-        window_set_color_text(pd->btAutoTuneApply_B.win.id, AUTO_TN_ACTIVE_CL);
+        window_set_color_text(pd->btAutoTuneApply_B.id, AUTO_TN_ACTIVE_CL);
         *a_tn_st = AT_extruder;
     }
 }
@@ -643,7 +638,7 @@ void _autotune_B(screen_t *screen, autotune_state_t *a_tn_st) {
 void _autotune_E(screen_t *screen, autotune_state_t *a_tn_st) {
     if (__autotune(screen, a_tn_st)) {
         _PID_autotune(&(pd->_PID_E));
-        window_set_color_text(pd->btAutoTuneApply_E.win.id, AUTO_TN_ACTIVE_CL);
+        window_set_color_text(pd->btAutoTuneApply_E.id, AUTO_TN_ACTIVE_CL);
         *a_tn_st = AT_bed;
     }
 }
@@ -654,7 +649,7 @@ void generate_spin_single_digit(int16_t &id0, int16_t &id, window_spin_t &spin,
     uint16_t &col, uint16_t row, uint16_t offset, uint16_t row_h) {
     id = window_create_ptr(WINDOW_CLS_SPIN, id0,
         rect_ui16(col, row, offset, row_h), &spin);
-    spin.window.win.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    spin.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
     window_set_format(id, "%d");
     window_set_min_max_step(id, 0.0F, 9.0F, 1.0F);
     window_set_value(id, 0.0F);

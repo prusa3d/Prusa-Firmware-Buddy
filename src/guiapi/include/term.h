@@ -1,6 +1,5 @@
 // term.h
-#ifndef _TERM_H
-#define _TERM_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -49,10 +48,6 @@ typedef struct _term_t {
     FILE *file;
 } term_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern void term_init(term_t *pt, uint8_t cols, uint8_t rows, uint8_t *buff);
 
 extern void term_done(term_t *pt);
@@ -74,9 +69,3 @@ extern void term_set_pos(term_t *pt, uint8_t col, uint8_t row);
 extern void term_write_char(term_t *pt, uint8_t ch);
 
 extern int term_printf(term_t *pt, const char *fmt, ...);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif // _TERM_H

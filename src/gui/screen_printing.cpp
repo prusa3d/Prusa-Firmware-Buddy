@@ -1,7 +1,7 @@
 #include "dbg.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
-#include "window_header.h"
+#include "window_header.hpp"
 #include "status_footer.h"
 #include "marlin_client.h"
 #include "marlin_server.h"
@@ -146,7 +146,7 @@ screen_t screen_printing = {
     sizeof(screen_printing_data_t), //data_size
     0,                              //pdata
 };
-extern "C" screen_t *const get_scr_printing() { return &screen_printing; }
+screen_t *const get_scr_printing() { return &screen_printing; }
 
 void screen_printing_init(screen_t *screen) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
@@ -256,36 +256,36 @@ void screen_printing_init(screen_t *screen) {
 }
 
 void screen_printing_done(screen_t *screen) {
-    window_destroy(pw->root.win.id);
+    window_destroy(pw->root.id);
 }
 
 void screen_printing_draw(screen_t *screen) {
 }
 
 static void open_popup_message(screen_t *screen) {
-    window_hide(pw->w_etime_label.win.id);
-    window_hide(pw->w_etime_value.win.id);
-    window_hide(pw->w_progress.win.id);
-    window_hide(pw->w_time_label.win.id);
-    window_hide(pw->w_time_value.win.id);
+    window_hide(pw->w_etime_label.id);
+    window_hide(pw->w_etime_value.id);
+    window_hide(pw->w_progress.id);
+    window_hide(pw->w_time_label.id);
+    window_hide(pw->w_time_value.id);
 
-    window_set_text(pw->w_message.win.id, msg_stack.msg_data[0]);
+    window_set_text(pw->w_message.id, msg_stack.msg_data[0]);
 
-    window_show(pw->w_message.win.id);
+    window_show(pw->w_message.id);
     pw->message_timer = HAL_GetTick();
     pw->message_flag = true;
 }
 
 static void close_popup_message(screen_t *screen) {
-    window_show(pw->w_etime_label.win.id);
-    window_show(pw->w_etime_value.win.id);
-    window_show(pw->w_progress.win.id);
-    window_show(pw->w_time_label.win.id);
-    window_show(pw->w_time_value.win.id);
+    window_show(pw->w_etime_label.id);
+    window_show(pw->w_etime_value.id);
+    window_show(pw->w_progress.id);
+    window_show(pw->w_time_label.id);
+    window_show(pw->w_time_value.id);
 
-    window_set_text(pw->w_message.win.id, "");
+    window_set_text(pw->w_message.id, "");
 
-    window_hide(pw->w_message.win.id);
+    window_hide(pw->w_message.id);
     pw->message_flag = false;
 }
 
@@ -334,11 +334,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         time_t sec = sntp_get_system_time();
         if (sec != 0) {
             strlcpy(pw->label_etime.data(), _("Print will end"), 15);
-            window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
+            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
             update_end_timestamp(screen, sec);
         } else {
             strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
-            window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
+            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
             update_remaining_time(screen, marlin_vars()->time_to_end);
         }
         pw->last_time_to_end = marlin_vars()->time_to_end;
@@ -356,7 +356,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
     int pi = reinterpret_cast<int>(param) - 1;
     // -- pressed button is disabled - dont propagate event further
-    if (pw->w_buttons[pi].win.f_disabled) {
+    if (pw->w_buttons[pi].f_disabled) {
         return 0;
     }
 
@@ -414,27 +414,27 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
 static void disable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
-    p_button->win.f_disabled = 1;
-    p_button->win.f_enabled = 0; // can't be focused
+    p_button->f_disabled = 1;
+    p_button->f_enabled = 0; // can't be focused
 
     // move to reprint when tune is focused
-    if (window_is_focused(p_button->win.id)) {
-        window_set_focus(pw->w_buttons[static_cast<size_t>(Btn::Pause)].win.id);
+    if (window_is_focused(p_button->id)) {
+        window_set_focus(pw->w_buttons[static_cast<size_t>(Btn::Pause)].id);
     }
-    window_invalidate(p_button->win.id);
+    window_invalidate(p_button->id);
 }
 
 static void enable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
 
-    p_button->win.f_disabled = 0;
-    p_button->win.f_enabled = 1; // can be focused
-    window_invalidate(p_button->win.id);
+    p_button->f_disabled = 0;
+    p_button->f_enabled = 1; // can be focused
+    window_invalidate(p_button->id);
 }
 
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed) {
     pw->w_progress.color_text = (percent <= 100) && (print_speed == 100) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
-    window_set_value(pw->w_progress.win.id, percent);
+    window_set_value(pw->w_progress.id, percent);
 }
 
 static void update_remaining_time(screen_t *screen, time_t rawtime) {
@@ -454,7 +454,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
     } else
         strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
 
-    window_set_text(pw->w_etime_value.win.id, pw->text_etime.data());
+    window_set_text(pw->w_etime_value.id, pw->text_etime.data());
 }
 
 static void update_end_timestamp(screen_t *screen, time_t now_sec) {
@@ -495,7 +495,7 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec) {
         }
     }
 
-    window_set_text(pw->w_etime_value.win.id, pw->text_etime.data());
+    window_set_text(pw->w_etime_value.id, pw->text_etime.data());
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
@@ -509,15 +509,15 @@ static void update_print_duration(screen_t *screen, time_t rawtime) {
     } else {
         snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
     }
-    window_set_text(pw->w_time_value.win.id, pw->text_time_dur.data());
+    window_set_text(pw->w_time_value.id, pw->text_time_dur.data());
 }
 
 static void screen_printing_reprint(screen_t *screen) {
     print_begin(marlin_vars()->media_SFN_path);
-    window_set_text(pw->w_etime_label.win.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
+    window_set_text(pw->w_etime_label.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
-    window_set_text(pw->w_labels[static_cast<size_t>(Btn::Stop)].win.id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
-    window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].win.id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
+    window_set_text(pw->w_labels[static_cast<size_t>(Btn::Stop)].id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
+    window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     p_window_header_set_text(&(pw->header), "PRINTING");
@@ -552,23 +552,23 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
 }
 
 static void enable_button(window_icon_t *p_button) {
-    if (p_button->win.f_disabled) {
-        p_button->win.f_disabled = 0;
-        window_invalidate(p_button->win.id);
+    if (p_button->f_disabled) {
+        p_button->f_disabled = 0;
+        window_invalidate(p_button->id);
     }
 }
 
 static void disable_button(window_icon_t *p_button) {
-    if (!p_button->win.f_disabled) {
-        p_button->win.f_disabled = 1;
-        window_invalidate(p_button->win.id);
+    if (!p_button->f_disabled) {
+        p_button->f_disabled = 1;
+        window_invalidate(p_button->id);
     }
 }
 
 static void set_pause_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Pause)];
-    int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Pause)].win.id;
+    int16_t btn_id = p_button->id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Pause)].id;
 
     //todo it is static, because menu tune is not dialog
     //switch (pw->state__readonly__use_change_print_state)
@@ -609,8 +609,8 @@ static void set_pause_icon_and_label(screen_t *screen) {
 
 void set_tune_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
-    int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Tune)].win.id;
+    int16_t btn_id = p_button->id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Tune)].id;
 
     //must be before switch
     set_icon_and_label(item_id_t::settings, btn_id, lbl_id);
@@ -631,8 +631,8 @@ void set_tune_icon_and_label(screen_t *screen) {
 
 void set_stop_icon_and_label(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Stop)];
-    int16_t btn_id = p_button->win.id;
-    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Stop)].win.id;
+    int16_t btn_id = p_button->id;
+    int16_t lbl_id = pw->w_labels[static_cast<size_t>(Btn::Stop)].id;
 
     switch (get_state(screen)) {
     case printing_state_t::PRINTED:

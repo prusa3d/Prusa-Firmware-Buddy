@@ -1,12 +1,11 @@
 // screen_menu_filament.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"
 #include "filament_sensor.h"
 #include "marlin_client.h"
-#include "menu_vars.h"
 #include "window_dlg_load_unload.h"
 #include "screens.h"
 #include "dbg.h"
@@ -86,8 +85,9 @@ public:
         return header_label;
     }
     virtual void Do() override {
-        gui_dlg_unload();
-        gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        if (gui_dlg_unload() == DLG_OK) {
+            gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
+        }
     }
 };
 
@@ -127,12 +127,12 @@ private:
     template <class T>
     void dis() {
         Item<T>().Disable();
-        win.f_invalid = 1;
+        f_invalid = 1;
     }
     template <class T>
     void ena() {
         Item<T>().Enable();
-        win.f_invalid = 1;
+        f_invalid = 1;
     }
 };
 
@@ -214,4 +214,4 @@ screen_t screen_menu_filament = {
     nullptr,                    //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }
+screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

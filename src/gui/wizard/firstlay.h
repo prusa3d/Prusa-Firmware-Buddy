@@ -1,23 +1,16 @@
 // firstlay.h
-#ifndef _FIRSTLAY_H
-#define _FIRSTLAY_H
+#pragma once
 
 //choose 0 off 1 on
 #define DEBUG_TERM 0
 //#define DEBUG_TERM 1
 
 #include <inttypes.h>
-#include "gui.h"
+#include "gui.hpp"
 #include "wizard_types.h"
 #include "wizard_load_unload.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
-#pragma pack(push)
-#pragma pack(1)
-
+#pragma pack(push, 1)
 //#pragma pack(1) makes enums 8 bit
 // which is an ugly and unreadable hack (probably a side effect)
 typedef enum {
@@ -31,8 +24,7 @@ typedef enum {
 
 #define FIRSTLAY_SCREEN_TERM_X 25
 #define FIRSTLAY_SCREEN_TERM_Y 10
-typedef struct
-{
+struct firstlay_screen_t {
     _FL_STATE state;
     window_progress_t progress;
 #if DEBUG_TERM == 0
@@ -61,15 +53,13 @@ typedef struct
 	size_t            gcode_sz;*/
 
     uint32_t timer0;
-} firstlay_screen_t;
+};
 
-typedef struct
-{
+struct firstlay_data_t {
     //_TEST_STATE_t state_heat;
     _TEST_STATE_t state_load;
     _TEST_STATE_t state_print;
-
-} firstlay_data_t;
+};
 
 extern void wizard_firstlay_event_dn(firstlay_screen_t *p_screen);
 
@@ -86,9 +76,3 @@ extern int wizard_firstlay_load(int16_t id_body,
 */
 extern int wizard_firstlay_print(int16_t id_body,
     firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_FIRSTLAY_H

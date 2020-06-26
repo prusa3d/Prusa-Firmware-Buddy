@@ -223,7 +223,7 @@ uint32_t set_loaded_eth_params(ETH_config_t *config) {
         set_LAN_to_static(config);
     }
     // from DHCP to DHCP: do nothing
-
+    config->var_mask = save_mask;
     config->var_mask = save_mask;
     save_eth_params(config);
 

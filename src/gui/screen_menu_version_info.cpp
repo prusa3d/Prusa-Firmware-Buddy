@@ -5,7 +5,7 @@
  *      Author: Michal Rudolf
  */
 //todo THIS SHOULD NOT BE MENU!!!
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
 #include "screen_menu.hpp"
 #include <stdlib.h>
@@ -82,7 +82,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
             board_version[0], board_version[1], board_version[2],
             serial_numbers);
 
-    window_set_text(ths->help.win.id, ths->version_info_str.data());
+    window_set_text(ths->help.id, ths->version_info_str.data());
 }
 
 screen_t screen_version_info = {
@@ -96,4 +96,4 @@ screen_t screen_version_info = {
     nullptr,                       //pdata
 };
 
-extern "C" screen_t *const get_scr_version_info() { return &screen_version_info; }
+screen_t *const get_scr_version_info() { return &screen_version_info; }

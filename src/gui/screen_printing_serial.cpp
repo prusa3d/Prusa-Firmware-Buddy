@@ -1,7 +1,7 @@
 #include "dbg.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "config.h"
-#include "window_header.h"
+#include "window_header.hpp"
 #include "status_footer.h"
 #include "marlin_client.h"
 #include "filament.h"
@@ -9,6 +9,7 @@
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "screens.h"
+#include "../lang/i18n.h"
 
 #define BUTTON_TUNE       0
 #define BUTTON_PAUSE      1
@@ -64,7 +65,7 @@ screen_t screen_printing_serial = {
     sizeof(screen_printing_serial_data_t), //data_size
     0,                                     //pdata
 };
-extern "C" screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
+screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
 static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
     if (window_get_icon_id(btn_id) != serial_printing_icons[id_to_set])
@@ -93,8 +94,8 @@ void screen_printing_serial_init(screen_t *screen) {
         &(pw->octo_icon));
     window_enable(id);
     window_set_icon_id(id, IDR_PNG_serial_printing);
-    pw->octo_icon.win.f_enabled = 0;
-    pw->octo_icon.win.f_disabled = 0;
+    pw->octo_icon.f_enabled = 0;
+    pw->octo_icon.f_disabled = 0;
 
     for (unsigned int col = 0; col < iid_count; col++) {
         id = window_create_ptr(
@@ -119,21 +120,23 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- tune button
     static_assert(BUTTON_TUNE < iid_count, "BUTTON_TUNE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_TUNE];
-    set_icon_and_label(iid_tune, sp_button->win.id, pw->w_labels[BUTTON_TUNE].win.id);
+    set_icon_and_label(iid_tune, sp_button->id, pw->w_labels[BUTTON_TUNE].id);
     // -- pause
     static_assert(BUTTON_PAUSE < iid_count, "BUTTON_PAUSE not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_PAUSE];
-    set_icon_and_label(iid_pause, sp_button->win.id, pw->w_labels[BUTTON_PAUSE].win.id);
+    set_icon_and_label(iid_pause, sp_button->id, pw->w_labels[BUTTON_PAUSE].id);
     // -- disconnect
     static_assert(BUTTON_DISCONNECT < iid_count, "BUTTON_DISCONNECT not in range of buttons array");
     sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
-    set_icon_and_label(iid_disconnect, sp_button->win.id, pw->w_labels[BUTTON_DISCONNECT].win.id);
+    set_icon_and_label(iid_disconnect, sp_button->id, pw->w_labels[BUTTON_DISCONNECT].id);
 
     status_footer_init(&(pw->footer), root);
 }
 
 void screen_printing_serial_done(screen_t *screen) {
-    window_destroy(pw->root.win.id);
+    marlin_gcode("G27 P2"); /// park nozzle and raise Z axis
+    marlin_gcode("M86 S1"); /// enable safety timer
+    window_destroy(pw->root.id);
 }
 
 void screen_printing_serial_draw(screen_t *screen) {
@@ -160,8 +163,10 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         return 1;
         break;
     case BUTTON_DISCONNECT:
-        marlin_gcode("M118 A1 action:disconnect");
-        screen_close();
+        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
+            marlin_gcode("M118 A1 action:disconnect");
+            screen_close();
+        }
         return 1;
         break;
     }

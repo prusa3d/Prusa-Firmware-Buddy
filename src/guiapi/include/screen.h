@@ -1,9 +1,8 @@
 //screen.h
-#ifndef _SCREEN_H
-#define _SCREEN_H
+#pragma once
 
 #include <inttypes.h>
-#include "window.h"
+#include "window.hpp"
 
 typedef struct _screen_t screen_t;
 
@@ -22,10 +21,6 @@ typedef struct _screen_t {
     uint16_t data_size;    // (2 bytes) dynamic data size
     void *pdata;           // (4 bytes) data pointer - automaticaly allocated before init
 } screen_t;                // (28 bytes total)
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 extern int16_t screen_id(void);
 
@@ -46,9 +41,3 @@ extern void screen_draw(void);
 extern void screen_dispatch_event(window_t *window, uint8_t event, void *param);
 
 extern screen_t *screen_get_curr(void);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif // _SCREEN_H

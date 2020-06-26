@@ -1,7 +1,6 @@
 // jogwheel.h
 
-#ifndef _JOGWHEEL_H
-#define _JOGWHEEL_H
+#pragma once
 
 #include <inttypes.h>
 
@@ -22,10 +21,6 @@ typedef struct _jogwheel_config_t {
     uint8_t flg;    // flags
 } jogwheel_config_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern uint8_t jogwheel_signals;
 extern int32_t jogwheel_encoder;
 extern uint16_t jogwheel_button_down;
@@ -38,9 +33,3 @@ extern void jogwheel_update_1ms(void);
 extern void jogwheel_encoder_set(int32_t val, int32_t min, int32_t max);
 
 extern jogwheel_config_t jogwheel_config;
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif // _JOGWHEEL_H

@@ -1,6 +1,6 @@
 // screen_menu_temperature.c
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "screen_menu.hpp"
@@ -70,4 +70,4 @@ screen_t screen_menu_temperature = {
     nullptr,                       //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }
+screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }

@@ -1,7 +1,7 @@
 // screen_menu_service.c
 
 #include "config.h"
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "stm32f4xx_hal.h"
 #include "sys.h"
@@ -176,4 +176,4 @@ screen_t screen_menu_service = {
     0,              //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_service() { return &screen_menu_service; }
+screen_t *const get_scr_menu_service() { return &screen_menu_service; }

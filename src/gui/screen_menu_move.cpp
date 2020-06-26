@@ -1,6 +1,6 @@
 // screen_menu_move.cpp
 
-#include "gui.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
 #include "marlin_client.h"
 #include "screens.h"
@@ -78,4 +78,4 @@ screen_t screen_menu_move = {
     nullptr,                //pdata
 };
 
-extern "C" screen_t *const get_scr_menu_move() { return &screen_menu_move; }
+screen_t *const get_scr_menu_move() { return &screen_menu_move; }

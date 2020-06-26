@@ -1,17 +1,11 @@
 #include "DialogLoadUnload.hpp"
 #include "DialogLoadUnload.h"
-#include "gui.h"      //resource_font
+#include "gui.hpp"    //resource_font
 #include "resource.h" //IDR_FNT_BIG
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 #include "../lang/i18n.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
-#ifdef __cplusplus
-}
-#endif //__cplusplus
 
 //all buttons share same Window, thus it must be static
 static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_defaults.color_back, IDialogStateful::get_radio_button_size() };

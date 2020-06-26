@@ -118,6 +118,9 @@ void StartWebServerTask(void const *argument) {
     // LwIP related initalizations
     MX_LWIP_Init();
     http_server_init();
+    // get settings from ini file
+    ETH_config_t config;
+    load_ini_params(&config);
 
     for (;;) {
 
