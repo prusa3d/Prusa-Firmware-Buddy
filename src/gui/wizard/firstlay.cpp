@@ -485,10 +485,12 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 
     marlin_do_babysteps_Z(p_screen->Z_offset - _step_last);
 
-    p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
+    //call p_screen->spin_baby_step.SetValue(p_screen->Z_offset); only when value changed
     if (p_screen->Z_offset_request > 0) {
+        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
         p_screen->text_direction_arrow.SetText("+++");
     } else if (p_screen->Z_offset_request < 0) {
+        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
         p_screen->text_direction_arrow.SetText("---");
     }
 
