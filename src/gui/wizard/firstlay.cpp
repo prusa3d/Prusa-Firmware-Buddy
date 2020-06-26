@@ -497,7 +497,7 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     } else if (p_screen->Z_offset_request < 0) {
         window_set_value(numb_id, p_screen->Z_offset);
         static const char mm[] = "---";
-        window_set_text(arrow_id, string_view_utf8::MakeRAM((const uint8_t *)mm));
+        window_set_text(arrow_id, string_view_utf8::MakeCPUFLASH((const uint8_t *)mm));
     }
 
     p_screen->Z_offset_request = 0;

@@ -37,7 +37,7 @@ public:
 void ScreenMenuTenperature::Init(screen_t *screen) {
     marlin_update_vars(
         MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED));
-    Create(screen, label);
+    Create(screen, _(label));
 }
 
 int ScreenMenuTenperature::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {

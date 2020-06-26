@@ -139,7 +139,7 @@ private:
 /*****************************************************************************/
 //static method definition
 void ScreenMenuFilament::Init(screen_t *screen) {
-    Create(screen, label);
+    Create(screen, _(label));
     reinterpret_cast<ScreenMenuFilament *>(screen->pdata)->deactivate_item();
 }
 
@@ -149,9 +149,9 @@ int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event
     if (event == WINDOW_EVENT_CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
-            p_window_header_set_text(&ths->header, item->GetHeaderAlterLabel());                            //set new label
-            item->Do();                                                                                     //do action (load filament ...)
-            p_window_header_set_text(&ths->header, string_view_utf8::MakeCPUFLASH((const uint8_t *)label)); //restore label
+            p_window_header_set_text(&ths->header, item->GetHeaderAlterLabel()); //set new label
+            item->Do();                                                          //do action (load filament ...)
+            p_window_header_set_text(&ths->header, _(label));                    //restore label
         }
     } else {
         return ths->Event(window, event, param);

@@ -88,7 +88,7 @@ void window_list_draw(window_list_t *window) {
             }
 
             // render
-            // @@TODO check the label
+            // this MakeRAM is safe - render_text finishes its work and the local string label[] is then no longer needed
             render_text_align(rc, string_view_utf8::MakeRAM((const uint8_t *)label), window->font,
                 color_back, color_text,
                 padding, window->alignment);

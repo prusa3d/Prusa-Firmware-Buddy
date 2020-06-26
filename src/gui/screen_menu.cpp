@@ -6,7 +6,9 @@
 static const uint32_t HasFooter_FLAG = WINDOW_FLG_USER;
 static const uint32_t HasHeaderEvents_FLAG = WINDOW_FLG_USER << 1;
 
-IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
+string_view_utf8 IScreenMenu::no_label = string_view_utf8::MakeCPUFLASH((const uint8_t *)no_labelS);
+
+IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
     : window_menu_t(nullptr) { //pointer to container shall be provided by child
 
     //todo bind those numeric constants to fonts and guidefaults
@@ -31,8 +33,7 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines,
 
     int16_t id = window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
     // p_window_header_set_icon(&(header), IDR_PNG_status_icon_menu);
-    // @@TODO check if the label could be a stringview on its own
-    p_window_header_set_text(&(header), string_view_utf8::MakeRAM((const uint8_t *)label));
+    p_window_header_set_text(&(header), label);
 
     id = window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
 

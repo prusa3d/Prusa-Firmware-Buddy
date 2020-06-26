@@ -97,16 +97,16 @@ void screen_print_preview_set_on_action(
 }
 
 static void initialize_description_line(screen_t *screen, int idx, int y_pos,
-    const char *title,
+    string_view_utf8 title,
     const char *value_fmt, ...) {
     description_line_t *line = &pd->description_lines[idx];
     int window_id = pd->frame.id;
 
-    int title_width = strlen(title) * resource_font(IDR_FNT_SMALL)->w;
+    int title_width = title.computeNumUtf8CharsAndRewind() * resource_font(IDR_FNT_SMALL)->w;
     int title_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(PADDING, y_pos, title_width, LINE_HEIGHT), &line->title);
-    window_set_text(title_id, string_view_utf8::MakeRAM((const uint8_t *)title));
+    window_set_text(title_id, title);
     window_set_alignment(title_id, ALIGN_LEFT_BOTTOM);
     window_set_padding(title_id, padding_ui8(0, 0, 0, 0));
     line->title.font = resource_font(IDR_FNT_SMALL);
@@ -120,6 +120,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     va_start(args, value_fmt);
     vsnprintf(line->value_buffer, sizeof(line->value_buffer), value_fmt, args);
     va_end(args);
+    // this MakeRAM is safe - value_buffer is allocated in RAM for the lifetime of line
     window_set_text(value_id, string_view_utf8::MakeRAM((const uint8_t *)line->value_buffer));
     window_set_alignment(value_id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(value_id, padding_ui8(0, 0, 0, 0));
@@ -131,10 +132,10 @@ static void initialize_description_lines(screen_t *screen, int y) {
 
     // print time
     if (pd->gcode_printing_time[0]) {
-        initialize_description_line(screen, line_idx++, y, "Print Time", "%s",
+        initialize_description_line(screen, line_idx++, y, _("Print Time"), "%s",
             pd->gcode_printing_time);
     } else {
-        initialize_description_line(screen, line_idx++, y, "Print Time",
+        initialize_description_line(screen, line_idx++, y, _("Print Time"),
             "unknown");
     }
     y += LINE_HEIGHT + LINE_SPACING;
@@ -143,7 +144,7 @@ static void initialize_description_lines(screen_t *screen, int y) {
         // material
         if (pd->gcode_filament_type[0] && pd->gcode_filament_used_mm && pd->gcode_filament_used_g) {
             initialize_description_line(
-                screen, line_idx++, y, "Material", "%s/%u g/%0.2f m",
+                screen, line_idx++, y, _("Material"), "%s/%u g/%0.2f m",
                 pd->gcode_filament_type, pd->gcode_filament_used_g,
                 (double)((float)pd->gcode_filament_used_mm / 1000.0F));
             y += LINE_HEIGHT + LINE_SPACING;
@@ -151,18 +152,18 @@ static void initialize_description_lines(screen_t *screen, int y) {
     } else {
         // material
         if (pd->gcode_filament_type[0]) {
-            initialize_description_line(screen, line_idx++, y, "Material", "%s",
+            initialize_description_line(screen, line_idx++, y, _("Material"), "%s",
                 pd->gcode_filament_type);
             y += LINE_HEIGHT + LINE_SPACING;
         }
         // used filament
         if (pd->gcode_filament_used_mm && pd->gcode_filament_used_g) {
             initialize_description_line(
-                screen, line_idx++, y, "Used Filament", "%.2f m",
+                screen, line_idx++, y, _("Used Filament"), "%.2f m",
                 (double)((float)pd->gcode_filament_used_mm / 1000.0F));
             y += LINE_HEIGHT + LINE_SPACING;
 
-            initialize_description_line(screen, line_idx++, y, "", "%.0f g",
+            initialize_description_line(screen, line_idx++, y, string_view_utf8::MakeNULLSTR(), "%.0f g",
                 (double)pd->gcode_filament_used_g);
             y += LINE_HEIGHT + LINE_SPACING;
         }
@@ -235,6 +236,7 @@ static void screen_print_preview_init(screen_t *screen) {
         rect_ui16(PADDING, y, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT),
         &pd->title_text);
     pd->title_text.font = resource_font(IDR_FNT_BIG);
+    // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
     window_set_text(title_text_id, string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
     y += TITLE_HEIGHT + PADDING;
 

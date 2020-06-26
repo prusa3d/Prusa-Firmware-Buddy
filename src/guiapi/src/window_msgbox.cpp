@@ -102,10 +102,10 @@ void window_msgbox_draw_buttons(window_msgbox_t *window) {
     rc_btn.x += spacing2;
 
     for (int i = 0; i < count; i++) {
-        // @@TODO fix the strlen in relation to text printing underneath
-        rc_btn.w = btn_w + pf->w * (strlen(window->buttons[i]) - chars);
+        string_view_utf8 btni = _(window->buttons[i]);
+        rc_btn.w = btn_w + pf->w * (btni.computeNumUtf8CharsAndRewind() - chars);
         if (chg & (1 << i)) {
-            button_draw(rc_btn, _(window->buttons[i]), pf, i == idx);
+            button_draw(rc_btn, btni, pf, i == idx);
         }
         rc_btn.x += rc_btn.w + 2 * spacing2; // next button is 2x spacing to the right
     }

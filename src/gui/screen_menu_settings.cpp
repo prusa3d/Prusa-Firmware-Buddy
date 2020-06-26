@@ -90,7 +90,7 @@ public:
 /*****************************************************************************/
 //static member method definition
 void ScreenMenuSettings::Init(screen_t *screen) {
-    Create(screen, label);
+    Create(screen, _(label));
 }
 
 int ScreenMenuSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {

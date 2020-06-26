@@ -28,6 +28,7 @@ void window_numb_draw(window_numb_t *window) {
         }
 
         render_text_align(window->rect,
+            // this MakeRAM is safe - render_text finishes its work and the local string text[] is then no longer needed
             string_view_utf8::MakeRAM((const uint8_t *)text),
             window->font,
             clr_back,

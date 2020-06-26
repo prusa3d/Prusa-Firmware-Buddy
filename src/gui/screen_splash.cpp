@@ -67,7 +67,7 @@ void screen_splash_init(screen_t *screen) {
     window_set_alignment(id, ALIGN_CENTER);
     snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
-    // the text_version_buffer is a globally allocated var, it shouldn't get out of scope - MakeRAM should be safe here
+    // this MakeRAM is safe - text_version_buffer is globally allocated
     window_set_text(id, string_view_utf8::MakeRAM((const uint8_t *)_psd->text_version_buffer));
 
     _psd->logo_invalid = 0;

@@ -223,9 +223,10 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     footer->nozzle_target = vars->target_nozzle;
     footer->nozzle_target_display = vars->display_nozzle;
 
-    if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle)))
-        // @@TODO potential buffer out of scope
+    if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle))) {
+        // this MakeRAM is safe - text_nozzle is statically allocated
         window_set_text(footer->wt_nozzle.id, string_view_utf8::MakeRAM((const uint8_t *)text_nozzle));
+    }
 }
 
 void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *vars) {
@@ -244,9 +245,10 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
     footer->heatbed = vars->temp_bed;
     footer->heatbed_target = vars->target_bed;
 
-    if (0 < snprintf(text_heatbed, sizeof(text_heatbed), "%d/%d\177C", (int)roundf(vars->temp_bed), (int)roundf(vars->target_bed)))
-        //@@TODO potential buffer out of scope
+    if (0 < snprintf(text_heatbed, sizeof(text_heatbed), "%d/%d\177C", (int)roundf(vars->temp_bed), (int)roundf(vars->target_bed))) {
+        // this MakeRAM is safe - text_heatbed is statically allocated
         window_set_text(footer->wt_heatbed.id, string_view_utf8::MakeRAM((const uint8_t *)text_heatbed));
+    }
 }
 
 /// Updates values in footer state from real values and repaint
@@ -284,7 +286,7 @@ void status_footer_update_feedrate(status_footer_t *footer) {
         snprintf(text_prnspeed, sizeof(text_prnspeed), "%3d%%", speed);
     else
         snprintf(text_prnspeed, sizeof(text_prnspeed), err);
-    // @@TODO potential buffer out of scope
+    // this MakeRAM is safe - text_prnspeed is statically allocated
     window_set_text(footer->wt_prnspeed.id, string_view_utf8::MakeRAM((const uint8_t *)text_prnspeed));
 }
 
@@ -304,7 +306,7 @@ void status_footer_update_z_axis(status_footer_t *footer) {
         window_set_text(footer->wt_z_axis.id, string_view_utf8::MakeCPUFLASH((const uint8_t *)err));
         return;
     }
-    //@@TODO potential buffer out of scope
+    // this MakeRAM is safe, text_z_axis is preallocated in RAM
     window_set_text(footer->wt_z_axis.id, string_view_utf8::MakeRAM((const uint8_t *)text_z_axis));
 }
 
@@ -313,7 +315,7 @@ void status_footer_update_filament(status_footer_t *footer) {
         return;
 
     strncpy(filament, filaments[get_filament()].name, sizeof(filament));
-    //@@TODO potential buffer out of scope
+    // this MakeRAM is safe, filament is preallocated in RAM
     window_set_text(footer->wt_filament.id, string_view_utf8::MakeRAM((const uint8_t *)filament));
     // #ifndef LCD_HEATBREAK_TO_FILAMENT
     //     window_set_text(footer->wt_filament.id, filaments[get_filament()].name);

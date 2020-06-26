@@ -103,7 +103,8 @@ struct screen_printing_data_t {
 
     std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;
     std::array<char, MAX_END_TIMESTAMP_SIZE> text_etime;
-    std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end"
+    //std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
+    string_view_utf8 label_etime;      // not sure if we really must keep this in memory
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
 
     window_text_t w_message; //Messages from onStatusChanged()
@@ -174,6 +175,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
+    // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     window_set_text(id, vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
@@ -198,6 +200,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
+    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     window_set_text(id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
@@ -214,6 +217,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
+    // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     window_set_text(id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_time_dur.data()));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
@@ -270,6 +274,7 @@ static void open_popup_message(screen_t *screen) {
     window_hide(pw->w_time_label.id);
     window_hide(pw->w_time_value.id);
 
+    // this MakeRAM is safe - msg stack and its items are allocated in RAM for the lifetime of pw
     window_set_text(pw->w_message.id, string_view_utf8::MakeRAM((const uint8_t *)msg_stack.msg_data[0]));
 
     window_show(pw->w_message.id);
@@ -334,14 +339,13 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
         time_t sec = sntp_get_system_time();
         if (sec != 0) {
-            // @@TODO fix this - no need to copy this into memory, it is enough to keep the right pointer
-            //            strlcpy(pw->label_etime.data(), _("Print will end"), 15);
-            //            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
+            // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
+            // theoretically it can be removed completely in case the string is constant for the whole run of the screen
+            window_set_text(pw->w_etime_label.id, pw->label_etime = _("Print will end"));
             update_end_timestamp(screen, sec);
         } else {
-            //@@TODO dtto
-            //            strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
-            //            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
+            // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
+            window_set_text(pw->w_etime_label.id, pw->label_etime = _("Remaining Time"));
             update_remaining_time(screen, marlin_vars()->time_to_end);
         }
         pw->last_time_to_end = marlin_vars()->time_to_end;
@@ -454,9 +458,10 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
         } else {
             snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
         }
-    } else
+    } else {
         strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
-
+    }
+    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     window_set_text(pw->w_etime_value.id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 }
 
@@ -497,7 +502,7 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec) {
             pw->text_etime[length - 1] = 0;
         }
     }
-
+    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     window_set_text(pw->w_etime_value.id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
@@ -512,6 +517,7 @@ static void update_print_duration(screen_t *screen, time_t rawtime) {
     } else {
         snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
     }
+    // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     window_set_text(pw->w_time_value.id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_time_dur.data()));
 }
 
@@ -551,7 +557,7 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
     if (window_get_icon_id(btn_id) != printing_icons[index])
         window_set_icon_id(btn_id, printing_icons[index]);
     //compare pointers to text, compare texts would take too long
-    // @@TODO fix this comparison
+    // @@TODO find a way around this construct
     //    if (window_get_text(lbl_id) != printing_labels[index])
     //        window_set_text(lbl_id, string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[index]));
 }

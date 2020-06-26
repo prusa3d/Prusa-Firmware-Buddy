@@ -408,7 +408,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     //                                                                  "Default: %0.3f.   \n"
                     //                                                                  "Click NO to use the default value (recommended)"),
                     //                        (double)vars->z_offset, (double)z_offset_def);
-                    // @@TODO cleanup
+                    // @@TODO streaming
                     if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
                         marlin_set_z_offset(z_offset_def);
                         eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));
@@ -474,7 +474,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                         //                                                                      "Default: %0.3f.   "
                         //                                                                      "Click NO to use default value."),
                         //                            (double)p_firstlay_screen->Z_offset, (double)z_offset_def);
-                        // @@TODO
+                        // @@TODO streaming
                         if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
                             z_val_to_store = z_offset_def;
                         }

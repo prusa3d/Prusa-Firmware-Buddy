@@ -39,7 +39,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
 
 static void init(screen_t *screen) {
     constexpr static const char *label = N_("PREHEAT");
-    Screen::Create(screen, label);
+    Screen::Create(screen, _(label));
 }
 
 screen_t screen_menu_preheat = {
