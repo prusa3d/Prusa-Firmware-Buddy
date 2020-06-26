@@ -100,7 +100,7 @@ void screen_printing_serial_init(screen_t *screen) {
             WINDOW_CLS_ICON, root,
             rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
             &(pw->w_buttons[col]));
-        pw->w_buttons[col].SetBackColor(COLOR_GRAY);
+        //pw->w_buttons[col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
         pw->w_buttons[col].SetTag(col + 1);
         pw->w_buttons[col].Enable();
 

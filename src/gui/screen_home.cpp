@@ -92,7 +92,7 @@ void screen_home_init(screen_t *screen) {
                 WINDOW_CLS_ICON, root,
                 rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64),
                 &(pw->w_buttons[row * 3 + col]));
-            pw->w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY);
+            //pw->w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
             pw->w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
             pw->w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
             pw->w_buttons[row * 3 + col].Enable();
