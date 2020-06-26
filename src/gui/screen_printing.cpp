@@ -132,8 +132,8 @@ static void screen_printing_reprint(screen_t *screen);
 //static void mesh_err_stop_print(screen_t *screen); //todo use it
 static void change_print_state(screen_t *screen);
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed);
-static void update_remaining_time(screen_t *screen, time_t rawtime);
-static void update_end_timestamp(screen_t *screen, time_t now_sec);
+static void update_remaining_time(screen_t *screen, time_t rawtime, uint16_t print_speed);
+static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t print_speed);
 static void update_print_duration(screen_t *screen, time_t print_duration);
 static void set_pause_icon_and_label(screen_t *screen);
 
@@ -336,11 +336,11 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         if (sec != 0) {
             strlcpy(pw->label_etime.data(), _("Print will end"), 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
-            update_end_timestamp(screen, sec);
+            update_end_timestamp(screen, sec, marlin_vars()->print_speed);
         } else {
             strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
             window_set_text(pw->w_etime_label.win.id, pw->label_etime.data());
-            update_remaining_time(screen, marlin_vars()->time_to_end);
+            update_remaining_time(screen, marlin_vars()->time_to_end, marlin_vars()->print_speed);
         }
         pw->last_time_to_end = marlin_vars()->time_to_end;
     }
@@ -445,10 +445,12 @@ static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_sp
     window_set_value(pw->w_progress.win.id, percent);
 }
 
-static void update_remaining_time(screen_t *screen, time_t rawtime) {
+static void update_remaining_time(screen_t *screen, time_t rawtime, uint16_t print_speed) {
     pw->w_etime_value.color_text = rawtime != time_t(-1) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
-
     if (rawtime != time_t(-1)) {
+        if (print_speed != 100)
+            // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
+            rawtime = (rawtime * 100) / print_speed;
         const struct tm *timeinfo = localtime(&rawtime);
         //standard would be:
         //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
@@ -459,13 +461,15 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
         } else {
             snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
         }
+        if (print_speed != 100)
+            strlcat(pw->text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
     } else
         strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
 
     window_set_text(pw->w_etime_value.win.id, pw->text_etime.data());
 }
 
-static void update_end_timestamp(screen_t *screen, time_t now_sec) {
+static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t print_speed) {
 
     bool time_invalid = false;
     if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
@@ -478,7 +482,12 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec) {
     static const uint32_t full_day_in_seconds = 86400;
     time_t print_end_sec, tommorow_sec;
 
-    print_end_sec = now_sec + marlin_vars()->time_to_end;
+    if (print_speed != 100)
+        // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
+        print_end_sec = now_sec + (100 * marlin_vars()->time_to_end / print_speed);
+    else
+        print_end_sec = now_sec + marlin_vars()->time_to_end;
+
     tommorow_sec = now_sec + full_day_in_seconds;
 
     struct tm tommorow, print_end, now;
@@ -488,13 +497,15 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec) {
 
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
-        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end);
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M", &print_end);
     } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
         tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
-        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Tommorow at %H:%M?", &print_end);
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Tommorow at %H:%M", &print_end);
     } else {
-        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%M?", &print_end);
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%M", &print_end);
     }
+    if (print_speed != 100)
+        strlcat(pw->text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
 
     if (time_invalid == false) {
         uint8_t length = strlen(pw->text_etime.data());
