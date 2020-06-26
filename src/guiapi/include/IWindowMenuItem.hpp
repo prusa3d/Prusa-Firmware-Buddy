@@ -53,7 +53,7 @@ public:
     /// @returns the label translated via gettext (in the future).
     /// Use this function when you want to get the actual translated text
     /// to be displayed to the user based on his language settings.
-    const char *GetLocalizedLabel() const;
+    string_view_utf8 GetLocalizedLabel() const;
 
     void Print(IWindowMenu &window_menu, rect_ui16_t rect) const;
 

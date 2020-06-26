@@ -5,6 +5,44 @@
 #include "gui_timer.h"
 #include "window.hpp"
 #include "gui.hpp"
+#include "../lang/string_view_utf8.hpp"
+#include <algorithm>
+
+/// Draws a text into the specified rectangle @rc
+/// If a character does not fit into the rectangle the drawing is stopped
+/// \param clr_bg background color
+/// \param clr_fg font/foreground color
+/// \returns true if whole text was written
+/// Extracted from st7789v implementation, where it shouldn't be @@TODO cleanup
+bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    int x = rc.x;
+    int y = rc.y;
+    const uint16_t rc_end_x = rc.x + rc.w;
+    const uint16_t rc_end_y = rc.y + rc.h;
+    const uint16_t w = pf->w; //char width
+    const uint16_t h = pf->h; //char height
+    // prepare for stream processing
+    unichar c = 0;
+    while ((c = str.getUtf8Char()) != 0) {
+        if (c == '\n') {
+            y += h;
+            x = rc.x;
+            if (y + h > rc_end_y)
+                return false;
+            continue;
+        }
+
+        // @@TODO fixme temporary narrowing from utf-8 char to 1byte
+        char temporarily_narrowed_utf8_char = c & 0xff;
+
+        display::DrawChar(point_ui16(x, y), temporarily_narrowed_utf8_char, pf, clr_bg, clr_fg);
+        x += w;
+        // FIXME Shouldn't it try to break the line first?
+        if (x + w > rc_end_x)
+            return false;
+    }
+    return true;
+}
 
 /// Fills space between two rectangles with a color
 /// @r_in must be completely in @r_out, no check is done
@@ -25,7 +63,7 @@ void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, 
     display::FillRect(rc_r, color);
 }
 
-void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
+void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP
@@ -33,35 +71,44 @@ void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, col
         uint16_t y = rc_pad.y;
         int n;
         int i;
-        const char *str = text;
-        while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
-            x = rc_pad.x;
-            i = 0;
-            while (str[i] == ' ' || str[i] == '\n')
-                i++;
-            for (; i < n; i++) {
-                display::DrawChar(point_ui16(x, y), str[i], font, clr0, clr1);
-                x += font->w;
-            }
-            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr0);
-            str += n;
-            y += font->h;
-        }
+        //const char *str = text;
+        // @@TODO rewrite the whole algorithm - avoid going back at all cost
+        // In this case we are not using the PNG decompression buffer, we may preprocess the input utf8 string into the buffer
+        // and do some magic on top of it afterwards
+        //        while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
+        //            x = rc_pad.x;
+        //            i = 0;
+        //            while (str[i] == ' ' || str[i] == '\n')
+        //                i++;
+        //            for (; i < n; i++) {
+        //                display::DrawChar(point_ui16(x, y), str[i], font, clr0, clr1);
+        //                x += font->w;
+        //            }
+        //            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr0);
+        //            str += n;
+        //            y += font->h;
+        //        }
         display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
         fill_between_rectangles(&rc, &rc_pad, clr0);
     } else {
+        // 1st pass reading the string_view_utf8
         point_ui16_t wh_txt = font_meas_text(font, text);
+        // 2nd pass reading the string_view_utf8 ... hmm, this can be optimized
+        // ... at least the length may be computed and cached in the 1st pass
+        // @@TODO optimize
+        size_t strlen_text = text.computeNumUtf8CharsAndRewind();
         if (wh_txt.x && wh_txt.y) {
             rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
             rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
             uint8_t unused_pxls = 0;
-            if (strlen(text) * font->w > rc_txt.w) {
+            if (strlen_text * font->w > rc_txt.w) {
                 unused_pxls = rc_txt.w % font->w;
             }
 
             const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
             fill_between_rectangles(&rc, &rect_in, clr0);
-            display::DrawText(rc_txt, text, font, clr0, clr1);
+            text.rewind();
+            render_text(rc_txt, text, font, clr0, clr1);
         } else
             display::FillRect(rc, clr0);
     }
@@ -129,7 +176,7 @@ void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
     }
 }
 
-void roll_init(rect_ui16_t rc, const char *text, const font_t *font,
+void roll_init(rect_ui16_t rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment, txtroll_t *roll) {
     roll->rect = roll_text_rect_meas(rc, text, font, padding, alignment);
     roll->count = text_rolls_meas(roll->rect, text, font);
@@ -141,12 +188,12 @@ void roll_init(rect_ui16_t rc, const char *text, const font_t *font,
     }
 }
 
-void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font,
+void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font,
     padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll) {
     if (roll->setup == TXTROLL_SETUP_INIT)
         return;
 
-    if (text == 0) {
+    if (text.isNULLSTR()) {
         display::FillRect(rc, clr_back);
         return;
     }
@@ -157,8 +204,9 @@ void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font
         display::FillRect(rc_unused_pxls, clr_back);
     }
 
-    const char *str = text;
-    str += roll->progress;
+    //@@TODO make rolling native ability of render text - solves also character clipping
+    //    const char *str = text;
+    //    str += roll->progress;
 
     rect_ui16_t set_txt_rc = roll->rect;
     if (roll->px_cd != 0) {
@@ -168,8 +216,81 @@ void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font
 
     if (set_txt_rc.w && set_txt_rc.h) {
         fill_between_rectangles(&rc, &set_txt_rc, clr_back);
-        display::DrawText(set_txt_rc, str, font, clr_back, clr_text);
+        render_text(set_txt_rc, /*str*/ text, font, clr_back, clr_text);
     } else {
         display::FillRect(rc, clr_back);
     }
+}
+
+point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 str) {
+    int x = 0;
+    int y = 0;
+    int w = 0;
+    int h = 0;
+    const int8_t char_w = pf->w;
+    const int8_t char_h = pf->h;
+    unichar c = 0;
+    while ((c = str.getUtf8Char()) != 0) {
+        if (c == '\n') {
+            if (x + char_w > w)
+                w = x + char_w;
+            y += char_h;
+            x = 0;
+        } else
+            x += char_w;
+        h = y + char_h;
+    }
+    return point_ui16((uint16_t)std::max(x, w), (uint16_t)h);
+}
+
+int font_line_chars(const font_t *pf, string_view_utf8 str, uint16_t line_width) {
+    int w = 0;
+    const int char_w = pf->w;
+    size_t len = str.computeNumUtf8CharsAndRewind();
+    size_t n = 0;
+    // This is generally about finding the closest '\n' character within the current line to be drawn.
+    // Line is limited by pixel dimension, all characters have the same fixed pixel size
+    // Such character may not be found, so n becomes > len
+    unichar c = 0;
+    while ((w + char_w) <= line_width) {
+        c = str.getUtf8Char();
+        ++n;
+        if (c == '\n')
+            break;
+        w += char_w;
+    }
+
+    // if the line width is >= than characters to be printed, skip further search
+    // and just return len - i.e. the whole string is to be printed at once.
+    if (n >= len)
+        return len; // must return here to prevent touching memory beyond str in the next while cycle
+
+    // @@TODO this is bullshit and cannot be done streaming
+    //    while ((n > 0) && ((str[n] != ' ') && (str[n] != '\n'))) {
+    //        n--;
+    //    }
+
+    if (n == 0)
+        n = line_width / char_w;
+    return std::min(n, len);
+}
+
+uint16_t text_rolls_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *pf) {
+
+    uint16_t meas_x = 0, len = text.computeNumUtf8CharsAndRewind();
+    if (len * pf->w > rc.w)
+        meas_x = len - rc.w / pf->w;
+    return meas_x;
+}
+
+rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags) {
+
+    rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
+    point_ui16_t wh_txt = font_meas_text(font, text);
+    rect_ui16_t rc_txt = { 0, 0, 0, 0 };
+    if (wh_txt.x && wh_txt.y) {
+        rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
+        rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
+    }
+    return rc_txt;
 }

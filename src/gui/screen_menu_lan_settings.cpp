@@ -271,7 +271,7 @@ void ScreenMenuLanSettings::refresh_addresses() {
     ETH_config_t ethconfig;
     update_eth_addrs(&ethconfig);
     stringify_eth_for_screen(&plan_str, &ethconfig);
-    help.text = (char *)plan_str;
+    //    help.text = (char *)plan_str; //@@TODO
     help.flg |= WINDOW_FLG_INVALID;
     gui_invalidate();
 }

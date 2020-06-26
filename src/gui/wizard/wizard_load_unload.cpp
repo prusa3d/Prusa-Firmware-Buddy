@@ -19,13 +19,13 @@ LD_UNLD_STATE_t _decide_continue_load_unload() {
     switch (filament) {
     case FKNOWN: { //known and not "unsensed" - do not allow load
         const char *btns[2] = { "NEXT", "UNLOAD" };
-        switch (wizard_msgbox_btns(
-            "To calibrate with  \n"
-            "currently loaded   \n"
-            "filament,          \n"
-            "press NEXT.        \n"
-            "To change filament,\n"
-            "press UNLOAD.",
+        switch (wizard_msgbox_btns(_(
+                                       "To calibrate with  \n"
+                                       "currently loaded   \n"
+                                       "filament,          \n"
+                                       "press NEXT.        \n"
+                                       "To change filament,\n"
+                                       "press UNLOAD."),
             MSGBOX_BTN_CUSTOM2, 0, btns)) {
         case MSGBOX_RES_CUSTOM0:
             return LD_UNLD_DONE;
@@ -42,15 +42,15 @@ LD_UNLD_STATE_t _decide_continue_load_unload() {
     default: {
         //cannot use CONTINUE button, string is too long
         const char *btns[3] = { "NEXT", "LOAD", "UNLOAD" };
-        switch (wizard_msgbox_btns(
-            "To calibrate with  \n"
-            "currently loaded   \n"
-            "filament,          \n"
-            "press NEXT.        \n"
-            "To load filament,  \n"
-            "press LOAD.        \n"
-            "To change filament,\n"
-            "press UNLOAD.",
+        switch (wizard_msgbox_btns(_(
+                                       "To calibrate with  \n"
+                                       "currently loaded   \n"
+                                       "filament,          \n"
+                                       "press NEXT.        \n"
+                                       "To load filament,  \n"
+                                       "press LOAD.        \n"
+                                       "To change filament,\n"
+                                       "press UNLOAD."),
             MSGBOX_BTN_CUSTOM3 | def_bt, 0, btns)) {
         case MSGBOX_RES_CUSTOM0:
             return LD_UNLD_DIALOG_PREHEAT;

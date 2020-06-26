@@ -130,7 +130,7 @@ void window_file_list_draw(window_file_list_t *window) {
         static const char home[] = N_("Home");                                                            // @@TODO reuse from elsewhere ...
         if (i == 0 && strcmp(item.first, "..") == 0 && window_file_list_path_is_root(window->sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
             id_icon = IDR_PNG_filescreen_icon_home;
-            item.first = _(home);
+            //            item.first = _(home); //@@TODO
         }
 
         color_t color_text = window->color_text;
@@ -163,11 +163,11 @@ void window_file_list_draw(window_file_list_t *window) {
                     // stays at one place (top or bottom), but the whole window list moves up/down.
                     // Calling roll_init must be done here because of the rect.
                     // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
-                    roll_init(rc, item.first, window->font, padding, window->alignment, &window->roll);
+                    roll_init(rc, string_view_utf8::MakeRAM((const uint8_t *)item.first), window->font, padding, window->alignment, &window->roll);
                 }
 
                 render_roll_text_align(rc,
-                    item.first,
+                    string_view_utf8::MakeRAM((const uint8_t *)item.first),
                     window->font,
                     padding,
                     window->alignment,
@@ -176,7 +176,9 @@ void window_file_list_draw(window_file_list_t *window) {
                     &window->roll);
 
             } else {
-                render_text_align(rc, item.first, window->font,
+                render_text_align(rc,
+                    string_view_utf8::MakeRAM((const uint8_t *)item.first),
+                    window->font,
                     color_back, color_text,
                     padding, window->alignment);
             }

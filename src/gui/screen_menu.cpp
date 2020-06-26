@@ -31,7 +31,8 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines,
 
     int16_t id = window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
     // p_window_header_set_icon(&(header), IDR_PNG_status_icon_menu);
-    p_window_header_set_text(&(header), label);
+    // @@TODO check if the label could be a stringview on its own
+    p_window_header_set_text(&(header), string_view_utf8::MakeRAM((const uint8_t *)label));
 
     id = window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
 

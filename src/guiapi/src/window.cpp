@@ -342,26 +342,26 @@ uint8_t window_get_tag(int16_t id) {
     return ((window = window_ptr(id)) != 0) ? window->f_tag : 0;
 }
 
-void window_set_text(int16_t id, const char *text) {
+void window_set_text(int16_t id, string_view_utf8 text) {
     window_t *window = window_ptr(id);
     if (window == NULL)
         return;
 
     switch (window->cls->cls_id) {
     case WINDOW_CLS_TEXT:
-        ((window_text_t *)window)->text = (char *)text;
+        ((window_text_t *)window)->text = text;
         break;
     case WINDOW_CLS_ROLL_TEXT:
-        ((window_roll_text_t *)window)->text = (char *)text;
+        ((window_roll_text_t *)window)->text = text;
         break;
     }
     _window_invalidate((window_t *)window);
 }
 
-char *window_get_text(int16_t id) {
+string_view_utf8 window_get_text(int16_t id) {
     window_t *window = window_ptr(id);
     if (window == NULL)
-        return 0;
+        return string_view_utf8::MakeNULLSTR();
 
     switch (window->cls->cls_id) {
     case WINDOW_CLS_TEXT:
@@ -369,7 +369,7 @@ char *window_get_text(int16_t id) {
     case WINDOW_CLS_ROLL_TEXT:
         return ((window_roll_text_t *)window)->text;
     }
-    return 0;
+    return string_view_utf8::MakeNULLSTR();
 }
 
 void window_set_value(int16_t id, float value) {

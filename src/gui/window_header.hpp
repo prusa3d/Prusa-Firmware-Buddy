@@ -37,7 +37,7 @@ struct window_header_t : public window_t {
     uint8_t alignment;
     uint16_t id_res;
     header_states_t icons[HEADER_ICON_COUNT]; // usb, lan, wifi
-    const char *label;
+    string_view_utf8 label;
 
     // char time[10];
 };
@@ -54,7 +54,7 @@ void p_window_header_icon_active(window_header_t *window, header_icons_t icon);
 
 header_states_t p_window_header_get_state(window_header_t *window,
     header_icons_t icon);
-void p_window_header_set_text(window_header_t *window, const char *text);
+void p_window_header_set_text(window_header_t *window, string_view_utf8 text);
 int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id);
 
 #define window_header_events(window)                             \

@@ -46,8 +46,8 @@ void window_progress_draw(window_progress_t *window) {
         if (rc.h > window->height_progress) {
             rc.y += window->height_progress;
             rc.h -= window->height_progress;
-            render_text_align(rc, // @@TODO translate this string here?
-                text,
+            render_text_align(rc,                                 // @@TODO translate this string here?
+                string_view_utf8::MakeRAM((const uint8_t *)text), //@@TODO potential buffer out of scope
                 window->font,
                 window->color_back,
                 window->color_text,

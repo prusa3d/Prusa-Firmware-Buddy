@@ -28,11 +28,11 @@ extern uint16_t wizard_get_test_icon_resource(uint8_t state);
 
 extern int wizard_msgbox_ex(const char *text, uint16_t flags, uint16_t id_icon, rect_ui16_t rc);
 
-extern int wizard_msgbox(const char *text, uint16_t flags, uint16_t id_icon);
+extern int wizard_msgbox(string_view_utf8 text, uint16_t flags, uint16_t id_icon);
 
-extern int wizard_msgbox1(const char *text, uint16_t flags, uint16_t id_icon);
+extern int wizard_msgbox1(string_view_utf8 text, uint16_t flags, uint16_t id_icon);
 
-extern int wizard_msgbox_btns(const char *text, uint16_t flags, uint16_t id_icon,
+extern int wizard_msgbox_btns(string_view_utf8 text, uint16_t flags, uint16_t id_icon,
     const char **buttons);
 
 extern void wizard_init(float t_noz, float t_bed /*, int16_t footer_id*/);

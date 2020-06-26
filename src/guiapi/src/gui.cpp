@@ -161,7 +161,7 @@ void gui_reset_menu_timer() {
 
 /// Creates message box with provided informations
 /// \returns message box id
-int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
+int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
 
     window_msgbox_t msgbox;
@@ -193,16 +193,16 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     return msgbox.res;
 }
 
-int gui_msgbox(const char *text, uint16_t flags) {
-    return gui_msgbox_ex(0, text, flags, gui_defaults.scr_body_sz, 0, 0);
+int gui_msgbox(string_view_utf8 text, uint16_t flags) {
+    return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags, gui_defaults.scr_body_sz, 0, 0);
 }
 
 // specific function for PROMPT message box with soundStandardPrompt sound
 // This is because of infinitely repeating sound signal that has to be stopped
 // additionally
-int gui_msgbox_prompt(const char *text, uint16_t flags) {
+int gui_msgbox_prompt(string_view_utf8 text, uint16_t flags) {
     Sound_Play(eSOUND_TYPE_StandardPrompt);
-    return gui_msgbox_ex(0, text, flags, gui_defaults.scr_body_sz, 0, 0);
+    return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags, gui_defaults.scr_body_sz, 0, 0);
 }
 
 #endif //GUI_WINDOW_SUPPORT

@@ -59,7 +59,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     //=============SET TEXT================
     auto begin = ths->version_info_str.begin();
     auto end = ths->version_info_str.end();
-    begin += snprintf(begin, end - begin, _("Firmware Version\n"));
+    begin += snprintf(begin, end - begin, /*_*/ ("Firmware Version\n")); // @@TODO fix translation - needs streaming
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
@@ -77,12 +77,13 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
 
     if (end > begin)
         begin += snprintf(begin, end - begin,
-            _("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"),
+            /*_*/ ("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"), //@@TODO fix translation - needs streaming
             bootloader->major, bootloader->minor, bootloader->patch,
             board_version[0], board_version[1], board_version[2],
             serial_numbers);
 
-    window_set_text(ths->help.id, ths->version_info_str.data());
+    //@@TODO potential buffer out of scope here
+    window_set_text(ths->help.id, string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
 }
 
 screen_t screen_version_info = {

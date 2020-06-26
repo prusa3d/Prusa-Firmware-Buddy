@@ -55,14 +55,16 @@ void screen_sysinfo_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"Disp. TEST rd mem.");
+    static const char dt[] = "Disp. TEST rd mem.";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)dt));
 
     row2draw += 25;
 
     //write pattern
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_load));
     pd->textCPU_load.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"CPU load");
+    static const char cl[] = "CPU load";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)cl));
 
     id = window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
     window_set_format(id, (const char *)"%.0f");
@@ -72,7 +74,8 @@ void screen_sysinfo_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"EXIT");
+    static const char ex[] = "EXIT";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)ex));
     window_enable(id);
     window_set_tag(id, TAG_QUIT);
 }

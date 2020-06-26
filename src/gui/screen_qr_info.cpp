@@ -25,19 +25,23 @@ void screen_menu_qr_info_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 25, 224, 95), &(pd->warning));
     pd->warning.font = resource_font(IDR_FNT_TERMINAL);
     window_set_alignment(id, ALIGN_HCENTER);
+    static const char slftNA[] = "selfTest-data not\n    available";
+    static const char slftEx[] = "selfTest-data expired";
+    static const char slftRe[] = "selfTest-data relevant";
     if (last_selftest_time == 0)
-        window_set_text(id, "selfTest-data not\n    available");
+        window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)slftNA));
     else if ((HAL_GetTick() / 1000 - last_selftest_time) > LAST_SELFTEST_TIMEOUT)
-        window_set_text(id, "selfTest-data expired");
+        window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)slftEx));
     else
-        window_set_text(id, "selfTest-data relevant");
+        window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)slftRe));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 280, 224, 30), &(pd->button));
     pd->button.font = resource_font(IDR_FNT_BIG);
     window_set_color_back(id, COLOR_WHITE);
     window_set_color_text(id, COLOR_BLACK);
     window_set_alignment(id, ALIGN_HCENTER);
-    window_set_text(id, "RETURN");
+    static const char rtn[] = "RETURN";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
 
     id = window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(28, 85, 224, 95), &(pd->qr));
     pd->qr.ecc_level = qrcodegen_Ecc_MEDIUM;

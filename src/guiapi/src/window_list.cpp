@@ -88,7 +88,8 @@ void window_list_draw(window_list_t *window) {
             }
 
             // render
-            render_text_align(rc, label, window->font,
+            // @@TODO check the label
+            render_text_align(rc, string_view_utf8::MakeRAM((const uint8_t *)label), window->font,
                 color_back, color_text,
                 padding, window->alignment);
         }

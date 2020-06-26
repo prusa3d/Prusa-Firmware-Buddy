@@ -71,8 +71,10 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
     if (window_get_icon_id(btn_id) != serial_printing_icons[id_to_set])
         window_set_icon_id(btn_id, serial_printing_icons[id_to_set]);
     //compare pointers to text, compare texts would take too long
-    if (window_get_text(lbl_id) != serial_printing_labels[id_to_set])
-        window_set_text(lbl_id, serial_printing_labels[id_to_set]);
+
+    // @@TODO find a way around this construct
+    //    if (window_get_text(lbl_id) != serial_printing_labels[id_to_set])
+    //        window_set_text(lbl_id, serial_printing_labels[id_to_set]);
 }
 
 void screen_printing_serial_init(screen_t *screen) {
@@ -84,7 +86,8 @@ void screen_printing_serial_init(screen_t *screen) {
         &(pw->root));
     id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
-    p_window_header_set_text(&(pw->header), "SERIAL PRT.");
+    static const char sp[] = "SERIAL PRT.";
+    p_window_header_set_text(&(pw->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)sp));
 
     //octo icon
     point_ui16_t pt_ico = icon_meas(resource_ptr(IDR_PNG_serial_printing));

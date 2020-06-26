@@ -140,19 +140,20 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 if (wizard_msgbox(
 #else
                 const char *btns[3] = { "SetDone", "YES", "NO" };
-                switch (wizard_msgbox_btns(
+                switch (wizard_msgbox_btns(_(
 #endif
                         "Welcome to the     \n"
                         "Original Prusa MINI\n"
                         "setup wizard.      \n"
                         "Would you like to  \n"
-                        "continue?           ",
+                        "continue?           "),
 #ifndef _DEBUG
-                        MSGBOX_BTN_YESNO, IDR_PNG_icon_pepa)
+                    MSGBOX_BTN_YESNO, IDR_PNG_icon_pepa)
                     == MSGBOX_RES_YES) {
-                    pd->state = _STATE_INIT;
-                    window_show(footer_id);
-                } else
+                        pd->state = _STATE_INIT;
+                        window_show(footer_id);
+                    }
+                else
                     screen_close();
 #else
                     MSGBOX_BTN_CUSTOM3, IDR_PNG_icon_pepa, btns)) {
@@ -299,7 +300,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     pd->state = _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE;
                 break;
             case _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE:
-                window_set_text(pd->screen_variant.xyzcalib_screen.text_state.id, "Calibration XY");
+                window_set_text(pd->screen_variant.xyzcalib_screen.text_state.id, _("Calibration XY"));
                 wizard_msgbox1(_(
                                    "Please clean the nozzle "
                                    "for calibration. Click "
@@ -398,16 +399,17 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 //show dialog only when values are not equal
                 float diff = vars->z_offset - z_offset_def;
                 if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-                    char buff[255];
+                    char buff[255] = "THIS TEXT NEEDS FIXING @@TODO";
                     //cannot use \n
-                    snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use\n"
-                                                                  "the current value?\n"
-                                                                  "Current: %0.3f.   \n"
-                                                                  "Default: %0.3f.   \n"
-                                                                  "Click NO to use the default value (recommended)"),
-                        (double)vars->z_offset, (double)z_offset_def);
-
-                    if (wizard_msgbox(buff, MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
+                    // @@TODO this cannot be
+                    //                    snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use\n"
+                    //                                                                  "the current value?\n"
+                    //                                                                  "Current: %0.3f.   \n"
+                    //                                                                  "Default: %0.3f.   \n"
+                    //                                                                  "Click NO to use the default value (recommended)"),
+                    //                        (double)vars->z_offset, (double)z_offset_def);
+                    // @@TODO cleanup
+                    if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
                         marlin_set_z_offset(z_offset_def);
                         eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));
                     }
@@ -466,14 +468,14 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     //show dialog only when values are not equal
                     float diff = z_val_to_store - z_offset_def;
                     if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-                        char buff[255];
-                        snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use last set value? "
-                                                                      "Last:  %0.3f.   "
-                                                                      "Default: %0.3f.   "
-                                                                      "Click NO to use default value."),
-                            (double)p_firstlay_screen->Z_offset, (double)z_offset_def);
-
-                        if (wizard_msgbox(buff, MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
+                        char buff[255] = "THIS TEXT NEEDS FIXING @@TODO";
+                        //                        snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use last set value? "
+                        //                                                                      "Last:  %0.3f.   "
+                        //                                                                      "Default: %0.3f.   "
+                        //                                                                      "Click NO to use default value."),
+                        //                            (double)p_firstlay_screen->Z_offset, (double)z_offset_def);
+                        // @@TODO
+                        if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
                             z_val_to_store = z_offset_def;
                         }
                     }
@@ -506,7 +508,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     return 0;
 }
 
-const char *wizard_get_caption(screen_t *screen) {
+string_view_utf8 wizard_get_caption(screen_t *screen) {
     switch (pd->state) {
     case _STATE_START:
     case _STATE_INIT:
@@ -549,9 +551,9 @@ const char *wizard_get_caption(screen_t *screen) {
     case _STATE_FINISH:
         return _("WIZARD - OK");
     case _STATE_LAST:
-        return "";
+        return string_view_utf8::MakeNULLSTR();
     }
-    return ""; //to avoid warning
+    return string_view_utf8::MakeNULLSTR(); //to avoid warning
 }
 
 void wizard_done_screen(screen_t *screen) {

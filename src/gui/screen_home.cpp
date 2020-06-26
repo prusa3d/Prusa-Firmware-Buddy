@@ -35,7 +35,7 @@ const uint16_t icons[6] = {
     IDR_PNG_menu_icon_info
 };
 
-const char *labels[7] = {
+static const char *labels[7] = {
     N_("Print"),
     N_("Preheat"),
     N_("Filament"),
@@ -110,7 +110,7 @@ void screen_home_init(screen_t *screen) {
             pw->w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
             window_set_alignment(id, ALIGN_CENTER);
             window_set_padding(id, padding_ui8(0, 0, 0, 0));
-            window_set_text(id, labels[row * 3 + col]);
+            window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)labels[row * 3 + col]));
         }
     }
 
@@ -145,7 +145,8 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
     }
     if ((event == WINDOW_EVENT_LOOP) && pw->logo_invalid) {
 #ifdef _DEBUG
-        display::DrawText(rect_ui16(180, 31, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        static const char dbg[] = "DEBUG";
+        display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
         pw->logo_invalid = 0;
     }
@@ -256,7 +257,7 @@ void screen_home_disable_print_button(screen_t *screen, int disable) {
     pw->w_buttons[0].f_disabled = disable;
     pw->w_buttons[0].f_enabled = !disable; // cant't be focused
     pw->w_buttons[0].f_invalid = 1;
-    window_set_text(pw->w_labels[0].id, labels[(disable ? 6 : 0)]);
+    window_set_text(pw->w_labels[0].id, string_view_utf8::MakeCPUFLASH((const uint8_t *)labels[(disable ? 6 : 0)]));
 
     // move to preheat when Print is focused
     if (window_is_focused(pw->w_buttons[0].id) && disable) {

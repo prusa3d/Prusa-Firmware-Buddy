@@ -106,7 +106,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     int title_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(PADDING, y_pos, title_width, LINE_HEIGHT), &line->title);
-    window_set_text(title_id, title);
+    window_set_text(title_id, string_view_utf8::MakeRAM((const uint8_t *)title));
     window_set_alignment(title_id, ALIGN_LEFT_BOTTOM);
     window_set_padding(title_id, padding_ui8(0, 0, 0, 0));
     line->title.font = resource_font(IDR_FNT_SMALL);
@@ -120,7 +120,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     va_start(args, value_fmt);
     vsnprintf(line->value_buffer, sizeof(line->value_buffer), value_fmt, args);
     va_end(args);
-    window_set_text(value_id, line->value_buffer);
+    window_set_text(value_id, string_view_utf8::MakeRAM((const uint8_t *)line->value_buffer));
     window_set_alignment(value_id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(value_id, padding_ui8(0, 0, 0, 0));
     line->value.font = resource_font(IDR_FNT_SMALL);
@@ -235,7 +235,7 @@ static void screen_print_preview_init(screen_t *screen) {
         rect_ui16(PADDING, y, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT),
         &pd->title_text);
     pd->title_text.font = resource_font(IDR_FNT_BIG);
-    window_set_text(title_text_id, gcode_file_name);
+    window_set_text(title_text_id, string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
     y += TITLE_HEIGHT + PADDING;
 
     // Thumbnail
@@ -269,14 +269,14 @@ static void screen_print_preview_init(screen_t *screen) {
     int print_label_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id, rect_ui16(PADDING, y, 64, LINE_HEIGHT),
         &pd->print_label);
-    window_set_text(print_label_id, "Print");
+    window_set_text(print_label_id, _("Print"));
     window_set_alignment(print_label_id, ALIGN_CENTER);
     pd->print_label.font = resource_font(IDR_FNT_SMALL);
     int back_label_id = window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, LINE_HEIGHT),
         &pd->back_label);
-    window_set_text(back_label_id, "Back");
+    window_set_text(back_label_id, _("Back"));
     window_set_alignment(back_label_id, ALIGN_CENTER);
     pd->back_label.font = resource_font(IDR_FNT_SMALL);
 }
@@ -315,8 +315,8 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
         suppress_draw = true;
         Sound_Play(eSOUND_TYPE_StandardAlert);
         const char *btns[3] = { "YES", "NO", "IGNORE" };
-        switch (gui_msgbox_ex(0,
-            "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.",
+        switch (gui_msgbox_ex(string_view_utf8::MakeNULLSTR(),
+            _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
             MSGBOX_BTN_CUSTOM3,
             gui_defaults.scr_body_no_foot_sz,
             0, btns)) {

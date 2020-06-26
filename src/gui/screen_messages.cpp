@@ -60,7 +60,7 @@ void screen_messages_init(screen_t *screen) {
 
     id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
     // p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
-    p_window_header_set_text(&(pmsg->header), N_("MESSAGES"));
+    p_window_header_set_text(&(pmsg->header), _("MESSAGES"));
 
     id = window_create_ptr(WINDOW_CLS_LIST, root, gui_defaults.scr_body_sz, &(pmsg->list));
     window_set_item_count(id, msg_stack.count + 1);

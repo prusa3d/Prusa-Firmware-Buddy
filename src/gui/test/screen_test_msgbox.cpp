@@ -32,60 +32,72 @@ void screen_test_msgbox_init(screen_t *screen) {
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 32, 220, 22), &(pd->tst));
-    window_set_text(id, (const char *)"TEST MSGBOX");
+    static const char tm[] = "TEST MSGBOX";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)tm));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 54, 220, 22), &(pd->back));
-    window_set_text(id, (const char *)"back");
+    static const char bck[] = "back";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_MAX + 2);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 76, 220, 22), &(pd->tst_ok));
-    window_set_text(id, (const char *)"OK");
+    static const char ok[] = "OK";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)ok));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_OK + 1);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 98, 220, 22), &(pd->tst_okcancel));
-    window_set_text(id, (const char *)"OK-CANCEL");
+    static const char oc[] = "OK-CANCEL";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)oc));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_OKCANCEL + 1);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 120, 220, 22), &(pd->tst_abortretryignore));
-    window_set_text(id, (const char *)"ABORT-RETRY-IGNORE");
+    static const char ari[] = "ABORT-RETRY-IGNORE";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)ari));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_ABORTRETRYIGNORE + 1);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 142, 220, 22), &(pd->tst_yesnocancel));
-    window_set_text(id, (const char *)"YES-NO-CANCEL");
+    static const char ync[] = "YES-NO-CANCEL";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)ync));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_YESNOCANCEL + 1);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 164, 220, 22), &(pd->tst_yesno));
-    window_set_text(id, (const char *)"YES-NO");
+    static const char yn[] = "YES-NO";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)yn));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_YESNO + 1);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 186, 220, 22), &(pd->tst_retrycancel));
-    window_set_text(id, (const char *)"RETRY-CANCEL");
+    static const char rc[] = "RETRY-CANCEL";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)rc));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_RETRYCANCEL + 1);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(20, 208, 90, 22), &(pd->tst_ico_custom));
-    window_set_text(id, (const char *)"CUSTOM");
+    static const char cu[] = "CUSTOM";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)cu));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_MAX + 3);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(20, 230, 90, 22), &(pd->tst_ico_error));
-    window_set_text(id, (const char *)"ERROR");
+    static const char er[] = "ERROR";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)er));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_MAX + 4);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(110, 208, 90, 22), &(pd->tst_ico_question));
-    window_set_text(id, (const char *)"QUESTION");
+    static const char qu[] = "QUESTION";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)qu));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_MAX + 5);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(110, 230, 90, 22), &(pd->tst_ico_warning));
-    window_set_text(id, (const char *)"WARNING");
+    static const char wa[] = "WARNING";
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)wa));
     window_enable(id);
     window_set_tag(id, MSGBOX_BTN_MAX + 6);
 }

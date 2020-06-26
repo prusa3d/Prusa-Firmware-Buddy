@@ -12,7 +12,7 @@ struct window_text_t : public window_t {
     color_t color_back;
     color_t color_text;
     font_t *font;
-    char *text;
+    string_view_utf8 text;
     padding_ui8_t padding;
     uint8_t alignment;
 };

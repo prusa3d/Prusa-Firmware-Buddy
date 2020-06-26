@@ -65,7 +65,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_nozzle));
     footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    window_set_text(id, string_view_utf8::MakeNULLSTR());
 
     id = window_create_ptr( // heatbed
         WINDOW_CLS_ICON, parent,
@@ -81,7 +81,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_heatbed));
     footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    window_set_text(id, string_view_utf8::MakeNULLSTR());
 
     id = window_create_ptr( // prnspeed
         WINDOW_CLS_ICON, parent,
@@ -97,7 +97,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_prnspeed));
     footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    window_set_text(id, string_view_utf8::MakeNULLSTR());
 
     id = window_create_ptr( // z-axis
         WINDOW_CLS_ICON, parent,
@@ -113,7 +113,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_z_axis));
     footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    window_set_text(id, string_view_utf8::MakeNULLSTR());
 
     id = window_create_ptr( // filament
         WINDOW_CLS_ICON, parent,
@@ -129,7 +129,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_filament));
     footer->wt_filament.font = resource_font(IDR_FNT_SPECIAL);
     window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, filaments[get_filament()].name);
+    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[get_filament()].name));
 
     footer->last_timer_repaint_values = 0;
     footer->last_timer_repaint_z_pos = 0;
@@ -224,7 +224,8 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     footer->nozzle_target_display = vars->display_nozzle;
 
     if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle)))
-        window_set_text(footer->wt_nozzle.id, text_nozzle);
+        // @@TODO potential buffer out of scope
+        window_set_text(footer->wt_nozzle.id, string_view_utf8::MakeRAM((const uint8_t *)text_nozzle));
 }
 
 void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *vars) {
@@ -244,7 +245,8 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
     footer->heatbed_target = vars->target_bed;
 
     if (0 < snprintf(text_heatbed, sizeof(text_heatbed), "%d/%d\177C", (int)roundf(vars->temp_bed), (int)roundf(vars->target_bed)))
-        window_set_text(footer->wt_heatbed.id, text_heatbed);
+        //@@TODO potential buffer out of scope
+        window_set_text(footer->wt_heatbed.id, string_view_utf8::MakeRAM((const uint8_t *)text_heatbed));
 }
 
 /// Updates values in footer state from real values and repaint
@@ -282,13 +284,14 @@ void status_footer_update_feedrate(status_footer_t *footer) {
         snprintf(text_prnspeed, sizeof(text_prnspeed), "%3d%%", speed);
     else
         snprintf(text_prnspeed, sizeof(text_prnspeed), err);
-    window_set_text(footer->wt_prnspeed.id, text_prnspeed);
+    // @@TODO potential buffer out of scope
+    window_set_text(footer->wt_prnspeed.id, string_view_utf8::MakeRAM((const uint8_t *)text_prnspeed));
 }
 
 void status_footer_update_z_axis(status_footer_t *footer) {
     const marlin_vars_t *vars = marlin_vars();
     if (!vars) {
-        window_set_text(footer->wt_z_axis.id, err);
+        window_set_text(footer->wt_z_axis.id, string_view_utf8::MakeCPUFLASH((const uint8_t *)err));
         return;
     }
 
@@ -298,10 +301,11 @@ void status_footer_update_z_axis(status_footer_t *footer) {
 
     footer->z_pos = pos;
     if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)std::abs(pos % 100))) {
-        window_set_text(footer->wt_z_axis.id, err);
+        window_set_text(footer->wt_z_axis.id, string_view_utf8::MakeCPUFLASH((const uint8_t *)err));
         return;
     }
-    window_set_text(footer->wt_z_axis.id, text_z_axis);
+    //@@TODO potential buffer out of scope
+    window_set_text(footer->wt_z_axis.id, string_view_utf8::MakeRAM((const uint8_t *)text_z_axis));
 }
 
 void status_footer_update_filament(status_footer_t *footer) {
@@ -309,7 +313,8 @@ void status_footer_update_filament(status_footer_t *footer) {
         return;
 
     strncpy(filament, filaments[get_filament()].name, sizeof(filament));
-    window_set_text(footer->wt_filament.id, filament);
+    //@@TODO potential buffer out of scope
+    window_set_text(footer->wt_filament.id, string_view_utf8::MakeRAM((const uint8_t *)filament));
     // #ifndef LCD_HEATBREAK_TO_FILAMENT
     //     window_set_text(footer->wt_filament.id, filaments[get_filament()].name);
     // #endif

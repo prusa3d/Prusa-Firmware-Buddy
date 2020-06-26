@@ -165,7 +165,8 @@ void screen_printing_init(screen_t *screen) {
     id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
-    p_window_header_set_text(&(pw->header), "PRINTING");
+    static const char pr[] = "PRINTING";
+    p_window_header_set_text(&(pw->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)pr));
 #endif
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 33, 220, 29),
@@ -173,7 +174,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
     window_set_padding(id, padding_ui8(0, 0, 0, 0));
     window_set_alignment(id, ALIGN_LEFT_BOTTOM);
-    window_set_text(id, vars->media_LFN ? vars->media_LFN : "");
+    window_set_text(id, vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
 
     id = window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
@@ -188,8 +189,8 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
-    window_set_text(id, pw->label_etime.data());
+    //strlcpy(pw->label_etime.data(), , 15);
+    window_set_text(id, _("Remaining Time"));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(30, 148, 201, 20),
@@ -197,7 +198,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_etime.data());
+    window_set_text(id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 128, 101, 20),
@@ -213,7 +214,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_RIGHT_BOTTOM);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, pw->text_time_dur.data());
+    window_set_text(id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_time_dur.data()));
 
     id = window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
@@ -221,7 +222,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     window_set_alignment(id, ALIGN_LEFT_TOP);
     window_set_padding(id, padding_ui8(0, 2, 0, 2));
-    window_set_text(id, "No messages");
+    window_set_text(id, _("No messages"));
     window_hide(id);
     pw->message_flag = false;
 
@@ -269,7 +270,7 @@ static void open_popup_message(screen_t *screen) {
     window_hide(pw->w_time_label.id);
     window_hide(pw->w_time_value.id);
 
-    window_set_text(pw->w_message.id, msg_stack.msg_data[0]);
+    window_set_text(pw->w_message.id, string_view_utf8::MakeRAM((const uint8_t *)msg_stack.msg_data[0]));
 
     window_show(pw->w_message.id);
     pw->message_timer = HAL_GetTick();
@@ -283,7 +284,7 @@ static void close_popup_message(screen_t *screen) {
     window_show(pw->w_time_label.id);
     window_show(pw->w_time_value.id);
 
-    window_set_text(pw->w_message.id, "");
+    window_set_text(pw->w_message.id, string_view_utf8::MakeNULLSTR());
 
     window_hide(pw->w_message.id);
     pw->message_flag = false;
@@ -333,12 +334,14 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
         time_t sec = sntp_get_system_time();
         if (sec != 0) {
-            strlcpy(pw->label_etime.data(), _("Print will end"), 15);
-            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
+            // @@TODO fix this - no need to copy this into memory, it is enough to keep the right pointer
+            //            strlcpy(pw->label_etime.data(), _("Print will end"), 15);
+            //            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
             update_end_timestamp(screen, sec);
         } else {
-            strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
-            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
+            //@@TODO dtto
+            //            strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
+            //            window_set_text(pw->w_etime_label.id, pw->label_etime.data());
             update_remaining_time(screen, marlin_vars()->time_to_end);
         }
         pw->last_time_to_end = marlin_vars()->time_to_end;
@@ -454,7 +457,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime) {
     } else
         strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
 
-    window_set_text(pw->w_etime_value.id, pw->text_etime.data());
+    window_set_text(pw->w_etime_value.id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 }
 
 static void update_end_timestamp(screen_t *screen, time_t now_sec) {
@@ -495,7 +498,7 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec) {
         }
     }
 
-    window_set_text(pw->w_etime_value.id, pw->text_etime.data());
+    window_set_text(pw->w_etime_value.id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
@@ -509,18 +512,19 @@ static void update_print_duration(screen_t *screen, time_t rawtime) {
     } else {
         snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
     }
-    window_set_text(pw->w_time_value.id, pw->text_time_dur.data());
+    window_set_text(pw->w_time_value.id, string_view_utf8::MakeRAM((const uint8_t *)pw->text_time_dur.data()));
 }
 
 static void screen_printing_reprint(screen_t *screen) {
     print_begin(marlin_vars()->media_SFN_path);
-    window_set_text(pw->w_etime_label.id, PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
+    window_set_text(pw->w_etime_label.id, _("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
 
-    window_set_text(pw->w_labels[static_cast<size_t>(Btn::Stop)].id, printing_labels[static_cast<size_t>(item_id_t::stop)]);
+    window_set_text(pw->w_labels[static_cast<size_t>(Btn::Stop)].id,
+        string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
     window_set_icon_id(pw->w_buttons[static_cast<size_t>(Btn::Stop)].id, printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
-    p_window_header_set_text(&(pw->header), "PRINTING");
+    p_window_header_set_text(&(pw->header), _("PRINTING"));
 #endif
 }
 
@@ -547,8 +551,9 @@ static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_
     if (window_get_icon_id(btn_id) != printing_icons[index])
         window_set_icon_id(btn_id, printing_icons[index]);
     //compare pointers to text, compare texts would take too long
-    if (window_get_text(lbl_id) != printing_labels[index])
-        window_set_text(lbl_id, printing_labels[index]);
+    // @@TODO fix this comparison
+    //    if (window_get_text(lbl_id) != printing_labels[index])
+    //        window_set_text(lbl_id, string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[index]));
 }
 
 static void enable_button(window_icon_t *p_button) {

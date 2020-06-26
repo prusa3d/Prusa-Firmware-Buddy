@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include "guitypes.h"
+#include "../../lang/string_view_utf8.hpp"
 
 //window class identifiers
 #define WINDOW_CLS_FRAME     0   // FRAME - basic container class
@@ -170,9 +171,9 @@ extern uint8_t window_get_tag(int16_t id);
 
 extern int _window_get_tag(window_t *wnd);
 
-extern void window_set_text(int16_t id, const char *text);
+extern void window_set_text(int16_t id, string_view_utf8 text);
 
-extern char *window_get_text(int16_t id);
+extern string_view_utf8 window_get_text(int16_t id);
 
 extern void window_set_value(int16_t id, float value);
 
