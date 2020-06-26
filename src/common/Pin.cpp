@@ -23,10 +23,10 @@ void ConfigurableIndestructible::configure_all() {
     }
 }
 
-void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, IoPort ioPort) {
+void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, GPIO_TypeDef *Halport) {
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
     GPIO_InitStruct.Pin = ioPin;
     GPIO_InitStruct.Mode = static_cast<uint32_t>(iMode);
     GPIO_InitStruct.Pull = static_cast<uint32_t>(pull);
-    HAL_GPIO_Init(IoPortToHal(ioPort), &GPIO_InitStruct);
+    HAL_GPIO_Init(Halport, &GPIO_InitStruct);
 }

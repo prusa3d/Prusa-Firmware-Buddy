@@ -92,21 +92,21 @@ constexpr uint16_t IoPinToHal(IoPin ioPin) {
 static_assert(IoPinToHal(IoPin::p0) == 0x0001U, "IoPinToHal broken");
 static_assert(IoPinToHal(IoPin::p15) == 0x8000U, "IoPinToHal broken");
 
-void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, IoPort ioPort);
+void InputPinGenericConfigure(uint16_t ioPin, IMode iMode, Pull pull, GPIO_TypeDef *Halport);
 
 class InputPin : ConfigurableIndestructible {
 public:
     InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
-        : m_port(ioPort)
+        : m_Halport(IoPortToHal(ioPort))
         , m_HalPin(IoPinToHal(ioPin))
         , m_iMode(iMode)
         , m_pull(pull) {}
     void configure() {
-        InputPinGenericConfigure(m_HalPin, m_iMode, m_pull, m_port);
+        InputPinGenericConfigure(m_HalPin, m_iMode, m_pull, m_Halport);
     }
 
 private:
-    const IoPort m_port;
+    GPIO_TypeDef *const m_Halport;
     const uint16_t m_HalPin;
     const IMode m_iMode;
     const Pull m_pull;
