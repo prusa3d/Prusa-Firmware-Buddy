@@ -89,8 +89,8 @@ constexpr uint16_t IoPinToHal(IoPin ioPin) {
     return (0x1U << static_cast<uint16_t>(ioPin));
 }
 
-static_assert(IoPinToHal(IoPin::p0) == 0x0001U, "IoPinToHal broken");
-static_assert(IoPinToHal(IoPin::p15) == 0x8000U, "IoPinToHal broken");
+static_assert(IoPinToHal(IoPin::p0) == GPIO_PIN_0, "IoPinToHal broken");
+static_assert(IoPinToHal(IoPin::p15) == GPIO_PIN_15, "IoPinToHal broken");
 
 class InputPin : ConfigurableIndestructible {
 public:
