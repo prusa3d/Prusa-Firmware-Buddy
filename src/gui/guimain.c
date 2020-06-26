@@ -97,8 +97,6 @@ void gui_run(void) {
     gui_marlin_vars->media_LFN = gui_media_LFN;
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     register_dialog_callbacks();
     Sound_Play(eSOUND_TYPE_Start);
 
