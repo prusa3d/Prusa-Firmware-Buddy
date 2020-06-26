@@ -84,6 +84,6 @@ void window_progress_t::SetValue(float val) {
         val = min;
     if (val > max)
         val = max;
-    value = value;
+    value = val;
     Invalidate();
 }
