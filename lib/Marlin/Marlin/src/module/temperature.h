@@ -336,6 +336,11 @@ class Temperature {
       #endif
     #endif
 
+    #if ENABLED(PID_EXTRUSION_SCALING)
+      FORCE_INLINE static bool getExtrusionScalingEnabled() { return extrusion_scaling_enabled; }
+      FORCE_INLINE static void setExtrusionScalingEnabled(bool enabled) { extrusion_scaling_enabled = enabled; }
+    #endif
+
   private:
 
     #if EARLY_WATCHDOG
@@ -355,6 +360,7 @@ class Temperature {
 
     #if ENABLED(PID_EXTRUSION_SCALING)
       static uint32_t last_e_position;
+      static bool extrusion_scaling_enabled;
     #endif
 
     #if HOTENDS
