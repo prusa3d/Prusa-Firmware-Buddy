@@ -449,6 +449,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime, uint16_t pri
     pw->w_etime_value.color_text = rawtime != time_t(-1) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
     if (rawtime != time_t(-1)) {
         if (print_speed != 100)
+            // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
             rawtime = (rawtime * 100) / print_speed;
         const struct tm *timeinfo = localtime(&rawtime);
         //standard would be:
@@ -461,7 +462,7 @@ static void update_remaining_time(screen_t *screen, time_t rawtime, uint16_t pri
             snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
         }
         if (print_speed != 100)
-            strcat(pw->text_etime.data(), "?");
+            strlcat(pw->text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
     } else
         strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
 
@@ -482,6 +483,7 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t prin
     time_t print_end_sec, tommorow_sec;
 
     if (print_speed != 100)
+        // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
         print_end_sec = now_sec + (100 * marlin_vars()->time_to_end / print_speed);
     else
         print_end_sec = now_sec + marlin_vars()->time_to_end;
@@ -503,7 +505,7 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t prin
         strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%M", &print_end);
     }
     if (print_speed != 100)
-        strcat(pw->text_etime.data(), "?");
+        strlcat(pw->text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
 
     if (time_invalid == false) {
         uint8_t length = strlen(pw->text_etime.data());
