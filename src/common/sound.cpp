@@ -68,7 +68,7 @@ void Sound::setMode(eSOUND_MODE eSMode) {
 }
 
 void Sound::setVolume(int vol) {
-	varVolume = static_cast<uint8_t>(vol)/100.F;
+    varVolume = static_cast<uint8_t>(vol) / 100.F;
     saveVolume();
 }
 
