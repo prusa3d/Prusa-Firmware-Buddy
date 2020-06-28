@@ -5,7 +5,9 @@ extern "C" {
 int SOUND_INIT = 0;
 
 eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
+int Sound_GetVolume() { return Sound::getInstance().getVolume(); }
 void Sound_SetMode(eSOUND_MODE eSMode) { Sound::getInstance().setMode(eSMode); }
+void Sound_SetVolume(int volume) { Sound::getInstance().setVolume(volume); }
 void Sound_Play(eSOUND_TYPE eSoundType) { Sound::getInstance().play(eSoundType); }
 void Sound_Stop() { Sound::getInstance().stop(); }
 

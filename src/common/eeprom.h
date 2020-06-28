@@ -54,11 +54,12 @@
 #endif                              // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
 
 // sound variable
-#define EEVAR_SOUND_MODE 0x1a // uint8_t
+#define EEVAR_SOUND_MODE   0x1a // uint8_t
+#define EEVAR_SOUND_VOLUME 0x1b // uint8_t
 
-#define EEVAR__PADDING 0x1b // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+#define EEVAR__PADDING 0x1c // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
-#define EEVAR_CRC32 0x1c // uint32_t crc32 for
+#define EEVAR_CRC32 0x1d // uint32_t crc32 for
 
 #define LAN_HOSTNAME_MAX_LEN 20
 #define CONNECT_TOKEN_SIZE   20

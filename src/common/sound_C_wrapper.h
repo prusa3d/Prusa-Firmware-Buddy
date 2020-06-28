@@ -11,7 +11,11 @@ extern int SOUND_INIT;
 
 // C wrapping for old GUI parts needed.
 extern eSOUND_MODE Sound_GetMode();
+extern int Sound_GetVolume();
+
 extern void Sound_SetMode(eSOUND_MODE eSMode);
+extern void Sound_SetVolume(int volume);
+
 extern void Sound_Play(eSOUND_TYPE eSoundType);
 extern void Sound_Stop();
 extern void Sound_Update1ms();
