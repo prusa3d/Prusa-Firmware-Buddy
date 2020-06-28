@@ -1079,6 +1079,12 @@ static int _process_server_request(char *request) {
         processed = 1;
     } else if (sscanf(request, "!event_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
+        // Send MARLIN_EVT_MediaInserted event if media currently inserted
+        // This is temporary solution, MARLIN_EVT_MediaInserted and MARLIN_EVT_MediaRemoved events are replaced
+        // with variable media_inserted, but some parts of application still using the events.
+        // We need this workaround for app startup.
+        if ((marlin_server.notify_events[client_id] & MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted)) && marlin_server.vars.media_inserted)
+            marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted);
         processed = 1;
     } else if (sscanf(request, "!change_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);

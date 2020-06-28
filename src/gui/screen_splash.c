@@ -91,7 +91,11 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
         _psd->logo_invalid = 0;
     }
 #ifdef _EXTUI
-    if (marlin_event(MARLIN_EVT_Startup)) {
+    if (marlin_event(MARLIN_EVT_StartProcessing)) {
+        // Originally these lines should be immediately after marlin_client_init, but because the functions are blocking
+        // and we want the gui thread alive, we moved the lines here.
+        marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
+        marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
         screen_close();
         uint8_t run_selftest = eeprom_get_var(EEVAR_RUN_SELFTEST).ui8;
         uint8_t run_xyzcalib = eeprom_get_var(EEVAR_RUN_XYZCALIB).ui8;

@@ -114,7 +114,7 @@ void screen_home_init(screen_t *screen) {
         }
     }
 
-    if (!marlin_vars()->media_inserted)
+    if (!marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS))->media_inserted)
         screen_home_disable_print_button(screen, 1);
 
     status_footer_init(&(pw->footer), root);
