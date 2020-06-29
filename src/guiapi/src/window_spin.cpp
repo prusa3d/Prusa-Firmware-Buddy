@@ -1,6 +1,7 @@
 // window_spin.c
 #include "window_spin.hpp"
 #include "gui.hpp"
+#include <algorithm>
 
 extern osThreadId displayTaskHandle;
 
@@ -123,7 +124,7 @@ void window_spin_t::setValMinMaxStep(float val, float min_val, float max_val, fl
     min = min_val;
     max = max_val;
     step = step_val;
-    value = (val < min) ? min : (max < val) ? max : val; //do not have C++ 17, cannot use clamp
+    value = std::max(min, std::min(max, val)); //do not have C++ 17, cannot use clamp
     //value = std::clamp(val, min,max); // need C++ 17
     count = (int)((max - min) / step + 1.5F);
     index = (int)((value - min) / step);
