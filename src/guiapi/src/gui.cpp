@@ -189,7 +189,7 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     }
     window_popup_ptr = window_popup_tmp; // restore previous window_popup_ptr
     window_t *pWin = window_ptr(0);
-    if (pWin != 0)
+    if (pWin)
         pWin->Invalidate();
     if (window_ptr(id_capture))
         window_ptr(id_capture)->SetCapture();

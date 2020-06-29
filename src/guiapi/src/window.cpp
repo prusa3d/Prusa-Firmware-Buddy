@@ -193,7 +193,7 @@ int16_t window_next(int16_t id) {
 
 int16_t window_prev_enabled(int16_t id) {
     while ((id = window_prev(id)) >= 0)
-        if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
+        if (window_ptr(id) ? window_ptr(id)->IsEnabled() : false)
             return id;
     return -1;
 }
@@ -316,7 +316,7 @@ void window_t::SetCapture() {
 }
 
 void window_t::Show() {
-    if ((f_visible) == 0) {
+    if (!f_visible) {
         f_visible = 1;
         Invalidate();
     }
