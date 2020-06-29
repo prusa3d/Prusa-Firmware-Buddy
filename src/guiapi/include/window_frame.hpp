@@ -12,6 +12,8 @@ struct window_class_frame_t {
 };
 
 struct window_frame_t : public window_t {
+    window_frame_t()
+        : window_t(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0)) {}
 };
 
 void window_frame_init(window_frame_t *window);

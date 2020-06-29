@@ -1,16 +1,10 @@
-/*
- * screen_prusa.c
- *
- *  Created on: 16. 7. 2019
- *      Author: mcbig
- */
-
+//screen_home.cpp
+#include "screen_home.hpp"
 #include "ff.h"
 #include "dbg.h"
-#include "gui.hpp"
+
 #include "config.h"
-#include "window_header.hpp"
-#include "status_footer.h"
+
 #include "marlin_client.h"
 #include "screen_print_preview.h"
 #include "print_utils.h"
@@ -48,22 +42,6 @@ const char *labels[7] = {
     N_("No USB") // label variant for first button
 };
 
-struct screen_home_data_t {
-    window_frame_t root;
-
-    window_header_t header;
-    window_icon_t logo;
-
-    window_icon_t w_buttons[6];
-    window_text_t w_labels[6];
-
-    status_footer_t footer;
-
-    uint8_t is_starting;
-    uint32_t time;
-    uint8_t logo_invalid;
-};
-
 #define pw ((screen_home_data_t *)screen->pdata)
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
@@ -76,7 +54,7 @@ void screen_home_init(screen_t *screen) {
     pw->is_starting = (pw->time < 5000) ? 1 : 0;
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0), &(pw->root));
+        rect_ui16(0, 0, 0, 0), pw);
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_home);
@@ -115,7 +93,7 @@ void screen_home_init(screen_t *screen) {
 }
 
 void screen_home_done(screen_t *screen) {
-    window_destroy(pw->root.id);
+    window_destroy(pw->id);
 }
 
 void screen_home_draw(screen_t *screen) {

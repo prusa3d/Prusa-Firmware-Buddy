@@ -18,12 +18,6 @@ uint16_t screen_count = 0;
 int16_t screen_stack[SCREEN_MAX_HISTORY];
 uint16_t screen_stack_count = 0;
 
-int16_t screen_id(void) {
-    if (screen_0)
-        return screen_0->id;
-    return -1;
-}
-
 int16_t screen_register(screen_t *pscreen) {
     int16_t id = -1;
     if ((pscreen != 0) && (screen_count < SCREEN_MAX_SCREENS)) {
@@ -43,11 +37,6 @@ int16_t screen_register(screen_t *pscreen) {
         general_error("GUI", "Maximum number of screens reached.");
     }
     return id;
-}
-
-screen_t *screen_unregister(int16_t screen_id) {
-    //TODO
-    return 0;
 }
 
 void screen_stack_push(int16_t screen_id) {

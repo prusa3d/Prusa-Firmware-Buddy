@@ -22,11 +22,7 @@ typedef struct _screen_t {
     void *pdata;           // (4 bytes) data pointer - automaticaly allocated before init
 } screen_t;                // (28 bytes total)
 
-extern int16_t screen_id(void);
-
 extern int16_t screen_register(screen_t *pscreen);
-
-extern screen_t *screen_unregister(int16_t screen_id);
 
 extern void screen_stack_push(int16_t screen_id);
 

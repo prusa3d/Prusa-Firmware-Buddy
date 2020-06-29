@@ -129,6 +129,9 @@ struct window_t {
     //To be removed
     int16_t IdParent() { return id_parent; }
     void DispatchEvent(uint8_t ev, void *param);
+
+    window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect);
+    window_t() {};
 };
 
 extern window_t *window_popup_ptr; //current popup window

@@ -349,3 +349,23 @@ void window_t::DispatchEvent(uint8_t ev, void *param) {
     if (event)
         event(this, ev, param);
 }
+
+window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect) {
+    window_class_t *cls = class_ptr(cls_id);
+    if (cls) {
+        uint32_t flg = WINDOW_FLG_VISIBLE | WINDOW_FLG_INVALID;
+
+        int16_t id = window_new_id(this);
+        if (id >= 0) {
+            this->id = id;
+            this->id_parent = id_parent;
+            this->cls = cls;
+            this->flg = flg;
+            this->rect = rect;
+            this->event = cls->event;
+            this->f_tag = 0;
+            if (cls->init)
+                cls->init(this);
+        }
+    }
+}
