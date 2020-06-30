@@ -57,6 +57,26 @@ enum class IoPin : uint8_t {
     p15,
 };
 
+constexpr GPIO_TypeDef *IoPortToHal(IoPort ioPort) {
+    return reinterpret_cast<GPIO_TypeDef *>(static_cast<uint16_t>(ioPort) * (GPIOB_BASE - GPIOA_BASE));
+}
+
+constexpr uint16_t IoPinToHal(IoPin ioPin) {
+    return (0x1U << static_cast<uint16_t>(ioPin));
+}
+
+static_assert(IoPinToHal(IoPin::p0) == GPIO_PIN_0, "IoPinToHal broken");
+static_assert(IoPinToHal(IoPin::p15) == GPIO_PIN_15, "IoPinToHal broken");
+
+class Pin {
+protected:
+    Pin(IoPort ioPort, IoPin ioPin)
+        : m_halPort(IoPortToHal(ioPort))
+        , m_HalPin(IoPinToHal(ioPin)) {}
+    GPIO_TypeDef *const m_halPort;
+    const uint16_t m_HalPin;
+};
+
 enum class IMode {
     input = GPIO_MODE_INPUT,
     IT_rising = GPIO_MODE_IT_RISING,
@@ -81,22 +101,10 @@ enum class OSpeed : uint8_t {
     very_high = GPIO_SPEED_FREQ_VERY_HIGH,
 };
 
-constexpr GPIO_TypeDef *IoPortToHal(IoPort ioPort) {
-    return reinterpret_cast<GPIO_TypeDef *>(static_cast<uint16_t>(ioPort) * (GPIOB_BASE - GPIOA_BASE));
-}
-
-constexpr uint16_t IoPinToHal(IoPin ioPin) {
-    return (0x1U << static_cast<uint16_t>(ioPin));
-}
-
-static_assert(IoPinToHal(IoPin::p0) == GPIO_PIN_0, "IoPinToHal broken");
-static_assert(IoPinToHal(IoPin::p15) == GPIO_PIN_15, "IoPinToHal broken");
-
-class InputPin : ConfigurableIndestructible {
+class InputPin : ConfigurableIndestructible, public Pin {
 public:
     InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
-        : m_halPort(IoPortToHal(ioPort))
-        , m_HalPin(IoPinToHal(ioPin))
+        : Pin(ioPort, ioPin)
         , m_iMode(iMode)
         , m_pull(pull) {}
     void configure();
@@ -105,8 +113,6 @@ public:
     }
 
 private:
-    GPIO_TypeDef *const m_halPort;
-    const uint16_t m_HalPin;
     const IMode m_iMode;
     const Pull m_pull;
 };
