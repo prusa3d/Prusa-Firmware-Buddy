@@ -16,6 +16,7 @@ public:
     //define factory methods for all dialogs here
     static static_unique_ptr<IDialogStateful> serial_printing(uint8_t data);
     static static_unique_ptr<IDialogStateful> load_unload(uint8_t data);
+    static static_unique_ptr<IDialogStateful> G162(uint8_t data);
 
     static Ctors GetAll(); //returns all factory methods in an array
 };
