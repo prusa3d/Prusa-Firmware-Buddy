@@ -72,11 +72,11 @@ const window_class_progress_t window_class_progress = {
 //todo use this virtual methods does not work yet - stupid memcpy
 /*
 void window_progress_t::setValue(float val) {
-    value = std::max(max, std::min(val, min));
+    value = std::max(min, std::min(val, max));
 }
 */
 //todo erase me, virtual methods does not work yet - stupid memcpy
 void window_progress_t::SetValue(float val) {
-    value = std::max(max, std::min(val, min));
+    value = std::max(min, std::min(val, max));
     Invalidate();
 }
