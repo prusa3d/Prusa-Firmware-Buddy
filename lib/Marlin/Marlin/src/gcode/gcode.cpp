@@ -195,6 +195,11 @@ void GcodeSuite::dwell(millis_t time) {
 void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
   KEEPALIVE_STATE(IN_HANDLER);
 
+  #if ENABLED(PROCESS_CUSTOM_GCODE)
+    if (process_parsed_command_custom(/*no_ok=*/no_ok))
+      return;
+  #endif
+  
   // Handle a known G, M, or T
   switch (parser.command_letter) {
     case 'G': switch (parser.codenum) {
