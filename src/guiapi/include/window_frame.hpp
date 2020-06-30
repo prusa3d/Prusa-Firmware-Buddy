@@ -12,7 +12,6 @@ struct window_class_frame_t {
 };
 
 struct window_frame_t : public window_t {
-    color_t color_back;
 };
 
 void window_frame_init(window_frame_t *window);

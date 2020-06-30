@@ -25,11 +25,11 @@ void screen_test_term_init(screen_t *screen) {
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
     pd->id_frame = id0;
-    window_set_color_back(id0, COLOR_GRAY);
+    pd->frame.SetBackColor(COLOR_GRAY);
 
     id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
     pd->id_text = id;
-    window_set_text(id, (const char *)"Test");
+    pd->text.SetText((const char *)"Test");
 
     id = window_create_ptr(WINDOW_CLS_TERM, id0, rect_ui16(10, 28, 11 * 20, 18 * 16), &(pd->term));
     pd->id_term = id;
@@ -54,7 +54,7 @@ int screen_test_term_event(screen_t *screen, window_t *window, uint8_t event, vo
         term_printf(pd->term.term, "%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
         //	else
         //		if (pd->term.term->flg & TERM_FLG_CHANGED)
-        window_invalidate(pd->term.id);
+        pd->term.Invalidate();
     }
     return 0;
 }

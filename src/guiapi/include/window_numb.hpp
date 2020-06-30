@@ -11,13 +11,21 @@ struct window_class_numb_t {
 };
 
 struct window_numb_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     float value;
     const char *format;
     padding_ui8_t padding;
     uint8_t alignment;
+
+    void SetFormat(const char *frmt);
+    const char *GetFormat() { return format; }
+    void SetValue(float val);
+    float GetValue() const { return value; }
+
+protected:
+    //todo use this virtual methods does not work yet - stupid memcpy
+    //virtual void setValue(float val);
 };
 
 extern const window_class_numb_t window_class_numb;

@@ -74,7 +74,7 @@ void gui_pop_up(void) {
     strlcpy(dlg.text, msg_stack.msg_data[0], sizeof(dlg.text));
     window_popup_ptr = (window_t *)&dlg;
     gui_invalidate();
-    window_set_capture(id);
+    dlg.SetCapture();
 
     dlg.timer = HAL_GetTick();
 
@@ -83,7 +83,10 @@ void gui_pop_up(void) {
     }
 
     window_destroy(id);
-    window_set_capture(id_capture);
-    window_invalidate(0);
+    if (window_ptr(id_capture))
+        window_ptr(id_capture)->SetCapture();
+    window_t *pWin = window_ptr(0);
+    if (pWin != 0)
+        pWin->Invalidate();
     opened = 0;
 }

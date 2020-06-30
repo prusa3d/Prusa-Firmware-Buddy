@@ -13,7 +13,6 @@
 extern int16_t WINDOW_CLS_DLG_POPUP;
 
 struct window_dlg_popup_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     font_t *font_title;

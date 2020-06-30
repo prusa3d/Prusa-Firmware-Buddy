@@ -181,7 +181,7 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
     window_popup_ptr = (window_t *)&dlg;
     gui_reset_jogwheel();
     gui_invalidate();
-    window_set_capture(id);
+    dlg.SetCapture();
 
     dlg.progress = (*progress_callback)();
     dlg.components = comp_flag; // holds what component should be drawn
@@ -206,6 +206,9 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
 
     window_destroy(id);
     window_popup_ptr = tmp_popup_window;
-    window_invalidate(0);
-    window_set_capture(id_capture);
+    window_t *pWin = window_ptr(0);
+    if (pWin != 0)
+        pWin->Invalidate();
+    if (window_ptr(id_capture))
+        window_ptr(id_capture)->SetCapture();
 }

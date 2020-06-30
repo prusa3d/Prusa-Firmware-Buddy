@@ -271,11 +271,12 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     //p_screen->Z_offset         = vars->z_offset;
     p_screen->Z_offset_request = 0;
 
-    int16_t id;
     window_destroy_children(id_body);
-    window_show(id_body);
-    window_invalidate(id_body);
-
+    window_t *pWin = window_ptr(id_body);
+    if (pWin != 0) {
+        pWin->Show();
+        pWin->Invalidate();
+    }
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
 #if DEBUG_TERM == 0
@@ -283,13 +284,13 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     pt = font_meas_text(resource_font(IDR_FNT_NORMAL), _wizard_firstlay_text);
     pt.x += 5;
     pt.y += 5;
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, pt.x, pt.y), &(p_screen->text_state));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, pt.x, pt.y), &(p_screen->text_state));
     p_screen->text_state.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, _wizard_firstlay_text);
+    p_screen->text_state.SetText(_wizard_firstlay_text);
 
     y += pt.y + 5;
 #else
-    id = window_create_ptr(WINDOW_CLS_TERM, id_body,
+    window_create_ptr(WINDOW_CLS_TERM, id_body,
         rect_ui16(10, y,
             resource_font(IDR_FNT_SMALL)->w * FIRSTLAY_SCREEN_TERM_X,
             resource_font(IDR_FNT_SMALL)->h * FIRSTLAY_SCREEN_TERM_Y),
@@ -300,21 +301,21 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
 
     y += 18 * FIRSTLAY_SCREEN_TERM_Y + 3;
 #endif
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 110, 22), &(p_screen->text_Z_pos));
-    window_set_text(id, "Z height:");
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 110, 22), &(p_screen->text_Z_pos));
+    p_screen->text_Z_pos.SetText("Z height:");
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x + 110, y, 70, 22), &(p_screen->spin_baby_step));
-    window_set_format(id, "%.3f");
-    window_set_value(id, p_screen->Z_offset);
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x + 110, y, 70, 22), &(p_screen->spin_baby_step));
+    p_screen->spin_baby_step.SetFormat("%.3f");
+    p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
     p_screen->spin_baby_step.color_text = COLOR_GRAY;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x + 110 + 70, y, WIZARD_X_SPACE - x - 110 - 70, 22),
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x + 110 + 70, y, WIZARD_X_SPACE - x - 110 - 70, 22),
         &(p_screen->text_direction_arrow));
-    window_set_text(id, "-|+");
+    p_screen->text_direction_arrow.SetText("-|+");
 
     y += 22 + 10;
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 }
 
 int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
@@ -384,14 +385,14 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         wizard_init_screen_firstlay(id_body, p_screen, p_data);
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "INITIALIZED\n");
-        window_invalidate(p_screen->term.id);
+        p_screen->term.id.Invalidate();
 #endif
         _set_gcode_first_lines();
         p_screen->state = _FL_GCODE_HEAD;
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "HEAD\n");
-        window_invalidate(p_screen->term.id);
+        p_screen->term.id.Invalidate();
 #endif
         break;
     case _FL_GCODE_HEAD:
@@ -420,11 +421,11 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
             p_screen->state = _FL_GCODE_BODY;
 #if DEBUG_TERM == 1
             term_printf(&p_screen->terminal, "BODY\n");
-            window_invalidate(p_screen->term.id);
+            p_screen->term.Invalidate();
 #endif
             p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
             p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-            window_invalidate(p_screen->spin_baby_step.id);
+            p_screen->spin_baby_step.Invalidate();
         }
         break;
     case _FL_GCODE_BODY:
@@ -443,7 +444,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
     case _FL_GCODE_DONE:
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "PASSED\n");
-        window_invalidate(p_screen->term.id);
+        p_screen->term.Invalidate();
 #endif
         p_data->state_print = _TEST_PASSED;
         p_screen->Z_offset_request = 0;
@@ -452,14 +453,14 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 
     int progress = _get_progress(); //max 99
 
-    window_set_value(p_screen->progress.id, (float)progress);
+    p_screen->progress.SetValue(progress);
     return progress;
 }
 
 void wizard_firstlay_event_dn(firstlay_screen_t *p_screen) {
 #if DEBUG_TERM == 1
     //todo term is bugged spinner can make it not showing
-    window_invalidate(p_screen->term.id);
+    p_screen->term.Invalidate();
 #endif
     p_screen->Z_offset_request -= z_offset_step;
 }
@@ -467,15 +468,12 @@ void wizard_firstlay_event_dn(firstlay_screen_t *p_screen) {
 void wizard_firstlay_event_up(firstlay_screen_t *p_screen) {
 #if DEBUG_TERM == 1
     //todo term is bugged spinner can make it not showing
-    window_invalidate(p_screen->term.id);
+    p_screen->term.Invalidate();
 #endif
     p_screen->Z_offset_request += z_offset_step;
 }
 
 void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
-    int16_t numb_id = p_screen->spin_baby_step.id;
-    int16_t arrow_id = p_screen->text_direction_arrow.id;
-
     //need last step to ensure correct behavior on limits
     float _step_last = p_screen->Z_offset;
     p_screen->Z_offset += p_screen->Z_offset_request;
@@ -487,12 +485,13 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 
     marlin_do_babysteps_Z(p_screen->Z_offset - _step_last);
 
+    //call p_screen->spin_baby_step.SetValue(p_screen->Z_offset); only when value changed
     if (p_screen->Z_offset_request > 0) {
-        window_set_value(numb_id, p_screen->Z_offset);
-        window_set_text(arrow_id, "+++");
+        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
+        p_screen->text_direction_arrow.SetText("+++");
     } else if (p_screen->Z_offset_request < 0) {
-        window_set_value(numb_id, p_screen->Z_offset);
-        window_set_text(arrow_id, "---");
+        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
+        p_screen->text_direction_arrow.SetText("---");
     }
 
     p_screen->Z_offset_request = 0;
@@ -525,7 +524,7 @@ int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count,
             marlin_gcode(gcodes[*p_line]);
 #if DEBUG_TERM == 1
             term_printf(term->term, "%s\n", gcodes[*p_line]);
-            window_invalidate(term->win.id);
+            term->win.Invalidate();
 #endif
             ++(*p_line);
         }
