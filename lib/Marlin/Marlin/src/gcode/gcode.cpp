@@ -340,6 +340,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
     }
   #endif
 
+  #if ENABLED(PROCESS_CUSTOM_GCODE)
+    if (process_parsed_command_custom(/*no_ok=*/no_ok))
+      return;
+  #endif
+
   #if ENABLED(FLOWMETER_SAFETY)
     if (cooler.flowfault) {
       SERIAL_ECHO_MSG(STR_FLOWMETER_FAULT);
