@@ -179,6 +179,7 @@ target_compile_definitions(
   MOTHERBOARD=${MOTHERBOARD}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
   MARLIN_DISABLE_INFINITE_LOOP
+  PROCESS_CUSTOM_GCODE
   STM32GENERIC
   STM32F4
   _EXTUI
@@ -483,6 +484,7 @@ target_sources(
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M876.cpp
+          src/marlin_stubs/gcode.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
