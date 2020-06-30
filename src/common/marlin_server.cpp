@@ -555,6 +555,12 @@ static void _server_print_loop(void) {
         break;
     case mpsAborting_ParkHead:
         if (planner.movesplanned() == 0) {
+            disable_X();
+            disable_Y();
+#ifndef Z_ALWAYS_ON
+            disable_Z();
+#endif //Z_ALWAYS_ON
+            disable_e_steppers();
             marlin_server.print_state = mpsAborted;
         }
         break;
