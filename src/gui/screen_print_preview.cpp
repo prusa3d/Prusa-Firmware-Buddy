@@ -103,16 +103,16 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     int window_id = pd->frame.id;
 
     int title_width = title.computeNumUtf8CharsAndRewind() * resource_font(IDR_FNT_SMALL)->w;
-    int title_id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(PADDING, y_pos, title_width, LINE_HEIGHT), &line->title);
-    window_set_text(title_id, title);
-    window_set_alignment(title_id, ALIGN_LEFT_BOTTOM);
-    window_set_padding(title_id, padding_ui8(0, 0, 0, 0));
+    line->title.SetText(title);
+    line->title.SetAlignment(ALIGN_LEFT_BOTTOM);
+    line->title.SetPadding(padding_ui8(0, 0, 0, 0));
     line->title.font = resource_font(IDR_FNT_SMALL);
 
     int value_width = SCREEN_WIDTH - PADDING * 2 - title_width - 1;
-    int value_id = window_create_ptr(WINDOW_CLS_TEXT, window_id,
+    window_create_ptr(WINDOW_CLS_TEXT, window_id,
         rect_ui16(SCREEN_WIDTH - PADDING - value_width, y_pos,
             value_width, LINE_HEIGHT),
         &line->value);
@@ -121,9 +121,9 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     vsnprintf(line->value_buffer, sizeof(line->value_buffer), value_fmt, args);
     va_end(args);
     // this MakeRAM is safe - value_buffer is allocated in RAM for the lifetime of line
-    window_set_text(value_id, string_view_utf8::MakeRAM((const uint8_t *)line->value_buffer));
-    window_set_alignment(value_id, ALIGN_RIGHT_BOTTOM);
-    window_set_padding(value_id, padding_ui8(0, 0, 0, 0));
+    line->value.SetText(string_view_utf8::MakeRAM((const uint8_t *)line->value_buffer));
+    line->value.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    line->value.SetPadding(padding_ui8(0, 0, 0, 0));
     line->value.font = resource_font(IDR_FNT_SMALL);
 }
 
@@ -227,17 +227,17 @@ static void screen_print_preview_init(screen_t *screen) {
 
     int window_id = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0), &pd->frame);
-    window_enable(window_id);
+    pd->frame.Enable();
     int y = PADDING;
 
     // Title
-    int title_text_id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(PADDING, y, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT),
         &pd->title_text);
     pd->title_text.font = resource_font(IDR_FNT_BIG);
     // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
-    window_set_text(title_text_id, string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
+    pd->title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
     y += TITLE_HEIGHT + PADDING;
 
     // Thumbnail
@@ -252,34 +252,31 @@ static void screen_print_preview_init(screen_t *screen) {
 
     // Print and Back buttons
     y = SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64;
-    int print_button_id = window_create_ptr(WINDOW_CLS_ICON, window_id,
-        rect_ui16(PADDING, y, 64, 64), &pd->print_button);
-    window_set_color_back(print_button_id, COLOR_GRAY);
-    window_set_icon_id(print_button_id, IDR_PNG_menu_icon_print);
-    window_set_tag(print_button_id, PRINT_BUTTON_ID);
-    window_enable(print_button_id);
-    int back_button_id = window_create_ptr(
-        WINDOW_CLS_ICON, window_id,
-        rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, 64), &pd->back_button);
-    window_set_color_back(back_button_id, COLOR_GRAY);
-    window_set_icon_id(back_button_id, IDR_PNG_menu_icon_back);
-    window_set_tag(back_button_id, BACK_BUTTON_ID);
-    window_enable(back_button_id);
+    window_create_ptr(WINDOW_CLS_ICON, window_id, rect_ui16(PADDING, y, 64, 64), &pd->print_button);
+    //pd->print_button.SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
+    pd->print_button.SetIdRes(IDR_PNG_menu_icon_print);
+    pd->print_button.SetTag(PRINT_BUTTON_ID);
+    pd->print_button.Enable();
+    window_create_ptr(WINDOW_CLS_ICON, window_id, rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, 64), &pd->back_button);
+    //pd->back_button.SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
+    pd->back_button.SetIdRes(IDR_PNG_menu_icon_back);
+    pd->back_button.SetTag(BACK_BUTTON_ID);
+    pd->back_button.Enable();
 
     // Print and Back labels
     y += 64;
-    int print_label_id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, window_id, rect_ui16(PADDING, y, 64, LINE_HEIGHT),
         &pd->print_label);
-    window_set_text(print_label_id, _("Print"));
-    window_set_alignment(print_label_id, ALIGN_CENTER);
+    pd->print_label.SetText(_("Print"));
+    pd->print_label.SetAlignment(ALIGN_CENTER);
     pd->print_label.font = resource_font(IDR_FNT_SMALL);
-    int back_label_id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, LINE_HEIGHT),
         &pd->back_label);
-    window_set_text(back_label_id, _("Back"));
-    window_set_alignment(back_label_id, ALIGN_CENTER);
+    pd->back_label.SetText(_("Back"));
+    pd->back_label.SetAlignment(ALIGN_CENTER);
     pd->back_label.font = resource_font(IDR_FNT_SMALL);
 }
 

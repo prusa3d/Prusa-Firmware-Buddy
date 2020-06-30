@@ -50,20 +50,19 @@ static void screen_filebrowser_init(screen_t *screen) {
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
 
-    int16_t id;
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pd->root));
-    window_disable(root); // hack for do not change capture
+    pd->root.Disable(); // hack for do not change capture
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
+    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
     p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
     static const char sf[] = "SELECT FILE";
     p_window_header_set_text(&(pd->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
 
     window_file_list_t *filelist = &(pd->w_filelist);
 
-    id = window_create_ptr(WINDOW_CLS_FILE_LIST, root,
+    window_create_ptr(WINDOW_CLS_FILE_LIST, root,
         rect_ui16(10, 32, 220, 278),
         filelist);
 
@@ -79,8 +78,8 @@ static void screen_filebrowser_init(screen_t *screen) {
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
     window_file_list_load(filelist, screen_filebrowser_sort, c + 1, firstVisibleSFN);
     // window_file_set_item_index(filelist, 1); // this is automagically done in the window file list
-    window_set_capture(id); // hack for do not change capture
-    window_set_focus(id);   // hack for do not change capture
+    filelist->SetCapture(); // hack for do not change capture
+    filelist->SetFocus();   // hack for do not change capture
 }
 
 static void screen_filebrowser_done(_screen_t *screen) {
@@ -160,7 +159,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
 
         // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
         // However, the text is not visible on the screen yet...
-        //        window_set_text(pd->header.id, strrchr(filelist->sfn_path, '/'));
+        // pd->header.SetText(strrchr(filelist->sfn_path, '/'));
 
     } else { // print the file
         if (vars->media_LFN && vars->media_SFN_path) {

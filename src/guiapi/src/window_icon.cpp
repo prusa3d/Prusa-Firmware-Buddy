@@ -36,3 +36,8 @@ const window_class_icon_t window_class_icon = {
         0,
     },
 };
+
+void window_icon_t::SetIdRes(int16_t id) {
+    id_res = id;
+    Invalidate();
+}

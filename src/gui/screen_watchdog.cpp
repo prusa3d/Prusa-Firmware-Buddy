@@ -17,27 +17,26 @@ struct screen_watchdog_t {
 
 void screen_watchdog_init(screen_watchdog_t *screen) {
     if (screen->pd == 0) {
-        int16_t id;
         int16_t id0;
         screen_watchdog_data_t *pd = (screen_watchdog_data_t *)gui_malloc(sizeof(screen_watchdog_data_t));
         screen->pd = pd;
 
         id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
-        window_set_color_back(id0, COLOR_RED);
+        pd->frame.SetBackColor(COLOR_RED);
 
-        id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 220, 24), &(pd->text0));
+        window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 220, 24), &(pd->text0));
         pd->text0.font = resource_font(IDR_FNT_BIG);
         static const char wdgr[] = "WATCHDOG RESET";
-        window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)wdgr));
-        window_set_alignment(id, ALIGN_CENTER);
+        pd->text0.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)wdgr));
+        pd->text0.SetAlignment(ALIGN_CENTER);
 
-        id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 110, 240, 24), &(pd->text1));
+        window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 110, 240, 24), &(pd->text1));
         pd->text1.font = resource_font(IDR_FNT_NORMAL);
         static const char ptc[] = "press to continue...";
-        window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)ptc));
-        window_set_alignment(id, ALIGN_CENTER);
-        window_enable(id);
-        window_set_tag(id, 1);
+        pd->text1.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ptc));
+        pd->text1.SetAlignment(ALIGN_CENTER);
+        pd->text1.Enable();
+        pd->text1.SetTag(1);
     }
 }
 

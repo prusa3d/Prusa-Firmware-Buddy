@@ -16,14 +16,15 @@ using unichar = std::uint32_t;
 /// - rewinding to the beginning of the source
 /// Typically, CPU FLASH implementation will be different than reading from a USB flash file
 ///
-/// Beware - the string wrapped in a string_view_utf8 doesn't exist beyond the scope of this class
-/// i.e. don't be tempted to save a pointer to it. The string may not be represented by a memory address at all!
-///
-/// Also, due to implementation reasons:
-/// - the whole string_view_utf8 must be created on stack and must remain on stack (to prevent fragmentation of heap)
-/// - while allowing for multiple different sources of data
-/// we must implement some kind of virtual methods but within an instance
-/// This is achieved by pointers to functions and a union of all possible attributes
+/// Beware:
+/// 1. The string wrapped in a string_view_utf8 doesn't exist beyond the scope of this class
+///    i.e. don't be tempted to save a pointer to it. The string may not be represented by a memory address at all!
+/// 2. string_view_utf8 is not a container - it neither allocates any memory nor copies the input string
+///    and it is the user's responsibility to ensure correct lifetime of the strings created with MakeRAM()
+/// 3. Due to implementation reasons:
+///    - the whole string_view_utf8 must be created on stack and must remain on stack (to prevent fragmentation of heap)
+///    - while allowing for multiple different sources of data
+///    need to implement some kind of virtual methods but within an instance, which is achieved by pointers to functions and a union of all possible attributes
 class string_view_utf8 {
     union Attrs {
         /// interface for utf-8 strings stored in the CPU FLASH.

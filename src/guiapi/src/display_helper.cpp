@@ -143,13 +143,16 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
 void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
     if (roll->setup == TXTROLL_SETUP_IDLE)
         return;
+    window_t *pWin = window_ptr(win_id);
+    if (!pWin)
+        return;
 
     switch (roll->phase) {
     case ROLL_SETUP:
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
         if (roll->setup == TXTROLL_SETUP_DONE)
             roll->phase = ROLL_GO;
-        window_invalidate(win_id);
+        pWin->Invalidate();
         break;
     case ROLL_GO:
         if (roll->count > 0 || roll->px_cd > 0) {
@@ -159,7 +162,7 @@ void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
                 roll->progress++;
             }
             roll->px_cd--;
-            window_invalidate(win_id);
+            pWin->Invalidate();
         } else {
             roll->phase = ROLL_STOP;
         }
@@ -171,7 +174,7 @@ void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
     case ROLL_RESTART:
         roll->setup = TXTROLL_SETUP_INIT;
         roll->phase = ROLL_SETUP;
-        window_invalidate(win_id);
+        pWin->Invalidate();
         break;
     }
 }

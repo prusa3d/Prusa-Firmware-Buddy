@@ -12,7 +12,6 @@ static constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
 IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     : IDialog(WINDOW_CLS_)
     , id_capture(window_capture())
-    , color_back(gui_defaults.color_back)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , font_title(gui_defaults.font_big)
@@ -25,7 +24,7 @@ IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     window_popup_ptr = this;
     gui_reset_jogwheel();
     gui_invalidate();
-    window_set_capture(id);
+    SetCapture();
 }
 
 bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
@@ -47,8 +46,11 @@ bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*
 
 IDialogStateful::~IDialogStateful() {
     window_destroy(id);
-    window_set_capture(id_capture);
-    window_invalidate(0);
+    if (window_ptr(id_capture))
+        window_ptr(id_capture)->SetCapture();
+    window_t *pWin = window_ptr(0);
+    if (pWin != 0)
+        pWin->Invalidate();
 }
 
 void IDialogStateful::draw_frame() {

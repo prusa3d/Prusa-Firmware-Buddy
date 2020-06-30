@@ -67,24 +67,21 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     window->font_title = gui_defaults.font_big;
     window->padding = gui_defaults.padding;
 
-    int16_t id;
     rect_ui16_t rect = gui_defaults.scr_body_sz;
     if (window->caption.isNULLSTR()) {
         rect.h = window->font_title->h + 2;
-        id = window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
-        window_set_text(id, window->caption);
+        window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
+        window->text.SetText(window->caption);
         rect = gui_defaults.scr_body_sz;
         rect.y += window->font_title->h + 4;
         rect.h -= window->font_title->h + 4;
     }
 
-    id = window_create_ptr(WINDOW_CLS_LIST, window->id, rect, &(window->list));
+    window_create_ptr(WINDOW_CLS_LIST, window->id, rect, &(window->list));
     window->list.padding = padding_ui8(20, 6, 2, 6);
     window->list.icon_rect = rect_ui16(0, 0, 16, 30);
-
-    //window_set_item_count(id, window->filaments_count);
-    window_set_item_index(id, 0);
-    window_set_item_callback(id, window->filament_items);
+    window->list.SetItemIndex(0);
+    window->list.SetCallback(window->filament_items);
 }
 
 void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void *param) {
@@ -194,17 +191,15 @@ int gui_dlg_list(string_view_utf8 caption, window_list_item_t *filament_items,
     int16_t id_capture = window_capture();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.scr_body_sz, &dlg);
 
-    window_set_item_count(dlg.list.id, count);
+    dlg.list.SetItemCount(count);
 
     window_t *tmp_window_1 = window_popup_ptr; //save current window_popup_ptr
 
     window_popup_ptr = (window_t *)&dlg;
-    window_set_capture(id); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
+    dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
 
     gui_reset_jogwheel();
     gui_invalidate();
-
-    //window_disable(id);
 
     dlg.timer = HAL_GetTick();
 
@@ -222,7 +217,10 @@ int gui_dlg_list(string_view_utf8 caption, window_list_item_t *filament_items,
 
     window_destroy(id);              //msgbox call this inside (destroys its own window)
     window_popup_ptr = tmp_window_1; //restore current window_popup_ptr
-    window_invalidate(0);
-    window_set_capture(id_capture);
+    window_t *pWin = window_ptr(0);
+    if (pWin != 0)
+        pWin->Invalidate();
+    if (window_ptr(id_capture))
+        window_ptr(id_capture)->SetCapture();
     return ret;
 }

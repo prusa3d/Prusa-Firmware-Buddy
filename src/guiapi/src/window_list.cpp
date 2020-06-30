@@ -105,7 +105,8 @@ void window_list_draw(window_list_t *window) {
 void window_list_event(window_list_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        window_set_capture(window->id_parent);
+        if (window_ptr(window->id_parent))
+            window_ptr(window->id_parent)->SetCapture();
         break;
     case WINDOW_EVENT_ENC_DN:
         window_list_dec(window, (int)param);
@@ -142,7 +143,7 @@ void window_list_inc(window_list_t *window, int dif) {
 
     if (window->index != old) {
         // optimalization do not redraw when no change - still on end
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
@@ -160,3 +161,24 @@ const window_class_list_t window_class_list = {
         (window_event_t *)window_list_event,
     },
 };
+
+void window_list_t::SetItemCount(int cnt) {
+    count = cnt;
+    Invalidate();
+}
+
+void window_list_t::SetItemIndex(int idx) {
+    if (count > idx) {
+        index = idx;
+    }
+    Invalidate();
+}
+
+void window_list_t::SetTopIndex(int idx) {
+    top_index = idx;
+    Invalidate();
+}
+
+void window_list_t::SetCallback(window_list_item_t *fnc) {
+    list_item = fnc;
+}

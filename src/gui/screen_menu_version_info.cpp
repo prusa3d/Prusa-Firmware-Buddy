@@ -83,7 +83,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
             serial_numbers);
 
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
-    window_set_text(ths->help.id, string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
+    ths->help.SetText(string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
 }
 
 screen_t screen_version_info = {

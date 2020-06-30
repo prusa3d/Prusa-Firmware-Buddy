@@ -88,20 +88,12 @@ window_t *window_ptr(int16_t id) {
     return ((id >= 0) && (id < WINDOW_MAX_WINDOWS)) ? windows[id] : 0;
 }
 
-int16_t window_id(window_t *ptr) {
-    return (ptr) ? ptr->id : -1;
-}
-
 int16_t window_register_class(window_class_t *cls) {
     if ((cls) && (window_user_class_count < WINDOW_MAX_USERCLS)) {
         window_user_classes[window_user_class_count] = cls;
         return WINDOW_CLS_USER + window_user_class_count++;
     }
     return -1;
-}
-
-int16_t window_create(int16_t cls_id, int16_t id_parent, rect_ui16_t rect) {
-    return window_create_ptr(cls_id, id_parent, rect, 0);
 }
 
 int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr) {
@@ -175,13 +167,6 @@ int16_t window_capture(void) {
     return window_capture_ptr ? window_capture_ptr->id : 0;
 }
 
-int16_t window_parent(int16_t id) {
-    window_t *win;
-    if ((id >= 0) && (id < WINDOW_MAX_WINDOWS) && ((win = windows[id]) != 0))
-        return win->id_parent;
-    return -1;
-}
-
 int16_t window_prev(int16_t id) {
     window_t *win;
     if ((id >= 0) && (id < WINDOW_MAX_WINDOWS) && ((win = windows[id]) != 0)) {
@@ -208,14 +193,14 @@ int16_t window_next(int16_t id) {
 
 int16_t window_prev_enabled(int16_t id) {
     while ((id = window_prev(id)) >= 0)
-        if (window_is_enabled(id))
+        if (window_ptr(id) ? window_ptr(id)->IsEnabled() : false)
             return id;
     return -1;
 }
 
 int16_t window_next_enabled(int16_t id) {
     while ((id = window_next(id)) >= 0)
-        if (window_is_enabled(id))
+        if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
             return id;
     return -1;
 }
@@ -245,38 +230,13 @@ int window_child_count(int16_t id) {
 int window_enabled_child_count(int16_t id) {
     int count = 0;
     if ((id = window_first_child(id)) >= 0) {
-        if (window_is_enabled(id))
+        if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
             count++;
         while ((id = window_next(id)) >= 0)
-            if (window_is_enabled(id))
+            if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
                 count++;
     }
     return count;
-}
-
-int window_is_visible(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_visible : 0;
-}
-
-int window_is_enabled(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_enabled : 0;
-}
-
-int window_is_invalid(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_invalid : 0;
-}
-
-int window_is_focused(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_focused : 0;
-}
-
-int window_is_capture(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_capture : 0;
 }
 
 void window_draw(int16_t id) {
@@ -300,18 +260,9 @@ void window_draw_children(int16_t id) {
         }
 }
 
-void window_validate(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        window->f_invalid = 0;
-}
-
-void window_invalidate(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        window->f_invalid = 1;
-        gui_invalidate();
-    }
+void window_t::Invalidate() {
+    f_invalid = 1;
+    gui_invalidate();
 }
 
 void window_validate_children(int16_t id) {
@@ -331,181 +282,8 @@ void window_invalidate_children(int16_t id) {
     gui_invalidate();
 }
 
-void window_set_tag(int16_t id, uint8_t tag) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        window->f_tag = tag;
-}
-
-uint8_t window_get_tag(int16_t id) {
-    window_t *window;
-    return ((window = window_ptr(id)) != 0) ? window->f_tag : 0;
-}
-
-void window_set_text(int16_t id, string_view_utf8 text) {
-    window_t *window = window_ptr(id);
-    if (window == NULL)
-        return;
-
-    switch (window->cls->cls_id) {
-    case WINDOW_CLS_TEXT:
-        ((window_text_t *)window)->text = text;
-        break;
-    case WINDOW_CLS_ROLL_TEXT:
-        ((window_roll_text_t *)window)->text = text;
-        break;
-    }
-    _window_invalidate((window_t *)window);
-}
-
-string_view_utf8 window_get_text(int16_t id) {
-    window_t *window = window_ptr(id);
-    if (window == NULL)
-        return string_view_utf8::MakeNULLSTR();
-
-    switch (window->cls->cls_id) {
-    case WINDOW_CLS_TEXT:
-        return ((window_text_t *)window)->text;
-    case WINDOW_CLS_ROLL_TEXT:
-        return ((window_roll_text_t *)window)->text;
-    }
-    return string_view_utf8::MakeNULLSTR();
-}
-
-void window_set_value(int16_t id, float value) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_NUMB:
-            ((window_numb_t *)window)->value = value;
-            break;
-        case WINDOW_CLS_SPIN:
-            if (value < ((window_spin_t *)window)->min)
-                value = ((window_spin_t *)window)->min;
-            if (value > ((window_spin_t *)window)->max)
-                value = ((window_spin_t *)window)->max;
-            ((window_spin_t *)window)->value = value;
-            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->value - ((window_spin_t *)window)->min) / ((window_spin_t *)window)->step);
-            break;
-        case WINDOW_CLS_PROGRESS:
-            if (value < ((window_progress_t *)window)->min)
-                value = ((window_progress_t *)window)->min;
-            if (value > ((window_progress_t *)window)->max)
-                value = ((window_progress_t *)window)->max;
-            ((window_progress_t *)window)->value = value;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-float window_get_value(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_NUMB:
-            return ((window_numb_t *)window)->value;
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->value;
-        }
-    }
-    return 0;
-}
-
-void window_set_format(int16_t id, const char *format) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_NUMB:
-            ((window_numb_t *)window)->format = (char *)format;
-            break;
-        case WINDOW_CLS_SPIN:
-            ((window_spin_t *)window)->format = (char *)format;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-const char *window_get_format(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_NUMB:
-            return ((window_numb_t *)window)->format;
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->format;
-        }
-    }
-    return 0;
-}
-
-void window_set_color_back(int16_t id, color_t clr) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_FRAME:
-            ((window_frame_t *)window)->color_back = clr;
-            break;
-        case WINDOW_CLS_TEXT:
-            ((window_text_t *)window)->color_back = clr;
-            break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->color_back = clr;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-color_t window_get_color_back(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            return ((window_text_t *)window)->color_back;
-        case WINDOW_CLS_ROLL_TEXT:
-            return ((window_roll_text_t *)window)->color_back;
-        }
-    }
-    return COLOR_BLACK;
-}
-
-void window_set_color_text(int16_t id, color_t clr) {
-    window_t *window = window_ptr(id);
-    if (window == NULL)
-        return;
-
-    switch (window->cls->cls_id) {
-    case WINDOW_CLS_TEXT:
-        ((window_text_t *)window)->color_text = clr;
-        break;
-    case WINDOW_CLS_ROLL_TEXT:
-        ((window_roll_text_t *)window)->color_text = clr;
-        break;
-    }
-    _window_invalidate((window_t *)window);
-}
-
-color_t window_get_color_text(int16_t id) {
-    window_t *window = window_ptr(id);
-    if (window == NULL)
-        return COLOR_BLACK;
-
-    switch (window->cls->cls_id) {
-    case WINDOW_CLS_TEXT:
-        return ((window_text_t *)window)->color_text;
-    case WINDOW_CLS_ROLL_TEXT:
-        return ((window_roll_text_t *)window)->color_text;
-    }
-    return COLOR_BLACK;
-}
-
-void window_set_focus(int16_t id) {
-    window_t *window = window_ptr(id);
-    if (window == 0)
-        return;
-    if (!window->f_visible || !window->f_enabled)
+void window_t::SetFocus() {
+    if (!f_visible || !f_enabled)
         return;
 
     if (window_focused_ptr) {
@@ -514,187 +292,46 @@ void window_set_focus(int16_t id) {
         if (window_focused_ptr->event)
             window_focused_ptr->event(window_focused_ptr, WINDOW_EVENT_FOCUS0, 0);
     }
-    window_focused_ptr = window;
-    window->f_focused = 1;
-    window->f_invalid = 1;
-    if (window->event)
-        window->event(window, WINDOW_EVENT_FOCUS1, 0);
+    window_focused_ptr = this;
+    f_focused = 1;
+    f_invalid = 1;
+    if (event)
+        event(this, WINDOW_EVENT_FOCUS1, 0);
     gui_invalidate();
 }
 
-void window_set_capture(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        if (window->f_visible && window->f_enabled && window->event) {
-            if (window_capture_ptr) {
-                window_capture_ptr->f_capture = 0;
-                if (window_capture_ptr->event)
-                    window_capture_ptr->event(window_capture_ptr, WINDOW_EVENT_CAPT_0, 0);
-            }
-            window_capture_ptr = window;
-            window->f_capture = 1;
-            window->event(window, WINDOW_EVENT_CAPT_1, 0);
-            gui_invalidate();
+void window_t::SetCapture() {
+
+    if (f_visible && f_enabled && event) {
+        if (window_capture_ptr) {
+            window_capture_ptr->f_capture = 0;
+            if (window_capture_ptr->event)
+                window_capture_ptr->event(window_capture_ptr, WINDOW_EVENT_CAPT_0, 0);
         }
+        window_capture_ptr = this;
+        f_capture = 1;
+        event(this, WINDOW_EVENT_CAPT_1, 0);
+        gui_invalidate();
     }
 }
 
-void window_enable(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        window->f_enabled = 1;
-}
-
-void window_disable(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        window->f_enabled = 0;
-}
-
-void window_show(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        if ((window->f_visible) == 0) {
-            window->f_visible = 1;
-            _window_invalidate((window_t *)window);
-        }
+void window_t::Show() {
+    if (!f_visible) {
+        f_visible = 1;
+        Invalidate();
     }
 }
 
-void window_hide(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        if (window->f_visible) {
-            window->f_visible = 0;
-            _window_invalidate((window_t *)window);
-        }
+void window_t::Hide() {
+    if (f_visible) {
+        f_visible = 0;
+        Invalidate();
     }
 }
 
-void window_set_padding(int16_t id, padding_ui8_t padding) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            ((window_text_t *)window)->padding = padding;
-            break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->padding = padding;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-void window_set_alignment(int16_t id, uint8_t alignment) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_TEXT:
-            ((window_text_t *)window)->alignment = alignment;
-            break;
-        case WINDOW_CLS_ROLL_TEXT:
-            ((window_roll_text_t *)window)->alignment = alignment;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-void window_set_item_count(int16_t id, int count) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            ((window_list_t *)window)->count = count;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-int window_get_item_count(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            return ((window_list_t *)window)->count;
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->count;
-        }
-    }
-    return -1;
-}
-
-void window_set_item_index(int16_t id, int index) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_MENU:
-            window_menu_set_item_index(window, index);
-            break;
-        case WINDOW_CLS_LIST:
-            if (((window_list_t *)window)->count > index) {
-                ((window_list_t *)window)->index = index;
-            }
-            break;
-        case WINDOW_CLS_SPIN:
-            if (((window_spin_t *)window)->count > index) {
-                ((window_spin_t *)window)->index = index;
-                ((window_spin_t *)window)->value = ((window_spin_t *)window)->min + ((window_spin_t *)window)->step * ((window_spin_t *)window)->index;
-            }
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-int window_get_item_index(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            return ((window_list_t *)window)->index;
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->index;
-        }
-    }
-    return -1;
-}
-
-void window_set_top_index(int16_t id, int top_index) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            ((window_list_t *)window)->top_index = top_index;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-int window_get_top_index(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            return ((window_list_t *)window)->top_index;
-        }
-    }
-    return -1;
-}
-
-void window_set_icon_id(int16_t id, uint16_t id_res) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_ICON:
-            ((window_icon_t *)window)->id_res = id_res;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
+void window_t::SetBackColor(color_t clr) {
+    color_back = clr;
+    Invalidate();
 }
 
 uint16_t window_get_icon_id(int16_t id) {
@@ -708,122 +345,7 @@ uint16_t window_get_icon_id(int16_t id) {
     return 0;
 }
 
-void window_set_min(int16_t id, float min) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_SPIN:
-            ((window_spin_t *)window)->min = min;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-float window_get_min(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->min;
-        }
-    return 0;
-}
-
-void window_set_max(int16_t id, float max) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_SPIN:
-            ((window_spin_t *)window)->max = max;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-float window_get_max(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->max;
-        }
-    return 0;
-}
-
-void window_set_step(int16_t id, float step) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_SPIN:
-            ((window_spin_t *)window)->step = step;
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-float window_get_step(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_SPIN:
-            return ((window_spin_t *)window)->step;
-        }
-    return 0;
-}
-
-void window_set_min_max(int16_t id, float min, float max) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_SPIN:
-            if (((window_spin_t *)window)->value < min)
-                ((window_spin_t *)window)->value = min;
-            if (((window_spin_t *)window)->value > max)
-                ((window_spin_t *)window)->value = max;
-            ((window_spin_t *)window)->min = min;
-            ((window_spin_t *)window)->max = max;
-            ((window_spin_t *)window)->count = (int)((max - min) / ((window_spin_t *)window)->step + 1.5F);
-            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->value - min) / ((window_spin_t *)window)->step);
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-void window_set_min_max_step(int16_t id, float min, float max, float step) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_SPIN:
-            if (((window_spin_t *)window)->value < min)
-                ((window_spin_t *)window)->value = min;
-            if (((window_spin_t *)window)->value > max)
-                ((window_spin_t *)window)->value = max;
-            ((window_spin_t *)window)->min = min;
-            ((window_spin_t *)window)->max = max;
-            ((window_spin_t *)window)->step = step;
-            ((window_spin_t *)window)->count = (int)((max - min) / step + 1.5F);
-            ((window_spin_t *)window)->index = (int)((((window_spin_t *)window)->value - min) / step);
-            break;
-        }
-        _window_invalidate((window_t *)window);
-    }
-}
-
-void window_set_item_callback(int16_t id, window_list_item_t *fnc) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_LIST:
-            ((window_list_t *)window)->list_item = fnc;
-        }
-    }
-}
-
-void window_dispatch_event(window_t *window, uint8_t event, void *param) {
-    if (window && window->event)
-        window->event(window, event, param);
+void window_t::DispatchEvent(uint8_t ev, void *param) {
+    if (event)
+        event(this, ev, param);
 }

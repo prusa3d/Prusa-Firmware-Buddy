@@ -1,6 +1,7 @@
 // window_progress.c
 #include "window_progress.hpp"
 #include "gui.hpp"
+#include <algorithm>
 
 #define WINDOW_PROGRESS_MAX_TEXT 16
 
@@ -69,3 +70,14 @@ const window_class_progress_t window_class_progress = {
         0,
     },
 };
+//todo use this virtual methods does not work yet - stupid memcpy
+/*
+void window_progress_t::setValue(float val) {
+    value = std::max(min, std::min(val, max));
+}
+*/
+//todo erase me, virtual methods does not work yet - stupid memcpy
+void window_progress_t::SetValue(float val) {
+    value = std::max(min, std::min(val, max));
+    Invalidate();
+}

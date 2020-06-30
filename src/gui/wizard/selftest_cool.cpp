@@ -15,54 +15,51 @@ void _wizard_cool_actualize_temperatures(selftest_cool_data_t *p_data); //screen
 //-----------------------------------------------------------------------------
 //function declarations
 void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, selftest_cool_data_t *p_data) {
-
-    int16_t id;
     window_destroy_children(id_body);
-    window_show(id_body);
-    window_invalidate(id_body);
-
+    window_t *pWin = window_ptr(id_body);
+    if (pWin != 0) {
+        pWin->Show();
+        pWin->Invalidate();
+    }
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_waiting_cd));
-    window_set_text(id, _("Waiting for cooldown"));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_waiting_cd));
+    p_screen->text_waiting_cd.SetText(_("Waiting for cooldown"));
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_nozzle_temp));
-    window_set_format(id, (const char *)"Nozzle: %.1f\177C");
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_nozzle_temp));
+    p_screen->curr_nozzle_temp.SetFormat((const char *)"Nozzle: %.1f\177C");
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_bed_temp));
-    window_set_format(id, (const char *)"Bed: %.1f\177C");
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_bed_temp));
+    p_screen->curr_bed_temp.SetFormat((const char *)"Bed: %.1f\177C");
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_nozzle));
-    window_set_format(id, (const char *)"Noz. target: %.0f\177C");
-    window_set_value(id, _CALIB_TEMP_NOZ);
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_nozzle));
+    p_screen->target_nozzle.SetFormat((const char *)"Noz. target: %.0f\177C");
+    p_screen->target_nozzle.SetValue(_CALIB_TEMP_NOZ);
 
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_bed));
-    window_set_format(id, (const char *)"Bed. target: %.0f\177C");
-    window_set_value(id, _CALIB_TEMP_BED);
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_bed));
+    p_screen->target_bed.SetFormat((const char *)"Bed. target: %.0f\177C");
+    p_screen->target_bed.SetValue(_CALIB_TEMP_BED);
 
     y += 35;
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(100, y, 40, 40), &(p_screen->icon_hourglass));
-    window_set_icon_id(id, IDR_PNG_wizard_icon_hourglass);
+    window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(100, y, 40, 40), &(p_screen->icon_hourglass));
+    p_screen->icon_hourglass.SetIdRes(IDR_PNG_wizard_icon_hourglass);
 }
 
 void _wizard_cool_actualize_temperatures(selftest_cool_data_t *p_data) {
-
-    //uint32_t t_noz_raw = analogRead(4);
-    //uint32_t t_bed_raw = analogRead(32);
     marlin_manage_heater();
     marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK_TEMP_CURR);
     float t_noz = vars->temp_nozzle;
@@ -125,9 +122,9 @@ int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, self
     }
     //-------------------------------------
 
-    window_set_value(p_screen->curr_nozzle_temp.id, p_data->temp_noz);
-    window_set_value(p_screen->curr_bed_temp.id, p_data->temp_bed);
+    p_screen->curr_nozzle_temp.SetValue(p_data->temp_noz);
+    p_screen->curr_bed_temp.SetValue(p_data->temp_bed);
     p_screen->progress.color_progress = lower_procentage >= time_progress ? COLOR_LIME : COLOR_ORANGE;
-    window_set_value(p_screen->progress.id, progress);
+    p_screen->progress.SetValue(progress);
     return progress;
 }

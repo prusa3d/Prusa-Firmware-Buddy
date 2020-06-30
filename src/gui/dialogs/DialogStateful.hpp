@@ -54,7 +54,6 @@ public:
 protected:
     int16_t id_capture;
 
-    color_t color_back;
     color_t color_text;
     font_t *font;
     font_t *font_title;
@@ -122,15 +121,15 @@ protected:
     }
 
 public:
-    void draw();
-    void event(uint8_t event, void *param);
+    virtual void Draw() override;
+    virtual void Event(uint8_t event, void *param) override;
 };
 
 /*****************************************************************************/
 //template definitions
 
 template <class T>
-void DialogStateful<T>::draw() {
+void DialogStateful<T>::Draw() {
     if ((f_visible)
         //&& ((size_t)(phase) < states.size()) // no need to check
     ) {
@@ -179,7 +178,7 @@ void DialogStateful<T>::draw() {
 }
 
 template <class T>
-void DialogStateful<T>::event(uint8_t event, void *param) {
+void DialogStateful<T>::Event(uint8_t event, void *param) {
     RadioButton &radio = states[phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:

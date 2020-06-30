@@ -11,7 +11,6 @@ typedef void(window_temp_graph_point_t)(window_temp_graph_t *pwindow_graph, uint
 extern int16_t WINDOW_CLS_TEMP_GRAPH;
 
 struct window_temp_graph_t : public window_t {
-    color_t color_back;
     color_t color_extruder_t;
     color_t color_bed_t;
     color_t color_extruder_c;

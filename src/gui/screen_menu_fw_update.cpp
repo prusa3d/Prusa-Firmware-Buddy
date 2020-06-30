@@ -54,7 +54,7 @@ void ScreenMenuFwUpdate::Init(screen_t *screen) {
     Create(screen, _(label));
     auto *ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
     ths->help.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_text(ths->help.id, _("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
+    ths->help.SetText(_("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
 }
 
 int ScreenMenuFwUpdate::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {

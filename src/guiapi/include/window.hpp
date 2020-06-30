@@ -88,7 +88,7 @@ struct window_t {
             uint32_t f_checked : 1;  // WINDOW_FLG_CHECKED  0x00000010
             uint32_t f_capture : 1;  // WINDOW_FLG_CAPTURE  0x00000020
             uint32_t f_disabled : 1; // WINDOW_FLG_DISABLED 0x00000040
-            uint32_t f_reserv0 : 6;  // reserved 7 bits
+            uint32_t f_reserv0 : 6;  // reserved 6 bits
             uint32_t f_freemem : 1;  // WINDOW_FLG_FREEMEM  0x00002000
             uint32_t f_timer : 1;    // WINDOW_FLG_TIMER    0x00004000
             uint32_t f_parent : 1;   // WINDOW_FLG_PARENT   0x00008000
@@ -97,9 +97,40 @@ struct window_t {
             uint32_t f_tag : 8;      // (1 byte) window tag (user defined id)
         };
     };
-    rect_ui16_t rect;      // (8 bytes) display rectangle
+    rect_ui16_t rect; // (8 bytes) display rectangle
+    color_t color_back;
     window_event_t *event; // (4 bytes) event callback
-};                         // (24 bytes total)
+
+    virtual void Init() {} //do I need init, have ctor?
+    virtual void Done() {} //do I need done, have dtor?
+    virtual void Draw() {}
+    virtual void Event(uint8_t event, void *param) {}
+
+    virtual ~window_t() {}
+
+    bool IsVisible() const { return f_visible == 1; }
+    bool IsEnabled() const { return f_enabled == 1; }
+    bool IsInvalid() const { return f_invalid == 1; }
+    bool IsFocused() const { return f_focused == 1; }
+    bool IsCapture() const { return f_capture == 1; }
+    void Validate() { f_invalid = 0; }
+    void Invalidate();
+    void SetTag(uint8_t tag) { f_tag = tag; };
+    uint8_t GetTag() const { return f_tag; }
+
+    void SetFocus();
+    void SetCapture();
+    void Enable() { f_enabled = 1; }
+    void Disable() { f_enabled = 0; }
+    void Show();
+    void Hide();
+    void SetBackColor(color_t clr);
+    color_t GetBackColor() const { return color_back; }
+
+    //To be removed
+    int16_t IdParent() { return id_parent; }
+    void DispatchEvent(uint8_t ev, void *param);
+};
 
 extern window_t *window_popup_ptr; //current popup window
 
@@ -109,11 +140,7 @@ extern window_t *window_capture_ptr; //current capture window
 
 extern window_t *window_ptr(int16_t id);
 
-extern int16_t window_id(window_t *ptr);
-
 extern int16_t window_register_class(window_class_t *cls);
-
-extern int16_t window_create(int16_t cls_id, int16_t id_parent, rect_ui16_t rect);
 
 extern int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr);
 
@@ -124,8 +151,6 @@ extern void window_destroy_children(int16_t id);
 extern int16_t window_focused(void);
 
 extern int16_t window_capture(void);
-
-extern int16_t window_parent(int16_t id);
 
 extern int16_t window_prev(int16_t id);
 
@@ -141,114 +166,12 @@ extern int window_child_count(int16_t id);
 
 extern int window_enabled_child_count(int16_t id);
 
-extern int window_is_visible(int16_t id);
-
-extern int window_is_enabled(int16_t id);
-
-extern int window_is_invalid(int16_t id);
-
-extern int window_is_focused(int16_t id);
-
-extern int window_is_capture(int16_t id);
-
 extern void window_draw(int16_t id);
 
 extern void window_draw_children(int16_t id);
-
-extern void window_validate(int16_t id);
-
-extern void window_invalidate(int16_t id);
 
 extern void window_validate_children(int16_t id);
 
 extern void window_invalidate_children(int16_t id);
 
-extern void window_set_tag(int16_t id, uint8_t tag);
-
-extern void _window_set_tag(window_t *wnd, uint8_t tg);
-
-extern uint8_t window_get_tag(int16_t id);
-
-extern int _window_get_tag(window_t *wnd);
-
-extern void window_set_text(int16_t id, string_view_utf8 text);
-
-extern string_view_utf8 window_get_text(int16_t id);
-
-extern void window_set_value(int16_t id, float value);
-
-extern float window_get_value(int16_t id);
-
-extern void window_set_format(int16_t id, const char *format);
-
-extern const char *window_get_format(int16_t id);
-
-extern void window_set_color_back(int16_t id, color_t clr);
-
-extern color_t window_get_color_back(int16_t id);
-
-extern void window_set_color_text(int16_t id, color_t clr);
-
-extern color_t window_get_color_text(int16_t id);
-
-extern void window_set_focus(int16_t id);
-
-extern void window_set_capture(int16_t id);
-
-extern void window_enable(int16_t id);
-
-extern void window_disable(int16_t id);
-
-extern void window_show(int16_t id);
-
-extern void window_hide(int16_t id);
-
-extern void window_set_padding(int16_t id, padding_ui8_t padding);
-
-extern void window_set_alignment(int16_t id, uint8_t alignment);
-
-extern void window_set_item_count(int16_t id, int count);
-
-extern int window_get_item_count(int16_t id);
-
-extern void window_set_item_index(int16_t id, int index);
-
-extern int window_get_item_index(int16_t id);
-
-extern void window_set_top_index(int16_t id, int index);
-
-extern int window_get_top_index(int16_t id);
-
-extern void window_set_icon_id(int16_t id, uint16_t id_res);
-
-extern uint16_t window_get_icon_id(int16_t id);
-
-extern void window_set_min(int16_t id, float min);
-
-extern float window_get_min(int16_t id);
-
-extern void window_set_max(int16_t id, float max);
-
-extern float window_get_max(int16_t id);
-
-extern void window_set_step(int16_t id, float step);
-
-extern float window_get_step(int16_t id);
-
-extern void window_set_min_max(int16_t id, float min, float max);
-
-extern void window_set_min_max_step(int16_t id, float min, float max, float step);
-
-extern void window_dispatch_event(window_t *window, uint8_t event, void *param);
-
-extern void window_set_item_callback(int16_t id, window_list_item_t *fnc);
-
 extern void gui_invalidate(void);
-
-static inline void _window_invalidate(window_t *window) {
-    if (!window)
-        return;
-
-    window->flg |= WINDOW_FLG_INVALID;
-    gui_invalidate();
-}

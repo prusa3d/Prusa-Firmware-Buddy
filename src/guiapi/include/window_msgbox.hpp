@@ -61,7 +61,6 @@ struct window_class_msgbox_t {
 };
 
 struct window_msgbox_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     font_t *font_title;

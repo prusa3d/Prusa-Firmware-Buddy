@@ -34,3 +34,23 @@ const window_class_text_t window_class_text = {
         0,
     },
 };
+
+void window_text_t::SetText(string_view_utf8 txt) {
+    text = txt;
+    Invalidate();
+}
+
+void window_text_t::SetTextColor(color_t clr) {
+    color_text = clr;
+    Invalidate();
+}
+
+void window_text_t::SetPadding(padding_ui8_t padd) {
+    padding = padd;
+    Invalidate();
+}
+
+void window_text_t::SetAlignment(uint8_t alignm) {
+    alignment = alignm;
+    Invalidate();
+}

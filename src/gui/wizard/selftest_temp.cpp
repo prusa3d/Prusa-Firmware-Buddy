@@ -21,23 +21,25 @@ void _wizard_temp_actualize_temperatures(selftest_temp_data_t *p_data); //data w
 //function declarations
 void wizard_init_screen_selftest_temp(int16_t id_body, selftest_temp_screen_t *p_screen, selftest_temp_data_t *p_data) {
     _wizard_temp_actualize_temperatures(p_data);
-    int16_t id;
     //	point_ui16_t pt,pt2;
     window_destroy_children(id_body);
-    window_show(id_body);
-    window_invalidate(id_body);
+    window_t *pWin = window_ptr(id_body);
+    if (pWin != 0)
+        pWin->Show();
+    pWin->Invalidate();
 
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
     uint16_t row_h = 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, row_h * 2), &(p_screen->text_checking_temp));
-    window_set_text(id, _("Checking hotend and\n"
-                          "heatbed heaters"));
-    window_set_alignment(id, ALIGN_CENTER);
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, row_h * 2), &(p_screen->text_checking_temp));
+    p_screen->text_checking_temp.SetText(_(
+        "Checking hotend and\n"
+        "heatbed heaters"));
+    p_screen->text_checking_temp.SetAlignment(ALIGN_CENTER);
 
     y += row_h * 2;
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 }
 
 void _wizard_temp_actualize_temperatures(selftest_temp_data_t *p_data) {
@@ -175,7 +177,7 @@ int wizard_selftest_temp(int16_t id_body, selftest_temp_screen_t *p_screen, self
     if (p_data->state_temp_bed == _TEST_FAILED)
         progress = 100;
 
-    window_set_value(p_screen->progress.id, (float)progress);
+    p_screen->progress.SetValue(progress);
     if (progress == 100) {
         //turn heaters off
         marlin_gcode("M104 S0"); //nozzle temp 0

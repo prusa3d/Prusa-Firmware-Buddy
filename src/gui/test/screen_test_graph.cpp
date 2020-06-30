@@ -36,12 +36,12 @@ void screen_test_graph_init(screen_test_term_t *screen) {
 
         int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
         pd->id_frame = id0;
-        window_set_color_back(id0, COLOR_BLACK);
+        pd->frame.SetBackColor(COLOR_BLACK);
 
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
         pd->id_text = id;
         static const char tst[] = "Test";
-        window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
+        pd->text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
 
         id = window_create_ptr(WINDOW_CLS_TEMP_GRAPH, id0, rect_ui16(10, 28, 180, 180), &pd->graph);
         pd->id_graph = id;
@@ -49,9 +49,9 @@ void screen_test_graph_init(screen_test_term_t *screen) {
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 220, 100, 22), &(pd->button));
         pd->id_button = id;
         static const char rtn[] = "Return";
-        window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
-        window_enable(id);
-        window_set_tag(id, 1);
+        pd->button.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
+        pd->button.Enable();
+        pd->button.SetTag(1);
     }
 }
 

@@ -51,23 +51,21 @@ void _msg_stack_del(uint8_t del_index) { // del_index = < 0 ; MSG_STACK_SIZE - 1
 }
 
 void screen_messages_init(screen_t *screen) {
-
-    int16_t id;
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
         &(pmsg->root));
-    window_disable(root);
+    pmsg->root.Disable();
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
+    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
     // p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
     p_window_header_set_text(&(pmsg->header), _("MESSAGES"));
 
-    id = window_create_ptr(WINDOW_CLS_LIST, root, gui_defaults.scr_body_sz, &(pmsg->list));
-    window_set_item_count(id, msg_stack.count + 1);
-    window_set_item_index(id, 0);
-    window_set_item_callback(id, _window_list_add_message_item);
+    window_create_ptr(WINDOW_CLS_LIST, root, gui_defaults.scr_body_sz, &(pmsg->list));
+    pmsg->list.SetItemCount(msg_stack.count + 1);
+    pmsg->list.SetItemIndex(0);
+    pmsg->list.SetCallback(_window_list_add_message_item);
 
-    window_set_capture(pmsg->list.id);
+    pmsg->list.SetCapture();
 
     pmsg->pfooter = (status_footer_t *)gui_malloc(sizeof(status_footer_t));
     status_footer_init(pmsg->pfooter, root);
@@ -85,10 +83,7 @@ int screen_messages_event(screen_t *screen, window_t *window,
         if (pmsg->list.index == 0) {
             screen_close();
             return 1;
-        } /*else if (pmsg->list.index <= msg_stack.count) {		TODO: Deleted message stays on the screen
-			_msg_stack_del(pmsg->list.index - 1);
-			_window_invalidate((window_t*)&(pmsg->list));
-		} */
+        }
         break;
     default:
         break;

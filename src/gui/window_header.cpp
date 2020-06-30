@@ -41,7 +41,7 @@ void window_header_init(window_header_t *window) {
     window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ON;
     window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_OFF;
     window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_OFF;
-    window->label = string_view_utf8::MakeNULLSTR();
+    window->text = string_view_utf8::MakeNULLSTR();
 
     if (marlin_vars()->media_inserted) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
@@ -106,8 +106,8 @@ void window_header_draw(window_header_t *window) {
     rc.x += 10 + window->rect.h;
     rc.w -= (icons_width + 10 + window->rect.h);
 
-    if (!window->label.isNULLSTR()) { // label
-        render_text_align(rc, window->label, window->font,
+    if (!window->text.isNULLSTR()) { // label
+        render_text_align(rc, window->text, window->font,
             window->color_back, window->color_text,
             window->padding, window->alignment);
     }
@@ -115,27 +115,27 @@ void window_header_draw(window_header_t *window) {
 
 void p_window_header_set_icon(window_header_t *window, uint16_t id_res) {
     window->id_res = id_res;
-    _window_invalidate((window_t *)window);
+    window->Invalidate();
 }
 
 void p_window_header_icon_off(window_header_t *window, header_icons_t icon) {
     if (window->icons[icon] != HEADER_ISTATE_OFF) {
         window->icons[icon] = HEADER_ISTATE_OFF;
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
 void p_window_header_icon_on(window_header_t *window, header_icons_t icon) {
     if (window->icons[icon] != HEADER_ISTATE_ON) {
         window->icons[icon] = HEADER_ISTATE_ON;
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
 void p_window_header_icon_active(window_header_t *window, header_icons_t icon) {
     if (window->icons[icon] != HEADER_ISTATE_ACTIVE) {
         window->icons[icon] = HEADER_ISTATE_ACTIVE;
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
@@ -144,9 +144,9 @@ header_states_t p_window_header_get_state(window_header_t *window,
     return window->icons[icon];
 }
 
-void p_window_header_set_text(window_header_t *window, string_view_utf8 text) {
-    window->label = text;
-    _window_invalidate((window_t *)window);
+void p_window_header_set_text(window_header_t *window, string_view_utf8 txt) {
+    window->text = txt;
+    window->Invalidate();
 }
 
 int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id) {

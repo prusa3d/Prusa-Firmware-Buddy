@@ -20,27 +20,27 @@ struct screen_qr_error_data_t {
 #define pd ((screen_qr_error_data_t *)screen->pdata)
 
 void screen_menu_qr_error_init(screen_t *screen) {
-    int16_t id, root;
+    int16_t root;
 
     root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->root));
-    window_set_color_back(root, COLOR_RED_ALERT);
+    pd->root.SetBackColor(COLOR_RED_ALERT);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 0, 224, 25), &(pd->errText));
-    window_set_color_back(id, COLOR_RED_ALERT);
+    window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 0, 224, 25), &(pd->errText));
+    pd->errText.SetBackColor(COLOR_RED_ALERT);
     pd->errText.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_title));
+    pd->errText.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_title));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 30, 224, 95), &(pd->errDescription));
-    window_set_color_back(id, COLOR_RED_ALERT);
-    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_text));
+    window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 30, 224, 95), &(pd->errDescription));
+    pd->errDescription.SetBackColor(COLOR_RED_ALERT);
+    pd->errDescription.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_text));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 275, 224, 20), &(pd->info));
-    window_set_color_back(id, COLOR_RED_ALERT);
-    window_set_alignment(id, ALIGN_CENTER);
+    window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 275, 224, 20), &(pd->info));
+    pd->info.SetBackColor(COLOR_RED_ALERT);
+    pd->info.SetAlignment(ALIGN_CENTER);
     static const char hlp[] = "help.prusa3d.com";
-    window_set_text(id, string_view_utf8::MakeCPUFLASH((const uint8_t *)hlp));
+    pd->info.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)hlp));
 
-    id = window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(59, 140, 224, 95), &(pd->qr));
+    window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(59, 140, 224, 95), &(pd->qr));
     pd->qr.px_per_module = 2;
     create_path_info_4error(pd->qr_text, MAX_LEN_4QR + 1, 1);
     pd->qr.text = pd->qr_text;
