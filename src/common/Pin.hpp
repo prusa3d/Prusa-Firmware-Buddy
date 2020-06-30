@@ -21,9 +21,9 @@ public:
     static void configure_all();
     ConfigurableIndestructible()
         : m_previous(s_last) { s_last = this; }
-    virtual void configure() = 0;
 
 private:
+    virtual void configure() = 0;
     ConfigurableIndestructible *const m_previous; //!< previous instance, nullptr if this is first instance
     static ConfigurableIndestructible *s_last;
 };
@@ -72,9 +72,9 @@ class Pin {
 protected:
     Pin(IoPort ioPort, IoPin ioPin)
         : m_halPort(IoPortToHal(ioPort))
-        , m_HalPin(IoPinToHal(ioPin)) {}
+        , m_halPin(IoPinToHal(ioPin)) {}
     GPIO_TypeDef *const m_halPort;
-    const uint16_t m_HalPin;
+    const uint16_t m_halPin;
 };
 
 enum class IMode {
@@ -89,6 +89,27 @@ enum class Pull : uint8_t {
     down = GPIO_PULLDOWN,
 };
 
+class InputPin : private ConfigurableIndestructible, public Pin {
+public:
+    InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
+        : Pin(ioPort, ioPin)
+        , m_mode(iMode)
+        , m_pull(pull) {}
+    GPIO_PinState read() {
+        return HAL_GPIO_ReadPin(m_halPort, m_halPin);
+    }
+
+private:
+    void configure() override;
+    const IMode m_mode;
+    const Pull m_pull;
+};
+
+enum class OMode {
+    pushPull = GPIO_MODE_OUTPUT_PP,
+    openDrain = GPIO_MODE_OUTPUT_OD,
+};
+
 /**
  * @brief output speed
  *
@@ -101,18 +122,34 @@ enum class OSpeed : uint8_t {
     very_high = GPIO_SPEED_FREQ_VERY_HIGH,
 };
 
-class InputPin : ConfigurableIndestructible, public Pin {
+class OutputPin : private ConfigurableIndestructible, public Pin {
 public:
-    InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
+    OutputPin(IoPort ioPort, IoPin ioPin, OMode oMode, OSpeed oSpeed)
         : Pin(ioPort, ioPin)
-        , m_iMode(iMode)
-        , m_pull(pull) {}
-    void configure();
+        , m_mode(oMode)
+        , m_speed(oSpeed) {}
+    /**
+     * @brief  Read output pin.
+     *
+     * Reads output data register. Can not work for alternate function pin.
+     * @retval GPIO_PIN_SET
+     * @retval GPIO_PIN_RESET
+     */
     GPIO_PinState read() {
-        return HAL_GPIO_ReadPin(m_halPort, m_HalPin);
+        GPIO_PinState bitstatus;
+        if ((m_halPort->ODR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+            bitstatus = GPIO_PIN_SET;
+        } else {
+            bitstatus = GPIO_PIN_RESET;
+        }
+        return bitstatus;
+    }
+    void write(GPIO_PinState pinState) {
+        HAL_GPIO_WritePin(m_halPort, m_halPin, pinState);
     }
 
 private:
-    const IMode m_iMode;
-    const Pull m_pull;
+    void configure() override;
+    const OMode m_mode;
+    const OSpeed m_speed;
 };

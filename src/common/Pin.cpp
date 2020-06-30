@@ -25,8 +25,16 @@ void ConfigurableIndestructible::configure_all() {
 
 void InputPin::configure() {
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-    GPIO_InitStruct.Pin = m_HalPin;
-    GPIO_InitStruct.Mode = static_cast<uint32_t>(m_iMode);
+    GPIO_InitStruct.Pin = m_halPin;
+    GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
     GPIO_InitStruct.Pull = static_cast<uint32_t>(m_pull);
+    HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
+}
+
+void OutputPin::configure() {
+    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitStruct.Pin = m_halPin;
+    GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
+    GPIO_InitStruct.Speed = static_cast<uint32_t>(m_speed);
     HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
 }
