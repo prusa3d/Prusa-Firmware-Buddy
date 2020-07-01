@@ -1,9 +1,9 @@
 // window_qr.c
+#include <algorithm>
+
 #include "window_qr.hpp"
 #include "gui.hpp"
-
 #include "display.h"
-
 #include "qrcodegen.h"
 
 /// window-init call-back
@@ -28,32 +28,50 @@ bool generate_qr(const char *text, uint8_t qrcode[]) {
 /// \returns number of modules of QR code (\param qrcode).
 /// Does not include size of border.
 /// Size is always the same for X and Y dimensions.
-int get_qr_size(uint8_t qrcode[]) {
+int get_qr_size(uint8_t *qrcode) {
     return qrcodegen_getSize(qrcode);
 }
 
 /// \returns size of QR code (\param qrcode) in pixels.
 /// Includes size of borders.
 /// Size is always the same for X and Y dimensions.
-int get_qr_size(uint8_t qrcode[], window_qr_t *window) {
+int get_qr_px_size(uint8_t qrcode[], const window_qr_t *const window) {
     return window->px_per_module * (2 * window->border + qrcodegen_getSize(qrcode));
 }
 
 /// Draw QR code to the screen.
 ///
-void draw_qr(uint8_t qrcode[], const window_qr_t *const window, const uint8_t align) {
+void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
 
-#define BORDER (window->border)
-#define MSIZE  (window->px_per_module)
-#define X0     (window->rect.x + window->border * MSIZE)
-#define Y0     (window->rect.y + window->border * MSIZE)
+    const uint8_t msize = window->px_per_module;
+    const uint16_t border = window->border;
+    const uint16_t size = get_qr_size(qrcode);
+    const uint16_t px_size = get_qr_px_size(qrcode, window);
 
-    ////TODO align
+    uint16_t x0 = 0;
+    uint16_t y0 = 0;
 
-    const int size = get_qr_size(qrcode);
-    for (int y = -BORDER; y < (size + BORDER); y++)
-        for (int x = -BORDER; x < (size + BORDER); x++)
-            display::FillRect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode, x, y) ? window->px_color : window->bg_color)));
+    ///alignment
+    if (window->align & ALIGN_HCENTER) {
+        x0 = std::max(0, (window->rect.w - px_size)) / 2;
+    } else if (window->align & ALIGN_RIGHT) {
+        x0 = std::max(0, (window->rect.w - px_size));
+    }
+
+    if (window->align & ALIGN_VCENTER) {
+        y0 = std::max(0, (window->rect.h - px_size)) / 2;
+    } else if (window->align & ALIGN_BOTTOM) {
+        y0 = std::max(0, (window->rect.h - px_size));
+    }
+
+    x0 += window->rect.x + window->border * msize;
+    y0 += window->rect.y + window->border * msize;
+
+    /// FIXME paint border at once (fill_between_rect) - it's faster
+    /// paint QR code
+    for (int y = -border; y < (size + border); ++y)
+        for (int x = -border; x < (size + border); ++x)
+            display::FillRect(rect_ui16(x0 + x * msize, y0 + y * msize, msize, msize), ((qrcodegen_getModule(qrcode, x, y) ? window->px_color : window->bg_color)));
 }
 
 /// window-draw call-back
@@ -63,11 +81,11 @@ void window_qr_draw(window_qr_t *window) {
 
     window->flg &= ~WINDOW_FLG_INVALID;
 
-    uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
+    uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
     if (!generate_qr(window->text, qrcode))
         return;
 
-    draw_qr();
+    draw_qr(qrcode, window);
 }
 
 /// window definition

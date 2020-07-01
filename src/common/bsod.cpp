@@ -255,14 +255,15 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     create_path_info_4error(qr_text, sizeof(qr_text), 12201);
 
+    const uint8_t qr_version = 2;
     window->border = 4;
     window->px_per_module = 1;
     window->bg_color = COLOR_WHITE;
     window->px_color = COLOR_BLACK;
 
-    //int qr_px_size = module * (window->version*4+17   +2*border)
-    window->px_per_module = std::max(1, (int)floor(144.0f / (window->version * 4 + 17 + 2 * window->border)));
-    const int qr_px_size = window->px_per_module * (window->version * 4 + 17 + 2 * window->border);
+    //int qr_px_size = module * (qr_version*4+17   +2*border)
+    window->px_per_module = std::max(1, (int)floor(144.0f / (qr_version * 4 + 17 + 2 * window->border)));
+    const int qr_px_size = window->px_per_module * (qr_version * 4 + 17 + 2 * window->border);
     if (qr_px_size > 144)
         window->border = 2;
     // center QR
@@ -274,11 +275,11 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     #define X0     (qr_pad_x + window->rect.x + window->border * MSIZE)
     #define Y0     (qr_pad_y + window->rect.y + window->border * MSIZE)
 
-    uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
-    uint8_t qrcode_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
+    uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version)];
+    uint8_t qrcode_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version)];
     bool qr_ok;
 
-    qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, window->ecc_level, window->version, window->version, qrcodegen_Mask_AUTO, true);
+    qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, qrcodegen_Ecc_LOW, qr_version, qr_version, qrcodegen_Mask_AUTO, true);
     if (qr_ok) {
         int size = qrcodegen_getSize(qrcode_buff);
         for (int y = -BORDER; y < (size + BORDER); y++)
