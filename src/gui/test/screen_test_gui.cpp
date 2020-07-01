@@ -5,8 +5,7 @@
 #include "stm32f4xx_hal.h"
 #include "screens.h"
 
-struct screen_test_gui_data_t {
-    window_frame_t frame;
+struct screen_test_gui_data_t : public window_frame_t {
     window_icon_t logo_prusa_mini;
     window_text_t text0;
     window_text_t text1;
@@ -26,7 +25,7 @@ struct screen_test_gui_data_t {
 #define pd ((screen_test_gui_data_t *)screen->pdata)
 
 void screen_test_gui_init(screen_t *screen) {
-    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
+    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(10, 0, 0, 0), &(pd->logo_prusa_mini));
     pd->logo_prusa_mini.Enable();
@@ -84,7 +83,7 @@ void screen_test_gui_init(screen_t *screen) {
 }
 
 void screen_test_gui_done(screen_t *screen) {
-    window_destroy(pd->frame.id);
+    window_destroy(pd->id);
 }
 
 void screen_test_gui_draw(screen_t *screen) {

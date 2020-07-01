@@ -4,8 +4,7 @@
 #include "config.h"
 #include "screens.h"
 
-struct screen_watchdog_data_t {
-    window_frame_t frame;
+struct screen_watchdog_data_t : public window_frame_t {
     window_text_t text0;
     window_text_t text1;
 };
@@ -21,8 +20,8 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
         screen_watchdog_data_t *pd = (screen_watchdog_data_t *)gui_malloc(sizeof(screen_watchdog_data_t));
         screen->pd = pd;
 
-        id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
-        pd->frame.SetBackColor(COLOR_RED);
+        id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
+        pd->SetBackColor(COLOR_RED);
 
         window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 220, 24), &(pd->text0));
         pd->text0.font = resource_font(IDR_FNT_BIG);
@@ -40,7 +39,7 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
 
 void screen_watchdog_done(screen_watchdog_t *screen) {
     if (screen->pd) {
-        window_destroy(screen->pd->frame.id);
+        window_destroy(screen->pd->id);
         gui_free(screen->pd);
         screen->pd = 0;
     }

@@ -5,8 +5,7 @@
 #include "screens.h"
 #include "../lang/i18n.h"
 
-struct screen_test_msgbox_data_t {
-    window_frame_t frame;
+struct screen_test_msgbox_data_t : public window_frame_t {
     window_text_t tst;
     window_text_t back;
     window_text_t tst_ok;
@@ -27,7 +26,7 @@ struct screen_test_msgbox_data_t {
 const char *test_text = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
 
 void screen_test_msgbox_init(screen_t *screen) {
-    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
+    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 32, 220, 22), &(pd->tst));
     pd->tst.SetText((const char *)"TEST MSGBOX");
@@ -89,7 +88,7 @@ void screen_test_msgbox_init(screen_t *screen) {
 }
 
 void screen_test_msgbox_done(screen_t *screen) {
-    window_destroy(pd->frame.id);
+    window_destroy(pd->id);
 }
 
 void screen_test_msgbox_draw(screen_t *screen) {

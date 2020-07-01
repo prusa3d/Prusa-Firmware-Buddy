@@ -45,8 +45,7 @@ struct _PID_t {
     float Kd_last;
 };
 
-struct screen_PID_data_t {
-    window_frame_t frame;
+struct screen_PID_data_t : public window_frame_t {
     window_text_t textMenuName;
 
     window_text_t btAutoTuneApply_E;
@@ -201,7 +200,7 @@ void screen_PID_init(screen_t *screen) {
     uint16_t row_h = 22;
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME,
-        -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
+        -1, rect_ui16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
@@ -323,7 +322,7 @@ void screen_PID_init(screen_t *screen) {
 }
 
 void screen_PID_done(screen_t *screen) {
-    window_destroy(pd->frame.id);
+    window_destroy(pd->id);
 }
 
 void screen_PID_draw(screen_t *screen) {

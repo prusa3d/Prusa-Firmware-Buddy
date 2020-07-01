@@ -27,7 +27,6 @@ constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
 class IScreenMenu : protected window_menu_t {
 protected:
     constexpr static const char *no_label = "MISSING";
-    window_frame_t root;
     window_header_t header;
     window_text_t help;
     status_footer_t footer;

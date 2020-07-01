@@ -14,8 +14,7 @@
 #include "screens.h"
 #include "../lang/i18n.h"
 
-struct screen_messages_data_t {
-    window_frame_t root;
+struct screen_messages_data_t : public window_frame_t {
     window_header_t header;
     window_list_t list;
 
@@ -53,8 +52,8 @@ void _msg_stack_del(uint8_t del_index) { // del_index = < 0 ; MSG_STACK_SIZE - 1
 void screen_messages_init(screen_t *screen) {
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0),
-        &(pmsg->root));
-    pmsg->root.Disable();
+        pmsg);
+    pmsg->Disable();
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
     // p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
@@ -97,7 +96,7 @@ int screen_messages_event(screen_t *screen, window_t *window,
 }
 
 void screen_messages_done(screen_t *screen) {
-    window_destroy(pmsg->root.id);
+    window_destroy(pmsg->id);
     free(pmsg->pfooter);
 }
 

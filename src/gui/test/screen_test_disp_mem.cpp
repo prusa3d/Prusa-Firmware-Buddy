@@ -15,8 +15,7 @@
 
 extern int sim_heater_temp2val(float temp);
 
-struct screen_test_disp_mem_data_t {
-    window_frame_t frame;
+struct screen_test_disp_mem_data_t : public window_frame_t {
     window_text_t textMenuName;
     window_text_t textSpiClk;
     window_text_t textMode;
@@ -182,7 +181,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     row2draw = 0;
     int16_t row_h = 22; //item_height from list
 
-    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
+    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
@@ -483,7 +482,7 @@ void readPartLine(size_t partRow, size_t partDivider, color_t *buff){
 */
 
 void screen_test_disp_mem_done(screen_t *screen) {
-    window_destroy(pd->frame.id);
+    window_destroy(pd->id);
 }
 
 void screen_test_disp_mem_draw(screen_t *screen) {

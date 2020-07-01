@@ -82,9 +82,7 @@ const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
     "Home",
 };
 
-struct screen_printing_data_t {
-    window_frame_t root;
-
+struct screen_printing_data_t : public window_frame_t {
     window_header_t header;
     window_text_t w_filename;
     window_progress_t w_progress;
@@ -158,8 +156,7 @@ void screen_printing_init(screen_t *screen) {
     strlcpy(pw->text_filament.data(), "999m", pw->text_filament.size());
 
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0),
-        &(pw->root));
+        rect_ui16(0, 0, 0, 0), pw);
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
@@ -255,7 +252,7 @@ void screen_printing_init(screen_t *screen) {
 }
 
 void screen_printing_done(screen_t *screen) {
-    window_destroy(pw->root.id);
+    window_destroy(pw->id);
 }
 
 void screen_printing_draw(screen_t *screen) {

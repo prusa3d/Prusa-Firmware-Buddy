@@ -7,8 +7,7 @@
 #include "../../gui/wizard/selftest.h"
 #include "stm32f4xx_hal.h"
 
-struct screen_qr_info_data_t {
-    window_frame_t root;
+struct screen_qr_info_data_t : public window_frame_t {
     window_text_t warning;
     window_text_t button;
     window_qr_t qr;
@@ -20,7 +19,7 @@ struct screen_qr_info_data_t {
 void screen_menu_qr_info_init(screen_t *screen) {
     int16_t root;
 
-    root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->root));
+    root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 25, 224, 95), &(pd->warning));
     pd->warning.font = resource_font(IDR_FNT_TERMINAL);
@@ -49,7 +48,7 @@ void screen_menu_qr_info_draw(screen_t *screen) {
 }
 
 void screen_menu_qr_info_done(screen_t *screen) {
-    window_destroy(pd->root.id);
+    window_destroy(pd->id);
 }
 
 int screen_menu_qr_info_event(screen_t *screen, window_t *window, uint8_t event, void *param) {

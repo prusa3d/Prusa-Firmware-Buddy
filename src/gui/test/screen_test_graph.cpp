@@ -9,8 +9,7 @@
 
 extern void window_temp_scope_add(float temp_ext, float temp_bed);
 
-struct screen_test_term_data_t {
-    window_frame_t frame;
+struct screen_test_term_data_t : public window_frame_t {
     window_text_t text;
     window_text_t button;
     int16_t id_frame;
@@ -34,9 +33,9 @@ void screen_test_graph_init(screen_test_term_t *screen) {
         screen_test_term_data_t *pd = (screen_test_term_data_t *)gui_malloc(sizeof(screen_test_term_data_t));
         screen->pd = pd;
 
-        int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
+        int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
         pd->id_frame = id0;
-        pd->frame.SetBackColor(COLOR_BLACK);
+        pd->SetBackColor(COLOR_BLACK);
 
         id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
         pd->id_text = id;
@@ -55,7 +54,7 @@ void screen_test_graph_init(screen_test_term_t *screen) {
 
 void screen_test_graph_done(screen_test_term_t *screen) {
     if (screen->pd) {
-        window_destroy(screen->pd->frame.id);
+        window_destroy(screen->pd->id);
         gui_free(screen->pd);
         screen->pd = 0;
     }

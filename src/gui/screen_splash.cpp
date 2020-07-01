@@ -22,7 +22,7 @@ void screen_splash_init(screen_t *screen) {
     int16_t id0;
 
     id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0),
-        &(_psd->frame));
+        _psd);
 
     window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 84, 240, 62),
         &(_psd->logo_prusa_mini));
@@ -56,7 +56,7 @@ void screen_splash_init(screen_t *screen) {
 }
 
 void screen_splash_done(screen_t *screen) {
-    window_destroy(_psd->frame.id);
+    window_destroy(_psd->id);
 }
 
 void screen_splash_draw(screen_t *screen) {

@@ -13,8 +13,7 @@
 #include "sys.h"
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 
-struct screen_sysinfo_data_t {
-    window_frame_t frame;
+struct screen_sysinfo_data_t : public window_frame_t {
     window_text_t textMenuName;
     window_text_t textCPU_load;
     window_numb_t textCPU_load_val;
@@ -50,7 +49,7 @@ void screen_sysinfo_init(screen_t *screen) {
     int16_t row2draw = 0;
     int16_t row_h = 20;
 
-    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
+    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
@@ -77,7 +76,7 @@ void screen_sysinfo_init(screen_t *screen) {
 }
 
 void screen_sysinfo_done(screen_t *screen) {
-    window_destroy(pd->frame.id);
+    window_destroy(pd->id);
 }
 
 void screen_sysinfo_draw(screen_t *screen) {

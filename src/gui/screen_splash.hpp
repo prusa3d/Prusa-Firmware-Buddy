@@ -6,7 +6,6 @@ void screen_splash_draw(screen_t *screen);
 void screen_splash_init(screen_t *screen);
 
 struct screen_splash_data_t : public window_frame_t {
-    window_frame_t frame;
     window_icon_t logo_prusa_mini;
     window_text_t text_progress;
     window_progress_t progress;

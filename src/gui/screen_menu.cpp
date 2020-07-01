@@ -26,8 +26,8 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines,
 
     const rect_ui16_t menu_rect = rect_ui16(win_x, header_h, win_w, menu_rect_h - menu_rect_h % item_h);
 
-    int16_t root_id = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(root));
-    root.Disable();
+    int16_t root_id = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), this);
+    Disable(); //used to have member window_frame_t root, now it is parent
 
     window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
     p_window_header_set_text(&(header), label);
@@ -52,7 +52,7 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines,
 }
 
 void IScreenMenu::Done() {
-    window_destroy(root.id);
+    window_destroy(id);
 }
 
 int IScreenMenu::Event(window_t *sender, uint8_t event, void *param) {

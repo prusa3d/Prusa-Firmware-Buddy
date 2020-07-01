@@ -27,9 +27,7 @@
 
 #define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
 
-struct screen_filebrowser_data_t {
-    window_frame_t root;
-
+struct screen_filebrowser_data_t : public window_frame_t {
     window_header_t header;
     window_file_list_t w_filelist;
 };
@@ -50,10 +48,8 @@ static void screen_filebrowser_init(screen_t *screen) {
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
 
-    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0),
-        &(pd->root));
-    pd->root.Disable(); // hack for do not change capture
+    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
+    pd->Disable(); // hack for do not change capture
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
     p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
@@ -82,7 +78,7 @@ static void screen_filebrowser_init(screen_t *screen) {
 }
 
 static void screen_filebrowser_done(_screen_t *screen) {
-    window_destroy(pd->root.id);
+    window_destroy(pd->id);
 }
 
 static void screen_filebrowser_draw(screen_t *screen) {}

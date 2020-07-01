@@ -21,8 +21,7 @@ struct description_line_t {
     char value_buffer[32];
 };
 
-struct screen_print_preview_data_t {
-    window_frame_t frame;
+struct screen_print_preview_data_t : public window_frame_t {
     window_text_t title_text;
     description_line_t description_lines[4];
     window_icon_t print_button;
@@ -100,7 +99,7 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     const char *title,
     const char *value_fmt, ...) {
     description_line_t *line = &pd->description_lines[idx];
-    int window_id = pd->frame.id;
+    int window_id = pd->id;
 
     int title_width = strlen(title) * resource_font(IDR_FNT_SMALL)->w;
     window_create_ptr(
@@ -225,8 +224,8 @@ static void screen_print_preview_init(screen_t *screen) {
     initialize_gcode_file(screen);
 
     int window_id = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0), &pd->frame);
-    pd->frame.Enable();
+        rect_ui16(0, 0, 0, 0), pd);
+    pd->Enable();
     int y = PADDING;
 
     // Title
@@ -284,7 +283,7 @@ static void screen_print_preview_done(screen_t *screen) {
         pd->gcode_file_opened = false;
         pd->gcode_has_thumbnail = false;
     }
-    window_destroy(pd->frame.id);
+    window_destroy(pd->id);
 }
 
 static void screen_print_preview_draw(screen_t *screen) {
@@ -331,7 +330,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
             break;
         }
         suppress_draw = false;
-        window_draw(pd->frame.id);
+        window_draw(pd->id);
     }
 
     if (!suppress_draw && event == WINDOW_EVENT_LOOP && pd->gcode_has_thumbnail &&

@@ -7,8 +7,7 @@
 #include "errors.h"
 #include "screens.h"
 
-struct screen_qr_error_data_t {
-    window_frame_t root;
+struct screen_qr_error_data_t : public window_frame_t {
     window_text_t errText;
     window_text_t errDescription;
     window_text_t info;
@@ -22,8 +21,8 @@ struct screen_qr_error_data_t {
 void screen_menu_qr_error_init(screen_t *screen) {
     int16_t root;
 
-    root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->root));
-    pd->root.SetBackColor(COLOR_RED_ALERT);
+    root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
+    pd->SetBackColor(COLOR_RED_ALERT);
 
     window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 0, 224, 25), &(pd->errText));
     pd->errText.SetBackColor(COLOR_RED_ALERT);
@@ -52,7 +51,7 @@ void screen_menu_qr_error_draw(screen_t * /*screen*/) {
 }
 
 void screen_menu_qr_error_done(screen_t *screen) {
-    window_destroy(pd->root.id);
+    window_destroy(pd->id);
 }
 
 int screen_menu_qr_error_event(screen_t *screen, window_t * /*window*/, uint8_t event, void * /*param*/) {

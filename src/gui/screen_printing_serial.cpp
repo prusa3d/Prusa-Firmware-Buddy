@@ -34,9 +34,7 @@ const char *serial_printing_labels[iid_count] = {
     "Disconnect"
 };
 
-struct screen_printing_serial_data_t {
-    window_frame_t root;
-
+struct screen_printing_serial_data_t : public window_frame_t {
     window_header_t header;
     status_footer_t footer;
 
@@ -78,8 +76,7 @@ static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, win
 void screen_printing_serial_init(screen_t *screen) {
     pw->last_tick = 0;
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0),
-        &(pw->root));
+        rect_ui16(0, 0, 0, 0), pw);
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
     p_window_header_set_text(&(pw->header), "SERIAL PRT.");
@@ -134,7 +131,7 @@ void screen_printing_serial_init(screen_t *screen) {
 void screen_printing_serial_done(screen_t *screen) {
     marlin_gcode("G27 P2"); /// park nozzle and raise Z axis
     marlin_gcode("M86 S1"); /// enable safety timer
-    window_destroy(pw->root.id);
+    window_destroy(pw->id);
 }
 
 void screen_printing_serial_draw(screen_t *screen) {
