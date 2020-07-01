@@ -35,24 +35,32 @@ public:
 #include "ScreenFactory.hpp"
 #include <array>
 
-using ScreenArray = std::array<ScreenFactory::fnc, 32>;
+//stack with screen creator methods
+using ScreenArray = std::array<ScreenFactory::Creator, 32>;
+
 class Screens {
 
-    static ScreenArray stack;
-    static void stack_push(int16_t screen_id) {}
+    ScreenArray stack;
+    void stack_push(int16_t screen_id) {}
 
-    static int16_t stack_pop(void) {}
+    int16_t stack_pop(void) {}
 
     //static screen_t *screen_get_curr(void){}
-    static static_unique_ptr<window_frame_t> current;
+    ScreenFactory::UniquePtr current;
+
+    Screens(ScreenFactory::Creator screen_creator);
+    Screens(const Screens &) = delete;
+    static Screens *instance;
 
 public:
-    static void Init(int16_t screen_id) {} //similar to open
-    static void Open(int16_t screen_id) {}
+    void Open(int16_t screen_id) {}
 
-    static void Close(void) {}
+    void Close(void) {}
 
-    static void Draw(void) {}
+    void Draw();
 
-    static void DispatchEvent(window_t *window, uint8_t event, void *param) {}
+    void DispatchEvent(uint8_t event, void *param);
+
+    static void Init(ScreenFactory::Creator screen_creator);
+    static Screens *Access();
 };

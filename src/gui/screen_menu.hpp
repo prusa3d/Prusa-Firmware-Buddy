@@ -36,7 +36,7 @@ public:
     IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
     void Done();
     void Draw() {}
-    int Event(window_t *window, uint8_t event, void *param);
+    int Event(window_t *sender, uint8_t event, void *param) override;
 
     static void CDone(screen_t *screen) {
         reinterpret_cast<IScreenMenu *>(screen->pdata)->Done();

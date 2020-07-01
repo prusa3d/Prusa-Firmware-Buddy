@@ -1,6 +1,6 @@
-//screen_splash.c
+//screen_splash.cpp
+#include "screen_splash.hpp"
 
-#include "gui.hpp"
 #include "config.h"
 #include "version.h"
 #include "wizard/wizard.h"
@@ -13,22 +13,6 @@
 #ifdef _EXTUI
     #include "marlin_client.h"
 #endif
-
-struct screen_splash_data_t {
-    window_frame_t frame;
-    window_icon_t logo_prusa_mini;
-    window_text_t text_progress;
-    window_progress_t progress;
-    window_text_t text_version;
-    char text_version_buffer[16];
-    window_icon_t icon_logo_buddy;
-    window_icon_t icon_logo_marlin;
-
-    window_icon_t icon_debug;
-
-    uint32_t last_timer;
-    uint8_t logo_invalid;
-};
 
 #define _psd ((screen_splash_data_t *)screen->pdata)
 

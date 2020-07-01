@@ -85,5 +85,42 @@ void DialogHandler::WaitUntilClosed(ClientFSM dialog, uint8_t data) {
 #endif
 
 #include "ScreenHandler.hpp"
-ScreenArray Screens::stack = { { nullptr } };
-static_unique_ptr<window_frame_t> Screens::current;
+#include "bsod.h"
+
+Screens *Screens::instance = nullptr;
+
+Screens::Screens(ScreenFactory::Creator screen_creator)
+    : stack({ { nullptr } })
+    , current(screen_creator()) {
+}
+
+void Screens::Init(ScreenFactory::Creator screen_creator) {
+    static Screens s(screen_creator);
+    instance = &s;
+}
+
+Screens *Screens::Access() {
+    if (!instance)
+        bsod("Accessing uninitialized screen");
+    return instance;
+}
+
+/*
+void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
+    int ret = 0;
+    if (screen_0 && screen_0->event) {
+        ret = screen_0->event(screen_0, window, event, param);
+        if (screen_0 == 0)
+            ret = 1;
+    }
+    if ((ret == 0) && window && window->event)
+        window->DispatchEvent(event, param);
+}
+*/
+void Screens::DispatchEvent(uint8_t event, void *param) {
+    Access()->current->Event(Access()->current.get(), event, param);
+}
+
+void Screens::Draw() {
+    Access()->current->Draw();
+}

@@ -6,6 +6,8 @@
 #include "config.h"
 #include "marlin_client.h"
 
+#include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "window_file_list.hpp"
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
@@ -156,8 +158,9 @@ extern "C" void gui_run(void) {
         screen_stack_push(get_scr_splash()->id);
         screen_open(get_scr_watchdog()->id);
     } else
-#endif // _DEBUG
-        screen_open(get_scr_splash()->id);
+#endif // _DEBUG \
+       // screen_open(get_scr_splash()->id);
+        Screens::Init(ScreenFactory::ScreenSplash);
 
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
@@ -168,7 +171,7 @@ extern "C" void gui_run(void) {
             gui_msgbox(_("Heating disabled due to 30 minutes of inactivity."), MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
         }
         gui_loop();
-        if (marlin_message_received()) {
+        /*if (marlin_message_received()) {
             screen_t *curr = screen_get_curr();
             if (curr == get_scr_printing()) {
                 screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
@@ -180,7 +183,7 @@ extern "C" void gui_run(void) {
                 screen_close_multiple(scrn_close_on_timeout);
                 gui_timer_delete(gui_timeout_id);
             }
-        }
+        }*/
     }
 }
 
