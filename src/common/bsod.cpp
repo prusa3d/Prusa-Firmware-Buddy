@@ -1,4 +1,7 @@
 // bsod.c - blue screen of death
+#include <algorithm>
+#include <cmath>
+
 #include "bsod.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -30,6 +33,7 @@
     #include "version.h"
     #include "window_qr.hpp"
     #include "support_utils.h"
+    #include "str_utils.hpp"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -118,8 +122,8 @@ typedef tskTCB TCB_t;
 //current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
-    #define PADDING 10
-    #define X_MAX   (display::GetW() - PADDING * 2)
+constexpr uint8_t PADDING = 10;
+    #define X_MAX (display::GetW() - PADDING * 2)
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -219,9 +223,9 @@ void general_error_run() {
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
-    snprintf(text, sizeof(text),
-        "The requested %s\ntemperature was not\nreached.\n\nNozzle temp: %d/%d\nBed temp: %d/%d",
-        module, (int)t_noz, (int)tt_noz, (int)t_bed, (int)tt_bed);
+    const uint16_t width_chars = X_MAX / gui_defaults.font->w;
+    snprintf(text, sizeof(text), "Check the bed / print head heater & thermistor wiring for possible damage.");
+    str2multiline(text, sizeof(text), width_chars);
 
     general_error_init();
 
@@ -237,52 +241,55 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     term_printf(&term, text);
-    term_printf(&term, "\n");
 
-    render_term(rect_ui16(PADDING, 100, 220, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
-
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), "RESET PRINTER", gui_defaults.font,
-        COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
+    render_term(rect_ui16(PADDING, 32, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
     /// print QR
     window_qr_t win;
     window_qr_t *window = &win;
     char qr_text[MAX_LEN_4QR + 1];
     win.text = qr_text;
-    win.rect = rect_ui16(59, 140, 224, 95);
+    win.rect = rect_ui16(0, 175, 240, 144);
 
     create_path_info_4error(qr_text, sizeof(qr_text), 12201);
 
-    window->version = 9;
-    window->ecc_level = qrcodegen_Ecc_HIGH;
+    window->version = 2;
+    window->ecc_level = qrcodegen_Ecc_LOW;
     window->mode = qrcodegen_Mode_ALPHANUMERIC;
     window->border = 4;
-    window->px_per_module = 3;
+    window->px_per_module = 1;
     window->bg_color = COLOR_WHITE;
     window->px_color = COLOR_BLACK;
 
+    //int qr_px_size = module * (window->version*4+17   +2*border)
+    window->px_per_module = std::max(1, (int)floor(144.0f / (window->version * 4 + 17 + 2 * window->border)));
+    const int qr_px_size = window->px_per_module * (window->version * 4 + 17 + 2 * window->border);
+    if (qr_px_size > 144)
+        window->border = 2;
+    // center QR
+    const uint16_t qr_pad_x = std::max(0, (240 - qr_px_size) / 2);
+    const uint16_t qr_pad_y = std::max(0, (144 - qr_px_size) / 2);
+
     #define BORDER (window->border)
     #define MSIZE  (window->px_per_module)
-    #define X0     (window->rect.x + window->border * MSIZE)
-    #define Y0     (window->rect.y + window->border * MSIZE)
+    #define X0     (qr_pad_x + window->rect.x + window->border * MSIZE)
+    #define Y0     (qr_pad_y + window->rect.y + window->border * MSIZE)
 
     uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
     uint8_t qrcode_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(window->version)];
     bool qr_ok;
-    int size;
 
-    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, window->ecc_level, window->version, window->version, qrcodegen_Mask_AUTO, true);
-        if (qr_ok) {
-            size = qrcodegen_getSize(qrcode_buff);
-            for (int y = -BORDER; y < (size + BORDER); y++)
-                for (int x = -BORDER; x < (size + BORDER); x++)
-                    display::FillRect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
-        }
-        window->flg &= ~WINDOW_FLG_INVALID;
+    qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, window->ecc_level, window->version, window->version, qrcodegen_Mask_AUTO, true);
+    if (qr_ok) {
+        int size = qrcodegen_getSize(qrcode_buff);
+        for (int y = -BORDER; y < (size + BORDER); y++)
+            for (int x = -BORDER; x < (size + BORDER); x++)
+                display::FillRect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
     }
 
-    general_error_run();
+    while (1) {
+        wdt_iwdg_refresh();
+    }
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
