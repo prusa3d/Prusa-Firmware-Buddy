@@ -34,6 +34,7 @@
     #include "window_qr.hpp"
     #include "support_utils.h"
     #include "str_utils.hpp"
+    #include "guitypes.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -231,18 +232,19 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     display::Clear(COLOR_RED_ALERT);
 
-    // print text
+    // draw header
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
+
+    // draw text
     term_t term;
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
-
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
-        COLOR_RED_ALERT, COLOR_WHITE);
-    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
-
     term_printf(&term, text);
-
     render_term(rect_ui16(PADDING, 32, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+
+    //doesnt work
+    //render_text_align(rect_ui16(0, 31, X_MAX, 240), text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(PADDING, 0, PADDING, 0), ALIGN_CENTER);
 
     /// print QR
     window_qr_t win;
