@@ -35,15 +35,15 @@ void screen_wizard_init(screen_t *screen) {
     int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
     int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.footer_sz, &(pd->frame_footer));
-    window_hide(id_footer);
+    pd->frame_footer.Hide();
 
-    int16_t id_body = window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.scr_body_sz, &(pd->frame_body));
-    window_hide(id_body);
+    window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.scr_body_sz, &(pd->frame_body));
+    pd->frame_body.Hide();
 
-    int16_t id = window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, gui_defaults.header_sz.h), &(pd->header));
-    window_set_alignment(id, ALIGN_LEFT_BOTTOM);
+    window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, gui_defaults.header_sz.h), &(pd->header));
+    pd->header.SetAlignment(ALIGN_LEFT_BOTTOM);
 
-    window_set_text(id, wizard_get_caption(screen));
+    pd->header.SetText(wizard_get_caption(screen));
 
     status_footer_init(&(pd->footer), id_footer);
 
@@ -100,7 +100,6 @@ void screen_wizard_draw(screen_t *screen) {
 int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     static int inside_handler = 0;
 
-    int16_t footer_id = pd->frame_footer.id;
     int16_t frame_id = pd->frame_body.id;
     selftest_fans_axis_screen_t *p_selftest_fans_axis_screen = &(pd->screen_variant.selftest_fans_axis_screen);
     selftest_cool_screen_t *p_selftest_cool_screen = &(pd->screen_variant.selftest_cool_screen);
@@ -130,7 +129,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     if (event == WINDOW_EVENT_LOOP) {
         if (inside_handler == 0) {
             marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
-            window_set_text(pd->header.id, wizard_get_caption(screen));
+            pd->header.SetText(wizard_get_caption(screen));
             inside_handler = 1;
             while (is_state_in_wizard_mask(pd->state) == 0)
                 pd->state = wizard_state_t(int(pd->state) + 1); //skip disabled steps
@@ -151,7 +150,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                         MSGBOX_BTN_YESNO, IDR_PNG_icon_pepa)
                     == MSGBOX_RES_YES) {
                     pd->state = _STATE_INIT;
-                    window_show(footer_id);
+                    pd->frame_footer.Show();
                 } else
                     screen_close();
 #else
@@ -164,7 +163,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     break;
                 case MSGBOX_RES_CUSTOM1:
                     pd->state = _STATE_INIT;
-                    window_show(footer_id);
+                    pd->frame_footer.Show();
                     break;
                 case MSGBOX_RES_CUSTOM2:
                 default:
@@ -177,7 +176,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 //PID of nozzle does not work with low temperatures well
                 //have to preheat to lower temperature to avoid need of cooling
                 pd->state = _STATE_INFO;
-                window_show(footer_id);
+                pd->frame_footer.Show();
                 wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
                 if (fs_get_state() == FS_DISABLED) {
                     fs_enable();
@@ -214,7 +213,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 pd->state = _STATE_SELFTEST_FAN0;
                 //am i inicialized by screen before?
                 if (!is_state_in_wizard_mask(_STATE_INIT)) {
-                    window_show(footer_id);
+                    pd->frame_footer.Show();
                     wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
                 }
                 break;
@@ -245,7 +244,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
             case _STATE_SELFTEST_INIT_TEMP:
                 //must start marlin
                 pd->state = _STATE_SELFTEST_TEMP;
-                window_show(footer_id);
+                pd->frame_footer.Show();
                 wizard_init_disable_PID(_START_TEMP_NOZ, _START_TEMP_BED);
                 break;
             case _STATE_SELFTEST_TEMP:
@@ -286,7 +285,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 break;
             case _STATE_XYZCALIB_INIT:
                 pd->state = _STATE_XYZCALIB_HOME;
-                window_show(footer_id);
+                pd->frame_footer.Show();
                 wizard_init(0, 0);
                 break;
             case _STATE_XYZCALIB_HOME:
@@ -298,7 +297,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     pd->state = _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE;
                 break;
             case _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE:
-                window_set_text(pd->screen_variant.xyzcalib_screen.text_state.id, "Calibration XY");
+                pd->screen_variant.xyzcalib_screen.text_state.SetText("Calibration XY");
                 wizard_msgbox1(
                     "Please clean the nozzle "
                     "for calibration. Click "
@@ -373,7 +372,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 break;
             case _STATE_FIRSTLAY_INIT: {
                 pd->state = _STATE_FIRSTLAY_LOAD;
-                window_show(footer_id);
+                pd->frame_footer.Show();
                 FILAMENT_t filament = get_filament();
                 if (filament == FILAMENT_NONE || fs_get_state() == FS_NO_FILAMENT)
                     filament = FILAMENT_PLA;
@@ -557,7 +556,7 @@ const char *wizard_get_caption(screen_t *screen) {
 
 void wizard_done_screen(screen_t *screen) {
     window_destroy_children(pd->frame_body.id);
-    window_invalidate(pd->frame_body.id);
+    pd->frame_body.Invalidate();
 }
 
 screen_t screen_wizard = {

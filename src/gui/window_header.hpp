@@ -9,6 +9,7 @@
 
 #include "gui.hpp"
 #include "marlin_events.h"
+#include "window_text.hpp"
 
 typedef enum {
     HEADER_ISTATE_OFF,
@@ -29,15 +30,9 @@ struct window_class_header_t {
     window_class_t cls;
 };
 
-struct window_header_t : public window_t {
-    color_t color_back;
-    color_t color_text;
-    font_t *font;
-    padding_ui8_t padding;
-    uint8_t alignment;
+struct window_header_t : public window_text_t {
     uint16_t id_res;
     header_states_t icons[HEADER_ICON_COUNT]; // usb, lan, wifi
-    const char *label;
 
     // char time[10];
 };

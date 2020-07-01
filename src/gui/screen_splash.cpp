@@ -35,39 +35,38 @@ struct screen_splash_data_t {
 void screen_splash_timer(screen_t *screen, uint32_t mseconds);
 
 void screen_splash_init(screen_t *screen) {
-    int16_t id;
     int16_t id0;
 
     id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0),
         &(_psd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 84, 240, 62),
+    window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(0, 84, 240, 62),
         &(_psd->logo_prusa_mini));
-    window_set_icon_id(id, IDR_PNG_splash_logo_prusa_prn);
+    _psd->logo_prusa_mini.SetIdRes(IDR_PNG_splash_logo_prusa_prn);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 171, 220, 20),
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 171, 220, 20),
         &(_psd->text_progress));
     _psd->text_progress.font = resource_font(IDR_FNT_NORMAL);
-    window_set_alignment(id, ALIGN_CENTER_BOTTOM);
-    window_set_text(id, "Loading ...");
+    _psd->text_progress.SetAlignment(ALIGN_CENTER_BOTTOM);
+    _psd->text_progress.SetText("Loading ...");
 
-    id = window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(10, 200, 220, 15),
+    window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(10, 200, 220, 15),
         &(_psd->progress));
     _psd->progress.color_back = COLOR_GRAY;
     _psd->progress.color_progress = COLOR_ORANGE;
     _psd->progress.font = resource_font(IDR_FNT_BIG);
     _psd->progress.height_progress = 15;
 
-    id = window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(80, 240, 80, 80),
+    window_create_ptr(WINDOW_CLS_ICON, id0, rect_ui16(80, 240, 80, 80),
         &(_psd->icon_logo_marlin));
-    window_set_icon_id(id, IDR_PNG_splash_logo_marlin);
+    _psd->icon_logo_marlin.SetIdRes(IDR_PNG_splash_logo_marlin);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(00, 295, 240, 22),
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(00, 295, 240, 22),
         &(_psd->text_version));
-    window_set_alignment(id, ALIGN_CENTER);
+    _psd->text_version.SetAlignment(ALIGN_CENTER);
     snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
-    window_set_text(id, _psd->text_version_buffer);
+    _psd->text_version.SetText(_psd->text_version_buffer);
 
     _psd->logo_invalid = 0;
 }
@@ -121,7 +120,7 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
 
 void screen_splash_timer(screen_t *screen, uint32_t mseconds) {
     float percent = mseconds / 3000.0 * 100;
-    window_set_value(_psd->progress.id, (percent < 95) ? percent : 95);
+    _psd->progress.SetValue((percent < 95) ? percent : 95);
 }
 
 screen_t screen_splash = {

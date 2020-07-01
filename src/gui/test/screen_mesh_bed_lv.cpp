@@ -35,8 +35,6 @@ struct screen_mesh_bed_lv_data_t {
     window_text_t textExit;
     status_footer_t footer;
 
-    int exit_bt_id;
-    int mesh_bt_id;
     mesh_state_t mesh_state;
     int16_t id_term;
 };
@@ -56,22 +54,19 @@ const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed state"
 
 //mesh callbacks
 static void gui_state_mesh_off(screen_t *screen) {
-    //if (pd->mesh_bt_id == -1)return;
-    //if (pd->exit_bt_id == -1)return;
-    window_set_color_text(pd->mesh_bt_id, MESH_DEFAULT_CL);
-    window_set_text(pd->mesh_bt_id, btnMeshStrings[0]);
-    window_set_color_text(pd->exit_bt_id, MESH_DEFAULT_CL);
-    window_enable(pd->exit_bt_id);
-    window_enable(pd->mesh_bt_id);
-    //pd->mesh_state = mesh_state_t::idle;
+    pd->btMesh.SetTextColor(MESH_DEFAULT_CL);
+    pd->btMesh.SetText(btnMeshStrings[0]);
+    pd->textExit.SetTextColor(MESH_DEFAULT_CL);
+    pd->textExit.Enable();
+    pd->text_mesh_state.Enable();
 }
 
 static void gui_state_mesh_on(screen_t *screen) {
-    window_disable(pd->exit_bt_id);
-    window_set_color_text(pd->exit_bt_id, MESH_ACTIVE_CL);
-    window_disable(pd->mesh_bt_id);
-    window_set_text(pd->mesh_bt_id, btnMeshStrings[1]);
-    window_set_color_text(pd->mesh_bt_id, MESH_ACTIVE_CL);
+    pd->textExit.Disable();
+    pd->textExit.SetTextColor(MESH_ACTIVE_CL);
+    pd->text_mesh_state.Disable();
+    pd->btMesh.SetText(btnMeshStrings[1]);
+    pd->btMesh.SetTextColor(MESH_ACTIVE_CL);
 }
 
 enum {
@@ -82,45 +77,39 @@ enum {
 
 void screen_mesh_bed_lv_init(screen_t *screen) {
     pd->mesh_state = mesh_state_t::idle;
-    pd->exit_bt_id = -1;
-    pd->mesh_bt_id = -1;
-
-    int16_t id;
     uint16_t row_h = 25;
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME,
         -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT,
+    window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"MESH LEVELING");
+    pd->textMenuName.SetText((const char *)"MESH LEVELING");
 
-    id = window_create_ptr(WINDOW_CLS_TEXT,
+    window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 50, 200, row_h), &(pd->btMesh));
-    window_set_text(id, btnMeshStrings[0]);
-    window_enable(id);
-    window_set_tag(id, TAG_MESH);
+    pd->btMesh.SetText(btnMeshStrings[0]);
+    pd->btMesh.Enable();
+    pd->btMesh.SetTag(TAG_MESH);
 
-    id = window_create_ptr(WINDOW_CLS_TEXT,
+    window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 75, 200, row_h),
         &(pd->text_mesh_state));
 
     //terminal
-    id = window_create_ptr(WINDOW_CLS_TERM, id0, rect_ui16(10, 28, 11 * 20, 18 * 16), &(pd->term));
-    pd->id_term = id;
+    pd->id_term = window_create_ptr(WINDOW_CLS_TERM, id0, rect_ui16(10, 28, 11 * 20, 18 * 16), &(pd->term));
     term_init(&(pd->terminal), 20, 16, pd->term_buff);
     pd->term.term = &(pd->terminal);
 
     //exit and footer
 
-    id = window_create_ptr(WINDOW_CLS_TEXT,
+    window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 245, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"EXIT");
-    window_enable(id);
-    window_set_tag(id, TAG_QUIT);
-    pd->exit_bt_id = id;
+    pd->textExit.SetText((const char *)"EXIT");
+    pd->textExit.Enable();
+    pd->textExit.SetTag(TAG_QUIT);
 
     status_footer_init(&(pd->footer), id0);
 }
@@ -161,9 +150,9 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
     }
     if (event == WINDOW_EVENT_LOOP) {
         if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            window_set_text(pd->text_mesh_state.id, meshStrings[1]);
+            pd->text_mesh_state.SetText(meshStrings[1]);
         } else {
-            window_set_text(pd->text_mesh_state.id, meshStrings[0]);
+            pd->text_mesh_state.SetText(meshStrings[0]);
         }
         switch (pd->mesh_state) {
         case mesh_state_t::idle:

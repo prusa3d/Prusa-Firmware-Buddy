@@ -27,21 +27,20 @@ IScreenMenu::IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines,
     const rect_ui16_t menu_rect = rect_ui16(win_x, header_h, win_w, menu_rect_h - menu_rect_h % item_h);
 
     int16_t root_id = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(root));
-    window_disable(root_id);
+    root.Disable();
 
-    int16_t id = window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
-    // p_window_header_set_icon(&(header), IDR_PNG_status_icon_menu);
+    window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
     p_window_header_set_text(&(header), label);
 
-    id = window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
+    window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
 
     flg |= WINDOW_FLG_ENABLED | (FOOTER == EFooter::On ? HasFooter_FLAG : 0) | (helper_lines > 0 ? HasHeaderEvents_FLAG : 0);
 
-    window_set_capture(id); // set capture to list
-    window_set_focus(id);
+    SetCapture(); // set capture to list
+    SetFocus();
 
     if (helper_lines > 0) {
-        id = window_create_ptr(WINDOW_CLS_TEXT, root_id,
+        window_create_ptr(WINDOW_CLS_TEXT, root_id,
             rect_ui16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - help_h, win_w, help_h),
             &help);
         help.font = resource_font(font_id);
@@ -64,7 +63,6 @@ int IScreenMenu::Event(window_t *window, uint8_t event, void *param) {
         window_header_events(&header);
     }
 
-    //on return 0 screen_dispatch_event will
-    //call window_dispatch_event
+    //on return 0 screen_dispatch_event will call DispatchEvent
     return 0;
 }

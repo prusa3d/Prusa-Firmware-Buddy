@@ -1,7 +1,7 @@
 #include "DialogRadioButton.hpp"
 #include <algorithm> //find
 #include "button_draw.h"
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 /*****************************************************************************/
 //static variables and methods
 static const PhaseResponses no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor

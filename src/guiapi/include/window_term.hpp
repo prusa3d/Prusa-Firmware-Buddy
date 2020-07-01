@@ -9,7 +9,6 @@ struct window_class_term_t {
 };
 
 struct window_term_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     term_t *term;

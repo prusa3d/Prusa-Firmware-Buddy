@@ -169,114 +169,105 @@ enum {
 
 };
 
+//cannot use normal spin with format "%A"
+static void hexSpinInit(int16_t id0, rect_ui16_t rect, window_spin_t *pSpin) {
+    window_create_ptr(WINDOW_CLS_SPIN, id0, rect, pSpin);
+    pSpin->flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pSpin->SetFormat("%X");
+    pSpin->SetMinMaxStep(0.0F, 15.0F, 1.0F);
+    pSpin->SetValue(0.0F);
+}
+
 void screen_test_disp_mem_init(screen_t *screen) {
     row2draw = 0;
-    int16_t id;
     int16_t row_h = 22; //item_height from list
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"Disp. TEST rd mem.");
+    pd->textMenuName.SetText((const char *)"Disp. TEST rd mem.");
 
     row2draw += 25;
 
     //write pattern
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textMode));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textMode));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"MODE");
+    pd->textMode.SetText((const char *)"MODE");
 
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinMode));
-    window_set_item_count(id, modes_sz);
-    window_set_item_index(id, 0);
-    window_set_item_callback(id, window_list_modes_item);
+    window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinMode));
+    pd->spinMode.SetItemCount(modes_sz);
+    pd->spinMode.SetItemIndex(0);
+    pd->spinMode.SetCallback(window_list_modes_item);
 
     row2draw += 25;
 
     //clk setting
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textSpiClk));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textSpiClk));
     pd->textSpiClk.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"SPI clk");
+    pd->textSpiClk.SetText((const char *)"SPI clk");
 
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinSpiClk));
-    window_set_item_count(id, opt_spi_sz);
-    window_set_item_index(id, 0);
-    window_set_item_callback(id, window_list_spi_item);
+    window_create_ptr(WINDOW_CLS_LIST, id0, RECT_MACRO(1), &(pd->spinSpiClk));
+    pd->spinSpiClk.SetItemCount(opt_spi_sz);
+    pd->spinSpiClk.SetItemIndex(0);
+    pd->spinSpiClk.SetCallback(window_list_spi_item);
 
     row2draw += 25;
 
     //Gamma setting
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textGamma));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textGamma));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"Gamma");
+    pd->textMode.SetText((const char *)"Gamma");
 
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
-    window_set_format(id, "%1.0f");
-    window_set_min_max_step(id, 0.0F, 3.0F, 1.0F);
-    window_set_value(id, (float)st7789v_gamma_get());
+    window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
+    pd->spinGamma.SetFormat("%1.0f");
+    pd->spinGamma.SetMinMaxStep(0.0F, 3.0F, 1.0F);
+    pd->spinGamma.SetValue((float)st7789v_gamma_get());
 
     //INVERSION
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
-    window_set_item_count(id, inversions_sz);
-    window_set_item_index(id, 0);
-    window_set_item_callback(id, window_list_inversions_item);
+    window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
+    pd->spinInversion.SetItemCount(inversions_sz);
+    pd->spinInversion.SetItemIndex(0);
+    pd->spinInversion.SetCallback(window_list_inversions_item);
 
     row2draw += 25;
     //Brightness setting
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textBrightness));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textBrightness));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"Brightn.");
+    pd->textBrightness.SetText((const char *)"Brightn.");
 
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
-    window_set_format(id, "%1.0f");
-    window_set_min_max_step(id, 0.0F, 255.0F, 5.0F);
-    window_set_value(id, (float)st7789v_brightness_get());
-    window_set_tag(id, TAG_BRIGHTNESS);
+    window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
+    pd->spinBrightness.SetFormat("%1.0f");
+    pd->spinBrightness.SetMinMaxStep(0.0F, 255.0F, 5.0F);
+    pd->spinBrightness.SetValue((float)st7789v_brightness_get());
+    pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
 
     //Brightness enabled
-    id = window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
-    window_set_item_count(id, bright_enas_sz);
-    window_set_item_index(id, 0);
-    window_set_item_callback(id, window_list_bright_enas_item);
-    window_set_tag(id, TAG_BRIGHTNESS);
+    window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
+    pd->spinBrigt_ena.SetItemCount(bright_enas_sz);
+    pd->spinBrigt_ena.SetItemIndex(0);
+    pd->spinBrigt_ena.SetCallback(window_list_bright_enas_item);
+    pd->spinBrigt_ena.SetTag(TAG_BRIGHTNESS);
 
     row2draw += 25;
     int16_t w_of_0x = 23;
     int16_t col = col_1 + w_of_0x;
     int16_t offset = 12;
     //user write pattern
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textSpiUserPattern1));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textSpiUserPattern1));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"Wr-Rd-Wr");
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(1), &(pd->text0x));
+    pd->textSpiUserPattern1.SetText((const char *)"Wr-Rd-Wr");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(1), &(pd->text0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"0x");
+    pd->text0x.SetText((const char *)"0x");
 
-    //cannot use normal spin with window_set_format(id, "%A");
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx3));
-    pd->spinStrHx3.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx3));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx2));
-    pd->spinStrHx2.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx2));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx1));
-    pd->spinStrHx1.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx1));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx0));
-    pd->spinStrHx0.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx0));
 
     //write pixels
     row2draw += 25;
@@ -284,72 +275,47 @@ void screen_test_disp_mem_init(screen_t *screen) {
     int16_t RGBspaceW = 5;
 
     col = col_0;
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textR0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textR0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"R 0x");
-    window_set_color_text(id, COLOR_RED);
+    pd->textR0x.SetText((const char *)"R 0x");
+    pd->textR0x.SetTextColor(COLOR_RED);
 
     col += w_of_0xX;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR0));
-    pd->spinStrR0.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
-
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR0));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR1));
-    pd->spinStrR1.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR1));
     col += offset;
     col += RGBspaceW;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textG0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textG0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"G 0x");
-    window_set_color_text(id, COLOR_GREEN);
+    pd->textG0x.SetText((const char *)"G 0x");
+    pd->textG0x.SetTextColor(COLOR_GREEN);
 
     col += w_of_0xX;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG0));
-    pd->spinStrG0.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG0));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG1));
-    pd->spinStrG1.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG1));
     col += offset;
     col += RGBspaceW;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textB0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textB0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"B 0x");
-    window_set_color_text(id, COLOR_BLUE);
+    pd->textB0x.SetText((const char *)"B 0x");
+    pd->textB0x.SetTextColor(COLOR_BLUE);
 
     col += w_of_0xX;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB0));
-    pd->spinStrB0.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB0));
     col += offset;
-    id = window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB1));
-    pd->spinStrB1.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
-    window_set_format(id, "%X");
-    window_set_min_max_step(id, 0.0F, 15.0F, 1.0F);
-    window_set_value(id, 0.0F);
+    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB1));
 
     row2draw += 25; //position for drawing - it is global in this file
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"EXIT");
-    window_enable(id);
-    window_set_tag(id, TAG_QUIT);
+    pd->textExit.SetText((const char *)"EXIT");
+    pd->textExit.Enable();
+    pd->textExit.SetTag(TAG_QUIT);
 }
 
 //draw line in Y direction
@@ -530,32 +496,10 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
             screen_close();
             return 1;
         }
-    /*if (event == WINDOW_EVENT_CHANGE){
-		switch ((int)param){
-		case TAG_BRIGHTNESS:
-			isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.id);
-			//if(isBrightness_ena_actual!=isBrightness_ena_last)
-			{
-				if(isBrightness_ena_actual) st7789v_brightness_enable();
-				else                        st7789v_brightness_disable();
-				isBrightness_ena_last = isBrightness_ena_actual;
-			}
-
-
-			brightness_actual = window_get_item_index(pd->spinBrightness.id);
-			//if(brightness_actual!=brightness_last)
-			{
-				st7789v_brightness_set(brightness_actual);
-				brightness_last = brightness_actual;
-			}
-			break;
-		}
-
-	}*/
     if (event == WINDOW_EVENT_LOOP) {
 
-        isBrightness_ena_actual = window_get_item_index(pd->spinBrigt_ena.id);
-        brightness_actual = window_get_value(pd->spinBrightness.id);
+        isBrightness_ena_actual = pd->spinBrigt_ena.GetItemIndex();
+        brightness_actual = pd->spinBrightness.GetValue();
 
         if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
             st7789v_brightness_set(brightness_actual);
@@ -568,24 +512,24 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
             isBrightness_ena_last = isBrightness_ena_actual;
         }
 
-        mode = window_get_item_index(pd->spinMode.id);
+        mode = pd->spinMode.GetItemIndex();
 
-        user_value = window_get_item_index(pd->spinStrHx0.id)
-            | ((window_get_item_index(pd->spinStrHx1.id)) << 4)
-            | ((window_get_item_index(pd->spinStrHx2.id)) << 8)
-            | ((window_get_item_index(pd->spinStrHx3.id)) << 12);
+        user_value = pd->spinStrHx0.GetItemIndex()
+            | ((pd->spinStrHx1.GetItemIndex()) << 4)
+            | ((pd->spinStrHx2.GetItemIndex()) << 8)
+            | ((pd->spinStrHx3.GetItemIndex()) << 12);
 
-        clrR = (window_get_item_index(pd->spinStrR0.id) << 4) | window_get_item_index(pd->spinStrR1.id);
-        clrG = (window_get_item_index(pd->spinStrG0.id) << 4) | window_get_item_index(pd->spinStrG1.id);
-        clrB = (window_get_item_index(pd->spinStrB0.id) << 4) | window_get_item_index(pd->spinStrB1.id);
+        clrR = (pd->spinStrR0.GetItemIndex() << 4) | pd->spinStrR1.GetItemIndex();
+        clrG = (pd->spinStrG0.GetItemIndex() << 4) | pd->spinStrG1.GetItemIndex();
+        clrB = (pd->spinStrB0.GetItemIndex() << 4) | pd->spinStrB1.GetItemIndex();
 
-        gamma_actual = window_get_item_index(pd->spinGamma.id);
+        gamma_actual = pd->spinGamma.GetItemIndex();
         if (gamma_actual != gamma_last) {
             st7789v_gamma_set(gamma_actual);
             gamma_last = gamma_actual;
         }
 
-        isInverted_actual = window_get_item_index(pd->spinInversion.id);
+        isInverted_actual = pd->spinInversion.GetItemIndex();
         if (isInverted_actual != isInverted_last) {
             if (isInverted_actual)
                 st7789v_inversion_on();
@@ -595,11 +539,10 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
         }
 
         //check if spin changed
-        spinSpiClkVal_actual = window_get_item_index(pd->spinSpiClk.id);
+        spinSpiClkVal_actual = pd->spinSpiClk.GetItemIndex();
         if (spinSpiClkVal_actual != spinSpiClkVal_last) {
             sys_spi_set_prescaler(spinSpiClkVal_actual);
             spinSpiClkVal_last = spinSpiClkVal_actual;
-            //window_set_text(pd->numbSpiClk.win.id,(const char*)opt_spi[spinSpiClkVal_actual]);
         }
 
         dispRamTest(mode, row2draw);

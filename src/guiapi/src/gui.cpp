@@ -3,7 +3,7 @@
 #include "gui.hpp"
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 
 #define GUI_FLG_INVALID 0x0001
 
@@ -167,7 +167,7 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     window_msgbox_t msgbox;
     window_t *window_popup_tmp = window_popup_ptr; //save current window_popup_ptr
     const int16_t id_capture = window_capture();
-    const int16_t id = window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
+    window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
     msgbox.title = title;
     msgbox.text = text;
     msgbox.flags = flags;
@@ -181,15 +181,18 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     window_popup_ptr = (window_t *)&msgbox;
     gui_reset_jogwheel();
     gui_invalidate();
-    window_set_capture(id);
+    msgbox.SetCapture();
     // window_popup_ptr is set to null after destroying msgbox
     // msgbox destroys itself when the user presses any button
     while (window_popup_ptr) {
         gui_loop();
     }
     window_popup_ptr = window_popup_tmp; // restore previous window_popup_ptr
-    window_invalidate(0);
-    window_set_capture(id_capture);
+    window_t *pWin = window_ptr(0);
+    if (pWin)
+        pWin->Invalidate();
+    if (window_ptr(id_capture))
+        window_ptr(id_capture)->SetCapture();
     return msgbox.res;
 }
 

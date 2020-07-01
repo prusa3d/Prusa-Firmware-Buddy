@@ -2,7 +2,7 @@
 #include "DialogLoadUnload.h"
 #include "gui.hpp"    //resource_font
 #include "resource.h" //IDR_FNT_BIG
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 #include "../lang/i18n.h"
 
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
@@ -83,18 +83,6 @@ DialogLoadUnload::DialogLoadUnload(const char *name)
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
 void DialogLoadUnload::phaseAlertSound() { Sound_Play(eSOUND_TYPE_SingleBeep); }
-
-void DialogLoadUnload::c_draw(window_t *win) {
-    IDialog *ptr = cast(win);
-    DialogLoadUnload *ths = dynamic_cast<DialogLoadUnload *>(ptr);
-    ths->draw();
-}
-
-void DialogLoadUnload::c_event(window_t *win, uint8_t event, void *param) {
-    IDialog *ptr = cast(win);
-    DialogLoadUnload *ths = dynamic_cast<DialogLoadUnload *>(ptr);
-    ths->event(event, param);
-}
 
 const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
     {
