@@ -13,7 +13,7 @@ struct window_text_t : public window_t {
     font_t *font;
     const char *text;
     padding_ui8_t padding;
-    uint8_t alignment;
+    uint8_t alignment; /// alignment constants are in guitypes.h
 
     const char *GetText() const { return text; }
     void SetText(const char *txt);

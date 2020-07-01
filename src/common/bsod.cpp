@@ -8,7 +8,7 @@
 #include "sound.hpp"
 #include "wdt.h"
 
-#define HAS_GUI 1
+#define HAS_GUI 1 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifndef HAS_GUI
     #error "HAS_GUI not defined"
 #elif HAS_GUI
