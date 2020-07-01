@@ -529,6 +529,7 @@ static void _server_print_loop(void) {
         break;
     case mpsAborting_Begin:
         media_print_stop();
+        queue.clear();
         thermalManager.disable_all_heaters();
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0);
@@ -565,7 +566,7 @@ static void _server_print_loop(void) {
         }
         break;
     case mpsFinishing_WaitIdle:
-        if (planner.movesplanned() == 0) {
+        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
             marlin_server_park_head();
             marlin_server.print_state = mpsFinishing_ParkHead;
         }
