@@ -255,9 +255,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     create_path_info_4error(qr_text, sizeof(qr_text), 12201);
 
-    window->version = 2;
-    window->ecc_level = qrcodegen_Ecc_LOW;
-    window->mode = qrcodegen_Mode_ALPHANUMERIC;
     window->border = 4;
     window->px_per_module = 1;
     window->bg_color = COLOR_WHITE;
