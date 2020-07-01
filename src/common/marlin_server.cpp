@@ -1435,3 +1435,32 @@ FSM_notifier::~FSM_notifier() {
 //define static member
 //-1 (maxval) is used as no response from client
 uint32_t ClientResponseHandler::server_side_encoded_response = -1;
+
+/*****************************************************************************/
+// Z Calibration FSM Notifier
+
+Z_Calib_FSM::Z_Calib_FSM(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
+    : Notifier(type, phase, min, max, progress_min, progress_max) {
+    sw_endstop_state = soft_endstops_enabled;
+    hw_endstop_state = false; // TODO: find a getter
+    if (sw_endstop_state) {
+        marlin_gcode("M211 S0"); // disable sw endstop
+    }
+    if (!hw_endstop_state) {
+        marlin_gcode("M120"); // enable hw endstop detection
+    }
+}
+Z_Calib_FSM::~Z_Calib_FSM() {
+    if (sw_endstop_state) {
+        marlin_gcode("M211 S1"); // enable software endstops
+    }
+    if (!hw_endstop_state) {
+        marlin_gcode("M121"); // disable hw endstop detection
+    }
+}
+
+void Z_Calib_FSM::preSendNotification() {
+    marlin_gcode("G162 Z");
+}
+void Z_Calib_FSM::postSendNotification() {
+}
