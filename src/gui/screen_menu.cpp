@@ -55,9 +55,9 @@ void IScreenMenu::Done() {
     window_destroy(root.id);
 }
 
-int IScreenMenu::Event(window_t *window, uint8_t event, void *param) {
+int IScreenMenu::Event(window_t *sender, uint8_t event, void *param) {
     if (flg & HasFooter_FLAG) {
-        status_footer_event(&footer, window, event, param);
+        status_footer_event(&footer, sender, event, param);
     }
     if (flg & HasHeaderEvents_FLAG) {
         window_header_events(&header);

@@ -22,5 +22,5 @@ void IDialog::c_draw(window_t *win) {
 }
 
 void IDialog::c_event(window_t *win, uint8_t event, void *param) {
-    win->Event(event, param);
+    win->Event(win, event, param);
 }

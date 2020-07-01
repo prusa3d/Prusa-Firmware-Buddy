@@ -103,7 +103,7 @@ struct window_t {
     virtual void Init() {} //do I need init, have ctor?
     virtual void Done() {} //do I need done, have dtor?
     virtual void Draw() {}
-    virtual void Event(uint8_t event, void *param) {}
+    virtual int Event(window_t *sender, uint8_t event, void *param) { return 0; }
 
     virtual ~window_t() {}
 

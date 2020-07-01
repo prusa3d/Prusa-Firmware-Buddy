@@ -122,7 +122,7 @@ protected:
 
 public:
     virtual void Draw() override;
-    virtual void Event(uint8_t event, void *param) override;
+    virtual int Event(window_t * /*sender*/, uint8_t event, void *param) override;
 };
 
 /*****************************************************************************/
@@ -178,22 +178,23 @@ void DialogStateful<T>::Draw() {
 }
 
 template <class T>
-void DialogStateful<T>::Event(uint8_t event, void *param) {
+int DialogStateful<T>::Event(window_t * /*sender*/, uint8_t event, void *param) {
     RadioButton &radio = states[phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK: {
         Response response = radio.Click();
         marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
-        return;
+        break;
     }
     case WINDOW_EVENT_ENC_UP:
         ++radio;
         gui_invalidate();
-        return;
+        break;
     case WINDOW_EVENT_ENC_DN:
         --radio;
         gui_invalidate();
-        return;
+        break;
     }
+    return 0;
 }
