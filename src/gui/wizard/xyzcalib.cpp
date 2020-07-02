@@ -54,8 +54,11 @@ int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_
     if (p_data->state_z == _TEST_START) {
         p_screen->text_state.SetText("Calibrating Z");
         p_screen->icon.SetIdRes(IDR_PNG_wizard_icon_hourglass);
-    }
-    int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_z), _WIZ_TIMER_AUTOPASS);
+        marlin_gcode("G162 Z");
+        marlin_event_clr(MARLIN_EVT_CommandEnd);
+    } else if (marlin_event_clr(MARLIN_EVT_CommandEnd))
+        p_data->state_home = _TEST_PASSED;
+    int progress = wizard_timer(&p_screen->timer0, 10000, &(p_data->state_z), _WIZ_TIMER);
     p_screen->progress.SetValue(progress);
     return progress;
 }
