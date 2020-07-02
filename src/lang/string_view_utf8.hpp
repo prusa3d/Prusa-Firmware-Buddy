@@ -83,10 +83,10 @@ class string_view_utf8 {
         }
     }
 
-    static uint8_t NULLSTR_getbyte(Attrs &attrs) {
+    static uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
         return 0;
     }
-    static void NULLSTR_rewind(Attrs &attrs) {
+    static void NULLSTR_rewind(Attrs & /*attrs*/) {
     }
 
 public:
