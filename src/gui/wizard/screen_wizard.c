@@ -77,11 +77,13 @@ void screen_wizard_init(screen_t *screen) {
 	pd->Kp_noz = get_Kp_Noz();
 	pd->Ki_noz = get_Ki_Noz();
 	pd->Kd_noz = get_Kd_Noz();*/
+    marlin_set_exclusive_mode(1);
 }
 
 void screen_wizard_done(screen_t *screen) {
     if (!marlin_processing())
         marlin_start_processing();
+    marlin_set_exclusive_mode(0);
     /*
 	//M301 - Set Hotend PID
 	//M301 [C<value>] [D<value>] [E<index>] [I<value>] [L<value>] [P<value>]
