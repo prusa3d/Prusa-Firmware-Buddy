@@ -225,7 +225,16 @@ void general_error_run() {
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
     const uint16_t width_chars = X_MAX / gui_defaults.font->w;
-    snprintf(text, sizeof(text), "Check the bed / print head heater & thermistor wiring for possible damage.");
+    char qr_text[MAX_LEN_4QR + 1];
+
+    if (module[0] == 'E') {
+        snprintf(text, sizeof(text), "Check the heatbed heater & thermistor wiring for possible damage.");
+        create_path_info_4error(qr_text, sizeof(qr_text), 12201);
+    } else {
+        snprintf(text, sizeof(text), "Check the print head heater & thermistor wiring for possible damage.");
+        create_path_info_4error(qr_text, sizeof(qr_text), 12202);
+    }
+
     str2multiline(text, sizeof(text), width_chars);
 
     general_error_init();
@@ -243,48 +252,38 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     term_printf(&term, text);
     render_term(rect_ui16(PADDING, 32, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
-    //doesnt work
+    //doesn't work
     //render_text_align(rect_ui16(0, 31, X_MAX, 240), text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(PADDING, 0, PADDING, 0), ALIGN_CENTER);
+
+    const uint8_t height = 144;
 
     /// print QR
     window_qr_t win;
     window_qr_t *window = &win;
-    char qr_text[MAX_LEN_4QR + 1];
     win.text = qr_text;
-    win.rect = rect_ui16(0, 175, 240, 144);
+    win.rect = rect_ui16(0, 175, 240, height);
 
-    create_path_info_4error(qr_text, sizeof(qr_text), 12201);
+    display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
 
     const uint8_t qr_version = 2;
     window->border = 4;
     window->px_per_module = 1;
     window->bg_color = COLOR_WHITE;
     window->px_color = COLOR_BLACK;
+    window->align = ALIGN_CENTER;
 
     //int qr_px_size = module * (qr_version*4+17   +2*border)
-    window->px_per_module = std::max(1, (int)floor(144.0f / (qr_version * 4 + 17 + 2 * window->border)));
-    const int qr_px_size = window->px_per_module * (qr_version * 4 + 17 + 2 * window->border);
-    if (qr_px_size > 144)
-        window->border = 2;
-    // center QR
-    const uint16_t qr_pad_x = std::max(0, (240 - qr_px_size) / 2);
-    const uint16_t qr_pad_y = std::max(0, (144 - qr_px_size) / 2);
+    // window->px_per_module = std::max(1, (int)floor((float)height / (qr_version * 4 + 17 + 2 * window->border)));
+    // const int qr_px_size = window->px_per_module * (qr_version * 4 + 17 + 2 * window->border);
+    // if (qr_px_size > height)
+    //     window->border = 2;
 
-    #define BORDER (window->border)
-    #define MSIZE  (window->px_per_module)
-    #define X0     (qr_pad_x + window->rect.x + window->border * MSIZE)
-    #define Y0     (qr_pad_y + window->rect.y + window->border * MSIZE)
+    uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
 
-    uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version)];
-    uint8_t qrcode_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version)];
-    bool qr_ok;
-
-    qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, qrcodegen_Ecc_LOW, qr_version, qr_version, qrcodegen_Mask_AUTO, true);
-    if (qr_ok) {
-        int size = qrcodegen_getSize(qrcode_buff);
-        for (int y = -BORDER; y < (size + BORDER); y++)
-            for (int x = -BORDER; x < (size + BORDER); x++)
-                display::FillRect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
+    if (generate_qr(text, qrcode)) {
+        draw_qr(qrcode, window);
+    } else {
+        display::DrawText(win.rect, qr_text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
     }
 
     while (1) {
