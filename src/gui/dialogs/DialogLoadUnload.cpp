@@ -70,7 +70,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::RemoveFilament,   ph_txt_stop) },
         DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont), DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_nozzle_cold,        btn(PhasesLoadUnload::NozzleTimeout,    ph_txt_reheat) },
-        DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont) },
+        DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont), DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_inserting,          btn(PhasesLoadUnload::Inserting,        ph_txt_stop) },
         DialogLoadUnload::State { txt_is_filament_in_gear,btn(PhasesLoadUnload::IsFilamentInGear, ph_txt_yesno) },
         DialogLoadUnload::State { txt_ejecting,           btn(PhasesLoadUnload::Ejecting,         ph_txt_none) },
