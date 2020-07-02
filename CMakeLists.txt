@@ -512,6 +512,7 @@ if(GUI)
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
+            src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
             src/gui/window_file_list.cpp

@@ -1444,17 +1444,17 @@ Z_Calib_FSM::Z_Calib_FSM(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8
     sw_endstop_state = soft_endstops_enabled;
     hw_endstop_state = false; // TODO: find a getter
     if (sw_endstop_state) {
-        marlin_gcode("M211 S0"); // disable sw endstop
+        //marlin_gcode("M211 S0"); // disable sw endstop
     }
     if (!hw_endstop_state) {
-        marlin_gcode("M120"); // enable hw endstop detection
+        //marlin_gcode("M120"); // enable hw endstop detection
     }
 }
 Z_Calib_FSM::~Z_Calib_FSM() {
     if (sw_endstop_state) {
-        marlin_gcode("M211 S1"); // enable software endstops
+        //marlin_gcode("M211 S1"); // enable software endstops
     }
     if (!hw_endstop_state) {
-        marlin_gcode("M121"); // disable hw endstop detection
+        //marlin_gcode("M121"); // disable hw endstop detection
     }
 }
