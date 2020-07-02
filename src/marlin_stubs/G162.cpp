@@ -4,7 +4,7 @@
 
 #include "G162.hpp"
 #include <stdint.h>
-#include "marlin_server.hpp"
+#include "z_calibration_fsm.hpp"
 
 void PrusaGcodeSuite::G162() {
     FSM_Holder D(ClientFSM::G162, 0);

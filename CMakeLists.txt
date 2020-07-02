@@ -481,6 +481,7 @@ target_sources(
           src/common/crc32.c
           src/common/ini_handler.c
           src/common/wui_api.c
+          src/common/z_calibration_fsm.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M876.cpp

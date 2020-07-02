@@ -94,10 +94,7 @@ MI_CALIB_Z::MI_CALIB_Z()
 }
 
 void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(MARLIN_EVT_CommandBegin);
     marlin_gcode("G162 Z");
-    while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-        marlin_client_loop();
     gui_dlg_calib_z();
 }
 
