@@ -129,7 +129,6 @@ static printing_state_t get_state(screen_t *screen) {
 }
 
 static void screen_printing_reprint(screen_t *screen);
-//static void mesh_err_stop_print(screen_t *screen); //todo use it
 static void change_print_state(screen_t *screen);
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed);
 static void update_remaining_time(screen_t *screen, time_t rawtime, uint16_t print_speed);
@@ -325,6 +324,16 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
+    }
+
+    if ((pw->state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
+        marlin_error_clr(MARLIN_ERR_ProbingFailed);
+        if (gui_msgbox("Bed leveling failed. Try again?", MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
+            screen_printing_reprint(screen);
+        } else {
+            screen_close();
+            return 1;
+        }
     }
 
     change_print_state(screen);
@@ -543,24 +552,6 @@ static void screen_printing_reprint(screen_t *screen) {
     p_window_header_set_text(&(pw->header), "PRINTING");
 #endif
 }
-
-//todo use it
-/*static void mesh_err_stop_print(screen_t *screen) {
-    float target_nozzle = marlin_vars()->target_nozzle;
-    float target_bed = marlin_vars()->target_bed;
-    marlin_print_abort();
-    while (marlin_vars()->sd_printing) {
-        gui_loop();
-    }
-    //marlin_park_head();
-    marlin_gcode_printf("M104 S%F", (double)target_nozzle);
-    marlin_gcode_printf("M140 S%F", (double)target_bed);
-    marlin_gcode("G0 Z30"); //Z 30mm
-    marlin_gcode("M84");    //Disable steppers
-    while (marlin_vars()->pqueue) {
-        gui_loop();
-    }
-}*/
 
 static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
     size_t index = static_cast<size_t>(id_to_set);
