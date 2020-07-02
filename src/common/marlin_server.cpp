@@ -622,6 +622,10 @@ int marlin_all_axes_known(void) {
     return all_axes_known() ? 1 : 0;
 }
 
+int marlin_server_get_exclusive_mode(void) {
+    return (marlin_server.flags & MARLIN_SFLG_EXCMODE) ? 1 : 0;
+}
+
 void marlin_server_set_temp_to_display(float value) {
     marlin_server.vars.display_nozzle = value;
     _set_notify_change(MARLIN_VAR_DTEM_NOZ); //set change flag
@@ -1096,6 +1100,13 @@ static int _process_server_request(char *request) {
     } else if (sscanf(request, "!change_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
+        processed = 1;
+    } else if (sscanf(request, "!exc %d", &ival) == 1) { //set exclusive mode
+        if (ival) {
+            marlin_server.flags |= MARLIN_SFLG_EXCMODE;
+            queue.clear();
+        } else
+            marlin_server.flags &= ~MARLIN_SFLG_EXCMODE;
         processed = 1;
     } else {
         bsod("Unknown request %s", request);
