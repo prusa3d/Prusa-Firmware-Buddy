@@ -7,6 +7,7 @@
 #include "gui.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
+#include "window_dlg_calib_z.hpp"
 #include "sound.hpp"
 #include "wui_api.h"
 #include "../lang/i18n.h"
@@ -84,6 +85,16 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
     wizard_run_firstlay();
+}
+
+/*****************************************************************************/
+//MI_CALIB_Z
+MI_CALIB_Z::MI_CALIB_Z()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
+    gui_dlg_calib_z();
 }
 
 /*****************************************************************************/

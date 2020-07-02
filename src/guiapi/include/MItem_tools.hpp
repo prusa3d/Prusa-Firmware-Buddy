@@ -54,6 +54,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_CALIB_Z : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Z Calibration");
+
+public:
+    MI_CALIB_Z();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_DISABLE_STEP : public WI_LABEL_t {
     static constexpr const char *const label = N_("Disable Steppers");
 

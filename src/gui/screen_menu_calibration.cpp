@@ -9,7 +9,7 @@
 #include "MItem_print.hpp"
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_BABYSTEP, MI_AUTO_HOME, MI_MESH_BED,
-    MI_SELFTEST, MI_CALIB_FIRST>;
+    MI_SELFTEST, MI_CALIB_FIRST, MI_CALIB_Z>;
 
 static void init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));

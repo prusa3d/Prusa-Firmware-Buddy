@@ -8,11 +8,12 @@
 
 void PrusaGcodeSuite::G162() {
     FSM_Holder D(ClientFSM::G162, 0);
+
     // Z axis lift
     if (parser.seen('Z')) {
         const float target_Z = Z_MAX_POS;
-        Notifier_POS_Z N(ClientFSM::G162, GetPhaseIndex(PhasesG162::Parking), current_position.z, target_Z, 0, 100);
+        Z_Calib_FSM N(ClientFSM::G162, GetPhaseIndex(PhasesG162::Parking), current_position.z, target_Z, 0, 100);
+
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
-    //todo support more than only Z axis
 }

@@ -35,7 +35,7 @@ static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
 
 static_unique_ptr<IDialogStateful> DialogFactory::G162(uint8_t data) {
     static const char *name = N_("HOME TO MAX");
-    return make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, name);
+    return make_static_unique_ptr<DialogG162>(&all_dialogs, name);
 }
 
 DialogFactory::Ctors DialogFactory::GetAll() {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DialogLoadUnload.hpp"
+#include "DialogG162.hpp"
 #include "static_alocation_ptr.hpp"
 #include <array>
 

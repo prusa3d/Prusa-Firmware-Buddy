@@ -134,10 +134,8 @@ public:
 
 class Z_Calib_FSM : public Notifier_POS_Z {
 public:
-    Z_Calib_FSM(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
+    Z_Calib_FSM(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max);
     ~Z_Calib_FSM();
-    virtual void preSendNotification() override;
-    virtual void postSendNotification() override;
 
 private:
     bool sw_endstop_state;
