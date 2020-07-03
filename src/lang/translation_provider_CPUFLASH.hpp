@@ -36,8 +36,6 @@ struct hash_sdbm {
 /// Sharing of the search structures can be used, because the firmware is being compiled at once and all the translations
 /// will share the same sources (POT/PO files).
 class CPUFLASHTranslationProviderBase : public ITranslationProvider {
-    using SHashTable = string_hash_table<hash_djb2, 128, 256>;
-
 public:
     virtual ~CPUFLASHTranslationProviderBase() = default;
     /// @returns translated string
@@ -50,7 +48,8 @@ public:
 #ifndef TRANSLATIONS_UNITTEST
 protected:
 #endif
-    static SHashTable hash_table; ///< shared among all of the derived providers
+    using SHashTable = string_hash_table<hash_djb2, 256, 256>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
+    static SHashTable hash_table;                              ///< shared among all of the derived providers
 
     /// @returns pointer to translated string (utf8 data) or nullptr if out of range
     virtual const uint8_t *StringTableAt(uint16_t stringIndex) const = 0;

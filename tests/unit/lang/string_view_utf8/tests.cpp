@@ -127,3 +127,42 @@ TEST_CASE("string_view_utf8::CreateFromFILE test", "[string_view_utf8]") {
     REQUIRE(TheYellowHorse(sf));
     fclose(f);
 }
+
+bool Cooldown(string_view_utf8 sf) {
+    REQUIRE(sf.getUtf8Char() == UniChar("O"));
+    REQUIRE(sf.getUtf8Char() == UniChar("c"));
+    REQUIRE(sf.getUtf8Char() == UniChar("h"));
+    REQUIRE(sf.getUtf8Char() == UniChar("l"));
+    REQUIRE(sf.getUtf8Char() == UniChar("a"));
+    REQUIRE(sf.getUtf8Char() == UniChar("z"));
+    REQUIRE(sf.getUtf8Char() == UniChar("e"));
+    REQUIRE(sf.getUtf8Char() == UniChar("n"));
+    REQUIRE(sf.getUtf8Char() == UniChar("í"));
+    REQUIRE(sf.getUtf8Char() == 0);
+    return true;
+}
+
+TEST_CASE("string_view_utf8::Cooldown test", "[string_view_utf8]") {
+    static const uint8_t utf8str[] = "Ochlazení";
+    string_view_utf8 sf = string_view_utf8::MakeRAM(utf8str);
+    REQUIRE(Cooldown(sf));
+}
+
+bool Filament(string_view_utf8 sf) {
+    REQUIRE(sf.getUtf8Char() == UniChar("F"));
+    REQUIRE(sf.getUtf8Char() == UniChar("i"));
+    REQUIRE(sf.getUtf8Char() == UniChar("l"));
+    REQUIRE(sf.getUtf8Char() == UniChar("a"));
+    REQUIRE(sf.getUtf8Char() == UniChar("m"));
+    REQUIRE(sf.getUtf8Char() == UniChar("e"));
+    REQUIRE(sf.getUtf8Char() == UniChar("n"));
+    REQUIRE(sf.getUtf8Char() == UniChar("t"));
+    REQUIRE(sf.getUtf8Char() == 0);
+    return true;
+}
+
+TEST_CASE("string_view_utf8::Filament test", "[string_view_utf8]") {
+    static const uint8_t utf8str[] = "Filament";
+    string_view_utf8 sf = string_view_utf8::MakeRAM(utf8str);
+    REQUIRE(Filament(sf));
+}

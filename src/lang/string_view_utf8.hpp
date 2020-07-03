@@ -93,18 +93,18 @@ public:
     inline string_view_utf8()
         : utf8Length(-1)
         , type(EType::NULLSTR)
-        , s(0) {}
+        , s(0xff) {}
     ~string_view_utf8() = default;
 
     /// @returns one UTF-8 character from the input data
     /// and advances internal pointers (in derived classes) to the next one
     unichar getUtf8Char() {
-        if (!s) { // in case we don't have any character from the last run, get a new one from the input stream
+        if (s == 0xff) { // in case we don't have any character from the last run, get a new one from the input stream
             s = getbyte(attrs);
         }
         unichar ord = s;
         if (!UTF8_IS_NONASCII(ord)) {
-            s = 0; // consumed, not available for next run
+            s = 0xff; // consumed, not available for next run
             return ord;
         }
         ord &= 0x7F;

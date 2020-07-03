@@ -102,15 +102,14 @@ struct String {
 };
 
 template <typename HASH, uint32_t buckets, uint32_t maxStrings>
-bool CheckHashClass() {
-    // read all the strings from the input file
-    // compute their hashes, sort them into buckets, serialize the buckets into the arrays
-    deque<String> workStrings;
-    deque<string> rawStrings; // this is just for verifying the algorithm later on - need to have the raw strings as they came from the file
+bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char *fname, deque<string> &rawStrings) {
     using SHTable = string_hash_table<HASH, buckets, maxStrings>;
-    SHTable sh;
+    deque<String> workStrings;
+
     {
-        ifstream f("keys.txt");
+        ifstream f(fname);
+        if (!f.is_open())
+            return false;
         uint16_t index = 0;
         do {
             string s;
@@ -122,7 +121,6 @@ bool CheckHashClass() {
             }
         } while (f.good());
     }
-
     // sort the strings lexicographically
     stable_sort(workStrings.begin(), workStrings.end(), [](const String &s0, const String &s1) { return s0.s < s1.s; });
     // STABLE_sort the strings by their reduced hash value
@@ -133,7 +131,7 @@ bool CheckHashClass() {
     // this may be already dumped into the string rec array
     uint32_t shi = 0;
     for_each(workStrings.cbegin(), workStrings.cend(), [&](const String &s) {
-        CHECK(shi < sh.MaxStrings()); // just make sure we have enough space for all the strings
+        REQUIRE(shi < sh.MaxStrings()); // just make sure we have enough space for all the strings
         sh.stringRecArray[shi].firstLetters = (s.s[1] << 8) + s.s[0];
         sh.stringRecArray[shi].stringIndex = s.index; // where it is in the input table
         ++shi;
@@ -147,6 +145,17 @@ bool CheckHashClass() {
         sh.hash_table[SHTable::ReducedHash(b->hash)].end = distance(begin, ie);
         b = ie; // move onto the next bucket
     }
+    return true;
+}
+
+template <typename HASH, uint32_t buckets, uint32_t maxStrings>
+bool CheckHashClass() {
+    // read all the strings from the input file
+    // compute their hashes, sort them into buckets, serialize the buckets into the arrays
+    using SHTable = string_hash_table<HASH, buckets, maxStrings>;
+    SHTable sh;
+    deque<string> rawStrings; // this is just for verifying the algorithm later on - need to have the raw strings as they came from the file
+    REQUIRE(FillHashClass<HASH, buckets, maxStrings>(sh, "keys.txt", rawStrings));
 
     // now the hash table is filled with data, let's query it ;)
     // every string must be found in the hash table
@@ -197,4 +206,8 @@ TEST_CASE("string_hash_table::make_hash_table_intentional_collision", "[translat
     REQUIRE(sh.find((const uint8_t *)str1) == 0);
     REQUIRE(sh.find((const uint8_t *)str2) == 1);
     REQUIRE(sh.find((const uint8_t *)"unknown") == 0xffff);
+}
+
+bool FillHashTableCPUFLASHProvider(CPUFLASHTranslationProviderBase::SHashTable &ht, const char *fname, std::deque<string> &rawStrings) {
+    return FillHashClass(ht, fname, rawStrings); // just to hide the template FillHashClass within this source file
 }
