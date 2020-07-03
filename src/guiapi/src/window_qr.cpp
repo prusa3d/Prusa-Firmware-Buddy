@@ -1,5 +1,6 @@
 // window_qr.c
 #include <algorithm>
+#include <math.h>
 
 #include "window_qr.hpp"
 #include "gui.hpp"
@@ -36,14 +37,14 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
     uint16_t x0 = 0;
     uint16_t y0 = 0;
 
-    ///scale QR code
+    /// scale QR code
     if (window->scale) {
         const uint16_t size_w_bord = size + 2 * window->border;
         ppm = std::max(1, (int)floor(std::min(window->rect.h, window->rect.w) / float(size_w_bord)));
     }
     const uint16_t px_size = get_qr_px_size(qrcode, window, ppm);
 
-    ///alignment
+    /// alignment
     if (window->align & ALIGN_HCENTER) {
         x0 = std::max(0, (window->rect.w - px_size)) / 2;
     } else if (window->align & ALIGN_RIGHT) {
@@ -56,6 +57,7 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
         y0 = std::max(0, (window->rect.h - px_size));
     }
 
+    /// move to window location
     x0 += window->rect.x + window->border * ppm;
     y0 += window->rect.y + window->border * ppm;
 

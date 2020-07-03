@@ -224,10 +224,10 @@ void general_error_run() {
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
-    const uint16_t width_chars = X_MAX / gui_defaults.font->w;
+    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / gui_defaults.font->w);
     char qr_text[MAX_LEN_4QR + 1];
 
-    if (module[0] == 'E') {
+    if (module[0] != 'E') {
         snprintf(text, sizeof(text), "Check the heatbed heater & thermistor wiring for possible damage.");
         create_path_info_4error(qr_text, sizeof(qr_text), 12201);
     } else {
@@ -235,7 +235,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         create_path_info_4error(qr_text, sizeof(qr_text), 12202);
     }
 
-    str2multiline(text, sizeof(text), width_chars);
+    str2multiline(text, sizeof(text), line_width_chars);
 
     general_error_init();
 
@@ -250,7 +250,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
     term_printf(&term, text);
-    render_term(rect_ui16(PADDING, 32, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
     //doesn't work
     //render_text_align(rect_ui16(0, 31, X_MAX, 240), text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(PADDING, 0, PADDING, 0), ALIGN_CENTER);
@@ -262,15 +262,9 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     window_qr_t *window = &win;
     win.text = qr_text;
     win.rect = rect_ui16(0, 175, 240, height);
+    //win.bg_color = COLOR_RED_ALERT;
 
-    display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
-
-    const uint8_t qr_version = 2;
-    window->border = 4;
-    window->px_per_module = 1;
-    window->bg_color = COLOR_WHITE;
-    window->px_color = COLOR_BLACK;
-    window->align = ALIGN_CENTER;
+    //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
 
     //int qr_px_size = module * (qr_version*4+17   +2*border)
     // window->px_per_module = std::max(1, (int)floor((float)height / (qr_version * 4 + 17 + 2 * window->border)));
@@ -280,7 +274,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
 
-    if (generate_qr(text, qrcode)) {
+    if (generate_qr(qr_text, qrcode)) {
         draw_qr(qrcode, window);
     } else {
         display::DrawText(win.rect, qr_text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
