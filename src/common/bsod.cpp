@@ -8,7 +8,6 @@
 #include "sound.hpp"
 #include "wdt.h"
 
-#define HAS_GUI 1 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifndef HAS_GUI
     #error "HAS_GUI not defined"
 #elif HAS_GUI
@@ -210,7 +209,7 @@ void general_error_init() {
     //GUI is in the middle of refactoring and should be showned after restart
     //when timers and everything else is running again (info by - Rober/Radek)
 
-    // Sound_Play(eSOUND_TYPE_CriticalAlert); !!!!!!!!!!!!!!
+    Sound_Play(eSOUND_TYPE_CriticalAlert);
 }
 
 void general_error_run() {
@@ -262,7 +261,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     window_qr_t *window = &win;
     win.text = qr_text;
     win.rect = rect_ui16(0, 175, 240, height);
-    //win.bg_color = COLOR_RED_ALERT;
+    win.bg_color = COLOR_RED_ALERT;
 
     //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
 
