@@ -226,18 +226,18 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     const uint16_t line_width_chars = (uint16_t)floor(X_MAX / gui_defaults.font->w);
     char qr_text[MAX_LEN_4QR + 1];
 
+    /// FIXME split heating, min/max temp and thermal runaway
     if (module[0] != 'E') {
         snprintf(text, sizeof(text), "Check the heatbed heater & thermistor wiring for possible damage.");
-        create_path_info_4error(qr_text, sizeof(qr_text), 12201);
     } else {
         snprintf(text, sizeof(text), "Check the print head heater & thermistor wiring for possible damage.");
-        create_path_info_4error(qr_text, sizeof(qr_text), 12202);
     }
 
+    /// FIXME Currently the only one address working
+    create_path_info_4error(qr_text, sizeof(qr_text), 12201);
     str2multiline(text, sizeof(text), line_width_chars);
 
     general_error_init();
-
     display::Clear(COLOR_RED_ALERT);
 
     // draw header
