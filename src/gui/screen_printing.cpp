@@ -633,7 +633,7 @@ void set_tune_icon_and_label(screen_t *screen) {
 
     switch (get_state(screen)) {
     case printing_state_t::PRINTING:
-    case printing_state_t::PAUSED:
+    // case printing_state_t::PAUSED:
         enable_tune_button(screen);
         break;
     case printing_state_t::ABORTING:
