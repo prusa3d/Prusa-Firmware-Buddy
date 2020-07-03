@@ -31,7 +31,9 @@ constexpr uint8_t qr_version_max = 9;
 /// \returns true if QR code was generated.
 /// Use this to allocate \param qrcode buffer:
 /// uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
+/// \param buffer you can provide your buffer of the size of \param qrcode
 bool generate_qr(const char *text, uint8_t qrcode[]);
+bool generate_qr(const char *text, uint8_t qrcode[], uint8_t buffer[]);
 
 /// \returns number of modules of QR code (\param qrcode).
 /// Does not include size of border.

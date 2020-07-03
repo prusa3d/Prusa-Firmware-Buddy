@@ -265,15 +265,11 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
 
-    //int qr_px_size = module * (qr_version*4+17   +2*border)
-    // window->px_per_module = std::max(1, (int)floor((float)height / (qr_version * 4 + 17 + 2 * window->border)));
-    // const int qr_px_size = window->px_per_module * (qr_version * 4 + 17 + 2 * window->border);
-    // if (qr_px_size > height)
-    //     window->border = 2;
+    /// use PNG RAM for QR code
+    uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
+    uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
 
-    uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
-
-    if (generate_qr(qr_text, qrcode)) {
+    if (generate_qr(qr_text, qrcode, qr_buff)) {
         draw_qr(qrcode, window);
     } else {
         display::DrawText(win.rect, qr_text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);

@@ -8,10 +8,25 @@
 #include "qrcodegen.h"
 
 /// QR API
+/// TODO create separate class
 
+/// public
 bool generate_qr(const char *text, uint8_t qrcode[]) {
-    uint8_t temp_buff[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
-    return qrcodegen_encodeText(text, temp_buff, qrcode, qrcodegen_Ecc_LOW, 1, qr_version_max, qrcodegen_Mask_AUTO, true);
+    return generate_qr_nobuff(text, qrcode);
+}
+
+/// public
+bool generate_qr(const char *text, uint8_t qrcode[], uint8_t buffer[]) {
+    if (buffer == nullptr)
+        return generate_qr_nobuff(text, qrcode);
+
+    return qrcodegen_encodeText(text, buffer, qrcode, qrcodegen_Ecc_LOW, 1, qr_version_max, qrcodegen_Mask_AUTO, true);
+}
+
+/// private
+bool generate_qr_nobuff(const char *text, uint8_t qrcode[]) {
+    uint8_t buffer[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
+    return generate_qr(text, qrcode, buffer);
 }
 
 int get_qr_size(uint8_t *qrcode) {
