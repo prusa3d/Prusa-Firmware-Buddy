@@ -1,0 +1,162 @@
+\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s
+A crash dump report (file dump.bin) has been saved to the USB drive.
+All tests finished successfully!
+Always
+Apply
+Are you sure to stop this printing?
+Assist
+Auto Home
+AutTn
+BACK
+BlindAlert
+ButtonEcho
+Calibration
+Calibration successful!\nHappy printing!
+CHANGE FILAMENT
+Change Filament
+Clean steel sheet.
+Congratulations! XYZ calibration is ok. XY axes are perpendicular.
+CONTINUE
+Cooldown
+DISABLE SENSOR
+Disable Steppers
+Do you want to     \nrepeat the last    \nstep and readjust  \nthe distance       \nbetween the nozzle \nand heatbed?
+Do you want to use\nthe current value?\nCurrent: %0.3f.   \nDefault: %0.3f.   \nClick NO to use the default value (recommended)
+Do you want to use last set value? Last:  %0.3f.   Default: %0.3f.   Click NO to use default value.
+Ejecting
+EncoderMove
+Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again.
+Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes.
+Factory defaults loaded. The system will now restart.
+Factory Reset
+Fail Stats
+Fil. sens.
+FILAMENT
+Filament
+Finishing         \nbuffered gcodes.  \n
+Firmware Version\n
+First Layer Cal.
+FIRST LAYER CALIB.
+Flow Factor
+FW UPDATE
+FW Update
+Heatbed
+Heating disabled due to 30 minutes of inactivity.
+Hi, this is your\nOriginal Prusa MINI.
+HOME
+Home
+In the next step, \nuse the knob to   \nadjust the nozzle \nheight.           \nCheck the pictures\nin the handbook   \nfor reference.
+INFO
+Info
+Inserting
+IP addresses are not valid or the file \lan_settings.ini\ is not in the root directory of the USB drive.
+IP addresses or parameters are not valid or the file \lan_settings.ini\ is not in the root directory of the USB drive.
+Is color correct?
+Is filament in    \nextruder gear?    
+Is steel sheet on heatbed?
+LAN SETTINGS
+Lan settings
+Live Adjust Z
+LOAD FILAMENT
+Load Filament
+Load settings
+Loading to nozzle
+Loud
+Make sure the     \nfilament is       \ninserted through  \nthe sensor.       
+Mesh Bed Level.
+Mesh bed leveling failed?
+MESSAGES
+Messages
+Move Axis
+Move E
+Move X
+Move Y
+Move Z
+NO
+No filament sensor detected. Verify that the sensor is connected and try again.
+No USB
+Now, let's calibrate\nthe distance       \nbetween the tip    \nof the nozzle and  \nthe print sheet.   
+Nozzle
+Nozzle is too cold.
+Off
+On
+On restart
+Once
+Once the printer   \nstarts extruding   \nplastic, adjust    \nthe nozzle height  \nby turning the knob\nuntil the filament \nsticks to the print\nsheet.
+Parking
+Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off printer immediately!
+Please clean the nozzle for calibration. Click NEXT when done.
+Please insert a USB drive and try again.
+Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware
+Please place steel sheet on heatbed.
+Please remove steel sheet from heatbed.
+Please wait
+PREHEAT
+Preheat
+PREHEAT for LOAD
+PREHEAT for UNLOAD
+Preparing to ram
+Press CONTINUE and\npush filament into\nthe extruder.     
+Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly.
+Print
+Print Fan
+Print will end
+Printing time
+PURGE FILAMENT
+Purge Filament
+Purging
+QR test
+Ramming
+REHEAT
+Remaining Time
+RESET PRINTER
+RETRY
+Save Crash Dump
+Save settings
+Select filament type
+Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk.
+SelfTest
+SELFTEST
+Send Info by QR
+Service
+Settings
+Settings successfully loaded
+Silent
+Sound Mode
+Sound Type
+Speed
+StandardAlert
+StandardPrompt
+Static IPv4 addresses were not set.
+Statistic
+STOP
+Support
+System Info
+TEMPERATURE
+Temperature
+Test
+The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration.
+The printer is not calibrated. Start First Layer Calibration?
+The selftest failed\nto finish.         \nDouble-check the   \nprinter's wiring   \nand axes.          \nThen restart       \nthe Selftest.      
+The settings have been saved successfully in the \lan_settings.ini\ file.
+The status bar is at\nthe bottom of the  \nscreen. It contains\ninformation about: \n - Nozzle temp.    \n - Heatbed temp.   \n - Printing speed  \n - Z-axis height   \n - Selected filament
+The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration.
+There was an error saving the settings in the \lan_settings.ini\ file.
+This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?
+Timeout
+TUNE
+UNLOAD FILAMENT
+Unload Filament
+Unloading
+Unparking
+USB Disk is not ready!
+USB Disk is Write protected!
+VERSION INFO
+Version Info
+Waiting for temp.
+Welcome to the Original Prusa MINI setup wizard. Would you like to continue?
+Wizard
+WIZARD
+WIZARD - OK
+XYZ CALIBRATION
+YES

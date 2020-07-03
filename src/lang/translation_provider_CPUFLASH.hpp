@@ -3,6 +3,7 @@
 #include "string_view_utf8.hpp"
 #include "translation_provider.hpp"
 #include "string_hash.hpp"
+#include "translator.hpp"
 
 /// hash function suitable for EN texts from http://www.cse.yorku.ca/~oz/hash.html
 struct hash_djb2 {
@@ -43,107 +44,31 @@ public:
     virtual string_view_utf8 GetText(const char *key) const {
         uint16_t stringIndex = hash_table.find((const uint8_t *)key);
         const uint8_t *utf8raw = StringTableAt(stringIndex);
-        // @@TODO verify non-nullptr result
-        return string_view_utf8::MakeCPUFLASH(utf8raw);
+        return utf8raw ? string_view_utf8::MakeCPUFLASH(utf8raw) : string_view_utf8::MakeNULLSTR();
     }
 
+#ifndef TRANSLATIONS_UNITTEST
 protected:
+#endif
     static SHashTable hash_table; ///< shared among all of the derived providers
+
+    /// @returns pointer to translated string (utf8 data) or nullptr if out of range
     virtual const uint8_t *StringTableAt(uint16_t stringIndex) const = 0;
 };
 
-/// Wrappers of statically precomputed translation data for each language
-class StringTableCS {
-    // this will get statically precomputed for each translation language separately
-    static const uint16_t stringBegins[];
-    // a piece of memory where the null-terminated strings are situated
-    static const uint8_t utf8Raw[];
-
-public:
-    inline static const uint8_t *At(uint16_t stringIndex) {
-        // @@TODO check the range
-        return utf8Raw + stringBegins[stringIndex];
-    }
-};
-
-class StringTablePL {
-    // this will get statically precomputed for each translation language separately
-    static const uint16_t stringBegins[];
-    // a piece of memory where the null-terminated strings are situated
-    static const uint8_t utf8Raw[];
-
-public:
-    inline static const uint8_t *At(uint16_t stringIndex) {
-        // @@TODO check the range
-        return utf8Raw + stringBegins[stringIndex];
-    }
-};
-
-class StringTableES {
-    // this will get statically precomputed for each translation language separately
-    static const uint16_t stringBegins[];
-    // a piece of memory where the null-terminated strings are situated
-    static const uint8_t utf8Raw[];
-
-public:
-    inline static const uint8_t *At(uint16_t stringIndex) {
-        // @@TODO check the range
-        return utf8Raw + stringBegins[stringIndex];
-    }
-};
-
-class StringTableFR {
-    // this will get statically precomputed for each translation language separately
-    static const uint16_t stringBegins[];
-    // a piece of memory where the null-terminated strings are situated
-    static const uint8_t utf8Raw[];
-
-public:
-    inline static const uint8_t *At(uint16_t stringIndex) {
-        // @@TODO check the range
-        return utf8Raw + stringBegins[stringIndex];
-    }
-};
-
-class StringTableDE {
-    // this will get statically precomputed for each translation language separately
-    static const uint16_t stringBegins[];
-    // a piece of memory where the null-terminated strings are situated
-    static const uint8_t utf8Raw[];
-
-public:
-    inline static const uint8_t *At(uint16_t stringIndex) {
-        // @@TODO check the range
-        return utf8Raw + stringBegins[stringIndex];
-    }
-};
-
-class StringTableIT {
-    // this will get statically precomputed for each translation language separately
-    static const uint16_t stringBegins[];
-    // a piece of memory where the null-terminated strings are situated
-    static const uint8_t utf8Raw[];
-
-public:
-    inline static const uint8_t *At(uint16_t stringIndex) {
-        // @@TODO check the range
-        return utf8Raw + stringBegins[stringIndex];
-    }
-};
-
-template <typename RawData>
+template <typename RD>
 class CPUFLASHTranslationProvider : public CPUFLASHTranslationProviderBase {
+    typedef RD RawData;
     static const RawData rawData;
-
+#ifndef TRANSLATIONS_UNITTEST
 protected:
+#else
+public:
+#endif
     virtual const uint8_t *StringTableAt(uint16_t stringIndex) const {
-        return rawData.At(stringIndex);
+        return
+            //           ( stringIndex < (sizeof(rawData.stringBegins) / sizeof(rawData.stringBegins[0])) ) ?
+            rawData.utf8Raw + rawData.stringBegins[stringIndex];
+        //                : nullptr ;
     }
 };
-
-using CPUFLASHTranslationProviderCS = CPUFLASHTranslationProvider<StringTableCS>;
-using CPUFLASHTranslationProviderPL = CPUFLASHTranslationProvider<StringTablePL>;
-using CPUFLASHTranslationProviderES = CPUFLASHTranslationProvider<StringTableES>;
-using CPUFLASHTranslationProviderFR = CPUFLASHTranslationProvider<StringTableFR>;
-using CPUFLASHTranslationProviderDE = CPUFLASHTranslationProvider<StringTableDE>;
-using CPUFLASHTranslationProviderIT = CPUFLASHTranslationProvider<StringTableIT>;

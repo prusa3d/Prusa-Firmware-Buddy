@@ -31,4 +31,19 @@ public:
     inline const ITranslationProvider *CurrentProvider() const {
         return currentProvider;
     }
+    /// takes input 2-character string (e.g. "cs") and transforms it into numerical lang code
+    /// ... basically copies the two chars into an uint16_t, but this function is here to make
+    /// sure this operation is done in a same manner at all places necessary.
+    /// Basically the compiler should emit at most the one instruction necessary for this function
+    inline static uint16_t MakeLangCode(const char *langCode) {
+        const uint8_t *lcu = reinterpret_cast<const uint8_t *>(langCode); // make sure it is unsigned so that shifting the bits below
+        // does not cause signed bit extension
+        return uint16_t(lcu[1] << 8) + lcu[0];
+    }
+};
+
+struct ProviderRegistrator {
+    ProviderRegistrator(const char *langCode, ITranslationProvider *provider) {
+        Translations::Instance().RegisterProvider(Translations::MakeLangCode(langCode), provider);
+    }
 };
