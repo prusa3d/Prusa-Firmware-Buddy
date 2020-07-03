@@ -95,9 +95,9 @@ struct String {
     uint32_t hash;
     string s;
     uint16_t index; // index of string in input table
-    inline String(uint32_t hash, string &&s, uint16_t index)
+    inline String(uint32_t hash, const string &s, uint16_t index)
         : hash(hash)
-        , s(move(s))
+        , s(s)
         , index(index) {}
 };
 
@@ -116,7 +116,8 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
             getline(f, s);
             if (!s.empty()) {            // beware of empty strings
                 rawStrings.push_back(s); // make a copy of the string
-                workStrings.emplace_back(String(SHTable::Hash((const unsigned char *)s.c_str()), move(s), index));
+                workStrings.emplace_back(String(SHTable::Hash((const unsigned char *)s.c_str()), s, index));
+                REQUIRE(rawStrings.back() == s);
                 ++index;
             }
         } while (f.good());

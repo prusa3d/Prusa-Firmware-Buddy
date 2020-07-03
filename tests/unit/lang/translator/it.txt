@@ -1,0 +1,162 @@
+\nVersione Bootloader\n%d.%d.%d\n\nScheda Buddy\n%d.%d.%d\n%s
+Un rapporto di crash dump (file dump.bin) è stato salvato sul drive USB.
+Tutti i test completati correttamente!
+Sempre
+Applica
+Vuoi interrompere la stampa?
+Assistenza
+Auto Home
+AutTn
+INDIETRO
+BlindAlert
+ButtonEcho
+Calibrazione
+Calibrazione completa!\nBuona stampa!
+CAMBIO FILAMENTO
+Cambia filamento
+Pulire lastra d'acciaio.
+Congratulazioni! Calibrazione XYZ ok. Assi XY sono perpendicolari.
+CONTINUA
+Raffredda
+DISATTIVA SENSORE
+Disabilita motori
+Vuoi ripetere\nl'ultimo passo e \nregolare ancora la\ndistanza tra ugello\ne piano riscaldato?
+Vuoi usare il valore\nattuale?\nAttuale: %0.3f.\nPredef: %0.3f.\nPremi NO per usare il val. predef. (consigliato)
+Usare l'ultimo valore impostato? Ultimo: %0.3f. Predef.: %0.3f. Premi NO per usare il valore predefinito.
+Espulsione
+EncoderMove
+Errore salvando il rapporto di crash dump sul drive USB. Reinserire la chiavetta USB e riprovare.
+Tutto funzionante. Eseguirò adesso la calibrazione XYZ. Richiederà circa 12 minuti.
+Factory defaults loaded. The system will now restart.\nImpostazioni di fabbrica caricate. Riavvio sistema.
+Ripristino impostazioni di fabbrica
+Stat. fallimenti
+Sens. fil.
+FILAMENTO
+Filamento
+Completamento\ngcode bufferizzati.
+Versione Firmware
+Calib. primo layer
+CALIB. PRIMO LAYER
+Fattore di flusso
+AGGIORNAMENTO FW
+Aggiornamento FW
+Piano riscaldato
+Riscaldamento disattivato dopo 30 minuti di inattività.
+Ciao, questa è\nla tua \nOriginal Prusa MINI.
+HOME
+Home
+Nel prossimo passo,\nusa la manopola per\nregolare l'altezza\nugello. Controlla le\nimmagini sul\nmanuale per rifer.
+INFO
+Info
+Inserimento
+Indirizzo IP non valido o il file \lan_settings.ini\ non si trova nella root della memoria USB.
+Indirizzi IP o parametri non validi o il file \lan_settings.ini\ non presente nella directory principale del drive USB.
+Colore corretto?
+Il filamento è\nnell'ingranaggio\ndell'estrusore?
+La piastra d'acciaio è sul piano riscaldato?
+IMPOSTAZIONI LAN
+Impostazioni Lan
+Regolazione Z
+CARICA FILAMENTO
+Carica filamento
+Carica impostazioni
+Caricamento ugello
+Forte
+Accertati che\nil filamento\npassi attraverso\nil sensore.
+Liv. griglia piano.
+Mesh bed leveling failed?\nLiv. griglia piano non riuscito?
+MESSAGGI
+Messaggi
+Sposta asse
+Sposta E
+Sposta X
+Sposta Y
+Sposta Z
+NO
+No filament sensor detected. Verify that the sensor is connected and try again.\nSensore filamento non rilevato. Verificare il collegamento e riprovare.
+No USB
+Ora, calibriamo la\ndistanza tra la \npunta dell'ugello e\nil piano di stampa.
+Ugello
+Ugello troppo freddo.
+Off
+On
+Al riavvio
+Una volta
+Appena la stampante\ninizia ad estrudere\nla plastica, regola\nl'altezza ugello\nruotando la manopola\nfinché il filamento\nsi attacca alla\nsuperficie di stampa.
+Parking
+Posiziona un foglio di carta sotto l'ugello durante la calib. dei primi 4 punti. Se l'ugello prende la carta, spegni la stampante immediatamente!
+Pure l'ugello per calibrare. Poi premi su SUCCESSIVO.
+Inserire un drive USB e riprovare.
+Inserisci il drive\nUSB fornito con\nla MINI e reimposta\nla stampante per \naggiornare il \nfirmware
+Posiziona la piastra sul piano riscaldato.
+Rimuovi la lastra d'acciaio dal piano riscaldato.
+Attendere
+PRERISCALDA
+Preriscalda
+PRERIS. per CARICARE
+PRERISCALDA per SCARICARE
+Preparazione al ram
+Premi CONTINUA e \nspingi il filamento \nnell'estrusore.
+Premi SUCCESSIVO per\navviare l'autotest,\nper controllare \neventuali problemi\nlegati al montaggio. 
+Stampa
+Ventola di stampa
+La stampa terminerà
+Tempo di stampa
+SPURGA FILAMENTO
+Spurgo filamento
+Spurgo
+Test QR
+Ramming
+RISCALDA
+Tempo Ramming
+RESET STAMPANTE
+RIPROVA
+Salvare Crash Dump
+Salva impostazioni
+Seleziona tipo filamento
+Seleziona quando vuoi\naggiornare automaticamente\nil nuovo firmware\nda penna USB.
+AutoTest
+AUTOTEST
+Invia info con QR
+Assistenza
+Impostazioni
+Impostazioni caricate correttamente
+Silenzioso
+Modo suono
+Tipo suono
+Velocità
+StandardAlert
+StandardPrompt
+Indirizzo statico IPv4 non impostato.
+Statistiche
+STOP
+Supporto
+Info di sistema
+TEMPERATURE
+Temperature
+Test
+Calib. primo layer non riuscita. Ricontrolla il cablaggio, assi e ugello, quindi ripeti la calibrazione.
+Stampante non calibrata. Avviare Calibrazione primo layer?
+Autotest non\nriuscito.\nRicontrolla il\ncablaggio e gli \nassi. Poi ripeti\nl'autotest.
+Impostazioni salvate correttamente nel file \lan_settings.ini\.
+La barra di stato è\nin basso. Contiene\ninformazioni su:\n - Temp. Ugello\n - Temp. PianoRisc.\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato 
+Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quindi ripeti la calibrazione XYZ.
+Errore nel salvataggio delle impostazioni nel file \lan_settings.ini\.
+Questa operazione non può essere annullata, la configurazione attuale andrà persa! Siete davvero sicuri di ripristinare le impostazioni di fabbrica?
+Timeout
+REGOLA
+SCARICA FILAMENTO
+Scarica filamento
+Scaricamento
+Unparking
+Disco USB non pronto!
+Il disco USB è protetto da scrittura!
+INFO VERSIONE
+Info versione
+In attesa di temp.
+Benvenuto nella configurazione guidata Original Prusa MINI. Vuoi continuare?
+Configurazione guidata
+WIZARD
+WIZARD - OK
+CALIBRAZIONE XYZ
+SI

@@ -62,7 +62,47 @@ const uint8_t StringTableCS::utf8Raw[] = "abcd";
 template <>
 const CPUFLASHTranslationProviderCS::RawData CPUFLASHTranslationProviderCS::rawData;
 
+const uint16_t StringTableDE::stringBegins[] = { 1, 2, 3, 4 };
+const uint8_t StringTableDE::utf8Raw[] = "abcd";
+template <>
+const CPUFLASHTranslationProviderDE::RawData CPUFLASHTranslationProviderDE::rawData;
+
+const uint16_t StringTableES::stringBegins[] = { 1, 2, 3, 4 };
+const uint8_t StringTableES::utf8Raw[] = "abcd";
+template <>
+const CPUFLASHTranslationProviderES::RawData CPUFLASHTranslationProviderES::rawData;
+
+const uint16_t StringTableFR::stringBegins[] = { 1, 2, 3, 4 };
+const uint8_t StringTableFR::utf8Raw[] = "abcd";
+template <>
+const CPUFLASHTranslationProviderFR::RawData CPUFLASHTranslationProviderFR::rawData;
+
+const uint16_t StringTableIT::stringBegins[] = { 1, 2, 3, 4 };
+const uint8_t StringTableIT::utf8Raw[] = "abcd";
+template <>
+const CPUFLASHTranslationProviderIT::RawData CPUFLASHTranslationProviderIT::rawData;
+
+const uint16_t StringTablePL::stringBegins[] = { 1, 2, 3, 4 };
+const uint8_t StringTablePL::utf8Raw[] = "abcd";
+template <>
+const CPUFLASHTranslationProviderPL::RawData CPUFLASHTranslationProviderPL::rawData;
+
 namespace {
 CPUFLASHTranslationProviderCS cs;
 ProviderRegistrator csReg("cs", &cs);
+
+CPUFLASHTranslationProviderDE de;
+ProviderRegistrator deReg("de", &de);
+
+CPUFLASHTranslationProviderES es;
+ProviderRegistrator esReg("es", &es);
+
+CPUFLASHTranslationProviderFR fr;
+ProviderRegistrator frReg("fr", &fr);
+
+CPUFLASHTranslationProviderIT it;
+ProviderRegistrator itReg("it", &it);
+
+CPUFLASHTranslationProviderPL pl;
+ProviderRegistrator plReg("pl", &pl);
 }
