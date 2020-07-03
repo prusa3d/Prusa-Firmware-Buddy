@@ -73,11 +73,6 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
 /// window-init call-back
 /// Default setting
 void window_qr_init(window_qr_t *window) {
-    window->border = 4;
-    window->px_per_module = 3;
-    window->bg_color = COLOR_WHITE;
-    window->px_color = COLOR_BLACK;
-    window->align = ALIGN_CENTER;
 }
 
 /// window-draw call-back
