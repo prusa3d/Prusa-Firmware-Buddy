@@ -8,7 +8,7 @@
 #include "qrcodegen.h"
 
 /// QR API
-/// TODO create separate class
+/// TODO create separate class somewhere else
 
 /// private
 bool generate_qr_nobuff(const char *text, uint8_t qrcode[]) {
