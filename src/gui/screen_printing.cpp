@@ -510,7 +510,7 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t prin
         strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%MM", &print_end);
     } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
         tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
-        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Tommorow at %H:%MM", &print_end);
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
     } else {
         strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%MM", &print_end);
     }
