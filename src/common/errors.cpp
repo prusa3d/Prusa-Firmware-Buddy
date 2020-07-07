@@ -2,8 +2,18 @@
 #include "str_utils.hpp"
 #include <inttypes.h>
 
+static constexpr uint8_t ERR_PRINTER_CODE = 12;
+
 /// main error-table
 static constexpr err_t error_list[] = {
+    { "Heating failed",
+        "Check the heatbed heater & thermistor wiring for possible damage.",
+        ERR_TEMPERATURE_HEATING_BED },
+
+    { "Heating failed",
+        "Check the print head heater & thermistor wiring for possible damage.",
+        ERR_TEMPERATURE_HEATING_NOZZLE },
+
     { { // first item for 'not found'-usage
           ERR_CAT_UNDEF,
           ERR_SUBCAT_UNDEF,
