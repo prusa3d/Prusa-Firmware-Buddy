@@ -29,6 +29,14 @@ typedef enum : int16_t {
     ERR_OTHER = 900
 } err_num_t;
 
+typedef struct {
+    // 32 bit
+    const char *err_title;
+    const char *err_text;
+    // 16 bit
+    err_num_t err_num;
+} err_t;
+
 static constexpr err_t error_list[] = {
     { "Heating failed",
         "Check the heatbed heater & thermistor wiring for possible damage.",
