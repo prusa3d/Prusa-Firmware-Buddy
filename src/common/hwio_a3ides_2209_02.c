@@ -479,8 +479,6 @@ uint8_t adc_seq2idx(uint8_t seq) {
 void hwio_arduino_error(int err, uint32_t pin32) {
     const int text_max_len = 64;
     char text[text_max_len];
-    if ((err == HWIO_ERR_UNINI_DIG_WR) && (pin32 == PIN_BEEPER))
-        return; //ignore BEEPER write
 
     strlcat(text, "HWIO error\n", text_max_len);
     switch (err) {
@@ -574,8 +572,6 @@ int digitalRead(uint32_t ulPin) {
 void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
     if (HAL_GPIO_Initialized) {
         switch (ulPin) {
-        case PIN_BEEPER:
-            return;
         case PIN_HEATER_BED:
             //hwio_heater_set_pwm(_HEATER_BED, ulVal?255:0);
 #ifdef SIM_HEATER_BED_ADC

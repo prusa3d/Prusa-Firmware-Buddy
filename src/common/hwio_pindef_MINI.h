@@ -3,7 +3,6 @@
 #ifndef _HWIO_PINDEF_H
 #define _HWIO_PINDEF_H
 
-#define PIN_BEEPER         TPA0
 #define PIN_HW_IDENTIFY    TPA3
 #define PIN_TEMP_BED       TPA4
 #define PIN_THERM2         TPA5
