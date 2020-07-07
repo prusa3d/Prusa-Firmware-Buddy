@@ -42,7 +42,7 @@ private:
     uint32_t _delay;    ///< live variable used for delay measure
     uint32_t delay;     ///< added variable for delay betwen beeps
 
-    static constexpr float volumeInit = 0.5F;
+    static constexpr float volumeInit = 0.35F;
     /// values of sound signals - frequencies, volumes, durations
     static const uint32_t durations[eSOUND_TYPE_count];
     static const float frequencies[eSOUND_TYPE_count];
