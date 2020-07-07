@@ -29,7 +29,6 @@ typedef enum : int16_t {
 
 typedef struct {
     // 32 bit
-    const char *err_sign;
     const char *err_title;
     const char *err_text;
     // 16 bit
