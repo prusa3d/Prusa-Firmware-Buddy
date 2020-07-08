@@ -143,7 +143,7 @@ public:
      */
     GPIO_PinState read() {
         GPIO_PinState bitstatus;
-        if ((m_halPort->ODR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+        if ((m_halPort->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
             bitstatus = GPIO_PIN_SET;
         } else {
             bitstatus = GPIO_PIN_RESET;
