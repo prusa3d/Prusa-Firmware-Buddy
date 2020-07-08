@@ -27,13 +27,6 @@
 #define _DO_Y_ENABLE 10 // PD14
 #define _DO_Z_DIR    11 // PD15
 
-//a3ides analog inputs
-#define _ADC_HW_IDENTIFY    0 // PA3 - chan 3
-#define _ADC_TEMP_BED       1 // PA4 - chan 4
-#define _ADC_TEMP_2         2 // PA5 - chan 5
-#define _ADC_TEMP_HEATBREAK 3 // PA6 - chan 6
-#define _ADC_TEMP_0         4 // PC0 - chan 10
-
 //a3ides pwm outputs
 #define _PWM_HEATER_BED 0 //
 #define _PWM_HEATER_0   1 //

@@ -17,8 +17,8 @@ void hwio_safe_state(void) {
         hwio_heater_set_pwm(i, 0);
 
     //enable 1 means disable :(
-    digitalWrite(PIN_X_ENABLE, 1);
-    digitalWrite(PIN_Y_ENABLE, 1);
-    digitalWrite(PIN_Z_ENABLE, 1);
-    digitalWrite(PIN_E_ENABLE, 1);
+    xEnable.write(GPIO_PinState::GPIO_PIN_SET);
+    yEnable.write(GPIO_PinState::GPIO_PIN_SET);
+    zEnable.write(GPIO_PinState::GPIO_PIN_SET);
+    e0Enable.write(GPIO_PinState::GPIO_PIN_SET);
 }

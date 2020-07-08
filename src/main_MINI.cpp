@@ -59,6 +59,8 @@
 #include "timer_defaults.h"
 #include "thread_measurement.h"
 #include "Z_probe.h"
+#include "hwio_pindef_MINI.h"
+#include "gui.hpp"
 
 /* USER CODE END Includes */
 
@@ -134,10 +136,6 @@ void iwdg_warning_cb(void);
 
 /* USER CODE BEGIN PFP */
 
-extern void gui_run(void);
-
-extern void Error_Handler(void);
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -158,6 +156,26 @@ volatile uint32_t Tacho_FAN1;
 
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
+
+InputPin zMin(static_cast<IoPort>(MARLIN_PORT_Z_MIN), static_cast<IoPin>(MARLIN_PIN_Z_MIN), IMode::IT_faling, Pull::up);
+InputPin xDiag(static_cast<IoPort>(MARLIN_PORT_X_DIAG), static_cast<IoPin>(MARLIN_PIN_X_DIAG), IMode::input, Pull::none);
+InputPin yDiag(static_cast<IoPort>(MARLIN_PORT_Y_DIAG), static_cast<IoPin>(MARLIN_PIN_Y_DIAG), IMode::input, Pull::none);
+InputPin zDiag(static_cast<IoPort>(MARLIN_PORT_Z_DIAG), static_cast<IoPin>(MARLIN_PIN_Z_DIAG), IMode::input, Pull::none);
+InputPin e0Diag(static_cast<IoPort>(MARLIN_PORT_E0_DIAG), static_cast<IoPin>(MARLIN_PIN_E0_DIAG), IMode::input, Pull::none);
+
+OutputPin xEnable(static_cast<IoPort>(MARLIN_PORT_X_ENA), static_cast<IoPin>(MARLIN_PIN_X_ENA), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin yEnable(static_cast<IoPort>(MARLIN_PORT_Y_ENA), static_cast<IoPin>(MARLIN_PIN_Y_ENA), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin zEnable(static_cast<IoPort>(MARLIN_PORT_Z_ENA), static_cast<IoPin>(MARLIN_PIN_Z_ENA), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin e0Enable(static_cast<IoPort>(MARLIN_PORT_E0_ENA), static_cast<IoPin>(MARLIN_PIN_E0_ENA), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin xStep(static_cast<IoPort>(MARLIN_PORT_X_STEP), static_cast<IoPin>(MARLIN_PIN_X_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin yStep(static_cast<IoPort>(MARLIN_PORT_Y_STEP), static_cast<IoPin>(MARLIN_PIN_Y_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin zStep(static_cast<IoPort>(MARLIN_PORT_Z_STEP), static_cast<IoPin>(MARLIN_PIN_Z_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin e0Step(static_cast<IoPort>(MARLIN_PORT_E0_STEP), static_cast<IoPin>(MARLIN_PIN_E0_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin xDir(static_cast<IoPort>(MARLIN_PORT_X_DIR), static_cast<IoPin>(MARLIN_PIN_X_DIR), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin yDir(static_cast<IoPort>(MARLIN_PORT_Y_DIR), static_cast<IoPin>(MARLIN_PIN_Y_DIR), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin zDir(static_cast<IoPort>(MARLIN_PORT_Z_DIR), static_cast<IoPin>(MARLIN_PIN_Z_DIR), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin e0Dir(static_cast<IoPort>(MARLIN_PORT_E0_DIR), static_cast<IoPin>(MARLIN_PIN_E0_DIR), InitState::reset, OMode::pushPull, OSpeed::low);
+
 /* USER CODE END 0 */
 
 /**
@@ -857,12 +875,12 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(GPIOC, ESP_RST_Pin | LCD_RST_Pin | LCD_CS_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOD, E_DIR_Pin | E_STEP_Pin | E_ENA_Pin | LCD_RS_Pin | Y_DIR_Pin | Y_STEP_Pin | Y_ENA_Pin | Z_DIR_Pin | X_DIR_Pin | X_STEP_Pin | Z_ENA_Pin | X_ENA_Pin | Z_STEP_Pin | FLASH_CSN_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, LCD_RS_Pin | FLASH_CSN_Pin, GPIO_PIN_RESET);
 
-    /*Configure GPIO pins : X_DIAG_Pin Z_DIAG_Pin USB_OVERC_Pin ESP_GPIO0_Pin
-                           BED_MON_Pin WP1_Pin Z_DIAGE1_Pin */
-    GPIO_InitStruct.Pin = X_DIAG_Pin | Z_DIAG_Pin | USB_OVERC_Pin | ESP_GPIO0_Pin
-        | BED_MON_Pin | WP1_Pin | Z_DIAGE1_Pin;
+    /*Configure GPIO pins : USB_OVERC_Pin ESP_GPIO0_Pin
+                           BED_MON_Pin WP1_Pin */
+    GPIO_InitStruct.Pin = USB_OVERC_Pin | ESP_GPIO0_Pin
+        | BED_MON_Pin | WP1_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -893,30 +911,15 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : E_DIR_Pin E_STEP_Pin E_ENA_Pin LCD_RS_Pin
-                           Y_DIR_Pin Y_STEP_Pin Y_ENA_Pin Z_DIR_Pin
-                           X_DIR_Pin X_STEP_Pin Z_ENA_Pin X_ENA_Pin
-                           Z_STEP_Pin FLASH_CSN_Pin */
-    GPIO_InitStruct.Pin = E_DIR_Pin | E_STEP_Pin | E_ENA_Pin | LCD_RS_Pin
-        | Y_DIR_Pin | Y_STEP_Pin | Y_ENA_Pin | Z_DIR_Pin
-        | X_DIR_Pin | X_STEP_Pin | Z_ENA_Pin | X_ENA_Pin
-        | Z_STEP_Pin | FLASH_CSN_Pin;
+    /*Configure GPIO pins : LCD_RS_Pin
+                           FLASH_CSN_Pin */
+    GPIO_InitStruct.Pin = LCD_RS_Pin | FLASH_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-    /*Configure GPIO pin : Z_MIN_Pin */
-    GPIO_InitStruct.Pin = Z_MIN_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(Z_MIN_GPIO_Port, &GPIO_InitStruct);
-
-    /*Configure GPIO pin : E_DIAG_Pin */
-    GPIO_InitStruct.Pin = E_DIAG_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(E_DIAG_GPIO_Port, &GPIO_InitStruct);
+    ConfigurableIndestructible::configure_all();
 
     /*Configure GPIO pins : FIL_SENSOR_Pin WP2_Pin */
     GPIO_InitStruct.Pin = FIL_SENSOR_Pin | WP2_Pin;

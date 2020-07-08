@@ -157,7 +157,7 @@ int putslave_do_cmd_q_adc(uartslave_t *pslave, char *pstr) {
         return UARTSLAVE_ERR_SYN;
     if ((adc < 0) || (adc > 4))
         return UARTSLAVE_ERR_OOR;
-    uartslave_printf(pslave, "%d ", hwio_adc_get_val(adc));
+    uartslave_printf(pslave, "%d ", hwio_adc_get_val(static_cast<ADC_t>(adc)));
     return UARTSLAVE_OK;
 }
 
