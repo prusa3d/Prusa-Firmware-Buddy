@@ -3,6 +3,7 @@
 #include "dbg.h"
 #include <stdarg.h>
 #include "stm32f4xx_hal.h"
+#include "cmath_ext.h"
 
 #ifndef _DEBUG
     #define DBG_MAXLINE 128
