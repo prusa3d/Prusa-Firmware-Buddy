@@ -105,7 +105,12 @@ private:
     const Pull m_pull;
 };
 
-enum class OMode {
+enum class InitState : uint8_t {
+    reset = GPIO_PinState::GPIO_PIN_RESET,
+    set = GPIO_PinState::GPIO_PIN_SET,
+};
+
+enum class OMode : uint8_t {
     pushPull = GPIO_MODE_OUTPUT_PP,
     openDrain = GPIO_MODE_OUTPUT_OD,
 };
@@ -124,8 +129,9 @@ enum class OSpeed : uint8_t {
 
 class OutputPin : private ConfigurableIndestructible, public Pin {
 public:
-    OutputPin(IoPort ioPort, IoPin ioPin, OMode oMode, OSpeed oSpeed)
+    OutputPin(IoPort ioPort, IoPin ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
         : Pin(ioPort, ioPin)
+        , m_initState(initState)
         , m_mode(oMode)
         , m_speed(oSpeed) {}
     /**
@@ -150,6 +156,7 @@ public:
 
 private:
     void configure() override;
+    const InitState m_initState;
     const OMode m_mode;
     const OSpeed m_speed;
 };

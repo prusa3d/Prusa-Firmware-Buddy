@@ -32,6 +32,7 @@ void InputPin::configure() {
 }
 
 void OutputPin::configure() {
+    HAL_GPIO_WritePin(m_halPort, m_halPin, static_cast<GPIO_PinState>(m_initState));
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
