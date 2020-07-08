@@ -71,20 +71,12 @@ screen_t screen_printing_serial = {
 screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
 static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
-    if (p_button->GetIdRes() != serial_printing_icons[id_to_set])
-        p_button->SetIdRes(serial_printing_icons[id_to_set]);
+    size_t index_id = static_cast<size_t>(id_to_set);
+    if (p_button->GetIdRes() != serial_printing_icons[index_id])
+        p_button->SetIdRes(serial_printing_icons[index_id]);
     //compare pointers to text, compare texts would take too long
-    if (lbl->GetText() != serial_printing_labels[id_to_set])
-        lbl->SetText(serial_printing_labels[id_to_set]);
-// =======
-// static void set_icon_and_label(item_id_t id_to_set, int16_t btn_id, int16_t lbl_id) {
-//     size_t index_id = static_cast<size_t>(id_to_set);
-//     if (window_get_icon_id(btn_id) != serial_printing_icons[index_id])
-//         window_set_icon_id(btn_id, serial_printing_icons[index_id]);
-//     //compare pointers to text, compare texts would take too long
-//     if (window_get_text(lbl_id) != serial_printing_labels[index_id])
-//         window_set_text(lbl_id, serial_printing_labels[index_id]);
-// >>>>>>> RELEASE-4.1.0
+    if (lbl->GetText() != serial_printing_labels[index_id])
+        lbl->SetText(serial_printing_labels[index_id]);
 }
 
 void screen_printing_serial_init(screen_t *screen) {
@@ -131,15 +123,15 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- tune button
     static_assert(static_cast<size_t>(buttons_t::TUNE) < static_cast<size_t>(item_id_t::count), "buttons_t::TUNE not in range of buttons array");
     sp_button = &pw->w_buttons[static_cast<size_t>(buttons_t::TUNE)];
-    set_icon_and_label(item_id_t::tune, sp_button, pw->w_labels[static_cast<size_t>(buttons_t::TUNE)].win.id);
+    set_icon_and_label(item_id_t::tune, sp_button, &pw->w_labels[static_cast<size_t>(buttons_t::TUNE)]);
     // -- pause
     static_assert(static_cast<size_t>(buttons_t::PAUSE) < static_cast<size_t>(item_id_t::count), "PAUSE not in range of buttons array");
     sp_button = &pw->w_buttons[static_cast<size_t>(buttons_t::PAUSE)];
-    set_icon_and_label(item_id_t::pause, sp_button, pw->w_labels[static_cast<size_t>(buttons_t::PAUSE)].win.id);
+    set_icon_and_label(item_id_t::pause, sp_button, &pw->w_labels[static_cast<size_t>(buttons_t::PAUSE)]);
     // -- disconnect
     static_assert(static_cast<size_t>(buttons_t::DISCONNECT) < static_cast<size_t>(item_id_t::count), "DISCONNECT not in range of buttons array");
     sp_button = &pw->w_buttons[static_cast<size_t>(buttons_t::DISCONNECT)];
-    set_icon_and_label(item_id_t::disconnect, sp_button, pw->w_labels[static_cast<size_t>(buttons_t::DISCONNECT)].win.id);
+    set_icon_and_label(item_id_t::disconnect, sp_button, &pw->w_labels[static_cast<size_t>(buttons_t::DISCONNECT)]);
 
     status_footer_init(&(pw->footer), root);
 }
@@ -155,9 +147,9 @@ void screen_printing_serial_draw(screen_t *screen) {
 
 static void disable_button(screen_t *screen, buttons_t b) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(b)];
-    if (!p_button->win.f_disabled) {
-        p_button->win.f_disabled = 1;
-        window_invalidate(p_button->win.id);
+    if (!p_button->f_disabled) {
+        p_button->f_disabled = 1;
+        p_button->Invalidate();
     }
 }
 

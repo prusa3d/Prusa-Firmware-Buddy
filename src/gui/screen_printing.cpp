@@ -552,7 +552,6 @@ static void screen_printing_reprint(screen_t *screen) {
 #endif
 }
 
-<<<<<<< HEAD
 //todo use it
 /*static void mesh_err_stop_print(screen_t *screen) {
     float target_nozzle = marlin_vars()->target_nozzle;
@@ -584,7 +583,7 @@ static void enable_button(window_icon_t *p_button) {
     if (p_button->f_disabled) {
         p_button->f_disabled = 0;
         p_button->f_enabled = 1;
-        window_invalidate(p_button->id);
+        p_button->Invalidate();
     }
 }
 
@@ -592,7 +591,7 @@ static void disable_button(window_icon_t *p_button) {
     if (!p_button->f_disabled) {
         p_button->f_disabled = 1;
         p_button->f_enabled = 0;
-        window_invalidate(p_button->id);
+        p_button->Invalidate();
     }
 }
 
