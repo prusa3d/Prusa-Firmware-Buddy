@@ -24,7 +24,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Fil. sens.");
 
     size_t init_index() const {
-        fsensor_t fs = fs_wait_inicialized();
+        fsensor_t fs = fs_wait_initialized();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
@@ -39,7 +39,7 @@ public:
     MI_FILAMENT_SENSOR()
         : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
     void CheckDisconnected() {
-        fsensor_t fs = fs_wait_inicialized();
+        fsensor_t fs = fs_wait_initialized();
         if (fs == FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
             fs_disable();
             index = 0;
@@ -50,7 +50,7 @@ public:
 protected:
     virtual void OnChange(size_t old_index) {
         old_index == 1 ? fs_disable() : fs_enable();
-        fsensor_t fs = fs_wait_inicialized();
+        fsensor_t fs = fs_wait_initialized();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();

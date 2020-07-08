@@ -95,19 +95,19 @@ Pause &Pause::GetInstance() {
     return s;
 }
 
-void Pause::SetUnloadLenght(float len) {
+void Pause::SetUnloadLength(float len) {
     unload_length = -std::abs(len); // it is negative value
 }
 
-void Pause::SetSlowLoadLenght(float len) {
+void Pause::SetSlowLoadLength(float len) {
     slow_load_length = std::abs(len);
 }
 
-void Pause::SetFastLoadLenght(float len) {
+void Pause::SetFastLoadLength(float len) {
     fast_load_length = std::abs(len);
 }
 
-void Pause::SetPurgeLenght(float len) {
+void Pause::SetPurgeLength(float len) {
     purge_length = std::max(std::abs(len), (float)minimal_purge);
 }
 

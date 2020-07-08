@@ -674,8 +674,8 @@ int32_t cvariant8::get_valid_int() const {
     }
 }
 
-//used by assigment operators like +=
-cvariant8 &cvariant8::assigment_operator_x(const cvariant8 &rhs, cvariant8::operator_x op) {
+//used by assignment operators like +=
+cvariant8 &cvariant8::assignment_operator_x(const cvariant8 &rhs, cvariant8::operator_x op) {
     if (type == rhs.type) {
         switch (type) {
         case VARIANT8_I8:
@@ -702,7 +702,7 @@ cvariant8 &cvariant8::assigment_operator_x(const cvariant8 &rhs, cvariant8::oper
         case VARIANT8_EMPTY: //empty is fine
             break;
         default:
-            //unsuported types set error
+            //unsupported types set error
             type = VARIANT8_ERROR;
             break;
         }
