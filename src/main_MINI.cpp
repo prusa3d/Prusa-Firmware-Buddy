@@ -163,10 +163,10 @@ InputPin yDiag(static_cast<IoPort>(MARLIN_PORT_Y_DIAG), static_cast<IoPin>(MARLI
 InputPin zDiag(static_cast<IoPort>(MARLIN_PORT_Z_DIAG), static_cast<IoPin>(MARLIN_PIN_Z_DIAG), IMode::input, Pull::none);
 InputPin e0Diag(static_cast<IoPort>(MARLIN_PORT_E0_DIAG), static_cast<IoPin>(MARLIN_PIN_E0_DIAG), IMode::input, Pull::none);
 
-OutputPin xEnable(static_cast<IoPort>(MARLIN_PORT_X_ENA), static_cast<IoPin>(MARLIN_PIN_X_ENA), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin yEnable(static_cast<IoPort>(MARLIN_PORT_Y_ENA), static_cast<IoPin>(MARLIN_PIN_Y_ENA), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin zEnable(static_cast<IoPort>(MARLIN_PORT_Z_ENA), static_cast<IoPin>(MARLIN_PIN_Z_ENA), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin e0Enable(static_cast<IoPort>(MARLIN_PORT_E0_ENA), static_cast<IoPin>(MARLIN_PIN_E0_ENA), InitState::reset, OMode::pushPull, OSpeed::low);
+OutputPin xEnable(static_cast<IoPort>(MARLIN_PORT_X_ENA), static_cast<IoPin>(MARLIN_PIN_X_ENA), InitState::set, OMode::pushPull, OSpeed::low);
+OutputPin yEnable(static_cast<IoPort>(MARLIN_PORT_Y_ENA), static_cast<IoPin>(MARLIN_PIN_Y_ENA), InitState::set, OMode::pushPull, OSpeed::low);
+OutputPin zEnable(static_cast<IoPort>(MARLIN_PORT_Z_ENA), static_cast<IoPin>(MARLIN_PIN_Z_ENA), InitState::set, OMode::pushPull, OSpeed::low);
+OutputPin e0Enable(static_cast<IoPort>(MARLIN_PORT_E0_ENA), static_cast<IoPin>(MARLIN_PIN_E0_ENA), InitState::set, OMode::pushPull, OSpeed::low);
 OutputPin xStep(static_cast<IoPort>(MARLIN_PORT_X_STEP), static_cast<IoPin>(MARLIN_PIN_X_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
 OutputPin yStep(static_cast<IoPort>(MARLIN_PORT_Y_STEP), static_cast<IoPin>(MARLIN_PIN_Y_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
 OutputPin zStep(static_cast<IoPort>(MARLIN_PORT_Z_STEP), static_cast<IoPin>(MARLIN_PIN_Z_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
