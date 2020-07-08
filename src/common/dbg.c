@@ -43,15 +43,23 @@ static inline void _dbg_unlock(void) {
 
 void _dbg_swo(const char *fmt, ...) {
     _dbg_lock();
+
     char line[DBG_MAXLINE];
     va_list va;
     va_start(va, fmt);
     int len = vsnprintf(line, DBG_MAXLINE, fmt, va);
     va_end(va);
-    line[len++] = '\n';
-    for (int i = 0; i < len; i++) {
-        ITM_SendChar(line[i]);
+
+    if (len < 0) {
+        _dbg_unlock();
+        return;
     }
+    len = MIN(len, DBG_MAXLINE - 1);
+
+    for (int i = 0; i < len; ++i)
+        ITM_SendChar(line[i]);
+    ITM_SendChar('\n');
+
     _dbg_unlock();
 }
 
@@ -75,52 +83,67 @@ extern UART_HandleTypeDef _UART;
 
 void _dbg_uart(const char *fmt, ...) {
     _dbg_lock();
+
     char line[DBG_MAXLINE];
     va_list va;
     va_start(va, fmt);
     int len = vsnprintf(line, DBG_MAXLINE, fmt, va);
     va_end(va);
-    line[len++] = '\n';
-    line[len] = 0;
-    HAL_StatusTypeDef ret;
-    ret = HAL_UART_Transmit(&_UART, (uint8_t *)line, len, HAL_MAX_DELAY);
-    ret = ret; //prevent warning
+
+    if (len < 0) {
+        _dbg_unlock();
+        return;
+    }
+    len = MIN(len + 1, DBG_MAXLINE - 1);
+    line[len - 1] = '\n';
+    line[len] = '\0';
+
+    HAL_UART_Transmit(&_UART, (uint8_t *)line, len, HAL_MAX_DELAY);
+
     _dbg_unlock();
 }
 
 #elif defined(DBG_CDC)
 
     #include "usbd_cdc_if.h"
+static const uint8_t retries = 3;
 
 void _dbg_cdc(const char *fmt, ...) {
     _dbg_lock();
+
     char line[DBG_MAXLINE];
     va_list va;
     va_start(va, fmt);
     int len = vsnprintf(line, DBG_MAXLINE, fmt, va);
     va_end(va);
-    line[len++] = '\n';
-    line[len] = 0;
-    uint8_t ret;
-    int retry = 3;
+
+    if (len < 0) {
+        _dbg_unlock();
+        return;
+    }
+    len = MIN(len + 1, DBG_MAXLINE - 1);
+    line[len - 1] = '\n';
+    line[len] = '\0';
+
+    uint8_t retry = retries;
     while (retry--) {
-        ret = CDC_Transmit_FS((uint8_t *)line, len);
-        if (ret == USBD_OK)
+        if (USBD_OK == CDC_Transmit_FS((uint8_t *)line, len))
             break;
         _dbg_delay(1);
     }
+
     _dbg_unlock();
 }
 
 #endif //
 
 uint32_t _microseconds(void) {
-    int irq = __get_PRIMASK() & 1;
+    const int irq = __get_PRIMASK() & 1;
     if (irq)
         __disable_irq();
-    uint32_t u = TIM6->CNT;
-    uint32_t m = HAL_GetTick();
+    const uint32_t u = TIM6->CNT;
+    const uint32_t m = HAL_GetTick();
     if (irq)
         __enable_irq();
-    return (m * 1000 + u);
+    return m * 1000 + u;
 }
