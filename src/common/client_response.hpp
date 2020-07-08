@@ -66,6 +66,7 @@ enum class PhasesLoadUnload : uint16_t {
     Loading,
     Purging,
     IsColor,
+    IsColorPurge,
     Unparking,
     _last = Unparking
 };

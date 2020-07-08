@@ -59,6 +59,9 @@ extern void marlin_client_set_change_notify(uint64_t notify_changes);
 // returns currently running command or MARLIN_CMD_NONE
 extern uint32_t marlin_command(void);
 
+// enable/disable exclusive mode (used for selftest)
+extern void marlin_set_exclusive_mode(int exclusive_mode);
+
 // start marlin loop processing in server thread (request '!start')
 extern void marlin_start_processing(void);
 
