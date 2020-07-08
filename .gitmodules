@@ -16,3 +16,6 @@
 [submodule "lib/Catch2"]
 	path = lib/Catch2
 	url = ../../catchorg/Catch2.git
+[submodule "lib/Prusa-Error-Codes"]
+	path = lib/Prusa-Error-Codes
+	url = https://github.com/prusa3d/Prusa-Error-Codes.git
