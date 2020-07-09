@@ -2,7 +2,7 @@
 #include "DialogLoadUnload.h"
 #include "gui.hpp"    //resource_font
 #include "resource.h" //IDR_FNT_BIG
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 #include "../lang/i18n.h"
 
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
@@ -27,13 +27,14 @@ static const char *txt_no     = N_("NO");
 static const char *txt_reheat = N_("REHEAT");
 static const char *txt_retry  = N_("RETRY");
 
-static const PhaseTexts ph_txt_stop    = { txt_stop,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_cont    = { txt_cont,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_reheat  = { txt_reheat, txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_disa    = { txt_disa,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_none    = { txt_none,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_yesno   = { txt_yes,    txt_no,   txt_none,  txt_none };
-static const PhaseTexts ph_txt_iscolor = { txt_yes,    txt_no,   txt_retry, txt_none };
+static const PhaseTexts ph_txt_stop          = { txt_stop,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_cont          = { txt_cont,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_reheat        = { txt_reheat, txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_disa          = { txt_disa,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_none          = { txt_none,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_yesno         = { txt_yes,    txt_no,   txt_none,  txt_none };
+static const PhaseTexts ph_txt_iscolor       = { txt_yes,    txt_no,   txt_retry, txt_none };
+static const PhaseTexts ph_txt_iscolor_purge = { txt_yes,    txt_no,   txt_none,  txt_none };
 
 static const char *txt_first              = N_("Finishing         \nbuffered gcodes.  \n");
 static const char *txt_parking            = N_("Parking");
@@ -63,13 +64,14 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::RemoveFilament,   ph_txt_stop) },
         DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont), DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_nozzle_cold,        btn(PhasesLoadUnload::NozzleTimeout,    ph_txt_reheat) },
-        DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont) },
+        DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont), DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_inserting,          btn(PhasesLoadUnload::Inserting,        ph_txt_stop) },
         DialogLoadUnload::State { txt_is_filament_in_gear,btn(PhasesLoadUnload::IsFilamentInGear, ph_txt_yesno) },
         DialogLoadUnload::State { txt_ejecting,           btn(PhasesLoadUnload::Ejecting,         ph_txt_none) },
         DialogLoadUnload::State { txt_loading,            btn(PhasesLoadUnload::Loading,          ph_txt_stop) },
         DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging,          ph_txt_stop) },
         DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColor,          ph_txt_iscolor), DialogLoadUnload::phaseAlertSound },
+        DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColorPurge,     ph_txt_iscolor_purge), DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_unparking,          btn(PhasesLoadUnload::Unparking,        ph_txt_stop) },
     };
     return ret;
@@ -83,18 +85,6 @@ DialogLoadUnload::DialogLoadUnload(const char *name)
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
 void DialogLoadUnload::phaseAlertSound() { Sound_Play(eSOUND_TYPE_SingleBeep); }
-
-void DialogLoadUnload::c_draw(window_t *win) {
-    IDialog *ptr = cast(win);
-    DialogLoadUnload *ths = dynamic_cast<DialogLoadUnload *>(ptr);
-    ths->draw();
-}
-
-void DialogLoadUnload::c_event(window_t *win, uint8_t event, void *param) {
-    IDialog *ptr = cast(win);
-    DialogLoadUnload *ths = dynamic_cast<DialogLoadUnload *>(ptr);
-    ths->event(event, param);
-}
 
 const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
     {

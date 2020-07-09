@@ -198,6 +198,11 @@ bool Pause::FilamentLoad() {
     if (!is_target_temperature_safe())
         return false;
 
+#if ENABLED(PID_EXTRUSION_SCALING)
+    bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
+    thermalManager.setExtrusionScalingEnabled(false);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
+
     Response response;
     do {
         hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT);
@@ -258,6 +263,9 @@ bool Pause::FilamentLoad() {
         marlin_server_print_reheat_start();
 
         if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 30, 50)) {
+#if ENABLED(PID_EXTRUSION_SCALING)
+            thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
             return false;
         }
 
@@ -271,16 +279,20 @@ bool Pause::FilamentLoad() {
         do {
             // Extrude filament to get into hotend
             do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
-            fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0);
+            fast_load_length ? fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0) : fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColorPurge, 99, 0);
             do {
                 idle();
-                response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor);
+                response = fast_load_length ? ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor) : ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColorPurge);
             } while (response == Response::_none);  //no button
         } while (response == Response::Purge_more); //purge more or continue .. exit loop
         if (response == Response::Retry) {
             do_e_move_notify_progress(-slow_load_length - fast_load_length - purge_ln, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 99);
         }
     } while (response == Response::Retry);
+
+#if ENABLED(PID_EXTRUSION_SCALING)
+    thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
 
     return true;
 }
@@ -300,6 +312,11 @@ bool Pause::FilamentUnload() {
     if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 0, 50)) {
         return false;
     }
+
+#if ENABLED(PID_EXTRUSION_SCALING)
+    bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
+    thermalManager.setExtrusionScalingEnabled(false);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
 
     static const RamUnloadSeqItem ramUnloadSeq[] = {
         { 1, 100 },
@@ -345,6 +362,10 @@ bool Pause::FilamentUnload() {
     disable_e_stepper(active_extruder);
     safe_delay(100);
 #endif
+
+#if ENABLED(PID_EXTRUSION_SCALING)
+    thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
 
     return true;
 }

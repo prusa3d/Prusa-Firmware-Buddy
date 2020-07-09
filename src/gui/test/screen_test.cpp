@@ -38,68 +38,66 @@ typedef enum {
 } STI_tag_t;
 
 void screen_test_init(screen_t *screen) {
-    int16_t id;
-
     int16_t y = 32;
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst));
-    window_set_text(id, (const char *)"TEST");
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst));
+    pd->tst.SetText((const char *)"TEST");
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->back));
-    window_set_text(id, (const char *)"back");
-    window_enable(id);
-    window_set_tag(id, STI_back);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->back));
+    pd->back.SetText((const char *)"back");
+    pd->back.Enable();
+    pd->back.SetTag(STI_back);
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_gui));
-    window_set_text(id, (const char *)"test GUI");
-    window_enable(id);
-    window_set_tag(id, STI_tst_gui);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_gui));
+    pd->tst_gui.SetText((const char *)"test GUI");
+    pd->tst_gui.Enable();
+    pd->tst_gui.SetTag(STI_tst_gui);
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_term));
-    window_set_text(id, (const char *)"test TERM");
-    window_enable(id);
-    window_set_tag(id, STI_tst_term);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_term));
+    pd->tst_term.SetText((const char *)"test TERM");
+    pd->tst_term.Enable();
+    pd->tst_term.SetTag(STI_tst_term);
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_msgbox));
-    window_set_text(id, (const char *)"test MSGBOX");
-    window_enable(id);
-    window_set_tag(id, STI_tst_msgbox);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_msgbox));
+    pd->tst_msgbox.SetText((const char *)"test MSGBOX");
+    pd->tst_msgbox.Enable();
+    pd->tst_msgbox.SetTag(STI_tst_msgbox);
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_graph));
-    window_set_text(id, (const char *)"temp graph");
-    window_enable(id);
-    window_set_tag(id, STI_tst_graph);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_graph));
+    pd->tst_graph.SetText((const char *)"temp graph");
+    pd->tst_graph.Enable();
+    pd->tst_graph.SetTag(STI_tst_graph);
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_temperature));
-    window_set_text(id, (const char *)"temp - pwm");
-    window_enable(id);
-    window_set_tag(id, STI_tst_temperature);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_temperature));
+    pd->tst_temperature.SetText((const char *)"temp - pwm");
+    pd->tst_temperature.Enable();
+    pd->tst_temperature.SetTag(STI_tst_temperature);
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_heat_err));
-    window_set_text(id, (const char *)"HEAT ERROR");
-    window_enable(id);
-    window_set_tag(id, STI_tst_heat_err);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_heat_err));
+    pd->tst_heat_err.SetText((const char *)"HEAT ERROR");
+    pd->tst_heat_err.Enable();
+    pd->tst_heat_err.SetTag(STI_tst_heat_err);
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_disp_memory));
-    window_set_text(id, (const char *)"Disp. R/W");
-    window_enable(id);
-    window_set_tag(id, STI_tst_disp_memory);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_disp_memory));
+    pd->tst_disp_memory.SetText((const char *)"Disp. R/W");
+    pd->tst_disp_memory.Enable();
+    pd->tst_disp_memory.SetTag(STI_tst_disp_memory);
     y += 22;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_stack_overflow));
-    window_set_text(id, (const char *)"Stack overflow");
-    window_enable(id);
-    window_set_tag(id, STI_tst_stack_overflow);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_stack_overflow));
+    pd->tst_stack_overflow.SetText((const char *)"Stack overflow");
+    pd->tst_stack_overflow.Enable();
+    pd->tst_stack_overflow.SetTag(STI_tst_stack_overflow);
 
     pd->id_tim = gui_timer_create_oneshot(2000, id0);
     pd->id_tim1 = gui_timer_create_periodical(4000, id0);

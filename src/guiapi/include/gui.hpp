@@ -51,3 +51,6 @@ extern int8_t menu_timeout_enabled;
     #include "cmsis_os.h"
 extern osThreadId gui_task_handle;
 #endif //GUI_USE_RTOS
+// close currently displayed msgbox, returns 1 if msgbox successfully closed or 0 if no msgbox currently displayed
+// message box loop will stop and gui_msgbox function returns MSGBOX_RES_CLOSED
+extern int gui_msgbox_close(void);

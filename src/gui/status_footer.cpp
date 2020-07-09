@@ -19,7 +19,7 @@
 #include "limits.h"
 #include <algorithm>
 
-static const float heating_difference = 2.0F;
+static const float heating_difference = 2.5F;
 
 enum class ButtonStatus {
     Nozzle = 0xf0,
@@ -30,7 +30,7 @@ enum class ButtonStatus {
 };
 
 /// these texts have to be stored here
-/// because window_set_text does not copy the text
+/// because window_text_t->SetText does not copy the text
 /// and windows have delayed redrawing
 static char text_nozzle[10];  // "215/215°C"
 static char text_heatbed[10]; // "110/110°C"
@@ -44,92 +44,86 @@ void status_footer_update_temperatures(status_footer_t *footer);
 void status_footer_update_feedrate(status_footer_t *footer);
 void status_footer_update_z_axis(status_footer_t *footer);
 void status_footer_update_filament(status_footer_t *footer);
-void status_footer_repaint_nozzle(const status_footer_t *footer);
-void status_footer_repaint_heatbed(const status_footer_t *footer);
+void status_footer_repaint_nozzle(status_footer_t *footer);
+void status_footer_repaint_heatbed(status_footer_t *footer);
 
 void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->show_second_color = false;
-    int16_t id;
 
-    id = window_create_ptr( // nozzle
+    window_create_ptr( // nozzle
         WINDOW_CLS_ICON, parent,
         rect_ui16(8, 270, 16, 16), // 2px padding from right
         &(footer->wi_nozzle));
-    window_set_icon_id(id, IDR_PNG_status_icon_nozzle);
-    window_set_tag(id, uint8_t(ButtonStatus::Nozzle));
-    // window_enable(id);
+    footer->wi_nozzle.SetIdRes(IDR_PNG_status_icon_nozzle);
+    footer->wi_nozzle.SetTag(uint8_t(ButtonStatus::Nozzle));
 
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, parent,
         rect_ui16(24, 269, 85, 20),
         &(footer->wt_nozzle));
     footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    footer->wt_nozzle.SetAlignment(ALIGN_CENTER);
+    footer->wt_nozzle.SetText("");
 
-    id = window_create_ptr( // heatbed
+    window_create_ptr( // heatbed
         WINDOW_CLS_ICON, parent,
         rect_ui16(128, 270, 20, 16),
         &(footer->wi_heatbed));
-    window_set_icon_id(id, IDR_PNG_status_icon_heatbed);
-    window_set_tag(id, uint8_t(ButtonStatus::Heatbed));
-    //window_enable(id);
+    footer->wi_heatbed.SetIdRes(IDR_PNG_status_icon_heatbed);
+    footer->wi_heatbed.SetTag(uint8_t(ButtonStatus::Heatbed));
 
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, parent,
         rect_ui16(150, 269, 85, 22),
         &(footer->wt_heatbed));
     footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    footer->wt_heatbed.SetAlignment(ALIGN_CENTER);
+    footer->wt_heatbed.SetText("");
 
-    id = window_create_ptr( // prnspeed
+    window_create_ptr( // prnspeed
         WINDOW_CLS_ICON, parent,
         rect_ui16(10, 297, 16, 12),
         &(footer->wi_prnspeed));
-    window_set_icon_id(id, IDR_PNG_status_icon_prnspeed);
-    window_set_tag(id, uint8_t(ButtonStatus::PrnSpeed));
-    //window_enable(id);
+    footer->wi_prnspeed.SetIdRes(IDR_PNG_status_icon_prnspeed);
+    footer->wi_prnspeed.SetTag(uint8_t(ButtonStatus::PrnSpeed));
 
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, parent,
         rect_ui16(28, 296, 40, 22),
         &(footer->wt_prnspeed));
     footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    footer->wt_prnspeed.SetAlignment(ALIGN_CENTER);
+    footer->wt_prnspeed.SetText("");
 
-    id = window_create_ptr( // z-axis
+    window_create_ptr( // z-axis
         WINDOW_CLS_ICON, parent,
         rect_ui16(80, 297, 16, 16),
         &(footer->wi_z_axis));
-    window_set_icon_id(id, IDR_PNG_status_icon_z_axis);
-    window_set_tag(id, uint8_t(ButtonStatus::Z_axis));
-    //window_enable(id);
+    footer->wi_z_axis.SetIdRes(IDR_PNG_status_icon_z_axis);
+    footer->wi_z_axis.SetTag(uint8_t(ButtonStatus::Z_axis));
 
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, parent,
         rect_ui16(102, 296, 58, 22),
         &(footer->wt_z_axis));
     footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, "");
+    footer->wt_z_axis.SetAlignment(ALIGN_CENTER);
+    footer->wt_z_axis.SetText("");
 
-    id = window_create_ptr( // filament
+    window_create_ptr( // filament
         WINDOW_CLS_ICON, parent,
         rect_ui16(163, 297, 16, 16),
         &(footer->wi_filament));
-    window_set_icon_id(id, IDR_PNG_status_icon_filament);
-    window_set_tag(id, uint8_t(ButtonStatus::Filament));
-    //window_enable(id);
+    footer->wi_filament.SetIdRes(IDR_PNG_status_icon_filament);
+    footer->wi_filament.SetTag(uint8_t(ButtonStatus::Filament));
 
-    id = window_create_ptr(
+    window_create_ptr(
         WINDOW_CLS_TEXT, parent,
         rect_ui16(181, 296, 49, 22),
         &(footer->wt_filament));
     footer->wt_filament.font = resource_font(IDR_FNT_SPECIAL);
-    window_set_alignment(id, ALIGN_CENTER);
-    window_set_text(id, filaments[get_filament()].name);
+    footer->wt_filament.SetAlignment(ALIGN_CENTER);
+    footer->wt_filament.SetText(filaments[get_filament()].name);
 
     footer->last_timer_repaint_values = 0;
     footer->last_timer_repaint_z_pos = 0;
@@ -224,7 +218,7 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     footer->nozzle_target_display = vars->display_nozzle;
 
     if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle)))
-        window_set_text(footer->wt_nozzle.id, text_nozzle);
+        footer->wt_nozzle.SetText(text_nozzle);
 }
 
 void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *vars) {
@@ -244,7 +238,7 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
     footer->heatbed_target = vars->target_bed;
 
     if (0 < snprintf(text_heatbed, sizeof(text_heatbed), "%d/%d\177C", (int)roundf(vars->temp_bed), (int)roundf(vars->target_bed)))
-        window_set_text(footer->wt_heatbed.id, text_heatbed);
+        footer->wt_heatbed.SetText(text_heatbed);
 }
 
 /// Updates values in footer state from real values and repaint
@@ -262,7 +256,7 @@ void status_footer_update_temperatures(status_footer_t *footer) {
     const unsigned int text_len = 10;
     char text[text_len];
     snprintf(text, text_len, "%.0f\177C", (double)actual_heatbreak);
-    window_set_text(footer->wt_filament.id, footer->text);
+    footer->wt_filament.SetText(footer->text);
 #endif //LCD_HEATBREAK_TO_FILAMENT
 }
 
@@ -282,13 +276,13 @@ void status_footer_update_feedrate(status_footer_t *footer) {
         snprintf(text_prnspeed, sizeof(text_prnspeed), "%3d%%", speed);
     else
         snprintf(text_prnspeed, sizeof(text_prnspeed), err);
-    window_set_text(footer->wt_prnspeed.id, text_prnspeed);
+    footer->wt_prnspeed.SetText(text_prnspeed);
 }
 
 void status_footer_update_z_axis(status_footer_t *footer) {
     const marlin_vars_t *vars = marlin_vars();
     if (!vars) {
-        window_set_text(footer->wt_z_axis.id, err);
+        footer->wt_z_axis.SetText(err);
         return;
     }
 
@@ -298,10 +292,10 @@ void status_footer_update_z_axis(status_footer_t *footer) {
 
     footer->z_pos = pos;
     if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)std::abs(pos % 100))) {
-        window_set_text(footer->wt_z_axis.id, err);
+        footer->wt_z_axis.SetText(err);
         return;
     }
-    window_set_text(footer->wt_z_axis.id, text_z_axis);
+    footer->wt_z_axis.SetText(text_z_axis);
 }
 
 void status_footer_update_filament(status_footer_t *footer) {
@@ -309,14 +303,11 @@ void status_footer_update_filament(status_footer_t *footer) {
         return;
 
     strncpy(filament, filaments[get_filament()].name, sizeof(filament));
-    window_set_text(footer->wt_filament.id, filament);
-    // #ifndef LCD_HEATBREAK_TO_FILAMENT
-    //     window_set_text(footer->wt_filament.id, filaments[get_filament()].name);
-    // #endif
+    footer->wt_filament.SetText(filament);
 }
 
 /// Repaints nozzle temperature in proper color
-void status_footer_repaint_nozzle(const status_footer_t *footer) {
+void status_footer_repaint_nozzle(status_footer_t *footer) {
     color_t clr = DEFAULT_COLOR;
 
     switch (footer->nozzle_state) {
@@ -336,11 +327,11 @@ void status_footer_repaint_nozzle(const status_footer_t *footer) {
         clr = DEFAULT_COLOR;
     }
 
-    window_set_color_text(footer->wt_nozzle.id, clr);
+    footer->wt_nozzle.SetTextColor(clr);
 }
 
 /// Repaints heatbed temperature in proper color
-void status_footer_repaint_heatbed(const status_footer_t *footer) {
+void status_footer_repaint_heatbed(status_footer_t *footer) {
     color_t clr = DEFAULT_COLOR;
 
     switch (footer->heatbed_state) {
@@ -357,5 +348,5 @@ void status_footer_repaint_heatbed(const status_footer_t *footer) {
         clr = DEFAULT_COLOR;
     }
 
-    window_set_color_text(footer->wt_heatbed.id, clr);
+    footer->wt_heatbed.SetTextColor(clr);
 }

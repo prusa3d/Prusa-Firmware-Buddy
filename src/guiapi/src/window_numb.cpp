@@ -1,4 +1,4 @@
-// window_numb.c
+// window_numb.cpp
 #include "window_numb.hpp"
 #include "gui.hpp"
 
@@ -48,3 +48,29 @@ const window_class_numb_t window_class_numb = {
         0,
     },
 };
+
+void window_numb_t::SetFormat(const char *frmt) {
+    format = frmt;
+    Invalidate();
+}
+
+//todo use this later
+//virtual methods does not work yet - stupid memcpy
+/*
+void window_numb_t::SetValue(float val) {
+    setValue(val);
+    Invalidate();
+}
+*/
+
+//todo use this virtual methods does not work yet - stupid memcpy
+/*
+void window_numb_t::setValue(float val) {
+    value = val;
+}
+*/
+
+void window_numb_t::SetValue(float val) {
+    value = val;
+    Invalidate();
+}

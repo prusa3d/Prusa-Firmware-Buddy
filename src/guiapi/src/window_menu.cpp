@@ -2,7 +2,7 @@
 #include "window_menu.h" //C compatible, todo remove
 #include "window_menu.hpp"
 #include "gui.hpp"
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
 
@@ -65,7 +65,7 @@ void window_menu_t::Increment(int dif) {
     IWindowMenuItem *item = GetActiveItem();
     if (item->IsSelected()) {
         if (item->Change(dif)) {
-            _window_invalidate((window_t *)this);
+            Invalidate();
         }
     } else {
         //all items can be in label mode
@@ -90,7 +90,7 @@ void window_menu_t::Increment(int dif) {
 
         if (new_index != old_index) { // optimization do not redraw when no change - still on end
             SetIndex(new_index);
-            _window_invalidate((window_t *)this);
+            Invalidate();
         }
     }
 }
@@ -163,7 +163,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_BTN_DN:
 
         item->Click(*window);
-        //_window_invalidate((window_t *)window); //called inside click
+        //window->Invalidate(); //called inside click
         break;
     case WINDOW_EVENT_ENC_DN:
         if (item->IsSelected()) {
@@ -189,7 +189,7 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         break;
     }
     if (invalid)
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
 }
 
 const window_class_menu_t window_class_menu = {

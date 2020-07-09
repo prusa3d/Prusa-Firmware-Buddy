@@ -21,8 +21,8 @@
 #include "screen_menu_fw_update.h"
 #include "screens.h"
 #include "screen_close_multiple.h"
-#include "sound_C_wrapper.h"
 #include "DialogHandler.hpp"
+#include "sound.hpp"
 #include "../lang/i18n.h"
 
 extern int HAL_IWDG_Reset;
@@ -103,6 +103,7 @@ void gui_run() {
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
+
     Sound_Play(eSOUND_TYPE_Start);
 
     screen_register(get_scr_splash());

@@ -10,8 +10,7 @@
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
-#include "sound_C_wrapper.h"
-//#include "sound.h"
+#include "sound.hpp"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -155,7 +154,8 @@ void app_assert(uint8_t *file, uint32_t line) {
 }
 
 void app_cdc_rx(uint8_t *buffer, uint32_t length) {
-    USBSerial_put_rx_data(buffer, length);
+    if (!marlin_server_get_exclusive_mode()) // serial line is disabled in exclusive mode
+        USBSerial_put_rx_data(buffer, length);
 }
 
 void adc_tick_1ms(void) {

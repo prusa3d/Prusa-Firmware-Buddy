@@ -19,7 +19,6 @@ extern int16_t WINDOW_CLS_DLG_PREHEAT;
 
 //todo some items are most likely unused - remove them
 struct window_dlg_preheat_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     font_t *font_title;

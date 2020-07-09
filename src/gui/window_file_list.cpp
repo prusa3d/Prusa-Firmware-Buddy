@@ -11,7 +11,7 @@
 #include "config.h"
 #include "fatfs.h"
 #include "dbg.h"
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 #include "../lang/i18n.h"
 #include <algorithm>
 
@@ -56,13 +56,13 @@ void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const cha
             }
         }
     }
-    _window_invalidate((window_t *)window);
+    window->Invalidate();
 }
 
 void window_file_set_item_index(window_file_list_t *window, int index) {
     if (window->count > index) {
         window->index = index;
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
@@ -238,7 +238,7 @@ void window_file_list_inc(window_file_list_t *window, int dif) {
     if (repaint) {
         // here we know exactly, that the selected item changed -> prepare text rolling
         window_file_list_init_text_roll(window);
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 
@@ -257,7 +257,7 @@ void window_file_list_dec(window_file_list_t *window, int dif) {
 
     if (repaint) {
         window_file_list_init_text_roll(window);
-        _window_invalidate((window_t *)window);
+        window->Invalidate();
     }
 }
 

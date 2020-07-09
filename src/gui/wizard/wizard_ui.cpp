@@ -20,8 +20,8 @@ uint16_t wizard_get_test_icon_resource(uint8_t state) {
     return 0;
 }
 
-void wizard_update_test_icon(int16_t win_id, uint8_t state) {
-    window_set_icon_id(win_id, wizard_get_test_icon_resource(state));
+void wizard_update_test_icon(window_icon_t &ico, uint8_t state) {
+    ico.SetIdRes(wizard_get_test_icon_resource(state));
 }
 
 // messagebox with custom buttons (NEXT and DONE), optionaly icon and rectangle
@@ -101,7 +101,6 @@ static void _disable_PID() {
 }
 
 void wizard_init(float t_noz, float t_bed /*, int16_t footer_id*/) {
-    /*window_hide(footer_id);*/
     _wizard_init_test();
 
     //Set Hotend Temperature
@@ -110,22 +109,8 @@ void wizard_init(float t_noz, float t_bed /*, int16_t footer_id*/) {
     //Set Bed Temperature
     marlin_gcode_printf("M140 S%d", (int)t_bed);
 }
-/*
-void wizard_init_footer(float t_noz, float t_bed, int16_t footer_id)
-{
-	window_show(footer_id);
-	_wizard_init_test();
-
-	//Set Hotend Temperature
-	marlin_gcode_printf("M104 S%d",(int)t_noz);
-
-	//Set Bed Temperature
-	marlin_gcode_printf("M140 S%d",(int)t_bed);
-
-}*/
 
 void wizard_init_disable_PID(float t_noz, float t_bed /*, int16_t footer_id*/) {
-    /*window_hide(footer_id);*/
     _wizard_init_test();
     _disable_PID();
 
@@ -135,17 +120,3 @@ void wizard_init_disable_PID(float t_noz, float t_bed /*, int16_t footer_id*/) {
     //Set Bed Temperature
     marlin_gcode_printf("M140 S%d", (int)t_bed);
 }
-/*
-void wizard_init_footer_disable_PID(float t_noz, float t_bed, int16_t footer_id)
-{
-	window_show(footer_id);
-	_wizard_init_test();
-	_disable_PID();
-
-	//Set Hotend Temperature
-	marlin_gcode_printf("M104 S%d",(int)t_noz);
-
-	//Set Bed Temperature
-	marlin_gcode_printf("M140 S%d",(int)t_bed);
-
-}*/

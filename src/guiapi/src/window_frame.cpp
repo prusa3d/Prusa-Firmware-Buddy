@@ -1,7 +1,7 @@
-// window_frame.c
+// window_frame.cpp
 #include "window_frame.hpp"
 #include "gui.hpp"
-#include "sound_C_wrapper.h"
+#include "sound.hpp"
 
 void window_frame_init(window_frame_t *window) {
     if (rect_empty_ui16(window->rect)) //use display rect curent is empty
@@ -32,7 +32,8 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_BTN_DN:
         if (window_focused_ptr && window_focused_ptr->f_tag)
             screen_dispatch_event(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
-        window_set_capture(window_focused());
+        if (window_ptr(window_focused()))
+            window_ptr(window_focused())->SetCapture();
         break;
     case WINDOW_EVENT_ENC_DN:
         dif = (int)param;
@@ -41,7 +42,9 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
             id = window_prev_enabled(id);
         }
         if (id >= 0) {
-            window_set_focus(id);
+            window_t *pWin = window_ptr(id);
+            if (pWin)
+                pWin->SetFocus();
         } else {
             // End indicator of the frames list ->
             Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -54,7 +57,9 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
             id = window_next_enabled(id);
         }
         if (id >= 0) {
-            window_set_focus(id);
+            window_t *pWin = window_ptr(id);
+            if (pWin)
+                pWin->SetFocus();
         } else {
             // Start indicator of the frames list <-
             Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -63,11 +68,13 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_CAPT_0:
         break;
     case WINDOW_EVENT_CAPT_1:
-        if (window_parent(window_focused()) != window->id) {
+        if (window_ptr(window_focused())->id_parent != window->id) {
             id = window_first_child(0);
-            if (!window_is_enabled(id))
+            if (window_ptr(id) ? !window_ptr(id)->IsEnabled() : true)
                 id = window_next_enabled(id);
-            window_set_focus(id);
+            window_t *pWin = window_ptr(id);
+            if (pWin)
+                pWin->SetFocus();
         }
         break;
     }

@@ -35,6 +35,9 @@ const uint16_t icons[6] = {
     IDR_PNG_menu_icon_info
 };
 
+constexpr size_t labelPrintId = 0;
+constexpr size_t labelNoUSBId = 6;
+
 const char *labels[7] = {
     N_("Print"),
     N_("Preheat"),
@@ -72,46 +75,44 @@ void screen_home_init(screen_t *screen) {
     pw->time = HAL_GetTick();
     pw->is_starting = (pw->time < 5000) ? 1 : 0;
 
-    int16_t id;
-
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0), &(pw->root));
 
-    id = window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
+    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_home);
     p_window_header_set_text(&(pw->header), _("HOME"));
 
-    id = window_create_ptr(WINDOW_CLS_ICON, root,
+    window_create_ptr(WINDOW_CLS_ICON, root,
         rect_ui16(41, 31, 158, 40), &(pw->logo));
-    window_set_icon_id(id, IDR_PNG_status_logo_prusa_prn);
+    pw->logo.SetIdRes(IDR_PNG_status_logo_prusa_prn);
 
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
-            id = window_create_ptr(
+            window_create_ptr(
                 WINDOW_CLS_ICON, root,
                 rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64),
                 &(pw->w_buttons[row * 3 + col]));
-            window_set_color_back(id, COLOR_GRAY);
-            window_set_icon_id(id, icons[row * 3 + col]);
-            window_set_tag(id, row * 3 + col + 1);
-            window_enable(id);
+            //pw->w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
+            pw->w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
+            pw->w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
+            pw->w_buttons[row * 3 + col].Enable();
 
-            /*
-				w_buttons[row*3+col] = window_icon_create(
-						win,
-						rect_ui16(8+(16+64)*col, 98+(14+64)*row, 64, 64),
-						IDR_PNG_menu_icon_square,
-						COLOR_BLACK);
-			 */
-            id = window_create_ptr(
+            window_create_ptr(
                 WINDOW_CLS_TEXT, root,
                 rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14),
                 &(pw->w_labels[row * 3 + col]));
             pw->w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
-            window_set_alignment(id, ALIGN_CENTER);
-            window_set_padding(id, padding_ui8(0, 0, 0, 0));
-            window_set_text(id, labels[row * 3 + col]);
+            pw->w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
+            pw->w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
+            pw->w_labels[row * 3 + col].SetText(labels[row * 3 + col]);
         }
+    }
+
+    if (pw->is_starting) {
+        // this is necessary when the printer is starting because processing of media inserted status is not handled properly in this screen
+        // we cannot call marlin_update_vars every time because in some cases (octoprint - M876 P1) it can produce deadlock
+        // marlin_update_vars should be never called in screen_init
+        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS));
     }
 
     if (!marlin_vars()->media_inserted)
@@ -256,11 +257,11 @@ void screen_home_disable_print_button(screen_t *screen, int disable) {
     pw->w_buttons[0].f_disabled = disable;
     pw->w_buttons[0].f_enabled = !disable; // cant't be focused
     pw->w_buttons[0].f_invalid = 1;
-    window_set_text(pw->w_labels[0].id, labels[(disable ? 6 : 0)]);
+    pw->w_labels[0].SetText(labels[(disable ? labelNoUSBId : labelPrintId)]);
 
     // move to preheat when Print is focused
-    if (window_is_focused(pw->w_buttons[0].id) && disable) {
-        window_set_focus(pw->w_buttons[1].id);
+    if (pw->w_buttons[0].IsFocused() && disable) {
+        pw->w_buttons[1].SetFocus();
     }
 }
 

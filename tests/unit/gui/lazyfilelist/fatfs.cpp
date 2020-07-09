@@ -84,7 +84,7 @@ FRESULT f_findnext(
     DIR *dp,     /* [IN] Poninter to the directory object */
     FILINFO *fno /* [OUT] Pointer to the file information structure */
 ) {
-    if (dp->obj >= testFiles0.size() - 1) {
+    if (dp->obj >= (int)testFiles0.size() - 1) {
         fno->fname[0] = 0;
     } else {
         ++dp->obj;
@@ -108,7 +108,7 @@ FRESULT f_readdir(
     DIR *dp,     /* [IN] Poninter to the directory object */
     FILINFO *fno /* [OUT] Pointer to the file information structure */
 ) {
-    if (dp->obj >= testFiles0.size()) {
+    if (dp->obj >= (int)testFiles0.size()) {
         fno->fname[0] = 0;
     } else {
         strncpy(fno->fname, testFiles0[dp->obj].lfn.c_str(), 96);

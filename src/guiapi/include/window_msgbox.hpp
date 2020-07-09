@@ -36,6 +36,7 @@
 #define MSGBOX_ICO_MAX      (MSGBOX_BTN_RETRYCANCEL >> MSGBOX_SHI_ICO)
 
 //messagebox results (selected button)
+#define MSGBOX_RES_CLOSED   0  // message box window was closed
 #define MSGBOX_RES_CANCEL   2  // the Cancel button was selected
 #define MSGBOX_RES_ABORT    3  // the Abort button was selected
 #define MSGBOX_RES_RETRY    4  // the Retry button was selected
@@ -61,7 +62,6 @@ struct window_class_msgbox_t {
 };
 
 struct window_msgbox_t : public window_t {
-    color_t color_back;
     color_t color_text;
     font_t *font;
     font_t *font_title;

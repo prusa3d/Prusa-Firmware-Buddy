@@ -246,6 +246,7 @@ time_t sntp_get_system_time(void) {
         system_time.tm_mday = currDate.Date;
         system_time.tm_mon = currDate.Month;
         system_time.tm_year = currDate.Year;
+        system_time.tm_wday = currDate.WeekDay;
         secs = mktime(&system_time);
         return secs;
     } else {

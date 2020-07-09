@@ -22,7 +22,7 @@ typedef enum {
 extern int wizard_timer(uint32_t *p_timer, uint32_t delay_ms, _TEST_STATE_t *pstate,
     _WIZ_TIMER_t type);
 
-extern void wizard_update_test_icon(int16_t win_id, uint8_t state);
+extern void wizard_update_test_icon(window_icon_t &ico, uint8_t state);
 
 extern uint16_t wizard_get_test_icon_resource(uint8_t state);
 

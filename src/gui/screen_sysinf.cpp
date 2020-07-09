@@ -48,33 +48,32 @@ enum {
 
 void screen_sysinfo_init(screen_t *screen) {
     int16_t row2draw = 0;
-    int16_t id;
     int16_t row_h = 20;
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"Disp. TEST rd mem.");
+    pd->textMenuName.SetText((const char *)"Disp. TEST rd mem.");
 
     row2draw += 25;
 
     //write pattern
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_load));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_load));
     pd->textCPU_load.font = resource_font(IDR_FNT_NORMAL);
-    window_set_text(id, (const char *)"CPU load");
+    pd->textCPU_load.SetText((const char *)"CPU load");
 
-    id = window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
-    window_set_format(id, (const char *)"%.0f");
-    window_set_value(id, osGetCPUUsage());
+    window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
+    pd->textCPU_load_val.SetFormat((const char *)"%.0f");
+    pd->textCPU_load_val.SetValue(osGetCPUUsage());
 
     row2draw += 25;
 
-    id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    window_set_text(id, (const char *)"EXIT");
-    window_enable(id);
-    window_set_tag(id, TAG_QUIT);
+    pd->textExit.SetText((const char *)"EXIT");
+    pd->textExit.Enable();
+    pd->textExit.SetTag(TAG_QUIT);
 }
 
 void screen_sysinfo_done(screen_t *screen) {
@@ -95,7 +94,7 @@ int screen_sysinfo_event(screen_t *screen, window_t *window, uint8_t event, void
     if (event == WINDOW_EVENT_LOOP) {
         actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {
-            window_set_value(pd->textCPU_load_val.id, actual_CPU_load);
+            pd->textCPU_load_val.SetValue(actual_CPU_load);
             last_CPU_load = actual_CPU_load;
         }
     }
