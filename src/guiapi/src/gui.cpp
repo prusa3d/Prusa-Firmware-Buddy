@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "stm32f4xx_hal.h"
 #include "sound.hpp"
+#include "ScreenHandler.hpp"
 
 #define GUI_FLG_INVALID 0x0001
 
@@ -58,6 +59,20 @@ void gui_init(void) {
 extern window_t *window_0;
 
 void gui_redraw(void) {
+
+    if (gui_flags & GUI_FLG_INVALID) {
+        Screens::Access()->Draw();
+        /*if (window_0)
+            window_0->cls->draw(window_0);
+        if (window_popup_ptr)
+            window_popup_ptr->cls->draw(window_popup_ptr);*/
+
+        gui_flags &= ~GUI_FLG_INVALID;
+    }
+}
+
+/*
+void gui_redraw(void) {
     if (gui_flags & GUI_FLG_INVALID) {
         screen_draw();
         if (window_0)
@@ -68,6 +83,7 @@ void gui_redraw(void) {
         gui_flags &= ~GUI_FLG_INVALID;
     }
 }
+*/
 
 void gui_invalidate(void) {
     gui_flags |= GUI_FLG_INVALID;
