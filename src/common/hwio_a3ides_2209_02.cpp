@@ -181,7 +181,7 @@ void hwio_dac_set_val(int i_dac, int val) //write analog output
 //pwm output functions
 
 int is_pwm_id_valid(int i_pwm) {
-    return ((i_pwm >= 0) && (i_pwm < _PWM_CNT));
+    return ((i_pwm >= 0) && (i_pwm < static_cast<int>(_PWM_CNT)));
 }
 
 int hwio_pwm_get_cnt(void) //number of pwm outputs
@@ -312,7 +312,7 @@ void _hwio_pwm_set_val(int i_pwm, int val) //write pwm output
 {
     uint32_t chan = _pwm_get_chan(i_pwm);
     TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-    if ((chan == -1) || htim->Instance == 0) {
+    if ((chan == static_cast<uint32_t>(-1)) || htim->Instance == 0) {
         return;
     }
 
