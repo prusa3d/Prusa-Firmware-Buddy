@@ -9,6 +9,7 @@
 #include "wizard_config.h"
 #include "screen_wizard.h"
 #include "wizard_ui.h"
+#include "window_dlg_calib_z.hpp"
 
 void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     window_destroy_children(id_body);
@@ -53,14 +54,10 @@ int xyzcalib_home(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t 
 int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_z == _TEST_START) {
         p_screen->text_state.SetText("Calibrating Z");
-        p_screen->icon.SetIdRes(IDR_PNG_wizard_icon_hourglass);
-        marlin_gcode("G162 Z");
-        marlin_event_clr(MARLIN_EVT_CommandEnd);
-    } else if (marlin_event_clr(MARLIN_EVT_CommandEnd))
+        gui_dlg_calib_z();
         p_data->state_home = _TEST_PASSED;
-    int progress = wizard_timer(&p_screen->timer0, 10000, &(p_data->state_z), _WIZ_TIMER);
-    p_screen->progress.SetValue(progress);
-    return progress;
+    }
+    return 100;
 }
 
 int xyzcalib_xy_search(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {

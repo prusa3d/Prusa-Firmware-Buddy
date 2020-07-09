@@ -88,23 +88,6 @@ void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_CALIB_Z
-MI_CALIB_Z::MI_CALIB_Z()
-    : WI_LABEL_t(label, 0, true, false) {
-}
-
-void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(MARLIN_EVT_CommandBegin);
-    marlin_gcode("G28");
-    while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-        marlin_client_loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS); // from beggining of the scope to here it's deprecated
-
-    marlin_gcode("G162 Z");
-    gui_dlg_calib_z();
-}
-
-/*****************************************************************************/
 //MI_DISABLE_STEP
 MI_DISABLE_STEP::MI_DISABLE_STEP()
     : WI_LABEL_t(label, 0, true, false) {
