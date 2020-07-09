@@ -557,10 +557,6 @@ int digitalRead(uint32_t ulPin) {
         case MARLIN_PORT_PIN_Z_DIR:
             return gpio_get(ulPin);
 #endif //SIM_MOTION
-        case PIN_BTN_ENC:
-        case PIN_BTN_EN1:
-        case PIN_BTN_EN2:
-            return gpio_get(ulPin) || !hwio_jogwheel_enabled;
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_DIG_RD, ulPin); //error: undefined pin digital read
         }

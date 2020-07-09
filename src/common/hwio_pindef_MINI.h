@@ -115,8 +115,4 @@ extern OutputPin fan;
 #define MARLIN_PORT_PIN_FAN1 MARLIN_PORT_PIN(MARLIN_PORT_FAN1, MARLIN_PIN_FAN1)
 extern OutputPin fan;
 
-#define PIN_BTN_ENC TPE12
-#define PIN_BTN_EN1 TPE13
-#define PIN_BTN_EN2 TPE15
-
 #define PIN_FSENSOR TPB4
