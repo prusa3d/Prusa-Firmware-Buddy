@@ -231,6 +231,16 @@ void marlin_stop_processing(void) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_set_exclusive_mode(int exclusive_mode) {
+    char request[MARLIN_MAX_REQUEST];
+    marlin_client_t *client = _client_ptr();
+    if (client) {
+        snprintf(request, MARLIN_MAX_REQUEST, "!exc %d", exclusive_mode);
+        _send_request_to_server(client->id, request);
+        _wait_ack_from_server(client->id);
+    }
+}
+
 void marlin_start_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)

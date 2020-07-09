@@ -108,6 +108,13 @@ void screen_home_init(screen_t *screen) {
         }
     }
 
+    if (pw->is_starting) {
+        // this is necessary when the printer is starting because processing of media inserted status is not handled properly in this screen
+        // we cannot call marlin_update_vars every time because in some cases (octoprint - M876 P1) it can produce deadlock
+        // marlin_update_vars should be never called in screen_init
+        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS));
+    }
+
     if (!marlin_vars()->media_inserted)
         screen_home_disable_print_button(screen, 1);
 
