@@ -1,4 +1,7 @@
 // bsod.c - blue screen of death
+#include <algorithm>
+#include <cmath>
+
 #include "bsod.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -27,6 +30,10 @@
     #include "sys.h"
     #include "hwio.h"
     #include "version.h"
+    #include "window_qr.hpp"
+    #include "support_utils.h"
+    #include "str_utils.hpp"
+    #include "guitypes.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -115,8 +122,8 @@ typedef tskTCB TCB_t;
 //current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
-    #define PADDING 10
-    #define X_MAX   (display::GetW() - PADDING * 2)
+constexpr uint8_t PADDING = 10;
+    #define X_MAX (display::GetW() - PADDING * 2)
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -190,12 +197,87 @@ void general_error(const char *error, const char *module) {
     }
 }
 
+void general_error_init() {
+    __disable_irq();
+    stop_common();
+
+    jogwheel_init();
+    gui_reset_jogwheel();
+
+    //questionable placement - where now, in almost every BSOD timers are
+    //stopped and Sound class cannot update itself for timing sound signals.
+    //GUI is in the middle of refactoring and should be showned after restart
+    //when timers and everything else is running again (info by - Rober/Radek)
+
+    Sound_Play(eSOUND_TYPE_CriticalAlert);
+}
+
+void general_error_run() {
+    //cannot use jogwheel_signals  (disabled interrupt)
+    while (1) {
+        wdt_iwdg_refresh();
+        if (!gpio_get(jogwheel_config.pinENC))
+            sys_reset(); //button press
+    }
+}
+
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    char buff[128];
-    snprintf(buff, sizeof(buff),
-        "The requested %s\ntemperature was not\nreached.\n\nNozzle temp: %d/%d\nBed temp: %d/%d",
-        module, (int)t_noz, (int)tt_noz, (int)t_bed, (int)tt_bed);
-    general_error(error, buff);
+    char text[128];
+    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / gui_defaults.font->w);
+    char qr_text[MAX_LEN_4QR + 1];
+
+    /// FIXME split heating, min/max temp and thermal runaway
+    if (module[0] != 'E') {
+        snprintf(text, sizeof(text), "Check the heatbed heater & thermistor wiring for possible damage.");
+    } else {
+        snprintf(text, sizeof(text), "Check the print head heater & thermistor wiring for possible damage.");
+    }
+
+    /// FIXME Currently the only one address working
+    create_path_info_4error(qr_text, sizeof(qr_text), 12201);
+    str2multiline(text, sizeof(text), line_width_chars);
+
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+
+    // draw header
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
+
+    // draw text
+    term_t term;
+    uint8_t buff[TERM_BUFF_SIZE(20, 16)];
+    term_init(&term, 20, 16, buff);
+    term_printf(&term, text);
+    render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+
+    //doesn't work
+    //render_text_align(rect_ui16(0, 31, X_MAX, 240), text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(PADDING, 0, PADDING, 0), ALIGN_CENTER);
+
+    const uint8_t height = 144;
+
+    /// print QR
+    window_qr_t win;
+    window_qr_t *window = &win;
+    win.text = qr_text;
+    win.rect = rect_ui16(0, 175, 240, height);
+    win.bg_color = COLOR_RED_ALERT;
+
+    //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
+
+    /// use PNG RAM for QR code
+    uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
+    uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
+
+    if (generate_qr(qr_text, qrcode, qr_buff)) {
+        draw_qr(qrcode, window);
+    } else {
+        display::DrawText(win.rect, qr_text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    }
+
+    while (1) {
+        wdt_iwdg_refresh();
+    }
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {

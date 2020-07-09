@@ -33,11 +33,11 @@ void create_path_info_4error(char *str, uint32_t str_size, int error_code) {
 
     strlcpy(str, ER_URL, str_size);
     snprintf(eofstr(str), str_size - strlen(str), "%d/", error_code);
-    snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
-    snprintf(eofstr(str), str_size - strlen(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
+    //snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
+    //snprintf(eofstr(str), str_size - strlen(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     //!//     snprintf(eofstr(str), str_size - strlen(str), "%d/", FW_VERSION);
-    snprintf(eofstr(str), str_size - strlen(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
-    append_crc(str, str_size);
+    //snprintf(eofstr(str), str_size - strlen(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
+    //append_crc(str, str_size);
 }
 
 void create_path_info_4service(char *str, uint32_t str_size) {
