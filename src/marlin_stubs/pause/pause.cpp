@@ -467,6 +467,40 @@ bool Pause::PrintPause(float retract, const xyz_pos_t &park_point) {
     return true;
 }
 
+bool Pause::JustPause(float retract, const xyz_pos_t &park_point) {
+    if (did_pause_print)
+        return false; // already paused
+
+    // Indicate that the printer is paused
+    ++did_pause_print;
+
+    // Save current position
+    resume_position = current_position;
+
+    // Wait for buffered blocks to complete
+    planner.synchronize();
+
+#if ENABLED(ADVANCED_PAUSE_FANS_PAUSE) && FAN_COUNT > 0
+    thermalManager.set_fans_paused(true);
+#endif
+
+		media_print_pause();
+    print_job_timer.pause();
+    marlin_server.resume_nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
+    marlin_server.resume_fan_speed = marlin_server.vars.fan_speed;       //save fan speed
+#if FAN_COUNT > 0
+    thermalManager.set_fan_speed(0, 0); //disable print fan
+#endif
+    if ((marlin_server.vars.target_nozzle > 0) && (HAL_GetTick() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)))
+        thermalManager.setTargetHotend(0, 0);
+    gcode.reset_stepper_timeout(); //prevent disable axis
+
+    park_nozzle_and_notify(retract, park_point);
+		marlin_server.print_state = mpsPaused;
+
+    return true;
+}
+
 /**
  * Resume or Start print procedure
  *

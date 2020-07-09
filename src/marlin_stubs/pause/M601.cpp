@@ -82,5 +82,5 @@ void GcodeSuite::M601() {
     park_point += hotend_offset[active_extruder];
 #endif
 
-    pause.PrintPause(retract, park_point);
+    pause.JustPause(retract, park_point);
 }

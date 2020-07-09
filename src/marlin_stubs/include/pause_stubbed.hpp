@@ -41,6 +41,7 @@ public:
     bool FilamentUnload();
     bool FilamentLoad();
     bool PrintPause(float retract, const xyz_pos_t &park_point);
+    bool JustPause(float retract, const xyz_pos_t &park_point);
     void PrintResume();
 
 private:
