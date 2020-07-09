@@ -1,4 +1,3 @@
-//
 #include <inttypes.h>
 
 const uint8_t png_arrow_scan_me[] = {
