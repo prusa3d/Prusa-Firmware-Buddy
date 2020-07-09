@@ -4,32 +4,6 @@
 
 #include "Pin.hpp"
 
-#define MARLIN_PIN_0  0
-#define MARLIN_PIN_1  1
-#define MARLIN_PIN_2  2
-#define MARLIN_PIN_3  3
-#define MARLIN_PIN_4  4
-#define MARLIN_PIN_5  5
-#define MARLIN_PIN_6  6
-#define MARLIN_PIN_7  7
-#define MARLIN_PIN_8  8
-#define MARLIN_PIN_9  9
-#define MARLIN_PIN_10 10
-#define MARLIN_PIN_11 11
-#define MARLIN_PIN_12 12
-#define MARLIN_PIN_13 13
-#define MARLIN_PIN_14 14
-#define MARLIN_PIN_15 15
-
-#define MARLIN_PORT_A 0
-#define MARLIN_PORT_B 1
-#define MARLIN_PORT_C 2
-#define MARLIN_PORT_D 3
-#define MARLIN_PORT_E 4
-#define MARLIN_PORT_F 5
-
-#define MARLIN_PORT_PIN(port, pin) ((16 * (port)) + pin)
-
 #define MARLIN_PORT_PIN_HW_IDENTIFY    MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_3) //ADC, unused
 #define MARLIN_PORT_PIN_TEMP_BED       MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_4) //ADC
 #define MARLIN_PORT_PIN_THERM2         MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_5) //ADC

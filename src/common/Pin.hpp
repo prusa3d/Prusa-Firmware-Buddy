@@ -9,6 +9,38 @@
 #include "stm32f4xx_hal.h"
 
 /**
+ * @name Use these macros only for pins used from Marlin.
+ * @{
+ */
+#define MARLIN_PIN_0  0
+#define MARLIN_PIN_1  1
+#define MARLIN_PIN_2  2
+#define MARLIN_PIN_3  3
+#define MARLIN_PIN_4  4
+#define MARLIN_PIN_5  5
+#define MARLIN_PIN_6  6
+#define MARLIN_PIN_7  7
+#define MARLIN_PIN_8  8
+#define MARLIN_PIN_9  9
+#define MARLIN_PIN_10 10
+#define MARLIN_PIN_11 11
+#define MARLIN_PIN_12 12
+#define MARLIN_PIN_13 13
+#define MARLIN_PIN_14 14
+#define MARLIN_PIN_15 15
+
+#define MARLIN_PORT_A 0
+#define MARLIN_PORT_B 1
+#define MARLIN_PORT_C 2
+#define MARLIN_PORT_D 3
+#define MARLIN_PORT_E 4
+#define MARLIN_PORT_F 5
+
+#define MARLIN_PORT_PIN(port, pin) ((16 * (port)) + pin)
+
+/**@}*/
+
+/**
  * @brief Container for all instances of its class
  *
  * Use only for objects of static storage duration. It is not possible meaningfully destroy object
