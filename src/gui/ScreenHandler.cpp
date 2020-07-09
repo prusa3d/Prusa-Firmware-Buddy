@@ -117,7 +117,7 @@ void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
         window->DispatchEvent(event, param);
 }
 */
-void Screens::DispatchEvent(uint8_t event, void *param) {
+void Screens::DispatchEvent(window_t *sender, uint8_t event, void *param) {
     Access()->current->Event(Access()->current.get(), event, param);
 }
 

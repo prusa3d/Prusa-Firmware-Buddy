@@ -59,7 +59,7 @@ public:
 
     void Draw();
 
-    void DispatchEvent(uint8_t event, void *param);
+    void DispatchEvent(window_t *sender, uint8_t event, void *param);
 
     static void Init(ScreenFactory::Creator screen_creator);
     static Screens *Access();

@@ -345,9 +345,9 @@ uint16_t window_get_icon_id(int16_t id) {
     return 0;
 }
 
-void window_t::DispatchEvent(uint8_t ev, void *param) {
+void window_t::DispatchEvent(window_t *sender, uint8_t ev, void *param) {
     if (event)
-        event(this, ev, param);
+        event(sender, ev, param);
 }
 
 window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect) {

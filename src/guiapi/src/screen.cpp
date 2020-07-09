@@ -104,7 +104,7 @@ void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
             ret = 1;
     }
     if ((ret == 0) && window && window->event)
-        window->DispatchEvent(event, param);
+        window->DispatchEvent(window, event, param);
 }
 
 screen_t *screen_get_curr(void) {
