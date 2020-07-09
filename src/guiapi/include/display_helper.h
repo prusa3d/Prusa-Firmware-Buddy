@@ -29,6 +29,8 @@ struct txtroll_t {
     uint8_t px_cd;
 };
 
+/// FIXME add \param flags documentation
+
 extern void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags);
 
 extern void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);

@@ -69,8 +69,9 @@
 #include "res/cc/png_header_icon_warning.c"  //IDR_PNG_header_icon_warning
 #include "res/cc/png_header_icon_question.c" //IDR_PNG_header_icon_question
 
-#include "res/cc/png_arrow_up.c"   //IDR_PNG_arrow_up
-#include "res/cc/png_arrow_down.c" //IDR_PNG_arrow_down
+#include "res/cc/png_arrow_up.c"      //IDR_PNG_arrow_up
+#include "res/cc/png_arrow_down.c"    //IDR_PNG_arrow_down
+#include "res/cc/png_arrow_scan_me.c" //IDR_PNG_arrow_scan_me
 
 #include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
 
@@ -141,6 +142,7 @@ RESOURCE_ENTRY_PNG(png_header_icon_question)
 
 RESOURCE_ENTRY_PNG(png_arrow_up)
 RESOURCE_ENTRY_PNG(png_arrow_down)
+RESOURCE_ENTRY_PNG(png_arrow_scan_me)
 
 RESOURCE_ENTRY_PNG(png_menu_icon_back)
 

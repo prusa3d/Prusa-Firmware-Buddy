@@ -41,7 +41,7 @@ void screen_menu_qr_error_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(59, 140, 224, 95), &(pd->qr));
     pd->qr.px_per_module = 2;
-    create_path_info_4error(pd->qr_text, MAX_LEN_4QR + 1, 1);
+    create_long_error_url(pd->qr_text, MAX_LEN_4QR + 1, 1);
     pd->qr.text = pd->qr_text;
 
     pd->first_run_flag = true;

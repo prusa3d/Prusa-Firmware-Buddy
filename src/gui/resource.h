@@ -68,11 +68,12 @@
 #define IDR_PNG_header_icon_warning  0x0032
 #define IDR_PNG_header_icon_question 0x0033
 
-#define IDR_PNG_arrow_up   0x0034
-#define IDR_PNG_arrow_down 0x0035
+#define IDR_PNG_arrow_up      0x0034
+#define IDR_PNG_arrow_down    0x0035
+#define IDR_PNG_arrow_scan_me 0x0036
 
-#define IDR_PNG_menu_icon_back       0x0036
-#define IDR_PNG_serial_printing      0x0037
-#define IDR_PNG_menu_icon_disconnect 0x0038
+#define IDR_PNG_menu_icon_back       0x0037
+#define IDR_PNG_serial_printing      0x0038
+#define IDR_PNG_menu_icon_disconnect 0x0039
 
 #endif //_RESOURCE_H

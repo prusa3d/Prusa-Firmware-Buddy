@@ -1272,4 +1272,4 @@ const uint8_t png_arrow_scan_me[] = {
     0x60,
     0x82,
 };
-const uint16_t png_arrow_up_size = 1270;
+const uint16_t png_arrow_scan_me_size = 1270;

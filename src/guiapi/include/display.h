@@ -19,7 +19,9 @@ typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
 template <uint16_t W, uint16_t H, display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR, display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
 class Display {
 public:
+    /// Get width of display
     constexpr static uint16_t GetW() { return W; }
+    /// Get height of display
     constexpr static uint16_t GetH() { return H; }
     constexpr static void Init() { INIT(); }
     constexpr static void Done() { DONE(); }

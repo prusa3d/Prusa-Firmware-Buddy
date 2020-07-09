@@ -224,7 +224,6 @@ void general_error_run() {
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
     const uint16_t line_width_chars = (uint16_t)floor(X_MAX / gui_defaults.font->w);
-    char qr_text[MAX_LEN_4QR + 1];
 
     /// FIXME split heating, min/max temp and thermal runaway
     if (module[0] != 'E') {
@@ -233,8 +232,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         snprintf(text, sizeof(text), "Check the print head heater & thermistor wiring for possible damage.");
     }
 
-    /// FIXME Currently the only one address working
-    create_path_info_4error(qr_text, sizeof(qr_text), 12201);
     str2multiline(text, sizeof(text), line_width_chars);
 
     general_error_init();
@@ -242,24 +239,34 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     // draw header
     display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+
+    // draw line
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
-    // draw text
+    // draw text (5 lines)
     term_t term;
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
     term_printf(&term, text);
+
+    /// FIXME convert to DrawText & check drawing multiline text
     render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
-    //doesn't work
-    //render_text_align(rect_ui16(0, 31, X_MAX, 240), text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(PADDING, 0, PADDING, 0), ALIGN_CENTER);
+    /// draw "Scan me" text
+    static const char scan_me_text[] = "Scan me for details";
+    display::DrawText(rect_ui16(52, 142, display::GetW() - 52, display::GetH() - 142), scan_me_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
-    const uint8_t height = 144;
+    /// draw arrow
+    render_icon_align(rect_ui16(190, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
 
-    /// print QR
+    /// draw QR
+    char qr_text[MAX_LEN_4QR + 1];
+    /// FIXME Currently the only one address working
+    create_long_error_url(qr_text, sizeof(qr_text), 12201);
     window_qr_t win;
     window_qr_t *window = &win;
     win.text = qr_text;
+    const uint8_t height = 144;
     win.rect = rect_ui16(0, 175, 240, height);
     win.bg_color = COLOR_RED_ALERT;
 
@@ -271,9 +278,11 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     if (generate_qr(qr_text, qrcode, qr_buff)) {
         draw_qr(qrcode, window);
-    } else {
-        display::DrawText(win.rect, qr_text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
     }
+
+    /// draw short URL
+    create_short_error_url(qr_text, sizeof(qr_text), 12201);
+    display::DrawText(rect_ui16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
     while (1) {
         wdt_iwdg_refresh();
