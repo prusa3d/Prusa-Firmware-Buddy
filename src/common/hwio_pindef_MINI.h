@@ -114,5 +114,8 @@ extern OutputPin fan;
 #define MARLIN_PIN_FAN1      MARLIN_PIN_9
 #define MARLIN_PORT_PIN_FAN1 MARLIN_PORT_PIN(MARLIN_PORT_FAN1, MARLIN_PIN_FAN1)
 extern OutputPin fan;
+#if 0 //not used outside of its definition scope
+extern InputPin fastBoot;
+#endif
 
 #define PIN_FSENSOR TPB4
