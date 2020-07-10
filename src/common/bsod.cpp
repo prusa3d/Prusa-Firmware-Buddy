@@ -238,10 +238,10 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::Clear(COLOR_RED_ALERT);
 
     // draw header
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(rect_ui16(13, 12, display::GetW() - 13, display::GetH() - 12), error, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
     // draw line
-    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
+    display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
 
     // draw text (5 lines)
     term_t term;
@@ -261,13 +261,13 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     /// draw QR
     char qr_text[MAX_LEN_4QR + 1];
-    /// FIXME Currently the only one address working
-    create_long_error_url(qr_text, sizeof(qr_text), 12201);
+    /// FIXME Currently the only one error code working
+    long_error_url(qr_text, sizeof(qr_text), 12201);
     window_qr_t win;
     window_qr_t *window = &win;
     win.text = qr_text;
     const uint8_t height = 144;
-    win.rect = rect_ui16(0, 175, 240, height);
+    win.rect = rect_ui16(55, 159, 130, 130);
     win.bg_color = COLOR_RED_ALERT;
 
     //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
@@ -281,8 +281,10 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     }
 
     /// draw short URL
-    create_short_error_url(qr_text, sizeof(qr_text), 12201);
-    display::DrawText(rect_ui16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+    /// FIXME Currently the only one error code working
+    short_error_url(qr_text, sizeof(qr_text), 12201);
+    render_text_align(rect_ui16(0, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+    //display::DrawText(rect_ui16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
     while (1) {
         wdt_iwdg_refresh();

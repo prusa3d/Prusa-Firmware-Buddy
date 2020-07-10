@@ -11,6 +11,9 @@
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
 
+static const char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM/";
+static const char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com/";
+
 char *eofstr(char *str) {
     return (str + strlen(str));
 }
@@ -24,14 +27,14 @@ void append_crc(char *str, uint32_t str_size) {
     uint32_t crc;
 
     TM_CRC_Init(); // !!! should be somewhere else (not sure where yet)
-    crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ER_URL) - 1), strlen(str) - sizeof(ER_URL) + 1, 1);
+    crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ERROR_URL_LONG_PREFIX) - 1), strlen(str) - sizeof(ERROR_URL_LONG_PREFIX) + 1, 1);
     snprintf(eofstr(str), str_size - strlen(str), "/%08lX", crc);
 }
 
-void create_long_error_url(char *str, uint32_t str_size, int error_code) {
+void long_error_url(char *str, uint32_t str_size, int error_code) {
     // FIXME use std::array instead
 
-    strlcpy(str, ER_URL, str_size);
+    strlcpy(str, ERROR_URL_LONG_PREFIX, str_size);
     snprintf(eofstr(str), str_size - strlen(str), "%d/", error_code);
     //snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
     //snprintf(eofstr(str), str_size - strlen(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
@@ -40,10 +43,10 @@ void create_long_error_url(char *str, uint32_t str_size, int error_code) {
     //append_crc(str, str_size);
 }
 
-void create_short_error_url(char *str, uint32_t str_size, int error_code) {
+void short_error_url(char *str, uint32_t str_size, int error_code) {
     // FIXME use std::array instead
 
-    strlcpy(str, ER_URL, str_size);
+    strlcpy(str, ERROR_URL_SHORT_PREFIX, str_size);
     snprintf(eofstr(str), str_size - strlen(str), "%d/", error_code);
     //snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
     //snprintf(eofstr(str), str_size - strlen(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
