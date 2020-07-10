@@ -41,15 +41,24 @@ public:
     /// @returns translated string
     virtual string_view_utf8 GetText(const char *key) const {
         uint16_t stringIndex = hash_table.find((const uint8_t *)key);
+        if (stringIndex == 0xffff) {
+            // if the translated string was not found, return the source string (assuming it is somewhere in memory, i.e. CPUFLASH or RAM)
+            return string_view_utf8::MakeCPUFLASH((const uint8_t *)key);
+        }
         const uint8_t *utf8raw = StringTableAt(stringIndex);
-        return utf8raw ? string_view_utf8::MakeCPUFLASH(utf8raw) : string_view_utf8::MakeNULLSTR();
+        return string_view_utf8::MakeCPUFLASH(utf8raw);
     }
 
+    using SHashTable = string_hash_table<hash_djb2, 256, 256>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
 #ifndef TRANSLATIONS_UNITTEST
 protected:
 #endif
-    using SHashTable = string_hash_table<hash_djb2, 256, 256>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
-    static SHashTable hash_table;                              ///< shared among all of the derived providers
+#ifndef TRANSLATIONS_UNITTEST
+    static const
+#else
+    static
+#endif
+        SHashTable hash_table; ///< shared among all of the derived providers
 
     /// @returns pointer to translated string (utf8 data) or nullptr if out of range
     virtual const uint8_t *StringTableAt(uint16_t stringIndex) const = 0;

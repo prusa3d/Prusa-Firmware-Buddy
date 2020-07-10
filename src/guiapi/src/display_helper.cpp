@@ -7,6 +7,13 @@
 #include "gui.hpp"
 #include "../lang/string_view_utf8.hpp"
 #include <algorithm>
+#include "../lang/unaccent.hpp"
+
+std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
+    // for now we have a translation table and in the future we'll have letters with diacritics too (i.e. more font bitmaps)
+    const auto &a = UnaccentTable::Utf8RemoveAccents(c);
+    return std::make_pair(a.str, a.size); // we are returning some number of characters to replace the input utf8 character
+}
 
 /// Draws a text into the specified rectangle @rc
 /// If a character does not fit into the rectangle the drawing is stopped
@@ -31,12 +38,16 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
                 return false;
             continue;
         }
-
-        // @@TODO fixme temporary narrowing from utf-8 char to 1byte
-        char temporarily_narrowed_utf8_char = c & 0xff;
-
-        display::DrawChar(point_ui16(x, y), temporarily_narrowed_utf8_char, pf, clr_bg, clr_fg);
-        x += w;
+        if (c < 128) {
+            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+            x += w;
+        } else {
+            auto convertedChar = ConvertUnicharToFontCharIndex(c);
+            for (size_t i = 0; i < convertedChar.second; ++i) {
+                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+                x += w; // this will screw up character counting for DE language @@TODO
+            }
+        }
         // FIXME Shouldn't it try to break the line first?
         if (x + w > rc_end_x)
             return false;
@@ -63,6 +74,33 @@ void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, 
     display::FillRect(rc_r, color);
 }
 
+int font_line_chars(const font_t *pf, unichar *str, uint16_t line_width) {
+    int w = 0;
+    const int char_w = pf->w;
+    size_t n = 0;
+    // This is generally about finding the closest '\n' character within the current line to be drawn.
+    // Line is limited by pixel dimension, all characters have the same fixed pixel size
+    // Such character may not be found, so n becomes > len
+    unichar c = 0;
+    while ((w + char_w) <= line_width) {
+        c = str[n];
+        if (c == 0)
+            return n; // avoid touching memory beyond the string
+        ++n;
+        if (c == '\n')
+            break;
+        w += char_w;
+    }
+
+    while ((n > 0) && ((str[n] != ' ') && (str[n] != '\n'))) {
+        n--;
+    }
+
+    if (n == 0)
+        n = line_width / char_w;
+    return n;
+}
+
 void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
@@ -71,32 +109,41 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
         uint16_t y = rc_pad.y;
         int n;
         int i;
-        //const char *str = text;
-        // @@TODO rewrite the whole algorithm - avoid going back at all cost
-        // In this case we are not using the PNG decompression buffer, we may preprocess the input utf8 string into the buffer
-        // and do some magic on top of it afterwards
-        //        while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
-        //            x = rc_pad.x;
-        //            i = 0;
-        //            while (str[i] == ' ' || str[i] == '\n')
-        //                i++;
-        //            for (; i < n; i++) {
-        //                display::DrawChar(point_ui16(x, y), str[i], font, clr0, clr1);
-        //                x += font->w;
-        //            }
-        //            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr0);
-        //            str += n;
-        //            y += font->h;
-        //        }
+        // reuse the PNG decompression buffer for temporary storage of the 4B unicode string
+        // This is safe here, no PNG is being decompressed while rendering a piece of text
+        unichar *png_mem_ptr0 = (unichar *)0x10000000; //@@TODO clean up, this is brutal
+        unichar *str = png_mem_ptr0;
+        while ((*str = text.getUtf8Char()) != 0) {
+            ++str;
+        }
+        str = png_mem_ptr0; // reset the string pointer to its beginning ... and now we can keep the old algoritm almost intact
+        while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
+            x = rc_pad.x;
+            i = 0;
+            while (str[i] == ' ' || str[i] == '\n')
+                i++;
+            for (; i < n; i++) {
+                if (str[i] < 128) {
+                    display::DrawChar(point_ui16(x, y), str[i], font, clr0, clr1);
+                    x += font->w;
+                } else {
+                    const auto &convertedChar = ConvertUnicharToFontCharIndex(str[i]);
+                    for (size_t cci = 0; cci < convertedChar.second; ++cci) {
+                        display::DrawChar(point_ui16(x, y), convertedChar.first[cci], font, clr0, clr1);
+                        x += font->w;
+                    }
+                }
+            }
+            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr0);
+            str += n;
+            y += font->h;
+        }
         display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
         fill_between_rectangles(&rc, &rc_pad, clr0);
     } else {
-        // 1st pass reading the string_view_utf8
-        point_ui16_t wh_txt = font_meas_text(font, text);
-        // 2nd pass reading the string_view_utf8 ... hmm, this can be optimized
-        // ... at least the length may be computed and cached in the 1st pass
-        // @@TODO optimize
-        size_t strlen_text = text.computeNumUtf8CharsAndRewind();
+        // 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
+        uint16_t strlen_text = 0;
+        point_ui16_t wh_txt = font_meas_text(font, &text, &strlen_text);
         if (wh_txt.x && wh_txt.y) {
             rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
             rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
@@ -108,6 +155,7 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
             const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
             fill_between_rectangles(&rc, &rect_in, clr0);
             text.rewind();
+            // 2nd pass reading the string_view_utf8 - draw the text
             render_text(rc_txt, text, font, clr0, clr1);
         } else
             display::FillRect(rc, clr0);
@@ -225,15 +273,17 @@ void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t 
     }
 }
 
-point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 str) {
+point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars) {
     int x = 0;
     int y = 0;
     int w = 0;
     int h = 0;
     const int8_t char_w = pf->w;
     const int8_t char_h = pf->h;
+    *numOfUTF8Chars = 0;
     unichar c = 0;
-    while ((c = str.getUtf8Char()) != 0) {
+    while ((c = str->getUtf8Char()) != 0) {
+        ++(*numOfUTF8Chars);
         if (c == '\n') {
             if (x + char_w > w)
                 w = x + char_w;
@@ -244,38 +294,6 @@ point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 str) {
         h = y + char_h;
     }
     return point_ui16((uint16_t)std::max(x, w), (uint16_t)h);
-}
-
-int font_line_chars(const font_t *pf, string_view_utf8 str, uint16_t line_width) {
-    int w = 0;
-    const int char_w = pf->w;
-    size_t len = str.computeNumUtf8CharsAndRewind();
-    size_t n = 0;
-    // This is generally about finding the closest '\n' character within the current line to be drawn.
-    // Line is limited by pixel dimension, all characters have the same fixed pixel size
-    // Such character may not be found, so n becomes > len
-    unichar c = 0;
-    while ((w + char_w) <= line_width) {
-        c = str.getUtf8Char();
-        ++n;
-        if (c == '\n')
-            break;
-        w += char_w;
-    }
-
-    // if the line width is >= than characters to be printed, skip further search
-    // and just return len - i.e. the whole string is to be printed at once.
-    if (n >= len)
-        return len; // must return here to prevent touching memory beyond str in the next while cycle
-
-    // @@TODO this is bullshit and cannot be done streaming
-    //    while ((n > 0) && ((str[n] != ' ') && (str[n] != '\n'))) {
-    //        n--;
-    //    }
-
-    if (n == 0)
-        n = line_width / char_w;
-    return std::min(n, len);
 }
 
 uint16_t text_rolls_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *pf) {
@@ -289,7 +307,8 @@ uint16_t text_rolls_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *pf
 rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags) {
 
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
-    point_ui16_t wh_txt = font_meas_text(font, text);
+    uint16_t numOfUTF8Chars;
+    point_ui16_t wh_txt = font_meas_text(font, &text, &numOfUTF8Chars);
     rect_ui16_t rc_txt = { 0, 0, 0, 0 };
     if (wh_txt.x && wh_txt.y) {
         rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);

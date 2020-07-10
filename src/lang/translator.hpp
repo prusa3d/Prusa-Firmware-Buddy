@@ -13,7 +13,7 @@ extern string_view_utf8 gettext(const char *src);
 
 class Translations {
     struct TranRec {
-        ITranslationProvider *provider;
+        const ITranslationProvider *provider;
         uint16_t langCode;
     };
     static const size_t maxTranslations = 6;
@@ -22,11 +22,11 @@ class Translations {
     const ITranslationProvider *currentProvider;
 
 public:
-    static Translations Instance() {
+    static Translations &Instance() {
         static Translations t;
         return t;
     }
-    bool RegisterProvider(uint16_t langCode, ITranslationProvider *provider);
+    bool RegisterProvider(uint16_t langCode, const ITranslationProvider *provider);
     bool ChangeLanguage(uint16_t langCode);
     inline const ITranslationProvider *CurrentProvider() const {
         return currentProvider;
@@ -43,7 +43,7 @@ public:
 };
 
 struct ProviderRegistrator {
-    ProviderRegistrator(const char *langCode, ITranslationProvider *provider) {
+    ProviderRegistrator(const char *langCode, const ITranslationProvider *provider) {
         Translations::Instance().RegisterProvider(Translations::MakeLangCode(langCode), provider);
     }
 };

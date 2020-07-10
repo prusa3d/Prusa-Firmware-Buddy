@@ -71,15 +71,15 @@ const uint16_t printing_icons[static_cast<size_t>(item_id_t::count)] = {
 };
 
 const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
-    "Tune",
-    "Pause",
-    "Pausing...",
-    "Stop",
-    "Resume",
-    "Resuming...",
-    "Heating...",
-    "Reprint",
-    "Home",
+    N_("Tune"),
+    N_("Pause"),
+    N_("Pausing..."),
+    N_("Stop"),
+    N_("Resume"),
+    N_("Resuming..."),
+    N_("Heating..."),
+    N_("Reprint"),
+    N_("Home"),
 };
 
 struct screen_printing_data_t {
@@ -552,13 +552,7 @@ static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, win
     size_t index = static_cast<size_t>(id_to_set);
     if (p_button->GetIdRes() != printing_icons[index])
         p_button->SetIdRes(printing_icons[index]);
-    //compare pointers to text, compare texts would take too long
-    // @@TODO find a way around this construct
-    //    if (window_get_text(lbl_id) != printing_labels[index])
-    //        window_set_text(lbl_id, string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[index]));
-    //=======
-    //    if (lbl->GetText() != printing_labels[index])
-    //        lbl->SetText(printing_labels[index]);
+    lbl->SetText(_(printing_labels[index]));
 }
 
 static void enable_button(window_icon_t *p_button) {

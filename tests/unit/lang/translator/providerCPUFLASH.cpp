@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include "hash.hpp"
+#include "unaccent.hpp"
 
 using namespace std;
 
@@ -229,12 +230,42 @@ bool CheckAllTheStrings(const deque<string> &rawStringKeys, const deque<string> 
         // now compare - that means iterating over both string views and making sure both return the same utf8 characters
         CHECK(CompareStringViews(s, s2, nonAsciiChars));
     });
+
+    { // check for a non-existing string
+        static const char nex[] = "NoN_ExIsTiNg:string";
+        string_view_utf8 s = provider.GetText(nex);
+        string_view_utf8 s2 = string_view_utf8::MakeRAM((const uint8_t *)nex);
+        CHECK(CompareStringViews(s, s2, nonAsciiChars));
+    }
+
     return true;
 }
 
 void SaveArray(const char *strData, uint16_t strDataSize, const char *type, const char *langCode) {
     ofstream f(string("strings.") + type + langCode);
     f.write(strData, strDataSize);
+}
+
+template <typename T, typename Tfirst, typename Tsecond>
+void SaveHashIPP(const T *p, size_t size, const char *fname, Tfirst first, Tsecond second) {
+    ofstream f(fname);
+    f << "{\n"
+      << hex;
+    for_each(p, p + size, [&](const T &i) {
+        f << "{ 0x" << first(i) << "U, 0x" << second(i) << "U },\n";
+    });
+    f << "};\n";
+}
+
+template <typename T>
+void SaveArray4CPP(const T *p, size_t size, const char *fname, const char *decl) {
+    ofstream f(fname);
+    f << decl << " = {\n"
+      << hex;
+    for_each(p, p + size, [&](const T &i) {
+        f << "0x" << i << ", ";
+    });
+    f << "};\n";
 }
 
 template <typename T>
@@ -244,6 +275,11 @@ void FillAndSaveStringTable(const deque<string> &strings, const char *langCode) 
     T::stringBytes = ssize.second;
     SaveArray((const char *)T::utf8Raw, T::stringBytes, "table.", langCode);
     SaveArray((const char *)T::stringBegins, T::stringCount * sizeof(uint16_t), "index.", langCode);
+
+    string upcaseLangCode(langCode);
+    std::transform(upcaseLangCode.begin(), upcaseLangCode.end(), upcaseLangCode.begin(), ::toupper);
+    SaveArray4CPP(T::stringBegins, T::stringCount, (string("stringBegins.") + langCode + ".hpp").c_str(),
+        (string("const uint16_t StringTable") + upcaseLangCode + "::stringBegins[]").c_str());
 }
 
 /// This is a complex test of the whole translation mechanism
@@ -269,12 +305,20 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     const auto &ht = CPUFLASHTranslationProviderBase::hash_table;
     SaveArray((const char *)ht.hash_table, sizeof(ht.hash_table), "hash_table", "");
     SaveArray((const char *)ht.stringRecArray, sizeof(ht.stringRecArray), "hash_buckets", "");
+    SaveHashIPP(
+        ht.hash_table, ht.Buckets(), "hash_table_buckets.ipp",
+        [](const CPUFLASHTranslationProviderBase::SHashTable::BucketRange &b) { return b.begin; },
+        [](const CPUFLASHTranslationProviderBase::SHashTable::BucketRange &b) { return b.end; });
+    SaveHashIPP(
+        ht.stringRecArray, ht.MaxStrings(), "hash_table_string_indices.ipp",
+        [](const CPUFLASHTranslationProviderBase::SHashTable::BucketItem &b) { return b.firstLetters; },
+        [](const CPUFLASHTranslationProviderBase::SHashTable::BucketItem &b) { return b.stringIndex; });
 
     // now do a similar thing for the translated strings
     deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings; // don't have the Spanish translation yet
     REQUIRE(LoadTranslatedStringsFile("cs.txt", &csStrings));
     REQUIRE(LoadTranslatedStringsFile("de.txt", &deStrings));
-    //    REQUIRE( LoadTranslatedStringsFile("es.txt", esStrings) );
+    REQUIRE(LoadTranslatedStringsFile("es.txt", &esStrings));
     REQUIRE(LoadTranslatedStringsFile("fr.txt", &frStrings));
     REQUIRE(LoadTranslatedStringsFile("it.txt", &itStrings));
     REQUIRE(LoadTranslatedStringsFile("pl.txt", &plStrings));
@@ -282,7 +326,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     // need to have at least the same amount of translations like the keys (normally there will be an exact number of them)
     REQUIRE(rawStringKeys.size() <= csStrings.size());
     REQUIRE(rawStringKeys.size() <= deStrings.size());
-    //    REQUIRE(rawStringKeys.size() <= esStrings.size());
+    REQUIRE(rawStringKeys.size() <= esStrings.size());
     REQUIRE(rawStringKeys.size() <= frStrings.size());
     REQUIRE(rawStringKeys.size() <= itStrings.size());
     REQUIRE(rawStringKeys.size() <= plStrings.size());
@@ -290,7 +334,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     // now make the string table from cs.txt
     FillAndSaveStringTable<StringTableCSTest>(csStrings, "cs");
     FillAndSaveStringTable<StringTableDETest>(deStrings, "de");
-    //    FillAndSaveStringTable<StringTableESTest>(esStrings, "es");
+    FillAndSaveStringTable<StringTableESTest>(esStrings, "es");
     FillAndSaveStringTable<StringTableFRTest>(frStrings, "fr");
     FillAndSaveStringTable<StringTableITTest>(itStrings, "it");
     FillAndSaveStringTable<StringTablePLTest>(plStrings, "pl");
@@ -299,7 +343,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     set<unichar> nonASCIICharacters;
     REQUIRE(CheckAllTheStrings(rawStringKeys, csStrings, providerCS, nonASCIICharacters));
     REQUIRE(CheckAllTheStrings(rawStringKeys, deStrings, providerDE, nonASCIICharacters));
-    //    // REQUIRE( CheckAllTheStrings(rawStringKeys, esStrings, providerES, nonASCIICharacters));
+    REQUIRE(CheckAllTheStrings(rawStringKeys, esStrings, providerES, nonASCIICharacters));
     REQUIRE(CheckAllTheStrings(rawStringKeys, frStrings, providerFR, nonASCIICharacters));
     REQUIRE(CheckAllTheStrings(rawStringKeys, itStrings, providerIT, nonASCIICharacters));
     REQUIRE(CheckAllTheStrings(rawStringKeys, plStrings, providerPL, nonASCIICharacters));
@@ -308,9 +352,19 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
         // cout << "Non-ASCII characters = " << nonASCIICharacters.size() << endl;
         // Dump detected non-ASCII characters to a file - note, I don't have the correct utf-8 represetation here
         // ... can be probably added later
+        // In our case we have only 2-byte utf chars so far (cs, de, es, fr, it, pl)
+        ofstream fr("non-ascii-chars.raw");
         ofstream f("non-ascii-chars.txt");
-        for_each(nonASCIICharacters.begin(), nonASCIICharacters.end(), [&f](unichar c) {
-            f.write((const char *)&c, sizeof(unichar));
+        for_each(nonASCIICharacters.begin(), nonASCIICharacters.end(), [&f, &fr](unichar c) {
+            fr.write((const char *)&c, sizeof(unichar));
+            uint8_t uc[4] = "   ";
+            uc[0] = 0xc0 | (c >> 6);
+            uc[1] = 0x80 | (c & 0x3f);
+            f.write((const char *)uc, 3);
+
+            // check, that we have this character in our temporary translation table
+            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
+            CHECK(cASCII.key != 0xffff);
         });
     }
 }

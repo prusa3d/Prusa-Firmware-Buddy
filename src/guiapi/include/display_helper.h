@@ -42,9 +42,9 @@ extern void roll_init(rect_ui16_t rc, string_view_utf8 text, const font_t *font,
 
 extern void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
 
-extern point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 str);
+extern point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars);
 
-extern int font_line_chars(const font_t *pf, string_view_utf8 str, uint16_t line_width);
+//extern int font_line_chars(const font_t *pf, string_view_utf8 str, uint16_t line_width);
 
 extern uint16_t text_rolls_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *pf);
 

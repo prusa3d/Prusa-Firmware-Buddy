@@ -18,24 +18,36 @@ class string_hash_table { // @@TODO vymyslet tomu lepsi jmeno
 public:
     struct BucketRange {
         uint16_t begin, end;
-        inline BucketRange()
+        inline constexpr BucketRange()
             : begin(0xffff)
             , end(0xffff) {}
+        inline constexpr BucketRange(uint16_t begin, uint16_t end)
+            : begin(begin)
+            , end(end) {}
     };
 
-    BucketRange hash_table[buckets];
+#ifndef TRANSLATIONS_UNITTEST
+    static const
+#endif
+        BucketRange hash_table[buckets];
 
     struct BucketItem {
         uint16_t firstLetters; ///< first 2 letters of string
         uint16_t stringIndex;  ///< index of string in string table
-        inline BucketItem()
+        inline constexpr BucketItem()
             : firstLetters(0)
             , stringIndex(0) {}
+        inline constexpr BucketItem(uint16_t firstLetters, uint16_t stringIndex)
+            : firstLetters(firstLetters)
+            , stringIndex(stringIndex) {}
     };
 
     /// The size may be limited exactly on the amount of strings available, in our case ~163 and some more will come later
     /// Definitely there won't be more than 64K strings
-    BucketItem stringRecArray[maxStrings];
+#ifndef TRANSLATIONS_UNITTEST
+    static const
+#endif
+        BucketItem stringRecArray[maxStrings];
 
 public:
     string_hash_table() {}
@@ -45,8 +57,8 @@ public:
     uint16_t find(const uint8_t *key) const {
         uint8_t hashIndex = ReducedHash(Hash(key));
         const BucketRange &b = hash_table[hashIndex];
-        if (b.begin == 0xffff) {
-            return 0xffff; // string not found, directs to an empty bucket
+        if (b.begin == 0xffffU) {
+            return 0xffffU; // string not found, directs to an empty bucket
         }
         uint16_t first2Chars = (key[1] << 8) + key[0];
         if ((b.begin + 1) == b.end) { // no collision - remember - end is one element past the
@@ -60,11 +72,11 @@ public:
                     return stringRecArray[i].stringIndex;
                 }
             }
-            return 0xffffU; // not found ... which would have been weird
+            return 0xffffU; // not found
         }
     }
-    inline uint32_t MaxStrings() const { return maxStrings; }
-    inline uint32_t Buckets() const { return buckets; }
+    inline static constexpr uint32_t MaxStrings() { return maxStrings; }
+    inline static constexpr uint32_t Buckets() { return buckets; }
 
     /// @returns hash function reduced to our number of buckets
     static uint32_t ReducedHash(uint32_t h) {

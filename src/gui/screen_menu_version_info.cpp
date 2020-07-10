@@ -77,7 +77,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
 
     if (end > begin)
         begin += snprintf(begin, end - begin,
-            /*_*/ ("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"), //@@TODO fix translation - needs streaming
+            /*_*/ ("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"), //@@TODO streaming
             bootloader->major, bootloader->minor, bootloader->patch,
             board_version[0], board_version[1], board_version[2],
             serial_numbers);

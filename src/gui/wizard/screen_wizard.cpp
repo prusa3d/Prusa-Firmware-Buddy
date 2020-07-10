@@ -400,7 +400,6 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
                     char buff[255] = "THIS TEXT NEEDS FIXING @@TODO";
                     //cannot use \n
-                    // @@TODO this cannot be
                     //                    snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use\n"
                     //                                                                  "the current value?\n"
                     //                                                                  "Current: %0.3f.   \n"

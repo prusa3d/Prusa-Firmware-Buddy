@@ -29,9 +29,9 @@ const uint16_t serial_printing_icons[iid_count] = {
 };
 
 const char *serial_printing_labels[iid_count] = {
-    "Tune",
-    "Pause",
-    "Disconnect"
+    N_("Tune"),
+    N_("Pause"),
+    N_("Disconnect")
 };
 
 struct screen_printing_serial_data_t {
@@ -68,15 +68,14 @@ screen_t screen_printing_serial = {
 screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
 static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
-    if (p_button->GetIdRes() != serial_printing_icons[id_to_set])
+    // This check may also be skipped and set the icon every time
+    // - set_icon_and_label is called only from screen_printing_serial_init
+    // I don't see a reason why we should compare to some previous state
+    if (p_button->GetIdRes() != serial_printing_icons[id_to_set]) {
         p_button->SetIdRes(serial_printing_icons[id_to_set]);
-    //compare pointers to text, compare texts would take too long
-    // @@TODO find a way around this construct
-    //    if (window_get_text(lbl_id) != serial_printing_labels[id_to_set])
-    //        window_set_text(lbl_id, serial_printing_labels[id_to_set]);
-    //=======
-    //    if (lbl->GetText() != serial_printing_labels[id_to_set])
-    //        lbl->SetText(serial_printing_labels[id_to_set]);
+    }
+    // disregard comparing strings - just set the label every time
+    lbl->SetText(_(serial_printing_labels[id_to_set]));
 }
 
 void screen_printing_serial_init(screen_t *screen) {

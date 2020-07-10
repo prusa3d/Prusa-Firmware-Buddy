@@ -4,10 +4,24 @@
 #include "translator.hpp"
 #include "translation_provider_CPUFLASH.hpp"
 
-CPUFLASHTranslationProviderBase::SHashTable CPUFLASHTranslationProviderBase::hash_table;
+using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
+#ifndef TRANSLATIONS_UNITTEST
+const
+#endif
+    TPBSH CPUFLASHTranslationProviderBase::hash_table;
 
-/// Wrappers of statically precomputed translation data for each language
-struct StringTableCS {
+#ifndef TRANSLATIONS_UNITTEST
+template <>
+const TPBSH::BucketRange TPBSH::hash_table[TPBSH::Buckets()] =
+    #include "hash_table_buckets.ipp"
+
+    template <>
+    const TPBSH::BucketItem TPBSH::stringRecArray[TPBSH::MaxStrings()] =
+    #include "hash_table_string_indices.ipp"
+#endif
+
+        /// Wrappers of statically precomputed translation data for each language
+    struct StringTableCS {
     // this will get statically precomputed for each translation language separately
     static const uint16_t stringBegins[];
     // a piece of memory where the null-terminated strings are situated
@@ -56,53 +70,60 @@ using CPUFLASHTranslationProviderFR = CPUFLASHTranslationProvider<StringTableFR>
 using CPUFLASHTranslationProviderDE = CPUFLASHTranslationProvider<StringTableDE>;
 using CPUFLASHTranslationProviderIT = CPUFLASHTranslationProvider<StringTableIT>;
 
-// this will be filled at compile time by precomputed indices and strings
-const uint16_t StringTableCS::stringBegins[] = { 1, 2, 3, 4 };
-const uint8_t StringTableCS::utf8Raw[] = "abcd";
+// precomputed indices and strings for the CS(CZ) language
+#include "stringBegins.cs.hpp"
+#include "utf8Raw.cs.hpp"
 template <>
 const CPUFLASHTranslationProviderCS::RawData CPUFLASHTranslationProviderCS::rawData;
 
-const uint16_t StringTableDE::stringBegins[] = { 1, 2, 3, 4 };
-const uint8_t StringTableDE::utf8Raw[] = "abcd";
+// precomputed indices and strings for the DE language
+#include "stringBegins.de.hpp"
+#include "utf8Raw.de.hpp"
 template <>
 const CPUFLASHTranslationProviderDE::RawData CPUFLASHTranslationProviderDE::rawData;
 
+// precomputed indices and strings for the ES language
 const uint16_t StringTableES::stringBegins[] = { 1, 2, 3, 4 };
+// #include "stringBegins.es.hpp"
 const uint8_t StringTableES::utf8Raw[] = "abcd";
+// #include "utf8Raw.es.hpp"
 template <>
 const CPUFLASHTranslationProviderES::RawData CPUFLASHTranslationProviderES::rawData;
 
-const uint16_t StringTableFR::stringBegins[] = { 1, 2, 3, 4 };
-const uint8_t StringTableFR::utf8Raw[] = "abcd";
+// precomputed indices and strings for the FR language
+#include "stringBegins.fr.hpp"
+#include "utf8Raw.fr.hpp"
 template <>
 const CPUFLASHTranslationProviderFR::RawData CPUFLASHTranslationProviderFR::rawData;
 
-const uint16_t StringTableIT::stringBegins[] = { 1, 2, 3, 4 };
-const uint8_t StringTableIT::utf8Raw[] = "abcd";
+// precomputed indices and strings for the IT language
+#include "stringBegins.it.hpp"
+#include "utf8Raw.it.hpp"
 template <>
 const CPUFLASHTranslationProviderIT::RawData CPUFLASHTranslationProviderIT::rawData;
 
-const uint16_t StringTablePL::stringBegins[] = { 1, 2, 3, 4 };
-const uint8_t StringTablePL::utf8Raw[] = "abcd";
+// precomputed indices and strings for the PL language
+#include "stringBegins.pl.hpp"
+#include "utf8Raw.pl.hpp"
 template <>
 const CPUFLASHTranslationProviderPL::RawData CPUFLASHTranslationProviderPL::rawData;
 
 namespace {
-CPUFLASHTranslationProviderCS cs;
+static const CPUFLASHTranslationProviderCS cs;
 ProviderRegistrator csReg("cs", &cs);
 
-CPUFLASHTranslationProviderDE de;
+static const CPUFLASHTranslationProviderDE de;
 ProviderRegistrator deReg("de", &de);
 
-CPUFLASHTranslationProviderES es;
+static const CPUFLASHTranslationProviderES es;
 ProviderRegistrator esReg("es", &es);
 
-CPUFLASHTranslationProviderFR fr;
+static const CPUFLASHTranslationProviderFR fr;
 ProviderRegistrator frReg("fr", &fr);
 
-CPUFLASHTranslationProviderIT it;
+static const CPUFLASHTranslationProviderIT it;
 ProviderRegistrator itReg("it", &it);
 
-CPUFLASHTranslationProviderPL pl;
+static const CPUFLASHTranslationProviderPL pl;
 ProviderRegistrator plReg("pl", &pl);
 }

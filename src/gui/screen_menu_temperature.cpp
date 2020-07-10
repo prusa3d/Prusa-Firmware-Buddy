@@ -25,7 +25,7 @@ protected:
 //parent alias
 using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_NOZZLE, MI_HEATBED, MI_PRINTFAN, MI_COOLDOWN>;
 
-class ScreenMenuTenperature : public parent {
+class ScreenMenuTemperature : public parent {
 public:
     constexpr static const char *label = N_("TEMPERATURE");
     static void Init(screen_t *screen);
@@ -34,14 +34,14 @@ public:
 
 /*****************************************************************************/
 //static member method definition
-void ScreenMenuTenperature::Init(screen_t *screen) {
+void ScreenMenuTemperature::Init(screen_t *screen) {
     marlin_update_vars(
         MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED));
     Create(screen, _(label));
 }
 
-int ScreenMenuTenperature::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    ScreenMenuTenperature *const ths = reinterpret_cast<ScreenMenuTenperature *>(screen->pdata);
+int ScreenMenuTemperature::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
+    ScreenMenuTemperature *const ths = reinterpret_cast<ScreenMenuTemperature *>(screen->pdata);
     if (event == WINDOW_EVENT_CLICK) {
         marlin_set_target_nozzle(0);
         marlin_set_display_nozzle(0);
@@ -62,11 +62,11 @@ int ScreenMenuTenperature::CEvent(screen_t *screen, window_t *window, uint8_t ev
 screen_t screen_menu_temperature = {
     0,
     0,
-    ScreenMenuTenperature::Init,
-    ScreenMenuTenperature::CDone,
-    ScreenMenuTenperature::CDraw,
-    ScreenMenuTenperature::CEvent,
-    sizeof(ScreenMenuTenperature), //data_size
+    ScreenMenuTemperature::Init,
+    ScreenMenuTemperature::CDone,
+    ScreenMenuTemperature::CDraw,
+    ScreenMenuTemperature::CEvent,
+    sizeof(ScreenMenuTemperature), //data_size
     nullptr,                       //pdata
 };
 

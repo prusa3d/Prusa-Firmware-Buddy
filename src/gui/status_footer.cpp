@@ -36,7 +36,8 @@ static char text_nozzle[10];  // "215/215°C"
 static char text_heatbed[10]; // "110/110°C"
 static char text_prnspeed[5]; // "999%"
 static char text_z_axis[7];   // "999.95", more space than needed to avoid warning (sprintf)
-static char filament[5];      // "PETG"
+static const char emptystr[1] = "";
+static const char *filament; // "PETG"
 static char const *err = "ERR";
 
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds);
@@ -136,7 +137,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->heatbed_target = -273;
     footer->z_pos = INT_MIN;
     footer->print_speed = 0;
-    filament[0] = '\0';
+    filament = emptystr;
 
     //read and draw real values
     status_footer_update_temperatures(footer);
@@ -308,10 +309,8 @@ void status_footer_update_filament(status_footer_t *footer) {
     if (0 == strcmp(filament, filaments[get_filament()].name))
         return;
 
-    // @@TODO why do you copy the string when you can just update a pointer?
-    strncpy(filament, filaments[get_filament()].name, sizeof(filament));
-    // this MakeRAM is safe, filament is preallocated in RAM
-    footer->wt_filament.SetText(string_view_utf8::MakeRAM((const uint8_t *)filament));
+    filament = filaments[get_filament()].name;
+    footer->wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filament));
 }
 
 /// Repaints nozzle temperature in proper color

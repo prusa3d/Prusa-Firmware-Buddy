@@ -1,19 +1,37 @@
 #include "translator.hpp"
+#include "translation_provider_empty.hpp"
 
 string_view_utf8 gettext(const char *src) {
-    // the most simple implementation - return a string view over the source string
-    //    return string_view_utf8::MakeCPUFLASH((const uint8_t *)src);
     return Translations::Instance().CurrentProvider()->GetText(src);
 }
 
-Translations::Translations() {
+/// Just to have a meaningfull translation provider if there are no real translations available
+/// ... or at least until there some translations available
+static const EmptyTranslationProvider emptyProvider;
+
+namespace {
+// register the emptyProvider as "translator" for EN language ... i.e. return the source string intact
+ProviderRegistrator prEN("en", &emptyProvider);
 }
 
-bool Translations::RegisterProvider(uint16_t langCode, ITranslationProvider *provider) {
+// this explicit initialization of currentProvider is here to make sure the pointer is always initialized
+// even if there were no registered languages at all
+Translations::Translations()
+    : currentProvider(&emptyProvider) {
+}
+
+bool Translations::RegisterProvider(uint16_t langCode, const ITranslationProvider *provider) {
     // find the lang code in the table, update the provider
     auto i = std::find_if(translations.begin(), translations.end(), [langCode](const TranRec &r) { return r.langCode == langCode; });
     if (i == translations.end()) {
-        return false; // could not find the lang code key
+        // could not find the lang code key - yet - find a free spot to place it into
+        i = std::find_if(translations.begin(), translations.end(), [](const TranRec &r) { return r.langCode == 0; });
+        if (i == translations.end()) {
+            // now we are out of space - couldn't register the provider anywhere
+            return false;
+        }
+        i->langCode = langCode;
+        // fallthrough and save also the provider when going out of this block
     }
     i->provider = provider;
     return true;
