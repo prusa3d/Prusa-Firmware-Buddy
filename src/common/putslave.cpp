@@ -25,6 +25,8 @@
     #error "HAS_GUI not defined."
 #endif
 
+static int putslave_do_cmd_a_stop(uartslave_t *pslave);
+
 int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
     int ret;
     uint16_t cmd_id = UARTSLAVE_CMD_ID_UNK;
@@ -165,7 +167,7 @@ int putslave_do_cmd_q_gpio(uartslave_t *pslave, char *pstr) {
     int gpio = 0;
     if (sscanf(pstr, "%d", &gpio) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < TPA0) || (gpio > TPE15))
+    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_15)))
         return UARTSLAVE_ERR_OOR;
     uartslave_printf(pslave, "%d ", gpio_get(gpio));
     return UARTSLAVE_OK;
@@ -206,7 +208,7 @@ int putslave_do_cmd_q_gpup(uartslave_t *pslave, char *pstr) {
     int gpio = 0;
     if (sscanf(pstr, "%d", &gpio) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < TPA0) || (gpio > TPE15))
+    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_15)))
         return UARTSLAVE_ERR_OOR;
     gpio_init(gpio, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_LOW);
     uartslave_printf(pslave, "%d ", gpio_get(gpio));
@@ -369,29 +371,6 @@ int putslave_do_cmd_a_start(uartslave_t *pslave) {
 }
 #endif
 
-int putslave_do_cmd_a_stop(uartslave_t *pslave) {
-    if (marlin_server_processing()) {
-        marlin_server_stop_processing();
-        osThreadSuspend(displayTaskHandle);
-#ifdef BUDDY_ENABLE_ETHERNET
-        osThreadSuspend(webServerTaskHandle);
-#endif //BUDDY_ENABLE_ETHERNET
-#if HAS_GUI
-        HAL_SPI_MspDeInit(&hspi2);
-#endif
-        NVIC_DisableIRQ(TIM7_IRQn);
-        hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
-        hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
-        //SCK - PB10
-        gpio_init(TPB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
-        //MISO - PC2
-        gpio_init(TPC2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
-        //MOSI - PC3
-        gpio_init(TPC3, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
-    }
-    return UARTSLAVE_OK;
-}
-
 int putslave_do_cmd_a_eecl(uartslave_t *pslave) {
     eeprom_clear();
     return UARTSLAVE_OK;
@@ -403,14 +382,14 @@ int putslave_do_cmd_a_gpio(uartslave_t *pslave, char *pstr) {
     int n = 0;
     if (sscanf(pstr, "%d%n", &gpio, &n) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < TPA0) || (gpio > TPE15))
+    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_15)))
         return UARTSLAVE_ERR_OOR;
     pstr += n;
     if (sscanf(pstr, "%d%n", &state, &n) != 1)
         return UARTSLAVE_ERR_SYN;
     if ((state < 0) || (state > 1))
         return UARTSLAVE_ERR_OOR;
-    if (gpio == TPA0) {
+    if (gpio == MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) {
         if (state)
             hwio_beeper_set_pwm(255, 255); // 1
         else
@@ -507,13 +486,14 @@ int putslave_do_cmd_a_ten(uartslave_t *pslave, char *pstr) {
     int state;
     if (sscanf(pstr, "%d", &state) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((state < 0) || (state > 1))
+    const GPIO_PinState pinState = static_cast<GPIO_PinState>(state);
+    if ((pinState != GPIO_PinState::GPIO_PIN_RESET) || (pinState != GPIO_PinState::GPIO_PIN_SET))
         return UARTSLAVE_ERR_OOR;
     tmc_set_mres();
-    gpio_set(TPD3, state);  //X
-    gpio_set(TPD14, state); //Y
-    gpio_set(TPD2, state);  //Z
-    gpio_set(TPD10, state); //E
+    xEnable.write(pinState);
+    yEnable.write(pinState);
+    zEnable.write(pinState);
+    e0Enable.write(pinState);
     return UARTSLAVE_OK;
 }
 
@@ -635,6 +615,33 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
     return UARTSLAVE_ERR_CNF;
 }
 
+static void enter_put() {
+#if HAS_GUI
+    HAL_SPI_MspDeInit(&hspi2);
+#endif
+    NVIC_DisableIRQ(TIM7_IRQn);
+    hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
+    hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
+    //SCK - PB10
+    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_B, MARLIN_PIN_10), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+    //MISO - PC2
+    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_C, MARLIN_PIN_2), GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
+    //MOSI - PC3
+    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_C, MARLIN_PIN_3), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+}
+
+static int putslave_do_cmd_a_stop(uartslave_t *pslave) {
+    if (marlin_server_processing()) {
+        marlin_server_stop_processing();
+        osThreadSuspend(displayTaskHandle);
+#ifdef BUDDY_ENABLE_ETHERNET
+        osThreadSuspend(webServerTaskHandle);
+#endif //BUDDY_ENABLE_ETHERNET
+        enter_put();
+    }
+    return UARTSLAVE_OK;
+}
+
 void putslave_init(uartslave_t *pslave) {
     pslave->parse_cmd_id = putslave_parse_cmd_id;
     pslave->do_cmd = putslave_do_cmd;
@@ -642,17 +649,6 @@ void putslave_init(uartslave_t *pslave) {
     if (diag_fastboot) {
         uartslave_printf(pslave, "fastboot\n");
         marlin_server_stop_processing();
-#if HAS_GUI
-        HAL_SPI_MspDeInit(&hspi2);
-#endif
-        NVIC_DisableIRQ(TIM7_IRQn);
-        hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
-        hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
-        //SCK - PB10
-        gpio_init(TPB10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
-        //MISO - PC2
-        gpio_init(TPC2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
-        //MOSI - PC3
-        gpio_init(TPC3, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+        enter_put();
     }
 }
