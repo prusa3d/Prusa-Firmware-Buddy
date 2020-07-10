@@ -4,18 +4,18 @@
 
 static bool SOUND_INIT = false;
 
-const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 50, 100, 100, 1000 };
+const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 10, 50, 100, 800 };
 const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
-const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.25F, 0.25F, Sound::volumeInit, Sound::volumeInit };
+const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit };
 
 const eSOUND_TYPE Sound::onceTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
 const eSOUND_TYPE Sound::loudTypes[6] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
 const eSOUND_TYPE Sound::silentTypes[3] = { eSOUND_TYPE_Start, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
 const eSOUND_TYPE Sound::assistTypes[8] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
 
-const int Sound::onceRepeats[5] = { 1, 1, 1, -1, 1 };
+const int Sound::onceRepeats[5] = { 1, 1, 1, 1, 1 };
 const int Sound::loudRepeats[6] = { 1, 1, -1, 3, -1, 1 };
-const int Sound::silentRepeats[3] = { 1, 1, -1 };
+const int Sound::silentRepeats[3] = { 1, 1, 1 };
 const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
 
 eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
