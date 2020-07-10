@@ -1,3 +1,5 @@
+#include <array>
+
 #include "config.h"
 #include "otp.h"
 #include "sys.h"
@@ -11,8 +13,12 @@
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
 
-static const char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM/";
-static const char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com/";
+static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
+static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
+static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
+
+#define _STR(x) #x
+const char project_version[] = _STR(FW_VERSION);
 
 char *eofstr(char *str) {
     return (str + strlen(str));
@@ -31,34 +37,46 @@ void append_crc(char *str, uint32_t str_size) {
     snprintf(eofstr(str), str_size - strlen(str), "/%08lX", crc);
 }
 
-void long_error_url(char *str, uint32_t str_size, int error_code) {
+/// Replace everything but numbers by underscore.
+void leave_numbers(const char *const str_in, char *str_out) {
+    int i = 0;
+    while (str_in[i] != 0) {
+        if (str_in[i] < '0' || '9' < str_in[i])
+            str_out[i] = '_';
+        else {
+            str_out[i] = str_out[i];
+        }
+        i++;
+    }
+}
+
+void error_url_long(char *str, uint32_t str_size, int error_code) {
     // FIXME use std::array instead
 
     strlcpy(str, ERROR_URL_LONG_PREFIX, str_size);
-    snprintf(eofstr(str), str_size - strlen(str), "%d/", error_code);
-    //snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
-    //snprintf(eofstr(str), str_size - strlen(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
-    //!//     snprintf(eofstr(str), str_size - strlen(str), "%d/", FW_VERSION);
-    //snprintf(eofstr(str), str_size - strlen(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
+    /// FIXME add language (/en, ...)
+    //snprintf(eofstr(str), str_size - strlen(str), "/%d", PRINTER_TYPE);
+    snprintf(eofstr(str), str_size - strlen(str), "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
+    char version[sizeof(project_version)];
+    leave_numbers(project_version, version);
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", version);
+    snprintf(eofstr(str), str_size - strlen(str), "/%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
     //append_crc(str, str_size);
 }
 
-void short_error_url(char *str, uint32_t str_size, int error_code) {
+void error_url_short(char *str, uint32_t str_size, int error_code) {
     // FIXME use std::array instead
 
     strlcpy(str, ERROR_URL_SHORT_PREFIX, str_size);
-    snprintf(eofstr(str), str_size - strlen(str), "%d/", error_code);
-    //snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
-    //snprintf(eofstr(str), str_size - strlen(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
-    //!//     snprintf(eofstr(str), str_size - strlen(str), "%d/", FW_VERSION);
-    //snprintf(eofstr(str), str_size - strlen(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
-    //append_crc(str, str_size);
+    /// FIXME add language (/en, ...)
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
 }
 
 void create_path_info_4service(char *str, uint32_t str_size) {
     // FIXME use std::array instead
 
-    strlcpy(str, IR_URL, str_size);
+    strlcpy(str, INFO_URL_LONG_PREFIX, str_size);
     // PrinterType
     snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
     // UniqueID

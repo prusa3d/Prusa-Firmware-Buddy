@@ -12,8 +12,8 @@ extern "C" {
 extern char *eofstr(char *str);
 extern void append_crc(char *str);
 
-extern void long_error_url(char *str, uint32_t str_size, int error_code);
-extern void short_error_url(char *str, uint32_t str_size, int error_code);
+extern void error_url_long(char *str, uint32_t str_size, int error_code);
+extern void error_url_short(char *str, uint32_t str_size, int error_code);
 extern void create_path_info_4service(char *str, uint32_t str_size);
 
 #ifdef __cplusplus

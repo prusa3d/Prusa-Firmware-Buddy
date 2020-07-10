@@ -257,18 +257,17 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::DrawText(rect_ui16(52, 142, display::GetW() - 52, display::GetH() - 142), scan_me_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
     /// draw arrow
-    render_icon_align(rect_ui16(190, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
+    render_icon_align(rect_ui16(191, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
 
     /// draw QR
     char qr_text[MAX_LEN_4QR + 1];
     /// FIXME Currently the only one error code working
-    long_error_url(qr_text, sizeof(qr_text), 12201);
+    error_url_long(qr_text, sizeof(qr_text), 12201);
     window_qr_t win;
     window_qr_t *window = &win;
     win.text = qr_text;
-    const uint8_t height = 144;
-    win.rect = rect_ui16(55, 159, 130, 130);
-    win.bg_color = COLOR_RED_ALERT;
+    win.rect = rect_ui16(120 - 140 / 2, 223 - 140 / 2, 140, 140); /// center = [120,223]
+    win.bg_color = COLOR_WHITE;
 
     //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
 
@@ -282,8 +281,8 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     /// draw short URL
     /// FIXME Currently the only one error code working
-    short_error_url(qr_text, sizeof(qr_text), 12201);
-    render_text_align(rect_ui16(0, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+    error_url_short(qr_text, sizeof(qr_text), 12201);
+    render_text_align(rect_ui16(0, 293, display::GetW(), display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
     //display::DrawText(rect_ui16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
     while (1) {
