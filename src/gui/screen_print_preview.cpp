@@ -313,7 +313,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
     if (!suppress_draw && fs_did_filament_runout()) {
         suppress_draw = true;
         Sound_Play(eSOUND_TYPE_StandardAlert);
-        const char *btns[3] = { "YES", "NO", "IGNORE" };
+        const char *btns[3] = { N_("YES"), N_("NO"), N_("IGNORE") };
         switch (gui_msgbox_ex(string_view_utf8::MakeNULLSTR(),
             _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
             MSGBOX_BTN_CUSTOM3,

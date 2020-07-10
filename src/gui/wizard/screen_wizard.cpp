@@ -138,7 +138,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
 #ifndef _DEBUG
                 if (wizard_msgbox(
 #else
-                const char *btns[3] = { "SetDone", "YES", "NO" };
+                const char *btns[3] = { N_("SetDone"), N_("YES"), N_("NO") };
                 switch (wizard_msgbox_btns(_(
 #endif
                         "Welcome to the     \n"

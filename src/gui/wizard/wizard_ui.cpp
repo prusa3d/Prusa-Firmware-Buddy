@@ -5,6 +5,7 @@
 #include "resource.h"
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "marlin_client.h" //HAL_GetTick
+#include "../lang/i18n.h"
 
 uint16_t wizard_get_test_icon_resource(uint8_t state) {
     switch (state) {
@@ -28,9 +29,9 @@ void wizard_update_test_icon(window_icon_t &ico, uint8_t state) {
 int wizard_msgbox_ex(string_view_utf8 text, uint16_t flags, uint16_t id_icon, rect_ui16_t rc) {
     const char *custom_btn = 0;
     if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_NEXT)
-        custom_btn = "NEXT";
+        custom_btn = N_("NEXT");
     else if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_DONE)
-        custom_btn = "DONE";
+        custom_btn = N_("DONE");
     if (custom_btn) {
         flags = (flags & ~MSGBOX_MSK_BTN) | MSGBOX_BTN_CUSTOM1;
         return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags | MSGBOX_ICO_CUSTOM, rc, id_icon, &custom_btn);

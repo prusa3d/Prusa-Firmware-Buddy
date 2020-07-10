@@ -18,7 +18,7 @@ LD_UNLD_STATE_t _decide_continue_load_unload() {
     uint16_t def_bt = filament == (FKNOWN | F_NOTSENSED) ? MSGBOX_DEF_BUTTON2 : MSGBOX_DEF_BUTTON1;
     switch (filament) {
     case FKNOWN: { //known and not "unsensed" - do not allow load
-        const char *btns[2] = { "NEXT", "UNLOAD" };
+        const char *btns[2] = { N_("NEXT"), N_("UNLOAD") };
         switch (wizard_msgbox_btns(_(
                                        "To calibrate with  \n"
                                        "currently loaded   \n"
@@ -41,7 +41,7 @@ LD_UNLD_STATE_t _decide_continue_load_unload() {
     case 0:                    //filament is not known but is sensed == most likely same as F_NOTSENSED, but user inserted filament into sensor
     default: {
         //cannot use CONTINUE button, string is too long
-        const char *btns[3] = { "NEXT", "LOAD", "UNLOAD" };
+        const char *btns[3] = { N_("NEXT"), N_("LOAD"), N_("UNLOAD") };
         switch (wizard_msgbox_btns(_(
                                        "To calibrate with  \n"
                                        "currently loaded   \n"

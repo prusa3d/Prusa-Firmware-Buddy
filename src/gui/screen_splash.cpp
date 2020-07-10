@@ -48,8 +48,8 @@ void screen_splash_init(screen_t *screen) {
         &(_psd->text_progress));
     _psd->text_progress.font = resource_font(IDR_FNT_NORMAL);
     _psd->text_progress.SetAlignment(ALIGN_CENTER_BOTTOM);
-    static const char loading[] = "Loading ...";
-    _psd->text_progress.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)loading));
+    static const char loading[] = N_("Loading ...");
+    _psd->text_progress.SetText(_(loading));
 
     window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(10, 200, 220, 15),
         &(_psd->progress));

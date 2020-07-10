@@ -13,6 +13,8 @@
 #include "sys.h"
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 
+#include "../lang/i18n.h"
+
 struct screen_sysinfo_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
@@ -62,8 +64,8 @@ void screen_sysinfo_init(screen_t *screen) {
     //write pattern
     window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_load));
     pd->textCPU_load.font = resource_font(IDR_FNT_NORMAL);
-    static const char cl[] = "CPU load";
-    pd->textCPU_load.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)cl));
+    static const char cl[] = N_("CPU load");
+    pd->textCPU_load.SetText(_(cl));
 
     window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
     pd->textCPU_load_val.SetFormat((const char *)"%.0f");
@@ -73,8 +75,8 @@ void screen_sysinfo_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    static const char ex[] = "EXIT";
-    pd->textExit.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ex));
+    static const char ex[] = N_("EXIT");
+    pd->textExit.SetText(_(ex));
     pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
 }

@@ -36,7 +36,7 @@ void window_list_filament_item_forced_cb(window_list_t *pwindow_list, uint16_t i
 void window_list_filament_item_cb(window_list_t *pwindow_list, uint16_t index,
     const char **pptext, uint16_t *pid_icon) {
     if (index == 0) {
-        *pptext = "Return";
+        *pptext = N_("Return");
         *pid_icon = IDR_PNG_filescreen_icon_up_folder;
     } else {
         window_list_filament_item_forced_cb(pwindow_list, index - 1, pptext, pid_icon);

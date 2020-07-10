@@ -9,11 +9,11 @@
 
 //title for each icon type (empty text for 0)
 const char *window_msgbox_title_text[] = {
-    "",            // MSGBOX_ICO_CUSTOM     0x0000
-    "Error",       // MSGBOX_ICO_ERROR      0x0010
-    "Question",    // MSGBOX_ICO_QUESTION   0x0020
-    "Warning",     // MSGBOX_ICO_WARNING    0x0030
-    "Information", // MSGBOX_ICO_INFO       0x0040
+    "",                // MSGBOX_ICO_CUSTOM     0x0000
+    N_("Error"),       // MSGBOX_ICO_ERROR      0x0010
+    N_("Question"),    // MSGBOX_ICO_QUESTION   0x0020
+    N_("Warning"),     // MSGBOX_ICO_WARNING    0x0030
+    N_("Information"), // MSGBOX_ICO_INFO       0x0040
 };
 
 //number of buttons for each button configuration
@@ -44,21 +44,21 @@ const uint8_t window_msgbox_buttons[][3] = {
 
 //button text for each button type (empty text for 0, 1 and 9)
 const char *window_msgbox_button_text[] = {
-    "",          //                      0
-    "",          //                      1
-    "CANCEL",    // MSGBOX_RES_CANCEL    2
-    "ABORT",     // MSGBOX_RES_ABORT     3
-    "RETRY",     // MSGBOX_RES_RETRY     4
-    "IGNORE",    // MSGBOX_RES_IGNORE    5
-    "YES",       // MSGBOX_RES_YES       6
-    "NO",        // MSGBOX_RES_NO        7
-    "OK",        // MSGBOX_RES_OK        8
-    "",          //                      9
-    "TRY AGAIN", // MSGBOX_RES_TRYAGAIN 10
-    "CONTINUE",  // MSGBOX_RES_CONTINUE 11
-    "CUSTOM0",   // MSGBOX_RES_CUSTOM0  12
-    "CUSTOM1",   // MSGBOX_RES_CUSTOM1  13
-    "CUSTOM2",   // MSGBOX_RES_CUSTOM2  14
+    "",              //                      0
+    "",              //                      1
+    N_("CANCEL"),    // MSGBOX_RES_CANCEL    2
+    N_("ABORT"),     // MSGBOX_RES_ABORT     3
+    N_("RETRY"),     // MSGBOX_RES_RETRY     4
+    N_("IGNORE"),    // MSGBOX_RES_IGNORE    5
+    N_("YES"),       // MSGBOX_RES_YES       6
+    N_("NO"),        // MSGBOX_RES_NO        7
+    N_("OK"),        // MSGBOX_RES_OK        8
+    "",              //                      9
+    N_("TRY AGAIN"), // MSGBOX_RES_TRYAGAIN 10
+    N_("CONTINUE"),  // MSGBOX_RES_CONTINUE 11
+    N_("CUSTOM0"),   // MSGBOX_RES_CUSTOM0  12
+    N_("CUSTOM1"),   // MSGBOX_RES_CUSTOM1  13
+    N_("CUSTOM2"),   // MSGBOX_RES_CUSTOM2  14
 };
 
 //icon ids - null by defult
