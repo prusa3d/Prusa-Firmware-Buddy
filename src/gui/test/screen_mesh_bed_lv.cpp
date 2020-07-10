@@ -10,6 +10,7 @@
 #include "status_footer.h"
 #include "math.h"
 #include "marlin_client.h"
+#include "../../lang/i18n.h"
 
 enum class mesh_state_t : uint8_t {
     idle,
@@ -41,10 +42,10 @@ struct screen_mesh_bed_lv_data_t {
 
 #define pd ((screen_mesh_bed_lv_data_t *)screen->pdata)
 
-const char *btnMeshStrings[] = { "Run mesh", "Mesh in progress" };
+static const char *btnMeshStrings[] = { "Run mesh", "Mesh in progress" };
 #define btnMeshStrings_sz (sizeof(btnMeshStrings) / sizeof(const char *))
 
-const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed state" };
+static const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed state" };
 #define meshStrings_sz (sizeof(meshStrings) / sizeof(const char *))
 //-----------------------------------------------------------------------------
 //methods
@@ -55,7 +56,7 @@ const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed state"
 //mesh callbacks
 static void gui_state_mesh_off(screen_t *screen) {
     pd->btMesh.SetTextColor(MESH_DEFAULT_CL);
-    pd->btMesh.SetText(btnMeshStrings[0]);
+    pd->btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
     pd->textExit.SetTextColor(MESH_DEFAULT_CL);
     pd->textExit.Enable();
     pd->text_mesh_state.Enable();
@@ -65,7 +66,7 @@ static void gui_state_mesh_on(screen_t *screen) {
     pd->textExit.Disable();
     pd->textExit.SetTextColor(MESH_ACTIVE_CL);
     pd->text_mesh_state.Disable();
-    pd->btMesh.SetText(btnMeshStrings[1]);
+    pd->btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[1]));
     pd->btMesh.SetTextColor(MESH_ACTIVE_CL);
 }
 
@@ -85,11 +86,11 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    pd->textMenuName.SetText((const char *)"MESH LEVELING");
+    pd->textMenuName.SetText(_("MESH BED L."));
 
     window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 50, 200, row_h), &(pd->btMesh));
-    pd->btMesh.SetText(btnMeshStrings[0]);
+    pd->btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
     pd->btMesh.Enable();
     pd->btMesh.SetTag(TAG_MESH);
 
@@ -107,7 +108,7 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 245, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    pd->textExit.SetText((const char *)"EXIT");
+    pd->textExit.SetText(_("EXIT"));
     pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
 
@@ -150,9 +151,9 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
     }
     if (event == WINDOW_EVENT_LOOP) {
         if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            pd->text_mesh_state.SetText(meshStrings[1]);
+            pd->text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
         } else {
-            pd->text_mesh_state.SetText(meshStrings[0]);
+            pd->text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[0]));
         }
         switch (pd->mesh_state) {
         case mesh_state_t::idle:

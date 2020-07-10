@@ -13,6 +13,8 @@
 #include "sys.h"
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 
+#include "../lang/i18n.h"
+
 struct screen_sysinfo_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
@@ -54,14 +56,16 @@ void screen_sysinfo_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    pd->textMenuName.SetText((const char *)"Disp. TEST rd mem.");
+    static const char dt[] = "Disp. TEST rd mem.";
+    pd->textMenuName.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)dt));
 
     row2draw += 25;
 
     //write pattern
     window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_load));
     pd->textCPU_load.font = resource_font(IDR_FNT_NORMAL);
-    pd->textCPU_load.SetText((const char *)"CPU load");
+    static const char cl[] = N_("CPU load");
+    pd->textCPU_load.SetText(_(cl));
 
     window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_load_val));
     pd->textCPU_load_val.SetFormat((const char *)"%.0f");
@@ -71,7 +75,8 @@ void screen_sysinfo_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    pd->textExit.SetText((const char *)"EXIT");
+    static const char ex[] = N_("EXIT");
+    pd->textExit.SetText(_(ex));
     pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
 }

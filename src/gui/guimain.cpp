@@ -65,7 +65,7 @@ static void _gui_loop_cb() {
 }
 
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
-char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
+char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 
 extern "C" void gui_run(void) {
     if (diag_fastboot)
@@ -151,6 +151,7 @@ extern "C" void gui_run(void) {
     screen_register(get_scr_print_preview());
     screen_register(get_scr_lan_settings());
     screen_register(get_scr_menu_fw_update());
+    screen_register(get_scr_menu_languages()); // WTF!?!? why does this have to be done at runtime? There is no compile-time warning, that a screen didn't get its unique id (for whatever reason)
 
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {

@@ -1,0 +1,162 @@
+Wersja Bootloadera\n%d.%d.%d\n\nPłyta Buddy\n%d.%d.%d\n%s
+Raport zrzutu błędów (plik dump.bin) został zapisany w pamięci USB.
+Wszystkie testy ukończono pomyślnie!
+Zawsze
+Zastosuj
+Czy na pewno chcesz przerwać wydruk?
+Wsparcie
+Auto bazowanie
+AutTn
+WSTECZ
+BlindAlert
+ButtonEcho
+Kalibracja
+Kalibracja wykonana!\nUdanego drukowania!
+ZMIANA FILAMENTU
+Zmiana filamentu
+Wyczyść płytę stołu.
+Gratulacje! Kalibracja XYZ została ukończona. Osie są prostopadłe do siebie.
+KONTYNUUJ
+Chłodzenie
+WYŁĄCZ CZUJNIK
+Wyłącz silniki
+Czy na pewno chcesz\npoprawić kalibrację\nodległości dyszy   \nod stołu?           
+Czy na pewno chcesz\nużyć tych wartości:\nObecna:    %0.3f. \nDomyślna:  %0.3f. \nWciśnij NIE, aby użyć domyślnej (zalecane)
+Czy chcesz użyć poprzednio ustawionej wartości? Poprzednia: %0.3f. Domyślna: %0.3f. Wciśnij NIE, aby użyć domyślnej.
+Wysuwanie
+EncoderMove
+Błąd zapisywania zrzutu błędów w pamięci USB. Odłącz i podłącz nośnik, następnie spróbuj ponownie.
+Zakończono pomyślnie. Teraz uruchomię kalibrację XYZ. Zajmie około 12 minut.
+Zresetowano do ustawień fabrycznych. System zostanie teraz zrestartowany.
+Ustawienia fabryczne
+Statystyki błędów
+Czujnik filamentu
+FILAMENT
+Filament
+Opróżnianie\nbufora G-code.
+Wersja firmware
+Kalibracja 1.warstwy
+KALIBRACJA 1.WARSTWY
+Przepływ
+AKTUALIZACJA FW
+Aktualizacja FW
+Stół
+Grzanie wyłączone po 30-minutowym braku aktywności.
+Cześć, jestem Twoją\nOriginal Prusa Mini
+EKRAN GŁÓWNY
+Ekran główny
+W kolejnym kroku  \nużyj pokrętła, aby\nustawić odległość \ndyszy od stołu.   \nMożesz wspomóc się\nilustracjami w    \n\Podręczniku\.    
+INFO
+Info
+Wsuwanie
+Adresy IP są nieprawidłowe lub plik \lan_settings.ini\ nie znajduje się w katalogu głównym pamięci USB.
+Adresy IP lub parametry są nieprawidłowe, albo plik \lan_settings.ini\ nie znajduje się w katalogu głównym pamięci USB.
+Czy kolor jest prawidłowy?
+Czy filament sięga\nkół radełkowanych?
+Czy płyta znajduje się na stole?
+USTAWIENIA LAN
+Ustawienia LAN
+Live Adjust Z
+ZAŁADUJ FILAMENT
+Załaduj filament
+Wczytaj ustawienia
+Ładowanie do dyszy
+Głośno
+Upewnij się, że   \nfilament          \nprzechodzi przez  \nczujnik filamentu.
+Poziomowanie stołu
+Błąd poziomowania stołu?
+KOMUNIKATY
+Komunikaty
+Ruch osi
+Ruch E
+Ruch X
+Ruch Y
+Ruch Z
+NIE
+Nie wykryto czujnika filamentu. Sprawdź, czy jest podłączony i spróbuj ponownie.
+Brak USB
+Teraz ustawimy     \nodległość          \nkońcówki dyszy     \nod powierzchni     \nstołu.              
+Dysza
+Dysza ma zbyt niską temperaturę.
+Wyłącz
+Włącz
+Przy restarcie
+Pojedynczo
+Obracaj pokrętłem, \ngdy drukarka zacznie\nwytłaczać plastik, \naby zbliżyć dyszę  \ndo powierzchni,    \naż materiał będzie \ndobrze przylegał.   
+Parkowanie
+Połóż kartkę papieru pod dyszą podczas kalibracji pierwszych 4 punktów. Wyłącz drukarkę natychmiast, jeśli dysza zahaczy o papier.
+Oczyść dyszę do kalibracji i naciśnij NASTĘPNY.
+Podłącz pamięć USB i spróbuj ponownie.
+Podłącz pamięć USB\ndostarczoną z     \nTwoją MINI i      \nzresetuj drukarkę,\naby wgrać firmware
+Połóż płytę stalową na stole.
+Zdejmij płytę stalową ze stołu.
+Proszę czekać
+NAGRZEWANIE
+Nagrzewanie
+NAGRZEWANIE do ŁADOWANIA
+NAGRZEWANIE do ROZŁADOWANIA
+Przygotowywanie do wyciskania
+Naciśnij KONTYNUUJ\ni wsuń filament   \ndo ekstrudera.    
+Wciśnij NASTĘPNY,\naby uruchomić\nSelftest, który\nsprawdzi ewentualne\nbłędy podczas\nmontażu.
+Druk
+Wentylator druku
+Druk zakończy się
+Czas druku
+CZYSZCZENIE KOLORU
+Czyszczenie koloru
+Czyszczenie koloru
+Test QR
+Wyciskanie
+PONOWNE NAGRZEWANIE
+Pozostały czas
+RESET DRUKARKI
+SPRÓBUJ PONOWNIE
+Zapisz zrzut błędów
+Zapisz ustawienia
+Wybierz rodzaj filamentu
+Wybierz, jeśli      \nchcesz automatycznie\nwgrać zaktualizowane\nfirmware z pam. USB.
+SelfTest
+SELFTEST
+Wyślij info przez QR
+Serwis
+Ustawienia
+Ustawienia wczytane pomyślnie
+Cicho
+Tryb dźwięku
+Rodzaj dźwięku
+Prędkość
+StandardAlert
+StandardPrompt
+Nie ustawiono statycznych adresów IPv4.
+Statystyki
+STOP
+Pomoc
+Info systemowe
+TEMPERATURA
+Temperatura
+Test
+Kalibracja pierwszej warstwy zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie.
+Drukarka nie jest skalibrowana. Rozpocząć kalibrację pierwszej warstwy?
+Selftest zakończony\nniepowodzeniem.\nSprawdź okablowanie\ndrukarki oraz osie.\nNastępnie zrestartuj\nSelftest.
+Ustawienia zostały pomyślnie zapisane w pliku \lan_settings.ini\.
+Pasek stanu\nznajduje się na \nspodzie ekranu.\nZawiera informacje:\n- Temperatura dyszy\n- Temperatura stołu\n- Prędkość druku\n- Pozycja osi Z\n- Wybrany filament
+Kalibracja XYZ zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie.
+Wystąpił błąd podczas zapisywania ustawień w pliku \lan_settings.ini\.
+Tej czynności nie można cofnąć, a obecna konfiguracja zostanie utracona. Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?
+Wyłącznik czasowy
+PARAMETRY
+ROZŁADUJ FILAMENT
+Rozładuj filament
+Rozładowywanie
+Odparkowanie
+Pamięć USB nie jest gotowa!
+Pamięć USB jest zabezpieczona przed zapisem!
+INFORMACJE O WERSJI
+Informacje o wersji
+Czekam na temp.
+Witaj w Asystencie Konfiguracji Original Prusa MINI. Czy chcesz kontynuować?
+Asystent
+ASYSTENT
+ASYSTENT - OK
+KALIBRACJA XYZ
+TAK

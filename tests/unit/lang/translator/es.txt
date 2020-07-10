@@ -1,0 +1,162 @@
+\nVersión Bootloader\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n%s
+Se ha guardado un informe de volcado de errores (archivo dump.bin) en la unidad USB.
+¡Todas las pruebas terminaron con éxito!
+Siempre
+Aplicar
+¿Estás seguro de detener esta impresión?
+Asistir
+Auto Home
+AutTn
+ATRÁS
+BlindAlert
+ButtonEcho
+Calibración
+¡Calibrada con éxito!\n¡Felices impresiones!
+CAMBIAR FILAMENTO
+Cambiar Filamento
+Lámina de acero limpia.
+¡Felicidades! La calibración XYZ está bien. Ejes XY perpendiculares.
+CONTINUAR
+Enfriamiento
+DESACTIVAR SENSOR
+Desactivar motores
+¿Quieres\nrepetir el último\npaso y reajustar\nla distancia\nentre la boquilla\ny base?
+¿Quieres usar\nel valor actual?\nActual: %0.3f.\nPor defecto: %0.3f.\nHaz clic en NO para usar el valor por defecto (recomendado)
+¿Desea usar el último valor establecido? Último: %0.3f. Por defecto:% 0.3f. Haz clic en NO para usar el valor por defecto.
+Extrayendo
+EncoderMove
+Error al guardar el informe de volcado de memoria en la unidad USB. Vuelve a insertar la unidad USB e intenta nuevamente.
+Todo está bien. Ejecutaré la calibración XYZ ahora. Me llevará aproximadamente 12 minutos.
+Valores predefinidos de fábrica cargados. El sistema ahora se reiniciará.
+Reset de fábrica
+Estad. de fallo
+Sens. fil.
+FILAMENTO
+Filamento
+Finalizando         \ncódigos G en memoria.  \n
+Versión Firmware \n
+Cal. Primera capa
+CALIB. PRIM. CAPA
+Factor de flujo
+ACTUALIZAR FW
+Actualizar FW
+Base calefactable
+Calentamiento deshabilitado debido a 30 minutos de inactividad.
+Hola, esta es tu\nOriginal Prusa MINI.
+HOME
+Home
+En el siguiente paso\nusa el dial para \najustar la altura\nde la boquilla.\nMira las fotos\nen el manual\ncomo referencia.
+INFO
+Info
+Introduciendo
+Las direcciones IP no son válidas o el archivo \lan_settings.ini\ no está en el directorio raíz de la unidad USB.
+Las direcciones IP o los parámetros no son válidos o el archivo \lan_settings.ini\ no está en el directorio raíz de la unidad USB.
+¿Está bien el color?
+¿Está el filamento    \nen los engranajes del\nextrusor?    
+¿Está la lámina de acero en la base?
+AJUSTES LAN
+Ajustes de Lan
+Ajuste en Vivo Z
+CARGAR FILAMENTO
+Cargar filamento
+Cargar configuración
+Cargando a la boquilla
+Alto
+Asegúrate que\nfilamento está\ninsertado a través \ndel sensor.
+Nivel. Base mediante Malla
+¿Ha fallado la nivelación de la cama mediante malla?
+MENSAJES
+Mensajes
+Mover Ejes
+Mover E
+Mover X
+Mover Y
+Mover Z
+NO
+No se detectó sensor de filamento. Verifica que el sensor esté conectado e intente nuevamente.
+No hay USB
+Ahora, calibremos\nla distancia\nentre la punta\nde la boquilla y\nla lámina de \nimpresión.
+Nozzle
+La boquilla está muy fría.
+Apagado
+Encendido
+Al reiniciar
+Una vez
+Una vez que la \nimpresora comienza \na extruir plástico, \najusta la altura de \nla boquilla girando \nel dial hasta que \nel filamento se adhiera\na la lámina.
+Parking
+Coloca una hoja de papel debajo de la boquilla durante la calibración de los primeros 4 puntos. Si la boquilla atrapa el papel, apaga la impresora inmediatamente.
+Limpie la boquilla para la calibración. Haga clic en SIGUIENTE cuando haya terminado.
+Inserta una unidad USB e intenta nuevamente.
+Por favor inserte\nla unidad USB\nque vino con\ntu MINI y reinicia\nla impresora \npara flashear el \nfirmware
+Coloca la lámina en la base.
+Retira la lámina de la base.
+Por favor espere
+PRECALENTAR
+Precalentar
+PRECALENTAR para CARGAR
+PRECALENTAR para DESCARGAR
+Preparando para expulsar
+Presiona CONTINUAR y\nempuja el filamento \nen el extrusora.
+Presione SIGUIENTE \npara ejecutar\nel Selftest, que\ncomprueba\nproblemas potenciales\nrelacionado con\nel montaje.
+Imprimir
+Vent. de impresión
+La impresión finalizará
+Tiempo de impresión
+PURGAR FILAMENTO
+Purgar filamento
+Purgando
+Test QR
+Ramming
+RECALENTAR
+Tiempo Restante
+RESET IMPRESORA
+REINTENTAR
+Guardar arch. de errores
+Guardar ajustes
+Selecc. tipo filamento
+Selecciona donde \nquieres flashear \nautomáticamente\nel firmware \nactualizado desde \nuna memoria USB.
+SelfTest
+SELFTEST
+Enviar Info por QR
+Mantenimiento
+Ajustes
+Configuración cargada correctamente
+Silenciosa
+Modo Sonido
+Tipo Sonido
+Velocidad
+StandardAlert
+StandardPrompt
+Las direcciones IPv4 estáticas no se configuraron.
+Estadística
+STOP
+Soporte
+Info Sistema
+TEMPERATURA
+Temperatura
+Test
+La calibración de la primera capa no pudo finalizar. Vuelva a verificar el cableado, la boquilla y los ejes de la impresora, luego reinicia la calibración.
+La impresora no está calibrada. ¿Iniciar la calibración de la primera capa?
+El autotest falló\nal terminar.\nVerifica dos veces el\ncableado de la \nimpresora y los ejes.\nLuego reinicie\nel Selftest.
+La configuración se ha guardado correctamente en el archivo \lan_settings.ini\.
+La barra de estado \nestá en el fondo de\nla pantalla. Contiene\nInformación sobre:\n  - Temp. de la boquilla.\n  - Temp. de la base.\n  - Vel. de impresión\n  - Alt. del eje Z\n  - Fil. seleccionado
+La calibración XYZ no pudo finalizar. Vuelva a verificar el cableado y los ejes de la impresora, luego reinicia la calibración XYZ.
+Se produjo un error al guardar la configuración en el archivo \lan_settings.ini\.
+Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Está realmente seguro de restablecer la impresora a los valores predeterminados de fábrica?
+Timeout
+AJUSTAR
+DESCARGAR FILAMENTO
+Descargar filamento
+Descargando
+Unparking
+¡El disco USB no está listo!
+¡El disco USB está protegido contra escritura!
+INFO VERSION
+Info versión
+Esperando temp.
+Bienvenido al asistente de configuración de la Original Prusa MINI. ¿Te gustaria continuar?
+Asistente
+ASISTENTE
+ASISTENTE - OK
+CALIBRACIÓN XYZ
+SÍ

@@ -1,0 +1,162 @@
+\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s
+Ein Crash-Dump-Bericht (Datei dump.bin) wurde auf dem USB-Laufwerk gespeichert.
+Alle Tests erfolgreich abgeschlossen!
+Immer
+Anwenden
+Druck wirklich beenden?
+Assist
+Auto Home
+AutTn
+ZURÜCK
+BlindAlert
+KnopfEcho
+Kalibrierung
+Kalibrierung erfolgreich!\nFrohes Drucken!
+FILAMENT WECHSEL
+Filament Wechsel
+Stahlblech reinigen.
+Glückwunsch! Die XYZ-Kalibrierung ist in Ordnung. XY-Achsen sind senkrecht.
+WEITER
+Abkühlen
+SENSOR AUSSCHALTEN
+Motoren ausschalten
+Möchten Sie den\nletzten Schritt\nwiederholen und\nden Abstand zwischen\nDüse und Heizbett\nneu einstellen? 
+Nutzung des\naktuellen Wertes?\nAktuell: %0,3f.   \nVorgabe: %0.3f.   \nKlicken Sie auf NEIN, um den Standardwert zu verwenden (empfohlen)
+Möchten Sie den zuletzt eingestellten Wert verwenden? Letzter: %0.3f.   Voreinstellung: %0.3f.   Klicken Sie auf NEIN, um den Standardwert zu verwenden.
+Werfe aus
+EncoderMove
+Fehler beim Speichern des Crash-Dump-Berichts auf das USB-Laufwerk. Bitte stecken Sie das USB-Laufwerk wieder ein und versuchen Sie es erneut.
+Es ist alles in Ordnung. Ich werde jetzt die XYZ-Kalibrierung durchführen. Es wird etwa 12 Minuten dauern.
+Werkseitige Standardeinstellungen geladen. Das System wird nun neu gestartet.
+Werkseinstellung
+Fehlerstat.
+Fil.-Sens.
+FILAMENT
+Filament
+Beende\ngepufferten gcode.
+Firmware Version\n
+Erste Schicht Kal.
+ERSTE SCHICHT KALIB.
+Flussfaktor
+FW UPDATE
+FW Update
+Heizbett
+Heizung wegen 30 Minuten Inaktivität deaktiviert.
+Hallo, hier ist Ihr\nOriginal Prusa MINI.
+HOME
+Home
+Im nächsten Schritt, \nden Knopf verwenden,\num die Höhe der Düse\neinzustellen. \nPrüfen Sie die\nBilder im Handbuch   \nals Referenz.
+INFO
+Info
+Führe ein
+IP-Adressen sind nicht gültig oder die Datei \lan_settings.ini\ befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
+IP-Adressen oder Parameter sind nicht gültig oder die Datei \lan_settings.ini\ befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
+Farbe korrekt?
+Filament im\nExtruder Antrieb?
+Ist Stahlblech auf dem Heizbett?
+LAN EINSTELLUNGEN
+Lan Einstellungen
+Live Adjust Z
+FILAMENT LADEN
+Filament laden
+Ladeeinstellungen
+Lade in Düse
+Laut
+Stellen Sie sicher,\ndass das Filament     \ndurch den Sensor  \ngeführt wird.
+Bettnivelierung.
+Bettnivellierung fehlgeschlagen?
+MELDUNGEN
+Meldungen
+Bewegen Achsen
+Bewegen E
+Bewegen X
+Bewegen Y
+Bewegen Z
+NEIN
+Kein Filamentsensor erkannt. Überprüfen Sie, ob der Sensor angeschlossen ist, und versuchen Sie es erneut.
+Kein USB
+Jetzt kalibrieren\nwir die Entfernung\nzwischen der Spitze\nder Düse und\ndas Druckblech.
+Düse
+Düse ist zu kalt.
+Aus
+An
+Bei Neustart
+Einmal
+Sobald der Drucker\nbeginnt, Kunststoff\nzu extrudieren,\nstellen Sie die Höhe\nder Düse durch Knopf\nDrehen ein, bis der\nFaden am Druckblech\nhaftet.
+Parke
+Legen Sie während der Kalibrierung der ersten 4 Punkte ein Blatt Papier unter die Düse. Wenn die Düse das Papier berührt, schalten Sie den Drucker sofort aus!
+Bitte reinigen Sie die Düse zur Kalibrierung. Klicken Sie auf WEITER, wenn Sie fertig sind.
+Bitte schließen Sie ein USB-Laufwerk an und versuchen Sie es erneut.
+Bitte schließen Sie\nden USB-Stick an,\nder mit Ihrem MINI \ngeliefert wurde und\nDrucker zurücksetzen\nzum Firmwareflashen
+Bitte legen Sie Stahlblech auf das Heizbett.
+Bitte entfernen Sie Stahlblech vom Heizbett.
+Bitte warten
+VORHEIZEN
+Vorheizen
+VORHEIZEN LADEN
+VORHEIZEN ENTLADEN
+Bereite Rammen vor
+WEITER drücken und\nFilament in den\nExtruder schieben.
+Drücken Sie WEITER,\num den Selbsttest\nauszuführen, bei dem\nnach potenziellen\nProblemen mit der\nMontage gesucht\nwird.
+Drucken
+Drucklüfter
+Druck wird enden
+Druckzeit
+FILAMENT REINIGEN
+Filament reinigen
+Reinige
+QR Test
+Ramme
+NEU HEIZEN
+Restzeit
+RESET DRUCKER
+WIEDERHOLEN
+Crash Dump speichern
+Einstellungen speichern
+Filamenttyp wählen
+Aktivieren, wenn Sie\nautomatisch aktua-\nlisierte Firmware\nvon einem USB-STICK\nflashen möchten.
+SelfTest
+SELBSTTEST
+Sende Info mit QR
+Service
+Einstellungen
+Einstellungen erfolgreich geladen
+Leise
+Ton Modus
+Ton-Typ
+Geschwindigkeit
+StandardAlert
+StandardPrompt
+Statische IPv4-Adressen wurden nicht festgelegt.
+Statistik
+STOPP
+Support
+System Info
+TEMPERATUR
+Temperatur
+Test
+Die Kalibrierung der ersten Schicht konnte nicht abgeschlossen werden. Überprüfen Sie die Verkabelung des Druckers, die Düse und die Achsen und starten Sie die Kalibrierung erneut.
+Der Drucker ist nicht kalibriert. Erste-Schicht-Kalibrierung starten?
+Der Selbsttest wurde\nnicht beendet.\nÜberprüfen Sie die\nVerkabelung und die\nAchsen des Druckers\ndoppelt. Starten Sie\ndann den Selbsttest\nerneut.
+Die Einstellungen wurden erfolgreich in der Datei \lan_settings.ini\ gespeichert.
+Die Statusleiste ist\nam unteren Rand des\nBildschirms. Sie\nenthält Infos über:\n - Düsentemperatur    \n - Heizbetttemp.   \n - Drucktempo\n - Höhe der Z-Achse   \n - Filamenttyp
+Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Überprüfen Sie die Verkabelung und die Achsen des Druckers doppelt und starten Sie dann die XYZ-Kalibrierung erneut.
+Es gab einen Fehler beim Speichern der Einstellungen in der Datei \lan_settings.ini\.
+Diese Operation kann nicht rückgängig gemacht werden, die aktuelle Konfiguration geht verloren! Sind Sie wirklich sicher, dass Sie den Drucker auf die Werkseinstellungen zurücksetzen wollen?
+Timeout
+FEINEINSTELLEN
+FILAMENT ENTLADEN
+Filament entladen
+Entlade
+Entparke
+USB Stick ist nicht bereit!
+USB Stick ist schreibgeschützt!
+VERSION INFO
+Version Info
+Warte auf Temperatur
+Willkommen beim Original Prusa MINI Einrichtungsassistenten. Möchten Sie fortfahren?
+Assistent
+ASSISTENT
+ASSISTENT - OK
+XYZ KALIBRIERUNG
+JA

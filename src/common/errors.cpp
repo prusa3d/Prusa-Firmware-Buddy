@@ -3,7 +3,8 @@
 #include <inttypes.h>
 
 /// main error-table
-static constexpr err_t error_list[] = {
+/// @@TODO translate
+static const err_t error_list[] = {
     { { // first item for 'not found'-usage
           ERR_CAT_UNDEF,
           ERR_SUBCAT_UNDEF,
