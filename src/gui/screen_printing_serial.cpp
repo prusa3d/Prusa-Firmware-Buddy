@@ -68,7 +68,8 @@ screen_t screen_printing_serial = {
 };
 screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
-static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
+static void set_icon_and_label(item_id_t item_id, window_icon_t *p_button, window_text_t *lbl) {
+    size_t id_to_set = static_cast<size_t>(item_id);
     if (p_button->GetIdRes() != serial_printing_icons[id_to_set])
         p_button->SetIdRes(serial_printing_icons[id_to_set]);
     //compare pointers to text, compare texts would take too long
