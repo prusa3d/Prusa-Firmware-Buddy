@@ -83,6 +83,7 @@ screen_home_data_t::screen_home_data_t() {
         }
     }
 
+    w_buttons[0].SetFocus();
     if (!marlin_vars()->media_inserted)
         printBtnDis();
 
@@ -127,9 +128,7 @@ int screen_home_data_t::Event(window_t *sender, uint8_t event, void *param) {
         p_window_header_event_clr(&(header), MARLIN_EVT_MediaError);
     }
 
-    if (p_window_header_event_clr(&(header), MARLIN_EVT_MediaInserted) &&
-
-        (HAL_GetTick() > 5000)) {
+    /*if (p_window_header_event_clr(&(header), MARLIN_EVT_MediaInserted) && (HAL_GetTick() > 5000)) {
         // we are using marlin variables for filename and filepath buffers
         marlin_vars_t *vars = marlin_vars();
         //check if the variables filename and filepath allocated
@@ -147,11 +146,12 @@ int screen_home_data_t::Event(window_t *sender, uint8_t event, void *param) {
             printBtnEna();
         }
         return 1;
-    }
+    }*/
 
     if (p_window_header_event_clr(&(header), MARLIN_EVT_MediaRemoved)) {
         printBtnDis();
     }
+    window_frame_t::Event(sender, event, param);
 
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
