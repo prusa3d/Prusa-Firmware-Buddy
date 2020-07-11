@@ -119,11 +119,11 @@ void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
 }
 */
 void Screens::DispatchEvent(window_t *sender, uint8_t event, void *param) {
-    /*Access()->*/ current->Event(Access()->current.get(), event, param);
+    current->Event(Access()->current.get(), event, param);
 }
 
 void Screens::Draw() {
-    /*Access()->*/ current->Draw();
+    current->Draw();
 }
 
 void Screens::Open(ScreenFactory::Creator screen_creator) {

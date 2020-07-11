@@ -24,7 +24,7 @@ constexpr static const HelperConfig HelpLines_None = { 0, IDR_FNT_SPECIAL };
 constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
 
 //parent to not repeat code in templates
-class IScreenMenu : protected window_menu_t {
+class IScreenMenu : public window_menu_t {
 protected:
     constexpr static const char *no_label = "MISSING";
     window_header_t header;
@@ -34,8 +34,8 @@ protected:
 public:
     IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
     void Done();
-    void Draw() {}
-    int Event(window_t *sender, uint8_t event, void *param) override;
+    //virtual void Draw() override {}
+    virtual int Event(window_t *sender, uint8_t event, void *param) override;
 
     static void CDone(screen_t *screen) {
         reinterpret_cast<IScreenMenu *>(screen->pdata)->Done();

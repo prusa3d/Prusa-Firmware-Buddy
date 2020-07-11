@@ -21,7 +21,7 @@ extern screen_t *const get_scr_menu_calibration();
 extern screen_t *const get_scr_menu_settings();
 extern screen_t *const get_scr_menu_temperature();
 extern screen_t *const get_scr_menu_move();
-extern screen_t *const get_scr_menu_info();
+//extern screen_t *const get_scr_menu_info();
 extern screen_t *const get_scr_menu_tune();
 extern screen_t *const get_scr_menu_service();
 extern screen_t *const get_scr_sysinfo();

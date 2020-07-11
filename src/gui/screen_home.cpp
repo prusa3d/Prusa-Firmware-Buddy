@@ -10,6 +10,9 @@
 #include "print_utils.h"
 
 #include "screens.h"
+#include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
+#include "screen_menu_info.hpp"
 
 #include "../lang/i18n.h"
 
@@ -161,7 +164,6 @@ int screen_home_data_t::Event(window_t *sender, uint8_t event, void *param) {
     case BUTTON_PRINT + 1:
         screen_open(get_scr_filebrowser()->id);
         return 1;
-        break;
     case BUTTON_PREHEAT + 1:
         screen_open(get_scr_menu_preheat()->id);
         return 1;
@@ -175,7 +177,8 @@ int screen_home_data_t::Event(window_t *sender, uint8_t event, void *param) {
         screen_open(get_scr_menu_settings()->id);
         return 1;
     case BUTTON_INFO + 1:
-        screen_open(get_scr_menu_info()->id);
+        //screen_open(get_scr_menu_info()->id);
+        Screens::Access()->Open(GetScreenMenuInfo);
         return 1;
     }
     return 0;

@@ -136,7 +136,7 @@ extern "C" void gui_run(void) {
     screen_register(get_scr_menu_settings());
     screen_register(get_scr_menu_temperature());
     screen_register(get_scr_menu_move());
-    screen_register(get_scr_menu_info());
+    //screen_register(get_scr_menu_info());
     screen_register(get_scr_menu_tune());
     screen_register(get_scr_menu_service());
     screen_register(get_scr_sysinfo());
