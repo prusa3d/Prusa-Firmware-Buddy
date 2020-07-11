@@ -3,6 +3,7 @@
 #include "screen.h"
 #include "gui.hpp"
 #include "bsod.h"
+#include "ScreenHandler.hpp"
 
 #define SCREEN_MAX_SCREENS 48
 
@@ -95,7 +96,7 @@ void screen_draw(void) {
     if (screen_0 && screen_0->draw)
         screen_0->draw(screen_0);
 }
-
+/*
 void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
     int ret = 0;
     if (screen_0 && screen_0->event) {
@@ -106,7 +107,7 @@ void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
     if ((ret == 0) && window && window->event)
         window->DispatchEvent(window, event, param);
 }
-
+*/
 screen_t *screen_get_curr(void) {
     return screen_0;
 }

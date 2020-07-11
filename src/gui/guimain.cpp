@@ -107,7 +107,7 @@ extern "C" void gui_run(void) {
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
     Sound_Play(eSOUND_TYPE_Start);
 
-    screen_register(get_scr_splash());
+    //screen_register(get_scr_splash());
     screen_register(get_scr_watchdog());
 
     WINDOW_CLS_FILE_LIST = window_register_class((window_class_t *)&window_class_file_list);
@@ -125,7 +125,7 @@ extern "C" void gui_run(void) {
     screen_register(get_scr_test_msgbox());
     screen_register(get_scr_test_graph());
     screen_register(get_scr_test_temperature());
-    screen_register(get_scr_home());
+    //screen_register(get_scr_home());
     screen_register(get_scr_filebrowser());
     screen_register(get_scr_printing());
     screen_register(get_scr_printing_serial());
@@ -155,7 +155,7 @@ extern "C" void gui_run(void) {
 
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
-        screen_stack_push(get_scr_splash()->id);
+        //screen_stack_push(get_scr_splash()->id);
         screen_open(get_scr_watchdog()->id);
     } else
 #endif // _DEBUG \
@@ -166,6 +166,7 @@ extern "C" void gui_run(void) {
     gui_loop_cb = _gui_loop_cb;
     int8_t gui_timeout_id;
     while (1) {
+        Screens::Access()->Loop();
         // show warning dialog on safety timer expiration
         if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
             gui_msgbox(_("Heating disabled due to 30 minutes of inactivity."), MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);

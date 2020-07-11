@@ -1,4 +1,4 @@
-// screen_menu_temperature.c
+// screen_menu_temperature.cpp
 
 #include "gui.hpp"
 #include "screen_menu.hpp"
@@ -6,6 +6,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_print.hpp"
+#include "ScreenHandler.hpp"
 
 class MI_COOLDOWN : public WI_LABEL_t {
     static constexpr const char *const label = N_("Cooldown");
@@ -17,7 +18,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
-        screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
+        Screens::Access()->DispatchEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
 };
 

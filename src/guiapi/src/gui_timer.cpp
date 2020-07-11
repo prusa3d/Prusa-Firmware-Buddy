@@ -4,6 +4,7 @@
 #include <string.h>
 #include "stm32f4xx_hal.h"
 #include "screen.h"
+#include "ScreenHandler.hpp"
 
 #define GUI_MAX_TIMERS 6
 
@@ -110,18 +111,18 @@ uint32_t gui_timers_cycle(void) {
                 if (delay <= diff) {
                     switch (gui_timers[id].f_timer) {
                     case GUI_TIMER_1SHT:
-                        screen_dispatch_event(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->DispatchEvent(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
                         gui_timers[id].delay = 0;
                         break;
                     case GUI_TIMER_PERI:
-                        screen_dispatch_event(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->DispatchEvent(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
                         gui_timers[id].start += delay;
                         break;
                     case GUI_MENU_TIMEOUT:
                         gui_timers[id].delay = 0;
                         break;
                     case GUI_TIMER_TXTROLL:
-                        screen_dispatch_event(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->DispatchEvent(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
                         gui_timers[id].start = tick;
                         break;
                     }

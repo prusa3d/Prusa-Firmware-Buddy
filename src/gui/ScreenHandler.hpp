@@ -47,15 +47,18 @@ class Screens {
 
     //static screen_t *screen_get_curr(void){}
     ScreenFactory::UniquePtr current;
+    ScreenFactory::Creator creator; // set by Open
 
     Screens(ScreenFactory::Creator screen_creator);
     Screens(const Screens &) = delete;
     static Screens *instance;
 
 public:
-    void Open(int16_t screen_id) {}
+    void Loop(); //call inside guiloop
 
-    void Close(void) {}
+    void Open(ScreenFactory::Creator screen_creator); //remember creator and create later
+
+    void Close(void) { gui_invalidate(); }
 
     void Draw();
 

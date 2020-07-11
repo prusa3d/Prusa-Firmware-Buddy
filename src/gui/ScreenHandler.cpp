@@ -91,7 +91,8 @@ Screens *Screens::instance = nullptr;
 
 Screens::Screens(ScreenFactory::Creator screen_creator)
     : stack({ { nullptr } })
-    , current(screen_creator()) {
+    , current(nullptr)
+    , creator(screen_creator) {
 }
 
 void Screens::Init(ScreenFactory::Creator screen_creator) {
@@ -118,9 +119,21 @@ void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
 }
 */
 void Screens::DispatchEvent(window_t *sender, uint8_t event, void *param) {
-    Access()->current->Event(Access()->current.get(), event, param);
+    /*Access()->*/ current->Event(Access()->current.get(), event, param);
 }
 
 void Screens::Draw() {
-    Access()->current->Draw();
+    /*Access()->*/ current->Draw();
+}
+
+void Screens::Open(ScreenFactory::Creator screen_creator) {
+    creator = screen_creator;
+}
+
+void Screens::Loop() {
+    if (creator) {
+        current = creator();
+        creator = nullptr;
+        gui_invalidate();
+    }
 }

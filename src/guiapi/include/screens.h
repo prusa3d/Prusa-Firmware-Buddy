@@ -2,7 +2,7 @@
 #pragma once
 #include "screen.h" //screen_t
 
-extern screen_t *const get_scr_splash();
+//extern screen_t *const get_scr_splash();
 extern screen_t *const get_scr_watchdog();
 extern screen_t *const get_scr_test();
 extern screen_t *const get_scr_test_gui();
@@ -10,7 +10,7 @@ extern screen_t *const get_scr_test_term();
 extern screen_t *const get_scr_test_msgbox();
 extern screen_t *const get_scr_test_graph();
 extern screen_t *const get_scr_test_temperature();
-extern screen_t *const get_scr_home();
+//extern screen_t *const get_scr_home();
 extern screen_t *const get_scr_filebrowser();
 extern screen_t *const get_scr_printing();
 extern screen_t *const get_scr_printing_serial();

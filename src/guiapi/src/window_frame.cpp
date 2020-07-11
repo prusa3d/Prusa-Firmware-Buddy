@@ -2,6 +2,7 @@
 #include "window_frame.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
+#include "ScreenHandler.hpp"
 
 void window_frame_init(window_frame_t *window) {
     if (rect_empty_ui16(window->rect)) //use display rect curent is empty
@@ -31,7 +32,7 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         if (window_focused_ptr && window_focused_ptr->f_tag)
-            screen_dispatch_event(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
+            Screens::Access()->DispatchEvent(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
         if (window_ptr(window_focused()))
             window_ptr(window_focused())->SetCapture();
         break;
@@ -90,3 +91,19 @@ const window_class_frame_t window_class_frame = {
         (window_event_t *)window_frame_event,
     },
 };
+
+window_frame_t::window_frame_t()
+    : window_t(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, display::GetW(), display::GetH())) {
+
+    flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;
+    color_back = COLOR_BLACK;
+}
+
+void window_frame_t::Draw() {
+    window_frame_draw(this);
+}
+
+int window_frame_t::Event(window_t *sender, uint8_t event, void *param) {
+    window_frame_event(this, event, param);
+    return 0;
+}

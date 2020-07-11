@@ -14,6 +14,7 @@
 #include "sound.hpp"
 #include "../lang/i18n.h"
 #include <algorithm>
+#include "ScreenHandler.hpp"
 
 int16_t WINDOW_CLS_FILE_LIST = 0;
 
@@ -201,7 +202,7 @@ void window_file_list_draw(window_file_list_t *window) {
 void window_file_list_event(window_file_list_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        screen_dispatch_event(NULL, WINDOW_EVENT_CLICK, (void *)window->index);
+        Screens::Access()->DispatchEvent(window, WINDOW_EVENT_CLICK, (void *)window->index);
         break;
     case WINDOW_EVENT_ENC_DN:
         window_file_list_dec(window, (int)param);

@@ -1,9 +1,5 @@
+#pragma once
 #include "gui.hpp"
-
-int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void *param);
-void screen_splash_done(screen_t *screen);
-void screen_splash_draw(screen_t *screen);
-void screen_splash_init(screen_t *screen);
 
 struct screen_splash_data_t : public window_frame_t {
     window_icon_t logo_prusa_mini;
@@ -19,5 +15,10 @@ struct screen_splash_data_t : public window_frame_t {
     uint32_t last_timer;
     uint8_t logo_invalid;
 
-    screen_splash_data_t() {};
+    screen_splash_data_t();
+    virtual void Draw() override;
+    virtual int Event(window_t *sender, uint8_t event, void *param) override;
+
+private:
+    void timer(uint32_t mseconds);
 };

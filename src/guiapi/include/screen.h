@@ -34,6 +34,6 @@ extern void screen_close(void);
 
 extern void screen_draw(void);
 
-extern void screen_dispatch_event(window_t *window, uint8_t event, void *param);
+//extern void screen_dispatch_event(window_t *window, uint8_t event, void *param);
 
 extern screen_t *screen_get_curr(void);

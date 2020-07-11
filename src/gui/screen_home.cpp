@@ -47,58 +47,52 @@ const char *labels[7] = {
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 void screen_home_disable_print_button(screen_t *screen, int disable);
 
-void screen_home_init(screen_t *screen) {
-    // Every 49days and some time in 5 seconds window, auto filebrowser open did not work.
+screen_home_data_t::screen_home_data_t() {
+    // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.
     // Seconds (timestamp) from UNIX epocho will fix this
-    pw->time = HAL_GetTick();
-    pw->is_starting = (pw->time < 5000) ? 1 : 0;
+    time = HAL_GetTick();
+    is_starting = (time < 5000) ? 1 : 0;
 
-    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0), pw);
+    window_create_ptr(WINDOW_CLS_HEADER, id, gui_defaults.header_sz, &(header));
+    p_window_header_set_icon(&(header), IDR_PNG_status_icon_home);
+    p_window_header_set_text(&(header), _("HOME"));
 
-    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
-    p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_home);
-    p_window_header_set_text(&(pw->header), _("HOME"));
-
-    window_create_ptr(WINDOW_CLS_ICON, root,
-        rect_ui16(41, 31, 158, 40), &(pw->logo));
-    pw->logo.SetIdRes(IDR_PNG_status_logo_prusa_prn);
+    window_create_ptr(WINDOW_CLS_ICON, id,
+        rect_ui16(41, 31, 158, 40), &(logo));
+    logo.SetIdRes(IDR_PNG_status_logo_prusa_prn);
 
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
             window_create_ptr(
-                WINDOW_CLS_ICON, root,
+                WINDOW_CLS_ICON, id,
                 rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64),
-                &(pw->w_buttons[row * 3 + col]));
-            //pw->w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
-            pw->w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
-            pw->w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
-            pw->w_buttons[row * 3 + col].Enable();
+                &(w_buttons[row * 3 + col]));
+            //w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
+            w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
+            w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
+            w_buttons[row * 3 + col].Enable();
 
             window_create_ptr(
-                WINDOW_CLS_TEXT, root,
+                WINDOW_CLS_TEXT, id,
                 rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14),
-                &(pw->w_labels[row * 3 + col]));
-            pw->w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
-            pw->w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
-            pw->w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
-            pw->w_labels[row * 3 + col].SetText(labels[row * 3 + col]);
+                &(w_labels[row * 3 + col]));
+            w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
+            w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
+            w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
+            w_labels[row * 3 + col].SetText(labels[row * 3 + col]);
         }
     }
 
     if (!marlin_vars()->media_inserted)
-        screen_home_disable_print_button(screen, 1);
+        printBtnDis();
 
-    status_footer_init(&(pw->footer), root);
+    status_footer_init(&(footer), id);
 }
 
-void screen_home_done(screen_t *screen) {
-    window_destroy(pw->id);
-}
-
-void screen_home_draw(screen_t *screen) {
-    if (pw->logo.f_invalid)
-        pw->logo_invalid = 1;
+void screen_home_data_t::Draw() {
+    if (logo.f_invalid)
+        logo_invalid = 1;
+    window_frame_t::Draw();
 }
 
 static void on_print_preview_action(print_preview_action_t action) {
@@ -111,29 +105,29 @@ static void on_print_preview_action(print_preview_action_t action) {
     }
 }
 
-int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    if (status_footer_event(&(pw->footer), window, event, param)) {
+int screen_home_data_t::Event(window_t *sender, uint8_t event, void *param) {
+    if (status_footer_event(&(footer), sender, event, param)) {
         return 1;
     }
-    if ((event == WINDOW_EVENT_LOOP) && pw->logo_invalid) {
+    if ((event == WINDOW_EVENT_LOOP) && logo_invalid) {
 #ifdef _DEBUG
         display::DrawText(rect_ui16(180, 31, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
-        pw->logo_invalid = 0;
+        logo_invalid = 0;
     }
 
-    if (pw->is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
+    if (is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
     {
         uint32_t now = HAL_GetTick();
-        if ((now - pw->time) > 950) {
-            pw->is_starting = 0;
+        if ((now - time) > 950) {
+            is_starting = 0;
         }
-        p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted);
-        p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved);
-        p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaError);
+        p_window_header_event_clr(&(header), MARLIN_EVT_MediaInserted);
+        p_window_header_event_clr(&(header), MARLIN_EVT_MediaRemoved);
+        p_window_header_event_clr(&(header), MARLIN_EVT_MediaError);
     }
 
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted) &&
+    if (p_window_header_event_clr(&(header), MARLIN_EVT_MediaInserted) &&
 
         (HAL_GetTick() > 5000)) {
         // we are using marlin variables for filename and filepath buffers
@@ -150,13 +144,13 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
                 screen_print_preview_set_on_action(on_print_preview_action);
                 screen_open(get_scr_print_preview()->id);
             }
-            screen_home_disable_print_button(screen, 0);
+            printBtnEna();
         }
         return 1;
     }
 
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
-        screen_home_disable_print_button(screen, 1);
+    if (p_window_header_event_clr(&(header), MARLIN_EVT_MediaRemoved)) {
+        printBtnDis();
     }
 
     if (event != WINDOW_EVENT_CLICK) {
@@ -224,27 +218,21 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
     return result == FR_OK && fname[0] != 0 ? true : false;
 }
 
-void screen_home_disable_print_button(screen_t *screen, int disable) {
-    pw->w_buttons[0].f_disabled = disable;
-    pw->w_buttons[0].f_enabled = !disable; // cant't be focused
-    pw->w_buttons[0].f_invalid = 1;
-    pw->w_labels[0].SetText(labels[(disable ? labelNoUSBId : labelPrintId)]);
-
-    // move to preheat when Print is focused
-    if (pw->w_buttons[0].IsFocused() && disable) {
-        pw->w_buttons[1].SetFocus();
-    }
+void screen_home_data_t::printBtnEna() {
+    w_buttons[0].f_disabled = 0;
+    w_buttons[0].f_enabled = 1; // can be focused
+    w_buttons[0].f_invalid = 1;
+    w_labels[0].SetText(labels[labelPrintId]);
 }
 
-screen_t screen_home = {
-    0, // id - will be generated
-    0, // flags
-    screen_home_init,
-    screen_home_done,
-    screen_home_draw,
-    screen_home_event,
-    sizeof(screen_home_data_t), //data_size
-    0,                          //pdata
-};
+void screen_home_data_t::printBtnDis() {
+    w_buttons[0].f_disabled = 1;
+    w_buttons[0].f_enabled = 0; // cant't be focused
+    w_buttons[0].f_invalid = 1;
+    w_labels[0].SetText(labels[labelNoUSBId]);
 
-screen_t *const get_scr_home() { return &screen_home; }
+    // move to preheat when Print is focused
+    if (w_buttons[0].IsFocused()) {
+        w_buttons[1].SetFocus();
+    }
+}

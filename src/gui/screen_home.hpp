@@ -1,12 +1,8 @@
 //screen_home.hpp
+#pragma once
 #include "window_header.hpp"
 #include "status_footer.h"
 #include "gui.hpp"
-
-int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *param);
-void screen_home_done(screen_t *screen);
-void screen_home_draw(screen_t *screen);
-void screen_home_init(screen_t *screen);
 
 struct screen_home_data_t : public window_frame_t {
     window_header_t header;
@@ -21,5 +17,11 @@ struct screen_home_data_t : public window_frame_t {
     uint32_t time;
     uint8_t logo_invalid;
 
-    screen_home_data_t() {};
+    screen_home_data_t();
+    virtual void Draw() override;
+    virtual int Event(window_t *sender, uint8_t event, void *param) override;
+
+private:
+    void printBtnEna();
+    void printBtnDis();
 };

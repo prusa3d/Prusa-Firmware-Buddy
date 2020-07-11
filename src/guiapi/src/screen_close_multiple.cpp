@@ -7,7 +7,7 @@
 
 //I could not use functions to initialize those arrays in C
 static screen_t *const timeout_blacklist[] = {
-    get_scr_home(),
+    /* get_scr_home(),
     get_scr_printing(),
     get_scr_printing_serial(),
     get_scr_menu_tune(),
@@ -18,16 +18,16 @@ static screen_t *const timeout_blacklist[] = {
 #ifdef PIDCALIBRATION
         ,
     get_scr_PID()
-#endif //PIDCALIBRATION
+#endif //PIDCALIBRATION*/
 };
 
 static screen_t *const m876_blacklist[] = {
-    get_scr_printing_serial(),
+    /*  get_scr_printing_serial(),
     get_scr_home()
 #ifdef PIDCALIBRATION
         ,
     get_scr_PID()
-#endif //PIDCALIBRATION
+#endif //PIDCALIBRATION*/
 };
 
 static int _current_in_list(screen_t *const *list, size_t sz) {

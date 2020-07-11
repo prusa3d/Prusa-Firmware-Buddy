@@ -12,8 +12,9 @@ struct window_class_frame_t {
 };
 
 struct window_frame_t : public window_t {
-    window_frame_t()
-        : window_t(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0)) {}
+    window_frame_t();
+    virtual void Draw();
+    virtual int Event(window_t *sender, uint8_t event, void *param);
 };
 
 void window_frame_init(window_frame_t *window);
