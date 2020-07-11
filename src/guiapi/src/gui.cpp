@@ -205,7 +205,7 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     }
     window_popup_ptr = window_popup_tmp; // restore previous window_popup_ptr
     window_t *pWin = window_ptr(0);
-    if (pWin != 0)
+    if (pWin)
         pWin->Invalidate();
     if (window_ptr(id_capture))
         window_ptr(id_capture)->SetCapture();
@@ -222,6 +222,16 @@ int gui_msgbox(const char *text, uint16_t flags) {
 int gui_msgbox_prompt(const char *text, uint16_t flags) {
     Sound_Play(eSOUND_TYPE_StandardPrompt);
     return gui_msgbox_ex(0, text, flags, gui_defaults.scr_body_sz, 0, 0);
+}
+
+int gui_msgbox_close(void) {
+    // popup is displayed and it is a message box
+    if (window_popup_ptr && window_popup_ptr->cls && window_popup_ptr->cls->cls_id == WINDOW_CLS_MSGBOX) {
+        ((window_msgbox_t *)window_popup_ptr)->res = MSGBOX_RES_CLOSED; // set result
+        window_destroy(window_popup_ptr->id);                           // destroy message box window (loop inside messagebox will stop)
+        return 1;
+    }
+    return 0;
 }
 
 #endif //GUI_WINDOW_SUPPORT

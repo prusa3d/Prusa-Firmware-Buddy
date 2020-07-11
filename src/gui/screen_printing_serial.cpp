@@ -11,24 +11,26 @@
 #include "screens.h"
 #include "../lang/i18n.h"
 
-#define BUTTON_TUNE       0
-#define BUTTON_PAUSE      1
-#define BUTTON_DISCONNECT 2
-
-enum item_id_t {
-    iid_tune,
-    iid_pause,
-    iid_disconnect,
-    iid_count // - MAIN COUNT INDEX for asert check
+enum class buttons_t {
+    TUNE = 0,
+    PAUSE,
+    DISCONNECT
 };
 
-const uint16_t serial_printing_icons[iid_count] = {
+enum class item_id_t {
+    tune,
+    pause,
+    disconnect,
+    count // - MAIN COUNT INDEX for asert check
+};
+
+const uint16_t serial_printing_icons[static_cast<size_t>(item_id_t::count)] = {
     IDR_PNG_menu_icon_settings,
     IDR_PNG_menu_icon_pause,
     IDR_PNG_menu_icon_disconnect
 };
 
-const char *serial_printing_labels[iid_count] = {
+const char *serial_printing_labels[static_cast<size_t>(item_id_t::count)] = {
     "Tune",
     "Pause",
     "Disconnect"
@@ -40,10 +42,11 @@ struct screen_printing_serial_data_t : public window_frame_t {
 
     window_icon_t octo_icon;
 
-    window_icon_t w_buttons[iid_count];
-    window_text_t w_labels[iid_count];
+    window_icon_t w_buttons[static_cast<size_t>(item_id_t::count)];
+    window_text_t w_labels[static_cast<size_t>(item_id_t::count)];
 
     int last_tick;
+    bool disconnect_pressed;
 };
 
 void screen_printing_serial_init(screen_t *screen);
@@ -74,6 +77,7 @@ static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, win
 }
 
 void screen_printing_serial_init(screen_t *screen) {
+    pw->disconnect_pressed = false;
     pw->last_tick = 0;
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0), pw);
@@ -92,7 +96,7 @@ void screen_printing_serial_init(screen_t *screen) {
     pw->octo_icon.f_enabled = 0;
     pw->octo_icon.f_disabled = 0;
 
-    for (unsigned int col = 0; col < iid_count; col++) {
+    for (unsigned int col = 0; col < static_cast<size_t>(item_id_t::count); col++) {
         window_create_ptr(
             WINDOW_CLS_ICON, root,
             rect_ui16(8 + (15 + 64) * col, 185, 64, 64),
@@ -113,17 +117,17 @@ void screen_printing_serial_init(screen_t *screen) {
     // -- CONTROLS
     window_icon_t *sp_button;
     // -- tune button
-    static_assert(BUTTON_TUNE < iid_count, "BUTTON_TUNE not in range of buttons array");
-    sp_button = &pw->w_buttons[BUTTON_TUNE];
-    set_icon_and_label(iid_tune, sp_button, &pw->w_labels[BUTTON_TUNE]);
+    static_assert(static_cast<size_t>(buttons_t::TUNE) < static_cast<size_t>(item_id_t::count), "buttons_t::TUNE not in range of buttons array");
+    sp_button = &pw->w_buttons[static_cast<size_t>(buttons_t::TUNE)];
+    set_icon_and_label(item_id_t::tune, sp_button, &pw->w_labels[static_cast<size_t>(buttons_t::TUNE)]);
     // -- pause
-    static_assert(BUTTON_PAUSE < iid_count, "BUTTON_PAUSE not in range of buttons array");
-    sp_button = &pw->w_buttons[BUTTON_PAUSE];
-    set_icon_and_label(iid_pause, sp_button, &pw->w_labels[BUTTON_PAUSE]);
+    static_assert(static_cast<size_t>(buttons_t::PAUSE) < static_cast<size_t>(item_id_t::count), "PAUSE not in range of buttons array");
+    sp_button = &pw->w_buttons[static_cast<size_t>(buttons_t::PAUSE)];
+    set_icon_and_label(item_id_t::pause, sp_button, &pw->w_labels[static_cast<size_t>(buttons_t::PAUSE)]);
     // -- disconnect
-    static_assert(BUTTON_DISCONNECT < iid_count, "BUTTON_DISCONNECT not in range of buttons array");
-    sp_button = &pw->w_buttons[BUTTON_DISCONNECT];
-    set_icon_and_label(iid_disconnect, sp_button, &pw->w_labels[BUTTON_DISCONNECT]);
+    static_assert(static_cast<size_t>(buttons_t::DISCONNECT) < static_cast<size_t>(item_id_t::count), "DISCONNECT not in range of buttons array");
+    sp_button = &pw->w_buttons[static_cast<size_t>(buttons_t::DISCONNECT)];
+    set_icon_and_label(item_id_t::disconnect, sp_button, &pw->w_labels[static_cast<size_t>(buttons_t::DISCONNECT)]);
 
     status_footer_init(&(pw->footer), root);
 }
@@ -137,8 +141,27 @@ void screen_printing_serial_done(screen_t *screen) {
 void screen_printing_serial_draw(screen_t *screen) {
 }
 
+static void disable_button(screen_t *screen, buttons_t b) {
+    window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(b)];
+    if (!p_button->f_disabled) {
+        p_button->f_disabled = 1;
+        p_button->Invalidate();
+    }
+}
+
 int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     window_header_events(&(pw->header));
+
+    /// end sequence waiting for empty marlin gcode queue
+    /// parking -> cooldown hotend & bed -> turn off print fan
+    if (pw->disconnect_pressed && marlin_get_gqueue() < 1) {
+        marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
+        marlin_gcode("M104 S0 D0"); /// set temperatures to zero
+        marlin_gcode("M140 S0");    /// set temperatures to zero
+        marlin_gcode("M107");       /// print fan off
+        screen_close();
+        return 1;
+    }
 
     if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
@@ -148,19 +171,24 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
     }
 
     int p = reinterpret_cast<int>(param) - 1;
-    switch (p) {
-    case BUTTON_TUNE:
+    switch (static_cast<buttons_t>(p)) {
+    case buttons_t::TUNE:
         screen_open(get_scr_menu_tune()->id);
         return 1;
         break;
-    case BUTTON_PAUSE:
+    case buttons_t::PAUSE:
         marlin_gcode("M118 A1 action:pause");
         return 1;
         break;
-    case BUTTON_DISCONNECT:
-        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
+    case buttons_t::DISCONNECT:
+        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
+            pw->disconnect_pressed = true;
+
+            disable_button(screen, buttons_t::TUNE);
+            disable_button(screen, buttons_t::PAUSE);
+            disable_button(screen, buttons_t::DISCONNECT);
+
             marlin_gcode("M118 A1 action:disconnect");
-            screen_close();
         }
         return 1;
         break;

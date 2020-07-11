@@ -12,6 +12,7 @@
 #define MARLIN_SFLG_PROCESS 0x0002 // loop processing in main thread is enabled
 #define MARLIN_SFLG_BUSY    0x0004 // loop is busy
 #define MARLIN_SFLG_PENDREQ 0x0008 // pending request
+#define MARLIN_SFLG_EXCMODE 0x0010 // exclusive mode enabled (currently used for selftest/wizard)
 
 // server variable update interval [ms]
 #define MARLIN_UPDATE_PERIOD 100
@@ -109,6 +110,9 @@ extern int marlin_all_axes_homed(void);
 
 //
 extern int marlin_all_axes_known(void);
+
+// returns state of exclusive mode (1/0)
+extern int marlin_server_get_exclusive_mode(void);
 
 // display different value than target, used in preheat
 extern void marlin_server_set_temp_to_display(float value);
