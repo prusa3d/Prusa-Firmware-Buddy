@@ -316,7 +316,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
         msg_box_size.h += gui_defaults.header_sz.h;
         // pd->title_text.SetText("");
         suppress_draw = true;
-        Sound_Play(eSOUND_TYPE_StandardAlert);
+        Sound_Play(eSOUND_TYPE_SingleBeep);
         const char *btns[3] = { "YES", "NO", "IGNORE" };
         switch (gui_msgbox_ex(gcode_file_name,
             "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.",
