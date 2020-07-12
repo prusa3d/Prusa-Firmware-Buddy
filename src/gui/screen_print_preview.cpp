@@ -314,7 +314,6 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
         rect_ui16_t msg_box_size = gui_defaults.scr_body_no_foot_sz;
         msg_box_size.y = 0;
         msg_box_size.h += gui_defaults.header_sz.h;
-        // pd->title_text.SetText("");
         suppress_draw = true;
         Sound_Play(eSOUND_TYPE_SingleBeep);
         const char *btns[3] = { "YES", "NO", "IGNORE" };
