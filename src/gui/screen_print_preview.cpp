@@ -311,13 +311,17 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
     }
 
     if (!suppress_draw && fs_did_filament_runout()) {
+        rect_ui16_t msg_box_size = gui_defaults.scr_body_no_foot_sz;
+        msg_box_size.y = 0;
+        msg_box_size.h += gui_defaults.header_sz.h;
+        // pd->title_text.SetText("");
         suppress_draw = true;
         Sound_Play(eSOUND_TYPE_StandardAlert);
         const char *btns[3] = { "YES", "NO", "IGNORE" };
-        switch (gui_msgbox_ex(0,
+        switch (gui_msgbox_ex(gcode_file_name,
             "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.",
             MSGBOX_BTN_CUSTOM3,
-            gui_defaults.scr_body_no_foot_sz,
+            msg_box_size,
             0, btns)) {
         case MSGBOX_RES_CLOSED:
             suppress_draw = false;
