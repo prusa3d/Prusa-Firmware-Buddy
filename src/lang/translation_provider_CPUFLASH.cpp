@@ -4,6 +4,10 @@
 #include "translator.hpp"
 #include "translation_provider_CPUFLASH.hpp"
 
+#ifdef _DEBUG
+    #define SKIP_SOME_TRANSLATIONS
+#endif
+
 using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
 #ifndef TRANSLATIONS_UNITTEST
 const
@@ -36,7 +40,7 @@ struct StringTableDE {
 };
 
 // intentionally disable additional translations in debug mode (to fit within FLASH space)
-#ifndef _DEBUG
+#ifndef SKIP_SOME_TRANSLATIONS
 struct StringTableES {
     // this will get statically precomputed for each translation language separately
     static const uint16_t stringBegins[];
@@ -68,7 +72,7 @@ struct StringTablePL {
 
 using CPUFLASHTranslationProviderCS = CPUFLASHTranslationProvider<StringTableCS>;
 using CPUFLASHTranslationProviderDE = CPUFLASHTranslationProvider<StringTableDE>;
-#ifndef _DEBUG
+#ifndef SKIP_SOME_TRANSLATIONS
 using CPUFLASHTranslationProviderES = CPUFLASHTranslationProvider<StringTableES>;
 using CPUFLASHTranslationProviderFR = CPUFLASHTranslationProvider<StringTableFR>;
 using CPUFLASHTranslationProviderIT = CPUFLASHTranslationProvider<StringTableIT>;
@@ -87,12 +91,10 @@ const CPUFLASHTranslationProviderCS::RawData CPUFLASHTranslationProviderCS::rawD
 template <>
 const CPUFLASHTranslationProviderDE::RawData CPUFLASHTranslationProviderDE::rawData;
 
-#ifndef _DEBUG
-// precomputed indices and strings for the ES language
-const uint16_t StringTableES::stringBegins[] = { 1, 2, 3, 4 };
-// #include "stringBegins.es.hpp"
-const uint8_t StringTableES::utf8Raw[] = "abcd";
-// #include "utf8Raw.es.hpp"
+#ifndef SKIP_SOME_TRANSLATIONS
+    // precomputed indices and strings for the ES language
+    #include "stringBegins.es.hpp"
+    #include "utf8Raw.es.hpp"
 template <>
 const CPUFLASHTranslationProviderES::RawData CPUFLASHTranslationProviderES::rawData;
 
@@ -122,7 +124,7 @@ ProviderRegistrator csReg("cs", &cs);
 static const CPUFLASHTranslationProviderDE de;
 ProviderRegistrator deReg("de", &de);
 
-#ifndef _DEBUG
+#ifndef SKIP_SOME_TRANSLATIONS
 static const CPUFLASHTranslationProviderES es;
 ProviderRegistrator esReg("es", &es);
 

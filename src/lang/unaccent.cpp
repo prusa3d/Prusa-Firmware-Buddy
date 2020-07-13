@@ -9,6 +9,9 @@ using namespace std;
 /// ¡ ¿ A A E E E I O U U  ß a a a a  e e e i o o o  u u  y A a c C c E e E e L l n n R r s S s U u z z z
 /// some of them we don't have in our fonts, so hand-tuning must be done
 /// _ _ A A E E E I O U U ss a a a ae e e e i o o oe u ue y A a c C c E e E e L l n n R r s S s U u z z z
+/// 2020-07-13 update
+/// ¡ ¿ À Á È É Ê Í Ó Ú Ü ß  à á â ä  è é ê í ò ó ö  ú ü  ý Ą ą ć Č č Ę ę Ě ě Ł ł ń ň Ř ř Ś ś Š š Ů ů ź ż Ž ž
+/// ¡ ¿ A A E E E I O U U ss a a a ae e e e i o o oe u ue y A a c C c E e E e L l n n R r S s S s U u z z Z z
 const UnaccentTable::Item UnaccentTable::table[] = {
     { 0xa1, 1, "!" },  // ¡
     { 0xbf, 1, "?" },  // ¿
@@ -20,7 +23,7 @@ const UnaccentTable::Item UnaccentTable::table[] = {
     { 0xcd, 1, "I" },  // Í
     { 0xd3, 1, "O" },  // Ó
     { 0xda, 1, "U" },  // Ú
-    { 0xdc, 1, "U" },  // Ü
+    { 0xdc, 2, "Ue" }, // Ü
     { 0xdf, 2, "ss" }, // ß
     { 0xe0, 1, "a" },  // à
     { 0xe1, 1, "a" },  // á
@@ -51,6 +54,7 @@ const UnaccentTable::Item UnaccentTable::table[] = {
     { 0x148, 1, "n" }, // ň
     { 0x158, 1, "R" }, // Ř
     { 0x159, 1, "r" }, // ř
+    { 0x15a, 1, "S" }, // Ś
     { 0x15b, 1, "s" }, // ś
     { 0x160, 1, "S" }, // Š
     { 0x161, 1, "s" }, // š
@@ -58,6 +62,7 @@ const UnaccentTable::Item UnaccentTable::table[] = {
     { 0x16f, 1, "u" }, // ů
     { 0x17a, 1, "z" }, // ź
     { 0x17c, 1, "z" }, // ż
+    { 0x17d, 1, "Z" }, // Ž
     { 0x17e, 1, "z" }, // ž
     { 0xffff, 1, "?" } // generic fallback character
 };

@@ -1,40 +1,55 @@
-Verze bootloaderu\n%d.%d.%d\n\nBuddy deska\n%d.%d.%d\n%s
+Verze bootloaderu %d.%d.%d\nBuddy deska %d.%d.%d %s
 Výpis chyb (soubor dump.bin) byl zapsán na USB disk.
+ZRUŠIT
 Všechny testy úspěšné!
 Vždy
 Použít
 Chcete zastavit tisk?
 Assist
 Auto Home
+Auto home
 AutTn
 ZPĚT
-BlindAlert
-ButtonEcho
+Zpět
+PODLOŽKA
+Mesh Bed L. selhal. Opakovat?
+Kalibrace Z
 Kalibrace
 Kalibrace dokončena!\nTisku zdar!
+Kalibrace XY
+ZRUŠIT
 VYMĚNIT FILAMENT
 Vyměnit filament
+Kontrola os
+Kontrola výhřevu\nhotendu a podložky
 Očistěte podložku
 Gratulujeme! XYZ kalibrace v pořádku, všechny osy kolmé.
+Probíhá zvukový test\nZastavte tlačítkem
 POKRAČOVAT
 Ochlazení
+CPU vyt.
 VYPNOUT SENZOR
 Vypnout motory
+Odpojit
 Chcete zopakovat\nposlední krok a\nupravit nastavení\nvzdálenosti mezi\ntryskou a\npodložkou?
 Chcete použít\naktuální hodnotu?\nAktuální: %0.3f.\nVýchozí: %0.3f.\nZvolte NE pro výchozí hodnotu (doporučeno)
 Chcete použít existující hodnotu? Exist.: %0.3f. Výchozí: %0.3f. Vyberte NE pro výchozí.
+HOTOVO
 Vysouvání
-EnkoderPohyb
+Chyba
 Chyba při ukládání výpisu chyb na USB. Vložte USB znovu a opakujte akci.
 Vše v pořádku. Nyní se spustí XYZ kalibrace, která trvá cca 12 minut.
+KONEC
 Nahrány výchozí hodnoty. Systém se restartuje.
 Tovární reset
 Stat. chyb
+Test vent.
 Fil. senz.
 FILAMENT
 Filament
+Filament nebyl detekován. Zavést filament nyní? Vyberte NE pro zrušení tisku, nebo IGNOROVAT pro vypnutí senzoru a pokračování.
 Dokončování\nnačtených gcodů.
-Verze firmware
+Verze firmwaru
 Kal. 1. vrstvy
 KALIB. 1. VRSTVY
 Faktor průtoku
@@ -42,27 +57,38 @@ AKTUALIZACE FW
 Aktualizace FW
 Podložka
 Vyhřívání vypnuto po 30 minutách neaktivity.
+Zahřívání...
 Vítá vás\nOriginal Prusa MINI!
 DOMŮ
 Domů
+Vent. hotendu
+IGNOROVAT
 V dalším kroku\npoužijte ovládací\ntlačítko a nastavte\nvýšku trysky.\nV příručce najdete\ndetailní instrukce\na ilustrace.
 INFO
 Info
+Informace
 Zavádění
-IP adresy nejsou správné nebo soubor \lan_settings.ini\ není v kořenovém adresáři USB disku.
+IP adresy nejsou platné, nebo soubor \lan_settings.ini\ není v kořenovém adresáři USB disku.
 Nesprávné IP adresy nebo parametry, nebo soubor \lan_settings.ini\ není v kořenovém adresáři USB disku.
 Je barva správná?
 Je filament\nv podávacím\nsoukolí?
 Je na podložce tiskový plát?
 NASTAVENÍ LAN
 Nastavení LAN
+Jazyk
+JAZYKY
 Dostavování Z
+ZAVÉST
 ZAVÉST FIL.
 Zavést filament
 Načíst nast.
+Nahrává se...
 Zavedení do trysky
 Hlasitý
 Ujistěte se, že\nje filament\nvložen skrz\nfil. senzor
+Materiál
+Měření referenční\nvýšky kalibračních\nbodů
+MESH BED L.
 Mesh Bed Level.
 Mesh Bed Leveling selhal?
 ZPRÁVY
@@ -72,18 +98,25 @@ Osa E
 Osa X
 Osa Y
 Osa Z
+DALŠÍ
 NE
 Fil. senzor nenalezen. Ujistěte se, že je správně zapojen a opakujte akci.
+Žádné zprávy
 Vložte USB
 Nyní zkalibrujeme\nvzdálenost mezi\ntryskou a tiskovým\nplátem.
 Tryska
+TRYSKA
 Studená tryska.
 Vyp.
+OK
 Zap
 Na restart
 Jednou
 Až MINI začne\nvytlačovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce.
 Parkování
+Pauza
+Pozastavování...
+Úprava PID
 Pro kalibraci prvních 4 bodů vložte pod trysku list papíru. Pokud tryska o papír zavadí, okamžitě tiskárnu vypněte!
 Nyní je nutné očistit trysku. Až bude hotovo, zvolte DALŠÍ.
 Vložte USB disk a opakujte akci.
@@ -100,19 +133,29 @@ Zvolte POKRAČOVAT\na zatlačte filament\ndo extruderu
 Vyberte DALŠÍ pro\nspuštění SelfTestu,\nkterý ověří, zda\nje tiskárna správně\nsestavena.
 Tisk
 Tisk. větrák
+Tisk. ventilátor
+Doba tisku
 Tisk bude ukončen
+TISK
 Čas tisku
 Až MINI začne\nvytlačovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce
 Čistit filament
 Čištění
 QR test
+Otázka
 Ramming
+Opravdu odpojit?
 OPAK. NAHŘÁT
 Zbývající čas
+Tisk. znovu
 RESET ZAŘÍZENÍ
+Pokračovat
+Opětovné spuštění...
 OPAKOVAT
+Zpět
 Uložit výpis chyb
 Uložit nast.
+Hledání kalibračních\nbodů na podložce
 Vyberte typ filamentu
 Zvolte, kdy chcete\nautomaticky nahrát\nnový firmware\nz USB disku.
 SelfTest
@@ -123,13 +166,12 @@ Nastavení
 Nastavení načteno
 Tichý
 Zvuk. režim
-Zvuk. profil
+Typ zvuku
 Rychlost
-StandardAlert
-StandardPrompt
 Statické IPv4 adresy nenastaveny.
 Statistika
 STOP
+Stop
 Podpora
 Systém. info
 TEPLOTA
@@ -144,19 +186,32 @@ Selhala kalibrace os XYZ. Zkontrolujte zapojení el. součástí i jednotlivé o
 Při ukládání souboru \lan_settings.ini\ došlo k chybě.
 Tuto operaci nelze vrátit, současná konfigurace bude ztracena! Skutečně chcete obnovit tovární nastavení?
 Čas. limit
+Pro kalibraci\ns aktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro výměnu\nzvolte VYJMOUT.
+Pro kalibraci s\naktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro zavedení\nfilamentu zvolte\nZAVÉST. Pro výměnu \nzvolte VYJMOUT. 
+OPAKOVAT
 LADIT
+Ladit
+VYJMOUT
 VYSUNOUT FIL.
 Vysunout fil.
 Vysouvání
 Vyparkování
 USB disk není připraven!
-USB disk je chráněn proti zápisu!
+USB disk chráněn proti zápisu!
+Množství filamentu
 INFO O VERZI
 Info o verzi
+Čeká se na ochlazení
 Čekám na tepl.
+Varování
+Vítejte v průvodci\nnastavením Original\nPrusa MINI.\nChcete pokračovat?
 Vítejte v průvodci pro Original Prusa MINI. Přejete si pokračovat?
 Průvodce
 PRŮVODCE
 PRŮVODCE - OK
+Osa X
 KALIBRACE XYZ
+Osa Y
 ANO
+Výška Z:
+Osa Z

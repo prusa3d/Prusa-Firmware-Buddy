@@ -243,7 +243,7 @@ bool CheckAllTheStrings(const deque<string> &rawStringKeys, const deque<string> 
 }
 
 void SaveArray(const char *strData, uint16_t strDataSize, const char *type, const char *langCode) {
-    ofstream f(string("strings.") + type + langCode);
+    ofstream f(string(RELATIVE_FROM_RUNDIR "strings.") + type + langCode);
     f.write(strData, strDataSize);
 }
 
@@ -279,7 +279,7 @@ void FillAndSaveStringTable(const deque<string> &strings, const char *langCode) 
 
     string upcaseLangCode(langCode);
     std::transform(upcaseLangCode.begin(), upcaseLangCode.end(), upcaseLangCode.begin(), ::toupper);
-    SaveArray4CPP(T::stringBegins, T::stringCount, (string("stringBegins.") + langCode + ".hpp").c_str(),
+    SaveArray4CPP(T::stringBegins, T::stringCount, (string(RELATIVE_FROM_RUNDIR "stringBegins.") + langCode + ".hpp").c_str(),
         (string("const uint16_t StringTable") + upcaseLangCode + "::stringBegins[]").c_str());
 }
 

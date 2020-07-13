@@ -1,38 +1,53 @@
 \nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s
 A crash dump report (file dump.bin) has been saved to the USB drive.
+ABORT
 All tests finished successfully!
 Always
 Apply
 Are you sure to stop this printing?
 Assist
 Auto Home
+Auto home
 AutTn
 BACK
-BlindAlert
-ButtonEcho
+Back
+BED
+Bed leveling failed. Try again?
+Calibrating Z
 Calibration
 Calibration successful!\nHappy printing!
+Calibration XY
+CANCEL
 CHANGE FILAMENT
 Change Filament
+Checking axes
+Checking hotend and\nheatbed heaters
 Clean steel sheet.
 Congratulations! XYZ calibration is ok. XY axes are perpendicular.
+Continual beeps test\n press button to stop
 CONTINUE
 Cooldown
+CPU load
 DISABLE SENSOR
 Disable Steppers
+Disconnect
 Do you want to     \nrepeat the last    \nstep and readjust  \nthe distance       \nbetween the nozzle \nand heatbed?
 Do you want to use\nthe current value?\nCurrent: %0.3f.   \nDefault: %0.3f.   \nClick NO to use the default value (recommended)
 Do you want to use last set value? Last:  %0.3f.   Default: %0.3f.   Click NO to use default value.
+DONE
 Ejecting
-EncoderMove
+Error
 Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again.
 Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes.
+EXIT
 Factory defaults loaded. The system will now restart.
 Factory Reset
 Fail Stats
+Fan test
 Fil. sens.
 FILAMENT
 Filament
+Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.
 Finishing         \nbuffered gcodes.  \n
 Firmware Version\n
 First Layer Cal.
@@ -42,12 +57,16 @@ FW UPDATE
 FW Update
 Heatbed
 Heating disabled due to 30 minutes of inactivity.
+Heating...
 Hi, this is your\nOriginal Prusa MINI.
 HOME
 Home
+Hotend fan
+IGNORE
 In the next step, \nuse the knob to   \nadjust the nozzle \nheight.           \nCheck the pictures\nin the handbook   \nfor reference.
 INFO
 Info
+Information
 Inserting
 IP addresses are not valid or the file \lan_settings.ini\ is not in the root directory of the USB drive.
 IP addresses or parameters are not valid or the file \lan_settings.ini\ is not in the root directory of the USB drive.
@@ -56,13 +75,20 @@ Is filament in    \nextruder gear?
 Is steel sheet on heatbed?
 LAN SETTINGS
 Lan settings
+Language
+LANGUAGES
 Live Adjust Z
+LOAD
 LOAD FILAMENT
 Load Filament
 Load settings
+Loading ...
 Loading to nozzle
 Loud
 Make sure the     \nfilament is       \ninserted through  \nthe sensor.       
+Material
+Measuring reference\nheight of calib.\npoints
+MESH BED L.
 Mesh Bed Level.
 Mesh bed leveling failed?
 MESSAGES
@@ -72,18 +98,25 @@ Move E
 Move X
 Move Y
 Move Z
+NEXT
 NO
 No filament sensor detected. Verify that the sensor is connected and try again.
+No messages
 No USB
 Now, let's calibrate\nthe distance       \nbetween the tip    \nof the nozzle and  \nthe print sheet.   
 Nozzle
+NOZZLE
 Nozzle is too cold.
 Off
+OK
 On
 On restart
 Once
 Once the printer   \nstarts extruding   \nplastic, adjust    \nthe nozzle height  \nby turning the knob\nuntil the filament \nsticks to the print\nsheet.
 Parking
+Pause
+Pausing...
+PID adjustment
 Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off printer immediately!
 Please clean the nozzle for calibration. Click NEXT when done.
 Please insert a USB drive and try again.
@@ -100,19 +133,29 @@ Press CONTINUE and\npush filament into\nthe extruder.
 Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly.
 Print
 Print Fan
+Print fan
+Print Time
 Print will end
+PRINTING
 Printing time
 PURGE FILAMENT
 Purge Filament
 Purging
 QR test
+Question
 Ramming
+Really Disconnect?
 REHEAT
 Remaining Time
+Reprint
 RESET PRINTER
+Resume
+Resuming...
 RETRY
+Return
 Save Crash Dump
 Save settings
+Searching bed\ncalibration points
 Select filament type
 Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk.
 SelfTest
@@ -125,11 +168,10 @@ Silent
 Sound Mode
 Sound Type
 Speed
-StandardAlert
-StandardPrompt
 Static IPv4 addresses were not set.
 Statistic
 STOP
+Stop
 Support
 System Info
 TEMPERATURE
@@ -144,19 +186,32 @@ The XYZ calibration failed to finish. Double-check the printer's wiring and axes
 There was an error saving the settings in the \lan_settings.ini\ file.
 This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?
 Timeout
+To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD.
+To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD.
+TRY AGAIN
 TUNE
+Tune
+UNLOAD
 UNLOAD FILAMENT
 Unload Filament
 Unloading
 Unparking
 USB Disk is not ready!
 USB Disk is Write protected!
+Used Filament
 VERSION INFO
 Version Info
+Waiting for cooldown
 Waiting for temp.
+Warning
+Welcome to the     \nOriginal Prusa MINI\nsetup wizard.      \nWould you like to  \ncontinue?           
 Welcome to the Original Prusa MINI setup wizard. Would you like to continue?
 Wizard
 WIZARD
 WIZARD - OK
+X-axis
 XYZ CALIBRATION
+Y-axis
 YES
+Z height:
+Z-axis
