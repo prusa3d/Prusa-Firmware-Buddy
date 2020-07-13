@@ -39,7 +39,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     Create(screen, _(label));
     ScreenMenuVersionInfo *const ths = reinterpret_cast<ScreenMenuVersionInfo *>(screen->pdata);
 
-    p_window_header_set_icon(&(ths->header), IDR_PNG_header_icon_info);
+    ths->header.SetIcon(IDR_PNG_header_icon_info);
 
     //=============VARIABLES=================
 

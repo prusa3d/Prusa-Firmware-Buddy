@@ -160,10 +160,10 @@ void screen_printing_init(screen_t *screen) {
         rect_ui16(0, 0, 0, 0), pw);
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
-    p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
+    pw->header.SetIcon(IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
     static const char pr[] = "PRINTING";
-    p_window_header_set_text(&(pw->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)pr));
+    pw->header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pr));
 #endif
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 33, 220, 29),
@@ -309,7 +309,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         buff[9] = marlin_event(MARLIN_EVT_CommandBegin) ? 'B' : '0'; // B == Event begin
         buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
         buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0';         // s == server - Command M600
-        p_window_header_set_text(&(pw->header), buff);
+        pw->header.SetText(buff);
     }
 
 #endif
@@ -365,7 +365,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     }
 
     /// -- check when media is or isn't inserted
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved) || p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted)) {
+    if (pw->header.EventClr_MediaRemoved() || pw->header.EventClr_MediaInserted()) {
         /// -- check for enable/disable resume button
         set_pause_icon_and_label(screen);
     }
@@ -553,7 +553,7 @@ static void screen_printing_reprint(screen_t *screen) {
     pw->w_buttons[static_cast<size_t>(Btn::Stop)].SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
-    p_window_header_set_text(&(pw->header), _("PRINTING"));
+    pw->header.SetText(_("PRINTING"));
 #endif
 }
 

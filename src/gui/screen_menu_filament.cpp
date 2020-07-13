@@ -150,9 +150,9 @@ int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event
     if (event == WINDOW_EVENT_CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
-            p_window_header_set_text(&ths->header, item->GetHeaderAlterLabel()); //set new label
-            item->Do();                                                          //do action (load filament ...)
-            p_window_header_set_text(&ths->header, _(label));                    //restore label
+            ths->header.SetText(item->GetHeaderAlterLabel()); //set new label
+            item->Do();                                       //do action (load filament ...)
+            ths->header.SetText(_(label));                    //restore label
         }
     } else {
         return ths->Event(window, event, param);

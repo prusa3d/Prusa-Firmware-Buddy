@@ -69,8 +69,8 @@ screen_home_data_t::screen_home_data_t()
     is_starting = (time < 5000) ? 1 : 0;
 
     window_create_ptr(WINDOW_CLS_HEADER, id, gui_defaults.header_sz, &(header));
-    p_window_header_set_icon(&(header), IDR_PNG_status_icon_home);
-    p_window_header_set_text(&(header), _("HOME"));
+    header.SetIcon(IDR_PNG_status_icon_home);
+    header.SetText(_("HOME"));
 
     window_create_ptr(WINDOW_CLS_ICON, id,
         rect_ui16(41, 31, 158, 40), &(logo));
@@ -139,9 +139,7 @@ int screen_home_data_t::Event(window_t *sender, uint8_t event, void *param) {
         if ((now - time) > 950) {
             is_starting = 0;
         }
-        p_window_header_event_clr(&(header), MARLIN_EVT_MediaInserted);
-        p_window_header_event_clr(&(header), MARLIN_EVT_MediaRemoved);
-        p_window_header_event_clr(&(header), MARLIN_EVT_MediaError);
+        header.EventClr();
     }
 
     /*if (p_window_header_event_clr(&(header), MARLIN_EVT_MediaInserted) && (HAL_GetTick() > 5000)) {
@@ -164,7 +162,7 @@ int screen_home_data_t::Event(window_t *sender, uint8_t event, void *param) {
         return 1;
     }*/
 
-    if (p_window_header_event_clr(&(header), MARLIN_EVT_MediaRemoved)) {
+    if (header.EventClr_MediaRemoved()) {
         printBtnDis();
     }
     window_frame_t::Event(sender, event, param);

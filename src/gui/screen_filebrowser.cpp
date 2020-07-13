@@ -52,9 +52,9 @@ static void screen_filebrowser_init(screen_t *screen) {
     pd->Disable(); // hack for do not change capture
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
-    p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
+    pd->header.SetIcon(IDR_PNG_filescreen_icon_folder);
     static const char sf[] = "SELECT FILE";
-    p_window_header_set_text(&(pd->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
+    pd->header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
 
     window_file_list_t *filelist = &(pd->w_filelist);
 
@@ -109,7 +109,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
         return 1;
     }
 
-    window_header_events(&(pd->header));
+    pd->header.EventClr();
 
     window_file_list_t *filelist = &(pd->w_filelist);
 

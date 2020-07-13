@@ -85,9 +85,9 @@ void screen_printing_serial_init(screen_t *screen) {
     int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
         rect_ui16(0, 0, 0, 0), pw);
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
-    p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
+    pw->header.SetIcon(IDR_PNG_status_icon_printing);
     static const char sp[] = "SERIAL PRT.";
-    p_window_header_set_text(&(pw->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)sp));
+    pw->header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sp));
 
     //octo icon
     point_ui16_t pt_ico = icon_meas(resource_ptr(IDR_PNG_serial_printing));
@@ -154,7 +154,7 @@ static void disable_button(screen_t *screen, buttons_t b) {
 }
 
 int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    window_header_events(&(pw->header));
+    pw->header.EventClr();
 
     /// end sequence waiting for empty marlin gcode queue
     /// parking -> cooldown hotend & bed -> turn off print fan

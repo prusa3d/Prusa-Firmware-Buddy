@@ -1,11 +1,3 @@
-/*
- * window_header.cpp
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
- */
-
-#include <stdbool.h>
 #include "window_header.hpp"
 #include "config.h"
 #include "marlin_client.h"
@@ -22,11 +14,11 @@ int16_t WINDOW_CLS_HEADER = 0;
 #ifdef BUDDY_ENABLE_ETHERNET
 static void update_ETH_icon(window_header_t *window) {
     if (get_eth_status() == ETH_UNLINKED) {
-        p_window_header_icon_off(window, HEADER_ICON_LAN);
+        window->icon_off(HEADER_ICON_LAN);
     } else if (get_eth_status() == ETH_NETIF_DOWN) {
-        p_window_header_icon_on(window, HEADER_ICON_LAN);
+        window->icon_on(HEADER_ICON_LAN);
     } else {
-        p_window_header_icon_active(window, HEADER_ICON_LAN);
+        window->icon_activate(HEADER_ICON_LAN);
     }
 }
 #endif // BUDDY_ENABLE_ETHERNET
@@ -113,58 +105,77 @@ void window_header_draw(window_header_t *window) {
     }
 }
 
-void p_window_header_set_icon(window_header_t *window, uint16_t id_res) {
-    window->id_res = id_res;
-    window->Invalidate();
+void window_header_t::SetIcon(int16_t id_res) {
+    this->id_res = id_res;
+    Invalidate();
 }
 
-void p_window_header_icon_off(window_header_t *window, header_icons_t icon) {
-    if (window->icons[icon] != HEADER_ISTATE_OFF) {
-        window->icons[icon] = HEADER_ISTATE_OFF;
-        window->Invalidate();
+void window_header_t::icon_off(header_icons_t icon) {
+    if (icons[icon] != HEADER_ISTATE_OFF) {
+        icons[icon] = HEADER_ISTATE_OFF;
+        Invalidate();
     }
 }
 
-void p_window_header_icon_on(window_header_t *window, header_icons_t icon) {
-    if (window->icons[icon] != HEADER_ISTATE_ON) {
-        window->icons[icon] = HEADER_ISTATE_ON;
-        window->Invalidate();
+void window_header_t::icon_on(header_icons_t icon) {
+    if (icons[icon] != HEADER_ISTATE_ON) {
+        icons[icon] = HEADER_ISTATE_ON;
+        Invalidate();
     }
 }
 
-void p_window_header_icon_active(window_header_t *window, header_icons_t icon) {
-    if (window->icons[icon] != HEADER_ISTATE_ACTIVE) {
-        window->icons[icon] = HEADER_ISTATE_ACTIVE;
-        window->Invalidate();
+void window_header_t::icon_activate(header_icons_t icon) {
+    if (icons[icon] != HEADER_ISTATE_ACTIVE) {
+        icons[icon] = HEADER_ISTATE_ACTIVE;
+        Invalidate();
     }
 }
 
-header_states_t p_window_header_get_state(window_header_t *window,
-    header_icons_t icon) {
-    return window->icons[icon];
+header_states_t window_header_t::GetState(header_icons_t icon) const {
+    return icons[icon];
 }
 
-void p_window_header_set_text(window_header_t *window, string_view_utf8 txt) {
-    window->text = txt;
-    window->Invalidate();
+void window_header_t::SetText(string_view_utf8 txt) {
+    text = txt;
+    Invalidate();
 }
 
-int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id) {
+void window_header_t::EventClr() {
+    EventClr_MediaInserted();
+    EventClr_MediaRemoved();
+    EventClr_MediaError();
+}
+
+bool window_header_t::EventClr_MediaInserted() {
     /* lwip fces only read states, invalid states by another thread never mind */
 #ifdef BUDDY_ENABLE_ETHERNET
-    update_ETH_icon(window);
+    update_ETH_icon(this);
 #endif //BUDDY_ENABLE_ETHERNET
-    if (marlin_event_clr(evt_id)) {
-        switch (evt_id) {
-        case MARLIN_EVT_MediaInserted:
-            p_window_header_icon_active(window, HEADER_ICON_USB);
-            break;
-        case MARLIN_EVT_MediaRemoved:
-            p_window_header_icon_on(window, HEADER_ICON_USB);
-            break;
-        default:
-            break;
-        }
+    if (marlin_event_clr(MARLIN_EVT_MediaInserted)) {
+        icon_activate(HEADER_ICON_USB);
+        return 1;
+    }
+    return 0;
+}
+
+bool window_header_t::EventClr_MediaRemoved() {
+    /* lwip fces only read states, invalid states by another thread never mind */
+#ifdef BUDDY_ENABLE_ETHERNET
+    update_ETH_icon(this);
+#endif //BUDDY_ENABLE_ETHERNET
+    if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) {
+        icon_on(HEADER_ICON_USB);
+        return 1;
+    }
+    return 0;
+}
+
+bool window_header_t::EventClr_MediaError() {
+    /* lwip fces only read states, invalid states by another thread never mind */
+#ifdef BUDDY_ENABLE_ETHERNET
+    update_ETH_icon(this);
+#endif //BUDDY_ENABLE_ETHERNET
+    if (marlin_event_clr(MARLIN_EVT_MediaError)) {
         return 1;
     }
     return 0;

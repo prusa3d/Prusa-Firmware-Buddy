@@ -32,7 +32,7 @@ IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_l
     Disable(); //used to have member window_frame_t root, now it is parent
 
     window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
-    p_window_header_set_text(&(header), label);
+    header.SetText(label);
 
     window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
 
@@ -62,7 +62,7 @@ int IScreenMenu::Event(window_t *sender, uint8_t event, void *param) {
         status_footer_event(&footer, sender, event, param);
     }
     if (flg & HasHeaderEvents_FLAG) {
-        window_header_events(&header);
+        header.EventClr();
     }
 
     //on return 0 screen_dispatch_event will call DispatchEvent
