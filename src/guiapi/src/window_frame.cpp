@@ -93,7 +93,8 @@ const window_class_frame_t window_class_frame = {
 };
 
 window_frame_t::window_frame_t()
-    : window_t(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, display::GetW(), display::GetH()))
+    //: window_t(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, display::GetW(), display::GetH()))
+    : window_t(nullptr, nullptr, rect_ui16(0, 0, display::GetW(), display::GetH()))
     , first(nullptr) {
 
     flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;

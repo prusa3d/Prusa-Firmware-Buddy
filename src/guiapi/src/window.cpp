@@ -350,7 +350,7 @@ void window_t::DispatchEvent(window_t *sender, uint8_t ev, void *param) {
     if (event)
         event(sender, ev, param);
 }
-
+/*
 window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
     : window_t() {
     window_class_t *cls = class_ptr(cls_id);
@@ -370,7 +370,7 @@ window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
                 cls->init(this);
         }
     }
-}
+}*/
 
 window_t::window_t(window_t *parent, window_t *prev, rect_ui16_t rect)
     : parent(parent)

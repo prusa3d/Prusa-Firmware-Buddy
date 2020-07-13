@@ -135,8 +135,8 @@ struct window_t {
     int16_t IdParent() { return id_parent; }
     void DispatchEvent(window_t *sender, uint8_t ev, void *param);
 
-    window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect); //todo remove
-    window_t(window_t *parent = nullptr, window_t *prev = nullptr, rect_ui16_t rect = { 0 });
+    //window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect); //todo remove
+    window_t(window_t *parent = nullptr, window_t *prev = nullptr, rect_ui16_t rect = { 0 }); //todo remove nullptr default values
     virtual ~window_t();
 };
 
