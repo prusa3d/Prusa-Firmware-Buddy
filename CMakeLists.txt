@@ -179,6 +179,7 @@ target_compile_definitions(
   MOTHERBOARD=${MOTHERBOARD}
   PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
   MARLIN_DISABLE_INFINITE_LOOP
+  PROCESS_CUSTOM_GCODE
   STM32GENERIC
   STM32F4
   _EXTUI
@@ -480,9 +481,12 @@ target_sources(
           src/common/crc32.c
           src/common/ini_handler.c
           src/common/wui_api.c
+          src/common/z_calibration_fsm.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M876.cpp
+          src/marlin_stubs/G162.cpp
+          src/marlin_stubs/gcode.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
@@ -504,12 +508,14 @@ if(GUI)
             src/gui/dialogs/DialogStateful.cpp
             src/gui/dialogs/DialogRadioButton.cpp
             src/gui/dialogs/DialogLoadUnload.cpp
+            src/gui/dialogs/DialogG162.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
+            src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
             src/gui/window_file_list.cpp

@@ -1399,6 +1399,7 @@ void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pr
 /*****************************************************************************/
 //FSM_notifier
 FSM_notifier::data FSM_notifier::s_data;
+FSM_notifier *FSM_notifier::activeInstance = nullptr;
 
 FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
     uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
@@ -1411,6 +1412,7 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvarian
     s_data.progress_max = progress_max;
     s_data.var_id = var_id;
     s_data.last_progress_sent = -1;
+    activeInstance = this;
 }
 
 //static method
@@ -1422,9 +1424,11 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvarian
 //simplified formula
 //x = actual * s_data.scale + s_data.offset;
 void FSM_notifier::SendNotification() {
+    if (!activeInstance)
+        return;
     if (s_data.type == ClientFSM::_none)
         return;
-
+    activeInstance->preSendNotification();
     cvariant8 temp;
     temp.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
 
@@ -1442,10 +1446,12 @@ void FSM_notifier::SendNotification() {
         s_data.last_progress_sent = progress;
         _fsm_change(s_data.type, s_data.phase, progress, 0);
     }
+    activeInstance->postSendNotification();
 }
 
 FSM_notifier::~FSM_notifier() {
     s_data = temp_data;
+    activeInstance = nullptr;
 }
 
 /*****************************************************************************/
