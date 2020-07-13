@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include "guitypes.h"
+#include "../../lang/string_view_utf8.hpp"
 
 //window class identifiers
 #define WINDOW_CLS_FRAME     0   // FRAME - basic container class
