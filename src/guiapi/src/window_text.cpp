@@ -15,7 +15,7 @@ void window_text_draw(window_text_t *window) {
     if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         render_text_align(window->rect,
             window->text, // @@TODO translate this string here?
-            window->font,
+            *(window->font),
             (window->flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back,
             (window->flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text,
             window->padding,

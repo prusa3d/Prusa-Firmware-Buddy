@@ -196,9 +196,9 @@ void window_msgbox_draw(window_msgbox_t *window) {
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
                 rc_tit.x = icon_w;
                 rc_tit.w = window->rect.w - icon_w;
-                render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
+                render_text_align(rc_tit, _(title), *(window->font_title), window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
             } else if (title_n) { // text not empty but no icon => text will be aligned left
-                render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
+                render_text_align(rc_tit, _(title), *(window->font_title), window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
                 display::DrawLine(point_ui16(rc_tit.x + window->padding.left, rc_tit.y + rc_tit.h),
                     point_ui16(rc_tit.x + rc_tit.w - (window->padding.left + window->padding.right), rc_tit.y + rc_tit.h),
                     COLOR_RED_ALERT);
@@ -212,7 +212,7 @@ void window_msgbox_draw(window_msgbox_t *window) {
             uint16_t(window->rect.y + title_h + red_line_offset), // put text bellow title and red line
             window->rect.w,
             uint16_t(window->rect.h - (title_h + red_line_offset + gui_defaults.btn_h)) };
-        render_text_align(rc_txt, _(window->text), window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
+        render_text_align(rc_txt, _(window->text), *(window->font), window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
 
         window->flags |= MSGBOX_MSK_CHG;
         window_msgbox_draw_buttons(window);

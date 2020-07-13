@@ -29,7 +29,7 @@ void window_numb_draw(window_numb_t *window) {
 
         render_text_align(window->rect,
             text, // @@TODO translate this string here?
-            window->font,
+            *(window->font),
             clr_back,
             clr_text,
             window->padding,

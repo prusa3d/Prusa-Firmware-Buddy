@@ -50,7 +50,7 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
         rect_ui16_t rc_tit = rc;
         rc_tit.y += 10;
         rc_tit.h = 30; // 30 pixels for title
-        render_text_align(rc_tit, _("Please wait"), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
+        render_text_align(rc_tit, _("Please wait"), *(window->font_title), window->color_back, window->color_text, window->padding, ALIGN_CENTER);
         window->f_invalid = 0;
 
         if (window->components & DLG_W8_DRAW_FRAME) { // grey frame enabled
@@ -138,7 +138,7 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
             rc_pro.w = rc.w - 120;
             rc_pro.x = rc.x + 60;
             rc_pro.h = 30;
-            render_text_align(rc_pro, text, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
+            render_text_align(rc_pro, text, *(window->font_title), window->color_back, window->color_text, window->padding, ALIGN_CENTER);
         }
     }
 }

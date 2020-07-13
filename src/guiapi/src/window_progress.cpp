@@ -49,7 +49,7 @@ void window_progress_draw(window_progress_t *window) {
             rc.h -= window->height_progress;
             render_text_align(rc, // @@TODO translate this string here?
                 text,
-                window->font,
+                *(window->font),
                 window->color_back,
                 window->color_text,
                 window->padding,

@@ -106,8 +106,8 @@ void window_header_draw(window_header_t *window) {
     rc.x += 10 + window->rect.h;
     rc.w -= (icons_width + 10 + window->rect.h);
 
-    if (window->text) {                                      // label
-        render_text_align(rc, _(window->text), window->font, // @@TODO verify, that this is the right spot to translate window labels
+    if (window->text) {                                         // label
+        render_text_align(rc, _(window->text), *(window->font), // @@TODO verify, that this is the right spot to translate window labels
             window->color_back, window->color_text,
             window->padding, window->alignment);
     }

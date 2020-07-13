@@ -26,7 +26,7 @@ void fill_between_rectangles(const rect_ui16_t &r_out, const rect_ui16_t &r_in, 
     display::FillRect(rc_r, color);
 }
 
-void render_text_align(const rect_ui16_t &rc, const char *text, const font_t *font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags) {
+void render_text_align(const rect_ui16_t &rc, const char *text, const font_t &font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP
@@ -35,34 +35,34 @@ void render_text_align(const rect_ui16_t &rc, const char *text, const font_t *fo
         int n;
         int i;
         const char *str = text;
-        while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
+        while ((n = font_line_chars(&font, str, rc_pad.w)) && ((y + font.h) <= (rc_pad.y + rc_pad.h))) {
             x = rc_pad.x;
             i = 0;
             while (str[i] == ' ' || str[i] == '\n')
                 i++;
             for (; i < n; i++) {
-                display::DrawChar(point_ui16(x, y), str[i], font, clr_bg, clr_fg);
-                x += font->w;
+                display::DrawChar(point_ui16(x, y), str[i], &font, clr_bg, clr_fg);
+                x += font.w;
             }
-            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr_bg);
+            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font.h), clr_bg);
             str += n;
-            y += font->h;
+            y += font.h;
         }
         display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr_bg);
         fill_between_rectangles(rc, rc_pad, clr_bg);
     } else {
-        point_ui16_t wh_txt = font_meas_text(font, text);
+        point_ui16_t wh_txt = font_meas_text(&font, text);
         if (wh_txt.x && wh_txt.y) {
             rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
             rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
             uint8_t unused_pxls = 0;
-            if (strlen(text) * font->w > rc_txt.w) {
-                unused_pxls = rc_txt.w % font->w;
+            if (strlen(text) * font.w > rc_txt.w) {
+                unused_pxls = rc_txt.w % font.w;
             }
 
             const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
             fill_between_rectangles(rc, rect_in, clr_bg);
-            display::DrawText(rc_txt, text, font, clr_bg, clr_fg);
+            display::DrawText(rc_txt, text, &font, clr_bg, clr_fg);
         } else
             display::FillRect(rc, clr_bg);
     }
@@ -94,40 +94,40 @@ void render_icon_align(const rect_ui16_t &rc, uint16_t id_res, color_t clr_bg, u
         display::FillRect(rc, opt_clr);
 }
 
-void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
-    if (roll->setup == TXTROLL_SETUP_IDLE)
+void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t &roll) {
+    if (roll.setup == TXTROLL_SETUP_IDLE)
         return;
     window_t *pWin = window_ptr(win_id);
     if (!pWin)
         return;
 
-    switch (roll->phase) {
+    switch (roll.phase) {
     case ROLL_SETUP:
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
-        if (roll->setup == TXTROLL_SETUP_DONE)
-            roll->phase = ROLL_GO;
+        if (roll.setup == TXTROLL_SETUP_DONE)
+            roll.phase = ROLL_GO;
         pWin->Invalidate();
         break;
     case ROLL_GO:
-        if (roll->count > 0 || roll->px_cd > 0) {
-            if (roll->px_cd == 0) {
-                roll->px_cd = font->w;
-                roll->count--;
-                roll->progress++;
+        if (roll.count > 0 || roll.px_cd > 0) {
+            if (roll.px_cd == 0) {
+                roll.px_cd = font->w;
+                roll.count--;
+                roll.progress++;
             }
-            roll->px_cd--;
+            roll.px_cd--;
             pWin->Invalidate();
         } else {
-            roll->phase = ROLL_STOP;
+            roll.phase = ROLL_STOP;
         }
         break;
     case ROLL_STOP:
-        roll->phase = ROLL_RESTART;
+        roll.phase = ROLL_RESTART;
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
         break;
     case ROLL_RESTART:
-        roll->setup = TXTROLL_SETUP_INIT;
-        roll->phase = ROLL_SETUP;
+        roll.setup = TXTROLL_SETUP_INIT;
+        roll.phase = ROLL_SETUP;
         pWin->Invalidate();
         break;
     }

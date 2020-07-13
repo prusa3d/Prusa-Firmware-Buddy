@@ -145,7 +145,7 @@ void DialogStateful<T>::Draw() {
             //			rc_tit.w -= 30;
             //			rc_tit.x += 30;
             //title
-            render_text_align(rc_tit, _(title), font_title,
+            render_text_align(rc_tit, _(title), *font_title,
                 color_back, color_text, padding, ALIGN_CENTER);
 
             f_invalid = 0;

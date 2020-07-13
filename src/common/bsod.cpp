@@ -170,7 +170,7 @@ void general_error(const char *error, const char *module) {
 
     render_term(rect_ui16(PADDING, 100, 220, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), "RESET PRINTER", gui_defaults.font,
+    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), "RESET PRINTER", *(gui_defaults.font),
         COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
 
     jogwheel_init();

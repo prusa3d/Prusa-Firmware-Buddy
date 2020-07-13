@@ -88,7 +88,7 @@ void window_list_draw(window_list_t *window) {
             }
 
             // render
-            render_text_align(rc, label, window->font,
+            render_text_align(rc, label, *(window->font),
                 color_back, color_text,
                 padding, window->alignment);
         }
