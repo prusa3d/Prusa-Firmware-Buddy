@@ -18,6 +18,7 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
     {},                                                            //Loading,
     {},                                                            //Purging,
     { Response::Continue, Response::Purge_more, Response::Retry }, //IsColor,
+    { Response::Continue, Response::Purge_more },                  //IsColorPurge
     {},                                                            //Unparking,
 };
 

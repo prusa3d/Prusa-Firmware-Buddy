@@ -104,6 +104,7 @@ extern "C" void gui_run(void) {
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
+
     Sound_Play(eSOUND_TYPE_Start);
 
     screen_register(get_scr_splash());
