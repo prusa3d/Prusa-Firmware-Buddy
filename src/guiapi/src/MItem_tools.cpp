@@ -7,6 +7,7 @@
 #include "gui.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
+#include "window_dlg_calib_z.hpp"
 #include "sound.hpp"
 #include "wui_api.h"
 #include "../lang/i18n.h"

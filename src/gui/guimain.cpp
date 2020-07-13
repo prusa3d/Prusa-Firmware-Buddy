@@ -10,6 +10,7 @@
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
 #include "DialogLoadUnload.h"
+#include "DialogG162.h"
 #include "window_dlg_wait.hpp"
 #ifdef _DEBUG
     #include "window_dlg_popup.hpp"
@@ -113,6 +114,7 @@ extern "C" void gui_run(void) {
     WINDOW_CLS_HEADER = window_register_class((window_class_t *)&window_class_header);
     WINDOW_CLS_TEMP_GRAPH = window_register_class((window_class_t *)&window_class_temp_graph);
     WINDOW_CLS_DLG_LOADUNLOAD = window_register_class((window_class_t *)&window_class_dlg_statemachine);
+    WINDOW_CLS_DLG_G162 = window_register_class((window_class_t *)&window_class_dlg_g162);
     WINDOW_CLS_DLG_WAIT = window_register_class((window_class_t *)&window_class_dlg_wait);
 #ifdef _DEBUG
     WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
