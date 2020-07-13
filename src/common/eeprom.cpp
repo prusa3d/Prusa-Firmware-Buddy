@@ -66,6 +66,7 @@ typedef struct _eeprom_vars_t {
     char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
     int8_t TIMEZONE;
     uint8_t SOUND_MODE;
+    uint8_t SOUND_VOLUME;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -103,6 +104,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_LAN_HOSTNAME
     { "TIMEZONE",        VARIANT8_I8,    1, 0 }, // EEVAR_TIMEZONE
     { "SOUND_MODE",      VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_MODE
+    { "SOUND_VOLUME",		 VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_VOLUME
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -136,6 +138,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
     0,               // EEVAR_TIMEZONE
     0xff,            // EEVAR_SOUND_MODE
+    0x64,            // EEVAR_SOUND_VOLUME
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
