@@ -20,12 +20,16 @@ void screen_splash_data_t::timer(uint32_t mseconds) {
     progress.SetValue((percent < 95) ? percent : 95);
 }
 
-screen_splash_data_t::screen_splash_data_t() {
-    /* int16_t id0;
+screen_splash_data_t::screen_splash_data_t()
+    : logo_prusa_mini(this, nullptr)
+    //    window_text_t text_progress;
+    //    window_progress_t progress;
+    //    window_text_t text_version;
+    , icon_logo_buddy(this, &text_version)
+    , icon_logo_marlin(this, &icon_logo_buddy)
+    , icon_debug(this, &icon_logo_marlin)
 
-    id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0),
-        _psd);*/
-
+{
     window_create_ptr(WINDOW_CLS_ICON, id, rect_ui16(0, 84, 240, 62),
         &(logo_prusa_mini));
     logo_prusa_mini.SetIdRes(IDR_PNG_splash_logo_prusa_prn);

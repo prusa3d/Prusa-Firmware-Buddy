@@ -357,3 +357,11 @@ void status_footer_repaint_heatbed(status_footer_t *footer) {
 
     footer->wt_heatbed.SetTextColor(clr);
 }
+
+status_footer_t::status_footer_t()
+    : wi_nozzle(this, nullptr)
+    , wi_heatbed(this, &wi_nozzle)
+    , wi_prnspeed(this, &wi_heatbed)
+    , wi_z_axis(this, &wi_prnspeed)
+    , wi_filament(this, &wi_z_axis) {
+}

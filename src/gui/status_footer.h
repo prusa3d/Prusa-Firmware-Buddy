@@ -21,7 +21,7 @@ typedef enum heat_state_e {
 
 #pragma pack(pop)
 
-struct status_footer_t {
+struct status_footer_t : public window_frame_t {
     float nozzle;                /// current temperature of nozzle
     float nozzle_target;         /// target temperature of nozzle (not shown)
     float nozzle_target_display; /// target temperature of nozzle shown on display
@@ -48,6 +48,8 @@ struct status_footer_t {
     heat_state_t nozzle_state;
     heat_state_t heatbed_state;
     bool show_second_color;
+
+    status_footer_t();
 };
 
 #define REPAINT_Z_POS_PERIOD 256  /// time span between z position repaint [miliseconds]

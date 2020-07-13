@@ -50,7 +50,19 @@ const char *labels[7] = {
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 void screen_home_disable_print_button(screen_t *screen, int disable);
 
-screen_home_data_t::screen_home_data_t() {
+screen_home_data_t::screen_home_data_t()
+    //: window_header_t header;
+    : logo(this, nullptr)
+    , w_buttons { { this, &logo },
+        { this, &w_buttons[0] },
+        { this, &w_buttons[1] },
+        { this, &w_buttons[2] },
+        { this, &w_buttons[3] },
+        { this, &w_buttons[4] } }
+//window_text_t w_labels[6];
+//status_footer_t footer;
+
+{
     // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.
     // Seconds (timestamp) from UNIX epocho will fix this
     time = HAL_GetTick();

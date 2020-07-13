@@ -41,3 +41,8 @@ void window_icon_t::SetIdRes(int16_t id) {
     id_res = id;
     Invalidate();
 }
+
+window_icon_t::window_icon_t(window_t *parent, window_t *prev, rect_ui16_t rect, uint16_t id_res)
+    : window_t(parent, prev, rect)
+    , id_res(id_res)
+    , alignment(ALIGN_CENTER) {}
