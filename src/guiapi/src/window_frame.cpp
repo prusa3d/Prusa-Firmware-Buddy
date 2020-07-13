@@ -93,14 +93,36 @@ const window_class_frame_t window_class_frame = {
 };
 
 window_frame_t::window_frame_t()
-    : window_t(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, display::GetW(), display::GetH())) {
+    : window_t(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, display::GetW(), display::GetH()))
+    , first(nullptr) {
 
     flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;
     color_back = COLOR_BLACK;
 }
 
+void window_frame_t::SetFirst(window_t *fir) {
+    first = fir;
+}
+
 void window_frame_t::Draw() {
-    window_frame_draw(this);
+    //window_frame_draw(this);
+    if (!f_visible)
+        return;
+    bool setChildernInvalid = false;
+
+    if (f_invalid) {
+        display::FillRect(rect, color_back);
+        f_invalid = 0;
+        setChildernInvalid = true;
+    }
+
+    window_t *ptr = first;
+    while (ptr) {
+        if (setChildernInvalid)
+            ptr->Invalidate();
+        ptr->Draw();
+        ptr = ptr->GetNext();
+    }
 }
 
 int window_frame_t::Event(window_t *sender, uint8_t event, void *param) {

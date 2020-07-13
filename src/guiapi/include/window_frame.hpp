@@ -12,6 +12,8 @@ struct window_class_frame_t {
 };
 
 struct window_frame_t : public window_t {
+    window_t *first;
+    void SetFirst(window_t *fir);
     window_frame_t();
     virtual void Draw();
     virtual int Event(window_t *sender, uint8_t event, void *param);

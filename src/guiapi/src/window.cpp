@@ -372,32 +372,21 @@ window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
     }
 }
 
-window_t::window_t(window_t *parent, rect_ui16_t rect)
+window_t::window_t(window_t *parent, window_t *prev, rect_ui16_t rect)
     : parent(parent)
+    , next(nullptr)
     , rect(rect) {
-    regist();
+    if (prev)
+        prev->SetNext(this);
 }
 
 window_t::~window_t() {
-    unregist();
 }
 
-std::array<window_t *, 64> window_t::windows = { nullptr };
-uint32_t window_t::registration_failed_cnt = 0;
-uint32_t window_t::unregistration_failed_cnt = 0;
-
-void window_t::regist() {
-    auto it = std::find(windows.begin(), windows.end(), nullptr);
-    if (it != windows.end())
-        *it = this;
-    else
-        ++registration_failed_cnt;
+void window_t::SetNext(window_t *nxt) {
+    next = nxt;
 }
 
-void window_t::unregist() {
-    auto it = std::find(windows.begin(), windows.end(), this);
-    if (it != windows.end())
-        *it = nullptr;
-    else
-        ++unregistration_failed_cnt;
+window_t *window_t::GetNext() const {
+    return next;
 }
