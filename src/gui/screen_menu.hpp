@@ -52,6 +52,7 @@ public:
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
 class ScreenMenu : public IScreenMenu {
 protected:
+    //std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;
 
 public:

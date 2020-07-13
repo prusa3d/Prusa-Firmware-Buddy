@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include "guitypes.h"
+#include <array>
 
 //window class identifiers
 #define WINDOW_CLS_FRAME     0   // FRAME - basic container class
@@ -72,6 +73,7 @@ struct window_class_t {
 };                         // (20 bytes total)
 
 struct window_t {
+    window_t *parent;
     window_class_t *cls; // (4 bytes) window class pointer
     int16_t id_parent;   // (2 bytes) parent window identifier (2bytes)
     int16_t id;          // (2 bytes) window identifier (2bytes)
@@ -105,8 +107,6 @@ struct window_t {
     virtual void Draw() {}
     virtual int Event(window_t *sender, uint8_t event, void *param) { return 0; }
 
-    virtual ~window_t() {}
-
     bool IsVisible() const { return f_visible == 1; }
     bool IsEnabled() const { return f_enabled == 1; }
     bool IsInvalid() const { return f_invalid == 1; }
@@ -130,8 +130,18 @@ struct window_t {
     int16_t IdParent() { return id_parent; }
     void DispatchEvent(window_t *sender, uint8_t ev, void *param);
 
-    window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect);
-    window_t() {};
+    window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect); //todo remove
+    window_t(window_t *parent = nullptr, rect_ui16_t rect = { 0 });
+    virtual ~window_t();
+
+protected:
+    static std::array<window_t *, 64> windows;
+    static uint32_t registration_failed_cnt;
+    static uint32_t unregistration_failed_cnt;
+
+private:
+    void regist();   // called by constructor
+    void unregist(); // called by destructor
 };
 
 extern window_t *window_popup_ptr; //current popup window

@@ -3,6 +3,7 @@
 #include "window.hpp"
 #include "window_menu.h"
 #include "gui.hpp"
+#include <algorithm> // std::find
 
 #define WINDOW_MAX_WINDOWS 64
 
@@ -350,7 +351,8 @@ void window_t::DispatchEvent(window_t *sender, uint8_t ev, void *param) {
         event(sender, ev, param);
 }
 
-window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect) {
+window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
+    : window_t() {
     window_class_t *cls = class_ptr(cls_id);
     if (cls) {
         uint32_t flg = WINDOW_FLG_VISIBLE | WINDOW_FLG_INVALID;
@@ -368,4 +370,34 @@ window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect) {
                 cls->init(this);
         }
     }
+}
+
+window_t::window_t(window_t *parent, rect_ui16_t rect)
+    : parent(parent)
+    , rect(rect) {
+    regist();
+}
+
+window_t::~window_t() {
+    unregist();
+}
+
+std::array<window_t *, 64> window_t::windows = { nullptr };
+uint32_t window_t::registration_failed_cnt = 0;
+uint32_t window_t::unregistration_failed_cnt = 0;
+
+void window_t::regist() {
+    auto it = std::find(windows.begin(), windows.end(), nullptr);
+    if (it != windows.end())
+        *it = this;
+    else
+        ++registration_failed_cnt;
+}
+
+void window_t::unregist() {
+    auto it = std::find(windows.begin(), windows.end(), this);
+    if (it != windows.end())
+        *it = nullptr;
+    else
+        ++unregistration_failed_cnt;
 }
