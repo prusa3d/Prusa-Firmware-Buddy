@@ -7,6 +7,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_print.hpp"
+#include "printers.h"
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_BABYSTEP, MI_AUTO_HOME, MI_MESH_BED,
     MI_SELFTEST, MI_CALIB_FIRST>;
