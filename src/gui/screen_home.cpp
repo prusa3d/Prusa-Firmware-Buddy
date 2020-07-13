@@ -82,7 +82,7 @@ screen_home_data_t::screen_home_data_t() {
             w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
             w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
             w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
-            w_labels[row * 3 + col].SetText(labels[row * 3 + col]);
+            w_labels[row * 3 + col].SetText(_(labels[row * 3 + col]));
         }
     }
 
@@ -115,7 +115,8 @@ int screen_home_data_t::Event(window_t *sender, uint8_t event, void *param) {
     }
     if ((event == WINDOW_EVENT_LOOP) && logo_invalid) {
 #ifdef _DEBUG
-        display::DrawText(rect_ui16(180, 31, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        static const char dbg[] = "DEBUG";
+        display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
         logo_invalid = 0;
     }
@@ -225,14 +226,14 @@ void screen_home_data_t::printBtnEna() {
     w_buttons[0].f_disabled = 0;
     w_buttons[0].f_enabled = 1; // can be focused
     w_buttons[0].f_invalid = 1;
-    w_labels[0].SetText(labels[labelPrintId]);
+    w_labels[0].SetText(_(labels[labelPrintId]));
 }
 
 void screen_home_data_t::printBtnDis() {
     w_buttons[0].f_disabled = 1;
     w_buttons[0].f_enabled = 0; // cant't be focused
     w_buttons[0].f_invalid = 1;
-    w_labels[0].SetText(labels[labelNoUSBId]);
+    w_labels[0].SetText(_(labels[labelNoUSBId]));
 
     // move to preheat when Print is focused
     if (w_buttons[0].IsFocused()) {

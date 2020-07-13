@@ -29,60 +29,72 @@ void screen_test_msgbox_init(screen_t *screen) {
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 32, 220, 22), &(pd->tst));
-    pd->tst.SetText((const char *)"TEST MSGBOX");
+    static const char tm[] = "TEST MSGBOX";
+    pd->tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tm));
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 54, 220, 22), &(pd->back));
-    pd->back.SetText((const char *)"back");
+    static const char bck[] = "back";
+    pd->back.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));
     pd->back.Enable();
     pd->back.SetTag(MSGBOX_BTN_MAX + 2);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 76, 220, 22), &(pd->tst_ok));
-    pd->tst_ok.SetText((const char *)"OK");
+    static const char ok[] = "OK";
+    pd->tst_ok.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ok));
     pd->tst_ok.Enable();
     pd->tst_ok.SetTag(MSGBOX_BTN_OK + 1);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 98, 220, 22), &(pd->tst_okcancel));
-    pd->tst_okcancel.SetText((const char *)"OK-CANCEL");
+    static const char oc[] = "OK-CANCEL";
+    pd->tst_okcancel.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)oc));
     pd->tst_okcancel.Enable();
     pd->tst_okcancel.SetTag(MSGBOX_BTN_OKCANCEL + 1);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 120, 220, 22), &(pd->tst_abortretryignore));
-    pd->tst_abortretryignore.SetText((const char *)"ABORT-RETRY-IGNORE");
+    static const char ari[] = "ABORT-RETRY-IGNORE";
+    pd->tst_abortretryignore.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ari));
     pd->tst_abortretryignore.Enable();
     pd->tst_abortretryignore.SetTag(MSGBOX_BTN_ABORTRETRYIGNORE + 1);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 142, 220, 22), &(pd->tst_yesnocancel));
-    pd->tst_yesnocancel.SetText((const char *)"YES-NO-CANCEL");
+    static const char ync[] = "YES-NO-CANCEL";
+    pd->tst_yesnocancel.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ync));
     pd->tst_yesnocancel.Enable();
     pd->tst_yesnocancel.SetTag(MSGBOX_BTN_YESNOCANCEL + 1);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 164, 220, 22), &(pd->tst_yesno));
-    pd->tst_yesno.SetText((const char *)"YES-NO");
+    static const char yn[] = "YES-NO";
+    pd->tst_yesno.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)yn));
     pd->tst_yesno.Enable();
     pd->tst_yesno.SetTag(MSGBOX_BTN_YESNO + 1);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 186, 220, 22), &(pd->tst_retrycancel));
-    pd->tst_retrycancel.SetText((const char *)"RETRY-CANCEL");
+    static const char rc[] = "RETRY-CANCEL";
+    pd->tst_retrycancel.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rc));
     pd->tst_retrycancel.Enable();
     pd->tst_retrycancel.SetTag(MSGBOX_BTN_RETRYCANCEL + 1);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(20, 208, 90, 22), &(pd->tst_ico_custom));
-    pd->tst_ico_custom.SetText((const char *)"CUSTOM");
+    static const char cu[] = "CUSTOM";
+    pd->tst_ico_custom.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)cu));
     pd->tst_ico_custom.Enable();
     pd->tst_ico_custom.SetTag(MSGBOX_BTN_MAX + 3);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(20, 230, 90, 22), &(pd->tst_ico_error));
-    pd->tst_ico_error.SetText((const char *)"ERROR");
+    static const char er[] = "ERROR";
+    pd->tst_ico_error.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)er));
     pd->tst_ico_error.Enable();
     pd->tst_ico_error.SetTag(MSGBOX_BTN_MAX + 4);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(110, 208, 90, 22), &(pd->tst_ico_question));
-    pd->tst_ico_question.SetText((const char *)"QUESTION");
+    static const char qu[] = "QUESTION";
+    pd->tst_ico_question.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)qu));
     pd->tst_ico_question.Enable();
     pd->tst_ico_question.SetTag(MSGBOX_BTN_MAX + 5);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(110, 230, 90, 22), &(pd->tst_ico_warning));
-    pd->tst_ico_warning.SetText((const char *)"WARNING");
+    static const char wa[] = "WARNING";
+    pd->tst_ico_warning.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)wa));
     pd->tst_ico_warning.Enable();
     pd->tst_ico_warning.SetTag(MSGBOX_BTN_MAX + 6);
 }

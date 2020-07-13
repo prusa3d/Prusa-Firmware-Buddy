@@ -20,7 +20,7 @@ class ScreenMenuInfo : public Screen {
 public:
     constexpr static const char *label = N_("INFO");
     ScreenMenuInfo()
-        : Screen(label) {}
+        : Screen(_(label)) {}
 };
 
 ScreenFactory::UniquePtr GetScreenMenuInfo() {
@@ -30,7 +30,7 @@ ScreenFactory::UniquePtr GetScreenMenuInfo() {
 /*
 static void init(screen_t *screen) {
     constexpr static const char *label = N_("INFO");
-    Screen::Create(screen, label);
+    Screen::Create(screen, _(label));
 }
 
 screen_t screen_menu_info = {

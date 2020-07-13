@@ -52,7 +52,7 @@ public:
 /*****************************************************************************/
 //static member method definition
 void ScreenMenuFwUpdate::Init(screen_t *screen) {
-    Create(screen, label);
+    Create(screen, _(label));
     auto *ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
     ths->help.font = resource_font(IDR_FNT_SPECIAL);
     ths->help.SetText(_("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));

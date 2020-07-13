@@ -209,7 +209,7 @@ void test_display_rgbcolors(uint16_t cnt) {
         COLOR_MAROON, COLOR_OLIVE, COLOR_GREEN,
         COLOR_PURPLE, COLOR_TEAL, COLOR_NAVY
     };
-    const char *names[] = {
+    static const char *names[] = {
         "BLACK", "WHITE",
         "RED", "LIME", "BLUE",
         "YELLOW", "CYAN", "MAGENTA",
@@ -231,7 +231,7 @@ void test_display_rgbcolors(uint16_t cnt) {
             rect_ui16_t rc_text = rect_ui16(10, item_height * i + 1, text_w, text_h);
             //display::FillRect(rc_item, colors[i]);
             display_fill_rect_sub_rect(rc_item, rc_text, colors[i]);
-            display::DrawText(rc_text, names[i], font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
+            display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
         }
 }
 

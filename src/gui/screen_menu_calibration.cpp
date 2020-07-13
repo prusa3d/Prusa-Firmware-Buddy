@@ -15,7 +15,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 static void init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
     constexpr static const char *label = N_("Calibration");
-    Screen::Create(screen, label);
+    Screen::Create(screen, _(label));
 }
 
 screen_t screen_menu_calibration = {

@@ -22,7 +22,7 @@ void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, x
     uint16_t x = WIZARD_MARGIN_LEFT;
 
     window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_state));
-    p_screen->text_state.SetText("Auto home");
+    p_screen->text_state.SetText(_("Auto home"));
 
     y += 22;
 
@@ -31,7 +31,7 @@ void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, x
     y += 12;
 
     window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 66), &(p_screen->text_search));
-    p_screen->text_search.SetText("");
+    p_screen->text_search.SetText(string_view_utf8::MakeNULLSTR());
 
     y += 66;
 
@@ -53,7 +53,7 @@ int xyzcalib_home(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t 
 
 int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_z == _TEST_START) {
-        p_screen->text_state.SetText("Calibrating Z");
+        p_screen->text_state.SetText(_("Calibrating Z"));
         gui_dlg_calib_z();
         p_data->state_home = _TEST_PASSED;
     }
@@ -62,9 +62,9 @@ int xyzcalib_z(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_
 
 int xyzcalib_xy_search(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_xy_search == _TEST_START) {
-        p_screen->text_search.SetText(
+        p_screen->text_search.SetText(_(
             "Searching bed\n"
-            "calibration points");
+            "calibration points"));
         p_screen->icon.SetIdRes(IDR_PNG_wizard_icon_search);
     }
     int progress = wizard_timer(&p_screen->timer0, 5000, &(p_data->state_xy_search), _WIZ_TIMER_AUTOPASS);
@@ -74,10 +74,10 @@ int xyzcalib_xy_search(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_da
 
 int xyzcalib_xy_measure(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     if (p_data->state_xy_measure == _TEST_START) {
-        p_screen->text_search.SetText(
+        p_screen->text_search.SetText(_(
             "Measuring reference\n"
             "height of calib.\n"
-            "points");
+            "points"));
         p_screen->icon.SetIdRes(IDR_PNG_wizard_icon_measure);
         marlin_gcode("G29");
         marlin_event_clr(MARLIN_EVT_CommandEnd);

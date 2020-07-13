@@ -42,59 +42,69 @@ void screen_test_init(screen_t *screen) {
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst));
-    pd->tst.SetText((const char *)"TEST");
+    static const char tst[] = "TEST";
+    pd->tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->back));
-    pd->back.SetText((const char *)"back");
+    static const char bck[] = "back";
+    pd->back.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));
     pd->back.Enable();
     pd->back.SetTag(STI_back);
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_gui));
-    pd->tst_gui.SetText((const char *)"test GUI");
+    static const char tstg[] = "test GUI";
+    pd->tst_gui.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstg));
     pd->tst_gui.Enable();
     pd->tst_gui.SetTag(STI_tst_gui);
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_term));
-    pd->tst_term.SetText((const char *)"test TERM");
+    static const char tstt[] = "test TERM";
+    pd->tst_term.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstt));
     pd->tst_term.Enable();
     pd->tst_term.SetTag(STI_tst_term);
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_msgbox));
-    pd->tst_msgbox.SetText((const char *)"test MSGBOX");
+    static const char tstm[] = "test MSGBOX";
+    pd->tst_msgbox.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstm));
     pd->tst_msgbox.Enable();
     pd->tst_msgbox.SetTag(STI_tst_msgbox);
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_graph));
-    pd->tst_graph.SetText((const char *)"temp graph");
+    static const char tmpg[] = "temp graph";
+    pd->tst_graph.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tmpg));
     pd->tst_graph.Enable();
     pd->tst_graph.SetTag(STI_tst_graph);
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_temperature));
-    pd->tst_temperature.SetText((const char *)"temp - pwm");
+    static const char tmpp[] = "temp - pwm";
+    pd->tst_temperature.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tmpp));
     pd->tst_temperature.Enable();
     pd->tst_temperature.SetTag(STI_tst_temperature);
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_heat_err));
-    pd->tst_heat_err.SetText((const char *)"HEAT ERROR");
+    static const char he[] = "HEAT ERROR";
+    pd->tst_heat_err.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)he));
     pd->tst_heat_err.Enable();
     pd->tst_heat_err.SetTag(STI_tst_heat_err);
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_disp_memory));
-    pd->tst_disp_memory.SetText((const char *)"Disp. R/W");
+    static const char drw[] = "Disp. R/W";
+    pd->tst_disp_memory.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)drw));
     pd->tst_disp_memory.Enable();
     pd->tst_disp_memory.SetTag(STI_tst_disp_memory);
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_stack_overflow));
-    pd->tst_stack_overflow.SetText((const char *)"Stack overflow");
+    static const char so[] = "Stack overflow";
+    pd->tst_stack_overflow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)so));
     pd->tst_stack_overflow.Enable();
     pd->tst_stack_overflow.SetTag(STI_tst_stack_overflow);
 

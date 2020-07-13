@@ -33,15 +33,18 @@ void screen_test_gui_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 60, 22), &(pd->text0));
     pd->text0.font = resource_font(IDR_FNT_BIG);
-    pd->text0.SetText((const char *)"Big");
+    static const char big[] = "Big";
+    pd->text0.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)big));
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(80, 70, 60, 22), &(pd->text1));
     pd->text1.font = resource_font(IDR_FNT_NORMAL); // ignore GUI_DEF_FONT
-    pd->text1.SetText((const char *)"Normal");
+    static const char nrm[] = "Normal";
+    pd->text1.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)nrm));
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(150, 70, 60, 22), &(pd->text2));
     pd->text2.font = resource_font(IDR_FNT_SMALL);
-    pd->text2.SetText((const char *)"Small");
+    static const char sml[] = "Small";
+    pd->text2.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sml));
 
     window_create_ptr(WINDOW_CLS_NUMB, id0, rect_ui16(10, 100, 60, 22), &(pd->numb0));
     pd->numb0.SetFormat((const char *)"%.0f");
@@ -79,7 +82,8 @@ void screen_test_gui_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 298, 240, 22), &(pd->text_terminal));
     pd->text_terminal.font = resource_font(IDR_FNT_TERMINAL);
-    pd->text_terminal.SetText((const char *)"Terminal Font IBM ISO9");
+    static const char tf[] = "Terminal Font IBM ISO9";
+    pd->text_terminal.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tf));
 }
 
 void screen_test_gui_done(screen_t *screen) {

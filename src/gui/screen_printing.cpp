@@ -71,15 +71,15 @@ const uint16_t printing_icons[static_cast<size_t>(item_id_t::count)] = {
 };
 
 const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
-    "Tune",
-    "Pause",
-    "Pausing...",
-    "Stop",
-    "Resume",
-    "Resuming...",
-    "Heating...",
-    "Reprint",
-    "Home",
+    N_("Tune"),
+    N_("Pause"),
+    N_("Pausing..."),
+    N_("Stop"),
+    N_("Resume"),
+    N_("Resuming..."),
+    N_("Heating..."),
+    N_("Reprint"),
+    N_("Home"),
 };
 
 struct screen_printing_data_t : public window_frame_t {
@@ -101,7 +101,8 @@ struct screen_printing_data_t : public window_frame_t {
 
     std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;
     std::array<char, MAX_END_TIMESTAMP_SIZE> text_etime;
-    std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end"
+    //std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
+    string_view_utf8 label_etime;      // not sure if we really must keep this in memory
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
 
     window_text_t w_message; //Messages from onStatusChanged()
@@ -161,7 +162,8 @@ void screen_printing_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
-    p_window_header_set_text(&(pw->header), "PRINTING");
+    static const char pr[] = "PRINTING";
+    p_window_header_set_text(&(pw->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)pr));
 #endif
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 33, 220, 29),
@@ -169,7 +171,8 @@ void screen_printing_init(screen_t *screen) {
     pw->w_filename.font = resource_font(IDR_FNT_BIG);
     pw->w_filename.SetPadding(padding_ui8(0, 0, 0, 0));
     pw->w_filename.SetAlignment(ALIGN_LEFT_BOTTOM);
-    pw->w_filename.SetText(vars->media_LFN ? vars->media_LFN : "");
+    // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
+    pw->w_filename.SetText(vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
 
     window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
@@ -184,8 +187,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_label.font = resource_font(IDR_FNT_SMALL);
     pw->w_etime_label.SetAlignment(ALIGN_RIGHT_BOTTOM);
     pw->w_etime_label.SetPadding(padding_ui8(0, 2, 0, 2));
-    strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
-    pw->w_etime_label.SetText(pw->label_etime.data());
+    pw->w_etime_label.SetText(_("Remaining Time"));
 
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(30, 148, 201, 20),
@@ -193,7 +195,8 @@ void screen_printing_init(screen_t *screen) {
     pw->w_etime_value.font = resource_font(IDR_FNT_SMALL);
     pw->w_etime_value.SetAlignment(ALIGN_RIGHT_BOTTOM);
     pw->w_etime_value.SetPadding(padding_ui8(0, 2, 0, 2));
-    pw->w_etime_value.SetText(pw->text_etime.data());
+    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
+    pw->w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 128, 101, 20),
@@ -209,7 +212,8 @@ void screen_printing_init(screen_t *screen) {
     pw->w_time_value.font = resource_font(IDR_FNT_SMALL);
     pw->w_time_value.SetAlignment(ALIGN_RIGHT_BOTTOM);
     pw->w_time_value.SetPadding(padding_ui8(0, 2, 0, 2));
-    pw->w_time_value.SetText(pw->text_time_dur.data());
+    // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
+    pw->w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)pw->text_time_dur.data()));
 
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
@@ -217,7 +221,7 @@ void screen_printing_init(screen_t *screen) {
     pw->w_message.font = resource_font(IDR_FNT_SMALL);
     pw->w_message.SetAlignment(ALIGN_LEFT_TOP);
     pw->w_message.SetPadding(padding_ui8(0, 2, 0, 2));
-    pw->w_message.SetText("No messages");
+    pw->w_message.SetText(_("No messages"));
     pw->w_message.Hide();
     pw->message_flag = false;
 
@@ -265,7 +269,8 @@ static void open_popup_message(screen_t *screen) {
     pw->w_time_label.Hide();
     pw->w_time_value.Hide();
 
-    pw->w_message.SetText(msg_stack.msg_data[0]);
+    // this MakeRAM is safe - msg stack and its items are allocated in RAM for the lifetime of pw
+    pw->w_message.SetText(string_view_utf8::MakeRAM((const uint8_t *)msg_stack.msg_data[0]));
 
     pw->w_message.Show();
     pw->message_timer = HAL_GetTick();
@@ -279,7 +284,7 @@ static void close_popup_message(screen_t *screen) {
     pw->w_time_label.Show();
     pw->w_time_value.Show();
 
-    pw->w_message.SetText("");
+    pw->w_message.SetText(string_view_utf8::MakeNULLSTR());
 
     pw->w_message.Hide();
     pw->message_flag = false;
@@ -324,7 +329,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
     if ((pw->state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
-        if (gui_msgbox("Bed leveling failed. Try again?", MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
+        if (gui_msgbox(_("Bed leveling failed. Try again?"), MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
             screen_printing_reprint(screen);
         } else {
             screen_close();
@@ -339,12 +344,13 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
     if (marlin_vars()->time_to_end != pw->last_time_to_end) {
         time_t sec = sntp_get_system_time();
         if (sec != 0) {
-            strlcpy(pw->label_etime.data(), _("Print will end"), 15);
-            pw->w_etime_label.SetText(pw->label_etime.data());
+            // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
+            // theoretically it can be removed completely in case the string is constant for the whole run of the screen
+            pw->w_etime_label.SetText(pw->label_etime = _("Print will end"));
             update_end_timestamp(screen, sec, marlin_vars()->print_speed);
         } else {
-            strlcpy(pw->label_etime.data(), _("Remaining Time"), 15);
-            pw->w_etime_label.SetText(pw->label_etime.data());
+            // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
+            pw->w_etime_label.SetText(pw->label_etime = _("Remaining Time"));
             update_remaining_time(screen, marlin_vars()->time_to_end, marlin_vars()->print_speed);
         }
         pw->last_time_to_end = marlin_vars()->time_to_end;
@@ -467,12 +473,14 @@ static void update_remaining_time(screen_t *screen, time_t rawtime, uint16_t pri
         } else {
             snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
         }
+    } else {
         if (print_speed != 100)
             strlcat(pw->text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
-    } else
-        strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
-
-    pw->w_etime_value.SetText(pw->text_etime.data());
+        else
+            strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
+    }
+    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
+    pw->w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 }
 
 static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t print_speed) {
@@ -503,8 +511,8 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t prin
 
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
-        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%MM", &print_end);
-    } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
+        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
+    } else if (tommorow.tm_mday == print_end.tm_mday &&                                         // if print end is tommorow
         tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
         strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
     } else {
@@ -519,8 +527,8 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t prin
             pw->text_etime[length - 1] = 0;
         }
     }
-
-    pw->w_etime_value.SetText(pw->text_etime.data());
+    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
+    pw->w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 }
 static void update_print_duration(screen_t *screen, time_t rawtime) {
     pw->w_time_value.color_text = COLOR_VALUE_VALID;
@@ -534,18 +542,18 @@ static void update_print_duration(screen_t *screen, time_t rawtime) {
     } else {
         snprintf(pw->text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
     }
-    pw->w_time_value.SetText(pw->text_time_dur.data());
+    // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
+    pw->w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)pw->text_time_dur.data()));
 }
 
 static void screen_printing_reprint(screen_t *screen) {
     print_begin(marlin_vars()->media_SFN_path);
-    pw->w_etime_label.SetText(PSTR("Remaining Time")); // !!! "screen_printing_init()" is not invoked !!!
-
-    pw->w_labels[static_cast<size_t>(Btn::Stop)].SetText(printing_labels[static_cast<size_t>(item_id_t::stop)]);
+    pw->w_etime_label.SetText(_("Remaining Time"));
+    pw->w_labels[static_cast<size_t>(Btn::Stop)].SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
     pw->w_buttons[static_cast<size_t>(Btn::Stop)].SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
-    p_window_header_set_text(&(pw->header), "PRINTING");
+    p_window_header_set_text(&(pw->header), _("PRINTING"));
 #endif
 }
 
@@ -571,9 +579,7 @@ static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, win
     size_t index = static_cast<size_t>(id_to_set);
     if (p_button->GetIdRes() != printing_icons[index])
         p_button->SetIdRes(printing_icons[index]);
-    //compare pointers to text, compare texts would take too long
-    if (lbl->GetText() != printing_labels[index])
-        lbl->SetText(printing_labels[index]);
+    lbl->SetText(_(printing_labels[index]));
 }
 
 static void enable_button(window_icon_t *p_button) {

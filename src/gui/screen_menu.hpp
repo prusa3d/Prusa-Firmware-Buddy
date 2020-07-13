@@ -26,13 +26,15 @@ constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
 //parent to not repeat code in templates
 class IScreenMenu : public window_menu_t {
 protected:
-    constexpr static const char *no_label = "MISSING";
+    constexpr static const char *no_labelS = "MISSING";
+    static string_view_utf8 no_label;
+    window_frame_t root;
     window_header_t header;
     window_text_t help;
     status_footer_t footer;
 
 public:
-    IScreenMenu(const char *label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
+    IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
     void Done();
     //virtual void Draw() override {}
     virtual int Event(window_t *sender, uint8_t event, void *param) override;
@@ -56,7 +58,7 @@ protected:
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(const char *label);
+    ScreenMenu(string_view_utf8 label);
 
     //compiletime access by index
     template <std::size_t I>
@@ -70,14 +72,14 @@ public:
     }
 
     //C code binding
-    static void Create(screen_t *screen, const char *label = no_label) {
+    static void Create(screen_t *screen, string_view_utf8 label = no_label) {
         auto *ths = reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_CNF, T...> *>(screen->pdata);
         ::new (ths) ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>(label);
     }
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
-ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(const char *label)
+ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label)
     : IScreenMenu(label, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
     pContainer = &container;
     GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again

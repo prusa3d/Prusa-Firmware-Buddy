@@ -31,9 +31,9 @@ const uint16_t serial_printing_icons[static_cast<size_t>(item_id_t::count)] = {
 };
 
 const char *serial_printing_labels[static_cast<size_t>(item_id_t::count)] = {
-    "Tune",
-    "Pause",
-    "Disconnect"
+    N_("Tune"),
+    N_("Pause"),
+    N_("Disconnect")
 };
 
 struct screen_printing_serial_data_t : public window_frame_t {
@@ -68,13 +68,15 @@ screen_t screen_printing_serial = {
 };
 screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
 
-static void set_icon_and_label(item_id_t item_id, window_icon_t *p_button, window_text_t *lbl) {
-    size_t id_to_set = static_cast<size_t>(item_id);
-    if (p_button->GetIdRes() != serial_printing_icons[id_to_set])
-        p_button->SetIdRes(serial_printing_icons[id_to_set]);
-    //compare pointers to text, compare texts would take too long
-    if (lbl->GetText() != serial_printing_labels[id_to_set])
-        lbl->SetText(serial_printing_labels[id_to_set]);
+static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
+    // This check may also be skipped and set the icon every time
+    // - set_icon_and_label is called only from screen_printing_serial_init
+    // I don't see a reason why we should compare to some previous state
+    size_t index_id = static_cast<size_t>(id_to_set);
+    if (p_button->GetIdRes() != serial_printing_icons[index_id])
+        p_button->SetIdRes(serial_printing_icons[index_id]);
+    // disregard comparing strings - just set the label every time
+    lbl->SetText(_(serial_printing_labels[index_id]));
 }
 
 void screen_printing_serial_init(screen_t *screen) {
@@ -84,7 +86,8 @@ void screen_printing_serial_init(screen_t *screen) {
         rect_ui16(0, 0, 0, 0), pw);
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pw->header));
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
-    p_window_header_set_text(&(pw->header), "SERIAL PRT.");
+    static const char sp[] = "SERIAL PRT.";
+    p_window_header_set_text(&(pw->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)sp));
 
     //octo icon
     point_ui16_t pt_ico = icon_meas(resource_ptr(IDR_PNG_serial_printing));

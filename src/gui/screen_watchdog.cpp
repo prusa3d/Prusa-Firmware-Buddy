@@ -25,12 +25,14 @@ void screen_watchdog_init(screen_watchdog_t *screen) {
 
         window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 70, 220, 24), &(pd->text0));
         pd->text0.font = resource_font(IDR_FNT_BIG);
-        pd->text0.SetText("WATCHDOG RESET");
+        static const char wdgr[] = "WATCHDOG RESET";
+        pd->text0.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)wdgr));
         pd->text0.SetAlignment(ALIGN_CENTER);
 
         window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 110, 240, 24), &(pd->text1));
         pd->text1.font = resource_font(IDR_FNT_NORMAL);
-        pd->text1.SetText("press to continue...");
+        static const char ptc[] = "press to continue...";
+        pd->text1.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ptc));
         pd->text1.SetAlignment(ALIGN_CENTER);
         pd->text1.Enable();
         pd->text1.SetTag(1);
