@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 //alignment constants
 #define ALIGN_LEFT          0x00
@@ -177,16 +178,16 @@ static inline padding_ui8_t padding_ui8(uint8_t l, uint8_t t, uint8_t r, uint8_t
     return padding;
 }
 
-static inline int point_in_rect_ui16(point_ui16_t pt, rect_ui16_t rc) {
-    return ((pt.x >= rc.x) && (pt.x < (rc.x + rc.w)) && (pt.y >= rc.y) && (pt.y < (rc.y + rc.h))) ? 1 : 0;
+static inline bool point_in_rect_ui16(const point_ui16_t pt, const rect_ui16_t rc) {
+    return ((pt.x >= rc.x) && (pt.x < (rc.x + rc.w)) && (pt.y >= rc.y) && (pt.y < (rc.y + rc.h))) ? true : false;
 }
 
-static inline int rect_in_rect_ui16(rect_ui16_t rc, rect_ui16_t rc1) {
-    return ((rc.x >= rc1.x) && ((rc.x + rc.w) <= (rc1.x + rc1.w)) && (rc.y >= rc1.y) && ((rc.y + rc.h) <= (rc1.y + rc1.h))) ? 1 : 0;
+static inline bool rect_in_rect_ui16(const rect_ui16_t rc_in, const rect_ui16_t rc_out) {
+    return ((rc_in.x >= rc_out.x) && ((rc_in.x + rc_in.w) <= (rc_out.x + rc_out.w)) && (rc_in.y >= rc_out.y) && ((rc_in.y + rc_in.h) <= (rc_out.y + rc_out.h))) ? true : false;
 }
 
-static inline int rect_empty_ui16(rect_ui16_t rc) {
-    return ((rc.w == 0) || (rc.h == 0)) ? 1 : 0;
+static inline bool rect_empty_ui16(const rect_ui16_t rc) {
+    return ((rc.w == 0) || (rc.h == 0)) ? true : false;
 }
 
 #ifdef __cplusplus
@@ -194,30 +195,18 @@ extern "C" {
 #endif //__cplusplus
 
 extern rect_ui16_t rect_intersect_ui16(rect_ui16_t rc1, rect_ui16_t rc2);
-
 extern rect_ui16_t rect_ui16_add_padding_ui8(rect_ui16_t rc, padding_ui8_t pad);
-
 extern rect_ui16_t rect_ui16_sub_padding_ui8(rect_ui16_t rc, padding_ui8_t pad);
-
 extern rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align);
-
 extern point_ui16_t font_meas_text(const font_t *pf, const char *str);
-
 extern int font_line_chars(const font_t *pf, const char *str, uint16_t line_width);
-
 extern uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, const font_t *pf);
-
 extern rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, const font_t *font, padding_ui8_t padding, uint16_t flags);
-
 extern point_ui16_t icon_meas(const uint8_t *pi);
 extern size_ui16_t icon_size(const uint8_t *pi);
-
 extern const uint8_t *resource_ptr(uint16_t id);
-
 extern uint16_t resource_size(uint16_t id);
-
 extern FILE *resource_fopen(uint16_t id, const char *opentype);
-
 extern font_t *resource_font(uint16_t id);
 
 #ifdef __cplusplus

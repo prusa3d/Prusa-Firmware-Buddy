@@ -29,12 +29,9 @@ struct txtroll_t {
     uint8_t px_cd;
 };
 
-extern void render_text_align(rect_ui16_t rc, const char *text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags);
-
+extern void render_text_align(const rect_ui16_t &rc, const char *text, const font_t *font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags);
 extern void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
-
 extern void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll);
-
 extern void roll_init(rect_ui16_t rc, const char *text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);
-
 extern void render_roll_text_align(rect_ui16_t rc, const char *text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
+extern void fill_between_rectangles(const rect_ui16_t &r_out, const rect_ui16_t &r_in, const color_t &color);
