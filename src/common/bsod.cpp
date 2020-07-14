@@ -267,7 +267,8 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     window_qr_t win;
     window_qr_t *window = &win;
     win.text = qr_text;
-    win.rect = rect_ui16(120 - 140 / 2, 223 - 140 / 2, 140, 140); /// center = [120,223]
+    constexpr uint8_t qr_size_px = 140;
+    win.rect = rect_ui16(120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px); /// center = [120,223]
     win.bg_color = COLOR_WHITE;
 
     //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
