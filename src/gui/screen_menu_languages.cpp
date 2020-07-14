@@ -7,6 +7,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_print.hpp"
 #include "../lang/translator.hpp"
+#include "language_eeprom.hpp"
 
 class MI_LangBase : public WI_LABEL_t {
 public:
@@ -15,7 +16,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
-        Translations::Instance().ChangeLanguage(LangCode());
+        LangEEPROM::getInstance().setLanguage(LangCode());
     }
     virtual uint16_t LangCode() const = 0;
 };
