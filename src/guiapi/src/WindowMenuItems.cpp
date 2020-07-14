@@ -171,7 +171,7 @@ void WI_SELECT_t::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t 
     vrc.x -= vrc.w;
     rect.w -= vrc.w;
 
-    render_text_align(vrc, _(txt), *(window_menu.font),
+    render_text_align(vrc, _(txt), *window_menu.font,
         color_back, color_text, window_menu.padding, window_menu.alignment);
 }
 

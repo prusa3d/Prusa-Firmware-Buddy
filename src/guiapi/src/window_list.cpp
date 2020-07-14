@@ -121,9 +121,9 @@ void window_list_event(window_list_t *window, uint8_t event, void *param) {
 }
 
 void window_list_inc(window_list_t *window, int dif) {
-    int item_height = window->font->h + window->padding.top + window->padding.bottom;
-    int visible_count = window->rect.h / item_height;
-    int old = window->index;
+    const int item_height = window->font->h + window->padding.top + window->padding.bottom;
+    const int visible_count = window->rect.h / item_height;
+    int old_index = window->index;
     window->index += dif;
     if (window->index < 0) {
         window->index = 0;
@@ -141,8 +141,8 @@ void window_list_inc(window_list_t *window, int dif) {
         window->top_index = window->index - visible_count + 1;
     }
 
-    if (window->index != old) {
-        // optimization do not redraw when no change - still on end
+    if (window->index != old_index) {
+        // optimization - do not redraw if no change (e.g. at the end of the list)
         window->Invalidate();
     }
 }
