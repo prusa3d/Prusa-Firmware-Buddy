@@ -57,7 +57,7 @@ private:
     int repeat;         ///< how many times is sound played
     float frequency;    ///< frequency of sound signal (0-1000)
     float volume;       ///< volume of sound signal (0-1)
-    float varVolume;		///< variable volume set from user (0-100)
+    float varVolume;    ///< variable volume set from user (0-100)
     uint32_t _delay;    ///< live variable used for delay measure
     uint32_t delay;     ///< added variable for delay betwen beeps
 

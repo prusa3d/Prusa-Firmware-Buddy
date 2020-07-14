@@ -59,7 +59,7 @@ void Sound::init() {
     if (eSoundMode == eSOUND_MODE_NULL) {
         setMode(eSOUND_MODE_DEFAULT);
     }
-		varVolume = eeprom_get_var(EEVAR_SOUND_VOLUME).ui8 / 100.F;
+    varVolume = eeprom_get_var(EEVAR_SOUND_VOLUME).ui8 / 100.F;
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;
 }
@@ -150,7 +150,7 @@ void Sound::_sound(int rep, float frq, uint32_t dur, float vol) {
     repeat = rep;
     frequency = frq;
     duration = dur;
-		volume = (vol * varVolume) * 0.3F;
+    volume = (vol * varVolume) * 0.3F;
 
     /// end previous beep
     hwio_beeper_set_pwm(0, 0);

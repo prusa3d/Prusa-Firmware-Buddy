@@ -54,7 +54,7 @@
 #endif                              // (EEPROM_FEATURES & EEPROM_FEATURE_LAN)
 
 // sound variable
-#define EEVAR_SOUND_MODE 0x1a // uint8_t
+#define EEVAR_SOUND_MODE   0x1a // uint8_t
 #define EEVAR_SOUND_VOLUME 0x1b // uint8_t
 
 #define EEVAR__PADDING 0x1c // 1..4 chars, to ensure (DATASIZE % 4 == 0)
