@@ -51,27 +51,28 @@ typedef struct tskTaskControlBlock {
     xMPU_SETTINGS xMPUSettings;         /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
     #endif
 
-    ListItem_t xStateListItem;                                                                                                     /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
-    ListItem_t xEventListItem;                                                                                                     /*< Used to reference a task from an event list. */
-    UBaseType_t uxPriority;                                                                                                        /*< The priority of the task.  0 is the lowest priority. */
-    StackType_t *pxStack;                                                                                                          /*< Points to the start of the stack. */
-    char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */ /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+    ListItem_t xStateListItem;                /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
+    ListItem_t xEventListItem;                /*< Used to reference a task from an event list. */
+    UBaseType_t uxPriority;                   /*< The priority of the task.  0 is the lowest priority. */
+    StackType_t *pxStack;                     /*< Points to the start of the stack. */
+    char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */
+    /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
     #if (portSTACK_GROWTH > 0)
-    StackType_t *pxEndOfStack;                                                                                                     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
+    StackType_t *pxEndOfStack;     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
     #endif
 
     #if (portCRITICAL_NESTING_IN_TCB == 1)
-    UBaseType_t uxCriticalNesting;                                                                                                 /*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
+    UBaseType_t uxCriticalNesting; /*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
     #endif
 
     #if (configUSE_TRACE_FACILITY == 1)
-    UBaseType_t uxTCBNumber;                                                                                                       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
-    UBaseType_t uxTaskNumber;                                                                                                      /*< Stores a number specifically for use by third party trace code. */
+    UBaseType_t uxTCBNumber;       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
+    UBaseType_t uxTaskNumber;      /*< Stores a number specifically for use by third party trace code. */
     #endif
 
     #if (configUSE_MUTEXES == 1)
-    UBaseType_t uxBasePriority;                                                                                                    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
+    UBaseType_t uxBasePriority;    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
     UBaseType_t uxMutexesHeld;
     #endif
 
