@@ -13,7 +13,7 @@ public:
     void setLanguage(uint16_t lang);
     void saveLanguage();
     uint16_t getLanguage();
-    const char* getLanguageChar();
+    const char *getLanguageChar();
 
 private:
     LangEEPROM();

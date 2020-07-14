@@ -8,7 +8,8 @@
  * a default value.
  * If it's set, then Translator is called to start translating.
  */
-LangEEPROM::LangEEPROM() : _language(0) {
+LangEEPROM::LangEEPROM()
+    : _language(0) {
     uint16_t _language = static_cast<uint16_t>(eeprom_get_var(EEVAR_LANGUAGE).ui16);
     if (_language == static_cast<uint16_t>(0xffff)) {
         setLanguage(Translations::MakeLangCode("cs"));
@@ -40,6 +41,6 @@ uint16_t LangEEPROM::getLanguage() {
 }
 
 /// return set language code in char[2]
-const char * LangEEPROM::getLanguageChar() {
-    return reinterpret_cast<const char*>(_language);
+const char *LangEEPROM::getLanguageChar() {
+    return reinterpret_cast<const char *>(_language);
 }
