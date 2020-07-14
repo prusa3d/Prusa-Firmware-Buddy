@@ -55,23 +55,21 @@ void window_numb_t::SetFormat(const char *frmt) {
     Invalidate();
 }
 
-//todo use this later
-//virtual methods does not work yet - stupid memcpy
-/*
 void window_numb_t::SetValue(float val) {
     setValue(val);
     Invalidate();
 }
-*/
 
-//todo use this virtual methods does not work yet - stupid memcpy
-/*
 void window_numb_t::setValue(float val) {
     value = val;
 }
-*/
 
-void window_numb_t::SetValue(float val) {
-    value = val;
-    Invalidate();
+window_numb_t::window_numb_t(window_t *parent, window_t *prev, float value)
+    : window_t(parent, prev)
+    , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
+    , value(value)
+    , format("%.0f")
+    , padding(gui_defaults.padding)
+    , alignment(gui_defaults.alignment) {
 }

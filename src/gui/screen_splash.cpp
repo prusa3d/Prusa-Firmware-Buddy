@@ -23,13 +23,11 @@ void screen_splash_data_t::timer(uint32_t mseconds) {
 screen_splash_data_t::screen_splash_data_t()
     : logo_prusa_mini(this, nullptr)
     , text_progress(this, &logo_prusa_mini)
-    //    window_progress_t progress;
+    , progress(this, &text_progress)
     , text_version(this, &progress)
     , icon_logo_buddy(this, &text_version)
     , icon_logo_marlin(this, &icon_logo_buddy)
-    , icon_debug(this, &icon_logo_marlin)
-
-{
+    , icon_debug(this, &icon_logo_marlin) {
     window_create_ptr(WINDOW_CLS_ICON, id, rect_ui16(0, 84, 240, 62),
         &(logo_prusa_mini));
     logo_prusa_mini.SetIdRes(IDR_PNG_splash_logo_prusa_prn);

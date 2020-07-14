@@ -23,9 +23,10 @@ struct window_numb_t : public window_t {
     void SetValue(float val);
     float GetValue() const { return value; }
 
+    window_numb_t(window_t *parent, window_t *prev, float value = 0);
+
 protected:
-    //todo use this virtual methods does not work yet - stupid memcpy
-    //virtual void setValue(float val);
+    virtual void setValue(float val);
 };
 
 extern const window_class_numb_t window_class_numb;

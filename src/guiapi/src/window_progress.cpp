@@ -70,14 +70,16 @@ const window_class_progress_t window_class_progress = {
         0,
     },
 };
-//todo use this virtual methods does not work yet - stupid memcpy
-/*
+
 void window_progress_t::setValue(float val) {
     value = std::max(min, std::min(val, max));
 }
-*/
-//todo erase me, virtual methods does not work yet - stupid memcpy
-void window_progress_t::SetValue(float val) {
-    value = std::max(min, std::min(val, max));
-    Invalidate();
+
+window_progress_t::window_progress_t(window_t *parent, window_t *prev)
+    : window_numb_t(parent, prev)
+    , color_progress(COLOR_LIME)
+    , height_progress(8)
+    , min(0)
+    , max(100) {
+    format = "%.0f%%";
 }
