@@ -15,7 +15,7 @@ void window_roll_text_init(window_roll_text_t *window) {
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
-    window->text = 0;
+    window->text = string_view_utf8::MakeNULLSTR();
     window->padding = gui_defaults.padding;
     window->alignment = gui_defaults.alignment;
     window->roll.count = window->roll.px_cd = window->roll.progress = 0;

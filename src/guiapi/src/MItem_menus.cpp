@@ -138,3 +138,13 @@ MI_MESSAGES::MI_MESSAGES()
 void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
     screen_open(get_scr_messages()->id);
 }
+
+/*****************************************************************************/
+//MI_LANGUAGE
+MI_LANGUAGE::MI_LANGUAGE()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
+    screen_open(get_scr_menu_languages()->id);
+}

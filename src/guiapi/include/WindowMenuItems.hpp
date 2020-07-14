@@ -220,7 +220,7 @@ inline char *WI_SPIN_t<float>::sn_prt() const {
 /*****************************************************************************/
 //advanced types
 class MI_RETURN : public WI_LABEL_t {
-    static constexpr const char *const label = "Return";
+    static constexpr const char *const label = N_("Return");
 
 public:
     MI_RETURN();

@@ -127,10 +127,15 @@ void window_file_list_draw(window_file_list_t *window) {
 
         // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
         // and will get a nice house-like icon
-        static const char home[] = N_("Home");                                                            // @@TODO reuse from elsewhere ...
+        static const char home[] = N_("Home"); // @@TODO reuse from elsewhere ...
+        string_view_utf8 itemText;
+
         if (i == 0 && strcmp(item.first, "..") == 0 && window_file_list_path_is_root(window->sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
             id_icon = IDR_PNG_filescreen_icon_home;
-            item.first = _(home);
+            itemText = string_view_utf8::MakeCPUFLASH((const uint8_t *)home);
+        } else {
+            // this MakeRAM is safe - render_text (below) finishes its work and the local string item.first is then no longer needed
+            itemText = string_view_utf8::MakeRAM((const uint8_t *)item.first);
         }
 
         color_t color_text = window->color_text;
@@ -163,11 +168,11 @@ void window_file_list_draw(window_file_list_t *window) {
                     // stays at one place (top or bottom), but the whole window list moves up/down.
                     // Calling roll_init must be done here because of the rect.
                     // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
-                    roll_init(rc, item.first, window->font, padding, window->alignment, &window->roll);
+                    roll_init(rc, itemText, window->font, padding, window->alignment, &window->roll);
                 }
 
                 render_roll_text_align(rc,
-                    item.first,
+                    itemText,
                     window->font,
                     padding,
                     window->alignment,
@@ -176,7 +181,9 @@ void window_file_list_draw(window_file_list_t *window) {
                     &window->roll);
 
             } else {
-                render_text_align(rc, item.first, *(window->font),
+                render_text_align(rc,
+                    itemText,
+                    window->font,
                     color_back, color_text,
                     padding, window->alignment);
             }

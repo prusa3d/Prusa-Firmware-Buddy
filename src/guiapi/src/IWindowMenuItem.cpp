@@ -20,7 +20,7 @@ const char *IWindowMenuItem::GetLabel() const {
     return label.data();
 }
 
-const char *IWindowMenuItem::GetLocalizedLabel() const {
+string_view_utf8 IWindowMenuItem::GetLocalizedLabel() const {
     return _(GetLabel());
 }
 

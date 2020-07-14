@@ -52,7 +52,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "ff_gen_drv.h"
 #include "usbh_diskio.h"
-#include "lang/i18n.h"
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 
@@ -145,7 +144,7 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
         case SCSI_ASC_LOGICAL_UNIT_NOT_READY:
         case SCSI_ASC_MEDIUM_NOT_PRESENT:
         case SCSI_ASC_NOT_READY_TO_READY_CHANGE:
-            USBH_ErrLog(_("USB Disk is not ready!"));
+            USBH_ErrLog("USB Disk is not ready!"); // not localized, only writes to debug log
             res = RES_NOTRDY;
             break;
 
@@ -182,14 +181,14 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
 
         switch (info.sense.asc) {
         case SCSI_ASC_WRITE_PROTECTED:
-            USBH_ErrLog(_("USB Disk is Write protected!"));
+            USBH_ErrLog("USB Disk is Write protected!"); // not localized, only writes to debug log
             res = RES_WRPRT;
             break;
 
         case SCSI_ASC_LOGICAL_UNIT_NOT_READY:
         case SCSI_ASC_MEDIUM_NOT_PRESENT:
         case SCSI_ASC_NOT_READY_TO_READY_CHANGE:
-            USBH_ErrLog(_("USB Disk is not ready!"));
+            USBH_ErrLog("USB Disk is not ready!"); // not localized, only writes to debug log
             res = RES_NOTRDY;
             break;
 

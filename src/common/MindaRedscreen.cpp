@@ -98,7 +98,9 @@ void mbl_error(uint16_t moves, uint16_t points) {
     stop_common();
     display::Clear(COLOR_RED_ALERT);
 
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), "MBL ERROR", gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    static const char mblerr[] = "MBL ERROR";
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)mblerr),
+        gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     //bed
