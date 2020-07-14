@@ -89,7 +89,7 @@ void window_list_draw(window_list_t *window) {
 
             // render
             // this MakeRAM is safe - render_text finishes its work and the local string label[] is then no longer needed
-            render_text_align(rc, string_view_utf8::MakeRAM((const uint8_t *)label), window->font,
+            render_text_align(rc, string_view_utf8::MakeRAM((const uint8_t *)label), *window->font,
                 color_back, color_text,
                 padding, window->alignment);
         }
@@ -142,7 +142,7 @@ void window_list_inc(window_list_t *window, int dif) {
     }
 
     if (window->index != old) {
-        // optimalization do not redraw when no change - still on end
+        // optimization do not redraw when no change - still on end
         window->Invalidate();
     }
 }

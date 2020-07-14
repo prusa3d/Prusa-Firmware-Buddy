@@ -183,7 +183,7 @@ void window_file_list_draw(window_file_list_t *window) {
             } else {
                 render_text_align(rc,
                     itemText,
-                    window->font,
+                    *window->font,
                     color_back, color_text,
                     padding, window->alignment);
             }
@@ -235,7 +235,7 @@ void window_file_list_inc(window_file_list_t *window, int dif) {
     } else {
         // this 'if' solves a situation with less files than slots on the screen
         if (window->index < int(window->ldv->TotalFilesCount() - 1)) {
-            window->index += 1; // @@TODO dif > 1 pokud bude potreba;
+            window->index += 1; // @@TODO dif > 1 if needed
             repaint = true;
         } else {
             Sound_Play(eSOUND_TYPE_BlindAlert);

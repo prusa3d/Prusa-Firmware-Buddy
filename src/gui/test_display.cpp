@@ -2,11 +2,13 @@
 
 #include <inttypes.h>
 #include <stdlib.h>
+#include <algorithm>
+
 #include "cmsis_os.h"
 #include "dbg.h"
 #include "gui.hpp"
 #include "resource.h"
-#include <algorithm>
+#include "display_helper.h"
 
 typedef void(test_display_t)(uint16_t cnt);
 
@@ -210,7 +212,7 @@ void test_display_rgbcolors(uint16_t cnt) {
             rect_ui16_t rc_item = rect_ui16(0, item_height * i, 240, item_height);
             rect_ui16_t rc_text = rect_ui16(10, item_height * i + 1, strlen(names[i]) * font->w, font->h);
             //display::FillRect(rc_item, colors[i]);
-            display_fill_rect_sub_rect(rc_item, rc_text, colors[i]);
+            fill_between_rectangles(rc_item, rc_text, colors[i]);
             display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
         }
 }

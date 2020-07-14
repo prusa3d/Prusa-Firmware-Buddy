@@ -9,19 +9,19 @@
     #error "HAS_GUI not defined"
 #elif HAS_GUI
 
+    #include <stdio.h>
+    #include <stdarg.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <inttypes.h>
+
     #include "stm32f4xx_hal.h"
     #include "config.h"
     #include "gui.hpp"
     #include "term.h"
     #include "st7789v.h"
     #include "window_term.hpp"
-    #include <stdio.h>
-    #include <stdarg.h>
-    #include <stdlib.h>
-    #include <string.h>
     #include "safe_state.h"
-    #include <inttypes.h>
-    #include <inttypes.h>
     #include "jogwheel.h"
     #include "gpio.h"
     #include "sys.h"
@@ -171,7 +171,7 @@ void general_error(const char *error, const char *module) {
     render_term(rect_ui16(PADDING, 100, 220, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), gui_defaults.font,
+    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), *gui_defaults.font,
         COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
 
     jogwheel_init();

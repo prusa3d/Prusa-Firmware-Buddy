@@ -84,7 +84,7 @@ void progress_draw(rect_ui16_t win_rect, const font_t *font, color_t color_back,
     char text[6];
     snprintf(text, sizeof(text), "%d%%", progress);
     // this MakeRAM is safe - text is not necessary after render_text_align finishes its work
-    render_text_align(rc_text, string_view_utf8::MakeRAM((const uint8_t *)text), font, color_back, color_text, padding, ALIGN_CENTER);
+    render_text_align(rc_text, string_view_utf8::MakeRAM((const uint8_t *)text), *font, color_back, color_text, padding, ALIGN_CENTER);
 }
 
 //todo this should be moved elsewhere
