@@ -226,5 +226,6 @@ int gui_dlg_list(string_view_utf8 caption, window_list_item_t *filament_items,
 }
 
 window_dlg_preheat_t::window_dlg_preheat_t()
-    : text(this, nullptr) {
+    : text(this, nullptr)
+    , list(this, &text) {
 }

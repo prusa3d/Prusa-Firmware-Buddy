@@ -27,6 +27,8 @@ struct window_list_t : window_t {
     int GetItemCount() const { return count; }
     int GetItemIndex() const { return index; }
     int GetTopIndex() const { return top_index; }
+
+    window_list_t(window_t *parent, window_t *prev);
 };
 
 extern const window_class_list_t window_class_list;
