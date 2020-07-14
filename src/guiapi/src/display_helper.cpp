@@ -1,12 +1,13 @@
 //display_helper.c
 
+#include <algorithm>
+
 #include "display_helper.h"
 #include "display.h"
 #include "gui_timer.h"
 #include "window.hpp"
 #include "gui.hpp"
 #include "../lang/string_view_utf8.hpp"
-#include <algorithm>
 #include "../lang/unaccent.hpp"
 
 std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
@@ -21,13 +22,13 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 /// \param clr_fg font/foreground color
 /// \returns true if whole text was written
 /// Extracted from st7789v implementation, where it shouldn't be @@TODO cleanup
-bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+bool render_text(const rect_ui16_t &rc, string_view_utf8 str, const font_t &pf, color_t clr_bg, color_t clr_fg) {
     int x = rc.x;
     int y = rc.y;
     const uint16_t rc_end_x = rc.x + rc.w;
     const uint16_t rc_end_y = rc.y + rc.h;
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
+    const uint16_t w = pf.w; //char width
+    const uint16_t h = pf.h; //char height
     // prepare for stream processing
     unichar c = 0;
     while ((c = str.getUtf8Char()) != 0) {
@@ -39,12 +40,12 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
             continue;
         }
         if (c < 128) {
-            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+            display::DrawChar(point_ui16(x, y), c, &pf, clr_bg, clr_fg);
             x += w;
         } else {
             auto convertedChar = ConvertUnicharToFontCharIndex(c);
             for (size_t i = 0; i < convertedChar.second; ++i) {
-                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+                display::DrawChar(point_ui16(x, y), convertedChar.first[i], &pf, clr_bg, clr_fg);
                 x += w; // this will screw up character counting for DE language @@TODO
             }
         }
@@ -92,13 +93,12 @@ int font_line_chars(const font_t *pf, unichar *str, uint16_t line_width) {
         w += char_w;
     }
 
-    while ((n > 0) && ((str[n] != ' ') && (str[n] != '\n'))) {
+    /// find previous non empty (space, new line) char
+    while ((n > 0) && (str[n] != ' ') && (str[n] != '\n')) {
         n--;
     }
 
-    if (n == 0)
-        n = line_width / char_w;
-    return n;
+    return (n != 0) ? n : line_width / char_w;
 }
 
 void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t &font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags) {
@@ -156,7 +156,7 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t &font
             fill_between_rectangles(rc, rect_in, clr_bg);
             text.rewind();
             // 2nd pass reading the string_view_utf8 - draw the text
-            render_text(rc_txt, text, &font, clr_bg, clr_fg);
+            render_text(rc_txt, text, font, clr_bg, clr_fg);
         } else
             display::FillRect(rc, clr_bg);
     }
@@ -267,7 +267,7 @@ void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t 
 
     if (set_txt_rc.w && set_txt_rc.h) {
         fill_between_rectangles(rc, set_txt_rc, clr_back);
-        render_text(set_txt_rc, /*str*/ text, font, clr_back, clr_text);
+        render_text(set_txt_rc, /*str*/ text, *font, clr_back, clr_text);
     } else {
         display::FillRect(rc, clr_back);
     }
