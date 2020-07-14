@@ -67,9 +67,9 @@ struct window_msgbox_t : public window_t {
     font_t *font_title;
     padding_ui8_t padding;
     uint8_t alignment;
-    const char *title;
+    string_view_utf8 title;
     uint16_t id_icon;
-    const char *text;
+    string_view_utf8 text;
     const char *buttons[3];
     uint16_t flags;
     int res;

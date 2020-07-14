@@ -201,14 +201,6 @@ extern rect_ui16_t rect_ui16_sub_padding_ui8(rect_ui16_t rc, padding_ui8_t pad);
 
 extern rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align);
 
-extern point_ui16_t font_meas_text(const font_t *pf, const char *str);
-
-extern int font_line_chars(const font_t *pf, const char *str, uint16_t line_width);
-
-extern uint16_t text_rolls_meas(rect_ui16_t rc, const char *text, const font_t *pf);
-
-extern rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, const char *text, const font_t *font, padding_ui8_t padding, uint16_t flags);
-
 extern point_ui16_t icon_meas(const uint8_t *pi);
 extern size_ui16_t icon_size(const uint8_t *pi);
 

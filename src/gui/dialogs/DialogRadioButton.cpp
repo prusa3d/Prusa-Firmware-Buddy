@@ -2,6 +2,8 @@
 #include <algorithm> //find
 #include "button_draw.h"
 #include "sound.hpp"
+#include "../../lang/i18n.h"
+
 /*****************************************************************************/
 //static variables and methods
 static const PhaseResponses no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor
@@ -88,7 +90,7 @@ void RadioButton::draw_0_btn() const {
 }
 
 void RadioButton::draw_1_btn() const {
-    button_draw(win.rect, texts[0], win.pfont, IsEnabled());
+    button_draw(win.rect, _(texts[0]), win.pfont, IsEnabled());
 }
 
 void RadioButton::draw_n_btns(size_t btn_count) const {
@@ -97,7 +99,7 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
     rc_btn.w = btn_width;
 
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(rc_btn, texts[i], win.pfont, selected_index == i && IsEnabled());
+        button_draw(rc_btn, _(texts[i]), win.pfont, selected_index == i && IsEnabled());
 
         if (i + 1 < btn_count) {
             //space between buttons

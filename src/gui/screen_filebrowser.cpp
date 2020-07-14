@@ -57,7 +57,8 @@ static void screen_filebrowser_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
     p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
-    p_window_header_set_text(&(pd->header), "SELECT FILE");
+    static const char sf[] = "SELECT FILE";
+    p_window_header_set_text(&(pd->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
 
     window_file_list_t *filelist = &(pd->w_filelist);
 
@@ -158,7 +159,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
 
         // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
         // However, the text is not visible on the screen yet...
-        pd->header.SetText(strrchr(filelist->sfn_path, '/'));
+        // pd->header.SetText(strrchr(filelist->sfn_path, '/'));
 
     } else { // print the file
         if (vars->media_LFN && vars->media_SFN_path) {

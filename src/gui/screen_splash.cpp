@@ -48,7 +48,8 @@ void screen_splash_init(screen_t *screen) {
         &(_psd->text_progress));
     _psd->text_progress.font = resource_font(IDR_FNT_NORMAL);
     _psd->text_progress.SetAlignment(ALIGN_CENTER_BOTTOM);
-    _psd->text_progress.SetText("Loading ...");
+    static const char loading[] = N_("Loading ...");
+    _psd->text_progress.SetText(_(loading));
 
     window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(10, 200, 220, 15),
         &(_psd->progress));
@@ -66,7 +67,8 @@ void screen_splash_init(screen_t *screen) {
     _psd->text_version.SetAlignment(ALIGN_CENTER);
     snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
-    _psd->text_version.SetText(_psd->text_version_buffer);
+    // this MakeRAM is safe - text_version_buffer is globally allocated
+    _psd->text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)_psd->text_version_buffer));
 
     _psd->logo_invalid = 0;
 }
@@ -84,7 +86,8 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
     screen_splash_timer(screen, HAL_GetTick());
     if ((event == WINDOW_EVENT_LOOP) && _psd->logo_invalid) {
 #ifdef _DEBUG
-        display::DrawText(rect_ui16(180, 91, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        static const char dbg[] = "DEBUG";
+        display::DrawText(rect_ui16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
         _psd->logo_invalid = 0;
     }

@@ -138,7 +138,8 @@ void window_dlg_wait_draw(window_dlg_wait_t *window) {
             rc_pro.w = rc.w - 120;
             rc_pro.x = rc.x + 60;
             rc_pro.h = 30;
-            render_text_align(rc_pro, text, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
+            // this MakeRAM is safe - text is not necessary after render_text_align finishes its work
+            render_text_align(rc_pro, string_view_utf8::MakeRAM((const uint8_t *)text), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
         }
     }
 }
