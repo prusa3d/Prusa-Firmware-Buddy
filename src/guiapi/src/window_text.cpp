@@ -54,3 +54,12 @@ void window_text_t::SetAlignment(uint8_t alignm) {
     alignment = alignm;
     Invalidate();
 }
+
+window_text_t::window_text_t(window_t *parent, window_t *prev, rect_ui16_t rect, string_view_utf8 txt)
+    : window_t(parent, prev, rect)
+    , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
+    , text(txt)
+    , padding(gui_defaults.padding)
+    , alignment(gui_defaults.alignment) {
+}

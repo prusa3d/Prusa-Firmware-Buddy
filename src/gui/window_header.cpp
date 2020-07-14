@@ -25,15 +25,16 @@ static void update_ETH_icon(window_header_t *window) {
 
 void window_header_init(window_header_t *window) {
     window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->padding = gui_defaults.padding;
-    window->alignment = ALIGN_LEFT_CENTER;
+    window->label.SetBackColor(window->color_back);
+    window->label.SetTextColor(gui_defaults.color_text);
+    window->label.font = gui_defaults.font;
+    window->label.padding = gui_defaults.padding;
+    window->label.alignment = ALIGN_LEFT_CENTER;
     window->id_res = IDR_NULL;
     window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ON;
     window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_OFF;
     window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_OFF;
-    window->text = string_view_utf8::MakeNULLSTR();
+    window->SetText(string_view_utf8::MakeNULLSTR());
 
     if (marlin_vars()->media_inserted) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
@@ -98,10 +99,10 @@ void window_header_draw(window_header_t *window) {
     rc.x += 10 + window->rect.h;
     rc.w -= (icons_width + 10 + window->rect.h);
 
-    if (!window->text.isNULLSTR()) { // label
-        render_text_align(rc, window->text, window->font,
-            window->color_back, window->color_text,
-            window->padding, window->alignment);
+    if (!window->label.GetText().isNULLSTR()) { // label
+        render_text_align(rc, window->label.GetText(), window->label.font,
+            window->color_back, window->label.GetTextColor(),
+            window->label.padding, window->label.alignment);
     }
 }
 
@@ -136,7 +137,7 @@ header_states_t window_header_t::GetState(header_icons_t icon) const {
 }
 
 void window_header_t::SetText(string_view_utf8 txt) {
-    text = txt;
+    label.SetText(txt);
     Invalidate();
 }
 
@@ -191,3 +192,22 @@ const window_class_header_t window_class_header = {
         0,
     },
 };
+
+window_header_t::window_header_t(window_t *parent, window_t *prev)
+    : window_frame_t(parent, prev, gui_defaults.header_sz)
+    , label(this, nullptr) //todo calculate rect
+{
+    label.alignment = ALIGN_LEFT_CENTER;
+    id_res = IDR_NULL;
+    icons[HEADER_ICON_USB] = HEADER_ISTATE_ON;
+    icons[HEADER_ICON_LAN] = HEADER_ISTATE_OFF;
+    icons[HEADER_ICON_WIFI] = HEADER_ISTATE_OFF;
+    SetText(string_view_utf8::MakeNULLSTR());
+
+    if (marlin_vars()->media_inserted) {
+        icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
+    }
+#ifdef BUDDY_ENABLE_ETHERNET
+    update_ETH_icon(this);
+#endif //BUDDY_ENABLE_ETHERNET
+}

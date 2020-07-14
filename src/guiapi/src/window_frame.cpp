@@ -1,6 +1,6 @@
 // window_frame.cpp
 #include "window_frame.hpp"
-#include "gui.hpp"
+
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 
@@ -92,9 +92,8 @@ const window_class_frame_t window_class_frame = {
     },
 };
 
-window_frame_t::window_frame_t()
-    //: window_t(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, display::GetW(), display::GetH()))
-    : window_t(nullptr, nullptr, rect_ui16(0, 0, display::GetW(), display::GetH()))
+window_frame_t::window_frame_t(window_t *parent, window_t *prev, rect_ui16_t rect)
+    : window_t(parent, prev, rect)
     , first(nullptr) {
 
     flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;

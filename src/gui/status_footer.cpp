@@ -363,5 +363,10 @@ status_footer_t::status_footer_t()
     , wi_heatbed(this, &wi_nozzle)
     , wi_prnspeed(this, &wi_heatbed)
     , wi_z_axis(this, &wi_prnspeed)
-    , wi_filament(this, &wi_z_axis) {
+    , wi_filament(this, &wi_z_axis)
+    , wt_nozzle(this, &wi_filament)
+    , wt_heatbed(this, &wt_nozzle)
+    , wt_prnspeed(this, &wt_heatbed)
+    , wt_z_axis(this, &wt_prnspeed)
+    , wt_filament(this, &wt_z_axis) {
 }

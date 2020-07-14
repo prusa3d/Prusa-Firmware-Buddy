@@ -22,9 +22,9 @@ void screen_splash_data_t::timer(uint32_t mseconds) {
 
 screen_splash_data_t::screen_splash_data_t()
     : logo_prusa_mini(this, nullptr)
-    //    window_text_t text_progress;
+    , text_progress(this, &logo_prusa_mini)
     //    window_progress_t progress;
-    //    window_text_t text_version;
+    , text_version(this, &progress)
     , icon_logo_buddy(this, &text_version)
     , icon_logo_marlin(this, &icon_logo_buddy)
     , icon_debug(this, &icon_logo_marlin)

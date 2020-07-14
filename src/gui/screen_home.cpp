@@ -51,16 +51,21 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 void screen_home_disable_print_button(screen_t *screen, int disable);
 
 screen_home_data_t::screen_home_data_t()
-    //: window_header_t header;
-    : logo(this, nullptr)
+    : header(this, nullptr)
+    //status_footer_t footer;
+    , logo(this, &header)
     , w_buttons { { this, &logo },
         { this, &w_buttons[0] },
         { this, &w_buttons[1] },
         { this, &w_buttons[2] },
         { this, &w_buttons[3] },
         { this, &w_buttons[4] } }
-//window_text_t w_labels[6];
-//status_footer_t footer;
+    , w_labels { { this, &w_buttons[5] },
+        { this, &w_labels[0] },
+        { this, &w_labels[1] },
+        { this, &w_labels[2] },
+        { this, &w_labels[3] },
+        { this, &w_labels[4] } }
 
 {
     // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.

@@ -9,7 +9,11 @@ static const uint32_t HasHeaderEvents_FLAG = WINDOW_FLG_USER << 1;
 string_view_utf8 IScreenMenu::no_label = string_view_utf8::MakeCPUFLASH((const uint8_t *)no_labelS);
 
 IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
-    : window_menu_t(nullptr) { //pointer to container shall be provided by child
+    : window_menu_t(nullptr)
+    , header(this, nullptr)
+    , help(this, &header) {
+
+    //pointer to container shall be provided by child
 
     //todo bind those numeric constants to fonts and guidefaults
     padding = { 0, 6, 2, 6 }; //textrolling cannot handle left padding

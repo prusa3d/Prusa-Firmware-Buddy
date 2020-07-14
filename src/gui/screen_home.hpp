@@ -6,12 +6,11 @@
 
 struct screen_home_data_t : public window_frame_t {
     window_header_t header;
-    window_icon_t logo;
+    status_footer_t footer;
 
+    window_icon_t logo;
     window_icon_t w_buttons[6];
     window_text_t w_labels[6];
-
-    status_footer_t footer;
 
     uint8_t is_starting;
     uint32_t time;

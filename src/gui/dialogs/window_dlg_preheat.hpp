@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "window.hpp"
+#include "window_frame.hpp"
 #include "window_text.hpp"
 #include "window_list.hpp"
 #include "filament.h"
@@ -18,7 +18,7 @@ typedef void(dlg_on_click_cb)(window_dlg_preheat_t *);
 extern int16_t WINDOW_CLS_DLG_PREHEAT;
 
 //todo some items are most likely unused - remove them
-struct window_dlg_preheat_t : public window_t {
+struct window_dlg_preheat_t : public window_frame_t {
     color_t color_text;
     font_t *font;
     font_t *font_title;
@@ -30,6 +30,8 @@ struct window_dlg_preheat_t : public window_t {
     window_list_item_t *filament_items;
     dlg_on_click_cb *on_click;
     string_view_utf8 caption;
+
+    window_dlg_preheat_t();
 };
 
 struct window_class_dlg_preheat_t {
