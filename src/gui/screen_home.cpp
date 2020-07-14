@@ -52,8 +52,8 @@ void screen_home_disable_print_button(screen_t *screen, int disable);
 
 screen_home_data_t::screen_home_data_t()
     : header(this, nullptr)
-    //status_footer_t footer;
-    , logo(this, &header)
+    , footer(this, &header)
+    , logo(this, &footer)
     , w_buttons { { this, &logo },
         { this, &w_buttons[0] },
         { this, &w_buttons[1] },

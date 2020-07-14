@@ -11,7 +11,8 @@ string_view_utf8 IScreenMenu::no_label = string_view_utf8::MakeCPUFLASH((const u
 IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
     : window_menu_t(nullptr)
     , header(this, nullptr)
-    , help(this, &header) {
+    , help(this, &header)
+    , footer(this, &help) {
 
     //pointer to container shall be provided by child
 

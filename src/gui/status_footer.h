@@ -49,7 +49,7 @@ struct status_footer_t : public window_frame_t {
     heat_state_t heatbed_state;
     bool show_second_color;
 
-    status_footer_t();
+    status_footer_t(window_t *parent, window_t *prev);
 };
 
 #define REPAINT_Z_POS_PERIOD 256  /// time span between z position repaint [miliseconds]
