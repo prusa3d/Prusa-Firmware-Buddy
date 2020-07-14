@@ -174,7 +174,8 @@ void window_msgbox_draw(window_msgbox_t *window) {
         const int ico = ((window->flags & MSGBOX_MSK_ICO) >> MSGBOX_SHI_ICO);
         // get title from window member or set default (info, warning, error...)
         string_view_utf8 title = (!window->title.isNULLSTR()) ? window->title : _(window_msgbox_title_text[ico]);
-        const size_t title_n = title.computeNumUtf8CharsAndRewind(); // number of chars in title
+        const uint16_t title_compute = title.computeNumUtf8CharsAndRewind(); // number of chars in title
+        const size_t title_n = title_compute != uint16_t(-1) ? title_compute : 0;
         // title height in pixels; if not empty, use font height
         int title_h = (!title_n) ? 0 : window->font_title->h;
 
