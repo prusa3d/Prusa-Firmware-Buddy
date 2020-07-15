@@ -258,6 +258,11 @@ void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t 
     //@@TODO make rolling native ability of render text - solves also character clipping
     //    const char *str = text;
     //    str += roll->progress;
+    // for now - just move to the desired starting character
+    text.rewind();
+    for (size_t i = 0; i < roll->progress; ++i) {
+        text.getUtf8Char();
+    }
 
     rect_ui16_t set_txt_rc = roll->rect;
     if (roll->px_cd != 0) {
