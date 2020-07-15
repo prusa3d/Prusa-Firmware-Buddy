@@ -118,7 +118,7 @@ void window_progress_t::SetValue(float val) {
 }
 
 window_progress_t::window_progress_t(window_t *parent, window_t *prev, rect_ui16_t rect, uint16_t h_progr, color_t cl_progress, color_t cl_back)
-    : window_frame_t(parent, prev, rect)
+    : window_frame_t(&progr, parent, prev, rect)
     , progr(this, nullptr, { rect.x, rect.y, rect.w, h_progr }, cl_progress, cl_back)
     , numb(this, &progr, { rect.x + h_progr, rect.y, rect.w, rect.h - h_progr })
     , min(0)

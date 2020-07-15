@@ -51,7 +51,8 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 void screen_home_disable_print_button(screen_t *screen, int disable);
 
 screen_home_data_t::screen_home_data_t()
-    : header(this, nullptr)
+    : window_frame_t(&header)
+    , header(this, nullptr)
     , footer(this, &header)
     , logo(this, &footer)
     , w_buttons { { this, &logo },

@@ -359,7 +359,7 @@ void status_footer_repaint_heatbed(status_footer_t *footer) {
 }
 
 status_footer_t::status_footer_t(window_t *parent, window_t *prev)
-    : window_frame_t(parent, prev)
+    : window_frame_t(&wi_nozzle, parent, prev)
     , wi_nozzle(this, nullptr)
     , wi_heatbed(this, &wi_nozzle)
     , wi_prnspeed(this, &wi_heatbed)

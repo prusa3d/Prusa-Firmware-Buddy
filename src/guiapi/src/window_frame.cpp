@@ -92,9 +92,9 @@ const window_class_frame_t window_class_frame = {
     },
 };
 
-window_frame_t::window_frame_t(window_t *parent, window_t *prev, rect_ui16_t rect)
+window_frame_t::window_frame_t(window_t *first, window_t *parent, window_t *prev, rect_ui16_t rect)
     : window_t(parent, prev, rect)
-    , first(nullptr) {
+    , first(first) {
 
     flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;
     color_back = COLOR_BLACK;

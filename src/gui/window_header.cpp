@@ -194,7 +194,7 @@ const window_class_header_t window_class_header = {
 };
 
 window_header_t::window_header_t(window_t *parent, window_t *prev)
-    : window_frame_t(parent, prev, gui_defaults.header_sz)
+    : window_frame_t(&label, parent, prev, gui_defaults.header_sz)
     , label(this, nullptr) //todo calculate rect
 {
     label.alignment = ALIGN_LEFT_CENTER;

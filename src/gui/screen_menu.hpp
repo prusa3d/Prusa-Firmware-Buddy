@@ -28,7 +28,6 @@ class IScreenMenu : public window_menu_t {
 protected:
     constexpr static const char *no_labelS = "MISSING";
     static string_view_utf8 no_label;
-    window_frame_t root; //todo remove
     window_header_t header;
     window_text_t help;
     status_footer_t footer;
