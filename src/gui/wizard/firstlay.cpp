@@ -282,12 +282,15 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     uint16_t x = WIZARD_MARGIN_LEFT;
 #if DEBUG_TERM == 0
     point_ui16_t pt;
-    pt = font_meas_text(resource_font(IDR_FNT_NORMAL), _wizard_firstlay_text);
+    string_view_utf8 wft = string_view_utf8::MakeCPUFLASH((const uint8_t *)_wizard_firstlay_text);
+    uint16_t numOfUTF8Chars = 0;
+    pt = font_meas_text(resource_font(IDR_FNT_NORMAL), &wft, &numOfUTF8Chars);
     pt.x += 5;
     pt.y += 5;
     window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, pt.x, pt.y), &(p_screen->text_state));
     p_screen->text_state.font = resource_font(IDR_FNT_NORMAL);
-    p_screen->text_state.SetText(_wizard_firstlay_text);
+    wft.rewind();
+    p_screen->text_state.SetText(wft);
 
     y += pt.y + 5;
 #else
@@ -303,7 +306,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     y += 18 * FIRSTLAY_SCREEN_TERM_Y + 3;
 #endif
     window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 110, 22), &(p_screen->text_Z_pos));
-    p_screen->text_Z_pos.SetText("Z height:");
+    p_screen->text_Z_pos.SetText(_("Z height:"));
 
     window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x + 110, y, 70, 22), &(p_screen->spin_baby_step));
     p_screen->spin_baby_step.SetFormat("%.3f");
@@ -312,7 +315,8 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
 
     window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x + 110 + 70, y, WIZARD_X_SPACE - x - 110 - 70, 22),
         &(p_screen->text_direction_arrow));
-    p_screen->text_direction_arrow.SetText("-|+");
+    static const char pm[] = "-|+";
+    p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pm));
 
     y += 22 + 10;
 
@@ -489,10 +493,12 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     //call p_screen->spin_baby_step.SetValue(p_screen->Z_offset); only when value changed
     if (p_screen->Z_offset_request > 0) {
         p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
-        p_screen->text_direction_arrow.SetText("+++");
+        static const char pp[] = "+++";
+        p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pp));
     } else if (p_screen->Z_offset_request < 0) {
         p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
-        p_screen->text_direction_arrow.SetText("---");
+        static const char mm[] = "---";
+        p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)mm));
     }
 
     p_screen->Z_offset_request = 0;

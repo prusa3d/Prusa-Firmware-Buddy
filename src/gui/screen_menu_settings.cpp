@@ -62,6 +62,7 @@ protected:
 
 #ifdef _DEBUG
 using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+    MI_LANGUAGE,
     MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
@@ -72,6 +73,7 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
 #else
 using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+    MI_LANGUAGE,
     MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
@@ -90,7 +92,7 @@ public:
 /*****************************************************************************/
 //static member method definition
 void ScreenMenuSettings::Init(screen_t *screen) {
-    Create(screen, label);
+    Create(screen, _(label));
 }
 
 int ScreenMenuSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
