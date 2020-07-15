@@ -111,10 +111,10 @@ screen_home_data_t::screen_home_data_t()
     status_footer_init(&(footer), id);
 }
 
-void screen_home_data_t::Draw() {
+void screen_home_data_t::draw() {
     if (logo.f_invalid)
         logo_invalid = 1;
-    window_frame_t::Draw();
+    window_frame_t::draw();
 }
 
 static void on_print_preview_action(print_preview_action_t action) {

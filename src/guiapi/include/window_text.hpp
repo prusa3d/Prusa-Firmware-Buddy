@@ -24,6 +24,9 @@ struct window_text_t : public window_t {
     void SetAlignment(uint8_t alignm);
 
     window_text_t(window_t *parent, window_t *prev, rect_ui16_t rect = { 0 }, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
+
+protected:
+    virtual void draw() override;
 };
 
 extern const window_class_text_t window_class_text;

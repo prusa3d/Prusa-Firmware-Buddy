@@ -61,10 +61,10 @@ screen_splash_data_t::screen_splash_data_t()
     logo_invalid = 0;
 }
 
-void screen_splash_data_t::Draw() {
+void screen_splash_data_t::draw() {
     if (logo_prusa_mini.f_invalid)
         logo_invalid = 1;
-    window_frame_t::Draw();
+    window_frame_t::draw();
 }
 
 int screen_splash_data_t::Event(window_t *sender, uint8_t event, void *param) {

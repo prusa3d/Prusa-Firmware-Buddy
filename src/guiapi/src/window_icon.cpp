@@ -46,3 +46,15 @@ window_icon_t::window_icon_t(window_t *parent, window_t *prev, rect_ui16_t rect,
     : window_t(parent, prev, rect)
     , id_res(id_res)
     , alignment(ALIGN_CENTER) {}
+
+void window_icon_t::draw() {
+    uint8_t ropfn = 0;
+    if ((flg & WINDOW_FLG_DISABLED)) { // that could not be set, but what if
+        ropfn |= ROPFN_DISABLE;
+    }
+    if ((flg & WINDOW_FLG_FOCUSED)) {
+        ropfn |= ROPFN_SWAPBW;
+    }
+
+    render_icon_align(rect, id_res, color_back, RENDER_FLG(alignment, ropfn));
+}

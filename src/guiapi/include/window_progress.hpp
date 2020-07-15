@@ -9,13 +9,14 @@ class window_numberless_progress_t : public window_t {
     color_t color_progress;
     rect_ui16_t rect_progress;
     uint16_t progress_in_pixels;
+    virtual void draw() override;
 
 public:
     window_numberless_progress_t(window_t *parent, window_t *prev, rect_ui16_t rect, color_t cl_progress = COLOR_LIME, color_t cl_back = COLOR_GRAY);
 
     void SetProgress(uint16_t px);
     uint16_t GetProgressPixels() const;
-    virtual void Draw() override;
+
     void SetColor(color_t clr);
 };
 

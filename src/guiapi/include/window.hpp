@@ -105,11 +105,11 @@ struct window_t {
     };
     rect_ui16_t rect; // (8 bytes) display rectangle
     color_t color_back;
-    window_event_t *event; // (4 bytes) event callback
+    window_event_t *event; // todo remove
 
     virtual void Init() {} //do I need init, have ctor?
     virtual void Done() {} //do I need done, have dtor?
-    virtual void Draw() {}
+    void Draw();
     virtual int Event(window_t *sender, uint8_t event, void *param) { return 0; }
 
     bool IsVisible() const { return f_visible == 1; }
@@ -138,6 +138,9 @@ struct window_t {
     //window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect); //todo remove
     window_t(window_t *parent = nullptr, window_t *prev = nullptr, rect_ui16_t rect = { 0 }); //todo remove nullptr default values
     virtual ~window_t();
+
+protected:
+    virtual void draw();
 };
 
 extern window_t *window_popup_ptr; //current popup window

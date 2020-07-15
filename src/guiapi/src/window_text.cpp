@@ -63,3 +63,10 @@ window_text_t::window_text_t(window_t *parent, window_t *prev, rect_ui16_t rect,
     , padding(gui_defaults.padding)
     , alignment(gui_defaults.alignment) {
 }
+
+void window_text_t::draw() {
+    render_text_align(rect, text, font,
+        (flg & WINDOW_FLG_FOCUSED) ? color_text : color_back,
+        (flg & WINDOW_FLG_FOCUSED) ? color_back : color_text,
+        padding, alignment);
+}

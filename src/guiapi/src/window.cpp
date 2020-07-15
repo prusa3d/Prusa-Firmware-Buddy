@@ -263,7 +263,7 @@ void window_draw_children(int16_t id) {
 
 void window_t::Invalidate() {
     f_invalid = 1;
-    gui_invalidate();
+    //gui_invalidate();
 }
 
 void window_validate_children(int16_t id) {
@@ -375,7 +375,7 @@ window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
 window_t::window_t(window_t *parent, window_t *prev, rect_ui16_t rect)
     : parent(parent)
     , next(nullptr)
-    , flg(WINDOW_FLG_ENABLED)
+    , flg(WINDOW_FLG_ENABLED | WINDOW_FLG_VISIBLE | WINDOW_FLG_INVALID)
     , rect(rect) {
     if (prev)
         prev->SetNext(this);
@@ -392,4 +392,19 @@ void window_t::SetNext(window_t *nxt) {
 
 window_t *window_t::GetNext() const {
     return next;
+}
+
+void window_t::Draw() {
+    if (IsInvalid() && IsVisible()) {
+        draw();
+        Validate();
+    }
+}
+
+void window_t::draw() {
+#if _DEBUG
+    display::FillRect(rect, COLOR_BLUE);
+#else
+    display::FillRect(rect, color_back);
+#endif
 }

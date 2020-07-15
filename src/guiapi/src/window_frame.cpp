@@ -104,7 +104,7 @@ void window_frame_t::SetFirst(window_t *fir) {
     first = fir;
 }
 
-void window_frame_t::Draw() {
+void window_frame_t::draw() {
     //window_frame_draw(this);
     if (!f_visible)
         return;

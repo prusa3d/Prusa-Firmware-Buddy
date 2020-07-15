@@ -121,7 +121,7 @@ protected:
     }
 
 public:
-    virtual void Draw() override;
+    virtual void draw() override;
     virtual int Event(window_t * /*sender*/, uint8_t event, void *param) override;
 };
 
@@ -129,7 +129,7 @@ public:
 //template definitions
 
 template <class T>
-void DialogStateful<T>::Draw() {
+void DialogStateful<T>::draw() {
     if ((f_visible)
         //&& ((size_t)(phase) < states.size()) // no need to check
     ) {
