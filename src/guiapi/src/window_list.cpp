@@ -194,5 +194,4 @@ window_list_t::window_list_t(window_t *parent, window_t *prev)
     , index(0)
     , top_index(0)
     , list_item(window_list_item) {
-    flg |= WINDOW_FLG_ENABLED;
 }

@@ -61,3 +61,10 @@ const window_class_term_t window_class_term = {
         0,
     },
 };
+
+window_term_t::window_term_t(window_t *parent, window_t *prev)
+    : window_t(parent, prev)
+    , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
+    , term(0) {
+}

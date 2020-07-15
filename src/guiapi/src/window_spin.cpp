@@ -79,16 +79,8 @@ void window_spin_t::SetItemIndex(int idx) {
     Invalidate();
 }
 
-//todo use this virtual methods does not work yet - stupid memcpy
-/*
 void window_spin_t::setValue(float val) {
     SetValMinMaxStep(val, min, max, step);
-}
-*/
-//todo erase me, virtual methods does not work yet - stupid memcpy
-void window_spin_t::SetValue(float val) {
-    SetValMinMaxStep(val, min, max, step);
-    Invalidate();
 }
 
 void window_spin_t::SetMin(float min_val) {
@@ -129,4 +121,13 @@ void window_spin_t::setValMinMaxStep(float val, float min_val, float max_val, fl
     //value = std::clamp(val, min,max); // need C++ 17
     count = (int)((max - min) / step + 1.5F);
     index = (int)((value - min) / step);
+}
+
+window_spin_t::window_spin_t(window_t *parent, window_t *prev)
+    : window_numb_t(parent, prev)
+    , min(0.0)
+    , max(100.0F)
+    , step(1.0F)
+    , count(101)
+    , index(0) {
 }

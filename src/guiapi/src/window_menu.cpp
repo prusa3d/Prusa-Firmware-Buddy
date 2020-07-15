@@ -16,7 +16,6 @@ window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
     alignment = gui_defaults.alignment;
     setIndex(index);
     top_index = 0;
-    flg |= WINDOW_FLG_ENABLED;
 }
 
 //private, for ctor (cannot fail)

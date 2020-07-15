@@ -12,6 +12,7 @@ struct window_term_t : public window_t {
     color_t color_text;
     font_t *font;
     term_t *term;
+    window_term_t(window_t *parent, window_t *prev);
 };
 
 extern const window_class_term_t window_class_term;

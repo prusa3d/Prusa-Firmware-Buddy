@@ -375,9 +375,12 @@ window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
 window_t::window_t(window_t *parent, window_t *prev, rect_ui16_t rect)
     : parent(parent)
     , next(nullptr)
+    , flg(WINDOW_FLG_ENABLED)
     , rect(rect) {
     if (prev)
         prev->SetNext(this);
+    if (rect.w && rect.h)
+        display::FillRect(rect, color_back);
 }
 
 window_t::~window_t() {
