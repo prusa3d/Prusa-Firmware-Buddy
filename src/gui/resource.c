@@ -146,4 +146,13 @@ RESOURCE_ENTRY_PNG(png_menu_icon_back)
 
 RESOURCE_ENTRY_PNG(png_serial_printing)
 RESOURCE_ENTRY_PNG(png_menu_icon_disconnect)
+
+RESOURCE_ENTRY_PNG(png_flag_cs)
+RESOURCE_ENTRY_PNG(png_flag_de)
+RESOURCE_ENTRY_PNG(png_flag_en)
+RESOURCE_ENTRY_PNG(png_flag_es)
+RESOURCE_ENTRY_PNG(png_flag_fr)
+RESOURCE_ENTRY_PNG(png_flag_it)
+RESOURCE_ENTRY_PNG(png_flag_pl)
+
 RESOURCE_TABLE_END
