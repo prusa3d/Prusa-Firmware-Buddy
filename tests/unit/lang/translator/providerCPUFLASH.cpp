@@ -194,6 +194,8 @@ bool LoadTranslatedStringsFile(const char *fname, deque<string> *st) {
     do {
         string s;
         getline(f, s);
+        // must convert the '\n' into \xa here
+        FindAndReplaceAll(s, string("\\n"), string("\xa"));
         if (!s.empty()) {              // beware of empty strings
             st->emplace_back(move(s)); // make a copy of the string
         }
