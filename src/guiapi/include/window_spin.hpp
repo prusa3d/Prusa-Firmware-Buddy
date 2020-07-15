@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "window.hpp"
 #include "window_numb.hpp"
 
 struct window_spin_t : public window_numb_t {

@@ -177,9 +177,9 @@ void screen_printing_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_PROGRESS, root,
         rect_ui16(10, 70, 220, 50),
         &(pw->w_progress));
-    pw->w_progress.color_progress = COLOR_ORANGE;
-    pw->w_progress.font = resource_font(IDR_FNT_BIG);
-    pw->w_progress.height_progress = 14;
+    pw->w_progress.SetProgressColor(COLOR_ORANGE);
+    pw->w_progress.SetFont(resource_font(IDR_FNT_BIG));
+    pw->w_progress.SetProgressHeight(14);
 
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(130, 128, 101, 20),
@@ -453,7 +453,7 @@ static void enable_tune_button(screen_t *screen) {
 }
 
 static void update_progress(screen_t *screen, uint8_t percent, uint16_t print_speed) {
-    pw->w_progress.color_text = (percent <= 100) && (print_speed == 100) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID;
+    pw->w_progress.SetNumbColor((percent <= 100) && (print_speed == 100) ? COLOR_VALUE_VALID : COLOR_VALUE_INVALID);
     pw->w_progress.SetValue(percent);
 }
 

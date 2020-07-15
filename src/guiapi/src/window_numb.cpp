@@ -64,8 +64,20 @@ void window_numb_t::setValue(float val) {
     value = val;
 }
 
-window_numb_t::window_numb_t(window_t *parent, window_t *prev, float value)
-    : window_t(parent, prev)
+void window_numb_t::SetFont(font_t *val) {
+    font = val;
+    Invalidate();
+}
+
+void window_numb_t::SetColor(color_t clr) {
+    if (clr != color_text) {
+        color_text = clr;
+        Invalidate();
+    }
+}
+
+window_numb_t::window_numb_t(window_t *parent, window_t *prev, rect_ui16_t rect, float value)
+    : window_t(parent, prev, rect)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , value(value)

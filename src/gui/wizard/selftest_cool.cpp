@@ -124,7 +124,7 @@ int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, self
 
     p_screen->curr_nozzle_temp.SetValue(p_data->temp_noz);
     p_screen->curr_bed_temp.SetValue(p_data->temp_bed);
-    p_screen->progress.color_progress = lower_procentage >= time_progress ? COLOR_LIME : COLOR_ORANGE;
+    p_screen->progress.SetProgressColor(lower_procentage >= time_progress ? COLOR_LIME : COLOR_ORANGE);
     p_screen->progress.SetValue(progress);
     return progress;
 }

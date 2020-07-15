@@ -2,11 +2,8 @@
 
 #pragma once
 
-#include <inttypes.h>
-
-#include "guitypes.h"
 #include "window.hpp"
-#include "gui.hpp"
+#include "display.h"
 
 struct window_class_frame_t {
     window_class_t cls;

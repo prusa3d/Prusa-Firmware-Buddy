@@ -21,9 +21,10 @@ struct window_numb_t : public window_t {
     void SetFormat(const char *frmt);
     const char *GetFormat() { return format; }
     void SetValue(float val);
+    void SetFont(font_t *val);
     float GetValue() const { return value; }
-
-    window_numb_t(window_t *parent, window_t *prev, float value = 0);
+    void SetColor(color_t clr);
+    window_numb_t(window_t *parent, window_t *prev, rect_ui16_t rect = { 0 }, float value = 0);
 
 protected:
     virtual void setValue(float val);
