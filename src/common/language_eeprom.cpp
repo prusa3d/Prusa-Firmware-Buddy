@@ -12,9 +12,11 @@ LangEEPROM::LangEEPROM()
     : _language(0) {
     uint16_t _language = static_cast<uint16_t>(eeprom_get_var(EEVAR_LANGUAGE).ui16);
     if (_language == static_cast<uint16_t>(0xffff)) {
-        setLanguage(Translations::MakeLangCode("cs"));
+        setLanguage(Translations::MakeLangCode("en"));
     } else {
+#ifndef LAZYFILELIST_UNITTEST
         Translations::Instance().ChangeLanguage(_language);
+#endif
     }
 }
 
@@ -27,12 +29,16 @@ void LangEEPROM::setLanguage(uint16_t lang) {
     _language = lang;
     saveLanguage();
 
+#ifndef LAZYFILELIST_UNITTEST
     Translations::Instance().ChangeLanguage(_language);
+#endif
 }
 
 /// save new language code into a EEPROM
 void LangEEPROM::saveLanguage() {
+#ifndef LAZYFILELIST_UNITTEST
     eeprom_set_var(EEVAR_LANGUAGE, variant8_ui16((uint16_t)_language));
+#endif
 }
 
 /// return set language code in uint16_t
