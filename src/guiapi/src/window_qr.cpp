@@ -52,3 +52,14 @@ const window_class_qr_t window_class_qr = {
         0,
     },
 };
+
+window_qr_t::window_qr_t(window_t *parent, window_t *prev)
+    : window_t(parent, prev)
+    , version(9)
+    , ecc_level(qrcodegen_Ecc_HIGH)
+    , mode(qrcodegen_Mode_ALPHANUMERIC)
+    , border(4)
+    , px_per_module(3)
+    , bg_color(COLOR_WHITE)
+    , px_color(COLOR_BLACK) {
+}

@@ -19,6 +19,8 @@ struct window_qr_t : public window_t {
     uint8_t px_per_module;
     color_t bg_color;
     color_t px_color;
+
+    window_qr_t(window_t *parent, window_t *prev);
 };
 
 extern const window_class_qr_t window_class_qr;

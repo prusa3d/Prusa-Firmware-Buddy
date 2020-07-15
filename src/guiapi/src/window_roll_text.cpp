@@ -61,3 +61,11 @@ const window_class_roll_text_t window_class_roll_text = {
         (window_event_t *)window_roll_text_event,
     },
 };
+
+window_roll_text_t::window_roll_text_t(window_t *parent, window_t *prev)
+    : window_text_t(parent, prev) {
+    roll.count = roll.px_cd = roll.progress = 0;
+    roll.phase = ROLL_SETUP;
+    roll.setup = TXTROLL_SETUP_INIT;
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, id);
+}
