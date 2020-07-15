@@ -67,7 +67,7 @@ void screen_splash_data_t::draw() {
     window_frame_t::draw();
 }
 
-int screen_splash_data_t::Event(window_t *sender, uint8_t event, void *param) {
+int screen_splash_data_t::event(window_t *sender, uint8_t event, void *param) {
     timer(HAL_GetTick());
     if ((event == WINDOW_EVENT_LOOP) && logo_invalid) {
 #ifdef _DEBUG

@@ -129,7 +129,7 @@ int ScreenMenuLanguages::CEvent(screen_t *screen, window_t *window, uint8_t even
     //        bed->ClrVal();
     //        fan->ClrVal();
     //    }
-    return ths->Event(window, event, param);
+    ths->Event(window, event, param);
 }
 
 screen_t screen_menu_languages = {

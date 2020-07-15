@@ -85,6 +85,7 @@ void gui_redraw(void) {
 }
 */
 
+//atleast one window is invalit
 void gui_invalidate(void) {
     gui_flags |= GUI_FLG_INVALID;
 #ifdef GUI_USE_RTOS

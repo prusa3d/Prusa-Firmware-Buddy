@@ -155,7 +155,7 @@ int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event
             ths->header.SetText(_(label));                    //restore label
         }
     } else {
-        return ths->Event(window, event, param);
+        ths->Event(window, event, param);
     }
     return 0;
 }

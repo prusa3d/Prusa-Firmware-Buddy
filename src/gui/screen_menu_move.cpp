@@ -64,7 +64,7 @@ int ScreenMenuMove::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
             pAxis_E->Disable();
     }
 
-    return ths->Event(window, event, param);
+    ths->Event(window, event, param);
 }
 
 screen_t screen_menu_move = {

@@ -76,8 +76,15 @@ struct window_class_t {
 struct window_t {
     window_t *parent;
     window_t *next;
+    //window_t *prev;
     void SetNext(window_t *nxt);
+    //void SetPrev(window_t *prv);
+    void SetParent(window_t *par);
     window_t *GetNext() const;
+    // window_t *GetPrev() const;
+    window_t *GetNextEnabled() const;
+    //window_t *GetPrevEnabled() const;
+    window_t *GetParent() const;
 
     window_class_t *cls; // (4 bytes) window class pointer
     int16_t id_parent;   // (2 bytes) parent window identifier (2bytes)
@@ -105,13 +112,13 @@ struct window_t {
     };
     rect_ui16_t rect; // (8 bytes) display rectangle
     color_t color_back;
-    window_event_t *event; // todo remove
 
     virtual void Init() {} //do I need init, have ctor?
     virtual void Done() {} //do I need done, have dtor?
     void Draw();
-    virtual int Event(window_t *sender, uint8_t event, void *param) { return 0; }
-
+    void DispatchEvent(window_t *sender, uint8_t ev, void *param); //try to handle, frame resends childern
+    void Event(window_t *sender, uint8_t event, void *param);      //try to handle, send to parrent if not handled
+    void ScreenEvent(window_t *sender, uint8_t event, void *param);
     bool IsVisible() const { return f_visible == 1; }
     bool IsEnabled() const { return f_enabled == 1; }
     bool IsInvalid() const { return f_invalid == 1; }
@@ -133,7 +140,6 @@ struct window_t {
 
     //To be removed
     int16_t IdParent() { return id_parent; }
-    void DispatchEvent(window_t *sender, uint8_t ev, void *param);
 
     //window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect); //todo remove
     window_t(window_t *parent = nullptr, window_t *prev = nullptr, rect_ui16_t rect = { 0 }); //todo remove nullptr default values
@@ -141,6 +147,8 @@ struct window_t {
 
 protected:
     virtual void draw();
+    virtual int event(window_t *sender, uint8_t event, void *param) { return 0; }
+    virtual void dispatchEvent(window_t *sender, uint8_t event, void *param);
 };
 
 extern window_t *window_popup_ptr; //current popup window

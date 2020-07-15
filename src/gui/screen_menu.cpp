@@ -62,7 +62,7 @@ void IScreenMenu::Done() {
     window_destroy(id);
 }
 
-int IScreenMenu::Event(window_t *sender, uint8_t event, void *param) {
+int IScreenMenu::event(window_t *sender, uint8_t event, void *param) {
     if (flg & HasFooter_FLAG) {
         status_footer_event(&footer, sender, event, param);
     }

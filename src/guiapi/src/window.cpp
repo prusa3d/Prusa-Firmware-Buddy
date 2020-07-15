@@ -115,7 +115,7 @@ int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, v
             win->cls = cls;
             win->flg = flg;
             win->rect = rect;
-            win->event = cls->event;
+            //win->event = cls->event;
             win->f_tag = 0;
             if (cls->init)
                 cls->init(win);
@@ -263,7 +263,7 @@ void window_draw_children(int16_t id) {
 
 void window_t::Invalidate() {
     f_invalid = 1;
-    //gui_invalidate();
+    gui_invalidate();
 }
 
 void window_validate_children(int16_t id) {
@@ -290,28 +290,25 @@ void window_t::SetFocus() {
     if (window_focused_ptr) {
         window_focused_ptr->f_focused = 0;
         window_focused_ptr->f_invalid = 1;
-        if (window_focused_ptr->event)
-            window_focused_ptr->event(window_focused_ptr, WINDOW_EVENT_FOCUS0, 0);
+        window_focused_ptr->event(window_focused_ptr, WINDOW_EVENT_FOCUS0, 0); //will not resend event to anyone
     }
     window_focused_ptr = this;
     f_focused = 1;
     f_invalid = 1;
-    if (event)
-        event(this, WINDOW_EVENT_FOCUS1, 0);
+    event(this, WINDOW_EVENT_FOCUS1, 0); //will not resend event to anyone
     gui_invalidate();
 }
 
 void window_t::SetCapture() {
 
-    if (f_visible && f_enabled && event) {
+    if (f_visible && f_enabled) {
         if (window_capture_ptr) {
             window_capture_ptr->f_capture = 0;
-            if (window_capture_ptr->event)
-                window_capture_ptr->event(window_capture_ptr, WINDOW_EVENT_CAPT_0, 0);
+            window_capture_ptr->event(window_capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
         }
         window_capture_ptr = this;
         f_capture = 1;
-        event(this, WINDOW_EVENT_CAPT_1, 0);
+        event(this, WINDOW_EVENT_CAPT_1, 0); //will not resend event to anyone
         gui_invalidate();
     }
 }
@@ -346,10 +343,6 @@ uint16_t window_get_icon_id(int16_t id) {
     return 0;
 }
 
-void window_t::DispatchEvent(window_t *sender, uint8_t ev, void *param) {
-    if (event)
-        event(sender, ev, param);
-}
 /*
 window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
     : window_t() {
@@ -390,8 +383,46 @@ void window_t::SetNext(window_t *nxt) {
     next = nxt;
 }
 
+/*
+void window_t::SetPrev(window_t *prv) {
+    prev = prv;
+}
+*/
+
+void window_t::SetParent(window_t *par) {
+    parent = par;
+}
+
 window_t *window_t::GetNext() const {
     return next;
+}
+
+/*
+window_t *window_t::GetPrev() const {
+    return prev;
+}
+*/
+
+window_t *window_t::GetNextEnabled() const {
+    if (next) {
+        return (next->IsEnabled()) ? next : next->GetNextEnabled();
+    } else {
+        return nullptr;
+    }
+}
+
+/*
+window_t *window_t::GetPrevEnabled() const {
+    if (prev){
+        return (prev->IsEnabled()) ? prev : prev->GetPrevEnabled();
+    } else {
+        return nullptr;
+    }
+}
+*/
+
+window_t *window_t::GetParent() const {
+    return parent;
 }
 
 void window_t::Draw() {
@@ -407,4 +438,22 @@ void window_t::draw() {
 #else
     display::FillRect(rect, color_back);
 #endif
+}
+
+void window_t::Event(window_t *sender, uint8_t ev, void *param) {
+    if (event(sender, ev, param) == 0) {
+        //if event was not handled send it to parent
+        if (parent) {
+            parent->Event(sender, ev, param);
+        }
+    }
+}
+
+void window_t::DispatchEvent(window_t *sender, uint8_t ev, void *param) {
+    dispatchEvent(sender, ev, param);
+}
+
+//frame does something else - resends to all childern
+void window_t::dispatchEvent(window_t *sender, uint8_t ev, void *param) {
+    event(sender, ev, param);
 }

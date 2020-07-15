@@ -332,7 +332,7 @@ int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t ev
 
     ths->show_msg(Eth::ConsumeMsg());
 
-    return ths->Event(window, event, param);
+    ths->Event(window, event, param);
 }
 
 screen_t screen_lan_settings = {

@@ -40,7 +40,7 @@ int ScreenMenuTune::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
         ths->Item<MI_M600>().Disable();
     }
 
-    return ths->Event(window, event, param);
+    ths->Event(window, event, param);
 }
 
 screen_t screen_menu_tune = {

@@ -14,10 +14,10 @@ struct window_frame_t : public window_t {
     void SetFirst(window_t *fir);
     window_frame_t(window_t *first, window_t *parent = nullptr, window_t *prev = nullptr, rect_ui16_t rect = rect_ui16(0, 0, display::GetW(), display::GetH()));
 
-    virtual int Event(window_t *sender, uint8_t event, void *param);
-
 protected:
     virtual void draw();
+    virtual int event(window_t *sender, uint8_t event, void *param) override;
+    virtual void dispatchEvent(window_t *sender, uint8_t event, void *param) override;
 };
 
 void window_frame_init(window_frame_t *window);

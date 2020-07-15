@@ -1,6 +1,5 @@
 // window_frame.cpp
 #include "window_frame.hpp"
-
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 
@@ -125,7 +124,77 @@ void window_frame_t::draw() {
     }
 }
 
-int window_frame_t::Event(window_t *sender, uint8_t event, void *param) {
-    window_frame_event(this, event, param);
+int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
+    int dif = (int)param;
+    window_t *pWin = window_focused_ptr;
+
+    switch (event) {
+    case WINDOW_EVENT_BTN_DN:
+        if (window_focused_ptr) {
+            window_focused_ptr->Event(this, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
+            //Screens::Access()->DispatchEvent(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
+            window_focused_ptr->SetCapture();
+        }
+        break;
+    case WINDOW_EVENT_ENC_DN:
+        while (pWin && dif--) {
+            //window_t* const pPrev = pWin->GetPrevEnabled();
+            //have only one way linked list
+            window_t *pPrev = first;
+            while (pPrev && pPrev != pWin) {
+                pPrev = pPrev->GetNextEnabled();
+            }
+
+            if (pPrev) {
+                pWin = pPrev;
+            } else {
+                break;
+            }
+        }
+        if (pWin)
+            pWin->SetFocus();
+        if (dif) {
+            // End indicator of the frames list ->
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
+        break;
+    case WINDOW_EVENT_ENC_UP:
+        while (pWin && dif--) {
+            window_t *const pNext = pWin->GetNextEnabled();
+            if (pNext) {
+                pWin = pNext;
+            } else {
+                break;
+            }
+        }
+        if (pWin)
+            pWin->SetFocus();
+        if (dif) {
+            // End indicator of the frames list ->
+            Sound_Play(eSOUND_TYPE_BlindAlert);
+        }
+        break;
+    case WINDOW_EVENT_CAPT_0:
+        break;
+    case WINDOW_EVENT_CAPT_1:
+        if (window_focused_ptr->GetParent() != this) {
+            pWin = first;
+            if (pWin && !pWin->IsEnabled())
+                pWin = pWin->GetNextEnabled();
+            if (pWin)
+                pWin->SetFocus();
+        }
+        break;
+    }
     return 0;
+}
+
+//resend event to all childern
+void window_frame_t::dispatchEvent(window_t *sender, uint8_t ev, void *param) {
+    window_t *ptr = first;
+    while (ptr) {
+        ptr->DispatchEvent(sender, ev, param);
+        ptr = ptr->GetNext();
+    }
+    event(this, ev, param);
 }

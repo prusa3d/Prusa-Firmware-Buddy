@@ -31,12 +31,12 @@ protected:
     window_header_t header;
     window_text_t help;
     status_footer_t footer;
+    virtual int event(window_t *sender, uint8_t event, void *param) override;
 
 public:
     IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
     void Done();
     //virtual void Draw() override {}
-    virtual int Event(window_t *sender, uint8_t event, void *param) override;
 
     static void CDone(screen_t *screen) {
         reinterpret_cast<IScreenMenu *>(screen->pdata)->Done();
@@ -46,7 +46,7 @@ public:
         reinterpret_cast<IScreenMenu *>(screen->pdata)->Draw();
     }
     static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-        return reinterpret_cast<IScreenMenu *>(screen->pdata)->Event(window, event, param);
+        reinterpret_cast<IScreenMenu *>(screen->pdata)->Event(window, event, param);
     }
 };
 

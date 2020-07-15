@@ -17,7 +17,9 @@ struct screen_home_data_t : public window_frame_t {
     uint8_t logo_invalid;
 
     screen_home_data_t();
-    virtual int Event(window_t *sender, uint8_t event, void *param) override;
+
+protected:
+    virtual int event(window_t *sender, uint8_t event, void *param) override;
 
 private:
     virtual void draw() override;
