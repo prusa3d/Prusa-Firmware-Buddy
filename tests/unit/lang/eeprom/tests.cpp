@@ -22,7 +22,7 @@ TEST_CASE("Languages::getInstance() - GET / SET", "[LangEEPROM]") {
         CHECK((al[0] == langChar[0] && al[1] == langChar[1]));
     }
 
-		SECTION("LANG - CS") {
+    SECTION("LANG - CS") {
         langChar[0] = 'c';
         langChar[1] = 's';
         langCode = Translations::MakeLangCode(langChar);
@@ -33,7 +33,7 @@ TEST_CASE("Languages::getInstance() - GET / SET", "[LangEEPROM]") {
         CHECK((al[0] == langChar[0] && al[1] == langChar[1]));
     }
 
-		SECTION("LANG - DE") {
+    SECTION("LANG - DE") {
         langChar[0] = 'd';
         langChar[1] = 'e';
         langCode = Translations::MakeLangCode(langChar);
@@ -44,7 +44,7 @@ TEST_CASE("Languages::getInstance() - GET / SET", "[LangEEPROM]") {
         CHECK((al[0] == langChar[0] && al[1] == langChar[1]));
     }
 
-		SECTION("LANG - ES") {
+    SECTION("LANG - ES") {
         langChar[0] = 'e';
         langChar[1] = 's';
         langCode = Translations::MakeLangCode(langChar);
@@ -55,7 +55,7 @@ TEST_CASE("Languages::getInstance() - GET / SET", "[LangEEPROM]") {
         CHECK((al[0] == langChar[0] && al[1] == langChar[1]));
     }
 
-		SECTION("LANG - FR") {
+    SECTION("LANG - FR") {
         langChar[0] = 'f';
         langChar[1] = 'r';
         langCode = Translations::MakeLangCode(langChar);
@@ -66,7 +66,7 @@ TEST_CASE("Languages::getInstance() - GET / SET", "[LangEEPROM]") {
         CHECK((al[0] == langChar[0] && al[1] == langChar[1]));
     }
 
-		SECTION("LANG - IT") {
+    SECTION("LANG - IT") {
         langChar[0] = 'i';
         langChar[1] = 't';
         langCode = Translations::MakeLangCode(langChar);
@@ -77,7 +77,7 @@ TEST_CASE("Languages::getInstance() - GET / SET", "[LangEEPROM]") {
         CHECK((al[0] == langChar[0] && al[1] == langChar[1]));
     }
 
-		SECTION("LANG - PL") {
+    SECTION("LANG - PL") {
         langChar[0] = 'p';
         langChar[1] = 'l';
         langCode = Translations::MakeLangCode(langChar);
@@ -88,4 +88,3 @@ TEST_CASE("Languages::getInstance() - GET / SET", "[LangEEPROM]") {
         CHECK((al[0] == langChar[0] && al[1] == langChar[1]));
     }
 }
-

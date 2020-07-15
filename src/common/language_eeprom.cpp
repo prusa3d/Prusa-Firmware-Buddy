@@ -52,12 +52,12 @@ uint16_t LangEEPROM::getLanguage() {
 
 /// return set language code in char[2]
 std::array<char, 2> LangEEPROM::getLanguageChar() {
-	char ch1 = _language & 0xFF;
-	char ch2 = _language >> 8;
+    char ch1 = _language & 0xFF;
+    char ch2 = _language >> 8;
 
-	std::array<char, 2> charCode;
+    std::array<char, 2> charCode;
 
-	charCode[0] = ch1;
-	charCode[1] = ch2;
-	return charCode;
+    charCode[0] = ch1;
+    charCode[1] = ch2;
+    return charCode;
 }
