@@ -15,10 +15,7 @@
 #define JOGWHEEL_DEF_FLG (JOGWHEEL_FLG_INV_ENC | JOGWHEEL_FLG_2PULSES | JOGWHEEL_FLG_FILTER2)
 
 typedef struct _jogwheel_config_t {
-    uint8_t pinEN1; // encoder phase1 pin
-    uint8_t pinEN2; // encoder phase2 pin
-    uint8_t pinENC; // button pin
-    uint8_t flg;    // flags
+    uint8_t flg; // flags
 } jogwheel_config_t;
 
 extern uint8_t jogwheel_signals;
@@ -26,10 +23,8 @@ extern int32_t jogwheel_encoder;
 extern uint16_t jogwheel_button_down;
 extern uint8_t jogwheel_changed;
 
-extern void jogwheel_init(void);
-
-extern void jogwheel_update_1ms(void);
-
-extern void jogwheel_encoder_set(int32_t val, int32_t min, int32_t max);
+void jogwheel_update_1ms(void);
+void jogwheel_encoder_set(int32_t val, int32_t min, int32_t max);
+bool jogwheel_low_level_button_pressed();
 
 extern jogwheel_config_t jogwheel_config;

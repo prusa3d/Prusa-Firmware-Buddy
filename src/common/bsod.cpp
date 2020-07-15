@@ -174,7 +174,6 @@ void general_error(const char *error, const char *module) {
     render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), gui_defaults.font,
         COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
 
-    jogwheel_init();
     gui_reset_jogwheel();
 
     //questionable placement - where now, in almost every BSOD timers are
@@ -186,7 +185,7 @@ void general_error(const char *error, const char *module) {
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
         wdt_iwdg_refresh();
-        if (!gpio_get(jogwheel_config.pinENC))
+        if (jogwheel_low_level_button_pressed())
             sys_reset(); //button press
     }
 }

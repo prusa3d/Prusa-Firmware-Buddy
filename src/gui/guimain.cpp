@@ -50,9 +50,6 @@ const st7789v_config_t st7789v_cfg = {
 };
 
 const jogwheel_config_t jogwheel_cfg = {
-    JOGWHEEL_PIN_EN1, // encoder phase1
-    JOGWHEEL_PIN_EN2, // encoder phase2
-    JOGWHEEL_PIN_ENC, // button
     JOGWHEEL_DEF_FLG, // flags
 };
 

@@ -49,7 +49,6 @@ void gui_free(void *ptrx) {
 void gui_init(void) {
     display::Init();
 #ifdef GUI_JOGWHEEL_SUPPORT
-    jogwheel_init();
     gui_reset_jogwheel();
 #endif //GUI_JOGWHEEL_SUPPORT
     gui_task_handle = osThreadGetId();

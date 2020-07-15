@@ -1,8 +1,10 @@
-// jogwheel.c
+/**
+ * @file
+ */
 
 #include "jogwheel.h"
 #include <limits.h>
-#include "gpio.h"
+#include "Pin.hpp"
 
 uint8_t jogwheel_signals = 0;
 uint8_t jogwheel_signals_old = 0;
@@ -13,21 +15,19 @@ int32_t jogwheel_encoder_max = INT_MAX;
 uint16_t jogwheel_button_down = 0;
 uint8_t jogwheel_changed = 0;
 
-void jogwheel_init(void) {
-    gpio_init(jogwheel_config.pinEN1, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
-    gpio_init(jogwheel_config.pinEN2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
-    gpio_init(jogwheel_config.pinENC, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
-}
+static InputPin jogWheelEN1(IoPort::E, IoPin::p15, IMode::input, Pull::up);
+static InputPin jogWheelEN2(IoPort::E, IoPin::p13, IMode::input, Pull::up);
+static InputPin jogWheelENC(IoPort::E, IoPin::p12, IMode::input, Pull::up);
 
 void jogwheel_update_1ms(void) {
     uint8_t signals = 0;
-    if (gpio_get(jogwheel_config.pinENC))
+    if (jogWheelENC.read())
         signals |= 4; //bit 2 - button press
     if (jogwheel_config.flg & JOGWHEEL_FLG_INV_ENC)
         signals ^= 4;
-    if (gpio_get(jogwheel_config.pinEN1))
+    if (jogWheelEN1.read())
         signals |= 1; //bit 0 - phase0
-    if (gpio_get(jogwheel_config.pinEN2))
+    if (jogWheelEN2.read())
         signals |= 2; //bit 1 - phase1
     if (jogwheel_config.flg & JOGWHEEL_FLG_INV_E12)
         signals ^= 3;
@@ -94,8 +94,17 @@ void jogwheel_encoder_set(int32_t val, int32_t min, int32_t max) {
 }
 
 jogwheel_config_t jogwheel_config = {
-    0, // encoder phase1 pin
-    0, // encoder phase2 pin
-    0, // button pin
     0, // flags
 };
+
+/**
+ * @brief Button pressed (Low level function)
+ *
+ * To be used only BSOD context when interrupts are disabled.
+ *
+ * @retval true button pressed
+ * @retval false button not pressed
+ */
+bool jogwheel_low_level_button_pressed() {
+    return !jogWheelENC.read();
+}

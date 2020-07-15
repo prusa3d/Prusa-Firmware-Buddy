@@ -66,12 +66,6 @@
 #define ST7789V_PIN_RS  TPD11 // RS signal pin
 #define ST7789V_PIN_RST TPC8  // RESET signal pin
 
-//--------------------------------------
-//Jogwheel configuration
-#define JOGWHEEL_PIN_EN1 TPE15 // encoder signal 1 pin
-#define JOGWHEEL_PIN_EN2 TPE13 // encoder signal 2 pin
-#define JOGWHEEL_PIN_ENC TPE12 // button pin
-
 //Simulator configuration
 //#define SIM_HEATER
 //#define SIM_MOTION

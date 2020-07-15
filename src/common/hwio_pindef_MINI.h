@@ -116,6 +116,9 @@ extern OutputPin fan;
 extern OutputPin fan;
 #if 0 //not used outside of its definition scope
 extern InputPin fastBoot;
+extern InputPin jogWheelEN1;
+extern InputPin jogWheelEN2;
+extern InputPin jogWheelENC;
 #endif
 
 #define PIN_FSENSOR TPB4
