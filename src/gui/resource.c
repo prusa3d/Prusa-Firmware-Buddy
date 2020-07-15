@@ -74,6 +74,14 @@
 
 #include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
 
+#include "res/cc/png_flag_cs.c"
+#include "res/cc/png_flag_de.c"
+#include "res/cc/png_flag_en.c"
+#include "res/cc/png_flag_es.c"
+#include "res/cc/png_flag_fr.c"
+#include "res/cc/png_flag_it.c"
+#include "res/cc/png_flag_pl.c"
+
 RESOURCE_TABLE_BEGIN
 RESOURCE_ENTRY_NUL() //IDR_NULL
 //fonts
