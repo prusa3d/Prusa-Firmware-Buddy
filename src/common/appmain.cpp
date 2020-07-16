@@ -218,7 +218,7 @@ void adc_tick_1ms(void) {
 
 void app_tim14_tick(void) {
 #ifdef NEW_FANCTL
-    fanctl_tick1ms();
+    fanctl_tick();
 #endif //NEW_FANCTL
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."
