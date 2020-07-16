@@ -399,9 +399,9 @@ static int eeprom_convert_from_v6(void) {
     vars.FWBUILD = project_build_number;
     vars.FWVERSION = eeprom_fwversion_ui16();
 
-    // start addres of imported data first block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
+    // start addres of imported data block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
     addr_start = eeprom_var_addr(EEVAR_FILAMENT_TYPE);
-    // end addres of imported data - we want not import PID constants
+    // end addres of imported data
     addr_end = eeprom_var_addr(EEVAR_SOUND_VOLUME);
     // read first block
     st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
