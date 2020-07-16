@@ -79,7 +79,7 @@ void Sound::setMode(eSOUND_MODE eSMode) {
 }
 
 void Sound::setVolume(int vol) {
-    varVolume = static_cast<uint8_t>(vol) / 100.F;
+    varVolume = static_cast<uint8_t>(vol) / 10.F;
     saveVolume();
 }
 
@@ -90,7 +90,7 @@ void Sound::saveMode() {
 
 /// Store new Sound VOLUME value into a EEPROM.
 void Sound::saveVolume() {
-    eeprom_set_var(EEVAR_SOUND_VOLUME, variant8_ui8((uint8_t)(varVolume * 100.F)));
+    eeprom_set_var(EEVAR_SOUND_VOLUME, variant8_ui8((uint8_t)(varVolume * 10.F)));
 }
 
 /// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
