@@ -3,7 +3,8 @@
 ```bash
 # create a build folder and run cmake within it
 cd ../.. && mkdir build_tests && cd build_tests
-cmake .. -G Ninja
+cmake .. -G Ninja -DCUSTOM_COMPILE_OPTIONS:STRING=-Dstrlcpy=strncpy
+# FIXME: CUSTOM_COMPILE_OPTIONS: a dirty hack currently needed to compile some tests on platforms without strlcpy
 
 # build all the unit tests
 ninja tests
