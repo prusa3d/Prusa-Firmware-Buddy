@@ -1,6 +1,7 @@
-//st7789v.h
-#ifndef _ST7789V_H
-#define _ST7789V_H
+/**
+ * @file
+ */
+#pragma once
 
 #include "stm32f4xx_hal.h"
 #include <inttypes.h>
@@ -33,10 +34,6 @@ typedef struct _st7789v_config_t {
     uint8_t is_inverted;
     uint8_t control;
 } st7789v_config_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
 
 extern void st7789v_init(void);
 extern void st7789v_done(void);
@@ -78,9 +75,3 @@ extern uint16_t st7789v_reset_delay;
 extern void st7789v_enable_safe_mode(void);
 
 extern void st7789v_spi_tx_complete(void);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif // _ST7789V_H

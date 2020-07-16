@@ -1,7 +1,8 @@
-// st7789v.c
-#include "st7789v.h"
-
+/**
+ * @file
+ */
 #include <guiconfig.h>
+#include "st7789v.hpp"
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>

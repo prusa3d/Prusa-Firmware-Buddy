@@ -3,13 +3,13 @@
 #include "stm32f4xx_hal.h"
 #include "config.h"
 #include "gui.hpp"
-#include "st7789v.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include "safe_state.h"
 #include <inttypes.h>
+#include "st7789v.hpp"
 #include "jogwheel.h"
 #include "gpio.h"
 #include "sys.h"
