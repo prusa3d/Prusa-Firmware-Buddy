@@ -110,8 +110,7 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
         //     screen_open(get_scr_menu_languages()->id);
         // }
 
-        //const bool lang_valid = LangEEPROM::getInstance().LangExists();
-        const bool lang_valid = false;
+        const bool lang_valid = LangEEPROM::getInstance().IsValid();
 
         if ((run_wizard || run_firstlay)) {
             if (run_wizard) {

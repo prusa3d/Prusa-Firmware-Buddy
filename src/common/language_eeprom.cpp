@@ -11,11 +11,11 @@
 LangEEPROM::LangEEPROM()
     : _language(0) {
 #ifndef LANGEEPROM_UNITTEST
-    uint16_t _language = static_cast<uint16_t>(eeprom_get_var(EEVAR_LANGUAGE).ui16);
+    _language = static_cast<uint16_t>(eeprom_get_var(EEVAR_LANGUAGE).ui16);
 #else
-    uint16_t _language = Translations::MakeLangCode("en");
+    _language = Translations::MakeLangCode("en");
 #endif
-    if (_language == static_cast<uint16_t>(0xffff)) {
+    if (!Translations::Instance().LangExists(_language)) {
         _language = Translations::MakeLangCode("en");
     } else {
 #ifndef LANGEEPROM_UNITTEST
@@ -46,7 +46,7 @@ void LangEEPROM::saveLanguage() {
 }
 
 /// return set language code in uint16_t
-uint16_t LangEEPROM::getLanguage() {
+uint16_t LangEEPROM::getLanguage() const {
     return _language;
 }
 
@@ -60,4 +60,9 @@ std::array<char, 2> LangEEPROM::getLanguageChar() {
     charCode[0] = ch1;
     charCode[1] = ch2;
     return charCode;
+}
+
+/// return validity of language stored in eeprom
+bool LangEEPROM::IsValid() const {
+    return static_cast<uint16_t>(eeprom_get_var(EEVAR_LANGUAGE).ui16) == _language;
 }
