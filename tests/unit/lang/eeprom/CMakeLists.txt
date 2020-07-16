@@ -1,7 +1,6 @@
 # define the test executable
 add_executable(language_eeprom_tests
 ../../../../src/lang/translator.cpp
-# ../../../../src/common/eeprom.cpp
 ../../../../src/common/language_eeprom.cpp
 ../../test_main.cpp
 tests.cpp

@@ -105,8 +105,8 @@ static const eeprom_entry_t eeprom_map[] = {
     { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_LAN_HOSTNAME
     { "TIMEZONE",        VARIANT8_I8,    1, 0 }, // EEVAR_TIMEZONE
     { "SOUND_MODE",      VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_MODE
-    { "SOUND_VOLUME",      VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_VOLUME
-    { "LANGUAGE",					VARIANT8_UI16,   1, 0 }, // EEVAR_LANGUAGE
+    { "SOUND_VOLUME",    VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_VOLUME
+    { "LANGUAGE",        VARIANT8_UI16,  1, 0 }, // EEVAR_LANGUAGE
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
