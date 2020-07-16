@@ -8,6 +8,7 @@
 #include "../lang/string_view_utf8.hpp"
 #include <algorithm>
 #include "../lang/unaccent.hpp"
+#include "../common/str_utils.hpp"
 
 std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
     // for now we have a translation table and in the future we'll have letters with diacritics too (i.e. more font bitmaps)
@@ -51,6 +52,42 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
         // FIXME Shouldn't it try to break the line first?
         if (x + w > rc_end_x)
             return false;
+    }
+    return true;
+}
+
+/// This is a patched version of render_text which works with unicode (4-byte) characters
+/// It is intentionally not public and it is to be used with render_text_aligned only
+/// It also contains a hack to prevent leaving the specified window rect in case of (mistakenly)
+/// computed line width (which happens unfortunately), because its call is preceeded by
+/// the new text-wrapping functions from str_utils (i.e. the input text is already almost correctly broken into lines).
+bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    int x = rc.x;
+    int y = rc.y;
+    const uint16_t rc_end_x = rc.x + rc.w;
+    const uint16_t rc_end_y = rc.y + rc.h;
+    const uint16_t w = pf->w; //char width
+    const uint16_t h = pf->h; //char height
+    // prepare for stream processing
+    unichar c = 0;
+    while ((c = *str++) != 0) {
+        if (c == '\n') {
+            y += h;
+            x = rc.x;
+            if (y + h > rc_end_y)
+                return false;
+            continue;
+        }
+        if (c < 128) {
+            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+            x += w;
+        } else {
+            auto convertedChar = ConvertUnicharToFontCharIndex(c);
+            for (size_t i = 0; i < convertedChar.second; ++i) {
+                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+                x += w; // this will screw up character counting for DE language @@TODO
+            }
+        }
     }
     return true;
 }
@@ -117,6 +154,8 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
             ++str;
         }
         str = png_mem_ptr0; // reset the string pointer to its beginning ... and now we can keep the old algoritm almost intact
+
+#if 0 // old implementation - intentionally kept here for reference and future fixing of this mess :(
         while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
             x = rc_pad.x;
             i = 0;
@@ -138,8 +177,18 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
             str += n;
             y += font->h;
         }
-        display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
-        fill_between_rectangles(&rc, &rc_pad, clr0);
+#else
+        // new line breaking algorithm
+        size_t nLines = str2multilineUnicode(str, 0x1000U, rc_pad.w / font->w);
+        // now we have '\n' in the right spots
+        y += nLines * font->h;
+        render_textUnicode(rc_pad, str, font, clr0, clr1);
+#endif
+        // hack for broken text wrapper ... and for too long texts as well
+        if (y < (rc_pad.y + rc_pad.h)) {
+            display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
+            fill_between_rectangles(&rc, &rc_pad, clr0);
+        }
     } else {
         // 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
         uint16_t strlen_text = 0;
