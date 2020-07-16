@@ -59,7 +59,7 @@ void Sound::init() {
     if (eSoundMode == eSOUND_MODE_NULL) {
         setMode(eSOUND_MODE_DEFAULT);
     }
-    varVolume = eeprom_get_var(EEVAR_SOUND_VOLUME).ui8 / 100.F;
+    varVolume = eeprom_get_var(EEVAR_SOUND_VOLUME).ui8 / 10.F;
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;
 }
@@ -69,7 +69,7 @@ eSOUND_MODE Sound::getMode() const {
 }
 
 int Sound::getVolume() {
-    int retval = (varVolume * 100.F);
+    int retval = (varVolume * 10.F);
     return retval;
 }
 
