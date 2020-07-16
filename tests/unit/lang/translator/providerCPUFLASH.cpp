@@ -371,3 +371,13 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
         });
     }
 }
+
+TEST_CASE("providerCPUFLASH::Translations singleton", "[translator]") {
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("cs")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("de")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("en")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("es")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("fr")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("it")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("pl")));
+}
