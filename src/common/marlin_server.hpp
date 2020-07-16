@@ -65,6 +65,7 @@ class FSM_notifier {
     //static members
     //there can be only one active instance of FSM_notifier, which use this data
     static data s_data;
+    static FSM_notifier *activeInstance;
 
     //temporary members
     //constructor stores previous state of FSM_notifier (its static data), destructor restores it
@@ -74,6 +75,8 @@ protected:
     //protected ctor so this instance cannot be created
     FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
     FSM_notifier(const FSM_notifier &) = delete;
+    virtual void preSendNotification() {}
+    virtual void postSendNotification() {}
 
 public:
     ~FSM_notifier();

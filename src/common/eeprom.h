@@ -6,7 +6,7 @@
 #include "variant8.h"
 
 #define EEPROM_ADDRESS  0x0500
-#define EEPROM_VERSION  6
+#define EEPROM_VERSION  7
 #define EEPROM_FEATURES (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN)
 
 #define EEPROM_FEATURE_PID_NOZ 0x0001
@@ -56,10 +56,11 @@
 // sound variable
 #define EEVAR_SOUND_MODE   0x1a // uint8_t
 #define EEVAR_SOUND_VOLUME 0x1b // uint8_t
+#define EEVAR_LANGUAGE     0x1c // uint16_t
 
-#define EEVAR__PADDING 0x1c // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+#define EEVAR__PADDING 0x1d // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
-#define EEVAR_CRC32 0x1d // uint32_t crc32 for
+#define EEVAR_CRC32 0x1e // uint32_t crc32 for
 
 #define LAN_HOSTNAME_MAX_LEN 20
 #define CONNECT_TOKEN_SIZE   20

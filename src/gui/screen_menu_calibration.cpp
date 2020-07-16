@@ -7,6 +7,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_print.hpp"
+#include "printers.h"
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_BABYSTEP, MI_AUTO_HOME, MI_MESH_BED,
     MI_SELFTEST, MI_CALIB_FIRST>;
@@ -14,7 +15,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 static void init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
     constexpr static const char *label = N_("Calibration");
-    Screen::Create(screen, label);
+    Screen::Create(screen, _(label));
 }
 
 screen_t screen_menu_calibration = {

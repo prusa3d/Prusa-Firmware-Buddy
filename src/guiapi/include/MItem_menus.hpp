@@ -153,3 +153,13 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_LANGUAGE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Language");
+
+public:
+    MI_LANGUAGE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
