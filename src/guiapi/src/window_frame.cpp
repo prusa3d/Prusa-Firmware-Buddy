@@ -103,14 +103,13 @@ void window_frame_t::SetFirst(window_t *fir) {
     first = fir;
 }
 
-void window_frame_t::draw() {
-    //window_frame_draw(this);
+void window_frame_t::unconditionalDraw() {
     if (!f_visible)
         return;
     bool setChildernInvalid = false;
 
     if (f_invalid) {
-        display::FillRect(rect, color_back);
+        draw();
         f_invalid = 0;
         setChildernInvalid = true;
     }

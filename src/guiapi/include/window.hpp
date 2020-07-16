@@ -146,6 +146,7 @@ struct window_t {
     virtual ~window_t();
 
 protected:
+    virtual void unconditionalDraw();
     virtual void draw();
     virtual int event(window_t *sender, uint8_t event, void *param) { return 0; }
     virtual void dispatchEvent(window_t *sender, uint8_t event, void *param);

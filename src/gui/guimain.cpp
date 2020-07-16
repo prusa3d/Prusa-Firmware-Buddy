@@ -162,9 +162,8 @@ extern "C" void gui_run(void) {
         //screen_stack_push(get_scr_splash()->id);
         screen_open(get_scr_watchdog()->id);
     } else
-#endif // _DEBUG \
-       // screen_open(get_scr_splash()->id);
-        Screens::Init(ScreenFactory::ScreenSplash);
+#endif // _DEBUG
+        Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
 
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;

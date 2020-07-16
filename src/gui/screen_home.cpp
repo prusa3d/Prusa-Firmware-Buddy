@@ -111,10 +111,12 @@ screen_home_data_t::screen_home_data_t()
     status_footer_init(&(footer), id);
 }
 
-void screen_home_data_t::draw() {
-    if (logo.f_invalid)
-        logo_invalid = 1;
-    window_frame_t::draw();
+void screen_home_data_t::unconditionalDraw() {
+    window_frame_t::unconditionalDraw();
+#ifdef _DEBUG
+    static const char dbg[] = "DEBUG";
+    display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+#endif //_DEBUG
 }
 
 static void on_print_preview_action(print_preview_action_t action) {
@@ -130,13 +132,6 @@ static void on_print_preview_action(print_preview_action_t action) {
 int screen_home_data_t::event(window_t *sender, uint8_t event, void *param) {
     if (status_footer_event(&(footer), sender, event, param)) {
         return 1;
-    }
-    if ((event == WINDOW_EVENT_LOOP) && logo_invalid) {
-#ifdef _DEBUG
-        static const char dbg[] = "DEBUG";
-        display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
-#endif //_DEBUG
-        logo_invalid = 0;
     }
 
     if (is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted

@@ -58,24 +58,19 @@ screen_splash_data_t::screen_splash_data_t()
         project_version, project_version_suffix_short);
     // this MakeRAM is safe - text_version_buffer is globally allocated
     text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_version_buffer));
-    logo_invalid = 0;
 }
 
-void screen_splash_data_t::draw() {
-    if (logo_prusa_mini.f_invalid)
-        logo_invalid = 1;
-    window_frame_t::draw();
+void screen_splash_data_t::unconditionalDraw() {
+    window_frame_t::unconditionalDraw();
+#ifdef _DEBUG
+    static const char dbg[] = "DEBUG";
+    display::DrawText(rect_ui16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+#endif //_DEBUG
 }
 
 int screen_splash_data_t::event(window_t *sender, uint8_t event, void *param) {
     timer(HAL_GetTick());
-    if ((event == WINDOW_EVENT_LOOP) && logo_invalid) {
-#ifdef _DEBUG
-        static const char dbg[] = "DEBUG";
-        display::DrawText(rect_ui16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
-#endif //_DEBUG
-        logo_invalid = 0;
-    }
+
 #ifdef _EXTUI
 
     if (marlin_event(MARLIN_EVT_Startup)) {
@@ -105,7 +100,8 @@ int screen_splash_data_t::event(window_t *sender, uint8_t event, void *param) {
                     screen_open(get_scr_home()->id);
             }
         } else*/
-        Screens::Access()->Open(ScreenFactory::ScreenHome); //   screen_open(get_scr_home()->id);
+        //Screens::Access()->Open(ScreenFactory::ScreenHome);
+        Screens::Access()->Open(ScreenFactory::Screen<screen_home_data_t>);
 #else
     if (HAL_GetTick() > 3000) {
         screen_close();

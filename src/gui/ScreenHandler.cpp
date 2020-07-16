@@ -119,7 +119,7 @@ void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
 }
 */
 void Screens::DispatchEvent(window_t *sender, uint8_t event, void *param) {
-    current->Event(Access()->current.get(), event, param);
+    current->Event(current.get(), event, param);
 }
 
 void Screens::Draw() {
@@ -132,6 +132,9 @@ void Screens::Open(ScreenFactory::Creator screen_creator) {
 
 void Screens::Loop() {
     if (creator) {
+        if (current) {
+            current.reset(); //without reset screens does not behave correctly, I do not know why
+        }
         current = creator();
         creator = nullptr;
         gui_invalidate();

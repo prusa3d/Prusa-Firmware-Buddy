@@ -15,13 +15,9 @@ public:
     using UniquePtr = static_unique_ptr<window_frame_t>;
     using Creator = static_unique_ptr<window_frame_t> (*)(); //function pointer definition
 
-    static UniquePtr ScreenHome();
-    static UniquePtr ScreenSplash();
-
     template <class T>
     static UniquePtr Screen() {
         static_assert(sizeof(T) <= sizeof(mem_space), "Screen memory space is too small");
         return make_static_unique_ptr<T>(&all_screens);
-        //return make_static_unique_ptr<screen_home_data_t>(&all_screens);
     }
 };

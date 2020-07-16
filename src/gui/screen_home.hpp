@@ -14,15 +14,13 @@ struct screen_home_data_t : public window_frame_t {
 
     uint8_t is_starting;
     uint32_t time;
-    uint8_t logo_invalid;
 
     screen_home_data_t();
 
-protected:
-    virtual int event(window_t *sender, uint8_t event, void *param) override;
-
 private:
-    virtual void draw() override;
+    virtual int event(window_t *sender, uint8_t event, void *param) override;
+    virtual void unconditionalDraw() override;
+
     void printBtnEna();
     void printBtnDis();
 };

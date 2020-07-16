@@ -13,12 +13,11 @@ struct screen_splash_data_t : public window_frame_t {
     window_icon_t icon_debug;
 
     uint32_t last_timer;
-    uint8_t logo_invalid;
 
     screen_splash_data_t();
 
 private:
     void timer(uint32_t mseconds);
-    virtual void draw() override;
+    virtual void unconditionalDraw() override;
     virtual int event(window_t *sender, uint8_t event, void *param) override;
 };

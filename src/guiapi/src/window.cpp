@@ -426,6 +426,10 @@ window_t *window_t::GetParent() const {
 }
 
 void window_t::Draw() {
+    unconditionalDraw();
+}
+
+void window_t::unconditionalDraw() {
     if (IsInvalid() && IsVisible()) {
         draw();
         Validate();
@@ -433,11 +437,7 @@ void window_t::Draw() {
 }
 
 void window_t::draw() {
-#if _DEBUG
-    display::FillRect(rect, COLOR_BLUE);
-#else
     display::FillRect(rect, color_back);
-#endif
 }
 
 void window_t::Event(window_t *sender, uint8_t ev, void *param) {
