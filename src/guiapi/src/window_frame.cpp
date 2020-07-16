@@ -137,13 +137,7 @@ int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_ENC_DN:
         while (pWin && dif--) {
-            //window_t* const pPrev = pWin->GetPrevEnabled();
-            //have only one way linked list
-            window_t *pPrev = first;
-            while (pPrev && pPrev != pWin) {
-                pPrev = pPrev->GetNextEnabled();
-            }
-
+            window_t *const pPrev = GetPrevEnabledSubWin(pWin);
             if (pPrev) {
                 pWin = pPrev;
             } else {
@@ -159,7 +153,7 @@ int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_ENC_UP:
         while (pWin && dif--) {
-            window_t *const pNext = pWin->GetNextEnabled();
+            window_t *const pNext = GetNextEnabledSubWin(pWin);
             if (pNext) {
                 pWin = pNext;
             } else {
@@ -196,4 +190,40 @@ void window_frame_t::dispatchEvent(window_t *sender, uint8_t ev, void *param) {
         ptr = ptr->GetNext();
     }
     event(this, ev, param);
+}
+
+window_t *window_frame_t::GetNextSubWin(window_t *win) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+    return win->GetNext();
+}
+
+window_t *window_frame_t::GetPrevSubWin(window_t *win) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+    window_t *tmpWin = first;
+    while (tmpWin && tmpWin->GetNext() != win) {
+        tmpWin = tmpWin->GetNext();
+    }
+    return tmpWin;
+}
+
+window_t *window_frame_t::GetNextEnabledSubWin(window_t *win) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+    return win->GetNextEnabled();
+}
+
+window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win) const {
+    window_t *tmpWin = GetPrevSubWin(win);
+    while (tmpWin && !tmpWin->IsEnabled()) {
+        tmpWin = GetPrevSubWin(tmpWin);
+    }
+    return tmpWin;
 }

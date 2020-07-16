@@ -166,10 +166,10 @@ int screen_home_data_t::event(window_t *sender, uint8_t event, void *param) {
     if (header.EventClr_MediaRemoved()) {
         printBtnDis();
     }
-    window_frame_t::Event(sender, event, param);
+    //
 
     if (event != WINDOW_EVENT_CLICK) {
-        return 0;
+        return window_frame_t::event(sender, event, param);
     }
 
     switch ((int)param) {
