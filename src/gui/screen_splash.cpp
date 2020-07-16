@@ -102,6 +102,11 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
         uint8_t run_xyzcalib = eeprom_get_var(EEVAR_RUN_XYZCALIB).ui8;
         uint8_t run_firstlay = eeprom_get_var(EEVAR_RUN_FIRSTLAY).ui8;
         uint8_t run_wizard = (run_selftest && run_xyzcalib && run_firstlay) ? 1 : 0;
+        // uint8_t run_language = eeprom_get_var(EEVAR_LANGUAGE).ui16 == static_cast<uint16_t>(0xffff) ? 1 : 0;
+        // if (run_language) {
+        //     // screen_stack_push(get_scr_home()->id);
+        //     screen_open(get_scr_menu_languages()->id);
+        // }
         if ((run_wizard || run_firstlay)) {
             if (run_wizard) {
                 screen_stack_push(get_scr_home()->id);
