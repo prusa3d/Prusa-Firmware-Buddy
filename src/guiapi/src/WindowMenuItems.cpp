@@ -108,7 +108,8 @@ rect_ui16_t IWiSwitch::getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_ro
  **/
 std::array<rect_ui16_t, 2> IWiSwitch::getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t rect) const {
     rect_ui16_t base_rolling_rect = super::getRollingRect(window_menu, rect);
-    rect_ui16_t spin_rect = getSpinRect(window_menu, base_rolling_rect, strlen(get_item()));
+    string_view_utf8 localizedItem = _(get_item());
+    rect_ui16_t spin_rect = getSpinRect(window_menu, base_rolling_rect, localizedItem.computeNumUtf8CharsAndRewind());
 
     rect_ui16_t rolling_rect = base_rolling_rect;
     rolling_rect.w = spin_rect.x - rolling_rect.x;

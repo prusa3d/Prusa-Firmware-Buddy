@@ -36,6 +36,8 @@ extern void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_
 
 extern void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
 
+extern void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
+
 extern void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll);
 
 extern void roll_init(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);

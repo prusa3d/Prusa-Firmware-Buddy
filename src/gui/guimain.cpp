@@ -156,7 +156,7 @@ extern "C" void gui_run(void) {
     screen_register(get_scr_lan_settings());
     screen_register(get_scr_menu_fw_update());
     screen_register(get_scr_menu_languages()); // WTF!?!? why does this have to be done at runtime? There is no compile-time warning, that a screen didn't get its unique id (for whatever reason)
-
+    screen_register(get_scr_menu_languages_noret());
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
         //screen_stack_push(get_scr_splash()->id);

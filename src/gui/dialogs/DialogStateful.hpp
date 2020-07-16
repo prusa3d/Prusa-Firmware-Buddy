@@ -85,7 +85,7 @@ public:
     }
 
 protected:
-    void draw_phase_text(const char *text);
+    void draw_phase_text(string_view_utf8 text);
     void draw_frame();
     void draw_progress();
 };
@@ -161,7 +161,7 @@ void DialogStateful<T>::draw() {
 
         if (flags & DLG_TXT_CH) //text changed
         {
-            draw_phase_text(text);
+            draw_phase_text(_(text));
             flags &= ~DLG_TXT_CH;
         }
 
