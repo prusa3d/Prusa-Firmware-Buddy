@@ -473,6 +473,7 @@ target_sources(
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
           src/common/sound.cpp
+          src/common/language_eeprom.cpp
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp

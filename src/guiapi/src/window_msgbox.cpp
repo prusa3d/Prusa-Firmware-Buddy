@@ -95,7 +95,8 @@ void window_msgbox_draw_buttons(window_msgbox_t *window) {
     for (int i = 0; i < count; i++) {
         if (window->buttons[i] == NULL) // set default button in case of missing one
             window->buttons[i] = window_msgbox_button_text[buttons[i]];
-        chars += strlen(window->buttons[i]);
+        string_view_utf8 btni = _(window->buttons[i]); // @@TODO optimize - probably can cache the translated buttons for the cycle below
+        chars += btni.computeNumUtf8CharsAndRewind();
     }
 
     chars /= count;

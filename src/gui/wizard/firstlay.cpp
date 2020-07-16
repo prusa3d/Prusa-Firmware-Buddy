@@ -537,7 +537,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
 
 #if DEBUG_TERM == 0
     point_ui16_t pt;
-    string_view_utf8 wft = string_view_utf8::MakeCPUFLASH((const uint8_t *)_wizard_firstlay_text);
+    string_view_utf8 wft = _(_wizard_firstlay_text);
     uint16_t numOfUTF8Chars = 0;
     pt = font_meas_text(resource_font(IDR_FNT_NORMAL), &wft, &numOfUTF8Chars);
     pt.x += 5;

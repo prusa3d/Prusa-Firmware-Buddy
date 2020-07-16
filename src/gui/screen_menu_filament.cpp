@@ -48,7 +48,7 @@ public:
     MI_LOAD()
         : MI_event_dispatcher(label) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
-        return string_view_utf8::MakeCPUFLASH((const uint8_t *)header_label);
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
@@ -65,7 +65,7 @@ public:
     MI_UNLOAD()
         : MI_event_dispatcher(label) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
-        return string_view_utf8::MakeCPUFLASH((const uint8_t *)header_label);
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_unload();
@@ -82,7 +82,7 @@ public:
     MI_CHANGE()
         : MI_event_dispatcher(label) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
-        return string_view_utf8::MakeCPUFLASH((const uint8_t *)header_label);
+        return _(header_label);
     }
     virtual void Do() override {
         if (gui_dlg_unload() == DLG_OK) {
@@ -101,7 +101,7 @@ public:
     MI_PURGE()
         : MI_event_dispatcher(label) {}
     virtual string_view_utf8 GetHeaderAlterLabel() override {
-        return string_view_utf8::MakeCPUFLASH((const uint8_t *)header_label);
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_purge() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
