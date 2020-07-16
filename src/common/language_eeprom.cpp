@@ -16,7 +16,7 @@ LangEEPROM::LangEEPROM()
     uint16_t _language = Translations::MakeLangCode("en");
 #endif
     if (_language == static_cast<uint16_t>(0xffff)) {
-        setLanguage(Translations::MakeLangCode("en"));
+        _language = Translations::MakeLangCode("en");
     } else {
 #ifndef LANGEEPROM_UNITTEST
         Translations::Instance().ChangeLanguage(_language);
