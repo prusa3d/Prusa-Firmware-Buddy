@@ -64,7 +64,7 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
 bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     int x = rc.x;
     int y = rc.y;
-    const uint16_t rc_end_x = rc.x + rc.w;
+    //    const uint16_t rc_end_x = rc.x + rc.w;
     const uint16_t rc_end_y = rc.y + rc.h;
     const uint16_t w = pf->w; //char width
     const uint16_t h = pf->h; //char height
@@ -142,10 +142,7 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP
-        uint16_t x;
         uint16_t y = rc_pad.y;
-        int n;
-        int i;
         // reuse the PNG decompression buffer for temporary storage of the 4B unicode string
         // This is safe here, no PNG is being decompressed while rendering a piece of text
         unichar *png_mem_ptr0 = (unichar *)0x10000000; //@@TODO clean up, this is brutal
@@ -156,6 +153,9 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
         str = png_mem_ptr0; // reset the string pointer to its beginning ... and now we can keep the old algoritm almost intact
 
 #if 0 // old implementation - intentionally kept here for reference and future fixing of this mess :(
+        uint16_t x;
+        int n;
+        int i;
         while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
             x = rc_pad.x;
             i = 0;
