@@ -36,14 +36,12 @@ extern "C" {
 
 //todo remove this variable after pause refactoring
 extern FILAMENT_t filament_to_load;
-
 extern const filament_t filaments[FILAMENTS_END];
-
 void set_filament(FILAMENT_t filament);
-
 FILAMENT_t get_filament();
-
 FILAMENT_t get_filament_from_string(const char *s, size_t len);
+int get_filament_nozzle_temp();
+int get_filament_bed_temp();
 
 #ifdef __cplusplus
 }

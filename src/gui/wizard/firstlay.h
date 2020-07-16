@@ -15,6 +15,8 @@
 // which is an ugly and unreadable hack (probably a side effect)
 typedef enum {
     _FL_INIT,
+    _FL_GCODE_MBL,
+    _FL_GCODE_HEAT,
     _FL_GCODE_HEAD,
     _FL_GCODE_BODY,
     _FL_GCODE_DONE
@@ -45,7 +47,7 @@ struct firstlay_screen_t {
     float Z_offset;
     float Z_offset_request;
 
-    //it is being deleted i do not know why. size isue?
+    //It is being deleted. I do not know why. Size issue?
     /*const char**      head_gcode;
 	const char**      body_gcode;
 	size_t            head_gcode_sz;

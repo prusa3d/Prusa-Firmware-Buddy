@@ -1,7 +1,9 @@
-// firstlay.c
+// firstlay.cpp
 
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
+#include <math.h>
 
 #include "firstlay.h"
 #include "dbg.h"
@@ -16,8 +18,240 @@
 #include "menu_vars.h"
 #include "filament.h"
 #include "../lang/i18n.h"
-#include <algorithm>
 
+constexpr uint16_t bufferSize = 512;
+
+/// Tool to generate string from G codes.
+/// Most of the methods can be chained (gc.G(28).G(29).G1(0,0,0,0,0))
+class gCode {
+private:
+    /// G code string; stores whole G code
+    std::array<char, bufferSize> code;
+
+    /// Cursor position in code.
+    /// This defines end of the string.
+    /// There's no need for trailing 0.
+    uint16_t pos = 0;
+
+    uint8_t error_ = 0;
+
+    void updatePosOrError(const int chars, const uint8_t errorNum = 1) {
+        if (chars < 0) {
+            error_ = errorNum;
+        } else {
+            pos += chars;
+        }
+    }
+
+public:
+    gCode() {
+        code[0] = 0;
+    }
+
+    bool isFull() {
+        if (pos >= bufferSize)
+            return true;
+        return false;
+    }
+
+    uint8_t error() {
+        return error_;
+    }
+
+    inline bool isError() {
+        return error_ > 0;
+    }
+
+    void resetError() {
+        error_ = 0;
+    }
+
+    void clear() {
+        pos = 0;
+    }
+
+    /// Writes a string.
+    gCode &write(const char *string) {
+        if (isError())
+            return *this;
+
+        const int chars = snprintf(&code[pos], bufferSize - pos, string);
+        updatePosOrError(chars);
+        return *this;
+    }
+
+    /// Writes a float.
+    gCode &write(const float value) {
+        if (isError())
+            return *this;
+
+        const int chars = snprintf(&code[pos], bufferSize - pos, "%f", (double)value);
+        updatePosOrError(chars);
+        return *this;
+    }
+
+    /// Writes a parameter e.g. " S120"
+    gCode &param(const char parameter, const float value) {
+        if (isError())
+            return *this;
+
+        const int chars = snprintf(&code[pos], bufferSize - pos, " %c%f", parameter, (double)value);
+        updatePosOrError(chars);
+        return *this;
+    }
+
+    /// Writes e.g. "G28\n" or "G28 ".
+    gCode &G(const uint8_t value, const bool lineBreak = true) {
+        if (isError())
+            return *this;
+
+        const int chars = snprintf(&code[pos], bufferSize - pos, "G%d", value);
+
+        if (chars < 0) {
+            error_ = 1;
+        } else {
+            pos += chars;
+            if (lineBreak)
+                newLine();
+            else
+                space();
+        }
+        return *this;
+    }
+
+    /// Writes e.g. "M83\n" or "M83 ".
+    gCode &M(const uint8_t value, const bool lineBreak = true) {
+        if (isError())
+            return *this;
+
+        const int chars = snprintf(&code[pos], bufferSize - pos, "M%d", value);
+
+        if (chars < 0) {
+            error_ = 1;
+        } else {
+            pos += chars;
+            if (lineBreak)
+                newLine();
+            else
+                space();
+        }
+        return *this;
+    }
+
+    /// Add space.
+    gCode &space() {
+        if (isFull() || isError()) {
+            error_ = 2;
+        } else {
+            code[pos++] = ' ';
+        }
+        return *this;
+    }
+
+    /// Add new line.
+    gCode &newLine() {
+        if (isFull() || isError()) {
+            error_ = 2;
+        } else {
+            code[pos++] = '\n';
+        }
+        return *this;
+    }
+
+    /// Writes e.g. "G1 X10 Y20 Z30 E0.5 F1500\n".
+    gCode &G1(const float x, const float y, const float z, const float e, const float f) {
+        if (isError())
+            return *this;
+
+        G(1);
+
+        int chars = 0;
+        if (isfinite(x)) {
+            chars = snprintf(&code[pos], bufferSize - pos, " X%f", (double)x);
+            if (chars < 0) {
+                error_ = 3;
+                return *this;
+            }
+            pos += chars;
+        }
+
+        if (isfinite(y)) {
+            chars = snprintf(&code[pos], bufferSize - pos, " Y%f", (double)y);
+            if (chars < 0) {
+                error_ = 3;
+                return *this;
+            }
+            pos += chars;
+        }
+
+        if (isfinite(z)) {
+            chars = snprintf(&code[pos], bufferSize - pos, " Z%f", (double)z);
+            if (chars < 0) {
+                error_ = 3;
+                return *this;
+            }
+            pos += chars;
+        }
+
+        if (isfinite(e)) {
+            chars = snprintf(&code[pos], bufferSize - pos, " E%f", (double)e);
+            if (chars < 0) {
+                error_ = 3;
+                return *this;
+            }
+            pos += chars;
+        }
+
+        if (isfinite(f)) {
+            chars = snprintf(&code[pos], bufferSize - pos, " F%f", (double)f);
+            if (chars < 0) {
+                error_ = 3;
+                return *this;
+            }
+            pos += chars;
+        }
+
+        chars = snprintf(&code[pos], bufferSize - pos, "\n");
+        updatePosOrError(chars, 3);
+
+        return *this;
+    }
+
+    /// Writes e.g. "G1 X10 Y20 E0.5".
+    gCode &G1(const float x, const float y, const float e) {
+        return G1(x, y, NAN, e, NAN);
+    }
+
+    /// Sends G codes one by one
+    /// \returns false if error occurs
+    bool send() {
+        if (pos >= bufferSize) {
+            error_ = 4;
+            return false;
+        }
+
+        uint16_t eof = 0;
+        uint16_t start = 0;
+        while (1) {
+            /// find end of line
+            while (eof < pos && code[eof] != '\n')
+                ++eof;
+            code[eof] = '\0'; /// switch \n to \0
+            marlin_gcode(&code[start]);
+            start = ++eof;
+        }
+        clear(); /// remove all G codes
+        return true;
+    }
+};
+
+void initialGcodes(gCode &gc) {
+    gc.M(107)   // fan off
+        .G(90)  // use absolute coordinates
+        .M(83)  // extruder relative mode
+        .G(21)  // set units to millimeters
+        .M(83); // use relative distances for extrusion
+}
 #define V__GCODES_HEAD_BEGIN                 \
     "M107",    /*fan off */                  \
         "G90", /*use absolute coordinates*/  \
@@ -26,18 +260,36 @@
         "G90", /* use absolute coordinates*/ \
         "M83", /* use relative distances for extrusion*/
 
+void homeAndMBL(gCode &gc, const uint16_t nozzle_preheat, const uint16_t nozzle_target, const uint8_t bed) {
+    // clang-format off
+    gc  .M(104, false).param('S', nozzle_preheat).param('D', nozzle_target).newLine() //nozzle target
+        .M(140, false).param('S', bed)                                                // bed target
+        .M(109, false).param('R', nozzle_preheat).newLine()                           // wait for nozzle temp
+        .M(190, false).param('S', bed).newLine()                                      // wait for bed temp
+        .G(28)                                                                        // autohome
+        .G(29);                                                                       // meshbed leveling
+    // clang-format on
+}
+void heatNozzle(gCode &gc, const uint16_t nozzle_target, const uint8_t bed) {
+    // clang-format off
+    gc  .M(104, false).param('S', nozzle_target)  // nozzle target
+        .M(109, false).param('S', nozzle_target); // wait for nozzle temp
+    // clang-format on
+}
+
 //todo generate me
-const char *V2_gcodes_head_PLA[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D215", //nozzle target
-    "M140 S60",                           //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S60",                           //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S215",                          //nozzle target
-    "M109 S215",                          //wait for nozzle temp
-};
+const char *V2_gcodes_head_PLA[]
+    = {
+          V__GCODES_HEAD_BEGIN
+          "M104 S" PREHEAT_TEMP_STRING " D215", //nozzle target
+          "M140 S60",                           //bed target
+          "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+          "M190 S60",                           //wait for bed temp
+          "G28",                                /*autohome*/
+          "G29",                                /*meshbed leveling*/
+          "M104 S215",                          //nozzle target
+          "M109 S215",                          //wait for nozzle temp
+      };
 const size_t V2_gcodes_head_PLA_sz = sizeof(V2_gcodes_head_PLA) / sizeof(V2_gcodes_head_PLA[0]);
 
 const char *V2_gcodes_head_PETG[] = {
@@ -233,7 +485,8 @@ const size_t V2_gcodes_body_sz = sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[
 //todo use marlin api
 const size_t commands_in_queue_size = 8;
 const size_t commands_in_queue_use_max = 6;
-const size_t max_gcodes_in_one_run = 20; //milion of small gcodes could be done instantly but block gui
+// FIXME it's not used
+const size_t max_gcodes_in_one_run = 20; //million of small gcodes could be done instantly but block gui
 
 static uint32_t line_head = 0;
 static uint32_t line_body = 0;
@@ -260,6 +513,7 @@ static const char *_wizard_firstlay_text = N_("Once the printer   \n"
                                               "until the filament \n"
                                               "sticks to the print\n"
                                               "sheet.");
+
 int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count);
 #else
 int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term);
@@ -280,6 +534,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     }
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
+
 #if DEBUG_TERM == 0
     point_ui16_t pt;
     string_view_utf8 wft = string_view_utf8::MakeCPUFLASH((const uint8_t *)_wizard_firstlay_text);
@@ -305,6 +560,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
 
     y += 18 * FIRSTLAY_SCREEN_TERM_Y + 3;
 #endif
+
     window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 110, 22), &(p_screen->text_Z_pos));
     p_screen->text_Z_pos.SetText(_("Z height:"));
 
@@ -323,6 +579,150 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 }
 
+const char **getHeaderGCode() {
+    switch (get_filament()) {
+    case FILAMENT_PETG:
+        return V2_gcodes_head_PETG;
+    case FILAMENT_ASA:
+        return V2_gcodes_head_ASA;
+    case FILAMENT_ABS:
+        return V2_gcodes_head_ABS;
+    case FILAMENT_PC:
+        return V2_gcodes_head_PC;
+    case FILAMENT_FLEX:
+        return V2_gcodes_head_FLEX;
+    case FILAMENT_HIPS:
+        return V2_gcodes_head_HIPS;
+    case FILAMENT_PP:
+        return V2_gcodes_head_PP;
+    case FILAMENT_PLA:
+    default:
+        return V2_gcodes_head_PLA;
+    }
+}
+
+size_t getHeaderGCodeSize() {
+    switch (get_filament()) {
+    case FILAMENT_PETG:
+        return V2_gcodes_head_PETG_sz;
+    case FILAMENT_ASA:
+        return V2_gcodes_head_ASA_sz;
+    case FILAMENT_ABS:
+        return V2_gcodes_head_ABS_sz;
+    case FILAMENT_PC:
+        return V2_gcodes_head_PC_sz;
+    case FILAMENT_FLEX:
+        return V2_gcodes_head_FLEX_sz;
+    case FILAMENT_HIPS:
+        return V2_gcodes_head_HIPS_sz;
+    case FILAMENT_PP:
+        return V2_gcodes_head_PP_sz;
+    case FILAMENT_PLA:
+    default:
+        return V2_gcodes_head_PLA_sz;
+    }
+}
+
+inline float targetTemp() {
+    return get_filament_nozzle_temp();
+}
+
+inline float preheatTemp() {
+    return PREHEAT_TEMP;
+}
+
+float bedTemp() {
+    return get_filament_bed_temp();
+}
+
+inline void FLInit(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
+    p_screen->Z_offset = z_offset;
+    wizard_init_screen_firstlay(id_body, p_screen, p_data);
+
+    if (marlin_get_gqueue() > 0)
+        return;
+
+    /// set printer
+    gCode gc;
+    initialGcodes(gc);
+    gc.send();
+
+#if DEBUG_TERM == 1
+    term_printf(&p_screen->terminal, "INITIALIZED\n");
+    p_screen->term.id.Invalidate();
+#endif
+    _set_gcode_first_lines();
+    p_screen->state = _FL_GCODE_MBL;
+    marlin_error_clr(MARLIN_ERR_ProbingFailed);
+#if DEBUG_TERM == 1
+    term_printf(&p_screen->terminal, "MBL\n");
+    p_screen->term.id.Invalidate();
+#endif
+}
+
+inline void FLGcodeMBL(firstlay_screen_t *p_screen) {
+    if (marlin_get_gqueue() > 0)
+        return;
+
+    gCode gc;
+    homeAndMBL(gc, preheatTemp(), targetTemp(), bedTemp());
+    gc.send();
+
+    p_screen->state = _FL_GCODE_HEAT;
+#if DEBUG_TERM == 1
+    term_printf(&p_screen->terminal, "HEAT\n");
+    p_screen->term.Invalidate();
+#endif
+}
+
+inline void FLGcodeHeat(firstlay_screen_t *p_screen) {
+    if (marlin_get_gqueue() > 0)
+        return;
+
+    gCode gc;
+    heatNozzle(gc, preheatTemp(), targetTemp());
+    gc.send();
+
+    p_screen->state = _FL_GCODE_HEAT;
+#if DEBUG_TERM == 1
+    term_printf(&p_screen->terminal, "BODY\n");
+    p_screen->term.Invalidate();
+#endif
+    p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
+    p_screen->spin_baby_step.color_text = COLOR_ORANGE;
+    p_screen->spin_baby_step.Invalidate();
+}
+
+inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
+#if DEBUG_TERM == 0
+    const int remaining_lines = _run_gcode_line(&line_head, code, size);
+#else
+    const int remaining_lines = _run_gcode_line(&line_head, code, size, &p_screen->term);
+#endif
+    if (remaining_lines < 1) {
+        p_screen->state = _FL_GCODE_BODY;
+#if DEBUG_TERM == 1
+        term_printf(&p_screen->terminal, "BODY\n");
+        p_screen->term.Invalidate();
+#endif
+        p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
+        p_screen->spin_baby_step.color_text = COLOR_ORANGE;
+        p_screen->spin_baby_step.Invalidate();
+    }
+}
+
+inline void FLGcodeBody(firstlay_screen_t *p_screen, const char **code, size_t size) {
+    _wizard_firstlay_Z_step(p_screen);
+#if DEBUG_TERM == 0
+    const int remaining_lines = _run_gcode_line(&line_body, code, size);
+#else
+    const int remaining_lines = _run_gcode_line(&line_body, code, size, &p_screen->term);
+#endif
+    if (remaining_lines < 1) {
+        p_screen->state = _FL_GCODE_DONE;
+    }
+}
+
 int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
     if (p_data->state_print == _TEST_START) {
         p_screen->state = _FL_INIT;
@@ -330,41 +730,9 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 
         body_gcode = V2_gcodes_body;
         body_gcode_sz = V2_gcodes_body_sz;
-        switch (get_filament()) {
-        case FILAMENT_PETG:
-            head_gcode = V2_gcodes_head_PETG;
-            head_gcode_sz = V2_gcodes_head_PETG_sz;
-            break;
-        case FILAMENT_ASA:
-            head_gcode = V2_gcodes_head_ASA;
-            head_gcode_sz = V2_gcodes_head_ASA_sz;
-            break;
-        case FILAMENT_ABS:
-            head_gcode = V2_gcodes_head_ABS;
-            head_gcode_sz = V2_gcodes_head_ABS_sz;
-            break;
-        case FILAMENT_PC:
-            head_gcode = V2_gcodes_head_PC;
-            head_gcode_sz = V2_gcodes_head_PC_sz;
-            break;
-        case FILAMENT_FLEX:
-            head_gcode = V2_gcodes_head_FLEX;
-            head_gcode_sz = V2_gcodes_head_FLEX_sz;
-            break;
-        case FILAMENT_HIPS:
-            head_gcode = V2_gcodes_head_HIPS;
-            head_gcode_sz = V2_gcodes_head_HIPS_sz;
-            break;
-        case FILAMENT_PP:
-            head_gcode = V2_gcodes_head_PP;
-            head_gcode_sz = V2_gcodes_head_PP_sz;
-            break;
-        case FILAMENT_PLA:
-        default:
-            head_gcode = V2_gcodes_head_PLA;
-            head_gcode_sz = V2_gcodes_head_PLA_sz;
-            break;
-        }
+
+        head_gcode = getHeaderGCode();
+        head_gcode_sz = getHeaderGCodeSize();
 
         gcode_sz = body_gcode_sz + head_gcode_sz;
 
@@ -383,23 +751,34 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         }
     }
 
-    int remaining_lines;
     switch (p_screen->state) {
+
     case _FL_INIT:
-        p_screen->Z_offset = z_offset;
-        wizard_init_screen_firstlay(id_body, p_screen, p_data);
-#if DEBUG_TERM == 1
-        term_printf(&p_screen->terminal, "INITIALIZED\n");
-        p_screen->term.id.Invalidate();
-#endif
-        _set_gcode_first_lines();
-        p_screen->state = _FL_GCODE_HEAD;
-        marlin_error_clr(MARLIN_ERR_ProbingFailed);
-#if DEBUG_TERM == 1
-        term_printf(&p_screen->terminal, "HEAD\n");
-        p_screen->term.id.Invalidate();
-#endif
+        FLInit(id_body, p_screen, p_data, z_offset);
         break;
+
+    case _FL_GCODE_MBL:
+        FLGcodeMBL(p_screen);
+        break;
+
+    case _FL_GCODE_HEAT:
+        //have to wait to next state after MBL to check error
+        if (marlin_error(MARLIN_ERR_ProbingFailed)) {
+            marlin_error_clr(MARLIN_ERR_ProbingFailed);
+            marlin_gcode("G0 Z30"); //Z 30mm
+            marlin_gcode("M84");    //Disable steppers
+            if (wizard_msgbox(_("Mesh bed leveling failed?"), MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
+                p_screen->state = _FL_GCODE_MBL; //RETRY
+            } else {
+                p_data->state_print = _TEST_FAILED; //ABORT
+                return 100;
+            }
+        }
+
+        FLGcodeHeat(p_screen);
+        break;
+
+    /// depreciated
     case _FL_GCODE_HEAD:
         //have to wait to next state after MBL to check error
         if (line_head > G29_pos && marlin_error(MARLIN_ERR_ProbingFailed)) {
@@ -415,37 +794,13 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
                 return 100;
             }
         }
-#if DEBUG_TERM == 0
-        remaining_lines = _run_gcode_line(&line_head, head_gcode,
-            head_gcode_sz);
-#else
-        remaining_lines = _run_gcode_line(&line_head, head_gcode,
-            head_gcode_sz, &p_screen->term);
-#endif
-        if (remaining_lines < 1) {
-            p_screen->state = _FL_GCODE_BODY;
-#if DEBUG_TERM == 1
-            term_printf(&p_screen->terminal, "BODY\n");
-            p_screen->term.Invalidate();
-#endif
-            p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
-            p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-            p_screen->spin_baby_step.Invalidate();
-        }
+        FLGcodeHead(p_screen, head_gcode, head_gcode_sz);
         break;
+
     case _FL_GCODE_BODY:
-        _wizard_firstlay_Z_step(p_screen);
-#if DEBUG_TERM == 0
-        remaining_lines = _run_gcode_line(&line_body, body_gcode,
-            body_gcode_sz);
-#else
-        remaining_lines = _run_gcode_line(&line_body, body_gcode,
-            body_gcode_sz, &p_screen->term);
-#endif
-        if (remaining_lines < 1) {
-            p_screen->state = _FL_GCODE_DONE;
-        }
+        FLGcodeBody(p_screen, body_gcode, body_gcode_sz);
         break;
+
     case _FL_GCODE_DONE:
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "PASSED\n");
@@ -480,28 +835,24 @@ void wizard_firstlay_event_up(firstlay_screen_t *p_screen) {
 
 void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     //need last step to ensure correct behavior on limits
-    float _step_last = p_screen->Z_offset;
+    const float _step_last = p_screen->Z_offset;
     p_screen->Z_offset += p_screen->Z_offset_request;
-
-    if (p_screen->Z_offset > z_offset_max)
-        p_screen->Z_offset = z_offset_max;
-    if (p_screen->Z_offset < z_offset_min)
-        p_screen->Z_offset = z_offset_min;
+    p_screen->Z_offset = std::min(z_offset_max, std::max(z_offset_min, p_screen->Z_offset));
 
     marlin_do_babysteps_Z(p_screen->Z_offset - _step_last);
 
     //call p_screen->spin_baby_step.SetValue(p_screen->Z_offset); only when value changed
-    if (p_screen->Z_offset_request > 0) {
-        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
-        static const char pp[] = "+++";
-        p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pp));
-    } else if (p_screen->Z_offset_request < 0) {
-        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
-        static const char mm[] = "---";
-        p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)mm));
-    }
+    static const char *mp[2] = { /// minus / plus chars
+        "---",
+        "+++"
+    };
 
-    p_screen->Z_offset_request = 0;
+    if (p_screen->Z_offset_request != 0) {
+        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
+        p_screen->text_direction_arrow.SetText(
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)mp[signbit(p_screen->Z_offset_request)]));
+        p_screen->Z_offset_request = 0;
+    }
 }
 
 int _get_progress() {

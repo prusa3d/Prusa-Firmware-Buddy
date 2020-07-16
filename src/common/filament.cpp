@@ -49,6 +49,14 @@ FILAMENT_t get_filament() {
     return filament_selected;
 }
 
+int get_filament_nozzle_temp() {
+    return filaments[get_filament()].nozzle;
+}
+
+int get_filament_bed_temp() {
+    return filaments[get_filament()].heatbed;
+}
+
 FILAMENT_t get_filament_from_string(const char *s, size_t len) {
     for (size_t i = FILAMENT_NONE + 1; i < FILAMENTS_END; ++i) {
         if ((strlen(filaments[i].name) == len) && (!strncmp(s, filaments[i].name, len))) {
