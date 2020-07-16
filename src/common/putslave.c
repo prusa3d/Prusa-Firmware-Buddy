@@ -75,6 +75,8 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
             cmd_id = PUTSLAVE_CMD_ID_TSTE;
         else if (strncmp(pstr, "eecl", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_EECL;
+        else if (strncmp(pstr, "fpwm", 4) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_FPWM;
         else if (strncmp(pstr, "diag", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_DIAG;
         else if (strncmp(pstr, "uart", 4) == 0)
@@ -456,7 +458,24 @@ int putslave_do_cmd_a_lock(uartslave_t *pslave) {
     return UARTSLAVE_ERR_ONP;
 }
 
+int putslave_do_cmd_a_fpwm(uartslave_t *pslave, char *pstr) {
+    unsigned int fan = 0;
+    unsigned int pwm = 0;
+    if (strlen(pstr)) {
+        if (sscanf(pstr, "%u %u", &fan, &pwm) != 2)
+            return UARTSLAVE_ERR_SYN;
+        if (fan > 1)
+            return UARTSLAVE_ERR_OOR;
+        if (pwm > 50)
+            return UARTSLAVE_ERR_OOR;
+        fanctl_set_pwm(fan, pwm);
+        return UARTSLAVE_OK;
+    }
+    return UARTSLAVE_ERR_ONP;
+}
+
 int putslave_do_cmd_a_tst(uartslave_t *pslave, char *pstr) {
+#if 0 // used to test eeprom wizard flags
     int run_selftest = 0;
     int run_xyzcalib = 0;
     int run_firstlay = 0;
@@ -466,6 +485,7 @@ int putslave_do_cmd_a_tst(uartslave_t *pslave, char *pstr) {
     eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(run_selftest)); //
     eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(run_xyzcalib)); //
     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(run_firstlay)); //
+#endif
 #ifdef SIM_MOTION
 //	sim_motion_print_buff();
 #endif //SIM_MOTION
@@ -614,6 +634,8 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_stop(pslave);
             case PUTSLAVE_CMD_ID_EECL:
                 return putslave_do_cmd_a_eecl(pslave);
+            case PUTSLAVE_CMD_ID_FPWM:
+                return putslave_do_cmd_a_fpwm(pslave, pstr);
             case PUTSLAVE_CMD_ID_GPIO:
                 return putslave_do_cmd_a_gpio(pslave, pstr);
             case PUTSLAVE_CMD_ID_GCODE:
