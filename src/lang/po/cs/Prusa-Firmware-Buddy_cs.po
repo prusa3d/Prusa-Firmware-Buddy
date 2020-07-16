@@ -194,7 +194,7 @@ msgstr "Nahrány výchozí hodnoty. Systém se restartuje."
 
 #: src/guiapi/include/MItem_tools.hpp:68
 msgid "Factory Reset"
-msgstr "Tovární reset"
+msgstr "Tovární nastavení"
 
 #: src/guiapi/include/MItem_menus.hpp:48
 msgid "Fail Stats"
@@ -232,15 +232,15 @@ msgstr "Verze firmwaru"
 
 #: src/guiapi/include/MItem_tools.hpp:48
 msgid "First Layer Cal."
-msgstr "Kal. 1. vrstvy"
+msgstr "Kalib. prvni vrstvy"
 
 #: src/gui/wizard/screen_wizard.c:551
 msgid "FIRST LAYER CALIB."
-msgstr "KALIB. 1. VRSTVY"
+msgstr "KALIB. PRVNI VRSTVY"
 
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
-msgstr "Faktor průtoku"
+msgstr "Průtok"
 
 #: src/gui/screen_menu_fw_update.cpp:46
 msgid "FW UPDATE"
@@ -268,7 +268,7 @@ msgstr "Vítá vás\nOriginal Prusa MINI!"
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
 msgid "HOME"
-msgstr "DOMŮ"
+msgstr "MENU"
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
@@ -330,7 +330,7 @@ msgstr "Je barva správná?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:54
 msgid "Is filament in    \nextruder gear?    "
-msgstr "Je filament\nv podávacím\nsoukolí?"
+msgstr "Je filament\nv podávacím\nsoukolí extruderu?"
 
 #: src/gui/wizard/screen_wizard.c:313
 msgid "Is steel sheet on heatbed?"
@@ -356,7 +356,7 @@ msgstr "JAZYKY"
 
 #: src/guiapi/include/MItem_print.hpp:48
 msgid "Live Adjust Z"
-msgstr "Dostavování Z"
+msgstr "Doladit Z"
 
 #: src/gui/wizard/wizard_load_unload.cpp:44
 msgid "LOAD"
@@ -502,7 +502,7 @@ msgstr "Zap"
 
 #: src/gui/screen_menu_fw_update.cpp:32
 msgid "On restart"
-msgstr "Na restart"
+msgstr "Při restartu"
 
 #: src/guiapi/include/MItem_tools.hpp:209
 #: src/guiapi/include/MItem_tools.hpp:208
@@ -511,7 +511,7 @@ msgstr "Jednou"
 
 #: src/gui/wizard/firstlay.c:55 src/gui/wizard/firstlay.c:63
 msgid "Once the printer   \nstarts extruding   \nplastic, adjust    \nthe nozzle height  \nby turning the knob\nuntil the filament \nsticks to the print\nsheet."
-msgstr "Až MINI začne\nvytlačovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce."
+msgstr "Až MINI začne\nextrudovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:45
 msgid "Parking"
@@ -566,7 +566,7 @@ msgstr "PŘEDEHŘEV"
 
 #: src/gui/screen_home.cpp:40
 msgid "Preheat"
-msgstr "Předehřát"
+msgstr "Předehřev"
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31
@@ -586,7 +586,7 @@ msgstr "Příprava na ramming"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "Zvolte POKRAČOVAT\na zatlačte filament\ndo extruderu"
+msgstr "Zvolte POKRAČOVAT\na zasuňte filament\ndo extruderu"
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
@@ -598,7 +598,7 @@ msgstr "Tisk"
 
 #: src/guiapi/include/MItem_print.hpp:24
 msgid "Print Fan"
-msgstr "Tisk. větrák"
+msgstr "Tisk. vent."
 
 #: src/gui/wizard/selftest_fans_axis.cpp:43
 msgid "Print fan"
@@ -623,7 +623,7 @@ msgstr "Čas tisku"
 #: src/gui/dialogs/DialogFactory.cpp:14 src/gui/screen_menu_filament.cpp:101
 #: src/gui/screen_menu_filament.cpp:98
 msgid "PURGE FILAMENT"
-msgstr "Až MINI začne\nvytlačovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce"
+msgstr "ČISTIT FILAMENT"
 
 #: src/gui/screen_menu_filament.cpp:100 src/gui/screen_menu_filament.cpp:97
 msgid "Purge Filament"
@@ -676,7 +676,7 @@ msgstr "Opětovné spuštění..."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:34
 msgid "RETRY"
-msgstr "OPAKOVAT"
+msgstr "ZNOVU"
 
 #: src/gui/dialogs/window_dlg_preheat.cpp:39
 #: src/guiapi/include/WindowMenuItems.hpp:223
@@ -739,7 +739,7 @@ msgstr "Tichý"
 #: src/guiapi/include/MItem_tools.hpp:207
 #: src/guiapi/include/MItem_tools.hpp:206
 msgid "Sound Mode"
-msgstr "Zvuk. režim"
+msgstr "Zvuk"
 
 #: src/guiapi/include/MItem_tools.hpp:221
 #: src/guiapi/include/MItem_tools.hpp:220
@@ -831,7 +831,7 @@ msgstr "Čas. limit"
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD."
-msgstr "Pro kalibraci\ns aktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro výměnu\nzvolte VYJMOUT."
+msgstr "Pro kalibraci s\naktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro výměnu\nzvolte VYJMOUT."
 
 #: src/gui/wizard/wizard_load_unload.cpp:46
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD."
@@ -854,7 +854,7 @@ msgstr "Ladit"
 #: src/gui/wizard/wizard_load_unload.cpp:21
 #: src/gui/wizard/wizard_load_unload.cpp:44
 msgid "UNLOAD"
-msgstr "VYJMOUT"
+msgstr "VYJM."
 
 #: src/gui/dialogs/DialogFactory.cpp:13 src/gui/screen_menu_filament.cpp:62
 #: src/gui/screen_menu_filament.cpp:63
@@ -871,7 +871,7 @@ msgstr "Vysouvání"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:46
 msgid "Unparking"
-msgstr "Vyparkování"
+msgstr "Odparkování"
 
 #: src/usbh_diskio.c:148 src/usbh_diskio.c:192
 msgid "USB Disk is not ready!"

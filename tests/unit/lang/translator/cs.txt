@@ -41,7 +41,7 @@ Chyba při ukládání výpisu chyb na USB. Vložte USB znovu a opakujte akci.
 Vše v pořádku. Nyní se spustí XYZ kalibrace, která trvá cca 12 minut.
 KONEC
 Nahrány výchozí hodnoty. Systém se restartuje.
-Tovární reset
+Tovární nastavení
 Stat. chyb
 Test vent.
 Fil. senz.
@@ -50,16 +50,16 @@ Filament
 Filament nebyl detekován. Zavést filament nyní? Vyberte NE pro zrušení tisku, nebo IGNOROVAT pro vypnutí senzoru a pokračování.
 Dokončování\nnačtených gcodů.
 Verze firmwaru
-Kal. 1. vrstvy
-KALIB. 1. VRSTVY
-Faktor průtoku
+Kalib. prvni vrstvy
+KALIB. PRVNI VRSTVY
+Průtok
 AKTUALIZACE FW
 Aktualizace FW
 Podložka
 Vyhřívání vypnuto po 30 minutách neaktivity.
 Zahřívání...
 Vítá vás\nOriginal Prusa MINI!
-DOMŮ
+MENU
 Domů
 Vent. hotendu
 IGNOROVAT
@@ -71,13 +71,13 @@ Zavádění
 IP adresy nejsou platné, nebo soubor \lan_settings.ini\ není v kořenovém adresáři USB disku.
 Nesprávné IP adresy nebo parametry, nebo soubor \lan_settings.ini\ není v kořenovém adresáři USB disku.
 Je barva správná?
-Je filament\nv podávacím\nsoukolí?
+Je filament\nv podávacím\nsoukolí extruderu?
 Je na podložce tiskový plát?
 NASTAVENÍ LAN
 Nastavení LAN
 Jazyk
 JAZYKY
-Dostavování Z
+Doladit Z
 ZAVÉST
 ZAVÉST FIL.
 Zavést filament
@@ -110,9 +110,9 @@ Studená tryska.
 Vyp.
 OK
 Zap
-Na restart
+Při restartu
 Jednou
-Až MINI začne\nvytlačovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce.
+Až MINI začne\nextrudovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce.
 Parkování
 Pauza
 Pozastavování...
@@ -125,20 +125,20 @@ Vložte tiskový plát na vyhřívanou podložku.
 Odstraňte tiskový plát z vyhřívané podložky.
 Vyčkejte
 PŘEDEHŘEV
-Předehřát
+Předehřev
 PŘEDEHŘEV pro ZAVEDENÍ
 PŘEDEHŘÁT pro VYSUNUTÍ
 Příprava na ramming
-Zvolte POKRAČOVAT\na zatlačte filament\ndo extruderu
+Zvolte POKRAČOVAT\na zasuňte filament\ndo extruderu
 Vyberte DALŠÍ pro\nspuštění SelfTestu,\nkterý ověří, zda\nje tiskárna správně\nsestavena.
 Tisk
-Tisk. větrák
+Tisk. vent.
 Tisk. ventilátor
 Doba tisku
 Tisk bude ukončen
 TISK
 Čas tisku
-Až MINI začne\nvytlačovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce
+ČISTIT FILAMENT
 Čistit filament
 Čištění
 QR test
@@ -151,7 +151,7 @@ Tisk. znovu
 RESET ZAŘÍZENÍ
 Pokračovat
 Opětovné spuštění...
-OPAKOVAT
+ZNOVU
 Zpět
 Uložit výpis chyb
 Uložit nast.
@@ -165,7 +165,7 @@ Služba
 Nastavení
 Nastavení načteno
 Tichý
-Zvuk. režim
+Zvuk
 Typ zvuku
 Rychlost
 Statické IPv4 adresy nenastaveny.
@@ -186,16 +186,16 @@ Selhala kalibrace os XYZ. Zkontrolujte zapojení el. součástí i jednotlivé o
 Při ukládání souboru \lan_settings.ini\ došlo k chybě.
 Tuto operaci nelze vrátit, současná konfigurace bude ztracena! Skutečně chcete obnovit tovární nastavení?
 Čas. limit
-Pro kalibraci\ns aktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro výměnu\nzvolte VYJMOUT.
+Pro kalibraci s\naktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro výměnu\nzvolte VYJMOUT.
 Pro kalibraci s\naktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro zavedení\nfilamentu zvolte\nZAVÉST. Pro výměnu \nzvolte VYJMOUT. 
 OPAKOVAT
 LADIT
 Ladit
-VYJMOUT
+VYJM.
 VYSUNOUT FIL.
 Vysunout fil.
 Vysouvání
-Vyparkování
+Odparkování
 USB disk není připraven!
 USB disk chráněn proti zápisu!
 Množství filamentu
