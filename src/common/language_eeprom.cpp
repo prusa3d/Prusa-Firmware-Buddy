@@ -64,5 +64,9 @@ std::array<char, 2> LangEEPROM::getLanguageChar() {
 
 /// return validity of language stored in eeprom
 bool LangEEPROM::IsValid() const {
+#ifndef LANGEEPROM_UNITTEST
     return static_cast<uint16_t>(eeprom_get_var(EEVAR_LANGUAGE).ui16) == _language;
+#else
+    return true;
+#endif
 }
