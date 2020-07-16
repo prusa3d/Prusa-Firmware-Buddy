@@ -168,3 +168,26 @@ TEST_CASE("string_view_utf8::Filament test", "[string_view_utf8]") {
     string_view_utf8 sf = string_view_utf8::MakeRAM(utf8str);
     REQUIRE(Filament(sf));
 }
+
+TEST_CASE("string_view_utf8::Compute num of chars", "[string_view_utf8]") {
+    {
+        static const uint8_t utf8str[] = "";
+        string_view_utf8 sf = string_view_utf8::MakeRAM(utf8str);
+        REQUIRE(sf.computeNumUtf8CharsAndRewind() == 0);
+    }
+    {
+        static const uint8_t utf8str[] = "1";
+        string_view_utf8 sf = string_view_utf8::MakeRAM(utf8str);
+        REQUIRE(sf.computeNumUtf8CharsAndRewind() == 1);
+    }
+    {
+        static const uint8_t utf8str[] = "12";
+        string_view_utf8 sf = string_view_utf8::MakeRAM(utf8str);
+        REQUIRE(sf.computeNumUtf8CharsAndRewind() == 2);
+    }
+    {
+        static const uint8_t utf8str[] = "ěščř";
+        string_view_utf8 sf = string_view_utf8::MakeRAM(utf8str);
+        REQUIRE(sf.computeNumUtf8CharsAndRewind() == 4);
+    }
+}

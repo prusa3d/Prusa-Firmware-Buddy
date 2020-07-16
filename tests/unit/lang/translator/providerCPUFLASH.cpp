@@ -194,6 +194,8 @@ bool LoadTranslatedStringsFile(const char *fname, deque<string> *st) {
     do {
         string s;
         getline(f, s);
+        // must convert the '\n' into \xa here
+        FindAndReplaceAll(s, string("\\n"), string("\xa"));
         if (!s.empty()) {              // beware of empty strings
             st->emplace_back(move(s)); // make a copy of the string
         }
@@ -368,4 +370,14 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
             CHECK(cASCII.key != 0xffff);
         });
     }
+}
+
+TEST_CASE("providerCPUFLASH::Translations singleton", "[translator]") {
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("cs")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("de")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("en")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("es")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("fr")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("it")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("pl")));
 }
