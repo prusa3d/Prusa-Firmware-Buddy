@@ -33,7 +33,7 @@ protected:
 };
 
 class MI_CZECH : public MI_LangBase {
-    static constexpr const char *const label = "Czech";
+    static constexpr const char *const label = "Cestina";
 
 public:
     inline MI_CZECH()
@@ -44,7 +44,7 @@ protected:
 };
 
 class MI_GERMAN : public MI_LangBase {
-    static constexpr const char *const label = "German";
+    static constexpr const char *const label = "Deutsch";
 
 public:
     inline MI_GERMAN()
@@ -55,7 +55,7 @@ protected:
 };
 
 class MI_SPANISH : public MI_LangBase {
-    static constexpr const char *const label = "Spanish";
+    static constexpr const char *const label = "Espanol";
 
 public:
     inline MI_SPANISH()
@@ -66,7 +66,7 @@ protected:
 };
 
 class MI_FRENCH : public MI_LangBase {
-    static constexpr const char *const label = "French";
+    static constexpr const char *const label = "Francais";
 
 public:
     inline MI_FRENCH()
@@ -77,7 +77,7 @@ protected:
 };
 
 class MI_ITALIAN : public MI_LangBase {
-    static constexpr const char *const label = "Italian";
+    static constexpr const char *const label = "Italiano";
 
 public:
     inline MI_ITALIAN()
@@ -88,7 +88,7 @@ protected:
 };
 
 class MI_POLISH : public MI_LangBase {
-    static constexpr const char *const label = "Polish";
+    static constexpr const char *const label = "Polski";
 
 public:
     inline MI_POLISH()
