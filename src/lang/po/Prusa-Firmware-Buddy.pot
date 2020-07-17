@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-17 09:09+0200\n"
+"POT-Creation-Date: 2020-07-17 11:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -449,6 +449,10 @@ msgstr ""
 msgid "MESSAGES"
 msgstr ""
 
+#: src/gui/screen_menu_move.cpp:43
+msgid "MOVE AXIS"
+msgstr ""
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid ""
 "Make sure the     \n"
@@ -832,7 +836,7 @@ msgstr ""
 msgid "Service"
 msgstr ""
 
-#: src/gui/screen_menu_move.cpp:43 src/gui/screen_home.cpp:46
+#: src/gui/screen_home.cpp:46
 msgid "Settings"
 msgstr ""
 
