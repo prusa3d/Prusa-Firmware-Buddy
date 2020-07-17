@@ -723,20 +723,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         }
         break;
     case _FL_GCODE_BODY:
-
         FLGcodeBody(p_screen, body_gcode, body_gcode_sz);
-
-        //         _wizard_firstlay_Z_step(p_screen);
-        // #if DEBUG_TERM == 0
-        //         remaining_lines = _run_gcode_line(&line_body, body_gcode,
-        //             body_gcode_sz);
-        // #else
-        //         remaining_lines = _run_gcode_line(&line_body, body_gcode,
-        //             body_gcode_sz, &p_screen->term);
-        // #endif
-        //         if (remaining_lines < 1) {
-        //             p_screen->state = _FL_GCODE_DONE;
-        //         }
         break;
     case _FL_GCODE_DONE:
 #if DEBUG_TERM == 1
