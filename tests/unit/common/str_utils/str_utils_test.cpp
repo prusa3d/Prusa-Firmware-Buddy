@@ -262,18 +262,18 @@ TEST_CASE("String to multi-line", "[str2multiline]") {
     }
 
     SECTION("BFW-1125.2") {
-        char str[n255] =     "The status bar is at\n"
-                             "the bottom of the  \n"
-                             "screen. It contains\n"
-                             "information about: \n"
-                             " - Nozzle temp.    \n"
-                             " - Heatbed temp.   \n"
-                             " - Printing speed  \n"
-                             " - Z-axis height   \n"
-                             " - Selected filament";
+        char str[n255] = "The status bar is at\n"
+                         "the bottom of the  \n"
+                         "screen. It contains\n"
+                         "information about: \n"
+                         " - Nozzle temp.    \n"
+                         " - Heatbed temp.   \n"
+                         " - Printing speed  \n"
+                         " - Z-axis height   \n"
+                         " - Selected filament";
         n = str2multiline(str, n255, 20);
         CHECK(n == 9);
         REQUIRE_THAT(str, Equals("The status bar is at\nthe bottom of the  \nscreen. It contains\ninformation "
-                                "about: \n - Nozzle temp.    \n - Heatbed temp.   \n - Printing speed  \n - Z-axis height   \n - Selected filament"));
+                                 "about: \n - Nozzle temp.    \n - Heatbed temp.   \n - Printing speed  \n - Z-axis height   \n - Selected filament"));
     }
 }

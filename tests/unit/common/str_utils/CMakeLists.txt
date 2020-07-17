@@ -1,6 +1,6 @@
 
 # define the test executable
-add_executable(str_utils_tests 
+add_executable(str_utils_tests
     str_utils_test.cpp
     ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
 )
