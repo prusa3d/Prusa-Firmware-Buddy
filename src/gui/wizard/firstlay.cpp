@@ -632,6 +632,22 @@ float bedTemp() {
     return get_filament_bed_temp();
 }
 
+inline void FLInit(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
+    p_screen->Z_offset = z_offset;
+    wizard_init_screen_firstlay(id_body, p_screen, p_data);
+#if DEBUG_TERM == 1
+    term_printf(&p_screen->terminal, "INITIALIZED\n");
+    p_screen->term.id.Invalidate();
+#endif
+    _set_gcode_first_lines();
+    p_screen->state = _FL_GCODE_HEAD;
+    marlin_error_clr(MARLIN_ERR_ProbingFailed);
+#if DEBUG_TERM == 1
+    term_printf(&p_screen->terminal, "HEAD\n");
+    p_screen->term.id.Invalidate();
+#endif
+}
+
 inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
 #if DEBUG_TERM == 0
     const int remaining_lines = _run_gcode_line(&line_head, code, size);
@@ -693,20 +709,10 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
     int remaining_lines;
     switch (p_screen->state) {
     case _FL_INIT:
-        p_screen->Z_offset = z_offset;
-        wizard_init_screen_firstlay(id_body, p_screen, p_data);
-#if DEBUG_TERM == 1
-        term_printf(&p_screen->terminal, "INITIALIZED\n");
-        p_screen->term.id.Invalidate();
-#endif
-        _set_gcode_first_lines();
-        p_screen->state = _FL_GCODE_HEAD;
-        marlin_error_clr(MARLIN_ERR_ProbingFailed);
-#if DEBUG_TERM == 1
-        term_printf(&p_screen->terminal, "HEAD\n");
-        p_screen->term.id.Invalidate();
-#endif
+        FLInit(id_body, p_screen, p_data, z_offset);
+
         break;
+
     case _FL_GCODE_HEAD:
         //have to wait to next state after MBL to check error
         if (line_head > G29_pos && marlin_error(MARLIN_ERR_ProbingFailed)) {
@@ -724,11 +730,12 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         }
 
         FLGcodeHead(p_screen, head_gcode, head_gcode_sz);
-
         break;
+
     case _FL_GCODE_BODY:
         FLGcodeBody(p_screen, body_gcode, body_gcode_sz);
         break;
+
     case _FL_GCODE_DONE:
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "PASSED\n");
