@@ -798,7 +798,7 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 
     //call p_screen->spin_baby_step.SetValue(p_screen->Z_offset); only when value changed
 
-    static const char *pm[2] = { /// minus / plus chars
+    static const char *pm[2] = { /// plus / minus chars
         "+++",
         "---"
     };
