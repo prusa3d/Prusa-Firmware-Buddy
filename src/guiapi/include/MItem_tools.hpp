@@ -195,7 +195,7 @@ protected:
 };
 
 class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Timeout");
+    constexpr static const char *const label = N_("Menu Timeout");
 
 public:
     MI_TIMEOUT();
