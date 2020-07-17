@@ -58,7 +58,7 @@ static void screen_filebrowser_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
     p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
-    static const char sf[] = "SELECT FILE";
+    static const char sf[] = N_("SELECT FILE");
     p_window_header_set_text(&(pd->header), _(sf));
 
     window_file_list_t *filelist = &(pd->w_filelist);
