@@ -91,14 +91,14 @@ void window_frame_t::draw() {
 
 int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
     int dif = (int)param;
-    window_t *pWin = window_focused_ptr;
+    window_t *pWin = GetFocusedWindow();
 
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        if (window_focused_ptr) {
-            window_focused_ptr->Event(this, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->GetTag());
+        if (pWin) {
+            pWin->Event(this, WINDOW_EVENT_CLICK, (void *)(int)pWin->GetTag());
             //Screens::Access()->DispatchEvent(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
-            window_focused_ptr->SetCapture();
+            pWin->SetCapture();
         }
         break;
     case WINDOW_EVENT_ENC_DN:
@@ -136,7 +136,7 @@ int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
     case WINDOW_EVENT_CAPT_0:
         break;
     case WINDOW_EVENT_CAPT_1:
-        if (window_focused_ptr->GetParent() != this) {
+        if (pWin->GetParent() != this) {
             pWin = first;
             if (pWin && !pWin->IsEnabled())
                 pWin = pWin->GetNextEnabled();

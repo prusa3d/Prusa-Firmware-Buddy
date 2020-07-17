@@ -437,7 +437,7 @@ static void disable_tune_button(screen_t *screen) {
 
     // move to reprint when tune is focused
     if (p_button->IsFocused()) {
-        window_ptr(pw->w_buttons[static_cast<size_t>(Btn::Pause)].id)->SetFocus();
+        pw->w_buttons[static_cast<size_t>(Btn::Pause)].SetFocus();
     }
     p_button->Invalidate();
 }

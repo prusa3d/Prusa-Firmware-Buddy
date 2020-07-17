@@ -165,7 +165,7 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
 
     window_dlg_wait_t dlg;
 
-    int16_t id_capture = window_capture();
+    window_t *id_capture = window_t::GetCapturedWindow();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_WAIT, 0, gui_defaults.scr_body_sz, &dlg);
     window_t *tmp_popup_window = window_popup_ptr;
     window_popup_ptr = (window_t *)&dlg;
@@ -199,6 +199,6 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
     window_t *pWin = window_ptr(0);
     if (pWin != 0)
         pWin->Invalidate();
-    if (window_ptr(id_capture))
-        window_ptr(id_capture)->SetCapture();
+    if (id_capture)
+        id_capture->SetCapture();
 }

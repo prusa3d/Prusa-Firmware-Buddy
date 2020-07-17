@@ -52,7 +52,7 @@ public:
     };
 
 protected:
-    int16_t id_capture;
+    window_t *id_capture;
 
     color_t color_text;
     font_t *font;

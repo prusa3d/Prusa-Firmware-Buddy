@@ -17,10 +17,6 @@ window_t *window_popup_ptr = 0; //current popup window
 //window_t *windows[WINDOW_MAX_WINDOWS];
 uint16_t window_count = 0;
 
-window_t *window_focused_ptr = 0; //current focused window
-
-window_t *window_capture_ptr = 0; //current capture window
-
 uint16_t window_user_class_count = 0;
 
 int16_t window_new_id(window_t *window) {
@@ -87,43 +83,35 @@ int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, v
 }
 
 void window_destroy(int16_t id) {
-    window_t *window = window_free_id(id);
+    /*   window_t *window = window_free_id(id);
     uint16_t count = window_count;
     if (window != 0) {
         if (window->HasTimer())
             gui_timers_delete_by_window_id(window->id);
         window->id = -1;
-        //if (window->f_parent)
-        //    window_destroy_children(id);
-        //if (window->cls->done)
-        //    window->cls->done(window);
-        //if (window->f_freemem)
-        //    gui_free(window);
+        if (window->f_parent)
+            window_destroy_children(id);
+        if (window->cls->done)
+            window->cls->done(window);
+        if (window->f_freemem)
+            gui_free(window);
         if (window == window_capture_ptr)
             window_capture_ptr = 0;
         if (window == window_focused_ptr)
             window_focused_ptr = 0;
         if (window == window_popup_ptr)
             window_popup_ptr = 0;
-        //if (window == window_0) window_0 = 0;
+        if (window == window_0) window_0 = 0;
         if (count == 0)
             window_0 = 0;
-    }
-}
-
-int16_t window_focused(void) {
-    return window_focused_ptr ? window_focused_ptr->id : 0;
-}
-
-int16_t window_capture(void) {
-    return window_capture_ptr ? window_capture_ptr->id : 0;
+    }*/
 }
 
 bool window_t::IsVisible() const { return f_visible == true; }
 bool window_t::IsEnabled() const { return f_enabled == true; }
 bool window_t::IsInvalid() const { return f_invalid == true; }
-bool window_t::IsFocused() const { return f_focused == true; }
-bool window_t::IsCapture() const { return f_capture == true; }
+bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
+bool window_t::IsCapture() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return f_timer == true; }
 void window_t::Validate() { f_invalid = false; }
 
@@ -144,13 +132,11 @@ void window_t::SetFocus() {
     if (!f_visible || !f_enabled)
         return;
 
-    if (window_focused_ptr) {
-        window_focused_ptr->f_focused = 0;
-        window_focused_ptr->Invalidate();
-        window_focused_ptr->event(window_focused_ptr, WINDOW_EVENT_FOCUS0, 0); //will not resend event to anyone
+    if (focused_ptr) {
+        focused_ptr->Invalidate();
+        focused_ptr->event(focused_ptr, WINDOW_EVENT_FOCUS0, 0); //will not resend event to anyone
     }
-    window_focused_ptr = this;
-    f_focused = 1;
+    focused_ptr = this;
     Invalidate();
     event(this, WINDOW_EVENT_FOCUS1, 0); //will not resend event to anyone
     gui_invalidate();
@@ -159,12 +145,10 @@ void window_t::SetFocus() {
 void window_t::SetCapture() {
 
     if (f_visible && f_enabled) {
-        if (window_capture_ptr) {
-            window_capture_ptr->f_capture = 0;
-            window_capture_ptr->event(window_capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
+        if (capture_ptr) {
+            capture_ptr->event(capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
         }
-        window_capture_ptr = this;
-        f_capture = 1;
+        capture_ptr = this;
         event(this, WINDOW_EVENT_CAPT_1, 0); //will not resend event to anyone
         gui_invalidate();
     }
@@ -284,4 +268,18 @@ void window_t::DispatchEvent(window_t *sender, uint8_t ev, void *param) {
 //frame does something else - resends to all childern
 void window_t::dispatchEvent(window_t *sender, uint8_t ev, void *param) {
     event(sender, ev, param);
+}
+
+/*****************************************************************************/
+//static
+
+window_t *window_t::focused_ptr = nullptr;
+window_t *window_t::capture_ptr = nullptr;
+
+window_t *window_t::GetFocusedWindow() {
+    return focused_ptr;
+}
+
+window_t *window_t::GetCapturedWindow() {
+    return capture_ptr;
 }

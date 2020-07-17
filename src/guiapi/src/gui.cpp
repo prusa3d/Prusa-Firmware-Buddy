@@ -123,17 +123,17 @@ void gui_loop(void) {
         if ((jogwheel_encoder != gui_jogwheel_encoder)) {
             int dif = jogwheel_encoder - gui_jogwheel_encoder;
             if (dif > 0)
-                Screens::Access()->DispatchEvent(window_capture_ptr, WINDOW_EVENT_ENC_UP, (void *)dif);
+                Screens::Access()->DispatchEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_ENC_UP, (void *)dif);
             else if (dif < 0)
-                Screens::Access()->DispatchEvent(window_capture_ptr, WINDOW_EVENT_ENC_DN, (void *)-dif);
+                Screens::Access()->DispatchEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_ENC_DN, (void *)-dif);
             gui_jogwheel_encoder = jogwheel_encoder;
             gui_reset_menu_timer();
         }
         if (!jogwheel_button_down ^ !gui_jogwheel_button_down) {
             if (gui_jogwheel_button_down)
-                Screens::Access()->DispatchEvent(window_capture_ptr, WINDOW_EVENT_BTN_UP, 0);
+                Screens::Access()->DispatchEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_BTN_UP, 0);
             else
-                Screens::Access()->DispatchEvent(window_capture_ptr, WINDOW_EVENT_BTN_DN, 0);
+                Screens::Access()->DispatchEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_BTN_DN, 0);
             gui_jogwheel_button_down = jogwheel_button_down;
             gui_reset_menu_timer();
         }
@@ -183,7 +183,7 @@ int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
 
     window_msgbox_t msgbox;
     window_t *window_popup_tmp = window_popup_ptr; //save current window_popup_ptr
-    const int16_t id_capture = window_capture();
+    window_t *id_capture = window_t::GetCapturedWindow();
     window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
     msgbox.title = title;
     msgbox.text = text;
@@ -208,8 +208,8 @@ int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
     window_t *pWin = window_ptr(0);
     if (pWin)
         pWin->Invalidate();
-    if (window_ptr(id_capture))
-        window_ptr(id_capture)->SetCapture();
+    if (id_capture)
+        id_capture->SetCapture();
     return msgbox.res;
 }
 

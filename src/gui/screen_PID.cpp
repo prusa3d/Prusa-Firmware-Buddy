@@ -646,12 +646,12 @@ void generate_spin_single_digit(int16_t &id0, window_spin_t &spin,
 
 void enable_digits_write_mode(window_spin_t *spiners, size_t sz) {
     for (size_t i = 0; i < sz; ++i)
-        window_ptr(spiners[i].id)->Enable();
+        spiners[i].Enable();
 }
 
 void disable_digits_write_mode(window_spin_t *spiners, size_t sz) {
     for (size_t i = 0; i < sz; ++i)
-        window_ptr(spiners[i].id)->Disable();
+        spiners[i].Disable();
 }
 
 //i am not using size_t numOfDigits, size_t precision

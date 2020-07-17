@@ -177,7 +177,7 @@ int gui_dlg_list(string_view_utf8 caption, window_list_item_t *filament_items,
 
     //parent 0 would be first screen
     //here must be -1
-    int16_t id_capture = window_capture();
+    window_t *id_capture = window_t::GetCapturedWindow();
     int16_t id = window_create_ptr(WINDOW_CLS_DLG_PREHEAT, -1, gui_defaults.scr_body_sz, &dlg);
 
     dlg.list.SetItemCount(count);
@@ -209,8 +209,8 @@ int gui_dlg_list(string_view_utf8 caption, window_list_item_t *filament_items,
     window_t *pWin = window_ptr(0);
     if (pWin != 0)
         pWin->Invalidate();
-    if (window_ptr(id_capture))
-        window_ptr(id_capture)->SetCapture();
+    if (id_capture)
+        id_capture->SetCapture();
     return ret;
 }
 

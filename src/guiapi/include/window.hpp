@@ -23,20 +23,6 @@
 #define WINDOW_CLS_ROLL_TEXT 13  // ROLL text - text too long for display width
 #define WINDOW_CLS_USER      128 // USER - user defined window classes (WINDOW_CLS_USER+n)
 
-//window flags
-#define WINDOW_FLG_VISIBLE  0x00000001 // is visible
-#define WINDOW_FLG_ENABLED  0x00000002 // is enabled (can be focused)
-#define WINDOW_FLG_INVALID  0x00000004 // content is invalid
-#define WINDOW_FLG_FOCUSED  0x00000008 // has focus
-#define WINDOW_FLG_CHECKED  0x00000010 // is checked/selected
-#define WINDOW_FLG_CAPTURE  0x00000020 // capture jog events
-#define WINDOW_FLG_DISABLED 0x00000040 // window is disabled (shadowed)
-#define WINDOW_FLG_FREEMEM  0x00004000 // free memory when destroy
-
-#define WINDOW_FLG_USER 0x00010000 // user flags (WINDOW_FLG_USER<<n)
-//top 1 byte cannot be used
-//flag is stored there
-
 //window events
 #define WINDOW_EVENT_BTN_DN   0x01 //button down
 #define WINDOW_EVENT_BTN_UP   0x02 //button up
@@ -66,14 +52,14 @@ protected:
     union {
         uint8_t flg;
         struct {
-            bool f_visible : 1;
-            bool f_enabled : 1; //  can be focussed
-            bool f_invalid : 1;
-            bool f_focused : 1;
-            bool f_checked : 1;
-            bool f_capture : 1;         //
+            bool f_visible : 1;         // is visible
+            bool f_enabled : 1;         // is enabled (can be focused)
+            bool f_invalid : 1;         // content is invalid
+            bool f_checked : 1;         // is checked/selected
             bool f_timer : 1;           // window has timers
-            bool f_parent_defined0 : 1; //
+            bool f_parent_defined0 : 1; // this flag can be defined in parent
+            bool f_parent_defined1 : 1; // this flag can be defined in parent
+            bool f_parent_defined2 : 1; // this flag can be defined in parent
         };
     };
 
@@ -122,22 +108,22 @@ protected:
     virtual void draw();
     virtual int event(window_t *sender, uint8_t event, void *param) { return 0; }
     virtual void dispatchEvent(window_t *sender, uint8_t event, void *param);
+
+private:
+    static window_t *focused_ptr; // has focus
+    static window_t *capture_ptr; // capture jog events
+
+public:
+    static window_t *GetFocusedWindow();
+    static window_t *GetCapturedWindow();
 };
 
 extern window_t *window_popup_ptr; //current popup window
-
-extern window_t *window_focused_ptr; //current focused window
-
-extern window_t *window_capture_ptr; //current capture window
 
 extern window_t *window_ptr(int16_t id);
 
 extern int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr);
 
 extern void window_destroy(int16_t id);
-
-extern int16_t window_focused(void);
-
-extern int16_t window_capture(void);
 
 extern void gui_invalidate(void);
