@@ -19,14 +19,14 @@ void window_frame_draw(window_frame_t *window) {
             rect_ui16_t rc = window->rect;
             display::FillRect(rc, window->color_back);
             window->f_invalid = 0;
-            window_invalidate_children(window->id);
+            //window_invalidate_children(window->id);
         }
         window_draw_children(window->id);
     }
 }
 
 void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
-    int16_t id;
+    /*    int16_t id;
     int dif;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
@@ -77,19 +77,8 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
                 pWin->SetFocus();
         }
         break;
-    }
+    }*/
 }
-
-const window_class_frame_t window_class_frame = {
-    {
-        WINDOW_CLS_FRAME,
-        sizeof(window_frame_t),
-        (window_init_t *)window_frame_init,
-        (window_done_t *)window_frame_done,
-        (window_draw_t *)window_frame_draw,
-        (window_event_t *)window_frame_event,
-    },
-};
 
 window_frame_t::window_frame_t(window_t *first, window_t *parent, window_t *prev, rect_ui16_t rect)
     : window_t(parent, prev, rect)

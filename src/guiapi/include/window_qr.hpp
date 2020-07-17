@@ -6,10 +6,6 @@
 
 #include "qrcodegen.h"
 
-struct window_class_qr_t {
-    window_class_t cls;
-};
-
 struct window_qr_t : public window_t {
     char *text;
     int version;
@@ -22,5 +18,3 @@ struct window_qr_t : public window_t {
 
     window_qr_t(window_t *parent, window_t *prev);
 };
-
-extern const window_class_qr_t window_class_qr;

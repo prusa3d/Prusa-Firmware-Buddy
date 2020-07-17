@@ -60,16 +60,6 @@ void window_progress_draw(window_progress_t *window) {
     }*/
 }
 
-const window_class_progress_t window_class_progress = {
-    {
-        WINDOW_CLS_PROGRESS,
-        sizeof(window_progress_t),
-        (window_init_t *)window_progress_init,
-        0,
-        (window_draw_t *)window_progress_draw,
-        0,
-    },
-};
 /*****************************************************************************/
 //window_numberless_progress_t
 window_numberless_progress_t::window_numberless_progress_t(window_t *parent, window_t *prev, rect_ui16_t rect, color_t cl_progress, color_t cl_back)

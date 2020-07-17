@@ -4,10 +4,6 @@
 
 #include "window.hpp"
 
-struct window_class_text_t {
-    window_class_t cls;
-};
-
 struct window_text_t : public window_t {
     color_t color_text;
     font_t *font;
@@ -28,5 +24,3 @@ struct window_text_t : public window_t {
 protected:
     virtual void draw() override;
 };
-
-extern const window_class_text_t window_class_text;

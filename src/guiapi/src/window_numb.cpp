@@ -39,17 +39,6 @@ void window_numb_draw(window_numb_t *window) {
     }
 }
 
-const window_class_numb_t window_class_numb = {
-    {
-        WINDOW_CLS_NUMB,
-        sizeof(window_numb_t),
-        (window_init_t *)window_numb_init,
-        0,
-        (window_draw_t *)window_numb_draw,
-        0,
-    },
-};
-
 void window_numb_t::SetFormat(const char *frmt) {
     format = frmt;
     Invalidate();

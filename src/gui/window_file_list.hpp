@@ -21,12 +21,6 @@ inline LDV9 *LDV_Get(void) {
     return &ldv;
 }
 
-struct window_file_list_t;
-
-struct window_class_file_list_t {
-    window_class_t cls;
-};
-
 struct window_file_list_t : public window_t {
     color_t color_text;
     font_t *font;
@@ -47,8 +41,6 @@ typedef enum {
 } WF_Sort_t;
 
 extern int16_t WINDOW_CLS_FILE_LIST;
-
-extern const window_class_file_list_t window_class_file_list;
 
 extern void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 

@@ -51,17 +51,6 @@ void window_roll_text_done(window_roll_text_t *window) {
     gui_timers_delete_by_window_id(window->id);
 }
 
-const window_class_roll_text_t window_class_roll_text = {
-    {
-        WINDOW_CLS_ROLL_TEXT,
-        sizeof(window_roll_text_t),
-        (window_init_t *)window_roll_text_init,
-        (window_done_t *)window_roll_text_done,
-        (window_draw_t *)window_roll_text_draw,
-        (window_event_t *)window_roll_text_event,
-    },
-};
-
 window_roll_text_t::window_roll_text_t(window_t *parent, window_t *prev)
     : window_text_t(parent, prev) {
     roll.count = roll.px_cd = roll.progress = 0;

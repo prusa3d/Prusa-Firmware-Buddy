@@ -24,17 +24,6 @@ void window_text_draw(window_text_t *window) {
     }
 }
 
-const window_class_text_t window_class_text = {
-    {
-        WINDOW_CLS_TEXT,
-        sizeof(window_text_t),
-        (window_init_t *)window_text_init,
-        0,
-        (window_draw_t *)window_text_draw,
-        0,
-    },
-};
-
 void window_text_t::SetText(string_view_utf8 txt) {
     text = txt;
     Invalidate();

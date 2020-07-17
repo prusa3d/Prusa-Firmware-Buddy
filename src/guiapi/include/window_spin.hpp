@@ -34,9 +34,3 @@ protected:
     void setValMinMaxStep(float val, float min_val, float max_val, float step_val);
     virtual void setValue(float val) override;
 };
-
-struct window_class_spin_t {
-    window_class_numb_t cls;
-};
-
-extern const window_class_spin_t window_class_spin;

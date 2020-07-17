@@ -34,11 +34,6 @@ struct window_dlg_preheat_t : public window_frame_t {
     window_dlg_preheat_t();
 };
 
-struct window_class_dlg_preheat_t {
-    window_class_t cls;
-};
-
-extern const window_class_dlg_preheat_t window_class_dlg_preheat;
 extern FILAMENT_t gui_dlg_preheat(string_view_utf8 caption);
 extern FILAMENT_t gui_dlg_preheat_autoselect_if_able(string_view_utf8 caption);
 extern FILAMENT_t gui_dlg_preheat_forced(string_view_utf8 caption);                    //no return option

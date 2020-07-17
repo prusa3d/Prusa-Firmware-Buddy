@@ -20,10 +20,6 @@ typedef enum {
 
 #define HEADER_ICON_COUNT HEADER_ICON_WIFI + 1
 
-struct window_class_header_t {
-    window_class_t cls;
-};
-
 struct window_header_t : public window_frame_t {
     uint16_t id_res;
     header_states_t icons[HEADER_ICON_COUNT]; // usb, lan, wifi
@@ -46,5 +42,3 @@ struct window_header_t : public window_frame_t {
 };
 
 extern int16_t WINDOW_CLS_HEADER;
-
-extern const window_class_header_t window_class_header;

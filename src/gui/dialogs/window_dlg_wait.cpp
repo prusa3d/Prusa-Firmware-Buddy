@@ -161,17 +161,6 @@ void animation_handler(window_dlg_wait_t *window) {
     }
 }
 
-const window_class_dlg_wait_t window_class_dlg_wait = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(window_dlg_wait_t),
-        (window_init_t *)window_dlg_wait_init,
-        0,
-        (window_draw_t *)window_dlg_wait_draw,
-        (window_event_t *)window_dlg_wait_event,
-    },
-};
-
 void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
 
     window_dlg_wait_t dlg;

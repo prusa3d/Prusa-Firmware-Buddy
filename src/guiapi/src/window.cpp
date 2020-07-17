@@ -1,7 +1,6 @@
-//window.c
+//window.cpp
 
 #include "window.hpp"
-#include "window_menu.h"
 #include "gui.hpp"
 #include <algorithm> // std::find
 
@@ -15,40 +14,17 @@ window_t *window_0 = 0; //current screen window
 
 window_t *window_popup_ptr = 0; //current popup window
 
-window_t *windows[WINDOW_MAX_WINDOWS];
+//window_t *windows[WINDOW_MAX_WINDOWS];
 uint16_t window_count = 0;
 
 window_t *window_focused_ptr = 0; //current focused window
 
 window_t *window_capture_ptr = 0; //current capture window
 
-// warning: initializing non-local variable with non-const expression depending on uninitialized non-local variable 'window_class_frame'
-// [cppcoreguidelines-interfaces-global-init]
-const window_class_t *window_classes[] = {
-    (window_class_t *)(&window_class_frame),     //  0  FRAME
-    (window_class_t *)(&window_class_text),      //  1  TEXT
-    (window_class_t *)(&window_class_numb),      //  2  NUMB
-    (window_class_t *)(&window_class_icon),      //  3  ICON
-    (window_class_t *)(&window_class_list),      //  4  LIST
-    0,                                           //  5  EDIT
-    (window_class_t *)(&window_class_spin),      //  6  SPIN
-    0,                                           //  7  TXIC
-    (window_class_t *)(&window_class_term),      //  8  TERM
-    (window_class_t *)(&window_class_menu),      //  9  MENU
-    (window_class_t *)(&window_class_msgbox),    //  10  MSGBOX
-    (window_class_t *)(&window_class_progress),  //  11  PROGRESS
-    (window_class_t *)(&window_class_qr),        //  12  QR
-    (window_class_t *)(&window_class_roll_text), // 13 ROLL_TEXT
-};
-
-const uint16_t window_class_count = sizeof(window_classes) / sizeof(window_class_t *);
-
-window_class_t *window_user_classes[WINDOW_MAX_USERCLS];
-
 uint16_t window_user_class_count = 0;
 
 int16_t window_new_id(window_t *window) {
-    int16_t id = -1;
+    /*    int16_t id = -1;
     if ((window != 0) && (window_count < WINDOW_MAX_WINDOWS)) {
         id = 0;
         if (window_count == 0) //reset all pointers when starting
@@ -64,41 +40,24 @@ int16_t window_new_id(window_t *window) {
         } else
             id = -1;
     }
-    return id;
+    return id;*/
 }
 
 window_t *window_free_id(int16_t id) {
-    window_t *window;
+    /*   window_t *window;
     if ((window = window_ptr(id)) != 0) { //valid id and not null window pointer
         windows[id] = 0;                  //reset pointer
         window_count--;                   //decrement count
     }
-    return window;
-}
-
-window_class_t *class_ptr(int16_t cls_id) {
-    window_class_t *cls = 0;
-    if ((cls_id >= 0) && (cls_id < window_class_count) && ((cls = (window_class_t *)window_classes[cls_id]) != 0))
-        return cls;
-    if ((cls_id >= WINDOW_CLS_USER) && (cls_id < (WINDOW_CLS_USER + window_user_class_count)) && ((cls = window_user_classes[cls_id - WINDOW_CLS_USER]) != 0))
-        return cls;
-    return 0;
+    return window;*/
 }
 
 window_t *window_ptr(int16_t id) {
-    return ((id >= 0) && (id < WINDOW_MAX_WINDOWS)) ? windows[id] : 0;
-}
-
-int16_t window_register_class(window_class_t *cls) {
-    if ((cls) && (window_user_class_count < WINDOW_MAX_USERCLS)) {
-        window_user_classes[window_user_class_count] = cls;
-        return WINDOW_CLS_USER + window_user_class_count++;
-    }
-    return -1;
+    //return ((id >= 0) && (id < WINDOW_MAX_WINDOWS)) ? windows[id] : 0;
 }
 
 int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr) {
-    window_class_t *cls = class_ptr(cls_id);
+    /*    window_class_t *cls = class_ptr(cls_id);
     if (cls) {
         uint32_t flg = WINDOW_FLG_VISIBLE | WINDOW_FLG_INVALID;
         window_t *win = (window_t *)ptr;
@@ -112,7 +71,7 @@ int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, v
         if (id >= 0) {
             win->id = id;
             win->id_parent = id_parent;
-            win->cls = cls;
+            //win->cls = cls;
             win->flg = flg;
             win->rect = rect;
             //win->event = cls->event;
@@ -124,7 +83,7 @@ int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, v
         if (win && (ptr == 0))
             gui_free(win);
     }
-    return -1;
+    return -1;*/
 }
 
 void window_destroy(int16_t id) {
@@ -136,8 +95,8 @@ void window_destroy(int16_t id) {
         window->id = -1;
         if (window->f_parent)
             window_destroy_children(id);
-        if (window->cls->done)
-            window->cls->done(window);
+        //if (window->cls->done)
+        //    window->cls->done(window);
         if (window->f_freemem)
             gui_free(window);
         if (window == window_capture_ptr)
@@ -153,11 +112,11 @@ void window_destroy(int16_t id) {
 }
 
 void window_destroy_children(int16_t id) {
-    window_t *window;
+    /*   window_t *window;
     int16_t id_child;
     for (id_child = 0; id_child < WINDOW_MAX_WINDOWS; id_child++)
         if (((window = windows[id_child]) != 0) && (window->id_parent == id))
-            window_destroy(id_child);
+            window_destroy(id_child);*/
 }
 
 int16_t window_focused(void) {
@@ -168,87 +127,15 @@ int16_t window_capture(void) {
     return window_capture_ptr ? window_capture_ptr->id : 0;
 }
 
-int16_t window_prev(int16_t id) {
-    window_t *win;
-    if ((id >= 0) && (id < WINDOW_MAX_WINDOWS) && ((win = windows[id]) != 0)) {
-        int16_t id_parent = win->id_parent;
-        while (--id >= 0)
-            if ((win = windows[id]) != 0)
-                if (win->id_parent == id_parent)
-                    return id;
-    }
-    return -1;
-}
-
-int16_t window_next(int16_t id) {
-    window_t *win;
-    if ((id >= 0) && (id < WINDOW_MAX_WINDOWS) && ((win = windows[id]) != 0)) {
-        int16_t id_parent = win->id_parent;
-        while (++id < WINDOW_MAX_WINDOWS)
-            if ((win = windows[id]) != 0)
-                if (win->id_parent == id_parent)
-                    return id;
-    }
-    return -1;
-}
-
-int16_t window_prev_enabled(int16_t id) {
-    while ((id = window_prev(id)) >= 0)
-        if (window_ptr(id) ? window_ptr(id)->IsEnabled() : false)
-            return id;
-    return -1;
-}
-
-int16_t window_next_enabled(int16_t id) {
-    while ((id = window_next(id)) >= 0)
-        if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
-            return id;
-    return -1;
-}
-
-int16_t window_first_child(int16_t id) {
-    int16_t id_parent = id;
-    window_t *win;
-    if ((id >= 0) && (id < WINDOW_MAX_WINDOWS) && ((win = windows[id]) != 0)) {
-        while (++id < WINDOW_MAX_WINDOWS)
-            if ((win = windows[id]) != 0)
-                if (win->id_parent == id_parent)
-                    return id;
-    }
-    return -1;
-}
-
-int window_child_count(int16_t id) {
-    int count = 0;
-    if ((id = window_first_child(id)) >= 0) {
-        count++;
-        while ((id = window_next(id)) >= 0)
-            count++;
-    }
-    return count;
-}
-
-int window_enabled_child_count(int16_t id) {
-    int count = 0;
-    if ((id = window_first_child(id)) >= 0) {
-        if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
-            count++;
-        while ((id = window_next(id)) >= 0)
-            if (window_ptr(id) != 0 ? window_ptr(id)->IsEnabled() : 0)
-                count++;
-    }
-    return count;
-}
-
 void window_draw(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0)
-        if (window->cls->draw)
-            window->cls->draw(window);
+    //window_t *window;
+    //if ((window = window_ptr(id)) != 0)
+    //if (window->cls->draw)
+    //    window->cls->draw(window);
 }
 
 void window_draw_children(int16_t id) {
-    window_t *window;
+    /*   window_t *window;
     int16_t id_child;
     for (id_child = 0; id_child < WINDOW_MAX_WINDOWS; id_child++)
         if (((window = windows[id_child]) != 0) && (window->id_parent == id)) {
@@ -258,31 +145,13 @@ void window_draw_children(int16_t id) {
                         window->cls->draw(window);
             } else if (window->cls->draw)
                 window->cls->draw(window);
-        }
+        }*/
 }
 
 void window_t::Invalidate() {
     f_invalid = 1;
     gui_invalidate();
 }
-
-void window_validate_children(int16_t id) {
-    window_t *window;
-    int16_t id_child;
-    for (id_child = 0; id_child < WINDOW_MAX_WINDOWS; id_child++)
-        if (((window = windows[id_child]) != 0) && (window->id_parent == id))
-            window->f_invalid = 0;
-}
-
-void window_invalidate_children(int16_t id) {
-    window_t *window;
-    int16_t id_child;
-    for (id_child = 0; id_child < WINDOW_MAX_WINDOWS; id_child++)
-        if (((window = windows[id_child]) != 0) && (window->id_parent == id))
-            window->f_invalid = 1;
-    gui_invalidate();
-}
-
 void window_t::SetFocus() {
     if (!f_visible || !f_enabled)
         return;
@@ -331,7 +200,7 @@ void window_t::SetBackColor(color_t clr) {
     color_back = clr;
     Invalidate();
 }
-
+/*
 uint16_t window_get_icon_id(int16_t id) {
     window_t *window;
     if ((window = window_ptr(id)) != 0) {
@@ -343,7 +212,7 @@ uint16_t window_get_icon_id(int16_t id) {
     return 0;
 }
 
-/*
+
 window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
     : window_t() {
     window_class_t *cls = class_ptr(cls_id);

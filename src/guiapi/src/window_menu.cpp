@@ -1,5 +1,4 @@
 // window_menu.cpp
-#include "window_menu.h" //C compatible, todo remove
 #include "window_menu.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
@@ -110,12 +109,6 @@ void window_menu_done(window_menu_t *window) {
     gui_timers_delete_by_window_id(window->id);
 }
 
-void window_menu_set_item_index(window_t *window, int index) {
-    if (window->cls->cls_id == WINDOW_CLS_MENU) {
-        reinterpret_cast<window_menu_t *>(window)->SetIndex(index);
-    }
-}
-
 void window_menu_draw(window_menu_t *window) {
     if (!((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
         return;
@@ -194,17 +187,6 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
     if (invalid)
         window->Invalidate();
 }
-
-const window_class_menu_t window_class_menu = {
-    {
-        WINDOW_CLS_MENU,
-        sizeof(window_menu_t),
-        (window_init_t *)window_menu_init,
-        (window_done_t *)window_menu_done,
-        (window_draw_t *)window_menu_draw,
-        (window_event_t *)window_menu_event,
-    },
-};
 
 void window_menu_t::unconditionalDraw() {
     IWindowMenu::unconditionalDraw();

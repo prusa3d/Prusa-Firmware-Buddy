@@ -48,17 +48,6 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
     }
 }
 
-const window_class_dlg_popup_t window_class_dlg_popup = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(window_dlg_popup_t),
-        (window_init_t *)window_dlg_popup_init,
-        0,
-        (window_init_t *)window_dlg_popup_draw,
-        0,
-    },
-};
-
 void gui_pop_up(void) {
 
     static uint8_t opened = 0;

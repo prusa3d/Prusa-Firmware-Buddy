@@ -51,17 +51,6 @@ static void window_term_draw(window_term_t *window) {
     }
 }
 
-const window_class_term_t window_class_term = {
-    {
-        WINDOW_CLS_TERM,
-        sizeof(window_term_t),
-        (window_init_t *)window_term_init,
-        0,
-        (window_draw_t *)window_term_draw,
-        0,
-    },
-};
-
 window_term_t::window_term_t(window_t *parent, window_t *prev)
     : window_t(parent, prev)
     , color_text(gui_defaults.color_text)

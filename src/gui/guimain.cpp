@@ -11,8 +11,6 @@
 #include "window_file_list.hpp"
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
-#include "DialogLoadUnload.h"
-#include "DialogG162.h"
 #include "window_dlg_wait.hpp"
 #ifdef _DEBUG
     #include "window_dlg_popup.hpp"
@@ -111,17 +109,6 @@ extern "C" void gui_run(void) {
 
     //screen_register(get_scr_splash());
     screen_register(get_scr_watchdog());
-
-    WINDOW_CLS_FILE_LIST = window_register_class((window_class_t *)&window_class_file_list);
-    WINDOW_CLS_HEADER = window_register_class((window_class_t *)&window_class_header);
-    WINDOW_CLS_TEMP_GRAPH = window_register_class((window_class_t *)&window_class_temp_graph);
-    WINDOW_CLS_DLG_LOADUNLOAD = window_register_class((window_class_t *)&window_class_dlg_statemachine);
-    WINDOW_CLS_DLG_G162 = window_register_class((window_class_t *)&window_class_dlg_g162);
-    WINDOW_CLS_DLG_WAIT = window_register_class((window_class_t *)&window_class_dlg_wait);
-#ifdef _DEBUG
-    WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
-#endif //_DEBUG
-    WINDOW_CLS_DLG_PREHEAT = window_register_class((window_class_t *)&window_class_dlg_preheat);
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
         //screen_stack_push(get_scr_splash()->id);

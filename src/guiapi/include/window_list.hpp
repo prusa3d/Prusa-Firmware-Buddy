@@ -4,10 +4,6 @@
 
 #include "window.hpp"
 
-struct window_class_list_t {
-    window_class_t cls;
-};
-
 struct window_list_t : window_t {
     color_t color_text;
     font_t *font;
@@ -30,5 +26,3 @@ struct window_list_t : window_t {
 
     window_list_t(window_t *parent, window_t *prev);
 };
-
-extern const window_class_list_t window_class_list;

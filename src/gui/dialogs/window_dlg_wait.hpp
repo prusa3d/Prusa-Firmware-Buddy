@@ -25,15 +25,9 @@ struct window_dlg_wait_t : public window_t {
     bool progress_chng;
 };
 
-struct window_class_dlg_wait_t {
-    window_class_t cls;
-};
-
 #define DLG_W8_DRAW_HOURGLASS 0x04 // Draw hourglass animation
 #define DLG_W8_DRAW_FRAME     0x01 // Draw grey frame
 #define DLG_W8_DRAW_PROGRESS  0x02 // Draw progress bar
-
-extern const window_class_dlg_wait_t window_class_dlg_wait;
 
 /*!*********************************************************************************************************************
 * \brief GUI dialog for processes that require user to wait calmly.

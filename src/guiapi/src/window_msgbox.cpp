@@ -242,14 +242,3 @@ void window_msgbox_event(window_msgbox_t *window, uint8_t event, void *param) {
         break;
     }
 }
-
-const window_class_msgbox_t window_class_msgbox = {
-    {
-        WINDOW_CLS_MSGBOX,
-        sizeof(window_msgbox_t),
-        (window_init_t *)window_msgbox_init,
-        (window_done_t *)window_msgbox_done,
-        (window_draw_t *)window_msgbox_draw,
-        (window_event_t *)window_msgbox_event,
-    },
-};

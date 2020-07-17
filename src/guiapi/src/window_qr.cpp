@@ -41,18 +41,6 @@ void window_qr_draw(window_qr_t *window) {
     }
 }
 
-/// window definition
-const window_class_qr_t window_class_qr = {
-    {
-        WINDOW_CLS_QR,
-        sizeof(window_qr_t),
-        (window_init_t *)window_qr_init,
-        0,
-        (window_draw_t *)window_qr_draw,
-        0,
-    },
-};
-
 window_qr_t::window_qr_t(window_t *parent, window_t *prev)
     : window_t(parent, prev)
     , version(9)

@@ -15,9 +15,3 @@ struct window_icon_t : public window_t {
 protected:
     virtual void draw() override;
 };
-
-struct window_class_icon_t {
-    window_class_t cls;
-};
-
-extern const window_class_icon_t window_class_icon;

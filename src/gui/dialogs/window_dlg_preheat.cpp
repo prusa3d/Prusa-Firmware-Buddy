@@ -59,7 +59,7 @@ void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
 
 void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     //inherit from frame
-    window_class_frame.cls.init(window);
+    //window_class_frame.cls.init(window);
     window->flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_INVALID;
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
@@ -90,7 +90,7 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
     switch (event) {
     case WINDOW_EVENT_ENC_UP:
     case WINDOW_EVENT_ENC_DN: //forward up/dn events to list window
-        window->list.cls->event(&(window->list), event, param);
+        //window->list.cls->event(&(window->list), event, param);
         break;
     case WINDOW_EVENT_BTN_DN:
         if (window->timer != std::numeric_limits<uint32_t>::max()) {
@@ -98,22 +98,10 @@ void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void 
             window->on_click(window);
         }
         return;
-    default:
-        window_frame_event((window_frame_t *)window, event, param);
+        //default:
+        //window_frame_event((window_frame_t *)window, event, param);
     }
 }
-
-const window_class_dlg_preheat_t window_class_dlg_preheat = {
-    {
-        //call frame methods
-        WINDOW_CLS_USER,
-        sizeof(window_dlg_preheat_t),
-        (window_init_t *)window_dlg_preheat_init, //must call window_frame_init inside
-        (window_done_t *)window_frame_done,
-        (window_draw_t *)window_frame_draw,
-        (window_event_t *)window_dlg_preheat_event, //must call window_frame_event
-    },
-};
 
 FILAMENT_t gui_dlg_preheat(string_view_utf8 caption) {
     int ret = gui_dlg_list(

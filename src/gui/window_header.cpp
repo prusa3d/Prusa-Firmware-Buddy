@@ -182,17 +182,6 @@ bool window_header_t::EventClr_MediaError() {
     return 0;
 }
 
-const window_class_header_t window_class_header = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(window_header_t),
-        (window_init_t *)window_header_init,
-        (window_done_t *)window_header_done,
-        (window_draw_t *)window_header_draw,
-        0,
-    },
-};
-
 window_header_t::window_header_t(window_t *parent, window_t *prev)
     : window_frame_t(&label, parent, prev, gui_defaults.header_sz)
     , label(this, nullptr) //todo calculate rect

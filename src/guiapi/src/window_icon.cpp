@@ -26,17 +26,6 @@ void window_icon_draw(window_icon_t *window) {
     }
 }
 
-const window_class_icon_t window_class_icon = {
-    {
-        WINDOW_CLS_ICON,
-        sizeof(window_icon_t),
-        (window_init_t *)window_icon_init,
-        0,
-        (window_draw_t *)window_icon_draw,
-        0,
-    },
-};
-
 void window_icon_t::SetIdRes(int16_t id) {
     id_res = id;
     Invalidate();

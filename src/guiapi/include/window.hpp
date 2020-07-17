@@ -64,15 +64,6 @@ struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
-struct window_class_t {
-    int16_t cls_id;        // (2 bytes) window class id
-    uint16_t size;         // (2 bytes) window structure size
-    window_init_t *init;   // (4 bytes) done callback
-    window_done_t *done;   // (4 bytes) done callback
-    window_draw_t *draw;   // (4 bytes) draw callback
-    window_event_t *event; // (4 bytes) event callback
-};                         // (20 bytes total)
-
 struct window_t {
     window_t *parent;
     window_t *next;
@@ -86,9 +77,8 @@ struct window_t {
     //window_t *GetPrevEnabled() const;
     window_t *GetParent() const;
 
-    window_class_t *cls; // (4 bytes) window class pointer
-    int16_t id_parent;   // (2 bytes) parent window identifier (2bytes)
-    int16_t id;          // (2 bytes) window identifier (2bytes)
+    int16_t id_parent; // (2 bytes) parent window identifier (2bytes)
+    int16_t id;        // (2 bytes) window identifier (2bytes)
     union {
         uint32_t flg; // (3 bytes) flags (visibility, invalid...),
             // (1 byte)  top byte is window tag (user defined id)
@@ -160,8 +150,6 @@ extern window_t *window_capture_ptr; //current capture window
 
 extern window_t *window_ptr(int16_t id);
 
-extern int16_t window_register_class(window_class_t *cls);
-
 extern int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr);
 
 extern void window_destroy(int16_t id);
@@ -172,26 +160,8 @@ extern int16_t window_focused(void);
 
 extern int16_t window_capture(void);
 
-extern int16_t window_prev(int16_t id);
-
-extern int16_t window_next(int16_t id);
-
-extern int16_t window_prev_enabled(int16_t id);
-
-extern int16_t window_next_enabled(int16_t id);
-
-extern int16_t window_first_child(int16_t id);
-
-extern int window_child_count(int16_t id);
-
-extern int window_enabled_child_count(int16_t id);
-
 extern void window_draw(int16_t id);
 
 extern void window_draw_children(int16_t id);
-
-extern void window_validate_children(int16_t id);
-
-extern void window_invalidate_children(int16_t id);
 
 extern void gui_invalidate(void);

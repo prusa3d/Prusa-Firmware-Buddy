@@ -57,10 +57,6 @@
 
 #define MSGBOX_GREY_FRAME 0x8000 // draw grey frame
 
-struct window_class_msgbox_t {
-    window_class_t cls;
-};
-
 struct window_msgbox_t : public window_t {
     color_t color_text;
     font_t *font;
@@ -76,5 +72,3 @@ struct window_msgbox_t : public window_t {
 };
 
 extern uint16_t window_msgbox_id_icon[5];
-
-extern const window_class_msgbox_t window_class_msgbox;

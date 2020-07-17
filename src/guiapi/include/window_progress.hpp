@@ -34,9 +34,3 @@ public:
     void SetNumbColor(color_t clr);
     void SetProgressHeight(uint16_t height);
 };
-
-struct window_class_progress_t {
-    window_class_t cls;
-};
-
-extern const window_class_progress_t window_class_progress;

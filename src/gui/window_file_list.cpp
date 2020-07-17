@@ -270,14 +270,3 @@ void window_file_list_dec(window_file_list_t *window, int dif) {
         window->Invalidate();
     }
 }
-
-const window_class_file_list_t window_class_file_list = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(window_file_list_t),
-        (window_init_t *)window_file_list_init,
-        (window_done_t *)window_file_list_done,
-        (window_draw_t *)window_file_list_draw,
-        (window_event_t *)window_file_list_event,
-    },
-};

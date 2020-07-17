@@ -116,14 +116,3 @@ void window_temp_graph_draw(window_temp_graph_t *window) {
         window->flg &= ~WINDOW_FLG_GRAPH_INVALID;
     }
 }
-
-const window_class_temp_graph_t window_class_temp_graph = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(window_temp_graph_t),
-        (window_init_t *)window_temp_graph_init,
-        0,
-        (window_init_t *)window_temp_graph_draw,
-        0,
-    },
-};

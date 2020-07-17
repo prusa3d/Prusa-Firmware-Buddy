@@ -12,7 +12,7 @@ void window_spin_inc(window_spin_t *window, int dif);
 void window_spin_dec(window_spin_t *window, int dif);
 
 void window_spin_init(window_spin_t *window) {
-    window_class_numb.cls.init(window);
+    //window_class_numb.cls.init(window);
     window->min = 0.0;
     window->max = 100.0F;
     window->step = 1.0F;
@@ -57,19 +57,6 @@ void window_spin_dec(window_spin_t *window, int dif) {
     window->value = window->min + window->index * window->step;
     window->Invalidate();
 }
-
-const window_class_spin_t window_class_spin = {
-    {
-        {
-            WINDOW_CLS_SPIN,
-            sizeof(window_spin_t),
-            (window_init_t *)window_spin_init,
-            0,
-            (window_draw_t *)window_numb_draw,
-            (window_event_t *)window_spin_event,
-        },
-    }
-};
 
 void window_spin_t::SetItemIndex(int idx) {
     if (count > idx) {

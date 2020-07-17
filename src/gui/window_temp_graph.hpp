@@ -23,9 +23,3 @@ struct window_temp_graph_t : public window_t {
     uint8_t y_nozzle_c[180];
     uint8_t y_bed_c[180];
 };
-
-struct window_class_temp_graph_t {
-    window_class_t cls;
-};
-
-extern const window_class_temp_graph_t window_class_temp_graph;
