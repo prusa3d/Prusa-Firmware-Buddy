@@ -97,11 +97,13 @@ int str2multiline(char *str, size_t max_size, size_t line_width) {
         switch (str[i]) {
         case CHAR_SPACE:
             last_delimiter = i;
+            ++current_length;
             break;
         case CHAR_NBSP:
             str[i] = ' ';
             last_NBSP = i;
             //last_delimiter = i;
+            ++current_length;
             break;
         case CHAR_NL:
             ++lines;
@@ -109,10 +111,12 @@ int str2multiline(char *str, size_t max_size, size_t line_width) {
             last_NBSP = -1;
             current_length = 0;
             break;
+        default:
+            ++current_length;
+            break;
         }
 
         ++i;
-        ++current_length;
 
         if (current_length > line_width) { /// if the length is too big, break the line
             if (last_delimiter >= 0) {
