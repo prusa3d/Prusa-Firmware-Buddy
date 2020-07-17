@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-17 19:57+0200\n"
+"POT-Creation-Date: 2020-07-17 20:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,15 +90,15 @@ msgid "Bed leveling failed. Try again?"
 msgstr ""
 
 #. r=1 c=15
-#: src/gui/wizard/selftest_cool.cpp:77
+#: src/gui/wizard/selftest_cool.cpp:76
 #, c-format
-msgid "Bed. target: %.0f%cC"
+msgid "Bed. target: %.0f_C"
 msgstr ""
 
 #. r=1 c=15
-#: src/gui/wizard/selftest_cool.cpp:56
+#: src/gui/wizard/selftest_cool.cpp:55
 #, c-format
-msgid "Bed: %.1f%cC"
+msgid "Bed: %.1f_C"
 msgstr ""
 
 #: src/gui/screen_menu_calibration.cpp:17
@@ -567,9 +567,9 @@ msgid ""
 msgstr ""
 
 #. r=1 c=15
-#: src/gui/wizard/selftest_cool.cpp:66
+#: src/gui/wizard/selftest_cool.cpp:65
 #, c-format
-msgid "Noz. target: %.0f%cC"
+msgid "Noz. target: %.0f_C"
 msgstr ""
 
 #: src/guiapi/include/MItem_print.hpp:8
@@ -584,7 +584,7 @@ msgstr ""
 #. r=1 c=15
 #: src/gui/wizard/selftest_cool.cpp:40
 #, c-format
-msgid "Nozzle: %.1f%cC"
+msgid "Nozzle: %.1f_C"
 msgstr ""
 
 #. MSGBOX_RES_NO        7
