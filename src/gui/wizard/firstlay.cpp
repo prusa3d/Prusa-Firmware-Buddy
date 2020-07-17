@@ -640,12 +640,39 @@ inline void FLInit(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t
     p_screen->term.id.Invalidate();
 #endif
     _set_gcode_first_lines();
-    p_screen->state = _FL_GCODE_HEAD;
+    p_screen->state = _FL_GCODE_MBL;
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
 #if DEBUG_TERM == 1
     term_printf(&p_screen->terminal, "HEAD\n");
     p_screen->term.id.Invalidate();
 #endif
+}
+
+inline void FLGcodeMBL(firstlay_screen_t *p_screen, const char **code, size_t size) {
+    if (marlin_get_gqueue() > 0)
+        return;
+
+    gCode gc;
+    initialGcodes(gc);
+    p_screen->state = _FL_GCODE_HEAT;
+}
+
+inline void FLGcodeHeat(firstlay_screen_t *p_screen, const char **code, size_t size) {
+#if DEBUG_TERM == 0
+    const int remaining_lines = _run_gcode_line(&line_head, code, size);
+#else
+    const int remaining_lines = _run_gcode_line(&line_head, code, size, &p_screen->term);
+#endif
+    if (remaining_lines < 1) {
+        p_screen->state = _FL_GCODE_BODY;
+#if DEBUG_TERM == 1
+        term_printf(&p_screen->terminal, "BODY\n");
+        p_screen->term.Invalidate();
+#endif
+        p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
+        p_screen->spin_baby_step.color_text = COLOR_ORANGE;
+        p_screen->spin_baby_step.Invalidate();
+    }
 }
 
 inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
@@ -706,11 +733,31 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         }
     }
 
-    int remaining_lines;
     switch (p_screen->state) {
     case _FL_INIT:
         FLInit(id_body, p_screen, p_data, z_offset);
+        break;
 
+    case _FL_GCODE_MBL:
+        FLGcodeMBL(p_screen, head_gcode, head_gcode_sz);
+        break;
+
+    case _FL_GCODE_HEAT:
+        //have to wait to next state after MBL to check error
+        if (line_head > G29_pos && marlin_error(MARLIN_ERR_ProbingFailed)) {
+            marlin_error_clr(MARLIN_ERR_ProbingFailed);
+            marlin_gcode("G0 Z30"); //Z 30mm
+            marlin_gcode("M84");    //Disable steppers
+            if (wizard_msgbox(_("Mesh bed leveling failed?"), MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
+                //RETRY
+                p_screen->state = _FL_GCODE_MBL;
+            } else {
+                //CANCEL
+                p_data->state_print = _TEST_FAILED;
+                return 100;
+            }
+        }
+        FLGcodeHeat(p_screen, head_gcode, head_gcode_sz);
         break;
 
     case _FL_GCODE_HEAD:
