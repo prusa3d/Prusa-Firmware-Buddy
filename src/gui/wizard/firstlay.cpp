@@ -1,4 +1,4 @@
-// firstlay.cpp
+// firstlay.c
 
 #include <stdio.h>
 #include <string.h>
@@ -18,6 +18,7 @@
 #include "menu_vars.h"
 #include "filament.h"
 #include "../lang/i18n.h"
+#include <algorithm>
 
 constexpr uint16_t bufferSize = 512;
 
@@ -270,6 +271,7 @@ void homeAndMBL(gCode &gc, const uint16_t nozzle_preheat, const uint16_t nozzle_
         .G(29);                                                                       // meshbed leveling
     // clang-format on
 }
+
 void heatNozzle(gCode &gc, const uint16_t nozzle_target, const uint8_t bed) {
     // clang-format off
     gc  .M(104, false).param('S', nozzle_target)  // nozzle target
@@ -278,18 +280,17 @@ void heatNozzle(gCode &gc, const uint16_t nozzle_target, const uint8_t bed) {
 }
 
 //todo generate me
-const char *V2_gcodes_head_PLA[]
-    = {
-          V__GCODES_HEAD_BEGIN
-          "M104 S" PREHEAT_TEMP_STRING " D215", //nozzle target
-          "M140 S60",                           //bed target
-          "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-          "M190 S60",                           //wait for bed temp
-          "G28",                                /*autohome*/
-          "G29",                                /*meshbed leveling*/
-          "M104 S215",                          //nozzle target
-          "M109 S215",                          //wait for nozzle temp
-      };
+const char *V2_gcodes_head_PLA[] = {
+    V__GCODES_HEAD_BEGIN
+    "M104 S" PREHEAT_TEMP_STRING " D215", //nozzle target
+    "M140 S60",                           //bed target
+    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
+    "M190 S60",                           //wait for bed temp
+    "G28",                                /*autohome*/
+    "G29",                                /*meshbed leveling*/
+    "M104 S215",                          //nozzle target
+    "M109 S215",                          //wait for nozzle temp
+};
 const size_t V2_gcodes_head_PLA_sz = sizeof(V2_gcodes_head_PLA) / sizeof(V2_gcodes_head_PLA[0]);
 
 const char *V2_gcodes_head_PETG[] = {
@@ -485,8 +486,7 @@ const size_t V2_gcodes_body_sz = sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[
 //todo use marlin api
 const size_t commands_in_queue_size = 8;
 const size_t commands_in_queue_use_max = 6;
-// FIXME it's not used
-const size_t max_gcodes_in_one_run = 20; //million of small gcodes could be done instantly but block gui
+const size_t max_gcodes_in_one_run = 20; //milion of small gcodes could be done instantly but block gui
 
 static uint32_t line_head = 0;
 static uint32_t line_body = 0;
@@ -513,7 +513,6 @@ static const char *_wizard_firstlay_text = N_("Once the printer   \n"
                                               "until the filament \n"
                                               "sticks to the print\n"
                                               "sheet.");
-
 int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count);
 #else
 int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term);
@@ -534,10 +533,9 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     }
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
-
 #if DEBUG_TERM == 0
     point_ui16_t pt;
-    string_view_utf8 wft = _(_wizard_firstlay_text);
+    string_view_utf8 wft = string_view_utf8::MakeCPUFLASH((const uint8_t *)_wizard_firstlay_text);
     uint16_t numOfUTF8Chars = 0;
     pt = font_meas_text(resource_font(IDR_FNT_NORMAL), &wft, &numOfUTF8Chars);
     pt.x += 5;
@@ -560,7 +558,6 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
 
     y += 18 * FIRSTLAY_SCREEN_TERM_Y + 3;
 #endif
-
     window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 110, 22), &(p_screen->text_Z_pos));
     p_screen->text_Z_pos.SetText(_("Z height:"));
 
@@ -635,94 +632,6 @@ float bedTemp() {
     return get_filament_bed_temp();
 }
 
-inline void FLInit(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
-    p_screen->Z_offset = z_offset;
-    wizard_init_screen_firstlay(id_body, p_screen, p_data);
-
-    if (marlin_get_gqueue() > 0)
-        return;
-
-    /// set printer
-    gCode gc;
-    initialGcodes(gc);
-    gc.send();
-
-#if DEBUG_TERM == 1
-    term_printf(&p_screen->terminal, "INITIALIZED\n");
-    p_screen->term.id.Invalidate();
-#endif
-    _set_gcode_first_lines();
-    p_screen->state = _FL_GCODE_MBL;
-    marlin_error_clr(MARLIN_ERR_ProbingFailed);
-#if DEBUG_TERM == 1
-    term_printf(&p_screen->terminal, "MBL\n");
-    p_screen->term.id.Invalidate();
-#endif
-}
-
-inline void FLGcodeMBL(firstlay_screen_t *p_screen) {
-    if (marlin_get_gqueue() > 0)
-        return;
-
-    gCode gc;
-    homeAndMBL(gc, preheatTemp(), targetTemp(), bedTemp());
-    gc.send();
-
-    p_screen->state = _FL_GCODE_HEAT;
-#if DEBUG_TERM == 1
-    term_printf(&p_screen->terminal, "HEAT\n");
-    p_screen->term.Invalidate();
-#endif
-}
-
-inline void FLGcodeHeat(firstlay_screen_t *p_screen) {
-    if (marlin_get_gqueue() > 0)
-        return;
-
-    gCode gc;
-    heatNozzle(gc, preheatTemp(), targetTemp());
-    gc.send();
-
-    p_screen->state = _FL_GCODE_HEAT;
-#if DEBUG_TERM == 1
-    term_printf(&p_screen->terminal, "BODY\n");
-    p_screen->term.Invalidate();
-#endif
-    p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
-    p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-    p_screen->spin_baby_step.Invalidate();
-}
-
-inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
-#if DEBUG_TERM == 0
-    const int remaining_lines = _run_gcode_line(&line_head, code, size);
-#else
-    const int remaining_lines = _run_gcode_line(&line_head, code, size, &p_screen->term);
-#endif
-    if (remaining_lines < 1) {
-        p_screen->state = _FL_GCODE_BODY;
-#if DEBUG_TERM == 1
-        term_printf(&p_screen->terminal, "BODY\n");
-        p_screen->term.Invalidate();
-#endif
-        p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
-        p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-        p_screen->spin_baby_step.Invalidate();
-    }
-}
-
-inline void FLGcodeBody(firstlay_screen_t *p_screen, const char **code, size_t size) {
-    _wizard_firstlay_Z_step(p_screen);
-#if DEBUG_TERM == 0
-    const int remaining_lines = _run_gcode_line(&line_body, code, size);
-#else
-    const int remaining_lines = _run_gcode_line(&line_body, code, size, &p_screen->term);
-#endif
-    if (remaining_lines < 1) {
-        p_screen->state = _FL_GCODE_DONE;
-    }
-}
-
 int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
     if (p_data->state_print == _TEST_START) {
         p_screen->state = _FL_INIT;
@@ -730,9 +639,41 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 
         body_gcode = V2_gcodes_body;
         body_gcode_sz = V2_gcodes_body_sz;
-
-        head_gcode = getHeaderGCode();
-        head_gcode_sz = getHeaderGCodeSize();
+        switch (get_filament()) {
+        case FILAMENT_PETG:
+            head_gcode = V2_gcodes_head_PETG;
+            head_gcode_sz = V2_gcodes_head_PETG_sz;
+            break;
+        case FILAMENT_ASA:
+            head_gcode = V2_gcodes_head_ASA;
+            head_gcode_sz = V2_gcodes_head_ASA_sz;
+            break;
+        case FILAMENT_ABS:
+            head_gcode = V2_gcodes_head_ABS;
+            head_gcode_sz = V2_gcodes_head_ABS_sz;
+            break;
+        case FILAMENT_PC:
+            head_gcode = V2_gcodes_head_PC;
+            head_gcode_sz = V2_gcodes_head_PC_sz;
+            break;
+        case FILAMENT_FLEX:
+            head_gcode = V2_gcodes_head_FLEX;
+            head_gcode_sz = V2_gcodes_head_FLEX_sz;
+            break;
+        case FILAMENT_HIPS:
+            head_gcode = V2_gcodes_head_HIPS;
+            head_gcode_sz = V2_gcodes_head_HIPS_sz;
+            break;
+        case FILAMENT_PP:
+            head_gcode = V2_gcodes_head_PP;
+            head_gcode_sz = V2_gcodes_head_PP_sz;
+            break;
+        case FILAMENT_PLA:
+        default:
+            head_gcode = V2_gcodes_head_PLA;
+            head_gcode_sz = V2_gcodes_head_PLA_sz;
+            break;
+        }
 
         gcode_sz = body_gcode_sz + head_gcode_sz;
 
@@ -751,34 +692,23 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         }
     }
 
+    int remaining_lines;
     switch (p_screen->state) {
-
     case _FL_INIT:
-        FLInit(id_body, p_screen, p_data, z_offset);
+        p_screen->Z_offset = z_offset;
+        wizard_init_screen_firstlay(id_body, p_screen, p_data);
+#if DEBUG_TERM == 1
+        term_printf(&p_screen->terminal, "INITIALIZED\n");
+        p_screen->term.id.Invalidate();
+#endif
+        _set_gcode_first_lines();
+        p_screen->state = _FL_GCODE_HEAD;
+        marlin_error_clr(MARLIN_ERR_ProbingFailed);
+#if DEBUG_TERM == 1
+        term_printf(&p_screen->terminal, "HEAD\n");
+        p_screen->term.id.Invalidate();
+#endif
         break;
-
-    case _FL_GCODE_MBL:
-        FLGcodeMBL(p_screen);
-        break;
-
-    case _FL_GCODE_HEAT:
-        //have to wait to next state after MBL to check error
-        if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            marlin_error_clr(MARLIN_ERR_ProbingFailed);
-            marlin_gcode("G0 Z30"); //Z 30mm
-            marlin_gcode("M84");    //Disable steppers
-            if (wizard_msgbox(_("Mesh bed leveling failed?"), MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
-                p_screen->state = _FL_GCODE_MBL; //RETRY
-            } else {
-                p_data->state_print = _TEST_FAILED; //ABORT
-                return 100;
-            }
-        }
-
-        FLGcodeHeat(p_screen);
-        break;
-
-    /// depreciated
     case _FL_GCODE_HEAD:
         //have to wait to next state after MBL to check error
         if (line_head > G29_pos && marlin_error(MARLIN_ERR_ProbingFailed)) {
@@ -794,13 +724,37 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
                 return 100;
             }
         }
-        FLGcodeHead(p_screen, head_gcode, head_gcode_sz);
+#if DEBUG_TERM == 0
+        remaining_lines = _run_gcode_line(&line_head, head_gcode,
+            head_gcode_sz);
+#else
+        remaining_lines = _run_gcode_line(&line_head, head_gcode,
+            head_gcode_sz, &p_screen->term);
+#endif
+        if (remaining_lines < 1) {
+            p_screen->state = _FL_GCODE_BODY;
+#if DEBUG_TERM == 1
+            term_printf(&p_screen->terminal, "BODY\n");
+            p_screen->term.Invalidate();
+#endif
+            p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
+            p_screen->spin_baby_step.color_text = COLOR_ORANGE;
+            p_screen->spin_baby_step.Invalidate();
+        }
         break;
-
     case _FL_GCODE_BODY:
-        FLGcodeBody(p_screen, body_gcode, body_gcode_sz);
+        _wizard_firstlay_Z_step(p_screen);
+#if DEBUG_TERM == 0
+        remaining_lines = _run_gcode_line(&line_body, body_gcode,
+            body_gcode_sz);
+#else
+        remaining_lines = _run_gcode_line(&line_body, body_gcode,
+            body_gcode_sz, &p_screen->term);
+#endif
+        if (remaining_lines < 1) {
+            p_screen->state = _FL_GCODE_DONE;
+        }
         break;
-
     case _FL_GCODE_DONE:
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "PASSED\n");
@@ -837,22 +791,23 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     //need last step to ensure correct behavior on limits
     const float _step_last = p_screen->Z_offset;
     p_screen->Z_offset += p_screen->Z_offset_request;
+
     p_screen->Z_offset = std::min(z_offset_max, std::max(z_offset_min, p_screen->Z_offset));
 
     marlin_do_babysteps_Z(p_screen->Z_offset - _step_last);
 
     //call p_screen->spin_baby_step.SetValue(p_screen->Z_offset); only when value changed
-    static const char *mp[2] = { /// minus / plus chars
-        "---",
-        "+++"
-    };
-
-    if (p_screen->Z_offset_request != 0) {
+    if (p_screen->Z_offset_request > 0) {
         p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
-        p_screen->text_direction_arrow.SetText(
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)mp[signbit(p_screen->Z_offset_request)]));
-        p_screen->Z_offset_request = 0;
+        static const char pp[] = "+++";
+        p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pp));
+    } else if (p_screen->Z_offset_request < 0) {
+        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
+        static const char mm[] = "---";
+        p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)mm));
     }
+
+    p_screen->Z_offset_request = 0;
 }
 
 int _get_progress() {
