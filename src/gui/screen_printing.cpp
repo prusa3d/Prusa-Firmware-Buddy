@@ -221,7 +221,7 @@ void screen_printing_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
         &(pw->w_message));
-    pw->w_message.font = resource_font(IDR_FNT_SMALL);
+    pw->w_message.font = resource_font(IDR_FNT_NORMAL);
     pw->w_message.SetAlignment(ALIGN_LEFT_TOP);
     pw->w_message.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_message.SetText(_("No messages"));
