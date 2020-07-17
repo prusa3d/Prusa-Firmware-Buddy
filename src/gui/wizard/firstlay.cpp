@@ -231,15 +231,15 @@ public:
             return false;
         }
 
-        uint16_t eof = 0;
+        uint16_t eol = 0;
         uint16_t start = 0;
-        while (1) {
+        while (eol < pos) {
             /// find end of line
-            while (eof < pos && code[eof] != '\n')
-                ++eof;
-            code[eof] = '\0'; /// switch \n to \0
+            while (eol < pos && code[eol] != '\n')
+                ++eol;
+            code[eol] = '\0'; /// switch \n to \0
             marlin_gcode(&code[start]);
-            start = ++eof;
+            start = ++eol;
         }
         clear(); /// remove all G codes
         return true;
@@ -654,6 +654,7 @@ inline void FLGcodeMBL(firstlay_screen_t *p_screen, const char **code, size_t si
 
     gCode gc;
     initialGcodes(gc);
+    gc.send();
     p_screen->state = _FL_GCODE_HEAT;
 }
 
