@@ -80,13 +80,17 @@ msgstr "Kalibriere Z"
 msgid "Calibration"
 msgstr "Kalibrierung"
 
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
+msgstr "KALIBRIERUNG"
+
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
 msgstr "Kalibrierung erfolgreich!\nFrohes Drucken!"
 
 #: src/gui/wizard/screen_wizard.cpp:304
 msgid "Calibration XY"
-msgstr "Kalibrierung XY"
+msgstr "Kalibriere XY"
 
 #. 0
 #. 1
@@ -97,12 +101,12 @@ msgstr "ABBRECHEN"
 #: src/gui/dialogs/DialogFactory.cpp:11 src/gui/screen_menu_filament.cpp:79
 #: src/gui/screen_menu_filament.cpp:80
 msgid "CHANGE FILAMENT"
-msgstr "FILAMENT WECHSEL"
+msgstr "FILAMENTWECHSEL"
 
 #: src/gui/screen_menu_filament.cpp:78 src/guiapi/include/MItem_tools.hpp:188
 #: src/gui/screen_menu_filament.cpp:79
 msgid "Change Filament"
-msgstr "Filament Wechsel"
+msgstr "Filament wechseln"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
@@ -134,7 +138,7 @@ msgstr "Abkühlen"
 
 #: src/gui/screen_sysinf.cpp:67
 msgid "CPU load"
-msgstr "CPU Last"
+msgstr "CPU Auslastung"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:30
 msgid "DISABLE SENSOR"
@@ -168,7 +172,7 @@ msgstr "FERTIG"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:55
 msgid "Ejecting"
-msgstr "Werfe aus"
+msgstr "Auswerfen"
 
 #. MSGBOX_ICO_CUSTOM     0x0000
 #: src/guiapi/src/window_msgbox.cpp:13
@@ -190,7 +194,7 @@ msgstr "BEENDEN"
 
 #: src/guiapi/src/MItem_tools.cpp:108
 msgid "Factory defaults loaded. The system will now restart."
-msgstr "Werkseitige Standardeinstellungen geladen. Das System wird nun neu gestartet."
+msgstr "Werkeinstellung geladen. Das System wird neu gestartet."
 
 #: src/guiapi/include/MItem_tools.hpp:68
 msgid "Factory Reset"
@@ -260,7 +264,7 @@ msgstr "Heizung wegen 30 Minuten Inaktivität deaktiviert."
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
-msgstr "Heize..."
+msgstr "Aufheizen..."
 
 #: src/gui/guimain.c:189
 msgid "Hi, this is your\nOriginal Prusa MINI."
@@ -277,9 +281,13 @@ msgstr "HOME"
 msgid "Home"
 msgstr "Home"
 
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr "HOME TO MAX"
+
 #: src/gui/wizard/selftest_fans_axis.cpp:35
 msgid "Hotend fan"
-msgstr "Hotendlüfter"
+msgstr "Hotend Lüfter"
 
 #. MSGBOX_RES_RETRY     4
 #: src/gui/screen_print_preview.cpp:318 src/guiapi/src/window_msgbox.cpp:52
@@ -296,7 +304,7 @@ msgstr "IGNORIEREN"
 #. "the print surface."
 #: src/gui/wizard/screen_wizard.c:430
 msgid "In the next step, \nuse the knob to   \nadjust the nozzle \nheight.           \nCheck the pictures\nin the handbook   \nfor reference."
-msgstr "Im nächsten Schritt, \nden Knopf verwenden,\num die Höhe der Düse\neinzustellen. \nPrüfen Sie die\nBilder im Handbuch   \nals Referenz."
+msgstr "Im nächsten Schritt, \nden Knopf verwenden,\num die Höhe der Düse\neinzustellen. Prüfen \nSie die Bilder im\nHandbuch als\nReferenz."
 
 #: src/gui/screen_menu_info.cpp:17
 msgid "INFO"
@@ -313,7 +321,7 @@ msgstr "Informationen"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:53
 msgid "Inserting"
-msgstr "Führe ein"
+msgstr "Einführen"
 
 #: src/gui/screen_menu_lan_settings.cpp:305
 #: src/gui/screen_menu_lan_settings.cpp:306
@@ -356,7 +364,7 @@ msgstr "SPRACHEN"
 
 #: src/guiapi/include/MItem_print.hpp:48
 msgid "Live Adjust Z"
-msgstr "Live Adjust Z"
+msgstr "Live Z Anpassen"
 
 #: src/gui/wizard/wizard_load_unload.cpp:44
 msgid "LOAD"
@@ -382,7 +390,7 @@ msgstr "Lade ..."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:56
 msgid "Loading to nozzle"
-msgstr "Lade in Düse"
+msgstr "Zur Düse laden"
 
 #: src/guiapi/include/MItem_tools.hpp:210
 #: src/guiapi/include/MItem_tools.hpp:209
@@ -427,23 +435,23 @@ msgstr "Meldungen"
 
 #: src/guiapi/include/MItem_menus.hpp:98
 msgid "Move Axis"
-msgstr "Bewegen Achsen"
+msgstr "Achsen Bewegen"
 
 #: src/gui/menu_vars.h:62
 msgid "Move E"
-msgstr "Bewegen E"
+msgstr "Bewege E"
 
 #: src/gui/menu_vars.h:62
 msgid "Move X"
-msgstr "Bewegen X"
+msgstr "Bewege X"
 
 #: src/gui/menu_vars.h:62
 msgid "Move Y"
-msgstr "Bewegen Y"
+msgstr "Bewege Y"
 
 #: src/gui/menu_vars.h:62
 msgid "Move Z"
-msgstr "Bewegen Z"
+msgstr "Bewege Z"
 
 #. known and not "unsensed" - do not allow load
 #. cannot use CONTINUE button, string is too long
@@ -471,7 +479,7 @@ msgstr "Kein USB"
 
 #: src/gui/wizard/screen_wizard.c:392
 msgid "Now, let's calibrate\nthe distance       \nbetween the tip    \nof the nozzle and  \nthe print sheet.   "
-msgstr "Jetzt kalibrieren\nwir die Entfernung\nzwischen der Spitze\nder Düse und\ndas Druckblech."
+msgstr "Jetzt kalibrieren\nwir die Entfernung\nzwischen der Spitze\nder Düse und\ndem Druckblech."
 
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
@@ -511,7 +519,7 @@ msgstr "Einmal"
 
 #: src/gui/wizard/firstlay.c:55 src/gui/wizard/firstlay.c:63
 msgid "Once the printer   \nstarts extruding   \nplastic, adjust    \nthe nozzle height  \nby turning the knob\nuntil the filament \nsticks to the print\nsheet."
-msgstr "Sobald der Drucker\nbeginnt, Kunststoff\nzu extrudieren,\nstellen Sie die Höhe\nder Düse durch Knopf\nDrehen ein, bis der\nFaden am Druckblech\nhaftet."
+msgstr "Sobald der Drucker\nbeginnt, Kunststoff\nzu extrudieren,\nstellen Sie die Höhe\nder Düse durch Knopf\nDrehen ein, bis der\nFilament am\nDruckblech haftet."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:45
 msgid "Parking"
@@ -545,7 +553,7 @@ msgstr "Bitte schließen Sie ein USB-Laufwerk an und versuchen Sie es erneut."
 
 #: src/gui/guimain.c:190
 msgid "Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"
-msgstr "Bitte schließen Sie\nden USB-Stick an,\nder mit Ihrem MINI \ngeliefert wurde und\nDrucker zurücksetzen\nzum Firmwareflashen"
+msgstr "Bitte schließen Sie\nden USB-Stick an,\nder mit Ihrem MINI \ngeliefert wurde und\nresetten den Drucker\nzum Firmwareflashen "
 
 #: src/gui/wizard/screen_wizard.c:346
 msgid "Please place steel sheet on heatbed."
@@ -572,13 +580,13 @@ msgstr "Vorheizen"
 #: src/gui/dialogs/window_dlg_load_unload.c:31
 #: src/gui/dialogs/window_dlg_load_unload.cpp:34
 msgid "PREHEAT for LOAD"
-msgstr "VORHEIZEN LADEN"
+msgstr "VORHEIZEN zum LADEN"
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:49
 #: src/gui/dialogs/window_dlg_load_unload.cpp:54
 msgid "PREHEAT for UNLOAD"
-msgstr "VORHEIZEN ENTLADEN"
+msgstr "VORHEIZEN zum ENTLADEN"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:48
 msgid "Preparing to ram"
@@ -614,7 +622,7 @@ msgstr "Druck wird enden"
 
 #: src/gui/screen_printing.cpp:559
 msgid "PRINTING"
-msgstr "Drucke"
+msgstr "DRUCKEN"
 
 #: src/gui/screen_printing.cpp:208
 msgid "Printing time"
@@ -631,7 +639,7 @@ msgstr "Filament reinigen"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:57
 msgid "Purging"
-msgstr "Reinige"
+msgstr "Reinigen"
 
 #: src/guiapi/include/MItem_menus.hpp:68
 msgid "QR test"
@@ -652,7 +660,7 @@ msgstr "Wirklich Trennen?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:33
 msgid "REHEAT"
-msgstr "NEU HEIZEN"
+msgstr "ERNEUT HEIZEN"
 
 #: src/gui/screen_printing.cpp:191 src/gui/screen_printing.cpp:340
 msgid "Remaining Time"
@@ -664,7 +672,7 @@ msgstr "Druck wiederholen"
 
 #: src/common/MindaRedscreen.c:187 src/gui/guimain.c:191
 msgid "RESET PRINTER"
-msgstr "RESET DRUCKER"
+msgstr "DRUCKER ZURÜCKSETZEN"
 
 #: src/gui/screen_printing.cpp:78
 msgid "Resume"
@@ -672,7 +680,7 @@ msgstr "Fortsetzen"
 
 #: src/gui/screen_printing.cpp:79
 msgid "Resuming..."
-msgstr "Mache weiter..."
+msgstr "Fortfahren"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:34
 msgid "RETRY"
@@ -706,7 +714,7 @@ msgstr "Aktivieren, wenn Sie\nautomatisch aktua-\nlisierte Firmware\nvon einem U
 
 #: src/guiapi/include/MItem_tools.hpp:38
 msgid "SelfTest"
-msgstr "SelfTest"
+msgstr "Selbsttest"
 
 #: src/gui/wizard/screen_wizard.c:530
 msgid "SELFTEST"
@@ -714,7 +722,7 @@ msgstr "SELBSTTEST"
 
 #: src/guiapi/include/MItem_menus.hpp:78
 msgid "Send Info by QR"
-msgstr "Sende Info mit QR"
+msgstr "Sende Info per QR"
 
 #: src/guiapi/include/MItem_menus.hpp:108
 msgid "Service"
@@ -724,6 +732,10 @@ msgstr "Service"
 #: src/gui/screen_home.cpp:43
 msgid "Settings"
 msgstr "Einstellungen"
+
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr "EINSTELLUNGEN"
 
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
@@ -762,11 +774,11 @@ msgstr "Statistik"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:28
 msgid "STOP"
-msgstr "STOPP"
+msgstr "STOP"
 
 #: src/gui/screen_printing.cpp:77
 msgid "Stop"
-msgstr "Stopp"
+msgstr "Stop"
 
 #: src/guiapi/include/MItem_menus.hpp:58
 msgid "Support"
@@ -790,7 +802,7 @@ msgstr "Test"
 
 #: src/gui/wizard/screen_wizard.c:489
 msgid "The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration."
-msgstr "Die Kalibrierung der ersten Schicht konnte nicht abgeschlossen werden. Überprüfen Sie die Verkabelung des Druckers, die Düse und die Achsen und starten Sie die Kalibrierung erneut."
+msgstr "Die Kalibrierung der ersten Schicht konnte nicht abgeschlossen werden. Bitte Verkabelung, Düse und Achsen des Druckers überprüfen und starten Sie dann die Kalibrierung erneut."
 
 #: src/gui/screen_splash.c:105
 msgid "The printer is not calibrated. Start First Layer Calibration?"
@@ -812,7 +824,7 @@ msgstr "Die Statusleiste ist\nam unteren Rand des\nBildschirms. Sie\nenthält In
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
-msgstr "Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Überprüfen Sie die Verkabelung und die Achsen des Druckers doppelt und starten Sie dann die XYZ-Kalibrierung erneut."
+msgstr "Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. \nBitte Verkabelung und Achsen des Druckers überprüfen \nund starten Sie dann die XYZ-Kalibrierung erneut."
 
 #: src/gui/screen_menu_lan_settings.cpp:299
 #: src/gui/screen_menu_lan_settings.cpp:300
@@ -896,7 +908,7 @@ msgstr "Version Info"
 
 #: src/gui/wizard/selftest_cool.cpp:28
 msgid "Waiting for cooldown"
-msgstr "Warte auf Abkühlung"
+msgstr "Warte auf Abkühl"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid "Waiting for temp."

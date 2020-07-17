@@ -15,6 +15,7 @@ PLATEAU
 Échec du bed leveling. Réessayer ?
 Calibration Z
 Calibration
+CALIBRATION
 Calibration réussie !\nBonnes impressions !
 Calibration XY
 ANNULER
@@ -61,6 +62,7 @@ En chauffe...
 Bonjour, voici votre\nOriginal Prusa MINI.
 POSITION INITIALE
 Position Initiale
+HOME TO MAX
 Vent. hotend
 IGNORER
 À la prochaine étape\nutilisez le bouton\npour ajuster la\nhauteur de la buse.\nRéférez-vous aux\nimages du manuel.
@@ -107,9 +109,9 @@ Pas d'USB
 Buse
 BUSE
 Buse trop froide
-Hors-tension
+Off
 OK
-Sous Tension
+On
 Redémarrage en cours
 Une fois
 Lorsque l'imprimante\nCommence à extruder\nle plastique ajustez\nla hauteur de buse\nEn faisant tourner\nle bouton jusqu'à\nce que le filament\nadhère à la feuille\nd'impression.
@@ -163,6 +165,7 @@ SELFTEST
 Envoyer infos par QR
 Maintenance
 Réglages
+RÉGLAGES
 Chargement des réglages réussi
 Silencieux
 Mode Sonore
@@ -200,7 +203,7 @@ Clé USB non-prête !
 Clé USB protégée en écriture !
 Filament Utilisé
 INFOS DE LA VERSION
-Infos de Version
+Infos Version
 Att. refroidissement
 En attente de temp.
 Avertissement

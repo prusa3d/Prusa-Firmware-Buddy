@@ -15,6 +15,7 @@ BED
 Bed leveling failed. Try again?
 Calibrating Z
 Calibration
+CALIBRATION
 Calibration successful!\nHappy printing!
 Calibration XY
 CANCEL
@@ -61,6 +62,7 @@ Heating...
 Hi, this is your\nOriginal Prusa MINI.
 HOME
 Home
+HOME TO MAX
 Hotend fan
 IGNORE
 In the next step, \nuse the knob to   \nadjust the nozzle \nheight.           \nCheck the pictures\nin the handbook   \nfor reference.
@@ -163,6 +165,7 @@ SELFTEST
 Send Info by QR
 Service
 Settings
+SETTINGS
 Settings successfully loaded
 Silent
 Sound Mode

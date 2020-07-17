@@ -80,6 +80,10 @@ msgstr "Kalibuję Z"
 msgid "Calibration"
 msgstr "Kalibracja"
 
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
+msgstr "KALIBRACJA"
+
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
 msgstr "Kalibracja wykonana!\nUdanego drukowania!"
@@ -276,6 +280,10 @@ msgstr "EKRAN GŁÓWNY"
 #: src/gui/window_file_list.c:133
 msgid "Home"
 msgstr "Ekran główny"
+
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr "HOME TO MAX"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:35
 msgid "Hotend fan"
@@ -724,6 +732,10 @@ msgstr "Serwis"
 #: src/gui/screen_home.cpp:43
 msgid "Settings"
 msgstr "Ustawienia"
+
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr "USTAWIENIA"
 
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303

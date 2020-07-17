@@ -80,6 +80,10 @@ msgstr "Calibrando  Z "
 msgid "Calibration"
 msgstr "Calibración"
 
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
+msgstr "CALIBRACIÓN"
+
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
 msgstr "¡Calibrada con éxito!\n¡Felices impresiones!"
@@ -110,7 +114,7 @@ msgstr "Comprobando ejes "
 
 #: src/gui/wizard/selftest_temp.cpp:37
 msgid "Checking hotend and\nheatbed heaters"
-msgstr "Comprobando calentadores del fusor y de la base"
+msgstr "Compro. calentadores\ndel fusor y de la base"
 
 #: src/gui/wizard/screen_wizard.c:462
 msgid "Clean steel sheet."
@@ -130,7 +134,7 @@ msgstr "CONTINUAR"
 
 #: src/gui/screen_menu_temperature.cpp:11 src/gui/filament.cpp:13
 msgid "Cooldown"
-msgstr "Enfriamiento"
+msgstr "Enfriar"
 
 #: src/gui/screen_sysinf.cpp:67
 msgid "CPU load"
@@ -146,7 +150,7 @@ msgstr "Desactivar motores"
 
 #: src/gui/screen_printing_serial.cpp:36
 msgid "Disconnect"
-msgstr "Desconecta"
+msgstr "Desconectar"
 
 #: src/gui/wizard/screen_wizard.c:448
 msgid "Do you want to     \nrepeat the last    \nstep and readjust  \nthe distance       \nbetween the nozzle \nand heatbed?"
@@ -177,7 +181,7 @@ msgstr "Error"
 
 #: src/guiapi/src/MItem_tools.cpp:123
 msgid "Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."
-msgstr "Error al guardar el informe de volcado de memoria en la unidad USB. Vuelve a insertar la unidad USB e intenta nuevamente."
+msgstr "Error al guardar el informe de volcado de memoria en la unidad USB. Vuelve a insertar la unidad USB e intentalo otra vez."
 
 #: src/gui/wizard/screen_wizard.c:266
 msgid "Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes."
@@ -252,7 +256,7 @@ msgstr "Actualizar FW"
 
 #: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
-msgstr "Base calefactable"
+msgstr "Base Calefactora"
 
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
@@ -268,14 +272,18 @@ msgstr "Hola, esta es tu\nOriginal Prusa MINI."
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
 msgid "HOME"
-msgstr "HOME"
+msgstr "INICIO"
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
 #: src/gui/window_file_list.c:120 src/gui/window_file_list.c:122
 #: src/gui/window_file_list.c:133
 msgid "Home"
-msgstr "Home"
+msgstr "Inicio"
+
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr "HOME TO MAX"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:35
 msgid "Hotend fan"
@@ -475,7 +483,7 @@ msgstr "Ahora, calibremos\nla distancia\nentre la punta\nde la boquilla y\nla l�
 
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
-msgstr "Nozzle"
+msgstr "Boquilla"
 
 #: src/gui/screen_PID.cpp:474
 msgid "NOZZLE"
@@ -590,7 +598,7 @@ msgstr "Presiona CONTINUAR y\nempuja el filamento \nen el extrusora."
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
-msgstr "Presione SIGUIENTE \npara ejecutar\nel Selftest, que\ncomprueba\nproblemas potenciales\nrelacionado con\nel montaje."
+msgstr "Presione SIGUIENTE\npara ejecutar\nel Selftest, que\ncomprueba\nproblemas potenciales\nrelacionado con\nel montaje."
 
 #: src/gui/screen_home.cpp:39
 msgid "Print"
@@ -602,7 +610,7 @@ msgstr "Vent. de impresión"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:43
 msgid "Print fan"
-msgstr "Ventilador de capa"
+msgstr "Vent. de impresión"
 
 #: src/gui/screen_print_preview.cpp:135 src/gui/screen_print_preview.cpp:138
 msgid "Print Time"
@@ -698,11 +706,11 @@ msgstr "Buscando la base\npuntos de calibración"
 
 #: src/gui/wizard/wizard_load_unload.c:77
 msgid "Select filament type"
-msgstr "Selecc. tipo filamento"
+msgstr "Selecc. tipo de filamento"
 
 #: src/gui/screen_menu_fw_update.cpp:57
 msgid "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."
-msgstr "Selecciona donde \nquieres flashear \nautomáticamente\nel firmware \nactualizado desde \nuna memoria USB."
+msgstr "Selecciona donde\nquieres flashear\nautomáticamente\nel firmware\nactualizado desde \nuna memoria USB."
 
 #: src/guiapi/include/MItem_tools.hpp:38
 msgid "SelfTest"
@@ -724,6 +732,10 @@ msgstr "Mantenimiento"
 #: src/gui/screen_home.cpp:43
 msgid "Settings"
 msgstr "Ajustes"
+
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr "AJUSTES"
 
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
@@ -762,7 +774,7 @@ msgstr "Estadística"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:28
 msgid "STOP"
-msgstr "STOP"
+msgstr "PARAR"
 
 #: src/gui/screen_printing.cpp:77
 msgid "Stop"
@@ -808,7 +820,7 @@ msgstr "La configuración se ha guardado correctamente en el archivo \"lan_setti
 
 #: src/gui/wizard/screen_wizard.c:192
 msgid "The status bar is at\nthe bottom of the  \nscreen. It contains\ninformation about: \n - Nozzle temp.    \n - Heatbed temp.   \n - Printing speed  \n - Z-axis height   \n - Selected filament"
-msgstr "La barra de estado \nestá en el fondo de\nla pantalla. Contiene\nInformación sobre:\n  - Temp. de la boquilla.\n  - Temp. de la base.\n  - Vel. de impresión\n  - Alt. del eje Z\n  - Fil. seleccionado"
+msgstr "La barra de estado \nestá en el fondo de\nla pantalla. Contiene\nInformación sobre:\nTemp. de la boquilla\nTemp. de la base\nVel. de impresión\nAlt. del eje Z\nFil. seleccionado"
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
@@ -845,11 +857,11 @@ msgstr "INTENTARLO DE NUEVO"
 
 #: src/gui/screen_menu_tune.cpp:21
 msgid "TUNE"
-msgstr "AJUSTAR"
+msgstr "AJUSTES"
 
 #: src/gui/screen_printing_serial.cpp:34 src/gui/screen_printing.cpp:74
 msgid "Tune"
-msgstr "Ajusta"
+msgstr "Ajustes"
 
 #: src/gui/wizard/wizard_load_unload.cpp:21
 #: src/gui/wizard/wizard_load_unload.cpp:44
@@ -909,7 +921,7 @@ msgstr "Cuidado"
 
 #: src/gui/wizard/screen_wizard.cpp:146
 msgid "Welcome to the     \nOriginal Prusa MINI\nsetup wizard.      \nWould you like to  \ncontinue?           "
-msgstr "Bienvenido a la\nOriginal Prusa MINI\nasistente de configuración.\n¿Te gustaría\ncontinuar?"
+msgstr "Bienvenido a la\nOriginal Prusa MINI\nasistente de \nconfiguración.\n¿Te gustaría\ncontinuar?"
 
 #: src/gui/test/screen_test_msgbox.c:28
 msgid "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"

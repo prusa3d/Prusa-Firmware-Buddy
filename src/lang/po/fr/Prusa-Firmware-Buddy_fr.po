@@ -80,6 +80,10 @@ msgstr "Calibration Z"
 msgid "Calibration"
 msgstr "Calibration"
 
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
+msgstr "CALIBRATION"
+
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
 msgstr "Calibration réussie !\nBonnes impressions !"
@@ -276,6 +280,10 @@ msgstr "POSITION INITIALE"
 #: src/gui/window_file_list.c:133
 msgid "Home"
 msgstr "Position Initiale"
+
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr "HOME TO MAX"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:35
 msgid "Hotend fan"
@@ -488,7 +496,7 @@ msgstr "Buse trop froide"
 #: src/guiapi/include/WindowMenuItems.hpp:130
 #: src/guiapi/include/WindowMenuItems.hpp:159
 msgid "Off"
-msgstr "Hors-tension"
+msgstr "Off"
 
 #. MSGBOX_RES_NO        7
 #: src/guiapi/src/window_msgbox.cpp:55
@@ -498,7 +506,7 @@ msgstr "OK"
 #: src/guiapi/include/WindowMenuItems.hpp:131
 #: src/guiapi/include/WindowMenuItems.hpp:160
 msgid "On"
-msgstr "Sous Tension"
+msgstr "On"
 
 #: src/gui/screen_menu_fw_update.cpp:32
 msgid "On restart"
@@ -725,6 +733,10 @@ msgstr "Maintenance"
 msgid "Settings"
 msgstr "Réglages"
 
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr "RÉGLAGES"
+
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
 #: src/gui/screen_menu_lan_settings.cpp:298
@@ -892,7 +904,7 @@ msgstr "INFOS DE LA VERSION"
 
 #: src/guiapi/include/MItem_menus.hpp:8
 msgid "Version Info"
-msgstr "Infos de Version"
+msgstr "Infos Version"
 
 #: src/gui/wizard/selftest_cool.cpp:28
 msgid "Waiting for cooldown"

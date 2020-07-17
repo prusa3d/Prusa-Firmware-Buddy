@@ -4,7 +4,7 @@ ZRUŠIT
 Všechny testy úspěšné!
 Vždy
 Použít
-Chcete zastavit tisk?
+Chcete zrušit tisk?
 Assist
 Auto Home
 Auto home
@@ -15,6 +15,7 @@ PODLOŽKA
 Mesh Bed L. selhal. Opakovat?
 Kalibrace Z
 Kalibrace
+KALIBRACE
 Kalibrace dokončena!\nTisku zdar!
 Kalibrace XY
 ZRUŠIT
@@ -26,7 +27,7 @@ Očistěte podložku
 Gratulujeme! XYZ kalibrace v pořádku, všechny osy kolmé.
 Probíhá zvukový test\nZastavte tlačítkem
 POKRAČOVAT
-Ochlazení
+Zchladit
 CPU vyt.
 VYPNOUT SENZOR
 Vypnout motory
@@ -43,14 +44,14 @@ KONEC
 Nahrány výchozí hodnoty. Systém se restartuje.
 Tovární nastavení
 Stat. chyb
-Test vent.
+Test ventilátorů
 Fil. senz.
 FILAMENT
 Filament
 Filament nebyl detekován. Zavést filament nyní? Vyberte NE pro zrušení tisku, nebo IGNOROVAT pro vypnutí senzoru a pokračování.
 Dokončování\nnačtených gcodů.
 Verze firmwaru
-Kalib. prvni vrstvy
+Kalibrace prvni vrstvy
 KALIB. PRVNI VRSTVY
 Průtok
 AKTUALIZACE FW
@@ -61,6 +62,7 @@ Zahřívání...
 Vítá vás\nOriginal Prusa MINI!
 MENU
 Domů
+HOME TO MAX
 Vent. hotendu
 IGNOROVAT
 V dalším kroku\npoužijte ovládací\ntlačítko a nastavte\nvýšku trysky.\nV příručce najdete\ndetailní instrukce\na ilustrace.
@@ -83,13 +85,13 @@ ZAVÉST FIL.
 Zavést filament
 Načíst nast.
 Nahrává se...
-Zavedení do trysky
+Zavádění do trysky
 Hlasitý
 Ujistěte se, že\nje filament\nvložen skrz\nfil. senzor
 Materiál
 Měření referenční\nvýšky kalibračních\nbodů
 MESH BED L.
-Mesh Bed Level.
+Mesh Bed Leveling
 Mesh Bed Leveling selhal?
 ZPRÁVY
 Zprávy
@@ -115,7 +117,7 @@ Jednou
 Až MINI začne\nextrudovat plast,\nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament\nmusí být správně\npřitlačen k\npodložce.
 Parkování
 Pauza
-Pozastavování...
+Pozastavení...
 Úprava PID
 Pro kalibraci prvních 4 bodů vložte pod trysku list papíru. Pokud tryska o papír zavadí, okamžitě tiskárnu vypněte!
 Nyní je nutné očistit trysku. Až bude hotovo, zvolte DALŠÍ.
@@ -135,11 +137,11 @@ Tisk
 Tisk. vent.
 Tisk. ventilátor
 Doba tisku
-Tisk bude ukončen
+Konec tisku:
 TISK
 Čas tisku
-ČISTIT FILAMENT
-Čistit filament
+ČISTIT TRYSKU
+Čistit trysku
 Čištění
 QR test
 Otázka
@@ -163,6 +165,7 @@ SELFTEST
 Poslat info přes QR
 Služba
 Nastavení
+NASTAVENÍ
 Nastavení načteno
 Tichý
 Zvuk
@@ -179,21 +182,21 @@ Teplota
 Test
 Selhala kalibrace první vrstvy. Zkontrolujte zapojení el. částí tiskárny, trysku a jednotlivé osy, pak restartujte kalibraci.
 Tiskána není zkalibrovaná. Začít kalibraci 1. vrstvy?
-SelfTest selhal.\nZkontrolujte\nzapojení el. částí\ni všechny osy.\nPak SelfTest\nrestartujte.
+SelfTest selhal.\nZkontrolujte\nzapojení el. částí\ni všechny osy.\nPak SelfTest\nspusťte znovu.
 Nastavení úspěšně uloženo do souboru \lan_settings.ini\
 V dolní části\nobrazovky je\nstavový řádek.\nObsahuje info o:\n -Teplotě trysky\n -Teplotě podložky\n -Rychlosti tisku\n -Výšce osy Z\n -Filamentu
 Selhala kalibrace os XYZ. Zkontrolujte zapojení el. součástí i jednotlivé osy, pak restartuje kalibraci XYZ.
 Při ukládání souboru \lan_settings.ini\ došlo k chybě.
 Tuto operaci nelze vrátit, současná konfigurace bude ztracena! Skutečně chcete obnovit tovární nastavení?
-Čas. limit
+Automatický návrat do menu
 Pro kalibraci s\naktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro výměnu\nzvolte VYJMOUT.
 Pro kalibraci s\naktuálně zavedeným\nfilamentem zvolte\nDALŠÍ. Pro zavedení\nfilamentu zvolte\nZAVÉST. Pro výměnu \nzvolte VYJMOUT. 
 OPAKOVAT
 LADIT
 Ladit
 VYJM.
-VYSUNOUT FIL.
-Vysunout fil.
+VYJMOUT FILAMENT
+Vyjmout filament
 Vysouvání
 Odparkování
 USB disk není připraven!
@@ -204,7 +207,7 @@ Info o verzi
 Čeká se na ochlazení
 Čekám na tepl.
 Varování
-Vítejte v průvodci\nnastavením Original\nPrusa MINI.\nChcete pokračovat?
+Vítejte v průvodci\nnastavením Original\nPrusa MINI. Přejete\nsi pokračovat?
 Vítejte v průvodci pro Original Prusa MINI. Přejete si pokračovat?
 Průvodce
 PRŮVODCE

@@ -15,6 +15,7 @@ PIANO
 Livellamento del piano non riuscito. Riprovare?
 Calibrazione Z
 Calibrazione
+CALIBRAZIONE
 Calibrazione completa!\nBuona stampa!
 Calibrazione XY
 ANNULLA
@@ -31,7 +32,7 @@ Carico CPU
 DISATTIVA SENSORE
 Disabilita motori
 Disconnetti
-Vuoi ripetere\nl'ultimo passo e \nregolare ancora la\ndistanza tra ugello\ne piano riscaldato?
+Vuoi ripetere\nl'ultimo passo e\nregolare ancora la\ndistanza tra ugello\ne piano riscaldato?
 Vuoi usare il valore\nattuale?\nAttuale: %0.3f.\nPredef: %0.3f.\nPremi NO per usare il val. predef. (consigliato)
 Usare l'ultimo valore impostato? Ultimo: %0.3f. Predef.: %0.3f. Premi NO per usare il valore predefinito.
 FATTO
@@ -40,7 +41,7 @@ Errore
 Errore salvando il rapporto di crash dump sul drive USB. Reinserire la chiavetta USB e riprovare.
 Tutto funzionante. Eseguirò adesso la calibrazione XYZ. Richiederà circa 12 minuti.
 USCITA
-Factory defaults loaded. The system will now restart.\nImpostazioni di fabbrica caricate. Riavvio sistema.
+Valori predefiniti di fabbrica caricati. Adeesso il sistema verrà riavviato.
 Ripristino impostazioni di fabbrica
 Stat. fallimenti
 Test ventola
@@ -61,6 +62,7 @@ Riscaldamento...
 Ciao, questa è\nla tua \nOriginal Prusa MINI.
 HOME
 Home
+HOME TO MAX
 Ventola hotend
 IGNORA
 Nel prossimo passo,\nusa la manopola per\nregolare l'altezza\nugello. Controlla le\nimmagini sul\nmanuale per rifer.
@@ -70,7 +72,7 @@ Informazioni
 Inserimento
 Gli indirizzi IP non sono validi o il file \lan_settings.ini\ non si trova nella directory principale dell'unità USB.
 Indirizzi IP o parametri non validi o il file \lan_settings.ini\ non presente nella directory principale del drive USB.
-Colore corretto?
+Il colore è corretto?
 Il filamento è\nnell'ingranaggio\ndell'estrusore?
 La piastra d'acciaio è sul piano riscaldato?
 IMPOSTAZIONI LAN
@@ -100,7 +102,7 @@ Sposta Y
 Sposta Z
 SUCCESSIVO
 NO
-No filament sensor detected. Verify that the sensor is connected and try again.\nSensore filamento non rilevato. Verificare il collegamento e riprovare.
+Sensore filamento non rilevato. Verificare il collegamento e riprovare.
 Nessun messaggio
 No USB
 Ora, calibriamo la\ndistanza tra la \npunta dell'ugello e\nil piano di stampa.
@@ -112,7 +114,7 @@ OK
 On
 Al riavvio
 Una volta
-Appena la stampante\ninizia ad estrudere\nla plastica, regola\nl'altezza ugello\nruotando la manopola\nfinché il filamento\nsi attacca alla\nsuperficie di stampa.
+Appena la stampante\ninizia ad estrudere\nplastica, regola\nl'altezza ugello\nruotando la manopola\nfinché il filamento\nnon si attacchi alla\nsuperficie di stampa.
 Parking
 Pausa
 In pausa...
@@ -157,12 +159,13 @@ Salvare Crash Dump
 Salva impostazioni
 Ricerca punti\ndi calibrazione piano
 Seleziona tipo filamento
-Seleziona quando vuoi\naggiornare automaticamente\nil nuovo firmware\nda penna USB.
+Seleziona quando vuoi\naggiornare\nautomaticamente\nil nuovo firmware\nda penna USB.
 AutoTest
 AUTOTEST
 Invia info con QR
 Assistenza
 Impostazioni
+IMPOSTAZIONI
 Impostazioni caricate correttamente
 Silenzioso
 Modo suono
@@ -179,7 +182,7 @@ Temperature
 Test
 Calib. primo layer non riuscita. Ricontrolla il cablaggio, assi e ugello, quindi ripeti la calibrazione.
 Stampante non calibrata. Avviare Calibrazione primo layer?
-Autotest non\nriuscito.\nRicontrolla il\ncablaggio e gli \nassi. Poi ripeti\nl'autotest.
+Autotest non\nriuscito.\nRicontrolla il\ncablaggio e gli\nassi. Poi ripeti\nl'autotest.
 Impostazioni salvate correttamente nel file \lan_settings.ini\.
 La barra di stato è\nin basso. Contiene\ninformazioni su:\n - Temp. Ugello\n - Temp. PianoRisc.\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato 
 Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quindi ripeti la calibrazione XYZ.
