@@ -3,9 +3,6 @@
 #include "stdlib.h"
 #include "resource.h"
 
-static const uint32_t HasFooter_FLAG = WINDOW_FLG_USER;
-static const uint32_t HasHeaderEvents_FLAG = WINDOW_FLG_USER << 1;
-
 string_view_utf8 IScreenMenu::no_label = string_view_utf8::MakeCPUFLASH((const uint8_t *)no_labelS);
 
 IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
@@ -41,8 +38,9 @@ IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_l
 
     window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
 
-    flg |= WINDOW_FLG_ENABLED | (FOOTER == EFooter::On ? HasFooter_FLAG : 0) | (helper_lines > 0 ? HasHeaderEvents_FLAG : 0);
+    FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
+    Enable();
     SetCapture(); // set capture to list
     SetFocus();
 
@@ -55,12 +53,7 @@ IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_l
 }
 
 int IScreenMenu::event(window_t *sender, uint8_t event, void *param) {
-    if (flg & HasFooter_FLAG) {
-        //status_footer_event(&footer, sender, event, param);
-    }
-    if (flg & HasHeaderEvents_FLAG) {
-        header.EventClr();
-    }
+    header.EventClr();
 
     //on return 0 screen_dispatch_event will call DispatchEvent
     return 0;

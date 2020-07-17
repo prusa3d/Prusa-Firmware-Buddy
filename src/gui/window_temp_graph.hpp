@@ -3,7 +3,6 @@
 #pragma once
 #include "window.hpp"
 
-#define WINDOW_FLG_GRAPH_INVALID (WINDOW_FLG_USER << 0)
 struct window_temp_graph_t;
 
 typedef void(window_temp_graph_point_t)(window_temp_graph_t *pwindow_graph, uint8_t index, float y_val);
@@ -22,4 +21,5 @@ struct window_temp_graph_t : public window_t {
     uint8_t y_bed_t[180];
     uint8_t y_nozzle_c[180];
     uint8_t y_bed_c[180];
+    bool graph_invalid;
 };

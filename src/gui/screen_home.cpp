@@ -222,16 +222,16 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 }
 
 void screen_home_data_t::printBtnEna() {
-    w_buttons[0].f_disabled = 0;
-    w_buttons[0].f_enabled = 1; // can be focused
-    w_buttons[0].f_invalid = 1;
+    w_buttons[0].UnswapBW();
+    w_buttons[0].Enable(); // can be focused
+    w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelPrintId]));
 }
 
 void screen_home_data_t::printBtnDis() {
-    w_buttons[0].f_disabled = 1;
-    w_buttons[0].f_enabled = 0; // cant't be focused
-    w_buttons[0].f_invalid = 1;
+    w_buttons[0].SwapBW();
+    w_buttons[0].Disable(); // cant't be focused
+    w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelNoUSBId]));
 
     // move to preheat when Print is focused

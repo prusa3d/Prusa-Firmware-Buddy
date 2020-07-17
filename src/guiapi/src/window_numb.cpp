@@ -4,24 +4,15 @@
 
 #define WINDOW_NUMB_MAX_TEXT 16
 
-void window_numb_init(window_numb_t *window) {
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->value = 0;
-    window->format = "%.0f";
-    window->padding = gui_defaults.padding;
-    window->alignment = gui_defaults.alignment;
-}
-
+/*
 void window_numb_draw(window_numb_t *window) {
     if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        color_t clr_back = (window->flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back;
-        color_t clr_text = (window->flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text;
+        color_t clr_back = (window->IsFocused()) ? window->color_text : window->color_back;
+        color_t clr_text = (window->IsFocused()) ? window->color_back : window->color_text;
         if (window->flg & WINDOW_FLG_CAPTURE)
             clr_text = COLOR_ORANGE;
         char text[WINDOW_NUMB_MAX_TEXT];
-        if (window->flg & WINDOW_FLG_NUMB_FLOAT2INT) {
+        if (window->IsPrintingAsInt()) {
             snprintf(text, WINDOW_NUMB_MAX_TEXT, window->format, (int)(window->value));
         } else {
             snprintf(text, WINDOW_NUMB_MAX_TEXT, window->format, (double)window->value);
@@ -35,10 +26,10 @@ void window_numb_draw(window_numb_t *window) {
             clr_text,
             window->padding,
             window->alignment);
-        window->flg &= ~WINDOW_FLG_INVALID;
+        window->Validate();;
     }
 }
-
+*/
 void window_numb_t::SetFormat(const char *frmt) {
     format = frmt;
     Invalidate();
@@ -73,4 +64,17 @@ window_numb_t::window_numb_t(window_t *parent, window_t *prev, rect_ui16_t rect,
     , format("%.0f")
     , padding(gui_defaults.padding)
     , alignment(gui_defaults.alignment) {
+    PrintAsFloat();
+}
+
+void window_numb_t::PrintAsFloat() {
+    f_parent_defined0 = false;
+}
+
+void window_numb_t::PrintAsInt() {
+    f_parent_defined0 = true;
+}
+
+bool window_numb_t::IsPrintingAsInt() const {
+    return f_parent_defined0;
 }

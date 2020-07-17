@@ -4,8 +4,6 @@
 
 #include "window.hpp"
 
-#define WINDOW_FLG_NUMB_FLOAT2INT (WINDOW_FLG_USER << 1)
-
 struct window_numb_t : public window_t {
     color_t color_text;
     font_t *font;
@@ -21,6 +19,10 @@ struct window_numb_t : public window_t {
     float GetValue() const { return value; }
     void SetColor(color_t clr);
     window_numb_t(window_t *parent, window_t *prev, rect_ui16_t rect = { 0 }, float value = 0);
+
+    void PrintAsFloat();
+    void PrintAsInt();
+    bool IsPrintingAsInt() const;
 
 protected:
     virtual void setValue(float val);

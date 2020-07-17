@@ -374,7 +374,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
     int pi = reinterpret_cast<int>(param) - 1;
     // -- pressed button is disabled - dont propagate event further
-    if (pw->w_buttons[pi].f_disabled) {
+    if (pw->w_buttons[pi].IsBWSwapped()) {
         return 0;
     }
 
@@ -432,8 +432,8 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
 static void disable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
-    p_button->f_disabled = 1;
-    p_button->f_enabled = 0; // can't be focused
+    p_button->SwapBW();
+    p_button->Disable(); // can't be focused
 
     // move to reprint when tune is focused
     if (p_button->IsFocused()) {
@@ -445,8 +445,8 @@ static void disable_tune_button(screen_t *screen) {
 static void enable_tune_button(screen_t *screen) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(Btn::Tune)];
 
-    p_button->f_disabled = 0;
-    p_button->f_enabled = 1; // can be focused
+    p_button->UnswapBW();
+    p_button->Enable(); // can be focused
     p_button->Invalidate();
 }
 
@@ -581,17 +581,17 @@ static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, win
 }
 
 static void enable_button(window_icon_t *p_button) {
-    if (p_button->f_disabled) {
-        p_button->f_disabled = 0;
-        p_button->f_enabled = 1;
+    if (p_button->IsBWSwapped()) {
+        p_button->UnswapBW();
+        p_button->Enable();
         p_button->Invalidate();
     }
 }
 
 static void disable_button(window_icon_t *p_button) {
-    if (!p_button->f_disabled) {
-        p_button->f_disabled = 1;
-        p_button->f_enabled = 0;
+    if (!p_button->IsBWSwapped()) {
+        p_button->SwapBW();
+        p_button->Disable();
         p_button->Invalidate();
     }
 }

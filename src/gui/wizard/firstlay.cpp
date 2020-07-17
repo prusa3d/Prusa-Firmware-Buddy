@@ -272,7 +272,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     //p_screen->Z_offset         = vars->z_offset;
     p_screen->Z_offset_request = 0;
 
-    window_destroy_children(id_body);
+    //window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0) {
         pWin->Show();

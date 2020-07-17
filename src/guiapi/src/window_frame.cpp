@@ -3,28 +3,6 @@
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 
-void window_frame_init(window_frame_t *window) {
-    if (rect_empty_ui16(window->rect)) //use display rect curent is empty
-        window->rect = rect_ui16(0, 0, display::GetW(), display::GetH());
-    window->flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;
-    window->color_back = COLOR_BLACK;
-}
-
-void window_frame_done(window_frame_t *window) {
-}
-
-void window_frame_draw(window_frame_t *window) {
-    if (window->f_visible) {
-        if (window->f_invalid) {
-            rect_ui16_t rc = window->rect;
-            display::FillRect(rc, window->color_back);
-            window->f_invalid = 0;
-            //window_invalidate_children(window->id);
-        }
-        window_draw_children(window->id);
-    }
-}
-
 void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     /*    int16_t id;
     int dif;
@@ -83,8 +61,7 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
 window_frame_t::window_frame_t(window_t *first, window_t *parent, window_t *prev, rect_ui16_t rect)
     : window_t(parent, prev, rect)
     , first(first) {
-
-    flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_PARENT;
+    Enable();
     color_back = COLOR_BLACK;
 }
 
@@ -93,13 +70,13 @@ void window_frame_t::SetFirst(window_t *fir) {
 }
 
 void window_frame_t::draw() {
-    if (!f_visible)
+    if (!IsVisible())
         return;
     bool setChildernInvalid = false;
 
-    if (f_invalid) {
+    if (IsInvalid()) {
         unconditionalDraw();
-        f_invalid = 0;
+        Validate();
         setChildernInvalid = true;
     }
 
@@ -119,7 +96,7 @@ int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         if (window_focused_ptr) {
-            window_focused_ptr->Event(this, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
+            window_focused_ptr->Event(this, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->GetTag());
             //Screens::Access()->DispatchEvent(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
             window_focused_ptr->SetCapture();
         }

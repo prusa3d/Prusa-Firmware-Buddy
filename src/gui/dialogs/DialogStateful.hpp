@@ -134,7 +134,7 @@ void DialogStateful<T>::unconditionalDraw() {
     const char *text = states[phase].label;
     rect_ui16_t rc = rect;
 
-    if (f_invalid) {
+    if (IsInvalid()) {
         display::FillRect(rc, color_back);
         rect_ui16_t rc_tit = rc;
         rc_tit.h = 30; // 30pixels for title
@@ -145,7 +145,7 @@ void DialogStateful<T>::unconditionalDraw() {
         render_text_align(rc_tit, _(title), font_title,
             color_back, color_text, padding, ALIGN_CENTER);
 
-        f_invalid = 0;
+        Validate();
         flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
     }
 

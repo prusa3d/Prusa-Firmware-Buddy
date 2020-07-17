@@ -53,7 +53,7 @@ int8_t gui_timer_new(uint8_t timer, uint32_t ms, int16_t win_id) {
             gui_timers[id].win_id = win_id;
             gui_timer_count++; //increment count
             if ((window = window_ptr(win_id)) != 0)
-                window->f_timer = 1; //set timer flag
+                window->SetHasTimer(); //set timer flag
         } else
             id = -1;
     }

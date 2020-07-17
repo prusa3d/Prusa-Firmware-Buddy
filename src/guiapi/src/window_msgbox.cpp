@@ -149,7 +149,7 @@ void window_msgbox_click(window_msgbox_t *window) {
 void window_msgbox_init(window_msgbox_t *window) {
     if (rect_empty_ui16(window->rect)) //use display rect if current rect is empty
         window->rect = rect_ui16(0, 0, display::GetW(), display::GetH());
-    window->flg |= WINDOW_FLG_ENABLED; //enabled by default
+    window->Enable();
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -168,7 +168,7 @@ void window_msgbox_done(window_msgbox_t *window) {
 
 /// Draws parts of message box that require redraw
 void window_msgbox_draw(window_msgbox_t *window) {
-    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+    if (window->IsVisible() && window->IsEnabled()) {
         display::FillRect(window->rect, COLOR_BLACK); // clear window
 
         uint8_t red_line_offset = 0;
@@ -219,7 +219,8 @@ void window_msgbox_draw(window_msgbox_t *window) {
         window->flags |= MSGBOX_MSK_CHG;
         window_msgbox_draw_buttons(window);
 
-        window->flg &= ~WINDOW_FLG_INVALID;
+        window->Validate();
+        ;
     } else if (window->flags & MSGBOX_MSK_CHG)
         window_msgbox_draw_buttons(window);
     if (window->flags & MSGBOX_GREY_FRAME) {                            /// draw frame

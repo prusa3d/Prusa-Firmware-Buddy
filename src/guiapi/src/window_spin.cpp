@@ -6,26 +6,14 @@
 
 extern osThreadId displayTaskHandle;
 
-extern void window_numb_draw(window_numb_t *window);
-
 void window_spin_inc(window_spin_t *window, int dif);
 void window_spin_dec(window_spin_t *window, int dif);
-
-void window_spin_init(window_spin_t *window) {
-    //window_class_numb.cls.init(window);
-    window->min = 0.0;
-    window->max = 100.0F;
-    window->step = 1.0F;
-    window->count = 101;
-    window->index = 0;
-    window->flg |= WINDOW_FLG_ENABLED;
-}
 
 void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        if ((window->flg & WINDOW_FLG_ENABLED) && window->f_tag)
-            Screens::Access()->DispatchEvent((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->f_tag);
+        if ((window->IsEnabled()) && window->GetTag())
+            Screens::Access()->DispatchEvent((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->GetTag());
         if (window->GetParent())
             window->GetParent()->SetCapture();
         break;
@@ -117,4 +105,5 @@ window_spin_t::window_spin_t(window_t *parent, window_t *prev)
     , step(1.0F)
     , count(101)
     , index(0) {
+    Enable();
 }

@@ -27,23 +27,7 @@ void window_list_item(window_list_t *pwindow_list, uint16_t index,
 void window_list_inc(window_list_t *window, int dif);
 void window_list_dec(window_list_t *window, int dif);
 
-void window_list_init(window_list_t *window) {
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->padding = gui_defaults.padding;
-    window->icon_rect = rect_ui16(0, 0, 16, 16);
-    window->alignment = gui_defaults.alignment;
-    window->count = 0;
-    window->index = 0;
-    window->top_index = 0;
-    window->list_item = window_list_item;
-    window->flg |= WINDOW_FLG_ENABLED;
-}
-
-void window_list_done(window_list_t *window) {
-}
-
+/*
 void window_list_draw(window_list_t *window) {
     if (!((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))
             == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
@@ -100,7 +84,7 @@ void window_list_draw(window_list_t *window) {
         rc_win.y += i * item_height;
         display::FillRect(rc_win, window->color_back);
     }
-}
+}*/
 
 void window_list_event(window_list_t *window, uint8_t event, void *param) {
     switch (event) {
@@ -183,4 +167,5 @@ window_list_t::window_list_t(window_t *parent, window_t *prev)
     , index(0)
     , top_index(0)
     , list_item(window_list_item) {
+    Enable();
 }

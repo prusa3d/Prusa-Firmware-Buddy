@@ -26,18 +26,19 @@ void window_roll_text_init(window_roll_text_t *window) {
 
 void window_roll_text_draw(window_roll_text_t *window) {
 
-    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+    if (window->IsInvalid() && window->IsVisible()) {
 
         render_roll_text_align(window->rect,
             window->text,
             window->font,
             window->padding,
             window->alignment,
-            (window->flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back,
-            (window->flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text,
+            (window->IsFocused()) ? window->color_text : window->color_back,
+            (window->IsFocused()) ? window->color_back : window->color_text,
             &window->roll);
 
-        window->flg &= ~WINDOW_FLG_INVALID;
+        window->Validate();
+        ;
     }
 }
 

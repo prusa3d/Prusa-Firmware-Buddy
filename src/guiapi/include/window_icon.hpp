@@ -11,6 +11,9 @@ struct window_icon_t : public window_t {
     void SetIdRes(int16_t id);
 
     window_icon_t(window_t *parent, window_t *prev, rect_ui16_t rect, uint16_t id_res);
+    bool IsBWSwapped() const;
+    void SwapBW();
+    void UnswapBW();
 
 protected:
     virtual void unconditionalDraw() override;

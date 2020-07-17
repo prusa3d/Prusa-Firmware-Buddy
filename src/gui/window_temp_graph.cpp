@@ -59,10 +59,11 @@ void draw_axes(window_temp_graph_t *window, bool wipe_before_draw, bool xy_only)
 }
 
 void window_temp_graph_draw(window_temp_graph_t *window) {
-    const bool redraw_graph = window->flg & WINDOW_FLG_GRAPH_INVALID;
-    if (!redraw_graph && window->flg & WINDOW_FLG_INVALID) {
+    const bool redraw_graph = window->graph_invalid;
+    if (!redraw_graph && window->IsInvalid()) {
         draw_axes(window, true, false);
-        window->flg &= ~WINDOW_FLG_INVALID;
+        window->Validate();
+        ;
         return;
     }
 
@@ -113,6 +114,6 @@ void window_temp_graph_draw(window_temp_graph_t *window) {
         window->y_bed_c[i] = ybc;
 
         draw_axes(window, false, true); //hides 0 values
-        window->flg &= ~WINDOW_FLG_GRAPH_INVALID;
+        window->graph_invalid = false;
     }
 }

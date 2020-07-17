@@ -19,7 +19,7 @@ int16_t WINDOW_CLS_DLG_POPUP = 0;
 extern msg_stack_t msg_stack;
 
 void window_dlg_popup_init(window_dlg_popup_t *window) {
-    window->flg |= WINDOW_FLG_ENABLED;
+    window->Enable();
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -28,11 +28,11 @@ void window_dlg_popup_init(window_dlg_popup_t *window) {
 }
 
 void window_dlg_popup_draw(window_dlg_popup_t *window) {
-    if (window->f_visible) {
+    if (window->IsVisible()) {
         rect_ui16_t rc = window->rect;
         rc.h = 140;
 
-        if (window->f_invalid) {
+        if (window->IsInvalid()) {
             display::FillRect(rc, window->color_back);
             rect_ui16_t text_rc = rc;
             text_rc.x += 10;
@@ -43,7 +43,7 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
                 window->font, window->color_back,
                 window->color_text, window->padding,
                 ALIGN_LEFT_CENTER);
-            window->f_invalid = 0;
+            window->Validate();
         }
     }
 }

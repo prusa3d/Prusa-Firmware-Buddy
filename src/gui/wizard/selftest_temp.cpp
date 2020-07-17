@@ -22,7 +22,7 @@ void _wizard_temp_actualize_temperatures(selftest_temp_data_t *p_data); //data w
 void wizard_init_screen_selftest_temp(int16_t id_body, selftest_temp_screen_t *p_screen, selftest_temp_data_t *p_data) {
     _wizard_temp_actualize_temperatures(p_data);
     //	point_ui16_t pt,pt2;
-    window_destroy_children(id_body);
+    // window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0)
         pWin->Show();

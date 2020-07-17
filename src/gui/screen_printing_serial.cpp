@@ -97,8 +97,8 @@ void screen_printing_serial_init(screen_t *screen) {
         &(pw->octo_icon));
     pw->octo_icon.Enable();
     pw->octo_icon.SetIdRes(IDR_PNG_serial_printing);
-    pw->octo_icon.f_enabled = 0;
-    pw->octo_icon.f_disabled = 0;
+    pw->octo_icon.Disable();
+    pw->octo_icon.UnswapBW();
 
     for (unsigned int col = 0; col < static_cast<size_t>(item_id_t::count); col++) {
         window_create_ptr(
@@ -145,8 +145,8 @@ void screen_printing_serial_draw(screen_t *screen) {
 
 static void disable_button(screen_t *screen, buttons_t b) {
     window_icon_t *p_button = &pw->w_buttons[static_cast<size_t>(b)];
-    if (!p_button->f_disabled) {
-        p_button->f_disabled = 1;
+    if (!p_button->IsBWSwapped()) {
+        p_button->SwapBW();
         p_button->Invalidate();
     }
 }

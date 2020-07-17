@@ -637,7 +637,7 @@ void generate_spin_single_digit(int16_t &id0, window_spin_t &spin,
     uint16_t &col, uint16_t row, uint16_t offset, uint16_t row_h) {
     window_create_ptr(WINDOW_CLS_SPIN, id0,
         rect_ui16(col, row, offset, row_h), &spin);
-    spin.flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    spin.PrintAsInt();
     spin.SetFormat("%d");
     spin.SetMinMaxStep(0.0F, 9.0F, 1.0F);
     spin.SetValue(0.0F);

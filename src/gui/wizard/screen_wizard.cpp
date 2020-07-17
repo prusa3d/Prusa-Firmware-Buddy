@@ -113,7 +113,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     xyzcalib_screen_t *p_xyzcalib_screen = &(pd->screen_variant.xyzcalib_screen);
     xyzcalib_data_t *p_xyzcalib_data = &(pd->xyzcalib);
 
-    if (pd->frame_footer.flg & WINDOW_FLG_VISIBLE) {
+    if (pd->frame_footer.IsVisible()) {
         //status_footer_event(&(pd->footer), window, event, param);
     }
 
@@ -565,7 +565,7 @@ string_view_utf8 wizard_get_caption(screen_t *screen) {
 }
 
 void wizard_done_screen(screen_t *screen) {
-    window_destroy_children(pd->frame_body.id);
+    //window_destroy_children(pd->frame_body.id);
     pd->frame_body.Invalidate();
 }
 

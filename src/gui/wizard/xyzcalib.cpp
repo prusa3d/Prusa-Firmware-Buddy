@@ -12,7 +12,7 @@
 #include "window_dlg_calib_z.hpp"
 
 void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
-    window_destroy_children(id_body);
+    //window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0) {
         pWin->Invalidate();

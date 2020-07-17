@@ -56,7 +56,7 @@ void window_progress_draw(window_progress_t *window) {
                 window->padding,
                 window->alignment);
         }
-        window->flg &= ~WINDOW_FLG_INVALID;
+        window->Validate();;
     }*/
 }
 

@@ -60,7 +60,8 @@ void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
 void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     //inherit from frame
     //window_class_frame.cls.init(window);
-    window->flg |= WINDOW_FLG_ENABLED | WINDOW_FLG_INVALID;
+    window->Enable();
+    window->Invalidate();
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;

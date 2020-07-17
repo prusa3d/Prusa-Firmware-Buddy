@@ -91,7 +91,7 @@ void window_file_list_init(window_file_list_t *window) {
     window->font = gui_defaults.font;
     window->padding = padding_ui8(2, 6, 2, 6);
     window->alignment = ALIGN_LEFT_CENTER;
-    window->flg |= WINDOW_FLG_ENABLED;
+    window->Enable();
     window->roll.count = window->roll.px_cd = window->roll.progress = 0;
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;
@@ -149,7 +149,7 @@ void window_file_list_draw(window_file_list_t *window) {
         padding_ui8_t padding = window->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            if ((window->flg & WINDOW_FLG_FOCUSED) && (window->index == i)) {
+            if ((window->IsFocused()) && (window->index == i)) {
                 color_t swp = color_text;
                 color_text = color_back;
                 color_back = swp;
@@ -165,7 +165,7 @@ void window_file_list_draw(window_file_list_t *window) {
                 padding.left += 16;
             }
 
-            if ((window->flg & WINDOW_FLG_FOCUSED) && window->index == i) {
+            if ((window->IsFocused()) && window->index == i) {
                 if (window->roll.phase == ROLL_SETUP) { // initiation of rolling is done in functions
                     // which move cursor up or down. They can handle the situation, when the cursor
                     // stays at one place (top or bottom), but the whole window list moves up/down.

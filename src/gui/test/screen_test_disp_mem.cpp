@@ -171,7 +171,7 @@ enum {
 //cannot use normal spin with format "%A"
 static void hexSpinInit(int16_t id0, rect_ui16_t rect, window_spin_t *pSpin) {
     window_create_ptr(WINDOW_CLS_SPIN, id0, rect, pSpin);
-    pSpin->flg |= WINDOW_FLG_NUMB_FLOAT2INT;
+    pSpin->PrintAsInt();
     pSpin->SetFormat("%X");
     pSpin->SetMinMaxStep(0.0F, 15.0F, 1.0F);
     pSpin->SetValue(0.0F);

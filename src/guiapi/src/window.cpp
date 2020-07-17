@@ -90,7 +90,7 @@ void window_destroy(int16_t id) {
     window_t *window = window_free_id(id);
     uint16_t count = window_count;
     if (window != 0) {
-        if (window->f_timer)
+        if (window->HasTimer())
             gui_timers_delete_by_window_id(window->id);
         window->id = -1;
         //if (window->f_parent)
@@ -111,14 +111,6 @@ void window_destroy(int16_t id) {
     }
 }
 
-void window_destroy_children(int16_t id) {
-    /*   window_t *window;
-    int16_t id_child;
-    for (id_child = 0; id_child < WINDOW_MAX_WINDOWS; id_child++)
-        if (((window = windows[id_child]) != 0) && (window->id_parent == id))
-            window_destroy(id_child);*/
-}
-
 int16_t window_focused(void) {
     return window_focused_ptr ? window_focused_ptr->id : 0;
 }
@@ -127,43 +119,39 @@ int16_t window_capture(void) {
     return window_capture_ptr ? window_capture_ptr->id : 0;
 }
 
-void window_draw(int16_t id) {
-    //window_t *window;
-    //if ((window = window_ptr(id)) != 0)
-    //if (window->cls->draw)
-    //    window->cls->draw(window);
-}
-
-void window_draw_children(int16_t id) {
-    /*   window_t *window;
-    int16_t id_child;
-    for (id_child = 0; id_child < WINDOW_MAX_WINDOWS; id_child++)
-        if (((window = windows[id_child]) != 0) && (window->id_parent == id)) {
-            if (window_popup_ptr && window_popup_ptr->id != window->id_parent) {
-                if (rect_empty_ui16(rect_intersect_ui16(window_popup_ptr->rect, window->rect)))
-                    if (window->cls->draw)
-                        window->cls->draw(window);
-            } else if (window->cls->draw)
-                window->cls->draw(window);
-        }*/
-}
+bool window_t::IsVisible() const { return f_visible == true; }
+bool window_t::IsEnabled() const { return f_enabled == true; }
+bool window_t::IsInvalid() const { return f_invalid == true; }
+bool window_t::IsFocused() const { return f_focused == true; }
+bool window_t::IsCapture() const { return f_capture == true; }
+bool window_t::HasTimer() const { return f_timer == true; }
+void window_t::Validate() { f_invalid = false; }
 
 void window_t::Invalidate() {
-    f_invalid = 1;
+    f_invalid = true;
     gui_invalidate();
 }
+
+void window_t::SetTag(uint8_t tag) { f_tag = tag; };
+uint8_t window_t::GetTag() const { return f_tag; }
+
+void window_t::SetHasTimer() { f_timer = true; }
+void window_t::ClrHasTimer() { f_timer = false; }
+void window_t::Enable() { f_enabled = true; }
+void window_t::Disable() { f_enabled = false; }
+
 void window_t::SetFocus() {
     if (!f_visible || !f_enabled)
         return;
 
     if (window_focused_ptr) {
         window_focused_ptr->f_focused = 0;
-        window_focused_ptr->f_invalid = 1;
+        window_focused_ptr->Invalidate();
         window_focused_ptr->event(window_focused_ptr, WINDOW_EVENT_FOCUS0, 0); //will not resend event to anyone
     }
     window_focused_ptr = this;
     f_focused = 1;
-    f_invalid = 1;
+    Invalidate();
     event(this, WINDOW_EVENT_FOCUS1, 0); //will not resend event to anyone
     gui_invalidate();
 }
@@ -183,62 +171,33 @@ void window_t::SetCapture() {
 }
 
 void window_t::Show() {
-    if (!f_visible) {
+    if (!IsVisible()) {
         f_visible = 1;
         Invalidate();
     }
 }
 
 void window_t::Hide() {
-    if (f_visible) {
+    if (IsVisible()) {
         f_visible = 0;
         Invalidate();
     }
 }
 
+color_t window_t::GetBackColor() const { return color_back; }
+
 void window_t::SetBackColor(color_t clr) {
     color_back = clr;
     Invalidate();
 }
-/*
-uint16_t window_get_icon_id(int16_t id) {
-    window_t *window;
-    if ((window = window_ptr(id)) != 0) {
-        switch (window->cls->cls_id) {
-        case WINDOW_CLS_ICON:
-            return ((window_icon_t *)window)->id_res;
-        }
-    }
-    return 0;
-}
-
-
-window_t::window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect)
-    : window_t() {
-    window_class_t *cls = class_ptr(cls_id);
-    if (cls) {
-        uint32_t flg = WINDOW_FLG_VISIBLE | WINDOW_FLG_INVALID;
-
-        int16_t id = window_new_id(this);
-        if (id >= 0) {
-            this->id = id;
-            this->id_parent = id_parent;
-            this->cls = cls;
-            this->flg = flg;
-            this->rect = rect;
-            this->event = cls->event;
-            this->f_tag = 0;
-            if (cls->init)
-                cls->init(this);
-        }
-    }
-}*/
 
 window_t::window_t(window_t *parent, window_t *prev, rect_ui16_t rect)
     : parent(parent)
     , next(nullptr)
-    , flg(WINDOW_FLG_ENABLED | WINDOW_FLG_VISIBLE | WINDOW_FLG_INVALID)
     , rect(rect) {
+    Enable();
+    Show();
+    Invalidate();
     if (prev)
         prev->SetNext(this);
     if (rect.w && rect.h)

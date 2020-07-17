@@ -27,7 +27,7 @@ typedef enum {
 int16_t WINDOW_CLS_DLG_WAIT = 0;
 
 void window_dlg_wait_init(window_dlg_wait_t *window) {
-    window->flg |= WINDOW_FLG_ENABLED; //enabled by default
+    window->Enable(); //enabled by default
     window->color_back = gui_defaults.color_back;
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
@@ -40,18 +40,18 @@ void window_dlg_wait_init(window_dlg_wait_t *window) {
 }
 
 void window_dlg_wait_draw(window_dlg_wait_t *window) {
-    if (!window->f_visible)
+    if (!window->IsVisible())
         return;
     const rect_ui16_t rc = window->rect;
 
-    if (window->f_invalid) {
+    if (window->IsInvalid()) {
         display::FillRect(rc, window->color_back);
 
         rect_ui16_t rc_tit = rc;
         rc_tit.y += 10;
         rc_tit.h = 30; // 30 pixels for title
         render_text_align(rc_tit, _("Please wait"), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_CENTER);
-        window->f_invalid = 0;
+        window->Validate();
 
         if (window->components & DLG_W8_DRAW_FRAME) { // grey frame enabled
             const uint16_t w = display::GetW();

@@ -13,7 +13,7 @@ extern uint32_t Tacho_FAN1;
 
 void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
     selftest_fans_axis_data_t *p_data) {
-    window_destroy_children(id_body);
+    //window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0)
         pWin->Show();

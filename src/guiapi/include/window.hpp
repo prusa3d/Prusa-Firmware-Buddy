@@ -32,8 +32,8 @@
 #define WINDOW_FLG_CAPTURE  0x00000020 // capture jog events
 #define WINDOW_FLG_DISABLED 0x00000040 // window is disabled (shadowed)
 #define WINDOW_FLG_FREEMEM  0x00004000 // free memory when destroy
-#define WINDOW_FLG_PARENT   0x00008000 // is parent window
-#define WINDOW_FLG_USER     0x00010000 // user flags (WINDOW_FLG_USER<<n)
+
+#define WINDOW_FLG_USER 0x00010000 // user flags (WINDOW_FLG_USER<<n)
 //top 1 byte cannot be used
 //flag is stored there
 
@@ -60,23 +60,26 @@ typedef void(window_list_item_t)(window_list_t *pwindow_list,
 class window_t {
     window_t *parent;
     window_t *next;
-
-public:
-    int16_t id; // (2 bytes) window identifier (2bytes)
     uint8_t f_tag;
+
+protected:
     union {
         uint8_t flg;
         struct {
-            bool f_visible : 1;  // WINDOW_FLG_VISIBLE  0x01
-            bool f_enabled : 1;  // WINDOW_FLG_ENABLED  0x02
-            bool f_invalid : 1;  // WINDOW_FLG_INVALID  0x04
-            bool f_focused : 1;  // WINDOW_FLG_FOCUSED  0x08
-            bool f_checked : 1;  // WINDOW_FLG_CHECKED  0x10
-            bool f_capture : 1;  // WINDOW_FLG_CAPTURE  0x20
-            bool f_disabled : 1; // WINDOW_FLG_DISABLED 0x40
-            bool f_timer : 1;    // WINDOW_FLG_TIMER    0x80
+            bool f_visible : 1;
+            bool f_enabled : 1; //  can be focussed
+            bool f_invalid : 1;
+            bool f_focused : 1;
+            bool f_checked : 1;
+            bool f_capture : 1;         //
+            bool f_timer : 1;           // window has timers
+            bool f_parent_defined0 : 1; //
         };
     };
+
+public:
+    int16_t id; // (2 bytes) window identifier (2bytes)
+
     rect_ui16_t rect; // (8 bytes) display rectangle
     color_t color_back;
 
@@ -89,26 +92,28 @@ public:
     void DispatchEvent(window_t *sender, uint8_t ev, void *param); //try to handle, frame resends childern
     void Event(window_t *sender, uint8_t event, void *param);      //try to handle, send to parrent if not handled
     void ScreenEvent(window_t *sender, uint8_t event, void *param);
-    bool IsVisible() const { return f_visible == 1; }
-    bool IsEnabled() const { return f_enabled == 1; }
-    bool IsInvalid() const { return f_invalid == 1; }
-    bool IsFocused() const { return f_focused == 1; }
-    bool IsCapture() const { return f_capture == 1; }
-    void Validate() { f_invalid = 0; }
+    bool IsVisible() const;
+    bool IsEnabled() const;
+    bool IsInvalid() const;
+    bool IsFocused() const;
+    bool IsCapture() const;
+    bool HasTimer() const;
+    void Validate();
     void Invalidate();
-    void SetTag(uint8_t tag) { f_tag = tag; };
-    uint8_t GetTag() const { return f_tag; }
+    void SetTag(uint8_t tag);
+    uint8_t GetTag() const;
 
+    void SetHasTimer();
+    void ClrHasTimer();
     void SetFocus();
     void SetCapture();
-    void Enable() { f_enabled = 1; }
-    void Disable() { f_enabled = 0; }
+    void Enable();
+    void Disable();
     void Show();
     void Hide();
     void SetBackColor(color_t clr);
-    color_t GetBackColor() const { return color_back; }
+    color_t GetBackColor() const;
 
-    //window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect); //todo remove
     window_t(window_t *parent = nullptr, window_t *prev = nullptr, rect_ui16_t rect = { 0 }); //todo remove nullptr default values
     virtual ~window_t();
 
@@ -131,14 +136,8 @@ extern int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t 
 
 extern void window_destroy(int16_t id);
 
-extern void window_destroy_children(int16_t id);
-
 extern int16_t window_focused(void);
 
 extern int16_t window_capture(void);
-
-extern void window_draw(int16_t id);
-
-extern void window_draw_children(int16_t id);
 
 extern void gui_invalidate(void);

@@ -61,7 +61,7 @@ void IWindowMenuItem::printLabel_into_rect(rect_ui16_t rolling_rect, color_t col
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
-    window_menu.f_invalid = 1;
+    window_menu.Invalidate();
     if (IsEnabled()) {
         click(window_menu);
     }

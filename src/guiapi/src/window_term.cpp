@@ -7,7 +7,7 @@ static void window_term_init(window_term_t *window) {
     window->color_text = gui_defaults.color_text;
     window->font = gui_defaults.font;
     window->term = 0;
-    window->flg |= WINDOW_FLG_ENABLED;
+    window->Enable();
 
     display::FillRect(window->rect, window->color_back);
 }
@@ -45,9 +45,10 @@ void render_term(rect_ui16_t rc, term_t *pt, const font_t *font, color_t clr0, c
 }
 
 static void window_term_draw(window_term_t *window) {
-    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+    if (window->IsInvalid() && window->IsVisible()) {
         render_term(window->rect, window->term, window->font, window->color_back, window->color_text);
-        window->flg &= ~WINDOW_FLG_INVALID;
+        window->Validate();
+        ;
     }
 }
 

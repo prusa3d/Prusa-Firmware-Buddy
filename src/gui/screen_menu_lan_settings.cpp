@@ -273,7 +273,7 @@ void ScreenMenuLanSettings::refresh_addresses() {
     stringify_eth_for_screen(&plan_str, &ethconfig);
     // this MakeRAM is safe - plan_str is statically allocated
     help.text = string_view_utf8::MakeRAM((const uint8_t *)plan_str);
-    help.flg |= WINDOW_FLG_INVALID;
+    help.Invalidate();
     gui_invalidate();
 }
 

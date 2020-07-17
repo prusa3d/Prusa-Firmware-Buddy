@@ -9,20 +9,21 @@ void window_icon_init(window_icon_t *window) {
 }
 
 void window_icon_draw(window_icon_t *window) {
-    if (window->flg & WINDOW_FLG_INVALID) {
+    if (window->IsInvalid()) {
         //point_ui16_t pt = {window->rect.x, window->rect.y};
-        //display::DrawIcon(pt, window->id_res, window->color_back, (window->flg & WINDOW_FLG_FOCUSED)?ROPFN_SWAPBW:0);
+        //display::DrawIcon(pt, window->id_res, window->color_back, (window->IsFocused())?ROPFN_SWAPBW:0);
         uint8_t ropfn = 0;
-        if ((window->flg & WINDOW_FLG_DISABLED)) { // that could not be set, but what if
+        if ((window->IsBWSwapped())) { // that could not be set, but what if
             ropfn |= ROPFN_DISABLE;
         }
-        if ((window->flg & WINDOW_FLG_FOCUSED)) {
+        if ((window->IsFocused())) {
             ropfn |= ROPFN_SWAPBW;
         }
 
         render_icon_align(window->rect, window->id_res, window->color_back,
             RENDER_FLG(window->alignment, ropfn));
-        window->flg &= ~WINDOW_FLG_INVALID;
+        window->Validate();
+        ;
     }
 }
 
@@ -38,12 +39,16 @@ window_icon_t::window_icon_t(window_t *parent, window_t *prev, rect_ui16_t rect,
 
 void window_icon_t::unconditionalDraw() {
     uint8_t ropfn = 0;
-    if ((flg & WINDOW_FLG_DISABLED)) { // that could not be set, but what if
+    if ((IsBWSwapped())) { // that could not be set, but what if
         ropfn |= ROPFN_DISABLE;
     }
-    if ((flg & WINDOW_FLG_FOCUSED)) {
+    if ((IsFocused())) {
         ropfn |= ROPFN_SWAPBW;
     }
 
     render_icon_align(rect, id_res, color_back, RENDER_FLG(alignment, ropfn));
 }
+
+bool window_icon_t::IsBWSwapped() const { return f_parent_defined0 == true; }
+void window_icon_t::SwapBW() { f_parent_defined0 = true; }
+void window_icon_t::UnswapBW() { f_parent_defined0 = false; }

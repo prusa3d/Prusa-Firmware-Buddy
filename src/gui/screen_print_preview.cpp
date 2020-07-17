@@ -337,7 +337,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
             break;
         }
         suppress_draw = false;
-        window_draw(pd->id);
+        //window_draw(pd->id);
     }
 
     if (!suppress_draw && event == WINDOW_EVENT_LOOP && pd->gcode_has_thumbnail &&
