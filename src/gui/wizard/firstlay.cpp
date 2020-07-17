@@ -651,41 +651,9 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
 
         body_gcode = V2_gcodes_body;
         body_gcode_sz = V2_gcodes_body_sz;
-        switch (get_filament()) {
-        case FILAMENT_PETG:
-            head_gcode = V2_gcodes_head_PETG;
-            head_gcode_sz = V2_gcodes_head_PETG_sz;
-            break;
-        case FILAMENT_ASA:
-            head_gcode = V2_gcodes_head_ASA;
-            head_gcode_sz = V2_gcodes_head_ASA_sz;
-            break;
-        case FILAMENT_ABS:
-            head_gcode = V2_gcodes_head_ABS;
-            head_gcode_sz = V2_gcodes_head_ABS_sz;
-            break;
-        case FILAMENT_PC:
-            head_gcode = V2_gcodes_head_PC;
-            head_gcode_sz = V2_gcodes_head_PC_sz;
-            break;
-        case FILAMENT_FLEX:
-            head_gcode = V2_gcodes_head_FLEX;
-            head_gcode_sz = V2_gcodes_head_FLEX_sz;
-            break;
-        case FILAMENT_HIPS:
-            head_gcode = V2_gcodes_head_HIPS;
-            head_gcode_sz = V2_gcodes_head_HIPS_sz;
-            break;
-        case FILAMENT_PP:
-            head_gcode = V2_gcodes_head_PP;
-            head_gcode_sz = V2_gcodes_head_PP_sz;
-            break;
-        case FILAMENT_PLA:
-        default:
-            head_gcode = V2_gcodes_head_PLA;
-            head_gcode_sz = V2_gcodes_head_PLA_sz;
-            break;
-        }
+
+        head_gcode = getHeaderGCode();
+        head_gcode_sz = getHeaderGCodeSize();
 
         gcode_sz = body_gcode_sz + head_gcode_sz;
 
