@@ -35,19 +35,6 @@ protected:
 
 public:
     IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
-    void Done();
-    //virtual void Draw() override {}
-
-    static void CDone(screen_t *screen) {
-        reinterpret_cast<IScreenMenu *>(screen->pdata)->Done();
-    }
-
-    static void CDraw(screen_t *screen) {
-        reinterpret_cast<IScreenMenu *>(screen->pdata)->Draw();
-    }
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-        reinterpret_cast<IScreenMenu *>(screen->pdata)->Event(window, event, param);
-    }
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>

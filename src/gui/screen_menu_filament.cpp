@@ -203,16 +203,3 @@ void ScreenMenuFilament::deactivate_item() {
     }
     gui_invalidate();
 }
-
-screen_t screen_menu_filament = {
-    0,
-    0,
-    ScreenMenuFilament::Init,
-    ScreenMenuFilament::CDone,
-    ScreenMenuFilament::CDraw,
-    ScreenMenuFilament::CEvent,
-    sizeof(ScreenMenuFilament), //data_size
-    nullptr,                    //pdata
-};
-
-screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

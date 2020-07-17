@@ -59,16 +59,3 @@ int ScreenMenuTemperature::CEvent(screen_t *screen, window_t *window, uint8_t ev
 
     ths->Event(window, event, param);
 }
-
-screen_t screen_menu_temperature = {
-    0,
-    0,
-    ScreenMenuTemperature::Init,
-    ScreenMenuTemperature::CDone,
-    ScreenMenuTemperature::CDraw,
-    ScreenMenuTemperature::CEvent,
-    sizeof(ScreenMenuTemperature), //data_size
-    nullptr,                       //pdata
-};
-
-screen_t *const get_scr_menu_temperature() { return &screen_menu_temperature; }

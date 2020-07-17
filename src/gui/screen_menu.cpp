@@ -58,10 +58,6 @@ IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_l
     }
 }
 
-void IScreenMenu::Done() {
-    window_destroy(id);
-}
-
 int IScreenMenu::event(window_t *sender, uint8_t event, void *param) {
     if (flg & HasFooter_FLAG) {
         status_footer_event(&footer, sender, event, param);

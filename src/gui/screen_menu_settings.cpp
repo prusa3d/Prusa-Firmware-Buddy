@@ -104,15 +104,3 @@ int ScreenMenuSettings::CEvent(screen_t *screen, window_t *window, uint8_t event
 
     ths->Event(window, event, param);
 }
-
-screen_t screen_menu_settings = {
-    0,
-    0,
-    ScreenMenuSettings::Init,
-    ScreenMenuSettings::CDone,
-    ScreenMenuSettings::CDraw,
-    ScreenMenuSettings::CEvent,
-    sizeof(ScreenMenuSettings), //data_size
-    0,                          //pdata
-};
-screen_t *const get_scr_menu_settings() { return &screen_menu_settings; }

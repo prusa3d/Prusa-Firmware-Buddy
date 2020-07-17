@@ -86,16 +86,3 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
     ths->help.SetText(string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
 }
-
-screen_t screen_version_info = {
-    0,
-    0,
-    ScreenMenuVersionInfo::Init,
-    ScreenMenuVersionInfo::CDone,
-    ScreenMenuVersionInfo::CDraw,
-    ScreenMenuVersionInfo::CEvent,
-    sizeof(ScreenMenuVersionInfo), //data_size
-    nullptr,                       //pdata
-};
-
-screen_t *const get_scr_version_info() { return &screen_version_info; }

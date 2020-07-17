@@ -119,19 +119,6 @@ void ScreenMenuLanguages::Init(screen_t *screen) {
     Create(screen, _(label));
 }
 
-screen_t screen_menu_languages = {
-    0,
-    0,
-    ScreenMenuLanguages::Init,
-    ScreenMenuLanguages::CDone,
-    ScreenMenuLanguages::CDraw,
-    ScreenMenuLanguages::CEvent,
-    sizeof(ScreenMenuLanguages), //data_size
-    nullptr,                     //pdata
-};
-
-screen_t *const get_scr_menu_languages() { return &screen_menu_languages; }
-
 /*****************************************************************************/
 //parent alias
 using parent_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_CZECH, MI_GERMAN, MI_ENGLISH, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
@@ -147,16 +134,3 @@ public:
 void ScreenMenuLanguagesNoRet::Init(screen_t *screen) {
     Create(screen, _(label));
 }
-
-screen_t screen_menu_languages_noret = {
-    0,
-    0,
-    ScreenMenuLanguagesNoRet::Init,
-    ScreenMenuLanguagesNoRet::CDone,
-    ScreenMenuLanguagesNoRet::CDraw,
-    ScreenMenuLanguagesNoRet::CEvent,
-    sizeof(ScreenMenuLanguagesNoRet), //data_size
-    nullptr,                          //pdata
-};
-
-screen_t *const get_scr_menu_languages_noret() { return &screen_menu_languages_noret; }

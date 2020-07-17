@@ -177,7 +177,7 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
     int p = reinterpret_cast<int>(param) - 1;
     switch (static_cast<buttons_t>(p)) {
     case buttons_t::TUNE:
-        screen_open(get_scr_menu_tune()->id);
+        //screen_open(get_scr_menu_tune()->id);
         return 1;
         break;
     case buttons_t::PAUSE:

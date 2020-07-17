@@ -385,7 +385,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         switch (get_state(screen)) {
         case printing_state_t::PRINTING:
         case printing_state_t::PAUSED:
-            screen_open(get_scr_menu_tune()->id);
+            //screen_open(get_scr_menu_tune()->id);
             break;
         default:
             break;

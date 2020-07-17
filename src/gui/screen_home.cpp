@@ -174,19 +174,19 @@ int screen_home_data_t::event(window_t *sender, uint8_t event, void *param) {
 
     switch ((int)param) {
     case BUTTON_PRINT + 1:
-        screen_open(get_scr_filebrowser()->id);
+        //screen_open(get_scr_filebrowser()->id);
         return 1;
     case BUTTON_PREHEAT + 1:
-        screen_open(get_scr_menu_preheat()->id);
+        //screen_open(get_scr_menu_preheat()->id);
         return 1;
     case BUTTON_FILAMENT + 1:
-        screen_open(get_scr_menu_filament()->id);
+        //screen_open(get_scr_menu_filament()->id);
         return 1;
     case BUTTON_CALIBRATION + 1:
-        screen_open(get_scr_menu_calibration()->id);
+        //screen_open(get_scr_menu_calibration()->id);
         return 1;
     case BUTTON_SETTINGS + 1:
-        screen_open(get_scr_menu_settings()->id);
+        //screen_open(get_scr_menu_settings()->id);
         return 1;
     case BUTTON_INFO + 1:
         //screen_open(get_scr_menu_info()->id);

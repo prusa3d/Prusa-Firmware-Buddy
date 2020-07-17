@@ -42,16 +42,3 @@ int ScreenMenuTune::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
 
     ths->Event(window, event, param);
 }
-
-screen_t screen_menu_tune = {
-    0,
-    0,
-    ScreenMenuTune::Init,
-    ScreenMenuTune::CDone,
-    ScreenMenuTune::CDraw,
-    ScreenMenuTune::CEvent,
-    sizeof(ScreenMenuTune), //data_size
-    nullptr,                //pdata
-};
-
-screen_t *const get_scr_menu_tune() { return &screen_menu_tune; }

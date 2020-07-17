@@ -66,16 +66,3 @@ int ScreenMenuMove::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
 
     ths->Event(window, event, param);
 }
-
-screen_t screen_menu_move = {
-    0,
-    0,
-    ScreenMenuMove::Init,
-    ScreenMenuMove::CDone,
-    ScreenMenuMove::CDraw,
-    ScreenMenuMove::CEvent,
-    sizeof(ScreenMenuMove), //data_size
-    nullptr,                //pdata
-};
-
-screen_t *const get_scr_menu_move() { return &screen_menu_move; }

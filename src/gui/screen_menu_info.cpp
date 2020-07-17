@@ -26,23 +26,3 @@ public:
 ScreenFactory::UniquePtr GetScreenMenuInfo() {
     return ScreenFactory::Screen<ScreenMenuInfo>();
 }
-
-/*
-static void init(screen_t *screen) {
-    constexpr static const char *label = N_("INFO");
-    Screen::Create(screen, _(label));
-}
-
-screen_t screen_menu_info = {
-    0,
-    0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    nullptr,        //pdata
-};
-
-screen_t *const get_scr_menu_info() { return &screen_menu_info; }
-*/

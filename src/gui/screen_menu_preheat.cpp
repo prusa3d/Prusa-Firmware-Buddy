@@ -41,16 +41,3 @@ static void init(screen_t *screen) {
     constexpr static const char *label = N_("PREHEAT");
     Screen::Create(screen, _(label));
 }
-
-screen_t screen_menu_preheat = {
-    0,
-    0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    nullptr,        //pdata
-};
-
-screen_t *const get_scr_menu_preheat() { return &screen_menu_preheat; }

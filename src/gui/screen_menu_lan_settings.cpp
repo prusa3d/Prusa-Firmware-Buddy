@@ -334,16 +334,3 @@ int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t ev
 
     ths->Event(window, event, param);
 }
-
-screen_t screen_lan_settings = {
-    0,
-    0,
-    ScreenMenuLanSettings::Init,
-    ScreenMenuLanSettings::CDone,
-    ScreenMenuLanSettings::CDraw,
-    ScreenMenuLanSettings::CEvent,
-    sizeof(ScreenMenuLanSettings), //data_size
-    nullptr,                       //pdata
-};
-
-screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }

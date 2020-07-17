@@ -14,16 +14,7 @@ extern screen_t *const get_scr_test_temperature();
 extern screen_t *const get_scr_filebrowser();
 extern screen_t *const get_scr_printing();
 extern screen_t *const get_scr_printing_serial();
-extern screen_t *const get_scr_menu_preheat();
-extern screen_t *const get_scr_menu_filament();
-extern screen_t *const get_scr_preheating();
-extern screen_t *const get_scr_menu_calibration();
-extern screen_t *const get_scr_menu_settings();
-extern screen_t *const get_scr_menu_temperature();
-extern screen_t *const get_scr_menu_move();
-//extern screen_t *const get_scr_menu_info();
-extern screen_t *const get_scr_menu_tune();
-extern screen_t *const get_scr_menu_service();
+
 extern screen_t *const get_scr_sysinfo();
 extern screen_t *const get_scr_version_info();
 extern screen_t *const get_scr_qr_info();

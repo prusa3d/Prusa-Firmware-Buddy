@@ -122,41 +122,6 @@ extern "C" void gui_run(void) {
     WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
 #endif //_DEBUG
     WINDOW_CLS_DLG_PREHEAT = window_register_class((window_class_t *)&window_class_dlg_preheat);
-    screen_register(get_scr_test());
-    screen_register(get_scr_test_gui());
-    screen_register(get_scr_test_term());
-    screen_register(get_scr_test_msgbox());
-    screen_register(get_scr_test_graph());
-    screen_register(get_scr_test_temperature());
-    //screen_register(get_scr_home());
-    screen_register(get_scr_filebrowser());
-    screen_register(get_scr_printing());
-    screen_register(get_scr_printing_serial());
-    screen_register(get_scr_menu_preheat());
-    screen_register(get_scr_menu_filament());
-    screen_register(get_scr_menu_calibration());
-    screen_register(get_scr_menu_settings());
-    screen_register(get_scr_menu_temperature());
-    screen_register(get_scr_menu_move());
-    //screen_register(get_scr_menu_info());
-    screen_register(get_scr_menu_tune());
-    screen_register(get_scr_menu_service());
-    screen_register(get_scr_sysinfo());
-    screen_register(get_scr_version_info());
-    screen_register(get_scr_qr_info());
-    screen_register(get_scr_qr_error());
-    screen_register(get_scr_test_disp_mem());
-    screen_register(get_scr_messages());
-#ifdef PIDCALIBRATION
-    screen_register(get_scr_PID());
-#endif //PIDCALIBRATION
-    screen_register(get_scr_mesh_bed_lv());
-    screen_register(get_scr_wizard());
-    screen_register(get_scr_print_preview());
-    screen_register(get_scr_lan_settings());
-    screen_register(get_scr_menu_fw_update());
-    screen_register(get_scr_menu_languages()); // WTF!?!? why does this have to be done at runtime? There is no compile-time warning, that a screen didn't get its unique id (for whatever reason)
-    screen_register(get_scr_menu_languages_noret());
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
         //screen_stack_push(get_scr_splash()->id);

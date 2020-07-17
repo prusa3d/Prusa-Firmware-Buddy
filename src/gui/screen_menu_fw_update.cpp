@@ -73,16 +73,3 @@ int ScreenMenuFwUpdate::CEvent(screen_t *screen, window_t *window, uint8_t event
 
     ths->Event(window, event, param);
 }
-
-screen_t screen_menu_fw_update = {
-    0,
-    0,
-    ScreenMenuFwUpdate::Init,
-    ScreenMenuFwUpdate::CDone,
-    ScreenMenuFwUpdate::CDraw,
-    ScreenMenuFwUpdate::CEvent,
-    sizeof(ScreenMenuFwUpdate), //data_size
-    nullptr,                    //pdata
-};
-
-screen_t *const get_scr_menu_fw_update() { return &screen_menu_fw_update; }
