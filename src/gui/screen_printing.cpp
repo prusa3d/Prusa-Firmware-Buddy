@@ -166,7 +166,7 @@ void screen_printing_init(screen_t *screen) {
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
     static const char pr[] = "PRINTING";
-    p_window_header_set_text(&(pw->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)pr));
+    p_window_header_set_text(&(pw->header), _(pr));
 #endif
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 33, 220, 29),

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-17 08:33+0200\n"
+"POT-Creation-Date: 2020-07-17 09:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -772,6 +772,10 @@ msgstr ""
 #: src/gui/dialogs/window_dlg_preheat.cpp:39
 #: src/guiapi/include/WindowMenuItems.hpp:223
 msgid "Return"
+msgstr ""
+
+#: src/gui/screen_filebrowser.cpp:61
+msgid "SELECT FILE"
 msgstr ""
 
 #: src/gui/screen_menu_languages.cpp:141
