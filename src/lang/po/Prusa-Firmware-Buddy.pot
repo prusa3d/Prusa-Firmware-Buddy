@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-16 15:43+0200\n"
+"POT-Creation-Date: 2020-07-17 08:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -396,7 +396,7 @@ msgstr ""
 msgid "LAN SETTINGS"
 msgstr ""
 
-#: src/gui/screen_menu_languages.cpp:106
+#: src/gui/screen_menu_languages.cpp:112
 msgid "LANGUAGES"
 msgstr ""
 
@@ -428,7 +428,7 @@ msgstr ""
 msgid "Load settings"
 msgstr ""
 
-#: src/gui/screen_splash.cpp:51
+#: src/gui/screen_splash.cpp:53
 msgid "Loading ..."
 msgstr ""
 
@@ -466,6 +466,10 @@ msgid ""
 "Measuring reference\n"
 "height of calib.\n"
 "points"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:198
+msgid "Menu Timeout"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:28
@@ -770,6 +774,10 @@ msgstr ""
 msgid "Return"
 msgstr ""
 
+#: src/gui/screen_menu_languages.cpp:141
+msgid "SELECT LANGUAGE"
+msgstr ""
+
 #: src/gui/wizard/screen_wizard.cpp:539
 msgid "SELFTEST"
 msgstr ""
@@ -894,7 +902,7 @@ msgid ""
 "wiring, nozzle and axes, then restart the calibration."
 msgstr ""
 
-#: src/gui/screen_splash.cpp:110
+#: src/gui/screen_splash.cpp:125
 msgid "The printer is not calibrated. Start First Layer Calibration?"
 msgstr ""
 
@@ -937,10 +945,6 @@ msgstr ""
 msgid ""
 "This operation can't be undone, current configuration will be lost! Are you "
 "really sure to reset printer to factory defaults?"
-msgstr ""
-
-#: src/guiapi/include/MItem_tools.hpp:198
-msgid "Timeout"
 msgstr ""
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
