@@ -632,6 +632,24 @@ float bedTemp() {
     return get_filament_bed_temp();
 }
 
+inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
+#if DEBUG_TERM == 0
+    const int remaining_lines = _run_gcode_line(&line_head, code, size);
+#else
+    const int remaining_lines = _run_gcode_line(&line_head, code, size, &p_screen->term);
+#endif
+    if (remaining_lines < 1) {
+        p_screen->state = _FL_GCODE_BODY;
+#if DEBUG_TERM == 1
+        term_printf(&p_screen->terminal, "BODY\n");
+        p_screen->term.Invalidate();
+#endif
+        p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
+        p_screen->spin_baby_step.color_text = COLOR_ORANGE;
+        p_screen->spin_baby_step.Invalidate();
+    }
+}
+
 inline void FLGcodeBody(firstlay_screen_t *p_screen, const char **code, size_t size) {
     _wizard_firstlay_Z_step(p_screen);
 #if DEBUG_TERM == 0
@@ -704,23 +722,9 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
                 return 100;
             }
         }
-#if DEBUG_TERM == 0
-        remaining_lines = _run_gcode_line(&line_head, head_gcode,
-            head_gcode_sz);
-#else
-        remaining_lines = _run_gcode_line(&line_head, head_gcode,
-            head_gcode_sz, &p_screen->term);
-#endif
-        if (remaining_lines < 1) {
-            p_screen->state = _FL_GCODE_BODY;
-#if DEBUG_TERM == 1
-            term_printf(&p_screen->terminal, "BODY\n");
-            p_screen->term.Invalidate();
-#endif
-            p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
-            p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-            p_screen->spin_baby_step.Invalidate();
-        }
+
+        FLGcodeHead(p_screen, head_gcode, head_gcode_sz);
+
         break;
     case _FL_GCODE_BODY:
         FLGcodeBody(p_screen, body_gcode, body_gcode_sz);
