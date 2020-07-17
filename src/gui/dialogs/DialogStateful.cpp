@@ -109,13 +109,16 @@ void IDialogStateful::draw_progress() {
     }
 }
 
-void IDialogStateful::draw_phase_text(const char *text) {
+void IDialogStateful::draw_phase_text(string_view_utf8 text) {
     rect_ui16_t rc_sta = rect;
     size_t nl = 0; //number of new lines
-    const char *s = text;
+
     //count '\n' in nl, search by moving start (s)
-    for (; s[nl]; s[nl] == '\n' ? nl++ : *s++)
-        ; // ? s++ instead ?
+    unichar c;
+    while ((c = text.getUtf8Char()) != 0) {
+        if (c == '\n')
+            ++nl;
+    }
     rc_sta.h = 30 + font_title->h * nl;
     rc_sta.y += (30 + 46);
     rc_sta.x += 2;
@@ -133,6 +136,7 @@ void IDialogStateful::draw_phase_text(const char *text) {
 
     last_text_h = rc_sta.h;
 
-    render_text_align(rc_sta, _(text), font_title,
+    text.rewind();
+    render_text_align(rc_sta, text, font_title,
         color_back, color_text, padding, ALIGN_CENTER);
 }

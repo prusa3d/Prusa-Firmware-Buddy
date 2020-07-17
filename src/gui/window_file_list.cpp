@@ -35,7 +35,9 @@ void window_file_list_init_text_roll(window_file_list_t *window) {
 }
 
 void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
-    window->ldv->ChangeDirectory(window->sfn_path, LDV9::SortPolicy::BY_NAME, topSFN);
+    window->ldv->ChangeDirectory(window->sfn_path,
+        (sort == WF_SORT_BY_NAME) ? LDV9::SortPolicy::BY_NAME : LDV9::SortPolicy::BY_CRMOD_DATETIME,
+        topSFN);
     window->count = window->ldv->TotalFilesCount();
 
     if (!topSFN) {

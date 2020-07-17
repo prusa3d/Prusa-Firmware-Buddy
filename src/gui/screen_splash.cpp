@@ -9,6 +9,8 @@
 #include "stm32f4xx_hal.h"
 #include "screens.h"
 #include "../lang/i18n.h"
+#include "../lang/translator.hpp"
+#include "language_eeprom.hpp"
 
 #ifdef _EXTUI
     #include "marlin_client.h"
@@ -102,19 +104,46 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
         uint8_t run_xyzcalib = eeprom_get_var(EEVAR_RUN_XYZCALIB).ui8;
         uint8_t run_firstlay = eeprom_get_var(EEVAR_RUN_FIRSTLAY).ui8;
         uint8_t run_wizard = (run_selftest && run_xyzcalib && run_firstlay) ? 1 : 0;
+        // uint8_t run_language = eeprom_get_var(EEVAR_LANGUAGE).ui16 == static_cast<uint16_t>(0xffff) ? 1 : 0;
+        // if (run_language) {
+        //     // screen_stack_push(get_scr_home()->id);
+        //     screen_open(get_scr_menu_languages()->id);
+        // }
+
+        const bool lang_valid = LangEEPROM::getInstance().IsValid();
+
         if ((run_wizard || run_firstlay)) {
             if (run_wizard) {
                 screen_stack_push(get_scr_home()->id);
-                wizard_run_complete();
+                if (lang_valid) {
+                    wizard_run_complete();
+                } else {
+                    wizard_stack_push_complete();
+                    screen_open(get_scr_menu_languages_noret()->id);
+                }
             } else if (run_firstlay) {
                 if (gui_msgbox(_("The printer is not calibrated. Start First Layer Calibration?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
                     screen_stack_push(get_scr_home()->id);
-                    wizard_run_firstlay();
-                } else
+                    if (lang_valid) {
+                        wizard_run_firstlay();
+                    } else {
+                        wizard_stack_push_firstlay();
+                        screen_open(get_scr_menu_languages_noret()->id);
+                    }
+                } else if (lang_valid) {
                     screen_open(get_scr_home()->id);
+                } else {
+                    screen_stack_push(get_scr_home()->id);
+                    screen_open(get_scr_menu_languages_noret()->id);
+                }
             }
-        } else
+        } else if (lang_valid) {
             screen_open(get_scr_home()->id);
+        } else {
+            screen_stack_push(get_scr_home()->id);
+            screen_open(get_scr_menu_languages_noret()->id);
+        }
+
 #else
     if (HAL_GetTick() > 3000) {
         screen_close();

@@ -31,6 +31,10 @@ public:
     inline const ITranslationProvider *CurrentProvider() const {
         return currentProvider;
     }
+    /// @returns true if the Translations engine knows about the langCode translation
+    /// (i.e. a provider is registered for that language)
+    bool LangExists(uint16_t langCode) const;
+
     /// takes input 2-character string (e.g. "cs") and transforms it into numerical lang code
     /// ... basically copies the two chars into an uint16_t, but this function is here to make
     /// sure this operation is done in a same manner at all places necessary.

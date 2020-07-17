@@ -18,4 +18,8 @@ enum str_err {
 size_t strdel(char *str, const size_t n = 1);
 int strins(char *str, size_t max_size, const char *const ins, size_t times = 1);
 int strshift(char *str, size_t max_size, const size_t n = 1, const char default_char = ' ');
-extern "C" int str2multiline(char *str, size_t max_size, const size_t line_width);
+int str2multiline(char *str, size_t max_size, const size_t line_width);
+
+int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n = 1, const uint32_t default_char = ' ');
+int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, size_t times = 1);
+int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width);

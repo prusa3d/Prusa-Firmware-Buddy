@@ -127,8 +127,9 @@ public:
     uint16_t computeNumUtf8CharsAndRewind() {
         if (utf8Length < 0) {
             rewind_impl(attrs);
-            while (getUtf8Char())
+            do {
                 ++utf8Length;
+            } while (getUtf8Char());
         }
         rewind_impl(attrs); // always return stream back to the beginning @@TODO subject to change
         // now we have either 0 or some positive number in utf8Length, can be safely cast to unsigned int
