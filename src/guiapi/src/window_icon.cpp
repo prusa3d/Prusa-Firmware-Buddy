@@ -36,7 +36,7 @@ window_icon_t::window_icon_t(window_t *parent, window_t *prev, rect_ui16_t rect,
     , id_res(id_res)
     , alignment(ALIGN_CENTER) {}
 
-void window_icon_t::draw() {
+void window_icon_t::unconditionalDraw() {
     uint8_t ropfn = 0;
     if ((flg & WINDOW_FLG_DISABLED)) { // that could not be set, but what if
         ropfn |= ROPFN_DISABLE;

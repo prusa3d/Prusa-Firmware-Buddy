@@ -86,7 +86,7 @@ void window_numberless_progress_t::SetColor(color_t clr) {
     }
 }
 
-void window_numberless_progress_t::draw() {
+void window_numberless_progress_t::unconditionalDraw() {
     rect_ui16_t rc = rect;
     const uint16_t progress_w = std::min(progress_in_pixels, rc.w);
     rc.x += progress_w;

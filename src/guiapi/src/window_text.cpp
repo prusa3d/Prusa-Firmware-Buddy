@@ -53,7 +53,7 @@ window_text_t::window_text_t(window_t *parent, window_t *prev, rect_ui16_t rect,
     , alignment(gui_defaults.alignment) {
 }
 
-void window_text_t::draw() {
+void window_text_t::unconditionalDraw() {
     render_text_align(rect, text, font,
         (flg & WINDOW_FLG_FOCUSED) ? color_text : color_back,
         (flg & WINDOW_FLG_FOCUSED) ? color_back : color_text,

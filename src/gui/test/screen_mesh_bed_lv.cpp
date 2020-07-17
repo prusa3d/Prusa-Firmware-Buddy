@@ -110,8 +110,6 @@ void screen_mesh_bed_lv_init(screen_t *screen) {
     pd->textExit.SetText(_("EXIT"));
     pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
-
-    status_footer_init(&(pd->footer), id0);
 }
 
 void screen_mesh_bed_lv_done(screen_t *screen) {
@@ -122,11 +120,10 @@ void screen_mesh_bed_lv_draw(screen_t *screen) {
 }
 
 int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    if (status_footer_event(&(pd->footer), window, event, param)) {
+    /* if (status_footer_event(&(pd->footer), window, event, param)) {
         return 1;
-    }
+    }*/
 
-    status_footer_event(&(pd->footer), window, event, param);
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:

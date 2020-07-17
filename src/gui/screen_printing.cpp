@@ -251,8 +251,6 @@ void screen_printing_init(screen_t *screen) {
     pw->last_print_duration = -1;
     pw->last_time_to_end = -1;
     pw->last_sd_percent_done = -1;
-
-    status_footer_init(&(pw->footer), root);
 }
 
 void screen_printing_done(screen_t *screen) {
@@ -323,9 +321,9 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         close_popup_message(screen);
     }
 
-    if (status_footer_event(&(pw->footer), window, event, param)) {
+    /*if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
-    }
+    }*/
 
     if ((pw->state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);

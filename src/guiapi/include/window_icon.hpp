@@ -13,5 +13,5 @@ struct window_icon_t : public window_t {
     window_icon_t(window_t *parent, window_t *prev, rect_ui16_t rect, uint16_t id_res);
 
 protected:
-    virtual void draw() override;
+    virtual void unconditionalDraw() override;
 };

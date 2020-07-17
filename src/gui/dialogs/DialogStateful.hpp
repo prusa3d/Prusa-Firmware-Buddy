@@ -121,7 +121,7 @@ protected:
     }
 
 public:
-    virtual void draw() override;
+    virtual void unconditionalDraw() override;
     virtual int event(window_t * /*sender*/, uint8_t event, void *param) override;
 };
 
@@ -129,51 +129,47 @@ public:
 //template definitions
 
 template <class T>
-void DialogStateful<T>::draw() {
-    if ((f_visible)
-        //&& ((size_t)(phase) < states.size()) // no need to check
-    ) {
-        RadioButton &radio = states[phase].button;
-        const char *text = states[phase].label;
-        rect_ui16_t rc = rect;
+void DialogStateful<T>::unconditionalDraw() {
+    RadioButton &radio = states[phase].button;
+    const char *text = states[phase].label;
+    rect_ui16_t rc = rect;
 
-        if (f_invalid) {
-            display::FillRect(rc, color_back);
-            rect_ui16_t rc_tit = rc;
-            rc_tit.h = 30; // 30pixels for title
-            // TODO: - icon
-            //			rc_tit.w -= 30;
-            //			rc_tit.x += 30;
-            //title
-            render_text_align(rc_tit, _(title), font_title,
-                color_back, color_text, padding, ALIGN_CENTER);
+    if (f_invalid) {
+        display::FillRect(rc, color_back);
+        rect_ui16_t rc_tit = rc;
+        rc_tit.h = 30; // 30pixels for title
+        // TODO: - icon
+        //			rc_tit.w -= 30;
+        //			rc_tit.x += 30;
+        //title
+        render_text_align(rc_tit, _(title), font_title,
+            color_back, color_text, padding, ALIGN_CENTER);
 
-            f_invalid = 0;
-            flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
-        }
+        f_invalid = 0;
+        flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
+    }
 
-        //button knows when it needs to be repainted except when phase changes
-        if (flags & DLG_PHA_CH) {
-            //do not clear DLG_PHA_CH
-            radio.DrawForced();
-        } else
-            radio.Draw();
+    //button knows when it needs to be repainted except when phase changes
+    if (flags & DLG_PHA_CH) {
+        //do not clear DLG_PHA_CH
+        radio.DrawForced();
+    } else
+        radio.Draw();
 
-        if (flags & DLG_TXT_CH) //text changed
-        {
-            draw_phase_text(_(text));
-            flags &= ~DLG_TXT_CH;
-        }
+    if (flags & DLG_TXT_CH) //text changed
+    {
+        draw_phase_text(_(text));
+        flags &= ~DLG_TXT_CH;
+    }
 
-        if (flags & DLG_PRX_CH) //any progress changed
-        {
-            draw_progress();
-            flags &= ~DLG_PRX_CH;
-        }
-        if (flags & DLG_DRA_FR) { //draw frame
-            draw_frame();
-            flags &= ~DLG_DRA_FR;
-        }
+    if (flags & DLG_PRX_CH) //any progress changed
+    {
+        draw_progress();
+        flags &= ~DLG_PRX_CH;
+    }
+    if (flags & DLG_DRA_FR) { //draw frame
+        draw_frame();
+        flags &= ~DLG_DRA_FR;
     }
 }
 

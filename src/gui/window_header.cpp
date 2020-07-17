@@ -139,7 +139,7 @@ window_header_t::window_header_t(window_t *parent, window_t *prev)
     , icon_base(this, nullptr, rect_ui16(rect.x + 10, rect.y, rect.h, rect.h), 0)
     , label(this, &icon_base, rect_ui16(rect.x + 10 + rect.h, rect.y, rect.w - icons_width - 10 - rect.h, rect.h))
     , icon_usb(this, &label, rect_ui16(rect.x + rect.w - icon_usb_width, rect.y, icon_usb_width, rect.h), IDR_PNG_header_icon_usb)
-    , icon_lan(this, &icon_usb, rect_ui16(rect.x + rect.w - icons_width, rect.y, icon_lan_width, rect.h), IDR_PNG_header_icon_usb) {
+    , icon_lan(this, &icon_usb, rect_ui16(rect.x + rect.w - icons_width, rect.y, icon_lan_width, rect.h), IDR_PNG_header_icon_lan) {
     label.alignment = ALIGN_LEFT_CENTER;
 
     LAN_Off();

@@ -45,8 +45,6 @@ void screen_wizard_init(screen_t *screen) {
 
     pd->header.SetText(wizard_get_caption(screen));
 
-    status_footer_init(&(pd->footer), id_footer);
-
     pd->selftest.fans_axis_data.state_fan0 = init_state(_STATE_SELFTEST_FAN0);
     pd->selftest.fans_axis_data.state_fan1 = init_state(_STATE_SELFTEST_FAN1);
     pd->selftest.fans_axis_data.state_x = init_state(_STATE_SELFTEST_X);
@@ -116,7 +114,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     xyzcalib_data_t *p_xyzcalib_data = &(pd->xyzcalib);
 
     if (pd->frame_footer.flg & WINDOW_FLG_VISIBLE) {
-        status_footer_event(&(pd->footer), window, event, param);
+        //status_footer_event(&(pd->footer), window, event, param);
     }
 
     //notify first layer calib (needed for baby steps)

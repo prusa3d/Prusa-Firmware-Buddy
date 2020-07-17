@@ -67,7 +67,6 @@ void screen_messages_init(screen_t *screen) {
     pmsg->list.SetCapture();
 
     pmsg->pfooter = (status_footer_t *)gui_malloc(sizeof(status_footer_t));
-    status_footer_init(pmsg->pfooter, root);
 }
 
 void screen_messages_draw(screen_t *screen) {
@@ -90,7 +89,7 @@ int screen_messages_event(screen_t *screen, window_t *window,
 
     pmsg->list.count = msg_stack.count + 1;
 
-    status_footer_event(pmsg->pfooter, window, event, param);
+    //status_footer_event(pmsg->pfooter, window, event, param);
 
     return 0;
 }

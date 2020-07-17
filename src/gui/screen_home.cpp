@@ -97,8 +97,6 @@ screen_home_data_t::screen_home_data_t()
     w_buttons[0].SetFocus();
     if (!marlin_vars()->media_inserted)
         printBtnDis();
-
-    status_footer_init(&(footer), id);
 }
 
 void screen_home_data_t::unconditionalDraw() {
@@ -120,9 +118,9 @@ static void on_print_preview_action(print_preview_action_t action) {
 }
 
 int screen_home_data_t::event(window_t *sender, uint8_t event, void *param) {
-    if (status_footer_event(&(footer), sender, event, param)) {
+    /* if (status_footer_event(&(footer), sender, event, param)) {
         return 1;
-    }
+    }*/
 
     if (is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
     {

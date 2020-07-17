@@ -299,7 +299,7 @@ void window_t::Draw() {
 }
 
 void window_t::draw() {
-    if (IsInvalid() && IsVisible()) {
+    if (IsInvalid() && IsVisible() && rect.w && rect.h) {
         unconditionalDraw();
         Validate();
     }

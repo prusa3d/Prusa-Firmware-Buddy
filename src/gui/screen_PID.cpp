@@ -313,8 +313,6 @@ void screen_PID_init(screen_t *screen) {
     pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
 
-    status_footer_init(&(pd->footer), id0);
-
     dispPID((pd->_PID_E), pd->spinKp_E, pd->spinKi_E, pd->spinKd_E,
         SPIN_DIGITS, SPIN_PRECISION);
     dispPID((pd->_PID_B), pd->spinKp_B, pd->spinKi_B, pd->spinKd_B,
@@ -329,11 +327,10 @@ void screen_PID_draw(screen_t *screen) {
 }
 
 int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    if (status_footer_event(&(pd->footer), window, event, param)) {
+    /* if (status_footer_event(&(pd->footer), window, event, param)) {
         return 1;
-    }
+    }*/
 
-    status_footer_event(&(pd->footer), window, event, param);
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:

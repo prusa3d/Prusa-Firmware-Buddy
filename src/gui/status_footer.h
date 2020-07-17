@@ -1,37 +1,16 @@
-/*
- * status_footer.h
- *
- *  Created on: 22. 7. 2019
- *      Author: mcbig
- */
-
 #pragma once
 
 #include "gui.hpp"
+#include "marlin_vars.h"
 
-#pragma pack(push, 1)
-//#pragma pack(1) makes enums 8 bit
-// which is an ugly and unreadable hack (probably a side effect)
-typedef enum heat_state_e {
+enum class HeatState : uint8_t {
     HEATING,
     COOLING,
     PREHEAT,
     STABLE,
-} heat_state_t;
+};
 
-#pragma pack(pop)
-
-struct status_footer_t : public window_frame_t {
-    float nozzle;                /// current temperature of nozzle
-    float nozzle_target;         /// target temperature of nozzle (not shown)
-    float nozzle_target_display; /// target temperature of nozzle shown on display
-    float heatbed;               /// current temperature of bed
-    float heatbed_target;        /// target temperature of bed
-    int32_t z_pos;               /// z position, 000.00 fixed point
-    uint32_t last_timer_repaint_values;
-    uint32_t last_timer_repaint_colors;
-    uint32_t last_timer_repaint_z_pos;
-
+class status_footer_t : public window_frame_t {
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
     window_icon_t wi_prnspeed;
@@ -44,12 +23,34 @@ struct status_footer_t : public window_frame_t {
     window_text_t wt_z_axis;
     window_text_t wt_filament;
 
+    float nozzle;                /// current temperature of nozzle
+    float nozzle_target;         /// target temperature of nozzle (not shown)
+    float nozzle_target_display; /// target temperature of nozzle shown on display
+    float heatbed;               /// current temperature of bed
+    float heatbed_target;        /// target temperature of bed
+
+    int32_t z_pos; /// z position, 000.00 fixed point
+    uint32_t last_timer_repaint_values;
+    uint32_t last_timer_repaint_colors;
+    uint32_t last_timer_repaint_z_pos;
     uint16_t print_speed; /// print speed in percents
-    heat_state_t nozzle_state;
-    heat_state_t heatbed_state;
+    HeatState nozzle_state;
+    HeatState heatbed_state;
     bool show_second_color;
 
+    void timer(uint32_t mseconds);
+    void update_nozzle(const marlin_vars_t *vars);
+    void update_heatbed(const marlin_vars_t *vars);
+    void update_temperatures();
+    void update_feedrate();
+    void update_z_axis();
+    void update_filament();
+    void repaint_nozzle();
+    void repaint_heatbed();
+
+public:
     status_footer_t(window_t *parent, window_t *prev);
+    virtual int event(window_t *sender, uint8_t event, void *param) override;
 };
 
 #define REPAINT_Z_POS_PERIOD 256  /// time span between z position repaint [miliseconds]
@@ -64,6 +65,3 @@ struct status_footer_t : public window_frame_t {
 #define HEATING_COLOR COLOR_ORANGE
 #define COOLING_COLOR COLOR_BLUE
 #define PREHEAT_COLOR COLOR_GREEN
-
-void status_footer_init(status_footer_t *footer, int16_t parent);
-int status_footer_event(status_footer_t *footer, window_t *window, uint8_t event, const void *param);

@@ -132,8 +132,6 @@ void screen_printing_serial_init(screen_t *screen) {
     static_assert(static_cast<size_t>(buttons_t::DISCONNECT) < static_cast<size_t>(item_id_t::count), "DISCONNECT not in range of buttons array");
     sp_button = &pw->w_buttons[static_cast<size_t>(buttons_t::DISCONNECT)];
     set_icon_and_label(item_id_t::disconnect, sp_button, &pw->w_labels[static_cast<size_t>(buttons_t::DISCONNECT)]);
-
-    status_footer_init(&(pw->footer), root);
 }
 
 void screen_printing_serial_done(screen_t *screen) {
@@ -167,9 +165,9 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
         return 1;
     }
 
-    if (status_footer_event(&(pw->footer), window, event, param)) {
+    /*if (status_footer_event(&(pw->footer), window, event, param)) {
         return 1;
-    }
+    }*/
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }

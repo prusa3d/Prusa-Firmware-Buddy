@@ -6,7 +6,7 @@
 #include "IWindowMenuItem.hpp"
 
 IWindowMenu::IWindowMenu(window_t *first)
-    : window_frame_t(first) {
+    : window_frame_t(first, nullptr, nullptr, gui_defaults.scr_body_sz) {
 }
 
 window_menu_t::window_menu_t(window_t *first, IWinMenuContainer *pContainer, uint8_t index)
@@ -97,57 +97,6 @@ void window_menu_t::Increment(int dif) {
     }
 }
 
-/******************************************************************************/
-//non member fce
-
-void window_menu_init(window_menu_t *window) {
-    display::DrawRect(window->rect, window->color_back);
-    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
-}
-
-void window_menu_done(window_menu_t *window) {
-    gui_timers_delete_by_window_id(window->id);
-}
-
-void window_menu_draw(window_menu_t *window) {
-    if (!((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        return;
-    }
-
-    const int item_height = window->font->h + window->padding.top + window->padding.bottom;
-    rect_ui16_t rc_win = window->rect;
-
-    const size_t visible_count = rc_win.h / item_height;
-    size_t i;
-    for (i = 0; i < visible_count && i < window->GetCount(); ++i) {
-
-        IWindowMenuItem *item = window->GetItem(i + window->top_index);
-        if (!item) {
-            --i;
-            break;
-        }
-
-        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
-            rc_win.w, uint16_t(item_height) };
-
-        if (rect_in_rect_ui16(rc, rc_win)) {
-            if (item->RollNeedInit()) {
-                gui_timer_restart_txtroll(window->id);
-                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
-                item->RollInit(*window, rc);
-            }
-            item->Print(*window, rc);
-        }
-    }
-    rc_win.h = rc_win.h - (i * item_height);
-
-    if (rc_win.h) {
-        rc_win.y += i * item_height;
-        display::FillRect(rc_win, window->color_back);
-    }
-    window->flg &= ~WINDOW_FLG_INVALID;
-}
-
 //I think I do not need
 //screen_dispatch_event
 //callback should handle it
@@ -222,5 +171,4 @@ void window_menu_t::unconditionalDraw() {
         rc_win.y += i * item_height;
         display::FillRect(rc_win, color_back);
     }
-    flg &= ~WINDOW_FLG_INVALID;
 }
