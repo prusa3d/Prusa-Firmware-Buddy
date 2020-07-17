@@ -295,17 +295,17 @@ window_t *window_t::GetParent() const {
 }
 
 void window_t::Draw() {
-    unconditionalDraw();
+    draw();
 }
 
-void window_t::unconditionalDraw() {
+void window_t::draw() {
     if (IsInvalid() && IsVisible()) {
-        draw();
+        unconditionalDraw();
         Validate();
     }
 }
 
-void window_t::draw() {
+void window_t::unconditionalDraw() {
     display::FillRect(rect, color_back);
 }
 

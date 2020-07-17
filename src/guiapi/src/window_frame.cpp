@@ -92,13 +92,13 @@ void window_frame_t::SetFirst(window_t *fir) {
     first = fir;
 }
 
-void window_frame_t::unconditionalDraw() {
+void window_frame_t::draw() {
     if (!f_visible)
         return;
     bool setChildernInvalid = false;
 
     if (f_invalid) {
-        draw();
+        unconditionalDraw();
         f_invalid = 0;
         setChildernInvalid = true;
     }

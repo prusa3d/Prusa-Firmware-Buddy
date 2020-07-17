@@ -28,33 +28,15 @@ screen_splash_data_t::screen_splash_data_t()
     , text_progress(this, &logo_prusa_mini, rect_ui16(10, 171, 220, 20))
     , progress(this, &text_progress, rect_ui16(10, 200, 220, 15), 15, COLOR_GRAY, COLOR_ORANGE)
     , text_version(this, &progress, rect_ui16(00, 295, 240, 22))
-    , icon_logo_buddy(this, &text_version)
-    , icon_logo_marlin(this, &icon_logo_buddy)
-    , icon_debug(this, &icon_logo_marlin) {
-    //window_create_ptr(WINDOW_CLS_ICON, id, rect_ui16(0, 84, 240, 62),
-    //    &(logo_prusa_mini));
-    //logo_prusa_mini.SetIdRes(IDR_PNG_splash_logo_prusa_prn);
+    , icon_logo_buddy(this, &text_version, { 0 }, 0)     //unused?
+    , icon_logo_marlin(this, &icon_logo_buddy, { 0 }, 0) //unused?
+    , icon_debug(this, &icon_logo_marlin, rect_ui16(80, 240, 80, 80), IDR_PNG_splash_logo_marlin) {
 
-    //window_create_ptr(WINDOW_CLS_TEXT, id, rect_ui16(10, 171, 220, 20),
-    //    &(text_progress));
     text_progress.font = resource_font(IDR_FNT_NORMAL);
     text_progress.SetAlignment(ALIGN_CENTER_BOTTOM);
     static const char loading[] = N_("Loading ...");
     text_progress.SetText(_(loading));
-
-    //window_create_ptr(WINDOW_CLS_PROGRESS, id, rect_ui16(10, 200, 220, 15),
-    //    &(progress));
-    //progress.color_back = COLOR_GRAY;
-    //progress.color_progress = COLOR_ORANGE;
     progress.SetFont(resource_font(IDR_FNT_BIG));
-    //progress.height_progress = 15;
-
-    window_create_ptr(WINDOW_CLS_ICON, id, rect_ui16(80, 240, 80, 80),
-        &(icon_logo_marlin));
-    icon_logo_marlin.SetIdRes(IDR_PNG_splash_logo_marlin);
-
-    //window_create_ptr(WINDOW_CLS_TEXT, id, rect_ui16(00, 295, 240, 22),
-    //    &(text_version));
     text_version.SetAlignment(ALIGN_CENTER);
     snprintf(text_version_buffer, sizeof(text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);

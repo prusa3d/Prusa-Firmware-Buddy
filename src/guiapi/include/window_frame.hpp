@@ -15,7 +15,7 @@ struct window_frame_t : public window_t {
     window_t *GetPrevEnabledSubWin(window_t *win) const;
 
 protected:
-    virtual void unconditionalDraw() override;
+    virtual void draw() override;
     virtual int event(window_t *sender, uint8_t event, void *param) override;
     virtual void dispatchEvent(window_t *sender, uint8_t event, void *param) override;
 };

@@ -54,19 +54,19 @@ screen_home_data_t::screen_home_data_t()
     : window_frame_t(&header)
     , header(this, nullptr)
     , footer(this, &header)
-    , logo(this, &footer)
-    , w_buttons { { this, &logo },
-        { this, &w_buttons[0] },
-        { this, &w_buttons[1] },
-        { this, &w_buttons[2] },
-        { this, &w_buttons[3] },
-        { this, &w_buttons[4] } }
-    , w_labels { { this, &w_buttons[5] },
-        { this, &w_labels[0] },
-        { this, &w_labels[1] },
-        { this, &w_labels[2] },
-        { this, &w_labels[3] },
-        { this, &w_labels[4] } }
+    , logo(this, &footer, rect_ui16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
+    , w_buttons { { this, &logo, { 0 }, 0 },
+        { this, &w_buttons[0], { 0 }, 0 },
+        { this, &w_buttons[1], { 0 }, 0 },
+        { this, &w_buttons[2], { 0 }, 0 },
+        { this, &w_buttons[3], { 0 }, 0 },
+        { this, &w_buttons[4], { 0 }, 0 } }
+    , w_labels { { this, &w_buttons[5], { 0 } },
+        { this, &w_labels[0], { 0 } },
+        { this, &w_labels[1], { 0 } },
+        { this, &w_labels[2], { 0 } },
+        { this, &w_labels[3], { 0 } },
+        { this, &w_labels[4], { 0 } } }
 
 {
     // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.
@@ -78,25 +78,15 @@ screen_home_data_t::screen_home_data_t()
     header.SetIcon(IDR_PNG_status_icon_home);
     header.SetText(_("HOME"));
 
-    window_create_ptr(WINDOW_CLS_ICON, id,
-        rect_ui16(41, 31, 158, 40), &(logo));
-    logo.SetIdRes(IDR_PNG_status_logo_prusa_prn);
-
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
-            window_create_ptr(
-                WINDOW_CLS_ICON, id,
-                rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64),
-                &(w_buttons[row * 3 + col]));
             //w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
+            w_buttons[row * 3 + col].rect = rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
             w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
             w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
             w_buttons[row * 3 + col].Enable();
 
-            window_create_ptr(
-                WINDOW_CLS_TEXT, id,
-                rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14),
-                &(w_labels[row * 3 + col]));
+            w_labels[row * 3 + col].rect = rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14);
             w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
             w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
             w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
