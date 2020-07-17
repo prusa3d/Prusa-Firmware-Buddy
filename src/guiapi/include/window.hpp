@@ -53,58 +53,38 @@
 #define WINDOW_EVENT_TIMER    0x0d //gui timer
 #define WINDOW_EVENT_MESSAGE  0x0e //onStatusChange() message notification
 
-struct window_t;
-
-typedef void(window_init_t)(void *window);
-typedef void(window_done_t)(void *window);
-typedef void(window_draw_t)(void *window);
-typedef void(window_event_t)(void *window, uint8_t event, void *param);
-
 struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
-struct window_t {
+class window_t {
     window_t *parent;
     window_t *next;
-    //window_t *prev;
-    void SetNext(window_t *nxt);
-    //void SetPrev(window_t *prv);
-    void SetParent(window_t *par);
-    window_t *GetNext() const;
-    // window_t *GetPrev() const;
-    window_t *GetNextEnabled() const;
-    //window_t *GetPrevEnabled() const;
-    window_t *GetParent() const;
 
-    int16_t id_parent; // (2 bytes) parent window identifier (2bytes)
-    int16_t id;        // (2 bytes) window identifier (2bytes)
+public:
+    int16_t id; // (2 bytes) window identifier (2bytes)
+    uint8_t f_tag;
     union {
-        uint32_t flg; // (3 bytes) flags (visibility, invalid...),
-            // (1 byte)  top byte is window tag (user defined id)
-        struct
-        {
-            uint32_t f_visible : 1;  // WINDOW_FLG_VISIBLE  0x00000001
-            uint32_t f_enabled : 1;  // WINDOW_FLG_ENABLED  0x00000002
-            uint32_t f_invalid : 1;  // WINDOW_FLG_INVALID  0x00000004
-            uint32_t f_focused : 1;  // WINDOW_FLG_FOCUSED  0x00000008
-            uint32_t f_checked : 1;  // WINDOW_FLG_CHECKED  0x00000010
-            uint32_t f_capture : 1;  // WINDOW_FLG_CAPTURE  0x00000020
-            uint32_t f_disabled : 1; // WINDOW_FLG_DISABLED 0x00000040
-            uint32_t f_reserv0 : 6;  // reserved 6 bits
-            uint32_t f_freemem : 1;  // WINDOW_FLG_FREEMEM  0x00002000
-            uint32_t f_timer : 1;    // WINDOW_FLG_TIMER    0x00004000
-            uint32_t f_parent : 1;   // WINDOW_FLG_PARENT   0x00008000
-            uint32_t f_user : 1;     // WINDOW_FLG_USER     0x00010000
-            uint32_t f_reserv1 : 7;  // reserved 7 bits
-            uint32_t f_tag : 8;      // (1 byte) window tag (user defined id)
+        uint8_t flg;
+        struct {
+            bool f_visible : 1;  // WINDOW_FLG_VISIBLE  0x01
+            bool f_enabled : 1;  // WINDOW_FLG_ENABLED  0x02
+            bool f_invalid : 1;  // WINDOW_FLG_INVALID  0x04
+            bool f_focused : 1;  // WINDOW_FLG_FOCUSED  0x08
+            bool f_checked : 1;  // WINDOW_FLG_CHECKED  0x10
+            bool f_capture : 1;  // WINDOW_FLG_CAPTURE  0x20
+            bool f_disabled : 1; // WINDOW_FLG_DISABLED 0x40
+            bool f_timer : 1;    // WINDOW_FLG_TIMER    0x80
         };
     };
     rect_ui16_t rect; // (8 bytes) display rectangle
     color_t color_back;
 
-    virtual void Init() {} //do I need init, have ctor?
-    virtual void Done() {} //do I need done, have dtor?
+    void SetNext(window_t *nxt);
+    void SetParent(window_t *par);
+    window_t *GetNext() const;
+    window_t *GetNextEnabled() const;
+    window_t *GetParent() const;
     void Draw();
     void DispatchEvent(window_t *sender, uint8_t ev, void *param); //try to handle, frame resends childern
     void Event(window_t *sender, uint8_t event, void *param);      //try to handle, send to parrent if not handled
@@ -127,9 +107,6 @@ struct window_t {
     void Hide();
     void SetBackColor(color_t clr);
     color_t GetBackColor() const { return color_back; }
-
-    //To be removed
-    int16_t IdParent() { return id_parent; }
 
     //window_t(int16_t cls_id, int16_t id_parent, rect_ui16_t rect); //todo remove
     window_t(window_t *parent = nullptr, window_t *prev = nullptr, rect_ui16_t rect = { 0 }); //todo remove nullptr default values

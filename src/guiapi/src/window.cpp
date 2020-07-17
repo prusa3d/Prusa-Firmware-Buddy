@@ -93,12 +93,12 @@ void window_destroy(int16_t id) {
         if (window->f_timer)
             gui_timers_delete_by_window_id(window->id);
         window->id = -1;
-        if (window->f_parent)
-            window_destroy_children(id);
+        //if (window->f_parent)
+        //    window_destroy_children(id);
         //if (window->cls->done)
         //    window->cls->done(window);
-        if (window->f_freemem)
-            gui_free(window);
+        //if (window->f_freemem)
+        //    gui_free(window);
         if (window == window_capture_ptr)
             window_capture_ptr = 0;
         if (window == window_focused_ptr)

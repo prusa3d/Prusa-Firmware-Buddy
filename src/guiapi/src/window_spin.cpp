@@ -26,8 +26,8 @@ void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
     case WINDOW_EVENT_BTN_DN:
         if ((window->flg & WINDOW_FLG_ENABLED) && window->f_tag)
             Screens::Access()->DispatchEvent((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->f_tag);
-        if (window_ptr(window->id_parent))
-            window_ptr(window->id_parent)->SetCapture();
+        if (window->GetParent())
+            window->GetParent()->SetCapture();
         break;
     case WINDOW_EVENT_ENC_DN:
         window_spin_dec(window, (int)param);
