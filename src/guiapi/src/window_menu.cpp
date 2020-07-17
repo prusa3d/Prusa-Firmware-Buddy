@@ -6,8 +6,12 @@
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
 
-window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
-    : IWindowMenu()
+IWindowMenu::IWindowMenu(window_t *first)
+    : window_frame_t(first) {
+}
+
+window_menu_t::window_menu_t(window_t *first, IWinMenuContainer *pContainer, uint8_t index)
+    : IWindowMenu(first)
     , pContainer(pContainer) {
     color_back = gui_defaults.color_back;
     color_text = gui_defaults.color_text;
@@ -201,3 +205,40 @@ const window_class_menu_t window_class_menu = {
         (window_event_t *)window_menu_event,
     },
 };
+
+void window_menu_t::unconditionalDraw() {
+    IWindowMenu::unconditionalDraw();
+
+    const int item_height = font->h + padding.top + padding.bottom;
+    rect_ui16_t rc_win = rect;
+
+    const size_t visible_count = rc_win.h / item_height;
+    size_t i;
+    for (i = 0; i < visible_count && i < GetCount(); ++i) {
+
+        IWindowMenuItem *item = GetItem(i + top_index);
+        if (!item) {
+            --i;
+            break;
+        }
+
+        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
+            rc_win.w, uint16_t(item_height) };
+
+        if (rect_in_rect_ui16(rc, rc_win)) {
+            if (item->RollNeedInit()) {
+                gui_timer_restart_txtroll(id);
+                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, id);
+                item->RollInit(*this, rc);
+            }
+            item->Print(*this, rc);
+        }
+    }
+    rc_win.h = rc_win.h - (i * item_height);
+
+    if (rc_win.h) {
+        rc_win.y += i * item_height;
+        display::FillRect(rc_win, color_back);
+    }
+    flg &= ~WINDOW_FLG_INVALID;
+}

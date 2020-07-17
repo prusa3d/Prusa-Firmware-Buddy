@@ -9,7 +9,7 @@ static const uint32_t HasHeaderEvents_FLAG = WINDOW_FLG_USER << 1;
 string_view_utf8 IScreenMenu::no_label = string_view_utf8::MakeCPUFLASH((const uint8_t *)no_labelS);
 
 IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
-    : window_menu_t(nullptr)
+    : window_menu_t(&header, nullptr)
     , header(this, nullptr)
     , help(this, &header)
     , footer(this, &help) {
