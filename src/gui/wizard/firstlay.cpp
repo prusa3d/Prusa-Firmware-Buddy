@@ -797,17 +797,18 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     marlin_do_babysteps_Z(p_screen->Z_offset - _step_last);
 
     //call p_screen->spin_baby_step.SetValue(p_screen->Z_offset); only when value changed
-    if (p_screen->Z_offset_request > 0) {
-        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
-        static const char pp[] = "+++";
-        p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pp));
-    } else if (p_screen->Z_offset_request < 0) {
-        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
-        static const char mm[] = "---";
-        p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)mm));
-    }
 
-    p_screen->Z_offset_request = 0;
+    static const char *pm[2] = { /// minus / plus chars
+        "+++",
+        "---"
+    };
+
+    if (p_screen->Z_offset_request != 0) {
+        p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
+        p_screen->text_direction_arrow.SetText(
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)pm[signbit(p_screen->Z_offset_request)]));
+        p_screen->Z_offset_request = 0;
+    }
 }
 
 int _get_progress() {
