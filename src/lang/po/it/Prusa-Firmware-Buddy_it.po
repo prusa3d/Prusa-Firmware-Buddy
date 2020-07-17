@@ -80,6 +80,10 @@ msgstr "Calibrazione Z"
 msgid "Calibration"
 msgstr "Calibrazione"
 
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
+msgstr "CALIBRAZIONE"
+
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
 msgstr "Calibrazione completa!\nBuona stampa!"
@@ -150,7 +154,7 @@ msgstr "Disconnetti"
 
 #: src/gui/wizard/screen_wizard.c:448
 msgid "Do you want to     \nrepeat the last    \nstep and readjust  \nthe distance       \nbetween the nozzle \nand heatbed?"
-msgstr "Vuoi ripetere\nl'ultimo passo e \nregolare ancora la\ndistanza tra ugello\ne piano riscaldato?"
+msgstr "Vuoi ripetere\nl'ultimo passo e\nregolare ancora la\ndistanza tra ugello\ne piano riscaldato?"
 
 #: src/gui/wizard/screen_wizard.c:405
 #, c-format
@@ -190,7 +194,7 @@ msgstr "USCITA"
 
 #: src/guiapi/src/MItem_tools.cpp:108
 msgid "Factory defaults loaded. The system will now restart."
-msgstr "Factory defaults loaded. The system will now restart.\nImpostazioni di fabbrica caricate. Riavvio sistema."
+msgstr "Valori predefiniti di fabbrica caricati. Adeesso il sistema verrà riavviato."
 
 #: src/guiapi/include/MItem_tools.hpp:68
 msgid "Factory Reset"
@@ -277,6 +281,10 @@ msgstr "HOME"
 msgid "Home"
 msgstr "Home"
 
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr "HOME TO MAX"
+
 #: src/gui/wizard/selftest_fans_axis.cpp:35
 msgid "Hotend fan"
 msgstr "Ventola hotend"
@@ -326,7 +334,7 @@ msgstr "Indirizzi IP o parametri non validi o il file \"lan_settings.ini\" non p
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:58
 msgid "Is color correct?"
-msgstr "Colore corretto?"
+msgstr "Il colore è corretto?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:54
 msgid "Is filament in    \nextruder gear?    "
@@ -459,7 +467,7 @@ msgstr "NO"
 #: src/gui/screen_menu_settings.cpp:31 src/gui/screen_menu_settings.cpp:46
 #: src/gui/screen_menu_settings.cpp:58
 msgid "No filament sensor detected. Verify that the sensor is connected and try again."
-msgstr "No filament sensor detected. Verify that the sensor is connected and try again.\nSensore filamento non rilevato. Verificare il collegamento e riprovare."
+msgstr "Sensore filamento non rilevato. Verificare il collegamento e riprovare."
 
 #: src/gui/screen_printing.cpp:227
 msgid "No messages"
@@ -511,7 +519,7 @@ msgstr "Una volta"
 
 #: src/gui/wizard/firstlay.c:55 src/gui/wizard/firstlay.c:63
 msgid "Once the printer   \nstarts extruding   \nplastic, adjust    \nthe nozzle height  \nby turning the knob\nuntil the filament \nsticks to the print\nsheet."
-msgstr "Appena la stampante\ninizia ad estrudere\nla plastica, regola\nl'altezza ugello\nruotando la manopola\nfinché il filamento\nsi attacca alla\nsuperficie di stampa."
+msgstr "Appena la stampante\ninizia ad estrudere\nplastica, regola\nl'altezza ugello\nruotando la manopola\nfinché il filamento\nnon si attacchi alla\nsuperficie di stampa."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:45
 msgid "Parking"
@@ -702,7 +710,7 @@ msgstr "Seleziona tipo filamento"
 
 #: src/gui/screen_menu_fw_update.cpp:57
 msgid "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."
-msgstr "Seleziona quando vuoi\naggiornare automaticamente\nil nuovo firmware\nda penna USB."
+msgstr "Seleziona quando vuoi\naggiornare\nautomaticamente\nil nuovo firmware\nda penna USB."
 
 #: src/guiapi/include/MItem_tools.hpp:38
 msgid "SelfTest"
@@ -724,6 +732,10 @@ msgstr "Assistenza"
 #: src/gui/screen_home.cpp:43
 msgid "Settings"
 msgstr "Impostazioni"
+
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr "IMPOSTAZIONI"
 
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
@@ -798,7 +810,7 @@ msgstr "Stampante non calibrata. Avviare Calibrazione primo layer?"
 
 #: src/gui/wizard/screen_wizard.c:279
 msgid "The selftest failed\nto finish.         \nDouble-check the   \nprinter's wiring   \nand axes.          \nThen restart       \nthe Selftest.      "
-msgstr "Autotest non\nriuscito.\nRicontrolla il\ncablaggio e gli \nassi. Poi ripeti\nl'autotest."
+msgstr "Autotest non\nriuscito.\nRicontrolla il\ncablaggio e gli\nassi. Poi ripeti\nl'autotest."
 
 #: src/gui/screen_menu_lan_settings.cpp:296
 #: src/gui/screen_menu_lan_settings.cpp:297

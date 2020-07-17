@@ -15,6 +15,7 @@ STÓŁ
 Niepowodzenie poziomowania. Spróbować ponownie?
 Kalibuję Z
 Kalibracja
+KALIBRACJA
 Kalibracja wykonana!\nUdanego drukowania!
 Kalibracja XY
 ANULUJ
@@ -61,6 +62,7 @@ Nagrzewanie...
 Cześć, jestem Twoją\nOriginal Prusa Mini
 EKRAN GŁÓWNY
 Ekran główny
+HOME TO MAX
 Wentylator hotendu
 IGNORUJ
 W kolejnym kroku  \nużyj pokrętła, aby\nustawić odległość \ndyszy od stołu.   \nMożesz wspomóc się\nilustracjami w    \n\Podręczniku\.    
@@ -163,6 +165,7 @@ SELFTEST
 Wyślij info przez QR
 Serwis
 Ustawienia
+USTAWIENIA
 Ustawienia wczytane pomyślnie
 Cicho
 Tryb dźwięku

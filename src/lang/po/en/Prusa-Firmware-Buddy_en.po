@@ -80,6 +80,10 @@ msgstr "Calibrating Z"
 msgid "Calibration"
 msgstr "Calibration"
 
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
+msgstr "CALIBRATION"
+
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
 msgstr "Calibration successful!\nHappy printing!"
@@ -276,6 +280,10 @@ msgstr "HOME"
 #: src/gui/window_file_list.c:133
 msgid "Home"
 msgstr "Home"
+
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr "HOME TO MAX"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:35
 msgid "Hotend fan"
@@ -725,6 +733,10 @@ msgstr "Service"
 msgid "Settings"
 msgstr "Settings"
 
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr "SETTINGS"
+
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
 #: src/gui/screen_menu_lan_settings.cpp:298
@@ -827,7 +839,7 @@ msgstr "This operation can't be undone, current configuration will be lost! Are 
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
-msgstr "Timeout"
+msgstr "Menu Timeout"
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD."

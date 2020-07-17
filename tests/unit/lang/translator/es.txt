@@ -15,29 +15,30 @@ BASE
 Falló la nivelación. ¿Probar de nuevo?
 Calibrando  Z 
 Calibración
+CALIBRACIÓN
 ¡Calibrada con éxito!\n¡Felices impresiones!
 Calibración XY
 CANCELAR 
 CAMBIAR FILAMENTO
 Cambiar Filamento
 Comprobando ejes 
-Comprobando calentadores del fusor y de la base
+Compro. calentadores\ndel fusor y de la base
 Lámina de acero limpia.
 ¡Felicidades! La calibración XYZ está bien. Ejes XY perpendiculares.
 Prueba de pitidos continuados\n pulsa el botón para detenerla
 CONTINUAR
-Enfriamiento
+Enfriar
 Carga de la CPU
 DESACTIVAR SENSOR
 Desactivar motores
-Desconecta
+Desconectar
 ¿Quieres\nrepetir el último\npaso y reajustar\nla distancia\nentre la boquilla\ny base?
 ¿Quieres usar\nel valor actual?\nActual: %0.3f.\nPor defecto: %0.3f.\nHaz clic en NO para usar el valor por defecto (recomendado)
 ¿Desea usar el último valor establecido? Último: %0.3f. Por defecto:% 0.3f. Haz clic en NO para usar el valor por defecto.
 TERMINADO
 Extrayendo
 Error
-Error al guardar el informe de volcado de memoria en la unidad USB. Vuelve a insertar la unidad USB e intenta nuevamente.
+Error al guardar el informe de volcado de memoria en la unidad USB. Vuelve a insertar la unidad USB e intentalo otra vez.
 Todo está bien. Ejecutaré la calibración XYZ ahora. Me llevará aproximadamente 12 minutos.
 SALIDA 
 Valores predefinidos de fábrica cargados. El sistema ahora se reiniciará.
@@ -55,12 +56,13 @@ CALIB. PRIM. CAPA
 Factor de flujo
 ACTUALIZAR FW
 Actualizar FW
-Base calefactable
+Base Calefactora
 Calentamiento deshabilitado debido a 30 minutos de inactividad.
 Calentando...
 Hola, esta es tu\nOriginal Prusa MINI.
-HOME
-Home
+INICIO
+Inicio
+HOME TO MAX
 Ventilador del fusor
 IGNORAR
 En el siguiente paso\nusa el dial para \najustar la altura\nde la boquilla.\nMira las fotos\nen el manual\ncomo referencia.
@@ -104,7 +106,7 @@ No se detectó sensor de filamento. Verifica que el sensor esté conectado e int
 No hay mensajes
 No hay USB
 Ahora, calibremos\nla distancia\nentre la punta\nde la boquilla y\nla lámina de \nimpresión.
-Nozzle
+Boquilla
 BOQUILLA
 La boquilla está muy fría.
 Apagado
@@ -130,10 +132,10 @@ PRECALENTAR para CARGAR
 PRECALENTAR para DESCARGAR
 Preparando para expulsar
 Presiona CONTINUAR y\nempuja el filamento \nen el extrusora.
-Presione SIGUIENTE \npara ejecutar\nel Selftest, que\ncomprueba\nproblemas potenciales\nrelacionado con\nel montaje.
+Presione SIGUIENTE\npara ejecutar\nel Selftest, que\ncomprueba\nproblemas potenciales\nrelacionado con\nel montaje.
 Imprimir
 Vent. de impresión
-Ventilador de capa
+Vent. de impresión
 Duración de la impresión 
 La impresión finalizará
 IMPRIMIENDO
@@ -156,13 +158,14 @@ Retorno
 Guardar arch. de errores
 Guardar ajustes
 Buscando la base\npuntos de calibración
-Selecc. tipo filamento
-Selecciona donde \nquieres flashear \nautomáticamente\nel firmware \nactualizado desde \nuna memoria USB.
+Selecc. tipo de filamento
+Selecciona donde\nquieres flashear\nautomáticamente\nel firmware\nactualizado desde \nuna memoria USB.
 SelfTest
 SELFTEST
 Enviar Info por QR
 Mantenimiento
 Ajustes
+AJUSTES
 Configuración cargada correctamente
 Silenciosa
 Modo Sonido
@@ -170,7 +173,7 @@ Tipo de sonido
 Velocidad
 Las direcciones IPv4 estáticas no se configuraron.
 Estadística
-STOP
+PARAR
 Parar
 Soporte
 Info Sistema
@@ -181,7 +184,7 @@ La calibración de la primera capa no pudo finalizar. Vuelva a verificar el cabl
 La impresora no está calibrada. ¿Iniciar la calibración de la primera capa?
 El autotest falló\nal terminar.\nVerifica dos veces el\ncableado de la \nimpresora y los ejes.\nLuego reinicie\nel Selftest.
 La configuración se ha guardado correctamente en el archivo \lan_settings.ini\.
-La barra de estado \nestá en el fondo de\nla pantalla. Contiene\nInformación sobre:\n  - Temp. de la boquilla.\n  - Temp. de la base.\n  - Vel. de impresión\n  - Alt. del eje Z\n  - Fil. seleccionado
+La barra de estado \nestá en el fondo de\nla pantalla. Contiene\nInformación sobre:\nTemp. de la boquilla\nTemp. de la base\nVel. de impresión\nAlt. del eje Z\nFil. seleccionado
 La calibración XYZ no pudo finalizar. Vuelva a verificar el cableado y los ejes de la impresora, luego reinicia la calibración XYZ.
 Se produjo un error al guardar la configuración en el archivo \lan_settings.ini\.
 Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Está realmente seguro de restablecer la impresora a los valores predeterminados de fábrica?
@@ -189,8 +192,8 @@ Timeout
 Para calibrar con\nel filamento cargado\nactualmente,\npulsa SIGUIENTE.\nPara cambiarlo,\npulsa DESCARGAR.
 Para calibrar con\nel filamento cargado\nactualmente,\npulsa SIGUIENTE.\nPara cargar filamento,\npulsa CARGAR .\nPara cambiarlo,\npulsa DESCARGAR.
 INTENTARLO DE NUEVO
-AJUSTAR
-Ajusta
+AJUSTES
+Ajustes
 DESCARGAR
 DESCARGAR FILAMENTO
 Descargar filamento
@@ -204,7 +207,7 @@ Info versión
 Esperando a que se enfríe
 Esperando temp.
 Cuidado
-Bienvenido a la\nOriginal Prusa MINI\nasistente de configuración.\n¿Te gustaría\ncontinuar?
+Bienvenido a la\nOriginal Prusa MINI\nasistente de \nconfiguración.\n¿Te gustaría\ncontinuar?
 Bienvenido al asistente de configuración de la Original Prusa MINI. ¿Te gustaria continuar?
 Asistente
 ASISTENTE

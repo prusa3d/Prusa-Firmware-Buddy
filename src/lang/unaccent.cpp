@@ -12,6 +12,9 @@ using namespace std;
 /// 2020-07-13 update
 /// ¡ ¿ À Á È É Ê Í Ó Ú Ü ß  à á â ä  è é ê í ò ó ö  ú ü  ý Ą ą ć Č č Ę ę Ě ě Ł ł ń ň Ř ř Ś ś Š š Ů ů ź ż Ž ž
 /// ¡ ¿ A A E E E I O U U ss a a a ae e e e i o o oe u ue y A a c C c E e E e L l n n R r S s S s U u z z Z z
+/// 2020-07-17 update
+/// ¡ ¿ À Á È É Ê Í Ó Ú Ü ß  à á â ä  è é ê í ò ó ö  ú ü  ý Ą ą ć Č č Ę ę Ě ě Ł ł ń ň Ř ř Ś ś Š š ť Ů ů ź ż Ž ž
+/// ¡ ¿ A A E E E I O U U ss a a a ae e e e i o o oe u ue y A a c C c E e E e L l n n R r S s S s t U u z z Z z
 const UnaccentTable::Item UnaccentTable::table[] = {
     { 0xa1, 1, "!" },  // ¡
     { 0xbf, 1, "?" },  // ¿
@@ -58,6 +61,7 @@ const UnaccentTable::Item UnaccentTable::table[] = {
     { 0x15b, 1, "s" }, // ś
     { 0x160, 1, "S" }, // Š
     { 0x161, 1, "s" }, // š
+    { 0x165, 1, "t" }, // ť
     { 0x16e, 1, "U" }, // Ů
     { 0x16f, 1, "u" }, // ů
     { 0x17a, 1, "z" }, // ź
