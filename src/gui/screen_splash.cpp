@@ -115,15 +115,21 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
         if ((run_wizard || run_firstlay)) {
             if (run_wizard) {
                 screen_stack_push(get_scr_home()->id);
-                if (!lang_valid)
-                    screen_stack_push(get_scr_menu_languages_noret()->id);
-                wizard_run_complete();
+                if (lang_valid) {
+                    wizard_run_complete();
+                } else {
+                    wizard_stack_push_complete();
+                    screen_open(get_scr_menu_languages_noret()->id);
+                }
             } else if (run_firstlay) {
                 if (gui_msgbox(_("The printer is not calibrated. Start First Layer Calibration?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
                     screen_stack_push(get_scr_home()->id);
-                    if (!lang_valid)
-                        screen_stack_push(get_scr_menu_languages_noret()->id);
-                    wizard_run_firstlay();
+                    if (lang_valid) {
+                        wizard_run_firstlay();
+                    } else {
+                        wizard_stack_push_firstlay();
+                        screen_open(get_scr_menu_languages_noret()->id);
+                    }
                 } else if (lang_valid) {
                     screen_open(get_scr_home()->id);
                 } else {
