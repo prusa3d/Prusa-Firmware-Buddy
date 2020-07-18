@@ -18,13 +18,13 @@ int16_t WINDOW_CLS_DLG_POPUP = 0;
 
 extern msg_stack_t msg_stack;
 
-void window_dlg_popup_init(window_dlg_popup_t *window) {
-    window->Enable();
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->font_title = gui_defaults.font_big;
-    window->padding = gui_defaults.padding;
+window_dlg_popup_t::window_dlg_popup_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
+    , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
+    , font_title(gui_defaults.font_big)
+    , padding(gui_defaults.padding) {
+    Enable();
 }
 
 void window_dlg_popup_draw(window_dlg_popup_t *window) {
@@ -55,10 +55,9 @@ void gui_pop_up(void) {
         return;
     opened = 1;
 
-    window_dlg_popup_t dlg;
+    window_dlg_popup_t dlg(nullptr, rect_ui16(0, 32, 240, 120));
 
     window_t *id_capture = window_t::GetCapturedWindow();
-    int16_t id = window_create_ptr(WINDOW_CLS_DLG_POPUP, 0, rect_ui16(0, 32, 240, 120), &dlg);
     memset(dlg.text, '\0', sizeof(dlg.text) * sizeof(char)); // set to zeros to be on the safe side
     strlcpy(dlg.text, msg_stack.msg_data[0], sizeof(dlg.text));
     window_popup_ptr = (window_t *)&dlg;
@@ -71,7 +70,7 @@ void gui_pop_up(void) {
         gui_loop();
     }
 
-    window_destroy(id);
+    //window_destroy(id);
     if (id_capture)
         id_capture->SetCapture();
     window_t *pWin = window_ptr(0);

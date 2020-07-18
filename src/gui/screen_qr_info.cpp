@@ -9,9 +9,9 @@
 
 screen_qr_info_data_t::screen_qr_info_data_t()
     : window_frame_t(&warning)
-    , warning(this, nullptr, rect_ui16(8, 25, 224, 95))
-    , button(this, &warning, rect_ui16(8, 280, 224, 30))
-    , qr(this, &button, rect_ui16(28, 85, 224, 95)) {
+    , warning(this, rect_ui16(8, 25, 224, 95))
+    , button(this, rect_ui16(8, 280, 224, 30))
+    , qr(this, rect_ui16(28, 85, 224, 95)) {
     warning.font = resource_font(IDR_FNT_TERMINAL);
     warning.SetAlignment(ALIGN_HCENTER);
     static const char slftNA[] = "selfTest-data not\n    available";

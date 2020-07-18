@@ -16,5 +16,5 @@ struct window_qr_t : public window_t {
     color_t bg_color;
     color_t px_color;
 
-    window_qr_t(window_t *parent, window_t *prev, rect_ui16_t rect);
+    window_qr_t(window_t *parent, rect_ui16_t rect);
 };

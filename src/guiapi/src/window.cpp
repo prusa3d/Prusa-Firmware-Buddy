@@ -173,17 +173,18 @@ void window_t::SetBackColor(color_t clr) {
     Invalidate();
 }
 
-window_t::window_t(window_t *parent, window_t *prev, rect_ui16_t rect)
+window_t::window_t(window_t *parent, rect_ui16_t rect)
     : parent(parent)
     , next(nullptr)
+    , color_back(gui_defaults.color_back)
     , rect(rect) {
     Enable();
     Show();
     Invalidate();
-    if (prev)
-        prev->SetNext(this);
-    if (rect.w && rect.h)
-        display::FillRect(rect, color_back);
+    if (parent)
+        parent->push_back(this);
+    //if (rect.w && rect.h)
+    //    display::FillRect(rect, color_back);
 }
 
 window_t::~window_t() {
@@ -244,6 +245,10 @@ void window_t::draw() {
         unconditionalDraw();
         Validate();
     }
+}
+
+//window does not support subwindow elements, but window_frame does
+void window_t::push_back(window_t *win) {
 }
 
 void window_t::unconditionalDraw() {

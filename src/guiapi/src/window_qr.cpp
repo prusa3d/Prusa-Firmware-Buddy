@@ -31,8 +31,8 @@ void window_qr_draw(window_qr_t *window) {
     }
 }
 
-window_qr_t::window_qr_t(window_t *parent, window_t *prev, rect_ui16_t rect)
-    : window_t(parent, prev)
+window_qr_t::window_qr_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
     , version(9)
     , ecc_level(qrcodegen_Ecc_HIGH)
     , mode(qrcodegen_Mode_ALPHANUMERIC)

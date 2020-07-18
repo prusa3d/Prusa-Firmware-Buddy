@@ -26,17 +26,17 @@ typedef enum {
 
 int16_t WINDOW_CLS_DLG_WAIT = 0;
 
-void window_dlg_wait_init(window_dlg_wait_t *window) {
-    window->Enable(); //enabled by default
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->font_title = gui_defaults.font_big;
-    window->padding = gui_defaults.padding;
-    window->progress = 0;
-    window->animation = ANIM_START;
-    window->animation_chng = true;
-    window->progress_chng = true;
+window_dlg_wait_t::window_dlg_wait_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
+    , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
+    , font_title(gui_defaults.font_big)
+    , padding(gui_defaults.padding)
+    , progress(0)
+    , animation(ANIM_START)
+    , animation_chng(true)
+    , progress_chng(true) {
+    Enable();
 }
 
 void window_dlg_wait_draw(window_dlg_wait_t *window) {
@@ -163,10 +163,9 @@ void animation_handler(window_dlg_wait_t *window) {
 
 void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
 
-    window_dlg_wait_t dlg;
+    window_dlg_wait_t dlg(nullptr, gui_defaults.scr_body_sz);
 
     window_t *id_capture = window_t::GetCapturedWindow();
-    int16_t id = window_create_ptr(WINDOW_CLS_DLG_WAIT, 0, gui_defaults.scr_body_sz, &dlg);
     window_t *tmp_popup_window = window_popup_ptr;
     window_popup_ptr = (window_t *)&dlg;
     gui_reset_jogwheel();
@@ -194,7 +193,7 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
         }
     }
 
-    window_destroy(id);
+    //window_destroy(id);
     window_popup_ptr = tmp_popup_window;
     window_t *pWin = window_ptr(0);
     if (pWin != 0)

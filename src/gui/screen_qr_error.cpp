@@ -8,10 +8,10 @@
 
 screen_qr_error_data_t::screen_qr_error_data_t()
     : window_frame_t(&errText)
-    , errText(this, nullptr, rect_ui16(8, 0, 224, 25))
-    , errDescription(this, &errText, rect_ui16(8, 30, 224, 95))
-    , info(this, &errDescription, rect_ui16(8, 275, 224, 20))
-    , qr(this, &info, rect_ui16(59, 140, 224, 95))
+    , errText(this, rect_ui16(8, 0, 224, 25))
+    , errDescription(this, rect_ui16(8, 30, 224, 95))
+    , info(this, rect_ui16(8, 275, 224, 20))
+    , qr(this, rect_ui16(59, 140, 224, 95))
     , first_run_flag(true) {
     errText.SetBackColor(COLOR_RED_ALERT);
     errText.font = resource_font(IDR_FNT_BIG);

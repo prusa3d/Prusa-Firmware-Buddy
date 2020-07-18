@@ -69,6 +69,7 @@ struct window_msgbox_t : public window_t {
     const char *buttons[3];
     uint16_t flags;
     int res;
+    window_msgbox_t(window_t *parent, rect_ui16_t rect);
 };
 
 extern uint16_t window_msgbox_id_icon[5];

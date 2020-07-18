@@ -32,8 +32,8 @@ static char firstVisibleSFN[SFN_len] = "";
 
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : window_frame_t(&header)
-    , header(this, nullptr)
-    , w_filelist(this, &header, rect_ui16(10, 32, 220, 278)) {
+    , header(this)
+    , w_filelist(this, rect_ui16(10, 32, 220, 278)) {
     // TODO: load screen_filebrowser_sort from eeprom
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted

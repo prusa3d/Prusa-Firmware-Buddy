@@ -179,10 +179,9 @@ void gui_reset_menu_timer() {
 int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
 
-    window_msgbox_t msgbox;
+    window_msgbox_t msgbox(nullptr, rect);
     window_t *window_popup_tmp = window_popup_ptr; //save current window_popup_ptr
     window_t *id_capture = window_t::GetCapturedWindow();
-    window_create_ptr(WINDOW_CLS_MSGBOX, 0, rect, &msgbox);
     msgbox.title = title;
     msgbox.text = text;
     msgbox.flags = flags;

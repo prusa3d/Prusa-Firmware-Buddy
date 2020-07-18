@@ -62,8 +62,8 @@ void window_progress_draw(window_progress_t *window) {
 
 /*****************************************************************************/
 //window_numberless_progress_t
-window_numberless_progress_t::window_numberless_progress_t(window_t *parent, window_t *prev, rect_ui16_t rect, color_t cl_progress, color_t cl_back)
-    : window_t(parent, prev, rect)
+window_numberless_progress_t::window_numberless_progress_t(window_t *parent, rect_ui16_t rect, color_t cl_progress, color_t cl_back)
+    : window_t(parent, rect)
     , color_progress(cl_progress) {
     color_back = cl_back;
 }
@@ -107,10 +107,10 @@ void window_progress_t::SetValue(float val) {
     progr.SetProgress((max - min));
 }
 
-window_progress_t::window_progress_t(window_t *parent, window_t *prev, rect_ui16_t rect, uint16_t h_progr, color_t cl_progress, color_t cl_back)
-    : window_frame_t(&progr, parent, prev, rect)
-    , progr(this, nullptr, { rect.x, rect.y, rect.w, h_progr }, cl_progress, cl_back)
-    , numb(this, &progr, { rect.x + h_progr, rect.y, rect.w, rect.h - h_progr })
+window_progress_t::window_progress_t(window_t *parent, rect_ui16_t rect, uint16_t h_progr, color_t cl_progress, color_t cl_back)
+    : window_frame_t(&progr, parent, rect)
+    , progr(this, { rect.x, rect.y, rect.w, h_progr }, cl_progress, cl_back)
+    , numb(this, { rect.x + h_progr, rect.y, rect.w, rect.h - h_progr })
     , min(0)
     , max(100) {
     numb.format = "%.0f%%";

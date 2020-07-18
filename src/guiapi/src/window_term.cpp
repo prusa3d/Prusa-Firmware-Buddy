@@ -52,8 +52,8 @@ static void window_term_draw(window_term_t *window) {
     }
 }
 
-window_term_t::window_term_t(window_t *parent, window_t *prev)
-    : window_t(parent, prev)
+window_term_t::window_term_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , term(0) {

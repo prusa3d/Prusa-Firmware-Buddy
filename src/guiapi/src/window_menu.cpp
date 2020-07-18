@@ -6,7 +6,7 @@
 #include "IWindowMenuItem.hpp"
 
 IWindowMenu::IWindowMenu(window_t *first)
-    : window_frame_t(first, nullptr, nullptr, gui_defaults.scr_body_sz) {
+    : window_frame_t(first, nullptr, gui_defaults.scr_body_sz) {
 }
 
 window_menu_t::window_menu_t(window_t *first, IWinMenuContainer *pContainer, uint8_t index)

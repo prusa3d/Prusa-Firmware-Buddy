@@ -24,5 +24,5 @@ struct window_list_t : window_t {
     int GetItemIndex() const { return index; }
     int GetTopIndex() const { return top_index; }
 
-    window_list_t(window_t *parent, window_t *prev);
+    window_list_t(window_t *parent, rect_ui16_t rect);
 };

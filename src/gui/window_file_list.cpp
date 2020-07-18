@@ -85,8 +85,8 @@ const char *window_file_list_top_item_SFN(window_file_list_t *window) {
     return window->ldv->ShortFileNameAt(0).first;
 }
 
-window_file_list_t::window_file_list_t(window_t *parent, window_t *prev, rect_ui16_t rect)
-    : window_t(parent, prev, rect)
+window_file_list_t::window_file_list_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
     , color_text(gui_defaults.color_text)
     , padding(padding_ui8(2, 6, 2, 6))
     , ldv(LDV_Get())

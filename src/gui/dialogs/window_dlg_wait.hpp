@@ -23,6 +23,7 @@ struct window_dlg_wait_t : public window_t {
     uint8_t components;
     bool animation_chng;
     bool progress_chng;
+    window_dlg_wait_t(window_t *parent, rect_ui16_t rect);
 };
 
 #define DLG_W8_DRAW_HOURGLASS 0x04 // Draw hourglass animation

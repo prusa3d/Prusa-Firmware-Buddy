@@ -28,7 +28,7 @@ struct window_spin_t : public window_numb_t {
     float GetCount() const { return count; }
     float GetIndex() const { return index; }
 
-    window_spin_t(window_t *parent, window_t *prev);
+    window_spin_t(window_t *parent, rect_ui16_t rect);
 
 protected:
     void setValMinMaxStep(float val, float min_val, float max_val, float step_val);

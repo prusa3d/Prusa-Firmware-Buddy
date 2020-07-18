@@ -38,7 +38,7 @@ struct window_file_list_t : public window_t {
     LDV9 *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
     char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
     uint8_t alignment;
-    window_file_list_t(window_t *parent, window_t *prev, rect_ui16_t rect);
+    window_file_list_t(window_t *parent, rect_ui16_t rect);
     void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 };
 

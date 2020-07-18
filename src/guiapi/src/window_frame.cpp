@@ -58,15 +58,29 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     }*/
 }
 
-window_frame_t::window_frame_t(window_t *first, window_t *parent, window_t *prev, rect_ui16_t rect)
-    : window_t(parent, prev, rect)
-    , first(first) {
+window_frame_t::window_frame_t(window_t *first_child, window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
+    , first(first_child)
+    , last(first_child) {
     Enable();
     color_back = COLOR_BLACK;
 }
 
-void window_frame_t::SetFirst(window_t *fir) {
-    first = fir;
+void window_frame_t::push_back(window_t *win) {
+    if (first && last) {
+        last->SetNext(win);
+        last = last->GetNext();
+    } else {
+        first = last = win;
+    }
+}
+
+window_t *window_frame_t::GetFirst() const {
+    return first;
+}
+
+window_t *window_frame_t::GetLast() const {
+    return last;
 }
 
 void window_frame_t::draw() {

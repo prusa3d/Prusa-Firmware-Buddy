@@ -3,10 +3,10 @@
 #include <stdint.h>
 
 static window_t winCreate(int16_t WINDOW_CLS_) {
-    window_t ret;
+    /*window_t ret;
     window_create_ptr(WINDOW_CLS_, 0, gui_defaults.scr_body_sz, &ret);
     ret.SetBackColor(gui_defaults.color_back);
-    return ret;
+    return ret;*/
 }
 
 IDialog::IDialog(int16_t WINDOW_CLS_)

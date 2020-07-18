@@ -49,7 +49,7 @@ class status_footer_t : public window_frame_t {
     void repaint_heatbed();
 
 public:
-    status_footer_t(window_t *parent, window_t *prev);
+    status_footer_t(window_t *parent);
     virtual int event(window_t *sender, uint8_t event, void *param) override;
 };
 

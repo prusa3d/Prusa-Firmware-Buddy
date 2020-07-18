@@ -145,22 +145,19 @@ void window_msgbox_click(window_msgbox_t *window) {
     window_destroy(window->id);
 }
 
-/// Init message box to default values
-void window_msgbox_init(window_msgbox_t *window) {
-    if (rect_empty_ui16(window->rect)) //use display rect if current rect is empty
-        window->rect = rect_ui16(0, 0, display::GetW(), display::GetH());
-    window->Enable();
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->font_title = gui_defaults.font_big;
-    window->padding = window_padding;
-    window->alignment = ALIGN_CENTER;
-    window->title = string_view_utf8::MakeNULLSTR();
-    window->id_icon = 0;
-    window->text = string_view_utf8::MakeNULLSTR();
-    window->flags = MSGBOX_BTN_OK | MSGBOX_ICO_INFO;
-    window->res = 0;
+window_msgbox_t::window_msgbox_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect_empty_ui16(rect) ? rect_ui16(0, 0, display::GetW(), display::GetH()) : rect)
+    , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
+    , font_title(gui_defaults.font_big)
+    , padding(gui_defaults.padding)
+    , alignment(ALIGN_CENTER)
+    , title(string_view_utf8::MakeNULLSTR())
+    , id_icon(0)
+    , text(string_view_utf8::MakeNULLSTR())
+    , flags(MSGBOX_BTN_OK | MSGBOX_ICO_INFO)
+    , res(0) {
+    Enable();
 }
 
 void window_msgbox_done(window_msgbox_t *window) {

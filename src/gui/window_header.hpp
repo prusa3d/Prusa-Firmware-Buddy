@@ -31,7 +31,7 @@ struct window_header_t : public window_frame_t {
     void LAN_Activate();
 
     void update_ETH_icon();
-    window_header_t(window_t *parent, window_t *prev);
+    window_header_t(window_t *parent);
 };
 
 extern int16_t WINDOW_CLS_HEADER;

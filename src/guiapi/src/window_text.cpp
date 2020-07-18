@@ -22,8 +22,8 @@ void window_text_t::SetAlignment(uint8_t alignm) {
     Invalidate();
 }
 
-window_text_t::window_text_t(window_t *parent, window_t *prev, rect_ui16_t rect, string_view_utf8 txt)
-    : window_t(parent, prev, rect)
+window_text_t::window_text_t(window_t *parent, rect_ui16_t rect, string_view_utf8 txt)
+    : window_t(parent, rect)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , text(txt)

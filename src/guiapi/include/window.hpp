@@ -98,8 +98,10 @@ public:
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
-    window_t(window_t *parent = nullptr, window_t *prev = nullptr, rect_ui16_t rect = { 0 }); //todo remove nullptr default values
+    window_t(window_t *parent, rect_ui16_t rect); //todo remove nullptr default values
     virtual ~window_t();
+
+    virtual void push_back(window_t *win);
 
 protected:
     virtual void unconditionalDraw();

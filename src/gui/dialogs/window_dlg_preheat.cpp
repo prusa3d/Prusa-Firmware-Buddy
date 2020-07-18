@@ -57,34 +57,6 @@ void window_dlg_preheat_click_cb(window_dlg_preheat_t *window) {
     }
 }
 
-void window_dlg_preheat_init(window_dlg_preheat_t *window) {
-    //inherit from frame
-    //window_class_frame.cls.init(window);
-    window->Enable();
-    window->Invalidate();
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->font_title = gui_defaults.font_big;
-    window->padding = gui_defaults.padding;
-
-    rect_ui16_t rect = gui_defaults.scr_body_sz;
-    if (window->caption.isNULLSTR()) {
-        rect.h = window->font_title->h + 2;
-        window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
-        window->text.SetText(window->caption);
-        rect = gui_defaults.scr_body_sz;
-        rect.y += window->font_title->h + 4;
-        rect.h -= window->font_title->h + 4;
-    }
-
-    window_create_ptr(WINDOW_CLS_LIST, window->id, rect, &(window->list));
-    window->list.padding = padding_ui8(20, 6, 2, 6);
-    window->list.icon_rect = rect_ui16(0, 0, 16, 30);
-    window->list.SetItemIndex(0);
-    window->list.SetCallback(window->filament_items);
-}
-
 void window_dlg_preheat_event(window_dlg_preheat_t *window, uint8_t event, void *param) {
     //todo, fixme, error i will not get WINDOW_EVENT_BTN_DN event here first time when it is clicked
     //but list reacts to it
@@ -215,7 +187,18 @@ int gui_dlg_list(string_view_utf8 caption, window_list_item_t *filament_items,
 }
 
 window_dlg_preheat_t::window_dlg_preheat_t()
-    : window_frame_t(&text)
-    , text(this, nullptr)
-    , list(this, &text) {
+    : window_frame_t(&text, nullptr, gui_defaults.scr_body_sz)
+    , font_title(gui_defaults.font_big)
+    , padding(gui_defaults.padding)
+    , text(this, rect_ui16(gui_defaults.scr_body_sz.x, gui_defaults.scr_body_sz.y, gui_defaults.scr_body_sz.w, font_title->h + 2))
+    , list(this, rect_ui16(gui_defaults.scr_body_sz.x, gui_defaults.scr_body_sz.y + font_title->h + 4, gui_defaults.scr_body_sz.w, gui_defaults.scr_body_sz.h - font_title->h - 4))
+
+    , caption(string_view_utf8::MakeNULLSTR()) {
+
+    Enable();
+    text.SetText(caption);
+    list.padding = padding_ui8(20, 6, 2, 6);
+    list.icon_rect = rect_ui16(0, 0, 16, 30);
+    list.SetItemIndex(0);
+    list.SetCallback(filament_items);
 }

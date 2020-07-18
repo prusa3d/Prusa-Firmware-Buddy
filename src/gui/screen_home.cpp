@@ -49,21 +49,21 @@ void screen_home_disable_print_button(screen_t *screen, int disable);
 
 screen_home_data_t::screen_home_data_t()
     : window_frame_t(&header)
-    , header(this, nullptr)
-    , footer(this, &header)
-    , logo(this, &footer, rect_ui16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
-    , w_buttons { { this, &logo, { 0 }, 0 },
-        { this, &w_buttons[0], { 0 }, 0 },
-        { this, &w_buttons[1], { 0 }, 0 },
-        { this, &w_buttons[2], { 0 }, 0 },
-        { this, &w_buttons[3], { 0 }, 0 },
-        { this, &w_buttons[4], { 0 }, 0 } }
-    , w_labels { { this, &w_buttons[5], { 0 } },
-        { this, &w_labels[0], { 0 } },
-        { this, &w_labels[1], { 0 } },
-        { this, &w_labels[2], { 0 } },
-        { this, &w_labels[3], { 0 } },
-        { this, &w_labels[4], { 0 } } }
+    , header(this)
+    , footer(this)
+    , logo(this, rect_ui16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
+    , w_buttons { { this, { 0 }, 0 },
+        { this, { 0 }, 0 },
+        { this, { 0 }, 0 },
+        { this, { 0 }, 0 },
+        { this, { 0 }, 0 },
+        { this, { 0 }, 0 } }
+    , w_labels { { this, { 0 } },
+        { this, { 0 } },
+        { this, { 0 } },
+        { this, { 0 } },
+        { this, { 0 } },
+        { this, { 0 } } }
 
 {
     // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.

@@ -12,5 +12,5 @@
 
 struct window_roll_text_t : window_text_t {
     txtroll_t roll;
-    window_roll_text_t(window_t *parent, window_t *prev);
+    window_roll_text_t(window_t *parent, rect_ui16_t rect);
 };
