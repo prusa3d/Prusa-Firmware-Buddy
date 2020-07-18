@@ -44,9 +44,6 @@ const char *labels[7] = {
     N_("Info"),
     N_("No USB") // label variant for first button
 };
-
-#define pw ((screen_home_data_t *)screen->pdata)
-
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 void screen_home_disable_print_button(screen_t *screen, int disable);
 

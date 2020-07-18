@@ -10,15 +10,14 @@ extern screen_t *const get_scr_test_term();
 extern screen_t *const get_scr_test_msgbox();
 extern screen_t *const get_scr_test_graph();
 extern screen_t *const get_scr_test_temperature();
-//extern screen_t *const get_scr_home();
-extern screen_t *const get_scr_filebrowser();
+
 extern screen_t *const get_scr_printing();
 extern screen_t *const get_scr_printing_serial();
 
 extern screen_t *const get_scr_sysinfo();
 extern screen_t *const get_scr_version_info();
 extern screen_t *const get_scr_qr_info();
-extern screen_t *const get_scr_qr_error();
+
 extern screen_t *const get_scr_test_disp_mem();
 extern screen_t *const get_scr_messages();
 extern screen_t *const get_scr_mesh_bed_lv();

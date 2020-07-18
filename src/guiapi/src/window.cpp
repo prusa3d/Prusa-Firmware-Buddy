@@ -10,8 +10,6 @@
 
 extern osThreadId displayTaskHandle;
 
-window_t *window_0 = 0; //current screen window
-
 window_t *window_popup_ptr = 0; //current popup window
 
 //window_t *windows[WINDOW_MAX_WINDOWS];

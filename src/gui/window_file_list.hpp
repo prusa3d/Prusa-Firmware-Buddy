@@ -16,6 +16,13 @@
 #include "lazyfilelist.h"
 using LDV9 = LazyDirView<9>;
 
+// This enum value is stored to eeprom as file sort settings
+typedef enum {
+    WF_SORT_BY_TIME,
+    WF_SORT_BY_NAME
+
+} WF_Sort_t;
+
 inline LDV9 *LDV_Get(void) {
     static LDV9 ldv;
     return &ldv;
@@ -31,18 +38,11 @@ struct window_file_list_t : public window_t {
     LDV9 *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
     char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
     uint8_t alignment;
+    window_file_list_t(window_t *parent, window_t *prev, rect_ui16_t rect);
+    void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 };
 
-// This enum value is stored to eeprom as file sort settings
-typedef enum {
-    WF_SORT_BY_TIME,
-    WF_SORT_BY_NAME
-
-} WF_Sort_t;
-
 extern int16_t WINDOW_CLS_FILE_LIST;
-
-extern void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 
 extern void window_file_set_item_index(window_file_list_t *window, int index);
 

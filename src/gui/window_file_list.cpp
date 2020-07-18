@@ -35,31 +35,31 @@ void window_file_list_init_text_roll(window_file_list_t *window) {
     gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
 }
 
-void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
-    window->ldv->ChangeDirectory(window->sfn_path,
+void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
+    ldv->ChangeDirectory(sfn_path,
         (sort == WF_SORT_BY_NAME) ? LDV9::SortPolicy::BY_NAME : LDV9::SortPolicy::BY_CRMOD_DATETIME,
         topSFN);
-    window->count = window->ldv->TotalFilesCount();
+    count = ldv->TotalFilesCount();
 
     if (!topSFN) {
         // we didn't get any requirements about the top item
-        window->index = window->count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
+        index = count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
     } else {
         if (sfnAtCursor[0] == 0) { // empty file name to start with
-            window->index = 1;
+            index = 1;
         } else {
             // try to find the sfn to be highlighted
-            for (window->index = 0; uint32_t(window->index) < window->ldv->VisibleFilesCount(); ++window->index) {
-                if (!strcmp(sfnAtCursor, window->ldv->ShortFileNameAt(window->index).first)) {
+            for (index = 0; uint32_t(index) < ldv->VisibleFilesCount(); ++index) {
+                if (!strcmp(sfnAtCursor, ldv->ShortFileNameAt(index).first)) {
                     break;
                 }
             }
-            if (window->index == int(window->ldv->VisibleFilesCount())) {
-                window->index = window->count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
+            if (index == int(ldv->VisibleFilesCount())) {
+                index = count > 1 ? 1 : 0; // just avoid highlighting ".." if there is at least one file in the dir
             }
         }
     }
-    window->Invalidate();
+    Invalidate();
 }
 
 void window_file_set_item_index(window_file_list_t *window, int index) {
@@ -85,28 +85,20 @@ const char *window_file_list_top_item_SFN(window_file_list_t *window) {
     return window->ldv->ShortFileNameAt(0).first;
 }
 
-void window_file_list_init(window_file_list_t *window) {
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->padding = padding_ui8(2, 6, 2, 6);
-    window->alignment = ALIGN_LEFT_CENTER;
-    window->Enable();
-    window->roll.count = window->roll.px_cd = window->roll.progress = 0;
-    window->roll.phase = ROLL_SETUP;
-    window->roll.setup = TXTROLL_SETUP_INIT;
-    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
-    strlcpy(window->sfn_path, "/", FILE_PATH_MAX_LEN);
-
+window_file_list_t::window_file_list_t(window_t *parent, window_t *prev, rect_ui16_t rect)
+    : window_t(parent, prev, rect)
+    , color_text(gui_defaults.color_text)
+    , padding(padding_ui8(2, 6, 2, 6))
+    , ldv(LDV_Get())
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
-    window->ldv = LDV_Get();
-
-    display::FillRect(window->rect, window->color_back);
-}
-
-void window_file_list_done(window_file_list_t *window) {
-    gui_timers_delete_by_window_id(window->id);
+    , alignment(ALIGN_LEFT_CENTER) {
+    Enable();
+    roll.count = roll.px_cd = roll.progress = 0;
+    roll.phase = ROLL_SETUP;
+    roll.setup = TXTROLL_SETUP_INIT;
+    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, id);
+    strlcpy(sfn_path, "/", FILE_PATH_MAX_LEN);
 }
 
 void window_file_list_draw(window_file_list_t *window) {

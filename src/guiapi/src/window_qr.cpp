@@ -1,4 +1,4 @@
-// window_qr.c
+// window_qr.cpp
 #include "window_qr.hpp"
 #include "gui.hpp"
 
@@ -31,7 +31,7 @@ void window_qr_draw(window_qr_t *window) {
     }
 }
 
-window_qr_t::window_qr_t(window_t *parent, window_t *prev)
+window_qr_t::window_qr_t(window_t *parent, window_t *prev, rect_ui16_t rect)
     : window_t(parent, prev)
     , version(9)
     , ecc_level(qrcodegen_Ecc_HIGH)

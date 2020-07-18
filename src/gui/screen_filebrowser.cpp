@@ -1,14 +1,6 @@
-/*
- * screen_menu_filebrowser.cpp
- *
- *  Created on: 23. 7. 2019
- *      Author: mcbig
- */
-
-#include "gui.hpp"
+#include "screen_filebrowser.hpp"
 #include "dbg.h"
-#include "window_file_list.hpp"
-#include "window_header.hpp"
+
 #include "config.h"
 #include "stdlib.h"
 #include "usb_host.h"
@@ -27,11 +19,6 @@
 
 #define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
 
-struct screen_filebrowser_data_t : public window_frame_t {
-    window_header_t header;
-    window_file_list_t w_filelist;
-};
-
 #define pd ((screen_filebrowser_data_t *)screen->pdata)
 
 // Default value could be rewrite from eeprom settings
@@ -43,46 +30,33 @@ static WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
 constexpr unsigned int SFN_len = 13;
 static char firstVisibleSFN[SFN_len] = "";
 
-static void screen_filebrowser_init(screen_t *screen) {
+screen_filebrowser_data_t::screen_filebrowser_data_t()
+    : window_frame_t(&header)
+    , header(this, nullptr)
+    , w_filelist(this, &header, rect_ui16(10, 32, 220, 278)) {
     // TODO: load screen_filebrowser_sort from eeprom
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
 
-    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
-    pd->Disable(); // hack for do not change capture
-
-    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
-    pd->header.SetIcon(IDR_PNG_filescreen_icon_folder);
+    header.SetIcon(IDR_PNG_filescreen_icon_folder);
     static const char sf[] = "SELECT FILE";
-    pd->header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
-
-    window_file_list_t *filelist = &(pd->w_filelist);
-
-    window_create_ptr(WINDOW_CLS_FILE_LIST, root,
-        rect_ui16(10, 32, 220, 278),
-        filelist);
+    header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
 
     // initialize the directory (and selected file) from marlin_vars
     marlin_vars_t *vars = marlin_vars();
     // here the strncpy is meant to be - need the rest of the buffer zeroed
-    strncpy(filelist->sfn_path, vars->media_SFN_path, sizeof(filelist->sfn_path));
+    strncpy(w_filelist.sfn_path, vars->media_SFN_path, sizeof(w_filelist.sfn_path));
     // ensure null character at the end no matter what
-    filelist->sfn_path[sizeof(filelist->sfn_path) - 1] = '\0';
+    w_filelist.sfn_path[sizeof(w_filelist.sfn_path) - 1] = '\0';
     // cut by the filename to retain only the directory path
-    char *c = strrchr(filelist->sfn_path, '/');
+    char *c = strrchr(w_filelist.sfn_path, '/');
     *c = 0; // even if we didn't find the '/', c will point to valid memory
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
-    window_file_list_load(filelist, screen_filebrowser_sort, c + 1, firstVisibleSFN);
+    w_filelist.Load(screen_filebrowser_sort, c + 1, firstVisibleSFN);
     // window_file_set_item_index(filelist, 1); // this is automagically done in the window file list
-    filelist->SetCapture(); // hack for do not change capture
-    filelist->SetFocus();   // hack for do not change capture
+    w_filelist.SetCapture(); // hack for do not change capture
+    w_filelist.SetFocus();   // hack for do not change capture
 }
-
-static void screen_filebrowser_done(_screen_t *screen) {
-    window_destroy(pd->id);
-}
-
-static void screen_filebrowser_draw(screen_t *screen) {}
 
 static void on_print_preview_action(print_preview_action_t action) {
     if (action == PRINT_PREVIEW_ACTION_BACK) {
@@ -102,7 +76,7 @@ static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
 }
 
 static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    marlin_vars_t *vars = marlin_vars();
+    /*    marlin_vars_t *vars = marlin_vars();
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
         screen_filebrowser_clear_firstVisibleSFN(vars);
         screen_close();
@@ -184,18 +158,5 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
         }
     }
 
-    return 0;
+    return 0;*/
 }
-
-static screen_t screen_filebrowser = {
-    0,
-    0,
-    screen_filebrowser_init,
-    screen_filebrowser_done,
-    screen_filebrowser_draw,
-    screen_filebrowser_event,
-    sizeof(screen_filebrowser_data_t),
-    nullptr
-};
-
-screen_t *const get_scr_filebrowser() { return &screen_filebrowser; }

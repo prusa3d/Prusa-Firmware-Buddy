@@ -56,8 +56,6 @@ void gui_init(void) {
     gui_task_handle = osThreadGetId();
 }
 
-extern window_t *window_0;
-
 void gui_redraw(void) {
 
     if (gui_flags & GUI_FLG_INVALID) {
