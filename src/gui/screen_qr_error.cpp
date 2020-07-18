@@ -4,7 +4,6 @@
 
 #include "display.h"
 #include "errors.h"
-#include "screens.h"
 
 screen_qr_error_data_t::screen_qr_error_data_t()
     : window_frame_t(&errText)

@@ -2,8 +2,6 @@
 #include "config.h"
 #include <stdlib.h>
 
-#include "screens.h"
-
 #include "../../gui/wizard/selftest.h"
 #include "stm32f4xx_hal.h"
 

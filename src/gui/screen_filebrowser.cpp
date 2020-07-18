@@ -8,7 +8,6 @@
 #include "marlin_client.h"
 #include "screen_print_preview.h"
 #include "print_utils.h"
-#include "screens.h"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
@@ -18,8 +17,6 @@
 #endif
 
 #define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
-
-#define pd ((screen_filebrowser_data_t *)screen->pdata)
 
 // Default value could be rewrite from eeprom settings
 static WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
@@ -152,7 +149,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
             screen_print_preview_set_on_action(on_print_preview_action);
             screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
             screen_print_preview_set_gcode_filename(vars->media_LFN);
-            screen_open(get_scr_print_preview()->id);
+            //screen_open(get_scr_print_preview()->id);
 
             return 1;
         }

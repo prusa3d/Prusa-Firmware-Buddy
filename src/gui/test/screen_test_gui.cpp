@@ -3,7 +3,6 @@
 #include "screen_test_gui.hpp"
 #include "config.h"
 #include "stm32f4xx_hal.h"
-#include "screens.h"
 
 screen_test_gui_data_t::screen_test_gui_data_t()
     : window_frame_t(&logo_prusa_mini)

@@ -8,7 +8,6 @@
 #include "eeprom.h"
 
 #include "stm32f4xx_hal.h"
-#include "screens.h"
 #include "../lang/i18n.h"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
@@ -88,7 +87,7 @@ int screen_splash_data_t::event(window_t *sender, uint8_t event, void *param) {
                     wizard_run_complete();
                 } else {
                     wizard_stack_push_complete();
-                    screen_open(get_scr_menu_languages_noret()->id);
+                    //screen_open(get_scr_menu_languages_noret()->id);
                 }
             } else if (run_firstlay) {
                 if (gui_msgbox(_("The printer is not calibrated. Start First Layer Calibration?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
@@ -97,27 +96,27 @@ int screen_splash_data_t::event(window_t *sender, uint8_t event, void *param) {
                         wizard_run_firstlay();
                     } else {
                         wizard_stack_push_firstlay();
-                        screen_open(get_scr_menu_languages_noret()->id);
+                        //screen_open(get_scr_menu_languages_noret()->id);
                     }
                 } else if (lang_valid) {
-                    screen_open(get_scr_home()->id);
+                    //screen_open(get_scr_home()->id);
                 } else {
                     screen_stack_push(get_scr_home()->id);
-                    screen_open(get_scr_menu_languages_noret()->id);
+                    //screen_open(get_scr_menu_languages_noret()->id);
                 }
             }
         } else if (lang_valid) {
-            screen_open(get_scr_home()->id);
+            //screen_open(get_scr_home()->id);
         } else {
             screen_stack_push(get_scr_home()->id);
-            screen_open(get_scr_menu_languages_noret()->id);
+            //screen_open(get_scr_menu_languages_noret()->id);
 
         }*/
         Screens::Access()->Open(ScreenFactory::Screen<screen_home_data_t>);
 #else
     if (HAL_GetTick() > 3000) {
         screen_close();
-        screen_open(get_scr_test()->id);
+        //screen_open(get_scr_test()->id);
 #endif
         return 1;
     }

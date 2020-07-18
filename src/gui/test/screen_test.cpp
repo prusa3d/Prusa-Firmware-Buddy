@@ -5,7 +5,6 @@
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
-#include "screens.h"
 
 struct screen_test_data_t : public window_frame_t {
     window_text_t tst;

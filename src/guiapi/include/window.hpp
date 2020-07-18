@@ -12,9 +12,7 @@
 #define WINDOW_CLS_NUMB  2 // NUMB - aligned singlecolor formated number
 #define WINDOW_CLS_ICON  3 // ICON - small image with left-top offset
 #define WINDOW_CLS_LIST  4 // LIST - vertical or horizontal list (text-icon pairs)
-#define WINDOW_CLS_EDIT  5 // EDIT - text editor (editable 'TEXT') - minor
 #define WINDOW_CLS_SPIN  6 // SPIN - numeric editor (editable 'NUMB')
-#define WINDOW_CLS_TXIC  7 // TXIC - text + icon
 
 //window events
 #define WINDOW_EVENT_BTN_DN   0x01 //button down

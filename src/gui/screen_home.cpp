@@ -9,7 +9,6 @@
 #include "screen_print_preview.h"
 #include "print_utils.h"
 
-#include "screens.h"
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
 #include "screen_menu_info.hpp"
@@ -141,7 +140,7 @@ int screen_home_data_t::event(window_t *sender, uint8_t event, void *param) {
                 screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
                 screen_print_preview_set_gcode_filename(vars->media_LFN);
                 screen_print_preview_set_on_action(on_print_preview_action);
-                screen_open(get_scr_print_preview()->id);
+                //screen_open(get_scr_print_preview()->id);
             }
             printBtnEna();
         }

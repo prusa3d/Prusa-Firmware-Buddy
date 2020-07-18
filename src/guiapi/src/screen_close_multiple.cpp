@@ -3,7 +3,6 @@
 
 #include "screen_close_multiple.h"
 #include "gui.hpp"
-#include "screens.h"
 
 //I could not use functions to initialize those arrays in C
 static screen_t *const timeout_blacklist[] = {

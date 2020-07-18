@@ -2,7 +2,6 @@
 
 #include "gui.hpp"
 #include "config.h"
-#include "screens.h"
 
 struct screen_watchdog_data_t : public window_frame_t {
     window_text_t text0;

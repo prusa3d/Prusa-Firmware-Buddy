@@ -2,7 +2,6 @@
 
 #include "gui.hpp"
 #include "config.h"
-#include "screens.h"
 #include "../lang/i18n.h"
 
 struct screen_test_msgbox_data_t : public window_frame_t {

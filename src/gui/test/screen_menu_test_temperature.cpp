@@ -10,7 +10,6 @@
 #include "screen_menu.hpp"
 #include "cmsis_os.h"
 #include "hwio.h"
-#include "screens.h"
 #include "../Marlin/src/module/temperature.h"
 /*
 static const char *period_pwm_range[] = {

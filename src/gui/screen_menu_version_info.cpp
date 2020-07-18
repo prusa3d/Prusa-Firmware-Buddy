@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include "version.h"
 #include "resource.h"
-#include "screens.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "../lang/i18n.h"

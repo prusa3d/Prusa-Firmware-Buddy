@@ -2,7 +2,6 @@
 #include "gui.hpp"
 #include "DialogLoadUnload.hpp"
 #include "DialogFactory.hpp"
-#include "screens.h"
 #include "screen_close_multiple.h"
 
 //*****************************************************************************
@@ -17,10 +16,12 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
     if (dialog == ClientFSM::Serial_printing) {
+        /*
         if (screen_get_curr() != get_scr_printing_serial()) {
             screen_close_multiple(scrn_close_on_M876);
-            screen_open(get_scr_printing_serial()->id);
+            //screen_open(get_scr_printing_serial()->id);
         }
+        */
     } else {
         ptr = dialog_ctors[size_t(dialog)](data);
     }

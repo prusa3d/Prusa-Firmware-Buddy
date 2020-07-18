@@ -7,7 +7,6 @@
 
 #include "config.h"
 #include "eeprom.h"
-#include "screens.h"
 #include "../lang/i18n.h"
 
 #ifdef PIDCALIBRATION

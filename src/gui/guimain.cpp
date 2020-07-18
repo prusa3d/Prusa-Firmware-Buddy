@@ -20,7 +20,6 @@
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"
-#include "screens.h"
 #include "screen_close_multiple.h"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
@@ -108,11 +107,11 @@ extern "C" void gui_run(void) {
     Sound_Play(eSOUND_TYPE_Start);
 
     //screen_register(get_scr_splash());
-    screen_register(get_scr_watchdog());
+    //screen_register(get_scr_watchdog());
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
         //screen_stack_push(get_scr_splash()->id);
-        screen_open(get_scr_watchdog()->id);
+        //screen_open(get_scr_watchdog()->id);
     } else
 #endif // _DEBUG
         Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
