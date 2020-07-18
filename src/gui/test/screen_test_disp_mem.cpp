@@ -560,16 +560,3 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
 
     return 0;
 }
-
-screen_t screen_test_disp_mem = {
-    0,
-    0,
-    screen_test_disp_mem_init,
-    screen_test_disp_mem_done,
-    screen_test_disp_mem_draw,
-    screen_test_disp_mem_event,
-    sizeof(screen_test_disp_mem_data_t), //data_size
-    0,                                   //pdata
-};
-
-screen_t *const get_scr_test_disp_mem() { return &screen_test_disp_mem; }

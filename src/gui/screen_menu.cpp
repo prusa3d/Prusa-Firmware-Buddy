@@ -36,8 +36,6 @@ IScreenMenu::IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_l
     window_create_ptr(WINDOW_CLS_HEADER, root_id, gui_defaults.header_sz, &(header));
     header.SetText(label);
 
-    window_create_ptr(WINDOW_CLS_MENU, root_id, menu_rect, this);
-
     FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
     Enable();

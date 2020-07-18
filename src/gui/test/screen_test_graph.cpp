@@ -89,19 +89,3 @@ int screen_test_graph_event(screen_test_term_t *screen, window_t *window, uint8_
     }
     return 0;
 }
-
-screen_test_term_t screen_test_graph = {
-    {
-        0,
-        0,
-        (screen_init_t *)screen_test_graph_init,
-        (screen_done_t *)screen_test_graph_done,
-        (screen_draw_t *)screen_test_graph_draw,
-        (screen_event_t *)screen_test_graph_event,
-        0, //data_size
-        0, //pdata
-    },
-    0,
-};
-
-screen_t *const get_scr_test_graph() { return (screen_t *)(&screen_test_graph); }

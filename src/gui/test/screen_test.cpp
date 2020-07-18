@@ -137,22 +137,22 @@ int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *p
             // screen_open(get_scr_test_gui()->id);
             return 1;
         case STI_tst_term:
-            screen_open(get_scr_test_term()->id);
+            //screen_open(get_scr_test_term()->id);
             return 1;
         case STI_tst_msgbox:
-            screen_open(get_scr_test_msgbox()->id);
+            //screen_open(get_scr_test_msgbox()->id);
             return 1;
         case STI_tst_graph:
-            screen_open(get_scr_test_graph()->id);
+            //screen_open(get_scr_test_graph()->id);
             return 1;
         case STI_tst_temperature:
-            screen_open(get_scr_test_temperature()->id);
+            //screen_open(get_scr_test_temperature()->id);
             return 1;
         case STI_tst_heat_err:
-            temp_error("TEST BED ERROR", "Bed", 1.0, 2.0, 3.0, 4.0);
+            ("TEST BED ERROR", "Bed", 1.0, 2.0, 3.0, 4.0);
             return 1;
         case STI_tst_disp_memory:
-            screen_open(get_scr_test_disp_mem()->id);
+            //screen_open(get_scr_test_disp_mem()->id);
             return 1;
         case STI_tst_stack_overflow:
             recursive(0);
