@@ -17,6 +17,7 @@ typedef enum {
     _FL_INIT,
     _FL_GCODE_MBL,
     _FL_GCODE_HEAT,
+    _FL_GCODE_HEADEND,
     _FL_GCODE_HEAD,
     _FL_GCODE_BODY,
     _FL_GCODE_DONE

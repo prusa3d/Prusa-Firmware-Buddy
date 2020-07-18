@@ -271,7 +271,7 @@ void homeAndMBL(gCode &gc, const uint16_t nozzle_preheat, const uint16_t nozzle_
     // clang-format on
 }
 
-void heatNozzle(gCode &gc, const uint16_t nozzle_target, const uint8_t bed) {
+void heatNozzle(gCode &gc, const uint16_t nozzle_target) {
     // clang-format off
     gc  .M(104, false).param('S', nozzle_target)  // nozzle target
         .M(109, false).param('S', nozzle_target); // wait for nozzle temp
@@ -667,9 +667,9 @@ inline void FLGcodeHeat(firstlay_screen_t *p_screen, const char **code, size_t s
         return;
 
     gCode gc;
-    heatNozzle(gc, preheatTemp(), targetTemp());
+    heatNozzle(gc, targetTemp());
     gc.send();
-    p_screen->state = _FL_GCODE_BODY;
+    p_screen->state = _FL_GCODE_HEADEND;
 
     p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
     p_screen->spin_baby_step.color_text = COLOR_ORANGE;
@@ -687,6 +687,13 @@ inline void FLGcodeHeat(firstlay_screen_t *p_screen, const char **code, size_t s
     //         p_screen->term.Invalidate();
     // #endif
     //     }
+}
+
+inline void FLGcodeHeadEnd(firstlay_screen_t *p_screen) {
+    if (marlin_get_gqueue() > 0)
+        return;
+
+    p_screen->state = _FL_GCODE_BODY;
 }
 
 inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
@@ -757,21 +764,23 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         break;
 
     case _FL_GCODE_HEAT:
-        //have to wait to next state after MBL to check error
-        if (line_head > G29_pos && marlin_error(MARLIN_ERR_ProbingFailed)) {
+        /// check MBL final status
+        if (marlin_error(MARLIN_ERR_ProbingFailed)) {
             marlin_error_clr(MARLIN_ERR_ProbingFailed);
             marlin_gcode("G0 Z30"); //Z 30mm
             marlin_gcode("M84");    //Disable steppers
             if (wizard_msgbox(_("Mesh bed leveling failed?"), MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
-                //RETRY
-                p_screen->state = _FL_GCODE_MBL;
+                p_screen->state = _FL_GCODE_MBL; // retry
             } else {
-                //CANCEL
-                p_data->state_print = _TEST_FAILED;
+                p_data->state_print = _TEST_FAILED; /// abort
                 return 100;
             }
         }
         FLGcodeHeat(p_screen, head_gcode, head_gcode_sz);
+        break;
+
+    case _FL_GCODE_HEADEND:
+        FLGcodeHeadEnd(p_screen);
         break;
 
     case _FL_GCODE_HEAD:
@@ -833,18 +842,12 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     //need last step to ensure correct behavior on limits
     const float _step_last = p_screen->Z_offset;
     p_screen->Z_offset += p_screen->Z_offset_request;
-
     p_screen->Z_offset = std::min(z_offset_max, std::max(z_offset_min, p_screen->Z_offset));
 
     marlin_do_babysteps_Z(p_screen->Z_offset - _step_last);
 
-    //call p_screen->spin_baby_step.SetValue(p_screen->Z_offset); only when value changed
-
-    static const char *pm[2] = { /// plus / minus chars
-        "+++",
-        "---"
-    };
-
+    /// change Z offset (Live adjust Z)
+    static const char *pm[2] = { "+++", "---" }; /// plus / minus chars
     if (p_screen->Z_offset_request != 0) {
         p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
         p_screen->text_direction_arrow.SetText(
