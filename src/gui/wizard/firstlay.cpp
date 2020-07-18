@@ -656,25 +656,37 @@ inline void FLGcodeMBL(firstlay_screen_t *p_screen, const char **code, size_t si
     if (marlin_get_gqueue() > 0)
         return;
 
+    gCode gc;
+    homeAndMBL(gc, preheatTemp(), targetTemp(), bedTemp());
+    gc.send();
     p_screen->state = _FL_GCODE_HEAT;
 }
 
 inline void FLGcodeHeat(firstlay_screen_t *p_screen, const char **code, size_t size) {
-#if DEBUG_TERM == 0
-    const int remaining_lines = _run_gcode_line(&line_head, code, size);
-#else
-    const int remaining_lines = _run_gcode_line(&line_head, code, size, &p_screen->term);
-#endif
-    if (remaining_lines < 1) {
-        p_screen->state = _FL_GCODE_BODY;
-#if DEBUG_TERM == 1
-        term_printf(&p_screen->terminal, "BODY\n");
-        p_screen->term.Invalidate();
-#endif
-        p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
-        p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-        p_screen->spin_baby_step.Invalidate();
-    }
+    if (marlin_get_gqueue() > 0)
+        return;
+
+    gCode gc;
+    heatNozzle(gc, preheatTemp(), targetTemp());
+    gc.send();
+    p_screen->state = _FL_GCODE_BODY;
+
+    p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
+    p_screen->spin_baby_step.color_text = COLOR_ORANGE;
+    p_screen->spin_baby_step.Invalidate();
+
+    // #if DEBUG_TERM == 0
+    //     const int remaining_lines = _run_gcode_line(&line_head, code, size);
+    // #else
+    //     const int remaining_lines = _run_gcode_line(&line_head, code, size, &p_screen->term);
+    // #endif
+    //     if (remaining_lines < 1) {
+    //         p_screen->state = _FL_GCODE_BODY;
+    // #if DEBUG_TERM == 1
+    //         term_printf(&p_screen->terminal, "BODY\n");
+    //         p_screen->term.Invalidate();
+    // #endif
+    //     }
 }
 
 inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
