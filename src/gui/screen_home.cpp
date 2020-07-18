@@ -96,8 +96,8 @@ screen_home_data_t::screen_home_data_t()
         printBtnDis();
 }
 
-void screen_home_data_t::unconditionalDraw() {
-    window_frame_t::unconditionalDraw();
+void screen_home_data_t::draw() {
+    window_frame_t::draw();
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
     display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);

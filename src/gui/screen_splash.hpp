@@ -18,6 +18,6 @@ struct screen_splash_data_t : public window_frame_t {
 
 private:
     void timer(uint32_t mseconds);
-    virtual void unconditionalDraw() override;
+    virtual void draw() override;
     virtual int event(window_t *sender, uint8_t event, void *param) override;
 };

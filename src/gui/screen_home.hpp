@@ -19,7 +19,7 @@ struct screen_home_data_t : public window_frame_t {
 
 private:
     virtual int event(window_t *sender, uint8_t event, void *param) override;
-    virtual void unconditionalDraw() override;
+    virtual void draw() override;
 
     void printBtnEna();
     void printBtnDis();
