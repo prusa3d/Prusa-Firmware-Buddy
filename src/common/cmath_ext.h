@@ -33,6 +33,9 @@
         ({ __typeof__ (a) _a = (a); \
     _a >= 0 ? _a : (-_a); })
 
+    /// \returns square of the number
+    #define SQR(a) ((a) * (a));
+
     /// swap values
     #define SWAP(a, b) \
         ({ __typeof__ (a) c = (a); \

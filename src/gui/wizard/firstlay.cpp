@@ -4,6 +4,7 @@
 #include <string.h>
 #include <algorithm>
 #include <math.h>
+#include "cmath_ext.h"
 
 #include "firstlay.h"
 #include "dbg.h"
@@ -19,7 +20,12 @@
 #include "filament.h"
 #include "../lang/i18n.h"
 
-constexpr uint16_t bufferSize = 512;
+constexpr uint16_t bufferSize = 1024;
+constexpr float layerHeight = 0.2f;
+constexpr float threadWidth = 0.5f;
+constexpr float filamentD = 1.75f;
+constexpr float pi = 3.1415926535897932384626433832795;
+constexpr float extrudeCoef = layerHeight * threadWidth / (pi * SQR(filamentD / 2));
 
 /// Tool to generate string from G codes.
 /// Most of the methods can be chained (gc.G(28).G(29).G1(0,0,0,0,0))
@@ -32,8 +38,9 @@ private:
     /// This defines end of the string.
     /// There's no need for trailing 0.
     uint16_t pos = 0;
-
     uint8_t error_ = 0;
+    float x_ = 0;
+    float y_ = 0;
 
     void updatePosOrError(const int chars, const uint8_t errorNum = 1) {
         if (chars < 0) {
@@ -242,6 +249,13 @@ public:
         }
         clear(); /// remove all G codes
         return true;
+    }
+
+    /// Extrude from the last point to the specified one
+    /// Extrusion use pre-defined height and width
+    gCode ex(const float x, const float y) {
+        const float length = sqrt(SQR(x - x_) + SQR(y - y_));
+        G1(x, y, length * extrudeCoef);
     }
 };
 
