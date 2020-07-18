@@ -380,7 +380,7 @@ static uint32_t line_body = 0;
 
 static const char **head_gcode = NULL;
 static const char **body_gcode = NULL;
-static size_t head_gcode_sz = -1;
+static size_t head_gcode_sz = 0; // depreciated
 static size_t body_gcode_sz = -1;
 static size_t gcode_sz = -1;
 static size_t G28_pos = -1;
@@ -463,50 +463,6 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 }
 
-const char **getHeaderGCode() {
-    switch (get_filament()) {
-    case FILAMENT_PETG:
-        return V2_gcodes_head_PETG;
-    case FILAMENT_ASA:
-        return V2_gcodes_head_ASA;
-    case FILAMENT_ABS:
-        return V2_gcodes_head_ABS;
-    case FILAMENT_PC:
-        return V2_gcodes_head_PC;
-    case FILAMENT_FLEX:
-        return V2_gcodes_head_FLEX;
-    case FILAMENT_HIPS:
-        return V2_gcodes_head_HIPS;
-    case FILAMENT_PP:
-        return V2_gcodes_head_PP;
-    case FILAMENT_PLA:
-    default:
-        return V2_gcodes_head_PLA;
-    }
-}
-
-size_t getHeaderGCodeSize() {
-    switch (get_filament()) {
-    case FILAMENT_PETG:
-        return V2_gcodes_head_PETG_sz;
-    case FILAMENT_ASA:
-        return V2_gcodes_head_ASA_sz;
-    case FILAMENT_ABS:
-        return V2_gcodes_head_ABS_sz;
-    case FILAMENT_PC:
-        return V2_gcodes_head_PC_sz;
-    case FILAMENT_FLEX:
-        return V2_gcodes_head_FLEX_sz;
-    case FILAMENT_HIPS:
-        return V2_gcodes_head_HIPS_sz;
-    case FILAMENT_PP:
-        return V2_gcodes_head_PP_sz;
-    case FILAMENT_PLA:
-    default:
-        return V2_gcodes_head_PLA_sz;
-    }
-}
-
 inline float targetTemp() {
     return get_filament_nozzle_temp();
 }
@@ -540,7 +496,7 @@ inline void FLInit(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t
 #endif
 }
 
-inline void FLGcodeMBL(firstlay_screen_t *p_screen, const char **code, size_t size) {
+inline void FLGcodeMBL(firstlay_screen_t *p_screen) {
     if (marlin_get_gqueue() > 0)
         return;
 
@@ -550,7 +506,7 @@ inline void FLGcodeMBL(firstlay_screen_t *p_screen, const char **code, size_t si
     p_screen->state = _FL_GCODE_HEAT;
 }
 
-inline void FLGcodeHeat(firstlay_screen_t *p_screen, const char **code, size_t size) {
+inline void FLGcodeHeat(firstlay_screen_t *p_screen) {
     if (marlin_get_gqueue() > 0)
         return;
 
@@ -622,24 +578,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         body_gcode = V2_gcodes_body;
         body_gcode_sz = V2_gcodes_body_sz;
 
-        head_gcode = getHeaderGCode();
-        head_gcode_sz = getHeaderGCodeSize();
-
         gcode_sz = body_gcode_sz + head_gcode_sz;
-
-        //G28 must be before G29, both must be present or head is invalid
-        //find "G29" == MBL
-        //FIXME use strstr() instead
-        for (G29_pos = 0; (G29_pos < head_gcode_sz) && strcmp(head_gcode[G29_pos], "G29"); ++G29_pos)
-            ; //no body
-        //find "G28" == autohome needed for retry
-        for (G28_pos = 0; (G28_pos < G29_pos) && strcmp(head_gcode[G28_pos], "G28"); ++G28_pos)
-            ; //no body
-        if (G28_pos >= G29_pos || G29_pos >= head_gcode_sz) {
-            //error no G29
-            p_data->state_print = _TEST_FAILED;
-            return 100;
-        }
     }
 
     switch (p_screen->state) {
@@ -648,7 +587,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         break;
 
     case _FL_GCODE_MBL:
-        FLGcodeMBL(p_screen, head_gcode, head_gcode_sz);
+        FLGcodeMBL(p_screen);
         break;
 
     case _FL_GCODE_HEAT:
@@ -664,7 +603,7 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
                 return 100;
             }
         }
-        FLGcodeHeat(p_screen, head_gcode, head_gcode_sz);
+        FLGcodeHeat(p_screen);
         break;
 
     case _FL_GCODE_HEADEND:
