@@ -266,8 +266,8 @@ void homeAndMBL(gCode &gc, const uint16_t nozzle_preheat, const uint16_t nozzle_
 
 void heatNozzle(gCode &gc, const uint16_t nozzle_target) {
     // clang-format off
-    gc  .M(104, false).param('S', nozzle_target)  // nozzle target
-        .M(109, false).param('S', nozzle_target); // wait for nozzle temp
+    gc.M(104, false).param('S', nozzle_target).newLine()  // nozzle target
+         .M(109, false).param('S', nozzle_target).newLine(); // wait for nozzle temp
     // clang-format on
 }
 
@@ -368,6 +368,7 @@ const char *V2_gcodes_body[] = {
     "M140 S0", // turn off heatbed
     "M84"      // disable motors
 };
+
 const size_t V2_gcodes_body_sz = sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[0]);
 
 //todo use marlin api
