@@ -18,7 +18,6 @@
 #include "menu_vars.h"
 #include "filament.h"
 #include "../lang/i18n.h"
-#include <algorithm>
 
 constexpr uint16_t bufferSize = 512;
 
@@ -635,6 +634,11 @@ float bedTemp() {
 inline void FLInit(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
     p_screen->Z_offset = z_offset;
     wizard_init_screen_firstlay(id_body, p_screen, p_data);
+
+    gCode gc;
+    initialGcodes(gc);
+    gc.send();
+
 #if DEBUG_TERM == 1
     term_printf(&p_screen->terminal, "INITIALIZED\n");
     p_screen->term.id.Invalidate();
@@ -652,9 +656,6 @@ inline void FLGcodeMBL(firstlay_screen_t *p_screen, const char **code, size_t si
     if (marlin_get_gqueue() > 0)
         return;
 
-    gCode gc;
-    initialGcodes(gc);
-    gc.send();
     p_screen->state = _FL_GCODE_HEAT;
 }
 
