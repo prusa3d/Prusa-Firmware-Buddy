@@ -166,16 +166,3 @@ int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *p
     }
     return 0;
 }
-
-screen_t screen_test = {
-    0,
-    0,
-    screen_test_init,
-    screen_test_done,
-    screen_test_draw,
-    screen_test_event,
-    sizeof(screen_test_data_t), //data_size
-    0,                          //pdata
-};
-
-screen_t *const get_scr_test() { return &screen_test; }

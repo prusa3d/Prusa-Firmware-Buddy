@@ -97,16 +97,3 @@ void screen_messages_done(screen_t *screen) {
     window_destroy(pmsg->id);
     free(pmsg->pfooter);
 }
-
-screen_t screen_messages = {
-    0,
-    0,
-    screen_messages_init,
-    screen_messages_done,
-    screen_messages_draw,
-    screen_messages_event,
-    sizeof(screen_messages_data_t), //data_size
-    nullptr,                        //pdata
-};
-
-screen_t *const get_scr_messages() { return &screen_messages; }

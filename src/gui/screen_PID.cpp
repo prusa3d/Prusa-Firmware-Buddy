@@ -510,19 +510,6 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
     return 0;
 }
 
-screen_t screen_PID = {
-    0,
-    0,
-    screen_PID_init,
-    screen_PID_done,
-    screen_PID_draw,
-    screen_PID_event,
-    sizeof(screen_PID_data_t), //data_size
-    0,                         //pdata
-};
-
-screen_t *const get_scr_PID() { return &screen_PID; }
-
 //-----------------------------------------------------------------------------
 
 void _PID_copy_and_scale_PID_i(_PID_t *ths) {

@@ -55,18 +55,6 @@ int screen_printing_serial_event(screen_t *screen, window_t *window, uint8_t eve
 
 #define pw ((screen_printing_serial_data_t *)screen->pdata)
 
-screen_t screen_printing_serial = {
-    0,
-    0,
-    screen_printing_serial_init,
-    screen_printing_serial_done,
-    screen_printing_serial_draw,
-    screen_printing_serial_event,
-    sizeof(screen_printing_serial_data_t), //data_size
-    0,                                     //pdata
-};
-screen_t *const get_scr_printing_serial() { return &screen_printing_serial; }
-
 static void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
     // This check may also be skipped and set the icon every time
     // - set_icon_and_label is called only from screen_printing_serial_init

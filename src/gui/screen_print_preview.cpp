@@ -57,23 +57,10 @@ static void screen_print_preview_draw(screen_t *screen);
 static int screen_print_preview_event(screen_t *screen, window_t *window,
     uint8_t event, void *param);
 
-screen_t screen_print_preview = {
-    0, // screen identifier
-    0, // flags
-    screen_print_preview_init,
-    screen_print_preview_done,
-    screen_print_preview_draw,
-    screen_print_preview_event,
-    sizeof(screen_print_preview_data_t), // dynamic data size
-    NULL                                 // dynamic data pointer
-};
-
 const uint16_t menu_icons[2] = {
     IDR_PNG_menu_icon_print,
     IDR_PNG_menu_icon_stop,
 };
-
-screen_t *const get_scr_print_preview() { return &screen_print_preview; }
 
 #define pd ((screen_print_preview_data_t *)screen->pdata)
 

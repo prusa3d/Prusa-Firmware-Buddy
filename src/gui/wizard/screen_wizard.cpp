@@ -567,16 +567,3 @@ void wizard_done_screen(screen_t *screen) {
     //window_destroy_children(pd->frame_body.id);
     pd->frame_body.Invalidate();
 }
-
-screen_t screen_wizard = {
-    0,
-    0,
-    screen_wizard_init,
-    screen_wizard_done,
-    screen_wizard_draw,
-    screen_wizard_event,
-    sizeof(screen_wizard_data_t), //data_size
-    0,                            //pdata
-};
-
-screen_t *const get_scr_wizard() { return &screen_wizard; }

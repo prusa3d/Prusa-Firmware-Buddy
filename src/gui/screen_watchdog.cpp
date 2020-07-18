@@ -54,19 +54,3 @@ int screen_watchdog_event(screen_watchdog_t *screen, window_t *window, uint8_t e
         screen_close();
     return 0;
 }
-
-screen_watchdog_t screen_watchdog = {
-    {
-        0,
-        0,
-        (screen_init_t *)screen_watchdog_init,
-        (screen_done_t *)screen_watchdog_done,
-        (screen_draw_t *)screen_watchdog_draw,
-        (screen_event_t *)screen_watchdog_event,
-        0, //data_size
-        0, //pdata
-    },
-    0,
-};
-
-screen_t *const get_scr_watchdog() { return (screen_t *)&screen_watchdog; }

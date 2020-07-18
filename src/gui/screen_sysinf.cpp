@@ -103,16 +103,3 @@ int screen_sysinfo_event(screen_t *screen, window_t *window, uint8_t event, void
 
     return 0;
 }
-
-screen_t screen_sysinfo = {
-    0,
-    0,
-    screen_sysinfo_init,
-    screen_sysinfo_done,
-    screen_sysinfo_draw,
-    screen_sysinfo_event,
-    sizeof(screen_sysinfo_data_t), //data_size
-    0,                             //pdata
-};
-
-screen_t *const get_scr_sysinfo() { return &screen_sysinfo; }
