@@ -134,7 +134,7 @@ int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *p
             screen_close();
             return 1;
         case STI_tst_gui:
-            screen_open(get_scr_test_gui()->id);
+            // screen_open(get_scr_test_gui()->id);
             return 1;
         case STI_tst_term:
             screen_open(get_scr_test_term()->id);

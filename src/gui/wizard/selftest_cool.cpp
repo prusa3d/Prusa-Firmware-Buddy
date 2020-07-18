@@ -15,7 +15,7 @@ void _wizard_cool_actualize_temperatures(selftest_cool_data_t *p_data); //screen
 //-----------------------------------------------------------------------------
 //function declarations
 void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, selftest_cool_data_t *p_data) {
-    //window_destroy_children(id_body);
+    /*   //window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0) {
         pWin->Show();
@@ -57,6 +57,7 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
 
     window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(100, y, 40, 40), &(p_screen->icon_hourglass));
     p_screen->icon_hourglass.SetIdRes(IDR_PNG_wizard_icon_hourglass);
+    */
 }
 
 void _wizard_cool_actualize_temperatures(selftest_cool_data_t *p_data) {

@@ -12,6 +12,7 @@
 #include "window_dlg_calib_z.hpp"
 
 void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
+    /*
     //window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0) {
@@ -36,6 +37,7 @@ void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, x
     y += 66;
 
     window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16((240 - 100) / 2, y, 100, 100), &(p_screen->icon));
+*/
 }
 
 int xyzcalib_home(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {

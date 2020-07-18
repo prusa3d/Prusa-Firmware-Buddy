@@ -268,7 +268,7 @@ int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count,
 void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen);
 
 void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data) {
-    //marlin_vars_t* vars        = marlin_update_vars( MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) );
+    /*   //marlin_vars_t* vars        = marlin_update_vars( MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) );
     //p_screen->Z_offset         = vars->z_offset;
     p_screen->Z_offset_request = 0;
 
@@ -321,6 +321,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     y += 22 + 10;
 
     window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+*/
 }
 
 int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {

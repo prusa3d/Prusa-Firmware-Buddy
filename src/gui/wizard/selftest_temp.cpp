@@ -20,7 +20,7 @@ void _wizard_temp_actualize_temperatures(selftest_temp_data_t *p_data); //data w
 //-----------------------------------------------------------------------------
 //function declarations
 void wizard_init_screen_selftest_temp(int16_t id_body, selftest_temp_screen_t *p_screen, selftest_temp_data_t *p_data) {
-    _wizard_temp_actualize_temperatures(p_data);
+    /*  _wizard_temp_actualize_temperatures(p_data);
     //	point_ui16_t pt,pt2;
     // window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
@@ -40,6 +40,7 @@ void wizard_init_screen_selftest_temp(int16_t id_body, selftest_temp_screen_t *p
 
     y += row_h * 2;
     window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+*/
 }
 
 void _wizard_temp_actualize_temperatures(selftest_temp_data_t *p_data) {
