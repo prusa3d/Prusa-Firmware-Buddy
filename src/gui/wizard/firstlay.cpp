@@ -252,13 +252,6 @@ void initialGcodes(gCode &gc) {
         .G(21)  // set units to millimeters
         .M(83); // use relative distances for extrusion
 }
-#define V__GCODES_HEAD_BEGIN                 \
-    "M107",    /*fan off */                  \
-        "G90", /*use absolute coordinates*/  \
-        "M83", /*extruder relative mode*/    \
-        "G21", /* set units to millimeters*/ \
-        "G90", /* use absolute coordinates*/ \
-        "M83", /* use relative distances for extrusion*/
 
 void homeAndMBL(gCode &gc, const uint16_t nozzle_preheat, const uint16_t nozzle_target, const uint8_t bed) {
     // clang-format off
@@ -277,111 +270,6 @@ void heatNozzle(gCode &gc, const uint16_t nozzle_target) {
         .M(109, false).param('S', nozzle_target); // wait for nozzle temp
     // clang-format on
 }
-
-//todo generate me
-const char *V2_gcodes_head_PLA[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D215", //nozzle target
-    "M140 S60",                           //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S60",                           //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S215",                          //nozzle target
-    "M109 S215",                          //wait for nozzle temp
-};
-const size_t V2_gcodes_head_PLA_sz = sizeof(V2_gcodes_head_PLA) / sizeof(V2_gcodes_head_PLA[0]);
-
-const char *V2_gcodes_head_PETG[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D230", //nozzle target
-    "M140 S85",                           //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S85",                           //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S230",                          //nozzle target
-    "M109 S230",                          //wait for nozzle temp
-};
-const size_t V2_gcodes_head_PETG_sz = sizeof(V2_gcodes_head_PETG) / sizeof(V2_gcodes_head_PETG[0]);
-
-const char *V2_gcodes_head_ASA[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
-    "M140 S100",                          //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S100",                          //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S260",                          //nozzle target
-    "M109 S260",                          //wait for nozzle temp
-};
-const size_t V2_gcodes_head_ASA_sz = sizeof(V2_gcodes_head_ASA) / sizeof(V2_gcodes_head_ASA[0]);
-
-const char *V2_gcodes_head_ABS[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
-    "M140 S100",                          //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S100",                          //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S255",                          //nozzle target
-    "M109 S255",                          //wait for nozzle temp
-};
-const size_t V2_gcodes_head_ABS_sz = sizeof(V2_gcodes_head_ABS) / sizeof(V2_gcodes_head_ABS[0]);
-
-const char *V2_gcodes_head_PC[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
-    "M140 S100",                          //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S100",                          //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S275",                          //nozzle target
-    "M109 S275",                          //wait for nozzle temp
-};
-const size_t V2_gcodes_head_PC_sz = sizeof(V2_gcodes_head_PC) / sizeof(V2_gcodes_head_PC[0]);
-
-const char *V2_gcodes_head_FLEX[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D240", //nozzle target
-    "M140 S50",                           //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S50",                           //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S240",                          //nozzle target
-    "M109 S240",                          //wait for nozzle temp
-};
-const size_t V2_gcodes_head_FLEX_sz = sizeof(V2_gcodes_head_FLEX) / sizeof(V2_gcodes_head_FLEX[0]);
-
-const char *V2_gcodes_head_HIPS[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
-    "M140 S100",                          //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S100",                          //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S220",                          //nozzle target
-    "M109 S220",                          //wait for nozzle temp
-};
-const size_t V2_gcodes_head_HIPS_sz = sizeof(V2_gcodes_head_HIPS) / sizeof(V2_gcodes_head_HIPS[0]);
-
-const char *V2_gcodes_head_PP[] = {
-    V__GCODES_HEAD_BEGIN
-    "M104 S" PREHEAT_TEMP_STRING " D260", //nozzle target
-    "M140 S100",                          //bed target
-    "M109 R" PREHEAT_TEMP_STRING,         //wait for nozzle temp
-    "M190 S100",                          //wait for bed temp
-    "G28",                                /*autohome*/
-    "G29",                                /*meshbed leveling*/
-    "M104 S240",                          //nozzle target
-    "M109 S240",                          //wait for nozzle temp
-};
-const size_t V2_gcodes_head_PP_sz = sizeof(V2_gcodes_head_PP) / sizeof(V2_gcodes_head_PP[0]);
 
 //EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
 
