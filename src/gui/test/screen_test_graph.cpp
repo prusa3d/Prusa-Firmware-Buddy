@@ -1,83 +1,40 @@
 // screen_test_graph.cpp
 
-#include "gui.hpp"
+#include "screen_test_graph.hpp"
 #include "config.h"
-#include "window_temp_graph.hpp"
+
 #include "cmsis_os.h"
 #include <stdlib.h>
 
 extern void window_temp_scope_add(float temp_ext, float temp_bed);
 
-struct screen_test_term_data_t : public window_frame_t {
-    window_text_t text;
-    window_text_t button;
-    int16_t id_frame;
-    int16_t id_text;
-    int16_t id_button;
-    int16_t id_graph;
-    window_temp_graph_t graph;
-};
-
-struct screen_test_term_t {
-    screen_t scr;
-    screen_test_term_data_t *pd;
-};
-
 extern osThreadId displayTaskHandle;
 
-void screen_test_graph_init(screen_test_term_t *screen) {
-    if (screen->pd == 0) {
-        int16_t id;
-        //font_t* font = resource_font(IDR_FNT_TERMINAL);
-        screen_test_term_data_t *pd = (screen_test_term_data_t *)gui_malloc(sizeof(screen_test_term_data_t));
-        screen->pd = pd;
+screen_test_graph_t::screen_test_graph_t()
+    : window_frame_t(&text)
+    , text(this, rect_ui16(10, 0, 220, 22))
+    , button(this, rect_ui16(10, 220, 100, 22))
+    , graph(this, rect_ui16(10, 28, 180, 180))
+    , loop_index(0) {
+    static const char tst[] = "Test";
+    text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
 
-        int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
-        pd->id_frame = id0;
-        pd->SetBackColor(COLOR_BLACK);
-
-        id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 0, 220, 22), &(pd->text));
-        pd->id_text = id;
-        static const char tst[] = "Test";
-        pd->text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
-
-        id = window_create_ptr(WINDOW_CLS_TEMP_GRAPH, id0, rect_ui16(10, 28, 180, 180), &pd->graph);
-        pd->id_graph = id;
-
-        id = window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, 220, 100, 22), &(pd->button));
-        pd->id_button = id;
-        static const char rtn[] = "Return";
-        pd->button.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
-        pd->button.Enable();
-        pd->button.SetTag(1);
-    }
+    static const char rtn[] = "Return";
+    button.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
+    button.Enable();
+    button.SetTag(1);
 }
 
-void screen_test_graph_done(screen_test_term_t *screen) {
-    if (screen->pd) {
-        window_destroy(screen->pd->id);
-        gui_free(screen->pd);
-        screen->pd = 0;
-    }
-}
-
-void screen_test_graph_draw(screen_test_term_t *screen) {
-}
-
-uint8_t i = 0;
-
-int screen_test_graph_event(screen_test_term_t *screen, window_t *window, uint8_t event, void *param) {
-    //int winid = -1;
-    //if (window) window->id;
+int screen_test_graph_t::event(window_t *sender, uint8_t event, void *param) {
 
     if (event == WINDOW_EVENT_LOOP) {
-        if (i == 5) {
-            screen->pd->graph.graph_invalid = true;
+        if (loop_index == 5) {
+            graph.graph_invalid = true;
             //osSignalSet(displayTaskHandle, SIG_DISP_REDRAW);
             gui_invalidate();
-            i = 0;
+            loop_index = 0;
         }
-        i++;
+        loop_index++;
     } else if (event == WINDOW_EVENT_CLICK) {
         switch ((int)param) {
         case 1:
