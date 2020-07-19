@@ -11,7 +11,6 @@
 #define WINDOW_CLS_TEXT  1 // TEXT - aligned singlecolor text
 #define WINDOW_CLS_NUMB  2 // NUMB - aligned singlecolor formated number
 #define WINDOW_CLS_ICON  3 // ICON - small image with left-top offset
-#define WINDOW_CLS_LIST  4 // LIST - vertical or horizontal list (text-icon pairs)
 
 //window events
 #define WINDOW_EVENT_BTN_DN   0x01 //button down
