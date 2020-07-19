@@ -4,14 +4,14 @@
  *  Created on: 2019-09-24
  *      Author: Radek Vana
  */
+#if 0
+    #include "gui.hpp"
+    #include "config.h"
+    #include "stm32f4xx_hal.h"
 
-#include "gui.hpp"
-#include "config.h"
-#include "stm32f4xx_hal.h"
-
-#include "st7789v.h"
-#include "sys.h"
-#include <assert.h>
+    #include "st7789v.h"
+    #include "sys.h"
+    #include <assert.h>
 
 extern int sim_heater_temp2val(float temp);
 
@@ -52,22 +52,22 @@ struct screen_test_disp_mem_data_t : public window_frame_t {
     window_text_t textExit;
 };
 
-#define pd ((screen_test_disp_mem_data_t *)screen->pdata)
+    #define pd              ((screen_test_disp_mem_data_t *)screen->pdata)
 /******************************************************************************************************/
 //variables
 extern int16_t spi_prescaler;
 static const char *opt_spi[] = { "21M", "10.5M", "5.25M", "2.63M", "1.31M", "656k", "328k", "164k" };
-#define opt_spi_sz (sizeof(opt_spi) / sizeof(const char *))
+    #define opt_spi_sz      (sizeof(opt_spi) / sizeof(const char *))
 
 //static const char* modes[] = {"RGBW scale", "Direct hex", "RGB"};
 static const char *modes[] = { "RGBW scale", "WrRdWr + RGB" };
-#define modes_sz (sizeof(modes) / sizeof(const char *))
+    #define modes_sz        (sizeof(modes) / sizeof(const char *))
 
 static const char *inversions[] = { "Inv. DIS.", "Inv. ENA." };
-#define inversions_sz (sizeof(inversions) / sizeof(const char *))
+    #define inversions_sz   (sizeof(inversions) / sizeof(const char *))
 
 static const char *bright_enas[] = { "Bri. DIS.", "Bri. ENA." };
-#define bright_enas_sz (sizeof(bright_enas) / sizeof(const char *))
+    #define bright_enas_sz  (sizeof(bright_enas) / sizeof(const char *))
 
 static int16_t spinSpiClkVal_last = -1;
 static int16_t spinSpiClkVal_actual = -1;
@@ -149,7 +149,7 @@ void printRGB_DirHx(size_t rect_index, size_t rect_count, size_t col, size_t row
 typedef void(drawCol_t)(size_t rect_index, size_t rect_count, size_t col, size_t row2draw, size_t row_space);
 //drawCol_t* fptrArr[] = {printRGBWscale,printDirectHex,printRGB};
 drawCol_t *fptrArr[] = { printRGBWscale, printRGB_DirHx };
-#define fptrArr_sz (sizeof(fptrArr) / sizeof(drawCol_t *))
+    #define fptrArr_sz      (sizeof(fptrArr) / sizeof(drawCol_t *))
 
 static_assert(modes_sz == fptrArr_sz, "wrong number of function pointers");
 
@@ -160,7 +160,7 @@ enum { col_0 = 2,
 enum { col_0_w = col_1 - col_0,
     col_1_w = 240 - col_1 - col_0 };
 enum { col_2_w = 38 };
-#define RECT_MACRO(col) rect_ui16(col_##col, row2draw, col_##col##_w, row_h)
+    #define RECT_MACRO(col) rect_ui16(col_##col, row2draw, col_##col##_w, row_h)
 
 enum {
     TAG_QUIT = 10,
@@ -373,7 +373,7 @@ size_t getNumOfWritesIn_1_Cycle(size_t wr_len){
 }
 */
 
-#define directColorBuff_sz 20
+    #define directColorBuff_sz 20
 uint16_t directColorBuff[directColorBuff_sz];
 
 void printRGBWscale(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
@@ -560,3 +560,4 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
 
     return 0;
 }
+#endif //#if 0

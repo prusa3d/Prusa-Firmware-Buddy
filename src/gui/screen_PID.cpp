@@ -1,25 +1,23 @@
 /*
- * screen_PID.c
+ * screen_PID.cpp
  *
  *  Created on: 2019-09-26
  *      Author: Radek Vana
  */
+#if 0
+    #include "config.h"
+    #include "eeprom.h"
+    #include "../lang/i18n.h"
 
-#include "config.h"
-#include "eeprom.h"
-#include "../lang/i18n.h"
+//#ifdef PIDCALIBRATION
 
-#ifdef PIDCALIBRATION
-
-    #include "gui.hpp"
+    #include "screen_PID.hpp"
     #include "status_footer.h"
     #include "math.h"
     #include "../Marlin/src/module/temperature.h"
     #include "marlin_client.h"
 
-    #define SPIN_DIGITS     6
-    #define SPIN_PRECISION  2
-    #define SPIN_INT_DIGITS (SPIN_DIGITS - SPIN_PRECISION)
+
 
 enum { _BED = -1,
     _EXTRUDER = 0 };
@@ -44,64 +42,10 @@ struct _PID_t {
     float Kd_last;
 };
 
-struct screen_PID_data_t : public window_frame_t {
-    window_text_t textMenuName;
-
-    window_text_t btAutoTuneApply_E;
-    window_spin_t spinAutoTn_E;
-    window_list_t list_RW_E; //choose read write PID
-    window_spin_t spinKp_E[SPIN_DIGITS];
-    window_spin_t spinKi_E[SPIN_DIGITS];
-    window_spin_t spinKd_E[SPIN_DIGITS];
-
-    window_text_t btAutoTuneApply_B;
-    window_spin_t spinAutoTn_B;
-    window_list_t list_RW_B; //choose read write PID
-    window_spin_t spinKp_B[SPIN_DIGITS];
-    window_spin_t spinKi_B[SPIN_DIGITS];
-    window_spin_t spinKd_B[SPIN_DIGITS];
-
-    window_text_t textExit;
-    status_footer_t footer;
-
-    size_t list_RW_E_index_actual;
-    size_t list_RW_E_index_last;
-    size_t list_RW_B_index_actual;
-    size_t list_RW_B_index_last;
-
-    uint16_t dot_coordsKp_E[2];
-    uint16_t dot_coordsKi_E[2];
-    uint16_t dot_coordsKd_E[2];
-
-    uint16_t dot_coordsKp_B[2];
-    uint16_t dot_coordsKi_B[2];
-    uint16_t dot_coordsKd_B[2];
-
-    rect_ui16_t rect_E;
-    rect_ui16_t rectKp_E;
-    rect_ui16_t rectKi_E;
-    rect_ui16_t rectKd_E;
-
-    rect_ui16_t rect_B;
-    rect_ui16_t rectKp_B;
-    rect_ui16_t rectKi_B;
-    rect_ui16_t rectKd_B;
-
-    float autotune_temp_B;
-    float autotune_temp_E;
-
-    _PID_t _PID_E;
-    _PID_t _PID_B;
-
-    autotune_state_t autotune_state;
-
-    int redraw;
-};
-
     #define pd ((screen_PID_data_t *)screen->pdata)
 
-    #define AUTO_TN_DEFAULT_CL COLOR_WHITE
-    #define AUTO_TN_ACTIVE_CL  COLOR_RED
+    #define AUTO_TN_DEFAULT_CL           COLOR_WHITE
+    #define AUTO_TN_ACTIVE_CL            COLOR_RED
 
 enum {
     TAG_QUIT = 10,
@@ -158,7 +102,7 @@ void generate_spin_digits(screen_t *screen, int numOfDigits, int precision,
 //-----------------------------------------------------------------------------
 //list
 const char *list_RW_strings[] = { "READ", "WRITE" };
-    #define list_RW_strings_sz (sizeof(list_RW_strings) / sizeof(const char *))
+    #define list_RW_strings_sz           (sizeof(list_RW_strings) / sizeof(const char *))
 
 void window_list_RW_item(window_list_t *pwindow_list, uint16_t index,
     const char **pptext, uint16_t *pid_icon);
@@ -181,174 +125,205 @@ float get_single_PIDparamFromDisp(window_spin_t *spins, int numOfDigits, int pre
 static const char *btnAutoTuneOrApplystrings[] = { N_("AutTn"), N_("Apply") };
     #define btnAutoTuneOrApplystrings_sz (sizeof(btnAutoTuneOrApplystrings) / sizeof(const char *))
 
-void screen_PID_init(screen_t *screen) {
-    pd->redraw = 1;
-    pd->list_RW_E_index_actual = 0;
-    pd->list_RW_E_index_last = 0;
-    pd->list_RW_B_index_actual = 0;
-    pd->list_RW_B_index_last = 0;
-    pd->autotune_state = AT_idle;
-    pd->autotune_temp_E = 150;
-    pd->autotune_temp_B = 70;
 
-    _PID_ctor(&(pd->_PID_E), _EXTRUDER, &pd->autotune_temp_E);
-    _PID_ctor(&(pd->_PID_B), _BED, &pd->autotune_temp_B);
+static const uint16_t row_h = 22;
+static const uint16_t left_col = 22;
+
+screen_PID_data_t::screen_PID_data_t()
+    : window_frame_t(&footer)
+    , footer(this)
+
+    , textMenuName(this, rect_ui16(0, 0, display::GetW(), row_h),_("PID adjustment"))
+
+    , btAutoTuneApply_E(this, )
+    , spinAutoTn_E(this, )
+    , list_RW_E(this, rect_ui16(left_col, 2*row_h, 100, row_h)) //choose read write PID
+    , spinKp_E {{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}}}
+    , spinKi_E {{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}}}
+    , spinKd_E {{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}}}
+
+    , btAutoTuneApply_B(this, )
+    , spinAutoTn_B(this, )
+    , list_RW_B(this, ) //choose read write PID
+    , spinKp_B {{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}}}
+    , spinKi_B {{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}}}
+    , spinKd_B {{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}},{this, {0}}}
+
+    , list_RW_E_index_actual(0)
+    , list_RW_E_index_last(0)
+    , list_RW_B_index_actual(0)
+    , list_RW_B_index_last(0)
+
+    , rect_E(rect_ui16(left_col, row_h, 100, row_h))
+    , rectKp_E (rect_ui16(left_col, 2*row_h+25, 25, row_h))
+    , rectKi_E (rect_ui16(left_col, 3*row_h+25, 30, row_h))
+    , rectKd_E (rect_ui16(left_col, 4*row_h+25, 50, row_h))
+
+    , rect_B;
+    , rectKp_B;
+    , rectKi_B;
+    , rectKd_B;
+
+    , autotune_temp_E(150)
+    , autotune_temp_B(70)
+
+    , autotune_state(AT_idle)
+    , redraw(true)
+{
+
+    textMenuName.font = resource_font(IDR_FNT_BIG);
+
+
+
+    _PID_ctor(&(_PID_E), _EXTRUDER, &autotune_temp_E);
+    _PID_ctor(&(_PID_B), _BED, &autotune_temp_B);
 
     uint16_t col = 2;
-    uint16_t row2draw = 0;
-    uint16_t row_h = 22;
 
-    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME,
-        -1, rect_ui16(0, 0, 0, 0), pd);
 
-    window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
-    pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    pd->textMenuName.SetText(_("PID adjustment"));
 
     //EXTRUDER
-    row2draw = row_h;
+    uint16_t row2draw = row_h;
 
-    pd->rect_E = rect_ui16(col, row2draw, 100, row_h);
+    rect_E = rect_ui16(col, row2draw, 100, row_h);
     row2draw += row_h;
 
-    window_create_ptr(WINDOW_CLS_LIST,
-        id0, rect_ui16(col, row2draw, 100, row_h), &(pd->list_RW_E));
-    pd->list_RW_E.SetItemCount(list_RW_strings_sz);
-    pd->list_RW_E.SetItemIndex(0);
-    pd->list_RW_E.SetCallback(window_list_RW_item);
-    pd->list_RW_E.SetTag(TAG_RW_E);
+
+    list_RW_E.SetItemCount(list_RW_strings_sz);
+    list_RW_E.SetItemIndex(0);
+    list_RW_E.SetCallback(window_list_RW_item);
+    list_RW_E.SetTag(TAG_RW_E);
 
     row2draw += 25;
 
-    pd->rectKp_E = rect_ui16(col, row2draw, 25, row_h);
+    rectKp_E = rect_ui16(col, row2draw, 25, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->spinKp_E, pd->dot_coordsKp_E,
+        id0, spinKp_E, dot_coordsKp_E,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
-    pd->rectKi_E = rect_ui16(col, row2draw, 30, row_h);
+    rectKi_E = rect_ui16(col, row2draw, 30, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->spinKi_E, pd->dot_coordsKi_E,
+        id0, spinKi_E, dot_coordsKi_E,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
-    pd->rectKd_E = rect_ui16(col, row2draw, 50, row_h);
+    rectKd_E = rect_ui16(col, row2draw, 50, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->spinKd_E, pd->dot_coordsKd_E,
+        id0, spinKd_E, dot_coordsKd_E,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
     window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(col, row2draw, 68, row_h),
-        &(pd->btAutoTuneApply_E));
-    pd->btAutoTuneApply_E.SetText(_(btnAutoTuneOrApplystrings[0]));
-    pd->btAutoTuneApply_E.Enable();
-    pd->btAutoTuneApply_E.SetTag(TAG_AUTOTUNE_APPLY_E);
+        &(btAutoTuneApply_E));
+    btAutoTuneApply_E.SetText(_(btnAutoTuneOrApplystrings[0]));
+    btAutoTuneApply_E.Enable();
+    btAutoTuneApply_E.SetTag(TAG_AUTOTUNE_APPLY_E);
 
     window_create_ptr(WINDOW_CLS_SPIN,
         id0, rect_ui16(col + 70, row2draw, 40, row_h),
-        &(pd->spinAutoTn_E));
-    pd->spinAutoTn_E.SetFormat("%f");
-    pd->spinAutoTn_E.SetMinMaxStep(100.0F, 250.0F, 5.0F);
-    pd->spinAutoTn_E.SetValue(pd->autotune_temp_E);
+        &(spinAutoTn_E));
+    spinAutoTn_E.SetFormat("%f");
+    spinAutoTn_E.SetMinMaxStep(100.0F, 250.0F, 5.0F);
+    spinAutoTn_E.SetValue(autotune_temp_E);
     row2draw += row_h;
 
     //BED
     col = 122;
     row2draw = row_h;
 
-    pd->rect_B = rect_ui16(col, row2draw, 100, row_h);
+    rect_B = rect_ui16(col, row2draw, 100, row_h);
     row2draw += row_h;
 
     window_create_ptr(WINDOW_CLS_LIST, id0,
-        rect_ui16(col, row2draw, 100, row_h), &(pd->list_RW_B));
-    pd->list_RW_B.SetItemCount(list_RW_strings_sz);
-    pd->list_RW_B.SetItemIndex(0);
-    pd->list_RW_B.SetCallback(window_list_RW_item);
-    pd->list_RW_B.SetTag(TAG_RW_B);
+        rect_ui16(col, row2draw, 100, row_h), &(list_RW_B));
+    list_RW_B.SetItemCount(list_RW_strings_sz);
+    list_RW_B.SetItemIndex(0);
+    list_RW_B.SetCallback(window_list_RW_item);
+    list_RW_B.SetTag(TAG_RW_B);
 
     row2draw += 25;
 
-    pd->rectKp_B = rect_ui16(col, row2draw, 25, row_h);
+    rectKp_B = rect_ui16(col, row2draw, 25, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->spinKp_B, pd->dot_coordsKp_B,
+        id0, spinKp_B, dot_coordsKp_B,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
-    pd->rectKi_B = rect_ui16(col, row2draw, 30, row_h);
+    rectKi_B = rect_ui16(col, row2draw, 30, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->spinKi_B, pd->dot_coordsKi_B,
+        id0, spinKi_B, dot_coordsKi_B,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
-    pd->rectKd_B = rect_ui16(col, row2draw, 50, row_h);
+    rectKd_B = rect_ui16(col, row2draw, 50, row_h);
     generate_spin_digits(screen, SPIN_DIGITS, SPIN_PRECISION,
-        id0, pd->spinKd_B, pd->dot_coordsKd_B,
+        id0, spinKd_B, dot_coordsKd_B,
         col + 25, row2draw, row_h);
     row2draw += row_h;
 
     window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(col, row2draw, 68, row_h),
-        &(pd->btAutoTuneApply_B));
-    pd->btAutoTuneApply_B.SetText(_(btnAutoTuneOrApplystrings[0]));
-    pd->btAutoTuneApply_B.Enable();
-    pd->btAutoTuneApply_B.SetTag(TAG_AUTOTUNE_APPLY_B);
+        &(btAutoTuneApply_B));
+    btAutoTuneApply_B.SetText(_(btnAutoTuneOrApplystrings[0]));
+    btAutoTuneApply_B.Enable();
+    btAutoTuneApply_B.SetTag(TAG_AUTOTUNE_APPLY_B);
 
     window_create_ptr(WINDOW_CLS_SPIN,
         id0, rect_ui16(col + 70, row2draw, 40, row_h),
-        &(pd->spinAutoTn_B));
-    pd->spinAutoTn_B.SetFormat("%.0f");
-    pd->spinAutoTn_B.SetMinMaxStep(50.0F, 110.0F, 5.0F);
-    pd->spinAutoTn_B.SetValue(pd->autotune_temp_B);
+        &(spinAutoTn_B));
+    spinAutoTn_B.SetFormat("%.0f");
+    spinAutoTn_B.SetMinMaxStep(50.0F, 110.0F, 5.0F);
+    spinAutoTn_B.SetValue(autotune_temp_B);
     row2draw += row_h;
 
     //exit and footer
 
     window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(2, 245, 60, 22), &(pd->textExit));
-    pd->textExit.font = resource_font(IDR_FNT_BIG);
-    pd->textExit.SetText(_("EXIT"));
-    pd->textExit.Enable();
-    pd->textExit.SetTag(TAG_QUIT);
+        id0, rect_ui16(2, 245, 60, 22), &(textExit));
+    textExit.font = resource_font(IDR_FNT_BIG);
+    textExit.SetText(_("EXIT"));
+    textExit.Enable();
+    textExit.SetTag(TAG_QUIT);
 
-    dispPID((pd->_PID_E), pd->spinKp_E, pd->spinKi_E, pd->spinKd_E,
+    dispPID((_PID_E), spinKp_E, spinKi_E, spinKd_E,
         SPIN_DIGITS, SPIN_PRECISION);
-    dispPID((pd->_PID_B), pd->spinKp_B, pd->spinKi_B, pd->spinKd_B,
+    dispPID((_PID_B), spinKp_B, spinKi_B, spinKd_B,
         SPIN_DIGITS, SPIN_PRECISION);
 }
 
 void screen_PID_done(screen_t *screen) {
-    window_destroy(pd->id);
+    window_destroy(id);
 }
 
 void screen_PID_draw(screen_t *screen) {
 }
 
 int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    /* if (status_footer_event(&(pd->footer), window, event, param)) {
+    /* if (status_footer_event(&(footer), window, event, param)) {
         return 1;
     }*/
 
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:
-            if (pd->autotune_state != AT_idle)
+            if (autotune_state != AT_idle)
                 return 0; //button should not be accessible
             screen_close();
             return 1;
         case TAG_AUTOTUNE_APPLY_E:
-            if (pd->list_RW_E_index_actual == 0) {
+            if (list_RW_E_index_actual == 0) {
                 //run autotune
-                _autotune_E(screen, &(pd->autotune_state));
+                _autotune_E(screen, &(autotune_state));
             } else {
                 //apply values
-                _PID_set(&(pd->_PID_E),
-                    get_single_PIDparamFromDisp(pd->spinKp_E,
+                _PID_set(&(_PID_E),
+                    get_single_PIDparamFromDisp(spinKp_E,
                         SPIN_DIGITS, SPIN_PRECISION),
-                    get_single_PIDparamFromDisp(pd->spinKi_E,
+                    get_single_PIDparamFromDisp(spinKi_E,
                         SPIN_DIGITS, SPIN_PRECISION),
-                    get_single_PIDparamFromDisp(pd->spinKd_E,
+                    get_single_PIDparamFromDisp(spinKd_E,
                         SPIN_DIGITS, SPIN_PRECISION));
                 eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
                 eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
@@ -356,17 +331,17 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
             }
             break;
         case TAG_AUTOTUNE_APPLY_B:
-            if (pd->list_RW_B_index_actual == 0) {
+            if (list_RW_B_index_actual == 0) {
                 //run autotune
-                _autotune_B(screen, &(pd->autotune_state));
+                _autotune_B(screen, &(autotune_state));
             } else {
                 //apply values
-                _PID_set(&(pd->_PID_B),
-                    get_single_PIDparamFromDisp(pd->spinKp_B,
+                _PID_set(&(_PID_B),
+                    get_single_PIDparamFromDisp(spinKp_B,
                         SPIN_DIGITS, SPIN_PRECISION),
-                    get_single_PIDparamFromDisp(pd->spinKi_B,
+                    get_single_PIDparamFromDisp(spinKi_B,
                         SPIN_DIGITS, SPIN_PRECISION),
-                    get_single_PIDparamFromDisp(pd->spinKd_E,
+                    get_single_PIDparamFromDisp(spinKd_E,
                         SPIN_DIGITS, SPIN_PRECISION));
                 eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
                 eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
@@ -390,120 +365,120 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
     }
     if (event == WINDOW_EVENT_LOOP) {
 
-        if (pd->autotune_state != AT_idle) {
+        if (autotune_state != AT_idle) {
             if (marlin_event_clr(MARLIN_EVT_CommandEnd)) //wait for MARLIN_EVT_CommandEnd
             {
-                pd->btAutoTuneApply_B.SetTextColor(AUTO_TN_DEFAULT_CL);
-                pd->btAutoTuneApply_E.SetTextColor(AUTO_TN_DEFAULT_CL);
-                pd->textExit.SetTextColor(AUTO_TN_DEFAULT_CL);
-                pd->textExit.Enable();
-                pd->autotune_state = AT_idle;
+                btAutoTuneApply_B.SetTextColor(AUTO_TN_DEFAULT_CL);
+                btAutoTuneApply_E.SetTextColor(AUTO_TN_DEFAULT_CL);
+                textExit.SetTextColor(AUTO_TN_DEFAULT_CL);
+                textExit.Enable();
+                autotune_state = AT_idle;
             }
         }
 
-        pd->autotune_temp_E = pd->spinAutoTn_E.GetValue();
-        pd->autotune_temp_B = pd->spinAutoTn_B.GetValue();
+        autotune_temp_E = spinAutoTn_E.GetValue();
+        autotune_temp_B = spinAutoTn_B.GetValue();
 
-        pd->list_RW_E_index_actual = pd->list_RW_E.GetItemIndex();
-        if (pd->list_RW_E_index_actual != pd->list_RW_E_index_last) {
-            if (pd->list_RW_E_index_actual == 0) {
-                disable_digits_write_mode(pd->spinKp_E,
-                    sizeof(pd->spinKp_E) / sizeof(pd->spinKp_E[0]));
-                disable_digits_write_mode(pd->spinKi_E,
-                    sizeof(pd->spinKi_E) / sizeof(pd->spinKi_E[0]));
-                disable_digits_write_mode(pd->spinKd_E,
-                    sizeof(pd->spinKd_E) / sizeof(pd->spinKd_E[0]));
-                pd->btAutoTuneApply_E.SetText(
+        list_RW_E_index_actual = list_RW_E.GetItemIndex();
+        if (list_RW_E_index_actual != list_RW_E_index_last) {
+            if (list_RW_E_index_actual == 0) {
+                disable_digits_write_mode(spinKp_E,
+                    sizeof(spinKp_E) / sizeof(spinKp_E[0]));
+                disable_digits_write_mode(spinKi_E,
+                    sizeof(spinKi_E) / sizeof(spinKi_E[0]));
+                disable_digits_write_mode(spinKd_E,
+                    sizeof(spinKd_E) / sizeof(spinKd_E[0]));
+                btAutoTuneApply_E.SetText(
                     _(btnAutoTuneOrApplystrings[0]));
             } else {
-                enable_digits_write_mode(pd->spinKp_E,
-                    sizeof(pd->spinKp_E) / sizeof(pd->spinKp_E[0]));
-                enable_digits_write_mode(pd->spinKi_E,
-                    sizeof(pd->spinKi_E) / sizeof(pd->spinKi_E[0]));
-                enable_digits_write_mode(pd->spinKd_E,
-                    sizeof(pd->spinKd_E) / sizeof(pd->spinKd_E[0]));
-                pd->btAutoTuneApply_E.SetText(
+                enable_digits_write_mode(spinKp_E,
+                    sizeof(spinKp_E) / sizeof(spinKp_E[0]));
+                enable_digits_write_mode(spinKi_E,
+                    sizeof(spinKi_E) / sizeof(spinKi_E[0]));
+                enable_digits_write_mode(spinKd_E,
+                    sizeof(spinKd_E) / sizeof(spinKd_E[0]));
+                btAutoTuneApply_E.SetText(
                     _(btnAutoTuneOrApplystrings[1]));
             }
 
-            pd->list_RW_E_index_last = pd->list_RW_E_index_actual;
+            list_RW_E_index_last = list_RW_E_index_actual;
         }
 
-        pd->list_RW_B_index_actual = pd->list_RW_B.GetItemIndex();
-        if (pd->list_RW_B_index_actual != pd->list_RW_B_index_last) {
-            if (pd->list_RW_B_index_actual == 0) {
-                disable_digits_write_mode(pd->spinKp_B,
-                    sizeof(pd->spinKp_B) / sizeof(pd->spinKp_B[0]));
-                disable_digits_write_mode(pd->spinKi_B,
-                    sizeof(pd->spinKi_B) / sizeof(pd->spinKi_B[0]));
-                disable_digits_write_mode(pd->spinKd_B,
-                    sizeof(pd->spinKd_B) / sizeof(pd->spinKd_B[0]));
-                pd->btAutoTuneApply_B.SetText(
+        list_RW_B_index_actual = list_RW_B.GetItemIndex();
+        if (list_RW_B_index_actual != list_RW_B_index_last) {
+            if (list_RW_B_index_actual == 0) {
+                disable_digits_write_mode(spinKp_B,
+                    sizeof(spinKp_B) / sizeof(spinKp_B[0]));
+                disable_digits_write_mode(spinKi_B,
+                    sizeof(spinKi_B) / sizeof(spinKi_B[0]));
+                disable_digits_write_mode(spinKd_B,
+                    sizeof(spinKd_B) / sizeof(spinKd_B[0]));
+                btAutoTuneApply_B.SetText(
                     _(btnAutoTuneOrApplystrings[0]));
             } else {
-                enable_digits_write_mode(pd->spinKp_B,
-                    sizeof(pd->spinKp_B) / sizeof(pd->spinKp_B[0]));
-                enable_digits_write_mode(pd->spinKi_B,
-                    sizeof(pd->spinKi_B) / sizeof(pd->spinKi_B[0]));
-                enable_digits_write_mode(pd->spinKd_B,
-                    sizeof(pd->spinKd_B) / sizeof(pd->spinKd_B[0]));
-                pd->btAutoTuneApply_B.SetText(
+                enable_digits_write_mode(spinKp_B,
+                    sizeof(spinKp_B) / sizeof(spinKp_B[0]));
+                enable_digits_write_mode(spinKi_B,
+                    sizeof(spinKi_B) / sizeof(spinKi_B[0]));
+                enable_digits_write_mode(spinKd_B,
+                    sizeof(spinKd_B) / sizeof(spinKd_B[0]));
+                btAutoTuneApply_B.SetText(
                     _(btnAutoTuneOrApplystrings[1]));
             }
 
-            pd->list_RW_B_index_last = pd->list_RW_B_index_actual;
+            list_RW_B_index_last = list_RW_B_index_actual;
         }
 
-        if (pd->redraw) {
-            pd->redraw = 0;
-            display::FillRect(rect_ui16(pd->dot_coordsKp_E[0],
-                                  pd->dot_coordsKp_E[1], 2, 2),
+        if (redraw) {
+            redraw = 0;
+            display::FillRect(rect_ui16(dot_coordsKp_E[0],
+                                  dot_coordsKp_E[1], 2, 2),
                 COLOR_WHITE);
-            display::FillRect(rect_ui16(pd->dot_coordsKi_E[0],
-                                  pd->dot_coordsKi_E[1], 2, 2),
+            display::FillRect(rect_ui16(dot_coordsKi_E[0],
+                                  dot_coordsKi_E[1], 2, 2),
                 COLOR_WHITE);
-            display::FillRect(rect_ui16(pd->dot_coordsKd_E[0],
-                                  pd->dot_coordsKd_E[1], 2, 2),
+            display::FillRect(rect_ui16(dot_coordsKd_E[0],
+                                  dot_coordsKd_E[1], 2, 2),
                 COLOR_WHITE);
 
-            display::DrawText(pd->rect_E, _("NOZZLE"), resource_font(IDR_FNT_NORMAL),
+            display::DrawText(rect_E, _("NOZZLE"), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
             static const char kp[] = "Kp";
-            display::DrawText(pd->rectKp_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), resource_font(IDR_FNT_NORMAL),
+            display::DrawText(rectKp_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
             static const char ki[] = "Ki";
-            display::DrawText(pd->rectKi_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), resource_font(IDR_FNT_NORMAL),
+            display::DrawText(rectKi_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
             static const char kd[] = "Kd";
-            display::DrawText(pd->rectKd_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), resource_font(IDR_FNT_NORMAL),
+            display::DrawText(rectKd_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
 
-            display::FillRect(rect_ui16(pd->dot_coordsKp_B[0],
-                                  pd->dot_coordsKp_B[1], 2, 2),
+            display::FillRect(rect_ui16(dot_coordsKp_B[0],
+                                  dot_coordsKp_B[1], 2, 2),
                 COLOR_WHITE);
-            display::FillRect(rect_ui16(pd->dot_coordsKi_B[0],
-                                  pd->dot_coordsKi_B[1], 2, 2),
+            display::FillRect(rect_ui16(dot_coordsKi_B[0],
+                                  dot_coordsKi_B[1], 2, 2),
                 COLOR_WHITE);
-            display::FillRect(rect_ui16(pd->dot_coordsKd_B[0],
-                                  pd->dot_coordsKd_B[1], 2, 2),
+            display::FillRect(rect_ui16(dot_coordsKd_B[0],
+                                  dot_coordsKd_B[1], 2, 2),
                 COLOR_WHITE);
 
-            display::DrawText(pd->rect_B, _("BED"), resource_font(IDR_FNT_NORMAL),
+            display::DrawText(rect_B, _("BED"), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKp_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), resource_font(IDR_FNT_NORMAL),
+            display::DrawText(rectKp_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKi_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), resource_font(IDR_FNT_NORMAL),
+            display::DrawText(rectKi_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKd_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), resource_font(IDR_FNT_NORMAL),
+            display::DrawText(rectKd_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
         }
 
-        if (_PID_actualize(&(pd->_PID_E)) != 0) {
-            dispPID((pd->_PID_E), pd->spinKp_E, pd->spinKi_E, pd->spinKd_E,
+        if (_PID_actualize(&(_PID_E)) != 0) {
+            dispPID((_PID_E), spinKp_E, spinKi_E, spinKd_E,
                 SPIN_DIGITS, SPIN_PRECISION);
         }
-        if (_PID_actualize(&(pd->_PID_B)) != 0) {
-            dispPID((pd->_PID_B), pd->spinKp_B, pd->spinKi_B, pd->spinKd_B,
+        if (_PID_actualize(&(_PID_B)) != 0) {
+            dispPID((_PID_B), spinKp_B, spinKi_B, spinKd_B,
                 SPIN_DIGITS, SPIN_PRECISION);
         }
     }
@@ -596,23 +571,23 @@ void _PID_set(_PID_t *ths, float Kp, float Ki, float Kd) {
 bool __autotune(screen_t *screen, autotune_state_t *a_tn_st) {
     if ((*a_tn_st) != AT_idle)
         return 0;
-    pd->textExit.Disable();
-    pd->textExit.SetTextColor(AUTO_TN_ACTIVE_CL);
+    textExit.Disable();
+    textExit.SetTextColor(AUTO_TN_ACTIVE_CL);
     return 1;
 }
 
 void _autotune_B(screen_t *screen, autotune_state_t *a_tn_st) {
     if (__autotune(screen, a_tn_st)) {
-        _PID_autotune(&(pd->_PID_B));
-        pd->btAutoTuneApply_B.SetTextColor(AUTO_TN_ACTIVE_CL);
+        _PID_autotune(&(_PID_B));
+        btAutoTuneApply_B.SetTextColor(AUTO_TN_ACTIVE_CL);
         *a_tn_st = AT_extruder;
     }
 }
 
 void _autotune_E(screen_t *screen, autotune_state_t *a_tn_st) {
     if (__autotune(screen, a_tn_st)) {
-        _PID_autotune(&(pd->_PID_E));
-        pd->btAutoTuneApply_E.SetTextColor(AUTO_TN_ACTIVE_CL);
+        _PID_autotune(&(_PID_E));
+        btAutoTuneApply_E.SetTextColor(AUTO_TN_ACTIVE_CL);
         *a_tn_st = AT_bed;
     }
 }
@@ -712,4 +687,4 @@ void window_list_RW_item(window_list_t *pwindow_list, uint16_t index,
         *pptext = "Index ERROR";
     *pid_icon = 0;
 }
-#endif //PIDCALIBRATION
+#endif //#if 0
