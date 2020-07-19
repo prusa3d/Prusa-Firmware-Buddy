@@ -39,8 +39,8 @@ private:
     /// There's no need for trailing 0.
     uint16_t pos = 0;
     uint8_t error_ = 0;
-    float x_ = 0;
-    float y_ = 0;
+    float x_ = NAN;
+    float y_ = NAN;
 
     void updatePosOrError(const int chars, const uint8_t errorNum = 1) {
         if (chars < 0) {
@@ -48,6 +48,11 @@ private:
         } else {
             pos += chars;
         }
+    }
+
+    void addNewLineIfMissing() {
+        if (pos > 0 && !isFull() && code[pos - 1] != '\n')
+            code[pos++] = '\n';
     }
 
 public:
@@ -112,6 +117,7 @@ public:
         if (isError())
             return *this;
 
+        addNewLineIfMissing();
         const int chars = snprintf(&code[pos], bufferSize - pos, "G%d", value);
 
         if (chars < 0) {
@@ -131,6 +137,7 @@ public:
         if (isError())
             return *this;
 
+        addNewLineIfMissing();
         const int chars = snprintf(&code[pos], bufferSize - pos, "M%d", value);
 
         if (chars < 0) {
@@ -174,6 +181,7 @@ public:
 
         int chars = 0;
         if (isfinite(x)) {
+            x_ = x;
             chars = snprintf(&code[pos], bufferSize - pos, " X%f", (double)x);
             if (chars < 0) {
                 error_ = 3;
@@ -183,6 +191,7 @@ public:
         }
 
         if (isfinite(y)) {
+            y_ = y;
             chars = snprintf(&code[pos], bufferSize - pos, " Y%f", (double)y);
             if (chars < 0) {
                 error_ = 3;
@@ -252,10 +261,19 @@ public:
     }
 
     /// Extrude from the last point to the specified one
-    /// Extrusion use pre-defined height and width
+    /// Extrusion uses pre-defined height and width
     gCode ex(const float x, const float y) {
+        if (!isfinite(x_) || !isfinite(y_))
+            return;
         const float length = sqrt(SQR(x - x_) + SQR(y - y_));
         G1(x, y, length * extrudeCoef);
+    }
+
+    /// Set the last point of extrusion
+    /// Does not add anything to the G codes
+    gCode lastExtrusion(const float x, const float y) {
+        x_ = x;
+        y_ = y;
     }
 };
 
@@ -285,8 +303,145 @@ void heatNozzle(gCode &gc, const uint16_t nozzle_target) {
     // clang-format on
 }
 
-//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
+void firstLayer01(gCode &gc) {
+    gc.G1(NAN, NAN, 4, NAN, 1000)
+        // "G1 Z4 F1000",
+        .G1(0, -2, 0.2, NAN, 3000)
+        // "G1 X0 Y-2 Z0.2 F3000.0",
+        .G1(NAN, NAN, NAN, 6, 2000)
+        // "G1 E6 F2000",
+        .G1(60, NAN, NAN, 9, 1000)
+        // "G1 X60 E9 F1000.0",
+        .G1(100, NAN, NAN, 12.5, 1000)
+        // "G1 X100 E12.5 F1000.0",
+        .G1(NAN, NAN, 2, -6, 2100);
+    // "G1 Z2 E-6 F2100.00000",
+}
 
+void firstLayer02(gCode &gc) {
+    gc.G1(10, 150, 0.2, NAN, 3000)
+        // "G1 X10 Y150 Z0.2 F3000",
+        .G1(NAN, NAN, NAN, 6, 2000)
+        // "G1 E6 F2000"
+        .G1(NAN, NAN, NAN, NAN, 1000);
+    // "G1 F1000",
+}
+
+void firstLayer03(gCode &gc) {
+    // //E = extrusion_length * layer_height * extrusion_width / (PI * pow(1.75, 2) / 4)
+    gc.lastExtrusion(10, 150)
+        .ex(170, 150)
+        // "G1 X170 Y150 E5.322", //160 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 5.322
+        .ex(170, 130)
+        // "G1 X170 Y130 E0.665", //20 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 0.665
+        .ex(10, 130)
+        // "G1 X10  Y130 E5.322",
+        .ex(10, 110)
+        // "G1 X10  Y110 E0.665",
+        .ex(170, 110)
+        // "G1 X170 Y110 E5.322",
+        .ex(170, 90);
+    // "G1 X170 Y90  E0.665",
+}
+
+void firstLayer04(gCode &gc) {
+
+    // "G1 X10  Y90  E5.322",
+    // "G1 X10  Y70  E0.665",
+    // "G1 X170 Y70  E5.322",
+    // "G1 X170 Y50  E0.665",
+    // "G1 X10  Y50  E5.322",
+}
+void firstLayer05(gCode &gc) {
+    // //frame around
+    // "G1 X10    Y17    E1.371975",  //33 * 0.041575 = 1.371975
+    // "G1 X31    Y17    E1.288825",  //31 * 0.041575 = 1.288825
+    // "G1 X31    Y30.5  E0.5612625", //13.5 * 0.041575 = 0.5612625
+    // "G1 X10.5  Y30.5  E0.832",     //20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
+    // "G1 X10.5  Y30.0  E0.0208",    //0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
+}
+void firstLayer06(gCode &gc) {
+    // "G1 F1000",
+    // "G1 X30.5  Y30.0  E0.832",
+    // "G1 X30.5  Y29.5  E0.0208",
+    // "G1 X10.5  Y29.5  E0.832",
+    // "G1 X10.5  Y29.0  E0.0208",
+    // "G1 X30.5  Y29.0  E0.832",
+}
+void firstLayer07(gCode &gc) {
+    // "G1 X30.5  Y28.5  E0.0208",
+    // "G1 X10.5  Y28.5  E0.832",
+    // "G1 X10.5  Y28.0  E0.0208",
+    // "G1 X30.5  Y28.0  E0.832",
+    // "G1 X30.5  Y27.5  E0.0208",
+    // "G1 X10.5  Y27.5  E0.832",
+}
+void firstLayer08(gCode &gc) {
+    // "G1 X10.5  Y27.0  E0.0208",
+    // "G1 X30.5  Y27.0  E0.832",
+    // "G1 X30.5  Y26.5  E0.0208",
+    // "G1 X10.5  Y26.5  E0.832",
+    // "G1 X10.5  Y26.0  E0.0208",
+    // "G1 X30.5  Y26.0  E0.832",
+}
+void firstLayer09(gCode &gc) {
+    // "G1 X30.5  Y25.5  E0.0208",
+    // "G1 X10.5  Y25.5  E0.832",
+    // "G1 X10.5  Y25.0  E0.0208",
+    // "G1 X30.5  Y25.0  E0.832",
+    // "G1 X30.5  Y24.5  E0.0208",
+    // "G1 X10.5  Y24.5  E0.832",
+}
+void firstLayer10(gCode &gc) {
+    // "G1 X10.5  Y24.0  E0.0208",
+    // "G1 X30.5  Y24.0  E0.832",
+    // "G1 X30.5  Y23.5  E0.0208",
+    // "G1 X10.5  Y23.5  E0.832",
+    // "G1 X10.5  Y23.0  E0.0208",
+    // "G1 X30.5  Y23.0  E0.832",
+}
+void firstLayer11(gCode &gc) {
+    // "G1 X30.5  Y22.5  E0.0208",
+    // "G1 X10.5  Y22.5  E0.832",
+    // "G1 X10.5  Y22.0  E0.0208",
+    // "G1 X30.5  Y22.0  E0.832",
+    // "G1 X30.5  Y21.5  E0.0208",
+    // "G1 X10.5  Y21.5  E0.832",
+}
+void firstLayer12(gCode &gc) {
+    // "G1 X10.5  Y21.0  E0.0208",
+    // "G1 X30.5  Y21.0  E0.832",
+    // "G1 X30.5  Y20.5  E0.0208",
+    // "G1 X10.5  Y20.5  E0.832",
+    // "G1 X10.5  Y20.0  E0.0208",
+    // "G1 X30.5  Y20.0  E0.832",
+}
+void firstLayer13(gCode &gc) {
+    // "G1 X30.5  Y19.5  E0.0208",
+    // "G1 X10.5  Y19.5  E0.832",
+    // "G1 X10.5  Y19.0  E0.0208",
+    // "G1 X30.5  Y19.0  E0.832",
+    // "G1 X30.5  Y18.5  E0.0208",
+    // "G1 X10.5  Y18.5  E0.832",
+}
+void firstLayer14(gCode &gc) {
+    // "G1 X10.5  Y18.0  E0.0208",
+    // "G1 X30.5  Y18.0  E0.832",
+    // "G1 X30.5  Y17.5  E0.0208",
+
+    // "G1 Z2 E-6 F2100",
+    // "G1 X178 Y0 Z10 F3000",
+
+    // "G4",
+}
+void firstLayer15(gCode &gc) {
+    // "M107",
+    // "M104 S0", // turn off temperature
+    // "M140 S0", // turn off heatbed
+    // "M84"      // disable motors
+}
+
+//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
 //todo generate me
 const char *V2_gcodes_body[] = {
     "G1 Z4 F1000",
