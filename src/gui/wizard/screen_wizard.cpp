@@ -28,7 +28,7 @@ static _TEST_STATE_t init_state(wizard_state_t st) {
 }
 
 void screen_wizard_init(screen_t *screen) {
-    marlin_set_print_speed(100);
+    /*   marlin_set_print_speed(100);
     pd->state = _STATE_START;
 
     int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
@@ -66,13 +66,13 @@ void screen_wizard_init(screen_t *screen) {
     pd->flags = 0;
 
     //backup PID
-    /*pd->Kp_bed = get_Kp_Bed();
-	pd->Ki_bed = get_Ki_Bed();
-	pd->Kd_bed = get_Kd_Bed();
-	pd->Kp_noz = get_Kp_Noz();
-	pd->Ki_noz = get_Ki_Noz();
-	pd->Kd_noz = get_Kd_Noz();*/
-    marlin_set_exclusive_mode(1);
+    //pd->Kp_bed = get_Kp_Bed();
+	//pd->Ki_bed = get_Ki_Bed();
+	//pd->Kd_bed = get_Kd_Bed();
+	//pd->Kp_noz = get_Kp_Noz();
+	//pd->Ki_noz = get_Ki_Noz();
+	//pd->Kd_noz = get_Kd_Noz();
+    marlin_set_exclusive_mode(1);*/
 }
 
 void screen_wizard_done(screen_t *screen) {
