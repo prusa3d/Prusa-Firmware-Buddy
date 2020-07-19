@@ -9,8 +9,6 @@
 //window class identifiers
 #define WINDOW_CLS_FRAME 0 // FRAME - basic container class
 #define WINDOW_CLS_TEXT  1 // TEXT - aligned singlecolor text
-#define WINDOW_CLS_NUMB  2 // NUMB - aligned singlecolor formated number
-#define WINDOW_CLS_ICON  3 // ICON - small image with left-top offset
 
 //window events
 #define WINDOW_EVENT_BTN_DN   0x01 //button down
