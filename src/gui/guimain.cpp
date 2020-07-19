@@ -16,7 +16,7 @@
     #include "window_dlg_popup.hpp"
 #endif //_DEBUG
 #include "window_dlg_preheat.hpp"
-#include "screen_print_preview.h"
+#include "screen_print_preview.hpp"
 
 #include "screen_lan_settings.h"
 #include "screen_menu_fw_update.h"

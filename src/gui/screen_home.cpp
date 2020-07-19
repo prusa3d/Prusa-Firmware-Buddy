@@ -6,7 +6,7 @@
 #include "config.h"
 
 #include "marlin_client.h"
-#include "screen_print_preview.h"
+#include "screen_print_preview.hpp"
 #include "print_utils.h"
 
 #include "ScreenHandler.hpp"

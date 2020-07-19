@@ -6,7 +6,7 @@
 #include "usb_host.h"
 #include "cmsis_os.h"
 #include "marlin_client.h"
-#include "screen_print_preview.h"
+#include "screen_print_preview.hpp"
 #include "print_utils.h"
 
 #include "../Marlin/src/gcode/queue.h"
