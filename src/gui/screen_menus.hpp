@@ -4,3 +4,4 @@
 
 ScreenFactory::UniquePtr GetScreenMenuInfo();
 ScreenFactory::UniquePtr GetScreenMenuSettings();
+ScreenFactory::UniquePtr GetScreenMenuPreheat();

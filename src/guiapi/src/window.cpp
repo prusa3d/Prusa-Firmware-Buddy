@@ -125,6 +125,10 @@ window_t::window_t(window_t *parent, rect_ui16_t rect)
 }
 
 window_t::~window_t() {
+    if (GetFocusedWindow() == this)
+        focused_ptr = nullptr;
+    if (GetCapturedWindow() == this)
+        capture_ptr = nullptr;
 }
 
 void window_t::SetNext(window_t *nxt) {

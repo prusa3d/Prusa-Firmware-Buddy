@@ -159,7 +159,7 @@ int screen_home_data_t::event(window_t *sender, uint8_t event, void *param) {
         //screen_open(get_scr_filebrowser()->id);
         return 1;
     case BUTTON_PREHEAT + 1:
-        //screen_open(get_scr_menu_preheat()->id);
+        Screens::Access()->Open(GetScreenMenuPreheat);
         return 1;
     case BUTTON_FILAMENT + 1:
         //screen_open(get_scr_menu_filament()->id);

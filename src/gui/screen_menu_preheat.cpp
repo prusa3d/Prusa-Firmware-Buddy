@@ -1,3 +1,4 @@
+#include "screen_menus.hpp"
 #include "screen_menu.hpp"
 #include "filament.h"
 #include "marlin_client.h"
@@ -38,7 +39,13 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
     MI_Filament<FILAMENT_PP>,
     MI_Filament<FILAMENT_NONE>>;
 
-/*static void init(screen_t *screen) {
+class ScreenMenuPreheat : public Screen {
+public:
     constexpr static const char *label = N_("PREHEAT");
-    Screen::Create(screen, _(label));
-}*/
+    ScreenMenuPreheat()
+        : Screen(_(label)) {}
+};
+
+ScreenFactory::UniquePtr GetScreenMenuPreheat() {
+    return ScreenFactory::Screen<ScreenMenuPreheat>();
+}
