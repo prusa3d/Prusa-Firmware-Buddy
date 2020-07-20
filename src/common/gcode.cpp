@@ -261,4 +261,12 @@ public:
     const std::array<char, bufferSize> &read() {
         return code;
     }
+
+    const char *const readChars() {
+        if (pos == 0)
+            return nullptr;
+
+        code[std::min((size_t)pos, sizeof(code))] = '\0'; /// ensure ending \0
+        return code.data();
+    }
 };

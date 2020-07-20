@@ -14,6 +14,6 @@ TEST_CASE("G code class", "[gcode]") {
     SECTION("write string") {
         const char text[] = "abcde";
         gc.write(text);
-        REQUIRE_THAT(gc.read(), Equals(text));
+        REQUIRE_THAT(gc.readChars(), Equals(text));
     }
 }
