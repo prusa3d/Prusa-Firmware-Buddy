@@ -85,13 +85,13 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 class ScreenMenuSettings : public parent {
 public:
     constexpr static const char *label = N_("SETTINGS");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    //static void Init(screen_t *screen);
+    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
 
 /*****************************************************************************/
 //static member method definition
-void ScreenMenuSettings::Init(screen_t *screen) {
+/*void ScreenMenuSettings::Init(screen_t *screen) {
     Create(screen, _(label));
 }
 
@@ -103,3 +103,4 @@ int ScreenMenuSettings::CEvent(screen_t *screen, window_t *window, uint8_t event
 
     ths->Event(window, event, param);
 }
+*/

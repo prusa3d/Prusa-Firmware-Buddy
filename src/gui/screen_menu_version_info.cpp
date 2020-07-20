@@ -28,12 +28,12 @@ class ScreenMenuVersionInfo : public parent {
 public:
     std::array<char, VERSION_INFO_STR_MAXLEN> version_info_str;
     constexpr static const char *label = N_("VERSION INFO");
-    static void Init(screen_t *screen);
+    //static void Init(screen_t *screen);
 };
 
 /*****************************************************************************/
 //static member method definition
-void ScreenMenuVersionInfo::Init(screen_t *screen) {
+/*void ScreenMenuVersionInfo::Init(screen_t *screen) {
     //=============SCREEN INIT===============
     Create(screen, _(label));
     ScreenMenuVersionInfo *const ths = reinterpret_cast<ScreenMenuVersionInfo *>(screen->pdata);
@@ -85,3 +85,4 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
     ths->help.SetText(string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
 }
+*/

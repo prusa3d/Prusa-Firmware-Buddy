@@ -58,10 +58,10 @@ public:
     }
 
     //C code binding
-    static void Create(screen_t *screen, string_view_utf8 label = no_label) {
+    /* static void Create(screen_t *screen, string_view_utf8 label = no_label) {
         auto *ths = reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_CNF, T...> *>(screen->pdata);
         ::new (ths) ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>(label);
-    }
+    }*/
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>

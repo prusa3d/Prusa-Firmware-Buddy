@@ -44,13 +44,13 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETUR
 class ScreenMenuFwUpdate : public parent {
 public:
     constexpr static const char *const label = N_("FW UPDATE");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    //static void Init(screen_t *screen);
+    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
 
 /*****************************************************************************/
 //static member method definition
-void ScreenMenuFwUpdate::Init(screen_t *screen) {
+/*void ScreenMenuFwUpdate::Init(screen_t *screen) {
     Create(screen, _(label));
     auto *ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
     ths->help.font = resource_font(IDR_FNT_SPECIAL);
@@ -72,3 +72,4 @@ int ScreenMenuFwUpdate::CEvent(screen_t *screen, window_t *window, uint8_t event
 
     ths->Event(window, event, param);
 }
+*/

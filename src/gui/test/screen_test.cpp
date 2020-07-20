@@ -90,7 +90,7 @@ static volatile void recursive(uint64_t i) {
         recursive(x);
 }
 
-int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
+int screen_test_data_t::event(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case STI_back:

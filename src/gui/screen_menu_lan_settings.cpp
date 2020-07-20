@@ -260,8 +260,8 @@ class ScreenMenuLanSettings : public parent {
 
 public:
     constexpr static const char *label = N_("LAN SETTINGS");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    //static void Init(screen_t *screen);
+    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
 
 /*****************************************************************************/
@@ -307,7 +307,7 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 
 /*****************************************************************************/
 //static member function definition
-void ScreenMenuLanSettings::Init(screen_t *screen) {
+/*void ScreenMenuLanSettings::Init(screen_t *screen) {
     Create(screen, _(label));
     Eth::Init();
 
@@ -333,3 +333,4 @@ int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t ev
 
     ths->Event(window, event, param);
 }
+*/

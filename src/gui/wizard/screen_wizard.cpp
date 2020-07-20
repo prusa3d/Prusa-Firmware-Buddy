@@ -26,9 +26,9 @@ static _TEST_STATE_t init_state(wizard_state_t st) {
         return _TEST_PASSED;
     }
 }
-
+#if 0
 void screen_wizard_init(screen_t *screen) {
-    /*   marlin_set_print_speed(100);
+    marlin_set_print_speed(100);
     pd->state = _STATE_START;
 
     int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
@@ -72,7 +72,7 @@ void screen_wizard_init(screen_t *screen) {
 	//pd->Kp_noz = get_Kp_Noz();
 	//pd->Ki_noz = get_Ki_Noz();
 	//pd->Kd_noz = get_Kd_Noz();
-    marlin_set_exclusive_mode(1);*/
+    marlin_set_exclusive_mode(1);
 }
 
 void screen_wizard_done(screen_t *screen) {
@@ -134,25 +134,25 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 pd->state = wizard_state_t(int(pd->state) + 1); //skip disabled steps
             switch (pd->state) {
             case _STATE_START: {
-#ifndef _DEBUG
+    #ifndef _DEBUG
                 if (wizard_msgbox(
-#else
+    #else
                 const char *btns[3] = { "SetDone", "YES", "NO" }; // intentionally not translated, this is a debug code path
                 switch (wizard_msgbox_btns(
-#endif
+    #endif
                         _("Welcome to the     \n"
                           "Original Prusa MINI\n"
                           "setup wizard.      \n"
                           "Would you like to  \n"
                           "continue?           "),
-#ifndef _DEBUG
+    #ifndef _DEBUG
                         MSGBOX_BTN_YESNO, IDR_PNG_icon_pepa)
                     == MSGBOX_RES_YES) {
                     pd->state = _STATE_INIT;
                     pd->frame_footer.Show();
                 } else
                     screen_close();
-#else
+    #else
                     MSGBOX_BTN_CUSTOM3, IDR_PNG_icon_pepa, btns)) {
                 case MSGBOX_RES_CUSTOM0:
                     eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
@@ -168,7 +168,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 default:
                     screen_close();
                 }
-#endif
+    #endif
                 break;
             }
             case _STATE_INIT:
@@ -567,3 +567,4 @@ void wizard_done_screen(screen_t *screen) {
     //window_destroy_children(pd->frame_body.id);
     pd->frame_body.Invalidate();
 }
+#endif //#if 0

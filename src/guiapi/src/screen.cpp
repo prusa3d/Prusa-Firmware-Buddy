@@ -1,15 +1,15 @@
 // screen.c
+#if 0
+    #include "screen.h"
+    #include "gui.hpp"
+    #include "bsod.h"
+    #include "ScreenHandler.hpp"
 
-#include "screen.h"
-#include "gui.hpp"
-#include "bsod.h"
-#include "ScreenHandler.hpp"
-
-#define SCREEN_MAX_SCREENS 48
+    #define SCREEN_MAX_SCREENS 48
 
 // potential dependency of SCREEN_MAX_HISTORY and SCREEN_MAX_SCREENS is unclear
 // but yet these two defines were kept in sync (same values)
-#define SCREEN_MAX_HISTORY 48
+    #define SCREEN_MAX_HISTORY 48
 
 screen_t *screen_0 = 0; //current screen
 
@@ -41,21 +41,21 @@ int16_t screen_register(screen_t *pscreen) {
 }
 
 void screen_stack_push(int16_t screen_id) {
-    /*    screen_t *pscreen;
+    screen_t *pscreen;
     if (screen_stack_count < SCREEN_MAX_HISTORY)
         if ((screen_id >= 0) && (screen_id < SCREEN_MAX_SCREENS) && ((pscreen = screens[screen_id]) != 0))
-            screen_stack[screen_stack_count++] = screen_id;*/
+            screen_stack[screen_stack_count++] = screen_id;
 }
 
 int16_t screen_stack_pop(void) {
-    /*  int16_t screen_id = -1;
+    int16_t screen_id = -1;
     if (screen_stack_count > 0)
         screen_id = screen_stack[--screen_stack_count];
-    return screen_id;*/
+    return screen_id;
 }
 
 void screen_open(int16_t screen_id) {
-    /*   if (screen_0) {
+    if (screen_0) {
         screen_stack_push(screen_0->id);
         screen_0->done(screen_0);
         if (screen_0->pdata && screen_0->data_size) {
@@ -70,11 +70,11 @@ void screen_open(int16_t screen_id) {
         screen_0->init(screen_0);
         if (window_ptr(0))
             window_ptr(0)->SetCapture();
-    }*/
+    }
 }
 
 void screen_close(void) {
-    /*   if (screen_0) {
+    if (screen_0) {
         screen_0->done(screen_0);
         if (screen_0->pdata && screen_0->data_size) {
             gui_free(screen_0->pdata);
@@ -89,14 +89,14 @@ void screen_close(void) {
         screen_0->init(screen_0);
         if (window_ptr(0))
             window_ptr(0)->SetCapture();
-    }*/
+    }
 }
 
 void screen_draw(void) {
     if (screen_0 && screen_0->draw)
         screen_0->draw(screen_0);
 }
-/*
+
 void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
     int ret = 0;
     if (screen_0 && screen_0->event) {
@@ -107,7 +107,8 @@ void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
     if ((ret == 0) && window && window->event)
         window->DispatchEvent(window, event, param);
 }
-*/
+
 screen_t *screen_get_curr(void) {
     return screen_0;
 }
+#endif //#if 0

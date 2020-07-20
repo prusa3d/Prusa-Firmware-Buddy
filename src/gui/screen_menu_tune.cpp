@@ -19,13 +19,13 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 class ScreenMenuTune : public parent {
 public:
     constexpr static const char *label = N_("TUNE");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    //static void Init(screen_t *screen);
+    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
 
 /*****************************************************************************/
 //static member method definition
-void ScreenMenuTune::Init(screen_t *screen) {
+/*void ScreenMenuTune::Init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
     Create(screen, _(label));
 }
@@ -42,3 +42,4 @@ int ScreenMenuTune::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
 
     ths->Event(window, event, param);
 }
+*/

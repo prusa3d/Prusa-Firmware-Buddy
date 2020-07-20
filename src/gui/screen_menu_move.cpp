@@ -40,13 +40,13 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 class ScreenMenuMove : public parent {
 public:
     constexpr static const char *label = N_("Settings");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    //static void Init(screen_t *screen);
+    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
 
 /*****************************************************************************/
 //static member method definition
-void ScreenMenuMove::Init(screen_t *screen) {
+/*void ScreenMenuMove::Init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK_POS_XYZE | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ));
     Create(screen, _(label));
 }
@@ -65,3 +65,4 @@ int ScreenMenuMove::CEvent(screen_t *screen, window_t *window, uint8_t event, vo
 
     ths->Event(window, event, param);
 }
+*/
