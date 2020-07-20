@@ -2,6 +2,7 @@
 #include "window_list.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
+#include "../lang/i18n.h"
 
 const char items[11][6] = {
     "item0",
@@ -88,8 +89,7 @@ void window_list_draw(window_list_t *window) {
             }
 
             // render
-            // this MakeRAM is safe - render_text finishes its work and the local string label[] is then no longer needed
-            render_text_align(rc, string_view_utf8::MakeRAM((const uint8_t *)label), window->font,
+            render_text_align(rc, _(label), window->font,
                 color_back, color_text,
                 padding, window->alignment);
         }
