@@ -293,4 +293,6 @@ status_footer_t::status_footer_t(window_t *parent)
     update_z_axis();
     repaint_nozzle();
     repaint_heatbed();
+
+    Disable();
 }

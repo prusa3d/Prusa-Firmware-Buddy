@@ -144,6 +144,7 @@ window_header_t::window_header_t(window_t *parent)
     marlin_vars()->media_inserted ? USB_Activate() : USB_On();
 
     update_ETH_icon();
+    Disable();
 }
 
 void window_header_t::USB_Off() { icon_usb.Hide(); }

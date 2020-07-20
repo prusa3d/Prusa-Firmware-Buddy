@@ -115,7 +115,7 @@ window_t::window_t(window_t *parent, rect_ui16_t rect)
     , next(nullptr)
     , color_back(gui_defaults.color_back)
     , rect(rect) {
-    Enable();
+    Disable();
     Show();
     Invalidate();
     if (parent)
