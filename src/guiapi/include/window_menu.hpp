@@ -24,4 +24,5 @@ public:
 
 protected:
     virtual void unconditionalDraw() override;
+    virtual int event(window_t *sender, uint8_t event, void *param) override;
 };

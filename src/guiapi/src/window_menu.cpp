@@ -103,28 +103,28 @@ void window_menu_t::Increment(int dif) {
 //I think I do not need
 //screen_dispatch_event
 //callback should handle it
-void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
-    IWindowMenuItem *const item = window->GetActiveItem();
+int window_menu_t::event(window_t *sender, uint8_t event, void *param) {
+    IWindowMenuItem *const item = GetActiveItem();
     const int value = int(param);
     bool invalid = false;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
 
-        item->Click(*window);
-        //window->Invalidate(); //called inside click
+        item->Click(*this);
+        //Invalidate(); //called inside click
         break;
     case WINDOW_EVENT_ENC_DN:
         if (item->IsSelected()) {
             invalid |= item->Decrement(value);
         } else {
-            window->Decrement(value);
+            Decrement(value);
         }
         break;
     case WINDOW_EVENT_ENC_UP:
         if (item->IsSelected()) {
             invalid |= item->Increment(value);
         } else {
-            window->Increment(value);
+            Increment(value);
         }
         break;
     case WINDOW_EVENT_CAPT_1:
@@ -132,12 +132,12 @@ void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
         break;
     case WINDOW_EVENT_TIMER:
         if (!item->RollNeedInit()) {
-            item->Roll(*window); //warning it is accessing gui timer
+            item->Roll(*this); //warning it is accessing gui timer
         }
         break;
     }
     if (invalid)
-        window->Invalidate();
+        Invalidate();
 }
 
 void window_menu_t::unconditionalDraw() {
@@ -160,11 +160,11 @@ void window_menu_t::unconditionalDraw() {
             rc_win.w, uint16_t(item_height) };
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            /*if (item->RollNeedInit()) {
+            if (item->RollNeedInit()) {
                 gui_timer_restart_txtroll(id);
                 gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, id);
                 item->RollInit(*this, rc);
-            }*/
+            }
             item->Print(*this, rc);
         }
     }
