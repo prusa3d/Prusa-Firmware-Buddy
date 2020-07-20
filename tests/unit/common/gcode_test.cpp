@@ -4,11 +4,9 @@
 #include "catch2/catch.hpp"
 using Catch::Matchers::Equals;
 
-#include "firstlay.cpp"
-#include "firstlay.h"
+#define STM32F407xx
 
-#define n255 255
-#define n511 511
+#include "gcode.cpp"
 
 TEST_CASE("G code class", "[gcode]") {
     gCode gc;
