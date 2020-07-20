@@ -1,1 +1,1 @@
-#add_subdirectory(lazyfilelist)
+add_subdirectory(lazyfilelist)

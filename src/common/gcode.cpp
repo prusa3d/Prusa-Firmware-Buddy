@@ -41,7 +41,7 @@ private:
 
     void addNewLineIfMissing() {
         if (pos > 0 && !isFull() && code[pos - 1] != '\n')
-            code[pos++] = '\n';
+            newLine();
     }
 
 public:
@@ -86,7 +86,7 @@ public:
         if (isError())
             return *this;
 
-        const int chars = snprintf(&code[pos], bufferSize - pos, "%f", (double)value);
+        const int chars = snprintf(&code[pos], bufferSize - pos, "%g", (double)value);
         updatePosOrError(chars);
         return *this;
     }
@@ -208,9 +208,6 @@ public:
             pos += chars;
         }
 
-        chars = snprintf(&code[pos], bufferSize - pos, "\n");
-        updatePosOrError(chars, 3);
-
         return *this;
     }
 
@@ -248,6 +245,7 @@ public:
             return *this;
         const float length = sqrt(SQR(x - x_) + SQR(y - y_));
         G1(x, y, length * extrudeCoef);
+        return *this;
     }
 
     /// Set the last point of extrusion
