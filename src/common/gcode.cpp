@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include "cmath_ext.h"
+#include "marlin_client.h"
 
 constexpr uint16_t bufferSize = 1024;
 
@@ -251,9 +252,10 @@ public:
 
     /// Set the last point of extrusion
     /// Does not add anything to the G codes
-    gCode lastExtrusion(const float x, const float y) {
+    gCode &lastExtrusion(const float x, const float y) {
         x_ = x;
         y_ = y;
+        return *this;
     }
 
     const std::array<char, bufferSize> &read() {
