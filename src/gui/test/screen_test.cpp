@@ -1,27 +1,10 @@
 // screen_test.cpp
 
-#include "gui.hpp"
+#include "screen_test.hpp"
 #include "config.h"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
-
-struct screen_test_data_t : public window_frame_t {
-    window_text_t tst;
-    window_text_t back;
-    window_text_t tst_gui;
-    window_text_t tst_term;
-    window_text_t tst_msgbox;
-    window_text_t tst_graph;
-    window_text_t tst_temperature;
-    window_text_t tst_heat_err;
-    window_text_t tst_disp_memory;
-    window_text_t tst_stack_overflow;
-    int8_t id_tim;
-    int8_t id_tim1;
-};
-
-#define pd ((screen_test_data_t *)screen->pdata)
 
 typedef enum {
     STI_back = 1,
@@ -35,87 +18,68 @@ typedef enum {
     STI_tst_stack_overflow
 } STI_tag_t;
 
-void screen_test_init(screen_t *screen) {
-    int16_t y = 32;
-
-    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
-
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst));
+screen_test_data_t::screen_test_data_t()
+    : window_frame_t(&test)
+    , test(this, rect_ui16(10, 32, 220, 22))
+    , back(this, rect_ui16(10, 54, 220, 22))
+    , tst_gui(this, rect_ui16(10, 76, 220, 22))
+    , tst_term(this, rect_ui16(10, 98, 220, 22))
+    , tst_msgbox(this, rect_ui16(10, 120, 220, 22))
+    , tst_graph(this, rect_ui16(10, 142, 220, 22))
+    , tst_temperature(this, rect_ui16(10, 164, 220, 22))
+    , tst_heat_err(this, rect_ui16(10, 186, 220, 22))
+    , tst_disp_memory(this, rect_ui16(10, 208, 220, 22))
+    , tst_stack_overflow(this, rect_ui16(10, 230, 220, 22))
+    , id_tim(gui_timer_create_oneshot(2000, 0))  //id0
+    , id_tim1(gui_timer_create_oneshot(2000, 0)) //id0
+{
     static const char tst[] = "TEST";
-    pd->tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
-    y += 22;
+    test.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->back));
     static const char bck[] = "back";
-    pd->back.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));
-    pd->back.Enable();
-    pd->back.SetTag(STI_back);
-    y += 22;
+    back.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));
+    back.Enable();
+    back.SetTag(STI_back);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_gui));
     static const char tstg[] = "test GUI";
-    pd->tst_gui.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstg));
-    pd->tst_gui.Enable();
-    pd->tst_gui.SetTag(STI_tst_gui);
-    y += 22;
+    tst_gui.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstg));
+    tst_gui.Enable();
+    tst_gui.SetTag(STI_tst_gui);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_term));
     static const char tstt[] = "test TERM";
-    pd->tst_term.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstt));
-    pd->tst_term.Enable();
-    pd->tst_term.SetTag(STI_tst_term);
-    y += 22;
+    tst_term.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstt));
+    tst_term.Enable();
+    tst_term.SetTag(STI_tst_term);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_msgbox));
     static const char tstm[] = "test MSGBOX";
-    pd->tst_msgbox.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstm));
-    pd->tst_msgbox.Enable();
-    pd->tst_msgbox.SetTag(STI_tst_msgbox);
-    y += 22;
+    tst_msgbox.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstm));
+    tst_msgbox.Enable();
+    tst_msgbox.SetTag(STI_tst_msgbox);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_graph));
     static const char tmpg[] = "temp graph";
-    pd->tst_graph.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tmpg));
-    pd->tst_graph.Enable();
-    pd->tst_graph.SetTag(STI_tst_graph);
-    y += 22;
+    tst_graph.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tmpg));
+    tst_graph.Enable();
+    tst_graph.SetTag(STI_tst_graph);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_temperature));
     static const char tmpp[] = "temp - pwm";
-    pd->tst_temperature.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tmpp));
-    pd->tst_temperature.Enable();
-    pd->tst_temperature.SetTag(STI_tst_temperature);
-    y += 22;
+    tst_temperature.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tmpp));
+    tst_temperature.Enable();
+    tst_temperature.SetTag(STI_tst_temperature);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_heat_err));
     static const char he[] = "HEAT ERROR";
-    pd->tst_heat_err.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)he));
-    pd->tst_heat_err.Enable();
-    pd->tst_heat_err.SetTag(STI_tst_heat_err);
-    y += 22;
+    tst_heat_err.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)he));
+    tst_heat_err.Enable();
+    tst_heat_err.SetTag(STI_tst_heat_err);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_disp_memory));
     static const char drw[] = "Disp. R/W";
-    pd->tst_disp_memory.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)drw));
-    pd->tst_disp_memory.Enable();
-    pd->tst_disp_memory.SetTag(STI_tst_disp_memory);
-    y += 22;
+    tst_disp_memory.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)drw));
+    tst_disp_memory.Enable();
+    tst_disp_memory.SetTag(STI_tst_disp_memory);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(10, y, 220, 22), &(pd->tst_stack_overflow));
     static const char so[] = "Stack overflow";
-    pd->tst_stack_overflow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)so));
-    pd->tst_stack_overflow.Enable();
-    pd->tst_stack_overflow.SetTag(STI_tst_stack_overflow);
-
-    pd->id_tim = gui_timer_create_oneshot(2000, id0);
-    pd->id_tim1 = gui_timer_create_periodical(4000, id0);
-}
-
-void screen_test_done(screen_t *screen) {
-    window_destroy(pd->id);
-}
-
-void screen_test_draw(screen_t *screen) {
+    tst_stack_overflow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)so));
+    tst_stack_overflow.Enable();
+    tst_stack_overflow.SetTag(STI_tst_stack_overflow);
 }
 
 static volatile int _recursive = 1;
@@ -157,12 +121,12 @@ int screen_test_event(screen_t *screen, window_t *window, uint8_t event, void *p
             recursive(0);
             return 1;
         }
-    else if (event == WINDOW_EVENT_TIMER) {
-        if ((int)param == pd->id_tim)
+    /*else if (event == WINDOW_EVENT_TIMER) {
+        if ((int)param == id_tim)
             _dbg("tim0 %lu", HAL_GetTick());
-        else if ((int)param == pd->id_tim1)
+        else if ((int)param == id_tim1)
             _dbg("tim1 %lu", HAL_GetTick());
         return 1;
-    }
+    }*/
     return 0;
 }
