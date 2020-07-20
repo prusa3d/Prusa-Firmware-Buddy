@@ -81,7 +81,7 @@ void IWindowMenuItem::SetFocus() {
 
 rect_ui16_t IWindowMenuItem::getIconRect(IWindowMenu &window_menu, rect_ui16_t rect) {
     return { rect.x, rect.y,
-        window_menu.icon_rect.w, window_menu.icon_rect.h };
+        window_menu.icon_w, rect.h };
 }
 
 rect_ui16_t IWindowMenuItem::getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const {

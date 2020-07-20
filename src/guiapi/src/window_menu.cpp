@@ -6,16 +6,19 @@
 #include "IWindowMenuItem.hpp"
 
 IWindowMenu::IWindowMenu(window_t *first)
-    : window_frame_t(first, nullptr, gui_defaults.scr_body_sz) {
+    : window_frame_t(first, nullptr, gui_defaults.scr_body_sz)
+    , color_text(gui_defaults.color_text)
+    , color_disabled(gui_defaults.color_disabled)
+    , font(gui_defaults.font)
+    , padding { 6, 6, 6, 6 }
+    , icon_w(25)
+    , alignment(gui_defaults.alignment) {
 }
 
 window_menu_t::window_menu_t(window_t *first, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(first)
     , pContainer(pContainer) {
-    color_back = gui_defaults.color_back;
-    color_text = gui_defaults.color_text;
-    color_disabled = gui_defaults.color_disabled;
-    font = gui_defaults.font;
+    //color_back = gui_defaults.color_back;
     alignment = gui_defaults.alignment;
     setIndex(index);
     top_index = 0;
@@ -157,11 +160,11 @@ void window_menu_t::unconditionalDraw() {
             rc_win.w, uint16_t(item_height) };
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            if (item->RollNeedInit()) {
+            /*if (item->RollNeedInit()) {
                 gui_timer_restart_txtroll(id);
                 gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, id);
                 item->RollInit(*this, rc);
-            }
+            }*/
             item->Print(*this, rc);
         }
     }
