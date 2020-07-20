@@ -11,9 +11,10 @@
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_BABYSTEP, MI_AUTO_HOME, MI_MESH_BED,
     MI_SELFTEST, MI_CALIB_FIRST>;
-
+/*
 static void init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
     constexpr static const char *label = N_("CALIBRATION");
     Screen::Create(screen, _(label));
 }
+*/

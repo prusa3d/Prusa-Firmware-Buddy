@@ -110,14 +110,14 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 class ScreenMenuLanguages : public parent {
 public:
     constexpr static const char *label = N_("LANGUAGES");
-    static void Init(screen_t *screen);
+    //static void Init(screen_t *screen);
 };
 
 /*****************************************************************************/
 //static member method definition
-void ScreenMenuLanguages::Init(screen_t *screen) {
+/*void ScreenMenuLanguages::Init(screen_t *screen) {
     Create(screen, _(label));
-}
+}*/
 
 /*****************************************************************************/
 //parent alias
@@ -126,11 +126,11 @@ using parent_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI
 class ScreenMenuLanguagesNoRet : public parent_noReturn {
 public:
     constexpr static const char *label = N_("SELECT LANGUAGE");
-    static void Init(screen_t *screen);
+    //static void Init(screen_t *screen);
 };
 
 /*****************************************************************************/
 //static member method definition
-void ScreenMenuLanguagesNoRet::Init(screen_t *screen) {
+/*void ScreenMenuLanguagesNoRet::Init(screen_t *screen) {
     Create(screen, _(label));
-}
+}*/

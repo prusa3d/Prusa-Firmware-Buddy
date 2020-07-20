@@ -118,8 +118,8 @@ class ScreenMenuFilament : public parent {
 
 public:
     constexpr static const char *label = N_("FILAMENT");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    //static void Init(screen_t *screen);
+    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 
 private:
     void deactivate_item();
@@ -138,7 +138,7 @@ private:
 
 /*****************************************************************************/
 //static method definition
-void ScreenMenuFilament::Init(screen_t *screen) {
+/*void ScreenMenuFilament::Init(screen_t *screen) {
     Create(screen, _(label));
     reinterpret_cast<ScreenMenuFilament *>(screen->pdata)->deactivate_item();
 }
@@ -157,7 +157,7 @@ int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event
         ths->Event(window, event, param);
     }
     return 0;
-}
+}*/
 
 /*****************************************************************************/
 //non-static method definition

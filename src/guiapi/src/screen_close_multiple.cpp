@@ -3,10 +3,10 @@
 
 #include "screen_close_multiple.h"
 #include "gui.hpp"
-
+/*
 //I could not use functions to initialize those arrays in C
 static screen_t *const timeout_blacklist[] = {
-    /* get_scr_home(),
+    get_scr_home(),
     get_scr_printing(),
     get_scr_printing_serial(),
     get_scr_menu_tune(),
@@ -18,17 +18,17 @@ static screen_t *const timeout_blacklist[] = {
 #ifdef PIDCALIBRATION
         ,
     get_scr_PID()
-#endif //PIDCALIBRATION*/
+#endif //PIDCALIBRATION
 };
 
 static screen_t *const m876_blacklist[] = {
-    /*    get_scr_printing_serial(),
+    get_scr_printing_serial(),
     get_scr_home(),
     get_scr_menu_languages_noret()
 #ifdef PIDCALIBRATION
         ,
     get_scr_PID()
-#endif //PIDCALIBRATION*/
+#endif //PIDCALIBRATION
 };
 
 static int _current_in_list(screen_t *const *list, size_t sz) {
@@ -38,10 +38,10 @@ static int _current_in_list(screen_t *const *list, size_t sz) {
             return 1;
     return 0;
 }
-
+*/
 void screen_close_multiple(screen_close_multiple_t type) {
 
-    screen_t *const *unl_blacklist;
+    /*   screen_t *const *unl_blacklist;
     size_t sz;
 
     switch (type) {
@@ -59,5 +59,5 @@ void screen_close_multiple(screen_close_multiple_t type) {
 
     while (!_current_in_list(unl_blacklist, sz)) {
         screen_close();
-    }
+    }*/
 }

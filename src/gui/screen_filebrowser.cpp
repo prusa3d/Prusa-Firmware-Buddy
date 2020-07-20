@@ -71,9 +71,9 @@ static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
     vars->media_SFN_path[1] = 0;
     firstVisibleSFN[0] = 0; // clear the last top item
 }
-
+/*
 static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    /*    marlin_vars_t *vars = marlin_vars();
+    marlin_vars_t *vars = marlin_vars();
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
         screen_filebrowser_clear_firstVisibleSFN(vars);
         screen_close();
@@ -155,5 +155,6 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
         }
     }
 
-    return 0;*/
+    return 0;
 }
+*/
