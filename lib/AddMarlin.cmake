@@ -68,7 +68,6 @@ add_library(
   Marlin/Marlin/src/gcode/host/M110.cpp
   Marlin/Marlin/src/gcode/host/M113.cpp
   Marlin/Marlin/src/gcode/host/M114.cpp
-  Marlin/Marlin/src/gcode/host/M115.cpp
   Marlin/Marlin/src/gcode/host/M118.cpp
   Marlin/Marlin/src/gcode/host/M119.cpp
   Marlin/Marlin/src/gcode/host/M16.cpp
