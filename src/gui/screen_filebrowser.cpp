@@ -8,7 +8,7 @@
 #include "marlin_client.h"
 #include "screen_print_preview.hpp"
 #include "print_utils.h"
-
+#include "ScreenHandler.hpp"
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 
@@ -57,10 +57,10 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
 
 static void on_print_preview_action(print_preview_action_t action) {
     if (action == PRINT_PREVIEW_ACTION_BACK) {
-        screen_close(); // close the print preview
+        Screens::Access()->Close(); // close the print preview
     } else if (action == PRINT_PREVIEW_ACTION_PRINT) {
-        screen_close(); // close the print preview
-        screen_close(); // close the file browser
+        Screens::Access()->Close(); // close the print preview
+        Screens::Access()->Close(); // close the file browser
         print_begin(screen_print_preview_get_gcode_filepath());
         //screen_open(get_scr_printing()->id);
     }
@@ -76,7 +76,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
     marlin_vars_t *vars = marlin_vars();
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
         screen_filebrowser_clear_firstVisibleSFN(vars);
-        screen_close();
+        Screens::Access()->Close();
         return 1;
     }
 
@@ -96,7 +96,7 @@ static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t 
 
     if (!strcmp(currentSFN, dirUp) && window_file_list_path_is_root(filelist->sfn_path)) {
         screen_filebrowser_clear_firstVisibleSFN(vars);
-        screen_close();
+        Screens::Access()->Close();
         return 1;
     }
 

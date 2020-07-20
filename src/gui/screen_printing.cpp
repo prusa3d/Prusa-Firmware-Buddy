@@ -6,7 +6,7 @@
 #include "marlin_server.h"
 #include "print_utils.h"
 #include "ffconf.h"
-
+#include "ScreenHandler.hpp"
 #include <ctime>
 #include "wui_api.h"
 #include "../lang/i18n.h"
@@ -225,7 +225,7 @@ int screen_printing_data_t::event(window_t *sender, uint8_t event, void *param) 
         if (gui_msgbox(_("Bed leveling failed. Try again?"), MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
             screen_printing_reprint();
         } else {
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         }
     }
@@ -253,7 +253,7 @@ int screen_printing_data_t::event(window_t *sender, uint8_t event, void *param) 
 
     /// -- close screen when print is done / stopped and USB media is removed
     if (!marlin_vars()->media_inserted && GetState() == printing_state_t::PRINTED) {
-        screen_close();
+        Screens::Access()->Close();
         return 1;
     }
 
@@ -304,7 +304,7 @@ int screen_printing_data_t::event(window_t *sender, uint8_t event, void *param) 
     case Btn::Stop:
         switch (GetState()) {
         case printing_state_t::PRINTED:
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         case printing_state_t::PAUSING:
         case printing_state_t::RESUMING:

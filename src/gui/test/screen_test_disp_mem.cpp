@@ -503,7 +503,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         }
     if (event == WINDOW_EVENT_LOOP) {

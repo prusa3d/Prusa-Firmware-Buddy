@@ -310,7 +310,7 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
         case TAG_QUIT:
             if (autotune_state != AT_idle)
                 return 0; //button should not be accessible
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         case TAG_AUTOTUNE_APPLY_E:
             if (list_RW_E_index_actual == 0) {

@@ -7,7 +7,7 @@
 
 #include "screen_messages.hpp"
 #include "marlin_server.h"
-
+#include "ScreenHandler.hpp"
 #include <stdlib.h>
 #include <stdint.h>
 #include "../lang/i18n.h"
@@ -59,7 +59,7 @@ int screen_messages_data_t::event(window_t *sender, uint8_t event, void *param) 
     case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK:
         if (list.index == 0) {
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         }
         break;

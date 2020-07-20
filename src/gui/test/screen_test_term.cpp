@@ -3,8 +3,9 @@
 #include "screen_test_term.hpp"
 #include "config.h"
 #include "window_progress.hpp"
-
+#include "ScreenHandler.hpp"
 #include "stm32f4xx_hal.h"
+#include "ScreenHandler.hpp"
 
 screen_test_term_data_t::screen_test_term_data_t()
     : window_frame_t(&text)
@@ -22,7 +23,7 @@ screen_test_term_data_t::screen_test_term_data_t()
 int screen_test_term_data_t::event(window_t *sender, uint8_t event, void *param) {
     int winid = -1;
     if (event == WINDOW_EVENT_BTN_DN) {
-        screen_close();
+        Screens::Access()->Close();
         return 1;
     }
     if (event != WINDOW_EVENT_LOOP) {

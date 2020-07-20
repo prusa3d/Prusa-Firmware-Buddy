@@ -8,6 +8,7 @@
 #include "MItem_print.hpp"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
+#include "ScreenHandler.hpp"
 
 class MI_LangBase : public WI_LABEL_t {
 public:
@@ -17,7 +18,7 @@ public:
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
         LangEEPROM::getInstance().setLanguage(LangCode());
-        screen_close();
+        Screens::Access()->Close();
     }
     virtual uint16_t LangCode() const = 0;
 

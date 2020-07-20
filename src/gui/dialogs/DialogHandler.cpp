@@ -37,10 +37,10 @@ void DialogHandler::close(ClientFSM dialog) {
         //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
         if (dialog == ClientFSM::Serial_printing) {
             //if (screen_get_curr() == get_scr_menu_tune())
-            //    screen_close();
+            //    Screens::Access()->Close();
 
             //if (screen_get_curr() == get_scr_printing_serial())
-            //    screen_close();
+            //    Screens::Access()->Close();
         }
     }
 

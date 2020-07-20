@@ -151,14 +151,14 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     pd->state = _STATE_INIT;
                     pd->frame_footer.Show();
                 } else
-                    screen_close();
+                    Screens::Access()->Close();
     #else
                     MSGBOX_BTN_CUSTOM3, IDR_PNG_icon_pepa, btns)) {
                 case MSGBOX_RES_CUSTOM0:
                     eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
                     eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
                     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
-                    screen_close();
+                    Screens::Access()->Close();
                     break;
                 case MSGBOX_RES_CUSTOM1:
                     pd->state = _STATE_INIT;
@@ -166,7 +166,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     break;
                 case MSGBOX_RES_CUSTOM2:
                 default:
-                    screen_close();
+                    Screens::Access()->Close();
                 }
     #endif
                 break;
@@ -281,7 +281,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                                   "Then restart       \n"
                                   "the Selftest.      "),
                     MSGBOX_BTN_DONE, 0);
-                screen_close();
+                Screens::Access()->Close();
                 break;
             case _STATE_XYZCALIB_INIT:
                 pd->state = _STATE_XYZCALIB_HOME;
@@ -368,7 +368,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                                   "The XYZ calibration failed to finish. "
                                   "Double-check the printer's wiring and axes, then restart the XYZ calibration."),
                     MSGBOX_BTN_DONE, 0);
-                screen_close();
+                Screens::Access()->Close();
                 break;
             case _STATE_FIRSTLAY_INIT: {
                 pd->state = _STATE_FIRSTLAY_LOAD;
@@ -495,17 +495,17 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                                   "The first layer calibration failed to finish. "
                                   "Double-check the printer's wiring, nozzle and axes, then restart the calibration."),
                     MSGBOX_BTN_DONE, 0);
-                screen_close();
+                Screens::Access()->Close();
                 break;
             case _STATE_FINISH:
                 wizard_msgbox(_(
                                   "Calibration successful!\n"
                                   "Happy printing!"),
                     MSGBOX_BTN_DONE, IDR_PNG_icon_pepa);
-                screen_close();
+                Screens::Access()->Close();
                 break;
             default:
-                screen_close();
+                Screens::Access()->Close();
                 break;
             }
             inside_handler = 0;

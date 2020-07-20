@@ -2,6 +2,7 @@
 
 #include "screen_watchdog.hpp"
 #include "config.h"
+#include "ScreenHandler.hpp"
 
 screen_watchdog_data_t::screen_watchdog_data_t()
     : window_frame_t(&text0)
@@ -24,6 +25,6 @@ screen_watchdog_data_t::screen_watchdog_data_t()
 
 int screen_watchdog_data_t::event(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
-        screen_close();
+        Screens::Access()->Close();
     return 0;
 }

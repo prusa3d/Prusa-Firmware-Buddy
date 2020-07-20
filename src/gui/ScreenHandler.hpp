@@ -30,7 +30,7 @@ public:
     static void WaitUntilClosed(ClientFSM dialog, uint8_t data); //opens dialog, waits until closed, auto loops
 };
 #endif
-
+#pragma once
 #include "window_frame.hpp"
 #include "ScreenFactory.hpp"
 #include <array>
@@ -41,13 +41,18 @@ using ScreenArray = std::array<ScreenFactory::Creator, 32>;
 class Screens {
 
     ScreenArray stack;
+    ScreenArray::iterator stack_iterator;
+
+    ScreenFactory::UniquePtr current;
+    ScreenFactory::Creator creator; // set by Open
+
+    bool close;
+
     void stack_push(int16_t screen_id) {}
 
     int16_t stack_pop(void) {}
 
     //static screen_t *screen_get_curr(void){}
-    ScreenFactory::UniquePtr current;
-    ScreenFactory::Creator creator; // set by Open
 
     Screens(ScreenFactory::Creator screen_creator);
     Screens(const Screens &) = delete;
@@ -58,7 +63,7 @@ public:
 
     void Open(ScreenFactory::Creator screen_creator); //remember creator and create later
 
-    void Close(void) { gui_invalidate(); }
+    void Close();
 
     void Draw();
 

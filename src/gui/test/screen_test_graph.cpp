@@ -2,7 +2,7 @@
 
 #include "screen_test_graph.hpp"
 #include "config.h"
-
+#include "ScreenHandler.hpp"
 #include "cmsis_os.h"
 #include <stdlib.h>
 
@@ -39,7 +39,7 @@ int screen_test_graph_t::event(window_t *sender, uint8_t event, void *param) {
         switch ((int)param) {
         case 1:
             //screen_open(get_scr_menu_service()->id);
-            screen_close();
+            Screens::Access()->Close();
             break;
         }
     }

@@ -8,7 +8,7 @@
 #include "screen_sysinf.hpp"
 #include "config.h"
 #include "stm32f4xx_hal.h"
-
+#include "ScreenHandler.hpp"
 #include "sys.h"
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 #include "../lang/i18n.h"
@@ -67,7 +67,7 @@ int screen_sysinfo_data_t::event(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         }
 

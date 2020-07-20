@@ -58,6 +58,6 @@ void screen_close_multiple(screen_close_multiple_t type) {
     }
 
     while (!_current_in_list(unl_blacklist, sz)) {
-        screen_close();
+        Screens::Access()->Close();
     }*/
 }

@@ -7,7 +7,7 @@
 
 #include "screen_mesh_bed_lv.hpp"
 #include "config.h"
-
+#include "ScreenHandler.hpp"
 #include "math.h"
 #include "marlin_client.h"
 #include "../../lang/i18n.h"
@@ -87,7 +87,7 @@ int screen_mesh_bed_lv_data_t::event(window_t *sender, uint8_t event, void *para
         case TAG_QUIT:
             if (mesh_state != mesh_state_t::idle)
                 return 0; //button should not be accessible
-            screen_close();
+            Screens::Access()->Close();
             return 1;
 
         case TAG_MESH:

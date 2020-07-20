@@ -3,6 +3,7 @@
 #include "screen_test_msgbox.hpp"
 #include "config.h"
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 const char *test_text = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
 
@@ -85,7 +86,7 @@ int screen_test_msgbox_data_t::event(window_t *sender, uint8_t event, void *para
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case MSGBOX_BTN_MAX + 2:
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         case MSGBOX_BTN_OK + 1:
         case MSGBOX_BTN_OKCANCEL + 1:

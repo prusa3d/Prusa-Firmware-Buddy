@@ -57,14 +57,14 @@ int screen_splash_data_t::event(window_t *sender, uint8_t event, void *param) {
 #ifdef _EXTUI
 
     if (marlin_event(MARLIN_EVT_Startup)) {
-        //screen_close();
+        //Screens::Access()->Close();
 
         /*if (marlin_event(MARLIN_EVT_StartProcessing)) {
         // Originally these lines should be immediately after marlin_client_init, but because the functions are blocking
         // and we want the gui thread alive, we moved the lines here.
         marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
         marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
-        screen_close();
+        Screens::Access()->Close();
         */
 
         uint8_t run_selftest = eeprom_get_var(EEVAR_RUN_SELFTEST).ui8;
@@ -115,7 +115,7 @@ int screen_splash_data_t::event(window_t *sender, uint8_t event, void *param) {
         Screens::Access()->Open(ScreenFactory::Screen<screen_home_data_t>);
 #else
     if (HAL_GetTick() > 3000) {
-        screen_close();
+        Screens::Access()->Close();
         //screen_open(get_scr_test()->id);
 #endif
         return 1;

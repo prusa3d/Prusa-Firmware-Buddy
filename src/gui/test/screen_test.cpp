@@ -5,6 +5,7 @@
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
+#include "ScreenHandler.hpp"
 
 typedef enum {
     STI_back = 1,
@@ -94,7 +95,7 @@ int screen_test_data_t::event(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case STI_back:
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         case STI_tst_gui:
             // screen_open(get_scr_test_gui()->id);

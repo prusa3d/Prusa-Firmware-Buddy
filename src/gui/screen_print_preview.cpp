@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include "sound.hpp"
 #include "DialogHandler.hpp"
+#include "ScreenHandler.hpp"
 
 #define DBG _dbg0
 
@@ -194,7 +195,7 @@ int screen_print_preview_data_t::event(window_t *sender, uint8_t event, void *pa
     if (!gcode_file_exists()) {
         if (suppress_draw && window_popup_ptr) // msgbox "Filament not detected." is displayed, we need close it and skip all processing before screen_close
             gui_msgbox_close();                // skip message box
-        screen_close();
+        Screens::Access()->Close();
         return 1;
     }
 

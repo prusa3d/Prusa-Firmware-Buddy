@@ -1,7 +1,7 @@
 #include "screen_qr_error.hpp"
 #include "config.h"
 #include <stdlib.h>
-
+#include "ScreenHandler.hpp"
 #include "display.h"
 #include "errors.h"
 
@@ -36,7 +36,7 @@ void screen_qr_error_data_t::unconditionalDraw() {
 
 int screen_qr_error_data_t::event(window_t *sender, uint8_t event, void *param) {
     if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
-        screen_close();
+        Screens::Access()->Close();
         return (1);
     }
     if (!first_run_flag)

@@ -41,10 +41,10 @@ void DialogHandler::close(ClientFSM dialog) {
         //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
         if (dialog == ClientFSM::Serial_printing) {
             if (screen_get_curr() == get_scr_menu_tune())
-                screen_close();
+                Screens::Access()->Close();
 
             if (screen_get_curr() == get_scr_printing_serial())
-                screen_close();
+                Screens::Access()->Close();
         }
     }
 
@@ -91,8 +91,10 @@ Screens *Screens::instance = nullptr;
 
 Screens::Screens(ScreenFactory::Creator screen_creator)
     : stack({ { nullptr } })
+    , stack_iterator(stack.begin())
     , current(nullptr)
-    , creator(screen_creator) {
+    , creator(screen_creator)
+    , close(false) {
 }
 
 void Screens::Init(ScreenFactory::Creator screen_creator) {
@@ -130,10 +132,32 @@ void Screens::Open(ScreenFactory::Creator screen_creator) {
     creator = screen_creator;
 }
 
+void Screens::Close() {
+    close = true;
+}
+
 void Screens::Loop() {
+    //close screen
+    if (close) {
+        if (stack_iterator != stack.begin()) {
+            --stack_iterator;
+            creator = (*(stack_iterator - 1));
+            close = false;
+        } else {
+            bsod("Screen stack underflow");
+        }
+    }
+
+    //open screen
     if (creator) {
         if (current) {
             current.reset(); //without reset screens does not behave correctly, I do not know why
+            if (stack_iterator != stack.end()) {
+                (*stack_iterator) = creator;
+                ++stack_iterator;
+            } else {
+                bsod("Screen stack overflow");
+            }
         }
         current = creator();
         creator = nullptr;

@@ -4,6 +4,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 template <FILAMENT_t T>
 class MI_Filament : public WI_LABEL_t {
@@ -22,7 +23,7 @@ protected:
             marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
         }
         marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
-        screen_close(); // skip this screen everytime
+        Screens::Access()->Close(); // skip this screen everytime
     }
 };
 

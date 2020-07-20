@@ -3,6 +3,7 @@
 #include "screen_test_gui.hpp"
 #include "config.h"
 #include "stm32f4xx_hal.h"
+#include "ScreenHandler.hpp"
 
 screen_test_gui_data_t::screen_test_gui_data_t()
     : window_frame_t(&logo_prusa_mini)
@@ -65,7 +66,7 @@ int screen_test_gui_data_t::event(window_t *sender, uint8_t event, void *param) 
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case 10:
-            screen_close();
+            Screens::Access()->Close();
             return 1;
         }
     return 0;

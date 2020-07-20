@@ -9,6 +9,7 @@
 #include "guitypes.h"      //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 const uint16_t serial_printing_icons[static_cast<size_t>(buttons_t::count)] = {
     IDR_PNG_menu_icon_settings,
@@ -107,7 +108,7 @@ int screen_printing_serial_data_t::event(window_t *sender, uint8_t event, void *
         marlin_gcode("M104 S0 D0"); /// set temperatures to zero
         marlin_gcode("M140 S0");    /// set temperatures to zero
         marlin_gcode("M107");       /// print fan off
-        screen_close();
+        Screens::Access()->Close();
         return 1;
     }
 
