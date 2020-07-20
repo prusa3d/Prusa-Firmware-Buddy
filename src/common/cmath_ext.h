@@ -34,7 +34,7 @@
     _a >= 0 ? _a : (-_a); })
 
     /// \returns square of the number
-    #define SQR(a) ((a) * (a));
+    #define SQR(a) ((a) * (a))
 
     /// swap values
     #define SWAP(a, b) \

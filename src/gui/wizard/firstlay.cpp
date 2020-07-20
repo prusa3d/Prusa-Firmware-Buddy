@@ -113,7 +113,7 @@ public:
     }
 
     /// Writes e.g. "G28\n" or "G28 ".
-    gCode &G(const uint8_t value, const bool lineBreak = true) {
+    gCode &G(const uint8_t value) {
         if (isError())
             return *this;
 
@@ -124,16 +124,12 @@ public:
             error_ = 1;
         } else {
             pos += chars;
-            if (lineBreak)
-                newLine();
-            else
-                space();
         }
         return *this;
     }
 
     /// Writes e.g. "M83\n" or "M83 ".
-    gCode &M(const uint8_t value, const bool lineBreak = true) {
+    gCode &M(const uint8_t value) {
         if (isError())
             return *this;
 
@@ -144,10 +140,6 @@ public:
             error_ = 1;
         } else {
             pos += chars;
-            if (lineBreak)
-                newLine();
-            else
-                space();
         }
         return *this;
     }
@@ -262,9 +254,9 @@ public:
 
     /// Extrude from the last point to the specified one
     /// Extrusion uses pre-defined height and width
-    gCode ex(const float x, const float y) {
+    gCode &ex(const float x, const float y) {
         if (!isfinite(x_) || !isfinite(y_))
-            return;
+            return *this;
         const float length = sqrt(SQR(x - x_) + SQR(y - y_));
         G1(x, y, length * extrudeCoef);
     }
@@ -274,6 +266,10 @@ public:
     gCode lastExtrusion(const float x, const float y) {
         x_ = x;
         y_ = y;
+    }
+
+    const std::array<char, bufferSize> &read() {
+        return code;
     }
 };
 
@@ -287,19 +283,19 @@ void initialGcodes(gCode &gc) {
 
 void homeAndMBL(gCode &gc, const uint16_t nozzle_preheat, const uint16_t nozzle_target, const uint8_t bed) {
     // clang-format off
-    gc  .M(104, false).param('S', nozzle_preheat).param('D', nozzle_target).newLine() //nozzle target
-        .M(140, false).param('S', bed)                                                // bed target
-        .M(109, false).param('R', nozzle_preheat).newLine()                           // wait for nozzle temp
-        .M(190, false).param('S', bed).newLine()                                      // wait for bed temp
-        .G(28)                                                                        // autohome
-        .G(29);                                                                       // meshbed leveling
+    gc  .M(104).param('S', nozzle_preheat).param('D', nozzle_target) // nozzle target
+        .M(140).param('S', bed)                                      // bed target
+        .M(109).param('R', nozzle_preheat)                           // wait for nozzle temp
+        .M(190).param('S', bed)                                      // wait for bed temp
+        .G(28)                                                       // autohome
+        .G(29);                                                      // meshbed leveling
     // clang-format on
 }
 
 void heatNozzle(gCode &gc, const uint16_t nozzle_target) {
     // clang-format off
-    gc.M(104, false).param('S', nozzle_target).newLine()  // nozzle target
-         .M(109, false).param('S', nozzle_target).newLine(); // wait for nozzle temp
+    gc.M(104).param('S', nozzle_target)  // nozzle target
+         .M(109).param('S', nozzle_target); // wait for nozzle temp
     // clang-format on
 }
 
@@ -636,13 +632,13 @@ const size_t max_gcodes_in_one_run = 20; //milion of small gcodes could be done 
 static uint32_t line_head = 0;
 static uint32_t line_body = 0;
 
-static const char **head_gcode = NULL;
+// static const char **head_gcode = NULL;
 static const char **body_gcode = NULL;
 static size_t head_gcode_sz = 0; // depreciated
 static size_t body_gcode_sz = -1;
 static size_t gcode_sz = -1;
-static size_t G28_pos = -1;
-static size_t G29_pos = -1;
+// static size_t G28_pos = -1;
+// static size_t G29_pos = -1;
 
 int _get_progress();
 
@@ -729,7 +725,7 @@ inline float preheatTemp() {
     return PREHEAT_TEMP;
 }
 
-float bedTemp() {
+inline float bedTemp() {
     return get_filament_bed_temp();
 }
 
