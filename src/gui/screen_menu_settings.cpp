@@ -1,5 +1,6 @@
-// screen_menu_settings.c
+// screen_menu_settings.cpp
 
+#include "screen_menus.hpp"
 #include "gui.hpp"
 #include "config.h"
 #include "app.h"
@@ -60,7 +61,7 @@ protected:
 };
 
 #ifdef _DEBUG
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
@@ -72,7 +73,7 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
 #else
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
@@ -82,25 +83,24 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_LANGUAGE>;
 #endif
 
-class ScreenMenuSettings : public parent {
+class ScreenMenuSettings : public Screen {
 public:
     constexpr static const char *label = N_("SETTINGS");
+    ScreenMenuSettings()
+        : Screen(_(label)) {}
     //static void Init(screen_t *screen);
     //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    virtual int event(window_t *sender, uint8_t ev, void *param) override;
 };
 
-/*****************************************************************************/
-//static member method definition
-/*void ScreenMenuSettings::Init(screen_t *screen) {
-    Create(screen, _(label));
+ScreenFactory::UniquePtr GetScreenMenuSettings() {
+    return ScreenFactory::Screen<ScreenMenuSettings>();
 }
 
-int ScreenMenuSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    ScreenMenuSettings *const ths = reinterpret_cast<ScreenMenuSettings *>(screen->pdata);
-    if (event == WINDOW_EVENT_LOOP) {
-        ths->Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
+int ScreenMenuSettings::event(window_t *sender, uint8_t ev, void *param) {
+    if (ev == WINDOW_EVENT_LOOP) {
+        Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 
-    ths->Event(window, event, param);
+    Screen::event(sender, ev, param);
 }
-*/

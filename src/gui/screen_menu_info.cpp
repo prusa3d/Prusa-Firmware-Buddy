@@ -4,7 +4,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
-#include "screen_menu_info.hpp"
+#include "screen_menus.hpp"
 
 #ifdef _DEBUG
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_STATISTIC_disabled, MI_SYS_INFO, MI_FAIL_STAT_disabled,

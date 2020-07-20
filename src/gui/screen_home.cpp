@@ -11,7 +11,7 @@
 
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
-#include "screen_menu_info.hpp"
+#include "screen_menus.hpp"
 
 #include "../lang/i18n.h"
 
@@ -168,10 +168,9 @@ int screen_home_data_t::event(window_t *sender, uint8_t event, void *param) {
         //screen_open(get_scr_menu_calibration()->id);
         return 1;
     case BUTTON_SETTINGS + 1:
-        //screen_open(get_scr_menu_settings()->id);
+        Screens::Access()->Open(GetScreenMenuSettings);
         return 1;
     case BUTTON_INFO + 1:
-        //screen_open(get_scr_menu_info()->id);
         Screens::Access()->Open(GetScreenMenuInfo);
         return 1;
     }

@@ -8,7 +8,7 @@
 class ScreenFactory {
     ScreenFactory() = delete;
     ScreenFactory(const ScreenFactory &) = delete;
-    using mem_space = std::aligned_union<0, screen_home_data_t, screen_splash_data_t>::type;
+    using mem_space = std::aligned_union<4096, screen_home_data_t, screen_splash_data_t>::type;
     static mem_space all_screens;
 
 public:
