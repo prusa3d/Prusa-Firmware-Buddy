@@ -33,5 +33,3 @@ struct window_header_t : public window_frame_t {
     void update_ETH_icon();
     window_header_t(window_t *parent);
 };
-
-extern int16_t WINDOW_CLS_HEADER;

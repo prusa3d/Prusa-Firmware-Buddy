@@ -10,8 +10,6 @@
 #include "window.hpp"
 #include "marlin_server.h"
 
-extern int16_t WINDOW_CLS_DLG_POPUP;
-
 struct window_dlg_popup_t : public window_t {
     color_t color_text;
     font_t *font;

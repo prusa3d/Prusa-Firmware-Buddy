@@ -17,69 +17,6 @@ uint16_t window_count = 0;
 
 uint16_t window_user_class_count = 0;
 
-int16_t window_new_id(window_t *window) {
-    /*    int16_t id = -1;
-    if ((window != 0) && (window_count < WINDOW_MAX_WINDOWS)) {
-        id = 0;
-        if (window_count == 0) //reset all pointers when starting
-        {
-            memset(windows, 0, WINDOW_MAX_WINDOWS * sizeof(window_t *));
-            window_0 = window;
-        } else //find free id
-            while ((id < WINDOW_MAX_WINDOWS) && (windows[id]))
-                id++;
-        if (id < WINDOW_MAX_WINDOWS) { //id is valid
-            windows[id] = window;      //set window pointer
-            window_count++;            //increment count
-        } else
-            id = -1;
-    }
-    return id;*/
-}
-
-window_t *window_free_id(int16_t id) {
-    /*   window_t *window;
-    if ((window = window_ptr(id)) != 0) { //valid id and not null window pointer
-        windows[id] = 0;                  //reset pointer
-        window_count--;                   //decrement count
-    }
-    return window;*/
-}
-
-window_t *window_ptr(int16_t id) {
-    //return ((id >= 0) && (id < WINDOW_MAX_WINDOWS)) ? windows[id] : 0;
-}
-
-int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr) {
-    /*    window_class_t *cls = class_ptr(cls_id);
-    if (cls) {
-        uint32_t flg = WINDOW_FLG_VISIBLE | WINDOW_FLG_INVALID;
-        window_t *win = (window_t *)ptr;
-        if (win == 0) {
-            win = (window_t *)gui_malloc(cls->size);
-            flg |= WINDOW_FLG_FREEMEM;
-        }
-        if (win == 0)
-            return -1;
-        int16_t id = window_new_id(win);
-        if (id >= 0) {
-            win->id = id;
-            win->id_parent = id_parent;
-            //win->cls = cls;
-            win->flg = flg;
-            win->rect = rect;
-            //win->event = cls->event;
-            win->f_tag = 0;
-            if (cls->init)
-                cls->init(win);
-            return id;
-        }
-        if (win && (ptr == 0))
-            gui_free(win);
-    }
-    return -1;*/
-}
-
 void window_destroy(int16_t id) {
     /*   window_t *window = window_free_id(id);
     uint16_t count = window_count;

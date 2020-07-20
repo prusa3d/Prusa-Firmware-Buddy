@@ -24,8 +24,6 @@ typedef enum {
     ANIM_COUNT,
 } MI_ANIMATION;
 
-int16_t WINDOW_CLS_DLG_WAIT = 0;
-
 window_dlg_wait_t::window_dlg_wait_t(window_t *parent, rect_ui16_t rect)
     : window_t(parent, rect)
     , color_text(gui_defaults.color_text)

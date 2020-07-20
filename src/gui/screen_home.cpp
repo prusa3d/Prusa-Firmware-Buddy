@@ -70,7 +70,6 @@ screen_home_data_t::screen_home_data_t()
     time = HAL_GetTick();
     is_starting = (time < 5000) ? 1 : 0;
 
-    window_create_ptr(WINDOW_CLS_HEADER, id, gui_defaults.header_sz, &(header));
     header.SetIcon(IDR_PNG_status_icon_home);
     header.SetText(_("HOME"));
 

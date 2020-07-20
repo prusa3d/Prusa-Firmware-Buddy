@@ -106,9 +106,7 @@ public:
 
 extern window_t *window_popup_ptr; //current popup window
 
-extern window_t *window_ptr(int16_t id);
-
-extern int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr);
+inline window_t *window_ptr(int16_t id) {}
 
 extern void window_destroy(int16_t id);
 

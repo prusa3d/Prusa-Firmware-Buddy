@@ -10,8 +10,6 @@
 
 void window_frame_draw(window_frame_t *window);
 
-int16_t WINDOW_CLS_HEADER = 0;
-
 void window_header_t::update_ETH_icon() {
 #ifdef BUDDY_ENABLE_ETHERNET
     if (get_eth_status() == ETH_UNLINKED) {

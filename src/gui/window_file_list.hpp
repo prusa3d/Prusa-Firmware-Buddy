@@ -42,8 +42,6 @@ struct window_file_list_t : public window_t {
     void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 };
 
-extern int16_t WINDOW_CLS_FILE_LIST;
-
 extern void window_file_set_item_index(window_file_list_t *window, int index);
 
 extern const char *window_file_list_top_item_SFN(window_file_list_t *window);

@@ -3,8 +3,6 @@
 #include "resource.h" //IDR_FNT_BIG
 #include "../lang/i18n.h"
 
-int16_t WINDOW_CLS_DLG_G162 = 0;
-
 //all buttons share same Window, thus it must be static
 static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_defaults.color_back, IDialogStateful::get_radio_button_size() };
 
@@ -36,4 +34,4 @@ static DialogG162::States Factory() {
 /*****************************************************************************/
 
 DialogG162::DialogG162(const char *name)
-    : DialogStateful<PhasesG162>(name, WINDOW_CLS_DLG_G162, Factory()) {}
+    : DialogStateful<PhasesG162>(name, Factory()) {}

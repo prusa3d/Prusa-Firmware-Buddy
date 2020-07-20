@@ -9,8 +9,8 @@ static constexpr uint8_t PROGRESS_BAR_H = 16;
 static constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
 
 //*****************************************************************************
-IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
-    : IDialog(WINDOW_CLS_)
+IDialogStateful::IDialogStateful(const char *name)
+    : IDialog()
     , id_capture(GetCapturedWindow())
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)

@@ -71,7 +71,7 @@ protected:
     virtual void phaseExit() = 0;
 
 public:
-    IDialogStateful(const char *name, int16_t WINDOW_CLS_);
+    IDialogStateful(const char *name);
     bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
     virtual ~IDialogStateful();
 
@@ -102,8 +102,8 @@ public:
 protected:
     States states; //phase text and radiobutton + onEnter & onExit cb
 public:
-    DialogStateful(const char *name, int16_t WINDOW_CLS_, States st)
-        : IDialogStateful(name, WINDOW_CLS_)
+    DialogStateful(const char *name, States st)
+        : IDialogStateful(name)
         , states(st) {};
 
 protected:

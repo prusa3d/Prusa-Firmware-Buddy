@@ -15,8 +15,6 @@
 struct window_dlg_preheat_t;
 typedef void(dlg_on_click_cb)(window_dlg_preheat_t *);
 
-extern int16_t WINDOW_CLS_DLG_PREHEAT;
-
 //todo some items are most likely unused - remove them
 struct window_dlg_preheat_t : public window_frame_t {
     color_t color_text;

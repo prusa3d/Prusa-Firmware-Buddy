@@ -10,8 +10,6 @@
 #include "window.hpp"
 #include <stdbool.h>
 
-extern int16_t WINDOW_CLS_DLG_WAIT;
-
 struct window_dlg_wait_t : public window_t {
     color_t color_text;
     font_t *font;

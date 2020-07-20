@@ -14,8 +14,6 @@
 
 #define POPUP_DELAY_MS 1000
 
-int16_t WINDOW_CLS_DLG_POPUP = 0;
-
 extern msg_stack_t msg_stack;
 
 window_dlg_popup_t::window_dlg_popup_t(window_t *parent, rect_ui16_t rect)

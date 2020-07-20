@@ -16,8 +16,6 @@
 #include <algorithm>
 #include "ScreenHandler.hpp"
 
-int16_t WINDOW_CLS_FILE_LIST = 0;
-
 void window_file_list_inc(window_file_list_t *window, int dif);
 void window_file_list_dec(window_file_list_t *window, int dif);
 

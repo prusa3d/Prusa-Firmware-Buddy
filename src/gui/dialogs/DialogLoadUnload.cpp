@@ -4,8 +4,6 @@
 #include "sound.hpp"
 #include "../lang/i18n.h"
 
-int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
-
 //all buttons share same Window, thus it must be static
 static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_defaults.color_back, IDialogStateful::get_radio_button_size() };
 
@@ -79,7 +77,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 /*****************************************************************************/
 
 DialogLoadUnload::DialogLoadUnload(const char *name)
-    : DialogStateful<PhasesLoadUnload>(name, WINDOW_CLS_DLG_LOADUNLOAD, LoadUnloadFactory()) {}
+    : DialogStateful<PhasesLoadUnload>(name, LoadUnloadFactory()) {}
 
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
