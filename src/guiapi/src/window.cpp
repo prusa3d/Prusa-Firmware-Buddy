@@ -12,13 +12,12 @@ extern osThreadId displayTaskHandle;
 
 window_t *window_popup_ptr = 0; //current popup window
 
-//window_t *windows[WINDOW_MAX_WINDOWS];
 uint16_t window_count = 0;
 
 uint16_t window_user_class_count = 0;
-
+/*
 void window_destroy(int16_t id) {
-    /*   window_t *window = window_free_id(id);
+    window_t *window = window_free_id(id);
     uint16_t count = window_count;
     if (window != 0) {
         if (window->HasTimer())
@@ -39,9 +38,9 @@ void window_destroy(int16_t id) {
         if (window == window_0) window_0 = 0;
         if (count == 0)
             window_0 = 0;
-    }*/
+    }
 }
-
+*/
 bool window_t::IsVisible() const { return f_visible == true; }
 bool window_t::IsEnabled() const { return f_enabled == true; }
 bool window_t::IsInvalid() const { return f_invalid == true; }

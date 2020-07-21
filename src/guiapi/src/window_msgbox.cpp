@@ -6,6 +6,7 @@
 #include "sound.hpp"
 #include "../lang/i18n.h"
 #include <algorithm>
+#include "ScreenHandler.hpp"
 
 //title for each icon type (empty text for 0)
 const char *window_msgbox_title_text[] = {
@@ -142,7 +143,7 @@ void window_msgbox_click(window_msgbox_t *window) {
     const int idx = ((window->flags & MSGBOX_MSK_IDX) >> MSGBOX_SHI_IDX); // selected button index
     window->res = window_msgbox_buttons[btn][idx];
     Sound_Stop();
-    window_destroy(window->id);
+    Screens::Access()->Close(); //will set close flag
 }
 
 window_msgbox_t::window_msgbox_t(window_t *parent, rect_ui16_t rect)

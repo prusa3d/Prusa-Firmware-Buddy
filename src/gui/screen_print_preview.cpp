@@ -193,9 +193,7 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
     if (!gcode_file_exists()) {
-        if (suppress_draw && window_popup_ptr) // msgbox "Filament not detected." is displayed, we need close it and skip all processing before screen_close
-            gui_msgbox_close();                // skip message box
-        Screens::Access()->Close();
+        Screens::Access()->Close(); //if an dialog is openned, it will be closed first
         return;
     }
 

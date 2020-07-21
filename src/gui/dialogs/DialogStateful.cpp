@@ -46,7 +46,6 @@ bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*
 }
 
 IDialogStateful::~IDialogStateful() {
-    window_destroy(id);
     if (id_capture)
         id_capture->SetCapture();
     window_t *pWin = Screens::Access()->Get();

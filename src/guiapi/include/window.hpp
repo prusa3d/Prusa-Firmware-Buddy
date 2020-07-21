@@ -105,6 +105,4 @@ public:
 
 extern window_t *window_popup_ptr; //current popup window
 
-extern void window_destroy(int16_t id);
-
 extern void gui_invalidate(void);

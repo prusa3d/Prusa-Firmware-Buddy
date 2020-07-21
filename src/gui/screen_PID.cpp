@@ -294,7 +294,6 @@ screen_PID_data_t::screen_PID_data_t()
 }
 
 void screen_PID_done(screen_t *screen) {
-    window_destroy(id);
 }
 
 void screen_PID_draw(screen_t *screen) {
