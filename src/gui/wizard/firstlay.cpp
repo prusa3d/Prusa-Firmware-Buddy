@@ -25,6 +25,7 @@ void initialGcodes(gCode &gc) {
 
 void homeAndMBL(gCode &gc, const uint16_t nozzle_preheat, const uint16_t nozzle_target, const uint8_t bed) {
     // clang-format off
+    //TODO move up before heating
     gc  .M(104).param('S', nozzle_preheat).param('D', nozzle_target) // nozzle target
         .M(140).param('S', bed)                                      // bed target
         .M(109).param('R', nozzle_preheat)                           // wait for nozzle temp
@@ -56,6 +57,12 @@ void firstLayer01(gCode &gc) {
     // "G1 Z2 E-6 F2100.00000",
 }
 
+void snakeInit1() {
+    gCode gc;
+    firstLayer01(gc);
+    gc.send();
+}
+
 void firstLayer02(gCode &gc) {
     gc.G1(10, 150, 0.2, NAN, 3000)
         // "G1 X10 Y150 Z0.2 F3000",
@@ -63,6 +70,12 @@ void firstLayer02(gCode &gc) {
         // "G1 E6 F2000"
         .G1(NAN, NAN, NAN, NAN, 1000);
     // "G1 F1000",
+}
+
+void snakeInit2() {
+    gCode gc;
+    firstLayer02(gc);
+    gc.send();
 }
 
 void firstLayer03(gCode &gc) {
@@ -254,6 +267,7 @@ void firstLayer14(gCode &gc) {
         .G(4);
     // "G4",
 }
+
 void firstLayer15(gCode &gc) {
     gc.M(107)
         // "M107",
@@ -267,124 +281,223 @@ void firstLayer15(gCode &gc) {
     // "M84"      // disable motors
 }
 
-//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
-//todo generate me
-const char *V2_gcodes_body[] = {
-    "G1 Z4 F1000",
-    "G1 X0 Y-2 Z0.2 F3000.0",
-    "G1 E6 F2000",
-    "G1 X60 E9 F1000.0",
-    "G1 X100 E12.5 F1000.0",
-    "G1 Z2 E-6 F2100.00000",
+void snakeEnd() {
+    gCode gc;
+    gc.G(4)
+        .M(107)
+        .M(104)
+        .param('S', 0)
+        .M(140)
+        .param('S', 0)
+        .M(84);
+    gc.send();
+}
 
-    "G1 X10 Y150 Z0.2 F3000",
-    "G1 E6 F2000"
+static const float snake[][2] = {
+    { 10, 150 }, // initialization point, does not extrude
+    { 170, 150 },
+    { 170, 130 },
+    { 10, 130 },
+    { 10, 110 },
+    { 170, 110 },
+    { 170, 90 },
+    { 10, 90 },
+    { 10, 70 },
+    { 170, 70 },
+    { 170, 50 },
+    { 10, 50 },
 
-    "G1 F1000",
-    //E = extrusion_length * layer_height * extrusion_width / (PI * pow(1.75, 2) / 4)
-    "G1 X170 Y150 E5.322", //160 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 5.322
-    "G1 X170 Y130 E0.665", //20 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 0.665
-    "G1 X10  Y130 E5.322",
-    "G1 X10  Y110 E0.665",
-    "G1 X170 Y110 E5.322",
-    "G1 X170 Y90  E0.665",
-    "G1 X10  Y90  E5.322",
-    "G1 X10  Y70  E0.665",
-    "G1 X170 Y70  E5.322",
-    "G1 X170 Y50  E0.665",
-    "G1 X10  Y50  E5.322",
+    /// frame
+    { 10, 17 },
+    { 31, 17 },
+    { 31, 30.5 },
+    { 10.5, 30.5 },
+    { 10.5, 30.0 },
 
-    //frame around
-    "G1 X10    Y17    E1.371975",  //33 * 0.041575 = 1.371975
-    "G1 X31    Y17    E1.288825",  //31 * 0.041575 = 1.288825
-    "G1 X31    Y30.5  E0.5612625", //13.5 * 0.041575 = 0.5612625
-    "G1 X10.5  Y30.5  E0.832",     //20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
-    "G1 X10.5  Y30.0  E0.0208",    //0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
-
-    "G1 F1000",
-    "G1 X30.5  Y30.0  E0.832",
-    "G1 X30.5  Y29.5  E0.0208",
-    "G1 X10.5  Y29.5  E0.832",
-    "G1 X10.5  Y29.0  E0.0208",
-    "G1 X30.5  Y29.0  E0.832",
-    "G1 X30.5  Y28.5  E0.0208",
-    "G1 X10.5  Y28.5  E0.832",
-    "G1 X10.5  Y28.0  E0.0208",
-    "G1 X30.5  Y28.0  E0.832",
-    "G1 X30.5  Y27.5  E0.0208",
-    "G1 X10.5  Y27.5  E0.832",
-    "G1 X10.5  Y27.0  E0.0208",
-    "G1 X30.5  Y27.0  E0.832",
-    "G1 X30.5  Y26.5  E0.0208",
-    "G1 X10.5  Y26.5  E0.832",
-    "G1 X10.5  Y26.0  E0.0208",
-    "G1 X30.5  Y26.0  E0.832",
-    "G1 X30.5  Y25.5  E0.0208",
-    "G1 X10.5  Y25.5  E0.832",
-    "G1 X10.5  Y25.0  E0.0208",
-    "G1 X30.5  Y25.0  E0.832",
-    "G1 X30.5  Y24.5  E0.0208",
-    "G1 X10.5  Y24.5  E0.832",
-    "G1 X10.5  Y24.0  E0.0208",
-    "G1 X30.5  Y24.0  E0.832",
-    "G1 X30.5  Y23.5  E0.0208",
-    "G1 X10.5  Y23.5  E0.832",
-    "G1 X10.5  Y23.0  E0.0208",
-    "G1 X30.5  Y23.0  E0.832",
-    "G1 X30.5  Y22.5  E0.0208",
-    "G1 X10.5  Y22.5  E0.832",
-    "G1 X10.5  Y22.0  E0.0208",
-    "G1 X30.5  Y22.0  E0.832",
-    "G1 X30.5  Y21.5  E0.0208",
-    "G1 X10.5  Y21.5  E0.832",
-    "G1 X10.5  Y21.0  E0.0208",
-    "G1 X30.5  Y21.0  E0.832",
-    "G1 X30.5  Y20.5  E0.0208",
-    "G1 X10.5  Y20.5  E0.832",
-    "G1 X10.5  Y20.0  E0.0208",
-    "G1 X30.5  Y20.0  E0.832",
-    "G1 X30.5  Y19.5  E0.0208",
-    "G1 X10.5  Y19.5  E0.832",
-    "G1 X10.5  Y19.0  E0.0208",
-    "G1 X30.5  Y19.0  E0.832",
-    "G1 X30.5  Y18.5  E0.0208",
-    "G1 X10.5  Y18.5  E0.832",
-    "G1 X10.5  Y18.0  E0.0208",
-    "G1 X30.5  Y18.0  E0.832",
-    "G1 X30.5  Y17.5  E0.0208",
-
-    "G1 Z2 E-6 F2100",
-    "G1 X178 Y0 Z10 F3000",
-
-    "G4",
-
-    "M107",
-    "M104 S0", // turn off temperature
-    "M140 S0", // turn off heatbed
-    "M84"      // disable motors
+    /// zig-zag
+    { 30.5, 30.0 },
+    { 30.5, 29.5 },
+    { 10.5, 29.5 },
+    { 10.5, 29.0 },
+    { 30.5, 29.0 },
+    { 30.5, 28.5 },
+    { 10.5, 28.5 },
+    { 10.5, 28.0 },
+    { 30.5, 28.0 },
+    { 30.5, 27.5 },
+    { 10.5, 27.5 },
+    { 10.5, 27.0 },
+    { 30.5, 27.0 },
+    { 30.5, 26.5 },
+    { 10.5, 26.5 },
+    { 10.5, 26.0 },
+    { 30.5, 26.0 },
+    { 30.5, 25.5 },
+    { 10.5, 25.5 },
+    { 10.5, 25.0 },
+    { 30.5, 25.0 },
+    { 30.5, 24.5 },
+    { 10.5, 24.5 },
+    { 10.5, 24.0 },
+    { 30.5, 24.0 },
+    { 30.5, 23.5 },
+    { 10.5, 23.5 },
+    { 10.5, 23.0 },
+    { 30.5, 23.0 },
+    { 30.5, 22.5 },
+    { 10.5, 22.5 },
+    { 10.5, 22.0 },
+    { 30.5, 22.0 },
+    { 30.5, 21.5 },
+    { 10.5, 21.5 },
+    { 10.5, 21.0 },
+    { 30.5, 21.0 },
+    { 30.5, 20.5 },
+    { 10.5, 20.5 },
+    { 10.5, 20.0 },
+    { 30.5, 20.0 },
+    { 30.5, 19.5 },
+    { 10.5, 19.5 },
+    { 10.5, 19.0 },
+    { 30.5, 19.0 },
+    { 30.5, 18.5 },
+    { 10.5, 18.5 },
+    { 10.5, 18.0 },
+    { 30.5, 18.0 },
+    { 30.5, 17.5 },
 };
 
-const size_t V2_gcodes_body_sz = sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[0]);
+void sendSnakeLine(uint16_t line) {
+    if (line < 0 || line >= sizeof(snake) - 2)
+        return;
+
+    gCode gc;
+    gc.lastExtrusion(snake[line][0], snake[line][1]);
+    gc.ex(snake[line + 1][0], snake[line + 1][1]);
+    gc.send();
+}
+
+//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
+//todo generate me
+// const char *V2_gcodes_body[] = {
+//     "G1 Z4 F1000",
+//     "G1 X0 Y-2 Z0.2 F3000.0",
+//     "G1 E6 F2000",
+//     "G1 X60 E9 F1000.0",
+//     "G1 X100 E12.5 F1000.0",
+//     "G1 Z2 E-6 F2100.00000",
+
+//     "G1 X10 Y150 Z0.2 F3000",
+//     "G1 E6 F2000"
+
+//     "G1 F1000",
+//     //E = extrusion_length * layer_height * extrusion_width / (PI * pow(1.75, 2) / 4)
+//     "G1 X170 Y150 E5.322", //160 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 5.322
+//     "G1 X170 Y130 E0.665", //20 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 0.665
+//     "G1 X10  Y130 E5.322",
+//     "G1 X10  Y110 E0.665",
+//     "G1 X170 Y110 E5.322",
+//     "G1 X170 Y90  E0.665",
+//     "G1 X10  Y90  E5.322",
+//     "G1 X10  Y70  E0.665",
+//     "G1 X170 Y70  E5.322",
+//     "G1 X170 Y50  E0.665",
+//     "G1 X10  Y50  E5.322",
+
+//     //frame around
+//     "G1 X10    Y17    E1.371975",  //33 * 0.041575 = 1.371975
+//     "G1 X31    Y17    E1.288825",  //31 * 0.041575 = 1.288825
+//     "G1 X31    Y30.5  E0.5612625", //13.5 * 0.041575 = 0.5612625
+//     "G1 X10.5  Y30.5  E0.832",     //20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
+//     "G1 X10.5  Y30.0  E0.0208",    //0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
+
+//     "G1 F1000",
+//     "G1 X30.5  Y30.0  E0.832",
+//     "G1 X30.5  Y29.5  E0.0208",
+//     "G1 X10.5  Y29.5  E0.832",
+//     "G1 X10.5  Y29.0  E0.0208",
+//     "G1 X30.5  Y29.0  E0.832",
+//     "G1 X30.5  Y28.5  E0.0208",
+//     "G1 X10.5  Y28.5  E0.832",
+//     "G1 X10.5  Y28.0  E0.0208",
+//     "G1 X30.5  Y28.0  E0.832",
+//     "G1 X30.5  Y27.5  E0.0208",
+//     "G1 X10.5  Y27.5  E0.832",
+//     "G1 X10.5  Y27.0  E0.0208",
+//     "G1 X30.5  Y27.0  E0.832",
+//     "G1 X30.5  Y26.5  E0.0208",
+//     "G1 X10.5  Y26.5  E0.832",
+//     "G1 X10.5  Y26.0  E0.0208",
+//     "G1 X30.5  Y26.0  E0.832",
+//     "G1 X30.5  Y25.5  E0.0208",
+//     "G1 X10.5  Y25.5  E0.832",
+//     "G1 X10.5  Y25.0  E0.0208",
+//     "G1 X30.5  Y25.0  E0.832",
+//     "G1 X30.5  Y24.5  E0.0208",
+//     "G1 X10.5  Y24.5  E0.832",
+//     "G1 X10.5  Y24.0  E0.0208",
+//     "G1 X30.5  Y24.0  E0.832",
+//     "G1 X30.5  Y23.5  E0.0208",
+//     "G1 X10.5  Y23.5  E0.832",
+//     "G1 X10.5  Y23.0  E0.0208",
+//     "G1 X30.5  Y23.0  E0.832",
+//     "G1 X30.5  Y22.5  E0.0208",
+//     "G1 X10.5  Y22.5  E0.832",
+//     "G1 X10.5  Y22.0  E0.0208",
+//     "G1 X30.5  Y22.0  E0.832",
+//     "G1 X30.5  Y21.5  E0.0208",
+//     "G1 X10.5  Y21.5  E0.832",
+//     "G1 X10.5  Y21.0  E0.0208",
+//     "G1 X30.5  Y21.0  E0.832",
+//     "G1 X30.5  Y20.5  E0.0208",
+//     "G1 X10.5  Y20.5  E0.832",
+//     "G1 X10.5  Y20.0  E0.0208",
+//     "G1 X30.5  Y20.0  E0.832",
+//     "G1 X30.5  Y19.5  E0.0208",
+//     "G1 X10.5  Y19.5  E0.832",
+//     "G1 X10.5  Y19.0  E0.0208",
+//     "G1 X30.5  Y19.0  E0.832",
+//     "G1 X30.5  Y18.5  E0.0208",
+//     "G1 X10.5  Y18.5  E0.832",
+//     "G1 X10.5  Y18.0  E0.0208",
+//     "G1 X30.5  Y18.0  E0.832",
+//     "G1 X30.5  Y17.5  E0.0208",
+
+//     "G1 Z2 E-6 F2100",
+//     "G1 X178 Y0 Z10 F3000",
+
+//     "G4",
+
+//     "M107",
+//     "M104 S0", // turn off temperature
+//     "M140 S0", // turn off heatbed
+//     "M84"      // disable motors
+// };
+
+const size_t V2_gcodes_body_sz = 0; //sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[0]);
+
+const uint16_t snakeLines = sizeof(snake) - 1;
+uint16_t snakeLine = 0;
 
 //todo use marlin api
-const size_t commands_in_queue_size = 8;
-const size_t commands_in_queue_use_max = 6;
-const size_t max_gcodes_in_one_run = 20; //milion of small gcodes could be done instantly but block gui
+// const size_t commands_in_queue_size = 8;
+// const size_t commands_in_queue_use_max = 6;
+// const size_t max_gcodes_in_one_run = 20; //milion of small gcodes could be done instantly but block gui
 
-static uint32_t line_head = 0;
-static uint32_t line_body = 0;
+//static uint32_t line_head = 0;
+//static uint32_t line_body = 0;
 
 // static const char **head_gcode = NULL;
-static const char **body_gcode = NULL;
-static size_t head_gcode_sz = 0; // depreciated
-static size_t body_gcode_sz = -1;
-static size_t gcode_sz = -1;
+// static const char **body_gcode = NULL;
+// static size_t head_gcode_sz = 0; // depreciated
+// static size_t body_gcode_sz = -1;
+// static size_t gcode_sz = -1;
 // static size_t G28_pos = -1;
 // static size_t G29_pos = -1;
 
 int _get_progress();
 
-void _set_gcode_first_lines();
+//void _set_gcode_first_lines();
 
 //returns remaining lines
 #if DEBUG_TERM == 0
@@ -396,9 +509,9 @@ static const char *_wizard_firstlay_text = N_("Once the printer   \n"
                                               "until the filament \n"
                                               "sticks to the print\n"
                                               "sheet.");
-int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count);
+//int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count);
 #else
-int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term);
+//int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term);
 #endif
 
 void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen);
@@ -483,7 +596,7 @@ inline void FLInit(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t
     term_printf(&p_screen->terminal, "INITIALIZED\n");
     p_screen->term.id.Invalidate();
 #endif
-    _set_gcode_first_lines();
+    //_set_gcode_first_lines();
     p_screen->state = _FL_GCODE_MBL;
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
 #if DEBUG_TERM == 1
@@ -534,7 +647,7 @@ inline void FLGcodeHeadEnd(firstlay_screen_t *p_screen) {
         return;
 
     //    p_screen->state = _FL_GCODE_BODY;
-    p_screen->state = _FL_GCODE_BODY_01;
+    p_screen->state = _FL_GCODE_SNAKE_INIT_1;
 }
 
 // inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
@@ -555,27 +668,27 @@ inline void FLGcodeHeadEnd(firstlay_screen_t *p_screen) {
 //     }
 // }
 
-inline void FLGcodeBody(firstlay_screen_t *p_screen, const char **code, size_t size) {
-    _wizard_firstlay_Z_step(p_screen);
-#if DEBUG_TERM == 0
-    const int remaining_lines = _run_gcode_line(&line_body, code, size);
-#else
-    const int remaining_lines = _run_gcode_line(&line_body, code, size, &p_screen->term);
-#endif
-    if (remaining_lines < 1) {
-        p_screen->state = _FL_GCODE_DONE;
-    }
-}
+// inline void FLGcodeBody(firstlay_screen_t *p_screen, const char **code, size_t size) {
+//     _wizard_firstlay_Z_step(p_screen);
+// #if DEBUG_TERM == 0
+//     const int remaining_lines = _run_gcode_line(&line_body, code, size);
+// #else
+//     const int remaining_lines = _run_gcode_line(&line_body, code, size, &p_screen->term);
+// #endif
+//     if (remaining_lines < 1) {
+//         p_screen->state = _FL_GCODE_DONE;
+//     }
+// }
 
 int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
     if (p_data->state_print == _TEST_START) {
         p_screen->state = _FL_INIT;
         p_data->state_print = _TEST_RUN;
 
-        body_gcode = V2_gcodes_body;
-        body_gcode_sz = V2_gcodes_body_sz;
+        //body_gcode = V2_gcodes_body;
+        //body_gcode_sz = V2_gcodes_body_sz;
 
-        gcode_sz = body_gcode_sz + head_gcode_sz;
+        //gcode_sz = body_gcode_sz + head_gcode_sz;
     }
 
     switch (p_screen->state) {
@@ -626,16 +739,47 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         //     FLGcodeHead(p_screen, head_gcode, head_gcode_sz);
         break;
 
-    case _FL_GCODE_BODY_01:
+    case _FL_GCODE_SNAKE_INIT_1:
         if (marlin_get_gqueue() > 0)
             break;
+        snakeInit1();
+        p_screen->state = _FL_GCODE_SNAKE_INIT_2;
+        break;
+
+    case _FL_GCODE_SNAKE_INIT_2:
+        if (marlin_get_gqueue() > 0)
+            break;
+        snakeInit2();
+        p_screen->state = _FL_GCODE_SNAKE_BODY;
+        break;
+
+    case _FL_GCODE_SNAKE_BODY:
+        if (marlin_get_gqueue() > 0)
+            break;
+
+        sendSnakeLine(snakeLine++);
+        if (snakeLine >= snakeLines)
+            p_screen->state = _FL_GCODE_SNAKE_END;
+        break;
+
+    case _FL_GCODE_SNAKE_END:
+        if (marlin_get_gqueue() > 0)
+            break;
+        snakeEnd();
+        p_screen->state = _FL_GCODE_DONE;
+        break;
+
+    case _FL_GCODE_BODY_01: {
+        if (marlin_get_gqueue() > 0)
+            break;
+        _wizard_firstlay_Z_step(p_screen);
         gCode gc;
         firstLayer01(gc);
         gc.send();
         p_screen->state = _FL_GCODE_BODY_02;
         break;
-
-    case _FL_GCODE_BODY_02:
+    }
+    case _FL_GCODE_BODY_02: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -643,8 +787,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_03;
         break;
-
-    case _FL_GCODE_BODY_03:
+    }
+    case _FL_GCODE_BODY_03: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -652,8 +796,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_04;
         break;
-
-    case _FL_GCODE_BODY_04:
+    }
+    case _FL_GCODE_BODY_04: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -661,8 +805,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_05;
         break;
-
-    case _FL_GCODE_BODY_05:
+    }
+    case _FL_GCODE_BODY_05: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -670,8 +814,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_06;
         break;
-
-    case _FL_GCODE_BODY_06:
+    }
+    case _FL_GCODE_BODY_06: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -679,8 +823,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_07;
         break;
-
-    case _FL_GCODE_BODY_07:
+    }
+    case _FL_GCODE_BODY_07: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -688,8 +832,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_08;
         break;
-
-    case _FL_GCODE_BODY_08:
+    }
+    case _FL_GCODE_BODY_08: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -697,8 +841,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_09;
         break;
-
-    case _FL_GCODE_BODY_09:
+    }
+    case _FL_GCODE_BODY_09: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -706,8 +850,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_10;
         break;
-
-    case _FL_GCODE_BODY_10:
+    }
+    case _FL_GCODE_BODY_10: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -715,8 +859,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_11;
         break;
-
-    case _FL_GCODE_BODY_11:
+    }
+    case _FL_GCODE_BODY_11: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -724,8 +868,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_12;
         break;
-
-    case _FL_GCODE_BODY_12:
+    }
+    case _FL_GCODE_BODY_12: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -733,8 +877,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_13;
         break;
-
-    case _FL_GCODE_BODY_13:
+    }
+    case _FL_GCODE_BODY_13: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -742,8 +886,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_14;
         break;
-
-    case _FL_GCODE_BODY_14:
+    }
+    case _FL_GCODE_BODY_14: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -751,8 +895,8 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_15;
         break;
-
-    case _FL_GCODE_BODY_15:
+    }
+    case _FL_GCODE_BODY_15: {
         if (marlin_get_gqueue() > 0)
             break;
         gCode gc;
@@ -760,18 +904,21 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         gc.send();
         p_screen->state = _FL_GCODE_BODY_END;
         break;
-
+    }
     case _FL_GCODE_BODY_END:
         if (marlin_get_gqueue() > 0)
             break;
         p_screen->state = _FL_GCODE_DONE;
         break;
 
-    case _FL_GCODE_BODY:
-        FLGcodeBody(p_screen, body_gcode, body_gcode_sz);
-        break;
+        // case _FL_GCODE_BODY:
+        //     FLGcodeBody(p_screen, body_gcode, body_gcode_sz);
+        //     break;
 
     case _FL_GCODE_DONE:
+        if (marlin_get_gqueue() > 0)
+            break;
+
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "PASSED\n");
         p_screen->term.Invalidate();
@@ -823,37 +970,38 @@ void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
 
 int _get_progress() {
     //if ( _is_gcode_end_line() ) return 100;
-    return std::min(99, int(100 * (line_head + 1 + line_body + 1) / gcode_sz));
+    //return std::min(99, int(100 * (line_head + 1 + line_body + 1) / gcode_sz));
+    return std::min(99, int(100.0f * snakeLine / snakeLines));
 }
 
-//returns progress
-void _set_gcode_first_lines() {
-    line_head = 0;
-    line_body = 0;
-}
+// //returns progress
+// void _set_gcode_first_lines() {
+//     line_head = 0;
+//     line_body = 0;
+// }
 
-#if DEBUG_TERM == 0
-int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count)
-#else
-int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term)
-#endif
-{
-    size_t gcodes_in_this_run = 0;
+// #if DEBUG_TERM == 0
+// int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count)
+// #else
+// int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term)
+// #endif
+// {
+//     size_t gcodes_in_this_run = 0;
 
-    //todo "while" does not work ...why?, something with  commands_in_queue?
-    //while(commands_in_queue < commands_in_queue_use_max){
-    if (marlin_get_gqueue() < 1) {
-        if ((*p_line) < gcodes_count) {
-            ++gcodes_in_this_run;
-            marlin_gcode(gcodes[*p_line]);
-#if DEBUG_TERM == 1
-            term_printf(term->term, "%s\n", gcodes[*p_line]);
-            term->win.Invalidate();
-#endif
-            ++(*p_line);
-        }
-    }
+//     //todo "while" does not work ...why?, something with  commands_in_queue?
+//     //while(commands_in_queue < commands_in_queue_use_max){
+//     if (marlin_get_gqueue() < 1) {
+//         if ((*p_line) < gcodes_count) {
+//             ++gcodes_in_this_run;
+//             marlin_gcode(gcodes[*p_line]);
+// #if DEBUG_TERM == 1
+//             term_printf(term->term, "%s\n", gcodes[*p_line]);
+//             term->win.Invalidate();
+// #endif
+//             ++(*p_line);
+//         }
+//     }
 
-    //commands_in_queue does not reflect commands added in this run
-    return gcodes_count - (*p_line) + marlin_get_gqueue() + gcodes_in_this_run;
-}
+//     //commands_in_queue does not reflect commands added in this run
+//     return gcodes_count - (*p_line) + marlin_get_gqueue() + gcodes_in_this_run;
+// }
