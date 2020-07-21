@@ -208,7 +208,10 @@ void window_t::ScreenEvent(window_t *sender, uint8_t ev, void *param) {
 void window_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
     windowEvent(sender, ev, param);
 }
-
+void window_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+    if (event == WINDOW_EVENT_CLICK && parent)
+        parent->windowEvent(this, event, param);
+}
 /*****************************************************************************/
 //static
 

@@ -60,7 +60,7 @@ public:
     window_t *GetParent() const;
     void Draw();
     void ScreenEvent(window_t *sender, uint8_t ev, void *param);    //try to handle, frame resends childern
-    void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, send to parrent if not handled
+    void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, can sent click to parent
     bool IsVisible() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
@@ -91,7 +91,7 @@ public:
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) {}
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param);
     virtual void screenEvent(window_t *sender, uint8_t event, void *param);
 
 private:

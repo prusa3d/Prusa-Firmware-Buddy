@@ -23,7 +23,7 @@ Screens *Screens::Access() {
 }
 
 void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
-    current->WindowEvent(current.get(), event, param);
+    current->ScreenEvent(current.get(), event, param);
 }
 
 void Screens::Draw() {
@@ -72,6 +72,7 @@ void Screens::Loop() {
             }
         }
         current = creator();
+        current->SetCapture();
         creator = nullptr;
         gui_invalidate();
     }
