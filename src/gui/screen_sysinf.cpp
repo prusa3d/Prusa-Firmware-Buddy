@@ -63,12 +63,12 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textExit.SetTag(TAG_QUIT);
 }
 
-int screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:
             Screens::Access()->Close();
-            return 1;
+            return;
         }
 
     if (event == WINDOW_EVENT_LOOP) {
@@ -78,6 +78,4 @@ int screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *pa
             last_CPU_load = actual_CPU_load;
         }
     }
-
-    return 0;
 }

@@ -188,7 +188,7 @@ extern int _is_in_M600_flg;
 extern uint32_t *pCommand;
 #endif
 
-int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
     if (HAL_GetTick() - _last > 300) {
@@ -209,16 +209,12 @@ int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *p
 
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
         open_popup_message();
-        return 0;
+        return;
     }
 
     if ((!is_abort_state(marlin_vars()->print_state)) && message_flag && (HAL_GetTick() - message_timer >= POPUP_MSG_DUR_MS)) {
         close_popup_message();
     }
-
-    /*if (status_footer_event(&(footer), window, event, param)) {
-        return 1;
-    }*/
 
     if ((state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
@@ -226,7 +222,7 @@ int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *p
             screen_printing_reprint();
         } else {
             Screens::Access()->Close();
-            return 1;
+            return;
         }
     }
 
@@ -254,7 +250,7 @@ int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *p
     /// -- close screen when print is done / stopped and USB media is removed
     if (!marlin_vars()->media_inserted && GetState() == printing_state_t::PRINTED) {
         Screens::Access()->Close();
-        return 1;
+        return;
     }
 
     /// -- check when media is or isn't inserted
@@ -264,13 +260,13 @@ int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *p
     }
 
     if (event != WINDOW_EVENT_CLICK) {
-        return 0;
+        return;
     }
 
     int pi = reinterpret_cast<int>(param) - 1;
     // -- pressed button is disabled - dont propagate event further
     if (w_buttons[pi].IsBWSwapped()) {
-        return 0;
+        return;
     }
 
     switch (static_cast<Btn>(pi)) {
@@ -283,8 +279,7 @@ int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *p
         default:
             break;
         }
-        return 1;
-        break;
+        return;
     case Btn::Pause: {
         switch (GetState()) {
         case printing_state_t::PRINTING:
@@ -305,10 +300,10 @@ int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *p
         switch (GetState()) {
         case printing_state_t::PRINTED:
             Screens::Access()->Close();
-            return 1;
+            return;
         case printing_state_t::PAUSING:
         case printing_state_t::RESUMING:
-            return 0;
+            return;
         default: {
             if (gui_msgbox(_("Are you sure to stop this printing?"),
                     MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
@@ -317,12 +312,11 @@ int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *p
                 change_print_state();
                 marlin_print_abort();
             } else
-                return 0;
+                return;
         }
         }
         break;
     }
-    return 0;
 }
 
 void screen_printing_data_t::disable_tune_button() {

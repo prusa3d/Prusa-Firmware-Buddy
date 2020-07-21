@@ -53,14 +53,14 @@ screen_messages_data_t::screen_messages_data_t()
     list.SetCapture();
 }
 
-int screen_messages_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_messages_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK:
         if (list.index == 0) {
             Screens::Access()->Close();
-            return 1;
+            return;
         }
         break;
     default:
@@ -68,8 +68,4 @@ int screen_messages_data_t::windowEvent(window_t *sender, uint8_t event, void *p
     }
 
     list.count = msg_stack.count + 1;
-
-    //status_footer_event(pfooter, window, event, param);
-
-    return 0;
 }

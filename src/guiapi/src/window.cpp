@@ -197,12 +197,7 @@ void window_t::unconditionalDraw() {
 }
 
 void window_t::WindowEvent(window_t *sender, uint8_t ev, void *param) {
-    if (windowEvent(sender, ev, param) == 0) {
-        //if event was not handled send it to parent
-        if (parent) {
-            parent->WindowEvent(sender, ev, param);
-        }
-    }
+    windowEvent(sender, ev, param);
 }
 
 void window_t::ScreenEvent(window_t *sender, uint8_t ev, void *param) {

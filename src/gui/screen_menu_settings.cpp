@@ -88,17 +88,17 @@ public:
     constexpr static const char *label = N_("SETTINGS");
     ScreenMenuSettings()
         : Screen(_(label)) {}
-    virtual int windowEvent(window_t *sender, uint8_t ev, void *param) override;
+    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSettings() {
     return ScreenFactory::Screen<ScreenMenuSettings>();
 }
 
-int ScreenMenuSettings::windowEvent(window_t *sender, uint8_t ev, void *param) {
+void ScreenMenuSettings::windowEvent(window_t *sender, uint8_t ev, void *param) {
     if (ev == WINDOW_EVENT_LOOP) {
         Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 
-    return Screen::windowEvent(sender, ev, param);
+    Screen::windowEvent(sender, ev, param);
 }

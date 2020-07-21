@@ -121,7 +121,7 @@ public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
         : Screen(_(label)) {}
-    virtual int windowEvent(window_t *sender, uint8_t ev, void *param) override;
+    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 
 private:
     void deactivate_item();
@@ -142,7 +142,7 @@ ScreenFactory::UniquePtr GetScreenMenuFilament() {
     return ScreenFactory::Screen<ScreenMenuFilament>();
 }
 
-int ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) {
+void ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) {
     deactivate_item();
     if (ev == WINDOW_EVENT_CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
@@ -152,32 +152,9 @@ int ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) {
             header.SetText(_(label));                    //restore label
         }
     } else {
-        return Screen::windowEvent(sender, ev, param);
+        Screen::windowEvent(sender, ev, param);
     }
-    return 0;
 }
-/*****************************************************************************/
-//static method definition
-/*void ScreenMenuFilament::Init(screen_t *screen) {
-    Create(screen, _(label));
-    reinterpret_cast<ScreenMenuFilament *>(screen->pdata)->deactivate_item();
-}
-
-int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    ScreenMenuFilament *const ths = reinterpret_cast<ScreenMenuFilament *>(screen->pdata);
-    ths->deactivate_item();
-    if (event == WINDOW_EVENT_CLICK) {
-        MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
-        if (item->IsEnabled()) {
-            ths->header.SetText(item->GetHeaderAlterLabel()); //set new label
-            item->Do();                                       //do action (load filament ...)
-            ths->header.SetText(_(label));                    //restore label
-        }
-    } else {
-        ths->Event(window, event, param);
-    }
-    return 0;
-}*/
 
 /*****************************************************************************/
 //non-static method definition

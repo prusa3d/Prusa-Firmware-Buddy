@@ -28,5 +28,5 @@ struct window_list_t : window_t {
 
 protected:
     virtual void unconditionalDraw() override;
-    virtual int windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };

@@ -14,5 +14,5 @@ public:
     screen_test_graph_t();
 
 private:
-    virtual int windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };

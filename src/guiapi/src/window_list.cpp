@@ -81,7 +81,7 @@ void window_list_t::unconditionalDraw() {
     }
 }
 
-int window_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         if (GetParent())

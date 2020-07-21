@@ -82,12 +82,12 @@ screen_test_msgbox_data_t::screen_test_msgbox_data_t()
     tst_ico_warning.SetTag(MSGBOX_BTN_MAX + 6);
 }
 
-int screen_test_msgbox_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_test_msgbox_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case MSGBOX_BTN_MAX + 2:
             Screens::Access()->Close();
-            return 1;
+            return;
         case MSGBOX_BTN_OK + 1:
         case MSGBOX_BTN_OKCANCEL + 1:
         case MSGBOX_BTN_ABORTRETRYIGNORE + 1:
@@ -105,5 +105,4 @@ int screen_test_msgbox_data_t::windowEvent(window_t *sender, uint8_t event, void
             gui_msgbox(_(test_text), MSGBOX_BTN_OK | ico);
         } break;
         }
-    return 0;
 }

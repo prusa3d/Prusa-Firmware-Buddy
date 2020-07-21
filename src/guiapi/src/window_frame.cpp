@@ -103,7 +103,7 @@ void window_frame_t::draw() {
     }
 }
 
-int window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
 
@@ -159,7 +159,6 @@ int window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         }
         break;
     }
-    return 0;
 }
 
 //resend event to all childern

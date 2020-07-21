@@ -111,10 +111,7 @@ static void on_print_preview_action(print_preview_action_t action) {
     }
 }
 
-int screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    /* if (status_footer_event(&(footer), sender, event, param)) {
-        return 1;
-    }*/
+void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 
     if (is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
     {
@@ -157,24 +154,23 @@ int screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *param
     switch ((int)param) {
     case BUTTON_PRINT + 1:
         //screen_open(get_scr_filebrowser()->id);
-        return 1;
+        return;
     case BUTTON_PREHEAT + 1:
         Screens::Access()->Open(GetScreenMenuPreheat);
-        return 1;
+        return;
     case BUTTON_FILAMENT + 1:
         Screens::Access()->Open(GetScreenMenuFilament);
-        return 1;
+        return;
     case BUTTON_CALIBRATION + 1:
         Screens::Access()->Open(GetScreenMenuCalibration);
-        return 1;
+        return;
     case BUTTON_SETTINGS + 1:
         Screens::Access()->Open(GetScreenMenuSettings);
-        return 1;
+        return;
     case BUTTON_INFO + 1:
         Screens::Access()->Open(GetScreenMenuInfo);
-        return 1;
+        return;
     }
-    return 0;
 }
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {

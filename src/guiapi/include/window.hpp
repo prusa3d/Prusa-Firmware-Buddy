@@ -91,7 +91,7 @@ public:
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
-    virtual int windowEvent(window_t *sender, uint8_t event, void *param) { return 0; }
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) {}
     virtual void screenEvent(window_t *sender, uint8_t event, void *param);
 
 private:

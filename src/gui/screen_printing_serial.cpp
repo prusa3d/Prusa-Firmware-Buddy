@@ -98,7 +98,7 @@ void screen_printing_serial_data_t::DisableButton(buttons_t b) {
     }
 }
 
-int screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     header.EventClr();
 
     /// end sequence waiting for empty marlin gcode queue
@@ -109,26 +109,21 @@ int screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event, 
         marlin_gcode("M140 S0");    /// set temperatures to zero
         marlin_gcode("M107");       /// print fan off
         Screens::Access()->Close();
-        return 1;
+        return;
     }
 
-    /*if (status_footer_event(&(footer), window, event, param)) {
-        return 1;
-    }*/
     if (event != WINDOW_EVENT_CLICK) {
-        return 0;
+        return;
     }
 
     int p = reinterpret_cast<int>(param) - 1;
     switch (static_cast<buttons_t>(p)) {
     case buttons_t::TUNE:
         //screen_open(get_scr_menu_tune()->id);
-        return 1;
-        break;
+        return;
     case buttons_t::PAUSE:
         marlin_gcode("M118 A1 action:pause");
-        return 1;
-        break;
+        return;
     case buttons_t::DISCONNECT:
         if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
             disconnect_pressed = true;
@@ -139,11 +134,8 @@ int screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event, 
 
             marlin_gcode("M118 A1 action:disconnect");
         }
-        return 1;
-        break;
+        return;
     default:
         break;
     }
-
-    return 0;
 }

@@ -103,7 +103,7 @@ void window_menu_t::Increment(int dif) {
 //I think I do not need
 //screen_dispatch_event
 //callback should handle it
-int window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     IWindowMenuItem *const item = GetActiveItem();
     const int value = int(param);
     bool invalid = false;

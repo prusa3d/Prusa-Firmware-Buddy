@@ -46,9 +46,7 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTE
     }
 }
 
-int IScreenMenu::windowEvent(window_t *sender, uint8_t event, void *param) {
+void IScreenMenu::windowEvent(window_t *sender, uint8_t event, void *param) {
     header.EventClr();
     window_menu_t::windowEvent(sender, event, param);
-    //on return 0 screen_dispatch_event will call ScreenEvent
-    return 0;
 }

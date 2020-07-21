@@ -77,18 +77,14 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     textExit.SetTag(TAG_QUIT);
 }
 
-int screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    /* if (status_footer_event(&(footer), window, event, param)) {
-        return 1;
-    }*/
-
+void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:
             if (mesh_state != mesh_state_t::idle)
-                return 0; //button should not be accessible
+                return; //button should not be accessible
             Screens::Access()->Close();
-            return 1;
+            return;
 
         case TAG_MESH:
             if (mesh_state == mesh_state_t::idle) {
@@ -149,6 +145,4 @@ int screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void
             break;
         }
     }
-
-    return 0;
 }

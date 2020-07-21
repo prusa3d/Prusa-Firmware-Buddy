@@ -25,8 +25,7 @@ screen_test_graph_t::screen_test_graph_t()
     button.SetTag(1);
 }
 
-int screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-
+void screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_LOOP) {
         if (loop_index == 5) {
             graph.graph_invalid = true;
@@ -43,5 +42,4 @@ int screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *para
             break;
         }
     }
-    return 0;
 }

@@ -83,7 +83,7 @@ public:
     ~screen_print_preview_data_t();
 
 private:
-    virtual int windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
     //virtual void unconditionalDraw() override;
     bool gcode_file_exists();
     void initialize_gcode_file();

@@ -91,36 +91,36 @@ static volatile void recursive(uint64_t i) {
         recursive(x);
 }
 
-int screen_test_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_test_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case STI_back:
             Screens::Access()->Close();
-            return 1;
+            break;
         case STI_tst_gui:
             // screen_open(get_scr_test_gui()->id);
-            return 1;
+            break;
         case STI_tst_term:
             //screen_open(get_scr_test_term()->id);
-            return 1;
+            break;
         case STI_tst_msgbox:
             //screen_open(get_scr_test_msgbox()->id);
-            return 1;
+            break;
         case STI_tst_graph:
             //screen_open(get_scr_test_graph()->id);
-            return 1;
+            break;
         case STI_tst_temperature:
             //screen_open(get_scr_test_temperature()->id);
-            return 1;
+            break;
         case STI_tst_heat_err:
             ("TEST BED ERROR", "Bed", 1.0, 2.0, 3.0, 4.0);
-            return 1;
+            break;
         case STI_tst_disp_memory:
             //screen_open(get_scr_test_disp_mem()->id);
-            return 1;
+            break;
         case STI_tst_stack_overflow:
             recursive(0);
-            return 1;
+            break;
         }
     /*else if (event == WINDOW_EVENT_TIMER) {
         if ((int)param == id_tim)
@@ -129,5 +129,4 @@ int screen_test_data_t::windowEvent(window_t *sender, uint8_t event, void *param
             _dbg("tim1 %lu", HAL_GetTick());
         return 1;
     }*/
-    return 0;
 }

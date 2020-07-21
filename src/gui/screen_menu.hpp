@@ -31,7 +31,7 @@ protected:
     window_header_t header;
     window_text_t help;
     status_footer_t footer;
-    virtual int windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);

@@ -51,7 +51,7 @@ void screen_splash_data_t::draw() {
 #endif //_DEBUG
 }
 
-int screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     timer(HAL_GetTick());
 
 #ifdef _EXTUI
@@ -118,7 +118,5 @@ int screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *par
         Screens::Access()->Close();
         //screen_open(get_scr_test()->id);
 #endif
-        return 1;
     }
-    return 0;
 }

@@ -189,14 +189,14 @@ bool screen_print_preview_data_t::gcode_file_exists() {
 //rewrite later
 static bool suppress_draw = false;
 
-int screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
     if (!gcode_file_exists()) {
         if (suppress_draw && window_popup_ptr) // msgbox "Filament not detected." is displayed, we need close it and skip all processing before screen_close
             gui_msgbox_close();                // skip message box
         Screens::Access()->Close();
-        return 1;
+        return;
     }
 
     if (!suppress_draw && fs_did_filament_runout()) {
@@ -210,7 +210,7 @@ int screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, vo
             0, btns)) {
         case MSGBOX_RES_CLOSED:
             suppress_draw = false;
-            return 1;
+            return;
         case MSGBOX_RES_CUSTOM0: //YES - load
             gui_dlg_load_forced();
             break;
@@ -219,7 +219,7 @@ int screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, vo
                 action_handler(PRINT_PREVIEW_ACTION_BACK);
             }
             suppress_draw = false;
-            return 1;
+            return;
         case MSGBOX_RES_CUSTOM2: //IGNORE - disable
             fs_disable();
             break;
@@ -244,15 +244,13 @@ int screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, vo
     } else if (event == WINDOW_EVENT_CLICK && (intptr_t)param == PRINT_BUTTON_ID) {
         if (action_handler) {
             action_handler(PRINT_PREVIEW_ACTION_PRINT);
-            return 1;
+            return;
         }
     } else if (event == WINDOW_EVENT_CLICK && (intptr_t)param == BACK_BUTTON_ID) {
         if (action_handler) {
             action_handler(PRINT_PREVIEW_ACTION_BACK);
-            return 1;
+            return;
         }
     }
-
-    return 0;
 }
 const char *screen_print_preview_get_gcode_filepath();

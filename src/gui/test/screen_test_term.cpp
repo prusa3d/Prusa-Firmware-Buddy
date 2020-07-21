@@ -20,11 +20,10 @@ screen_test_term_data_t::screen_test_term_data_t()
     term.term = &(terminal);
 }
 
-int screen_test_term_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_test_term_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     int winid = -1;
     if (event == WINDOW_EVENT_BTN_DN) {
         Screens::Access()->Close();
-        return 1;
     }
     if (event != WINDOW_EVENT_LOOP) {
         term_printf(term.term, "%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
@@ -32,5 +31,4 @@ int screen_test_term_data_t::windowEvent(window_t *sender, uint8_t event, void *
         //		if (term.term->flg & TERM_FLG_CHANGED)
         term.Invalidate();
     }
-    return 0;
 }

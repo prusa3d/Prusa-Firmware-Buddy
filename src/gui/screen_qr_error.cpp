@@ -34,14 +34,13 @@ void screen_qr_error_data_t::unconditionalDraw() {
     display::FillRect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
 }
 
-int screen_qr_error_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_qr_error_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
         Screens::Access()->Close();
-        return (1);
+        return;
     }
     if (!first_run_flag)
-        return (0);
+        return;
     first_run_flag = false;
     unconditionalDraw(); // todo why?
-    return (0);
 }
