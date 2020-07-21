@@ -141,8 +141,8 @@ static const eeprom_vars_t eeprom_var_defaults = {
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
     0,               // EEVAR_TIMEZONE
     0xff,            // EEVAR_SOUND_MODE
-    0x64,            // EEVAR_SOUND_VOLUME
-    0xffff,            // EEVAR_LANGUAGE
+    0xa,             // EEVAR_SOUND_VOLUME
+    0xffff,          // EEVAR_LANGUAGE
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
