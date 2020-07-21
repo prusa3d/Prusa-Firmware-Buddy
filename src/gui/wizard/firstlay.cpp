@@ -28,9 +28,10 @@ void initialGcodes() {
 void homeAndMBL(const uint16_t nozzle_preheat, const uint16_t nozzle_target, const uint8_t bed) {
     gCode gc;
     //TODO check if Z axis is calibrated, if so, don't call G92
+    // .G(92).param('Z', 0)
+    // .G1(NAN, NAN, 2, NAN, 1000)
     // clang-format off
-    gc  .G(92).param('Z', 0)
-        .G1(NAN, NAN, 2, NAN, 1000)
+    gc  
         .M(104).param('S', nozzle_preheat).param('D', nozzle_target) // nozzle target
         .M(140).param('S', bed)                                      // bed target
         .M(109).param('R', nozzle_preheat)                           // wait for nozzle temp
@@ -352,7 +353,6 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         if (marlin_get_gqueue() > 0)
             break;
 
-        _wizard_firstlay_Z_step(p_screen);
         snakeInit1();
         p_screen->state = _FL_GCODE_SNAKE_INIT_2;
         break;
@@ -361,34 +361,39 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         if (marlin_get_gqueue() > 0)
             break;
 
-        _wizard_firstlay_Z_step(p_screen);
         snakeInit2();
+        p_screen->state = _FL_GCODE_SNAKE_INIT_END;
+        break;
+
+    case _FL_GCODE_SNAKE_INIT_END:
+        if (marlin_get_gqueue() > 0)
+            break;
+
         p_screen->state = _FL_GCODE_SNAKE_BODY;
         break;
 
     case _FL_GCODE_SNAKE_BODY:
-        if (marlin_get_gqueue() > 0)
-            break;
-
         _wizard_firstlay_Z_step(p_screen);
         sendSnakeLine(snakeLine++);
         if (snakeLine >= snakeLines)
-            p_screen->state = _FL_GCODE_SNAKE_END;
+            p_screen->state = _FL_GCODE_SNAKE_FINALIZE;
+        break;
+
+    case _FL_GCODE_SNAKE_FINALIZE:
+        if (marlin_get_gqueue() > 0)
+            break;
+
+        snakeEnd();
+        p_screen->state = _FL_GCODE_SNAKE_END;
         break;
 
     case _FL_GCODE_SNAKE_END:
         if (marlin_get_gqueue() > 0)
             break;
-
-        _wizard_firstlay_Z_step(p_screen);
-        snakeEnd();
         p_screen->state = _FL_GCODE_DONE;
         break;
 
     case _FL_GCODE_DONE:
-        if (marlin_get_gqueue() > 0)
-            break;
-
 #if DEBUG_TERM == 1
         term_printf(&p_screen->terminal, "PASSED\n");
         p_screen->term.Invalidate();

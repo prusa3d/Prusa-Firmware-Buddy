@@ -15,7 +15,7 @@ constexpr float threadWidth = 0.5f;
 constexpr float filamentD = 1.75f;
 constexpr float pi = 3.1415926535897932384626433832795;
 constexpr float extrudeCoef = layerHeight * threadWidth / (pi * SQR(filamentD / 2));
-constexpr char floatFormat[] = "%.4g";
+constexpr char floatFormat[] = "%.4f"; /// write 4 chars after dot and round (removes trailing zeros)
 
 /// Tool to generate string from G codes.
 /// Most of the methods can be chained (gc.G(28).G(29).G1(0,0,0,0,0))
@@ -124,7 +124,7 @@ public:
             return *this;
 
         addNewLineIfMissing();
-        const int chars = snprintf(&code[pos], bufferSize - pos, "G%d", value);
+        const int chars = snprintf(&code[pos], free(), "G%d", value);
 
         if (chars < 0) {
             error_ = 1;
@@ -140,9 +140,9 @@ public:
             return *this;
 
         addNewLineIfMissing();
-        const int chars = snprintf(&code[pos], bufferSize - pos, "M%d", value);
+        const int chars = snprintf(&code[pos], free(), "M%d", value);
 
-        if (chars < 0) {
+        if (chars <= 0) {
             error_ = 1;
         } else {
             pos += chars;
