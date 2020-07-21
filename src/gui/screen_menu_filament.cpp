@@ -128,13 +128,17 @@ private:
 
     template <class T>
     void dis() {
-        Item<T>().Disable();
-        Invalidate();
+        if (Item<T>().IsEnabled()) {
+            Item<T>().Disable();
+            Invalidate();
+        }
     }
     template <class T>
     void ena() {
-        Item<T>().Enable();
-        Invalidate();
+        if (!Item<T>().IsEnabled()) {
+            Item<T>().Enable();
+            Invalidate();
+        }
     }
 };
 
@@ -197,5 +201,4 @@ void ScreenMenuFilament::deactivate_item() {
         ena<MI_PURGE>();
         break;
     }
-    gui_invalidate();
 }
