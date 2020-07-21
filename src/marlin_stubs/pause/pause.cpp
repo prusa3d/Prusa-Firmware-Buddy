@@ -318,17 +318,7 @@ bool Pause::FilamentUnload() {
     thermalManager.setExtrusionScalingEnabled(false);
 #endif //ENABLED(PID_EXTRUSION_SCALING)
 
-    static const RamUnloadSeqItem ramUnloadSeq[] = {
-        { 1, 100 },
-        { 1, 300 },
-        { 3, 800 },
-        { 2, 1200 },
-        { 2, 2200 },
-        { 2, 2600 }, // end of ramming
-        { -2, 2200 },
-        { -20, 3000 },
-        { -30, 4000 }, // end of pre-unload
-    };
+    static const RamUnloadSeqItem ramUnloadSeq[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
     decltype(RamUnloadSeqItem::e) ramUnloadLength = 0; //Sum of ramming distances starting from first retraction
 
     constexpr float mm_per_minute = 1 / 60.f;
