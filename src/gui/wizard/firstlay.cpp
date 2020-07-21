@@ -264,7 +264,9 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
 
     window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x + 110 + 70, y, WIZARD_X_SPACE - x - 110 - 70, 22),
         &(p_screen->text_direction_arrow));
-    static const char pm[] = "-|+";
+    // static const char pm[] = "-|+";
+    // p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pm));
+    static const char pm[] = "";
     p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pm));
 
     y += 22 + 10;
@@ -308,13 +310,16 @@ inline void FLGcodeHeat(firstlay_screen_t *p_screen) {
 
     heatNozzle(targetTemp());
     p_screen->state = _FL_GCODE_SNAKE_INIT_1;
-
-    p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
-    p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-    p_screen->spin_baby_step.Invalidate();
 }
 
 int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
+    if (targetTemp() <= 1) {
+        /// unknown filament => abort
+        ///FIXME this happens if filament loaded but EEPROM is reset
+        p_data->state_print = _TEST_FAILED;
+        return 100;
+    }
+
     if (p_data->state_print == _TEST_START) {
         p_screen->state = _FL_INIT;
         p_data->state_print = _TEST_RUN;
@@ -369,14 +374,22 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         if (marlin_get_gqueue() > 0)
             break;
 
+        p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
+        p_screen->spin_baby_step.color_text = COLOR_ORANGE;
+        p_screen->spin_baby_step.Invalidate();
         p_screen->state = _FL_GCODE_SNAKE_BODY;
         break;
 
     case _FL_GCODE_SNAKE_BODY:
         _wizard_firstlay_Z_step(p_screen);
+        if (marlin_get_gqueue() > 0)
+            break;
         sendSnakeLine(snakeLine++);
-        if (snakeLine >= snakeLines)
+        if (snakeLine >= snakeLines) {
             p_screen->state = _FL_GCODE_SNAKE_FINALIZE;
+            p_screen->spin_baby_step.color_text = COLOR_GRAY;
+            p_screen->spin_baby_step.Invalidate();
+        }
         break;
 
     case _FL_GCODE_SNAKE_FINALIZE:
