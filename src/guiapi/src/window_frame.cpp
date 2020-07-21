@@ -75,6 +75,12 @@ void window_frame_t::push_back(window_t *win) {
     }
 }
 
+void window_frame_t::Unregister() {
+    window_t *prev = GetPrevSubWin(last);
+    if (prev)
+        prev->SetNext(nullptr);
+}
+
 window_t *window_frame_t::GetFirst() const {
     return first;
 }

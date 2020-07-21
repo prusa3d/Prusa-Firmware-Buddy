@@ -3,18 +3,12 @@
 #include "window.hpp"
 #include "gui.hpp"
 #include <algorithm> // std::find
-
-#define WINDOW_MAX_WINDOWS 64
-
-#define WINDOW_MAX_USERCLS 10
+#include "ScreenHandler.hpp"
 
 extern osThreadId displayTaskHandle;
 
 window_t *window_popup_ptr = 0; //current popup window
 
-uint16_t window_count = 0;
-
-uint16_t window_user_class_count = 0;
 /*
 void window_destroy(int16_t id) {
     window_t *window = window_free_id(id);
@@ -112,15 +106,19 @@ void window_t::SetBackColor(color_t clr) {
 window_t::window_t(window_t *parent, rect_ui16_t rect)
     : parent(parent)
     , next(nullptr)
-    , color_back(gui_defaults.color_back)
-    , rect(rect) {
+    , f_tag(0)
+    , flg(0)
+    , rect(rect)
+    , color_back(gui_defaults.color_back) {
     Disable();
     Show();
     Invalidate();
     if (parent)
         parent->push_back(this);
-    //if (rect.w && rect.h)
-    //    display::FillRect(rect, color_back);
+}
+
+window_t::window_t(rect_ui16_t rect)
+    : window_t(Screens::Access()->Get(), rect) {
 }
 
 window_t::~window_t() {
@@ -128,6 +126,9 @@ window_t::~window_t() {
         focused_ptr = nullptr;
     if (GetCapturedWindow() == this)
         capture_ptr = nullptr;
+
+    if (GetParent())
+        GetParent()->Unregister();
 }
 
 void window_t::SetNext(window_t *nxt) {

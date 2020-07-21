@@ -10,6 +10,7 @@ struct window_frame_t : public window_t {
     window_t *first;
     window_t *last;
     virtual void push_back(window_t *win) override;
+    virtual void Unregister() override;
     window_t *GetFirst() const;
     window_t *GetLast() const;
     window_frame_t(window_t *first, window_t *parent = nullptr, rect_ui16_t rect = rect_ui16(0, 0, display::GetW(), display::GetH()));

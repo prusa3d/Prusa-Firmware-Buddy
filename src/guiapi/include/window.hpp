@@ -47,8 +47,6 @@ protected:
     };
 
 public:
-    int16_t id; // (2 bytes) window identifier (2bytes)
-
     rect_ui16_t rect; // (8 bytes) display rectangle
     color_t color_back;
 
@@ -84,10 +82,11 @@ public:
     color_t GetBackColor() const;
 
     window_t(window_t *parent, rect_ui16_t rect); //todo remove nullptr default values
+    window_t(rect_ui16_t rect);                   //meant for dialogs, use current screen as parent
     virtual ~window_t();
 
     virtual void push_back(window_t *win);
-
+    virtual void Unregister() {} //meant for dialogs, remove this window from frame
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
