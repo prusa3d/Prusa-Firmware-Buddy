@@ -29,8 +29,8 @@ bool window_file_list_path_is_root(const char *path) {
 void window_file_list_init_text_roll(window_file_list_t *window) {
     window->roll.setup = TXTROLL_SETUP_INIT;
     window->roll.phase = ROLL_SETUP;
-    gui_timer_restart_txtroll(window->id);
-    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
+    gui_timer_restart_txtroll(window);
+    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window);
 }
 
 void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
@@ -95,7 +95,7 @@ window_file_list_t::window_file_list_t(window_t *parent, rect_ui16_t rect)
     roll.count = roll.px_cd = roll.progress = 0;
     roll.phase = ROLL_SETUP;
     roll.setup = TXTROLL_SETUP_INIT;
-    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, id);
+    gui_timer_create_txtroll(this, TEXT_ROLL_INITIAL_DELAY_MS);
     strlcpy(sfn_path, "/", FILE_PATH_MAX_LEN);
 }
 
@@ -213,7 +213,7 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
         //TODO: change flag to checked
         break;
     case WINDOW_EVENT_TIMER:
-        roll_text_phasing(window->id, window->font, &window->roll);
+        roll_text_phasing(window, window->font, &window->roll);
         break;
     }
 }

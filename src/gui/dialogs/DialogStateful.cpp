@@ -2,6 +2,7 @@
 #include "DialogRadioButton.hpp"
 #include "gui.hpp"
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 static constexpr uint8_t PROGRESS_BAR_X_PAD = 10;
 static constexpr uint8_t PROGRESS_BAR_Y_PAD = 30;
@@ -48,8 +49,8 @@ IDialogStateful::~IDialogStateful() {
     window_destroy(id);
     if (id_capture)
         id_capture->SetCapture();
-    window_t *pWin = window_ptr(0);
-    if (pWin != 0)
+    window_t *pWin = Screens::Access()->Get();
+    if (pWin)
         pWin->Invalidate();
 }
 

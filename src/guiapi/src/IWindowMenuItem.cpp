@@ -71,7 +71,7 @@ void IWindowMenuItem::RollInit(IWindowMenu &window_menu, rect_ui16_t rect) {
     roll_init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.alignment, &roll);
 }
 void IWindowMenuItem::Roll(IWindowMenu &window_menu) {
-    roll_text_phasing(window_menu.id, window_menu.font, &roll); //warning it is accessing gui timer
+    roll_text_phasing(&window_menu, window_menu.font, &roll); //warning it is accessing gui timer
 }
 
 void IWindowMenuItem::SetFocus() {

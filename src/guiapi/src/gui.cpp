@@ -177,7 +177,7 @@ void gui_reset_menu_timer() {
         if (gui_get_menu_timeout_id() >= 0) {
             gui_timer_reset(gui_get_menu_timeout_id());
         } else {
-            gui_timer_create_timeout((uint32_t)MENU_TIMEOUT_MS, (int16_t)-1);
+            //gui_timer_create_timeout((uint32_t)MENU_TIMEOUT_MS, (int16_t)-1);
         }
     }
 }
@@ -210,7 +210,7 @@ int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
         gui_loop();
     }
     window_popup_ptr = window_popup_tmp; // restore previous window_popup_ptr
-    window_t *pWin = window_ptr(0);
+    window_t *pWin = Screens::Access()->Get();
     if (pWin)
         pWin->Invalidate();
     if (id_capture)

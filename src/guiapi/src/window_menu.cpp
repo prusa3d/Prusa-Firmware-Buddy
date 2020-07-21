@@ -161,8 +161,8 @@ void window_menu_t::unconditionalDraw() {
 
         if (rect_in_rect_ui16(rc, rc_win)) {
             if (item->RollNeedInit()) {
-                gui_timer_restart_txtroll(id);
-                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, id);
+                gui_timer_restart_txtroll(this);
+                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
                 item->RollInit(*this, rc);
             }
             item->Print(*this, rc);

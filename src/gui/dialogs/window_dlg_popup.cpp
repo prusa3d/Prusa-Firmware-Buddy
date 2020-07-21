@@ -11,6 +11,7 @@
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 #define POPUP_DELAY_MS 1000
 
@@ -71,7 +72,7 @@ void gui_pop_up(void) {
     //window_destroy(id);
     if (id_capture)
         id_capture->SetCapture();
-    window_t *pWin = window_ptr(0);
+    window_t *pWin = Screens::Access()->Get();
     if (pWin != 0)
         pWin->Invalidate();
     opened = 0;

@@ -31,8 +31,8 @@ screen_test_data_t::screen_test_data_t()
     , tst_heat_err(this, rect_ui16(10, 186, 220, 22))
     , tst_disp_memory(this, rect_ui16(10, 208, 220, 22))
     , tst_stack_overflow(this, rect_ui16(10, 230, 220, 22))
-    , id_tim(gui_timer_create_oneshot(2000, 0))  //id0
-    , id_tim1(gui_timer_create_oneshot(2000, 0)) //id0
+    , id_tim(gui_timer_create_oneshot(this, 2000))  //id0
+    , id_tim1(gui_timer_create_oneshot(this, 2000)) //id0
 {
     static const char tst[] = "TEST";
     test.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));

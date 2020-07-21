@@ -12,6 +12,7 @@
 #include "marlin_client.h"
 #include "resource.h"
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 #define ANIMATION_MILISEC_DELAY 500 // number of milisecond for frame change
 
@@ -193,7 +194,7 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
 
     //window_destroy(id);
     window_popup_ptr = tmp_popup_window;
-    window_t *pWin = window_ptr(0);
+    window_t *pWin = Screens::Access()->Get();
     if (pWin != 0)
         pWin->Invalidate();
     if (id_capture)
