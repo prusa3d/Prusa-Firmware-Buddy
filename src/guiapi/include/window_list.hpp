@@ -25,4 +25,8 @@ struct window_list_t : window_t {
     int GetTopIndex() const { return top_index; }
 
     window_list_t(window_t *parent, rect_ui16_t rect);
+
+protected:
+    virtual void unconditionalDraw() override;
+    virtual int event(window_t *sender, uint8_t event, void *param) override;
 };

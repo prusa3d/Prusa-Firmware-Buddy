@@ -27,34 +27,29 @@ void window_list_item(window_list_t *pwindow_list, uint16_t index,
 void window_list_inc(window_list_t *window, int dif);
 void window_list_dec(window_list_t *window, int dif);
 
-/*
-void window_list_draw(window_list_t *window) {
-    if (!((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))
-            == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        return;
-    }
+void window_list_t::unconditionalDraw() {
 
-    int item_height = window->font->h + window->padding.top + window->padding.bottom;
-    rect_ui16_t rc_win = window->rect;
+    int item_height = font->h + padding.top + padding.bottom;
+    rect_ui16_t rc_win = rect;
 
     int visible_count = rc_win.h / item_height;
     int i;
-    for (i = 0; i < visible_count && i < window->count; i++) {
-        int idx = i + window->top_index;
+    for (i = 0; i < visible_count && i < count; i++) {
+        int idx = i + top_index;
         const char *label;
         uint16_t id_icon;
-        window->list_item(window, idx, &label, &id_icon);
+        list_item(this, idx, &label, &id_icon);
 
-        color_t color_text = window->color_text;
-        color_t color_back = window->color_back;
+        color_t color_text = color_text;
+        color_t color_back = color_back;
         uint8_t swap = 0;
 
         rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
             rc_win.w, uint16_t(item_height) };
-        padding_ui8_t padding = window->padding;
+        padding_ui8_t padding = padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            if (window->index == idx) {
+            if (index == idx) {
                 color_t swp = color_text;
                 color_text = color_back;
                 color_back = swp;
@@ -63,40 +58,40 @@ void window_list_draw(window_list_t *window) {
 
             if (id_icon) {
                 rect_ui16_t irc = { rc.x, rc.y,
-                    window->icon_rect.w, window->icon_rect.h };
+                    icon_rect.w, icon_rect.h };
                 rc.x += irc.w;
                 rc.w -= irc.w;
                 render_icon_align(irc, id_icon,
-                    window->color_back, RENDER_FLG(ALIGN_CENTER, swap));
+                    color_back, RENDER_FLG(ALIGN_CENTER, swap));
             } else {
-                padding.left += window->icon_rect.w;
+                padding.left += icon_rect.w;
             }
 
             // render
-            render_text_align(rc, _(label), window->font,
+            render_text_align(rc, _(label), font,
                 color_back, color_text,
-                padding, window->alignment);
+                padding, alignment);
         }
     }
     rc_win.h = rc_win.h - (i * item_height);
 
     if (rc_win.h) {
         rc_win.y += i * item_height;
-        display::FillRect(rc_win, window->color_back);
+        display::FillRect(rc_win, color_back);
     }
-}*/
+}
 
-void window_list_event(window_list_t *window, uint8_t event, void *param) {
+int window_list_t::event(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        if (window->GetParent())
-            window->GetParent()->SetCapture();
+        if (GetParent())
+            GetParent()->SetCapture();
         break;
     case WINDOW_EVENT_ENC_DN:
-        window_list_dec(window, (int)param);
+        window_list_dec(this, (int)param);
         break;
     case WINDOW_EVENT_ENC_UP:
-        window_list_inc(window, (int)param);
+        window_list_inc(this, (int)param);
         break;
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
