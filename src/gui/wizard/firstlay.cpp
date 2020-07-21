@@ -29,8 +29,8 @@ void homeAndMBL(const uint16_t nozzle_preheat, const uint16_t nozzle_target, con
     gCode gc;
     //TODO check if Z axis is calibrated, if so, don't call G92
     // clang-format off
-    gc  .G(92).param('Z',0)
-        .G1(NAN,NAN,2,NAN,F1000);
+    gc  .G(92).param('Z', 0)
+        .G1(NAN, NAN, 2, NAN, 1000)
         .M(104).param('S', nozzle_preheat).param('D', nozzle_target) // nozzle target
         .M(140).param('S', bed)                                      // bed target
         .M(109).param('R', nozzle_preheat)                           // wait for nozzle temp
