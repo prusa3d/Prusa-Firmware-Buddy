@@ -111,6 +111,7 @@ struct screen_printing_data_t {
     uint32_t message_timer;
     bool message_flag;
     bool stop_pressed;
+    bool waiting_for_abort; /// flag specific for stop pressed when MBL is performed
     printing_state_t state__readonly__use_change_print_state;
     uint8_t last_sd_percent_done;
 };
@@ -317,6 +318,14 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
 #endif
 
+    /// check stop clicked when MBL is running
+    printing_state_t p_state = get_state(screen);
+    if (pw->stop_pressed && pw->waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && p_state == printing_state_t::ABORTING) {
+        marlin_print_abort();
+        pw->waiting_for_abort = false;
+        return 0;
+    }
+
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
         open_popup_message(screen);
         return 0;
@@ -330,7 +339,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 1;
     }
 
-    if ((pw->state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
+    if (p_state == printing_state_t::PRINTED && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
         if (gui_msgbox(_("Bed leveling failed. Try again?"), MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
             screen_printing_reprint(screen);
@@ -362,7 +371,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         update_progress(screen, marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
 
     /// -- close screen when print is done / stopped and USB media is removed
-    if (!marlin_vars()->media_inserted && get_state(screen) == printing_state_t::PRINTED) {
+    if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
         screen_close();
         return 1;
     }
@@ -373,10 +382,13 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         set_pause_icon_and_label(screen);
     }
 
+    /// ------------------------------------
+    /// -- CLICK EVENT START
     if (event != WINDOW_EVENT_CLICK) {
         return 0;
     }
 
+    /// parameter as INT
     int pi = reinterpret_cast<int>(param) - 1;
     // -- pressed button is disabled - dont propagate event further
     if (pw->w_buttons[pi].f_disabled) {
@@ -385,7 +397,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
 
     switch (static_cast<Btn>(pi)) {
     case Btn::Tune:
-        switch (get_state(screen)) {
+        switch (p_state) {
         case printing_state_t::PRINTING:
         case printing_state_t::PAUSED:
             screen_open(get_scr_menu_tune()->id);
@@ -396,7 +408,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         return 1;
         break;
     case Btn::Pause: {
-        switch (get_state(screen)) {
+        switch (p_state) {
         case printing_state_t::PRINTING:
             marlin_print_pause();
             break;
@@ -412,7 +424,7 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
         break;
     }
     case Btn::Stop:
-        switch (get_state(screen)) {
+        switch (p_state) {
         case printing_state_t::PRINTED:
             screen_close();
             return 1;
@@ -424,8 +436,8 @@ int screen_printing_event(screen_t *screen, window_t *window, uint8_t event, voi
                     MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
                 == MSGBOX_RES_YES) {
                 pw->stop_pressed = true;
+                pw->waiting_for_abort = true;
                 change_print_state(screen);
-                marlin_print_abort();
             } else
                 return 0;
         }
