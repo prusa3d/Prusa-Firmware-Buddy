@@ -533,7 +533,8 @@ inline void FLGcodeHeadEnd(firstlay_screen_t *p_screen) {
     if (marlin_get_gqueue() > 0)
         return;
 
-    p_screen->state = _FL_GCODE_BODY;
+    //    p_screen->state = _FL_GCODE_BODY;
+    p_screen->state = _FL_GCODE_BODY_01;
 }
 
 // inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
@@ -623,6 +624,147 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         //     }
 
         //     FLGcodeHead(p_screen, head_gcode, head_gcode_sz);
+        break;
+
+    case _FL_GCODE_BODY_01:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer01(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_02;
+        break;
+
+    case _FL_GCODE_BODY_02:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer02(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_03;
+        break;
+
+    case _FL_GCODE_BODY_03:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer03(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_04;
+        break;
+
+    case _FL_GCODE_BODY_04:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer04(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_05;
+        break;
+
+    case _FL_GCODE_BODY_05:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer05(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_06;
+        break;
+
+    case _FL_GCODE_BODY_06:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer06(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_07;
+        break;
+
+    case _FL_GCODE_BODY_07:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer07(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_08;
+        break;
+
+    case _FL_GCODE_BODY_08:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer08(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_09;
+        break;
+
+    case _FL_GCODE_BODY_09:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer09(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_10;
+        break;
+
+    case _FL_GCODE_BODY_10:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer10(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_11;
+        break;
+
+    case _FL_GCODE_BODY_11:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer11(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_12;
+        break;
+
+    case _FL_GCODE_BODY_12:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer12(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_13;
+        break;
+
+    case _FL_GCODE_BODY_13:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer13(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_14;
+        break;
+
+    case _FL_GCODE_BODY_14:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer14(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_15;
+        break;
+
+    case _FL_GCODE_BODY_15:
+        if (marlin_get_gqueue() > 0)
+            break;
+        gCode gc;
+        firstLayer15(gc);
+        gc.send();
+        p_screen->state = _FL_GCODE_BODY_END;
+        break;
+
+    case _FL_GCODE_BODY_END:
+        if (marlin_get_gqueue() > 0)
+            break;
+        p_screen->state = _FL_GCODE_DONE;
         break;
 
     case _FL_GCODE_BODY:
