@@ -259,6 +259,8 @@
  * M569 - Enable stealthChop on an axis. (Requires at least one _DRIVER_TYPE to be TMC2130/2160/2208/2209/5130/5160)
  * M575 - Change the serial baud rate. (Requires BAUD_RATE_GCODE)
  * M600 - Pause for filament change: "M600 X<pos> Y<pos> Z<raise> E<first_retract> L<later_retract>". (Requires ADVANCED_PAUSE_FEATURE)
+ * M601 - Pause and park print-head in marlin's defined position. (Requires ADVANCED_PAUSE_FEATURE)
+ * M602 - Unpark print-head parked with M601 called before and unpause print process. (Requires ADVANCED_PAUSE_FEATURE)
  * M603 - Configure filament change: "M603 T<tool> U<unload_length> L<load_length>". (Requires ADVANCED_PAUSE_FEATURE)
  * M605 - Set Dual X-Carriage movement mode: "M605 S<mode> [X<x_offset>] [R<temp_offset>]". (Requires DUAL_X_CARRIAGE)
  * M665 - Set delta configurations: "M665 H<delta height> L<diagonal rod> R<delta radius> S<segments/s> B<calibration radius> X<Alpha angle trim> Y<Beta angle trim> Z<Gamma angle trim> (Requires DELTA)
@@ -1084,6 +1086,8 @@ private:
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     static void M600();
+    static void M601();
+    static void M602();
     static void M603();
     static void M603_report(const bool forReplay=true);
   #endif

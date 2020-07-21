@@ -938,6 +938,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         case 600: M600(); break;                                  // M600: Pause for Filament Change
+        case 601: M601(); break;                                  // M601: Pause & park
+        case 602: M602(); break;                                  // M602: Unpark & UnPause print
         case 603: M603(); break;                                  // M603: Configure Filament Change
       #endif
 
