@@ -23,7 +23,7 @@ screen_watchdog_data_t::screen_watchdog_data_t()
     text1.SetTag(1);
 }
 
-int screen_watchdog_data_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_watchdog_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         Screens::Access()->Close();
     return 0;

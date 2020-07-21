@@ -75,7 +75,7 @@ struct screen_printing_data_t : public window_frame_t {
     screen_printing_data_t();
 
 private:
-    virtual int event(window_t *sender, uint8_t event, void *param) override;
+    virtual int windowEvent(window_t *sender, uint8_t event, void *param) override;
     void invalidate_print_state();
     void open_popup_message();
     void close_popup_message();

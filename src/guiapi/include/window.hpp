@@ -59,8 +59,8 @@ public:
     window_t *GetNextEnabled() const;
     window_t *GetParent() const;
     void Draw();
-    void ScreenEvent(window_t *sender, uint8_t ev, void *param); //try to handle, frame resends childern
-    void Event(window_t *sender, uint8_t event, void *param);    //try to handle, send to parrent if not handled
+    void ScreenEvent(window_t *sender, uint8_t ev, void *param);    //try to handle, frame resends childern
+    void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, send to parrent if not handled
     bool IsVisible() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
@@ -91,8 +91,8 @@ public:
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
-    virtual int event(window_t *sender, uint8_t event, void *param) { return 0; }
-    virtual void dispatchEvent(window_t *sender, uint8_t event, void *param);
+    virtual int windowEvent(window_t *sender, uint8_t event, void *param) { return 0; }
+    virtual void screenEvent(window_t *sender, uint8_t event, void *param);
 
 private:
     static window_t *focused_ptr; // has focus

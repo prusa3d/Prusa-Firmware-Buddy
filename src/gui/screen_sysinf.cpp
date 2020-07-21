@@ -63,7 +63,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textExit.SetTag(TAG_QUIT);
 }
 
-int screen_sysinfo_data_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case TAG_QUIT:

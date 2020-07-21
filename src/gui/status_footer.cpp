@@ -34,7 +34,7 @@ static const char *filament; // "PETG"
 static char const *err = "ERR";
 
 /// Callback function which triggers update and repaint of values
-int status_footer_t::event(window_t *sender, uint8_t event, void *param) {
+int status_footer_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     uint32_t mseconds = HAL_GetTick();
 
     if (mseconds - last_timer_repaint_values >= REPAINT_VALUE_PERIOD) {

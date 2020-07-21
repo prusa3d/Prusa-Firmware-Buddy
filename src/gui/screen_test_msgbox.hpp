@@ -23,5 +23,5 @@ public:
     screen_test_msgbox_data_t();
 
 private:
-    virtual int event(window_t *sender, uint8_t event, void *param) override;
+    virtual int windowEvent(window_t *sender, uint8_t event, void *param) override;
 };

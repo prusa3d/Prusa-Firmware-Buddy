@@ -103,14 +103,14 @@ void window_frame_t::draw() {
     }
 }
 
-int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
+int window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
 
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         if (pWin) {
-            pWin->Event(this, WINDOW_EVENT_CLICK, (void *)(int)pWin->GetTag());
+            pWin->WindowEvent(this, WINDOW_EVENT_CLICK, (void *)(int)pWin->GetTag());
             //Screens::Access()->DispatchEvent(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
             pWin->SetCapture();
         }
@@ -163,13 +163,13 @@ int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
 }
 
 //resend event to all childern
-void window_frame_t::dispatchEvent(window_t *sender, uint8_t ev, void *param) {
+void window_frame_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
     window_t *ptr = first;
     while (ptr) {
         ptr->ScreenEvent(sender, ev, param);
         ptr = ptr->GetNext();
     }
-    event(this, ev, param);
+    windowEvent(this, ev, param);
 }
 
 window_t *window_frame_t::GetNextSubWin(window_t *win) const {

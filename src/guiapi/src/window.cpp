@@ -69,11 +69,11 @@ void window_t::SetFocus() {
 
     if (focused_ptr) {
         focused_ptr->Invalidate();
-        focused_ptr->event(focused_ptr, WINDOW_EVENT_FOCUS0, 0); //will not resend event to anyone
+        focused_ptr->windowEvent(focused_ptr, WINDOW_EVENT_FOCUS0, 0); //will not resend event to anyone
     }
     focused_ptr = this;
     Invalidate();
-    event(this, WINDOW_EVENT_FOCUS1, 0); //will not resend event to anyone
+    windowEvent(this, WINDOW_EVENT_FOCUS1, 0); //will not resend event to anyone
     gui_invalidate();
 }
 
@@ -81,10 +81,10 @@ void window_t::SetCapture() {
 
     if (f_visible && f_enabled) {
         if (capture_ptr) {
-            capture_ptr->event(capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
+            capture_ptr->windowEvent(capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
         }
         capture_ptr = this;
-        event(this, WINDOW_EVENT_CAPT_1, 0); //will not resend event to anyone
+        windowEvent(this, WINDOW_EVENT_CAPT_1, 0); //will not resend event to anyone
         gui_invalidate();
     }
 }
@@ -196,22 +196,22 @@ void window_t::unconditionalDraw() {
     display::FillRect(rect, color_back);
 }
 
-void window_t::Event(window_t *sender, uint8_t ev, void *param) {
-    if (event(sender, ev, param) == 0) {
+void window_t::WindowEvent(window_t *sender, uint8_t ev, void *param) {
+    if (windowEvent(sender, ev, param) == 0) {
         //if event was not handled send it to parent
         if (parent) {
-            parent->Event(sender, ev, param);
+            parent->WindowEvent(sender, ev, param);
         }
     }
 }
 
 void window_t::ScreenEvent(window_t *sender, uint8_t ev, void *param) {
-    dispatchEvent(sender, ev, param);
+    screenEvent(sender, ev, param);
 }
 
 //frame does something else - resends to all childern
-void window_t::dispatchEvent(window_t *sender, uint8_t ev, void *param) {
-    event(sender, ev, param);
+void window_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
+    windowEvent(sender, ev, param);
 }
 
 /*****************************************************************************/

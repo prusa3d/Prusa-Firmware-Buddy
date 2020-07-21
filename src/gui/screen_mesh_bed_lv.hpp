@@ -34,7 +34,7 @@ public:
     screen_mesh_bed_lv_data_t();
 
 private:
-    virtual int event(window_t *sender, uint8_t event, void *param) override;
+    virtual int windowEvent(window_t *sender, uint8_t event, void *param) override;
 
     void gui_state_mesh_off();
     void gui_state_mesh_on();

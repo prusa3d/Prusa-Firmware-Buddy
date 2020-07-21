@@ -53,7 +53,7 @@ screen_messages_data_t::screen_messages_data_t()
     list.SetCapture();
 }
 
-int screen_messages_data_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_messages_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 
     switch (event) {
     case WINDOW_EVENT_BTN_DN:

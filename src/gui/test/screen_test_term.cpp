@@ -20,7 +20,7 @@ screen_test_term_data_t::screen_test_term_data_t()
     term.term = &(terminal);
 }
 
-int screen_test_term_data_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_test_term_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     int winid = -1;
     if (event == WINDOW_EVENT_BTN_DN) {
         Screens::Access()->Close();

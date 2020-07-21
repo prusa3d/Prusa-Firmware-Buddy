@@ -188,7 +188,7 @@ extern int _is_in_M600_flg;
 extern uint32_t *pCommand;
 #endif
 
-int screen_printing_data_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
     if (HAL_GetTick() - _last > 300) {

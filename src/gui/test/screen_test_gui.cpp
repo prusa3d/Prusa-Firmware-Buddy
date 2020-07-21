@@ -62,7 +62,7 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     text_terminal.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tf));
 }
 
-int screen_test_gui_data_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_test_gui_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case 10:

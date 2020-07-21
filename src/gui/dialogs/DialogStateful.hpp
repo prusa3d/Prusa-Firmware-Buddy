@@ -122,7 +122,7 @@ protected:
 
 public:
     virtual void unconditionalDraw() override;
-    virtual int event(window_t * /*sender*/, uint8_t event, void *param) override;
+    virtual int windowEvent(window_t * /*sender*/, uint8_t event, void *param) override;
 };
 
 /*****************************************************************************/
@@ -174,7 +174,7 @@ void DialogStateful<T>::unconditionalDraw() {
 }
 
 template <class T>
-int DialogStateful<T>::event(window_t * /*sender*/, uint8_t event, void *param) {
+int DialogStateful<T>::windowEvent(window_t * /*sender*/, uint8_t event, void *param) {
     RadioButton &radio = states[phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:

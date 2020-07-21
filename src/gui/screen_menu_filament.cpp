@@ -121,7 +121,7 @@ public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
         : Screen(_(label)) {}
-    virtual int event(window_t *sender, uint8_t ev, void *param) override;
+    virtual int windowEvent(window_t *sender, uint8_t ev, void *param) override;
 
 private:
     void deactivate_item();
@@ -142,7 +142,7 @@ ScreenFactory::UniquePtr GetScreenMenuFilament() {
     return ScreenFactory::Screen<ScreenMenuFilament>();
 }
 
-int ScreenMenuFilament::event(window_t *sender, uint8_t ev, void *param) {
+int ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) {
     deactivate_item();
     if (ev == WINDOW_EVENT_CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
@@ -152,7 +152,7 @@ int ScreenMenuFilament::event(window_t *sender, uint8_t ev, void *param) {
             header.SetText(_(label));                    //restore label
         }
     } else {
-        return Screen::event(sender, ev, param);
+        return Screen::windowEvent(sender, ev, param);
     }
     return 0;
 }

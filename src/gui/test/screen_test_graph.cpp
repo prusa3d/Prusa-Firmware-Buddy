@@ -25,7 +25,7 @@ screen_test_graph_t::screen_test_graph_t()
     button.SetTag(1);
 }
 
-int screen_test_graph_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 
     if (event == WINDOW_EVENT_LOOP) {
         if (loop_index == 5) {

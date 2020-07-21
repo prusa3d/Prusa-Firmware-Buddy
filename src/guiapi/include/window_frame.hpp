@@ -20,6 +20,6 @@ struct window_frame_t : public window_t {
 
 protected:
     virtual void draw() override;
-    virtual int event(window_t *sender, uint8_t event, void *param) override;
-    virtual void dispatchEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual int windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void screenEvent(window_t *sender, uint8_t event, void *param) override;
 };

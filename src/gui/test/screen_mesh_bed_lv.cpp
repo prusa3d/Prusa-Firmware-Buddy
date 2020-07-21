@@ -77,7 +77,7 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     textExit.SetTag(TAG_QUIT);
 }
 
-int screen_mesh_bed_lv_data_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     /* if (status_footer_event(&(footer), window, event, param)) {
         return 1;
     }*/

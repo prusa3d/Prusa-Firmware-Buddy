@@ -82,7 +82,7 @@ screen_test_msgbox_data_t::screen_test_msgbox_data_t()
     tst_ico_warning.SetTag(MSGBOX_BTN_MAX + 6);
 }
 
-int screen_test_msgbox_data_t::event(window_t *sender, uint8_t event, void *param) {
+int screen_test_msgbox_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
         switch ((int)param) {
         case MSGBOX_BTN_MAX + 2:

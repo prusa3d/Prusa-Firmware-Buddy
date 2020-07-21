@@ -22,20 +22,8 @@ Screens *Screens::Access() {
     return instance;
 }
 
-/*
-void screen_dispatch_event(window_t *window, uint8_t event, void *param) {
-    int ret = 0;
-    if (screen_0 && screen_0->event) {
-        ret = screen_0->event(screen_0, window, event, param);
-        if (screen_0 == 0)
-            ret = 1;
-    }
-    if ((ret == 0) && window && window->event)
-        window->ScreenEvent(event, param);
-}
-*/
 void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
-    current->Event(current.get(), event, param);
+    current->WindowEvent(current.get(), event, param);
 }
 
 void Screens::Draw() {
