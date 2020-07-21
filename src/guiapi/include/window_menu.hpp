@@ -11,7 +11,7 @@ class window_menu_t : public IWindowMenu {
     uint8_t index;
     void setIndex(uint8_t index); //for ctor (cannot fail)
 public:
-    window_menu_t(window_t *first, IWinMenuContainer *pContainer, uint8_t index = 0);
+    window_menu_t(window_t *first, window_t *parent, IWinMenuContainer *pContainer, uint8_t index = 0);
     uint8_t top_index;
     IWinMenuContainer *pContainer;
     bool SetIndex(uint8_t index); //must check container

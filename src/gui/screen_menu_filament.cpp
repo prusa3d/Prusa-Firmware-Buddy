@@ -1,6 +1,7 @@
-// screen_menu_filament.c
+// screen_menu_filament.cpp
 
 #include "gui.hpp"
+#include "screen_menus.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"
@@ -108,9 +109,9 @@ public:
     }
 };
 
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
-class ScreenMenuFilament : public parent {
+class ScreenMenuFilament : public Screen {
     enum {
         F_EEPROM = 0x01, // filament is known
         F_SENSED = 0x02  // filament is not in sensor
@@ -118,8 +119,9 @@ class ScreenMenuFilament : public parent {
 
 public:
     constexpr static const char *label = N_("FILAMENT");
-    //static void Init(screen_t *screen);
-    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    ScreenMenuFilament()
+        : Screen(_(label)) {}
+    virtual int event(window_t *sender, uint8_t ev, void *param) override;
 
 private:
     void deactivate_item();
@@ -136,6 +138,24 @@ private:
     }
 };
 
+ScreenFactory::UniquePtr GetScreenMenuFilament() {
+    return ScreenFactory::Screen<ScreenMenuFilament>();
+}
+
+int ScreenMenuFilament::event(window_t *sender, uint8_t ev, void *param) {
+    deactivate_item();
+    if (ev == WINDOW_EVENT_CLICK) {
+        MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
+        if (item->IsEnabled()) {
+            header.SetText(item->GetHeaderAlterLabel()); //set new label
+            item->Do();                                  //do action (load filament ...)
+            header.SetText(_(label));                    //restore label
+        }
+    } else {
+        return Screen::event(sender, ev, param);
+    }
+    return 0;
+}
 /*****************************************************************************/
 //static method definition
 /*void ScreenMenuFilament::Init(screen_t *screen) {

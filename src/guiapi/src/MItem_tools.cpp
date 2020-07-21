@@ -11,6 +11,7 @@
 #include "sound.hpp"
 #include "wui_api.h"
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -290,4 +291,19 @@ void MI_TIMEZONE::OnClick() {
     if ((seconds = sntp_get_system_time())) {
         sntp_set_system_time(seconds, last_timezone);
     }
+}
+
+/*****************************************************************************/
+//I_MI_Filament
+void I_MI_Filament::click_at(FILAMENT_t filament_index) {
+    const filament_t filament = filaments[filament_index];
+    marlin_gcode("M86 S1800"); // enable safety timer
+    /// don't use preheat temp for cooldown
+    if (PREHEAT_TEMP >= filament.nozzle) {
+        marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
+    } else {
+        marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
+    }
+    marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
+    Screens::Access()->Close(); // skip this screen everytime
 }

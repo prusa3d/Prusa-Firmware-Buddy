@@ -88,8 +88,6 @@ public:
     constexpr static const char *label = N_("SETTINGS");
     ScreenMenuSettings()
         : Screen(_(label)) {}
-    //static void Init(screen_t *screen);
-    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
     virtual int event(window_t *sender, uint8_t ev, void *param) override;
 };
 
@@ -102,5 +100,5 @@ int ScreenMenuSettings::event(window_t *sender, uint8_t ev, void *param) {
         Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 
-    Screen::event(sender, ev, param);
+    return Screen::event(sender, ev, param);
 }

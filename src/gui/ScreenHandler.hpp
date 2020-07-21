@@ -30,9 +30,13 @@ public:
 
     void Close();
 
+    bool ConsumeClose(); //dialog can erase close signal and close itself
+
     void Draw();
 
     void DispatchEvent(window_t *sender, uint8_t event, void *param);
+
+    window_frame_t *Get();
 
     static void Init(ScreenFactory::Creator screen_creator);
     static Screens *Access();

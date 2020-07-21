@@ -162,10 +162,10 @@ int screen_home_data_t::event(window_t *sender, uint8_t event, void *param) {
         Screens::Access()->Open(GetScreenMenuPreheat);
         return 1;
     case BUTTON_FILAMENT + 1:
-        //screen_open(get_scr_menu_filament()->id);
+        Screens::Access()->Open(GetScreenMenuFilament);
         return 1;
     case BUTTON_CALIBRATION + 1:
-        //screen_open(get_scr_menu_calibration()->id);
+        Screens::Access()->Open(GetScreenMenuCalibration);
         return 1;
     case BUTTON_SETTINGS + 1:
         Screens::Access()->Open(GetScreenMenuSettings);

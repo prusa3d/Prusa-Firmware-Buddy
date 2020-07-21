@@ -1,8 +1,7 @@
 // screen_menu_calibration.cpp
 
 #include "gui.hpp"
-#include "screen_menu.hpp"
-#include "marlin_client.h"
+#include "screen_menus.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
@@ -18,3 +17,13 @@ static void init(screen_t *screen) {
     Screen::Create(screen, _(label));
 }
 */
+class ScreenMenuCalibration : public Screen {
+public:
+    constexpr static const char *label = N_("CALIBRATION");
+    ScreenMenuCalibration()
+        : Screen(_(label)) {}
+};
+
+ScreenFactory::UniquePtr GetScreenMenuCalibration() {
+    return ScreenFactory::Screen<ScreenMenuCalibration>();
+}

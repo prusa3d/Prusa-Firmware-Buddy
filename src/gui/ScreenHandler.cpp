@@ -42,12 +42,22 @@ void Screens::Draw() {
     current->Draw();
 }
 
+window_frame_t *Screens::Get() {
+    return current.get();
+}
+
 void Screens::Open(ScreenFactory::Creator screen_creator) {
     creator = screen_creator;
 }
 
 void Screens::Close() {
     close = true;
+}
+
+bool Screens::ConsumeClose() {
+    bool ret = close;
+    close = false;
+    return ret;
 }
 
 void Screens::Loop() {
