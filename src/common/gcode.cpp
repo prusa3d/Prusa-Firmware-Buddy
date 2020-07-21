@@ -92,13 +92,6 @@ public:
         return *this;
     }
 
-    // /// Writes a single char.
-    // gCode &write(const char c) {
-    //     if (!isError() && !isFull())
-    //         code[pos++] = c;
-    //     return *this;
-    // }
-
     /// Writes a float.
     gCode &write(const float value) {
         if (isError())

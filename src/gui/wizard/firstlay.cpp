@@ -77,209 +77,6 @@ void snakeInit2() {
     gc.send();
 }
 
-// void firstLayer03(gCode &gc) {
-//     // //E = extrusion_length * layer_height * extrusion_width / (PI * pow(1.75, 2) / 4)
-//     gc.lastExtrusion(10, 150)
-//         .ex(170, 150)
-//         // "G1 X170 Y150 E5.322", //160 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 5.322
-//         .ex(170, 130)
-//         // "G1 X170 Y130 E0.665", //20 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 0.665
-//         .ex(10, 130)
-//         // "G1 X10  Y130 E5.322",
-//         .ex(10, 110)
-//         // "G1 X10  Y110 E0.665",
-//         .ex(170, 110)
-//         // "G1 X170 Y110 E5.322",
-//         .ex(170, 90);
-//     // "G1 X170 Y90  E0.665",
-// }
-
-// void firstLayer04(gCode &gc) {
-//     gc.lastExtrusion(170, 90)
-//         .ex(10, 90)
-//         // "G1 X10  Y90  E5.322",
-//         .ex(10, 70)
-//         // "G1 X10  Y70  E0.665",
-//         .ex(170, 70)
-//         // "G1 X170 Y70  E5.322",
-//         .ex(170, 50)
-//         // "G1 X170 Y50  E0.665",
-//         .ex(10, 50);
-//     // "G1 X10  Y50  E5.322",
-// }
-
-// void firstLayer05(gCode &gc) {
-//     // //frame around
-//     gc.lastExtrusion(10, 50)
-//         .ex(10, 17)
-//         // "G1 X10    Y17    E1.371975",  //33 * 0.041575 = 1.371975
-//         .ex(31, 17)
-//         // "G1 X31    Y17    E1.288825",  //31 * 0.041575 = 1.288825
-//         .ex(31, 30.5f)
-//         // "G1 X31    Y30.5  E0.5612625", //13.5 * 0.041575 = 0.5612625
-//         .ex(10.5f, 30.5f)
-//         // "G1 X10.5  Y30.5  E0.832",     //20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
-//         .ex(10.5f, 30);
-//     // "G1 X10.5  Y30.0  E0.0208",    //0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
-// }
-
-// void firstLayer06(gCode &gc) {
-//     gc.G1(NAN, NAN, NAN, NAN, 1000)
-//         // "G1 F1000",
-//         .lastExtrusion(10.5f, 30)
-//         .ex(30.5f, 30)
-//         // "G1 X30.5  Y30.0  E0.832",
-//         .ex(30.5f, 29.5f)
-//         // "G1 X30.5  Y29.5  E0.0208",
-//         .ex(10.5f, 29.5f)
-//         // "G1 X10.5  Y29.5  E0.832",
-//         .ex(10.5f, 29)
-//         // "G1 X10.5  Y29.0  E0.0208",
-//         .ex(30.5f, 29);
-//     // "G1 X30.5  Y29.0  E0.832",
-// }
-
-// void firstLayer07(gCode &gc) {
-//     gc.lastExtrusion(30.5f, 29)
-//         .ex(30.5f, 28.5f)
-//         // "G1 X30.5  Y28.5  E0.0208",
-//         .ex(10.5, 28.5f)
-//         // "G1 X10.5  Y28.5  E0.832",
-//         .ex(10.5f, 28)
-//         // "G1 X10.5  Y28.0  E0.0208",
-//         .ex(30.5f, 28)
-//         // "G1 X30.5  Y28.0  E0.832",
-//         .ex(30.5f, 27.5f)
-//         // "G1 X30.5  Y27.5  E0.0208",
-//         .ex(10.5f, 27.5f);
-//     // "G1 X10.5  Y27.5  E0.832",
-// }
-
-// void firstLayer08(gCode &gc) {
-//     gc.lastExtrusion(10.5f, 27.5f)
-//         .ex(10.5f, 27)
-//         // "G1 X10.5  Y27.0  E0.0208",
-//         .ex(30.5f, 27)
-//         // "G1 X30.5  Y27.0  E0.832",
-//         .ex(30.5f, 26.5f)
-//         // "G1 X30.5  Y26.5  E0.0208",
-//         .ex(10.5f, 26.5f)
-//         // "G1 X10.5  Y26.5  E0.832",
-//         .ex(10.5f, 26)
-//         // "G1 X10.5  Y26.0  E0.0208",
-//         .ex(30.5f, 26);
-//     // "G1 X30.5  Y26.0  E0.832",
-// }
-
-// void firstLayer09(gCode &gc) {
-//     gc.lastExtrusion(30.5f, 26)
-//         .ex(30.5f, 25.5f)
-//         // "G1 X30.5  Y25.5  E0.0208",
-//         .ex(10.5f, 25.5f)
-//         // "G1 X10.5  Y25.5  E0.832",
-//         .ex(10.5f, 25)
-//         // "G1 X10.5  Y25.0  E0.0208",
-//         .ex(30.5f, 25)
-//         // "G1 X30.5  Y25.0  E0.832",
-//         .ex(30.5f, 24.5f)
-//         // "G1 X30.5  Y24.5  E0.0208",
-//         .ex(10.5f, 24.5f);
-//     // "G1 X10.5  Y24.5  E0.832",
-// }
-
-// void firstLayer10(gCode &gc) {
-//     gc.lastExtrusion(10.5f, 24.5f)
-//         .ex(10.5f, 24)
-//         // "G1 X10.5  Y24.0  E0.0208",
-//         .ex(30.5f, 24)
-//         // "G1 X30.5  Y24.0  E0.832",
-//         .ex(30.5f, 23.5f)
-//         // "G1 X30.5  Y23.5  E0.0208",
-//         .ex(10.5f, 23.5f)
-//         // "G1 X10.5  Y23.5  E0.832",
-//         .ex(10.5f, 23)
-//         // "G1 X10.5  Y23.0  E0.0208",
-//         .ex(30.5f, 23);
-//     // "G1 X30.5  Y23.0  E0.832",
-// }
-
-// void firstLayer11(gCode &gc) {
-//     gc.lastExtrusion(30.5f, 23)
-//         .ex(30.5f, 22.5f)
-//         // "G1 X30.5  Y22.5  E0.0208",
-//         .ex(10.5f, 22.5f)
-//         // "G1 X10.5  Y22.5  E0.832",
-//         .ex(10.5f, 22)
-//         // "G1 X10.5  Y22.0  E0.0208",
-//         .ex(30.5f, 22)
-//         // "G1 X30.5  Y22.0  E0.832",
-//         .ex(30.5f, 21.5f)
-//         // "G1 X30.5  Y21.5  E0.0208",
-//         .ex(10.5f, 21.5f);
-//     // "G1 X10.5  Y21.5  E0.832",
-// }
-
-// void firstLayer12(gCode &gc) {
-//     gc.lastExtrusion(10.5f, 21.5f)
-//         .ex(10.5f, 21)
-//         // "G1 X10.5  Y21.0  E0.0208",
-//         .ex(30.5f, 21)
-//         // "G1 X30.5  Y21.0  E0.832",
-//         .ex(30.5f, 20.5f)
-//         // "G1 X30.5  Y20.5  E0.0208",
-//         .ex(10.5f, 20.5f)
-//         // "G1 X10.5  Y20.5  E0.832",
-//         .ex(10.5f, 20)
-//         // "G1 X10.5  Y20.0  E0.0208",
-//         .ex(30.5f, 20);
-//     // "G1 X30.5  Y20.0  E0.832",
-// }
-
-// void firstLayer13(gCode &gc) {
-//     gc.lastExtrusion(30.5f, 20)
-//         .ex(30.5f, 19.5f)
-//         // "G1 X30.5  Y19.5  E0.0208",
-//         .ex(10.5f, 19.5f)
-//         // "G1 X10.5  Y19.5  E0.832",
-//         .ex(10.5f, 19)
-//         // "G1 X10.5  Y19.0  E0.0208",
-//         .ex(30.5f, 19)
-//         // "G1 X30.5  Y19.0  E0.832",
-//         .ex(30.5f, 18.5f)
-//         // "G1 X30.5  Y18.5  E0.0208",
-//         .ex(10.5f, 18.5f);
-//     // "G1 X10.5  Y18.5  E0.832",
-// }
-
-// void firstLayer14(gCode &gc) {
-//     gc.lastExtrusion(10.5f, 18.5f)
-//         .ex(10.5f, 18)
-//         // "G1 X10.5  Y18.0  E0.0208",
-//         .ex(30.5f, 18)
-//         // "G1 X30.5  Y18.0  E0.832",
-//         .ex(30.5f, 17.5f)
-//         // "G1 X30.5  Y17.5  E0.0208",
-//         .G1(NAN, NAN, 2, -6, 2100)
-//         // "G1 Z2 E-6 F2100",
-//         .G1(178, 0, 10, NAN, 3000)
-//         // "G1 X178 Y0 Z10 F3000",
-//         .G(4);
-//     // "G4",
-// }
-
-// void firstLayer15(gCode &gc) {
-//     gc.M(107)
-//         // "M107",
-//         .M(104)
-//         .param('S', 0)
-//         // "M104 S0", // turn off temperature
-//         .M(140)
-//         .param('S', 0)
-//         // "M140 S0", // turn off heatbed
-//         .M(84);
-//     // "M84"      // disable motors
-// }
-
 void snakeEnd() {
     gCode gc;
     gc.G1(NAN, NAN, 2, -6, 2100)
@@ -382,121 +179,6 @@ void sendSnakeLine(uint16_t line) {
     gc.send();
 }
 
-//EXTRUDE_PER_MM  0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.041575
-//todo generate me
-// const char *V2_gcodes_body[] = {
-//     "G1 Z4 F1000",
-//     "G1 X0 Y-2 Z0.2 F3000.0",
-//     "G1 E6 F2000",
-//     "G1 X60 E9 F1000.0",
-//     "G1 X100 E12.5 F1000.0",
-//     "G1 Z2 E-6 F2100.00000",
-
-//     "G1 X10 Y150 Z0.2 F3000",
-//     "G1 E6 F2000"
-
-//     "G1 F1000",
-//     //E = extrusion_length * layer_height * extrusion_width / (PI * pow(1.75, 2) / 4)
-//     "G1 X170 Y150 E5.322", //160 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 5.322
-//     "G1 X170 Y130 E0.665", //20 * 0.2 * 0.4 / (pi * 1.75 ^ 2 / 4) = 0.665
-//     "G1 X10  Y130 E5.322",
-//     "G1 X10  Y110 E0.665",
-//     "G1 X170 Y110 E5.322",
-//     "G1 X170 Y90  E0.665",
-//     "G1 X10  Y90  E5.322",
-//     "G1 X10  Y70  E0.665",
-//     "G1 X170 Y70  E5.322",
-//     "G1 X170 Y50  E0.665",
-//     "G1 X10  Y50  E5.322",
-
-//     //frame around
-//     "G1 X10    Y17    E1.371975",  //33 * 0.041575 = 1.371975
-//     "G1 X31    Y17    E1.288825",  //31 * 0.041575 = 1.288825
-//     "G1 X31    Y30.5  E0.5612625", //13.5 * 0.041575 = 0.5612625
-//     "G1 X10.5  Y30.5  E0.832",     //20 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.832
-//     "G1 X10.5  Y30.0  E0.0208",    //0.5 * 0.2 * 0.5 / (pi * 1.75 ^ 2 / 4) = 0.0208
-
-//     "G1 F1000",
-//     "G1 X30.5  Y30.0  E0.832",
-//     "G1 X30.5  Y29.5  E0.0208",
-//     "G1 X10.5  Y29.5  E0.832",
-//     "G1 X10.5  Y29.0  E0.0208",
-//     "G1 X30.5  Y29.0  E0.832",
-//     "G1 X30.5  Y28.5  E0.0208",
-//     "G1 X10.5  Y28.5  E0.832",
-//     "G1 X10.5  Y28.0  E0.0208",
-//     "G1 X30.5  Y28.0  E0.832",
-//     "G1 X30.5  Y27.5  E0.0208",
-//     "G1 X10.5  Y27.5  E0.832",
-//     "G1 X10.5  Y27.0  E0.0208",
-//     "G1 X30.5  Y27.0  E0.832",
-//     "G1 X30.5  Y26.5  E0.0208",
-//     "G1 X10.5  Y26.5  E0.832",
-//     "G1 X10.5  Y26.0  E0.0208",
-//     "G1 X30.5  Y26.0  E0.832",
-//     "G1 X30.5  Y25.5  E0.0208",
-//     "G1 X10.5  Y25.5  E0.832",
-//     "G1 X10.5  Y25.0  E0.0208",
-//     "G1 X30.5  Y25.0  E0.832",
-//     "G1 X30.5  Y24.5  E0.0208",
-//     "G1 X10.5  Y24.5  E0.832",
-//     "G1 X10.5  Y24.0  E0.0208",
-//     "G1 X30.5  Y24.0  E0.832",
-//     "G1 X30.5  Y23.5  E0.0208",
-//     "G1 X10.5  Y23.5  E0.832",
-//     "G1 X10.5  Y23.0  E0.0208",
-//     "G1 X30.5  Y23.0  E0.832",
-//     "G1 X30.5  Y22.5  E0.0208",
-//     "G1 X10.5  Y22.5  E0.832",
-//     "G1 X10.5  Y22.0  E0.0208",
-//     "G1 X30.5  Y22.0  E0.832",
-//     "G1 X30.5  Y21.5  E0.0208",
-//     "G1 X10.5  Y21.5  E0.832",
-//     "G1 X10.5  Y21.0  E0.0208",
-//     "G1 X30.5  Y21.0  E0.832",
-//     "G1 X30.5  Y20.5  E0.0208",
-//     "G1 X10.5  Y20.5  E0.832",
-//     "G1 X10.5  Y20.0  E0.0208",
-//     "G1 X30.5  Y20.0  E0.832",
-//     "G1 X30.5  Y19.5  E0.0208",
-//     "G1 X10.5  Y19.5  E0.832",
-//     "G1 X10.5  Y19.0  E0.0208",
-//     "G1 X30.5  Y19.0  E0.832",
-//     "G1 X30.5  Y18.5  E0.0208",
-//     "G1 X10.5  Y18.5  E0.832",
-//     "G1 X10.5  Y18.0  E0.0208",
-//     "G1 X30.5  Y18.0  E0.832",
-//     "G1 X30.5  Y17.5  E0.0208",
-
-//     "G1 Z2 E-6 F2100",
-//     "G1 X178 Y0 Z10 F3000",
-
-//     "G4",
-
-//     "M107",
-//     "M104 S0", // turn off temperature
-//     "M140 S0", // turn off heatbed
-//     "M84"      // disable motors
-// };
-
-//const size_t V2_gcodes_body_sz = 0; //sizeof(V2_gcodes_body) / sizeof(V2_gcodes_body[0]);
-
-//todo use marlin api
-// const size_t commands_in_queue_size = 8;
-// const size_t commands_in_queue_use_max = 6;
-// const size_t max_gcodes_in_one_run = 20; //milion of small gcodes could be done instantly but block gui
-
-//static uint32_t line_head = 0;
-//static uint32_t line_body = 0;
-
-// static const char **head_gcode = NULL;
-// static const char **body_gcode = NULL;
-// static size_t head_gcode_sz = 0; // depreciated
-// static size_t body_gcode_sz = -1;
-// static size_t gcode_sz = -1;
-// static size_t G28_pos = -1;
-// static size_t G29_pos = -1;
-
 int _get_progress() {
     //if ( _is_gcode_end_line() ) return 100;
     //return std::min(99, int(100 * (line_head + 1 + line_body + 1) / gcode_sz));
@@ -506,7 +188,6 @@ int _get_progress() {
 //void _set_gcode_first_lines();
 
 //returns remaining lines
-#if DEBUG_TERM == 0
 static const char *_wizard_firstlay_text = N_("Once the printer   \n"
                                               "starts extruding   \n"
                                               "plastic, adjust    \n"
@@ -515,10 +196,6 @@ static const char *_wizard_firstlay_text = N_("Once the printer   \n"
                                               "until the filament \n"
                                               "sticks to the print\n"
                                               "sheet.");
-//int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count);
-#else
-//int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term);
-#endif
 
 void _wizard_firstlay_Z_step(firstlay_screen_t *p_screen) {
     //need last step to ensure correct behavior on limits
@@ -624,9 +301,6 @@ inline void FLInit(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t
 #endif
 }
 
-// inline void FLGcodeMBL(firstlay_screen_t *p_screen) {
-// }
-
 inline void FLGcodeHeat(firstlay_screen_t *p_screen) {
     if (marlin_get_gqueue() > 0)
         return;
@@ -637,68 +311,12 @@ inline void FLGcodeHeat(firstlay_screen_t *p_screen) {
     p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
     p_screen->spin_baby_step.color_text = COLOR_ORANGE;
     p_screen->spin_baby_step.Invalidate();
-
-    // #if DEBUG_TERM == 0
-    //     const int remaining_lines = _run_gcode_line(&line_head, code, size);
-    // #else
-    //     const int remaining_lines = _run_gcode_line(&line_head, code, size, &p_screen->term);
-    // #endif
-    //     if (remaining_lines < 1) {
-    //         p_screen->state = _FL_GCODE_BODY;
-    // #if DEBUG_TERM == 1
-    //         term_printf(&p_screen->terminal, "BODY\n");
-    //         p_screen->term.Invalidate();
-    // #endif
-    //     }
 }
-
-// inline void FLGcodeHeadEnd(firstlay_screen_t *p_screen) {
-//     if (marlin_get_gqueue() > 0)
-//         return;
-
-//     //    p_screen->state = _FL_GCODE_BODY;
-//     p_screen->state = _FL_GCODE_SNAKE_INIT_1;
-// }
-
-// inline void FLGcodeHead(firstlay_screen_t *p_screen, const char **code, size_t size) {
-// #if DEBUG_TERM == 0
-//     const int remaining_lines = _run_gcode_line(&line_head, code, size);
-// #else
-//     const int remaining_lines = _run_gcode_line(&line_head, code, size, &p_screen->term);
-// #endif
-//     if (remaining_lines < 1) {
-//         p_screen->state = _FL_GCODE_BODY;
-// #if DEBUG_TERM == 1
-//         term_printf(&p_screen->terminal, "BODY\n");
-//         p_screen->term.Invalidate();
-// #endif
-//         p_screen->Z_offset_request = 0; //ignore Z_offset_request variable changes until now
-//         p_screen->spin_baby_step.color_text = COLOR_ORANGE;
-//         p_screen->spin_baby_step.Invalidate();
-//     }
-// }
-
-// inline void FLGcodeBody(firstlay_screen_t *p_screen, const char **code, size_t size) {
-//     _wizard_firstlay_Z_step(p_screen);
-// #if DEBUG_TERM == 0
-//     const int remaining_lines = _run_gcode_line(&line_body, code, size);
-// #else
-//     const int remaining_lines = _run_gcode_line(&line_body, code, size, &p_screen->term);
-// #endif
-//     if (remaining_lines < 1) {
-//         p_screen->state = _FL_GCODE_DONE;
-//     }
-// }
 
 int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset) {
     if (p_data->state_print == _TEST_START) {
         p_screen->state = _FL_INIT;
         p_data->state_print = _TEST_RUN;
-
-        //body_gcode = V2_gcodes_body;
-        //body_gcode_sz = V2_gcodes_body_sz;
-
-        //gcode_sz = body_gcode_sz + head_gcode_sz;
     }
 
     switch (p_screen->state) {
@@ -729,33 +347,6 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         }
         FLGcodeHeat(p_screen);
         break;
-
-        // case _FL_GCODE_HEADEND:
-        //     if (marlin_get_gqueue() > 0)
-        //         return;
-
-        //     //    p_screen->state = _FL_GCODE_BODY;
-        //     p_screen->state = _FL_GCODE_SNAKE_INIT_1;
-        //     break;
-
-        // case _FL_GCODE_HEAD:
-        //     //     //have to wait to next state after MBL to check error
-        //     //     if (line_head > G29_pos && marlin_error(MARLIN_ERR_ProbingFailed)) {
-        //     //         marlin_error_clr(MARLIN_ERR_ProbingFailed);
-        //     //         marlin_gcode("G0 Z30"); //Z 30mm
-        //     //         marlin_gcode("M84");    //Disable steppers
-        //     //         if (wizard_msgbox(_("Mesh bed leveling failed?"), MSGBOX_BTN_RETRYCANCEL, 0) == MSGBOX_RES_RETRY) {
-        //     //             //RETRY
-        //     //             line_head = G28_pos;
-        //     //         } else {
-        //     //             //CANCEL
-        //     //             p_data->state_print = _TEST_FAILED;
-        //     //             return 100;
-        //     //         }
-        //     //     }
-
-        //     //     FLGcodeHead(p_screen, head_gcode, head_gcode_sz);
-        //     break;
 
     case _FL_GCODE_SNAKE_INIT_1:
         if (marlin_get_gqueue() > 0)
@@ -794,152 +385,6 @@ int wizard_firstlay_print(int16_t id_body, firstlay_screen_t *p_screen, firstlay
         p_screen->state = _FL_GCODE_DONE;
         break;
 
-        // case _FL_GCODE_BODY_01: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     _wizard_firstlay_Z_step(p_screen);
-        //     gCode gc;
-        //     firstLayer01(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_02;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_02: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer02(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_03;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_03: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer03(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_04;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_04: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer04(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_05;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_05: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer05(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_06;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_06: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer06(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_07;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_07: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer07(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_08;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_08: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer08(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_09;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_09: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer09(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_10;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_10: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer10(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_11;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_11: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer11(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_12;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_12: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer12(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_13;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_13: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer13(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_14;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_14: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer14(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_15;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_15: {
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     gCode gc;
-        //     firstLayer15(gc);
-        //     gc.send();
-        //     p_screen->state = _FL_GCODE_BODY_END;
-        //     break;
-        // }
-        // case _FL_GCODE_BODY_END:
-        //     if (marlin_get_gqueue() > 0)
-        //         break;
-        //     p_screen->state = _FL_GCODE_DONE;
-        //     break;
-
-        // case _FL_GCODE_BODY:
-        //     FLGcodeBody(p_screen, body_gcode, body_gcode_sz);
-        //     break;
-
     case _FL_GCODE_DONE:
         if (marlin_get_gqueue() > 0)
             break;
@@ -974,35 +419,3 @@ void wizard_firstlay_event_up(firstlay_screen_t *p_screen) {
 #endif
     p_screen->Z_offset_request += z_offset_step;
 }
-
-// //returns progress
-// void _set_gcode_first_lines() {
-//     line_head = 0;
-//     line_body = 0;
-// }
-
-// #if DEBUG_TERM == 0
-// int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count)
-// #else
-// int _run_gcode_line(uint32_t *p_line, const char *gcodes[], size_t gcodes_count, window_term_t *term)
-// #endif
-// {
-//     size_t gcodes_in_this_run = 0;
-
-//     //todo "while" does not work ...why?, something with  commands_in_queue?
-//     //while(commands_in_queue < commands_in_queue_use_max){
-//     if (marlin_get_gqueue() < 1) {
-//         if ((*p_line) < gcodes_count) {
-//             ++gcodes_in_this_run;
-//             marlin_gcode(gcodes[*p_line]);
-// #if DEBUG_TERM == 1
-//             term_printf(term->term, "%s\n", gcodes[*p_line]);
-//             term->win.Invalidate();
-// #endif
-//             ++(*p_line);
-//         }
-//     }
-
-//     //commands_in_queue does not reflect commands added in this run
-//     return gcodes_count - (*p_line) + marlin_get_gqueue() + gcodes_in_this_run;
-// }
