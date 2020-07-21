@@ -52,7 +52,6 @@ extern void gui_reset_jogwheel(void);
     #include "window_msgbox.hpp"
     #include "window_progress.hpp"
     #include "window_qr.hpp"
-    #include "screen.h"
 
 extern uint8_t gui_get_nesting(void);
 

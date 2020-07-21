@@ -205,7 +205,7 @@ void window_t::Event(window_t *sender, uint8_t ev, void *param) {
     }
 }
 
-void window_t::DispatchEvent(window_t *sender, uint8_t ev, void *param) {
+void window_t::ScreenEvent(window_t *sender, uint8_t ev, void *param) {
     dispatchEvent(sender, ev, param);
 }
 

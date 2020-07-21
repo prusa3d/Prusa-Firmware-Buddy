@@ -166,7 +166,7 @@ int window_frame_t::event(window_t *sender, uint8_t event, void *param) {
 void window_frame_t::dispatchEvent(window_t *sender, uint8_t ev, void *param) {
     window_t *ptr = first;
     while (ptr) {
-        ptr->DispatchEvent(sender, ev, param);
+        ptr->ScreenEvent(sender, ev, param);
         ptr = ptr->GetNext();
     }
     event(this, ev, param);

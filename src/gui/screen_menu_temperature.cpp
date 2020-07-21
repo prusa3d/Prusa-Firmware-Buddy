@@ -18,7 +18,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
-        Screens::Access()->DispatchEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this);
+        Screens::Access()->ScreenEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
 };
 

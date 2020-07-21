@@ -28,7 +28,7 @@ class MI_event_dispatcher : public WI_LABEL_t {
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
-        Screens::Access()->DispatchEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this);
+        Screens::Access()->ScreenEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this);
     }
 
 public:

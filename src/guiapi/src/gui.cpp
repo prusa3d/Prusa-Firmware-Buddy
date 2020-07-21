@@ -124,17 +124,17 @@ void gui_loop(void) {
         if ((jogwheel_encoder != gui_jogwheel_encoder)) {
             int dif = jogwheel_encoder - gui_jogwheel_encoder;
             if (dif > 0)
-                Screens::Access()->DispatchEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_ENC_UP, (void *)dif);
+                Screens::Access()->ScreenEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_ENC_UP, (void *)dif);
             else if (dif < 0)
-                Screens::Access()->DispatchEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_ENC_DN, (void *)-dif);
+                Screens::Access()->ScreenEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_ENC_DN, (void *)-dif);
             gui_jogwheel_encoder = jogwheel_encoder;
             gui_reset_menu_timer();
         }
         if (!jogwheel_button_down ^ !gui_jogwheel_button_down) {
             if (gui_jogwheel_button_down)
-                Screens::Access()->DispatchEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_BTN_UP, 0);
+                Screens::Access()->ScreenEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_BTN_UP, 0);
             else
-                Screens::Access()->DispatchEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_BTN_DN, 0);
+                Screens::Access()->ScreenEvent(window_t::GetCapturedWindow(), WINDOW_EVENT_BTN_DN, 0);
             gui_jogwheel_button_down = jogwheel_button_down;
             gui_reset_menu_timer();
         }
@@ -157,7 +157,7 @@ void gui_loop(void) {
         if (gui_loop_cb)
             gui_loop_cb();
         gui_loop_tick = tick;
-        Screens::Access()->DispatchEvent(0, WINDOW_EVENT_LOOP, 0);
+        Screens::Access()->ScreenEvent(0, WINDOW_EVENT_LOOP, 0);
     }
     --guiloop_nesting;
 
