@@ -15,6 +15,7 @@ constexpr float threadWidth = 0.5f;
 constexpr float filamentD = 1.75f;
 constexpr float pi = 3.1415926535897932384626433832795;
 constexpr float extrudeCoef = layerHeight * threadWidth / (pi * SQR(filamentD / 2));
+constexpr char floatFormat[] = "%.4g";
 
 /// Tool to generate string from G codes.
 /// Most of the methods can be chained (gc.G(28).G(29).G1(0,0,0,0,0))
@@ -32,7 +33,7 @@ private:
     float y_ = NAN;
 
     void updatePosOrError(const int chars, const uint8_t errorNum = 1) {
-        if (chars < 0) {
+        if (chars <= 0) {
             error_ = errorNum;
         } else {
             pos += chars;
@@ -45,21 +46,21 @@ private:
     }
 
 public:
-    gCode() {
-        code[0] = 0;
+    /// \return true if buffer is full
+    bool isFull() const {
+        return free() <= 0;
     }
 
-    bool isFull() {
-        if (pos >= bufferSize)
-            return true;
-        return false;
+    /// \returns free space size (number of chars)
+    uint16_t free() const {
+        return std::max(0, (int)sizeof(code) - (int)pos - 1); /// leave space for \0 for char output
     }
 
-    uint8_t error() {
+    uint8_t error() const {
         return error_;
     }
 
-    inline bool isError() {
+    inline bool isError() const {
         return error_ > 0;
     }
 
@@ -76,17 +77,34 @@ public:
         if (isError())
             return *this;
 
-        const int chars = snprintf(&code[pos], bufferSize - pos, string);
-        updatePosOrError(chars);
+        uint16_t pos_prev = pos;
+        while (string[0] != '\0' && free() > 0) {
+            code[pos++] = string[0];
+            string++;
+        }
+
+        /// String does not fit into buffer =>
+        /// revert & signal error
+        if (string[0] != '\0') {
+            error_ = 1;
+            pos = pos_prev;
+        }
         return *this;
     }
+
+    // /// Writes a single char.
+    // gCode &write(const char c) {
+    //     if (!isError() && !isFull())
+    //         code[pos++] = c;
+    //     return *this;
+    // }
 
     /// Writes a float.
     gCode &write(const float value) {
         if (isError())
             return *this;
 
-        const int chars = snprintf(&code[pos], bufferSize - pos, "%g", (double)value);
+        const int chars = snprintf(&code[pos], free(), floatFormat, (double)value);
         updatePosOrError(chars);
         return *this;
     }
@@ -96,8 +114,14 @@ public:
         if (isError())
             return *this;
 
-        const int chars = snprintf(&code[pos], bufferSize - pos, " %c%f", parameter, (double)value);
-        updatePosOrError(chars);
+        if (free() < 2) {
+            error_ = 1;
+            return *this;
+        }
+        code[pos++] = ' ';
+        code[pos++] = parameter;
+
+        write(value);
         return *this;
     }
 
@@ -160,54 +184,22 @@ public:
 
         G(1);
 
-        int chars = 0;
         if (isfinite(x)) {
             x_ = x;
-            chars = snprintf(&code[pos], bufferSize - pos, " X%f", (double)x);
-            if (chars < 0) {
-                error_ = 3;
-                return *this;
-            }
-            pos += chars;
+            param('X', x);
         }
 
         if (isfinite(y)) {
             y_ = y;
-            chars = snprintf(&code[pos], bufferSize - pos, " Y%f", (double)y);
-            if (chars < 0) {
-                error_ = 3;
-                return *this;
-            }
-            pos += chars;
+            param('Y', y);
         }
 
-        if (isfinite(z)) {
-            chars = snprintf(&code[pos], bufferSize - pos, " Z%f", (double)z);
-            if (chars < 0) {
-                error_ = 3;
-                return *this;
-            }
-            pos += chars;
-        }
-
-        if (isfinite(e)) {
-            chars = snprintf(&code[pos], bufferSize - pos, " E%f", (double)e);
-            if (chars < 0) {
-                error_ = 3;
-                return *this;
-            }
-            pos += chars;
-        }
-
-        if (isfinite(f)) {
-            chars = snprintf(&code[pos], bufferSize - pos, " F%f", (double)f);
-            if (chars < 0) {
-                error_ = 3;
-                return *this;
-            }
-            pos += chars;
-        }
-
+        if (isfinite(z))
+            param('Z', z);
+        if (isfinite(e))
+            param('E', e);
+        if (isfinite(f))
+            param('F', f);
         return *this;
     }
 
