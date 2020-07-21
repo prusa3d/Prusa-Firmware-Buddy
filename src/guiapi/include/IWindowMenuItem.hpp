@@ -20,13 +20,13 @@ private:
 
 protected:
     bool selected : 1; //should be in child, but is here because of size optimization
-private:
     uint16_t id_icon : 10;
+
+private:
     txtroll_t roll;
 
-    void printIcon(IWindowMenu &window_menu, rect_ui16_t rect, uint8_t swap, color_t color_back) const;
-
 protected:
+    virtual void printIcon(IWindowMenu &window_menu, rect_ui16_t rect, uint8_t swap, color_t color_back) const;
     void printLabel_into_rect(rect_ui16_t rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
     virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
     virtual void click(IWindowMenu &window_menu) = 0;
@@ -53,7 +53,7 @@ public:
     /// @returns the label translated via gettext (in the future).
     /// Use this function when you want to get the actual translated text
     /// to be displayed to the user based on his language settings.
-    const char *GetLocalizedLabel() const;
+    string_view_utf8 GetLocalizedLabel() const;
 
     void Print(IWindowMenu &window_menu, rect_ui16_t rect) const;
 

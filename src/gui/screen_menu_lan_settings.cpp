@@ -271,7 +271,8 @@ void ScreenMenuLanSettings::refresh_addresses() {
     ETH_config_t ethconfig;
     update_eth_addrs(&ethconfig);
     stringify_eth_for_screen(&plan_str, &ethconfig);
-    help.text = (char *)plan_str;
+    // this MakeRAM is safe - plan_str is statically allocated
+    help.text = string_view_utf8::MakeRAM((const uint8_t *)plan_str);
     help.flg |= WINDOW_FLG_INVALID;
     gui_invalidate();
 }
@@ -308,7 +309,7 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 /*****************************************************************************/
 //static member function definition
 void ScreenMenuLanSettings::Init(screen_t *screen) {
-    Create(screen, label);
+    Create(screen, _(label));
     Eth::Init();
 
     ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);

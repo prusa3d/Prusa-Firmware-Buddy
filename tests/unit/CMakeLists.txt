@@ -18,3 +18,4 @@ endfunction()
 # now, include all the unit tests; they should add themselves using the add_catch_test function
 add_subdirectory(gui)
 add_subdirectory(common)
+add_subdirectory(lang)

@@ -43,7 +43,7 @@ struct screen_wizard_data_t {
 
 #define pd ((screen_wizard_data_t *)screen->pdata)
 
-extern const char *wizard_get_caption(screen_t *screen);
+extern string_view_utf8 wizard_get_caption(screen_t *screen);
 
 extern void wizard_done_screen(screen_t *screen);
 
