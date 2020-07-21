@@ -1,0 +1,3 @@
+add_subdirectory(string_view_utf8)
+add_subdirectory(translator)
+add_subdirectory(eeprom)

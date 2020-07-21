@@ -97,12 +97,12 @@ void screen_print_preview_set_on_action(
 }
 
 static void initialize_description_line(screen_t *screen, int idx, int y_pos,
-    const char *title,
+    string_view_utf8 title,
     const char *value_fmt, ...) {
     description_line_t *line = &pd->description_lines[idx];
     int window_id = pd->frame.id;
 
-    int title_width = strlen(title) * resource_font(IDR_FNT_SMALL)->w;
+    int title_width = title.computeNumUtf8CharsAndRewind() * resource_font(IDR_FNT_SMALL)->w;
     window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(PADDING, y_pos, title_width, LINE_HEIGHT), &line->title);
@@ -120,7 +120,8 @@ static void initialize_description_line(screen_t *screen, int idx, int y_pos,
     va_start(args, value_fmt);
     vsnprintf(line->value_buffer, sizeof(line->value_buffer), value_fmt, args);
     va_end(args);
-    line->value.SetText(line->value_buffer);
+    // this MakeRAM is safe - value_buffer is allocated in RAM for the lifetime of line
+    line->value.SetText(string_view_utf8::MakeRAM((const uint8_t *)line->value_buffer));
     line->value.SetAlignment(ALIGN_RIGHT_BOTTOM);
     line->value.SetPadding(padding_ui8(0, 0, 0, 0));
     line->value.font = resource_font(IDR_FNT_SMALL);
@@ -131,10 +132,10 @@ static void initialize_description_lines(screen_t *screen, int y) {
 
     // print time
     if (pd->gcode_printing_time[0]) {
-        initialize_description_line(screen, line_idx++, y, "Print Time", "%s",
+        initialize_description_line(screen, line_idx++, y, _("Print Time"), "%s",
             pd->gcode_printing_time);
     } else {
-        initialize_description_line(screen, line_idx++, y, "Print Time",
+        initialize_description_line(screen, line_idx++, y, _("Print Time"),
             "unknown");
     }
     y += LINE_HEIGHT + LINE_SPACING;
@@ -143,7 +144,7 @@ static void initialize_description_lines(screen_t *screen, int y) {
         // material
         if (pd->gcode_filament_type[0] && pd->gcode_filament_used_mm && pd->gcode_filament_used_g) {
             initialize_description_line(
-                screen, line_idx++, y, "Material", "%s/%u g/%0.2f m",
+                screen, line_idx++, y, _("Material"), "%s/%u g/%0.2f m",
                 pd->gcode_filament_type, pd->gcode_filament_used_g,
                 (double)((float)pd->gcode_filament_used_mm / 1000.0F));
             y += LINE_HEIGHT + LINE_SPACING;
@@ -151,18 +152,18 @@ static void initialize_description_lines(screen_t *screen, int y) {
     } else {
         // material
         if (pd->gcode_filament_type[0]) {
-            initialize_description_line(screen, line_idx++, y, "Material", "%s",
+            initialize_description_line(screen, line_idx++, y, _("Material"), "%s",
                 pd->gcode_filament_type);
             y += LINE_HEIGHT + LINE_SPACING;
         }
         // used filament
         if (pd->gcode_filament_used_mm && pd->gcode_filament_used_g) {
             initialize_description_line(
-                screen, line_idx++, y, "Used Filament", "%.2f m",
+                screen, line_idx++, y, _("Used Filament"), "%.2f m",
                 (double)((float)pd->gcode_filament_used_mm / 1000.0F));
             y += LINE_HEIGHT + LINE_SPACING;
 
-            initialize_description_line(screen, line_idx++, y, "", "%.0f g",
+            initialize_description_line(screen, line_idx++, y, string_view_utf8::MakeNULLSTR(), "%.0f g",
                 (double)pd->gcode_filament_used_g);
             y += LINE_HEIGHT + LINE_SPACING;
         }
@@ -235,7 +236,8 @@ static void screen_print_preview_init(screen_t *screen) {
         rect_ui16(PADDING, y, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT),
         &pd->title_text);
     pd->title_text.font = resource_font(IDR_FNT_BIG);
-    pd->title_text.SetText(gcode_file_name);
+    // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
+    pd->title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
     y += TITLE_HEIGHT + PADDING;
 
     // Thumbnail
@@ -266,14 +268,14 @@ static void screen_print_preview_init(screen_t *screen) {
     window_create_ptr(
         WINDOW_CLS_TEXT, window_id, rect_ui16(PADDING, y, 64, LINE_HEIGHT),
         &pd->print_label);
-    pd->print_label.SetText("Print");
+    pd->print_label.SetText(_("Print"));
     pd->print_label.SetAlignment(ALIGN_CENTER);
     pd->print_label.font = resource_font(IDR_FNT_SMALL);
     window_create_ptr(
         WINDOW_CLS_TEXT, window_id,
         rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, LINE_HEIGHT),
         &pd->back_label);
-    pd->back_label.SetText("Back");
+    pd->back_label.SetText(_("Back"));
     pd->back_label.SetAlignment(ALIGN_CENTER);
     pd->back_label.font = resource_font(IDR_FNT_SMALL);
 }
@@ -316,9 +318,9 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
         msg_box_size.h += gui_defaults.header_sz.h;
         suppress_draw = true;
         Sound_Play(eSOUND_TYPE_SingleBeep);
-        const char *btns[3] = { "YES", "NO", "IGNORE" };
-        switch (gui_msgbox_ex(gcode_file_name,
-            "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.",
+        const char *btns[3] = { N_("YES"), N_("NO"), N_("IGNORE") };
+        switch (gui_msgbox_ex(string_view_utf8::MakeNULLSTR(),
+            _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
             MSGBOX_BTN_CUSTOM3,
             msg_box_size,
             0, btns)) {

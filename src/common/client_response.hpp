@@ -71,11 +71,10 @@ enum class PhasesLoadUnload : uint16_t {
     _last = Unparking
 };
 
-enum class PhasesTest : uint16_t {
+enum class PhasesG162 : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
-    Test1,
-    Test2,
-    _last = Test2
+    Parking,
+    _last = Parking
 };
 
 //static class for work with fsm responses (like button click)
@@ -86,11 +85,11 @@ class ClientResponses {
 
     //declare 2d arrays of single buttons for radio buttons
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
-    static const PhaseResponses TestResponses[CountPhases<PhasesTest>()];
+    static const PhaseResponses G162Responses[CountPhases<PhasesG162>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
-    static const PhaseResponses &getResponsesInPhase(PhasesTest phase) { return TestResponses[static_cast<size_t>(phase)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesG162 phase) { return G162Responses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesG162::_first)]; }
 
 protected:
     //get index of single response in PhaseResponses

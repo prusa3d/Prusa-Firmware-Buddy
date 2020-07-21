@@ -10,6 +10,7 @@
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
 #include "DialogLoadUnload.h"
+#include "DialogG162.h"
 #include "window_dlg_wait.hpp"
 #ifdef _DEBUG
     #include "window_dlg_popup.hpp"
@@ -65,7 +66,7 @@ static void _gui_loop_cb() {
 }
 
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
-char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
+char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 
 extern "C" void gui_run(void) {
     if (diag_fastboot)
@@ -113,6 +114,7 @@ extern "C" void gui_run(void) {
     WINDOW_CLS_HEADER = window_register_class((window_class_t *)&window_class_header);
     WINDOW_CLS_TEMP_GRAPH = window_register_class((window_class_t *)&window_class_temp_graph);
     WINDOW_CLS_DLG_LOADUNLOAD = window_register_class((window_class_t *)&window_class_dlg_statemachine);
+    WINDOW_CLS_DLG_G162 = window_register_class((window_class_t *)&window_class_dlg_g162);
     WINDOW_CLS_DLG_WAIT = window_register_class((window_class_t *)&window_class_dlg_wait);
 #ifdef _DEBUG
     WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
@@ -151,7 +153,8 @@ extern "C" void gui_run(void) {
     screen_register(get_scr_print_preview());
     screen_register(get_scr_lan_settings());
     screen_register(get_scr_menu_fw_update());
-
+    screen_register(get_scr_menu_languages()); // WTF!?!? why does this have to be done at runtime? There is no compile-time warning, that a screen didn't get its unique id (for whatever reason)
+    screen_register(get_scr_menu_languages_noret());
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
         screen_stack_push(get_scr_splash()->id);

@@ -86,3 +86,13 @@ void wizard_run_firstlay(void) {
     uint64_t mask = (_STATE_MASK(_STATE_FIRSTLAY_INIT) | _STATE_MASK(_STATE_FIRSTLAY_LOAD) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_CALIB) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_START_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_REPEAT_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_FAIL) | _STATE_MASK(_STATE_LAST));
     wizard_run_mask(mask);
 }
+
+void wizard_stack_push_complete(void) {
+    wizard_mask = _STATE_MASK_WIZARD;
+    screen_stack_push(get_scr_wizard()->id);
+}
+
+void wizard_stack_push_firstlay(void) {
+    wizard_mask = (_STATE_MASK(_STATE_FIRSTLAY_INIT) | _STATE_MASK(_STATE_FIRSTLAY_LOAD) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_CALIB) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_START_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_REPEAT_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_FAIL) | _STATE_MASK(_STATE_LAST));
+    screen_stack_push(get_scr_wizard()->id);
+}
