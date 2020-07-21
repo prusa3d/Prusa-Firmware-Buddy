@@ -9,4 +9,3 @@ void GcodeSuite::M601() {
 void GcodeSuite::M602() {
     marlin_server_print_resume();
 }
-
