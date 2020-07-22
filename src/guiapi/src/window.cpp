@@ -13,16 +13,27 @@ bool window_t::IsInvalid() const { return f_invalid == true; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCapture() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return f_timer == true; }
-void window_t::Validate() { f_invalid = false; }
+bool window_t::IsDialog() const { return f_dialog == true; }
+void window_t::Validate(rect_ui16_t validation_rect) {
+    //todo check validation_rect intersection
+    f_invalid = false;
+    invalidate(validation_rect);
+    gui_invalidate();
+}
 
-void window_t::Invalidate() {
+void window_t::Invalidate(rect_ui16_t validation_rect) {
+    //todo check validation_rect intersection
     f_invalid = true;
-    invalidate();
+    invalidate(validation_rect);
     gui_invalidate();
 }
 
 //frame will invalidate childern
-void window_t::invalidate() {
+void window_t::invalidate(rect_ui16_t validation_rect) {
+}
+
+//frame will validate childern
+void window_t::validate(rect_ui16_t validation_rect) {
 }
 
 void window_t::SetTag(uint8_t tag) { f_tag = tag; };
@@ -91,11 +102,26 @@ window_t::window_t(window_t *parent, rect_ui16_t rect)
     Show();
     Invalidate();
     if (parent)
-        parent->push_back(this);
+        parent->RegisterSubWin(this);
 }
 
+//ctor for dialogs
+//will set current screen as parent
+//and validate parent parent with this screen rectangle
 window_t::window_t(rect_ui16_t rect)
-    : window_t(Screens::Access()->Get(), rect) {
+    : parent(Screens::Access()->Get())
+    , next(nullptr)
+    , f_tag(0)
+    , flg(0)
+    , rect(rect)
+    , color_back(gui_defaults.color_back) {
+    f_dialog = true;
+    Disable();
+    Show();
+    Invalidate();
+    if (parent) {
+        parent->RegisterSubWin(this);
+    }
 }
 
 window_t::~window_t() {
@@ -104,8 +130,9 @@ window_t::~window_t() {
     if (GetCapturedWindow() == this)
         capture_ptr = nullptr;
 
-    if (GetParent())
-        GetParent()->Unregister(this);
+    //no need to unregister non dialogs
+    if (GetParent() && IsDialog())
+        GetParent()->UnregisterSubWin(this);
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -166,7 +193,7 @@ void window_t::draw() {
 }
 
 //window does not support subwindow elements, but window_frame does
-void window_t::push_back(window_t *win) {
+void window_t::RegisterSubWin(window_t *win) {
 }
 
 void window_t::unconditionalDraw() {

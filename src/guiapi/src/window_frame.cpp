@@ -66,8 +66,26 @@ window_frame_t::window_frame_t(window_t *first_child, window_t *parent, rect_ui1
     color_back = COLOR_BLACK;
 }
 
-void window_frame_t::push_back(window_t *win) {
+//ctor for dialogs, auto use current screen as parent
+window_frame_t::window_frame_t(rect_ui16_t rect, window_t *first_child)
+    : window_t(rect)
+    , first(first_child)
+    , last(first_child) {
+    Enable();
+    color_back = COLOR_BLACK;
+}
+
+//register sub win
+void window_frame_t::RegisterSubWin(window_t *win) {
     if (first && last) {
+        if (win->IsDialog()) {
+            window_t *pWin = first;
+            while (pWin) {
+                pWin->Hide(); //todo check dialog intersection
+                //define shadowed by dialog flag
+                pWin = pWin->GetNext();
+            }
+        }
         last->SetNext(win);
         last = last->GetNext();
     } else {
@@ -75,11 +93,28 @@ void window_frame_t::push_back(window_t *win) {
     }
 }
 
-void window_frame_t::Unregister(window_t *win) {
+//unregister sub win
+void window_frame_t::UnregisterSubWin(window_t *win) {
     window_t *prev = GetPrevSubWin(win);
-    if (prev)
+    if (prev) {
         prev->SetNext(win->GetNext());
-    Invalidate();
+        if (win == last)
+            last = prev;
+    }
+
+    if (last->IsDialog()) {
+        //todo check intersection with this dialog
+        //and show windows that have no intersection with it
+        last->Show();
+    } else {
+        //show all dindows
+        //todo check shadowed by dialog flag
+        window_t *pWin = first;
+        while (pWin) {
+            pWin->Show();
+            pWin = pWin->GetNext();
+        }
+    }
 }
 
 window_t *window_frame_t::GetFirst() const {
@@ -179,10 +214,19 @@ void window_frame_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
 }
 
 //resend invalidate to all childern
-void window_frame_t::invalidate() {
+void window_frame_t::invalidate(rect_ui16_t validation_rect) {
     window_t *ptr = first;
     while (ptr) {
-        ptr->Invalidate();
+        ptr->Invalidate(validation_rect);
+        ptr = ptr->GetNext();
+    }
+}
+
+//resend validate to all childern
+void window_frame_t::validate(rect_ui16_t validation_rect) {
+    window_t *ptr = first;
+    while (ptr) {
+        ptr->Validate(validation_rect);
         ptr = ptr->GetNext();
     }
 }

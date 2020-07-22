@@ -3,7 +3,11 @@
 #include "ScreenHandler.hpp"
 
 IDialog::IDialog(rect_ui16_t rc)
-    : window_t(rc) //use dialog ctor
+    : IDialog(nullptr, rc) {
+}
+
+IDialog::IDialog(window_t *child, rect_ui16_t rc)
+    : window_frame_t(rc, child) //use dialog ctor
     , id_capture(GetCapturedWindow()) {
     gui_reset_jogwheel(); //todo do I need this?
     Enable();

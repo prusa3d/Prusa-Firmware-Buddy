@@ -40,9 +40,9 @@ protected:
             bool f_invalid : 1;         // content is invalid
             bool f_checked : 1;         // is checked/selected
             bool f_timer : 1;           // window has timers
+            bool f_dialog : 1;          // window id dialog
             bool f_parent_defined0 : 1; // this flag can be defined in parent
             bool f_parent_defined1 : 1; // this flag can be defined in parent
-            bool f_parent_defined2 : 1; // this flag can be defined in parent
         };
     };
 
@@ -57,7 +57,7 @@ public:
     window_t *GetNextEnabled() const;
     window_t *GetParent() const;
     void Draw();
-    void ScreenEvent(window_t *sender, uint8_t ev, void *param);    //try to handle, frame resends childern
+    void ScreenEvent(window_t *sender, uint8_t event, void *param); //try to handle, frame resends childern
     void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, can sent click to parent
     bool IsVisible() const;
     bool IsEnabled() const;
@@ -65,8 +65,9 @@ public:
     bool IsFocused() const;
     bool IsCapture() const;
     bool HasTimer() const;
-    void Validate();
-    void Invalidate();
+    bool IsDialog() const;
+    void Validate(rect_ui16_t validation_rect = { 0 });
+    void Invalidate(rect_ui16_t validation_rect = { 0 });
     void SetTag(uint8_t tag);
     uint8_t GetTag() const;
 
@@ -85,14 +86,15 @@ public:
     window_t(rect_ui16_t rect);                   //meant for dialogs, use current screen as parent
     virtual ~window_t();
 
-    virtual void push_back(window_t *win);
-    virtual void Unregister(window_t *win) {} //meant for dialogs, remove this window from frame
+    virtual void RegisterSubWin(window_t *win);
+    virtual void UnregisterSubWin(window_t *win) {} //meant for dialogs, remove this window from frame
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
     virtual void windowEvent(window_t *sender, uint8_t event, void *param);
     virtual void screenEvent(window_t *sender, uint8_t event, void *param);
-    virtual void invalidate();
+    virtual void invalidate(rect_ui16_t validation_rect);
+    virtual void validate(rect_ui16_t validation_rect);
 
 private:
     static window_t *focused_ptr; // has focus

@@ -49,13 +49,12 @@ FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
     dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
 
     gui_reset_jogwheel();
-    gui_invalidate();
+    //gui_invalidate();
 
     while (!Screens::Access()->ConsumeClose()) {
         gui_loop();
     }
 
-    parent->Invalidate();
     if (id_capture)
         id_capture->SetCapture();
 
