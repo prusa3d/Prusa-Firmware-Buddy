@@ -86,12 +86,13 @@ public:
     virtual ~window_t();
 
     virtual void push_back(window_t *win);
-    virtual void Unregister() {} //meant for dialogs, remove this window from frame
+    virtual void Unregister(window_t *win) {} //meant for dialogs, remove this window from frame
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
     virtual void windowEvent(window_t *sender, uint8_t event, void *param);
     virtual void screenEvent(window_t *sender, uint8_t event, void *param);
+    virtual void invalidate();
 
 private:
     static window_t *focused_ptr; // has focus

@@ -59,10 +59,10 @@ void gui_init(void) {
 void gui_redraw(void) {
 
     if (gui_flags & GUI_FLG_INVALID) {
-        if (!window_popup_ptr) //test, todo remove
-            Screens::Access()->Draw();
-        if (window_popup_ptr)
-            window_popup_ptr->Draw();
+        //if (!window_popup_ptr) //test, todo remove
+        Screens::Access()->Draw();
+        //if (window_popup_ptr)
+        //    window_popup_ptr->Draw();
         /*if (window_0)
             window_0->cls->draw(window_0);
         if (window_popup_ptr)

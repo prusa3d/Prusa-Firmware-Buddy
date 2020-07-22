@@ -2,7 +2,6 @@
 #include "DialogRadioButton.hpp"
 #include "gui.hpp"
 #include "../lang/i18n.h"
-#include "ScreenHandler.hpp"
 
 static constexpr uint8_t PROGRESS_BAR_X_PAD = 10;
 static constexpr uint8_t PROGRESS_BAR_Y_PAD = 30;
@@ -12,7 +11,6 @@ static constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
 //*****************************************************************************
 IDialogStateful::IDialogStateful(const char *name)
     : IDialog()
-    , id_capture(GetCapturedWindow())
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , font_title(gui_defaults.font_big)
@@ -23,9 +21,6 @@ IDialogStateful::IDialogStateful(const char *name)
     , progress(-1)
     , title(name) {
     window_popup_ptr = this;
-    gui_reset_jogwheel();
-    gui_invalidate();
-    SetCapture();
 }
 
 bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
@@ -41,16 +36,8 @@ bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*
         progress = progress_tot;
         flags |= DLG_PRO_CH;
     }
-    gui_invalidate();
+    Invalidate();
     return true;
-}
-
-IDialogStateful::~IDialogStateful() {
-    if (id_capture)
-        id_capture->SetCapture();
-    window_t *pWin = Screens::Access()->Get();
-    if (pWin)
-        pWin->Invalidate();
 }
 
 void IDialogStateful::draw_frame() {

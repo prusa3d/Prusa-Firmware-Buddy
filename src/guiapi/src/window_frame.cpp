@@ -75,10 +75,11 @@ void window_frame_t::push_back(window_t *win) {
     }
 }
 
-void window_frame_t::Unregister() {
-    window_t *prev = GetPrevSubWin(last);
+void window_frame_t::Unregister(window_t *win) {
+    window_t *prev = GetPrevSubWin(win);
     if (prev)
-        prev->SetNext(nullptr);
+        prev->SetNext(win->GetNext());
+    Invalidate();
 }
 
 window_t *window_frame_t::GetFirst() const {
@@ -175,6 +176,15 @@ void window_frame_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
         ptr = ptr->GetNext();
     }
     windowEvent(this, ev, param);
+}
+
+//resend invalidate to all childern
+void window_frame_t::invalidate() {
+    window_t *ptr = first;
+    while (ptr) {
+        ptr->Invalidate();
+        ptr = ptr->GetNext();
+    }
 }
 
 window_t *window_frame_t::GetNextSubWin(window_t *win) const {

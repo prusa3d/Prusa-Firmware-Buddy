@@ -45,7 +45,12 @@ void window_t::Validate() { f_invalid = false; }
 
 void window_t::Invalidate() {
     f_invalid = true;
+    invalidate();
     gui_invalidate();
+}
+
+//frame will invalidate childern
+void window_t::invalidate() {
 }
 
 void window_t::SetTag(uint8_t tag) { f_tag = tag; };
@@ -128,7 +133,7 @@ window_t::~window_t() {
         capture_ptr = nullptr;
 
     if (GetParent())
-        GetParent()->Unregister();
+        GetParent()->Unregister(this);
 }
 
 void window_t::SetNext(window_t *nxt) {

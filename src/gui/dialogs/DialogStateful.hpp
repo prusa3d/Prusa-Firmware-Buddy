@@ -52,8 +52,6 @@ public:
     };
 
 protected:
-    window_t *id_capture;
-
     color_t color_text;
     font_t *font;
     font_t *font_title;
@@ -73,7 +71,6 @@ protected:
 public:
     IDialogStateful(const char *name);
     bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
-    virtual ~IDialogStateful();
 
     static rect_ui16_t get_radio_button_size() {                                // cannot be const(expr)
         rect_ui16_t rc_btn = gui_defaults.scr_body_sz;                          // msg box size
