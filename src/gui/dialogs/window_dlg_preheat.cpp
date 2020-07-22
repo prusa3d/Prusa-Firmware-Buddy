@@ -40,6 +40,7 @@ using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
 
 template <class T>
 FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
+    set_last_preheated_filament(FILAMENT_NONE);
     window_t *parent = Screens::Access()->Get();
     T dlg(caption, parent);
 
@@ -61,7 +62,7 @@ FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
     if (id_capture)
         id_capture->SetCapture();
 
-    return get_filament();
+    return get_last_preheated_filament();
 }
 
 FILAMENT_t gui_dlg_preheat(string_view_utf8 caption) {

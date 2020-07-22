@@ -305,5 +305,6 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
         marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
     }
     marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
+    set_last_preheated_filament(filament_index);
     Screens::Access()->Close(); // skip this screen everytime
 }
