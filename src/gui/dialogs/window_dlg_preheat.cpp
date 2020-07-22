@@ -45,9 +45,7 @@ FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
     T dlg(caption, parent);
 
     window_t *id_capture = window_t::GetCapturedWindow();
-    window_t *tmp_window_1 = window_popup_ptr; //save current window_popup_ptr
 
-    window_popup_ptr = &dlg;
     dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
 
     gui_reset_jogwheel();
@@ -57,7 +55,6 @@ FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
         gui_loop();
     }
 
-    window_popup_ptr = tmp_window_1; //restore current window_popup_ptr
     parent->Invalidate();
     if (id_capture)
         id_capture->SetCapture();

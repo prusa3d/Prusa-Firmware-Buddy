@@ -103,6 +103,4 @@ public:
     static window_t *GetCapturedWindow();
 };
 
-extern window_t *window_popup_ptr; //current popup window
-
-extern void gui_invalidate(void);
+void gui_invalidate(void);

@@ -59,7 +59,6 @@ void gui_pop_up(void) {
     window_t *id_capture = window_t::GetCapturedWindow();
     memset(dlg.text, '\0', sizeof(dlg.text) * sizeof(char)); // set to zeros to be on the safe side
     strlcpy(dlg.text, msg_stack.msg_data[0], sizeof(dlg.text));
-    window_popup_ptr = (window_t *)&dlg;
     gui_invalidate();
     dlg.SetCapture();
 

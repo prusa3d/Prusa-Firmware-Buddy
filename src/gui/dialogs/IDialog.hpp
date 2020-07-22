@@ -2,13 +2,13 @@
 
 #include <stdint.h>
 #include "window.hpp"
+#include "guitypes.h"
 
-//window_t has pragma pack, have to use here too
 //interface for dialog
-class IDialog : protected window_t {
+class IDialog : public window_t {
     window_t *id_capture;
 
 public:
-    IDialog();
+    IDialog(rect_ui16_t rc = gui_defaults.scr_body_sz);
     virtual ~IDialog();
 };

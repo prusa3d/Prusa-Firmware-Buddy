@@ -1,7 +1,7 @@
 // window_msgbox.hpp
 #pragma once
 
-#include "window.hpp"
+#include "IDialog.hpp"
 
 //messagebox flags bitmasks
 #define MSGBOX_MSK_ICO 0x0070 // icon mask
@@ -57,7 +57,7 @@
 
 #define MSGBOX_GREY_FRAME 0x8000 // draw grey frame
 
-struct window_msgbox_t : public window_t {
+struct window_msgbox_t : public IDialog {
     color_t color_text;
     font_t *font;
     font_t *font_title;
@@ -69,7 +69,7 @@ struct window_msgbox_t : public window_t {
     const char *buttons[3];
     uint16_t flags;
     int res;
-    window_msgbox_t(window_t *parent, rect_ui16_t rect);
+    window_msgbox_t(rect_ui16_t rect);
 };
 
 extern uint16_t window_msgbox_id_icon[5];

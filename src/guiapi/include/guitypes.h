@@ -123,6 +123,8 @@ typedef struct _gui_defaults_t {
     uint8_t frame_width;             // default frame width
 } gui_defaults_t;
 
+extern gui_defaults_t gui_defaults;
+
 static inline uint16_t swap_ui16(uint16_t val) {
     return (val >> 8) | ((val & 0xff) << 8);
 }

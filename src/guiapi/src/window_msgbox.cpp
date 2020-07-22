@@ -146,8 +146,8 @@ void window_msgbox_click(window_msgbox_t *window) {
     Screens::Access()->Close(); //will set close flag
 }
 
-window_msgbox_t::window_msgbox_t(window_t *parent, rect_ui16_t rect)
-    : window_t(parent, rect_empty_ui16(rect) ? rect_ui16(0, 0, display::GetW(), display::GetH()) : rect)
+window_msgbox_t::window_msgbox_t(rect_ui16_t rect)
+    : IDialog(rect_empty_ui16(rect) ? rect_ui16(0, 0, display::GetW(), display::GetH()) : rect)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , font_title(gui_defaults.font_big)

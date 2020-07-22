@@ -165,8 +165,6 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
     window_dlg_wait_t dlg(nullptr, gui_defaults.scr_body_sz);
 
     window_t *id_capture = window_t::GetCapturedWindow();
-    window_t *tmp_popup_window = window_popup_ptr;
-    window_popup_ptr = (window_t *)&dlg;
     gui_reset_jogwheel();
     gui_invalidate();
     dlg.SetCapture();
@@ -192,8 +190,6 @@ void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
         }
     }
 
-    //window_destroy(id);
-    window_popup_ptr = tmp_popup_window;
     window_t *pWin = Screens::Access()->Get();
     if (pWin != 0)
         pWin->Invalidate();

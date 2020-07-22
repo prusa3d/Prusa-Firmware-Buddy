@@ -9,8 +9,6 @@
 
 typedef void(gui_loop_cb_t)(void);
 
-extern gui_defaults_t gui_defaults;
-
 extern gui_loop_cb_t *gui_loop_cb;
 
 extern int8_t menu_timeout_enabled;

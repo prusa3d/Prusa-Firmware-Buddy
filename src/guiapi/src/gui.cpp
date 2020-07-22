@@ -57,34 +57,11 @@ void gui_init(void) {
 }
 
 void gui_redraw(void) {
-
     if (gui_flags & GUI_FLG_INVALID) {
-        //if (!window_popup_ptr) //test, todo remove
         Screens::Access()->Draw();
-        //if (window_popup_ptr)
-        //    window_popup_ptr->Draw();
-        /*if (window_0)
-            window_0->cls->draw(window_0);
-        if (window_popup_ptr)
-            window_popup_ptr->cls->draw(window_popup_ptr);*/
-
         gui_flags &= ~GUI_FLG_INVALID;
     }
 }
-
-/*
-void gui_redraw(void) {
-    if (gui_flags & GUI_FLG_INVALID) {
-        screen_draw();
-        if (window_0)
-            window_0->cls->draw(window_0);
-        if (window_popup_ptr)
-            window_popup_ptr->cls->draw(window_popup_ptr);
-        //window_draw(0);
-        gui_flags &= ~GUI_FLG_INVALID;
-    }
-}
-*/
 
 //atleast one window is invalit
 void gui_invalidate(void) {
@@ -187,8 +164,7 @@ void gui_reset_menu_timer() {
 int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
 
-    window_msgbox_t msgbox(nullptr, rect);
-    window_t *window_popup_tmp = window_popup_ptr; //save current window_popup_ptr
+    window_msgbox_t msgbox(rect);
     window_t *id_capture = window_t::GetCapturedWindow();
     msgbox.title = title;
     msgbox.text = text;
@@ -200,16 +176,14 @@ int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
         const int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
         memcpy(msgbox.buttons, buttons, count * sizeof(char *));
     }
-    window_popup_ptr = (window_t *)&msgbox;
     gui_reset_jogwheel();
     gui_invalidate();
     msgbox.SetCapture();
     // window_popup_ptr is set to null after destroying msgbox
     // msgbox destroys itself when the user presses any button
-    while (window_popup_ptr) {
-        gui_loop();
-    }
-    window_popup_ptr = window_popup_tmp; // restore previous window_popup_ptr
+    //while (window_popup_ptr) {
+    //    gui_loop();
+    //}
     window_t *pWin = Screens::Access()->Get();
     if (pWin)
         pWin->Invalidate();

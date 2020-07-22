@@ -20,7 +20,6 @@ IDialogStateful::IDialogStateful(const char *name)
     , phase(0)
     , progress(-1)
     , title(name) {
-    window_popup_ptr = this;
 }
 
 bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
