@@ -516,20 +516,30 @@ void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
     st7789v_set_cs();
 }
 
-/// Draws a single character according to selected font
-/// \param clr_bg background color
-/// \param clr_fg font/foreground color
-/// If font is not available for the character, solid rectangle will be drawn in background color
-/// \returns true if character is available in the font and was drawn
 bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     const uint16_t w = pf->w; //char width
     const uint16_t h = pf->h; //char height
-
     // character out of font range, display solid rectangle instead
     if ((chr < pf->asc_min) || (chr > pf->asc_max)) {
         st7789v_fill_rect(rect_ui16(pt.x, pt.y, w, h), clr_bg);
         return false;
     }
+    // here we only have an ASCII character, its location in font can be computed easily
+    uint8_t charX = (chr - pf->asc_min) % 16;
+    uint8_t charY = (chr - pf->asc_min) / 16;
+    return st7789v_draw_charUnicode(pt, charX, charY, pf, clr_bg, clr_fg);
+}
+
+/// Draws a single character according to selected font
+/// \param charX x-index of character in font bitmap
+/// \param charY y-index of character in font bitmap
+/// \param clr_bg background color
+/// \param clr_fg font/foreground color
+/// If font is not available for the character, solid rectangle will be drawn in background color
+/// \returns true if character is available in the font and was drawn
+bool st7789v_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    const uint16_t w = pf->w; //char width
+    const uint16_t h = pf->h; //char height
 
     int i;
     int j;
@@ -545,7 +555,9 @@ bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_
     const uint8_t ppb = 8 / bpp;        //pixels per byte
     const uint8_t pms = (1 << bpp) - 1; //pixel mask
 
-    pch = (uint8_t *)(pf->pcs) + ((chr - pf->asc_min) * bpc);
+    uint32_t chr = charY * 16 + charX; // compute character index in font
+
+    pch = (uint8_t *)(pf->pcs) + ((chr /*- pf->asc_min*/) * bpc);
     uint16_t clr565[16];
     for (i = 0; i <= pms; i++)
         clr565[i] = COLOR_TO_565(color_alpha(clr_bg, clr_fg, 255 * i / pms));
