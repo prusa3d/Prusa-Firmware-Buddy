@@ -367,9 +367,10 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
             uc[1] = 0x80 | (c & 0x3f);
             f.write((const char *)uc, 3);
 
-            // check, that we have this character in our temporary translation table
-            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
-            CHECK(cASCII.key != 0xffff);
+            // with accents, we don't need the unaccent table anymore
+            //            // check, that we have this character in our temporary translation table
+            //            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
+            //            CHECK(cASCII.key != 0xffff);
         });
     }
 }
