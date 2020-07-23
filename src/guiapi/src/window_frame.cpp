@@ -100,11 +100,15 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
     } else {
         //show all dindows
         //todo check shadowed by dialog flag
-        window_t *pWin = first;
+        /* window_t *pWin = first;
         while (pWin) {
             pWin->Show();
             pWin = pWin->GetNext();
-        }
+        }*/
+
+        //todo remove after menu refactoring - menu items must be windows
+        //needed for menu
+        Invalidate();
     }
 }
 

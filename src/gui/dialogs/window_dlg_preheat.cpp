@@ -41,10 +41,9 @@ using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
 template <class T>
 FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
     set_last_preheated_filament(FILAMENT_NONE);
+    window_t *id_capture = window_t::GetCapturedWindow();
     window_t *parent = Screens::Access()->Get();
     T dlg(caption, parent);
-
-    window_t *id_capture = window_t::GetCapturedWindow();
 
     dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
 
