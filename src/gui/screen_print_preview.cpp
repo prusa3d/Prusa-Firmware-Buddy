@@ -316,6 +316,7 @@ static int screen_print_preview_event(screen_t *screen, window_t *window,
         suppress_draw = true;
         Sound_Play(eSOUND_TYPE_SingleBeep);
         const char *btns[3] = { N_("YES"), N_("NO"), N_("IGNORE") };
+        // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
         switch (gui_msgbox_ex(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name),
             _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
             MSGBOX_BTN_CUSTOM3,
