@@ -3,7 +3,8 @@
 ```bash
 # create a build folder and run cmake within it
 cd ../.. && mkdir build_tests && cd build_tests
-cmake .. -G Ninja
+cmake .. -G Ninja -DCUSTOM_COMPILE_OPTIONS:STRING=-Dstrlcpy=strncpy
+# FIXME: CUSTOM_COMPILE_OPTIONS: a dirty hack currently needed to compile some tests on platforms without strlcpy
 
 # build all the unit tests
 ninja tests
@@ -17,8 +18,8 @@ ctest .
 
 > In case you don't have sufficient CMake or Ninja installed, you can use the ones downloaded by build.py/bootstrap.py:
 >   ```bash
->   export PATH="$(../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH"
->   export PATH="$(../utils/bootstrap.py --print-dependency-directory ninja):$PATH"
+>   export PATH="$(python ../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH"
+>   export PATH="$(python ../utils/bootstrap.py --print-dependency-directory ninja):$PATH"
 >   ```
 
 > It is recommended to use GCC for compiling unit tests.
