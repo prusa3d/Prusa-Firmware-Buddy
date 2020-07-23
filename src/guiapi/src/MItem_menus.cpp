@@ -1,4 +1,6 @@
 #include "MItem_menus.hpp"
+#include "screen_menus.hpp"
+#include "ScreenHandler.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -75,7 +77,7 @@ MI_TEMPERATURE::MI_TEMPERATURE()
 }
 
 void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_menu_temperature()->id);
+    Screens::Access()->Open(GetScreenMenuTemperature);
 }
 
 /*****************************************************************************/
