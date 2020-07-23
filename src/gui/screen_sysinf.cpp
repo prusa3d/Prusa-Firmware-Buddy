@@ -45,7 +45,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     , textExit(this, rect_ui16(col_0, 290, 60, 22)) {
 
     textMenuName.font = resource_font(IDR_FNT_BIG);
-    static const char dt[] = "Disp. TEST rd mem.";
+    static const char dt[] = "System info";
     textMenuName.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)dt));
 
     //write pattern
@@ -78,4 +78,5 @@ void screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *p
             last_CPU_load = actual_CPU_load;
         }
     }
+    window_frame_t::windowEvent(sender, event, param);
 }

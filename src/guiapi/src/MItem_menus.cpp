@@ -1,6 +1,7 @@
 #include "MItem_menus.hpp"
 #include "screen_menus.hpp"
 #include "ScreenHandler.hpp"
+#include "screen_sysinf.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -29,7 +30,7 @@ MI_SYS_INFO::MI_SYS_INFO()
 }
 
 void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_sysinfo()->id);
+    Screens::Access()->Open(ScreenFactory::Screen<screen_sysinfo_data_t>);
 }
 
 /*****************************************************************************/
