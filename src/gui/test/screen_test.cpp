@@ -39,37 +39,28 @@ screen_test_data_t::screen_test_data_t()
 
     static const char bck[] = "back";
     back.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));
-    back.Enable();
 
     static const char tstg[] = "test GUI";
     tst_gui.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstg));
-    tst_gui.Enable();
 
     static const char tstt[] = "test TERM";
     tst_term.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstt));
-    tst_term.Enable();
 
     static const char tstm[] = "test MSGBOX";
     tst_msgbox.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tstm));
-    tst_msgbox.Enable();
 
     static const char tmpg[] = "temp graph";
     tst_graph.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tmpg));
-    tst_graph.Enable();
 
     static const char tmpp[] = "temp - pwm";
     tst_temperature.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tmpp));
-    tst_temperature.Enable();
 
     static const char he[] = "HEAT ERROR";
     tst_heat_err.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)he));
-    tst_heat_err.Enable();
 
     static const char drw[] = "Disp. R/W";
     tst_disp_memory.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)drw));
-    tst_disp_memory.Enable();
 
     static const char so[] = "Stack overflow";
     tst_stack_overflow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)so));
-    tst_stack_overflow.Enable();
 }

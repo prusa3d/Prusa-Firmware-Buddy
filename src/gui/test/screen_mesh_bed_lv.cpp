@@ -57,7 +57,6 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     textMenuName.SetText(_("MESH BED L."));
 
     btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
-    btMesh.Enable();
 
     //terminal
     term_init(&(terminal), 20, 16, term_buff);
@@ -66,7 +65,6 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     //exit and footer
     textExit.font = resource_font(IDR_FNT_BIG);
     textExit.SetText(_("EXIT"));
-    textExit.Enable();
 }
 
 void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {

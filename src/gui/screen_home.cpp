@@ -70,7 +70,6 @@ screen_home_data_t::screen_home_data_t()
             //w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
             w_buttons[row * 3 + col].rect = rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
             w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
-            w_buttons[row * 3 + col].Enable();
 
             w_labels[row * 3 + col].rect = rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14);
             w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);

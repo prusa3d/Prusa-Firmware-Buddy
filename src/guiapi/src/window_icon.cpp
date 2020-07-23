@@ -58,6 +58,7 @@ void window_icon_t::UnswapBW() { f_parent_defined0 = false; }
 window_icon_button_t::window_icon_button_t(window_t *parent, rect_ui16_t rect, uint16_t id_res, ButtonCallback cb)
     : window_icon_t(parent, rect, id_res)
     , cb(cb) {
+    Enable();
 }
 
 void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {

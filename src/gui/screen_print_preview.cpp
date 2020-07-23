@@ -157,10 +157,6 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     // Description lines
     initialize_description_lines();
 
-    // Print and Back buttons
-    print_button.Enable();
-    back_button.Enable();
-
     print_label.SetText(_("Print"));
     print_label.SetAlignment(ALIGN_CENTER);
     print_label.font = resource_font(IDR_FNT_SMALL);
