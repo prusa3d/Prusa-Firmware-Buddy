@@ -42,28 +42,23 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     , header(this)
     , footer(this)
     , octo_icon(this, rect_ui16((240 - pt_ico().x) / 2, gui_defaults.scr_body_sz.y, pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
-    , w_buttons { { this, rect_ui16(8 + (15 + 64) * 0, 185, 64, 64), 0 }, { this, rect_ui16(8 + (15 + 64) * 1, 185, 64, 64), 0 }, { this, rect_ui16(8 + (15 + 64) * 2, 185, 64, 64), 0 } }
-    , w_labels { { this, rect_ui16(80 * 0, 196 + 48 + 8, 80, 22) }, { this, rect_ui16(80 * 1, 196 + 48 + 8, 80, 22) }, {
-                                                                                                                           this,
-                                                                                                                           rect_ui16(80 * 2, 196 + 48 + 8, 80, 22),
-                                                                                                                       } }
-    , last_tick(0)
-    , disconnect_pressed(false) {
+    , w_buttons {
+        { this, rect_ui16(8 + (15 + 64) * 0, 185, 64, 64), 0, []() { /*screen_open(get_scr_menu_tune()->id);*/ } },
+        { this, rect_ui16(8 + (15 + 64) * 1, 185, 64, 64), 0, []() { marlin_gcode("M118 A1 action:pause"); } },
+        { this, rect_ui16(8 + (15 + 64) * 2, 185, 64, 64), 0, []() { connection = connection_state_t::disconnect; } }
+    }
+    , w_labels { { this, rect_ui16(80 * 0, 196 + 48 + 8, 80, 22) }, { this, rect_ui16(80 * 1, 196 + 48 + 8, 80, 22) }, { this, rect_ui16(80 * 2, 196 + 48 + 8, 80, 22) } }
+    , last_tick(0) {
 
     header.SetIcon(IDR_PNG_status_icon_printing);
     static const char sp[] = "SERIAL PRT.";
     header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sp));
 
-    octo_icon.Enable();
     octo_icon.SetIdRes(IDR_PNG_serial_printing);
     octo_icon.Disable();
     octo_icon.UnswapBW();
 
     for (unsigned int col = 0; col < static_cast<size_t>(buttons_t::count); col++) {
-        //w_buttons[col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
-        w_buttons[col].SetTag(col + 1);
-        w_buttons[col].Enable();
-
         w_labels[col].font = resource_font(IDR_FNT_SMALL);
         w_labels[col].SetPadding(padding_ui8(0, 0, 0, 0));
         w_labels[col].SetAlignment(ALIGN_CENTER);
@@ -103,7 +98,23 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event,
 
     /// end sequence waiting for empty marlin gcode queue
     /// parking -> cooldown hotend & bed -> turn off print fan
-    if (disconnect_pressed && marlin_get_gqueue() < 1) {
+
+    if (connection == connection_state_t::disconnect) {
+        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
+
+            DisableButton(buttons_t::TUNE);
+            DisableButton(buttons_t::PAUSE);
+            DisableButton(buttons_t::DISCONNECT);
+
+            marlin_gcode("M118 A1 action:disconnect");
+
+            connection = connection_state_t::disconnecting;
+        } else {
+            connection = connection_state_t::connected;
+        }
+    }
+
+    if (connection == connection_state_t::disconnecting && marlin_get_gqueue() < 1) {
         marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
         marlin_gcode("M104 S0 D0"); /// set temperatures to zero
         marlin_gcode("M140 S0");    /// set temperatures to zero
@@ -112,30 +123,7 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event,
         return;
     }
 
-    if (event != WINDOW_EVENT_CLICK) {
-        return;
-    }
-
-    int p = reinterpret_cast<int>(param) - 1;
-    switch (static_cast<buttons_t>(p)) {
-    case buttons_t::TUNE:
-        //screen_open(get_scr_menu_tune()->id);
-        return;
-    case buttons_t::PAUSE:
-        marlin_gcode("M118 A1 action:pause");
-        return;
-    case buttons_t::DISCONNECT:
-        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
-            disconnect_pressed = true;
-
-            DisableButton(buttons_t::TUNE);
-            DisableButton(buttons_t::PAUSE);
-            DisableButton(buttons_t::DISCONNECT);
-
-            marlin_gcode("M118 A1 action:disconnect");
-        }
-        return;
-    default:
-        break;
-    }
+    window_frame_t::windowEvent(sender, event, param);
 }
+
+screen_printing_serial_data_t::connection_state_t screen_printing_serial_data_t::connection = screen_printing_serial_data_t::connection_state_t::disconnected;

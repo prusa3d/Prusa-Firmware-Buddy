@@ -17,11 +17,15 @@ struct screen_printing_serial_data_t : public window_frame_t {
 
     window_icon_t octo_icon;
 
-    window_icon_t w_buttons[static_cast<size_t>(buttons_t::count)];
+    window_icon_button_t w_buttons[static_cast<size_t>(buttons_t::count)];
     window_text_t w_labels[static_cast<size_t>(buttons_t::count)];
 
     int last_tick;
-    bool disconnect_pressed;
+    enum class connection_state_t { connected,
+        disconnect,
+        disconnecting,
+        disconnected };
+    static connection_state_t connection;
 
 public:
     screen_printing_serial_data_t();
