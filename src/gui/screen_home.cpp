@@ -15,13 +15,6 @@
 
 #include "../lang/i18n.h"
 
-#define BUTTON_PRINT       0
-#define BUTTON_PREHEAT     1
-#define BUTTON_FILAMENT    2
-#define BUTTON_CALIBRATION 3
-#define BUTTON_SETTINGS    4
-#define BUTTON_INFO        5
-
 const uint16_t icons[6] = {
     IDR_PNG_menu_icon_print,
     IDR_PNG_menu_icon_preheat,
@@ -50,12 +43,12 @@ screen_home_data_t::screen_home_data_t()
     , header(this)
     , footer(this)
     , logo(this, rect_ui16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
-    , w_buttons { { this, { 0 }, 0 },
-        { this, { 0 }, 0 },
-        { this, { 0 }, 0 },
-        { this, { 0 }, 0 },
-        { this, { 0 }, 0 },
-        { this, { 0 }, 0 } }
+    , w_buttons { { this, { 0 }, 0, []() { /*screen_open(get_scr_filebrowser()->id);*/ } },
+        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuPreheat); } },
+        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
+        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
+        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
+        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
     , w_labels { { this, { 0 } },
         { this, { 0 } },
         { this, { 0 } },
@@ -77,7 +70,6 @@ screen_home_data_t::screen_home_data_t()
             //w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
             w_buttons[row * 3 + col].rect = rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
             w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
-            w_buttons[row * 3 + col].SetTag(row * 3 + col + 1);
             w_buttons[row * 3 + col].Enable();
 
             w_labels[row * 3 + col].rect = rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14);
@@ -147,30 +139,7 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
     }
     //
 
-    if (event != WINDOW_EVENT_CLICK) {
-        return window_frame_t::windowEvent(sender, event, param);
-    }
-
-    switch ((int)param) {
-    case BUTTON_PRINT + 1:
-        //screen_open(get_scr_filebrowser()->id);
-        return;
-    case BUTTON_PREHEAT + 1:
-        Screens::Access()->Open(GetScreenMenuPreheat);
-        return;
-    case BUTTON_FILAMENT + 1:
-        Screens::Access()->Open(GetScreenMenuFilament);
-        return;
-    case BUTTON_CALIBRATION + 1:
-        Screens::Access()->Open(GetScreenMenuCalibration);
-        return;
-    case BUTTON_SETTINGS + 1:
-        Screens::Access()->Open(GetScreenMenuSettings);
-        return;
-    case BUTTON_INFO + 1:
-        Screens::Access()->Open(GetScreenMenuInfo);
-        return;
-    }
+    return window_frame_t::windowEvent(sender, event, param);
 }
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {
