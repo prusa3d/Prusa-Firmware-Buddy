@@ -10,7 +10,7 @@ MI_VERSION_INFO::MI_VERSION_INFO()
 }
 
 void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_version_info()->id);
+    Screens::Access()->Open(GetScreenMenuVersionInfo);
 }
 
 /*****************************************************************************/
@@ -20,7 +20,7 @@ MI_FILAMENT::MI_FILAMENT()
 }
 
 void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_menu_filament()->id);
+    Screens::Access()->Open(GetScreenMenuFilament);
 }
 
 /*****************************************************************************/

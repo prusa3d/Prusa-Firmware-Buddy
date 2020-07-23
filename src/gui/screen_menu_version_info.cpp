@@ -6,12 +6,12 @@
  */
 //todo THIS SHOULD NOT BE MENU!!!
 #include "gui.hpp"
-#include "config.h"
+#include "screen_menus.hpp"
 #include "screen_menu.hpp"
+#include "config.h"
 #include <stdlib.h>
 #include "version.h"
 #include "resource.h"
-#include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "../lang/i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
@@ -22,23 +22,19 @@
 #define VERSION_INFO_STR_MAXLEN 150
 
 constexpr static const HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
-using parent = ScreenMenu<EHeader::On, EFooter::On, HelpCfg, MI_RETURN>;
+using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpCfg, MI_RETURN>;
 
-class ScreenMenuVersionInfo : public parent {
+class ScreenMenuVersionInfo : public Screen {
 public:
     std::array<char, VERSION_INFO_STR_MAXLEN> version_info_str;
     constexpr static const char *label = N_("VERSION INFO");
-    //static void Init(screen_t *screen);
+    ScreenMenuVersionInfo();
 };
 
-/*****************************************************************************/
-//static member method definition
-/*void ScreenMenuVersionInfo::Init(screen_t *screen) {
+ScreenMenuVersionInfo::ScreenMenuVersionInfo()
+    : Screen(_(label)) {
     //=============SCREEN INIT===============
-    Create(screen, _(label));
-    ScreenMenuVersionInfo *const ths = reinterpret_cast<ScreenMenuVersionInfo *>(screen->pdata);
-
-    ths->header.SetIcon(IDR_PNG_header_icon_info);
+    header.SetIcon(IDR_PNG_header_icon_info);
 
     //=============VARIABLES=================
 
@@ -56,8 +52,8 @@ public:
     serial_numbers[14] = '\0';
 
     //=============SET TEXT================
-    auto begin = ths->version_info_str.begin();
-    auto end = ths->version_info_str.end();
+    auto begin = version_info_str.begin();
+    auto end = version_info_str.end();
     begin += snprintf(begin, end - begin, N_("Firmware Version\n")); // @@TODO streaming
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
@@ -83,6 +79,9 @@ public:
     }
 
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
-    ths->help.SetText(string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
+    help.SetText(string_view_utf8::MakeRAM((const uint8_t *)version_info_str.data()));
 }
-*/
+
+ScreenFactory::UniquePtr GetScreenMenuVersionInfo() {
+    return ScreenFactory::Screen<ScreenMenuVersionInfo>();
+}
