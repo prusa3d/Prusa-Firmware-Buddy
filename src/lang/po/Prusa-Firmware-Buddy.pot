@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-10 16:03+0200\n"
+"POT-Creation-Date: 2020-07-16 15:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,7 +29,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:121
+#: src/guiapi/src/MItem_tools.cpp:122
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr ""
 
@@ -38,7 +38,7 @@ msgstr ""
 msgid "ABORT"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:274
+#: src/gui/wizard/screen_wizard.cpp:273
 msgid "All tests finished successfully!"
 msgstr ""
 
@@ -68,7 +68,7 @@ msgstr ""
 msgid "Auto Home"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:24
+#: src/gui/wizard/xyzcalib.cpp:25
 msgid "Auto home"
 msgstr ""
 
@@ -86,6 +86,10 @@ msgstr ""
 
 #: src/gui/screen_printing.cpp:335
 msgid "Bed leveling failed. Try again?"
+msgstr ""
+
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
 msgstr ""
 
 #. 0
@@ -107,19 +111,19 @@ msgstr ""
 msgid "CPU load"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:55
+#: src/gui/wizard/xyzcalib.cpp:56
 msgid "Calibrating Z"
 msgstr ""
 
-#: src/gui/screen_menu_calibration.cpp:16 src/gui/screen_home.cpp:45
+#: src/gui/screen_home.cpp:45
 msgid "Calibration"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:304
+#: src/gui/wizard/screen_wizard.cpp:303
 msgid "Calibration XY"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:508
+#: src/gui/wizard/screen_wizard.cpp:505
 msgid ""
 "Calibration successful!\n"
 "Happy printing!"
@@ -139,15 +143,15 @@ msgid ""
 "heatbed heaters"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:469
+#: src/gui/wizard/screen_wizard.cpp:467
 msgid "Clean steel sheet."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:363
+#: src/gui/wizard/screen_wizard.cpp:362
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:273
+#: src/guiapi/src/MItem_tools.cpp:274
 msgid ""
 "Continual beeps test\n"
 " press button to stop"
@@ -173,7 +177,7 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:455
+#: src/gui/wizard/screen_wizard.cpp:453
 msgid ""
 "Do you want to     \n"
 "repeat the last    \n"
@@ -183,7 +187,7 @@ msgid ""
 "and heatbed?"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:405
+#: src/gui/wizard/screen_wizard.cpp:403
 #, c-format
 msgid ""
 "Do you want to use\n"
@@ -193,7 +197,7 @@ msgid ""
 "Click NO to use the default value (recommended)"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:480
+#: src/gui/wizard/screen_wizard.cpp:477
 #, c-format
 msgid ""
 "Do you want to use last set value? Last:  %0.3f.   Default: %0.3f.   Click "
@@ -214,13 +218,13 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:123
+#: src/guiapi/src/MItem_tools.cpp:124
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:266
+#: src/gui/wizard/screen_wizard.cpp:265
 msgid ""
 "Everything is alright. I will run XYZ calibration now. It will take "
 "approximately 12 minutes."
@@ -230,7 +234,7 @@ msgstr ""
 msgid "FILAMENT"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:563
+#: src/gui/wizard/screen_wizard.cpp:560
 msgid "FIRST LAYER CALIB."
 msgstr ""
 
@@ -246,7 +250,7 @@ msgstr ""
 msgid "Factory Reset"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:108
+#: src/guiapi/src/MItem_tools.cpp:109
 msgid "Factory defaults loaded. The system will now restart."
 msgstr ""
 
@@ -272,10 +276,15 @@ msgid ""
 "disable the filament sensor and continue."
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:39
+#: src/gui/dialogs/DialogG162.cpp:26 src/gui/dialogs/DialogLoadUnload.cpp:39
 msgid ""
 "Finishing         \n"
 "buffered gcodes.  \n"
+msgstr ""
+
+#: src/gui/screen_menu_version_info.cpp:62
+#, c-format
+msgid "Firmware Version\n"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:48
@@ -290,11 +299,15 @@ msgstr ""
 msgid "HOME"
 msgstr ""
 
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr ""
+
 #: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
 msgstr ""
 
-#: src/gui/guimain.cpp:170
+#: src/gui/guimain.cpp:172
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
@@ -302,7 +315,7 @@ msgstr ""
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/guimain.cpp:194
+#: src/gui/guimain.cpp:196
 msgid ""
 "Hi, this is your\n"
 "Original Prusa MINI."
@@ -310,7 +323,7 @@ msgstr ""
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
-#: src/gui/window_file_list.cpp:130 src/gui/screen_printing.cpp:82
+#: src/gui/window_file_list.cpp:132 src/gui/screen_printing.cpp:82
 msgid "Home"
 msgstr ""
 
@@ -341,7 +354,7 @@ msgstr ""
 #. "Extruded plastic  \n"
 #. "must stick to     \n"
 #. "the print surface."
-#: src/gui/wizard/screen_wizard.cpp:437
+#: src/gui/wizard/screen_wizard.cpp:435
 msgid ""
 "In the next step, \n"
 "use the knob to   \n"
@@ -375,7 +388,7 @@ msgid ""
 "extruder gear?    "
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:314
+#: src/gui/wizard/screen_wizard.cpp:313
 msgid "Is steel sheet on heatbed?"
 msgstr ""
 
@@ -521,7 +534,7 @@ msgstr ""
 msgid "No messages"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:393
+#: src/gui/wizard/screen_wizard.cpp:392
 msgid ""
 "Now, let's calibrate\n"
 "the distance       \n"
@@ -597,7 +610,7 @@ msgstr ""
 msgid "PURGE FILAMENT"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:40
+#: src/gui/dialogs/DialogG162.cpp:27 src/gui/dialogs/DialogLoadUnload.cpp:40
 msgid "Parking"
 msgstr ""
 
@@ -609,13 +622,13 @@ msgstr ""
 msgid "Pausing..."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:331
+#: src/gui/wizard/screen_wizard.cpp:330
 msgid ""
 "Place a sheet of paper under the nozzle during the calibration of first 4 "
 "points. If the nozzle catches the paper, power off printer immediately!"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:306
+#: src/gui/wizard/screen_wizard.cpp:305
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
 msgstr ""
 
@@ -623,7 +636,7 @@ msgstr ""
 msgid "Please insert a USB drive and try again."
 msgstr ""
 
-#: src/gui/guimain.cpp:195
+#: src/gui/guimain.cpp:197
 msgid ""
 "Please insert the USB\n"
 "drive that came with\n"
@@ -632,11 +645,11 @@ msgid ""
 "the firmware"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:347
+#: src/gui/wizard/screen_wizard.cpp:346
 msgid "Please place steel sheet on heatbed."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:324
+#: src/gui/wizard/screen_wizard.cpp:323
 msgid "Please remove steel sheet from heatbed."
 msgstr ""
 
@@ -660,7 +673,7 @@ msgid ""
 "the extruder.     "
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:206
+#: src/gui/wizard/screen_wizard.cpp:205
 msgid ""
 "Press NEXT to run  \n"
 "the Selftest, which\n"
@@ -717,7 +730,7 @@ msgstr ""
 msgid "REHEAT"
 msgstr ""
 
-#: src/common/MindaRedscreen.cpp:189 src/gui/guimain.cpp:196
+#: src/common/MindaRedscreen.cpp:189 src/gui/guimain.cpp:198
 msgid "RESET PRINTER"
 msgstr ""
 
@@ -757,11 +770,15 @@ msgstr ""
 msgid "Return"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:542
+#: src/gui/wizard/screen_wizard.cpp:539
 msgid "SELFTEST"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:22
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr ""
+
+#: src/gui/dialogs/DialogG162.cpp:21 src/gui/dialogs/DialogLoadUnload.cpp:22
 msgid "STOP"
 msgstr ""
 
@@ -803,8 +820,7 @@ msgstr ""
 msgid "Service"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:87 src/gui/screen_menu_move.cpp:43
-#: src/gui/screen_home.cpp:46
+#: src/gui/screen_menu_move.cpp:43 src/gui/screen_home.cpp:46
 msgid "Settings"
 msgstr ""
 
@@ -866,13 +882,13 @@ msgstr ""
 msgid "Test"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:372
+#: src/gui/wizard/screen_wizard.cpp:371
 msgid ""
 "The XYZ calibration failed to finish. Double-check the printer's wiring and "
 "axes, then restart the XYZ calibration."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:501
+#: src/gui/wizard/screen_wizard.cpp:498
 msgid ""
 "The first layer calibration failed to finish. Double-check the printer's "
 "wiring, nozzle and axes, then restart the calibration."
@@ -882,7 +898,7 @@ msgstr ""
 msgid "The printer is not calibrated. Start First Layer Calibration?"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:280
+#: src/gui/wizard/screen_wizard.cpp:279
 msgid ""
 "The selftest failed\n"
 "to finish.         \n"
@@ -898,7 +914,7 @@ msgid ""
 "The settings have been saved successfully in the \"lan_settings.ini\" file."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:192
+#: src/gui/wizard/screen_wizard.cpp:191
 msgid ""
 "The status bar is at\n"
 "the bottom of the  \n"
@@ -917,7 +933,7 @@ msgid ""
 msgstr ""
 
 #. window_menu
-#: src/guiapi/src/MItem_tools.cpp:106
+#: src/guiapi/src/MItem_tools.cpp:107
 msgid ""
 "This operation can't be undone, current configuration will be lost! Are you "
 "really sure to reset printer to factory defaults?"
@@ -986,11 +1002,11 @@ msgstr ""
 msgid "Version Info"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:530
+#: src/gui/wizard/screen_wizard.cpp:527
 msgid "WIZARD"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:565
+#: src/gui/wizard/screen_wizard.cpp:562
 msgid "WIZARD - OK"
 msgstr ""
 
@@ -1029,7 +1045,7 @@ msgstr ""
 msgid "X-axis"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:555
+#: src/gui/wizard/screen_wizard.cpp:552
 msgid "XYZ CALIBRATION"
 msgstr ""
 
