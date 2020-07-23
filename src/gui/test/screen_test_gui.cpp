@@ -7,7 +7,7 @@
 
 screen_test_gui_data_t::screen_test_gui_data_t()
     : window_frame_t(&logo_prusa_mini)
-    , logo_prusa_mini(this, rect_ui16(0, 84, 240, 62), IDR_PNG_splash_logo_prusa_prn)
+    , logo_prusa_mini(this, rect_ui16(0, 84, 240, 62), IDR_PNG_splash_logo_prusa_prn, []() { Screens::Access()->Close(); })
     , text0(this, rect_ui16(10, 70, 60, 22))
     , text1(this, rect_ui16(80, 70, 60, 22))
     , text2(this, rect_ui16(150, 70, 60, 22))
@@ -20,8 +20,6 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     , icon2(this, rect_ui16(150, 234, 64, 64), IDR_PNG_menu_icon_spool)
     , progress(this, rect_ui16(0, 200, 240, 30))
     , text_terminal(this, rect_ui16(0, 298, 240, 22)) {
-    logo_prusa_mini.Enable();
-    logo_prusa_mini.SetTag(10);
 
     text0.font = resource_font(IDR_FNT_BIG);
     static const char big[] = "Big";
@@ -48,25 +46,7 @@ screen_test_gui_data_t::screen_test_gui_data_t()
 
     list.SetItemIndex(2);
 
-    icon0.Enable();
-    icon0.SetTag(1);
-
-    icon1.Enable();
-    icon1.SetTag(2);
-
-    icon2.Enable();
-    icon2.SetTag(3);
-
     text_terminal.font = resource_font(IDR_FNT_TERMINAL);
     static const char tf[] = "Terminal Font IBM ISO9";
     text_terminal.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tf));
-}
-
-void screen_test_gui_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK)
-        switch ((int)param) {
-        case 10:
-            Screens::Access()->Close();
-            return;
-        }
 }

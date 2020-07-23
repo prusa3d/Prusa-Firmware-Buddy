@@ -9,7 +9,7 @@
 #include "window_progress.hpp"
 
 struct screen_test_gui_data_t : public window_frame_t {
-    window_icon_t logo_prusa_mini;
+    window_icon_button_t logo_prusa_mini;
     window_text_t text0;
     window_text_t text1;
     window_text_t text2;
@@ -25,7 +25,4 @@ struct screen_test_gui_data_t : public window_frame_t {
 
 public:
     screen_test_gui_data_t();
-
-private:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
