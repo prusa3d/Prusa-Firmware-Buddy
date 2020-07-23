@@ -32,11 +32,6 @@ enum { col_2_w = 38 };
 enum { row_h = 20 };
 #define RECT_MACRO(col) rect_ui16(col_##col, row2draw, col_##col##_w, row_h)
 
-enum {
-    TAG_QUIT = 10
-
-};
-
 screen_sysinfo_data_t::screen_sysinfo_data_t()
     : window_frame_t(&textMenuName)
     , textMenuName(this, rect_ui16(0, 0, display::GetW(), 22))
@@ -60,16 +55,11 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     static const char ex[] = N_("EXIT");
     textExit.SetText(_(ex));
     textExit.Enable();
-    textExit.SetTag(TAG_QUIT);
 }
 
 void screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK)
-        switch ((int)param) {
-        case TAG_QUIT:
-            Screens::Access()->Close();
-            return;
-        }
+        Screens::Access()->Close();
 
     if (event == WINDOW_EVENT_LOOP) {
         actual_CPU_load = osGetCPUUsage();

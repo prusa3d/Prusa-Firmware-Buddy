@@ -25,7 +25,6 @@ protected:
     virtual void unconditionalDraw() override;
 };
 
-using ButtonCallback = void (*)();
 struct window_text_button_t : public window_text_t {
     ButtonCallback cb;
 

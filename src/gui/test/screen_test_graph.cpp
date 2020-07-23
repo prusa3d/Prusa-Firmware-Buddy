@@ -22,7 +22,6 @@ screen_test_graph_t::screen_test_graph_t()
     static const char rtn[] = "Return";
     button.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
     button.Enable();
-    button.SetTag(1);
 }
 
 void screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *param) {
@@ -35,11 +34,6 @@ void screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *par
         }
         loop_index++;
     } else if (event == WINDOW_EVENT_CLICK) {
-        switch ((int)param) {
-        case 1:
-            //screen_open(get_scr_menu_service()->id);
-            Screens::Access()->Close();
-            break;
-        }
+        Screens::Access()->Close();
     }
 }

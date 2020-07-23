@@ -22,6 +22,8 @@
 #define WINDOW_EVENT_TIMER    0x0d //gui timer
 #define WINDOW_EVENT_MESSAGE  0x0e //onStatusChange() message notification
 
+using ButtonCallback = void (*)();
+
 struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);

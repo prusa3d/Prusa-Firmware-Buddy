@@ -20,7 +20,6 @@ screen_watchdog_data_t::screen_watchdog_data_t()
     text1.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ptc));
     text1.SetAlignment(ALIGN_CENTER);
     text1.Enable();
-    text1.SetTag(1);
 }
 
 void screen_watchdog_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {

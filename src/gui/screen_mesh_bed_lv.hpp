@@ -11,6 +11,7 @@
 
 enum class mesh_state_t : uint8_t {
     idle,
+    start,
     home,
     homeing,
     homed,
@@ -22,13 +23,13 @@ enum class mesh_state_t : uint8_t {
 struct screen_mesh_bed_lv_data_t : public window_frame_t {
     status_footer_t footer;
     window_text_t textMenuName;
-    window_text_t btMesh;
+    window_text_button_t btMesh;
     window_text_t text_mesh_state;
     window_term_t term;
     term_t terminal;
     uint8_t term_buff[TERM_BUFF_SIZE(20, 16)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
-    window_text_t textExit;
-    mesh_state_t mesh_state;
+    window_text_button_t textExit;
+    static mesh_state_t mesh_state;
 
 public:
     screen_mesh_bed_lv_data_t();
