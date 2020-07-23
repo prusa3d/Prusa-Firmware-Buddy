@@ -37,3 +37,18 @@ void window_text_t::unconditionalDraw() {
         (IsFocused()) ? color_back : color_text,
         padding, alignment);
 }
+
+/*****************************************************************************/
+//window_text_button_t
+window_text_button_t::window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt)
+    : window_text_t(parent, rect, txt)
+    , cb(cb) {
+}
+
+void window_text_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+    if (event == WINDOW_EVENT_CLICK) {
+        cb();
+    } else {
+        window_text_t::windowEvent(sender, event, param);
+    }
+}

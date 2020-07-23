@@ -24,3 +24,13 @@ struct window_text_t : public window_t {
 protected:
     virtual void unconditionalDraw() override;
 };
+
+using ButtonCallback = void (*)();
+struct window_text_button_t : public window_text_t {
+    ButtonCallback cb;
+
+    window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
+
+protected:
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+};
