@@ -87,7 +87,7 @@ MI_MOVE_AXIS::MI_MOVE_AXIS()
 }
 
 void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_menu_move()->id);
+    Screens::Access()->Open(GetScreenMenuMove);
 }
 
 /*****************************************************************************/

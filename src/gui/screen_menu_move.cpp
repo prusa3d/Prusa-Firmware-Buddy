@@ -2,6 +2,7 @@
 
 #include "gui.hpp"
 #include "screen_menu.hpp"
+#include "screen_menus.hpp"
 #include "marlin_client.h"
 #include "menu_vars.h"
 #include "WindowMenuItems.hpp"
@@ -35,34 +36,30 @@ using MI_AXIS_X = MI_AXIS<0>;
 using MI_AXIS_Y = MI_AXIS<1>;
 using MI_AXIS_Z = MI_AXIS<2>;
 
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E>;
 
-class ScreenMenuMove : public parent {
+class ScreenMenuMove : public Screen {
 public:
     constexpr static const char *label = N_("Settings");
-    //static void Init(screen_t *screen);
-    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    ScreenMenuMove()
+        : Screen(_(label)) {}
+    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 };
 
-/*****************************************************************************/
-//static member method definition
-/*void ScreenMenuMove::Init(screen_t *screen) {
-    marlin_update_vars(MARLIN_VAR_MSK_POS_XYZE | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ));
-    Create(screen, _(label));
-}
-
-int ScreenMenuMove::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    ScreenMenuMove *const ths = reinterpret_cast<ScreenMenuMove *>(screen->pdata);
+void ScreenMenuMove::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_LOOP) {
 
         bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::extrude_min_temp);
-        IWindowMenuItem *pAxis_E = &ths->Item<MI_AXIS_E>();
+        IWindowMenuItem *pAxis_E = &Item<MI_AXIS_E>();
         if (temp_ok && (!pAxis_E->IsEnabled()))
             pAxis_E->Enable();
         if ((!temp_ok) && pAxis_E->IsEnabled())
             pAxis_E->Disable();
     }
 
-    ths->Event(window, event, param);
+    Screen::windowEvent(sender, event, param);
 }
-*/
+
+ScreenFactory::UniquePtr GetScreenMenuMove() {
+    return ScreenFactory::Screen<ScreenMenuMove>();
+}
