@@ -60,10 +60,14 @@ extern void gui_loop(void);
 
 extern void gui_reset_menu_timer();
 
-extern int gui_msgbox_ex(const char *title, const char *text, uint16_t flags, rect_ui16_t rect, uint16_t id_icon, const char **buttons);
+extern int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags, rect_ui16_t rect, uint16_t id_icon, const char **buttons);
 
-extern int gui_msgbox(const char *text, uint16_t flags);
+extern int gui_msgbox(string_view_utf8 text, uint16_t flags);
 
-extern int gui_msgbox_prompt(const char *text, uint16_t flags);
+extern int gui_msgbox_prompt(string_view_utf8 text, uint16_t flags);
+
+// close currently displayed msgbox, returns 1 if msgbox successfully closed or 0 if no msgbox currently displayed
+// message box loop will stop and gui_msgbox function returns MSGBOX_RES_CLOSED
+extern int gui_msgbox_close(void);
 
 #endif //GUI_WINDOW_SUPPORT

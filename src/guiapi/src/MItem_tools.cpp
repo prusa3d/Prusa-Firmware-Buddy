@@ -7,6 +7,7 @@
 #include "gui.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
+#include "window_dlg_calib_z.hpp"
 #include "sound.hpp"
 #include "wui_api.h"
 #include "../lang/i18n.h"
@@ -270,7 +271,7 @@ MI_SOUND_TYPE::MI_SOUND_TYPE()
     : WI_SWITCH_t<8>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
     if (old_index == eSOUND_TYPE_StandardPrompt || old_index == eSOUND_TYPE_CriticalAlert) {
-        gui_msgbox_prompt("Continual beeps test\n press button to stop", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        gui_msgbox_prompt(_("Continual beeps test\n press button to stop"), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
     } else {
         Sound_Play(static_cast<eSOUND_TYPE>(old_index));
     }

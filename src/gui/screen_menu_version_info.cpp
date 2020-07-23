@@ -36,7 +36,7 @@ public:
 //static member method definition
 void ScreenMenuVersionInfo::Init(screen_t *screen) {
     //=============SCREEN INIT===============
-    Create(screen, label);
+    Create(screen, _(label));
     ScreenMenuVersionInfo *const ths = reinterpret_cast<ScreenMenuVersionInfo *>(screen->pdata);
 
     p_window_header_set_icon(&(ths->header), IDR_PNG_header_icon_info);
@@ -59,7 +59,7 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     //=============SET TEXT================
     auto begin = ths->version_info_str.begin();
     auto end = ths->version_info_str.end();
-    begin += snprintf(begin, end - begin, _("Firmware Version\n"));
+    begin += snprintf(begin, end - begin, N_("Firmware Version\n")); // @@TODO streaming
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
@@ -75,14 +75,16 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
             begin += snprintf(begin, end - begin, "%.*s\n", line_length, project_version_full + i);
     }
 
-    if (end > begin)
+    if (end > begin) {
         begin += snprintf(begin, end - begin,
-            _("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"),
+            N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"), //@@TODO streaming
             bootloader->major, bootloader->minor, bootloader->patch,
             board_version[0], board_version[1], board_version[2],
             serial_numbers);
+    }
 
-    ths->help.SetText(ths->version_info_str.data());
+    // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
+    ths->help.SetText(string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
 }
 
 screen_t screen_version_info = {

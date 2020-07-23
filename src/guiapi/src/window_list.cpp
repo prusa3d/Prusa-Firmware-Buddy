@@ -2,6 +2,7 @@
 #include "window_list.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
+#include "../lang/i18n.h"
 
 const char items[11][6] = {
     "item0",
@@ -88,7 +89,7 @@ void window_list_draw(window_list_t *window) {
             }
 
             // render
-            render_text_align(rc, label, window->font,
+            render_text_align(rc, _(label), window->font,
                 color_back, color_text,
                 padding, window->alignment);
         }
