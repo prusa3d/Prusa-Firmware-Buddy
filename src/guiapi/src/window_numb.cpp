@@ -4,32 +4,28 @@
 
 #define WINDOW_NUMB_MAX_TEXT 16
 
-/*
-void window_numb_draw(window_numb_t *window) {
-    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        color_t clr_back = (window->IsFocused()) ? window->color_text : window->color_back;
-        color_t clr_text = (window->IsFocused()) ? window->color_back : window->color_text;
-        if (window->flg & WINDOW_FLG_CAPTURE)
-            clr_text = COLOR_ORANGE;
-        char text[WINDOW_NUMB_MAX_TEXT];
-        if (window->IsPrintingAsInt()) {
-            snprintf(text, WINDOW_NUMB_MAX_TEXT, window->format, (int)(window->value));
-        } else {
-            snprintf(text, WINDOW_NUMB_MAX_TEXT, window->format, (double)window->value);
-        }
-
-        render_text_align(window->rect,
-            // this MakeRAM is safe - render_text finishes its work and the local string text[] is then no longer needed
-            string_view_utf8::MakeRAM((const uint8_t *)text),
-            window->font,
-            clr_back,
-            clr_text,
-            window->padding,
-            window->alignment);
-        window->Validate();;
+void window_numb_t::unconditionalDraw() {
+    color_t clr_back = (IsFocused()) ? color_text : color_back;
+    color_t clr_text = (IsFocused()) ? color_back : color_text;
+    if (IsCapture())
+        clr_text = COLOR_ORANGE;
+    char text[WINDOW_NUMB_MAX_TEXT];
+    if (IsPrintingAsInt()) {
+        snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (int)(value));
+    } else {
+        snprintf(text, WINDOW_NUMB_MAX_TEXT, format, (double)value);
     }
+
+    render_text_align(rect,
+        // this MakeRAM is safe - render_text finishes its work and the local string text[] is then no longer needed
+        string_view_utf8::MakeRAM((const uint8_t *)text),
+        font,
+        clr_back,
+        clr_text,
+        padding,
+        alignment);
 }
-*/
+
 void window_numb_t::SetFormat(const char *frmt) {
     format = frmt;
     Invalidate();

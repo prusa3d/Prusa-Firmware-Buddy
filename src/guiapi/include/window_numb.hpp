@@ -25,5 +25,6 @@ struct window_numb_t : public window_t {
     bool IsPrintingAsInt() const;
 
 protected:
+    virtual void unconditionalDraw() override;
     virtual void setValue(float val);
 };
