@@ -70,6 +70,14 @@ struct window_msgbox_t : public IDialog {
     uint16_t flags;
     int res;
     window_msgbox_t(rect_ui16_t rect);
+
+protected:
+    void drawButtons();
+    void step(int step);
+    void click();
+
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void unconditionalDraw() override;
 };
 
 extern uint16_t window_msgbox_id_icon[5];

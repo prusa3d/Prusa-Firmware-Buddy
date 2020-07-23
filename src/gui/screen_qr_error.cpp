@@ -42,5 +42,6 @@ void screen_qr_error_data_t::windowEvent(window_t *sender, uint8_t event, void *
     if (!first_run_flag)
         return;
     first_run_flag = false;
-    unconditionalDraw(); // todo why?
+    //unconditionalDraw(); // todo why?
+    window_frame_t::windowEvent(sender, event, param);
 }

@@ -6,6 +6,9 @@
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
 #include "ScreenHandler.hpp"
+#include "screen_test_gui.hpp"
+#include "screen_test_term.hpp"
+#include "screen_test_msgbox.hpp"
 
 typedef enum {
     STI_back = 1,
@@ -92,19 +95,19 @@ static volatile void recursive(uint64_t i) {
 }
 
 void screen_test_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK)
+    if (event == WINDOW_EVENT_CLICK) {
         switch ((int)param) {
         case STI_back:
             Screens::Access()->Close();
             break;
         case STI_tst_gui:
-            // screen_open(get_scr_test_gui()->id);
+            Screens::Access()->Open(ScreenFactory::Screen<screen_test_gui_data_t>);
             break;
         case STI_tst_term:
-            //screen_open(get_scr_test_term()->id);
+            Screens::Access()->Open(ScreenFactory::Screen<screen_test_term_data_t>);
             break;
         case STI_tst_msgbox:
-            //screen_open(get_scr_test_msgbox()->id);
+            Screens::Access()->Open(ScreenFactory::Screen<screen_test_msgbox_data_t>);
             break;
         case STI_tst_graph:
             //screen_open(get_scr_test_graph()->id);
@@ -122,6 +125,9 @@ void screen_test_data_t::windowEvent(window_t *sender, uint8_t event, void *para
             recursive(0);
             break;
         }
+    } else {
+        window_frame_t::windowEvent(sender, event, param);
+    }
     /*else if (event == WINDOW_EVENT_TIMER) {
         if ((int)param == id_tim)
             _dbg("tim0 %lu", HAL_GetTick());

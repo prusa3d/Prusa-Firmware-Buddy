@@ -105,4 +105,7 @@ void screen_test_msgbox_data_t::windowEvent(window_t *sender, uint8_t event, voi
             gui_msgbox(_(test_text), MSGBOX_BTN_OK | ico);
         } break;
         }
+    else {
+        window_frame_t::windowEvent(sender, event, param);
+    }
 }

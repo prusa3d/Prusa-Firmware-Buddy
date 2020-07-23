@@ -2,6 +2,9 @@
 #include "screen_menus.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_sysinf.hpp"
+#include "screen_qr_error.hpp"
+#include "screen_qr_info.hpp"
+#include "screen_test.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -58,7 +61,7 @@ MI_QR_test::MI_QR_test()
 }
 
 void MI_QR_test::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_qr_error()->id);
+    Screens::Access()->Open(ScreenFactory::Screen<screen_qr_error_data_t>);
 }
 
 /*****************************************************************************/
@@ -68,7 +71,7 @@ MI_QR_info::MI_QR_info()
 }
 
 void MI_QR_info::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_qr_info()->id);
+    Screens::Access()->Open(ScreenFactory::Screen<screen_qr_info_data_t>);
 }
 
 /*****************************************************************************/
@@ -108,7 +111,7 @@ MI_TEST::MI_TEST()
 }
 
 void MI_TEST::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_test()->id);
+    Screens::Access()->Open(ScreenFactory::Screen<screen_test_data_t>);
 }
 
 /*****************************************************************************/
