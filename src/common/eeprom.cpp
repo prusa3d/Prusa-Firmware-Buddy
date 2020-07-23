@@ -10,6 +10,7 @@
 #include "ff.h"
 #include "crc32.h"
 #include "version.h"
+#include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
 
 #define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
@@ -140,8 +141,8 @@ static const eeprom_vars_t eeprom_var_defaults = {
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
     0,               // EEVAR_TIMEZONE
     0xff,            // EEVAR_SOUND_MODE
-    0x64,            // EEVAR_SOUND_VOLUME
-    0xffff,            // EEVAR_LANGUAGE
+    0xa,             // EEVAR_SOUND_VOLUME
+    0xffff,          // EEVAR_LANGUAGE
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
@@ -290,8 +291,11 @@ void eeprom_clear(void) {
     uint16_t a;
     uint32_t data = 0xffffffff;
     eeprom_lock();
-    for (a = 0x0000; a < 0x0800; a += 4)
+    for (a = 0x0000; a < 0x0800; a += 4) {
         st25dv64k_user_write_bytes(a, &data, 4);
+        if ((a % 0x200) == 0)   // clear entire eeprom take ~4s
+            wdt_iwdg_refresh(); // we will reset watchdog every ~1s for sure
+    }
     eeprom_unlock();
 }
 
