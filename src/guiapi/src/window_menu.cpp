@@ -6,7 +6,7 @@
 #include "IWindowMenuItem.hpp"
 
 IWindowMenu::IWindowMenu(window_t *first, window_t *parent)
-    : window_frame_t(first, parent, gui_defaults.scr_body_sz)
+    : window_frame_t(first, parent, gui_defaults.scr_body_sz, parent != nullptr)
     , color_text(gui_defaults.color_text)
     , color_disabled(gui_defaults.color_disabled)
     , font(gui_defaults.font)

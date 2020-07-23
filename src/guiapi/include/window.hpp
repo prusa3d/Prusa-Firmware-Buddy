@@ -82,8 +82,7 @@ public:
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
-    window_t(window_t *parent, rect_ui16_t rect); //todo remove nullptr default values
-    window_t(rect_ui16_t rect);                   //meant for dialogs, use current screen as parent
+    window_t(window_t *parent, rect_ui16_t rect, bool dialog = false);
     virtual ~window_t();
 
     virtual void RegisterSubWin(window_t *win);

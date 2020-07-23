@@ -91,37 +91,19 @@ void window_t::SetBackColor(color_t clr) {
     Invalidate();
 }
 
-window_t::window_t(window_t *parent, rect_ui16_t rect)
+window_t::window_t(window_t *parent, rect_ui16_t rect, bool dialog)
     : parent(parent)
     , next(nullptr)
     , f_tag(0)
     , flg(0)
     , rect(rect)
     , color_back(gui_defaults.color_back) {
+    f_dialog = dialog;
     Disable();
     Show();
     Invalidate();
     if (parent)
         parent->RegisterSubWin(this);
-}
-
-//ctor for dialogs
-//will set current screen as parent
-//and validate parent parent with this screen rectangle
-window_t::window_t(rect_ui16_t rect)
-    : parent(Screens::Access()->Get())
-    , next(nullptr)
-    , f_tag(0)
-    , flg(0)
-    , rect(rect)
-    , color_back(gui_defaults.color_back) {
-    f_dialog = true;
-    Disable();
-    Show();
-    Invalidate();
-    if (parent) {
-        parent->RegisterSubWin(this);
-    }
 }
 
 window_t::~window_t() {

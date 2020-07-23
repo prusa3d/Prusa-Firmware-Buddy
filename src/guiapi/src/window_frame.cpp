@@ -58,17 +58,8 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     }*/
 }
 
-window_frame_t::window_frame_t(window_t *first_child, window_t *parent, rect_ui16_t rect)
-    : window_t(parent, rect)
-    , first(first_child)
-    , last(first_child) {
-    Enable();
-    color_back = COLOR_BLACK;
-}
-
-//ctor for dialogs, auto use current screen as parent
-window_frame_t::window_frame_t(rect_ui16_t rect, window_t *first_child)
-    : window_t(rect)
+window_frame_t::window_frame_t(window_t *first_child, window_t *parent, rect_ui16_t rect, bool dialog)
+    : window_t(parent, rect, dialog)
     , first(first_child)
     , last(first_child) {
     Enable();
@@ -153,7 +144,6 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     case WINDOW_EVENT_BTN_DN:
         if (pWin) {
             pWin->WindowEvent(this, WINDOW_EVENT_CLICK, (void *)(int)pWin->GetTag());
-            //Screens::Access()->DispatchEvent(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
             pWin->SetCapture();
         }
         break;
