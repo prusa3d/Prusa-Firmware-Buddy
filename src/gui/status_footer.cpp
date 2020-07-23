@@ -19,7 +19,7 @@
 #include "limits.h"
 #include <algorithm>
 
-static const float heating_difference = 2.0F;
+static const float heating_difference = 2.5F;
 
 enum class ButtonStatus {
     Nozzle = 0xf0,
@@ -36,7 +36,8 @@ static char text_nozzle[10];  // "215/215°C"
 static char text_heatbed[10]; // "110/110°C"
 static char text_prnspeed[5]; // "999%"
 static char text_z_axis[7];   // "999.95", more space than needed to avoid warning (sprintf)
-static char filament[5];      // "PETG"
+static const char emptystr[1] = "";
+static const char *filament; // "PETG"
 static char const *err = "ERR";
 
 void status_footer_timer(status_footer_t *footer, uint32_t mseconds);
@@ -63,7 +64,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_nozzle));
     footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_nozzle.SetAlignment(ALIGN_CENTER);
-    footer->wt_nozzle.SetText("");
+    footer->wt_nozzle.SetText(string_view_utf8::MakeNULLSTR());
 
     window_create_ptr( // heatbed
         WINDOW_CLS_ICON, parent,
@@ -78,7 +79,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_heatbed));
     footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_heatbed.SetAlignment(ALIGN_CENTER);
-    footer->wt_heatbed.SetText("");
+    footer->wt_heatbed.SetText(string_view_utf8::MakeNULLSTR());
 
     window_create_ptr( // prnspeed
         WINDOW_CLS_ICON, parent,
@@ -93,7 +94,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_prnspeed));
     footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_prnspeed.SetAlignment(ALIGN_CENTER);
-    footer->wt_prnspeed.SetText("");
+    footer->wt_prnspeed.SetText(string_view_utf8::MakeNULLSTR());
 
     window_create_ptr( // z-axis
         WINDOW_CLS_ICON, parent,
@@ -108,7 +109,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_z_axis));
     footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_z_axis.SetAlignment(ALIGN_CENTER);
-    footer->wt_z_axis.SetText("");
+    footer->wt_z_axis.SetText(string_view_utf8::MakeNULLSTR());
 
     window_create_ptr( // filament
         WINDOW_CLS_ICON, parent,
@@ -123,7 +124,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         &(footer->wt_filament));
     footer->wt_filament.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_filament.SetAlignment(ALIGN_CENTER);
-    footer->wt_filament.SetText(filaments[get_filament()].name);
+    footer->wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[get_filament()].name));
 
     footer->last_timer_repaint_values = 0;
     footer->last_timer_repaint_z_pos = 0;
@@ -136,7 +137,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
     footer->heatbed_target = -273;
     footer->z_pos = INT_MIN;
     footer->print_speed = 0;
-    filament[0] = '\0';
+    filament = emptystr;
 
     //read and draw real values
     status_footer_update_temperatures(footer);
@@ -217,8 +218,10 @@ void status_footer_update_nozzle(status_footer_t *footer, const marlin_vars_t *v
     footer->nozzle_target = vars->target_nozzle;
     footer->nozzle_target_display = vars->display_nozzle;
 
-    if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle)))
-        footer->wt_nozzle.SetText(text_nozzle);
+    if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle))) {
+        // this MakeRAM is safe - text_nozzle is statically allocated
+        footer->wt_nozzle.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_nozzle));
+    }
 }
 
 void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *vars) {
@@ -237,8 +240,10 @@ void status_footer_update_heatbed(status_footer_t *footer, const marlin_vars_t *
     footer->heatbed = vars->temp_bed;
     footer->heatbed_target = vars->target_bed;
 
-    if (0 < snprintf(text_heatbed, sizeof(text_heatbed), "%d/%d\177C", (int)roundf(vars->temp_bed), (int)roundf(vars->target_bed)))
-        footer->wt_heatbed.SetText(text_heatbed);
+    if (0 < snprintf(text_heatbed, sizeof(text_heatbed), "%d/%d\177C", (int)roundf(vars->temp_bed), (int)roundf(vars->target_bed))) {
+        // this MakeRAM is safe - text_heatbed is statically allocated
+        footer->wt_heatbed.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_heatbed));
+    }
 }
 
 /// Updates values in footer state from real values and repaint
@@ -276,13 +281,14 @@ void status_footer_update_feedrate(status_footer_t *footer) {
         snprintf(text_prnspeed, sizeof(text_prnspeed), "%3d%%", speed);
     else
         snprintf(text_prnspeed, sizeof(text_prnspeed), err);
-    footer->wt_prnspeed.SetText(text_prnspeed);
+    // this MakeRAM is safe - text_prnspeed is statically allocated
+    footer->wt_prnspeed.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_prnspeed));
 }
 
 void status_footer_update_z_axis(status_footer_t *footer) {
     const marlin_vars_t *vars = marlin_vars();
     if (!vars) {
-        footer->wt_z_axis.SetText(err);
+        footer->wt_z_axis.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)err));
         return;
     }
 
@@ -292,18 +298,19 @@ void status_footer_update_z_axis(status_footer_t *footer) {
 
     footer->z_pos = pos;
     if (0 > snprintf(text_z_axis, sizeof(text_z_axis), "%d.%02d", (int)(pos / 100), (int)std::abs(pos % 100))) {
-        footer->wt_z_axis.SetText(err);
+        footer->wt_z_axis.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)err));
         return;
     }
-    footer->wt_z_axis.SetText(text_z_axis);
+    // this MakeRAM is safe, text_z_axis is preallocated in RAM
+    footer->wt_z_axis.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_z_axis));
 }
 
 void status_footer_update_filament(status_footer_t *footer) {
     if (0 == strcmp(filament, filaments[get_filament()].name))
         return;
 
-    strncpy(filament, filaments[get_filament()].name, sizeof(filament));
-    footer->wt_filament.SetText(filament);
+    filament = filaments[get_filament()].name;
+    footer->wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filament));
 }
 
 /// Repaints nozzle temperature in proper color

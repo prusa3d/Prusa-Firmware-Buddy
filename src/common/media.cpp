@@ -181,7 +181,6 @@ void media_print_start(const char *sfnFilePath) {
 void media_print_stop(void) {
     if ((media_print_state == media_print_state_PRINTING) || (media_print_state == media_print_state_PAUSED)) {
         f_close(&media_print_fil);
-        queue.clear();
         media_print_state = media_print_state_NONE;
     }
 }

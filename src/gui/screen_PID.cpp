@@ -206,7 +206,7 @@ void screen_PID_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    pd->textMenuName.SetText((const char *)"PID adjustment");
+    pd->textMenuName.SetText(_("PID adjustment"));
 
     //EXTRUDER
     row2draw = row_h;
@@ -310,7 +310,7 @@ void screen_PID_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_TEXT,
         id0, rect_ui16(2, 245, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
-    pd->textExit.SetText((const char *)"EXIT");
+    pd->textExit.SetText(_("EXIT"));
     pd->textExit.Enable();
     pd->textExit.SetTag(TAG_QUIT);
 
@@ -471,13 +471,16 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                                   pd->dot_coordsKd_E[1], 2, 2),
                 COLOR_WHITE);
 
-            display::DrawText(pd->rect_E, "NOZZLE", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rect_E, _("NOZZLE"), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKp_E, "Kp", resource_font(IDR_FNT_NORMAL),
+            static const char kp[] = "Kp";
+            display::DrawText(pd->rectKp_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKi_E, "Ki", resource_font(IDR_FNT_NORMAL),
+            static const char ki[] = "Ki";
+            display::DrawText(pd->rectKi_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKd_E, "Kd", resource_font(IDR_FNT_NORMAL),
+            static const char kd[] = "Kd";
+            display::DrawText(pd->rectKd_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
 
             display::FillRect(rect_ui16(pd->dot_coordsKp_B[0],
@@ -490,13 +493,13 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                                   pd->dot_coordsKd_B[1], 2, 2),
                 COLOR_WHITE);
 
-            display::DrawText(pd->rect_B, "BED", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rect_B, _("BED"), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKp_B, "Kp", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKp_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKi_B, "Ki", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKi_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKd_B, "Kd", resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKd_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
         }
 

@@ -10,7 +10,7 @@
 /*****************************************************************************/
 //parent alias
 using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SPEED, MI_NOZZLE,
-    MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_BABYSTEP, MI_M600, MI_SOUND_MODE, MI_LAN_SETTINGS, MI_VERSION_INFO,
+    MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_BABYSTEP, MI_M600, MI_SOUND_MODE, MI_LAN_SETTINGS, MI_TIMEZONE, MI_VERSION_INFO,
 #ifdef _DEBUG
     MI_TEST,
 #endif //_DEBUG
@@ -27,7 +27,7 @@ public:
 //static member method definition
 void ScreenMenuTune::Init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
-    Create(screen, label);
+    Create(screen, _(label));
 }
 
 int ScreenMenuTune::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {

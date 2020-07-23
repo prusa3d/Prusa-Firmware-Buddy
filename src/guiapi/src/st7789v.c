@@ -591,8 +591,9 @@ bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_
     const uint16_t w = pf->w; //char width
     const uint16_t h = pf->h; //char height
 
-    for (int i = 0; i < strlen(str); i++) {
-        const char c = str[i];
+    // prepare for stream processing
+    char c = 0;
+    while ((c = *str++) != 0) {
         if (c == '\n') {
             y += h;
             x = rc.x;

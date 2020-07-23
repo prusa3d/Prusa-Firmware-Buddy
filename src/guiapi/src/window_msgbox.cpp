@@ -9,11 +9,11 @@
 
 //title for each icon type (empty text for 0)
 const char *window_msgbox_title_text[] = {
-    "",            // MSGBOX_ICO_CUSTOM     0x0000
-    "Error",       // MSGBOX_ICO_ERROR      0x0010
-    "Question",    // MSGBOX_ICO_QUESTION   0x0020
-    "Warning",     // MSGBOX_ICO_WARNING    0x0030
-    "Information", // MSGBOX_ICO_INFO       0x0040
+    "",                // MSGBOX_ICO_CUSTOM     0x0000
+    N_("Error"),       // MSGBOX_ICO_ERROR      0x0010
+    N_("Question"),    // MSGBOX_ICO_QUESTION   0x0020
+    N_("Warning"),     // MSGBOX_ICO_WARNING    0x0030
+    N_("Information"), // MSGBOX_ICO_INFO       0x0040
 };
 
 //number of buttons for each button configuration
@@ -44,21 +44,21 @@ const uint8_t window_msgbox_buttons[][3] = {
 
 //button text for each button type (empty text for 0, 1 and 9)
 const char *window_msgbox_button_text[] = {
-    "",          //                      0
-    "",          //                      1
-    "CANCEL",    // MSGBOX_RES_CANCEL    2
-    "ABORT",     // MSGBOX_RES_ABORT     3
-    "RETRY",     // MSGBOX_RES_RETRY     4
-    "IGNORE",    // MSGBOX_RES_IGNORE    5
-    "YES",       // MSGBOX_RES_YES       6
-    "NO",        // MSGBOX_RES_NO        7
-    "OK",        // MSGBOX_RES_OK        8
-    "",          //                      9
-    "TRY AGAIN", // MSGBOX_RES_TRYAGAIN 10
-    "CONTINUE",  // MSGBOX_RES_CONTINUE 11
-    "CUSTOM0",   // MSGBOX_RES_CUSTOM0  12
-    "CUSTOM1",   // MSGBOX_RES_CUSTOM1  13
-    "CUSTOM2",   // MSGBOX_RES_CUSTOM2  14
+    "",              //                      0
+    "",              //                      1
+    N_("CANCEL"),    // MSGBOX_RES_CANCEL    2
+    N_("ABORT"),     // MSGBOX_RES_ABORT     3
+    N_("RETRY"),     // MSGBOX_RES_RETRY     4
+    N_("IGNORE"),    // MSGBOX_RES_IGNORE    5
+    N_("YES"),       // MSGBOX_RES_YES       6
+    N_("NO"),        // MSGBOX_RES_NO        7
+    N_("OK"),        // MSGBOX_RES_OK        8
+    "",              //                      9
+    N_("TRY AGAIN"), // MSGBOX_RES_TRYAGAIN 10
+    N_("CONTINUE"),  // MSGBOX_RES_CONTINUE 11
+    "CUSTOM0",       // MSGBOX_RES_CUSTOM0  12 intentionally not translated
+    "CUSTOM1",       // MSGBOX_RES_CUSTOM1  13
+    "CUSTOM2",       // MSGBOX_RES_CUSTOM2  14
 };
 
 //icon ids - null by defult
@@ -95,16 +95,18 @@ void window_msgbox_draw_buttons(window_msgbox_t *window) {
     for (int i = 0; i < count; i++) {
         if (window->buttons[i] == NULL) // set default button in case of missing one
             window->buttons[i] = window_msgbox_button_text[buttons[i]];
-        chars += strlen(window->buttons[i]);
+        string_view_utf8 btni = _(window->buttons[i]); // @@TODO optimize - probably can cache the translated buttons for the cycle below
+        chars += btni.computeNumUtf8CharsAndRewind();
     }
 
     chars /= count;
     rc_btn.x += spacing2;
 
     for (int i = 0; i < count; i++) {
-        rc_btn.w = btn_w + pf->w * (strlen(window->buttons[i]) - chars);
+        string_view_utf8 btni = _(window->buttons[i]);
+        rc_btn.w = btn_w + pf->w * (btni.computeNumUtf8CharsAndRewind() - chars);
         if (chg & (1 << i)) {
-            button_draw(rc_btn, window->buttons[i], pf, i == idx);
+            button_draw(rc_btn, btni, pf, i == idx);
         }
         rc_btn.x += rc_btn.w + 2 * spacing2; // next button is 2x spacing to the right
     }
@@ -154,9 +156,9 @@ void window_msgbox_init(window_msgbox_t *window) {
     window->font_title = gui_defaults.font_big;
     window->padding = window_padding;
     window->alignment = ALIGN_CENTER;
-    window->title = 0;
+    window->title = string_view_utf8::MakeNULLSTR();
     window->id_icon = 0;
-    window->text = 0;
+    window->text = string_view_utf8::MakeNULLSTR();
     window->flags = MSGBOX_BTN_OK | MSGBOX_ICO_INFO;
     window->res = 0;
 }
@@ -172,8 +174,8 @@ void window_msgbox_draw(window_msgbox_t *window) {
         uint8_t red_line_offset = 0;
         const int ico = ((window->flags & MSGBOX_MSK_ICO) >> MSGBOX_SHI_ICO);
         // get title from window member or set default (info, warning, error...)
-        const char *title = (window->title != NULL) ? window->title : window_msgbox_title_text[ico];
-        const int title_n = strlen(title); // number of chars in title
+        string_view_utf8 title = (!window->title.isNULLSTR()) ? window->title : _(window_msgbox_title_text[ico]);
+        const size_t title_n = title.computeNumUtf8CharsAndRewind(); // number of chars in title
         // title height in pixels; if not empty, use font height
         int title_h = (!title_n) ? 0 : window->font_title->h;
 
@@ -196,9 +198,9 @@ void window_msgbox_draw(window_msgbox_t *window) {
                 render_icon_align(rc_tit, id_icon, window->color_back, ALIGN_CENTER);
                 rc_tit.x = icon_w;
                 rc_tit.w = window->rect.w - icon_w;
-                render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
+                render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
             } else if (title_n) { // text not empty but no icon => text will be aligned left
-                render_text_align(rc_tit, _(title), window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
+                render_text_align(rc_tit, title, window->font_title, window->color_back, window->color_text, window->padding, ALIGN_LEFT_CENTER);
                 display::DrawLine(point_ui16(rc_tit.x + window->padding.left, rc_tit.y + rc_tit.h),
                     point_ui16(rc_tit.x + rc_tit.w - (window->padding.left + window->padding.right), rc_tit.y + rc_tit.h),
                     COLOR_RED_ALERT);
@@ -212,7 +214,7 @@ void window_msgbox_draw(window_msgbox_t *window) {
             uint16_t(window->rect.y + title_h + red_line_offset), // put text bellow title and red line
             window->rect.w,
             uint16_t(window->rect.h - (title_h + red_line_offset + gui_defaults.btn_h)) };
-        render_text_align(rc_txt, _(window->text), window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
+        render_text_align(rc_txt, window->text, window->font, window->color_back, window->color_text, window->padding, window->alignment | RENDER_FLG_WORDB);
 
         window->flags |= MSGBOX_MSK_CHG;
         window_msgbox_draw_buttons(window);

@@ -5,17 +5,17 @@
 
 #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch2/catch.hpp"
+
 using Catch::Matchers::Equals;
 
-#include "str_utils.cpp"
 #include "str_utils.hpp"
 
-#define n255 255
-#define n511 511
+static const uint8_t n255 = 255;
+static const uint16_t n511 = 511;
 
 TEST_CASE("Delete string", "[strdel]") {
     static constexpr char text[12] = "abcdXYZefgh";
-    char str[255] = "abcdXYZefgh";
+    char str[n255] = "abcdXYZefgh";
     char *nostr = nullptr;
     size_t n;
 
@@ -93,7 +93,7 @@ TEST_CASE("Insert string", "[strins]") {
     }
 
     SECTION("empty string 2") {
-        char empty[255] = "";
+        char empty[n255] = "";
         n = strins(empty, n255, str);
         CHECK(n == int(strlen(empty)));
         CHECK(strlen(str) == strlen(empty));
@@ -252,5 +252,28 @@ TEST_CASE("String to multi-line", "[str2multiline]") {
     SECTION("too small buffer") {
         n = str2multiline(short_text, strlen(short_text), 1);
         CHECK(n < 0);
+    }
+
+    SECTION("BFW-1125.1") {
+        char str[n255] = "123\n456";
+        n = str2multiline(str, n255, 3);
+        CHECK(n == 2);
+        REQUIRE_THAT(str, Equals("123\n456"));
+    }
+
+    SECTION("BFW-1125.2") {
+        char str[n255] = "The status bar is at\n"
+                         "the bottom of the  \n"
+                         "screen. It contains\n"
+                         "information about: \n"
+                         " - Nozzle temp.    \n"
+                         " - Heatbed temp.   \n"
+                         " - Printing speed  \n"
+                         " - Z-axis height   \n"
+                         " - Selected filament";
+        n = str2multiline(str, n255, 20);
+        CHECK(n == 9);
+        REQUIRE_THAT(str, Equals("The status bar is at\nthe bottom of the  \nscreen. It contains\ninformation "
+                                 "about: \n - Nozzle temp.    \n - Heatbed temp.   \n - Printing speed  \n - Z-axis height   \n - Selected filament"));
     }
 }

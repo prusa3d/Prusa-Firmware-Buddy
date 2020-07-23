@@ -1,7 +1,7 @@
 //resource.c - generated file - do not edit!
 
-#include "guitypes.h"
 #include "config.h"
+#include "guitypes.h"
 #include "res/cc/font_7x13.c"  //IDR_FNT_SMALL
 #include "res/cc/font_11x18.c" //IDR_FNT_NORMAL
 #include "res/cc/font_12x21.c" //IDR_FNT_BIG
@@ -73,6 +73,14 @@
 #include "res/cc/png_arrow_down.c" //IDR_PNG_arrow_down
 
 #include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
+
+#include "res/cc/png_flag_cs.c"
+#include "res/cc/png_flag_de.c"
+#include "res/cc/png_flag_en.c"
+#include "res/cc/png_flag_es.c"
+#include "res/cc/png_flag_fr.c"
+#include "res/cc/png_flag_it.c"
+#include "res/cc/png_flag_pl.c"
 
 RESOURCE_TABLE_BEGIN
 RESOURCE_ENTRY_NUL() //IDR_NULL
@@ -146,4 +154,13 @@ RESOURCE_ENTRY_PNG(png_menu_icon_back)
 
 RESOURCE_ENTRY_PNG(png_serial_printing)
 RESOURCE_ENTRY_PNG(png_menu_icon_disconnect)
+
+RESOURCE_ENTRY_PNG(png_flag_cs)
+RESOURCE_ENTRY_PNG(png_flag_de)
+RESOURCE_ENTRY_PNG(png_flag_en)
+RESOURCE_ENTRY_PNG(png_flag_es)
+RESOURCE_ENTRY_PNG(png_flag_fr)
+RESOURCE_ENTRY_PNG(png_flag_it)
+RESOURCE_ENTRY_PNG(png_flag_pl)
+
 RESOURCE_TABLE_END

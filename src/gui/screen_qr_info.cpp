@@ -25,19 +25,23 @@ void screen_menu_qr_info_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 25, 224, 95), &(pd->warning));
     pd->warning.font = resource_font(IDR_FNT_TERMINAL);
     pd->warning.SetAlignment(ALIGN_HCENTER);
+    static const char slftNA[] = "selfTest-data not\n    available";
+    static const char slftEx[] = "selfTest-data expired";
+    static const char slftRe[] = "selfTest-data relevant";
     if (last_selftest_time == 0)
-        pd->warning.SetText("selfTest-data not\n    available");
+        pd->warning.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)slftNA));
     else if ((HAL_GetTick() / 1000 - last_selftest_time) > LAST_SELFTEST_TIMEOUT)
-        pd->warning.SetText("selfTest-data expired");
+        pd->warning.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)slftEx));
     else
-        pd->warning.SetText("selfTest-data relevant");
+        pd->warning.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)slftRe));
 
     window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 280, 224, 30), &(pd->button));
     pd->button.font = resource_font(IDR_FNT_BIG);
     pd->button.SetBackColor(COLOR_WHITE);
     pd->button.SetTextColor(COLOR_BLACK);
     pd->button.SetAlignment(ALIGN_HCENTER);
-    pd->button.SetText("RETURN");
+    static const char rtn[] = "RETURN";
+    pd->button.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
 
     window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(28, 85, 224, 95), &(pd->qr));
     create_path_info_4service(pd->qr_text, MAX_LEN_4QR + 1);

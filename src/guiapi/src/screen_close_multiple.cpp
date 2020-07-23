@@ -14,7 +14,8 @@ static screen_t *const timeout_blacklist[] = {
     get_scr_wizard(),
     get_scr_print_preview(),
     get_scr_menu_filament(),
-    get_scr_lan_settings()
+    get_scr_lan_settings(),
+    get_scr_menu_languages_noret()
 #ifdef PIDCALIBRATION
         ,
     get_scr_PID()
@@ -23,7 +24,8 @@ static screen_t *const timeout_blacklist[] = {
 
 static screen_t *const m876_blacklist[] = {
     get_scr_printing_serial(),
-    get_scr_home()
+    get_scr_home(),
+    get_scr_menu_languages_noret()
 #ifdef PIDCALIBRATION
         ,
     get_scr_PID()
