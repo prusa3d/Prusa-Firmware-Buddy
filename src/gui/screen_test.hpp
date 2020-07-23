@@ -6,21 +6,18 @@
 
 struct screen_test_data_t : public window_frame_t {
     window_text_t test;
-    window_text_t back;
-    window_text_t tst_gui;
-    window_text_t tst_term;
-    window_text_t tst_msgbox;
-    window_text_t tst_graph;
-    window_text_t tst_temperature;
-    window_text_t tst_heat_err;
-    window_text_t tst_disp_memory;
-    window_text_t tst_stack_overflow;
+    window_text_button_t back;
+    window_text_button_t tst_gui;
+    window_text_button_t tst_term;
+    window_text_button_t tst_msgbox;
+    window_text_button_t tst_graph;
+    window_text_button_t tst_temperature;
+    window_text_button_t tst_heat_err;
+    window_text_button_t tst_disp_memory;
+    window_text_button_t tst_stack_overflow;
     int8_t id_tim;
     int8_t id_tim1;
 
 public:
     screen_test_data_t();
-
-private:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
