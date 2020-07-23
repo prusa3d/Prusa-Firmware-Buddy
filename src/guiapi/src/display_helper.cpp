@@ -237,6 +237,34 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
         display::FillRect(rc, opt_clr);
 }
 
+//todo rewrite
+void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags) {
+    color_t opt_clr;
+    switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
+    case ROPFN_SWAPBW | ROPFN_DISABLE:
+        opt_clr = gui_defaults.color_disabled;
+        break;
+    case ROPFN_SWAPBW:
+        opt_clr = clr0 ^ 0xffffffff;
+        break;
+    case ROPFN_DISABLE:
+        opt_clr = clr0;
+        break;
+    default:
+        opt_clr = clr0;
+        break;
+    }
+    flags &= ~(ROPFN_SWAPBW << 8);
+    point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
+    if (wh_ico.x && wh_ico.y) {
+        rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
+        rc_ico = rect_intersect_ui16(rc, rc_ico);
+        fill_between_rectangles(&rc, &rc_ico, opt_clr);
+        display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
+    } else
+        display::FillRect(rc, opt_clr);
+}
+
 void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
     if (roll->setup == TXTROLL_SETUP_IDLE)
         return;

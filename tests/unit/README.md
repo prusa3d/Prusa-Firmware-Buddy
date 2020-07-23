@@ -18,8 +18,8 @@ ctest .
 
 > In case you don't have sufficient CMake or Ninja installed, you can use the ones downloaded by build.py/bootstrap.py:
 >   ```bash
->   export PATH="$(../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH"
->   export PATH="$(../utils/bootstrap.py --print-dependency-directory ninja):$PATH"
+>   export PATH="$(python ../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH"
+>   export PATH="$(python ../utils/bootstrap.py --print-dependency-directory ninja):$PATH"
 >   ```
 
 > It is recommended to use GCC for compiling unit tests.
