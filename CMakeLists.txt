@@ -491,6 +491,7 @@ target_sources(
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
+          src/marlin_stubs/pause/M601_M602.cpp
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
