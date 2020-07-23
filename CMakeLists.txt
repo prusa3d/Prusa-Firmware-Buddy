@@ -495,6 +495,7 @@ target_sources(
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
+          src/marlin_stubs/host/M115.cpp
           src/gui/guimain.cpp
           src/common/filament.cpp
           src/lang/translator.cpp

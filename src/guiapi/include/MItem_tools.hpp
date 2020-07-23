@@ -234,6 +234,14 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+class MI_SOUND_VOLUME : public WI_SPIN_U08_t {
+    constexpr static const char *const label = "Sound Volume"; // intentionally not translated
+public:
+    MI_SOUND_VOLUME();
+    virtual void OnClick() override;
+    /* virtual void Change() override; */
+};
+
 class MI_TIMEZONE : public WI_SPIN_I08_t {
     constexpr static const char *const label = "TZ UTC(+/-)"; // intentionally not translated
 
