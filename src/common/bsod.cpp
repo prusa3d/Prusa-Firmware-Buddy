@@ -242,7 +242,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::Clear(COLOR_RED_ALERT);
 
     // draw header
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), error, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeRAM((const uint8_t *)error), gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     // draw text
@@ -273,7 +273,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     if (generate_qr(qr_text, qrcode, qr_buff)) {
         draw_qr(qrcode, window);
     } else {
-        display::DrawText(win.rect, qr_text, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+        display::DrawText(win.rect, string_view_utf8::MakeRAM((const uint8_t *)qr_text), gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
     }
 
     while (1) {
