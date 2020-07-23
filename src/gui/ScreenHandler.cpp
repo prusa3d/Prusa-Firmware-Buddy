@@ -49,26 +49,25 @@ bool Screens::ConsumeClose() {
 }
 
 void Screens::Loop() {
-    //close screen
-    if (close) {
-        if (stack_iterator != stack.begin()) {
-            --stack_iterator;
-            creator = (*(stack_iterator - 1));
-            close = false;
-        } else {
-            bsod("Screen stack underflow");
-        }
-    }
-
-    //open screen
-    if (creator) {
+    //open new screen
+    if (creator || close) {
         if (current) {
             current.reset(); //without reset screens does not behave correctly, I do not know why
-            if (stack_iterator != stack.end()) {
-                (*stack_iterator) = creator;
-                ++stack_iterator;
+            if (close) {
+                if (stack_iterator != stack.begin()) {
+                    --stack_iterator;
+                    creator = (*(stack_iterator - 1));
+                    close = false;
+                } else {
+                    bsod("Screen stack underflow");
+                }
             } else {
-                bsod("Screen stack overflow");
+                if (stack_iterator != stack.end()) {
+                    (*stack_iterator) = creator;
+                    ++stack_iterator;
+                } else {
+                    bsod("Screen stack overflow");
+                }
             }
         }
         current = creator();
