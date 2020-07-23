@@ -17,6 +17,7 @@
 #include "screen_print_preview.h"
 #include "print_utils.h"
 #include "screens.h"
+#include "../lang/i18n.h"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
@@ -57,8 +58,8 @@ static void screen_filebrowser_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
     p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
-    static const char sf[] = "SELECT FILE";
-    p_window_header_set_text(&(pd->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
+    static const char sf[] = N_("SELECT FILE");
+    p_window_header_set_text(&(pd->header), _(sf));
 
     window_file_list_t *filelist = &(pd->w_filelist);
 

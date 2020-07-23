@@ -141,9 +141,25 @@ public:
         rewind_impl(attrs);
     }
 
-    /// this
+    /// returns true if the string if of type NULLSTR - typically used as a replacement for nullptr or "" strings
     inline bool isNULLSTR() const {
         return type == EType::NULLSTR;
+    }
+
+    /// Copy the string byte-by-byte into some RAM buffer for later processing,
+    /// typically used to obtain a translated version of a format string for s(n)printf
+    /// @param dst target buffer to copy the bytes to
+    /// @param max_size size of dst in bytes
+    /// Using sprintf to format some string is possible with translations, but it requires one more step than usually -
+    /// one must first fetch the translated format string into a RAM buffer and then feed the format string into standard sprintf
+    void copyToRAM(char *dst, size_t max_size) {
+        for (size_t i = 0; i < max_size; ++i) {
+            *dst = getbyte(attrs);
+            if (*dst == 0)
+                return;
+            ++dst;
+        }
+        *dst = 0; // safety termination in case of reaching the end of the buffer
     }
 
     /// Construct string_view_utf8 to provide data from CPU FLASH

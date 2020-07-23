@@ -12,6 +12,9 @@ using namespace std;
 /// 2020-07-13 update
 /// ¡ ¿ À Á È É Ê Í Ó Ú Ü ß  à á â ä  è é ê í ò ó ö  ú ü  ý Ą ą ć Č č Ę ę Ě ě Ł ł ń ň Ř ř Ś ś Š š Ů ů ź ż Ž ž
 /// ¡ ¿ A A E E E I O U U ss a a a ae e e e i o o oe u ue y A a c C c E e E e L l n n R r S s S s U u z z Z z
+/// 2020-07-17 update
+/// ¡ ¿ À Á È É Ê Í Ó Ú Ü ß  à á â ä  è é ê í ò ó ö  ú ü  ý Ą ą ć Č č Ę ę Ě ě Ł ł ń ň Ř ř Ś ś Š š ť Ů ů ź ż Ž ž
+/// ¡ ¿ A A E E E I O U U ss a a a ae e e e i o o oe u ue y A a c C c E e E e L l n n R r S s S s t U u z z Z z
 const UnaccentTable::Item UnaccentTable::table[] = {
     { 0xa1, 1, "!" },  // ¡
     { 0xbf, 1, "?" },  // ¿
@@ -23,21 +26,21 @@ const UnaccentTable::Item UnaccentTable::table[] = {
     { 0xcd, 1, "I" },  // Í
     { 0xd3, 1, "O" },  // Ó
     { 0xda, 1, "U" },  // Ú
-    { 0xdc, 2, "Ue" }, // Ü
-    { 0xdf, 2, "ss" }, // ß
+    { 0xdc, 1, "U" },  // Ü
+    { 0xdf, 1, "s" },  // ß
     { 0xe0, 1, "a" },  // à
     { 0xe1, 1, "a" },  // á
     { 0xe2, 1, "a" },  // â
-    { 0xe4, 2, "ae" }, // ä
+    { 0xe4, 1, "a" },  // ä
     { 0xe8, 1, "e" },  // è
     { 0xe9, 1, "e" },  // é
     { 0xea, 1, "e" },  // ê
     { 0xed, 1, "i" },  // í
     { 0xf2, 1, "o" },  // ò
     { 0xf3, 1, "o" },  // ó
-    { 0xf6, 2, "oe" }, // ö
+    { 0xf6, 1, "o" },  // ö
     { 0xfa, 1, "u" },  // ú
-    { 0xfc, 2, "ue" }, // ü
+    { 0xfc, 1, "u" },  // ü
     { 0xfd, 1, "y" },  // ý
     { 0x104, 1, "A" }, // Ą
     { 0x105, 1, "a" }, // ą
@@ -58,6 +61,7 @@ const UnaccentTable::Item UnaccentTable::table[] = {
     { 0x15b, 1, "s" }, // ś
     { 0x160, 1, "S" }, // Š
     { 0x161, 1, "s" }, // š
+    { 0x165, 1, "t" }, // ť
     { 0x16e, 1, "U" }, // Ů
     { 0x16f, 1, "u" }, // ů
     { 0x17a, 1, "z" }, // ź

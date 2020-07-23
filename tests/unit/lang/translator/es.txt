@@ -1,45 +1,48 @@
-Versión del cargador %d.%d.%d\nPlaca Buddy %d.%d.%d %s
+\nVers. del cargador\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n %s
 Se ha guardado un informe de volcado de errores (archivo dump.bin) en la unidad USB.
-ABORTAR 
+ABORTAR
 ¡Todas las pruebas terminaron con éxito!
 Siempre
 Aplicar
 ¿Estás seguro de detener esta impresión?
 Asistir
 Auto Home
-Auto inicio 
+Auto inicio
 AutTn
 ATRÁS
 Atrás
 BASE
 Falló la nivelación. ¿Probar de nuevo?
-Calibrando  Z 
+Objetivo base: %.0f_C
+Base: %.1f_C
+Calibrando Z
 Calibración
+CALIBRACIÓN
 ¡Calibrada con éxito!\n¡Felices impresiones!
 Calibración XY
-CANCELAR 
+CANCELAR
 CAMBIAR FILAMENTO
 Cambiar Filamento
-Comprobando ejes 
-Comprobando calentadores del fusor y de la base
+Comprobando ejes
+Compro. calentadores\ndel fusor y de la base
 Lámina de acero limpia.
 ¡Felicidades! La calibración XYZ está bien. Ejes XY perpendiculares.
 Prueba de pitidos continuados\n pulsa el botón para detenerla
 CONTINUAR
-Enfriamiento
+Enfriar
 Carga de la CPU
 DESACTIVAR SENSOR
 Desactivar motores
-Desconecta
-¿Quieres\nrepetir el último\npaso y reajustar\nla distancia\nentre la boquilla\ny base?
-¿Quieres usar\nel valor actual?\nActual: %0.3f.\nPor defecto: %0.3f.\nHaz clic en NO para usar el valor por defecto (recomendado)
+Desconectar
+¿Quieres repetir el último paso y reajustar la distancia entre la boquilla y base?
+¿Quieres usar el valor actual?\nActual: %0.3f.\nPor defecto: %0.3f.\nHaz clic en NO para usar el valor por defecto (recomendado)
 ¿Desea usar el último valor establecido? Último: %0.3f. Por defecto:% 0.3f. Haz clic en NO para usar el valor por defecto.
 TERMINADO
 Extrayendo
 Error
-Error al guardar el informe de volcado de memoria en la unidad USB. Vuelve a insertar la unidad USB e intenta nuevamente.
+Error al guardar el informe de volcado de memoria en la unidad USB. Vuelve a insertar la unidad USB e intentalo otra vez.
 Todo está bien. Ejecutaré la calibración XYZ ahora. Me llevará aproximadamente 12 minutos.
-SALIDA 
+SALIDA
 Valores predefinidos de fábrica cargados. El sistema ahora se reiniciará.
 Reset de fábrica
 Estad. de fallo
@@ -48,35 +51,36 @@ Sens. fil.
 FILAMENTO
 Filamento
 No se ha detectado filamento. ¿Cargar filamento ahora? Seleccione NO para cancelar, o IGNORAR para desactivar el sensor de filamento y continuar.
-Finalizando         \ncódigos G en memoria.  \n
-Versión de Firmware 
+Finalizando códigos G en memoria.\n
+Vers. de Firmware\n
 Cal. Primera capa
-CALIB. PRIM. CAPA
+CAL. PRIM. CAPA
 Factor de flujo
 ACTUALIZAR FW
 Actualizar FW
-Base calefactable
+Base Calefactora
 Calentamiento deshabilitado debido a 30 minutos de inactividad.
 Calentando...
-Hola, esta es tu\nOriginal Prusa MINI.
-HOME
-Home
-Ventilador del fusor
+Hola, esta es tu Original Prusa MINI.
+INICIO
+Inicio
+HOME TO MAX
+Vent. del fusor
 IGNORAR
-En el siguiente paso\nusa el dial para \najustar la altura\nde la boquilla.\nMira las fotos\nen el manual\ncomo referencia.
+En el siguiente paso usa el dial para ajustar la altura de la boquilla. Mira las fotos en el manual como referencia.
 INFO
 Info
 Información
 Introduciendo
-Las direcciones IP no son válidas o el archivo \lan_settings.ini\ no está en el directorio raíz de la unidad USB.
-Las direcciones IP o los parámetros no son válidos o el archivo \lan_settings.ini\ no está en el directorio raíz de la unidad USB.
+Las direcciones IP no son válidas o el archivo \"lan_settings.ini\" no está en el directorio raíz de la unidad USB.
+Las direcciones IP o los parámetros no son válidos o el archivo \"lan_settings.ini\" no está en el directorio raíz de la unidad USB.
 ¿Está bien el color?
-¿Está el filamento    \nen los engranajes del\nextrusor?    
+¿Está el filamento en los engranajes del extrusor?
 ¿Está la lámina de acero en la base?
 AJUSTES LAN
 Ajustes de Lan
-Idioma 
-IDIOMAS 
+Idioma
+IDIOMAS
 Ajuste en Vivo Z
 CARGAR
 CARGAR FILAMENTO
@@ -85,42 +89,46 @@ Cargar configuración
 Cargando...
 Cargando a la boquilla
 Alto
-Asegúrate que\nfilamento está\ninsertado a través \ndel sensor.
-Material 
-Midiendo Referencia\naltura de calibra.\npuntos 
+Asegúrate que filamento está insertado a través del sensor.
+Material
+Midiendo Referencia\naltura de calibra.\npuntos
+Timeout Menú
 NIVELADO BASE MALLA
 Nivel. Base mediante Malla
 ¿Ha fallado la nivelación de la cama mediante malla?
 MENSAJES
 Mensajes
 Mover Ejes
+MOVER EJE
 Mover E
 Mover X
 Mover Y
 Mover Z
-SIGUIENTE 
+SIGUIENTE
 NO
 No se detectó sensor de filamento. Verifica que el sensor esté conectado e intente nuevamente.
 No hay mensajes
 No hay USB
-Ahora, calibremos\nla distancia\nentre la punta\nde la boquilla y\nla lámina de \nimpresión.
-Nozzle
+Ahora, calibremos la distancia entre la punta de la boquilla y la lámina de impresión.
+Objetivo boq.: %.0f_C
+Boquilla
 BOQUILLA
 La boquilla está muy fría.
+Boquilla: %.1f_C
 Apagado
 OK
 Encendido
 Al reiniciar
 Una vez
-Una vez que la \nimpresora comienza \na extruir plástico, \najusta la altura de \nla boquilla girando \nel dial hasta que \nel filamento se adhiera\na la lámina.
+Una vez que la\nimpresora comienza\na extruir plástico,\najusta la altura de\nla boquilla girando\nel dial hasta que\nel filamento se\nadhiera a la lámina.
 Parking
 Pausa
 Pausando...
-Ajuste del PID 
-Coloca una hoja de papel debajo de la boquilla durante la calibración de los primeros 4 puntos. Si la boquilla atrapa el papel, apaga la impresora inmediatamente.
+Ajuste del PID
+Coloca una hoja de papel debajo de la boquilla durante la calibración de los primeros 4 puntos. Si la boquilla atrapa el papel, apaga la impresora inmediatamente!
 Limpie la boquilla para la calibración. Haga clic en SIGUIENTE cuando haya terminado.
 Inserta una unidad USB e intenta nuevamente.
-Por favor inserte\nla unidad USB\nque vino con\ntu MINI y reinicia\nla impresora \npara flashear el \nfirmware
+Por favor inserte la unidad USB que vino con tu MINI y reinicia la impresora para flashear el firmware
 Coloca la lámina en la base.
 Retira la lámina de la base.
 Por favor espere
@@ -130,11 +138,11 @@ PRECALENTAR para CARGAR
 PRECALENTAR para DESCARGAR
 Preparando para expulsar
 Presiona CONTINUAR y\nempuja el filamento \nen el extrusora.
-Presione SIGUIENTE \npara ejecutar\nel Selftest, que\ncomprueba\nproblemas potenciales\nrelacionado con\nel montaje.
+Presione SIGUIENTE para ejecutar el Selftest, que comprueba problemas potenciales relacionado con el montaje.
 Imprimir
 Vent. de impresión
-Ventilador de capa
-Duración de la impresión 
+Vent. de impresión
+Duración de la impresión
 La impresión finalizará
 IMPRIMIENDO
 Tiempo de impresión
@@ -142,27 +150,30 @@ PURGAR FILAMENTO
 Purgar filamento
 Purgando
 Test QR
-Pregunta 
+Pregunta
 Ramming
 ¿Seguro desconectar?
 RECALENTAR
 Tiempo Restante
-Volver a imprimir 
+Volver a imprimir
 RESET IMPRESORA
 Continuar
 Continuando...
 REINTENTAR
-Retorno 
+Retorno
 Guardar arch. de errores
 Guardar ajustes
 Buscando la base\npuntos de calibración
-Selecc. tipo filamento
-Selecciona donde \nquieres flashear \nautomáticamente\nel firmware \nactualizado desde \nuna memoria USB.
+Selecc. tipo de filamento
+SELECC. ARCHIVO
+SELECC. IDIOMA
+Selecciona donde\nquieres flashear\nautomáticamente\nel firmware\nactualizado desde\nuna memoria USB.
 SelfTest
 SELFTEST
 Enviar Info por QR
 Mantenimiento
 Ajustes
+AJUSTES
 Configuración cargada correctamente
 Silenciosa
 Modo Sonido
@@ -170,7 +181,7 @@ Tipo de sonido
 Velocidad
 Las direcciones IPv4 estáticas no se configuraron.
 Estadística
-STOP
+PARAR
 Parar
 Soporte
 Info Sistema
@@ -179,18 +190,18 @@ Temperatura
 Test
 La calibración de la primera capa no pudo finalizar. Vuelva a verificar el cableado, la boquilla y los ejes de la impresora, luego reinicia la calibración.
 La impresora no está calibrada. ¿Iniciar la calibración de la primera capa?
-El autotest falló\nal terminar.\nVerifica dos veces el\ncableado de la \nimpresora y los ejes.\nLuego reinicie\nel Selftest.
-La configuración se ha guardado correctamente en el archivo \lan_settings.ini\.
-La barra de estado \nestá en el fondo de\nla pantalla. Contiene\nInformación sobre:\n  - Temp. de la boquilla.\n  - Temp. de la base.\n  - Vel. de impresión\n  - Alt. del eje Z\n  - Fil. seleccionado
+El autotest falló al terminar. Verifica dos veces el cableado de la impresora y los ejes. Luego reinicie el Selftest.
+La configuración se ha guardado correctamente en el archivo \"lan_settings.ini\".
+La barra de estado está en el fondo de la pantalla. Contiene Información sobre:\nTemp. de la boquilla\nTemp. de la base\nVel. de impresión\nAlt. del eje Z\nFil. seleccionado
 La calibración XYZ no pudo finalizar. Vuelva a verificar el cableado y los ejes de la impresora, luego reinicia la calibración XYZ.
-Se produjo un error al guardar la configuración en el archivo \lan_settings.ini\.
+Se produjo un error al guardar la configuración en el archivo \"lan_settings.ini\".
 Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Está realmente seguro de restablecer la impresora a los valores predeterminados de fábrica?
 Timeout
-Para calibrar con\nel filamento cargado\nactualmente,\npulsa SIGUIENTE.\nPara cambiarlo,\npulsa DESCARGAR.
-Para calibrar con\nel filamento cargado\nactualmente,\npulsa SIGUIENTE.\nPara cargar filamento,\npulsa CARGAR .\nPara cambiarlo,\npulsa DESCARGAR.
+Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cambiarlo, pulsa DESCARGAR.
+Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cargar filamento, pulsa CARGAR. Para cambiarlo, pulsa DESCARGAR.
 INTENTARLO DE NUEVO
-AJUSTAR
-Ajusta
+AJUSTES
+Ajustes
 DESCARGAR
 DESCARGAR FILAMENTO
 Descargar filamento
@@ -204,7 +215,7 @@ Info versión
 Esperando a que se enfríe
 Esperando temp.
 Cuidado
-Bienvenido a la\nOriginal Prusa MINI\nasistente de configuración.\n¿Te gustaría\ncontinuar?
+Bienvenido a la Original Prusa MINI asistente de configuración. ¿Te gustaría continuar?
 Bienvenido al asistente de configuración de la Original Prusa MINI. ¿Te gustaria continuar?
 Asistente
 ASISTENTE

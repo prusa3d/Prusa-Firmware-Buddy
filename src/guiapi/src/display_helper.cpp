@@ -10,11 +10,15 @@
 #include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
 
+#define UNACCENT
+
+#ifdef UNACCENT
 std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
     // for now we have a translation table and in the future we'll have letters with diacritics too (i.e. more font bitmaps)
     const auto &a = UnaccentTable::Utf8RemoveAccents(c);
     return std::make_pair(a.str, a.size); // we are returning some number of characters to replace the input utf8 character
 }
+#endif
 
 /// Draws a text into the specified rectangle @rc
 /// If a character does not fit into the rectangle the drawing is stopped
@@ -39,6 +43,7 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
                 return false;
             continue;
         }
+#ifdef UNACCENT
         if (c < 128) {
             display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
             x += w;
@@ -49,6 +54,10 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
                 x += w; // this will screw up character counting for DE language @@TODO
             }
         }
+#else
+        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+        x += w;
+#endif
         // FIXME Shouldn't it try to break the line first?
         if (x + w > rc_end_x)
             return false;
@@ -78,6 +87,7 @@ bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, co
                 return false;
             continue;
         }
+#ifdef UNACCENT
         if (c < 128) {
             display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
             x += w;
@@ -88,6 +98,10 @@ bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, co
                 x += w; // this will screw up character counting for DE language @@TODO
             }
         }
+#else
+        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+        x += w;
+#endif
     }
     return true;
 }

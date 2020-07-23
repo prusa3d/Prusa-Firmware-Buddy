@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-16 15:43+0200\n"
+"POT-Creation-Date: 2020-07-17 20:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/gui/screen_menu_version_info.cpp:80
+#. c=20 r=4
+#: src/gui/screen_menu_version_info.cpp:86
 #, c-format
 msgid ""
 "\n"
@@ -88,6 +89,18 @@ msgstr ""
 msgid "Bed leveling failed. Try again?"
 msgstr ""
 
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:76
+#, c-format
+msgid "Bed. target: %.0f_C"
+msgstr ""
+
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:55
+#, c-format
+msgid "Bed: %.1f_C"
+msgstr ""
+
 #: src/gui/screen_menu_calibration.cpp:17
 msgid "CALIBRATION"
 msgstr ""
@@ -123,7 +136,7 @@ msgstr ""
 msgid "Calibration XY"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:505
+#: src/gui/wizard/screen_wizard.cpp:501
 msgid ""
 "Calibration successful!\n"
 "Happy printing!"
@@ -143,7 +156,7 @@ msgid ""
 "heatbed heaters"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:467
+#: src/gui/wizard/screen_wizard.cpp:464
 msgid "Clean steel sheet."
 msgstr ""
 
@@ -177,7 +190,7 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:453
+#: src/gui/wizard/screen_wizard.cpp:450
 msgid ""
 "Do you want to     \n"
 "repeat the last    \n"
@@ -187,7 +200,8 @@ msgid ""
 "and heatbed?"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:403
+#. c=20 r=6
+#: src/gui/wizard/screen_wizard.cpp:406
 #, c-format
 msgid ""
 "Do you want to use\n"
@@ -197,6 +211,7 @@ msgid ""
 "Click NO to use the default value (recommended)"
 msgstr ""
 
+#. c=20 r=6
 #: src/gui/wizard/screen_wizard.cpp:477
 #, c-format
 msgid ""
@@ -234,7 +249,7 @@ msgstr ""
 msgid "FILAMENT"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:560
+#: src/gui/wizard/screen_wizard.cpp:556
 msgid "FIRST LAYER CALIB."
 msgstr ""
 
@@ -282,8 +297,8 @@ msgid ""
 "buffered gcodes.  \n"
 msgstr ""
 
-#: src/gui/screen_menu_version_info.cpp:62
-#, c-format
+#. r=1 c=20
+#: src/gui/screen_menu_version_info.cpp:64
 msgid "Firmware Version\n"
 msgstr ""
 
@@ -354,7 +369,7 @@ msgstr ""
 #. "Extruded plastic  \n"
 #. "must stick to     \n"
 #. "the print surface."
-#: src/gui/wizard/screen_wizard.cpp:435
+#: src/gui/wizard/screen_wizard.cpp:432
 msgid ""
 "In the next step, \n"
 "use the knob to   \n"
@@ -396,7 +411,7 @@ msgstr ""
 msgid "LAN SETTINGS"
 msgstr ""
 
-#: src/gui/screen_menu_languages.cpp:106
+#: src/gui/screen_menu_languages.cpp:112
 msgid "LANGUAGES"
 msgstr ""
 
@@ -428,7 +443,7 @@ msgstr ""
 msgid "Load settings"
 msgstr ""
 
-#: src/gui/screen_splash.cpp:51
+#: src/gui/screen_splash.cpp:53
 msgid "Loading ..."
 msgstr ""
 
@@ -449,6 +464,10 @@ msgstr ""
 msgid "MESSAGES"
 msgstr ""
 
+#: src/gui/screen_menu_move.cpp:43
+msgid "MOVE AXIS"
+msgstr ""
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid ""
 "Make sure the     \n"
@@ -466,6 +485,10 @@ msgid ""
 "Measuring reference\n"
 "height of calib.\n"
 "points"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:198
+msgid "Menu Timeout"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:28
@@ -543,12 +566,25 @@ msgid ""
 "the print sheet.   "
 msgstr ""
 
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:65
+#, c-format
+msgid "Noz. target: %.0f_C"
+msgstr ""
+
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:54
 msgid "Nozzle is too cold."
+msgstr ""
+
+#. a nasty hack - need to put the translated format string somewhere and keep it there past the lifetime of this screen
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:40
+#, c-format
+msgid "Nozzle: %.1f_C"
 msgstr ""
 
 #. MSGBOX_RES_NO        7
@@ -770,7 +806,15 @@ msgstr ""
 msgid "Return"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:539
+#: src/gui/screen_filebrowser.cpp:61
+msgid "SELECT FILE"
+msgstr ""
+
+#: src/gui/screen_menu_languages.cpp:141
+msgid "SELECT LANGUAGE"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.cpp:535
 msgid "SELFTEST"
 msgstr ""
 
@@ -820,7 +864,7 @@ msgstr ""
 msgid "Service"
 msgstr ""
 
-#: src/gui/screen_menu_move.cpp:43 src/gui/screen_home.cpp:46
+#: src/gui/screen_home.cpp:46
 msgid "Settings"
 msgstr ""
 
@@ -888,13 +932,13 @@ msgid ""
 "axes, then restart the XYZ calibration."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:498
+#: src/gui/wizard/screen_wizard.cpp:494
 msgid ""
 "The first layer calibration failed to finish. Double-check the printer's "
 "wiring, nozzle and axes, then restart the calibration."
 msgstr ""
 
-#: src/gui/screen_splash.cpp:110
+#: src/gui/screen_splash.cpp:125
 msgid "The printer is not calibrated. Start First Layer Calibration?"
 msgstr ""
 
@@ -937,10 +981,6 @@ msgstr ""
 msgid ""
 "This operation can't be undone, current configuration will be lost! Are you "
 "really sure to reset printer to factory defaults?"
-msgstr ""
-
-#: src/guiapi/include/MItem_tools.hpp:198
-msgid "Timeout"
 msgstr ""
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
@@ -1002,11 +1042,11 @@ msgstr ""
 msgid "Version Info"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:527
+#: src/gui/wizard/screen_wizard.cpp:523
 msgid "WIZARD"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:562
+#: src/gui/wizard/screen_wizard.cpp:558
 msgid "WIZARD - OK"
 msgstr ""
 
@@ -1045,7 +1085,7 @@ msgstr ""
 msgid "X-axis"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:552
+#: src/gui/wizard/screen_wizard.cpp:548
 msgid "XYZ CALIBRATION"
 msgstr ""
 
