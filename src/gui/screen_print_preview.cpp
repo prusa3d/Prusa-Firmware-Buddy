@@ -138,9 +138,9 @@ GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
 screen_print_preview_data_t::screen_print_preview_data_t()
     : window_frame_t(&title_text)
     , title_text(this, rect_ui16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
-    , print_button(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print)
+    , print_button(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, []() { if (action_handler) action_handler(PRINT_PREVIEW_ACTION_PRINT); })
     , print_label(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))
-    , back_button(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back)
+    , back_button(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back, []() { if (action_handler) action_handler(PRINT_PREVIEW_ACTION_BACK); })
     , back_label(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail) {
@@ -158,9 +158,7 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     initialize_description_lines();
 
     // Print and Back buttons
-    print_button.SetTag(PRINT_BUTTON_ID);
     print_button.Enable();
-    back_button.SetTag(BACK_BUTTON_ID);
     back_button.Enable();
 
     print_label.SetText(_("Print"));
@@ -239,16 +237,6 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
             DBG("print preview: f_gcode_thumb_open returned non-zero value");
         }
         redraw_thumbnail = false;
-    } else if (event == WINDOW_EVENT_CLICK && (intptr_t)param == PRINT_BUTTON_ID) {
-        if (action_handler) {
-            action_handler(PRINT_PREVIEW_ACTION_PRINT);
-            return;
-        }
-    } else if (event == WINDOW_EVENT_CLICK && (intptr_t)param == BACK_BUTTON_ID) {
-        if (action_handler) {
-            action_handler(PRINT_PREVIEW_ACTION_BACK);
-            return;
-        }
     }
 }
 const char *screen_print_preview_get_gcode_filepath();

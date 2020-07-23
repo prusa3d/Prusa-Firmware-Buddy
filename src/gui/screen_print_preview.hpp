@@ -13,9 +13,8 @@
 #define LINE_HEIGHT      15
 #define LINE_SPACING     5
 
-#define BACK_BUTTON_ID  0x11
-#define PRINT_BUTTON_ID 0x12
-
+//todo remove this
+//use 2 functions without parameter
 typedef enum {
     PRINT_PREVIEW_ACTION_BACK,
     PRINT_PREVIEW_ACTION_PRINT,
@@ -69,9 +68,9 @@ struct GCodeInfoWithDescription : public GCodeInfo {
 //todo implement draw, i am using visible property on some description_lines
 struct screen_print_preview_data_t : public window_frame_t {
     window_text_t title_text;
-    window_icon_t print_button;
+    window_icon_button_t print_button;
     window_text_t print_label;
-    window_icon_t back_button;
+    window_icon_button_t back_button;
     window_text_t back_label;
 
     GCodeInfoWithDescription gcode; //cannot be first
