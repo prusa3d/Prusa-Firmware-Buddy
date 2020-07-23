@@ -52,3 +52,18 @@ void window_icon_t::unconditionalDraw() {
 bool window_icon_t::IsBWSwapped() const { return f_parent_defined0 == true; }
 void window_icon_t::SwapBW() { f_parent_defined0 = true; }
 void window_icon_t::UnswapBW() { f_parent_defined0 = false; }
+
+/*****************************************************************************/
+//window_icon_button_t
+window_icon_button_t::window_icon_button_t(window_t *parent, rect_ui16_t rect, uint16_t id_res, ButtonCallback cb)
+    : window_icon_t(parent, rect, id_res)
+    , cb(cb) {
+}
+
+void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+    if (event == WINDOW_EVENT_CLICK) {
+        cb();
+    } else {
+        window_icon_t::windowEvent(sender, event, param);
+    }
+}
