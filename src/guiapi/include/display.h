@@ -13,6 +13,9 @@ typedef void(display_set_pixel_t)(point_ui16_t pt, color_t clr);
 typedef void(display_draw_line_t)(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
 typedef void(display_draw_rect_t)(rect_ui16_t rc, color_t clr);
 typedef void(display_fill_rect_t)(rect_ui16_t rc, color_t clr);
+
+/// @param charX x-coordinate of character (glyph) in font bitmap (remember, fonts are bitmaps 16 chars wide and arbitrary lines of chars tall)
+/// @param charY y-coordinate of character (glyph) in font bitmap
 typedef bool(display_draw_char_t)(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef bool(display_draw_text_t)(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_icon_t)(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
@@ -24,7 +27,7 @@ struct FCIndex {
     uint8_t charX, charY;
 };
 
-static constexpr const FCIndex fontCharIndices[] = //{{1,1,1}};
+static constexpr const FCIndex fontCharIndices[] =
 #include "fnt-indices.ipp"
     static constexpr const uint32_t fontCharIndicesNumItems = sizeof(fontCharIndices) / sizeof(FCIndex);
 
@@ -63,13 +66,6 @@ public:
                 charX = i->charX;
                 charY = i->charY;
             }
-            //            for(const FCIndex *i = fontCharIndices; i < fontCharIndices + fontCharIndicesNumItems; ++i){
-            //                if( i->unc == c ){
-            //                    charX = i->charX;
-            //                    charY = i->charY;
-            //                    break;
-            //                }
-            //            }
         }
         return DRAW_CHAR(pt, charX, charY, pf, clr_bg, clr_fg);
     }
@@ -88,7 +84,6 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_draw_rect,
     st7789v_fill_rect,
     st7789v_draw_charUnicode,
-    //    st7789v_draw_text,
     render_text,
     st7789v_draw_icon,
     st7789v_draw_png>;
