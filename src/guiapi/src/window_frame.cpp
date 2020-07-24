@@ -147,7 +147,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
         if (pWin) {
-            pWin->WindowEvent(this, WINDOW_EVENT_CLICK, (void *)(int)pWin->GetTag());
+            pWin->WindowEvent(this, WINDOW_EVENT_CLICK, nullptr);
             pWin->SetCapture();
         }
         break;

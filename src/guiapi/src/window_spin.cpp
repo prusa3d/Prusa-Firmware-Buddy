@@ -12,8 +12,8 @@ void window_spin_dec(window_spin_t *window, int dif);
 void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        if ((window->IsEnabled()) && window->GetTag())
-            Screens::Access()->ScreenEvent((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->GetTag());
+        if (window->IsEnabled())
+            Screens::Access()->ScreenEvent((window_t *)window, WINDOW_EVENT_CHANGE, nullptr);
         if (window->GetParent())
             window->GetParent()->SetCapture();
         break;

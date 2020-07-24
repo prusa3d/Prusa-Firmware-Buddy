@@ -31,7 +31,6 @@ typedef void(window_list_item_t)(window_list_t *pwindow_list,
 class window_t {
     window_t *parent;
     window_t *next;
-    uint8_t f_tag;
 
 protected:
     union {
@@ -70,8 +69,6 @@ public:
     bool IsDialog() const;
     void Validate(rect_ui16_t validation_rect = { 0 });
     void Invalidate(rect_ui16_t validation_rect = { 0 });
-    void SetTag(uint8_t tag);
-    uint8_t GetTag() const;
 
     void SetHasTimer();
     void ClrHasTimer();

@@ -36,9 +36,6 @@ void window_t::invalidate(rect_ui16_t validation_rect) {
 void window_t::validate(rect_ui16_t validation_rect) {
 }
 
-void window_t::SetTag(uint8_t tag) { f_tag = tag; };
-uint8_t window_t::GetTag() const { return f_tag; }
-
 void window_t::SetHasTimer() { f_timer = true; }
 void window_t::ClrHasTimer() { f_timer = false; }
 void window_t::Enable() { f_enabled = true; }
@@ -94,7 +91,6 @@ void window_t::SetBackColor(color_t clr) {
 window_t::window_t(window_t *parent, rect_ui16_t rect, bool dialog)
     : parent(parent)
     , next(nullptr)
-    , f_tag(0)
     , flg(0)
     , rect(rect)
     , color_back(gui_defaults.color_back) {
