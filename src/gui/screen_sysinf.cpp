@@ -37,7 +37,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     , textMenuName(this, rect_ui16(0, 0, display::GetW(), 22))
     , textCPU_load(this, rect_ui16(col_0, 25, col_0_w, row_h))
     , textCPU_load_val(this, rect_ui16(col_1, 25, col_1_w, row_h))
-    , textExit(this, rect_ui16(col_0, 290, 60, 22)) {
+    , textExit(this, rect_ui16(col_0, 290, 60, 22), is_closed_on_click_t::yes) {
 
     textMenuName.font = resource_font(IDR_FNT_BIG);
     static const char dt[] = "System info";

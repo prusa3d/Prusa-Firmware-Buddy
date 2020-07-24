@@ -23,8 +23,8 @@ void window_text_t::SetAlignment(uint8_t alignm) {
     Invalidate();
 }
 
-window_text_t::window_text_t(window_t *parent, rect_ui16_t rect, string_view_utf8 txt)
-    : window_t(parent, rect)
+window_text_t::window_text_t(window_t *parent, rect_ui16_t rect, is_closed_on_click_t close, string_view_utf8 txt)
+    : window_t(parent, rect, is_dialog_t::no, close)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , text(txt)
@@ -42,7 +42,7 @@ void window_text_t::unconditionalDraw() {
 /*****************************************************************************/
 //window_text_button_t
 window_text_button_t::window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt)
-    : window_text_t(parent, rect, txt)
+    : window_text_t(parent, rect, is_closed_on_click_t::no, txt)
     , callback(cb) {
     Enable();
 }
@@ -50,20 +50,6 @@ window_text_button_t::window_text_button_t(window_t *parent, rect_ui16_t rect, B
 void window_text_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK) {
         callback();
-    } else {
-        window_text_t::windowEvent(sender, event, param);
-    }
-}
-
-/*****************************************************************************/
-//window_text_button_close_screent
-window_text_button_close_screent::window_text_button_close_screent(window_t *parent, rect_ui16_t rect, string_view_utf8 txt)
-    : window_text_t(parent, rect, txt) {
-}
-
-void window_text_button_close_screent::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK) {
-        Screens::Access()->Close();
     } else {
         window_text_t::windowEvent(sender, event, param);
     }

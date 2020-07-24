@@ -10,18 +10,18 @@ const char *test_text = N_("Welcome to the Original Prusa MINI setup wizard. Wou
 screen_test_msgbox_data_t::screen_test_msgbox_data_t()
     : window_frame_t(&tst)
     , tst(this, rect_ui16(10, 32, 220, 22))
-    , back(this, rect_ui16(10, 54, 220, 22))
-    , tst_ok(this, rect_ui16(10, 76, 220, 22))
-    , tst_okcancel(this, rect_ui16(10, 98, 220, 22))
-    , tst_abortretryignore(this, rect_ui16(10, 120, 220, 22))
-    , tst_yesnocancel(this, rect_ui16(10, 142, 220, 22))
-    , tst_yesno(this, rect_ui16(10, 164, 220, 22))
-    , tst_retrycancel(this, rect_ui16(10, 186, 220, 22))
-    , tst_ico_custom(this, rect_ui16(10, 208, 220, 22))
-    , tst_ico_error(this, rect_ui16(10, 230, 220, 22))
-    , tst_ico_question(this, rect_ui16(10, 252, 220, 22))
-    , tst_ico_warning(this, rect_ui16(10, 276, 220, 22))
-    , tst_ico_info(this, rect_ui16(10, 298, 220, 22)) {
+    , back(this, rect_ui16(10, 54, 220, 22), is_closed_on_click_t::yes)
+    , tst_ok(this, rect_ui16(10, 76, 220, 22), is_closed_on_click_t::yes)
+    , tst_okcancel(this, rect_ui16(10, 98, 220, 22), is_closed_on_click_t::yes)
+    , tst_abortretryignore(this, rect_ui16(10, 120, 220, 22), is_closed_on_click_t::yes)
+    , tst_yesnocancel(this, rect_ui16(10, 142, 220, 22), is_closed_on_click_t::yes)
+    , tst_yesno(this, rect_ui16(10, 164, 220, 22), is_closed_on_click_t::yes)
+    , tst_retrycancel(this, rect_ui16(10, 186, 220, 22), is_closed_on_click_t::yes)
+    , tst_ico_custom(this, rect_ui16(10, 208, 220, 22), is_closed_on_click_t::yes)
+    , tst_ico_error(this, rect_ui16(10, 230, 220, 22), is_closed_on_click_t::yes)
+    , tst_ico_question(this, rect_ui16(10, 252, 220, 22), is_closed_on_click_t::yes)
+    , tst_ico_warning(this, rect_ui16(10, 276, 220, 22), is_closed_on_click_t::yes)
+    , tst_ico_info(this, rect_ui16(10, 298, 220, 22), is_closed_on_click_t::yes) {
 
     static const char tm[] = "TEST MSGBOX";
     tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tm));

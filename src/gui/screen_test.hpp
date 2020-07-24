@@ -6,7 +6,7 @@
 
 struct screen_test_data_t : public window_frame_t {
     window_text_t test;
-    window_text_button_close_screent back;
+    window_text_t back;
     window_text_button_t tst_gui;
     window_text_button_t tst_term;
     window_text_button_t tst_msgbox;

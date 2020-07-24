@@ -19,7 +19,7 @@ struct window_text_t : public window_t {
     void SetPadding(padding_ui8_t padd);
     void SetAlignment(uint8_t alignm);
 
-    window_text_t(window_t *parent, rect_ui16_t rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
+    window_text_t(window_t *parent, rect_ui16_t rect, is_closed_on_click_t close = is_closed_on_click_t::no, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 
 protected:
     virtual void unconditionalDraw() override;
@@ -29,13 +29,6 @@ struct window_text_button_t : public window_text_t {
     ButtonCallback callback;
 
     window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); //default action is close screen
-
-protected:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
-};
-
-struct window_text_button_close_screent : public window_text_t {
-    window_text_button_close_screent(window_t *parent, rect_ui16_t rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 
 protected:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;

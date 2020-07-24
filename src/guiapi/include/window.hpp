@@ -95,7 +95,7 @@ public:
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
-    window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog = is_dialog_t::no);
+    window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
     virtual void RegisterSubWin(window_t *win);

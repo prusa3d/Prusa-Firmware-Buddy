@@ -88,13 +88,14 @@ void window_t::SetBackColor(color_t clr) {
     Invalidate();
 }
 
-window_t::window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog)
+window_t::window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog, is_closed_on_click_t close)
     : parent(parent)
     , next(nullptr)
     , flg(0)
     , rect(rect)
     , color_back(gui_defaults.color_back) {
     f_dialog = dialog;
+    f_on_click_close_screen = close;
     Disable();
     Show();
     Invalidate();

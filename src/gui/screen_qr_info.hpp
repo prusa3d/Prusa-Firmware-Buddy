@@ -7,7 +7,7 @@
 
 struct screen_qr_info_data_t : public window_frame_t {
     window_text_t warning;
-    window_text_button_close_screent button;
+    window_text_t button;
     window_qr_t qr;
     std::array<char, MAX_LEN_4QR + 1> qr_text;
 

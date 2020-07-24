@@ -33,8 +33,8 @@ void window_icon_t::SetIdRes(int16_t id) {
     Invalidate();
 }
 
-window_icon_t::window_icon_t(window_t *parent, rect_ui16_t rect, uint16_t id_res)
-    : window_t(parent, rect)
+window_icon_t::window_icon_t(window_t *parent, rect_ui16_t rect, uint16_t id_res, is_closed_on_click_t close)
+    : window_t(parent, rect, is_dialog_t::no, close)
     , id_res(id_res)
     , alignment(ALIGN_CENTER) {}
 
@@ -65,20 +65,6 @@ window_icon_button_t::window_icon_button_t(window_t *parent, rect_ui16_t rect, u
 void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK) {
         callback();
-    } else {
-        window_icon_t::windowEvent(sender, event, param);
-    }
-}
-
-/*****************************************************************************/
-//window_icon_button_close_screent
-window_icon_button_close_screent::window_icon_button_close_screent(window_t *parent, rect_ui16_t rect, uint16_t id_res)
-    : window_icon_t(parent, rect, id_res) {
-}
-
-void window_icon_button_close_screent::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK) {
-        Screens::Access()->Close();
     } else {
         window_icon_t::windowEvent(sender, event, param);
     }
