@@ -13,10 +13,6 @@ extern gui_loop_cb_t *gui_loop_cb;
 
 extern int8_t menu_timeout_enabled;
 
-extern void *gui_malloc(unsigned int size);
-
-extern void gui_free(void *ptr);
-
 extern void gui_init(void);
 
 extern void gui_invalidate(void);

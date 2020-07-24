@@ -39,14 +39,6 @@ gui_defaults_t gui_defaults = {
 gui_loop_cb_t *gui_loop_cb = 0;
 uint32_t gui_loop_tick = 0;
 
-void *gui_malloc(unsigned int size) {
-    return malloc(size);
-}
-
-void gui_free(void *ptrx) {
-    free(ptrx);
-}
-
 void gui_init(void) {
     display::Init();
 #ifdef GUI_JOGWHEEL_SUPPORT
