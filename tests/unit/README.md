@@ -30,7 +30,7 @@ ctest .
     - See other unit tests for examples.
     - Don't forget to register any directory you add using `add_subdirectory` in CMakeLists.txt in the same directory.
 
-# Tests in Windows
+# Tests on Windows
 
 1. Download & install MinGW and make sure .../MinGW/bin/ is in your path.
 2. Check if Python is installed.
