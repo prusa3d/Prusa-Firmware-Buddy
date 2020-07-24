@@ -427,23 +427,23 @@ msgstr "Meldungen"
 
 #: src/guiapi/include/MItem_menus.hpp:98
 msgid "Move Axis"
-msgstr "Bewegen Achsen"
+msgstr "Achsen Bewegen"
 
 #: src/gui/menu_vars.h:62
 msgid "Move E"
-msgstr "Bewegen E"
+msgstr "E Bewegen"
 
 #: src/gui/menu_vars.h:62
 msgid "Move X"
-msgstr "Bewegen X"
+msgstr "X Bewegen"
 
 #: src/gui/menu_vars.h:62
 msgid "Move Y"
-msgstr "Bewegen Y"
+msgstr "Y Bewegen"
 
 #: src/gui/menu_vars.h:62
 msgid "Move Z"
-msgstr "Bewegen Z"
+msgstr "Z Bewegen"
 
 #. known and not "unsensed" - do not allow load
 #. cannot use CONTINUE button, string is too long
@@ -471,7 +471,7 @@ msgstr "Kein USB"
 
 #: src/gui/wizard/screen_wizard.c:392
 msgid "Now, let's calibrate\nthe distance       \nbetween the tip    \nof the nozzle and  \nthe print sheet.   "
-msgstr "Jetzt kalibrieren\nwir die Entfernung\nzwischen der Spitze\nder Düse und\ndas Druckblech."
+msgstr "Jetzt kalibrieren\nwir die Entfernung\nzwischen der Spitze\nder Düse und\ndem Druckblech."
 
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
@@ -545,7 +545,7 @@ msgstr "Bitte schließen Sie ein USB-Laufwerk an und versuchen Sie es erneut."
 
 #: src/gui/guimain.c:190
 msgid "Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"
-msgstr "Bitte schließen Sie\nden USB-Stick an,\nder mit Ihrem MINI \ngeliefert wurde und\nDrucker zurücksetzen\nzum Firmwareflashen"
+msgstr "Bitte schließen Sie\nden USB-Stick an,\nder mit Ihrem MINI \ngeliefert wurde dann\nDrucker zurücksetzen\nzum Firmwareflashen"
 
 #: src/gui/wizard/screen_wizard.c:346
 msgid "Please place steel sheet on heatbed."
@@ -681,7 +681,7 @@ msgstr "WIEDERHOLEN"
 #: src/gui/dialogs/window_dlg_preheat.cpp:39
 #: src/guiapi/include/WindowMenuItems.hpp:223
 msgid "Return"
-msgstr "Rückkehr"
+msgstr "Zurück"
 
 #: src/guiapi/include/MItem_tools.hpp:78
 msgid "Save Crash Dump"
@@ -739,12 +739,12 @@ msgstr "Leise"
 #: src/guiapi/include/MItem_tools.hpp:207
 #: src/guiapi/include/MItem_tools.hpp:206
 msgid "Sound Mode"
-msgstr "Ton Modus"
+msgstr "Tonmodus"
 
 #: src/guiapi/include/MItem_tools.hpp:221
 #: src/guiapi/include/MItem_tools.hpp:220
 msgid "Sound Type"
-msgstr "Ton Typ"
+msgstr "Tontyp"
 
 #: src/guiapi/include/MItem_print.hpp:32
 msgid "Speed"
@@ -812,7 +812,7 @@ msgstr "Die Statusleiste ist\nam unteren Rand des\nBildschirms. Sie\nenthält In
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
-msgstr "Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Überprüfen Sie die Verkabelung und die Achsen des Druckers doppelt und starten Sie dann die XYZ-Kalibrierung erneut."
+msgstr "Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Überprüfen Sie die Verkabelung und die Achsen des Druckers genau und starten Sie dann die XYZ-Kalibrierung erneut."
 
 #: src/gui/screen_menu_lan_settings.cpp:299
 #: src/gui/screen_menu_lan_settings.cpp:300
@@ -841,7 +841,7 @@ msgstr "Zum Kalibrieren mit  \nderzeit geladenem  \nFilament,          \ndrücke
 #. 9
 #: src/guiapi/src/window_msgbox.cpp:57
 msgid "TRY AGAIN"
-msgstr "NEU VERSUCHEN"
+msgstr "ERNEUT VERSUCHEN"
 
 #: src/gui/screen_menu_tune.cpp:21
 msgid "TUNE"
@@ -883,7 +883,7 @@ msgstr "USB-Laufwerk schreibgeschützt!"
 
 #: src/gui/screen_print_preview.cpp:162
 msgid "Used Filament"
-msgstr "Genutztes Filament"
+msgstr "Verbrauchtes Filament"
 
 #: src/gui/screen_menu_version_info.cpp:36
 #: src/gui/screen_menu_version_info.cpp:31
@@ -909,7 +909,7 @@ msgstr "Warnung"
 
 #: src/gui/wizard/screen_wizard.cpp:146
 msgid "Welcome to the     \nOriginal Prusa MINI\nsetup wizard.      \nWould you like to  \ncontinue?           "
-msgstr "Willkommen beim     \nOriginal Prusa MINI\nSetup-Assistenten.      \nMöchten Sie  \nfortfahren?"
+msgstr "Willkommen beim     \nOriginal Prusa MINI\nEinrichtungsassistenten.      \nMöchten Sie  \nfortfahren?"
 
 #: src/gui/test/screen_test_msgbox.c:28
 msgid "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
