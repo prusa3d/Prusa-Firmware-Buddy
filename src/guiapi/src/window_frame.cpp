@@ -58,7 +58,7 @@ void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
     }*/
 }
 
-window_frame_t::window_frame_t(window_t *first_child, window_t *parent, rect_ui16_t rect, bool dialog)
+window_frame_t::window_frame_t(window_t *first_child, window_t *parent, rect_ui16_t rect, is_dialog_t dialog)
     : window_t(parent, rect, dialog)
     , first(first_child)
     , last(first_child) {

@@ -7,7 +7,7 @@ IDialog::IDialog(rect_ui16_t rc)
 }
 
 IDialog::IDialog(window_t *child, rect_ui16_t rc)
-    : window_frame_t(child, Screens::Access()->Get(), rc, true) //use dialog ctor
+    : window_frame_t(child, Screens::Access()->Get(), rc, is_dialog_t::yes) //use dialog ctor
     , id_capture(GetCapturedWindow()) {
     gui_reset_jogwheel(); //todo do I need this?
     Enable();

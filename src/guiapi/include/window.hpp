@@ -28,22 +28,36 @@ struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
+//to be safe ctor has this 2 bool parameters, can't switch them
+enum class is_dialog_t : bool { no,
+    yes };
+enum class is_closed_on_click_t : bool { no,
+    yes };
+
 class window_t {
     window_t *parent;
     window_t *next;
 
 protected:
     union {
-        uint8_t flg;
+        uint16_t flg;
         struct {
-            bool f_visible : 1;         // is visible
-            bool f_enabled : 1;         // is enabled (can be focused)
-            bool f_invalid : 1;         // content is invalid
-            bool f_checked : 1;         // is checked/selected
-            bool f_timer : 1;           // window has timers
-            bool f_dialog : 1;          // window id dialog
-            bool f_parent_defined0 : 1; // this flag can be defined in parent
-            bool f_parent_defined1 : 1; // this flag can be defined in parent
+            bool f_visible : 1;                               // 00 - is visible
+            bool f_enabled : 1;                               // 01 - is enabled (can be focused)
+            bool f_invalid : 1;                               // 02 - content is invalid
+            bool f_checked : 1;                               // 03 - is checked/selected
+            bool f_timer : 1;                                 // 04 - window has timers
+            is_dialog_t f_dialog : 1;                         // 05 - window id dialog
+            is_closed_on_click_t f_on_click_close_screen : 1; // 06 - window id dialog
+            bool f_parent_defined0 : 1;                       // 07 - this flag can be defined in parent
+            bool f_parent_defined1 : 1;                       // 08 - this flag can be defined in parent
+            bool f_parent_defined2 : 1;                       // 09 - this flag can be defined in parent
+            bool f_parent_defined3 : 1;                       // 0A - this flag can be defined in parent
+            bool f_parent_defined4 : 1;                       // 0B - this flag can be defined in parent
+            bool f_parent_defined5 : 1;                       // 0C - this flag can be defined in parent
+            bool f_parent_defined6 : 1;                       // 0D - this flag can be defined in parent
+            bool f_parent_defined7 : 1;                       // 0E - this flag can be defined in parent
+            bool f_parent_defined8 : 1;                       // 0F - this flag can be defined in parent
         };
     };
 
@@ -81,7 +95,7 @@ public:
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
-    window_t(window_t *parent, rect_ui16_t rect, bool dialog = false);
+    window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog = is_dialog_t::no);
     virtual ~window_t();
 
     virtual void RegisterSubWin(window_t *win);

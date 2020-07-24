@@ -13,7 +13,7 @@ bool window_t::IsInvalid() const { return f_invalid == true; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCapture() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return f_timer == true; }
-bool window_t::IsDialog() const { return f_dialog == true; }
+bool window_t::IsDialog() const { return f_dialog == is_dialog_t::yes; }
 void window_t::Validate(rect_ui16_t validation_rect) {
     //todo check validation_rect intersection
     f_invalid = false;
@@ -88,7 +88,7 @@ void window_t::SetBackColor(color_t clr) {
     Invalidate();
 }
 
-window_t::window_t(window_t *parent, rect_ui16_t rect, bool dialog)
+window_t::window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog)
     : parent(parent)
     , next(nullptr)
     , flg(0)
@@ -191,8 +191,13 @@ void window_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
     windowEvent(sender, ev, param);
 }
 void window_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK && parent)
-        parent->windowEvent(this, event, param);
+    if (event == WINDOW_EVENT_CLICK && parent) {
+        if (f_on_click_close_screen == is_closed_on_click_t::yes) {
+            Screens::Access()->Close();
+        } else {
+            parent->windowEvent(this, event, param);
+        }
+    }
 }
 /*****************************************************************************/
 //static
