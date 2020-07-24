@@ -63,11 +63,11 @@ msgstr "Aider"
 
 #: src/guiapi/include/MItem_tools.hpp:18
 msgid "Auto Home"
-msgstr "Repositionner Auto"
+msgstr "Origines xyz"
 
 #: src/gui/wizard/xyzcalib.cpp:24
 msgid "Auto home"
-msgstr "Repositionnement"
+msgstr "Origines XYZ"
 
 #. -----------------------------------------------------------------------------
 #. btn autotune / apply
@@ -77,7 +77,7 @@ msgstr "AutTn"
 
 #: src/gui/screen_messages.cpp:30
 msgid "BACK"
-msgstr "ARRIÈRE"
+msgstr "RETOUR"
 
 #: src/gui/screen_print_preview.cpp:278
 msgid "Back"
@@ -85,11 +85,11 @@ msgstr "Retour"
 
 #: src/gui/screen_PID.cpp:496
 msgid "BED"
-msgstr "PLATEAU"
+msgstr "LIT"
 
 #: src/gui/screen_printing.cpp:335
 msgid "Bed leveling failed. Try again?"
-msgstr "Échec nivelage plateau. Réessayer ?"
+msgstr "Échec niveau plateau. Réessayer ?"
 
 #. r=1 c=15
 #: src/gui/wizard/selftest_cool.cpp:76
@@ -157,7 +157,7 @@ msgstr ""
 
 #: src/gui/wizard/screen_wizard.c:462
 msgid "Clean steel sheet."
-msgstr "Nettoyez la feuille d'acier."
+msgstr "Nettoyez la plaque d'impression."
 
 #: src/gui/wizard/screen_wizard.c:362
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
@@ -312,7 +312,7 @@ msgstr "CALIB. PREM. COUCHE"
 
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
-msgstr "Facteur de Débit"
+msgstr "Coéf. de Débit"
 
 #: src/gui/screen_menu_fw_update.cpp:46
 msgid "FW UPDATE"
@@ -344,14 +344,14 @@ msgstr ""
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
 msgid "HOME"
-msgstr "POSITION INITIALE"
+msgstr "ORIGINES XYZ"
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
 #: src/gui/window_file_list.c:120 src/gui/window_file_list.c:122
 #: src/gui/window_file_list.c:133
 msgid "Home"
-msgstr "Position Initiale"
+msgstr "Acceuil"
 
 #: src/gui/dialogs/DialogFactory.cpp:37
 msgid "HOME TO MAX"
@@ -431,7 +431,7 @@ msgstr ""
 
 #: src/gui/wizard/screen_wizard.c:313
 msgid "Is steel sheet on heatbed?"
-msgstr "La feuille d'acier est-elle sur le plateau chauffant ?"
+msgstr "La plaque d'impr. est-elle sur le plateau chauffant ?"
 
 #: src/gui/screen_menu_lan_settings.cpp:267
 #: src/gui/screen_menu_lan_settings.cpp:268
@@ -453,7 +453,7 @@ msgstr "LANGUES"
 
 #: src/guiapi/include/MItem_print.hpp:48
 msgid "Live Adjust Z"
-msgstr "Live Adjust Z"
+msgstr "Ajustement Z"
 
 #: src/gui/wizard/wizard_load_unload.cpp:44
 msgid "LOAD"
@@ -518,18 +518,18 @@ msgstr "Timeout Menu"
 
 #: src/gui/test/screen_mesh_bed_lv.cpp:89
 msgid "MESH BED L."
-msgstr "MESH BED L."
+msgstr "NIVEAU LIT."
 
 #: src/guiapi/include/MItem_tools.hpp:28
 msgid "Mesh Bed Level."
-msgstr "Mesh Bed Level."
+msgstr "Niveau Lit."
 
 #. Z 30mm
 #. Disable steppers
 #: src/gui/wizard/firstlay.c:185 src/gui/wizard/firstlay.c:188
 #: src/gui/wizard/firstlay.c:212
 msgid "Mesh bed leveling failed?"
-msgstr "Échec Mesh bed lev.? "
+msgstr "Échec Niveau Lit? "
 
 #. p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
 #: src/gui/screen_messages.cpp:63
@@ -569,7 +569,7 @@ msgstr "Déplacer Z"
 #: src/gui/wizard/wizard_ui.cpp:32 src/gui/wizard/wizard_load_unload.cpp:21
 #: src/gui/wizard/wizard_load_unload.cpp:44
 msgid "NEXT"
-msgstr "SUIVANT"
+msgstr "SUIV."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:32
 msgid "NO"
@@ -578,7 +578,7 @@ msgstr "NON"
 #: src/gui/screen_menu_settings.cpp:31 src/gui/screen_menu_settings.cpp:46
 #: src/gui/screen_menu_settings.cpp:58
 msgid "No filament sensor detected. Verify that the sensor is connected and try again."
-msgstr "Aucun capteur de filament n'a été détecté. Vérifiez que le capteur est bien branché et réessayez."
+msgstr "Capteur de filament non détecté. Vérifiez la connexion du capteur et réessayez."
 
 #: src/gui/screen_printing.cpp:227
 msgid "No messages"
@@ -599,7 +599,7 @@ msgstr ""
 "À présent calibrons "
 "la distance entre "
 "l'extrémité de la "
-"buse et la feuille "
+"buse et la surface "
 "d'impression."
 
 #. r=1 c=15
@@ -669,7 +669,7 @@ msgstr ""
 "En faisant tourner\n"
 "le bouton jusqu'à\n"
 "ce que le filament\n"
-"adhère à la feuille\n"
+"adhère à la surface\n"
 "d'impression."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:45
@@ -694,7 +694,7 @@ msgstr "Positionnez une feuille de papier sous la buse pendant la calibration de
 
 #: src/gui/wizard/screen_wizard.c:305
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
-msgstr "Veuillez nettoyer la buse en vue de la calibration. Cliquez sur NEXT une fois cela fait."
+msgstr "Veuillez nettoyer la buse pour la calibration. Puis cliquez sur SUIV."
 
 #: src/gui/screen_menu_lan_settings.cpp:293
 #: src/gui/screen_menu_lan_settings.cpp:294
@@ -719,24 +719,24 @@ msgstr ""
 
 #: src/gui/wizard/screen_wizard.c:346
 msgid "Please place steel sheet on heatbed."
-msgstr "Veuillez positionner la feuille d'acier sur le plateau chauffant."
+msgstr "Veuillez positionner la plaque d'impr. sur le plateau."
 
 #: src/gui/wizard/screen_wizard.c:323
 msgid "Please remove steel sheet from heatbed."
-msgstr "Veuillez retirer la feuille d'impression du plateau."
+msgstr "Veuillez retirer la plaque d'impression du plateau."
 
 #. 30 pixels for title
 #: src/gui/dialogs/window_dlg_wait.c:53
 msgid "Please wait"
-msgstr "Veuillez patienter"
+msgstr "Patienter SVP"
 
 #: src/gui/screen_menu_preheat.cpp:28 src/gui/screen_menu_preheat.cpp:41
 msgid "PREHEAT"
-msgstr "PRÉCHAUFFER"
+msgstr "PRÉCHAUF."
 
 #: src/gui/screen_home.cpp:40
 msgid "Preheat"
-msgstr "Préchauffage"
+msgstr "Préchauf."
 
 #. todo must be called inside _gui_dlg, but nested dialogs are not supported now
 #: src/gui/dialogs/window_dlg_load_unload.c:31
@@ -748,7 +748,7 @@ msgstr "PRÉCHAUF. av. CHARG."
 #: src/gui/dialogs/window_dlg_load_unload.c:49
 #: src/gui/dialogs/window_dlg_load_unload.cpp:54
 msgid "PREHEAT for UNLOAD"
-msgstr "PRÉCHAUFFER pour DÉCHARGER"
+msgstr "PRÉCHAUF. pour DÉCHARGER"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:48
 msgid "Preparing to ram"
@@ -762,7 +762,7 @@ msgid ""
 msgstr ""
 "Appuyez sur "
 "CONTINUER et "
-"enfoncez le filament "
+"insérez le filament "
 "dans l'extrudeur."
 
 #: src/gui/wizard/screen_wizard.c:206
@@ -774,7 +774,7 @@ msgid ""
 "related to         \n"
 "the assembly."
 msgstr ""
-"Appuyez sur NEXT "
+"Appuyez sur SUIV. "
 "pour lancer le "
 "Selftest détectant "
 "les éventuels "
@@ -891,7 +891,7 @@ msgstr ""
 
 #: src/gui/wizard/wizard_load_unload.c:77
 msgid "Select filament type"
-msgstr "Sélectionner le type de filament"
+msgstr "Sélection type de filament"
 
 #: src/gui/screen_filebrowser.cpp:61
 msgid "SELECT FILE"
@@ -1006,11 +1006,11 @@ msgstr "Test"
 
 #: src/gui/wizard/screen_wizard.c:489
 msgid "The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration."
-msgstr "La calibration de première couche n'a pu aboutir. Vérifiez bien le câblage de l'imprimante, la buse et les axes, puis relancez la calibration."
+msgstr "Echèc de la calibration première couche. Vérifiez bien le câblage de l'imprimante, la buse, les axes, puis relancez la calibration."
 
 #: src/gui/screen_splash.c:105
 msgid "The printer is not calibrated. Start First Layer Calibration?"
-msgstr "L'imprimante n'est pas calibrée. Démarrer la calibration de première couche ?"
+msgstr "L'imprimante n'est pas calibrée. Démarrer la calibration première couche?"
 
 #: src/gui/wizard/screen_wizard.c:279
 msgid ""
@@ -1049,8 +1049,8 @@ msgid ""
 " - Selected filament"
 msgstr ""
 "La barre de statut "
-"se trouve dans le "
-"bas de l'écran. Elle "
+"se trouve en bas "
+"de l'écran. Elle "
 "contient des infos "
 "concernant :\n"
 "la temp. de la buse\n"
@@ -1061,7 +1061,7 @@ msgstr ""
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
-msgstr "La calibration XYZ n'a pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante, puis relancez la calibration XYZ."
+msgstr "La calibration XYZ n'a pas aboutie. Vérifiez le câblage et les axes de l'imprimante, puis relancez la calibration XYZ."
 
 #: src/gui/screen_menu_lan_settings.cpp:299
 #: src/gui/screen_menu_lan_settings.cpp:300
@@ -1072,7 +1072,7 @@ msgstr "Une erreur s'est produite au moment de sauvegarder les réglages dans le
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante ?"
+msgstr "Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante?"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
@@ -1200,11 +1200,11 @@ msgstr ""
 "d'installation pour "
 "Original Prusa MINI. "
 "Voulez-vous "
-"continuer ?"
+"continuer?"
 
 #: src/gui/test/screen_test_msgbox.c:28
 msgid "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
-msgstr "Bienvenue sur l'assistant de configuration de l'Original Prusa MINI. Voulez-vous continuer ?"
+msgstr "Bienvenue sur l'assistant de configuration de l'Original Prusa MINI. Voulez-vous continuer?"
 
 #: src/guiapi/include/MItem_tools.hpp:8
 msgid "Wizard"
