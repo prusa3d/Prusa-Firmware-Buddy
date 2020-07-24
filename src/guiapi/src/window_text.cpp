@@ -58,6 +58,13 @@ void window_text_button_t::windowEvent(window_t *sender, uint8_t event, void *pa
 /*****************************************************************************/
 //window_text_button_close_screent
 window_text_button_close_screent::window_text_button_close_screent(window_t *parent, rect_ui16_t rect, string_view_utf8 txt)
-    : window_text_button_t(
-        parent, rect, []() { Screens::Access()->Close(); }, txt) {
+    : window_text_t(parent, rect, txt) {
+}
+
+void window_text_button_close_screent::windowEvent(window_t *sender, uint8_t event, void *param) {
+    if (event == WINDOW_EVENT_CLICK) {
+        Screens::Access()->Close();
+    } else {
+        window_text_t::windowEvent(sender, event, param);
+    }
 }

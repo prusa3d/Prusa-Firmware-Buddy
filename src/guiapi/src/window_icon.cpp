@@ -73,5 +73,13 @@ void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *pa
 /*****************************************************************************/
 //window_icon_button_close_screent
 window_icon_button_close_screent::window_icon_button_close_screent(window_t *parent, rect_ui16_t rect, uint16_t id_res)
-    : window_icon_button_t(parent, rect, id_res, []() { Screens::Access()->Close(); }) {
+    : window_icon_t(parent, rect, id_res) {
+}
+
+void window_icon_button_close_screent::windowEvent(window_t *sender, uint8_t event, void *param) {
+    if (event == WINDOW_EVENT_CLICK) {
+        Screens::Access()->Close();
+    } else {
+        window_icon_t::windowEvent(sender, event, param);
+    }
 }

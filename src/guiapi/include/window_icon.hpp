@@ -28,6 +28,9 @@ protected:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
 
-struct window_icon_button_close_screent : public window_icon_button_t {
+struct window_icon_button_close_screent : public window_icon_t {
     window_icon_button_close_screent(window_t *parent, rect_ui16_t rect, uint16_t id_res);
+
+protected:
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
