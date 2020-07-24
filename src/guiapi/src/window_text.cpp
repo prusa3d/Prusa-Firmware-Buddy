@@ -43,7 +43,7 @@ void window_text_t::unconditionalDraw() {
 //window_text_button_t
 window_text_button_t::window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt)
     : window_text_t(parent, rect, txt)
-    , callback(cb ? cb : []() { Screens::Access()->Close(); }) {
+    , callback(cb) {
     Enable();
 }
 
@@ -53,4 +53,11 @@ void window_text_button_t::windowEvent(window_t *sender, uint8_t event, void *pa
     } else {
         window_text_t::windowEvent(sender, event, param);
     }
+}
+
+/*****************************************************************************/
+//window_text_button_close_screent
+window_text_button_close_screent::window_text_button_close_screent(window_t *parent, rect_ui16_t rect, string_view_utf8 txt)
+    : window_text_button_t(
+        parent, rect, []() { Screens::Access()->Close(); }, txt) {
 }

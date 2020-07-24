@@ -28,8 +28,12 @@ protected:
 struct window_text_button_t : public window_text_t {
     ButtonCallback callback;
 
-    window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb = nullptr, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); //default action is close screen
+    window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); //default action is close screen
 
 protected:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+};
+
+struct window_text_button_close_screent : public window_text_button_t {
+    window_text_button_close_screent(window_t *parent, rect_ui16_t rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 };
