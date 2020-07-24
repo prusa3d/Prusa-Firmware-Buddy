@@ -33,9 +33,3 @@ screen_qr_info_data_t::screen_qr_info_data_t()
     create_path_info_4service(qr_text.data(), qr_text.size());
     qr.text = qr_text.data();
 }
-
-void screen_qr_info_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
-        Screens::Access()->Close();
-    }
-}

@@ -1,6 +1,7 @@
 // window_icon.c
 #include "window_icon.hpp"
 #include "gui.hpp"
+#include "ScreenHandler.hpp"
 
 void window_icon_init(window_icon_t *window) {
     window->color_back = COLOR_BLACK;
@@ -57,13 +58,13 @@ void window_icon_t::UnswapBW() { f_parent_defined0 = false; }
 //window_icon_button_t
 window_icon_button_t::window_icon_button_t(window_t *parent, rect_ui16_t rect, uint16_t id_res, ButtonCallback cb)
     : window_icon_t(parent, rect, id_res)
-    , cb(cb) {
+    , callback(cb ? cb : []() { Screens::Access()->Close(); }) {
     Enable();
 }
 
 void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK) {
-        cb();
+        callback();
     } else {
         window_icon_t::windowEvent(sender, event, param);
     }

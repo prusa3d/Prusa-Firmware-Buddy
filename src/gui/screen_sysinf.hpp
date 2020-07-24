@@ -9,7 +9,7 @@ struct screen_sysinfo_data_t : public window_frame_t {
     window_text_t textCPU_load;
     window_numb_t textCPU_load_val;
 
-    window_text_t textExit;
+    window_text_button_t textExit;
 
 public:
     screen_sysinfo_data_t();

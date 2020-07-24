@@ -54,13 +54,9 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textExit.font = resource_font(IDR_FNT_BIG);
     static const char ex[] = N_("EXIT");
     textExit.SetText(_(ex));
-    textExit.Enable();
 }
 
 void screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK)
-        Screens::Access()->Close();
-
     if (event == WINDOW_EVENT_LOOP) {
         actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {

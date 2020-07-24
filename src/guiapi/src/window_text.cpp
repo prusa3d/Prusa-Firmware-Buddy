@@ -1,6 +1,7 @@
-// window_text.c
+// window_text.cpp
 #include "window_text.hpp"
 #include "gui.hpp"
+#include "ScreenHandler.hpp"
 
 void window_text_t::SetText(string_view_utf8 txt) {
     text = txt;
@@ -42,13 +43,13 @@ void window_text_t::unconditionalDraw() {
 //window_text_button_t
 window_text_button_t::window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt)
     : window_text_t(parent, rect, txt)
-    , cb(cb) {
+    , callback(cb ? cb : []() { Screens::Access()->Close(); }) {
     Enable();
 }
 
 void window_text_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK) {
-        cb();
+        callback();
     } else {
         window_text_t::windowEvent(sender, event, param);
     }

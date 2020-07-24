@@ -21,7 +21,6 @@ screen_test_graph_t::screen_test_graph_t()
 
     static const char rtn[] = "Return";
     button.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rtn));
-    button.Enable();
 }
 
 void screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *param) {
@@ -33,7 +32,5 @@ void screen_test_graph_t::windowEvent(window_t *sender, uint8_t event, void *par
             loop_index = 0;
         }
         loop_index++;
-    } else if (event == WINDOW_EVENT_CLICK) {
-        Screens::Access()->Close();
     }
 }

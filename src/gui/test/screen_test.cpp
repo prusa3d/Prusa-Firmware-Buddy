@@ -22,7 +22,7 @@ static volatile void recursive(uint64_t i) {
 screen_test_data_t::screen_test_data_t()
     : window_frame_t(&test)
     , test(this, rect_ui16(10, 32, 220, 22))
-    , back(this, rect_ui16(10, 54, 220, 22), []() { Screens::Access()->Close(); })
+    , back(this, rect_ui16(10, 54, 220, 22))
     , tst_gui(this, rect_ui16(10, 76, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_gui_data_t>); })
     , tst_term(this, rect_ui16(10, 98, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_term_data_t>); })
     , tst_msgbox(this, rect_ui16(10, 120, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_msgbox_data_t>); })

@@ -6,7 +6,7 @@
 
 struct screen_test_graph_t : public window_frame_t {
     window_text_t text;
-    window_text_t button;
+    window_text_button_t button;
     window_temp_graph_t graph;
     uint8_t loop_index;
 
