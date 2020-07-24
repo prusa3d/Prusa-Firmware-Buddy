@@ -836,6 +836,18 @@ msgstr ""
 msgid "Sound Mode"
 msgstr ""
 
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sort files by"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:239
+msgid "Name"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:240
+msgid "Time"
+msgstr ""
+
 #: src/guiapi/include/MItem_print.hpp:32
 msgid "Speed"
 msgstr ""

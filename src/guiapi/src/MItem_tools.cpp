@@ -8,6 +8,7 @@
 #include "sys.h"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_calib_z.hpp"
+#include "window_file_list.hpp"
 #include "sound.hpp"
 #include "wui_api.h"
 #include "../lang/i18n.h"
@@ -288,6 +289,21 @@ MI_SOUND_VOLUME::MI_SOUND_VOLUME()
 /* } */
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(value);
+}
+
+/*****************************************************************************/
+//MI_SORT_FILES
+
+MI_SORT_FILES::MI_SORT_FILES()
+    : WI_SWITCH_t<2>(eeprom_get_var(EEVAR_FILE_SORT).ui8, label, 0, true, false, str_time, str_name) {}
+void MI_SORT_FILES::OnChange(size_t old_index) {
+    if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
+        eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_NAME));
+        screen_filebrowser_sort = WF_SORT_BY_NAME;
+    } else if (old_index == WF_SORT_BY_NAME) { // was sorted by name, set by time
+        eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_TIME));
+        screen_filebrowser_sort = WF_SORT_BY_TIME;
+    }
 }
 
 /*****************************************************************************/
