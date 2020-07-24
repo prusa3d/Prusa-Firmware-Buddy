@@ -49,12 +49,86 @@ const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
     N_("Home"),
 };
 
+screen_printing_data_t *screen_printing_data_t::ths = nullptr;
+
 void screen_printing_data_t::invalidate_print_state() {
     state__readonly__use_change_print_state = printing_state_t::COUNT;
 }
 printing_state_t screen_printing_data_t::GetState() const {
     return state__readonly__use_change_print_state;
 }
+
+void screen_printing_data_t::tuneAction() {
+    if (w_buttons[0].IsBWSwapped()) {
+        return;
+    }
+    switch (GetState()) {
+    case printing_state_t::PRINTING:
+    case printing_state_t::PAUSED:
+        //screen_open(get_scr_menu_tune()->id);
+        break;
+    default:
+        break;
+    }
+}
+
+void screen_printing_data_t::pauseAction() {
+    if (w_buttons[1].IsBWSwapped()) {
+        return;
+    }
+    switch (GetState()) {
+    case printing_state_t::PRINTING:
+        marlin_print_pause();
+        break;
+    case printing_state_t::PAUSED:
+        marlin_print_resume();
+        break;
+    case printing_state_t::PRINTED:
+        screen_printing_reprint();
+        break;
+    default:
+        break;
+    }
+}
+
+void screen_printing_data_t::stopAction() {
+    if (w_buttons[2].IsBWSwapped()) {
+        return;
+    }
+    switch (GetState()) {
+    case printing_state_t::PRINTED:
+        Screens::Access()->Close();
+        return;
+    case printing_state_t::PAUSING:
+    case printing_state_t::RESUMING:
+        return;
+    default: {
+        if (gui_msgbox(_("Are you sure to stop this printing?"),
+                MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
+            == MSGBOX_RES_YES) {
+            stop_pressed = true;
+            change_print_state();
+            marlin_print_abort();
+        } else
+            return;
+    }
+    }
+}
+/******************************************************************************/
+//static methods to be pointed by fnc pointers
+void screen_printing_data_t::StopAction() {
+    if (screen_printing_data_t::ths)
+        screen_printing_data_t::ths->stopAction();
+}
+void screen_printing_data_t::PauseAction() {
+    if (screen_printing_data_t::ths)
+        screen_printing_data_t::ths->pauseAction();
+}
+void screen_printing_data_t::TuneAction() {
+    if (screen_printing_data_t::ths)
+        screen_printing_data_t::ths->tuneAction();
+}
+/******************************************************************************/
 
 static rect_ui16_t icon_rc(size_t pos) {
     const uint16_t icon_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22 - 64;
@@ -77,9 +151,9 @@ screen_printing_data_t::screen_printing_data_t()
     , w_etime_value(this, rect_ui16(30, 148, 201, 20))
 
     , w_buttons {
-        { this, icon_rc(0), 0 },
-        { this, icon_rc(1), 0 },
-        { this, icon_rc(2), 0 }
+        { this, icon_rc(0), 0, StopAction },
+        { this, icon_rc(1), 0, PauseAction },
+        { this, icon_rc(2), 0, TuneAction }
     }
     , w_labels { { this, text_rc(0) }, { this, text_rc(1) }, { this, text_rc(2) } }
 
@@ -145,14 +219,16 @@ screen_printing_data_t::screen_printing_data_t()
 
     // buttons
     for (uint8_t col = 0; col < 3; col++) {
-        //w_buttons[col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
-        w_buttons[col].SetTag(col + 1);
-        w_buttons[col].Enable();
-
         w_labels[col].font = resource_font(IDR_FNT_SMALL);
         w_labels[col].SetPadding(padding_ui8(0, 0, 0, 0));
         w_labels[col].SetAlignment(ALIGN_CENTER);
     }
+
+    ths = this;
+}
+
+screen_printing_data_t::~screen_printing_data_t() {
+    ths = nullptr;
 }
 
 void screen_printing_data_t::open_popup_message() {
@@ -257,65 +333,6 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
     if (header.EventClr_MediaRemoved() || header.EventClr_MediaInserted()) {
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
-    }
-
-    if (event != WINDOW_EVENT_CLICK) {
-        return;
-    }
-
-    int pi = reinterpret_cast<int>(param) - 1;
-    // -- pressed button is disabled - dont propagate event further
-    if (w_buttons[pi].IsBWSwapped()) {
-        return;
-    }
-
-    switch (static_cast<Btn>(pi)) {
-    case Btn::Tune:
-        switch (GetState()) {
-        case printing_state_t::PRINTING:
-        case printing_state_t::PAUSED:
-            //screen_open(get_scr_menu_tune()->id);
-            break;
-        default:
-            break;
-        }
-        return;
-    case Btn::Pause: {
-        switch (GetState()) {
-        case printing_state_t::PRINTING:
-            marlin_print_pause();
-            break;
-        case printing_state_t::PAUSED:
-            marlin_print_resume();
-            break;
-        case printing_state_t::PRINTED:
-            screen_printing_reprint();
-            break;
-        default:
-            break;
-        }
-        break;
-    }
-    case Btn::Stop:
-        switch (GetState()) {
-        case printing_state_t::PRINTED:
-            Screens::Access()->Close();
-            return;
-        case printing_state_t::PAUSING:
-        case printing_state_t::RESUMING:
-            return;
-        default: {
-            if (gui_msgbox(_("Are you sure to stop this printing?"),
-                    MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
-                == MSGBOX_RES_YES) {
-                stop_pressed = true;
-                change_print_state();
-                marlin_print_abort();
-            } else
-                return;
-        }
-        }
-        break;
     }
 }
 

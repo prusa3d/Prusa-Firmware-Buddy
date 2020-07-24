@@ -252,31 +252,21 @@ status_footer_t::status_footer_t(window_t *parent)
     //, heatbed_state;
     , show_second_color(false) {
 
-    //wi_nozzle.SetTag(uint8_t(ButtonStatus::Nozzle));
-
     wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     wt_nozzle.SetAlignment(ALIGN_CENTER);
     wt_nozzle.SetText(string_view_utf8::MakeNULLSTR());
-
-    //wi_heatbed.SetTag(uint8_t(ButtonStatus::Heatbed));
 
     wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
     wt_heatbed.SetAlignment(ALIGN_CENTER);
     wt_heatbed.SetText(string_view_utf8::MakeNULLSTR());
 
-    //wi_prnspeed.SetTag(uint8_t(ButtonStatus::PrnSpeed));
-
     wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
     wt_prnspeed.SetAlignment(ALIGN_CENTER);
     wt_prnspeed.SetText(string_view_utf8::MakeNULLSTR());
 
-    //wi_z_axis.SetTag(uint8_t(ButtonStatus::Z_axis));
-
     wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
     wt_z_axis.SetAlignment(ALIGN_CENTER);
     wt_z_axis.SetText(string_view_utf8::MakeNULLSTR());
-
-    //wi_filament.SetTag(uint8_t(ButtonStatus::Filament));
 
     wt_filament.font = resource_font(IDR_FNT_SPECIAL);
     wt_filament.SetAlignment(ALIGN_CENTER);

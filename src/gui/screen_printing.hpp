@@ -53,7 +53,7 @@ struct screen_printing_data_t : public window_frame_t {
     window_text_t w_etime_label;
     window_text_t w_etime_value;
 
-    window_icon_t w_buttons[3];
+    window_icon_button_t w_buttons[3];
     window_text_t w_labels[3];
 
     uint32_t last_print_duration;
@@ -73,6 +73,7 @@ struct screen_printing_data_t : public window_frame_t {
     uint8_t last_sd_percent_done;
 
     screen_printing_data_t();
+    ~screen_printing_data_t();
 
 private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
@@ -94,6 +95,14 @@ private:
     void set_stop_icon_and_label();
     void change_print_state();
 
+    void stopAction();
+    void pauseAction();
+    void tuneAction();
+
 public:
     printing_state_t GetState() const;
+    static screen_printing_data_t *ths;
+    static void StopAction();
+    static void PauseAction();
+    static void TuneAction();
 };
