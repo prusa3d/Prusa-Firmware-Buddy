@@ -36,7 +36,7 @@ ctest .
 
 # Tests in Windows
 
-1. Download & install MinGW and make sure .../MinGW/bin/ is in your path.
+1. Download & install MinGW and make sure .../MinGW/bin/ is in your path (try `which gcc` in bash)
 2. Check if Python is installed.
 3. Download & install some bash (GIT bash could be already installed).
 4. Run bash and get to your repository directory (cd ...).

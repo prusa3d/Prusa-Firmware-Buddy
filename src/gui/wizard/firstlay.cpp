@@ -13,10 +13,10 @@
 #include "menu_vars.h"
 #include "filament.h"
 #include "../lang/i18n.h"
-#include "gcode.cpp"
+#include "gcode_generator.cpp"
 
 void initialGcodes() {
-    gCode gc;
+    gCodeGen gc;
     gc.M(107)  // fan off
         .G(90) // use absolute coordinates
         .M(83) // extruder relative mode
@@ -26,7 +26,7 @@ void initialGcodes() {
 }
 
 void homeAndMBL(const uint16_t nozzle_preheat, const uint16_t nozzle_target, const uint8_t bed) {
-    gCode gc;
+    gCodeGen gc;
     //TODO check if Z axis is calibrated, if so, don't call G92
     // .G(92).param('Z', 0)
     // .G1(NAN, NAN, 2, NAN, 1000)
@@ -43,7 +43,7 @@ void homeAndMBL(const uint16_t nozzle_preheat, const uint16_t nozzle_target, con
 }
 
 void heatNozzle(const uint16_t nozzle_target) {
-    gCode gc;
+    gCodeGen gc;
     // clang-format off
     gc   .M(104).param('S', nozzle_target)  // nozzle target
          .M(109).param('S', nozzle_target) // wait for nozzle temp
@@ -51,7 +51,7 @@ void heatNozzle(const uint16_t nozzle_target) {
     // clang-format on
 }
 
-void firstLayer01(gCode &gc) {
+void firstLayer01(gCodeGen &gc) {
     gc.G1(NAN, NAN, 4, NAN, 1000)
         .G1(0, -2, 0.2, NAN, 3000)
         .G1(NAN, NAN, NAN, 6, 2000)
@@ -61,25 +61,25 @@ void firstLayer01(gCode &gc) {
 }
 
 void snakeInit1() {
-    gCode gc;
+    gCodeGen gc;
     firstLayer01(gc);
     gc.send();
 }
 
-void firstLayer02(gCode &gc) {
+void firstLayer02(gCodeGen &gc) {
     gc.G1(10, 150, 0.2, NAN, 3000)
         .G1(NAN, NAN, NAN, 6, 2000)
         .G1(NAN, NAN, NAN, NAN, 1000);
 }
 
 void snakeInit2() {
-    gCode gc;
+    gCodeGen gc;
     firstLayer02(gc);
     gc.send();
 }
 
 void snakeEnd() {
-    gCode gc;
+    gCodeGen gc;
     gc.G1(NAN, NAN, 2, -6, 2100)
         .G1(178, 0, 10, NAN, 3000)
         .G(4)
@@ -174,7 +174,7 @@ void sendSnakeLine(uint16_t line) {
     if (line < 0 || line >= snakeLines - 2)
         return;
 
-    gCode gc;
+    gCodeGen gc;
     gc.lastExtrusion(snake[line][0], snake[line][1]);
     gc.ex(snake[line + 1][0], snake[line + 1][1]);
     gc.send();

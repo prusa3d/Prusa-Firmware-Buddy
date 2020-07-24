@@ -6,10 +6,10 @@ using Catch::Matchers::Equals;
 
 #define STM32F407xx
 
-#include "gcode.cpp"
+#include "gcode_generator.cpp"
 
 TEST_CASE("G code class", "[gcode]") {
-    gCode gc;
+    gCodeGen gc;
 
     SECTION("write string") {
         int buffer = gc.free();
