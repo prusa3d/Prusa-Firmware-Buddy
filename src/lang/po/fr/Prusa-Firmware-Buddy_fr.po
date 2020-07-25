@@ -161,7 +161,7 @@ msgstr "Nettoyez la plaque d'impression."
 
 #: src/gui/wizard/screen_wizard.c:362
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
-msgstr "Félicitations! La calibration XYZ est bonne. Les axes XY sont perpendiculaires."
+msgstr "BRAVO! La calibration XYZ est ok. Les axes XY sont perpendiculaires."
 
 #: src/guiapi/src/MItem_tools.cpp:273
 msgid ""
@@ -223,12 +223,12 @@ msgstr ""
 "Voulez-vous utiliser la valeur actuelle ?\n"
 "Actuelle : %0.3f.\n"
 "Défaut : %0.3f.\n"
-"Cliquez sur NON pour utiliser la valeur par défaut (recommandé)"
+"Cliquez sur NON pour la valeur par défaut (recommandé)"
 
 #: src/gui/wizard/screen_wizard.c:473
 #, c-format
 msgid "Do you want to use last set value? Last:  %0.3f.   Default: %0.3f.   Click NO to use default value."
-msgstr "Voulez-vous utiliser la dernière valeur paramétrée ? Dernière : %0.3f. Défaut : %0.3f. Cliquez sur NON pour utiliser la valeur par défaut."
+msgstr "Voulez-vous utiliser la dernière valeur paramétrée? Dernière : %0.3f. Défaut : %0.3f. Cliquez sur NON pour utiliser la valeur par défaut."
 
 #: src/gui/wizard/wizard_ui.cpp:34
 msgid "DONE"
@@ -245,7 +245,7 @@ msgstr "Erreur"
 
 #: src/guiapi/src/MItem_tools.cpp:123
 msgid "Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."
-msgstr "Erreur au cours de la sauvegarde du rapport de vidage mémoire suite à une panne sur la clé USB. Veuillez réinsérer la clé USB et réessayer."
+msgstr "Erreur de sauvegarde du rapport de vidage mémoire suite à une panne de l'USB. SVP réinsérez USB et réessayer."
 
 #: src/gui/wizard/screen_wizard.c:266
 msgid "Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes."
@@ -286,7 +286,7 @@ msgstr "Filament"
 
 #: src/gui/screen_print_preview.cpp:320
 msgid "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."
-msgstr "Filament non détecté. Charger filament maintenant ? Sélectionnez NON pour annuler, ou IGNORER pour désactiver le capteur de filament et continuer."
+msgstr "Filament non détecté. Charger filament maintenant? Cliquez NON pour annuler, ou IGNORER pour désactiver le capteur et continuer."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:44
 msgid ""
@@ -411,11 +411,11 @@ msgstr "Insertion"
 #: src/gui/screen_menu_lan_settings.cpp:305
 #: src/gui/screen_menu_lan_settings.cpp:306
 msgid "IP addresses are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."
-msgstr "Les adresses IP ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB."
+msgstr " Adresses IP non valides ou le fichier \"lan_settings.ini\" n'est pas dans le répertoire racine de l'USB."
 
 #: src/gui/screen_menu_lan_settings.cpp:301
 msgid "IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."
-msgstr "Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB."
+msgstr "Adresses IP ou les paramètres non valides ou le fichier \"lan_settings.ini\" n'est pas dans le répertoire racine de l' USB."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:58
 msgid "Is color correct?"
@@ -690,11 +690,11 @@ msgstr "Ajustement PID"
 
 #: src/gui/wizard/screen_wizard.c:330
 msgid "Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off printer immediately!"
-msgstr "Positionnez une feuille de papier sous la buse pendant la calibration des quatre premiers points. Si la buse accroche le papier, éteignez immédiatement l'imprimante !"
+msgstr "Placez une feuille de papier sous la buse pendant la calibration des 4 premiers points. Si la buse accroche le papier, éteignez illico l'imprimante!"
 
 #: src/gui/wizard/screen_wizard.c:305
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
-msgstr "Veuillez nettoyer la buse pour la calibration. Puis cliquez sur SUIV."
+msgstr "SVP nettoyez la buse pour la calibration. Puis cliquez sur SUIV."
 
 #: src/gui/screen_menu_lan_settings.cpp:293
 #: src/gui/screen_menu_lan_settings.cpp:294
@@ -950,7 +950,7 @@ msgstr "Chargement des réglages réussi"
 #: src/guiapi/include/MItem_tools.hpp:211
 #: src/guiapi/include/MItem_tools.hpp:210
 msgid "Silent"
-msgstr "Silencieux"
+msgstr "Muet"
 
 #: src/guiapi/include/MItem_tools.hpp:207
 #: src/guiapi/include/MItem_tools.hpp:206
@@ -1022,8 +1022,8 @@ msgid ""
 "Then restart       \n"
 "the Selftest.      "
 msgstr ""
-"Le selftest s'est "
-"terminé par un échec. "
+"Fin du selftest "
+"en échec. "
 "Vérifiez le câblage "
 "de l'imprimante "
 "ainsi que les axes. "
@@ -1072,7 +1072,7 @@ msgstr "Une erreur s'est produite au moment de sauvegarder les réglages dans le
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante?"
+msgstr "Cette action est Irréversible, la configuration actuelle sera perdue! Êtes-vous sûr de vouloir réinitialiser aux paramètres d'usine?"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
@@ -1180,12 +1180,12 @@ msgstr "Att. refroidissement"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid "Waiting for temp."
-msgstr "En attente de temp."
+msgstr "Att. température."
 
 #. MSGBOX_ICO_QUESTION   0x0020
 #: src/guiapi/src/window_msgbox.cpp:15
 msgid "Warning"
-msgstr "Avertissement"
+msgstr "Alerte"
 
 #: src/gui/wizard/screen_wizard.cpp:146
 msgid ""
