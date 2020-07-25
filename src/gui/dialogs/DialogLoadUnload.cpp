@@ -3,6 +3,7 @@
 #include "resource.h" //IDR_FNT_BIG
 #include "sound.hpp"
 #include "../lang/i18n.h"
+#include "dialog_response.hpp"
 
 //all buttons share same Window, thus it must be static
 static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_defaults.color_back, IDialogStateful::get_radio_button_size() };
@@ -14,24 +15,14 @@ inline RadioButton btn(PhasesLoadUnload phase, const PhaseTexts &texts) {
 
 /*****************************************************************************/
 // clang-format off
-//todo move button texts
-static const char *txt_none   = "";
-static const char *txt_stop   = N_("STOP");
-static const char *txt_cont   = N_("CONTINUE");
-static const char *txt_disa   = N_("DISABLE SENSOR");
-static const char *txt_yes    = N_("YES");
-static const char *txt_no     = N_("NO");
-static const char *txt_reheat = N_("REHEAT");
-static const char *txt_retry  = N_("RETRY");
-
-static const PhaseTexts ph_txt_stop          = { txt_stop,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_cont          = { txt_cont,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_reheat        = { txt_reheat, txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_disa          = { txt_disa,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_none          = { txt_none,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_yesno         = { txt_yes,    txt_no,   txt_none,  txt_none };
-static const PhaseTexts ph_txt_iscolor       = { txt_yes,    txt_no,   txt_retry, txt_none };
-static const PhaseTexts ph_txt_iscolor_purge = { txt_yes,    txt_no,   txt_none,  txt_none };
+static const PhaseTexts ph_txt_stop          = { ResponseTexts::Get(Response::Stop),             ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_cont          = { ResponseTexts::Get(Response::Continue),         ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_reheat        = { ResponseTexts::Get(Response::Reheat),           ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_disa          = { ResponseTexts::Get(Response::Filament_removed), ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_none          = { ResponseTexts::Get(Response::_none),            ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_yesno         = { ResponseTexts::Get(Response::Yes),              ResponseTexts::Get(Response::No),    ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_iscolor       = { ResponseTexts::Get(Response::Yes),              ResponseTexts::Get(Response::No),    ResponseTexts::Get(Response::Retry), ResponseTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_iscolor_purge = { ResponseTexts::Get(Response::Yes),              ResponseTexts::Get(Response::No),    ResponseTexts::Get(Response::_none), ResponseTexts::Get(Response::_none) };
 
 static const char *txt_first              = N_("Finishing         \nbuffered gcodes.  \n");
 static const char *txt_parking            = N_("Parking");

@@ -507,6 +507,7 @@ if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
+            src/gui/dialogs/dialog_response.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
