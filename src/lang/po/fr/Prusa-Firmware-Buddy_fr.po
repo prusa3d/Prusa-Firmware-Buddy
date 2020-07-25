@@ -728,7 +728,7 @@ msgstr "Veuillez retirer la plaque d'impression du plateau."
 #. 30 pixels for title
 #: src/gui/dialogs/window_dlg_wait.c:53
 msgid "Please wait"
-msgstr "Patienter SVP"
+msgstr "Patientez SVP"
 
 #: src/gui/screen_menu_preheat.cpp:28 src/gui/screen_menu_preheat.cpp:41
 msgid "PREHEAT"
