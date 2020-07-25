@@ -1,3 +1,4 @@
+//IDialog.hpp
 #pragma once
 
 #include <stdint.h>
@@ -13,3 +14,5 @@ public:
     IDialog(window_t *child, rect_ui16_t rc = gui_defaults.scr_body_sz);
     virtual ~IDialog();
 };
+
+void make_blocking_dialog(window_t &dlg);

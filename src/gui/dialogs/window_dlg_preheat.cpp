@@ -15,6 +15,7 @@
 #include "Mitem_tools.hpp"
 #include "screen_menu.hpp"
 #include "ScreenHandler.hpp"
+#include "IDialog.hpp"
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
     MI_Filament<FILAMENT_PLA>,
@@ -41,22 +42,8 @@ using ScreenNoRet = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None,
 template <class T>
 FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
     set_last_preheated_filament(FILAMENT_NONE);
-    window_t *id_capture = window_t::GetCapturedWindow();
-    window_t *parent = Screens::Access()->Get();
-    T dlg(caption, parent);
-
-    dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
-
-    gui_reset_jogwheel();
-    //gui_invalidate();
-
-    while (!Screens::Access()->ConsumeClose()) {
-        gui_loop();
-    }
-
-    if (id_capture)
-        id_capture->SetCapture();
-
+    T dlg(caption, Screens::Access()->Get(), gui_defaults.scr_body_sz);
+    make_blocking_dialog(dlg);
     return get_last_preheated_filament();
 }
 

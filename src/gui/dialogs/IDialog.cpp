@@ -18,3 +18,19 @@ IDialog::~IDialog() {
     if (id_capture)
         id_capture->SetCapture();
 }
+
+void make_blocking_dialog(window_t &dlg) {
+    window_t *id_capture = window_t::GetCapturedWindow();
+
+    dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
+
+    gui_reset_jogwheel();
+    //gui_invalidate();
+
+    while (!Screens::Access()->ConsumeClose()) {
+        gui_loop();
+    }
+
+    if (id_capture)
+        id_capture->SetCapture();
+}

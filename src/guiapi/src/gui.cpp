@@ -5,6 +5,7 @@
 #include "stm32f4xx_hal.h"
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
+#include "IDialog.hpp"
 
 #define GUI_FLG_INVALID 0x0001
 
