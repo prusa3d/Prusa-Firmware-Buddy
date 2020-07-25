@@ -158,7 +158,6 @@ int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
 
     window_msgbox_t msgbox(rect);
-    window_t *id_capture = window_t::GetCapturedWindow();
     msgbox.title = title;
     msgbox.text = text;
     msgbox.flags = flags;
@@ -169,19 +168,7 @@ int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
         const int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
         memcpy(msgbox.buttons, buttons, count * sizeof(char *));
     }
-    gui_reset_jogwheel();
-    gui_invalidate();
-    msgbox.SetCapture();
-    // window_popup_ptr is set to null after destroying msgbox
-    // msgbox destroys itself when the user presses any button
-    //while (window_popup_ptr) {
-    //    gui_loop();
-    //}
-    window_t *pWin = Screens::Access()->Get();
-    if (pWin)
-        pWin->Invalidate();
-    if (id_capture)
-        id_capture->SetCapture();
+    make_blocking_dialog(msgbox);
     return msgbox.res;
 }
 
