@@ -42,7 +42,7 @@ msgstr "STOPPER"
 
 #: src/gui/wizard/screen_wizard.c:274
 msgid "All tests finished successfully!"
-msgstr "Tous les tests ont été passés avec succès !"
+msgstr "Tous les tests ont été passés avec succès!"
 
 #: src/gui/screen_menu_fw_update.cpp:18
 msgid "Always"
@@ -54,7 +54,7 @@ msgstr "Appliquer"
 
 #: src/gui/screen_printing.cpp:382 src/gui/screen_printing.cpp:400
 msgid "Are you sure to stop this printing?"
-msgstr "Êtes-vous certain de vouloir stopper cette impression ?"
+msgstr "Êtes-vous certain de vouloir stopper cette impression?"
 
 #: src/guiapi/include/MItem_tools.hpp:212
 #: src/guiapi/include/MItem_tools.hpp:211
@@ -89,7 +89,7 @@ msgstr "LIT"
 
 #: src/gui/screen_printing.cpp:335
 msgid "Bed leveling failed. Try again?"
-msgstr "Échec niveau plateau. Réessayer ?"
+msgstr "Échec niveau plateau. Réessayer?"
 
 #. r=1 c=15
 #: src/gui/wizard/selftest_cool.cpp:76
@@ -120,8 +120,8 @@ msgid ""
 "Calibration successful!\n"
 "Happy printing!"
 msgstr ""
-"Calibration réussie !\n"
-"Bonnes impressions !"
+"Calibration réussie!\n"
+"Bonnes impressions!"
 
 #: src/gui/wizard/screen_wizard.cpp:304
 msgid "Calibration XY"
@@ -161,7 +161,7 @@ msgstr "Nettoyez la plaque d'impression."
 
 #: src/gui/wizard/screen_wizard.c:362
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
-msgstr "Félicitations ! La calibration XYZ est bonne. Les axes XY sont perpendiculaires."
+msgstr "Félicitations! La calibration XYZ est bonne. Les axes XY sont perpendiculaires."
 
 #: src/guiapi/src/MItem_tools.cpp:273
 msgid ""
@@ -209,7 +209,7 @@ msgstr ""
 "étape et réajuster "
 "la distance "
 "entre la buse et le "
-"plateau chauffant ?"
+"plateau chauffant?"
 
 #: src/gui/wizard/screen_wizard.c:405
 #, c-format
@@ -427,11 +427,11 @@ msgid ""
 "extruder gear?    "
 msgstr ""
 "Le filament est-il "
-"dans l'extrudeur ?"
+"dans l'extrudeur?"
 
 #: src/gui/wizard/screen_wizard.c:313
 msgid "Is steel sheet on heatbed?"
-msgstr "La plaque d'impr. est-elle sur le plateau chauffant ?"
+msgstr "La plaque d'impr. est-elle sur le plateau chauffant?"
 
 #: src/gui/screen_menu_lan_settings.cpp:267
 #: src/gui/screen_menu_lan_settings.cpp:268
