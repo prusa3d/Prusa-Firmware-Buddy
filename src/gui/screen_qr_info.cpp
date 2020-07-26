@@ -6,7 +6,7 @@
 #include "stm32f4xx_hal.h"
 
 screen_qr_info_data_t::screen_qr_info_data_t()
-    : window_frame_t(&warning)
+    : window_frame_t()
     , warning(this, rect_ui16(8, 25, 224, 95))
     , button(this, rect_ui16(8, 280, 224, 30), is_closed_on_click_t::yes)
     , qr(this, rect_ui16(28, 85, 224, 95)) {

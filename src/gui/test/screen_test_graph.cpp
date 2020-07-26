@@ -11,7 +11,7 @@ extern void window_temp_scope_add(float temp_ext, float temp_bed);
 extern osThreadId displayTaskHandle;
 
 screen_test_graph_t::screen_test_graph_t()
-    : window_frame_t(&text)
+    : window_frame_t()
     , text(this, rect_ui16(10, 0, 220, 22))
     , button(this, rect_ui16(10, 220, 100, 22), is_closed_on_click_t::yes)
     , graph(this, rect_ui16(10, 28, 180, 180))

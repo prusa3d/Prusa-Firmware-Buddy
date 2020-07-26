@@ -20,7 +20,7 @@ static volatile void recursive(uint64_t i) {
 }
 
 screen_test_data_t::screen_test_data_t()
-    : window_frame_t(&test)
+    : window_frame_t()
     , test(this, rect_ui16(10, 32, 220, 22))
     , back(this, rect_ui16(10, 54, 220, 22), is_closed_on_click_t::yes)
     , tst_gui(this, rect_ui16(10, 76, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_gui_data_t>); })

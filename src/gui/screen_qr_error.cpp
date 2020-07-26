@@ -6,7 +6,7 @@
 #include "errors.h"
 
 screen_qr_error_data_t::screen_qr_error_data_t()
-    : window_frame_t(&errText)
+    : window_frame_t()
     , errText(this, rect_ui16(8, 0, 224, 25))
     , errDescription(this, rect_ui16(8, 30, 224, 95))
     , info(this, rect_ui16(8, 275, 224, 20))

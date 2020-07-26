@@ -136,7 +136,7 @@ GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
 }
 
 screen_print_preview_data_t::screen_print_preview_data_t()
-    : window_frame_t(&title_text)
+    : window_frame_t()
     , title_text(this, rect_ui16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
     , print_button(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, []() { if (action_handler) action_handler(PRINT_PREVIEW_ACTION_PRINT); })
     , print_label(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))

@@ -130,7 +130,7 @@ static const uint16_t row_h = 22;
 static const uint16_t left_col = 22;
 
 screen_PID_data_t::screen_PID_data_t()
-    : window_frame_t(&footer)
+    : window_frame_t()
     , footer(this)
 
     , textMenuName(this, rect_ui16(0, 0, display::GetW(), row_h),_("PID adjustment"))

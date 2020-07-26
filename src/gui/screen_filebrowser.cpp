@@ -28,7 +28,7 @@ constexpr unsigned int SFN_len = 13;
 static char firstVisibleSFN[SFN_len] = "";
 
 screen_filebrowser_data_t::screen_filebrowser_data_t()
-    : window_frame_t(&header)
+    : window_frame_t()
     , header(this)
     , w_filelist(this, rect_ui16(10, 32, 220, 278)) {
     // TODO: load screen_filebrowser_sort from eeprom

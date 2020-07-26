@@ -44,7 +44,7 @@ static constexpr uint16_t row_h = 25;
 mesh_state_t screen_mesh_bed_lv_data_t::mesh_state = mesh_state_t::idle;
 
 screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
-    : window_frame_t(&footer)
+    : window_frame_t()
     , footer(this)
     , textMenuName(this, rect_ui16(0, 0, display::GetW(), row_h))
     , btMesh(this, rect_ui16(2, 50, 200, row_h), []() { if (mesh_state == mesh_state_t::idle) mesh_state = mesh_state_t::start; })

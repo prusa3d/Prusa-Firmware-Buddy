@@ -8,7 +8,7 @@
 #include "ScreenHandler.hpp"
 
 screen_test_term_data_t::screen_test_term_data_t()
-    : window_frame_t(&text)
+    : window_frame_t()
     , text(this, rect_ui16(10, 0, 220, 22))
     , term(this, rect_ui16(10, 28, 11 * 20, 18 * 16)) {
     SetBackColor(COLOR_GRAY);

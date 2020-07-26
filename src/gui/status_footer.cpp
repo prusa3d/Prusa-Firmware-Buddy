@@ -227,7 +227,7 @@ void status_footer_t::repaint_heatbed() {
 }
 
 status_footer_t::status_footer_t(window_t *parent)
-    : window_frame_t(&wi_nozzle, parent, gui_defaults.footer_sz)
+    : window_frame_t(parent, gui_defaults.footer_sz)
     , wi_nozzle(this, rect_ui16(8, 270, 16, 16), IDR_PNG_status_icon_nozzle)
     , wi_heatbed(this, rect_ui16(128, 270, 20, 16), IDR_PNG_status_icon_heatbed)
     , wi_prnspeed(this, rect_ui16(10, 297, 16, 12), IDR_PNG_status_icon_prnspeed)

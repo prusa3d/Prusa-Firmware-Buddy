@@ -16,7 +16,7 @@ static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
 }
 
 IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, rect_ui16_t rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
-    : window_menu_t(&header, parent, rect, nullptr)
+    : window_menu_t(parent, rect, nullptr)
     , header(this)
     , help(this, helper_lines > 0 ? rect_ui16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - get_help_h(helper_lines, font_id), win_w, get_help_h(helper_lines, font_id)) : rect_ui16(0, 0, 0, 0))
     , footer(this) {

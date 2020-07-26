@@ -39,7 +39,7 @@ const char *labels[7] = {
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 
 screen_home_data_t::screen_home_data_t()
-    : window_frame_t(&header)
+    : window_frame_t()
     , header(this)
     , footer(this)
     , logo(this, rect_ui16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)

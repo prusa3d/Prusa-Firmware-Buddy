@@ -38,7 +38,7 @@ static void set_icon_and_label(buttons_t id_to_set, window_icon_t *p_button, win
 static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_printing)); }
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
-    : window_frame_t(this)
+    : window_frame_t()
     , header(this)
     , footer(this)
     , octo_icon(this, rect_ui16((240 - pt_ico().x) / 2, gui_defaults.scr_body_sz.y, pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)

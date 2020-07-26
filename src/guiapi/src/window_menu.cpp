@@ -5,8 +5,8 @@
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
 
-IWindowMenu::IWindowMenu(window_t *first, window_t *parent, rect_ui16_t rect)
-    : window_frame_t(first, parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
+IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
+    : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
     , color_text(gui_defaults.color_text)
     , color_disabled(gui_defaults.color_disabled)
     , font(gui_defaults.font)
@@ -15,8 +15,8 @@ IWindowMenu::IWindowMenu(window_t *first, window_t *parent, rect_ui16_t rect)
     , alignment(gui_defaults.alignment) {
 }
 
-window_menu_t::window_menu_t(window_t *first, window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index)
-    : IWindowMenu(first, parent, rect)
+window_menu_t::window_menu_t(window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index)
+    : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
     //color_back = gui_defaults.color_back;
     alignment = gui_defaults.alignment;

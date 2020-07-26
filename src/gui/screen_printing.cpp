@@ -140,7 +140,7 @@ static rect_ui16_t text_rc(size_t pos) {
 }
 
 screen_printing_data_t::screen_printing_data_t()
-    : window_frame_t(&header)
+    : window_frame_t()
     , header(this)
     , footer(this)
     , w_filename(this, rect_ui16(10, 33, 220, 29))

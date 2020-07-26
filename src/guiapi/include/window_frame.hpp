@@ -13,7 +13,7 @@ struct window_frame_t : public window_t {
     virtual void UnregisterSubWin(window_t *win) override;
     window_t *GetFirst() const;
     window_t *GetLast() const;
-    window_frame_t(window_t *first, window_t *parent = nullptr, rect_ui16_t rect = rect_ui16(0, 0, display::GetW(), display::GetH()), is_dialog_t dialog = is_dialog_t::no);
+    window_frame_t(window_t *parent = nullptr, rect_ui16_t rect = rect_ui16(0, 0, display::GetW(), display::GetH()), is_dialog_t dialog = is_dialog_t::no);
     window_t *GetNextSubWin(window_t *win) const;
     window_t *GetPrevSubWin(window_t *win) const;
     window_t *GetNextEnabledSubWin(window_t *win) const;

@@ -10,7 +10,7 @@ static constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
 
 //*****************************************************************************
 IDialogStateful::IDialogStateful(const char *name)
-    : IDialog(&radio)
+    : IDialog()
     , radio(this, get_radio_button_size(), nullptr, nullptr)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)

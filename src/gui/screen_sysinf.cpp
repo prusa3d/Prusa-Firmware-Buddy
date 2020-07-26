@@ -33,7 +33,7 @@ enum { row_h = 20 };
 #define RECT_MACRO(col) rect_ui16(col_##col, row2draw, col_##col##_w, row_h)
 
 screen_sysinfo_data_t::screen_sysinfo_data_t()
-    : window_frame_t(&textMenuName)
+    : window_frame_t()
     , textMenuName(this, rect_ui16(0, 0, display::GetW(), 22))
     , textCPU_load(this, rect_ui16(col_0, 25, col_0_w, row_h))
     , textCPU_load_val(this, rect_ui16(col_1, 25, col_1_w, row_h))

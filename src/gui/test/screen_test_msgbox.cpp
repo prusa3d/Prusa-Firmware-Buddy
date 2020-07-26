@@ -8,7 +8,7 @@
 const char *test_text = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
 
 screen_test_msgbox_data_t::screen_test_msgbox_data_t()
-    : window_frame_t(&tst)
+    : window_frame_t()
     , tst(this, rect_ui16(10, 32, 220, 22))
     , back(this, rect_ui16(10, 54, 220, 22), is_closed_on_click_t::yes)
     , tst_ok(this, rect_ui16(10, 76, 220, 22), is_closed_on_click_t::yes)

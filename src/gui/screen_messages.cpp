@@ -39,7 +39,7 @@ void _msg_stack_del(uint8_t del_index) { // del_index = < 0 ; MSG_STACK_SIZE - 1
 }
 
 screen_messages_data_t::screen_messages_data_t()
-    : window_frame_t(&header)
+    : window_frame_t()
     , header(this)
     , footer(this)
     , list(this, gui_defaults.scr_body_sz) {

@@ -6,7 +6,7 @@
 #include "ScreenHandler.hpp"
 
 screen_test_gui_data_t::screen_test_gui_data_t()
-    : window_frame_t(&logo_prusa_mini)
+    : window_frame_t()
     , logo_prusa_mini(this, rect_ui16(0, 84, 240, 62), IDR_PNG_splash_logo_prusa_prn, is_closed_on_click_t::yes)
     , text0(this, rect_ui16(10, 70, 60, 22))
     , text1(this, rect_ui16(80, 70, 60, 22))
