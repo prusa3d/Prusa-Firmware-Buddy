@@ -6,12 +6,8 @@
 
 /*****************************************************************************/
 // clang-format off
-static const PhaseTexts ph_txt_stop          = { BtnTexts::Get(Response::Stop),             BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
-static const PhaseTexts ph_txt_cont          = { BtnTexts::Get(Response::Continue),         BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
 static const PhaseTexts ph_txt_reheat        = { BtnTexts::Get(Response::Reheat),           BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
 static const PhaseTexts ph_txt_disa          = { BtnTexts::Get(Response::Filament_removed), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
-static const PhaseTexts ph_txt_none          = { BtnTexts::Get(Response::_none),            BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
-static const PhaseTexts ph_txt_yesno         = { BtnTexts::Get(Response::Yes),              BtnTexts::Get(Response::No),    BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
 static const PhaseTexts ph_txt_iscolor       = { BtnTexts::Get(Response::Yes),              BtnTexts::Get(Response::No),    BtnTexts::Get(Response::Retry), BtnTexts::Get(Response::_none) };
 static const PhaseTexts ph_txt_iscolor_purge = { BtnTexts::Get(Response::Yes),              BtnTexts::Get(Response::No),    BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
 
@@ -41,9 +37,9 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_ram,                ClientResponses::GetResponses(PhasesLoadUnload::Ramming),          ph_txt_stop },
         DialogLoadUnload::State { txt_unload,             ClientResponses::GetResponses(PhasesLoadUnload::Unloading),        ph_txt_stop },
         DialogLoadUnload::State { txt_unload,             ClientResponses::GetResponses(PhasesLoadUnload::RemoveFilament),   ph_txt_stop },
-        DialogLoadUnload::State { txt_push_fil,           ClientResponses::GetResponses(PhasesLoadUnload::UserPush),         ph_txt_cont, DialogLoadUnload::phaseAlertSound },
+        DialogLoadUnload::State { txt_push_fil,           ClientResponses::GetResponses(PhasesLoadUnload::UserPush),         ph_txt_continue, DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_nozzle_cold,        ClientResponses::GetResponses(PhasesLoadUnload::NozzleTimeout),    ph_txt_reheat },
-        DialogLoadUnload::State { txt_make_sure_inserted, ClientResponses::GetResponses(PhasesLoadUnload::MakeSureInserted), ph_txt_cont, DialogLoadUnload::phaseAlertSound },
+        DialogLoadUnload::State { txt_make_sure_inserted, ClientResponses::GetResponses(PhasesLoadUnload::MakeSureInserted), ph_txt_continue, DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_inserting,          ClientResponses::GetResponses(PhasesLoadUnload::Inserting),        ph_txt_stop },
         DialogLoadUnload::State { txt_is_filament_in_gear,ClientResponses::GetResponses(PhasesLoadUnload::IsFilamentInGear), ph_txt_yesno },
         DialogLoadUnload::State { txt_ejecting,           ClientResponses::GetResponses(PhasesLoadUnload::Ejecting),         ph_txt_none },

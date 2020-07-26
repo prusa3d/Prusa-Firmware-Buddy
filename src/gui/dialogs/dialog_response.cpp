@@ -8,18 +8,26 @@
 
 const std::array<const char *, static_cast<size_t>(Response::_last) + 1> BtnTexts::texts {
     "",
-    N_("YES"),
-    N_("NO"),
-    N_("CONTINUE"),
-    N_("OK"),
+    N_("ABORT"),
     N_("BACK"),
-    N_("RETRY"),
-    N_("STOP"),
+    N_("CANCEL"),
+    N_("CONTINUE"),
+    N_("DISABLE SENSOR")
+        N_("IGNORE"),
+    N_("NO"),
+    N_("OK"),
     N_("PURGE_MORE"),
     N_("REHEAT"),
-    N_("DISABLE SENSOR")
+    N_("RETRY"),
+    N_("STOP"),
+    N_("YES"),
 };
 
-const char *BtnTexts::Get(Response resp) {
-    return texts[static_cast<size_t>(resp)];
-}
+/*****************************************************************************/
+// clang-format off
+const PhaseTexts ph_txt_stop          = { BtnTexts::Get(Response::Stop),             BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+const PhaseTexts ph_txt_continue      = { BtnTexts::Get(Response::Continue),         BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+const PhaseTexts ph_txt_none          = { BtnTexts::Get(Response::_none),            BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+const PhaseTexts ph_txt_yesno         = { BtnTexts::Get(Response::Yes),              BtnTexts::Get(Response::No),    BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+// clang-format on
+/*****************************************************************************/

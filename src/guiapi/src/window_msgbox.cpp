@@ -1,12 +1,12 @@
-// window_msgbox.c
+// window_msgbox.cpp
 #include "window_msgbox.hpp"
-#include "gui.hpp"
+#include "guitypes.h"
 #include "resource.h"
 #include "button_draw.h"
 #include "sound.hpp"
-#include "../lang/i18n.h"
 #include <algorithm>
 #include "ScreenHandler.hpp"
+#include "dialog_response.hpp"
 
 //title for each icon type (empty text for 0)
 const char *window_msgbox_title_text[] = {
@@ -235,4 +235,59 @@ void window_msgbox_t::windowEvent(window_t *sender, uint8_t event, void *param) 
     default:
         window_frame_t::windowEvent(sender, event, param);
     }
+}
+
+/*****************************************************************************/
+// clang-format off
+static const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
+static const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
+static const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
+static const PhaseResponses Responses_YesNoCancel      = { Response::Yes,   Response::No,     Response::Cancel, Response::_none };
+static const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::Cancel, Response::_none,  Response::_none };
+// clang-format on
+/*****************************************************************************/
+
+/*****************************************************************************/
+//MsgBoxBase
+MsgBoxBase::MsgBoxBase(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt)
+    : IDialog(rect)
+    , text(this, getTextRect(), is_closed_on_click_t::no, txt)
+    , buttons(this, get_radio_button_size(rect), resp, labels)
+    , result(Response::_none) {
+    text.SetAlignment(ALIGN_CENTER);
+}
+
+rect_ui16_t MsgBoxBase::getTextRect() {
+    return { rect.x, rect.y, rect.w, uint16_t(rect.h - get_radio_button_size(rect).h) };
+}
+
+/*****************************************************************************/
+//static methods
+//to be used as blocking functions
+Response MsgBoxBase::Call_Custom(rect_ui16_t rect, const PhaseResponses *resp, string_view_utf8 txt) {
+    const PhaseTexts labels = { BtnTexts::Get((*resp)[0]), BtnTexts::Get((*resp)[1]), BtnTexts::Get((*resp)[2]), BtnTexts::Get((*resp)[3]) };
+    static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
+    MsgBoxBase msgbox(rect, resp, &labels, txt);
+    make_blocking_dialog(msgbox);
+    return msgbox.GetResult();
+}
+
+Response MsgBoxBase::Call_BtnOk(string_view_utf8 txt) {
+    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_Ok, txt);
+}
+
+Response MsgBoxBase::Call_BtnOkCancel(string_view_utf8 txt) {
+    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_OkCancel, txt);
+}
+
+Response MsgBoxBase::Call_BtnAbortRetryIgnore(string_view_utf8 txt) {
+    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_AbortRetryIgnore, txt);
+}
+
+Response MsgBoxBase::Call_BtnYesNoCancel(string_view_utf8 txt) {
+    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_YesNoCancel, txt);
+}
+
+Response MsgBoxBase::Call_BtnRetryCancel(string_view_utf8 txt) {
+    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_RetryCancel, txt);
 }

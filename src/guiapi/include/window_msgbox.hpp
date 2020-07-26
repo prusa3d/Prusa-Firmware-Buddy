@@ -2,6 +2,10 @@
 #pragma once
 
 #include "IDialog.hpp"
+#include "DialogRadioButton.hpp"
+#include "window_text.hpp"
+#include "../../lang/i18n.h"
+#include "general_response.hpp"
 
 //messagebox flags bitmasks
 #define MSGBOX_MSK_ICO 0x0070 // icon mask
@@ -81,3 +85,25 @@ protected:
 };
 
 extern uint16_t window_msgbox_id_icon[5];
+
+class MsgBoxBase : public IDialog {
+    window_text_t text;
+    RadioButton buttons;
+    Response result; //return value
+public:
+    MsgBoxBase(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt);
+    Response GetResult();
+
+protected:
+    rect_ui16_t getTextRect();
+    rect_ui16_t getBtnRect();
+
+public:
+    //static methods
+    static Response Call_Custom(rect_ui16_t rect, const PhaseResponses *resp, string_view_utf8 txt);
+    static Response Call_BtnOk(string_view_utf8 txt);
+    static Response Call_BtnOkCancel(string_view_utf8 txt);
+    static Response Call_BtnAbortRetryIgnore(string_view_utf8 txt);
+    static Response Call_BtnYesNoCancel(string_view_utf8 txt);
+    static Response Call_BtnRetryCancel(string_view_utf8 txt);
+};

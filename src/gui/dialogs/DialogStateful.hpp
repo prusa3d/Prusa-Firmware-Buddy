@@ -76,15 +76,6 @@ public:
     IDialogStateful(const char *name);
     bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
 
-    static rect_ui16_t get_radio_button_size() {                                // cannot be const(expr)
-        rect_ui16_t rc_btn = gui_defaults.scr_body_sz;                          // msg box size
-        rc_btn.y += (rc_btn.h - gui_defaults.btn_h - gui_defaults.frame_width); // 30pixels for button (+ 10 space for grey frame)
-        rc_btn.h = gui_defaults.btn_h;
-        rc_btn.x += gui_defaults.btn_spacing;
-        rc_btn.w -= 2 * gui_defaults.btn_spacing;
-        return rc_btn;
-    }
-
 protected:
     void draw_phase_text(string_view_utf8 text);
     void draw_frame();

@@ -1,6 +1,5 @@
 #include "DialogStateful.hpp"
-#include "DialogRadioButton.hpp"
-#include "gui.hpp"
+#include "guitypes.h"
 #include "../lang/i18n.h"
 
 static constexpr uint8_t PROGRESS_BAR_X_PAD = 10;
@@ -11,7 +10,7 @@ static constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
 //*****************************************************************************
 IDialogStateful::IDialogStateful(const char *name)
     : IDialog()
-    , radio(this, get_radio_button_size(), nullptr, nullptr)
+    , radio(this, get_radio_button_size(rect), nullptr, nullptr)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
     , font_title(gui_defaults.font_big)

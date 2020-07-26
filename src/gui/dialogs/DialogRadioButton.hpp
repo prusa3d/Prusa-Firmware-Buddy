@@ -1,9 +1,8 @@
 #pragma once
 #include <array>
 #include "client_response.hpp"
-#include "gui.hpp"
-
-using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
+#include "dialog_response.hpp"
+#include "window.hpp"
 
 //created from array of responses and array of labels
 //responses are counted and stored into btn_count

@@ -4,7 +4,7 @@
 #include "sound.hpp"
 #include "../../lang/i18n.h"
 #include "resource.h" //IDR_FNT_BIG
-#include <algorithm>
+#include "gui.hpp"
 
 /*****************************************************************************/
 //static variables and methods

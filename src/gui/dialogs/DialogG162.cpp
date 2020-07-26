@@ -5,10 +5,6 @@
 
 /*****************************************************************************/
 // clang-format off
-
-static const PhaseTexts ph_txt_stop    = { BtnTexts::Get(Response::Stop),  BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none),  BtnTexts::Get(Response::_none) };
-static const PhaseTexts ph_txt_none    = { BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none),  BtnTexts::Get(Response::_none) };
-
 static const char *txt_first              = N_("Finishing         \nbuffered gcodes.  \n");
 static const char *txt_parking            = N_("Parking");
 

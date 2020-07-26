@@ -12,6 +12,14 @@ class IDialog : public window_frame_t {
 public:
     IDialog(rect_ui16_t rc = gui_defaults.scr_body_sz);
     virtual ~IDialog();
+
+    static rect_ui16_t get_radio_button_size(rect_ui16_t rc_btn) {              // todo make constexpr
+        rc_btn.y += (rc_btn.h - gui_defaults.btn_h - gui_defaults.frame_width); // 30pixels for button (+ 10 space for grey frame)
+        rc_btn.h = gui_defaults.btn_h;
+        rc_btn.x += gui_defaults.btn_spacing;
+        rc_btn.w -= 2 * gui_defaults.btn_spacing;
+        return rc_btn;
+    }
 };
 
 void make_blocking_dialog(window_t &dlg);
