@@ -8,7 +8,7 @@
 
 //todo make some automatic checks names vs enum
 //list of all button types
-class ResponseTexts {
+class BtnTexts {
     static const std::array<const char *, static_cast<size_t>(Response::_last) + 1> texts;
 
 public:

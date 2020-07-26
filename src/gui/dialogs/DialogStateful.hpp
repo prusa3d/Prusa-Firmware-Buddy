@@ -12,6 +12,7 @@
 
 // function pointer for onEnter & onExit callbacks
 typedef void (*change_state_cb_t)();
+//using StateCreator =
 
 //abstract parent containing general code for any number of phases
 class IDialogStateful : public IDialog {
@@ -39,19 +40,22 @@ protected:
 
 public:
     struct State {
-        State(const char *lbl, RadioButton btn, change_state_cb_t enter_cb = NULL, change_state_cb_t exit_cb = NULL)
+        State(const char *lbl, const PhaseResponses &btn_resp, const PhaseTexts &btn_labels, change_state_cb_t enter_cb = NULL, change_state_cb_t exit_cb = NULL)
             : label(lbl)
-            , button(btn)
+            , btn_resp(btn_resp)
+            , btn_labels(btn_labels)
             , onEnter(enter_cb)
             , onExit(exit_cb) {}
         const char *label;
-        RadioButton button;
+        const PhaseResponses &btn_resp;
+        const PhaseTexts &btn_labels;
         // callbacks for phase start/end
         change_state_cb_t onEnter;
         change_state_cb_t onExit;
     };
 
 protected:
+    RadioButton radio;
     color_t color_text;
     font_t *font;
     font_t *font_title;
@@ -107,9 +111,11 @@ protected:
     virtual bool can_change(uint8_t phase) { return phase < SZ; }
     // get arguments callbacks and call them
     virtual void phaseEnter() {
+        radio.Change(&states[phase].btn_resp, &states[phase].btn_labels);
         if (states[phase].onEnter) {
             states[phase].onEnter();
         }
+        Invalidate();
     }
     virtual void phaseExit() {
         if (states[phase].onExit) {
@@ -127,7 +133,7 @@ public:
 
 template <class T>
 void DialogStateful<T>::unconditionalDraw() {
-    RadioButton &radio = states[phase].button;
+
     const char *text = states[phase].label;
     rect_ui16_t rc = rect;
 
@@ -147,11 +153,12 @@ void DialogStateful<T>::unconditionalDraw() {
     }
 
     //button knows when it needs to be repainted except when phase changes
-    if (flags & DLG_PHA_CH) {
+    //todo check if button repaints
+    /*if (flags & DLG_PHA_CH) {
         //do not clear DLG_PHA_CH
-        radio.DrawForced();
+        radio.unconditionalDraw();
     } else
-        radio.Draw();
+        radio.Draw();*/
 
     if (flags & DLG_TXT_CH) //text changed
     {
@@ -172,7 +179,6 @@ void DialogStateful<T>::unconditionalDraw() {
 
 template <class T>
 void DialogStateful<T>::windowEvent(window_t * /*sender*/, uint8_t event, void *param) {
-    RadioButton &radio = states[phase].button;
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK: {

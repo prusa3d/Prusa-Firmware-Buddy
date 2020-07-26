@@ -6,7 +6,7 @@
 //todo make some automatic checks names vs enum
 //list of all button types
 
-const std::array<const char *, static_cast<size_t>(Response::_last) + 1> ResponseTexts::texts {
+const std::array<const char *, static_cast<size_t>(Response::_last) + 1> BtnTexts::texts {
     "",
     N_("YES"),
     N_("NO"),
@@ -20,6 +20,6 @@ const std::array<const char *, static_cast<size_t>(Response::_last) + 1> Respons
     N_("DISABLE SENSOR")
 };
 
-const char *ResponseTexts::Get(Response resp) {
+const char *BtnTexts::Get(Response resp) {
     return texts[static_cast<size_t>(resp)];
 }

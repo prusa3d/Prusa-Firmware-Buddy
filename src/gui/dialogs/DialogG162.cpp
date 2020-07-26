@@ -1,32 +1,21 @@
 #include "DialogG162.hpp"
-#include "gui.hpp"    //resource_font
-#include "resource.h" //IDR_FNT_BIG
+#include "gui.hpp" //resource_font
 #include "../lang/i18n.h"
-
-//all buttons share same Window, thus it must be static
-static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_defaults.color_back, IDialogStateful::get_radio_button_size() };
-
-//shorter creation of single state
-inline RadioButton btn(PhasesG162 phase, const PhaseTexts &texts) {
-    return RadioButton(radio_win, ClientResponses::GetResponses(phase), texts);
-}
+#include "dialog_response.hpp"
 
 /*****************************************************************************/
 // clang-format off
-//todo move button texts
-static const char *txt_none   = "";
-static const char *txt_stop   = N_("STOP");
 
-static const PhaseTexts ph_txt_stop    = { txt_stop,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_none    = { txt_none,   txt_none, txt_none,  txt_none };
+static const PhaseTexts ph_txt_stop    = { BtnTexts::Get(Response::Stop),  BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none),  BtnTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_none    = { BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none),  BtnTexts::Get(Response::_none) };
 
 static const char *txt_first              = N_("Finishing         \nbuffered gcodes.  \n");
 static const char *txt_parking            = N_("Parking");
 
 static DialogG162::States Factory() {
     DialogG162::States ret = {
-        DialogG162::State { txt_first,              btn(PhasesG162::_first,           ph_txt_none) },
-        DialogG162::State { txt_parking,            btn(PhasesG162::Parking,          ph_txt_stop) },
+        DialogG162::State { txt_first,   ClientResponses::GetResponses(PhasesG162::_first),  ph_txt_none },
+        DialogG162::State { txt_parking, ClientResponses::GetResponses(PhasesG162::Parking), ph_txt_stop },
     };
     return ret;
 }
