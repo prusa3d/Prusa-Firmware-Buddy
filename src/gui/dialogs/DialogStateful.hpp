@@ -115,7 +115,6 @@ protected:
         if (states[phase].onEnter) {
             states[phase].onEnter();
         }
-        Invalidate();
     }
     virtual void phaseExit() {
         if (states[phase].onExit) {
