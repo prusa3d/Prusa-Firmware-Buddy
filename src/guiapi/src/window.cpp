@@ -96,7 +96,7 @@ window_t::window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog, is_cl
     , color_back(gui_defaults.color_back) {
     f_dialog = dialog;
     f_on_click_close_screen = close;
-    Disable();
+    close == is_closed_on_click_t::yes ? Enable() : Disable();
     Show();
     Invalidate();
     if (parent)
