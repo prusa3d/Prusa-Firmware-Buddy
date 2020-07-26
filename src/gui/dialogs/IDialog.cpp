@@ -15,7 +15,7 @@ IDialog::~IDialog() {
         id_capture->SetCapture();
 }
 
-void make_blocking_dialog(window_t &dlg) {
+void create_blocking_dialog_from_normal_window(window_t &dlg) {
     window_t *id_capture = window_t::GetCapturedWindow();
 
     dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
@@ -29,4 +29,13 @@ void make_blocking_dialog(window_t &dlg) {
 
     if (id_capture)
         id_capture->SetCapture();
+}
+
+void IDialog::MakeBlocking() const {
+    gui_reset_jogwheel();
+    //gui_invalidate();
+
+    while (!Screens::Access()->ConsumeClose()) {
+        gui_loop();
+    }
 }

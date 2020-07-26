@@ -43,7 +43,7 @@ template <class T>
 FILAMENT_t make_preheat_dialog(string_view_utf8 caption) {
     set_last_preheated_filament(FILAMENT_NONE);
     T dlg(caption, Screens::Access()->Get(), gui_defaults.scr_body_sz);
-    make_blocking_dialog(dlg);
+    create_blocking_dialog_from_normal_window(dlg);
     return get_last_preheated_filament();
 }
 

@@ -168,7 +168,7 @@ int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
         const int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
         memcpy(msgbox.buttons, buttons, count * sizeof(char *));
     }
-    make_blocking_dialog(msgbox);
+    create_blocking_dialog_from_normal_window(msgbox);
     return msgbox.res;
 }
 

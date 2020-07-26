@@ -98,13 +98,13 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
         //and show windows that have no intersection with it
         last->Show();
     } else {
-        //show all dindows
+        //show all windows
         //todo check shadowed by dialog flag
-        /* window_t *pWin = first;
+        window_t *pWin = first;
         while (pWin) {
             pWin->Show();
             pWin = pWin->GetNext();
-        }*/
+        }
 
         //todo remove after menu refactoring - menu items must be windows
         //needed for menu
@@ -148,7 +148,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     case WINDOW_EVENT_BTN_DN:
         if (pWin) {
             pWin->WindowEvent(this, WINDOW_EVENT_CLICK, nullptr);
-            pWin->SetCapture();
+            //pWin->SetCapture(); //item must do this - only some of them
         }
         break;
     case WINDOW_EVENT_ENC_DN:

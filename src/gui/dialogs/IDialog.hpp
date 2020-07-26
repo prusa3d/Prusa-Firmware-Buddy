@@ -20,6 +20,9 @@ public:
         rc_btn.w -= 2 * gui_defaults.btn_spacing;
         return rc_btn;
     }
+
+    void MakeBlocking() const; //could be static, but I want it to be usable only from dialog
 };
 
-void make_blocking_dialog(window_t &dlg);
+void create_blocking_dialog_from_normal_window(window_t &dlg);
+void create_blocking_dialog(IDialog &dlg);

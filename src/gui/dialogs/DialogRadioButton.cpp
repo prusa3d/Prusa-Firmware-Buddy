@@ -36,6 +36,7 @@ RadioButton::RadioButton(window_t *parent, rect_ui16_t rect, const PhaseResponse
     , texts(labels)
     , btn_count(cnt_buttons(labels, resp))
     , selected_index(0) {
+    Enable();
 }
 
 //no overflow

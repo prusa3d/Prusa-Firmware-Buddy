@@ -39,6 +39,7 @@ class window_t {
     window_t *next;
 
 protected:
+    //todo add can capture flag (needed in frame event and SetCapture)
     union {
         uint16_t flg;
         struct {

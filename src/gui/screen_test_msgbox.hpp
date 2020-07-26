@@ -7,8 +7,8 @@
 struct screen_test_msgbox_data_t : public window_frame_t {
     window_text_t tst;
     window_text_t back;
-    window_text_t tst_ok;
-    window_text_t tst_okcancel;
+    window_text_button_t tst_ok;
+    window_text_button_t tst_okcancel;
     window_text_t tst_abortretryignore;
     window_text_t tst_yesnocancel;
     window_text_t tst_yesno;

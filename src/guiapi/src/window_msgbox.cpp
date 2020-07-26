@@ -254,11 +254,37 @@ MsgBoxBase::MsgBoxBase(rect_ui16_t rect, const PhaseResponses *resp, const Phase
     , text(this, getTextRect(), is_closed_on_click_t::no, txt)
     , buttons(this, get_radio_button_size(rect), resp, labels)
     , result(Response::_none) {
-    text.SetAlignment(ALIGN_CENTER);
+    //text.SetAlignment(ALIGN_CENTER);
+    //buttons.SetCapture(); //todo make this work
 }
 
 rect_ui16_t MsgBoxBase::getTextRect() {
     return { rect.x, rect.y, rect.w, uint16_t(rect.h - get_radio_button_size(rect).h) };
+}
+
+Response MsgBoxBase::GetResult() {
+    return result;
+}
+
+//todo make radi button events behave like normal button
+void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
+    switch (event) {
+    case WINDOW_EVENT_BTN_DN:
+    case WINDOW_EVENT_CLICK:
+        result = buttons.Click();
+        Screens::Access()->Close();
+        break;
+    case WINDOW_EVENT_ENC_UP:
+        ++buttons;
+        gui_invalidate();
+        break;
+    case WINDOW_EVENT_ENC_DN:
+        --buttons;
+        gui_invalidate();
+        break;
+    default:
+        IDialog::windowEvent(sender, event, param);
+    }
 }
 
 /*****************************************************************************/
@@ -268,7 +294,7 @@ Response MsgBoxBase::Call_Custom(rect_ui16_t rect, const PhaseResponses *resp, s
     const PhaseTexts labels = { BtnTexts::Get((*resp)[0]), BtnTexts::Get((*resp)[1]), BtnTexts::Get((*resp)[2]), BtnTexts::Get((*resp)[3]) };
     static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
     MsgBoxBase msgbox(rect, resp, &labels, txt);
-    make_blocking_dialog(msgbox);
+    msgbox.MakeBlocking();
     return msgbox.GetResult();
 }
 

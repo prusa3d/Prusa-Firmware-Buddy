@@ -97,6 +97,7 @@ public:
 protected:
     rect_ui16_t getTextRect();
     rect_ui16_t getBtnRect();
+    virtual void windowEvent(window_t * /*sender*/, uint8_t event, void *param) override;
 
 public:
     //static methods

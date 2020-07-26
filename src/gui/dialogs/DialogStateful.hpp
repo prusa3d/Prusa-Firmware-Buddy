@@ -167,6 +167,7 @@ void DialogStateful<T>::unconditionalDraw() {
     }
 }
 
+//todo make radi button events behave like normal button
 template <class T>
 void DialogStateful<T>::windowEvent(window_t * /*sender*/, uint8_t event, void *param) {
     switch (event) {
