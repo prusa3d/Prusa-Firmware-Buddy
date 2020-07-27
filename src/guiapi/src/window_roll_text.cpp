@@ -43,7 +43,7 @@ void window_roll_text_draw(window_roll_text_t *window) {
 
 void window_roll_text_event(window_roll_text_t *window, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_TIMER) {
-        roll_text_phasing(window->id, window->font, &window->roll);
+        roll_text_phasing(window->id, window->font, window->roll);
     }
 }
 

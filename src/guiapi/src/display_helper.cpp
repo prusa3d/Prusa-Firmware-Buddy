@@ -22,7 +22,7 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 /// \param clr_fg font/foreground color
 /// \returns true if whole text was written
 /// Extracted from st7789v implementation, where it shouldn't be @@TODO cleanup
-bool render_text(const rect_ui16_t &rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     int x = rc.x;
     int y = rc.y;
     const uint16_t rc_end_x = rc.x + rc.w;
@@ -188,40 +188,40 @@ void render_icon_align(const rect_ui16_t &rc, uint16_t id_res, color_t clr_bg, u
         display::FillRect(rc, opt_clr);
 }
 
-void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t &roll) {
-    if (roll.setup == TXTROLL_SETUP_IDLE)
+void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
+    if (roll->setup == TXTROLL_SETUP_IDLE)
         return;
     window_t *pWin = window_ptr(win_id);
     if (!pWin)
         return;
 
-    switch (roll.phase) {
+    switch (roll->phase) {
     case ROLL_SETUP:
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
-        if (roll.setup == TXTROLL_SETUP_DONE)
-            roll.phase = ROLL_GO;
+        if (roll->setup == TXTROLL_SETUP_DONE)
+            roll->phase = ROLL_GO;
         pWin->Invalidate();
         break;
     case ROLL_GO:
-        if (roll.count > 0 || roll.px_cd > 0) {
-            if (roll.px_cd == 0) {
-                roll.px_cd = font->w;
-                roll.count--;
-                roll.progress++;
+        if (roll->count > 0 || roll->px_cd > 0) {
+            if (roll->px_cd == 0) {
+                roll->px_cd = font->w;
+                roll->count--;
+                roll->progress++;
             }
-            roll.px_cd--;
+            roll->px_cd--;
             pWin->Invalidate();
         } else {
-            roll.phase = ROLL_STOP;
+            roll->phase = ROLL_STOP;
         }
         break;
     case ROLL_STOP:
-        roll.phase = ROLL_RESTART;
+        roll->phase = ROLL_RESTART;
         gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
         break;
     case ROLL_RESTART:
-        roll.setup = TXTROLL_SETUP_INIT;
-        roll.phase = ROLL_SETUP;
+        roll->setup = TXTROLL_SETUP_INIT;
+        roll->phase = ROLL_SETUP;
         pWin->Invalidate();
         break;
     }
