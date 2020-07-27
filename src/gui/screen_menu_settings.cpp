@@ -28,7 +28,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
-            gui_msgbox(_("No filament sensor detected. Verify that the sensor is connected and try again."), MSGBOX_ICO_QUESTION);
+            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
             fs = FS_DISABLED;
         }
         return fs == FS_DISABLED ? 0 : 1;
@@ -43,7 +43,7 @@ public:
         if (fs == FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
             fs_disable();
             index = 0;
-            gui_msgbox(_("No filament sensor detected. Verify that the sensor is connected and try again."), MSGBOX_ICO_QUESTION);
+            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
         }
     }
 
@@ -55,7 +55,7 @@ protected:
         {
             fs_disable();
             index = old_index;
-            gui_msgbox(_("No filament sensor detected. Verify that the sensor is connected and try again."), MSGBOX_ICO_QUESTION);
+            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
         }
     }
 };

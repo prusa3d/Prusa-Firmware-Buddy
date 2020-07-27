@@ -105,9 +105,9 @@ MI_FACTORY_DEFAULTS::MI_FACTORY_DEFAULTS()
 }
 
 void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
-    if (gui_msgbox(_("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
+    if (MsgBoxWarning(_("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
         eeprom_defaults();
-        gui_msgbox(_("Factory defaults loaded. The system will now restart."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        MsgBoxInfo(_("Factory defaults loaded. The system will now restart."), Responses_Ok);
         sys_reset();
     }
 }
@@ -120,9 +120,9 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
     if (dump_save_to_usb("dump.bin"))
-        gui_msgbox(_("A crash dump report (file dump.bin) has been saved to the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
-        gui_msgbox(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
 }
 
 /*****************************************************************************/

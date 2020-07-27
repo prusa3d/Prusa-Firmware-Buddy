@@ -103,9 +103,8 @@ void screen_printing_data_t::stopAction() {
     case printing_state_t::RESUMING:
         return;
     default: {
-        if (gui_msgbox(_("Are you sure to stop this printing?"),
-                MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1)
-            == MSGBOX_RES_YES) {
+        if (MsgBoxWarning(_("Are you sure to stop this printing?"), Responses_YesNo, 1)
+            == Response::Yes) {
             stop_pressed = true;
             change_print_state();
             marlin_print_abort();
@@ -294,7 +293,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
 
     if ((state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
-        if (gui_msgbox(_("Bed leveling failed. Try again?"), MSGBOX_BTN_YESNO) == MSGBOX_RES_YES) {
+        if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
         } else {
             Screens::Access()->Close();

@@ -15,13 +15,13 @@ screen_test_msgbox_data_t::screen_test_msgbox_data_t()
     : window_frame_t()
     , tst(this, rect_ui16(10, 32, 220, 22))
     , back(this, rect_ui16(10, 54, 220, 22), is_closed_on_click_t::yes)
-    , tst_ok(this, rect_ui16(10, 76, 220, 22), []() { MsgBox(Responses_Ok, test_text_view); })
-    , tst_okcancel(this, rect_ui16(10, 98, 220, 22), []() { MsgBox(Responses_OkCancel, test_text_view); })
-    , tst_ico_error(this, rect_ui16(10, 120, 220, 22), []() { MsgBoxError(Responses_AbortRetryIgnore, test_text_view); })
-    , tst_ico_question(this, rect_ui16(10, 142, 220, 22), []() { MsgBoxQuestion(Responses_YesNoCancel, test_text_view); })
-    , tst_ico_warning(this, rect_ui16(10, 164, 220, 22), []() { MsgBoxWarning(Responses_YesNo, test_text_view); })
-    , tst_ico_info(this, rect_ui16(10, 186, 220, 22), []() { MsgBoxQuestion(Responses_RetryCancel, test_text_view); })
-    , tst_icon(this, rect_ui16(10, 208, 220, 22), []() { MsgBoxPepa(Responses_Ok, test_text_view); }) {
+    , tst_ok(this, rect_ui16(10, 76, 220, 22), []() { MsgBox(test_text_view, Responses_Ok); })
+    , tst_okcancel(this, rect_ui16(10, 98, 220, 22), []() { MsgBox(test_text_view, Responses_OkCancel); })
+    , tst_ico_error(this, rect_ui16(10, 120, 220, 22), []() { MsgBoxError(test_text_view, Responses_AbortRetryIgnore); })
+    , tst_ico_question(this, rect_ui16(10, 142, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_YesNoCancel); })
+    , tst_ico_warning(this, rect_ui16(10, 164, 220, 22), []() { MsgBoxWarning(test_text_view, Responses_YesNo); })
+    , tst_ico_info(this, rect_ui16(10, 186, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_RetryCancel); })
+    , tst_icon(this, rect_ui16(10, 208, 220, 22), []() { MsgBoxPepa(test_text_view, Responses_Ok); }) {
     static const char tm[] = "TEST MSGBOX";
     tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tm));
 

@@ -100,7 +100,7 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event,
     /// parking -> cooldown hotend & bed -> turn off print fan
 
     if (connection == connection_state_t::disconnect) {
-        if (gui_msgbox(_("Really Disconnect?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
+        if (MsgBoxWarning(_("Really Disconnect?"), Responses_YesNo, 1) == Response::Yes) {
 
             DisableButton(buttons_t::TUNE);
             DisableButton(buttons_t::PAUSE);

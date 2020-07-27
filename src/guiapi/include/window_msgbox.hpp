@@ -85,6 +85,7 @@ protected:
     virtual void unconditionalDraw() override;
 };
 
+extern const PhaseResponses Responses_NONE;
 extern const PhaseResponses Responses_Ok;
 extern const PhaseResponses Responses_OkCancel;
 extern const PhaseResponses Responses_AbortRetryIgnore;
@@ -140,10 +141,11 @@ protected:
     rect_ui16_t getIconnedTextRect(); // icon and title must be initialized
 };
 
-Response MsgBox(const PhaseResponses &resp, string_view_utf8 txt);
-Response MsgBoxError(const PhaseResponses &resp, string_view_utf8 txt);
-Response MsgBoxQuestion(const PhaseResponses &resp, string_view_utf8 txt);
-Response MsgBoxWarning(const PhaseResponses &resp, string_view_utf8 txt);
-Response MsgBoxInfo(const PhaseResponses &resp, string_view_utf8 txt);
-Response MsgBoxIcon(const PhaseResponses &resp, string_view_utf8 txt, uint16_t icon_id);
-Response MsgBoxPepa(const PhaseResponses &resp, string_view_utf8 txt);
+//todo default button
+Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);

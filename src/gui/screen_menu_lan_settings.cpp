@@ -283,22 +283,22 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
     msg_shown = true;
     switch (msg) {
     case Eth::Msg::StaicAddrErr:
-        gui_msgbox(_("Static IPv4 addresses were not set."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("Static IPv4 addresses were not set."), Responses_Ok);
         break;
     case Eth::Msg::NoUSB:
-        gui_msgbox(_("Please insert a USB drive and try again."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("Please insert a USB drive and try again."), Responses_Ok);
         break;
     case Eth::Msg::SaveOK:
-        gui_msgbox(_("The settings have been saved successfully in the \"lan_settings.ini\" file."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        MsgBoxInfo(_("The settings have been saved successfully in the \"lan_settings.ini\" file."), Responses_Ok);
         break;
     case Eth::Msg::SaveNOK:
-        gui_msgbox(_("There was an error saving the settings in the \"lan_settings.ini\" file."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("There was an error saving the settings in the \"lan_settings.ini\" file."), Responses_Ok);
         break;
     case Eth::Msg::LoadOK:
-        gui_msgbox(_("Settings successfully loaded"), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        MsgBoxInfo(_("Settings successfully loaded"), Responses_Ok);
         break;
     case Eth::Msg::LoadNOK:
-        gui_msgbox(_("IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), Responses_Ok);
         break;
     default:
         break;

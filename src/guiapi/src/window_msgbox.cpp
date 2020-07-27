@@ -239,6 +239,7 @@ void window_msgbox_t::windowEvent(window_t *sender, uint8_t event, void *param) 
 
 /*****************************************************************************/
 // clang-format off
+const PhaseResponses Responses_NONE             = { Response::_none,    Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
 const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
@@ -366,38 +367,38 @@ Response MsgBox_Custom(rect_ui16_t rect, const PhaseResponses &resp, string_view
     return msgbox.GetResult();
 }
 
-Response MsgBox(const PhaseResponses &resp, string_view_utf8 txt) {
+Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
     return MsgBox_Custom<MsgBoxBase>(gui_defaults.scr_body_sz, resp, txt);
 }
 
-Response MsgBoxError(const PhaseResponses &resp, string_view_utf8 txt) {
+Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
     constexpr static const char *label = N_("ERROR");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
     return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_error);
 }
 
-Response MsgBoxQuestion(const PhaseResponses &resp, string_view_utf8 txt) {
+Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
     constexpr static const char *label = N_("QUESTION");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
     return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_question);
 }
 
-Response MsgBoxWarning(const PhaseResponses &resp, string_view_utf8 txt) {
+Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
     constexpr static const char *label = N_("WARNING");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
     return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_warning);
 }
 
-Response MsgBoxInfo(const PhaseResponses &resp, string_view_utf8 txt) {
+Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
     constexpr static const char *label = N_("INFO");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
     return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_info);
 }
 
-Response MsgBoxIcon(const PhaseResponses &resp, string_view_utf8 txt, uint16_t icon_id) {
+Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp, size_t def_btn) {
     return MsgBox_Custom<MsgBoxIconned>(gui_defaults.scr_body_sz, resp, txt, icon_id);
 }
 
-Response MsgBoxPepa(const PhaseResponses &resp, string_view_utf8 txt) {
-    return MsgBoxIcon(resp, txt, IDR_PNG_icon_pepa);
+Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return MsgBoxIcon(txt, IDR_PNG_icon_pepa, resp);
 }

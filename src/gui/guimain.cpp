@@ -118,7 +118,7 @@ extern "C" void gui_run(void) {
         Screens::Access()->Loop();
         // show warning dialog on safety timer expiration
         if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
-            gui_msgbox(_("Heating disabled due to 30 minutes of inactivity."), MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
+            MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
         }
         gui_loop();
         /*if (marlin_message_received()) {
