@@ -93,20 +93,6 @@ extern const PhaseResponses Responses_AbortRetryIgnore;
 extern const PhaseResponses Responses_YesNoCancel;
 extern const PhaseResponses Responses_RetryCancel;
 
-//static template methods to be used with MsgBoxBase or its child
-template <class T>
-static Response Call_Custom(rect_ui16_t rect, const PhaseResponses *resp, string_view_utf8 txt);
-template <class T>
-static Response Call_BtnOk(string_view_utf8 txt);
-template <class T>
-static Response Call_BtnOkCancel(string_view_utf8 txt);
-template <class T>
-static Response Call_BtnAbortRetryIgnore(string_view_utf8 txt);
-template <class T>
-static Response Call_BtnYesNoCancel(string_view_utf8 txt);
-template <class T>
-static Response Call_BtnRetryCancel(string_view_utf8 txt);
-
 /*****************************************************************************/
 //MsgBoxBase
 class MsgBoxBase : public IDialog {
@@ -120,8 +106,7 @@ public:
 
 protected:
     rect_ui16_t getTextRect();
-    rect_ui16_t getBtnRect();
-    virtual void windowEvent(window_t * /*sender*/, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 
 public:
 };
@@ -145,39 +130,9 @@ protected:
     rect_ui16_t getTitledTextRect(); // icon and title must be initialized
 };
 
-/*****************************************************************************/
-//MsgBoxBase variadic template methods
-//to be used as blocking functions
-template <class T>
-Response Call_Custom(rect_ui16_t rect, const PhaseResponses *resp, string_view_utf8 txt) {
-    const PhaseTexts labels = { BtnTexts::Get((*resp)[0]), BtnTexts::Get((*resp)[1]), BtnTexts::Get((*resp)[2]), BtnTexts::Get((*resp)[3]) };
-    //static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
-    T msgbox(rect, resp, &labels, txt);
-    msgbox.MakeBlocking();
-    return msgbox.GetResult();
-}
-
-template <class T>
-Response Call_BtnOk(string_view_utf8 txt) {
-    return Call_Custom<T>(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_Ok, txt);
-}
-
-template <class T>
-Response Call_BtnOkCancel(string_view_utf8 txt) {
-    return Call_Custom<T>(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_OkCancel, txt);
-}
-
-template <class T>
-Response Call_BtnAbortRetryIgnore(string_view_utf8 txt) {
-    return Call_Custom<T>(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_AbortRetryIgnore, txt);
-}
-
-template <class T>
-Response Call_BtnYesNoCancel(string_view_utf8 txt) {
-    return Call_Custom<T>(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_YesNoCancel, txt);
-}
-
-template <class T>
-Response Call_BtnRetryCancel(string_view_utf8 txt) {
-    return Call_Custom<T>(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_RetryCancel, txt);
-}
+Response MsgBox(const PhaseResponses &resp, string_view_utf8 txt);
+Response MsgBoxError(const PhaseResponses &resp, string_view_utf8 txt);
+Response MsgBoxQuestion(const PhaseResponses &resp, string_view_utf8 txt);
+Response MsgBoxWarning(const PhaseResponses &resp, string_view_utf8 txt);
+Response MsgBoxInfo(const PhaseResponses &resp, string_view_utf8 txt);
+Response MsgBoxIcon(const PhaseResponses &resp, string_view_utf8 txt);

@@ -294,6 +294,7 @@ MsgBoxTitled::MsgBoxTitled(rect_ui16_t rect, const PhaseResponses *resp, const P
     , title_icon(this, title_icon_id_res, { rect.x, rect.y }, gui_defaults.padding)
     , title(this, getTitleRect(), is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
+    title.font = getTitleFont();
 }
 
 rect_ui16_t MsgBoxTitled::getTitleRect() {
@@ -302,7 +303,7 @@ rect_ui16_t MsgBoxTitled::getTitleRect() {
         title_rect = title_icon.rect;      // Y, H is valid
         title_rect.x += title_icon.rect.w; // fix X
     } else {
-        title_rect = rect;                // X Y is valid
+        title_rect = rect;                // X, Y is valid
         title_rect.h = getTitleFont()->h; // fix H
     }
     //now just need to calculate W
@@ -313,11 +314,11 @@ rect_ui16_t MsgBoxTitled::getTitleRect() {
 rect_ui16_t MsgBoxTitled::getTitledTextRect() {
     rect_ui16_t text_rect = rect;
     text_rect.h -= getTitleRect().h;
-    text_rect.h -= 2; // 1px red line, 1px space after red line
-    text_rect.h -= getBtnRect().h;
+    text_rect.h -= 4; // atleast 1px red line and 1px space after red line
+    text_rect.h -= get_radio_button_size(rect).h;
 
     text_rect.y += getTitleRect().h;
-    text_rect.h += 2; // 1px red line, 1px space after red line
+    text_rect.y += 4; // atleast 1px red line and 1px space after red line
     return text_rect;
 }
 
@@ -327,9 +328,56 @@ font_t *MsgBoxTitled::getTitleFont() {
 
 void MsgBoxTitled::unconditionalDraw() {
     MsgBoxBase::unconditionalDraw();
-    rect_ui16_t rc_tit = getTitleRect();
+    rect_ui16_t rc = getTitledTextRect();
 
-    display::DrawLine(point_ui16(rc_tit.x + title.padding.left, rc_tit.y + rc_tit.h),
-        point_ui16(rc_tit.x + rc_tit.w - (title.padding.left + title.padding.right), rc_tit.y + rc_tit.h),
+    display::DrawLine(point_ui16(rc.x + title.padding.left, rc.y - 1),
+        point_ui16(rc.w - 2 * (title.padding.left + title.padding.right), rc.y - 1),
         COLOR_RED_ALERT);
+}
+
+/*****************************************************************************/
+//MsgBoxBase variadic template methods
+//to be used as blocking functions
+template <class T, typename... Args>
+Response Call_Custom(rect_ui16_t rect, const PhaseResponses &resp, string_view_utf8 txt, Args... args) {
+    const PhaseTexts labels = { BtnTexts::Get(resp[0]), BtnTexts::Get(resp[1]), BtnTexts::Get(resp[2]), BtnTexts::Get(resp[3]) };
+    //static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
+    T msgbox(rect, &resp, &labels, txt, args...);
+    msgbox.MakeBlocking();
+    return msgbox.GetResult();
+}
+
+template <class T, typename... Args>
+Response Call_BtnOk(string_view_utf8 txt, Args... args) {
+    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_Ok, txt, args...);
+}
+
+template <class T, typename... Args>
+Response Call_BtnOkCancel(string_view_utf8 txt, Args... args) {
+    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_OkCancel, txt, args...);
+}
+
+template <class T, typename... Args>
+Response Call_BtnAbortRetryIgnore(string_view_utf8 txt, Args... args) {
+    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_AbortRetryIgnore, txt, args...);
+}
+
+template <class T, typename... Args>
+Response Call_BtnYesNoCancel(string_view_utf8 txt, Args... args) {
+    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_YesNoCancel, txt, args...);
+}
+
+template <class T, typename... Args>
+Response Call_BtnRetryCancel(string_view_utf8 txt, Args... args) {
+    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_RetryCancel, txt, args...);
+}
+
+Response MsgBox(const PhaseResponses &resp, string_view_utf8 txt) {
+    return Call_Custom<MsgBoxBase>(gui_defaults.scr_body_sz, resp, txt);
+}
+
+Response MsgBoxError(const PhaseResponses &resp, string_view_utf8 txt) {
+    constexpr static const char *label = N_("ERROR");
+    static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
+    return Call_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_error);
 }
