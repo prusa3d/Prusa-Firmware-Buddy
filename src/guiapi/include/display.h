@@ -30,7 +30,7 @@ public:
     constexpr static void DrawRect(rect_ui16_t rc, color_t clr) { DRAW_RECT(rc, clr); }
     constexpr static void FillRect(rect_ui16_t rc, color_t clr) { FIL_RECT(rc, clr); }
     constexpr static bool DrawChar(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_CHAR(pt, chr, pf, clr_bg, clr_fg); }
-    static bool DrawText(const rect_ui16_t &rc, string_view_utf8 str, const font_t &pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
+    static bool DrawText(const rect_ui16_t &rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
     constexpr static void DrawIcon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) { DRAW_ICON(pt, id_res, clr0, rop); }
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };

@@ -471,16 +471,16 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                                   pd->dot_coordsKd_E[1], 2, 2),
                 COLOR_WHITE);
 
-            display::DrawText(pd->rect_E, _("NOZZLE"), *resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rect_E, _("NOZZLE"), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
             static const char kp[] = "Kp";
-            display::DrawText(pd->rectKp_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), *resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKp_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
             static const char ki[] = "Ki";
-            display::DrawText(pd->rectKi_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), *resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKi_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
             static const char kd[] = "Kd";
-            display::DrawText(pd->rectKd_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), *resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKd_E, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
 
             display::FillRect(rect_ui16(pd->dot_coordsKp_B[0],
@@ -493,13 +493,13 @@ int screen_PID_event(screen_t *screen, window_t *window, uint8_t event, void *pa
                                   pd->dot_coordsKd_B[1], 2, 2),
                 COLOR_WHITE);
 
-            display::DrawText(pd->rect_B, _("BED"), *resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rect_B, _("BED"), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKp_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), *resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKp_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kp), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKi_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), *resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKi_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)ki), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
-            display::DrawText(pd->rectKd_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), *resource_font(IDR_FNT_NORMAL),
+            display::DrawText(pd->rectKd_B, string_view_utf8::MakeCPUFLASH((const uint8_t *)kd), resource_font(IDR_FNT_NORMAL),
                 COLOR_BLACK, COLOR_ORANGE);
         }
 

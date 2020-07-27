@@ -147,7 +147,7 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
     if ((event == WINDOW_EVENT_LOOP) && pw->logo_invalid) {
 #ifdef _DEBUG
         static const char dbg[] = "DEBUG";
-        display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), *resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
         pw->logo_invalid = 0;
     }

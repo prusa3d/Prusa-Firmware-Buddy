@@ -101,7 +101,7 @@ int font_line_chars(const font_t *pf, unichar *str, uint16_t line_width) {
     return (n != 0) ? n : line_width / char_w;
 }
 
-void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t &font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags) {
+void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP
@@ -117,39 +117,39 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t &font
             ++str;
         }
         str = png_mem_ptr0; // reset the string pointer to its beginning ... and now we can keep the old algorithm almost intact
-        while ((n = font_line_chars(&font, str, rc_pad.w)) && ((y + font.h) <= (rc_pad.y + rc_pad.h))) {
+        while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
             x = rc_pad.x;
             i = 0;
             while (str[i] == ' ' || str[i] == '\n')
                 i++;
             for (; i < n; i++) {
                 if (str[i] < 128) {
-                    display::DrawChar(point_ui16(x, y), str[i], &font, clr_bg, clr_fg);
-                    x += font.w;
+                    display::DrawChar(point_ui16(x, y), str[i], font, clr_bg, clr_fg);
+                    x += font->w;
                 } else {
                     const auto &convertedChar = ConvertUnicharToFontCharIndex(str[i]);
                     for (size_t cci = 0; cci < convertedChar.second; ++cci) {
-                        display::DrawChar(point_ui16(x, y), convertedChar.first[cci], &font, clr_bg, clr_fg);
-                        x += font.w;
+                        display::DrawChar(point_ui16(x, y), convertedChar.first[cci], font, clr_bg, clr_fg);
+                        x += font->w;
                     }
                 }
             }
-            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font.h), clr_bg);
+            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr_bg);
             str += n;
-            y += font.h;
+            y += font->h;
         }
         display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr_bg);
         fill_between_rectangles(rc, rc_pad, clr_bg);
     } else {
         // 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
         uint16_t strlen_text = 0;
-        point_ui16_t wh_txt = font_meas_text(&font, &text, &strlen_text);
+        point_ui16_t wh_txt = font_meas_text(font, &text, &strlen_text);
         if (wh_txt.x && wh_txt.y) {
             rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
             rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
             uint8_t unused_pxls = 0;
-            if (strlen_text * font.w > rc_txt.w) {
-                unused_pxls = rc_txt.w % font.w;
+            if (strlen_text * font->w > rc_txt.w) {
+                unused_pxls = rc_txt.w % font->w;
             }
 
             const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };

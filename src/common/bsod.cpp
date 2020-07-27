@@ -135,7 +135,7 @@ static void stop_common(void) {
 //! @param background_color background color
 static void print_error(term_t *term, color_t background_color) {
     render_term(rect_ui16(10, 10, 220, 288), term, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
-    display::DrawText(rect_ui16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), *resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    display::DrawText(rect_ui16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
 }
 
 //! @brief Marlin stopped
@@ -161,7 +161,7 @@ void general_error(const char *error, const char *module) {
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
 
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeRAM((const uint8_t *)error), *gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeRAM((const uint8_t *)error), gui_defaults.font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
@@ -171,7 +171,7 @@ void general_error(const char *error, const char *module) {
     render_term(rect_ui16(PADDING, 100, 220, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), *gui_defaults.font,
+    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), gui_defaults.font,
         COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
 
     jogwheel_init();
@@ -519,7 +519,7 @@ void ScreenHardFault(void) {
     }
 
     render_term(rect_ui16(10, 10, 220, 288), &term, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
-    display::DrawText(rect_ui16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), *resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    display::DrawText(rect_ui16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 
     while (1) //endless loop
     {

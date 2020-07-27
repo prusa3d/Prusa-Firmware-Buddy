@@ -60,7 +60,7 @@ void IDialogStateful::draw_frame() {
 }
 
 //todo this should be moved elsewhere
-void progress_draw(rect_ui16_t win_rect, const font_t *font, color_t color_back,
+void progress_draw(rect_ui16_t win_rect, const font_t font, color_t color_back,
     color_t color_text, padding_ui8_t padding, uint8_t progress) {
 
     const uint16_t progress_w = win_rect.w - 2 * PROGRESS_BAR_X_PAD;
@@ -84,7 +84,7 @@ void progress_draw(rect_ui16_t win_rect, const font_t *font, color_t color_back,
     char text[6];
     snprintf(text, sizeof(text), "%d%%", progress);
     // this MakeRAM is safe - text is not necessary after render_text_align finishes its work
-    render_text_align(rc_text, string_view_utf8::MakeRAM((const uint8_t *)text), *font, color_back, color_text, padding, ALIGN_CENTER);
+    render_text_align(rc_text, string_view_utf8::MakeRAM((const uint8_t *)text), font, color_back, color_text, padding, ALIGN_CENTER);
 }
 
 //todo this should be moved elsewhere
@@ -133,6 +133,6 @@ void IDialogStateful::draw_phase_text(const char *text) {
 
     last_text_h = rc_sta.h;
 
-    render_text_align(rc_sta, _(text), *font_title,
+    render_text_align(rc_sta, _(text), font_title,
         color_back, color_text, padding, ALIGN_CENTER);
 }
