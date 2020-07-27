@@ -85,8 +85,6 @@ protected:
     virtual void unconditionalDraw() override;
 };
 
-extern uint16_t window_msgbox_id_icon[5];
-
 extern const PhaseResponses Responses_Ok;
 extern const PhaseResponses Responses_OkCancel;
 extern const PhaseResponses Responses_AbortRetryIgnore;
@@ -129,9 +127,23 @@ protected:
     rect_ui16_t getTitledTextRect(); // icon and title must be initialized
 };
 
+/*****************************************************************************/
+//MsgBoxIconned
+class MsgBoxIconned : public MsgBoxBase {
+    window_icon_t icon;
+
+public:
+    MsgBoxIconned(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res);
+
+protected:
+    //some methods to help with construction
+    rect_ui16_t getIconnedTextRect(); // icon and title must be initialized
+};
+
 Response MsgBox(const PhaseResponses &resp, string_view_utf8 txt);
 Response MsgBoxError(const PhaseResponses &resp, string_view_utf8 txt);
 Response MsgBoxQuestion(const PhaseResponses &resp, string_view_utf8 txt);
 Response MsgBoxWarning(const PhaseResponses &resp, string_view_utf8 txt);
 Response MsgBoxInfo(const PhaseResponses &resp, string_view_utf8 txt);
-Response MsgBoxIcon(const PhaseResponses &resp, string_view_utf8 txt);
+Response MsgBoxIcon(const PhaseResponses &resp, string_view_utf8 txt, uint16_t icon_id);
+Response MsgBoxPepa(const PhaseResponses &resp, string_view_utf8 txt);

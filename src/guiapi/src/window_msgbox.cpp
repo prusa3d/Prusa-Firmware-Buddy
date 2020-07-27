@@ -337,6 +337,24 @@ void MsgBoxTitled::unconditionalDraw() {
 }
 
 /*****************************************************************************/
+//MsgBoxIconned
+MsgBoxIconned::MsgBoxIconned(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res)
+    : MsgBoxBase(rect, resp, labels, txt)
+    , icon(this, icon_id_res, { rect.x, rect.y }, gui_defaults.padding) {
+    text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
+    icon.rect.w = rect.w - gui_defaults.padding.left - gui_defaults.padding.right;
+}
+
+rect_ui16_t MsgBoxIconned::getIconnedTextRect() {
+    rect_ui16_t text_rect = rect;
+    text_rect.h -= icon.rect.h;
+    text_rect.h -= get_radio_button_size(rect).h;
+
+    text_rect.y += icon.rect.h;
+    return text_rect;
+}
+
+/*****************************************************************************/
 //MsgBoxBase variadic template methods
 //to be used as blocking functions
 template <class T, typename... Args>
@@ -374,4 +392,12 @@ Response MsgBoxInfo(const PhaseResponses &resp, string_view_utf8 txt) {
     constexpr static const char *label = N_("INFO");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
     return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_info);
+}
+
+Response MsgBoxIcon(const PhaseResponses &resp, string_view_utf8 txt, uint16_t icon_id) {
+    return MsgBox_Custom<MsgBoxIconned>(gui_defaults.scr_body_sz, resp, txt, icon_id);
+}
+
+Response MsgBoxPepa(const PhaseResponses &resp, string_view_utf8 txt) {
+    return MsgBoxIcon(resp, txt, IDR_PNG_icon_pepa);
 }

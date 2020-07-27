@@ -84,11 +84,6 @@ extern "C" void gui_run(void) {
 
     gui_defaults.font = resource_font(IDR_FNT_NORMAL);
     gui_defaults.font_big = resource_font(IDR_FNT_BIG);
-    window_msgbox_id_icon[0] = 0; //IDR_PNG_icon_pepa;
-    window_msgbox_id_icon[1] = IDR_PNG_header_icon_error;
-    window_msgbox_id_icon[2] = IDR_PNG_header_icon_question;
-    window_msgbox_id_icon[3] = IDR_PNG_header_icon_warning;
-    window_msgbox_id_icon[4] = IDR_PNG_header_icon_info;
 
     if (!sys_fw_is_valid())
         update_firmware_screen();
