@@ -267,7 +267,7 @@ void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t 
 
     if (set_txt_rc.w && set_txt_rc.h) {
         fill_between_rectangles(rc, set_txt_rc, clr_back);
-        render_text(set_txt_rc, /*str*/ text, *font, clr_back, clr_text);
+        render_text(set_txt_rc, /*str*/ text, font, clr_back, clr_text);
     } else {
         display::FillRect(rc, clr_back);
     }

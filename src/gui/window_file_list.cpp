@@ -220,7 +220,7 @@ void window_file_list_event(window_file_list_t *window, uint8_t event, void *par
         //TODO: change flag to checked
         break;
     case WINDOW_EVENT_TIMER:
-        roll_text_phasing(window->id, window->font, window->roll);
+        roll_text_phasing(window->id, window->font, &window->roll);
         break;
     }
 }
