@@ -242,6 +242,7 @@ void window_msgbox_t::windowEvent(window_t *sender, uint8_t event, void *param) 
 const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
 const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
+const PhaseResponses Responses_YesNo            = { Response::Yes,   Response::No,     Response::_none,  Response::_none };
 const PhaseResponses Responses_YesNoCancel      = { Response::Yes,   Response::No,     Response::Cancel, Response::_none };
 const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::Cancel, Response::_none,  Response::_none };
 // clang-format on
@@ -339,7 +340,7 @@ void MsgBoxTitled::unconditionalDraw() {
 //MsgBoxBase variadic template methods
 //to be used as blocking functions
 template <class T, typename... Args>
-Response Call_Custom(rect_ui16_t rect, const PhaseResponses &resp, string_view_utf8 txt, Args... args) {
+Response MsgBox_Custom(rect_ui16_t rect, const PhaseResponses &resp, string_view_utf8 txt, Args... args) {
     const PhaseTexts labels = { BtnTexts::Get(resp[0]), BtnTexts::Get(resp[1]), BtnTexts::Get(resp[2]), BtnTexts::Get(resp[3]) };
     //static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
     T msgbox(rect, &resp, &labels, txt, args...);
@@ -347,37 +348,30 @@ Response Call_Custom(rect_ui16_t rect, const PhaseResponses &resp, string_view_u
     return msgbox.GetResult();
 }
 
-template <class T, typename... Args>
-Response Call_BtnOk(string_view_utf8 txt, Args... args) {
-    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_Ok, txt, args...);
-}
-
-template <class T, typename... Args>
-Response Call_BtnOkCancel(string_view_utf8 txt, Args... args) {
-    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_OkCancel, txt, args...);
-}
-
-template <class T, typename... Args>
-Response Call_BtnAbortRetryIgnore(string_view_utf8 txt, Args... args) {
-    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_AbortRetryIgnore, txt, args...);
-}
-
-template <class T, typename... Args>
-Response Call_BtnYesNoCancel(string_view_utf8 txt, Args... args) {
-    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_YesNoCancel, txt, args...);
-}
-
-template <class T, typename... Args>
-Response Call_BtnRetryCancel(string_view_utf8 txt, Args... args) {
-    return Call_Custom<T>(gui_defaults.scr_body_sz, Responses_RetryCancel, txt, args...);
-}
-
 Response MsgBox(const PhaseResponses &resp, string_view_utf8 txt) {
-    return Call_Custom<MsgBoxBase>(gui_defaults.scr_body_sz, resp, txt);
+    return MsgBox_Custom<MsgBoxBase>(gui_defaults.scr_body_sz, resp, txt);
 }
 
 Response MsgBoxError(const PhaseResponses &resp, string_view_utf8 txt) {
     constexpr static const char *label = N_("ERROR");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return Call_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_error);
+    return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_error);
+}
+
+Response MsgBoxQuestion(const PhaseResponses &resp, string_view_utf8 txt) {
+    constexpr static const char *label = N_("QUESTION");
+    static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
+    return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_question);
+}
+
+Response MsgBoxWarning(const PhaseResponses &resp, string_view_utf8 txt) {
+    constexpr static const char *label = N_("WARNING");
+    static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
+    return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_warning);
+}
+
+Response MsgBoxInfo(const PhaseResponses &resp, string_view_utf8 txt) {
+    constexpr static const char *label = N_("INFO");
+    static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
+    return MsgBox_Custom<MsgBoxTitled>(gui_defaults.scr_body_sz, resp, txt, label_view, IDR_PNG_header_icon_info);
 }

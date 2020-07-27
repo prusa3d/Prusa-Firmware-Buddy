@@ -90,6 +90,7 @@ extern uint16_t window_msgbox_id_icon[5];
 extern const PhaseResponses Responses_Ok;
 extern const PhaseResponses Responses_OkCancel;
 extern const PhaseResponses Responses_AbortRetryIgnore;
+extern const PhaseResponses Responses_YesNo;
 extern const PhaseResponses Responses_YesNoCancel;
 extern const PhaseResponses Responses_RetryCancel;
 
@@ -107,8 +108,6 @@ public:
 protected:
     rect_ui16_t getTextRect();
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
-
-public:
 };
 
 /*****************************************************************************/
