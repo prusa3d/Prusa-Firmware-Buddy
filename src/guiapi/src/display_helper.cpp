@@ -10,7 +10,7 @@
 #include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
 
-#define UNACCENT
+//#define UNACCENT
 
 #ifdef UNACCENT
 std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
