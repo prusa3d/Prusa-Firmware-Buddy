@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-16 15:43+0200\n"
+"POT-Creation-Date: 2020-07-27 09:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,7 +29,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:122
+#: src/guiapi/src/MItem_tools.cpp:123
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr ""
 
@@ -151,7 +151,7 @@ msgstr ""
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:274
+#: src/guiapi/src/MItem_tools.cpp:275
 msgid ""
 "Continual beeps test\n"
 " press button to stop"
@@ -218,7 +218,7 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:124
+#: src/guiapi/src/MItem_tools.cpp:125
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
@@ -250,7 +250,7 @@ msgstr ""
 msgid "Factory Reset"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:109
+#: src/guiapi/src/MItem_tools.cpp:110
 msgid "Factory defaults loaded. The system will now restart."
 msgstr ""
 
@@ -396,7 +396,7 @@ msgstr ""
 msgid "LAN SETTINGS"
 msgstr ""
 
-#: src/gui/screen_menu_languages.cpp:106
+#: src/gui/screen_menu_languages.cpp:112
 msgid "LANGUAGES"
 msgstr ""
 
@@ -428,7 +428,7 @@ msgstr ""
 msgid "Load settings"
 msgstr ""
 
-#: src/gui/screen_splash.cpp:51
+#: src/gui/screen_splash.cpp:53
 msgid "Loading ..."
 msgstr ""
 
@@ -517,6 +517,10 @@ msgstr ""
 
 #: src/gui/screen_PID.cpp:474
 msgid "NOZZLE"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:239
+msgid "Name"
 msgstr ""
 
 #: src/gui/screen_home.cpp:48
@@ -770,11 +774,15 @@ msgstr ""
 msgid "Return"
 msgstr ""
 
+#: src/gui/screen_menu_languages.cpp:141
+msgid "SELECT LANGUAGE"
+msgstr ""
+
 #: src/gui/wizard/screen_wizard.cpp:539
 msgid "SELFTEST"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:88
+#: src/gui/screen_menu_settings.cpp:87
 msgid "SETTINGS"
 msgstr ""
 
@@ -832,20 +840,12 @@ msgstr ""
 msgid "Silent"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:206
-msgid "Sound Mode"
-msgstr ""
-
 #: src/guiapi/include/MItem_tools.hpp:237
 msgid "Sort files by"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:239
-msgid "Name"
-msgstr ""
-
-#: src/guiapi/include/MItem_tools.hpp:240
-msgid "Time"
+#: src/guiapi/include/MItem_tools.hpp:206
+msgid "Sound Mode"
 msgstr ""
 
 #: src/guiapi/include/MItem_print.hpp:32
@@ -906,7 +906,7 @@ msgid ""
 "wiring, nozzle and axes, then restart the calibration."
 msgstr ""
 
-#: src/gui/screen_splash.cpp:110
+#: src/gui/screen_splash.cpp:125
 msgid "The printer is not calibrated. Start First Layer Calibration?"
 msgstr ""
 
@@ -945,10 +945,14 @@ msgid ""
 msgstr ""
 
 #. window_menu
-#: src/guiapi/src/MItem_tools.cpp:107
+#: src/guiapi/src/MItem_tools.cpp:108
 msgid ""
 "This operation can't be undone, current configuration will be lost! Are you "
 "really sure to reset printer to factory defaults?"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:240
+msgid "Time"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:198
