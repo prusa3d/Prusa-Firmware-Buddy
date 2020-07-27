@@ -53,6 +53,4 @@ extern void gui_loop(void);
 
 extern void gui_reset_menu_timer();
 
-extern int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags, rect_ui16_t rect, uint16_t id_icon, const char **buttons);
-
 #endif //GUI_WINDOW_SUPPORT

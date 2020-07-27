@@ -194,26 +194,22 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
     if (!suppress_draw && fs_did_filament_runout()) {
         suppress_draw = true;
         Sound_Play(eSOUND_TYPE_StandardAlert);
-        const char *btns[3] = { N_("YES"), N_("NO"), N_("IGNORE") };
-        switch (gui_msgbox_ex(string_view_utf8::MakeNULLSTR(),
-            _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
-            MSGBOX_BTN_CUSTOM3,
-            gui_defaults.scr_body_no_foot_sz,
-            0, btns)) {
-        case MSGBOX_RES_CLOSED:
-            suppress_draw = false;
-            return;
-        case MSGBOX_RES_CUSTOM0: //YES - load
+        const PhaseResponses btns = { Response::Yes, Response::No, Response::Ignore, Response::_none };
+        switch (MsgBox(_("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
+            btns, 0, gui_defaults.scr_body_no_foot_sz)) {
+        case Response::Yes: //YES - load
             gui_dlg_load_forced();
             break;
-        case MSGBOX_RES_CUSTOM1: //NO - cancel
+        case Response::No: //NO - cancel
             if (action_handler) {
                 action_handler(PRINT_PREVIEW_ACTION_BACK);
             }
             suppress_draw = false;
             return;
-        case MSGBOX_RES_CUSTOM2: //IGNORE - disable
+        case Response::Ignore: //IGNORE - disable
             fs_disable();
+            break;
+        default:
             break;
         }
         suppress_draw = false;

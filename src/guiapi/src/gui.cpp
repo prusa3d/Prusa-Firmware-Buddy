@@ -152,30 +152,6 @@ void gui_reset_menu_timer() {
     }
 }
 
-/// Creates message box with provided informations
-/// \returns message box id
-int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
-    rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
-
-    window_msgbox_t msgbox(rect);
-    msgbox.title = title;
-    msgbox.text = text;
-    msgbox.flags = flags;
-    msgbox.id_icon = id_icon;
-    memset(msgbox.buttons, 0, 3 * sizeof(char *));
-    const int btn = flags & MSGBOX_MSK_BTN;
-    if ((btn >= MSGBOX_BTN_CUSTOM1) && (btn <= MSGBOX_BTN_CUSTOM3) && buttons) {
-        const int count = btn - MSGBOX_BTN_CUSTOM1 + 1;
-        memcpy(msgbox.buttons, buttons, count * sizeof(char *));
-    }
-    create_blocking_dialog_from_normal_window(msgbox);
-    return msgbox.res;
-}
-
-int gui_msgbox(string_view_utf8 text, uint16_t flags) {
-    return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags, gui_defaults.scr_body_sz, 0, 0);
-}
-
 #endif //GUI_WINDOW_SUPPORT
 
 #ifdef GUI_JOGWHEEL_SUPPORT
