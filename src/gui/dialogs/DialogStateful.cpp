@@ -60,7 +60,7 @@ void IDialogStateful::draw_frame() {
 }
 
 //todo this should be moved elsewhere
-void progress_draw(rect_ui16_t win_rect, const font_t font, color_t color_back,
+void progress_draw(rect_ui16_t win_rect, const font_t *font, color_t color_back,
     color_t color_text, padding_ui8_t padding, uint8_t progress) {
 
     const uint16_t progress_w = win_rect.w - 2 * PROGRESS_BAR_X_PAD;

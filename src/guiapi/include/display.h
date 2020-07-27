@@ -13,7 +13,7 @@ typedef void(display_draw_line_t)(point_ui16_t pt0, point_ui16_t pt1, color_t cl
 typedef void(display_draw_rect_t)(rect_ui16_t rc, color_t clr);
 typedef void(display_fill_rect_t)(rect_ui16_t rc, color_t clr);
 typedef bool(display_draw_char_t)(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg);
-typedef bool(display_draw_text_t)(const rect_ui16_t &rc, string_view_utf8 str, const font_t &pf, color_t clr_bg, color_t clr_fg);
+typedef bool(display_draw_text_t)(const rect_ui16_t &rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_icon_t)(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
 
