@@ -261,7 +261,7 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
     if (wh_ico.x && wh_ico.y) {
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
-        fill_between_rectangles(&rc, &rc_ico, opt_clr);
+        fill_between_rectangles(rc, rc_ico, opt_clr);
         display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
     } else
         display::FillRect(rc, opt_clr);
