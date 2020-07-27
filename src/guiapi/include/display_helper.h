@@ -33,6 +33,7 @@ struct txtroll_t {
 extern bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 extern void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags);
 extern void render_icon_align(const rect_ui16_t &rc, uint16_t id_res, color_t clr0, uint16_t flags);
+extern void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
 extern void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll);
 extern void roll_init(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);
 extern void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
