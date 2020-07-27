@@ -179,15 +179,15 @@ static inline padding_ui8_t padding_ui8(uint8_t l, uint8_t t, uint8_t r, uint8_t
 }
 
 static inline bool point_in_rect_ui16(const point_ui16_t pt, const rect_ui16_t rc) {
-    return ((pt.x >= rc.x) && (pt.x < (rc.x + rc.w)) && (pt.y >= rc.y) && (pt.y < (rc.y + rc.h))) ? true : false;
+    return (pt.x >= rc.x) && (pt.x < rc.x + rc.w) && (pt.y >= rc.y) && (pt.y < rc.y + rc.h);
 }
 
 static inline bool rect_in_rect_ui16(const rect_ui16_t rc_in, const rect_ui16_t rc_out) {
-    return ((rc_in.x >= rc_out.x) && ((rc_in.x + rc_in.w) <= (rc_out.x + rc_out.w)) && (rc_in.y >= rc_out.y) && ((rc_in.y + rc_in.h) <= (rc_out.y + rc_out.h))) ? true : false;
+    return (rc_in.x >= rc_out.x) && (rc_in.x + rc_in.w <= rc_out.x + rc_out.w) && (rc_in.y >= rc_out.y) && (rc_in.y + rc_in.h <= rc_out.y + rc_out.h);
 }
 
 static inline bool rect_empty_ui16(const rect_ui16_t rc) {
-    return ((rc.w == 0) || (rc.h == 0)) ? true : false;
+    return rc.w == 0 || rc.h == 0;
 }
 
 #ifdef __cplusplus
