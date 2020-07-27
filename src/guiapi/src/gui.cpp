@@ -176,14 +176,6 @@ int gui_msgbox(string_view_utf8 text, uint16_t flags) {
     return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags, gui_defaults.scr_body_sz, 0, 0);
 }
 
-// specific function for PROMPT message box with soundStandardPrompt sound
-// This is because of infinitely repeating sound signal that has to be stopped
-// additionally
-int gui_msgbox_prompt(string_view_utf8 text, uint16_t flags) {
-    Sound_Play(eSOUND_TYPE_StandardPrompt);
-    return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags, gui_defaults.scr_body_sz, 0, 0);
-}
-
 #endif //GUI_WINDOW_SUPPORT
 
 #ifdef GUI_JOGWHEEL_SUPPORT
