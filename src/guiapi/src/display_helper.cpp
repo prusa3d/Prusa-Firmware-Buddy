@@ -201,12 +201,10 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
         display::FillRect(rc, clr_bg);
         return;
     }
+
     rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
     rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
-    uint8_t unused_pxls = 0;
-    if (strlen_text * font->w > rc_txt.w) {
-        unused_pxls = rc_txt.w % font->w;
-    }
+    const uint8_t unused_pxls = (strlen_text * font->w <= rc_txt.w) ? 0 : rc_txt.w % font->w;
 
     const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
     fill_between_rectangles(rc, rect_in, clr_bg);
