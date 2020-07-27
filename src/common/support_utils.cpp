@@ -9,6 +9,8 @@
 #include "string.h"
 #include "lang.h"
 #include "../../gui/wizard/selftest.h"
+#include "version.h"
+#include "eeprom.h"
 
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
@@ -16,9 +18,6 @@
 static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
-
-#define _STR(x) #x
-const char project_version[] = _STR(FW_VERSION);
 
 char *eofstr(char *str) {
     return (str + strlen(str));
@@ -40,41 +39,91 @@ void append_crc(char *str, uint32_t str_size) {
 /// Replace everything but numbers by underscore.
 void leave_numbers(const char *const str_in, char *str_out) {
     int i = 0;
-    while (str_in[i] != 0) {
+    while (str_in[i++] != 0) {
         if (str_in[i] < '0' || '9' < str_in[i])
             str_out[i] = '_';
         else {
             str_out[i] = str_out[i];
         }
-        i++;
     }
 }
 
-void error_url_long(char *str, uint32_t str_size, int error_code) {
-    // FIXME use std::array instead
+inline void setBit(char &c, const uint8_t b) {
+    c |= 1 << b;
+}
 
+inline void clearBit(char &c, const uint8_t b) {
+    c &= !(1 << b);
+}
+
+/// Shifts 1st number by 2 bits.
+/// Places overflow to the MSBs of the 2nd number.
+inline void rShift2Bits(uint32_t &toShift, uint32_t &overflow) {
+    overflow &= 0x3FFF'FFFF;         /// clear 2 MBS bits
+    overflow |= (toShift & 3) << 30; /// add 2 bits
+    toShift >>= 2;                   /// shift number
+}
+
+/// \returns 40 bit encoded to 8 chars (32 bit encoding)
+/// Make sure there's a space for 8 chars
+void printerCode(char *str) {
+    str[0] = 0;
+    /// TODO FW sign
+    if (0) {
+        setBit(str[0], 7);
+    }
+
+    /// appendix state
+    if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
+        setBit(str[0], 6);
+    }
+
+    uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
+    /// TODO get hash;
+
+    /// shift hash by 2 bits
+    hash[7] >>= 2;
+    for (int i = 6; i >= 0; --i)
+        rShift2Bits(hash[i], hash[i + 1]);
+}
+
+void error_url_long(char *str, uint32_t str_size, int error_code) {
+    /// FIXME remove eofstr & strlen
+
+    /// fixed prefix
     strlcpy(str, ERROR_URL_LONG_PREFIX, str_size);
+
+    /// language
+    char lang[3];
+    const uint16_t langNum = eeprom_get_var(EEVAR_LANGUAGE).ui16;
+    uint16_t(lang) = langNum;
+    //lang[0] = langNum / 256;
+    //lang[1] = langNum % 256;
+    lang[3] = 0;
+    snprintf(eofstr(str), str_size - strlen(str), "/%s", lang);
+
+    /// error code
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
-    /// FIXME add language (/en, ...)
-    //snprintf(eofstr(str), str_size - strlen(str), "/%d", PRINTER_TYPE);
-    snprintf(eofstr(str), str_size - strlen(str), "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
-    char version[sizeof(project_version)];
-    leave_numbers(project_version, version);
-    snprintf(eofstr(str), str_size - strlen(str), "/%d", version);
-    snprintf(eofstr(str), str_size - strlen(str), "/%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
+
+    /// printer code
+    if (str_size - strlen(str) > 8)
+        printerCode(eofstr(str));
+
+    /// FW version
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", eeprom_get_var(EEVAR_FW_VERSION).ui16);
+
+    //snprintf(eofstr(str), str_size - strlen(str), "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
+    //snprintf(eofstr(str), str_size - strlen(str), "/%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
     //append_crc(str, str_size);
 }
 
 void error_url_short(char *str, uint32_t str_size, int error_code) {
-    // FIXME use std::array instead
-
     strlcpy(str, ERROR_URL_SHORT_PREFIX, str_size);
     /// FIXME add language (/en, ...)
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
 }
 
 void create_path_info_4service(char *str, uint32_t str_size) {
-    // FIXME use std::array instead
 
     strlcpy(str, INFO_URL_LONG_PREFIX, str_size);
     // PrinterType
