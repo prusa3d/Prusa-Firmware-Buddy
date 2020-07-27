@@ -183,7 +183,7 @@ void window_file_list_draw(window_file_list_t *window) {
             } else {
                 render_text_align(rc,
                     itemText,
-                    *window->font,
+                    window->font,
                     color_back, color_text,
                     padding, window->alignment);
             }
