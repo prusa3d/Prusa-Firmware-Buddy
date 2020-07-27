@@ -21,7 +21,7 @@ screen_test_msgbox_data_t::screen_test_msgbox_data_t()
     , tst_ico_question(this, rect_ui16(10, 142, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_YesNoCancel); })
     , tst_ico_warning(this, rect_ui16(10, 164, 220, 22), []() { MsgBoxWarning(test_text_view, Responses_YesNo); })
     , tst_ico_info(this, rect_ui16(10, 186, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_RetryCancel); })
-    , tst_icon(this, rect_ui16(10, 208, 220, 22), []() { MsgBoxPepa(test_text_view, Responses_Ok); }) {
+    , tst_icon(this, rect_ui16(10, 208, 220, 22), []() { MsgBoxPepa(test_text_view); }) {
     static const char tm[] = "TEST MSGBOX";
     tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tm));
 
