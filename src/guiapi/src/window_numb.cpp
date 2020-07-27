@@ -2,7 +2,9 @@
 #include "window_numb.hpp"
 #include "gui.hpp"
 
-#define WINDOW_NUMB_MAX_TEXT 16
+// @@TODO Beware - keep this big enough as long as the SetFormat is being abused to print
+// long utf8 text messages in selftest_cool.cpp (and probably in other places too)
+#define WINDOW_NUMB_MAX_TEXT 30
 
 void window_numb_init(window_numb_t *window) {
     window->color_back = gui_defaults.color_back;
