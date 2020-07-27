@@ -9,4 +9,8 @@ class screen_filebrowser_data_t : public window_frame_t {
 
 public:
     screen_filebrowser_data_t();
+
+private:
+    //virtual void draw() override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };

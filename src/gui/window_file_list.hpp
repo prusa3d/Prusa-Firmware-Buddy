@@ -40,13 +40,17 @@ struct window_file_list_t : public window_t {
     uint8_t alignment;
     window_file_list_t(window_t *parent, rect_ui16_t rect);
     void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
+
+public:
+    void SetItemIndex(int index);
+    const char *TopItemSFN();
+    const char *CurrentLFN(bool *isFile);
+    const char *CurrentSFN(bool *isFile);
+
+    /// @return true if path is either empty or contains just a "/"
+    static bool IsPathRoot(const char *path);
+
+private:
+    virtual void unconditionalDraw() override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
-
-extern void window_file_set_item_index(window_file_list_t *window, int index);
-
-extern const char *window_file_list_top_item_SFN(window_file_list_t *window);
-extern const char *window_file_current_LFN(window_file_list_t *window, bool *isFile);
-extern const char *window_file_current_SFN(window_file_list_t *window, bool *isFile);
-
-/// @return true if path is either empty or contains just a "/"
-extern bool window_file_list_path_is_root(const char *path);

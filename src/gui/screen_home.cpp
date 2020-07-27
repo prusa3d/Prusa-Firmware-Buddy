@@ -138,7 +138,7 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
     }
     //
 
-    return window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::windowEvent(sender, event, param);
 }
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {

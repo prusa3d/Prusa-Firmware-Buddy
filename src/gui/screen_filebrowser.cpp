@@ -50,7 +50,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     *c = 0; // even if we didn't find the '/', c will point to valid memory
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
     w_filelist.Load(screen_filebrowser_sort, c + 1, firstVisibleSFN);
-    // window_file_set_item_index(filelist, 1); // this is automagically done in the window file list
+    // SetItemIndex(1); // this is automagically done in the window file list
     w_filelist.SetCapture(); // hack for do not change capture
     w_filelist.SetFocus();   // hack for do not change capture
 }
@@ -71,90 +71,90 @@ static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
     vars->media_SFN_path[1] = 0;
     firstVisibleSFN[0] = 0; // clear the last top item
 }
-/*
-static int screen_filebrowser_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
+
+void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     marlin_vars_t *vars = marlin_vars();
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
         screen_filebrowser_clear_firstVisibleSFN(vars);
         Screens::Access()->Close();
-        return 1;
     }
 
-    pd->header.EventClr();
-
-    window_file_list_t *filelist = &(pd->w_filelist);
+    header.EventClr();
 
     if (event != WINDOW_EVENT_CLICK) {
-        return 0;
+        window_frame_t::windowEvent(sender, event, param);
+        return;
     }
 
     static const char dirUp[] = "..";
     static const char slash = '/';
 
     bool currentIsFile;
-    const char *currentSFN = window_file_current_SFN(filelist, &currentIsFile);
+    const char *currentSFN = w_filelist.CurrentSFN(&currentIsFile);
 
-    if (!strcmp(currentSFN, dirUp) && window_file_list_path_is_root(filelist->sfn_path)) {
+    if (!strcmp(currentSFN, dirUp) && window_file_list_t::IsPathRoot(w_filelist.sfn_path)) {
         screen_filebrowser_clear_firstVisibleSFN(vars);
         Screens::Access()->Close();
-        return 1;
+        return;
     }
 
-    size_t sfnPathLen = strlen(filelist->sfn_path);
+    size_t sfnPathLen = strlen(w_filelist.sfn_path);
     if ((sfnPathLen + strlen(currentSFN) + 1) >= MAXPATHNAMELENGTH) {
         LOG_ERROR("path too long");
-        return 0;
+        window_frame_t::windowEvent(sender, event, param);
+        return;
     }
     if (!currentIsFile) {                // directory selected
         if (strcmp(currentSFN, dirUp)) { // not same -> not ..
             // append the dir name at the end of sfnPath
-            if (filelist->sfn_path[sfnPathLen - 1] != slash) {
-                filelist->sfn_path[sfnPathLen++] = slash;
+            if (w_filelist.sfn_path[sfnPathLen - 1] != slash) {
+                w_filelist.sfn_path[sfnPathLen++] = slash;
             }
-            strlcpy(filelist->sfn_path + sfnPathLen, currentSFN, FILE_PATH_MAX_LEN - sfnPathLen);
+            strlcpy(w_filelist.sfn_path + sfnPathLen, currentSFN, FILE_PATH_MAX_LEN - sfnPathLen);
         } else {
-            char *last = strrchr(filelist->sfn_path, slash);
-            if (last == filelist->sfn_path) {
+            char *last = strrchr(w_filelist.sfn_path, slash);
+            if (last == w_filelist.sfn_path) {
                 // reached top level dir - ensure it only contains a slash
-                filelist->sfn_path[0] = slash;
-                filelist->sfn_path[1] = 0;
+                w_filelist.sfn_path[0] = slash;
+                w_filelist.sfn_path[1] = 0;
             } else {
                 *last = '\0'; // truncate the string after the last "/"
             }
         }
-        window_file_list_load(filelist, screen_filebrowser_sort, nullptr, nullptr);
+
+        w_filelist.Load(screen_filebrowser_sort, nullptr, nullptr);
 
         // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
         // However, the text is not visible on the screen yet...
-        // pd->header.SetText(strrchr(filelist->sfn_path, '/'));
+        // header.SetText(strrchr(w_filelist.sfn_path, '/'));
 
     } else { // print the file
         if (vars->media_LFN && vars->media_SFN_path) {
             int written;
-            if (window_file_list_path_is_root(filelist->sfn_path)) {
+            if (window_file_list_t::IsPathRoot(w_filelist.sfn_path)) {
                 written = snprintf(vars->media_SFN_path, FILE_PATH_MAX_LEN, "/%s", currentSFN);
             } else {
-                written = snprintf(vars->media_SFN_path, FILE_PATH_MAX_LEN, "%s/%s", filelist->sfn_path, currentSFN);
+                written = snprintf(vars->media_SFN_path, FILE_PATH_MAX_LEN, "%s/%s", w_filelist.sfn_path, currentSFN);
             }
             if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
                 LOG_ERROR("failed to prepare file path for print");
-                return 0;
+                window_frame_t::windowEvent(sender, event, param);
+                return;
             }
 
             // displayed text - can be a 8.3 DOS name or a LFN
-            strlcpy(vars->media_LFN, window_file_current_LFN(filelist, &currentIsFile), FILE_NAME_MAX_LEN);
+            strlcpy(vars->media_LFN, w_filelist.CurrentLFN(&currentIsFile), FILE_NAME_MAX_LEN);
             // save the top browser item
-            strlcpy(firstVisibleSFN, window_file_list_top_item_SFN(filelist), SFN_len);
+            strlcpy(firstVisibleSFN, w_filelist.TopItemSFN(), SFN_len);
 
             screen_print_preview_set_on_action(on_print_preview_action);
             screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
             screen_print_preview_set_gcode_filename(vars->media_LFN);
             //screen_open(get_scr_print_preview()->id);
 
-            return 1;
+            return;
         }
     }
-
-    return 0;
+    window_frame_t::windowEvent(sender, event, param);
+    return;
 }
-*/

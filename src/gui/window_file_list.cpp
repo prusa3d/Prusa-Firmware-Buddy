@@ -19,7 +19,7 @@
 void window_file_list_inc(window_file_list_t *window, int dif);
 void window_file_list_dec(window_file_list_t *window, int dif);
 
-bool window_file_list_path_is_root(const char *path) {
+bool window_file_list_t::IsPathRoot(const char *path) {
     return (path[0] == 0 || strcmp(path, "/") == 0);
 }
 
@@ -60,27 +60,27 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
     Invalidate();
 }
 
-void window_file_set_item_index(window_file_list_t *window, int index) {
-    if (window->count > index) {
-        window->index = index;
-        window->Invalidate();
+void window_file_list_t::SetItemIndex(int index) {
+    if (count > index) {
+        this->index = index;
+        Invalidate();
     }
 }
 
-const char *window_file_current_LFN(window_file_list_t *window, bool *isFile) {
-    auto i = window->ldv->LongFileNameAt(window->index);
+const char *window_file_list_t::CurrentLFN(bool *isFile) {
+    auto i = ldv->LongFileNameAt(index);
     *isFile = i.second == LDV9::EntryType::FILE;
     return i.first;
 }
 
-const char *window_file_current_SFN(window_file_list_t *window, bool *isFile) {
-    auto i = window->ldv->ShortFileNameAt(window->index);
+const char *window_file_list_t::CurrentSFN(bool *isFile) {
+    auto i = ldv->ShortFileNameAt(index);
     *isFile = i.second == LDV9::EntryType::FILE;
     return i.first;
 }
 
-const char *window_file_list_top_item_SFN(window_file_list_t *window) {
-    return window->ldv->ShortFileNameAt(0).first;
+const char *window_file_list_t::TopItemSFN() {
+    return ldv->ShortFileNameAt(0).first;
 }
 
 window_file_list_t::window_file_list_t(window_t *parent, rect_ui16_t rect)
@@ -99,18 +99,18 @@ window_file_list_t::window_file_list_t(window_t *parent, rect_ui16_t rect)
     strlcpy(sfn_path, "/", FILE_PATH_MAX_LEN);
 }
 
-void window_file_list_draw(window_file_list_t *window) {
-    int item_height = window->font->h + window->padding.top + window->padding.bottom;
-    rect_ui16_t rc_win = window->rect;
+void window_file_list_t::unconditionalDraw() {
+    int item_height = font->h + padding.top + padding.bottom;
+    rect_ui16_t rc_win = rect;
 
     int visible_slots = rc_win.h / item_height;
-    int ldv_visible_files = window->ldv->VisibleFilesCount();
-    int maxi = std::min(std::min(visible_slots, ldv_visible_files), window->count);
+    int ldv_visible_files = ldv->VisibleFilesCount();
+    int maxi = std::min(std::min(visible_slots, ldv_visible_files), count);
 
     int i;
     for (i = 0; i < maxi; i++) {
         bool isFile = true;
-        auto item = window->ldv->LongFileNameAt(i);
+        auto item = ldv->LongFileNameAt(i);
         isFile = item.second == LDV9::EntryType::FILE;
         if (!item.first) {
             // this should normally not happen, visible_count shall limit indices to valid items only
@@ -123,7 +123,7 @@ void window_file_list_draw(window_file_list_t *window) {
         static const char home[] = N_("Home"); // @@TODO reuse from elsewhere ...
         string_view_utf8 itemText;
 
-        if (i == 0 && strcmp(item.first, "..") == 0 && window_file_list_path_is_root(window->sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
+        if (i == 0 && strcmp(item.first, "..") == 0 && IsPathRoot(sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
             id_icon = IDR_PNG_filescreen_icon_home;
             itemText = string_view_utf8::MakeCPUFLASH((const uint8_t *)home);
         } else {
@@ -131,15 +131,15 @@ void window_file_list_draw(window_file_list_t *window) {
             itemText = string_view_utf8::MakeRAM((const uint8_t *)item.first);
         }
 
-        color_t color_text = window->color_text;
-        color_t color_back = window->color_back;
+        color_t color_text = color_text;
+        color_t color_back = color_back;
         uint8_t swap = 0;
 
         rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height), rc_win.w, uint16_t(item_height) };
-        padding_ui8_t padding = window->padding;
+        padding_ui8_t padding = padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
-            if ((window->IsFocused()) && (window->index == i)) {
+            if ((IsFocused()) && (index == i)) {
                 color_t swp = color_text;
                 color_text = color_back;
                 color_back = swp;
@@ -150,35 +150,35 @@ void window_file_list_draw(window_file_list_t *window) {
                 rect_ui16_t irc = { rc.x, rc.y, 16, 30 };
                 rc.x += irc.w;
                 rc.w -= irc.w;
-                render_icon_align(irc, id_icon, window->color_back, RENDER_FLG(ALIGN_CENTER, swap));
+                render_icon_align(irc, id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
             } else {
                 padding.left += 16;
             }
 
-            if ((window->IsFocused()) && window->index == i) {
-                if (window->roll.phase == ROLL_SETUP) { // initiation of rolling is done in functions
+            if ((IsFocused()) && index == i) {
+                if (roll.phase == ROLL_SETUP) { // initiation of rolling is done in functions
                     // which move cursor up or down. They can handle the situation, when the cursor
                     // stays at one place (top or bottom), but the whole window list moves up/down.
                     // Calling roll_init must be done here because of the rect.
                     // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
-                    roll_init(rc, itemText, window->font, padding, window->alignment, &window->roll);
+                    roll_init(rc, itemText, font, padding, alignment, &roll);
                 }
 
                 render_roll_text_align(rc,
                     itemText,
-                    window->font,
+                    font,
                     padding,
-                    window->alignment,
+                    alignment,
                     color_back,
                     color_text,
-                    &window->roll);
+                    &roll);
 
             } else {
                 render_text_align(rc,
                     itemText,
-                    window->font,
+                    font,
                     color_back, color_text,
-                    padding, window->alignment);
+                    padding, alignment);
             }
 
             /*	too slow
@@ -194,26 +194,26 @@ void window_file_list_draw(window_file_list_t *window) {
 
     if (rc_win.h) {
         rc_win.y += i * item_height;
-        display::FillRect(rc_win, window->color_back);
+        display::FillRect(rc_win, color_back);
     }
 }
 
-void window_file_list_event(window_file_list_t *window, uint8_t event, void *param) {
+void window_file_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        Screens::Access()->ScreenEvent(window, WINDOW_EVENT_CLICK, (void *)window->index);
+        Screens::Access()->ScreenEvent(this, WINDOW_EVENT_CLICK, (void *)index);
         break;
     case WINDOW_EVENT_ENC_DN:
-        window_file_list_dec(window, (int)param);
+        window_file_list_dec(this, (int)param);
         break;
     case WINDOW_EVENT_ENC_UP:
-        window_file_list_inc(window, (int)param);
+        window_file_list_inc(this, (int)param);
         break;
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
         break;
     case WINDOW_EVENT_TIMER:
-        roll_text_phasing(window, window->font, &window->roll);
+        roll_text_phasing(this, font, &roll);
         break;
     }
 }
