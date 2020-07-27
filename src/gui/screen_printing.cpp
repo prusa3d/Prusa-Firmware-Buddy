@@ -476,12 +476,10 @@ static void update_remaining_time(screen_t *screen, time_t rawtime, uint16_t pri
         } else {
             snprintf(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
         }
-    } else {
         if (print_speed != 100)
             strlcat(pw->text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
-        else
+        } else
             strlcpy(pw->text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
-    }
     // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     pw->w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));
 }
