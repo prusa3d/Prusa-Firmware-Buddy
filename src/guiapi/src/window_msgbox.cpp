@@ -239,11 +239,11 @@ void window_msgbox_t::windowEvent(window_t *sender, uint8_t event, void *param) 
 
 /*****************************************************************************/
 // clang-format off
-static const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
-static const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
-static const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
-static const PhaseResponses Responses_YesNoCancel      = { Response::Yes,   Response::No,     Response::Cancel, Response::_none };
-static const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::Cancel, Response::_none,  Response::_none };
+const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
+const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
+const PhaseResponses Responses_YesNoCancel      = { Response::Yes,   Response::No,     Response::Cancel, Response::_none };
+const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::Cancel, Response::_none,  Response::_none };
 // clang-format on
 /*****************************************************************************/
 
@@ -266,7 +266,7 @@ Response MsgBoxBase::GetResult() {
     return result;
 }
 
-//todo make radi button events behave like normal button
+//todo make radio button events behave like normal button
 void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
@@ -288,32 +288,48 @@ void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
 }
 
 /*****************************************************************************/
-//static methods
-//to be used as blocking functions
-Response MsgBoxBase::Call_Custom(rect_ui16_t rect, const PhaseResponses *resp, string_view_utf8 txt) {
-    const PhaseTexts labels = { BtnTexts::Get((*resp)[0]), BtnTexts::Get((*resp)[1]), BtnTexts::Get((*resp)[2]), BtnTexts::Get((*resp)[3]) };
-    static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
-    MsgBoxBase msgbox(rect, resp, &labels, txt);
-    msgbox.MakeBlocking();
-    return msgbox.GetResult();
+//MsgBoxTitled
+MsgBoxTitled::MsgBoxTitled(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res)
+    : MsgBoxBase(rect, resp, labels, txt)
+    , title_icon(this, title_icon_id_res, { rect.x, rect.y }, gui_defaults.padding)
+    , title(this, getTitleRect(), is_closed_on_click_t::no, tit) {
+    text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
 }
 
-Response MsgBoxBase::Call_BtnOk(string_view_utf8 txt) {
-    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_Ok, txt);
+rect_ui16_t MsgBoxTitled::getTitleRect() {
+    rect_ui16_t title_rect;
+    if (title_icon.rect.w && title_icon.rect.h) {
+        title_rect = title_icon.rect;      // Y, H is valid
+        title_rect.x += title_icon.rect.w; // fix X
+    } else {
+        title_rect = rect;                // X Y is valid
+        title_rect.h = getTitleFont()->h; // fix H
+    }
+    //now just need to calculate W
+    title_rect.w = rect.x + rect.w - title_rect.x;
+    return title_rect;
 }
 
-Response MsgBoxBase::Call_BtnOkCancel(string_view_utf8 txt) {
-    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_OkCancel, txt);
+rect_ui16_t MsgBoxTitled::getTitledTextRect() {
+    rect_ui16_t text_rect = rect;
+    text_rect.h -= getTitleRect().h;
+    text_rect.h -= 2; // 1px red line, 1px space after red line
+    text_rect.h -= getBtnRect().h;
+
+    text_rect.y += getTitleRect().h;
+    text_rect.h += 2; // 1px red line, 1px space after red line
+    return text_rect;
 }
 
-Response MsgBoxBase::Call_BtnAbortRetryIgnore(string_view_utf8 txt) {
-    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_AbortRetryIgnore, txt);
+font_t *MsgBoxTitled::getTitleFont() {
+    return gui_defaults.font_big;
 }
 
-Response MsgBoxBase::Call_BtnYesNoCancel(string_view_utf8 txt) {
-    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_YesNoCancel, txt);
-}
+void MsgBoxTitled::unconditionalDraw() {
+    MsgBoxBase::unconditionalDraw();
+    rect_ui16_t rc_tit = getTitleRect();
 
-Response MsgBoxBase::Call_BtnRetryCancel(string_view_utf8 txt) {
-    return Call_Custom(rect_ui16(0, 0, display::GetW(), display::GetH()), &Responses_RetryCancel, txt);
+    display::DrawLine(point_ui16(rc_tit.x + title.padding.left, rc_tit.y + rc_tit.h),
+        point_ui16(rc_tit.x + rc_tit.w - (title.padding.left + title.padding.right), rc_tit.y + rc_tit.h),
+        COLOR_RED_ALERT);
 }
