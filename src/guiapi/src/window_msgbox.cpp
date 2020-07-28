@@ -160,6 +160,10 @@ Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t 
     return MsgBox_Custom<MsgBoxTitled>(rect, resp, txt, label_view, IDR_PNG_header_icon_warning);
 }
 
+Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, rect_ui16_t rect, uint16_t icon_id) {
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, txt, title, icon_id);
+}
+
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, rect_ui16_t rect) {
     constexpr static const char *label = N_("Information");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));

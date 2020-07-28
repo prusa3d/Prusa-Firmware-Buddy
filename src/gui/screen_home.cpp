@@ -103,7 +103,13 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
         header.EventClr();
     }
 
-    /*if (p_window_header_event_clr(&(header), MARLIN_EVT_MediaInserted) && (HAL_GetTick() > 5000)) {
+    /*    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
+        screen_home_disable_print_button(screen, 1);
+    }
+
+    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted) &&
+
+        (HAL_GetTick() > 5000)) {
         // we are using marlin variables for filename and filepath buffers
         marlin_vars_t *vars = marlin_vars();
         //check if the variables filename and filepath allocated
@@ -126,7 +132,6 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
     if (header.EventClr_MediaRemoved()) {
         printBtnDis();
     }
-    //
 
     window_frame_t::windowEvent(sender, event, param);
 }

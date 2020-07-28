@@ -196,7 +196,7 @@ protected:
 };
 
 class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Timeout");
+    constexpr static const char *const label = N_("Menu Timeout");
 
 public:
     MI_TIMEOUT();
@@ -246,7 +246,8 @@ public:
 };
 
 class MI_SOUND_VOLUME : public WI_SPIN_U08_t {
-    constexpr static const char *const label = "Sound Volume"; // intentionally not translated
+    constexpr static const char *const label = N_("Sound Volume");
+
 public:
     MI_SOUND_VOLUME();
     virtual void OnClick() override;

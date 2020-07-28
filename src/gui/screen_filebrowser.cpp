@@ -10,6 +10,7 @@
 #include "print_utils.hpp"
 #include "ScreenHandler.hpp"
 #include "eeprom.h"
+#include "../lang/i18n.h"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
@@ -40,7 +41,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
 
     header.SetIcon(IDR_PNG_filescreen_icon_folder);
     static const char sf[] = "SELECT FILE";
-    header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
+    header.SetText(_(sf));
 
     // initialize the directory (and selected file) from marlin_vars
     marlin_vars_t *vars = marlin_vars();

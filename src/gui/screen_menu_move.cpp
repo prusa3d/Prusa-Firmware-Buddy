@@ -40,7 +40,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 
 class ScreenMenuMove : public Screen {
 public:
-    constexpr static const char *label = N_("Settings");
+    constexpr static const char *label = N_("MOVE AXIS");
     ScreenMenuMove()
         : Screen(_(label)) {}
     virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;

@@ -34,23 +34,50 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
     y += 22;
 
     window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_nozzle_temp));
-    p_screen->curr_nozzle_temp.SetFormat((const char *)"Nozzle: %.1f\177C");
+    // a nasty hack - need to put the translated format string somewhere and keep it there past the lifetime of this screen
+
+    // r=1 c=15
+    static const char nozzleFmt2Translate[] = N_("Nozzle: %.1f_C");
+    static char nozzleFmt[30]; // this will eat RAM unnecessarily for the lifetime of the FW
+    // - but since the selftest is a subject to change in near future,
+    // I'll keep it here as a temporary solution.
+
+    // And because of idiotic gettext I must force the \177 character by a piece of code - OMG!
+    // @@TODO this really needs some sane workaround :(
+    _(nozzleFmt2Translate).copyToRAM(nozzleFmt, sizeof(nozzleFmt));
+    nozzleFmt[strlen(nozzleFmt) - 2] = '\177';
+    p_screen->curr_nozzle_temp.SetFormat(nozzleFmt);
 
     y += 22;
 
     window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_bed_temp));
-    p_screen->curr_bed_temp.SetFormat((const char *)"Bed: %.1f\177C");
+    // r=1 c=15
+    static const char bedFmt2Translate[] = N_("Bed: %.1f_C");
+    static char bedFmt[30];
+    _(bedFmt2Translate).copyToRAM(bedFmt, sizeof(bedFmt));
+    bedFmt[strlen(bedFmt) - 2] = '\177';
+    p_screen->curr_bed_temp.SetFormat(bedFmt);
 
     y += 22;
 
     window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_nozzle));
-    p_screen->target_nozzle.SetFormat((const char *)"Noz. target: %.0f\177C");
+    // r=1 c=15
+    static const char nozzleTgtFmt2Translate[] = N_("Noz. target: %.0f_C");
+    static char nozzleTgtFmt[30];
+    _(nozzleTgtFmt2Translate).copyToRAM(nozzleTgtFmt, sizeof(nozzleTgtFmt));
+    nozzleTgtFmt[strlen(nozzleTgtFmt) - 2] = '\177';
+    p_screen->target_nozzle.SetFormat(nozzleTgtFmt);
     p_screen->target_nozzle.SetValue(_CALIB_TEMP_NOZ);
 
     y += 22;
 
     window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_bed));
-    p_screen->target_bed.SetFormat((const char *)"Bed. target: %.0f\177C");
+    // r=1 c=15
+    static const char bedTgtFmt2Translate[] = N_("Bed. target: %.0f_C");
+    static char bedTgtFmt[30];
+    _(bedTgtFmt2Translate).copyToRAM(bedTgtFmt, sizeof(bedTgtFmt));
+    bedTgtFmt[strlen(bedTgtFmt) - 2] = '\177';
+    p_screen->target_bed.SetFormat(bedTgtFmt);
     p_screen->target_bed.SetValue(_CALIB_TEMP_BED);
 
     y += 35;

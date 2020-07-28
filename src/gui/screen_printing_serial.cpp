@@ -80,11 +80,6 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     set_icon_and_label(buttons_t::DISCONNECT, sp_button, &w_labels[static_cast<size_t>(buttons_t::DISCONNECT)]);
 }
 
-screen_printing_serial_data_t::~screen_printing_serial_data_t() {
-    marlin_gcode("G27 P2"); /// park nozzle and raise Z axis
-    marlin_gcode("M86 S1"); /// enable safety timer
-}
-
 void screen_printing_serial_data_t::DisableButton(buttons_t b) {
     window_icon_t *p_button = &w_buttons[static_cast<size_t>(b)];
     if (!p_button->IsBWSwapped()) {

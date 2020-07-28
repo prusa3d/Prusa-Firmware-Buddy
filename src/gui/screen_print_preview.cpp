@@ -182,9 +182,11 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
 
     if (!suppress_draw && fs_did_filament_runout()) {
         suppress_draw = true;
-        Sound_Play(eSOUND_TYPE_StandardAlert);
+        Sound_Play(eSOUND_TYPE_SingleBeep);
         const PhaseResponses btns = { Response::Yes, Response::No, Response::Ignore, Response::_none };
-        switch (MsgBox(_("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
+        // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
+        switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name),
+            _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
             btns, 0, gui_defaults.scr_body_no_foot_sz)) {
         case Response::Yes: //YES - load
             gui_dlg_load_forced();

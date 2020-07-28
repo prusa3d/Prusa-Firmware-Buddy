@@ -1,4 +1,4 @@
-Versione Bootloader %d.%d.%d\nScheda Buddy %d.%d.%d %s
+\nVers. Bootloader\n%d.%d.%d\n\nScheda Buddy\n%d.%d.%d\n%s
 Un rapporto di crash dump (file dump.bin) è stato salvato sul drive USB.
 INTERROMPI
 Tutti i test completati correttamente!
@@ -13,15 +13,18 @@ INDIETRO
 Indietro
 PIANO
 Livellamento del piano non riuscito. Riprovare?
+Target piano: %.0f_C
+Piano: %.1f_C
 Calibrazione Z
 Calibrazione
+CALIBRAZIONE
 Calibrazione completa!\nBuona stampa!
 Calibrazione XY
 ANNULLA
 CAMBIO FILAMENTO
 Cambia filamento
 Controllo assi
-Controllo riscaldatori \nhotend e piano riscaldato 
+Controllo riscaldatori \nhotend e piano riscaldato
 Pulire lastra d'acciaio.
 Congratulazioni! Calibrazione XYZ ok. Assi XY sono perpendicolari.
 Test dei segnali acustici continui\npremere il pulsante per interrompere
@@ -31,16 +34,16 @@ Carico CPU
 DISATTIVA SENSORE
 Disabilita motori
 Disconnetti
-Vuoi ripetere\nl'ultimo passo e \nregolare ancora la\ndistanza tra ugello\ne piano riscaldato?
-Vuoi usare il valore\nattuale?\nAttuale: %0.3f.\nPredef: %0.3f.\nPremi NO per usare il val. predef. (consigliato)
+Vuoi ripetere l'ultimo passo e regolare ancora la distanza tra ugello e piano riscaldato?
+Vuoi usare il valore attuale?\nAttuale: %0.3f.\nPredef: %0.3f.\nPremi NO per usare il val. predef. (consigliato)
 Usare l'ultimo valore impostato? Ultimo: %0.3f. Predef.: %0.3f. Premi NO per usare il valore predefinito.
 FATTO
 Espulsione
 Errore
 Errore salvando il rapporto di crash dump sul drive USB. Reinserire la chiavetta USB e riprovare.
 Tutto funzionante. Eseguirò adesso la calibrazione XYZ. Richiederà circa 12 minuti.
-USCITA
-Factory defaults loaded. The system will now restart.\nImpostazioni di fabbrica caricate. Riavvio sistema.
+FINE
+Valori predefiniti di fabbrica caricati. Adeesso il sistema verrà riavviato.
 Ripristino impostazioni di fabbrica
 Stat. fallimenti
 Test ventola
@@ -48,8 +51,8 @@ Sens. fil.
 FILAMENTO
 Filamento
 Filamento non rilevato. Caricare il filamento ora? Selezionare NO per annullare o IGNORA per disabilitare il sensore del filamento e continuare.
-Completamento\ngcode bufferizzati.
-Versione firmware
+Completamento\ngcode bufferizzati.\n
+Vers. firmware\n
 Calib. primo layer
 CALIB. PRIMO LAYER
 Fattore di flusso
@@ -58,20 +61,21 @@ Aggiornamento FW
 Piano riscaldato
 Riscaldamento disattivato dopo 30 minuti di inattività.
 Riscaldamento...
-Ciao, questa è\nla tua \nOriginal Prusa MINI.
+Ciao, questa è la tua Original Prusa MINI.
 HOME
 Home
+HOME TO MAX
 Ventola hotend
 IGNORA
-Nel prossimo passo,\nusa la manopola per\nregolare l'altezza\nugello. Controlla le\nimmagini sul\nmanuale per rifer.
+Nel prossimo passo, usa la manopola per regolare l'altezza ugello. Controlla le immagini sul manuale per rifer.
 INFO
 Info
 Informazioni
 Inserimento
-Gli indirizzi IP non sono validi o il file \lan_settings.ini\ non si trova nella directory principale dell'unità USB.
-Indirizzi IP o parametri non validi o il file \lan_settings.ini\ non presente nella directory principale del drive USB.
-Colore corretto?
-Il filamento è\nnell'ingranaggio\ndell'estrusore?
+Gli indirizzi IP non sono validi o il file \"lan_settings.ini\" non si trova nella directory principale dell'unità USB.
+Indirizzi IP o parametri non validi o il file \"lan_settings.ini\" non presente nella directory principale del drive USB.
+Il colore è corretto?
+Il filamento è nell'ingranaggio dell'estrusore?
 La piastra d'acciaio è sul piano riscaldato?
 IMPOSTAZIONI LAN
 Impostazioni Lan
@@ -85,34 +89,38 @@ Carica impostazioni
 Caricamento...
 Caricamento ugello
 Forte
-Accertati che\nil filamento\npassi attraverso\nil sensore.
+Accertati che il filamento passi attraverso il sensore.
 Materiale
 Misurazione altezza\ndi riferimento dei\npunti di calibrazione
+Timeout Menu
 LIVEL. PIANO
 Liv. griglia piano.
-Mesh bed leveling failed?\nLiv. griglia piano non riuscito?
+Liv. griglia piano non riuscito?
 MESSAGGI
 Messaggi
 Sposta asse
+SPOSTA ASSE
 Sposta E
 Sposta X
 Sposta Y
 Sposta Z
 SUCCESSIVO
 NO
-No filament sensor detected. Verify that the sensor is connected and try again.\nSensore filamento non rilevato. Verificare il collegamento e riprovare.
+Sensore filamento non rilevato. Verificare il collegamento e riprovare.
 Nessun messaggio
 No USB
-Ora, calibriamo la\ndistanza tra la \npunta dell'ugello e\nil piano di stampa.
+Ora, calibriamo la distanza tra la punta dell'ugello e il piano di stampa.
+Target ug.: %.0f_C
 Ugello
 UGELLO
 Ugello troppo freddo.
+Ugello: %.1f_C
 Off
 OK
 On
 Al riavvio
 Una volta
-Appena la stampante\ninizia ad estrudere\nla plastica, regola\nl'altezza ugello\nruotando la manopola\nfinché il filamento\nsi attacca alla\nsuperficie di stampa.
+Appena la stampante\ninizia ad estrudere\nplastica, regola\nl'altezza ugello\nruotando la manopola\nfinché il filamento\nnon si attacchi alla\nsuperficie di stampa.
 Parking
 Pausa
 In pausa...
@@ -120,7 +128,7 @@ Regolazione PID
 Posiziona un foglio di carta sotto l'ugello durante la calib. dei primi 4 punti. Se l'ugello prende la carta, spegni la stampante immediatamente!
 Pure l'ugello per calibrare. Poi premi su SUCCESSIVO.
 Inserire un drive USB e riprovare.
-Inserisci il drive\nUSB fornito con\nla MINI e reimposta\nla stampante per \naggiornare il \nfirmware
+Inserisci il drive USB fornito con la MINI e reimposta la stampante per aggiornare il firmware
 Posiziona la piastra sul piano riscaldato.
 Rimuovi la lastra d'acciaio dal piano riscaldato.
 Attendere
@@ -129,8 +137,8 @@ Preriscalda
 PRERIS. per CARICARE
 PRERISCALDA per SCARICARE
 Preparazione al ram
-Premi CONTINUA e \nspingi il filamento \nnell'estrusore.
-Premi SUCCESSIVO per\navviare l'autotest,\nper controllare \neventuali problemi\nlegati al montaggio. 
+Premi CONTINUA e spingi il filamento nell'estrusore.
+Premi SUCCESSIVO per avviare l'autotest, per controllare eventuali problemi legati al montaggio.
 Stampa
 Ventola di stampa
 Ventola di stampa
@@ -157,12 +165,15 @@ Salvare Crash Dump
 Salva impostazioni
 Ricerca punti\ndi calibrazione piano
 Seleziona tipo filamento
-Seleziona quando vuoi\naggiornare automaticamente\nil nuovo firmware\nda penna USB.
+SELEZIONA FILE
+SELEZIONA LINGUA
+Seleziona quando\nvuoi aggiornare\nautomaticamente\nil nuovo firmware\nda penna USB.
 AutoTest
 AUTOTEST
 Invia info con QR
 Assistenza
 Impostazioni
+IMPOSTAZIONI
 Impostazioni caricate correttamente
 Silenzioso
 Modo suono
@@ -179,15 +190,15 @@ Temperature
 Test
 Calib. primo layer non riuscita. Ricontrolla il cablaggio, assi e ugello, quindi ripeti la calibrazione.
 Stampante non calibrata. Avviare Calibrazione primo layer?
-Autotest non\nriuscito.\nRicontrolla il\ncablaggio e gli \nassi. Poi ripeti\nl'autotest.
-Impostazioni salvate correttamente nel file \lan_settings.ini\.
-La barra di stato è\nin basso. Contiene\ninformazioni su:\n - Temp. Ugello\n - Temp. PianoRisc.\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato 
+Autotest non riuscito. Ricontrolla il cablaggio e gli assi. Poi ripeti l'autotest.
+Impostazioni salvate correttamente nel file \"lan_settings.ini\".
+La barra di stato è in basso. Contiene informazioni su:\n - Temp. Ugello\n - Temp. PianoRisc.\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato
 Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quindi ripeti la calibrazione XYZ.
-Errore nel salvataggio delle impostazioni nel file \lan_settings.ini\.
+Errore nel salvataggio delle impostazioni nel file \"lan_settings.ini\".
 Questa operazione non può essere annullata, la configurazione attuale andrà persa! Siete davvero sicuri di ripristinare le impostazioni di fabbrica?
 Timeout
-Per calibrare con\nil filamento\nattualmente caricato,\npremere AVANTI.\nPer cambiare filamento,\npremere SCARICA.
-Per calibrare con\nIL filamento\nattualmente caricato,\npremere AVANTI.\nPer caricare il filamento,\npremere CARICA.\nPer cambiare filamento,\npremere SCARICA.
+Per calibrare con il filamento attualmente caricato, premere AVANTI. Per cambiare filamento, premere SCARICA.
+Per calibrare con IL filamento attualmente caricato, premere AVANTI. Per caricare il filamento, premere CARICA. Per cambiare filamento, premere SCARICA.
 RIPROVA
 REGOLA
 Regola
@@ -204,7 +215,7 @@ Info versione
 In attesa di raffreddamento
 In attesa di temp.
 Attenzione
-Benvenuti nella\nconfigurazione guidata\ndi Original Prusa MINI.\nContinuare?
+Benvenuti nella configurazione guidata di Original Prusa MINI. Continuare?
 Benvenuto nella configurazione guidata Original Prusa MINI. Vuoi continuare?
 Configurazione guidata
 WIZARD

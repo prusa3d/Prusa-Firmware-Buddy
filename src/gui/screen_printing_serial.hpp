@@ -29,7 +29,6 @@ struct screen_printing_serial_data_t : public window_frame_t {
 
 public:
     screen_printing_serial_data_t();
-    ~screen_printing_serial_data_t();
 
 private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;

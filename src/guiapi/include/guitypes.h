@@ -117,6 +117,7 @@ typedef struct _gui_defaults_t {
     rect_ui16_t header_sz;           // default header location & size
     rect_ui16_t scr_body_sz;         // default screen body location & size
     rect_ui16_t scr_body_no_foot_sz; // screen body without footer location & size
+    rect_ui16_t scr_fullscreen;      // full screen body without footer & header location & size
     rect_ui16_t footer_sz;           // default footer location & size
     uint8_t btn_h;                   // default button height
     uint8_t btn_spacing;             // default button spacing

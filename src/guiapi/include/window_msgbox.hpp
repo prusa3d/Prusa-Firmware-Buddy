@@ -71,5 +71,6 @@ Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Response
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = gui_defaults.scr_body_sz);
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = gui_defaults.scr_body_sz);
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = gui_defaults.scr_body_sz);
+Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, rect_ui16_t rect, uint16_t icon_id = 0);
 Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = gui_defaults.scr_body_sz);
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = gui_defaults.scr_body_sz);

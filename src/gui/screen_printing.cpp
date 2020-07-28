@@ -175,8 +175,9 @@ screen_printing_data_t::screen_printing_data_t()
     header.SetIcon(IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
     static const char pr[] = "PRINTING";
-    header.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pr));
-#endif
+    header.SetText(_(pr));
+#endif // DEBUG_FSENSOR_IN_HEADER
+
     w_filename.font = resource_font(IDR_FNT_BIG);
     w_filename.SetPadding(padding_ui8(0, 0, 0, 0));
     w_filename.SetAlignment(ALIGN_LEFT_BOTTOM);
@@ -209,7 +210,7 @@ screen_printing_data_t::screen_printing_data_t()
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
 
-    w_message.font = resource_font(IDR_FNT_SMALL);
+    w_message.font = resource_font(IDR_FNT_NORMAL);
     w_message.SetAlignment(ALIGN_LEFT_TOP);
     w_message.SetPadding(padding_ui8(0, 2, 0, 2));
     w_message.SetText(_("No messages"));
