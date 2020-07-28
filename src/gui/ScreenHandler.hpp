@@ -15,6 +15,7 @@ class Screens {
     ScreenFactory::Creator creator; // set by Open
 
     bool close;
+    bool close_all;
 
     //void stack_push(int16_t screen_id) {}
     //int16_t stack_pop(void) {}
@@ -29,6 +30,8 @@ public:
     void Open(ScreenFactory::Creator screen_creator); //remember creator and create later
 
     void Close();
+
+    void CloseAll();
 
     bool ConsumeClose(); //dialog can erase close signal and close itself
 

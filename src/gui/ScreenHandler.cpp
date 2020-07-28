@@ -42,29 +42,47 @@ void Screens::Close() {
     close = true;
 }
 
+void Screens::CloseAll() {
+    close_all = true;
+}
+
+//used to close blocking dialogs
 bool Screens::ConsumeClose() {
-    bool ret = close;
-    close = false;
+    bool ret = close | close_all; // close_all must also close dialogs
+    close = false;                //close_all cannot be consumed
     return ret;
 }
 
 void Screens::Loop() {
+    if (close_all) {
+        if (current) {                              // is there something to close?
+            if (creator) {                          // have creator, have to emulate opening
+                stack_iterator = stack.begin() + 1; // point behind screen[0], (screen[0] is home)
+                close = false;                      // clr close flag, creator will be pusthed into screen[1] position
+            } else {                                // do not have creator, have to emulate closing
+                stack_iterator = stack.begin() + 2; // point behind screen[1], (screen[0] is home)
+                close = true;                       // set flag to close screen[1] == open screen[0] (home)
+            }
+        }
+        close_all = false;
+    }
+
     //open new screen
     if (creator || close) {
         if (current) {
             current.reset(); //without reset screens does not behave correctly, I do not know why
             if (close) {
-                if (stack_iterator != stack.begin()) {
-                    --stack_iterator;
-                    creator = (*(stack_iterator - 1));
+                if (stack_iterator != stack.begin() && (stack_iterator - 1) != stack.begin()) {
+                    --stack_iterator;                  // point behind current creator - will become "behind last creator"
+                    creator = (*(stack_iterator - 1)); // use previous screen as current creator
                     close = false;
                 } else {
                     bsod("Screen stack underflow");
                 }
             } else {
                 if (stack_iterator != stack.end()) {
-                    (*stack_iterator) = creator;
-                    ++stack_iterator;
+                    (*stack_iterator) = creator; // save creator on stack
+                    ++stack_iterator;            // point behind last creator
                 } else {
                     bsod("Screen stack overflow");
                 }
