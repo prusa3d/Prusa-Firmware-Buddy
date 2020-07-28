@@ -11,6 +11,7 @@
 #include "../../gui/wizard/selftest.h"
 #include "version.h"
 #include "eeprom.h"
+#include "sha256.h"
 
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
@@ -78,13 +79,20 @@ void printerCode(char *str) {
         setBit(str[0], 6);
     }
 
+    constexpr uint8_t buffer = 64;
+    unsigned char toHash[buffer];
+    snprintf((char *)toHash, buffer, "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
     /// TODO get hash;
+    mbedtls_sha256_ret_256(toHash, (96 + 0) / 8, (unsigned char *)hash);
 
     /// shift hash by 2 bits
-    hash[7] >>= 2;
+    hash[7]
+        >>= 2;
     for (int i = 6; i >= 0; --i)
         rShift2Bits(hash[i], hash[i + 1]);
+
+    /// TODO merge bits
 }
 
 void error_url_long(char *str, uint32_t str_size, int error_code) {
