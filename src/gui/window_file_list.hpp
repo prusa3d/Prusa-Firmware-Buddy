@@ -46,6 +46,8 @@ typedef enum {
 
 } WF_Sort_t;
 
+extern WF_Sort_t screen_filebrowser_sort;
+
 extern int16_t WINDOW_CLS_FILE_LIST;
 
 extern const window_class_file_list_t window_class_file_list;
