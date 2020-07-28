@@ -49,8 +49,6 @@ const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
     N_("Home"),
 };
 
-screen_printing_data_t *screen_printing_data_t::ths = nullptr;
-
 void screen_printing_data_t::invalidate_print_state() {
     state__readonly__use_change_print_state = printing_state_t::COUNT;
 }
@@ -113,25 +111,11 @@ void screen_printing_data_t::stopAction() {
     }
     }
 }
-/******************************************************************************/
-//static methods to be pointed by fnc pointers
-void screen_printing_data_t::StopAction() {
-    if (screen_printing_data_t::ths)
-        screen_printing_data_t::ths->stopAction();
-}
-void screen_printing_data_t::PauseAction() {
-    if (screen_printing_data_t::ths)
-        screen_printing_data_t::ths->pauseAction();
-}
-void screen_printing_data_t::TuneAction() {
-    if (screen_printing_data_t::ths)
-        screen_printing_data_t::ths->tuneAction();
-}
+
 /******************************************************************************/
 
 screen_printing_data_t::screen_printing_data_t()
-    //: IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption), [this](){this->TuneAction();}, [this](){this->PauseAction();}, [this](){this->StopAction();})
-    : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption), TuneAction, PauseAction, StopAction)
+    : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
     , w_filename(this, rect_ui16(10, 33, 220, 29))
     , w_progress(this, rect_ui16(10, 70, 220, 50))
     , w_time_label(this, rect_ui16(10, 128, 101, 20))
@@ -193,12 +177,6 @@ screen_printing_data_t::screen_printing_data_t()
     w_message.SetText(_("No messages"));
     w_message.Hide();
     message_flag = false;
-
-    ths = this;
-}
-
-screen_printing_data_t::~screen_printing_data_t() {
-    ths = nullptr;
 }
 
 void screen_printing_data_t::open_popup_message() {

@@ -16,7 +16,6 @@ static constexpr btn_resource res_stop = { IDR_PNG_menu_icon_stop, N_("Stop") };
 
 class IScreenPrinting : public window_frame_t {
 protected:
-    using action = void (*)();
     struct btn {
         window_icon_button_t ico;
         window_text_t txt;
@@ -30,10 +29,18 @@ protected:
     btn btn_stop;
 
 public:
-    IScreenPrinting(string_view_utf8 caption, action tune_action, action pause_action, action stop_action);
+    IScreenPrinting(string_view_utf8 caption);
+    ~IScreenPrinting();
 
 protected:
     void initBtnText(btn &ref_button); // could access just text, but accessing entire button is more general
     void setIconAndLabel(btn &ref_button, const btn_resource &res);
     void initAndsetIconAndLabel(btn &ref_button, const btn_resource &res);
+    static IScreenPrinting *ths;
+    static void StopAction();
+    static void PauseAction();
+    static void TuneAction();
+    virtual void stopAction() = 0;
+    virtual void pauseAction() = 0;
+    virtual void tuneAction() = 0;
 };

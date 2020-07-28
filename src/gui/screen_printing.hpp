@@ -71,7 +71,6 @@ class screen_printing_data_t : public IScreenPrinting {
 
 public:
     screen_printing_data_t();
-    ~screen_printing_data_t();
 
 private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
@@ -93,14 +92,10 @@ private:
     void set_stop_icon_and_label();
     void change_print_state();
 
-    void stopAction();
-    void pauseAction();
-    void tuneAction();
+    virtual void stopAction() override;
+    virtual void pauseAction() override;
+    virtual void tuneAction() override;
 
 public:
     printing_state_t GetState() const;
-    static screen_printing_data_t *ths;
-    static void StopAction();
-    static void PauseAction();
-    static void TuneAction();
 };

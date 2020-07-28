@@ -7,14 +7,14 @@
 #include "../lang/i18n.h"
 #include "ScreenHandler.hpp"
 
-IScreenPrinting::IScreenPrinting(string_view_utf8 caption, action tune_action, action pause_action, action stop_action)
+IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
     : window_frame_t()
     , header(this)
     , footer(this)
     // clang-format off
-    , btn_tune  { { this, rect_ui16(8 + (15 + 64) * 0, 185, 64, 64), 0, tune_action  }, { this, rect_ui16(80 * 0, 196 + 48 + 8, 80, 22) } }
-    , btn_pause { { this, rect_ui16(8 + (15 + 64) * 1, 185, 64, 64), 0, pause_action }, { this, rect_ui16(80 * 1, 196 + 48 + 8, 80, 22) } }
-    , btn_stop  { { this, rect_ui16(8 + (15 + 64) * 2, 185, 64, 64), 0, stop_action  }, { this, rect_ui16(80 * 2, 196 + 48 + 8, 80, 22) } }
+    , btn_tune  { { this, rect_ui16(8 + (15 + 64) * 0, 185, 64, 64), 0, TuneAction  }, { this, rect_ui16(80 * 0, 196 + 48 + 8, 80, 22) } }
+    , btn_pause { { this, rect_ui16(8 + (15 + 64) * 1, 185, 64, 64), 0, PauseAction }, { this, rect_ui16(80 * 1, 196 + 48 + 8, 80, 22) } }
+    , btn_stop  { { this, rect_ui16(8 + (15 + 64) * 2, 185, 64, 64), 0, StopAction  }, { this, rect_ui16(80 * 2, 196 + 48 + 8, 80, 22) } }
 // clang-format on
 {
     header.SetText(caption);
@@ -22,6 +22,12 @@ IScreenPrinting::IScreenPrinting(string_view_utf8 caption, action tune_action, a
     initAndsetIconAndLabel(btn_tune, res_tune);
     initAndsetIconAndLabel(btn_pause, res_pause);
     initAndsetIconAndLabel(btn_stop, res_stop);
+
+    ths = this;
+}
+
+IScreenPrinting::~IScreenPrinting() {
+    ths = nullptr;
 }
 
 void IScreenPrinting::initBtnText(btn &ref_button) {
@@ -41,3 +47,20 @@ void IScreenPrinting::initAndsetIconAndLabel(btn &ref_button, const btn_resource
     initBtnText(ref_button);
     setIconAndLabel(ref_button, res);
 }
+
+/******************************************************************************/
+//static methods to be pointed by fnc pointers
+void IScreenPrinting::StopAction() {
+    if (IScreenPrinting::ths)
+        IScreenPrinting::ths->stopAction();
+}
+void IScreenPrinting::PauseAction() {
+    if (IScreenPrinting::ths)
+        IScreenPrinting::ths->pauseAction();
+}
+void IScreenPrinting::TuneAction() {
+    if (IScreenPrinting::ths)
+        IScreenPrinting::ths->tuneAction();
+}
+
+IScreenPrinting *IScreenPrinting::ths = nullptr;
