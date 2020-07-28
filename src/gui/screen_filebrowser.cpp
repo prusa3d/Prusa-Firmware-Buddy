@@ -6,9 +6,11 @@
 #include "usb_host.h"
 #include "cmsis_os.h"
 #include "marlin_client.h"
+#include "screen_print_preview.hpp"
 #include "print_utils.hpp"
 #include "ScreenHandler.hpp"
-#include "screen_print_preview.hpp"
+#include "eeprom.h"
+
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 
@@ -19,7 +21,7 @@
 #define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
 
 // Default value could be rewrite from eeprom settings
-static WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
+WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
 
 /// To save first/top visible item in the file browser
 /// This is something else than the selected file for print
@@ -31,7 +33,8 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     : window_frame_t()
     , header(this)
     , w_filelist(this, rect_ui16(10, 32, 220, 278)) {
-    // TODO: load screen_filebrowser_sort from eeprom
+    screen_filebrowser_sort = (WF_Sort_t)eeprom_get_var(EEVAR_FILE_SORT).ui8;
+
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
 

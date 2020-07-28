@@ -23,6 +23,8 @@ typedef enum {
 
 } WF_Sort_t;
 
+extern WF_Sort_t screen_filebrowser_sort;
+
 inline LDV9 *LDV_Get(void) {
     static LDV9 ldv;
     return &ldv;

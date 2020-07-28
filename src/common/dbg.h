@@ -1,6 +1,5 @@
 //dbg.h
-#ifndef _DBG_H
-#define _DBG_H
+#pragma once
 
 #include <inttypes.h>
 #include "config.h"
@@ -55,5 +54,3 @@ extern uint32_t _microseconds(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_DBG_H
