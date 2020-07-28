@@ -14,7 +14,7 @@ static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_prin
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : IScreenPrinting(
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)caption), []() { /*screen_open(get_scr_menu_tune()->id);*/ }, []() { marlin_gcode("M118 A1 action:pause"); }, []() {})
+        string_view_utf8::MakeCPUFLASH((const uint8_t *)caption), []() { /*screen_open(get_scr_menu_tune()->id);*/ }, []() { marlin_gcode("M118 A1 action:pause"); }, []() { connection = connection_state_t::disconnect; })
     , octo_icon(this, rect_ui16((240 - pt_ico().x) / 2, gui_defaults.scr_body_sz.y, pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
     , last_tick(0) {
 
