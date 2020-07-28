@@ -52,7 +52,6 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     w_filelist.Load(screen_filebrowser_sort, c + 1, firstVisibleSFN);
     // SetItemIndex(1); // this is automagically done in the window file list
     w_filelist.SetCapture(); // hack for do not change capture
-    w_filelist.SetFocus();   // hack for do not change capture
 }
 
 static void on_print_preview_action(print_preview_action_t action) {

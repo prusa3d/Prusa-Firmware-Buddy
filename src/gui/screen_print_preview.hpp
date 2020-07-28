@@ -83,8 +83,6 @@ public:
 
 private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
-    //virtual void unconditionalDraw() override;
+    //virtual void unconditionalDraw() override; //todo move draw from event
     bool gcode_file_exists();
-    //void initialize_gcode_file();
-    //void initialize_description_lines();
 };

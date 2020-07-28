@@ -3,61 +3,6 @@
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 
-void window_frame_event(window_frame_t *window, uint8_t event, void *param) {
-    /*    int16_t id;
-    int dif;
-    switch (event) {
-    case WINDOW_EVENT_BTN_DN:
-        if (window_focused_ptr && window_focused_ptr->f_tag)
-            Screens::Access()->DispatchEvent(window_focused_ptr, WINDOW_EVENT_CLICK, (void *)(int)window_focused_ptr->f_tag);
-        if (window_ptr(window_focused()))
-            window_ptr(window_focused())->SetCapture();
-        break;
-    case WINDOW_EVENT_ENC_DN:
-        dif = (int)param;
-        id = window_focused();
-        while (dif--) {
-            id = window_prev_enabled(id);
-        }
-        if (id >= 0) {
-            window_t *pWin = window_ptr(id);
-            if (pWin)
-                pWin->SetFocus();
-        } else {
-            // End indicator of the frames list ->
-            Sound_Play(eSOUND_TYPE_BlindAlert);
-        }
-        break;
-    case WINDOW_EVENT_ENC_UP:
-        dif = (int)param;
-        id = window_focused();
-        while (dif--) {
-            id = window_next_enabled(id);
-        }
-        if (id >= 0) {
-            window_t *pWin = window_ptr(id);
-            if (pWin)
-                pWin->SetFocus();
-        } else {
-            // Start indicator of the frames list <-
-            Sound_Play(eSOUND_TYPE_BlindAlert);
-        }
-        break;
-    case WINDOW_EVENT_CAPT_0:
-        break;
-    case WINDOW_EVENT_CAPT_1:
-        if (window_ptr(window_focused())->id_parent != window->id) {
-            id = window_first_child(0);
-            if (window_ptr(id) ? !window_ptr(id)->IsEnabled() : true)
-                id = window_next_enabled(id);
-            window_t *pWin = window_ptr(id);
-            if (pWin)
-                pWin->SetFocus();
-        }
-        break;
-    }*/
-}
-
 window_frame_t::window_frame_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog)
     : window_t(parent, rect, dialog)
     , first(nullptr)
@@ -261,6 +206,18 @@ window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win) const {
     return tmpWin;
 }
 
+window_t *window_frame_t::GetFirstEnabledSubWin() const {
+    if (!first)
+        return nullptr;
+    if (first->IsEnabled())
+        return first;
+    return GetNextEnabledSubWin(first);
+}
+
 bool window_frame_t::IsChildCaptured() {
     return GetCapturedWindow()->GetParent() == this;
+}
+
+bool window_frame_t::IsChildFocused() {
+    return GetFocusedWindow()->GetParent() == this;
 }

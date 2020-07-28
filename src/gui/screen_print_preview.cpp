@@ -145,17 +145,11 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail) {
     marlin_set_print_speed(100);
-    //initialize_gcode_file();
-
-    //Enable();
 
     // Title
     title_text.font = resource_font(IDR_FNT_BIG);
     // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
-
-    // Description lines
-    //initialize_description_lines();
 
     print_label.SetText(_("Print"));
     print_label.SetAlignment(ALIGN_CENTER);
@@ -164,8 +158,6 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     back_label.SetText(_("Back"));
     back_label.SetAlignment(ALIGN_CENTER);
     back_label.font = resource_font(IDR_FNT_SMALL);
-
-    print_button.SetFocus();
 }
 
 screen_print_preview_data_t::~screen_print_preview_data_t() {

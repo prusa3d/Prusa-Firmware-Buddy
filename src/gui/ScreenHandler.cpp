@@ -73,6 +73,14 @@ void Screens::Loop() {
         current = creator();
         if (!current->IsChildCaptured())
             current->SetCapture();
+        if (!current->IsChildFocused() && !current->IsChildFocused()) {
+            window_t *child = current->GetFirstEnabledSubWin();
+            if (child) {
+                child->SetFocus();
+            } else {
+                current->SetFocus();
+            }
+        }
         creator = nullptr;
         gui_invalidate();
     }

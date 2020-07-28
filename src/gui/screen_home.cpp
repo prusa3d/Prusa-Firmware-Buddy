@@ -80,7 +80,6 @@ screen_home_data_t::screen_home_data_t()
         }
     }
 
-    w_buttons[0].SetFocus();
     if (!marlin_vars()->media_inserted)
         printBtnDis();
 }
