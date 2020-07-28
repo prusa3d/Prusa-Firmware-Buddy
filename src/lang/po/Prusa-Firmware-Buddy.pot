@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-17 20:23+0200\n"
+"POT-Creation-Date: 2020-07-28 08:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -497,7 +497,7 @@ msgstr ""
 
 #. Z 30mm
 #. Disable steppers
-#: src/gui/wizard/firstlay.cpp:409
+#: src/gui/wizard/firstlay.cpp:411
 msgid "Mesh bed leveling failed?"
 msgstr ""
 
@@ -525,6 +525,8 @@ msgstr ""
 msgid "Move Z"
 msgstr ""
 
+#. known and not "unsensed" - do not allow load
+#. cannot use CONTINUE button, string is too long
 #. known and not "unsensed" - do not allow load
 #. cannot use CONTINUE button, string is too long
 #: src/gui/wizard/wizard_ui.cpp:32 src/gui/wizard/wizard_load_unload.cpp:21
@@ -818,7 +820,7 @@ msgstr ""
 msgid "SELFTEST"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:88
+#: src/gui/screen_menu_settings.cpp:87
 msgid "SETTINGS"
 msgstr ""
 
@@ -878,6 +880,10 @@ msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:206
 msgid "Sound Mode"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sound Volume"
 msgstr ""
 
 #: src/guiapi/include/MItem_print.hpp:32
@@ -1099,7 +1105,7 @@ msgstr ""
 msgid "YES"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:309
+#: src/gui/wizard/firstlay.cpp:311
 msgid "Z height:"
 msgstr ""
 

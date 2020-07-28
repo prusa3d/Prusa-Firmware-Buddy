@@ -234,7 +234,8 @@ public:
 };
 
 class MI_SOUND_VOLUME : public WI_SPIN_U08_t {
-    constexpr static const char *const label = "Sound Volume"; // intentionally not translated
+    constexpr static const char *const label = N_("Sound Volume");
+
 public:
     MI_SOUND_VOLUME();
     virtual void OnClick() override;
