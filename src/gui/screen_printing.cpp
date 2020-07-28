@@ -59,7 +59,7 @@ printing_state_t screen_printing_data_t::GetState() const {
 }
 
 void screen_printing_data_t::tuneAction() {
-    if (w_buttons[0].IsBWSwapped()) {
+    if (btn_tune.ico.IsBWSwapped()) {
         return;
     }
     switch (GetState()) {
@@ -73,7 +73,7 @@ void screen_printing_data_t::tuneAction() {
 }
 
 void screen_printing_data_t::pauseAction() {
-    if (w_buttons[1].IsBWSwapped()) {
+    if (btn_pause.ico.IsBWSwapped()) {
         return;
     }
     switch (GetState()) {
@@ -92,7 +92,7 @@ void screen_printing_data_t::pauseAction() {
 }
 
 void screen_printing_data_t::stopAction() {
-    if (w_buttons[2].IsBWSwapped()) {
+    if (btn_stop.ico.IsBWSwapped()) {
         return;
     }
     switch (GetState()) {
@@ -129,32 +129,15 @@ void screen_printing_data_t::TuneAction() {
 }
 /******************************************************************************/
 
-static rect_ui16_t icon_rc(size_t pos) {
-    const uint16_t icon_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22 - 64;
-    return rect_ui16(8 + (15 + 64) * pos, icon_y, 64, 64);
-}
-static rect_ui16_t text_rc(size_t pos) {
-    const uint16_t text_y = gui_defaults.footer_sz.y - gui_defaults.padding.bottom - 22;
-    return rect_ui16(80 * pos, text_y, 80, 22);
-}
-
 screen_printing_data_t::screen_printing_data_t()
-    : window_frame_t()
-    , header(this)
-    , footer(this)
+    //: IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption), [this](){this->TuneAction();}, [this](){this->PauseAction();}, [this](){this->StopAction();})
+    : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption), TuneAction, PauseAction, StopAction)
     , w_filename(this, rect_ui16(10, 33, 220, 29))
     , w_progress(this, rect_ui16(10, 70, 220, 50))
     , w_time_label(this, rect_ui16(10, 128, 101, 20))
     , w_time_value(this, rect_ui16(10, 148, 101, 20))
     , w_etime_label(this, rect_ui16(130, 128, 101, 20))
     , w_etime_value(this, rect_ui16(30, 148, 201, 20))
-
-    , w_buttons {
-        { this, icon_rc(0), 0, StopAction },
-        { this, icon_rc(1), 0, PauseAction },
-        { this, icon_rc(2), 0, TuneAction }
-    }
-    , w_labels { { this, text_rc(0) }, { this, text_rc(1) }, { this, text_rc(2) } }
 
     , last_print_duration(-1)
     , last_time_to_end(-1)
@@ -171,12 +154,6 @@ screen_printing_data_t::screen_printing_data_t()
 
     strlcpy(text_time_dur.data(), "0m", text_time_dur.size());
     strlcpy(text_filament.data(), "999m", text_filament.size());
-
-    header.SetIcon(IDR_PNG_status_icon_printing);
-#ifndef DEBUG_FSENSOR_IN_HEADER
-    static const char pr[] = "PRINTING";
-    header.SetText(_(pr));
-#endif // DEBUG_FSENSOR_IN_HEADER
 
     w_filename.font = resource_font(IDR_FNT_BIG);
     w_filename.SetPadding(padding_ui8(0, 0, 0, 0));
@@ -216,13 +193,6 @@ screen_printing_data_t::screen_printing_data_t()
     w_message.SetText(_("No messages"));
     w_message.Hide();
     message_flag = false;
-
-    // buttons
-    for (uint8_t col = 0; col < 3; col++) {
-        w_labels[col].font = resource_font(IDR_FNT_SMALL);
-        w_labels[col].SetPadding(padding_ui8(0, 0, 0, 0));
-        w_labels[col].SetAlignment(ALIGN_CENTER);
-    }
 
     ths = this;
 }
@@ -337,23 +307,20 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
 }
 
 void screen_printing_data_t::disable_tune_button() {
-    window_icon_t *p_button = &w_buttons[static_cast<size_t>(Btn::Tune)];
-    p_button->SwapBW();
-    p_button->Disable(); // can't be focused
+    btn_tune.ico.SwapBW();
+    btn_tune.ico.Disable(); // can't be focused
 
     // move to reprint when tune is focused
-    if (p_button->IsFocused()) {
-        w_buttons[static_cast<size_t>(Btn::Pause)].SetFocus();
+    if (btn_tune.ico.IsFocused()) {
+        btn_pause.ico.SetFocus();
     }
-    p_button->Invalidate();
+    btn_tune.ico.Invalidate();
 }
 
 void screen_printing_data_t::enable_tune_button() {
-    window_icon_t *p_button = &w_buttons[static_cast<size_t>(Btn::Tune)];
-
-    p_button->UnswapBW();
-    p_button->Enable(); // can be focused
-    p_button->Invalidate();
+    btn_tune.ico.UnswapBW();
+    btn_tune.ico.Enable(); // can be focused
+    btn_tune.ico.Invalidate();
 }
 
 void screen_printing_data_t::update_progress(uint8_t percent, uint16_t print_speed) {
@@ -453,8 +420,8 @@ void screen_printing_data_t::update_print_duration(time_t rawtime) {
 void screen_printing_data_t::screen_printing_reprint() {
     print_begin(marlin_vars()->media_SFN_path);
     w_etime_label.SetText(_("Remaining Time"));
-    w_labels[static_cast<size_t>(Btn::Stop)].SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
-    w_buttons[static_cast<size_t>(Btn::Stop)].SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
+    btn_stop.txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
+    btn_stop.ico.SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     header.SetText(_("PRINTING"));
@@ -503,8 +470,8 @@ void screen_printing_data_t::disable_button(window_icon_t *p_button) {
 }
 
 void screen_printing_data_t::set_pause_icon_and_label() {
-    window_icon_t *p_button = &w_buttons[static_cast<size_t>(Btn::Pause)];
-    window_text_t *pLabel = &w_labels[static_cast<size_t>(Btn::Pause)];
+    window_icon_t *const p_button = &btn_pause.ico;
+    window_text_t *const pLabel = &btn_pause.txt;
 
     //todo it is static, because menu tune is not dialog
     //switch (state__readonly__use_change_print_state)
@@ -547,8 +514,8 @@ void screen_printing_data_t::set_pause_icon_and_label() {
 }
 
 void screen_printing_data_t::set_tune_icon_and_label() {
-    window_icon_t *p_button = &w_buttons[static_cast<size_t>(Btn::Tune)];
-    window_text_t *pLabel = &w_labels[static_cast<size_t>(Btn::Tune)];
+    window_icon_t *const p_button = &btn_tune.ico;
+    window_text_t *const pLabel = &btn_tune.txt;
 
     //must be before switch
     set_icon_and_label(item_id_t::settings, p_button, pLabel);
@@ -568,8 +535,8 @@ void screen_printing_data_t::set_tune_icon_and_label() {
 }
 
 void screen_printing_data_t::set_stop_icon_and_label() {
-    window_icon_t *p_button = &w_buttons[static_cast<size_t>(Btn::Stop)];
-    window_text_t *pLabel = &w_labels[static_cast<size_t>(Btn::Stop)];
+    window_icon_t *const p_button = &btn_stop.ico;
+    window_text_t *const pLabel = &btn_stop.txt;
 
     switch (GetState()) {
     case printing_state_t::PRINTED:
