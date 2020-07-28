@@ -59,7 +59,13 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     //=============SET TEXT================
     auto begin = ths->version_info_str.begin();
     auto end = ths->version_info_str.end();
-    begin += snprintf(begin, end - begin, N_("Firmware Version\n")); // @@TODO streaming
+    {
+        // r=1 c=20
+        static const char fmt2Translate[] = N_("Firmware Version\n");
+        char fmt[21];
+        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+        begin += snprintf(begin, end - begin, fmt);
+    }
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
@@ -76,8 +82,12 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     }
 
     if (end > begin) {
+        // c=20 r=4
+        static const char fmt2Translate[] = N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s");
+        char fmt[20 * 4];
+        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
         begin += snprintf(begin, end - begin,
-            N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"), //@@TODO streaming
+            fmt,
             bootloader->major, bootloader->minor, bootloader->patch,
             board_version[0], board_version[1], board_version[2],
             serial_numbers);

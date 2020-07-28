@@ -196,6 +196,8 @@ bool LoadTranslatedStringsFile(const char *fname, deque<string> *st) {
         getline(f, s);
         // must convert the '\n' into \xa here
         FindAndReplaceAll(s, string("\\n"), string("\xa"));
+        // 0x7f symbol for degrees is a similar case
+        FindAndReplaceAll(s, string("\\177"), string("\177"));
         if (!s.empty()) {              // beware of empty strings
             st->emplace_back(move(s)); // make a copy of the string
         }
@@ -365,9 +367,10 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
             uc[1] = 0x80 | (c & 0x3f);
             f.write((const char *)uc, 3);
 
-            // check, that we have this character in our temporary translation table
-            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
-            CHECK(cASCII.key != 0xffff);
+            // with accents, we don't need the unaccent table anymore
+            //            // check, that we have this character in our temporary translation table
+            //            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
+            //            CHECK(cASCII.key != 0xffff);
         });
     }
 }

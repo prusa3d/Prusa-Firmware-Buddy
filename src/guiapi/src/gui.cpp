@@ -29,6 +29,7 @@ gui_defaults_t gui_defaults = {
     { 0, 0, 240, 32 - 0 },      // default header location & size
     { 0, 32, 240, 267 - 32 },   // default screen body location & size
     { 0, 32, 240, 320 - 32 },   // screen body without footer - location & size
+    { 0, 0, 240, 320 },         // full screen body without footer & header location & size
     { 0, 267, 240, 320 - 267 }, // default footer location & size
     30,                         // default button height
     6,                          // btn_spacing: 12 pixels spacing between buttons, 6 from margins
