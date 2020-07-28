@@ -16,21 +16,18 @@
 #include <algorithm>
 #include "ScreenHandler.hpp"
 
-void window_file_list_inc(window_file_list_t *window, int dif);
-void window_file_list_dec(window_file_list_t *window, int dif);
-
 bool window_file_list_t::IsPathRoot(const char *path) {
     return (path[0] == 0 || strcmp(path, "/") == 0);
 }
 
 /// First part of common setup/init of text rolling
-/// This is called in window_file_list_inc and window_file_list_inc when the selected item changes
+/// This is called in window_file_list_t::inc and window_file_list_t::dec when the selected item changes
 /// - that sometimes means the cursor stays on top or bottom and the whole window content moves
-void window_file_list_init_text_roll(window_file_list_t *window) {
-    window->roll.setup = TXTROLL_SETUP_INIT;
-    window->roll.phase = ROLL_SETUP;
-    gui_timer_restart_txtroll(window);
-    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window);
+void window_file_list_t::init_text_roll() {
+    roll.setup = TXTROLL_SETUP_INIT;
+    roll.phase = ROLL_SETUP;
+    gui_timer_restart_txtroll(this);
+    gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
 }
 
 void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
@@ -86,6 +83,7 @@ const char *window_file_list_t::TopItemSFN() {
 window_file_list_t::window_file_list_t(window_t *parent, rect_ui16_t rect)
     : window_t(parent, rect)
     , color_text(gui_defaults.color_text)
+    , font(gui_defaults.font)
     , padding(padding_ui8(2, 6, 2, 6))
     , ldv(LDV_Get())
     // it is still the same address every time, no harm assigning it again.
@@ -131,12 +129,12 @@ void window_file_list_t::unconditionalDraw() {
             itemText = string_view_utf8::MakeRAM((const uint8_t *)item.first);
         }
 
-        color_t color_text = color_text;
-        color_t color_back = color_back;
+        color_t color_text = this->color_text;
+        color_t color_back = this->color_back;
         uint8_t swap = 0;
 
         rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height), rc_win.w, uint16_t(item_height) };
-        padding_ui8_t padding = padding;
+        padding_ui8_t padding = this->padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
             if ((IsFocused()) && (index == i)) {
@@ -150,7 +148,7 @@ void window_file_list_t::unconditionalDraw() {
                 rect_ui16_t irc = { rc.x, rc.y, 16, 30 };
                 rc.x += irc.w;
                 rc.w -= irc.w;
-                render_icon_align(irc, id_icon, color_back, RENDER_FLG(ALIGN_CENTER, swap));
+                render_icon_align(irc, id_icon, this->color_back, RENDER_FLG(ALIGN_CENTER, swap));
             } else {
                 padding.left += 16;
             }
@@ -194,7 +192,7 @@ void window_file_list_t::unconditionalDraw() {
 
     if (rc_win.h) {
         rc_win.y += i * item_height;
-        display::FillRect(rc_win, color_back);
+        display::FillRect(rc_win, this->color_back);
     }
 }
 
@@ -204,10 +202,10 @@ void window_file_list_t::windowEvent(window_t *sender, uint8_t event, void *para
         Screens::Access()->ScreenEvent(this, WINDOW_EVENT_CLICK, (void *)index);
         break;
     case WINDOW_EVENT_ENC_DN:
-        window_file_list_dec(this, (int)param);
+        dec((int)param);
         break;
     case WINDOW_EVENT_ENC_UP:
-        window_file_list_inc(this, (int)param);
+        inc((int)param);
         break;
     case WINDOW_EVENT_CAPT_1:
         //TODO: change flag to checked
@@ -218,17 +216,17 @@ void window_file_list_t::windowEvent(window_t *sender, uint8_t event, void *para
     }
 }
 
-void window_file_list_inc(window_file_list_t *window, int dif) {
+void window_file_list_t::inc(int dif) {
     bool repaint = false;
-    if (window->index >= int(window->ldv->WindowSize() - 1)) {
-        repaint = window->ldv->MoveDown();
+    if (index >= int(ldv->WindowSize() - 1)) {
+        repaint = ldv->MoveDown();
         if (!repaint) {
             Sound_Play(eSOUND_TYPE_BlindAlert);
         }
     } else {
         // this 'if' solves a situation with less files than slots on the screen
-        if (window->index < int(window->ldv->TotalFilesCount() - 1)) {
-            window->index += 1; // @@TODO dif > 1 pokud bude potreba;
+        if (index < int(ldv->TotalFilesCount() - 1)) {
+            index += 1; // @@TODO dif > 1 pokud bude potreba;
             repaint = true;
         } else {
             Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -237,26 +235,26 @@ void window_file_list_inc(window_file_list_t *window, int dif) {
 
     if (repaint) {
         // here we know exactly, that the selected item changed -> prepare text rolling
-        window_file_list_init_text_roll(window);
-        window->Invalidate();
+        init_text_roll();
+        Invalidate();
     }
 }
 
-void window_file_list_dec(window_file_list_t *window, int dif) {
+void window_file_list_t::dec(int dif) {
     bool repaint = false;
-    if (window->index == 0) {
+    if (index == 0) {
         // at the beginning of the window
-        repaint = window->ldv->MoveUp();
+        repaint = ldv->MoveUp();
         if (!repaint) {
             Sound_Play(eSOUND_TYPE_BlindAlert);
         }
     } else {
-        --window->index;
+        --index;
         repaint = true;
     }
 
     if (repaint) {
-        window_file_list_init_text_roll(window);
-        window->Invalidate();
+        init_text_roll();
+        Invalidate();
     }
 }

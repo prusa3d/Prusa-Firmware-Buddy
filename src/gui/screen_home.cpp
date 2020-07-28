@@ -7,6 +7,7 @@
 
 #include "marlin_client.h"
 #include "screen_print_preview.hpp"
+#include "screen_filebrowser.hpp"
 #include "print_utils.h"
 
 #include "ScreenHandler.hpp"
@@ -43,7 +44,7 @@ screen_home_data_t::screen_home_data_t()
     , header(this)
     , footer(this)
     , logo(this, rect_ui16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
-    , w_buttons { { this, { 0 }, 0, []() { /*screen_open(get_scr_filebrowser()->id);*/ } },
+    , w_buttons { { this, { 0 }, 0, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuPreheat); } },
         { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
         { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },

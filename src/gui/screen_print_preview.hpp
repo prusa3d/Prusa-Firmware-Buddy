@@ -85,6 +85,6 @@ private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
     //virtual void unconditionalDraw() override;
     bool gcode_file_exists();
-    void initialize_gcode_file();
-    void initialize_description_lines();
+    //void initialize_gcode_file();
+    //void initialize_description_lines();
 };

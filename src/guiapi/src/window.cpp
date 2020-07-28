@@ -11,7 +11,7 @@ bool window_t::IsVisible() const { return f_visible == true; }
 bool window_t::IsEnabled() const { return f_enabled == true; }
 bool window_t::IsInvalid() const { return f_invalid == true; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
-bool window_t::IsCapture() const { return GetCapturedWindow() == this; }
+bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return f_timer == true; }
 bool window_t::IsDialog() const { return f_dialog == is_dialog_t::yes; }
 void window_t::Validate(rect_ui16_t validation_rect) {

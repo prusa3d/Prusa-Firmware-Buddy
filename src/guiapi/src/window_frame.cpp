@@ -260,3 +260,7 @@ window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win) const {
     }
     return tmpWin;
 }
+
+bool window_frame_t::IsChildCaptured() {
+    return GetCapturedWindow()->GetParent() == this;
+}

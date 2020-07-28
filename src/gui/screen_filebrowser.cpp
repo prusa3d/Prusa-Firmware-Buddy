@@ -6,9 +6,9 @@
 #include "usb_host.h"
 #include "cmsis_os.h"
 #include "marlin_client.h"
-#include "screen_print_preview.hpp"
 #include "print_utils.h"
 #include "ScreenHandler.hpp"
+#include "screen_print_preview.hpp"
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 
@@ -150,7 +150,7 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
             screen_print_preview_set_on_action(on_print_preview_action);
             screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
             screen_print_preview_set_gcode_filename(vars->media_LFN);
-            //screen_open(get_scr_print_preview()->id);
+            Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
 
             return;
         }

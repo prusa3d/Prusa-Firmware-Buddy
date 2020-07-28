@@ -18,6 +18,7 @@ struct window_frame_t : public window_t {
     window_t *GetPrevSubWin(window_t *win) const;
     window_t *GetNextEnabledSubWin(window_t *win) const;
     window_t *GetPrevEnabledSubWin(window_t *win) const;
+    bool IsChildCaptured();
 
 protected:
     virtual void draw() override;

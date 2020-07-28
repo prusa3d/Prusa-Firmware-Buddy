@@ -145,9 +145,9 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail) {
     marlin_set_print_speed(100);
-    initialize_gcode_file();
+    //initialize_gcode_file();
 
-    Enable();
+    //Enable();
 
     // Title
     title_text.font = resource_font(IDR_FNT_BIG);
@@ -155,7 +155,7 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
 
     // Description lines
-    initialize_description_lines();
+    //initialize_description_lines();
 
     print_label.SetText(_("Print"));
     print_label.SetAlignment(ALIGN_CENTER);
@@ -164,6 +164,8 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     back_label.SetText(_("Back"));
     back_label.SetAlignment(ALIGN_CENTER);
     back_label.font = resource_font(IDR_FNT_SMALL);
+
+    print_button.SetFocus();
 }
 
 screen_print_preview_data_t::~screen_print_preview_data_t() {
@@ -230,5 +232,7 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
         }
         redraw_thumbnail = false;
     }
+
+    window_frame_t::windowEvent(sender, event, param);
 }
 const char *screen_print_preview_get_gcode_filepath();

@@ -79,7 +79,7 @@ public:
     bool IsEnabled() const;
     bool IsInvalid() const;
     bool IsFocused() const;
-    bool IsCapture() const;
+    bool IsCaptured() const;
     bool HasTimer() const;
     bool IsDialog() const;
     void Validate(rect_ui16_t validation_rect = { 0 });

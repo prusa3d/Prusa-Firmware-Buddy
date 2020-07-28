@@ -71,7 +71,8 @@ void Screens::Loop() {
             }
         }
         current = creator();
-        current->SetCapture();
+        if (!current->IsChildCaptured())
+            current->SetCapture();
         creator = nullptr;
         gui_invalidate();
     }
