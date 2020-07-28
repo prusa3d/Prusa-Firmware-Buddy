@@ -1,5 +1,6 @@
 //screen_printing_serial.hpp
 #pragma once
+#include "IScreenPrinting.hpp"
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "status_footer.h"
@@ -11,14 +12,11 @@ enum class buttons_t {
     count
 };
 
-struct screen_printing_serial_data_t : public window_frame_t {
-    window_header_t header;
-    status_footer_t footer;
+class screen_printing_serial_data_t : public IScreenPrinting {
+    static constexpr const char sp[] = "SERIAL PRT.";
+    static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 
     window_icon_t octo_icon;
-
-    window_icon_button_t w_buttons[static_cast<size_t>(buttons_t::count)];
-    window_text_t w_labels[static_cast<size_t>(buttons_t::count)];
 
     int last_tick;
     enum class connection_state_t { connected,
@@ -33,5 +31,5 @@ public:
 private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
     virtual void unconditionalDraw() override;
-    void DisableButton(buttons_t b);
+    void DisableButton(btn &b);
 };
