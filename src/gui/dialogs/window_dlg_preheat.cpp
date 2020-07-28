@@ -68,7 +68,7 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     window->padding = gui_defaults.padding;
 
     rect_ui16_t rect = gui_defaults.scr_body_sz;
-    if (window->caption.isNULLSTR()) {
+    if (!window->caption.isNULLSTR()) {
         rect.h = window->font_title->h + 2;
         window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
         window->text.SetText(window->caption);

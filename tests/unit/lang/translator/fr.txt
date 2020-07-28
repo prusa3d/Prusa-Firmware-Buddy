@@ -1,4 +1,4 @@
-Bootloader Version %d.%d.%d\nBuddy Board %d.%d.%d %s
+\nBootloader Version\n %d.%d.%d\n\nBuddy Board\n%d.%d.%d\n %s
 Un rapport de vidage de mémoire suite à une panne (file dump.bin) a été sauvegardé sur la clé USB.
 STOPPER
 Tous les tests ont été passés avec succès !
@@ -12,9 +12,12 @@ AutTn
 ARRIÈRE
 Retour
 PLATEAU
-Échec du bed leveling. Réessayer ?
+Échec nivelage plateau. Réessayer ?
+Cible plat. : %.0f_C
+Plateau : %.1f_C
 Calibration Z
 Calibration
+CALIBRATION
 Calibration réussie !\nBonnes impressions !
 Calibration XY
 ANNULER
@@ -31,8 +34,8 @@ Charge CPU
 DÉSACTIVER CAPTEUR
 Désactiver Moteurs
 Déconnecter
-Voulez-vous\nrépéter la dernière\nétape et réajuster\nla distance\nentre la buse et le\nplateau chauffant ?
-Voulez-vous utiliser\nla valeur actuelle ?\nActuelle : %0.3f.\nDéfaut : %0.3f.\nCliquez sur NON pour utiliser la valeur par défaut (recommandé)
+Voulez-vous répéter la dernière étape et réajuster la distance entre la buse et le plateau chauffant ?
+Voulez-vous utiliser la valeur actuelle ?\nActuelle : %0.3f.\nDéfaut : %0.3f.\nCliquez sur NON pour utiliser la valeur par défaut (recommandé)
 Voulez-vous utiliser la dernière valeur paramétrée ? Dernière : %0.3f. Défaut : %0.3f. Cliquez sur NON pour utiliser la valeur par défaut.
 TERMINÉ
 Éjection
@@ -48,8 +51,8 @@ Capt. fil.
 FILAMENT
 Filament
 Filament non détecté. Charger filament maintenant ? Sélectionnez NON pour annuler, ou IGNORER pour désactiver le capteur de filament et continuer.
-Finalisation gcodes\nen mémoire tampon.
-Version Firmware
+Finalisation gcodes\nen mémoire tampon.\n
+Version Firmware\n
 Cal. prem. couche
 CALIB. PREM. COUCHE
 Facteur de Débit
@@ -61,17 +64,18 @@ En chauffe...
 Bonjour, voici votre\nOriginal Prusa MINI.
 POSITION INITIALE
 Position Initiale
+HOME TO MAX
 Vent. hotend
 IGNORER
-À la prochaine étape\nutilisez le bouton\npour ajuster la\nhauteur de la buse.\nRéférez-vous aux\nimages du manuel.
+À la prochaine étape utilisez le bouton pour ajuster la hauteur de la buse. Référez-vous aux images du manuel.
 INFO
 Info
 Information
 Insertion
-Les adresses IP ne sont pas valides ou alors le fichier \lan_settings.ini\ ne se trouve pas dans le répertoire racine de la clé USB.
-Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier \lan_settings.ini\ ne se trouve pas dans le répertoire racine de la clé USB.
+Les adresses IP ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB.
+Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB.
 La couleur est-elle correcte ?
-Le filament est-il\ndans l'extrudeur ?
+Le filament est-il dans l'extrudeur ?
 La feuille d'acier est-elle sur le plateau chauffant ?
 RÉGLAGES LAN
 Réglages Lan
@@ -85,15 +89,17 @@ Charger les réglages
 Chargement...
 Chargement de la buse
 Fort
-Vérifiez que le\nfilament est\nbien inséré dans\nle capteur.
+Vérifiez que le filament est bien inséré dans le capteur.
 Matériau
 Mesure des hauteurs\ndé référence des\npoints de calib.
+Timeout Menu
 MESH BED L.
 Mesh Bed Level.
 Échec Mesh bed lev.? 
 MESSAGES
 Messages
 Déplacer l'Axe
+DÉPLACER AXE
 Déplacer E
 Déplacer X
 Déplacer Y
@@ -103,13 +109,15 @@ NON
 Aucun capteur de filament n'a été détecté. Vérifiez que le capteur est bien branché et réessayez.
 Pas de messages
 Pas d'USB
-À présent calibrons\nla distance entre\nl'extrémité de la\nbuse et la feuille\nd'impression.\n
+À présent calibrons la distance entre l'extrémité de la buse et la feuille d'impression.
+Cible buse : %.0f_C
 Buse
 BUSE
 Buse trop froide
-Hors-tension
+Buse : %.1f_C
+Off
 OK
-Sous Tension
+On
 Redémarrage en cours
 Une fois
 Lorsque l'imprimante\nCommence à extruder\nle plastique ajustez\nla hauteur de buse\nEn faisant tourner\nle bouton jusqu'à\nce que le filament\nadhère à la feuille\nd'impression.
@@ -120,7 +128,7 @@ Ajustement PID
 Positionnez une feuille de papier sous la buse pendant la calibration des quatre premiers points. Si la buse accroche le papier, éteignez immédiatement l'imprimante !
 Veuillez nettoyer la buse en vue de la calibration. Cliquez sur NEXT une fois cela fait.
 Veuillez insérer une clé USB et réessayer.
-Veuillez insérer\nla clé USB fournie\navec votre MINI\net redémarrez\nl'imprimante pour\nflasher le firmware
+Veuillez insérer la clé USB fournie avec votre MINI et redémarrez l'imprimante pour flasher le firmware
 Veuillez positionner la feuille d'acier sur le plateau chauffant.
 Veuillez retirer la feuille d'impression du plateau.
 Veuillez patienter
@@ -129,8 +137,8 @@ Préchauffage
 PRÉCHAUF. av. CHARG.
 PRÉCHAUFFER pour DÉCHARGER
 Expulsion en préparation
-Appuyez sur\nCONTINUER et\nenfoncez le filament\ndans l'extrudeur.
-Appuyez sur NEXT\npour lancer le\nSelftest détectant\nles éventuels\nproblèmes liés\nà l'assemblage.
+Appuyez sur CONTINUER et enfoncez le filament dans l'extrudeur.
+Appuyez sur NEXT pour lancer le Selftest détectant les éventuels problèmes liés à l'assemblage.
 Impression
 Ventil. d'impression
 Ventil. d'impression
@@ -157,12 +165,15 @@ Sauv. Vidage Mémoire
 Sauvegarder réglages
 Recherche des points\nde calib. du plateau
 Sélectionner le type de filament
+SÉLECTIONNER FICHIER
+SÉLECTIONNER LANGUE
 Choisissez à quel\nmoment vous\nsouhaitez flasher\nautomatiquement\nla mise à jour\ndu firmware à partir\nde la clé USB.
 SelfTest
 SELFTEST
 Envoyer infos par QR
 Maintenance
 Réglages
+RÉGLAGES
 Chargement des réglages réussi
 Silencieux
 Mode Sonore
@@ -179,32 +190,32 @@ Température
 Test
 La calibration de première couche n'a pu aboutir. Vérifiez bien le câblage de l'imprimante, la buse et les axes, puis relancez la calibration.
 L'imprimante n'est pas calibrée. Démarrer la calibration de première couche ?
-Le selftest s'est\nterminé par un échec.\nVérifiez le câblage\nde l'imprimante\nainsi que les axes.\nPuis relancez\nle selftest.
-Les réglages ont été sauvegardés avec succès dans le fichier \lan_settings.ini\.
-La barre de statut\nse trouve dans le\nbas de l'écran. Elle\ncontient des infos\nconcernant :\n-la temp. de la buse\n-la temp. du plateau\n-la vitesse d'impr.\n-la hauteur Z-axis\n-le fil. sélectionné\n
+Le selftest s'est terminé par un échec. Vérifiez le câblage de l'imprimante ainsi que les axes. Puis relancez le selftest.
+Les réglages ont été sauvegardés avec succès dans le fichier \"lan_settings.ini\".
+La barre de statut se trouve dans le bas de l'écran. Elle contient des infos concernant :\nla temp. de la buse\nla temp. du plateau\nla vitesse d'impr.\nla hauteur Z-axis\nle fil. sélectionné
 La calibration XYZ n'a pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante, puis relancez la calibration XYZ.
-Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier \lan_settings.ini\.
-Cette action n'est pas réversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante ?
+Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier \"lan_settings.ini\".
+Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante ?
 Timeout
-Pour calibrer avec\nle filament\ndéjà chargé,\nappuyez sur SUIVANT.\nPour changer\nle filament appuyez\nsur DÉCHARGER.
-Pour calibrer avec\nle filament\ndéjà chargé,\nappuyez sur SUIVANT.\nPour charger\nun filament,\nappuyez sur CHARGER.\nPour changer\nde filament, appuyez\nsur DÉCHARGER.
+Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour changer le filament appuyez sur DÉCHARGER.
+Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour charger un filament, appuyez sur CHARGER. Pour changer de filament, appuyez sur DÉCHARGER.
 RÉESSAYER
-SON
-Son
+RÉGLER
+Régler
 DÉCHARGER
 DÉCHARGER FILAMENT
 Décharger Filament
 Déchargement
 Unparking
 Clé USB non-prête !
-Clé USB protégée en écriture !
+Clé USB verrouillée !
 Filament Utilisé
-INFOS DE LA VERSION
-Infos de Version
+INFOS VERSION
+Infos Version
 Att. refroidissement
 En attente de temp.
 Avertissement
-Bienvenue sur\nl'assistant\nd'installation pour\nOriginal Prusa MINI.\nVoulez-vous\ncontinuer ?
+Bienvenue sur l'assistant d'installation pour Original Prusa MINI. Voulez-vous continuer ?
 Bienvenue sur l'assistant de configuration de l'Original Prusa MINI. Voulez-vous continuer ?
 Assistant
 ASSISTANT
