@@ -4,7 +4,7 @@
 #include "config.h"
 #include "marlin_client.h"
 #include "marlin_server.h"
-#include "print_utils.h"
+#include "print_utils.hpp"
 #include "ffconf.h"
 #include "ScreenHandler.hpp"
 #include <ctime>

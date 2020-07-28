@@ -6,7 +6,7 @@
 #include "usb_host.h"
 #include "cmsis_os.h"
 #include "marlin_client.h"
-#include "print_utils.h"
+#include "print_utils.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_print_preview.hpp"
 #include "../Marlin/src/gcode/queue.h"
@@ -52,17 +52,6 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     w_filelist.Load(screen_filebrowser_sort, c + 1, firstVisibleSFN);
     // SetItemIndex(1); // this is automagically done in the window file list
     w_filelist.SetCapture(); // hack for do not change capture
-}
-
-static void on_print_preview_action(print_preview_action_t action) {
-    if (action == PRINT_PREVIEW_ACTION_BACK) {
-        Screens::Access()->Close(); // close the print preview
-    } else if (action == PRINT_PREVIEW_ACTION_PRINT) {
-        Screens::Access()->Close(); // close the print preview
-        Screens::Access()->Close(); // close the file browser
-        print_begin(screen_print_preview_get_gcode_filepath());
-        //screen_open(get_scr_printing()->id);
-    }
 }
 
 static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
@@ -146,7 +135,6 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
             // save the top browser item
             strlcpy(firstVisibleSFN, w_filelist.TopItemSFN(), SFN_len);
 
-            screen_print_preview_set_on_action(on_print_preview_action);
             screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
             screen_print_preview_set_gcode_filename(vars->media_LFN);
             Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);

@@ -9,12 +9,12 @@
 #include "sound.hpp"
 #include "DialogHandler.hpp"
 #include "ScreenHandler.hpp"
+#include "print_utils.hpp"
 
 #define DBG _dbg0
 
 static const char *gcode_file_name = NULL;
 static const char *gcode_file_path = NULL;
-static print_preview_action_handler_t action_handler = NULL;
 
 const uint16_t menu_icons[2] = {
     IDR_PNG_menu_icon_print,
@@ -31,11 +31,6 @@ const char *screen_print_preview_get_gcode_filepath() {
 
 void screen_print_preview_set_gcode_filename(const char *fname) {
     gcode_file_name = fname;
-}
-
-void screen_print_preview_set_on_action(
-    print_preview_action_handler_t handler) {
-    action_handler = handler;
 }
 
 size_t description_line_t::title_width(string_view_utf8 *title_str) {
@@ -138,9 +133,9 @@ GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
 screen_print_preview_data_t::screen_print_preview_data_t()
     : window_frame_t()
     , title_text(this, rect_ui16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
-    , print_button(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, []() { if (action_handler) action_handler(PRINT_PREVIEW_ACTION_PRINT); })
+    , print_button(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, []() { print_begin(screen_print_preview_get_gcode_filepath()); })
     , print_label(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))
-    , back_button(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back, []() { if (action_handler) action_handler(PRINT_PREVIEW_ACTION_BACK); })
+    , back_button(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back, []() { Screens::Access()->Close(); })
     , back_label(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail) {
@@ -195,9 +190,7 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
             gui_dlg_load_forced();
             break;
         case Response::No: //NO - cancel
-            if (action_handler) {
-                action_handler(PRINT_PREVIEW_ACTION_BACK);
-            }
+            Screens::Access()->Close();
             suppress_draw = false;
             return;
         case Response::Ignore: //IGNORE - disable
