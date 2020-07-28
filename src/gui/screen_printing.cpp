@@ -282,6 +282,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
+    IScreenPrinting::windowEvent(sender, event, param);
 }
 
 void screen_printing_data_t::disable_tune_button() {
