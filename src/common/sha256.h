@@ -73,11 +73,25 @@ typedef struct mbedtls_sha256_context_256 {
 void mbedtls_sha256_init(mbedtls_sha256_context *ctx);
 
 /**
+ * \brief          This function initializes a SHA-256 context.
+ *
+ * \param ctx      The SHA-256 context to initialize.
+ */
+void mbedtls_sha256_init_256(mbedtls_sha256_context_256 *ctx);
+
+/**
  * \brief          This function clears a SHA-256 context.
  *
  * \param ctx      The SHA-256 context to clear.
  */
 void mbedtls_sha256_free(mbedtls_sha256_context *ctx);
+
+/**
+ * \brief          This function clears a SHA-256 context.
+ *
+ * \param ctx      The SHA-256 context to clear.
+ */
+void mbedtls_sha256_free_256(mbedtls_sha256_context_256 *ctx);
 
 /**
  * \brief          This function clones the state of a SHA-256 context.
@@ -137,6 +151,18 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx,
     unsigned char output[32]);
 
 /**
+ * \brief          This function finishes the SHA-256 operation, and writes
+ *                 the result to the output buffer.
+ *
+ * \param ctx      The SHA-256 context.
+ * \param output   The SHA-256 checksum result.
+ *
+ * \return         \c 0 on success.
+ */
+int mbedtls_sha256_finish_ret_256(mbedtls_sha256_context_256 *ctx,
+    unsigned char output[32]);
+
+/**
  * \brief          This function processes a single data block within
  *                 the ongoing SHA-256 computation. This function is for
  *                 internal use only.
@@ -147,6 +173,19 @@ int mbedtls_sha256_finish_ret(mbedtls_sha256_context *ctx,
  * \return         \c 0 on success.
  */
 int mbedtls_internal_sha256_process(mbedtls_sha256_context *ctx,
+    const unsigned char data[64]);
+
+/**
+ * \brief          This function processes a single data block within
+ *                 the ongoing SHA-256 computation. This function is for
+ *                 internal use only.
+ *
+ * \param ctx      The SHA-256 context.
+ * \param data     The buffer holding one block of data.
+ *
+ * \return         \c 0 on success.
+ */
+int mbedtls_internal_sha256_process_256(mbedtls_sha256_context_256 *ctx,
     const unsigned char data[64]);
 
 /**

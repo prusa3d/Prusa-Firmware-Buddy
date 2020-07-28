@@ -54,7 +54,7 @@ inline void setBit(char &c, const uint8_t b) {
 }
 
 inline void clearBit(char &c, const uint8_t b) {
-    c &= !(1 << b);
+    c &= ~(1 << b);
 }
 
 /// Shifts 1st number by 2 bits.
@@ -87,8 +87,7 @@ void printerCode(char *str) {
     mbedtls_sha256_ret_256(toHash, (96 + 0) / 8, (unsigned char *)hash);
 
     /// shift hash by 2 bits
-    hash[7]
-        >>= 2;
+    hash[7] >>= 2;
     for (int i = 6; i >= 0; --i)
         rShift2Bits(hash[i], hash[i + 1]);
 
@@ -104,7 +103,9 @@ void error_url_long(char *str, uint32_t str_size, int error_code) {
     /// language
     char lang[3];
     const uint16_t langNum = eeprom_get_var(EEVAR_LANGUAGE).ui16;
-    uint16_t(lang) = langNum;
+    uint16_t *langP = (uint16_t *)lang;
+    *langP = langNum;
+    //uint16_t *(lang) = langNum;
     //lang[0] = langNum / 256;
     //lang[1] = langNum % 256;
     lang[3] = 0;

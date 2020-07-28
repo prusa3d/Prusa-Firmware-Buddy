@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 extern char *eofstr(char *str);
-extern void append_crc(char *str);
+extern void append_crc(char *str, uint32_t str_size);
 
 extern void error_url_long(char *str, uint32_t str_size, int error_code);
 extern void error_url_short(char *str, uint32_t str_size, int error_code);
