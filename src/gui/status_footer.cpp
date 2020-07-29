@@ -62,7 +62,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         WINDOW_CLS_TEXT, parent,
         rect_ui16(24, 269, 85, 20),
         &(footer->wt_nozzle));
-    footer->wt_nozzle.font = resource_font(IDR_FNT_NORMAL);
+    footer->wt_nozzle.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_nozzle.SetAlignment(ALIGN_CENTER);
     footer->wt_nozzle.SetText(string_view_utf8::MakeNULLSTR());
 
@@ -77,7 +77,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         WINDOW_CLS_TEXT, parent,
         rect_ui16(150, 269, 85, 22),
         &(footer->wt_heatbed));
-    footer->wt_heatbed.font = resource_font(IDR_FNT_NORMAL);
+    footer->wt_heatbed.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_heatbed.SetAlignment(ALIGN_CENTER);
     footer->wt_heatbed.SetText(string_view_utf8::MakeNULLSTR());
 
@@ -92,7 +92,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         WINDOW_CLS_TEXT, parent,
         rect_ui16(28, 296, 40, 22),
         &(footer->wt_prnspeed));
-    footer->wt_prnspeed.font = resource_font(IDR_FNT_NORMAL);
+    footer->wt_prnspeed.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_prnspeed.SetAlignment(ALIGN_CENTER);
     footer->wt_prnspeed.SetText(string_view_utf8::MakeNULLSTR());
 
@@ -107,7 +107,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         WINDOW_CLS_TEXT, parent,
         rect_ui16(102, 296, 58, 22),
         &(footer->wt_z_axis));
-    footer->wt_z_axis.font = resource_font(IDR_FNT_NORMAL);
+    footer->wt_z_axis.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_z_axis.SetAlignment(ALIGN_CENTER);
     footer->wt_z_axis.SetText(string_view_utf8::MakeNULLSTR());
 
@@ -122,7 +122,7 @@ void status_footer_init(status_footer_t *footer, int16_t parent) {
         WINDOW_CLS_TEXT, parent,
         rect_ui16(181, 296, 49, 22),
         &(footer->wt_filament));
-    footer->wt_filament.font = resource_font(IDR_FNT_NORMAL);
+    footer->wt_filament.font = resource_font(IDR_FNT_SPECIAL);
     footer->wt_filament.SetAlignment(ALIGN_CENTER);
     footer->wt_filament.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)filaments[get_filament()].name));
 
