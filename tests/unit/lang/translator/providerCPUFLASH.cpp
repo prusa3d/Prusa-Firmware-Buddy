@@ -343,6 +343,16 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
 
     // prepare a map for comparison
     set<unichar> nonASCIICharacters;
+    {
+        // explicitly add characters from language names
+        // Čeština, Español, Français
+        static const uint8_t na[] = "Čšñç";
+        string_view_utf8 nas = string_view_utf8::MakeRAM(na);
+        unichar c;
+        while ((c = nas.getUtf8Char()) != 0) {
+            nonASCIICharacters.insert(c);
+        }
+    }
     REQUIRE(CheckAllTheStrings(rawStringKeys, csStrings, providerCS, nonASCIICharacters));
     REQUIRE(CheckAllTheStrings(rawStringKeys, deStrings, providerDE, nonASCIICharacters));
     REQUIRE(CheckAllTheStrings(rawStringKeys, esStrings, providerES, nonASCIICharacters));
@@ -365,9 +375,10 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
             f.write((const char *)uc, 3);
 
             // with accents, we don't need the unaccent table anymore
-            //            // check, that we have this character in our temporary translation table
-            //            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
-            //            CHECK(cASCII.key != 0xffff);
+            // but is important for character generation (newly added characters)
+            // check, that we have this character in our temporary translation table
+            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
+            CHECK(cASCII.key != 0xffff);
         });
     }
 }

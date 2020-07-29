@@ -1,5 +1,9 @@
 // screen_menu_temperature.c
 
+// Beware (especially on MS Windows, where diacritics still doesn't work as intended for more than 40 years)
+// THIS FILE MUST BE SAVED as UTF-8 (which is normal on linux) and you need a sane compiler which
+// accepts utf-8 literals (which gcc does)
+
 #include "gui.hpp"
 #include "screen_menu.hpp"
 #include "marlin_client.h"
@@ -38,7 +42,8 @@ protected:
 };
 
 class MI_CZECH : public MI_LangBase {
-    static constexpr const char *const label = "Cestina";
+    // Beware UTF-8!
+    static constexpr const char *const label = "Čeština";
 
 public:
     inline MI_CZECH()
@@ -60,7 +65,8 @@ protected:
 };
 
 class MI_SPANISH : public MI_LangBase {
-    static constexpr const char *const label = "Espanol";
+    // Beware UTF-8!
+    static constexpr const char *const label = "Español";
 
 public:
     inline MI_SPANISH()
@@ -71,7 +77,8 @@ protected:
 };
 
 class MI_FRENCH : public MI_LangBase {
-    static constexpr const char *const label = "Francais";
+    // Beware UTF-8!
+    static constexpr const char *const label = "Français";
 
 public:
     inline MI_FRENCH()
