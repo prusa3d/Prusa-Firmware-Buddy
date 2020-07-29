@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-28 08:12+0200\n"
+"POT-Creation-Date: 2020-07-29 09:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,7 +51,7 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:423
+#: src/gui/screen_printing.cpp:424
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
@@ -85,7 +85,7 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:335
+#: src/gui/screen_printing.cpp:336
 msgid "Bed leveling failed. Try again?"
 msgstr ""
 
@@ -310,6 +310,11 @@ msgstr ""
 msgid "Flow Factor"
 msgstr ""
 
+#. abbreviated Friday - max 3 characters
+#: src/lang/format_print_will_end.cpp:51
+msgid "Fri"
+msgstr ""
+
 #: src/gui/screen_home.cpp:83
 msgid "HOME"
 msgstr ""
@@ -326,7 +331,7 @@ msgstr ""
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:80
+#: src/gui/screen_printing.cpp:81
 msgid "Heating..."
 msgstr ""
 
@@ -338,7 +343,7 @@ msgstr ""
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
-#: src/gui/window_file_list.cpp:132 src/gui/screen_printing.cpp:82
+#: src/gui/window_file_list.cpp:132 src/gui/screen_printing.cpp:83
 msgid "Home"
 msgstr ""
 
@@ -505,6 +510,11 @@ msgstr ""
 msgid "Messages"
 msgstr ""
 
+#. abbreviated Monday - max 3 characters
+#: src/lang/format_print_will_end.cpp:43
+msgid "Mon"
+msgstr ""
+
 #: src/guiapi/include/MItem_menus.hpp:98
 msgid "Move Axis"
 msgstr ""
@@ -525,8 +535,6 @@ msgstr ""
 msgid "Move Z"
 msgstr ""
 
-#. known and not "unsensed" - do not allow load
-#. cannot use CONTINUE button, string is too long
 #. known and not "unsensed" - do not allow load
 #. cannot use CONTINUE button, string is too long
 #: src/gui/wizard/wizard_ui.cpp:32 src/gui/wizard/wizard_load_unload.cpp:21
@@ -555,7 +563,7 @@ msgid ""
 "again."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:227
+#: src/gui/screen_printing.cpp:228
 msgid "No messages"
 msgstr ""
 
@@ -640,7 +648,7 @@ msgstr ""
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:559
+#: src/gui/screen_printing.cpp:563
 msgid "PRINTING"
 msgstr ""
 
@@ -652,11 +660,11 @@ msgstr ""
 msgid "Parking"
 msgstr ""
 
-#: src/gui/screen_printing_serial.cpp:35 src/gui/screen_printing.cpp:75
+#: src/gui/screen_printing_serial.cpp:35 src/gui/screen_printing.cpp:76
 msgid "Pause"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:76
+#: src/gui/screen_printing.cpp:77
 msgid "Pausing..."
 msgstr ""
 
@@ -739,11 +747,11 @@ msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
 #. theoretically it can be removed completely in case the string is constant for the whole run of the screen
-#: src/gui/screen_printing.cpp:352
+#: src/gui/screen_printing.cpp:353
 msgid "Print will end"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:210
+#: src/gui/screen_printing.cpp:211
 msgid "Printing time"
 msgstr ""
 
@@ -786,20 +794,20 @@ msgid "Really Disconnect?"
 msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-#: src/gui/screen_printing.cpp:193 src/gui/screen_printing.cpp:356
-#: src/gui/screen_printing.cpp:554
+#: src/gui/screen_printing.cpp:194 src/gui/screen_printing.cpp:357
+#: src/gui/screen_printing.cpp:558
 msgid "Remaining Time"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:81
+#: src/gui/screen_printing.cpp:82
 msgid "Reprint"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:78
+#: src/gui/screen_printing.cpp:79
 msgid "Resume"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:79
+#: src/gui/screen_printing.cpp:80
 msgid "Resuming..."
 msgstr ""
 
@@ -826,6 +834,11 @@ msgstr ""
 
 #: src/gui/dialogs/DialogG162.cpp:21 src/gui/dialogs/DialogLoadUnload.cpp:22
 msgid "STOP"
+msgstr ""
+
+#. abbreviated Saturday - max 3 characters
+#: src/lang/format_print_will_end.cpp:53
+msgid "Sat"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:78
@@ -898,8 +911,13 @@ msgstr ""
 msgid "Statistic"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:77
+#: src/gui/screen_printing.cpp:78
 msgid "Stop"
+msgstr ""
+
+#. abbreviated Sunday - max 3 characters
+#: src/lang/format_print_will_end.cpp:55
+msgid "Sun"
 msgstr ""
 
 #: src/guiapi/include/MItem_menus.hpp:58
@@ -989,6 +1007,11 @@ msgid ""
 "really sure to reset printer to factory defaults?"
 msgstr ""
 
+#. abbreviated Thursday - max 3 characters
+#: src/lang/format_print_will_end.cpp:49
+msgid "Thr"
+msgstr ""
+
 #: src/gui/wizard/wizard_load_unload.cpp:23
 msgid ""
 "To calibrate with  \n"
@@ -1011,7 +1034,17 @@ msgid ""
 "press UNLOAD."
 msgstr ""
 
-#: src/gui/screen_printing_serial.cpp:34 src/gui/screen_printing.cpp:74
+#. Used in "The print will end:", keep it up to 10 characters
+#: src/lang/format_print_will_end.cpp:29
+msgid "Today at"
+msgstr ""
+
+#. abbreviated Tuesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:45
+msgid "Tue"
+msgstr ""
+
+#: src/gui/screen_printing_serial.cpp:34 src/gui/screen_printing.cpp:75
 msgid "Tune"
 msgstr ""
 
@@ -1067,6 +1100,11 @@ msgstr ""
 #. MSGBOX_ICO_QUESTION   0x0020
 #: src/guiapi/src/window_msgbox.cpp:15
 msgid "Warning"
+msgstr ""
+
+#. abbreviated Wednesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:47
+msgid "Wed"
 msgstr ""
 
 #: src/gui/wizard/screen_wizard.cpp:146
