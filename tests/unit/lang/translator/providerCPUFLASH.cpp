@@ -194,10 +194,7 @@ bool LoadTranslatedStringsFile(const char *fname, deque<string> *st) {
     do {
         string s;
         getline(f, s);
-        // must convert the '\n' into \xa here
-        FindAndReplaceAll(s, string("\\n"), string("\xa"));
-        // 0x7f symbol for degrees is a similar case
-        FindAndReplaceAll(s, string("\\177"), string("\177"));
+        PreprocessRawLineStrings(s);
         if (!s.empty()) {              // beware of empty strings
             st->emplace_back(move(s)); // make a copy of the string
         }
