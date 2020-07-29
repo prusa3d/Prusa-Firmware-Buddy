@@ -8,6 +8,7 @@
 
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
+#include "screen_menus.hpp"
 #include "window_file_list.hpp"
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
@@ -100,15 +101,22 @@ extern "C" void gui_run(void) {
 
     Sound_Play(eSOUND_TYPE_Start);
 
-    //screen_register(get_scr_splash());
-    //screen_register(get_scr_watchdog());
+    ScreensInitNode screen_initializer[] {
 #ifndef _DEBUG
-    if (HAL_IWDG_Reset) {
-        //screen_stack_push(get_scr_splash()->id);
-        //screen_open(get_scr_watchdog()->id);
-    } else
-#endif // _DEBUG
-        Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
+        { ScreenFactory::Screen<screen_watchdog_data_t>, HAL_IWDG_Reset }, // wdt
+#endif                                                                     // _DEBUG
+            { ScreenFactory::Screen<screen_splash_data_t>, true },         // splash
+            { GetScreenMenuLanguagesNoRet, true },                         // lang
+#if 0
+        { ScreenFactory::Screen<screen_wizard_data_t>, HAL_IWDG_Reset },// wizard
+#endif // #if 0
+        {
+            ScreenFactory::Screen<screen_home_data_t>, true
+        } // home
+    };
+
+    //Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
+    Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;

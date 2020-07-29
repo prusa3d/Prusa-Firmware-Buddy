@@ -112,7 +112,8 @@ void screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *pa
             //screen_open(get_scr_menu_languages_noret()->id);
 
         }*/
-        Screens::Access()->Open(ScreenFactory::Screen<screen_home_data_t>);
+        //Screens::Access()->Open(ScreenFactory::Screen<screen_home_data_t>);
+        Screens::Access()->Close();
 #else
     if (HAL_GetTick() > 3000) {
         Screens::Access()->Close();

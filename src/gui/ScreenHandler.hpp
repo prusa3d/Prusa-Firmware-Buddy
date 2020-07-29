@@ -4,10 +4,15 @@
 #include <array>
 
 //stack with screen creator methods
-using ScreenArray = std::array<ScreenFactory::Creator, 32>;
+static constexpr size_t MAX_SCREENS = 32;
+using ScreenArray = std::array<ScreenFactory::Creator, MAX_SCREENS>;
+
+struct ScreensInitNode {
+    ScreenFactory::Creator screen_creator;
+    bool enabled;
+};
 
 class Screens {
-
     ScreenArray stack;
     ScreenArray::iterator stack_iterator;
 
@@ -42,5 +47,13 @@ public:
     window_frame_t *Get();
 
     static void Init(ScreenFactory::Creator screen_creator);
+    static void RInit(ScreensInitNode *begin, ScreensInitNode *end); // init in reversed order
+    static void Init(ScreensInitNode *begin, ScreensInitNode *end);  // init in normal
     static Screens *Access();
+
+private:
+    using r_iter = std::reverse_iterator<ScreensInitNode *>;
+    static r_iter rfind_enabled_node(r_iter begin, r_iter end); // reverse find method
+    using iter = ScreensInitNode *;
+    static iter find_enabled_node(iter begin, iter end); // normal find method
 };
