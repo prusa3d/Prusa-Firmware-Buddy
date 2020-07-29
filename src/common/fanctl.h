@@ -43,9 +43,8 @@ typedef struct _fanctl_tach_t {
     uint16_t tick_count;       // tick counter
     uint16_t ticks_per_second; // tacho periode in ticks
     uint16_t edges;            // number of edges in current cycle
-    uint16_t edges_per_second; // number of edges per second (filtered)
     uint16_t pwm_sum;          // sum of ticks with pwm=1 in current cycle
-    uint16_t rpm;              // calculated RPM value
+    uint16_t rpm;              // calculated RPM value (filtered)
 } fanctl_tach_t;
 
 #ifdef __cplusplus

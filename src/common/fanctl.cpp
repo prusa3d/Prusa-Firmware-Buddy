@@ -90,7 +90,6 @@ CFanCtlTach::CFanCtlTach(uint8_t pin_in) {
     tick_count = 0;
     ticks_per_second = 1000;
     edges = 0;
-    edges_per_second = 0;
     pwm_sum = 0;
     rpm = 0;
 }
@@ -109,14 +108,12 @@ void CFanCtlTach::tick(int8_t pwm_on) {
         edges++;
     input_state = tach; // store current tach input state
     if (++tick_count >= ticks_per_second) {
-        edges_per_second = (3 * edges + edges_per_second) >> 2; // calculate and filter edges per delay
-        uint16_t lost_edges = 0;
         if (pwm_sum)
-            lost_edges = edges_per_second * (ticks_per_second - pwm_sum) / pwm_sum;
-        rpm = ((60 * (edges + lost_edges)) >> 2);
-        edges = 0;      // reset edge counter
-        tick_count = 0; // reset tick counter
-        pwm_sum = 0;    // reset pwm_sum
+            edges *= 1 + ((ticks_per_second - pwm_sum) / pwm_sum); // add lost edges
+        rpm = (rpm + 3 * ((60 * edges) >> 2)) >> 2;                // calculate and filter rpm
+        edges = 0;                                                 // reset edge counter
+        tick_count = 0;                                            // reset tick counter
+        pwm_sum = 0;                                               // reset pwm_sum
     } else if (pwm_on >= 0)
         pwm_sum++; // inc pwm sum if pwm enabled
 }
@@ -162,9 +159,8 @@ void fanctl_init(void) {
 }
 
 void fanctl_tick(void) {
-    //    for (uint8_t fan = 0; fan < CFanCtl_count; fan++)
-    //        CFanCtl_instance[fan]->tick();
-    CFanCtl_instance[0]->tick();
+    for (uint8_t fan = 0; fan < CFanCtl_count; fan++)
+        CFanCtl_instance[fan]->tick();
 }
 
 void fanctl_set_pwm(uint8_t fan, uint8_t pwm) {
