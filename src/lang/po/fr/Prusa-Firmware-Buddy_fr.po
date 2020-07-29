@@ -42,7 +42,7 @@ msgstr "STOPPER"
 
 #: src/gui/wizard/screen_wizard.c:274
 msgid "All tests finished successfully!"
-msgstr "Tous les tests ont été passés avec succès!"
+msgstr "Tous les tests ont été passés avec succès !"
 
 #: src/gui/screen_menu_fw_update.cpp:18
 msgid "Always"
@@ -54,7 +54,7 @@ msgstr "Appliquer"
 
 #: src/gui/screen_printing.cpp:382 src/gui/screen_printing.cpp:400
 msgid "Are you sure to stop this printing?"
-msgstr "Êtes-vous certain de vouloir stopper cette impression?"
+msgstr "Êtes-vous certain de vouloir stopper cette impression ?"
 
 #: src/guiapi/include/MItem_tools.hpp:212
 #: src/guiapi/include/MItem_tools.hpp:211
@@ -89,7 +89,7 @@ msgstr "LIT"
 
 #: src/gui/screen_printing.cpp:335
 msgid "Bed leveling failed. Try again?"
-msgstr "Échec niveau plateau. Réessayer?"
+msgstr "Échec niveau plateau. Réessayer ?"
 
 #. r=1 c=15
 #: src/gui/wizard/selftest_cool.cpp:76
@@ -121,7 +121,7 @@ msgid ""
 "Happy printing!"
 msgstr ""
 "Calibration réussie!\n"
-"Bonnes impressions!"
+"Bonnes impressions !"
 
 #: src/gui/wizard/screen_wizard.cpp:304
 msgid "Calibration XY"
@@ -209,7 +209,7 @@ msgstr ""
 "étape et réajuster "
 "la distance "
 "entre la buse et le "
-"plateau chauffant?"
+"plateau chauffant ?"
 
 #: src/gui/wizard/screen_wizard.c:405
 #, c-format
@@ -312,7 +312,7 @@ msgstr "CALIB. PREM. COUCHE"
 
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
-msgstr "Coéf. de Débit"
+msgstr "Facteur de Débit"
 
 #: src/gui/screen_menu_fw_update.cpp:46
 msgid "FW UPDATE"
@@ -344,7 +344,7 @@ msgstr ""
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
 msgid "HOME"
-msgstr "ORIGINES XYZ"
+msgstr "ACCEUIL"
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
@@ -427,11 +427,11 @@ msgid ""
 "extruder gear?    "
 msgstr ""
 "Le filament est-il "
-"dans l'extrudeur?"
+"dans l'extrudeur ?"
 
 #: src/gui/wizard/screen_wizard.c:313
 msgid "Is steel sheet on heatbed?"
-msgstr "La plaque d'impr. est-elle sur le plateau chauffant?"
+msgstr "La plaque d'impr. est-elle sur le plateau chauffant ?"
 
 #: src/gui/screen_menu_lan_settings.cpp:267
 #: src/gui/screen_menu_lan_settings.cpp:268
@@ -509,7 +509,7 @@ msgid ""
 "points"
 msgstr ""
 "Mesure des hauteurs\n"
-"dé référence des\n"
+"de référence des\n"
 "points de calib."
 
 #: src/guiapi/include/MItem_tools.hpp:198
@@ -529,7 +529,7 @@ msgstr "Niveau Lit."
 #: src/gui/wizard/firstlay.c:185 src/gui/wizard/firstlay.c:188
 #: src/gui/wizard/firstlay.c:212
 msgid "Mesh bed leveling failed?"
-msgstr "Échec Niveau Lit? "
+msgstr "Échec Niveau Lit ? "
 
 #. p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
 #: src/gui/screen_messages.cpp:63
@@ -690,7 +690,7 @@ msgstr "Ajustement PID"
 
 #: src/gui/wizard/screen_wizard.c:330
 msgid "Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off printer immediately!"
-msgstr "Placez une feuille de papier sous la buse pendant la calibration des 4 premiers points. Si la buse accroche le papier, éteignez illico l'imprimante!"
+msgstr "Placez une feuille de papier sous la buse pendant la calibration des 4 premiers points. Si la buse accroche le papier, éteignez immédiatement l'imprimante !"
 
 #: src/gui/wizard/screen_wizard.c:305
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
@@ -787,11 +787,11 @@ msgstr "Impression"
 
 #: src/guiapi/include/MItem_print.hpp:24
 msgid "Print Fan"
-msgstr "Ventil. d'impression"
+msgstr "Vent. d'impression"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:43
 msgid "Print fan"
-msgstr "Ventil. d'impression"
+msgstr "Vent. d'impression"
 
 #: src/gui/screen_print_preview.cpp:135 src/gui/screen_print_preview.cpp:138
 msgid "Print Time"
@@ -837,7 +837,7 @@ msgstr "Expulsion"
 
 #: src/gui/screen_printing_serial.cpp:191
 msgid "Really Disconnect?"
-msgstr "Valider Déconnexion?"
+msgstr "Valider Déconnexion ?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:33
 msgid "REHEAT"
@@ -1010,7 +1010,7 @@ msgstr "Echèc de la calibration première couche. Vérifiez bien le câblage de
 
 #: src/gui/screen_splash.c:105
 msgid "The printer is not calibrated. Start First Layer Calibration?"
-msgstr "L'imprimante n'est pas calibrée. Démarrer la calibration première couche?"
+msgstr "L'imprimante n'est pas calibrée. Démarrer la calibration première couche ?"
 
 #: src/gui/wizard/screen_wizard.c:279
 msgid ""
@@ -1057,7 +1057,7 @@ msgstr ""
 "la temp. du plateau\n"
 "la vitesse d'impr.\n"
 "la hauteur Z-axis\n"
-"le fil. sélectionné"
+"le type filament"
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
@@ -1072,7 +1072,7 @@ msgstr "Une erreur s'est produite au moment de sauvegarder les réglages dans le
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "Cette action est Irréversible, la configuration actuelle sera perdue! Êtes-vous sûr de vouloir réinitialiser aux paramètres d'usine?"
+msgstr "Cette action est Irréversible, la configuration actuelle sera perdue! Êtes-vous sûr de vouloir réinitialiser aux paramètres d'usine ?"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
@@ -1200,11 +1200,11 @@ msgstr ""
 "d'installation pour "
 "Original Prusa MINI. "
 "Voulez-vous "
-"continuer?"
+"continuer ?"
 
 #: src/gui/test/screen_test_msgbox.c:28
 msgid "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
-msgstr "Bienvenue sur l'assistant de configuration de l'Original Prusa MINI. Voulez-vous continuer?"
+msgstr "Bienvenue sur l'assistant de configuration de l'Original Prusa MINI. Voulez-vous continuer ?"
 
 #: src/guiapi/include/MItem_tools.hpp:8
 msgid "Wizard"
