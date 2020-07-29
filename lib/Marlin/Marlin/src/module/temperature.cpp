@@ -795,28 +795,27 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
 }
 
 #if HOTENDS
+static constexpr float ambient_temp = 21.0f;
+//! @brief Get feed forward steady state output hotend
+//!
+//! steady state output:
+//! ((target_temp - ambient_temp) * 0.322 + (target_temp - ambient_temp)^2 * 0.0002 * (1 - print_fan)) * SQRT(1 + print_fan * 3.9)
+//! temperatures in degrees (Celsius or Kelvin)
+//! @param target_temp target temperature in degrees Celsius
+//! @param print_fan print fan power in range 0.0 .. 1.0
+//! @return hotend PWM in range 0 .. 255
+
+static float ff_steady_state_hotend(float target_temp, float print_fan) {
+  static_assert(PID_MAX == 255, "PID_MAX == 255 expected");
+  // TODO Square root computation can be mostly avoided by if stored and updated only on print_fan change
+  const float tdiff = target_temp - ambient_temp;
+  const float retval = (tdiff * 0.322 + sq(tdiff) * 0.0002 * (1 - print_fan)) * SQRT(1 + print_fan * 9.24);
+  return _MAX(retval, 0);
+}
   #if ANY(FEED_FORWARD_HOTEND_REGULATOR, PID_EXTRUSION_SCALING)
     static constexpr float sample_frequency = TEMP_TIMER_FREQUENCY / MIN_ADC_ISR_LOOPS / OVERSAMPLENR;
-    static constexpr float ambient_temp = 21.0f;
   #endif
   #if ENABLED(FEED_FORWARD_HOTEND_REGULATOR)
-
-    //! @brief Get feed forward steady state output hotend
-    //!
-    //! steady state output:
-    //! ((target_temp - ambient_temp) * 0.322 + (target_temp - ambient_temp)^2 * 0.0002 * (1 - print_fan)) * SQRT(1 + print_fan * 3.9)
-    //! temperatures in degrees (Celsius or Kelvin)
-    //! @param target_temp target temperature in degrees Celsius
-    //! @param print_fan print fan power in range 0.0 .. 1.0
-    //! @return hotend PWM in range 0 .. 255
-
-    static float ff_steady_state_hotend(float target_temp, float print_fan) {
-      static_assert(PID_MAX == 255, "PID_MAX == 255 expected");
-      // TODO Square root computation can be mostly avoided by if stored and updated only on print_fan change
-      const float tdiff = target_temp - ambient_temp;
-      const float retval = (tdiff * 0.322 + sq(tdiff) * 0.0002 * (1 - print_fan)) * SQRT(1 + print_fan * 3.9);
-      return _MAX(retval, 0);
-    }
 
     //! @brief Get feed forward output hotend
     //!
@@ -1048,16 +1047,15 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
             if (pid_reset[ee]) {
               temp_iState[ee] = 0.0;
               work_pid[ee].Kd = 0.0;
+              temp_dState[ee] = pid_error;
               pid_reset[ee] = false;
             }
 
-            work_pid[ee].Kd = work_pid[ee].Kd + PID_K2 * (PID_PARAM(Kd, ee) * (temp_dState[ee] - temp_hotend[ee].celsius) - work_pid[ee].Kd);
-            const float max_power_over_i_gain = float(PID_MAX) / PID_PARAM(Ki, ee) - float(MIN_POWER);
-            temp_iState[ee] = constrain(temp_iState[ee] + pid_error, 0, max_power_over_i_gain);
+            work_pid[ee].Kd = work_pid[ee].Kd + PID_K2 * (PID_PARAM(Kd, ee) * (pid_error - temp_dState[ee]) - work_pid[ee].Kd);
             work_pid[ee].Kp = PID_PARAM(Kp, ee) * pid_error;
-            work_pid[ee].Ki = PID_PARAM(Ki, ee) * temp_iState[ee];
 
-            pid_output = work_pid[ee].Kp + work_pid[ee].Ki + work_pid[ee].Kd + float(MIN_POWER);
+            static constexpr float pid_max_inv = 1.0f / PID_MAX;
+            pid_output = work_pid[ee].Kp + ff_steady_state_hotend(temp_hotend[ee].target, fan_speed[0] * pid_max_inv) + float(MIN_POWER);
 
             #if ENABLED(PID_EXTRUSION_SCALING)
               #if HOTENDS == 1
@@ -1079,9 +1077,17 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
               }
             #endif // PID_EXTRUSION_SCALING
 
+            //Sum error only if it has effect on output value before D term is applied
+            if (!((((pid_output + work_pid[ee].Ki) < 0) && (pid_error < 0))
+               || (((pid_output + work_pid[ee].Ki) > PID_MAX) && (pid_error > 0 )))) {
+              temp_iState[ee] += pid_error;
+            }
+            work_pid[ee].Ki = PID_PARAM(Ki, ee) * temp_iState[ee];
+            pid_output += work_pid[ee].Ki + work_pid[ee].Kd;
+
             LIMIT(pid_output, 0, PID_MAX);
           }
-          temp_dState[ee] = temp_hotend[ee].celsius;
+          temp_dState[ee] = pid_error;
 
         #else // PID_OPENLOOP
 
