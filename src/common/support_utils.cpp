@@ -49,12 +49,12 @@ void leave_numbers(const char *const str_in, char *str_out) {
     }
 }
 
-inline void setBit(char &c, const uint8_t b) {
-    c |= 1 << b;
+inline void setBit(uint8_t *c, const uint8_t b) {
+    *c |= 1 << b;
 }
 
-inline void clearBit(char &c, const uint8_t b) {
-    c &= ~(1 << b);
+inline void clearBit(uint8_t *c, const uint8_t b) {
+    *c &= ~(1 << b);
 }
 
 /// Shifts 1st number by 2 bits.
@@ -65,20 +65,30 @@ inline void rShift2Bits(uint32_t &toShift, uint32_t &overflow) {
     toShift >>= 2;                   /// shift number
 }
 
-/// \returns 40 bit encoded to 8 chars (32 bit encoding)
+/// Encodes number into character
+/// Uses 5 bit encoding (0-9,A-V)
+/// \param number array of bytes representing big number
+/// \param shift location of the first bit
+/// \returns character
+char to32(uint8_t number[], uint8_t shift) {
+    uint8_t val = 0;
+
+    const uint8_t byte = shift / 8;
+    const uint8_t bit = shift % 8;
+
+    val = ((255 >> bit) & number[byte]) << (5 - bit);
+    /// ensure at least 1 bit is used, otherwise you can read out of number
+    if (bit > 3)
+        val += (255 << (8 - bit + 3)) & number[byte + 1];
+
+    if (val < 10)
+        return char(val);
+    return char(val - 10 + 65); // 10 = A, 11 =B, ...
+}
+
+/// \returns 40 bit encoded to 8 chars (32 symbol alphabet: 0-9,A-V)
 /// Make sure there's a space for 8 chars
 void printerCode(char *str) {
-    str[0] = 0;
-    /// TODO FW sign
-    if (0) {
-        setBit(str[0], 7);
-    }
-
-    /// appendix state
-    if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
-        setBit(str[0], 6);
-    }
-
     constexpr uint8_t SNSize = 4 + OTP_SERIAL_NUMBER_SIZE - 1; // + fixed header, - trailing 0
     constexpr uint8_t bufferSize = OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE + SNSize;
     uint8_t toHash[bufferSize];
@@ -91,15 +101,31 @@ void printerCode(char *str) {
     memcpy(&toHash[OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE], (char *)OTP_SERIAL_NUMBER_ADDR, SNSize);
 
     uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
-    /// TODO get hash;
-    mbedtls_sha256_ret_256(toHash, (96 + 0) / 8, (unsigned char *)hash);
+    /// get hash;
+    mbedtls_sha256_ret_256(toHash, sizeof(toHash), (unsigned char *)hash);
 
     /// shift hash by 2 bits
     hash[7] >>= 2;
     for (int i = 6; i >= 0; --i)
         rShift2Bits(hash[i], hash[i + 1]);
 
-    /// TODO merge bits
+    /// convert number to 38 bits (32 symbol alphabet)
+    for (uint8_t i = 0; i < 8; ++i) {
+        str[i] = to32((uint8_t *)hash, i * 5);
+    }
+
+    /// set first 2 bits (sign, appendix)
+    /// TODO FW sign
+    if (0) {
+        setBit((uint8_t *)hash, 7);
+        // setBit(str[0], 7);
+    }
+
+    /// appendix state
+    if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
+        setBit((uint8_t *)hash, 6);
+        //setBit(str[0], 6);
+    }
 }
 
 void error_url_long(char *str, uint32_t str_size, int error_code) {
