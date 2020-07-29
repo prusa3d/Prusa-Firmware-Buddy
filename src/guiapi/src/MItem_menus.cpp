@@ -121,7 +121,7 @@ MI_FW_UPDATE::MI_FW_UPDATE()
 }
 
 void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_menu_fw_update()->id);
+    Screens::Access()->Open(GetScreenMenuFwUpdate);
 }
 
 /*****************************************************************************/
@@ -151,5 +151,5 @@ MI_LANGUAGE::MI_LANGUAGE()
 }
 
 void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_menu_languages()->id);
+    Screens::Access()->Open(GetScreenMenuLanguages);
 }

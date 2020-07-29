@@ -106,32 +106,32 @@ protected:
 
 /*****************************************************************************/
 //parent alias
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
-class ScreenMenuLanguages : public parent {
+class ScreenMenuLanguages : public Screen {
 public:
     constexpr static const char *label = N_("LANGUAGES");
-    //static void Init(screen_t *screen);
+    ScreenMenuLanguages()
+        : Screen(_(label)) {
+    }
 };
 
-/*****************************************************************************/
-//static member method definition
-/*void ScreenMenuLanguages::Init(screen_t *screen) {
-    Create(screen, _(label));
-}*/
+ScreenFactory::UniquePtr GetScreenMenuLanguages() {
+    return ScreenFactory::Screen<ScreenMenuLanguages>();
+}
 
 /*****************************************************************************/
 //parent alias
-using parent_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
-class ScreenMenuLanguagesNoRet : public parent_noReturn {
+class ScreenMenuLanguagesNoRet : public Screen_noReturn {
 public:
     constexpr static const char *label = N_("SELECT LANGUAGE");
-    //static void Init(screen_t *screen);
+    ScreenMenuLanguagesNoRet()
+        : Screen_noReturn(_(label)) {
+    }
 };
 
-/*****************************************************************************/
-//static member method definition
-/*void ScreenMenuLanguagesNoRet::Init(screen_t *screen) {
-    Create(screen, _(label));
-}*/
+ScreenFactory::UniquePtr GetScreenMenuLanguagesNoRet() {
+    return ScreenFactory::Screen<ScreenMenuLanguagesNoRet>();
+}

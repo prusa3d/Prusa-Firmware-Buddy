@@ -31,6 +31,7 @@ protected:
 public:
     IScreenPrinting(string_view_utf8 caption);
     ~IScreenPrinting();
+    static bool CanOpen();
 
 protected:
     void initBtnText(btn &ref_button); // could access just text, but accessing entire button is more general

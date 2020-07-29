@@ -64,3 +64,6 @@ void IScreenPrinting::TuneAction() {
 }
 
 IScreenPrinting *IScreenPrinting::ths = nullptr;
+bool IScreenPrinting::CanOpen() {
+    return IScreenPrinting::ths == nullptr;
+}

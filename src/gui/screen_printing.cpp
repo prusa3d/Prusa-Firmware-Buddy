@@ -7,6 +7,7 @@
 #include "print_utils.hpp"
 #include "ffconf.h"
 #include "ScreenHandler.hpp"
+#include "screen_menus.hpp"
 #include <ctime>
 #include "wui_api.h"
 #include "../lang/i18n.h"
@@ -63,7 +64,7 @@ void screen_printing_data_t::tuneAction() {
     switch (GetState()) {
     case printing_state_t::PRINTING:
     case printing_state_t::PAUSED:
-        //screen_open(get_scr_menu_tune()->id);
+        Screens::Access()->Open(GetScreenMenuTune);
         break;
     default:
         break;
