@@ -8,12 +8,15 @@
 static uint8_t CFanCtl_count = 0;                  // number of instances
 static CFanCtl *CFanCtl_instance[FANCTL_MAX_FANS]; // array of pointers to instances
 
+//------------------------------------------------------------------------------
+// CFanCtlPWM implementation
+
 CFanCtlPWM::CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max) {
     pin = pin_out;
-    min = pwm_min;
-    max = pwm_max;
-    ini = false;
-    out = false;
+    min_value = pwm_min;
+    max_value = pwm_max;
+    initialized = false;
+    output_state = false;
     pha_ena = false;
     pwm = 0;
     cnt = 0;
@@ -26,61 +29,107 @@ CFanCtlPWM::CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max) {
 void CFanCtlPWM::init() {
     gpio_set(pin, 0);
     gpio_init(pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
-    ini = true;
+    initialized = true;
 }
 
-void CFanCtlPWM::tick() {
-    if (!ini)
-        return;
+int8_t CFanCtlPWM::tick() {
+    if (!initialized)          // ?not initialised
+        return -1;             // return -1 means pwm output is off
+    int8_t pwm_on = cnt - pha; // calculate on time (number of ticks after 0-1 pwm transition)
+    if (pwm_on >= val)
+        pwm_on -= max_value;
     bool o = (cnt >= pha) && (cnt < (pha + val));
-    if (++cnt >= max) {
+    if (++cnt >= max_value) {
         cnt = 0;
-        if (val != pwm) {
-            val = pwm; // update cached value
-            pha = 0;
-            pha_max = max - val;
-            pha_stp = 1;
-        } else { // phase-shifting enabled
-            if (pha_stp > 0) {
-                if (++pha >= pha_max) {
-                    pha_stp = -1;
-                    pha--;
-                }
-            }
-            if (pha_stp < 0) {
-                if (pha-- == 0) {
-                    pha_stp = 1;
-                    pha = 0;
-                }
+        if (val != pwm) { // pwm changed
+            val = pwm;    // update cached value
+            pha = 0;      // reset phase
+            if ((val > 1) && (val <= (max_value / 2))) {
+                pha_max = max_value - val;
+                uint8_t steps = max_value / val; // calculate number of steps
+                if (steps < 3)
+                    steps = 3;               // limit steps >= 3
+                pha_stp = max_value / steps; // calculate step - enable phase shifting
+            } else
+                pha_stp = 0; // set step to zero - disable phase shifting
+        }
+#if 1
+        else if (pha_stp) { // phase-shifting enabled
+            pha += pha_stp;
+            if (pha >= pha_max) {
+                pha_stp = -pha_stp;
+                pha = pha_max;
+            } else if (pha < 0) {
+                pha_stp = -pha_stp;
+                pha = 0;
             }
         }
+#endif
     }
-    if (o != out)                 // pwm output changed?
+    if (o != output_state)        // pwm output changed?
         gpio_set(pin, o ? 1 : 0); // set output pin
-    out = o;                      // store pwm output state
+    output_state = o;             // store pwm output state
+    return pwm_on;
 }
 
 void CFanCtlPWM::set_PWM(uint8_t new_pwm) {
-    if (new_pwm > max)
-        new_pwm = max;
-    if (new_pwm && (new_pwm < min))
-        new_pwm = min;
+    if (new_pwm > max_value)
+        new_pwm = max_value;
+    if (new_pwm && (new_pwm < min_value))
+        new_pwm = min_value;
     pwm = new_pwm;
 }
 
+//------------------------------------------------------------------------------
+// CFanCtlTach implementation
+
+CFanCtlTach::CFanCtlTach(uint8_t pin_in) {
+    pin = pin_in;
+    initialized = false;
+    input_state = false;
+    tick_count = 0;
+    ticks_per_second = 1000;
+    edges = 0;
+    edges_per_second = 0;
+    pwm_sum = 0;
+    rpm = 0;
+}
+
+void CFanCtlTach::init() {
+    gpio_init(pin, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_HIGH);
+    initialized = true;
+}
+
+void CFanCtlTach::tick(int8_t pwm_on) {
+    if (!initialized) {
+        return;
+    }
+    bool tach = gpio_get(pin) ? true : false;  // sample tach input pin
+    if ((tach ^ input_state) && (pwm_on >= 2)) // detect edge inside pwm pulse, ignore first two sub-periods after 0-1 pwm transition
+        edges++;
+    input_state = tach; // store current tach input state
+    if (++tick_count >= ticks_per_second) {
+        edges_per_second = (3 * edges + edges_per_second) >> 2; // calculate and filter edges per delay
+        uint16_t lost_edges = 0;
+        if (pwm_sum)
+            lost_edges = edges_per_second * (ticks_per_second - pwm_sum) / pwm_sum;
+        rpm = ((60 * (edges + lost_edges)) >> 2);
+        edges = 0;      // reset edge counter
+        tick_count = 0; // reset tick counter
+        pwm_sum = 0;    // reset pwm_sum
+    } else if (pwm_on >= 0)
+        pwm_sum++; // inc pwm sum if pwm enabled
+}
+
+//------------------------------------------------------------------------------
+// CFanCtl implementation
+
 CFanCtl::CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM)
-    : m_pwm(pinOut, minPWM, maxPWM) {
-    m_pinTach = pinTach;
+    : m_pwm(pinOut, minPWM, maxPWM)
+    , m_tach(pinTach) {
     m_MinRPM = minRPM;
     m_MaxRPM = maxRPM;
     m_State = idle;
-    m_ActualRPM = 0;
-    m_TargetRPM = 0;
-    m_tach = false;
-    m_tach_edge = 0;
-    m_fan_rpm100 = 0;
-    m_tach_time = 0;
-    m_tach_max = 600;
     // this is not thread-safe for first look, but CFanCtl instances are global variables, so it is safe
     if (CFanCtl_count < FANCTL_MAX_FANS)
         CFanCtl_instance[CFanCtl_count++] = this;
@@ -88,38 +137,22 @@ CFanCtl::CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM
 
 void CFanCtl::init() {
     m_pwm.init();
-    gpio_init(m_pinTach, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_HIGH);
+    m_tach.init();
 }
 
 void CFanCtl::tick() {
-    m_pwm.tick();
-    //RPM Measure
-    /*    bool tach = gpio_get(m_pinTach) ? true : false; // sample tach input pin
-    bool edge = (m_tach ^ tach) & m_pwm_out;        // detect edge - ignore edges for pwmOut = 0
-    m_tach = tach;                                  // store current tach input state
-    if (m_pwm_cnt > (2 + m_pwm_pha))                // ignore first two sub-periods after 0-1 pwm transition
-        if ((m_tach_edge < 255) && edge)
-            m_tach_edge++;
-    if (++m_tach_time >= m_tach_max) {
-        m_fan_rpm100 = ((uint16_t)m_tach_edge + m_fan_rpm100) >> 1;
-        m_tach_edge = 0; // reset edge counter
-        m_tach_time = 0; // reset tach cycle counter
-        m_ActualRPM = 60 * (uint16_t)m_fan_rpm100 / 2;
-    }*/
+    // PWM control
+    int8_t pwm_on = m_pwm.tick();
+    // RPM measurement
+    m_tach.tick(pwm_on);
 }
 
 void CFanCtl::setPWM(uint8_t pwm) {
     m_pwm.set_PWM(pwm);
 }
 
-void CFanCtl::setTargetRPM(uint16_t targetRPM) {
-    if (targetRPM > m_MaxRPM)
-        targetRPM = m_MaxRPM;
-    if (targetRPM && (targetRPM < m_MinRPM))
-        targetRPM = m_MinRPM;
-    m_TargetRPM = targetRPM;
-    m_pwm.set_PWM(0);
-}
+//------------------------------------------------------------------------------
+// "C" wrapper
 
 extern "C" {
 
@@ -129,17 +162,13 @@ void fanctl_init(void) {
 }
 
 void fanctl_tick(void) {
-    for (uint8_t fan = 0; fan < CFanCtl_count; fan++)
-        CFanCtl_instance[fan]->tick();
+    //    for (uint8_t fan = 0; fan < CFanCtl_count; fan++)
+    //        CFanCtl_instance[fan]->tick();
+    CFanCtl_instance[0]->tick();
 }
 
 void fanctl_set_pwm(uint8_t fan, uint8_t pwm) {
     if (fan < CFanCtl_count)
         CFanCtl_instance[fan]->setPWM(pwm);
-}
-
-void fanctl_set_rpm(uint8_t fan, uint16_t rpm) {
-    if (fan < CFanCtl_count)
-        CFanCtl_instance[fan]->setTargetRPM(rpm);
 }
 }
