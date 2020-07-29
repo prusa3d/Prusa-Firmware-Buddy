@@ -81,7 +81,12 @@ void printerCode(char *str) {
 
     constexpr uint8_t buffer = 64;
     unsigned char toHash[buffer];
+    /// CPU ID
     snprintf((char *)toHash, buffer, "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
+    ///TODO MAC
+
+    ///TODO SN
+
     uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
     /// TODO get hash;
     mbedtls_sha256_ret_256(toHash, (96 + 0) / 8, (unsigned char *)hash);
