@@ -118,7 +118,7 @@ void screen_printing_data_t::stopAction() {
 screen_printing_data_t::screen_printing_data_t()
     : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
     , w_filename(this, rect_ui16(10, 33, 220, 29))
-    , w_progress(this, rect_ui16(10, 70, 220, 50))
+    , w_progress(this, rect_ui16(10, 70, 220, 50), 16, COLOR_ORANGE)
     , w_time_label(this, rect_ui16(10, 128, 101, 20))
     , w_time_value(this, rect_ui16(10, 148, 101, 20))
     , w_etime_label(this, rect_ui16(130, 128, 101, 20))
@@ -146,9 +146,7 @@ screen_printing_data_t::screen_printing_data_t()
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     w_filename.SetText(vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
 
-    w_progress.SetProgressColor(COLOR_ORANGE);
     w_progress.SetFont(resource_font(IDR_FNT_BIG));
-    w_progress.SetProgressHeight(14);
 
     w_etime_label.font = resource_font(IDR_FNT_SMALL);
     w_etime_label.SetAlignment(ALIGN_RIGHT_BOTTOM);

@@ -1,6 +1,7 @@
 #include "DialogStateful.hpp"
 #include "guitypes.h"
 #include "../lang/i18n.h"
+#include "resource.h" //IDR_FNT_BIG
 
 static constexpr uint8_t PROGRESS_BAR_X_PAD = 10;
 static constexpr uint8_t PROGRESS_BAR_Y_PAD = 30;
@@ -32,12 +33,13 @@ rect_ui16_t get_label_size(rect_ui16_t rect) {
 IDialogStateful::IDialogStateful(string_view_utf8 name)
     : IDialog()
     , title(this, get_title_size(rect), is_closed_on_click_t::no, name)
-    , progress(this, get_progress_size(rect), PROGRESS_BAR_TEXT_H, COLOR_ORANGE, COLOR_GRAY)
+    , progress(this, get_progress_size(rect), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
     , label(this, get_label_size(rect))
     , radio(this, get_radio_button_size(rect), nullptr, nullptr)
     , phase(0) {
     title.font = gui_defaults.font_big;
     title.SetAlignment(ALIGN_CENTER);
+    progress.SetFont(resource_font(IDR_FNT_BIG));
     label.font = gui_defaults.font_big;
     label.SetAlignment(ALIGN_CENTER);
 }

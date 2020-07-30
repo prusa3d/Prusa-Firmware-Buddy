@@ -35,7 +35,6 @@ protected:
     window_progress_t progress;
     window_text_t label;
     RadioButton radio;
-    //font_t *font;
     uint8_t phase;
 
     virtual bool can_change(uint8_t phase) = 0;
