@@ -139,7 +139,7 @@ Nagrzewanie
 NAGRZEWANIE do ŁADOWANIA
 NAGRZEWANIE do ROZŁADOWANIA
 Przygotowywanie do wyciskania
-Naciśnij KONTYNUUJ i wsuń filament do ekstrudera.
+Naciśnij KONTYNUUJ\ni wsuń filament\ndo ekstrudera.
 Wciśnij DALEJ, aby uruchomić Selftest, który sprawdzi ewentualne błędy podczas montażu.
 Druk
 Went. wydruku
@@ -211,7 +211,7 @@ Wt
 PARAMETRY
 Parametry
 ROZŁADUJ
-ROZŁADUJ FIL.
+ROZŁADUJ FILAMENT
 Rozładuj filament
 Rozładowywanie
 Odparkowanie

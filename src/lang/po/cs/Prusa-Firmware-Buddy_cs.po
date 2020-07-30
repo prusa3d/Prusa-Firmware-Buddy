@@ -390,7 +390,7 @@ msgstr "ZAVÉST"
 #: src/gui/dialogs/DialogFactory.cpp:12 src/gui/screen_menu_filament.cpp:45
 #: src/gui/screen_menu_filament.cpp:46
 msgid "LOAD FILAMENT"
-msgstr "ZAVÉST FIL."
+msgstr "ZAVÉST FILAMENT"
 
 #: src/gui/screen_menu_filament.cpp:44 src/gui/screen_menu_filament.cpp:45
 msgid "Load Filament"
@@ -637,7 +637,7 @@ msgstr "Příprava na ramming"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "Zvolte POKRAČOVAT\na zasuňte filament\ndo extruderu      "
+msgstr "Zvolte POKRAČOVAT\na zasuňte filament\ndo extruderu."
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."

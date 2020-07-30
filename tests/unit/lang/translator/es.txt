@@ -75,7 +75,7 @@ Información
 Cargando
 Las direcciones IP no son válidas o el archivo \"lan_settings.ini\" no está en el directorio raíz de la unidad USB.
 Las direcciones IP o los parámetros no son válidos o el archivo \"lan_settings.ini\" no está en el directorio raíz de la unidad USB.
-¿Está bien el color?
+¿Está bien\nel color?
 ¿Está el filamento en los engranajes del extrusor?
 ¿Está la lámina de acero en la base?
 AJUSTES DE RED
@@ -88,7 +88,7 @@ CARGAR FILAMENTO
 Cargar filamento
 Cargar configuración
 Cargando...
-Cargando a la boquilla
+Cargando\na la boquilla
 Alto
 Asegúrate que filamento está insertado a través del sensor.
 Material
@@ -139,7 +139,7 @@ Precalentar
 PRECALENTAR para CARGAR
 PRECALENTAR para DESCARGAR
 Preparando para expulsar
-Presiona CONTINUAR y\nempuja el filamento \nen el extrusora.
+Presiona CONTINUAR\ny empuja el\nfilamento en\nelextrusora.
 Presione SIGUIENTE para ejecutar el Selftest, que comprueba problemas potenciales relacionado con el montaje.
 Imprimir
 Vent. de impresión

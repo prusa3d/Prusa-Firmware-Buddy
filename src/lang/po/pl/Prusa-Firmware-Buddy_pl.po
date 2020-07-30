@@ -637,7 +637,7 @@ msgstr "Przygotowywanie do wyciskania"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "Naciśnij KONTYNUUJ i wsuń filament do ekstrudera."
+msgstr "Naciśnij KONTYNUUJ\ni wsuń filament\ndo ekstrudera."
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
@@ -951,7 +951,7 @@ msgstr "ROZŁADUJ"
 #: src/gui/dialogs/DialogFactory.cpp:13 src/gui/screen_menu_filament.cpp:62
 #: src/gui/screen_menu_filament.cpp:63
 msgid "UNLOAD FILAMENT"
-msgstr "ROZŁADUJ FIL."
+msgstr "ROZŁADUJ FILAMENT"
 
 #: src/gui/screen_menu_filament.cpp:61 src/gui/screen_menu_filament.cpp:62
 msgid "Unload Filament"

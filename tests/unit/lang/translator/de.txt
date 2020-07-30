@@ -139,7 +139,7 @@ Vorheizen
 VORHEIZEN zum LADEN
 VORHEIZEN zum ENTLADEN
 Bereite Rammen vor
-WEITER drücken und Filament in den Extruder schieben.
+WEITER drücken und\nFilament in den\nExtruder schieben.
 Drücken Sie WEITER, um den Selbsttest auszuführen, bei dem nach potenziellen Problemen mit der Montage gesucht wird.
 Drucken
 Drucklüfter
@@ -221,7 +221,7 @@ Genutztes Filament
 VERSION INFO
 Version Info
 Warte auf Abkühl
-Warte auf Temperatur
+Warte auf\nTemperatur
 Warnung
 Mi.
 Willkommen beim Original Prusa MINI Setup-Assistenten. Möchten Sie fortfahren?
