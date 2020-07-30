@@ -46,19 +46,19 @@ TEST_CASE("Block To Hex", "[support_utils]") {
 TEST_CASE("Set bit", "[support_utils]") {
     SECTION("Already set bit") {
         uint8_t i = 0b01010101;
-        setbit(i, 0);
+        setBit(i, 0);
         CHECK(i == 0b01010101);
     }
 
     SECTION("Set bit 0") {
         uint8_t i = 0b01010100;
-        setbit(i, 0);
+        setBit(i, 0);
         CHECK(i == 0b01010101);
     }
 
     SECTION("Bit 7") {
         uint8_t i = 0b01010101;
-        setbit(i, 7);
+        setBit(i, 7);
         CHECK(i == 0b11010101);
     }
 }
@@ -66,19 +66,49 @@ TEST_CASE("Set bit", "[support_utils]") {
 TEST_CASE("Clear bit", "[support_utils]") {
     SECTION("Already cleared bit") {
         uint8_t i = 0b01010100;
-        setbit(i, 0);
+        clearBit(i, 0);
         CHECK(i == 0b01010100);
     }
 
     SECTION("Unset bit 0") {
         uint8_t i = 0b01010101;
-        setbit(i, 0);
+        clearBit(i, 0);
         CHECK(i == 0b11010100);
     }
 
     SECTION("Bit 7") {
         uint8_t i = 0b11010101;
-        setbit(i, 7);
+        clearBit(i, 7);
         CHECK(i == 0b01010101);
+    }
+}
+
+TEST_CASE("Right shift by 2 bits", "[support_utils]") {
+    SECTION("Just test") {
+        uint8_t byte1 = 0b11011010;
+        uint8_t byte2 = 0b00110110;
+        rShift2Bits(byte1, byte2);
+        CHECK(byte1 == 0b00110110);
+        CHECK(byte2 == 0b10001101);
+    }
+}
+
+TEST_CASE("Convert to 32 symbol encoded string", "[support_utils]") {
+    uint8_t number[4] = { 0b11011010, 0b01010100, 0b10111111, 0b10111110 };
+
+    SECTION("First byte 0") {
+        CHECK(to32(number, 0) == '0');
+    }
+
+    SECTION("First byte 1") {
+        CHECK(to32(number, 1) == '0');
+    }
+
+    SECTION("First byte 2") {
+        CHECK(to32(number, 2) == '0');
+    }
+
+    SECTION("Crossing bytes") {
+        CHECK(to32(number, 5) == '0');
     }
 }

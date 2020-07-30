@@ -74,13 +74,14 @@ inline void rShift2Bits(uint32_t &toShift, uint32_t &overflow) {
 /// Encodes number into character
 /// Uses 5 bit encoding (0-9,A-V)
 /// \param number array of bytes representing big number
-/// \param shift location of the first bit
+/// \param startBit location of the first bit
+/// 0 == 1st byte, 1st bit == number MSB == output MSB
 /// \returns character
-char to32(uint8_t number[], uint8_t shift) {
+char to32(uint8_t number[], uint8_t startBit) {
     uint8_t val = 0;
 
-    const uint8_t byte = shift / 8;
-    const uint8_t bit = shift % 8;
+    const uint8_t byte = startBit / 8;
+    const uint8_t bit = startBit % 8;
 
     val = ((255 >> bit) & number[byte]) << (5 - bit);
     /// ensure at least 1 bit is used, otherwise you can read out of number
