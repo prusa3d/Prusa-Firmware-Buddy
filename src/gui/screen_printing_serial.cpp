@@ -8,6 +8,7 @@
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "../lang/i18n.h"
 #include "ScreenHandler.hpp"
+#include "screen_menus.hpp"
 
 //octo icon
 static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_printing)); }
@@ -66,7 +67,7 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event,
 }
 
 void screen_printing_serial_data_t::tuneAction() {
-    /*screen_open(get_scr_menu_tune()->id);*/
+    Screens::Access()->Open(GetScreenMenuTune);
 }
 
 void screen_printing_serial_data_t::pauseAction() {

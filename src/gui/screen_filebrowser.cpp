@@ -139,8 +139,8 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
             // save the top browser item
             strlcpy(firstVisibleSFN, w_filelist.TopItemSFN(), SFN_len);
 
-            screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
-            screen_print_preview_set_gcode_filename(vars->media_LFN);
+            screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
+            screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
             Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
 
             return;

@@ -103,31 +103,26 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
         header.EventClr();
     }
 
-    /*    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
-        screen_home_disable_print_button(screen, 1);
-    }
-
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted) &&
-
-        (HAL_GetTick() > 5000)) {
-        // we are using marlin variables for filename and filepath buffers
-        marlin_vars_t *vars = marlin_vars();
-        //check if the variables filename and filepath allocated
-        if (vars->media_LFN && vars->media_LFN) {
-            if (find_latest_gcode(
-                    vars->media_SFN_path,
-                    FILE_PATH_MAX_LEN,
-                    vars->media_LFN,
-                    FILE_NAME_MAX_LEN)) {
-                screen_print_preview_set_gcode_filepath(vars->media_SFN_path);
-                screen_print_preview_set_gcode_filename(vars->media_LFN);
-                screen_print_preview_set_on_action(on_print_preview_action);
-                //screen_open(get_scr_print_preview()->id);
+    //todo i think this should be hnadled in print preview
+    if (header.EventClr_MediaInserted()) {
+        if (HAL_GetTick() > 5000) {
+            // we are using marlin variables for filename and filepath buffers
+            marlin_vars_t *vars = marlin_vars();
+            //check if the variables filename and filepath allocated
+            if (vars->media_LFN && vars->media_LFN) {
+                if (find_latest_gcode(
+                        vars->media_SFN_path,
+                        FILE_PATH_MAX_LEN,
+                        vars->media_LFN,
+                        FILE_NAME_MAX_LEN)) {
+                    screen_print_preview_data_t::SetGcodeFilepath(vars->media_SFN_path);
+                    screen_print_preview_data_t::SetGcodeFilename(vars->media_LFN);
+                    Screens::Access()->Open(ScreenFactory::Screen<screen_print_preview_data_t>);
+                }
             }
-            printBtnEna();
         }
-        return 1;
-    }*/
+        printBtnEna();
+    }
 
     if (header.EventClr_MediaRemoved()) {
         printBtnDis();

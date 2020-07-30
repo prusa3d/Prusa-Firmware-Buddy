@@ -20,7 +20,6 @@
 #include "screen_print_preview.hpp"
 
 #include "screen_lan_settings.h"
-#include "screen_close_multiple.h"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
 #include "../lang/i18n.h"

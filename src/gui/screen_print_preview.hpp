@@ -13,21 +13,6 @@
 #define LINE_HEIGHT      15
 #define LINE_SPACING     5
 
-//todo remove this
-//use 2 functions without parameter
-typedef enum {
-    PRINT_PREVIEW_ACTION_BACK,
-    PRINT_PREVIEW_ACTION_PRINT,
-} print_preview_action_t;
-
-typedef void (*print_preview_action_handler_t)(print_preview_action_t action);
-
-// FIXME: the screen_print_preview currently does not copy fpath and fname
-// therefore, their lifetime must be at least as long as the screen's lifetime
-void screen_print_preview_set_gcode_filepath(const char *fpath);
-const char *screen_print_preview_get_gcode_filepath();
-void screen_print_preview_set_gcode_filename(const char *fname);
-
 struct description_line_t {
     window_text_t title;
     window_text_t value;
@@ -83,4 +68,12 @@ private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
     //virtual void unconditionalDraw() override; //todo move draw from event
     bool gcode_file_exists();
+
+public:
+    //static methos
+    // FIXME: the screen_print_preview currently does not copy fpath and fname
+    // therefore, their lifetime must be at least as long as the screen's lifetime
+    static void SetGcodeFilepath(const char *fpath);
+    static const char *GetGcodeFilepath();
+    static void SetGcodeFilename(const char *fname);
 };
