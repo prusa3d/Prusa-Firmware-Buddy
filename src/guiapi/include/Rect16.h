@@ -52,9 +52,13 @@ public:
     Rect16(point_i16_t, uint16_t, uint16_t);
 
     ////////////////////////////////////////////////////////////////////////////
-    /// @brief Copy contructor
-    Rect16(Rect16 const &);
+    /// @brief Copy contructor as default
+    Rect16(Rect16 const &) = default;
 
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Move contructor as default
+    Rect16(Rect16&&) = default;
+    
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle as a copy of given rectangle with the shift in
     ///        specific direction
@@ -71,10 +75,20 @@ public:
     Rect16(point_i16_t, size_ui16_t);
 
     ////////////////////////////////////////////////////////////////////////////
-    /// @brief Assign operator implementation
+    /// @brief Destructor as default
+    virtual ~Rect16() = default;
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Assign operator as default
     ///
     /// @param[in] rect Existing rectangle to duplicate into curent one
-    Rect16 &operator=(Rect16 const &);
+    Rect16& operator=(Rect16 const&) & = default;
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Assign operator as default
+    ///
+    /// @param[in] rect Existing rectangle to duplicate into curent one
+    Rect16& operator=(Rect16&&) & = default;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the width of current rectangle
@@ -147,6 +161,13 @@ public:
     /// @param[in] rect Rectangle given to check
     /// @return Return true if the rectangles has intersection, false otherwise.
     bool HasIntersection(Rect16 const &) const;
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Determines if the given rectangle is fully overlayed by the 
+    /// current on
+    /// @param[in] rect Rectangle given to check
+    /// @return Return true if the rectangles is subrectangle, false otherwise.
+    bool IsSubrectangle(Rect16 const &) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Add pixels to given direction
@@ -276,4 +297,13 @@ inline bool operator==(Rect16 const &lhs, Rect16 const &rhs) {
     return lhs.TopLeft().x == rhs.TopLeft().x
         && lhs.Width() == rhs.Width()
         && lhs.Height() == rhs.Height();
+}
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Not equal operator of the rectangle class
+/// @param[in] lhs Rectangle to compare
+/// @param[in] rhs Rectangle to compare
+/// @return Return true when the rectangle not perfectly match, false otherwise
+inline bool operator!=(Rect16 const &lhs, Rect16 const &rhs) {
+    return !(lhs == rhs);
 }

@@ -25,12 +25,6 @@ Rect16::Rect16(point_i16_t top_left, uint16_t width, uint16_t height) {
     height_ = height;
 }
 
-Rect16::Rect16(Rect16 const &rect) {
-    top_left_ = rect.top_left_;
-    width_ = rect.width_;
-    height_ = rect.height_;
-}
-
 Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance) {
     switch (direction) {
     case ShiftDir_t::Left:
@@ -69,13 +63,6 @@ Rect16::Rect16(point_i16_t top_left, size_ui16_t s) {
     top_left_ = top_left;
     width_ = s.w;
     height_ = s.h;
-}
-
-Rect16 &Rect16::operator=(Rect16 const &r) {
-    top_left_ = r.TopLeft();
-    width_ = r.Width();
-    height_ = r.Height();
-    return *this;
 }
 
 Rect16 Rect16::Intersection(Rect16 const &r) const {
@@ -135,6 +122,13 @@ bool Rect16::HasIntersection(Rect16 const &r) const {
         && BottomRight().x > r.TopLeft().x
         && TopLeft().y < r.BottomRight().y
         && BottomRight().y > r.TopLeft().y;
+}
+
+bool Rect16::IsSubrectangle(Rect16 const &r) const {
+    return TopLeft().x < r.TopLeft().x
+        && BottomRight().x > r.BottomRight().x
+        && TopLeft().y < r.TopLeft().y
+        && BottomRight().y > r.BottomRight().y;
 }
 
 void Rect16::AddPadding(const padding_ui8_t p) {
