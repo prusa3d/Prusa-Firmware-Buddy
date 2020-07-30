@@ -57,8 +57,8 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Move contructor as default
-    Rect16(Rect16&&) = default;
-    
+    Rect16(Rect16 &&) = default;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle as a copy of given rectangle with the shift in
     ///        specific direction
@@ -82,13 +82,13 @@ public:
     /// @brief Assign operator as default
     ///
     /// @param[in] rect Existing rectangle to duplicate into curent one
-    Rect16& operator=(Rect16 const&) & = default;
+    Rect16 &operator=(Rect16 const &) & = default;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Assign operator as default
     ///
     /// @param[in] rect Existing rectangle to duplicate into curent one
-    Rect16& operator=(Rect16&&) & = default;
+    Rect16 &operator=(Rect16 &&) & = default;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the width of current rectangle
@@ -163,7 +163,7 @@ public:
     bool HasIntersection(Rect16 const &) const;
 
     ////////////////////////////////////////////////////////////////////////////
-    /// @brief Determines if the given rectangle is fully overlayed by the 
+    /// @brief Determines if the given rectangle is fully overlayed by the
     /// current on
     /// @param[in] rect Rectangle given to check
     /// @return Return true if the rectangles is subrectangle, false otherwise.

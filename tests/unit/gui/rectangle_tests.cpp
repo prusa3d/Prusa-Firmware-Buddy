@@ -137,11 +137,11 @@ TEST_CASE("rectangles is subrectangle", "[rectangle]") {
     std::tie(l, r, expected) = GENERATE(
         std::make_tuple<Rect16, Rect16, bool>({ 10, 10, 30, 30 }, { 20, 20, 40, 40 }, false),
         std::make_tuple<Rect16, Rect16, bool>({ 20, 20, 40, 40 }, { 10, 10, 30, 30 }, false),
-        std::make_tuple<Rect16, Rect16, bool>({ 10, 10, 30, 30 }, {  0, 0, 40, 40 }, false),
+        std::make_tuple<Rect16, Rect16, bool>({ 10, 10, 30, 30 }, { 0, 0, 40, 40 }, false),
         std::make_tuple<Rect16, Rect16, bool>({ 10, 10, 30, 30 }, { 11, 10, 31, 20 }, false),
         std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 30 }, { 1, 1, 29, 29 }, true),
         std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 10, 0, 40, 22 }, false),
-        std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, {  0, 20, 30, 30 }, false),
+        std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 0, 20, 30, 30 }, false),
         std::make_tuple<Rect16, Rect16, bool>({ 10, 10, 20, 20 }, { 20, 20, 40, 40 }, false));
 
     CHECK(l.IsSubrectangle(r) == expected);
