@@ -66,8 +66,8 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
-    #endif                       //BUDDY_ENABLE_ETHERNET
-    MI_SAVE_DUMP, MI_SOUND_MODE, /*MI_SOUND_VOLUME,*/
+    #endif //BUDDY_ENABLE_ETHERNET
+    MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME,
     MI_LANGUAGE,
     MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
@@ -79,7 +79,7 @@ using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
     #endif //BUDDY_ENABLE_ETHERNET
-    MI_SAVE_DUMP, MI_SOUND_MODE /*, MI_SOUND_VOLUME*/, MI_LANGUAGE>;
+    MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_LANGUAGE>;
 #endif
 
 class ScreenMenuSettings : public parent {
