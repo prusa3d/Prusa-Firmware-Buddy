@@ -56,6 +56,7 @@ Wersja Firmware\n
 Kal. 1. warstwy
 KAL. 1. WARSTWY
 Przepływ
+Pt
 AKTUALIZACJA FW
 Aktualizacja FW
 Stół
@@ -98,6 +99,7 @@ Poziomowanie stołu
 Błąd poziomowania stołu?
 KOMUNIKATY
 Komunikaty
+Pon
 Ruch osi
 RUCH OSI
 Ruch E
@@ -161,6 +163,7 @@ Wznów
 Wznawianie...
 PONÓW
 Powrót
+Sob
 Zapisz zrzut pamięci
 Zapisz ustawienia
 Szukam punktów\nkalibracyjnych stołu
@@ -178,11 +181,13 @@ Ustawienia wczytane pomyślnie
 Cicho
 Tryb dźwięku
 Rodzaj dźwięku
+Głośność dźwięku
 Prędkość
 Nie ustawiono statycznych adresów IPv4.
 Statystyki
 STOP
 Stop
+Ndz
 Pomoc
 Info systemowe
 TEMPERATURA
@@ -196,10 +201,13 @@ Pasek stanu znajduje się na spodzie ekranu. Zawiera informacje:\n- Temperatura 
 Kalibracja XYZ zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie.
 Wystąpił błąd podczas zapisywania ustawień w pliku \"lan_settings.ini\".
 Tej czynności nie można cofnąć, a obecna konfiguracja zostanie utracona! Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?
+Czw
 Wyłącznik czasowy
 Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby wymienić, wybierz ROZŁADUJ.
 Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby załadować, wybierz ZAŁADUJ. Aby wymienić, wybierz ROZŁADUJ.
+Dziś o 
 SPRÓBUJ PONOWNIE
+Wt
 PARAMETRY
 Parametry
 ROZŁADUJ
@@ -215,6 +223,7 @@ Wersja
 Czekam na schłodzenie
 Czekam na temp.
 Ostrzeżenie
+Śr
 Witaj w Asystencie Konfiguracji Original Prusa MINI Kontynuować?
 Witaj w Asystencie Konfiguracji Original Prusa MINI. Kontynuować?
 Asystent
