@@ -15,25 +15,11 @@
 
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
+#include "support_utils_lib.hpp"
 
 static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
-
-/// \returns pointer to the end of \param str (\0)
-char *eofstr(char *str) {
-    return (str + strlen(str));
-}
-
-/// Converts binary data to string of hex numbers
-/// \param str output string space
-/// \param st_size available space for string
-/// \param pdata binary data to conver
-/// \param length size of data to convert
-void block2hex(char *str, uint32_t str_size, uint8_t *pdata, size_t length) {
-    for (; length > 0; length--)
-        snprintf(eofstr(str), str_size - strlen(str), "%02X", *(pdata++));
-}
 
 void append_crc(char *str, uint32_t str_size) {
     uint32_t crc;
@@ -41,56 +27,6 @@ void append_crc(char *str, uint32_t str_size) {
     TM_CRC_Init(); // !!! should be somewhere else (not sure where yet)
     crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ERROR_URL_LONG_PREFIX) - 1), strlen(str) - sizeof(ERROR_URL_LONG_PREFIX) + 1, 1);
     snprintf(eofstr(str), str_size - strlen(str), "/%08lX", crc);
-}
-
-/// Replace everything but numbers by underscore.
-void leave_numbers(const char *const str_in, char *str_out) {
-    int i = 0;
-    while (str_in[i++] != 0) {
-        if (str_in[i] < '0' || '9' < str_in[i])
-            str_out[i] = '_';
-        else {
-            str_out[i] = str_out[i];
-        }
-    }
-}
-
-inline void setBit(uint8_t *c, const uint8_t b) {
-    *c |= 1 << b;
-}
-
-inline void clearBit(uint8_t *c, const uint8_t b) {
-    *c &= ~(1 << b);
-}
-
-/// Shifts 1st number by 2 bits.
-/// Places overflow to the MSBs of the 2nd number.
-inline void rShift2Bits(uint32_t &toShift, uint32_t &overflow) {
-    overflow &= 0x3FFF'FFFF;         /// clear 2 MBS bits
-    overflow |= (toShift & 3) << 30; /// add 2 bits
-    toShift >>= 2;                   /// shift number
-}
-
-/// Encodes number into character
-/// Uses 5 bit encoding (0-9,A-V)
-/// \param number array of bytes representing big number
-/// \param startBit location of the first bit
-/// 0 == 1st byte, 1st bit == number MSB == output MSB
-/// \returns character
-char to32(uint8_t number[], uint8_t startBit) {
-    uint8_t val = 0;
-
-    const uint8_t byte = startBit / 8;
-    const uint8_t bit = startBit % 8;
-
-    val = ((255 >> bit) & number[byte]) << (5 - bit);
-    /// ensure at least 1 bit is used, otherwise you can read out of number
-    if (bit > 3)
-        val += (255 << (8 - bit + 3)) & number[byte + 1];
-
-    if (val < 10)
-        return char(val);
-    return char(val - 10 + 65); // 10 = A, 11 =B, ...
 }
 
 /// \returns 40 bit encoded to 8 chars (32 symbol alphabet: 0-9,A-V)
