@@ -20,6 +20,10 @@ Screens::iter Screens::find_enabled_node(iter begin, iter end) {
     return std::find_if(begin, end, [](ScreensInitNode &node) { return node.enabled; });
 }
 
+Screens::r_iter Screens::rfind_enabled_node(r_iter begin, r_iter end) {
+    return std::find_if(r_iter(end), r_iter(begin), [](ScreensInitNode &node) { return node.enabled; });
+}
+
 void Screens::Init(ScreensInitNode *begin, ScreensInitNode *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
@@ -34,23 +38,8 @@ void Screens::Init(ScreensInitNode *begin, ScreensInitNode *end) {
     //have creator
     Init(node->screen_creator);
 
-    //initialize reverse iterators
-    r_iter r_begin(node + 1);
-    r_iter r_node(end + 1); //point behind end, first call of "r_node + 1" will revert this
-
-    //Must push rest of enabled creators on stack - in reverted order
-    auto &iterator = Access()->stack_iterator;
-    do {
-        r_node = rfind_enabled_node(r_begin, r_node + 1);
-        if (r_node != r_begin) {
-            (*iterator) = r_node->screen_creator;
-            ++iterator;
-        }
-    } while (r_node != r_begin);
-}
-
-Screens::r_iter Screens::rfind_enabled_node(r_iter begin, r_iter end) {
-    return std::find_if(r_iter(end), r_iter(begin), [](ScreensInitNode &node) { return node.enabled; });
+    //Must push rest of enabled creators on stack
+    Access()->PushBeforeCurrent(node + 1, end); //node + 1 excludes node
 }
 
 void Screens::RInit(ScreensInitNode *begin, ScreensInitNode *end) {
@@ -70,16 +59,47 @@ void Screens::RInit(ScreensInitNode *begin, ScreensInitNode *end) {
 
     //have creator
     Init(r_node->screen_creator);
-    iter node = begin - 1; //point before begin, first call of "node + 1" will revert this
-    end = r_node.base();
 
     //Push rest of enabled creators on stack
-    auto &iterator = Access()->stack_iterator;
+    Access()->RPushBeforeCurrent(begin, r_node.base());
+}
+
+// Push enabled creators on stack - in reverted order
+// not a bug non reverting method must use reverse iterators
+void Screens::PushBeforeCurrent(ScreensInitNode *begin, ScreensInitNode *end) {
+    if (size_t(end - begin) > MAX_SCREENS)
+        return;
+    if (begin == end)
+        return;
+
+    //initialize reverse iterators
+    r_iter r_begin(begin);
+    r_iter r_node(end + 1); //point behind end, first call of "r_node + 1" will revert this
+
+    do {
+        r_node = rfind_enabled_node(r_begin, r_node + 1);
+        if (r_node != r_begin) {
+            (*stack_iterator) = r_node->screen_creator;
+            ++stack_iterator;
+        }
+    } while (r_node != r_begin);
+}
+
+// Push enabled creators on stack - in non reverted order
+// not a bug reverting method must use normal iterators
+void Screens::RPushBeforeCurrent(ScreensInitNode *begin, ScreensInitNode *end) {
+    if (size_t(end - begin) > MAX_SCREENS)
+        return;
+    if (begin == end)
+        return;
+
+    iter node = begin - 1; //point before begin, first call of "node + 1" will revert this
+
     do {
         node = find_enabled_node(node + 1, end);
         if (node != end) {
-            (*iterator) = node->screen_creator;
-            ++iterator;
+            (*stack_iterator) = node->screen_creator;
+            ++stack_iterator;
         }
     } while (node != end);
 }
@@ -119,6 +139,16 @@ bool Screens::ConsumeClose() {
     bool ret = close | close_all; // close_all must also close dialogs
     close = false;                //close_all cannot be consumed
     return ret;
+}
+
+void Screens::PushBeforeCurrent(ScreenFactory::Creator screen_creator) {
+    if (stack_iterator != stack.end()) {
+        (*(stack_iterator + 1)) = *stack_iterator; // copy current creator
+        (*stack_iterator) = screen_creator;        // save new screen creator before current
+        ++stack_iterator;                          // point to current creator
+    } else {
+        bsod("Screen stack overflow");
+    }
 }
 
 void Screens::Loop() {

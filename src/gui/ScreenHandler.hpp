@@ -34,6 +34,12 @@ public:
 
     void Open(ScreenFactory::Creator screen_creator); //remember creator and create later
 
+    void PushBeforeCurrent(ScreenFactory::Creator screen_creator);
+
+    void PushBeforeCurrent(ScreensInitNode *begin, ScreensInitNode *end);
+
+    void RPushBeforeCurrent(ScreensInitNode *begin, ScreensInitNode *end);
+
     void Close();
 
     void CloseAll();
