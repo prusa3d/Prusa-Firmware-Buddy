@@ -136,6 +136,7 @@ extern void fanctl_init(void);                        // init for all fanctl ins
 extern void fanctl_tick(void);                        // tick for all fanctl instances is done using this function in appmain.cpp
 extern void fanctl_set_pwm(uint8_t fan, uint8_t pwm); // set requested PWM value
 extern uint8_t fanctl_get_pwm(uint8_t fan);           // get requested PWM value
+extern uint16_t fanctl_get_rpm(uint8_t fan);          // get actual RPM value
 
 #ifdef __cplusplus
 }

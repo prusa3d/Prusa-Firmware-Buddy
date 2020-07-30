@@ -167,4 +167,18 @@ void fanctl_set_pwm(uint8_t fan, uint8_t pwm) {
     if (fan < CFanCtl_count)
         CFanCtl_instance[fan]->setPWM(pwm);
 }
+
+uint8_t fanctl_get_pwm(uint8_t fan) {
+    if (fan < CFanCtl_count)
+        return CFanCtl_instance[fan]->getPWM();
+    return 0;
+}
+
+uint16_t fanctl_get_rpm(uint8_t fan) {
+    if (fan < CFanCtl_count)
+        return CFanCtl_instance[fan]->getActualRPM();
+    return 0;
+}
+
+
 }
