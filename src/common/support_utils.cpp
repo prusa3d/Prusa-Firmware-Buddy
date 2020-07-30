@@ -20,10 +20,16 @@ static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
 
+/// \returns pointer to the end of \param str (\0)
 char *eofstr(char *str) {
     return (str + strlen(str));
 }
 
+/// Converts binary data to string of hex numbers
+/// \param str output string space
+/// \param st_size available space for string
+/// \param pdata binary data to conver
+/// \param length size of data to convert
 void block2hex(char *str, uint32_t str_size, uint8_t *pdata, size_t length) {
     for (; length > 0; length--)
         snprintf(eofstr(str), str_size - strlen(str), "%02X", *(pdata++));
