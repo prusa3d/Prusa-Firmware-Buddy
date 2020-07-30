@@ -1029,6 +1029,9 @@ static float ff_steady_state_hotend(float target_temp, float print_fan) {
           const float pid_error = temp_hotend[ee].target - temp_hotend[ee].celsius;
 
           float pid_output;
+          #if ENABLED(PID_DEBUG)
+            float feed_forward_debug = -1.0f;
+          #endif
 
           if (temp_hotend[ee].target == 0
             || pid_error < -(PID_FUNCTIONAL_RANGE)
@@ -1051,11 +1054,15 @@ static float ff_steady_state_hotend(float target_temp, float print_fan) {
               pid_reset[ee] = false;
             }
 
+            static constexpr float pid_max_inv = 1.0f / PID_MAX;
+            const float feed_forward = ff_steady_state_hotend(temp_hotend[ee].target, fan_speed[0] * pid_max_inv);
+            #if ENABLED(PID_DEBUG)
+              feed_forward_debug = feed_forward;
+            #endif
             work_pid[ee].Kd = work_pid[ee].Kd + PID_K2 * (PID_PARAM(Kd, ee) * (pid_error - temp_dState[ee]) - work_pid[ee].Kd);
             work_pid[ee].Kp = PID_PARAM(Kp, ee) * pid_error;
 
-            static constexpr float pid_max_inv = 1.0f / PID_MAX;
-            pid_output = work_pid[ee].Kp + ff_steady_state_hotend(temp_hotend[ee].target, fan_speed[0] * pid_max_inv) + float(MIN_POWER);
+            pid_output = work_pid[ee].Kp + feed_forward + float(MIN_POWER);
 
             #if ENABLED(PID_EXTRUSION_SCALING)
               #if HOTENDS == 1
@@ -1106,6 +1113,7 @@ static float ff_steady_state_hotend(float target_temp, float print_fan) {
             #if DISABLED(PID_OPENLOOP)
             {
               SERIAL_ECHOPAIR(
+                " fTerm ", feed_forward_debug,
                 MSG_PID_DEBUG_PTERM, work_pid[ee].Kp,
                 MSG_PID_DEBUG_ITERM, work_pid[ee].Ki,
                 MSG_PID_DEBUG_DTERM, work_pid[ee].Kd
