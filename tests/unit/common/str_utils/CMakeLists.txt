@@ -1,6 +1,9 @@
 
 # define the test executable
-add_executable(str_utils_tests str_utils_test.cpp)
+add_executable(str_utils_tests
+    str_utils_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
+)
 
 # define required search paths
 target_include_directories(str_utils_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)

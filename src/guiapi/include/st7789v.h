@@ -46,7 +46,7 @@ extern void st7789v_clip_rect(rect_ui16_t rc);
 extern void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
 extern void st7789v_draw_rect(rect_ui16_t rc, color_t clr);
 extern void st7789v_fill_rect(rect_ui16_t rc, color_t clr);
-extern bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg);
+extern bool st7789v_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
 extern bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 extern void st7789v_draw_png(point_ui16_t pt, FILE *pf);
 extern void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);

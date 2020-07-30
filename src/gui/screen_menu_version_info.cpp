@@ -36,7 +36,7 @@ public:
 //static member method definition
 void ScreenMenuVersionInfo::Init(screen_t *screen) {
     //=============SCREEN INIT===============
-    Create(screen, label);
+    Create(screen, _(label));
     ScreenMenuVersionInfo *const ths = reinterpret_cast<ScreenMenuVersionInfo *>(screen->pdata);
 
     p_window_header_set_icon(&(ths->header), IDR_PNG_header_icon_info);
@@ -59,7 +59,13 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     //=============SET TEXT================
     auto begin = ths->version_info_str.begin();
     auto end = ths->version_info_str.end();
-    begin += snprintf(begin, end - begin, _("Firmware Version\n"));
+    {
+        // r=1 c=20
+        static const char fmt2Translate[] = N_("Firmware Version\n");
+        char fmt[21];
+        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+        begin += snprintf(begin, end - begin, fmt);
+    }
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
@@ -75,14 +81,20 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
             begin += snprintf(begin, end - begin, "%.*s\n", line_length, project_version_full + i);
     }
 
-    if (end > begin)
+    if (end > begin) {
+        // c=20 r=4
+        static const char fmt2Translate[] = N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s");
+        char fmt[20 * 4];
+        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
         begin += snprintf(begin, end - begin,
-            _("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"),
+            fmt,
             bootloader->major, bootloader->minor, bootloader->patch,
             board_version[0], board_version[1], board_version[2],
             serial_numbers);
+    }
 
-    ths->help.SetText(ths->version_info_str.data());
+    // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
+    ths->help.SetText(string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
 }
 
 screen_t screen_version_info = {

@@ -11,6 +11,7 @@
 #include "sys.h"
 #include "gpio.h"
 #include "sound.hpp"
+#include "language_eeprom.hpp"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -85,6 +86,7 @@ void app_run(void) {
     crc32_init();
 
     uint8_t defaults_loaded = eeprom_init();
+    LangEEPROM::getInstance();
 
     marlin_server_init();
     marlin_server_idle_cb = app_idle;

@@ -29,6 +29,7 @@ gui_defaults_t gui_defaults = {
     { 0, 0, 240, 32 - 0 },      // default header location & size
     { 0, 32, 240, 267 - 32 },   // default screen body location & size
     { 0, 32, 240, 320 - 32 },   // screen body without footer - location & size
+    { 0, 0, 240, 320 },         // full screen body without footer & header location & size
     { 0, 267, 240, 320 - 267 }, // default footer location & size
     30,                         // default button height
     6,                          // btn_spacing: 12 pixels spacing between buttons, 6 from margins
@@ -161,7 +162,7 @@ void gui_reset_menu_timer() {
 
 /// Creates message box with provided informations
 /// \returns message box id
-int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
+int gui_msgbox_ex(string_view_utf8 title, string_view_utf8 text, uint16_t flags,
     rect_ui16_t rect, uint16_t id_icon, const char **buttons) {
 
     window_msgbox_t msgbox;
@@ -196,16 +197,16 @@ int gui_msgbox_ex(const char *title, const char *text, uint16_t flags,
     return msgbox.res;
 }
 
-int gui_msgbox(const char *text, uint16_t flags) {
-    return gui_msgbox_ex(0, text, flags, gui_defaults.scr_body_sz, 0, 0);
+int gui_msgbox(string_view_utf8 text, uint16_t flags) {
+    return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags, gui_defaults.scr_body_sz, 0, 0);
 }
 
 // specific function for PROMPT message box with soundStandardPrompt sound
 // This is because of infinitely repeating sound signal that has to be stopped
 // additionally
-int gui_msgbox_prompt(const char *text, uint16_t flags) {
+int gui_msgbox_prompt(string_view_utf8 text, uint16_t flags) {
     Sound_Play(eSOUND_TYPE_StandardPrompt);
-    return gui_msgbox_ex(0, text, flags, gui_defaults.scr_body_sz, 0, 0);
+    return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags, gui_defaults.scr_body_sz, 0, 0);
 }
 
 int gui_msgbox_close(void) {

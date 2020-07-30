@@ -34,7 +34,7 @@ public:
     explicit MI_event_dispatcher(const char *label)
         : WI_LABEL_t(label, 0, true, false) {}
 
-    virtual const char *GetHeaderAlterLabel() = 0;
+    virtual string_view_utf8 GetHeaderAlterLabel() = 0;
     virtual void Do() = 0;
 };
 
@@ -47,8 +47,8 @@ class MI_LOAD : public MI_event_dispatcher {
 public:
     MI_LOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLabel() override {
-        return header_label;
+    virtual string_view_utf8 GetHeaderAlterLabel() override {
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
@@ -64,8 +64,8 @@ class MI_UNLOAD : public MI_event_dispatcher {
 public:
     MI_UNLOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLabel() override {
-        return header_label;
+    virtual string_view_utf8 GetHeaderAlterLabel() override {
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_unload();
@@ -81,8 +81,8 @@ class MI_CHANGE : public MI_event_dispatcher {
 public:
     MI_CHANGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLabel() override {
-        return header_label;
+    virtual string_view_utf8 GetHeaderAlterLabel() override {
+        return _(header_label);
     }
     virtual void Do() override {
         if (gui_dlg_unload() == DLG_OK) {
@@ -100,8 +100,8 @@ class MI_PURGE : public MI_event_dispatcher {
 public:
     MI_PURGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLabel() override {
-        return header_label;
+    virtual string_view_utf8 GetHeaderAlterLabel() override {
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_purge() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
@@ -139,7 +139,7 @@ private:
 /*****************************************************************************/
 //static method definition
 void ScreenMenuFilament::Init(screen_t *screen) {
-    Create(screen, label);
+    Create(screen, _(label));
     reinterpret_cast<ScreenMenuFilament *>(screen->pdata)->deactivate_item();
 }
 
@@ -151,7 +151,7 @@ int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event
         if (item->IsEnabled()) {
             p_window_header_set_text(&ths->header, item->GetHeaderAlterLabel()); //set new label
             item->Do();                                                          //do action (load filament ...)
-            p_window_header_set_text(&ths->header, label);                       //restore label
+            p_window_header_set_text(&ths->header, _(label));                    //restore label
         }
     } else {
         return ths->Event(window, event, param);

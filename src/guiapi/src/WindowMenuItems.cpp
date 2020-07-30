@@ -59,7 +59,8 @@ void IWiSpin::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t colo
     //draw label
     printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
     //draw spin
-    render_text_align(rects[1], temp_buff.data(), window_menu.font,
+    // this MakeRAM is safe - temp_buff is allocated for the whole life of IWiSpin
+    render_text_align(rects[1], string_view_utf8::MakeRAM((const uint8_t *)temp_buff.data()), window_menu.font,
         color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 
@@ -107,7 +108,8 @@ rect_ui16_t IWiSwitch::getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_ro
  **/
 std::array<rect_ui16_t, 2> IWiSwitch::getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t rect) const {
     rect_ui16_t base_rolling_rect = super::getRollingRect(window_menu, rect);
-    rect_ui16_t spin_rect = getSpinRect(window_menu, base_rolling_rect, strlen(get_item()));
+    string_view_utf8 localizedItem = _(get_item());
+    rect_ui16_t spin_rect = getSpinRect(window_menu, base_rolling_rect, localizedItem.computeNumUtf8CharsAndRewind());
 
     rect_ui16_t rolling_rect = base_rolling_rect;
     rolling_rect.w = spin_rect.x - rolling_rect.x;
@@ -124,7 +126,7 @@ void IWiSwitch::printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t co
     //draw label
     printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
     //draw spin
-    render_text_align(rects[1], get_item(), window_menu.font,
+    render_text_align(rects[1], _(get_item()), window_menu.font,
         color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
 }
 

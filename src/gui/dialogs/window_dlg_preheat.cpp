@@ -26,7 +26,7 @@ int16_t WINDOW_CLS_DLG_PREHEAT = 0;
 void window_list_filament_item_forced_cb(window_list_t *pwindow_list, uint16_t index,
     const char **pptext, uint16_t *pid_icon) {
     if (index <= pwindow_list->count) {
-        *pptext = _(filaments[index + FILAMENT_PLA].long_name);
+        *pptext = filaments[index + FILAMENT_PLA].long_name;
     } else
         *pptext = "Index ERROR";
 
@@ -36,7 +36,7 @@ void window_list_filament_item_forced_cb(window_list_t *pwindow_list, uint16_t i
 void window_list_filament_item_cb(window_list_t *pwindow_list, uint16_t index,
     const char **pptext, uint16_t *pid_icon) {
     if (index == 0) {
-        *pptext = "Return";
+        *pptext = N_("Return");
         *pid_icon = IDR_PNG_filescreen_icon_up_folder;
     } else {
         window_list_filament_item_forced_cb(pwindow_list, index - 1, pptext, pid_icon);
@@ -68,7 +68,7 @@ void window_dlg_preheat_init(window_dlg_preheat_t *window) {
     window->padding = gui_defaults.padding;
 
     rect_ui16_t rect = gui_defaults.scr_body_sz;
-    if (window->caption) {
+    if (!window->caption.isNULLSTR()) {
         rect.h = window->font_title->h + 2;
         window_create_ptr(WINDOW_CLS_TEXT, window->id, rect, &(window->text));
         window->text.SetText(window->caption);
@@ -115,7 +115,7 @@ const window_class_dlg_preheat_t window_class_dlg_preheat = {
     },
 };
 
-FILAMENT_t gui_dlg_preheat(const char *caption) {
+FILAMENT_t gui_dlg_preheat(string_view_utf8 caption) {
     int ret = gui_dlg_list(
         caption,
         window_list_filament_item_cb,
@@ -127,7 +127,7 @@ FILAMENT_t gui_dlg_preheat(const char *caption) {
     return (FILAMENT_t)ret;   //RETURN option will return FILAMENT_NONE
 }
 
-FILAMENT_t gui_dlg_preheat_autoselect_if_able(const char *caption) {
+FILAMENT_t gui_dlg_preheat_autoselect_if_able(string_view_utf8 caption) {
     const FILAMENT_t fil = get_filament();
     if (fil == FILAMENT_NONE) {
         //no filament selected
@@ -144,7 +144,7 @@ FILAMENT_t gui_dlg_preheat_autoselect_if_able(const char *caption) {
 }
 
 //no return option
-FILAMENT_t gui_dlg_preheat_forced(const char *caption) {
+FILAMENT_t gui_dlg_preheat_forced(string_view_utf8 caption) {
     int ret = gui_dlg_list(
         caption,
         window_list_filament_item_forced_cb,
@@ -159,7 +159,7 @@ FILAMENT_t gui_dlg_preheat_forced(const char *caption) {
 }
 
 //no return option
-FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
+FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(string_view_utf8 caption) {
     const FILAMENT_t fil = get_filament();
     if (fil == FILAMENT_NONE) {
         //no filament selected
@@ -178,7 +178,7 @@ FILAMENT_t gui_dlg_preheat_autoselect_if_able_forced(const char *caption) {
 //returns index or -1 on timeout
 //todo make this independet on preheat, in separate file
 //todo caption is not showing
-int gui_dlg_list(const char *caption, window_list_item_t *filament_items,
+int gui_dlg_list(string_view_utf8 caption, window_list_item_t *filament_items,
     dlg_on_click_cb *on_click, size_t count, int32_t ttl) {
     window_dlg_preheat_t dlg;
     dlg.caption = caption;

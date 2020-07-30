@@ -41,7 +41,7 @@ void window_header_init(window_header_t *window) {
     window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ON;
     window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_OFF;
     window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_OFF;
-    window->text = NULL;
+    window->text = string_view_utf8::MakeNULLSTR();
 
     if (marlin_vars()->media_inserted) {
         window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
@@ -106,8 +106,8 @@ void window_header_draw(window_header_t *window) {
     rc.x += 10 + window->rect.h;
     rc.w -= (icons_width + 10 + window->rect.h);
 
-    if (window->text) {                                      // label
-        render_text_align(rc, _(window->text), window->font, // @@TODO verify, that this is the right spot to translate window labels
+    if (!window->text.isNULLSTR()) { // label
+        render_text_align(rc, window->text, window->font,
             window->color_back, window->color_text,
             window->padding, window->alignment);
     }
@@ -144,7 +144,7 @@ header_states_t p_window_header_get_state(window_header_t *window,
     return window->icons[icon];
 }
 
-void p_window_header_set_text(window_header_t *window, const char *txt) {
+void p_window_header_set_text(window_header_t *window, string_view_utf8 txt) {
     window->text = txt;
     window->Invalidate();
 }

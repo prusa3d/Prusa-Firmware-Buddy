@@ -37,6 +37,8 @@ extern screen_t *const get_scr_lan_settings();
 extern screen_t *const get_scr_marlin();
 extern screen_t *const get_scr_menu_fw_update();
 extern screen_t *const get_scr_print_preview();
+extern screen_t *const get_scr_menu_languages();
+extern screen_t *const get_scr_menu_languages_noret();
 #ifdef PIDCALIBRATION
 extern screen_t *const get_scr_PID();
 #endif //PIDCALIBRATION

@@ -9,7 +9,7 @@ template <FILAMENT_t T>
 class MI_Filament : public WI_LABEL_t {
 public:
     MI_Filament()
-        : WI_LABEL_t(_(filaments[T].long_name), 0, true, false) {}
+        : WI_LABEL_t(filaments[T].long_name, 0, true, false) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
@@ -39,7 +39,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,
 
 static void init(screen_t *screen) {
     constexpr static const char *label = N_("PREHEAT");
-    Screen::Create(screen, label);
+    Screen::Create(screen, _(label));
 }
 
 screen_t screen_menu_preheat = {

@@ -9,6 +9,8 @@
 #include "stm32f4xx_hal.h"
 #include "screens.h"
 #include "../lang/i18n.h"
+#include "../lang/translator.hpp"
+#include "language_eeprom.hpp"
 
 #ifdef _EXTUI
     #include "marlin_client.h"
@@ -48,7 +50,8 @@ void screen_splash_init(screen_t *screen) {
         &(_psd->text_progress));
     _psd->text_progress.font = resource_font(IDR_FNT_NORMAL);
     _psd->text_progress.SetAlignment(ALIGN_CENTER_BOTTOM);
-    _psd->text_progress.SetText("Loading ...");
+    static const char loading[] = N_("Loading ...");
+    _psd->text_progress.SetText(_(loading));
 
     window_create_ptr(WINDOW_CLS_PROGRESS, id0, rect_ui16(10, 200, 220, 15),
         &(_psd->progress));
@@ -66,7 +69,8 @@ void screen_splash_init(screen_t *screen) {
     _psd->text_version.SetAlignment(ALIGN_CENTER);
     snprintf(_psd->text_version_buffer, sizeof(_psd->text_version_buffer), "%s%s",
         project_version, project_version_suffix_short);
-    _psd->text_version.SetText(_psd->text_version_buffer);
+    // this MakeRAM is safe - text_version_buffer is globally allocated
+    _psd->text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)_psd->text_version_buffer));
 
     _psd->logo_invalid = 0;
 }
@@ -84,7 +88,8 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
     screen_splash_timer(screen, HAL_GetTick());
     if ((event == WINDOW_EVENT_LOOP) && _psd->logo_invalid) {
 #ifdef _DEBUG
-        display::DrawText(rect_ui16(180, 91, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        static const char dbg[] = "DEBUG";
+        display::DrawText(rect_ui16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
         _psd->logo_invalid = 0;
     }
@@ -99,19 +104,46 @@ int screen_splash_event(screen_t *screen, window_t *window, uint8_t event, void 
         uint8_t run_xyzcalib = eeprom_get_var(EEVAR_RUN_XYZCALIB).ui8;
         uint8_t run_firstlay = eeprom_get_var(EEVAR_RUN_FIRSTLAY).ui8;
         uint8_t run_wizard = (run_selftest && run_xyzcalib && run_firstlay) ? 1 : 0;
+        // uint8_t run_language = eeprom_get_var(EEVAR_LANGUAGE).ui16 == static_cast<uint16_t>(0xffff) ? 1 : 0;
+        // if (run_language) {
+        //     // screen_stack_push(get_scr_home()->id);
+        //     screen_open(get_scr_menu_languages()->id);
+        // }
+
+        const bool lang_valid = LangEEPROM::getInstance().IsValid();
+
         if ((run_wizard || run_firstlay)) {
             if (run_wizard) {
                 screen_stack_push(get_scr_home()->id);
-                wizard_run_complete();
+                if (lang_valid) {
+                    wizard_run_complete();
+                } else {
+                    wizard_stack_push_complete();
+                    screen_open(get_scr_menu_languages_noret()->id);
+                }
             } else if (run_firstlay) {
                 if (gui_msgbox(_("The printer is not calibrated. Start First Layer Calibration?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING) == MSGBOX_RES_YES) {
                     screen_stack_push(get_scr_home()->id);
-                    wizard_run_firstlay();
-                } else
+                    if (lang_valid) {
+                        wizard_run_firstlay();
+                    } else {
+                        wizard_stack_push_firstlay();
+                        screen_open(get_scr_menu_languages_noret()->id);
+                    }
+                } else if (lang_valid) {
                     screen_open(get_scr_home()->id);
+                } else {
+                    screen_stack_push(get_scr_home()->id);
+                    screen_open(get_scr_menu_languages_noret()->id);
+                }
             }
-        } else
+        } else if (lang_valid) {
             screen_open(get_scr_home()->id);
+        } else {
+            screen_stack_push(get_scr_home()->id);
+            screen_open(get_scr_menu_languages_noret()->id);
+        }
+
 #else
     if (HAL_GetTick() > 3000) {
         screen_close();

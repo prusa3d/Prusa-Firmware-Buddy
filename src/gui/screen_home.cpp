@@ -104,7 +104,7 @@ void screen_home_init(screen_t *screen) {
             pw->w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
             pw->w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
             pw->w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
-            pw->w_labels[row * 3 + col].SetText(labels[row * 3 + col]);
+            pw->w_labels[row * 3 + col].SetText(_(labels[row * 3 + col]));
         }
     }
 
@@ -146,7 +146,8 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
     }
     if ((event == WINDOW_EVENT_LOOP) && pw->logo_invalid) {
 #ifdef _DEBUG
-        display::DrawText(rect_ui16(180, 31, 60, 13), "DEBUG", resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+        static const char dbg[] = "DEBUG";
+        display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
         pw->logo_invalid = 0;
     }
@@ -160,6 +161,10 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
         p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted);
         p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved);
         p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaError);
+    }
+
+    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
+        screen_home_disable_print_button(screen, 1);
     }
 
     if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted) &&
@@ -182,10 +187,6 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
             screen_home_disable_print_button(screen, 0);
         }
         return 1;
-    }
-
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
-        screen_home_disable_print_button(screen, 1);
     }
 
     if (event != WINDOW_EVENT_CLICK) {
@@ -257,7 +258,7 @@ void screen_home_disable_print_button(screen_t *screen, int disable) {
     pw->w_buttons[0].f_disabled = disable;
     pw->w_buttons[0].f_enabled = !disable; // cant't be focused
     pw->w_buttons[0].f_invalid = 1;
-    pw->w_labels[0].SetText(labels[(disable ? labelNoUSBId : labelPrintId)]);
+    pw->w_labels[0].SetText(_(labels[(disable ? labelNoUSBId : labelPrintId)]));
 
     // move to preheat when Print is focused
     if (pw->w_buttons[0].IsFocused() && disable) {

@@ -7,6 +7,8 @@
 #include "gui.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
+#include "window_dlg_calib_z.hpp"
+#include "window_file_list.hpp"
 #include "sound.hpp"
 #include "wui_api.h"
 #include "../lang/i18n.h"
@@ -270,9 +272,37 @@ MI_SOUND_TYPE::MI_SOUND_TYPE()
     : WI_SWITCH_t<8>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
     if (old_index == eSOUND_TYPE_StandardPrompt || old_index == eSOUND_TYPE_CriticalAlert) {
-        gui_msgbox_prompt("Continual beeps test\n press button to stop", MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        gui_msgbox_prompt(_("Continual beeps test\n press button to stop"), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
     } else {
         Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+    }
+}
+
+/*****************************************************************************/
+//MI_SOUND_VOLUME
+constexpr static const std::array<uint8_t, 3> volume_range = { { 0, 10, 1 } };
+MI_SOUND_VOLUME::MI_SOUND_VOLUME()
+    : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), volume_range.data(), label, 0, true, false) {}
+/* void MI_SOUND_VOLUME::Change(int dif) { */
+/* int v = value - dif; */
+/* Sound_SetVolume(value); */
+/* } */
+void MI_SOUND_VOLUME::OnClick() {
+    Sound_SetVolume(value);
+}
+
+/*****************************************************************************/
+//MI_SORT_FILES
+
+MI_SORT_FILES::MI_SORT_FILES()
+    : WI_SWITCH_t<2>(eeprom_get_var(EEVAR_FILE_SORT).ui8, label, 0, true, false, str_time, str_name) {}
+void MI_SORT_FILES::OnChange(size_t old_index) {
+    if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
+        eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_NAME));
+        screen_filebrowser_sort = WF_SORT_BY_NAME;
+    } else if (old_index == WF_SORT_BY_NAME) { // was sorted by name, set by time
+        eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_TIME));
+        screen_filebrowser_sort = WF_SORT_BY_TIME;
     }
 }
 
