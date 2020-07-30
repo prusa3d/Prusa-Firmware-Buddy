@@ -6,13 +6,13 @@
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 #include "../lang/i18n.h"
+#include "window_text.hpp"
 
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0
 
 // function pointer for onEnter & onExit callbacks
-typedef void (*change_state_cb_t)();
-//using StateCreator =
+using change_state_cb_t = void (*)();
 
 //abstract parent containing general code for any number of phases
 class IDialogStateful : public IDialog {
@@ -55,6 +55,8 @@ public:
     };
 
 protected:
+    window_text_t title;
+    //window_text_t label;
     RadioButton radio;
     color_t color_text;
     font_t *font;
@@ -65,15 +67,13 @@ protected:
     uint8_t phase;
     uint8_t progress;
 
-    const char *title;
-
     virtual bool can_change(uint8_t phase) = 0;
     // must be virtual because of `states` list is in template protected
     virtual void phaseEnter() = 0;
     virtual void phaseExit() = 0;
 
 public:
-    IDialogStateful(const char *name);
+    IDialogStateful(string_view_utf8 name);
     bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
 
 protected:
@@ -94,7 +94,7 @@ public:
 protected:
     States states; //phase text and radiobutton + onEnter & onExit cb
 public:
-    DialogStateful(const char *name, States st)
+    DialogStateful(string_view_utf8 name, States st)
         : IDialogStateful(name)
         , states(st) {};
 
@@ -125,19 +125,7 @@ template <class T>
 void DialogStateful<T>::unconditionalDraw() {
 
     const char *text = states[phase].label;
-    rect_ui16_t rc = rect;
-
     if (IsInvalid()) {
-        display::FillRect(rc, color_back);
-        rect_ui16_t rc_tit = rc;
-        rc_tit.h = 30; // 30pixels for title
-        // TODO: - icon
-        //			rc_tit.w -= 30;
-        //			rc_tit.x += 30;
-        //title
-        render_text_align(rc_tit, _(title), font_title,
-            color_back, color_text, padding, ALIGN_CENTER);
-
         Validate();
         flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
     }

@@ -222,4 +222,3 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
 
     window_frame_t::windowEvent(sender, event, param);
 }
-const char *screen_print_preview_data_t::GetGcodeFilepath();

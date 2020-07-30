@@ -54,7 +54,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 // clang-format on
 /*****************************************************************************/
 
-DialogLoadUnload::DialogLoadUnload(const char *name)
+DialogLoadUnload::DialogLoadUnload(string_view_utf8 name)
     : DialogStateful<PhasesLoadUnload>(name, LoadUnloadFactory()) {}
 
 // Phase callbacks to play a sound in specific moment at the start/end of

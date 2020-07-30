@@ -7,9 +7,15 @@ static constexpr uint8_t PROGRESS_BAR_Y_PAD = 30;
 static constexpr uint8_t PROGRESS_BAR_H = 16;
 static constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
 
+rect_ui16_t get_title_size(rect_ui16_t rect) {
+    rect.h = 30;
+    return rect;
+}
+
 //*****************************************************************************
-IDialogStateful::IDialogStateful(const char *name)
+IDialogStateful::IDialogStateful(string_view_utf8 name)
     : IDialog()
+    , title(this, get_title_size(rect), is_closed_on_click_t::no, name)
     , radio(this, get_radio_button_size(rect), nullptr, nullptr)
     , color_text(gui_defaults.color_text)
     , font(gui_defaults.font)
@@ -18,8 +24,9 @@ IDialogStateful::IDialogStateful(const char *name)
     , flags(0)
     , last_text_h(0)
     , phase(0)
-    , progress(-1)
-    , title(name) {
+    , progress(-1) {
+    title.font = gui_defaults.font_big;
+    title.SetAlignment(ALIGN_CENTER);
 }
 
 bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {

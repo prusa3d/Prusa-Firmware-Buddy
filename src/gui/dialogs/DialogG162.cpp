@@ -18,5 +18,5 @@ static DialogG162::States Factory() {
 // clang-format on
 /*****************************************************************************/
 
-DialogG162::DialogG162(const char *name)
+DialogG162::DialogG162(string_view_utf8 name)
     : DialogStateful<PhasesG162>(name, Factory()) {}

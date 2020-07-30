@@ -2,7 +2,6 @@
 #pragma once
 #include "gui.hpp"
 #include "window_header.hpp"
-#include "status_footer.h"
 #include "ff.h"
 
 #define PADDING          10
