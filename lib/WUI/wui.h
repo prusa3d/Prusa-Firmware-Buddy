@@ -9,7 +9,7 @@
 #ifndef SRC_WUI_WUI_H_
 #define SRC_WUI_WUI_H_
 
-#define BUDDY_WEB_STACK_SIZE 512
+#define BUDDY_WEB_STACK_SIZE 1024
 #include <marlin_vars.h>
 #include "cmsis_os.h"
 

@@ -163,6 +163,10 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
         p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaError);
     }
 
+    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
+        screen_home_disable_print_button(screen, 1);
+    }
+
     if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted) &&
 
         (HAL_GetTick() > 5000)) {
@@ -183,10 +187,6 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
             screen_home_disable_print_button(screen, 0);
         }
         return 1;
-    }
-
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
-        screen_home_disable_print_button(screen, 1);
     }
 
     if (event != WINDOW_EVENT_CLICK) {
