@@ -474,6 +474,7 @@ target_sources(
           src/common/base64_stream_decoder.cpp
           src/common/sound.cpp
           src/common/language_eeprom.cpp
+          src/common/support_utils_lib.cpp
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp
@@ -484,7 +485,6 @@ target_sources(
           src/common/sha256.c
           src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
-          src/common/support_utils_lib.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M876.cpp
