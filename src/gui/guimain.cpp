@@ -105,12 +105,8 @@ extern "C" void gui_run(void) {
 #ifndef _DEBUG
         HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
 #endif
-            ScreenFactory::Screen<screen_splash_data_t>, // splash
-            GetScreenMenuLanguagesNoRet,                 // lang
-#if 0
-        { ScreenFactory::Screen<screen_wizard_data_t>, HAL_IWDG_Reset },// wizard
-#endif                                                // #if 0
-            ScreenFactory::Screen<screen_home_data_t> // home
+        ScreenFactory::Screen<screen_splash_data_t>, // splash
+        ScreenFactory::Screen<screen_home_data_t>    // home
     };
 
     //Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);

@@ -1,6 +1,7 @@
 //screen_splash.cpp
 #include "screen_splash.hpp"
 #include "ScreenHandler.hpp"
+#include "screen_menus.hpp"
 
 #include "config.h"
 #include "version.h"
@@ -56,8 +57,7 @@ void screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *pa
 
 #ifdef _EXTUI
 
-    if (marlin_event(MARLIN_EVT_Startup)) {
-        //Screens::Access()->Close();
+    if (marlin_event_clr(MARLIN_EVT_Startup)) { //without clear it could run multiple times before screen is closed
 
         /*if (marlin_event(MARLIN_EVT_StartProcessing)) {
         // Originally these lines should be immediately after marlin_client_init, but because the functions are blocking
@@ -67,19 +67,26 @@ void screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *pa
         Screens::Access()->Close();
         */
 
-        uint8_t run_selftest = eeprom_get_var(EEVAR_RUN_SELFTEST).ui8;
-        uint8_t run_xyzcalib = eeprom_get_var(EEVAR_RUN_XYZCALIB).ui8;
-        uint8_t run_firstlay = eeprom_get_var(EEVAR_RUN_FIRSTLAY).ui8;
-        uint8_t run_wizard = (run_selftest && run_xyzcalib && run_firstlay) ? 1 : 0;
-        /*
-        // uint8_t run_language = eeprom_get_var(EEVAR_LANGUAGE).ui16 == static_cast<uint16_t>(0xffff) ? 1 : 0;
-        // if (run_language) {
-        //     // screen_stack_push(get_scr_home()->id);
-        //     screen_open(get_scr_menu_languages()->id);
-        // }
+        const bool run_selftest = eeprom_get_var(EEVAR_RUN_SELFTEST).ui8 ? 1 : 0;
+        const bool run_xyzcalib = eeprom_get_var(EEVAR_RUN_XYZCALIB).ui8 ? 1 : 0;
+        const bool run_firstlay = eeprom_get_var(EEVAR_RUN_FIRSTLAY).ui8 ? 1 : 0;
+        const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
+        const bool run_lang = !LangEEPROM::getInstance().IsValid();
 
-        const bool lang_valid = LangEEPROM::getInstance().IsValid();
+        const ScreenFactory::Creator screens[] {
+            run_lang ? GetScreenMenuLanguagesNoRet : nullptr,                              // lang
+            run_wizard ? nullptr /*ScreenFactory::Screen<screen_wizard_data_t>*/ : nullptr // wizard
+        };
+        Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
+        Screens::Access()->Close();
+#else
+    if (HAL_GetTick() > 3000) {
+        Screens::Access()->Close();
+#endif
+    }
+}
 
+/*
         if ((run_wizard || run_firstlay)) {
             if (run_wizard) {
                 screen_stack_push(get_scr_home()->id);
@@ -112,12 +119,3 @@ void screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *pa
             //screen_open(get_scr_menu_languages_noret()->id);
 
         }*/
-        //Screens::Access()->Open(ScreenFactory::Screen<screen_home_data_t>);
-        Screens::Access()->Close();
-#else
-    if (HAL_GetTick() > 3000) {
-        Screens::Access()->Close();
-        //screen_open(get_scr_test()->id);
-#endif
-    }
-}

@@ -3,7 +3,7 @@
 
 Screens *Screens::instance = nullptr;
 
-Screens::Screens(ScreenFactory::Creator screen_creator)
+Screens::Screens(const ScreenFactory::Creator screen_creator)
     : stack({ { nullptr } })
     , stack_iterator(stack.begin())
     , current(nullptr)
@@ -11,20 +11,20 @@ Screens::Screens(ScreenFactory::Creator screen_creator)
     , close(false) {
 }
 
-void Screens::Init(ScreenFactory::Creator screen_creator) {
+void Screens::Init(const ScreenFactory::Creator screen_creator) {
     static Screens s(screen_creator);
     instance = &s;
 }
 
 Screens::iter Screens::find_enabled_node(iter begin, iter end) {
-    return std::find_if(begin, end, [](ScreenFactory::Creator &node) { return node != nullptr; });
+    return std::find_if(begin, end, [](const ScreenFactory::Creator &node) { return node != nullptr; });
 }
 
 Screens::r_iter Screens::rfind_enabled_node(r_iter begin, r_iter end) {
-    return std::find_if(r_iter(end), r_iter(begin), [](ScreenFactory::Creator &node) { return node != nullptr; });
+    return std::find_if(r_iter(end), r_iter(begin), [](const ScreenFactory::Creator &node) { return node != nullptr; });
 }
 
-void Screens::Init(ScreenFactory::Creator *begin, ScreenFactory::Creator *end) {
+void Screens::Init(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
     if (begin == end)
@@ -42,7 +42,7 @@ void Screens::Init(ScreenFactory::Creator *begin, ScreenFactory::Creator *end) {
     Access()->PushBeforeCurrent(node + 1, end); //node + 1 excludes node
 }
 
-void Screens::RInit(ScreenFactory::Creator *begin, ScreenFactory::Creator *end) {
+void Screens::RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
     if (begin == end)
@@ -66,7 +66,7 @@ void Screens::RInit(ScreenFactory::Creator *begin, ScreenFactory::Creator *end) 
 
 // Push enabled creators on stack - in reverted order
 // not a bug non reverting method must use reverse iterators
-void Screens::PushBeforeCurrent(ScreenFactory::Creator *begin, ScreenFactory::Creator *end) {
+void Screens::PushBeforeCurrent(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
     if (begin == end)
@@ -87,7 +87,7 @@ void Screens::PushBeforeCurrent(ScreenFactory::Creator *begin, ScreenFactory::Cr
 
 // Push enabled creators on stack - in non reverted order
 // not a bug reverting method must use normal iterators
-void Screens::RPushBeforeCurrent(ScreenFactory::Creator *begin, ScreenFactory::Creator *end) {
+void Screens::RPushBeforeCurrent(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end) {
     if (size_t(end - begin) > MAX_SCREENS)
         return;
     if (begin == end)
@@ -122,7 +122,7 @@ window_frame_t *Screens::Get() {
     return current.get();
 }
 
-void Screens::Open(ScreenFactory::Creator screen_creator) {
+void Screens::Open(const ScreenFactory::Creator screen_creator) {
     creator = screen_creator;
 }
 
@@ -141,7 +141,7 @@ bool Screens::ConsumeClose() {
     return ret;
 }
 
-void Screens::PushBeforeCurrent(ScreenFactory::Creator screen_creator) {
+void Screens::PushBeforeCurrent(const ScreenFactory::Creator screen_creator) {
     if (stack_iterator != stack.end()) {
         (*(stack_iterator + 1)) = *stack_iterator; // copy current creator
         (*stack_iterator) = screen_creator;        // save new screen creator before current
