@@ -796,20 +796,24 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
 
 #if HOTENDS
 static constexpr float ambient_temp = 21.0f;
-//! @brief Get feed forward steady state output hotend
+//! @brief Get steady state output needed to compensate hotend cooling
 //!
 //! steady state output:
-//! ((target_temp - ambient_temp) * 0.322 + (target_temp - ambient_temp)^2 * 0.0002 * (1 - print_fan)) * SQRT(1 + print_fan * 3.9)
+//! ((target_temp - ambient_temp) * STEADY_STATE_HOTEND_LINEAR_COOLING_TERM
+//! + (target_temp - ambient_temp)^2 * STEADY_STATE_HOTEND_QUADRATIC_COOLING_TERM * (1 - print_fan))
+//! * SQRT(1 + print_fan * STEADY_STATE_HOTEND_FAN_COOLING_TERM)
 //! temperatures in degrees (Celsius or Kelvin)
 //! @param target_temp target temperature in degrees Celsius
 //! @param print_fan print fan power in range 0.0 .. 1.0
 //! @return hotend PWM in range 0 .. 255
 
-static float ff_steady_state_hotend(float target_temp, float print_fan) {
+static float steady_state_hotend(float target_temp, float print_fan) {
   static_assert(PID_MAX == 255, "PID_MAX == 255 expected");
   // TODO Square root computation can be mostly avoided by if stored and updated only on print_fan change
   const float tdiff = target_temp - ambient_temp;
-  const float retval = (tdiff * 0.322 + sq(tdiff) * 0.0002 * (1 - print_fan)) * SQRT(1 + print_fan * 9.24);
+  const float retval = (tdiff * STEADY_STATE_HOTEND_LINEAR_COOLING_TERM
+          + sq(tdiff) * STEADY_STATE_HOTEND_QUADRATIC_COOLING_TERM * (1 - print_fan))
+          * SQRT(1 + print_fan * STEADY_STATE_HOTEND_FAN_COOLING_TERM);
   return _MAX(retval, 0);
 }
   #if ANY(FEED_FORWARD_HOTEND_REGULATOR, PID_EXTRUSION_SCALING)
@@ -855,7 +859,7 @@ static float ff_steady_state_hotend(float target_temp, float print_fan) {
         //! with generated temperature curve in less than ideal conditions
         constexpr float target_heater_pwm = PID_MAX - 10;
         const float temp_diff = deg_per_cycle * pid_max_inv
-            * (target_heater_pwm - ff_steady_state_hotend(last_target, fan_speed[0] * pid_max_inv));
+            * (target_heater_pwm - steady_state_hotend(last_target, fan_speed[0] * pid_max_inv));
         last_target += temp_diff;
         if (delay > 1) --delay;
         expected += temp_diff / delay;
@@ -869,7 +873,7 @@ static float ff_steady_state_hotend(float target_temp, float print_fan) {
           state = Ramp::Down;
         }
         const float temp_diff = deg_per_cycle * pid_max_inv
-            * ff_steady_state_hotend(last_target, fan_speed[0] * pid_max_inv);
+            * steady_state_hotend(last_target, fan_speed[0] * pid_max_inv);
         last_target -= temp_diff;
         if (delay > 1) --delay;
         expected -= temp_diff / delay;
@@ -891,7 +895,7 @@ static float ff_steady_state_hotend(float target_temp, float print_fan) {
           expected += diff;
         }
         else expected = last_target;
-        hotend_pwm = ff_steady_state_hotend(last_target, fan_speed[0] * pid_max_inv);
+        hotend_pwm = steady_state_hotend(last_target, fan_speed[0] * pid_max_inv);
       }
       return hotend_pwm;
     }
@@ -1055,7 +1059,7 @@ static float ff_steady_state_hotend(float target_temp, float print_fan) {
             }
 
             static constexpr float pid_max_inv = 1.0f / PID_MAX;
-            const float feed_forward = ff_steady_state_hotend(temp_hotend[ee].target, fan_speed[0] * pid_max_inv);
+            const float feed_forward = steady_state_hotend(temp_hotend[ee].target, fan_speed[0] * pid_max_inv);
             #if ENABLED(PID_DEBUG)
               feed_forward_debug = feed_forward;
             #endif
