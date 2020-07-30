@@ -7,11 +7,6 @@
 static constexpr size_t MAX_SCREENS = 32;
 using ScreenArray = std::array<ScreenFactory::Creator, MAX_SCREENS>;
 
-struct ScreensInitNode {
-    ScreenFactory::Creator screen_creator;
-    bool enabled;
-};
-
 class Screens {
     ScreenArray stack;
     ScreenArray::iterator stack_iterator;
@@ -35,10 +30,8 @@ public:
     void Open(ScreenFactory::Creator screen_creator); //remember creator and create later
 
     void PushBeforeCurrent(ScreenFactory::Creator screen_creator);
-
-    void PushBeforeCurrent(ScreensInitNode *begin, ScreensInitNode *end);
-
-    void RPushBeforeCurrent(ScreensInitNode *begin, ScreensInitNode *end);
+    void PushBeforeCurrent(ScreenFactory::Creator *begin, ScreenFactory::Creator *end);  // push in normal order, skips nullptr
+    void RPushBeforeCurrent(ScreenFactory::Creator *begin, ScreenFactory::Creator *end); // push in reversed order, skips nullptr
 
     void Close();
 
@@ -53,13 +46,14 @@ public:
     window_frame_t *Get();
 
     static void Init(ScreenFactory::Creator screen_creator);
-    static void RInit(ScreensInitNode *begin, ScreensInitNode *end); // init in reversed order
-    static void Init(ScreensInitNode *begin, ScreensInitNode *end);  // init in normal
+    static void Init(ScreenFactory::Creator *begin, ScreenFactory::Creator *end);  // init in normal order, skips nullptr
+    static void RInit(ScreenFactory::Creator *begin, ScreenFactory::Creator *end); // init in reversed order, skips nullptr
+
     static Screens *Access();
 
 private:
-    using r_iter = std::reverse_iterator<ScreensInitNode *>;
+    using r_iter = std::reverse_iterator<ScreenFactory::Creator *>;
     static r_iter rfind_enabled_node(r_iter begin, r_iter end); // reverse find method
-    using iter = ScreensInitNode *;
+    using iter = ScreenFactory::Creator *;
     static iter find_enabled_node(iter begin, iter end); // normal find method
 };
