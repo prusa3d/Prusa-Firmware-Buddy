@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-29 09:46+0200\n"
+"POT-Creation-Date: 2020-07-29 11:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -416,7 +416,7 @@ msgstr ""
 msgid "LAN SETTINGS"
 msgstr ""
 
-#: src/gui/screen_menu_languages.cpp:112
+#: src/gui/screen_menu_languages.cpp:119
 msgid "LANGUAGES"
 msgstr ""
 
@@ -820,7 +820,7 @@ msgstr ""
 msgid "SELECT FILE"
 msgstr ""
 
-#: src/gui/screen_menu_languages.cpp:141
+#: src/gui/screen_menu_languages.cpp:148
 msgid "SELECT LANGUAGE"
 msgstr ""
 
