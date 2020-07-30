@@ -20,6 +20,7 @@
 #include "hwio_pindef.h"
 #include "trinamic.h"
 #include "main.h"
+#include "fanctl.h"
 
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."
@@ -77,6 +78,8 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
             cmd_id = PUTSLAVE_CMD_ID_EECL;
         else if (strncmp(pstr, "fpwm", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_FPWM;
+        else if (strncmp(pstr, "frpm", 4) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_FRPM;
         else if (strncmp(pstr, "diag", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_DIAG;
         else if (strncmp(pstr, "uart", 4) == 0)
@@ -150,6 +153,26 @@ int putslave_do_cmd_q_ip4(uartslave_t *pslave) {
 int putslave_do_cmd_q_lock(uartslave_t *pslave) {
     uint8_t *ptr = (uint8_t *)OTP_LOCK_BLOCK_ADDR;
     uartslave_printf(pslave, "%d ", (ptr[0] == 0) ? 1 : 0);
+    return UARTSLAVE_OK;
+}
+
+int putslave_do_cmd_q_fpwm(uartslave_t *pslave, char *pstr) {
+    int fan = 0;
+    if (sscanf(pstr, "%d", &fan) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((fan < 0) || (fan > 1))
+        return UARTSLAVE_ERR_OOR;
+    uartslave_printf(pslave, "%d ", fanctl_get_pwm(fan));
+    return UARTSLAVE_OK;
+}
+
+int putslave_do_cmd_q_frpm(uartslave_t *pslave, char *pstr) {
+    int fan = 0;
+    if (sscanf(pstr, "%d", &fan) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((fan < 0) || (fan > 1))
+        return UARTSLAVE_ERR_OOR;
+    uartslave_printf(pslave, "%d ", fanctl_get_rpm(fan));
     return UARTSLAVE_OK;
 }
 
@@ -588,6 +611,10 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_q_ip4(pslave);
             case PUTSLAVE_CMD_ID_LOCK:
                 return putslave_do_cmd_q_lock(pslave);
+            case PUTSLAVE_CMD_ID_FPWM:
+                return putslave_do_cmd_q_fpwm(pslave, pstr);
+            case PUTSLAVE_CMD_ID_FRPM:
+                return putslave_do_cmd_q_frpm(pslave, pstr);
             case PUTSLAVE_CMD_ID_ADC:
                 return putslave_do_cmd_q_adc(pslave, pstr);
             case PUTSLAVE_CMD_ID_GPIO:
