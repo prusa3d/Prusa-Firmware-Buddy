@@ -47,7 +47,7 @@ char to32(uint8_t number[], uint8_t startBit) {
     /// align the first part so it starts at 4th bit from the left
     if (bit > 3) {
         val <<= (bit - 3);
-        val = ((0b11111000 << (8 - bit)) & number[byte + 1]) >> (8 - bit + 3);
+        val |= ((0b11111000 << (8 - bit)) & number[byte + 1]) >> (8 - bit + 3);
     } else {
         val >>= (3 - bit);
     }
