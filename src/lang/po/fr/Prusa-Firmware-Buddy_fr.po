@@ -351,7 +351,7 @@ msgstr "Les adresses IP ou les paramètres ne sont pas valides ou alors le fichi
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:58
 msgid "Is color correct?"
-msgstr "La couleur est-elle correcte ?"
+msgstr "La couleur\nest-elle\ncorrecte ?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:54
 msgid "Is filament in    \nextruder gear?    "
@@ -407,7 +407,7 @@ msgstr "Chargement..."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:56
 msgid "Loading to nozzle"
-msgstr "Chargement de la buse"
+msgstr "Chargement\nde la buse"
 
 #: src/guiapi/include/MItem_tools.hpp:210
 #: src/guiapi/include/MItem_tools.hpp:209
@@ -637,7 +637,7 @@ msgstr "Expulsion en préparation"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "Appuyez sur CONTINUER et enfoncez le filament dans l'extrudeur."
+msgstr "Appuyez sur\nCONTINUER\net enfoncez\nle filament\ndans l'extrudeur."
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."

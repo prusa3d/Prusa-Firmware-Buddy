@@ -75,7 +75,7 @@ Informazioni
 Inserimento
 Gli indirizzi IP non sono validi o il file \"lan_settings.ini\" non si trova nella directory principale dell'unità USB.
 Indirizzi IP o parametri non validi o il file \"lan_settings.ini\" non presente nella directory principale del drive USB.
-Il colore è corretto?
+Il colore\nè corretto?
 Il filamento è nell'ingranaggio dell'estrusore?
 La piastra d'acciaio è sul piano riscaldato?
 IMPOSTAZIONI LAN
@@ -88,7 +88,7 @@ CARICA FILAMENTO
 Carica filamento
 Carica impostazioni
 Caricamento...
-Caricamento ugello
+Caricamento \nugello
 Forte
 Accertati che il filamento passi attraverso il sensore.
 Materiale
@@ -139,7 +139,7 @@ Preriscalda
 PRERIS. per CARICARE
 PRERISCALDA per SCARICARE
 Preparazione al ram
-Premi CONTINUA e spingi il filamento nell'estrusore.
+Premi CONTINUA e\nspingi il filamento\nnell'estrusore.
 Premi SUCCESSIVO per avviare l'autotest, per controllare eventuali problemi legati al montaggio.
 Stampa
 Ventola di stampa

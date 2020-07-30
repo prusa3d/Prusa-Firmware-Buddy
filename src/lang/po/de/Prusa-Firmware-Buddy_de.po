@@ -637,7 +637,7 @@ msgstr "Bereite Rammen vor"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "WEITER drücken und Filament in den Extruder schieben."
+msgstr "WEITER drücken und\nFilament in den\nExtruder schieben."
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
@@ -992,7 +992,7 @@ msgstr "Warte auf Abkühl"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid "Waiting for temp."
-msgstr "Warte auf Temperatur"
+msgstr "Warte auf\nTemperatur"
 
 #. MSGBOX_ICO_QUESTION   0x0020
 #: src/guiapi/src/window_msgbox.cpp:15

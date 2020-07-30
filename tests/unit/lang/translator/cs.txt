@@ -84,7 +84,7 @@ Jazyk
 JAZYKY
 Doladit Z
 ZAVÉST
-ZAVÉST FIL.
+ZAVÉST FILAMENT
 Zavést filament
 Načíst nastavení
 Nahrává se...
@@ -139,7 +139,7 @@ Předehřev
 PŘEDEHŘÁT pro ZAVEDENÍ
 PŘEDEHŘÁT pro VYSUNUTÍ
 Příprava na ramming
-Zvolte POKRAČOVAT\na zasuňte filament\ndo extruderu      
+Zvolte POKRAČOVAT\na zasuňte filament\ndo extruderu.
 Vyberte DALŠÍ pro  \nspuštění Selftestu,\nkterý ověří, zda   \nje tiskárna správně\nsestavena.
 Tisk
 Tisk. vent.

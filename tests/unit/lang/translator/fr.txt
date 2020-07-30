@@ -75,7 +75,7 @@ Information
 Insertion
 Les adresses IP ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB.
 Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB.
-La couleur est-elle correcte ?
+La couleur\nest-elle\ncorrecte ?
 Le filament est-il dans l'extrudeur ?
 La feuille d'acier est-elle sur le plateau chauffant ?
 RÉGLAGES LAN
@@ -88,7 +88,7 @@ CHARGER FILAMENT
 Charger le Filament
 Charger les réglages
 Chargement...
-Chargement de la buse
+Chargement\nde la buse
 Fort
 Vérifiez que le filament est bien inséré dans le capteur.
 Matériau
@@ -139,7 +139,7 @@ Préchauffage
 PRÉCHAUF. av. CHARG.
 PRÉCHAUFFER pour DÉCHARGER
 Expulsion en préparation
-Appuyez sur CONTINUER et enfoncez le filament dans l'extrudeur.
+Appuyez sur\nCONTINUER\net enfoncez\nle filament\ndans l'extrudeur.
 Appuyez sur NEXT pour lancer le Selftest détectant les éventuels problèmes liés à l'assemblage.
 Impression
 Ventil. d'impression
