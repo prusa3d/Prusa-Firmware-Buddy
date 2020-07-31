@@ -63,7 +63,7 @@ void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res)
     : MsgBoxBase(rect, resp, labels, txt)
-    , title_icon(this, title_icon_id_res, { rect.x, rect.y }, GuiDefaults::PaddingGet())
+    , title_icon(this, title_icon_id_res, { rect.x, rect.y }, GuiDefaults::Padding)
     , title(this, getTitleRect(), is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
     title.font = getTitleFont();
