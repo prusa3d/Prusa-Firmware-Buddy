@@ -39,6 +39,8 @@ size_t FormatMsgPrintWillEnd::Today(char *ptr, size_t maxsize, const tm *timeptr
 
 size_t FormatMsgPrintWillEnd::DayOfWeek(char *ptr, size_t maxsize, const tm *timeptr, bool hours24) {
     static const char dayCodes[7][4] = {
+        // abbreviated Sunday - max 3 characters
+        N_("Sun"),
         // abbreviated Monday - max 3 characters
         N_("Mon"),
         // abbreviated Tuesday - max 3 characters
@@ -50,9 +52,7 @@ size_t FormatMsgPrintWillEnd::DayOfWeek(char *ptr, size_t maxsize, const tm *tim
         // abbreviated Friday - max 3 characters
         N_("Fri"),
         // abbreviated Saturday - max 3 characters
-        N_("Sat"),
-        // abbreviated Sunday - max 3 characters
-        N_("Sun")
+        N_("Sat")
     };
 
     string_view_utf8 day = _(dayCodes[timeptr->tm_wday]);
@@ -68,16 +68,16 @@ size_t FormatMsgPrintWillEnd::Date(char *ptr, size_t maxsize, const tm *timeptr,
     size_t bytesCopied = 0;
     switch (dateFormat) {
     case ISO: // ISO
-        bytesCopied = snprintf(ptr, maxsize, "%02d-%02d", timeptr->tm_mon, timeptr->tm_mday);
+        bytesCopied = snprintf(ptr, maxsize, "%02d-%02d", timeptr->tm_mon + 1, timeptr->tm_mday);
         break;
     case CS: // cs
-        bytesCopied = snprintf(ptr, maxsize, "%d.%d.", timeptr->tm_mday, timeptr->tm_mon);
+        bytesCopied = snprintf(ptr, maxsize, "%d.%d.", timeptr->tm_mday, timeptr->tm_mon + 1);
         break;
     case MD: // m/d
-        bytesCopied = snprintf(ptr, maxsize, "%02d/%02d", timeptr->tm_mon, timeptr->tm_mday);
+        bytesCopied = snprintf(ptr, maxsize, "%02d/%02d", timeptr->tm_mon + 1, timeptr->tm_mday);
         break;
     case DM: // d/m
-        bytesCopied = snprintf(ptr, maxsize, "%02d/%02d", timeptr->tm_mday, timeptr->tm_mon);
+        bytesCopied = snprintf(ptr, maxsize, "%02d/%02d", timeptr->tm_mday, timeptr->tm_mon + 1);
         break;
     }
     ptr += bytesCopied;
