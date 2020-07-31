@@ -12,19 +12,19 @@
     #error "HAS_GUI not defined"
 #elif HAS_GUI
 
+    #include <stdio.h>
+    #include <stdarg.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <inttypes.h>
+
+    #include "safe_state.h"
     #include "stm32f4xx_hal.h"
     #include "config.h"
     #include "gui.hpp"
     #include "term.h"
     #include "st7789v.h"
     #include "window_term.hpp"
-    #include <stdio.h>
-    #include <stdarg.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include "safe_state.h"
-    #include <inttypes.h>
-    #include <inttypes.h>
     #include "jogwheel.h"
     #include "gpio.h"
     #include "sys.h"
@@ -34,6 +34,7 @@
     #include "support_utils.h"
     #include "str_utils.hpp"
     #include "guitypes.h"
+    #include "i18n.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -228,10 +229,13 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     const uint16_t line_width_chars = (uint16_t)floor(X_MAX / gui_defaults.font->w);
 
     /// FIXME split heating, min/max temp and thermal runaway
+    static const char bad_bed[] = "Check the heatbed heater & thermistor wiring for possible damage.";
+    static const char bad_head[] = "Check the print head heater & thermistor wiring for possible damage.";
+
     if (module[0] != 'E') {
-        snprintf(text, sizeof(text), "Check the heatbed heater & thermistor wiring for possible damage.");
+        snprintf(text, sizeof(text), bad_bed);
     } else {
-        snprintf(text, sizeof(text), "Check the print head heater & thermistor wiring for possible damage.");
+        snprintf(text, sizeof(text), bad_head);
     }
 
     str2multiline(text, sizeof(text), line_width_chars);
@@ -255,7 +259,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
 
     /// draw "Scan me" text
-    static const char scan_me_text[] = "Scan me for details";
+    static const char *scan_me_text = "Scan me for details";
     display::DrawText(rect_ui16(52, 142, display::GetW() - 52, display::GetH() - 142), string_view_utf8::MakeCPUFLASH((const uint8_t *)scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
     /// draw arrow
