@@ -1,8 +1,6 @@
 // window_msgbox.cpp
 #include "window_msgbox.hpp"
-#include "guitypes.hpp"
 #include "resource.h"
-#include "button_draw.h"
 #include "sound.hpp"
 #include <algorithm>
 #include "ScreenHandler.hpp"
@@ -113,9 +111,9 @@ void MsgBoxTitled::unconditionalDraw() {
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res)
     : MsgBoxBase(rect, resp, labels, txt)
-    , icon(this, icon_id_res, { rect.x, rect.y }, GuiDefaults::PaddingGet()) {
+    , icon(this, icon_id_res, { rect.x, rect.y }, GuiDefaults::Padding) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
-    icon.rect.w = rect.w - GuiDefaults::PaddingGet().left - GuiDefaults::PaddingGet().right;
+    icon.rect.w = rect.w - GuiDefaults::Padding.left - GuiDefaults::Padding.right;
 }
 
 rect_ui16_t MsgBoxIconned::getIconnedTextRect() {

@@ -16,7 +16,7 @@ void window_roll_text_init(window_roll_text_t *window) {
     window->color_text = GuiDefaults::ColorText;
     window->font = GuiDefaults::Font;
     window->text = string_view_utf8::MakeNULLSTR();
-    window->padding = GuiDefaults::PaddingGet();
+    window->padding = GuiDefaults::Padding;
     window->alignment = GuiDefaults::Alignment;
     window->roll.count = window->roll.px_cd = window->roll.progress = 0;
     window->roll.phase = ROLL_SETUP;
