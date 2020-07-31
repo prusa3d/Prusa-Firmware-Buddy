@@ -23,12 +23,12 @@ void leave_numbers(const char *const str_in, char *str_out) {
     }
 }
 
-void setBit(uint8_t &c, const uint8_t b) {
-    c |= 1 << b;
+void setBit(uint8_t *c, const uint8_t b) {
+    *c |= 1 << b;
 }
 
-void clearBit(uint8_t &c, const uint8_t b) {
-    c &= ~(1 << b);
+void clearBit(uint8_t *c, const uint8_t b) {
+    *c &= ~(1 << b);
 }
 
 void rShift2Bits(uint32_t &toShift, uint32_t &overflow) {

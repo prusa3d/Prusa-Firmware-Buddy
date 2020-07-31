@@ -21,6 +21,12 @@ static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
 static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
 
+/// FIXME same code in support_utils_lib
+/// but linker cannot find it
+char *eofstr(char *str) {
+    return (str + strlen(str));
+}
+
 void append_crc(char *str, uint32_t str_size) {
     uint32_t crc;
 

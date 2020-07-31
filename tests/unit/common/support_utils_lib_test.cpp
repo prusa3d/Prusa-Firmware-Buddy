@@ -46,19 +46,19 @@ TEST_CASE("Block To Hex", "[support_utils]") {
 TEST_CASE("Set bit", "[support_utils]") {
     SECTION("Already set bit") {
         uint8_t i = 0b01010101;
-        setBit(i, 0);
+        setBit(&i, 0);
         CHECK(i == 0b01010101);
     }
 
     SECTION("Set bit 0") {
         uint8_t i = 0b01010100;
-        setBit(i, 0);
+        setBit(&i, 0);
         CHECK(i == 0b01010101);
     }
 
     SECTION("Bit 7") {
         uint8_t i = 0b01010101;
-        setBit(i, 7);
+        setBit(&i, 7);
         CHECK(i == 0b11010101);
     }
 }
@@ -66,19 +66,19 @@ TEST_CASE("Set bit", "[support_utils]") {
 TEST_CASE("Clear bit", "[support_utils]") {
     SECTION("Already cleared bit") {
         uint8_t i = 0b01010100;
-        clearBit(i, 0);
+        clearBit(&i, 0);
         CHECK(i == 0b01010100);
     }
 
     SECTION("Unset bit 0") {
         uint8_t i = 0b01010101;
-        clearBit(i, 0);
+        clearBit(&i, 0);
         CHECK((uint16_t)i == 0b01010100);
     }
 
     SECTION("Bit 7") {
         uint8_t i = 0b11010101;
-        clearBit(i, 7);
+        clearBit(&i, 7);
         CHECK(i == 0b01010101);
     }
 }
