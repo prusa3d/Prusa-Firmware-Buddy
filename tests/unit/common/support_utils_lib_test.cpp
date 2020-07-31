@@ -112,11 +112,11 @@ TEST_CASE("Convert to 32 symbol encoded string", "[support_utils]") {
         CHECK(to32(number, 5) == '9'); // 9
     }
 
-    SECTION("Next byte") {
+    SECTION("Next byte 1") {
         CHECK(to32(number, 8) == '8'); // 8
     }
 
-    SECTION("Next byte") {
+    SECTION("Next byte 2") {
         CHECK(to32(number, 13) == 'I'); // 18
     }
 }

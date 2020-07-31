@@ -36,7 +36,7 @@ void append_crc(char *str, uint32_t str_size) {
 }
 
 /// \returns 40 bit encoded to 8 chars (32 symbol alphabet: 0-9,A-V)
-/// Make sure there's a space for 8 chars
+/// Make sure there's a space for 9 chars
 void printerCode(char *str) {
     constexpr uint8_t SNSize = 4 + OTP_SERIAL_NUMBER_SIZE - 1; // + fixed header, - trailing 0
     constexpr uint8_t bufferSize = OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE + SNSize;
@@ -75,6 +75,8 @@ void printerCode(char *str) {
         setBit((uint8_t *)hash, 6);
         //setBit(str[0], 6);
     }
+
+    str[8] = '\0';
 }
 
 void error_url_long(char *str, uint32_t str_size, int error_code) {
@@ -91,13 +93,14 @@ void error_url_long(char *str, uint32_t str_size, int error_code) {
     //uint16_t *(lang) = langNum;
     //lang[0] = langNum / 256;
     //lang[1] = langNum % 256;
-    lang[3] = 0;
+    lang[2] = '\0';
     snprintf(eofstr(str), str_size - strlen(str), "/%s", lang);
 
     /// error code
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
 
     /// printer code
+    snprintf(eofstr(str), str_size - strlen(str), "/");
     if (str_size - strlen(str) > 8)
         printerCode(eofstr(str));
 
