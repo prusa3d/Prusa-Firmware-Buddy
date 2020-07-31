@@ -11,7 +11,7 @@
 #include <array>
 #include <ctime>
 #include "wui_api.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"

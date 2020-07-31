@@ -1,7 +1,7 @@
 // menu_vars.h - shared arrays to be used in menus
 #pragma once
 #include "stdint.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 //-----------------------------------------------------------------------------
 //stringize macros

@@ -10,7 +10,7 @@
 #include "sys.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 /*****************************************************************************/
 //MI_ALWAYS

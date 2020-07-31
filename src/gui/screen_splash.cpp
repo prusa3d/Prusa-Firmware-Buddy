@@ -8,7 +8,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "screens.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 

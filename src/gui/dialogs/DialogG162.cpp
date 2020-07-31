@@ -2,7 +2,7 @@
 #include "DialogG162.h"
 #include "gui.hpp"    //resource_font
 #include "resource.h" //IDR_FNT_BIG
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 int16_t WINDOW_CLS_DLG_G162 = 0;
 

@@ -3,7 +3,7 @@
 #include "gui.hpp"    //resource_font
 #include "resource.h" //IDR_FNT_BIG
 #include "sound.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
 

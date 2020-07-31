@@ -13,7 +13,7 @@
 #include "sys.h"
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 struct screen_sysinfo_data_t {
     window_frame_t frame;

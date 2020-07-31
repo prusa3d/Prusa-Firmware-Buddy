@@ -6,7 +6,7 @@
 #include "assert.h"
 #include "filament.h"
 #include <cstring>
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 //fixme generating long names, takes too long
 const filament_t filaments[FILAMENTS_END] = {

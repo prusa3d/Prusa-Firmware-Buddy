@@ -3,7 +3,7 @@
 #include "marlin_client.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 template <FILAMENT_t T>
 class MI_Filament : public WI_LABEL_t {

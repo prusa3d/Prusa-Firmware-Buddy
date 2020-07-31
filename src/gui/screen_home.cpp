@@ -17,7 +17,7 @@
 
 #include "screens.h"
 
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 #define BUTTON_PRINT       0
 #define BUTTON_PREHEAT     1

@@ -6,7 +6,7 @@
 #include "window_dlg_preheat.hpp"
 #include "filament.h"
 #include "filament_sensor.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 #define FKNOWN      0x01 //filament is known
 #define F_NOTSENSED 0x02 //filament is not in sensor

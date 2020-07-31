@@ -12,7 +12,7 @@
 #include "eeprom.h"
 #include "filament_sensor.h"
 #include "screens.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 uint64_t wizard_mask = 0;
 

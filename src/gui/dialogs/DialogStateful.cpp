@@ -1,7 +1,7 @@
 #include "DialogStateful.hpp"
 #include "DialogRadioButton.hpp"
 #include "gui.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 static constexpr uint8_t PROGRESS_BAR_X_PAD = 10;
 static constexpr uint8_t PROGRESS_BAR_Y_PAD = 30;

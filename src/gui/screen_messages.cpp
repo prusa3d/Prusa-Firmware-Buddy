@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "screens.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 struct screen_messages_data_t {
     window_frame_t root;

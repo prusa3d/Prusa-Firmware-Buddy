@@ -11,7 +11,7 @@
 #include "stm32f4xx_hal.h"
 #include "marlin_client.h"
 #include "resource.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 #define ANIMATION_MILISEC_DELAY 500 // number of milisecond for frame change
 

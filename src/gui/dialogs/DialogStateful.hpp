@@ -5,7 +5,7 @@
 #include "DialogRadioButton.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 //#define DLG_FRAME_ENA 1
 #define DLG_FRAME_ENA 0

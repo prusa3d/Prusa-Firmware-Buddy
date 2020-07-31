@@ -4,7 +4,7 @@
 #include "resource.h"
 #include "button_draw.h"
 #include "sound.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include <algorithm>
 
 //title for each icon type (empty text for 0)

@@ -17,7 +17,7 @@
 #include "wui_api.h"
 #include "config.h"
 #include "RAII.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 /*****************************************************************************/
 //Eth static class used by menu and its items
