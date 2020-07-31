@@ -32,6 +32,7 @@
 #include "media.h"
 #include "filament_sensor.h"
 #include "wdt.h"
+#include "fanctl.h"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -1019,6 +1020,22 @@ static uint64_t _server_update_vars(uint64_t update) {
         if (marlin_server.vars.time_to_end != v.ui32) {
             marlin_server.vars.time_to_end = v.ui32;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND);
+        }
+    }
+
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM)) {
+        v.ui16 = fanctl_get_rpm(0);
+        if (marlin_server.vars.fan0_rpm != v.ui16) {
+            marlin_server.vars.fan0_rpm = v.ui16;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM);
+        }
+    }
+
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_FAN1_RPM)) {
+        v.ui16 = fanctl_get_rpm(1);
+        if (marlin_server.vars.fan1_rpm != v.ui16) {
+            marlin_server.vars.fan1_rpm = v.ui16;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_FAN1_RPM);
         }
     }
 

@@ -35,7 +35,9 @@
 #define MARLIN_VAR_FILEPATH 0x1b // R:  char*,
 #define MARLIN_VAR_DTEM_NOZ 0x1c // R:  float, nozzle temperature to display
 #define MARLIN_VAR_TIMTOEND 0x1d // R:  uint32, oProgressData.oTime2End.mGetValue() or -1 if not valid
-#define MARLIN_VAR_MAX      MARLIN_VAR_TIMTOEND
+#define MARLIN_VAR_FAN0_RPM 0x1e // R:  uint16, fanctl0.getActualRPM()
+#define MARLIN_VAR_FAN1_RPM 0x1f // R:  uint16, fanctl1.getActualRPM()
+#define MARLIN_VAR_MAX      MARLIN_VAR_FAN1_RPM
 
 // variable masks
 #define MARLIN_VAR_MSK(v_id) ((uint64_t)1 << (uint8_t)(v_id))
@@ -62,7 +64,7 @@
     MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED))
 
 #define MARLIN_VAR_MSK_TEMP_ALL ( \
-    MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ))
+    MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED) | MARLIN_VAR_MSK(MARLIN_VAR_DTEM_NOZ) | MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM) | MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM))
 
 // variables defined in this mask are automaticaly updated every 100ms in _server_update_vars
 #define MARLIN_VAR_MSK_DEF ( \
@@ -138,6 +140,8 @@ typedef struct _marlin_vars_t {
     char *media_SFN_path;             // Short-File-Name path to currently selected file - a pointer to a global static buffer
     float display_nozzle;             // nozzle temperature to display [C]
     uint32_t time_to_end;             // oProgressData.oTime2End.mGetValue() [s]
+    uint16_t fan0_rpm;                // fanctl0.getActualRPM() [1/min]
+    uint16_t fan1_rpm;                // fanctl1.getActualRPM() [1/min]
 } marlin_vars_t;
 
 #pragma pack(pop)
