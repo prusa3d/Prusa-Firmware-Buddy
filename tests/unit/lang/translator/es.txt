@@ -1,4 +1,4 @@
-\nVers. de bootloader\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n %s
+\nVer. de bootloader\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n %s
 Se ha guardado un informe con detalles del error (dump.bin) en la unidad USB.
 ABORTAR
 ¡Todas las pruebas terminaron con éxito!
@@ -52,7 +52,7 @@ FILAMENTO
 Filamento
 No se ha detectado filamento. ¿Cargar filamento ahora? Seleccione NO para cancelar, o IGNORAR para desactivar el sensor de filamento y continuar.
 Finalizando \nG-Codes en memoria.\n
-Versión de Firmware\n
+Ver. de Firmware\n
 Cal. Primera capa
 CAL. PRIM. CAPA
 Factor de flujo
