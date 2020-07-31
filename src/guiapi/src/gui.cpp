@@ -22,7 +22,6 @@ osThreadId gui_task_handle = 0;
 
 font_t *GuiDefaults::Font = 0;
 font_t *GuiDefaults::FontBig = 0;
-const padding_ui8_t GuiDefaults::Padding = { 2, 2, 2, 2 };
 
 gui_loop_cb_t *gui_loop_cb = 0;
 uint32_t gui_loop_tick = 0;
