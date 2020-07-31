@@ -12,13 +12,13 @@ IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
     , font(gui_defaults.font)
     , padding { 6, 6, 6, 6 }
     , icon_w(25)
-    , alignment(gui_defaults.alignment) {
+    , alignment(GuiDefaults::Alignment) {
 }
 
 window_menu_t::window_menu_t(window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
-    alignment = gui_defaults.alignment;
+    alignment = GuiDefaults::Alignment;
     setIndex(index);
     top_index = 0;
 }

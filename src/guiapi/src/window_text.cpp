@@ -29,7 +29,7 @@ window_text_t::window_text_t(window_t *parent, rect_ui16_t rect, is_closed_on_cl
     , font(gui_defaults.font)
     , text(txt)
     , padding(GuiDefaults::Padding)
-    , alignment(gui_defaults.alignment) {
+    , alignment(GuiDefaults::Alignment) {
 }
 
 void window_text_t::unconditionalDraw() {

@@ -59,7 +59,7 @@ window_numb_t::window_numb_t(window_t *parent, rect_ui16_t rect, float value)
     , value(value)
     , format("%.0f")
     , padding(GuiDefaults::Padding)
-    , alignment(gui_defaults.alignment) {
+    , alignment(GuiDefaults::Alignment) {
     PrintAsFloat();
 }
 
