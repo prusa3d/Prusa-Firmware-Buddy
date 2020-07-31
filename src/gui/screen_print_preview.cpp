@@ -187,7 +187,7 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
         // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
         switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name),
             _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
-            btns, 0, GuiDefaults.RectScreenBodyNoFoot)) {
+            btns, 0, GuiDefaults::RectScreenBodyNoFootGet())) {
         case Response::Yes: //YES - load
             gui_dlg_load_forced();
             break;

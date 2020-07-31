@@ -33,10 +33,10 @@ void screen_wizard_init(screen_t *screen) {
 
     int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults.RectFooter, &(pd->frame_footer));
+    int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectFooterGet(), &(pd->frame_footer));
     pd->frame_footer.Hide();
 
-    window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectScreenBody, &(pd->frame_body));
+    window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectScreenBodyGet(), &(pd->frame_body));
     pd->frame_body.Hide();
 
     window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, GuiDefaults::RectHeaderGet().h), &(pd->header));

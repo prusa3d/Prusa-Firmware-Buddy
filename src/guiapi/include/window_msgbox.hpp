@@ -66,11 +66,11 @@ protected:
 
 //todo enum default button
 //todo enum for size?
-Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults.RectScreenBody);
-Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults.RectScreenBody);
-Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults.RectScreenBody);
-Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults.RectScreenBody);
-Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults.RectScreenBody);
+Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults::RectScreenBodyGet());
+Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults::RectScreenBodyGet());
+Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults::RectScreenBodyGet());
+Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults::RectScreenBodyGet());
+Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults::RectScreenBodyGet());
 Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, rect_ui16_t rect, uint16_t icon_id = 0);
-Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults.RectScreenBody);
-Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults.RectScreenBody);
+Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults::RectScreenBodyGet());
+Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, rect_ui16_t rect = GuiDefaults::RectScreenBodyGet());

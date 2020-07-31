@@ -10,14 +10,14 @@ class IDialog : public window_frame_t {
     window_t *id_capture;
 
 public:
-    IDialog(rect_ui16_t rc = GuiDefaults.RectScreenBody);
+    IDialog(rect_ui16_t rc = GuiDefaults::RectScreenBodyGet());
     virtual ~IDialog();
 
     static constexpr rect_ui16_t get_radio_button_size(rect_ui16_t rc_btn) {
-        rc_btn.y += (rc_btn.h - GuiDefaults.ButtonHeight - GuiDefaults.FrameWidth); // 30pixels for button (+ 10 space for grey frame)
-        rc_btn.h = GuiDefaults.ButtonHeight;
-        rc_btn.x += GuiDefaults.ButtonSpacing;
-        rc_btn.w -= 2 * GuiDefaults.ButtonSpacing;
+        rc_btn.y += (rc_btn.h - GuiDefaults::ButtonHeight - GuiDefaults::FrameWidth); // 30pixels for button (+ 10 space for grey frame)
+        rc_btn.h = GuiDefaults::ButtonHeight;
+        rc_btn.x += GuiDefaults::ButtonSpacing;
+        rc_btn.w -= 2 * GuiDefaults::ButtonSpacing;
         return rc_btn;
     }
 

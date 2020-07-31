@@ -63,7 +63,7 @@ void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res)
     : MsgBoxBase(rect, resp, labels, txt)
-    , title_icon(this, title_icon_id_res, { rect.x, rect.y }, GuiDefaults.Padding)
+    , title_icon(this, title_icon_id_res, { rect.x, rect.y }, GuiDefaults::Padding)
     , title(this, getTitleRect(), is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
     title.font = getTitleFont();
@@ -95,7 +95,7 @@ rect_ui16_t MsgBoxTitled::getTitledTextRect() {
 }
 
 font_t *MsgBoxTitled::getTitleFont() {
-    return GuiDefaults.FontBig;
+    return GuiDefaults::FontBig;
 }
 
 void MsgBoxTitled::unconditionalDraw() {
@@ -111,9 +111,9 @@ void MsgBoxTitled::unconditionalDraw() {
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res)
     : MsgBoxBase(rect, resp, labels, txt)
-    , icon(this, icon_id_res, { rect.x, rect.y }, GuiDefaults.Padding) {
+    , icon(this, icon_id_res, { rect.x, rect.y }, GuiDefaults::Padding) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
-    icon.rect.w = rect.w - GuiDefaults.Padding.left - GuiDefaults.Padding.right;
+    icon.rect.w = rect.w - GuiDefaults::Padding.left - GuiDefaults::Padding.right;
 }
 
 rect_ui16_t MsgBoxIconned::getIconnedTextRect() {

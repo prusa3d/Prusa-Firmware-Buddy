@@ -161,17 +161,17 @@ void general_error(const char *error, const char *module) {
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
 
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeRAM((const uint8_t *)error), GuiDefaults.Font, //resource_font(IDR_FNT_NORMAL),
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeRAM((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     term_printf(&term, module);
     term_printf(&term, "\n");
 
-    render_term(rect_ui16(PADDING, 100, 220, 220), &term, GuiDefaults.Font, COLOR_RED_ALERT, COLOR_WHITE);
+    render_term(rect_ui16(PADDING, 100, 220, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults.Font,
+    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
         COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
     jogwheel_init();
