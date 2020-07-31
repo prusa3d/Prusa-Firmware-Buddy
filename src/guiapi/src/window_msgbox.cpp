@@ -97,7 +97,7 @@ rect_ui16_t MsgBoxTitled::getTitledTextRect() {
 }
 
 font_t *MsgBoxTitled::getTitleFont() {
-    return gui_defaults.font_big;
+    return GuiDefaults::FontBig;
 }
 
 void MsgBoxTitled::unconditionalDraw() {
@@ -115,7 +115,7 @@ MsgBoxIconned::MsgBoxIconned(rect_ui16_t rect, const PhaseResponses *resp, const
     : MsgBoxBase(rect, resp, labels, txt)
     , icon(this, icon_id_res, { rect.x, rect.y }, GuiDefaults::PaddingGet()) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
-    icon.rect.w = rect.w - GuiDefaults::Padding.left - GuiDefaults::Padding.right;
+    icon.rect.w = rect.w - GuiDefaults::PaddingGet().left - GuiDefaults::PaddingGet().right;
 }
 
 rect_ui16_t MsgBoxIconned::getIconnedTextRect() {

@@ -99,21 +99,6 @@ typedef struct _resource_entry_t {
     const uint16_t size; // 2 bytes - data size
 } resource_entry_t;
 
-typedef struct _gui_defaults_t {
-
-    font_t *font;
-    font_t *font_big;
-
-    uint8_t alignment;
-    rect_ui16_t header_sz;           // default header location & size
-    rect_ui16_t scr_body_sz;         // default screen body location & size
-    rect_ui16_t scr_body_no_foot_sz; // screen body without footer location & size
-    rect_ui16_t scr_fullscreen;      // full screen body without footer & header location & size
-    rect_ui16_t footer_sz;           // default footer location & size
-} gui_defaults_t;
-
-extern gui_defaults_t gui_defaults;
-
 static inline uint16_t swap_ui16(uint16_t val) {
     return (val >> 8) | ((val & 0xff) << 8);
 }

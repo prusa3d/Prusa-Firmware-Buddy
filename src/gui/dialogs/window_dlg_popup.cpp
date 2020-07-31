@@ -20,9 +20,9 @@ extern msg_stack_t msg_stack;
 window_dlg_popup_t::window_dlg_popup_t(window_t *parent, rect_ui16_t rect)
     : window_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
-    , font(gui_defaults.font)
-    , font_title(gui_defaults.font_big)
-    , padding(GuiDefaults::Padding) {
+    , font(GuiDefaults::Font)
+    , font_title(GuiDefaults::FontBig)
+    , padding(GuiDefaults::PaddingGet()) {
     Enable();
 }
 

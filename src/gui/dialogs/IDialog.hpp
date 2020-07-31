@@ -10,7 +10,7 @@ class IDialog : public window_frame_t {
     window_t *id_capture;
 
 public:
-    IDialog(rect_ui16_t rc = gui_defaults.scr_body_sz);
+    IDialog(rect_ui16_t rc = GuiDefaults::RectScreenBodyGet());
     virtual ~IDialog();
 
     static constexpr rect_ui16_t get_radio_button_size(rect_ui16_t rc_btn) {

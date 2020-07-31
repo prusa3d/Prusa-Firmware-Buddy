@@ -20,19 +20,6 @@ int gui_jogwheel_button_down = 0;
 osThreadId gui_task_handle = 0;
 #endif //GUI_USE_RTOS
 
-gui_defaults_t gui_defaults = {
-
-    0, // font;
-    0, // font_big;
-
-    ALIGN_LEFT_TOP,             // alignment;
-    { 0, 0, 240, 32 - 0 },      // default header location & size
-    { 0, 32, 240, 267 - 32 },   // default screen body location & size
-    { 0, 32, 240, 320 - 32 },   // screen body without footer - location & size
-    { 0, 0, 240, 320 },         // full screen body without footer & header location & size
-    { 0, 267, 240, 320 - 267 }, // default footer location & size
-};
-
 font_t *GuiDefaults::Font = 0;
 font_t *GuiDefaults::FontBig = 0;
 

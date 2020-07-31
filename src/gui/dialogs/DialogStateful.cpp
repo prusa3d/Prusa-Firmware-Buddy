@@ -37,10 +37,10 @@ IDialogStateful::IDialogStateful(string_view_utf8 name)
     , label(this, get_label_size(rect))
     , radio(this, get_radio_button_size(rect), nullptr, nullptr)
     , phase(0) {
-    title.font = gui_defaults.font_big;
+    title.font = GuiDefaults::FontBig;
     title.SetAlignment(ALIGN_CENTER);
     progress.SetFont(resource_font(IDR_FNT_BIG));
-    label.font = gui_defaults.font_big;
+    label.font = GuiDefaults::FontBig;
     label.SetAlignment(ALIGN_CENTER);
 }
 

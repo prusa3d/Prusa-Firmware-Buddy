@@ -82,8 +82,8 @@ extern "C" void gui_run(void) {
         jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR | JOGWHEEL_FLG_INV_ENC;
     //_dbg("delay=%u", st7789v_reset_delay);
 
-    gui_defaults.font = resource_font(IDR_FNT_NORMAL);
-    gui_defaults.font_big = resource_font(IDR_FNT_BIG);
+    GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
+    GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
 
     if (!sys_fw_is_valid())
         update_firmware_screen();

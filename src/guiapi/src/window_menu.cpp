@@ -9,7 +9,7 @@ IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
     : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
     , color_text(GuiDefaults::ColorText)
     , color_disabled(GuiDefaults::ColorDisabled)
-    , font(gui_defaults.font)
+    , font(GuiDefaults::Font)
     , padding { 6, 6, 6, 6 }
     , icon_w(25)
     , alignment(GuiDefaults::Alignment) {

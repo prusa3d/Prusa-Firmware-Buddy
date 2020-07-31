@@ -26,9 +26,9 @@ void window_text_t::SetAlignment(uint8_t alignm) {
 window_text_t::window_text_t(window_t *parent, rect_ui16_t rect, is_closed_on_click_t close, string_view_utf8 txt)
     : window_t(parent, rect, is_dialog_t::no, close)
     , color_text(GuiDefaults::ColorText)
-    , font(gui_defaults.font)
+    , font(GuiDefaults::Font)
     , text(txt)
-    , padding(GuiDefaults::Padding)
+    , padding(GuiDefaults::PaddingGet())
     , alignment(GuiDefaults::Alignment) {
 }
 

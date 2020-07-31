@@ -5,7 +5,7 @@
 static void window_term_init(window_term_t *window) {
     window->color_back = GuiDefaults::ColorBack;
     window->color_text = GuiDefaults::ColorText;
-    window->font = gui_defaults.font;
+    window->font = GuiDefaults::Font;
     window->term = 0;
     window->Enable();
 
@@ -55,6 +55,6 @@ static void window_term_draw(window_term_t *window) {
 window_term_t::window_term_t(window_t *parent, rect_ui16_t rect)
     : window_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
-    , font(gui_defaults.font)
+    , font(GuiDefaults::Font)
     , term(0) {
 }
