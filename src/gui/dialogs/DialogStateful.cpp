@@ -126,11 +126,9 @@ void IDialogStateful::draw_phase_text(string_view_utf8 text) {
 
     //erase remains of previous text if it was longer
     //prerelease hack todo text window just should be CENTER_TOP aligned and bigger
-    int h_diff = last_text_h - rc_sta.h;
-    if (h_diff > 0) {
+    {
         rect_ui16_t rc = rc_sta;
-        rc.h = last_text_h - rc_sta.h;
-        rc.y += rc_sta.h;
+        rc.y = PROGRESS_BAR_Y_PAD - rc_sta.h;
         display::FillRect(rc, color_back);
     }
 
