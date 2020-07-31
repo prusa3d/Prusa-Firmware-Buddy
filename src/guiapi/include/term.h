@@ -45,18 +45,19 @@
 #define TERM_PRINTF_MAX 0xff
 
 typedef struct _term_t {
-    // 16 bit
+    // 4 bytes
+    FILE *file;
+    uint8_t *buff;
+    // 2 bytes
     uint16_t flg;
     uint16_t size;
-    // 8 bit
+    // 1 byte
     uint8_t cols;
     uint8_t rows;
-    uint8_t *buff;
     uint8_t attr;
     uint8_t col;
     uint8_t row;
 
-    FILE *file;
 } term_t;
 
 /// Initializes a terminal
