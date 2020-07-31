@@ -15,7 +15,7 @@ static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_prin
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
-    , octo_icon(this, rect_ui16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBodyGet().y, pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
+    , octo_icon(this, rect_ui16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.y, pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
     , last_tick(0)
     , connection(connection_state_t::disconnected) {
 

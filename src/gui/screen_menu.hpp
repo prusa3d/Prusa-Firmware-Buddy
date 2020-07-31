@@ -44,7 +44,7 @@ protected:
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr, rect_ui16_t rect = GuiDefaults::RectScreenBodyGet());
+    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr, rect_ui16_t rect = GuiDefaults::RectScreenBody);
 
     //compiletime access by index
     template <std::size_t I>

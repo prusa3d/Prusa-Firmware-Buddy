@@ -28,7 +28,7 @@ window_text_t::window_text_t(window_t *parent, rect_ui16_t rect, is_closed_on_cl
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , text(txt)
-    , padding(GuiDefaults::PaddingGet())
+    , padding(GuiDefaults::Padding)
     , alignment(GuiDefaults::Alignment) {
 }
 

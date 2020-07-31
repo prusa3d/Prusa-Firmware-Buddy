@@ -11,7 +11,7 @@ static constexpr uint16_t win_h = 320;
 static constexpr uint16_t footer_h = win_h - 269; //269 is the smallest number I found in footer implementation, todo it should be in guidefaults
 
 static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
-    //I have no clue why +1, should be + GuiDefaults::PaddingGet().top + GuiDefaults::PaddingGet().bottom
+    //I have no clue why +1, should be + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom
     return helper_lines * (resource_font(font_id)->h + 1);
 }
 
@@ -26,7 +26,7 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, rect_ui16_t r
     //padding = { 0, 6, 2, 6 }; //textrolling cannot handle left padding
     //icon_rect = rect_ui16(0, 0, 16 + 20, 30);
     //const uint16_t help_h = get_help_h(helper_lines, font_id);
-    //const uint16_t header_h = GuiDefaults::RectScreenBodyGet().y;
+    //const uint16_t header_h = GuiDefaults::RectScreenBody.y;
     //const uint16_t item_h = GuiDefaults::Font->h + padding.top + padding.bottom;
     //const uint16_t menu_rect_h = win_h - help_h - header_h - (FOOTER == EFooter::On ? footer_h : 0);
     //const rect_ui16_t menu_rect = rect_ui16(win_x, header_h, win_w, menu_rect_h - menu_rect_h % item_h);

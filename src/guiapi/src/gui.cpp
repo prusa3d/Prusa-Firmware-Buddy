@@ -23,6 +23,13 @@ osThreadId gui_task_handle = 0;
 font_t *GuiDefaults::Font = 0;
 font_t *GuiDefaults::FontBig = 0;
 
+constexpr padding_ui8_t GuiDefaults::Padding;
+constexpr rect_ui16_t GuiDefaults::RectHeader;
+constexpr rect_ui16_t GuiDefaults::RectScreenBody;
+constexpr rect_ui16_t GuiDefaults::RectScreenBodyNoFoot;
+constexpr rect_ui16_t GuiDefaults::RectScreen;
+constexpr rect_ui16_t GuiDefaults::RectFooter;
+
 gui_loop_cb_t *gui_loop_cb = 0;
 uint32_t gui_loop_tick = 0;
 

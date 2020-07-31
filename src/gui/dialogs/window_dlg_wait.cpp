@@ -30,7 +30,7 @@ window_dlg_wait_t::window_dlg_wait_t(window_t *parent, rect_ui16_t rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , font_title(GuiDefaults::FontBig)
-    , padding(GuiDefaults::PaddingGet())
+    , padding(GuiDefaults::Padding)
     , progress(0)
     , animation(ANIM_START)
     , animation_chng(true)
@@ -162,7 +162,7 @@ void animation_handler(window_dlg_wait_t *window) {
 
 void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag) {
 
-    window_dlg_wait_t dlg(nullptr, GuiDefaults::RectScreenBodyGet());
+    window_dlg_wait_t dlg(nullptr, GuiDefaults::RectScreenBody);
 
     window_t *id_capture = window_t::GetCapturedWindow();
     gui_reset_jogwheel();
