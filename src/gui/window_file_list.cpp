@@ -82,8 +82,8 @@ const char *window_file_list_t::TopItemSFN() {
 
 window_file_list_t::window_file_list_t(window_t *parent, rect_ui16_t rect)
     : window_t(parent, rect)
-    , color_text(GuiDefaults::ColorText)
-    , font(GuiDefaults::Font)
+    , color_text(GuiDefaults.ColorText)
+    , font(GuiDefaults.Font)
     , padding({ 2, 6, 2, 6 })
     , ldv(LDV_Get())
     // it is still the same address every time, no harm assigning it again.

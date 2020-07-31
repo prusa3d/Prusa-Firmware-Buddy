@@ -133,7 +133,7 @@ static const size_t icon_lan_width = 20 + 10;
 static const size_t icons_width = icon_usb_width + icon_lan_width;
 
 window_header_t::window_header_t(window_t *parent)
-    : window_frame_t(parent, GuiDefaults::RectHeaderGet())
+    : window_frame_t(parent, GuiDefaults.RectHeader)
     , icon_base(this, rect_ui16(rect.x + 10, rect.y, rect.h, rect.h), 0)
     , label(this, rect_ui16(rect.x + 10 + rect.h, rect.y, rect.w - icons_width - 10 - rect.h, rect.h))
     , icon_usb(this, rect_ui16(rect.x + rect.w - icon_usb_width, rect.y, icon_usb_width, rect.h), IDR_PNG_header_icon_usb)

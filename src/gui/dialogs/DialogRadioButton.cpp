@@ -107,7 +107,7 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
     if (!texts)
         return;
     rect_ui16_t rc_btn = rect;
-    int16_t btn_width = rc_btn.w / btn_count - GuiDefaults::ButtonSpacing * (btn_count - 1);
+    int16_t btn_width = rc_btn.w / btn_count - GuiDefaults.ButtonSpacing * (btn_count - 1);
     rc_btn.w = btn_width;
 
     for (size_t i = 0; i < btn_count; ++i) {
@@ -116,12 +116,12 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
         if (i + 1 < btn_count) {
             //space between buttons
             rc_btn.x += btn_width;
-            rc_btn.w = GuiDefaults::ButtonSpacing;
+            rc_btn.w = GuiDefaults.ButtonSpacing;
             display::FillRect(rc_btn, color_back);
 
             //nextbutton coords
-            rc_btn.x += GuiDefaults::ButtonSpacing;
-            rc_btn.w = btn_width + GuiDefaults::ButtonSpacing;
+            rc_btn.x += GuiDefaults.ButtonSpacing;
+            rc_btn.w = btn_width + GuiDefaults.ButtonSpacing;
         }
     }
     rc_btn.x += rc_btn.w; //start of black space after button (if exists)

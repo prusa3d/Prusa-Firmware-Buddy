@@ -42,7 +42,7 @@ screen_messages_data_t::screen_messages_data_t()
     : window_frame_t()
     , header(this)
     , footer(this)
-    , list(this, GuiDefaults::RectScreenBodyGet()) {
+    , list(this, GuiDefaults.RectScreenBody) {
     Disable();
     header.SetText(_("MESSAGES"));
 

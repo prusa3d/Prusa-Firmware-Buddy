@@ -12,12 +12,12 @@
 #include "display.h"
 
 void window_roll_text_init(window_roll_text_t *window) {
-    window->color_back = GuiDefaults::ColorBack;
-    window->color_text = GuiDefaults::ColorText;
-    window->font = GuiDefaults::Font;
+    window->color_back = GuiDefaults.ColorBack;
+    window->color_text = GuiDefaults.ColorText;
+    window->font = GuiDefaults.Font;
     window->text = string_view_utf8::MakeNULLSTR();
-    window->padding = GuiDefaults::Padding;
-    window->alignment = GuiDefaults::Alignment;
+    window->padding = GuiDefaults.Padding;
+    window->alignment = GuiDefaults.Alignment;
     window->roll.count = window->roll.px_cd = window->roll.progress = 0;
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;

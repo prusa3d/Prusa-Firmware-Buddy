@@ -40,7 +40,7 @@ int wizard_msgbox_ex(string_view_utf8 text, uint16_t flags, uint16_t id_icon, re
 }
 
 int wizard_msgbox(string_view_utf8 text, uint16_t flags, uint16_t id_icon) {
-    return wizard_msgbox_ex(text, flags, id_icon, GuiDefaults::RectScreenBodyGet());
+    return wizard_msgbox_ex(text, flags, id_icon, GuiDefaults::RectScreenBody);
 }
 
 int wizard_msgbox1(string_view_utf8 text, uint16_t flags, uint16_t id_icon) {
@@ -50,7 +50,7 @@ int wizard_msgbox1(string_view_utf8 text, uint16_t flags, uint16_t id_icon) {
 
 int wizard_msgbox_btns(string_view_utf8 text, uint16_t flags, uint16_t id_icon, const char **buttons) {
     return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags | MSGBOX_ICO_CUSTOM,
-        GuiDefaults::RectScreenBodyGet(), id_icon, buttons);
+        GuiDefaults::RectScreenBody, id_icon, buttons);
 }
 */
 int wizard_timer(uint32_t *p_timer, uint32_t delay_ms, _TEST_STATE_t *pstate, _WIZ_TIMER_t type) {
