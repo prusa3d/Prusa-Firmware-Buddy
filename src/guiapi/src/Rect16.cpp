@@ -125,10 +125,7 @@ bool Rect16::HasIntersection(Rect16 const &r) const {
 }
 
 bool Rect16::IsSubrectangle(Rect16 const &r) const {
-    return TopLeft().x < r.TopLeft().x
-        && BottomRight().x > r.BottomRight().x
-        && TopLeft().y < r.TopLeft().y
-        && BottomRight().y > r.BottomRight().y;
+    return Contain(r.TopLeft()) && Contain(r.BottomRight());
 }
 
 void Rect16::AddPadding(const padding_ui8_t p) {

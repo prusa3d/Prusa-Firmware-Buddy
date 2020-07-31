@@ -215,18 +215,13 @@ public:
     /// @return Return a rectangle that represents the union of all rectangles
     template <size_t SZ>
     Rect16 Union(std::array<Rect16, SZ> const &rectangles) {
-        int16_t min_x = TopLeft().x, min_y = TopLeft().y;
-        int16_t max_x = BottomRight().x, max_y = BottomRight().y;
-
-        for (size_t i = 0; i < SZ; ++i) {
-            if (rectangles[i].Width() > 0) {
-                min_x = rectangles[i].TopLeft().x < min_x ? rectangles[i].TopLeft().x : min_x;
-                min_y = rectangles[i].TopLeft().y < min_y ? rectangles[i].TopLeft().y : min_y;
-                max_x = rectangles[i].BottomRight().x > max_x ? rectangles[i].BottomRight().x : max_x;
-                max_y = rectangles[i].BottomRight().y > max_y ? rectangles[i].BottomRight().y : max_y;
-            }
-        }
-        return { min_x, min_y, max_x, max_y };
+        Rect16 ret = Merge(rectangles);
+        return {
+            TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
+            TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,
+            BottomRight().x > ret.BottomRight().x ? BottomRight().x : ret.BottomRight().x,
+            BottomRight().y > ret.BottomRight().y ? BottomRight().y : ret.BottomRight().y
+        };
     }
 
     ////////////////////////////////////////////////////////////////////////////
