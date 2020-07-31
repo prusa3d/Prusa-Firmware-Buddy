@@ -52,7 +52,7 @@ FILAMENTO
 Filamento
 No se ha detectado filamento. ¿Cargar filamento ahora? Seleccione NO para cancelar, o IGNORAR para desactivar el sensor de filamento y continuar.
 Finalizando \nG-Codes en memoria.\n
-Versión de Firmware
+Versión de Firmware\n
 Cal. Primera capa
 CAL. PRIM. CAPA
 Factor de flujo
@@ -90,7 +90,7 @@ Cargar configuración
 Cargando...
 Cargando     \na la boquilla
 Alto
-Asegúrate que\nfilamento está\ninsertado a través\ndel sensor.
+Asegúrate que     \nfilamento está    \ninsertado a través\ndel sensor.       
 Material
 Midiendo referencia\naltura de calibra.\npuntos
 Timeout Menú
@@ -139,7 +139,7 @@ Precalentar
 PRECALENTAR para CARGAR
 PRECALENTAR para DESCARGAR
 Preparando para expulsar
-Presiona CONTINUAR \ny empuja el\nfilamento en\nelextrusora.
+Presiona CONTINUAR\ny empuja el       \nfilamento en      \nelextrusora.      
 Presione SIGUIENTE para ejecutar el Selftest, que comprueba problemas potenciales relacionado con el montaje.
 Imprimir
 Vent. de impresión

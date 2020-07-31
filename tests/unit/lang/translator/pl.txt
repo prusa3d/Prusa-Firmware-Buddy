@@ -90,7 +90,7 @@ Wczytaj ustawienia
 Wczytywanie ...
 Ładowanie do dyszy
 Głośno
-Upewnij się, że\nfilament\nprzechodzi przez\nczujnik filamentu.
+Upewnij się, że   \nfilament          \nprzechodzi przez  \nczujnik filamentu.
 Materiał
 Pomiar wysokości\npunktów\nkalibracyjnych
 Wył. czas. menu
@@ -139,7 +139,7 @@ Nagrzewanie
 NAGRZEWANIE do ŁADOWANIA
 NAGRZEWANIE do ROZŁADOWANIA
 Przygotowywanie do wyciskania
-Naciśnij KONTYNUUJ\ni wsuń filament\ndo ekstrudera.
+Naciśnij KONTYNUUJ\ni wsuń filament   \ndo ekstrudera.    
 Wciśnij DALEJ, aby uruchomić Selftest, który sprawdzi ewentualne błędy podczas montażu.
 Druk
 Went. wydruku

@@ -416,7 +416,11 @@ msgstr "Głośno"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr "Upewnij się, że\nfilament\nprzechodzi przez\nczujnik filamentu."
+msgstr ""
+"Upewnij się, że   \n"
+"filament          \n"
+"przechodzi przez  \n"
+"czujnik filamentu."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
@@ -637,7 +641,10 @@ msgstr "Przygotowywanie do wyciskania"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "Naciśnij KONTYNUUJ\ni wsuń filament\ndo ekstrudera."
+msgstr ""
+"Naciśnij KONTYNUUJ\n"
+"i wsuń filament   \n"
+"do ekstrudera.    "
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."

@@ -90,7 +90,7 @@ Ladeeinstellungen
 Lade ...
 Zur Düse laden
 Laut
-Stellen Sie sicher\ndass das Filament\ndurch den Sensor\ngeführt wird.
+Stellen Sie sicher\ndass das Filament \ndurch den Sensor  \ngeführt wird.
 Material
 Messe Referenz-\nHöhe der Kalibr.\nPunkte
 Menü Timeout
@@ -139,7 +139,7 @@ Vorheizen
 VORHEIZEN zum LADEN
 VORHEIZEN zum ENTLADEN
 Bereite Rammen vor
-WEITER drücken und\nFilament in den\nExtruder schieben.
+WEITER drücken und\nFilament in den   \nExtruder schieben.
 Drücken Sie WEITER, um den Selbsttest auszuführen, bei dem nach potenziellen Problemen mit der Montage gesucht wird.
 Drucken
 Drucklüfter

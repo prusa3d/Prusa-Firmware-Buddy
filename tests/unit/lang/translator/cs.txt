@@ -90,7 +90,7 @@ Načíst nastavení
 Nahrává se...
 Zavádění do trysky
 Hlasitý
-Ujistěte se, že\nje filament\nvložen skrz\nfil. senzor.
+Ujistěte se, že   \nje filament       \nvložen skrz       \nfil. senzor.      
 Materiál
 Měření referenční\nvýšky kalibračních\nbodů
 Automatický návrat do menu
@@ -139,7 +139,7 @@ Předehřev
 PŘEDEHŘÁT pro ZAVEDENÍ
 PŘEDEHŘÁT pro VYSUNUTÍ
 Příprava na ramming
-Zvolte POKRAČOVAT\na zasuňte filament\ndo extruderu.
+Zvolte POKRAČOVAT \na zasuňte filament\ndo extruderu.     
 Vyberte DALŠÍ pro  \nspuštění Selftestu,\nkterý ověří, zda   \nje tiskárna správně\nsestavena.
 Tisk
 Tisk. vent.
