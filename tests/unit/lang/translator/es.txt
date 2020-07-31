@@ -88,9 +88,9 @@ CARGAR FILAMENTO
 Cargar filamento
 Cargar configuración
 Cargando...
-Cargando\na la boquilla
+Cargando     \na la boquilla
 Alto
-Asegúrate que filamento está insertado a través del sensor.
+Asegúrate que\nfilamento está\ninsertado a través\ndel sensor.
 Material
 Midiendo referencia\naltura de calibra.\npuntos
 Timeout Menú
@@ -139,7 +139,7 @@ Precalentar
 PRECALENTAR para CARGAR
 PRECALENTAR para DESCARGAR
 Preparando para expulsar
-Presiona CONTINUAR\ny empuja el\nfilamento en\nelextrusora.
+Presiona CONTINUAR \ny empuja el\nfilamento en\nelextrusora.
 Presione SIGUIENTE para ejecutar el Selftest, que comprueba problemas potenciales relacionado con el montaje.
 Imprimir
 Vent. de impresión
@@ -205,7 +205,7 @@ Jue
 Timeout
 Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cambiarlo, pulsa DESCARGAR.
 Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cargar filamento, pulsa CARGAR. Para cambiarlo, pulsa DESCARGAR.
-Hoy a las 
+Hoy a las
 INTENTARLO DE NUEVO
 Mar
 AJUSTES

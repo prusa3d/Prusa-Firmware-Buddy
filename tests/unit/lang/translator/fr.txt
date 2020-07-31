@@ -90,7 +90,7 @@ Charger les réglages
 Chargement...
 Chargement\nde la buse
 Fort
-Vérifiez que le filament est bien inséré dans le capteur.
+Vérifiez que le\nfilament est bien\ninséré dans le\ncapteur.
 Matériau
 Mesure des hauteurs\ndé référence des\npoints de calib.
 Timeout Menu
@@ -139,7 +139,7 @@ Préchauffage
 PRÉCHAUF. av. CHARG.
 PRÉCHAUFFER pour DÉCHARGER
 Expulsion en préparation
-Appuyez sur\nCONTINUER\net enfoncez\nle filament\ndans l'extrudeur.
+Appuyez sur      \nCONTINUER\net enfoncez\nle filament\ndans l'extrudeur.
 Appuyez sur NEXT pour lancer le Selftest détectant les éventuels problèmes liés à l'assemblage.
 Impression
 Ventil. d'impression
@@ -205,7 +205,7 @@ jeu
 Timeout
 Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour changer le filament appuyez sur DÉCHARGER.
 Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour charger un filament, appuyez sur CHARGER. Pour changer de filament, appuyez sur DÉCHARGER.
-Aujourd'hui à
+Auj. à
 RÉESSAYER
 mar
 RÉGLER

@@ -416,7 +416,7 @@ msgstr "Głośno"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr "Upewnij się, że filament przechodzi przez czujnik filamentu."
+msgstr "Upewnij się, że\nfilament\nprzechodzi przez\nczujnik filamentu."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
