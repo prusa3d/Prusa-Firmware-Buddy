@@ -10,7 +10,7 @@ msgstr ""
 #: src/gui/screen_menu_version_info.cpp:90
 #, c-format
 msgid "\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"
-msgstr "\nVers. de bootloader\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n %s"
+msgstr "\nVer. de bootloader\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n %s"
 
 #: src/guiapi/src/MItem_tools.cpp:121
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
@@ -244,7 +244,7 @@ msgstr "Finalizando \nG-Codes en memoria.\n"
 #: src/gui/screen_menu_version_info.cpp:72
 #, c-format
 msgid "Firmware Version\n"
-msgstr "Versión de Firmware\n"
+msgstr "Ver. de Firmware\n"
 
 #: src/guiapi/include/MItem_tools.hpp:48
 msgid "First Layer Cal."
@@ -543,7 +543,7 @@ msgstr "Boquilla: %.1f_C"
 #: src/guiapi/include/WindowMenuItems.hpp:130
 #: src/guiapi/include/WindowMenuItems.hpp:159
 msgid "Off"
-msgstr "Apagado"
+msgstr "Ina"
 
 #. MSGBOX_RES_NO        7
 #: src/guiapi/src/window_msgbox.cpp:55
@@ -553,7 +553,7 @@ msgstr "OK"
 #: src/guiapi/include/WindowMenuItems.hpp:131
 #: src/guiapi/include/WindowMenuItems.hpp:160
 msgid "On"
-msgstr "Encendido"
+msgstr "Act"
 
 #: src/gui/screen_menu_fw_update.cpp:32
 msgid "On restart"
