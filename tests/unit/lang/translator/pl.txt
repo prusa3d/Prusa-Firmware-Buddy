@@ -90,7 +90,7 @@ Wczytaj ustawienia
 Wczytywanie ...
 Ładowanie do dyszy
 Głośno
-Upewnij się, że filament przechodzi przez czujnik filamentu.
+Upewnij się, że\nfilament\nprzechodzi przez\nczujnik filamentu.
 Materiał
 Pomiar wysokości\npunktów\nkalibracyjnych
 Wył. czas. menu

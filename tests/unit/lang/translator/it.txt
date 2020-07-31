@@ -90,7 +90,7 @@ Carica impostazioni
 Caricamento...
 Caricamento \nugello
 Forte
-Accertati che il filamento passi attraverso il sensore.
+Accertati che il  \nfilamento passi\nattraverso il\nsensore.
 Materiale
 Misurazione altezza\ndi riferimento dei\npunti di calibrazione
 Timeout Menu
@@ -139,7 +139,7 @@ Preriscalda
 PRERIS. per CARICARE
 PRERISCALDA per SCARICARE
 Preparazione al ram
-Premi CONTINUA e\nspingi il filamento\nnell'estrusore.
+Premi CONTINUA e  \nspingi il filamento\nnell'estrusore.
 Premi SUCCESSIVO per avviare l'autotest, per controllare eventuali problemi legati al montaggio.
 Stampa
 Ventola di stampa

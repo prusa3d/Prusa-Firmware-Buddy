@@ -416,7 +416,7 @@ msgstr "Hlasitý"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr "Ujistěte se, že   \nje filament       \nvložen skrz       \nfil. senzor.      "
+msgstr "Ujistěte se, že\nje filament\nvložen skrz\nfil. senzor."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"

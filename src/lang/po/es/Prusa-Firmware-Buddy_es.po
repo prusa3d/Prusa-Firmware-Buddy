@@ -416,7 +416,7 @@ msgstr "Alto"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr "Asegúrate que filamento está insertado a través del sensor."
+msgstr "Asegúrate que\nfilamento está\ninsertado a través\ndel sensor."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
@@ -637,7 +637,7 @@ msgstr "Preparando para expulsar"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "Presiona CONTINUAR\ny empuja el\nfilamento en\nelextrusora."
+msgstr "Presiona CONTINUAR \ny empuja el\nfilamento en\nelextrusora."
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
@@ -922,7 +922,7 @@ msgstr "Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Par
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
 msgid "Today at"
-msgstr "Hoy a las "
+msgstr "Hoy a las"
 
 #. MSGBOX_RES_OK        8
 #. 9

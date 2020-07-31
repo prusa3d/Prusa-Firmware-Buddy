@@ -416,7 +416,7 @@ msgstr "Fort"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr "Vérifiez que le filament est bien inséré dans le capteur."
+msgstr "Vérifiez que le\nfilament est bien\ninséré dans le\ncapteur."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
@@ -637,7 +637,7 @@ msgstr "Expulsion en préparation"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "Appuyez sur\nCONTINUER\net enfoncez\nle filament\ndans l'extrudeur."
+msgstr "Appuyez sur      \nCONTINUER\net enfoncez\nle filament\ndans l'extrudeur."
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
@@ -922,7 +922,7 @@ msgstr "Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
 msgid "Today at"
-msgstr "Aujourd'hui à"
+msgstr "Auj. à"
 
 #. MSGBOX_RES_OK        8
 #. 9

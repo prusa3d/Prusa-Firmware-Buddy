@@ -416,7 +416,7 @@ msgstr "Laut"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr "Stellen Sie sicher, dass das Filament durch den Sensor geführt wird."
+msgstr "Stellen Sie sicher\ndass das Filament\ndurch den Sensor\ngeführt wird."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"

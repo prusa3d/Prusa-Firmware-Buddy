@@ -90,7 +90,7 @@ Ladeeinstellungen
 Lade ...
 Zur Düse laden
 Laut
-Stellen Sie sicher, dass das Filament durch den Sensor geführt wird.
+Stellen Sie sicher\ndass das Filament\ndurch den Sensor\ngeführt wird.
 Material
 Messe Referenz-\nHöhe der Kalibr.\nPunkte
 Menü Timeout
