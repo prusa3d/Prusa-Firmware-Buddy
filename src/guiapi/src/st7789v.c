@@ -61,11 +61,6 @@
 #define CLR565_GRAY    0x38e7
 #define CLR565_BLUE    0x001f
 
-//color conversion
-#define COLOR_TO_565(clr) color_to_565(clr)
-//color reverse conversion
-#define C565_TO_COLOR(clr) color_from_565(clr)
-
 //private flags (pin states)
 #define FLG_CS  0x01 // current CS pin state
 #define FLG_RS  0x02 // current RS pin state
@@ -90,6 +85,7 @@ osThreadId st7789v_task_handle = 0;
 void st7789v_gamma_set_direct(uint8_t gamma_enu);
 uint8_t st7789v_read_ctrl(void);
 void st7789v_ctrl_set(uint8_t ctrl);
+void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr);
 
 static inline void st7789v_set_cs(void) {
     gpio_set(st7789v_config.pinCS, 1);
@@ -339,7 +335,7 @@ void st7789v_done(void) {
 void st7789v_clear(color_t clr) {
     // FIXME similar to st7789v_fill_rect; join?
     int i;
-    const uint16_t clr565 = COLOR_TO_565(clr);
+    const uint16_t clr565 = color_to_565(clr);
     for (i = 0; i < ST7789V_COLS * 16; i++)
         ((uint16_t *)st7789v_buff)[i] = clr565;
     st7789v_clr_cs();
@@ -353,12 +349,10 @@ void st7789v_clear(color_t clr) {
 }
 
 /// Turns the specified pixel to the specified color
-void st7789v_set_pixel(point_ui16_t pt, color_t clr) {
-    if (!point_in_rect_ui16(pt, st7789v_clip))
-        return;
-    uint16_t clr565 = COLOR_TO_565(clr);
-    st7789v_cmd_caset(pt.x, 1);
-    st7789v_cmd_raset(pt.y, 1);
+void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint32_t clr) {
+    uint16_t clr565 = color_to_565(clr);
+    st7789v_cmd_caset(point_x, 1);
+    st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
 }
 
@@ -369,7 +363,7 @@ color_t st7789v_get_pixel(point_ui16_t pt) {
     st7789v_cmd_caset(pt.x, 1);
     st7789v_cmd_raset(pt.y, 1);
     st7789v_cmd_ramrd((uint8_t *)(&clr565), 2);
-    return C565_TO_COLOR(clr565);
+    return color_from_565(clr565);
 }
 
 void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t directColor) {
@@ -423,13 +417,10 @@ uint16_t st7789v_get_pixel_directColor(point_ui16_t pt) {
     return ret; //directColor;
 }
 
-void st7789v_clip_rect(rect_ui16_t rc) {
-    st7789v_clip = rc;
-}
-
 /// Draws simple line (no antialiasing)
 /// Both end points are drawn
 void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
+    //todo check rectangle
     int n;
     const int dx = pt1.x - pt0.x;
     const int dy = pt1.y - pt0.y;
@@ -439,7 +430,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     const int ady = cy; // absolute difference in y ( = height - 1)
 
     if ((adx == 0) || (ady == 0)) { // orthogonal line
-        st7789v_fill_rect(rect_ui16(MIN(pt0.x, pt1.x), MIN(pt0.y, pt1.y), adx + 1, ady + 1), clr);
+        st7789v_fill_rect_C(MIN(pt0.x, pt1.x), MIN(pt0.y, pt1.y), adx + 1, ady + 1, clr);
         return;
     }
 
@@ -449,7 +440,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 
     if (adx > ady) { // likely vertical line
         for (n = adx; n > 0; --n) {
-            st7789v_set_pixel(pt0, clr);
+            st7789v_set_pixel_C(pt0.x, pt0.y, clr);
             if ((cx -= cy) <= 0) {
                 pt0.y += sy;
                 cx += adx;
@@ -461,7 +452,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 
     if (adx < ady) { // likely horizontal line
         for (n = ady; n > 0; --n) {
-            st7789v_set_pixel(pt0, clr);
+            st7789v_set_pixel_C(pt0.x, pt0.y, clr);
             if ((cy -= cx) <= 0) {
                 pt0.x += sx;
                 cy += ady;
@@ -473,40 +464,22 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 
     //adx == ady => diagonal line
     for (n = adx; n > 0; --n) {
-        st7789v_set_pixel(pt0, clr);
+        st7789v_set_pixel_C(pt0.x, pt0.y, clr);
         pt0.x += sx;
         pt0.y += sy;
     }
 }
 
-/// Draws a rectangle boundary of defined color
-void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
-    if (rc.w <= 0 || rc.h <= 0)
-        return;
-
-    point_ui16_t pt0 = { rc.x, rc.y };
-    point_ui16_t pt1 = { rc.x + rc.w - 1, rc.y };
-    point_ui16_t pt2 = { rc.x, rc.y + rc.h - 1 };
-
-    st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, rc.w, 1), clr); // top
-    st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, 1, rc.h), clr); // left
-    st7789v_fill_rect(rect_ui16(pt1.x, pt1.y, 1, rc.h), clr); // right
-    st7789v_fill_rect(rect_ui16(pt2.x, pt2.y, rc.w, 1), clr); // bottom
-}
-
 /// Draws a solid rectangle of defined color
-void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
-    rc = rect_intersect_ui16(rc, st7789v_clip);
-    if (rect_empty_ui16(rc))
-        return;
+void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr) {
 
-    uint16_t clr565 = COLOR_TO_565(clr);
-    uint32_t size = (uint32_t)rc.w * rc.h * 2; // area of rectangle
+    uint16_t clr565 = color_to_565(clr);
+    uint32_t size = (uint32_t)rect_w * rect_h * 2; // area of rectangle
 
     st7789v_fill_ui16((uint16_t *)st7789v_buff, clr565, MIN(size, sizeof(st7789v_buff) / 2));
     st7789v_clr_cs();
-    st7789v_cmd_caset(rc.x, rc.x + rc.w - 1);
-    st7789v_cmd_raset(rc.y, rc.y + rc.h - 1);
+    st7789v_cmd_caset(rect_x, rect_x + rect_w - 1);
+    st7789v_cmd_raset(rect_y, rect_y + rect_h - 1);
     st7789v_cmd_ramwr(0, 0);
 
     for (int i = 0; i < size / sizeof(st7789v_buff); i++) // writer buffer by buffer
@@ -516,111 +489,12 @@ void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
     st7789v_set_cs();
 }
 
-bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
-    // character out of font range, display solid rectangle instead
-    if ((chr < pf->asc_min) || (chr > pf->asc_max)) {
-        st7789v_fill_rect(rect_ui16(pt.x, pt.y, w, h), clr_bg);
-        return false;
-    }
-    // here we only have an ASCII character, its location in font can be computed easily
-    uint8_t charX = (chr - pf->asc_min) % 16;
-    uint8_t charY = (chr - pf->asc_min) / 16;
-    return st7789v_draw_charUnicode(pt, charX, charY, pf, clr_bg, clr_fg);
-}
-
-/// Draws a single character according to selected font
-/// \param charX x-index of character in font bitmap
-/// \param charY y-index of character in font bitmap
-/// \param clr_bg background color
-/// \param clr_fg font/foreground color
-/// If font is not available for the character, solid rectangle will be drawn in background color
-/// \returns true if character is available in the font and was drawn
-bool st7789v_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
-
-    int i;
-    int j;
-    uint8_t *pch;    //character data pointer
-    uint8_t crd = 0; //current row byte data
-    uint8_t rb;      //row byte
-    uint16_t *p = (uint16_t *)st7789v_buff;
-    uint8_t *pc;
-
-    const uint8_t bpr = pf->bpr;        //bytes per row
-    const uint16_t bpc = bpr * h;       //bytes per char
-    const uint8_t bpp = 8 * bpr / w;    //bits per pixel
-    const uint8_t ppb = 8 / bpp;        //pixels per byte
-    const uint8_t pms = (1 << bpp) - 1; //pixel mask
-
-    uint32_t chr = charY * 16 + charX; // compute character index in font
-
-    pch = (uint8_t *)(pf->pcs) + ((chr /*- pf->asc_min*/) * bpc);
-    uint16_t clr565[16];
-    for (i = 0; i <= pms; i++)
-        clr565[i] = COLOR_TO_565(color_alpha(clr_bg, clr_fg, 255 * i / pms));
-    for (j = 0; j < h; j++) {
-        pc = pch + j * bpr;
-        for (i = 0; i < w; i++) {
-            if ((i % ppb) == 0) {
-                if (pf->flg & FONT_FLG_SWAP) {
-                    rb = (i / ppb) ^ 1;
-                    crd = pch[rb + j * bpr];
-                } else
-                    crd = *(pc++);
-            }
-            if (pf->flg & FONT_FLG_LSBF) {
-                *(p++) = clr565[crd & pms];
-                crd >>= bpp;
-            } else {
-                *(p++) = clr565[crd >> (8 - bpp)];
-                crd <<= bpp;
-            }
-        }
-    }
+void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     st7789v_clr_cs();
-    st7789v_cmd_caset(pt.x, pt.x + w - 1);
-    st7789v_cmd_raset(pt.y, pt.y + h - 1);
+    st7789v_cmd_caset(x, x + w - 1);
+    st7789v_cmd_raset(y, y + h - 1);
     st7789v_cmd_ramwr(st7789v_buff, 2 * w * h);
     st7789v_set_cs();
-
-    return true;
-}
-
-/// Draws a text into the specified rectangle @rc
-/// If a character does not fit into the rectangle the drawing is stopped
-/// \param clr_bg background color
-/// \param clr_fg font/foreground color
-/// \returns true if whole text was written
-bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    int x = rc.x;
-    int y = rc.y;
-
-    const uint16_t rc_end_x = rc.x + rc.w;
-    const uint16_t rc_end_y = rc.y + rc.h;
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
-
-    // prepare for stream processing
-    char c = 0;
-    while ((c = *str++) != 0) {
-        if (c == '\n') {
-            y += h;
-            x = rc.x;
-            if (y + h > rc_end_y)
-                return false;
-            continue;
-        }
-
-        st7789v_draw_char(point_ui16(x, y), c, pf, clr_bg, clr_fg);
-        x += w;
-        // FIXME Shouldn't it try to break the line first?
-        if (x + w > rc_end_x)
-            return false;
-    }
-    return true;
 }
 
 static inline void rop_rgb888_invert(uint8_t *ppx888) {
@@ -818,7 +692,7 @@ void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
                     rop_rgb888_disabled(ppx888);
                     break;
                 }
-                *ppx565 = COLOR_TO_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
             }
         else if (pixsize == 4) //RGBA
         {
@@ -837,8 +711,8 @@ void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
                     rop_rgb888_disabled(ppx888);
                     break;
                 }
-                //*ppx565 = COLOR_TO_565(color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]));
-                *ppx565 = COLOR_TO_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                //*ppx565 = color_to_565(color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]));
+                *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
             }
         }
         st7789v_wr(st7789v_buff, 2 * w);
