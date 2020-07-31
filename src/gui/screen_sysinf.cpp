@@ -14,12 +14,17 @@
 #include "../Middlewares/ST/Utilites/CPU/cpu_utils.h"
 
 #include "../lang/i18n.h"
+#include "marlin_client.h"
 
 struct screen_sysinfo_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
     window_text_t textCPU_load;
     window_numb_t textCPU_load_val;
+    window_text_t textCPU_fan0_rpm;
+    window_numb_t textCPU_fan0_rpm_val;
+    window_text_t textCPU_fan1_rpm;
+    window_numb_t textCPU_fan1_rpm_val;
 
     window_text_t textExit;
 };
@@ -73,6 +78,28 @@ void screen_sysinfo_init(screen_t *screen) {
 
     row2draw += 25;
 
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_fan0_rpm));
+    pd->textCPU_fan0_rpm.font = resource_font(IDR_FNT_NORMAL);
+    static const char f0r[] = N_("FAN0 rpm");
+    pd->textCPU_fan0_rpm.SetText(_(f0r));
+
+    window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_fan0_rpm_val));
+    pd->textCPU_fan0_rpm_val.SetFormat((const char *)"%5.0f");
+    pd->textCPU_fan0_rpm_val.SetValue(marlin_vars()->fan0_rpm);
+
+    row2draw += 25;
+
+    window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textCPU_fan1_rpm));
+    pd->textCPU_fan1_rpm.font = resource_font(IDR_FNT_NORMAL);
+    static const char f1r[] = N_("FAN1 rpm");
+    pd->textCPU_fan1_rpm.SetText(_(f1r));
+
+    window_create_ptr(WINDOW_CLS_NUMB, id0, RECT_MACRO(1), &(pd->textCPU_fan1_rpm_val));
+    pd->textCPU_fan1_rpm_val.SetFormat((const char *)"%5.0f");
+    pd->textCPU_fan1_rpm_val.SetValue(marlin_vars()->fan1_rpm);
+
+    row2draw += 25;
+
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     static const char ex[] = N_("EXIT");
@@ -102,6 +129,8 @@ int screen_sysinfo_event(screen_t *screen, window_t *window, uint8_t event, void
             pd->textCPU_load_val.SetValue(actual_CPU_load);
             last_CPU_load = actual_CPU_load;
         }
+        pd->textCPU_fan0_rpm_val.SetValue(marlin_vars()->fan0_rpm);
+        pd->textCPU_fan1_rpm_val.SetValue(marlin_vars()->fan1_rpm);
     }
 
     return 0;
