@@ -1,12 +1,13 @@
 // window_msgbox.cpp
 #include "window_msgbox.hpp"
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "resource.h"
 #include "button_draw.h"
 #include "sound.hpp"
 #include <algorithm>
 #include "ScreenHandler.hpp"
 #include "dialog_response.hpp"
+#include "GuiDefaults.hpp"
 
 /*****************************************************************************/
 // clang-format off
@@ -64,7 +65,7 @@ void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res)
     : MsgBoxBase(rect, resp, labels, txt)
-    , title_icon(this, title_icon_id_res, { rect.x, rect.y }, gui_defaults.padding)
+    , title_icon(this, title_icon_id_res, { rect.x, rect.y }, GuiDefaults::PaddingGet())
     , title(this, getTitleRect(), is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
     title.font = getTitleFont();
@@ -112,9 +113,9 @@ void MsgBoxTitled::unconditionalDraw() {
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res)
     : MsgBoxBase(rect, resp, labels, txt)
-    , icon(this, icon_id_res, { rect.x, rect.y }, gui_defaults.padding) {
+    , icon(this, icon_id_res, { rect.x, rect.y }, GuiDefaults::PaddingGet()) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
-    icon.rect.w = rect.w - gui_defaults.padding.left - gui_defaults.padding.right;
+    icon.rect.w = rect.w - GuiDefaults::Padding.left - GuiDefaults::Padding.right;
 }
 
 rect_ui16_t MsgBoxIconned::getIconnedTextRect() {

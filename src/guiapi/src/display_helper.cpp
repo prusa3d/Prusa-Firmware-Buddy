@@ -230,7 +230,7 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
-        opt_clr = gui_defaults.color_disabled;
+        opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
         opt_clr = clr0 ^ 0xffffffff;
@@ -257,7 +257,7 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
-        opt_clr = gui_defaults.color_disabled;
+        opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
         opt_clr = clr0 ^ 0xffffffff;

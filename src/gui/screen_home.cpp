@@ -75,7 +75,7 @@ screen_home_data_t::screen_home_data_t()
             w_labels[row * 3 + col].rect = rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14);
             w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
             w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
-            w_labels[row * 3 + col].SetPadding(padding_ui8(0, 0, 0, 0));
+            w_labels[row * 3 + col].SetPadding({ 0, 0, 0, 0 });
             w_labels[row * 3 + col].SetText(_(labels[row * 3 + col]));
         }
     }

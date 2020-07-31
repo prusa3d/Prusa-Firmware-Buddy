@@ -153,9 +153,9 @@ void window_list_t::SetCallback(window_list_item_t *fnc) {
 
 window_list_t::window_list_t(window_t *parent, rect_ui16_t rect)
     : window_t(parent, rect)
-    , color_text(gui_defaults.color_text)
+    , color_text(GuiDefaults::ColorText)
     , font(gui_defaults.font)
-    , padding(gui_defaults.padding)
+    , padding(GuiDefaults::Padding)
     , alignment(gui_defaults.alignment)
     , icon_rect(rect_ui16(0, 0, 16, 16))
     , count(0)

@@ -19,10 +19,10 @@ extern msg_stack_t msg_stack;
 
 window_dlg_popup_t::window_dlg_popup_t(window_t *parent, rect_ui16_t rect)
     : window_t(parent, rect)
-    , color_text(gui_defaults.color_text)
+    , color_text(GuiDefaults::ColorText)
     , font(gui_defaults.font)
     , font_title(gui_defaults.font_big)
-    , padding(gui_defaults.padding) {
+    , padding(GuiDefaults::Padding) {
     Enable();
 }
 

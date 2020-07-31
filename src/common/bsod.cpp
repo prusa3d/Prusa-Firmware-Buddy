@@ -172,7 +172,7 @@ void general_error(const char *error, const char *module) {
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
     render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), gui_defaults.font,
-        COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
+        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
     jogwheel_init();
     gui_reset_jogwheel();

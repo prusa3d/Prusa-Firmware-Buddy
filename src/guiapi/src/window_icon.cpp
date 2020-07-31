@@ -2,7 +2,7 @@
 #include "window_icon.hpp"
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
-#include "guitypes.h"
+#include "guitypes.hpp"
 
 void window_icon_init(window_icon_t *window) {
     window->color_back = COLOR_BLACK;

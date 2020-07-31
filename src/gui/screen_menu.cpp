@@ -11,7 +11,7 @@ static constexpr uint16_t win_h = 320;
 static constexpr uint16_t footer_h = win_h - 269; //269 is the smallest number I found in footer implementation, todo it should be in guidefaults
 
 static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
-    //I have no clue why +1, should be + gui_defaults.padding.top + gui_defaults.padding.bottom
+    //I have no clue why +1, should be + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom
     return helper_lines * (resource_font(font_id)->h + 1);
 }
 

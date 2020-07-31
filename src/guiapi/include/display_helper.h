@@ -1,7 +1,7 @@
 //helper.h
 #pragma once
 
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "window.hpp"
 #include "../../lang/string_view_utf8.hpp"
 

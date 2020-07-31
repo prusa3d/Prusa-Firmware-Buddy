@@ -7,8 +7,8 @@
 
 IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
     : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
-    , color_text(gui_defaults.color_text)
-    , color_disabled(gui_defaults.color_disabled)
+    , color_text(GuiDefaults::ColorText)
+    , color_disabled(GuiDefaults::ColorDisabled)
     , font(gui_defaults.font)
     , padding { 6, 6, 6, 6 }
     , icon_w(25)
@@ -18,7 +18,6 @@ IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
 window_menu_t::window_menu_t(window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
-    //color_back = gui_defaults.color_back;
     alignment = gui_defaults.alignment;
     setIndex(index);
     top_index = 0;

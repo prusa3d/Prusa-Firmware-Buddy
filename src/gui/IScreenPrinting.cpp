@@ -2,7 +2,7 @@
 #include "config.h"
 #include "marlin_client.h"
 #include "marlin_server.h"
-#include "guitypes.h"      //font_meas_text
+#include "guitypes.hpp"    //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "../lang/i18n.h"
 #include "ScreenHandler.hpp"
@@ -32,7 +32,7 @@ IScreenPrinting::~IScreenPrinting() {
 
 void IScreenPrinting::initBtnText(btn &ref_button) {
     ref_button.txt.font = resource_font(IDR_FNT_SMALL);
-    ref_button.txt.SetPadding(padding_ui8(0, 0, 0, 0));
+    ref_button.txt.SetPadding({ 0, 0, 0, 0 });
     ref_button.txt.SetAlignment(ALIGN_CENTER);
 }
 

@@ -27,10 +27,10 @@ typedef enum {
 
 window_dlg_wait_t::window_dlg_wait_t(window_t *parent, rect_ui16_t rect)
     : window_t(parent, rect)
-    , color_text(gui_defaults.color_text)
+    , color_text(GuiDefaults::ColorText)
     , font(gui_defaults.font)
     , font_title(gui_defaults.font_big)
-    , padding(gui_defaults.padding)
+    , padding(GuiDefaults::Padding)
     , progress(0)
     , animation(ANIM_START)
     , animation_chng(true)

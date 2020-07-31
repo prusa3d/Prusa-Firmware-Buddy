@@ -86,13 +86,6 @@ typedef struct _font_t {
     char asc_max; //max ascii code (last character)
 } font_t;
 
-typedef struct _padding_ui8_t {
-    uint8_t left;
-    uint8_t top;
-    uint8_t right;
-    uint8_t bottom;
-} padding_ui8_t;
-
 typedef struct _bitmap_t {
     uint16_t w;  //bitmap width [pixels]
     uint16_t h;  //bitmap height [pixels]
@@ -107,12 +100,10 @@ typedef struct _resource_entry_t {
 } resource_entry_t;
 
 typedef struct _gui_defaults_t {
-    color_t color_back;
-    color_t color_text;
-    color_t color_disabled;
+
     font_t *font;
     font_t *font_big;
-    padding_ui8_t padding;
+
     uint8_t alignment;
     rect_ui16_t header_sz;           // default header location & size
     rect_ui16_t scr_body_sz;         // default screen body location & size
@@ -175,11 +166,6 @@ static inline rect_ui16_t rect_ui16(uint16_t x, uint16_t y, uint16_t w, uint16_t
     return rect;
 }
 
-static inline padding_ui8_t padding_ui8(uint8_t l, uint8_t t, uint8_t r, uint8_t b) {
-    padding_ui8_t padding = { l, t, r, b };
-    return padding;
-}
-
 static inline int point_in_rect_ui16(point_ui16_t pt, rect_ui16_t rc) {
     return ((pt.x >= rc.x) && (pt.x < (rc.x + rc.w)) && (pt.y >= rc.y) && (pt.y < (rc.y + rc.h))) ? 1 : 0;
 }
@@ -197,10 +183,6 @@ extern "C" {
 #endif //__cplusplus
 
 extern rect_ui16_t rect_intersect_ui16(rect_ui16_t rc1, rect_ui16_t rc2);
-
-extern rect_ui16_t rect_ui16_add_padding_ui8(rect_ui16_t rc, padding_ui8_t pad);
-
-extern rect_ui16_t rect_ui16_sub_padding_ui8(rect_ui16_t rc, padding_ui8_t pad);
 
 extern rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align);
 

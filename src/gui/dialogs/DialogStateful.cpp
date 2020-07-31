@@ -1,5 +1,5 @@
 #include "DialogStateful.hpp"
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "../lang/i18n.h"
 #include "resource.h" //IDR_FNT_BIG
 

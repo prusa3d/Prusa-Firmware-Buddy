@@ -2,10 +2,11 @@
 #pragma once
 
 #include "guiconfig.h"
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "gui_timer.h"
 #include "display_helper.h"
 #include "display.h"
+#include "GuiDefaults.hpp"
 
 typedef void(gui_loop_cb_t)(void);
 

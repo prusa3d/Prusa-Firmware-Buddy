@@ -2,7 +2,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include <array>
 #include "../../lang/string_view_utf8.hpp"
 

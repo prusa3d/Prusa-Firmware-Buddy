@@ -48,7 +48,7 @@ description_line_t::description_line_t(window_frame_t *frame, bool has_thumbnail
 {
     title.SetText(title_str);
     title.SetAlignment(ALIGN_LEFT_BOTTOM);
-    title.SetPadding(padding_ui8(0, 0, 0, 0));
+    title.SetPadding({ 0, 0, 0, 0 });
     title.font = resource_font(IDR_FNT_SMALL);
 
     va_list args;
@@ -58,7 +58,7 @@ description_line_t::description_line_t(window_frame_t *frame, bool has_thumbnail
     // this MakeRAM is safe - value_buffer is allocated in RAM for the lifetime of line
     value.SetText(string_view_utf8::MakeRAM((const uint8_t *)value_buffer));
     value.SetAlignment(ALIGN_RIGHT_BOTTOM);
-    value.SetPadding(padding_ui8(0, 0, 0, 0));
+    value.SetPadding({ 0, 0, 0, 0 });
     value.font = resource_font(IDR_FNT_SMALL);
 }
 

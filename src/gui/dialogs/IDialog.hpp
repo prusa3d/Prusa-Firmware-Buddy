@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "window_frame.hpp"
-#include "guitypes.h"
+#include "guitypes.hpp"
 
 //interface for dialog
 class IDialog : public window_frame_t {

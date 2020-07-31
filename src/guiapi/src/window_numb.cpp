@@ -54,11 +54,11 @@ void window_numb_t::SetColor(color_t clr) {
 
 window_numb_t::window_numb_t(window_t *parent, rect_ui16_t rect, float value)
     : window_t(parent, rect)
-    , color_text(gui_defaults.color_text)
+    , color_text(GuiDefaults::ColorText)
     , font(gui_defaults.font)
     , value(value)
     , format("%.0f")
-    , padding(gui_defaults.padding)
+    , padding(GuiDefaults::Padding)
     , alignment(gui_defaults.alignment) {
     PrintAsFloat();
 }
