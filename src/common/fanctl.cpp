@@ -179,6 +179,4 @@ uint16_t fanctl_get_rpm(uint8_t fan) {
         return CFanCtl_instance[fan]->getActualRPM();
     return 0;
 }
-
-
 }
