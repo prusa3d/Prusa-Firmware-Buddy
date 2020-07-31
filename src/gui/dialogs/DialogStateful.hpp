@@ -59,7 +59,6 @@ protected:
     font_t *font_title;
     padding_ui8_t padding;
     uint16_t flags;
-    uint8_t last_text_h; //hack todo remove me
     uint8_t phase;
     uint8_t progress;
 
