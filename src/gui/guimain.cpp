@@ -18,6 +18,7 @@
 #endif //_DEBUG
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
+#include "screen_watchdog.hpp"
 
 #include "screen_lan_settings.h"
 #include "DialogHandler.hpp"
