@@ -117,9 +117,9 @@ Boquilla
 BOQUILLA
 La boquilla está muy fría.
 Boquilla: %.1f_C
-Ina
+Off
 OK
-Act
+On
 Al reiniciar
 Una vez
 Una vez que la\nimpresora comienza\na extruir plástico,\najusta la altura de\nla boquilla girando\nel dial hasta que\nel filamento se\nadhiera a la lámina.

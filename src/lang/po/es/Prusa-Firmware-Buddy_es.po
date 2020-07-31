@@ -543,7 +543,7 @@ msgstr "Boquilla: %.1f_C"
 #: src/guiapi/include/WindowMenuItems.hpp:130
 #: src/guiapi/include/WindowMenuItems.hpp:159
 msgid "Off"
-msgstr "Ina"
+msgstr "Off"
 
 #. MSGBOX_RES_NO        7
 #: src/guiapi/src/window_msgbox.cpp:55
@@ -553,7 +553,7 @@ msgstr "OK"
 #: src/guiapi/include/WindowMenuItems.hpp:131
 #: src/guiapi/include/WindowMenuItems.hpp:160
 msgid "On"
-msgstr "Act"
+msgstr "On"
 
 #: src/gui/screen_menu_fw_update.cpp:32
 msgid "On restart"
