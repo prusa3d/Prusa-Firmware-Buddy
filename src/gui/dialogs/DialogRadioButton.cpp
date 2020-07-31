@@ -1,6 +1,5 @@
 #include "DialogRadioButton.hpp"
 #include <algorithm> //find
-#include "button_draw.h"
 #include "sound.hpp"
 #include "../../lang/i18n.h"
 #include "resource.h" //IDR_FNT_BIG
@@ -131,6 +130,12 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
         rc_btn.w = black_space_w;
         display::FillRect(rc_btn, color_back);
     }
+}
+
+void RadioButton::button_draw(rect_ui16_t rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected) {
+    color_t back_cl = is_selected ? COLOR_ORANGE : COLOR_GRAY;
+    color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
+    render_text_align(rc_btn, text, pf, back_cl, text_cl, { 0, 0, 0, 0 }, ALIGN_CENTER);
 }
 
 bool RadioButton::IsEnabled() const {

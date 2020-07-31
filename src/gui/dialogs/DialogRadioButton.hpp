@@ -16,6 +16,8 @@ private:
     uint8_t btn_count : RESPONSE_BITS + 1;
     uint8_t selected_index : RESPONSE_BITS;
 
+    static void button_draw(rect_ui16_t rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected);
+
     void draw_0_btn() const;
     void draw_1_btn() const;
     void draw_n_btns(size_t btn_count) const;
