@@ -75,8 +75,6 @@ uint16_t st7789v_cy = 0; //
 
 uint8_t st7789v_buff[ST7789V_COLS * 2 * 16]; //16 lines buffer
 
-rect_ui16_t st7789v_clip = { 0, 0, ST7789V_COLS, ST7789V_ROWS };
-
 #ifdef ST7789V_USE_RTOS
 osThreadId st7789v_task_handle = 0;
 #endif //ST7789V_USE_RTOS
@@ -332,7 +330,7 @@ void st7789v_done(void) {
 }
 
 /// Fills screen by this color
-void st7789v_clear(color_t clr) {
+void st7789v_clear_C(uint32_t clr) {
     // FIXME similar to st7789v_fill_rect; join?
     int i;
     const uint16_t clr565 = color_to_565(clr);
@@ -356,21 +354,17 @@ void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint32_t clr) {
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
 }
 
-color_t st7789v_get_pixel(point_ui16_t pt) {
-    if (!point_in_rect_ui16(pt, st7789v_clip))
-        return 0;
+uint32_t st7789v_get_pixel_C(uint16_t point_x, uint16_t point_y) {
     uint16_t clr565;
-    st7789v_cmd_caset(pt.x, 1);
-    st7789v_cmd_raset(pt.y, 1);
+    st7789v_cmd_caset(point_x, 1);
+    st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramrd((uint8_t *)(&clr565), 2);
     return color_from_565(clr565);
 }
 
-void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t directColor) {
-    if (!point_in_rect_ui16(pt, st7789v_clip))
-        return;
-    st7789v_cmd_caset(pt.x, 1);
-    st7789v_cmd_raset(pt.y, 1);
+void st7789v_set_pixel_directColor_C(uint16_t point_x, uint16_t point_y, uint16_t directColor) {
+    st7789v_cmd_caset(point_x, 1);
+    st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&directColor), 2);
 }
 
@@ -405,69 +399,14 @@ static uint16_t rd18bit_to_16bit(uint8_t *buff) {
     return ((uint16_t)(buff[0] >> 5) & set_num_of_ones(3)) | (((uint16_t)(buff[2] >> 3) & set_num_of_ones(5)) << 3) | (((uint16_t)(buff[1] >> 3) & set_num_of_ones(5)) << 8) | (((uint16_t)(buff[0] >> 2) & set_num_of_ones(3)) << 13);
 }
 
-uint16_t st7789v_get_pixel_directColor(point_ui16_t pt) {
-    if (!point_in_rect_ui16(pt, st7789v_clip))
-        return 0;
+uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
     enum { buff_sz = 5 };
     uint8_t buff[buff_sz];
-    st7789v_cmd_caset(pt.x, 1);
-    st7789v_cmd_raset(pt.y, 1);
+    st7789v_cmd_caset(point_x, 1);
+    st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramrd(buff, buff_sz);
     uint16_t ret = rd18bit_to_16bit(buff + 2);
     return ret; //directColor;
-}
-
-/// Draws simple line (no antialiasing)
-/// Both end points are drawn
-void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
-    //todo check rectangle
-    int n;
-    const int dx = pt1.x - pt0.x;
-    const int dy = pt1.y - pt0.y;
-    int cx = ABS(dx);
-    int cy = ABS(dy);
-    const int adx = cx; // absolute difference in x ( = width - 1)
-    const int ady = cy; // absolute difference in y ( = height - 1)
-
-    if ((adx == 0) || (ady == 0)) { // orthogonal line
-        st7789v_fill_rect_C(MIN(pt0.x, pt1.x), MIN(pt0.y, pt1.y), adx + 1, ady + 1, clr);
-        return;
-    }
-
-    const int sx = SIGN1(dx);
-    const int sy = SIGN1(dy);
-    //FIXME every st7789v_set_pixel call checks if point is not outside the screen - performance issue
-
-    if (adx > ady) { // likely vertical line
-        for (n = adx; n > 0; --n) {
-            st7789v_set_pixel_C(pt0.x, pt0.y, clr);
-            if ((cx -= cy) <= 0) {
-                pt0.y += sy;
-                cx += adx;
-            }
-            pt0.x += sx;
-        }
-        return;
-    }
-
-    if (adx < ady) { // likely horizontal line
-        for (n = ady; n > 0; --n) {
-            st7789v_set_pixel_C(pt0.x, pt0.y, clr);
-            if ((cy -= cx) <= 0) {
-                pt0.x += sx;
-                cy += ady;
-            }
-            pt0.y += sy;
-        }
-        return;
-    }
-
-    //adx == ady => diagonal line
-    for (n = adx; n > 0; --n) {
-        st7789v_set_pixel_C(pt0.x, pt0.y, clr);
-        pt0.x += sx;
-        pt0.y += sy;
-    }
 }
 
 /// Draws a solid rectangle of defined color

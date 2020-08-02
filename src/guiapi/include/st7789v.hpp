@@ -4,6 +4,9 @@
 
 #include "st7789v.h"
 
+inline void st7789v_clear(const color_t clr) {
+    st7789v_clear_C(clr);
+}
 void st7789v_set_pixel(point_ui16_t pt, color_t clr);
 
 void st7789v_draw_rect(rect_ui16_t rc, color_t clr);
@@ -15,3 +18,11 @@ bool st7789v_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, con
 bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 
 void st7789v_clip_rect(rect_ui16_t rc);
+
+void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
+
+color_t st7789v_get_pixel(point_ui16_t pt);
+
+void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t noClr);
+
+uint16_t st7789v_get_pixel_directColor(point_ui16_t pt);

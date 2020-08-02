@@ -1,6 +1,5 @@
 //st7789v.h
-#ifndef _ST7789V_H
-#define _ST7789V_H
+#pragma once
 
 #include "stm32f4xx_hal.h"
 #include <inttypes.h>
@@ -40,9 +39,7 @@ extern "C" {
 
 extern void st7789v_init(void);
 extern void st7789v_done(void);
-extern void st7789v_clear(const color_t clr);
-
-extern void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
+extern void st7789v_clear_C(uint32_t clr);
 
 extern void st7789v_draw_png(point_ui16_t pt, FILE *pf);
 extern void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
@@ -63,9 +60,9 @@ extern uint8_t st7789v_brightness_get(void);
 extern void st7789v_brightness_enable(void);
 extern void st7789v_brightness_disable(void);
 
-extern color_t st7789v_get_pixel(point_ui16_t pt);
-extern void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t noClr);
-extern uint16_t st7789v_get_pixel_directColor(point_ui16_t pt);
+extern uint32_t st7789v_get_pixel_C(uint16_t point_x, uint16_t point_y);
+extern void st7789v_set_pixel_directColor_C(uint16_t point_x, uint16_t point_y, uint16_t noClr);
+extern uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y);
 
 extern st7789v_config_t st7789v_config;
 
@@ -78,5 +75,3 @@ extern void st7789v_spi_tx_complete(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _ST7789V_H
