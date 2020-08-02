@@ -1,5 +1,6 @@
-//gui.c
+//guitypes.cpp
 
+#include "guitypes.hpp"
 #include "guitypes.h"
 #include <algorithm>
 

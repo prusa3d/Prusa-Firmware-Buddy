@@ -128,8 +128,8 @@ void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
         return;
 
     point_ui16_t pt0 = { rc.x, rc.y };
-    point_ui16_t pt1 = { rc.x + rc.w - 1, rc.y };
-    point_ui16_t pt2 = { rc.x, rc.y + rc.h - 1 };
+    point_ui16_t pt1 = { uint16_t(rc.x + rc.w - 1), rc.y };
+    point_ui16_t pt2 = { rc.x, uint16_t(rc.y + rc.h - 1) };
 
     st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, rc.w, 1), clr); // top
     st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, 1, rc.h), clr); // left
@@ -219,5 +219,15 @@ void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t noClr) {
 uint16_t st7789v_get_pixel_directColor(point_ui16_t pt) {
     if (!point_in_rect_ui16(pt, st7789v_clip))
         return 0;
-    st7789v_get_pixel_directColor_C(pt.x, pt.y);
+    return st7789v_get_pixel_directColor_C(pt.x, pt.y);
+}
+
+void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) {
+    FILE *pf = resource_fopen(id_res, "rb");
+    st7789v_draw_png_ex(pt.x, pt.y, pf, clr0, rop);
+    fclose(pf);
+}
+
+void st7789v_draw_png(point_ui16_t pt, FILE *pf) {
+    st7789v_draw_png_ex(pt.x, pt.y, pf, 0, 0);
 }

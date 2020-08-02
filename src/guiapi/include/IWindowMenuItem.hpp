@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <array>
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "display_helper.h"
 #include "Iwindow_menu.hpp" //needed for window settings like rect, padding ...
 

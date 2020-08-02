@@ -41,8 +41,7 @@ extern void st7789v_init(void);
 extern void st7789v_done(void);
 extern void st7789v_clear_C(uint32_t clr);
 
-extern void st7789v_draw_png(point_ui16_t pt, FILE *pf);
-extern void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
+extern void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop);
 
 extern void st7789v_inversion_on(void);
 extern void st7789v_inversion_off(void);
