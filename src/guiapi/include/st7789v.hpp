@@ -3,6 +3,7 @@
 #pragma once
 
 #include "st7789v.h"
+#include "guitypes.hpp"
 
 inline void st7789v_clear(const color_t clr) {
     st7789v_clear_C(clr);
@@ -26,3 +27,7 @@ color_t st7789v_get_pixel(point_ui16_t pt);
 void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t noClr);
 
 uint16_t st7789v_get_pixel_directColor(point_ui16_t pt);
+
+void st7789v_draw_png(point_ui16_t pt, FILE *pf);
+
+void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);

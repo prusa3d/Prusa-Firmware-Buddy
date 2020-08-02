@@ -2,7 +2,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "display_helper.h"
 #include <algorithm>
 

@@ -6,7 +6,7 @@
 #include "marlin_client.h"
 #include "filament.h"
 #include "marlin_server.h"
-#include "guitypes.h"      //font_meas_text
+#include "guitypes.hpp"    //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "screens.h"
 #include "../lang/i18n.h"

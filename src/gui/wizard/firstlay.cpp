@@ -12,7 +12,7 @@
 #include "wizard_ui.h"
 #include "wizard_types.h"
 #include "wizard_progress_bar.h"
-#include "guitypes.h" //font_meas_text
+#include "guitypes.hpp" //font_meas_text
 #include "menu_vars.h"
 #include "filament.h"
 #include "../lang/i18n.h"

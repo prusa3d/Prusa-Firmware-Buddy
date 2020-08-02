@@ -495,14 +495,6 @@ static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
     }
 }
 
-void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop);
-
-void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) {
-    FILE *pf = resource_fopen(id_res, "rb");
-    st7789v_draw_png_ex(pt, pf, clr0, rop);
-    fclose(pf);
-}
-
 #ifdef ST7789V_PNG_SUPPORT
 
     #include <png.h>
@@ -554,7 +546,7 @@ void _pngfree(png_structp pp, png_voidp mem) {
     //	vPortFree(mem);
 }
 
-void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
+void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
     static const png_byte unused_chunks[] = {
         98, 75, 71, 68, '\0',   /* bKGD */
         99, 72, 82, 77, '\0',   /* cHRM */
@@ -607,8 +599,8 @@ void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {
     st7789v_clr_cs();
     if (setjmp(png_jmpbuf(pp)))
         goto _e_2;
-    st7789v_cmd_caset(pt.x, pt.x + w - 1);
-    st7789v_cmd_raset(pt.y, pt.y + h - 1);
+    st7789v_cmd_caset(point_x, point_x + w - 1);
+    st7789v_cmd_raset(point_y, point_y + h - 1);
     st7789v_cmd_ramwr(0, 0);
     switch (rop) {
         //case ROPFN_INVERT: rop_rgb888_invert((uint8_t*)&clr0); break;
@@ -662,10 +654,6 @@ _e_1:
     png_destroy_read_struct(&pp, &ppi, 0);
 _e_0:
     return;
-}
-
-void st7789v_draw_png(point_ui16_t pt, FILE *pf) {
-    st7789v_draw_png_ex(pt, pf, 0, 0);
 }
 
 void st7789v_inversion_on(void) {
@@ -755,9 +743,7 @@ void st7789v_ctrl_set(uint8_t ctrl) {
 
 #else //ST7789V_PNG_SUPPORT
 
-void st7789v_draw_png(point_ui16_t pt, FILE *pf) {}
-
-void st7789v_draw_png_ex(point_ui16_t pt, FILE *pf, color_t clr0, uint8_t rop) {}
+void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {}
 
 #endif //ST7789V_PNG_SUPPORT
 
