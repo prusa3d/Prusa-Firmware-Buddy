@@ -13,7 +13,7 @@
     #include "config.h"
     #include "gui.hpp"
     #include "term.h"
-    #include "st7789v.hpp"
+    #include "st7789v.h"
     #include "window_term.hpp"
     #include <stdio.h>
     #include <stdarg.h>
