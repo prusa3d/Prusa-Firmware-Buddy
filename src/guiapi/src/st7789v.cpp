@@ -1,16 +1,19 @@
 // st7789v.cpp
 #include "st7789v.hpp"
+#include <functional>
+#include <cmath>
 
 extern "C" {
 
 extern uint8_t st7789v_buff[ST7789V_COLS * 2 * 16]; //16 lines buffer
-extern rect_ui16_t st7789v_clip;
 
 extern void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 extern void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint32_t clr);
 extern void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr);
 
 } //extern "C"
+
+static rect_ui16_t st7789v_clip = { 0, 0, ST7789V_COLS, ST7789V_ROWS };
 
 void st7789v_clip_rect(rect_ui16_t rc) {
     st7789v_clip = rc;
@@ -147,4 +150,74 @@ void st7789v_set_pixel(point_ui16_t pt, color_t clr) {
     if (!point_in_rect_ui16(pt, st7789v_clip))
         return;
     st7789v_set_pixel_C(pt.x, pt.y, clr);
+}
+
+/// Draws simple line (no antialiasing)
+/// Both end points are drawn
+void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
+    //todo check rectangle
+    int n;
+    const int dx = pt1.x - pt0.x;
+    const int dy = pt1.y - pt0.y;
+    int cx = std::abs(dx);
+    int cy = std::abs(dy);
+    const int adx = cx; // absolute difference in x ( = width - 1)
+    const int ady = cy; // absolute difference in y ( = height - 1)
+
+    if ((adx == 0) || (ady == 0)) { // orthogonal line
+        st7789v_fill_rect_C(std::min(pt0.x, pt1.x), std::min(pt0.y, pt1.y), adx + 1, ady + 1, clr);
+        return;
+    }
+
+    const int sx = std::signbit(dx) ? -1 : 1;
+    const int sy = std::signbit(dy) ? -1 : 1;
+
+    if (adx > ady) { // likely vertical line
+        for (n = adx; n > 0; --n) {
+            st7789v_set_pixel_C(pt0.x, pt0.y, clr);
+            if ((cx -= cy) <= 0) {
+                pt0.y += sy;
+                cx += adx;
+            }
+            pt0.x += sx;
+        }
+        return;
+    }
+
+    if (adx < ady) { // likely horizontal line
+        for (n = ady; n > 0; --n) {
+            st7789v_set_pixel_C(pt0.x, pt0.y, clr);
+            if ((cy -= cx) <= 0) {
+                pt0.x += sx;
+                cy += ady;
+            }
+            pt0.y += sy;
+        }
+        return;
+    }
+
+    //adx == ady => diagonal line
+    for (n = adx; n > 0; --n) {
+        st7789v_set_pixel_C(pt0.x, pt0.y, clr);
+        pt0.x += sx;
+        pt0.y += sy;
+    }
+}
+
+color_t st7789v_get_pixel(point_ui16_t pt) {
+    if (!point_in_rect_ui16(pt, st7789v_clip))
+        return 0;
+    return st7789v_get_pixel_C(pt.x, pt.y);
+}
+
+void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t noClr) {
+    if (!point_in_rect_ui16(pt, st7789v_clip))
+        return;
+    st7789v_set_pixel_directColor_C(pt.x, pt.y, noClr);
+}
+
+uint16_t st7789v_get_pixel_directColor(point_ui16_t pt) {
+    if (!point_in_rect_ui16(pt, st7789v_clip))
+        return 0;
+    st7789v_get_pixel_directColor_C(pt.x, pt.y);
 }
