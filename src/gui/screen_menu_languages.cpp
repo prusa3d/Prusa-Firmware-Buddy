@@ -105,7 +105,7 @@ protected:
 
 /*****************************************************************************/
 //parent alias
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_CZECH, MI_GERMAN, MI_ENGLISH, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
 class ScreenMenuLanguages : public parent {
 public:
@@ -134,7 +134,7 @@ screen_t *const get_scr_menu_languages() { return &screen_menu_languages; }
 
 /*****************************************************************************/
 //parent alias
-using parent_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_CZECH, MI_GERMAN, MI_ENGLISH, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using parent_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
 class ScreenMenuLanguagesNoRet : public parent_noReturn {
 public:

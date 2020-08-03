@@ -1,4 +1,4 @@
-Bootloader Version %d.%d.%d\nBuddy Board %d.%d.%d %s
+\nBootloader Version\n %d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s
 Ein Crash-Dump-Bericht (Datei dump.bin) wurde auf dem USB-Laufwerk gespeichert.
 ABBRECHEN
 Alle Tests erfolgreich abgeschlossen!
@@ -13,13 +13,16 @@ ZURÜCK
 Zurück
 BETT
 Bettnivellierung fehlgeschlagen. Nochmals versuchen?
+Bett Soll: %.0f_C
+Bett: %.1f_C
 Kalibriere Z
 Kalibrierung
+KALIBRIERUNG
 Kalibrierung erfolgreich!\nFrohes Drucken!
-Kalibrierung XY
+Kalibriere XY
 ABBRECHEN
-FILAMENT WECHSEL
-Filament Wechsel
+FILAMENTWECHSEL
+Filament wechseln
 Prüfe Achsen
 Prüfe Hotend und\nHeizbettheizungen
 Stahlblech reinigen.
@@ -27,20 +30,20 @@ Glückwunsch! Die XYZ-Kalibrierung ist in Ordnung. XY-Achsen sind senkrecht.
 Kontinuierlicher Pieptest\nTaste drücken, um anzuhalten
 WEITER
 Abkühlen
-CPU Last
+CPU Auslastung
 SENSOR AUSSCHALTEN
 Motoren ausschalten
 Trennen
-Möchten Sie den\nletzten Schritt\nwiederholen und\nden Abstand zwischen\nDüse und Heizbett\nneu einstellen? 
-Nutzung des\naktuellen Wertes?\nAktuell: %0,3f.   \nVorgabe: %0.3f.   \nKlicken Sie auf NEIN, um den Standardwert zu verwenden (empfohlen)
-Möchten Sie den zuletzt eingestellten Wert verwenden? Letzter: %0.3f.   Voreinstellung: %0.3f.   Klicken Sie auf NEIN, um den Standardwert zu verwenden.
+Möchten Sie den letzten Schritt wiederholen und den Abstand zwischen Düse und Heizbett neu einstellen?
+Nutzung des aktuellen Wertes?\nAktuell: %0.3f.\nVorgabe: %0.3f.\nKlicken Sie auf NEIN, um den Standardwert zu verwenden (empfohlen)
+Möchten Sie den zuletzt eingestellten Wert verwenden?\nLetzter: %0.3f.\nVoreinstellung: %0.3f.\nKlicken Sie auf NEIN, um den Standardwert zu verwenden.
 FERTIG
-Werfe aus
+Auswerfen
 Fehler
 Fehler beim Speichern des Crash-Dump-Berichts auf das USB-Laufwerk. Bitte stecken Sie das USB-Laufwerk wieder ein und versuchen Sie es erneut.
 Es ist alles in Ordnung. Ich werde jetzt die XYZ-Kalibrierung durchführen. Es wird etwa 12 Minuten dauern.
 BEENDEN
-Werkseitige Standardeinstellungen geladen. Das System wird nun neu gestartet.
+Werkeinstellung geladen. Das System wird neu gestartet.
 Werkseinstellung
 Fehlerstat.
 Lüftertest
@@ -48,8 +51,8 @@ Fil.-Sens.
 FILAMENT
 Filament
 Filament nicht erkannt. Filament jetzt laden? Wählen Sie NEIN, um abzubrechen, oder IGNORIEREN, um den Filament-Sensor zu deaktivieren und fortzufahren.
-Beende\ngepufferten gcode.
-Firmware Version
+Beende gepufferten gcode.\n
+Firmware Version\n
 Erste Schicht Kal.
 ERSTE SCHICHT KALIB.
 Flussfaktor
@@ -57,62 +60,67 @@ FW UPDATE
 FW Update
 Heizbett
 Heizung wegen 30 Minuten Inaktivität deaktiviert.
-Heize...
+Aufheizen...
 Hallo, hier ist Ihr\nOriginal Prusa MINI.
 HOME
 Home
-Hotendlüfter
+HOME TO MAX
+Hotend Lüfter
 IGNORIEREN
-Im nächsten Schritt, \nden Knopf verwenden,\num die Höhe der Düse\neinzustellen. \nPrüfen Sie die\nBilder im Handbuch   \nals Referenz.
+Im nächsten Schritt, den Knopf verwenden, um die Höhe der Düse einzustellen. Prüfen Sie die Bilder im Handbuch als Referenz.
 INFO
 Info
 Informationen
-Führe ein
-IP-Adressen sind nicht gültig oder die Datei \lan_settings.ini\ befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
-IP-Adressen oder Parameter sind nicht gültig oder die Datei \lan_settings.ini\ befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
+Einführen
+IP-Adressen sind nicht gültig oder die Datei \"lan_settings.ini\" befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
+IP-Adressen oder Parameter sind nicht gültig oder die Datei \"lan_settings.ini\" befindet sich nicht im Stammverzeichnis des USB-Laufwerks.
 Farbe korrekt?
-Filament im\nExtruder Antrieb?
+Filament im       \nExtruder Antrieb? 
 Ist Stahlblech auf dem Heizbett?
 LAN EINSTELLUNGEN
 Lan Einstellungen
 Sprache
 SPRACHEN
-Live Adjust Z
+Live Z Anpassen
 LADEN
 FILAMENT LADEN
 Filament laden
 Ladeeinstellungen
 Lade ...
-Lade in Düse
+Zur Düse laden
 Laut
-Stellen Sie sicher,\ndass das Filament     \ndurch den Sensor  \ngeführt wird.
+Stellen Sie sicher, dass das Filament durch den Sensor geführt wird.
 Material
 Messe Referenz-\nHöhe der Kalibr.\nPunkte
+Menü Timeout
 BETTNIV.
 Bettnivelierung.
 Bettnivellierung fehlgeschlagen?
 MELDUNGEN
 Meldungen
-Bewegen Achsen
-Bewegen E
-Bewegen X
-Bewegen Y
-Bewegen Z
+Achsen Bewegen
+ACHSEN BEWEGEN
+Bewege E
+Bewege X
+Bewege Y
+Bewege Z
 WEITER
 NEIN
 Kein Filamentsensor erkannt. Überprüfen Sie, ob der Sensor angeschlossen ist, und versuchen Sie es erneut.
 Keine Meldung
 Kein USB
-Jetzt kalibrieren\nwir die Entfernung\nzwischen der Spitze\nder Düse und\ndas Druckblech.
+Jetzt kalibrieren wir die Entfernung zwischen der Spitze der Düse und dem Druckblech.
+Düse Soll: %.0f_C
 Düse
 DÜSE
 Düse ist zu kalt.
+Düse: %.1f_C
 Aus
 OK
 An
 Bei Neustart
 Einmal
-Sobald der Drucker\nbeginnt, Kunststoff\nzu extrudieren,\nstellen Sie die Höhe\nder Düse durch Knopf\nDrehen ein, bis der\nFaden am Druckblech\nhaftet.
+Sobald der Drucker\nbeginnt, Kunststoff\nzu extrudieren,\nstellen Sie die Höhe\nder Düse durch Knopf\nDrehen ein, bis der\nFilament am\nDruckblech haftet.
 Parke
 Pause
 Pausiert...
@@ -120,49 +128,52 @@ PID Anpassung
 Legen Sie während der Kalibrierung der ersten 4 Punkte ein Blatt Papier unter die Düse. Wenn die Düse das Papier berührt, schalten Sie den Drucker sofort aus!
 Bitte reinigen Sie die Düse zur Kalibrierung. Klicken Sie auf WEITER, wenn Sie fertig sind.
 Bitte schließen Sie ein USB-Laufwerk an und versuchen Sie es erneut.
-Bitte schließen Sie\nden USB-Stick an,\nder mit Ihrem MINI \ngeliefert wurde und\nDrucker zurücksetzen\nzum Firmwareflashen
+Bitte schließen Sie den USB-Stick an, der mit Ihrem MINI geliefert wurde und resetten den Drucker zum Firmwareflashen
 Bitte legen Sie Stahlblech auf das Heizbett.
 Bitte entfernen Sie Stahlblech vom Heizbett.
 Bitte warten
 VORHEIZEN
 Vorheizen
-VORHEIZEN LADEN
-VORHEIZEN ENTLADEN
+VORHEIZEN zum LADEN
+VORHEIZEN zum ENTLADEN
 Bereite Rammen vor
-WEITER drücken und\nFilament in den\nExtruder schieben.
-Drücken Sie WEITER,\num den Selbsttest\nauszuführen, bei dem\nnach potenziellen\nProblemen mit der\nMontage gesucht\nwird.
+WEITER drücken und Filament in den Extruder schieben.
+Drücken Sie WEITER, um den Selbsttest auszuführen, bei dem nach potenziellen Problemen mit der Montage gesucht wird.
 Drucken
 Drucklüfter
 Drucklüfter
 Druckzeit
 Druck wird enden
-Drucke
+DRUCKEN
 Druckzeit
 FILAMENT REINIGEN
 Filament reinigen
-Reinige
+Reinigen
 QR Test
 Frage
 Ramme
 Wirklich Trennen?
-NEU HEIZEN
+ERNEUT HEIZEN
 Restzeit
 Druck wiederholen
-RESET DRUCKER
+DRUCKER ZURÜCKSETZEN
 Fortsetzen
-Mache weiter...
+Fortfahren...
 WIEDERHOLEN
 Rückkehr
 Crash Dump speichern
 Einstellungen speichern
 Suche Bett-\nKalibrierpunkte
 Filamenttyp wählen
+DATEI WÄHLEN
+SPRACHE WÄHLEN
 Aktivieren, wenn Sie\nautomatisch aktua-\nlisierte Firmware\nvon einem USB-STICK\nflashen möchten.
-SelfTest
+Selbsttest
 SELBSTTEST
-Sende Info mit QR
+Sende Info per QR
 Service
 Einstellungen
+EINSTELLUNGEN
 Einstellungen erfolgreich geladen
 Leise
 Ton Modus
@@ -170,24 +181,24 @@ Ton Typ
 Geschwindigkeit
 Statische IPv4-Adressen wurden nicht festgelegt.
 Statistik
-STOPP
-Stopp
+STOP
+Stop
 Support
 System Info
 TEMPERATUR
 Temperatur
 Test
-Die Kalibrierung der ersten Schicht konnte nicht abgeschlossen werden. Überprüfen Sie die Verkabelung des Druckers, die Düse und die Achsen und starten Sie die Kalibrierung erneut.
+Die Kalibrierung der ersten Schicht konnte nicht abgeschlossen werden. Bitte Verkabelung, Düse und Achsen des Druckers überprüfen und starten Sie dann die Kalibrierung erneut.
 Der Drucker ist nicht kalibriert. Erste-Schicht-Kalibrierung starten?
-Der Selbsttest wurde\nnicht beendet.\nÜberprüfen Sie die\nVerkabelung und die\nAchsen des Druckers\ndoppelt. Starten Sie\ndann den Selbsttest\nerneut.
-Die Einstellungen wurden erfolgreich in der Datei \lan_settings.ini\ gespeichert.
-Die Statusleiste ist\nam unteren Rand des\nBildschirms. Sie\nenthält Infos über:\n - Düsentemperatur    \n - Heizbetttemp.   \n - Drucktempo\n - Höhe der Z-Achse   \n - Filamenttyp
-Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Überprüfen Sie die Verkabelung und die Achsen des Druckers doppelt und starten Sie dann die XYZ-Kalibrierung erneut.
-Es gab einen Fehler beim Speichern der Einstellungen in der Datei \lan_settings.ini\.
+Der Selbsttest wurde nicht beendet. Überprüfen Sie die Verkabelung und die Achsen des Druckers doppelt. Starten Sie dann den Selbsttest erneut.
+Die Einstellungen wurden erfolgreich in der Datei \"lan_settings.ini\" gespeichert.
+Die Statusleiste ist am unteren Rand des Bildschirms. Sie enthält Infos über:\n - Düsentemperatur\n - Heizbetttemp.\n - Drucktempo\n - Höhe der Z-Achse\n - Filamenttyp
+Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Bitte Verkabelung und Achsen des Druckers überprüfen und starten Sie dann die XYZ-Kalibrierung erneut.
+Es gab einen Fehler beim Speichern der Einstellungen in der Datei \"lan_settings.ini\".
 Diese Operation kann nicht rückgängig gemacht werden, die aktuelle Konfiguration geht verloren! Sind Sie wirklich sicher, dass Sie den Drucker auf die Werkseinstellungen zurücksetzen wollen?
 Timeout
-Zum Kalibrieren mit  \nderzeit geladenem \nFilament,          \ndrücken Sie WEITER.        \nZum Filamentwechsel,\ndrücken Sie ENTLADEN.
-Zum Kalibrieren mit  \nderzeit geladenem  \nFilament,          \ndrücken Sie WEITER.        \nZum Filamentladen,  \ndrücken Sie LADEN.        \nZum Filamentwechsel,\ndrücken Sie ENTLADEN.
+Zum Kalibrieren mit derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentwechsel drücken Sie ENTLADEN
+Zum Kalibrieren mit derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentladen, drücken Sie LADEN. Zum Filamentwechsel drücken Sie ENTLADEN
 NEU VERSUCHEN
 FEINEINSTELLEN
 Feineinstellung
@@ -201,10 +212,10 @@ USB-Laufwerk schreibgeschützt!
 Genutztes Filament
 VERSION INFO
 Version Info
-Warte auf Abkühlung
+Warte auf Abkühl
 Warte auf Temperatur
 Warnung
-Willkommen beim     \nOriginal Prusa MINI\nSetup-Assistenten.      \nMöchten Sie  \nfortfahren?
+Willkommen beim Original Prusa MINI Setup-Assistenten. Möchten Sie fortfahren?
 Willkommen beim Original Prusa MINI Einrichtungsassistenten. Möchten Sie fortfahren?
 Assistent
 ASSISTENT

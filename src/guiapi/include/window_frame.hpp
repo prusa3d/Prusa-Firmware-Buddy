@@ -4,7 +4,7 @@
 
 #include <inttypes.h>
 
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "window.hpp"
 
 struct window_class_frame_t {

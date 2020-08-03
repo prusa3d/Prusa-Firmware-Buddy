@@ -491,6 +491,7 @@ target_sources(
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
+          src/marlin_stubs/pause/M601_M602.cpp
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
@@ -586,6 +587,7 @@ if(GUI)
             src/guiapi/src/jogwheel.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
+            src/guiapi/src/st7789v.cpp
             src/guiapi/src/window_icon.cpp
             src/guiapi/src/window_spin.cpp
             src/guiapi/src/window_text.cpp
