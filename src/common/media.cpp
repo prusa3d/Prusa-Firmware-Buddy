@@ -159,7 +159,8 @@ private:
 
 void media_print_start(const char *sfnFilePath) {
     if (media_print_state == media_print_state_NONE) {
-        strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
+        if (sfnFilePath) // null sfnFilePath means use current filename media_print_SFN_path
+            strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
         // Beware - f_stat returns a SFN filename, when the input path is SFN
         // which is a nasty surprise. Therefore there is an alternative way of looking
         // for the file, which has the same results (and a bit lower code complexity)
