@@ -795,6 +795,8 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
 }
 
 #if HOTENDS
+  #if ((FAN_COUNT > 0) && ENABLED(PIDTEMP))
+
 static constexpr float ambient_temp = 21.0f;
 //! @brief Get steady state output needed to compensate hotend cooling
 //!
@@ -816,6 +818,7 @@ static float steady_state_hotend(float target_temp, float print_fan) {
           * SQRT(1 + print_fan * STEADY_STATE_HOTEND_FAN_COOLING_TERM);
   return _MAX(retval, 0);
 }
+  #endif //((FAN_COUNT > 0) && ENABLED(PIDTEMP))
   #if ANY(FEED_FORWARD_HOTEND_REGULATOR, PID_EXTRUSION_SCALING)
     static constexpr float sample_frequency = TEMP_TIMER_FREQUENCY / MIN_ADC_ISR_LOOPS / OVERSAMPLENR;
   #endif
