@@ -128,9 +128,13 @@ static const eeprom_vars_t eeprom_var_defaults = {
     1,               // EEVAR_RUN_FIRSTLAY
     1,               // EEVAR_FSENSOR_ENABLED
     0,               // EEVAR_ZOFFSET
+#if ENABLED(PIDTEMP)
     DEFAULT_Kp,      // EEVAR_PID_NOZ_P
     scalePID_i(DEFAULT_Ki),      // EEVAR_PID_NOZ_I
     scalePID_d(DEFAULT_Kd),      // EEVAR_PID_NOZ_D
+#else
+    0, 0, 0,
+#endif
     DEFAULT_bedKp,   // EEVAR_PID_BED_P
     scalePID_i(DEFAULT_bedKi),   // EEVAR_PID_BED_I
     scalePID_d(DEFAULT_bedKd),   // EEVAR_PID_BED_D
