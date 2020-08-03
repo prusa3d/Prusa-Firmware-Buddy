@@ -3,22 +3,29 @@
 
 #include "guitypes.h"
 
-typedef struct _point_ui16_t {
+typedef uint32_t color_t;
+
+struct point_i16_t {
+    int16_t x;
+    int16_t y;
+};
+
+struct point_ui16_t {
     uint16_t x;
     uint16_t y;
-} point_ui16_t;
+};
 
-typedef struct _size_ui16_t {
+struct size_ui16_t {
     uint16_t w;
     uint16_t h;
-} size_ui16_t;
+};
 
-typedef struct _rect_ui16_t {
+struct rect_ui16_t {
     uint16_t x;
     uint16_t y;
     uint16_t w;
     uint16_t h;
-} rect_ui16_t;
+};
 
 typedef struct _padding_ui8_t {
     uint8_t left;
