@@ -74,48 +74,6 @@ typedef struct _font_t {
     char asc_max; //max ascii code (last character)
 } font_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-inline uint16_t swap_ui16(uint16_t val) {
-    return (val >> 8) | ((val & 0xff) << 8);
-}
-
-inline uint16_t swap_ui32(uint32_t val) {
-    return (val >> 16) | ((val & 0xffff) << 16);
-}
-
-inline color_t color_rgb(const uint8_t r, const uint8_t g, const uint8_t b) {
-    return r | ((uint32_t)g << 8) | ((uint32_t)b << 16);
-}
-
-inline uint16_t color_to_565(color_t clr) {
-    return swap_ui16(((clr >> 19) & 0x001f) | ((clr >> 5) & 0x07e0) | ((clr << 8) & 0xf800));
-}
-
-inline color_t color_from_565(uint16_t clr565) {
-    //TODO
-    return 0;
-}
-
-inline color_t color_alpha(const color_t clr0, const color_t clr1, const uint8_t alpha) {
-    const uint8_t r0 = clr0 & 0xff;
-    const uint8_t g0 = (clr0 >> 8) & 0xff;
-    const uint8_t b0 = (clr0 >> 16) & 0xff;
-    const uint8_t r1 = clr1 & 0xff;
-    const uint8_t g1 = (clr1 >> 8) & 0xff;
-    const uint8_t b1 = (clr1 >> 16) & 0xff;
-    const uint8_t r = ((255 - alpha) * r0 + alpha * r1) / 255;
-    const uint8_t g = ((255 - alpha) * g0 + alpha * g1) / 255;
-    const uint8_t b = ((255 - alpha) * b0 + alpha * b1) / 255;
-    return color_rgb(r, g, b);
-}
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
 //resource type definition
 #define RESOURCE_TYPE_RAW 0 //raw binary resource
 #define RESOURCE_TYPE_TXT 1 //text resource

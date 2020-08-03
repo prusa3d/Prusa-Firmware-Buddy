@@ -6,7 +6,8 @@
 #include "guitypes.hpp"
 
 inline void st7789v_clear(const color_t clr) {
-    st7789v_clear_C(clr);
+    const uint16_t clr565 = color_to_565(clr);
+    st7789v_clear_C(clr565);
 }
 void st7789v_set_pixel(point_ui16_t pt, color_t clr);
 

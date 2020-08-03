@@ -88,8 +88,8 @@ rect_ui16_t rect_align_ui16(rect_ui16_t rc, rect_ui16_t rc1, uint8_t align) {
 point_ui16_t icon_meas(const uint8_t *pi) {
     point_ui16_t wh = { 0, 0 };
     if (memcmp(pi, "\x89PNG", 4) == 0) {
-        wh.x = swap_ui16(*((uint16_t *)(pi + 18)));
-        wh.y = swap_ui16(*((uint16_t *)(pi + 22)));
+        wh.x = __builtin_bswap16(*((uint16_t *)(pi + 18)));
+        wh.y = __builtin_bswap16(*((uint16_t *)(pi + 22)));
     }
     return wh;
 }
