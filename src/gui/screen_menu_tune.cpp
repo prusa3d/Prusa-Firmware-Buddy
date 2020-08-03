@@ -9,8 +9,8 @@
 
 /*****************************************************************************/
 //parent alias
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SPEED, MI_NOZZLE,
-    MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_BABYSTEP, MI_M600, MI_SOUND_MODE, MI_LAN_SETTINGS, MI_TIMEZONE, MI_VERSION_INFO,
+using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_BABYSTEP, MI_M600, MI_SPEED, MI_NOZZLE,
+    MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_SOUND_MODE, MI_LAN_SETTINGS, MI_TIMEZONE, MI_VERSION_INFO,
 #ifdef _DEBUG
     MI_TEST,
 #endif //_DEBUG

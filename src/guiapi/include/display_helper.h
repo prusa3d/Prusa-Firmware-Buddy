@@ -1,7 +1,7 @@
 //helper.h
 #pragma once
 
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
 
 #define RENDER_FLG_ALIGN           0x00ff       // alignment mask (ALIGN_xxx)

@@ -1,6 +1,5 @@
 //st7789v.h
-#ifndef _ST7789V_H
-#define _ST7789V_H
+#pragma once
 
 #include "stm32f4xx_hal.h"
 #include <inttypes.h>
@@ -38,18 +37,45 @@ typedef struct _st7789v_config_t {
 extern "C" {
 #endif //__cplusplus
 
+__attribute__((used)) inline uint16_t swap_ui16(uint16_t val) {
+    return __builtin_bswap16(val);
+    //return (val >> 8) | ((val & 0xff) << 8);
+}
+
+__attribute__((used)) inline uint16_t color_to_565(uint32_t clr) {
+    return swap_ui16(((clr >> 19) & 0x001f) | ((clr >> 5) & 0x07e0) | ((clr << 8) & 0xf800));
+}
+
+__attribute__((used)) inline uint32_t color_rgb(const uint8_t r, const uint8_t g, const uint8_t b) {
+    return r | ((uint32_t)g << 8) | ((uint32_t)b << 16);
+}
+
+__attribute__((used)) inline uint32_t color_from_565(uint16_t clr565) {
+    //TODO
+    return 0;
+}
+
+__attribute__((used)) inline uint32_t color_alpha(const uint32_t clr0, const uint32_t clr1, const uint8_t alpha) {
+    const uint8_t r0 = clr0 & 0xff;
+    const uint8_t g0 = (clr0 >> 8) & 0xff;
+    const uint8_t b0 = (clr0 >> 16) & 0xff;
+    const uint8_t r1 = clr1 & 0xff;
+    const uint8_t g1 = (clr1 >> 8) & 0xff;
+    const uint8_t b1 = (clr1 >> 16) & 0xff;
+    const uint8_t r = ((255 - alpha) * r0 + alpha * r1) / 255;
+    const uint8_t g = ((255 - alpha) * g0 + alpha * g1) / 255;
+    const uint8_t b = ((255 - alpha) * b0 + alpha * b1) / 255;
+    return color_rgb(r, g, b);
+}
+
+extern void png_meas(void);
 extern void st7789v_init(void);
 extern void st7789v_done(void);
-extern void st7789v_clear(const color_t clr);
-extern void st7789v_set_pixel(point_ui16_t pt, color_t clr);
-extern void st7789v_clip_rect(rect_ui16_t rc);
-extern void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
-extern void st7789v_draw_rect(rect_ui16_t rc, color_t clr);
-extern void st7789v_fill_rect(rect_ui16_t rc, color_t clr);
-extern bool st7789v_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
-extern bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg);
-extern void st7789v_draw_png(point_ui16_t pt, FILE *pf);
-extern void st7789v_draw_icon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
+extern void st7789v_clear_C(uint16_t clr565);
+extern void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint16_t clr565);
+extern void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565);
+
+extern void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop);
 
 extern void st7789v_inversion_on(void);
 extern void st7789v_inversion_off(void);
@@ -67,9 +93,9 @@ extern uint8_t st7789v_brightness_get(void);
 extern void st7789v_brightness_enable(void);
 extern void st7789v_brightness_disable(void);
 
-extern color_t st7789v_get_pixel(point_ui16_t pt);
-extern void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t noClr);
-extern uint16_t st7789v_get_pixel_directColor(point_ui16_t pt);
+extern uint32_t st7789v_get_pixel_C(uint16_t point_x, uint16_t point_y);
+extern void st7789v_set_pixel_directColor_C(uint16_t point_x, uint16_t point_y, uint16_t noClr);
+extern uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y);
 
 extern st7789v_config_t st7789v_config;
 
@@ -82,5 +108,3 @@ extern void st7789v_spi_tx_complete(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _ST7789V_H

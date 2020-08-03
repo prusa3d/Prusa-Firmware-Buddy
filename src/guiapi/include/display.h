@@ -2,7 +2,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "display_helper.h"
 #include <algorithm>
 
@@ -74,7 +74,7 @@ public:
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
 
-#include "st7789v.h"
+#include "st7789v.hpp"
 using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_init,
     st7789v_done,
