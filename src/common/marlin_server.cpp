@@ -442,7 +442,8 @@ void marlin_server_print_pause(void) {
 void marlin_server_print_resume(void) {
     if (marlin_server.print_state == mpsPaused) {
         marlin_server.print_state = mpsResuming_Begin;
-    }
+    } else
+        marlin_server_print_start(0);
 }
 
 void marlin_server_print_reheat_start(void) {
