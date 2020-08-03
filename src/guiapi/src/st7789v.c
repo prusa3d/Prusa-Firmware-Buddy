@@ -608,7 +608,7 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
             uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
             uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
             if (pixsize == 4) { //RGBA
-                *((color_t *)ppx888) = color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
+                *((uint32_t *)ppx888) = color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
             }
             switch (rop) {
             case ROPFN_INVERT:
