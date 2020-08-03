@@ -25,16 +25,6 @@ void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//workaroudn for MI_AUTO_HOME and MI_MESH_BED todo remove
-int8_t gui_marlin_G28_or_G29_in_progress() {
-    uint32_t cmd = marlin_command();
-    if ((cmd == MARLIN_CMD_G28) || (cmd == MARLIN_CMD_G29))
-        return -1;
-    else
-        return 0;
-}
-
-/*****************************************************************************/
 //MI_AUTO_HOME
 MI_AUTO_HOME::MI_AUTO_HOME()
     : WI_LABEL_t(label, 0, true, false) {
@@ -45,7 +35,7 @@ void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
     marlin_gcode("G28");
     while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
         marlin_client_loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/
@@ -60,13 +50,13 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
         marlin_gcode("G28");
         while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
             marlin_client_loop();
-        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
+        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
     }
     marlin_event_clr(MARLIN_EVT_CommandBegin);
     marlin_gcode("G29");
     while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
         marlin_client_loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/

@@ -29,3 +29,18 @@ struct window_icon_button_t : public window_icon_t {
 protected:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
+
+class window_icon_hourglass_t : public window_icon_t {
+    enum { ANIMATION_STEPS = 5,
+        ANIMATION_STEP_MS = 500 };
+    uint32_t start_time; //todo use window timer
+    color_t animation_color;
+    uint8_t phase;
+
+public:
+    window_icon_hourglass_t(window_t *parent, point_ui16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
+
+protected:
+    virtual void unconditionalDraw() override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+};

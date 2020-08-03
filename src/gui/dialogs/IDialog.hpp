@@ -21,7 +21,7 @@ public:
         return rc_btn;
     }
 
-    void MakeBlocking() const; //could be static, but I want it to be usable only from dialog
+    void MakeBlocking(void (*action)() = []() {}) const; //could be static, but I want it to be usable only from dialog
 };
 
 void create_blocking_dialog_from_normal_window(window_t &dlg);

@@ -31,11 +31,12 @@ void create_blocking_dialog_from_normal_window(window_t &dlg) {
         id_capture->SetCapture();
 }
 
-void IDialog::MakeBlocking() const {
+void IDialog::MakeBlocking(void (*action)()) const {
     gui_reset_jogwheel();
     //gui_invalidate();
 
     while (!Screens::Access()->ConsumeClose()) {
         gui_loop();
+        action();
     }
 }

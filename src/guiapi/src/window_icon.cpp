@@ -3,6 +3,7 @@
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
 #include "guitypes.hpp"
+#include "resource.h"
 
 void window_icon_init(window_icon_t *window) {
     window->color_back = COLOR_BLACK;
@@ -97,5 +98,137 @@ void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *pa
         callback();
     } else {
         window_icon_t::windowEvent(sender, event, param);
+    }
+}
+
+/*****************************************************************************/
+//window_icon_hourglass_t
+window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_ui16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
+    : window_icon_t(parent, IDR_PNG_wizard_icon_hourglass, pt, padding, close)
+    , start_time(HAL_GetTick())
+    , animation_color(COLOR_ORANGE)
+    , phase(0) {
+}
+
+struct Line {
+    point_ui16_t first;
+    point_ui16_t last;
+    constexpr Line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
+        : first({ x0, y0 })
+        , last({ x1, y1 }) {
+    }
+};
+
+struct LineColored : public Line {
+    color_t color;
+    constexpr LineColored(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, color_t clr)
+        : Line(x0, y0, x1, y1)
+        , color(clr) {
+    }
+};
+
+/*
+//original hourglass draw
+//todo check of new works
+            uint8_t x_start[] = { 15, 13, 11, 15, 15, 10, 11, 12, 15,  6, 12, 11, 12, 13, 13, 14, 14, 15, 10,  6,  6 };
+            uint8_t y_start[] = { 24, 33, 13, 19, 29, 33, 13, 14, 24, 33, 32, 13, 14, 15, 16, 17, 18, 26, 31, 32, 33 };
+            uint8_t x_end[] =   { 15, 16, 19, 15, 15, 19, 19, 18, 15, 23, 17, 19, 18, 17, 16, 16, 15, 15, 19, 23, 23 };
+            uint8_t y_end[] =   { 28, 33, 13, 23, 33, 33, 13, 14, 28, 33, 32, 13, 14, 15, 16, 17, 18, 33, 31, 32, 33 };
+            uint8_t color[] =   {  1,  1,  0,  1,  1,  1,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1 };
+            uint32_t colors[] = { COLOR_BLACK, COLOR_ORANGE };
+            uint8_t i = 0, limit = 0;
+
+            switch (window->animation) {
+            case ANIM_SAND_1:
+                limit = 2;
+                break;
+            case ANIM_SAND_2:
+                i = 2;
+                limit = 6;
+                break;
+            case ANIM_SAND_3:
+                i = 6;
+                limit = 11;
+                break;
+            case ANIM_SAND_4:
+                i = 11;
+                limit = 21;
+                break;
+            default:
+                break;
+            }
+
+            for (int idx = i; idx < limit; idx++) {
+                display::DrawLine(point_ui16(x + x_start[idx], y + y_start[idx]), point_ui16(x + x_end[idx], y + y_end[idx]), colors[color[idx]]);
+            }
+*/
+
+void window_icon_hourglass_t::unconditionalDraw() {
+
+    static constexpr color_t animation_color = COLOR_ORANGE;
+    static constexpr color_t back_color = COLOR_BLACK;
+
+    static constexpr LineColored lines[] = {
+        { 13, 24, 13, 28, animation_color },
+        { 11, 33, 14, 33, animation_color },
+        { 9, 13, 17, 13, back_color },
+        { 13, 19, 12, 23, animation_color },
+        { 13, 29, 13, 33, animation_color },
+        { 10, 33, 17, 33, animation_color },
+        { 9, 13, 17, 13, back_color },
+        { 10, 14, 16, 14, back_color },
+        { 13, 24, 13, 28, animation_color },
+        { 4, 33, 21, 33, animation_color },
+        { 10, 32, 15, 32, animation_color },
+        { 9, 13, 17, 13, back_color },
+        { 10, 14, 16, 14, back_color },
+        { 11, 15, 15, 15, back_color },
+        { 11, 16, 14, 16, back_color },
+        { 12, 17, 14, 17, back_color },
+        { 12, 18, 13, 18, back_color },
+        { 13, 26, 13, 33, animation_color },
+        { 8, 31, 17, 31, animation_color },
+        { 4, 32, 21, 32, animation_color },
+        { 4, 33, 21, 33, animation_color }
+    };
+
+    auto begin = std::begin(lines);
+    auto end = std::end(lines);
+
+    switch (phase) {
+    case 1:
+        begin = &lines[0];
+        end = &lines[2];
+        break;
+    case 2:
+        begin = &lines[2];
+        end = &lines[6];
+        break;
+    case 3:
+        begin = &lines[6];
+        end = &lines[11];
+        break;
+    case 4:
+        begin = &lines[11];
+        end = &lines[21];
+        break;
+    default:
+        window_icon_t::unconditionalDraw();
+        begin = &lines[0];
+        end = &lines[0];
+        break;
+    }
+
+    for (auto it = begin; it != end; ++it) {
+        display::DrawLine(point_ui16(rect.x + it->first.x, rect.y + it->first.y), point_ui16(rect.x + it->last.x, rect.y + it->last.y), it->color);
+    }
+}
+
+void window_icon_hourglass_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+    uint8_t phs = ((HAL_GetTick() - start_time) / ANIMATION_STEP_MS);
+    phs %= ANIMATION_STEPS;
+    if (phase != phs) {
+        phase = phs;
+        Invalidate();
     }
 }

@@ -5,6 +5,7 @@
 #include "screen_qr_error.hpp"
 #include "screen_qr_info.hpp"
 #include "screen_test.hpp"
+#include "screen_messages.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -141,7 +142,7 @@ MI_MESSAGES::MI_MESSAGES()
 }
 
 void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_messages()->id);
+    Screens::Access()->Open(ScreenFactory::Screen<screen_messages_data_t>);
 }
 
 /*****************************************************************************/
