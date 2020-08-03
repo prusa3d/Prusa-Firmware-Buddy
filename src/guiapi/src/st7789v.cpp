@@ -8,8 +8,6 @@ extern "C" {
 extern uint8_t st7789v_buff[ST7789V_COLS * 2 * 16]; //16 lines buffer
 
 extern void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-extern void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint32_t clr);
-extern void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr);
 
 } //extern "C"
 
@@ -141,15 +139,16 @@ void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
     rc = rect_intersect_ui16(rc, st7789v_clip);
     if (rect_empty_ui16(rc))
         return;
-
-    st7789v_fill_rect_C(rc.x, rc.y, rc.w, rc.h, clr);
+    uint16_t clr565 = color_to_565(clr);
+    st7789v_fill_rect_C(rc.x, rc.y, rc.w, rc.h, clr565);
 }
 
 /// Turns the specified pixel to the specified color
 void st7789v_set_pixel(point_ui16_t pt, color_t clr) {
     if (!point_in_rect_ui16(pt, st7789v_clip))
         return;
-    st7789v_set_pixel_C(pt.x, pt.y, clr);
+    uint16_t clr565 = color_to_565(clr);
+    st7789v_set_pixel_C(pt.x, pt.y, clr565);
 }
 
 /// Draws simple line (no antialiasing)

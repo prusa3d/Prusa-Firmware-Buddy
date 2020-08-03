@@ -83,7 +83,6 @@ osThreadId st7789v_task_handle = 0;
 void st7789v_gamma_set_direct(uint8_t gamma_enu);
 uint8_t st7789v_read_ctrl(void);
 void st7789v_ctrl_set(uint8_t ctrl);
-void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr);
 
 static inline void st7789v_set_cs(void) {
     gpio_set(st7789v_config.pinCS, 1);
@@ -330,10 +329,9 @@ void st7789v_done(void) {
 }
 
 /// Fills screen by this color
-void st7789v_clear_C(uint32_t clr) {
+void st7789v_clear_C(uint16_t clr565) {
     // FIXME similar to st7789v_fill_rect; join?
     int i;
-    const uint16_t clr565 = color_to_565(clr);
     for (i = 0; i < ST7789V_COLS * 16; i++)
         ((uint16_t *)st7789v_buff)[i] = clr565;
     st7789v_clr_cs();
@@ -347,8 +345,7 @@ void st7789v_clear_C(uint32_t clr) {
 }
 
 /// Turns the specified pixel to the specified color
-void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint32_t clr) {
-    uint16_t clr565 = color_to_565(clr);
+void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
     st7789v_cmd_caset(point_x, 1);
     st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
@@ -410,9 +407,8 @@ uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
 }
 
 /// Draws a solid rectangle of defined color
-void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr) {
+void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565) {
 
-    uint16_t clr565 = color_to_565(clr);
     uint32_t size = (uint32_t)rect_w * rect_h * 2; // area of rectangle
 
     st7789v_fill_ui16((uint16_t *)st7789v_buff, clr565, MIN(size, sizeof(st7789v_buff) / 2));
@@ -608,43 +604,24 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
     }
     for (i = 0; i < h; i++) {
         png_read_row(pp, st7789v_buff, NULL);
-        if (pixsize == 3) //RGB
-            for (j = 0; j < w; j++) {
-                uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
-                uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
-                switch (rop) {
-                case ROPFN_INVERT:
-                    rop_rgb888_invert(ppx888);
-                    break;
-                case ROPFN_SWAPBW:
-                    rop_rgb888_swapbw(ppx888);
-                    break;
-                case ROPFN_DISABLE:
-                    rop_rgb888_disabled(ppx888);
-                    break;
-                }
-                *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
-            }
-        else if (pixsize == 4) //RGBA
-        {
-            for (j = 0; j < w; j++) {
-                uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
-                uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
+        for (j = 0; j < w; j++) {
+            uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
+            uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
+            if (pixsize == 4) { //RGBA
                 *((color_t *)ppx888) = color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
-                switch (rop) {
-                case ROPFN_INVERT:
-                    rop_rgb888_invert(ppx888);
-                    break;
-                case ROPFN_SWAPBW:
-                    rop_rgb888_swapbw(ppx888);
-                    break;
-                case ROPFN_DISABLE:
-                    rop_rgb888_disabled(ppx888);
-                    break;
-                }
-                //*ppx565 = color_to_565(color_alpha(clr0, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]));
-                *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
             }
+            switch (rop) {
+            case ROPFN_INVERT:
+                rop_rgb888_invert(ppx888);
+                break;
+            case ROPFN_SWAPBW:
+                rop_rgb888_swapbw(ppx888);
+                break;
+            case ROPFN_DISABLE:
+                rop_rgb888_disabled(ppx888);
+                break;
+            }
+            *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
         }
         st7789v_wr(st7789v_buff, 2 * w);
     }
