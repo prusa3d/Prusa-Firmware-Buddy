@@ -1,6 +1,6 @@
 #pragma once
 
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include <array>
 #include <climits>
 

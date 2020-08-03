@@ -5,6 +5,11 @@
 
 typedef uint32_t color_t;
 
+struct point_i16_t {
+    int16_t x;
+    int16_t y;
+};
+
 struct point_ui16_t {
     uint16_t x;
     uint16_t y;

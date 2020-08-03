@@ -127,42 +127,6 @@ struct LineColored : public Line {
     }
 };
 
-/*
-//original hourglass draw
-//todo check of new works
-            uint8_t x_start[] = { 15, 13, 11, 15, 15, 10, 11, 12, 15,  6, 12, 11, 12, 13, 13, 14, 14, 15, 10,  6,  6 };
-            uint8_t y_start[] = { 24, 33, 13, 19, 29, 33, 13, 14, 24, 33, 32, 13, 14, 15, 16, 17, 18, 26, 31, 32, 33 };
-            uint8_t x_end[] =   { 15, 16, 19, 15, 15, 19, 19, 18, 15, 23, 17, 19, 18, 17, 16, 16, 15, 15, 19, 23, 23 };
-            uint8_t y_end[] =   { 28, 33, 13, 23, 33, 33, 13, 14, 28, 33, 32, 13, 14, 15, 16, 17, 18, 33, 31, 32, 33 };
-            uint8_t color[] =   {  1,  1,  0,  1,  1,  1,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1 };
-            uint32_t colors[] = { COLOR_BLACK, COLOR_ORANGE };
-            uint8_t i = 0, limit = 0;
-
-            switch (window->animation) {
-            case ANIM_SAND_1:
-                limit = 2;
-                break;
-            case ANIM_SAND_2:
-                i = 2;
-                limit = 6;
-                break;
-            case ANIM_SAND_3:
-                i = 6;
-                limit = 11;
-                break;
-            case ANIM_SAND_4:
-                i = 11;
-                limit = 21;
-                break;
-            default:
-                break;
-            }
-
-            for (int idx = i; idx < limit; idx++) {
-                display::DrawLine(point_ui16(x + x_start[idx], y + y_start[idx]), point_ui16(x + x_end[idx], y + y_end[idx]), colors[color[idx]]);
-            }
-*/
-
 void window_icon_hourglass_t::unconditionalDraw() {
 
     static constexpr color_t animation_color = COLOR_ORANGE;
