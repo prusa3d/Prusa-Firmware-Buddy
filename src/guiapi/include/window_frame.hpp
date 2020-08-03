@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "guitypes.hpp"
 #include "window.hpp"
 #include "display.h"
 

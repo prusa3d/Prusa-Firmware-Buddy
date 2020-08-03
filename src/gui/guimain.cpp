@@ -30,7 +30,7 @@ extern int HAL_IWDG_Reset;
 int guimain_spi_test = 0;
 
 #include "gpio.h"
-#include "st7789v.h"
+#include "st7789v.hpp"
 #include "jogwheel.h"
 #include "hwio.h"
 #include "diag.h"
