@@ -797,41 +797,41 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
 #if HOTENDS
   #if ((FAN_COUNT > 0) && ENABLED(PIDTEMP))
 
-static constexpr float ambient_temp = 21.0f;
-//! @brief Get steady state output needed to compensate hotend cooling
-//!
-//! steady state output:
-//! ((target_temp - ambient_temp) * STEADY_STATE_HOTEND_LINEAR_COOLING_TERM
-//! + (target_temp - ambient_temp)^2 * STEADY_STATE_HOTEND_QUADRATIC_COOLING_TERM * (1 - print_fan))
-//! * SQRT(1 + print_fan * STEADY_STATE_HOTEND_FAN_COOLING_TERM)
-//! temperatures in degrees (Celsius or Kelvin)
-//! @param target_temp target temperature in degrees Celsius
-//! @param print_fan print fan power in range 0.0 .. 1.0
-//! @return hotend PWM in range 0 .. 255
+    static constexpr float ambient_temp = 21.0f;
+    //! @brief Get steady state output needed to compensate hotend cooling
+    //!
+    //! steady state output:
+    //! ((target_temp - ambient_temp) * STEADY_STATE_HOTEND_LINEAR_COOLING_TERM
+    //! + (target_temp - ambient_temp)^2 * STEADY_STATE_HOTEND_QUADRATIC_COOLING_TERM * (1 - print_fan))
+    //! * SQRT(1 + print_fan * STEADY_STATE_HOTEND_FAN_COOLING_TERM)
+    //! temperatures in degrees (Celsius or Kelvin)
+    //! @param target_temp target temperature in degrees Celsius
+    //! @param print_fan print fan power in range 0.0 .. 1.0
+    //! @return hotend PWM in range 0 .. 255
 
-static float steady_state_hotend(float target_temp, float print_fan) {
-  static_assert(PID_MAX == 255, "PID_MAX == 255 expected");
-  // TODO Square root computation can be mostly avoided by if stored and updated only on print_fan change
-  const float tdiff = target_temp - ambient_temp;
-  const float retval = (tdiff * STEADY_STATE_HOTEND_LINEAR_COOLING_TERM
-          + sq(tdiff) * STEADY_STATE_HOTEND_QUADRATIC_COOLING_TERM * (1 - print_fan))
-          * SQRT(1 + print_fan * STEADY_STATE_HOTEND_FAN_COOLING_TERM);
-  return _MAX(retval, 0);
-}
+    static float steady_state_hotend(float target_temp, float print_fan) {
+      static_assert(PID_MAX == 255, "PID_MAX == 255 expected");
+      // TODO Square root computation can be mostly avoided by if stored and updated only on print_fan change
+      const float tdiff = target_temp - ambient_temp;
+      const float retval = (tdiff * STEADY_STATE_HOTEND_LINEAR_COOLING_TERM
+              + sq(tdiff) * STEADY_STATE_HOTEND_QUADRATIC_COOLING_TERM * (1 - print_fan))
+              * SQRT(1 + print_fan * STEADY_STATE_HOTEND_FAN_COOLING_TERM);
+      return _MAX(retval, 0);
+    }
   #endif //((FAN_COUNT > 0) && ENABLED(PIDTEMP))
-  #if ANY(FEED_FORWARD_HOTEND_REGULATOR, PID_EXTRUSION_SCALING)
+  #if ANY(MODEL_BASED_HOTEND_REGULATOR, PID_EXTRUSION_SCALING)
     static constexpr float sample_frequency = TEMP_TIMER_FREQUENCY / MIN_ADC_ISR_LOOPS / OVERSAMPLENR;
   #endif
-  #if ENABLED(FEED_FORWARD_HOTEND_REGULATOR)
+  #if ENABLED(MODEL_BASED_HOTEND_REGULATOR)
 
-    //! @brief Get feed forward output hotend
+    //! @brief Get model output hotend
     //!
     //! @param last_target Target temperature for this cycle
     //! (Can not be measured due to transport delay)
     //! @param expected Expected measurable hotend temperature in this cycle
     //! @param E_NAME hotend index
 
-    float Temperature::get_ff_output_hotend(float &last_target, float &expected, const uint8_t E_NAME) {
+    float Temperature::get_model_output_hotend(float &last_target, float &expected, const uint8_t E_NAME) {
       const uint8_t ee = HOTEND_INDEX;
 
       enum class Ramp : uint_least8_t {
@@ -936,7 +936,7 @@ static float steady_state_hotend(float target_temp, float print_fan) {
               expected_temp = temp_hotend[ee].celsius;
               pid_reset[ee] = false;
             }
-            const float feed_forward = get_ff_output_hotend(target_temp, expected_temp, ee);
+            const float feed_forward = get_model_output_hotend(target_temp, expected_temp, ee);
             #if ENABLED(PID_DEBUG)
             feed_forward_debug = feed_forward;
             #endif
@@ -1024,7 +1024,7 @@ static float steady_state_hotend(float target_temp, float print_fan) {
 
       return pid_output;
     }
-  #else // not FEED_FORWARD_HOTEND_REGULATOR
+  #else // not MODEL_BASED_HOTEND_REGULATOR
     float Temperature::get_pid_output_hotend(const uint8_t E_NAME) {
       const uint8_t ee = HOTEND_INDEX;
       #if ENABLED(PIDTEMP)
@@ -1147,7 +1147,7 @@ static float steady_state_hotend(float target_temp, float print_fan) {
 
       return pid_output;
     }
-  #endif // FEED_FORWARD_HOTEND_REGULATOR
+  #endif // MODEL_BASED_HOTEND_REGULATOR
 #endif // HOTENDS
 
 #if ENABLED(PIDTEMPBED)
