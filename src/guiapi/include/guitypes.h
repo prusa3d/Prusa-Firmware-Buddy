@@ -57,30 +57,6 @@
 
 #define COLOR_DARK_KHAKI 0x006BD7DBL
 
-typedef uint32_t color_t;
-
-typedef struct _point_ui16_t {
-    uint16_t x;
-    uint16_t y;
-} point_ui16_t;
-
-typedef struct _point_i16_t {
-    int16_t x;
-    int16_t y;
-} point_i16_t;
-
-typedef struct _size_ui16_t {
-    uint16_t w;
-    uint16_t h;
-} size_ui16_t;
-
-typedef struct _rect_ui16_t {
-    uint16_t x;
-    uint16_t y;
-    uint16_t w;
-    uint16_t h;
-} rect_ui16_t;
-
 typedef struct _resource_entry_t {
     const uint8_t *ptr;  // 4 bytes - pointer
     const uint16_t size; // 2 bytes - data size
