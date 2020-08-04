@@ -140,7 +140,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     }
 }
 
-//resend event to all childern
+//resend event to all children
 void window_frame_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
     window_t *ptr = first;
     while (ptr) {
