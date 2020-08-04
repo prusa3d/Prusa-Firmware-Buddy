@@ -5,31 +5,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 2.3.1\n"
-"Project-Id-Version: \n"
-"POT-Creation-Date: \n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"X-Generator: PhraseApp (phraseapp.com)\n"
 
 #: src/gui/screen_menu_version_info.cpp:90
 #, c-format
-msgid ""
-"\n"
-"Bootloader Version\n"
-"%d.%d.%d\n"
-"\n"
-"Buddy Board\n"
-"%d.%d.%d\n"
-"%s"
-msgstr ""
-"\n"
-"Verze bootloaderu\n"
-"%d.%d.%d\n"
-"\n"
-"Buddy deska\n"
-"%d.%d.%d\n"
-"%s"
+msgid "\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"
+msgstr "\nVerze bootloaderu\n%d.%d.%d\n\nBuddy deska\n%d.%d.%d\n%s"
 
 #: src/guiapi/src/MItem_tools.cpp:121
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
@@ -116,12 +97,8 @@ msgid "CALIBRATION"
 msgstr "KALIBRACE"
 
 #: src/gui/wizard/screen_wizard.c:496
-msgid ""
-"Calibration successful!\n"
-"Happy printing!"
-msgstr ""
-"Kalibrace dokončena!\n"
-"Tisku zdar!"
+msgid "Calibration successful!\nHappy printing!"
+msgstr "Kalibrace dokončena!\nTisku zdar!"
 
 #: src/gui/wizard/screen_wizard.cpp:304
 msgid "Calibration XY"
@@ -148,12 +125,8 @@ msgid "Checking axes"
 msgstr "Kontrola os"
 
 #: src/gui/wizard/selftest_temp.cpp:37
-msgid ""
-"Checking hotend and\n"
-"heatbed heaters"
-msgstr ""
-"Kontrola výhřevu\n"
-"hotendu a podložky"
+msgid "Checking hotend and\nheatbed heaters"
+msgstr "Kontrola výhřevu\nhotendu a podložky"
 
 #: src/gui/wizard/screen_wizard.c:462
 msgid "Clean steel sheet."
@@ -164,12 +137,8 @@ msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 msgstr "Gratulujeme! XYZ kalibrace v pořádku, všechny osy kolmé."
 
 #: src/guiapi/src/MItem_tools.cpp:273
-msgid ""
-"Continual beeps test\n"
-" press button to stop"
-msgstr ""
-"Probíhá zvukový test\n"
-"Zastavte tlačítkem"
+msgid "Continual beeps test\n press button to stop"
+msgstr "Probíhá zvukový test\nZastavte tlačítkem"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:29
 msgid "CONTINUE"
@@ -196,35 +165,13 @@ msgid "Disconnect"
 msgstr "Odpojit"
 
 #: src/gui/wizard/screen_wizard.c:448
-msgid ""
-"Do you want to     \n"
-"repeat the last    \n"
-"step and readjust  \n"
-"the distance       \n"
-"between the nozzle \n"
-"and heatbed?"
-msgstr ""
-"Chcete zopakovat   \n"
-"poslední krok a    \n"
-"upravit nastavení  \n"
-"vzdálenosti mezi   \n"
-"tryskou a          \n"
-"podložkou?"
+msgid "Do you want to     \nrepeat the last    \nstep and readjust  \nthe distance       \nbetween the nozzle \nand heatbed?"
+msgstr "Chcete zopakovat   \nposlední krok a    \nupravit nastavení  \nvzdálenosti mezi   \ntryskou a          \npodložkou?"
 
 #: src/gui/wizard/screen_wizard.c:405
 #, c-format
-msgid ""
-"Do you want to use\n"
-"the current value?\n"
-"Current: %0.3f.   \n"
-"Default: %0.3f.   \n"
-"Click NO to use the default value (recommended)"
-msgstr ""
-"Chcete použít     \n"
-"aktuální hodnotu? \n"
-"Aktuální: %0.3f.  \n"
-"Výchozí: %0.3f.   \n"
-"Zvolte NE pro výchozí hodnotu (doporučeno)"
+msgid "Do you want to use\nthe current value?\nCurrent: %0.3f.   \nDefault: %0.3f.   \nClick NO to use the default value (recommended)"
+msgstr "Chcete použít     \naktuální hodnotu? \nAktuální: %0.3f.  \nVýchozí: %0.3f.   \nZvolte NE pro výchozí hodnotu (doporučeno)"
 
 #: src/gui/wizard/screen_wizard.c:473
 #, c-format
@@ -290,12 +237,8 @@ msgid "Filament not detected. Load filament now? Select NO to cancel, or IGNORE 
 msgstr "Filament nebyl detekován. Zavést filament nyní? Vyberte NE pro zrušení tisku, nebo IGNOROVAT pro vypnutí senzoru a pokračování."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:44
-msgid ""
-"Finishing         \n"
-"buffered gcodes.  \n"
-msgstr ""
-"Dokončování       \n"
-"načtených gcodů.  \n"
+msgid "Finishing         \nbuffered gcodes.  \n"
+msgstr "Dokončování       \nnačtených gcodů.  \n"
 
 #. =============SET TEXT================
 #: src/gui/screen_menu_version_info.cpp:72
@@ -314,6 +257,11 @@ msgstr "KALIB. PRVNÍ VRSTVY"
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
 msgstr "Průtok"
+
+#. abbreviated Friday - max 3 characters
+#: src/lang/format_print_will_end.cpp:51
+msgid "Fri"
+msgstr "Pá"
 
 #: src/gui/screen_menu_fw_update.cpp:46
 msgid "FW UPDATE"
@@ -336,12 +284,8 @@ msgid "Heating..."
 msgstr "Zahřívání..."
 
 #: src/gui/guimain.c:189
-msgid ""
-"Hi, this is your\n"
-"Original Prusa MINI."
-msgstr ""
-"Vítá vás\n"
-"Original Prusa MINI!"
+msgid "Hi, this is your\nOriginal Prusa MINI."
+msgstr "Vítá vás\nOriginal Prusa MINI!"
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
 msgid "HOME"
@@ -376,22 +320,8 @@ msgstr "IGNOROVAT"
 #. "must stick to     \n"
 #. "the print surface."
 #: src/gui/wizard/screen_wizard.c:430
-msgid ""
-"In the next step, \n"
-"use the knob to   \n"
-"adjust the nozzle \n"
-"height.           \n"
-"Check the pictures\n"
-"in the handbook   \n"
-"for reference."
-msgstr ""
-"V dalším kroku    \n"
-"použijte ovládací \n"
-"tlačítko a nastavte\n"
-"výšku trysky.     \n"
-"V příručce najdete\n"
-"detailní instrukce\n"
-"a ilustrace."
+msgid "In the next step, \nuse the knob to   \nadjust the nozzle \nheight.           \nCheck the pictures\nin the handbook   \nfor reference."
+msgstr "V dalším kroku    \npoužijte ovládací \ntlačítko a nastavte\nvýšku trysky.     \nV příručce najdete\ndetailní instrukce\na ilustrace."
 
 #: src/gui/screen_menu_info.cpp:17
 msgid "INFO"
@@ -424,13 +354,8 @@ msgid "Is color correct?"
 msgstr "Je barva správná?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:54
-msgid ""
-"Is filament in    \n"
-"extruder gear?    "
-msgstr ""
-"Je filament       \n"
-"v podávacím       \n"
-"soukolí extruderu?"
+msgid "Is filament in    \nextruder gear?    "
+msgstr "Je filament       \nv podávacím       \nsoukolí extruderu?"
 
 #: src/gui/wizard/screen_wizard.c:313
 msgid "Is steel sheet on heatbed?"
@@ -465,7 +390,7 @@ msgstr "ZAVÉST"
 #: src/gui/dialogs/DialogFactory.cpp:12 src/gui/screen_menu_filament.cpp:45
 #: src/gui/screen_menu_filament.cpp:46
 msgid "LOAD FILAMENT"
-msgstr "ZAVÉST FIL."
+msgstr "ZAVÉST FILAMENT"
 
 #: src/gui/screen_menu_filament.cpp:44 src/gui/screen_menu_filament.cpp:45
 msgid "Load Filament"
@@ -490,11 +415,7 @@ msgid "Loud"
 msgstr "Hlasitý"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
-msgid ""
-"Make sure the     \n"
-"filament is       \n"
-"inserted through  \n"
-"the sensor.       "
+msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
 msgstr ""
 "Ujistěte se, že   \n"
 "je filament       \n"
@@ -506,14 +427,8 @@ msgid "Material"
 msgstr "Materiál"
 
 #: src/gui/wizard/xyzcalib.cpp:78
-msgid ""
-"Measuring reference\n"
-"height of calib.\n"
-"points"
-msgstr ""
-"Měření referenční\n"
-"výšky kalibračních\n"
-"bodů"
+msgid "Measuring reference\nheight of calib.\npoints"
+msgstr "Měření referenční\nvýšky kalibračních\nbodů"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Menu Timeout"
@@ -542,6 +457,11 @@ msgstr "ZPRÁVY"
 #: src/guiapi/include/MItem_menus.hpp:148
 msgid "Messages"
 msgstr "Zprávy"
+
+#. abbreviated Monday - max 3 characters
+#: src/lang/format_print_will_end.cpp:43
+msgid "Mon"
+msgstr "Po"
 
 #: src/guiapi/include/MItem_menus.hpp:98
 msgid "Move Axis"
@@ -592,17 +512,8 @@ msgid "No USB"
 msgstr "Vložte USB"
 
 #: src/gui/wizard/screen_wizard.c:392
-msgid ""
-"Now, let's calibrate\n"
-"the distance       \n"
-"between the tip    \n"
-"of the nozzle and  \n"
-"the print sheet.   "
-msgstr ""
-"Nyní zkalibrujeme   \n"
-"vzdálenost mezi    \n"
-"tryskou a tiskovým \n"
-"plátem.            "
+msgid "Now, let's calibrate\nthe distance       \nbetween the tip    \nof the nozzle and  \nthe print sheet.   "
+msgstr "Nyní zkalibrujeme   \nvzdálenost mezi    \ntryskou a tiskovým \nplátem.            "
 
 #. r=1 c=15
 #: src/gui/wizard/selftest_cool.cpp:65
@@ -654,24 +565,8 @@ msgid "Once"
 msgstr "Jednou"
 
 #: src/gui/wizard/firstlay.c:55 src/gui/wizard/firstlay.c:63
-msgid ""
-"Once the printer   \n"
-"starts extruding   \n"
-"plastic, adjust    \n"
-"the nozzle height  \n"
-"by turning the knob\n"
-"until the filament \n"
-"sticks to the print\n"
-"sheet."
-msgstr ""
-"Až MINI začne      \n"
-"extrudovat plast,  \n"
-"nastav výšku trysky\n"
-"otáčením ovládacího\n"
-"tlačítka. Filament \n"
-"musí být správně   \n"
-"přitlačen k        \n"
-"podložce."
+msgid "Once the printer   \nstarts extruding   \nplastic, adjust    \nthe nozzle height  \nby turning the knob\nuntil the filament \nsticks to the print\nsheet."
+msgstr "Až MINI začne      \nextrudovat plast,  \nnastav výšku trysky\notáčením ovládacího\ntlačítka. Filament \nmusí být správně   \npřitlačen k        \npodložce."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:45
 msgid "Parking"
@@ -704,18 +599,8 @@ msgid "Please insert a USB drive and try again."
 msgstr "Vložte USB disk a opakujte akci."
 
 #: src/gui/guimain.c:190
-msgid ""
-"Please insert the USB\n"
-"drive that came with\n"
-"your MINI and reset\n"
-"the printer to flash\n"
-"the firmware"
-msgstr ""
-"Vložte USB disk\n"
-"dodávaný k tiskárně\n"
-"a restartujte MINI.\n"
-"Tím zahájíte proces\n"
-"aktualizace FW."
+msgid "Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"
+msgstr "Vložte USB disk\ndodávaný k tiskárně\na restartujte MINI.\nTím zahájíte proces\naktualizace FW."
 
 #: src/gui/wizard/screen_wizard.c:346
 msgid "Please place steel sheet on heatbed."
@@ -755,29 +640,15 @@ msgid "Preparing to ram"
 msgstr "Příprava na ramming"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
-msgid ""
-"Press CONTINUE and\n"
-"push filament into\n"
-"the extruder.     "
+msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
 msgstr ""
-"Zvolte POKRAČOVAT\n"
+"Zvolte POKRAČOVAT \n"
 "a zasuňte filament\n"
-"do extruderu      "
+"do extruderu.     "
 
 #: src/gui/wizard/screen_wizard.c:206
-msgid ""
-"Press NEXT to run  \n"
-"the Selftest, which\n"
-"checks for         \n"
-"potential issues   \n"
-"related to         \n"
-"the assembly."
-msgstr ""
-"Vyberte DALŠÍ pro  \n"
-"spuštění SelfTestu,\n"
-"který ověří, zda   \n"
-"je tiskárna správně\n"
-"sestavena."
+msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
+msgstr "Vyberte DALŠÍ pro  \nspuštění Selftestu,\nkterý ověří, zda   \nje tiskárna správně\nsestavena."
 
 #: src/gui/screen_home.cpp:39
 msgid "Print"
@@ -870,6 +741,11 @@ msgstr "ZNOVU"
 msgid "Return"
 msgstr "Zpět"
 
+#. abbreviated Saturday - max 3 characters
+#: src/lang/format_print_will_end.cpp:53
+msgid "Sat"
+msgstr "So"
+
 #: src/guiapi/include/MItem_tools.hpp:78
 msgid "Save Crash Dump"
 msgstr "Uložit výpis chyb"
@@ -880,12 +756,8 @@ msgid "Save settings"
 msgstr "Uložit nastavení"
 
 #: src/gui/wizard/xyzcalib.cpp:66
-msgid ""
-"Searching bed\n"
-"calibration points"
-msgstr ""
-"Hledání kalibračních\n"
-"bodů na podložce"
+msgid "Searching bed\ncalibration points"
+msgstr "Hledání kalibračních\nbodů na podložce"
 
 #: src/gui/wizard/wizard_load_unload.c:77
 msgid "Select filament type"
@@ -900,20 +772,12 @@ msgid "SELECT LANGUAGE"
 msgstr "VÝBĚR JAZYKA"
 
 #: src/gui/screen_menu_fw_update.cpp:57
-msgid ""
-"Select when you want\n"
-"to automatically flash\n"
-"updated firmware\n"
-"from USB flash disk."
-msgstr ""
-"Zvolte, kdy chcete\n"
-"automaticky nahrát\n"
-"nový firmware\n"
-"z USB disku."
+msgid "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."
+msgstr "Zvolte, kdy chcete\nautomaticky nahrát\nnový firmware\nz USB disku."
 
 #: src/guiapi/include/MItem_tools.hpp:38
 msgid "SelfTest"
-msgstr "SelfTest"
+msgstr "Selftest"
 
 #: src/gui/wizard/screen_wizard.c:530
 msgid "SELFTEST"
@@ -957,6 +821,10 @@ msgstr "Zvuk"
 msgid "Sound Type"
 msgstr "Typ zvuku"
 
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sound Volume"
+msgstr "Hlasitost"
+
 #: src/guiapi/include/MItem_print.hpp:32
 msgid "Speed"
 msgstr "Rychlost"
@@ -978,6 +846,11 @@ msgstr "STOP"
 #: src/gui/screen_printing.cpp:77
 msgid "Stop"
 msgstr "Stop"
+
+#. abbreviated Sunday - max 3 characters
+#: src/lang/format_print_will_end.cpp:55
+msgid "Sun"
+msgstr "Ne"
 
 #: src/guiapi/include/MItem_menus.hpp:58
 msgid "Support"
@@ -1008,21 +881,8 @@ msgid "The printer is not calibrated. Start First Layer Calibration?"
 msgstr "Tiskána není zkalibrovaná. Začít kalibraci 1. vrstvy?"
 
 #: src/gui/wizard/screen_wizard.c:279
-msgid ""
-"The selftest failed\n"
-"to finish.         \n"
-"Double-check the   \n"
-"printer's wiring   \n"
-"and axes.          \n"
-"Then restart       \n"
-"the Selftest.      "
-msgstr ""
-"SelfTest selhal.   \n"
-"Zkontrolujte       \n"
-"zapojení el. částí \n"
-"i všechny osy.     \n"
-"Pak SelfTest       \n"
-"spusťte znovu.     "
+msgid "The selftest failed\nto finish.         \nDouble-check the   \nprinter's wiring   \nand axes.          \nThen restart       \nthe Selftest.      "
+msgstr "Selftest selhal.   \nZkontrolujte       \nzapojení el. částí \ni všechny osy.     \nPak SelfTest       \nspusťte znovu.     "
 
 #: src/gui/screen_menu_lan_settings.cpp:296
 #: src/gui/screen_menu_lan_settings.cpp:297
@@ -1031,26 +891,8 @@ msgid "The settings have been saved successfully in the \"lan_settings.ini\" fil
 msgstr "Nastavení úspěšně uloženo do souboru \"lan_settings.ini\""
 
 #: src/gui/wizard/screen_wizard.c:192
-msgid ""
-"The status bar is at\n"
-"the bottom of the  \n"
-"screen. It contains\n"
-"information about: \n"
-" - Nozzle temp.    \n"
-" - Heatbed temp.   \n"
-" - Printing speed  \n"
-" - Z-axis height   \n"
-" - Selected filament"
-msgstr ""
-"V dolní části       \n"
-"obrazovky je       \n"
-"stavový řádek.     \n"
-"Obsahuje info o:   \n"
-" -Teplotě trysky   \n"
-" -Teplotě podložky \n"
-" -Rychlosti tisku  \n"
-" -Výšce osy Z      \n"
-" -Filamentu"
+msgid "The status bar is at\nthe bottom of the  \nscreen. It contains\ninformation about: \n - Nozzle temp.    \n - Heatbed temp.   \n - Printing speed  \n - Z-axis height   \n - Selected filament"
+msgstr "V dolní části       \nobrazovky je       \nstavový řádek.     \nObsahuje info o:   \n -Teplotě trysky   \n -Teplotě podložky \n -Rychlosti tisku  \n -Výšce osy Z      \n -Filamentu"
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
@@ -1067,49 +909,38 @@ msgstr "Při ukládání souboru \"lan_settings.ini\" došlo k chybě."
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
 msgstr "Tuto operaci nelze vrátit, současná konfigurace bude ztracena! Skutečně chcete obnovit tovární nastavení?"
 
+#. abbreviated Thursday - max 3 characters
+#: src/lang/format_print_will_end.cpp:49
+msgid "Thr"
+msgstr "Čt"
+
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
 msgstr "Automatický návrat do menu"
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
-msgid ""
-"To calibrate with  \n"
-"currently loaded   \n"
-"filament,          \n"
-"press NEXT.        \n"
-"To change filament,\n"
-"press UNLOAD."
-msgstr ""
-"Pro kalibraci s    \n"
-"aktuálně zavedeným \n"
-"filamentem zvolte  \n"
-"DALŠÍ. Pro výměnu  \n"
-"zvolte VYJMOUT."
+msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD."
+msgstr "Pro kalibraci s    \naktuálně zavedeným \nfilamentem zvolte  \nDALŠÍ. Pro výměnu  \nzvolte VYJMOUT."
 
 #: src/gui/wizard/wizard_load_unload.cpp:46
-msgid ""
-"To calibrate with  \n"
-"currently loaded   \n"
-"filament,          \n"
-"press NEXT.        \n"
-"To load filament,  \n"
-"press LOAD.        \n"
-"To change filament,\n"
-"press UNLOAD."
-msgstr ""
-"Pro kalibraci s    \n"
-"aktuálně zavedeným \n"
-"filamentem zvolte  \n"
-"DALŠÍ. Pro zavedení\n"
-"filamentu zvolte   \n"
-"ZAVÉST. Pro výměnu \n"
-"zvolte VYJMOUT."
+msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD."
+msgstr "Pro kalibraci s    \naktuálně zavedeným \nfilamentem zvolte  \nDALŠÍ. Pro zavedení\nfilamentu zvolte   \nZAVÉST. Pro výměnu \nzvolte VYJMOUT."
+
+#. Used in "The print will end:", keep it up to 10 characters
+#: src/lang/format_print_will_end.cpp:29
+msgid "Today at"
+msgstr "Dnes v"
 
 #. MSGBOX_RES_OK        8
 #. 9
 #: src/guiapi/src/window_msgbox.cpp:57
 msgid "TRY AGAIN"
 msgstr "OPAKOVAT"
+
+#. abbreviated Tuesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:45
+msgid "Tue"
+msgstr "Út"
 
 #: src/gui/screen_menu_tune.cpp:21
 msgid "TUNE"
@@ -1175,18 +1006,14 @@ msgstr "Zahřívání"
 msgid "Warning"
 msgstr "Varování"
 
+#. abbreviated Wednesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:47
+msgid "Wed"
+msgstr "St"
+
 #: src/gui/wizard/screen_wizard.cpp:146
-msgid ""
-"Welcome to the     \n"
-"Original Prusa MINI\n"
-"setup wizard.      \n"
-"Would you like to  \n"
-"continue?           "
-msgstr ""
-"Vítejte v průvodci \n"
-"nastavením Original\n"
-"Prusa MINI. Přejete\n"
-"si pokračovat?     "
+msgid "Welcome to the     \nOriginal Prusa MINI\nsetup wizard.      \nWould you like to  \ncontinue?           "
+msgstr "Vítejte v průvodci \nnastavením Original\nPrusa MINI. Přejete\nsi pokračovat?     "
 
 #: src/gui/test/screen_test_msgbox.c:28
 msgid "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"

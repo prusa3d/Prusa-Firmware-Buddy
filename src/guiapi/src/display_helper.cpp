@@ -11,7 +11,7 @@
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
 
-#define UNACCENT
+//#define UNACCENT
 
 #ifdef UNACCENT
 std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {

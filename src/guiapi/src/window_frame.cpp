@@ -16,7 +16,7 @@ void window_frame_t::RegisterSubWin(window_t *win) {
     if (!(first && last)) {
         first = last = win;
         return;
-    }        
+    }
     if (win->IsDialog()) {
         window_t *pWin = first;
         while (pWin) {
@@ -99,7 +99,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     case WINDOW_EVENT_ENC_DN:
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
-            if (!pPrev) {
+            if (!pPrev)
                 break;
             pWin = pPrev;
         }
@@ -113,11 +113,9 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     case WINDOW_EVENT_ENC_UP:
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
-            if (pNext) {
-                pWin = pNext;
-            } else {
+            if (!pNext)
                 break;
-            }
+            pWin = pNext;
         }
         if (pWin)
             pWin->SetFocus();

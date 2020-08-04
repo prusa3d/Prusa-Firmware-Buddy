@@ -37,6 +37,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     , textMenuName(this, rect_ui16(0, 0, display::GetW(), 22))
     , textCPU_load(this, rect_ui16(col_0, 25, col_0_w, row_h))
     , textCPU_load_val(this, rect_ui16(col_1, 25, col_1_w, row_h))
+    , textDateTime(this, rect_ui16(0, 50, display::GetW(), row_h))
     , textExit(this, rect_ui16(col_0, 290, 60, 22), is_closed_on_click_t::yes) {
 
     textMenuName.font = resource_font(IDR_FNT_BIG);
@@ -51,7 +52,18 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textCPU_load_val.SetFormat((const char *)"%.0f");
     textCPU_load_val.SetValue(osGetCPUUsage());
 
+#ifdef DEBUG_NTP
+    time_t sec = sntp_get_system_time();
+    struct tm now;
+    localtime_r(&sec, &now);
+    static char buff[40];
+    FormatMsgPrintWillEnd::Date(buff, 40, &now, true, FormatMsgPrintWillEnd::ISO);
+    textDateTime.font = resource_font(IDR_FNT_NORMAL);
+    textDateTime.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)buff));
+#endif
+
     textExit.font = resource_font(IDR_FNT_BIG);
+
     static const char ex[] = N_("EXIT");
     textExit.SetText(_(ex));
 }

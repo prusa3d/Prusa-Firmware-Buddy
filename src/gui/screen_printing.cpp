@@ -11,6 +11,7 @@
 #include <ctime>
 #include "wui_api.h"
 #include "../lang/i18n.h"
+#include "../lang/format_print_will_end.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"
@@ -360,21 +361,21 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
 
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
-        strftime(text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
-    } else if (tommorow.tm_mday == print_end.tm_mday &&                                     // if print end is tommorow
+        //strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
+        FormatMsgPrintWillEnd::Today(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
+    } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
         tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
-        strftime(text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
+        //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
+        FormatMsgPrintWillEnd::DayOfWeek(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
     } else {
-        strftime(text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%MM", &print_end);
+        //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%MM", &print_end);
+        FormatMsgPrintWillEnd::Date(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true, FormatMsgPrintWillEnd::ISO);
     }
     if (print_speed != 100)
         strlcat(text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
 
     if (time_invalid == false) {
-        uint8_t length = strlen(text_etime.data());
-        if (length > 0) {
-            text_etime[length - 1] = 0;
-        }
+        text_etime[text_etime.size() - 1] = 0; // safety \0 termination in all cases
     }
     // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));

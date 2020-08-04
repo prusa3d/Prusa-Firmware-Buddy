@@ -15,11 +15,18 @@ using namespace std;
 /// 2020-07-17 update
 /// ¡ ¿ À Á È É Ê Í Ó Ú Ü ß  à á â ä  è é ê í ò ó ö  ú ü  ý Ą ą ć Č č Ę ę Ě ě Ł ł ń ň Ř ř Ś ś Š š ť Ů ů ź ż Ž ž
 /// ¡ ¿ A A E E E I O U U ss a a a ae e e e i o o oe u ue y A a c C c E e E e L l n n R r S s S s t U u z z Z z
+/// 2020-07-28 update
+/// ¡ ¿ À Á Ä È É Ê Í Ó Ú Ü Ý ß à á â ä è é ê í ò ó ö ú ü ý Ą ą ć Č č Ę ę Ě ě Ł ł ń ň Ř ř Ś ś Š š ť Ů ů ź ż Ž ž
+/// ¡ ¿ A A A E E E I O U U Y s a a a a e e e i o o o u u y A a c C c E e E e L l n n R r S s S s t U u z z Z z
+/// 2020-07-29 update
+/// ¡ ¿ À Á Ä È É Ê Í Ó Ú Ü Ý ß à á â ä ç è é ê í ñ ò ó ö ú ü ý Ą ą ć Č č Ę ę Ě ě Ł ł ń ň Ř ř Ś ś Š š ť Ů ů ź ż Ž ž
+/// ¡ ¿ A A A E E E I O U U Y s a a a a   e e e i   o o o u u y A a c C c E e E e L l n n R r S s S s t U u z z Z z
 const UnaccentTable::Item UnaccentTable::table[] = {
     { 0xa1, 1, "!" },  // ¡
     { 0xbf, 1, "?" },  // ¿
     { 0xc0, 1, "A" },  // À
     { 0xc1, 1, "A" },  // Á
+    { 0xc4, 1, "A" },  // Ä
     { 0xc8, 1, "E" },  // È
     { 0xc9, 1, "E" },  // É
     { 0xca, 1, "E" },  // Ê
@@ -27,15 +34,18 @@ const UnaccentTable::Item UnaccentTable::table[] = {
     { 0xd3, 1, "O" },  // Ó
     { 0xda, 1, "U" },  // Ú
     { 0xdc, 1, "U" },  // Ü
+    { 0xdd, 1, "Y" },  // Ý
     { 0xdf, 1, "s" },  // ß
     { 0xe0, 1, "a" },  // à
     { 0xe1, 1, "a" },  // á
     { 0xe2, 1, "a" },  // â
     { 0xe4, 1, "a" },  // ä
+    { 0xe7, 1, "c" },  // ç
     { 0xe8, 1, "e" },  // è
     { 0xe9, 1, "e" },  // é
     { 0xea, 1, "e" },  // ê
     { 0xed, 1, "i" },  // í
+    { 0xf1, 1, "n" },  // ñ
     { 0xf2, 1, "o" },  // ò
     { 0xf3, 1, "o" },  // ó
     { 0xf6, 1, "o" },  // ö
