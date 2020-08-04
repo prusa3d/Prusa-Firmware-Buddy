@@ -180,7 +180,7 @@ void Screens::Loop() {
             } else {
                 if (stack_iterator != stack.end() && (stack_iterator + 1) != stack.end()) {
                     ++stack_iterator;            // point behind last creator
-                    (*stack_iterator) = creator; // save future creator 0n top of the stack
+                    (*stack_iterator) = creator; // save future creator on top of the stack
                 } else {
                     bsod("Screen stack overflow");
                 }
