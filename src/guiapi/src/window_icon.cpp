@@ -60,7 +60,7 @@ window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_ui16_t pt,
 
 void window_icon_t::unconditionalDraw() {
     uint8_t ropfn = 0;
-    if ((IsBWSwapped())) { // that could not be set, but what if
+    if (IsBWSwapped()) { // that could not be set, but what if
         ropfn |= ROPFN_DISABLE;
     }
     if ((IsFocused())) {
