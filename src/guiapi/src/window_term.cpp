@@ -2,16 +2,6 @@
 #include "window_term.hpp"
 #include "gui.hpp"
 
-static void window_term_init(window_term_t *window) {
-    window->color_back = GuiDefaults::ColorBack;
-    window->color_text = GuiDefaults::ColorText;
-    window->font = GuiDefaults::Font;
-    window->term = 0;
-    window->Enable();
-
-    display::FillRect(window->rect, window->color_back);
-}
-
 void render_term(rect_ui16_t rc, term_t *pt, const font_t *font, color_t clr0, color_t clr1) {
     uint8_t char_w = font->w;
     uint8_t char_h = font->h;
@@ -44,12 +34,8 @@ void render_term(rect_ui16_t rc, term_t *pt, const font_t *font, color_t clr0, c
         display::FillRect(rc, clr0);
 }
 
-static void window_term_draw(window_term_t *window) {
-    if (window->IsInvalid() && window->IsVisible()) {
-        render_term(window->rect, window->term, window->font, window->color_back, window->color_text);
-        window->Validate();
-        ;
-    }
+void window_term_t::unconditionalDraw() {
+    render_term(rect, term, font, color_back, color_text);
 }
 
 window_term_t::window_term_t(window_t *parent, rect_ui16_t rect)

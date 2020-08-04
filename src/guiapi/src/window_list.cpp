@@ -40,19 +40,19 @@ void window_list_t::unconditionalDraw() {
         uint16_t id_icon;
         list_item(this, idx, &label, &id_icon);
 
-        color_t color_text = color_text;
-        color_t color_back = color_back;
+        color_t text_cl = color_text;
+        color_t back_cl = color_back;
         uint8_t swap = 0;
 
         rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
             rc_win.w, uint16_t(item_height) };
-        padding_ui8_t padding = padding;
+        padding_ui8_t padd = padding;
 
         if (rect_in_rect_ui16(rc, rc_win)) {
             if (index == idx) {
-                color_t swp = color_text;
-                color_text = color_back;
-                color_back = swp;
+                color_t swp = text_cl;
+                text_cl = back_cl;
+                back_cl = swp;
                 swap = ROPFN_SWAPBW;
             }
 
@@ -62,15 +62,15 @@ void window_list_t::unconditionalDraw() {
                 rc.x += irc.w;
                 rc.w -= irc.w;
                 render_icon_align(irc, id_icon,
-                    color_back, RENDER_FLG(ALIGN_CENTER, swap));
+                    back_cl, RENDER_FLG(ALIGN_CENTER, swap));
             } else {
-                padding.left += icon_rect.w;
+                padd.left += icon_rect.w;
             }
 
             // render
             render_text_align(rc, _(label), font,
-                color_back, color_text,
-                padding, alignment);
+                back_cl, text_cl,
+                padd, alignment);
         }
     }
     rc_win.h = rc_win.h - (i * item_height);

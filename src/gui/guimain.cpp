@@ -114,7 +114,7 @@ extern "C" void gui_run(void) {
 
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
-    int8_t gui_timeout_id;
+    //int8_t gui_timeout_id;
     while (1) {
         Screens::Access()->Loop();
         // show warning dialog on safety timer expiration

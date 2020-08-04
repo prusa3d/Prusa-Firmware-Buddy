@@ -14,7 +14,7 @@
 #include "../lang/i18n.h"
 
 uint64_t wizard_mask = 0;
-
+#if 0
 static int is_state_in_wizard_mask(wizard_state_t st) {
     return ((((uint64_t)1) << st) & wizard_mask) != 0;
 }
@@ -26,7 +26,7 @@ static _TEST_STATE_t init_state(wizard_state_t st) {
         return _TEST_PASSED;
     }
 }
-#if 0
+
 void screen_wizard_init(screen_t *screen) {
     marlin_set_print_speed(100);
     pd->state = _STATE_START;
