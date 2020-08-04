@@ -15,7 +15,7 @@ dlg_result_t gui_dlg_calib_z(void) {
     marlin_gcode("G28");
     while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
         marlin_client_loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress); // from beggining of the scope to here it's deprecated
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress); // from beginning of the scope to here it's deprecated
 
     marlin_gcode("G162 Z");
     // create blocking dialog
