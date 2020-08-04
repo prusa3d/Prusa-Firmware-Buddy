@@ -32,7 +32,7 @@ void window_t::Invalidate(rect_ui16_t validation_rect) {
 void window_t::invalidate(rect_ui16_t validation_rect) {
 }
 
-//frame will validate childern
+//frame will validate children
 void window_t::validate(rect_ui16_t validation_rect) {
 }
 
