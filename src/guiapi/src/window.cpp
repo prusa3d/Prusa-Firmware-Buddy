@@ -28,7 +28,7 @@ void window_t::Invalidate(rect_ui16_t validation_rect) {
     gui_invalidate();
 }
 
-//frame will invalidate childern
+//frame will invalidate children
 void window_t::invalidate(rect_ui16_t validation_rect) {
 }
 
