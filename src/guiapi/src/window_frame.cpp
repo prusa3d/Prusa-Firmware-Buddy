@@ -150,7 +150,7 @@ void window_frame_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
     windowEvent(this, ev, param);
 }
 
-//resend invalidate to all childern
+//resend invalidation to all children
 void window_frame_t::invalidate(rect_ui16_t validation_rect) {
     window_t *ptr = first;
     while (ptr) {
