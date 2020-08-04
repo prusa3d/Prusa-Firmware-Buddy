@@ -100,7 +100,10 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
         if ((now - time) > 950) {
             is_starting = 0;
         }
-        header.EventClr();
+
+        //header.EventClr();
+        if (header.EventClr_MediaInserted())
+            printBtnEna();
     }
 
     //todo i think this should be hnadled in print preview
