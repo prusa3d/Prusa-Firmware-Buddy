@@ -17,7 +17,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 
 class ScreenMenuInfo : public Screen {
 public:
-    constexpr static const char *label = N_("INFO");
+    constexpr static char *label = N_("INFO");
     ScreenMenuInfo()
         : Screen(_(label)) {}
 };
