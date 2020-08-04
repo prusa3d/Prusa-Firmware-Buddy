@@ -200,7 +200,7 @@ La configuración se ha guardado correctamente en el archivo \"lan_settings.ini\
 La barra de estado está en el fondo de la pantalla. Contiene Información sobre:\nTemp. de la boquilla\nTemp. de la base\nVel. de impresión\nAlt. del eje Z\nFil. seleccionado
 La calibración XYZ no pudo finalizar. Vuelva a verificar el cableado y los ejes de la impresora, luego reinicia la calibración XYZ.
 Se produjo un error al guardar la configuración en el archivo \"lan_settings.ini\".
-Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Está realmente seguro de restablecer la impresora a los valores predeterminados de fábrica?
+Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Seguro que quieres restaurar la impresora a los valores de fábrica?
 Jue
 Timeout
 Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cambiarlo, pulsa DESCARGAR.
