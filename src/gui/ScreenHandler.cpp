@@ -156,7 +156,7 @@ void Screens::Loop() {
         if (current) {                              // is there something to close?
             if (creator) {                          // have creator, have to emulate opening
                 stack_iterator = stack.begin();     // point to screen[0], (screen[0] is home)
-                close = false;                      // clr close flag, creator will be pusthed into screen[1] position
+                close = false;                      // clr close flag, creator will be pushed into screen[1] position
             } else {                                // do not have creator, have to emulate closing
                 stack_iterator = stack.begin() + 1; // point behind screen[0], (screen[0] is home)
                 close = true;                       // set flag to close screen[1] == open screen[0] (home)
