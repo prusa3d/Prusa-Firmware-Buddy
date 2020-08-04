@@ -106,7 +106,7 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
             printBtnEna();
     }
 
-    //todo i think this should be hnadled in print preview
+    //todo i think this should be handled in print preview
     if (header.EventClr_MediaInserted()) {
         if (HAL_GetTick() > 5000) {
             // we are using marlin variables for filename and filepath buffers
