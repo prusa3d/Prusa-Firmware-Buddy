@@ -7,23 +7,23 @@
 
 extern osThreadId displayTaskHandle;
 
-bool window_t::IsVisible() const { return f_visible == true; }
-bool window_t::IsEnabled() const { return f_enabled == true; }
-bool window_t::IsInvalid() const { return f_invalid == true; }
+bool window_t::IsVisible() const { return flag_visible == true; }
+bool window_t::IsEnabled() const { return flag_enabled == true; }
+bool window_t::IsInvalid() const { return flag_invalid == true; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
-bool window_t::HasTimer() const { return f_timer == true; }
-bool window_t::IsDialog() const { return f_dialog == is_dialog_t::yes; }
+bool window_t::HasTimer() const { return flag_timer == true; }
+bool window_t::IsDialog() const { return flag_dialog == is_dialog_t::yes; }
 void window_t::Validate(rect_ui16_t validation_rect) {
     //todo check validation_rect intersection
-    f_invalid = false;
+    flag_invalid = false;
     invalidate(validation_rect);
     gui_invalidate();
 }
 
 void window_t::Invalidate(rect_ui16_t validation_rect) {
     //todo check validation_rect intersection
-    f_invalid = true;
+    flag_invalid = true;
     invalidate(validation_rect);
     gui_invalidate();
 }
@@ -36,13 +36,13 @@ void window_t::invalidate(rect_ui16_t validation_rect) {
 void window_t::validate(rect_ui16_t validation_rect) {
 }
 
-void window_t::SetHasTimer() { f_timer = true; }
-void window_t::ClrHasTimer() { f_timer = false; }
-void window_t::Enable() { f_enabled = true; }
-void window_t::Disable() { f_enabled = false; }
+void window_t::SetHasTimer() { flag_timer = true; }
+void window_t::ClrHasTimer() { flag_timer = false; }
+void window_t::Enable() { flag_enabled = true; }
+void window_t::Disable() { flag_enabled = false; }
 
 void window_t::SetFocus() {
-    if (!f_visible || !f_enabled)
+    if (!flag_visible || !flag_enabled)
         return;
 
     if (focused_ptr) {
@@ -57,7 +57,7 @@ void window_t::SetFocus() {
 
 void window_t::SetCapture() {
 
-    if (f_visible && f_enabled) {
+    if (flag_visible && flag_enabled) {
         if (capture_ptr) {
             capture_ptr->windowEvent(capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
         }
@@ -69,14 +69,14 @@ void window_t::SetCapture() {
 
 void window_t::Show() {
     if (!IsVisible()) {
-        f_visible = 1;
+        flag_visible = 1;
         Invalidate();
     }
 }
 
 void window_t::Hide() {
     if (IsVisible()) {
-        f_visible = 0;
+        flag_visible = 0;
         Invalidate();
     }
 }
@@ -94,8 +94,8 @@ window_t::window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog, is_cl
     , flg(0)
     , rect(rect)
     , color_back(GuiDefaults::ColorBack) {
-    f_dialog = dialog;
-    f_on_click_close_screen = close;
+    flag_dialog = dialog;
+    flag_close_on_click = close;
     close == is_closed_on_click_t::yes ? Enable() : Disable();
     Show();
     Invalidate();
@@ -193,7 +193,7 @@ void window_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
 }
 void window_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK && parent) {
-        if (f_on_click_close_screen == is_closed_on_click_t::yes) {
+        if (flag_close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
         } else {
             parent->windowEvent(this, event, param);

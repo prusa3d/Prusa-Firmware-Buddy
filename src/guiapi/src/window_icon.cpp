@@ -70,9 +70,9 @@ void window_icon_t::unconditionalDraw() {
     render_icon_align(rect, id_res, color_back, RENDER_FLG(alignment, ropfn));
 }
 
-bool window_icon_t::IsBWSwapped() const { return f_parent_defined0 == true; }
-void window_icon_t::SwapBW() { f_parent_defined0 = true; }
-void window_icon_t::UnswapBW() { f_parent_defined0 = false; }
+bool window_icon_t::IsBWSwapped() const { return flag_custom0 == true; }
+void window_icon_t::SwapBW() { flag_custom0 = true; }
+void window_icon_t::UnswapBW() { flag_custom0 = false; }
 
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
     size_ui16_t ret = size_ui16(0, 0);

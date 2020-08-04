@@ -42,22 +42,22 @@ protected:
     union {
         uint16_t flg;
         struct {
-            bool f_visible : 1;                               // 00 - is visible
-            bool f_enabled : 1;                               // 01 - is enabled (can be focused)
-            bool f_invalid : 1;                               // 02 - content is invalid
-            bool f_checked : 1;                               // 03 - is checked/selected
-            bool f_timer : 1;                                 // 04 - window has timers
-            is_dialog_t f_dialog : 1;                         // 05 - window id dialog
-            is_closed_on_click_t f_on_click_close_screen : 1; // 06 - window id dialog
-            bool f_parent_defined0 : 1;                       // 07 - this flag can be defined in parent
-            bool f_parent_defined1 : 1;                       // 08 - this flag can be defined in parent
-            bool f_parent_defined2 : 1;                       // 09 - this flag can be defined in parent
-            bool f_parent_defined3 : 1;                       // 0A - this flag can be defined in parent
-            bool f_parent_defined4 : 1;                       // 0B - this flag can be defined in parent
-            bool f_parent_defined5 : 1;                       // 0C - this flag can be defined in parent
-            bool f_parent_defined6 : 1;                       // 0D - this flag can be defined in parent
-            bool f_parent_defined7 : 1;                       // 0E - this flag can be defined in parent
-            bool f_parent_defined8 : 1;                       // 0F - this flag can be defined in parent
+            bool flag_visible : 1;                        // 00 - is visible
+            bool flag_enabled : 1;                        // 01 - is enabled (can be focused)
+            bool flag_invalid : 1;                        // 02 - content is invalid (draw)
+            bool flag_checked : 1;                        // 03 - is checked/selected
+            bool flag_timer : 1;                          // 04 - window has timers
+            is_dialog_t flag_dialog : 1;                  // 05 - window id dialog
+            is_closed_on_click_t flag_close_on_click : 1; // 06 - window id dialog
+            bool flag_custom0 : 1;                        // 07 - this flag can be defined in parent
+            bool flag_custom1 : 1;                        // 08 - this flag can be defined in parent
+            bool flag_custom2 : 1;                        // 09 - this flag can be defined in parent
+            bool flag_custom3 : 1;                        // 0A - this flag can be defined in parent
+            bool flag_custom4 : 1;                        // 0B - this flag can be defined in parent
+            bool flag_custom5 : 1;                        // 0C - this flag can be defined in parent
+            bool flag_custom6 : 1;                        // 0D - this flag can be defined in parent
+            bool flag_custom7 : 1;                        // 0E - this flag can be defined in parent
+            bool flag_custom8 : 1;                        // 0F - this flag can be defined in parent
         };
     };
 
