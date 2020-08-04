@@ -1,5 +1,6 @@
 // st7789v.c
 #include "st7789v.h"
+#include "st7789v_impl.h"
 
 #include <guiconfig.h>
 #include <string.h>
