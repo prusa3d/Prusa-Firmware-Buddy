@@ -52,12 +52,24 @@ void GcodeSuite::M25() {
 
 // M26 - Set SD position
 void GcodeSuite::M26() {
-    //TODO
+    if ((media_get_state() == media_state_INSERTED) && parser.seenval('S'))
+        media_print_set_position(parser.value_long());
 }
 
 // M27 - Report SD print status
 void GcodeSuite::M27() {
-    //TODO
+    if (parser.seen('C')) {
+        SERIAL_ECHOPGM("Current file: ");
+        SERIAL_ECHOLN(media_print_filepath());
+    } else {
+        if ((media_print_get_state() == media_print_state_PRINTING) || (media_print_get_state() == media_print_state_PAUSED)) {
+            SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
+            SERIAL_ECHO(media_print_get_position());
+            SERIAL_CHAR('/');
+            SERIAL_ECHOLN(media_print_get_size());
+        } else
+            SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
+    }
 }
 
 // M28 - Begin write to SD card

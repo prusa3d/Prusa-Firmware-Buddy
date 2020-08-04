@@ -220,6 +220,11 @@ uint32_t media_print_get_position(void) {
     return media_current_position;
 }
 
+void media_print_set_position(uint32_t pos) {
+    if (pos < media_print_size)
+        media_current_position = pos;
+}
+
 float media_print_get_percent_done(void) {
     if (media_print_size)
         return 100 * ((float)media_current_position / media_print_size);
