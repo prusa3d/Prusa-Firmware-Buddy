@@ -99,11 +99,9 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     case WINDOW_EVENT_ENC_DN:
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
-            if (pPrev) {
-                pWin = pPrev;
-            } else {
+            if (!pPrev) {
                 break;
-            }
+            pWin = pPrev;
         }
         if (pWin)
             pWin->SetFocus();
