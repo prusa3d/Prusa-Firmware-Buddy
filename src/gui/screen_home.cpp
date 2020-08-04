@@ -83,7 +83,7 @@ void screen_home_init(screen_t *screen) {
     p_window_header_set_text(&(pw->header), _("HOME"));
 
     window_create_ptr(WINDOW_CLS_ICON, root,
-        rect_ui16(41, 31, 158, 40), &(pw->logo));
+        rect_ui16(41, 33, 158, 40), &(pw->logo));
     pw->logo.SetIdRes(IDR_PNG_status_logo_prusa_prn);
 
     for (uint8_t row = 0; row < 2; row++) {

@@ -17,7 +17,6 @@ IDialogStateful::IDialogStateful(const char *name, int16_t WINDOW_CLS_)
     , font_title(gui_defaults.font_big)
     , padding(gui_defaults.padding)
     , flags(0)
-    , last_text_h(0)
     , phase(0)
     , progress(-1)
     , title(name) {
@@ -124,17 +123,11 @@ void IDialogStateful::draw_phase_text(string_view_utf8 text) {
     rc_sta.x += 2;
     rc_sta.w -= 4;
 
-    //erase remains of previous text if it was longer
-    //prerelease hack todo text window just should be CENTER_TOP aligned and bigger
-    int h_diff = last_text_h - rc_sta.h;
-    if (h_diff > 0) {
-        rect_ui16_t rc = rc_sta;
-        rc.h = last_text_h - rc_sta.h;
-        rc.y += rc_sta.h;
-        display::FillRect(rc, color_back);
-    }
-
-    last_text_h = rc_sta.h;
+    //todo prerelease hack todo text window just should be CENTER_TOP aligned and bigger
+    //erase previous text
+    rect_ui16_t rc = rc_sta;
+    rc.h = get_radio_button_size().y - rc_sta.y;
+    display::FillRect(rc, color_back);
 
     text.rewind();
     render_text_align(rc_sta, text, font_title,
