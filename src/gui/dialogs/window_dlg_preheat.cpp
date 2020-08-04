@@ -12,7 +12,7 @@
 #include "../lang/i18n.h"
 #include "window_frame.hpp"
 #include <limits>
-#include "Mitem_tools.hpp"
+#include "MItem_tools.hpp"
 #include "screen_menu.hpp"
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
