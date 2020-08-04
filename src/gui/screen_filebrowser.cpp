@@ -40,7 +40,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
 
     header.SetIcon(IDR_PNG_filescreen_icon_folder);
-    static const char sf[] = "SELECT FILE";
+    static const char sf[] = N_("SELECT FILE");
     header.SetText(_(sf));
 
     // initialize the directory (and selected file) from marlin_vars

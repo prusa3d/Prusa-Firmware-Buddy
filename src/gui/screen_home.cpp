@@ -68,15 +68,15 @@ screen_home_data_t::screen_home_data_t()
 
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
-            //w_buttons[row * 3 + col].SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
-            w_buttons[row * 3 + col].rect = rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
-            w_buttons[row * 3 + col].SetIdRes(icons[row * 3 + col]);
+            const size_t i = row * 3 + col;
+            w_buttons[i].rect = rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
+            w_buttons[i].SetIdRes(icons[i]);
 
-            w_labels[row * 3 + col].rect = rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14);
-            w_labels[row * 3 + col].font = resource_font(IDR_FNT_SMALL);
-            w_labels[row * 3 + col].SetAlignment(ALIGN_CENTER);
-            w_labels[row * 3 + col].SetPadding({ 0, 0, 0, 0 });
-            w_labels[row * 3 + col].SetText(_(labels[row * 3 + col]));
+            w_labels[i].rect = rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14);
+            w_labels[i].font = resource_font(IDR_FNT_SMALL);
+            w_labels[i].SetAlignment(ALIGN_CENTER);
+            w_labels[i].SetPadding({ 0, 0, 0, 0 });
+            w_labels[i].SetText(_(labels[i]));
         }
     }
 
