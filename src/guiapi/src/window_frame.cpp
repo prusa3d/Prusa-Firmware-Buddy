@@ -13,20 +13,20 @@ window_frame_t::window_frame_t(window_t *parent, rect_ui16_t rect, is_dialog_t d
 
 //register sub win
 void window_frame_t::RegisterSubWin(window_t *win) {
-    if (first && last) {
-        if (win->IsDialog()) {
-            window_t *pWin = first;
-            while (pWin) {
-                pWin->Hide(); //todo check dialog intersection
-                //define shadowed by dialog flag
-                pWin = pWin->GetNext();
-            }
-        }
-        last->SetNext(win);
-        last = last->GetNext();
-    } else {
+    if (!(first && last)) {
         first = last = win;
+        return;
+    }        
+    if (win->IsDialog()) {
+        window_t *pWin = first;
+        while (pWin) {
+            pWin->Hide(); //todo check dialog intersection
+            //define shadowed by dialog flag
+            pWin = pWin->GetNext();
+        }
     }
+    last->SetNext(win);
+    last = last->GetNext();
 }
 
 //unregister sub win
