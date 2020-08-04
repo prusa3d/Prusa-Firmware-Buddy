@@ -68,17 +68,17 @@ window_t *window_frame_t::GetLast() const {
 void window_frame_t::draw() {
     if (!IsVisible())
         return;
-    bool setChildernInvalid = false;
+    bool setChildrenInvalid = false;
 
     if (IsInvalid()) {
         unconditionalDraw();
         Validate();
-        setChildernInvalid = true;
+        setChildrenInvalid = true;
     }
 
     window_t *ptr = first;
     while (ptr) {
-        if (setChildernInvalid)
+        if (setChildrenInvalid)
             ptr->Invalidate();
         ptr->Draw();
         ptr = ptr->GetNext();
@@ -157,7 +157,7 @@ void window_frame_t::invalidate(rect_ui16_t validation_rect) {
     }
 }
 
-//resend validate to all childern
+//resend validate to all children
 void window_frame_t::validate(rect_ui16_t validation_rect) {
     window_t *ptr = first;
     while (ptr) {

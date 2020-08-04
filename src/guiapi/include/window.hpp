@@ -72,7 +72,7 @@ public:
     window_t *GetNextEnabled() const;
     window_t *GetParent() const;
     void Draw();
-    void ScreenEvent(window_t *sender, uint8_t event, void *param); //try to handle, frame resends childern
+    void ScreenEvent(window_t *sender, uint8_t event, void *param); //try to handle, frame resends children
     void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, can sent click to parent
     bool IsVisible() const;
     bool IsEnabled() const;

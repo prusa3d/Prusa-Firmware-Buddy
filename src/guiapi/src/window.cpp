@@ -7,12 +7,12 @@
 
 extern osThreadId displayTaskHandle;
 
-bool window_t::IsVisible() const { return flag_visible == true; }
-bool window_t::IsEnabled() const { return flag_enabled == true; }
-bool window_t::IsInvalid() const { return flag_invalid == true; }
+bool window_t::IsVisible() const { return flag_visible; }
+bool window_t::IsEnabled() const { return flag_enabled; }
+bool window_t::IsInvalid() const { return flag_invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
-bool window_t::HasTimer() const { return flag_timer == true; }
+bool window_t::HasTimer() const { return flag_timer; }
 bool window_t::IsDialog() const { return flag_dialog == is_dialog_t::yes; }
 void window_t::Validate(rect_ui16_t validation_rect) {
     //todo check validation_rect intersection
@@ -69,14 +69,14 @@ void window_t::SetCapture() {
 
 void window_t::Show() {
     if (!IsVisible()) {
-        flag_visible = 1;
+        flag_visible = true;
         Invalidate();
     }
 }
 
 void window_t::Hide() {
     if (IsVisible()) {
-        flag_visible = 0;
+        flag_visible = false;
         Invalidate();
     }
 }
