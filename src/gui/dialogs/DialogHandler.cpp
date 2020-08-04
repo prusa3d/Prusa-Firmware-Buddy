@@ -21,6 +21,11 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
             screen_close_multiple(scrn_close_on_M876);
             screen_open(get_scr_printing_serial()->id);
         }
+    } else if (dialog == ClientFSM::Printing) {
+        if (screen_get_curr() != get_scr_printing()) {
+            screen_close_multiple(scrn_close_on_M876);
+            screen_open(get_scr_printing()->id);
+        }
     } else {
         ptr = dialog_ctors[size_t(dialog)](data);
     }
