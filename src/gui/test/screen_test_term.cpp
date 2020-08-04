@@ -30,6 +30,7 @@ void screen_test_term_data_t::windowEvent(window_t *sender, uint8_t event, void 
         //	else
         //		if (term.term->flg & TERM_FLG_CHANGED)
         term.Invalidate();
+    } else {
+        window_frame_t::windowEvent(sender, event, param);
     }
-    window_frame_t::windowEvent(sender, event, param);
 }
