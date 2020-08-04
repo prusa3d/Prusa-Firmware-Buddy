@@ -416,11 +416,7 @@ msgstr "Laut"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr ""
-"Stellen Sie sicher\n"
-"dass das Filament \n"
-"durch den Sensor  \n"
-"geführt wird."
+msgstr "Stellen Sie sicher\ndass das Filament \ndurch den Sensor  \ngeführt wird."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
@@ -641,10 +637,7 @@ msgstr "Bereite Rammen vor"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr ""
-"WEITER drücken und\n"
-"Filament in den   \n"
-"Extruder schieben."
+msgstr "WEITER drücken und\nFilament in den   \nExtruder schieben."
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
@@ -907,7 +900,7 @@ msgstr "Es gab einen Fehler beim Speichern der Einstellungen in der Datei \"lan_
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "Diese Operation kann nicht rückgängig gemacht werden, die aktuelle Konfiguration geht verloren! Sind Sie wirklich sicher, dass Sie den Drucker auf die Werkseinstellungen zurücksetzen wollen?"
+msgstr "Diese Operation kann\nnicht rückgängig ge-\nmacht werden und die\naktuelle Konfiguration\ngeht verloren!\nDen Drucker auf die\nWerkseinstellungen\nzurücksetzen?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
