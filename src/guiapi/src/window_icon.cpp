@@ -40,7 +40,7 @@ window_icon_t::window_icon_t(window_t *parent, rect_ui16_t rect, uint16_t id_res
     , id_res(id_res)
     , alignment(ALIGN_CENTER) {
 }
-//Icon rect is increased by badding, than icon is centered inside it
+//Icon rect is increased by padding, icon is centered inside it
 window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_ui16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : window_icon_t(
         parent,
