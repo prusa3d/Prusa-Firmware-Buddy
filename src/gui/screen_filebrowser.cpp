@@ -54,7 +54,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     *c = 0; // even if we didn't find the '/', c will point to valid memory
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
     w_filelist.Load(screen_filebrowser_sort, c + 1, firstVisibleSFN);
-    // SetItemIndex(1); // this is automagically done in the window file list
+    // SetItemIndex(1); // this is automatically done in the window file list
     w_filelist.SetCapture(); // hack for do not change capture
 }
 
