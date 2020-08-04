@@ -139,11 +139,9 @@ window_t *window_t::GetPrev() const {
 */
 
 window_t *window_t::GetNextEnabled() const {
-    if (next) {
+    if (next)
         return (next->IsEnabled()) ? next : next->GetNextEnabled();
-    } else {
-        return nullptr;
-    }
+    return nullptr;
 }
 
 /*
