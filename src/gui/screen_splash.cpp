@@ -26,7 +26,7 @@ screen_splash_data_t::screen_splash_data_t()
     : window_frame_t()
     , logo_prusa_mini(this, rect_ui16(0, 84, 240, 62), IDR_PNG_splash_logo_prusa_prn)
     , text_progress(this, rect_ui16(10, 171, 220, 20))
-    , progress(this, rect_ui16(10, 200, 220, 15), 15, COLOR_GRAY, COLOR_ORANGE)
+    , progress(this, rect_ui16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
     , text_version(this, rect_ui16(00, 295, 240, 22))
     , icon_logo_buddy(this, { 0 }, 0)  //unused?
     , icon_logo_marlin(this, { 0 }, 0) //unused?
