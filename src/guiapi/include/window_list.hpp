@@ -4,10 +4,6 @@
 
 #include "window.hpp"
 
-struct window_class_list_t {
-    window_class_t cls;
-};
-
 struct window_list_t : window_t {
     color_t color_text;
     font_t *font;
@@ -27,6 +23,10 @@ struct window_list_t : window_t {
     int GetItemCount() const { return count; }
     int GetItemIndex() const { return index; }
     int GetTopIndex() const { return top_index; }
-};
 
-extern const window_class_list_t window_class_list;
+    window_list_t(window_t *parent, rect_ui16_t rect);
+
+protected:
+    virtual void unconditionalDraw() override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+};

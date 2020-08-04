@@ -4,12 +4,6 @@
 
 #include "window.hpp"
 
-#define WINDOW_FLG_NUMB_FLOAT2INT (WINDOW_FLG_USER << 1)
-
-struct window_class_numb_t {
-    window_class_t cls;
-};
-
 struct window_numb_t : public window_t {
     color_t color_text;
     font_t *font;
@@ -21,11 +15,16 @@ struct window_numb_t : public window_t {
     void SetFormat(const char *frmt);
     const char *GetFormat() { return format; }
     void SetValue(float val);
+    void SetFont(font_t *val);
     float GetValue() const { return value; }
+    void SetColor(color_t clr);
+    window_numb_t(window_t *parent, rect_ui16_t rect, float value = 0);
+
+    void PrintAsFloat();
+    void PrintAsInt();
+    bool IsPrintingAsInt() const;
 
 protected:
-    //todo use this virtual methods does not work yet - stupid memcpy
-    //virtual void setValue(float val);
+    virtual void unconditionalDraw() override;
+    virtual void setValue(float val);
 };
-
-extern const window_class_numb_t window_class_numb;

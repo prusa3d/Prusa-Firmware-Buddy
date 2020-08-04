@@ -17,11 +17,11 @@ int wiz_set_progressbar_range(window_progress_t *p_progress,
     int min, int max, int range_min, int range_max, int value) {
     int percent = wiz_get_percent(min, max, value);
     if (value < range_min)
-        p_progress->color_progress = COLOR_BLUE;
+        p_progress->SetProgressColor(COLOR_BLUE);
     else if (value > range_max)
-        p_progress->color_progress = COLOR_RED;
+        p_progress->SetProgressColor(COLOR_RED);
     else
-        p_progress->color_progress = COLOR_LIME;
+        p_progress->SetProgressColor(COLOR_LIME);
     p_progress->SetValue(percent);
     return percent;
 }
@@ -30,9 +30,9 @@ int wiz_set_progressbar(window_progress_t *p_progress,
     int min, int max, int value) {
     int percent = wiz_get_percent(min, max, value);
     if (percent >= 100)
-        p_progress->color_progress = COLOR_LIME;
+        p_progress->SetProgressColor(COLOR_LIME);
     else
-        p_progress->color_progress = COLOR_BLUE;
+        p_progress->SetProgressColor(COLOR_BLUE);
     p_progress->SetValue(percent);
     return percent;
 }
@@ -71,6 +71,6 @@ void wiz_set_progressbar_dual_cl(window_progress_t *p_progress,
         mix_cl(&color, cl_0, cl_100, cl_val, channel);
     }
 
-    p_progress->color_progress = color;
+    p_progress->SetProgressColor(color);
     p_progress->SetValue(value);
 }

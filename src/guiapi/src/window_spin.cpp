@@ -1,32 +1,21 @@
 // window_spin.c
 #include "window_spin.hpp"
 #include "gui.hpp"
+#include "ScreenHandler.hpp"
 #include <algorithm>
 
 extern osThreadId displayTaskHandle;
 
-extern void window_numb_draw(window_numb_t *window);
-
 void window_spin_inc(window_spin_t *window, int dif);
 void window_spin_dec(window_spin_t *window, int dif);
-
-void window_spin_init(window_spin_t *window) {
-    window_class_numb.cls.init(window);
-    window->min = 0.0;
-    window->max = 100.0F;
-    window->step = 1.0F;
-    window->count = 101;
-    window->index = 0;
-    window->flg |= WINDOW_FLG_ENABLED;
-}
 
 void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
-        if ((window->flg & WINDOW_FLG_ENABLED) && window->f_tag)
-            screen_dispatch_event((window_t *)window, WINDOW_EVENT_CHANGE, (void *)(int)window->f_tag);
-        if (window_ptr(window->id_parent))
-            window_ptr(window->id_parent)->SetCapture();
+        if (window->IsEnabled())
+            Screens::Access()->ScreenEvent((window_t *)window, WINDOW_EVENT_CHANGE, nullptr);
+        if (window->GetParent())
+            window->GetParent()->SetCapture();
         break;
     case WINDOW_EVENT_ENC_DN:
         window_spin_dec(window, (int)param);
@@ -57,19 +46,6 @@ void window_spin_dec(window_spin_t *window, int dif) {
     window->Invalidate();
 }
 
-const window_class_spin_t window_class_spin = {
-    {
-        {
-            WINDOW_CLS_SPIN,
-            sizeof(window_spin_t),
-            (window_init_t *)window_spin_init,
-            0,
-            (window_draw_t *)window_numb_draw,
-            (window_event_t *)window_spin_event,
-        },
-    }
-};
-
 void window_spin_t::SetItemIndex(int idx) {
     if (count > idx) {
         index = idx;
@@ -78,16 +54,8 @@ void window_spin_t::SetItemIndex(int idx) {
     Invalidate();
 }
 
-//todo use this virtual methods does not work yet - stupid memcpy
-/*
 void window_spin_t::setValue(float val) {
     SetValMinMaxStep(val, min, max, step);
-}
-*/
-//todo erase me, virtual methods does not work yet - stupid memcpy
-void window_spin_t::SetValue(float val) {
-    SetValMinMaxStep(val, min, max, step);
-    Invalidate();
 }
 
 void window_spin_t::SetMin(float min_val) {
@@ -128,4 +96,14 @@ void window_spin_t::setValMinMaxStep(float val, float min_val, float max_val, fl
     //value = std::clamp(val, min,max); // need C++ 17
     count = (int)((max - min) / step + 1.5F);
     index = (int)((value - min) / step);
+}
+
+window_spin_t::window_spin_t(window_t *parent, rect_ui16_t rect)
+    : window_numb_t(parent, rect)
+    , min(0.0)
+    , max(100.0F)
+    , step(1.0F)
+    , count(101)
+    , index(0) {
+    Enable();
 }

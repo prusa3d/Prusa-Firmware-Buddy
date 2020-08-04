@@ -5,12 +5,13 @@
  *      Author: Migi
  */
 
-#include "screen_menu_fw_update.h"
-#include "screens.h"
 #include "sys.h"
+#include "gui.hpp"
 #include "screen_menu.hpp"
+#include "screen_menus.hpp"
 #include "WindowMenuItems.hpp"
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 /*****************************************************************************/
 //MI_ALWAYS
@@ -22,7 +23,7 @@ public:
         : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 1 : 0, label, 0, true, false) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? sys_fw_update_enable() : sys_fw_update_disable();
-        screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)index);
+        Screens::Access()->ScreenEvent(nullptr, WINDOW_EVENT_CLICK, (void *)index);
     }
 };
 
@@ -39,28 +40,22 @@ public:
     }
 };
 
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_Default, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
 
-class ScreenMenuFwUpdate : public parent {
+class ScreenMenuFwUpdate : public Screen {
 public:
     constexpr static const char *const label = N_("FW UPDATE");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    ScreenMenuFwUpdate()
+        : Screen(_(label)) {
+        help.font = resource_font(IDR_FNT_SPECIAL);
+        help.SetText(_("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
+    }
+    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 };
 
-/*****************************************************************************/
-//static member method definition
-void ScreenMenuFwUpdate::Init(screen_t *screen) {
-    Create(screen, _(label));
-    auto *ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
-    ths->help.font = resource_font(IDR_FNT_SPECIAL);
-    ths->help.SetText(_("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
-}
-
-int ScreenMenuFwUpdate::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    ScreenMenuFwUpdate *const ths = reinterpret_cast<ScreenMenuFwUpdate *>(screen->pdata);
+void ScreenMenuFwUpdate::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_CLICK) {
-        MI_ON_RESTART *mi_restart = &ths->Item<MI_ON_RESTART>();
+        MI_ON_RESTART *mi_restart = &Item<MI_ON_RESTART>();
         if (size_t(param) == 1) {
             mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;
             mi_restart->Enable();
@@ -69,19 +64,9 @@ int ScreenMenuFwUpdate::CEvent(screen_t *screen, window_t *window, uint8_t event
             mi_restart->index = 0;
         }
     }
-
-    return ths->Event(window, event, param);
+    Screen::windowEvent(sender, event, param);
 }
 
-screen_t screen_menu_fw_update = {
-    0,
-    0,
-    ScreenMenuFwUpdate::Init,
-    ScreenMenuFwUpdate::CDone,
-    ScreenMenuFwUpdate::CDraw,
-    ScreenMenuFwUpdate::CEvent,
-    sizeof(ScreenMenuFwUpdate), //data_size
-    nullptr,                    //pdata
-};
-
-screen_t *const get_scr_menu_fw_update() { return &screen_menu_fw_update; }
+ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {
+    return ScreenFactory::Screen<ScreenMenuFwUpdate>();
+}
