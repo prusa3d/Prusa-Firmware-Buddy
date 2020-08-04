@@ -200,7 +200,7 @@ Die Einstellungen wurden erfolgreich in der Datei \"lan_settings.ini\" gespeiche
 Die Statusleiste ist am unteren Rand des Bildschirms. Sie enthält Infos über:\n - Düsentemperatur\n - Heizbetttemp.\n - Drucktempo\n - Höhe der Z-Achse\n - Filamenttyp
 Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Bitte Verkabelung und Achsen des Druckers überprüfen und starten Sie dann die XYZ-Kalibrierung erneut.
 Es gab einen Fehler beim Speichern der Einstellungen in der Datei \"lan_settings.ini\".
-Diese Operation kann nicht rückgängig gemacht werden, die aktuelle Konfiguration geht verloren! Sind Sie wirklich sicher, dass Sie den Drucker auf die Werkseinstellungen zurücksetzen wollen?
+Diese Operation kann\nnicht rückgängig ge-\nmacht werden und die\naktuelle Konfiguration\ngeht verloren!\nDen Drucker auf die\nWerkseinstellungen\nzurücksetzen?
 Do.
 Timeout
 Zum Kalibrieren mit derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentwechsel drücken Sie ENTLADEN

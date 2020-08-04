@@ -416,11 +416,7 @@ msgstr "Alto"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr ""
-"Asegúrate que     \n"
-"filamento está    \n"
-"insertado a través\n"
-"del sensor.       "
+msgstr "Asegúrate que     \nfilamento está    \ninsertado a través\ndel sensor.       "
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
@@ -641,11 +637,7 @@ msgstr "Preparando para expulsar"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr ""
-"Presiona CONTINUAR\n"
-"y empuja el       \n"
-"filamento en      \n"
-"elextrusora.      "
+msgstr "Presiona CONTINUAR\ny empuja el       \nfilamento en      \nelextrusora.      "
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
@@ -908,7 +900,7 @@ msgstr "Se produjo un error al guardar la configuración en el archivo \"lan_set
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Está realmente seguro de restablecer la impresora a los valores predeterminados de fábrica?"
+msgstr "Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Seguro que quieres restaurar la impresora a los valores de fábrica?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
