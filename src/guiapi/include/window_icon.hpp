@@ -16,7 +16,7 @@ struct window_icon_t : public window_t {
     void SwapBW();
     void UnswapBW();
 
-    static size_ui16_t CalculateMinimalSize(uint16_t id_res); //works for alignment center
+    static size_ui16_t CalculateMinimalSize(uint16_t id_res); //works for center alignment
 protected:
     virtual void unconditionalDraw() override;
 };
