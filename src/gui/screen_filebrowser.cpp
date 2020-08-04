@@ -55,7 +55,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
     w_filelist.Load(screen_filebrowser_sort, c + 1, firstVisibleSFN);
     // SetItemIndex(1); // this is automatically done in the window file list
-    w_filelist.SetCapture(); // hack for do not change capture
+    w_filelist.SetCapture(); // hack to not change capture
 }
 
 static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
