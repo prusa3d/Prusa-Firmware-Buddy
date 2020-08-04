@@ -27,7 +27,7 @@ struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
-//to be safe ctor has this 2 bool parameters, can't switch them
+//to be safe, ctor has this 2 bool parameters, can't switch them
 enum class is_dialog_t : bool { no,
     yes };
 enum class is_closed_on_click_t : bool { no,
