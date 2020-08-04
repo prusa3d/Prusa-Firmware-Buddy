@@ -21,7 +21,7 @@
 
 #define LOG_ERROR(...) _dbg3("FILEBROWSER ERROR: " __VA_ARGS__)
 
-// Default value could be rewrite from eeprom settings
+// Default value could be rewritten by eeprom settings
 WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
 
 /// To save first/top visible item in the file browser
