@@ -63,7 +63,7 @@ void window_icon_t::unconditionalDraw() {
     if (IsBWSwapped()) { // that could not be set, but what if
         ropfn |= ROPFN_DISABLE;
     }
-    if ((IsFocused())) {
+    if (IsFocused()) {
         ropfn |= ROPFN_SWAPBW;
     }
 
