@@ -69,7 +69,7 @@ private:
     bool gcode_file_exists();
 
 public:
-    //static methos
+    //static methods
     // FIXME: the screen_print_preview currently does not copy fpath and fname
     // therefore, their lifetime must be at least as long as the screen's lifetime
     static void SetGcodeFilepath(const char *fpath);
