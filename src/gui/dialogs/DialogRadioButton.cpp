@@ -63,7 +63,7 @@ RadioButton &RadioButton::operator--() {
 void RadioButton::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (!GetParent())
         return;
-        
+
     switch (event) {
     case WINDOW_EVENT_ENC_UP:
         ++(*this);
