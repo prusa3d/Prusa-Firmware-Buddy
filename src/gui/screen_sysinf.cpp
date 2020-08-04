@@ -15,11 +15,23 @@
 
 #include "../lang/i18n.h"
 
+// Use this #define to hide the static display of current NTP time - only for debugging
+// Clean solution will come later
+#define DEBUG_NTP
+
+#ifdef DEBUG_NTP
+    #include "../lang/format_print_will_end.hpp"
+    #include "wui_api.h"
+#endif
+
 struct screen_sysinfo_data_t {
     window_frame_t frame;
     window_text_t textMenuName;
     window_text_t textCPU_load;
     window_numb_t textCPU_load_val;
+#ifdef DEBUG_NTP
+    window_text_t textDateTime;
+#endif
 
     window_text_t textExit;
 };
@@ -72,6 +84,19 @@ void screen_sysinfo_init(screen_t *screen) {
     pd->textCPU_load_val.SetValue(osGetCPUUsage());
 
     row2draw += 25;
+
+#ifdef DEBUG_NTP
+    time_t sec = sntp_get_system_time();
+    struct tm now;
+    localtime_r(&sec, &now);
+    static char buff[40];
+    FormatMsgPrintWillEnd::Date(buff, 40, &now, true, FormatMsgPrintWillEnd::ISO);
+    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, row2draw, display::GetW(), 22), &(pd->textDateTime));
+    pd->textDateTime.font = resource_font(IDR_FNT_NORMAL);
+    pd->textDateTime.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)buff));
+
+    row2draw += 25;
+#endif
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);

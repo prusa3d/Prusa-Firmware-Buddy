@@ -56,6 +56,7 @@ Wersja Firmware\n
 Kal. 1. warstwy
 KAL. 1. WARSTWY
 Przepływ
+Pt
 AKTUALIZACJA FW
 Aktualizacja FW
 Stół
@@ -89,7 +90,7 @@ Wczytaj ustawienia
 Wczytywanie ...
 Ładowanie do dyszy
 Głośno
-Upewnij się, że filament przechodzi przez czujnik filamentu.
+Upewnij się, że   \nfilament          \nprzechodzi przez  \nczujnik filamentu.
 Materiał
 Pomiar wysokości\npunktów\nkalibracyjnych
 Wył. czas. menu
@@ -98,6 +99,7 @@ Poziomowanie stołu
 Błąd poziomowania stołu?
 KOMUNIKATY
 Komunikaty
+Pon
 Ruch osi
 RUCH OSI
 Ruch E
@@ -137,7 +139,7 @@ Nagrzewanie
 NAGRZEWANIE do ŁADOWANIA
 NAGRZEWANIE do ROZŁADOWANIA
 Przygotowywanie do wyciskania
-Naciśnij KONTYNUUJ i wsuń filament do ekstrudera.
+Naciśnij KONTYNUUJ\ni wsuń filament   \ndo ekstrudera.    
 Wciśnij DALEJ, aby uruchomić Selftest, który sprawdzi ewentualne błędy podczas montażu.
 Druk
 Went. wydruku
@@ -161,6 +163,7 @@ Wznów
 Wznawianie...
 PONÓW
 Powrót
+Sob
 Zapisz zrzut pamięci
 Zapisz ustawienia
 Szukam punktów\nkalibracyjnych stołu
@@ -178,11 +181,13 @@ Ustawienia wczytane pomyślnie
 Cicho
 Tryb dźwięku
 Rodzaj dźwięku
+Głośność dźwięku
 Prędkość
 Nie ustawiono statycznych adresów IPv4.
 Statystyki
 STOP
 Stop
+Ndz
 Pomoc
 Info systemowe
 TEMPERATURA
@@ -196,14 +201,17 @@ Pasek stanu znajduje się na spodzie ekranu. Zawiera informacje:\n- Temperatura 
 Kalibracja XYZ zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie.
 Wystąpił błąd podczas zapisywania ustawień w pliku \"lan_settings.ini\".
 Tej czynności nie można cofnąć, a obecna konfiguracja zostanie utracona! Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?
+Czw
 Wyłącznik czasowy
 Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby wymienić, wybierz ROZŁADUJ.
 Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby załadować, wybierz ZAŁADUJ. Aby wymienić, wybierz ROZŁADUJ.
+Dziś o 
 SPRÓBUJ PONOWNIE
+Wt
 PARAMETRY
 Parametry
 ROZŁADUJ
-ROZŁADUJ FIL.
+ROZŁADUJ FILAMENT
 Rozładuj filament
 Rozładowywanie
 Odparkowanie
@@ -215,6 +223,7 @@ Wersja
 Czekam na schłodzenie
 Czekam na temp.
 Ostrzeżenie
+Śr
 Witaj w Asystencie Konfiguracji Original Prusa MINI Kontynuować?
 Witaj w Asystencie Konfiguracji Original Prusa MINI. Kontynuować?
 Asystent

@@ -502,6 +502,7 @@ target_sources(
           src/lang/translator.cpp
           src/lang/translation_provider_CPUFLASH.cpp
           src/lang/unaccent.cpp
+          src/lang/format_print_will_end.cpp
   )
 
 if(GUI)

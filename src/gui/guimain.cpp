@@ -98,8 +98,6 @@ extern "C" void gui_run(void) {
     gui_marlin_vars->media_LFN = gui_media_LFN;
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     DialogHandler::Access(); //to create class NOW, not at first call of one of callback
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
