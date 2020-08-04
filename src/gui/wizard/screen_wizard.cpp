@@ -399,21 +399,18 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 //show dialog only when values are not equal
                 float diff = vars->z_offset - z_offset_def;
                 if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-                    char buff[255] = "THIS TEXT NEEDS FIXING @@TODO";
-                    static const char temporaryJustForExtraction[] = N_("Do you want to use\n"
-                                                                        "the current value?\n"
-                                                                        "Current: %0.3f.   \n"
-                                                                        "Default: %0.3f.   \n"
-                                                                        "Click NO to use the default value (recommended)");
-                    (void)temporaryJustForExtraction;
-                    //cannot use \n
-                    //                    snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use\n"
-                    //                                                                  "the current value?\n"
-                    //                                                                  "Current: %0.3f.   \n"
-                    //                                                                  "Default: %0.3f.   \n"
-                    //                                                                  "Click NO to use the default value (recommended)"),
-                    //                        (double)vars->z_offset, (double)z_offset_def);
-                    // @@TODO streaming
+                    char buff[20 * 7];
+                    {
+                        char fmt[20 * 7];
+                        // c=20 r=6
+                        static const char fmt2Translate[] = N_("Do you want to use\n"
+                                                               "the current value?\n"
+                                                               "Current: %0.3f.   \n"
+                                                               "Default: %0.3f.   \n"
+                                                               "Click NO to use the default value (recommended)");
+                        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+                        snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)vars->z_offset, (double)z_offset_def);
+                    }
                     if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
                         marlin_set_z_offset(z_offset_def);
                         eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));
@@ -473,18 +470,17 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     //show dialog only when values are not equal
                     float diff = z_val_to_store - z_offset_def;
                     if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-                        char buff[255] = "THIS TEXT NEEDS FIXING @@TODO";
-                        static const char temporaryJustForExtraction[] = N_("Do you want to use last set value? "
-                                                                            "Last:  %0.3f.   "
-                                                                            "Default: %0.3f.   "
-                                                                            "Click NO to use default value.");
-                        (void)temporaryJustForExtraction;
-                        //                        snprintf(buff, sizeof(buff) / sizeof(char), _("Do you want to use last set value? "
-                        //                                                                      "Last:  %0.3f.   "
-                        //                                                                      "Default: %0.3f.   "
-                        //                                                                      "Click NO to use default value."),
-                        //                            (double)p_firstlay_screen->Z_offset, (double)z_offset_def);
-                        // @@TODO streaming
+                        char buff[20 * 7];
+                        {
+                            char fmt[20 * 7];
+                            // c=20 r=6
+                            static const char fmt2Translate[] = N_("Do you want to use last set value? "
+                                                                   "Last:  %0.3f.   "
+                                                                   "Default: %0.3f.   "
+                                                                   "Click NO to use default value.");
+                            _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+                            snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)p_firstlay_screen->Z_offset, (double)z_offset_def);
+                        }
                         if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
                             z_val_to_store = z_offset_def;
                         }

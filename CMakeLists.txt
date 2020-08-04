@@ -474,6 +474,7 @@ target_sources(
           src/common/print_utils.cpp
           src/common/base64_stream_decoder.cpp
           src/common/sound.cpp
+          src/common/language_eeprom.cpp
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp
@@ -491,15 +492,18 @@ target_sources(
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp
           src/marlin_stubs/pause/M600.cpp
+          src/marlin_stubs/pause/M601_M602.cpp
           src/marlin_stubs/pause/M603.cpp
           src/marlin_stubs/pause/M701_M702.cpp
           src/marlin_stubs/pause/pause.cpp
           src/marlin_stubs/sdcard/M20-M30_M32-M34.cpp
+          src/marlin_stubs/host/M115.cpp
           src/gui/guimain.cpp
           src/common/filament.cpp
           src/lang/translator.cpp
           src/lang/translation_provider_CPUFLASH.cpp
           src/lang/unaccent.cpp
+          src/lang/format_print_will_end.cpp
   )
 
 if(GUI)
@@ -585,6 +589,7 @@ if(GUI)
             src/guiapi/src/jogwheel.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
+            src/guiapi/src/st7789v.cpp
             src/guiapi/src/window_icon.cpp
             src/guiapi/src/window_spin.cpp
             src/guiapi/src/window_text.cpp

@@ -195,7 +195,7 @@ protected:
 };
 
 class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Timeout");
+    constexpr static const char *const label = N_("Menu Timeout");
 
 public:
     MI_TIMEOUT();
@@ -231,6 +231,26 @@ class MI_SOUND_TYPE : public WI_SWITCH_t<8> {
 public:
     MI_SOUND_TYPE();
     virtual void OnChange(size_t old_index) override;
+};
+
+class MI_SORT_FILES : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = N_("Sort files by");
+
+    constexpr static const char *str_name = N_("Name");
+    constexpr static const char *str_time = N_("Time");
+
+public:
+    MI_SORT_FILES();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_SOUND_VOLUME : public WI_SPIN_U08_t {
+    constexpr static const char *const label = N_("Sound Volume");
+
+public:
+    MI_SOUND_VOLUME();
+    virtual void OnClick() override;
+    /* virtual void Change() override; */
 };
 
 class MI_TIMEZONE : public WI_SPIN_I08_t {

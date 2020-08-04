@@ -127,8 +127,9 @@ public:
     uint16_t computeNumUtf8CharsAndRewind() {
         if (utf8Length < 0) {
             rewind_impl(attrs);
-            while (getUtf8Char())
+            do {
                 ++utf8Length;
+            } while (getUtf8Char());
         }
         rewind_impl(attrs); // always return stream back to the beginning @@TODO subject to change
         // now we have either 0 or some positive number in utf8Length, can be safely cast to unsigned int
@@ -140,9 +141,29 @@ public:
         rewind_impl(attrs);
     }
 
-    /// this
+    /// returns true if the string if of type NULLSTR - typically used as a replacement for nullptr or "" strings
     inline bool isNULLSTR() const {
         return type == EType::NULLSTR;
+    }
+
+    /// Copy the string byte-by-byte into some RAM buffer for later processing,
+    /// typically used to obtain a translated version of a format string for s(n)printf
+    /// @param dst target buffer to copy the bytes to
+    /// @param max_size size of dst in bytes
+    /// @returns number of bytes (not utf8 characters) copied not counting the terminating '\0'
+    /// Using sprintf to format some string is possible with translations, but it requires one more step than usually -
+    /// one must first fetch the translated format string into a RAM buffer and then feed the format string into standard sprintf
+    size_t copyToRAM(char *dst, size_t max_size) {
+        size_t bytesCopied = 0;
+        for (size_t i = 0; i < max_size; ++i) {
+            *dst = getbyte(attrs);
+            if (*dst == 0)
+                return bytesCopied;
+            ++dst;
+            ++bytesCopied;
+        }
+        *dst = 0; // safety termination in case of reaching the end of the buffer
+        return bytesCopied;
     }
 
     /// Construct string_view_utf8 to provide data from CPU FLASH

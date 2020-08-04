@@ -46,3 +46,8 @@ bool Translations::ChangeLanguage(uint16_t langCode) {
     }
     return false;
 }
+
+bool Translations::LangExists(uint16_t langCode) const {
+    auto i = std::find_if(translations.cbegin(), translations.cend(), [langCode](const TranRec &r) { return r.langCode == langCode; });
+    return i != translations.cend();
+}

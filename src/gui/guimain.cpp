@@ -31,7 +31,7 @@ extern int HAL_IWDG_Reset;
 int guimain_spi_test = 0;
 
 #include "gpio.h"
-#include "st7789v.h"
+#include "st7789v.hpp"
 #include "jogwheel.h"
 #include "hwio.h"
 #include "diag.h"
@@ -95,8 +95,6 @@ void gui_run() {
     gui_marlin_vars->media_LFN = gui_media_LFN;
     gui_marlin_vars->media_SFN_path = gui_media_SFN_path;
 
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
     DialogHandler::Access(); //to create class NOW, not at first call of one of callback
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
@@ -151,7 +149,7 @@ void gui_run() {
     screen_register(get_scr_lan_settings());
     screen_register(get_scr_menu_fw_update());
     screen_register(get_scr_menu_languages()); // WTF!?!? why does this have to be done at runtime? There is no compile-time warning, that a screen didn't get its unique id (for whatever reason)
-
+    screen_register(get_scr_menu_languages_noret());
 #ifndef _DEBUG
     if (HAL_IWDG_Reset) {
         screen_stack_push(get_scr_splash()->id);

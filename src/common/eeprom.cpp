@@ -10,6 +10,7 @@
 #include "ff.h"
 #include "crc32.h"
 #include "version.h"
+#include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
 
 #define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
@@ -66,6 +67,9 @@ typedef struct _eeprom_vars_t {
     char LAN_HOSTNAME[LAN_HOSTNAME_MAX_LEN + 1];
     int8_t TIMEZONE;
     uint8_t SOUND_MODE;
+    uint8_t SOUND_VOLUME;
+    uint16_t LANGUAGE;
+    uint8_t FILE_SORT;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -103,6 +107,9 @@ static const eeprom_entry_t eeprom_map[] = {
     { "LAN_HOSTNAME",    VARIANT8_PCHAR, LAN_HOSTNAME_MAX_LEN + 1, 0 }, // EEVAR_LAN_HOSTNAME
     { "TIMEZONE",        VARIANT8_I8,    1, 0 }, // EEVAR_TIMEZONE
     { "SOUND_MODE",      VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_MODE
+    { "SOUND_VOLUME",    VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_VOLUME
+    { "LANGUAGE",        VARIANT8_UI16,  1, 0 }, // EEVAR_LANGUAGE
+    { "FILE_SORT",       VARIANT8_UI8,   1, 0 }, // EEVAR_FILE_SORT
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -121,9 +128,13 @@ static const eeprom_vars_t eeprom_var_defaults = {
     1,               // EEVAR_RUN_FIRSTLAY
     1,               // EEVAR_FSENSOR_ENABLED
     0,               // EEVAR_ZOFFSET
+#if ENABLED(PIDTEMP)
     DEFAULT_Kp,      // EEVAR_PID_NOZ_P
     scalePID_i(DEFAULT_Ki),      // EEVAR_PID_NOZ_I
     scalePID_d(DEFAULT_Kd),      // EEVAR_PID_NOZ_D
+#else
+    0, 0, 0,
+#endif
     DEFAULT_bedKp,   // EEVAR_PID_BED_P
     scalePID_i(DEFAULT_bedKi),   // EEVAR_PID_BED_I
     scalePID_d(DEFAULT_bedKd),   // EEVAR_PID_BED_D
@@ -136,6 +147,9 @@ static const eeprom_vars_t eeprom_var_defaults = {
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
     0,               // EEVAR_TIMEZONE
     0xff,            // EEVAR_SOUND_MODE
+    5,               // EEVAR_SOUND_VOLUME
+    0xffff,          // EEVAR_LANGUAGE
+    0,               // EEVAR_FILE_SORT
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
@@ -284,8 +298,11 @@ void eeprom_clear(void) {
     uint16_t a;
     uint32_t data = 0xffffffff;
     eeprom_lock();
-    for (a = 0x0000; a < 0x0800; a += 4)
+    for (a = 0x0000; a < 0x0800; a += 4) {
         st25dv64k_user_write_bytes(a, &data, 4);
+        if ((a % 0x200) == 0)   // clear entire eeprom take ~4s
+            wdt_iwdg_refresh(); // we will reset watchdog every ~1s for sure
+    }
     eeprom_unlock();
 }
 
@@ -383,12 +400,39 @@ static int eeprom_convert_from_v4(void) {
     return 1;
 }
 
+// conversion function for old version 6 (v 4.1.0)
+static int eeprom_convert_from_v6(void) {
+    uint16_t addr_start;
+    uint16_t addr_end;
+    eeprom_vars_t vars = eeprom_var_defaults;
+
+    // these variables not initialised in eeprom_var_defaults
+    vars.FWBUILD = project_build_number;
+    vars.FWVERSION = eeprom_fwversion_ui16();
+
+    // start addres of imported data block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
+    addr_start = eeprom_var_addr(EEVAR_FILAMENT_TYPE);
+    // end addres of imported data
+    addr_end = eeprom_var_addr(EEVAR_SOUND_VOLUME);
+    // read first block
+    st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
+
+    // calculate crc32
+    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+
+    return 1;
+}
+
 // conversion function for new version format (features, firmware version/build)
 static int eeprom_convert_from(uint16_t version, uint16_t features) {
     if (version == 2)
         return eeprom_convert_from_v2();
     if (version == 4)
         return eeprom_convert_from_v4();
+    if (version == 6)
+        return eeprom_convert_from_v6();
     return 0;
 }
 

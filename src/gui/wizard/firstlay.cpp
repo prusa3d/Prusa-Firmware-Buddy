@@ -12,7 +12,7 @@
 #include "wizard_ui.h"
 #include "wizard_types.h"
 #include "wizard_progress_bar.h"
-#include "guitypes.h" //font_meas_text
+#include "guitypes.hpp" //font_meas_text
 #include "menu_vars.h"
 #include "filament.h"
 #include "../lang/i18n.h"
@@ -282,8 +282,10 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     uint16_t x = WIZARD_MARGIN_LEFT;
 #if DEBUG_TERM == 0
     point_ui16_t pt;
-    string_view_utf8 wft = string_view_utf8::MakeCPUFLASH((const uint8_t *)_wizard_firstlay_text);
+    string_view_utf8 wft = _(_wizard_firstlay_text);
     uint16_t numOfUTF8Chars = 0;
+    //@@TODO why is here this special handling, which has serious issues with text wrapping?
+    //... causes hard text formatting issues which are unexplainable to testers and content teams.
     pt = font_meas_text(resource_font(IDR_FNT_NORMAL), &wft, &numOfUTF8Chars);
     pt.x += 5;
     pt.y += 5;

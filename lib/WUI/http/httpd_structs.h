@@ -59,17 +59,17 @@ static const char *const g_psHTTPHeaderStrings[] = {
     #define HTTP_CONTENT_TYPE(contenttype)                    "Content-Type: " contenttype "\r\n\r\n"
     #define HTTP_CONTENT_TYPE_ENCODING(contenttype, encoding) "Content-Type: " contenttype "\r\nContent-Encoding: " encoding "\r\n\r\n"
 
-    #define HTTP_HDR_HTML HTTP_CONTENT_TYPE("text/html")
+    #define HTTP_HDR_HTML HTTP_CONTENT_TYPE_ENCODING("text/html", "gzip")
     #define HTTP_HDR_SSI  HTTP_CONTENT_TYPE("text/html\r\nExpires: Fri, 10 Apr 2008 14:00:00 GMT\r\nPragma: no-cache")
     #define HTTP_HDR_GIF  HTTP_CONTENT_TYPE("image/gif")
     #define HTTP_HDR_PNG  HTTP_CONTENT_TYPE("image/png")
     #define HTTP_HDR_JPG  HTTP_CONTENT_TYPE("image/jpeg")
     #define HTTP_HDR_BMP  HTTP_CONTENT_TYPE("image/bmp")
-    #define HTTP_HDR_ICO  HTTP_CONTENT_TYPE("image/x-icon")
+    #define HTTP_HDR_ICO  HTTP_CONTENT_TYPE_ENCODING("image/x-icon", "gzip")
     #define HTTP_HDR_APP  HTTP_CONTENT_TYPE("application/octet-stream")
-    #define HTTP_HDR_JS   HTTP_CONTENT_TYPE("application/javascript")
+    #define HTTP_HDR_JS   HTTP_CONTENT_TYPE_ENCODING("application/javascript", "gzip")
     #define HTTP_HDR_RA   HTTP_CONTENT_TYPE("application/javascript")
-    #define HTTP_HDR_CSS  HTTP_CONTENT_TYPE("text/css")
+    #define HTTP_HDR_CSS  HTTP_CONTENT_TYPE_ENCODING("text/css", "gzip")
     #define HTTP_HDR_SWF  HTTP_CONTENT_TYPE("application/x-shockwave-flash")
     #define HTTP_HDR_XML  HTTP_CONTENT_TYPE("text/xml")
     #define HTTP_HDR_PDF  HTTP_CONTENT_TYPE("application/pdf")

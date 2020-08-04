@@ -83,7 +83,7 @@ void screen_home_init(screen_t *screen) {
     p_window_header_set_text(&(pw->header), _("HOME"));
 
     window_create_ptr(WINDOW_CLS_ICON, root,
-        rect_ui16(41, 31, 158, 40), &(pw->logo));
+        rect_ui16(41, 33, 158, 40), &(pw->logo));
     pw->logo.SetIdRes(IDR_PNG_status_logo_prusa_prn);
 
     for (uint8_t row = 0; row < 2; row++) {
@@ -163,6 +163,10 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
         p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaError);
     }
 
+    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
+        screen_home_disable_print_button(screen, 1);
+    }
+
     if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaInserted) &&
 
         (HAL_GetTick() > 5000)) {
@@ -183,10 +187,6 @@ int screen_home_event(screen_t *screen, window_t *window, uint8_t event, void *p
             screen_home_disable_print_button(screen, 0);
         }
         return 1;
-    }
-
-    if (p_window_header_event_clr(&(pw->header), MARLIN_EVT_MediaRemoved)) {
-        screen_home_disable_print_button(screen, 1);
     }
 
     if (event != WINDOW_EVENT_CLICK) {

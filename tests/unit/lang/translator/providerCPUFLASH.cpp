@@ -194,6 +194,7 @@ bool LoadTranslatedStringsFile(const char *fname, deque<string> *st) {
     do {
         string s;
         getline(f, s);
+        PreprocessRawLineStrings(s);
         if (!s.empty()) {              // beware of empty strings
             st->emplace_back(move(s)); // make a copy of the string
         }
@@ -342,6 +343,16 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
 
     // prepare a map for comparison
     set<unichar> nonASCIICharacters;
+    {
+        // explicitly add characters from language names
+        // Čeština, Español, Français
+        static const uint8_t na[] = "Čšñç";
+        string_view_utf8 nas = string_view_utf8::MakeRAM(na);
+        unichar c;
+        while ((c = nas.getUtf8Char()) != 0) {
+            nonASCIICharacters.insert(c);
+        }
+    }
     REQUIRE(CheckAllTheStrings(rawStringKeys, csStrings, providerCS, nonASCIICharacters));
     REQUIRE(CheckAllTheStrings(rawStringKeys, deStrings, providerDE, nonASCIICharacters));
     REQUIRE(CheckAllTheStrings(rawStringKeys, esStrings, providerES, nonASCIICharacters));
@@ -363,9 +374,21 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
             uc[1] = 0x80 | (c & 0x3f);
             f.write((const char *)uc, 3);
 
+            // with accents, we don't need the unaccent table anymore
+            // but is important for character generation (newly added characters)
             // check, that we have this character in our temporary translation table
             const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
             CHECK(cASCII.key != 0xffff);
         });
     }
+}
+
+TEST_CASE("providerCPUFLASH::Translations singleton", "[translator]") {
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("cs")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("de")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("en")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("es")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("fr")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("it")));
+    REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("pl")));
 }

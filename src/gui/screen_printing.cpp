@@ -12,6 +12,7 @@
 #include <ctime>
 #include "wui_api.h"
 #include "../lang/i18n.h"
+#include "../lang/format_print_will_end.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"
@@ -166,7 +167,7 @@ void screen_printing_init(screen_t *screen) {
     p_window_header_set_icon(&(pw->header), IDR_PNG_status_icon_printing);
 #ifndef DEBUG_FSENSOR_IN_HEADER
     static const char pr[] = "PRINTING";
-    p_window_header_set_text(&(pw->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)pr));
+    p_window_header_set_text(&(pw->header), _(pr));
 #endif
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 33, 220, 29),
@@ -221,7 +222,7 @@ void screen_printing_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_TEXT, root,
         rect_ui16(10, 75, 230, 95),
         &(pw->w_message));
-    pw->w_message.font = resource_font(IDR_FNT_SMALL);
+    pw->w_message.font = resource_font(IDR_FNT_NORMAL);
     pw->w_message.SetAlignment(ALIGN_LEFT_TOP);
     pw->w_message.SetPadding(padding_ui8(0, 2, 0, 2));
     pw->w_message.SetText(_("No messages"));
@@ -514,21 +515,21 @@ static void update_end_timestamp(screen_t *screen, time_t now_sec, uint16_t prin
 
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
-        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
-    } else if (tommorow.tm_mday == print_end.tm_mday &&                                         // if print end is tommorow
+        //strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
+        FormatMsgPrintWillEnd::Today(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
+    } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
         tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
-        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
+        //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
+        FormatMsgPrintWillEnd::DayOfWeek(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
     } else {
-        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%MM", &print_end);
+        //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%MM", &print_end);
+        FormatMsgPrintWillEnd::Date(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true, FormatMsgPrintWillEnd::ISO);
     }
     if (print_speed != 100)
         strlcat(pw->text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
 
     if (time_invalid == false) {
-        uint8_t length = strlen(pw->text_etime.data());
-        if (length > 0) {
-            pw->text_etime[length - 1] = 0;
-        }
+        pw->text_etime[pw->text_etime.size() - 1] = 0; // safety \0 termination in all cases
     }
     // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
     pw->w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)pw->text_etime.data()));

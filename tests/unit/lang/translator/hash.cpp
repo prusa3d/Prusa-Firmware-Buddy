@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <deque>
 #include "rundir.h"
+#include "hash.hpp"
 
 using namespace std;
 
@@ -115,6 +116,7 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
         do {
             string s;
             getline(f, s);
+            PreprocessRawLineStrings(s);
             if (!s.empty()) {            // beware of empty strings
                 rawStrings.push_back(s); // make a copy of the string
                 workStrings.emplace_back(String(SHTable::Hash((const unsigned char *)s.c_str()), s, index));
@@ -212,4 +214,26 @@ TEST_CASE("string_hash_table::make_hash_table_intentional_collision", "[translat
 
 bool FillHashTableCPUFLASHProvider(CPUFLASHTranslationProviderBase::SHashTable &ht, const char *fname, std::deque<string> &rawStrings) {
     return FillHashClass(ht, fname, rawStrings); // just to hide the template FillHashClass within this source file
+}
+
+void FindAndReplaceAll(string &data, string toSearch, string replaceStr) {
+    // copied from: https://thispointer.com/find-and-replace-all-occurrences-of-a-sub-string-in-c/
+    // Get the first occurrence
+    size_t pos = data.find(toSearch);
+    // Repeat till end is reached
+    while (pos != std::string::npos) {
+        // Replace this occurrence of Sub String
+        data.replace(pos, toSearch.size(), replaceStr);
+        // Get the next occurrence from the current position
+        pos = data.find(toSearch, pos + replaceStr.size());
+    }
+}
+
+void PreprocessRawLineStrings(string &l) {
+    // must convert the '\n' into \xa here
+    FindAndReplaceAll(l, string("\\n"), string("\xa"));
+    // must convert the "\"" sequence into a single character '"' here
+    FindAndReplaceAll(l, string("\\\""), string("\""));
+    // 0x7f symbol for degrees is a similar case
+    FindAndReplaceAll(l, string("\\177"), string("\177"));
 }

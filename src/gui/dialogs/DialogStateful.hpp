@@ -59,7 +59,6 @@ protected:
     font_t *font_title;
     padding_ui8_t padding;
     uint16_t flags;
-    uint8_t last_text_h; //hack todo remove me
     uint8_t phase;
     uint8_t progress;
 
@@ -85,7 +84,7 @@ public:
     }
 
 protected:
-    void draw_phase_text(const char *text);
+    void draw_phase_text(string_view_utf8 text);
     void draw_frame();
     void draw_progress();
 };
@@ -161,7 +160,7 @@ void DialogStateful<T>::Draw() {
 
         if (flags & DLG_TXT_CH) //text changed
         {
-            draw_phase_text(text);
+            draw_phase_text(_(text));
             flags &= ~DLG_TXT_CH;
         }
 

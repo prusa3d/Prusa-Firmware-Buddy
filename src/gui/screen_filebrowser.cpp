@@ -17,6 +17,8 @@
 #include "screen_print_preview.h"
 #include "print_utils.h"
 #include "screens.h"
+#include "eeprom.h"
+#include "../lang/i18n.h"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
@@ -36,8 +38,8 @@ struct screen_filebrowser_data_t {
 
 #define pd ((screen_filebrowser_data_t *)screen->pdata)
 
-// Default value could be rewrite from eeprom settings
-static WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
+// Default value is defined from eeprom settings
+WF_Sort_t screen_filebrowser_sort = WF_SORT_BY_TIME;
 
 /// To save first/top visible item in the file browser
 /// This is something else than the selected file for print
@@ -46,7 +48,8 @@ constexpr unsigned int SFN_len = 13;
 static char firstVisibleSFN[SFN_len] = "";
 
 static void screen_filebrowser_init(screen_t *screen) {
-    // TODO: load screen_filebrowser_sort from eeprom
+
+    screen_filebrowser_sort = (WF_Sort_t)eeprom_get_var(EEVAR_FILE_SORT).ui8;
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
 
@@ -57,8 +60,8 @@ static void screen_filebrowser_init(screen_t *screen) {
 
     window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pd->header));
     p_window_header_set_icon(&(pd->header), IDR_PNG_filescreen_icon_folder);
-    static const char sf[] = "SELECT FILE";
-    p_window_header_set_text(&(pd->header), string_view_utf8::MakeCPUFLASH((const uint8_t *)sf));
+    static const char sf[] = N_("SELECT FILE");
+    p_window_header_set_text(&(pd->header), _(sf));
 
     window_file_list_t *filelist = &(pd->w_filelist);
 

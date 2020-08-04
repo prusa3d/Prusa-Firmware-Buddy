@@ -72,6 +72,18 @@ msgstr "BED"
 msgid "Bed leveling failed. Try again?"
 msgstr "Bed leveling failed. Try again?"
 
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:76
+#, c-format
+msgid "Bed. target: %.0f_C"
+msgstr "Bed target: %.0f_C"
+
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:55
+#, c-format
+msgid "Bed: %.1f_C"
+msgstr "Bed: %.1f_C"
+
 #: src/gui/wizard/xyzcalib.cpp:55
 msgid "Calibrating Z"
 msgstr "Calibrating Z"
@@ -79,6 +91,10 @@ msgstr "Calibrating Z"
 #: src/gui/screen_menu_calibration.cpp:16 src/gui/screen_home.cpp:42
 msgid "Calibration"
 msgstr "Calibration"
+
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
+msgstr "CALIBRATION"
 
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
@@ -122,7 +138,7 @@ msgstr "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 
 #: src/guiapi/src/MItem_tools.cpp:273
 msgid "Continual beeps test\n press button to stop"
-msgstr "Continual beeps test\n press button to stop"
+msgstr "Speaker test\n Press button to stop"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:29
 msgid "CONTINUE"
@@ -222,7 +238,7 @@ msgstr "Filament not detected. Load filament now? Select NO to cancel, or IGNORE
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:44
 msgid "Finishing         \nbuffered gcodes.  \n"
-msgstr "Finishing         \nbuffered gcodes.  \n"
+msgstr "Finishing         \nbuffered G-Codes.  \n"
 
 #. =============SET TEXT================
 #: src/gui/screen_menu_version_info.cpp:72
@@ -241,6 +257,11 @@ msgstr "FIRST LAYER CALIB."
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
 msgstr "Flow Factor"
+
+#. abbreviated Friday - max 3 characters
+#: src/lang/format_print_will_end.cpp:51
+msgid "Fri"
+msgstr "Fri"
 
 #: src/gui/screen_menu_fw_update.cpp:46
 msgid "FW UPDATE"
@@ -276,6 +297,10 @@ msgstr "HOME"
 #: src/gui/window_file_list.c:133
 msgid "Home"
 msgstr "Home"
+
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr "HOME TO MAX"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:35
 msgid "Hotend fan"
@@ -401,6 +426,10 @@ msgstr "Material"
 msgid "Measuring reference\nheight of calib.\npoints"
 msgstr "Measuring reference\nheight of calib.\npoints"
 
+#: src/guiapi/include/MItem_tools.hpp:198
+msgid "Menu Timeout"
+msgstr "Menu Timeout"
+
 #: src/gui/test/screen_mesh_bed_lv.cpp:89
 msgid "MESH BED L."
 msgstr "MESH BED L."
@@ -425,9 +454,18 @@ msgstr "MESSAGES"
 msgid "Messages"
 msgstr "Messages"
 
+#. abbreviated Monday - max 3 characters
+#: src/lang/format_print_will_end.cpp:43
+msgid "Mon"
+msgstr "Mon"
+
 #: src/guiapi/include/MItem_menus.hpp:98
 msgid "Move Axis"
 msgstr "Move Axis"
+
+#: src/gui/screen_menu_move.cpp:43
+msgid "MOVE AXIS"
+msgstr "MOVE AXIS"
 
 #: src/gui/menu_vars.h:62
 msgid "Move E"
@@ -473,6 +511,12 @@ msgstr "No USB"
 msgid "Now, let's calibrate\nthe distance       \nbetween the tip    \nof the nozzle and  \nthe print sheet.   "
 msgstr "Now, let's calibrate\nthe distance       \nbetween the tip    \nof the nozzle and  \nthe print sheet.   "
 
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:65
+#, c-format
+msgid "Noz. target: %.0f_C"
+msgstr "Noz. target: %.0f_C"
+
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
 msgstr "Nozzle"
@@ -484,6 +528,13 @@ msgstr "NOZZLE"
 #: src/gui/dialogs/DialogLoadUnload.cpp:59
 msgid "Nozzle is too cold."
 msgstr "Nozzle is too cold."
+
+#. a nasty hack - need to put the translated format string somewhere and keep it there past the lifetime of this screen
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:40
+#, c-format
+msgid "Nozzle: %.1f_C"
+msgstr "Nozzle: %.1f_C"
 
 #: src/guiapi/include/WindowMenuItems.hpp:130
 #: src/guiapi/include/WindowMenuItems.hpp:159
@@ -683,6 +734,11 @@ msgstr "RETRY"
 msgid "Return"
 msgstr "Return"
 
+#. abbreviated Saturday - max 3 characters
+#: src/lang/format_print_will_end.cpp:53
+msgid "Sat"
+msgstr "Sat"
+
 #: src/guiapi/include/MItem_tools.hpp:78
 msgid "Save Crash Dump"
 msgstr "Save Crash Dump"
@@ -700,13 +756,21 @@ msgstr "Searching bed\ncalibration points"
 msgid "Select filament type"
 msgstr "Select filament type"
 
+#: src/gui/screen_filebrowser.cpp:61
+msgid "SELECT FILE"
+msgstr "SELECT FILE"
+
+#: src/gui/screen_menu_languages.cpp:141
+msgid "SELECT LANGUAGE"
+msgstr "SELECT LANGUAGE"
+
 #: src/gui/screen_menu_fw_update.cpp:57
 msgid "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."
 msgstr "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."
 
 #: src/guiapi/include/MItem_tools.hpp:38
 msgid "SelfTest"
-msgstr "SelfTest"
+msgstr "Selftest"
 
 #: src/gui/wizard/screen_wizard.c:530
 msgid "SELFTEST"
@@ -724,6 +788,10 @@ msgstr "Service"
 #: src/gui/screen_home.cpp:43
 msgid "Settings"
 msgstr "Settings"
+
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr "SETTINGS"
 
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
@@ -746,6 +814,10 @@ msgstr "Sound Mode"
 msgid "Sound Type"
 msgstr "Sound Type"
 
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sound Volume"
+msgstr "Sound Volume"
+
 #: src/guiapi/include/MItem_print.hpp:32
 msgid "Speed"
 msgstr "Speed"
@@ -767,6 +839,11 @@ msgstr "STOP"
 #: src/gui/screen_printing.cpp:77
 msgid "Stop"
 msgstr "Stop"
+
+#. abbreviated Sunday - max 3 characters
+#: src/lang/format_print_will_end.cpp:55
+msgid "Sun"
+msgstr "Sun"
 
 #: src/guiapi/include/MItem_menus.hpp:58
 msgid "Support"
@@ -798,7 +875,7 @@ msgstr "The printer is not calibrated. Start First Layer Calibration?"
 
 #: src/gui/wizard/screen_wizard.c:279
 msgid "The selftest failed\nto finish.         \nDouble-check the   \nprinter's wiring   \nand axes.          \nThen restart       \nthe Selftest.      "
-msgstr "The selftest failed\nto finish.         \nDouble-check the   \nprinter's wiring   \nand axes.          \nThen restart       \nthe Selftest.      "
+msgstr "The Selftest failed\nto finish.         \nDouble-check the   \nprinter's wiring   \nand axes.          \nThen restart       \nthe Selftest.      "
 
 #: src/gui/screen_menu_lan_settings.cpp:296
 #: src/gui/screen_menu_lan_settings.cpp:297
@@ -825,9 +902,14 @@ msgstr "There was an error saving the settings in the \"lan_settings.ini\" file.
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
 msgstr "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
 
+#. abbreviated Thursday - max 3 characters
+#: src/lang/format_print_will_end.cpp:49
+msgid "Thr"
+msgstr "Thr"
+
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
-msgstr "Timeout"
+msgstr "Menu Timeout"
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD."
@@ -837,11 +919,21 @@ msgstr "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEX
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD."
 msgstr "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD."
 
+#. Used in "The print will end:", keep it up to 10 characters
+#: src/lang/format_print_will_end.cpp:29
+msgid "Today at"
+msgstr "Today at"
+
 #. MSGBOX_RES_OK        8
 #. 9
 #: src/guiapi/src/window_msgbox.cpp:57
 msgid "TRY AGAIN"
 msgstr "TRY AGAIN"
+
+#. abbreviated Tuesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:45
+msgid "Tue"
+msgstr "Tue"
 
 #: src/gui/screen_menu_tune.cpp:21
 msgid "TUNE"
@@ -906,6 +998,11 @@ msgstr "Waiting for temp."
 #: src/guiapi/src/window_msgbox.cpp:15
 msgid "Warning"
 msgstr "Warning"
+
+#. abbreviated Wednesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:47
+msgid "Wed"
+msgstr "Wed"
 
 #: src/gui/wizard/screen_wizard.cpp:146
 msgid "Welcome to the     \nOriginal Prusa MINI\nsetup wizard.      \nWould you like to  \ncontinue?           "
