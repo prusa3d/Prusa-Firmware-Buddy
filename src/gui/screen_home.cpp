@@ -111,7 +111,7 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
         if (HAL_GetTick() > 5000) {
             // we are using marlin variables for filename and filepath buffers
             marlin_vars_t *vars = marlin_vars();
-            //check if the variables filename and filepath allocated
+            //check if the variables filename and filepath are allocated
             if (vars->media_LFN && vars->media_LFN) {
                 if (find_latest_gcode(
                         vars->media_SFN_path,
