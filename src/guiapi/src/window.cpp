@@ -185,7 +185,7 @@ void window_t::ScreenEvent(window_t *sender, uint8_t ev, void *param) {
     screenEvent(sender, ev, param);
 }
 
-//frame does something else - resends to all childern
+//frame does something else - resend to all children
 void window_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
     windowEvent(sender, ev, param);
 }
