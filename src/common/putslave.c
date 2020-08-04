@@ -75,6 +75,8 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
             cmd_id = PUTSLAVE_CMD_ID_TSTE;
         else if (strncmp(pstr, "eecl", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_EECL;
+        else if (strncmp(pstr, "gpcf", 4) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_GPCF;
         else if (strncmp(pstr, "diag", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_DIAG;
         else if (strncmp(pstr, "uart", 4) == 0)
@@ -420,6 +422,29 @@ int putslave_do_cmd_a_gpio(uartslave_t *pslave, char *pstr) {
     return UARTSLAVE_OK;
 }
 
+int putslave_do_cmd_a_gpcf(uartslave_t *pslave, char *pstr) {
+    int gpio = 0;
+    int mode = 0;
+    int pull = 0;
+    int n = 0;
+    if (sscanf(pstr, "%d%n", &gpio, &n) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((gpio < TPA0) || (gpio > TPE15))
+        return UARTSLAVE_ERR_OOR;
+    pstr += n;
+    if (sscanf(pstr, "%d%n", &mode, &n) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((mode < 0) || (mode > 1))
+        return UARTSLAVE_ERR_OOR;
+    pstr += n;
+    if (sscanf(pstr, "%d%n", &pull, &n) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((pull < 0) || (pull > 1))
+        return UARTSLAVE_ERR_OOR;
+    gpio_init(gpio, mode ? GPIO_MODE_OUTPUT_PP : GPIO_MODE_INPUT, pull ? GPIO_PULLUP : GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
+    return UARTSLAVE_OK;
+}
+
 int putslave_do_cmd_a_gcode(uartslave_t *pslave, char *pstr) {
     char gcode[32];
     int n = 0;
@@ -616,6 +641,8 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_eecl(pslave);
             case PUTSLAVE_CMD_ID_GPIO:
                 return putslave_do_cmd_a_gpio(pslave, pstr);
+            case PUTSLAVE_CMD_ID_GPCF:
+                return putslave_do_cmd_a_gpcf(pslave, pstr);
             case PUTSLAVE_CMD_ID_GCODE:
                 return putslave_do_cmd_a_gcode(pslave, pstr);
             case PUTSLAVE_CMD_ID_PWM:
