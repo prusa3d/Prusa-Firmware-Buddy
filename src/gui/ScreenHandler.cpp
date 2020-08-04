@@ -168,7 +168,7 @@ void Screens::Loop() {
     //open new screen
     if (creator || close) {
         if (current) {
-            current.reset(); //without reset screens does not behave correctly, I do not know why
+            current.reset(); //without a reset screens do not behave correctly, I do not know why
             if (close) {
                 if (stack_iterator != stack.begin()) {
                     --stack_iterator;          // point to previous screen - will become "behind last creator"
