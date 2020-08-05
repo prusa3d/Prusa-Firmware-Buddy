@@ -226,7 +226,7 @@ void general_error_run() {
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
-    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / gui_defaults.font->w);
+    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
 
     /// FIXME split heating, min/max temp and thermal runaway
     static const char bad_bed[] = "Check the heatbed heater & thermistor wiring for possible damage.";
@@ -244,7 +244,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::Clear(COLOR_RED_ALERT);
 
     // draw header
-    display::DrawText(rect_ui16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeRAM((const uint8_t *)error), gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(rect_ui16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeRAM((const uint8_t *)error), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     // draw line
     display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
@@ -256,7 +256,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     term_printf(&term, text);
 
     /// FIXME convert to DrawText & check drawing multiline text
-    render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     /// draw "Scan me" text
     static const char *scan_me_text = "Scan me for details";
@@ -269,11 +269,12 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     char qr_text[MAX_LEN_4QR + 1];
     /// FIXME Currently the only one error code working
     error_url_long(qr_text, sizeof(qr_text), 12201);
+    constexpr uint8_t qr_size_px = 140;
+    constexpr rect_ui16_t qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
     window_qr_t win;
+    win.rect = qr_rect;
     window_qr_t *window = &win;
     win.text = qr_text;
-    constexpr uint8_t qr_size_px = 140;
-    win.rect = rect_ui16(120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px); /// center = [120,223]
     win.bg_color = COLOR_WHITE;
 
     //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);

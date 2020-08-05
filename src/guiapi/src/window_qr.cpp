@@ -85,17 +85,6 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
 
 /// QR Window
 
-/// window-init call-back
-/// Default setting
-void window_qr_init(window_qr_t *window) {
-}
-
-uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
-if (!generate_qr(window->text, qrcode))
-    return;
-
-draw_qr(qrcode, window);
-
 // window_qr_t::window_qr_t(window_t *parent, rect_ui16_t rect)
 //     : window_t(parent, rect)
 //     , version(9)
