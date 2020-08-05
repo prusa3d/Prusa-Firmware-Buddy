@@ -17,7 +17,7 @@
 
 // Use this #define to hide the static display of current NTP time - only for debugging
 // Clean solution will come later
-#define DEBUG_NTP
+//#define DEBUG_NTP
 
 #ifdef DEBUG_NTP
     #include "../lang/format_print_will_end.hpp"
