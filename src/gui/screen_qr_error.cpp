@@ -25,7 +25,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
     info.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)hlp));
 
     qr.px_per_module = 2;
-    create_path_info_4error(qr_text.data(), qr_text.size(), 1);
+    error_url_long(qr_text.data(), qr_text.size(), 1);
     qr.text = qr_text.data();
 }
 

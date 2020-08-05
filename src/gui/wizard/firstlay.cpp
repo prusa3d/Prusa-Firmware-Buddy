@@ -1,35 +1,8 @@
 // firstlay.c
-<<<<<<< HEAD
-
-#include <stdio.h>
-#include <string.h>
-
-#include "firstlay.h"
-#include "dbg.h"
-#include "config.h"
-#include "stm32f4xx_hal.h"
-#include "marlin_client.h"
-#include "wizard_config.h"
-#include "wizard_ui.h"
-#include "wizard_types.h"
-#include "wizard_progress_bar.h"
-#include "guitypes.h" //font_meas_text
-#include "menu_vars.h"
-#include "filament.h"
-#include "i18n.h"
-#include <algorithm>
-
-#define V__GCODES_HEAD_BEGIN                 \
-    "M107",    /*fan off */                  \
-        "G90", /*use absolute coordinates*/  \
-        "M83", /*extruder relative mode*/    \
-        "G21", /* set units to millimeters*/ \
-        "G90", /* use absolute coordinates*/ \
-        "M83", /* use relative distances for extrusion*/
-=======
 #if 0
     #include <stdio.h>
     #include <string.h>
+    #include <algorithm>
 
     #include "firstlay.h"
     #include "dbg.h"
@@ -43,8 +16,7 @@
     #include "guitypes.hpp" //font_meas_text
     #include "menu_vars.h"
     #include "filament.h"
-    #include "../lang/i18n.h"
-    #include <algorithm>
+    #include "i18n.h"
 
     #define V__GCODES_HEAD_BEGIN                 \
         "M107",    /*fan off */                  \
@@ -53,7 +25,6 @@
             "G21", /* set units to millimeters*/ \
             "G90", /* use absolute coordinates*/ \
             "M83", /* use relative distances for extrusion*/
->>>>>>> master
 
 //todo generate me
 const char *V2_gcodes_head_PLA[] = {
