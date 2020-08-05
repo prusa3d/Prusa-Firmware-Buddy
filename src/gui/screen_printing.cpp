@@ -352,7 +352,7 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     else
         print_end_sec = now_sec + marlin_vars()->time_to_end;
 
-    tommorow_sec = now_sec + full_day_in_seconds;
+    tomorrow_sec = now_sec + full_day_in_seconds;
 
     struct tm tomorrow, print_end, now;
     localtime_r(&now_sec, &now);
@@ -363,8 +363,8 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
         //strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
         FormatMsgPrintWillEnd::Today(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
-    } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
-        tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
+    } else if (tomorrow.tm_mday == print_end.tm_mday && // if print end is tomorrow
+        tomorrow.tm_mon == print_end.tm_mon && tomorrow.tm_year == print_end.tm_year) {
         //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
         FormatMsgPrintWillEnd::DayOfWeek(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
     } else {
