@@ -900,7 +900,7 @@ msgstr "Errore nel salvataggio delle impostazioni nel file \"lan_settings.ini\".
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "Questa operazione non può essere annullata, la configurazione attuale andrà persa! Sei sicuro di voler ripristinare le impostazioni di fabbrica?
+msgstr "Questa operazione non può essere annullata, la configurazione attuale andrà persa! Sei sicuro di voler ripristinare le impostazioni di fabbrica?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
