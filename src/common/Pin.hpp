@@ -142,9 +142,12 @@ public:
     GPIO_PinState read() {
         return HAL_GPIO_ReadPin(m_halPort, m_halPin);
     }
+    void pullUp() { configure(Pull::up); }
+    void pullDown() { configure(Pull::down); }
 
 private:
-    void configure() override;
+    void configure(Pull pull);
+    void configure() override { configure(m_pull); }
     const IMode m_mode;
     const Pull m_pull;
 };

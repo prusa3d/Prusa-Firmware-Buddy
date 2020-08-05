@@ -119,6 +119,8 @@ extern InputPin fastBoot;
 extern InputPin jogWheelEN1;
 extern InputPin jogWheelEN2;
 extern InputPin jogWheelENC;
+extern OutputPin cs;
+extern OutputPin rs;
+extern OutputInputPin rst;
+extern InputPin fSensor;
 #endif
-
-#define PIN_FSENSOR TPB4

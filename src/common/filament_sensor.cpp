@@ -1,17 +1,19 @@
-// filament_sensor.c
+/**
+ * @file
+ */
 
 //there is 10kOhm PU to 5V in filament sensor
-//mcu PU/PD is in range 30 - 50 kOhm
+//MCU PU/PD is in range 30 - 50 kOhm
 
 //when PD is selected and sensor is connected Vmcu = min 3.75V .. (5V * 30kOhm) / (30 + 10 kOhm)
 //pin is 5V tolerant
 
-//mcu has 5pF, transistor D-S max 15pF
+//MCU has 5pF, transistor D-S max 15pF
 //max R is 50kOhm
 //Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
 #include "filament_sensor.h"
-#include "hwio_pindef.h" //PIN_FSENSOR
+#include "Pin.hpp"
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 #include "eeprom.h"
@@ -22,6 +24,8 @@
 
 static volatile fsensor_t state = FS_NOT_INICIALIZED;
 static volatile fsensor_t last_state = FS_NOT_INICIALIZED;
+
+static InputPin fSensor(IoPort::B, IoPin::p4, IMode::input, Pull::up);
 
 typedef enum {
     M600_on_edge = 0,
@@ -62,12 +66,12 @@ char fs_get_send_M600_on() {
 static void _init();
 
 static int block_M600_injection = 0;
-//called when Serial print screen is openned
+//called when Serial print screen is opened
 //printer is not in sd printing mode, so filament sensor does not trigger M600
 
 //todo should I block ClientFSM::Serial_printing?
 //this code did not work in last builds and no one reported problem with octoscreen
-//i fear enebling it could break something
+//I fear enabling it could break something
 static void fsm_create_cb(ClientFSM fsm, uint8_t data) {
     if (/*fsm == ClientFSM::Serial_printing ||*/ fsm == ClientFSM::Load_unload)
         block_M600_injection = 1;
@@ -88,7 +92,7 @@ static void _set_state(fsensor_t st) {
 }
 
 static void _enable() {
-    gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
+    fSensor.pullUp();
     state = FS_NOT_INICIALIZED;
     last_state = FS_NOT_INICIALIZED;
     status.meas_cycle = 0;
@@ -154,7 +158,7 @@ uint8_t fs_get__send_M600_on__and_disable() {
 }
 void fs_restore__send_M600_on(uint8_t send_M600_on) {
     taskENTER_CRITICAL();
-    //cannot call _init(); - it could cause stacking in unincialized state
+    //cannot call _init(); - it could cause stacking in uninitialized state
     status.send_M600_on = send_M600_on;
     taskEXIT_CRITICAL();
 }
@@ -210,9 +214,9 @@ static void _injectM600() {
 }
 
 static void _cycle0() {
-    if (gpio_get(PIN_FSENSOR) == 1) {
-        gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLDOWN, GPIO_SPEED_FREQ_VERY_HIGH); // pulldown
-        status.meas_cycle = 1;                                                             //next cycle shall be 1
+    if (fSensor.read() == GPIO_PinState::GPIO_PIN_SET) {
+        fSensor.pullDown();
+        status.meas_cycle = 1; //next cycle shall be 1
     } else {
         int had_filament = state == FS_HAS_FILAMENT ? 1 : 0;
         _set_state(FS_NO_FILAMENT); //it is filtered, 2 requests are needed to change state
@@ -241,12 +245,12 @@ static void _cycle0() {
 //called only in fs_cycle
 static void _cycle1() {
     //pulldown was set in cycle 0
-    _set_state(gpio_get(PIN_FSENSOR) == 1 ? FS_HAS_FILAMENT : FS_NOT_CONNECTED);
-    gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
-    status.meas_cycle = 0;                                                           //next cycle shall be 0
+    _set_state(fSensor.read() == GPIO_PinState::GPIO_PIN_SET ? FS_HAS_FILAMENT : FS_NOT_CONNECTED);
+    fSensor.pullUp();
+    status.meas_cycle = 0; //next cycle shall be 0
 }
 
-//dealay between calls must be 1us or longer
+//delay between calls must be 1us or longer
 void fs_cycle() {
     //sensor is disabled (only init can enable it)
     if (state == FS_DISABLED)
