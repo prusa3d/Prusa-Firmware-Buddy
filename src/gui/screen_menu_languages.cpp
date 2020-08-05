@@ -12,6 +12,7 @@
 #include "MItem_print.hpp"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
+#include "ScreenHandler.hpp"
 
 class MI_LangBase : public WI_LABEL_t {
 public:
@@ -21,7 +22,7 @@ public:
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
         LangEEPROM::getInstance().setLanguage(LangCode());
-        screen_close();
+        Screens::Access()->Close();
     }
     virtual uint16_t LangCode() const = 0;
 
@@ -112,58 +113,32 @@ protected:
 
 /*****************************************************************************/
 //parent alias
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
-class ScreenMenuLanguages : public parent {
+class ScreenMenuLanguages : public Screen {
 public:
     constexpr static const char *label = N_("LANGUAGES");
-    static void Init(screen_t *screen);
+    ScreenMenuLanguages()
+        : Screen(_(label)) {
+    }
 };
 
-/*****************************************************************************/
-//static member method definition
-void ScreenMenuLanguages::Init(screen_t *screen) {
-    Create(screen, _(label));
+ScreenFactory::UniquePtr GetScreenMenuLanguages() {
+    return ScreenFactory::Screen<ScreenMenuLanguages>();
 }
-
-screen_t screen_menu_languages = {
-    0,
-    0,
-    ScreenMenuLanguages::Init,
-    ScreenMenuLanguages::CDone,
-    ScreenMenuLanguages::CDraw,
-    ScreenMenuLanguages::CEvent,
-    sizeof(ScreenMenuLanguages), //data_size
-    nullptr,                     //pdata
-};
-
-screen_t *const get_scr_menu_languages() { return &screen_menu_languages; }
 
 /*****************************************************************************/
 //parent alias
-using parent_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using Screen_noReturn = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
-class ScreenMenuLanguagesNoRet : public parent_noReturn {
+class ScreenMenuLanguagesNoRet : public Screen_noReturn {
 public:
     constexpr static const char *label = N_("SELECT LANGUAGE");
-    static void Init(screen_t *screen);
+    ScreenMenuLanguagesNoRet()
+        : Screen_noReturn(_(label)) {
+    }
 };
 
-/*****************************************************************************/
-//static member method definition
-void ScreenMenuLanguagesNoRet::Init(screen_t *screen) {
-    Create(screen, _(label));
+ScreenFactory::UniquePtr GetScreenMenuLanguagesNoRet() {
+    return ScreenFactory::Screen<ScreenMenuLanguagesNoRet>();
 }
-
-screen_t screen_menu_languages_noret = {
-    0,
-    0,
-    ScreenMenuLanguagesNoRet::Init,
-    ScreenMenuLanguagesNoRet::CDone,
-    ScreenMenuLanguagesNoRet::CDraw,
-    ScreenMenuLanguagesNoRet::CEvent,
-    sizeof(ScreenMenuLanguagesNoRet), //data_size
-    nullptr,                          //pdata
-};
-
-screen_t *const get_scr_menu_languages_noret() { return &screen_menu_languages_noret; }

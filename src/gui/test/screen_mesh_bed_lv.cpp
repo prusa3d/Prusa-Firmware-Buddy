@@ -1,46 +1,16 @@
 /*
- * screen_mesh_bed_lv.c
+ * screen_mesh_bed_lv.cpp
  *
  *  Created on: 2019-09-26
  *      Author: Radek Vana
  */
 
-#include "gui.hpp"
+#include "screen_mesh_bed_lv.hpp"
 #include "config.h"
-#include "status_footer.h"
+#include "ScreenHandler.hpp"
 #include "math.h"
 #include "marlin_client.h"
 #include "../../lang/i18n.h"
-
-enum class mesh_state_t : uint8_t {
-    idle,
-    home,
-    homeing,
-    homed,
-    mesh,
-    meshing,
-    meshed
-};
-
-struct screen_mesh_bed_lv_data_t {
-    window_frame_t frame;
-    window_text_t textMenuName;
-
-    window_text_t btMesh;
-    window_text_t text_mesh_state;
-
-    window_term_t term;
-    term_t terminal;
-    uint8_t term_buff[TERM_BUFF_SIZE(20, 16)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
-
-    window_text_t textExit;
-    status_footer_t footer;
-
-    mesh_state_t mesh_state;
-    int16_t id_term;
-};
-
-#define pd ((screen_mesh_bed_lv_data_t *)screen->pdata)
 
 static const char *btnMeshStrings[] = { "Run mesh", "Mesh in progress" };
 #define btnMeshStrings_sz (sizeof(btnMeshStrings) / sizeof(const char *))
@@ -54,110 +24,63 @@ static const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed
 #define MESH_ACTIVE_CL  COLOR_RED
 
 //mesh callbacks
-static void gui_state_mesh_off(screen_t *screen) {
-    pd->btMesh.SetTextColor(MESH_DEFAULT_CL);
-    pd->btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
-    pd->textExit.SetTextColor(MESH_DEFAULT_CL);
-    pd->textExit.Enable();
-    pd->text_mesh_state.Enable();
+void screen_mesh_bed_lv_data_t::gui_state_mesh_off() {
+    btMesh.SetTextColor(MESH_DEFAULT_CL);
+    btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
+    textExit.SetTextColor(MESH_DEFAULT_CL);
+    textExit.Enable();
+    text_mesh_state.Enable();
 }
 
-static void gui_state_mesh_on(screen_t *screen) {
-    pd->textExit.Disable();
-    pd->textExit.SetTextColor(MESH_ACTIVE_CL);
-    pd->text_mesh_state.Disable();
-    pd->btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[1]));
-    pd->btMesh.SetTextColor(MESH_ACTIVE_CL);
+void screen_mesh_bed_lv_data_t::gui_state_mesh_on() {
+    textExit.Disable();
+    textExit.SetTextColor(MESH_ACTIVE_CL);
+    text_mesh_state.Disable();
+    btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[1]));
+    btMesh.SetTextColor(MESH_ACTIVE_CL);
 }
 
-enum {
-    TAG_QUIT = 10,
-    TAG_MESH
+static constexpr uint16_t row_h = 25;
+mesh_state_t screen_mesh_bed_lv_data_t::mesh_state = mesh_state_t::idle;
 
-};
+screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
+    : window_frame_t()
+    , footer(this)
+    , textMenuName(this, rect_ui16(0, 0, display::GetW(), row_h))
+    , btMesh(this, rect_ui16(2, 50, 200, row_h), []() { if (mesh_state == mesh_state_t::idle) mesh_state = mesh_state_t::start; })
+    , text_mesh_state(this, rect_ui16(2, 75, 200, row_h))
+    , term(this, rect_ui16(10, 28, 11 * 20, 18 * 16))
+    //, terminal(this, )
+    , textExit(this, rect_ui16(2, 245, 60, 22), []() {if (mesh_state != mesh_state_t::idle) return; Screens::Access()->Close(); }) {
 
-void screen_mesh_bed_lv_init(screen_t *screen) {
-    pd->mesh_state = mesh_state_t::idle;
-    uint16_t row_h = 25;
+    textMenuName.font = resource_font(IDR_FNT_BIG);
+    textMenuName.SetText(_("MESH BED L."));
 
-    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME,
-        -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
-
-    window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(0, 0, display::GetW(), row_h), &(pd->textMenuName));
-    pd->textMenuName.font = resource_font(IDR_FNT_BIG);
-    pd->textMenuName.SetText(_("MESH BED L."));
-
-    window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(2, 50, 200, row_h), &(pd->btMesh));
-    pd->btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
-    pd->btMesh.Enable();
-    pd->btMesh.SetTag(TAG_MESH);
-
-    window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(2, 75, 200, row_h),
-        &(pd->text_mesh_state));
+    btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
 
     //terminal
-    pd->id_term = window_create_ptr(WINDOW_CLS_TERM, id0, rect_ui16(10, 28, 11 * 20, 18 * 16), &(pd->term));
-    term_init(&(pd->terminal), 20, 16, pd->term_buff);
-    pd->term.term = &(pd->terminal);
+    term_init(&(terminal), 20, 16, term_buff);
+    term.term = &(terminal);
 
     //exit and footer
-
-    window_create_ptr(WINDOW_CLS_TEXT,
-        id0, rect_ui16(2, 245, 60, 22), &(pd->textExit));
-    pd->textExit.font = resource_font(IDR_FNT_BIG);
-    pd->textExit.SetText(_("EXIT"));
-    pd->textExit.Enable();
-    pd->textExit.SetTag(TAG_QUIT);
-
-    status_footer_init(&(pd->footer), id0);
+    textExit.font = resource_font(IDR_FNT_BIG);
+    textExit.SetText(_("EXIT"));
 }
 
-void screen_mesh_bed_lv_done(screen_t *screen) {
-    window_destroy(pd->frame.id);
-}
-
-void screen_mesh_bed_lv_draw(screen_t *screen) {
-}
-
-int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    if (status_footer_event(&(pd->footer), window, event, param)) {
-        return 1;
-    }
-
-    status_footer_event(&(pd->footer), window, event, param);
-    if (event == WINDOW_EVENT_CLICK)
-        switch ((int)param) {
-        case TAG_QUIT:
-            if (pd->mesh_state != mesh_state_t::idle)
-                return 0; //button should not be accessible
-            screen_close();
-            return 1;
-
-        case TAG_MESH:
-            if (pd->mesh_state == mesh_state_t::idle) {
-                gui_state_mesh_on(screen);
-                pd->mesh_state = mesh_state_t::home;
-            }
-            break;
-        }
-    if (event == WINDOW_EVENT_CHANGE) {
-        switch ((int)param) {
-        case TAG_MESH:
-            break;
-        }
-    }
+void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (event == WINDOW_EVENT_LOOP) {
         if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            pd->text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
+            text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
         } else {
-            pd->text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[0]));
+            text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[0]));
         }
-        switch (pd->mesh_state) {
+        switch (mesh_state) {
         case mesh_state_t::idle:
             //do nothing
+            break;
+        case mesh_state_t::start:
+            gui_state_mesh_on();
+            mesh_state = mesh_state_t::home;
             break;
         case mesh_state_t::home:
             marlin_error_clr(MARLIN_ERR_ProbingFailed);
@@ -166,15 +89,15 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
             marlin_gcode_printf("G28");
             while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
                 marlin_client_loop();
-            pd->mesh_state = mesh_state_t::homeing;
+            mesh_state = mesh_state_t::homeing;
             break;
         case mesh_state_t::homeing:
             if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
-                pd->mesh_state = mesh_state_t::homed;
+                mesh_state = mesh_state_t::homed;
             }
             break;
         case mesh_state_t::homed:
-            pd->mesh_state = mesh_state_t::mesh;
+            mesh_state = mesh_state_t::mesh;
             //there is no break;
         case mesh_state_t::mesh:
             marlin_event_clr(MARLIN_EVT_CommandBegin);
@@ -182,32 +105,18 @@ int screen_mesh_bed_lv_event(screen_t *screen, window_t *window, uint8_t event, 
             marlin_gcode_printf("G29");
             while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
                 marlin_client_loop();
-            pd->mesh_state = mesh_state_t::meshing;
+            mesh_state = mesh_state_t::meshing;
             break;
         case mesh_state_t::meshing:
             if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
-                pd->mesh_state = mesh_state_t::meshed;
+                mesh_state = mesh_state_t::meshed;
             }
             break;
         case mesh_state_t::meshed:
-            gui_state_mesh_off(screen);
-            pd->mesh_state = mesh_state_t::idle;
+            gui_state_mesh_off();
+            mesh_state = mesh_state_t::idle;
             break;
         }
     }
-
-    return 0;
+    window_frame_t::windowEvent(sender, event, param);
 }
-
-screen_t screen_mesh_bed_lv = {
-    0,
-    0,
-    screen_mesh_bed_lv_init,
-    screen_mesh_bed_lv_done,
-    screen_mesh_bed_lv_draw,
-    screen_mesh_bed_lv_event,
-    sizeof(screen_mesh_bed_lv_data_t), //data_size
-    nullptr,                           //pdata
-};
-
-screen_t *const get_scr_mesh_bed_lv() { return &screen_mesh_bed_lv; }

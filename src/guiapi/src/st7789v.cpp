@@ -200,6 +200,7 @@ void st7789v_set_pixel(point_ui16_t pt, color_t clr) {
 /// Draws simple line (no antialiasing)
 /// Both end points are drawn
 void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
+    const uint16_t clr565 = color_to_565(clr);
     //todo check rectangle
     int n;
     const int dx = pt1.x - pt0.x;
@@ -210,7 +211,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     const int ady = cy; // absolute difference in y ( = height - 1)
 
     if ((adx == 0) || (ady == 0)) { // orthogonal line
-        st7789v_fill_rect_C(std::min(pt0.x, pt1.x), std::min(pt0.y, pt1.y), adx + 1, ady + 1, clr);
+        st7789v_fill_rect_C(std::min(pt0.x, pt1.x), std::min(pt0.y, pt1.y), adx + 1, ady + 1, clr565);
         return;
     }
 
@@ -219,7 +220,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 
     if (adx > ady) { // likely vertical line
         for (n = adx; n > 0; --n) {
-            st7789v_set_pixel_C(pt0.x, pt0.y, clr);
+            st7789v_set_pixel_C(pt0.x, pt0.y, clr565);
             if ((cx -= cy) <= 0) {
                 pt0.y += sy;
                 cx += adx;
@@ -231,7 +232,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 
     if (adx < ady) { // likely horizontal line
         for (n = ady; n > 0; --n) {
-            st7789v_set_pixel_C(pt0.x, pt0.y, clr);
+            st7789v_set_pixel_C(pt0.x, pt0.y, clr565);
             if ((cy -= cx) <= 0) {
                 pt0.x += sx;
                 cy += ady;
@@ -243,7 +244,7 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 
     //adx == ady => diagonal line
     for (n = adx; n > 0; --n) {
-        st7789v_set_pixel_C(pt0.x, pt0.y, clr);
+        st7789v_set_pixel_C(pt0.x, pt0.y, clr565);
         pt0.x += sx;
         pt0.y += sy;
     }

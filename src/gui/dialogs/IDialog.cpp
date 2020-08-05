@@ -1,26 +1,42 @@
 #include "IDialog.hpp"
-#include "gui.hpp"
 #include <stdint.h>
+#include "ScreenHandler.hpp"
 
-static window_t winCreate(int16_t WINDOW_CLS_) {
-    window_t ret;
-    window_create_ptr(WINDOW_CLS_, 0, gui_defaults.scr_body_sz, &ret);
-    ret.SetBackColor(gui_defaults.color_back);
-    return ret;
+IDialog::IDialog(rect_ui16_t rc)
+    : window_frame_t(Screens::Access()->Get(), rc, is_dialog_t::yes) //use dialog ctor
+    , id_capture(GetCapturedWindow()) {
+    gui_reset_jogwheel(); //todo do I need this?
+    Enable();
+    SetCapture();
 }
 
-IDialog::IDialog(int16_t WINDOW_CLS_)
-    : window_t(winCreate(WINDOW_CLS_))
-    , WINDOW_CLS(WINDOW_CLS_) {
-    if (rect_empty_ui16(rect)) //use display rect if current rect is empty
-        rect = rect_ui16(0, 0, display::GetW(), display::GetH());
-    flg |= WINDOW_FLG_ENABLED; //enabled by default
+IDialog::~IDialog() {
+    if (id_capture)
+        id_capture->SetCapture();
 }
 
-void IDialog::c_draw(window_t *win) {
-    win->Draw();
+void create_blocking_dialog_from_normal_window(window_t &dlg) {
+    window_t *id_capture = window_t::GetCapturedWindow();
+
+    dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
+
+    gui_reset_jogwheel();
+    //gui_invalidate();
+
+    while (!Screens::Access()->ConsumeClose()) {
+        gui_loop();
+    }
+
+    if (id_capture)
+        id_capture->SetCapture();
 }
 
-void IDialog::c_event(window_t *win, uint8_t event, void *param) {
-    win->Event(event, param);
+void IDialog::MakeBlocking(void (*action)()) const {
+    gui_reset_jogwheel();
+    //gui_invalidate();
+
+    while (!Screens::Access()->ConsumeClose()) {
+        gui_loop();
+        action();
+    }
 }

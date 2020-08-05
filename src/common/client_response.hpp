@@ -1,29 +1,17 @@
+// client_response.hpp
 // every phase in dialog can have some buttons
 // buttons are generalized on this level as responses
 // because non GUI/WUI client can also use them
 
 #pragma once
 
+#include "general_response.hpp"
 #include <cstdint>
 #include <cstddef>
 #include <array>
 
 enum { RESPONSE_BITS = 2,                   //number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; //maximum number of responses in one phase
-
-//list of all button types
-enum class Response : uint8_t {
-    _none = 0, //none must be zero because of empty initialization of array
-    Yes,
-    No,
-    Continue,
-    Ok,
-    Back,
-    Retry,
-    Purge_more,
-    Reheat,
-    Filament_removed
-};
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
 

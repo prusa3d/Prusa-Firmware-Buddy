@@ -5,6 +5,6 @@
 //load unload and change filament dialog
 class DialogLoadUnload : public DialogStateful<PhasesLoadUnload> {
 public:
-    DialogLoadUnload(const char *name);
+    DialogLoadUnload(string_view_utf8 name);
     static void phaseAlertSound();
 };

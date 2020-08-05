@@ -3,8 +3,7 @@
 
 #include "screen_close_multiple.h"
 #include "gui.hpp"
-#include "screens.h"
-
+/*
 //I could not use functions to initialize those arrays in C
 static screen_t *const timeout_blacklist[] = {
     get_scr_home(),
@@ -39,10 +38,10 @@ static int _current_in_list(screen_t *const *list, size_t sz) {
             return 1;
     return 0;
 }
-
+*/
 void screen_close_multiple(screen_close_multiple_t type) {
 
-    screen_t *const *unl_blacklist;
+    /*   screen_t *const *unl_blacklist;
     size_t sz;
 
     switch (type) {
@@ -59,6 +58,6 @@ void screen_close_multiple(screen_close_multiple_t type) {
     }
 
     while (!_current_in_list(unl_blacklist, sz)) {
-        screen_close();
-    }
+        Screens::Access()->Close();
+    }*/
 }

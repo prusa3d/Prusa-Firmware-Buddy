@@ -16,16 +16,19 @@
 #include "lazyfilelist.h"
 using LDV9 = LazyDirView<9>;
 
+// This enum value is stored to eeprom as file sort settings
+typedef enum {
+    WF_SORT_BY_TIME,
+    WF_SORT_BY_NAME
+
+} WF_Sort_t;
+
+extern WF_Sort_t screen_filebrowser_sort;
+
 inline LDV9 *LDV_Get(void) {
     static LDV9 ldv;
     return &ldv;
 }
-
-struct window_file_list_t;
-
-struct window_class_file_list_t {
-    window_class_t cls;
-};
 
 struct window_file_list_t : public window_t {
     color_t color_text;
@@ -37,28 +40,22 @@ struct window_file_list_t : public window_t {
     LDV9 *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
     char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
     uint8_t alignment;
+    window_file_list_t(window_t *parent, rect_ui16_t rect);
+    void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
+
+public:
+    void SetItemIndex(int index);
+    const char *TopItemSFN();
+    const char *CurrentLFN(bool *isFile);
+    const char *CurrentSFN(bool *isFile);
+
+    /// @return true if path is either empty or contains just a "/"
+    static bool IsPathRoot(const char *path);
+
+private:
+    virtual void unconditionalDraw() override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+    void inc(int dif);
+    void dec(int dif);
+    void init_text_roll();
 };
-
-// This enum value is stored to eeprom as file sort settings
-typedef enum {
-    WF_SORT_BY_TIME,
-    WF_SORT_BY_NAME
-
-} WF_Sort_t;
-
-extern WF_Sort_t screen_filebrowser_sort;
-
-extern int16_t WINDOW_CLS_FILE_LIST;
-
-extern const window_class_file_list_t window_class_file_list;
-
-extern void window_file_list_load(window_file_list_t *window, WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
-
-extern void window_file_set_item_index(window_file_list_t *window, int index);
-
-extern const char *window_file_list_top_item_SFN(window_file_list_t *window);
-extern const char *window_file_current_LFN(window_file_list_t *window, bool *isFile);
-extern const char *window_file_current_SFN(window_file_list_t *window, bool *isFile);
-
-/// @return true if path is either empty or contains just a "/"
-extern bool window_file_list_path_is_root(const char *path);

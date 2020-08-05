@@ -13,7 +13,8 @@ extern uint32_t Tacho_FAN1;
 
 void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
     selftest_fans_axis_data_t *p_data) {
-    window_destroy_children(id_body);
+    /*
+    //window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0)
         pWin->Show();
@@ -77,6 +78,8 @@ void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_s
 
     window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(x + 200, y, 22, 22), &(p_screen->icon_z_axis));
     p_screen->icon_z_axis.SetIdRes(wizard_get_test_icon_resource(p_data->state_z));
+
+*/
 }
 
 int wizard_selftest_fan0(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data) {
