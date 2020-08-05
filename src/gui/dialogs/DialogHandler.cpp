@@ -2,8 +2,8 @@
 #include "gui.hpp"
 #include "DialogLoadUnload.hpp"
 #include "DialogFactory.hpp"
-#include "screens.h"
-#include "screen_close_multiple.h"
+#include "IScreenPrinting.hpp"
+#include "ScreenHandler.hpp"
 
 //*****************************************************************************
 //method definitions
@@ -15,16 +15,12 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
         return;
 
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
-    if ((screen_get_curr() == get_scr_printing_serial()))
-        return;
-
-    //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
     if (dialog == ClientFSM::Serial_printing) {
-        screen_close_multiple(scrn_close_on_M876);
-
-        if (screen_get_curr() != get_scr_printing_serial())
-            screen_open(get_scr_printing_serial()->id);
+        if (IScreenPrinting::CanOpen()) {
+            Screens::Access()->CloseAll();
+            Screens::Access()->Open(ScreenFactory::Screen<screen_splash_data_t>);
+        }
     } else {
         ptr = dialog_ctors[size_t(dialog)](data);
     }
@@ -39,11 +35,7 @@ void DialogHandler::close(ClientFSM dialog) {
 
         //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
         if (dialog == ClientFSM::Serial_printing) {
-            if (screen_get_curr() == get_scr_menu_tune())
-                screen_close();
-
-            if (screen_get_curr() == get_scr_printing_serial())
-                screen_close();
+            Screens::Access()->CloseAll();
         }
     }
 

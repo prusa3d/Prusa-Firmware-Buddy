@@ -1,29 +1,17 @@
+// client_response.hpp
 // every phase in dialog can have some buttons
 // buttons are generalized on this level as responses
 // because non GUI/WUI client can also use them
 
 #pragma once
 
+#include "general_response.hpp"
 #include <cstdint>
 #include <cstddef>
 #include <array>
 
 enum { RESPONSE_BITS = 2,                   //number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; //maximum number of responses in one phase
-
-//list of all button types
-enum class Response : uint8_t {
-    _none = 0, //none must be zero because of empty initialization of array
-    Yes,
-    No,
-    Continue,
-    Ok,
-    Back,
-    Retry,
-    Purge_more,
-    Reheat,
-    Filament_removed
-};
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
 
@@ -66,15 +54,15 @@ enum class PhasesLoadUnload : uint16_t {
     Loading,
     Purging,
     IsColor,
+    IsColorPurge,
     Unparking,
     _last = Unparking
 };
 
-enum class PhasesTest : uint16_t {
+enum class PhasesG162 : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
-    Test1,
-    Test2,
-    _last = Test2
+    Parking,
+    _last = Parking
 };
 
 //static class for work with fsm responses (like button click)
@@ -85,11 +73,11 @@ class ClientResponses {
 
     //declare 2d arrays of single buttons for radio buttons
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
-    static const PhaseResponses TestResponses[CountPhases<PhasesTest>()];
+    static const PhaseResponses G162Responses[CountPhases<PhasesG162>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
-    static const PhaseResponses &getResponsesInPhase(PhasesTest phase) { return TestResponses[static_cast<size_t>(phase)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesG162 phase) { return G162Responses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesG162::_first)]; }
 
 protected:
     //get index of single response in PhaseResponses

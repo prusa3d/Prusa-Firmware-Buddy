@@ -198,6 +198,11 @@ bool Pause::FilamentLoad() {
     if (!is_target_temperature_safe())
         return false;
 
+#if ENABLED(PID_EXTRUSION_SCALING)
+    bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
+    thermalManager.setExtrusionScalingEnabled(false);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
+
     Response response;
     do {
         hotend_idle_start(PAUSE_PARK_NOZZLE_TIMEOUT);
@@ -258,6 +263,9 @@ bool Pause::FilamentLoad() {
         marlin_server_print_reheat_start();
 
         if (!ensure_safe_temperature_notify_progress(PhasesLoadUnload::WaitingTemp, 30, 50)) {
+#if ENABLED(PID_EXTRUSION_SCALING)
+            thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
             return false;
         }
 
@@ -271,16 +279,20 @@ bool Pause::FilamentLoad() {
         do {
             // Extrude filament to get into hotend
             do_e_move_notify_progress(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, PhasesLoadUnload::Purging, 70, 99);
-            fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0);
+            fast_load_length ? fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColor, 99, 0) : fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::IsColorPurge, 99, 0);
             do {
                 idle();
-                response = ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor);
+                response = fast_load_length ? ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColor) : ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::IsColorPurge);
             } while (response == Response::_none);  //no button
         } while (response == Response::Purge_more); //purge more or continue .. exit loop
         if (response == Response::Retry) {
             do_e_move_notify_progress(-slow_load_length - fast_load_length - purge_ln, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, PhasesLoadUnload::Ejecting, 10, 99);
         }
     } while (response == Response::Retry);
+
+#if ENABLED(PID_EXTRUSION_SCALING)
+    thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
 
     return true;
 }
@@ -301,30 +313,28 @@ bool Pause::FilamentUnload() {
         return false;
     }
 
-    static const RamUnloadSeqItem ramUnloadSeq[] = {
-        { 1, 100 },
-        { 1, 300 },
-        { 3, 800 },
-        { 2, 1200 },
-        { 2, 2200 },
-        { 2, 2600 }, // end of ramming
-        { -2, 2200 },
-        { -20, 3000 },
-        { -30, 4000 }, // end of pre-unload
-    };
+#if ENABLED(PID_EXTRUSION_SCALING)
+    bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
+    thermalManager.setExtrusionScalingEnabled(false);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
+
+    static const RamUnloadSeqItem ramUnloadSeq[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
+    decltype(RamUnloadSeqItem::e) ramUnloadLength = 0; //Sum of ramming distances starting from first retraction
 
     constexpr float mm_per_minute = 1 / 60.f;
-    constexpr size_t preUnloadBeginPos = 6;
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
     //cannot draw progress in plan_e_move, so just change phase to ramming
     fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::Ramming, 50, 0);
-    for (size_t i = 0; i < preUnloadBeginPos; ++i) {
-        plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
-    }
-
-    for (size_t i = preUnloadBeginPos; i < ramUnloadSeqSize; ++i) {
-        plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute); //cannot draw progress in plan_e_move
+    {
+        bool counting = false;
+        for (size_t i = 0; i < ramUnloadSeqSize; ++i) {
+            plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
+            if (ramUnloadSeq[i].e < 0)
+                counting = true;
+            if (counting)
+                ramUnloadLength += ramUnloadSeq[i].e;
+        }
     }
 
     // Unload filament
@@ -333,8 +343,8 @@ bool Pause::FilamentUnload() {
 
     planner.synchronize(); //do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
 
-    // subtract the already performed extruder movement (-30mm) from the total unload length
-    do_e_move_notify_progress((unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), PhasesLoadUnload::Unloading, 51, 99);
+    // subtract the already performed extruder movement from the total unload length
+    do_e_move_notify_progress((unload_length - ramUnloadLength), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), PhasesLoadUnload::Unloading, 51, 99);
 
     planner.settings.retract_acceleration = saved_acceleration;
 
@@ -345,6 +355,10 @@ bool Pause::FilamentUnload() {
     disable_e_stepper(active_extruder);
     safe_delay(100);
 #endif
+
+#if ENABLED(PID_EXTRUSION_SCALING)
+    thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
+#endif //ENABLED(PID_EXTRUSION_SCALING)
 
     return true;
 }

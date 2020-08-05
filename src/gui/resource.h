@@ -1,6 +1,5 @@
 //resource.h
-#ifndef _RESOURCE_H
-#define _RESOURCE_H
+#pragma once
 
 //null resource - test
 #define IDR_NULL 0x0000
@@ -75,4 +74,10 @@
 #define IDR_PNG_serial_printing      0x0037
 #define IDR_PNG_menu_icon_disconnect 0x0038
 
-#endif //_RESOURCE_H
+#define IDR_PNG_flag_cs 0x0039
+#define IDR_PNG_flag_de 0x003a
+#define IDR_PNG_flag_en 0x003b
+#define IDR_PNG_flag_es 0x003c
+#define IDR_PNG_flag_fr 0x003d
+#define IDR_PNG_flag_it 0x003e
+#define IDR_PNG_flag_pl 0x003f

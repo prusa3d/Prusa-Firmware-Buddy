@@ -2,7 +2,7 @@
 
 //define available responses for every phase
 const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoadUnload>()] = {
-    {},                                                            //_init
+    {},                                                            //_first
     {},                                                            //Parking
     {},                                                            //WaitingTemp,
     {},                                                            //PreparingToRam,
@@ -18,11 +18,11 @@ const PhaseResponses ClientResponses::LoadUnloadResponses[CountPhases<PhasesLoad
     {},                                                            //Loading,
     {},                                                            //Purging,
     { Response::Continue, Response::Purge_more, Response::Retry }, //IsColor,
+    { Response::Continue, Response::Purge_more },                  //IsColorPurge
     {},                                                            //Unparking,
 };
 
-const PhaseResponses ClientResponses::TestResponses[CountPhases<PhasesTest>()] = {
-    {},
-    {},
-    {}
+const PhaseResponses ClientResponses::G162Responses[CountPhases<PhasesG162>()] = {
+    {}, //_first
+    {}, //Parking
 };

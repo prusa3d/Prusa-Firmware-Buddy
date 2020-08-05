@@ -1,15 +1,16 @@
-// screen_menu_filament.c
+// screen_menu_filament.cpp
 
 #include "gui.hpp"
+#include "screen_menus.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"
 #include "filament_sensor.h"
 #include "marlin_client.h"
 #include "window_dlg_load_unload.h"
-#include "screens.h"
 #include "dbg.h"
 #include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
 void setPreheatTemp() {
@@ -27,14 +28,14 @@ class MI_event_dispatcher : public WI_LABEL_t {
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
-        screen_dispatch_event(nullptr, WINDOW_EVENT_CLICK, (void *)this);
+        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this); //WI_LABEL is not a window, cannot set sender param
     }
 
 public:
     explicit MI_event_dispatcher(const char *label)
         : WI_LABEL_t(label, 0, true, false) {}
 
-    virtual const char *GetHeaderAlterLabel() = 0;
+    virtual string_view_utf8 GetHeaderAlterLabel() = 0;
     virtual void Do() = 0;
 };
 
@@ -47,8 +48,8 @@ class MI_LOAD : public MI_event_dispatcher {
 public:
     MI_LOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLabel() override {
-        return header_label;
+    virtual string_view_utf8 GetHeaderAlterLabel() override {
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_load() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
@@ -64,8 +65,8 @@ class MI_UNLOAD : public MI_event_dispatcher {
 public:
     MI_UNLOAD()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLabel() override {
-        return header_label;
+    virtual string_view_utf8 GetHeaderAlterLabel() override {
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_unload();
@@ -81,8 +82,8 @@ class MI_CHANGE : public MI_event_dispatcher {
 public:
     MI_CHANGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLabel() override {
-        return header_label;
+    virtual string_view_utf8 GetHeaderAlterLabel() override {
+        return _(header_label);
     }
     virtual void Do() override {
         if (gui_dlg_unload() == DLG_OK) {
@@ -100,17 +101,17 @@ class MI_PURGE : public MI_event_dispatcher {
 public:
     MI_PURGE()
         : MI_event_dispatcher(label) {}
-    virtual const char *GetHeaderAlterLabel() override {
-        return header_label;
+    virtual string_view_utf8 GetHeaderAlterLabel() override {
+        return _(header_label);
     }
     virtual void Do() override {
         gui_dlg_purge() == DLG_OK ? setPreheatTemp() : clrPreheatTemp();
     }
 };
 
-using parent = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
-class ScreenMenuFilament : public parent {
+class ScreenMenuFilament : public Screen {
     enum {
         F_EEPROM = 0x01, // filament is known
         F_SENSED = 0x02  // filament is not in sensor
@@ -118,45 +119,45 @@ class ScreenMenuFilament : public parent {
 
 public:
     constexpr static const char *label = N_("FILAMENT");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    ScreenMenuFilament()
+        : Screen(_(label)) {}
+    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 
 private:
     void deactivate_item();
 
     template <class T>
     void dis() {
-        Item<T>().Disable();
-        f_invalid = 1;
+        if (Item<T>().IsEnabled()) {
+            Item<T>().Disable();
+            Invalidate();
+        }
     }
     template <class T>
     void ena() {
-        Item<T>().Enable();
-        f_invalid = 1;
+        if (!Item<T>().IsEnabled()) {
+            Item<T>().Enable();
+            Invalidate();
+        }
     }
 };
 
-/*****************************************************************************/
-//static method definition
-void ScreenMenuFilament::Init(screen_t *screen) {
-    Create(screen, label);
-    reinterpret_cast<ScreenMenuFilament *>(screen->pdata)->deactivate_item();
+ScreenFactory::UniquePtr GetScreenMenuFilament() {
+    return ScreenFactory::Screen<ScreenMenuFilament>();
 }
 
-int ScreenMenuFilament::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    ScreenMenuFilament *const ths = reinterpret_cast<ScreenMenuFilament *>(screen->pdata);
-    ths->deactivate_item();
-    if (event == WINDOW_EVENT_CLICK) {
+void ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) {
+    deactivate_item();
+    if (ev == WINDOW_EVENT_CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
-            p_window_header_set_text(&ths->header, item->GetHeaderAlterLabel()); //set new label
-            item->Do();                                                          //do action (load filament ...)
-            p_window_header_set_text(&ths->header, label);                       //restore label
+            header.SetText(item->GetHeaderAlterLabel()); //set new label
+            item->Do();                                  //do action (load filament ...)
+            header.SetText(_(label));                    //restore label
         }
     } else {
-        return ths->Event(window, event, param);
+        Screen::windowEvent(sender, ev, param);
     }
-    return 0;
 }
 
 /*****************************************************************************/
@@ -200,18 +201,4 @@ void ScreenMenuFilament::deactivate_item() {
         ena<MI_PURGE>();
         break;
     }
-    gui_invalidate();
 }
-
-screen_t screen_menu_filament = {
-    0,
-    0,
-    ScreenMenuFilament::Init,
-    ScreenMenuFilament::CDone,
-    ScreenMenuFilament::CDraw,
-    ScreenMenuFilament::CEvent,
-    sizeof(ScreenMenuFilament), //data_size
-    nullptr,                    //pdata
-};
-
-screen_t *const get_scr_menu_filament() { return &screen_menu_filament; }

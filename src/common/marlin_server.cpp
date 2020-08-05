@@ -386,9 +386,11 @@ void marlin_server_settings_save(void) {
     eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
     eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
     eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+#if ENABLED(PIDTEMP)
     eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
     eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
     eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
+#endif
 }
 
 void marlin_server_settings_load(void) {
@@ -399,10 +401,12 @@ void marlin_server_settings_load(void) {
     Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
     Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
     Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
+#if ENABLED(PIDTEMP)
     Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
     Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
     Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
     thermalManager.updatePID();
+#endif
 }
 
 void marlin_server_settings_reset(void) {
@@ -529,6 +533,7 @@ static void _server_print_loop(void) {
         break;
     case mpsAborting_Begin:
         media_print_stop();
+        queue.clear();
         thermalManager.disable_all_heaters();
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0);
@@ -555,11 +560,17 @@ static void _server_print_loop(void) {
         break;
     case mpsAborting_ParkHead:
         if (planner.movesplanned() == 0) {
+            disable_X();
+            disable_Y();
+#ifndef Z_ALWAYS_ON
+            disable_Z();
+#endif //Z_ALWAYS_ON
+            disable_e_steppers();
             marlin_server.print_state = mpsAborted;
         }
         break;
     case mpsFinishing_WaitIdle:
-        if (planner.movesplanned() == 0) {
+        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
             marlin_server_park_head();
             marlin_server.print_state = mpsFinishing_ParkHead;
         }
@@ -613,6 +624,10 @@ int marlin_all_axes_homed(void) {
 
 int marlin_all_axes_known(void) {
     return all_axes_known() ? 1 : 0;
+}
+
+int marlin_server_get_exclusive_mode(void) {
+    return (marlin_server.flags & MARLIN_SFLG_EXCMODE) ? 1 : 0;
 }
 
 void marlin_server_set_temp_to_display(float value) {
@@ -1079,10 +1094,23 @@ static int _process_server_request(char *request) {
         processed = 1;
     } else if (sscanf(request, "!event_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
+        // Send MARLIN_EVT_MediaInserted event if media currently inserted
+        // This is temporary solution, MARLIN_EVT_MediaInserted and MARLIN_EVT_MediaRemoved events are replaced
+        // with variable media_inserted, but some parts of application still using the events.
+        // We need this workaround for app startup.
+        if ((marlin_server.notify_events[client_id] & MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted)) && marlin_server.vars.media_inserted)
+            marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted);
         processed = 1;
     } else if (sscanf(request, "!change_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
+        processed = 1;
+    } else if (sscanf(request, "!exc %d", &ival) == 1) { //set exclusive mode
+        if (ival) {
+            marlin_server.flags |= MARLIN_SFLG_EXCMODE;
+            queue.clear();
+        } else
+            marlin_server.flags &= ~MARLIN_SFLG_EXCMODE;
         processed = 1;
     } else {
         bsod("Unknown request %s", request);
@@ -1375,6 +1403,7 @@ void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pr
 /*****************************************************************************/
 //FSM_notifier
 FSM_notifier::data FSM_notifier::s_data;
+FSM_notifier *FSM_notifier::activeInstance = nullptr;
 
 FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
     uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
@@ -1387,6 +1416,7 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvarian
     s_data.progress_max = progress_max;
     s_data.var_id = var_id;
     s_data.last_progress_sent = -1;
+    activeInstance = this;
 }
 
 //static method
@@ -1398,9 +1428,11 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvarian
 //simplified formula
 //x = actual * s_data.scale + s_data.offset;
 void FSM_notifier::SendNotification() {
+    if (!activeInstance)
+        return;
     if (s_data.type == ClientFSM::_none)
         return;
-
+    activeInstance->preSendNotification();
     cvariant8 temp;
     temp.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
 
@@ -1418,10 +1450,12 @@ void FSM_notifier::SendNotification() {
         s_data.last_progress_sent = progress;
         _fsm_change(s_data.type, s_data.phase, progress, 0);
     }
+    activeInstance->postSendNotification();
 }
 
 FSM_notifier::~FSM_notifier() {
     s_data = temp_data;
+    activeInstance = nullptr;
 }
 
 /*****************************************************************************/

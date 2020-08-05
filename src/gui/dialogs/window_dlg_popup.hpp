@@ -10,8 +10,6 @@
 #include "window.hpp"
 #include "marlin_server.h"
 
-extern int16_t WINDOW_CLS_DLG_POPUP;
-
 struct window_dlg_popup_t : public window_t {
     color_t color_text;
     font_t *font;
@@ -20,11 +18,7 @@ struct window_dlg_popup_t : public window_t {
     uint32_t timer;
     uint16_t flags;
     char text[MSG_MAX_LENGTH];
+    window_dlg_popup_t(window_t *parent, rect_ui16_t rect);
 };
 
-struct window_class_dlg_popup_t {
-    window_class_t cls;
-};
-
-extern const window_class_dlg_popup_t window_class_dlg_popup;
 extern void gui_pop_up(void);

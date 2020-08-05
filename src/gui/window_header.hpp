@@ -1,58 +1,35 @@
-/*
- * window_header.hpp
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
- */
-
 #pragma once
 
 #include "gui.hpp"
-#include "marlin_events.h"
 #include "window_text.hpp"
+#include "window_frame.hpp"
 
-typedef enum {
-    HEADER_ISTATE_OFF,
-    HEADER_ISTATE_ON,
-    HEADER_ISTATE_ACTIVE
-} header_states_t;
+struct window_header_t : public window_frame_t {
+    enum class header_states_t : uint8_t { OFF,
+        ON,
+        ACTIVE };
 
-typedef enum {
-    HEADER_ICON_USB, // must be first!
-    HEADER_ICON_LAN,
-    HEADER_ICON_WIFI
-    // for next icon, update HEADER_ICON_COUNT define !
-} header_icons_t;
+    window_icon_t icon_base;
+    window_text_t label;
+    window_icon_t icon_usb;
+    window_icon_t icon_lan;
 
-#define HEADER_ICON_COUNT HEADER_ICON_WIFI + 1
+    void SetIcon(int16_t id_res);
+    void SetText(string_view_utf8 txt);
+    header_states_t GetStateUSB() const;
+    header_states_t GetStateLAN() const;
+    bool EventClr_MediaInserted();
+    bool EventClr_MediaRemoved();
+    bool EventClr_MediaError();
+    void EventClr();
+    //private:
+    void USB_Off();
+    void USB_On();
+    void USB_Activate();
+    void LAN_Off();
+    void LAN_On();
+    void LAN_Activate();
 
-struct window_class_header_t {
-    window_class_t cls;
+    void update_ETH_icon();
+    window_header_t(window_t *parent);
 };
-
-struct window_header_t : public window_text_t {
-    uint16_t id_res;
-    header_states_t icons[HEADER_ICON_COUNT]; // usb, lan, wifi
-
-    // char time[10];
-};
-
-extern int16_t WINDOW_CLS_HEADER;
-
-extern const window_class_header_t window_class_header;
-
-void p_window_header_set_icon(window_header_t *window, uint16_t id_res);
-
-void p_window_header_icon_off(window_header_t *window, header_icons_t icon);
-void p_window_header_icon_on(window_header_t *window, header_icons_t icon);
-void p_window_header_icon_active(window_header_t *window, header_icons_t icon);
-
-header_states_t p_window_header_get_state(window_header_t *window,
-    header_icons_t icon);
-void p_window_header_set_text(window_header_t *window, const char *text);
-int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id);
-
-#define window_header_events(window)                             \
-    p_window_header_event_clr(window, MARLIN_EVT_MediaInserted); \
-    p_window_header_event_clr(window, MARLIN_EVT_MediaRemoved);  \
-    p_window_header_event_clr(window, MARLIN_EVT_MediaError);

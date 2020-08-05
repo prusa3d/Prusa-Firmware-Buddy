@@ -362,8 +362,8 @@
 //#define TEMP_SENSOR_1_AS_REDUNDANT
 #define MAX_REDUNDANT_TEMP_SENSOR_DIFF 10
 
-#define TEMP_RESIDENCY_TIME 0 // (seconds) Time to wait for hotend to "settle" in M109
-#define TEMP_WINDOW 1 // (°C) Temperature proximity for the "temperature reached" timer
+#define TEMP_RESIDENCY_TIME 1 // (seconds) Time to wait for hotend to "settle" in M109
+#define TEMP_WINDOW 2.5F // (°C) Temperature proximity for the "temperature reached" timer
 #define TEMP_HYSTERESIS 3 // (°C) Temperature proximity considered "close enough" to the target
 
 #define TEMP_BED_RESIDENCY_TIME 5 // (seconds) Time to wait for bed to "settle" in M190
@@ -424,37 +424,13 @@
     #define PID_FUNCTIONAL_RANGE 500 // If the temperature difference between the target temperature and the actual temperature
 // is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
 
-    // If you are using a pre-configured hotend then you can use one of the value sets by uncommenting it
-
-    // Ultimaker
-    //#define DEFAULT_Kp 22.2
-    //#define DEFAULT_Ki 1.08
-    //#define DEFAULT_Kd 114
-
-    // Prusa MK3
-    //#define  DEFAULT_Kp 16.13
-    //#define  DEFAULT_Ki 1.1625
-    //#define  DEFAULT_Kd 56.23
-
-    // Prusa MINI - old settings
-    //#define DEFAULT_Kp 13.97
-    //#define DEFAULT_Ki 1.07
-    //#define DEFAULT_Kd 45.43
-
     // Prusa MINI
     #define DEFAULT_Kp 7.00
     #define DEFAULT_Ki 0.50
     #define DEFAULT_Kd 45.00
-
-// MakerGear
-//#define DEFAULT_Kp 7.0
-//#define DEFAULT_Ki 0.1
-//#define DEFAULT_Kd 12
-
-// Mendel Parts V9 on 12V
-//#define DEFAULT_Kp 63.0
-//#define DEFAULT_Ki 2.25
-//#define DEFAULT_Kd 440
+    #define STEADY_STATE_HOTEND_LINEAR_COOLING_TERM 0.322
+    #define STEADY_STATE_HOTEND_QUADRATIC_COOLING_TERM 0.0002
+    #define STEADY_STATE_HOTEND_FAN_COOLING_TERM 3.9
 
 #endif // PIDTEMP
 

@@ -293,10 +293,10 @@ def build(configuration: BuildConfiguration,
                                        stderr=stderr,
                                        check=False)
         build_returncode = build_process.returncode
-        products.extend(
-            build_dir / fname for fname in
-            ['firmware', 'firmware.bin', 'firmware.bbf', 'firmware.dfu']
-            if (build_dir / fname).exists())
+        products.extend(build_dir / fname for fname in [
+            'firmware', 'firmware.bin', 'firmware.bbf', 'firmware.dfu',
+            'firmware.map'
+        ] if (build_dir / fname).exists())
     else:
         build_returncode = None
 

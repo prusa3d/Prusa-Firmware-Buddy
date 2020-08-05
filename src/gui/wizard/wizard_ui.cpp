@@ -5,6 +5,7 @@
 #include "resource.h"
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "marlin_client.h" //HAL_GetTick
+#include "../lang/i18n.h"
 
 uint16_t wizard_get_test_icon_resource(uint8_t state) {
     switch (state) {
@@ -23,35 +24,35 @@ uint16_t wizard_get_test_icon_resource(uint8_t state) {
 void wizard_update_test_icon(window_icon_t &ico, uint8_t state) {
     ico.SetIdRes(wizard_get_test_icon_resource(state));
 }
-
+/*
 // messagebox with custom buttons (NEXT and DONE), optionaly icon and rectangle
-int wizard_msgbox_ex(const char *text, uint16_t flags, uint16_t id_icon, rect_ui16_t rc) {
+int wizard_msgbox_ex(string_view_utf8 text, uint16_t flags, uint16_t id_icon, rect_ui16_t rc) {
     const char *custom_btn = 0;
     if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_NEXT)
-        custom_btn = "NEXT";
+        custom_btn = N_("NEXT");
     else if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_DONE)
-        custom_btn = "DONE";
+        custom_btn = N_("DONE");
     if (custom_btn) {
         flags = (flags & ~MSGBOX_MSK_BTN) | MSGBOX_BTN_CUSTOM1;
-        return gui_msgbox_ex(0, text, flags | MSGBOX_ICO_CUSTOM, rc, id_icon, &custom_btn);
+        return MsgBoxIcon(string_view_utf8::MakeNULLSTR(), text, flags | MSGBOX_ICO_CUSTOM, rc, id_icon, &custom_btn);
     }
-    return gui_msgbox_ex(0, text, flags | MSGBOX_ICO_CUSTOM, rc, id_icon, 0);
+    return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags | MSGBOX_ICO_CUSTOM, rc, id_icon, 0);
 }
 
-int wizard_msgbox(const char *text, uint16_t flags, uint16_t id_icon) {
-    return wizard_msgbox_ex(text, flags, id_icon, gui_defaults.scr_body_sz);
+int wizard_msgbox(string_view_utf8 text, uint16_t flags, uint16_t id_icon) {
+    return wizard_msgbox_ex(text, flags, id_icon, GuiDefaults::RectScreenBody);
 }
 
-int wizard_msgbox1(const char *text, uint16_t flags, uint16_t id_icon) {
+int wizard_msgbox1(string_view_utf8 text, uint16_t flags, uint16_t id_icon) {
     return wizard_msgbox_ex(text, flags, id_icon,
         rect_ui16(0, 76, 240, 320 - 140)); // FIXME looks like manual vertical center align
 }
 
-int wizard_msgbox_btns(const char *text, uint16_t flags, uint16_t id_icon, const char **buttons) {
-    return gui_msgbox_ex(0, text, flags | MSGBOX_ICO_CUSTOM,
-        gui_defaults.scr_body_sz, id_icon, buttons);
+int wizard_msgbox_btns(string_view_utf8 text, uint16_t flags, uint16_t id_icon, const char **buttons) {
+    return gui_msgbox_ex(string_view_utf8::MakeNULLSTR(), text, flags | MSGBOX_ICO_CUSTOM,
+        GuiDefaults::RectScreenBody, id_icon, buttons);
 }
-
+*/
 int wizard_timer(uint32_t *p_timer, uint32_t delay_ms, _TEST_STATE_t *pstate, _WIZ_TIMER_t type) {
     int progress = 0;
     switch (*pstate) {

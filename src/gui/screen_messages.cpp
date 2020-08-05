@@ -5,24 +5,12 @@
  *      Author: Migi
  */
 
-#include "gui.hpp"
+#include "screen_messages.hpp"
 #include "marlin_server.h"
-#include "window_header.hpp"
-#include "status_footer.h"
+#include "ScreenHandler.hpp"
 #include <stdlib.h>
 #include <stdint.h>
-#include "screens.h"
 #include "../lang/i18n.h"
-
-struct screen_messages_data_t {
-    window_frame_t root;
-    window_header_t header;
-    window_list_t list;
-
-    status_footer_t *pfooter;
-};
-
-#define pmsg ((screen_messages_data_t *)screen->pdata)
 
 void _window_list_add_message_item(window_list_t * /*pwindow_list*/, uint16_t index,
     const char **pptext, uint16_t *msg_icon) {
@@ -50,66 +38,34 @@ void _msg_stack_del(uint8_t del_index) { // del_index = < 0 ; MSG_STACK_SIZE - 1
     msg_stack.count--;
 }
 
-void screen_messages_init(screen_t *screen) {
-    int16_t root = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0),
-        &(pmsg->root));
-    pmsg->root.Disable();
+screen_messages_data_t::screen_messages_data_t()
+    : window_frame_t()
+    , header(this)
+    , footer(this)
+    , list(this, GuiDefaults::RectScreenBody) {
+    Disable();
+    header.SetText(_("MESSAGES"));
 
-    window_create_ptr(WINDOW_CLS_HEADER, root, gui_defaults.header_sz, &(pmsg->header));
-    // p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
-    p_window_header_set_text(&(pmsg->header), N_("MESSAGES"));
+    list.SetItemCount(msg_stack.count + 1);
+    list.SetItemIndex(0);
+    list.SetCallback(_window_list_add_message_item);
 
-    window_create_ptr(WINDOW_CLS_LIST, root, gui_defaults.scr_body_sz, &(pmsg->list));
-    pmsg->list.SetItemCount(msg_stack.count + 1);
-    pmsg->list.SetItemIndex(0);
-    pmsg->list.SetCallback(_window_list_add_message_item);
-
-    pmsg->list.SetCapture();
-
-    pmsg->pfooter = (status_footer_t *)gui_malloc(sizeof(status_footer_t));
-    status_footer_init(pmsg->pfooter, root);
+    list.SetCapture();
 }
 
-void screen_messages_draw(screen_t *screen) {
-}
-
-int screen_messages_event(screen_t *screen, window_t *window,
-    uint8_t event, void *param) {
+void screen_messages_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK:
-        if (pmsg->list.index == 0) {
-            screen_close();
-            return 1;
+        if (list.index == 0) {
+            Screens::Access()->Close();
+            return;
         }
         break;
     default:
         break;
     }
 
-    pmsg->list.count = msg_stack.count + 1;
-
-    status_footer_event(pmsg->pfooter, window, event, param);
-
-    return 0;
+    list.count = msg_stack.count + 1;
 }
-
-void screen_messages_done(screen_t *screen) {
-    window_destroy(pmsg->root.id);
-    free(pmsg->pfooter);
-}
-
-screen_t screen_messages = {
-    0,
-    0,
-    screen_messages_init,
-    screen_messages_done,
-    screen_messages_draw,
-    screen_messages_event,
-    sizeof(screen_messages_data_t), //data_size
-    nullptr,                        //pdata
-};
-
-screen_t *const get_scr_messages() { return &screen_messages; }

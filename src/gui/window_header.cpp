@@ -1,15 +1,8 @@
-/*
- * window_header.cpp
- *
- *  Created on: 19. 7. 2019
- *      Author: mcbig
- */
-
-#include <stdbool.h>
 #include "window_header.hpp"
 #include "config.h"
 #include "marlin_client.h"
 #include "../lang/i18n.h"
+#include "marlin_events.h"
 
 #ifdef BUDDY_ENABLE_ETHERNET
     #include "wui_api.h"
@@ -17,44 +10,21 @@
 
 void window_frame_draw(window_frame_t *window);
 
-int16_t WINDOW_CLS_HEADER = 0;
-
+void window_header_t::update_ETH_icon() {
 #ifdef BUDDY_ENABLE_ETHERNET
-static void update_ETH_icon(window_header_t *window) {
     if (get_eth_status() == ETH_UNLINKED) {
-        p_window_header_icon_off(window, HEADER_ICON_LAN);
+        LAN_Off();
     } else if (get_eth_status() == ETH_NETIF_DOWN) {
-        p_window_header_icon_on(window, HEADER_ICON_LAN);
+        LAN_On();
     } else {
-        p_window_header_icon_active(window, HEADER_ICON_LAN);
+        LAN_Activate();
     }
-}
+#else
+    LAN_Off();
 #endif // BUDDY_ENABLE_ETHERNET
-
-void window_header_init(window_header_t *window) {
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->padding = gui_defaults.padding;
-    window->alignment = ALIGN_LEFT_CENTER;
-    window->id_res = IDR_NULL;
-    window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ON;
-    window->icons[HEADER_ICON_LAN] = HEADER_ISTATE_OFF;
-    window->icons[HEADER_ICON_WIFI] = HEADER_ISTATE_OFF;
-    window->text = NULL;
-
-    if (marlin_vars()->media_inserted) {
-        window->icons[HEADER_ICON_USB] = HEADER_ISTATE_ACTIVE;
-    }
-#ifdef BUDDY_ENABLE_ETHERNET
-    update_ETH_icon(window);
-#endif //BUDDY_ENABLE_ETHERNET
-
-    display::FillRect(gui_defaults.header_sz, window->color_back); // clear the window before drawing
 }
 
-void window_header_done(window_header_t *window) {}
-
+/*
 void window_header_draw(window_header_t *window) {
     if (!((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))
             == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
@@ -106,77 +76,103 @@ void window_header_draw(window_header_t *window) {
     rc.x += 10 + window->rect.h;
     rc.w -= (icons_width + 10 + window->rect.h);
 
-    if (window->text) {                                      // label
-        render_text_align(rc, _(window->text), window->font, // @@TODO verify, that this is the right spot to translate window labels
-            window->color_back, window->color_text,
-            window->padding, window->alignment);
+    if (!window->label.GetText().isNULLSTR()) { // label
+        render_text_align(rc, window->label.GetText(), window->label.font,
+            window->color_back, window->label.GetTextColor(),
+            window->label.padding, window->label.alignment);
     }
 }
-
-void p_window_header_set_icon(window_header_t *window, uint16_t id_res) {
-    window->id_res = id_res;
-    window->Invalidate();
+*/
+void window_header_t::SetIcon(int16_t id_res) {
+    icon_base.SetIdRes(id_res);
+    Invalidate();
 }
 
-void p_window_header_icon_off(window_header_t *window, header_icons_t icon) {
-    if (window->icons[icon] != HEADER_ISTATE_OFF) {
-        window->icons[icon] = HEADER_ISTATE_OFF;
-        window->Invalidate();
-    }
+void window_header_t::SetText(string_view_utf8 txt) {
+    label.SetText(txt);
+    Invalidate();
 }
 
-void p_window_header_icon_on(window_header_t *window, header_icons_t icon) {
-    if (window->icons[icon] != HEADER_ISTATE_ON) {
-        window->icons[icon] = HEADER_ISTATE_ON;
-        window->Invalidate();
-    }
+void window_header_t::EventClr() {
+    EventClr_MediaInserted();
+    EventClr_MediaRemoved();
+    EventClr_MediaError();
 }
 
-void p_window_header_icon_active(window_header_t *window, header_icons_t icon) {
-    if (window->icons[icon] != HEADER_ISTATE_ACTIVE) {
-        window->icons[icon] = HEADER_ISTATE_ACTIVE;
-        window->Invalidate();
-    }
-}
-
-header_states_t p_window_header_get_state(window_header_t *window,
-    header_icons_t icon) {
-    return window->icons[icon];
-}
-
-void p_window_header_set_text(window_header_t *window, const char *txt) {
-    window->text = txt;
-    window->Invalidate();
-}
-
-int p_window_header_event_clr(window_header_t *window, MARLIN_EVT_t evt_id) {
+bool window_header_t::EventClr_MediaInserted() {
     /* lwip fces only read states, invalid states by another thread never mind */
-#ifdef BUDDY_ENABLE_ETHERNET
-    update_ETH_icon(window);
-#endif //BUDDY_ENABLE_ETHERNET
-    if (marlin_event_clr(evt_id)) {
-        switch (evt_id) {
-        case MARLIN_EVT_MediaInserted:
-            p_window_header_icon_active(window, HEADER_ICON_USB);
-            break;
-        case MARLIN_EVT_MediaRemoved:
-            p_window_header_icon_on(window, HEADER_ICON_USB);
-            break;
-        default:
-            break;
-        }
+    update_ETH_icon();
+    if (marlin_event_clr(MARLIN_EVT_MediaInserted)) {
+        USB_Activate();
         return 1;
     }
     return 0;
 }
 
-const window_class_header_t window_class_header = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(window_header_t),
-        (window_init_t *)window_header_init,
-        (window_done_t *)window_header_done,
-        (window_draw_t *)window_header_draw,
-        0,
-    },
-};
+bool window_header_t::EventClr_MediaRemoved() {
+    /* lwip fces only read states, invalid states by another thread never mind */
+    update_ETH_icon();
+    if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) {
+        USB_On();
+        return 1;
+    }
+    return 0;
+}
+
+bool window_header_t::EventClr_MediaError() {
+    /* lwip fces only read states, invalid states by another thread never mind */
+    update_ETH_icon();
+    if (marlin_event_clr(MARLIN_EVT_MediaError)) {
+        return 1;
+    }
+    return 0;
+}
+
+static const size_t icon_usb_width = 36 + 10;
+static const size_t icon_lan_width = 20 + 10;
+static const size_t icons_width = icon_usb_width + icon_lan_width;
+
+window_header_t::window_header_t(window_t *parent)
+    : window_frame_t(parent, GuiDefaults::RectHeader)
+    , icon_base(this, rect_ui16(rect.x + 10, rect.y, rect.h, rect.h), 0)
+    , label(this, rect_ui16(rect.x + 10 + rect.h, rect.y, rect.w - icons_width - 10 - rect.h, rect.h))
+    , icon_usb(this, rect_ui16(rect.x + rect.w - icon_usb_width, rect.y, icon_usb_width, rect.h), IDR_PNG_header_icon_usb)
+    , icon_lan(this, rect_ui16(rect.x + rect.w - icons_width, rect.y, icon_lan_width, rect.h), IDR_PNG_header_icon_lan) {
+    label.alignment = ALIGN_LEFT_CENTER;
+
+    LAN_Off();
+    marlin_vars()->media_inserted ? USB_Activate() : USB_On();
+
+    update_ETH_icon();
+    Disable();
+}
+
+void window_header_t::USB_Off() { icon_usb.Hide(); }
+void window_header_t::USB_On() {
+    icon_usb.Show();
+    icon_usb.Disable();
+}
+void window_header_t::USB_Activate() {
+    icon_usb.Show();
+    icon_usb.Enable();
+}
+void window_header_t::LAN_Off() { icon_lan.Hide(); }
+void window_header_t::LAN_On() {
+    icon_lan.Show();
+    icon_lan.Disable();
+}
+void window_header_t::LAN_Activate() {
+    icon_lan.Show();
+    icon_lan.Enable();
+}
+
+window_header_t::header_states_t window_header_t::GetStateUSB() const {
+    if (!icon_usb.IsVisible())
+        return header_states_t::OFF;
+    return icon_usb.IsEnabled() ? header_states_t::ACTIVE : header_states_t::ON;
+}
+window_header_t::header_states_t window_header_t::GetStateLAN() const {
+    if (!icon_lan.IsVisible())
+        return header_states_t::OFF;
+    return icon_lan.IsEnabled() ? header_states_t::ACTIVE : header_states_t::ON;
+}

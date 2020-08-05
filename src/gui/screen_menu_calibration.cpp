@@ -1,31 +1,29 @@
 // screen_menu_calibration.cpp
 
 #include "gui.hpp"
-#include "screen_menu.hpp"
-#include "marlin_client.h"
+#include "screen_menus.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_print.hpp"
+#include "printers.h"
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_BABYSTEP, MI_AUTO_HOME, MI_MESH_BED,
     MI_SELFTEST, MI_CALIB_FIRST>;
-
+/*
 static void init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
-    constexpr static const char *label = N_("Calibration");
-    Screen::Create(screen, label);
+    constexpr static const char *label = N_("CALIBRATION");
+    Screen::Create(screen, _(label));
 }
-
-screen_t screen_menu_calibration = {
-    0,
-    0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    nullptr,        //pdata
+*/
+class ScreenMenuCalibration : public Screen {
+public:
+    constexpr static const char *label = N_("CALIBRATION");
+    ScreenMenuCalibration()
+        : Screen(_(label)) {}
 };
 
-screen_t *const get_scr_menu_calibration() { return &screen_menu_calibration; }
+ScreenFactory::UniquePtr GetScreenMenuCalibration() {
+    return ScreenFactory::Screen<ScreenMenuCalibration>();
+}

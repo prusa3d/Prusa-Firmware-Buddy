@@ -98,7 +98,9 @@ void mbl_error(uint16_t moves, uint16_t points) {
     stop_common();
     display::Clear(COLOR_RED_ALERT);
 
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), "MBL ERROR", gui_defaults.font, COLOR_RED_ALERT, COLOR_WHITE);
+    static const char mblerr[] = "MBL ERROR";
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)mblerr),
+        GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     //bed
@@ -184,8 +186,8 @@ void mbl_error(uint16_t moves, uint16_t points) {
         display::DrawRect(rect, COLOR_BLACK);
     }
 
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), gui_defaults.font,
-        COLOR_WHITE, COLOR_BLACK, padding_ui8(0, 0, 0, 0), ALIGN_CENTER);
+    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,
+        COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
     jogwheel_init();
     gui_reset_jogwheel();

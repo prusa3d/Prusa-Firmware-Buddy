@@ -20,7 +20,7 @@ const char *IWindowMenuItem::GetLabel() const {
     return label.data();
 }
 
-const char *IWindowMenuItem::GetLocalizedLabel() const {
+string_view_utf8 IWindowMenuItem::GetLocalizedLabel() const {
     return _(GetLabel());
 }
 
@@ -61,7 +61,7 @@ void IWindowMenuItem::printLabel_into_rect(rect_ui16_t rolling_rect, color_t col
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
-    window_menu.f_invalid = 1;
+    window_menu.Invalidate();
     if (IsEnabled()) {
         click(window_menu);
     }
@@ -71,7 +71,7 @@ void IWindowMenuItem::RollInit(IWindowMenu &window_menu, rect_ui16_t rect) {
     roll_init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.alignment, &roll);
 }
 void IWindowMenuItem::Roll(IWindowMenu &window_menu) {
-    roll_text_phasing(window_menu.id, window_menu.font, &roll); //warning it is accessing gui timer
+    roll_text_phasing(&window_menu, window_menu.font, &roll); //warning it is accessing gui timer
 }
 
 void IWindowMenuItem::SetFocus() {
@@ -81,7 +81,7 @@ void IWindowMenuItem::SetFocus() {
 
 rect_ui16_t IWindowMenuItem::getIconRect(IWindowMenu &window_menu, rect_ui16_t rect) {
     return { rect.x, rect.y,
-        window_menu.icon_rect.w, window_menu.icon_rect.h };
+        window_menu.icon_w, rect.h };
 }
 
 rect_ui16_t IWindowMenuItem::getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const {

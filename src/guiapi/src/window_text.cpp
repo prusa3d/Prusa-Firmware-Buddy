@@ -1,41 +1,9 @@
-// window_text.c
+// window_text.cpp
 #include "window_text.hpp"
 #include "gui.hpp"
+#include "ScreenHandler.hpp"
 
-void window_text_init(window_text_t *window) {
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->text = 0;
-    window->padding = gui_defaults.padding;
-    window->alignment = gui_defaults.alignment;
-}
-
-void window_text_draw(window_text_t *window) {
-    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        render_text_align(window->rect,
-            window->text, // @@TODO translate this string here?
-            window->font,
-            (window->flg & WINDOW_FLG_FOCUSED) ? window->color_text : window->color_back,
-            (window->flg & WINDOW_FLG_FOCUSED) ? window->color_back : window->color_text,
-            window->padding,
-            window->alignment);
-        window->flg &= ~WINDOW_FLG_INVALID;
-    }
-}
-
-const window_class_text_t window_class_text = {
-    {
-        WINDOW_CLS_TEXT,
-        sizeof(window_text_t),
-        (window_init_t *)window_text_init,
-        0,
-        (window_draw_t *)window_text_draw,
-        0,
-    },
-};
-
-void window_text_t::SetText(const char *txt) {
+void window_text_t::SetText(string_view_utf8 txt) {
     text = txt;
     Invalidate();
 }
@@ -53,4 +21,36 @@ void window_text_t::SetPadding(padding_ui8_t padd) {
 void window_text_t::SetAlignment(uint8_t alignm) {
     alignment = alignm;
     Invalidate();
+}
+
+window_text_t::window_text_t(window_t *parent, rect_ui16_t rect, is_closed_on_click_t close, string_view_utf8 txt)
+    : window_t(parent, rect, is_dialog_t::no, close)
+    , color_text(GuiDefaults::ColorText)
+    , font(GuiDefaults::Font)
+    , text(txt)
+    , padding(GuiDefaults::Padding)
+    , alignment(GuiDefaults::Alignment) {
+}
+
+void window_text_t::unconditionalDraw() {
+    render_text_align(rect, text, font,
+        (IsFocused()) ? color_text : color_back,
+        (IsFocused()) ? color_back : color_text,
+        padding, alignment);
+}
+
+/*****************************************************************************/
+//window_text_button_t
+window_text_button_t::window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt)
+    : window_text_t(parent, rect, is_closed_on_click_t::no, txt)
+    , callback(cb) {
+    Enable();
+}
+
+void window_text_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+    if (event == WINDOW_EVENT_CLICK) {
+        callback();
+    } else {
+        window_text_t::windowEvent(sender, event, param);
+    }
 }
