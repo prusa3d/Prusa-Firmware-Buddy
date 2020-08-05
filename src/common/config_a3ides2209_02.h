@@ -60,12 +60,6 @@
 //012345678901234567
 //414140414142414143
 
-//--------------------------------------
-//Graphical display ST7789v configuration
-#define ST7789V_PIN_CS  TPC9  // CS signal pin
-#define ST7789V_PIN_RS  TPD11 // RS signal pin
-#define ST7789V_PIN_RST TPC8  // RESET signal pin
-
 //Simulator configuration
 //#define SIM_HEATER
 //#define SIM_MOTION

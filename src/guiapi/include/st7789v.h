@@ -20,9 +20,6 @@
 
 typedef struct _st7789v_config_t {
     SPI_HandleTypeDef *phspi; // spi handle pointer
-    uint8_t pinCS;            // CS pin
-    uint8_t pinRS;            // RS pin
-    uint8_t pinRST;           // RST pin
     uint8_t flg;              // flags (DMA, MISO)
     uint8_t colmod;           // interface pixel format
     uint8_t madctl;           // memory data access control

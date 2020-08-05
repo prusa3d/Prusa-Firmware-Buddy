@@ -39,3 +39,11 @@ void OutputPin::configure() {
     GPIO_InitStruct.Speed = static_cast<uint32_t>(m_speed);
     HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
 }
+
+void OutputInputPin::enableInput(Pull pull) {
+    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitStruct.Pin = m_halPin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = static_cast<uint32_t>(pull);
+    HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
+}

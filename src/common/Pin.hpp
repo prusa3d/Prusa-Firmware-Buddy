@@ -100,7 +100,6 @@ private:
     static constexpr uint16_t IoPinToHal(IoPin ioPin) {
         return (0x1U << static_cast<uint16_t>(ioPin));
     }
-    static void test();
     friend class PinTester;
 
 protected:
@@ -199,9 +198,42 @@ public:
         HAL_GPIO_WritePin(m_halPort, m_halPin, pinState);
     }
 
-private:
+protected:
     void configure() override;
     const InitState m_initState;
     const OMode m_mode;
     const OSpeed m_speed;
+};
+
+class OutputInputPin : public OutputPin {
+public:
+    OutputInputPin(IoPort ioPort, IoPin ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
+        : OutputPin(ioPort, ioPin, initState, oMode, oSpeed) {}
+
+private:
+    GPIO_PinState read() {
+        return HAL_GPIO_ReadPin(m_halPort, m_halPin);
+    }
+    void enableInput(Pull pull);
+    void enableOutput() {
+        configure();
+    }
+    friend class InputEnabler;
+};
+
+class InputEnabler {
+public:
+    InputEnabler(OutputInputPin &outputInputPin, Pull pull)
+        : m_outputInputPin(outputInputPin) {
+        outputInputPin.enableInput(pull);
+    }
+    ~InputEnabler() {
+        m_outputInputPin.enableOutput();
+    }
+    GPIO_PinState read() {
+        return m_outputInputPin.read();
+    }
+
+private:
+    OutputInputPin &m_outputInputPin;
 };
