@@ -69,6 +69,7 @@ typedef struct _eeprom_vars_t {
     uint8_t SOUND_MODE;
     uint8_t SOUND_VOLUME;
     uint16_t LANGUAGE;
+    uint8_t FILE_SORT;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -108,6 +109,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SOUND_MODE",      VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_MODE
     { "SOUND_VOLUME",    VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_VOLUME
     { "LANGUAGE",        VARIANT8_UI16,  1, 0 }, // EEVAR_LANGUAGE
+    { "FILE_SORT",       VARIANT8_UI8,   1, 0 }, // EEVAR_FILE_SORT
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -126,9 +128,13 @@ static const eeprom_vars_t eeprom_var_defaults = {
     1,               // EEVAR_RUN_FIRSTLAY
     1,               // EEVAR_FSENSOR_ENABLED
     0,               // EEVAR_ZOFFSET
+#if ENABLED(PIDTEMP)
     DEFAULT_Kp,      // EEVAR_PID_NOZ_P
     scalePID_i(DEFAULT_Ki),      // EEVAR_PID_NOZ_I
     scalePID_d(DEFAULT_Kd),      // EEVAR_PID_NOZ_D
+#else
+    0, 0, 0,
+#endif
     DEFAULT_bedKp,   // EEVAR_PID_BED_P
     scalePID_i(DEFAULT_bedKi),   // EEVAR_PID_BED_I
     scalePID_d(DEFAULT_bedKd),   // EEVAR_PID_BED_D
@@ -141,8 +147,9 @@ static const eeprom_vars_t eeprom_var_defaults = {
     "PrusaMINI",     // EEVAR_LAN_HOSTNAME
     0,               // EEVAR_TIMEZONE
     0xff,            // EEVAR_SOUND_MODE
-    0xa,             // EEVAR_SOUND_VOLUME
+    5,               // EEVAR_SOUND_VOLUME
     0xffff,          // EEVAR_LANGUAGE
+    0,               // EEVAR_FILE_SORT
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };

@@ -1,82 +1,47 @@
-#include "gui.hpp"
+#include "screen_qr_error.hpp"
 #include "config.h"
 #include <stdlib.h>
-#include "support_utils.h"
-
+#include "ScreenHandler.hpp"
 #include "display.h"
 #include "errors.h"
-#include "screens.h"
 
-struct screen_qr_error_data_t {
-    window_frame_t root;
-    window_text_t errText;
-    window_text_t errDescription;
-    window_text_t info;
-    window_qr_t qr;
-    char qr_text[MAX_LEN_4QR + 1];
-    bool first_run_flag;
-};
+screen_qr_error_data_t::screen_qr_error_data_t()
+    : window_frame_t()
+    , errText(this, rect_ui16(8, 0, 224, 25))
+    , errDescription(this, rect_ui16(8, 30, 224, 95))
+    , info(this, rect_ui16(8, 275, 224, 20))
+    , qr(this, rect_ui16(59, 140, 224, 95))
+    , first_run_flag(true) {
+    errText.SetBackColor(COLOR_RED_ALERT);
+    errText.font = resource_font(IDR_FNT_BIG);
+    errText.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_title));
 
-#define pd ((screen_qr_error_data_t *)screen->pdata)
+    errDescription.SetBackColor(COLOR_RED_ALERT);
+    errDescription.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_text));
 
-void screen_menu_qr_error_init(screen_t *screen) {
-    int16_t root;
-
-    root = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->root));
-    pd->root.SetBackColor(COLOR_RED_ALERT);
-
-    window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 0, 224, 25), &(pd->errText));
-    pd->errText.SetBackColor(COLOR_RED_ALERT);
-    pd->errText.font = resource_font(IDR_FNT_BIG);
-    pd->errText.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_title));
-
-    window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 30, 224, 95), &(pd->errDescription));
-    pd->errDescription.SetBackColor(COLOR_RED_ALERT);
-    pd->errDescription.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)get_actual_error()->err_text));
-
-    window_create_ptr(WINDOW_CLS_TEXT, root, rect_ui16(8, 275, 224, 20), &(pd->info));
-    pd->info.SetBackColor(COLOR_RED_ALERT);
-    pd->info.SetAlignment(ALIGN_CENTER);
+    info.SetBackColor(COLOR_RED_ALERT);
+    info.SetAlignment(ALIGN_CENTER);
     static const char hlp[] = "help.prusa3d.com";
-    pd->info.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)hlp));
+    info.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)hlp));
 
-    window_create_ptr(WINDOW_CLS_QR, root, rect_ui16(59, 140, 224, 95), &(pd->qr));
-    pd->qr.px_per_module = 2;
-    error_url_long(pd->qr_text, MAX_LEN_4QR + 1, 1);
-    pd->qr.text = pd->qr_text;
-
-    pd->first_run_flag = true;
+    qr.px_per_module = 2;
+    create_path_info_4error(qr_text.data(), qr_text.size(), 1);
+    qr.text = qr_text.data();
 }
 
-void screen_menu_qr_error_draw(screen_t * /*screen*/) {
+void screen_qr_error_data_t::unconditionalDraw() {
+    window_frame_t::unconditionalDraw();
     display::FillRect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
 }
 
-void screen_menu_qr_error_done(screen_t *screen) {
-    window_destroy(pd->root.id);
-}
-
-int screen_menu_qr_error_event(screen_t *screen, window_t * /*window*/, uint8_t event, void * /*param*/) {
+void screen_qr_error_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
-        screen_close();
-        return (1);
+        Screens::Access()->Close();
+        return;
     }
-    if (!pd->first_run_flag)
-        return (0);
-    pd->first_run_flag = false;
-    screen_menu_qr_error_draw(screen);
-    return (0);
+    if (!first_run_flag)
+        return;
+    first_run_flag = false;
+    //unconditionalDraw(); // todo why?
+    window_frame_t::windowEvent(sender, event, param);
 }
-
-screen_t screen_qr_error = {
-    0,
-    0,
-    screen_menu_qr_error_init,
-    screen_menu_qr_error_done,
-    screen_menu_qr_error_draw,
-    screen_menu_qr_error_event,
-    sizeof(screen_qr_error_data_t), //data_size
-    nullptr,                        //pdata
-};
-
-screen_t *const get_scr_qr_error() { return &screen_qr_error; }

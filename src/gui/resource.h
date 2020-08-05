@@ -1,6 +1,5 @@
 //resource.h
-#ifndef _RESOURCE_H
-#define _RESOURCE_H
+#pragma once
 
 //null resource - test
 #define IDR_NULL 0x0000
@@ -83,5 +82,3 @@
 #define IDR_PNG_flag_fr 0x003d
 #define IDR_PNG_flag_it 0x003e
 #define IDR_PNG_flag_pl 0x003f
-
-#endif //_RESOURCE_H

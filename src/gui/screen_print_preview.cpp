@@ -1,298 +1,169 @@
-#include "screen_print_preview.h"
+#include "screen_print_preview.hpp"
 #include "dbg.h"
-#include "ff.h"
 #include "gcode_file.h"
-#include "gui.hpp"
 #include "marlin_client.h"
 #include "resource.h"
 #include "window_dlg_load_unload.h"
 #include "filament_sensor.h"
 #include <stdarg.h>
-#include <stdbool.h>
-#include "screens.h"
 #include "sound.hpp"
 #include "DialogHandler.hpp"
+#include "ScreenHandler.hpp"
+#include "print_utils.hpp"
 
 #define DBG _dbg0
 
-struct description_line_t {
-    window_text_t title;
-    window_text_t value;
-    char value_buffer[32];
-};
-
-struct screen_print_preview_data_t {
-    window_frame_t frame;
-    window_text_t title_text;
-    description_line_t description_lines[4];
-    window_icon_t print_button;
-    window_text_t print_label;
-    window_icon_t back_button;
-    window_text_t back_label;
-    FIL gcode_file;
-    bool gcode_file_opened;
-    bool gcode_has_thumbnail;
-    char gcode_printing_time[16];
-    char gcode_filament_type[8];
-    unsigned gcode_filament_used_g;
-    unsigned gcode_filament_used_mm;
-    bool redraw_thumbnail;
-};
-
-#define PADDING          10
-#define SCREEN_WIDTH     240 //FIXME should be in display.h
-#define SCREEN_HEIGHT    320 //FIXME should be in display.h
-#define THUMBNAIL_HEIGHT 124
-#define TITLE_HEIGHT     24
-#define LINE_HEIGHT      15
-#define LINE_SPACING     5
-
-#define BACK_BUTTON_ID  0x11
-#define PRINT_BUTTON_ID 0x12
-
 static const char *gcode_file_name = NULL;
 static const char *gcode_file_path = NULL;
-static print_preview_action_handler_t action_handler = NULL;
-static void screen_print_preview_init(screen_t *screen);
-static void screen_print_preview_done(screen_t *screen);
-static void screen_print_preview_draw(screen_t *screen);
-static int screen_print_preview_event(screen_t *screen, window_t *window,
-    uint8_t event, void *param);
-
-screen_t screen_print_preview = {
-    0, // screen identifier
-    0, // flags
-    screen_print_preview_init,
-    screen_print_preview_done,
-    screen_print_preview_draw,
-    screen_print_preview_event,
-    sizeof(screen_print_preview_data_t), // dynamic data size
-    NULL                                 // dynamic data pointer
-};
 
 const uint16_t menu_icons[2] = {
     IDR_PNG_menu_icon_print,
     IDR_PNG_menu_icon_stop,
 };
 
-screen_t *const get_scr_print_preview() { return &screen_print_preview; }
-
-#define pd ((screen_print_preview_data_t *)screen->pdata)
-
-void screen_print_preview_set_gcode_filepath(const char *fpath) {
+void screen_print_preview_data_t::SetGcodeFilepath(const char *fpath) {
     gcode_file_path = fpath;
 }
 
-const char *screen_print_preview_get_gcode_filepath() {
+const char *screen_print_preview_data_t::GetGcodeFilepath() {
     return gcode_file_path;
 }
 
-void screen_print_preview_set_gcode_filename(const char *fname) {
+void screen_print_preview_data_t::SetGcodeFilename(const char *fname) {
     gcode_file_name = fname;
 }
 
-void screen_print_preview_set_on_action(
-    print_preview_action_handler_t handler) {
-    action_handler = handler;
+size_t description_line_t::title_width(string_view_utf8 *title_str) {
+    return title_str->computeNumUtf8CharsAndRewind() * resource_font(IDR_FNT_SMALL)->w;
 }
 
-static void initialize_description_line(screen_t *screen, int idx, int y_pos,
-    string_view_utf8 title,
-    const char *value_fmt, ...) {
-    description_line_t *line = &pd->description_lines[idx];
-    int window_id = pd->frame.id;
+size_t description_line_t::value_width(string_view_utf8 *title_str) {
+    return SCREEN_WIDTH - PADDING * 2 - title_width(title_str) - 1;
+}
 
-    int title_width = title.computeNumUtf8CharsAndRewind() * resource_font(IDR_FNT_SMALL)->w;
-    window_create_ptr(
-        WINDOW_CLS_TEXT, window_id,
-        rect_ui16(PADDING, y_pos, title_width, LINE_HEIGHT), &line->title);
-    line->title.SetText(title);
-    line->title.SetAlignment(ALIGN_LEFT_BOTTOM);
-    line->title.SetPadding(padding_ui8(0, 0, 0, 0));
-    line->title.font = resource_font(IDR_FNT_SMALL);
+description_line_t::description_line_t(window_frame_t *frame, bool has_thumbnail, size_t row, string_view_utf8 title_str, const char *value_fmt, ...)
+    : title(frame, rect_ui16(PADDING, calculate_y(has_thumbnail, row), title_width(&title_str), LINE_HEIGHT))
+    , value(frame, rect_ui16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_thumbnail, row), value_width(&title_str), LINE_HEIGHT))
 
-    int value_width = SCREEN_WIDTH - PADDING * 2 - title_width - 1;
-    window_create_ptr(WINDOW_CLS_TEXT, window_id,
-        rect_ui16(SCREEN_WIDTH - PADDING - value_width, y_pos,
-            value_width, LINE_HEIGHT),
-        &line->value);
+{
+    title.SetText(title_str);
+    title.SetAlignment(ALIGN_LEFT_BOTTOM);
+    title.SetPadding({ 0, 0, 0, 0 });
+    title.font = resource_font(IDR_FNT_SMALL);
+
     va_list args;
     va_start(args, value_fmt);
-    vsnprintf(line->value_buffer, sizeof(line->value_buffer), value_fmt, args);
+    vsnprintf(value_buffer, sizeof(value_buffer), value_fmt, args);
     va_end(args);
     // this MakeRAM is safe - value_buffer is allocated in RAM for the lifetime of line
-    line->value.SetText(string_view_utf8::MakeRAM((const uint8_t *)line->value_buffer));
-    line->value.SetAlignment(ALIGN_RIGHT_BOTTOM);
-    line->value.SetPadding(padding_ui8(0, 0, 0, 0));
-    line->value.font = resource_font(IDR_FNT_SMALL);
+    value.SetText(string_view_utf8::MakeRAM((const uint8_t *)value_buffer));
+    value.SetAlignment(ALIGN_RIGHT_BOTTOM);
+    value.SetPadding({ 0, 0, 0, 0 });
+    value.font = resource_font(IDR_FNT_SMALL);
 }
 
-static void initialize_description_lines(screen_t *screen, int y) {
-    int line_idx = 0;
-
-    // print time
-    if (pd->gcode_printing_time[0]) {
-        initialize_description_line(screen, line_idx++, y, _("Print Time"), "%s",
-            pd->gcode_printing_time);
-    } else {
-        initialize_description_line(screen, line_idx++, y, _("Print Time"),
-            "unknown");
-    }
-    y += LINE_HEIGHT + LINE_SPACING;
-
-    if (pd->gcode_has_thumbnail) {
-        // material
-        if (pd->gcode_filament_type[0] && pd->gcode_filament_used_mm && pd->gcode_filament_used_g) {
-            initialize_description_line(
-                screen, line_idx++, y, _("Material"), "%s/%u g/%0.2f m",
-                pd->gcode_filament_type, pd->gcode_filament_used_g,
-                (double)((float)pd->gcode_filament_used_mm / 1000.0F));
-            y += LINE_HEIGHT + LINE_SPACING;
-        }
-    } else {
-        // material
-        if (pd->gcode_filament_type[0]) {
-            initialize_description_line(screen, line_idx++, y, _("Material"), "%s",
-                pd->gcode_filament_type);
-            y += LINE_HEIGHT + LINE_SPACING;
-        }
-        // used filament
-        if (pd->gcode_filament_used_mm && pd->gcode_filament_used_g) {
-            initialize_description_line(
-                screen, line_idx++, y, _("Used Filament"), "%.2f m",
-                (double)((float)pd->gcode_filament_used_mm / 1000.0F));
-            y += LINE_HEIGHT + LINE_SPACING;
-
-            initialize_description_line(screen, line_idx++, y, string_view_utf8::MakeNULLSTR(), "%.0f g",
-                (double)pd->gcode_filament_used_g);
-            y += LINE_HEIGHT + LINE_SPACING;
-        }
-    }
-}
-
-static void initialize_gcode_file(screen_t *screen) {
-    memset(&pd->gcode_file, 1, sizeof(FIL));
-    pd->gcode_file_opened = false;
-    pd->gcode_has_thumbnail = false;
+GCodeInfo::GCodeInfo() {
+    memset(&file, 1, sizeof(FIL));
+    file_opened = false;
+    has_thumbnail = false;
 
     // try to open the file first
-    if (!gcode_file_path || f_open(&pd->gcode_file, gcode_file_path, FA_READ) != FR_OK) {
+    if (!gcode_file_path || f_open(&file, gcode_file_path, FA_READ) != FR_OK) {
         return;
     }
-    pd->gcode_file_opened = true;
+    file_opened = true;
 
     // thumbnail presence check
     {
         FILE f = { 0 };
-        if (f_gcode_thumb_open(&f, &pd->gcode_file) == 0) {
+        if (f_gcode_thumb_open(&f, &file) == 0) {
             char buffer;
-            pd->gcode_has_thumbnail = fread((void *)&buffer, 1, 1, &f) > 0;
+            has_thumbnail = fread((void *)&buffer, 1, 1, &f) > 0;
             f_gcode_thumb_close(&f);
         }
     }
 
     // find printing time and filament information
-    pd->gcode_printing_time[0] = 0;
-    pd->gcode_filament_type[0] = 0;
-    pd->gcode_filament_used_mm = 0;
-    pd->gcode_filament_used_g = 0;
+    printing_time[0] = 0;
+    filament_type[0] = 0;
+    filament_used_mm = 0;
+    filament_used_g = 0;
     const unsigned search_last_x_bytes = 10000;
-    FSIZE_t filesize = f_size(&pd->gcode_file);
-    f_lseek(&pd->gcode_file, filesize > search_last_x_bytes ? filesize - search_last_x_bytes : 0);
+    FSIZE_t filesize = f_size(&file);
+    f_lseek(&file, filesize > search_last_x_bytes ? filesize - search_last_x_bytes : 0);
     char name_buffer[64];
     char value_buffer[32];
     while (f_gcode_get_next_comment_assignment(
-        &pd->gcode_file, name_buffer, sizeof(name_buffer), value_buffer,
+        &file, name_buffer, sizeof(name_buffer), value_buffer,
         sizeof(value_buffer))) {
 
 #define name_equals(str) (!strncmp(name_buffer, str, sizeof(name_buffer)))
 
         if (name_equals("estimated printing time (normal mode)")) {
-            snprintf(pd->gcode_printing_time, sizeof(pd->gcode_printing_time),
+            snprintf(printing_time, sizeof(printing_time),
                 "%s", value_buffer);
         } else if (name_equals("filament_type")) {
-            snprintf(pd->gcode_filament_type, sizeof(pd->gcode_filament_type),
+            snprintf(filament_type, sizeof(filament_type),
                 "%s", value_buffer);
         } else if (name_equals("filament used [mm]")) {
-            sscanf(value_buffer, "%u", &pd->gcode_filament_used_mm);
+            sscanf(value_buffer, "%u", &filament_used_mm);
         } else if (name_equals("filament used [g]")) {
-            sscanf(value_buffer, "%u", &pd->gcode_filament_used_g);
+            sscanf(value_buffer, "%u", &filament_used_g);
         }
     }
 }
 
-static void screen_print_preview_init(screen_t *screen) {
-    marlin_set_print_speed(100);
-    initialize_gcode_file(screen);
+GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
+    : description_lines {
+        printing_time[0] ? description_line_t(frame, has_thumbnail, 0, _("Print Time"), "%s", printing_time) : description_line_t(frame, has_thumbnail, 0, _("Print Time"), "unknown"),
+        has_thumbnail ? description_line_t(frame, has_thumbnail, 1, _("Material"), "%s/%u g/%0.2f m", filament_type, filament_used_g, (double)((float)filament_used_mm / 1000.0F)) : description_line_t(frame, has_thumbnail, 1, _("Material"), "%s", filament_type),
+        { frame, has_thumbnail, 2, _("Used Filament"), "%.2f m", (double)((float)filament_used_mm / 1000.0F) },
+        { frame, has_thumbnail, 3, string_view_utf8::MakeNULLSTR(), "%.0f g", (double)filament_used_g }
+    } {
+    if (has_thumbnail || !filament_type[0]) {
+        description_lines[2].value.Hide();
+        description_lines[2].title.Hide();
+    }
+    if (has_thumbnail || !(filament_used_mm && filament_used_g)) {
+        description_lines[3].value.Hide();
+        description_lines[3].title.Hide();
+    }
+}
 
-    int window_id = window_create_ptr(WINDOW_CLS_FRAME, -1,
-        rect_ui16(0, 0, 0, 0), &pd->frame);
-    pd->frame.Enable();
-    int y = PADDING;
+screen_print_preview_data_t::screen_print_preview_data_t()
+    : window_frame_t()
+    , title_text(this, rect_ui16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
+    , print_button(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, []() { print_begin(screen_print_preview_data_t::GetGcodeFilepath()); })
+    , print_label(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))
+    , back_button(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back, []() { Screens::Access()->Close(); })
+    , back_label(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))
+    , gcode(this)
+    , redraw_thumbnail(gcode.has_thumbnail) {
+    marlin_set_print_speed(100);
 
     // Title
-    window_create_ptr(
-        WINDOW_CLS_TEXT, window_id,
-        rect_ui16(PADDING, y, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT),
-        &pd->title_text);
-    pd->title_text.font = resource_font(IDR_FNT_BIG);
+    title_text.font = resource_font(IDR_FNT_BIG);
     // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
-    pd->title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
-    y += TITLE_HEIGHT + PADDING;
+    title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name));
 
-    // Thumbnail
-    if (pd->gcode_has_thumbnail) {
-        y += THUMBNAIL_HEIGHT + PADDING;
-        // Drawing is done in screen_print_preview_event func
-        pd->redraw_thumbnail = true;
+    print_label.SetText(_("Print"));
+    print_label.SetAlignment(ALIGN_CENTER);
+    print_label.font = resource_font(IDR_FNT_SMALL);
+
+    back_label.SetText(_("Back"));
+    back_label.SetAlignment(ALIGN_CENTER);
+    back_label.font = resource_font(IDR_FNT_SMALL);
+}
+
+screen_print_preview_data_t::~screen_print_preview_data_t() {
+    if (gcode.file_opened) {
+        f_close(&gcode.file);
+        gcode.file_opened = false;
+        gcode.has_thumbnail = false;
     }
-
-    // Description lines
-    initialize_description_lines(screen, y);
-
-    // Print and Back buttons
-    y = SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64;
-    window_create_ptr(WINDOW_CLS_ICON, window_id, rect_ui16(PADDING, y, 64, 64), &pd->print_button);
-    //pd->print_button.SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
-    pd->print_button.SetIdRes(IDR_PNG_menu_icon_print);
-    pd->print_button.SetTag(PRINT_BUTTON_ID);
-    pd->print_button.Enable();
-    window_create_ptr(WINDOW_CLS_ICON, window_id, rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, 64), &pd->back_button);
-    //pd->back_button.SetBackColor(COLOR_GRAY); //this did not work before, do we want it?
-    pd->back_button.SetIdRes(IDR_PNG_menu_icon_back);
-    pd->back_button.SetTag(BACK_BUTTON_ID);
-    pd->back_button.Enable();
-
-    // Print and Back labels
-    y += 64;
-    window_create_ptr(
-        WINDOW_CLS_TEXT, window_id, rect_ui16(PADDING, y, 64, LINE_HEIGHT),
-        &pd->print_label);
-    pd->print_label.SetText(_("Print"));
-    pd->print_label.SetAlignment(ALIGN_CENTER);
-    pd->print_label.font = resource_font(IDR_FNT_SMALL);
-    window_create_ptr(
-        WINDOW_CLS_TEXT, window_id,
-        rect_ui16(SCREEN_WIDTH - PADDING - 64, y, 64, LINE_HEIGHT),
-        &pd->back_label);
-    pd->back_label.SetText(_("Back"));
-    pd->back_label.SetAlignment(ALIGN_CENTER);
-    pd->back_label.font = resource_font(IDR_FNT_SMALL);
 }
 
-static void screen_print_preview_done(screen_t *screen) {
-    if (pd->gcode_file_opened) {
-        f_close(&pd->gcode_file);
-        pd->gcode_file_opened = false;
-        pd->gcode_has_thumbnail = false;
-    }
-    window_destroy(pd->frame.id);
-}
-
-static void screen_print_preview_draw(screen_t *screen) {
-}
-
-static bool gcode_file_exists(screen_t *screen) {
+bool screen_print_preview_data_t::gcode_file_exists() {
     FILINFO finfo = { 0 };
     return f_stat(gcode_file_path, &finfo) == FR_OK;
 }
@@ -301,71 +172,53 @@ static bool gcode_file_exists(screen_t *screen) {
 //rewrite later
 static bool suppress_draw = false;
 
-static int screen_print_preview_event(screen_t *screen, window_t *window,
-    uint8_t event, void *param) {
+void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
-    if (!gcode_file_exists(screen)) {
-        if (suppress_draw && window_popup_ptr) // msgbox "Filament not detected." is displayed, we need close it and skip all processing before screen_close
-            gui_msgbox_close();                // skip message box
-        screen_close();
-        return 1;
+    if (!gcode_file_exists()) {
+        Screens::Access()->Close(); //if an dialog is openned, it will be closed first
+        return;
     }
 
     if (!suppress_draw && fs_did_filament_runout()) {
         suppress_draw = true;
-        Sound_Play(eSOUND_TYPE_StandardAlert);
-        const char *btns[3] = { N_("YES"), N_("NO"), N_("IGNORE") };
-        switch (gui_msgbox_ex(string_view_utf8::MakeNULLSTR(),
+        Sound_Play(eSOUND_TYPE_SingleBeep);
+        const PhaseResponses btns = { Response::Yes, Response::No, Response::Ignore, Response::_none };
+        // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
+        switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name),
             _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."),
-            MSGBOX_BTN_CUSTOM3,
-            gui_defaults.scr_body_no_foot_sz,
-            0, btns)) {
-        case MSGBOX_RES_CLOSED:
-            suppress_draw = false;
-            return 1;
-        case MSGBOX_RES_CUSTOM0: //YES - load
+            btns, 0, GuiDefaults::RectScreenBodyNoFoot)) {
+        case Response::Yes: //YES - load
             gui_dlg_load_forced();
             break;
-        case MSGBOX_RES_CUSTOM1: //NO - cancel
-            if (action_handler) {
-                action_handler(PRINT_PREVIEW_ACTION_BACK);
-            }
+        case Response::No: //NO - cancel
+            Screens::Access()->Close();
             suppress_draw = false;
-            return 1;
-        case MSGBOX_RES_CUSTOM2: //IGNORE - disable
+            return;
+        case Response::Ignore: //IGNORE - disable
             fs_disable();
+            break;
+        default:
             break;
         }
         suppress_draw = false;
-        window_draw(pd->frame.id);
+        //window_draw(id);
     }
 
-    if (!suppress_draw && event == WINDOW_EVENT_LOOP && pd->gcode_has_thumbnail &&
+    if (!suppress_draw && event == WINDOW_EVENT_LOOP && gcode.has_thumbnail &&
         // Draw the thumbnail
-        pd->redraw_thumbnail) {
+        redraw_thumbnail) {
         FILE f = { 0 };
-        f_lseek(&pd->gcode_file, 0);
-        if (f_gcode_thumb_open(&f, &pd->gcode_file) == 0) {
+        f_lseek(&gcode.file, 0);
+        if (f_gcode_thumb_open(&f, &gcode.file) == 0) {
             display::DrawPng(
                 point_ui16(PADDING, PADDING + TITLE_HEIGHT + PADDING), &f);
             f_gcode_thumb_close(&f);
         } else {
             DBG("print preview: f_gcode_thumb_open returned non-zero value");
         }
-        pd->redraw_thumbnail = false;
-    } else if (event == WINDOW_EVENT_CLICK && (intptr_t)param == PRINT_BUTTON_ID) {
-        if (action_handler) {
-            action_handler(PRINT_PREVIEW_ACTION_PRINT);
-            return 1;
-        }
-    } else if (event == WINDOW_EVENT_CLICK && (intptr_t)param == BACK_BUTTON_ID) {
-        if (action_handler) {
-            action_handler(PRINT_PREVIEW_ACTION_BACK);
-            return 1;
-        }
+        redraw_thumbnail = false;
     }
 
-    return 0;
+    window_frame_t::windowEvent(sender, event, param);
 }
-const char *screen_print_preview_get_gcode_filepath();

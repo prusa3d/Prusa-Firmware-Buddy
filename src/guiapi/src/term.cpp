@@ -4,6 +4,7 @@
 
 #include "term.h"
 #include "gui.hpp"
+#include "bsod.h"
 
 void term_init(term_t *pt, uint8_t cols, uint8_t rows, uint8_t *buff) {
     if (!pt /*|| pt->buff*/)
@@ -15,8 +16,7 @@ void term_init(term_t *pt, uint8_t cols, uint8_t rows, uint8_t *buff) {
     if (buff)
         pt->buff = buff;
     else {
-        pt->buff = (uint8_t *)gui_malloc(TERM_BUFF_SIZE(cols, rows));
-        pt->flg |= TERM_FLG_FREEMEM;
+        bsod("Terminal buffer invalid");
     }
     pt->attr = TERM_DEF_ATTR;
     pt->col = 0;
@@ -28,9 +28,6 @@ void term_init(term_t *pt, uint8_t cols, uint8_t rows, uint8_t *buff) {
 void term_done(term_t *pt) {
     if (!pt || !(pt->buff))
         return;
-    if (pt->flg & TERM_FLG_FREEMEM)
-        gui_free(pt->buff);
-    //pt->buff = 0;
 }
 
 void term_clear(term_t *pt) {

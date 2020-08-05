@@ -191,3 +191,25 @@ TEST_CASE("string_view_utf8::Compute num of chars", "[string_view_utf8]") {
         REQUIRE(sf.computeNumUtf8CharsAndRewind() == 4);
     }
 }
+
+TEST_CASE("string_view_utf8::Copy to RAM", "[string_view_utf8]") {
+    using Catch::Matchers::Equals;
+    static const char fmt2Translate[] = "Nozzle: %.1f\177C";
+    char fmt[21];
+    string_view_utf8 sf = string_view_utf8::MakeRAM((const uint8_t *)fmt2Translate);
+
+    sf.copyToRAM(fmt, 1);
+    REQUIRE_THAT(fmt, Equals("N"));
+
+    sf.rewind();
+    sf.copyToRAM(fmt, 2);
+    REQUIRE_THAT(fmt, Equals("No"));
+
+    sf.rewind();
+    sf.copyToRAM(fmt, 4);
+    REQUIRE_THAT(fmt, Equals("Nozz"));
+
+    sf.rewind();
+    sf.copyToRAM(fmt, sizeof(fmt));
+    REQUIRE_THAT(fmt, Equals(fmt2Translate));
+}

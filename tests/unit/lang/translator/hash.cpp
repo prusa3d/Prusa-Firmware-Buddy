@@ -116,8 +116,7 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
         do {
             string s;
             getline(f, s);
-            // must convert the "\n" sequence into a single character '\xa' here
-            FindAndReplaceAll(s, string("\\n"), string("\xa"));
+            PreprocessRawLineStrings(s);
             if (!s.empty()) {            // beware of empty strings
                 rawStrings.push_back(s); // make a copy of the string
                 workStrings.emplace_back(String(SHTable::Hash((const unsigned char *)s.c_str()), s, index));
@@ -228,4 +227,13 @@ void FindAndReplaceAll(string &data, string toSearch, string replaceStr) {
         // Get the next occurrence from the current position
         pos = data.find(toSearch, pos + replaceStr.size());
     }
+}
+
+void PreprocessRawLineStrings(string &l) {
+    // must convert the '\n' into \xa here
+    FindAndReplaceAll(l, string("\\n"), string("\xa"));
+    // must convert the "\"" sequence into a single character '"' here
+    FindAndReplaceAll(l, string("\\\""), string("\""));
+    // 0x7f symbol for degrees is a similar case
+    FindAndReplaceAll(l, string("\\177"), string("\177"));
 }

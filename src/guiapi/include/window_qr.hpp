@@ -3,11 +3,7 @@
 #pragma once
 
 #include "window.hpp"
-//#include "qrcodegen.h"
-
-struct window_class_qr_t {
-    window_class_t cls;
-};
+#include "qrcodegen.h"
 
 struct window_qr_t : public window_t {
     // 32 bit
@@ -20,9 +16,8 @@ struct window_qr_t : public window_t {
     uint8_t align = ALIGN_CENTER; /// alignment of QR code in the window
     // other
     bool scale = true; /// changes px_per_module so the QR code is the biggest that fits in the window
+    window_qr_t(window_t *parent, rect_ui16_t rect);
 };
-
-extern const window_class_qr_t window_class_qr;
 
 /// Defines maximal size of QR code and buffers needed for generating. Keep it low.
 constexpr uint8_t qr_version_max = 9;

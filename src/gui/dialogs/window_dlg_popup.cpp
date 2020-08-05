@@ -10,29 +10,28 @@
 #include "gui.hpp"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
-#include "i18n.h"
+#include "../lang/i18n.h"
+#include "ScreenHandler.hpp"
 
 #define POPUP_DELAY_MS 1000
 
-int16_t WINDOW_CLS_DLG_POPUP = 0;
-
 extern msg_stack_t msg_stack;
 
-void window_dlg_popup_init(window_dlg_popup_t *window) {
-    window->flg |= WINDOW_FLG_ENABLED;
-    window->color_back = gui_defaults.color_back;
-    window->color_text = gui_defaults.color_text;
-    window->font = gui_defaults.font;
-    window->font_title = gui_defaults.font_big;
-    window->padding = gui_defaults.padding;
+window_dlg_popup_t::window_dlg_popup_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
+    , color_text(GuiDefaults::ColorText)
+    , font(GuiDefaults::Font)
+    , font_title(GuiDefaults::FontBig)
+    , padding(GuiDefaults::Padding) {
+    Enable();
 }
 
 void window_dlg_popup_draw(window_dlg_popup_t *window) {
-    if (window->f_visible) {
+    if (window->IsVisible()) {
         rect_ui16_t rc = window->rect;
         rc.h = 140;
 
-        if (window->f_invalid) {
+        if (window->IsInvalid()) {
             display::FillRect(rc, window->color_back);
             rect_ui16_t text_rc = rc;
             text_rc.x += 10;
@@ -43,21 +42,10 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
                 window->font, window->color_back,
                 window->color_text, window->padding,
                 ALIGN_LEFT_CENTER);
-            window->f_invalid = 0;
+            window->Validate();
         }
     }
 }
-
-const window_class_dlg_popup_t window_class_dlg_popup = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(window_dlg_popup_t),
-        (window_init_t *)window_dlg_popup_init,
-        0,
-        (window_init_t *)window_dlg_popup_draw,
-        0,
-    },
-};
 
 void gui_pop_up(void) {
 
@@ -66,13 +54,11 @@ void gui_pop_up(void) {
         return;
     opened = 1;
 
-    window_dlg_popup_t dlg;
+    window_dlg_popup_t dlg(nullptr, rect_ui16(0, 32, 240, 120));
 
-    int16_t id_capture = window_capture();
-    int16_t id = window_create_ptr(WINDOW_CLS_DLG_POPUP, 0, rect_ui16(0, 32, 240, 120), &dlg);
+    window_t *id_capture = window_t::GetCapturedWindow();
     memset(dlg.text, '\0', sizeof(dlg.text) * sizeof(char)); // set to zeros to be on the safe side
     strlcpy(dlg.text, msg_stack.msg_data[0], sizeof(dlg.text));
-    window_popup_ptr = (window_t *)&dlg;
     gui_invalidate();
     dlg.SetCapture();
 
@@ -82,10 +68,10 @@ void gui_pop_up(void) {
         gui_loop();
     }
 
-    window_destroy(id);
-    if (window_ptr(id_capture))
-        window_ptr(id_capture)->SetCapture();
-    window_t *pWin = window_ptr(0);
+    //window_destroy(id);
+    if (id_capture)
+        id_capture->SetCapture();
+    window_t *pWin = Screens::Access()->Get();
     if (pWin != 0)
         pWin->Invalidate();
     opened = 0;

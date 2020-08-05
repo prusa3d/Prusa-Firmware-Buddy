@@ -4,10 +4,6 @@
 
 #include "window.hpp"
 
-struct window_class_text_t {
-    window_class_t cls;
-};
-
 struct window_text_t : public window_t {
     color_t color_text;
     font_t *font;
@@ -22,6 +18,18 @@ struct window_text_t : public window_t {
     color_t GetTextColor() const { return color_text; }
     void SetPadding(padding_ui8_t padd);
     void SetAlignment(uint8_t alignm);
+
+    window_text_t(window_t *parent, rect_ui16_t rect, is_closed_on_click_t close = is_closed_on_click_t::no, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
+
+protected:
+    virtual void unconditionalDraw() override;
 };
 
-extern const window_class_text_t window_class_text;
+struct window_text_button_t : public window_text_t {
+    ButtonCallback callback;
+
+    window_text_button_t(window_t *parent, rect_ui16_t rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); //default action is close screen
+
+protected:
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+};

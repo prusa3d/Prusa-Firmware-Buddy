@@ -1,4 +1,4 @@
-// window_qr.c
+// window_qr.cpp
 #include <algorithm>
 #include <math.h>
 
@@ -90,28 +90,54 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
 void window_qr_init(window_qr_t *window) {
 }
 
+#define BORDER (window->border)
+#define MSIZE  (window->px_per_module)
+#define X0     (window->rect.x + window->border * MSIZE)
+#define Y0     (window->rect.y + window->border * MSIZE)
+
 /// window-draw call-back
 void window_qr_draw(window_qr_t *window) {
     if ((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) != (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))
         return;
 
-    window->flg &= ~WINDOW_FLG_INVALID;
-
-    uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
-    if (!generate_qr(window->text, qrcode))
-        return;
-
-    draw_qr(qrcode, window);
+    if (window->IsEnabled() && window->IsVisible()) {
+        qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, window->ecc_level, window->version, window->version, qrcodegen_Mask_AUTO, true);
+        if (qr_ok) {
+            size = qrcodegen_getSize(qrcode_buff);
+            for (int y = -BORDER; y < (size + BORDER); y++)
+                for (int x = -BORDER; x < (size + BORDER); x++)
+                    display::FillRect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
+        }
+        window->Validate();
+        ;
+    }
 }
 
+uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
+if (!generate_qr(window->text, qrcode))
+    return;
+
+draw_qr(qrcode, window);
+
+// window_qr_t::window_qr_t(window_t *parent, rect_ui16_t rect)
+//     : window_t(parent, rect)
+//     , version(9)
+//     , ecc_level(qrcodegen_Ecc_HIGH)
+//     , mode(qrcodegen_Mode_ALPHANUMERIC)
+//     , border(4)
+//     , px_per_module(3)
+//     , bg_color(COLOR_WHITE)
+//     , px_color(COLOR_BLACK) {
+// }
+
 /// window definition
-const window_class_qr_t window_class_qr = {
-    {
-        WINDOW_CLS_QR,
-        sizeof(window_qr_t),
-        (window_init_t *)window_qr_init,
-        0,
-        (window_draw_t *)window_qr_draw,
-        0,
-    },
-};
+// const window_class_qr_t window_class_qr = {
+//     {
+//         WINDOW_CLS_QR,
+//         sizeof(window_qr_t),
+//         (window_init_t *)window_qr_init,
+//         0,
+//         (window_draw_t *)window_qr_draw,
+//         0,
+//     },
+// };
