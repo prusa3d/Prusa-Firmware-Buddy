@@ -5,37 +5,6 @@
 #include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
 
-//window class identifiers
-#define WINDOW_CLS_FRAME     0   // FRAME - basic container class
-#define WINDOW_CLS_TEXT      1   // TEXT - aligned singlecolor text
-#define WINDOW_CLS_NUMB      2   // NUMB - aligned singlecolor formated number
-#define WINDOW_CLS_ICON      3   // ICON - small image with left-top offset
-#define WINDOW_CLS_LIST      4   // LIST - vertical or horizontal list (text-icon pairs)
-#define WINDOW_CLS_EDIT      5   // EDIT - text editor (editable 'TEXT') - minor
-#define WINDOW_CLS_SPIN      6   // SPIN - numeric editor (editable 'NUMB')
-#define WINDOW_CLS_TXIC      7   // TXIC - text + icon
-#define WINDOW_CLS_TERM      8   // TERM - terminal
-#define WINDOW_CLS_MENU      9   // MENU - menu
-#define WINDOW_CLS_MSGBOX    10  // MSGBOX - messagebox with configurable buttons and icon
-#define WINDOW_CLS_PROGRESS  11  // PROGRESS - progress bar with text
-#define WINDOW_CLS_QR        12  // QR - QR Code
-#define WINDOW_CLS_ROLL_TEXT 13  // ROLL text - text too long for display width
-#define WINDOW_CLS_USER      128 // USER - user defined window classes (WINDOW_CLS_USER+n)
-
-//window flags
-#define WINDOW_FLG_VISIBLE  0x00000001 // is visible
-#define WINDOW_FLG_ENABLED  0x00000002 // is enabled (can be focused)
-#define WINDOW_FLG_INVALID  0x00000004 // content is invalid
-#define WINDOW_FLG_FOCUSED  0x00000008 // has focus
-#define WINDOW_FLG_CHECKED  0x00000010 // is checked/selected
-#define WINDOW_FLG_CAPTURE  0x00000020 // capture jog events
-#define WINDOW_FLG_DISABLED 0x00000040 // window is disabled (shadowed)
-#define WINDOW_FLG_FREEMEM  0x00004000 // free memory when destroy
-#define WINDOW_FLG_PARENT   0x00008000 // is parent window
-#define WINDOW_FLG_USER     0x00010000 // user flags (WINDOW_FLG_USER<<n)
-//top 1 byte cannot be used
-//flag is stored there
-
 //window events
 #define WINDOW_EVENT_BTN_DN   0x01 //button down
 #define WINDOW_EVENT_BTN_UP   0x02 //button up
@@ -52,126 +21,100 @@
 #define WINDOW_EVENT_TIMER    0x0d //gui timer
 #define WINDOW_EVENT_MESSAGE  0x0e //onStatusChange() message notification
 
-struct window_t;
-
-typedef void(window_init_t)(void *window);
-typedef void(window_done_t)(void *window);
-typedef void(window_draw_t)(void *window);
-typedef void(window_event_t)(void *window, uint8_t event, void *param);
+using ButtonCallback = void (*)();
 
 struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
-struct window_class_t {
-    int16_t cls_id;        // (2 bytes) window class id
-    uint16_t size;         // (2 bytes) window structure size
-    window_init_t *init;   // (4 bytes) done callback
-    window_done_t *done;   // (4 bytes) done callback
-    window_draw_t *draw;   // (4 bytes) draw callback
-    window_event_t *event; // (4 bytes) event callback
-};                         // (20 bytes total)
+//to be safe, ctor has this 2 bool parameters, can't switch them
+enum class is_dialog_t : bool { no,
+    yes };
+enum class is_closed_on_click_t : bool { no,
+    yes };
 
-struct window_t {
-    window_class_t *cls; // (4 bytes) window class pointer
-    int16_t id_parent;   // (2 bytes) parent window identifier (2bytes)
-    int16_t id;          // (2 bytes) window identifier (2bytes)
+class window_t {
+    window_t *parent;
+    window_t *next;
+
+protected:
+    //todo add can capture flag (needed in frame event and SetCapture)
     union {
-        uint32_t flg; // (3 bytes) flags (visibility, invalid...),
-            // (1 byte)  top byte is window tag (user defined id)
-        struct
-        {
-            uint32_t f_visible : 1;  // WINDOW_FLG_VISIBLE  0x00000001
-            uint32_t f_enabled : 1;  // WINDOW_FLG_ENABLED  0x00000002
-            uint32_t f_invalid : 1;  // WINDOW_FLG_INVALID  0x00000004
-            uint32_t f_focused : 1;  // WINDOW_FLG_FOCUSED  0x00000008
-            uint32_t f_checked : 1;  // WINDOW_FLG_CHECKED  0x00000010
-            uint32_t f_capture : 1;  // WINDOW_FLG_CAPTURE  0x00000020
-            uint32_t f_disabled : 1; // WINDOW_FLG_DISABLED 0x00000040
-            uint32_t f_reserv0 : 6;  // reserved 6 bits
-            uint32_t f_freemem : 1;  // WINDOW_FLG_FREEMEM  0x00002000
-            uint32_t f_timer : 1;    // WINDOW_FLG_TIMER    0x00004000
-            uint32_t f_parent : 1;   // WINDOW_FLG_PARENT   0x00008000
-            uint32_t f_user : 1;     // WINDOW_FLG_USER     0x00010000
-            uint32_t f_reserv1 : 7;  // reserved 7 bits
-            uint32_t f_tag : 8;      // (1 byte) window tag (user defined id)
+        uint16_t flg;
+        struct {
+            bool flag_visible : 1;                        // 00 - is visible
+            bool flag_enabled : 1;                        // 01 - is enabled (can be focused)
+            bool flag_invalid : 1;                        // 02 - content is invalid (draw)
+            bool flag_checked : 1;                        // 03 - is checked/selected
+            bool flag_timer : 1;                          // 04 - window has timers
+            is_dialog_t flag_dialog : 1;                  // 05 - window id dialog
+            is_closed_on_click_t flag_close_on_click : 1; // 06 - window id dialog
+            bool flag_custom0 : 1;                        // 07 - this flag can be defined in parent
+            bool flag_custom1 : 1;                        // 08 - this flag can be defined in parent
+            bool flag_custom2 : 1;                        // 09 - this flag can be defined in parent
+            bool flag_custom3 : 1;                        // 0A - this flag can be defined in parent
+            bool flag_custom4 : 1;                        // 0B - this flag can be defined in parent
+            bool flag_custom5 : 1;                        // 0C - this flag can be defined in parent
+            bool flag_custom6 : 1;                        // 0D - this flag can be defined in parent
+            bool flag_custom7 : 1;                        // 0E - this flag can be defined in parent
+            bool flag_custom8 : 1;                        // 0F - this flag can be defined in parent
         };
     };
+
+public:
     rect_ui16_t rect; // (8 bytes) display rectangle
     color_t color_back;
-    window_event_t *event; // (4 bytes) event callback
 
-    virtual void Init() {} //do I need init, have ctor?
-    virtual void Done() {} //do I need done, have dtor?
-    virtual void Draw() {}
-    virtual void Event(uint8_t event, void *param) {}
+public:
+    void SetNext(window_t *nxt);
+    void SetParent(window_t *par);
+    window_t *GetNext() const;
+    window_t *GetNextEnabled() const;
+    window_t *GetParent() const;
+    void Draw();
+    void ScreenEvent(window_t *sender, uint8_t event, void *param); //try to handle, frame resends children
+    void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, can sent click to parent
+    bool IsVisible() const;
+    bool IsEnabled() const;
+    bool IsInvalid() const;
+    bool IsFocused() const;
+    bool IsCaptured() const;
+    bool HasTimer() const;
+    bool IsDialog() const;
+    void Validate(rect_ui16_t validation_rect = { 0 });
+    void Invalidate(rect_ui16_t validation_rect = { 0 });
 
-    virtual ~window_t() {}
-
-    bool IsVisible() const { return f_visible == 1; }
-    bool IsEnabled() const { return f_enabled == 1; }
-    bool IsInvalid() const { return f_invalid == 1; }
-    bool IsFocused() const { return f_focused == 1; }
-    bool IsCapture() const { return f_capture == 1; }
-    void Validate() { f_invalid = 0; }
-    void Invalidate();
-    void SetTag(uint8_t tag) { f_tag = tag; };
-    uint8_t GetTag() const { return f_tag; }
-
+    void SetHasTimer();
+    void ClrHasTimer();
     void SetFocus();
     void SetCapture();
-    void Enable() { f_enabled = 1; }
-    void Disable() { f_enabled = 0; }
+    void Enable();
+    void Disable();
     void Show();
     void Hide();
     void SetBackColor(color_t clr);
-    color_t GetBackColor() const { return color_back; }
+    color_t GetBackColor() const;
 
-    //To be removed
-    int16_t IdParent() { return id_parent; }
-    void DispatchEvent(uint8_t ev, void *param);
+    window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
+    virtual ~window_t();
+
+    virtual void RegisterSubWin(window_t *win);
+    virtual void UnregisterSubWin(window_t *win) {} //meant for dialogs, remove this window from frame
+protected:
+    virtual void unconditionalDraw();
+    virtual void draw();
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param);
+    virtual void screenEvent(window_t *sender, uint8_t event, void *param);
+    virtual void invalidate(rect_ui16_t validation_rect);
+    virtual void validate(rect_ui16_t validation_rect);
+
+private:
+    static window_t *focused_ptr; // has focus
+    static window_t *capture_ptr; // capture jog events
+
+public:
+    static window_t *GetFocusedWindow();
+    static window_t *GetCapturedWindow();
 };
 
-extern window_t *window_popup_ptr; //current popup window
-
-extern window_t *window_focused_ptr; //current focused window
-
-extern window_t *window_capture_ptr; //current capture window
-
-extern window_t *window_ptr(int16_t id);
-
-extern int16_t window_register_class(window_class_t *cls);
-
-extern int16_t window_create_ptr(int16_t cls_id, int16_t id_parent, rect_ui16_t rect, void *ptr);
-
-extern void window_destroy(int16_t id);
-
-extern void window_destroy_children(int16_t id);
-
-extern int16_t window_focused(void);
-
-extern int16_t window_capture(void);
-
-extern int16_t window_prev(int16_t id);
-
-extern int16_t window_next(int16_t id);
-
-extern int16_t window_prev_enabled(int16_t id);
-
-extern int16_t window_next_enabled(int16_t id);
-
-extern int16_t window_first_child(int16_t id);
-
-extern int window_child_count(int16_t id);
-
-extern int window_enabled_child_count(int16_t id);
-
-extern void window_draw(int16_t id);
-
-extern void window_draw_children(int16_t id);
-
-extern void window_validate_children(int16_t id);
-
-extern void window_invalidate_children(int16_t id);
-
-extern void gui_invalidate(void);
+void gui_invalidate(void);

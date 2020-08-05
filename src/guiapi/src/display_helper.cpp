@@ -9,8 +9,9 @@
 #include <algorithm>
 #include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
+#include "ScreenHandler.hpp"
 
-#define UNACCENT
+//#define UNACCENT
 
 #ifdef UNACCENT
 std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
@@ -229,7 +230,7 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t f
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
-        opt_clr = gui_defaults.color_disabled;
+        opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
         opt_clr = clr0 ^ 0xffffffff;
@@ -256,7 +257,7 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
-        opt_clr = gui_defaults.color_disabled;
+        opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
         opt_clr = clr0 ^ 0xffffffff;
@@ -279,16 +280,12 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
         display::FillRect(rc, opt_clr);
 }
 
-void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
+void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll) {
     if (roll->setup == TXTROLL_SETUP_IDLE)
         return;
-    window_t *pWin = window_ptr(win_id);
-    if (!pWin)
-        return;
-
     switch (roll->phase) {
     case ROLL_SETUP:
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
+        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
         if (roll->setup == TXTROLL_SETUP_DONE)
             roll->phase = ROLL_GO;
         pWin->Invalidate();
@@ -308,7 +305,7 @@ void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
         break;
     case ROLL_STOP:
         roll->phase = ROLL_RESTART;
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
+        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
         break;
     case ROLL_RESTART:
         roll->setup = TXTROLL_SETUP_INIT;

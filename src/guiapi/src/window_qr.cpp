@@ -1,21 +1,10 @@
-// window_qr.c
+// window_qr.cpp
 #include "window_qr.hpp"
 #include "gui.hpp"
 
 #include "display.h"
 
 #include "qrcodegen.h"
-
-/// window-init call-back
-void window_qr_init(window_qr_t *window) {
-    window->version = 9;
-    window->ecc_level = qrcodegen_Ecc_HIGH;
-    window->mode = qrcodegen_Mode_ALPHANUMERIC;
-    window->border = 4;
-    window->px_per_module = 3;
-    window->bg_color = COLOR_WHITE;
-    window->px_color = COLOR_BLACK;
-}
 
 #define BORDER (window->border)
 #define MSIZE  (window->px_per_module)
@@ -29,7 +18,7 @@ void window_qr_draw(window_qr_t *window) {
     bool qr_ok;
     int size;
 
-    if (((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
+    if (window->IsEnabled() && window->IsVisible()) {
         qr_ok = qrcodegen_encodeText(window->text, temp_buff, qrcode_buff, window->ecc_level, window->version, window->version, qrcodegen_Mask_AUTO, true);
         if (qr_ok) {
             size = qrcodegen_getSize(qrcode_buff);
@@ -37,18 +26,18 @@ void window_qr_draw(window_qr_t *window) {
                 for (int x = -BORDER; x < (size + BORDER); x++)
                     display::FillRect(rect_ui16(X0 + x * MSIZE, Y0 + y * MSIZE, MSIZE, MSIZE), ((qrcodegen_getModule(qrcode_buff, x, y) ? window->px_color : window->bg_color)));
         }
-        window->flg &= ~WINDOW_FLG_INVALID;
+        window->Validate();
+        ;
     }
 }
 
-/// window definition
-const window_class_qr_t window_class_qr = {
-    {
-        WINDOW_CLS_QR,
-        sizeof(window_qr_t),
-        (window_init_t *)window_qr_init,
-        0,
-        (window_draw_t *)window_qr_draw,
-        0,
-    },
-};
+window_qr_t::window_qr_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
+    , version(9)
+    , ecc_level(qrcodegen_Ecc_HIGH)
+    , mode(qrcodegen_Mode_ALPHANUMERIC)
+    , border(4)
+    , px_per_module(3)
+    , bg_color(COLOR_WHITE)
+    , px_color(COLOR_BLACK) {
+}

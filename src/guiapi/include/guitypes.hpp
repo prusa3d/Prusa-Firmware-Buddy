@@ -3,55 +3,44 @@
 
 #include "guitypes.h"
 
-typedef struct _point_ui16_t {
+typedef uint32_t color_t;
+
+struct point_i16_t {
+    int16_t x;
+    int16_t y;
+};
+
+struct point_ui16_t {
     uint16_t x;
     uint16_t y;
-} point_ui16_t;
+};
 
-typedef struct _size_ui16_t {
+struct size_ui16_t {
     uint16_t w;
     uint16_t h;
-} size_ui16_t;
+};
 
-typedef struct _rect_ui16_t {
+struct rect_ui16_t {
     uint16_t x;
     uint16_t y;
     uint16_t w;
     uint16_t h;
-} rect_ui16_t;
+};
 
-typedef struct _padding_ui8_t {
+struct padding_ui8_t {
     uint8_t left;
     uint8_t top;
     uint8_t right;
     uint8_t bottom;
-} padding_ui8_t;
+};
 
-typedef struct _bitmap_t {
+struct bitmap_t {
     uint16_t w;  //bitmap width [pixels]
     uint16_t h;  //bitmap height [pixels]
     uint8_t bpp; //bits per pixel
     uint8_t bpr; //bytes per row
     void *ppx;   //pixel data pointer
-} bitmap_t;
-
-typedef struct _gui_defaults_t {
-    color_t color_back;
-    color_t color_text;
-    color_t color_disabled;
-    font_t *font;
-    font_t *font_big;
-    padding_ui8_t padding;
-    uint8_t alignment;
-    rect_ui16_t header_sz;           // default header location & size
-    rect_ui16_t scr_body_sz;         // default screen body location & size
-    rect_ui16_t scr_body_no_foot_sz; // screen body without footer location & size
-    rect_ui16_t scr_fullscreen;      // full screen body without footer & header location & size
-    rect_ui16_t footer_sz;           // default footer location & size
-    uint8_t btn_h;                   // default button height
-    uint8_t btn_spacing;             // default button spacing
-    uint8_t frame_width;             // default frame width
-} gui_defaults_t;
+};
 
 inline point_ui16_t point_ui16(uint16_t x, uint16_t y) {
     point_ui16_t point = { x, y };

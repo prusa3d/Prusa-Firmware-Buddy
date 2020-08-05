@@ -56,6 +56,7 @@ Firmware Version\n
 First Layer Cal.
 FIRST LAYER CALIB.
 Flow Factor
+Fri
 FW UPDATE
 FW Update
 Heatbed
@@ -98,6 +99,7 @@ Mesh Bed Level.
 Mesh bed leveling failed?
 MESSAGES
 Messages
+Mon
 Move Axis
 MOVE AXIS
 Move E
@@ -161,6 +163,7 @@ Resume
 Resuming...
 RETRY
 Return
+Sat
 Save Crash Dump
 Save settings
 Searching bed\ncalibration points
@@ -178,11 +181,13 @@ Settings successfully loaded
 Silent
 Sound Mode
 Sound Type
+Sound Volume
 Speed
 Static IPv4 addresses were not set.
 Statistic
 STOP
 Stop
+Sun
 Support
 System Info
 TEMPERATURE
@@ -196,10 +201,13 @@ The status bar is at\nthe bottom of the  \nscreen. It contains\ninformation abou
 The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration.
 There was an error saving the settings in the \"lan_settings.ini\" file.
 This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?
+Thr
 Timeout
 To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD.
 To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD.
+Today at
 TRY AGAIN
+Tue
 TUNE
 Tune
 UNLOAD
@@ -215,6 +223,7 @@ Version Info
 Waiting for cooldown
 Waiting for temp.
 Warning
+Wed
 Welcome to the     \nOriginal Prusa MINI\nsetup wizard.      \nWould you like to  \ncontinue?           
 Welcome to the Original Prusa MINI setup wizard. Would you like to continue?
 Wizard

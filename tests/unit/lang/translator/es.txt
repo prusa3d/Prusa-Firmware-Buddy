@@ -1,18 +1,18 @@
-\nVers. del cargador\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n %s
-Se ha guardado un informe de volcado de errores (archivo dump.bin) en la unidad USB.
+\nVer. de bootloader\n%d.%d.%d\n\nPlaca Buddy\n%d.%d.%d\n %s
+Se ha guardado un informe con detalles del error (dump.bin) en la unidad USB.
 ABORTAR
 ¡Todas las pruebas terminaron con éxito!
 Siempre
 Aplicar
 ¿Estás seguro de detener esta impresión?
 Asistir
-Auto Home
-Auto inicio
+Homing automático
+Homing automático
 AutTn
 ATRÁS
 Atrás
 BASE
-Falló la nivelación. ¿Probar de nuevo?
+Falló la nivelación. ¿Reintentar?
 Objetivo base: %.0f_C
 Base: %.1f_C
 Calibrando Z
@@ -25,37 +25,38 @@ CAMBIAR FILAMENTO
 Cambiar Filamento
 Comprobando ejes
 Compro. calentadores\ndel fusor y de la base
-Lámina de acero limpia.
-¡Felicidades! La calibración XYZ está bien. Ejes XY perpendiculares.
+Limpiar la superficie de la lámina de acero de la base.
+¡Felicidades! La calibración XYZ finalizó correctamente. Los ejes XY están perpendiculares.
 Prueba de pitidos continuados\n pulsa el botón para detenerla
 CONTINUAR
-Enfriar
-Carga de la CPU
+Enfriando
+Carga del procesador
 DESACTIVAR SENSOR
 Desactivar motores
 Desconectar
 ¿Quieres repetir el último paso y reajustar la distancia entre la boquilla y base?
-¿Quieres usar el valor actual?\nActual: %0.3f.\nPor defecto: %0.3f.\nHaz clic en NO para usar el valor por defecto (recomendado)
+¿Quieres usar el valor actual?\nActual: %0.3f.\nPredeterminado: %0.3f.\nHaz clic en NO para usar el valor por defecto (recomendado)
 ¿Desea usar el último valor establecido? Último: %0.3f. Por defecto:% 0.3f. Haz clic en NO para usar el valor por defecto.
 TERMINADO
 Extrayendo
 Error
-Error al guardar el informe de volcado de memoria en la unidad USB. Vuelve a insertar la unidad USB e intentalo otra vez.
+Error al guardar los detalles del error de memoria en la unidad USB. Vuelve a insertar la unidad USB e intentalo otra vez.
 Todo está bien. Ejecutaré la calibración XYZ ahora. Me llevará aproximadamente 12 minutos.
 SALIDA
-Valores predefinidos de fábrica cargados. El sistema ahora se reiniciará.
+Valores predefinidos de fábrica cargados. Reiniciando el sistema.
 Reset de fábrica
-Estad. de fallo
+Registro de errores
 Prueba del ventilador
 Sens. fil.
 FILAMENTO
 Filamento
 No se ha detectado filamento. ¿Cargar filamento ahora? Seleccione NO para cancelar, o IGNORAR para desactivar el sensor de filamento y continuar.
-Finalizando códigos G en memoria.\n
-Vers. de Firmware\n
+Finalizando \nG-Codes en memoria.\n
+Ver. de Firmware\n
 Cal. Primera capa
 CAL. PRIM. CAPA
 Factor de flujo
+Vie
 ACTUALIZAR FW
 Actualizar FW
 Base Calefactora
@@ -71,33 +72,34 @@ En el siguiente paso usa el dial para ajustar la altura de la boquilla. Mira las
 INFO
 Info
 Información
-Introduciendo
+Cargando
 Las direcciones IP no son válidas o el archivo \"lan_settings.ini\" no está en el directorio raíz de la unidad USB.
 Las direcciones IP o los parámetros no son válidos o el archivo \"lan_settings.ini\" no está en el directorio raíz de la unidad USB.
-¿Está bien el color?
+¿Está bien\nel color?
 ¿Está el filamento en los engranajes del extrusor?
 ¿Está la lámina de acero en la base?
-AJUSTES LAN
-Ajustes de Lan
+AJUSTES DE RED
+Ajustes de Red
 Idioma
 IDIOMAS
-Ajuste en Vivo Z
+Ajuste en Vivo de Z
 CARGAR
 CARGAR FILAMENTO
 Cargar filamento
 Cargar configuración
 Cargando...
-Cargando a la boquilla
+Cargando     \na la boquilla
 Alto
-Asegúrate que filamento está insertado a través del sensor.
+Asegúrate que     \nfilamento está    \ninsertado a través\ndel sensor.       
 Material
-Midiendo Referencia\naltura de calibra.\npuntos
+Midiendo referencia\naltura de calibra.\npuntos
 Timeout Menú
-NIVELADO BASE MALLA
-Nivel. Base mediante Malla
-¿Ha fallado la nivelación de la cama mediante malla?
+MALLA DE NIVELADO BASE
+Nivelado mediante Malla
+¿Ha fallado la nivelación de la base?
 MENSAJES
 Mensajes
+Lun
 Mover Ejes
 MOVER EJE
 Mover E
@@ -115,9 +117,9 @@ Boquilla
 BOQUILLA
 La boquilla está muy fría.
 Boquilla: %.1f_C
-Apagado
+Off
 OK
-Encendido
+On
 Al reiniciar
 Una vez
 Una vez que la\nimpresora comienza\na extruir plástico,\najusta la altura de\nla boquilla girando\nel dial hasta que\nel filamento se\nadhiera a la lámina.
@@ -137,7 +139,7 @@ Precalentar
 PRECALENTAR para CARGAR
 PRECALENTAR para DESCARGAR
 Preparando para expulsar
-Presiona CONTINUAR y\nempuja el filamento \nen el extrusora.
+Presiona CONTINUAR\ny empuja el       \nfilamento en      \nelextrusora.      
 Presione SIGUIENTE para ejecutar el Selftest, que comprueba problemas potenciales relacionado con el montaje.
 Imprimir
 Vent. de impresión
@@ -160,7 +162,8 @@ RESET IMPRESORA
 Continuar
 Continuando...
 REINTENTAR
-Retorno
+Volver
+Sab
 Guardar arch. de errores
 Guardar ajustes
 Buscando la base\npuntos de calibración
@@ -178,11 +181,13 @@ Configuración cargada correctamente
 Silenciosa
 Modo Sonido
 Tipo de sonido
+Volumen sonido
 Velocidad
 Las direcciones IPv4 estáticas no se configuraron.
 Estadística
 PARAR
 Parar
+Dom
 Soporte
 Info Sistema
 TEMPERATURA
@@ -195,11 +200,14 @@ La configuración se ha guardado correctamente en el archivo \"lan_settings.ini\
 La barra de estado está en el fondo de la pantalla. Contiene Información sobre:\nTemp. de la boquilla\nTemp. de la base\nVel. de impresión\nAlt. del eje Z\nFil. seleccionado
 La calibración XYZ no pudo finalizar. Vuelva a verificar el cableado y los ejes de la impresora, luego reinicia la calibración XYZ.
 Se produjo un error al guardar la configuración en el archivo \"lan_settings.ini\".
-Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Está realmente seguro de restablecer la impresora a los valores predeterminados de fábrica?
+Esta operación no se puede deshacer, ¡se perderá la configuración actual! ¿Seguro que quieres restaurar la impresora a los valores de fábrica?
+Jue
 Timeout
 Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cambiarlo, pulsa DESCARGAR.
 Para calibrar con el filamento cargado actualmente, pulsa SIGUIENTE. Para cargar filamento, pulsa CARGAR. Para cambiarlo, pulsa DESCARGAR.
+Hoy a las
 INTENTARLO DE NUEVO
+Mar
 AJUSTES
 Ajustes
 DESCARGAR
@@ -215,6 +223,7 @@ Info versión
 Esperando a que se enfríe
 Esperando temp.
 Cuidado
+Mie
 Bienvenido a la Original Prusa MINI asistente de configuración. ¿Te gustaría continuar?
 Bienvenido al asistente de configuración de la Original Prusa MINI. ¿Te gustaria continuar?
 Asistente
