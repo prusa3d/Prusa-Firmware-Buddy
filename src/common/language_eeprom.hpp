@@ -24,8 +24,9 @@ public:
 
     void setLanguage(uint16_t lang);
     void saveLanguage();
-    uint16_t getLanguage();
+    uint16_t getLanguage() const;
     std::array<char, 2> getLanguageChar();
+    bool IsValid() const;
 
 private:
     LangEEPROM();

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-16 15:43+0200\n"
+"POT-Creation-Date: 2020-07-29 11:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/gui/screen_menu_version_info.cpp:80
+#. c=20 r=4
+#: src/gui/screen_menu_version_info.cpp:86
 #, c-format
 msgid ""
 "\n"
@@ -29,7 +30,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:122
+#: src/guiapi/src/MItem_tools.cpp:123
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr ""
 
@@ -50,7 +51,7 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:423
+#: src/gui/screen_printing.cpp:424
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
@@ -84,8 +85,20 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:335
+#: src/gui/screen_printing.cpp:336
 msgid "Bed leveling failed. Try again?"
+msgstr ""
+
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:76
+#, c-format
+msgid "Bed. target: %.0f_C"
+msgstr ""
+
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:55
+#, c-format
+msgid "Bed: %.1f_C"
 msgstr ""
 
 #: src/gui/screen_menu_calibration.cpp:17
@@ -123,7 +136,7 @@ msgstr ""
 msgid "Calibration XY"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:505
+#: src/gui/wizard/screen_wizard.cpp:501
 msgid ""
 "Calibration successful!\n"
 "Happy printing!"
@@ -143,7 +156,7 @@ msgid ""
 "heatbed heaters"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:467
+#: src/gui/wizard/screen_wizard.cpp:464
 msgid "Clean steel sheet."
 msgstr ""
 
@@ -151,7 +164,7 @@ msgstr ""
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:274
+#: src/guiapi/src/MItem_tools.cpp:275
 msgid ""
 "Continual beeps test\n"
 " press button to stop"
@@ -177,7 +190,7 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:453
+#: src/gui/wizard/screen_wizard.cpp:450
 msgid ""
 "Do you want to     \n"
 "repeat the last    \n"
@@ -187,7 +200,8 @@ msgid ""
 "and heatbed?"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:403
+#. c=20 r=6
+#: src/gui/wizard/screen_wizard.cpp:406
 #, c-format
 msgid ""
 "Do you want to use\n"
@@ -197,6 +211,7 @@ msgid ""
 "Click NO to use the default value (recommended)"
 msgstr ""
 
+#. c=20 r=6
 #: src/gui/wizard/screen_wizard.cpp:477
 #, c-format
 msgid ""
@@ -218,7 +233,7 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:124
+#: src/guiapi/src/MItem_tools.cpp:125
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
@@ -234,7 +249,7 @@ msgstr ""
 msgid "FILAMENT"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:560
+#: src/gui/wizard/screen_wizard.cpp:556
 msgid "FIRST LAYER CALIB."
 msgstr ""
 
@@ -250,7 +265,7 @@ msgstr ""
 msgid "Factory Reset"
 msgstr ""
 
-#: src/guiapi/src/MItem_tools.cpp:109
+#: src/guiapi/src/MItem_tools.cpp:110
 msgid "Factory defaults loaded. The system will now restart."
 msgstr ""
 
@@ -282,8 +297,8 @@ msgid ""
 "buffered gcodes.  \n"
 msgstr ""
 
-#: src/gui/screen_menu_version_info.cpp:62
-#, c-format
+#. r=1 c=20
+#: src/gui/screen_menu_version_info.cpp:64
 msgid "Firmware Version\n"
 msgstr ""
 
@@ -293,6 +308,11 @@ msgstr ""
 
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
+msgstr ""
+
+#. abbreviated Friday - max 3 characters
+#: src/lang/format_print_will_end.cpp:51
+msgid "Fri"
 msgstr ""
 
 #: src/gui/screen_home.cpp:83
@@ -311,7 +331,7 @@ msgstr ""
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:80
+#: src/gui/screen_printing.cpp:81
 msgid "Heating..."
 msgstr ""
 
@@ -323,7 +343,7 @@ msgstr ""
 
 #. special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
 #. and will get a nice house-like icon
-#: src/gui/window_file_list.cpp:132 src/gui/screen_printing.cpp:82
+#: src/gui/window_file_list.cpp:132 src/gui/screen_printing.cpp:83
 msgid "Home"
 msgstr ""
 
@@ -354,7 +374,7 @@ msgstr ""
 #. "Extruded plastic  \n"
 #. "must stick to     \n"
 #. "the print surface."
-#: src/gui/wizard/screen_wizard.cpp:435
+#: src/gui/wizard/screen_wizard.cpp:432
 msgid ""
 "In the next step, \n"
 "use the knob to   \n"
@@ -396,7 +416,7 @@ msgstr ""
 msgid "LAN SETTINGS"
 msgstr ""
 
-#: src/gui/screen_menu_languages.cpp:106
+#: src/gui/screen_menu_languages.cpp:119
 msgid "LANGUAGES"
 msgstr ""
 
@@ -428,7 +448,7 @@ msgstr ""
 msgid "Load settings"
 msgstr ""
 
-#: src/gui/screen_splash.cpp:51
+#: src/gui/screen_splash.cpp:53
 msgid "Loading ..."
 msgstr ""
 
@@ -447,6 +467,10 @@ msgstr ""
 #. p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
 #: src/gui/screen_messages.cpp:61
 msgid "MESSAGES"
+msgstr ""
+
+#: src/gui/screen_menu_move.cpp:43
+msgid "MOVE AXIS"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
@@ -468,18 +492,27 @@ msgid ""
 "points"
 msgstr ""
 
+#: src/guiapi/include/MItem_tools.hpp:198
+msgid "Menu Timeout"
+msgstr ""
+
 #: src/guiapi/include/MItem_tools.hpp:28
 msgid "Mesh Bed Level."
 msgstr ""
 
 #. Z 30mm
 #. Disable steppers
-#: src/gui/wizard/firstlay.cpp:409
+#: src/gui/wizard/firstlay.cpp:411
 msgid "Mesh bed leveling failed?"
 msgstr ""
 
 #: src/guiapi/include/MItem_menus.hpp:148
 msgid "Messages"
+msgstr ""
+
+#. abbreviated Monday - max 3 characters
+#: src/lang/format_print_will_end.cpp:43
+msgid "Mon"
 msgstr ""
 
 #: src/guiapi/include/MItem_menus.hpp:98
@@ -519,6 +552,10 @@ msgstr ""
 msgid "NOZZLE"
 msgstr ""
 
+#: src/guiapi/include/MItem_tools.hpp:239
+msgid "Name"
+msgstr ""
+
 #: src/gui/screen_home.cpp:48
 msgid "No USB"
 msgstr ""
@@ -530,7 +567,7 @@ msgid ""
 "again."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:227
+#: src/gui/screen_printing.cpp:228
 msgid "No messages"
 msgstr ""
 
@@ -543,12 +580,25 @@ msgid ""
 "the print sheet.   "
 msgstr ""
 
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:65
+#, c-format
+msgid "Noz. target: %.0f_C"
+msgstr ""
+
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:54
 msgid "Nozzle is too cold."
+msgstr ""
+
+#. a nasty hack - need to put the translated format string somewhere and keep it there past the lifetime of this screen
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:40
+#, c-format
+msgid "Nozzle: %.1f_C"
 msgstr ""
 
 #. MSGBOX_RES_NO        7
@@ -602,7 +652,7 @@ msgstr ""
 msgid "PREHEAT for UNLOAD"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:559
+#: src/gui/screen_printing.cpp:563
 msgid "PRINTING"
 msgstr ""
 
@@ -614,11 +664,11 @@ msgstr ""
 msgid "Parking"
 msgstr ""
 
-#: src/gui/screen_printing_serial.cpp:35 src/gui/screen_printing.cpp:75
+#: src/gui/screen_printing_serial.cpp:35 src/gui/screen_printing.cpp:76
 msgid "Pause"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:76
+#: src/gui/screen_printing.cpp:77
 msgid "Pausing..."
 msgstr ""
 
@@ -701,11 +751,11 @@ msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
 #. theoretically it can be removed completely in case the string is constant for the whole run of the screen
-#: src/gui/screen_printing.cpp:352
+#: src/gui/screen_printing.cpp:353
 msgid "Print will end"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:210
+#: src/gui/screen_printing.cpp:211
 msgid "Printing time"
 msgstr ""
 
@@ -748,20 +798,20 @@ msgid "Really Disconnect?"
 msgstr ""
 
 #. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-#: src/gui/screen_printing.cpp:193 src/gui/screen_printing.cpp:356
-#: src/gui/screen_printing.cpp:554
+#: src/gui/screen_printing.cpp:194 src/gui/screen_printing.cpp:357
+#: src/gui/screen_printing.cpp:558
 msgid "Remaining Time"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:81
+#: src/gui/screen_printing.cpp:82
 msgid "Reprint"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:78
+#: src/gui/screen_printing.cpp:79
 msgid "Resume"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:79
+#: src/gui/screen_printing.cpp:80
 msgid "Resuming..."
 msgstr ""
 
@@ -770,16 +820,29 @@ msgstr ""
 msgid "Return"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:539
+#: src/gui/screen_filebrowser.cpp:61
+msgid "SELECT FILE"
+msgstr ""
+
+#: src/gui/screen_menu_languages.cpp:148
+msgid "SELECT LANGUAGE"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.cpp:535
 msgid "SELFTEST"
 msgstr ""
 
-#: src/gui/screen_menu_settings.cpp:88
+#: src/gui/screen_menu_settings.cpp:87
 msgid "SETTINGS"
 msgstr ""
 
 #: src/gui/dialogs/DialogG162.cpp:21 src/gui/dialogs/DialogLoadUnload.cpp:22
 msgid "STOP"
+msgstr ""
+
+#. abbreviated Saturday - max 3 characters
+#: src/lang/format_print_will_end.cpp:53
+msgid "Sat"
 msgstr ""
 
 #: src/guiapi/include/MItem_tools.hpp:78
@@ -820,7 +883,7 @@ msgstr ""
 msgid "Service"
 msgstr ""
 
-#: src/gui/screen_menu_move.cpp:43 src/gui/screen_home.cpp:46
+#: src/gui/screen_home.cpp:46
 msgid "Settings"
 msgstr ""
 
@@ -832,8 +895,16 @@ msgstr ""
 msgid "Silent"
 msgstr ""
 
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sort files by"
+msgstr ""
+
 #: src/guiapi/include/MItem_tools.hpp:206
 msgid "Sound Mode"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sound Volume"
 msgstr ""
 
 #: src/guiapi/include/MItem_print.hpp:32
@@ -848,8 +919,13 @@ msgstr ""
 msgid "Statistic"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:77
+#: src/gui/screen_printing.cpp:78
 msgid "Stop"
+msgstr ""
+
+#. abbreviated Sunday - max 3 characters
+#: src/lang/format_print_will_end.cpp:55
+msgid "Sun"
 msgstr ""
 
 #: src/guiapi/include/MItem_menus.hpp:58
@@ -888,13 +964,13 @@ msgid ""
 "axes, then restart the XYZ calibration."
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:498
+#: src/gui/wizard/screen_wizard.cpp:494
 msgid ""
 "The first layer calibration failed to finish. Double-check the printer's "
 "wiring, nozzle and axes, then restart the calibration."
 msgstr ""
 
-#: src/gui/screen_splash.cpp:110
+#: src/gui/screen_splash.cpp:125
 msgid "The printer is not calibrated. Start First Layer Calibration?"
 msgstr ""
 
@@ -933,14 +1009,15 @@ msgid ""
 msgstr ""
 
 #. window_menu
-#: src/guiapi/src/MItem_tools.cpp:107
+#: src/guiapi/src/MItem_tools.cpp:108
 msgid ""
 "This operation can't be undone, current configuration will be lost! Are you "
 "really sure to reset printer to factory defaults?"
 msgstr ""
 
-#: src/guiapi/include/MItem_tools.hpp:198
-msgid "Timeout"
+#. abbreviated Thursday - max 3 characters
+#: src/lang/format_print_will_end.cpp:49
+msgid "Thr"
 msgstr ""
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
@@ -965,7 +1042,17 @@ msgid ""
 "press UNLOAD."
 msgstr ""
 
-#: src/gui/screen_printing_serial.cpp:34 src/gui/screen_printing.cpp:74
+#. Used in "The print will end:", keep it up to 10 characters
+#: src/lang/format_print_will_end.cpp:29
+msgid "Today at"
+msgstr ""
+
+#. abbreviated Tuesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:45
+msgid "Tue"
+msgstr ""
+
+#: src/gui/screen_printing_serial.cpp:34 src/gui/screen_printing.cpp:75
 msgid "Tune"
 msgstr ""
 
@@ -1002,11 +1089,11 @@ msgstr ""
 msgid "Version Info"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:527
+#: src/gui/wizard/screen_wizard.cpp:523
 msgid "WIZARD"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:562
+#: src/gui/wizard/screen_wizard.cpp:558
 msgid "WIZARD - OK"
 msgstr ""
 
@@ -1021,6 +1108,11 @@ msgstr ""
 #. MSGBOX_ICO_QUESTION   0x0020
 #: src/guiapi/src/window_msgbox.cpp:15
 msgid "Warning"
+msgstr ""
+
+#. abbreviated Wednesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:47
+msgid "Wed"
 msgstr ""
 
 #: src/gui/wizard/screen_wizard.cpp:146
@@ -1045,7 +1137,7 @@ msgstr ""
 msgid "X-axis"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:552
+#: src/gui/wizard/screen_wizard.cpp:548
 msgid "XYZ CALIBRATION"
 msgstr ""
 
@@ -1059,7 +1151,7 @@ msgstr ""
 msgid "YES"
 msgstr ""
 
-#: src/gui/wizard/firstlay.cpp:309
+#: src/gui/wizard/firstlay.cpp:311
 msgid "Z height:"
 msgstr ""
 

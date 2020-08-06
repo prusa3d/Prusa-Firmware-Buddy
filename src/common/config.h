@@ -21,9 +21,6 @@
 //display PSOD instead of BSOD
 //#define PSOD_BSOD
 
-//PID calibration service screen
-#define PIDCALIBRATION
-
 //CRC32 config - use hardware CRC32 with RTOS
 #define CRC32_USE_HW
 #define CRC32_USE_RTOS

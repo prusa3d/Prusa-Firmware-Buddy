@@ -20,8 +20,8 @@
 #include "cmsis_os.h"      //osDelay
 #include "marlin_client.h" //enable/disable fs in marlin
 
-static volatile fsensor_t state = FS_NOT_INICIALIZED;
-static volatile fsensor_t last_state = FS_NOT_INICIALIZED;
+static volatile fsensor_t state = FS_NOT_INITIALIZED;
+static volatile fsensor_t last_state = FS_NOT_INITIALIZED;
 
 typedef enum {
     M600_on_edge = 0,
@@ -89,8 +89,8 @@ static void _set_state(fsensor_t st) {
 
 static void _enable() {
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
-    state = FS_NOT_INICIALIZED;
-    last_state = FS_NOT_INICIALIZED;
+    state = FS_NOT_INITIALIZED;
+    last_state = FS_NOT_INITIALIZED;
     status.meas_cycle = 0;
 }
 
@@ -154,14 +154,14 @@ uint8_t fs_get__send_M600_on__and_disable() {
 }
 void fs_restore__send_M600_on(uint8_t send_M600_on) {
     taskENTER_CRITICAL();
-    //cannot call _init(); - it could cause stacking in unincialized state
+    //cannot call _init(); - it could cause stacking in uninitialized state
     status.send_M600_on = send_M600_on;
     taskEXIT_CRITICAL();
 }
 
-fsensor_t fs_wait_inicialized() {
+fsensor_t fs_wait_initialized() {
     fsensor_t ret = fs_get_state();
-    while (ret == FS_NOT_INICIALIZED) {
+    while (ret == FS_NOT_INITIALIZED) {
         osDelay(0); // switch to other threads
         ret = fs_get_state();
     }
