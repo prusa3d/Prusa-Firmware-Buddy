@@ -271,7 +271,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     error_url_long(qr_text, sizeof(qr_text), 12201);
     constexpr uint8_t qr_size_px = 140;
     constexpr rect_ui16_t qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
-    window_qr_t win;
+    window_qr_t win(nullptr, qr_rect);
     win.rect = qr_rect;
     window_qr_t *window = &win;
     win.text = qr_text;
