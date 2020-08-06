@@ -74,11 +74,6 @@ protected:
     virtual void click(IWindowMenu &window_menu);
 };
 
-protected:
-virtual void click(IWindowMenu &window_menu) override;
-}
-;
-
 class MI_TEMPERATURE : public WI_LABEL_t {
     static constexpr const char *const label = N_("Temperature");
 
