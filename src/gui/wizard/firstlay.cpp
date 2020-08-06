@@ -16,7 +16,7 @@
     #include "guitypes.hpp" //font_meas_text
     #include "menu_vars.h"
     #include "filament.h"
-    #include "i18n.h"
+    #include "../lang/i18n.h"
 
     #define V__GCODES_HEAD_BEGIN                 \
         "M107",    /*fan off */                  \

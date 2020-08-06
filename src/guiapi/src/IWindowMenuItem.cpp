@@ -1,6 +1,6 @@
 #include "IWindowMenuItem.hpp"
 #include "display_helper.h" //render_icon_align
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 IWindowMenuItem::IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled, bool hidden)
     : hidden(hidden)

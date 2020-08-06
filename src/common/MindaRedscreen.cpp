@@ -15,7 +15,7 @@
 #include "sys.h"
 #include "hwio.h" //hwio_beeper_set_pwm
 #include "wdt.h"
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 #define PADDING 10
 #define X_MAX   (display::GetW() - PADDING * 2)

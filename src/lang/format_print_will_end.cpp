@@ -1,5 +1,5 @@
 #include "format_print_will_end.hpp"
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 // chci, aby fungovalo neco jako:
 // strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow

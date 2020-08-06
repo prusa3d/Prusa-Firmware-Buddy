@@ -2,7 +2,7 @@
 //print related menu items
 #pragma once
 #include "WindowMenuItems.hpp"
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 class MI_NOZZLE : public WI_SPIN_U16_t {
     constexpr static const char *label = N_("Nozzle");

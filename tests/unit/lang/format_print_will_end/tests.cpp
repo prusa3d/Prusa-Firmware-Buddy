@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "string_view_utf8.hpp"
 #include "format_print_will_end.hpp"
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 using namespace std;
 using Catch::Matchers::Equals;

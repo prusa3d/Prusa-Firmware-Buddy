@@ -1,5 +1,5 @@
 #include "DialogFactory.hpp"
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 DialogFactory::mem_space DialogFactory::all_dialogs;
 

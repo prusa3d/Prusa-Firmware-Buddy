@@ -2,7 +2,7 @@
 #include "window_list.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 const char items[11][6] = {
     "item0",

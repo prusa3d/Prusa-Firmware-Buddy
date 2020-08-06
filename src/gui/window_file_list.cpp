@@ -12,7 +12,7 @@
 #include "fatfs.h"
 #include "dbg.h"
 #include "sound.hpp"
-#include "i18n.h"
+#include "../lang/i18n.h"
 #include <algorithm>
 #include "ScreenHandler.hpp"
 

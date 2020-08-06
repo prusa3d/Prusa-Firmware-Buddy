@@ -5,7 +5,7 @@
 #include <array>
 #include "display_helper.h"
 #include "super.hpp"
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 //WI_LABEL
 class WI_LABEL_t : public IWindowMenuItem {

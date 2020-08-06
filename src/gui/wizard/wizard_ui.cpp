@@ -5,7 +5,7 @@
 #include "resource.h"
 #include "stm32f4xx_hal.h" //HAL_GetTick
 #include "marlin_client.h" //HAL_GetTick
-#include "i18n.h"
+#include "../lang/i18n.h"
 
 uint16_t wizard_get_test_icon_resource(uint8_t state) {
     switch (state) {

@@ -34,7 +34,7 @@
     #include "support_utils.h"
     #include "str_utils.hpp"
     #include "guitypes.h"
-    #include "i18n.h"
+    #include "../lang/i18n.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
