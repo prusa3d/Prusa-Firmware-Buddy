@@ -1,7 +1,7 @@
 #include "window_header.hpp"
 #include "config.h"
 #include "marlin_client.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "marlin_events.h"
 
 #ifdef BUDDY_ENABLE_ETHERNET

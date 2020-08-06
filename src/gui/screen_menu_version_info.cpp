@@ -13,7 +13,7 @@
 #include "version.h"
 #include "resource.h"
 #include "WindowMenuItems.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 
 #define OTP_START_ADDR  0x1FFF7800

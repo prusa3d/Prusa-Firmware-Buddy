@@ -5,7 +5,7 @@
 #include "window_dlg_preheat.hpp"
 #include "filament.h"
 #include "DialogHandler.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 dlg_result_t gui_dlg_load(void) {
     //todo must be called inside _gui_dlg, but nested dialogs are not supported now

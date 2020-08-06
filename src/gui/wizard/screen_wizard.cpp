@@ -11,7 +11,7 @@
 #include "filament.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 uint64_t wizard_mask = 0;
 #if 0
@@ -179,7 +179,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
                 if (fs_get_state() == FS_DISABLED) {
                     fs_enable();
-                    if (fs_wait_inicialized() == FS_NOT_CONNECTED)
+                    if (fs_wait_initialized() == FS_NOT_CONNECTED)
                         fs_disable();
                 }
                 break;

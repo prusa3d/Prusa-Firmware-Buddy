@@ -391,7 +391,7 @@ if(GENERATE_DFU)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include
+  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/lang
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
