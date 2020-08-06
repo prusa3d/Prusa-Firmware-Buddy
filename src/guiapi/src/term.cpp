@@ -1,9 +1,7 @@
 // term.c
-#include <stdarg.h>
-#include <algorithm>
-
 #include "term.h"
 #include "gui.hpp"
+#include <stdarg.h>
 #include "bsod.h"
 
 void term_init(term_t *pt, uint8_t cols, uint8_t rows, uint8_t *buff) {
@@ -126,6 +124,8 @@ void term_scroll_up(term_t *pt) {
 void term_write_escape_char(term_t *pt, uint8_t ch) {
     if (ch == 0x1b)
         pt->flg |= TERM_FLG_ESCAPE;
+    else {
+    }
 }
 
 void term_write_CR(term_t *pt) {
@@ -153,30 +153,21 @@ void term_write_control_char(term_t *pt, uint8_t ch) {
 void term_write_char(term_t *pt, uint8_t ch) {
     if (!pt || !(pt->buff))
         return;
-
-    /// Add new line if needed
-    /// if it's not a new line char.
-    if (ch != '\n') {
-        if (pt->col >= pt->cols) {
-            pt->col = 0;
-            if (++(pt->row) >= pt->rows)
-                term_scroll_up(pt);
-        }
-    }
-
     if ((ch == 0x1b) || (pt->flg & TERM_FLG_ESCAPE))
         term_write_escape_char(pt, ch);
     else if (ch < 32)
         term_write_control_char(pt, ch);
     else {
-        const uint16_t i = pt->col + pt->row * pt->cols;
+        int i = pt->col + pt->row * pt->cols;
         pt->buff[2 * i + 0] = ch;
         pt->buff[2 * i + 1] = pt->attr;
         pt->buff[pt->size + (i >> 3)] |= (1 << (i % 8));
+        if (++(pt->col) >= pt->cols) {
+            pt->col = 0;
+            if (++(pt->row) >= pt->rows)
+                term_scroll_up(pt);
+        }
         pt->flg |= TERM_FLG_CHANGED;
-        /// leave the cursor even behind the end of the line
-        /// this allows merging auto-new-line with '\n'
-        ++(pt->col);
     }
 }
 
@@ -188,7 +179,7 @@ int term_printf(term_t *pt, const char *fmt, ...) {
 
     int ret = vsnprintf(text, sizeof(text), fmt, va);
 
-    const size_t range = std::min(ret, TERM_PRINTF_MAX);
+    const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
     for (size_t i = 0; i < range; i++)
         term_write_char(pt, text[i]);
 
