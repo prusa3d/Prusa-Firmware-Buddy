@@ -42,6 +42,8 @@ extern const filament_t filaments[FILAMENTS_END];
 void set_filament(FILAMENT_t filament);
 
 FILAMENT_t get_filament();
+FILAMENT_t get_last_preheated_filament();
+void set_last_preheated_filament(FILAMENT_t filament);
 
 FILAMENT_t get_filament_from_string(const char *s, size_t len);
 

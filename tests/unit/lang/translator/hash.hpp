@@ -8,3 +8,5 @@ bool FillHashTableCPUFLASHProvider(CPUFLASHTranslationProviderBase::SHashTable &
 
 // I'd love to use boost::replace_all instead of this :(
 void FindAndReplaceAll(std::string &data, std::string toSearch, std::string replaceStr);
+
+void PreprocessRawLineStrings(std::string &l);

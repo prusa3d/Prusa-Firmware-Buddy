@@ -10,12 +10,17 @@
 #include "../lang/string_view_utf8.hpp"
 #include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
+#include "ScreenHandler.hpp"
 
+//#define UNACCENT
+
+#ifdef UNACCENT
 std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
     // for now we have a translation table and in the future we'll have letters with diacritics too (i.e. more font bitmaps)
     const auto &a = UnaccentTable::Utf8RemoveAccents(c);
     return std::make_pair(a.str, a.size); // we are returning some number of characters to replace the input utf8 character
 }
+#endif
 
 /// Draws a text into the specified rectangle @rc
 /// If a character does not fit into the rectangle the drawing is stopped
@@ -40,6 +45,7 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
                 return false;
             continue;
         }
+#ifdef UNACCENT
         if (c < 128) {
             display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
             x += w;
@@ -50,6 +56,10 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
                 x += w; // this will screw up character counting for DE language @@TODO
             }
         }
+#else
+        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+        x += w;
+#endif
         // FIXME Shouldn't it try to break the line first?
         if (x + w > rc_end_x)
             return false;
@@ -79,6 +89,7 @@ bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, co
                 return false;
             continue;
         }
+#ifdef UNACCENT
         if (c < 128) {
             display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
             x += w;
@@ -89,6 +100,10 @@ bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, co
                 x += w; // this will screw up character counting for DE language @@TODO
             }
         }
+#else
+        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+        x += w;
+#endif
     }
     return true;
 }
@@ -217,7 +232,7 @@ void render_icon_align(const rect_ui16_t &rc, uint16_t id_res, color_t clr_bg, u
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
-        opt_clr = gui_defaults.color_disabled;
+        opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
         opt_clr = clr_bg ^ 0xffffffff;
@@ -244,7 +259,7 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
-        opt_clr = gui_defaults.color_disabled;
+        opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
         opt_clr = clr0 ^ 0xffffffff;
@@ -267,16 +282,12 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
         display::FillRect(rc, opt_clr);
 }
 
-void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
+void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll) {
     if (roll->setup == TXTROLL_SETUP_IDLE)
         return;
-    window_t *pWin = window_ptr(win_id);
-    if (!pWin)
-        return;
-
     switch (roll->phase) {
     case ROLL_SETUP:
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
+        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
         if (roll->setup == TXTROLL_SETUP_DONE)
             roll->phase = ROLL_GO;
         pWin->Invalidate();
@@ -296,7 +307,7 @@ void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
         break;
     case ROLL_STOP:
         roll->phase = ROLL_RESTART;
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
+        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
         break;
     case ROLL_RESTART:
         roll->setup = TXTROLL_SETUP_INIT;

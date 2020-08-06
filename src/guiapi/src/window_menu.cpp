@@ -1,22 +1,26 @@
 // window_menu.cpp
-#include "window_menu.h" //C compatible, todo remove
 #include "window_menu.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
 
-window_menu_t::window_menu_t(IWinMenuContainer *pContainer, uint8_t index)
-    : IWindowMenu()
+IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
+    : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
+    , color_text(GuiDefaults::ColorText)
+    , color_disabled(GuiDefaults::ColorDisabled)
+    , font(GuiDefaults::Font)
+    , padding { 6, 6, 6, 6 }
+    , icon_w(25)
+    , alignment(GuiDefaults::Alignment) {
+}
+
+window_menu_t::window_menu_t(window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index)
+    : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
-    color_back = gui_defaults.color_back;
-    color_text = gui_defaults.color_text;
-    color_disabled = gui_defaults.color_disabled;
-    font = gui_defaults.font;
-    alignment = gui_defaults.alignment;
+    alignment = GuiDefaults::Alignment;
     setIndex(index);
     top_index = 0;
-    flg |= WINDOW_FLG_ENABLED;
 }
 
 //private, for ctor (cannot fail)
@@ -95,37 +99,57 @@ void window_menu_t::Increment(int dif) {
     }
 }
 
-/******************************************************************************/
-//non member fce
+//I think I do not need
+//screen_dispatch_event
+//callback should handle it
+void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+    IWindowMenuItem *const item = GetActiveItem();
+    const int value = int(param);
+    bool invalid = false;
+    switch (event) {
+    case WINDOW_EVENT_BTN_DN:
 
-void window_menu_init(window_menu_t *window) {
-    display::DrawRect(window->rect, window->color_back);
-    gui_timer_create_txtroll(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
-}
-
-void window_menu_done(window_menu_t *window) {
-    gui_timers_delete_by_window_id(window->id);
-}
-
-void window_menu_set_item_index(window_t *window, int index) {
-    if (window->cls->cls_id == WINDOW_CLS_MENU) {
-        reinterpret_cast<window_menu_t *>(window)->SetIndex(index);
+        item->Click(*this);
+        //Invalidate(); //called inside click
+        break;
+    case WINDOW_EVENT_ENC_DN:
+        if (item->IsSelected()) {
+            invalid |= item->Decrement(value);
+        } else {
+            Decrement(value);
+        }
+        break;
+    case WINDOW_EVENT_ENC_UP:
+        if (item->IsSelected()) {
+            invalid |= item->Increment(value);
+        } else {
+            Increment(value);
+        }
+        break;
+    case WINDOW_EVENT_CAPT_1:
+        //TODO: change flag to checked
+        break;
+    case WINDOW_EVENT_TIMER:
+        if (!item->RollNeedInit()) {
+            item->Roll(*this); //warning it is accessing gui timer
+        }
+        break;
     }
+    if (invalid)
+        Invalidate();
 }
 
-void window_menu_draw(window_menu_t *window) {
-    if (!((window->flg & (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE)) == (WINDOW_FLG_INVALID | WINDOW_FLG_VISIBLE))) {
-        return;
-    }
+void window_menu_t::unconditionalDraw() {
+    IWindowMenu::unconditionalDraw();
 
-    const int item_height = window->font->h + window->padding.top + window->padding.bottom;
-    rect_ui16_t rc_win = window->rect;
+    const int item_height = font->h + padding.top + padding.bottom;
+    rect_ui16_t rc_win = rect;
 
     const size_t visible_count = rc_win.h / item_height;
     size_t i;
-    for (i = 0; i < visible_count && i < window->GetCount(); ++i) {
+    for (i = 0; i < visible_count && i < GetCount(); ++i) {
 
-        IWindowMenuItem *item = window->GetItem(i + window->top_index);
+        IWindowMenuItem *item = GetItem(i + top_index);
         if (!item) {
             --i;
             break;
@@ -136,69 +160,17 @@ void window_menu_draw(window_menu_t *window) {
 
         if (rect_in_rect_ui16(rc, rc_win)) {
             if (item->RollNeedInit()) {
-                gui_timer_restart_txtroll(window->id);
-                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, window->id);
-                item->RollInit(*window, rc);
+                gui_timer_restart_txtroll(this);
+                gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
+                item->RollInit(*this, rc);
             }
-            item->Print(*window, rc);
+            item->Print(*this, rc);
         }
     }
     rc_win.h = rc_win.h - (i * item_height);
 
     if (rc_win.h) {
         rc_win.y += i * item_height;
-        display::FillRect(rc_win, window->color_back);
+        display::FillRect(rc_win, color_back);
     }
-    window->flg &= ~WINDOW_FLG_INVALID;
 }
-
-//I think I do not need
-//screen_dispatch_event
-//callback should handle it
-void window_menu_event(window_menu_t *window, uint8_t event, void *param) {
-    IWindowMenuItem *const item = window->GetActiveItem();
-    const int value = int(param);
-    bool invalid = false;
-    switch (event) {
-    case WINDOW_EVENT_BTN_DN:
-
-        item->Click(*window);
-        //window->Invalidate(); //called inside click
-        break;
-    case WINDOW_EVENT_ENC_DN:
-        if (item->IsSelected()) {
-            invalid |= item->Decrement(value);
-        } else {
-            window->Decrement(value);
-        }
-        break;
-    case WINDOW_EVENT_ENC_UP:
-        if (item->IsSelected()) {
-            invalid |= item->Increment(value);
-        } else {
-            window->Increment(value);
-        }
-        break;
-    case WINDOW_EVENT_CAPT_1:
-        //TODO: change flag to checked
-        break;
-    case WINDOW_EVENT_TIMER:
-        if (!item->RollNeedInit()) {
-            item->Roll(*window); //warning it is accessing gui timer
-        }
-        break;
-    }
-    if (invalid)
-        window->Invalidate();
-}
-
-const window_class_menu_t window_class_menu = {
-    {
-        WINDOW_CLS_MENU,
-        sizeof(window_menu_t),
-        (window_init_t *)window_menu_init,
-        (window_done_t *)window_menu_done,
-        (window_draw_t *)window_menu_draw,
-        (window_event_t *)window_menu_event,
-    },
-};

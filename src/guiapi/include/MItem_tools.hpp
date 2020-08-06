@@ -3,6 +3,7 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "../lang/i18n.h"
+#include "filament.h"
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");
@@ -195,7 +196,7 @@ protected:
 };
 
 class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Timeout");
+    constexpr static const char *const label = N_("Menu Timeout");
 
 public:
     MI_TIMEOUT();
@@ -233,8 +234,20 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+class MI_SORT_FILES : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = N_("Sort files by");
+
+    constexpr static const char *str_name = N_("Name");
+    constexpr static const char *str_time = N_("Time");
+
+public:
+    MI_SORT_FILES();
+    virtual void OnChange(size_t old_index) override;
+};
+
 class MI_SOUND_VOLUME : public WI_SPIN_U08_t {
-    constexpr static const char *const label = "Sound Volume"; // intentionally not translated
+    constexpr static const char *const label = N_("Sound Volume");
+
 public:
     MI_SOUND_VOLUME();
     virtual void OnClick() override;
@@ -247,4 +260,25 @@ class MI_TIMEZONE : public WI_SPIN_I08_t {
 public:
     MI_TIMEZONE();
     virtual void OnClick() override;
+};
+
+class I_MI_Filament : public WI_LABEL_t {
+public:
+    I_MI_Filament(const char *long_name)
+        : WI_LABEL_t(long_name, 0, true, false) {}
+
+protected:
+    void click_at(FILAMENT_t filament_index);
+};
+
+template <FILAMENT_t T>
+class MI_Filament : public I_MI_Filament {
+public:
+    MI_Filament()
+        : I_MI_Filament(filaments[T].long_name) {}
+
+protected:
+    virtual void click(IWindowMenu & /*window_menu*/) override {
+        click_at(T);
+    }
 };

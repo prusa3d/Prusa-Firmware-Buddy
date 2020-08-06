@@ -6,64 +6,36 @@
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 #include "../lang/i18n.h"
-
-//#define DLG_FRAME_ENA 1
-#define DLG_FRAME_ENA 0
+#include "window_text.hpp"
+#include "window_progress.hpp"
 
 // function pointer for onEnter & onExit callbacks
-typedef void (*change_state_cb_t)();
+using change_state_cb_t = void (*)();
 
 //abstract parent containing general code for any number of phases
 class IDialogStateful : public IDialog {
-protected:
-    //dialog flags bitshift
-    enum {
-        DLG_SHI_MOD = 4, // mode shift
-        DLG_SHI_CHG = 14 // change flag shift
-    };
-    enum : uint32_t {
-#if DLG_FRAME_ENA == 1
-        DLG_DRA_FR = 0x0800, // draw frame
-#else
-        DLG_DRA_FR = 0x0000, // draw frame
-#endif                                          //DLG_FRAME_ENA == 1
-        DLG_TXT_CH = 0x2000,                    // text changed
-        DLG_PRO_CH = 0x4000,                    // progress changed
-        DLG_PPR_CH = 0x8000,                    // part progress changed
-        DLG_PRX_CH = (DLG_PRO_CH | DLG_PPR_CH), // some progress changed
-        DLG_PHA_CH = (DLG_PRX_CH | DLG_TXT_CH), // phase changed
-        //dialog flags bitmasks
-        DLG_MSK_MOD = 0x0003,    // mode mask
-        DLG_MSK_CHG = DLG_PHA_CH // change flag mask
-    };
-
 public:
     struct State {
-        State(const char *lbl, RadioButton btn, change_state_cb_t enter_cb = NULL, change_state_cb_t exit_cb = NULL)
+        State(const char *lbl, const PhaseResponses &btn_resp, const PhaseTexts &btn_labels, change_state_cb_t enter_cb = NULL, change_state_cb_t exit_cb = NULL)
             : label(lbl)
-            , button(btn)
+            , btn_resp(btn_resp)
+            , btn_labels(btn_labels)
             , onEnter(enter_cb)
             , onExit(exit_cb) {}
         const char *label;
-        RadioButton button;
+        const PhaseResponses &btn_resp;
+        const PhaseTexts &btn_labels;
         // callbacks for phase start/end
         change_state_cb_t onEnter;
         change_state_cb_t onExit;
     };
 
 protected:
-    int16_t id_capture;
-
-    color_t color_text;
-    font_t *font;
-    font_t *font_title;
-    padding_ui8_t padding;
-    uint16_t flags;
-    uint8_t last_text_h; //hack todo remove me
+    window_text_t title;
+    window_progress_t progress;
+    window_text_t label;
+    RadioButton radio;
     uint8_t phase;
-    uint8_t progress;
-
-    const char *title;
 
     virtual bool can_change(uint8_t phase) = 0;
     // must be virtual because of `states` list is in template protected
@@ -71,23 +43,8 @@ protected:
     virtual void phaseExit() = 0;
 
 public:
-    IDialogStateful(const char *name, int16_t WINDOW_CLS_);
+    IDialogStateful(string_view_utf8 name);
     bool Change(uint8_t phs, uint8_t progress_tot, uint8_t progress); // = 0; todo should be pure virtual
-    virtual ~IDialogStateful();
-
-    static rect_ui16_t get_radio_button_size() {                                // cannot be const(expr)
-        rect_ui16_t rc_btn = gui_defaults.scr_body_sz;                          // msg box size
-        rc_btn.y += (rc_btn.h - gui_defaults.btn_h - gui_defaults.frame_width); // 30pixels for button (+ 10 space for grey frame)
-        rc_btn.h = gui_defaults.btn_h;
-        rc_btn.x += gui_defaults.btn_spacing;
-        rc_btn.w -= 2 * gui_defaults.btn_spacing;
-        return rc_btn;
-    }
-
-protected:
-    void draw_phase_text(string_view_utf8 text);
-    void draw_frame();
-    void draw_progress();
 };
 
 /*****************************************************************************/
@@ -102,14 +59,16 @@ public:
 protected:
     States states; //phase text and radiobutton + onEnter & onExit cb
 public:
-    DialogStateful(const char *name, int16_t WINDOW_CLS_, States st)
-        : IDialogStateful(name, WINDOW_CLS_)
+    DialogStateful(string_view_utf8 name, States st)
+        : IDialogStateful(name)
         , states(st) {};
 
 protected:
     virtual bool can_change(uint8_t phase) { return phase < SZ; }
     // get arguments callbacks and call them
     virtual void phaseEnter() {
+        radio.Change(&states[phase].btn_resp, &states[phase].btn_labels);
+        label.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)states[phase].label));
         if (states[phase].onEnter) {
             states[phase].onEnter();
         }
@@ -121,79 +80,29 @@ protected:
     }
 
 public:
-    virtual void Draw() override;
-    virtual void Event(uint8_t event, void *param) override;
+    virtual void windowEvent(window_t * /*sender*/, uint8_t event, void *param) override;
 };
 
 /*****************************************************************************/
 //template definitions
 
+//todo make radio button events behave like normal button
 template <class T>
-void DialogStateful<T>::Draw() {
-    if ((f_visible)
-        //&& ((size_t)(phase) < states.size()) // no need to check
-    ) {
-        RadioButton &radio = states[phase].button;
-        const char *text = states[phase].label;
-        rect_ui16_t rc = rect;
-
-        if (f_invalid) {
-            display::FillRect(rc, color_back);
-            rect_ui16_t rc_tit = rc;
-            rc_tit.h = 30; // 30pixels for title
-            // TODO: - icon
-            //			rc_tit.w -= 30;
-            //			rc_tit.x += 30;
-            //title
-            render_text_align(rc_tit, _(title), font_title,
-                color_back, color_text, padding, ALIGN_CENTER);
-
-            f_invalid = 0;
-            flags |= DLG_DRA_FR | DLG_PHA_CH | DLG_PPR_CH;
-        }
-
-        //button knows when it needs to be repainted except when phase changes
-        if (flags & DLG_PHA_CH) {
-            //do not clear DLG_PHA_CH
-            radio.DrawForced();
-        } else
-            radio.Draw();
-
-        if (flags & DLG_TXT_CH) //text changed
-        {
-            draw_phase_text(_(text));
-            flags &= ~DLG_TXT_CH;
-        }
-
-        if (flags & DLG_PRX_CH) //any progress changed
-        {
-            draw_progress();
-            flags &= ~DLG_PRX_CH;
-        }
-        if (flags & DLG_DRA_FR) { //draw frame
-            draw_frame();
-            flags &= ~DLG_DRA_FR;
-        }
-    }
-}
-
-template <class T>
-void DialogStateful<T>::Event(uint8_t event, void *param) {
-    RadioButton &radio = states[phase].button;
+void DialogStateful<T>::windowEvent(window_t * /*sender*/, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK: {
         Response response = radio.Click();
         marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
-        return;
+        break;
     }
     case WINDOW_EVENT_ENC_UP:
         ++radio;
         gui_invalidate();
-        return;
+        break;
     case WINDOW_EVENT_ENC_DN:
         --radio;
         gui_invalidate();
-        return;
+        break;
     }
 }

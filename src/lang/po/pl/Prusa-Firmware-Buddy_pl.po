@@ -10,11 +10,11 @@ msgstr ""
 #: src/gui/screen_menu_version_info.cpp:90
 #, c-format
 msgid "\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"
-msgstr "Wersja Bootladera %d.%d.%d\nPłyta Buddy %d.%d.%d %s"
+msgstr "\nWersja Bootloadera\n%d.%d.%d\n\nPłyta Buddy\n%d.%d.%d\n%s"
 
 #: src/guiapi/src/MItem_tools.cpp:121
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
-msgstr "Raport zrzutu błędów (plik dump.bin) został zapisany w pamięci USB."
+msgstr "Raport zrzutu pamięci (plik dump.bin) został zapisany w pamięci USB."
 
 #. MSGBOX_RES_CANCEL    2
 #: src/guiapi/src/window_msgbox.cpp:50
@@ -72,6 +72,18 @@ msgstr "STÓŁ"
 msgid "Bed leveling failed. Try again?"
 msgstr "Niepowodzenie poziomowania. Spróbować ponownie?"
 
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:76
+#, c-format
+msgid "Bed. target: %.0f_C"
+msgstr "Stół docel.: %.0f_C"
+
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:55
+#, c-format
+msgid "Bed: %.1f_C"
+msgstr "Stół: %.1f_C"
+
 #: src/gui/wizard/xyzcalib.cpp:55
 msgid "Calibrating Z"
 msgstr "Kalibuję Z"
@@ -79,6 +91,10 @@ msgstr "Kalibuję Z"
 #: src/gui/screen_menu_calibration.cpp:16 src/gui/screen_home.cpp:42
 msgid "Calibration"
 msgstr "Kalibracja"
+
+#: src/gui/screen_menu_calibration.cpp:17
+msgid "CALIBRATION"
+msgstr "KALIBRACJA"
 
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
@@ -114,7 +130,7 @@ msgstr "Sprawdzanie temp.\nhotendu i stołu"
 
 #: src/gui/wizard/screen_wizard.c:462
 msgid "Clean steel sheet."
-msgstr "Wyczyść płytę stołu."
+msgstr "Wyczyść płytę stalową."
 
 #: src/gui/wizard/screen_wizard.c:362
 msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
@@ -122,7 +138,7 @@ msgstr "Gratulacje! Kalibracja XYZ została ukończona. Osie są prostopadłe do
 
 #: src/guiapi/src/MItem_tools.cpp:273
 msgid "Continual beeps test\n press button to stop"
-msgstr "Test brzęczyka\n zatrzymaj przyciskiem"
+msgstr "Test głośnika\n zatrzymaj przyciskiem"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:29
 msgid "CONTINUE"
@@ -150,12 +166,12 @@ msgstr "Rozłącz"
 
 #: src/gui/wizard/screen_wizard.c:448
 msgid "Do you want to     \nrepeat the last    \nstep and readjust  \nthe distance       \nbetween the nozzle \nand heatbed?"
-msgstr "Czy na pewno chcesz\npoprawić kalibrację\nodległości dyszy   \nod stołu?           "
+msgstr "Czy na pewno chcesz poprawić kalibrację odległości dyszy od stołu?"
 
 #: src/gui/wizard/screen_wizard.c:405
 #, c-format
 msgid "Do you want to use\nthe current value?\nCurrent: %0.3f.   \nDefault: %0.3f.   \nClick NO to use the default value (recommended)"
-msgstr "Czy na pewno chcesz\nużyć tych wartości:\nObecna:    %0.3f. \nDomyślna:  %0.3f. \nWciśnij NIE, aby użyć domyślnej (zalecane)"
+msgstr "Czy na pewno chcesz użyć tych wartości:\nObecna:    %0.3f.\nDomyślna:  %0.3f.\nWciśnij NIE, aby użyć domyślnej (zalecane)"
 
 #: src/gui/wizard/screen_wizard.c:473
 #, c-format
@@ -177,7 +193,7 @@ msgstr "Błąd"
 
 #: src/guiapi/src/MItem_tools.cpp:123
 msgid "Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."
-msgstr "Błąd zapisywania zrzutu błędów w pamięci USB. Odłącz i podłącz nośnik, następnie spróbuj ponownie."
+msgstr "Błąd zapisywania zrzutu pamięci na nośniku USB. Odłącz i podłącz nośnik, następnie spróbuj ponownie."
 
 #: src/gui/wizard/screen_wizard.c:266
 msgid "Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes."
@@ -206,7 +222,7 @@ msgstr "Test wentylatorów"
 
 #: src/gui/screen_menu_settings.cpp:24
 msgid "Fil. sens."
-msgstr "Czujnik filamentu"
+msgstr "Czujnik filam."
 
 #: src/gui/screen_menu_filament.cpp:123 src/gui/screen_menu_filament.cpp:120
 msgid "FILAMENT"
@@ -222,25 +238,30 @@ msgstr "Nie wykryto filamentu. Załadować? Wybierz NIE, aby anulować lub IGNOR
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:44
 msgid "Finishing         \nbuffered gcodes.  \n"
-msgstr "Opróżnianie\nbufora G-code."
+msgstr "Opróżnianie\nbufora G-code.\n"
 
 #. =============SET TEXT================
 #: src/gui/screen_menu_version_info.cpp:72
 #, c-format
 msgid "Firmware Version\n"
-msgstr "Wersja Firmware"
+msgstr "Wersja Firmware\n"
 
 #: src/guiapi/include/MItem_tools.hpp:48
 msgid "First Layer Cal."
-msgstr "Kalibracja 1.warstwy"
+msgstr "Kal. 1. warstwy"
 
 #: src/gui/wizard/screen_wizard.c:551
 msgid "FIRST LAYER CALIB."
-msgstr "KALIBRACJA 1.WARSTWY"
+msgstr "KAL. 1. WARSTWY"
 
 #: src/guiapi/include/MItem_print.hpp:40
 msgid "Flow Factor"
 msgstr "Przepływ"
+
+#. abbreviated Friday - max 3 characters
+#: src/lang/format_print_will_end.cpp:51
+msgid "Fri"
+msgstr "Pt"
 
 #: src/gui/screen_menu_fw_update.cpp:46
 msgid "FW UPDATE"
@@ -264,7 +285,7 @@ msgstr "Nagrzewanie..."
 
 #: src/gui/guimain.c:189
 msgid "Hi, this is your\nOriginal Prusa MINI."
-msgstr "Cześć, jestem Twoją\nOriginal Prusa Mini"
+msgstr "Cześć, jestem Twoją Original Prusa Mini"
 
 #: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:82
 msgid "HOME"
@@ -277,9 +298,13 @@ msgstr "EKRAN GŁÓWNY"
 msgid "Home"
 msgstr "Ekran główny"
 
+#: src/gui/dialogs/DialogFactory.cpp:37
+msgid "HOME TO MAX"
+msgstr "HOME TO MAX"
+
 #: src/gui/wizard/selftest_fans_axis.cpp:35
 msgid "Hotend fan"
-msgstr "Wentylator hotendu"
+msgstr "Went. hotendu"
 
 #. MSGBOX_RES_RETRY     4
 #: src/gui/screen_print_preview.cpp:318 src/guiapi/src/window_msgbox.cpp:52
@@ -296,7 +321,7 @@ msgstr "IGNORUJ"
 #. "the print surface."
 #: src/gui/wizard/screen_wizard.c:430
 msgid "In the next step, \nuse the knob to   \nadjust the nozzle \nheight.           \nCheck the pictures\nin the handbook   \nfor reference."
-msgstr "W kolejnym kroku  \nużyj pokrętła, aby\nustawić odległość \ndyszy od stołu.   \nMożesz wspomóc się\nilustracjami w    \n\"Podręczniku\".    "
+msgstr "W kolejnym kroku użyj pokrętła, aby ustawić odległość dyszy od stołu. Możesz wspomóc się ilustracjami w Podręczniku."
 
 #: src/gui/screen_menu_info.cpp:17
 msgid "INFO"
@@ -326,7 +351,7 @@ msgstr "Adresy IP lub parametry są nieprawidłowe, albo plik \"lan_settings.ini
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:58
 msgid "Is color correct?"
-msgstr "Czy kolor jest prawidłowy?"
+msgstr "Kolor prawidłowy?"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:54
 msgid "Is filament in    \nextruder gear?    "
@@ -348,7 +373,7 @@ msgstr "Ustawienia LAN"
 
 #: src/guiapi/include/MItem_menus.hpp:158
 msgid "Language"
-msgstr "Język"
+msgstr "Języki"
 
 #: src/gui/screen_menu_languages.cpp:106
 msgid "LANGUAGES"
@@ -391,7 +416,11 @@ msgstr "Głośno"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr "Upewnij się, że   \nfilament          \nprzechodzi przez  \nczujnik filamentu."
+msgstr ""
+"Upewnij się, że   \n"
+"filament          \n"
+"przechodzi przez  \n"
+"czujnik filamentu."
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
@@ -400,6 +429,10 @@ msgstr "Materiał"
 #: src/gui/wizard/xyzcalib.cpp:78
 msgid "Measuring reference\nheight of calib.\npoints"
 msgstr "Pomiar wysokości\npunktów\nkalibracyjnych"
+
+#: src/guiapi/include/MItem_tools.hpp:198
+msgid "Menu Timeout"
+msgstr "Wył. czas. menu"
 
 #: src/gui/test/screen_mesh_bed_lv.cpp:89
 msgid "MESH BED L."
@@ -425,9 +458,18 @@ msgstr "KOMUNIKATY"
 msgid "Messages"
 msgstr "Komunikaty"
 
+#. abbreviated Monday - max 3 characters
+#: src/lang/format_print_will_end.cpp:43
+msgid "Mon"
+msgstr "Pon"
+
 #: src/guiapi/include/MItem_menus.hpp:98
 msgid "Move Axis"
 msgstr "Ruch osi"
+
+#: src/gui/screen_menu_move.cpp:43
+msgid "MOVE AXIS"
+msgstr "RUCH OSI"
 
 #: src/gui/menu_vars.h:62
 msgid "Move E"
@@ -450,7 +492,7 @@ msgstr "Ruch Z"
 #: src/gui/wizard/wizard_ui.cpp:32 src/gui/wizard/wizard_load_unload.cpp:21
 #: src/gui/wizard/wizard_load_unload.cpp:44
 msgid "NEXT"
-msgstr "NASTĘPNY"
+msgstr "DALEJ"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:32
 msgid "NO"
@@ -471,7 +513,13 @@ msgstr "Brak USB"
 
 #: src/gui/wizard/screen_wizard.c:392
 msgid "Now, let's calibrate\nthe distance       \nbetween the tip    \nof the nozzle and  \nthe print sheet.   "
-msgstr "Teraz ustawimy     \nodległość          \nkońcówki dyszy     \nod powierzchni     \nstołu.              "
+msgstr "Teraz ustawimy odległość końcówki dyszy od powierzchni stołu."
+
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:65
+#, c-format
+msgid "Noz. target: %.0f_C"
+msgstr "Dysza docel.: %.0f_C"
 
 #: src/guiapi/include/MItem_print.hpp:8
 msgid "Nozzle"
@@ -485,10 +533,17 @@ msgstr "DYSZA"
 msgid "Nozzle is too cold."
 msgstr "Dysza ma zbyt niską temperaturę."
 
+#. a nasty hack - need to put the translated format string somewhere and keep it there past the lifetime of this screen
+#. r=1 c=15
+#: src/gui/wizard/selftest_cool.cpp:40
+#, c-format
+msgid "Nozzle: %.1f_C"
+msgstr "Dysza: %.1f_C"
+
 #: src/guiapi/include/WindowMenuItems.hpp:130
 #: src/guiapi/include/WindowMenuItems.hpp:159
 msgid "Off"
-msgstr "Wyłącz"
+msgstr "Wył."
 
 #. MSGBOX_RES_NO        7
 #: src/guiapi/src/window_msgbox.cpp:55
@@ -498,7 +553,7 @@ msgstr "OK"
 #: src/guiapi/include/WindowMenuItems.hpp:131
 #: src/guiapi/include/WindowMenuItems.hpp:160
 msgid "On"
-msgstr "Włącz"
+msgstr "Wł."
 
 #: src/gui/screen_menu_fw_update.cpp:32
 msgid "On restart"
@@ -511,7 +566,7 @@ msgstr "Pojedynczo"
 
 #: src/gui/wizard/firstlay.c:55 src/gui/wizard/firstlay.c:63
 msgid "Once the printer   \nstarts extruding   \nplastic, adjust    \nthe nozzle height  \nby turning the knob\nuntil the filament \nsticks to the print\nsheet."
-msgstr "Obracaj pokrętłem, \ngdy drukarka zacznie\nwytłaczać plastik, \naby zbliżyć dyszę  \ndo powierzchni,    \naż materiał będzie \ndobrze przylegał.   "
+msgstr "Obracaj pokrętłem,\ngdy drukarka zacznie\nwytłaczać plastik,\naby zbliżyć dyszę\ndo powierzchni,\naż materiał będzie\ndobrze przylegał."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:45
 msgid "Parking"
@@ -523,7 +578,7 @@ msgstr "Pauza"
 
 #: src/gui/screen_printing.cpp:76
 msgid "Pausing..."
-msgstr "Wstrzymywanie..."
+msgstr "Pauzowanie"
 
 #: src/gui/screen_PID.cpp:209
 msgid "PID adjustment"
@@ -531,11 +586,11 @@ msgstr "Kalibracja PID"
 
 #: src/gui/wizard/screen_wizard.c:330
 msgid "Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off printer immediately!"
-msgstr "Połóż kartkę papieru pod dyszą podczas kalibracji pierwszych 4 punktów. Wyłącz drukarkę natychmiast, jeśli dysza zahaczy o papier."
+msgstr "Połóż kartkę papieru pod dyszą podczas kalibracji pierwszych 4 punktów. Wyłącz drukarkę natychmiast, jeśli dysza zahaczy o papier!"
 
 #: src/gui/wizard/screen_wizard.c:305
 msgid "Please clean the nozzle for calibration. Click NEXT when done."
-msgstr "Oczyść dyszę do kalibracji i naciśnij NASTĘPNY."
+msgstr "Oczyść dyszę do kalibracji i naciśnij DALEJ."
 
 #: src/gui/screen_menu_lan_settings.cpp:293
 #: src/gui/screen_menu_lan_settings.cpp:294
@@ -545,7 +600,7 @@ msgstr "Podłącz pamięć USB i spróbuj ponownie."
 
 #: src/gui/guimain.c:190
 msgid "Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"
-msgstr "Podłącz pamięć USB\ndostarczoną z     \nTwoją MINI i      \nzresetuj drukarkę,\naby wgrać firmware"
+msgstr "Podłącz pamięć USB dostarczoną z Twoją MINI i zresetuj drukarkę, aby wgrać firmware"
 
 #: src/gui/wizard/screen_wizard.c:346
 msgid "Please place steel sheet on heatbed."
@@ -586,11 +641,14 @@ msgstr "Przygotowywanie do wyciskania"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr "Naciśnij KONTYNUUJ\ni wsuń filament   \ndo ekstrudera.    "
+msgstr ""
+"Naciśnij KONTYNUUJ\n"
+"i wsuń filament   \n"
+"do ekstrudera.    "
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
-msgstr "Wciśnij NASTĘPNY,\naby uruchomić\nSelftest, który\nsprawdzi ewentualne\nbłędy podczas\nmontażu."
+msgstr "Wciśnij DALEJ, aby uruchomić Selftest, który sprawdzi ewentualne błędy podczas montażu."
 
 #: src/gui/screen_home.cpp:39
 msgid "Print"
@@ -598,11 +656,11 @@ msgstr "Druk"
 
 #: src/guiapi/include/MItem_print.hpp:24
 msgid "Print Fan"
-msgstr "Wentylator druku"
+msgstr "Went. wydruku"
 
 #: src/gui/wizard/selftest_fans_axis.cpp:43
 msgid "Print fan"
-msgstr "Wentylator wydruku"
+msgstr "Went. wydruku"
 
 #: src/gui/screen_print_preview.cpp:135 src/gui/screen_print_preview.cpp:138
 msgid "Print Time"
@@ -623,15 +681,15 @@ msgstr "Czas druku"
 #: src/gui/dialogs/DialogFactory.cpp:14 src/gui/screen_menu_filament.cpp:101
 #: src/gui/screen_menu_filament.cpp:98
 msgid "PURGE FILAMENT"
-msgstr "CZYSZCZENIE KOLORU"
+msgstr "CZYSZCZENIE"
 
 #: src/gui/screen_menu_filament.cpp:100 src/gui/screen_menu_filament.cpp:97
 msgid "Purge Filament"
-msgstr "Czyszczenie koloru"
+msgstr "Czyszczenie"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:57
 msgid "Purging"
-msgstr "Czyszczenie koloru"
+msgstr "Czyszczenie"
 
 #: src/guiapi/include/MItem_menus.hpp:68
 msgid "QR test"
@@ -660,7 +718,7 @@ msgstr "Pozostały czas"
 
 #: src/gui/screen_printing.cpp:81
 msgid "Reprint"
-msgstr "Ponowny druk"
+msgstr "Ponów druk"
 
 #: src/common/MindaRedscreen.c:187 src/gui/guimain.c:191
 msgid "RESET PRINTER"
@@ -676,16 +734,21 @@ msgstr "Wznawianie..."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:34
 msgid "RETRY"
-msgstr "SPRÓBUJ PONOWNIE"
+msgstr "PONÓW"
 
 #: src/gui/dialogs/window_dlg_preheat.cpp:39
 #: src/guiapi/include/WindowMenuItems.hpp:223
 msgid "Return"
 msgstr "Powrót"
 
+#. abbreviated Saturday - max 3 characters
+#: src/lang/format_print_will_end.cpp:53
+msgid "Sat"
+msgstr "Sob"
+
 #: src/guiapi/include/MItem_tools.hpp:78
 msgid "Save Crash Dump"
-msgstr "Zapisz zrzut błędów"
+msgstr "Zapisz zrzut pamięci"
 
 #: src/gui/screen_menu_lan_settings.cpp:234
 #: src/gui/screen_menu_lan_settings.cpp:229
@@ -699,6 +762,14 @@ msgstr "Szukam punktów\nkalibracyjnych stołu"
 #: src/gui/wizard/wizard_load_unload.c:77
 msgid "Select filament type"
 msgstr "Wybierz rodzaj filamentu"
+
+#: src/gui/screen_filebrowser.cpp:61
+msgid "SELECT FILE"
+msgstr "WYBIERZ PLIK"
+
+#: src/gui/screen_menu_languages.cpp:141
+msgid "SELECT LANGUAGE"
+msgstr "WYBIERZ JĘZYK"
 
 #: src/gui/screen_menu_fw_update.cpp:57
 msgid "Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."
@@ -725,6 +796,10 @@ msgstr "Serwis"
 msgid "Settings"
 msgstr "Ustawienia"
 
+#: src/gui/screen_menu_settings.cpp:88
+msgid "SETTINGS"
+msgstr "USTAWIENIA"
+
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
 #: src/gui/screen_menu_lan_settings.cpp:298
@@ -745,6 +820,10 @@ msgstr "Tryb dźwięku"
 #: src/guiapi/include/MItem_tools.hpp:220
 msgid "Sound Type"
 msgstr "Rodzaj dźwięku"
+
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sound Volume"
+msgstr "Głośność dźwięku"
 
 #: src/guiapi/include/MItem_print.hpp:32
 msgid "Speed"
@@ -768,6 +847,11 @@ msgstr "STOP"
 msgid "Stop"
 msgstr "Stop"
 
+#. abbreviated Sunday - max 3 characters
+#: src/lang/format_print_will_end.cpp:55
+msgid "Sun"
+msgstr "Ndz"
+
 #: src/guiapi/include/MItem_menus.hpp:58
 msgid "Support"
 msgstr "Pomoc"
@@ -790,7 +874,7 @@ msgstr "Test"
 
 #: src/gui/wizard/screen_wizard.c:489
 msgid "The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration."
-msgstr "Kalibracja pierwszej warstwy zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie."
+msgstr "Kalibracja pierwszej warstwy zakończona niepowodzeniem. Sprawdź okablowanie, dyszę oraz osie drukarki, następnie ponów kalibrację."
 
 #: src/gui/screen_splash.c:105
 msgid "The printer is not calibrated. Start First Layer Calibration?"
@@ -798,7 +882,7 @@ msgstr "Drukarka nie jest skalibrowana. Rozpocząć kalibrację pierwszej warstw
 
 #: src/gui/wizard/screen_wizard.c:279
 msgid "The selftest failed\nto finish.         \nDouble-check the   \nprinter's wiring   \nand axes.          \nThen restart       \nthe Selftest.      "
-msgstr "Selftest zakończony\nniepowodzeniem.\nSprawdź okablowanie\ndrukarki oraz osie.\nNastępnie zrestartuj\nSelftest."
+msgstr "Selftest zakończony niepowodzeniem. Sprawdź okablowanie drukarki oraz osie. Następnie zrestartuj Selftest."
 
 #: src/gui/screen_menu_lan_settings.cpp:296
 #: src/gui/screen_menu_lan_settings.cpp:297
@@ -808,7 +892,7 @@ msgstr "Ustawienia zostały pomyślnie zapisane w pliku \"lan_settings.ini\"."
 
 #: src/gui/wizard/screen_wizard.c:192
 msgid "The status bar is at\nthe bottom of the  \nscreen. It contains\ninformation about: \n - Nozzle temp.    \n - Heatbed temp.   \n - Printing speed  \n - Z-axis height   \n - Selected filament"
-msgstr "Pasek stanu\nznajduje się na \nspodzie ekranu.\nZawiera informacje:\n- Temperatura dyszy\n- Temperatura stołu\n- Prędkość druku\n- Pozycja osi Z\n- Wybrany filament"
+msgstr "Pasek stanu znajduje się na spodzie ekranu. Zawiera informacje:\n- Temperatura dyszy\n- Temperatura stołu\n- Prędkość druku\n- Pozycja osi Z\n- Wybrany filament"
 
 #: src/gui/wizard/screen_wizard.c:371
 msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
@@ -823,7 +907,12 @@ msgstr "Wystąpił błąd podczas zapisywania ustawień w pliku \"lan_settings.i
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "Tej czynności nie można cofnąć, a obecna konfiguracja zostanie utracona. Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?"
+msgstr "Tej czynności nie można cofnąć, a obecna konfiguracja zostanie utracona! Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?"
+
+#. abbreviated Thursday - max 3 characters
+#: src/lang/format_print_will_end.cpp:49
+msgid "Thr"
+msgstr "Czw"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
@@ -831,17 +920,27 @@ msgstr "Wyłącznik czasowy"
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD."
-msgstr "Aby do kalibracji\nużyć załadowanego\nfilamentu, wybierz\nNASTĘPNY. Aby\nwymienić, wybierz\nROZŁADUJ."
+msgstr "Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby wymienić, wybierz ROZŁADUJ."
 
 #: src/gui/wizard/wizard_load_unload.cpp:46
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD."
-msgstr "Aby do kalibracji\nużyć załadowanego\nfilamentu, wybierz\nNASTĘPNY. Aby\nzaładować, wybierz\nZAŁADUJ. Aby\nwymienić, wybierz\nROZŁADUJ."
+msgstr "Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby załadować, wybierz ZAŁADUJ. Aby wymienić, wybierz ROZŁADUJ."
+
+#. Used in "The print will end:", keep it up to 10 characters
+#: src/lang/format_print_will_end.cpp:29
+msgid "Today at"
+msgstr "Dziś o "
 
 #. MSGBOX_RES_OK        8
 #. 9
 #: src/guiapi/src/window_msgbox.cpp:57
 msgid "TRY AGAIN"
 msgstr "SPRÓBUJ PONOWNIE"
+
+#. abbreviated Tuesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:45
+msgid "Tue"
+msgstr "Wt"
 
 #: src/gui/screen_menu_tune.cpp:21
 msgid "TUNE"
@@ -888,11 +987,11 @@ msgstr "Użyty filament"
 #: src/gui/screen_menu_version_info.cpp:36
 #: src/gui/screen_menu_version_info.cpp:31
 msgid "VERSION INFO"
-msgstr "INFORMACJE O WERSJI"
+msgstr "WERSJA"
 
 #: src/guiapi/include/MItem_menus.hpp:8
 msgid "Version Info"
-msgstr "Informacje o wersji"
+msgstr "Wersja"
 
 #: src/gui/wizard/selftest_cool.cpp:28
 msgid "Waiting for cooldown"
@@ -907,13 +1006,18 @@ msgstr "Czekam na temp."
 msgid "Warning"
 msgstr "Ostrzeżenie"
 
+#. abbreviated Wednesday - max 3 characters
+#: src/lang/format_print_will_end.cpp:47
+msgid "Wed"
+msgstr "Śr"
+
 #: src/gui/wizard/screen_wizard.cpp:146
 msgid "Welcome to the     \nOriginal Prusa MINI\nsetup wizard.      \nWould you like to  \ncontinue?           "
-msgstr "Witaj w Asystencie\nKonfiguracji\nOriginal Prusa MINI\nKontynuować?"
+msgstr "Witaj w Asystencie Konfiguracji Original Prusa MINI Kontynuować?"
 
 #: src/gui/test/screen_test_msgbox.c:28
 msgid "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
-msgstr "Witaj w Asystencie Konfiguracji Original Prusa MINI. Czy chcesz kontynuować?"
+msgstr "Witaj w Asystencie Konfiguracji Original Prusa MINI. Kontynuować?"
 
 #: src/guiapi/include/MItem_tools.hpp:8
 msgid "Wizard"

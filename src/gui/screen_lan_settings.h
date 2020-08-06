@@ -5,13 +5,6 @@
  *      Author: Migi
  */
 
-#ifndef SRC_GUI_SCREEN_LAN_SETTINGS_H_
-#define SRC_GUI_SCREEN_LAN_SETTINGS_H_
+#pragma once
 
 #include "gui.hpp"
-
-#define plsd ((screen_lan_settings_data_t *)screen->pdata)
-
-extern screen_t screen_lan_settings;
-
-#endif /* SRC_GUI_SCREEN_LAN_SETTINGS_H_ */

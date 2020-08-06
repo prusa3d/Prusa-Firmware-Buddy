@@ -24,40 +24,27 @@ constexpr static const HelperConfig HelpLines_None = { 0, IDR_FNT_SPECIAL };
 constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
 
 //parent to not repeat code in templates
-class IScreenMenu : protected window_menu_t {
+class IScreenMenu : public window_menu_t {
 protected:
     constexpr static const char *no_labelS = "MISSING";
     static string_view_utf8 no_label;
-    window_frame_t root;
     window_header_t header;
     window_text_t help;
     status_footer_t footer;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 
 public:
-    IScreenMenu(string_view_utf8 label, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
-    void Done();
-    void Draw() {}
-    int Event(window_t *window, uint8_t event, void *param);
-
-    static void CDone(screen_t *screen) {
-        reinterpret_cast<IScreenMenu *>(screen->pdata)->Done();
-    }
-
-    static void CDraw(screen_t *screen) {
-        reinterpret_cast<IScreenMenu *>(screen->pdata)->Draw();
-    }
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-        return reinterpret_cast<IScreenMenu *>(screen->pdata)->Event(window, event, param);
-    }
+    IScreenMenu(window_t *parent, string_view_utf8 label, rect_ui16_t rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
 class ScreenMenu : public IScreenMenu {
 protected:
+    //std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(string_view_utf8 label);
+    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr, rect_ui16_t rect = GuiDefaults::RectScreenBody);
 
     //compiletime access by index
     template <std::size_t I>
@@ -69,17 +56,11 @@ public:
     decltype(auto) Item() {
         return std::get<TYPE>(container.menu_items);
     }
-
-    //C code binding
-    static void Create(screen_t *screen, string_view_utf8 label = no_label) {
-        auto *ths = reinterpret_cast<ScreenMenu<HEADER, FOOTER, HELP_CNF, T...> *>(screen->pdata);
-        ::new (ths) ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>(label);
-    }
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
-ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label)
-    : IScreenMenu(label, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
+ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label, window_t *parent, rect_ui16_t rect)
+    : IScreenMenu(parent, label, rect, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
     pContainer = &container;
     GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 }
