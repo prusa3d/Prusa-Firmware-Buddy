@@ -170,7 +170,7 @@ void general_error(const char *error, const char *module) {
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
 
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeRAM((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
@@ -244,7 +244,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::Clear(COLOR_RED_ALERT);
 
     // draw header
-    display::DrawText(rect_ui16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeRAM((const uint8_t *)error), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(rect_ui16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     // draw line
     display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
@@ -279,7 +279,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
 
-    /// use PNG RAM for QR code
+    /// use PNG RAM for QR code image
     uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
     uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
 
@@ -290,6 +290,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     /// draw short URL
     /// FIXME Currently the only one error code working
     error_url_short(qr_text, sizeof(qr_text), 12201);
+    // this MakeRAM is safe - qr_text is a local buffer on stack
     render_text_align(rect_ui16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
     //display::DrawText(rect_ui16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
