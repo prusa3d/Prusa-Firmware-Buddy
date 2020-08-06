@@ -2,7 +2,7 @@
 //Screen openning menu items
 #pragma once
 #include "WindowMenuItems.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 class MI_VERSION_INFO : public WI_LABEL_t {
     static constexpr const char *const label = N_("Version Info");

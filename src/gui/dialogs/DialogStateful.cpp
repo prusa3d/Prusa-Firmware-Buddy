@@ -1,6 +1,6 @@
 #include "DialogStateful.hpp"
 #include "guitypes.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "resource.h" //IDR_FNT_BIG
 
 static constexpr uint8_t PROGRESS_BAR_X_PAD = 10;

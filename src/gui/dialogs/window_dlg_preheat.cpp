@@ -9,7 +9,7 @@
 #include "marlin_client.h"
 #include "resource.h"
 #include "stdlib.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "window_frame.hpp"
 #include <limits>
 #include "MItem_tools.hpp"

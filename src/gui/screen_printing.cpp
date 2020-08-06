@@ -10,7 +10,7 @@
 #include "screen_menus.hpp"
 #include <ctime>
 #include "wui_api.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "../lang/format_print_will_end.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER

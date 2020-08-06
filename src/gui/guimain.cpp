@@ -23,7 +23,7 @@
 #include "screen_lan_settings.h"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 extern int HAL_IWDG_Reset;
 

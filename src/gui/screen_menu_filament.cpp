@@ -9,7 +9,7 @@
 #include "marlin_client.h"
 #include "window_dlg_load_unload.h"
 #include "dbg.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 
 /// Sets temperature of nozzle not to ooze before print (MBL)

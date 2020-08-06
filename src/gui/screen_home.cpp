@@ -14,7 +14,7 @@
 #include "ScreenFactory.hpp"
 #include "screen_menus.hpp"
 
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 const uint16_t icons[6] = {
     IDR_PNG_menu_icon_print,

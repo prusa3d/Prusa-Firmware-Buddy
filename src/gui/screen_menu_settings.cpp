@@ -16,7 +16,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
