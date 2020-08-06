@@ -10,7 +10,7 @@
 #include "print_utils.hpp"
 #include "ScreenHandler.hpp"
 #include "eeprom.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
