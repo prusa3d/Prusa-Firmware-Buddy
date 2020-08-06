@@ -2,6 +2,7 @@
 #if 0
     #include <stdio.h>
     #include <string.h>
+    #include <algorithm>
 
     #include "firstlay.h"
     #include "dbg.h"
@@ -16,7 +17,6 @@
     #include "menu_vars.h"
     #include "filament.h"
     #include "i18n.h"
-    #include <algorithm>
 
     #define V__GCODES_HEAD_BEGIN                 \
         "M107",    /*fan off */                  \

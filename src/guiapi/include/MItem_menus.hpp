@@ -64,26 +64,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override {}
 };
 
-class MI_QR_test : public WI_LABEL_t {
-    static constexpr const char *const label = N_("QR test");
-
-public:
-    MI_QR_test();
-
-protected:
-    virtual void click(IWindowMenu &window_menu);
-};
-
-class MI_QR_info : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Send Info by QR");
-
-public:
-    MI_QR_info();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_TEMPERATURE : public WI_LABEL_t {
     static constexpr const char *const label = N_("Temperature");
 

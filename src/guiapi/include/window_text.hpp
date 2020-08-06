@@ -9,7 +9,7 @@ struct window_text_t : public window_t {
     font_t *font;
     string_view_utf8 text;
     padding_ui8_t padding;
-    uint8_t alignment;
+    uint8_t alignment; /// alignment constants are in guitypes.h
 
     string_view_utf8 GetText() const { return text; }
     void SetText(string_view_utf8 txt);
