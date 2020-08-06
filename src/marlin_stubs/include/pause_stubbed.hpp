@@ -32,10 +32,10 @@ public:
     static constexpr const float minimal_purge = 1;
     static Pause &GetInstance();
 
-    void SetUnloadLenght(float len);
-    void SetSlowLoadLenght(float len);
-    void SetFastLoadLenght(float len);
-    void SetPurgeLenght(float len);
+    void SetUnloadLength(float len);
+    void SetSlowLoadLength(float len);
+    void SetFastLoadLength(float len);
+    void SetPurgeLength(float len);
     float GetDefaultLoadLength() const;
     float GetDefaultUnloadLength() const;
     bool FilamentUnload();

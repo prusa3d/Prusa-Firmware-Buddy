@@ -97,18 +97,18 @@ void GcodeSuite::M600() {
 #endif
 
     // Unload filament
-    pause.SetUnloadLenght(parser.seen('U') ? parser.value_axis_units(E_AXIS)
+    pause.SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS)
                                            : pause.GetDefaultUnloadLength());
 
     // Slow load filament
-    pause.SetSlowLoadLenght(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
+    pause.SetSlowLoadLength(FILAMENT_CHANGE_SLOW_LOAD_LENGTH);
 
     // Fast load filament
-    pause.SetFastLoadLenght(parser.seen('L') ? parser.value_axis_units(E_AXIS)
+    pause.SetFastLoadLength(parser.seen('L') ? parser.value_axis_units(E_AXIS)
                                              : pause.GetDefaultLoadLength());
 
     // Purge filament
-    pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
+    pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
 
     float disp_temp = marlin_server_get_temp_to_display();
     float targ_temp = Temperature::degTargetHotend(target_extruder);

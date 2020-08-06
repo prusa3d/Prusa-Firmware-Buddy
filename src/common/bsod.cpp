@@ -180,7 +180,7 @@ void general_error(const char *error, const char *module) {
     //questionable placement - where now, in almost every BSOD timers are
     //stopped and Sound class cannot update itself for timing sound signals.
     //GUI is in the middle of refactoring and should be showned after restart
-    //when timers and everything else is running again (info by - Rober/Radek)
+    //when timers and everything else is running again (info by - Robert/Radek)
     Sound_Play(eSOUND_TYPE_CriticalAlert);
 
     //cannot use jogwheel_signals  (disabled interrupt)

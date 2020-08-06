@@ -661,7 +661,7 @@ static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLI
 }
 
 // send event notification to client - multiple events (called from server thread)
-// returns mask of succesfull sent events
+// returns mask of successfully sent events
 static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
     if (evt_msk == 0)
         return 0;
