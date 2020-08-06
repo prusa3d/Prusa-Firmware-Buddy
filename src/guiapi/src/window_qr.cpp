@@ -85,16 +85,17 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
 
 /// QR Window
 
-// window_qr_t::window_qr_t(window_t *parent, rect_ui16_t rect)
-//     : window_t(parent, rect)
-//     , version(9)
-//     , ecc_level(qrcodegen_Ecc_HIGH)
-//     , mode(qrcodegen_Mode_ALPHANUMERIC)
-//     , border(4)
-//     , px_per_module(3)
-//     , bg_color(COLOR_WHITE)
-//     , px_color(COLOR_BLACK) {
-// }
+window_qr_t::window_qr_t(window_t *parent, rect_ui16_t rect)
+    : window_t(parent, rect)
+// , version(9)
+// , ecc_level(qrcodegen_Ecc_HIGH)
+// , mode(qrcodegen_Mode_ALPHANUMERIC)
+// , border(4)
+// , px_per_module(3)
+// , bg_color(COLOR_WHITE)
+//    , px_color(COLOR_BLACK)
+{
+}
 
 /// window definition
 // const window_class_qr_t window_class_qr = {
