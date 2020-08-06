@@ -108,7 +108,6 @@ void screen_printing_data_t::stopAction() {
             stop_pressed = true;
             waiting_for_abort = true;
             change_print_state();
-            marlin_print_abort();
         } else
             return;
     }
@@ -234,10 +233,10 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
 
     /// check stop clicked when MBL is running
     printing_state_t p_state = GetState();
-    if (pw->stop_pressed && pw->waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && p_state == printing_state_t::ABORTING) {
+    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && p_state == printing_state_t::ABORTING) {
         marlin_print_abort();
-        pw->waiting_for_abort = false;
-        return 0;
+        waiting_for_abort = false;
+        return;
     }
 
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
