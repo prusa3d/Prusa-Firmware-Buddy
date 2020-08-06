@@ -55,16 +55,6 @@ MI_SUPPORT_disabled::MI_SUPPORT_disabled()
 }
 
 /*****************************************************************************/
-//MI_QR_test
-MI_QR_test::MI_QR_test()
-    : WI_LABEL_t(label, 0, true, false) {
-}
-
-void MI_QR_test::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<screen_qr_error_data_t>);
-}
-
-/*****************************************************************************/
 //MI_TEMPERATURE
 MI_TEMPERATURE::MI_TEMPERATURE()
     : WI_LABEL_t(label, 0, true, false) {
