@@ -10,7 +10,7 @@
 #include "screen_menus.hpp"
 #include <ctime>
 #include "wui_api.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "../lang/format_print_will_end.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -219,7 +219,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         _last = HAL_GetTick();
 
         static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
-        buff[1] = fs_get_state() + '0';                              // S0 init, S1 has filament, S2 nofilament, S3 not connected, S4 disabled
+        buff[1] = fs_get_state() + '0';                              // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
         buff[4] = fs_get_send_M600_on();                             // Me edge, Ml level, Mn never, Mx undefined
         buff[6] = fs_was_M600_send() ? 's' : 'n';                    // s == send, n== not send
         buff[8] = _is_in_M600_flg ? 'M' : '0';                       // M == marlin is doing M600
@@ -344,7 +344,7 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     }
 
     static const uint32_t full_day_in_seconds = 86400;
-    time_t print_end_sec, tommorow_sec;
+    time_t print_end_sec, tomorrow_sec;
 
     if (print_speed != 100)
         // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
@@ -352,19 +352,19 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     else
         print_end_sec = now_sec + marlin_vars()->time_to_end;
 
-    tommorow_sec = now_sec + full_day_in_seconds;
+    tomorrow_sec = now_sec + full_day_in_seconds;
 
-    struct tm tommorow, print_end, now;
+    struct tm tomorrow, print_end, now;
     localtime_r(&now_sec, &now);
-    localtime_r(&tommorow_sec, &tommorow);
+    localtime_r(&tomorrow_sec, &tomorrow);
     localtime_r(&print_end_sec, &print_end);
 
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
         //strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
         FormatMsgPrintWillEnd::Today(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
-    } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
-        tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
+    } else if (tomorrow.tm_mday == print_end.tm_mday && // if print end is tomorrow
+        tomorrow.tm_mon == print_end.tm_mon && tomorrow.tm_year == print_end.tm_year) {
         //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
         FormatMsgPrintWillEnd::DayOfWeek(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
     } else {

@@ -2,7 +2,7 @@
 
 #include "screen_test_msgbox.hpp"
 #include "config.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "window_msgbox.hpp"
 
