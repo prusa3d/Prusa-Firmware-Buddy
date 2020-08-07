@@ -228,7 +228,7 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
     render_text(rc_txt, text, font, clr_bg, clr_fg);
 }
 
-void render_icon_align(const rect_ui16_t &rc, uint16_t id_res, color_t clr_bg, uint16_t flags) {
+void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr_bg, uint16_t flags) {
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
