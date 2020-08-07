@@ -53,7 +53,7 @@ void GcodeSuite::M25() {
 // M26 - Set SD position
 void GcodeSuite::M26() {
     if ((media_get_state() == media_state_INSERTED) && parser.seenval('S'))
-        media_print_set_position(parser.value_long());
+        media_print_set_position(parser.value_ulong());
 }
 
 // M27 - Report SD print status
