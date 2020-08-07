@@ -6,7 +6,7 @@
 #include "assert.h"
 #include "filament.h"
 #include <cstring>
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 //fixme generating long names, takes too long
 const filament_t filaments[FILAMENTS_END] = {
@@ -24,6 +24,7 @@ const filament_t filaments[FILAMENTS_END] = {
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == FILAMENTS_END, "Filament count error.");
 
 static FILAMENT_t filament_selected = FILAMENTS_END;
+static FILAMENT_t filament_last_preheat = FILAMENT_NONE;
 
 extern "C" {
 
@@ -47,6 +48,14 @@ FILAMENT_t get_filament() {
         filament_selected = (FILAMENT_t)fil;
     }
     return filament_selected;
+}
+
+FILAMENT_t get_last_preheated_filament() {
+    return filament_last_preheat;
+}
+
+void set_last_preheated_filament(FILAMENT_t filament) {
+    filament_last_preheat = filament;
 }
 
 FILAMENT_t get_filament_from_string(const char *s, size_t len) {

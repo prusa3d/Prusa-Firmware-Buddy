@@ -1,5 +1,5 @@
 #include "DialogFactory.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
@@ -13,28 +13,29 @@ static_unique_ptr<IDialogStateful> DialogFactory::load_unload(uint8_t data) {
     static const char *unload = N_("UNLOAD FILAMENT");
     static const char *purge = N_("PURGE FILAMENT");
     static const char *def = "INDEX ERROR"; // intentionally not translated
-    const char *name;
+    string_view_utf8 name;
     switch (static_cast<LoadUnloadMode>(data)) {
     case LoadUnloadMode::Change:
-        name = change;
+        name = string_view_utf8::MakeCPUFLASH((const uint8_t *)change);
         break;
     case LoadUnloadMode::Load:
-        name = load;
+        name = string_view_utf8::MakeCPUFLASH((const uint8_t *)load);
         break;
     case LoadUnloadMode::Unload:
-        name = unload;
+        name = string_view_utf8::MakeCPUFLASH((const uint8_t *)unload);
         break;
     case LoadUnloadMode::Purge:
-        name = purge;
+        name = string_view_utf8::MakeCPUFLASH((const uint8_t *)purge);
         break;
     default:
-        name = def;
+        name = string_view_utf8::MakeCPUFLASH((const uint8_t *)def);
     }
     return make_static_unique_ptr<DialogLoadUnload>(&all_dialogs, name);
 }
 
 static_unique_ptr<IDialogStateful> DialogFactory::G162(uint8_t data) {
-    static const char *name = N_("HOME TO MAX");
+    static const char *nm = N_("HOME TO MAX");
+    string_view_utf8 name = string_view_utf8::MakeCPUFLASH((const uint8_t *)nm);
     return make_static_unique_ptr<DialogG162>(&all_dialogs, name);
 }
 

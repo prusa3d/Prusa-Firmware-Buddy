@@ -7,7 +7,9 @@
 // uint8_t SOUND_INIT;
 
 eSOUND_MODE Sound_GetMode();
+int Sound_GetVolume();
 void Sound_SetMode(eSOUND_MODE eSMode);
+void Sound_SetVolume(int volume);
 void Sound_Play(eSOUND_TYPE eSoundType);
 void Sound_Stop();
 void Sound_Update1ms();
@@ -28,7 +30,11 @@ public:
     Sound &operator=(const Sound &) = delete;
 
     eSOUND_MODE getMode() const;
+    int getVolume();
+
     void setMode(eSOUND_MODE eSMode);
+    void setVolume(int vol);
+
     void play(eSOUND_TYPE eSoundType);
     void stop();
     void update1ms();
@@ -40,6 +46,7 @@ private:
     /// main fnc
     void init();
     void saveMode();
+    void saveVolume();
     void _sound(int rep, float frq, uint32_t dur, float vol);
     void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], unsigned size);
 
@@ -50,6 +57,7 @@ private:
     int repeat;         ///< how many times is sound played
     float frequency;    ///< frequency of sound signal (0-1000)
     float volume;       ///< volume of sound signal (0-1)
+    float varVolume;    ///< variable volume set from user (0-10)
     uint32_t _delay;    ///< live variable used for delay measure
     uint32_t delay;     ///< added variable for delay betwen beeps
 

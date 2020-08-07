@@ -1,18 +1,21 @@
 [submodule "TMCStepper"]
 	path = lib/TMCStepper
-	url = ../../prusa3d/TMCStepper.git
+	url = https://github.com/prusa3d/TMCStepper.git
 [submodule "Marlin"]
 	path = lib/Marlin
-	url = ../../prusa3d/Marlin.git
+	url = https://github.com/prusa3d/Marlin.git
 [submodule "inih"]
 	path = lib/inih
-	url = ../../benhoyt/inih.git
+	url = https://github.com/benhoyt/inih.git
 [submodule "LwIP"]
 	path = lib/Middlewares/Third_Party/LwIP
-	url = ../../prusa3d/LwIP_212.git
+	url = https://github.com/prusa3d/LwIP_212.git
 [submodule "lib/jsmn"]
 	path = lib/jsmn
-	url = ../../zserge/jsmn.git
+	url = https://github.com/zserge/jsmn.git
 [submodule "lib/Catch2"]
 	path = lib/Catch2
-	url = ../../catchorg/Catch2.git
+	url = https://github.com/catchorg/Catch2.git
+[submodule "lib/Prusa-Error-Codes"]
+	path = lib/Prusa-Error-Codes
+	url = https://github.com/prusa3d/Prusa-Error-Codes.git

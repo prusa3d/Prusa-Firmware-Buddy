@@ -142,7 +142,7 @@
     #endif
     // this adds an experimental additional term to the heating power, regulation constants are hard coded for PRUSA MINI printer
     // there is no sense to enable it for any else printer
-    #define FEED_FORWARD_HOTEND_REGULATOR
+    #define MODEL_BASED_HOTEND_REGULATOR
 #endif
 
 /**
@@ -1318,6 +1318,18 @@
  */
 #define ADVANCED_PAUSE_FEATURE
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #define FILAMENT_UNLOAD_RAMMING_SEQUENCE \
+        { \
+            { 1, 100 }, \
+            { 1, 300 }, \
+            { 3, 800 }, \
+            { 2, 1200 }, \
+            { 2, 2200 }, \
+            { 2, 2600 }, \
+            { -2, 2200 }, \
+            { -20, 3000 }, \
+            { -30, 4000 }, \
+        }
     #define PAUSE_PARK_RETRACT_FEEDRATE 66 // (mm/s) Initial retract feedrate.
     #define PAUSE_PARK_RETRACT_LENGTH 2 // (mm) Initial retract.
 // This short retract is done immediately, before parking the nozzle.

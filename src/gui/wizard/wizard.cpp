@@ -5,7 +5,6 @@
 #include "dbg.h"
 #include "config.h"
 #include "screen_wizard.h"
-#include "screens.h"
 
 extern uint64_t wizard_mask;
 
@@ -48,7 +47,7 @@ const char *wizard_caption[] = {
 
 void wizard_run_mask(uint64_t mask) {
     wizard_mask = mask;
-    screen_open(get_scr_wizard()->id);
+    //screen_open(get_scr_wizard()->id);
 }
 
 void wizard_run_complete(void) {
@@ -85,4 +84,14 @@ void wizard_run_firstlay(void) {
     //	wizard_run_mask(_STATE_MASK_FIRSTLAY);
     uint64_t mask = (_STATE_MASK(_STATE_FIRSTLAY_INIT) | _STATE_MASK(_STATE_FIRSTLAY_LOAD) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_CALIB) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_START_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_REPEAT_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_FAIL) | _STATE_MASK(_STATE_LAST));
     wizard_run_mask(mask);
+}
+
+void wizard_stack_push_complete(void) {
+    wizard_mask = _STATE_MASK_WIZARD;
+    //screen_stack_push(get_scr_wizard()->id);
+}
+
+void wizard_stack_push_firstlay(void) {
+    wizard_mask = (_STATE_MASK(_STATE_FIRSTLAY_INIT) | _STATE_MASK(_STATE_FIRSTLAY_LOAD) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_CALIB) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_START_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_REPEAT_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_FAIL) | _STATE_MASK(_STATE_LAST));
+    //screen_stack_push(get_scr_wizard()->id);
 }

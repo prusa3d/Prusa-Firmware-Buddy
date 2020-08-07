@@ -1,7 +1,6 @@
 //screen.h
 #pragma once
 #include "stdint.h"
-#include "screen.h" //screen.t
 
 typedef enum {
     scrn_close_on_timeout,

@@ -1,40 +1,15 @@
 #include "DialogLoadUnload.hpp"
-#include "DialogLoadUnload.h"
-#include "gui.hpp"    //resource_font
-#include "resource.h" //IDR_FNT_BIG
+#include "gui.hpp" //resource_font
 #include "sound.hpp"
-#include "../lang/i18n.h"
-
-int16_t WINDOW_CLS_DLG_LOADUNLOAD = 0;
-
-//all buttons share same Window, thus it must be static
-static const RadioButton::Window radio_win = { resource_font(IDR_FNT_BIG), gui_defaults.color_back, IDialogStateful::get_radio_button_size() };
-
-//shorter creation of single state
-inline RadioButton btn(PhasesLoadUnload phase, const PhaseTexts &texts) {
-    return RadioButton(radio_win, ClientResponses::GetResponses(phase), texts);
-}
+#include "i18n.h"
+#include "dialog_response.hpp"
 
 /*****************************************************************************/
 // clang-format off
-//todo move button texts
-static const char *txt_none   = "";
-static const char *txt_stop   = N_("STOP");
-static const char *txt_cont   = N_("CONTINUE");
-static const char *txt_disa   = N_("DISABLE SENSOR");
-static const char *txt_yes    = N_("YES");
-static const char *txt_no     = N_("NO");
-static const char *txt_reheat = N_("REHEAT");
-static const char *txt_retry  = N_("RETRY");
-
-static const PhaseTexts ph_txt_stop          = { txt_stop,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_cont          = { txt_cont,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_reheat        = { txt_reheat, txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_disa          = { txt_disa,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_none          = { txt_none,   txt_none, txt_none,  txt_none };
-static const PhaseTexts ph_txt_yesno         = { txt_yes,    txt_no,   txt_none,  txt_none };
-static const PhaseTexts ph_txt_iscolor       = { txt_yes,    txt_no,   txt_retry, txt_none };
-static const PhaseTexts ph_txt_iscolor_purge = { txt_yes,    txt_no,   txt_none,  txt_none };
+static const PhaseTexts ph_txt_reheat        = { BtnTexts::Get(Response::Reheat),           BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_disa          = { BtnTexts::Get(Response::Filament_removed), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_iscolor       = { BtnTexts::Get(Response::Yes),              BtnTexts::Get(Response::No),    BtnTexts::Get(Response::Retry), BtnTexts::Get(Response::_none) };
+static const PhaseTexts ph_txt_iscolor_purge = { BtnTexts::Get(Response::Yes),              BtnTexts::Get(Response::No),    BtnTexts::Get(Response::_none), BtnTexts::Get(Response::_none) };
 
 static const char *txt_first              = N_("Finishing         \nbuffered gcodes.  \n");
 static const char *txt_parking            = N_("Parking");
@@ -55,44 +30,33 @@ static const char *txt_nozzle_cold        = N_("Nozzle is too cold.");
 
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {
-        DialogLoadUnload::State { txt_first,              btn(PhasesLoadUnload::_first,           ph_txt_none) },
-        DialogLoadUnload::State { txt_parking,            btn(PhasesLoadUnload::Parking,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_wait_temp,          btn(PhasesLoadUnload::WaitingTemp,      ph_txt_stop) },
-        DialogLoadUnload::State { txt_prep_ram,           btn(PhasesLoadUnload::PreparingToRam,   ph_txt_stop) },
-        DialogLoadUnload::State { txt_ram,                btn(PhasesLoadUnload::Ramming,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::Unloading,        ph_txt_stop) },
-        DialogLoadUnload::State { txt_unload,             btn(PhasesLoadUnload::RemoveFilament,   ph_txt_stop) },
-        DialogLoadUnload::State { txt_push_fil,           btn(PhasesLoadUnload::UserPush,         ph_txt_cont), DialogLoadUnload::phaseAlertSound },
-        DialogLoadUnload::State { txt_nozzle_cold,        btn(PhasesLoadUnload::NozzleTimeout,    ph_txt_reheat) },
-        DialogLoadUnload::State { txt_make_sure_inserted, btn(PhasesLoadUnload::MakeSureInserted, ph_txt_cont), DialogLoadUnload::phaseAlertSound },
-        DialogLoadUnload::State { txt_inserting,          btn(PhasesLoadUnload::Inserting,        ph_txt_stop) },
-        DialogLoadUnload::State { txt_is_filament_in_gear,btn(PhasesLoadUnload::IsFilamentInGear, ph_txt_yesno) },
-        DialogLoadUnload::State { txt_ejecting,           btn(PhasesLoadUnload::Ejecting,         ph_txt_none) },
-        DialogLoadUnload::State { txt_loading,            btn(PhasesLoadUnload::Loading,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_purging,            btn(PhasesLoadUnload::Purging,          ph_txt_stop) },
-        DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColor,          ph_txt_iscolor), DialogLoadUnload::phaseAlertSound },
-        DialogLoadUnload::State { txt_is_color,           btn(PhasesLoadUnload::IsColorPurge,     ph_txt_iscolor_purge), DialogLoadUnload::phaseAlertSound },
-        DialogLoadUnload::State { txt_unparking,          btn(PhasesLoadUnload::Unparking,        ph_txt_stop) },
+        DialogLoadUnload::State { txt_first,              ClientResponses::GetResponses(PhasesLoadUnload::_first),           ph_txt_none },
+        DialogLoadUnload::State { txt_parking,            ClientResponses::GetResponses(PhasesLoadUnload::Parking),          ph_txt_stop },
+        DialogLoadUnload::State { txt_wait_temp,          ClientResponses::GetResponses(PhasesLoadUnload::WaitingTemp),      ph_txt_stop },
+        DialogLoadUnload::State { txt_prep_ram,           ClientResponses::GetResponses(PhasesLoadUnload::PreparingToRam),   ph_txt_stop },
+        DialogLoadUnload::State { txt_ram,                ClientResponses::GetResponses(PhasesLoadUnload::Ramming),          ph_txt_stop },
+        DialogLoadUnload::State { txt_unload,             ClientResponses::GetResponses(PhasesLoadUnload::Unloading),        ph_txt_stop },
+        DialogLoadUnload::State { txt_unload,             ClientResponses::GetResponses(PhasesLoadUnload::RemoveFilament),   ph_txt_stop },
+        DialogLoadUnload::State { txt_push_fil,           ClientResponses::GetResponses(PhasesLoadUnload::UserPush),         ph_txt_continue, DialogLoadUnload::phaseAlertSound },
+        DialogLoadUnload::State { txt_nozzle_cold,        ClientResponses::GetResponses(PhasesLoadUnload::NozzleTimeout),    ph_txt_reheat },
+        DialogLoadUnload::State { txt_make_sure_inserted, ClientResponses::GetResponses(PhasesLoadUnload::MakeSureInserted), ph_txt_continue, DialogLoadUnload::phaseAlertSound },
+        DialogLoadUnload::State { txt_inserting,          ClientResponses::GetResponses(PhasesLoadUnload::Inserting),        ph_txt_stop },
+        DialogLoadUnload::State { txt_is_filament_in_gear,ClientResponses::GetResponses(PhasesLoadUnload::IsFilamentInGear), ph_txt_yesno },
+        DialogLoadUnload::State { txt_ejecting,           ClientResponses::GetResponses(PhasesLoadUnload::Ejecting),         ph_txt_none },
+        DialogLoadUnload::State { txt_loading,            ClientResponses::GetResponses(PhasesLoadUnload::Loading),          ph_txt_stop },
+        DialogLoadUnload::State { txt_purging,            ClientResponses::GetResponses(PhasesLoadUnload::Purging),          ph_txt_stop },
+        DialogLoadUnload::State { txt_is_color,           ClientResponses::GetResponses(PhasesLoadUnload::IsColor),          ph_txt_iscolor, DialogLoadUnload::phaseAlertSound },
+        DialogLoadUnload::State { txt_is_color,           ClientResponses::GetResponses(PhasesLoadUnload::IsColorPurge),     ph_txt_iscolor_purge, DialogLoadUnload::phaseAlertSound },
+        DialogLoadUnload::State { txt_unparking,          ClientResponses::GetResponses(PhasesLoadUnload::Unparking),        ph_txt_stop },
     };
     return ret;
 }
 // clang-format on
 /*****************************************************************************/
 
-DialogLoadUnload::DialogLoadUnload(const char *name)
-    : DialogStateful<PhasesLoadUnload>(name, WINDOW_CLS_DLG_LOADUNLOAD, LoadUnloadFactory()) {}
+DialogLoadUnload::DialogLoadUnload(string_view_utf8 name)
+    : DialogStateful<PhasesLoadUnload>(name, LoadUnloadFactory()) {}
 
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
 void DialogLoadUnload::phaseAlertSound() { Sound_Play(eSOUND_TYPE_SingleBeep); }
-
-const window_class_dlg_statemachine_t window_class_dlg_statemachine = {
-    {
-        WINDOW_CLS_USER,
-        sizeof(DialogLoadUnload),
-        nullptr,
-        nullptr,
-        (window_draw_t *)DialogLoadUnload::c_draw,
-        (window_event_t *)DialogLoadUnload::c_event,
-    },
-};

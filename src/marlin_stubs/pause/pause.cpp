@@ -95,19 +95,19 @@ Pause &Pause::GetInstance() {
     return s;
 }
 
-void Pause::SetUnloadLenght(float len) {
+void Pause::SetUnloadLength(float len) {
     unload_length = -std::abs(len); // it is negative value
 }
 
-void Pause::SetSlowLoadLenght(float len) {
+void Pause::SetSlowLoadLength(float len) {
     slow_load_length = std::abs(len);
 }
 
-void Pause::SetFastLoadLenght(float len) {
+void Pause::SetFastLoadLength(float len) {
     fast_load_length = std::abs(len);
 }
 
-void Pause::SetPurgeLenght(float len) {
+void Pause::SetPurgeLength(float len) {
     purge_length = std::max(std::abs(len), (float)minimal_purge);
 }
 
@@ -318,30 +318,23 @@ bool Pause::FilamentUnload() {
     thermalManager.setExtrusionScalingEnabled(false);
 #endif //ENABLED(PID_EXTRUSION_SCALING)
 
-    static const RamUnloadSeqItem ramUnloadSeq[] = {
-        { 1, 100 },
-        { 1, 300 },
-        { 3, 800 },
-        { 2, 1200 },
-        { 2, 2200 },
-        { 2, 2600 }, // end of ramming
-        { -2, 2200 },
-        { -20, 3000 },
-        { -30, 4000 }, // end of pre-unload
-    };
+    static const RamUnloadSeqItem ramUnloadSeq[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
+    decltype(RamUnloadSeqItem::e) ramUnloadLength = 0; //Sum of ramming distances starting from first retraction
 
     constexpr float mm_per_minute = 1 / 60.f;
-    constexpr size_t preUnloadBeginPos = 6;
     constexpr size_t ramUnloadSeqSize = sizeof(ramUnloadSeq) / sizeof(RamUnloadSeqItem);
 
     //cannot draw progress in plan_e_move, so just change phase to ramming
     fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::Ramming, 50, 0);
-    for (size_t i = 0; i < preUnloadBeginPos; ++i) {
-        plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
-    }
-
-    for (size_t i = preUnloadBeginPos; i < ramUnloadSeqSize; ++i) {
-        plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute); //cannot draw progress in plan_e_move
+    {
+        bool counting = false;
+        for (size_t i = 0; i < ramUnloadSeqSize; ++i) {
+            plan_e_move(ramUnloadSeq[i].e, ramUnloadSeq[i].feedrate * mm_per_minute);
+            if (ramUnloadSeq[i].e < 0)
+                counting = true;
+            if (counting)
+                ramUnloadLength += ramUnloadSeq[i].e;
+        }
     }
 
     // Unload filament
@@ -350,8 +343,8 @@ bool Pause::FilamentUnload() {
 
     planner.synchronize(); //do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
 
-    // subtract the already performed extruder movement (-30mm) from the total unload length
-    do_e_move_notify_progress((unload_length + ramUnloadSeq[ramUnloadSeqSize - 1].e), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), PhasesLoadUnload::Unloading, 51, 99);
+    // subtract the already performed extruder movement from the total unload length
+    do_e_move_notify_progress((unload_length - ramUnloadLength), (FILAMENT_CHANGE_UNLOAD_FEEDRATE), PhasesLoadUnload::Unloading, 51, 99);
 
     planner.settings.retract_acceleration = saved_acceleration;
 

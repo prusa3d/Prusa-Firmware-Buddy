@@ -6,15 +6,14 @@
  */
 //todo THIS SHOULD NOT BE MENU!!!
 #include "gui.hpp"
-#include "config.h"
+#include "screen_menus.hpp"
 #include "screen_menu.hpp"
+#include "config.h"
 #include <stdlib.h>
 #include "version.h"
 #include "resource.h"
-#include "screens.h"
-#include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 
 #define OTP_START_ADDR  0x1FFF7800
@@ -23,23 +22,19 @@
 #define VERSION_INFO_STR_MAXLEN 150
 
 constexpr static const HelperConfig HelpCfg = { 10, IDR_FNT_NORMAL };
-using parent = ScreenMenu<EHeader::On, EFooter::On, HelpCfg, MI_RETURN>;
+using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpCfg, MI_RETURN>;
 
-class ScreenMenuVersionInfo : public parent {
+class ScreenMenuVersionInfo : public Screen {
 public:
     std::array<char, VERSION_INFO_STR_MAXLEN> version_info_str;
     constexpr static const char *label = N_("VERSION INFO");
-    static void Init(screen_t *screen);
+    ScreenMenuVersionInfo();
 };
 
-/*****************************************************************************/
-//static member method definition
-void ScreenMenuVersionInfo::Init(screen_t *screen) {
+ScreenMenuVersionInfo::ScreenMenuVersionInfo()
+    : Screen(_(label)) {
     //=============SCREEN INIT===============
-    Create(screen, _(label));
-    ScreenMenuVersionInfo *const ths = reinterpret_cast<ScreenMenuVersionInfo *>(screen->pdata);
-
-    p_window_header_set_icon(&(ths->header), IDR_PNG_header_icon_info);
+    header.SetIcon(IDR_PNG_header_icon_info);
 
     //=============VARIABLES=================
 
@@ -57,9 +52,15 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     serial_numbers[14] = '\0';
 
     //=============SET TEXT================
-    auto begin = ths->version_info_str.begin();
-    auto end = ths->version_info_str.end();
-    begin += snprintf(begin, end - begin, N_("Firmware Version\n")); // @@TODO streaming
+    auto begin = version_info_str.begin();
+    auto end = version_info_str.end();
+    {
+        // r=1 c=20
+        static const char fmt2Translate[] = N_("Firmware Version\n");
+        char fmt[21];
+        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+        begin += snprintf(begin, end - begin, fmt);
+    }
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
@@ -76,26 +77,21 @@ void ScreenMenuVersionInfo::Init(screen_t *screen) {
     }
 
     if (end > begin) {
+        // c=20 r=4
+        static const char fmt2Translate[] = N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s");
+        char fmt[20 * 4];
+        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
         begin += snprintf(begin, end - begin,
-            N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s"), //@@TODO streaming
+            fmt,
             bootloader->major, bootloader->minor, bootloader->patch,
             board_version[0], board_version[1], board_version[2],
             serial_numbers);
     }
 
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of ths
-    ths->help.SetText(string_view_utf8::MakeRAM((const uint8_t *)ths->version_info_str.data()));
+    help.SetText(string_view_utf8::MakeRAM((const uint8_t *)version_info_str.data()));
 }
 
-screen_t screen_version_info = {
-    0,
-    0,
-    ScreenMenuVersionInfo::Init,
-    ScreenMenuVersionInfo::CDone,
-    ScreenMenuVersionInfo::CDraw,
-    ScreenMenuVersionInfo::CEvent,
-    sizeof(ScreenMenuVersionInfo), //data_size
-    nullptr,                       //pdata
-};
-
-screen_t *const get_scr_version_info() { return &screen_version_info; }
+ScreenFactory::UniquePtr GetScreenMenuVersionInfo() {
+    return ScreenFactory::Screen<ScreenMenuVersionInfo>();
+}

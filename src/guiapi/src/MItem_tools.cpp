@@ -8,9 +8,11 @@
 #include "sys.h"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_calib_z.hpp"
+#include "window_file_list.hpp"
 #include "sound.hpp"
 #include "wui_api.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
+#include "ScreenHandler.hpp"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -20,16 +22,6 @@ MI_WIZARD::MI_WIZARD()
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
     wizard_run_complete();
-}
-
-/*****************************************************************************/
-//workaroudn for MI_AUTO_HOME and MI_MESH_BED todo remove
-int8_t gui_marlin_G28_or_G29_in_progress() {
-    uint32_t cmd = marlin_command();
-    if ((cmd == MARLIN_CMD_G28) || (cmd == MARLIN_CMD_G29))
-        return -1;
-    else
-        return 0;
 }
 
 /*****************************************************************************/
@@ -43,7 +35,7 @@ void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
     marlin_gcode("G28");
     while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
         marlin_client_loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/
@@ -58,13 +50,13 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
         marlin_gcode("G28");
         while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
             marlin_client_loop();
-        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
+        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
     }
     marlin_event_clr(MARLIN_EVT_CommandBegin);
     marlin_gcode("G29");
     while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
         marlin_client_loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, DLG_W8_DRAW_FRAME | DLG_W8_DRAW_HOURGLASS);
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/
@@ -104,9 +96,9 @@ MI_FACTORY_DEFAULTS::MI_FACTORY_DEFAULTS()
 }
 
 void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
-    if (gui_msgbox(_("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"), MSGBOX_BTN_YESNO | MSGBOX_ICO_WARNING | MSGBOX_DEF_BUTTON1) == MSGBOX_RES_YES) {
+    if (MsgBoxWarning(_("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
         eeprom_defaults();
-        gui_msgbox(_("Factory defaults loaded. The system will now restart."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        MsgBoxInfo(_("Factory defaults loaded. The system will now restart."), Responses_Ok);
         sys_reset();
     }
 }
@@ -119,9 +111,9 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
     if (dump_save_to_usb("dump.bin"))
-        gui_msgbox(_("A crash dump report (file dump.bin) has been saved to the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
-        gui_msgbox(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
 }
 
 /*****************************************************************************/
@@ -271,9 +263,38 @@ MI_SOUND_TYPE::MI_SOUND_TYPE()
     : WI_SWITCH_t<8>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
     if (old_index == eSOUND_TYPE_StandardPrompt || old_index == eSOUND_TYPE_CriticalAlert) {
-        gui_msgbox_prompt(_("Continual beeps test\n press button to stop"), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        Sound_Play(eSOUND_TYPE_StandardPrompt);
+        MsgBoxInfo(_("Continual beeps test\n press button to stop"), Responses_Ok);
     } else {
         Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+    }
+}
+
+/*****************************************************************************/
+//MI_SOUND_VOLUME
+constexpr static const std::array<uint8_t, 3> volume_range = { { 0, 10, 1 } };
+MI_SOUND_VOLUME::MI_SOUND_VOLUME()
+    : WI_SPIN_U08_t(static_cast<uint8_t>(Sound_GetVolume()), volume_range.data(), label, 0, true, false) {}
+/* void MI_SOUND_VOLUME::Change(int dif) { */
+/* int v = value - dif; */
+/* Sound_SetVolume(value); */
+/* } */
+void MI_SOUND_VOLUME::OnClick() {
+    Sound_SetVolume(value);
+}
+
+/*****************************************************************************/
+//MI_SORT_FILES
+
+MI_SORT_FILES::MI_SORT_FILES()
+    : WI_SWITCH_t<2>(eeprom_get_var(EEVAR_FILE_SORT).ui8, label, 0, true, false, str_time, str_name) {}
+void MI_SORT_FILES::OnChange(size_t old_index) {
+    if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
+        eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_NAME));
+        screen_filebrowser_sort = WF_SORT_BY_NAME;
+    } else if (old_index == WF_SORT_BY_NAME) { // was sorted by name, set by time
+        eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_TIME));
+        screen_filebrowser_sort = WF_SORT_BY_TIME;
     }
 }
 
@@ -290,4 +311,20 @@ void MI_TIMEZONE::OnClick() {
     if ((seconds = sntp_get_system_time())) {
         sntp_set_system_time(seconds, last_timezone);
     }
+}
+
+/*****************************************************************************/
+//I_MI_Filament
+void I_MI_Filament::click_at(FILAMENT_t filament_index) {
+    const filament_t filament = filaments[filament_index];
+    marlin_gcode("M86 S1800"); // enable safety timer
+    /// don't use preheat temp for cooldown
+    if (PREHEAT_TEMP >= filament.nozzle) {
+        marlin_gcode_printf("M104 S%d", (int)filament.nozzle);
+    } else {
+        marlin_gcode_printf("M104 S%d D%d", (int)PREHEAT_TEMP, (int)filament.nozzle);
+    }
+    marlin_gcode_printf("M140 S%d", (int)filament.heatbed);
+    set_last_preheated_filament(filament_index);
+    Screens::Access()->Close(); // skip this screen everytime
 }

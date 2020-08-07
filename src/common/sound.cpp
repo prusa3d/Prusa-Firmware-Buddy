@@ -4,8 +4,11 @@
 
 static bool SOUND_INIT = false;
 
+/// durations of signals in ms
 const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 10, 50, 100, 800 };
+/// durations of signals in ms
 const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
+/// durations of signals in ms
 const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit };
 
 const eSOUND_TYPE Sound::onceTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
@@ -19,7 +22,9 @@ const int Sound::silentRepeats[3] = { 1, 1, 1 };
 const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
 
 eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
+int Sound_GetVolume() { return Sound::getInstance().getVolume(); }
 void Sound_SetMode(eSOUND_MODE eSMode) { Sound::getInstance().setMode(eSMode); }
+void Sound_SetVolume(int volume) { Sound::getInstance().setVolume(volume); }
 void Sound_Play(eSOUND_TYPE eSoundType) { Sound::getInstance().play(eSoundType); }
 void Sound_Stop() { Sound::getInstance().stop(); }
 void Sound_Update1ms() {
@@ -54,6 +59,7 @@ void Sound::init() {
     if (eSoundMode == eSOUND_MODE_NULL) {
         setMode(eSOUND_MODE_DEFAULT);
     }
+    varVolume = eeprom_get_var(EEVAR_SOUND_VOLUME).ui8 / 10.F;
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;
 }
@@ -62,14 +68,29 @@ eSOUND_MODE Sound::getMode() const {
     return eSoundMode;
 }
 
+int Sound::getVolume() {
+    int retval = (varVolume * 10.F);
+    return retval;
+}
+
 void Sound::setMode(eSOUND_MODE eSMode) {
     eSoundMode = eSMode;
     saveMode();
 }
 
+void Sound::setVolume(int vol) {
+    varVolume = static_cast<uint8_t>(vol) / 10.F;
+    saveVolume();
+}
+
 /// Store new Sound mode value into a EEPROM. Stored value size is 1byte
 void Sound::saveMode() {
     eeprom_set_var(EEVAR_SOUND_MODE, variant8_ui8((uint8_t)eSoundMode));
+}
+
+/// Store new Sound VOLUME value into a EEPROM.
+void Sound::saveVolume() {
+    eeprom_set_var(EEVAR_SOUND_VOLUME, variant8_ui8((uint8_t)(varVolume * 10.F)));
 }
 
 /// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
@@ -129,7 +150,7 @@ void Sound::_sound(int rep, float frq, uint32_t dur, float vol) {
     repeat = rep;
     frequency = frq;
     duration = dur;
-    volume = vol;
+    volume = (vol * varVolume) * 0.3F;
 
     /// end previous beep
     hwio_beeper_set_pwm(0, 0);

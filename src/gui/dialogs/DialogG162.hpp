@@ -4,5 +4,5 @@
 
 class DialogG162 : public DialogStateful<PhasesG162> {
 public:
-    DialogG162(const char *name);
+    DialogG162(string_view_utf8 name);
 };

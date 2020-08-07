@@ -1,18 +1,28 @@
+//IDialog.hpp
 #pragma once
 
 #include <stdint.h>
-#include "window.hpp"
-
-//window_t has pragma pack, have to use here too
+#include "window_frame.hpp"
+#include "guitypes.hpp"
+#include "GuiDefaults.hpp"
 //interface for dialog
-class IDialog : protected window_t {
-protected:
-    int16_t WINDOW_CLS;
+class IDialog : public window_frame_t {
+    window_t *id_capture;
 
 public:
-    IDialog(int16_t WINDOW_CLS_);
-    //virtual void Change(uint8_t phase, uint8_t progress_tot, uint8_t progress) = 0;
+    IDialog(rect_ui16_t rc = GuiDefaults::RectScreenBody);
+    virtual ~IDialog();
 
-    static void c_draw(window_t *win);
-    static void c_event(window_t *win, uint8_t event, void *param);
+    static constexpr rect_ui16_t get_radio_button_size(rect_ui16_t rc_btn) {
+        rc_btn.y += (rc_btn.h - GuiDefaults::ButtonHeight - GuiDefaults::FrameWidth); // 30pixels for button (+ 10 space for grey frame)
+        rc_btn.h = GuiDefaults::ButtonHeight;
+        rc_btn.x += GuiDefaults::ButtonSpacing;
+        rc_btn.w -= 2 * GuiDefaults::ButtonSpacing;
+        return rc_btn;
+    }
+
+    void MakeBlocking(void (*action)() = []() {}) const; //could be static, but I want it to be usable only from dialog
 };
+
+void create_blocking_dialog_from_normal_window(window_t &dlg);
+void create_blocking_dialog(IDialog &dlg);

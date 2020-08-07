@@ -1,6 +1,6 @@
 #include "WindowMenuItems.hpp"
 #include "resource.h"
-#include "screen.h" //screen_close
+#include "ScreenHandler.hpp"
 
 /*****************************************************************************/
 //WI_LABEL_t
@@ -186,7 +186,7 @@ MI_RETURN::MI_RETURN()
 }
 
 void MI_RETURN::click(IWindowMenu & /*window_menu*/) {
-    screen_close();
+    Screens::Access()->Close();
 }
 
 MI_TEST_DISABLED_RETURN::MI_TEST_DISABLED_RETURN()
@@ -194,5 +194,5 @@ MI_TEST_DISABLED_RETURN::MI_TEST_DISABLED_RETURN()
 }
 
 void MI_TEST_DISABLED_RETURN::click(IWindowMenu & /*window_menu*/) {
-    screen_close();
+    Screens::Access()->Close();
 }

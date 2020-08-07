@@ -7,33 +7,21 @@
 
 #pragma once
 
-#include "window.hpp"
-#include <stdbool.h>
+#include "IDialog.hpp"
+#include "window_text.hpp"
+#include "window_icon.hpp"
 
-extern int16_t WINDOW_CLS_DLG_WAIT;
+class window_dlg_wait_t : public IDialog {
+    window_text_t text;
+    window_icon_hourglass_t animation;
 
-struct window_dlg_wait_t : public window_t {
-    color_t color_text;
-    font_t *font;
-    font_t *font_title;
-    padding_ui8_t padding;
-    uint32_t timer;
-    int8_t progress;
-    uint8_t animation;
-    uint8_t components;
-    bool animation_chng;
-    bool progress_chng;
-};
-
-struct window_class_dlg_wait_t {
-    window_class_t cls;
+public:
+    window_dlg_wait_t(rect_ui16_t rect);
 };
 
 #define DLG_W8_DRAW_HOURGLASS 0x04 // Draw hourglass animation
 #define DLG_W8_DRAW_FRAME     0x01 // Draw grey frame
 #define DLG_W8_DRAW_PROGRESS  0x02 // Draw progress bar
-
-extern const window_class_dlg_wait_t window_class_dlg_wait;
 
 /*!*********************************************************************************************************************
 * \brief GUI dialog for processes that require user to wait calmly.
@@ -44,4 +32,4 @@ extern const window_class_dlg_wait_t window_class_dlg_wait;
 *
 * It creates inner gui_loop cycle that keeps GUI running while waiting.
 */
-extern void gui_dlg_wait(int8_t (*progress_callback)(), uint8_t comp_flag);
+void gui_dlg_wait(void (*closing_callback)());

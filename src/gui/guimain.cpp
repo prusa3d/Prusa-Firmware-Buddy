@@ -1,4 +1,4 @@
-//guimain.c
+//guimain.cpp
 
 #include <stdio.h>
 #include "stm32f4xx_hal.h"
@@ -6,32 +6,31 @@
 #include "config.h"
 #include "marlin_client.h"
 
+#include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
+#include "screen_menus.hpp"
 #include "window_file_list.hpp"
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
-#include "DialogLoadUnload.h"
-#include "DialogG162.h"
 #include "window_dlg_wait.hpp"
 #ifdef _DEBUG
     #include "window_dlg_popup.hpp"
 #endif //_DEBUG
 #include "window_dlg_preheat.hpp"
-#include "screen_print_preview.h"
+#include "screen_print_preview.hpp"
+#include "screen_watchdog.hpp"
 
 #include "screen_lan_settings.h"
-#include "screen_menu_fw_update.h"
-#include "screens.h"
-#include "screen_close_multiple.h"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 extern int HAL_IWDG_Reset;
 
 int guimain_spi_test = 0;
 
 #include "gpio.h"
-#include "st7789v.h"
+#include "st7789v.hpp"
 #include "jogwheel.h"
 #include "hwio.h"
 #include "diag.h"
@@ -83,13 +82,8 @@ extern "C" void gui_run(void) {
         jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR | JOGWHEEL_FLG_INV_ENC;
     //_dbg("delay=%u", st7789v_reset_delay);
 
-    gui_defaults.font = resource_font(IDR_FNT_NORMAL);
-    gui_defaults.font_big = resource_font(IDR_FNT_BIG);
-    window_msgbox_id_icon[0] = 0; //IDR_PNG_icon_pepa;
-    window_msgbox_id_icon[1] = IDR_PNG_header_icon_error;
-    window_msgbox_id_icon[2] = IDR_PNG_header_icon_question;
-    window_msgbox_id_icon[3] = IDR_PNG_header_icon_warning;
-    window_msgbox_id_icon[4] = IDR_PNG_header_icon_info;
+    GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
+    GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
 
     if (!sys_fw_is_valid())
         update_firmware_screen();
@@ -100,6 +94,7 @@ extern "C" void gui_run(void) {
 
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF);
     marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF);
+
     DialogHandler::Access(); //to create class NOW, not at first call of one of callback
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
@@ -107,72 +102,28 @@ extern "C" void gui_run(void) {
 
     Sound_Play(eSOUND_TYPE_Start);
 
-    screen_register(get_scr_splash());
-    screen_register(get_scr_watchdog());
-
-    WINDOW_CLS_FILE_LIST = window_register_class((window_class_t *)&window_class_file_list);
-    WINDOW_CLS_HEADER = window_register_class((window_class_t *)&window_class_header);
-    WINDOW_CLS_TEMP_GRAPH = window_register_class((window_class_t *)&window_class_temp_graph);
-    WINDOW_CLS_DLG_LOADUNLOAD = window_register_class((window_class_t *)&window_class_dlg_statemachine);
-    WINDOW_CLS_DLG_G162 = window_register_class((window_class_t *)&window_class_dlg_g162);
-    WINDOW_CLS_DLG_WAIT = window_register_class((window_class_t *)&window_class_dlg_wait);
-#ifdef _DEBUG
-    WINDOW_CLS_DLG_POPUP = window_register_class((window_class_t *)&window_class_dlg_popup);
-#endif //_DEBUG
-    WINDOW_CLS_DLG_PREHEAT = window_register_class((window_class_t *)&window_class_dlg_preheat);
-    screen_register(get_scr_test());
-    screen_register(get_scr_test_gui());
-    screen_register(get_scr_test_term());
-    screen_register(get_scr_test_msgbox());
-    screen_register(get_scr_test_graph());
-    screen_register(get_scr_test_temperature());
-    screen_register(get_scr_home());
-    screen_register(get_scr_filebrowser());
-    screen_register(get_scr_printing());
-    screen_register(get_scr_printing_serial());
-    screen_register(get_scr_menu_preheat());
-    screen_register(get_scr_menu_filament());
-    screen_register(get_scr_menu_calibration());
-    screen_register(get_scr_menu_settings());
-    screen_register(get_scr_menu_temperature());
-    screen_register(get_scr_menu_move());
-    screen_register(get_scr_menu_info());
-    screen_register(get_scr_menu_tune());
-    screen_register(get_scr_menu_service());
-    screen_register(get_scr_sysinfo());
-    screen_register(get_scr_version_info());
-    screen_register(get_scr_qr_info());
-    screen_register(get_scr_qr_error());
-    screen_register(get_scr_test_disp_mem());
-    screen_register(get_scr_messages());
-#ifdef PIDCALIBRATION
-    screen_register(get_scr_PID());
-#endif //PIDCALIBRATION
-    screen_register(get_scr_mesh_bed_lv());
-    screen_register(get_scr_wizard());
-    screen_register(get_scr_print_preview());
-    screen_register(get_scr_lan_settings());
-    screen_register(get_scr_menu_fw_update());
-    screen_register(get_scr_menu_languages()); // WTF!?!? why does this have to be done at runtime? There is no compile-time warning, that a screen didn't get its unique id (for whatever reason)
-
+    ScreenFactory::Creator screen_initializer[] {
 #ifndef _DEBUG
-    if (HAL_IWDG_Reset) {
-        screen_stack_push(get_scr_splash()->id);
-        screen_open(get_scr_watchdog()->id);
-    } else
-#endif // _DEBUG
-        screen_open(get_scr_splash()->id);
+        HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
+#endif
+        ScreenFactory::Screen<screen_splash_data_t>, // splash
+        ScreenFactory::Screen<screen_home_data_t>    // home
+    };
+
+    //Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
+    Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
-    int8_t gui_timeout_id;
+    //int8_t gui_timeout_id;
     while (1) {
+        Screens::Access()->Loop();
         // show warning dialog on safety timer expiration
         if (marlin_event_clr(MARLIN_EVT_SafetyTimerExpired)) {
-            gui_msgbox(_("Heating disabled due to 30 minutes of inactivity."), MSGBOX_BTN_OK | MSGBOX_ICO_WARNING);
+            MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
         }
         gui_loop();
-        if (marlin_message_received()) {
+        /*if (marlin_message_received()) {
             screen_t *curr = screen_get_curr();
             if (curr == get_scr_printing()) {
                 screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
@@ -184,7 +135,7 @@ extern "C" void gui_run(void) {
                 screen_close_multiple(scrn_close_on_timeout);
                 gui_timer_delete(gui_timeout_id);
             }
-        }
+        }*/
     }
 }
 
@@ -195,7 +146,7 @@ void update_firmware_screen(void) {
     render_icon_align(rect_ui16(70, 20, 100, 100), IDR_PNG_icon_pepa, COLOR_BLACK, RENDER_FLG(ALIGN_CENTER, 0));
     display::DrawText(rect_ui16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
     display::DrawText(rect_ui16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
-    render_text_align(rect_ui16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, padding_ui8(2, 6, 2, 2), ALIGN_CENTER);
+    render_text_align(rect_ui16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
     while (1) {
         if (jogwheel_button_down > 50)
             sys_reset();

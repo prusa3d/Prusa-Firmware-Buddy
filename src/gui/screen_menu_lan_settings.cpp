@@ -11,13 +11,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "screens.h"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "wui_api.h"
 #include "config.h"
 #include "RAII.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 /*****************************************************************************/
 //Eth static class used by menu and its items
@@ -261,8 +260,8 @@ class ScreenMenuLanSettings : public parent {
 
 public:
     constexpr static const char *label = N_("LAN SETTINGS");
-    static void Init(screen_t *screen);
-    static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    //static void Init(screen_t *screen);
+    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
 };
 
 /*****************************************************************************/
@@ -273,7 +272,7 @@ void ScreenMenuLanSettings::refresh_addresses() {
     stringify_eth_for_screen(&plan_str, &ethconfig);
     // this MakeRAM is safe - plan_str is statically allocated
     help.text = string_view_utf8::MakeRAM((const uint8_t *)plan_str);
-    help.flg |= WINDOW_FLG_INVALID;
+    help.Invalidate();
     gui_invalidate();
 }
 
@@ -284,22 +283,22 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
     msg_shown = true;
     switch (msg) {
     case Eth::Msg::StaicAddrErr:
-        gui_msgbox(_("Static IPv4 addresses were not set."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("Static IPv4 addresses were not set."), Responses_Ok);
         break;
     case Eth::Msg::NoUSB:
-        gui_msgbox(_("Please insert a USB drive and try again."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("Please insert a USB drive and try again."), Responses_Ok);
         break;
     case Eth::Msg::SaveOK:
-        gui_msgbox(_("The settings have been saved successfully in the \"lan_settings.ini\" file."), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        MsgBoxInfo(_("The settings have been saved successfully in the \"lan_settings.ini\" file."), Responses_Ok);
         break;
     case Eth::Msg::SaveNOK:
-        gui_msgbox(_("There was an error saving the settings in the \"lan_settings.ini\" file."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("There was an error saving the settings in the \"lan_settings.ini\" file."), Responses_Ok);
         break;
     case Eth::Msg::LoadOK:
-        gui_msgbox(_("Settings successfully loaded"), MSGBOX_BTN_OK | MSGBOX_ICO_INFO);
+        MsgBoxInfo(_("Settings successfully loaded"), Responses_Ok);
         break;
     case Eth::Msg::LoadNOK:
-        gui_msgbox(_("IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), MSGBOX_BTN_OK | MSGBOX_ICO_ERROR);
+        MsgBoxError(_("IP addresses or parameters are not valid or the file \"lan_settings.ini\" is not in the root directory of the USB drive."), Responses_Ok);
         break;
     default:
         break;
@@ -308,7 +307,7 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 
 /*****************************************************************************/
 //static member function definition
-void ScreenMenuLanSettings::Init(screen_t *screen) {
+/*void ScreenMenuLanSettings::Init(screen_t *screen) {
     Create(screen, _(label));
     Eth::Init();
 
@@ -332,18 +331,6 @@ int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t ev
 
     ths->show_msg(Eth::ConsumeMsg());
 
-    return ths->Event(window, event, param);
+    ths->Event(window, event, param);
 }
-
-screen_t screen_lan_settings = {
-    0,
-    0,
-    ScreenMenuLanSettings::Init,
-    ScreenMenuLanSettings::CDone,
-    ScreenMenuLanSettings::CDraw,
-    ScreenMenuLanSettings::CEvent,
-    sizeof(ScreenMenuLanSettings), //data_size
-    nullptr,                       //pdata
-};
-
-screen_t *const get_scr_lan_settings() { return &screen_lan_settings; }
+*/

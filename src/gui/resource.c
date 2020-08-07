@@ -4,6 +4,7 @@
 #include "guitypes.h"
 #include "res/cc/font_7x13.c"  //IDR_FNT_SMALL
 #include "res/cc/font_11x18.c" //IDR_FNT_NORMAL
+//#include "res/cc/font_10x18.c" //IDR_FNT_NORMAL
 #include "res/cc/font_12x21.c" //IDR_FNT_BIG
 #include "res/cc/font_9x15.c"  //IDR_FNT_TERMINAL
 #include "res/cc/font_9x16.c"  //IDR_FNT_SPECIAL
@@ -69,8 +70,9 @@
 #include "res/cc/png_header_icon_warning.c"  //IDR_PNG_header_icon_warning
 #include "res/cc/png_header_icon_question.c" //IDR_PNG_header_icon_question
 
-#include "res/cc/png_arrow_up.c"   //IDR_PNG_arrow_up
-#include "res/cc/png_arrow_down.c" //IDR_PNG_arrow_down
+#include "res/cc/png_arrow_up.c"      //IDR_PNG_arrow_up
+#include "res/cc/png_arrow_down.c"    //IDR_PNG_arrow_down
+#include "res/cc/png_arrow_scan_me.c" //IDR_PNG_arrow_scan_me
 
 #include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
 
@@ -87,6 +89,7 @@ RESOURCE_ENTRY_NUL() //IDR_NULL
 //fonts
 RESOURCE_ENTRY_FNT(font_7x13)  //IDR_FNT_SMALL
 RESOURCE_ENTRY_FNT(font_11x18) //IDR_FNT_NORMAL
+//RESOURCE_ENTRY_FNT(font_10x18) //IDR_FNT_NORMAL
 RESOURCE_ENTRY_FNT(font_12x21) //IDR_FNT_BIG
 RESOURCE_ENTRY_FNT(font_9x15)  //IDR_FNT_TERMINAL
 RESOURCE_ENTRY_FNT(font_9x16)  //IDR_FNT_SPECIAL
@@ -149,6 +152,7 @@ RESOURCE_ENTRY_PNG(png_header_icon_question)
 
 RESOURCE_ENTRY_PNG(png_arrow_up)
 RESOURCE_ENTRY_PNG(png_arrow_down)
+RESOURCE_ENTRY_PNG(png_arrow_scan_me)
 
 RESOURCE_ENTRY_PNG(png_menu_icon_back)
 

@@ -1,7 +1,8 @@
 //helper.h
 #pragma once
 
-#include "guitypes.h"
+#include "window.hpp"
+#include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
 
 #define RENDER_FLG_ALIGN           0x00ff       // alignment mask (ALIGN_xxx)
@@ -31,12 +32,15 @@ struct txtroll_t {
 };
 
 extern bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
+/// FIXME add \param flags documentation
 
 extern void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags);
 
 extern void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
 
-extern void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll);
+extern void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
+
+extern void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll);
 
 extern void roll_init(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);
 
