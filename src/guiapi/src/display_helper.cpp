@@ -110,20 +110,20 @@ bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, co
 
 /// Fills space between two rectangles with a color
 /// @r_in must be completely in @r_out
-void fill_between_rectangles(rect_ui16_t r_out, rect_ui16_t r_in, color_t color) {
-    if (!rect_in_rect_ui16(r_in, r_out))
+void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, color_t color) {
+    if (!rect_in_rect_ui16(*r_in, *r_out))
         return;
     /// top
-    const rect_ui16_t rc_t = { r_out.x, r_out.y, r_out.w, uint16_t(r_in.y - r_out.y) };
+    const rect_ui16_t rc_t = { r_out->x, r_out->y, r_out->w, uint16_t(r_in->y - r_out->y) };
     display::FillRect(rc_t, color);
     /// bottom
-    const rect_ui16_t rc_b = { r_out.x, uint16_t(r_in.y + r_in.h), r_out.w, uint16_t((r_out.y + r_out.h) - (r_in.y + r_in.h)) };
+    const rect_ui16_t rc_b = { r_out->x, uint16_t(r_in->y + r_in->h), r_out->w, uint16_t((r_out->y + r_out->h) - (r_in->y + r_in->h)) };
     display::FillRect(rc_b, color);
     /// left
-    const rect_ui16_t rc_l = { r_out.x, r_in.y, uint16_t(r_in.x - r_out.x), r_in.h };
+    const rect_ui16_t rc_l = { r_out->x, r_in->y, uint16_t(r_in->x - r_out->x), r_in->h };
     display::FillRect(rc_l, color);
     /// right
-    const rect_ui16_t rc_r = { uint16_t(r_in.x + r_in.w), r_in.y, uint16_t((r_out.x + r_out.w) - (r_in.x + r_in.w)), r_in.h };
+    const rect_ui16_t rc_r = { uint16_t(r_in->x + r_in->w), r_in->y, uint16_t((r_out->x + r_out->w) - (r_in->x + r_in->w)), r_in->h };
     display::FillRect(rc_r, color);
 }
 
@@ -203,7 +203,7 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
         // hack for broken text wrapper ... and for too long texts as well
         if (y < (rc_pad.y + rc_pad.h)) {
             display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr_bg);
-            fill_between_rectangles(rc, rc_pad, clr_bg);
+            fill_between_rectangles(&rc, &rc_pad, clr_bg);
         }
 
         return;
@@ -222,7 +222,7 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
     const uint8_t unused_pxls = (strlen_text * font->w <= rc_txt.w) ? 0 : rc_txt.w % font->w;
 
     const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
-    fill_between_rectangles(rc, rect_in, clr_bg);
+    fill_between_rectangles(&rc, &rect_in, clr_bg);
     text.rewind();
     // 2nd pass reading the string_view_utf8 - draw the text
     render_text(rc_txt, text, font, clr_bg, clr_fg);
@@ -248,7 +248,7 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr_bg, uint16_t
     if (wh_ico.x && wh_ico.y) {
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
-        fill_between_rectangles(rc, rc_ico, opt_clr);
+        fill_between_rectangles(&rc, &rc_ico, opt_clr);
         display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr_bg, (flags >> 8) & 0x0f);
     } else
         display::FillRect(rc, opt_clr);
@@ -276,7 +276,7 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
     if (wh_ico.x && wh_ico.y) {
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
-        fill_between_rectangles(rc, rc_ico, opt_clr);
+        fill_between_rectangles(&rc, &rc_ico, opt_clr);
         display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
     } else
         display::FillRect(rc, opt_clr);
@@ -361,7 +361,7 @@ void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t 
     }
 
     if (set_txt_rc.w && set_txt_rc.h) {
-        fill_between_rectangles(rc, set_txt_rc, clr_back);
+        fill_between_rectangles(&rc, &set_txt_rc, clr_back);
         render_text(set_txt_rc, /*str*/ text, font, clr_back, clr_text);
     } else {
         display::FillRect(rc, clr_back);
