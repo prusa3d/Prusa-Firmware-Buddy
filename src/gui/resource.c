@@ -84,6 +84,8 @@
 #include "res/cc/png_flag_it.c"
 #include "res/cc/png_flag_pl.c"
 
+#include "res/cc/png_big_nozzle.c" //IDR_PNG_big_nozzle
+
 RESOURCE_TABLE_BEGIN
 RESOURCE_ENTRY_NUL() //IDR_NULL
 //fonts
@@ -166,5 +168,7 @@ RESOURCE_ENTRY_PNG(png_flag_es)
 RESOURCE_ENTRY_PNG(png_flag_fr)
 RESOURCE_ENTRY_PNG(png_flag_it)
 RESOURCE_ENTRY_PNG(png_flag_pl)
+
+RESOURCE_ENTRY_PNG(png_big_nozzle)
 
 RESOURCE_TABLE_END
