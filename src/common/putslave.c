@@ -93,6 +93,8 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
             cmd_id = PUTSLAVE_CMD_ID_START;
         else if (strncmp(pstr, "inval", 5) == 0)
             cmd_id = PUTSLAVE_CMD_ID_INVAL;
+        else if (strncmp(pstr, "eedef", 5) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_EEDEF;
     }
     if (cmd_id != UARTSLAVE_CMD_ID_UNK) {
         *pcmd_id = cmd_id;
@@ -399,6 +401,11 @@ int putslave_do_cmd_a_eecl(uartslave_t *pslave) {
     return UARTSLAVE_OK;
 }
 
+int putslave_do_cmd_a_eedef(uartslave_t *pslave) {
+    eeprom_defaults();
+    return UARTSLAVE_OK;
+}
+
 int putslave_do_cmd_a_gpio(uartslave_t *pslave, char *pstr) {
     int gpio = 0;
     int state = 0;
@@ -639,6 +646,8 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_stop(pslave);
             case PUTSLAVE_CMD_ID_EECL:
                 return putslave_do_cmd_a_eecl(pslave);
+            case PUTSLAVE_CMD_ID_EEDEF:
+                return putslave_do_cmd_a_eedef(pslave);
             case PUTSLAVE_CMD_ID_GPIO:
                 return putslave_do_cmd_a_gpio(pslave, pstr);
             case PUTSLAVE_CMD_ID_GPCF:
