@@ -24,11 +24,11 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 
 /// Draws a text into the specified rectangle @rc
 /// If a character does not fit into the rectangle the drawing is stopped
-/// \param clr_bg background color
-/// \param clr_fg font/foreground color
+/// \param clr_0 background color
+/// \param clr_1 font/foreground color
 /// \returns true if whole text was written
 /// Extracted from st7789v implementation, where it shouldn't be @@TODO cleanup
-bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_0, color_t clr_1) {
     int x = rc.x;
     int y = rc.y;
     const uint16_t rc_end_x = rc.x + rc.w;
@@ -47,17 +47,17 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
         }
 #ifdef UNACCENT
         if (c < 128) {
-            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+            display::DrawChar(point_ui16(x, y), c, pf, clr_0, clr_1);
             x += w;
         } else {
             auto convertedChar = ConvertUnicharToFontCharIndex(c);
             for (size_t i = 0; i < convertedChar.second; ++i) {
-                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_0, clr_1);
                 x += w; // this will screw up character counting for DE language @@TODO
             }
         }
 #else
-        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+        display::DrawChar(point_ui16(x, y), c, pf, clr_0, clr_1);
         x += w;
 #endif
         // FIXME Shouldn't it try to break the line first?
@@ -72,7 +72,7 @@ bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t
 /// It also contains a hack to prevent leaving the specified window rect in case of (mistakenly)
 /// computed line width (which happens unfortunately), because its call is preceeded by
 /// the new text-wrapping functions from str_utils (i.e. the input text is already almost correctly broken into lines).
-bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, color_t clr_0, color_t clr_1) {
     int x = rc.x;
     int y = rc.y;
     //    const uint16_t rc_end_x = rc.x + rc.w;
@@ -91,17 +91,17 @@ bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, co
         }
 #ifdef UNACCENT
         if (c < 128) {
-            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+            display::DrawChar(point_ui16(x, y), c, pf, clr_0, clr_1);
             x += w;
         } else {
             auto convertedChar = ConvertUnicharToFontCharIndex(c);
             for (size_t i = 0; i < convertedChar.second; ++i) {
-                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
+                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_0, clr_1);
                 x += w; // this will screw up character counting for DE language @@TODO
             }
         }
 #else
-        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
+        display::DrawChar(point_ui16(x, y), c, pf, clr_0, clr_1);
         x += w;
 #endif
     }
@@ -153,7 +153,7 @@ int font_line_chars(const font_t *pf, unichar *str, uint16_t line_width) {
     return (n != 0) ? n : line_width / char_w;
 }
 
-void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags) {
+void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr_0, color_t clr_1, padding_ui8_t padding, uint16_t flags) {
     rect_ui16_t rc_pad = rect_ui16_sub_padding_ui8(rc, padding);
     if (flags & RENDER_FLG_WORDB) {
         //TODO: other alignments, following impl. is for LEFT-TOP
@@ -179,17 +179,17 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
                 i++;
             for (; i < n; i++) {
                 if (str[i] < 128) {
-                    display::DrawChar(point_ui16(x, y), str[i], font, clr_bg, clr_fg);
+                    display::DrawChar(point_ui16(x, y), str[i], font, clr_0, clr_1);
                     x += font->w;
                 } else {
                     const auto &convertedChar = ConvertUnicharToFontCharIndex(str[i]);
                     for (size_t cci = 0; cci < convertedChar.second; ++cci) {
-                        display::DrawChar(point_ui16(x, y), convertedChar.first[cci], font, clr_bg, clr_fg);
+                        display::DrawChar(point_ui16(x, y), convertedChar.first[cci], font, clr_0, clr_1);
                         x += font->w;
                     }
                 }
             }
-            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr_bg);
+            display::FillRect(rect_ui16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr_0);
             str += n;
             y += font->h;
         }
@@ -198,12 +198,12 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
         size_t nLines = str2multilineUnicode(str, 0x1000U, rc_pad.w / font->w);
         // now we have '\n' in the right spots
         y += nLines * font->h;
-        render_textUnicode(rc_pad, str, font, clr_bg, clr_fg);
+        render_textUnicode(rc_pad, str, font, clr_0, clr_1);
 #endif
         // hack for broken text wrapper ... and for too long texts as well
         if (y < (rc_pad.y + rc_pad.h)) {
-            display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr_bg);
-            fill_between_rectangles(&rc, &rc_pad, clr_bg);
+            display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr_0);
+            fill_between_rectangles(&rc, &rc_pad, clr_0);
         }
 
         return;
@@ -213,7 +213,7 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
     uint16_t strlen_text = 0;
     point_ui16_t wh_txt = font_meas_text(font, &text, &strlen_text);
     if (!wh_txt.x || !wh_txt.y) {
-        display::FillRect(rc, clr_bg);
+        display::FillRect(rc, clr_0);
         return;
     }
 
@@ -222,26 +222,26 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
     const uint8_t unused_pxls = (strlen_text * font->w <= rc_txt.w) ? 0 : rc_txt.w % font->w;
 
     const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
-    fill_between_rectangles(&rc, &rect_in, clr_bg);
+    fill_between_rectangles(&rc, &rect_in, clr_0);
     text.rewind();
     // 2nd pass reading the string_view_utf8 - draw the text
-    render_text(rc_txt, text, font, clr_bg, clr_fg);
+    render_text(rc_txt, text, font, clr_0, clr_1);
 }
 
-void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr_bg, uint16_t flags) {
+void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr_0, uint16_t flags) {
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
         opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
-        opt_clr = clr_bg ^ 0xffffffff;
+        opt_clr = clr_0 ^ 0xffffffff;
         break;
     case ROPFN_DISABLE:
-        opt_clr = clr_bg;
+        opt_clr = clr_0;
         break;
     default:
-        opt_clr = clr_bg;
+        opt_clr = clr_0;
         break;
     }
     point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
@@ -249,7 +249,7 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr_bg, uint16_t
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
         fill_between_rectangles(&rc, &rc_ico, opt_clr);
-        display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr_bg, (flags >> 8) & 0x0f);
+        display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr_0, (flags >> 8) & 0x0f);
     } else
         display::FillRect(rc, opt_clr);
 }

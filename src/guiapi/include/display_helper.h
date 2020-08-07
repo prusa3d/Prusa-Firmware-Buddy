@@ -31,9 +31,9 @@ struct txtroll_t {
     uint8_t px_cd;
 };
 
-extern bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
+extern bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_0, color_t clr_1);
 /// FIXME add \param flags documentation
-extern void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, uint16_t flags);
+extern void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr_0, color_t clr_1, padding_ui8_t padding, uint16_t flags);
 extern void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
 extern void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
 
