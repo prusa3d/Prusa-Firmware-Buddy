@@ -44,4 +44,4 @@ extern point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint
 //extern int font_line_chars(const font_t *pf, string_view_utf8 str, uint16_t line_width);
 extern uint16_t text_rolls_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *pf);
 extern rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
-extern void fill_between_rectangles(const rect_ui16_t &r_out, const rect_ui16_t &r_in, const color_t &color);
+extern void fill_between_rectangles(rect_ui16_t r_out, rect_ui16_t r_in, color_t color);

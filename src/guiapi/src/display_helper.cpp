@@ -110,7 +110,7 @@ bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, co
 
 /// Fills space between two rectangles with a color
 /// @r_in must be completely in @r_out
-void fill_between_rectangles(const rect_ui16_t &r_out, const rect_ui16_t &r_in, const color_t &color) {
+void fill_between_rectangles(rect_ui16_t r_out, rect_ui16_t r_in, color_t color) {
     if (!rect_in_rect_ui16(r_in, r_out))
         return;
     /// top
