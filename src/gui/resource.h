@@ -82,3 +82,5 @@
 #define IDR_PNG_flag_fr 0x003e
 #define IDR_PNG_flag_it 0x003f
 #define IDR_PNG_flag_pl 0x0040
+
+#define IDR_PNG_big_nozzle 0x0041
