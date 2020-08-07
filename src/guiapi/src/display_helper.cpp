@@ -228,20 +228,20 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
     render_text(rc_txt, text, font, clr0, clr1);
 }
 
-void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr_0, uint16_t flags) {
+void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags) {
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
         opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
-        opt_clr = clr_0 ^ 0xffffffff;
+        opt_clr = clr0 ^ 0xffffffff;
         break;
     case ROPFN_DISABLE:
-        opt_clr = clr_0;
+        opt_clr = clr0;
         break;
     default:
-        opt_clr = clr_0;
+        opt_clr = clr0;
         break;
     }
     point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
@@ -249,7 +249,7 @@ void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr_0, uint16_t 
         rect_ui16_t rc_ico = rect_align_ui16(rc, rect_ui16(0, 0, wh_ico.x, wh_ico.y), flags & ALIGN_MASK);
         rc_ico = rect_intersect_ui16(rc, rc_ico);
         fill_between_rectangles(&rc, &rc_ico, opt_clr);
-        display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr_0, (flags >> 8) & 0x0f);
+        display::DrawIcon(point_ui16(rc_ico.x, rc_ico.y), id_res, clr0, (flags >> 8) & 0x0f);
     } else
         display::FillRect(rc, opt_clr);
 }
