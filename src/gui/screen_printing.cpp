@@ -106,8 +106,8 @@ void screen_printing_data_t::stopAction() {
         if (MsgBoxWarning(_("Are you sure to stop this printing?"), Responses_YesNo, 1)
             == Response::Yes) {
             stop_pressed = true;
+            waiting_for_abort = true;
             change_print_state();
-            marlin_print_abort();
         } else
             return;
     }
@@ -231,6 +231,14 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
 
 #endif
 
+    /// check stop clicked when MBL is running
+    printing_state_t p_state = GetState();
+    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && p_state == printing_state_t::ABORTING) {
+        marlin_print_abort();
+        waiting_for_abort = false;
+        return;
+    }
+
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
         open_popup_message();
         return;
@@ -240,7 +248,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         close_popup_message();
     }
 
-    if ((state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
+    if (p_state == printing_state_t::PRINTED && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
@@ -272,7 +280,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         update_progress(marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
 
     /// -- close screen when print is done / stopped and USB media is removed
-    if (!marlin_vars()->media_inserted && GetState() == printing_state_t::PRINTED) {
+    if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
         Screens::Access()->Close();
         return;
     }
@@ -282,6 +290,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
+
     IScreenPrinting::windowEvent(sender, event, param);
 }
 
