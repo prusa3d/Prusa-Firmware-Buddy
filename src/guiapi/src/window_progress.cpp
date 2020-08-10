@@ -58,6 +58,7 @@ window_progress_t::window_progress_t(window_t *parent, rect_ui16_t rect, uint16_
     , numb(this, { rect.x, uint16_t(rect.y + h_progr), rect.w, uint16_t(rect.h - h_progr) })
     , min(0)
     , max(100) {
+    Disable();
     numb.format = "%.0f%%";
     numb.alignment = ALIGN_CENTER;
 }
