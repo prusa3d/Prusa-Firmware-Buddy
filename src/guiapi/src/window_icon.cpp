@@ -16,7 +16,7 @@ void window_icon_draw(window_icon_t *window) {
         //point_ui16_t pt = {window->rect.x, window->rect.y};
         //display::DrawIcon(pt, window->id_res, window->color_back, (window->IsFocused())?ROPFN_SWAPBW:0);
         uint8_t ropfn = 0;
-        if ((window->IsBWSwapped())) { // that could not be set, but what if
+        if ((window->IsShadowed())) { // that could not be set, but what if
             ropfn |= ROPFN_DISABLE;
         }
         if ((window->IsFocused())) {
@@ -60,7 +60,7 @@ window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_ui16_t pt,
 
 void window_icon_t::unconditionalDraw() {
     uint8_t ropfn = 0;
-    if (IsBWSwapped()) { // that could not be set, but what if
+    if (IsShadowed()) { // that could not be set, but what if
         ropfn |= ROPFN_DISABLE;
     }
     if (IsFocused()) {
@@ -70,9 +70,9 @@ void window_icon_t::unconditionalDraw() {
     render_icon_align(rect, id_res, color_back, RENDER_FLG(alignment, ropfn));
 }
 
-bool window_icon_t::IsBWSwapped() const { return flag_custom0 == true; }
-void window_icon_t::SwapBW() { flag_custom0 = true; }
-void window_icon_t::UnswapBW() { flag_custom0 = false; }
+bool window_icon_t::IsShadowed() const { return flag_custom0 == true; }
+void window_icon_t::Shadow() { flag_custom0 = true; }
+void window_icon_t::Unshadow() { flag_custom0 = false; }
 
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
     size_ui16_t ret = size_ui16(0, 0);
