@@ -3,13 +3,6 @@
 #pragma once
 #include "window.hpp"
 
-#define WINDOW_FLG_GRAPH_INVALID (WINDOW_FLG_USER << 0)
-struct window_temp_graph_t;
-
-typedef void(window_temp_graph_point_t)(window_temp_graph_t *pwindow_graph, uint8_t index, float y_val);
-
-extern int16_t WINDOW_CLS_TEMP_GRAPH;
-
 struct window_temp_graph_t : public window_t {
     color_t color_extruder_t;
     color_t color_bed_t;
@@ -22,10 +15,14 @@ struct window_temp_graph_t : public window_t {
     uint8_t y_bed_t[180];
     uint8_t y_nozzle_c[180];
     uint8_t y_bed_c[180];
-};
+    bool graph_invalid;
 
-struct window_class_temp_graph_t {
-    window_class_t cls;
-};
+    window_temp_graph_t(window_t *parent, rect_ui16_t rect);
 
-extern const window_class_temp_graph_t window_class_temp_graph;
+protected:
+    virtual void unconditionalDraw() override;
+
+    void redraw_point(uint16_t x, uint16_t y, uint8_t *data, color_t bg, color_t fg);
+    void redraw_last_point(uint16_t x, uint16_t y0, uint16_t y1, color_t bg, color_t fg);
+    void draw_axes(bool wipe_before_draw, bool xy_only);
+};

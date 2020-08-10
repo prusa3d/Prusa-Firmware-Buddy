@@ -503,12 +503,14 @@ target_sources(
           src/lang/translator.cpp
           src/lang/translation_provider_CPUFLASH.cpp
           src/lang/unaccent.cpp
+          src/lang/format_print_will_end.cpp
   )
 
 if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
+            src/gui/dialogs/dialog_response.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
@@ -520,6 +522,8 @@ if(GUI)
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
+            src/gui/ScreenFactory.cpp
+            src/gui/ScreenHandler.cpp
             src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
@@ -565,14 +569,13 @@ if(GUI)
             src/gui/screen_menu_preheat.cpp
             src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
+            src/gui/IScreenPrinting.cpp
             src/gui/screen_printing.cpp
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
-            src/gui/screen_PID.cpp
             src/gui/screen_menu_fw_update.cpp
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
-            src/guiapi/src/button_draw.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
@@ -581,13 +584,13 @@ if(GUI)
             src/guiapi/src/gui_timer.cpp
             src/guiapi/src/display_helper.cpp
             src/guiapi/src/window_menu.cpp
-            src/guiapi/src/screen.cpp
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_list.cpp
             src/guiapi/src/jogwheel.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
+            src/guiapi/src/st7789v.cpp
             src/guiapi/src/window_icon.cpp
             src/guiapi/src/window_spin.cpp
             src/guiapi/src/window_text.cpp

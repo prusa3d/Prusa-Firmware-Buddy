@@ -56,6 +56,7 @@ Version Firmware\n
 Cal. prem. couche
 CALIB. PREM. COUCHE
 Facteur de Débit
+ven
 MISE À JOUR FW
 Mise à jour FW
 Plateau Chauffant
@@ -74,7 +75,7 @@ Information
 Insertion
 Les adresses IP ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB.
 Les adresses IP ou les paramètres ne sont pas valides ou alors le fichier \"lan_settings.ini\" ne se trouve pas dans le répertoire racine de la clé USB.
-La couleur est-elle correcte ?
+La couleur\nest-elle\ncorrecte ?
 Le filament est-il dans l'extrudeur ?
 La feuille d'acier est-elle sur le plateau chauffant ?
 RÉGLAGES LAN
@@ -87,9 +88,9 @@ CHARGER FILAMENT
 Charger le Filament
 Charger les réglages
 Chargement...
-Chargement de la buse
+Chargement\nde la buse
 Fort
-Vérifiez que le filament est bien inséré dans le capteur.
+Vérifiez que le   \nfilament est bien \ninséré dans le    \ncapteur.          
 Matériau
 Mesure des hauteurs\ndé référence des\npoints de calib.
 Timeout Menu
@@ -98,6 +99,7 @@ Mesh Bed Level.
 Échec Mesh bed lev.? 
 MESSAGES
 Messages
+lun
 Déplacer l'Axe
 DÉPLACER AXE
 Déplacer E
@@ -137,7 +139,7 @@ Préchauffage
 PRÉCHAUF. av. CHARG.
 PRÉCHAUFFER pour DÉCHARGER
 Expulsion en préparation
-Appuyez sur CONTINUER et enfoncez le filament dans l'extrudeur.
+Appuyez sur       \nCONTINUER         \net enfoncez       \nle filament       \ndans l'extrudeur. 
 Appuyez sur NEXT pour lancer le Selftest détectant les éventuels problèmes liés à l'assemblage.
 Impression
 Ventil. d'impression
@@ -161,6 +163,7 @@ Relancer
 Relance...
 RÉESSAYER
 Retour
+sam
 Sauv. Vidage Mémoire
 Sauvegarder réglages
 Recherche des points\nde calib. du plateau
@@ -178,11 +181,13 @@ Chargement des réglages réussi
 Silencieux
 Mode Sonore
 Type de Son
+Volume Sonore
 Vitesse
 Adresses IPv4 statiques non définies.
 Statistique
 STOP
 Stop
+dim
 Assistance
 Infos Système
 TEMPÉRATURE
@@ -196,10 +201,13 @@ La barre de statut se trouve dans le bas de l'écran. Elle contient des infos co
 La calibration XYZ n'a pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante, puis relancez la calibration XYZ.
 Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier \"lan_settings.ini\".
 Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante ?
+jeu
 Timeout
 Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour changer le filament appuyez sur DÉCHARGER.
 Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour charger un filament, appuyez sur CHARGER. Pour changer de filament, appuyez sur DÉCHARGER.
+Auj. à
 RÉESSAYER
+mar
 RÉGLER
 Régler
 DÉCHARGER
@@ -215,6 +223,7 @@ Infos Version
 Att. refroidissement
 En attente de temp.
 Avertissement
+mer
 Bienvenue sur l'assistant d'installation pour Original Prusa MINI. Voulez-vous continuer ?
 Bienvenue sur l'assistant de configuration de l'Original Prusa MINI. Voulez-vous continuer ?
 Assistant

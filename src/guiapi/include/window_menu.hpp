@@ -1,6 +1,5 @@
 #pragma once
 
-#include "window_menu.h"
 #include "Iwindow_menu.hpp"
 #include "IWinMenuContainer.hpp"
 #include <stdint.h>
@@ -12,7 +11,7 @@ class window_menu_t : public IWindowMenu {
     uint8_t index;
     void setIndex(uint8_t index); //for ctor (cannot fail)
 public:
-    window_menu_t(IWinMenuContainer *pContainer, uint8_t index = 0);
+    window_menu_t(window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index = 0);
     uint8_t top_index;
     IWinMenuContainer *pContainer;
     bool SetIndex(uint8_t index); //must check container
@@ -22,4 +21,8 @@ public:
     uint8_t GetCount() const;
     IWindowMenuItem *GetItem(uint8_t index) const;
     IWindowMenuItem *GetActiveItem();
+
+protected:
+    virtual void unconditionalDraw() override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };

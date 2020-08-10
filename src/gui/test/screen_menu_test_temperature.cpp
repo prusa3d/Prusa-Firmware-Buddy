@@ -10,7 +10,6 @@
 #include "screen_menu.hpp"
 #include "cmsis_os.h"
 #include "hwio.h"
-#include "screens.h"
 #include "../Marlin/src/module/temperature.h"
 /*
 static const char *period_pwm_range[] = {
@@ -119,20 +118,8 @@ screen_t screen_test_temperature = {
 #include "WindowMenuItems.hpp"
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN>;
-
+/*
 static void init(screen_t *screen) {
     Screen::Create(screen);
 }
-
-screen_t screen_test_temperature = {
-    0,
-    0,
-    init,
-    Screen::CDone,
-    Screen::CDraw,
-    Screen::CEvent,
-    sizeof(Screen), //data_size
-    0,              //pdata
-};
-
-screen_t *const get_scr_test_temperature() { return &screen_test_temperature; }
+*/

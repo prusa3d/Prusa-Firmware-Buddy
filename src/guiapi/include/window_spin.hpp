@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "window.hpp"
 #include "window_numb.hpp"
 
 struct window_spin_t : public window_numb_t {
@@ -16,7 +15,6 @@ struct window_spin_t : public window_numb_t {
     void SetItemIndex(int idx);
     int GetItemIndex() const { return index; }
 
-    void SetValue(float val); //todo erase me, virtual methods does not work yet - stupid memcpy
     void SetMin(float min_val);
     void SetMax(float max_val);
     void SetStep(float val);
@@ -30,14 +28,9 @@ struct window_spin_t : public window_numb_t {
     float GetCount() const { return count; }
     float GetIndex() const { return index; }
 
+    window_spin_t(window_t *parent, rect_ui16_t rect);
+
 protected:
     void setValMinMaxStep(float val, float min_val, float max_val, float step_val);
-    //todo use this virtual methods does not work yet - stupid memcpy
-    //virtual void setValue(float val) override;
+    virtual void setValue(float val) override;
 };
-
-struct window_class_spin_t {
-    window_class_numb_t cls;
-};
-
-extern const window_class_spin_t window_class_spin;

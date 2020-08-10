@@ -3,7 +3,7 @@
 #include "gui_timer.h"
 #include <string.h>
 #include "stm32f4xx_hal.h"
-#include "screen.h"
+#include "ScreenHandler.hpp"
 
 #define GUI_MAX_TIMERS 6
 
@@ -24,14 +24,14 @@ struct gui_timer_t {
             uint8_t f_timer : 3;
         };
     };
-    int16_t win_id;
+    window_t *pWin;
 };
 
 gui_timer_t gui_timers[GUI_MAX_TIMERS];
 int8_t gui_timer_count = -1;
 int8_t gui_menu_timeout_id = -1;
 
-int8_t gui_timer_new(uint8_t timer, uint32_t ms, int16_t win_id) {
+int8_t gui_timer_new(window_t *pWin, uint8_t timer, uint32_t ms) {
     window_t *window;
     uint32_t tick = HAL_GetTick();
     int8_t id = -1;
@@ -49,31 +49,31 @@ int8_t gui_timer_new(uint8_t timer, uint32_t ms, int16_t win_id) {
             gui_timers[id].start = tick;
             gui_timers[id].delay = ms;
             gui_timers[id].f_timer = timer;
-            gui_timers[id].win_id = win_id;
+            gui_timers[id].pWin = pWin;
             gui_timer_count++; //increment count
-            if ((window = window_ptr(win_id)) != 0)
-                window->f_timer = 1; //set timer flag
+            if ((window = Screens::Access()->Get()) != 0)
+                window->SetHasTimer(); //set timer flag
         } else
             id = -1;
     }
     return id;
 }
 
-int8_t gui_timer_create_oneshot(uint32_t ms, int16_t win_id) {
-    return gui_timer_new(GUI_TIMER_1SHT, ms, win_id);
+int8_t gui_timer_create_oneshot(window_t *pWin, uint32_t ms) {
+    return gui_timer_new(pWin, GUI_TIMER_1SHT, ms);
 }
 
-int8_t gui_timer_create_periodical(uint32_t ms, int16_t win_id) {
-    return gui_timer_new(GUI_TIMER_PERI, ms, win_id);
+int8_t gui_timer_create_periodical(window_t *pWin, uint32_t ms) {
+    return gui_timer_new(pWin, GUI_TIMER_PERI, ms);
 }
 
-int8_t gui_timer_create_timeout(uint32_t ms, int16_t win_id) {
-    gui_menu_timeout_id = gui_timer_new(GUI_MENU_TIMEOUT, ms, win_id);
+int8_t gui_timer_create_timeout(window_t *pWin, uint32_t ms) {
+    gui_menu_timeout_id = gui_timer_new(pWin, GUI_MENU_TIMEOUT, ms);
     return gui_menu_timeout_id;
 }
 
-int8_t gui_timer_create_txtroll(uint32_t ms, int16_t win_id) {
-    return gui_timer_new(GUI_TIMER_TXTROLL, ms, win_id);
+int8_t gui_timer_create_txtroll(window_t *pWin, uint32_t ms) {
+    return gui_timer_new(pWin, GUI_TIMER_TXTROLL, ms);
 }
 
 void gui_timer_delete(int8_t id) {
@@ -83,15 +83,15 @@ void gui_timer_delete(int8_t id) {
         if (gui_timers[id].f_timer == GUI_MENU_TIMEOUT)
             gui_menu_timeout_id = -1;
         gui_timers[id].f_timer = GUI_TIMER_NONE;
-        gui_timers[id].win_id = 0;
+        gui_timers[id].pWin = nullptr;
         gui_timer_count--; //decrement count
     }
 }
 
-void gui_timers_delete_by_window_id(int16_t win_id) {
+void gui_timers_delete_by_window(window_t *pWin) {
     int8_t id;
     for (id = 0; id < GUI_MAX_TIMERS; id++)
-        if (gui_timers[id].win_id == win_id)
+        if (gui_timers[id].pWin == pWin)
             gui_timer_delete(id);
 }
 
@@ -110,18 +110,18 @@ uint32_t gui_timers_cycle(void) {
                 if (delay <= diff) {
                     switch (gui_timers[id].f_timer) {
                     case GUI_TIMER_1SHT:
-                        screen_dispatch_event(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, WINDOW_EVENT_TIMER, (void *)(int)id);
                         gui_timers[id].delay = 0;
                         break;
                     case GUI_TIMER_PERI:
-                        screen_dispatch_event(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, WINDOW_EVENT_TIMER, (void *)(int)id);
                         gui_timers[id].start += delay;
                         break;
                     case GUI_MENU_TIMEOUT:
                         gui_timers[id].delay = 0;
                         break;
                     case GUI_TIMER_TXTROLL:
-                        screen_dispatch_event(window_ptr(gui_timers[id].win_id), WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, WINDOW_EVENT_TIMER, (void *)(int)id);
                         gui_timers[id].start = tick;
                         break;
                     }
@@ -140,10 +140,10 @@ void gui_timer_reset(int8_t id) {
         gui_timers[id].start = HAL_GetTick();
 }
 
-void gui_timer_change_txtroll_peri_delay(uint32_t ms, int16_t win_id) {
+void gui_timer_change_txtroll_peri_delay(uint32_t ms, window_t *pWin) {
     if (gui_timer_count != -1) {
         for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++) {
-            if (gui_timers[id].win_id == win_id) {
+            if (gui_timers[id].pWin == pWin) {
                 gui_timers[id].delay = ms;
                 break;
             }
@@ -151,10 +151,10 @@ void gui_timer_change_txtroll_peri_delay(uint32_t ms, int16_t win_id) {
     }
 }
 
-void gui_timer_restart_txtroll(int16_t win_id) {
+void gui_timer_restart_txtroll(window_t *pWin) {
     if (gui_timer_count != -1) {
         for (uint8_t id = 0; id < GUI_MAX_TIMERS; id++) {
-            if (gui_timers[id].win_id == win_id) {
+            if (gui_timers[id].pWin == pWin) {
                 gui_timers[id].start = HAL_GetTick();
                 break;
             }

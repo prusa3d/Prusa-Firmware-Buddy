@@ -10,12 +10,7 @@
 #include "window_text.hpp"
 #include "display_helper.h"
 
-struct window_class_roll_text_t {
-    window_class_t cls;
-};
-
 struct window_roll_text_t : window_text_t {
     txtroll_t roll;
+    window_roll_text_t(window_t *parent, rect_ui16_t rect);
 };
-
-extern const window_class_roll_text_t window_class_roll_text;
