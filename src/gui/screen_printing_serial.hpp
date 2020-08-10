@@ -16,7 +16,7 @@ class screen_printing_serial_data_t : public IScreenPrinting {
     int last_tick;
     enum class connection_state_t { connected,
         disconnect,
-				disconnect_ask,
+        disconnect_ask,
         disconnecting,
         disconnected };
     connection_state_t connection;
