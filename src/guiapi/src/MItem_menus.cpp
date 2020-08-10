@@ -1,5 +1,10 @@
 #include "MItem_menus.hpp"
-#include "screens.h"
+#include "screen_menus.hpp"
+#include "ScreenHandler.hpp"
+#include "screen_sysinf.hpp"
+#include "screen_qr_error.hpp"
+#include "screen_test.hpp"
+#include "screen_messages.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -8,7 +13,7 @@ MI_VERSION_INFO::MI_VERSION_INFO()
 }
 
 void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_version_info()->id);
+    Screens::Access()->Open(GetScreenMenuVersionInfo);
 }
 
 /*****************************************************************************/
@@ -18,7 +23,7 @@ MI_FILAMENT::MI_FILAMENT()
 }
 
 void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_menu_filament()->id);
+    Screens::Access()->Open(GetScreenMenuFilament);
 }
 
 /*****************************************************************************/
@@ -28,7 +33,7 @@ MI_SYS_INFO::MI_SYS_INFO()
 }
 
 void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_sysinfo()->id);
+    Screens::Access()->Open(ScreenFactory::Screen<screen_sysinfo_data_t>);
 }
 
 /*****************************************************************************/
@@ -50,33 +55,13 @@ MI_SUPPORT_disabled::MI_SUPPORT_disabled()
 }
 
 /*****************************************************************************/
-//MI_QR_test
-MI_QR_test::MI_QR_test()
-    : WI_LABEL_t(label, 0, true, false) {
-}
-
-void MI_QR_test::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_qr_error()->id);
-}
-
-/*****************************************************************************/
-//MI_QR_info
-MI_QR_info::MI_QR_info()
-    : WI_LABEL_t(label, 0, true, false) {
-}
-
-void MI_QR_info::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_qr_info()->id);
-}
-
-/*****************************************************************************/
 //MI_TEMPERATURE
 MI_TEMPERATURE::MI_TEMPERATURE()
     : WI_LABEL_t(label, 0, true, false) {
 }
 
 void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_menu_temperature()->id);
+    Screens::Access()->Open(GetScreenMenuTemperature);
 }
 
 /*****************************************************************************/
@@ -86,7 +71,7 @@ MI_MOVE_AXIS::MI_MOVE_AXIS()
 }
 
 void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_menu_move()->id);
+    Screens::Access()->Open(GetScreenMenuMove);
 }
 
 /*****************************************************************************/
@@ -96,7 +81,7 @@ MI_SERVICE::MI_SERVICE()
 }
 
 void MI_SERVICE::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_menu_service()->id);
+    //screen_open(get_scr_menu_service()->id);
 }
 
 /*****************************************************************************/
@@ -106,7 +91,7 @@ MI_TEST::MI_TEST()
 }
 
 void MI_TEST::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_test()->id);
+    Screens::Access()->Open(ScreenFactory::Screen<screen_test_data_t>);
 }
 
 /*****************************************************************************/
@@ -116,7 +101,7 @@ MI_FW_UPDATE::MI_FW_UPDATE()
 }
 
 void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_menu_fw_update()->id);
+    Screens::Access()->Open(GetScreenMenuFwUpdate);
 }
 
 /*****************************************************************************/
@@ -126,7 +111,7 @@ MI_LAN_SETTINGS::MI_LAN_SETTINGS()
 }
 
 void MI_LAN_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_lan_settings()->id);
+    //screen_open(get_scr_lan_settings()->id);
 }
 
 /*****************************************************************************/
@@ -136,7 +121,7 @@ MI_MESSAGES::MI_MESSAGES()
 }
 
 void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_messages()->id);
+    Screens::Access()->Open(ScreenFactory::Screen<screen_messages_data_t>);
 }
 
 /*****************************************************************************/
@@ -146,5 +131,5 @@ MI_LANGUAGE::MI_LANGUAGE()
 }
 
 void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
-    screen_open(get_scr_menu_languages()->id);
+    Screens::Access()->Open(GetScreenMenuLanguages);
 }

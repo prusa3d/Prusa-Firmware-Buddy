@@ -56,6 +56,7 @@ Firmware Version\n
 Erste Schicht Kal.
 ERSTE SCHICHT KALIB.
 Flussfaktor
+Fr.
 FW UPDATE
 FW Update
 Heizbett
@@ -89,7 +90,7 @@ Ladeeinstellungen
 Lade ...
 Zur Düse laden
 Laut
-Stellen Sie sicher, dass das Filament durch den Sensor geführt wird.
+Stellen Sie sicher\ndass das Filament \ndurch den Sensor  \ngeführt wird.
 Material
 Messe Referenz-\nHöhe der Kalibr.\nPunkte
 Menü Timeout
@@ -98,6 +99,7 @@ Bettnivelierung.
 Bettnivellierung fehlgeschlagen?
 MELDUNGEN
 Meldungen
+Mo.
 Achsen Bewegen
 ACHSEN BEWEGEN
 Bewege E
@@ -137,7 +139,7 @@ Vorheizen
 VORHEIZEN zum LADEN
 VORHEIZEN zum ENTLADEN
 Bereite Rammen vor
-WEITER drücken und Filament in den Extruder schieben.
+WEITER drücken und\nFilament in den   \nExtruder schieben.
 Drücken Sie WEITER, um den Selbsttest auszuführen, bei dem nach potenziellen Problemen mit der Montage gesucht wird.
 Drucken
 Drucklüfter
@@ -161,6 +163,7 @@ Fortsetzen
 Fortfahren...
 WIEDERHOLEN
 Rückkehr
+Sa.
 Crash Dump speichern
 Einstellungen speichern
 Suche Bett-\nKalibrierpunkte
@@ -178,11 +181,13 @@ Einstellungen erfolgreich geladen
 Leise
 Ton Modus
 Ton Typ
+Lautstärke
 Geschwindigkeit
 Statische IPv4-Adressen wurden nicht festgelegt.
 Statistik
 STOP
 Stop
+So.
 Support
 System Info
 TEMPERATUR
@@ -195,11 +200,14 @@ Die Einstellungen wurden erfolgreich in der Datei \"lan_settings.ini\" gespeiche
 Die Statusleiste ist am unteren Rand des Bildschirms. Sie enthält Infos über:\n - Düsentemperatur\n - Heizbetttemp.\n - Drucktempo\n - Höhe der Z-Achse\n - Filamenttyp
 Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Bitte Verkabelung und Achsen des Druckers überprüfen und starten Sie dann die XYZ-Kalibrierung erneut.
 Es gab einen Fehler beim Speichern der Einstellungen in der Datei \"lan_settings.ini\".
-Diese Operation kann nicht rückgängig gemacht werden, die aktuelle Konfiguration geht verloren! Sind Sie wirklich sicher, dass Sie den Drucker auf die Werkseinstellungen zurücksetzen wollen?
+Diese Operation kann\nnicht rückgängig ge-\nmacht werden und die\naktuelle Konfiguration\ngeht verloren!\nDen Drucker auf die\nWerkseinstellungen\nzurücksetzen?
+Do.
 Timeout
 Zum Kalibrieren mit derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentwechsel drücken Sie ENTLADEN
 Zum Kalibrieren mit derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentladen, drücken Sie LADEN. Zum Filamentwechsel drücken Sie ENTLADEN
+Heute um
 NEU VERSUCHEN
+Di.
 FEINEINSTELLEN
 Feineinstellung
 ENTLADEN
@@ -213,8 +221,9 @@ Genutztes Filament
 VERSION INFO
 Version Info
 Warte auf Abkühl
-Warte auf Temperatur
+Warte auf\nTemperatur
 Warnung
+Mi.
 Willkommen beim Original Prusa MINI Setup-Assistenten. Möchten Sie fortfahren?
 Willkommen beim Original Prusa MINI Einrichtungsassistenten. Möchten Sie fortfahren?
 Assistent

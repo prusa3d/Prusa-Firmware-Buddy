@@ -11,11 +11,10 @@
 #include "filament.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-#include "screens.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 uint64_t wizard_mask = 0;
-
+#if 0
 static int is_state_in_wizard_mask(wizard_state_t st) {
     return ((((uint64_t)1) << st) & wizard_mask) != 0;
 }
@@ -34,18 +33,16 @@ void screen_wizard_init(screen_t *screen) {
 
     int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 
-    int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.footer_sz, &(pd->frame_footer));
+    int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectFooter, &(pd->frame_footer));
     pd->frame_footer.Hide();
 
-    window_create_ptr(WINDOW_CLS_FRAME, id_frame, gui_defaults.scr_body_sz, &(pd->frame_body));
+    window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectScreenBody, &(pd->frame_body));
     pd->frame_body.Hide();
 
-    window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, gui_defaults.header_sz.h), &(pd->header));
+    window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, GuiDefaults::RectHeader.h), &(pd->header));
     pd->header.SetAlignment(ALIGN_LEFT_BOTTOM);
 
     pd->header.SetText(wizard_get_caption(screen));
-
-    status_footer_init(&(pd->footer), id_footer);
 
     pd->selftest.fans_axis_data.state_fan0 = init_state(_STATE_SELFTEST_FAN0);
     pd->selftest.fans_axis_data.state_fan1 = init_state(_STATE_SELFTEST_FAN1);
@@ -69,12 +66,12 @@ void screen_wizard_init(screen_t *screen) {
     pd->flags = 0;
 
     //backup PID
-    /*pd->Kp_bed = get_Kp_Bed();
-	pd->Ki_bed = get_Ki_Bed();
-	pd->Kd_bed = get_Kd_Bed();
-	pd->Kp_noz = get_Kp_Noz();
-	pd->Ki_noz = get_Ki_Noz();
-	pd->Kd_noz = get_Kd_Noz();*/
+    //pd->Kp_bed = get_Kp_Bed();
+	//pd->Ki_bed = get_Ki_Bed();
+	//pd->Kd_bed = get_Kd_Bed();
+	//pd->Kp_noz = get_Kp_Noz();
+	//pd->Ki_noz = get_Ki_Noz();
+	//pd->Kd_noz = get_Kd_Noz();
     marlin_set_exclusive_mode(1);
 }
 
@@ -115,8 +112,8 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     xyzcalib_screen_t *p_xyzcalib_screen = &(pd->screen_variant.xyzcalib_screen);
     xyzcalib_data_t *p_xyzcalib_data = &(pd->xyzcalib);
 
-    if (pd->frame_footer.flg & WINDOW_FLG_VISIBLE) {
-        status_footer_event(&(pd->footer), window, event, param);
+    if (pd->frame_footer.IsVisible()) {
+        //status_footer_event(&(pd->footer), window, event, param);
     }
 
     //notify first layer calib (needed for baby steps)
@@ -137,31 +134,31 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 pd->state = wizard_state_t(int(pd->state) + 1); //skip disabled steps
             switch (pd->state) {
             case _STATE_START: {
-#ifndef _DEBUG
+    #ifndef _DEBUG
                 if (wizard_msgbox(
-#else
+    #else
                 const char *btns[3] = { "SetDone", "YES", "NO" }; // intentionally not translated, this is a debug code path
                 switch (wizard_msgbox_btns(
-#endif
+    #endif
                         _("Welcome to the     \n"
                           "Original Prusa MINI\n"
                           "setup wizard.      \n"
                           "Would you like to  \n"
                           "continue?           "),
-#ifndef _DEBUG
+    #ifndef _DEBUG
                         MSGBOX_BTN_YESNO, IDR_PNG_icon_pepa)
                     == MSGBOX_RES_YES) {
                     pd->state = _STATE_INIT;
                     pd->frame_footer.Show();
                 } else
-                    screen_close();
-#else
+                    Screens::Access()->Close();
+    #else
                     MSGBOX_BTN_CUSTOM3, IDR_PNG_icon_pepa, btns)) {
                 case MSGBOX_RES_CUSTOM0:
                     eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
                     eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
                     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
-                    screen_close();
+                    Screens::Access()->Close();
                     break;
                 case MSGBOX_RES_CUSTOM1:
                     pd->state = _STATE_INIT;
@@ -169,9 +166,9 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     break;
                 case MSGBOX_RES_CUSTOM2:
                 default:
-                    screen_close();
+                    Screens::Access()->Close();
                 }
-#endif
+    #endif
                 break;
             }
             case _STATE_INIT:
@@ -182,7 +179,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
                 if (fs_get_state() == FS_DISABLED) {
                     fs_enable();
-                    if (fs_wait_inicialized() == FS_NOT_CONNECTED)
+                    if (fs_wait_initialized() == FS_NOT_CONNECTED)
                         fs_disable();
                 }
                 break;
@@ -284,7 +281,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                                   "Then restart       \n"
                                   "the Selftest.      "),
                     MSGBOX_BTN_DONE, 0);
-                screen_close();
+                Screens::Access()->Close();
                 break;
             case _STATE_XYZCALIB_INIT:
                 pd->state = _STATE_XYZCALIB_HOME;
@@ -371,7 +368,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                                   "The XYZ calibration failed to finish. "
                                   "Double-check the printer's wiring and axes, then restart the XYZ calibration."),
                     MSGBOX_BTN_DONE, 0);
-                screen_close();
+                Screens::Access()->Close();
                 break;
             case _STATE_FIRSTLAY_INIT: {
                 pd->state = _STATE_FIRSTLAY_LOAD;
@@ -494,17 +491,17 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                                   "The first layer calibration failed to finish. "
                                   "Double-check the printer's wiring, nozzle and axes, then restart the calibration."),
                     MSGBOX_BTN_DONE, 0);
-                screen_close();
+                Screens::Access()->Close();
                 break;
             case _STATE_FINISH:
                 wizard_msgbox(_(
                                   "Calibration successful!\n"
                                   "Happy printing!"),
                     MSGBOX_BTN_DONE, IDR_PNG_icon_pepa);
-                screen_close();
+                Screens::Access()->Close();
                 break;
             default:
-                screen_close();
+                Screens::Access()->Close();
                 break;
             }
             inside_handler = 0;
@@ -563,19 +560,7 @@ string_view_utf8 wizard_get_caption(screen_t *screen) {
 }
 
 void wizard_done_screen(screen_t *screen) {
-    window_destroy_children(pd->frame_body.id);
+    //window_destroy_children(pd->frame_body.id);
     pd->frame_body.Invalidate();
 }
-
-screen_t screen_wizard = {
-    0,
-    0,
-    screen_wizard_init,
-    screen_wizard_done,
-    screen_wizard_draw,
-    screen_wizard_event,
-    sizeof(screen_wizard_data_t), //data_size
-    0,                            //pdata
-};
-
-screen_t *const get_scr_wizard() { return &screen_wizard; }
+#endif //#if 0

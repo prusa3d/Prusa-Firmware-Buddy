@@ -24,7 +24,7 @@ ANNULLA
 CAMBIO FILAMENTO
 Cambia filamento
 Controllo assi
-Controllo riscaldatori \nhotend e piano riscaldato
+Contr. riscald.\nhotend e piano risc.
 Pulire lastra d'acciaio.
 Congratulazioni! Calibrazione XYZ ok. Assi XY sono perpendicolari.
 Test dei segnali acustici continui\npremere il pulsante per interrompere
@@ -56,6 +56,7 @@ Vers. firmware\n
 Calib. primo layer
 CALIB. PRIMO LAYER
 Fattore di flusso
+Ve
 AGGIORNAMENTO FW
 Aggiornamento FW
 Piano riscaldato
@@ -74,7 +75,7 @@ Informazioni
 Inserimento
 Gli indirizzi IP non sono validi o il file \"lan_settings.ini\" non si trova nella directory principale dell'unità USB.
 Indirizzi IP o parametri non validi o il file \"lan_settings.ini\" non presente nella directory principale del drive USB.
-Il colore è corretto?
+Il colore\nè corretto?
 Il filamento è nell'ingranaggio dell'estrusore?
 La piastra d'acciaio è sul piano riscaldato?
 IMPOSTAZIONI LAN
@@ -87,9 +88,9 @@ CARICA FILAMENTO
 Carica filamento
 Carica impostazioni
 Caricamento...
-Caricamento ugello
+Caricamento \nugello
 Forte
-Accertati che il filamento passi attraverso il sensore.
+Accertati che il  \nfilamento passi   \nattraverso il     \nsensore.          
 Materiale
 Misurazione altezza\ndi riferimento dei\npunti di calibrazione
 Timeout Menu
@@ -98,6 +99,7 @@ Liv. griglia piano.
 Liv. griglia piano non riuscito?
 MESSAGGI
 Messaggi
+Lu
 Sposta asse
 SPOSTA ASSE
 Sposta E
@@ -137,7 +139,7 @@ Preriscalda
 PRERIS. per CARICARE
 PRERISCALDA per SCARICARE
 Preparazione al ram
-Premi CONTINUA e spingi il filamento nell'estrusore.
+Premi CONTINUA e  \nspingi il         \nfilamento         \nnell'estrusore.   
 Premi SUCCESSIVO per avviare l'autotest, per controllare eventuali problemi legati al montaggio.
 Stampa
 Ventola di stampa
@@ -154,13 +156,14 @@ Domanda
 Ramming
 Vuoi davvero disconnettere?
 RISCALDA
-Tempo Ramming
+Tempo Rimanente
 Ristampa
 RESET STAMPANTE
 Riprendi
 Ripresa...
 RIPROVA
 Ritorna
+Sa
 Salvare Crash Dump
 Salva impostazioni
 Ricerca punti\ndi calibrazione piano
@@ -178,11 +181,13 @@ Impostazioni caricate correttamente
 Silenzioso
 Modo suono
 Tipo di suono
+Volume suono
 Velocità
 Indirizzo statico IPv4 non impostato.
 Statistiche
 STOP
 Stop
+Do
 Supporto
 Info di sistema
 TEMPERATURE
@@ -195,11 +200,14 @@ Impostazioni salvate correttamente nel file \"lan_settings.ini\".
 La barra di stato è in basso. Contiene informazioni su:\n - Temp. Ugello\n - Temp. PianoRisc.\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato
 Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quindi ripeti la calibrazione XYZ.
 Errore nel salvataggio delle impostazioni nel file \"lan_settings.ini\".
-Questa operazione non può essere annullata, la configurazione attuale andrà persa! Siete davvero sicuri di ripristinare le impostazioni di fabbrica?
+Questa operazione non può essere annullata, la configurazione attuale andrà persa! Sei sicuro di voler ripristinare le impostazioni di fabbrica?
+Gi
 Timeout
 Per calibrare con il filamento attualmente caricato, premere AVANTI. Per cambiare filamento, premere SCARICA.
 Per calibrare con IL filamento attualmente caricato, premere AVANTI. Per caricare il filamento, premere CARICA. Per cambiare filamento, premere SCARICA.
+Oggi alle
 RIPROVA
+Ma
 REGOLA
 Regola
 SCARICA
@@ -215,6 +223,7 @@ Info versione
 In attesa di raffreddamento
 In attesa di temp.
 Attenzione
+Me
 Benvenuti nella configurazione guidata di Original Prusa MINI. Continuare?
 Benvenuto nella configurazione guidata Original Prusa MINI. Vuoi continuare?
 Configurazione guidata

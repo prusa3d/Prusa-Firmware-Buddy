@@ -6,7 +6,7 @@
 #define OTP_BOARD_REVISION_ADDR 0x1FFF7800
 #define OTP_BOARD_REVISION_SIZE 3
 
-// timestamp (seconds since 1970, litle-endian)
+// timestamp (seconds since 1970, little-endian)
 #define OTP_BOARD_TIME_STAMP_ADDR 0x1FFF7804
 #define OTP_BOARD_TIME_STAMP_SIZE 4
 

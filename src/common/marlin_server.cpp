@@ -386,9 +386,11 @@ void marlin_server_settings_save(void) {
     eeprom_set_var(EEVAR_PID_BED_P, variant8_flt(Temperature::temp_bed.pid.Kp));
     eeprom_set_var(EEVAR_PID_BED_I, variant8_flt(Temperature::temp_bed.pid.Ki));
     eeprom_set_var(EEVAR_PID_BED_D, variant8_flt(Temperature::temp_bed.pid.Kd));
+#if ENABLED(PIDTEMP)
     eeprom_set_var(EEVAR_PID_NOZ_P, variant8_flt(Temperature::temp_hotend[0].pid.Kp));
     eeprom_set_var(EEVAR_PID_NOZ_I, variant8_flt(Temperature::temp_hotend[0].pid.Ki));
     eeprom_set_var(EEVAR_PID_NOZ_D, variant8_flt(Temperature::temp_hotend[0].pid.Kd));
+#endif
 }
 
 void marlin_server_settings_load(void) {
@@ -399,10 +401,12 @@ void marlin_server_settings_load(void) {
     Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
     Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
     Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
+#if ENABLED(PIDTEMP)
     Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
     Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
     Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
     thermalManager.updatePID();
+#endif
 }
 
 void marlin_server_settings_reset(void) {
@@ -661,7 +665,7 @@ static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLI
 }
 
 // send event notification to client - multiple events (called from server thread)
-// returns mask of succesfull sent events
+// returns mask of successfully sent events
 static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
     if (evt_msk == 0)
         return 0;

@@ -2,7 +2,8 @@
 //menu items running tools
 #pragma once
 #include "WindowMenuItems.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
+#include "filament.h"
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");
@@ -259,4 +260,25 @@ class MI_TIMEZONE : public WI_SPIN_I08_t {
 public:
     MI_TIMEZONE();
     virtual void OnClick() override;
+};
+
+class I_MI_Filament : public WI_LABEL_t {
+public:
+    I_MI_Filament(const char *long_name)
+        : WI_LABEL_t(long_name, 0, true, false) {}
+
+protected:
+    void click_at(FILAMENT_t filament_index);
+};
+
+template <FILAMENT_t T>
+class MI_Filament : public I_MI_Filament {
+public:
+    MI_Filament()
+        : I_MI_Filament(filaments[T].long_name) {}
+
+protected:
+    virtual void click(IWindowMenu & /*window_menu*/) override {
+        click_at(T);
+    }
 };

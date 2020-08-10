@@ -2,7 +2,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "display_helper.h"
 #include <algorithm>
 
@@ -35,7 +35,9 @@ template <uint16_t W, uint16_t H, display_init_t *INIT, display_done_t *DONE, di
 class Display {
     // sorted raw array of known utf8 character indices
 public:
+    /// Get width of display
     constexpr static uint16_t GetW() { return W; }
+    /// Get height of display
     constexpr static uint16_t GetH() { return H; }
     constexpr static void Init() { INIT(); }
     constexpr static void Done() { DONE(); }
@@ -74,7 +76,7 @@ public:
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
 
-#include "st7789v.h"
+#include "st7789v.hpp"
 using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_init,
     st7789v_done,

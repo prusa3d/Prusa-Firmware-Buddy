@@ -391,7 +391,7 @@ if(GENERATE_DFU)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include
+  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/lang
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -474,6 +474,7 @@ target_sources(
           src/common/base64_stream_decoder.cpp
           src/common/sound.cpp
           src/common/language_eeprom.cpp
+          src/common/support_utils_lib.cpp
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp
@@ -481,6 +482,7 @@ target_sources(
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
+          src/common/sha256.c
           src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
@@ -502,12 +504,14 @@ target_sources(
           src/lang/translator.cpp
           src/lang/translation_provider_CPUFLASH.cpp
           src/lang/unaccent.cpp
+          src/lang/format_print_will_end.cpp
   )
 
 if(GUI)
   target_sources(
     firmware
     PRIVATE src/gui/screen_menu_filament.cpp
+            src/gui/dialogs/dialog_response.cpp
             src/gui/dialogs/IDialog.cpp
             src/gui/dialogs/DialogFactory.cpp
             src/gui/dialogs/DialogHandler.cpp
@@ -519,6 +523,8 @@ if(GUI)
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
+            src/gui/ScreenFactory.cpp
+            src/gui/ScreenHandler.cpp
             src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
@@ -540,7 +546,6 @@ if(GUI)
             src/gui/screen_menu_move.cpp
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
-            src/gui/screen_qr_info.cpp
             src/gui/screen_qr_error.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
@@ -564,14 +569,13 @@ if(GUI)
             src/gui/screen_menu_preheat.cpp
             src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
+            src/gui/IScreenPrinting.cpp
             src/gui/screen_printing.cpp
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
-            src/gui/screen_PID.cpp
             src/gui/screen_menu_fw_update.cpp
             src/gui/test/screen_menu_test_temperature.cpp
             src/gui/test/screen_mesh_bed_lv.cpp
-            src/guiapi/src/button_draw.cpp
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
@@ -580,13 +584,13 @@ if(GUI)
             src/guiapi/src/gui_timer.cpp
             src/guiapi/src/display_helper.cpp
             src/guiapi/src/window_menu.cpp
-            src/guiapi/src/screen.cpp
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_list.cpp
             src/guiapi/src/jogwheel.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
+            src/guiapi/src/st7789v.cpp
             src/guiapi/src/window_icon.cpp
             src/guiapi/src/window_spin.cpp
             src/guiapi/src/window_text.cpp

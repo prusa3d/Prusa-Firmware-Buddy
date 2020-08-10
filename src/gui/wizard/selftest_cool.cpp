@@ -5,7 +5,7 @@
 #include "marlin_client.h"
 #include "wizard_config.h"
 #include "wizard_ui.h"
-#include "guitypes.h" //font_meas_text
+#include "guitypes.hpp" //font_meas_text
 #include "wizard_progress_bar.h"
 
 //-----------------------------------------------------------------------------
@@ -15,7 +15,7 @@ void _wizard_cool_actualize_temperatures(selftest_cool_data_t *p_data); //screen
 //-----------------------------------------------------------------------------
 //function declarations
 void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, selftest_cool_data_t *p_data) {
-    window_destroy_children(id_body);
+    /*   //window_destroy_children(id_body);
     window_t *pWin = window_ptr(id_body);
     if (pWin != 0) {
         pWin->Show();
@@ -84,6 +84,7 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
 
     window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(100, y, 40, 40), &(p_screen->icon_hourglass));
     p_screen->icon_hourglass.SetIdRes(IDR_PNG_wizard_icon_hourglass);
+    */
 }
 
 void _wizard_cool_actualize_temperatures(selftest_cool_data_t *p_data) {
@@ -151,7 +152,7 @@ int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, self
 
     p_screen->curr_nozzle_temp.SetValue(p_data->temp_noz);
     p_screen->curr_bed_temp.SetValue(p_data->temp_bed);
-    p_screen->progress.color_progress = lower_procentage >= time_progress ? COLOR_LIME : COLOR_ORANGE;
+    p_screen->progress.SetProgressColor(lower_procentage >= time_progress ? COLOR_LIME : COLOR_ORANGE);
     p_screen->progress.SetValue(progress);
     return progress;
 }

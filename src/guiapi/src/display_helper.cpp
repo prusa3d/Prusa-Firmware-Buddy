@@ -1,16 +1,18 @@
 //display_helper.c
 
+#include <algorithm>
+
 #include "display_helper.h"
 #include "display.h"
 #include "gui_timer.h"
 #include "window.hpp"
 #include "gui.hpp"
 #include "../lang/string_view_utf8.hpp"
-#include <algorithm>
 #include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
+#include "ScreenHandler.hpp"
 
-#define UNACCENT
+//#define UNACCENT
 
 #ifdef UNACCENT
 std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
@@ -107,20 +109,20 @@ bool render_textUnicode(rect_ui16_t rc, const unichar *str, const font_t *pf, co
 }
 
 /// Fills space between two rectangles with a color
-/// @r_in must be completely in @r_out, no check is done
-/// TODO move to display
+/// @r_in must be completely in @r_out
 void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, color_t color) {
-    // FIXME add check r_in in r_out; use some guitypes.c function
-
+    if (!rect_in_rect_ui16(*r_in, *r_out))
+        return;
+    /// top
     const rect_ui16_t rc_t = { r_out->x, r_out->y, r_out->w, uint16_t(r_in->y - r_out->y) };
     display::FillRect(rc_t, color);
-
+    /// bottom
     const rect_ui16_t rc_b = { r_out->x, uint16_t(r_in->y + r_in->h), r_out->w, uint16_t((r_out->y + r_out->h) - (r_in->y + r_in->h)) };
     display::FillRect(rc_b, color);
-
+    /// left
     const rect_ui16_t rc_l = { r_out->x, r_in->y, uint16_t(r_in->x - r_out->x), r_in->h };
     display::FillRect(rc_l, color);
-
+    /// right
     const rect_ui16_t rc_r = { uint16_t(r_in->x + r_in->w), r_in->y, uint16_t((r_out->x + r_out->w) - (r_in->x + r_in->w)), r_in->h };
     display::FillRect(rc_r, color);
 }
@@ -143,13 +145,12 @@ int font_line_chars(const font_t *pf, unichar *str, uint16_t line_width) {
         w += char_w;
     }
 
-    while ((n > 0) && ((str[n] != ' ') && (str[n] != '\n'))) {
+    /// find previous non empty (space, new line) char
+    while ((n > 0) && (str[n] != ' ') && (str[n] != '\n')) {
         n--;
     }
 
-    if (n == 0)
-        n = line_width / char_w;
-    return n;
+    return (n != 0) ? n : line_width / char_w;
 }
 
 void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
@@ -161,10 +162,11 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
         // This is safe here, no PNG is being decompressed while rendering a piece of text
         unichar *png_mem_ptr0 = (unichar *)0x10000000; //@@TODO clean up, this is brutal
         unichar *str = png_mem_ptr0;
+        // copy text to buffer
         while ((*str = text.getUtf8Char()) != 0) {
             ++str;
         }
-        str = png_mem_ptr0; // reset the string pointer to its beginning ... and now we can keep the old algoritm almost intact
+        str = png_mem_ptr0; // reset the string pointer to its beginning ... and now we can keep the old algorithm almost intact
 
 #if 0 // old implementation - intentionally kept here for reference and future fixing of this mess :(
         uint16_t x;
@@ -203,33 +205,34 @@ void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font
             display::FillRect(rect_ui16(rc_pad.x, y, rc_pad.w, (rc_pad.y + rc_pad.h - y)), clr0);
             fill_between_rectangles(&rc, &rc_pad, clr0);
         }
-    } else {
-        // 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
-        uint16_t strlen_text = 0;
-        point_ui16_t wh_txt = font_meas_text(font, &text, &strlen_text);
-        if (wh_txt.x && wh_txt.y) {
-            rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
-            rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
-            uint8_t unused_pxls = 0;
-            if (strlen_text * font->w > rc_txt.w) {
-                unused_pxls = rc_txt.w % font->w;
-            }
 
-            const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
-            fill_between_rectangles(&rc, &rect_in, clr0);
-            text.rewind();
-            // 2nd pass reading the string_view_utf8 - draw the text
-            render_text(rc_txt, text, font, clr0, clr1);
-        } else
-            display::FillRect(rc, clr0);
+        return;
     }
+
+    // 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
+    uint16_t strlen_text = 0;
+    point_ui16_t wh_txt = font_meas_text(font, &text, &strlen_text);
+    if (!wh_txt.x || !wh_txt.y) {
+        display::FillRect(rc, clr0);
+        return;
+    }
+
+    rect_ui16_t rc_txt = rect_align_ui16(rc_pad, rect_ui16(0, 0, wh_txt.x, wh_txt.y), flags & ALIGN_MASK);
+    rc_txt = rect_intersect_ui16(rc_pad, rc_txt);
+    const uint8_t unused_pxls = (strlen_text * font->w <= rc_txt.w) ? 0 : rc_txt.w % font->w;
+
+    const rect_ui16_t rect_in = { rc_txt.x, rc_txt.y, uint16_t(rc_txt.w - unused_pxls), rc_txt.h };
+    fill_between_rectangles(&rc, &rect_in, clr0);
+    text.rewind();
+    // 2nd pass reading the string_view_utf8 - draw the text
+    render_text(rc_txt, text, font, clr0, clr1);
 }
 
 void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags) {
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
-        opt_clr = gui_defaults.color_disabled;
+        opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
         opt_clr = clr0 ^ 0xffffffff;
@@ -256,7 +259,7 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
     color_t opt_clr;
     switch ((flags >> 8) & (ROPFN_SWAPBW | ROPFN_DISABLE)) {
     case ROPFN_SWAPBW | ROPFN_DISABLE:
-        opt_clr = gui_defaults.color_disabled;
+        opt_clr = GuiDefaults::ColorDisabled;
         break;
     case ROPFN_SWAPBW:
         opt_clr = clr0 ^ 0xffffffff;
@@ -279,16 +282,12 @@ void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0,
         display::FillRect(rc, opt_clr);
 }
 
-void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
+void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll) {
     if (roll->setup == TXTROLL_SETUP_IDLE)
         return;
-    window_t *pWin = window_ptr(win_id);
-    if (!pWin)
-        return;
-
     switch (roll->phase) {
     case ROLL_SETUP:
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, win_id);
+        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_DELAY_MS, pWin);
         if (roll->setup == TXTROLL_SETUP_DONE)
             roll->phase = ROLL_GO;
         pWin->Invalidate();
@@ -308,7 +307,7 @@ void roll_text_phasing(int16_t win_id, font_t *font, txtroll_t *roll) {
         break;
     case ROLL_STOP:
         roll->phase = ROLL_RESTART;
-        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, win_id);
+        gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, pWin);
         break;
     case ROLL_RESTART:
         roll->setup = TXTROLL_SETUP_INIT;
