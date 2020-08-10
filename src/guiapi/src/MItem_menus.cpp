@@ -3,7 +3,6 @@
 #include "ScreenHandler.hpp"
 #include "screen_sysinf.hpp"
 #include "screen_qr_error.hpp"
-#include "screen_qr_info.hpp"
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
 
@@ -53,26 +52,6 @@ MI_FAIL_STAT_disabled::MI_FAIL_STAT_disabled()
 //MI_SUPPORT_disabled
 MI_SUPPORT_disabled::MI_SUPPORT_disabled()
     : WI_LABEL_t(label, 0, false, false) {
-}
-
-/*****************************************************************************/
-//MI_QR_test
-MI_QR_test::MI_QR_test()
-    : WI_LABEL_t(label, 0, true, false) {
-}
-
-void MI_QR_test::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<screen_qr_error_data_t>);
-}
-
-/*****************************************************************************/
-//MI_QR_info
-MI_QR_info::MI_QR_info()
-    : WI_LABEL_t(label, 0, true, false) {
-}
-
-void MI_QR_info::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<screen_qr_info_data_t>);
 }
 
 /*****************************************************************************/

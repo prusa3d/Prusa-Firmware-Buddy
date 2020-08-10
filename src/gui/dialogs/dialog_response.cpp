@@ -2,7 +2,7 @@
 // texts for all types of response any Dialog can return
 
 #include "dialog_response.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 //todo make some automatic checks names vs enum
 //list of all button types
 

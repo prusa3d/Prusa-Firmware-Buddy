@@ -12,7 +12,7 @@
 #include "fatfs.h"
 #include "dbg.h"
 #include "sound.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include <algorithm>
 #include "ScreenHandler.hpp"
 
@@ -226,7 +226,7 @@ void window_file_list_t::inc(int dif) {
     } else {
         // this 'if' solves a situation with less files than slots on the screen
         if (index < int(ldv->TotalFilesCount() - 1)) {
-            index += 1; // @@TODO dif > 1 pokud bude potreba;
+            index += 1; // @@TODO dif > 1 if needed
             repaint = true;
         } else {
             Sound_Play(eSOUND_TYPE_BlindAlert);

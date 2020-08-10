@@ -10,7 +10,7 @@
 #include "gui.hpp"
 #include "dbg.h"
 #include "stm32f4xx_hal.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 
 #define POPUP_DELAY_MS 1000

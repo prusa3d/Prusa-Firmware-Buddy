@@ -2,11 +2,13 @@
 
 #include <inttypes.h>
 #include <stdlib.h>
+#include <algorithm>
+
 #include "cmsis_os.h"
 #include "dbg.h"
 #include "gui.hpp"
 #include "resource.h"
-#include <algorithm>
+#include "display_helper.h"
 
 typedef void(test_display_t)(uint16_t cnt);
 
@@ -178,26 +180,11 @@ void spectral_color(float l, float *pr, float *pg, float *pb) {
 }
 
 void test_display_fade(uint16_t cnt) {
-    int b;
-    color_t clr;
-    int i;
-    for (i = 0; i < cnt; i++) {
-        b = 255 * i / (cnt - 1);
-        clr = color_rgb(b, b, b);
-        display::Clear(clr);
+    const float step = 255.0f / (cnt - 1);
+    for (uint32_t i = 0; i < cnt; ++i) {
+        const uint8_t b = uint8_t(i * step);
+        display::Clear(color_rgb(b, b, b));
     }
-}
-
-void display_fill_rect_sub_rect(rect_ui16_t rc, rect_ui16_t rc1, color_t clr) {
-    rect_ui16_t rc_t = { rc.x, rc.y, rc.w, uint16_t(rc1.y - rc.y) };
-    rect_ui16_t rc_b = { rc.x, uint16_t(rc1.y + rc1.h), rc.w, uint16_t((rc.y + rc.h) - (rc1.y + rc1.h)) };
-    rect_ui16_t rc_l = { rc.x, rc.y, uint16_t(rc1.x - rc.x), rc.h };
-    rect_ui16_t rc_r = { uint16_t(rc1.x + rc1.w), rc.y, uint16_t((rc.x + rc.w) - (rc1.x + rc1.w)), rc.h };
-    //display::FillRect(rc, clr);
-    display::FillRect(rc_t, clr);
-    display::FillRect(rc_b, clr);
-    display::FillRect(rc_l, clr);
-    display::FillRect(rc_r, clr);
 }
 
 void test_display_rgbcolors(uint16_t cnt) {
@@ -217,37 +204,26 @@ void test_display_rgbcolors(uint16_t cnt) {
         "MAROON", "OLIVE", "GREEN",
         "PURPLE", "TEAL", "NAVY"
     };
-    int count = sizeof(colors) / sizeof(color_t);
+    const uint16_t count = sizeof(colors) / sizeof(color_t);
     font_t *font = resource_font(IDR_FNT_NORMAL);
-    int item_height = 20;
-    int i;
-    int n;
-    for (n = 0; n < cnt; n++)
-        for (i = 0; i < count; i++) {
-            int chars = strlen(names[i]);
-            int text_w = chars * font->w;
-            int text_h = font->h;
+    const uint8_t item_height = 20;
+    for (int n = 0; n < cnt; n++)
+        for (int i = 0; i < count; i++) {
             rect_ui16_t rc_item = rect_ui16(0, item_height * i, 240, item_height);
-            rect_ui16_t rc_text = rect_ui16(10, item_height * i + 1, text_w, text_h);
+            rect_ui16_t rc_text = rect_ui16(10, item_height * i + 1, strlen(names[i]) * font->w, font->h);
             //display::FillRect(rc_item, colors[i]);
-            display_fill_rect_sub_rect(rc_item, rc_text, colors[i]);
+            fill_between_rectangles(&rc_item, &rc_text, colors[i]);
             display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
         }
 }
 
 void test_display_spectrum(uint16_t cnt) {
-    //	int i;
-    int y;
-    float l;
-    float r;
-    float g;
-    float b;
-    color_t clr;
+    float r, g, b;
     for (int n = 0; n < cnt; ++n)
-        for (y = 0; y < display::GetH(); ++y) {
-            l = 400.0F + (3.0F * y / 3.2F);
+        for (int y = 0; y < display::GetH(); ++y) {
+            const float l = 400.0F + (3.0F * y / 3.2F);
             spectral_color(l, &r, &g, &b);
-            clr = color_rgb(255 * r, 255 * g, 255 * b);
+            const color_t clr = color_rgb(255 * r, 255 * g, 255 * b);
             display::DrawLine(point_ui16(0, y), point_ui16(display::GetW() - 1, y), clr);
         }
 }

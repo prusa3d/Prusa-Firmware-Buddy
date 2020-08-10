@@ -23,7 +23,7 @@
 #include "screen_lan_settings.h"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 extern int HAL_IWDG_Reset;
 
@@ -75,7 +75,7 @@ extern "C" void gui_run(void) {
     jogwheel_config = jogwheel_cfg;
     gui_init();
 
-    // select jogwheel type by meassured 'reset delay'
+    // select jogwheel type by measured 'reset delay'
     // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
     // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
     if (st7789v_reset_delay > 1000) // threshold value is 1000

@@ -6,7 +6,7 @@
  */
 #include "window_dlg_wait.hpp"
 #include "gui.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 
 #define ANIMATION_MILISEC_DELAY 500 // number of milisecond for frame change

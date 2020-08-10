@@ -6,7 +6,7 @@
 #include "marlin_server.h"
 #include "guitypes.hpp"    //font_meas_text
 #include "stm32f4xx_hal.h" //HAL_GetTick
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
 

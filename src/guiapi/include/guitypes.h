@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 //alignment constants
 #define ALIGN_LEFT          0x00
