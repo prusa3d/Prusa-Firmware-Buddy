@@ -59,7 +59,7 @@ printing_state_t screen_printing_data_t::GetState() const {
 }
 
 void screen_printing_data_t::tuneAction() {
-    if (btn_tune.ico.IsBWSwapped()) {
+    if (btn_tune.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -73,7 +73,7 @@ void screen_printing_data_t::tuneAction() {
 }
 
 void screen_printing_data_t::pauseAction() {
-    if (btn_pause.ico.IsBWSwapped()) {
+    if (btn_pause.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -92,7 +92,7 @@ void screen_printing_data_t::pauseAction() {
 }
 
 void screen_printing_data_t::stopAction() {
-    if (btn_stop.ico.IsBWSwapped()) {
+    if (btn_stop.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -295,7 +295,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
 }
 
 void screen_printing_data_t::disable_tune_button() {
-    btn_tune.ico.SwapBW();
+    btn_tune.ico.Shadow();
     btn_tune.ico.Disable(); // can't be focused
 
     // move to reprint when tune is focused
@@ -306,7 +306,7 @@ void screen_printing_data_t::disable_tune_button() {
 }
 
 void screen_printing_data_t::enable_tune_button() {
-    btn_tune.ico.UnswapBW();
+    btn_tune.ico.Unshadow();
     btn_tune.ico.Enable(); // can be focused
     btn_tune.ico.Invalidate();
 }
@@ -442,16 +442,16 @@ void screen_printing_data_t::set_icon_and_label(item_id_t id_to_set, window_icon
 }
 
 void screen_printing_data_t::enable_button(window_icon_t *p_button) {
-    if (p_button->IsBWSwapped()) {
-        p_button->UnswapBW();
+    if (p_button->IsShadowed()) {
+        p_button->Unshadow();
         p_button->Enable();
         p_button->Invalidate();
     }
 }
 
 void screen_printing_data_t::disable_button(window_icon_t *p_button) {
-    if (!p_button->IsBWSwapped()) {
-        p_button->SwapBW();
+    if (!p_button->IsShadowed()) {
+        p_button->Shadow();
         p_button->Disable();
         p_button->Invalidate();
     }

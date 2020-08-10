@@ -21,14 +21,14 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
 
     octo_icon.SetIdRes(IDR_PNG_serial_printing);
     octo_icon.Disable();
-    octo_icon.UnswapBW();
+    octo_icon.Unshadow();
 
     setIconAndLabel(btn_stop, res_disconnect);
 }
 
 void screen_printing_serial_data_t::DisableButton(btn &b) {
-    if (!b.ico.IsBWSwapped()) {
-        b.ico.SwapBW();
+    if (!b.ico.IsShadowed()) {
+        b.ico.Shadow();
         b.ico.Invalidate();
     }
 }
