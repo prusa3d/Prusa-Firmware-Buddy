@@ -210,3 +210,16 @@ public:
         return s;
     }
 };
+
+struct string_view_ut8_adapter {
+    string_view_ut8_adapter(string_view_utf8 *v) {
+        o_ = v;
+    }
+
+    unichar get() {
+        return o_->getUtf8Char();
+    }
+
+private:
+    string_view_utf8 *o_;
+};
