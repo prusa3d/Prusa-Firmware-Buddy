@@ -78,8 +78,19 @@ void window_frame_t::draw() {
 
     window_t *ptr = first;
     while (ptr) {
-        if (setChildrenInvalid)
-            ptr->Invalidate();
+        if (setChildrenInvalid) {
+            if (ptr->IsVisible()) {
+                ptr->Invalidate();
+            } else {
+                //if hidden window has no intersection with other windows, it must be drawn (back color)
+                if (!GetFirstEnabledSubWin(ptr->rect)) {
+                    ptr->Invalidate();
+                } else {
+                    ptr->Validate();
+                }
+            }
+        }
+
         ptr->Draw();
         ptr = ptr->GetNext();
     }
@@ -166,48 +177,48 @@ void window_frame_t::validate(rect_ui16_t validation_rect) {
     }
 }
 
-window_t *window_frame_t::GetNextSubWin(window_t *win) const {
+window_t *window_frame_t::GetNextSubWin(window_t *win, rect_ui16_t rect) const {
     if (!win)
         return nullptr;
     if (win->GetParent() != this)
         return nullptr;
-    return win->GetNext();
+    return win->GetNext(); //todo test rect intersection
 }
 
-window_t *window_frame_t::GetPrevSubWin(window_t *win) const {
+window_t *window_frame_t::GetPrevSubWin(window_t *win, rect_ui16_t rect) const {
     if (!win)
         return nullptr;
     if (win->GetParent() != this)
         return nullptr;
     window_t *tmpWin = first;
-    while (tmpWin && tmpWin->GetNext() != win) {
-        tmpWin = tmpWin->GetNext();
+    while (tmpWin && GetNextSubWin(tmpWin, rect) != win) {
+        tmpWin = GetNextSubWin(tmpWin, rect);
     }
     return tmpWin;
 }
 
-window_t *window_frame_t::GetNextEnabledSubWin(window_t *win) const {
+window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, rect_ui16_t rect) const {
     if (!win)
         return nullptr;
     if (win->GetParent() != this)
         return nullptr;
-    return win->GetNextEnabled();
+    return win->GetNextEnabled(); //todo test rect intersection
 }
 
-window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win) const {
-    window_t *tmpWin = GetPrevSubWin(win);
+window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, rect_ui16_t rect) const {
+    window_t *tmpWin = GetPrevSubWin(win, rect);
     while (tmpWin && !tmpWin->IsEnabled()) {
-        tmpWin = GetPrevSubWin(tmpWin);
+        tmpWin = GetPrevSubWin(tmpWin, rect);
     }
     return tmpWin;
 }
 
-window_t *window_frame_t::GetFirstEnabledSubWin() const {
+window_t *window_frame_t::GetFirstEnabledSubWin(rect_ui16_t rect) const {
     if (!first)
         return nullptr;
-    if (first->IsEnabled())
+    if (first->IsEnabled()) //todo test rect intersection
         return first;
-    return GetNextEnabledSubWin(first);
+    return GetNextEnabledSubWin(first, rect);
 }
 
 bool window_frame_t::IsChildCaptured() {
