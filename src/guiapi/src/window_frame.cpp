@@ -79,15 +79,11 @@ void window_frame_t::draw() {
     window_t *ptr = first;
     while (ptr) {
         if (setChildrenInvalid) {
-            if (ptr->IsVisible()) {
+            //if hidden window has no intersection with other windows, it must be drawn (back color)
+            if (ptr->IsVisible() || !GetFirstEnabledSubWin(ptr->rect)) {
                 ptr->Invalidate();
             } else {
-                //if hidden window has no intersection with other windows, it must be drawn (back color)
-                if (!GetFirstEnabledSubWin(ptr->rect)) {
-                    ptr->Invalidate();
-                } else {
-                    ptr->Validate();
-                }
+                ptr->Validate();
             }
         }
 
