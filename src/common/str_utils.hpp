@@ -25,15 +25,29 @@ int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n = 1, const ui
 int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, size_t times = 1);
 int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width);
 
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Emulate font with the constant character width
+///
 struct monospace {
     const std::uint16_t w = 12;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Determine the width of the character rwadn by specific font
+///
 struct width {
     template <class U>
     static constexpr size_t value(U const &c) { return c->w; };
 };
 
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Memory storage
+///
+/// @details For testing purpose
+///
 struct memory_source {
     using value_type = char;
 
@@ -60,6 +74,55 @@ private:
     mutable size_t index_;
 };
 
+using word_buffer = std::array<std::uint32_t, 32>;
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Global ram word storage
+///
+/// @details 32 bytes length
+///
+struct ram_buffer {
+    using value_type = word_buffer::value_type;
+
+    ram_buffer();
+
+    value_type &operator[](size_t index) {
+        return (*p_word_buffer_)[index];
+    };
+
+private:
+    word_buffer *p_word_buffer_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Stream reader without breaking the lines
+///
+struct no_wrap {
+    using value_type = std::uint32_t;
+
+    template <typename source>
+    value_type character(source &s) {
+        return s.getUtf8Char();
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Template class which modify input stream of the UTF-8 characters and
+/// appending the new lines (\n) in case that the word cannot be drawn into the
+/// specific rectangle
+///
+/// @details Based on memory policy and font type modify the input stream such a way
+/// that storing the word to the buffer and determine if the word can be fit into the
+/// specific rectangle. In case that the word potencinally overflow the rectangle it
+/// breaks the line by return the \n character followed by the word. Number of characters
+/// in the line is calculated as a sum of character's width already in the line.
+///
+/// @tparam memory_buffer Buffer storage policy
+/// @tparam font_type Font
+///
 template <
     typename memory_buffer,
     typename font_type>
@@ -106,7 +169,7 @@ private:
         std::uint8_t i = 0;
         std::uint16_t word_width = 0;
         value_type c = 0;
-        while ((c = s.get()) != static_cast<value_type>(CHAR_SPACE)) {
+        while ((c = s.getUtf8Char()) != static_cast<value_type>(CHAR_SPACE)) {
             word_width += width::value(font_);
             if (c == static_cast<value_type>(CHAR_NBSP)) {
                 buffer_[i++] = static_cast<value_type>(CHAR_SPACE);
