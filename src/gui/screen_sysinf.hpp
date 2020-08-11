@@ -20,6 +20,10 @@ struct screen_sysinfo_data_t : public window_frame_t {
 #ifdef DEBUG_NTP
     window_text_t textDateTime;
 #endif
+    window_text_t textFan0_RPM;
+    window_numb_t textFan0_RPM_val;
+    window_text_t textFan1_RPM;
+    window_numb_t textFan1_RPM_val;
     window_text_t textExit;
 
 public:
