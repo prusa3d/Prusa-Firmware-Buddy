@@ -4,6 +4,7 @@
 #include "DialogFactory.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
+#include "screen_printing.hpp"
 
 //*****************************************************************************
 //method definitions
@@ -20,6 +21,11 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
         if (IScreenPrinting::CanOpen()) {
             Screens::Access()->CloseAll();
             Screens::Access()->Open(ScreenFactory::Screen<screen_splash_data_t>);
+        }
+    } else if (dialog == ClientFSM::Printing) {
+        if (IScreenPrinting::CanOpen()) {
+            Screens::Access()->CloseAll();
+            Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
         }
     } else {
         ptr = dialog_ctors[size_t(dialog)](data);

@@ -429,6 +429,7 @@ void marlin_server_print_start(const char *filename) {
         _set_notify_change(MARLIN_VAR_FILENAME);
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
+        fsm_create(ClientFSM::Printing, 0);
     }
 }
 
@@ -447,7 +448,8 @@ void marlin_server_print_pause(void) {
 void marlin_server_print_resume(void) {
     if (marlin_server.print_state == mpsPaused) {
         marlin_server.print_state = mpsResuming_Begin;
-    }
+    } else
+        marlin_server_print_start(nullptr);
 }
 
 void marlin_server_print_reheat_start(void) {
@@ -568,6 +570,7 @@ static void _server_print_loop(void) {
 #endif //Z_ALWAYS_ON
             disable_e_steppers();
             marlin_server.print_state = mpsAborted;
+            fsm_destroy(ClientFSM::Printing);
         }
         break;
     case mpsFinishing_WaitIdle:
@@ -579,6 +582,7 @@ static void _server_print_loop(void) {
     case mpsFinishing_ParkHead:
         if (planner.movesplanned() == 0) {
             marlin_server.print_state = mpsFinished;
+            fsm_destroy(ClientFSM::Printing);
         }
         break;
     default:
