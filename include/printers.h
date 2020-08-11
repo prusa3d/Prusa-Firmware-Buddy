@@ -8,6 +8,8 @@
 
 //!@}
 
-#ifndef PRINTER_TYPE
-    #error "macro PRINTER_TYPE not defined"
+#if defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_MINI
+    #define PRINTER_MODEL "MINI"
+#else
+    #error "Unknown printer type"
 #endif
