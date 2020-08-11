@@ -261,7 +261,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     /// draw "Scan me" text
-    static const char *scan_me_text = "Scan me for details";
+    static const char *scan_me_text = N_("Scan me for details");
     display::DrawText(rect_ui16(52, 142, display::GetW() - 52, display::GetH() - 142), string_view_utf8::MakeCPUFLASH((const uint8_t *)scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
     /// draw arrow
