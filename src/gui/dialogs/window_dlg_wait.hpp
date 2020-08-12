@@ -28,7 +28,7 @@ public:
 *
 * \param [in] progress_callback - function callback that returns current progress
 *
-* \param [in] comp_flag - stores which compoments to draw (DLG_W8_DRAW_HOURGLASS | DLG_W8_DRAW_FRANE | DLG_W8_DRAW_PROGRESS)
+* \param [in] comp_flag - stores which components to draw (DLG_W8_DRAW_HOURGLASS | DLG_W8_DRAW_FRAME | DLG_W8_DRAW_PROGRESS)
 *
 * It creates inner gui_loop cycle that keeps GUI running while waiting.
 */
