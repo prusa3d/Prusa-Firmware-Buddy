@@ -22,8 +22,6 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     octo_icon.SetIdRes(IDR_PNG_serial_printing);
     octo_icon.Disable();
     octo_icon.UnswapBW();
-
-    // setIconAndLabel(btn_stop, res_disconnect);
 }
 
 void screen_printing_serial_data_t::DisableButton(btn &b) {

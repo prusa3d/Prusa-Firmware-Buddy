@@ -26,7 +26,6 @@ public:
 
 private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
-    /* virtual void unconditionalDraw() override; */
     void DisableButton(btn &b);
 
     virtual void stopAction() override;
