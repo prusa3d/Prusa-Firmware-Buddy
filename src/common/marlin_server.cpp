@@ -1117,7 +1117,7 @@ static int _process_server_request(const char *request) {
     } else if (sscanf(request, "!fsm_r %d", &ival) == 1) { //finit state machine response
         ClientResponseHandler::SetResponse(ival);
         processed = 1;
-    } else if (sscanf(request, "!event_msk %08x %08x", msk32 + 0, msk32 + 1)) {
+    } else if (sscanf(request, "!event_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         // Send MARLIN_EVT_MediaInserted event if media currently inserted
         // This is temporary solution, MARLIN_EVT_MediaInserted and MARLIN_EVT_MediaRemoved events are replaced
@@ -1126,7 +1126,7 @@ static int _process_server_request(const char *request) {
         if ((marlin_server.notify_events[client_id] & MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted)) && marlin_server.vars.media_inserted)
             marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted);
         processed = 1;
-    } else if (sscanf(request, "!change_msk %08x %08x", msk32 + 0, msk32 + 1)) {
+    } else if (sscanf(request, "!change_msk %08lx %08lx", msk32 + 0, msk32 + 1)) {
         marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         processed = 1;
