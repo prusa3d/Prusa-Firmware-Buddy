@@ -329,7 +329,7 @@ int putslave_do_cmd_a_btim(uartslave_t *pslave, char *pstr) {
     uint32_t *ptr = (uint32_t *)OTP_BOARD_TIME_STAMP_ADDR; // OTP memory - time stamp
     uint32_t time_stamp;
     if (sys_flash_is_empty(ptr, OTP_BOARD_TIME_STAMP_SIZE)) {
-        if (sscanf(pstr, "%lu", &time_stamp) != 1)
+        if (sscanf(pstr, "%u", &time_stamp) != 1)
             return UARTSLAVE_ERR_SYN;
         //TODO: parameter range check
         if (sys_flash_write(ptr, &time_stamp, OTP_BOARD_TIME_STAMP_SIZE) != OTP_BOARD_TIME_STAMP_SIZE)
