@@ -16,7 +16,8 @@ static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
 }
 
 IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, rect_ui16_t rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
-    : window_menu_t(parent, rect, nullptr)
+    : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
+    , menu(this, rect, nullptr)
     , header(this)
     , help(this, helper_lines > 0 ? rect_ui16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - get_help_h(helper_lines, font_id), win_w, get_help_h(helper_lines, font_id)) : rect_ui16(0, 0, 0, 0))
     , footer(this) {
@@ -38,9 +39,9 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, rect_ui16_t r
     FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
     Enable();
-    if (!IsDialog())  // dialog needs to save actual value of caption first
-        SetCapture(); // set capture to list
-    SetFocus();
+    if (!IsDialog())       // dialog needs to save actual value of caption first
+        menu.SetCapture(); // set capture to list
+    menu.SetFocus();
 
     if (helper_lines > 0) {
         help.font = resource_font(font_id);
@@ -49,5 +50,5 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, rect_ui16_t r
 
 void IScreenMenu::windowEvent(window_t *sender, uint8_t event, void *param) {
     header.EventClr();
-    window_menu_t::windowEvent(sender, event, param);
+    window_frame_t::windowEvent(sender, event, param);
 }

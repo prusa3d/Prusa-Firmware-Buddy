@@ -24,10 +24,11 @@ constexpr static const HelperConfig HelpLines_None = { 0, IDR_FNT_SPECIAL };
 constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
 
 //parent to not repeat code in templates
-class IScreenMenu : public window_menu_t {
+class IScreenMenu : public window_frame_t {
 protected:
     constexpr static const char *no_labelS = "MISSING";
     static string_view_utf8 no_label;
+    window_menu_t menu;
     window_header_t header;
     window_text_t help;
     status_footer_t footer;
@@ -61,6 +62,6 @@ public:
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
 ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label, window_t *parent, rect_ui16_t rect)
     : IScreenMenu(parent, label, rect, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
-    pContainer = &container;
-    GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
+    menu.pContainer = &container;
+    menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 }

@@ -6,13 +6,14 @@
 #include "IWindowMenuItem.hpp"
 
 IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
-    : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
+    : window_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , color_disabled(GuiDefaults::ColorDisabled)
     , font(GuiDefaults::Font)
     , padding { 6, 6, 6, 6 }
     , icon_w(25)
     , alignment(GuiDefaults::Alignment) {
+    Enable();
 }
 
 window_menu_t::window_menu_t(window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index)
