@@ -13,7 +13,7 @@ void window_icon_init(window_icon_t *window) {
 
 void window_icon_draw(window_icon_t *window) {
     if (window->IsInvalid()) {
-        //point_ui16_t pt = {window->rect.x, window->rect.y};
+        //point_ui16_t pt = {window->rect.Left(), window->rect.Top()};
         //display::DrawIcon(pt, window->id_res, window->color_back, (window->IsFocused())?ROPFN_SWAPBW:0);
         uint8_t ropfn = 0;
         if ((window->IsShadowed())) { // that could not be set, but what if
@@ -35,25 +35,22 @@ void window_icon_t::SetIdRes(int16_t id) {
     Invalidate();
 }
 
-window_icon_t::window_icon_t(window_t *parent, rect_ui16_t rect, uint16_t id_res, is_closed_on_click_t close)
+window_icon_t::window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close)
     : window_t(parent, rect, is_dialog_t::no, close)
     , id_res(id_res)
     , alignment(ALIGN_CENTER) {
 }
 //Icon rect is increased by padding, icon is centered inside it
-window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_ui16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
+window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : window_icon_t(
         parent,
         [pt, id_res, padding] {
-            rect_ui16_t ret = { 0, 0, 0, 0 };
             size_ui16_t sz = CalculateMinimalSize(id_res);
-            if (sz.h && sz.w) {
-                ret.x = pt.x;
-                ret.y = pt.y;
-                ret.w = sz.w + padding.left + padding.right;
-                ret.h = sz.h + padding.top + padding.bottom;
-            }
-            return ret;
+            if (!(sz.h && sz.w))
+                return Rect16();
+            return Rect16(pt,
+                sz.w + padding.left + padding.right,
+                sz.h + padding.top + padding.bottom);
         }(),
         id_res, close) {
 }
@@ -87,7 +84,7 @@ size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
 
 /*****************************************************************************/
 //window_icon_button_t
-window_icon_button_t::window_icon_button_t(window_t *parent, rect_ui16_t rect, uint16_t id_res, ButtonCallback cb)
+window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb)
     : window_icon_t(parent, rect, id_res)
     , callback(cb) {
     Enable();
@@ -103,7 +100,7 @@ void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *pa
 
 /*****************************************************************************/
 //window_icon_hourglass_t
-window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_ui16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
+window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : window_icon_t(parent, IDR_PNG_wizard_icon_hourglass, pt, padding, close)
     , start_time(HAL_GetTick())
     , animation_color(COLOR_ORANGE)
@@ -184,7 +181,7 @@ void window_icon_hourglass_t::unconditionalDraw() {
     }
 
     for (auto it = begin; it != end; ++it) {
-        display::DrawLine(point_ui16(rect.x + it->first.x, rect.y + it->first.y), point_ui16(rect.x + it->last.x, rect.y + it->last.y), it->color);
+        display::DrawLine(point_ui16(rect.Left() + it->first.x, rect.Top() + it->first.y), point_ui16(rect.Left() + it->last.x, rect.Top() + it->last.y), it->color);
     }
 }
 

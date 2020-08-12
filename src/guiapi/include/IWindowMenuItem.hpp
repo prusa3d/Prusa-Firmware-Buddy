@@ -26,12 +26,12 @@ private:
     txtroll_t roll;
 
 protected:
-    virtual void printIcon(IWindowMenu &window_menu, rect_ui16_t rect, uint8_t swap, color_t color_back) const;
-    void printLabel_into_rect(rect_ui16_t rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
-    virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const;
+    virtual void printIcon(IWindowMenu &window_menu, Rect16 rect, uint8_t swap, color_t color_back) const;
+    void printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const;
+    virtual void printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const;
     virtual void click(IWindowMenu &window_menu) = 0;
-    virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const;
-    static rect_ui16_t getIconRect(IWindowMenu &window_menu, rect_ui16_t rect);
+    virtual Rect16 getRollingRect(IWindowMenu &window_menu, Rect16 rect) const;
+    static Rect16 getIconRect(IWindowMenu &window_menu, Rect16 rect);
 
 public:
     IWindowMenuItem(const char *label, uint16_t id_icon, bool enabled = true, bool hidden = false);
@@ -55,7 +55,7 @@ public:
     /// to be displayed to the user based on his language settings.
     string_view_utf8 GetLocalizedLabel() const;
 
-    void Print(IWindowMenu &window_menu, rect_ui16_t rect) const;
+    void Print(IWindowMenu &window_menu, Rect16 rect) const;
 
     bool IsSelected() const { return selected; }
     virtual bool Change(int dif) = 0;
@@ -63,7 +63,7 @@ public:
     bool Decrement(uint8_t dif) { return Change(-int(dif)); }
     void Click(IWindowMenu &window_menu);
     void Roll(IWindowMenu &window_menu);
-    void RollInit(IWindowMenu &window_menu, rect_ui16_t rect);
+    void RollInit(IWindowMenu &window_menu, Rect16 rect);
     bool RollNeedInit() { return roll.setup == TXTROLL_SETUP_INIT; }
     virtual ~IWindowMenuItem() = default;
 };

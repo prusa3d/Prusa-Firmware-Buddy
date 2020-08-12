@@ -43,19 +43,19 @@ screen_home_data_t::screen_home_data_t()
     : window_frame_t()
     , header(this)
     , footer(this)
-    , logo(this, rect_ui16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
-    , w_buttons { { this, { 0 }, 0, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuPreheat); } },
-        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
-        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
-        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
-        { this, { 0 }, 0, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
-    , w_labels { { this, { 0 } },
-        { this, { 0 } },
-        { this, { 0 } },
-        { this, { 0 } },
-        { this, { 0 } },
-        { this, { 0 } } }
+    , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
+    , w_buttons { { this, Rect16(), 0, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
+        { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuPreheat); } },
+        { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
+        { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
+        { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
+        { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
+    , w_labels { { this, Rect16() },
+        { this, Rect16() },
+        { this, Rect16() },
+        { this, Rect16() },
+        { this, Rect16() },
+        { this, Rect16() } }
 
 {
     // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.
@@ -69,10 +69,10 @@ screen_home_data_t::screen_home_data_t()
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {
             const size_t i = row * 3 + col;
-            w_buttons[i].rect = rect_ui16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
+            w_buttons[i].rect = Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64);
             w_buttons[i].SetIdRes(icons[i]);
 
-            w_labels[i].rect = rect_ui16(80 * col, 152 + (15 + 64) * row, 80, 14);
+            w_labels[i].rect = Rect16(80 * col, 152 + (15 + 64) * row, 80, 14);
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
             w_labels[i].SetAlignment(ALIGN_CENTER);
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
@@ -88,7 +88,7 @@ void screen_home_data_t::draw() {
     window_frame_t::draw();
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
-    display::DrawText(rect_ui16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+    display::DrawText(Rect16(180, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
 }
 

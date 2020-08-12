@@ -23,26 +23,33 @@ typedef enum {
 } TXTROLL_PHASE_t;
 
 struct txtroll_t {
-    rect_ui16_t rect;
+    Rect16 rect;
     uint16_t progress;
     uint16_t count;
     uint8_t phase;
     uint8_t setup;
     uint8_t px_cd;
+    constexpr txtroll_t()
+        //rect has default ctor
+        : progress(0)
+        , count(0)
+        , phase(0)
+        , setup(0)
+        , px_cd(0) {}
 };
 
-extern bool render_text(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
+extern bool render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 /// FIXME add \param flags documentation
-extern void render_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags);
-extern void render_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
-extern void render_unswapable_icon_align(rect_ui16_t rc, uint16_t id_res, color_t clr0, uint16_t flags);
+extern void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags);
+extern void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, uint16_t flags);
+extern void render_unswapable_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, uint16_t flags);
 
 extern void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll);
 
-extern void roll_init(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);
-extern void render_roll_text_align(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
+extern void roll_init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);
+extern void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
 extern point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars);
 //extern int font_line_chars(const font_t *pf, string_view_utf8 str, uint16_t line_width);
-extern uint16_t text_rolls_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *pf);
-extern rect_ui16_t roll_text_rect_meas(rect_ui16_t rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
-extern void fill_between_rectangles(const rect_ui16_t *r_out, const rect_ui16_t *r_in, color_t color);
+extern uint16_t text_rolls_meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
+extern Rect16 roll_text_rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);
+extern void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t color);

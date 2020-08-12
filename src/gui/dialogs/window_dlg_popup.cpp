@@ -17,7 +17,7 @@
 
 extern msg_stack_t msg_stack;
 
-window_dlg_popup_t::window_dlg_popup_t(window_t *parent, rect_ui16_t rect)
+window_dlg_popup_t::window_dlg_popup_t(window_t *parent, Rect16 rect)
     : window_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
@@ -25,15 +25,15 @@ window_dlg_popup_t::window_dlg_popup_t(window_t *parent, rect_ui16_t rect)
     , padding(GuiDefaults::Padding) {
     Enable();
 }
-
+/*
 void window_dlg_popup_draw(window_dlg_popup_t *window) {
     if (window->IsVisible()) {
-        rect_ui16_t rc = window->rect;
-        rc.h = 140;
+        Rect16 rc = window->rect;
+        rc = Rect16::Height_t(140);
 
         if (window->IsInvalid()) {
             display::FillRect(rc, window->color_back);
-            rect_ui16_t text_rc = rc;
+            Rect16 text_rc = rc;
             text_rc.x += 10;
             text_rc.y += 20;
             text_rc.h = 30;
@@ -45,7 +45,7 @@ void window_dlg_popup_draw(window_dlg_popup_t *window) {
             window->Validate();
         }
     }
-}
+}*/
 
 void gui_pop_up(void) {
 
@@ -54,7 +54,7 @@ void gui_pop_up(void) {
         return;
     opened = 1;
 
-    window_dlg_popup_t dlg(nullptr, rect_ui16(0, 32, 240, 120));
+    window_dlg_popup_t dlg(nullptr, Rect16(0, 32, 240, 120));
 
     window_t *id_capture = window_t::GetCapturedWindow();
     memset(dlg.text, '\0', sizeof(dlg.text) * sizeof(char)); // set to zeros to be on the safe side

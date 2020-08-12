@@ -73,10 +73,10 @@ static const size_t icons_width = icon_usb_width + icon_lan_width;
 
 window_header_t::window_header_t(window_t *parent)
     : window_frame_t(parent, GuiDefaults::RectHeader)
-    , icon_base(this, rect_ui16(rect.x + 10, rect.y, rect.h, rect.h), 0)
-    , label(this, rect_ui16(rect.x + 10 + rect.h, rect.y, rect.w - icons_width - 10 - rect.h, rect.h))
-    , icon_usb(this, rect_ui16(rect.x + rect.w - icon_usb_width, rect.y, icon_usb_width, rect.h), IDR_PNG_header_icon_usb)
-    , icon_lan(this, rect_ui16(rect.x + rect.w - icons_width, rect.y, icon_lan_width, rect.h), IDR_PNG_header_icon_lan) {
+    , icon_base(this, Rect16(rect.Left() + 10, rect.Top(), rect.Height(), rect.Height()), 0)
+    , label(this, Rect16(rect.Left() + 10 + rect.Height(), rect.Top(), rect.Width() - icons_width - 10 - rect.Height(), rect.Height()))
+    , icon_usb(this, Rect16(rect.Left() + rect.Width() - icon_usb_width, rect.Top(), icon_usb_width, rect.Height()), IDR_PNG_header_icon_usb)
+    , icon_lan(this, Rect16(rect.Left() + rect.Width() - icons_width, rect.Top(), icon_lan_width, rect.Height()), IDR_PNG_header_icon_lan) {
     label.alignment = ALIGN_LEFT_CENTER;
 
     marlin_vars()->media_inserted ? USB_Activate() : USB_On();

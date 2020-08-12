@@ -24,16 +24,16 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
     uint16_t y = 40;
     uint16_t x = WIZARD_MARGIN_LEFT;
 
-    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_waiting_cd));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x, y, WIZARD_X_SPACE, 22), &(p_screen->text_waiting_cd));
     p_screen->text_waiting_cd.SetText(_("Waiting for cooldown"));
 
     y += 22;
 
-    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, Rect16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 
     y += 22;
 
-    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_nozzle_temp));
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, Rect16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_nozzle_temp));
     // a nasty hack - need to put the translated format string somewhere and keep it there past the lifetime of this screen
 
     // r=1 c=15
@@ -50,7 +50,7 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
 
     y += 22;
 
-    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_bed_temp));
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, Rect16(10, y, WIZARD_X_SPACE, 22), &(p_screen->curr_bed_temp));
     // r=1 c=15
     static const char bedFmt2Translate[] = N_("Bed: %.1f_C");
     static char bedFmt[30];
@@ -60,7 +60,7 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
 
     y += 22;
 
-    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_nozzle));
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, Rect16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_nozzle));
     // r=1 c=15
     static const char nozzleTgtFmt2Translate[] = N_("Noz. target: %.0f_C");
     static char nozzleTgtFmt[30];
@@ -71,7 +71,7 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
 
     y += 22;
 
-    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_bed));
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, Rect16(10, y, WIZARD_X_SPACE - 10, 22), &(p_screen->target_bed));
     // r=1 c=15
     static const char bedTgtFmt2Translate[] = N_("Bed. target: %.0f_C");
     static char bedTgtFmt[30];
@@ -82,7 +82,7 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
 
     y += 35;
 
-    window_create_ptr(WINDOW_CLS_ICON, id_body, rect_ui16(100, y, 40, 40), &(p_screen->icon_hourglass));
+    window_create_ptr(WINDOW_CLS_ICON, id_body, Rect16(100, y, 40, 40), &(p_screen->icon_hourglass));
     p_screen->icon_hourglass.SetIdRes(IDR_PNG_wizard_icon_hourglass);
     */
 }

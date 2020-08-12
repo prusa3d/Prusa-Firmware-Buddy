@@ -144,7 +144,7 @@ TEST_CASE("rectangles is subrectangle", "[rectangle]") {
         std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 0, 20, 30, 30 }, true),
         std::make_tuple<Rect16, Rect16, bool>({ 10, 10, 20, 20 }, { 20, 20, 40, 40 }, false));
 
-    CHECK(l.IsSubrectangle(r) == expected);
+    CHECK(l.Contain(r) == expected);
 }
 
 TEST_CASE("rectangle union", "[rectangle]") {

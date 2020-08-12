@@ -98,7 +98,7 @@ void window_spin_t::setValMinMaxStep(float val, float min_val, float max_val, fl
     index = (int)((value - min) / step);
 }
 
-window_spin_t::window_spin_t(window_t *parent, rect_ui16_t rect)
+window_spin_t::window_spin_t(window_t *parent, Rect16 rect)
     : window_numb_t(parent, rect)
     , min(0.0)
     , max(100.0F)

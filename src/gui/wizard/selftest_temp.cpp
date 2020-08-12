@@ -32,14 +32,14 @@ void wizard_init_screen_selftest_temp(int16_t id_body, selftest_temp_screen_t *p
     uint16_t x = WIZARD_MARGIN_LEFT;
     uint16_t row_h = 22;
 
-    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, WIZARD_X_SPACE, row_h * 2), &(p_screen->text_checking_temp));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x, y, WIZARD_X_SPACE, row_h * 2), &(p_screen->text_checking_temp));
     p_screen->text_checking_temp.SetText(_(
         "Checking hotend and\n"
         "heatbed heaters"));
     p_screen->text_checking_temp.SetAlignment(ALIGN_CENTER);
 
     y += row_h * 2;
-    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, Rect16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 */
 }
 

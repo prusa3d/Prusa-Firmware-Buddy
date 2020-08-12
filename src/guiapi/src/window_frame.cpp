@@ -3,7 +3,7 @@
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 
-window_frame_t::window_frame_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog)
+window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog)
     : window_t(parent, rect, dialog)
     , first(nullptr)
     , last(nullptr) {
@@ -156,7 +156,7 @@ void window_frame_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
 }
 
 //resend invalidation to all children
-void window_frame_t::invalidate(rect_ui16_t validation_rect) {
+void window_frame_t::invalidate(Rect16 validation_rect) {
     window_t *ptr = first;
     while (ptr) {
         ptr->Invalidate(validation_rect);
@@ -165,7 +165,7 @@ void window_frame_t::invalidate(rect_ui16_t validation_rect) {
 }
 
 //resend validate to all children
-void window_frame_t::validate(rect_ui16_t validation_rect) {
+void window_frame_t::validate(Rect16 validation_rect) {
     window_t *ptr = first;
     while (ptr) {
         ptr->Validate(validation_rect);
@@ -173,7 +173,7 @@ void window_frame_t::validate(rect_ui16_t validation_rect) {
     }
 }
 
-window_t *window_frame_t::GetNextSubWin(window_t *win, rect_ui16_t rect) const {
+window_t *window_frame_t::GetNextSubWin(window_t *win, Rect16 rect) const {
     if (!win)
         return nullptr;
     if (win->GetParent() != this)
@@ -181,7 +181,7 @@ window_t *window_frame_t::GetNextSubWin(window_t *win, rect_ui16_t rect) const {
     return win->GetNext(); //todo test rect intersection
 }
 
-window_t *window_frame_t::GetPrevSubWin(window_t *win, rect_ui16_t rect) const {
+window_t *window_frame_t::GetPrevSubWin(window_t *win, Rect16 rect) const {
     if (!win)
         return nullptr;
     if (win->GetParent() != this)
@@ -193,7 +193,7 @@ window_t *window_frame_t::GetPrevSubWin(window_t *win, rect_ui16_t rect) const {
     return tmpWin;
 }
 
-window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, rect_ui16_t rect) const {
+window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, Rect16 rect) const {
     if (!win)
         return nullptr;
     if (win->GetParent() != this)
@@ -201,7 +201,7 @@ window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, rect_ui16_t rect) 
     return win->GetNextEnabled(); //todo test rect intersection
 }
 
-window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, rect_ui16_t rect) const {
+window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, Rect16 rect) const {
     window_t *tmpWin = GetPrevSubWin(win, rect);
     while (tmpWin && !tmpWin->IsEnabled()) {
         tmpWin = GetPrevSubWin(tmpWin, rect);
@@ -209,7 +209,7 @@ window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, rect_ui16_t rect) 
     return tmpWin;
 }
 
-window_t *window_frame_t::GetFirstEnabledSubWin(rect_ui16_t rect) const {
+window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 rect) const {
     if (!first)
         return nullptr;
     if (first->IsEnabled()) //todo test rect intersection

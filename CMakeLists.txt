@@ -580,6 +580,7 @@ if(GUI)
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
+            src/guiapi/src/Rect16.cpp
             src/guiapi/src/window_progress.cpp
             src/guiapi/src/window_frame.cpp
             src/guiapi/src/gui_timer.cpp

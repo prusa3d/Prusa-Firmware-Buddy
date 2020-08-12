@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
+#include "Rect16.h"
 
 //window events
 #define WINDOW_EVENT_BTN_DN   0x01 //button down
@@ -62,7 +63,7 @@ protected:
     };
 
 public:
-    rect_ui16_t rect; // (8 bytes) display rectangle
+    Rect16 rect; // (8 bytes) display rectangle
     color_t color_back;
 
 public:
@@ -81,8 +82,8 @@ public:
     bool IsCaptured() const;
     bool HasTimer() const;
     bool IsDialog() const;
-    void Validate(rect_ui16_t validation_rect = { 0 });
-    void Invalidate(rect_ui16_t validation_rect = { 0 });
+    void Validate(Rect16 validation_rect = Rect16());
+    void Invalidate(Rect16 validation_rect = Rect16());
 
     void SetHasTimer();
     void ClrHasTimer();
@@ -95,7 +96,7 @@ public:
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
-    window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
+    window_t(window_t *parent, Rect16 rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
     virtual void RegisterSubWin(window_t *win);
@@ -105,8 +106,8 @@ protected:
     virtual void draw();
     virtual void windowEvent(window_t *sender, uint8_t event, void *param);
     virtual void screenEvent(window_t *sender, uint8_t event, void *param);
-    virtual void invalidate(rect_ui16_t validation_rect);
-    virtual void validate(rect_ui16_t validation_rect);
+    virtual void invalidate(Rect16 validation_rect);
+    virtual void validate(Rect16 validation_rect);
 
 private:
     static window_t *focused_ptr; // has focus

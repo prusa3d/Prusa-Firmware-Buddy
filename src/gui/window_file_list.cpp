@@ -80,7 +80,7 @@ const char *window_file_list_t::TopItemSFN() {
     return ldv->ShortFileNameAt(0).first;
 }
 
-window_file_list_t::window_file_list_t(window_t *parent, rect_ui16_t rect)
+window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
     : window_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
@@ -99,9 +99,9 @@ window_file_list_t::window_file_list_t(window_t *parent, rect_ui16_t rect)
 
 void window_file_list_t::unconditionalDraw() {
     int item_height = font->h + padding.top + padding.bottom;
-    rect_ui16_t rc_win = rect;
+    Rect16 rc_win = rect;
 
-    int visible_slots = rc_win.h / item_height;
+    int visible_slots = rc_win.Height() / item_height;
     int ldv_visible_files = ldv->VisibleFilesCount();
     int maxi = std::min(std::min(visible_slots, ldv_visible_files), count);
 
@@ -133,10 +133,10 @@ void window_file_list_t::unconditionalDraw() {
         color_t color_back = this->color_back;
         uint8_t swap = 0;
 
-        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height), rc_win.w, uint16_t(item_height) };
+        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + i * item_height), rc_win.Width(), uint16_t(item_height) };
         padding_ui8_t padding = this->padding;
 
-        if (rect_in_rect_ui16(rc, rc_win)) {
+        if (rc.Contain(rc_win)) {
             if ((IsFocused()) && (index == i)) {
                 color_t swp = color_text;
                 color_text = color_back;
@@ -145,9 +145,8 @@ void window_file_list_t::unconditionalDraw() {
             }
 
             if (id_icon) {
-                rect_ui16_t irc = { rc.x, rc.y, 16, 30 };
-                rc.x += irc.w;
-                rc.w -= irc.w;
+                Rect16 irc = { rc.Left(), rc.Top(), 16, 30 };
+                rc.CutPadding<uint16_t>({ irc.Width(), 0, 0, 0 });
                 render_icon_align(irc, id_icon, this->color_back, RENDER_FLG(ALIGN_CENTER, swap));
             } else {
                 padding.left += 16;
@@ -188,10 +187,10 @@ void window_file_list_t::unconditionalDraw() {
         }
     }
 
-    rc_win.h = rc_win.h - (i * item_height);
+    rc_win.CutPadding<uint16_t>({ 0, 0, 0, uint16_t(i * item_height) });
 
-    if (rc_win.h) {
-        rc_win.y += i * item_height;
+    if (rc_win.Height()) {
+        rc_win = Rect16(rc_win, ShiftDir_t::Bottom, i * item_height);
         display::FillRect(rc_win, this->color_back);
     }
 }

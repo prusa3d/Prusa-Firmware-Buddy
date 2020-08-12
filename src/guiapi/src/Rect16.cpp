@@ -1,5 +1,5 @@
 #include "Rect16.h"
-
+/*
 Rect16::Rect16() {
     top_left_ = { 0, 0 };
     width_ = 0;
@@ -23,7 +23,7 @@ Rect16::Rect16(point_i16_t top_left, uint16_t width, uint16_t height) {
     top_left_ = top_left;
     width_ = width;
     height_ = height;
-}
+}*/
 
 Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance) {
     switch (direction) {
@@ -124,26 +124,39 @@ bool Rect16::HasIntersection(Rect16 const &r) const {
         && BottomRight().y > r.TopLeft().y;
 }
 
-bool Rect16::IsSubrectangle(Rect16 const &r) const {
+bool Rect16::Contain(Rect16 const &r) const {
     return Contain(r.TopLeft()) && Contain(r.BottomRight());
 }
 
-void Rect16::AddPadding(const padding_ui8_t p) {
-    top_left_.x = top_left_.x - p.left;
-    top_left_.y = top_left_.y - p.top;
-    width_ += (p.left + p.right);
-    height_ += (p.top + p.bottom);
-}
+void Rect16::Align(Rect16 rc, uint8_t align) {
+    switch (align & ALIGN_HMASK) {
+    case ALIGN_LEFT:
+        top_left_.x = rc.Left();
+        break;
+    case ALIGN_RIGHT:
+        top_left_.x = ((rc.Left() + rc.Width()) > width_) ? ((rc.Left() + rc.Width()) - width_) : 0;
+        break;
+    case ALIGN_HCENTER:
+        if (rc.Width() >= width_)
+            top_left_.x = rc.Left() + (rc.Width() - width_) / 2;
+        else
+            top_left_.x = std::max(0, rc.Left() - (width_ - rc.Width()) / 2);
+        break;
+    }
 
-void Rect16::CutPadding(const padding_ui8_t p) {
-    if ((p.left + p.right) >= width_
-        || (p.top + p.bottom) >= height_) {
-        width_ = height_ = 0;
-        top_left_.x = top_left_.y = 0;
-    } else {
-        top_left_.x = top_left_.x + p.left;
-        top_left_.y = top_left_.y + p.top;
-        width_ -= (p.left + p.right);
-        height_ -= (p.top + p.bottom);
+    switch (align & ALIGN_VMASK) {
+    case ALIGN_TOP:
+        top_left_.y = rc.Top();
+        break;
+    case ALIGN_BOTTOM:
+        top_left_.y = ((rc.Top() + rc.Height()) > height_) ? ((rc.Top() + rc.Height()) - height_) : 0;
+        top_left_.y = std::max(0, (rc.Top() + rc.Height()) - height_);
+        break;
+    case ALIGN_VCENTER:
+        if (rc.Height() >= height_)
+            top_left_.y = rc.Top() + ((rc.Height() - height_) / 2);
+        else
+            top_left_.y = (rc.Top() > ((height_ - rc.Height()) / 2)) ? rc.Top() - ((height_ - rc.Height()) / 2) : 0;
+        break;
     }
 }

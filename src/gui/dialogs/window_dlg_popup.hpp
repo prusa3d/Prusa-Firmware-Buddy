@@ -18,7 +18,7 @@ struct window_dlg_popup_t : public window_t {
     uint32_t timer;
     uint16_t flags;
     char text[MSG_MAX_LENGTH];
-    window_dlg_popup_t(window_t *parent, rect_ui16_t rect);
+    window_dlg_popup_t(window_t *parent, Rect16 rect);
 };
 
 extern void gui_pop_up(void);
