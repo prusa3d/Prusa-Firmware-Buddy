@@ -46,6 +46,13 @@ static inline uint8_t spi_txrx(uint8_t tx);
 
 extern SPI_HandleTypeDef hspi3;
 
+typedef struct uint32_8_pack {
+    union {
+        uint32_t ui32;
+        uint8_t ui8a[4];
+    };
+} uint32_8_pack_t;
+
 static inline uint8_t spi_txrx(uint8_t tx) {
     uint8_t _in = 0;
     HAL_SPI_TransmitReceive(&hspi3, &tx, &_in, 1, HAL_MAX_DELAY);
@@ -90,7 +97,7 @@ void w25x_wr_status_reg(uint8_t val) {
     _CS_HIGH();
 }
 
-void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt) {
+void w25x_rd_data(uint32_8_pack_t.ui32 addr, uint8_t *data, uint16_t cnt) {
     _CS_LOW();
     _SPI_TX(_CMD_RD_DATA);          // send command 0x03
     _SPI_TX(((uint8_t *)&addr)[2]); // send addr bits 16..23
