@@ -97,34 +97,35 @@ void w25x_wr_status_reg(uint8_t val) {
     _CS_HIGH();
 }
 
-void w25x_rd_data(uint32_8_pack_t.ui32 addr, uint8_t *data, uint16_t cnt) {
+void w25x_rd_data(uint32_t addr, uint8_t *data, uint16_t cnt) {
     _CS_LOW();
-    _SPI_TX(_CMD_RD_DATA);          // send command 0x03
-    _SPI_TX(((uint8_t *)&addr)[2]); // send addr bits 16..23
-    _SPI_TX(((uint8_t *)&addr)[1]); // send addr bits 8..15
-    _SPI_TX(((uint8_t *)&addr)[0]); // send addr bits 0..7
-    while (cnt--)                   // receive data
+    _SPI_TX(_CMD_RD_DATA); // send command 0x03
+    /// C does not allow direct cast so pointer cast is used instead
+    _SPI_TX(((bits32_t *)&addr)->ui8a[2]); // send addr bits 16..23
+    _SPI_TX(((bits32_t *)&addr)->ui8a[1]); // send addr bits 8..15
+    _SPI_TX(((bits32_t *)&addr)->ui8a[0]); // send addr bits 0..7
+    while (cnt--)                          // receive data
         *(data++) = _SPI_RX();
     _CS_HIGH();
 }
 
 void w25x_page_program(uint32_t addr, uint8_t *data, uint16_t cnt) {
     _CS_LOW();
-    _SPI_TX(_CMD_PAGE_PROGRAM);     // send command 0x02
-    _SPI_TX(((uint8_t *)&addr)[2]); // send addr bits 16..23
-    _SPI_TX(((uint8_t *)&addr)[1]); // send addr bits 8..15
-    _SPI_TX(((uint8_t *)&addr)[0]); // send addr bits 0..7
-    while (cnt--)                   // send data
+    _SPI_TX(_CMD_PAGE_PROGRAM);            // send command 0x02
+    _SPI_TX(((bits32_t *)&addr)->ui8a[2]); // send addr bits 16..23
+    _SPI_TX(((bits32_t *)&addr)->ui8a[1]); // send addr bits 8..15
+    _SPI_TX(((bits32_t *)&addr)->ui8a[0]); // send addr bits 0..7
+    while (cnt--)                          // send data
         _SPI_TX(*(data++));
     _CS_HIGH();
 }
 
 void w25x_erase(uint8_t cmd, uint32_t addr) {
     _CS_LOW();
-    _SPI_TX(cmd);                   // send command 0x20
-    _SPI_TX(((uint8_t *)&addr)[2]); // send addr bits 16..23
-    _SPI_TX(((uint8_t *)&addr)[1]); // send addr bits 8..15
-    _SPI_TX(((uint8_t *)&addr)[0]); // send addr bits 0..7
+    _SPI_TX(cmd);                          // send command 0x20
+    _SPI_TX(((bits32_t *)&addr)->ui8a[2]); // send addr bits 16..23
+    _SPI_TX(((bits32_t *)&addr)->ui8a[1]); // send addr bits 8..15
+    _SPI_TX(((bits32_t *)&addr)->ui8a[0]); // send addr bits 0..7
     _CS_HIGH();
 }
 

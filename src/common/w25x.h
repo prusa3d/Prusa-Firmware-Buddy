@@ -17,6 +17,16 @@
 extern "C" {
 #endif //defined(__cplusplus)
 
+/// Union designed for passing 32 bits
+/// that can be split into array of smaller parts
+/// while preserving strong type checking
+typedef struct bits32 {
+    union {
+        uint32_t ui32;
+        uint8_t ui8a[4];
+    };
+} bits32_t;
+
 extern int8_t w25x_init(void);
 extern void w25x_enable_wr(void);
 extern void w25x_disable_wr(void);
