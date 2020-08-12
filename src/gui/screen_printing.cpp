@@ -132,6 +132,7 @@ screen_printing_data_t::screen_printing_data_t()
     , message_timer(0)
     , message_flag(false)
     , stop_pressed(false)
+    , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
     , last_sd_percent_done(-1) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
