@@ -155,21 +155,21 @@ private:
             return lhs + rhs;
         }
     }
-    //used by assigment operators like +=
-    cvariant8 &assigment_operator_x(const cvariant8 &rhs, operator_x op);
+    //used by assignment operators like +=
+    cvariant8 &assignment_operator_x(const cvariant8 &rhs, operator_x op);
 
 public: //arithmetic operators
     cvariant8 &operator+=(const cvariant8 &rhs) {
-        return assigment_operator_x(rhs, operator_x::plus);
+        return assignment_operator_x(rhs, operator_x::plus);
     }
     cvariant8 &operator-=(const cvariant8 &rhs) {
-        return assigment_operator_x(rhs, operator_x::minus);
+        return assignment_operator_x(rhs, operator_x::minus);
     }
     cvariant8 &operator*=(const cvariant8 &rhs) {
-        return assigment_operator_x(rhs, operator_x::multiplies);
+        return assignment_operator_x(rhs, operator_x::multiplies);
     }
     cvariant8 &operator/=(const cvariant8 &rhs) {
-        return assigment_operator_x(rhs, operator_x::divides);
+        return assignment_operator_x(rhs, operator_x::divides);
     }
 
     // friends defined inside class body are inline and are hidden from non-ADL lookup

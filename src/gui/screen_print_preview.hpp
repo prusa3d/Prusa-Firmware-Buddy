@@ -24,7 +24,7 @@ struct description_line_t {
 private:
     static constexpr size_t calculate_y(bool has_thumbnail, size_t row) {
         size_t y = TITLE_HEIGHT + 2 * PADDING;
-        if (row > 0 && has_thumbnail)
+        if (has_thumbnail)
             y += THUMBNAIL_HEIGHT + PADDING;
         y += row * (LINE_HEIGHT + LINE_SPACING);
         return y;

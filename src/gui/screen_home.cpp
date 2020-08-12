@@ -14,7 +14,7 @@
 #include "ScreenFactory.hpp"
 #include "screen_menus.hpp"
 
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 const uint16_t icons[6] = {
     IDR_PNG_menu_icon_print,
@@ -172,14 +172,14 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
 }
 
 void screen_home_data_t::printBtnEna() {
-    w_buttons[0].UnswapBW();
+    w_buttons[0].Unshadow();
     w_buttons[0].Enable(); // can be focused
     w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelPrintId]));
 }
 
 void screen_home_data_t::printBtnDis() {
-    w_buttons[0].SwapBW();
+    w_buttons[0].Shadow();
     w_buttons[0].Disable(); // cant't be focused
     w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelNoUSBId]));

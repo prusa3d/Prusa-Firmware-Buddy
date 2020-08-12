@@ -20,6 +20,7 @@
 #include "hwio_pindef.h"
 #include "trinamic.h"
 #include "main.h"
+#include "fanctl.h"
 
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."
@@ -75,6 +76,12 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
             cmd_id = PUTSLAVE_CMD_ID_TSTE;
         else if (strncmp(pstr, "eecl", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_EECL;
+        else if (strncmp(pstr, "fpwm", 4) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_FPWM;
+        else if (strncmp(pstr, "frpm", 4) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_FRPM;
+        else if (strncmp(pstr, "gpcf", 4) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_GPCF;
         else if (strncmp(pstr, "diag", 4) == 0)
             cmd_id = PUTSLAVE_CMD_ID_DIAG;
         else if (strncmp(pstr, "uart", 4) == 0)
@@ -91,6 +98,8 @@ int putslave_parse_cmd_id(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id) {
             cmd_id = PUTSLAVE_CMD_ID_START;
         else if (strncmp(pstr, "inval", 5) == 0)
             cmd_id = PUTSLAVE_CMD_ID_INVAL;
+        else if (strncmp(pstr, "eedef", 5) == 0)
+            cmd_id = PUTSLAVE_CMD_ID_EEDEF;
     }
     if (cmd_id != UARTSLAVE_CMD_ID_UNK) {
         *pcmd_id = cmd_id;
@@ -148,6 +157,26 @@ int putslave_do_cmd_q_ip4(uartslave_t *pslave) {
 int putslave_do_cmd_q_lock(uartslave_t *pslave) {
     uint8_t *ptr = (uint8_t *)OTP_LOCK_BLOCK_ADDR;
     uartslave_printf(pslave, "%d ", (ptr[0] == 0) ? 1 : 0);
+    return UARTSLAVE_OK;
+}
+
+int putslave_do_cmd_q_fpwm(uartslave_t *pslave, char *pstr) {
+    int fan = 0;
+    if (sscanf(pstr, "%d", &fan) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((fan < 0) || (fan > 1))
+        return UARTSLAVE_ERR_OOR;
+    uartslave_printf(pslave, "%d ", fanctl_get_pwm(fan));
+    return UARTSLAVE_OK;
+}
+
+int putslave_do_cmd_q_frpm(uartslave_t *pslave, char *pstr) {
+    int fan = 0;
+    if (sscanf(pstr, "%d", &fan) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((fan < 0) || (fan > 1))
+        return UARTSLAVE_ERR_OOR;
+    uartslave_printf(pslave, "%d ", fanctl_get_rpm(fan));
     return UARTSLAVE_OK;
 }
 
@@ -397,6 +426,11 @@ int putslave_do_cmd_a_eecl(uartslave_t *pslave) {
     return UARTSLAVE_OK;
 }
 
+int putslave_do_cmd_a_eedef(uartslave_t *pslave) {
+    eeprom_defaults();
+    return UARTSLAVE_OK;
+}
+
 int putslave_do_cmd_a_gpio(uartslave_t *pslave, char *pstr) {
     int gpio = 0;
     int state = 0;
@@ -417,6 +451,29 @@ int putslave_do_cmd_a_gpio(uartslave_t *pslave, char *pstr) {
             hwio_beeper_set_pwm(255, 0); // 0
     } else
         gpio_set(gpio, state);
+    return UARTSLAVE_OK;
+}
+
+int putslave_do_cmd_a_gpcf(uartslave_t *pslave, char *pstr) {
+    int gpio = 0;
+    int mode = 0;
+    int pull = 0;
+    int n = 0;
+    if (sscanf(pstr, "%d%n", &gpio, &n) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((gpio < TPA0) || (gpio > TPE15))
+        return UARTSLAVE_ERR_OOR;
+    pstr += n;
+    if (sscanf(pstr, "%d%n", &mode, &n) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((mode < 0) || (mode > 1))
+        return UARTSLAVE_ERR_OOR;
+    pstr += n;
+    if (sscanf(pstr, "%d%n", &pull, &n) != 1)
+        return UARTSLAVE_ERR_SYN;
+    if ((pull < 0) || (pull > 1))
+        return UARTSLAVE_ERR_OOR;
+    gpio_init(gpio, mode ? GPIO_MODE_OUTPUT_PP : GPIO_MODE_INPUT, pull ? GPIO_PULLUP : GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
     return UARTSLAVE_OK;
 }
 
@@ -456,7 +513,24 @@ int putslave_do_cmd_a_lock(uartslave_t *pslave) {
     return UARTSLAVE_ERR_ONP;
 }
 
+int putslave_do_cmd_a_fpwm(uartslave_t *pslave, char *pstr) {
+    unsigned int fan = 0;
+    unsigned int pwm = 0;
+    if (strlen(pstr)) {
+        if (sscanf(pstr, "%u %u", &fan, &pwm) != 2)
+            return UARTSLAVE_ERR_SYN;
+        if (fan > 1)
+            return UARTSLAVE_ERR_OOR;
+        if (pwm > 50)
+            return UARTSLAVE_ERR_OOR;
+        fanctl_set_pwm(fan, pwm);
+        return UARTSLAVE_OK;
+    }
+    return UARTSLAVE_ERR_ONP;
+}
+
 int putslave_do_cmd_a_tst(uartslave_t *pslave, char *pstr) {
+#if 0 // used to test eeprom wizard flags
     int run_selftest = 0;
     int run_xyzcalib = 0;
     int run_firstlay = 0;
@@ -466,6 +540,7 @@ int putslave_do_cmd_a_tst(uartslave_t *pslave, char *pstr) {
     eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(run_selftest)); //
     eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(run_xyzcalib)); //
     eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(run_firstlay)); //
+#endif
 #ifdef SIM_MOTION
 //	sim_motion_print_buff();
 #endif //SIM_MOTION
@@ -568,6 +643,10 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_q_ip4(pslave);
             case PUTSLAVE_CMD_ID_LOCK:
                 return putslave_do_cmd_q_lock(pslave);
+            case PUTSLAVE_CMD_ID_FPWM:
+                return putslave_do_cmd_q_fpwm(pslave, pstr);
+            case PUTSLAVE_CMD_ID_FRPM:
+                return putslave_do_cmd_q_frpm(pslave, pstr);
             case PUTSLAVE_CMD_ID_ADC:
                 return putslave_do_cmd_q_adc(pslave, pstr);
             case PUTSLAVE_CMD_ID_GPIO:
@@ -614,8 +693,14 @@ int putslave_do_cmd(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t cm
                 return putslave_do_cmd_a_stop(pslave);
             case PUTSLAVE_CMD_ID_EECL:
                 return putslave_do_cmd_a_eecl(pslave);
+            case PUTSLAVE_CMD_ID_FPWM:
+                return putslave_do_cmd_a_fpwm(pslave, pstr);
+            case PUTSLAVE_CMD_ID_EEDEF:
+                return putslave_do_cmd_a_eedef(pslave);
             case PUTSLAVE_CMD_ID_GPIO:
                 return putslave_do_cmd_a_gpio(pslave, pstr);
+            case PUTSLAVE_CMD_ID_GPCF:
+                return putslave_do_cmd_a_gpcf(pslave, pstr);
             case PUTSLAVE_CMD_ID_GCODE:
                 return putslave_do_cmd_a_gcode(pslave, pstr);
             case PUTSLAVE_CMD_ID_PWM:

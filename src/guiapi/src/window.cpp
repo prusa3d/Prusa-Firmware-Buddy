@@ -163,8 +163,12 @@ void window_t::Draw() {
 }
 
 void window_t::draw() {
-    if (IsInvalid() && IsVisible() && rect.w && rect.h) {
-        unconditionalDraw();
+    if (IsInvalid() && rect.w && rect.h) {
+        if (IsVisible()) {
+            unconditionalDraw();
+        } else {
+            display::FillRect(rect, color_back);
+        }
         Validate();
     }
 }

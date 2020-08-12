@@ -122,9 +122,9 @@ void GcodeSuite::M701() {
 
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
     const float fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : pause.GetDefaultLoadLength());
-    pause.SetPurgeLenght(ADVANCED_PAUSE_PURGE_LENGTH);
-    pause.SetSlowLoadLenght(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
-    pause.SetFastLoadLenght(fast_load_length);
+    pause.SetPurgeLength(ADVANCED_PAUSE_PURGE_LENGTH);
+    pause.SetSlowLoadLength(fast_load_length > 0 ? FILAMENT_CHANGE_SLOW_LOAD_LENGTH : 0);
+    pause.SetFastLoadLength(fast_load_length);
 
     if (fast_load_length)
         load_unload(
@@ -146,7 +146,7 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    pause.SetUnloadLenght(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetDefaultUnloadLength());
+    pause.SetUnloadLength(parser.seen('U') ? parser.value_axis_units(E_AXIS) : pause.GetDefaultUnloadLength());
     load_unload(
         LoadUnloadMode::Unload, [] { pause.FilamentUnload(); }, Z_AXIS_UNLOAD_POS);
 }

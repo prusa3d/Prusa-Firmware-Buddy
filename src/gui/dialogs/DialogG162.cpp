@@ -1,6 +1,6 @@
 #include "DialogG162.hpp"
 #include "gui.hpp" //resource_font
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "dialog_response.hpp"
 
 /*****************************************************************************/

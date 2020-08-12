@@ -1,4 +1,7 @@
 // bsod.c - blue screen of death
+#include <algorithm>
+#include <cmath>
+
 #include "bsod.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -9,24 +12,29 @@
     #error "HAS_GUI not defined"
 #elif HAS_GUI
 
+    #include <stdio.h>
+    #include <stdarg.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <inttypes.h>
+
+    #include "safe_state.h"
     #include "stm32f4xx_hal.h"
     #include "config.h"
     #include "gui.hpp"
     #include "term.h"
     #include "st7789v.hpp"
     #include "window_term.hpp"
-    #include <stdio.h>
-    #include <stdarg.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include "safe_state.h"
-    #include <inttypes.h>
-    #include <inttypes.h>
     #include "jogwheel.h"
     #include "gpio.h"
     #include "sys.h"
     #include "hwio.h"
     #include "version.h"
+    #include "window_qr.hpp"
+    #include "support_utils.h"
+    #include "str_utils.hpp"
+    #include "guitypes.h"
+    #include "../lang/i18n.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -44,27 +52,28 @@ typedef struct tskTaskControlBlock {
     xMPU_SETTINGS xMPUSettings;         /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
     #endif
 
-    ListItem_t xStateListItem;                                                                                                     /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
-    ListItem_t xEventListItem;                                                                                                     /*< Used to reference a task from an event list. */
-    UBaseType_t uxPriority;                                                                                                        /*< The priority of the task.  0 is the lowest priority. */
-    StackType_t *pxStack;                                                                                                          /*< Points to the start of the stack. */
-    char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */ /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+    ListItem_t xStateListItem;                /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
+    ListItem_t xEventListItem;                /*< Used to reference a task from an event list. */
+    UBaseType_t uxPriority;                   /*< The priority of the task.  0 is the lowest priority. */
+    StackType_t *pxStack;                     /*< Points to the start of the stack. */
+    char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */
+    /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
     #if (portSTACK_GROWTH > 0)
-    StackType_t *pxEndOfStack;                                                                                                     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
+    StackType_t *pxEndOfStack;     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
     #endif
 
     #if (portCRITICAL_NESTING_IN_TCB == 1)
-    UBaseType_t uxCriticalNesting;                                                                                                 /*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
+    UBaseType_t uxCriticalNesting; /*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
     #endif
 
     #if (configUSE_TRACE_FACILITY == 1)
-    UBaseType_t uxTCBNumber;                                                                                                       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
-    UBaseType_t uxTaskNumber;                                                                                                      /*< Stores a number specifically for use by third party trace code. */
+    UBaseType_t uxTCBNumber;       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
+    UBaseType_t uxTaskNumber;      /*< Stores a number specifically for use by third party trace code. */
     #endif
 
     #if (configUSE_MUTEXES == 1)
-    UBaseType_t uxBasePriority;                                                                                                    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
+    UBaseType_t uxBasePriority;    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
     UBaseType_t uxMutexesHeld;
     #endif
 
@@ -115,8 +124,8 @@ typedef tskTCB TCB_t;
 //current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
-    #define PADDING 10
-    #define X_MAX   (display::GetW() - PADDING * 2)
+constexpr uint8_t PADDING = 10;
+    #define X_MAX (display::GetW() - PADDING * 2)
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -161,7 +170,7 @@ void general_error(const char *error, const char *module) {
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
 
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeRAM((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
+    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
@@ -180,7 +189,7 @@ void general_error(const char *error, const char *module) {
     //questionable placement - where now, in almost every BSOD timers are
     //stopped and Sound class cannot update itself for timing sound signals.
     //GUI is in the middle of refactoring and should be showned after restart
-    //when timers and everything else is running again (info by - Rober/Radek)
+    //when timers and everything else is running again (info by - Robert/Radek)
     Sound_Play(eSOUND_TYPE_CriticalAlert);
 
     //cannot use jogwheel_signals  (disabled interrupt)
@@ -191,12 +200,103 @@ void general_error(const char *error, const char *module) {
     }
 }
 
+void general_error_init() {
+    __disable_irq();
+    stop_common();
+
+    jogwheel_init();
+    gui_reset_jogwheel();
+
+    //questionable placement - where now, in almost every BSOD timers are
+    //stopped and Sound class cannot update itself for timing sound signals.
+    //GUI is in the middle of refactoring and should be showned after restart
+    //when timers and everything else is running again (info by - Rober/Radek)
+
+    Sound_Play(eSOUND_TYPE_CriticalAlert);
+}
+
+void general_error_run() {
+    //cannot use jogwheel_signals  (disabled interrupt)
+    while (1) {
+        wdt_iwdg_refresh();
+        if (!gpio_get(jogwheel_config.pinENC))
+            sys_reset(); //button press
+    }
+}
+
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    char buff[128];
-    snprintf(buff, sizeof(buff),
-        "The requested %s\ntemperature was not\nreached.\n\nNozzle temp: %d/%d\nBed temp: %d/%d",
-        module, (int)t_noz, (int)tt_noz, (int)t_bed, (int)tt_bed);
-    general_error(error, buff);
+    char text[128];
+    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
+
+    /// FIXME split heating, min/max temp and thermal runaway
+    static const char bad_bed[] = "Check the heatbed heater & thermistor wiring for possible damage.";
+    static const char bad_head[] = "Check the print head heater & thermistor wiring for possible damage.";
+
+    if (module[0] != 'E') {
+        snprintf(text, sizeof(text), bad_bed);
+    } else {
+        snprintf(text, sizeof(text), bad_head);
+    }
+
+    str2multiline(text, sizeof(text), line_width_chars);
+
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+
+    // draw header
+    display::DrawText(rect_ui16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+
+    // draw line
+    display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
+
+    // draw text (5 lines)
+    term_t term;
+    uint8_t buff[TERM_BUFF_SIZE(20, 16)];
+    term_init(&term, 20, 16, buff);
+    term_printf(&term, text);
+
+    /// FIXME convert to DrawText & check drawing multiline text
+    render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+
+    /// draw "Scan me" text
+    static const char *scan_me_text = "Scan me for details";
+    display::DrawText(rect_ui16(52, 142, display::GetW() - 52, display::GetH() - 142), string_view_utf8::MakeCPUFLASH((const uint8_t *)scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+
+    /// draw arrow
+    render_icon_align(rect_ui16(191, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
+
+    /// draw QR
+    char qr_text[MAX_LEN_4QR + 1];
+    /// FIXME Currently the only one error code working
+    error_url_long(qr_text, sizeof(qr_text), 12201);
+    constexpr uint8_t qr_size_px = 140;
+    constexpr rect_ui16_t qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
+    window_qr_t win(nullptr, qr_rect);
+    win.rect = qr_rect;
+    window_qr_t *window = &win;
+    win.text = qr_text;
+    win.bg_color = COLOR_WHITE;
+
+    //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
+
+    /// use PNG RAM for QR code image
+    uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
+    uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
+
+    if (generate_qr(qr_text, qrcode, qr_buff)) {
+        draw_qr(qrcode, window);
+    }
+
+    /// draw short URL
+    /// FIXME Currently the only one error code working
+    error_url_short(qr_text, sizeof(qr_text), 12201);
+    // this MakeRAM is safe - qr_text is a local buffer on stack
+    render_text_align(rect_ui16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+    //display::DrawText(rect_ui16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+
+    while (1) {
+        wdt_iwdg_refresh();
+    }
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {

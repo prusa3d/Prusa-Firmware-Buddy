@@ -67,17 +67,18 @@
 #define IDR_PNG_header_icon_warning  0x0032
 #define IDR_PNG_header_icon_question 0x0033
 
-#define IDR_PNG_arrow_up   0x0034
-#define IDR_PNG_arrow_down 0x0035
+#define IDR_PNG_arrow_up      0x0034
+#define IDR_PNG_arrow_down    0x0035
+#define IDR_PNG_arrow_scan_me 0x0036
 
-#define IDR_PNG_menu_icon_back       0x0036
-#define IDR_PNG_serial_printing      0x0037
-#define IDR_PNG_menu_icon_disconnect 0x0038
+#define IDR_PNG_menu_icon_back       0x0037
+#define IDR_PNG_serial_printing      0x0038
+#define IDR_PNG_menu_icon_disconnect 0x0039
 
-#define IDR_PNG_flag_cs 0x0039
-#define IDR_PNG_flag_de 0x003a
-#define IDR_PNG_flag_en 0x003b
-#define IDR_PNG_flag_es 0x003c
-#define IDR_PNG_flag_fr 0x003d
-#define IDR_PNG_flag_it 0x003e
-#define IDR_PNG_flag_pl 0x003f
+#define IDR_PNG_flag_cs 0x003a
+#define IDR_PNG_flag_de 0x003b
+#define IDR_PNG_flag_en 0x003c
+#define IDR_PNG_flag_es 0x003d
+#define IDR_PNG_flag_fr 0x003e
+#define IDR_PNG_flag_it 0x003f
+#define IDR_PNG_flag_pl 0x0040

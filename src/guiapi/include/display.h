@@ -35,7 +35,9 @@ template <uint16_t W, uint16_t H, display_init_t *INIT, display_done_t *DONE, di
 class Display {
     // sorted raw array of known utf8 character indices
 public:
+    /// Get width of display
     constexpr static uint16_t GetW() { return W; }
+    /// Get height of display
     constexpr static uint16_t GetH() { return H; }
     constexpr static void Init() { INIT(); }
     constexpr static void Done() { DONE(); }

@@ -10,7 +10,7 @@
 #include "screen_menu.hpp"
 #include "screen_menus.hpp"
 #include "WindowMenuItems.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 
 /*****************************************************************************/

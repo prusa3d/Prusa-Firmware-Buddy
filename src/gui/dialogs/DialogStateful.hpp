@@ -5,7 +5,7 @@
 #include "DialogRadioButton.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "window_text.hpp"
 #include "window_progress.hpp"
 

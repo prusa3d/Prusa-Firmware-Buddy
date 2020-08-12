@@ -10,7 +10,7 @@
 #include "ScreenHandler.hpp"
 #include <stdlib.h>
 #include <stdint.h>
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 void _window_list_add_message_item(window_list_t * /*pwindow_list*/, uint16_t index,
     const char **pptext, uint16_t *msg_icon) {

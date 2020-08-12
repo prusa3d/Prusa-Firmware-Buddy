@@ -52,6 +52,8 @@ extern uint32_t media_print_get_size(void);
 
 extern uint32_t media_print_get_position(void);
 
+extern void media_print_set_position(uint32_t pos);
+
 extern float media_print_get_percent_done(void);
 
 extern void media_loop(void);

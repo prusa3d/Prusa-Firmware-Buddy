@@ -24,7 +24,7 @@ ANNULLA
 CAMBIO FILAMENTO
 Cambia filamento
 Controllo assi
-Controllo riscaldatori \nhotend e piano riscaldato
+Contr. riscald.\nhotend e piano risc.
 Pulire lastra d'acciaio.
 Congratulazioni! Calibrazione XYZ ok. Assi XY sono perpendicolari.
 Test dei segnali acustici continui\npremere il pulsante per interrompere
@@ -156,7 +156,7 @@ Domanda
 Ramming
 Vuoi davvero disconnettere?
 RISCALDA
-Tempo Ramming
+Tempo Rimanente
 Ristampa
 RESET STAMPANTE
 Riprendi
@@ -200,7 +200,7 @@ Impostazioni salvate correttamente nel file \"lan_settings.ini\".
 La barra di stato è in basso. Contiene informazioni su:\n - Temp. Ugello\n - Temp. PianoRisc.\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato
 Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quindi ripeti la calibrazione XYZ.
 Errore nel salvataggio delle impostazioni nel file \"lan_settings.ini\".
-Questa operazione non può essere annullata, la configurazione attuale andrà persa! Siete davvero sicuri di ripristinare le impostazioni di fabbrica?
+Questa operazione non può essere annullata, la configurazione attuale andrà persa! Sei sicuro di voler ripristinare le impostazioni di fabbrica?
 Gi
 Timeout
 Per calibrare con il filamento attualmente caricato, premere AVANTI. Per cambiare filamento, premere SCARICA.
