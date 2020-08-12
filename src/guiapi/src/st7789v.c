@@ -161,26 +161,24 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
 }
 
 void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
-    HAL_StatusTypeDef ret;
 #if 0
 //#ifdef ST7789V_DMA
     if (size <= 4)
-        ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+        HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
     else
     {
     #ifdef ST7789V_USE_RTOS
         osSignalSet(0, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     #endif //ST7789V_USE_RTOS
-        ret = HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
+        HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
     #ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    #endif     //ST7789V_USE_RTOS
+    #endif //ST7789V_USE_RTOS
     }
-#else          //ST7789V_DMA
-    ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
-#endif         //ST7789V_DMA
-    ret = ret; //prevent warning
+#else      //ST7789V_DMA
+    HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+#endif     //ST7789V_DMA
 }
 
 void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
@@ -508,15 +506,17 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
     if (png_mem_ptr0 == 0)
         //png_mem_ptr0 = pvPortMalloc(0xc000); //48k
         png_mem_ptr0 = (void *)0x10000000; //ccram
-    int i;
     void *p = ((uint8_t *)png_mem_ptr0) + png_mem_total;
     //	if (p == 0)
     //		while (1);
     //	else
     {
+        int i;
         for (i = 0; i < 10; i++)
             if (png_mem_ptrs[i] == 0)
                 break;
+        if (i >= 10)
+            return NULL;
         png_mem_ptrs[i] = p;
         png_mem_sizes[i] = size;
         png_mem_total += size;
