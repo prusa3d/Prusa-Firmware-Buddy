@@ -8,7 +8,8 @@ Screens::Screens(const ScreenFactory::Creator screen_creator)
     , stack_iterator(stack.begin())
     , current(nullptr)
     , creator(screen_creator)
-    , close(false) {
+    , close(false)
+    , close_all(false) {
 }
 
 void Screens::Init(const ScreenFactory::Creator screen_creator) {
