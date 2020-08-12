@@ -330,4 +330,3 @@ void ScreenMenuLanSettings::windowEvent(window_t *sender, uint8_t event, void *p
     show_msg(Eth::ConsumeMsg());
     Screen::windowEvent(sender, event, param);
 }
-
