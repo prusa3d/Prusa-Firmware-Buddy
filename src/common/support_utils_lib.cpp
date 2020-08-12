@@ -18,7 +18,7 @@ void leave_numbers(const char *const str_in, char *str_out) {
         if (str_in[i] < '0' || '9' < str_in[i])
             str_out[i] = '_';
         else {
-            str_out[i] = str_out[i];
+            str_out[i] = str_in[i];
         }
     }
 }

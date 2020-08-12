@@ -32,7 +32,7 @@ void append_crc(char *str, uint32_t str_size) {
 
     TM_CRC_Init(); // !!! should be somewhere else (not sure where yet)
     crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ERROR_URL_LONG_PREFIX) - 1), strlen(str) - sizeof(ERROR_URL_LONG_PREFIX) + 1, 1);
-    snprintf(eofstr(str), str_size - strlen(str), "/%08lX", crc);
+    snprintf(eofstr(str), str_size - strlen(str), "/%08X", crc);
 }
 
 /// \returns 40 bit encoded to 8 chars (32 symbol alphabet: 0-9,A-V)
@@ -152,7 +152,7 @@ void create_path_info_4service(char *str, uint32_t str_size) {
     if (last_selftest_time == 0)
         strlcat(str, "0", str_size);
     else
-        snprintf(eofstr(str), str_size - strlen(str), "%lu-%lu", last_selftest_result, (HAL_GetTick() / 1000 - last_selftest_time));
+        snprintf(eofstr(str), str_size - strlen(str), "%u-%u", last_selftest_result, (HAL_GetTick() / 1000 - last_selftest_time));
     strlcat(str, "/", str_size);
     // LockBlock
     block2hex(str, str_size, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
