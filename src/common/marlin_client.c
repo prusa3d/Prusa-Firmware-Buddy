@@ -200,7 +200,7 @@ void marlin_client_set_event_notify(uint64_t notify_events) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client) {
-        snprintf(request, MARLIN_MAX_REQUEST, "!event_msk %08lx %08lx", (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
+        snprintf(request, MARLIN_MAX_REQUEST, "!event_msk %08x %08x", (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
     }
@@ -210,7 +210,7 @@ void marlin_client_set_change_notify(uint64_t notify_changes) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
     if (client) {
-        snprintf(request, MARLIN_MAX_REQUEST, "!change_msk %08lx %08lx", (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
+        snprintf(request, MARLIN_MAX_REQUEST, "!change_msk %08x %08x", (uint32_t)(notify_changes & 0xffffffff), (uint32_t)(notify_changes >> 32));
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
     }
@@ -455,7 +455,7 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
         return 0;
     marlin_client_loop();
     client->changes &= ~msk;
-    snprintf(request, MARLIN_MAX_REQUEST, "!update %08lx %08lx", (uint32_t)(msk & 0xffffffff), (uint32_t)(msk >> 32));
+    snprintf(request, MARLIN_MAX_REQUEST, "!update %08x %08x", (uint32_t)(msk & 0xffffffff), (uint32_t)(msk >> 32));
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
     return &(client->vars);
