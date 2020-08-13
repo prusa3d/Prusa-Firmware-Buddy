@@ -72,6 +72,28 @@
 #define JOGWHEEL_PIN_EN2 TPE13 // encoder signal 2 pin
 #define JOGWHEEL_PIN_ENC TPE12 // button pin
 
+//--------------------------------------
+//FANCTL - new software pwm fan control with rpm measurement and closed loop
+#define NEW_FANCTL
+#ifdef NEW_FANCTL
+    //FANCTL0 - printing fan
+    #define FANCTL0_PIN_OUTP TPE11
+    #define FANCTL0_PIN_TACH TPE10
+    #define FANCTL0_PWM_MIN  15
+    #define FANCTL0_PWM_MAX  50
+    #define FANCTL0_RPM_MIN  500
+    #define FANCTL0_RPM_MAX  5000
+    #define FANCTL0_TRACE
+    //FANCTL1 - heatbreak fan
+    #define FANCTL1_PIN_OUTP TPE9
+    #define FANCTL1_PIN_TACH TPE14
+    #define FANCTL1_PWM_MIN  12
+    #define FANCTL1_PWM_MAX  50
+    #define FANCTL1_RPM_MIN  500
+    #define FANCTL1_RPM_MAX  7000
+    #define FANCTL1_TRACE
+#endif //NEW_FANCTL
+
 //Simulator configuration
 //#define SIM_HEATER
 //#define SIM_MOTION

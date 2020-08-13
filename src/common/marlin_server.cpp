@@ -32,6 +32,7 @@
 #include "media.h"
 #include "filament_sensor.h"
 #include "wdt.h"
+#include "fanctl.h"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -428,6 +429,7 @@ void marlin_server_print_start(const char *filename) {
         _set_notify_change(MARLIN_VAR_FILENAME);
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
+        fsm_create(ClientFSM::Printing, 0);
     }
 }
 
@@ -446,7 +448,8 @@ void marlin_server_print_pause(void) {
 void marlin_server_print_resume(void) {
     if (marlin_server.print_state == mpsPaused) {
         marlin_server.print_state = mpsResuming_Begin;
-    }
+    } else
+        marlin_server_print_start(nullptr);
 }
 
 void marlin_server_print_reheat_start(void) {
@@ -567,6 +570,7 @@ static void _server_print_loop(void) {
 #endif //Z_ALWAYS_ON
             disable_e_steppers();
             marlin_server.print_state = mpsAborted;
+            fsm_destroy(ClientFSM::Printing);
         }
         break;
     case mpsFinishing_WaitIdle:
@@ -578,6 +582,7 @@ static void _server_print_loop(void) {
     case mpsFinishing_ParkHead:
         if (planner.movesplanned() == 0) {
             marlin_server.print_state = mpsFinished;
+            fsm_destroy(ClientFSM::Printing);
         }
         break;
     default:
@@ -1023,6 +1028,22 @@ static uint64_t _server_update_vars(uint64_t update) {
         if (marlin_server.vars.time_to_end != v.ui32) {
             marlin_server.vars.time_to_end = v.ui32;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND);
+        }
+    }
+
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM)) {
+        v.ui16 = fanctl_get_rpm(0);
+        if (marlin_server.vars.fan0_rpm != v.ui16) {
+            marlin_server.vars.fan0_rpm = v.ui16;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM);
+        }
+    }
+
+    if (update & MARLIN_VAR_MSK(MARLIN_VAR_FAN1_RPM)) {
+        v.ui16 = fanctl_get_rpm(1);
+        if (marlin_server.vars.fan1_rpm != v.ui16) {
+            marlin_server.vars.fan1_rpm = v.ui16;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_FAN1_RPM);
         }
     }
 

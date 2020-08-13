@@ -1,4 +1,12 @@
 // term.h
+
+/// This unit provides write-only terminal.
+/// Window in terms of fixed-sized chars is defined.
+/// Long lines are wrapped automatically.
+/// If a line does not fit to window,
+/// first line is deleted and the others are
+/// shifted up so the new line can be printed.
+
 #pragma once
 
 #include <inttypes.h>
@@ -36,17 +44,27 @@
 #define TERM_PRINTF_MAX 0xff
 
 typedef struct _term_t {
+    // 4 bytes
+    FILE *file;
+    uint8_t *buff;
+    // 2 bytes
+    uint16_t flg;
+    uint16_t size;
+    // 1 byte
     uint8_t cols;
     uint8_t rows;
-    uint16_t flg;
-    uint8_t *buff;
-    uint16_t size;
     uint8_t attr;
     uint8_t col;
     uint8_t row;
-    FILE *file;
+
 } term_t;
 
+/// Initializes a terminal
+/// \param cols number of columns (fixed-sized chars)
+/// \param rows number of rows (fixed-sized chars)
+/// \param buff is pre-allocated or nullptr
+/// if pre-allocated the size has to be
+/// at least  \param cols + \param rows + 1
 extern void term_init(term_t *pt, uint8_t cols, uint8_t rows, uint8_t *buff);
 
 extern void term_done(term_t *pt);

@@ -21,7 +21,7 @@
 //#define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
 //trace variable change notifications (client side), to disable trace undef DBG_VAR_MSK
-//#define DBG_VAR DBG
+//#define DBG_VAR     DBG
 //#define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
 
 //maximum string length for DBG_VAR

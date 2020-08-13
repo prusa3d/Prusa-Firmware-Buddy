@@ -59,7 +59,7 @@ printing_state_t screen_printing_data_t::GetState() const {
 }
 
 void screen_printing_data_t::tuneAction() {
-    if (btn_tune.ico.IsBWSwapped()) {
+    if (btn_tune.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -73,7 +73,7 @@ void screen_printing_data_t::tuneAction() {
 }
 
 void screen_printing_data_t::pauseAction() {
-    if (btn_pause.ico.IsBWSwapped()) {
+    if (btn_pause.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -92,7 +92,7 @@ void screen_printing_data_t::pauseAction() {
 }
 
 void screen_printing_data_t::stopAction() {
-    if (btn_stop.ico.IsBWSwapped()) {
+    if (btn_stop.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -106,8 +106,8 @@ void screen_printing_data_t::stopAction() {
         if (MsgBoxWarning(_("Are you sure to stop this printing?"), Responses_YesNo, 1)
             == Response::Yes) {
             stop_pressed = true;
+            waiting_for_abort = true;
             change_print_state();
-            marlin_print_abort();
         } else
             return;
     }
@@ -231,6 +231,14 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
 
 #endif
 
+    /// check stop clicked when MBL is running
+    printing_state_t p_state = GetState();
+    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && p_state == printing_state_t::ABORTING) {
+        marlin_print_abort();
+        waiting_for_abort = false;
+        return;
+    }
+
     if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
         open_popup_message();
         return;
@@ -240,7 +248,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         close_popup_message();
     }
 
-    if ((state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
+    if (p_state == printing_state_t::PRINTED && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
@@ -272,7 +280,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         update_progress(marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
 
     /// -- close screen when print is done / stopped and USB media is removed
-    if (!marlin_vars()->media_inserted && GetState() == printing_state_t::PRINTED) {
+    if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
         Screens::Access()->Close();
         return;
     }
@@ -282,11 +290,12 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
+
     IScreenPrinting::windowEvent(sender, event, param);
 }
 
 void screen_printing_data_t::disable_tune_button() {
-    btn_tune.ico.SwapBW();
+    btn_tune.ico.Shadow();
     btn_tune.ico.Disable(); // can't be focused
 
     // move to reprint when tune is focused
@@ -297,7 +306,7 @@ void screen_printing_data_t::disable_tune_button() {
 }
 
 void screen_printing_data_t::enable_tune_button() {
-    btn_tune.ico.UnswapBW();
+    btn_tune.ico.Unshadow();
     btn_tune.ico.Enable(); // can be focused
     btn_tune.ico.Invalidate();
 }
@@ -433,16 +442,16 @@ void screen_printing_data_t::set_icon_and_label(item_id_t id_to_set, window_icon
 }
 
 void screen_printing_data_t::enable_button(window_icon_t *p_button) {
-    if (p_button->IsBWSwapped()) {
-        p_button->UnswapBW();
+    if (p_button->IsShadowed()) {
+        p_button->Unshadow();
         p_button->Enable();
         p_button->Invalidate();
     }
 }
 
 void screen_printing_data_t::disable_button(window_icon_t *p_button) {
-    if (!p_button->IsBWSwapped()) {
-        p_button->SwapBW();
+    if (!p_button->IsShadowed()) {
+        p_button->Shadow();
         p_button->Disable();
         p_button->Invalidate();
     }

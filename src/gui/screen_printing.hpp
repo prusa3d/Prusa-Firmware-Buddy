@@ -66,6 +66,7 @@ class screen_printing_data_t : public IScreenPrinting {
     uint32_t message_timer;
     bool message_flag;
     bool stop_pressed;
+    bool waiting_for_abort; /// flag specific for stop pressed when MBL is performed
     printing_state_t state__readonly__use_change_print_state;
     uint8_t last_sd_percent_done;
 
