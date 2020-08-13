@@ -3,6 +3,7 @@
 #include "guitypes.hpp"
 #include <array>
 #include <algorithm>
+#include <limits.h> //SHRT_MAX, SHRT_MIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @enum ShiftDir_t
