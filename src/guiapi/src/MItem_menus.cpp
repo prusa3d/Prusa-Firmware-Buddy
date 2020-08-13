@@ -111,7 +111,7 @@ MI_LAN_SETTINGS::MI_LAN_SETTINGS()
 }
 
 void MI_LAN_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    //screen_open(get_scr_lan_settings()->id);
+    Screens::Access()->Open(GetScreenMenuLanSettings);
 }
 
 /*****************************************************************************/
