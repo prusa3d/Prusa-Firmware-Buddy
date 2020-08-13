@@ -135,12 +135,26 @@ void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         }
         break;
     }
-    if (invalid)
-        Invalidate();
+    //    if (invalid)
+    //        Invalidate();
+}
+
+// overrided window_frame implementation to prevent menu blinking
+void window_menu_t::draw() {
+    if (IsInvalid()) {
+        unconditionalDraw();
+        Validate();
+    }
+    window_t *ptr = first;
+    while (ptr) {
+        ptr->Draw();
+        ptr = ptr->GetNext();
+    }
 }
 
 void window_menu_t::unconditionalDraw() {
-    IWindowMenu::unconditionalDraw();
+    // temporarily disabled erasing background to prevent menu blinking
+    //    IWindowMenu::unconditionalDraw();
 
     const int item_height = font->h + padding.top + padding.bottom;
     rect_ui16_t rc_win = rect;

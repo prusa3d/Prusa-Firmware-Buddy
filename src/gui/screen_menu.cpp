@@ -50,4 +50,8 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, rect_ui16_t r
 void IScreenMenu::windowEvent(window_t *sender, uint8_t event, void *param) {
     header.EventClr();
     window_menu_t::windowEvent(sender, event, param);
+    if ((event == WINDOW_EVENT_ENC_DN) || (event == WINDOW_EVENT_ENC_UP)) { // hack because we want prevent redrawing header/footer to prevent blinking
+        header.Validate();
+        footer.Validate();
+    }
 }
