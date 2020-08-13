@@ -9,9 +9,10 @@ typedef enum {
     mem_type_fill = 0,
     mem_type_text = 1,
     mem_type_data = 2,
-    mem_type_bss = 3,
-    mem_type_common = 4,
-    mem_type_other = 5,
+    mem_type_rodata = 3,
+    mem_type_bss = 4,
+    mem_type_common = 5,
+    mem_type_other = 6,
 } mapfile_mem_type_t;
 
 typedef struct _mapfile_t {

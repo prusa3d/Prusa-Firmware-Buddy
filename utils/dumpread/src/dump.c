@@ -45,6 +45,7 @@ dump_t *dump_load(const char *fn) {
         if ((rd_ram == DUMP_RAM_SIZE) && (rd_ccram == DUMP_CCRAM_SIZE) && (rd_otp == DUMP_OTP_SIZE) && (rd_flash == DUMP_FLASH_SIZE)) {
             pd->regs_gen = (dump_regs_gen_t *)dump_get_data_ptr(pd, DUMP_REGS_GEN);
             pd->regs_scb = dump_get_data_ptr(pd, DUMP_REGS_SCB);
+            pd->info = (dump_info_t *)dump_get_data_ptr(pd, DUMP_INFO);
             return pd;
         }
     }
@@ -169,7 +170,7 @@ int dump_load_bin_from_file(void *data, int size, const char *fn) {
     if (fbin) {
         int rb = fread(data, 1, size, fbin);
         fclose(fbin);
-        return (rb == size) ? 1 : 0;
+        return rb;
     }
     return 0;
 }
@@ -179,7 +180,19 @@ int dump_save_bin_to_file(void *data, int size, const char *fn) {
     if (fbin) {
         int wb = fwrite(data, 1, size, fbin);
         fclose(fbin);
-        return (wb == size) ? 1 : 0;
+        return wb;
     }
     return 0;
+}
+
+uint32_t dump_find_in_flash(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t start_addr, uint32_t end_addr) {
+    if (start_addr < DUMP_FLASH_ADDR)
+        start_addr = DUMP_FLASH_ADDR;
+    if (end_addr > (DUMP_FLASH_ADDR + DUMP_FLASH_SIZE - size))
+        end_addr = (DUMP_FLASH_ADDR + DUMP_FLASH_SIZE - size);
+    if (start_addr < end_addr)
+        for (uint32_t addr = start_addr; addr <= end_addr; addr++)
+            if (memcmp(pdata, pd->flash + addr - DUMP_FLASH_ADDR, size) == 0)
+                return addr;
+    return 0xffffffff;
 }

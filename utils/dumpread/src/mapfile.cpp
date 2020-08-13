@@ -80,19 +80,6 @@ bool cmapfile::load(const char *fn) {
     FILE *fmap = fopen(fn, "r");
     if (fmap) {
         m_filename = fn;
-        /*
-        m_map["test0"] = 0;
-        m_map["test1"] = 1;
-        m_map["test2"] = 2;
-
-        std::string tst;
-        uint32_t u;
-        u = m_map["test0"];
-        u = m_map["test1"];
-        u = m_map["test2"];
-        m_mem.push_back(cmapfile_mem_entry(0, 0, 0));
-        m_mem.push_back(cmapfile_mem_entry(1, 1, 0));
-*/
         // skip all lines to "Memory Configuration"
         while (fgets(line, 1024, fmap))
             if (strcmp(line, "Memory Configuration\n") == 0)
@@ -119,6 +106,12 @@ bool cmapfile::load(const char *fn) {
                             add_mem_entry(mem_type_data, addr, size, name);
                     } else if (s == 4)
                         add_mem_entry(mem_type_data, addr, size, name);
+                } else if ((s = sscanf(line, " .rodata.%s%x%x%[^\n]", name, &addr, &size, buff)) >= 1) {
+                    if (s == 1) {
+                        if (fgets(line, 1024, fmap) && (sscanf(line, "                %x%x%[^\n]", &addr, &size, buff)) == 3)
+                            add_mem_entry(mem_type_rodata, addr, size, name);
+                    } else if (s == 4)
+                        add_mem_entry(mem_type_rodata, addr, size, name);
                 } else if ((s = sscanf(line, " .bss.%s%x%x%[^\n]", name, &addr, &size, buff)) >= 1) {
                     if (s == 1) {
                         if (fgets(line, 1024, fmap) && (sscanf(line, "                %x%x%[^\n]", &addr, &size, buff)) == 3)
@@ -148,7 +141,14 @@ bool cmapfile::load(const char *fn) {
 }
 
 cmapfile_mem_entry *cmapfile::find_mem_entry(const char *name) {
-    return &m_mem[m_map[name]];
+    cmapfile_mem_entry *pentry = NULL;
+    std::map<std::string, int>::iterator it;
+    it = m_map.find(name);
+    if (it != m_map.end()) {
+        int index = it->second;
+        pentry = &m_mem[index];
+    }
+    return pentry;
 }
 
 int cmapfile::add_mem_entry(mapfile_mem_type_t type, uint32_t addr, uint32_t size, const char *name) {
