@@ -25,6 +25,16 @@ Rect16::Rect16(point_i16_t top_left, uint16_t width, uint16_t height) {
     height_ = height;
 }*/
 
+Rect16::Rect16(point_i16_t p0, point_i16_t p1)
+    : top_left_(p0) {
+    if (p1.x < top_left_.x)
+        std::swap(p1.x, top_left_.x);
+    if (p1.y < top_left_.y)
+        std::swap(p1.y, top_left_.y);
+    width_ = p1.x - top_left_.x;
+    height_ = p1.y - top_left_.y;
+}
+
 Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance) {
     switch (direction) {
     case ShiftDir_t::Left:
@@ -66,18 +76,18 @@ Rect16::Rect16(point_i16_t top_left, size_ui16_t s) {
 }
 
 Rect16 Rect16::Intersection(Rect16 const &r) const {
-    int16_t min_x, max_x;
-    int16_t min_y, max_y;
+    point_i16_t top_left;
+    point_i16_t bot_right;
 
     // If one Rect16 is on left side of other
     if (TopLeft().x >= r.BottomRight().x
         || r.TopLeft().x >= BottomRight().x)
         return Rect16();
     else {
-        min_x = TopLeft().x > r.TopLeft().x
+        top_left.x = TopLeft().x > r.TopLeft().x
             ? TopLeft().x
             : r.TopLeft().x;
-        max_x = BottomRight().x < r.BottomRight().x
+        bot_right.x = BottomRight().x < r.BottomRight().x
             ? BottomRight().x
             : r.BottomRight().x;
     }
@@ -87,34 +97,34 @@ Rect16 Rect16::Intersection(Rect16 const &r) const {
         || r.TopLeft().y >= BottomRight().y)
         return Rect16();
     else {
-        min_y = TopLeft().y > r.TopLeft().y
+        top_left.y = TopLeft().y > r.TopLeft().y
             ? TopLeft().y
             : r.TopLeft().y;
-        max_y = BottomRight().y < r.BottomRight().y
+        bot_right.y = BottomRight().y < r.BottomRight().y
             ? BottomRight().y
             : r.BottomRight().y;
     }
-    return Rect16 { min_x, min_y, max_x, max_y };
+    return Rect16 { top_left, bot_right };
 }
 
 Rect16 Rect16::Union(Rect16 const &r) const {
-    int16_t min_x, max_x;
-    int16_t min_y, max_y;
+    point_i16_t top_left;
+    point_i16_t bot_right;
 
-    min_x = TopLeft().x < r.TopLeft().x
+    top_left.x = TopLeft().x < r.TopLeft().x
         ? TopLeft().x
         : r.TopLeft().x;
-    max_x = BottomRight().x > r.BottomRight().x
+    bot_right.x = BottomRight().x > r.BottomRight().x
         ? BottomRight().x
         : r.BottomRight().x;
-    min_y = TopLeft().y < r.TopLeft().y
+    top_left.y = TopLeft().y < r.TopLeft().y
         ? TopLeft().y
         : r.TopLeft().y;
-    max_y = BottomRight().y > r.BottomRight().y
+    bot_right.y = BottomRight().y > r.BottomRight().y
         ? BottomRight().y
         : r.BottomRight().y;
 
-    return Rect16 { min_x, min_y, max_x, max_y };
+    return Rect16 { top_left, bot_right };
 }
 
 bool Rect16::HasIntersection(Rect16 const &r) const {

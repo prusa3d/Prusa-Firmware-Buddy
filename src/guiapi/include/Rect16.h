@@ -2,6 +2,7 @@
 
 #include "guitypes.hpp"
 #include <array>
+#include <algorithm>
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @enum ShiftDir_t
@@ -99,6 +100,8 @@ public:
         , width_(width)
         , height_(height) {
     }
+
+    Rect16(point_i16_t p0, point_i16_t p1);
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Copy contructor as default

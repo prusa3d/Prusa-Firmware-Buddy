@@ -111,7 +111,7 @@ void MsgBoxTitled::unconditionalDraw() {
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res)
     : MsgBoxBase(rect, resp, labels, txt)
-    , icon(this, icon_id_res, { uint16_t(rect.Left()), uint16_t(rect.Top()) }, GuiDefaults::Padding) {
+    , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
     icon.rect -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
 }

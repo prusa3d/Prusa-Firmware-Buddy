@@ -121,14 +121,14 @@ void st7789v_draw_rect(Rect16 rc, color_t clr) {
     if (rc.Width() <= 0 || rc.Height() <= 0)
         return;
 
-    point_ui16_t pt0 = { rc.Left(), rc.Top() };
-    point_ui16_t pt1 = { uint16_t(rc.Left() + rc.Width() - 1), rc.Top() };
-    point_ui16_t pt2 = { rc.Left(), uint16_t(rc.Top() + rc.Height() - 1) };
+    point_i16_t pt0 = rc.TopLeft();
+    point_i16_t pt1 = { int16_t(rc.Left() + rc.Width() - 1), rc.Top() };
+    point_i16_t pt2 = { rc.Left(), int16_t(rc.Top() + rc.Height() - 1) };
 
-    st7789v_fill_rect(Rect16(pt0.x, pt0.y, rc.Width(), 1), clr);  // top
-    st7789v_fill_rect(Rect16(pt0.x, pt0.y, 1, rc.Height()), clr); // left
-    st7789v_fill_rect(Rect16(pt1.x, pt1.y, 1, rc.Height()), clr); // right
-    st7789v_fill_rect(Rect16(pt2.x, pt2.y, rc.Width(), 1), clr);  // bottom
+    st7789v_fill_rect(Rect16(pt0, rc.Width(), 1), clr);  // top
+    st7789v_fill_rect(Rect16(pt0, 1, rc.Height()), clr); // left
+    st7789v_fill_rect(Rect16(pt1, 1, rc.Height()), clr); // right
+    st7789v_fill_rect(Rect16(pt2, rc.Width(), 1), clr);  // bottom
 }
 
 void st7789v_fill_rect(Rect16 rc, color_t clr) {
