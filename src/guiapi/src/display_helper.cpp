@@ -223,7 +223,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     rc_txt = rc_txt.Intersection(rc_pad);
     const uint8_t unused_pxls = (strlen_text * font->w <= rc_txt.Width()) ? 0 : rc_txt.Width() % font->w;
 
-    const Rect16 rect_in = rc_txt - Rect16::Width_t(unused_pxls); //{ rc_txt.Left(), rc_txt.Top(), uint16_t(rc_txt.Width() - unused_pxls), rc_txt.Height() };
+    const Rect16 rect_in = rc_txt - Rect16::Width_t(unused_pxls);
     fill_between_rectangles(&rc, &rect_in, clr0);
     text.rewind();
     // 2nd pass reading the string_view_utf8 - draw the text

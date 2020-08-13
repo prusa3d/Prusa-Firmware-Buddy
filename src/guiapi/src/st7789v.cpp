@@ -12,10 +12,6 @@ extern void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, ui
 } //extern "C"
 
 static constexpr Rect16 st7789v_clip = { 0, 0, ST7789V_COLS, ST7789V_ROWS };
-/*
-void st7789v_clip_rect(Rect16 rc) {
-    st7789v_clip = rc;
-}*/
 
 static bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     const uint16_t w = pf->w; //char width

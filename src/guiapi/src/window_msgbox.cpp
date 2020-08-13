@@ -31,7 +31,7 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, const PhaseTexts
 }
 
 Rect16 MsgBoxBase::getTextRect() {
-    return { rect.Left(), rect.Top(), rect.Width(), uint16_t(rect.Height() - get_radio_button_size(rect).Height()) };
+    return rect - get_radio_button_size(rect).Height();
 }
 
 Response MsgBoxBase::GetResult() {
@@ -71,7 +71,7 @@ MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, const PhaseT
 
 Rect16 MsgBoxTitled::getTitleRect() {
     Rect16 title_rect;
-    if (title_icon.rect.Width() && title_icon.rect.Height()) {
+    if (!title_icon.rect.IsEmpty()) {
         title_rect = title_icon.rect;                          // Y, H is valid
         title_rect += Rect16::Left_t(title_icon.rect.Width()); // fix X
     } else {
@@ -89,8 +89,8 @@ Rect16 MsgBoxTitled::getTitledTextRect() {
     text_rect -= Rect16::Height_t(4); // atleast 1px red line and 1px space after red line
     text_rect -= get_radio_button_size(rect).Height();
 
-    text_rect += Rect16::Left_t(getTitleRect().Height());
-    text_rect += Rect16::Left_t(4); // atleast 1px red line and 1px space after red line
+    text_rect += Rect16::Top_t(getTitleRect().Height());
+    text_rect += Rect16::Top_t(4); // atleast 1px red line and 1px space after red line
     return text_rect;
 }
 
@@ -113,7 +113,7 @@ MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, const Phas
     : MsgBoxBase(rect, resp, labels, txt)
     , icon(this, icon_id_res, { uint16_t(rect.Left()), uint16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
-    icon.rect -= Rect16::Width_t(GuiDefaults::Padding.left - GuiDefaults::Padding.right);
+    icon.rect -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
 }
 
 Rect16 MsgBoxIconned::getIconnedTextRect() {

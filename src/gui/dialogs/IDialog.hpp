@@ -14,10 +14,6 @@ public:
     virtual ~IDialog();
 
     static constexpr Rect16 get_radio_button_size(Rect16 rc_frame) {
-        /* rc_btn.y += (rc_btn.h - GuiDefaults::ButtonHeight - GuiDefaults::FrameWidth); // 30pixels for button (+ 10 space for grey frame)
-        rc_btn.h = GuiDefaults::ButtonHeight;
-        rc_btn.x += GuiDefaults::ButtonSpacing;
-        rc_btn.w -= 2 * GuiDefaults::ButtonSpacing;*/
         return Rect16(
             rc_frame.Left() + GuiDefaults::ButtonSpacing,
             rc_frame.Top() + (rc_frame.Height() - GuiDefaults::ButtonHeight - GuiDefaults::FrameWidth),

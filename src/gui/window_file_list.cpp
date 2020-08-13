@@ -136,7 +136,7 @@ void window_file_list_t::unconditionalDraw() {
         Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + i * item_height), rc_win.Width(), uint16_t(item_height) };
         padding_ui8_t padding = this->padding;
 
-        if (rc.Contain(rc_win)) {
+        if (rc_win.Contain(rc)) {
             if ((IsFocused()) && (index == i)) {
                 color_t swp = color_text;
                 color_text = color_back;
@@ -145,8 +145,9 @@ void window_file_list_t::unconditionalDraw() {
             }
 
             if (id_icon) {
-                Rect16 irc = { rc.Left(), rc.Top(), 16, 30 };
-                rc.CutPadding<uint16_t>({ irc.Width(), 0, 0, 0 });
+                Rect16 irc = { rc.TopLeft(), 16, 30 };
+                rc += Rect16::Left_t(irc.Width());
+                rc -= irc.Width();
                 render_icon_align(irc, id_icon, this->color_back, RENDER_FLG(ALIGN_CENTER, swap));
             } else {
                 padding.left += 16;
@@ -187,10 +188,10 @@ void window_file_list_t::unconditionalDraw() {
         }
     }
 
-    rc_win.CutPadding<uint16_t>({ 0, 0, 0, uint16_t(i * item_height) });
+    rc_win -= Rect16::Height_t(i * item_height);
 
     if (rc_win.Height()) {
-        rc_win = Rect16(rc_win, ShiftDir_t::Bottom, i * item_height);
+        rc_win += Rect16::Top_t(i * item_height);
         display::FillRect(rc_win, this->color_back);
     }
 }

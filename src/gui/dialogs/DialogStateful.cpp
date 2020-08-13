@@ -13,11 +13,11 @@ Rect16 get_title_size(Rect16 rect) {
 }
 
 Rect16 get_progress_size(Rect16 rect) {
-    return Rect16(rect.Left() + 2, rect.Top() + PROGRESS_BAR_Y_PAD, rect.Width() - 2 * PROGRESS_BAR_X_PAD, PROGRESS_BAR_H + PROGRESS_BAR_TEXT_H);
+    return Rect16(rect.Left() + PROGRESS_BAR_X_PAD, rect.Top() + PROGRESS_BAR_Y_PAD, rect.Width() - 2 * PROGRESS_BAR_X_PAD, PROGRESS_BAR_H + PROGRESS_BAR_TEXT_H);
 }
 
 Rect16 get_label_size(Rect16 rect) {
-    return Rect16(rect.Left() + PROGRESS_BAR_X_PAD, rect.Top() + 30 + 46, rect.Width() - 4, 60);
+    return Rect16(rect.Left() + 2, rect.Top() + 30 + 46, rect.Width() - 4, 60);
 }
 
 //*****************************************************************************

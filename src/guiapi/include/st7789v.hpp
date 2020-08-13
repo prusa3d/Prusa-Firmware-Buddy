@@ -20,8 +20,6 @@ bool st7789v_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, con
 
 bool st7789v_draw_text(Rect16 rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 
-//void st7789v_clip_rect(Rect16 rc);
-
 void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
 
 color_t st7789v_get_pixel(point_ui16_t pt);

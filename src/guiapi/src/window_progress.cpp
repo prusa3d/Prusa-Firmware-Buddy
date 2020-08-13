@@ -77,9 +77,10 @@ void window_progress_t::SetNumbColor(color_t clr) {
 
 void window_progress_t::SetProgressHeight(uint16_t height) {
     if (progr.rect.Height() != height) {
-        progr.rect = Rect16::H_t({ height });
+        const Rect16::Height_t h(height);
+        progr.rect = h;
         progr.Invalidate();
-        numb.rect -= Rect16::H_t({ height });
+        numb.rect = (rect - h).Height();
         numb.Invalidate();
     }
 }
