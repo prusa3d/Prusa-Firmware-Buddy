@@ -1,29 +1,4 @@
 #include "Rect16.h"
-/*
-Rect16::Rect16() {
-    top_left_ = { 0, 0 };
-    width_ = 0;
-    height_ = 0;
-}
-
-Rect16::Rect16(
-    int16_t left,
-    int16_t top,
-    int16_t right,
-    int16_t bottom) {
-    width_ = right < left ? 0 : right - left;
-    height_ = top > bottom ? 0 : bottom - top;
-
-    top_left_ = (width_ > 0 && height_ > 0)
-        ? point_i16_t { left, top }
-        : point_i16_t { 0, 0 };
-}
-
-Rect16::Rect16(point_i16_t top_left, uint16_t width, uint16_t height) {
-    top_left_ = top_left;
-    width_ = width;
-    height_ = height;
-}*/
 
 Rect16::Rect16(point_i16_t p0, point_i16_t p1)
     : top_left_(p0) {
@@ -80,29 +55,29 @@ Rect16 Rect16::Intersection(Rect16 const &r) const {
     point_i16_t bot_right;
 
     // If one Rect16 is on left side of other
-    if (TopLeft().x >= r.BottomRight().x
-        || r.TopLeft().x >= BottomRight().x)
+    if (TopLeft().x >= r.EndPoint().x
+        || r.TopLeft().x >= EndPoint().x)
         return Rect16();
     else {
         top_left.x = TopLeft().x > r.TopLeft().x
             ? TopLeft().x
             : r.TopLeft().x;
-        bot_right.x = BottomRight().x < r.BottomRight().x
-            ? BottomRight().x
-            : r.BottomRight().x;
+        bot_right.x = EndPoint().x < r.EndPoint().x
+            ? EndPoint().x
+            : r.EndPoint().x;
     }
 
     // If one Rect16 is above other
-    if (TopLeft().y >= r.BottomRight().y
-        || r.TopLeft().y >= BottomRight().y)
+    if (TopLeft().y >= r.EndPoint().y
+        || r.TopLeft().y >= EndPoint().y)
         return Rect16();
     else {
         top_left.y = TopLeft().y > r.TopLeft().y
             ? TopLeft().y
             : r.TopLeft().y;
-        bot_right.y = BottomRight().y < r.BottomRight().y
-            ? BottomRight().y
-            : r.BottomRight().y;
+        bot_right.y = EndPoint().y < r.EndPoint().y
+            ? EndPoint().y
+            : r.EndPoint().y;
     }
     return Rect16 { top_left, bot_right };
 }
@@ -114,28 +89,28 @@ Rect16 Rect16::Union(Rect16 const &r) const {
     top_left.x = TopLeft().x < r.TopLeft().x
         ? TopLeft().x
         : r.TopLeft().x;
-    bot_right.x = BottomRight().x > r.BottomRight().x
-        ? BottomRight().x
-        : r.BottomRight().x;
+    bot_right.x = EndPoint().x > r.EndPoint().x
+        ? EndPoint().x
+        : r.EndPoint().x;
     top_left.y = TopLeft().y < r.TopLeft().y
         ? TopLeft().y
         : r.TopLeft().y;
-    bot_right.y = BottomRight().y > r.BottomRight().y
-        ? BottomRight().y
-        : r.BottomRight().y;
+    bot_right.y = EndPoint().y > r.EndPoint().y
+        ? EndPoint().y
+        : r.EndPoint().y;
 
     return Rect16 { top_left, bot_right };
 }
 
 bool Rect16::HasIntersection(Rect16 const &r) const {
-    return TopLeft().x < r.BottomRight().x
-        && BottomRight().x > r.TopLeft().x
-        && TopLeft().y < r.BottomRight().y
-        && BottomRight().y > r.TopLeft().y;
+    return TopLeft().x < r.EndPoint().x
+        && EndPoint().x > r.TopLeft().x
+        && TopLeft().y < r.EndPoint().y
+        && EndPoint().y > r.TopLeft().y;
 }
 
 bool Rect16::Contain(Rect16 const &r) const {
-    return Contain(r.TopLeft()) && Contain(r.BottomRight());
+    return Contain(r.TopLeft()) && Contain(point_i16_t(r.BottomRight()));
 }
 
 void Rect16::Align(Rect16 rc, uint8_t align) {
@@ -168,5 +143,40 @@ void Rect16::Align(Rect16 rc, uint8_t align) {
         else
             top_left_.y = (rc.Top() > ((height_ - rc.Height()) / 2)) ? rc.Top() - ((height_ - rc.Height()) / 2) : 0;
         break;
+    }
+}
+
+void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing) const {
+    if (count == 0)
+        return;
+    if (count == 1) {
+        splits[0] = *this;
+        return;
+    }
+
+    uint16_t width = Width() / count - spacing * (count - 1);
+
+    Rect16 rc({ 0, Top() }, width, Height());
+    Rect16 rc_space({ 0, Top() }, spacing, Height());
+    size_t index;
+    size_t right = EndPoint().x - width;
+
+    for (index = 0; index < count / 2; ++index) {
+        splits[index] = rc + Rect16::Left_t(Left() + index * (width + spacing));            // 1 from begin
+        splits[count - 1 - index] = rc + Rect16::Left_t(right - index * (width + spacing)); // 1 from end
+    }
+
+    //even count
+    //middle rect can be bit smaller, so spacing remains the same
+    if (count & 0x01) {
+        point_i16_t p0 = splits[index - 1].EndPoint();
+        point_i16_t p1 = splits[index + 1].TopLeft();
+        p0.x += spacing;
+        p1.x -= spacing;
+        splits[index] = Rect16(p0, p1);
+    }
+
+    for (index = 0; index < count - 1; ++index) {
+        spaces[index] = Rect16(splits[index].EndPoint(), splits[index + 1].TopLeft());
     }
 }

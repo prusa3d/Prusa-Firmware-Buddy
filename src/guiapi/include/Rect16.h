@@ -161,10 +161,22 @@ public:
     ///
     /// @return Top-left corner of the rectangle.
     constexpr point_i16_t TopLeft() const { return top_left_; };
+    constexpr point_i16_t BeginPoint() const { return TopLeft(); }; //just an alias for TopLeft()
 
     constexpr Top_t Top() const { return Top_t(top_left_.y); };
 
     constexpr Left_t Left() const { return Left_t(top_left_.x); };
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Object accessor to read the point behind bottom-right of current rectangle
+    ///
+    /// @return Point behind Bottom-right of the rectangle.
+    point_i16_t EndPoint() const {
+        return {
+            static_cast<int16_t>(top_left_.x + width_),
+            static_cast<int16_t>(top_left_.y + height_)
+        };
+    };
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the bottom-right of current rectangle
@@ -172,8 +184,8 @@ public:
     /// @return Bottom-right of the rectangle.
     point_i16_t BottomRight() const {
         return {
-            static_cast<int16_t>(top_left_.x + width_),
-            static_cast<int16_t>(top_left_.y + height_)
+            static_cast<int16_t>(top_left_.x + width_ - 1),
+            static_cast<int16_t>(top_left_.y + height_ - 1)
         };
     };
 
@@ -185,9 +197,9 @@ public:
     template <class T>
     constexpr bool Contain(point_t<T> point) const {
         return point.x >= top_left_.x
-            && point.x <= (top_left_.x + width_)
+            && point.x < (top_left_.x + width_)
             && point.y >= top_left_.y
-            && point.y <= (top_left_.y + height_);
+            && point.y < (top_left_.y + height_);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -343,8 +355,8 @@ public:
             if (rectangles[i].Width() > 0) {
                 min_x = rectangles[i].TopLeft().x < min_x ? rectangles[i].TopLeft().x : min_x;
                 min_y = rectangles[i].TopLeft().y < min_y ? rectangles[i].TopLeft().y : min_y;
-                max_x = rectangles[i].BottomRight().x > max_x ? rectangles[i].BottomRight().x : max_x;
-                max_y = rectangles[i].BottomRight().y > max_y ? rectangles[i].BottomRight().y : max_y;
+                max_x = rectangles[i].EndPoint().x > max_x ? rectangles[i].EndPoint().x : max_x;
+                max_y = rectangles[i].EndPoint().y > max_y ? rectangles[i].EndPoint().y : max_y;
             }
         }
         return { min_x, min_y, max_x, max_y };
@@ -362,8 +374,8 @@ public:
         return {
             TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
             TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,
-            BottomRight().x > ret.BottomRight().x ? BottomRight().x : ret.BottomRight().x,
-            BottomRight().y > ret.BottomRight().y ? BottomRight().y : ret.BottomRight().y
+            EndPoint().x > ret.EndPoint().x ? EndPoint().x : ret.EndPoint().x,
+            EndPoint().y > ret.EndPoint().y ? EndPoint().y : ret.EndPoint().y
         };
     }
 
@@ -424,6 +436,9 @@ public:
         };
         return i;
     }
+
+    //count must be at least 1
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0) const;
 };
 
 ////////////////////////////////////////////////////////////////////////////

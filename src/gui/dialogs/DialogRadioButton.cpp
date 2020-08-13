@@ -108,30 +108,17 @@ void RadioButton::draw_1_btn() const {
 void RadioButton::draw_n_btns(size_t btn_count) const {
     if (!texts)
         return;
-    Rect16 rc_btn = rect;
-    int16_t btn_width = rc_btn.Width() / btn_count - GuiDefaults::ButtonSpacing * (btn_count - 1);
-    /* rc_btn.Width() = btn_width;
+
+    Rect16 splits[4]; //fix size, dont want to use template
+    Rect16 spaces[3];
+    rect.VerticalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(rc_btn, _((*texts)[i]), pfont, selected_index == i && IsEnabled());
-
-        if (i + 1 < btn_count) {
-            //space between buttons
-            rc_btn.x += btn_width;
-            rc_btn.Width() = GuiDefaults::ButtonSpacing;
-            display::FillRect(rc_btn, color_back);
-
-            //nextbutton coords
-            rc_btn.x += GuiDefaults::ButtonSpacing;
-            rc_btn.Width() = btn_width + GuiDefaults::ButtonSpacing;
-        }
+        button_draw(splits[i], _((*texts)[i]), pfont, selected_index == i && IsEnabled());
     }
-    rc_btn.x += rc_btn.Width(); //start of black space after button (if exists)
-    int black_space_w = int(rect.Left() + rect.Width()) - int(rc_btn.x);
-    if (black_space_w > 0) {
-        rc_btn.Width() = black_space_w;
-        display::FillRect(rc_btn, color_back);
-    }*/
+    for (size_t i = 0; i < btn_count - 1; ++i) {
+        display::FillRect(spaces[i], color_back);
+    }
 }
 
 void RadioButton::button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected) {
