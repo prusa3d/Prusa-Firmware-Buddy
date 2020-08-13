@@ -50,15 +50,15 @@ protected:
             bool flag_timer : 1;                          // 04 - window has timers
             is_dialog_t flag_dialog : 1;                  // 05 - window id dialog
             is_closed_on_click_t flag_close_on_click : 1; // 06 - window id dialog
-            bool flag_custom0 : 1;                        // 07 - this flag can be defined in parent
-            bool flag_custom1 : 1;                        // 08 - this flag can be defined in parent
-            bool flag_custom2 : 1;                        // 09 - this flag can be defined in parent
-            bool flag_custom3 : 1;                        // 0A - this flag can be defined in parent
-            bool flag_custom4 : 1;                        // 0B - this flag can be defined in parent
-            bool flag_custom5 : 1;                        // 0C - this flag can be defined in parent
-            bool flag_custom6 : 1;                        // 0D - this flag can be defined in parent
-            bool flag_custom7 : 1;                        // 0E - this flag can be defined in parent
-            bool flag_custom8 : 1;                        // 0F - this flag can be defined in parent
+            bool flag_hidden_behind_dialog : 1;           // 07 - there is an dialog over this window
+            bool flag_custom0 : 1;                        // 08 - this flag can be defined in parent
+            bool flag_custom1 : 1;                        // 09 - this flag can be defined in parent
+            bool flag_custom2 : 1;                        // 0A - this flag can be defined in parent
+            bool flag_custom3 : 1;                        // 0B - this flag can be defined in parent
+            bool flag_custom4 : 1;                        // 0C - this flag can be defined in parent
+            bool flag_custom5 : 1;                        // 0D - this flag can be defined in parent
+            bool flag_custom6 : 1;                        // 0E - this flag can be defined in parent
+            bool flag_custom7 : 1;                        // 0F - this flag can be defined in parent
         };
     };
 
@@ -75,7 +75,8 @@ public:
     void Draw();
     void ScreenEvent(window_t *sender, uint8_t event, void *param); //try to handle, frame resends children
     void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, can sent click to parent
-    bool IsVisible() const;
+    bool IsVisible() const;                                         // visible and not hidden by dialog
+    bool IsHiddenBehindDialog() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
     bool IsFocused() const;
@@ -93,6 +94,8 @@ public:
     void Disable();
     void Show();
     void Hide();
+    void HideBehindDialog();
+    void ShowAfterDialog();
     void SetBackColor(color_t clr);
     color_t GetBackColor() const;
 
