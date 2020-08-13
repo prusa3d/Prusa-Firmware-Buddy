@@ -115,6 +115,7 @@ int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, siz
     return strinsT(str, max_size, ins, times);
 }
 
+#ifdef 0
 /// Replaces breakable spaces into line breaks in \param str
 /// to ensure that no line is longer than \param line_width.
 /// If \param line_width is too short,
@@ -195,3 +196,5 @@ int str2multilineUnicode(uint32_t *str, size_t max_size, size_t line_width) {
     static const uint32_t nl[2] = { 0xa, 0 };
     return str2multilineT(str, max_size, line_width, nl);
 }
+
+#endif

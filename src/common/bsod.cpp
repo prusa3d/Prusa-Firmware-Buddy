@@ -226,7 +226,6 @@ void general_error_run() {
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
-    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
 
     /// FIXME split heating, min/max temp and thermal runaway
     static const char bad_bed[] = "Check the heatbed heater & thermistor wiring for possible damage.";
@@ -237,8 +236,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     } else {
         snprintf(text, sizeof(text), bad_head);
     }
-
-    str2multiline(text, sizeof(text), line_width_chars);
 
     general_error_init();
     display::Clear(COLOR_RED_ALERT);
