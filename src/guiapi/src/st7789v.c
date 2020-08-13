@@ -492,12 +492,13 @@ static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
 #ifdef ST7789V_PNG_SUPPORT
 
     #include <png.h>
+    #define PNG_MAX_CHUNKS 10
 
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
 uint32_t png_mem_max = 0;
-void *png_mem_ptrs[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-uint32_t png_mem_sizes[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+void *png_mem_ptrs[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+uint32_t png_mem_sizes[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
 
 png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
@@ -512,10 +513,10 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
     //	else
     {
         int i;
-        for (i = 0; i < 10; i++)
+        for (i = 0; i < PNG_MAX_CHUNKS; i++)
             if (png_mem_ptrs[i] == 0)
                 break;
-        if (i >= 10)
+        if (i >= PNG_MAX_CHUNKS)
             return NULL;
         png_mem_ptrs[i] = p;
         png_mem_sizes[i] = size;
