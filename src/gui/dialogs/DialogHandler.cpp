@@ -5,7 +5,7 @@
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_printing_serial.hpp"
-// #include "screen_printing.hpp"
+#include "screen_printing.hpp"
 
 //*****************************************************************************
 //method definitions

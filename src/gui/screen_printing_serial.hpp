@@ -7,9 +7,11 @@
 #include "window_text.hpp"
 #include <array>
 
+static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
+
 class screen_printing_serial_data_t : public IScreenPrinting {
     static constexpr const char *caption = "SERIAL PRT.";
-    static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
+    // static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 
     window_icon_t octo_icon;
 
