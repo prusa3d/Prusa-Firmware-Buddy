@@ -23,7 +23,7 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     octo_icon.Disable();
     octo_icon.Unshadow();
 
-    setIconAndLabel(btn_stop, res_disconnect);
+    initAndsetIconAndLabel(btn_stop, res_disconnect);
 }
 
 void screen_printing_serial_data_t::DisableButton(btn &b) {
@@ -38,8 +38,8 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event,
 
     /// end sequence waiting for empty marlin gcode queue
     /// parking -> cooldown hotend & bed -> turn off print fan
-
     if (connection == connection_state_t::disconnect) {
+        connection = connection_state_t::disconnect_ask;
         if (MsgBoxWarning(_("Really Disconnect?"), Responses_YesNo, 1) == Response::Yes) {
 
             DisableButton(btn_tune);
