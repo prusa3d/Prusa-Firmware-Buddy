@@ -15,19 +15,14 @@ enum str_err {
     nullptr_err = -1,
     small_buffer = -2
 };
-
 size_t strdel(char *str, const size_t n = 1);
 int strins(char *str, size_t max_size, const char *const ins, size_t times = 1);
 int strshift(char *str, size_t max_size, const size_t n = 1, const char default_char = ' ');
-#ifdef 0
 int str2multiline(char *str, size_t max_size, const size_t line_width);
-#endif
 
 int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n = 1, const uint32_t default_char = ' ');
 int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, size_t times = 1);
-#ifdef 0
 int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width);
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -61,7 +56,7 @@ struct memory_source {
         std::copy(s.begin(), s.end(), buffer_.data());
     }
 
-    value_type get() const {
+    value_type getUtf8Char() const {
         value_type c;
         if (index_ >= buffer_.size())
             return EOS;

@@ -264,20 +264,20 @@ TEST_CASE("String to multi-line", "[str2multiline]") {
         REQUIRE_THAT(str, Equals("123\n456"));
     }
 
-    SECTION("BFW-1125.2") {
-        char str[n255] = "The status bar is at\n"
-                         "the bottom of the  \n"
-                         "screen. It contains\n"
-                         "information about: \n"
-                         " - Nozzle temp.    \n"
-                         " - Heatbed temp.   \n"
-                         " - Printing speed  \n"
-                         " - Z-axis height   \n"
-                         " - Selected filament";
-        n = str2multiline(str, n255, 20);
-        CHECK(n == 9);
-        CHECK_THAT(str, Equals("The status bar is at\nthe bottom of the\nscreen. It contains\ninformation about: -\nNozzle temp. -\nHeatbed temp. -\nPrinting speed -\nZ-axis height -\nSelected filament"));
-    }
+    // SECTION("BFW-1125.2") {
+    //     char str[n255] = "The status bar is at\n"
+    //                      "the bottom of the  \n"
+    //                      "screen. It contains\n"
+    //                      "information about: \n"
+    //                      " - Nozzle temp.    \n"
+    //                      " - Heatbed temp.   \n"
+    //                      " - Printing speed  \n"
+    //                      " - Z-axis height   \n"
+    //                      " - Selected filament";
+    //     n = str2multiline(str, n255, 20);
+    //     CHECK(n == 9);
+    //     CHECK_THAT(str, Equals("The status bar is at\nthe bottom of the\nscreen. It contains\ninformation about: -\nNozzle temp. -\nHeatbed temp. -\nPrinting speed -\nZ-axis height -\nSelected filament"));
+    // }
 
     SECTION("BFW-1149.1") {
         char str[n255] = "Nel prossimo passo, "
@@ -550,14 +550,13 @@ TEST_CASE("multi-line UTF-8", "[str2multiline][text_wrap]") {
 
         const std::uint8_t utf8str[] = "příliš žluťoučký kůň úpěl ďábelské ódy : PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY";
         string_view_utf8 sf = string_view_utf8::MakeCPUFLASH(utf8str);
-        string_view_ut8_adapter stream { &sf };
         monospace font;
         text_wrapper<stack_buffer, const monospace *> w(240, &font);
         unichar c;
         std::vector<unichar> str(n255), expected(n255);
         size_t index = 0;
         to_unichar("příliš žluťoučký kůň\núpěl ďábelské ódy : \nPŘÍLIŠ ŽLUŤOUČKÝ KŮŇ\nÚPĚL ĎÁBELSKÉ ÓDY", &expected);
-        while ((c = w.character(stream)) != '\0')
+        while ((c = w.character(sf)) != '\0')
             str[index++] = c;
         str[index] = '\0';
         CHECK_THAT(str, Equals(expected));
