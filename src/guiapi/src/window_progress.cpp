@@ -9,7 +9,8 @@
 //window_numberless_progress_t
 window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back)
     : window_t(parent, rect)
-    , color_progress(cl_progress) {
+    , color_progress(cl_progress)
+    , progress_in_pixels(0) {
     color_back = cl_back;
 }
 
