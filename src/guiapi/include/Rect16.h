@@ -226,13 +226,14 @@ public:
     /// one
     /// @param[in] rect Rectangle given to check
     /// @return Return true if the rectangles has intersection, false otherwise.
+    /// Return false if rectangle is empty
     bool HasIntersection(Rect16 const &) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines if the given rectangle is fully overlayed by the
     /// current on
     /// @param[in] rect Rectangle given to check
-    /// @return Return true if the rectangles is subrectangle, false otherwise.
+    /// @return Return true if the rectangles is subrectangle or empty, false otherwise.
     bool Contain(Rect16 const &) const;
 
     void Align(Rect16 rc, uint8_t align);

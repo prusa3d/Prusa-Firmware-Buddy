@@ -103,6 +103,8 @@ Rect16 Rect16::Union(Rect16 const &r) const {
 }
 
 bool Rect16::HasIntersection(Rect16 const &r) const {
+    if (r.IsEmpty())
+        return false;
     return TopLeft().x < r.EndPoint().x
         && EndPoint().x > r.TopLeft().x
         && TopLeft().y < r.EndPoint().y
@@ -110,6 +112,8 @@ bool Rect16::HasIntersection(Rect16 const &r) const {
 }
 
 bool Rect16::Contain(Rect16 const &r) const {
+    if (r.IsEmpty())
+        return true;
     return Contain(r.TopLeft()) && Contain(point_i16_t(r.BottomRight()));
 }
 
