@@ -135,26 +135,12 @@ void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         }
         break;
     }
-    //    if (invalid)
-    //        Invalidate();
-}
-
-// overrided window_frame implementation to prevent menu blinking
-void window_menu_t::draw() {
-    if (IsInvalid()) {
-        unconditionalDraw();
-        Validate();
-    }
-    window_t *ptr = first;
-    while (ptr) {
-        ptr->Draw();
-        ptr = ptr->GetNext();
-    }
+    if (invalid)
+        Invalidate();
 }
 
 void window_menu_t::unconditionalDraw() {
-    // temporarily disabled erasing background to prevent menu blinking
-    //    IWindowMenu::unconditionalDraw();
+    IWindowMenu::unconditionalDraw();
 
     const int item_height = font->h + padding.top + padding.bottom;
     Rect16 rc_win = rect;
