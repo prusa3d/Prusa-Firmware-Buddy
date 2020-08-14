@@ -79,7 +79,7 @@ using word_buffer = std::array<std::uint32_t, 32>;
 ///
 /// Global ram word storage
 ///
-/// @details 32 bytes length
+/// @details Max length of the word is 31 characters in UTF-8 encoding
 ///
 struct ram_buffer {
     using value_type = word_buffer::value_type;
