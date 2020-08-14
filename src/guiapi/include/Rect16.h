@@ -372,7 +372,7 @@ public:
 
         // int16_t min_x = SHRT_MAX, min_y = SHRT_MAX;
         // int16_t max_x = SHRT_MIN, max_y = SHRT_MIN;
-								// 
+        //
         // if (SZ > 0) {
         //     for (size_t i = 0; i < SZ; ++i) {
         //         if (rectangles[i].Width() > 0 || rectangles[i].Height() > 0) {
@@ -387,7 +387,7 @@ public:
         //     return Rect16 {};
         // }
 
-                                // printf("min-max: %d-%d", min_x, min_y);
+        // printf("min-max: %d-%d", min_x, min_y);
 
         // point_i16_t top_left = { min_x, min_y };
         // point_i16_t bot_right = { max_x, max_y };
@@ -405,7 +405,7 @@ public:
     template <size_t SZ>
     Rect16 Union(std::array<Rect16, SZ> const &rectangles) {
         Rect16 ret = Merge(rectangles);
-				// return ret;
+        // return ret;
         return Rect16 {
             TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
             TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,

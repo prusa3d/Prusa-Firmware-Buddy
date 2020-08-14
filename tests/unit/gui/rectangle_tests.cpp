@@ -179,13 +179,13 @@ TEST_CASE("rectangle union", "[rectangle]") {
         Rect16 l, expected;
 
         std::tie(l, s, expected) = GENERATE(
-            std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 10, 10 }, { { } }, { 0, 0, 10, 10 }),
+            std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 10, 10 }, { {} }, { 0, 0, 10, 10 }),
             std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 10, 10 }, { { {} } }, { 0, 0, 10, 10 }),
             std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 20, 20 }, { { { 20, 20, 40, 40 } } }, { 0, 0, 60, 60 })
             // std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 20, 20 }, { { { 0, 20, 20, 40 }, { 20, 0, 40, 20 } } }, { 0, 0, 60, 60 })
             // std::make_tuple<Rect16, Sequence, Rect16>({ 10, 10, 20, 20 }, { { { 0, 0, 10, 10 }, { 0, 20, 20, 40 }, { 20, 0, 40, 20 } } }, { 0, 0, 40, 40 }),
             // std::make_tuple<Rect16, Sequence, Rect16>({ -20, -20, 0, 0 }, { { { 0, 0, 20, 20 } } }, { -20, -20, 20, 20 })
-						);
+        );
 
         Rect16 res = l.Union(s);
 
@@ -263,8 +263,7 @@ TEST_CASE("rectangle Merge", "[rectangle]") {
                 { 0, 0, 60, 60 }),
             std::make_tuple<Sequence, Rect16>({ { { -20, -20, 0, 0 },
                                                   { 0, 0, 20, 20 } } },
-                { 0, 0, 20, 20 })
-        );
+                { 0, 0, 20, 20 }));
 
         Rect16 res = Rect16::Merge(s);
 
@@ -294,12 +293,12 @@ TEST_CASE("rectangle Contain", "[rectangle]") {
 
 // TEST_CASE("rectangle split", "[rectangle]") {
 //     using Sequence = std::array<Rect16, 4>;
-// 
+//
 //     SECTION("horizontal") {
 //         Sequence expected, result;
 //         Rect16 r;
 //         uint16_t span, count;
-// 
+//
 //         std::tie(r, span, count, expected) = GENERATE(
 //             std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
 //                 { 0, 0, 0, 0 }, 10, 0, { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } }),
@@ -307,17 +306,17 @@ TEST_CASE("rectangle Contain", "[rectangle]") {
 //                 { 0, 0, 100, 100 }, 10, 4, { { { 0, 0, 10, 100 }, { 10, 0, 20, 100 }, { 20, 0, 30, 100 }, { 30, 0, 40, 100 } } }),
 //             std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
 //                 { 0, 0, 100, 100 }, 30, 3, { { { 0, 0, 30, 100 }, { 30, 0, 60, 100 }, { 60, 0, 90, 100 } } }));
-// 
+//
 //         size_t l = r.HorizontalSplit(result, span);
 //         CHECK(l == count);
 //         COMPARE_ARRAYS(expected, result);
 //     }
-// 
+//
 //     SECTION("vertical") {
 //         Sequence expected, result;
 //         Rect16 r;
 //         uint16_t span, count;
-// 
+//
 //         std::tie(r, span, count, expected) = GENERATE(
 //             std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
 //                 { 0, 0, 0, 0 }, 10, 0, { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } }),
@@ -325,9 +324,9 @@ TEST_CASE("rectangle Contain", "[rectangle]") {
 //                 { 0, 0, 100, 100 }, 10, 4, { { { 0, 0, 100, 10 }, { 0, 10, 100, 20 }, { 0, 20, 100, 30 }, { 0, 30, 100, 40 } } }),
 //             std::make_tuple<Rect16, uint16_t, uint16_t, Sequence>(
 //                 { 0, 0, 100, 100 }, 30, 3, { { { 0, 0, 100, 30 }, { 0, 30, 100, 60 }, { 0, 60, 100, 90 } } })
-// 
+//
 //         );
-// 
+//
 //         size_t l = r.VerticalSplit(result, span);
 //         CHECK(l == count);
 //         COMPARE_ARRAYS(expected, result);
