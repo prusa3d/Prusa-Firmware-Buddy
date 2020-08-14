@@ -105,15 +105,14 @@ TEST_CASE("rectangle construc", "[rectangle]") {
 TEST_CASE("rectangle intersection", "[rectangle]") {
     Rect16 l, r, expected;
     std::tie(l, r, expected) = GENERATE(
-        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 30, 30 }, { 20, 20, 40, 40 }, { 20, 20, 20, 20 })
-        // std::make_tuple<Rect16, Rect16, Rect16>({ 20, 20, 40, 40 }, { 10, 10, 30, 30 }, { 20, 20, 20, 20 }),
-        // std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 30, 30 }, { 20, 0, 40, 40 }, { 20, 10, 20, 30 }),
-        // std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 30, 30 }, { 11, 10, 31, 20 }, { 11, 10, 29, 20 }),
-        // std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 1, 1, 29, 29 }, { 1, 1, 29, 29 }),
-        // std::make_tuple<Rect16, Rect16, Rect16>({ 0, 20, 30, 30 }, { 10, 0, 40, 22 }, { 10, 20, 20, 2 }),
-        // std::make_tuple<Rect16, Rect16, Rect16>({ 0, 20, 30, 30 }, { 0, 20, 30, 30 }, { 0, 20, 30, 30 }),
-        // std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 20, 20 }, { 30, 30, 40, 40 }, { 0, 0, 0, 0 })
-				);
+        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 30, 30 }, { 20, 20, 40, 40 }, { 20, 20, 20, 20 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 20, 20, 40, 40 }, { 10, 10, 30, 30 }, { 20, 20, 20, 20 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 30, 30 }, { 20, 0, 40, 40 }, { 20, 10, 20, 30 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 30, 30 }, { 11, 10, 31, 20 }, { 11, 10, 29, 20 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 1, 1, 29, 29 }, { 1, 1, 29, 29 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 0, 20, 30, 30 }, { 10, 0, 40, 22 }, { 10, 20, 20, 2 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 0, 20, 30, 30 }, { 0, 20, 30, 30 }, { 0, 20, 30, 30 }),
+        std::make_tuple<Rect16, Rect16, Rect16>({ 10, 10, 20, 20 }, { 30, 30, 40, 40 }, { 0, 0, 0, 0 }));
 
     Rect16 res = l.Intersection(r);
 
@@ -182,10 +181,10 @@ TEST_CASE("rectangle union", "[rectangle]") {
         std::tie(l, s, expected) = GENERATE(
             std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 10, 10 }, { {} }, { 0, 0, 10, 10 }),
             std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 10, 10 }, { { {} } }, { 0, 0, 10, 10 }),
-            std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 20, 20 }, { { { 20, 20, 40, 40 } } }, { 0, 0, 60, 60 })
-            // std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 20, 20 }, { { { 0, 20, 20, 40 }, { 20, 0, 40, 20 } } }, { 0, 0, 60, 60 })
-            // std::make_tuple<Rect16, Sequence, Rect16>({ 10, 10, 20, 20 }, { { { 0, 0, 10, 10 }, { 0, 20, 20, 40 }, { 20, 0, 40, 20 } } }, { 0, 0, 40, 40 }),
-            // std::make_tuple<Rect16, Sequence, Rect16>({ -20, -20, 0, 0 }, { { { 0, 0, 20, 20 } } }, { -20, -20, 20, 20 })
+            std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 20, 20 }, { { { 20, 20, 40, 40 } } }, { 0, 0, 60, 60 }),
+            std::make_tuple<Rect16, Sequence, Rect16>({ 0, 0, 20, 20 }, { { { 0, 20, 20, 40 }, { 20, 0, 40, 20 } } }, { 0, 0, 60, 60 })
+            std::make_tuple<Rect16, Sequence, Rect16>({ 10, 10, 20, 20 }, { { { 0, 0, 10, 10 }, { 0, 20, 20, 40 }, { 20, 0, 40, 20 } } }, { 0, 0, 40, 40 }),
+            std::make_tuple<Rect16, Sequence, Rect16>({ -20, -20, 0, 0 }, { { { 0, 0, 20, 20 } } }, { -20, -20, 20, 20 })
         );
 
         Rect16 res = l.Union(s);
@@ -261,11 +260,10 @@ TEST_CASE("rectangle Merge", "[rectangle]") {
                                                   { 0, 0, 10, 10 },
                                                   { 0, 20, 20, 40 },
                                                   { 20, 0, 40, 20 } } },
-                { 0, 0, 60, 60 })
-            // std::make_tuple<Sequence, Rect16>({ { { -20, -20, 0, 0 },
-            //                                       { 0, 0, 20, 20 } } },
-            //     { 0, 0, 20, 20 })
-						);
+                { 0, 0, 60, 60 }),
+            std::make_tuple<Sequence, Rect16>({ { { -20, -20, 10, 10 },
+                                                  { 0, 0, 20, 20 } } },
+                { -20, -20, 40, 40 }));
 
         Rect16 res = Rect16::Merge(s);
 

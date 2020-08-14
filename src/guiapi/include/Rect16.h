@@ -353,49 +353,18 @@ public:
         int16_t max_x = SHRT_MIN, max_y = SHRT_MIN;
 
         for (size_t i = 0; i < rectangles.size(); ++i) {
-            if (rectangles[i].Width() > 0 || rectangles[i].Height() > 0) {
+            if (!rectangles[i].IsEmpty()) {
                 min_x = rectangles[i].TopLeft().x < min_x ? rectangles[i].TopLeft().x : min_x;
                 min_y = rectangles[i].TopLeft().y < min_y ? rectangles[i].TopLeft().y : min_y;
                 max_x = rectangles[i].EndPoint().x > max_x ? rectangles[i].EndPoint().x : max_x;
                 max_y = rectangles[i].EndPoint().y > max_y ? rectangles[i].EndPoint().y : max_y;
-            } else {
-                min_x = 0; min_y = 0; max_x = 0; max_y = 0;
             }
         }
-        // if (min_x == SHRT_MAX && min_y == SHRT_MAX) {
-        //     min_x = 0;
-        //     min_y = 0;
-        // }
-        // if (max_x == SHRT_MIN && max_y == SHRT_MIN) {
-        //     max_x = 0;
-        //     max_y = 0;
-        // }
-        return Rect16 { min_x, min_y, max_x, max_y };
-
-        // int16_t min_x = SHRT_MAX, min_y = SHRT_MAX;
-        // int16_t max_x = SHRT_MIN, max_y = SHRT_MIN;
-        //
-        // if (SZ > 0) {
-        //     for (size_t i = 0; i < SZ; ++i) {
-        //         if (rectangles[i].Width() > 0 || rectangles[i].Height() > 0) {
-        //             min_x = rectangles[i].TopLeft().x < min_x ? rectangles[i].TopLeft().x : min_x;
-        //             min_y = rectangles[i].TopLeft().y < min_y ? rectangles[i].TopLeft().y : min_y;
-        //             max_x = rectangles[i].EndPoint().x > max_x ? rectangles[i].EndPoint().x : max_x;
-        //             max_y = rectangles[i].EndPoint().y > max_y ? rectangles[i].EndPoint().y : max_y;
-        //         }
-        //     }
-        //     return Rect16 { min_x, min_y, max_x, max_y };
-        // } else {
-        //     return Rect16 {};
-        // }
-
-        // printf("min-max: %d-%d", min_x, min_y);
-
-        // point_i16_t top_left = { min_x, min_y };
-        // point_i16_t bot_right = { max_x, max_y };
-
-        // return Rect16 { min_x, min_y, max_x, max_y };
-        // return Rect16 { top_left, bot_right };
+        if (min_x > max_x || min_y > max_y) {
+            return Rect16();
+        } else {
+            return Rect16 { min_x, min_y, max_x - min_x, max_y - min_y };
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -406,8 +375,7 @@ public:
     /// @return Return a rectangle that represents the union of all rectangles
     template <size_t SZ>
     Rect16 Union(std::array<Rect16, SZ> const &rectangles) {
-        Rect16 ret = Merge(rectangles);
-        return ret;
+        Rect16 ret = Rect16::Merge(rectangles);
         return Rect16 {
             TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
             TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,
