@@ -34,7 +34,7 @@ struct monospace {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-/// Determine the width of the character rwadn by specific font
+/// Determine the width of the character given by a specific font
 ///
 struct width {
     template <class U>
@@ -115,7 +115,7 @@ struct no_wrap {
 ///
 /// @details Based on memory policy and font type modify the input stream such a way
 /// that storing the word to the buffer and determine if the word can be fit into the
-/// specific rectangle. In case that the word potencinally overflow the rectangle it
+/// specific rectangle. In case that the word potentially overflow the rectangle it
 /// breaks the line by return the \n character followed by the word. Number of characters
 /// in the line is calculated as a sum of character's width already in the line.
 ///
