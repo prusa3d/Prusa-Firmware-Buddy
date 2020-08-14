@@ -500,7 +500,7 @@ void hwio_arduino_error(int err, uint32_t pin32) {
     }
 
     snprintf(text + strlen(text), text_max_len - strlen(text),
-        "pin #%u (0x%02x)\n", (int)pin32, (uint8_t)pin32);
+        "pin #%i (0x%02x)\n", (int)pin32, (uint8_t)pin32);
 
     switch (err) {
     case HWIO_ERR_UNINI_DIG_RD:
