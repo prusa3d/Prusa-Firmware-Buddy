@@ -6,7 +6,10 @@ add_executable(str_utils_tests
 )
 
 # define required search paths
-target_include_directories(str_utils_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
+target_include_directories(str_utils_tests PUBLIC .
+    ${CMAKE_SOURCE_DIR}/src/common
+    ${CMAKE_SOURCE_DIR}/src
+)
 
 # define custom macros
 target_compile_definitions(str_utils_tests PUBLIC STR_UTILS_UNITTEST)
