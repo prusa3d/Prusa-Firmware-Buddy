@@ -17,8 +17,7 @@ bool window_t::IsDialog() const { return flag_dialog == is_dialog_t::yes; }
 void window_t::Validate(Rect16 validation_rect) {
     //todo check validation_rect intersection
     flag_invalid = false;
-    invalidate(validation_rect);
-    gui_invalidate();
+    validate(validation_rect);
 }
 
 void window_t::Invalidate(Rect16 validation_rect) {

@@ -23,6 +23,7 @@ public:
     IWindowMenuItem *GetActiveItem();
 
 protected:
+    virtual void draw() override;
     virtual void unconditionalDraw() override;
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
