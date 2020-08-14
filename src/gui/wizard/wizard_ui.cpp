@@ -26,7 +26,7 @@ void wizard_update_test_icon(window_icon_t &ico, uint8_t state) {
 }
 /*
 // messagebox with custom buttons (NEXT and DONE), optionaly icon and rectangle
-int wizard_msgbox_ex(string_view_utf8 text, uint16_t flags, uint16_t id_icon, rect_ui16_t rc) {
+int wizard_msgbox_ex(string_view_utf8 text, uint16_t flags, uint16_t id_icon, Rect16 rc) {
     const char *custom_btn = 0;
     if ((flags & MSGBOX_MSK_BTN) == MSGBOX_BTN_NEXT)
         custom_btn = N_("NEXT");
@@ -45,7 +45,7 @@ int wizard_msgbox(string_view_utf8 text, uint16_t flags, uint16_t id_icon) {
 
 int wizard_msgbox1(string_view_utf8 text, uint16_t flags, uint16_t id_icon) {
     return wizard_msgbox_ex(text, flags, id_icon,
-        rect_ui16(0, 76, 240, 320 - 140)); // FIXME looks like manual vertical center align
+        Rect16(0, 76, 240, 320 - 140)); // FIXME looks like manual vertical center align
 }
 
 int wizard_msgbox_btns(string_view_utf8 text, uint16_t flags, uint16_t id_icon, const char **buttons) {

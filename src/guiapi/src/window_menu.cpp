@@ -5,7 +5,7 @@
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
 
-IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
+IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
     : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
     , color_text(GuiDefaults::ColorText)
     , color_disabled(GuiDefaults::ColorDisabled)
@@ -15,7 +15,7 @@ IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
     , alignment(GuiDefaults::Alignment) {
 }
 
-window_menu_t::window_menu_t(window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index)
+window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
     alignment = GuiDefaults::Alignment;
@@ -74,7 +74,7 @@ void window_menu_t::Increment(int dif) {
     } else {
         //all items can be in label mode
         int item_height = font->h + padding.top + padding.bottom;
-        int visible_count = rect.h / item_height;
+        int visible_count = rect.Height() / item_height;
         int old_index = GetIndex();
         int new_index = old_index + dif;
         // play sound at first or last index of menu
@@ -157,9 +157,9 @@ void window_menu_t::unconditionalDraw() {
     //    IWindowMenu::unconditionalDraw();
 
     const int item_height = font->h + padding.top + padding.bottom;
-    rect_ui16_t rc_win = rect;
+    Rect16 rc_win = rect;
 
-    const size_t visible_count = rc_win.h / item_height;
+    const size_t visible_count = rc_win.Height() / item_height;
     size_t i;
     for (i = 0; i < visible_count && i < GetCount(); ++i) {
 
@@ -169,10 +169,10 @@ void window_menu_t::unconditionalDraw() {
             break;
         }
 
-        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
-            rc_win.w, uint16_t(item_height) };
+        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + i * item_height),
+            rc_win.Width(), uint16_t(item_height) };
 
-        if (rect_in_rect_ui16(rc, rc_win)) {
+        if (rc_win.Contain(rc)) {
             if (item->RollNeedInit()) {
                 gui_timer_restart_txtroll(this);
                 gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
@@ -181,10 +181,10 @@ void window_menu_t::unconditionalDraw() {
             item->Print(*this, rc);
         }
     }
-    rc_win.h = rc_win.h - (i * item_height);
+    rc_win -= Rect16::Height_t(i * item_height);
 
-    if (rc_win.h) {
-        rc_win.y += i * item_height;
+    if (rc_win.Height()) {
+        rc_win += Rect16::Top_t(i * item_height);
         display::FillRect(rc_win, color_back);
     }
 }

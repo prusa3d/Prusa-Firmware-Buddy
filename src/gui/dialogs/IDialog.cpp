@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "ScreenHandler.hpp"
 
-IDialog::IDialog(rect_ui16_t rc)
+IDialog::IDialog(Rect16 rc)
     : window_frame_t(Screens::Access()->Get(), rc, is_dialog_t::yes) //use dialog ctor
     , id_capture(GetCapturedWindow()) {
     gui_reset_jogwheel(); //todo do I need this?

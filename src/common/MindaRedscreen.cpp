@@ -35,7 +35,7 @@ static void stop_common(void) {
 #define POINT_BASE_X_OFFSET 30
 #define POINT_BASE_Y_OFFSET 60
 //x y w h
-static const rect_ui16_t rct_points[POINT_CNT] = {
+static const Rect16 rct_points[POINT_CNT] = {
     { 3 * POINT_DIST, 3 * POINT_DIST, POINT_PX, POINT_PX }, //bot right point
     { 2 * POINT_DIST, 3 * POINT_DIST, POINT_PX, POINT_PX },
     { 1 * POINT_DIST, 3 * POINT_DIST, POINT_PX, POINT_PX },
@@ -65,7 +65,7 @@ static const rect_ui16_t rct_points[POINT_CNT] = {
 #define MOVE_X_VERTI MOVE_Y_HORIZ
 #define MOVE_Y_VERTI MOVE_X_HORIZ
 
-static const rect_ui16_t rct_moves[POINT_CNT] = {
+static const Rect16 rct_moves[POINT_CNT] = {
     { MOVE_X_HORIZ + 2 * POINT_DIST, MOVE_Y_HORIZ + 3 * POINT_DIST, MOVE_L_PX, MOVE_W_PX },
     { MOVE_X_HORIZ + 1 * POINT_DIST, MOVE_Y_HORIZ + 3 * POINT_DIST, MOVE_L_PX, MOVE_W_PX },
     { MOVE_X_HORIZ + 0 * POINT_DIST, MOVE_Y_HORIZ + 3 * POINT_DIST, MOVE_L_PX, MOVE_W_PX },
@@ -99,67 +99,54 @@ void mbl_error(uint16_t moves, uint16_t points) {
     display::Clear(COLOR_RED_ALERT);
 
     static const char mblerr[] = "MBL ERROR";
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)mblerr),
+    display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)mblerr),
         GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     //bed
-    rect_ui16_t rect;
-    rect.x = POINT_BASE_X_OFFSET - BED_EDGE;
-    rect.y = POINT_BASE_Y_OFFSET - BED_EDGE;
-    rect.w = BED_W;
-    rect.h = BED_H;
+    Rect16 rect(POINT_BASE_X_OFFSET - BED_EDGE, POINT_BASE_Y_OFFSET - BED_EDGE, BED_W, BED_H);
 
     display::FillRect(rect, COLOR_DARK_KHAKI);
     display::DrawRect(rect, COLOR_BLACK);
 
     //top part surounding
-    rect.x += BED_W / 2 - BED_TOP_W / 2;
-    rect.y -= BED_TOP_H;
-    rect.w = BED_TOP_W;
-    rect.h = BED_TOP_H;
+    rect = Rect16(rect.Left() + BED_W / 2 - BED_TOP_W / 2, rect.Top() - BED_TOP_H, BED_TOP_W, BED_TOP_H);
 
     display::DrawRect(rect, COLOR_BLACK);
     //top part filling
-    ++rect.x;
-    ++rect.y;
-    rect.w -= 2;
+    rect += Rect16::Left_t(1);
+    rect += Rect16::Top_t(1);
+    rect -= Rect16::Width_t(2);
     //h must remain the same
     display::FillRect(rect, COLOR_DARK_KHAKI);
 
     //bot left part surounding
-    rect.x = POINT_BASE_X_OFFSET - BED_EDGE;
-    rect.y = POINT_BASE_Y_OFFSET - BED_EDGE + BED_H;
-    rect.w = BED_BOT_W;
-    rect.h = BED_BOT_H;
+    rect = Rect16(POINT_BASE_X_OFFSET - BED_EDGE, POINT_BASE_Y_OFFSET - BED_EDGE + BED_H, BED_BOT_W, BED_BOT_H);
 
     display::DrawRect(rect, COLOR_BLACK);
     //bot left part filling
-    ++rect.x;
-    --rect.y;
-    rect.w -= 2;
+    rect += Rect16::Left_t(1);
+    rect -= Rect16::Top_t(1);
+    rect -= Rect16::Width_t(2);
     //h must remain the same
     display::FillRect(rect, COLOR_DARK_KHAKI);
 
     //bot right part surounding
-    rect.x = POINT_BASE_X_OFFSET - BED_EDGE + BED_W - BED_BOT_W;
-    rect.y = POINT_BASE_Y_OFFSET - BED_EDGE + BED_H;
-    rect.w = BED_BOT_W;
-    rect.h = BED_BOT_H;
+    rect = Rect16(POINT_BASE_X_OFFSET - BED_EDGE + BED_W - BED_BOT_W, POINT_BASE_Y_OFFSET - BED_EDGE + BED_H, BED_BOT_W, BED_BOT_H);
 
     display::DrawRect(rect, COLOR_BLACK);
     //bot right part filling
-    ++rect.x;
-    --rect.y;
-    rect.w -= 2;
+    rect += Rect16::Left_t(1);
+    rect -= Rect16::Top_t(1);
+    rect -= Rect16::Width_t(2);
     //h must remain the same
     display::FillRect(rect, COLOR_DARK_KHAKI);
 
     //points
     for (size_t i = 0; i < POINT_CNT; ++i) {
-        rect_ui16_t rect = rct_points[i];
-        rect.x += POINT_BASE_X_OFFSET;
-        rect.y += POINT_BASE_Y_OFFSET;
+        Rect16 rect = rct_points[i];
+        rect += Rect16::Left_t(POINT_BASE_X_OFFSET);
+        rect += Rect16::Top_t(POINT_BASE_Y_OFFSET);
         if (points & (1 << i)) {
             //err
             display::FillRect(rect, COLOR_RED);
@@ -172,9 +159,9 @@ void mbl_error(uint16_t moves, uint16_t points) {
     }
     //moves
     for (size_t i = 0; i < MOVE_CNT; ++i) {
-        rect_ui16_t rect = rct_moves[i];
-        rect.x += POINT_BASE_X_OFFSET;
-        rect.y += POINT_BASE_Y_OFFSET;
+        Rect16 rect = rct_moves[i];
+        rect += Rect16::Left_t(POINT_BASE_X_OFFSET);
+        rect += Rect16::Top_t(POINT_BASE_Y_OFFSET);
         if (moves & (1 << i)) {
             //err
             display::FillRect(rect, COLOR_RED);
@@ -186,7 +173,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
         display::DrawRect(rect, COLOR_BLACK);
     }
 
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,
+    render_text_align(Rect16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,
         COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
     jogwheel_init();

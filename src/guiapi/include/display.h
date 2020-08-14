@@ -5,19 +5,20 @@
 #include "guitypes.hpp"
 #include "display_helper.h"
 #include <algorithm>
+#include "Rect16.h"
 
 typedef void(display_init_t)(void);
 typedef void(display_done_t)(void);
 typedef void(display_clear_t)(color_t clr);
 typedef void(display_set_pixel_t)(point_ui16_t pt, color_t clr);
 typedef void(display_draw_line_t)(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
-typedef void(display_draw_rect_t)(rect_ui16_t rc, color_t clr);
-typedef void(display_fill_rect_t)(rect_ui16_t rc, color_t clr);
+typedef void(display_draw_rect_t)(Rect16 rc, color_t clr);
+typedef void(display_fill_rect_t)(Rect16 rc, color_t clr);
 
 /// @param charX x-coordinate of character (glyph) in font bitmap (remember, fonts are bitmaps 16 chars wide and arbitrary lines of chars tall)
 /// @param charY y-coordinate of character (glyph) in font bitmap
 typedef bool(display_draw_char_t)(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
-typedef size_ui16_t(display_draw_text_t)(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags);
+typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags);
 typedef void(display_draw_icon_t)(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop);
 typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
 
@@ -44,8 +45,8 @@ public:
     constexpr static void Clear(color_t clr) { CLEAR(clr); }
     constexpr static void SetPixel(point_ui16_t pt, color_t clr) { SET_PIXEL(pt, clr); }
     constexpr static void DrawLine(point_ui16_t pt0, point_ui16_t pt1, color_t clr) { DRAW_LINE(pt0, pt1, clr); }
-    constexpr static void DrawRect(rect_ui16_t rc, color_t clr) { DRAW_RECT(rc, clr); }
-    constexpr static void FillRect(rect_ui16_t rc, color_t clr) { FIL_RECT(rc, clr); }
+    constexpr static void DrawRect(Rect16 rc, color_t clr) { DRAW_RECT(rc, clr); }
+    constexpr static void FillRect(Rect16 rc, color_t clr) { FIL_RECT(rc, clr); }
     constexpr static bool DrawChar(point_ui16_t pt, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
         static_assert(sizeof(FCIndex) == 4, "font char indices size mismatch");
         // convert unichar into font index - all fonts have the same layout, thus this can be computed here
@@ -71,7 +72,7 @@ public:
         }
         return DRAW_CHAR(pt, charX, charY, pf, clr_bg, clr_fg);
     }
-    static size_ui16_t DrawText(rect_ui16_t rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags = 0) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg, flags); }
+    static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags = 0) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg, flags); }
     constexpr static void DrawIcon(point_ui16_t pt, uint16_t id_res, color_t clr0, uint8_t rop) { DRAW_ICON(pt, id_res, clr0, rop); }
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };

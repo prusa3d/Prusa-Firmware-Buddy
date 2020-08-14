@@ -14,13 +14,13 @@ bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return flag_timer; }
 bool window_t::IsDialog() const { return flag_dialog == is_dialog_t::yes; }
-void window_t::Validate(rect_ui16_t validation_rect) {
+void window_t::Validate(Rect16 validation_rect) {
     //todo check validation_rect intersection
     flag_invalid = false;
     validate(validation_rect);
 }
 
-void window_t::Invalidate(rect_ui16_t validation_rect) {
+void window_t::Invalidate(Rect16 validation_rect) {
     //todo check validation_rect intersection
     flag_invalid = true;
     invalidate(validation_rect);
@@ -28,11 +28,11 @@ void window_t::Invalidate(rect_ui16_t validation_rect) {
 }
 
 //frame will invalidate children
-void window_t::invalidate(rect_ui16_t validation_rect) {
+void window_t::invalidate(Rect16 validation_rect) {
 }
 
 //frame will validate children
-void window_t::validate(rect_ui16_t validation_rect) {
+void window_t::validate(Rect16 validation_rect) {
 }
 
 void window_t::SetHasTimer() { flag_timer = true; }
@@ -87,7 +87,7 @@ void window_t::SetBackColor(color_t clr) {
     Invalidate();
 }
 
-window_t::window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog, is_closed_on_click_t close)
+window_t::window_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_click_t close)
     : parent(parent)
     , next(nullptr)
     , flg(0)
@@ -162,7 +162,7 @@ void window_t::Draw() {
 }
 
 void window_t::draw() {
-    if (IsInvalid() && rect.w && rect.h) {
+    if (IsInvalid() && rect.Width() && rect.Height()) {
         if (IsVisible()) {
             unconditionalDraw();
         } else {

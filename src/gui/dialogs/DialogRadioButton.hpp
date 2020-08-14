@@ -16,7 +16,7 @@ private:
     uint8_t btn_count : RESPONSE_BITS + 1;
     uint8_t selected_index : RESPONSE_BITS;
 
-    static void button_draw(rect_ui16_t rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected);
+    static void button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected);
 
     void draw_0_btn() const;
     void draw_1_btn() const;
@@ -27,7 +27,7 @@ private:
     static size_t cnt_buttons(const PhaseTexts *labels, const PhaseResponses *resp);
 
 public:
-    RadioButton(window_t *parent, rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels); //has response == buttons enabled
+    RadioButton(window_t *parent, Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels); //has response == buttons enabled
     // No postfix increment/decrement operator, it would have to return button by value.
     // it would not be a problem, but buttons are not ment to be used that way
     RadioButton &operator++(); // Prefix increment operator no overflow
