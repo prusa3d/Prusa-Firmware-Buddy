@@ -67,7 +67,7 @@ public:
     /// @brief Default constructor
     /// @details set top left corner to {0,0} with width and heigth 0
     constexpr Rect16()
-        : top_left_({ 0, 0 })
+        : top_left_(point_i16_t { 0, 0 })
         , width_(0)
         , height_(0) {}
 
@@ -172,23 +172,23 @@ public:
     /// @brief Object accessor to read the point behind bottom-right of current rectangle
     ///
     /// @return Point behind Bottom-right of the rectangle.
-    point_i16_t EndPoint() const {
+    point_i16_t BottomRight() const {
         return {
             static_cast<int16_t>(top_left_.x + width_),
             static_cast<int16_t>(top_left_.y + height_)
         };
     };
 
-    ////////////////////////////////////////////////////////////////////////////
-    /// @brief Object accessor to read the bottom-right of current rectangle
-    ///
-    /// @return Bottom-right of the rectangle.
-    point_i16_t BottomRight() const {
-        return {
-            static_cast<int16_t>(top_left_.x + width_ - 1),
-            static_cast<int16_t>(top_left_.y + height_ - 1)
-        };
-    };
+    // ////////////////////////////////////////////////////////////////////////////
+    // /// @brief Object accessor to read the bottom-right of current rectangle
+    // ///
+    // /// @return Bottom-right of the rectangle.
+    // point_i16_t BottomRight() const {
+    //     return {
+    //         static_cast<int16_t>(top_left_.x + width_),
+    //         static_cast<int16_t>(top_left_.y + height_)
+    //     };
+    // };
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines if the given point is placed inside of the curent rectangle
@@ -353,14 +353,47 @@ public:
         int16_t max_x = SHRT_MIN, max_y = SHRT_MIN;
 
         for (size_t i = 0; i < SZ; ++i) {
-            if (rectangles[i].Width() > 0) {
+            if (rectangles[i].Width() > 0 || rectangles[i].Height() > 0) {
                 min_x = rectangles[i].TopLeft().x < min_x ? rectangles[i].TopLeft().x : min_x;
                 min_y = rectangles[i].TopLeft().y < min_y ? rectangles[i].TopLeft().y : min_y;
-                max_x = rectangles[i].EndPoint().x > max_x ? rectangles[i].EndPoint().x : max_x;
-                max_y = rectangles[i].EndPoint().y > max_y ? rectangles[i].EndPoint().y : max_y;
+                max_x = rectangles[i].BottomRight().x > max_x ? rectangles[i].BottomRight().x : max_x;
+                max_y = rectangles[i].BottomRight().y > max_y ? rectangles[i].BottomRight().y : max_y;
             }
         }
-        return { min_x, min_y, max_x, max_y };
+        if (min_x == SHRT_MAX && min_y == SHRT_MAX) {
+            min_x = 0;
+            min_y = 0;
+        }
+        if (max_x == SHRT_MIN && max_y == SHRT_MIN) {
+            max_x = 0;
+            max_y = 0;
+        }
+        return Rect16 { min_x, min_y, max_x, max_y };
+
+        // int16_t min_x = SHRT_MAX, min_y = SHRT_MAX;
+        // int16_t max_x = SHRT_MIN, max_y = SHRT_MIN;
+								// 
+        // if (SZ > 0) {
+        //     for (size_t i = 0; i < SZ; ++i) {
+        //         if (rectangles[i].Width() > 0 || rectangles[i].Height() > 0) {
+        //             min_x = rectangles[i].TopLeft().x < min_x ? rectangles[i].TopLeft().x : min_x;
+        //             min_y = rectangles[i].TopLeft().y < min_y ? rectangles[i].TopLeft().y : min_y;
+        //             max_x = rectangles[i].BottomRight().x > max_x ? rectangles[i].BottomRight().x : max_x;
+        //             max_y = rectangles[i].BottomRight().y > max_y ? rectangles[i].BottomRight().y : max_y;
+        //         }
+        //     }
+        //     return Rect16 { min_x, min_y, max_x, max_y };
+        // } else {
+        //     return Rect16 {};
+        // }
+
+                                // printf("min-max: %d-%d", min_x, min_y);
+
+        // point_i16_t top_left = { min_x, min_y };
+        // point_i16_t bot_right = { max_x, max_y };
+
+        // return Rect16 { min_x, min_y, max_x, max_y };
+        // return Rect16 { top_left, bot_right };
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -372,11 +405,12 @@ public:
     template <size_t SZ>
     Rect16 Union(std::array<Rect16, SZ> const &rectangles) {
         Rect16 ret = Merge(rectangles);
-        return {
+				// return ret;
+        return Rect16 {
             TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
             TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,
-            EndPoint().x > ret.EndPoint().x ? EndPoint().x : ret.EndPoint().x,
-            EndPoint().y > ret.EndPoint().y ? EndPoint().y : ret.EndPoint().y
+            BottomRight().x > ret.BottomRight().x ? BottomRight().x : ret.BottomRight().x,
+            BottomRight().y > ret.BottomRight().y ? BottomRight().y : ret.BottomRight().y
         };
     }
 

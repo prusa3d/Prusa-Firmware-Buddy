@@ -55,29 +55,29 @@ Rect16 Rect16::Intersection(Rect16 const &r) const {
     point_i16_t bot_right;
 
     // If one Rect16 is on left side of other
-    if (TopLeft().x >= r.EndPoint().x
-        || r.TopLeft().x >= EndPoint().x)
+    if (TopLeft().x >= r.BottomRight().x
+        || r.TopLeft().x >= BottomRight().x)
         return Rect16();
     else {
         top_left.x = TopLeft().x > r.TopLeft().x
             ? TopLeft().x
             : r.TopLeft().x;
-        bot_right.x = EndPoint().x < r.EndPoint().x
-            ? EndPoint().x
-            : r.EndPoint().x;
+        bot_right.x = BottomRight().x < r.BottomRight().x
+            ? BottomRight().x
+            : r.BottomRight().x;
     }
 
     // If one Rect16 is above other
-    if (TopLeft().y >= r.EndPoint().y
-        || r.TopLeft().y >= EndPoint().y)
+    if (TopLeft().y >= r.BottomRight().y
+        || r.TopLeft().y >= BottomRight().y)
         return Rect16();
     else {
         top_left.y = TopLeft().y > r.TopLeft().y
             ? TopLeft().y
             : r.TopLeft().y;
-        bot_right.y = EndPoint().y < r.EndPoint().y
-            ? EndPoint().y
-            : r.EndPoint().y;
+        bot_right.y = BottomRight().y < r.BottomRight().y
+            ? BottomRight().y
+            : r.BottomRight().y;
     }
     return Rect16 { top_left, bot_right };
 }
@@ -89,28 +89,33 @@ Rect16 Rect16::Union(Rect16 const &r) const {
     top_left.x = TopLeft().x < r.TopLeft().x
         ? TopLeft().x
         : r.TopLeft().x;
-    bot_right.x = EndPoint().x > r.EndPoint().x
-        ? EndPoint().x
-        : r.EndPoint().x;
+    bot_right.x = BottomRight().x > r.BottomRight().x
+        ? BottomRight().x
+        : r.BottomRight().x;
     top_left.y = TopLeft().y < r.TopLeft().y
         ? TopLeft().y
         : r.TopLeft().y;
-    bot_right.y = EndPoint().y > r.EndPoint().y
-        ? EndPoint().y
-        : r.EndPoint().y;
+    bot_right.y = BottomRight().y > r.BottomRight().y
+        ? BottomRight().y
+        : r.BottomRight().y;
 
     return Rect16 { top_left, bot_right };
 }
 
 bool Rect16::HasIntersection(Rect16 const &r) const {
-    return TopLeft().x < r.EndPoint().x
-        && EndPoint().x > r.TopLeft().x
-        && TopLeft().y < r.EndPoint().y
-        && EndPoint().y > r.TopLeft().y;
+    return TopLeft().x < r.BottomRight().x
+        && BottomRight().x > r.TopLeft().x
+        && TopLeft().y < r.BottomRight().y
+        && BottomRight().y > r.TopLeft().y;
 }
 
 bool Rect16::Contain(Rect16 const &r) const {
-    return Contain(r.TopLeft()) && Contain(point_i16_t(r.BottomRight()));
+    /// same coords on the end is counting as contained rectangle in other one
+    /// FIY - there is no need to have this calculation in different method ;)
+    point_i16_t br = point_i16_t(r.BottomRight());
+    br.x -= 1;
+    br.y -= 1;
+    return Contain(r.TopLeft()) && Contain(br);
 }
 
 void Rect16::Align(Rect16 rc, uint8_t align) {
@@ -159,7 +164,7 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
     Rect16 rc({ 0, Top() }, width, Height());
     Rect16 rc_space({ 0, Top() }, spacing, Height());
     size_t index;
-    size_t right = EndPoint().x - width;
+    size_t right = BottomRight().x - width;
 
     for (index = 0; index < count / 2; ++index) {
         splits[index] = rc + Rect16::Left_t(Left() + index * (width + spacing));            // 1 from begin
@@ -169,7 +174,7 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
     //even count
     //middle rect can be bit smaller, so spacing remains the same
     if (count & 0x01) {
-        point_i16_t p0 = splits[index - 1].EndPoint();
+        point_i16_t p0 = splits[index - 1].BottomRight();
         point_i16_t p1 = splits[index + 1].TopLeft();
         p0.x += spacing;
         p1.x -= spacing;
@@ -177,6 +182,6 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
     }
 
     for (index = 0; index < count - 1; ++index) {
-        spaces[index] = Rect16(splits[index].EndPoint(), splits[index + 1].TopLeft());
+        spaces[index] = Rect16(splits[index].BottomRight(), splits[index + 1].TopLeft());
     }
 }
