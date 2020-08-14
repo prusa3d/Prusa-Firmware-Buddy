@@ -6,8 +6,8 @@ Rect16::Rect16(point_i16_t p0, point_i16_t p1)
         std::swap(p1.x, top_left_.x);
     if (p1.y < top_left_.y)
         std::swap(p1.y, top_left_.y);
-    width_ = p1.x - top_left_.x;
-    height_ = p1.y - top_left_.y;
+    width_ = p1.x - top_left_.x + 1;
+    height_ = p1.y - top_left_.y + 1;
 }
 
 Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance) {
@@ -55,29 +55,29 @@ Rect16 Rect16::Intersection(Rect16 const &r) const {
     point_i16_t bot_right;
 
     // If one Rect16 is on left side of other
-    if (TopLeft().x >= r.EndPoint().x
-        || r.TopLeft().x >= EndPoint().x)
+    if (TopLeft().x > r.BottomRight().x
+        || r.TopLeft().x > BottomRight().x)
         return Rect16();
     else {
         top_left.x = TopLeft().x > r.TopLeft().x
             ? TopLeft().x
             : r.TopLeft().x;
-        bot_right.x = EndPoint().x < r.EndPoint().x
-            ? EndPoint().x
-            : r.EndPoint().x;
+        bot_right.x = BottomRight().x < r.BottomRight().x
+            ? BottomRight().x
+            : r.BottomRight().x;
     }
 
     // If one Rect16 is above other
-    if (TopLeft().y >= r.EndPoint().y
-        || r.TopLeft().y >= EndPoint().y)
+    if (TopLeft().y > r.BottomRight().y
+        || r.TopLeft().y > BottomRight().y)
         return Rect16();
     else {
         top_left.y = TopLeft().y > r.TopLeft().y
             ? TopLeft().y
             : r.TopLeft().y;
-        bot_right.y = EndPoint().y < r.EndPoint().y
-            ? EndPoint().y
-            : r.EndPoint().y;
+        bot_right.y = BottomRight().y < r.BottomRight().y
+            ? BottomRight().y
+            : r.BottomRight().y;
     }
     return Rect16 { top_left, bot_right };
 }
@@ -89,15 +89,15 @@ Rect16 Rect16::Union(Rect16 const &r) const {
     top_left.x = TopLeft().x < r.TopLeft().x
         ? TopLeft().x
         : r.TopLeft().x;
-    bot_right.x = EndPoint().x > r.EndPoint().x
-        ? EndPoint().x
-        : r.EndPoint().x;
+    bot_right.x = BottomRight().x > r.BottomRight().x
+        ? BottomRight().x
+        : r.BottomRight().x;
     top_left.y = TopLeft().y < r.TopLeft().y
         ? TopLeft().y
         : r.TopLeft().y;
-    bot_right.y = EndPoint().y > r.EndPoint().y
-        ? EndPoint().y
-        : r.EndPoint().y;
+    bot_right.y = BottomRight().y > r.BottomRight().y
+        ? BottomRight().y
+        : r.BottomRight().y;
 
     return Rect16 { top_left, bot_right };
 }
