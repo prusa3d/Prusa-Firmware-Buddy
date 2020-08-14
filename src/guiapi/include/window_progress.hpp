@@ -7,7 +7,7 @@
 
 class window_numberless_progress_t : public window_t {
     color_t color_progress;
-    rect_ui16_t rect_progress;
+    // rect_ui16_t rect_progress;
     uint16_t progress_in_pixels;
     virtual void unconditionalDraw() override;
 
