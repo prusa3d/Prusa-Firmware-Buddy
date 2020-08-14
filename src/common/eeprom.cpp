@@ -284,8 +284,7 @@ int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) 
     case EEVAR_LAN_IP4_GW:
     case EEVAR_LAN_IP4_DNS1:
     case EEVAR_LAN_IP4_DNS2: {
-        uint8_t *p = (uint8_t *)(&(var.ui32));
-        n = snprintf(str, size, "%u.%u.%u.%u", p[0], p[1], p[2], p[3]);
+        n = snprintf(str, size, "%u.%u.%u.%u", var.ui8a[0], var.ui8a[1], var.ui8a[2], var.ui8a[3]);
     } break;
     default: //use default conversion
         n = variant8_snprintf(str, size, 0, &var);

@@ -151,8 +151,8 @@ static void _set_notify_change(uint8_t var_id);
 static void _server_update_gqueue(void);
 static void _server_update_pqueue(void);
 static uint64_t _server_update_vars(uint64_t force_update_msk);
-static int _process_server_request(char *request);
-static int _server_set_var(char *name_val_str);
+static int _process_server_request(const char *request);
+static int _server_set_var(const char *const name_val_str);
 static void _server_update_and_notify(int client_id, uint64_t update);
 
 //-----------------------------------------------------------------------------
@@ -423,6 +423,8 @@ void marlin_server_quick_stop(void) {
 }
 
 void marlin_server_print_start(const char *filename) {
+    if (filename == nullptr)
+        return;
     if ((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) {
         media_print_start(filename);
         _set_notify_change(MARLIN_VAR_FILEPATH);
@@ -1051,7 +1053,9 @@ static uint64_t _server_update_vars(uint64_t update) {
 }
 
 // process request on server side
-static int _process_server_request(char *request) {
+static int _process_server_request(const char *request) {
+    if (request == nullptr)
+        return 0;
     int processed = 0;
     uint32_t msk32[2];
     float offs;
@@ -1143,7 +1147,9 @@ static int _process_server_request(char *request) {
 }
 
 // set variable from string request
-static int _server_set_var(char *name_val_str) {
+static int _server_set_var(const char *const name_val_str) {
+    if (name_val_str == nullptr)
+        return 0;
     int var_id;
     bool changed = false;
     char *val_str = strchr(name_val_str, ' ');
@@ -1328,22 +1334,21 @@ void onStatusChanged(const char *const msg) {
 
     DBG_XUI("XUI: onStatusChanged: %s", msg);
     _send_notify_event(MARLIN_EVT_StatusChanged, 0, 0);
-    if (strcmp(msg, "Prusa-mini Ready.") == 0) {
+    if (msg != nullptr && strcmp(msg, "Prusa-mini Ready.") == 0) {
     } //TODO
-    else if (strcmp(msg, "TMC CONNECTION ERROR") == 0)
+    else if (msg != nullptr && strcmp(msg, "TMC CONNECTION ERROR") == 0)
         _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_TMCDriverError, 0);
     else {
         if (!is_abort_state(marlin_server.print_state))
             pending_err_msg = false;
         if (!pending_err_msg) {
-            if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
+            if (msg != nullptr && strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
                 _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_ProbingFailed, 0);
                 marlin_server_print_abort();
                 pending_err_msg = true;
             }
 
-            if (msg && msg[0] != 0) { //empty message filter
-
+            if (msg != nullptr && msg[0] != 0) { //empty message filter
                 _add_status_msg(msg);
                 _send_notify_event(MARLIN_EVT_Message, 0, 0);
             }

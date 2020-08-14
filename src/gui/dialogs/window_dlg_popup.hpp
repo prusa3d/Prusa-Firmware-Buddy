@@ -16,7 +16,7 @@ struct window_dlg_popup_t : public window_t {
     font_t *font_title;
     padding_ui8_t padding;
     uint32_t timer;
-    uint16_t flags;
+    // uint16_t flags;
     char text[MSG_MAX_LENGTH];
     window_dlg_popup_t(window_t *parent, Rect16 rect);
 };

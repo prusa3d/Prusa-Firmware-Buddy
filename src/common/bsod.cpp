@@ -227,7 +227,6 @@ void general_error_run() {
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
-    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
 
     /// FIXME split heating, min/max temp and thermal runaway
     static const char bad_bed[] = "Check the heatbed heater & thermistor wiring for possible damage.";
@@ -238,8 +237,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     } else {
         snprintf(text, sizeof(text), bad_head);
     }
-
-    str2multiline(text, sizeof(text), line_width_chars);
 
     general_error_init();
     display::Clear(COLOR_RED_ALERT);
@@ -323,32 +320,34 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     uint8_t buff[TERM_BUFF_SIZE(20, 16)]; //terminal buffer for 20x16
     term_init(&term, 20, 16, buff);       //initialize terminal structure (clear buffer etc)
 
-    //remove text before "/" and "\", to get filename without path
-    const char *pc;
-    pc = strrchr(file_name, '/');
-    if (pc != 0)
-        file_name = pc + 1;
-    pc = strrchr(file_name, '\\');
-    if (pc != 0)
-        file_name = pc + 1;
-    {
-        char text[TERM_PRINTF_MAX];
+    if (file_name != nullptr) {
+        //remove text before "/" and "\", to get filename without path
+        const char *pc;
+        pc = strrchr(file_name, '/');
+        if (pc != 0)
+            file_name = pc + 1;
+        pc = strrchr(file_name, '\\');
+        if (pc != 0)
+            file_name = pc + 1;
+        {
+            char text[TERM_PRINTF_MAX];
 
-        int ret = vsnprintf(text, sizeof(text), fmt, args);
+            int ret = vsnprintf(text, sizeof(text), fmt, args);
 
-        const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
-        for (size_t i = 0; i < range; i++)
-            term_write_char(&term, text[i]);
+            const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
+            for (size_t i = 0; i < range; i++)
+                term_write_char(&term, text[i]);
+        }
+        term_printf(&term, "\n");
+        if (file_name != 0)
+            term_printf(&term, "%s", file_name); //print filename
+        if ((file_name != 0) && (line_number != -1))
+            term_printf(&term, " "); //print space
+        if (line_number != -1)
+            term_printf(&term, "%d", line_number); //print line number
+        if ((file_name != 0) || (line_number != -1))
+            term_printf(&term, "\n"); //new line if there is filename or line number
     }
-    term_printf(&term, "\n");
-    if (file_name != 0)
-        term_printf(&term, "%s", file_name); //print filename
-    if ((file_name != 0) && (line_number != -1))
-        term_printf(&term, " "); //print space
-    if (line_number != -1)
-        term_printf(&term, "%d", line_number); //print line number
-    if ((file_name != 0) || (line_number != -1))
-        term_printf(&term, "\n"); //new line if there is filename or line number
 
     term_printf(&term, "TASK:%s\n", tskName);
     term_printf(&term, "b:%x", pBotOfStack);
@@ -388,7 +387,7 @@ static signed char *tsk_name = 0;
 extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
     tsk_hndl = xTask;
     tsk_name = pcTaskName;
-    if (strlen((const char *)pcTaskName) > 20)
+    if (pcTaskName != nullptr && strlen((const char *)pcTaskName) > 20)
         _bsod("STACK OVERFLOW\nHANDLE %p\n%s", 0, 0, xTask, pcTaskName);
     else
         _bsod("STACK OVERFLOW\nHANDLE %p\nTaskname ERROR", 0, 0, xTask);

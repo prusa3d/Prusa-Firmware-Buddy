@@ -28,65 +28,28 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 /// \param clr_fg font/foreground color
 /// \returns true if whole text was written
 /// Extracted from st7789v implementation, where it shouldn't be @@TODO cleanup
-bool render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags) {
     int x = rc.Left();
     int y = rc.Top();
-    const uint16_t rc_end_x = rc.Left() + rc.Width();
-    const uint16_t rc_end_y = rc.Top() + rc.Height();
-    const uint16_t w = pf->w; //char width
-    const uint16_t h = pf->h; //char height
-    // prepare for stream processing
-    unichar c = 0;
-    while ((c = str.getUtf8Char()) != 0) {
-        if (c == '\n') {
-            y += h;
-            x = rc.Left();
-            if (y + h > rc_end_y)
-                return false;
-            continue;
-        }
-#ifdef UNACCENT
-        if (c < 128) {
-            display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
-            x += w;
-        } else {
-            auto convertedChar = ConvertUnicharToFontCharIndex(c);
-            for (size_t i = 0; i < convertedChar.second; ++i) {
-                display::DrawChar(point_ui16(x, y), convertedChar.first[i], pf, clr_bg, clr_fg);
-                x += w; // this will screw up character counting for DE language @@TODO
-            }
-        }
-#else
-        display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
-        x += w;
-#endif
-        // FIXME Shouldn't it try to break the line first?
-        if (x + w > rc_end_x)
-            return false;
-    }
-    return true;
-}
 
-/// This is a patched version of render_text which works with unicode (4-byte) characters
-/// It is intentionally not public and it is to be used with render_text_aligned only
-/// It also contains a hack to prevent leaving the specified window rect in case of (mistakenly)
-/// computed line width (which happens unfortunately), because its call is preceeded by
-/// the new text-wrapping functions from str_utils (i.e. the input text is already almost correctly broken into lines).
-bool render_textUnicode(Rect16 rc, const unichar *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    int x = rc.Left();
-    int y = rc.Top();
-    //    const uint16_t rc_end_x = rc.Left() + rc.Width();
-    const uint16_t rc_end_y = rc.Top() + rc.Height();
     const uint16_t w = pf->w; //char width
     const uint16_t h = pf->h; //char height
     // prepare for stream processing
     unichar c = 0;
-    while ((c = *str++) != 0) {
-        if (c == '\n') {
+    text_wrapper<ram_buffer, const font_t *> wrapper(rc.Width(), pf);
+    no_wrap text_plain;
+
+    while (true) {
+        c = (flags & RENDER_FLG_WORDB)
+            ? wrapper.character(str)
+            : text_plain.character(str);
+
+        if (c == 0) {
+            break;
+        }
+        if (c == '\n' && (flags & RENDER_FLG_WORDB)) {
             y += h;
             x = rc.Left();
-            if (y + h > rc_end_y)
-                return false;
             continue;
         }
 #ifdef UNACCENT
@@ -105,7 +68,7 @@ bool render_textUnicode(Rect16 rc, const unichar *str, const font_t *pf, color_t
         x += w;
 #endif
     }
-    return true;
+    return size_ui16_t { rc.Width(), static_cast<std::uint16_t>(y - rc.Top()) };
 }
 
 /// Fills space between two rectangles with a color
@@ -127,83 +90,14 @@ void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t co
     display::FillRect(rc_r, color);
 }
 
-int font_line_chars(const font_t *pf, unichar *str, uint16_t line_width) {
-    int w = 0;
-    const int char_w = pf->w;
-    size_t n = 0;
-    // This is generally about finding the closest '\n' character within the current line to be drawn.
-    // Line is limited by pixel dimension, all characters have the same fixed pixel size
-    // Such character may not be found, so n becomes > len
-    unichar c = 0;
-    while ((w + char_w) <= line_width) {
-        c = str[n];
-        if (c == 0)
-            return n; // avoid touching memory beyond the string
-        ++n;
-        if (c == '\n')
-            break;
-        w += char_w;
-    }
-
-    /// find previous non empty (space, new line) char
-    while ((n > 0) && (str[n] != ' ') && (str[n] != '\n')) {
-        n--;
-    }
-
-    return (n != 0) ? n : line_width / char_w;
-}
-
 void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
     if (flags & RENDER_FLG_WORDB) {
-        //TODO: other alignments, following impl. is for LEFT-TOP
-        uint16_t y = rc_pad.Top();
-        // reuse the PNG decompression buffer for temporary storage of the 4B unicode string
-        // This is safe here, no PNG is being decompressed while rendering a piece of text
-        unichar *png_mem_ptr0 = (unichar *)0x10000000; //@@TODO clean up, this is brutal
-        unichar *str = png_mem_ptr0;
-        // copy text to buffer
-        while ((*str = text.getUtf8Char()) != 0) {
-            ++str;
-        }
-        str = png_mem_ptr0; // reset the string pointer to its beginning ... and now we can keep the old algorithm almost intact
-
-#if 0 // old implementation - intentionally kept here for reference and future fixing of this mess :(
-        uint16_t x;
-        int n;
-        int i;
-        while ((n = font_line_chars(font, str, rc_pad.w)) && ((y + font->h) <= (rc_pad.y + rc_pad.h))) {
-            x = rc_pad.x;
-            i = 0;
-            while (str[i] == ' ' || str[i] == '\n')
-                i++;
-            for (; i < n; i++) {
-                if (str[i] < 128) {
-                    display::DrawChar(point_ui16(x, y), str[i], font, clr0, clr1);
-                    x += font->w;
-                } else {
-                    const auto &convertedChar = ConvertUnicharToFontCharIndex(str[i]);
-                    for (size_t cci = 0; cci < convertedChar.second; ++cci) {
-                        display::DrawChar(point_ui16(x, y), convertedChar.first[cci], font, clr0, clr1);
-                        x += font->w;
-                    }
-                }
-            }
-            display::FillRect(Rect16(x, y, (rc_pad.x + rc_pad.w - x), font->h), clr0);
-            str += n;
-            y += font->h;
-        }
-#else
-        // new line breaking algorithm
-        size_t nLines = str2multilineUnicode(str, 0x1000U, rc_pad.Width() / font->w);
-        // now we have '\n' in the right spots
-        y += nLines * font->h;
-        render_textUnicode(rc_pad, str, font, clr0, clr1);
-#endif
+        size_ui16_t s = render_text(rc_pad, text, font, clr0, clr1, RENDER_FLG_WORDB);
         // hack for broken text wrapper ... and for too long texts as well
-        if (y < (rc_pad.Top() + rc_pad.Height())) {
-            display::FillRect(Rect16(rc_pad.Left(), y, rc_pad.Width(), (rc_pad.Top() + rc_pad.Height() - y)), clr0);
+        if ((rc_pad.Top() + s.h) < (rc_pad.Top() + rc_pad.Height())) {
+            display::FillRect(Rect16(rc_pad.Left(), rc_pad.Top() + s.h, rc_pad.Width(), rc_pad.Height() - s.h), clr0);
             fill_between_rectangles(&rc, &rc_pad, clr0);
         }
 
@@ -227,7 +121,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     fill_between_rectangles(&rc, &rect_in, clr0);
     text.rewind();
     // 2nd pass reading the string_view_utf8 - draw the text
-    render_text(rc_txt, text, font, clr0, clr1);
+    render_text(rc_txt, text, font, clr0, clr1, 0);
 }
 
 void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, uint16_t flags) {
@@ -366,7 +260,7 @@ void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font
 
     if (!set_txt_rc.IsEmpty()) {
         fill_between_rectangles(&rc, &set_txt_rc, clr_back);
-        render_text(set_txt_rc, /*str*/ text, font, clr_back, clr_text);
+        render_text(set_txt_rc, /*str*/ text, font, clr_back, clr_text, 0);
     } else {
         display::FillRect(rc, clr_back);
     }

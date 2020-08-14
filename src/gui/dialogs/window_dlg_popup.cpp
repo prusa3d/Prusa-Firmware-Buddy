@@ -22,7 +22,9 @@ window_dlg_popup_t::window_dlg_popup_t(window_t *parent, Rect16 rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , font_title(GuiDefaults::FontBig)
-    , padding(GuiDefaults::Padding) {
+    , padding(GuiDefaults::Padding)
+    , timer(0)
+    , text("") {
     Enable();
 }
 /*
