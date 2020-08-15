@@ -67,7 +67,7 @@ public:
     /// @brief Default constructor
     /// @details set top left corner to {0,0} with width and heigth 0
     constexpr Rect16()
-        : top_left_({ 0, 0 })
+        : top_left_(point_i16_t { 0, 0 })
         , width_(0)
         , height_(0) {}
 
@@ -172,10 +172,10 @@ public:
     /// @brief Object accessor to read the point behind bottom-right of current rectangle
     ///
     /// @return Point behind Bottom-right of the rectangle.
-    point_i16_t EndPoint() const {
+    point_i16_t BottomRight() const {
         return {
-            static_cast<int16_t>(top_left_.x + width_),
-            static_cast<int16_t>(top_left_.y + height_)
+            static_cast<int16_t>(top_left_.x + width_ - 1),
+            static_cast<int16_t>(top_left_.y + height_ - 1)
         };
     };
 
@@ -183,10 +183,10 @@ public:
     /// @brief Object accessor to read the bottom-right of current rectangle
     ///
     /// @return Bottom-right of the rectangle.
-    point_i16_t BottomRight() const {
+    point_i16_t EndPoint() const {
         return {
-            static_cast<int16_t>(top_left_.x + width_ - 1),
-            static_cast<int16_t>(top_left_.y + height_ - 1)
+            static_cast<int16_t>(top_left_.x + width_),
+            static_cast<int16_t>(top_left_.y + height_)
         };
     };
 
@@ -226,14 +226,13 @@ public:
     /// one
     /// @param[in] rect Rectangle given to check
     /// @return Return true if the rectangles has intersection, false otherwise.
-    /// Return false if rectangle is empty
     bool HasIntersection(Rect16 const &) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines if the given rectangle is fully overlayed by the
     /// current on
     /// @param[in] rect Rectangle given to check
-    /// @return Return true if the rectangles is subrectangle or empty, false otherwise.
+    /// @return Return true if the rectangles is subrectangle, false otherwise.
     bool Contain(Rect16 const &) const;
 
     void Align(Rect16 rc, uint8_t align);
@@ -353,15 +352,19 @@ public:
         int16_t min_x = SHRT_MAX, min_y = SHRT_MAX;
         int16_t max_x = SHRT_MIN, max_y = SHRT_MIN;
 
-        for (size_t i = 0; i < SZ; ++i) {
-            if (rectangles[i].Width() > 0) {
+        for (size_t i = 0; i < rectangles.size(); ++i) {
+            if (!rectangles[i].IsEmpty()) {
                 min_x = rectangles[i].TopLeft().x < min_x ? rectangles[i].TopLeft().x : min_x;
                 min_y = rectangles[i].TopLeft().y < min_y ? rectangles[i].TopLeft().y : min_y;
                 max_x = rectangles[i].EndPoint().x > max_x ? rectangles[i].EndPoint().x : max_x;
                 max_y = rectangles[i].EndPoint().y > max_y ? rectangles[i].EndPoint().y : max_y;
             }
         }
-        return { min_x, min_y, max_x, max_y };
+        if (min_x > max_x || min_y > max_y) {
+            return Rect16();
+        } else {
+            return Rect16 { min_x, min_y, max_x - min_x, max_y - min_y };
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -372,8 +375,8 @@ public:
     /// @return Return a rectangle that represents the union of all rectangles
     template <size_t SZ>
     Rect16 Union(std::array<Rect16, SZ> const &rectangles) {
-        Rect16 ret = Merge(rectangles);
-        return {
+        Rect16 ret = Rect16::Merge(rectangles);
+        return Rect16 {
             TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
             TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,
             EndPoint().x > ret.EndPoint().x ? EndPoint().x : ret.EndPoint().x,

@@ -33,7 +33,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
         }
         return fs == FS_DISABLED ? 0 : 1;
     }
-    bool fs_not_connected;
+    // bool fs_not_connected;
 
 public:
     MI_FILAMENT_SENSOR()

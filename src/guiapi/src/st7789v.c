@@ -161,26 +161,24 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
 }
 
 void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
-    HAL_StatusTypeDef ret;
 #if 0
 //#ifdef ST7789V_DMA
     if (size <= 4)
-        ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+        HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
     else
     {
     #ifdef ST7789V_USE_RTOS
         osSignalSet(0, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     #endif //ST7789V_USE_RTOS
-        ret = HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
+        HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
     #ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    #endif     //ST7789V_USE_RTOS
+    #endif //ST7789V_USE_RTOS
     }
-#else          //ST7789V_DMA
-    ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
-#endif         //ST7789V_DMA
-    ret = ret; //prevent warning
+#else      //ST7789V_DMA
+    HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+#endif     //ST7789V_DMA
 }
 
 void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
@@ -494,12 +492,13 @@ static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
 #ifdef ST7789V_PNG_SUPPORT
 
     #include <png.h>
+    #define PNG_MAX_CHUNKS 10
 
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
 uint32_t png_mem_max = 0;
-void *png_mem_ptrs[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-uint32_t png_mem_sizes[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+void *png_mem_ptrs[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+uint32_t png_mem_sizes[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
 
 png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
@@ -508,15 +507,17 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
     if (png_mem_ptr0 == 0)
         //png_mem_ptr0 = pvPortMalloc(0xc000); //48k
         png_mem_ptr0 = (void *)0x10000000; //ccram
-    int i;
     void *p = ((uint8_t *)png_mem_ptr0) + png_mem_total;
     //	if (p == 0)
     //		while (1);
     //	else
     {
-        for (i = 0; i < 10; i++)
+        int i;
+        for (i = 0; i < PNG_MAX_CHUNKS; i++)
             if (png_mem_ptrs[i] == 0)
                 break;
+        if (i >= PNG_MAX_CHUNKS)
+            return NULL;
         png_mem_ptrs[i] = p;
         png_mem_sizes[i] = size;
         png_mem_total += size;
