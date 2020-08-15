@@ -32,10 +32,13 @@ protected:
     window_header_t header;
     window_text_t help;
     status_footer_t footer;
+
+    window_t *prev_capture;
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
+    ~IScreenMenu();
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>

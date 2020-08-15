@@ -4,27 +4,27 @@
 
 IDialog::IDialog(Rect16 rc)
     : window_frame_t(Screens::Access()->Get(), rc, is_dialog_t::yes) //use dialog ctor
-    , id_capture(GetCapturedWindow()) {
+    , prev_capture(GetCapturedWindow()) {
     gui_reset_jogwheel(); //todo do I need this?
     Enable();
     SetCapture();
 }
 
 IDialog::~IDialog() {
-    if (id_capture)
-        id_capture->SetCapture();
+    if (prev_capture)
+        prev_capture->SetCapture();
 }
 
 void create_blocking_dialog_from_normal_window(window_t &dlg) {
-    window_t *id_capture = window_t::GetCapturedWindow();
+    window_t *prev_capture = window_t::GetCapturedWindow();
 
     //if dialog or its child window has capture, it must handle its release itsefl
-    if (id_capture) {
-        if (id_capture == &dlg || id_capture->IsChildOf(&dlg)) {
-            id_capture = nullptr;
-            dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
-        }
+    if (prev_capture && (prev_capture == &dlg || prev_capture->IsChildOf(&dlg))) {
+        prev_capture = nullptr;
+    } else {
+        dlg.SetCapture(); //set capture to dlg, events for list are forwarded in window_dlg_preheat_event
     }
+
     gui_reset_jogwheel();
     //gui_invalidate();
 
@@ -33,8 +33,8 @@ void create_blocking_dialog_from_normal_window(window_t &dlg) {
     }
 
     //if dialog or its child window has capture, it must handle its release itsefl
-    if (id_capture)
-        id_capture->SetCapture();
+    if (prev_capture)
+        prev_capture->SetCapture();
 }
 
 void IDialog::MakeBlocking(void (*action)()) const {

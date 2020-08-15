@@ -20,7 +20,8 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 rect, 
     , menu(this, rect, nullptr)
     , header(this)
     , help(this, helper_lines > 0 ? Rect16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - get_help_h(helper_lines, font_id), win_w, get_help_h(helper_lines, font_id)) : Rect16(0, 0, 0, 0))
-    , footer(this) {
+    , footer(this)
+    , prev_capture(window_t::GetCapturedWindow()) {
     //pointer to container shall be provided by child
 
     //todo bind those numeric constants to fonts and guidefaults
@@ -39,13 +40,18 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 rect, 
     FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
     Enable();
-    if (!IsDialog())       // dialog needs to save actual value of caption first
-        menu.SetCapture(); // set capture to list
+    //if (!IsDialog())       // dialog needs to save actual value of caption first
+    menu.SetCapture(); // set capture to list
     menu.SetFocus();
 
     if (helper_lines > 0) {
         help.font = resource_font(font_id);
     }
+}
+
+IScreenMenu::~IScreenMenu() {
+    //if (!IsDialog())
+    prev_capture->SetCapture();
 }
 
 void IScreenMenu::windowEvent(window_t *sender, uint8_t event, void *param) {
