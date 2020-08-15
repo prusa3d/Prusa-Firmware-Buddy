@@ -34,8 +34,6 @@ void window_frame_t::RegisterSubWin(window_t *win) {
 // so no need to check it
 #ifdef _DEBUG
                 win->SetBackColor(COLOR_RED_ALERT);
-#else
-                return; //do not register this window
 #endif //_DEBUG
             }
         }
