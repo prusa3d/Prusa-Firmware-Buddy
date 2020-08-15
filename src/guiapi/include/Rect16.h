@@ -172,23 +172,31 @@ public:
     /// @brief Object accessor to read the point behind bottom-right of current rectangle
     ///
     /// @return Point behind Bottom-right of the rectangle.
-    point_i16_t BottomRight() const {
-        return {
-            static_cast<int16_t>(top_left_.x + width_ - 1),
-            static_cast<int16_t>(top_left_.y + height_ - 1)
-        };
+    constexpr point_i16_t BottomRight() const {
+        return { static_cast<int16_t>(EndPoint().x - 1), static_cast<int16_t>(EndPoint().y - 1) };
     };
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the bottom-right of current rectangle
     ///
     /// @return Bottom-right of the rectangle.
-    point_i16_t EndPoint() const {
+    constexpr point_i16_t EndPoint() const {
         return {
             static_cast<int16_t>(top_left_.x + width_),
             static_cast<int16_t>(top_left_.y + height_)
         };
     };
+
+    //swap is not constexpr in C++17 and earlier
+    void SwapXY() {
+        std::swap(top_left_.x, top_left_.y);
+        std::swap(width_, height_);
+    }
+
+    //mirror over X point
+    constexpr void MirrorX(int16_t pt_X) { top_left_.x = static_cast<int16_t>(2 * pt_X - EndPoint().x); }
+    //mirror over Y point
+    constexpr void MirrorY(int16_t pt_Y) { top_left_.y = static_cast<int16_t>(2 * pt_Y - EndPoint().y); }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines if the given point is placed inside of the curent rectangle
