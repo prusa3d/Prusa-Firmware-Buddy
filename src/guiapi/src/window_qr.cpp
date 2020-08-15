@@ -55,37 +55,37 @@ void draw_qr(uint8_t qrcode[], const window_qr_t *const window) {
     /// scale QR code
     if (window->scale) {
         const uint16_t size_w_bord = size + 2 * window->border;
-        ppm = std::max(1, (int)floor(std::min(window->rect.h, window->rect.w) / float(size_w_bord)));
+        ppm = std::max(1, (int)floor(std::min(uint16_t(window->rect.Height()), uint16_t(window->rect.Width())) / float(size_w_bord)));
     }
     const uint16_t px_size = get_qr_px_size(qrcode, window, ppm);
 
     /// alignment
     if (window->align & ALIGN_HCENTER) {
-        x0 = std::max(0, (window->rect.w - px_size)) / 2;
+        x0 = std::max(0, (window->rect.Width() - px_size)) / 2;
     } else if (window->align & ALIGN_RIGHT) {
-        x0 = std::max(0, (window->rect.w - px_size));
+        x0 = std::max(0, (window->rect.Width() - px_size));
     }
 
     if (window->align & ALIGN_VCENTER) {
-        y0 = std::max(0, (window->rect.h - px_size)) / 2;
+        y0 = std::max(0, (window->rect.Height() - px_size)) / 2;
     } else if (window->align & ALIGN_BOTTOM) {
-        y0 = std::max(0, (window->rect.h - px_size));
+        y0 = std::max(0, (window->rect.Height() - px_size));
     }
 
     /// move to window location
-    x0 += window->rect.x + window->border * ppm;
-    y0 += window->rect.y + window->border * ppm;
+    x0 += window->rect.Left() + window->border * ppm;
+    y0 += window->rect.Top() + window->border * ppm;
 
     /// FIXME paint border at once (fill_between_rect) - it's faster
     /// paint QR code
     for (int y = -border; y < (size + border); ++y)
         for (int x = -border; x < (size + border); ++x)
-            display::FillRect(rect_ui16(x0 + x * ppm, y0 + y * ppm, ppm, ppm), ((qrcodegen_getModule(qrcode, x, y) ? window->px_color : window->bg_color)));
+            display::FillRect(Rect16(x0 + x * ppm, y0 + y * ppm, ppm, ppm), ((qrcodegen_getModule(qrcode, x, y) ? window->px_color : window->bg_color)));
 }
 
 /// QR Window
 
-window_qr_t::window_qr_t(window_t *parent, rect_ui16_t rect)
+window_qr_t::window_qr_t(window_t *parent, Rect16 rect)
     : window_t(parent, rect)
 // , version(9)
 // , ecc_level(qrcodegen_Ecc_HIGH)

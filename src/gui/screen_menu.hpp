@@ -35,7 +35,7 @@ protected:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 
 public:
-    IScreenMenu(window_t *parent, string_view_utf8 label, rect_ui16_t rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
+    IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
@@ -45,7 +45,7 @@ protected:
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr, rect_ui16_t rect = GuiDefaults::RectScreenBody);
+    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreenBody);
 
     //compiletime access by index
     template <std::size_t I>
@@ -60,7 +60,7 @@ public:
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
-ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label, window_t *parent, rect_ui16_t rect)
+ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label, window_t *parent, Rect16 rect)
     : IScreenMenu(parent, label, rect, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
     menu.pContainer = &container;
     menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again

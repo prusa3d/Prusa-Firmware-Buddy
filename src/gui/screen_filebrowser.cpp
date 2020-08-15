@@ -33,7 +33,7 @@ static char firstVisibleSFN[SFN_len] = "";
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : window_frame_t()
     , header(this)
-    , w_filelist(this, rect_ui16(10, 32, 220, 278)) {
+    , w_filelist(this, Rect16(10, 32, 220, 278)) {
     screen_filebrowser_sort = (WF_Sort_t)eeprom_get_var(EEVAR_FILE_SORT).ui8;
 
     // FIXME: this could crash with very fast insert and eject, status_header will fix this

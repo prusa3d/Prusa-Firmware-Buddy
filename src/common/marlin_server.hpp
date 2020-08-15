@@ -50,10 +50,10 @@ class FSM_notifier {
     struct data { //used floats - no need to retype
         ClientFSM type;
         uint8_t phase;
-        float scale;  //scale from value to progress
-        float offset; //offset from lowest value
-        uint8_t progress_min;
-        uint8_t progress_max;
+        float scale = 1;  //scale from value to progress
+        float offset = 0; //offset from lowest value
+        uint8_t progress_min = 0;
+        uint8_t progress_max = 100;
         uint8_t var_id;
         uint8_t last_progress_sent;
         data()

@@ -10,5 +10,5 @@ struct IWindowMenu : public window_t {
     padding_ui8_t padding;
     uint8_t icon_w;
     uint8_t alignment;
-    IWindowMenu(window_t *parent, rect_ui16_t rect);
+    IWindowMenu(window_t *parent, Rect16 rect);
 };

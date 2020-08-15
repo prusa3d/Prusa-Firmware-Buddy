@@ -30,9 +30,9 @@ void window_list_dec(window_list_t *window, int dif);
 void window_list_t::unconditionalDraw() {
 
     int item_height = font->h + padding.top + padding.bottom;
-    rect_ui16_t rc_win = rect;
+    Rect16 rc_win = rect;
 
-    int visible_count = rc_win.h / item_height;
+    int visible_count = rc_win.Height() / item_height;
     int i;
     for (i = 0; i < visible_count && i < count; i++) {
         int idx = i + top_index;
@@ -44,11 +44,11 @@ void window_list_t::unconditionalDraw() {
         color_t back_cl = color_back;
         uint8_t swap = 0;
 
-        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
-            rc_win.w, uint16_t(item_height) };
+        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + i * item_height),
+            rc_win.Width(), uint16_t(item_height) };
         padding_ui8_t padd = padding;
 
-        if (rect_in_rect_ui16(rc, rc_win)) {
+        if (rc_win.Contain(rc)) {
             if (index == idx) {
                 color_t swp = text_cl;
                 text_cl = back_cl;
@@ -57,14 +57,14 @@ void window_list_t::unconditionalDraw() {
             }
 
             if (id_icon) {
-                rect_ui16_t irc = { rc.x, rc.y,
-                    icon_rect.w, icon_rect.h };
-                rc.x += irc.w;
-                rc.w -= irc.w;
+                Rect16 irc = { rc.Left(), rc.Top(),
+                    icon_rect.Width(), icon_rect.Height() };
+                rc += Rect16::Left_t(irc.Width());
+                rc -= irc.Width();
                 render_icon_align(irc, id_icon,
                     back_cl, RENDER_FLG(ALIGN_CENTER, swap));
             } else {
-                padd.left += icon_rect.w;
+                padd.left += icon_rect.Width();
             }
 
             // render
@@ -73,10 +73,10 @@ void window_list_t::unconditionalDraw() {
                 padd, alignment);
         }
     }
-    rc_win.h = rc_win.h - (i * item_height);
+    rc_win -= Rect16::Height_t(i * item_height);
 
-    if (rc_win.h) {
-        rc_win.y += i * item_height;
+    if (rc_win.Height()) {
+        rc_win += Rect16::Top_t(i * item_height);
         display::FillRect(rc_win, color_back);
     }
 }
@@ -101,7 +101,7 @@ void window_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 
 void window_list_inc(window_list_t *window, int dif) {
     const int item_height = window->font->h + window->padding.top + window->padding.bottom;
-    const int visible_count = window->rect.h / item_height;
+    const int visible_count = window->rect.Height() / item_height;
     int old_index = window->index;
     window->index += dif;
     if (window->index < 0) {
@@ -151,13 +151,13 @@ void window_list_t::SetCallback(window_list_item_t *fnc) {
     list_item = fnc;
 }
 
-window_list_t::window_list_t(window_t *parent, rect_ui16_t rect)
+window_list_t::window_list_t(window_t *parent, Rect16 rect)
     : window_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , padding(GuiDefaults::Padding)
     , alignment(GuiDefaults::Alignment)
-    , icon_rect(rect_ui16(0, 0, 16, 16))
+    , icon_rect(Rect16(0, 0, 16, 16))
     , count(0)
     , index(0)
     , top_index(0)

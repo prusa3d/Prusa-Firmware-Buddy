@@ -11,18 +11,14 @@ extern void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, ui
 
 } //extern "C"
 
-static rect_ui16_t st7789v_clip = { 0, 0, ST7789V_COLS, ST7789V_ROWS };
-
-void st7789v_clip_rect(rect_ui16_t rc) {
-    st7789v_clip = rc;
-}
+static constexpr Rect16 st7789v_clip = { 0, 0, ST7789V_COLS, ST7789V_ROWS };
 
 static bool st7789v_draw_char(point_ui16_t pt, char chr, const font_t *pf, color_t clr_bg, color_t clr_fg) {
     const uint16_t w = pf->w; //char width
     const uint16_t h = pf->h; //char height
     // character out of font range, display solid rectangle instead
     if ((chr < pf->asc_min) || (chr > pf->asc_max)) {
-        st7789v_fill_rect(rect_ui16(pt.x, pt.y, w, h), clr_bg);
+        st7789v_fill_rect(Rect16(pt.x, pt.y, w, h), clr_bg);
         return false;
     }
     // here we only have an ASCII character, its location in font can be computed easily
@@ -91,12 +87,12 @@ bool st7789v_draw_charUnicode(point_ui16_t pt, uint8_t charX, uint8_t charY, con
 /// \param clr_bg background color
 /// \param clr_fg font/foreground color
 /// \returns true if whole text was written
-bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    int x = rc.x;
-    int y = rc.y;
+bool st7789v_draw_text(Rect16 rc, const char *str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    int x = rc.Left();
+    int y = rc.Top();
 
-    const uint16_t rc_end_x = rc.x + rc.w;
-    const uint16_t rc_end_y = rc.y + rc.h;
+    const uint16_t rc_end_x = rc.Left() + rc.Width();
+    const uint16_t rc_end_y = rc.Top() + rc.Height();
     const uint16_t w = pf->w; //char width
     const uint16_t h = pf->h; //char height
 
@@ -105,7 +101,7 @@ bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_
     while ((c = *str++) != 0) {
         if (c == '\n') {
             y += h;
-            x = rc.x;
+            x = rc.Left();
             if (y + h > rc_end_y)
                 return false;
             continue;
@@ -121,31 +117,31 @@ bool st7789v_draw_text(rect_ui16_t rc, const char *str, const font_t *pf, color_
 }
 
 /// Draws a rectangle boundary of defined color
-void st7789v_draw_rect(rect_ui16_t rc, color_t clr) {
-    if (rc.w <= 0 || rc.h <= 0)
+void st7789v_draw_rect(Rect16 rc, color_t clr) {
+    if (rc.Width() <= 0 || rc.Height() <= 0)
         return;
 
-    point_ui16_t pt0 = { rc.x, rc.y };
-    point_ui16_t pt1 = { uint16_t(rc.x + rc.w - 1), rc.y };
-    point_ui16_t pt2 = { rc.x, uint16_t(rc.y + rc.h - 1) };
+    point_i16_t pt0 = rc.TopLeft();
+    point_i16_t pt1 = { int16_t(rc.Left() + rc.Width() - 1), rc.Top() };
+    point_i16_t pt2 = { rc.Left(), int16_t(rc.Top() + rc.Height() - 1) };
 
-    st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, rc.w, 1), clr); // top
-    st7789v_fill_rect(rect_ui16(pt0.x, pt0.y, 1, rc.h), clr); // left
-    st7789v_fill_rect(rect_ui16(pt1.x, pt1.y, 1, rc.h), clr); // right
-    st7789v_fill_rect(rect_ui16(pt2.x, pt2.y, rc.w, 1), clr); // bottom
+    st7789v_fill_rect(Rect16(pt0, rc.Width(), 1), clr);  // top
+    st7789v_fill_rect(Rect16(pt0, 1, rc.Height()), clr); // left
+    st7789v_fill_rect(Rect16(pt1, 1, rc.Height()), clr); // right
+    st7789v_fill_rect(Rect16(pt2, rc.Width(), 1), clr);  // bottom
 }
 
-void st7789v_fill_rect(rect_ui16_t rc, color_t clr) {
-    rc = rect_intersect_ui16(rc, st7789v_clip);
-    if (rect_empty_ui16(rc))
+void st7789v_fill_rect(Rect16 rc, color_t clr) {
+    rc = rc.Intersection(st7789v_clip);
+    if (rc.IsEmpty())
         return;
     uint16_t clr565 = color_to_565(clr);
-    st7789v_fill_rect_C(rc.x, rc.y, rc.w, rc.h, clr565);
+    st7789v_fill_rect_C(rc.Left(), rc.Top(), rc.Width(), rc.Height(), clr565);
 }
 
 /// Turns the specified pixel to the specified color
 void st7789v_set_pixel(point_ui16_t pt, color_t clr) {
-    if (!point_in_rect_ui16(pt, st7789v_clip))
+    if (!st7789v_clip.Contain(pt))
         return;
     uint16_t clr565 = color_to_565(clr);
     st7789v_set_pixel_C(pt.x, pt.y, clr565);
@@ -205,19 +201,19 @@ void st7789v_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 }
 
 color_t st7789v_get_pixel(point_ui16_t pt) {
-    if (!point_in_rect_ui16(pt, st7789v_clip))
+    if (!st7789v_clip.Contain(pt))
         return 0;
     return st7789v_get_pixel_C(pt.x, pt.y);
 }
 
 void st7789v_set_pixel_directColor(point_ui16_t pt, uint16_t noClr) {
-    if (!point_in_rect_ui16(pt, st7789v_clip))
+    if (!st7789v_clip.Contain(pt))
         return;
     st7789v_set_pixel_directColor_C(pt.x, pt.y, noClr);
 }
 
 uint16_t st7789v_get_pixel_directColor(point_ui16_t pt) {
-    if (!point_in_rect_ui16(pt, st7789v_clip))
+    if (!st7789v_clip.Contain(pt))
         return 0;
     return st7789v_get_pixel_directColor_C(pt.x, pt.y);
 }

@@ -35,7 +35,7 @@ public:
     int ConsumeChar(char c, uint8_t *out);
 
 private:
-    uint8_t lastbits;
+    uint8_t lastbits = 0;
     enum class States : uint8_t {
         AwaitingFirst, // ocekavam prvni znak, nemam nic
         FirstByteOut,  // mam prvni znak, a prisel mi 2. znak - vracim 1. bajt,

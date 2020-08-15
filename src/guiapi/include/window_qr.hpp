@@ -16,7 +16,7 @@ struct window_qr_t : public window_t {
     uint8_t align = ALIGN_CENTER; /// alignment of QR code in the window
     // other
     bool scale = true; /// changes px_per_module so the QR code is the biggest that fits in the window
-    window_qr_t(window_t *parent, rect_ui16_t rect);
+    window_qr_t(window_t *parent, Rect16 rect);
 };
 
 /// Defines maximal size of QR code and buffers needed for generating. Keep it low.

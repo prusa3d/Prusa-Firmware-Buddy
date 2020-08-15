@@ -8,25 +8,16 @@ static constexpr uint8_t PROGRESS_BAR_Y_PAD = 30;
 static constexpr uint8_t PROGRESS_BAR_H = 16;
 static constexpr uint8_t PROGRESS_BAR_TEXT_H = 30;
 
-rect_ui16_t get_title_size(rect_ui16_t rect) {
-    rect.h = 30;
-    return rect;
+Rect16 get_title_size(Rect16 rect) {
+    return Rect16(rect.Left(), rect.Top(), rect.Width(), 30);
 }
 
-rect_ui16_t get_progress_size(rect_ui16_t rect) {
-    rect.x += PROGRESS_BAR_X_PAD;
-    rect.y += PROGRESS_BAR_Y_PAD;
-    rect.w -= 2 * PROGRESS_BAR_X_PAD;
-    rect.h = PROGRESS_BAR_H + PROGRESS_BAR_TEXT_H;
-    return rect;
+Rect16 get_progress_size(Rect16 rect) {
+    return Rect16(rect.Left() + PROGRESS_BAR_X_PAD, rect.Top() + PROGRESS_BAR_Y_PAD, rect.Width() - 2 * PROGRESS_BAR_X_PAD, PROGRESS_BAR_H + PROGRESS_BAR_TEXT_H);
 }
 
-rect_ui16_t get_label_size(rect_ui16_t rect) {
-    rect.y += (30 + 46);
-    rect.x += 2;
-    rect.w -= 4;
-    rect.h = 60;
-    return rect;
+Rect16 get_label_size(Rect16 rect) {
+    return Rect16(rect.Left() + 2, rect.Top() + 30 + 46, rect.Width() - 4, 60);
 }
 
 //*****************************************************************************

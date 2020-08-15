@@ -54,7 +54,7 @@ void window_numb_t::SetColor(color_t clr) {
     }
 }
 
-window_numb_t::window_numb_t(window_t *parent, rect_ui16_t rect, float value)
+window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value)
     : window_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
