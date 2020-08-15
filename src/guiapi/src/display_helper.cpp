@@ -47,10 +47,14 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
         if (c == 0) {
             break;
         }
-        if (c == '\n' && (flags & RENDER_FLG_WORDB)) {
-            y += h;
-            x = rc.Left();
-            continue;
+        if (c == '\n') {
+            if (flags & RENDER_FLG_WORDB) {
+                y += h;
+                x = rc.Left();
+                continue;
+            } else {
+                break;
+            }
         }
 #ifdef UNACCENT
         if (c < 128) {
