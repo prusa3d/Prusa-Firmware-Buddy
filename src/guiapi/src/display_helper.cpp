@@ -68,6 +68,8 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
             }
         }
 #else
+        if (!rc.Contain(point_ui16(x + w - 1, y)))
+            break;
         display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
         x += w;
 #endif
@@ -125,7 +127,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     fill_between_rectangles(&rc, &rect_in, clr0);
     text.rewind();
     // 2nd pass reading the string_view_utf8 - draw the text
-    render_text(rc_txt, text, font, clr0, clr1, 0);
+    render_text(rect_in, text, font, clr0, clr1, 0);
 }
 
 void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, uint16_t flags) {
