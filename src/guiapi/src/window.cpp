@@ -59,8 +59,9 @@ void window_t::SetFocus() {
 }
 
 void window_t::SetCapture() {
-
-    if (IsVisible() && flag_enabled) {
+    // do not check IsVisible()
+    // window hidden by dialog can get capture
+    if (flag_visible && flag_enabled) {
         if (capture_ptr) {
             capture_ptr->windowEvent(capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
         }
@@ -97,8 +98,8 @@ void window_t::ShowAfterDialog() {
 }
 
 void window_t::HideBehindDialog() {
-    if (flag_hidden_behind_dialog) {
-        flag_hidden_behind_dialog = false;
+    if (!flag_hidden_behind_dialog) {
+        flag_hidden_behind_dialog = true;
         //must invalidate - only part of window can be behind dialog
         Invalidate();
 

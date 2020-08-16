@@ -69,7 +69,7 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
         while (pDialog) {
             if (pDialog->IsDialog()) {  //found dialog
                 window_t *pWin = first; //now check all windows registered before it
-                while (pWin) {
+                while (pWin && pWin != last) {
                     if (pDialog->rect.HasIntersection(pWin->rect)) { // found window behind
                         pWin->HideBehindDialog();                    // hide it
                     }
@@ -78,8 +78,6 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
             }
             pDialog = pDialog->GetNext();
         }
-
-        last->ShowAfterDialog();
     } else {
         //todo remove after menu refactoring - menu items must be windows
         //needed for menu
