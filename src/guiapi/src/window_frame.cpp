@@ -13,18 +13,33 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog
 
 //register sub win
 void window_frame_t::RegisterSubWin(window_t *win) {
+    //window must fit inside frame
+    if (!rect.Contain(win->rect))
+        return;
+
+    //adding first window
     if (!(first && last)) {
         first = last = win;
         return;
     }
-    if (win->IsDialog()) {
-        window_t *pWin = first;
-        while (pWin) {
-            pWin->Hide(); //todo check dialog intersection
-            //define shadowed by dialog flag
-            pWin = pWin->GetNext();
+
+    window_t *pWin = first;
+    while (pWin) {
+        if (win->rect.HasIntersection(pWin->rect)) {
+            if (win->IsDialog()) {
+                pWin->HideBehindDialog();
+            } else {
+// error 2 windows cannot have intersection
+// win is not dialog, it is guaranted there is no dialog inside this frame yet
+// so no need to check it
+#ifdef _DEBUG
+                win->SetBackColor(COLOR_RED_ALERT);
+#endif //_DEBUG
+            }
         }
+        pWin = pWin->GetNext();
     }
+
     last->SetNext(win);
     last = last->GetNext();
 }
@@ -38,19 +53,32 @@ void window_frame_t::UnregisterSubWin(window_t *win) {
             last = prev;
     }
 
-    if (last->IsDialog()) {
-        //todo check intersection with this dialog
-        //and show windows that have no intersection with it
-        last->Show();
-    } else {
-        //show all windows
-        //todo check shadowed by dialog flag
-        window_t *pWin = first;
-        while (pWin) {
-            pWin->Show();
-            pWin = pWin->GetNext();
-        }
+    //show all windows
+    //todo check shadowed by dialog flag
+    window_t *pWin = first;
+    while (pWin) {
+        pWin->ShowAfterDialog();
+        pWin = pWin->GetNext();
+    }
 
+    if (last->IsDialog()) {
+        // there is one or more dialogs, have to find them all
+        // and hide windows behind them
+
+        window_t *pDialog = first;
+        while (pDialog) {
+            if (pDialog->IsDialog()) {  //found dialog
+                window_t *pWin = first; //now check all windows registered before it
+                while (pWin && pWin != last) {
+                    if (pDialog->rect.HasIntersection(pWin->rect)) { // found window behind
+                        pWin->HideBehindDialog();                    // hide it
+                    }
+                    pWin = pWin->GetNext();
+                }
+            }
+            pDialog = pDialog->GetNext();
+        }
+    } else {
         //todo remove after menu refactoring - menu items must be windows
         //needed for menu
         Invalidate();
@@ -173,54 +201,113 @@ void window_frame_t::validate(Rect16 validation_rect) {
     }
 }
 
-window_t *window_frame_t::GetNextSubWin(window_t *win, Rect16 rect) const {
-    if (!win)
-        return nullptr;
-    if (win->GetParent() != this)
-        return nullptr;
-    return win->GetNext(); //todo test rect intersection
-}
-
-window_t *window_frame_t::GetPrevSubWin(window_t *win, Rect16 rect) const {
-    if (!win)
-        return nullptr;
-    if (win->GetParent() != this)
-        return nullptr;
-    window_t *tmpWin = first;
-    while (tmpWin && GetNextSubWin(tmpWin, rect) != win) {
-        tmpWin = GetNextSubWin(tmpWin, rect);
-    }
-    return tmpWin;
-}
-
-window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, Rect16 rect) const {
-    if (!win)
-        return nullptr;
-    if (win->GetParent() != this)
-        return nullptr;
-    return win->GetNextEnabled(); //todo test rect intersection
-}
-
-window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, Rect16 rect) const {
-    window_t *tmpWin = GetPrevSubWin(win, rect);
-    while (tmpWin && !tmpWin->IsEnabled()) {
-        tmpWin = GetPrevSubWin(tmpWin, rect);
-    }
-    return tmpWin;
-}
-
-window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 rect) const {
-    if (!first)
-        return nullptr;
-    if (first->IsEnabled()) //todo test rect intersection
-        return first;
-    return GetNextEnabledSubWin(first, rect);
-}
-
 bool window_frame_t::IsChildCaptured() {
     return GetCapturedWindow()->GetParent() == this;
 }
 
 bool window_frame_t::IsChildFocused() {
     return GetFocusedWindow()->GetParent() == this;
+}
+
+window_t *window_frame_t::GetNextSubWin(window_t *win) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+
+    return win->GetNext();
+}
+
+window_t *window_frame_t::GetPrevSubWin(window_t *win) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+    window_t *tmpWin = first;
+    while (tmpWin && GetNextSubWin(tmpWin) != win) {
+        tmpWin = GetNextSubWin(tmpWin);
+    }
+    return tmpWin;
+}
+
+window_t *window_frame_t::GetNextEnabledSubWin(window_t *win) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+    return win->GetNextEnabled();
+}
+
+window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win) const {
+    window_t *tmpWin = GetPrevSubWin(win);
+    while (tmpWin && !tmpWin->IsEnabled()) {
+        tmpWin = GetPrevSubWin(tmpWin);
+    }
+    return tmpWin;
+}
+
+window_t *window_frame_t::GetFirstEnabledSubWin() const {
+    if (!first)
+        return nullptr;
+    if (first->IsEnabled())
+        return first;
+    return GetNextEnabledSubWin(first);
+}
+
+window_t *window_frame_t::GetNextSubWin(window_t *win, Rect16 intersection_rect) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+
+    //endless loop is safe here, last window points to nullptr
+    while (true) {
+        win = win->GetNext();
+        if (!win || win->rect.HasIntersection(intersection_rect)) {
+            return win;
+        }
+    }
+}
+
+window_t *window_frame_t::GetPrevSubWin(window_t *win, Rect16 intersection_rect) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+    window_t *tmpWin = first;
+    while (tmpWin && GetNextSubWin(tmpWin, intersection_rect) != win) {
+        tmpWin = GetNextSubWin(tmpWin, intersection_rect);
+    }
+    return tmpWin;
+}
+
+window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, Rect16 intersection_rect) const {
+    if (!win)
+        return nullptr;
+    if (win->GetParent() != this)
+        return nullptr;
+
+    //endless loop is safe here, last window points to nullptr
+    while (true) {
+        win = win->GetNextEnabled();
+        if (!win || win->rect.HasIntersection(intersection_rect)) {
+            return win;
+        }
+    }
+}
+
+window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, Rect16 intersection_rect) const {
+    window_t *tmpWin = GetPrevSubWin(win, intersection_rect);
+    while (tmpWin && !tmpWin->IsEnabled()) {
+        tmpWin = GetPrevSubWin(tmpWin, intersection_rect);
+    }
+    return tmpWin;
+}
+
+window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const {
+    if (!first)
+        return nullptr;
+    if (first->IsEnabled() && first->rect.HasIntersection(intersection_rect))
+        return first;
+    return GetNextEnabledSubWin(first, intersection_rect);
 }

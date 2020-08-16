@@ -15,12 +15,24 @@ struct window_frame_t : public window_t {
     virtual void UnregisterSubWin(window_t *win) override;
     window_t *GetFirst() const;
     window_t *GetLast() const;
+
     window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, is_dialog_t dialog = is_dialog_t::no);
-    window_t *GetNextSubWin(window_t *win, Rect16 rect = Rect16()) const;
-    window_t *GetPrevSubWin(window_t *win, Rect16 rect = Rect16()) const;
-    window_t *GetNextEnabledSubWin(window_t *win, Rect16 rect = Rect16()) const;
-    window_t *GetPrevEnabledSubWin(window_t *win, Rect16 rect = Rect16()) const;
-    window_t *GetFirstEnabledSubWin(Rect16 rect = Rect16()) const;
+
+    window_t *GetNextSubWin(window_t *win) const;
+    window_t *GetPrevSubWin(window_t *win) const;
+    window_t *GetNextEnabledSubWin(window_t *win) const;
+    window_t *GetPrevEnabledSubWin(window_t *win) const;
+    window_t *GetFirstEnabledSubWin() const;
+
+    // I am not sure why I needed those, DO NOT REMOVE
+    // I think it was meant for something with dialogs
+    // Can be removed after GUI is completely refactored and they still are not used
+    window_t *GetNextSubWin(window_t *win, Rect16 intersection_rect) const;
+    window_t *GetPrevSubWin(window_t *win, Rect16 intersection_rect) const;
+    window_t *GetNextEnabledSubWin(window_t *win, Rect16 intersection_rect) const;
+    window_t *GetPrevEnabledSubWin(window_t *win, Rect16 intersection_rect) const;
+    window_t *GetFirstEnabledSubWin(Rect16 intersection_rect) const;
+
     bool IsChildCaptured();
     bool IsChildFocused();
 
