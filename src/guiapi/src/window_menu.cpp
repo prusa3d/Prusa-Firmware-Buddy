@@ -6,13 +6,14 @@
 #include "IWindowMenuItem.hpp"
 
 IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
-    : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
+    : window_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , color_disabled(GuiDefaults::ColorDisabled)
     , font(GuiDefaults::Font)
     , padding { 6, 6, 6, 6 }
     , icon_w(25)
     , alignment(GuiDefaults::Alignment) {
+    Enable();
 }
 
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
@@ -137,19 +138,6 @@ void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     }
     //    if (invalid)
     //        Invalidate();
-}
-
-// overrided window_frame implementation to prevent menu blinking
-void window_menu_t::draw() {
-    if (IsInvalid()) {
-        unconditionalDraw();
-        Validate();
-    }
-    window_t *ptr = first;
-    while (ptr) {
-        ptr->Draw();
-        ptr = ptr->GetNext();
-    }
 }
 
 void window_menu_t::unconditionalDraw() {

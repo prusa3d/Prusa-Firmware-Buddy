@@ -1,9 +1,9 @@
 #pragma once
 
-#include "window_frame.hpp"
+#include "window.hpp"
 #include <stdint.h>
 
-struct IWindowMenu : public window_frame_t {
+struct IWindowMenu : public window_t {
     color_t color_text;
     color_t color_disabled;
     font_t *font;

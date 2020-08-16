@@ -185,6 +185,17 @@ window_t *window_t::GetParent() const {
     return parent;
 }
 
+bool window_t::IsChildOf(window_t *win) const {
+    window_t *par = GetParent();
+    while (par) {
+        if (par == win)
+            return true;
+
+        par = par->GetParent();
+    }
+    return false;
+}
+
 void window_t::Draw() {
     draw();
 }

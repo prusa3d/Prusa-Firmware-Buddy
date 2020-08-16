@@ -7,7 +7,7 @@
 #include "GuiDefaults.hpp"
 //interface for dialog
 class IDialog : public window_frame_t {
-    window_t *id_capture;
+    window_t *prev_capture;
 
 public:
     IDialog(Rect16 rc = GuiDefaults::RectScreenBody);
