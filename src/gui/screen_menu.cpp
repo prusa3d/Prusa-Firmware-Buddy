@@ -15,9 +15,9 @@ static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
     return helper_lines * (resource_font(font_id)->h + 1);
 }
 
-IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
-    : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
-    , menu(this, rect, nullptr)
+IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
+    : window_frame_t(parent, GuiDefaults::RectScreen, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
+    , menu(this, menu_item_rect, nullptr)
     , header(this)
     , help(this, helper_lines > 0 ? Rect16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - get_help_h(helper_lines, font_id), win_w, get_help_h(helper_lines, font_id)) : Rect16(0, 0, 0, 0))
     , footer(this)
@@ -33,13 +33,10 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 rect, 
     //const uint16_t menu_rect_h = win_h - help_h - header_h - (FOOTER == EFooter::On ? footer_h : 0);
     //const Rect16 menu_rect = Rect16(win_x, header_h, win_w, menu_rect_h - menu_rect_h % item_h);
 
-    Disable(); //used to have member window_frame_t root, now it is parent
-
     header.SetText(label);
 
     FOOTER == EFooter::On ? footer.Show() : footer.Hide();
 
-    Enable();
     //if (!IsDialog())       // dialog needs to save actual value of caption first
     menu.SetCapture(); // set capture to list
     menu.SetFocus();
