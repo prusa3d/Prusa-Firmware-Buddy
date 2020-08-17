@@ -7,33 +7,36 @@
 
 extern osThreadId displayTaskHandle;
 
-bool window_t::IsVisible() const { return flag_visible; }
+bool window_t::IsVisible() const { return flag_visible && !flag_hidden_behind_dialog; }
+bool window_t::IsHiddenBehindDialog() const { return flag_hidden_behind_dialog; }
 bool window_t::IsEnabled() const { return flag_enabled; }
 bool window_t::IsInvalid() const { return flag_invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return flag_timer; }
 bool window_t::IsDialog() const { return flag_dialog == is_dialog_t::yes; }
-void window_t::Validate(rect_ui16_t validation_rect) {
-    //todo check validation_rect intersection
-    flag_invalid = false;
-    invalidate(validation_rect);
-    gui_invalidate();
+
+void window_t::Validate(Rect16 validation_rect) {
+    if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
+        flag_invalid = false;
+        validate(validation_rect);
+    }
 }
 
-void window_t::Invalidate(rect_ui16_t validation_rect) {
-    //todo check validation_rect intersection
-    flag_invalid = true;
-    invalidate(validation_rect);
-    gui_invalidate();
+void window_t::Invalidate(Rect16 validation_rect) {
+    if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
+        flag_invalid = true;
+        invalidate(validation_rect);
+        gui_invalidate();
+    }
 }
 
 //frame will invalidate children
-void window_t::invalidate(rect_ui16_t validation_rect) {
+void window_t::invalidate(Rect16 validation_rect) {
 }
 
 //frame will validate children
-void window_t::validate(rect_ui16_t validation_rect) {
+void window_t::validate(Rect16 validation_rect) {
 }
 
 void window_t::SetHasTimer() { flag_timer = true; }
@@ -42,7 +45,7 @@ void window_t::Enable() { flag_enabled = true; }
 void window_t::Disable() { flag_enabled = false; }
 
 void window_t::SetFocus() {
-    if (!flag_visible || !flag_enabled)
+    if (!IsVisible() || !flag_enabled)
         return;
 
     if (focused_ptr) {
@@ -56,7 +59,8 @@ void window_t::SetFocus() {
 }
 
 void window_t::SetCapture() {
-
+    // do not check IsVisible()
+    // window hidden by dialog can get capture
     if (flag_visible && flag_enabled) {
         if (capture_ptr) {
             capture_ptr->windowEvent(capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
@@ -68,16 +72,39 @@ void window_t::SetCapture() {
 }
 
 void window_t::Show() {
-    if (!IsVisible()) {
+    if (!flag_visible) {
         flag_visible = true;
-        Invalidate();
+        //cannot invalidate when is hidden by dialog - could flicker
+        if (!flag_hidden_behind_dialog)
+            Invalidate();
     }
 }
 
 void window_t::Hide() {
-    if (IsVisible()) {
+    if (flag_visible) {
         flag_visible = false;
+        //cannot invalidate when is hidden by dialog - could flicker
+        if (!flag_hidden_behind_dialog)
+            Invalidate();
+    }
+}
+
+void window_t::ShowAfterDialog() {
+    if (flag_hidden_behind_dialog) {
+        flag_hidden_behind_dialog = false;
+        //must invalidate even when is not visible
         Invalidate();
+    }
+}
+
+void window_t::HideBehindDialog() {
+    if (!flag_hidden_behind_dialog) {
+        flag_hidden_behind_dialog = true;
+        //must invalidate - only part of window can be behind dialog
+        Invalidate();
+
+        //Validate would work with 1 dialog
+        //cannot risk it
     }
 }
 
@@ -88,7 +115,7 @@ void window_t::SetBackColor(color_t clr) {
     Invalidate();
 }
 
-window_t::window_t(window_t *parent, rect_ui16_t rect, is_dialog_t dialog, is_closed_on_click_t close)
+window_t::window_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_click_t close)
     : parent(parent)
     , next(nullptr)
     , flg(0)
@@ -158,13 +185,28 @@ window_t *window_t::GetParent() const {
     return parent;
 }
 
+bool window_t::IsChildOf(window_t *win) const {
+    window_t *par = GetParent();
+    while (par) {
+        if (par == win)
+            return true;
+
+        par = par->GetParent();
+    }
+    return false;
+}
+
 void window_t::Draw() {
     draw();
 }
 
 void window_t::draw() {
-    if (IsInvalid() && IsVisible() && rect.w && rect.h) {
-        unconditionalDraw();
+    if (IsInvalid() && rect.Width() && rect.Height()) {
+        if (IsVisible()) {
+            unconditionalDraw();
+        } else {
+            display::FillRect(rect, color_back);
+        }
         Validate();
     }
 }

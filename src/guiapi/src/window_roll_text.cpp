@@ -52,7 +52,7 @@ void window_roll_text_done(window_roll_text_t *window) {
     gui_timers_delete_by_window(window);
 }
 
-window_roll_text_t::window_roll_text_t(window_t *parent, rect_ui16_t rect)
+window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect)
     : window_text_t(parent, rect) {
     roll.count = roll.px_cd = roll.progress = 0;
     roll.phase = ROLL_SETUP;

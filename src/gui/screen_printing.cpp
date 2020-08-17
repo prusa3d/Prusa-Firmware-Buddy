@@ -59,7 +59,7 @@ printing_state_t screen_printing_data_t::GetState() const {
 }
 
 void screen_printing_data_t::tuneAction() {
-    if (btn_tune.ico.IsBWSwapped()) {
+    if (btn_tune.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -73,7 +73,7 @@ void screen_printing_data_t::tuneAction() {
 }
 
 void screen_printing_data_t::pauseAction() {
-    if (btn_pause.ico.IsBWSwapped()) {
+    if (btn_pause.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -92,7 +92,7 @@ void screen_printing_data_t::pauseAction() {
 }
 
 void screen_printing_data_t::stopAction() {
-    if (btn_stop.ico.IsBWSwapped()) {
+    if (btn_stop.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -118,20 +118,21 @@ void screen_printing_data_t::stopAction() {
 
 screen_printing_data_t::screen_printing_data_t()
     : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
-    , w_filename(this, rect_ui16(10, 33, 220, 29))
-    , w_progress(this, rect_ui16(10, 70, 220, 50), 16, COLOR_ORANGE)
-    , w_time_label(this, rect_ui16(10, 128, 101, 20))
-    , w_time_value(this, rect_ui16(10, 148, 101, 20))
-    , w_etime_label(this, rect_ui16(130, 128, 101, 20))
-    , w_etime_value(this, rect_ui16(30, 148, 201, 20))
+    , w_filename(this, Rect16(10, 33, 220, 29))
+    , w_progress(this, Rect16(10, 70, 220, 50), 16, COLOR_ORANGE)
+    , w_time_label(this, Rect16(10, 128, 101, 20))
+    , w_time_value(this, Rect16(10, 148, 101, 20))
+    , w_etime_label(this, Rect16(130, 128, 101, 20))
+    , w_etime_value(this, Rect16(30, 148, 201, 20))
 
     , last_print_duration(-1)
     , last_time_to_end(-1)
 
-    , w_message(this, rect_ui16(10, 75, 230, 95))
+    , w_message(this, Rect16(10, 75, 230, 95))
     , message_timer(0)
     , message_flag(false)
     , stop_pressed(false)
+    , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
     , last_sd_percent_done(-1) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
@@ -295,7 +296,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
 }
 
 void screen_printing_data_t::disable_tune_button() {
-    btn_tune.ico.SwapBW();
+    btn_tune.ico.Shadow();
     btn_tune.ico.Disable(); // can't be focused
 
     // move to reprint when tune is focused
@@ -306,7 +307,7 @@ void screen_printing_data_t::disable_tune_button() {
 }
 
 void screen_printing_data_t::enable_tune_button() {
-    btn_tune.ico.UnswapBW();
+    btn_tune.ico.Unshadow();
     btn_tune.ico.Enable(); // can be focused
     btn_tune.ico.Invalidate();
 }
@@ -442,16 +443,16 @@ void screen_printing_data_t::set_icon_and_label(item_id_t id_to_set, window_icon
 }
 
 void screen_printing_data_t::enable_button(window_icon_t *p_button) {
-    if (p_button->IsBWSwapped()) {
-        p_button->UnswapBW();
+    if (p_button->IsShadowed()) {
+        p_button->Unshadow();
         p_button->Enable();
         p_button->Invalidate();
     }
 }
 
 void screen_printing_data_t::disable_button(window_icon_t *p_button) {
-    if (!p_button->IsBWSwapped()) {
-        p_button->SwapBW();
+    if (!p_button->IsShadowed()) {
+        p_button->Shadow();
         p_button->Disable();
         p_button->Invalidate();
     }

@@ -17,7 +17,7 @@ struct window_temp_graph_t : public window_t {
     uint8_t y_bed_c[180];
     bool graph_invalid;
 
-    window_temp_graph_t(window_t *parent, rect_ui16_t rect);
+    window_temp_graph_t(window_t *parent, Rect16 rect);
 
 protected:
     virtual void unconditionalDraw() override;

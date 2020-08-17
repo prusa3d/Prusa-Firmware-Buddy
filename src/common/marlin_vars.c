@@ -37,6 +37,8 @@ const char *__var_name[] = {
     "FILEPATH",
     "DTEM_NOZ",
     "TIMTOEND",
+    "FAN0_RPM",
+    "FAN1_RPM",
 };
 
 static_assert((sizeof(__var_name) / sizeof(char *)) == (MARLIN_VAR_MAX + 1), "Invalid number of elements in __var_name");
@@ -119,6 +121,10 @@ variant8_t marlin_vars_get_var(marlin_vars_t *vars, uint8_t var_id) {
         return variant8_flt(vars->display_nozzle);
     case MARLIN_VAR_TIMTOEND:
         return variant8_ui32(vars->time_to_end);
+    case MARLIN_VAR_FAN0_RPM:
+        return variant8_ui16(vars->fan0_rpm);
+    case MARLIN_VAR_FAN1_RPM:
+        return variant8_ui16(vars->fan1_rpm);
     }
     return variant8_empty();
 }
@@ -226,6 +232,12 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
     case MARLIN_VAR_TIMTOEND:
         vars->time_to_end = var.ui32;
         break;
+    case MARLIN_VAR_FAN0_RPM:
+        vars->fan0_rpm = var.ui16;
+        break;
+    case MARLIN_VAR_FAN1_RPM:
+        vars->fan1_rpm = var.ui16;
+        break;
     }
 }
 
@@ -288,6 +300,10 @@ int marlin_vars_value_to_str(marlin_vars_t *vars, uint8_t var_id, char *str, uns
         return snprintf(str, size, "%.1f", (double)(vars->display_nozzle));
     case MARLIN_VAR_TIMTOEND:
         return snprintf(str, size, "%lu", (long unsigned int)(vars->time_to_end));
+    case MARLIN_VAR_FAN0_RPM:
+        return snprintf(str, size, "%u", (unsigned int)(vars->fan0_rpm));
+    case MARLIN_VAR_FAN1_RPM:
+        return snprintf(str, size, "%u", (unsigned int)(vars->fan1_rpm));
     default:
         return snprintf(str, size, "???");
     }
@@ -353,6 +369,10 @@ int marlin_vars_str_to_value(marlin_vars_t *vars, uint8_t var_id, const char *st
         return sscanf(str, "%f", &(vars->display_nozzle));
     case MARLIN_VAR_TIMTOEND:
         return sscanf(str, "%lu", &(vars->time_to_end));
+    case MARLIN_VAR_FAN0_RPM:
+        return sscanf(str, "%hu", &(vars->fan0_rpm));
+    case MARLIN_VAR_FAN1_RPM:
+        return sscanf(str, "%hu", &(vars->fan1_rpm));
     }
     return 0;
 }

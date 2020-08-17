@@ -31,7 +31,7 @@ void screen_wizard_init(screen_t *screen) {
     marlin_set_print_speed(100);
     pd->state = _STATE_START;
 
-    int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
+    int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, Rect16(0, 0, 0, 0), &(pd->frame));
 
     int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectFooter, &(pd->frame_footer));
     pd->frame_footer.Hide();
@@ -39,7 +39,7 @@ void screen_wizard_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectScreenBody, &(pd->frame_body));
     pd->frame_body.Hide();
 
-    window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, GuiDefaults::RectHeader.h), &(pd->header));
+    window_create_ptr(WINDOW_CLS_TEXT, id_frame, Rect16(21, 0, 211, GuiDefaults::RectHeader.h), &(pd->header));
     pd->header.SetAlignment(ALIGN_LEFT_BOTTOM);
 
     pd->header.SetText(wizard_get_caption(screen));

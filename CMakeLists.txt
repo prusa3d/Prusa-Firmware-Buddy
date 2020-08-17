@@ -501,6 +501,7 @@ target_sources(
           src/marlin_stubs/host/M115.cpp
           src/gui/guimain.cpp
           src/common/filament.cpp
+          src/common/fanctl.cpp
           src/lang/translator.cpp
           src/lang/translation_provider_CPUFLASH.cpp
           src/lang/unaccent.cpp
@@ -579,6 +580,7 @@ if(GUI)
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
+            src/guiapi/src/Rect16.cpp
             src/guiapi/src/window_progress.cpp
             src/guiapi/src/window_frame.cpp
             src/guiapi/src/gui_timer.cpp

@@ -18,6 +18,7 @@
 #include "filament_sensor.h"
 #include "bsod.h"
 #include "main.h"
+#include "fanctl.h"
 
 //hwio arduino wrapper errors
 #define HWIO_ERR_UNINI_DIG_RD 0x01
@@ -499,7 +500,7 @@ void hwio_arduino_error(int err, uint32_t pin32) {
     }
 
     snprintf(text + strlen(text), text_max_len - strlen(text),
-        "pin #%u (0x%02x)\n", (int)pin32, (uint8_t)pin32);
+        "pin #%i (0x%02x)\n", (int)pin32, (uint8_t)pin32);
 
     switch (err) {
     case HWIO_ERR_UNINI_DIG_RD:
@@ -597,10 +598,18 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
         case PIN_FAN1:
             //hwio_fan_set_pwm(_FAN1, ulVal?255:0);
             //_hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? _pwm_analogWrite_max[HWIO_PWM_FAN1] : 0);
+#ifdef NEW_FANCTL
+            fanctl_set_pwm(1, ulVal ? (100 * 50 / 255) : 0);
+#else  //NEW_FANCTL
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? 100 : 0);
+#endif //NEW_FANCTL
             return;
         case PIN_FAN:
+#ifdef NEW_FANCTL
+            fanctl_set_pwm(0, ulVal ? 50 : 0);
+#else  //NEW_FANCTL
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulVal ? _pwm_analogWrite_max[HWIO_PWM_FAN] : 0);
+#endif //NEW_FANCTL
             return;
 #ifdef SIM_MOTION
         case PIN_X_DIR:
@@ -695,7 +704,11 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
             return;
         case PIN_FAN:
             //hwio_fan_set_pwm(_FAN, ulValue);
+#ifdef NEW_FANCTL
+            fanctl_set_pwm(0, ulValue * 50 / 255);
+#else  //NEW_FANCTL
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulValue);
+#endif //NEW_FANCTL
             return;
         case PIN_HEATER_BED:
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulValue);
