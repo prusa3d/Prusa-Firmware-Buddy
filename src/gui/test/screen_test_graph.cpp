@@ -12,7 +12,7 @@ extern osThreadId displayTaskHandle;
 
 screen_test_graph_t::screen_test_graph_t()
     : window_frame_t()
-    , text(this, Rect16(10, 0, 220, 22), is_multiline::yes)
+    , text(this, Rect16(10, 0, 220, 22), is_multiline::no)
     , button(this, Rect16(10, 220, 100, 22), is_multiline::no, is_closed_on_click_t::yes)
     , graph(this, Rect16(10, 28, 180, 180))
     , loop_index(0) {

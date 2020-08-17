@@ -25,7 +25,7 @@ IDialogStateful::IDialogStateful(string_view_utf8 name)
     : IDialog()
     , title(this, get_title_size(rect), is_multiline::no, is_closed_on_click_t::no, name)
     , progress(this, get_progress_size(rect), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
-    , label(this, get_label_size(rect), is_multiline::no)
+    , label(this, get_label_size(rect), is_multiline::yes)
     , radio(this, get_radio_button_size(rect), nullptr, nullptr)
     , phase(0) {
     title.font = GuiDefaults::FontBig;

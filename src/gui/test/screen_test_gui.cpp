@@ -19,7 +19,7 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     , icon1(this, Rect16(80, 234, 64, 64), IDR_PNG_menu_icon_preheat)
     , icon2(this, Rect16(150, 234, 64, 64), IDR_PNG_menu_icon_spool)
     , progress(this, Rect16(0, 200, 240, 30))
-    , text_terminal(this, Rect16(0, 298, 240, 22), is_multiline::yes) {
+    , text_terminal(this, Rect16(0, 298, 240, 22), is_multiline::no) {
 
     text0.font = resource_font(IDR_FNT_BIG);
     static const char big[] = "Big";
