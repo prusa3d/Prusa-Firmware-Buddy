@@ -226,7 +226,7 @@ void general_error_run() {
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
-    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
+    //const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
 
     /// FIXME split heating, min/max temp and thermal runaway
     static const char bad_bed[] = N_("Check the heatbed heater & thermistor wiring for possible damage.");
@@ -240,7 +240,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         snprintf(text, sizeof(text), bad_head);
     }
 
-    str2multiline(text, sizeof(text), line_width_chars);
+    str2multiline(text, sizeof(text), 20);
 
     general_error_init();
     display::Clear(COLOR_RED_ALERT);
@@ -252,13 +252,14 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
 
     // draw text (5 lines)
-    term_t term;
-    uint8_t buff[TERM_BUFF_SIZE(20, 16)];
-    term_init(&term, 20, 16, buff);
-    term_printf(&term, text);
+    // term_t term;
+    // uint8_t buff[TERM_BUFF_SIZE(20, 16)];
+    // term_init(&term, 20, 16, buff);
+    // term_printf(&term, text);
 
     /// FIXME convert to DrawText & check drawing multiline text
-    render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    //render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), _(text), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     /// draw "Scan me" text
     static const char *scan_me_text = N_("Scan me for details");
