@@ -12,7 +12,6 @@ IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
     , font(GuiDefaults::Font)
     , padding { 6, 6, 6, 6 }
     , icon_w(25) {
-    SetAlignment(GuiDefaults::Alignment);
     Enable();
 }
 
