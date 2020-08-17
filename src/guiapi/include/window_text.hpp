@@ -9,7 +9,6 @@ struct window_text_t : public window_t {
     font_t *font;
     string_view_utf8 text;
     padding_ui8_t padding;
-    uint8_t alignment; /// alignment constants are in guitypes.h
 
     string_view_utf8 GetText() const { return text; }
     void SetText(string_view_utf8 txt);
@@ -17,7 +16,10 @@ struct window_text_t : public window_t {
 
     color_t GetTextColor() const { return color_text; }
     void SetPadding(padding_ui8_t padd);
-    void SetAlignment(uint8_t alignm);
+
+    /// alignment constants are in guitypes.h
+    uint8_t GetAlignment() const;
+    void SetAlignment(uint8_t alignment);
 
     window_text_t(window_t *parent, Rect16 rect, is_closed_on_click_t close = is_closed_on_click_t::no, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 
