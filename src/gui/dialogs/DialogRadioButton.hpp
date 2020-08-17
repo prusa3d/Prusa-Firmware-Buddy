@@ -38,7 +38,7 @@ public:
     bool IsEnabled() const;
     void Change(const PhaseResponses *responses, const PhaseTexts *texts);
 
-    void SetBtnIndex(uint8_t index) { mem_array_u08[1] = index < mem_array_u08[0]; }
+    void SetBtnIndex(uint8_t index) { mem_array_u08[1] = index < mem_array_u08[0] ? index : 0; }
     uint8_t GetBtnIndex() const { return mem_array_u08[1]; }
 
 protected:

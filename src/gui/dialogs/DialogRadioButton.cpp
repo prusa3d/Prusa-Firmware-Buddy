@@ -40,8 +40,9 @@ RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses *re
 
 //no overflow
 RadioButton &RadioButton::operator++() {
-    if ((GetBtnIndex() + 1) < GetBtnCount()) {
-        SetBtnIndex(GetBtnIndex() + 1);
+    int8_t index = GetBtnIndex();
+    if ((index + 1) < GetBtnCount()) {
+        SetBtnIndex(index + 1);
         Invalidate();
     } else {
         Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -51,8 +52,9 @@ RadioButton &RadioButton::operator++() {
 
 //no underflow
 RadioButton &RadioButton::operator--() {
-    if (GetBtnIndex() > 0) {
-        SetBtnIndex(GetBtnIndex() - 1);
+    uint8_t index = GetBtnIndex();
+    if (index > 0) {
+        SetBtnIndex(index - 1);
         Invalidate();
     } else {
         Sound_Play(eSOUND_TYPE_BlindAlert);
