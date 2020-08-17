@@ -9,20 +9,20 @@
 //window_numberless_progress_t
 window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back)
     : window_t(parent, rect)
-    , color_progress(cl_progress)
-    , progress_in_pixels(0) {
+    , color_progress(cl_progress) {
+    SetProgress(0);
     color_back = cl_back;
 }
 
 void window_numberless_progress_t::SetProgress(uint16_t px) {
-    if (px != progress_in_pixels) {
-        progress_in_pixels = px;
+    if (px != mem_space_u16) {
+        mem_space_u16 = px;
         Invalidate();
     }
 }
 
 uint16_t window_numberless_progress_t::GetProgressPixels() const {
-    return progress_in_pixels;
+    return mem_space_u16;
 }
 
 void window_numberless_progress_t::SetColor(color_t clr) {
@@ -34,7 +34,7 @@ void window_numberless_progress_t::SetColor(color_t clr) {
 
 void window_numberless_progress_t::unconditionalDraw() {
     Rect16 rc = rect;
-    const uint16_t progress_w = std::min(progress_in_pixels, uint16_t(rc.Width()));
+    const uint16_t progress_w = std::min(GetProgressPixels(), uint16_t(rc.Width()));
     rc += Rect16::Left_t(progress_w);
     rc -= Rect16::Width_t(progress_w);
     if (rc.Width())
