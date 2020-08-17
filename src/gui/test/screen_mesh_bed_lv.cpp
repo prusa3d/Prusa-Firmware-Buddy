@@ -46,9 +46,9 @@ mesh_state_t screen_mesh_bed_lv_data_t::mesh_state = mesh_state_t::idle;
 screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     : window_frame_t()
     , footer(this)
-    , textMenuName(this, Rect16(0, 0, display::GetW(), row_h))
+    , textMenuName(this, Rect16(0, 0, display::GetW(), row_h), is_multiline::no)
     , btMesh(this, Rect16(2, 50, 200, row_h), []() { if (mesh_state == mesh_state_t::idle) mesh_state = mesh_state_t::start; })
-    , text_mesh_state(this, Rect16(2, 75, 200, row_h))
+    , text_mesh_state(this, Rect16(2, 75, 200, row_h), is_multiline::no)
     , term(this, Rect16(10, 28, 11 * 20, 18 * 16))
     //, terminal(this, )
     , textExit(this, Rect16(2, 245, 60, 22), []() {if (mesh_state != mesh_state_t::idle) return; Screens::Access()->Close(); }) {

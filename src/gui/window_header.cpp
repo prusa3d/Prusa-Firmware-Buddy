@@ -74,7 +74,7 @@ static const Rect16::Width_t icons_width(icon_usb_width + icon_lan_width);
 window_header_t::window_header_t(window_t *parent)
     : window_frame_t(parent, GuiDefaults::RectHeader)
     , icon_base(this, Rect16(rect.Left() + 10, rect.Top(), rect.Height(), rect.Height()), 0)
-    , label(this, rect + Rect16::Left_t(10 + rect.Height()) - Rect16::Width_t(icons_width + 10 + rect.Height()))
+    , label(this, rect + Rect16::Left_t(10 + rect.Height()) - Rect16::Width_t(icons_width + 10 + rect.Height()), is_multiline::no)
     , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_header_icon_usb)
     , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_header_icon_lan) {
     label.SetAlignment(ALIGN_LEFT_CENTER);

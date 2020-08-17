@@ -23,7 +23,7 @@ const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::C
 //MsgBoxBase
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt)
     : IDialog(rect)
-    , text(this, getTextRect(), is_closed_on_click_t::no, txt)
+    , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no, txt)
     , buttons(this, get_radio_button_size(rect), resp, labels)
     , result(Response::_none) {
     buttons.SetBtnIndex(def_btn);
@@ -65,7 +65,7 @@ void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res)
     : MsgBoxBase(rect, resp, def_btn, labels, txt)
     , title_icon(this, title_icon_id_res, { rect.Left(), rect.Top() }, GuiDefaults::Padding)
-    , title(this, getTitleRect(), is_closed_on_click_t::no, tit) {
+    , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
     title.font = getTitleFont();
 }

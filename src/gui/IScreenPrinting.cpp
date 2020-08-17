@@ -12,9 +12,9 @@ IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
     , header(this)
     , footer(this)
     // clang-format off
-    , btn_tune  { { this, Rect16(8 + (15 + 64) * 0, 185, 64, 64), 0, TuneAction  }, { this, Rect16(80 * 0, 196 + 48 + 8, 80, 22) } }
-    , btn_pause { { this, Rect16(8 + (15 + 64) * 1, 185, 64, 64), 0, PauseAction }, { this, Rect16(80 * 1, 196 + 48 + 8, 80, 22) } }
-    , btn_stop  { { this, Rect16(8 + (15 + 64) * 2, 185, 64, 64), 0, StopAction  }, { this, Rect16(80 * 2, 196 + 48 + 8, 80, 22) } }
+    , btn_tune  { { this, Rect16(8 + (15 + 64) * 0, 185, 64, 64), 0, TuneAction  }, { this, Rect16(80 * 0, 196 + 48 + 8, 80, 22), is_multiline::no } }
+    , btn_pause { { this, Rect16(8 + (15 + 64) * 1, 185, 64, 64), 0, PauseAction }, { this, Rect16(80 * 1, 196 + 48 + 8, 80, 22), is_multiline::no } }
+    , btn_stop  { { this, Rect16(8 + (15 + 64) * 2, 185, 64, 64), 0, StopAction  }, { this, Rect16(80 * 2, 196 + 48 + 8, 80, 22), is_multiline::no } }
 // clang-format on
 {
     header.SetText(caption);
