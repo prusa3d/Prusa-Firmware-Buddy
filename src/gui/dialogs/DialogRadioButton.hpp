@@ -14,7 +14,7 @@ private:
     const PhaseResponses *responses;
     const PhaseTexts *texts;
     uint8_t btn_count : RESPONSE_BITS + 1;
-    uint8_t selected_index : RESPONSE_BITS;
+    /* uint8_t selected_index : RESPONSE_BITS; */
 
     static void button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected);
 
@@ -36,6 +36,7 @@ public:
     Response Click() const; //click returns response to be send, 0 buttons will return Response::_none
     bool IsEnabled() const;
     void Change(const PhaseResponses *responses, const PhaseTexts *texts);
+    uint8_t selected_index : RESPONSE_BITS;
 
 protected:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
