@@ -79,7 +79,7 @@ void IWindowMenuItem::SetFocus() {
 }
 
 Rect16 IWindowMenuItem::getIconRect(IWindowMenu &window_menu, Rect16 rect) {
-    return rect = Rect16::Width_t(window_menu.icon_w);
+    return rect = Rect16::Width_t(window_menu.GetIconWidth());
 }
 
 Rect16 IWindowMenuItem::getRollingRect(IWindowMenu &window_menu, Rect16 rect) const {
