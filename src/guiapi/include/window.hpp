@@ -41,7 +41,7 @@ class window_t {
 protected:
     //todo add can capture flag (needed in frame event and SetCapture)
     union {
-        uint16_t flg;
+        uint32_t flg;
         struct {
             bool flag_visible : 1;                        // 00 - is visible
             bool flag_enabled : 1;                        // 01 - is enabled (can be focused)
@@ -59,6 +59,15 @@ protected:
             bool flag_custom5 : 1;                        // 0D - this flag can be defined in parent
             bool flag_custom6 : 1;                        // 0E - this flag can be defined in parent
             bool flag_custom7 : 1;                        // 0F - this flag can be defined in parent
+
+            // here would be 2 unused Bytes (structure data alignment),
+            // make them accessible to be used in child to save RAM
+            union {
+                uint16_t mem_space_u16;
+                int16_t mem_space_s16;
+                std::array<uint8_t, 2> mem_array_u08;
+                std::array<int8_t, 2> mem_array_s08;
+            };
         };
     };
 

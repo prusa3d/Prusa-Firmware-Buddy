@@ -13,8 +13,9 @@ private:
     font_t *pfont;
     const PhaseResponses *responses;
     const PhaseTexts *texts;
-    uint8_t btn_count : RESPONSE_BITS + 1;
-    /* uint8_t selected_index : RESPONSE_BITS; */
+
+    void SetBtnCount(uint8_t cnt) { mem_array_u08[0] = cnt & (RESPONSE_BITS + 1); }
+    uint8_t GetBtnCount() const { return mem_array_u08[0]; }
 
     static void button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected);
 
@@ -36,7 +37,9 @@ public:
     Response Click() const; //click returns response to be send, 0 buttons will return Response::_none
     bool IsEnabled() const;
     void Change(const PhaseResponses *responses, const PhaseTexts *texts);
-    uint8_t selected_index : RESPONSE_BITS;
+
+    void SetBtnIndex(uint8_t index) { mem_array_u08[1] = index < mem_array_u08[0]; }
+    uint8_t GetBtnIndex() const { return mem_array_u08[1]; }
 
 protected:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
