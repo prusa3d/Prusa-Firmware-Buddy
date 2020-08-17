@@ -5,41 +5,17 @@
 #include "guitypes.hpp"
 #include "resource.h"
 
-void window_icon_init(window_icon_t *window) {
-    window->color_back = COLOR_BLACK;
-    window->id_res = 0;
-    window->alignment = ALIGN_CENTER;
-}
-
-void window_icon_draw(window_icon_t *window) {
-    if (window->IsInvalid()) {
-        //point_ui16_t pt = {window->rect.Left(), window->rect.Top()};
-        //display::DrawIcon(pt, window->id_res, window->color_back, (window->IsFocused())?ROPFN_SWAPBW:0);
-        uint8_t ropfn = 0;
-        if ((window->IsShadowed())) { // that could not be set, but what if
-            ropfn |= ROPFN_DISABLE;
-        }
-        if ((window->IsFocused())) {
-            ropfn |= ROPFN_SWAPBW;
-        }
-
-        render_icon_align(window->rect, window->id_res, window->color_back,
-            RENDER_FLG(window->alignment, ropfn));
-        window->Validate();
-        ;
-    }
-}
-
 void window_icon_t::SetIdRes(int16_t id) {
     id_res = id;
     Invalidate();
 }
 
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close)
-    : window_t(parent, rect, is_dialog_t::no, close)
-    , id_res(id_res)
-    , alignment(ALIGN_CENTER) {
+    : window_aligned_t(parent, rect, is_dialog_t::no, close)
+    , id_res(id_res) {
+    SetAlignment(ALIGN_CENTER);
 }
+
 //Icon rect is increased by padding, icon is centered inside it
 window_icon_t::window_icon_t(window_t *parent, uint16_t id_res, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : window_icon_t(
@@ -64,7 +40,7 @@ void window_icon_t::unconditionalDraw() {
         ropfn |= ROPFN_SWAPBW;
     }
 
-    render_icon_align(rect, id_res, color_back, RENDER_FLG(alignment, ropfn));
+    render_icon_align(rect, id_res, color_back, RENDER_FLG(GetAlignment(), ropfn));
 }
 
 bool window_icon_t::IsShadowed() const { return flag_custom0 == true; }

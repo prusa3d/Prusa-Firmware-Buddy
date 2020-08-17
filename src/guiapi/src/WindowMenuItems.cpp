@@ -56,11 +56,11 @@ void IWiSpin::printText(IWindowMenu &window_menu, Rect16 rect, color_t color_tex
     std::array<Rect16, 2> rects = getRollingSpinRects(window_menu, rect);
 
     //draw label
-    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
+    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
     //draw spin
     // this MakeRAM is safe - temp_buff is allocated for the whole life of IWiSpin
     render_text_align(rects[1], string_view_utf8::MakeRAM((const uint8_t *)temp_buff.data()), window_menu.font,
-        color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
+        color_back, IsSelected() ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.GetAlignment());
 }
 
 /*****************************************************************************/
@@ -123,10 +123,10 @@ void IWiSwitch::printText(IWindowMenu &window_menu, Rect16 rect, color_t color_t
     std::array<Rect16, 2> rects = getRollingSpinRects(window_menu, rect);
 
     //draw label
-    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
+    printLabel_into_rect(rects[0], color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
     //draw spin
     render_text_align(rects[1], _(get_item()), window_menu.font,
-        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.alignment);
+        color_back, (IsFocused() && IsEnabled()) ? COLOR_ORANGE : color_text, window_menu.padding, window_menu.GetAlignment());
 }
 
 /*****************************************************************************/
@@ -172,7 +172,7 @@ void WI_SELECT_t::printText(IWindowMenu &window_menu, Rect16 rect, color_t color
     rect -= vrc.Width();
 
     render_text_align(vrc, _(txt), window_menu.font,
-        color_back, color_text, window_menu.padding, window_menu.alignment);
+        color_back, color_text, window_menu.padding, window_menu.GetAlignment());
 }
 
 /*****************************************************************************/

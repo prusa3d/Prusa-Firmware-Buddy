@@ -253,3 +253,20 @@ window_t *window_t::GetFocusedWindow() {
 window_t *window_t::GetCapturedWindow() {
     return capture_ptr;
 }
+
+/*****************************************************************************/
+//window_aligned_t
+
+window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_click_t close)
+    : window_t(parent, rect, dialog, close) {
+    SetAlignment(GuiDefaults::Alignment);
+}
+
+uint8_t window_aligned_t::GetAlignment() const {
+    return mem_array_u08[0];
+}
+
+void window_aligned_t::SetAlignment(uint8_t alignment) {
+    mem_array_u08[0] = alignment;
+    Invalidate();
+}

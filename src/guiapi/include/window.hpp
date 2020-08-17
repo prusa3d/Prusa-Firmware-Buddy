@@ -131,4 +131,14 @@ public:
     static window_t *GetCapturedWindow();
 };
 
+/*****************************************************************************/
+//window_aligned_t
+//uses window_t  mem_array_u08[0] to store alignment (saves RAM)
+struct window_aligned_t : public window_t {
+    window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
+    /// alignment constants are in guitypes.h
+    uint8_t GetAlignment() const;
+    void SetAlignment(uint8_t alignment);
+};
+
 void gui_invalidate(void);

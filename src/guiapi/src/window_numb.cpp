@@ -25,7 +25,7 @@ void window_numb_t::unconditionalDraw() {
         clr_back,
         clr_text,
         padding,
-        alignment);
+        GetAlignment());
 }
 
 void window_numb_t::SetFormat(const char *frmt) {
@@ -55,13 +55,12 @@ void window_numb_t::SetColor(color_t clr) {
 }
 
 window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value)
-    : window_t(parent, rect)
+    : window_aligned_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , value(value)
     , format("%.0f")
-    , padding(GuiDefaults::Padding)
-    , alignment(GuiDefaults::Alignment) {
+    , padding(GuiDefaults::Padding) {
     PrintAsFloat();
 }
 

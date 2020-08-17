@@ -18,22 +18,12 @@ void window_text_t::SetPadding(padding_ui8_t padd) {
     Invalidate();
 }
 
-uint8_t window_text_t::GetAlignment() const {
-    return mem_array_u08[0];
-}
-
-void window_text_t::SetAlignment(uint8_t alignment) {
-    mem_array_u08[0] = alignment;
-    Invalidate();
-}
-
 window_text_t::window_text_t(window_t *parent, Rect16 rect, is_closed_on_click_t close, string_view_utf8 txt)
-    : window_t(parent, rect, is_dialog_t::no, close)
+    : window_aligned_t(parent, rect, is_dialog_t::no, close)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , text(txt)
     , padding(GuiDefaults::Padding) {
-    SetAlignment(GuiDefaults::Alignment);
 }
 
 void window_text_t::unconditionalDraw() {
