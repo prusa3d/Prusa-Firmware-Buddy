@@ -163,7 +163,7 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
     Rect16 rc({ 0, Top() }, width, Height());
     Rect16 rc_space({ 0, Top() }, spacing, Height());
     size_t index;
-    size_t right = EndPoint().x - width;
+    size_t right = BottomRight().x - width;
 
     for (index = 0; index < count / 2; ++index) {
         splits[index] = rc + Rect16::Left_t(Left() + index * (width + spacing));            // 1 from begin
@@ -173,7 +173,7 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
     //even count
     //middle rect can be bit smaller, so spacing remains the same
     if (count & 0x01) {
-        point_i16_t p0 = splits[index - 1].EndPoint();
+        point_i16_t p0 = splits[index - 1].BottomRight();
         point_i16_t p1 = splits[index + 1].TopLeft();
         p0.x += spacing;
         p1.x -= spacing;
@@ -181,6 +181,6 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
     }
 
     for (index = 0; index < count - 1; ++index) {
-        spaces[index] = Rect16(splits[index].EndPoint(), splits[index + 1].TopLeft());
+        spaces[index] = Rect16(splits[index].BottomRight(), splits[index + 1].TopLeft());
     }
 }
