@@ -4,11 +4,10 @@
 
 #include "window.hpp"
 
-struct window_list_t : window_t {
+struct window_list_t : window_aligned_t {
     color_t color_text;
     font_t *font;
     padding_ui8_t padding;
-    uint8_t alignment;
     Rect16 icon_rect;
     int count;
     int index;

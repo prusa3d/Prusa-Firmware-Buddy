@@ -7,12 +7,11 @@
 enum class is_multiline : bool { no,
     yes };
 
-struct window_text_t : public window_t {
+struct window_text_t : public window_aligned_t {
     color_t color_text;
     font_t *font;
     string_view_utf8 text;
     padding_ui8_t padding;
-    uint8_t alignment; /// alignment constants are in guitypes.h
 
     string_view_utf8 GetText() const { return text; }
     void SetText(string_view_utf8 txt);
@@ -20,7 +19,6 @@ struct window_text_t : public window_t {
 
     color_t GetTextColor() const { return color_text; }
     void SetPadding(padding_ui8_t padd);
-    void SetAlignment(uint8_t alignm);
 
     window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 

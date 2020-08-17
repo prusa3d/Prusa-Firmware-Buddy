@@ -250,8 +250,6 @@ public:
 /*****************************************************************************/
 //parent alias
 using MenuContainer = WinMenuContainer<MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
-constexpr static const HelperConfig helper_lines = { 8, IDR_FNT_SPECIAL };
-
 inline uint16_t get_help_h() {
     //I have no clue why +1, should be + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom
     return 8 * (resource_font(IDR_FNT_SPECIAL)->h + 1);
@@ -281,6 +279,7 @@ ScreenMenuLanSettings::ScreenMenuLanSettings()
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
     header.SetText(_(label));
+    help.font = resource_font(IDR_FNT_SPECIAL);
     menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
     menu.SetCapture();                // set capture to list
     menu.SetFocus();

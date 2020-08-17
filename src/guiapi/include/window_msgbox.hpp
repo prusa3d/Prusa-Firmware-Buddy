@@ -24,7 +24,7 @@ protected:
     RadioButton buttons;
     Response result; //return value
 public:
-    MsgBoxBase(Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt);
+    MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt);
     Response GetResult();
 
 protected:
@@ -39,7 +39,7 @@ class MsgBoxTitled : public MsgBoxBase {
     window_text_t title;
 
 public:
-    MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res);
+    MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res);
 
 protected:
     virtual void unconditionalDraw() override;
@@ -57,7 +57,7 @@ class MsgBoxIconned : public MsgBoxBase {
     window_icon_t icon;
 
 public:
-    MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res);
+    MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res);
 
 protected:
     //some methods to help with construction

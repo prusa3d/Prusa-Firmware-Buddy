@@ -21,11 +21,12 @@ const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::C
 
 /*****************************************************************************/
 //MsgBoxBase
-MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt)
+MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt)
     : IDialog(rect)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no, txt)
     , buttons(this, get_radio_button_size(rect), resp, labels)
     , result(Response::_none) {
+    buttons.SetBtnIndex(def_btn);
     //text.SetAlignment(ALIGN_CENTER);
     //buttons.SetCapture(); //todo make this work
 }
@@ -61,8 +62,8 @@ void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
 
 /*****************************************************************************/
 //MsgBoxTitled
-MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res)
-    : MsgBoxBase(rect, resp, labels, txt)
+MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, string_view_utf8 tit, uint16_t title_icon_id_res)
+    : MsgBoxBase(rect, resp, def_btn, labels, txt)
     , title_icon(this, title_icon_id_res, { rect.Left(), rect.Top() }, GuiDefaults::Padding)
     , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
@@ -109,8 +110,8 @@ void MsgBoxTitled::unconditionalDraw() {
 
 /*****************************************************************************/
 //MsgBoxIconned
-MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res)
-    : MsgBoxBase(rect, resp, labels, txt)
+MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, uint16_t icon_id_res)
+    : MsgBoxBase(rect, resp, def_btn, labels, txt)
     , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
     icon.rect -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
@@ -129,48 +130,48 @@ Rect16 MsgBoxIconned::getIconnedTextRect() {
 //MsgBoxBase variadic template methods
 //to be used as blocking functions
 template <class T, typename... Args>
-Response MsgBox_Custom(Rect16 rect, const PhaseResponses &resp, string_view_utf8 txt, Args... args) {
+Response MsgBox_Custom(Rect16 rect, const PhaseResponses &resp, size_t def_btn, string_view_utf8 txt, Args... args) {
     const PhaseTexts labels = { BtnTexts::Get(resp[0]), BtnTexts::Get(resp[1]), BtnTexts::Get(resp[2]), BtnTexts::Get(resp[3]) };
     //static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
-    T msgbox(rect, &resp, &labels, txt, args...);
+    T msgbox(rect, &resp, def_btn, &labels, txt, args...);
     msgbox.MakeBlocking();
     return msgbox.GetResult();
 }
 
 Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect) {
-    return MsgBox_Custom<MsgBoxBase>(rect, resp, txt);
+    return MsgBox_Custom<MsgBoxBase>(rect, resp, def_btn, txt);
 }
 
 Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect) {
     constexpr static const char *label = N_("Error");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, txt, label_view, IDR_PNG_header_icon_error);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, label_view, IDR_PNG_header_icon_error);
 }
 
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect) {
     constexpr static const char *label = N_("Question");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, txt, label_view, IDR_PNG_header_icon_question);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, label_view, IDR_PNG_header_icon_question);
 }
 
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect) {
     constexpr static const char *label = N_("Warning");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, txt, label_view, IDR_PNG_header_icon_warning);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, label_view, IDR_PNG_header_icon_warning);
 }
 
 Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, uint16_t icon_id) {
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, txt, title, icon_id);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, title, icon_id);
 }
 
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect) {
     constexpr static const char *label = N_("Information");
     static const string_view_utf8 label_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(label));
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, txt, label_view, IDR_PNG_header_icon_info);
+    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, label_view, IDR_PNG_header_icon_info);
 }
 
 Response MsgBoxIcon(string_view_utf8 txt, uint16_t icon_id, const PhaseResponses &resp, size_t def_btn, Rect16 rect) {
-    return MsgBox_Custom<MsgBoxIconned>(rect, resp, txt, icon_id);
+    return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, icon_id);
 }
 
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect) {

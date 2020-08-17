@@ -4,9 +4,8 @@
 
 #include "window.hpp"
 
-struct window_icon_t : public window_t {
+struct window_icon_t : public window_aligned_t {
     uint16_t id_res;
-    uint8_t alignment;
     uint16_t GetIdRes() const { return id_res; }
     void SetIdRes(int16_t id);
 

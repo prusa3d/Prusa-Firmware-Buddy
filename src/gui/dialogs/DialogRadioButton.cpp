@@ -32,16 +32,17 @@ RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses *re
     : window_t(parent, rect)
     , pfont(resource_font(IDR_FNT_BIG))
     , responses(resp)
-    , texts(labels)
-    , btn_count(cnt_buttons(labels, resp))
-    , selected_index(0) {
+    , texts(labels) {
+    SetBtnCount(cnt_buttons(labels, resp));
+    SetBtnIndex(0);
     Enable();
 }
 
 //no overflow
 RadioButton &RadioButton::operator++() {
-    if ((selected_index + 1) < btn_count) {
-        ++selected_index; //btn_count can be 0
+    int8_t index = GetBtnIndex();
+    if ((index + 1) < GetBtnCount()) {
+        SetBtnIndex(index + 1);
         Invalidate();
     } else {
         Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -51,8 +52,9 @@ RadioButton &RadioButton::operator++() {
 
 //no underflow
 RadioButton &RadioButton::operator--() {
-    if (selected_index > 0) {
-        --selected_index;
+    uint8_t index = GetBtnIndex();
+    if (index > 0) {
+        SetBtnIndex(index - 1);
         Invalidate();
     } else {
         Sound_Play(eSOUND_TYPE_BlindAlert);
@@ -77,7 +79,7 @@ void RadioButton::windowEvent(window_t *sender, uint8_t event, void *param) {
 }
 
 void RadioButton::unconditionalDraw() {
-    switch (btn_count) {
+    switch (GetBtnCount()) {
     case 0:
         draw_0_btn(); //cannot use draw_n_btns, would div by 0
         break;
@@ -85,7 +87,7 @@ void RadioButton::unconditionalDraw() {
         draw_1_btn(); //could use draw_n_btns, but this is much faster
         break;
     default:
-        draw_n_btns(btn_count);
+        draw_n_btns(GetBtnCount());
         break;
     }
 }
@@ -93,7 +95,7 @@ void RadioButton::unconditionalDraw() {
 Response RadioButton::Click() const {
     if (!responses)
         return Response::_none;
-    return (*responses)[selected_index];
+    return (*responses)[GetBtnIndex()];
 }
 
 void RadioButton::draw_0_btn() const {
@@ -114,7 +116,7 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
     rect.VerticalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(splits[i], _((*texts)[i]), pfont, selected_index == i && IsEnabled());
+        button_draw(splits[i], _((*texts)[i]), pfont, GetBtnIndex() == i && IsEnabled());
     }
     for (size_t i = 0; i < btn_count - 1; ++i) {
         display::FillRect(spaces[i], color_back);
@@ -134,6 +136,7 @@ bool RadioButton::IsEnabled() const {
 void RadioButton::Change(const PhaseResponses *responses, const PhaseTexts *texts) {
     this->responses = responses;
     this->texts = texts;
-    btn_count = cnt_buttons(texts, responses);
+    SetBtnCount(cnt_buttons(texts, responses));
+    SetBtnIndex(0);
     Invalidate();
 }

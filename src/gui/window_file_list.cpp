@@ -81,14 +81,14 @@ const char *window_file_list_t::TopItemSFN() {
 }
 
 window_file_list_t::window_file_list_t(window_t *parent, Rect16 rect)
-    : window_t(parent, rect)
+    : window_aligned_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , padding({ 2, 6, 2, 6 })
-    , ldv(LDV_Get())
+    , ldv(LDV_Get()) {
     // it is still the same address every time, no harm assigning it again.
     // Will be removed when this file gets converted to c++ (and cleaned)
-    , alignment(ALIGN_LEFT_CENTER) {
+    SetAlignment(ALIGN_LEFT_CENTER);
     Enable();
     roll.count = roll.px_cd = roll.progress = 0;
     roll.phase = ROLL_SETUP;
@@ -159,14 +159,14 @@ void window_file_list_t::unconditionalDraw() {
                     // stays at one place (top or bottom), but the whole window list moves up/down.
                     // Calling roll_init must be done here because of the rect.
                     // That also solves the reinit of rolling the same file name, when the cursor doesn't move.
-                    roll_init(rc, itemText, font, padding, alignment, &roll);
+                    roll_init(rc, itemText, font, padding, GetAlignment(), &roll);
                 }
 
                 render_roll_text_align(rc,
                     itemText,
                     font,
                     padding,
-                    alignment,
+                    GetAlignment(),
                     color_back,
                     color_text,
                     &roll);
@@ -176,7 +176,7 @@ void window_file_list_t::unconditionalDraw() {
                     itemText,
                     font,
                     color_back, color_text,
-                    padding, alignment);
+                    padding, GetAlignment());
             }
 
             /*	too slow
