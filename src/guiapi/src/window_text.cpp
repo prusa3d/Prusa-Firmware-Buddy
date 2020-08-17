@@ -23,26 +23,27 @@ void window_text_t::SetAlignment(uint8_t alignm) {
     Invalidate();
 }
 
-window_text_t::window_text_t(window_t *parent, Rect16 rect, is_closed_on_click_t close, string_view_utf8 txt)
+window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close, string_view_utf8 txt)
     : window_t(parent, rect, is_dialog_t::no, close)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , text(txt)
     , padding(GuiDefaults::Padding)
     , alignment(GuiDefaults::Alignment) {
+    flag_custom0 = bool(multiline);
 }
 
 void window_text_t::unconditionalDraw() {
     render_text_align(rect, text, font,
         (IsFocused()) ? color_text : color_back,
         (IsFocused()) ? color_back : color_text,
-        padding, alignment);
+        padding, flag_custom0 ? alignment | RENDER_FLG_WORDB : alignment);
 }
 
 /*****************************************************************************/
 //window_text_button_t
 window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt)
-    : window_text_t(parent, rect, is_closed_on_click_t::no, txt)
+    : window_text_t(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , callback(cb) {
     Enable();
 }
