@@ -227,13 +227,17 @@ void general_error_run() {
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
     char text[128];
-    const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
+    //const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
 
     /// FIXME split heating, min/max temp and thermal runaway
+    /// r=5 c=20
     static const char bad_bed[] = N_("Check the heatbed heater & thermistor wiring for possible damage.");
-    static const char bad_bed_wire[] = N_("Check the heatbed thermistor wiring for possible damage.");
-    static const char bad_head[] = N_("Check the print head heater & thermistor wiring for possible damage.");
-    static const char bad_head_wire[] = N_("Check the print head thermistor wiring for possible damage.");
+    /// r=5 c=20
+    //static const char bad_bed_wire[] = N_("Check the heatbed thermistor wiring for possible damage.");
+    /// r=5 c=20
+    static const char bad_head[] = ("Check the print head heater & thermistor\nwiring for possible damage.");
+    /// r=5 c=20
+    //static const char bad_head_wire[] = N_("Check the print head thermistor wiring for possible damage.");
 
     if (module[0] != 'E') {
         snprintf(text, sizeof(text), bad_bed);
@@ -241,7 +245,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         snprintf(text, sizeof(text), bad_head);
     }
 
-    str2multiline(text, sizeof(text), 20);
+    //str2multiline(text, sizeof(text), 20);
 
     general_error_init();
     display::Clear(COLOR_RED_ALERT);
@@ -260,9 +264,10 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     /// FIXME convert to DrawText & check drawing multiline text
     //render_term(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
-    display::DrawText(rect_ui16(PADDING, 31 + PADDING, X_MAX, 220), _(text), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
 
     /// draw "Scan me" text
+    /// r=1 c=20
     static const char *scan_me_text = "Scan me for details";
     display::DrawText(Rect16(52, 142, display::GetW() - 52, display::GetH() - 142), string_view_utf8::MakeCPUFLASH((const uint8_t *)scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
