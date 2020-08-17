@@ -154,7 +154,7 @@ extern int dump_save_to_usb(const char *fn);
 
 extern void dump_hardfault_test_0(void);
 
-extern void dump_hardfault_test_1(void);
+extern int dump_hardfault_test_1(void);
 
 #ifdef __cplusplus
 }

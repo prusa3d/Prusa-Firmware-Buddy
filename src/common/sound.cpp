@@ -45,6 +45,7 @@ Sound::Sound()
     , repeat(0)
     , frequency(100.F)
     , volume(volumeInit)
+    , _delay(0)
     , delay(100) {
     init();
 }

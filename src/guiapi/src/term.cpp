@@ -31,12 +31,11 @@ void term_done(term_t *pt) {
 }
 
 void term_clear(term_t *pt) {
-    int r;
-    int c;
-    uint8_t *p = pt->buff;
-    if (!pt || !(pt->buff))
+    if (pt == nullptr || pt->buff == nullptr)
         return;
-    for (r = 0; r < pt->rows; r++)
+    uint8_t *p = pt->buff;
+    int c;
+    for (int r = 0; r < pt->rows; r++)
         for (c = 0; c < pt->cols; c++) {
             *(p++) = TERM_DEF_CHAR;
             *(p++) = TERM_DEF_ATTR;

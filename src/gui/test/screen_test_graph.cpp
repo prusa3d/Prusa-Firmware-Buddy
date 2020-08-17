@@ -12,9 +12,9 @@ extern osThreadId displayTaskHandle;
 
 screen_test_graph_t::screen_test_graph_t()
     : window_frame_t()
-    , text(this, rect_ui16(10, 0, 220, 22))
-    , button(this, rect_ui16(10, 220, 100, 22), is_closed_on_click_t::yes)
-    , graph(this, rect_ui16(10, 28, 180, 180))
+    , text(this, Rect16(10, 0, 220, 22))
+    , button(this, Rect16(10, 220, 100, 22), is_closed_on_click_t::yes)
+    , graph(this, Rect16(10, 28, 180, 180))
     , loop_index(0) {
     static const char tst[] = "Test";
     text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));

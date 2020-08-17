@@ -115,9 +115,8 @@ void dump_hardfault_test_0(void) {
 }
 
 //integer div by zero test
-void dump_hardfault_test_1(void) {
-    volatile int a = 1;
+int dump_hardfault_test_1(void) {
     volatile int b = 0;
-    volatile int c = a / b;
-    c = c;
+    volatile int c = 1 / b;
+    return c;
 }

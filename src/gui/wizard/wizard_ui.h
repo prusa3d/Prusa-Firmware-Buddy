@@ -26,7 +26,7 @@ extern void wizard_update_test_icon(window_icon_t &ico, uint8_t state);
 
 extern uint16_t wizard_get_test_icon_resource(uint8_t state);
 
-extern int wizard_msgbox_ex(const char *text, uint16_t flags, uint16_t id_icon, rect_ui16_t rc);
+extern int wizard_msgbox_ex(const char *text, uint16_t flags, uint16_t id_icon, Rect16 rc);
 
 extern int wizard_msgbox(string_view_utf8 text, uint16_t flags, uint16_t id_icon);
 

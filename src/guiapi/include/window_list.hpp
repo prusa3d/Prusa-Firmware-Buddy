@@ -9,7 +9,7 @@ struct window_list_t : window_t {
     font_t *font;
     padding_ui8_t padding;
     uint8_t alignment;
-    rect_ui16_t icon_rect;
+    Rect16 icon_rect;
     int count;
     int index;
     int top_index;
@@ -24,7 +24,7 @@ struct window_list_t : window_t {
     int GetItemIndex() const { return index; }
     int GetTopIndex() const { return top_index; }
 
-    window_list_t(window_t *parent, rect_ui16_t rect);
+    window_list_t(window_t *parent, Rect16 rect);
 
 protected:
     virtual void unconditionalDraw() override;

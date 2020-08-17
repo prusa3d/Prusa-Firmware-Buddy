@@ -64,6 +64,7 @@ typedef struct _variant8_t {
         char ch;
         float flt;
         uint32_t ui32;
+        uint8_t ui8a[4]; // array for easy 8 <-> 32 bit conversion
         int32_t i32;
         uint16_t ui16;
         int16_t i16;

@@ -5,7 +5,7 @@
  *      Author: Migi
  */
 
-#include "screen_lan_settings.h"
+#include "gui.hpp"
 #include "marlin_client.h"
 #include "ini_handler.h"
 #include <stdlib.h>
@@ -17,6 +17,7 @@
 #include "config.h"
 #include "RAII.hpp"
 #include "i18n.h"
+#include "ScreenHandler.hpp"
 
 /*****************************************************************************/
 //Eth static class used by menu and its items
@@ -249,10 +250,10 @@ public:
 /*****************************************************************************/
 //parent alias
 constexpr static const HelperConfig helper_lines = { 8, IDR_FNT_SPECIAL };
-using parent = ScreenMenu<EHeader::On, EFooter::Off, helper_lines,
+using Screen = ScreenMenu<EHeader::On, EFooter::Off, helper_lines,
     MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
 
-class ScreenMenuLanSettings : public parent {
+class ScreenMenuLanSettings : public Screen {
     lan_descp_str_t plan_str; //todo not initialized in constructor
     bool msg_shown;           //todo not initialized in constructor
     void refresh_addresses();
@@ -260,8 +261,15 @@ class ScreenMenuLanSettings : public parent {
 
 public:
     constexpr static const char *label = N_("LAN SETTINGS");
-    //static void Init(screen_t *screen);
-    //static int CEvent(screen_t *screen, window_t *window, uint8_t event, void *param);
+    ScreenMenuLanSettings()
+        : Screen(_(label)) {
+        Eth::Init();
+
+        help.font = resource_font(IDR_FNT_SPECIAL);
+        refresh_addresses();
+        msg_shown = false;
+    }
+    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 };
 
 /*****************************************************************************/
@@ -274,6 +282,10 @@ void ScreenMenuLanSettings::refresh_addresses() {
     help.text = string_view_utf8::MakeRAM((const uint8_t *)plan_str);
     help.Invalidate();
     gui_invalidate();
+}
+
+ScreenFactory::UniquePtr GetScreenMenuLanSettings() {
+    return ScreenFactory::Screen<ScreenMenuLanSettings>();
 }
 
 void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
@@ -305,32 +317,16 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
     }
 }
 
-/*****************************************************************************/
-//static member function definition
-/*void ScreenMenuLanSettings::Init(screen_t *screen) {
-    Create(screen, _(label));
-    Eth::Init();
-
-    ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
-
-    ths->help.font = resource_font(IDR_FNT_SPECIAL);
-    ths->refresh_addresses();
-    ths->msg_shown = false;
-}
-
-int ScreenMenuLanSettings::CEvent(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    ScreenMenuLanSettings *const ths = reinterpret_cast<ScreenMenuLanSettings *>(screen->pdata);
+void ScreenMenuLanSettings::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (Eth::ConsumeReinit()) {
-        MI_LAN_IP_t *item = &ths->Item<MI_LAN_IP_t>();
+        MI_LAN_IP_t *item = &Item<MI_LAN_IP_t>();
         item->ReInit();
     }
 
     //window_header_events(&(ths->header)); //dodo check if needed
     if (Eth::IsUpdated())
-        ths->refresh_addresses();
+        refresh_addresses();
 
-    ths->show_msg(Eth::ConsumeMsg());
-
-    ths->Event(window, event, param);
+    show_msg(Eth::ConsumeMsg());
+    Screen::windowEvent(sender, event, param);
 }
-*/

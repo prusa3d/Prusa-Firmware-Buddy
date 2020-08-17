@@ -28,7 +28,7 @@ size_t RadioButton::cnt_buttons(const PhaseTexts *labels, const PhaseResponses *
 }
 /*****************************************************************************/
 //nonstatic variables and methods
-RadioButton::RadioButton(window_t *parent, rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels)
+RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels)
     : window_t(parent, rect)
     , pfont(resource_font(IDR_FNT_BIG))
     , responses(resp)
@@ -108,33 +108,20 @@ void RadioButton::draw_1_btn() const {
 void RadioButton::draw_n_btns(size_t btn_count) const {
     if (!texts)
         return;
-    rect_ui16_t rc_btn = rect;
-    int16_t btn_width = rc_btn.w / btn_count - GuiDefaults::ButtonSpacing * (btn_count - 1);
-    rc_btn.w = btn_width;
+
+    Rect16 splits[4]; //fix size, dont want to use template
+    Rect16 spaces[3];
+    rect.VerticalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(rc_btn, _((*texts)[i]), pfont, selected_index == i && IsEnabled());
-
-        if (i + 1 < btn_count) {
-            //space between buttons
-            rc_btn.x += btn_width;
-            rc_btn.w = GuiDefaults::ButtonSpacing;
-            display::FillRect(rc_btn, color_back);
-
-            //nextbutton coords
-            rc_btn.x += GuiDefaults::ButtonSpacing;
-            rc_btn.w = btn_width + GuiDefaults::ButtonSpacing;
-        }
+        button_draw(splits[i], _((*texts)[i]), pfont, selected_index == i && IsEnabled());
     }
-    rc_btn.x += rc_btn.w; //start of black space after button (if exists)
-    int black_space_w = int(rect.x + rect.w) - int(rc_btn.x);
-    if (black_space_w > 0) {
-        rc_btn.w = black_space_w;
-        display::FillRect(rc_btn, color_back);
+    for (size_t i = 0; i < btn_count - 1; ++i) {
+        display::FillRect(spaces[i], color_back);
     }
 }
 
-void RadioButton::button_draw(rect_ui16_t rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected) {
+void RadioButton::button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected) {
     color_t back_cl = is_selected ? COLOR_ORANGE : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
     render_text_align(rc_btn, text, pf, back_cl, text_cl, { 0, 0, 0, 0 }, ALIGN_CENTER);

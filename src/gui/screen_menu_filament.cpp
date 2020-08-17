@@ -120,7 +120,7 @@ class ScreenMenuFilament : public Screen {
 public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
-        : Screen(_(label)) {}
+        : Screen(_(label)) { deactivate_item(); }
     virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 
 private:
