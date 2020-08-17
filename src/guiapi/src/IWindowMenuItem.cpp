@@ -48,7 +48,7 @@ void IWindowMenuItem::printIcon(IWindowMenu &window_menu, Rect16 rect, uint8_t s
 
 void IWindowMenuItem::printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t /*swap*/) const {
     Rect16 rolling_rect = getRollingRect(window_menu, rect);
-    printLabel_into_rect(rolling_rect, color_text, color_back, window_menu.font, window_menu.padding, window_menu.alignment);
+    printLabel_into_rect(rolling_rect, color_text, color_back, window_menu.font, window_menu.padding, window_menu.GetAlignment());
 }
 
 void IWindowMenuItem::printLabel_into_rect(Rect16 rolling_rect, color_t color_text, color_t color_back, const font_t *font, padding_ui8_t padding, uint8_t alignment) const {
@@ -67,7 +67,7 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
 }
 
 void IWindowMenuItem::RollInit(IWindowMenu &window_menu, Rect16 rect) {
-    roll_init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.alignment, &roll);
+    roll_init(getRollingRect(window_menu, rect), GetLocalizedLabel(), window_menu.font, window_menu.padding, window_menu.GetAlignment(), &roll);
 }
 void IWindowMenuItem::Roll(IWindowMenu &window_menu) {
     roll_text_phasing(&window_menu, window_menu.font, &roll); //warning it is accessing gui timer
@@ -79,7 +79,7 @@ void IWindowMenuItem::SetFocus() {
 }
 
 Rect16 IWindowMenuItem::getIconRect(IWindowMenu &window_menu, Rect16 rect) {
-    return rect = Rect16::Width_t(window_menu.icon_w);
+    return rect = Rect16::Width_t(window_menu.GetIconWidth());
 }
 
 Rect16 IWindowMenuItem::getRollingRect(IWindowMenu &window_menu, Rect16 rect) const {

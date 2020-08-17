@@ -6,20 +6,29 @@
 #include "IWindowMenuItem.hpp"
 
 IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
-    : window_t(parent, rect)
+    : window_aligned_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , color_disabled(GuiDefaults::ColorDisabled)
     , font(GuiDefaults::Font)
-    , padding { 6, 6, 6, 6 }
-    , icon_w(25)
-    , alignment(GuiDefaults::Alignment) {
+    , padding { 6, 6, 6, 6 } {
+    SetIconWidth(25);
     Enable();
+}
+
+uint8_t IWindowMenu::GetIconWidth() const {
+    //mem_array_u08[0] is alignment
+    return mem_array_u08[1];
+}
+
+void IWindowMenu::SetIconWidth(uint8_t width) {
+    //mem_array_u08[0] is alignment
+    mem_array_u08[1] = width;
+    Invalidate();
 }
 
 window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
-    alignment = GuiDefaults::Alignment;
     setIndex(index);
     top_index = 0;
 }

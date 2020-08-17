@@ -30,7 +30,7 @@ inline LDV9 *LDV_Get(void) {
     return &ldv;
 }
 
-struct window_file_list_t : public window_t {
+struct window_file_list_t : public window_aligned_t {
     color_t color_text;
     font_t *font;
     padding_ui8_t padding;
@@ -39,7 +39,6 @@ struct window_file_list_t : public window_t {
     int index;                        // selected index - cursor position within the visible items
     LDV9 *ldv;                        // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
     char sfn_path[FILE_PATH_MAX_LEN]; // this is a Short-File-Name path where we start the file dialog
-    uint8_t alignment;
     window_file_list_t(window_t *parent, Rect16 rect);
     void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 
