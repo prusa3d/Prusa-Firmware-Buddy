@@ -24,7 +24,7 @@ public:
             , onExit(exit_cb) {}
         const char *label;
         const PhaseResponses &btn_resp;
-        const PhaseTexts &btn_labels;
+       const PhaseTexts &btn_labels;
         // callbacks for phase start/end
         change_state_cb_t onEnter;
         change_state_cb_t onExit;

@@ -8,9 +8,9 @@
 screen_test_gui_data_t::screen_test_gui_data_t()
     : window_frame_t()
     , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_splash_logo_prusa_prn, is_closed_on_click_t::yes)
-    , text0(this, Rect16(10, 70, 60, 22))
-    , text1(this, Rect16(80, 70, 60, 22))
-    , text2(this, Rect16(150, 70, 60, 22))
+    , text0(this, Rect16(10, 70, 60, 22), is_multiline::no)
+    , text1(this, Rect16(80, 70, 60, 22), is_multiline::no)
+    , text2(this, Rect16(150, 70, 60, 22), is_multiline::no)
     , numb0(this, Rect16(10, 100, 60, 22))
     , spin0(this, Rect16(80, 100, 60, 22))
     , spin1(this, Rect16(150, 100, 60, 22))
@@ -19,7 +19,7 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     , icon1(this, Rect16(80, 234, 64, 64), IDR_PNG_menu_icon_preheat)
     , icon2(this, Rect16(150, 234, 64, 64), IDR_PNG_menu_icon_spool)
     , progress(this, Rect16(0, 200, 240, 30))
-    , text_terminal(this, Rect16(0, 298, 240, 22)) {
+    , text_terminal(this, Rect16(0, 298, 240, 22), is_multiline::yes) {
 
     text0.font = resource_font(IDR_FNT_BIG);
     static const char big[] = "Big";

@@ -13,8 +13,8 @@ static const string_view_utf8 test_header_view = string_view_utf8::MakeCPUFLASH(
 
 screen_test_msgbox_data_t::screen_test_msgbox_data_t()
     : window_frame_t()
-    , tst(this, Rect16(10, 32, 220, 22))
-    , back(this, Rect16(10, 54, 220, 22), is_closed_on_click_t::yes)
+    , tst(this, Rect16(10, 32, 220, 22), is_multiline::no)
+    , back(this, Rect16(10, 54, 220, 22), is_multiline::no, is_closed_on_click_t::yes)
     , tst_ok(this, Rect16(10, 76, 220, 22), []() { MsgBox(test_text_view, Responses_Ok); })
     , tst_okcancel(this, Rect16(10, 98, 220, 22), []() { MsgBox(test_text_view, Responses_OkCancel); })
     , tst_ico_error(this, Rect16(10, 120, 220, 22), []() { MsgBoxError(test_text_view, Responses_AbortRetryIgnore); })

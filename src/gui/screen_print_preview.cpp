@@ -42,8 +42,8 @@ size_t description_line_t::value_width(string_view_utf8 *title_str) {
 }
 
 description_line_t::description_line_t(window_frame_t *frame, bool has_thumbnail, size_t row, string_view_utf8 title_str, const char *value_fmt, ...)
-    : title(frame, Rect16(PADDING, calculate_y(has_thumbnail, row), title_width(&title_str), LINE_HEIGHT))
-    , value(frame, Rect16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_thumbnail, row), value_width(&title_str), LINE_HEIGHT))
+    : title(frame, Rect16(PADDING, calculate_y(has_thumbnail, row), title_width(&title_str), LINE_HEIGHT), is_multiline::no)
+    , value(frame, Rect16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_thumbnail, row), value_width(&title_str), LINE_HEIGHT), is_multiline::no)
 
 {
     title.SetText(title_str);
@@ -136,11 +136,11 @@ GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
 
 screen_print_preview_data_t::screen_print_preview_data_t()
     : window_frame_t()
-    , title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
+    , title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT), is_multiline::no)
     , print_button(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, []() { print_begin(screen_print_preview_data_t::GetGcodeFilepath()); })
-    , print_label(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT))
+    , print_label(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
     , back_button(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back, []() { Screens::Access()->Close(); })
-    , back_label(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT))
+    , back_label(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail) {
     marlin_set_print_speed(100);

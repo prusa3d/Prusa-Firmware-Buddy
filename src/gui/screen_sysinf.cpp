@@ -35,15 +35,15 @@ enum { row_h = 20 };
 
 screen_sysinfo_data_t::screen_sysinfo_data_t()
     : window_frame_t()
-    , textMenuName(this, Rect16(0, 0, display::GetW(), 22))
-    , textCPU_load(this, Rect16(col_0, 25, col_0_w, row_h))
+    , textMenuName(this, Rect16(0, 0, display::GetW(), 22), is_multiline::no)
+    , textCPU_load(this, Rect16(col_0, 25, col_0_w, row_h), is_multiline::no)
     , textCPU_load_val(this, Rect16(col_1, 25, col_1_w, row_h))
-    , textDateTime(this, Rect16(0, 50, display::GetW(), row_h))
-    , textFan0_RPM(this, Rect16(col_0, 75, col_0_w, row_h))
+    , textDateTime(this, Rect16(0, 50, display::GetW(), row_h), is_multiline::no)
+    , textFan0_RPM(this, Rect16(col_0, 75, col_0_w, row_h), is_multiline::no)
     , textFan0_RPM_val(this, Rect16(col_1, 75, col_1_w, row_h))
-    , textFan1_RPM(this, Rect16(col_0, 100, col_0_w, row_h))
+    , textFan1_RPM(this, Rect16(col_0, 100, col_0_w, row_h), is_multiline::no)
     , textFan1_RPM_val(this, Rect16(col_1, 100, col_1_w, row_h))
-    , textExit(this, Rect16(col_0, 290, 60, 22), is_closed_on_click_t::yes) {
+    , textExit(this, Rect16(col_0, 290, 60, 22), is_multiline::no, is_closed_on_click_t::yes) {
 
     textMenuName.font = resource_font(IDR_FNT_BIG);
     static const char dt[] = "System info";

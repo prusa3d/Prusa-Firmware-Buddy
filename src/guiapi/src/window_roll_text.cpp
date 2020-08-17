@@ -53,7 +53,7 @@ void window_roll_text_done(window_roll_text_t *window) {
 }
 
 window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect)
-    : window_text_t(parent, rect) {
+    : window_text_t(parent, rect, is_multiline::no) {
     roll.count = roll.px_cd = roll.progress = 0;
     roll.phase = ROLL_SETUP;
     roll.setup = TXTROLL_SETUP_INIT;

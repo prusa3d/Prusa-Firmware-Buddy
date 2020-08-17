@@ -7,9 +7,9 @@
 
 screen_qr_error_data_t::screen_qr_error_data_t()
     : window_frame_t()
-    , errText(this, Rect16(8, 0, 224, 25))
-    , errDescription(this, Rect16(8, 30, 224, 95))
-    , info(this, Rect16(8, 275, 224, 20))
+    , errText(this, Rect16(8, 0, 224, 25), is_multiline::no)
+    , errDescription(this, Rect16(8, 30, 224, 95), is_multiline::yes)
+    , info(this, Rect16(8, 275, 224, 20), is_multiline::no)
     , qr(this, Rect16(59, 140, 224, 95))
     , first_run_flag(true) {
     errText.SetBackColor(COLOR_RED_ALERT);
