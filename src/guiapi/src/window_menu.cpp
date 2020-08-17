@@ -136,8 +136,8 @@ void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         }
         break;
     }
-    //    if (invalid)
-    //        Invalidate();
+    if (invalid)
+        Invalidate();
 }
 
 void window_menu_t::unconditionalDraw() {
