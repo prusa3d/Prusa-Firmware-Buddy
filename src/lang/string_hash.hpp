@@ -55,7 +55,7 @@ public:
     /// Searches for the input string represented by the key parameter
     /// @returns the index of the string in a string table (translation)
     uint16_t find(const uint8_t *key) const {
-        uint8_t hashIndex = ReducedHash(Hash(key));
+        uint32_t hashIndex = ReducedHash(Hash(key));
         const BucketRange &b = hash_table[hashIndex];
         if (b.begin == 0xffffU) {
             return 0xffffU; // string not found, directs to an empty bucket

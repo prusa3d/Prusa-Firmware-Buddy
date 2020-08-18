@@ -23,6 +23,10 @@ Calibrazione XY
 ANNULLA
 CAMBIO FILAMENTO
 Cambia filamento
+Controllare la presenza di eventuali danni sul cablaggio del piano riscaldato e del termistore.
+Controllare che il cablaggio del termistore del piano riscaldato non sia danneggiato.
+Controllare che il riscaldatore dell'hotend e il cablaggio del termistore non siano danneggiati.
+Controllare che il cablaggio del termistore della testina di stampa non sia danneggiato.
 Controllo assi
 Contr. riscald.\nhotend e piano risc.
 Pulire lastra d'acciaio.
@@ -166,6 +170,7 @@ Ritorna
 Sa
 Salvare Crash Dump
 Salva impostazioni
+Scansionami per i dettagli
 Ricerca punti\ndi calibrazione piano
 Seleziona tipo filamento
 SELEZIONA FILE
