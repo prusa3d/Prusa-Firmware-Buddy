@@ -1,6 +1,7 @@
 pipeline {
     agent {
         dockerfile {
+            label 'docker'
             filename 'utils/holly/Dockerfile'
             additionalBuildArgs '-t prusa-firmware-buddy'
         }
@@ -57,7 +58,7 @@ pipeline {
                         stage("Build - ${config.printer},${config.build_type},${config.bootloader}boot") {
                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                 sh """
-                                    python utils/build.py \
+                                    python3 utils/build.py \
                                         --printer ${config.printer} \
                                         --build-type ${config.build_type} \
                                         --bootloader ${config.bootloader} \
@@ -80,7 +81,6 @@ pipeline {
                 expression { env.CHANGE_TARGET }
             }
             steps {
-                sh "pip install pre-commit"
                 sh "pre-commit install"
                 sh """pre-commit run \
                     --source remotes/origin/${env.CHANGE_TARGET} \
@@ -92,13 +92,6 @@ pipeline {
         }
 
         stage('Test') {
-            agent {
-                dockerfile {
-                    reuseNode true
-                    filename 'utils/holly/TestDockerfile'
-                    additionalBuildArgs '-t prusa-firmware-buddy-test'
-                }
-            }
             steps {
                 sh """
                 python3 utils/bootstrap.py
