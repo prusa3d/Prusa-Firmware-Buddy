@@ -1,4 +1,8 @@
-FROM python:3.7.6-stretch
-RUN pip install pre-commit ecdsa
+FROM gcc:10
+RUN apt-get clean && \
+    apt-get update -qq -y && \
+    apt-get install curl python3 python3-pip -y
+RUN pip3 install pre-commit ecdsa
 ADD utils/bootstrap.py bootstrap.py
-RUN python bootstrap.py
+RUN gcc --version
+RUN python3 bootstrap.py
