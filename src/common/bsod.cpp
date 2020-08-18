@@ -232,10 +232,9 @@ void general_error_run() {
 //! @n MSG_T_MINTEMP
 //! @n "Emergency stop (M112)"
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    char text[128];
     //const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
 
-    /// FIXME split heating, min/max temp and thermal runaway
+    /// FIXME include proper .h file instead
     /// r=5 c=20
     static const char bad_bed[] = N_("Check the heatbed heater & thermistor wiring for possible damage.");
     /// r=5 c=20
@@ -245,10 +244,15 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     /// r=5 c=20
     //static const char bad_head_wire[] = N_("Check the print head thermistor wiring for possible damage.");
 
+    /// TODO find proper error code
+    const uint16_t error_code = 12201;
+
+    /// TODO search proper text according to error code
+    const char *text;
     if (module[0] != 'E') {
-        snprintf(text, sizeof(text), bad_bed);
+        text = bad_bed;
     } else {
-        snprintf(text, sizeof(text), bad_head);
+        text = bad_head;
     }
 
     general_error_init();
@@ -261,16 +265,15 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     /// draw "Scan me" text
     // r=1 c=20
-    static const char *scan_me_text = "Scan me for details";
-    display::DrawText(Rect16(52, 142, display::GetW() - 52, display::GetH() - 142), string_view_utf8::MakeCPUFLASH((const uint8_t *)scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+    static const char *scan_me_text = N_("Scan me for details");
+    display::DrawText(Rect16(52, 142, display::GetW() - 52, display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
-    /// draw arrow
+    /// draw "Scan me" arrow
     render_icon_align(Rect16(191, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
 
     /// draw QR
     char qr_text[MAX_LEN_4QR + 1];
-    /// FIXME Currently the only one error code working
-    error_url_long(qr_text, sizeof(qr_text), 12201);
+    error_url_long(qr_text, sizeof(qr_text), error_code);
     constexpr uint8_t qr_size_px = 140;
     const Rect16 qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
     window_qr_t win(nullptr, qr_rect);
@@ -290,12 +293,12 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     }
 
     /// draw short URL
-    /// FIXME Currently the only one error code working
-    error_url_short(qr_text, sizeof(qr_text), 12201);
+    error_url_short(qr_text, sizeof(qr_text), error_code);
     // this MakeRAM is safe - qr_text is a local buffer on stack
     render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
     //display::DrawText(Rect16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
+    /// wait for restart
     while (1) {
         wdt_iwdg_refresh();
     }
