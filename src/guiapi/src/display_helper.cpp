@@ -29,8 +29,8 @@ std::pair<const char *, uint8_t> ConvertUnicharToFontCharIndex(unichar c) {
 /// \returns true if whole text was written
 /// Extracted from st7789v implementation, where it shouldn't be @@TODO cleanup
 size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg, uint16_t flags) {
-    int x = rc.Left();
-    int y = rc.Top();
+    int16_t x = rc.Left();
+    int16_t y = rc.Top();
 
     const uint16_t w = pf->w; //char width
     const uint16_t h = pf->h; //char height
@@ -74,7 +74,7 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
         x += w;
 #endif
     }
-    return size_ui16_t { rc.Width(), static_cast<std::uint16_t>(y - rc.Top()) };
+    return size_ui16_t { rc.Width(), x == rc.Left() ? static_cast<std::uint16_t>(y - rc.Top()) : static_cast<std::uint16_t>(y - rc.Top() + h) };
 }
 
 /// Fills space between two rectangles with a color
@@ -97,17 +97,12 @@ void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t co
 }
 
 void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
+    bool is_multiline = flags & RENDER_FLG_WORDB;
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
-    if (flags & RENDER_FLG_WORDB) {
-        size_ui16_t s = render_text(rc_pad, text, font, clr0, clr1, RENDER_FLG_WORDB);
-        // hack for broken text wrapper ... and for too long texts as well
-        if ((rc_pad.Top() + s.h) < (rc_pad.Top() + rc_pad.Height())) {
-            display::FillRect(Rect16(rc_pad.Left(), rc_pad.Top() + s.h, rc_pad.Width(), rc_pad.Height() - s.h), clr0);
-            fill_between_rectangles(&rc, &rc_pad, clr0);
-        }
 
-        return;
+    if (font->h * 2 > rc_pad.Height()) { //2 lines would not fit, clear multiline flag
+        is_multiline = false;
     }
 
     // 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
@@ -118,6 +113,19 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
         return;
     }
 
+    if (wh_txt.y == font->h && wh_txt.x <= rc.Width()) { // not multiline
+        is_multiline = false;
+    }
+
+    if (is_multiline) {
+        size_ui16_t s = render_text(rc_pad, text, font, clr0, clr1, RENDER_FLG_WORDB);
+        // hack for broken text wrapper ... and for too long texts as well
+        rc_pad = Rect16::Width_t(s.w);
+        rc_pad = Rect16::Height_t(s.h);
+        fill_between_rectangles(&rc, &rc_pad, clr0);
+        return;
+    }
+
     Rect16 rc_txt = Rect16(0, 0, wh_txt.x, wh_txt.y);
     rc_txt.Align(rc_pad, flags & ALIGN_MASK);
     rc_txt = rc_txt.Intersection(rc_pad);
@@ -125,7 +133,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
 
     const Rect16 rect_in = rc_txt - Rect16::Width_t(unused_pxls);
     fill_between_rectangles(&rc, &rect_in, clr0);
-    text.rewind();
+
     // 2nd pass reading the string_view_utf8 - draw the text
     render_text(rect_in, text, font, clr0, clr1, 0);
 }
@@ -292,6 +300,7 @@ point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *n
             x += char_w;
         h = y + char_h;
     }
+    str->rewind();
     return point_ui16((uint16_t)std::max(x, w), (uint16_t)h);
 }
 
