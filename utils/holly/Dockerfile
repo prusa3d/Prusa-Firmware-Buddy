@@ -1,7 +1,7 @@
 FROM gcc:10
 RUN apt-get clean && \
     apt-get update -qq -y && \
-    apt-get install curl python3 python3-pip -y
+    apt-get install curl python3 python3-pip libncurses5 -y
 RUN pip3 install pre-commit ecdsa
 WORKDIR /work
 ADD utils/bootstrap.py bootstrap.py
