@@ -49,7 +49,7 @@ __attribute__((used)) inline uint32_t color_from_565(uint16_t clr565) {
 
 extern void st7789v_init(void);
 extern void st7789v_done(void);
-extern void st7789v_clear_C(uint16_t clr565);
+extern void st7789v_clear(uint16_t clr565);
 extern void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565);
 
 extern void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop);
@@ -71,7 +71,7 @@ extern void st7789v_brightness_enable(void);
 extern void st7789v_brightness_disable(void);
 
 extern uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y);
-extern void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint16_t clr565);
+extern void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565);
 
 extern st7789v_config_t st7789v_config;
 

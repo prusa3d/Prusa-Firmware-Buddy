@@ -327,7 +327,7 @@ void st7789v_done(void) {
 }
 
 /// Fills screen by this color
-void st7789v_clear_C(uint16_t clr565) {
+void st7789v_clear(uint16_t clr565) {
     // FIXME similar to display_ex_fill_rect; join?
     int i;
     for (i = 0; i < ST7789V_COLS * 16; i++)
@@ -343,7 +343,7 @@ void st7789v_clear_C(uint16_t clr565) {
 }
 
 /// Turns the specified pixel to the specified color
-void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
+void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
     st7789v_cmd_caset(point_x, 1);
     st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);

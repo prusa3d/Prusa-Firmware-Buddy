@@ -21,7 +21,7 @@ inline uint16_t color_to_native(uint32_t clr) {
 }
 
 void display_ex_clear(const color_t clr) {
-    st7789v_clear_C(color_to_565(clr));
+    st7789v_clear(color_to_565(clr));
 }
 
 static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, uint8_t rop) {
@@ -37,7 +37,7 @@ static inline uint16_t get_pixel_directColor_C(uint16_t point_x, uint16_t point_
 }
 
 static inline void set_pixel_colorFormatNative(uint16_t point_x, uint16_t point_y, uint32_t nativeclr) {
-    st7789v_set_pixel_C(point_x, point_y, nativeclr);
+    st7789v_set_pixel(point_x, point_y, nativeclr);
 }
 
 static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) {
