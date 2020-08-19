@@ -23,6 +23,10 @@ Kalibracja XY
 ANULUJ
 ZMIANA FILAMENTU
 Zmiana filamentu
+Sprawdź czy przewody grzałki i termistora stołu nie są uszkodzone.
+Sprawdź czy przewody termistora stołu nie są uszkodzone.
+Sprawdź czy przewody grzałki i termistora hotendu nie są uszkodzone.
+Sprawdź czy przewody termistora hotendu nie są uszkodzone.
 Sprawdzanie osi
 Sprawdzanie temp.\nhotendu i stołu
 Wyczyść płytę stalową.
@@ -166,6 +170,7 @@ Powrót
 Sob
 Zapisz zrzut pamięci
 Zapisz ustawienia
+Zeskanuj mnie, aby uzyskać szczegóły.
 Szukam punktów\nkalibracyjnych stołu
 Wybierz rodzaj filamentu
 WYBIERZ PLIK
