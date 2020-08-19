@@ -307,11 +307,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
 void temp_error_code(const uint16_t error_code) {
 
-    static const char t_12201[] = N_("Check the heatbed heater & thermistor wiring for possible damage.");
-    static const char bad_bed_wire[] = N_("Check the heatbed thermistor wiring for possible damage.");
-    static const char bad_head[] = N_("Check the print head heater & thermistor wiring for possible damage.");
-    static const char bad_head_wire[] = N_("Check the print head thermistor wiring for possible damage.");
-
     general_error_init();
     display::Clear(COLOR_RED_ALERT);
 
