@@ -36,6 +36,7 @@
     #include "str_utils.hpp"
     #include "guitypes.h"
     #include "../lang/i18n.h"
+    #include "../../lib/Prusa-Error-Codes/12/errors_list.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -262,6 +263,62 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
     display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
+
+    /// draw "Scan me" text
+    // r=1 c=20
+    static const char *scan_me_text = N_("Scan me for details");
+    display::DrawText(Rect16(52, 142, display::GetW() - 52, display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+
+    /// draw "Scan me" arrow
+    render_icon_align(Rect16(191, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
+
+    /// draw QR
+    char qr_text[MAX_LEN_4QR + 1];
+    error_url_long(qr_text, sizeof(qr_text), error_code);
+    constexpr uint8_t qr_size_px = 140;
+    const Rect16 qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
+    window_qr_t win(nullptr, qr_rect);
+    win.rect = qr_rect;
+    window_qr_t *window = &win;
+    win.text = qr_text;
+    win.bg_color = COLOR_WHITE;
+
+    //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
+
+    /// use PNG RAM for QR code image
+    uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
+    uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
+
+    if (generate_qr(qr_text, qrcode, qr_buff)) {
+        draw_qr(qrcode, window);
+    }
+
+    /// draw short URL
+    error_url_short(qr_text, sizeof(qr_text), error_code);
+    // this MakeRAM is safe - qr_text is a local buffer on stack
+    render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+    //display::DrawText(Rect16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+
+    /// wait for restart
+    while (1) {
+        wdt_iwdg_refresh();
+    }
+}
+
+void temp_error_code(const uint16_t error_code) {
+
+    static const char t_12201[] = N_("Check the heatbed heater & thermistor wiring for possible damage.");
+    static const char bad_bed_wire[] = N_("Check the heatbed thermistor wiring for possible damage.");
+    static const char bad_head[] = N_("Check the print head heater & thermistor wiring for possible damage.");
+    static const char bad_head_wire[] = N_("Check the print head thermistor wiring for possible damage.");
+
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+
+    /// draw header & main text
+    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeCPUFLASH((const uint8_t *)error_list[error_code - 12201].err_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
+    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(error_list[error_code - 12201].err_text), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
 
     /// draw "Scan me" text
     // r=1 c=20

@@ -13,6 +13,7 @@
 #include "wui_api.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "bsod.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -220,6 +221,78 @@ MI_EE_SAVEXML::MI_EE_SAVEXML()
 
 void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
     eeprom_save_xml_to_usb("eeprom.xml");
+}
+
+/*****************************************************************************/
+MI_ES_12201::MI_ES_12201()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12201::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(12201);
+}
+
+/*****************************************************************************/
+MI_ES_12202::MI_ES_12202()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12202::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(12202);
+}
+
+/*****************************************************************************/
+MI_ES_12203::MI_ES_12203()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12203::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(12203);
+}
+
+/*****************************************************************************/
+MI_ES_12204::MI_ES_12204()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12204::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(12204);
+}
+
+/*****************************************************************************/
+MI_ES_12205::MI_ES_12205()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12205::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(12205);
+}
+
+/*****************************************************************************/
+MI_ES_12206::MI_ES_12206()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12206::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(12206);
+}
+
+/*****************************************************************************/
+MI_ES_12207::MI_ES_12207()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12207::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(12207);
+}
+
+/*****************************************************************************/
+MI_ES_12208::MI_ES_12208()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12208::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(12208);
 }
 
 /*****************************************************************************/
