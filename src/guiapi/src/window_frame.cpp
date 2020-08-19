@@ -123,7 +123,7 @@ void window_frame_t::draw() {
 void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
-		bool endSignal = false;
+    bool endSignal = false;
 
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
@@ -156,7 +156,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
             }
             pWin = pNext;
         }
-        if (endSignal){
+        if (endSignal) {
             Sound_Play(eSOUND_TYPE_BlindAlert);
         } else {
             pWin->SetFocus();
