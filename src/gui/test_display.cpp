@@ -65,12 +65,12 @@ color_t random_color() {
     return color_rgb(rand() % 0x100, rand() % 0x100, rand() % 0x100);
 }
 
-rect_ui16_t random_rect() {
+Rect16 random_rect() {
     const uint16_t x0 = rand() % display::GetW();
     const uint16_t x1 = rand() % display::GetW();
     const uint16_t y0 = rand() % display::GetH();
     const uint16_t y1 = rand() % display::GetH();
-    return rect_ui16(std::min(x0, x1), std::min(y0, y1), std::abs(x1 - x0) + 1, std::abs(y1 - y0) + 1);
+    return Rect16(std::min(x0, x1), std::min(y0, y1), std::abs(x1 - x0) + 1, std::abs(y1 - y0) + 1);
 }
 
 void test_display_random_dots(uint16_t cnt) {
@@ -209,8 +209,8 @@ void test_display_rgbcolors(uint16_t cnt) {
     const uint8_t item_height = 20;
     for (int n = 0; n < cnt; n++)
         for (int i = 0; i < count; i++) {
-            rect_ui16_t rc_item = rect_ui16(0, item_height * i, 240, item_height);
-            rect_ui16_t rc_text = rect_ui16(10, item_height * i + 1, strlen(names[i]) * font->w, font->h);
+            Rect16 rc_item = Rect16(0, item_height * i, 240, item_height);
+            Rect16 rc_text = Rect16(10, item_height * i + 1, strlen(names[i]) * font->w, font->h);
             //display::FillRect(rc_item, colors[i]);
             fill_between_rectangles(&rc_item, &rc_text, colors[i]);
             display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);

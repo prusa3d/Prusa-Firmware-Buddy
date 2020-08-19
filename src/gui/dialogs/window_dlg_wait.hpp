@@ -16,7 +16,7 @@ class window_dlg_wait_t : public IDialog {
     window_icon_hourglass_t animation;
 
 public:
-    window_dlg_wait_t(rect_ui16_t rect);
+    window_dlg_wait_t(Rect16 rect);
 };
 
 #define DLG_W8_DRAW_HOURGLASS 0x04 // Draw hourglass animation

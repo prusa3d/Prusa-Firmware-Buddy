@@ -7,10 +7,10 @@
 
 screen_qr_error_data_t::screen_qr_error_data_t()
     : window_frame_t()
-    , errText(this, rect_ui16(8, 0, 224, 25))
-    , errDescription(this, rect_ui16(8, 30, 224, 95))
-    , info(this, rect_ui16(8, 275, 224, 20))
-    , qr(this, rect_ui16(59, 140, 224, 95))
+    , errText(this, Rect16(8, 0, 224, 25), is_multiline::no)
+    , errDescription(this, Rect16(8, 30, 224, 95), is_multiline::yes)
+    , info(this, Rect16(8, 275, 224, 20), is_multiline::no)
+    , qr(this, Rect16(59, 140, 224, 95))
     , first_run_flag(true) {
     errText.SetBackColor(COLOR_RED_ALERT);
     errText.font = resource_font(IDR_FNT_BIG);
@@ -31,7 +31,7 @@ screen_qr_error_data_t::screen_qr_error_data_t()
 
 void screen_qr_error_data_t::unconditionalDraw() {
     window_frame_t::unconditionalDraw();
-    display::FillRect(rect_ui16(8, 25, 224, 2), COLOR_WHITE);
+    display::FillRect(Rect16(8, 25, 224, 2), COLOR_WHITE);
 }
 
 void screen_qr_error_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {

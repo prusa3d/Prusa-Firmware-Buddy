@@ -12,7 +12,7 @@ struct screen_splash_data_t : public window_frame_t {
 
     window_icon_t icon_debug;
 
-    uint32_t last_timer;
+    // uint32_t last_timer;
 
     screen_splash_data_t();
 

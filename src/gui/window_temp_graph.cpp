@@ -5,7 +5,7 @@
 #include "marlin_client.h"
 #include <stdlib.h>
 
-window_temp_graph_t::window_temp_graph_t(window_t *parent, rect_ui16_t rect)
+window_temp_graph_t::window_temp_graph_t(window_t *parent, Rect16 rect)
     : window_t(parent, rect)
     , color_extruder_t(COLOR_LIME)
     , color_bed_t(COLOR_CYAN)
@@ -37,10 +37,10 @@ void window_temp_graph_t::redraw_last_point(uint16_t x, uint16_t y0, uint16_t y1
 }
 
 void window_temp_graph_t::draw_axes(bool wipe_before_draw, bool xy_only) {
-    const uint16_t x = rect.x;
-    const uint16_t y = rect.y;
-    const uint16_t w = rect.w;
-    const uint16_t h = rect.h;
+    const uint16_t x = rect.Left();
+    const uint16_t y = rect.Top();
+    const uint16_t w = rect.Width();
+    const uint16_t h = rect.Height();
 
     if (wipe_before_draw)
         display::FillRect(rect, color_back);
@@ -81,8 +81,8 @@ void window_temp_graph_t::unconditionalDraw() {
         uint8_t ync = y_nozzle_c[0];
         uint8_t ybc = y_bed_c[0];
 
-        const uint16_t x = rect.x;
-        const uint16_t y = rect.y;
+        const uint16_t x = rect.Left();
+        const uint16_t y = rect.Top();
 
         for (i = 0; i < 178; i++) {
             redraw_point(x + i + 1, y, &y_nozzle_t[i], color_back, color_extruder_t);

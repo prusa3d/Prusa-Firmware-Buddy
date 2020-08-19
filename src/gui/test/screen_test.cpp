@@ -21,16 +21,16 @@ static volatile void recursive(uint64_t i) {
 
 screen_test_data_t::screen_test_data_t()
     : window_frame_t()
-    , test(this, rect_ui16(10, 32, 220, 22))
-    , back(this, rect_ui16(10, 54, 220, 22), is_closed_on_click_t::yes)
-    , tst_gui(this, rect_ui16(10, 76, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_gui_data_t>); })
-    , tst_term(this, rect_ui16(10, 98, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_term_data_t>); })
-    , tst_msgbox(this, rect_ui16(10, 120, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_msgbox_data_t>); })
-    , tst_graph(this, rect_ui16(10, 142, 220, 22), []() { /*screen_open(get_scr_test_graph()->id);*/ })
-    , tst_temperature(this, rect_ui16(10, 164, 220, 22), []() { /*screen_open(get_scr_test_temperature()->id);*/ })
-    , tst_heat_err(this, rect_ui16(10, 186, 220, 22), []() { /*("TEST BED ERROR", "Bed", 1.0, 2.0, 3.0, 4.0);*/ })
-    , tst_disp_memory(this, rect_ui16(10, 208, 220, 22), []() { /*screen_open(get_scr_test_disp_mem()->id);*/ })
-    , tst_stack_overflow(this, rect_ui16(10, 230, 220, 22), []() { recursive(0); })
+    , test(this, Rect16(10, 32, 220, 22), is_multiline::no)
+    , back(this, Rect16(10, 54, 220, 22), is_multiline::no, is_closed_on_click_t::yes)
+    , tst_gui(this, Rect16(10, 76, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_gui_data_t>); })
+    , tst_term(this, Rect16(10, 98, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_term_data_t>); })
+    , tst_msgbox(this, Rect16(10, 120, 220, 22), []() { Screens::Access()->Open(ScreenFactory::Screen<screen_test_msgbox_data_t>); })
+    , tst_graph(this, Rect16(10, 142, 220, 22), []() { /*screen_open(get_scr_test_graph()->id);*/ })
+    , tst_temperature(this, Rect16(10, 164, 220, 22), []() { /*screen_open(get_scr_test_temperature()->id);*/ })
+    , tst_heat_err(this, Rect16(10, 186, 220, 22), []() { /*("TEST BED ERROR", "Bed", 1.0, 2.0, 3.0, 4.0);*/ })
+    , tst_disp_memory(this, Rect16(10, 208, 220, 22), []() { /*screen_open(get_scr_test_disp_mem()->id);*/ })
+    , tst_stack_overflow(this, Rect16(10, 230, 220, 22), []() { recursive(0); })
     , id_tim(gui_timer_create_oneshot(this, 2000))  //id0
     , id_tim1(gui_timer_create_oneshot(this, 2000)) //id0
 {
