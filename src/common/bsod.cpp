@@ -24,7 +24,6 @@
     #include "config.h"
     #include "gui.hpp"
     #include "term.h"
-    #include "st7789v.hpp"
     #include "window_term.hpp"
     #include "jogwheel.h"
     #include "gpio.h"
