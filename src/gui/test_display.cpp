@@ -313,9 +313,9 @@ void test_display2(void) {
 		osDelay(1000);*/
 
         //	  	st7789v_draw_pict(10, 10, 83, 63, (uint16_t*)png_a3ides_logo);
-        //	  	st7789v_draw_png(10, 10, pf);
+        //	  	display_ex_draw_png(10, 10, pf);
         //	  	osDelay(1000);
-        //	  	st7789v_draw_png(0, 0, pf0);
+        //	  	display_ex_draw_png(0, 0, pf0);
         //	  	osDelay(1000);
 
         //		tim = _microseconds();
@@ -323,20 +323,20 @@ void test_display2(void) {
         //		tim = _microseconds() - tim;
         //		_dbg3("draw_png %u", tim);
         //		osDelay(1000);
-        //	  	st7789v_draw_png(0, 0, pf2);
+        //	  	display_ex_draw_png(0, 0, pf2);
         //	  	osDelay(2000);
         /*
 		osDelay(1000);*/
         /*	  	st7789v_display_clear(CLR565_GREEN);
-	  //	st7789v_draw_line(0, 0, 239, 0, CLR565_BLUE);
+	  //	display_ex_draw_line(0, 0, 239, 0, CLR565_BLUE);
 		st7789v_display_clear(CLR565_RED);
-		st7789v_fill_rect(20, 20, 64, 64, CLR565_YELLOW);
+		display_ex_fill_rect(20, 20, 64, 64, CLR565_YELLOW);
 		osDelay(1000);
 	  //	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 0);
 		st7789v_display_clear(CLR565_GREEN);
 		osDelay(1000);
 		st7789v_display_clear(CLR565_BLUE);
-		st7789v_draw_text(10, 10, 0, 0, "Testik", &font_12x12, CLR565_YELLOW);
+		display_ex_draw_text(10, 10, 0, 0, "Testik", &font_12x12, CLR565_YELLOW);
 		osDelay(1000);
 		//osDelay(1000);
 		st7789v_spectrum();

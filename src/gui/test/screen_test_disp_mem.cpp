@@ -331,20 +331,20 @@ void screen_test_disp_mem_init(screen_t *screen) {
 //draw line in Y direction
 void drawCol(size_t col, size_t row, size_t len, uint16_t directColor) {
     for (size_t i = 0; i < len; ++i) {
-        st7789v_set_pixel_directColor(point_ui16(col, row + i), directColor);
+        display_ex_set_pixel_displayNativeColor(point_ui16(col, row + i), directColor);
     }
 }
 //draw line in Y direction from buffer
 void drawCol_buff(size_t col, size_t row, size_t len, uint16_t *directColorBuff) {
     for (size_t i = 0; i < len; ++i) {
-        st7789v_set_pixel_directColor(point_ui16(col, row + i), directColorBuff[i]);
+        display_ex_set_pixel_displayNativeColor(point_ui16(col, row + i), directColorBuff[i]);
     }
 }
 
 //read line in Y direction
 void readCol(size_t col, size_t row, size_t len, uint16_t *directColorBuff) {
     for (size_t i = 0; i < len; ++i) {
-        directColorBuff[i] = st7789v_get_pixel_directColor(point_ui16(col, row + i));
+        directColorBuff[i] = display_ex_get_pixel_displayNativeColor(point_ui16(col, row + i));
     }
 }
 //draw line in Y direction, read it and draw it under first line
@@ -486,7 +486,7 @@ void readPartLine(size_t partRow, size_t partDivider, color_t *buff){
 
 	//read part of line
 	for (size_t i = 0; i < quarter; ++i){
-		buff[i] = st7789v_get_pixel(point_ui16(col + i, row2draw));
+		buff[i] = display_ex_get_pixel(point_ui16(col + i, row2draw));
 	}
 
 }

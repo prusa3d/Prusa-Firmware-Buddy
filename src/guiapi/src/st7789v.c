@@ -328,7 +328,7 @@ void st7789v_done(void) {
 
 /// Fills screen by this color
 void st7789v_clear_C(uint16_t clr565) {
-    // FIXME similar to st7789v_fill_rect; join?
+    // FIXME similar to display_ex_fill_rect; join?
     int i;
     for (i = 0; i < ST7789V_COLS * 16; i++)
         ((uint16_t *)st7789v_buff)[i] = clr565;
@@ -347,20 +347,6 @@ void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
     st7789v_cmd_caset(point_x, 1);
     st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
-}
-
-uint32_t st7789v_get_pixel_C(uint16_t point_x, uint16_t point_y) {
-    uint16_t clr565;
-    st7789v_cmd_caset(point_x, 1);
-    st7789v_cmd_raset(point_y, 1);
-    st7789v_cmd_ramrd((uint8_t *)(&clr565), 2);
-    return color_from_565(clr565);
-}
-
-void st7789v_set_pixel_directColor_C(uint16_t point_x, uint16_t point_y, uint16_t directColor) {
-    st7789v_cmd_caset(point_x, 1);
-    st7789v_cmd_raset(point_y, 1);
-    st7789v_cmd_ramwr((uint8_t *)(&directColor), 2);
 }
 
 //1 == 0000 0001, 5 == 0001 1111
@@ -394,7 +380,7 @@ static uint16_t rd18bit_to_16bit(uint8_t *buff) {
     return ((uint16_t)(buff[0] >> 5) & set_num_of_ones(3)) | (((uint16_t)(buff[2] >> 3) & set_num_of_ones(5)) << 3) | (((uint16_t)(buff[1] >> 3) & set_num_of_ones(5)) << 8) | (((uint16_t)(buff[0] >> 2) & set_num_of_ones(3)) << 13);
 }
 
-uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
+uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y) {
     enum { buff_sz = 5 };
     uint8_t buff[buff_sz];
     st7789v_cmd_caset(point_x, 1);
@@ -405,7 +391,7 @@ uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
 }
 
 /// Draws a solid rectangle of defined color
-void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565) {
+void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565) {
 
     uint32_t size = (uint32_t)rect_w * rect_h * 2; // area of rectangle
 
@@ -586,11 +572,11 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
     uint16_t w = png_get_image_width(pp, ppi);
     uint16_t h = png_get_image_height(pp, ppi);
     int rowsize = png_get_rowbytes(pp, ppi);
-    //_dbg("st7789v_draw_png rowsize = %i", rowsize);
+    //_dbg("display_ex_draw_png rowsize = %i", rowsize);
     if (rowsize > ST7789V_COLS * 4)
         goto _e_1;
     int pixsize = rowsize / w;
-    //_dbg("st7789v_draw_png pixsize = %i", pixsize);
+    //_dbg("display_ex_draw_png pixsize = %i", pixsize);
     int i;
     int j;
     st7789v_clr_cs();

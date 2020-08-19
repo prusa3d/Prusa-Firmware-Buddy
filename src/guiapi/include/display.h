@@ -6,6 +6,7 @@
 #include "display_helper.h"
 #include <algorithm>
 #include "Rect16.h"
+#include "display_ex.hpp"
 
 typedef void(display_init_t)(void);
 typedef void(display_done_t)(void);
@@ -77,16 +78,16 @@ public:
     constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
 };
 
-#include "st7789v.hpp"
+#include "st7789v.h"
 using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_init,
     st7789v_done,
-    st7789v_clear,
-    st7789v_set_pixel,
-    st7789v_draw_line,
-    st7789v_draw_rect,
-    st7789v_fill_rect,
-    st7789v_draw_charUnicode,
+    display_ex_clear,
+    display_ex_set_pixel,
+    display_ex_draw_line,
+    display_ex_draw_rect,
+    display_ex_fill_rect,
+    display_ex_draw_charUnicode,
     render_text,
-    st7789v_draw_icon,
-    st7789v_draw_png>;
+    display_ex_draw_icon,
+    display_ex_draw_png>;
