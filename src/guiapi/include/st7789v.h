@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "guitypes.h"
+#include "display_math_helper.h"
 
 //public flags (config)
 #define ST7789V_FLG_DMA  0x08 // DMA enabled
@@ -36,11 +37,6 @@ typedef struct _st7789v_config_t {
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-
-__attribute__((used)) inline uint16_t swap_ui16(uint16_t val) {
-    return __builtin_bswap16(val);
-    //return (val >> 8) | ((val & 0xff) << 8);
-}
 
 __attribute__((used)) inline uint16_t color_to_565(uint32_t clr) {
     return swap_ui16(((clr >> 19) & 0x001f) | ((clr >> 5) & 0x07e0) | ((clr << 8) & 0xf800));
