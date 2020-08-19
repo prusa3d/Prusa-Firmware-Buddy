@@ -123,7 +123,6 @@ void window_frame_t::draw() {
 void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
-    bool endSignal = false;
 
     switch (event) {
     case WINDOW_EVENT_BTN_DN:
@@ -136,14 +135,12 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
             if (!pPrev) {
-                endSignal = true;
+                Sound_Play(eSOUND_TYPE_BlindAlert);
                 break;
             }
             pWin = pPrev;
         }
-        if (endSignal) {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
-        } else {
+        if (pWin) {
             pWin->SetFocus();
         }
         break;
@@ -151,14 +148,12 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
             if (!pNext) {
-                endSignal = true;
+                Sound_Play(eSOUND_TYPE_BlindAlert);
                 break;
             }
             pWin = pNext;
         }
-        if (endSignal) {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
-        } else {
+        if (pWin) {
             pWin->SetFocus();
         }
         break;
