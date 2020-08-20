@@ -327,7 +327,7 @@ void st7789v_done(void) {
 }
 
 /// Fills screen by this color
-void st7789v_clear_C(uint16_t clr565) {
+void st7789v_clear(uint16_t clr565) {
     // FIXME similar to display_ex_fill_rect; join?
     int i;
     for (i = 0; i < ST7789V_COLS * 16; i++)
@@ -343,7 +343,7 @@ void st7789v_clear_C(uint16_t clr565) {
 }
 
 /// Turns the specified pixel to the specified color
-void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
+void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
     st7789v_cmd_caset(point_x, 1);
     st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
@@ -414,65 +414,6 @@ void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t 
     st7789v_cmd_raset(y, y + h - 1);
     st7789v_cmd_ramwr(st7789v_buff, 2 * w * h);
     st7789v_set_cs();
-}
-
-static inline void rop_rgb888_invert(uint8_t *ppx888) {
-    ppx888[0] = 255 - ppx888[0];
-    ppx888[1] = 255 - ppx888[1];
-    ppx888[2] = 255 - ppx888[2];
-}
-
-#define SWAPBW_TOLERANCE 64
-static inline void rop_rgb888_swapbw(uint8_t *ppx888) {
-    const uint8_t r = ppx888[0];
-    const uint8_t g = ppx888[1];
-    const uint8_t b = ppx888[2];
-    const uint8_t l = (r + g + b) / 3;
-    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
-    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
-
-    if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
-        ppx888[0] = 255 - r;
-        ppx888[1] = 255 - g;
-        ppx888[2] = 255 - b;
-    }
-}
-
-static inline void rop_rgb888_disabled(uint8_t *ppx888) {
-    const uint8_t r = ppx888[0];
-    const uint8_t g = ppx888[1];
-    const uint8_t b = ppx888[2];
-    const uint8_t l = (r + g + b) / 3;
-    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
-    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
-    if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
-        ppx888[0] = r / 2;
-        ppx888[1] = g / 2;
-        ppx888[2] = b / 2;
-    }
-}
-
-static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
-    const uint8_t r = ppx[0];
-    const uint8_t g = ppx[1];
-    const uint8_t b = ppx[2];
-    const uint8_t a = ppx[3];
-    if ((r == g) && (r == b)) {
-        ppx[0] = 255 - r;
-        ppx[1] = 255 - g;
-        ppx[2] = 255 - b;
-        if (/*(r < 32) && */ (a < 128)) {
-            ppx[0] = 0;
-            ppx[1] = 0;
-            ppx[2] = 255;
-            ppx[3] = 255;
-        }
-    } else if (a < 128) {
-        ppx[0] = 0;
-        ppx[1] = 255;
-        ppx[2] = 0;
-        ppx[3] = 255;
-    }
 }
 
 #ifdef ST7789V_PNG_SUPPORT
