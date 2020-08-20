@@ -30,6 +30,65 @@ __attribute__((used)) inline uint32_t color_alpha(const uint32_t clr0, const uin
     return color_rgb(r, g, b);
 }
 
+__attribute__((used)) inline void rop_rgb888_invert(uint8_t *ppx888) {
+    ppx888[0] = 255 - ppx888[0];
+    ppx888[1] = 255 - ppx888[1];
+    ppx888[2] = 255 - ppx888[2];
+}
+
+#define SWAPBW_TOLERANCE 64
+__attribute__((used)) inline void rop_rgb888_swapbw(uint8_t *ppx888) {
+    const uint8_t r = ppx888[0];
+    const uint8_t g = ppx888[1];
+    const uint8_t b = ppx888[2];
+    const uint8_t l = (r + g + b) / 3;
+    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
+    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
+
+    if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
+        ppx888[0] = 255 - r;
+        ppx888[1] = 255 - g;
+        ppx888[2] = 255 - b;
+    }
+}
+
+__attribute__((used)) inline void rop_rgb888_disabled(uint8_t *ppx888) {
+    const uint8_t r = ppx888[0];
+    const uint8_t g = ppx888[1];
+    const uint8_t b = ppx888[2];
+    const uint8_t l = (r + g + b) / 3;
+    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
+    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
+    if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
+        ppx888[0] = r / 2;
+        ppx888[1] = g / 2;
+        ppx888[2] = b / 2;
+    }
+}
+
+__attribute__((used)) inline void rop_rgb8888_swapbw(uint8_t *ppx) {
+    const uint8_t r = ppx[0];
+    const uint8_t g = ppx[1];
+    const uint8_t b = ppx[2];
+    const uint8_t a = ppx[3];
+    if ((r == g) && (r == b)) {
+        ppx[0] = 255 - r;
+        ppx[1] = 255 - g;
+        ppx[2] = 255 - b;
+        if (/*(r < 32) && */ (a < 128)) {
+            ppx[0] = 0;
+            ppx[1] = 0;
+            ppx[2] = 255;
+            ppx[3] = 255;
+        }
+    } else if (a < 128) {
+        ppx[0] = 0;
+        ppx[1] = 255;
+        ppx[2] = 0;
+        ppx[3] = 255;
+    }
+}
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
