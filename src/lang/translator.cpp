@@ -5,19 +5,15 @@ string_view_utf8 gettext(const char *src) {
     return Translations::Instance().CurrentProvider()->GetText(src);
 }
 
-/// Just to have a meaningfull translation provider if there are no real translations available
-/// ... or at least until there some translations available
-static const EmptyTranslationProvider emptyProvider;
-
 namespace {
 // register the emptyProvider as "translator" for EN language ... i.e. return the source string intact
-ProviderRegistrator prEN("en", &emptyProvider);
+ProviderRegistrator prEN("en", EmptyTranslationProvider::Instance());
 }
 
 // this explicit initialization of currentProvider is here to make sure the pointer is always initialized
 // even if there were no registered languages at all
 Translations::Translations()
-    : currentProvider(&emptyProvider) {
+    : currentProvider(EmptyTranslationProvider::Instance()) {
 }
 
 bool Translations::RegisterProvider(uint16_t langCode, const ITranslationProvider *provider) {
