@@ -233,6 +233,9 @@ void general_error_run() {
 //! @n "Emergency stop (M112)"
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
 
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+
     /// TODO decision tree
     const uint16_t error_code = 12201;
     // if (module[0] != 'E') {
@@ -258,9 +261,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         text_body = error_list[i].err_text;
     }
 
-    general_error_init();
-    display::Clear(COLOR_RED_ALERT);
-
     /// draw header & main text
     display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
@@ -269,7 +269,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     /// draw "Scan me" text
     // r=1 c=34
     static const char *scan_me_text = N_("Scan me for details");
-    display::DrawText(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+    render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
     /// draw "Scan me" arrow
     /// FIXME arrow overlaps with QR code (bad PNG)
@@ -286,8 +286,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     win.text = qr_text;
     win.bg_color = COLOR_WHITE;
 
-    //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
-
     /// use PNG RAM for QR code image
     uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
     uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
@@ -300,7 +298,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     error_url_short(qr_text, sizeof(qr_text), error_code);
     // this MakeRAM is safe - qr_text is a local buffer on stack
     render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
-    //display::DrawText(Rect16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
     /// wait for restart
     while (1) {
