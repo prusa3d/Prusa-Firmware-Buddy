@@ -6,15 +6,12 @@
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
+#include "Jogwheel.hpp"
+#include "ScreenShot.hpp"
 
 #define GUI_FLG_INVALID 0x0001
 
 uint16_t gui_flags = 0;
-
-#ifdef GUI_JOGWHEEL_SUPPORT
-int gui_jogwheel_encoder = 0;
-int gui_jogwheel_button_down = 0;
-#endif //GUI_JOGWHEEL_SUPPORT
 
 #ifdef GUI_USE_RTOS
 osThreadId gui_task_handle = 0;
@@ -35,10 +32,6 @@ uint32_t gui_loop_tick = 0;
 
 void gui_init(void) {
     display::Init();
-#ifdef GUI_JOGWHEEL_SUPPORT
-    jogwheel_init();
-    gui_reset_jogwheel();
-#endif //GUI_JOGWHEEL_SUPPORT
     gui_task_handle = osThreadGetId();
 }
 
@@ -70,45 +63,46 @@ void gui_loop(void) {
     ++guiloop_nesting;
     uint32_t delay;
     uint32_t tick;
-    #ifdef GUI_JOGWHEEL_SUPPORT
 
-    // Encoder sound moved from guimain to gui loop to control encoder sounds in
-    // every gui screens. Previous method wasn't everywhere.
-    if ((jogwheel_changed & 1) && jogwheel_button_down) { //button changed and pressed
+    #ifdef GUI_JOGWHEEL_SUPPORT
+    Jogwheel::ButtonAction btn = jogwheel.GetButtonAction();
+    bool encoder_changed = jogwheel.EncoderChanged();
+    if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
         Sound_Play(eSOUND_TYPE_ButtonEcho);
-    } else if (jogwheel_changed & 2) { // encoder changed
-        Sound_Play(eSOUND_TYPE_EncoderMove);
     }
 
-    if (jogwheel_changed) {
+    if (encoder_changed || btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
         if (gui_loop_cb)
             gui_loop_cb();
-        jogwheel_changed = 0;
         window_t *capturedWin = window_t::GetCapturedWindow();
-        if ((jogwheel_encoder != gui_jogwheel_encoder)) {
-            int dif = jogwheel_encoder - gui_jogwheel_encoder;
-            if (capturedWin) {
-                if (dif > 0)
-                    capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_UP, (void *)dif);
-                else if (dif < 0)
-                    capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_DN, (void *)-dif);
+        int diff = jogwheel.GetEncoderDiff();
+        if (diff != 0) {
+            if (diff > 0) {
+                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_UP, (void *)diff);
+            } else {
+                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_DN, (void *)-diff);
             }
-            gui_jogwheel_encoder = jogwheel_encoder;
+            Sound_Play(eSOUND_TYPE_EncoderMove);
             gui_reset_menu_timer();
         }
-        if (!jogwheel_button_down ^ !gui_jogwheel_button_down) {
-            if (capturedWin) {
-                if (gui_jogwheel_button_down)
-                    capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
-                else
-                    capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_DN, 0);
+        if (btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
+            if (btn == Jogwheel::ButtonAction::BTN_CLICKED) {
+                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_CLICK, 0);
+            } else if (btn == Jogwheel::ButtonAction::BTN_DOUBLE_CLICKED) {
+                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
+            } else if (btn == Jogwheel::ButtonAction::BTN_HELD) {
+                Sound_Play(eSOUND_TYPE_ButtonEcho);
+                if (TakeAScreenshot()) {
+                    Sound_Play(eSOUND_TYPE_ButtonEcho);
+                } else {
+                    Sound_Play(eSOUND_TYPE_StandardAlert);
+                }
             }
-            gui_jogwheel_button_down = jogwheel_button_down;
             gui_reset_menu_timer();
         }
     }
-
     #endif //GUI_JOGWHEEL_SUPPORT
+
     delay = gui_timers_cycle();
     if (delay < GUI_DELAY_MIN)
         delay = GUI_DELAY_MIN;
@@ -146,10 +140,3 @@ void gui_reset_menu_timer() {
 }
 
 #endif //GUI_WINDOW_SUPPORT
-
-#ifdef GUI_JOGWHEEL_SUPPORT
-void gui_reset_jogwheel(void) {
-    gui_jogwheel_encoder = jogwheel_encoder;
-    gui_jogwheel_button_down = jogwheel_button_down;
-}
-#endif //GUI_JOGWHEEL_SUPPORT

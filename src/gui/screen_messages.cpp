@@ -56,7 +56,6 @@ screen_messages_data_t::screen_messages_data_t()
 void screen_messages_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK:
         if (list.index == 0) {
             Screens::Access()->Close();

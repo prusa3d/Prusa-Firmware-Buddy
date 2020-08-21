@@ -90,7 +90,6 @@ public:
 template <class T>
 void DialogStateful<T>::windowEvent(window_t * /*sender*/, uint8_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK: {
         Response response = radio.Click();
         marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);

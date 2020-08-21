@@ -6,7 +6,7 @@
 #include "config.h"
 #include "dbg.h"
 #include "adc.h"
-#include "jogwheel.h"
+#include "Jogwheel.hpp"
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
@@ -225,7 +225,7 @@ void app_tim14_tick(void) {
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."
 #elif HAS_GUI
-    jogwheel_update_1ms();
+    jogwheel.Update1ms();
 #endif
     Sound_Update1ms();
     //hwio_update_1ms();
