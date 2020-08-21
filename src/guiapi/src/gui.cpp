@@ -86,11 +86,16 @@ void gui_loop(void) {
             gui_reset_menu_timer();
         }
         if (btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
-            if (btn == Jogwheel::ButtonAction::BTN_CLICKED) {
+            if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
+                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_DN, 0);
+            } else if (btn == Jogwheel::ButtonAction::BTN_CLICKED) {
+                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_CLICK, 0);
             } else if (btn == Jogwheel::ButtonAction::BTN_DOUBLE_CLICKED) {
+                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
             } else if (btn == Jogwheel::ButtonAction::BTN_HELD) {
+                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
                 Sound_Play(eSOUND_TYPE_ButtonEcho);
                 if (TakeAScreenshot()) {
                     Sound_Play(eSOUND_TYPE_ButtonEcho);
