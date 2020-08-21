@@ -113,8 +113,21 @@ void error_url_long(char *str, uint32_t str_size, int error_code) {
 }
 
 void error_url_short(char *str, uint32_t str_size, int error_code) {
+    /// help....com/
     strlcpy(str, ERROR_URL_SHORT_PREFIX, str_size);
-    /// FIXME add language (/en, ...)
+
+    /// language (/en)
+    char lang[3];
+    const uint16_t langNum = eeprom_get_var(EEVAR_LANGUAGE).ui16;
+    uint16_t *langP = (uint16_t *)lang;
+    *langP = langNum;
+    //uint16_t *(lang) = langNum;
+    //lang[0] = langNum / 256;
+    //lang[1] = langNum % 256;
+    lang[2] = '\0';
+    snprintf(eofstr(str), str_size - strlen(str), "/%s", lang);
+
+    /// /12201
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
 }
 
