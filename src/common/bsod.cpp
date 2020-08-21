@@ -238,9 +238,9 @@ void draw_error_screen(const uint16_t error_code_short) {
         ++i;
     }
     if (i == sizeof(error_list)) {
-        /// TODO define default text
-        text_title = "ERROR";
-        text_body = "";
+        /// wait for restart - endless loop
+        while (1)
+            wdt_iwdg_refresh();
     } else {
         text_title = error_list[i].err_title;
         text_body = error_list[i].err_text;
@@ -284,10 +284,19 @@ void draw_error_screen(const uint16_t error_code_short) {
     // this MakeRAM is safe - qr_text is a local buffer on stack
     render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
-    /// wait for restart
-    while (1) {
+    /// wait for restart - endless loop
+    while (1)
         wdt_iwdg_refresh();
+}
+
+/// \returns nth character of the string
+/// \returns \0 if the string is too short
+char nth_char(const char str[], uint16_t nth) {
+    while (nth > 0 && str[0] != 0) {
+        --nth;
+        ++str;
     }
+    return str[0];
 }
 
 //! Known possible reasons.
@@ -301,13 +310,75 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     general_error_init();
     display::Clear(COLOR_RED_ALERT);
 
-    /// TODO decision tree
-    const uint16_t error_code_short = 201;
-    // if (module[0] != 'E') {
-    //     text = bad_bed;
-    // } else {
-    //     text = bad_head;
-    // }
+    uint16_t error_code_short = 0;
+
+    /// Decision tree to define error code
+    if (module == nullptr) {
+        switch (error[0]) {
+        // case ' ': /// - Invalid extruder number !
+        //     error_code_short = 0;
+        //     break;
+        case 'E': /// Emergency stop (M112)
+            error_code_short = 510;
+            break;
+            // case 'I': /// Inactive time kill
+            //     error_code_short = 0;
+            //     break;
+        }
+    } else if (module != nullptr) {
+        switch (error[0]) {
+
+        case 'E': /// Err:
+            switch (nth_char(error, 6)) {
+
+            case 'A': { /// Err: MAXTEMP
+                switch (module[0]) {
+                case 'B':
+                    error_code_short = 205; /// Bed
+                    break;
+                case 'E':
+                    error_code_short = 206; /// Extruder
+                    break;
+                }
+                break;
+            }
+
+            case 'I': { /// Err: MINTEMP
+                switch (module[0]) {
+                case 'B':
+                    error_code_short = 207; /// Bed
+                    break;
+                case 'E':
+                    error_code_short = 208; /// Extruder
+                    break;
+                }
+                break;
+            }
+
+            case 'H': /// Heating Failed
+                switch (module[0]) {
+                case 'B':
+                    error_code_short = 201; /// Bed
+                    break;
+                case 'E':
+                    error_code_short = 202; /// Extruder
+                    break;
+                }
+                break;
+
+            case 'T': /// THERMAL RUNAWAY
+                switch (module[0]) {
+                case 'B':
+                    error_code_short = 203; /// Bed
+                    break;
+                case 'E':
+                    error_code_short = 204; /// Extruder
+                    break;
+                }
+                break;
+            }
+        }
+    }
 
     draw_error_screen(error_code_short);
 }
