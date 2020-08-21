@@ -4,6 +4,7 @@
 
 #include <inttypes.h>
 #include <stdio.h>
+#include "mapfile.h"
 
 #define DUMP_RAM_ADDR   0x20000000
 #define DUMP_RAM_SIZE   0x00020000
@@ -68,6 +69,19 @@ typedef struct _dump_info_t {
     uint8_t reserved[15];
 } dump_info_t;
 
+typedef struct _dump_mallinfo_t {
+    uint32_t arena;    /* total space allocated from system */
+    uint32_t ordblks;  /* number of non-inuse chunks */
+    uint32_t smblks;   /* unused -- always zero */
+    uint32_t hblks;    /* number of mmapped regions */
+    uint32_t hblkhd;   /* total space in mmapped regions */
+    uint32_t usmblks;  /* unused -- always zero */
+    uint32_t fsmblks;  /* unused -- always zero */
+    uint32_t uordblks; /* total allocated space */
+    uint32_t fordblks; /* total non-inuse space */
+    uint32_t keepcost; /* top-most, releasable (via malloc_trim) space */
+} dump_mallinfo_t;
+
 typedef struct _dump_tcb_t {
     uint32_t pxTopOfStack;
     uint32_t xStateListItem[5];
@@ -75,7 +89,31 @@ typedef struct _dump_tcb_t {
     uint32_t uxPriority;
     uint32_t pxStack;
     char pcTaskName[16];
+    uint32_t uxTCBNumber;
+    uint32_t uxTaskNumber;
+    uint32_t uxBasePriority;
+    uint32_t uxMutexesHeld;
 } dump_tcb_t;
+
+typedef struct _dump_listitem_t {
+    uint32_t xItemValue;
+    uint32_t pxNext;
+    uint32_t pxPrevious;
+    uint32_t pvOwner;
+    uint32_t pvContainer;
+} dump_listitem_t;
+
+typedef struct _dump_minlistitem_t {
+    uint32_t xItemValue;
+    uint32_t pxNext;
+    uint32_t pxPrevious;
+} dump_minlistitem_t;
+
+typedef struct _dump_list_t {
+    uint32_t uxNumberOfItems;
+    uint32_t pxIndex;
+    dump_minlistitem_t xListEnd;
+} dump_list_t;
 
 #pragma pack(pop)
 
@@ -85,7 +123,7 @@ typedef struct _dump_t {
     uint8_t *otp;
     uint8_t *flash;
     dump_regs_gen_t *regs_gen;
-    uint8_t *regs_scb;
+    uint32_t *regs_scb;
     dump_info_t *info;
 } dump_t;
 
@@ -107,15 +145,19 @@ extern void dump_get_data(dump_t *pd, uint32_t addr, uint32_t size, uint8_t *dat
 
 extern uint32_t dump_get_ui32(dump_t *pd, uint32_t addr);
 
-extern void dump_print_hardfault_simple(dump_t *pd);
-
-extern void dump_print_hardfault_detail(dump_t *pd);
-
 extern int dump_load_bin_from_file(void *data, int size, const char *fn);
 
 extern int dump_save_bin_to_file(void *data, int size, const char *fn);
 
 extern uint32_t dump_find_in_flash(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t start_addr, uint32_t end_addr);
+
+extern mapfile_mem_entry_t *dump_print_var(dump_t *pd, mapfile_t *pm, const char *name);
+
+extern mapfile_mem_entry_t *dump_print_var_ui32(dump_t *pd, mapfile_t *pm, const char *name);
+
+extern mapfile_mem_entry_t *dump_print_var_pchar(dump_t *pd, mapfile_t *pm, const char *name);
+
+extern void dump_print(dump_t *pd, mapfile_t *pm);
 
 #ifdef __cplusplus
 }

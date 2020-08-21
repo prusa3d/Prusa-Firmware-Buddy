@@ -33,7 +33,9 @@ extern void mapfile_free(mapfile_t *pm);
 
 extern mapfile_t *mapfile_load(const char *fn);
 
-extern mapfile_mem_entry_t *mapfile_find_mem_entry(mapfile_t *pm, const char *name);
+extern mapfile_mem_entry_t *mapfile_find_mem_entry_by_name(mapfile_t *pm, const char *name);
+
+extern mapfile_mem_entry_t *mapfile_find_mem_entry_by_addr(mapfile_t *pm, uint32_t addr);
 
 #ifdef __cplusplus
 }

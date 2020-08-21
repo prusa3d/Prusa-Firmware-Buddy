@@ -8,6 +8,18 @@
 #include "dump.h"
 #include "mapfile.h"
 
+dump_t *pdump = 0;
+mapfile_t *pmap = 0;
+uint8_t *pbin = 0;
+
+mapfile_mem_entry_t *_print_ui32(const char *name) {
+    return dump_print_var_ui32(pdump, pmap, name);
+}
+
+mapfile_mem_entry_t *_print_pchar(const char *name) {
+    return dump_print_var_pchar(pdump, pmap, name);
+}
+
 int main(int argc, char **argv) {
     int ret = 0;
 
@@ -15,9 +27,6 @@ int main(int argc, char **argv) {
     char map_fn[MAX_PATH] = "firmware.map";
     char bin_fn[MAX_PATH] = "firmware.bin";
     char out_dir[MAX_PATH] = "";
-    dump_t *pdump = 0;
-    mapfile_t *pmap = 0;
-    uint8_t *pbin = 0;
 
     int argn = 0;
     char *arg = 0;
@@ -57,12 +66,22 @@ int main(int argc, char **argv) {
     if (ret == 0) {
 
         // load dump file
-        if (strlen(dump_fn))
+        if (strlen(dump_fn)) {
             pdump = dump_load(dump_fn);
+            if (pdump != NULL)
+                fprintf(stdout, "DUMP file '%s' loaded - OK.\n", dump_fn);
+            else
+                fprintf(stderr, "DUMP file '%s' load error - NG!\n", dump_fn);
+        }
 
         // load map file
-        if (strlen(map_fn))
+        if (strlen(map_fn)) {
             pmap = mapfile_load(map_fn);
+            if (pmap != NULL)
+                fprintf(stdout, "MAP file '%s' loaded - OK.\n", map_fn);
+            else
+                fprintf(stderr, "MAP file '%s' load error - NG!\n", map_fn);
+        }
 
         // load bin file if exists
         if (strlen(bin_fn)) {
@@ -76,47 +95,26 @@ int main(int argc, char **argv) {
         }
 
         if (pdump) {
-            dump_print_hardfault_detail(pdump);
+            dump_print(pdump, pmap);
 
             puts("");
 
             if (pmap) {
-                mapfile_mem_entry_t *e;
-
-                if ((e = mapfile_find_mem_entry(pmap, "project_version_full")) != NULL) {
-                    char *project_version_full = (char *)(pdump->flash + (e->addr - DUMP_FLASH_ADDR));
-                    printf("&project_version_full=0x%08x \n", e->addr);
-                    printf("project_version_full=%s \n", project_version_full);
-                } else
-                    printf("project_version_full not found!\n");
-
-                puts("");
-
-                if ((e = mapfile_find_mem_entry(pmap, "xTickCount")) != NULL) {
-                    uint32_t xTickCount = dump_get_ui32(pdump, e->addr);
-                    printf("xTickCount=%u ms (%u hours)\n", xTickCount, xTickCount / (1000 * 60 * 60));
-                }
-
-                if ((e = mapfile_find_mem_entry(pmap, "uwTick")) != NULL) {
-                    uint32_t uwTick = dump_get_ui32(pdump, e->addr);
-                    printf("uwTick=%u ms (%u hours)\n", uwTick, uwTick / (1000 * 60 * 60));
-                }
-
-                puts("");
+                //                mapfile_mem_entry_t *e;
 
                 // defaultTask
                 /*				uint32_t defaultTask_txt_addr = dump_find_in_flash(pdump, (uint8_t*)"defaultTask", 11, 0, -1);
 				printf("defaultTask_txt_addr=0x%08x\n", defaultTask_txt_addr);
 				uint32_t defaultTask_txt_addr_ref = dump_find_in_flash(pdump, (uint8_t*)&defaultTask_txt_addr, 4, 0, -1);
 				printf("defaultTask_txt_addr_ref=0x%08x\n", defaultTask_txt_addr_ref);*/
-                if ((e = mapfile_find_mem_entry(pmap, "StartDefaultTask")) != NULL) {
-                    printf("StartDefaultTask=0x%08x\n", e->addr);
-                    //					uint32_t rStartDefaultTask = dump_find_ui32_in_flash(pdump, e->addr, 0, -1);
-                    //					printf("rStartDefaultTask=0x%08x\n", rStartDefaultTask);
-                }
-
+                //                if ((e = mapfile_find_mem_entry_by_name(pmap, "StartDefaultTask")) != NULL) {
+                //                    printf("StartDefaultTask=0x%08x\n", e->addr);
+                //					uint32_t rStartDefaultTask = dump_find_ui32_in_flash(pdump, e->addr, 0, -1);
+                //					printf("rStartDefaultTask=0x%08x\n", rStartDefaultTask);
+                //                }
+                /*
                 uint32_t defaultTask_StackSize = 1024 * 4;
-                if ((e = mapfile_find_mem_entry(pmap, "defaultTaskHandle")) != NULL) {
+                if ((e = mapfile_find_mem_entry_by_name(pmap, "defaultTaskHandle")) != NULL) {
                     printf("&defaultTaskHandle=0x%08x\n", e->addr);
                     uint32_t defaultTaskHandle = dump_get_ui32(pdump, e->addr);
                     printf("defaultTaskHandle=0x%08x\n", defaultTaskHandle);
@@ -138,7 +136,7 @@ int main(int argc, char **argv) {
 
                 // displayTask
                 uint32_t displayTask_StackSize = 2048 * 4;
-                if ((e = mapfile_find_mem_entry(pmap, "displayTaskHandle")) != NULL) {
+                if ((e = mapfile_find_mem_entry_by_name(pmap, "displayTaskHandle")) != NULL) {
                     printf("&displayTaskHandle=0x%08x\n", e->addr);
                     uint32_t displayTaskHandle = dump_get_ui32(pdump, e->addr);
                     printf("displayTaskHandle=0x%08x\n", displayTaskHandle);
@@ -160,7 +158,7 @@ int main(int argc, char **argv) {
 
                 // webServerTask
                 uint32_t webServerTask_StackSize = 1024 * 4;
-                if ((e = mapfile_find_mem_entry(pmap, "webServerTaskHandle")) != NULL) {
+                if ((e = mapfile_find_mem_entry_by_name(pmap, "webServerTaskHandle")) != NULL) {
                     printf("&webServerTaskHandle=0x%08x\n", e->addr);
                     uint32_t webServerTaskHandle = dump_get_ui32(pdump, e->addr);
                     printf("webServerTaskHandle=0x%08x\n", webServerTaskHandle);
@@ -180,7 +178,7 @@ int main(int argc, char **argv) {
 
                 // measurementTask
                 uint32_t measurementTask_StackSize = 512 * 4;
-                if ((e = mapfile_find_mem_entry(pmap, "measurementTaskHandle")) != NULL) {
+                if ((e = mapfile_find_mem_entry_by_name(pmap, "measurementTaskHandle")) != NULL) {
                     printf("&measurementTaskHandle=0x%08x\n", e->addr);
                     uint32_t measurementTaskHandle = dump_get_ui32(pdump, e->addr);
                     printf("measurementTaskHandle=0x%08x\n", measurementTaskHandle);
@@ -196,15 +194,19 @@ int main(int argc, char **argv) {
                             break;
                     uint32_t measurementTask_StackMaxDepth = addr - pmeasurementTask_TCB->pxStack;
                     printf(" StackMaxDepth=0x%08x (%d%%)\n", measurementTask_StackMaxDepth, 100 * (measurementTask_StackSize - measurementTask_StackMaxDepth) / measurementTask_StackSize);
-                }
+                }*/
             }
         }
+
+        if (pbin)
+            free(pbin);
 
         if (pmap)
             mapfile_free(pmap);
 
         if (pdump)
             dump_free(pdump);
+
     } else { // print help in case of some error
         printf("dumpread - utility for working with dump.bin file\n");
         printf(" arguments:\n");
@@ -214,7 +216,9 @@ int main(int argc, char **argv) {
         printf("  -out=OUT_DIRECTORY   output directory\n");
     }
 
-    getchar();
+    fflush(stdout);
+
+    //    getchar();
 
     return ret;
 }
