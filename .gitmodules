@@ -1,6 +1,3 @@
-[submodule "LwIP"]
-	path = lib/Middlewares/Third_Party/LwIP
-	url = https://github.com/prusa3d/LwIP_212.git
 [submodule "lib/jsmn"]
 	path = lib/jsmn
 	url = https://github.com/zserge/jsmn.git
