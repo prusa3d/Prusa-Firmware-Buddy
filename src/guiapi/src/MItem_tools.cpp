@@ -229,7 +229,7 @@ MI_ES_12201::MI_ES_12201()
 }
 
 void MI_ES_12201::click(IWindowMenu & /*window_menu*/) {
-    temp_error_code(12201);
+    temp_error_code(201);
 }
 
 /*****************************************************************************/
@@ -238,7 +238,7 @@ MI_ES_12202::MI_ES_12202()
 }
 
 void MI_ES_12202::click(IWindowMenu & /*window_menu*/) {
-    temp_error_code(12202);
+    temp_error_code(202);
 }
 
 /*****************************************************************************/
@@ -247,7 +247,7 @@ MI_ES_12203::MI_ES_12203()
 }
 
 void MI_ES_12203::click(IWindowMenu & /*window_menu*/) {
-    temp_error_code(12203);
+    temp_error_code(203);
 }
 
 /*****************************************************************************/
@@ -256,7 +256,7 @@ MI_ES_12204::MI_ES_12204()
 }
 
 void MI_ES_12204::click(IWindowMenu & /*window_menu*/) {
-    temp_error_code(12204);
+    temp_error_code(204);
 }
 
 /*****************************************************************************/
@@ -265,7 +265,7 @@ MI_ES_12205::MI_ES_12205()
 }
 
 void MI_ES_12205::click(IWindowMenu & /*window_menu*/) {
-    temp_error_code(12205);
+    temp_error_code(205);
 }
 
 /*****************************************************************************/
@@ -274,7 +274,7 @@ MI_ES_12206::MI_ES_12206()
 }
 
 void MI_ES_12206::click(IWindowMenu & /*window_menu*/) {
-    temp_error_code(12206);
+    temp_error_code(206);
 }
 
 /*****************************************************************************/
@@ -283,7 +283,7 @@ MI_ES_12207::MI_ES_12207()
 }
 
 void MI_ES_12207::click(IWindowMenu & /*window_menu*/) {
-    temp_error_code(12207);
+    temp_error_code(207);
 }
 
 /*****************************************************************************/
@@ -292,7 +292,7 @@ MI_ES_12208::MI_ES_12208()
 }
 
 void MI_ES_12208::click(IWindowMenu & /*window_menu*/) {
-    temp_error_code(12208);
+    temp_error_code(208);
 }
 
 /*****************************************************************************/
