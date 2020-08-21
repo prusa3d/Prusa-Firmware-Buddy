@@ -34,7 +34,7 @@
     #include "support_utils.h"
     #include "str_utils.hpp"
     #include "guitypes.h"
-    #include "../lang/i18n.h"
+    #include "i18n.h"
     #include "../../lib/Prusa-Error-Codes/12/errors_list.h"
 
     /* FreeRTOS includes. */
