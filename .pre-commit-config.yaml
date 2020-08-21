@@ -25,4 +25,8 @@ repos:
       args: [--markdown-linebreak-ext=md]
     - id: end-of-file-fixer
     - id: mixed-line-ending
-exclude: 'tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$'
+exclude: |
+  (?x)(
+    ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$|
+    ^lib/
+  )
