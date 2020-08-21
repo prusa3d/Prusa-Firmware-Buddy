@@ -232,44 +232,48 @@ void general_error_run() {
 //! @n MSG_T_MINTEMP
 //! @n "Emergency stop (M112)"
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    //const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
 
-    /// FIXME include proper .h file instead
-    /// r=5 c=20
-    static const char bad_bed[] = N_("Check the heatbed heater & thermistor wiring for possible damage.");
-    /// r=5 c=20
-    //static const char bad_bed_wire[] = N_("Check the heatbed thermistor wiring for possible damage.");
-    /// r=5 c=20
-    static const char bad_head[] = N_("Check the print head heater & thermistor wiring for possible damage.");
-    /// r=5 c=20
-    //static const char bad_head_wire[] = N_("Check the print head thermistor wiring for possible damage.");
-
-    /// TODO find proper error code
+    /// TODO decision tree
     const uint16_t error_code = 12201;
+    // if (module[0] != 'E') {
+    //     text = bad_bed;
+    // } else {
+    //     text = bad_head;
+    // }
 
-    /// TODO search proper text according to error code
-    const char *text;
-    if (module[0] != 'E') {
-        text = bad_bed;
+    /// search for proper text according to error code
+    const char *text_title;
+    const char *text_body;
+
+    int i = 0;
+    while (i < sizeof(error_list) && error_code != error_list[i].err_num) {
+        ++i;
+    }
+    if (i == sizeof(error_list)) {
+        /// TODO define default text
+        text_title = "ERROR";
+        text_body = "";
     } else {
-        text = bad_head;
+        text_title = error_list[i].err_title;
+        text_body = error_list[i].err_text;
     }
 
     general_error_init();
     display::Clear(COLOR_RED_ALERT);
 
     /// draw header & main text
-    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
+    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
 
     /// draw "Scan me" text
-    // r=1 c=20
+    // r=1 c=34
     static const char *scan_me_text = N_("Scan me for details");
-    display::DrawText(Rect16(52, 142, display::GetW() - 52, display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
     /// draw "Scan me" arrow
-    render_icon_align(Rect16(191, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
+    /// FIXME arrow overlaps with QR code (bad PNG)
+    render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
 
     /// draw QR
     char qr_text[MAX_LEN_4QR + 1];
