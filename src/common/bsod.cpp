@@ -237,19 +237,21 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     display::Clear(COLOR_RED_ALERT);
 
     /// TODO decision tree
-    const uint16_t error_code = 12201;
+    const uint16_t error_code_short = 201;
     // if (module[0] != 'E') {
     //     text = bad_bed;
     // } else {
     //     text = bad_head;
     // }
 
+    const uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
+
     /// search for proper text according to error code
     const char *text_title;
     const char *text_body;
 
-    int i = 0;
-    while (i < sizeof(error_list) && error_code != error_list[i].err_num) {
+    uint32_t i = 0;
+    while (i < sizeof(error_list) && error_code_short != error_list[i].err_num) {
         ++i;
     }
     if (i == sizeof(error_list)) {
