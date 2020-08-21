@@ -4,10 +4,11 @@
 #include <inttypes.h>
 #include "ff.h"
 
-#define BMP_FILE_HEADER_SIZE         14
-#define BMP_INFO_HEADER_SIZE         40
-#define BYTES_PER_PIXEL              3 // R(1B) + G(1B) + B(1B)
-#define BMP_FILE_SIZE                (BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + display::GetW() * display::GetH() * BYTES_PER_PIXEL)
+#define BMP_FILE_HEADER_SIZE 14
+#define BMP_INFO_HEADER_SIZE 40
+
+#define ST7789V_BYTES_PER_PIXEL      2 // R(5b) + G(6b) + B(5b) = 16b = 2B
+#define BMP_FILE_SIZE                (BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL)
 #define SCREENSHOT_FILE_NAME_MAX_LEN 30
 
 static const char screenshot_name[] = "/screenshot";
@@ -30,12 +31,12 @@ static const unsigned char bmp_header[] = {
     (unsigned char)(display::GetH() >> 8),
     0,
     0,
-    1, 0,                                                                 /// number of color planes      [2B]
-    (unsigned char)(BYTES_PER_PIXEL * 8), 0,                              /// bits per pixel              [2B]
-    0, 0, 0, 0,                                                           /// compression                 [4B]
-    (unsigned char)(display::GetW() * display::GetH() * BYTES_PER_PIXEL), /// image size                  [4B]
-    (unsigned char)((display::GetW() * display::GetH() * BYTES_PER_PIXEL) >> 8),
-    (unsigned char)((display::GetW() * display::GetH() * BYTES_PER_PIXEL) >> 16),
+    1, 0,                                                                         /// number of color planes      [2B]
+    (unsigned char)(ST7789V_BYTES_PER_PIXEL * 8), 0,                              /// bits per pixel              [2B]
+    0, 0, 0, 0,                                                                   /// compression                 [4B]
+    (unsigned char)(display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL), /// image size                  [4B]
+    (unsigned char)((display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL) >> 8),
+    (unsigned char)((display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL) >> 16),
     0,
     0, 0, 0, 0, /// horizontal resolution       [4B]
     0, 0, 0, 0, /// vertical resolution         [4B]
@@ -44,14 +45,13 @@ static const unsigned char bmp_header[] = {
 };
 
 static void mirror_buffer(uint8_t *buffer) {
-    // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner and ili9488 in left-upper corner
-    // 6bit color chanals (0xFC) needs to be shifted to 8bit color chanals
-    for (int row = 0; row < ILI9488_BUFF_ROWS / 2; row++) {
-        for (int col = 0; col < ST7789V_COLS * BYTES_PER_PIXEL; col += BYTES_PER_PIXEL) {
-            for (int chan = 0; chan < BYTES_PER_PIXEL; chan++) {
-                uint8_t swapper = (buffer[row * ST7789V_COLS * BYTES_PER_PIXEL + col + chan] & 0xFC) << 2;
-                buffer[row * ST7789V_COLS * BYTES_PER_PIXEL + col + chan] = (buffer[(ILI9488_BUFF_ROWS - row - 1) * ST7789V_COLS * BYTES_PER_PIXEL + col + chan] & 0xFC) << 2;
-                buffer[(ILI9488_BUFF_ROWS - row - 1) * ST7789V_COLS * BYTES_PER_PIXEL + col + chan] = swapper;
+    // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner and st7789v in left-upper corner
+    for (int row = 0; row < ST7789V_BUFF_ROWS / 2; row++) {
+        for (int col = 0; col < ST7789V_COLS * ST7789V_BYTES_PER_PIXEL; col += ST7789V_BYTES_PER_PIXEL) {
+            for (int chan = 0; chan < ST7789V_BYTES_PER_PIXEL; chan++) {
+                uint8_t swapper = buffer[row * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan];
+                buffer[row * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan] = buffer[(ST7789V_BUFF_ROWS - row - 1) * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan];
+                buffer[(ST7789V_BUFF_ROWS - row - 1) * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan] = swapper;
             }
         }
     }
@@ -94,16 +94,16 @@ bool TakeAScreenshot() {
     UINT written = 0;
 
     if (success) {
-        for (uint8_t block = ILI9488_ROWS / ILI9488_BUFF_ROWS - 1; block >= 0 && block < ILI9488_ROWS / ILI9488_BUFF_ROWS; block--) {
-            point_ui16_t start = point_ui16(0, block * ILI9488_BUFF_ROWS);
-            point_ui16_t end = point_ui16(ILI9488_COLS - 1, (block + 1) * ILI9488_BUFF_ROWS - 1);
-            uint8_t *buffer = ili9488_get_block(start.x, start.y, end.x, end.y); // this pointer is valid only until another set_pixel or fill_rect is called
+        for (uint8_t block = ST7789V_ROWS / ST7789V_BUFF_ROWS - 1; block >= 0 && block < ST7789V_ROWS / ST7789V_BUFF_ROWS; block--) {
+            point_ui16_t start = point_ui16(0, block * ST7789V_BUFF_ROWS);
+            point_ui16_t end = point_ui16(ST7789V_COLS - 1, (block + 1) * ST7789V_BUFF_ROWS - 1);
+            uint8_t *buffer = st7789v_get_block(start.x, start.y, end.x, end.y); // this pointer is valid only until another display memory write is called
             if (buffer == NULL) {
                 success = false;
                 break;
             } else {
                 mirror_buffer(buffer);
-                if (FR_OK != f_write(&screenshot_file, buffer, ILI9488_COLS * ILI9488_BUFF_ROWS * BYTES_PER_PIXEL, &written)) {
+                if (FR_OK != f_write(&screenshot_file, buffer, ST7789V_COLS * ST7789V_BUFF_ROWS * ST7789V_BYTES_PER_PIXEL, &written)) {
                     success = false;
                     break;
                 }
