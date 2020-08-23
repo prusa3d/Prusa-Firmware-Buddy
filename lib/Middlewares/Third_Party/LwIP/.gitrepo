@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:prusa3d/LwIP_212.git
+	branch = buddy
+	commit = fa41d53ac544119ccaf985d31e1670e2ddb6c63b
+	parent = ae63a9e2a1c3dbd502a067b4348efc51d7ba77ed
+	method = merge
+	cmdver = 0.4.1
