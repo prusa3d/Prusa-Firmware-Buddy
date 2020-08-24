@@ -28,5 +28,11 @@ repos:
 exclude: |
   (?x)(
     ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$|
-    ^lib/
+    ^lib/inih/|
+    ^lib/Marlin/|
+    ^lib/Prusa-Error-Codes/|
+    ^lib/TMCStepper/|
+    ^lib/Middlewares/Third_Party/LwIP/|
+    ^lib/jsmn/|
+    ^lib/Catch2/
   )
