@@ -84,19 +84,18 @@ static void wui_queue_cycle() {
     }
 }
 
-void update_state_variables_step(void) {
-
-    ETH_config_t config;
-    config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
-    load_eth_params(&config);
-
-    uint32_t eth_link = ethernetif_link(&eth0); // handles Ethernet link plug/un-plug events
-
-    eth_status_step(&config, eth_link);
-    sntp_client_step();
+static void update_eth_changes(void) {
+    wui_lwip_link_status(); // checks plug/unplug status and take action
+    wui_lwip_sync_gui_lan_settings();
 }
 
 void StartWebServerTask(void const *argument) {
+    osDelay(1000);
+    if (load_ini_file(&wui_eth_config)) {
+        save_eth_params(&wui_eth_config);
+    }
+    wui_eth_config.var_mask = ETHVAR_MSK(ETHVAR_LAN_FLAGS);
+    load_eth_params(&wui_eth_config);
     // semaphore for filling tcp - wui message qeue
     osSemaphoreDef(tcp_wui_semaphore);
     tcp_wui_semaphore_id = osSemaphoreCreate(osSemaphore(tcp_wui_semaphore), 1);
@@ -116,16 +115,14 @@ void StartWebServerTask(void const *argument) {
         wui_marlin_vars->media_LFN = wui_media_LFN;
     }
     // LwIP related initalizations
-    MX_LWIP_Init();
+    MX_LWIP_Init(&wui_eth_config);
     http_server_init();
-    // get settings from ini file
-    ETH_config_t config;
-    load_ini_params(&config);
+    sntp_client_init();
 
     for (;;) {
 
         wui_queue_cycle(); // checks for commands to WUI
-        update_state_variables_step();
+        update_eth_changes();
 
         if (wui_marlin_vars) {
             marlin_client_loop();
