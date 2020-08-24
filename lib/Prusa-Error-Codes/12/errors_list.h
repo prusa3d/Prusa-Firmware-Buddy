@@ -38,35 +38,35 @@ typedef struct {
 } err_t;
 
 static constexpr err_t error_list[] = {
-    {N_("HEATING FAILED"),
-     N_("Check the heatbed heater & thermistor wiring for possible damage."),
-     ERR_TEMPERATURE_HEATING_BED},
+    { N_("HEATING FAILED"),
+        N_("Check the heatbed heater & thermistor wiring for possible damage."),
+        ERR_TEMPERATURE_HEATING_BED },
 
-    {N_("HEATING FAILED"),
-     N_("Check the print head heater & thermistor wiring for possible damage."),
-     ERR_TEMPERATURE_HEATING_NOZZLE},
+    { N_("HEATING FAILED"),
+        N_("Check the print head heater & thermistor wiring for possible damage."),
+        ERR_TEMPERATURE_HEATING_NOZZLE },
 
-    {N_("THERMAL RUNAWAY"),
-     N_("Check the heatbed thermistor wiring for possible damage."),
-     ERR_TEMPERATURE_RUNAWAY_BED},
+    { N_("THERMAL RUNAWAY"),
+        N_("Check the heatbed thermistor wiring for possible damage."),
+        ERR_TEMPERATURE_RUNAWAY_BED },
 
-    {N_("THERMAL RUNAWAY"),
-     N_("Check the print head thermistor wiring for possible damage."),
-     ERR_TEMPERATURE_RUNAWAY_NOZZLE},
+    { N_("THERMAL RUNAWAY"),
+        N_("Check the print head thermistor wiring for possible damage."),
+        ERR_TEMPERATURE_RUNAWAY_NOZZLE },
 
-    {N_("MAXTEMP ERROR"),
-     N_("Check the heatbed thermistor wiring for possible damage."),
-     ERR_TEMPERATURE_MAX_BED},
+    { N_("MAXTEMP ERROR"),
+        N_("Check the heatbed thermistor wiring for possible damage."),
+        ERR_TEMPERATURE_MAX_BED },
 
-    {N_("MAXTEMP ERROR"),
-     N_("Check the print head thermistor wiring for possible damage."),
-     ERR_TEMPERATURE_MAX_NOZZLE},
+    { N_("MAXTEMP ERROR"),
+        N_("Check the print head thermistor wiring for possible damage."),
+        ERR_TEMPERATURE_MAX_NOZZLE },
 
-    {N_("MINTEMP ERROR"),
-     N_("Check the heatbed thermistor wiring for possible damage."),
-     ERR_TEMPERATURE_MIN_BED},
+    { N_("MINTEMP ERROR"),
+        N_("Check the heatbed thermistor wiring for possible damage."),
+        ERR_TEMPERATURE_MIN_BED },
 
-    {N_("MINTEMP ERROR"),
-     N_("Check the print head thermistor wiring for possible damage."),
-     ERR_TEMPERATURE_MIN_NOZZLE},
+    { N_("MINTEMP ERROR"),
+        N_("Check the print head thermistor wiring for possible damage."),
+        ERR_TEMPERATURE_MIN_NOZZLE },
 };
