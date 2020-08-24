@@ -37,6 +37,7 @@
     #include "i18n.h"
     #include "../../lib/Prusa-Error-Codes/12/errors_list.h"
     #include "../../lib/Marlin/Marlin/src/core/language.h"
+    #include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -315,6 +316,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     /// Decision tree to define error code
     if (module == nullptr) {
+        /// TODO share these strings (saves ~16 B of binary size)
         if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
             error_code_short = 0;
         } else if (strcmp("Emergency stop (M112)", error) == 0) {
@@ -322,58 +324,26 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
         } else if (strcmp("Inactive time kill", error) == 0) {
             error_code_short = 0;
         }
-    } else if (module != nullptr) {
-        switch (error[0]) {
+    } else {
+        using namespace Language_en;
 
-        case 'E': /// Err:
-            switch (nth_char(error, 6)) {
+        if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
+            error_code_short = 201;
+        } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
+            error_code_short = 202;
+        } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
+            error_code_short = 203;
+        } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
+            error_code_short = 204;
 
-            case 'A': { /// Err: MAXTEMP
-                switch (module[0]) {
-                case 'B':
-                    error_code_short = 205; /// Bed
-                    break;
-                case 'E':
-                    error_code_short = 206; /// Extruder
-                    break;
-                }
-                break;
-            }
-
-            case 'I': { /// Err: MINTEMP
-                switch (module[0]) {
-                case 'B':
-                    error_code_short = 207; /// Bed
-                    break;
-                case 'E':
-                    error_code_short = 208; /// Extruder
-                    break;
-                }
-                break;
-            }
-
-            case 'H': /// Heating Failed
-                switch (module[0]) {
-                case 'B':
-                    error_code_short = 201; /// Bed
-                    break;
-                case 'E':
-                    error_code_short = 202; /// Extruder
-                    break;
-                }
-                break;
-
-            case 'T': /// THERMAL RUNAWAY
-                switch (module[0]) {
-                case 'B':
-                    error_code_short = 203; /// Bed
-                    break;
-                case 'E':
-                    error_code_short = 204; /// Extruder
-                    break;
-                }
-                break;
-            }
+        } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
+            error_code_short = 205;
+        } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
+            error_code_short = 206;
+        } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
+            error_code_short = 207;
+        } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
+            error_code_short = 208;
         }
     }
 
