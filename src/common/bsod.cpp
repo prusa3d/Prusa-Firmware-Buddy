@@ -36,6 +36,7 @@
     #include "guitypes.h"
     #include "i18n.h"
     #include "../../lib/Prusa-Error-Codes/12/errors_list.h"
+    #include "../../lib/Marlin/Marlin/src/core/language.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -314,16 +315,12 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     /// Decision tree to define error code
     if (module == nullptr) {
-        switch (error[0]) {
-        // case ' ': /// - Invalid extruder number !
-        //     error_code_short = 0;
-        //     break;
-        case 'E': /// Emergency stop (M112)
+        if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
+            error_code_short = 0;
+        } else if (strcmp("Emergency stop (M112)", error) == 0) {
             error_code_short = 510;
-            break;
-            // case 'I': /// Inactive time kill
-            //     error_code_short = 0;
-            //     break;
+        } else if (strcmp("Inactive time kill", error) == 0) {
+            error_code_short = 0;
         }
     } else if (module != nullptr) {
         switch (error[0]) {
