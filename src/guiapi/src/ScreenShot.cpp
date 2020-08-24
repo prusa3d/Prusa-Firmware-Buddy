@@ -46,6 +46,9 @@ static const unsigned char bmp_header[] = {
 
 static void mirror_buffer(uint8_t *buffer) {
     // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner and st7789v in left-upper corner
+
+    // TODO: BMP headers have to know that we are using 2B pixels. Now it is only in [bits per pixel] and clearly it's not enough.
+
     for (int row = 0; row < ST7789V_BUFF_ROWS / 2; row++) {
         for (int col = 0; col < ST7789V_COLS * ST7789V_BYTES_PER_PIXEL; col += ST7789V_BYTES_PER_PIXEL) {
             for (int chan = 0; chan < ST7789V_BYTES_PER_PIXEL; chan++) {
