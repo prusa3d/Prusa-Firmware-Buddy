@@ -61,6 +61,10 @@ const Jogwheel::ButtonAction Jogwheel::GetButtonAction() {
     return ret;
 }
 
+void Jogwheel::SetJogwheelType(uint16_t delay) {
+    type1 = delay > 1000;
+}
+
 void Jogwheel::UpdateButtonAction() {
     if (!btn_pressed && jogwheel_button_down) {
         btn_action = ButtonAction::BTN_PUSHED;

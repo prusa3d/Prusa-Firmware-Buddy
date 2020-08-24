@@ -52,9 +52,7 @@ static void mirror_buffer(uint8_t *buffer) {
     for (int row = 0; row < ST7789V_BUFF_ROWS / 2; row++) {
         for (int col = 0; col < ST7789V_COLS * ST7789V_BYTES_PER_PIXEL; col += ST7789V_BYTES_PER_PIXEL) {
             for (int chan = 0; chan < ST7789V_BYTES_PER_PIXEL; chan++) {
-                uint8_t swapper = buffer[row * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan];
-                buffer[row * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan] = buffer[(ST7789V_BUFF_ROWS - row - 1) * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan];
-                buffer[(ST7789V_BUFF_ROWS - row - 1) * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan] = swapper;
+                std::swap(buffer[buffer[row * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan]], buffer[(ST7789V_BUFF_ROWS - row - 1) * ST7789V_COLS * ST7789V_BYTES_PER_PIXEL + col + chan]);
             }
         }
     }
@@ -100,7 +98,7 @@ bool TakeAScreenshot() {
         for (uint8_t block = ST7789V_ROWS / ST7789V_BUFF_ROWS - 1; block >= 0 && block < ST7789V_ROWS / ST7789V_BUFF_ROWS; block--) {
             point_ui16_t start = point_ui16(0, block * ST7789V_BUFF_ROWS);
             point_ui16_t end = point_ui16(ST7789V_COLS - 1, (block + 1) * ST7789V_BUFF_ROWS - 1);
-            uint8_t *buffer = st7789v_get_block(start.x, start.y, end.x, end.y); // this pointer is valid only until another display memory write is called
+            uint8_t *buffer = display::GetBlock(start, end); // this pointer is valid only until another display memory write is called
             if (buffer == NULL) {
                 success = false;
                 break;

@@ -12,6 +12,7 @@ typedef void(display_init_t)(void);
 typedef void(display_done_t)(void);
 typedef void(display_clear_t)(color_t clr);
 typedef void(display_set_pixel_t)(point_ui16_t pt, color_t clr);
+typedef uint8_t *(display_get_block_t)(point_ui16_t start, point_ui16_t end);
 typedef void(display_draw_line_t)(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
 typedef void(display_draw_rect_t)(Rect16 rc, color_t clr);
 typedef void(display_fill_rect_t)(Rect16 rc, color_t clr);
@@ -33,7 +34,7 @@ static constexpr const FCIndex fontCharIndices[] =
 #include "fnt-indices.ipp"
     static constexpr const uint32_t fontCharIndicesNumItems = sizeof(fontCharIndices) / sizeof(FCIndex);
 
-template <uint16_t W, uint16_t H, display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR, display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
+template <uint16_t W, uint16_t H, display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK, display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR, display_draw_text_t *DRAW_TEXT, display_draw_icon_t *DRAW_ICON, display_draw_png_t *DRAW_PNG>
 class Display {
     // sorted raw array of known utf8 character indices
 public:
@@ -45,6 +46,7 @@ public:
     constexpr static void Done() { DONE(); }
     constexpr static void Clear(color_t clr) { CLEAR(clr); }
     constexpr static void SetPixel(point_ui16_t pt, color_t clr) { SET_PIXEL(pt, clr); }
+    constexpr static uint8_t *GetBlock(point_ui16_t start, point_ui16_t end) { return GET_BLOCK(start, end); }
     constexpr static void DrawLine(point_ui16_t pt0, point_ui16_t pt1, color_t clr) { DRAW_LINE(pt0, pt1, clr); }
     constexpr static void DrawRect(Rect16 rc, color_t clr) { DRAW_RECT(rc, clr); }
     constexpr static void FillRect(Rect16 rc, color_t clr) { FIL_RECT(rc, clr); }
@@ -84,6 +86,7 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_done,
     display_ex_clear,
     display_ex_set_pixel,
+    display_ex_get_block,
     display_ex_draw_line,
     display_ex_draw_rect,
     display_ex_fill_rect,

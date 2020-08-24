@@ -56,11 +56,10 @@ static void _gui_loop_cb() {
 }
 
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
-char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
-static const bool type0 = false;                // malfunctional old encoder
-static const bool type1 = true;                 // MK3 encoder
+char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 
 #ifdef GUI_JOGWHEEL_SUPPORT
+
 Jogwheel jogwheel(JOGWHEEL_PIN_EN1, JOGWHEEL_PIN_EN2, JOGWHEEL_PIN_ENC);
 #endif // GUI_JOGWHEEL_SUPPORT
 extern "C" void gui_run(void) {
@@ -71,15 +70,15 @@ extern "C" void gui_run(void) {
 
     gui_init();
 
-    // select jogwheel type by meassured 'reset delay'
+    // select jogwheel type by measured 'reset delay'
     // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
     // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
 #ifdef GUI_JOGWHEEL_SUPPORT
     #ifdef USE_ST7789
     // run-time jogwheel type detection decides which type of jogwheel device has (each type has different encoder behaviour)
-    jogwheel.SetJogwheelType(st7789v_reset_delay > 1000 ? type1 : type0);
+    jogwheel.SetJogwheelType(st7789v_reset_delay);
     #else /* ! USE_ST7789 */
-    jogwheel.SetJogwheelType(type0);
+    jogwheel.SetJogwheelType(0);
     #endif
 #endif
 

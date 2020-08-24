@@ -97,12 +97,6 @@ void gui_loop(void) {
             } else if (btn == Jogwheel::ButtonAction::BTN_HELD) {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
                 Sound_Play(eSOUND_TYPE_ButtonEcho);
-                /*  TODO: When it will be requested, uncomment Screenshot (and repair, it is half done, saves noisy screenshots)
-                if (TakeAScreenshot()) {
-                    Sound_Play(eSOUND_TYPE_ButtonEcho);
-                } else {
-                    Sound_Play(eSOUND_TYPE_StandardAlert);
-                }*/
             }
             gui_reset_menu_timer();
         }

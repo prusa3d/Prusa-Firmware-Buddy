@@ -62,9 +62,9 @@ public:
      * There are two types with slightly different behaviour
      * and we have to decide in runtime (guimain.cpp), which type are we using.
      *
-     * @param [in] type - jogwheel type
+     * @param [in] delay - jogwheel type recognision mechanism
      */
-    void SetJogwheelType(const bool type) { type1 = type; }
+    void SetJogwheelType(uint16_t delay);
 
     /** Returns difference between last_encoder and encoder and then resets last_encoder */
     int32_t GetEncoderDiff();
