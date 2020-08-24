@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:prusa3d/jsmn.git
+	branch = buddy
+	commit = 7b6858a5855299d173c5ab2b46e611bf9961cbef
+	parent = f15200672b6ff4b7fb67649ae5fb2eff04d2cbd7
+	method = merge
+	cmdver = 0.4.1
