@@ -117,7 +117,7 @@ void marlin_client_shdn(void) {
 void marlin_client_loop(void) {
     uint16_t count = 0;
     osEvent ose;
-    variant8_t msg;
+    variant8_t msg = variant8_empty();
     int client_id;
     marlin_client_t *client;
     osMessageQId queue;
