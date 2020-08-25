@@ -3,21 +3,16 @@
 #include "dump.h"
 #include <stdlib.h>
 #include <string.h>
+#include "dump_rtos.h"
+#include "dump_marlinapi.h"
 
-#define DUMP_RTOS_MAX_TASKS      16 // actually 8 tasks used
-#define DUMP_RTOS_MAX_PRIORITIES 7  // configMAX_PRIORITIES = 7
+#define DUMP_MAX_SYMBOL_CHARS       32
+#define DUMP_MAX_ADDITIONAL_SYMBOLS 100
 
-#define DUMP_RTOS_TASK_STATE_SUSPENDED 0
-#define DUMP_RTOS_TASK_STATE_DELAYED   1
-#define DUMP_RTOS_TASK_STATE_READY     2
-#define DUMP_RTOS_TASK_STATE_RUNNING   3
-
-const char *dump_rtos_task_state_text[4] = {
-    "SUSPENDED",
-    "DELAYED",
-    "READY",
-    "RUNNING",
-};
+uint32_t additional_symbol_addr[DUMP_MAX_ADDITIONAL_SYMBOLS];
+uint32_t additional_symbol_size[DUMP_MAX_ADDITIONAL_SYMBOLS];
+char additional_symbol_name[DUMP_MAX_ADDITIONAL_SYMBOLS][DUMP_MAX_SYMBOL_CHARS];
+uint32_t additional_symbol_count = 0;
 
 dump_t *dump_alloc(void) {
     dump_t *pd = (dump_t *)malloc(sizeof(dump_t));
@@ -59,7 +54,7 @@ dump_t *dump_load(const char *fn) {
         fclose(fdump_bin);
         if ((rd_ram == DUMP_RAM_SIZE) && (rd_ccram == DUMP_CCRAM_SIZE) && (rd_otp == DUMP_OTP_SIZE) && (rd_flash == DUMP_FLASH_SIZE)) {
             pd->regs_gen = (dump_regs_gen_t *)dump_get_data_ptr(pd, DUMP_REGS_GEN);
-            pd->regs_scb = (uint32_t)dump_get_data_ptr(pd, DUMP_REGS_SCB);
+            pd->regs_scb = (uint32_t *)dump_get_data_ptr(pd, DUMP_REGS_SCB);
             pd->info = (dump_info_t *)dump_get_data_ptr(pd, DUMP_INFO);
             return pd;
         }
@@ -156,7 +151,32 @@ uint32_t dump_find_in_flash(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t 
     return 0xffffffff;
 }
 
+int dump_add_symbol(uint32_t addr, uint32_t size, const char *name) {
+    additional_symbol_addr[additional_symbol_count] = addr;
+    additional_symbol_size[additional_symbol_count] = size;
+    strcpy(additional_symbol_name[additional_symbol_count], name);
+    additional_symbol_count++;
+    return additional_symbol_count - 1;
+}
+
+int dump_find_symbol_by_addr(uint32_t addr, char *name, uint32_t *offs) {
+    int i;
+    for (i = 0; i < additional_symbol_count; i++)
+        if ((additional_symbol_addr[i] <= addr) && (additional_symbol_addr[i] + additional_symbol_size[i] > addr))
+            break;
+    if (i < additional_symbol_count) {
+        if (name)
+            strcpy(name, additional_symbol_name[i]);
+        if (offs)
+            *offs = addr - additional_symbol_addr[i];
+        return i;
+    }
+    return -1;
+}
+
 int dump_resolve_addr(dump_t *pd, mapfile_t *pm, uint32_t addr, char *name, uint32_t *offs) {
+    if (dump_find_symbol_by_addr(addr, name, offs) >= 0)
+        return 1;
     if (pm) {
         mapfile_mem_entry_t *e = mapfile_find_mem_entry_by_addr(pm, addr);
         if (e) {
@@ -299,41 +319,6 @@ void dump_print_system(dump_t *pd, mapfile_t *pm) {
     dump_print_var_ui32(pd, pm, "variant8_total_malloc_size");
 }
 
-uint32_t dump_rtos_task_stacksize(dump_t *pd, uint32_t task_handle) {
-    dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
-    if (strcmp(ptcb->pcTaskName, "defaultTask") == 0)
-        return 1024 * 4;
-    else if (strcmp(ptcb->pcTaskName, "displayTask") == 0)
-        return 2048 * 4;
-    else if (strcmp(ptcb->pcTaskName, "webServerTask") == 0)
-        return 1024 * 4;
-    else if (strcmp(ptcb->pcTaskName, "measurementTask") == 0)
-        return 512 * 4;
-    else if (strcmp(ptcb->pcTaskName, "IDLE") == 0)
-        return 128 * 4;
-    else if (strcmp(ptcb->pcTaskName, "USBH_Thread") == 0)
-        return 128 * 4;
-    else if (strcmp(ptcb->pcTaskName, "tcpip_thread") == 0)
-        return 1024 * 4;
-    else if (strcmp(ptcb->pcTaskName, "EthIf") == 0)
-        return 350 * 4;
-    return 0;
-}
-
-uint32_t dump_rtos_list_task_handles(dump_t *pd, uint32_t list_addr, uint32_t *task_handles) {
-    dump_list_t *plist = (dump_list_t *)dump_get_data_ptr(pd, list_addr);
-    uint32_t index = 0;
-    dump_listitem_t *plistitem = (dump_listitem_t *)dump_get_data_ptr(pd, plist->pxIndex);
-    if (plistitem->pvOwner == 0)
-        plistitem = (dump_listitem_t *)dump_get_data_ptr(pd, plistitem->pxNext);
-    while (index < plist->uxNumberOfItems) {
-        task_handles[index] = plistitem->pvOwner;
-        plistitem = (dump_listitem_t *)dump_get_data_ptr(pd, plistitem->pxNext);
-        index++;
-    }
-    return index;
-}
-
 void dump_print_stack(dump_t *pd, mapfile_t *pm, uint32_t addr, uint32_t depth) {
     char resolved_name[256];
     uint32_t resolved_offs;
@@ -349,170 +334,25 @@ void dump_print_stack(dump_t *pd, mapfile_t *pm, uint32_t addr, uint32_t depth) 
     }
 }
 
-void dump_print_rtos(dump_t *pd, mapfile_t *pm) {
-    if (!pm)
-        return;
-    printf("\nRTOS\n");
-    mapfile_mem_entry_t *e;
-    uint32_t uxCurrentNumberOfTasks = 0;
-    uint32_t xIdleTaskHandle = 0;
-    uint32_t defaultTaskHandle = 0;
-    uint32_t displayTaskHandle = 0;
-    uint32_t webServerTaskHandle = 0;
-    uint32_t pxCurrentTCB = 0;
-    dump_print_var_ui32(pd, pm, "xFreeBytesRemaining");
-    dump_print_var_ui32(pd, pm, "xMinimumEverFreeBytesRemaining");
-    if ((e = dump_print_var_ui32(pd, pm, "uxCurrentNumberOfTasks")) != NULL)
-        uxCurrentNumberOfTasks = dump_get_ui32(pd, e->addr);
-    dump_print_var_ui32(pd, pm, "xTickCount");
-    dump_print_var_ui32(pd, pm, "uxTopReadyPriority");
-    dump_print_var_ui32(pd, pm, "xSchedulerRunning");
-    dump_print_var_ui32(pd, pm, "uxPendedTicks");
-    dump_print_var_ui32(pd, pm, "xYieldPending");
-    dump_print_var_ui32(pd, pm, "xNumOfOverflows");
-    dump_print_var_ui32(pd, pm, "uxTaskNumber");
-    dump_print_var_ui32(pd, pm, "xNextTaskUnblockTime");
-    if ((e = dump_print_var_ui32(pd, pm, "xIdleTaskHandle")) != NULL)
-        xIdleTaskHandle = dump_get_ui32(pd, e->addr);
-
-    if ((e = dump_print_var_ui32(pd, pm, "defaultTaskHandle")) != NULL)
-        defaultTaskHandle = dump_get_ui32(pd, e->addr);
-    if ((e = dump_print_var_ui32(pd, pm, "displayTaskHandle")) != NULL)
-        displayTaskHandle = dump_get_ui32(pd, e->addr);
-    if ((e = dump_print_var_ui32(pd, pm, "webServerTaskHandle")) != NULL)
-        webServerTaskHandle = dump_get_ui32(pd, e->addr);
-
-    if ((e = dump_print_var_ui32(pd, pm, "pxCurrentTCB")) != NULL)
-        pxCurrentTCB = dump_get_ui32(pd, e->addr);
-
-    // all currently created tasks sorted by tasknumber
-    uint32_t task_handles[DUMP_RTOS_MAX_TASKS];
-    memset(task_handles, 0, sizeof(task_handles));
-    uint32_t task_states[DUMP_RTOS_MAX_TASKS];
-    uint32_t task_count = 0;
-
-    // we need enumerate all task lists in RTOS to retreive list of all created tasks
-    uint32_t task_handles_ready[DUMP_RTOS_MAX_PRIORITIES][DUMP_RTOS_MAX_TASKS];
-    uint32_t task_handles_ready_count[DUMP_RTOS_MAX_PRIORITIES] = { 0, 0, 0, 0, 0, 0, 0 };
-    if ((e = dump_print_var(pd, pm, "pxReadyTasksLists")) != NULL) {
-        for (int pri = 0; pri < DUMP_RTOS_MAX_PRIORITIES; pri++) {
-            printf("priority %d\n", pri);
-            task_handles_ready_count[pri] = dump_rtos_list_task_handles(pd, e->addr + pri * sizeof(dump_list_t), task_handles_ready[pri]);
-            for (int task = 0; task < task_handles_ready_count[pri]; task++) {
-                uint32_t task_handle = task_handles_ready[pri][task];
-                dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
-                if (task_handles[ptcb->uxTCBNumber - 1] == 0)
-                    task_count++;
-                task_handles[ptcb->uxTCBNumber - 1] = task_handle;
-                if (task_handle == pxCurrentTCB)
-                    task_states[ptcb->uxTCBNumber - 1] = DUMP_RTOS_TASK_STATE_RUNNING;
-                else
-                    task_states[ptcb->uxTCBNumber - 1] = DUMP_RTOS_TASK_STATE_READY;
-                printf(" handle 0x%08x number %u name %s\n", task_handle, ptcb->uxTCBNumber, ptcb->pcTaskName);
-            }
-        }
-    }
-
-    uint32_t task_handles_delayed[DUMP_RTOS_MAX_TASKS];
-    uint32_t task_handles_delayed_count = 0;
-    if ((e = dump_print_var(pd, pm, "pxDelayedTaskList")) != NULL) {
-        task_handles_delayed_count = dump_rtos_list_task_handles(pd, dump_get_ui32(pd, e->addr), task_handles_delayed);
-        for (int task = 0; task < task_handles_delayed_count; task++) {
-            uint32_t task_handle = task_handles_delayed[task];
-            dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
-            if (task_handles[ptcb->uxTCBNumber - 1] == 0)
-                task_count++;
-            task_handles[ptcb->uxTCBNumber - 1] = task_handle;
-            task_states[ptcb->uxTCBNumber - 1] = DUMP_RTOS_TASK_STATE_DELAYED;
-            printf(" handle=0x%08x number=%u name=%s\n", task_handle, ptcb->uxTCBNumber, ptcb->pcTaskName);
-        }
-    }
-
-    uint32_t task_handles_overflow[DUMP_RTOS_MAX_TASKS];
-    uint32_t task_handles_overflow_count = 0;
-    if ((e = dump_print_var(pd, pm, "pxOverflowDelayedTaskList")) != NULL) {
-        task_handles_overflow_count = dump_rtos_list_task_handles(pd, dump_get_ui32(pd, e->addr), task_handles_overflow);
-        for (int task = 0; task < task_handles_overflow_count; task++) {
-            uint32_t task_handle = task_handles_overflow[task];
-            dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
-            if (task_handles[ptcb->uxTCBNumber - 1] == 0)
-                task_count++;
-            task_handles[ptcb->uxTCBNumber - 1] = task_handle;
-            task_states[ptcb->uxTCBNumber - 1] = DUMP_RTOS_TASK_STATE_DELAYED;
-            printf(" handle=0x%08x number=%u name=%s\n", task_handle, ptcb->uxTCBNumber, ptcb->pcTaskName);
-        }
-    }
-
-    uint32_t task_handles_suspended[DUMP_RTOS_MAX_TASKS];
-    uint32_t task_handles_suspended_count = 0;
-    if ((e = dump_print_var(pd, pm, "xSuspendedTaskList")) != NULL) {
-        task_handles_suspended_count = dump_rtos_list_task_handles(pd, e->addr, task_handles_suspended);
-        for (int task = 0; task < task_handles_suspended_count; task++) {
-            uint32_t task_handle = task_handles_suspended[task];
-            dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
-            if (task_handles[ptcb->uxTCBNumber - 1] == 0)
-                task_count++;
-            task_handles[ptcb->uxTCBNumber - 1] = task_handle;
-            task_states[ptcb->uxTCBNumber - 1] = DUMP_RTOS_TASK_STATE_SUSPENDED;
-            printf(" handle=0x%08x number=%u name=%s\n", task_handle, ptcb->uxTCBNumber, ptcb->pcTaskName);
-        }
-    }
-
-    printf("RTOS TASKs (%u)\n", task_count);
-    printf(" num handle     state     pri stack      stacktop   name\n");
-    for (int task = 0; task < task_count; task++) {
-        uint32_t task_handle = task_handles[task];
-        uint32_t task_state = task_states[task];
-        dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
-        printf(" %-3u 0x%08x %-9s %u/%u 0x%08x 0x%08x %s\n", ptcb->uxTCBNumber, task_handle, dump_rtos_task_state_text[task_state], ptcb->uxBasePriority, ptcb->uxPriority, ptcb->pxStack, ptcb->pxTopOfStack, ptcb->pcTaskName);
-    }
-    printf("RTOS TASK STACKs\n");
-    printf(" num stack      stacktop   size   depth maxdepth name\n");
-    for (int task = 0; task < task_count; task++) {
-        uint32_t task_handle = task_handles[task];
-        uint32_t stacksize = dump_rtos_task_stacksize(pd, task_handle);
-        dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
-        uint32_t stackmax = ptcb->pxStack + stacksize;
-        float depth = 100.0F * (stackmax - ptcb->pxTopOfStack) / stacksize;
-        uint8_t *pstack = dump_get_data_ptr(pd, ptcb->pxStack);
-        uint32_t o = 0;
-        for (; o < stackmax; o++)
-            if (pstack[o] != 0xa5)
-                break;
-        float maxdepth = 100.0F * (stacksize - o) / stacksize;
-        printf(" %-3u 0x%08x 0x%08x 0x%04x %5.1f%% %5.1f%% %s\n", ptcb->uxTCBNumber, ptcb->pxStack, ptcb->pxTopOfStack, stacksize, depth, maxdepth, ptcb->pcTaskName);
-    }
-    if (1)
-        for (int task = 0; task < task_count; task++) {
-            uint32_t task_handle = task_handles[task];
-            uint32_t stacksize = dump_rtos_task_stacksize(pd, task_handle);
-            dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
-            uint32_t stacktop = ptcb->pxTopOfStack;
-            uint32_t stackmax = ptcb->pxStack + stacksize;
-            printf("\nTASK STACK (%s)\n", ptcb->pcTaskName);
-            dump_print_stack(pd, pm, stacktop, (stackmax - stacktop) / 4);
-            //    if (xIdleTaskHandle)
-            //    	dump_rtos_task_stacksize(pd, xIdleTaskHandle);
-        }
+void dump_print_common(dump_t *pd, mapfile_t *pm) {
+    dump_print_stackframe(pd, pm);
+    dump_print_registers(pd, pm);
+    dump_print_system(pd, pm);
+    dump_rtos_print(pd, pm);
+    dump_marlinapi_print(pd, pm);
 }
 
 void dump_print_hardfault(dump_t *pd, mapfile_t *pm) {
     printf("\nHARDFAULT DUMP\n");
-    dump_print_stackframe(pd, pm);
-    dump_print_registers(pd, pm);
-    dump_print_system(pd, pm);
-    dump_print_rtos(pd, pm);
+    dump_print_common(pd, pm);
 }
 
 void dump_print_watchdog(dump_t *pd, mapfile_t *pm) {
     printf("\nWATCHDOG RESET DUMP\n");
-    dump_print_stackframe(pd, pm);
-    dump_print_registers(pd, pm);
-    dump_print_system(pd, pm);
-    dump_print_rtos(pd, pm);
+    dump_print_common(pd, pm);
 }
 
-void dump_print(dump_t *pd, mapfile_t *pm) {
+void dump_print_all(dump_t *pd, mapfile_t *pm) {
     switch (pd->info->type_flags & 3) {
     case 1:
         dump_print_hardfault(pd, pm);
