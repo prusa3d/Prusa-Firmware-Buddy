@@ -84,6 +84,7 @@ typedef struct _marlin_server_t {
     uint32_t fsmCreate;                              // fsm create ui32 argument for resend
     uint32_t fsmDestroy;                             // fsm destroy ui32 argument for resend
     uint32_t fsmChange;                              // fsm change ui32 argument for resend
+    variant8_t event_messages[MARLIN_MAX_CLIENTS];   // last MARLIN_EVT_Message for clients, cannot use cvariant, desctructor would free memory
 } marlin_server_t;
 
 #pragma pack(pop)
@@ -105,30 +106,12 @@ uint32_t *pCommand = &marlin_server.command;
 #endif
 marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
 
-//==========MSG_STACK===================
-//	top of the stack is at [0]
-
-msg_stack_t msg_stack = { '\0', 0 };
-
 void _add_status_msg(const char *const popup_msg) {
-    char message[MSG_MAX_LENGTH];
-    memset(message, '\0', sizeof(message) * sizeof(char)); // set to zeros to be on the safe side
-
-    strlcpy(message, popup_msg, MSG_MAX_LENGTH);
-
-    for (uint8_t i = msg_stack.count; i; i--) {
-        if (i == MSG_STACK_SIZE)
-            i--; // last place of the limited stack will be always overwritten
-
-        memset(msg_stack.msg_data[i], '\0', sizeof(msg_stack.msg_data[i]) * sizeof(char)); // set to zeros to be on the safe side
-        strlcpy(msg_stack.msg_data[i], msg_stack.msg_data[i - 1], sizeof(msg_stack.msg_data[i]));
+    //I could check client mask here
+    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
+        variant8_done(&marlin_server.event_messages[i]);                 //destroy unsent message - free dynamic memory
+        marlin_server.event_messages[i] = cvariant8(popup_msg).detach(); //store new message
     }
-
-    memset(msg_stack.msg_data[0], '\0', sizeof(msg_stack.msg_data[0]) * sizeof(char)); // set to zeros to be on the safe side
-    strlcpy(msg_stack.msg_data[0], message, sizeof(msg_stack.msg_data[0]));
-
-    if (msg_stack.count < MSG_STACK_SIZE)
-        msg_stack.count++;
 }
 
 //-----------------------------------------------------------------------------
@@ -662,9 +645,14 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 
 // send event notification to client (called from server thread)
 static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
-    variant8_t msg;
-    msg = variant8_user(usr32, usr16, evt_id);
-    return _send_notify_to_client(queue, msg);
+    variant8_t msg = evt_id == MARLIN_EVT_Message ? marlin_server.event_messages[client_id] : variant8_user(usr32, usr16, evt_id);
+    bool ret = _send_notify_to_client(queue, msg);
+
+    // clear sent client message
+    if (evt_id == MARLIN_EVT_Message && ret) {
+        marlin_server.event_messages[client_id] = variant8_empty();
+    }
+    return ret;
 }
 
 // send event notification to client - multiple events (called from server thread)

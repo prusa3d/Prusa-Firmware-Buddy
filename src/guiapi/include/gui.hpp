@@ -47,4 +47,14 @@ extern void gui_loop(void);
 
 extern void gui_reset_menu_timer();
 
+    #define MSG_STACK_SIZE 8  //status message stack size
+    #define MSG_MAX_LENGTH 21 //status message max length
+
+typedef struct msg_stack {
+
+    char msg_data[MSG_STACK_SIZE][MSG_MAX_LENGTH];
+    uint8_t count;
+
+} msg_stack_t;
+
 #endif //GUI_WINDOW_SUPPORT
