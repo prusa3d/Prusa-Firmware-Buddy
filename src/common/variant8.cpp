@@ -590,7 +590,7 @@ cvariant8 &cvariant8::attach(variant8_t var8) {
 
 variant8_t cvariant8::detach() {
     variant8_t var8 = *this;
-    variant8_done(this);
+    *((variant8_t *)(this)) = variant8_empty();
     return var8;
 }
 #ifdef CLEAN_UNUSED
