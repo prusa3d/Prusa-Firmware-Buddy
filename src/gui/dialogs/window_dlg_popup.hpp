@@ -7,18 +7,14 @@
 
 #pragma once
 
-#include "window.hpp"
-#include "marlin_server.h"
+#include "IDialog.hpp"
+#include "window_text.hpp"
 
-struct window_dlg_popup_t : public window_t {
-    color_t color_text;
-    font_t *font;
-    font_t *font_title;
-    padding_ui8_t padding;
-    uint32_t timer;
-    // uint16_t flags;
-    char text[MSG_MAX_LENGTH];
-    window_dlg_popup_t(window_t *parent, Rect16 rect);
+class window_dlg_popup_t : public IDialog {
+    window_text_t text;
+
+public:
+    window_dlg_popup_t(Rect16 rect, string_view_utf8 txt);
 };
 
-extern void gui_pop_up(void);
+void gui_pop_up(string_view_utf8 txt, uint32_t time = 1000);

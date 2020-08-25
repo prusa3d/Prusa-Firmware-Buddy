@@ -32,4 +32,4 @@ public:
 *
 * It creates inner gui_loop cycle that keeps GUI running while waiting.
 */
-void gui_dlg_wait(void (*closing_callback)());
+void gui_dlg_wait(std::function<void()> closing_callback);
