@@ -240,6 +240,7 @@ void draw_error_screen(const uint16_t error_code_short) {
         ++i;
     }
     if (i == sizeof(error_list)) {
+        /// no text found => leave blank screen
         /// wait for restart - endless loop
         while (1)
             wdt_iwdg_refresh();
@@ -316,7 +317,7 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
 
     /// Decision tree to define error code
     if (module == nullptr) {
-        /// TODO share these strings (saves ~16 B of binary size)
+        /// TODO share these strings (saves ~100 B of binary size)
         if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
             error_code_short = 0;
         } else if (strcmp("Emergency stop (M112)", error) == 0) {
