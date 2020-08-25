@@ -126,6 +126,10 @@ bool cmapfile::load(const char *fn) {
                     common_section = 1;
             } else {
                 if ((s = sscanf(line, " *fill*         %x%x", &addr, &size)) == 2) {
+                    if (common_size)
+                        set_last_mem_entry_size(common_size);
+                    common_addr = 0;
+                    common_size = 0;
                     add_mem_entry(mem_type_fill, addr, size, 0);
                 }
                 if ((s = sscanf(line, " COMMON         %x%x%[^\n]", &addr, &size, name)) == 3) {
@@ -188,6 +192,7 @@ int cmapfile::add_mem_entry(mapfile_mem_type_t type, uint32_t addr, uint32_t siz
 
 void cmapfile::set_last_mem_entry_size(uint32_t size) {
     m_mem.back().size = size;
+    //    printf("0x%08x 0x%04x %s\n", m_mem.back().addr, m_mem.back().size, m_mem.back().name);
 }
 
 // "C" interface implementation
