@@ -112,7 +112,12 @@ Screens *Screens::Access() {
 }
 
 void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
+    //todo shouldn't I use "sender ? sender : current.get()"?
     current->ScreenEvent(current.get(), event, param);
+}
+
+void Screens::WindowEvent(uint8_t event, void *param) {
+    current->WindowEvent(current.get(), event, param);
 }
 
 void Screens::Draw() {
