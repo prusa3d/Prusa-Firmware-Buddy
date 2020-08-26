@@ -40,6 +40,7 @@ extern osThreadId gui_task_handle;
     #include "window_msgbox.hpp"
     #include "window_progress.hpp"
     #include "window_qr.hpp"
+    #include "circle_buffer.hpp"
 
 extern uint8_t gui_get_nesting(void);
 
@@ -47,14 +48,9 @@ extern void gui_loop(void);
 
 extern void gui_reset_menu_timer();
 
-    #define MSG_STACK_SIZE 8  //status message stack size
-    #define MSG_MAX_LENGTH 21 //status message max length
-
-typedef struct msg_stack {
-
-    char msg_data[MSG_STACK_SIZE][MSG_MAX_LENGTH];
-    uint8_t count;
-
-} msg_stack_t;
+//meant to be use as MsgCircleBuffer().push_back(txt);
+//user does not need to know template parameters
+auto &MsgCircleBuffer();
+void MsgCircleBuffer_cb(const char *txt);
 
 #endif //GUI_WINDOW_SUPPORT

@@ -19,7 +19,7 @@
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_watchdog.hpp"
-
+#include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
 #include "i18n.h"
@@ -61,7 +61,22 @@ char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 #ifdef GUI_JOGWHEEL_SUPPORT
 
 Jogwheel jogwheel(JOGWHEEL_PIN_EN1, JOGWHEEL_PIN_EN2, JOGWHEEL_PIN_ENC);
-#endif // GUI_JOGWHEEL_SUPPORT
+#endif                                          // GUI_JOGWHEEL_SUPPORT
+static constexpr size_t MSG_STACK_SIZE = 8 + 1; //status message stack size
+static constexpr size_t MSG_MAX_LENGTH = 21;    //status message max length
+auto &MsgCircleBuffer() {
+    static CircleBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
+    return ret;
+}
+
+void MsgCircleBuffer_cb(const char *txt) {
+    MsgCircleBuffer().push_back(txt);
+    //cannot open == aready openned
+    if (!IScreenPrinting::CanOpen()) {
+        Screens::Access()->WindowEvent(WINDOW_EVENT_MESSAGE, 0);
+    }
+}
+
 extern "C" void gui_run(void) {
     if (diag_fastboot)
         return;
@@ -99,6 +114,7 @@ extern "C" void gui_run(void) {
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
+    marlin_client_set_message_cb(MsgCircleBuffer_cb);
 
     Sound_Play(eSOUND_TYPE_Start);
 
