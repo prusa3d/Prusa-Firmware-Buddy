@@ -46,6 +46,7 @@ typedef struct _marlin_client_t {
     fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
     fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
     fsm_change_t fsm_change_cb;   // to register callback for change of state
+    message_cb_t message_cb;      // to register callback message
 } marlin_client_t;
 
 #pragma pack(pop)
@@ -104,6 +105,8 @@ marlin_vars_t *marlin_client_init(void) {
         client->reheating = 0;
         client->fsm_create_cb = NULL;
         client->fsm_destroy_cb = NULL;
+        client->fsm_change_cb = NULL;
+        client->message_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -189,6 +192,18 @@ int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
     }
     return 0;
 }
+
+//register callback to message
+//return success
+int marlin_client_set_message_cb(message_cb_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->message_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
 int marlin_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
@@ -610,17 +625,6 @@ void marlin_park_head(void) {
     _wait_ack_from_server(client->id);
 }
 
-uint8_t marlin_message_received(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client == 0)
-        return 0;
-    if (client->flags & MARLIN_CFLG_MESSAGE) {
-        client->flags &= ~MARLIN_CFLG_MESSAGE;
-        return 1;
-    } else
-        return 0;
-}
-
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating(void) {
     marlin_client_t *client = _client_ptr();
@@ -730,9 +734,6 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_CommandEnd:
             client->command = MARLIN_CMD_NONE;
             break;
-        case MARLIN_EVT_Message:
-            client->flags |= MARLIN_CFLG_MESSAGE;
-            break;
         case MARLIN_EVT_Reheat:
             client->reheating = (uint8_t)variant8_get_ui32(msg);
             break;
@@ -750,6 +751,10 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case MARLIN_EVT_FSM_Change:
             if (client->fsm_change_cb)
                 client->fsm_change_cb((uint8_t)variant8_get_ui32(msg), (uint8_t)(variant8_get_ui32(msg) >> 8), (uint8_t)(variant8_get_ui32(msg) >> 16), (uint8_t)(variant8_get_ui32(msg) >> 24));
+            break;
+        case MARLIN_EVT_Message:
+            if (client->message_cb)
+                client->message_cb(msg.pch);
             break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added

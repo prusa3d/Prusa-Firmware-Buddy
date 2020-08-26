@@ -23,8 +23,6 @@ typedef void(marlin_server_idle_t)(void);
 extern "C" {
 #endif //__cplusplus
 
-//extern msg_stack_t msg_stack;
-
 // callback for idle operation inside marlin (called from ExtUI handler onIdle)
 extern marlin_server_idle_t *marlin_server_idle_cb;
 
