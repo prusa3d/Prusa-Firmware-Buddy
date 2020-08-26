@@ -1,15 +1,14 @@
 // dump.h
-#ifndef _DUMP_H
-#define _DUMP_H
+#pragma once
 
 #include <inttypes.h>
 #include "stm32f4xx_hal.h"
 
 // dump types and flags
-#define DUMP_UNDEFINED 0xff // undefined - memory erased/empty
-#define DUMP_HARDFAULT 0x01 // hardfault dump
-#define DUMP_IWDGW     0x02 // IWDG warning dump
-#define DUMP_NOT_SAVED 0x80 // dump not saved flag - (unsaved dump cannot be overwritten)
+static const uint8_t DUMP_UNDEFINED = 0xff; // undefined - memory erased/empty
+static const uint8_t DUMP_HARDFAULT = 0x01; // hardfault dump
+static const uint8_t DUMP_IWDGW = 0x02;     // IWDG warning dump
+static const uint8_t DUMP_NOT_SAVED = 0x80; // dump not saved flag - (unsaved dump cannot be overwritten)
 
 // dumped ram area (128kb)
 #define DUMP_RAM_ADDR 0x20000000
@@ -30,14 +29,14 @@
 // general registers stored to ccram
 // r0-r12, sp, lr, pc - 64 bytes
 // xpsr, fpcsr, PRIMASK, BASEPRI, FAULTMASK, CONTROL, MSP, PSP - 32 bytes
-#define DUMP_REGS_GEN_ADDR 0x1000ff00
-#define DUMP_REGS_GEN_SIZE 0x00000060
+static const uint32_t DUMP_REGS_GEN_ADDR = 0x1000ff00;
+static const uint32_t DUMP_REGS_GEN_SIZE = 0x00000060;
 // scb registers stored to ccram (140 bytes)
-#define DUMP_REGS_SCB_ADDR 0x1000ff60
-#define DUMP_REGS_SCB_SIZE 0x0000008c
+static const uint32_t DUMP_REGS_SCB_ADDR = 0x1000ff60;
+static const uint32_t DUMP_REGS_SCB_SIZE = 0x0000008c;
 // dump info stored to ccram (16 bytes)
-#define DUMP_INFO_ADDR 0x1000fff0
-#define DUMP_INFO_SIZE 0x00000010
+static const uint32_t DUMP_INFO_ADDR = 0x1000fff0;
+static const uint32_t DUMP_INFO_SIZE = 0x00000010;
 
 // prepare R0 and R3 for DUMP_REGS_GEN_EXC_TO_CCRAM in fault handlers
 #define DUMP_REGS_GEN_FAULT_BEGIN()                       \
@@ -159,5 +158,3 @@ extern int dump_hardfault_test_1(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_DUMP_H
