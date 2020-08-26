@@ -1,6 +1,7 @@
 //config_a3ides2209.h - configuration file for 2209 variant (rev02)
-#ifndef _CONFIG_A3IDES2209_02_H
-#define _CONFIG_A3IDES2209_02_H
+#pragma once
+
+#include "gpio.h"
 
 #define PRUSA_MARLIN_API
 
@@ -20,7 +21,7 @@
 //WDT - watchdog timers (IWDG, WWDG)
 #ifndef _DEBUG
     #define WDT_IWDG_ENABLED
-    //#define WDT_WWDG_ENABLED
+//#define WDT_WWDG_ENABLED
 #endif //_DEBUG
 
 //show filament sensor status in header
@@ -38,13 +39,13 @@
 //--------------------------------------
 //  bit fedc ba98 7654 3210
 // mask 0000 0100 0111 1000 == 0x0478
-#define ADC_CHAN_MSK 0x0478      //used physical AD channels bit mask (3,4,5,6,10)
-#define ADC_CHAN_CNT 5           //number of used channels
-#define ADC_OVRSAMPL 4           //oversampling multiplier (common for all channels)
-#define ADC_SEQ_LEN  18          //sampling sequence length
-#define ADC_SEQ2IDX  adc_seq2idx //callback function (convert seq to channel index)
-#define ADC_READY    adc_ready   //callback function (value for any channel is ready)
-#define ADC_VREF     5010        //reference voltage [mV]
+static const uint16_t ADC_CHAN_MSK = 0x0478; //used physical AD channels bit mask (3,4,5,6,10)
+#define ADC_CHAN_CNT 5                       //number of used channels
+static const uint8_t ADC_OVRSAMPL = 4;       //oversampling multiplier (common for all channels)
+static const uint8_t ADC_SEQ_LEN = 18;       //sampling sequence length
+#define ADC_SEQ2IDX adc_seq2idx              //callback function (convert seq to channel index)
+#define ADC_READY   adc_ready                //callback function (value for any channel is ready)
+static const uint16_t ADC_VREF = 5010;       //reference voltage [mV]
 //simulated values
 #define ADC_SIM_VAL0 512 * 4 //HW_IDENTIFY
 #define ADC_SIM_VAL1 966 * 4 //THERM1 (bed)     means 30C
@@ -62,36 +63,38 @@
 
 //--------------------------------------
 //Graphical display ST7789v configuration
-#define ST7789V_PIN_CS  TPC9  // CS signal pin
-#define ST7789V_PIN_RS  TPD11 // RS signal pin
-#define ST7789V_PIN_RST TPC8  // RESET signal pin
+static const uint8_t ST7789V_PIN_CS = TPC9;  // CS signal pin
+static const uint8_t ST7789V_PIN_RS = TPD11; // RS signal pin
+static const uint8_t ST7789V_PIN_RST = TPC8; // RESET signal pin
 
 //--------------------------------------
 //Jogwheel configuration
-#define JOGWHEEL_PIN_EN1 TPE15 // encoder signal 1 pin
-#define JOGWHEEL_PIN_EN2 TPE13 // encoder signal 2 pin
-#define JOGWHEEL_PIN_ENC TPE12 // button pin
+static const uint8_t JOGWHEEL_PIN_EN1 = TPE15; // encoder signal 1 pin
+static const uint8_t JOGWHEEL_PIN_EN2 = TPE13; // encoder signal 2 pin
+static const uint8_t JOGWHEEL_PIN_ENC = TPE12; // button pin
 
 //--------------------------------------
 //FANCTL - new software pwm fan control with rpm measurement and closed loop
 #define NEW_FANCTL
 #ifdef NEW_FANCTL
-    //FANCTL0 - printing fan
-    #define FANCTL0_PIN_OUTP TPE11
-    #define FANCTL0_PIN_TACH TPE10
-    #define FANCTL0_PWM_MIN  15
-    #define FANCTL0_PWM_MAX  50
-    #define FANCTL0_RPM_MIN  500
-    #define FANCTL0_RPM_MAX  5000
+
+//FANCTL0 - printing fan
+static const uint8_t FANCTL0_PIN_OUTP = TPE11;
+static const uint8_t FANCTL0_PIN_TACH = TPE10;
+static const uint8_t FANCTL0_PWM_MIN = 15;
+static const uint8_t FANCTL0_PWM_MAX = 50;
+static const uint16_t FANCTL0_RPM_MIN = 500;
+static const uint16_t FANCTL0_RPM_MAX = 5000;
     #define FANCTL0_TRACE
-    //FANCTL1 - heatbreak fan
-    #define FANCTL1_PIN_OUTP TPE9
-    #define FANCTL1_PIN_TACH TPE14
-    #define FANCTL1_PWM_MIN  12
-    #define FANCTL1_PWM_MAX  50
-    #define FANCTL1_RPM_MIN  500
-    #define FANCTL1_RPM_MAX  7000
+//FANCTL1 - heatbreak fan
+static const uint8_t FANCTL1_PIN_OUTP = TPE9;
+static const uint8_t FANCTL1_PIN_TACH = TPE14;
+static const uint8_t FANCTL1_PWM_MIN = 12;
+static const uint8_t FANCTL1_PWM_MAX = 50;
+static const uint16_t FANCTL1_RPM_MIN = 500;
+static const uint16_t FANCTL1_RPM_MAX = 7000;
     #define FANCTL1_TRACE
+
 #endif //NEW_FANCTL
 
 //Simulator configuration
@@ -111,6 +114,4 @@
 #endif //SIM_MOTION
 
 //new pause settings
-#define PAUSE_NOZZLE_TIMEOUT 45 // nozzle "sleep" after 45s inside paused state
-
-#endif //_CONFIG_A3IDES2209_02_H
+static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state
