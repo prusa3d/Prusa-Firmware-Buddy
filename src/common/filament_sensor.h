@@ -5,8 +5,7 @@
  *      Author: Radek Vana
  */
 
-#ifndef _FILAMENT_SENSOR_H
-#define _FILAMENT_SENSOR_H
+#pragma once
 
 #include "stdint.h"
 
@@ -56,5 +55,3 @@ char fs_get_send_M600_on();
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_FILAMENT_SENSOR_H

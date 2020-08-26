@@ -1,6 +1,5 @@
 // dump.h
-#ifndef _DUMP_H
-#define _DUMP_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -111,5 +110,3 @@ extern int dump_save_bin_to_file(void *data, int size, const char *fn);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_DUMP_H

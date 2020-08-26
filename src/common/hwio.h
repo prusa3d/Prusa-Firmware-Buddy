@@ -1,20 +1,19 @@
 //----------------------------------------------------------------------------//
 // hwio.h - hardware input output abstraction
-#ifndef _HWIO_H
-#define _HWIO_H
+#pragma once
 
 #include <inttypes.h>
 
 //low level I/O classes
-#define HWIO_CLS_DI  0x01 //class digital input
-#define HWIO_CLS_DO  0x02 //class digital output
-#define HWIO_CLS_ADC 0x03 //class analog input
-#define HWIO_CLS_DAC 0x04 //class analog output
-#define HWIO_CLS_PWM 0x05 //class pwm output
+static const uint8_t HWIO_CLS_DI = 0x01;  //class digital input
+static const uint8_t HWIO_CLS_DO = 0x02;  //class digital output
+static const uint8_t HWIO_CLS_ADC = 0x03; //class analog input
+static const uint8_t HWIO_CLS_DAC = 0x04; //class analog output
+static const uint8_t HWIO_CLS_PWM = 0x05; //class pwm output
 
 //high level I/O classes
-#define HWIO_CLS_FAN    0x10 //class fan controller
-#define HWIO_CLS_HEATER 0x11 //class heater controller
+static const uint8_t HWIO_CLS_FAN = 0x10;    //class fan controller
+static const uint8_t HWIO_CLS_HEATER = 0x11; //class heater controller
 
 //pwm outputs
 #define HWIO_PWM_HEATER_BED 0 //BED PWM
@@ -97,5 +96,3 @@ extern void hwio_update_1ms(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_HWIO_H

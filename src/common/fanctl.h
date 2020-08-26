@@ -1,6 +1,5 @@
 // fanctl.h
-#ifndef _FANCTL_H
-#define _FANCTL_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -141,5 +140,3 @@ extern uint16_t fanctl_get_rpm(uint8_t fan);          // get actual RPM value
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _FANCTL_H
