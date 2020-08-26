@@ -1,6 +1,5 @@
 // marlin_events.h
-#ifndef _MARLIN_EVENTS_H
-#define _MARLIN_EVENTS_H
+#pragma once
 
 #include "variant8.h"
 
@@ -42,13 +41,13 @@ typedef enum {
 #define MARLIN_EVT_MSK(e_id) ((uint64_t)1 << (e_id))
 
 #define MARLIN_EVT_MSK_ALL (MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1)
-#define MARLIN_EVT_MSK_DEF (MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled)))
-#define MARLIN_EVT_MSK_FSM (MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Destroy) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Change))
+static const uint64_t MARLIN_EVT_MSK_DEF = MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled));
+static const uint64_t MARLIN_EVT_MSK_FSM = MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Destroy) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Change);
 
 // commands
-#define MARLIN_CMD_NONE 0
-#define MARLIN_CMD_G    (((uint32_t)'G') << 16)
-#define MARLIN_CMD_M    (((uint32_t)'M') << 16)
+static const uint8_t MARLIN_CMD_NONE = 0;
+static const uint32_t MARLIN_CMD_G = (uint32_t)'G' << 16;
+static const uint32_t MARLIN_CMD_M = (uint32_t)'M' << 16;
 #define MARLIN_CMD_G28  (MARLIN_CMD_G + 28)
 #define MARLIN_CMD_G29  (MARLIN_CMD_G + 29)
 #define MARLIN_CMD_M109 (MARLIN_CMD_M + 109)
@@ -81,5 +80,3 @@ extern const char *marlin_events_get_name(MARLIN_EVT_t evt_id);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_MARLIN_EVENTS_H
