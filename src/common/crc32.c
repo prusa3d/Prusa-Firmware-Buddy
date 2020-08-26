@@ -21,8 +21,8 @@ static inline void crc32_unlock(void) {
     #include "tm_stm32f4_crc.h"
 #else //CRC32_USE_HW
 
-    // Polynomial used in STM32
-    #define CRC32_STM_POLY 0x04C11DB7
+// Polynomial used in STM32
+static const unsigned int CRC32_STM_POLY = 0x04C11DB7;
 
 // software calculated crc32 equal to hardware stm32 crc
 uint32_t crc32_stm(uint32_t crc, uint32_t data) {

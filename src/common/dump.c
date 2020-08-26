@@ -4,11 +4,9 @@
 #include "ff.h"
 #include "w25x.h"
 
-#define DUMP_OFFSET 0x00000000
-
-#define DUMP_PAGE_SIZE 0x100
-
-#define DUMP_BUFF_SIZE 0x100
+static const uint8_t DUMP_OFFSET = 0x00;
+static const uint16_t DUMP_PAGE_SIZE = 0x100;
+static const uint16_t DUMP_BUFF_SIZE = 0x100;
 
 #define DUMP_XFLASH_SIZE (DUMP_RAM_SIZE + DUMP_CCRAM_SIZE)
 
