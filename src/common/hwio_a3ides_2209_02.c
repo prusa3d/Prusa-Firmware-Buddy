@@ -1,9 +1,10 @@
 //----------------------------------------------------------------------------//
 // hwio_a3ides.c - hardware input output abstraction for a3ides board
 
+#include <inttypes.h>
+
 #include "hwio.h"
 #include "hwio_a3ides.h"
-#include <inttypes.h>
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
@@ -40,7 +41,7 @@ const uint32_t _adc_pin32[] = {
 };
 // a3ides analog input maximum values
 const int _adc_max[] = { 4095, 4095, 4095, 4095, 4095 };
-#define _ADC_CNT (sizeof(_adc_pin32) / sizeof(uint32_t))
+static const uint32_t _ADC_CNT = sizeof(_adc_pin32) / sizeof(uint32_t);
 //sampled analog inputs
 int _adc_val[] = { 0, 0, 0, 0, 0 };
 
@@ -48,15 +49,15 @@ int _adc_val[] = { 0, 0, 0, 0, 0 };
 const uint32_t _dac_pin32[] = {};
 // a3ides analog output maximum values
 const int _dac_max[] = { 0 };
-#define _DAC_CNT (sizeof(_dac_pin32) / sizeof(uint32_t))
+static const uint32_t _DAC_CNT = sizeof(_dac_pin32) / sizeof(uint32_t);
 
 #define _FAN_ID_MIN HWIO_PWM_FAN1
 #define _FAN_ID_MAX HWIO_PWM_FAN
-#define _FAN_CNT    (_FAN_ID_MAX - _FAN_ID_MIN + 1)
+static const uint8_t _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
 
 #define _HEATER_ID_MIN HWIO_PWM_HEATER_BED
 #define _HEATER_ID_MAX HWIO_PWM_HEATER_0
-#define _HEATER_CNT    (_HEATER_ID_MAX - _HEATER_ID_MIN + 1)
+static const uint8_t _HEATER_CNT = _HEATER_ID_MAX - _HEATER_ID_MIN + 1;
 
 //this value is compared to new value (to avoid rounding errors)
 int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);

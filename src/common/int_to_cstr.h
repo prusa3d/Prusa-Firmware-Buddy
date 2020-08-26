@@ -1,6 +1,6 @@
 // convert int32_t to c string
-#ifndef _INT_TO_CSTR_H
-#define _INT_TO_CSTR_H
+#pragma once
+
 #include "stdint.h"
 #include "stdlib.h"
 
@@ -61,5 +61,3 @@ static constexpr int remove_front_digit_unsigned(uint32_t ui) {
 constexpr int remove_front_digit(int32_t i) {
     return i < 0 ? -1 : remove_front_digit_unsigned(i);
 }
-
-#endif //_INT_TO_CSTR_H

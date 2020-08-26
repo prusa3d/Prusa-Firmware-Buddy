@@ -1,5 +1,6 @@
-#include "lang.h"
 #include <inttypes.h>
+
+#include "lang.h"
 
 /// main language-table
 static const lang_t lang_list[] = {
@@ -20,7 +21,7 @@ static const lang_t lang_list[] = {
 
 static lang_code_t actual_lang = LANG_KLING;
 
-#define LANG_ITEMS (sizeof(lang_list) / sizeof(lang_list[0]))
+static const uint32_t LANG_ITEMS = sizeof(lang_list) / sizeof(lang_list[0]);
 
 /// inner function (language-table item finding)
 static const lang_t *get_lang_item(lang_code_t lang_code) {
