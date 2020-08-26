@@ -25,7 +25,7 @@ static const unsigned char MARLIN_CLIENT_QUEUE = 16;  // size of marlin client i
 #define CRC32_USE_RTOS
 
 //uart2 rx complete signal
-#define UART2_SIG_RXCPL = 0x0004;
+#define UART2_SIG_RXCPL 0x0004;
 
 //guiconfig.h included with config
 #include "guiconfig.h"
