@@ -59,6 +59,7 @@
 #include "timer_defaults.h"
 #include "thread_measurement.h"
 #include "Z_probe.h"
+#include "config.h"
 
 /* USER CODE END Includes */
 
