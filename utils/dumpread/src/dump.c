@@ -151,6 +151,18 @@ uint32_t dump_find_in_flash(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t 
     return 0xffffffff;
 }
 
+uint32_t dump_find_in_ram(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t start_addr, uint32_t end_addr) {
+    if (start_addr < DUMP_RAM_ADDR)
+        start_addr = DUMP_RAM_ADDR;
+    if (end_addr > (DUMP_RAM_ADDR + DUMP_RAM_SIZE - size))
+        end_addr = (DUMP_RAM_ADDR + DUMP_RAM_SIZE - size);
+    if (start_addr < end_addr)
+        for (uint32_t addr = start_addr; addr <= end_addr; addr++)
+            if (memcmp(pdata, pd->ram + addr - DUMP_RAM_ADDR, size) == 0)
+                return addr;
+    return 0xffffffff;
+}
+
 int dump_add_symbol(uint32_t addr, uint32_t size, const char *name) {
     additional_symbol_addr[additional_symbol_count] = addr;
     additional_symbol_size[additional_symbol_count] = size;
@@ -202,17 +214,19 @@ void dump_print_reg(dump_t *pd, mapfile_t *pm, const char *name, uint32_t val) {
     else
         *resolved_offs_str = 0;
     printf(" %-4s = 0x%08x %s%s%s%s%s\n", name, val, resolved ? " (" : "", resolved_name, resolved ? " + " : "", resolved_offs_str, resolved ? ")" : "");
+    fflush(stdout);
 }
 
 mapfile_mem_entry_t *dump_print_var(dump_t *pd, mapfile_t *pm, const char *name) {
     mapfile_mem_entry_t *e;
     if ((e = mapfile_find_mem_entry_by_name(pm, name)) != NULL) {
         if (dump_get_data_ptr(pd, e->addr)) {
-            printf("%s @0x%08x\n", name, e->addr);
+            printf("%s @0x%08x, size = 0x%04x (%u)\n", name, e->addr, e->size, e->size);
         } else
             printf("%s address 0x%08x is invalid !\n", name, e->addr);
     } else
         printf("%s not found in mapfile!\n", name);
+    fflush(stdout);
     return e;
 }
 
@@ -226,6 +240,7 @@ mapfile_mem_entry_t *dump_print_var_ui32(dump_t *pd, mapfile_t *pm, const char *
             printf("%s address 0x%08x is invalid !\n", name, e->addr);
     } else
         printf("%s not found in mapfile!\n", name);
+    fflush(stdout);
     return e;
 }
 
@@ -239,6 +254,7 @@ mapfile_mem_entry_t *dump_print_var_pchar(dump_t *pd, mapfile_t *pm, const char 
             printf("%s address 0x%08x is invalid !\n", name, e->addr);
     } else
         printf("%s not found in mapfile!\n", name);
+    fflush(stdout);
     return e;
 }
 

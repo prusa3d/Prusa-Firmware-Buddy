@@ -118,6 +118,8 @@ extern int dump_save_bin_to_file(void *data, int size, const char *fn);
 
 extern uint32_t dump_find_in_flash(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t start_addr, uint32_t end_addr);
 
+extern uint32_t dump_find_in_ram(dump_t *pd, uint8_t *pdata, uint16_t size, uint32_t start_addr, uint32_t end_addr);
+
 extern int dump_add_symbol(uint32_t addr, uint32_t size, const char *name);
 
 extern int dump_find_symbol_by_addr(uint32_t addr, char *name, uint32_t *offs);

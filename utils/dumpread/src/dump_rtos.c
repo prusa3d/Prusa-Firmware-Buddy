@@ -4,14 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 const char *dump_rtos_task_state_text[4] = {
     "SUSPENDED",
     "DELAYED",
     "READY",
     "RUNNING",
 };
-
 
 uint32_t dump_rtos_task_stacksize(dump_t *pd, uint32_t task_handle) {
     dump_tcb_t *ptcb = (dump_tcb_t *)dump_get_data_ptr(pd, task_handle);
@@ -41,37 +39,37 @@ uint32_t dump_rtos_list_task_handles(dump_t *pd, uint32_t list_addr, uint32_t *t
     if (plistitem->pvOwner == 0)
         plistitem = (dump_listitem_t *)dump_get_data_ptr(pd, plistitem->pxNext);
     while (index < plist->uxNumberOfItems) {
-        task_handles[index] = plistitem->pvOwner;
+        if (plistitem->pvOwner != 0) {
+            task_handles[index] = plistitem->pvOwner;
+            index++;
+        }
         plistitem = (dump_listitem_t *)dump_get_data_ptr(pd, plistitem->pxNext);
-        index++;
     }
     return index;
 }
 
-void dump_rtos_print_queue(dump_t *pd, mapfile_t *pm, uint32_t queue_handle)
-{
-	dump_queue_t* pqueue = (dump_queue_t*)dump_get_data_ptr(pd, queue_handle);
-	uint32_t data_addr = queue_handle + sizeof(dump_queue_t) + 5;
-	void* pqueue_data = dump_get_data_ptr(pd, data_addr);
-	printf(" .pcHead = 0x%08x (+%d)\n", pqueue->pcHead, pqueue->pcHead - data_addr);
-	printf(" .pcTail = 0x%08x (+%d)\n", pqueue->pcTail, pqueue->pcTail - data_addr);
-	printf(" .pcWriteTo = 0x%08x (+%d)\n", pqueue->pcWriteTo, pqueue->pcWriteTo - data_addr);
-	printf(" .pcReadFrom = 0x%08x (+%d)\n", pqueue->u.pcReadFrom, pqueue->u.pcReadFrom - data_addr);
-//	dump_list_t xTasksWaitingToSend;
-//	dump_list_t xTasksWaitingToReceive;
-	printf(" .uxMessagesWaiting = 0x%08x\n", pqueue->uxMessagesWaiting);
-	printf(" .uxLength = 0x%08x\n", pqueue->uxLength);
-	printf(" .uxItemSize = 0x%08x\n", pqueue->uxItemSize);
-//	int8_t cRxLock;
-//	int8_t cTxLock;
-	printf(" .uxQueueNumber = 0x%08x\n", pqueue->uxQueueNumber);
-	printf(" .ucQueueType = 0x%02x\n", pqueue->ucQueueType);
-	if (pqueue->uxItemSize == 1)
-	{
-		uint8_t* pd = (uint8_t*)pqueue_data;
-		for (int i = 0; i < pqueue->uxLength; i++)
-			printf(" +%04x %02x '%c' (%d)\n", i, pd[i], pd[i], pd[i]);
-	}
+void dump_rtos_print_queue(dump_t *pd, mapfile_t *pm, uint32_t queue_handle) {
+    dump_queue_t *pqueue = (dump_queue_t *)dump_get_data_ptr(pd, queue_handle);
+    uint32_t data_addr = queue_handle + sizeof(dump_queue_t) + 5;
+    void *pqueue_data = dump_get_data_ptr(pd, data_addr);
+    printf(" .pcHead = 0x%08x (+%d)\n", pqueue->pcHead, pqueue->pcHead - data_addr);
+    printf(" .pcTail = 0x%08x (+%d)\n", pqueue->pcTail, pqueue->pcTail - data_addr);
+    printf(" .pcWriteTo = 0x%08x (+%d)\n", pqueue->pcWriteTo, pqueue->pcWriteTo - data_addr);
+    printf(" .pcReadFrom = 0x%08x (+%d)\n", pqueue->u.pcReadFrom, pqueue->u.pcReadFrom - data_addr);
+    //	dump_list_t xTasksWaitingToSend;
+    //	dump_list_t xTasksWaitingToReceive;
+    printf(" .uxMessagesWaiting = 0x%08x\n", pqueue->uxMessagesWaiting);
+    printf(" .uxLength = 0x%08x\n", pqueue->uxLength);
+    printf(" .uxItemSize = 0x%08x\n", pqueue->uxItemSize);
+    //	int8_t cRxLock;
+    //	int8_t cTxLock;
+    printf(" .uxQueueNumber = 0x%08x\n", pqueue->uxQueueNumber);
+    printf(" .ucQueueType = 0x%02x\n", pqueue->ucQueueType);
+    if (pqueue->uxItemSize == 1) {
+        uint8_t *pd = (uint8_t *)pqueue_data;
+        for (int i = 0; i < pqueue->uxLength; i++)
+            printf(" +%04x %02x '%c' (%d)\n", i, pd[i], pd[i], pd[i]);
+    }
 }
 
 void dump_rtos_print(dump_t *pd, mapfile_t *pm) {
@@ -122,6 +120,7 @@ void dump_rtos_print(dump_t *pd, mapfile_t *pm) {
     if ((e = dump_print_var(pd, pm, "pxReadyTasksLists")) != NULL) {
         for (int pri = 0; pri < DUMP_RTOS_MAX_PRIORITIES; pri++) {
             printf("priority %d\n", pri);
+            fflush(stdout);
             task_handles_ready_count[pri] = dump_rtos_list_task_handles(pd, e->addr + pri * sizeof(dump_list_t), task_handles_ready[pri]);
             for (int task = 0; task < task_handles_ready_count[pri]; task++) {
                 uint32_t task_handle = task_handles_ready[pri][task];
@@ -134,6 +133,7 @@ void dump_rtos_print(dump_t *pd, mapfile_t *pm) {
                 else
                     task_states[ptcb->uxTCBNumber - 1] = DUMP_RTOS_TASK_STATE_READY;
                 printf(" handle 0x%08x number %u name %s\n", task_handle, ptcb->uxTCBNumber, ptcb->pcTaskName);
+                fflush(stdout);
             }
         }
     }
@@ -226,4 +226,3 @@ void dump_rtos_print(dump_t *pd, mapfile_t *pm) {
             //    	dump_rtos_task_stacksize(pd, xIdleTaskHandle);
         }
 }
-

@@ -96,6 +96,24 @@ int main(int argc, char **argv) {
 
         if (pdump) {
             dump_print_all(pdump, pmap);
+/*
+            //uint32_t pattern = 0x432bbae1;
+            //uint32_t pattern = 0x00a02517;
+            //uint32_t pattern = 0x00a02508;
+            //uint32_t pattern = 0x00a02513;
+            uint32_t addr = 0x20000000;
+            char name[128];
+            uint32_t offs;
+            while (addr != 0xffffffff) {
+                addr = dump_find_in_ram(pdump, (uint8_t *)(&pattern), 4, addr, 0x2001ffff);
+                if (addr != 0xffffffff) {
+                    printf("addr = 0x%08x", addr);
+                    if (dump_resolve_addr(pdump, pmap, addr, name, &offs))
+                        printf("(%s + %u)", name, offs);
+                    printf("\n");
+                    addr += 4;
+                }
+            }*/
 
             puts("");
         }
