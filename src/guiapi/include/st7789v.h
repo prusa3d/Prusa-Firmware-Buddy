@@ -9,9 +9,9 @@
 #include "display_math_helper.h"
 
 //public flags (config)
-#define ST7789V_FLG_DMA  0x08 // DMA enabled
-#define ST7789V_FLG_MISO 0x10 // MISO enabled
-#define ST7789V_FLG_SAFE 0x20 // SAFE mode (no DMA and safe delay)
+#define ST7789V_FLG_DMA 0x08                  // DMA enabled
+static const uint8_t ST7789V_FLG_MISO = 0x10; // MISO enabled
+static const uint8_t ST7789V_FLG_SAFE = 0x20; // SAFE mode (no DMA and safe delay)
 
 #define ST7789V_DEF_COLMOD 0x05 // interface pixel format (5-6-5, hi-color)
 #define ST7789V_DEF_MADCTL 0xC0 // memory data access control (mirror XY)

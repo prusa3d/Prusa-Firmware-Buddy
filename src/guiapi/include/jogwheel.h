@@ -12,7 +12,7 @@
 //old encoder (with new encoder 2 steps per 1 count)
 //#define JOGWHEEL_DEF_FLG      (JOGWHEEL_FLG_INV_ENC | JOGWHEEL_FLG_INV_DIR)
 //new encoder (1 steps per 1 count)
-#define JOGWHEEL_DEF_FLG (JOGWHEEL_FLG_INV_ENC | JOGWHEEL_FLG_2PULSES | JOGWHEEL_FLG_FILTER2)
+static const uint8_t JOGWHEEL_DEF_FLG = JOGWHEEL_FLG_INV_ENC | JOGWHEEL_FLG_2PULSES | JOGWHEEL_FLG_FILTER2;
 
 typedef struct _jogwheel_config_t {
     uint8_t pinEN1; // encoder phase1 pin
