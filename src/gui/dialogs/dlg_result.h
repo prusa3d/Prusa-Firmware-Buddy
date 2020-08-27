@@ -1,7 +1,6 @@
 // dlg_result.h
 
-#ifndef _DLG_RESULT_H
-#define _DLG_RESULT_H
+#pragma once
 
 #pragma pack(push)
 #pragma pack(1)
@@ -13,5 +12,3 @@ typedef enum {
 } dlg_result_t;
 
 #pragma pack(pop)
-
-#endif //_DLG_RESULT_H
