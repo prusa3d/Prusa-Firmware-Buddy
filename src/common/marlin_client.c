@@ -114,10 +114,11 @@ void marlin_client_shdn(void) {
     //TODO
 }
 
+variant8_t client_msg[MARLIN_MAX_CLIENTS];
+
 void marlin_client_loop(void) {
     uint16_t count = 0;
     osEvent ose;
-    variant8_t msg = variant8_empty();
     int client_id;
     marlin_client_t *client;
     osMessageQId queue;
@@ -131,13 +132,13 @@ void marlin_client_loop(void) {
     if ((queue = marlin_client_queue[client_id]) != 0)
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
-                *(((uint32_t *)(&msg)) + 1) = ose.value.v; //store high dword
-                _process_client_message(client, msg);      //call handler
-                variant8_done(&msg);
+                *(((uint32_t *)(client_msg + client_id)) + 1) = ose.value.v; //store high dword
+                _process_client_message(client, client_msg[client_id]);      //call handler
+                variant8_done(client_msg + client_id);
                 count++;
             } else
-                *(((uint32_t *)(&msg)) + 0) = ose.value.v; //store low dword
-            client->flags ^= MARLIN_CFLG_LOWHIGH;          //flip flag
+                *(((uint32_t *)(client_msg + client_id)) + 0) = ose.value.v; //store low dword
+            client->flags ^= MARLIN_CFLG_LOWHIGH;                            //flip flag
         }
     client->last_count = count;
 }
