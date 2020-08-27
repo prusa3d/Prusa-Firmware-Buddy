@@ -5,22 +5,23 @@
  *  Created on: April 22, 2020
  *      Author: joshy <joshymjose[at]gmail.com>
  */
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <time.h>
+
 #include "wui_api.h"
 #include "version.h"
 #include "otp.h"
-#include <string.h>
-#include <stdio.h>
 #include "ini_handler.h"
 #include "eeprom.h"
 #include "string.h"
-#include <stdbool.h>
-#include <time.h>
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
-#define MAX_UINT16           65535
-#define PRINTER_TYPE_ADDR    0x0802002F // 1 B
-#define PRINTER_VERSION_ADDR 0x08020030 // 1 B
+static const uint16_t MAX_UINT16 = 65535;
+static const uint32_t PRINTER_TYPE_ADDR = 0x0802002F;    // 1 B
+static const uint32_t PRINTER_VERSION_ADDR = 0x08020030; // 1 B
 
 static bool sntp_time_init = false;
 
