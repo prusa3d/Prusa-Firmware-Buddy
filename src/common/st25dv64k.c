@@ -9,22 +9,22 @@
 #define ST25DV64K_RTOS
 
 //system config address registr
-static const uint16_t REG_GPO = 0x0000;
-static const uint16_t REG_IT_TIME = 0x0001;
-static const uint16_t REG_EH_MODE = 0x0002;
-static const uint16_t REG_RF_MNGT = 0x0003;
-static const uint16_t REG_RFA1SS = 0x0004;
+// static const uint16_t REG_GPO = 0x0000;
+// static const uint16_t REG_IT_TIME = 0x0001;
+// static const uint16_t REG_EH_MODE = 0x0002;
+// static const uint16_t REG_RF_MNGT = 0x0003;
+// static const uint16_t REG_RFA1SS = 0x0004;
 static const uint16_t REG_ENDA1 = 0x0005;
-static const uint16_t REG_RFA2SS = 0x0006;
+// static const uint16_t REG_RFA2SS = 0x0006;
 static const uint16_t REG_ENDA2 = 0x0007;
-static const uint16_t REG_RFA3SS = 0x0008;
+// static const uint16_t REG_RFA3SS = 0x0008;
 static const uint16_t REG_ENDA3 = 0x0009;
-static const uint16_t REG_RFA4SS = 0x000A;
-static const uint16_t REG_I2CSS = 0x000B;
-static const uint16_t REG_LOCK_CCFILE = 0x000C;
-static const uint16_t REG_MB_MODE = 0x000D;
-static const uint16_t REG_MB_WDG = 0x000E;
-static const uint16_t REG_LOCK_CFG = 0x000F;
+// static const uint16_t REG_RFA4SS = 0x000A;
+// static const uint16_t REG_I2CSS = 0x000B;
+// static const uint16_t REG_LOCK_CCFILE = 0x000C;
+// static const uint16_t REG_MB_MODE = 0x000D;
+// static const uint16_t REG_MB_WDG = 0x000E;
+// static const uint16_t REG_LOCK_CFG = 0x000F;
 
 // EEPROM I2C addresses
 static const uint8_t ADDR_WRITE = 0xA6;
