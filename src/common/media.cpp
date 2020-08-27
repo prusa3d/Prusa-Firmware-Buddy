@@ -9,8 +9,8 @@
 
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
-#define USBHOST_REENUM_DELAY   100 // pool delay [ms]
-#define USBHOST_REENUM_TIMEOUT 500 // state-hang timeout [ms]
+static const constexpr uint8_t USBHOST_REENUM_DELAY = 100;    // pool delay [ms]
+static const constexpr uint16_t USBHOST_REENUM_TIMEOUT = 500; // state-hang timeout [ms]
 
 extern "C" {
 
