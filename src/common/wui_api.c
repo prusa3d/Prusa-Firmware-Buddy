@@ -19,7 +19,7 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
-static const uint16_t MAX_UINT16 = 65535;
+// static const uint16_t MAX_UINT16 = 65535;
 static const uint32_t PRINTER_TYPE_ADDR = 0x0802002F;    // 1 B
 static const uint32_t PRINTER_VERSION_ADDR = 0x08020030; // 1 B
 
