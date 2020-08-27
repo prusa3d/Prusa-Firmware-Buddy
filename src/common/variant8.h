@@ -1,7 +1,6 @@
 // variant8.h
 
-#ifndef _VARIANT8_H
-#define _VARIANT8_H
+#pragma once
 
 #include <inttypes.h>
 
@@ -29,11 +28,11 @@
 #define VARIANT8_PCHAR (VARIANT8_CHAR | VARIANT8_PTR)
 
 //variant errors
-#define VARIANT8_ERR_MALLOC 1 // memory allocation error (during conversion to strings and allocating pointer types)
-#define VARIANT8_ERR_UNSTYP 2 // unsupported conversion (during conversion)
-#define VARIANT8_ERR_UNSCON 3 // unsupported conversion (during conversion)
-#define VARIANT8_ERR_INVFMT 4 // invalid format (during conversion from string)
-#define VARIANT8_ERR_OOFRNG 5 // out of range (during conversion from bigger to lower range number)
+static const uint8_t VARIANT8_ERR_MALLOC = 1; // memory allocation error (during conversion to strings and allocating pointer types)
+static const uint8_t VARIANT8_ERR_UNSTYP = 2; // unsupported conversion (during conversion)
+static const uint8_t VARIANT8_ERR_UNSCON = 3; // unsupported conversion (during conversion)
+static const uint8_t VARIANT8_ERR_INVFMT = 4; // invalid format (during conversion from string)
+static const uint8_t VARIANT8_ERR_OOFRNG = 5; // out of range (during conversion from bigger to lower range number)
 
 //macros for variant8 structure constants
 #define _VARIANT8_TYPE(type, _8, _16, _32) ((variant8_t) { type, _8, { _16 }, { _32 } })
@@ -313,5 +312,3 @@ inline static int variant8_is_number(const variant8_t *pvar8) { return (pvar8) ?
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_VARIANT8_H

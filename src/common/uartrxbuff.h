@@ -1,6 +1,5 @@
 //uartrxbuff.h
-#ifndef _UARTRXBUFF_H
-#define _UARTRXBUFF_H
+#pragma once
 
 #include <inttypes.h>
 #include "stm32f4xx_hal.h"
@@ -45,5 +44,3 @@ extern void uartrxbuff_rxcplt_cb(uartrxbuff_t *prxbuff);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_UARTRXBUFF_H

@@ -1,5 +1,4 @@
-#ifndef _UTILS_H
-#define _UTILS_H
+#pragma once
 
 #include "qrcodegen.h"
 
@@ -19,5 +18,3 @@ extern void create_path_info_4service(char *str, uint32_t str_size);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // _UTILS_H

@@ -1,7 +1,6 @@
 //----------------------------------------------------------------------------//
 // timer_defaults.h - default values for timers
-#ifndef _TIMER_DEFAULTS_H
-#define _TIMER_DEFAULTS_H
+#pragma once
 
 #define TIM_BASE_CLK_MHZ 84
 
@@ -14,6 +13,4 @@
 
 //must be macro to be able to inicialize variables with it
 #define GEN_PERIOD_US(prescaler, period) \
-    (prescaler + 1) * (period + 1) / (int32_t)TIM_BASE_CLK_MHZ;
-
-#endif //_TIMER_DEFAULTS_H
+    ((prescaler + 1) * (period + 1) / (int32_t)TIM_BASE_CLK_MHZ)
