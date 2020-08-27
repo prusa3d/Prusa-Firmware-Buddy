@@ -1,6 +1,5 @@
 // putslave.h
-#ifndef _PUTSLAVE_H
-#define _PUTSLAVE_H
+#pragma once
 
 #include "uartslave.h"
 
@@ -47,5 +46,3 @@ extern void putslave_init(uartslave_t *pslave);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _PUTSLAVE_H

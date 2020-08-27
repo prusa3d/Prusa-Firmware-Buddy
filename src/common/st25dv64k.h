@@ -1,7 +1,6 @@
 // st25dv64k.h
 
-#ifndef _ST25DV64K_H
-#define _ST25DV64K_H
+#pragma once
 
 #include <inttypes.h>
 
@@ -28,5 +27,3 @@ extern void st25dv64k_present_pwd(uint8_t *pwd);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // _ST25DV64K_H
