@@ -3,7 +3,7 @@
 ![vscode screenshot](vscode_screenshot.png)
 
 1. In Visual Studio Code, install the following extensions:
-    - `CMake Tools` (handles configuring and building the project),
+    - `CMake Tools` (handles configuring and building the project, requires CMake to be installed),
     - `Cortex-Debug` and `Cortex-Debug: Device Support Pack - STM32F4` (support for debugging of the firmware),
     - `ccls` extension, which provides autocompletion and code navigation.
     - `Code Spell Checker` (streetsidesoftware.code-spell-checker) extension, which provides spell checking and correction suggestions.
