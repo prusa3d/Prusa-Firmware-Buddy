@@ -7,7 +7,7 @@
 #include "ScreenHandler.hpp"
 #include "IDialog.hpp"
 
-#define GUI_FLG_INVALID 0x0001
+static const constexpr uint8_t GUI_FLG_INVALID = 0x01;
 
 uint16_t gui_flags = 0;
 

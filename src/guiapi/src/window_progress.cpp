@@ -3,7 +3,7 @@
 #include "gui.hpp"
 #include <algorithm>
 
-#define WINDOW_PROGRESS_MAX_TEXT 16
+static const constexpr uint8_t WINDOW_PROGRESS_MAX_TEXT = 16;
 
 /*****************************************************************************/
 //window_numberless_progress_t
