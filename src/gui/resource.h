@@ -1,84 +1,87 @@
 //resource.h
 #pragma once
 
-//null resource - test
-#define IDR_NULL 0x0000
+typedef enum {
 
-//fonts
-#define IDR_FNT_SMALL    0x0001
-#define IDR_FNT_NORMAL   0x0002
-#define IDR_FNT_BIG      0x0003
-#define IDR_FNT_TERMINAL 0x0004
-#define IDR_FNT_SPECIAL  0x0005
+    //null resource - test
+    IDR_NULL = 0x0000,
 
-//pngs
-#define IDR_PNG_splash_logo_marlin    0x0006
-#define IDR_PNG_splash_logo_prusa_prn 0x0007
-#define IDR_PNG_status_logo_prusa_prn 0x0008
+    //fonts
+    IDR_FNT_SMALL,
+    IDR_FNT_NORMAL,
+    IDR_FNT_BIG,
+    IDR_FNT_TERMINAL,
+    IDR_FNT_SPECIAL,
 
-#define IDR_PNG_status_icon_nozzle   0x0009
-#define IDR_PNG_status_icon_heatbed  0x000a
-#define IDR_PNG_status_icon_prnspeed 0x000b
-#define IDR_PNG_status_icon_filament 0x000c
-#define IDR_PNG_status_icon_z_axis   0x000d
-#define IDR_PNG_status_icon_home     0x000e
-#define IDR_PNG_status_icon_printing 0x000f
+    //pngs
+    IDR_PNG_splash_logo_marlin,
+    IDR_PNG_splash_logo_prusa_prn,
+    IDR_PNG_status_logo_prusa_prn,
 
-#define IDR_PNG_menu_icon_print       0x0010
-#define IDR_PNG_menu_icon_preheat     0x0011
-#define IDR_PNG_menu_icon_spool       0x0012
-#define IDR_PNG_menu_icon_reprint     0x0013
-#define IDR_PNG_menu_icon_calibration 0x0014
-#define IDR_PNG_menu_icon_settings    0x0015
-#define IDR_PNG_menu_icon_info        0x0016
-#define IDR_PNG_menu_icon_pause       0x0017
-#define IDR_PNG_menu_icon_stop        0x0018
-#define IDR_PNG_menu_icon_resume      0x0019
-#define IDR_PNG_menu_icon_home        0x001a
+    IDR_PNG_status_icon_nozzle,
+    IDR_PNG_status_icon_heatbed,
+    IDR_PNG_status_icon_prnspeed,
+    IDR_PNG_status_icon_filament,
+    IDR_PNG_status_icon_z_axis,
+    IDR_PNG_status_icon_home,
+    IDR_PNG_status_icon_printing,
 
-#define IDR_PNG_filescreen_icon_home      0x001b
-#define IDR_PNG_filescreen_icon_folder    0x001c
-#define IDR_PNG_filescreen_icon_up_folder 0x001d
+    IDR_PNG_menu_icon_print,
+    IDR_PNG_menu_icon_preheat,
+    IDR_PNG_menu_icon_spool,
+    IDR_PNG_menu_icon_reprint,
+    IDR_PNG_menu_icon_calibration,
+    IDR_PNG_menu_icon_settings,
+    IDR_PNG_menu_icon_info,
+    IDR_PNG_menu_icon_pause,
+    IDR_PNG_menu_icon_stop,
+    IDR_PNG_menu_icon_resume,
+    IDR_PNG_menu_icon_home,
 
-#define IDR_PNG_icon_pepa 0x001e
+    IDR_PNG_filescreen_icon_home,
+    IDR_PNG_filescreen_icon_folder,
+    IDR_PNG_filescreen_icon_up_folder,
 
-#define IDR_PNG_msgbox_icon_error    0x001f
-#define IDR_PNG_msgbox_icon_question 0x0020
-#define IDR_PNG_msgbox_icon_warning  0x0021
-#define IDR_PNG_msgbox_icon_info     0x0022
+    IDR_PNG_icon_pepa,
 
-#define IDR_PNG_wizard_icon_na        0x0023
-#define IDR_PNG_wizard_icon_ok        0x0024
-#define IDR_PNG_wizard_icon_ng        0x0025
-#define IDR_PNG_wizard_icon_ip0       0x0026
-#define IDR_PNG_wizard_icon_ip1       0x0027
-#define IDR_PNG_wizard_icon_hourglass 0x0028
-#define IDR_PNG_wizard_icon_autohome  0x0029
-#define IDR_PNG_wizard_icon_search    0x002a
-#define IDR_PNG_wizard_icon_measure   0x002b
+    IDR_PNG_msgbox_icon_error,
+    IDR_PNG_msgbox_icon_question,
+    IDR_PNG_msgbox_icon_warning,
+    IDR_PNG_msgbox_icon_info,
 
-#define IDR_PNG_icon_pepa_psod 0x002c
+    IDR_PNG_wizard_icon_na,
+    IDR_PNG_wizard_icon_ok,
+    IDR_PNG_wizard_icon_ng,
+    IDR_PNG_wizard_icon_ip0,
+    IDR_PNG_wizard_icon_ip1,
+    IDR_PNG_wizard_icon_hourglass,
+    IDR_PNG_wizard_icon_autohome,
+    IDR_PNG_wizard_icon_search,
+    IDR_PNG_wizard_icon_measure,
 
-#define IDR_PNG_header_icon_usb      0x002d
-#define IDR_PNG_header_icon_lan      0x002e
-#define IDR_PNG_header_icon_wifi     0x002f
-#define IDR_PNG_header_icon_info     0x0030
-#define IDR_PNG_header_icon_error    0x0031
-#define IDR_PNG_header_icon_warning  0x0032
-#define IDR_PNG_header_icon_question 0x0033
+    IDR_PNG_icon_pepa_psod,
 
-#define IDR_PNG_arrow_up      0x0034
-#define IDR_PNG_arrow_down    0x0035
-#define IDR_PNG_arrow_scan_me 0x0036
+    IDR_PNG_header_icon_usb,
+    IDR_PNG_header_icon_lan,
+    IDR_PNG_header_icon_wifi,
+    IDR_PNG_header_icon_info,
+    IDR_PNG_header_icon_error,
+    IDR_PNG_header_icon_warning,
+    IDR_PNG_header_icon_question,
 
-#define IDR_PNG_menu_icon_back       0x0037
-#define IDR_PNG_serial_printing      0x0038
-#define IDR_PNG_menu_icon_disconnect 0x0039
+    IDR_PNG_arrow_up,
+    IDR_PNG_arrow_down,
+    IDR_PNG_arrow_scan_me,
 
-#define IDR_PNG_flag_cs 0x003a
-#define IDR_PNG_flag_de 0x003b
-#define IDR_PNG_flag_en 0x003c
-#define IDR_PNG_flag_es 0x003d
-#define IDR_PNG_flag_fr 0x003e
-#define IDR_PNG_flag_it 0x003f
-#define IDR_PNG_flag_pl 0x0040
+    IDR_PNG_menu_icon_back,
+    IDR_PNG_serial_printing,
+    IDR_PNG_menu_icon_disconnect,
+
+    IDR_PNG_flag_cs,
+    IDR_PNG_flag_de,
+    IDR_PNG_flag_en,
+    IDR_PNG_flag_es,
+    IDR_PNG_flag_fr,
+    IDR_PNG_flag_it,
+    IDR_PNG_flag_pl,
+};
