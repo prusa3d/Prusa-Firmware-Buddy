@@ -42,7 +42,6 @@ Response MsgBoxBase::GetResult() {
 //todo make radio button events behave like normal button
 void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
     case WINDOW_EVENT_CLICK:
         result = buttons.Click();
         Screens::Access()->Close();
