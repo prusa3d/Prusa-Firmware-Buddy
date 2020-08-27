@@ -117,7 +117,7 @@ void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     const int value = int(param);
     bool invalid = false;
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
+    case WINDOW_EVENT_CLICK:
 
         item->Click(*this);
         //Invalidate(); //called inside click

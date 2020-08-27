@@ -83,7 +83,7 @@ void window_list_t::unconditionalDraw() {
 
 void window_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
+    case WINDOW_EVENT_CLICK:
         if (GetParent())
             GetParent()->SetCapture();
         break;

@@ -10,7 +10,7 @@
 #include "gui.hpp"
 #include "st7789v.h"
 #include "safe_state.h"
-#include "jogwheel.h"
+#include "Jogwheel.hpp"
 #include "gpio.h"
 #include "sys.h"
 #include "hwio.h" //hwio_beeper_set_pwm
@@ -175,13 +175,10 @@ void mbl_error(uint16_t moves, uint16_t points) {
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,
         COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
-    jogwheel_init();
-    gui_reset_jogwheel();
-
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
         wdt_iwdg_refresh();
-        if (!gpio_get(jogwheel_config.pinENC))
+        if (!jogwheel.GetJogwheelButtonPinState())
             sys_reset(); //button press
     }
 }

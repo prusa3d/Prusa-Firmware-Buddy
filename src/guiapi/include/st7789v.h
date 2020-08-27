@@ -16,8 +16,9 @@ static const uint8_t ST7789V_FLG_SAFE = 0x20; // SAFE mode (no DMA and safe dela
 #define ST7789V_DEF_COLMOD 0x05 // interface pixel format (5-6-5, hi-color)
 #define ST7789V_DEF_MADCTL 0xC0 // memory data access control (mirror XY)
 
-#define ST7789V_COLS 240 //
-#define ST7789V_ROWS 320 //
+#define ST7789V_COLS      240 //
+#define ST7789V_ROWS      320 //
+#define ST7789V_BUFF_ROWS 16
 
 typedef struct _st7789v_config_t {
     SPI_HandleTypeDef *phspi; // spi handle pointer
@@ -71,6 +72,7 @@ extern void st7789v_brightness_enable(void);
 extern void st7789v_brightness_disable(void);
 
 extern uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y);
+extern uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y);
 extern void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565);
 
 extern st7789v_config_t st7789v_config;
