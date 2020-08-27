@@ -1,7 +1,7 @@
 //resource.h
 #pragma once
 
-typedef enum {
+enum {
 
     //null resource - test
     IDR_NULL = 0x0000,
