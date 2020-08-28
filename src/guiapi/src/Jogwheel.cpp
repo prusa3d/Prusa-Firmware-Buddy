@@ -7,8 +7,8 @@ static const constexpr uint16_t JG_DOUBLECLICK_INTERVAL = 500; // [ms] jogwheel 
 static const constexpr uint16_t JG_HOLD_INTERVAL = 1000;       // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
 
 // encoder limits
-static const constexpr uint32_t JG_ENCODER_MAX = INT_MAX;
-static const constexpr uint32_t JG_ENCODER_MIN = INT_MIN;
+static const constexpr int32_t JG_ENCODER_MAX = INT_MAX;
+static const constexpr int32_t JG_ENCODER_MIN = INT_MIN;
 
 // signal flags
 static const constexpr uint8_t JG_PHASE_0 = 0x01;
