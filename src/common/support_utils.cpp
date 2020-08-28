@@ -87,7 +87,7 @@ void error_url_long(char *str, uint32_t str_size, int error_code) {
 
     /// language
     char lang[3];
-    const uint16_t langNum = eeprom_get_var(EEVAR_LANGUAGE).ui16;
+    const uint16_t langNum = variant_get_ui16(eeprom_get_var(EEVAR_LANGUAGE));
     uint16_t *langP = (uint16_t *)lang;
     *langP = langNum;
     //uint16_t *(lang) = langNum;
@@ -105,7 +105,7 @@ void error_url_long(char *str, uint32_t str_size, int error_code) {
         printerCode(eofstr(str));
 
     /// FW version
-    snprintf(eofstr(str), str_size - strlen(str), "/%d", eeprom_get_var(EEVAR_FW_VERSION).ui16);
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", variant_get_ui16(eeprom_get_var(EEVAR_FW_VERSION)));
 
     //snprintf(eofstr(str), str_size - strlen(str), "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     //snprintf(eofstr(str), str_size - strlen(str), "/%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));

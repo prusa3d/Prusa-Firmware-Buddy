@@ -711,3 +711,7 @@ cvariant8 &cvariant8::assignment_operator_x(const cvariant8 &rhs, cvariant8::ope
     }
     return *this;
 }
+
+void variant8_set_usr8(variant8_t *v, uint8_t usr) {
+    v->usr8 = usr;
+}

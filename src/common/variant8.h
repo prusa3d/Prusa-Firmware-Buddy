@@ -256,6 +256,42 @@ extern variant8_t variant8_pui32(uint32_t *pui32, uint16_t count, int init);
 // returns VARIANT8_PFLT
 extern variant8_t variant8_pflt(float *pflt, uint16_t count, int init);
 
+// returns variant8_t type
+inline uint8_t variant8_get_type(variant8_t v) { return v.type; }
+
+// returns variant8_t usr8
+inline uint8_t variant8_get_usr8(variant8_t v) { return v.usr8; }
+
+// returns variant8_t usr16
+inline uint16_t variant8_get_usr16(variant8_t v) { return v.usr16; }
+
+// returns variant8_t flt
+inline float variant8_get_flt(variant8_t v) { return v.flt; }
+
+// returns variant8_t pch
+inline char *variant8_get_pch(variant8_t v) { return v.pch; }
+
+// returns variant8_t ui8
+inline uint8_t variant8_get_uia(variant8_t v, uint8_t index) { return v.ui8a[index]; }
+
+// returns variant8_t ui32
+inline uint32_t variant8_get_ui32(variant8_t v) { return v.ui32; }
+
+// returns variant8_t i32
+inline int32_t variant8_get_i32(variant8_t v) { return v.i32; }
+
+// returns variant8_t ui16
+inline uint16_t variant_get_ui16(variant8_t v) { return v.ui16; }
+
+// returns variant8_t ui8
+inline uint8_t variant_get_ui8(variant8_t v) { return v.ui8; }
+
+// returns variant8_t i8
+inline int8_t variant8_get_i8(variant8_t v) { return v.i8; }
+
+// set variant8_t usr8 member
+extern void variant8_set_usr8(variant8_t *, uint8_t);
+
 // returns VARIANT8_PCHAR
 // Because PCHAR is special case of pointer type, there is a simplification for defining size.
 // In case that count=0 and init=1 is used strlen to measure size of original string.
