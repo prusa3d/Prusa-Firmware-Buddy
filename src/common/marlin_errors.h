@@ -4,9 +4,11 @@
 #include <inttypes.h>
 
 // Marlin errors
-#define MARLIN_ERR_TMCDriverError 0x00 //
-#define MARLIN_ERR_ProbingFailed  0x01 //
-static const uint8_t MARLIN_ERR_MAX = MARLIN_ERR_ProbingFailed;
+enum {
+    MARLIN_ERR_TMCDriverError, //
+    MARLIN_ERR_ProbingFailed,  //
+    MARLIN_ERR_MAX = MARLIN_ERR_ProbingFailed,
+};
 
 // error masks
 #define MARLIN_ERR_MSK(e_id) ((uint64_t)1 << (e_id))
