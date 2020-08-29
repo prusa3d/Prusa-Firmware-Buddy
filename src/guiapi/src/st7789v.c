@@ -14,57 +14,67 @@
 #endif //ST7789V_USE_RTOS
 
 //st7789 commands
-#define CMD_SLPIN     0x10
-#define CMD_SLPOUT    0x11
-#define CMD_INVOFF    0x20 //Display Inversion Off
-#define CMD_INVON     0x21 //Display Inversion On
-#define CMD_GAMMA_SET 0x26 //gamma set
-#define CMD_DISPOFF   0x28
-#define CMD_DISPON    0x29
-#define CMD_CASET     0x2A
-#define CMD_RASET     0x2B
-#define CMD_RAMWR     0x2C
-#define CMD_RAMRD     0x2E
-#define CMD_MADCTL    0x36
-//#define CMD_IDMOFF 		0x38//Idle Mode Off
-//#define CMD_IDMON 		0x38//Idle Mode On
-#define CMD_COLMOD  0x3A
-#define CMD_RAMWRC  0x3C
-#define CMD_WRDISBV 0x51 //Write Display Brightness
-#define CMD_RDDISBV 0x52 //Read Display Brightness Value
-#define CMD_WRCTRLD 0x53 // Write CTRL Display
-//-Brightness Control Block - bit 5
-//-Display Dimming			- bit 3
-//-Backlight Control On/Off - bit 2
-#define CMD_RDCTRLD 0x54 //Read CTRL Value Display
+enum {
+    CMD_SLPIN = 0x10,
+    CMD_SLPOUT = 0x11,
+    CMD_INVOFF = 0x20,    //Display Inversion Off
+    CMD_INVON = 0x21,     //Display Inversion On
+    CMD_GAMMA_SET = 0x26, //gamma set
+    CMD_DISPOFF = 0x28,
+    CMD_DISPON = 0x29,
+    CMD_CASET = 0x2A,
+    CMD_RASET = 0x2B,
+    CMD_RAMWR = 0x2C,
+    CMD_RAMRD = 0x2E,
+    CMD_MADCTL = 0x36,
+    // CMD_IDMOFF = 0x38,//Idle Mode Off FIXME shouldn't be 0x37?
+    // CMD_IDMON = 0x38,//Idle Mode On
+    CMD_COLMOD = 0x3A,
+    CMD_RAMWRC = 0x3C,
+    CMD_WRDISBV = 0x51, //Write Display Brightness
+    CMD_RDDISBV = 0x52, //Read Display Brightness Value
+    CMD_WRCTRLD = 0x53, // Write CTRL Display
+                        //-Brightness Control Block - bit 5
+                        //-Display Dimming			- bit 3
+                        //-Backlight Control On/Off - bit 2
+    CMD_RDCTRLD = 0x54, //Read CTRL Value Display
+};
 
 //st7789 gamma
-#define GAMMA_CURVE0 0x01
-#define GAMMA_CURVE1 0x02
-#define GAMMA_CURVE2 0x04
-#define GAMMA_CURVE3 0x08
+enum {
+    GAMMA_CURVE0 = 0x01,
+    GAMMA_CURVE1 = 0x02,
+    GAMMA_CURVE2 = 0x04,
+    GAMMA_CURVE3 = 0x08,
+};
 
 //st7789 CTRL Display
-#define MASK_CTRLD_BCTRL (0x01 << 5) //Brightness Control Block
-#define MASK_CTRLD_DD    (0x01 << 3) //Display Dimming
-#define MASK_CTRLD_BL    (0x01 << 2) //Backlight Control
+enum {
+    MASK_CTRLD_BCTRL = (0x01 << 5), //Brightness Control Block
+    MASK_CTRLD_DD = (0x01 << 3),    //Display Dimming
+    MASK_CTRLD_BL = (0x01 << 2),    //Backlight Control
+};
 
 //color constants
-#define CLR565_WHITE   0xffff
-#define CLR565_BLACK   0x0000
-#define CLR565_RED     0xf800
-#define CLR565_CYAN    0x0000
-#define CLR565_MAGENTA 0x0000
-#define CLR565_GREEN   0x07e0
-#define CLR565_YELLOW  0xffe0
-#define CLR565_ORANGE  0x0000
-#define CLR565_GRAY    0x38e7
-#define CLR565_BLUE    0x001f
+enum {
+    CLR565_WHITE = 0xffff,
+    CLR565_BLACK = 0x0000,
+    CLR565_RED = 0xf800,
+    CLR565_CYAN = 0x0000,
+    CLR565_MAGENTA = 0x0000,
+    CLR565_GREEN = 0x07e0,
+    CLR565_YELLOW = 0xffe0,
+    CLR565_ORANGE = 0x0000,
+    CLR565_GRAY = 0x38e7,
+    CLR565_BLUE = 0x001f,
+};
 
 //private flags (pin states)
-#define FLG_CS  0x01 // current CS pin state
-#define FLG_RS  0x02 // current RS pin state
-#define FLG_RST 0x04 // current RST pin state
+enum {
+    FLG_CS = 0x01,  // current CS pin state
+    FLG_RS = 0x02,  // current RS pin state
+    FLG_RST = 0x04, // current RST pin state
+};
 
 uint8_t st7789v_flg = 0; // flags
 

@@ -7,22 +7,24 @@
 #include "Rect16.h"
 
 //window events
-#define WINDOW_EVENT_BTN_DN       0x01 //button down
-#define WINDOW_EVENT_BTN_UP       0x02 //button up
-#define WINDOW_EVENT_ENC_DN       0x03 //encoder minus
-#define WINDOW_EVENT_ENC_UP       0x04 //encoder plus
-#define WINDOW_EVENT_FOCUS0       0x05 //focus lost
-#define WINDOW_EVENT_FOCUS1       0x06 //focus set
-#define WINDOW_EVENT_CAPT_0       0x07 //capture lost
-#define WINDOW_EVENT_CAPT_1       0x08 //capture set
-#define WINDOW_EVENT_CLICK        0x09 //clicked (tag > 0)
-#define WINDOW_EVENT_DOUBLE_CLICK 0x0A // double-clicked
-#define WINDOW_EVENT_HOLD         0x0B // held button
-#define WINDOW_EVENT_CHANGE       0x0C //value/index changed (tag > 0)
-#define WINDOW_EVENT_CHANGING     0x0D //value/index changing (tag > 0)
-#define WINDOW_EVENT_LOOP         0x0E //gui loop (every 50ms)
-#define WINDOW_EVENT_TIMER        0x0F //gui timer
-#define WINDOW_EVENT_MESSAGE      0x10 //onStatusChange() message notification
+enum {
+    WINDOW_EVENT_BTN_DN = 1,   //button down
+    WINDOW_EVENT_BTN_UP,       //button up
+    WINDOW_EVENT_ENC_DN,       //encoder minus
+    WINDOW_EVENT_ENC_UP,       //encoder plus
+    WINDOW_EVENT_FOCUS0,       //focus lost
+    WINDOW_EVENT_FOCUS1,       //focus set
+    WINDOW_EVENT_CAPT_0,       //capture lost
+    WINDOW_EVENT_CAPT_1,       //capture set
+    WINDOW_EVENT_CLICK,        //clicked (tag > 0)
+    WINDOW_EVENT_DOUBLE_CLICK, // double-clicked
+    WINDOW_EVENT_HOLD,         // held button
+    WINDOW_EVENT_CHANGE,       //value/index changed (tag > 0)
+    WINDOW_EVENT_CHANGING,     //value/index changing (tag > 0)
+    WINDOW_EVENT_LOOP,         //gui loop (every 50ms)
+    WINDOW_EVENT_TIMER,        //gui timer
+    WINDOW_EVENT_MESSAGE,      //onStatusChange() message notification
+};
 
 using ButtonCallback = void (*)();
 
