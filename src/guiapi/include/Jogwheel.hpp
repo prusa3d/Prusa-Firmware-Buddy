@@ -62,7 +62,7 @@ public:
      * There are two types with slightly different behaviour
      * and we have to decide in runtime (guimain.cpp), which type are we using.
      *
-     * @param [in] delay - jogwheel type recognision mechanism
+     * @param [in] delay - jogwheel type recognition mechanism
      */
     void SetJogwheelType(uint16_t delay);
 
