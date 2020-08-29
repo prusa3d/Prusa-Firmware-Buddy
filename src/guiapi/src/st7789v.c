@@ -438,7 +438,9 @@ void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t 
 #ifdef ST7789V_PNG_SUPPORT
 
     #include <png.h>
-    #define PNG_MAX_CHUNKS 10
+enum {
+    PNG_MAX_CHUNKS = 10
+};
 
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
