@@ -16,10 +16,12 @@ static const uint8_t HWIO_CLS_FAN = 0x10;    //class fan controller
 static const uint8_t HWIO_CLS_HEATER = 0x11; //class heater controller
 
 //pwm outputs
-#define HWIO_PWM_HEATER_BED 0 //BED PWM
-#define HWIO_PWM_HEATER_0   1 //NOZZLE PWM
-#define HWIO_PWM_FAN1       2 //PRINT FAN?
-#define HWIO_PWM_FAN        3 //NOZZLE FAN?
+enum {
+    HWIO_PWM_HEATER_BED, //BED PWM
+    HWIO_PWM_HEATER_0,   //NOZZLE PWM
+    HWIO_PWM_FAN1,       //PRINT FAN?
+    HWIO_PWM_FAN,        //NOZZLE FAN?
+};
 
 #ifdef __cplusplus
 extern "C" {
