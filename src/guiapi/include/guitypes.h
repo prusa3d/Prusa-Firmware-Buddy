@@ -7,34 +7,41 @@
 #include <stdbool.h>
 
 //alignment constants
-#define ALIGN_LEFT    0x00
-#define ALIGN_HCENTER 0x01
-#define ALIGN_RIGHT   0x02
-#define ALIGN_HMASK   0x03
-#define ALIGN_TOP     0x00
-#define ALIGN_VCENTER 0x10
-#define ALIGN_BOTTOM  0x20
-#define ALIGN_VMASK   0x30
-#define ALIGN_MASK    0x33
-static const uint8_t ALIGN_CENTER = ALIGN_HCENTER | ALIGN_VCENTER;
-static const uint8_t ALIGN_LEFT_TOP = ALIGN_LEFT | ALIGN_TOP;
-static const uint8_t ALIGN_LEFT_CENTER = ALIGN_LEFT | ALIGN_VCENTER;
-static const uint8_t ALIGN_LEFT_BOTTOM = ALIGN_LEFT | ALIGN_BOTTOM;
-static const uint8_t ALIGN_RIGHT_TOP = ALIGN_RIGHT | ALIGN_TOP;
-static const uint8_t ALIGN_RIGHT_CENTER = ALIGN_RIGHT | ALIGN_VCENTER;
-static const uint8_t ALIGN_RIGHT_BOTTOM = ALIGN_RIGHT | ALIGN_BOTTOM;
-static const uint8_t ALIGN_CENTER_TOP = ALIGN_HCENTER | ALIGN_TOP;
-static const uint8_t ALIGN_CENTER_BOTTOM = ALIGN_HCENTER | ALIGN_BOTTOM;
+enum {
+    ALIGN_LEFT = 0x00,
+    ALIGN_HCENTER = 0x01,
+    ALIGN_RIGHT = 0x02,
+    ALIGN_HMASK = 0x03,
+    ALIGN_TOP = 0x00,
+    ALIGN_VCENTER = 0x10,
+    ALIGN_BOTTOM = 0x20,
+    ALIGN_VMASK = 0x30,
+    ALIGN_MASK = 0x33,
+
+    ALIGN_CENTER = ALIGN_HCENTER | ALIGN_VCENTER,
+    ALIGN_LEFT_TOP = ALIGN_LEFT | ALIGN_TOP,
+    ALIGN_LEFT_CENTER = ALIGN_LEFT | ALIGN_VCENTER,
+    ALIGN_LEFT_BOTTOM = ALIGN_LEFT | ALIGN_BOTTOM,
+    ALIGN_RIGHT_TOP = ALIGN_RIGHT | ALIGN_TOP,
+    ALIGN_RIGHT_CENTER = ALIGN_RIGHT | ALIGN_VCENTER,
+    ALIGN_RIGHT_BOTTOM = ALIGN_RIGHT | ALIGN_BOTTOM,
+    ALIGN_CENTER_TOP = ALIGN_HCENTER | ALIGN_TOP,
+    ALIGN_CENTER_BOTTOM = ALIGN_HCENTER | ALIGN_BOTTOM,
+};
 
 //raster operation function constants
-#define ROPFN_COPY    0x00 //copy (no operation)
-#define ROPFN_INVERT  0x01 //invert
-#define ROPFN_SWAPBW  0x02 //swap black-white
-#define ROPFN_DISABLE 0x04 //disables (darker colors)
+enum {
+    ROPFN_COPY = 0x00,    //copy (no operation)
+    ROPFN_INVERT = 0x01,  //invert
+    ROPFN_SWAPBW = 0x02,  //swap black-white
+    ROPFN_DISABLE = 0x04, //disables (darker colors)
+};
 
 //font flags
-#define FONT_FLG_SWAP 0x00000001           // swap low/high byte
-static const uint8_t FONT_FLG_LSBF = 0x02; // LSB first
+enum {
+    FONT_FLG_SWAP = 0x00000001, // swap low/high byte
+    FONT_FLG_LSBF = 0x02,       // LSB first
+};
 
 //color constants
 static const uint32_t COLOR_BLACK = 0x00000000L;
@@ -73,11 +80,13 @@ typedef struct _font_t {
 } font_t;
 
 //resource type definition
-static const uint8_t RESOURCE_TYPE_RAW = 0; //raw binary resource
-static const uint8_t RESOURCE_TYPE_TXT = 1; //text resource
-static const uint8_t RESOURCE_TYPE_FNT = 2; //font resource
-static const uint8_t RESOURCE_TYPE_BMP = 3; //bitmap picture resource
-static const uint8_t RESOURCE_TYPE_PNG = 4; //png picture resource
+enum {
+    RESOURCE_TYPE_RAW, //raw binary resource
+    RESOURCE_TYPE_TXT, //text resource
+    RESOURCE_TYPE_FNT, //font resource
+    RESOURCE_TYPE_BMP, //bitmap picture resource
+    RESOURCE_TYPE_PNG, //png picture resource
+};
 
 //resource table macros
 #define RESOURCE_TABLE_BEGIN const resource_entry_t resource_table[] = {
