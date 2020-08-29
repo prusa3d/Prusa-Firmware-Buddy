@@ -9,7 +9,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-#define ANIMATION_MILISEC_DELAY 500 // number of milisecond for frame change
+static const constexpr uint16_t ANIMATION_MILISEC_DELAY = 500; // number of milisecond for frame change
 
 window_dlg_wait_t::window_dlg_wait_t(Rect16 rect)
     : IDialog(rect)
