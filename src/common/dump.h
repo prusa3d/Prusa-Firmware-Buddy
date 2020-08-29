@@ -10,21 +10,23 @@ static const uint8_t DUMP_HARDFAULT = 0x01; // hardfault dump
 static const uint8_t DUMP_IWDGW = 0x02;     // IWDG warning dump
 static const uint8_t DUMP_NOT_SAVED = 0x80; // dump not saved flag - (unsaved dump cannot be overwritten)
 
-// dumped ram area (128kb)
-#define DUMP_RAM_ADDR 0x20000000
-#define DUMP_RAM_SIZE 0x00020000
+enum {
+    // dumped ram area (128kb)
+    DUMP_RAM_ADDR = 0x20000000,
+    DUMP_RAM_SIZE = 0x00020000,
 
-// dumped ccram area (64kb), last 256 bytes used for register dump etc.
-#define DUMP_CCRAM_ADDR 0x10000000
-#define DUMP_CCRAM_SIZE 0x00010000
+    // dumped ccram area (64kb), last 256 bytes used for register dump etc.
+    DUMP_CCRAM_ADDR = 0x10000000,
+    DUMP_CCRAM_SIZE = 0x00010000,
 
-// dumped otp area (32kb)
-#define DUMP_OTP_ADDR 0x1FFF0000
-#define DUMP_OTP_SIZE 0x00008000
+    // dumped otp area (32kb)
+    DUMP_OTP_ADDR = 0x1FFF0000,
+    DUMP_OTP_SIZE = 0x00008000,
 
-// dumped flash area (1024kb)
-#define DUMP_FLASH_ADDR 0x08000000
-#define DUMP_FLASH_SIZE 0x00100000
+    // dumped flash area (1024kb)
+    DUMP_FLASH_ADDR = 0x08000000,
+    DUMP_FLASH_SIZE = 0x00100000,
+};
 
 // general registers stored to ccram
 // r0-r12, sp, lr, pc - 64 bytes
