@@ -15,8 +15,10 @@ static const uint8_t MARLIN_SFLG_EXCMODE = 0x10; // exclusive mode enabled (curr
 
 // server variable update interval [ms]
 static const uint8_t MARLIN_UPDATE_PERIOD = 100;
-#define MSG_STACK_SIZE 8  //status message stack size
-#define MSG_MAX_LENGTH 21 //status message max length
+enum {
+    MSG_STACK_SIZE = 8,  //status message stack size
+    MSG_MAX_LENGTH = 21, //status message max length
+};
 
 typedef void(marlin_server_idle_t)(void);
 
