@@ -4,7 +4,9 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-enum FANCTL_MAX_FANS = 2; // maximum number of fans for C wrapper functions
+enum {
+    FANCTL_MAX_FANS = 2 // maximum number of fans for C wrapper functions
+};
 
 // this structure contain variables for software pwm fan control with phase-shifting
 // used in class CFanCtlPWM

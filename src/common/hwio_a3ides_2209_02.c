@@ -100,7 +100,9 @@ int *const _pwm_period_us[] = {
 
 // a3ides pwm output maximum values
 const int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period }; //{42000, 42000, 42000, 42000};
-enum _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t));
+enum {
+    _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t))
+};
 
 const TIM_OC_InitTypeDef sConfigOC_default = {
     TIM_OCMODE_PWM1,       //OCMode
