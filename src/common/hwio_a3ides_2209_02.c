@@ -22,14 +22,16 @@
 #include "fanctl.h"
 
 //hwio arduino wrapper errors
-#define HWIO_ERR_UNINI_DIG_RD 0x01
-#define HWIO_ERR_UNINI_DIG_WR 0x02
-#define HWIO_ERR_UNINI_ANA_RD 0x03
-#define HWIO_ERR_UNINI_ANA_WR 0x04
-#define HWIO_ERR_UNDEF_DIG_RD 0x05
-#define HWIO_ERR_UNDEF_DIG_WR 0x06
-#define HWIO_ERR_UNDEF_ANA_RD 0x07
-#define HWIO_ERR_UNDEF_ANA_WR 0x08
+enum {
+    HWIO_ERR_UNINI_DIG_RD = 0x01,
+    HWIO_ERR_UNINI_DIG_WR,
+    HWIO_ERR_UNINI_ANA_RD,
+    HWIO_ERR_UNINI_ANA_WR,
+    HWIO_ERR_UNDEF_DIG_RD,
+    HWIO_ERR_UNDEF_DIG_WR,
+    HWIO_ERR_UNDEF_ANA_RD,
+    HWIO_ERR_UNDEF_ANA_WR,
+};
 
 // a3ides analog input pins
 const uint32_t _adc_pin32[] = {
@@ -51,12 +53,16 @@ const uint32_t _dac_pin32[] = {};
 const int _dac_max[] = { 0 };
 static const uint32_t _DAC_CNT = sizeof(_dac_pin32) / sizeof(uint32_t);
 
-#define _FAN_ID_MIN HWIO_PWM_FAN1
-#define _FAN_ID_MAX HWIO_PWM_FAN
+enum {
+    _FAN_ID_MIN = HWIO_PWM_FAN1,
+    _FAN_ID_MAX = HWIO_PWM_FAN,
+};
 static const uint8_t _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
 
-#define _HEATER_ID_MIN HWIO_PWM_HEATER_BED
-#define _HEATER_ID_MAX HWIO_PWM_HEATER_0
+enum {
+    _HEATER_ID_MIN = HWIO_PWM_HEATER_BED,
+    _HEATER_ID_MAX = HWIO_PWM_HEATER_0,
+};
 static const uint8_t _HEATER_CNT = _HEATER_ID_MAX - _HEATER_ID_MIN + 1;
 
 //this value is compared to new value (to avoid rounding errors)
@@ -94,7 +100,7 @@ int *const _pwm_period_us[] = {
 
 // a3ides pwm output maximum values
 const int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period }; //{42000, 42000, 42000, 42000};
-#define _PWM_CNT (sizeof(_pwm_pin32) / sizeof(uint32_t))
+enum _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t));
 
 const TIM_OC_InitTypeDef sConfigOC_default = {
     TIM_OCMODE_PWM1,       //OCMode
