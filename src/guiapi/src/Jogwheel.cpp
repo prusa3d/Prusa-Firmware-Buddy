@@ -11,13 +11,15 @@ static const constexpr int32_t JG_ENCODER_MAX = INT_MAX;
 static const constexpr int32_t JG_ENCODER_MIN = INT_MIN;
 
 // signal flags
-static const constexpr uint8_t JG_PHASE_0 = 0x01;
-static const constexpr uint8_t JG_PHASE_1 = 0x02;
-static const constexpr uint8_t JG_PHASES_CHANGED = 0x03;
-static const constexpr uint8_t JG_BUTTON_PRESSED = 0x04;
-static const constexpr uint8_t JG_PHASES_OR_BUTTON_CHANGED = 0x07;
-static const constexpr uint8_t JG_ENCODER_CHANGED = 0x08;
-static const constexpr uint8_t JG_BUTTON_OR_ENCODER_CHANGED = 0x0C;
+enum : uint8_t {
+    JG_PHASE_0 = 0x01,
+    JG_PHASE_1 = 0x02,
+    JG_PHASES_CHANGED = 0x03,
+    JG_BUTTON_PRESSED = 0x04,
+    JG_PHASES_OR_BUTTON_CHANGED = 0x07,
+    JG_ENCODER_CHANGED = 0x08,
+    JG_BUTTON_OR_ENCODER_CHANGED = 0x0C,
+};
 
 Jogwheel::Jogwheel(uint8_t encoder_pin1, uint8_t encoder_pin2, uint8_t btn_pin) {
     jogwheel_signals_old = jogwheel_signals_new = jogwheel_signals = last_encoder = encoder = jogwheel_changed = doubleclick_counter = hold_counter = spin_speed_counter = 0;
