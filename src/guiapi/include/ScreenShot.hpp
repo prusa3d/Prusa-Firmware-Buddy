@@ -1,6 +1,6 @@
 /*
  * ScreenShot.hpp
- * \brief Screen shot feature, saving a bitmap of ili9488 display to USB
+ * \brief Screen shot feature, saving a bitmap of display to USB
  *
  *  Created on: July 10, 2020
  *      Author: Migi <michal.rudolf23@gmail.com>
