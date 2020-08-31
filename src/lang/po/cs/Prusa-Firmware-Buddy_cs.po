@@ -120,6 +120,23 @@ msgstr "VYMĚNIT FILAMENT"
 msgid "Change Filament"
 msgstr "Vyměnit filament"
 
+#. / FIXME split heating, min/max temp and thermal runaway
+#: src/common/bsod.cpp:232
+msgid "Check the heatbed heater & thermistor wiring for possible damage."
+msgstr "Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru."
+
+#: src/common/bsod.cpp:233
+msgid "Check the heatbed thermistor wiring for possible damage."
+msgstr "Zkontrolujte, zda není poškozen kabel termistoru vyhřívané podložky."
+
+#: src/common/bsod.cpp:234
+msgid "Check the print head heater & thermistor wiring for possible damage."
+msgstr "Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru."
+
+#: src/common/bsod.cpp:235
+msgid "Check the print head thermistor wiring for possible damage."
+msgstr "Zkontrolujte, zda není poškozen kabel termistoru v tiskové hlavě."
+
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
 msgstr "Kontrola os"
@@ -754,6 +771,11 @@ msgstr "Uložit výpis chyb"
 #: src/gui/screen_menu_lan_settings.cpp:229
 msgid "Save settings"
 msgstr "Uložit nastavení"
+
+#. / draw "Scan me" text
+#: src/common/bsod.cpp:264
+msgid "Scan me for details"
+msgstr "Načtěte kód pro další info"
 
 #: src/gui/wizard/xyzcalib.cpp:66
 msgid "Searching bed\ncalibration points"

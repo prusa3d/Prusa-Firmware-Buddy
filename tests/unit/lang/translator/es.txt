@@ -23,6 +23,10 @@ Calibración XY
 CANCELAR
 CAMBIAR FILAMENTO
 Cambiar Filamento
+Revisa el cableado del termistor y el calentador de la base calefactable para detectar posibles daños.
+Revisa el cableado del termistor de la base calefactada buscando posibles daños.
+Comprueba el cableado del termistor y el calentador del cabezal de impresión (fusor) para ver si hay daños.
+Revisa el cableado del termistor del cabezal de impresión (fusor) para detectar posibles daños.
 Comprobando ejes
 Compro. calentadores\ndel fusor y de la base
 Limpiar la superficie de la lámina de acero de la base.
@@ -166,6 +170,7 @@ Volver
 Sab
 Guardar arch. de errores
 Guardar ajustes
+Escanéame para obtener detalles
 Buscando la base\npuntos de calibración
 Selecc. tipo de filamento
 SELECC. ARCHIVO
