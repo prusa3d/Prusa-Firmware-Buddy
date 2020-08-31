@@ -179,8 +179,14 @@ pair<uint16_t, uint16_t> FillStringTable(const deque<string> &translatedStrings,
 bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &nonAsciiChars) {
     unichar c;
     while ((c = s.getUtf8Char()) != 0) {
-        if (c > 128)
+        if (c > 128) {
             nonAsciiChars.insert(c); // just stats how many non-ASCII UTF-8 characters do we have for now
+            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
+            if (cASCII.key == 0xffff) {
+                // this string wants a new non-ascii character
+                std::cout << "xx\n";
+            }
+        }
         if (c != s2.getUtf8Char()) {
             return false;
         }

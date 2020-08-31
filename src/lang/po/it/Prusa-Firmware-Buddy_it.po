@@ -90,7 +90,7 @@ msgstr "Calibrazione Z"
 
 #: src/gui/screen_menu_calibration.cpp:16 src/gui/screen_home.cpp:42
 msgid "Calibration"
-msgstr "Calibrazione"
+msgstr "Calibraz."
 
 #: src/gui/screen_menu_calibration.cpp:17
 msgid "CALIBRATION"
@@ -118,7 +118,7 @@ msgstr "CAMBIO FILAMENTO"
 #: src/gui/screen_menu_filament.cpp:78 src/guiapi/include/MItem_tools.hpp:188
 #: src/gui/screen_menu_filament.cpp:79
 msgid "Change Filament"
-msgstr "Cambia filamento"
+msgstr "Cambio filamento"
 
 #. / FIXME split heating, min/max temp and thermal runaway
 #: src/common/bsod.cpp:232
@@ -163,7 +163,7 @@ msgstr "CONTINUA"
 
 #: src/gui/screen_menu_temperature.cpp:11 src/gui/filament.cpp:13
 msgid "Cooldown"
-msgstr "Raffredda"
+msgstr "Raffreddamento"
 
 #: src/gui/screen_sysinf.cpp:67
 msgid "CPU load"
@@ -237,6 +237,14 @@ msgstr "Stat. fallimenti"
 msgid "Fan test"
 msgstr "Test ventola"
 
+#: src/gui/screen_sysinf.cpp:71
+msgid "Fan0 RPM"
+msgstr "RPM Fan0"
+
+#: src/gui/screen_sysinf.cpp:75
+msgid "Fan1 RPM"
+msgstr "RPM Fan1"
+
 #: src/gui/screen_menu_settings.cpp:24
 msgid "Fil. sens."
 msgstr "Sens. fil."
@@ -288,6 +296,10 @@ msgstr "AGGIORNAMENTO FW"
 msgid "FW Update"
 msgstr "Aggiornamento FW"
 
+#: src/gui/test/screen_test_msgbox.cpp:11
+msgid "Header"
+msgstr "Titolo"
+
 #: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
 msgstr "Piano riscaldato"
@@ -295,6 +307,11 @@ msgstr "Piano riscaldato"
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Riscaldamento disattivato dopo 30 minuti di inattività."
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:41
+#: lib/Prusa-Error-Codes/12/errors_list.h:45
+msgid "HEATING FAILED"
+msgstr "RISCALD FALLITO"
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -439,13 +456,18 @@ msgstr "Accertati che il  \nfilamento passi   \nattraverso il     \nsensore.    
 msgid "Material"
 msgstr "Materiale"
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:57
+#: lib/Prusa-Error-Codes/12/errors_list.h:61
+msgid "MAXTEMP ERROR"
+msgstr "MAXTEMP ERROR"
+
 #: src/gui/wizard/xyzcalib.cpp:78
 msgid "Measuring reference\nheight of calib.\npoints"
 msgstr "Misurazione altezza\ndi riferimento dei\npunti di calibrazione"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Menu Timeout"
-msgstr "Timeout Menu"
+msgstr "Timeout Menù"
 
 #: src/gui/test/screen_mesh_bed_lv.cpp:89
 msgid "MESH BED L."
@@ -453,7 +475,7 @@ msgstr "LIVEL. PIANO"
 
 #: src/guiapi/include/MItem_tools.hpp:28
 msgid "Mesh Bed Level."
-msgstr "Liv. griglia piano."
+msgstr "Liv. griglia piano"
 
 #. Z 30mm
 #. Disable steppers
@@ -470,6 +492,11 @@ msgstr "MESSAGGI"
 #: src/guiapi/include/MItem_menus.hpp:148
 msgid "Messages"
 msgstr "Messaggi"
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:65
+#: lib/Prusa-Error-Codes/12/errors_list.h:69
+msgid "MINTEMP ERROR"
+msgstr "ERRORE MINTEMP"
 
 #. abbreviated Monday - max 3 characters
 #: src/lang/format_print_will_end.cpp:43
@@ -499,6 +526,10 @@ msgstr "Sposta Y"
 #: src/gui/menu_vars.h:62
 msgid "Move Z"
 msgstr "Sposta Z"
+
+#: src/guiapi/include/MItem_tools.hpp:239
+msgid "Name"
+msgstr "Nome"
 
 #. known and not "unsensed" - do not allow load
 #. cannot use CONTINUE button, string is too long
@@ -697,6 +728,10 @@ msgstr "SPURGA FILAMENTO"
 msgid "Purge Filament"
 msgstr "Spurgo filamento"
 
+#: src/gui/dialogs/dialog_response.cpp:19
+msgid "PURGE MORE"
+msgstr "PULISCI DI PIÙ"
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:57
 msgid "Purging"
 msgstr "Spurgo"
@@ -768,7 +803,7 @@ msgstr "Salva impostazioni"
 #. / draw "Scan me" text
 #: src/common/bsod.cpp:264
 msgid "Scan me for details"
-msgstr "Scansionami per i dettagli"
+msgstr "Scan per i dettagli"
 
 #: src/gui/wizard/xyzcalib.cpp:66
 msgid "Searching bed\ncalibration points"
@@ -809,7 +844,7 @@ msgstr "Assistenza"
 #: src/gui/screen_menu_settings.cpp:85 src/gui/screen_menu_move.cpp:43
 #: src/gui/screen_home.cpp:43
 msgid "Settings"
-msgstr "Impostazioni"
+msgstr "Impost."
 
 #: src/gui/screen_menu_settings.cpp:88
 msgid "SETTINGS"
@@ -825,6 +860,10 @@ msgstr "Impostazioni caricate correttamente"
 #: src/guiapi/include/MItem_tools.hpp:210
 msgid "Silent"
 msgstr "Silenzioso"
+
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sort files by"
+msgstr "Ordina per"
 
 #: src/guiapi/include/MItem_tools.hpp:207
 #: src/guiapi/include/MItem_tools.hpp:206
@@ -877,11 +916,11 @@ msgstr "Info di sistema"
 
 #: src/gui/screen_menu_temperature.cpp:30
 msgid "TEMPERATURE"
-msgstr "TEMPERATURE"
+msgstr "TEMPERATURA"
 
 #: src/guiapi/include/MItem_menus.hpp:88
 msgid "Temperature"
-msgstr "Temperature"
+msgstr "Temperatura"
 
 #: src/guiapi/include/MItem_menus.hpp:118
 msgid "Test"
@@ -919,6 +958,15 @@ msgstr "Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quin
 msgid "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr "Errore nel salvataggio delle impostazioni nel file \"lan_settings.ini\"."
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:49
+#: lib/Prusa-Error-Codes/12/errors_list.h:53
+msgid "THERMAL RUNAWAY"
+msgstr "THERMAL RUNAWAY"
+
+#: src/gui/screen_print_preview.cpp:149
+msgid "This G-CODE was set up for another printer type."
+msgstr "Questo G-CODE è stato creato per un altro tipo di stampante."
+
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
@@ -929,9 +977,13 @@ msgstr "Questa operazione non può essere annullata, la configurazione attuale a
 msgid "Thr"
 msgstr "Gi"
 
+#: src/guiapi/include/MItem_tools.hpp:321
+msgid "Time"
+msgstr "Data"
+
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
-msgstr "Timeout"
+msgstr "Timeout Menù"
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD."
@@ -939,7 +991,7 @@ msgstr "Per calibrare con il filamento attualmente caricato, premere AVANTI. Per
 
 #: src/gui/wizard/wizard_load_unload.cpp:46
 msgid "To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD."
-msgstr "Per calibrare con IL filamento attualmente caricato, premere AVANTI. Per caricare il filamento, premere CARICA. Per cambiare filamento, premere SCARICA."
+msgstr "Per calibrare con\nil filamento\nattualmente caricato,\npremere AVANTI.\nPer caricare il filamento,\npremere CARICA.\nPer cambiare filamento,\npremere SCARICA."
 
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
@@ -1020,6 +1072,10 @@ msgstr "In attesa di temp."
 #: src/guiapi/src/window_msgbox.cpp:15
 msgid "Warning"
 msgstr "Attenzione"
+
+#: src/gui/screen_print_preview.cpp:149
+msgid "WARNING:"
+msgstr "ATTENZIONE:"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47
