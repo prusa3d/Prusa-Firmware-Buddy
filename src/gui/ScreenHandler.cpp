@@ -114,10 +114,10 @@ Screens *Screens::Access() {
 void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
     if (current == nullptr)
         return;
-    const window_t *win = current.get();
-    if (sender == win) /// prevents endless loop
+    const window_t *currentScreen = current.get();
+    if (sender == currentScreen) /// prevents endless loop
         return;
-    current->ScreenEvent(current.get(), event, param);
+    current->ScreenEvent(currentScreen, event, param);
 }
 
 void Screens::Draw() {
