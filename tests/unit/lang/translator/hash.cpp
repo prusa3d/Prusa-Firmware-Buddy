@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <deque>
 #include <set>
-#include "rundir.h"
 #include "hash.hpp"
 
 using namespace std;
@@ -26,7 +25,7 @@ std::pair<int, int> NumberOfCollisions(REDUCE r) {
     // beware - keys.txt is a "normal" text file, but it MUST be excluded from pre-commit
     // otherwise the pre-commit script will strip the trailing spaces on some texts.
     // In this case doing so prevents the tests from running on the genuine raw texts from the FW.
-    ifstream f(RELATIVE_FROM_RUNDIR "keys.txt");
+    ifstream f("keys.txt");
     deque<uint32_t> hashes_djb2;
     deque<uint32_t> hashes_sdbm;
     do {
@@ -170,9 +169,8 @@ bool CheckHashClass() {
     using SHTable = string_hash_table<HASH, buckets, maxStrings>;
     SHTable sh;
     deque<string> rawStrings; // this is just for verifying the algorithm later on - need to have the raw strings as they came from the file
-
     // warning - deliberately skips collision tests
-    REQUIRE(FillHashClass<HASH, buckets, maxStrings>(sh, RELATIVE_FROM_RUNDIR "keys.txt", rawStrings, true));
+    REQUIRE(FillHashClass<HASH, buckets, maxStrings>(sh, "keys.txt", rawStrings, true));
 
     // now the hash table is filled with data, let's query it ;)
     // every string must be found in the hash table
