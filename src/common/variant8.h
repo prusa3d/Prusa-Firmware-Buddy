@@ -4,19 +4,20 @@
 #define _VARIANT8_H
 
 #include <inttypes.h>
+#include <stdlib.h>
 
-#define VARIANT8_EMPTY 0x00 // empty - no data
-#define VARIANT8_I8    0x01 // signed char - 1byte
-#define VARIANT8_UI8   0x02 // unsigned char - 1byte
-#define VARIANT8_I16   0x03 // signed short - 2byte
-#define VARIANT8_UI16  0x04 // unsigned short - 2byte
-#define VARIANT8_I32   0x05 // signed long - 4byte
-#define VARIANT8_UI32  0x06 // unsigned long - 4byte
-#define VARIANT8_FLT   0x07 // float - 4byte
-#define VARIANT8_CHAR  0x08 // char - 1byte
-#define VARIANT8_USER  0x3f // user - up to 7 bytes
-#define VARIANT8_PTR   0x80 // pointer - 4 bytes,
-#define VARIANT8_ERROR 0xff // error
+#define VARIANT8_EMPTY (0x00) // empty - no data
+#define VARIANT8_I8    (0x01) // signed char - 1byte
+#define VARIANT8_UI8   (0x02) // unsigned char - 1byte
+#define VARIANT8_I16   (0x03) // signed short - 2byte
+#define VARIANT8_UI16  (0x04) // unsigned short - 2byte
+#define VARIANT8_I32   (0x05) // signed long - 4byte
+#define VARIANT8_UI32  (0x06) // unsigned long - 4byte
+#define VARIANT8_FLT   (0x07) // float - 4byte
+#define VARIANT8_CHAR  (0x08) // char - 1byte
+#define VARIANT8_USER  (0x3f) // user - up to 7 bytes
+#define VARIANT8_PTR   (0x80) // pointer - 4 bytes,
+#define VARIANT8_ERROR (0xff) // error
 
 //pointer types
 #define VARIANT8_PI8   (VARIANT8_I8 | VARIANT8_PTR)
@@ -35,21 +36,10 @@
 #define VARIANT8_ERR_INVFMT 4 // invalid format (during conversion from string)
 #define VARIANT8_ERR_OOFRNG 5 // out of range (during conversion from bigger to lower range number)
 
-//macros for variant8 structure constants
-#define _VARIANT8_TYPE(type, _8, _16, _32) ((variant8_t) { type, _8, { _16 }, { _32 } })
-#define _VARIANT8_EMPTY()                  _VARIANT8_TYPE(VARIANT8_EMPTY, 0, 0, 0)
-
 #pragma pack(push)
 #pragma pack(1)
 
 typedef struct _variant8_t {
-    uint8_t type;
-    uint8_t usr8;
-    union {
-        uint16_t usr16;
-        uint16_t size;
-        uint16_t err16;
-    };
     union {
         void *ptr;
         char *pch;
@@ -72,6 +62,13 @@ typedef struct _variant8_t {
         int8_t i8;
         uint32_t err32;
     };
+    union {
+        uint16_t usr16;
+        uint16_t size;
+        uint16_t err16;
+    };
+    uint8_t type;
+    uint8_t usr8;
 } variant8_t;
 
 #pragma pack(pop)
@@ -99,7 +96,9 @@ public: // public functions
     cvariant8 copy();
     cvariant8 &attach(variant8_t var8);
     variant8_t detach();
+    #ifdef CLEAN_UNUSED
     cvariant8 &change_type(uint8_t new_type);
+    #endif
 
 public: //
     bool is_empty() const;
@@ -200,7 +199,7 @@ extern "C" {
 #endif //__cplusplus
 
 // returns newly allocated variant8, copy data from pdata if not null
-extern variant8_t variant8_init(uint8_t type, uint16_t size, void *pdata);
+extern variant8_t variant8_init(uint8_t type, uint16_t count, void *pdata);
 
 // free allocated pointer for VARIANT8_PTR types, sets pvar8 to VARIANT8_EMPTY
 extern void variant8_done(variant8_t *pvar8);
@@ -269,10 +268,10 @@ inline uint16_t variant8_get_usr16(variant8_t v) { return v.usr16; }
 inline float variant8_get_flt(variant8_t v) { return v.flt; }
 
 // returns variant8_t pch
-inline char *variant8_get_pch(variant8_t v) { return v.pch; }
+inline char *variant8_get_pch(variant8_t v) { return v.type == VARIANT8_PCHAR ? v.pch : NULL; }
 
 // returns variant8_t ui8
-inline uint8_t variant8_get_uia(variant8_t v, uint8_t index) { return v.ui8a[index]; }
+inline uint8_t variant8_get_uia(variant8_t v, uint8_t index) { return index < 4 ? v.ui8a[index] : UINT8_MAX; }
 
 // returns variant8_t ui32
 inline uint32_t variant8_get_ui32(variant8_t v) { return v.ui32; }
@@ -300,9 +299,6 @@ extern variant8_t variant8_pchar(char *pch, uint16_t count, int init);
 // returns VARIANT8_USER
 extern variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8);
 
-// returns VARIANT8_ERROR
-extern variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8);
-
 // returns size of data type
 extern uint16_t variant8_type_size(uint8_t type);
 
@@ -324,12 +320,6 @@ extern char *variant8_to_str(variant8_t *pvar8, const char *fmt);
 
 // returns variant8 with desired type parsed from string with sscanf
 extern variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt);
-
-// variant8 malloc function
-extern void *variant8_malloc(uint16_t size);
-
-// variant8 free function
-extern void variant8_free(void *ptr);
 
 // variant8 realloc function
 extern void *variant8_realloc(void *ptr, uint16_t size);
