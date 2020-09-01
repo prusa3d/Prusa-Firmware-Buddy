@@ -26,7 +26,7 @@ std::pair<int, int> NumberOfCollisions(REDUCE r) {
     // beware - keys.txt is a "normal" text file, but it MUST be excluded from pre-commit
     // otherwise the pre-commit script will strip the trailing spaces on some texts.
     // In this case doing so prevents the tests from running on the genuine raw texts from the FW.
-    ifstream f(RELATIVE_FROM_RUNDIR "keys.txt");
+    ifstream f("keys.txt");
     deque<uint32_t> hashes_djb2;
     deque<uint32_t> hashes_sdbm;
     do {

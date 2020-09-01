@@ -73,7 +73,7 @@ uint16_t st7789v_y = 0;  // current y coordinate (RASET)
 uint16_t st7789v_cx = 0; //
 uint16_t st7789v_cy = 0; //
 
-uint8_t st7789v_buff[ST7789V_COLS * 2 * 16]; //16 lines buffer
+uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; //16 lines buffer
 
 #ifdef ST7789V_USE_RTOS
 osThreadId st7789v_task_handle = 0;
@@ -388,6 +388,15 @@ uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y) {
     st7789v_cmd_ramrd(buff, buff_sz);
     uint16_t ret = rd18bit_to_16bit(buff + 2);
     return ret; //directColor;
+}
+
+uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
+    if (start_x > ST7789V_COLS || start_y > ST7789V_ROWS || end_x > ST7789V_COLS || end_y > ST7789V_ROWS)
+        return NULL;
+    st7789v_cmd_caset(start_x, end_x);
+    st7789v_cmd_raset(start_y, end_y);
+    st7789v_cmd_ramrd(st7789v_buff, ST7789V_COLS * 2 * ST7789V_BUFF_ROWS);
+    return st7789v_buff;
 }
 
 /// Draws a solid rectangle of defined color
