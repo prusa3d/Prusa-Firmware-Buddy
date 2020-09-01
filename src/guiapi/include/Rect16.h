@@ -421,6 +421,9 @@ public:
         return i;
     }
 
+    //count must be at least 1
+    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0, size_t ratio[] = nullptr) const;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Split the current rectangle by given height and return such a
     /// collection of created rectangles
@@ -451,7 +454,7 @@ public:
     }
 
     //count must be at least 1
-    void VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0) const;
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0, size_t ratio[] = nullptr) const;
 };
 
 ////////////////////////////////////////////////////////////////////////////

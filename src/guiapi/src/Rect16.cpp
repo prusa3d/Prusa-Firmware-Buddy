@@ -150,7 +150,7 @@ void Rect16::Align(Rect16 rc, uint8_t align) {
     }
 }
 
-void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing) const {
+void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing, size_t ratio[]) const {
     if (count == 0)
         return;
     if (count == 1) {
@@ -158,29 +158,93 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
         return;
     }
 
-    uint16_t width = Width() / count - spacing * (count - 1);
-
-    Rect16 rc({ 0, Top() }, width, Height());
-    Rect16 rc_space({ 0, Top() }, spacing, Height());
-    size_t index;
-    size_t right = BottomRight().x - width;
-
-    for (index = 0; index < count / 2; ++index) {
-        splits[index] = rc + Rect16::Left_t(Left() + index * (width + spacing));            // 1 from begin
-        splits[count - 1 - index] = rc + Rect16::Left_t(right - index * (width + spacing)); // 1 from end
+    size_t index, fullRatio = 0;
+    uint16_t width = (Width() - (spacing * (count - 1))) / count;
+    double r;
+    if (ratio != nullptr) {
+        for (index = 0; index < count; index++) {
+            fullRatio += ratio[index];
+        }
     }
-
-    //even count
-    //middle rect can be bit smaller, so spacing remains the same
-    if (count & 0x01) {
-        point_i16_t p0 = splits[index - 1].BottomRight();
-        point_i16_t p1 = splits[index + 1].TopLeft();
-        p0.x += spacing;
-        p1.x -= spacing;
-        splits[index] = Rect16(p0, p1);
-    }
-
-    for (index = 0; index < count - 1; ++index) {
-        spaces[index] = Rect16(splits[index].BottomRight(), splits[index + 1].TopLeft());
+    for (index = 0; index < count; index++) {
+        if (ratio != nullptr) {
+            r = (double)ratio[index] / (double)fullRatio;
+            width = Width() - (spacing * (count - 1));
+            width *= r;
+        }
+        int16_t left = index == 0 ? (int16_t)Left() : splits[index - 1].BottomRight().x + spacing;
+        /// rect split
+        splits[index] = Rect16({ left, Top() }, width, Height());
+        /// spaces split
+        if (index < count - 1) {
+            spaces[index] = Rect16({ splits[index].BottomRight().x, Top() }, spacing, Height());
+        }
     }
 }
+
+void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing, size_t ratio[]) const {
+    if (count == 0)
+        return;
+    if (count == 1) {
+        splits[0] = *this;
+        return;
+    }
+
+    size_t index, fullRatio = 0;
+    uint16_t height = (Height() - (spacing * (count - 1))) / count;
+    double r;
+    if (ratio != nullptr) {
+        for (index = 0; index < count; index++) {
+            fullRatio += ratio[index];
+        }
+    }
+    for (index = 0; index < count; index++) {
+        if (ratio != nullptr) {
+            r = (double)ratio[index] / (double)fullRatio;
+            height = Height() - (spacing * (count - 1));
+            height *= r;
+        }
+        int16_t top = index == 0 ? (int16_t)Top() : splits[index - 1].BottomRight().y + spacing;
+        /// rect split
+        splits[index] = Rect16({ Left(), top }, Width(), height);
+        /// spaces split
+        if (index < count - 1) {
+            spaces[index] = Rect16({ (int16_t)Left(), splits[index].BottomRight().y }, Width(), spacing);
+        }
+    }
+}
+
+// void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing) const {
+//     if (count == 0)
+//         return;
+//     if (count == 1) {
+//         splits[0] = *this;
+//         return;
+//     }
+//
+//     uint16_t width = Width() / count - spacing * (count - 1);
+//
+//     Rect16 rc({ 0, Top() }, width, Height());
+//     Rect16 rc_space({ 0, Top() }, spacing, Height());
+//     size_t index;
+//     size_t right = BottomRight().x - width;
+//
+//     for (index = 0; index < count / 2; ++index) {
+//         splits[index] = rc + Rect16::Left_t(Left() + index * (width + spacing));            // 1 from begin
+//         splits[count - 1 - index] = rc + Rect16::Left_t(right - index * (width + spacing)); // 1 from end
+//     }
+//
+//     //even count
+//     //middle rect can be bit smaller, so spacing remains the same
+//     if (count & 0x01) {
+//         point_i16_t p0 = splits[index - 1].BottomRight();
+//         point_i16_t p1 = splits[index + 1].TopLeft();
+//         p0.x += spacing;
+//         p1.x -= spacing;
+//         splits[index] = Rect16(p0, p1);
+//     }
+//
+//     for (index = 0; index < count - 1; ++index) {
+//         spaces[index] = Rect16(splits[index].BottomRight(), splits[index + 1].TopLeft());
+//     }
+// }
