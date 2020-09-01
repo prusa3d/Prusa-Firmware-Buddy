@@ -92,7 +92,7 @@ TEST_CASE("update", "[variant8]") {
     }
 }
 
-TEST_CASE("failing tests", "[variant8][dead]") {
+TEST_CASE("failing tests", "[variant8][.]") {
 
     SECTION("variant8 init single pointer") {
         float f = 0.1f;
