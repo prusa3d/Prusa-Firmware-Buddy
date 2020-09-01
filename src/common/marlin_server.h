@@ -85,6 +85,9 @@ extern void marlin_server_manage_heater(void);
 extern void marlin_server_quick_stop(void);
 
 //
+extern void marlin_server_test_start(void);
+
+//
 extern void marlin_server_print_abort(void);
 
 //
