@@ -32,6 +32,10 @@ static inline uint32_t get_pixel_C(uint16_t point_x, uint16_t point_y) {
     return color_from_565(st7789v_get_pixel_colorFormat565(point_x, point_y));
 }
 
+static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
+    return st7789v_get_block(start_x, start_y, end_x, end_y);
+}
+
 static inline uint16_t get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
     return st7789v_get_pixel_colorFormat565(point_x, point_y);
 }
@@ -246,6 +250,12 @@ color_t display_ex_get_pixel(point_ui16_t pt) {
     if (!display_clip.Contain(pt))
         return 0;
     return get_pixel_C(pt.x, pt.y);
+}
+
+uint8_t *display_ex_get_block(point_ui16_t start, point_ui16_t end) {
+    if (!display_clip.Contain(start) || !display_clip.Contain(end))
+        return NULL;
+    return get_block_C(start.x, start.y, end.x, end.y);
 }
 
 /// Turns the specified pixel to the specified color

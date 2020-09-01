@@ -21,6 +21,8 @@ void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
 
 color_t display_ex_get_pixel(point_ui16_t pt);
 
+uint8_t *display_ex_get_block(point_ui16_t start, point_ui16_t end);
+
 void display_ex_set_pixel_displayNativeColor(point_ui16_t pt, uint16_t noClr);
 
 uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt);

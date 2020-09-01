@@ -67,17 +67,18 @@ bool window_header_t::EventClr_MediaError() {
     return 0;
 }
 
-static const Rect16::Width_t icon_usb_width(36 + 10);
-static const Rect16::Width_t icon_lan_width(20 + 10);
+static const uint16_t span = 2 + 2;
+static const Rect16::Width_t icon_usb_width(36);
+static const Rect16::Width_t icon_lan_width(20);
 static const Rect16::Width_t icons_width(icon_usb_width + icon_lan_width);
 
 window_header_t::window_header_t(window_t *parent)
     : window_frame_t(parent, GuiDefaults::RectHeader)
-    , icon_base(this, Rect16(rect.Left() + 10, rect.Top(), rect.Height(), rect.Height()), 0)
-    , label(this, rect + Rect16::Left_t(10 + rect.Height()) - Rect16::Width_t(icons_width + 10 + rect.Height()), is_multiline::no)
+    , icon_base(this, Rect16(rect.Left() + span, rect.Top(), rect.Width(), rect.Height()), 0)
+    , label(this, rect + Rect16::Left_t(span) - Rect16::Width_t(icons_width + span), is_multiline::no)
     , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_header_icon_usb)
     , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_header_icon_lan) {
-    label.SetAlignment(ALIGN_LEFT_CENTER);
+    label.SetAlignment(ALIGN_CENTER);
 
     marlin_vars()->media_inserted ? USB_Activate() : USB_On();
 

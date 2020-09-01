@@ -27,13 +27,6 @@ extern osThreadId gui_task_handle;
 
 #endif //GUI_USE_RTOS
 
-#ifdef GUI_JOGWHEEL_SUPPORT
-    #include "jogwheel.h"
-
-extern void gui_reset_jogwheel(void);
-
-#endif //GUI_JOGWHEEL_SUPPORT
-
 #ifdef GUI_WINDOW_SUPPORT
     #include "window.hpp"
     #include "window_frame.hpp"

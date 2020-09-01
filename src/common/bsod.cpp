@@ -25,7 +25,7 @@
     #include "gui.hpp"
     #include "term.h"
     #include "window_term.hpp"
-    #include "jogwheel.h"
+    #include "Jogwheel.hpp"
     #include "gpio.h"
     #include "sys.h"
     #include "hwio.h"
@@ -186,9 +186,6 @@ void general_error(const char *error, const char *module) {
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
         COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
 
-    jogwheel_init();
-    gui_reset_jogwheel();
-
     //questionable placement - where now, in almost every BSOD timers are
     //stopped and Sound class cannot update itself for timing sound signals.
     //GUI is in the middle of refactoring and should be showned after restart
@@ -198,7 +195,7 @@ void general_error(const char *error, const char *module) {
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
         wdt_iwdg_refresh();
-        if (!gpio_get(jogwheel_config.pinENC))
+        if (!jogwheel.GetJogwheelButtonPinState())
             sys_reset(); //button press
     }
 }
@@ -206,9 +203,6 @@ void general_error(const char *error, const char *module) {
 void general_error_init() {
     __disable_irq();
     stop_common();
-
-    jogwheel_init();
-    gui_reset_jogwheel();
 
     //questionable placement - where now, in almost every BSOD timers are
     //stopped and Sound class cannot update itself for timing sound signals.
@@ -222,11 +216,17 @@ void general_error_run() {
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
         wdt_iwdg_refresh();
-        if (!gpio_get(jogwheel_config.pinENC))
+        if (!jogwheel.GetJogwheelButtonPinState())
             sys_reset(); //button press
     }
 }
 
+//! Known possible reasons.
+//! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_HEATING_FAILED
+//! @n MSG_T_MAXTEMP
+//! @n MSG_T_MINTEMP
+//! @n "Emergency stop (M112)"
 void draw_error_screen(const uint16_t error_code_short) {
 
     const uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
