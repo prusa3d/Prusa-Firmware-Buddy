@@ -171,7 +171,7 @@ bool CheckHashClass() {
     deque<string> rawStrings; // this is just for verifying the algorithm later on - need to have the raw strings as they came from the file
 
     // warning - deliberately skips collision tests
-    REQUIRE(FillHashClass<HASH, buckets, maxStrings>(sh, RELATIVE_FROM_RUNDIR "keys.txt", rawStrings, true));
+    REQUIRE(FillHashClass<HASH, buckets, maxStrings>(sh, "keys.txt", rawStrings, true));
 
     // now the hash table is filled with data, let's query it ;)
     // every string must be found in the hash table
