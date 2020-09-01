@@ -11,6 +11,7 @@
 #include "filament.h"
 #include <string.h>
 #include "wui_vars.h"
+#include "eeprom.h"
 
 #define BDY_WUI_API_BUFFER_SIZE 512
 
@@ -48,6 +49,7 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
     uint16_t print_speed = (uint16_t)(wui_vars_copy.print_speed);
     uint16_t flow_factor = (uint16_t)(wui_vars_copy.flow_factor);
     const char *filament_material = filaments[get_filament()].name;
+    int8_t time_zone = eeprom_get_var(EEVAR_TIMEZONE).i8;
 
     if (!wui_vars_copy.sd_printing) {
         snprintf(data, buf_len, "{"
@@ -82,9 +84,10 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
                             "\"progress\":%d,"
                             "\"print_dur\":\"%s\","
                             "\"time_est\":\"%lu\","
+                            "\"time_zone\":\"%d\","
                             "\"project_name\":\"%s\""
                             "}",
         actual_nozzle, actual_heatbed, filament_material,
         z_pos_mm, print_speed, flow_factor, wui_vars_copy.sd_precent_done,
-        print_time, time_to_end, wui_vars_copy.gcode_name);
+        print_time, time_to_end, time_zone, wui_vars_copy.gcode_name);
 }

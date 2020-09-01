@@ -589,10 +589,9 @@ if(GUI)
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_list.cpp
-            src/guiapi/src/jogwheel.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
-            src/guiapi/src/st7789v.cpp
+            src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp
             src/guiapi/src/window_spin.cpp
             src/guiapi/src/window_text.cpp
@@ -605,6 +604,8 @@ if(GUI)
             src/guiapi/src/MItem_menus.cpp
             src/guiapi/src/MItem_print.cpp
             src/guiapi/src/MItem_tools.cpp
+            src/guiapi/src/Jogwheel.cpp
+            src/guiapi/src/ScreenShot.cpp
     )
 endif()
 

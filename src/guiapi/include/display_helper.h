@@ -48,7 +48,7 @@ extern void roll_text_phasing(window_t *pWin, font_t *font, txtroll_t *roll);
 
 extern void roll_init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, txtroll_t *roll);
 extern void render_roll_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint8_t alignment, color_t clr_back, color_t clr_text, const txtroll_t *roll);
-extern point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars);
+extern point_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars); // rewinds text to begin
 //extern int font_line_chars(const font_t *pf, string_view_utf8 str, uint16_t line_width);
 extern uint16_t text_rolls_meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
 extern Rect16 roll_text_rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, uint16_t flags);

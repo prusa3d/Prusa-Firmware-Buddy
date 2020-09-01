@@ -125,7 +125,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     window_t *pWin = GetFocusedWindow();
 
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
+    case WINDOW_EVENT_CLICK:
         if (pWin) {
             pWin->WindowEvent(this, WINDOW_EVENT_CLICK, nullptr);
             //pWin->SetCapture(); //item must do this - only some of them
@@ -134,29 +134,27 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     case WINDOW_EVENT_ENC_DN:
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
-            if (!pPrev)
+            if (!pPrev) {
+                Sound_Play(eSOUND_TYPE_BlindAlert);
                 break;
+            }
             pWin = pPrev;
         }
-        if (pWin)
+        if (pWin) {
             pWin->SetFocus();
-        if (dif) {
-            // End indicator of the frames list ->
-            Sound_Play(eSOUND_TYPE_BlindAlert);
         }
         break;
     case WINDOW_EVENT_ENC_UP:
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
-            if (!pNext)
+            if (!pNext) {
+                Sound_Play(eSOUND_TYPE_BlindAlert);
                 break;
+            }
             pWin = pNext;
         }
-        if (pWin)
+        if (pWin) {
             pWin->SetFocus();
-        if (dif) {
-            // End indicator of the frames list ->
-            Sound_Play(eSOUND_TYPE_BlindAlert);
         }
         break;
     case WINDOW_EVENT_CAPT_0:

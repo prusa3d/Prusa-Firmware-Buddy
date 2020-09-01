@@ -73,7 +73,7 @@ uint16_t st7789v_y = 0;  // current y coordinate (RASET)
 uint16_t st7789v_cx = 0; //
 uint16_t st7789v_cy = 0; //
 
-uint8_t st7789v_buff[ST7789V_COLS * 2 * 16]; //16 lines buffer
+uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; //16 lines buffer
 
 #ifdef ST7789V_USE_RTOS
 osThreadId st7789v_task_handle = 0;
@@ -327,8 +327,8 @@ void st7789v_done(void) {
 }
 
 /// Fills screen by this color
-void st7789v_clear_C(uint16_t clr565) {
-    // FIXME similar to st7789v_fill_rect; join?
+void st7789v_clear(uint16_t clr565) {
+    // FIXME similar to display_ex_fill_rect; join?
     int i;
     for (i = 0; i < ST7789V_COLS * 16; i++)
         ((uint16_t *)st7789v_buff)[i] = clr565;
@@ -343,24 +343,10 @@ void st7789v_clear_C(uint16_t clr565) {
 }
 
 /// Turns the specified pixel to the specified color
-void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
+void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
     st7789v_cmd_caset(point_x, 1);
     st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
-}
-
-uint32_t st7789v_get_pixel_C(uint16_t point_x, uint16_t point_y) {
-    uint16_t clr565;
-    st7789v_cmd_caset(point_x, 1);
-    st7789v_cmd_raset(point_y, 1);
-    st7789v_cmd_ramrd((uint8_t *)(&clr565), 2);
-    return color_from_565(clr565);
-}
-
-void st7789v_set_pixel_directColor_C(uint16_t point_x, uint16_t point_y, uint16_t directColor) {
-    st7789v_cmd_caset(point_x, 1);
-    st7789v_cmd_raset(point_y, 1);
-    st7789v_cmd_ramwr((uint8_t *)(&directColor), 2);
 }
 
 //1 == 0000 0001, 5 == 0001 1111
@@ -394,7 +380,7 @@ static uint16_t rd18bit_to_16bit(uint8_t *buff) {
     return ((uint16_t)(buff[0] >> 5) & set_num_of_ones(3)) | (((uint16_t)(buff[2] >> 3) & set_num_of_ones(5)) << 3) | (((uint16_t)(buff[1] >> 3) & set_num_of_ones(5)) << 8) | (((uint16_t)(buff[0] >> 2) & set_num_of_ones(3)) << 13);
 }
 
-uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
+uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y) {
     enum { buff_sz = 5 };
     uint8_t buff[buff_sz];
     st7789v_cmd_caset(point_x, 1);
@@ -404,8 +390,17 @@ uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
     return ret; //directColor;
 }
 
+uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
+    if (start_x > ST7789V_COLS || start_y > ST7789V_ROWS || end_x > ST7789V_COLS || end_y > ST7789V_ROWS)
+        return NULL;
+    st7789v_cmd_caset(start_x, end_x);
+    st7789v_cmd_raset(start_y, end_y);
+    st7789v_cmd_ramrd(st7789v_buff, ST7789V_COLS * 2 * ST7789V_BUFF_ROWS);
+    return st7789v_buff;
+}
+
 /// Draws a solid rectangle of defined color
-void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565) {
+void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565) {
 
     uint32_t size = (uint32_t)rect_w * rect_h * 2; // area of rectangle
 
@@ -428,65 +423,6 @@ void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t 
     st7789v_cmd_raset(y, y + h - 1);
     st7789v_cmd_ramwr(st7789v_buff, 2 * w * h);
     st7789v_set_cs();
-}
-
-static inline void rop_rgb888_invert(uint8_t *ppx888) {
-    ppx888[0] = 255 - ppx888[0];
-    ppx888[1] = 255 - ppx888[1];
-    ppx888[2] = 255 - ppx888[2];
-}
-
-#define SWAPBW_TOLERANCE 64
-static inline void rop_rgb888_swapbw(uint8_t *ppx888) {
-    const uint8_t r = ppx888[0];
-    const uint8_t g = ppx888[1];
-    const uint8_t b = ppx888[2];
-    const uint8_t l = (r + g + b) / 3;
-    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
-    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
-
-    if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
-        ppx888[0] = 255 - r;
-        ppx888[1] = 255 - g;
-        ppx888[2] = 255 - b;
-    }
-}
-
-static inline void rop_rgb888_disabled(uint8_t *ppx888) {
-    const uint8_t r = ppx888[0];
-    const uint8_t g = ppx888[1];
-    const uint8_t b = ppx888[2];
-    const uint8_t l = (r + g + b) / 3;
-    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
-    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
-    if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
-        ppx888[0] = r / 2;
-        ppx888[1] = g / 2;
-        ppx888[2] = b / 2;
-    }
-}
-
-static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
-    const uint8_t r = ppx[0];
-    const uint8_t g = ppx[1];
-    const uint8_t b = ppx[2];
-    const uint8_t a = ppx[3];
-    if ((r == g) && (r == b)) {
-        ppx[0] = 255 - r;
-        ppx[1] = 255 - g;
-        ppx[2] = 255 - b;
-        if (/*(r < 32) && */ (a < 128)) {
-            ppx[0] = 0;
-            ppx[1] = 0;
-            ppx[2] = 255;
-            ppx[3] = 255;
-        }
-    } else if (a < 128) {
-        ppx[0] = 0;
-        ppx[1] = 255;
-        ppx[2] = 0;
-        ppx[3] = 255;
-    }
 }
 
 #ifdef ST7789V_PNG_SUPPORT
@@ -586,11 +522,11 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
     uint16_t w = png_get_image_width(pp, ppi);
     uint16_t h = png_get_image_height(pp, ppi);
     int rowsize = png_get_rowbytes(pp, ppi);
-    //_dbg("st7789v_draw_png rowsize = %i", rowsize);
+    //_dbg("display_ex_draw_png rowsize = %i", rowsize);
     if (rowsize > ST7789V_COLS * 4)
         goto _e_1;
     int pixsize = rowsize / w;
-    //_dbg("st7789v_draw_png pixsize = %i", pixsize);
+    //_dbg("display_ex_draw_png pixsize = %i", pixsize);
     int i;
     int j;
     st7789v_clr_cs();

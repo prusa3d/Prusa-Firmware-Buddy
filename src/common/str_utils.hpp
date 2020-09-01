@@ -173,8 +173,7 @@ private:
             if (c == static_cast<value_type>(CHAR_NBSP)) {
                 buffer_[i++] = static_cast<value_type>(CHAR_SPACE);
             } else if (c == static_cast<value_type>(CHAR_NL)) {
-                buffer_[i++] = c;
-                current_width_ = 0;
+                word_width -= width::value(font_);
                 break;
             } else if (c == static_cast<value_type>(EOS)) {
                 buffer_[i++] = c;

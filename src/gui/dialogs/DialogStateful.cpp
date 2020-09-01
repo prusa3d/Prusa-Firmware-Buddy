@@ -17,15 +17,15 @@ Rect16 get_progress_size(Rect16 rect) {
 }
 
 Rect16 get_label_size(Rect16 rect) {
-    return Rect16(rect.Left() + 2, rect.Top() + 30 + 46, rect.Width() - 4, 60);
+    return Rect16(rect.Left() + 2, rect.Top() + 30 + 46, rect.Width() - 4, 65);
 }
 
 //*****************************************************************************
 IDialogStateful::IDialogStateful(string_view_utf8 name)
     : IDialog()
-    , title(this, get_title_size(rect), is_closed_on_click_t::no, name)
+    , title(this, get_title_size(rect), is_multiline::no, is_closed_on_click_t::no, name)
     , progress(this, get_progress_size(rect), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
-    , label(this, get_label_size(rect))
+    , label(this, get_label_size(rect), is_multiline::yes)
     , radio(this, get_radio_button_size(rect), nullptr, nullptr)
     , phase(0) {
     title.font = GuiDefaults::FontBig;

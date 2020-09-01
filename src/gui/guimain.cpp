@@ -29,8 +29,7 @@ extern int HAL_IWDG_Reset;
 int guimain_spi_test = 0;
 
 #include "gpio.h"
-#include "st7789v.hpp"
-#include "jogwheel.h"
+#include "Jogwheel.hpp"
 #include "hwio.h"
 #include "diag.h"
 #include "sys.h"
@@ -47,13 +46,6 @@ const st7789v_config_t st7789v_cfg = {
     ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
 };
 
-const jogwheel_config_t jogwheel_cfg = {
-    JOGWHEEL_PIN_EN1, // encoder phase1
-    JOGWHEEL_PIN_EN2, // encoder phase2
-    JOGWHEEL_PIN_ENC, // button
-    JOGWHEEL_DEF_FLG, // flags
-};
-
 marlin_vars_t *gui_marlin_vars = 0;
 int8_t menu_timeout_enabled = 1; // Default: enabled
 
@@ -66,20 +58,29 @@ static void _gui_loop_cb() {
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
 char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 
+#ifdef GUI_JOGWHEEL_SUPPORT
+
+Jogwheel jogwheel(JOGWHEEL_PIN_EN1, JOGWHEEL_PIN_EN2, JOGWHEEL_PIN_ENC);
+#endif // GUI_JOGWHEEL_SUPPORT
 extern "C" void gui_run(void) {
     if (diag_fastboot)
         return;
 
     st7789v_config = st7789v_cfg;
-    jogwheel_config = jogwheel_cfg;
+
     gui_init();
 
     // select jogwheel type by measured 'reset delay'
     // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
     // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
-    if (st7789v_reset_delay > 1000) // threshold value is 1000
-        jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR | JOGWHEEL_FLG_INV_ENC;
-    //_dbg("delay=%u", st7789v_reset_delay);
+#ifdef GUI_JOGWHEEL_SUPPORT
+    #ifdef USE_ST7789
+    // run-time jogwheel type detection decides which type of jogwheel device has (each type has different encoder behaviour)
+    jogwheel.SetJogwheelType(st7789v_reset_delay);
+    #else /* ! USE_ST7789 */
+    jogwheel.SetJogwheelType(0);
+    #endif
+#endif
 
     GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
@@ -147,7 +148,7 @@ void update_firmware_screen(void) {
     display::DrawText(Rect16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
     render_text_align(Rect16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
     while (1) {
-        if (jogwheel_button_down > 50)
+        if (jogwheel.GetButtonAction() == Jogwheel::ButtonAction::BTN_HELD)
             sys_reset();
         osDelay(1);
         wdt_iwdg_refresh();

@@ -120,6 +120,23 @@ msgstr "ZMIANA FILAMENTU"
 msgid "Change Filament"
 msgstr "Zmiana filamentu"
 
+#. / FIXME split heating, min/max temp and thermal runaway
+#: src/common/bsod.cpp:232
+msgid "Check the heatbed heater & thermistor wiring for possible damage."
+msgstr "Sprawdź czy przewody grzałki i termistora stołu nie są uszkodzone."
+
+#: src/common/bsod.cpp:233
+msgid "Check the heatbed thermistor wiring for possible damage."
+msgstr "Sprawdź czy przewody termistora stołu nie są uszkodzone."
+
+#: src/common/bsod.cpp:234
+msgid "Check the print head heater & thermistor wiring for possible damage."
+msgstr "Sprawdź czy przewody grzałki i termistora hotendu nie są uszkodzone."
+
+#: src/common/bsod.cpp:235
+msgid "Check the print head thermistor wiring for possible damage."
+msgstr "Sprawdź czy przewody termistora hotendu nie są uszkodzone."
+
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
 msgstr "Sprawdzanie osi"
@@ -754,6 +771,11 @@ msgstr "Zapisz zrzut pamięci"
 #: src/gui/screen_menu_lan_settings.cpp:229
 msgid "Save settings"
 msgstr "Zapisz ustawienia"
+
+#. / draw "Scan me" text
+#: src/common/bsod.cpp:264
+msgid "Scan me for details"
+msgstr "Zeskanuj mnie, aby uzyskać szczegóły."
 
 #: src/gui/wizard/xyzcalib.cpp:66
 msgid "Searching bed\ncalibration points"

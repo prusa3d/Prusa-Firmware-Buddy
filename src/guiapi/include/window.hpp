@@ -7,20 +7,22 @@
 #include "Rect16.h"
 
 //window events
-#define WINDOW_EVENT_BTN_DN   0x01 //button down
-#define WINDOW_EVENT_BTN_UP   0x02 //button up
-#define WINDOW_EVENT_ENC_DN   0x03 //encoder minus
-#define WINDOW_EVENT_ENC_UP   0x04 //encoder plus
-#define WINDOW_EVENT_FOCUS0   0x05 //focus lost
-#define WINDOW_EVENT_FOCUS1   0x06 //focus set
-#define WINDOW_EVENT_CAPT_0   0x07 //capture lost
-#define WINDOW_EVENT_CAPT_1   0x08 //capture set
-#define WINDOW_EVENT_CLICK    0x09 //clicked (tag > 0)
-#define WINDOW_EVENT_CHANGE   0x0a //value/index changed (tag > 0)
-#define WINDOW_EVENT_CHANGING 0x0b //value/index changing (tag > 0)
-#define WINDOW_EVENT_LOOP     0x0c //gui loop (every 50ms)
-#define WINDOW_EVENT_TIMER    0x0d //gui timer
-#define WINDOW_EVENT_MESSAGE  0x0e //onStatusChange() message notification
+#define WINDOW_EVENT_BTN_DN       0x01 //button down
+#define WINDOW_EVENT_BTN_UP       0x02 //button up
+#define WINDOW_EVENT_ENC_DN       0x03 //encoder minus
+#define WINDOW_EVENT_ENC_UP       0x04 //encoder plus
+#define WINDOW_EVENT_FOCUS0       0x05 //focus lost
+#define WINDOW_EVENT_FOCUS1       0x06 //focus set
+#define WINDOW_EVENT_CAPT_0       0x07 //capture lost
+#define WINDOW_EVENT_CAPT_1       0x08 //capture set
+#define WINDOW_EVENT_CLICK        0x09 //clicked (tag > 0)
+#define WINDOW_EVENT_DOUBLE_CLICK 0x0A // double-clicked
+#define WINDOW_EVENT_HOLD         0x0B // held button
+#define WINDOW_EVENT_CHANGE       0x0C //value/index changed (tag > 0)
+#define WINDOW_EVENT_CHANGING     0x0D //value/index changing (tag > 0)
+#define WINDOW_EVENT_LOOP         0x0E //gui loop (every 50ms)
+#define WINDOW_EVENT_TIMER        0x0F //gui timer
+#define WINDOW_EVENT_MESSAGE      0x10 //onStatusChange() message notification
 
 using ButtonCallback = void (*)();
 
@@ -41,7 +43,7 @@ class window_t {
 protected:
     //todo add can capture flag (needed in frame event and SetCapture)
     union {
-        uint16_t flg;
+        uint32_t flg;
         struct {
             bool flag_visible : 1;                        // 00 - is visible
             bool flag_enabled : 1;                        // 01 - is enabled (can be focused)
@@ -59,6 +61,15 @@ protected:
             bool flag_custom5 : 1;                        // 0D - this flag can be defined in parent
             bool flag_custom6 : 1;                        // 0E - this flag can be defined in parent
             bool flag_custom7 : 1;                        // 0F - this flag can be defined in parent
+
+            // here would be 2 unused Bytes (structure data alignment),
+            // make them accessible to be used in child to save RAM
+            union {
+                uint16_t mem_space_u16;
+                int16_t mem_space_s16;
+                std::array<uint8_t, 2> mem_array_u08;
+                std::array<int8_t, 2> mem_array_s08;
+            };
         };
     };
 
@@ -120,6 +131,16 @@ private:
 public:
     static window_t *GetFocusedWindow();
     static window_t *GetCapturedWindow();
+};
+
+/*****************************************************************************/
+//window_aligned_t
+//uses window_t  mem_array_u08[0] to store alignment (saves RAM)
+struct window_aligned_t : public window_t {
+    window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
+    /// alignment constants are in guitypes.h
+    uint8_t GetAlignment() const;
+    void SetAlignment(uint8_t alignment);
 };
 
 void gui_invalidate(void);

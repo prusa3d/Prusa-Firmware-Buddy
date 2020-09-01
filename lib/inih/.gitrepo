@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:prusa3d/inih.git
+	branch = buddy
+	commit = d0a152d531664afc23723ad3f1ef9568bcc74695
+	parent = 48d333b61dd694e2a429943ef89cc903c77dd5fb
+	method = merge
+	cmdver = 0.4.1

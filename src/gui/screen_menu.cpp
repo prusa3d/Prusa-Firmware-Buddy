@@ -19,7 +19,7 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_i
     : window_frame_t(parent, GuiDefaults::RectScreen, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
     , menu(this, menu_item_rect, nullptr)
     , header(this)
-    , help(this, helper_lines > 0 ? Rect16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - get_help_h(helper_lines, font_id), win_w, get_help_h(helper_lines, font_id)) : Rect16(0, 0, 0, 0))
+    , help(this, helper_lines > 0 ? Rect16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - get_help_h(helper_lines, font_id), win_w, get_help_h(helper_lines, font_id)) : Rect16(0, 0, 0, 0), is_multiline::yes)
     , footer(this)
     , prev_capture(window_t::GetCapturedWindow()) {
     //pointer to container shall be provided by child

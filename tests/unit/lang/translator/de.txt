@@ -23,6 +23,10 @@ Kalibriere XY
 ABBRECHEN
 FILAMENTWECHSEL
 Filament wechseln
+Die Verkabelung von\nHeizbettheizung und\nThermistor auf\nmögliche Schäden\nprüfen.
+Die Verkabelung des\nHeizbettthermistors\nauf mögliche Schäden\nprüfen.
+Die Verkabelung der\nDruckkopfheizung und\ndes Thermistors auf\nmögliche Schäden\nprüfen.
+Die Verkabelung des\nDruckkopf-Thermistor\nauf mögliche Schäden\nprüfen.
 Prüfe Achsen
 Prüfe Hotend und\nHeizbettheizungen
 Stahlblech reinigen.
@@ -166,6 +170,7 @@ Rückkehr
 Sa.
 Crash Dump speichern
 Einstellungen speichern
+Für Details scannen
 Suche Bett-\nKalibrierpunkte
 Filamenttyp wählen
 DATEI WÄHLEN

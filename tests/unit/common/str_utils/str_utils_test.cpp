@@ -316,7 +316,7 @@ TEST_CASE("String to multi-line", "[str2multiline]") {
     }
 }
 
-TEST_CASE("multi-line", "[str2multiline][text_wrap]") {
+TEST_CASE("multi-line", "[text_wrap]") {
     SECTION("all EN texts") {
         using stack_buffer = std::array<memory_source::value_type, 32>;
 
@@ -433,7 +433,13 @@ TEST_CASE("multi-line", "[str2multiline][text_wrap]") {
             std::make_tuple<std::string, size_t, std::string>(
                 "USB Disk is Write protected!", 2, "USB Disk is Write \nprotected!"),
             std::make_tuple<std::string, size_t, std::string>(
-                "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?", 5, "Welcome to the \nOriginal Prusa MINI \nsetup wizard. Would \nyou like to \ncontinue?"));
+                "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?", 5, "Welcome to the \nOriginal Prusa MINI \nsetup wizard. Would \nyou like to \ncontinue?"),
+            std::make_tuple<std::string, size_t, std::string>(
+                "Check the print head heater & thermistor\nwiring for possible damage.", 4, "Check the print head\nheater & thermistor \nwiring for possible \ndamage."),
+            std::make_tuple<std::string, size_t, std::string>(
+                "Check the print head heater & thermistor wiring for\xA0possible damage.", 4, "Check the print head\nheater & thermistor \nwiring for possible \ndamage."),
+            std::make_tuple<std::string, size_t, std::string>(
+                "Now, let's calibrat \nthe distance between\nthe tip of the \nnozzle and the print\nsheet.", 5, "Now, let's calibrat \nthe distance between\nthe tip of the  \nnozzle and the print\nsheet."));
 
         memory_source mem(origin);
         monospace font;

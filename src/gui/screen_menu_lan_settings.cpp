@@ -249,28 +249,46 @@ public:
 
 /*****************************************************************************/
 //parent alias
-constexpr static const HelperConfig helper_lines = { 8, IDR_FNT_SPECIAL };
-using Screen = ScreenMenu<EHeader::On, EFooter::Off, helper_lines,
-    MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
+using MenuContainer = WinMenuContainer<MI_RETURN, MI_LAN_ONOFF, MI_LAN_IP_t, MI_LAN_SAVE, MI_LAN_LOAD>;
+inline uint16_t get_help_h() {
+    //I have no clue why +1, should be + GuiDefaults::Padding.top + GuiDefaults::Padding.bottom
+    return 8 * (resource_font(IDR_FNT_SPECIAL)->h + 1);
+}
 
-class ScreenMenuLanSettings : public Screen {
+class ScreenMenuLanSettings : public window_frame_t {
+    constexpr static const char *label = N_("LAN SETTINGS");
+
+    MenuContainer container;
+    window_menu_t menu;
+    window_header_t header;
+    window_text_t help;
+
     lan_descp_str_t plan_str; //todo not initialized in constructor
     bool msg_shown;           //todo not initialized in constructor
     void refresh_addresses();
     void show_msg(Eth::Msg msg);
 
 public:
-    constexpr static const char *label = N_("LAN SETTINGS");
-    ScreenMenuLanSettings()
-        : Screen(_(label)) {
-        Eth::Init();
-
-        help.font = resource_font(IDR_FNT_SPECIAL);
-        refresh_addresses();
-        msg_shown = false;
-    }
+    ScreenMenuLanSettings();
     virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 };
+
+ScreenMenuLanSettings::ScreenMenuLanSettings()
+    : window_frame_t(nullptr, GuiDefaults::RectScreen, is_dialog_t::no)
+    , menu(this, GuiDefaults::RectScreenBodyNoFoot - Rect16::Height_t(get_help_h()), &container)
+    , header(this)
+    , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
+    header.SetText(_(label));
+    help.font = resource_font(IDR_FNT_SPECIAL);
+    menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
+    menu.SetCapture();                // set capture to list
+    menu.SetFocus();
+
+    Eth::Init();
+
+    refresh_addresses();
+    msg_shown = false;
+}
 
 /*****************************************************************************/
 //non static member function definition
@@ -319,7 +337,7 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
 
 void ScreenMenuLanSettings::windowEvent(window_t *sender, uint8_t event, void *param) {
     if (Eth::ConsumeReinit()) {
-        MI_LAN_IP_t *item = &Item<MI_LAN_IP_t>();
+        MI_LAN_IP_t *item = &std::get<MI_LAN_IP_t>(container.menu_items);
         item->ReInit();
     }
 
@@ -328,5 +346,5 @@ void ScreenMenuLanSettings::windowEvent(window_t *sender, uint8_t event, void *p
         refresh_addresses();
 
     show_msg(Eth::ConsumeMsg());
-    Screen::windowEvent(sender, event, param);
+    window_frame_t::windowEvent(sender, event, param);
 }

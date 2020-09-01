@@ -70,7 +70,7 @@ void window_list_t::unconditionalDraw() {
             // render
             render_text_align(rc, _(label), font,
                 back_cl, text_cl,
-                padd, alignment);
+                padd, GetAlignment());
         }
     }
     rc_win -= Rect16::Height_t(i * item_height);
@@ -83,7 +83,7 @@ void window_list_t::unconditionalDraw() {
 
 void window_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
+    case WINDOW_EVENT_CLICK:
         if (GetParent())
             GetParent()->SetCapture();
         break;
@@ -152,11 +152,10 @@ void window_list_t::SetCallback(window_list_item_t *fnc) {
 }
 
 window_list_t::window_list_t(window_t *parent, Rect16 rect)
-    : window_t(parent, rect)
+    : window_aligned_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , padding(GuiDefaults::Padding)
-    , alignment(GuiDefaults::Alignment)
     , icon_rect(Rect16(0, 0, 16, 16))
     , count(0)
     , index(0)

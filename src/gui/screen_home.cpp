@@ -50,12 +50,12 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
         { this, Rect16(), 0, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
-    , w_labels { { this, Rect16() },
-        { this, Rect16() },
-        { this, Rect16() },
-        { this, Rect16() },
-        { this, Rect16() },
-        { this, Rect16() } }
+    , w_labels { { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no } }
 
 {
     // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.

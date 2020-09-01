@@ -23,6 +23,10 @@ Calibration XY
 ANNULER
 CHANGER LE FILAMENT
 Changer le Filament
+Vérifier dommages\npossibles sur câbles\nbloc de chauffe\net thermistance\ndu plateau chauf.
+Vérifier dommages\npossibles sur câbles\nde thermistance\ndu plateau chauf.
+Vérifier dommages\npossibles sur câbles\ndu bloc de chauf.\n& thermistance\nde tête d'extr.
+Vérifier dommages\npossibles sur câbles\nde thermistance\nde tête d'extr.
 Vérification axes
 Vérif. hotend et\nchauf. plateau
 Nettoyez la feuille d'acier.
@@ -166,6 +170,7 @@ Retour
 sam
 Sauv. Vidage Mémoire
 Sauvegarder réglages
+Scannez-moi pour plus d'infos.
 Recherche des points\nde calib. du plateau
 Sélectionner le type de filament
 SÉLECTIONNER FICHIER
