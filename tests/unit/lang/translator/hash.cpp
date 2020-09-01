@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <deque>
 #include <set>
-#include "rundir.h"
 #include "hash.hpp"
 
 using namespace std;
