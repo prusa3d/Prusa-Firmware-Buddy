@@ -177,7 +177,7 @@ void fs_clr_sent() {
 /*---------------------------------------------------------------------------*/
 //global not thread safe functions
 static void _init() {
-    int enabled = eeprom_get_var(EEVAR_FSENSOR_ENABLED).ui8 ? 1 : 0;
+    int enabled = variant_get_ui8(eeprom_get_var(EEVAR_FSENSOR_ENABLED)) ? 1 : 0;
     marlin_client_set_fsm_create_cb(fsm_create_cb);
     marlin_client_set_fsm_destroy_cb(fsm_destroy_cb);
     if (enabled)
