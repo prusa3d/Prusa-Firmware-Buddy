@@ -113,9 +113,15 @@ void RadioButton::draw_n_btns(size_t btn_count) const {
 
     Rect16 splits[4]; //fix size, dont want to use template
     Rect16 spaces[3];
-    // size_t ratio[3] = { 1, 3, 1 };
-    // rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
-    rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing);
+    size_t ratio[4];
+
+    for (size_t index = 0; index < btn_count; index++) {
+        string_view_utf8 txt = _((*texts)[index]);
+        ratio[index] = txt.computeNumUtf8CharsAndRewind();
+    }
+
+    rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
+    // rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing);
 
     for (size_t i = 0; i < btn_count; ++i) {
         button_draw(splits[i], _((*texts)[i]), pfont, GetBtnIndex() == i && IsEnabled());
