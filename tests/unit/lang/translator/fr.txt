@@ -51,6 +51,8 @@ Réglages d'usine chargés. Le système va redémarrer.
 Réinitalisation d'Usine
 Statistiques Échec
 Test ventilateur
+RPM Vent0
+RPM Vent1
 Capt. fil.
 FILAMENT
 Filament
@@ -63,8 +65,10 @@ Facteur de Débit
 ven
 MISE À JOUR FW
 Mise à jour FW
+En-tête
 Plateau Chauffant
 Chauffe désactivée du fait d'une inactivité de plus de 30 minutes.
+ÉCHEC CHAUFFE
 En chauffe...
 Bonjour, voici votre\nOriginal Prusa MINI.
 POSITION INITIALE
@@ -96,6 +100,7 @@ Chargement\nde la buse
 Fort
 Vérifiez que le   \nfilament est bien \ninséré dans le    \ncapteur.          
 Matériau
+ERREUR MAXTEMP
 Mesure des hauteurs\ndé référence des\npoints de calib.
 Timeout Menu
 MESH BED L.
@@ -103,6 +108,7 @@ Mesh Bed Level.
 Échec Mesh bed lev.? 
 MESSAGES
 Messages
+ERREUR MINTEMP
 lun
 Déplacer l'Axe
 DÉPLACER AXE
@@ -110,6 +116,7 @@ Déplacer E
 Déplacer X
 Déplacer Y
 Déplacer Z
+Nom
 SUIVANT
 NON
 Aucun capteur de filament n'a été détecté. Vérifiez que le capteur est bien branché et réessayez.
@@ -154,6 +161,7 @@ IMPRESSION
 Temps d'impression
 PURGER LE FILAMENT
 Purger le Filament
+PURGER PLUS
 Purge
 Test QR
 Question
@@ -170,7 +178,7 @@ Retour
 sam
 Sauv. Vidage Mémoire
 Sauvegarder réglages
-Scannez-moi pour plus d'infos.
+Scannez-moi\npour plus d'infos.
 Recherche des points\nde calib. du plateau
 Sélectionner le type de filament
 SÉLECTIONNER FICHIER
@@ -184,6 +192,7 @@ Réglages
 RÉGLAGES
 Chargement des réglages réussi
 Silencieux
+Trier fichiers selon
 Mode Sonore
 Type de Son
 Volume Sonore
@@ -205,8 +214,11 @@ Les réglages ont été sauvegardés avec succès dans le fichier \"lan_settings
 La barre de statut se trouve dans le bas de l'écran. Elle contient des infos concernant :\nla temp. de la buse\nla temp. du plateau\nla vitesse d'impr.\nla hauteur Z-axis\nle fil. sélectionné
 La calibration XYZ n'a pas pu aboutir. Vérifiez bien le câblage et les axes de l'imprimante, puis relancez la calibration XYZ.
 Une erreur s'est produite au moment de sauvegarder les réglages dans le fichier \"lan_settings.ini\".
+EMBAL. THERMIQUE
+Ce G-CODEa été paramétré pour un autre type d'imprimante.
 Cette action est Irréversible, la configuration actuelle sera perdue ! Êtes-vous certain de vouloir réinitialiser les paramètres d'usine pour l'imprimante ?
 jeu
+Temps
 Timeout
 Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour changer le filament appuyez sur DÉCHARGER.
 Pour calibrer avec le filament déjà chargé, appuyez sur SUIVANT. Pour charger un filament, appuyez sur CHARGER. Pour changer de filament, appuyez sur DÉCHARGER.
@@ -228,6 +240,7 @@ Infos Version
 Att. refroidissement
 En attente de temp.
 Avertissement
+ATTENTION :
 mer
 Bienvenue sur l'assistant d'installation pour Original Prusa MINI. Voulez-vous continuer ?
 Bienvenue sur l'assistant de configuration de l'Original Prusa MINI. Voulez-vous continuer ?
