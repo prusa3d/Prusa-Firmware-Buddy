@@ -1,16 +1,16 @@
-//screen_printing_preview.hpp
+// screen_print_preview.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "ff.h"
 
-static const constexpr uint8_t PADDING = 10;
-static const constexpr uint8_t SCREEN_WIDTH = 240;   //FIXME should be in display.h
+static const constexpr uint16_t PADDING = 10;
+static const constexpr uint16_t SCREEN_WIDTH = 240;  //FIXME should be in display.h
 static const constexpr uint16_t SCREEN_HEIGHT = 320; //FIXME should be in display.h
-static const constexpr uint8_t THUMBNAIL_HEIGHT = 124;
-static const constexpr uint8_t TITLE_HEIGHT = 24;
-static const constexpr uint8_t LINE_HEIGHT = 15;
-static const constexpr uint8_t LINE_SPACING = 5;
+static const constexpr uint16_t THUMBNAIL_HEIGHT = 124;
+static const constexpr uint16_t TITLE_HEIGHT = 24;
+static const constexpr uint16_t LINE_HEIGHT = 15;
+static const constexpr uint16_t LINE_SPACING = 5;
 
 struct description_line_t {
     window_text_t title;
