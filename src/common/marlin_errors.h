@@ -12,7 +12,7 @@ enum {
 
 // error masks
 #define MARLIN_ERR_MSK(e_id) ((uint64_t)1 << (e_id))
-static const uint8_t MARLIN_ERR_MSK_ALL = MARLIN_ERR_MSK(MARLIN_ERR_TMCDriverError) | MARLIN_ERR_MSK(MARLIN_ERR_ProbingFailed);
+static const uint64_t MARLIN_ERR_MSK_ALL = MARLIN_ERR_MSK(MARLIN_ERR_TMCDriverError) | MARLIN_ERR_MSK(MARLIN_ERR_ProbingFailed);
 
 #ifdef __cplusplus
 extern "C" {

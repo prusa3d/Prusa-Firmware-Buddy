@@ -45,14 +45,12 @@ enum {
 
 //maximum number of masks is 64
 //maximum mask index is 63
-enum {
 #if (MARLIN_VAR_MAX == 63)
     //in case MARLIN_VAR_MAX == 63 MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1) would fail
-    MARLIN_VAR_MSK_ALL = ((uint64_t)(-1)),
+    #define MARLIN_VAR_MSK_ALL = ((uint64_t)(-1)),
 #else
-    MARLIN_VAR_MSK_ALL = (MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1)) - (uint64_t)(1)),
+    #define MARLIN_VAR_MSK_ALL = (MARLIN_VAR_MSK((MARLIN_VAR_MAX + 1)) - (uint64_t)(1)), /// cannot be enum so leave DEFINE (or static const uint64_t)
 #endif
-};
 
 enum {
     MARLIN_VAR_MSK_IPOS_XYZE = MARLIN_VAR_MSK(MARLIN_VAR_IPOS_X) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_Y) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_Z) | MARLIN_VAR_MSK(MARLIN_VAR_IPOS_E)
