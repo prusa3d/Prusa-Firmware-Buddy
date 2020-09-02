@@ -46,7 +46,7 @@ void init_tmc(void) {
     pStep[Z_AXIS]->TCOOLTHRS(400);
     pStep[E_AXIS]->TCOOLTHRS(400);
     //set SGTHRS
-    pStep[X_AXIS]->SGTHRS(140);
+    pStep[X_AXIS]->SGTHRS(130);
     pStep[Y_AXIS]->SGTHRS(130);
     pStep[Z_AXIS]->SGTHRS(100);
     pStep[E_AXIS]->SGTHRS(100);
