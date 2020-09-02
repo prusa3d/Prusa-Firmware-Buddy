@@ -12,7 +12,6 @@
 #define DUMP_RTOS_TASK_STATE_READY     2
 #define DUMP_RTOS_TASK_STATE_RUNNING   3
 
-
 #pragma pack(push)
 #pragma pack(1)
 
@@ -74,7 +73,6 @@ typedef struct _dump_queue_t {
 } dump_queue_t;
 
 #pragma pack(pop)
-
 
 #ifdef __cplusplus
 extern "C" {

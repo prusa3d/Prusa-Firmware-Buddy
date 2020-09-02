@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 
         if (pdump) {
             dump_print_all(pdump, pmap);
-/*
+            /*
             //uint32_t pattern = 0x432bbae1;
             //uint32_t pattern = 0x00a02517;
             //uint32_t pattern = 0x00a02508;
