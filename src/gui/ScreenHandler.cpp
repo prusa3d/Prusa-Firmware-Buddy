@@ -114,8 +114,7 @@ Screens *Screens::Access() {
 void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
     if (current == nullptr)
         return;
-    const window_t *currentScreen = current.get();
-    current->ScreenEvent((window_t *)currentScreen, event, param);
+    current->ScreenEvent(current.get(), event, param);
 }
 
 void Screens::Draw() {
