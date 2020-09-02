@@ -17,9 +17,9 @@
     #include "filament_sensor.h"
 #endif
 
-static const constexpr uint32_t COLOR_VALUE_VALID = COLOR_WHITE;
-//static const constexpr uint32_t  COLOR_VALUE_INVALID = COLOR_YELLOW;
-static const constexpr uint32_t COLOR_VALUE_INVALID = COLOR_WHITE;
+static const constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
+//static const constexpr color_t  COLOR_VALUE_INVALID = COLOR_YELLOW;
+static const constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE;
 
 enum class Btn {
     Tune = 0,

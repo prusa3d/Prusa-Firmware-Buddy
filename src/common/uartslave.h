@@ -8,14 +8,16 @@ static const uint16_t UARTSLAVE_MOD_MSK_0 = 0x0000;
 static const uint16_t UARTSLAVE_CMD_ID_0 = 0x0000;
 static const uint16_t UARTSLAVE_CMD_ID_UNK = 0xffff;
 
-static const uint8_t UARTSLAVE_OK = 0;       //ok - success
-static const uint8_t UARTSLAVE_ERR_UNK = -1; //error 1 - unknown/unspecified failure
-static const uint8_t UARTSLAVE_ERR_BSY = -2; //error 2 - busy
-static const uint8_t UARTSLAVE_ERR_SYN = -3; //error 3 - syntax error
-static const uint8_t UARTSLAVE_ERR_OOR = -4; //error 4 - parameter out of range
-static const uint8_t UARTSLAVE_ERR_ONP = -5; //error 5 - operation not permitted
-static const uint8_t UARTSLAVE_ERR_NUL = -6; //error 6 - null pointer
-static const uint8_t UARTSLAVE_ERR_CNF = -7; //error 7 - command not found
+enum {
+    UARTSLAVE_ERR_CNF = -7, //error 7 - command not found
+    UARTSLAVE_ERR_NUL = -6, //error 6 - null pointer
+    UARTSLAVE_ERR_ONP = -5, //error 5 - operation not permitted
+    UARTSLAVE_ERR_OOR = -4, //error 4 - parameter out of range
+    UARTSLAVE_ERR_SYN = -3, //error 3 - syntax error
+    UARTSLAVE_ERR_BSY = -2, //error 2 - busy
+    UARTSLAVE_ERR_UNK = -1, //error 1 - unknown/unspecified failure
+    UARTSLAVE_OK = 0,       //ok - success
+};
 
 typedef struct _uartslave_t uartslave_t;
 

@@ -1,4 +1,4 @@
-//screen_printing_serial.hpp
+//screen_printing_preview.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_header.hpp"

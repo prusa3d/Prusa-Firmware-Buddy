@@ -1,3 +1,4 @@
+// status_footer.h
 #pragma once
 
 #include "gui.hpp"
@@ -60,8 +61,8 @@ static const uint16_t BLINK_PERIOD = 512;          /// time span between color c
 static const uint8_t COOL_NOZZLE = 50; /// highest temperature of nozzle to be considered as cool
 static const uint8_t COOL_BED = 45;    /// highest temperature of bed to be considered as cool
 
-static const uint32_t DEFAULT_COLOR = COLOR_WHITE;
-static const uint32_t STABLE_COLOR = COLOR_WHITE;
-static const uint32_t HEATING_COLOR = COLOR_ORANGE;
-static const uint32_t COOLING_COLOR = COLOR_BLUE;
-static const uint32_t PREHEAT_COLOR = COLOR_GREEN;
+static const color_t DEFAULT_COLOR = COLOR_WHITE;
+static const color_t STABLE_COLOR = COLOR_WHITE;
+static const color_t HEATING_COLOR = COLOR_ORANGE;
+static const color_t COOLING_COLOR = COLOR_BLUE;
+static const color_t PREHEAT_COLOR = COLOR_GREEN;

@@ -20,8 +20,8 @@ static const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed
 //-----------------------------------------------------------------------------
 //methods
 
-static const constexpr uint32_t MESH_DEFAULT_CL = COLOR_WHITE;
-static const constexpr uint32_t MESH_ACTIVE_CL = COLOR_RED;
+static const constexpr color_t MESH_DEFAULT_CL = COLOR_WHITE;
+static const constexpr color_t MESH_ACTIVE_CL = COLOR_RED;
 
 //mesh callbacks
 void screen_mesh_bed_lv_data_t::gui_state_mesh_off() {
