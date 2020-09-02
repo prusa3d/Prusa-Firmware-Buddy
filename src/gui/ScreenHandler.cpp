@@ -115,8 +115,6 @@ void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
     if (current == nullptr)
         return;
     const window_t *currentScreen = current.get();
-    if (sender == currentScreen) /// prevents endless loop
-        return;
     current->ScreenEvent((window_t *)currentScreen, event, param);
 }
 
