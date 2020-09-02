@@ -43,6 +43,8 @@ enum {
     FONT_FLG_LSBF = 0x02,       // LSB first
 };
 
+typedef uint32_t color_t;
+
 //color constants
 static const color_t COLOR_BLACK = 0x00000000L;
 static const color_t COLOR_WHITE = 0x00ffffffL;
