@@ -34,7 +34,10 @@
     #include "support_utils.h"
     #include "str_utils.hpp"
     #include "guitypes.h"
-    #include "../lang/i18n.h"
+    #include "i18n.h"
+    #include "../../lib/Prusa-Error-Codes/12/errors_list.h"
+    #include "../../lib/Marlin/Marlin/src/core/language.h"
+    #include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -218,48 +221,51 @@ void general_error_run() {
     }
 }
 
-void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    char text[128];
+//! Known possible reasons.
+//! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_HEATING_FAILED
+//! @n MSG_T_MAXTEMP
+//! @n MSG_T_MINTEMP
+//! @n "Emergency stop (M112)"
+void draw_error_screen(const uint16_t error_code_short) {
 
-    /// FIXME split heating, min/max temp and thermal runaway
-    static const char bad_bed[] = "Check the heatbed heater & thermistor wiring for possible damage.";
-    static const char bad_head[] = "Check the print head heater & thermistor wiring for possible damage.";
+    const uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
 
-    if (module[0] != 'E') {
-        snprintf(text, sizeof(text), bad_bed);
+    /// search for proper text according to error code
+    const char *text_title;
+    const char *text_body;
+
+    uint32_t i = 0;
+    while (i < sizeof(error_list) && error_code_short != error_list[i].err_num) {
+        ++i;
+    }
+    if (i == sizeof(error_list)) {
+        /// no text found => leave blank screen
+        /// wait for restart - endless loop
+        while (1)
+            wdt_iwdg_refresh();
     } else {
-        snprintf(text, sizeof(text), bad_head);
+        text_title = error_list[i].err_title;
+        text_body = error_list[i].err_text;
     }
 
-    general_error_init();
-    display::Clear(COLOR_RED_ALERT);
-
-    // draw header
-    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
-
-    // draw line
+    /// draw header & main text
+    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-
-    // draw text (5 lines)
-    term_t term;
-    uint8_t buff[TERM_BUFF_SIZE(20, 16)];
-    term_init(&term, 20, 16, buff);
-    term_printf(&term, text);
-
-    /// FIXME convert to DrawText & check drawing multiline text
-    render_term(Rect16(PADDING, 31 + PADDING, X_MAX, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
 
     /// draw "Scan me" text
-    static const char *scan_me_text = "Scan me for details";
-    display::DrawText(Rect16(52, 142, display::GetW() - 52, display::GetH() - 142), string_view_utf8::MakeCPUFLASH((const uint8_t *)scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+    // r=1 c=34
+    static const char *scan_me_text = N_("Scan me for details");
+    render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
-    /// draw arrow
-    render_icon_align(Rect16(191, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
+    /// draw "Scan me" arrow
+    /// FIXME arrow overlaps with QR code (bad PNG)
+    render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
 
     /// draw QR
     char qr_text[MAX_LEN_4QR + 1];
-    /// FIXME Currently the only one error code working
-    error_url_long(qr_text, sizeof(qr_text), 12201);
+    error_url_long(qr_text, sizeof(qr_text), error_code);
     constexpr uint8_t qr_size_px = 140;
     const Rect16 qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
     window_qr_t win(nullptr, qr_rect);
@@ -267,8 +273,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     window_qr_t *window = &win;
     win.text = qr_text;
     win.bg_color = COLOR_WHITE;
-
-    //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
 
     /// use PNG RAM for QR code image
     uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
@@ -279,15 +283,80 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     }
 
     /// draw short URL
-    /// FIXME Currently the only one error code working
-    error_url_short(qr_text, sizeof(qr_text), 12201);
+    error_url_short(qr_text, sizeof(qr_text), error_code);
     // this MakeRAM is safe - qr_text is a local buffer on stack
     render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
-    //display::DrawText(Rect16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
-    while (1) {
+    /// wait for restart - endless loop
+    while (1)
         wdt_iwdg_refresh();
+}
+
+/// \returns nth character of the string
+/// \returns \0 if the string is too short
+char nth_char(const char str[], uint16_t nth) {
+    while (nth > 0 && str[0] != 0) {
+        --nth;
+        ++str;
     }
+    return str[0];
+}
+
+//! Known possible reasons.
+//! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_HEATING_FAILED
+//! @n MSG_T_MAXTEMP
+//! @n MSG_T_MINTEMP
+//! @n "Emergency stop (M112)"
+void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
+
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+
+    uint16_t error_code_short = 0;
+
+    /// Decision tree to define error code
+    if (module == nullptr) {
+        /// TODO share these strings (saves ~100 B of binary size)
+        if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
+            error_code_short = 0;
+        } else if (strcmp("Emergency stop (M112)", error) == 0) {
+            error_code_short = 510;
+        } else if (strcmp("Inactive time kill", error) == 0) {
+            error_code_short = 0;
+        }
+    } else {
+        using namespace Language_en;
+
+        if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
+            error_code_short = 201;
+        } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
+            error_code_short = 202;
+        } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
+            error_code_short = 203;
+        } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
+            error_code_short = 204;
+
+        } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
+            error_code_short = 205;
+        } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
+            error_code_short = 206;
+        } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
+            error_code_short = 207;
+        } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
+            error_code_short = 208;
+        }
+    }
+
+    draw_error_screen(error_code_short);
+}
+
+/// Draws error screen
+/// Use for Debug only
+void temp_error_code(const uint16_t error_code) {
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+    draw_error_screen(error_code);
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {

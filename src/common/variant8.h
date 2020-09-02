@@ -3,6 +3,8 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stdlib.h>
+
 enum {
     VARIANT8_EMPTY = 0x00, // empty - no data
     VARIANT8_I8 = 0x01,    // signed char - 1byte
@@ -37,21 +39,10 @@ enum {
     VARIANT8_ERR_OOFRNG,     // out of range (during conversion from bigger to lower range number)
 };
 
-//macros for variant8 structure constants
-#define _VARIANT8_TYPE(type, _8, _16, _32) ((variant8_t) { type, _8, { _16 }, { _32 } })
-#define _VARIANT8_EMPTY()                  _VARIANT8_TYPE(VARIANT8_EMPTY, 0, 0, 0)
-
 #pragma pack(push)
 #pragma pack(1)
 
 typedef struct _variant8_t {
-    uint8_t type;
-    uint8_t usr8;
-    union {
-        uint16_t usr16;
-        uint16_t size;
-        uint16_t err16;
-    };
     union {
         void *ptr;
         char *pch;
@@ -74,6 +65,13 @@ typedef struct _variant8_t {
         int8_t i8;
         uint32_t err32;
     };
+    union {
+        uint16_t usr16;
+        uint16_t size;
+        uint16_t err16;
+    };
+    uint8_t type;
+    uint8_t usr8;
 } variant8_t;
 
 #pragma pack(pop)
@@ -101,7 +99,9 @@ public: // public functions
     cvariant8 copy();
     cvariant8 &attach(variant8_t var8);
     variant8_t detach();
+    #ifdef CLEAN_UNUSED
     cvariant8 &change_type(uint8_t new_type);
+    #endif
 
 public: //
     bool is_empty() const;
@@ -202,7 +202,7 @@ extern "C" {
 #endif //__cplusplus
 
 // returns newly allocated variant8, copy data from pdata if not null
-extern variant8_t variant8_init(uint8_t type, uint16_t size, void *pdata);
+extern variant8_t variant8_init(uint8_t type, uint16_t count, void *pdata);
 
 // free allocated pointer for VARIANT8_PTR types, sets pvar8 to VARIANT8_EMPTY
 extern void variant8_done(variant8_t *pvar8);
@@ -258,6 +258,42 @@ extern variant8_t variant8_pui32(uint32_t *pui32, uint16_t count, int init);
 // returns VARIANT8_PFLT
 extern variant8_t variant8_pflt(float *pflt, uint16_t count, int init);
 
+// returns variant8_t type
+inline uint8_t variant8_get_type(variant8_t v) { return v.type; }
+
+// returns variant8_t usr8
+inline uint8_t variant8_get_usr8(variant8_t v) { return v.usr8; }
+
+// returns variant8_t usr16
+inline uint16_t variant8_get_usr16(variant8_t v) { return v.usr16; }
+
+// returns variant8_t flt
+inline float variant8_get_flt(variant8_t v) { return v.flt; }
+
+// returns variant8_t pch
+inline char *variant8_get_pch(variant8_t v) { return v.type == VARIANT8_PCHAR ? v.pch : NULL; }
+
+// returns variant8_t ui8
+inline uint8_t variant8_get_uia(variant8_t v, uint8_t index) { return index < 4 ? v.ui8a[index] : UINT8_MAX; }
+
+// returns variant8_t ui32
+inline uint32_t variant8_get_ui32(variant8_t v) { return v.ui32; }
+
+// returns variant8_t i32
+inline int32_t variant8_get_i32(variant8_t v) { return v.i32; }
+
+// returns variant8_t ui16
+inline uint16_t variant_get_ui16(variant8_t v) { return v.ui16; }
+
+// returns variant8_t ui8
+inline uint8_t variant_get_ui8(variant8_t v) { return v.ui8; }
+
+// returns variant8_t i8
+inline int8_t variant8_get_i8(variant8_t v) { return v.i8; }
+
+// set variant8_t usr8 member
+extern void variant8_set_usr8(variant8_t *, uint8_t);
+
 // returns VARIANT8_PCHAR
 // Because PCHAR is special case of pointer type, there is a simplification for defining size.
 // In case that count=0 and init=1 is used strlen to measure size of original string.
@@ -265,9 +301,6 @@ extern variant8_t variant8_pchar(char *pch, uint16_t count, int init);
 
 // returns VARIANT8_USER
 extern variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8);
-
-// returns VARIANT8_ERROR
-extern variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8);
 
 // returns size of data type
 extern uint16_t variant8_type_size(uint8_t type);
@@ -290,12 +323,6 @@ extern char *variant8_to_str(variant8_t *pvar8, const char *fmt);
 
 // returns variant8 with desired type parsed from string with sscanf
 extern variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt);
-
-// variant8 malloc function
-extern void *variant8_malloc(uint16_t size);
-
-// variant8 free function
-extern void variant8_free(void *ptr);
 
 // variant8 realloc function
 extern void *variant8_realloc(void *ptr, uint16_t size);

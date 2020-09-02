@@ -49,7 +49,8 @@ public:
         return string_view_utf8::MakeCPUFLASH(utf8raw);
     }
 
-    using SHashTable = string_hash_table<hash_djb2, 256, 256>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
+    // 2020-08-18 updated to 340 buckets with more texts coming in. With previous 256 buckets, collisions occured already (we have 240+ texts)
+    using SHashTable = string_hash_table<hash_djb2, 340, 256>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
 #ifndef TRANSLATIONS_UNITTEST
 protected:
 #endif

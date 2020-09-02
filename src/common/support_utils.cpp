@@ -27,7 +27,7 @@ char *eofstr(char *str) {
     return (str + strlen(str));
 }
 
-void append_crc(char *str, uint32_t str_size) {
+void append_crc(char *str, const uint32_t str_size) {
     uint32_t crc;
 
     TM_CRC_Init(); // !!! should be somewhere else (not sure where yet)
@@ -79,15 +79,10 @@ void printerCode(char *str) {
     str[8] = '\0';
 }
 
-void error_url_long(char *str, uint32_t str_size, int error_code) {
-    /// FIXME remove eofstr & strlen
-
-    /// fixed prefix
-    strlcpy(str, ERROR_URL_LONG_PREFIX, str_size);
-
-    /// language
+/// Adds "/en" or other language abbreviation
+void addLanguage(char *str, const uint32_t str_size) {
     char lang[3];
-    const uint16_t langNum = eeprom_get_var(EEVAR_LANGUAGE).ui16;
+    const uint16_t langNum = variant_get_ui16(eeprom_get_var(EEVAR_LANGUAGE));
     uint16_t *langP = (uint16_t *)lang;
     *langP = langNum;
     //uint16_t *(lang) = langNum;
@@ -95,6 +90,15 @@ void error_url_long(char *str, uint32_t str_size, int error_code) {
     //lang[1] = langNum % 256;
     lang[2] = '\0';
     snprintf(eofstr(str), str_size - strlen(str), "/%s", lang);
+}
+
+void error_url_long(char *str, const uint32_t str_size, const int error_code) {
+    /// FIXME remove eofstr & strlen
+
+    /// fixed prefix
+    strlcpy(str, ERROR_URL_LONG_PREFIX, str_size);
+
+    addLanguage(str, str_size);
 
     /// error code
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
@@ -105,20 +109,24 @@ void error_url_long(char *str, uint32_t str_size, int error_code) {
         printerCode(eofstr(str));
 
     /// FW version
-    snprintf(eofstr(str), str_size - strlen(str), "/%d", eeprom_get_var(EEVAR_FW_VERSION).ui16);
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", variant_get_ui16(eeprom_get_var(EEVAR_FW_VERSION)));
 
     //snprintf(eofstr(str), str_size - strlen(str), "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     //snprintf(eofstr(str), str_size - strlen(str), "/%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
     //append_crc(str, str_size);
 }
 
-void error_url_short(char *str, uint32_t str_size, int error_code) {
+void error_url_short(char *str, const uint32_t str_size, const int error_code) {
+    /// help....com/
     strlcpy(str, ERROR_URL_SHORT_PREFIX, str_size);
-    /// FIXME add language (/en, ...)
+
+    addLanguage(str, str_size);
+
+    /// /12201
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
 }
 
-void create_path_info_4service(char *str, uint32_t str_size) {
+void create_path_info_4service(char *str, const uint32_t str_size) {
 
     strlcpy(str, INFO_URL_LONG_PREFIX, str_size);
     // PrinterType

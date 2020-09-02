@@ -18,11 +18,11 @@ enum class ShiftDir_t {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-/// Class prepesents rectagle in graphics system where x rising to the right
+/// Class represents rectangle in graphics system where x rising to the right
 /// and y rising down.
 ///
 /// @details Class also support negative value of coordinates. Such a simple perk
-/// makes the implemetation more robust and useful.
+/// makes the implementation more robust and useful.
 ///
 class Rect16 {
     point_i16_t top_left_;
@@ -65,7 +65,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Default constructor
-    /// @details set top left corner to {0,0} with width and heigth 0
+    /// @details set top left corner to {0,0} with width and height 0
     constexpr Rect16()
         : top_left_(point_i16_t { 0, 0 })
         , width_(0)
@@ -92,10 +92,10 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left corner and width
-    ///        and heigth
+    ///        and height
     /// @param[in] point Top-left corner
     /// @param[in] width Width in pixels
-    /// @param[in] heigth Heigth in pixels
+    /// @param[in] height Height in pixels
     constexpr Rect16(point_i16_t top_left, uint16_t width, uint16_t height)
         : top_left_(top_left)
         , width_(width)
@@ -371,7 +371,7 @@ public:
         if (min_x > max_x || min_y > max_y) {
             return Rect16();
         } else {
-            return Rect16 { min_x, min_y, max_x - min_x, max_y - min_y };
+            return Rect16 { min_x, min_y, uint16_t(max_x - min_x), uint16_t(max_y - min_y) };
         }
     }
 
@@ -379,7 +379,7 @@ public:
     /// @brief Determines the rectangle structure that represents the union of
     /// all given rectangles.
     ///
-    /// @param[in] rectangles Collection of rectangles to united
+    /// @param[in] rectangles Collection of rectangles to be united
     /// @return Return a rectangle that represents the union of all rectangles
     template <size_t SZ>
     Rect16 Union(std::array<Rect16, SZ> const &rectangles) {
@@ -387,8 +387,8 @@ public:
         return Rect16 {
             TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
             TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,
-            EndPoint().x > ret.EndPoint().x ? EndPoint().x : ret.EndPoint().x,
-            EndPoint().y > ret.EndPoint().y ? EndPoint().y : ret.EndPoint().y
+            uint16_t(EndPoint().x > ret.EndPoint().x ? EndPoint().x : ret.EndPoint().x),
+            uint16_t(EndPoint().y > ret.EndPoint().y ? EndPoint().y : ret.EndPoint().y)
         };
     }
 

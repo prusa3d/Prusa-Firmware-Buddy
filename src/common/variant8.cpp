@@ -2,20 +2,32 @@
 
 #include "variant8.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <malloc.h>
 
 #define VARIANT8_DBG_MALLOC
 
+#define _VARIANT8_TYPE(type, _8, _16, _32) ((variant8_t) { { _32 }, { _16 }, type, _8 })
+#define _VARIANT8_EMPTY()                  _VARIANT8_TYPE(VARIANT8_EMPTY, 0, .size = 0, .ui32 = 0)
+
 extern "C" {
 
+// variant8 malloc function
+static void *variant8_malloc(uint16_t size);
+
+// variant8 free function
+static void variant8_free(void *ptr);
+
+// returns VARIANT8_ERROR
+static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8);
+
+//macros for variant8 structure constants
 variant8_t variant8_init(uint8_t type, uint16_t count, void *pdata) {
     variant8_t var8;
     uint16_t size;
     if ((count == 1) && !(type & VARIANT8_PTR)) {
-        var8 = (variant8_t) { type, 0, { 0 }, { 0 } };
+        var8 = _VARIANT8_TYPE(type, 0, .size = 0, .ui32 = 0);
         if (pdata)
             switch (type) {
             case VARIANT8_I8:
@@ -42,7 +54,7 @@ variant8_t variant8_init(uint8_t type, uint16_t count, void *pdata) {
             }
     } else if ((count > 1) && (type & VARIANT8_PTR)) {
         size = variant8_type_size(type & ~VARIANT8_PTR) * count;
-        var8 = (variant8_t) { type, 0, { .size = size }, { .ptr = 0 } };
+        var8 = _VARIANT8_TYPE(type, 0, .size = size, 0);
         if (size) {
             var8.ptr = variant8_malloc(size);
             if (var8.ptr) {
@@ -63,7 +75,7 @@ void variant8_done(variant8_t *pvar8) {
             if (pvar8->size && pvar8->ptr)
                 variant8_free(pvar8->ptr);
         }
-        *pvar8 = (variant8_t) { VARIANT8_EMPTY, 0, { 0 }, { 0 } };
+        *pvar8 = _VARIANT8_EMPTY();
     }
 }
 
@@ -80,6 +92,7 @@ variant8_t variant8_copy(const variant8_t *pvar8) {
     return var8;
 }
 
+#ifdef CLEAN_UNUSED
 int variant8_change_type(variant8_t *pvar8, uint8_t type) {
     if (pvar8 == 0)
         return 0;
@@ -174,7 +187,7 @@ int variant8_change_type(variant8_t *pvar8, uint8_t type) {
     variant8_done(&var8);
     return ret;
 }
-
+#endif
 variant8_t variant8_empty(void) { return _VARIANT8_EMPTY(); }
 variant8_t variant8_i8(int8_t i8) { return _VARIANT8_TYPE(VARIANT8_I8, 0, 0, .i8 = i8); }
 variant8_t variant8_ui8(uint8_t ui8) { return _VARIANT8_TYPE(VARIANT8_UI8, 0, 0, .ui8 = ui8); }
@@ -183,6 +196,10 @@ variant8_t variant8_ui16(uint16_t ui16) { return _VARIANT8_TYPE(VARIANT8_UI16, 0
 variant8_t variant8_i32(int32_t i32) { return _VARIANT8_TYPE(VARIANT8_I32, 0, 0, .i32 = i32); }
 variant8_t variant8_ui32(uint32_t ui32) { return _VARIANT8_TYPE(VARIANT8_UI32, 0, 0, .ui32 = ui32); }
 variant8_t variant8_flt(float flt) { return _VARIANT8_TYPE(VARIANT8_FLT, 0, 0, .flt = flt); }
+
+void variant8_set_usr8(variant8_t *v, uint8_t usr) {
+    v->usr8 = usr;
+}
 
 variant8_t variant8_pui8(uint8_t *pui8, uint16_t count, int init) {
     if (init)
@@ -218,7 +235,7 @@ variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8) {
     return _VARIANT8_TYPE(VARIANT8_USER, usr8, .usr16 = usr16, .usr32 = usr32);
 }
 
-variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8) {
+static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8) {
     return _VARIANT8_TYPE(VARIANT8_ERROR, err8, .err16 = err16, .err32 = err32);
 }
 
@@ -282,6 +299,7 @@ void *variant8_data_ptr(variant8_t *pvar8) {
     return 0;
 }
 
+#ifdef CLEAN_UNUSED
 const char *variant8_typename(uint8_t type) {
     static const char *_typename[] = { " EMPTY", "PI8", "PUI8", "PI16", "PUI16", "PI32", "PUI32", "PFLT", "PCHAR" };
     if (type <= VARIANT8_CHAR)
@@ -296,7 +314,7 @@ const char *variant8_typename(uint8_t type) {
     }
     return "???";
 }
-
+#endif
 int variant8_snprintf(char *str, unsigned int size, const char *fmt, variant8_t *pvar8) {
     int n = 0;
     switch (pvar8->type) {
@@ -338,6 +356,7 @@ int variant8_snprintf(char *str, unsigned int size, const char *fmt, variant8_t 
     return n;
 }
 
+#ifdef CLEAN_UNUSED
 enum {
     VARIANT8_TO_STR_MAX_BUFF = 32
 };
@@ -443,12 +462,13 @@ variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt) {
     }
     return var8;
 }
+#endif
 
 #ifdef VARIANT8_DBG_MALLOC
 uint32_t variant8_total_malloc_size = 0;
 #endif //VARIANT8_DBG_MALLOC
 
-void *variant8_malloc(uint16_t size) {
+static void *variant8_malloc(uint16_t size) {
     void *ptr = malloc(size);
 #ifdef VARIANT8_DBG_MALLOC
     variant8_total_malloc_size += malloc_usable_size(ptr);
@@ -456,7 +476,7 @@ void *variant8_malloc(uint16_t size) {
     return ptr;
 }
 
-void variant8_free(void *ptr) {
+static void variant8_free(void *ptr) {
     if (ptr) {
 #ifdef VARIANT8_DBG_MALLOC
         variant8_total_malloc_size -= malloc_usable_size(ptr);
@@ -465,22 +485,23 @@ void variant8_free(void *ptr) {
     }
 }
 
+#ifdef CLEAN_UNUSED
 void *variant8_realloc(void *ptr, uint16_t size) {
-#ifdef VARIANT8_DBG_MALLOC
+    #ifdef VARIANT8_DBG_MALLOC
     uint32_t old_size = 0;
     uint32_t new_size = 0;
     if (ptr)
         old_size = malloc_usable_size(ptr);
-#endif //VARIANT8_DBG_MALLOC
+    #endif //VARIANT8_DBG_MALLOC
     ptr = realloc(ptr, size);
-#ifdef VARIANT8_DBG_MALLOC
+    #ifdef VARIANT8_DBG_MALLOC
     if (ptr)
         new_size = malloc_usable_size(ptr);
     variant8_total_malloc_size += (new_size - old_size);
-#endif //VARIANT8_DBG_MALLOC
+    #endif //VARIANT8_DBG_MALLOC
     return ptr;
 }
-
+#endif
 } //extern "C"
 
 // supported conversions for variant8_change_type
@@ -575,12 +596,12 @@ variant8_t cvariant8::detach() {
     variant8_done(this);
     return var8;
 }
-
+#ifdef CLEAN_UNUSED
 cvariant8 &cvariant8::change_type(uint8_t new_type) {
     variant8_change_type(this, new_type);
     return *this;
 }
-
+#endif
 bool cvariant8::is_empty() const { return (type == VARIANT8_EMPTY) ? true : false; }
 
 bool cvariant8::is_error() const { return (type == VARIANT8_ERROR) ? true : false; }

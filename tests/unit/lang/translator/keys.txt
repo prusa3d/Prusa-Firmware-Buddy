@@ -23,6 +23,10 @@ Calibration XY
 CANCEL
 CHANGE FILAMENT
 Change Filament
+Check the heatbed heater & thermistor wiring for possible damage.
+Check the heatbed thermistor wiring for possible damage.
+Check the print head heater & thermistor wiring for possible damage.
+Check the print head thermistor wiring for possible damage.
 Checking axes
 Checking hotend and\nheatbed heaters
 Clean steel sheet.
@@ -166,6 +170,7 @@ Return
 Sat
 Save Crash Dump
 Save settings
+Scan me for details
 Searching bed\ncalibration points
 Select filament type
 SELECT FILE

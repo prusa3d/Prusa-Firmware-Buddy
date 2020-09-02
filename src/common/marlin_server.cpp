@@ -397,15 +397,15 @@ void marlin_server_settings_save(void) {
 void marlin_server_settings_load(void) {
     (void)settings.reset();
 #if HAS_BED_PROBE
-    probe_offset.z = eeprom_get_var(EEVAR_ZOFFSET).flt;
+    probe_offset.z = variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET));
 #endif
-    Temperature::temp_bed.pid.Kp = eeprom_get_var(EEVAR_PID_BED_P).flt;
-    Temperature::temp_bed.pid.Ki = eeprom_get_var(EEVAR_PID_BED_I).flt;
-    Temperature::temp_bed.pid.Kd = eeprom_get_var(EEVAR_PID_BED_D).flt;
+    Temperature::temp_bed.pid.Kp = variant8_get_flt(eeprom_get_var(EEVAR_PID_BED_P));
+    Temperature::temp_bed.pid.Ki = variant8_get_flt(eeprom_get_var(EEVAR_PID_BED_I));
+    Temperature::temp_bed.pid.Kd = variant8_get_flt(eeprom_get_var(EEVAR_PID_BED_D));
 #if ENABLED(PIDTEMP)
-    Temperature::temp_hotend[0].pid.Kp = eeprom_get_var(EEVAR_PID_NOZ_P).flt;
-    Temperature::temp_hotend[0].pid.Ki = eeprom_get_var(EEVAR_PID_NOZ_I).flt;
-    Temperature::temp_hotend[0].pid.Kd = eeprom_get_var(EEVAR_PID_NOZ_D).flt;
+    Temperature::temp_hotend[0].pid.Kp = variant8_get_flt(eeprom_get_var(EEVAR_PID_NOZ_P));
+    Temperature::temp_hotend[0].pid.Ki = variant8_get_flt(eeprom_get_var(EEVAR_PID_NOZ_I));
+    Temperature::temp_hotend[0].pid.Kd = variant8_get_flt(eeprom_get_var(EEVAR_PID_NOZ_D));
     thermalManager.updatePID();
 #endif
 }
@@ -716,7 +716,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
                             if (mask & marlin_server.mesh_point_notsent[client_id]) {
                                 uint8_t index = x + marlin_server.mesh.xc * y;
                                 float z = marlin_server.mesh.z[index];
-                                uint32_t usr32 = variant8_flt(z).ui32;
+                                uint32_t usr32 = variant8_get_ui32(variant8_flt(z));
                                 uint16_t usr16 = x | ((uint16_t)y << 8);
                                 if (_send_notify_event_to_client(client_id, queue, evt_id, usr32, usr16))
                                     marlin_server.mesh_point_notsent[client_id] &= ~mask;
@@ -791,7 +791,7 @@ static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t 
 
 // send variable change notification to client (called from server thread)
 static int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var) {
-    var.usr8 = var_id | MARLIN_USR8_VAR_FLG;
+    variant8_set_usr8(&var, var_id | MARLIN_USR8_VAR_FLG);
     return _send_notify_to_client(queue, var);
 }
 
@@ -803,7 +803,7 @@ static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue
     for (uint8_t var_id = 0; var_id < 64; var_id++) {
         if (msk & var_msk) {
             var = marlin_vars_get_var(&(marlin_server.vars), var_id);
-            if (var.type != VARIANT8_EMPTY) {
+            if (variant8_get_type(var) != VARIANT8_EMPTY) {
                 if (_send_notify_change_to_client(queue, var_id, var))
                     sent |= msk;
                 else
@@ -859,17 +859,18 @@ static uint64_t _server_update_vars(uint64_t update) {
         }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_MOTION)) {
-        v.ui8 = 0;
+        uint8_t flags = 0;
         if (stepper.axis_is_moving(X_AXIS))
-            v.ui8 |= 0x01;
+            flags |= 0x01;
         if (stepper.axis_is_moving(Y_AXIS))
-            v.ui8 |= 0x02;
+            flags |= 0x02;
         if (stepper.axis_is_moving(Z_AXIS))
-            v.ui8 |= 0x04;
+            flags |= 0x04;
         if (stepper.axis_is_moving(E_AXIS))
-            v.ui8 |= 0x08;
-        if (marlin_server.vars.motion != v.ui8) {
-            marlin_server.vars.motion = v.ui8;
+            flags |= 0x08;
+        v = variant8_ui8(flags);
+        if (marlin_server.vars.motion != variant_get_ui8(v)) {
+            marlin_server.vars.motion = variant_get_ui8(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_MOTION);
         }
     }
@@ -877,9 +878,9 @@ static uint64_t _server_update_vars(uint64_t update) {
     if (update & MARLIN_VAR_MSK_IPOS_XYZE) {
         for (i = 0; i < 4; i++)
             if (update & MARLIN_VAR_MSK(MARLIN_VAR_IPOS_X + i)) {
-                v.i32 = stepper.position((AxisEnum)i);
-                if (marlin_server.vars.ipos[i] != v.i32) {
-                    marlin_server.vars.ipos[i] = v.i32;
+                v = variant8_i32(stepper.position((AxisEnum)i));
+                if (marlin_server.vars.ipos[i] != variant8_get_i32(v)) {
+                    marlin_server.vars.ipos[i] = variant8_get_i32(v);
                     changes |= MARLIN_VAR_MSK(MARLIN_VAR_IPOS_X + i);
                 }
             }
@@ -888,163 +889,163 @@ static uint64_t _server_update_vars(uint64_t update) {
     if (update & MARLIN_VAR_MSK_POS_XYZE) {
         for (i = 0; i < 4; i++)
             if (update & MARLIN_VAR_MSK(MARLIN_VAR_POS_X + i)) {
-                v.flt = planner.get_axis_position_mm((AxisEnum)i);
-                if (marlin_server.vars.pos[i] != v.flt) {
-                    marlin_server.vars.pos[i] = v.flt;
+                v = variant8_flt(planner.get_axis_position_mm((AxisEnum)i));
+                if (marlin_server.vars.pos[i] != variant8_get_flt(v)) {
+                    marlin_server.vars.pos[i] = variant8_get_flt(v);
                     changes |= MARLIN_VAR_MSK(MARLIN_VAR_POS_X + i);
                 }
             }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)) {
-        v.flt = thermalManager.temp_hotend[0].celsius;
-        if (marlin_server.vars.temp_nozzle != v.flt) {
-            marlin_server.vars.temp_nozzle = v.flt;
+        v = variant8_flt(thermalManager.temp_hotend[0].celsius);
+        if (marlin_server.vars.temp_nozzle != variant8_get_flt(v)) {
+            marlin_server.vars.temp_nozzle = variant8_get_flt(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ)) {
-        v.flt = thermalManager.temp_hotend[0].target;
-        if (marlin_server.vars.target_nozzle != v.flt) {
-            marlin_server.vars.target_nozzle = v.flt;
+        v = variant8_flt(thermalManager.temp_hotend[0].target);
+        if (marlin_server.vars.target_nozzle != variant8_get_flt(v)) {
+            marlin_server.vars.target_nozzle = variant8_get_flt(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)) {
-        v.flt = thermalManager.temp_bed.celsius;
-        if (marlin_server.vars.temp_bed != v.flt) {
-            marlin_server.vars.temp_bed = v.flt;
+        v = variant8_flt(thermalManager.temp_bed.celsius);
+        if (marlin_server.vars.temp_bed != variant8_get_flt(v)) {
+            marlin_server.vars.temp_bed = variant8_get_flt(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED)) {
-        v.flt = thermalManager.temp_bed.target;
-        if (marlin_server.vars.target_bed != v.flt) {
-            marlin_server.vars.target_bed = v.flt;
+        v = variant8_flt(thermalManager.temp_bed.target);
+        if (marlin_server.vars.target_bed != variant8_get_flt(v)) {
+            marlin_server.vars.target_bed = variant8_get_flt(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET)) {
-        v.flt = probe_offset.z;
-        if (marlin_server.vars.z_offset != v.flt) {
-            marlin_server.vars.z_offset = v.flt;
+        v = variant8_flt(probe_offset.z);
+        if (marlin_server.vars.z_offset != variant8_get_flt(v)) {
+            marlin_server.vars.z_offset = variant8_get_flt(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED)) {
 #if FAN_COUNT > 0
-        v.ui8 = thermalManager.fan_speed[0];
+        v = variant8_ui8(thermalManager.fan_speed[0]);
 #endif
-        if (marlin_server.vars.fan_speed != v.ui8) {
-            marlin_server.vars.fan_speed = v.ui8;
+        if (marlin_server.vars.fan_speed != variant_get_ui8(v)) {
+            marlin_server.vars.fan_speed = variant_get_ui8(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED)) {
-        v.ui16 = (unsigned)feedrate_percentage;
-        if (marlin_server.vars.print_speed != v.ui16) {
-            marlin_server.vars.print_speed = v.ui16;
+        v = variant8_ui16((unsigned)feedrate_percentage);
+        if (marlin_server.vars.print_speed != variant_get_ui16(v)) {
+            marlin_server.vars.print_speed = variant_get_ui16(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT)) {
-        v.ui16 = (unsigned)planner.flow_percentage[0];
-        if (marlin_server.vars.flow_factor != v.ui16) {
-            marlin_server.vars.flow_factor = v.ui16;
+        v = variant8_ui16((unsigned)planner.flow_percentage[0]);
+        if (marlin_server.vars.flow_factor != variant_get_ui16(v)) {
+            marlin_server.vars.flow_factor = variant_get_ui16(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT)) {
-        v.ui8 = wait_for_heatup ? 1 : 0;
-        if (marlin_server.vars.wait_heat != v.ui8) {
-            marlin_server.vars.wait_heat = v.ui8;
+        v = variant8_ui8(wait_for_heatup ? 1 : 0);
+        if (marlin_server.vars.wait_heat != variant_get_ui8(v)) {
+            marlin_server.vars.wait_heat = variant_get_ui8(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER)) {
-        v.ui8 = wait_for_user ? 1 : 0;
-        if (marlin_server.vars.wait_user != v.ui8) {
-            marlin_server.vars.wait_user = v.ui8;
+        v = variant8_ui8(wait_for_user ? 1 : 0);
+        if (marlin_server.vars.wait_user != variant_get_ui8(v)) {
+            marlin_server.vars.wait_user = variant_get_ui8(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT)) {
-        v.ui8 = (media_print_get_state() != media_print_state_NONE);
-        if (marlin_server.vars.sd_printing != v.ui8) {
-            marlin_server.vars.sd_printing = v.ui8;
+        v = variant8_ui8((media_print_get_state() != media_print_state_NONE));
+        if (marlin_server.vars.sd_printing != variant_get_ui8(v)) {
+            marlin_server.vars.sd_printing = variant_get_ui8(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
         if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
-            v.ui8 = (uint8_t)oProgressData.oPercentDone.mGetValue();
+            v = variant8_ui8((uint8_t)oProgressData.oPercentDone.mGetValue());
         else
-            v.ui8 = (uint8_t)media_print_get_percent_done();
-        if (marlin_server.vars.sd_percent_done != v.ui8) {
-            marlin_server.vars.sd_percent_done = v.ui8;
+            v = variant8_ui8((uint8_t)media_print_get_percent_done());
+        if (marlin_server.vars.sd_percent_done != variant_get_ui8(v)) {
+            marlin_server.vars.sd_percent_done = variant_get_ui8(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_DURATION)) {
-        v.ui32 = print_job_timer.duration();
-        if (marlin_server.vars.print_duration != v.ui32) {
-            marlin_server.vars.print_duration = v.ui32;
+        v = variant8_ui32(print_job_timer.duration());
+        if (marlin_server.vars.print_duration != variant8_get_ui32(v)) {
+            marlin_server.vars.print_duration = variant8_get_ui32(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_DURATION);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS)) {
-        v.ui8 = (media_get_state() == media_state_INSERTED) ? 1 : 0;
-        if (marlin_server.vars.media_inserted != v.ui8) {
-            marlin_server.vars.media_inserted = v.ui8;
+        v = variant8_ui8((media_get_state() == media_state_INSERTED) ? 1 : 0);
+        if (marlin_server.vars.media_inserted != variant_get_ui8(v)) {
+            marlin_server.vars.media_inserted = variant_get_ui8(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS);
             _send_notify_event(marlin_server.vars.media_inserted ? MARLIN_EVT_MediaInserted : MARLIN_EVT_MediaRemoved, 0, 0);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE)) {
-        v.ui8 = marlin_server.print_state;
-        if (marlin_server.vars.print_state != v.ui8) {
-            marlin_server.vars.print_state = (marlin_print_state_t)(v.ui8);
+        v = variant8_ui8(marlin_server.print_state);
+        if (marlin_server.vars.print_state != variant_get_ui8(v)) {
+            marlin_server.vars.print_state = (marlin_print_state_t)(variant_get_ui8(v));
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND)) {
         if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
-            v.ui32 = oProgressData.oTime2End.mGetValue();
+            v = variant8_ui32(oProgressData.oTime2End.mGetValue());
         else
-            v.ui32 = -1;
-        if (marlin_server.vars.time_to_end != v.ui32) {
-            marlin_server.vars.time_to_end = v.ui32;
+            v = variant8_ui32(-1);
+        if (marlin_server.vars.time_to_end != variant8_get_ui32(v)) {
+            marlin_server.vars.time_to_end = variant8_get_ui32(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM)) {
-        v.ui16 = fanctl_get_rpm(0);
-        if (marlin_server.vars.fan0_rpm != v.ui16) {
-            marlin_server.vars.fan0_rpm = v.ui16;
+        v = variant8_ui16(fanctl_get_rpm(0));
+        if (marlin_server.vars.fan0_rpm != variant_get_ui16(v)) {
+            marlin_server.vars.fan0_rpm = variant_get_ui16(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_FAN0_RPM);
         }
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_FAN1_RPM)) {
-        v.ui16 = fanctl_get_rpm(1);
-        if (marlin_server.vars.fan1_rpm != v.ui16) {
-            marlin_server.vars.fan1_rpm = v.ui16;
+        v = variant8_ui16(fanctl_get_rpm(1));
+        if (marlin_server.vars.fan1_rpm != variant_get_ui16(v)) {
+            marlin_server.vars.fan1_rpm = variant_get_ui16(v);
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_FAN1_RPM);
         }
     }
@@ -1382,7 +1383,7 @@ void onConfigurationStoreRead(bool success) {
 void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
     DBG_XUI("XUI: onMeshUpdate x: %u, y: %u, z: %.2f", xpos, ypos, (double)zval);
     uint8_t index = xpos + marlin_server.mesh.xc * ypos;
-    uint32_t usr32 = variant8_flt(zval).ui32;
+    uint32_t usr32 = variant8_get_ui32(variant8_flt(zval));
     uint16_t usr16 = xpos | ((uint16_t)ypos << 8);
     marlin_server.mesh.z[index] = zval;
     _send_notify_event(MARLIN_EVT_MeshUpdate, usr32, usr16);

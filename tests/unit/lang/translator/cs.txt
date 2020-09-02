@@ -23,6 +23,10 @@ Kalibrace XY
 ZRUŠIT
 VYMĚNIT FILAMENT
 Vyměnit filament
+Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru.
+Zkontrolujte, zda není poškozen kabel termistoru vyhřívané podložky.
+Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru.
+Zkontrolujte, zda není poškozen kabel termistoru v tiskové hlavě.
 Kontrola os
 Kontrola výhřevu\nhotendu a podložky
 Očistěte podložku.
@@ -166,6 +170,7 @@ Zpět
 So
 Uložit výpis chyb
 Uložit nastavení
+Načtěte kód pro další info
 Hledání kalibračních\nbodů na podložce
 Vyberte typ filamentu
 VÝBĚR SOUBORU

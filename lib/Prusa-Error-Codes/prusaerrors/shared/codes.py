@@ -81,6 +81,15 @@ class Code:
         return f"{self._printer.value:02}{self._category.value}{self._error:02}"
 
     @property
+    def raw_message(self) -> str:
+        """
+        Get raw message with escaped characters (do not translate them)
+
+        :return: Error message with backslash characters
+        """
+        return json.dumps(self.message)
+
+    @property
     def printer(self) -> Printer:
         """
         Get error code printer
@@ -187,6 +196,24 @@ class Codes:
         return json.dump(obj, file, indent=True)
 
     @classmethod
+    def dump_cpp_enum(cls, file: TextIO) -> None:
+        """
+        Dump codes C++ enum representation to an open file
+
+        :param file: Where to dump
+        :return: None
+        """
+        file.write("// Generated error code enum\n")
+        file.write("namespace ErrorCodes {\n")
+        file.write("\tenum Errors {\n")
+
+        for name, code in cls.get_codes().items():
+            file.write(f"\t\t{name} = {code.raw_code},\n")
+
+        file.write("\t};\n")
+        file.write("};\n")
+
+    @classmethod
     def dump_cpp_messages(cls, file: TextIO) -> None:
         """
         Dump code messages C++ QMap representation to an open file
@@ -196,12 +223,12 @@ class Codes:
         """
         file.write("#include <QMap>\n")
         file.write("// Generated error code to message mapping\n")
-        file.write("static QMap<QString, QString> error_messages{\n")
+        file.write("static QMap<int, QString> error_messages{\n")
 
         for code in cls.get_codes().values():
             if code.message and code.approved:
                 # file.write('\t{"' + code.code + '", "' + code.message + '"},\n')
-                file.write(f'\t{{"{code.code}", "{code.message}"}},\n')
+                file.write(f'\t{code.raw_code}, {code.raw_message},\n')
 
         file.write("};\n")
 
@@ -219,7 +246,7 @@ class Codes:
 
         for code in cls.get_codes().values():
             if code.message:
-                file.write(f'\t\t{code.code}: qsTr("{code.message}"),\n')
+                file.write(f'\t\t{code.raw_code}: qsTr({code.raw_message}),\n')
 
         file.write("\t}\n")
         file.write("}\n")
@@ -235,7 +262,7 @@ class Codes:
         file.write("// Generated translation string definitions for all defined error messages\n")
         for code in cls.get_codes().values():
             if code.message:
-                file.write(f'QT_TR_NOOP("{code.message}");\n')
+                file.write(f'QT_TR_NOOP({code.raw_message});\n')
 
     @classmethod
     def dump_google_docs(cls, file: TextIO) -> None:

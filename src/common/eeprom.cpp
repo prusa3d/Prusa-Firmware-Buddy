@@ -190,8 +190,8 @@ uint8_t eeprom_init(void) {
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
 
-    version = eeprom_get_var(EEVAR_VERSION).ui16;
-    features = (version >= 4) ? eeprom_get_var(EEVAR_FEATURES).ui16 : 0;
+    version = variant_get_ui16(eeprom_get_var(EEVAR_VERSION));
+    features = (version >= 4) ? variant_get_ui16(eeprom_get_var(EEVAR_FEATURES)) : 0;
     if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
         defaults = 1;
     else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
@@ -247,10 +247,10 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     void *data_ptr;
     if (id < EEPROM_VARCOUNT) {
         eeprom_lock();
-        if (var.type == eeprom_map[id].type) {
+        if (variant8_get_type(var) == eeprom_map[id].type) {
             size = eeprom_var_size(id);
             data_size = variant8_data_size(&var);
-            if ((size == data_size) || ((var.type == VARIANT8_PCHAR) && (data_size <= size))) {
+            if ((size == data_size) || ((variant8_get_type(var) == VARIANT8_PCHAR) && (data_size <= size))) {
                 addr = eeprom_var_addr(id);
                 data_ptr = variant8_data_ptr(&var);
                 st25dv64k_user_write_bytes(addr, data_ptr, data_size);
@@ -284,7 +284,8 @@ int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) 
     case EEVAR_LAN_IP4_GW:
     case EEVAR_LAN_IP4_DNS1:
     case EEVAR_LAN_IP4_DNS2: {
-        n = snprintf(str, size, "%u.%u.%u.%u", var.ui8a[0], var.ui8a[1], var.ui8a[2], var.ui8a[3]);
+        n = snprintf(str, size, "%u.%u.%u.%u", variant8_get_uia(var, 0), variant8_get_uia(var, 1),
+            variant8_get_uia(var, 2), variant8_get_uia(var, 3));
     } break;
     default: //use default conversion
         n = variant8_snprintf(str, size, 0, &var);
@@ -439,7 +440,7 @@ static int eeprom_convert_from(uint16_t version, uint16_t features) {
 static int eeprom_check_crc32(void) {
     uint16_t datasize;
     uint32_t crc;
-    datasize = eeprom_get_var(EEVAR_DATASIZE).ui16;
+    datasize = variant_get_ui16(eeprom_get_var(EEVAR_DATASIZE));
     if (datasize > EEPROM_MAX_DATASIZE)
         return 0;
     st25dv64k_user_read_bytes(EEPROM_ADDRESS + datasize - 4, &crc, 4);
