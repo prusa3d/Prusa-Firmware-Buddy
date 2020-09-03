@@ -195,7 +195,7 @@ void Screens::Loop() {
         current = creator();
         if (!current->IsChildCaptured())
             current->SetCapture();
-        if (!current->IsChildFocused() && !current->IsChildFocused()) {
+        if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();
             if (child) {
                 child->SetFocus();

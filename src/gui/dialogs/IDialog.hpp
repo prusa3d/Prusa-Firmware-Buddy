@@ -8,7 +8,6 @@
 #include <functional>
 
 //todo remove this after jogwheel refactoring
-extern void gui_reset_jogwheel(void);
 extern void gui_loop(void);
 
 //interface for dialog
@@ -30,7 +29,6 @@ public:
     template <class... Args>
     void MakeBlocking(
         std::function<void(Args...)> action = [](Args...) {}, Args... args) const { //could be static, but I want it to be usable only from dialog
-        resetJogWheel();
         while (!isCloseFlag()) {
             guiLoop();
             action(args...);
@@ -40,7 +38,6 @@ public:
 protected:
     //used in MakeBlocking
     //needs included files which cannot be included in header
-    void resetJogWheel() const;
     bool isCloseFlag() const;
     void guiLoop() const;
 };

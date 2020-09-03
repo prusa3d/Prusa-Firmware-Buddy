@@ -59,9 +59,9 @@ char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
 char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 
 #ifdef GUI_JOGWHEEL_SUPPORT
-
 Jogwheel jogwheel(JOGWHEEL_PIN_EN1, JOGWHEEL_PIN_EN2, JOGWHEEL_PIN_ENC);
-#endif                                          // GUI_JOGWHEEL_SUPPORT
+#endif // GUI_JOGWHEEL_SUPPORT
+
 static constexpr size_t MSG_STACK_SIZE = 8 + 1; //status message stack size
 static constexpr size_t MSG_MAX_LENGTH = 21;    //status message max length
 auto &MsgCircleBuffer() {
@@ -71,7 +71,7 @@ auto &MsgCircleBuffer() {
 
 void MsgCircleBuffer_cb(const char *txt) {
     MsgCircleBuffer().push_back(txt);
-    //cannot open == aready openned
+    //cannot open == already openned
     if (!IScreenPrinting::CanOpen()) {
         Screens::Access()->WindowEvent(WINDOW_EVENT_MESSAGE, 0);
     }

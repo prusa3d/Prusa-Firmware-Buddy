@@ -12,6 +12,7 @@
 #include "wui_api.h"
 #include "i18n.h"
 #include "../lang/format_print_will_end.hpp"
+#include "window_dlg_popup.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"
@@ -188,7 +189,7 @@ void screen_printing_data_t::open_popup_message() {
     w_time_value.Hide();
 
     // this MakeRAM is safe - msg stack and its items are allocated in RAM for the lifetime of pw
-    w_message.SetText(string_view_utf8::MakeRAM((const uint8_t *)msg_stack.msg_data[0]));
+    // w_message.SetText(string_view_utf8::MakeRAM((const uint8_t *)msg_stack.msg_data[0]));
 
     w_message.Show();
     message_timer = HAL_GetTick();
@@ -240,10 +241,10 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         return;
     }
 
-    if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
+    /* if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
         open_popup_message();
         return;
-    }
+    }*/
 
     if ((!is_abort_state(marlin_vars()->print_state)) && message_flag && (HAL_GetTick() - message_timer >= POPUP_MSG_DUR_MS)) {
         close_popup_message();
