@@ -23,7 +23,6 @@ pipeline {
                     // required configurations
                     def configurations = [
                         [printer: "mini", build_type: "release", bootloader: "no"],
-                        [printer: "mini", build_type: "release", bootloader: "empty"],
                         [printer: "mini", build_type: "release", bootloader: "yes"],
                     ]
 

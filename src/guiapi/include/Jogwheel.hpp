@@ -32,7 +32,7 @@ public:
     /** Updates jogwheel states and variables every 1ms, this function is called from the interupt. */
     void Update1ms();
 
-    /** Returns button input state, this funtion is for BSOD and situations where interupts are disabled. */
+    /** Returns button input state, this function is for BSOD and situations where interupts are disabled. */
     const int GetJogwheelButtonPinState() const;
 
     /** Returns if encoder was changed. */
@@ -62,7 +62,7 @@ public:
      * There are two types with slightly different behaviour
      * and we have to decide in runtime (guimain.cpp), which type are we using.
      *
-     * @param [in] delay - jogwheel type recognision mechanism
+     * @param [in] delay - jogwheel type recognition mechanism
      */
     void SetJogwheelType(uint16_t delay);
 
@@ -97,7 +97,7 @@ private:
     /**
      * Analyzes member variables and updates btn_action if any button action was triggered.
      *
-     * It stores button action until it gets returned in gui_loop, then it is fliped back to BTN_NO_ACTION.
+     * It stores button action until it gets returned in gui_loop, then it is flipped back to BTN_NO_ACTION.
      */
     void UpdateButtonAction();
 

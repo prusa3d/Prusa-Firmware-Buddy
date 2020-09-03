@@ -51,6 +51,8 @@ Nahrány výchozí hodnoty. Systém se restartuje.
 Tovární nastavení
 Stat. chyb
 Test ventilátorů
+Vent0 RPM
+Vent1 RPM
 Fil. senzor
 FILAMENT
 Filament
@@ -63,8 +65,10 @@ Průtok
 Pá
 AKTUALIZACE FW
 Aktualizace FW
+Hlavička
 Podložka
 Vyhřívání vypnuto po 30 minutách neaktivity.
+CHYBA VYHŘÍVÁNÍ
 Zahřívání...
 Vítá vás\nOriginal Prusa MINI!
 MENU
@@ -96,6 +100,7 @@ Zavádění do trysky
 Hlasitý
 Ujistěte se, že   \nje filament       \nvložen skrz       \nfil. senzor.      
 Materiál
+CHYBA MAXTEMP
 Měření referenční\nvýšky kalibračních\nbodů
 Automatický návrat do menu
 MESH BED L.
@@ -103,6 +108,7 @@ Mesh Bed Leveling
 Mesh Bed Leveling selhal?
 ZPRÁVY
 Zprávy
+CHYBA MINTEMP
 Po
 Pohyb osy
 POHYB OSY
@@ -110,6 +116,7 @@ Osa E
 Osa X
 Osa Y
 Osa Z
+Název
 DALŠÍ
 NE
 Senzor filamentu nenalezen. Ujistěte se, že je správně zapojen a opakujte akci.
@@ -154,6 +161,7 @@ TISK
 Čas tisku
 ČISTIT TRYSKU
 Čistit trysku
+ČISTIT VÍCE
 Čištění
 QR test
 Otázka
@@ -170,7 +178,7 @@ Zpět
 So
 Uložit výpis chyb
 Uložit nastavení
-Načtěte kód pro další info
+Načtěte pro info
 Hledání kalibračních\nbodů na podložce
 Vyberte typ filamentu
 VÝBĚR SOUBORU
@@ -184,6 +192,7 @@ Nastavení
 NASTAVENÍ
 Nastavení načteno
 Tichý
+Seřadit dle
 Zvuk
 Typ zvuku
 Hlasitost
@@ -205,8 +214,11 @@ Nastavení úspěšně uloženo do souboru \"lan_settings.ini\"
 V dolní části       \nobrazovky je       \nstavový řádek.     \nObsahuje info o:   \n -Teplotě trysky   \n -Teplotě podložky \n -Rychlosti tisku  \n -Výšce osy Z      \n -Filamentu
 Selhala kalibrace os XYZ. Zkontrolujte zapojení el. součástí i jednotlivé osy, pak restartuje kalibraci XYZ.
 Při ukládání souboru \"lan_settings.ini\" došlo k chybě.
+THERMAL RUNAWAY
+Tento G-CODE je určen pro jiný typ tiskárny.
 Tuto operaci nelze vrátit, současná konfigurace bude ztracena! Skutečně chcete obnovit tovární nastavení?
 Čt
+Čas
 Automatický návrat do menu
 Pro kalibraci s    \naktuálně zavedeným \nfilamentem zvolte  \nDALŠÍ. Pro výměnu  \nzvolte VYJMOUT.
 Pro kalibraci s    \naktuálně zavedeným \nfilamentem zvolte  \nDALŠÍ. Pro zavedení\nfilamentu zvolte   \nZAVÉST. Pro výměnu \nzvolte VYJMOUT.
@@ -228,6 +240,7 @@ Info o verzi
 Čeká se na ochlazení
 Zahřívání
 Varování
+VAROVÁNÍ:
 St
 Vítejte v průvodci \nnastavením Original\nPrusa MINI. Přejete\nsi pokračovat?     
 Vítejte v průvodci pro Original Prusa MINI. Přejete si pokračovat?

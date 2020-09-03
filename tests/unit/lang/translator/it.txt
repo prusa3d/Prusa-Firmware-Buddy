@@ -16,13 +16,13 @@ Livellamento del piano non riuscito. Riprovare?
 Target piano: %.0f_C
 Piano: %.1f_C
 Calibrazione Z
-Calibrazione
+Calibraz.
 CALIBRAZIONE
 Calibrazione completa!\nBuona stampa!
 Calibrazione XY
 ANNULLA
 CAMBIO FILAMENTO
-Cambia filamento
+Cambio filamento
 Controllare la presenza di eventuali danni sul cablaggio del piano riscaldato e del termistore.
 Controllare che il cablaggio del termistore del piano riscaldato non sia danneggiato.
 Controllare che il riscaldatore dell'hotend e il cablaggio del termistore non siano danneggiati.
@@ -33,7 +33,7 @@ Pulire lastra d'acciaio.
 Congratulazioni! Calibrazione XYZ ok. Assi XY sono perpendicolari.
 Test dei segnali acustici continui\npremere il pulsante per interrompere
 CONTINUA
-Raffredda
+Raffreddamento
 Carico CPU
 DISATTIVA SENSORE
 Disabilita motori
@@ -51,6 +51,8 @@ Valori predefiniti di fabbrica caricati. Adeesso il sistema verrà riavviato.
 Ripristino impostazioni di fabbrica
 Stat. fallimenti
 Test ventola
+RPM Fan0
+RPM Fan1
 Sens. fil.
 FILAMENTO
 Filamento
@@ -63,8 +65,10 @@ Fattore di flusso
 Ve
 AGGIORNAMENTO FW
 Aggiornamento FW
+Titolo
 Piano riscaldato
 Riscaldamento disattivato dopo 30 minuti di inattività.
+RISCALD FALLITO
 Riscaldamento...
 Ciao, questa è la tua Original Prusa MINI.
 HOME
@@ -96,13 +100,15 @@ Caricamento \nugello
 Forte
 Accertati che il  \nfilamento passi   \nattraverso il     \nsensore.          
 Materiale
+MAXTEMP ERROR
 Misurazione altezza\ndi riferimento dei\npunti di calibrazione
-Timeout Menu
+Timeout Menù
 LIVEL. PIANO
-Liv. griglia piano.
+Liv. griglia piano
 Liv. griglia piano non riuscito?
 MESSAGGI
 Messaggi
+ERRORE MINTEMP
 Lu
 Sposta asse
 SPOSTA ASSE
@@ -110,6 +116,7 @@ Sposta E
 Sposta X
 Sposta Y
 Sposta Z
+Nome
 SUCCESSIVO
 NO
 Sensore filamento non rilevato. Verificare il collegamento e riprovare.
@@ -154,6 +161,7 @@ STAMPA
 Tempo di stampa
 SPURGA FILAMENTO
 Spurgo filamento
+PULISCI DI PIÙ
 Spurgo
 Test QR
 Domanda
@@ -170,7 +178,7 @@ Ritorna
 Sa
 Salvare Crash Dump
 Salva impostazioni
-Scansionami per i dettagli
+Scan per i dettagli
 Ricerca punti\ndi calibrazione piano
 Seleziona tipo filamento
 SELEZIONA FILE
@@ -180,10 +188,11 @@ AutoTest
 AUTOTEST
 Invia info con QR
 Assistenza
-Impostazioni
+Impost.
 IMPOSTAZIONI
 Impostazioni caricate correttamente
 Silenzioso
+Ordina per
 Modo suono
 Tipo di suono
 Volume suono
@@ -195,8 +204,8 @@ Stop
 Do
 Supporto
 Info di sistema
-TEMPERATURE
-Temperature
+TEMPERATURA
+Temperatura
 Test
 Calib. primo layer non riuscita. Ricontrolla il cablaggio, assi e ugello, quindi ripeti la calibrazione.
 Stampante non calibrata. Avviare Calibrazione primo layer?
@@ -205,11 +214,14 @@ Impostazioni salvate correttamente nel file \"lan_settings.ini\".
 La barra di stato è in basso. Contiene informazioni su:\n - Temp. Ugello\n - Temp. PianoRisc.\n - Vel. di stampa\n - Altezza asse Z\n - Fil. selezionato
 Calibrazione XYZ non riuscita. Ricontrolla il cablaggio e gli assi, quindi ripeti la calibrazione XYZ.
 Errore nel salvataggio delle impostazioni nel file \"lan_settings.ini\".
+THERMAL RUNAWAY
+Questo G-CODE è stato creato per un altro tipo di stampante.
 Questa operazione non può essere annullata, la configurazione attuale andrà persa! Sei sicuro di voler ripristinare le impostazioni di fabbrica?
 Gi
-Timeout
+Data
+Timeout Menù
 Per calibrare con il filamento attualmente caricato, premere AVANTI. Per cambiare filamento, premere SCARICA.
-Per calibrare con IL filamento attualmente caricato, premere AVANTI. Per caricare il filamento, premere CARICA. Per cambiare filamento, premere SCARICA.
+Per calibrare con\nil filamento\nattualmente caricato,\npremere AVANTI.\nPer caricare il filamento,\npremere CARICA.\nPer cambiare filamento,\npremere SCARICA.
 Oggi alle
 RIPROVA
 Ma
@@ -228,6 +240,7 @@ Info versione
 In attesa di raffreddamento
 In attesa di temp.
 Attenzione
+ATTENZIONE:
 Me
 Benvenuti nella configurazione guidata di Original Prusa MINI. Continuare?
 Benvenuto nella configurazione guidata Original Prusa MINI. Vuoi continuare?
