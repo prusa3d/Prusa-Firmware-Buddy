@@ -1,5 +1,6 @@
-#include "Jogwheel.hpp"
 #include <limits.h>
+
+#include "Jogwheel.hpp"
 #include "gpio.h"
 
 // time constants
@@ -30,6 +31,8 @@ Jogwheel::Jogwheel(uint8_t encoder_pin1, uint8_t encoder_pin2, uint8_t btn_pin) 
     speed_traps[0] = speed_traps[1] = speed_traps[2] = speed_traps[3] = 0;
     btn_pressed = doubleclicked = being_held = jogwheel_button_down = false;
     btn_action = ButtonAction::BTN_NO_ACTION;
+    type1 = true;
+    spin_accelerator = false;
 
     gpio_init(config.pinEN1, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);
     gpio_init(config.pinEN2, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_LOW);

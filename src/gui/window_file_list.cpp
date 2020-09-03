@@ -199,7 +199,7 @@ void window_file_list_t::unconditionalDraw() {
 void window_file_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_CLICK:
-        Screens::Access()->ScreenEvent(this, WINDOW_EVENT_CLICK, (void *)index);
+        Screens::Access()->Get()->WindowEvent(this, WINDOW_EVENT_CLICK, (void *)index);
         break;
     case WINDOW_EVENT_ENC_DN:
         dec((int)param);

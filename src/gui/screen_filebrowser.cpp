@@ -146,6 +146,4 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
             return;
         }
     }
-    window_frame_t::windowEvent(sender, event, param);
-    return;
 }

@@ -112,10 +112,14 @@ Screens *Screens::Access() {
 }
 
 void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
+    if (current == nullptr)
+        return;
     current->ScreenEvent(current.get(), event, param);
 }
 
 void Screens::Draw() {
+    if (current == nullptr)
+        return;
     current->Draw();
 }
 
