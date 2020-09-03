@@ -421,8 +421,15 @@ public:
         return i;
     }
 
-    //count must be at least 1
-    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0, size_t ratio[] = nullptr) const;
+    /**
+		 * Vertical split with spaces from parent Rect16
+		 * splits[] - buffer to fill of splitted Rect16
+		 * spaces[] - buffer to fill of spaces between Rect16 splits
+		 * count - number of splits
+		 * spacing - with of spaces between rectangle's splits (optional = 0)
+		 * ratio[] - ratio of wanted splits (optional = nullptr)
+		 */
+    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Split the current rectangle by given height and return such a
@@ -453,8 +460,15 @@ public:
         return i;
     }
 
-    //count must be at least 1
-    void VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0, size_t ratio[] = nullptr) const;
+    /**
+		 * Vertical split with spaces from parent Rect16
+		 * splits[] - buffer to fill of splitted Rect16
+		 * spaces[] - buffer to fill of spaces between Rect16 splits
+		 * count - number of splits
+		 * spacing - with of spaces between rectangle's splits (optional = 0)
+		 * ratio[] - ratio of wanted splits (optional = nullptr)
+		 */
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 };
 
 ////////////////////////////////////////////////////////////////////////////

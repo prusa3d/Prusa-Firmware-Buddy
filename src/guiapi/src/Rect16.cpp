@@ -150,7 +150,7 @@ void Rect16::Align(Rect16 rc, uint8_t align) {
     }
 }
 
-void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing, size_t ratio[]) const {
+void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing, uint8_t ratio[]) const {
     if (count == 0)
         return;
     if (count == 1) {
@@ -160,7 +160,7 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uin
 
     size_t index, fullRatio = 0;
     uint16_t width = (Width() - (spacing * (count - 1))) / count;
-    double r;
+    float r;
     if (ratio != nullptr) {
         for (index = 0; index < count; index++) {
             fullRatio += ratio[index];
@@ -168,7 +168,7 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uin
     }
     for (index = 0; index < count; index++) {
         if (ratio != nullptr) {
-            r = (double)ratio[index] / (double)fullRatio;
+            r = (float)ratio[index] / (float)fullRatio;
             width = Width() - (spacing * (count - 1));
             width *= r;
         }
@@ -182,7 +182,7 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uin
     }
 }
 
-void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing, size_t ratio[]) const {
+void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing, uint8_t ratio[]) const {
     if (count == 0)
         return;
     if (count == 1) {
@@ -192,7 +192,7 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
 
     size_t index, fullRatio = 0;
     uint16_t height = (Height() - (spacing * (count - 1))) / count;
-    double r;
+    float r;
     if (ratio != nullptr) {
         for (index = 0; index < count; index++) {
             fullRatio += ratio[index];
@@ -200,7 +200,7 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
     }
     for (index = 0; index < count; index++) {
         if (ratio != nullptr) {
-            r = (double)ratio[index] / (double)fullRatio;
+            r = (float)ratio[index] / (float)fullRatio;
             height = Height() - (spacing * (count - 1));
             height *= r;
         }
