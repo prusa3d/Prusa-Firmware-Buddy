@@ -2,6 +2,8 @@
 #ifndef _GUICONFIG_H
 #define _GUICONFIG_H
 
+#define USE_ST7789 /// defines usage of ST7789 display (and corresponding knob)
+
 //--------------------------------------
 //GUI configuration
 #define GUI_USE_RTOS
