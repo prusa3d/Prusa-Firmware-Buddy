@@ -20,8 +20,6 @@
 #define ST7789V_ROWS      320 //
 #define ST7789V_BUFF_ROWS 16
 
-#define USE_ST7789 /// defines usage of ST7789 display (and corresponding knob)
-
 typedef struct _st7789v_config_t {
     SPI_HandleTypeDef *phspi; // spi handle pointer
     uint8_t pinCS;            // CS pin
