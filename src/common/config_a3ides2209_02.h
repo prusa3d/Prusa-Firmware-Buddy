@@ -1,8 +1,6 @@
 //config_a3ides2209.h - configuration file for 2209 variant (rev02)
 #pragma once
 
-#include "gpio.h"
-
 #define PRUSA_MARLIN_API
 
 //--------------------------------------
