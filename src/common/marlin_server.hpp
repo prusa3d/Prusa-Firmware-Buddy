@@ -87,8 +87,15 @@ public:
 template <int VAR_ID, class T>
 class Notifier : public FSM_notifier {
 public:
-    Notifier(ClientFSM type, uint8_t phase, variant8_t min, variant8_t max, uint8_t progress_min, uint8_t progress_max)
-        : FSM_notifier(type, phase, min, max, progress_min, progress_max, VAR_ID) {}
+    Notifier(ClientFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max) {};
+    //        : FSM_notifier(type, phase, min, max, progress_min, progress_max, VAR_ID) {}
+};
+
+template <int VAR_ID>
+class Notifier<VAR_ID, float> : public FSM_notifier {
+public:
+    Notifier(ClientFSM type, uint8_t phase, float min, float max, uint8_t progress_min, uint8_t progress_max)
+        : FSM_notifier(type, phase, variant8_flt(min), variant8_flt(max), progress_min, progress_max, VAR_ID) {};
 };
 
 //use an alias to automatically notify progress

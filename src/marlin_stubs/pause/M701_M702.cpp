@@ -65,8 +65,7 @@ static void load_unload(LoadUnloadMode type, Func f_load_unload, uint32_t min_Z_
     // Lift Z axis
     if (min_Z_pos > 0) {
         const float target_Z = _MIN(_MAX(current_position.z, min_Z_pos), Z_MAX_POS);
-        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), variant8_flt(current_position.z),
-            variant8_flt(target_Z), 0, 100);
+        Notifier_POS_Z N(ClientFSM::Load_unload, GetPhaseIndex(PhasesLoadUnload::Parking), current_position.z, target_Z, 0, 100);
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 
