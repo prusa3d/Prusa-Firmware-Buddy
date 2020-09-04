@@ -655,8 +655,8 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
         return 0;
     if (osMessageAvailableSpace(queue) < 2)
         return 0;
-    osMessagePut(queue, *(((uint32_t *)(&msg)) + 0), osWaitForever);
-    osMessagePut(queue, *(((uint32_t *)(&msg)) + 1), osWaitForever);
+    osMessagePut(queue, (uint32_t)(msg & 0xFFFFFFFFU), osWaitForever);
+    osMessagePut(queue, (uint32_t)(msg >> 32), osWaitForever);
     return 1;
 }
 
