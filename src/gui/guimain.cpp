@@ -73,7 +73,7 @@ void MsgCircleBuffer_cb(const char *txt) {
     MsgCircleBuffer().push_back(txt);
     //cannot open == already openned
     if (!IScreenPrinting::CanOpen()) {
-        Screens::Access()->WindowEvent(WINDOW_EVENT_MESSAGE, 0);
+        window_dlg_popup_t::Show(string_view_utf8::MakeRAM((const uint8_t *)txt));
     }
 }
 
@@ -139,13 +139,7 @@ extern "C" void gui_run(void) {
             MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
         }
         gui_loop();
-        /*if (marlin_message_received()) {
-            screen_t *curr = screen_get_curr();
-            if (curr == get_scr_printing()) {
-                screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
-            }
-        }
-        if (menu_timeout_enabled) {
+        /*if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
                 screen_close_multiple(scrn_close_on_timeout);

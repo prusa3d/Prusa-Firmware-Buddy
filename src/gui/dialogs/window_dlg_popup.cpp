@@ -42,18 +42,3 @@ void window_dlg_popup_t::windowEvent(window_t *sender, uint8_t event, void *para
         UnregisterFromParent();
     IDialog::windowEvent(sender, event, param);
 }
-/*
-void gui_pop_up(string_view_utf8 txt, uint32_t time) {
-    window_dlg_popup_t dlg(Rect16(0, 32, 240, 120), txt);
-    const uint32_t open_time = HAL_GetTick();
-    // create lambda function, convert it to std::function<void(uint32_t, uint32_t)>
-    // and pass it to dlg.MakeBlocking
-    dlg.MakeBlocking(
-        (std::function<void(uint32_t, uint32_t)>)[](uint32_t open_time_, uint32_t time_) {
-            if ((int(HAL_GetTick()) - int(open_time_)) > int(time_))
-                Screens::Access()->Close();
-        },
-        open_time, time);
-}
-*/
-//vyresit capture / focus, kdyz se zavre parrent destruktor frame ?

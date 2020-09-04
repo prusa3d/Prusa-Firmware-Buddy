@@ -125,13 +125,9 @@ screen_printing_data_t::screen_printing_data_t()
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
     , w_etime_value(this, Rect16(30, 148, 201, 20), is_multiline::no)
-
     , last_print_duration(-1)
     , last_time_to_end(-1)
-
-    , w_message(this, Rect16(10, 75, 230, 95), is_multiline::yes)
     , message_timer(0)
-    , message_flag(false)
     , stop_pressed(false)
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
@@ -172,41 +168,6 @@ screen_printing_data_t::screen_printing_data_t()
     w_time_value.SetPadding({ 0, 2, 0, 2 });
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
-
-    w_message.font = resource_font(IDR_FNT_NORMAL);
-    w_message.SetAlignment(ALIGN_LEFT_TOP);
-    w_message.SetPadding({ 0, 2, 0, 2 });
-    w_message.SetText(_("No messages"));
-    w_message.Hide();
-    message_flag = false;
-}
-
-void screen_printing_data_t::open_popup_message() {
-    w_etime_label.Hide();
-    w_etime_value.Hide();
-    w_progress.Hide();
-    w_time_label.Hide();
-    w_time_value.Hide();
-
-    // this MakeRAM is safe - msg stack and its items are allocated in RAM for the lifetime of pw
-    // w_message.SetText(string_view_utf8::MakeRAM((const uint8_t *)msg_stack.msg_data[0]));
-
-    w_message.Show();
-    message_timer = HAL_GetTick();
-    message_flag = true;
-}
-
-void screen_printing_data_t::close_popup_message() {
-    w_etime_label.Show();
-    w_etime_value.Show();
-    w_progress.Show();
-    w_time_label.Show();
-    w_time_value.Show();
-
-    w_message.SetText(string_view_utf8::MakeNULLSTR());
-
-    w_message.Hide();
-    message_flag = false;
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -239,15 +200,6 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         marlin_print_abort();
         waiting_for_abort = false;
         return;
-    }
-
-    /* if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
-        open_popup_message();
-        return;
-    }*/
-
-    if ((!is_abort_state(marlin_vars()->print_state)) && message_flag && (HAL_GetTick() - message_timer >= POPUP_MSG_DUR_MS)) {
-        close_popup_message();
     }
 
     if (p_state == printing_state_t::PRINTED && marlin_error(MARLIN_ERR_ProbingFailed)) {

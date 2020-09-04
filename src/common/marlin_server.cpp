@@ -111,6 +111,8 @@ void _add_status_msg(const char *const popup_msg) {
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         variant8_done(&marlin_server.event_messages[i]);                 //destroy unsent message - free dynamic memory
         marlin_server.event_messages[i] = cvariant8(popup_msg).detach(); //store new message
+        marlin_server.event_messages[i].type = VARIANT8_USER;            //set user type so client can recognize it as event
+        marlin_server.event_messages[i].usr8 = MARLIN_EVT_Message;
     }
 }
 
