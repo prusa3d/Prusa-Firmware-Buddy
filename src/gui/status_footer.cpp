@@ -64,7 +64,7 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
         return;
 
     /// nozzle state
-    if (vars->target_nozzle != vars->display_nozzle) { /// preheat mode
+    if (vars->target_nozzle == PREHEAT_TEMP && vars->target_nozzle != vars->display_nozzle) { /// preheat mode
         nozzle_state = HeatState::PREHEAT;
         if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
             nozzle_state = HeatState::HEATING;
@@ -122,15 +122,6 @@ void status_footer_t::update_temperatures() {
 
     update_nozzle(vars);
     update_heatbed(vars);
-
-#ifdef LCD_HEATBREAK_TO_FILAMENT
-    const float actual_heatbreak = thermalManager.degHeatbreak();
-    //float actual_heatbreak = analogRead(6);
-    const unsigned int text_len = 10;
-    char text[text_len];
-    snprintf(text, text_len, "%.0f\177C", (double)actual_heatbreak);
-    wt_filament.SetText(text);
-#endif //LCD_HEATBREAK_TO_FILAMENT
 }
 
 void status_footer_t::update_feedrate() {
