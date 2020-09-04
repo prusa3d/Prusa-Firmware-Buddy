@@ -36,42 +36,7 @@
 #define VARIANT8_ERR_INVFMT 4 // invalid format (during conversion from string)
 #define VARIANT8_ERR_OOFRNG 5 // out of range (during conversion from bigger to lower range number)
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct _variant8_t {
-    union {
-        void *ptr;
-        char *pch;
-        float *pflt;
-        uint32_t *pui32;
-        int32_t *pi32;
-        uint16_t *pui16;
-        int16_t *pi16;
-        uint8_t *pui8;
-        int8_t *pi8;
-        uint32_t usr32;
-        char ch;
-        float flt;
-        uint32_t ui32;
-        uint8_t ui8a[4]; // array for easy 8 <-> 32 bit conversion
-        int32_t i32;
-        uint16_t ui16;
-        int16_t i16;
-        uint8_t ui8;
-        int8_t i8;
-        uint32_t err32;
-    };
-    union {
-        uint16_t usr16;
-        uint16_t size;
-        uint16_t err16;
-    };
-    uint8_t type;
-    uint8_t usr8;
-} variant8_t;
-
-#pragma pack(pop)
+typedef uint64_t variant8_t;
 
 #ifdef __cplusplus
 
@@ -79,7 +44,7 @@ extern "C" {
 #endif //__cplusplus
 
 // returns newly allocated variant8, copy data from pdata if not null
-extern variant8_t variant8_init(uint8_t type, uint16_t count, void *pdata);
+extern variant8_t variant8_init(uint8_t type, uint16_t count, void const *pdata);
 
 // free allocated pointer for VARIANT8_PTR types, sets pvar8 to VARIANT8_EMPTY
 extern void variant8_done(variant8_t *pvar8);
@@ -136,37 +101,32 @@ extern variant8_t variant8_pui32(uint32_t *pui32, uint16_t count, int init);
 extern variant8_t variant8_pflt(float *pflt, uint16_t count, int init);
 
 // returns variant8_t type
-inline uint8_t variant8_get_type(variant8_t v) { return v.type; }
-
+extern uint8_t variant8_get_type(variant8_t v);
 // returns variant8_t usr8
-inline uint8_t variant8_get_usr8(variant8_t v) { return v.usr8; }
-
+extern uint8_t variant8_get_usr8(variant8_t v);
 // returns variant8_t usr16
-inline uint16_t variant8_get_usr16(variant8_t v) { return v.usr16; }
-
+extern uint16_t variant8_get_usr16(variant8_t v);
 // returns variant8_t flt
-inline float variant8_get_flt(variant8_t v) { return v.flt; }
-
+extern float variant8_get_flt(variant8_t v);
 // returns variant8_t pch
-inline char *variant8_get_pch(variant8_t v) { return v.type == VARIANT8_PCHAR ? v.pch : NULL; }
-
+extern char *variant8_get_pch(variant8_t v);
 // returns variant8_t ui8
-inline uint8_t variant8_get_uia(variant8_t v, uint8_t index) { return index < 4 ? v.ui8a[index] : UINT8_MAX; }
+extern uint8_t variant8_get_uia(variant8_t v, uint8_t index);
 
 // returns variant8_t ui32
-inline uint32_t variant8_get_ui32(variant8_t v) { return v.ui32; }
+extern uint32_t variant8_get_ui32(variant8_t v);
 
 // returns variant8_t i32
-inline int32_t variant8_get_i32(variant8_t v) { return v.i32; }
+extern int32_t variant8_get_i32(variant8_t v);
 
 // returns variant8_t ui16
-inline uint16_t variant_get_ui16(variant8_t v) { return v.ui16; }
+extern uint16_t variant_get_ui16(variant8_t v);
 
 // returns variant8_t ui8
-inline uint8_t variant_get_ui8(variant8_t v) { return v.ui8; }
+extern uint8_t variant_get_ui8(variant8_t v);
 
 // returns variant8_t i8
-inline int8_t variant8_get_i8(variant8_t v) { return v.i8; }
+extern int8_t variant8_get_i8(variant8_t v);
 
 // set variant8_t usr8 member
 extern void variant8_set_usr8(variant8_t *, uint8_t);
@@ -204,17 +164,17 @@ extern variant8_t variant8_from_str(uint8_t type, char *str, const char *fmt);
 // variant8 realloc function
 extern void *variant8_realloc(void *ptr, uint16_t size);
 
-// returns 1 for signed integer types (I8, I16, I32), otherwise returns 0
-inline static int variant8_is_signed(const variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
+// // returns 1 for signed integer types (I8, I16, I32), otherwise returns 0
+// inline int variant8_is_signed(const variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
 
-// returns 1 for unsigned integer types (UI8, UI16, UI32), otherwise returns 0
-inline static int variant8_is_unsigned(const variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
+// // returns 1 for unsigned integer types (UI8, UI16, UI32), otherwise returns 0
+// inline int variant8_is_unsigned(const variant8_t *pvar8) { return (pvar8) ? (((pvar8->type == VARIANT8_I8) || (pvar8->type == VARIANT8_I16) || (pvar8->type == VARIANT8_I32)) ? 1 : 0) : 0; }
 
-// returns 1 for integer types (I8, I16, I32, UI8, UI16, UI32), otherwise returns 0
-inline static int variant8_is_integer(const variant8_t *pvar8) { return (pvar8) ? ((variant8_is_signed(pvar8) || variant8_is_unsigned(pvar8)) ? 1 : 0) : 0; }
+// // returns 1 for integer types (I8, I16, I32, UI8, UI16, UI32), otherwise returns 0
+// inline int variant8_is_integer(const variant8_t *pvar8) { return (pvar8) ? ((variant8_is_signed(pvar8) || variant8_is_unsigned(pvar8)) ? 1 : 0) : 0; }
 
-// returns 1 for numeric types (I8, I16, I32, UI8, UI16, UI32, float), otherwise returns 0
-inline static int variant8_is_number(const variant8_t *pvar8) { return (pvar8) ? ((variant8_is_integer(pvar8) || (pvar8->type == VARIANT8_FLT)) ? 1 : 0) : 0; }
+// // returns 1 for numeric types (I8, I16, I32, UI8, UI16, UI32, float), otherwise returns 0
+// inline int variant8_is_number(const variant8_t *pvar8) { return (pvar8) ? ((variant8_is_integer(pvar8) || (pvar8->type == VARIANT8_FLT)) ? 1 : 0) : 0; }
 
 #ifdef __cplusplus
 }
