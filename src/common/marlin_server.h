@@ -7,11 +7,12 @@
 #include "client_fsm_types.h"
 
 // server flags
-static const uint8_t MARLIN_SFLG_STARTED = 0x01; // server started (set in marlin_server_init)
-static const uint8_t MARLIN_SFLG_PROCESS = 0x02; // loop processing in main thread is enabled
-static const uint8_t MARLIN_SFLG_BUSY = 0x04;    // loop is busy
-static const uint8_t MARLIN_SFLG_PENDREQ = 0x08; // pending request
-static const uint8_t MARLIN_SFLG_EXCMODE = 0x10; // exclusive mode enabled (currently used for selftest/wizard)
+// FIXME define the same type for these and marlin_server.flags
+static const uint16_t MARLIN_SFLG_STARTED = 0x0001; // server started (set in marlin_server_init)
+static const uint16_t MARLIN_SFLG_PROCESS = 0x0002; // loop processing in main thread is enabled
+static const uint16_t MARLIN_SFLG_BUSY = 0x0004;    // loop is busy
+static const uint16_t MARLIN_SFLG_PENDREQ = 0x0008; // pending request
+static const uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (currently used for selftest/wizard)
 
 // server variable update interval [ms]
 static const uint8_t MARLIN_UPDATE_PERIOD = 100;
