@@ -64,7 +64,7 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
         return;
 
     /// nozzle state
-    if (vars->target_nozzle == PREHEAT_TEMP && vars->target_nozzle != vars->display_nozzle) { /// preheat mode
+    if (vars->target_nozzle == PREHEAT_TEMP && vars->target_nozzle != vars->display_nozzle && vars->target_nozzle != 0) { /// preheat mode
         nozzle_state = HeatState::PREHEAT;
         if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
             nozzle_state = HeatState::HEATING;
