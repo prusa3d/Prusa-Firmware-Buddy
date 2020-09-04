@@ -14,12 +14,12 @@
 #include "../Marlin/src/module/temperature.h"
 
 static const constexpr uint8_t EEPROM__PADDING = 2;
-static const constexpr uint8_t EEPROM_MAX_NAME = 16;              // maximum name length (with '\0')
-static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;        // maximum datasize
-static const constexpr uint8_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
+static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
+static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
-static const constexpr uint8_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
+static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
 
 // measure time needed to update crc
 //#define EEPROM_MEASURE_CRC_TIME

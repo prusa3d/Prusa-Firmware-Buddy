@@ -4,7 +4,7 @@
 #include "stdint.h"
 
 // bootloader version
-static const uint32_t BOOTLOADER_VERSION_ADDRESS = 0x0801FFFA;
+static const size_t BOOTLOADER_VERSION_ADDRESS = 0x0801FFFA;
 
 // EEPROM firmware update flag
 static const uint8_t FW_UPDATE_ENABLE = 0xAA;
