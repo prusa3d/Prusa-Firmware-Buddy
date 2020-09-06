@@ -150,7 +150,7 @@ void Rect16::Align(Rect16 rc, uint8_t align) {
     }
 }
 
-void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing, uint8_t ratio[]) const {
+void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, uint8_t ratio[]) const {
     if (count == 0)
         return;
     if (count == 1) {
@@ -158,31 +158,34 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uin
         return;
     }
 
-    size_t index, fullRatio = 0;
-    uint16_t width = (Width() - (spacing * (count - 1))) / count;
-    float r;
+    size_t index, ratio_sum = 0;
+    const uint16_t usable_width = Width() - (spacing * (count - 1));
+    uint16_t width = usable_width / count;
+    uint16_t final_width = 0;
     if (ratio != nullptr) {
-        for (index = 0; index < count; index++) {
-            fullRatio += ratio[index];
-        }
+        ratio_sum = std::accumulate(ratio, ratio + count, ratio_sum);
     }
     for (index = 0; index < count; index++) {
         if (ratio != nullptr) {
-            r = (float)ratio[index] / (float)fullRatio;
-            width = Width() - (spacing * (count - 1));
-            width *= r;
+            width = usable_width * ((float)ratio[index] / (float)ratio_sum) + .5F;
         }
-        int16_t left = index == 0 ? (int16_t)Left() : splits[index - 1].EndPoint().x + spacing;
+        const int16_t left = index == 0 ? (int16_t)Left() : splits[index - 1].EndPoint().x + spacing;
         /// rect split
         splits[index] = Rect16({ left, Top() }, width, Height());
+        final_width += width;
         /// spaces split
         if (index < count - 1) {
             spaces[index] = Rect16({ splits[index].EndPoint().x, Top() }, spacing, Height());
+            final_width += spacing;
         }
+    }
+    /// add not used pixels due to rounding to the last split width
+    if (final_width < Width()) {
+        splits[count - 1].width_ += Width() - final_width;
     }
 }
 
-void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing, uint8_t ratio[]) const {
+void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, uint8_t ratio[]) const {
     if (count == 0)
         return;
     if (count == 1) {
@@ -190,26 +193,29 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint1
         return;
     }
 
-    size_t index, fullRatio = 0;
-    uint16_t height = (Height() - (spacing * (count - 1))) / count;
-    float r;
+    size_t index, ratio_sum = 0;
+    const uint16_t usable_height = Height() - (spacing * (count - 1));
+    uint16_t height = usable_height / count;
+    uint16_t final_height = 0;
     if (ratio != nullptr) {
-        for (index = 0; index < count; index++) {
-            fullRatio += ratio[index];
-        }
+        ratio_sum = std::accumulate(ratio, ratio + count, ratio_sum);
     }
     for (index = 0; index < count; index++) {
         if (ratio != nullptr) {
-            r = (float)ratio[index] / (float)fullRatio;
-            height = Height() - (spacing * (count - 1));
-            height *= r;
+            height = usable_height * ((float)ratio[index] / (float)ratio_sum) + .5F;
         }
         int16_t top = index == 0 ? (int16_t)Top() : splits[index - 1].BottomRight().y + spacing;
         /// rect split
         splits[index] = Rect16({ Left(), top }, Width(), height);
+        final_height += height;
         /// spaces split
         if (index < count - 1) {
             spaces[index] = Rect16({ (int16_t)Left(), splits[index].BottomRight().y }, Width(), spacing);
+            final_height += spacing;
         }
+    }
+    /// add not used pixels due to rounding to the last split width
+    if (final_height < Height()) {
+        splits[count - 1].height_ += Height() - final_height;
     }
 }

@@ -300,7 +300,7 @@ TEST_CASE("rectangle Contain", "[rectangle]") {
 
 TEST_CASE("rectangle split", "[rectangle]") {
     using Sequence = std::array<Rect16, 4>;
-    using Ratio = std::array<size_t, 4>;
+    using Ratio = std::array<uint8_t, 4>;
 
     SECTION("horizontal - splits with spaces") {
         Sequence expSplits, expSpaces;
@@ -311,6 +311,7 @@ TEST_CASE("rectangle split", "[rectangle]") {
         Rect16 splits[4];
         Rect16 spaces[4];
 
+        //TESTING
         // r = Rect16({0, 0}, 120, 100);
         // count = 4;
         // spacing = 10;

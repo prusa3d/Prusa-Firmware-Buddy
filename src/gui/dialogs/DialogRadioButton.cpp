@@ -107,23 +107,22 @@ void RadioButton::draw_1_btn() const {
         button_draw(rect, _((*texts)[0]), pfont, IsEnabled());
 }
 
-void RadioButton::draw_n_btns(size_t btn_count) const {
+void RadioButton::draw_n_btns(const size_t btn_count) const {
     if (!texts)
         return;
 
-    static_assert(sizeof(btn_count) < 5, "Too many RadioButtons to draw.");
+    static_assert(sizeof(btn_count) <= GuiDefaults::MAX_DIALOG_BUTTON_COUNT, "Too many RadioButtons to draw.");
 
-    Rect16 splits[4]; //fix size, dont want to use template
-    Rect16 spaces[3];
-    uint8_t ratio[4];
+    /// fix size of dialog buttons - MAX_DIALOG_BUTTON_COUNT
+    Rect16 splits[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
+    Rect16 spaces[GuiDefaults::MAX_DIALOG_BUTTON_COUNT - 1];
+    uint8_t ratio[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
 
     for (size_t index = 0; index < btn_count; index++) {
         string_view_utf8 txt = _((*texts)[index]);
         ratio[index] = static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
     }
-
     rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
-    // rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing);
 
     for (size_t i = 0; i < btn_count; ++i) {
         button_draw(splits[i], _((*texts)[i]), pfont, GetBtnIndex() == i && IsEnabled());

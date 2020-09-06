@@ -3,6 +3,7 @@
 #include "guitypes.hpp"
 #include <array>
 #include <algorithm>
+#include <numeric>
 #include <limits.h> //SHRT_MAX, SHRT_MIN
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -422,14 +423,14 @@ public:
     }
 
     /**
-		 * Vertical split with spaces from parent Rect16
-		 * splits[] - buffer to fill of splitted Rect16
-		 * spaces[] - buffer to fill of spaces between Rect16 splits
-		 * count - number of splits
-		 * spacing - with of spaces between rectangle's splits (optional = 0)
-		 * ratio[] - ratio of wanted splits (optional = nullptr)
+		 * @brief Vertical split with spaces from parent Rect16
+		 * @param[out] splits[] buffer to fill of splitted Rect16
+		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+		 * @param[in] count number of splits
+		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
 		 */
-    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
+    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Split the current rectangle by given height and return such a
@@ -461,14 +462,14 @@ public:
     }
 
     /**
-		 * Vertical split with spaces from parent Rect16
-		 * splits[] - buffer to fill of splitted Rect16
-		 * spaces[] - buffer to fill of spaces between Rect16 splits
-		 * count - number of splits
-		 * spacing - with of spaces between rectangle's splits (optional = 0)
-		 * ratio[] - ratio of wanted splits (optional = nullptr)
+		 * @brief Vertical split with spaces from parent Rect16
+		 * @param[out] splits[] buffer to fill of splitted Rect16
+		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+		 * @param[in] count number of splits
+		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
 		 */
-    void VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 };
 
 ////////////////////////////////////////////////////////////////////////////
