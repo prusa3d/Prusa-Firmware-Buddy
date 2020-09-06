@@ -82,7 +82,6 @@ void gui_loop(void) {
             } else {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_DN, (void *)-diff);
             }
-            Sound_Play(eSOUND_TYPE_EncoderMove);
             gui_reset_menu_timer();
         }
         if (btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
