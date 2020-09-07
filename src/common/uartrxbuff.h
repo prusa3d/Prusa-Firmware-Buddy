@@ -4,13 +4,6 @@
 #include <inttypes.h>
 #include "stm32f4xx_hal.h"
 
-enum {
-    UARTRXBUFF_FLG_HALF = 0x01,
-    UARTRXBUFF_FLG_CPLT = 0x02,
-    UARTRXBUFF_FLG_FULL = 0x04,
-    UARTRXBUFF_FLG_OVER = 0x08,
-};
-
 #pragma pack(push)
 #pragma pack(1)
 

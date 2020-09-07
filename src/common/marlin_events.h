@@ -40,10 +40,8 @@ typedef enum {
 
 // event masks
 #define MARLIN_EVT_MSK(e_id) ((uint64_t)1 << (e_id))
+#define MARLIN_EVT_MSK_ALL   ((MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1))
 
-enum {
-    MARLIN_EVT_MSK_ALL = (MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1),
-};
 static const uint64_t MARLIN_EVT_MSK_DEF = MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled));
 static const uint64_t MARLIN_EVT_MSK_FSM = MARLIN_EVT_MSK(MARLIN_EVT_FSM_Create) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Destroy) | MARLIN_EVT_MSK(MARLIN_EVT_FSM_Change);
 

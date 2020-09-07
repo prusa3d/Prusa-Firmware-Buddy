@@ -7,10 +7,10 @@
 #include "client_fsm_types.h"
 
 // client flags
-static const uint8_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
-static const uint8_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
-static const uint8_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
-static const uint8_t MARLIN_CFLG_MESSAGE = 0x10; // receiving status change message
+static const uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
+static const uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
+static const uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
+static const uint16_t MARLIN_CFLG_MESSAGE = 0x10; // receiving status change message
 
 #ifdef __cplusplus
 extern "C" {

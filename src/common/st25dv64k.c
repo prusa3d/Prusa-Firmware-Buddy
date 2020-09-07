@@ -27,10 +27,10 @@ static const uint16_t REG_ENDA3 = 0x0009;
 // static const uint16_t REG_LOCK_CFG = 0x000F;
 
 // EEPROM I2C addresses
-static const uint8_t ADDR_WRITE = 0xA6;
-static const uint8_t ADDR_READ = 0xA7;
-static const uint8_t ADDR_WRITE_SYS = 0xAE;
-static const uint8_t ADDR_READ_SYS = 0xAF;
+static const uint16_t ADDR_WRITE = 0xA6;
+static const uint16_t ADDR_READ = 0xA7;
+static const uint16_t ADDR_WRITE_SYS = 0xAE;
+static const uint16_t ADDR_READ_SYS = 0xAF;
 
 static const uint8_t BLOCK_DELAY = 5; // block delay [ms]
 static const uint8_t BLOCK_BYTES = 4; // bytes per block
