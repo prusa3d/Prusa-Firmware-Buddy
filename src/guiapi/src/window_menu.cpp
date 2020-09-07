@@ -94,11 +94,11 @@ void window_menu_t::Increment(int dif) {
         // play sound at first or last index of menu
         if (new_index < 0) {
             new_index = 0;
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
         if (new_index >= GetCount()) {
             new_index = GetCount() - 1;
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
 
         if (new_index < top_index)

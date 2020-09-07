@@ -68,7 +68,7 @@ void gui_loop(void) {
     Jogwheel::ButtonAction btn = jogwheel.GetButtonAction();
     bool encoder_changed = jogwheel.EncoderChanged();
     if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
-        Sound_Play(eSOUND_TYPE_ButtonEcho);
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
     }
 
     if (encoder_changed || btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
@@ -95,7 +95,7 @@ void gui_loop(void) {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
             } else if (btn == Jogwheel::ButtonAction::BTN_HELD) {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
-                Sound_Play(eSOUND_TYPE_ButtonEcho);
+                Sound_Play(eSOUND_TYPE::ButtonEcho);
             }
             gui_reset_menu_timer();
         }
