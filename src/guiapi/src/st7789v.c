@@ -50,8 +50,8 @@ enum {
 
 //st7789 CTRL Display
 static const uint8_t MASK_CTRLD_BCTRL = 1 << 5; //Brightness Control Block
-static const uint8_t MASK_CTRLD_DD = 1 << 3;    //Display Dimming
-static const uint8_t MASK_CTRLD_BL = 1 << 2;    //Backlight Control
+// static const uint8_t MASK_CTRLD_DD = 1 << 3;    //Display Dimming
+// static const uint8_t MASK_CTRLD_BL = 1 << 2;    //Backlight Control
 
 //color constants
 enum {
