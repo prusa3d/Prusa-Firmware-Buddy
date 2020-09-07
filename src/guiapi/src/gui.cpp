@@ -9,7 +9,7 @@
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
 
-static const constexpr uint8_t GUI_FLG_INVALID = 0x01;
+static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
 uint16_t gui_flags = 0;
 

@@ -49,11 +49,9 @@ enum {
 };
 
 //st7789 CTRL Display
-enum {
-    MASK_CTRLD_BCTRL = (0x01 << 5), //Brightness Control Block
-    MASK_CTRLD_DD = (0x01 << 3),    //Display Dimming
-    MASK_CTRLD_BL = (0x01 << 2),    //Backlight Control
-};
+static const uint8_t MASK_CTRLD_BCTRL = 1 << 5; //Brightness Control Block
+static const uint8_t MASK_CTRLD_DD = 1 << 3;    //Display Dimming
+static const uint8_t MASK_CTRLD_BL = 1 << 2;    //Backlight Control
 
 //color constants
 enum {
@@ -70,11 +68,9 @@ enum {
 };
 
 //private flags (pin states)
-enum {
-    FLG_CS = 0x01,  // current CS pin state
-    FLG_RS = 0x02,  // current RS pin state
-    FLG_RST = 0x04, // current RST pin state
-};
+static const uint8_t FLG_CS = 0x01;  // current CS pin state
+static const uint8_t FLG_RS = 0x02;  // current RS pin state
+static const uint8_t FLG_RST = 0x04; // current RST pin state
 
 uint8_t st7789v_flg = 0; // flags
 
@@ -134,7 +130,7 @@ static inline int is_interrupt(void) {
 }
 
 void st7789v_delay_ms(uint32_t ms) {
-    if (is_interrupt() || (st7789v_flg & ST7789V_FLG_SAFE)) {
+    if (is_interrupt() || (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE)) {
         volatile uint32_t temp;
         while (ms--) {
             do {
@@ -155,7 +151,7 @@ void st7789v_spi_wr_byte(uint8_t b) {
 }
 
 void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
-    if ((st7789v_flg & ST7789V_FLG_DMA) && !(st7789v_flg & ST7789V_FLG_SAFE) && (size > 4)) {
+    if ((st7789v_flg & (uint8_t)ST7789V_FLG_DMA) && !(st7789v_flg & (uint8_t)ST7789V_FLG_SAFE) && (size > 4)) {
 #ifdef ST7789V_USE_RTOS
         osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
@@ -286,7 +282,7 @@ void st7789v_cmd_ramrd(uint8_t *pdata, uint16_t size) {
 }*/
 
 void st7789v_init_ctl_pins(void) {
-    if (!(st7789v_flg & ST7789V_FLG_SAFE)) {
+    if (!(st7789v_flg & (uint8_t)ST7789V_FLG_SAFE)) {
         gpio_init(st7789v_config.pinCS, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
         gpio_init(st7789v_config.pinRS, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
         gpio_init(st7789v_config.pinRST, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
@@ -318,8 +314,8 @@ void st7789v_init(void) {
 #ifdef ST7789V_USE_RTOS
     st7789v_task_handle = osThreadGetId();
 #endif //ST7789V_USE_RTOS
-    if (st7789v_flg & ST7789V_FLG_SAFE)
-        st7789v_flg &= ~ST7789V_FLG_DMA;
+    if (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE)
+        st7789v_flg &= ~(uint8_t)ST7789V_FLG_DMA;
     else
         st7789v_flg = st7789v_config.flg;
     st7789v_init_ctl_pins();                   // CS=H, RS=H, RST=H
@@ -692,7 +688,7 @@ uint16_t st7789v_reset_delay = 0;
 
 //! @brief enable safe mode (direct acces + safe delay)
 void st7789v_enable_safe_mode(void) {
-    st7789v_flg |= ST7789V_FLG_SAFE;
+    st7789v_flg |= (uint8_t)ST7789V_FLG_SAFE;
 }
 
 void st7789v_spi_tx_complete(void) {

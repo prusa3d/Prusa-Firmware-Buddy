@@ -12,6 +12,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+// FIXME define meaningful numbers for masks
 enum {
     TERM_ATTR_BACK_MASK = 0x00,
     TERM_ATTR_BACK_BLACK = 0x00,
@@ -36,9 +37,9 @@ enum {
     TERM_COLOR_WHITE,
 };
 
-static const uint8_t TERM_FLG_CHANGED = 0x40;
-static const uint8_t TERM_FLG_ESCAPE = 0x20;
-static const uint8_t TERM_FLG_AUTOCR = 0x10;
+static const uint16_t TERM_FLG_CHANGED = 0x40;
+static const uint16_t TERM_FLG_ESCAPE = 0x20;
+static const uint16_t TERM_FLG_AUTOCR = 0x10;
 
 static const char TERM_DEF_CHAR = ' ';
 enum {
