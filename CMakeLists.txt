@@ -437,7 +437,7 @@ target_sources(
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
-          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
+          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/diag.c
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
