@@ -1,4 +1,8 @@
+
+#include <cmath>
+#include <algorithm>
 #include "math.h"
+#include "limits.h"
 
 /// don't draw above line specified in gui.c
 /// FIXME footer should receive window to know where to draw
@@ -6,11 +10,8 @@
 #include "config.h"
 #include "status_footer.h"
 #include "filament.h"
-
 #include "marlin_client.h"
 #include "stm32f4xx_hal.h"
-#include "limits.h"
-#include <algorithm>
 
 static const float heating_difference = 2.5F;
 
@@ -64,7 +65,7 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
         return;
 
     /// nozzle state
-    if (vars->target_nozzle == PREHEAT_TEMP && vars->target_nozzle != vars->display_nozzle && vars->target_nozzle != 0) { /// preheat mode
+    if (std::fabs(vars->target_nozzle - PREHEAT_TEMP) < 0.5f && vars->display_nozzle > vars->target_nozzle) { /// preheat mode
         nozzle_state = HeatState::PREHEAT;
         if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
             nozzle_state = HeatState::HEATING;
