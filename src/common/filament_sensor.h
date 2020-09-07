@@ -44,5 +44,3 @@ void fs_cycle(); //call it in thread, max call speed 1MHz
 //for debug
 int fs_was_M600_send();
 char fs_get_send_M600_on();
-
-#endif //_FILAMENT_SENSOR_H

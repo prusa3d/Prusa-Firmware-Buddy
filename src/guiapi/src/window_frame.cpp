@@ -138,7 +138,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
                 Sound_Play(eSOUND_TYPE::BlindAlert);
                 break;
             } else {
-                Sound_Play(eSOUND_TYPE_EncoderMove);
+                Sound_Play(eSOUND_TYPE::EncoderMove);
             }
             pWin = pPrev;
         }
@@ -153,7 +153,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
                 Sound_Play(eSOUND_TYPE::BlindAlert);
                 break;
             } else {
-                Sound_Play(eSOUND_TYPE_EncoderMove);
+                Sound_Play(eSOUND_TYPE::EncoderMove);
             }
             pWin = pNext;
         }

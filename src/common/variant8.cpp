@@ -24,6 +24,7 @@ static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8);
 
 //macros for variant8 structure constants
 variant8_t variant8_init(uint8_t type, uint16_t count, void *pdata) {
+    static_assert(sizeof(variant8_t) == 8, "invalid size of variant8_t");
     variant8_t var8;
     uint16_t size;
     if ((count == 1) && !(type & VARIANT8_PTR)) {

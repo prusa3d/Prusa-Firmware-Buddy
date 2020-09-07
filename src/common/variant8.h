@@ -39,9 +39,6 @@ enum {
     VARIANT8_ERR_OOFRNG,     // out of range (during conversion from bigger to lower range number)
 };
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _variant8_t {
     union {
         void *ptr;
@@ -73,8 +70,6 @@ typedef struct _variant8_t {
     uint8_t type;
     uint8_t usr8;
 } variant8_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 
