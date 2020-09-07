@@ -10,6 +10,7 @@ enum {
 };
 
 void uartrxbuff_rx_full(uartrxbuff_t *prxbuff) {
+    _Static_assert(sizeof(uartrxbuff_t) == 16, "invalid sizeof(uartrxbuff_t)");
     prxbuff->flags |= (uint8_t)UARTRXBUFF_FLG_FULL;
     _dbg0("uartrxbuff_rx_full");
 }
