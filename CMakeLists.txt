@@ -478,7 +478,6 @@ target_sources(
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp
-          src/common/lang.cpp
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
