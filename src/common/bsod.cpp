@@ -139,6 +139,17 @@ static void stop_common(void) {
     display::Init();
 }
 
+//! @brief print white error message on background
+//!
+//! It prints also firmware version on bottom of the screen.
+//!
+//! @param term input message
+//! @param background_color background color
+static void print_error(term_t *term, color_t background_color) {
+    render_term(Rect16(10, 10, 220, 288), term, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+}
+
 //! @brief Marlin stopped
 //!
 //! Disable interrupts, print red error message and stop in infinite loop.
@@ -158,19 +169,18 @@ void general_error(const char *error, const char *module) {
     __disable_irq();
     stop_common();
     display::Clear(COLOR_RED_ALERT);
-    term_buff_t<20, 16> term_buff;                             //terminal buffer
-    window_term_t term(nullptr, { PADDING, 100 }, &term_buff); //terminal window
-    term.SetBackColor(COLOR_RED_ALERT);
-    term.color_text = COLOR_WHITE;
+    term_t term;
+    uint8_t buff[TERM_BUFF_SIZE(20, 16)];
+    term_init(&term, 20, 16, buff);
 
     display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
-    term.Printf(module);
-    term.Printf("\n");
+    term_printf(&term, module);
+    term_printf(&term, "\n");
 
-    term.Draw();
+    render_term(Rect16(PADDING, 100, 220, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
@@ -367,13 +377,11 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     display::DrawIcon(point_ui16(75, 40), IDR_PNG_icon_pepa_psod, COLOR_BLACK, 0);
     display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
     #else
-    const color_t background_color = COLOR_NAVY;
-    const color_t text_color = COLOR_WHITE;
-    display::Clear(background_color);                    //clear with dark blue color
-    term_buff_t<20, 16> term_buff;                       //terminal buffer for 20x16
-    window_term_t term(nullptr, { 10, 10 }, &term_buff); //terminal window
-    term.SetBackColor(background_color);
-    term.color_text = text_color;
+    display::Clear(COLOR_NAVY);           //clear with dark blue color
+    term_t term;                          //terminal structure
+    uint8_t buff[TERM_BUFF_SIZE(20, 16)]; //terminal buffer for 20x16
+    term_init(&term, 20, 16, buff);       //initialize terminal structure (clear buffer etc)
+
     if (file_name != nullptr) {
         //remove text before "/" and "\", to get filename without path
         const char *pc;
@@ -390,24 +398,24 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
             const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
             for (size_t i = 0; i < range; i++)
-                term.WriteChar(text[i]);
+                term_write_char(&term, text[i]);
         }
-        term.Printf("\n");
+        term_printf(&term, "\n");
         if (file_name != 0)
-            term.Printf("%s", file_name); //print filename
+            term_printf(&term, "%s", file_name); //print filename
         if ((file_name != 0) && (line_number != -1))
-            term.Printf(" "); //print space
+            term_printf(&term, " "); //print space
         if (line_number != -1)
-            term.Printf("%d", line_number); //print line number
+            term_printf(&term, "%d", line_number); //print line number
         if ((file_name != 0) || (line_number != -1))
-            term.Printf("\n"); //new line if there is filename or line number
+            term_printf(&term, "\n"); //new line if there is filename or line number
     }
 
-    term.Printf("TASK:%s\n", tskName);
-    term.Printf("b:%x", pBotOfStack);
-    term.Printf("t:%x", pTopOfStack);
+    term_printf(&term, "TASK:%s\n", tskName);
+    term_printf(&term, "b:%x", pBotOfStack);
+    term_printf(&term, "t:%x", pTopOfStack);
 
-    int lines_to_print = term.term.rows - term.term.row - 1;
+    int lines_to_print = term.rows - term.row - 1;
     int stack_sz = pTopOfStack - pBotOfStack;
 
     StackType_t *lastAddr;
@@ -417,11 +425,10 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         lastAddr = pTopOfStack - 2 * lines_to_print;
 
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
-        term.Printf("%08x  ", *i);
+        term_printf(&term, "%08x  ", *i);
     }
 
-    term.Draw();
-    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, text_color);
+    print_error(&term, COLOR_NAVY);
     #endif
 
     while (1) //endless loop
@@ -540,121 +547,120 @@ void ScreenHardFault(void) {
 
     stop_common();
 
-    display::Clear(COLOR_NAVY);                                                        //clear with dark blue color
-    term_buff_t<COLS, ROWS> term_buff;                                                 //terminal buffer
-    window_term_t term(nullptr, { 10, 10 }, &term_buff, resource_font(IDR_FNT_SMALL)); //terminal window
-    term.SetBackColor(COLOR_NAVY);
-    term.color_text = COLOR_WHITE;
+    display::Clear(COLOR_NAVY);               //clear with dark blue color
+    term_t term;                              //terminal structure
+    uint8_t buff[TERM_BUFF_SIZE(COLS, ROWS)]; //terminal buffer for 20x16
+    term_init(&term, COLS, ROWS, buff);       //initialize terminal structure (clear buffer etc)
 
-    term.Printf("TASK: %s. ", tskName);
+    term_printf(&term, "TASK: %s. ", tskName);
 
     switch ((SCB->CFSR) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
     case IACCVIOL_Msk:
-        term.Printf(IACCVIOL_Txt);
+        term_printf(&term, IACCVIOL_Txt);
         break;
     case DACCVIOL_Msk:
-        term.Printf(DACCVIOL_Txt);
+        term_printf(&term, DACCVIOL_Txt);
         break;
     case MSTKERR_Msk:
-        term.Printf(MSTKERR_Txt);
+        term_printf(&term, MSTKERR_Txt);
         break;
     case MUNSTKERR_Msk:
-        term.Printf(MUNSTKERR_Txt);
+        term_printf(&term, MUNSTKERR_Txt);
         break;
     case MLSPERR_Msk:
-        term.Printf(MLSPERR_Txt);
+        term_printf(&term, MLSPERR_Txt);
         break;
 
     case STKERR_Msk:
-        term.Printf(STKERR_Txt);
+        term_printf(&term, STKERR_Txt);
         break;
     case UNSTKERR_Msk:
-        term.Printf(UNSTKERR_Txt);
+        term_printf(&term, UNSTKERR_Txt);
         break;
     case IBUSERR_Msk:
-        term.Printf(IBUSERR_Txt);
+        term_printf(&term, IBUSERR_Txt);
         break;
     case LSPERR_Msk:
-        term.Printf(LSPERR_Txt);
+        term_printf(&term, LSPERR_Txt);
         break;
     case PRECISERR_Msk:
-        term.Printf(PRECISERR_Txt);
+        term_printf(&term, PRECISERR_Txt);
         break;
     case IMPRECISERR_Msk:
-        term.Printf(IMPRECISERR_Txt);
+        term_printf(&term, IMPRECISERR_Txt);
         break;
 
     case UNDEFINSTR_Msk:
-        term.Printf(UNDEFINSTR_Txt);
+        term_printf(&term, UNDEFINSTR_Txt);
         break;
     case INVSTATE_Msk:
-        term.Printf(INVSTATE_Txt);
+        term_printf(&term, INVSTATE_Txt);
         break;
     case INVPC_Msk:
-        term.Printf(INVPC_Txt);
+        term_printf(&term, INVPC_Txt);
         break;
     case NOCPC_Msk:
-        term.Printf(NOCPC_Txt);
+        term_printf(&term, NOCPC_Txt);
         break;
     case UNALIGNED_Msk:
-        term.Printf(UNALIGNED_Txt);
+        term_printf(&term, UNALIGNED_Txt);
         break;
     case DIVBYZERO_Msk:
-        term.Printf(DIVBYZERO_Txt);
+        term_printf(&term, DIVBYZERO_Txt);
         break;
 
     default:
-        term.Printf("Multiple Errors CFSR :%08x", SCB->CFSR);
+        term_printf(&term, "Multiple Errors CFSR :%08x", SCB->CFSR);
         break;
     }
-    term.Printf("\n");
+    term_printf(&term, "\n");
 
-    term.Printf("bot: 0x%08x top: 0x%08x\n", pBotOfStack, pTopOfStack);
+    term_printf(&term, "bot: 0x%08x top: 0x%08x\n", pBotOfStack, pTopOfStack);
 
     //32 characters pre line
-    term.Printf("CPUID:%08x  ", SCB->CPUID);
+    term_printf(&term, "CPUID:%08x  ", SCB->CPUID);
     if (SCB->ICSR)
-        term.Printf("ICSR :%08x  ", SCB->ICSR);
+        term_printf(&term, "ICSR :%08x  ", SCB->ICSR);
     if (SCB->VTOR)
-        term.Printf("VTOR :%08x  ", SCB->VTOR);
+        term_printf(&term, "VTOR :%08x  ", SCB->VTOR);
     if (SCB->AIRCR)
-        term.Printf("AIRCR:%08x  ", SCB->AIRCR);
+        term_printf(&term, "AIRCR:%08x  ", SCB->AIRCR);
     if (SCB->SCR)
-        term.Printf("SCR  :%08x  ", SCB->SCR);
+        term_printf(&term, "SCR  :%08x  ", SCB->SCR);
     if (SCB->CCR)
-        term.Printf("CCR  :%08x  ", SCB->CCR);
+        term_printf(&term, "CCR  :%08x  ", SCB->CCR);
     if (SCB->SHCSR)
-        term.Printf("SHCSR:%08x  ", SCB->SHCSR);
+        term_printf(&term, "SHCSR:%08x  ", SCB->SHCSR);
     if (SCB->HFSR)
-        term.Printf("HFSR :%08x  ", SCB->HFSR);
+        term_printf(&term, "HFSR :%08x  ", SCB->HFSR);
     if (SCB->DFSR)
-        term.Printf("DFSR :%08x  ", SCB->DFSR);
+        term_printf(&term, "DFSR :%08x  ", SCB->DFSR);
     if ((SCB->CFSR) & MMARVALID_Msk)
-        term.Printf("MMFAR:%08x  ", SCB->MMFAR); //print this only if value is valid
+        term_printf(&term, "MMFAR:%08x  ", SCB->MMFAR); //print this only if value is valid
     if ((SCB->CFSR) & BFARVALID_Msk)
-        term.Printf("BFAR :%08x  ", SCB->BFAR); //print this only if value is valid
+        term_printf(&term, "BFAR :%08x  ", SCB->BFAR); //print this only if value is valid
     if (SCB->AFSR)
-        term.Printf("AFSR :%08x  ", SCB->AFSR);
+        term_printf(&term, "AFSR :%08x  ", SCB->AFSR);
     if (SCB->DFR)
-        term.Printf("DFR  :%08x  ", SCB->DFR);
+        term_printf(&term, "DFR  :%08x  ", SCB->DFR);
     if (SCB->ADR)
-        term.Printf("ADR  :%08x  ", SCB->ADR);
+        term_printf(&term, "ADR  :%08x  ", SCB->ADR);
     if (SCB->CPACR)
-        term.Printf("CPACR:%08x\n", SCB->CPACR);
+        term_printf(&term, "CPACR:%08x\n", SCB->CPACR);
 
     /*
-    term.Printf("r0 :%08x", r0);
-    term.Printf("r1 :%08x", r1);
-    term.Printf("r2 :%08x", r2);
-    term.Printf("r3 :%08x", r3);
-    term.Printf("r12:%08x", r12);
-    term.Printf("lr :%08x", lr);
-    term.Printf("pc :%08x", pc);
-    term.Printf("psr:%08x", psr);*/
+    term_printf(&term, "r0 :%08x", r0);
+    term_printf(&term, "r1 :%08x", r1);
+    term_printf(&term, "r2 :%08x", r2);
+    term_printf(&term, "r3 :%08x", r3);
+    term_printf(&term, "r12:%08x", r12);
+    term_printf(&term, "lr :%08x", lr);
+    term_printf(&term, "pc :%08x", pc);
+    term_printf(&term, "psr:%08x", psr);*/
 
     //const int addr_string_len = 10;//"0x12345678"
     const int strings_per_row = 3;
-    int available_rows = term.term.rows - term.term.row - 1;
+    int available_rows = term.rows - term.row - 1;
     //int available_chars = available_rows * COLS;
     int stack_sz = pTopOfStack - pBotOfStack;
     //int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
@@ -669,12 +675,12 @@ void ScreenHardFault(void) {
     int space_counter = 0; //3rd string does not have a space behind it
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
         space_counter++;
-        term.Printf("0x%08x", *i);
+        term_printf(&term, "0x%08x", *i);
         if (space_counter % 3)
-            term.Printf(" ");
+            term_printf(&term, " ");
     }
 
-    term.Draw();
+    render_term(Rect16(10, 10, 220, 288), &term, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 
     while (1) //endless loop
