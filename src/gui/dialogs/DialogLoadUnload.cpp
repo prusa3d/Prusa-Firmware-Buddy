@@ -59,4 +59,4 @@ DialogLoadUnload::DialogLoadUnload(string_view_utf8 name)
 
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
-void DialogLoadUnload::phaseAlertSound() { Sound_Play(eSOUND_TYPE_SingleBeep); }
+void DialogLoadUnload::phaseAlertSound() { Sound_Play(eSOUND_TYPE::SingleBeep); }

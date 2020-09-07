@@ -46,7 +46,7 @@ RadioButton &RadioButton::operator++() {
         Invalidate();
         Sound_Play(eSOUND_TYPE_EncoderMove);
     } else {
-        Sound_Play(eSOUND_TYPE_BlindAlert);
+        Sound_Play(eSOUND_TYPE::BlindAlert);
     }
     return *this;
 }
@@ -59,7 +59,7 @@ RadioButton &RadioButton::operator--() {
         Invalidate();
         Sound_Play(eSOUND_TYPE_EncoderMove);
     } else {
-        Sound_Play(eSOUND_TYPE_BlindAlert);
+        Sound_Play(eSOUND_TYPE::BlindAlert);
     }
     return *this;
 }

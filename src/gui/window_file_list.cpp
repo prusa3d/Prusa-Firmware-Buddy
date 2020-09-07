@@ -221,7 +221,7 @@ void window_file_list_t::inc(int dif) {
     if (index >= int(ldv->WindowSize() - 1)) {
         repaint = ldv->MoveDown();
         if (!repaint) {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     } else {
         // this 'if' solves a situation with less files than slots on the screen
@@ -229,7 +229,7 @@ void window_file_list_t::inc(int dif) {
             index += 1; // @@TODO dif > 1 if needed
             repaint = true;
         } else {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     }
 
@@ -247,7 +247,7 @@ void window_file_list_t::dec(int dif) {
         // at the beginning of the window
         repaint = ldv->MoveUp();
         if (!repaint) {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     } else {
         --index;
