@@ -20,8 +20,8 @@
 #include "cmsis_os.h"      //osDelay
 #include "marlin_client.h" //enable/disable fs in marlin
 
-static volatile fsensor_t state = FS_NOT_INITIALIZED;
-static volatile fsensor_t last_state = FS_NOT_INITIALIZED;
+static volatile fsensor_t state = fsensor_t::FS_NOT_INITIALIZED;
+static volatile fsensor_t last_state = fsensor_t::FS_NOT_INITIALIZED;
 
 typedef enum {
     M600_on_edge = 0,
@@ -39,7 +39,7 @@ static status_t status = { 0, M600_on_edge, 0 };
 /*---------------------------------------------------------------------------*/
 //debug functions
 
-extern "C" {
+//extern "C" {
 
 int fs_was_M600_send() {
     return status.M600_sent != 0;
@@ -89,14 +89,14 @@ static void _set_state(fsensor_t st) {
 
 static void _enable() {
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
-    state = FS_NOT_INITIALIZED;
-    last_state = FS_NOT_INITIALIZED;
+    state = fsensor_t::FS_NOT_INITIALIZED;
+    last_state = fsensor_t::FS_NOT_INITIALIZED;
     status.meas_cycle = 0;
 }
 
 static void _disable() {
-    state = FS_DISABLED;
-    last_state = FS_DISABLED;
+    state = fsensor_t::FS_DISABLED;
+    last_state = fsensor_t::FS_DISABLED;
     status.meas_cycle = 0;
 }
 
@@ -108,7 +108,7 @@ fsensor_t fs_get_state() {
 
 //value can change during read, but it is not a problem
 int fs_did_filament_runout() {
-    return state == FS_NO_FILAMENT;
+    return state == fsensor_t::FS_NO_FILAMENT;
 }
 
 void fs_send_M600_on_edge() {
@@ -161,7 +161,7 @@ void fs_restore__send_M600_on(uint8_t send_M600_on) {
 
 fsensor_t fs_wait_initialized() {
     fsensor_t ret = fs_get_state();
-    while (ret == FS_NOT_INITIALIZED) {
+    while (ret == fsensor_t::FS_NOT_INITIALIZED) {
         osDelay(0); // switch to other threads
         ret = fs_get_state();
     }
@@ -214,12 +214,12 @@ static void _cycle0() {
         gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLDOWN, GPIO_SPEED_FREQ_VERY_HIGH); // pulldown
         status.meas_cycle = 1;                                                             //next cycle shall be 1
     } else {
-        int had_filament = state == FS_HAS_FILAMENT ? 1 : 0;
-        _set_state(FS_NO_FILAMENT); //it is filtered, 2 requests are needed to change state
+        int had_filament = state == fsensor_t::FS_HAS_FILAMENT ? 1 : 0;
+        _set_state(fsensor_t::FS_NO_FILAMENT); //it is filtered, 2 requests are needed to change state
         //M600_on_edge == inject after state was changed from FS_HAS_FILAMENT to FS_NO_FILAMENT
         //M600_on_level == inject on FS_NO_FILAMENT
         //M600_never == do not inject
-        if (state == FS_NO_FILAMENT) {
+        if (state == fsensor_t::FS_NO_FILAMENT) {
             switch (status.send_M600_on) {
             case M600_on_edge:
                 if (!had_filament)
@@ -241,7 +241,7 @@ static void _cycle0() {
 //called only in fs_cycle
 static void _cycle1() {
     //pulldown was set in cycle 0
-    _set_state(gpio_get(PIN_FSENSOR) == 1 ? FS_HAS_FILAMENT : FS_NOT_CONNECTED);
+    _set_state(gpio_get(PIN_FSENSOR) == 1 ? fsensor_t::FS_HAS_FILAMENT : fsensor_t::FS_NOT_CONNECTED);
     gpio_init(PIN_FSENSOR, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH); // pullup
     status.meas_cycle = 0;                                                           //next cycle shall be 0
 }
@@ -249,7 +249,7 @@ static void _cycle1() {
 //dealay between calls must be 1us or longer
 void fs_cycle() {
     //sensor is disabled (only init can enable it)
-    if (state == FS_DISABLED)
+    if (state == fsensor_t::FS_DISABLED)
         return;
 
     //sensor is enabled
@@ -260,4 +260,4 @@ void fs_cycle() {
     }
 }
 
-} //extern "C"
+//} //extern "C"
