@@ -2,6 +2,7 @@
 #pragma once
 
 #include <assert.h>
+#include <stdint.h>
 
 typedef enum {
     _STATE_START,
@@ -75,15 +76,12 @@ enum {
     _SCREEN_XYZCALIB_HOME,
 };
 
-//pack to be 8 bit enum
-#pragma pack(push, 1)
-typedef enum {
+enum _TEST_STATE_t : uint8_t {
     _TEST_START,
     _TEST_RUN,
     _TEST_PASSED,
     _TEST_FAILED
-} _TEST_STATE_t;
-#pragma pack(pop)
+};
 
 static inline int _is_test_done(int result) {
     return (result == _TEST_PASSED) || (result == _TEST_FAILED);
