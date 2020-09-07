@@ -237,7 +237,7 @@ void window_file_list_t::inc(int dif) {
         // here we know exactly, that the selected item changed -> prepare text rolling
         init_text_roll();
         Invalidate();
-        Sound_Play(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     }
 }
 
@@ -257,6 +257,6 @@ void window_file_list_t::dec(int dif) {
     if (repaint) {
         init_text_roll();
         Invalidate();
-        Sound_Play(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     }
 }

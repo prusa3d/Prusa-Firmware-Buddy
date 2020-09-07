@@ -44,7 +44,7 @@ RadioButton &RadioButton::operator++() {
     if ((index + 1) < GetBtnCount()) {
         SetBtnIndex(index + 1);
         Invalidate();
-        Sound_Play(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     } else {
         Sound_Play(eSOUND_TYPE::BlindAlert);
     }
@@ -57,7 +57,7 @@ RadioButton &RadioButton::operator--() {
     if (index > 0) {
         SetBtnIndex(index - 1);
         Invalidate();
-        Sound_Play(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     } else {
         Sound_Play(eSOUND_TYPE::BlindAlert);
     }

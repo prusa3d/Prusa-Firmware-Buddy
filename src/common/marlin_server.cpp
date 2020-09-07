@@ -52,42 +52,37 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 //#define DBG_FSM DBG //trace fsm
 #define DBG_FSM(...) //disable trace
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct _marlin_server_t {
-    uint16_t flags;                              // server flags (MARLIN_SFLG)
-    uint64_t notify_events[MARLIN_MAX_CLIENTS];  // event notification mask
-    uint64_t notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask
+typedef struct {
     marlin_vars_t vars;                          // cached variables
-    char request[MARLIN_MAX_REQUEST];
-    int request_len;
+    marlin_mesh_t mesh;                              // meshbed leveling
+    uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask
+    uint64_t notify_changes[MARLIN_MAX_CLIENTS];     // variable change notification mask
     uint64_t client_events[MARLIN_MAX_CLIENTS];      // client event mask
     uint64_t client_changes[MARLIN_MAX_CLIENTS];     // client variable change mask
-    uint32_t last_update;                            // last update tick count
-    uint8_t idle_cnt;                                // idle call counter
-    uint8_t pqueue_head;                             // copy of planner.block_buffer_head
-    uint8_t pqueue_tail;                             // copy of planner.block_buffer_tail
-    uint8_t pqueue;                                  // calculated number of records in planner queue
-    uint8_t gqueue;                                  // copy of queue.length - number of commands in gcode queue
-    uint32_t command;                                // actually running command
-    uint32_t command_begin;                          // variable for notification
-    uint32_t command_end;                            // variable for notification
-    marlin_mesh_t mesh;                              // meshbed leveling
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
+    variant8_t event_messages[MARLIN_MAX_CLIENTS];   // last MARLIN_EVT_Message for clients, cannot use cvariant, desctructor would free memory
     uint64_t update_vars;                            // variable update mask
     marlin_print_state_t print_state;                // printing state (printing, paused, ...)
     float resume_pos[4];                             // resume position for unpark_head
     float resume_nozzle_temp;                        // resume nozzle temperature
-    uint8_t resume_fan_speed;                        // resume fan speed
     uint32_t paused_ticks;                           // tick count in moment when printing paused
     uint32_t fsmCreate;                              // fsm create ui32 argument for resend
     uint32_t fsmDestroy;                             // fsm destroy ui32 argument for resend
     uint32_t fsmChange;                              // fsm change ui32 argument for resend
-    variant8_t event_messages[MARLIN_MAX_CLIENTS];   // last MARLIN_EVT_Message for clients, cannot use cvariant, desctructor would free memory
+    int request_len;
+    uint32_t last_update;             // last update tick count
+    uint32_t command;                 // actually running command
+    uint32_t command_begin;           // variable for notification
+    uint32_t command_end;             // variable for notification
+    uint16_t flags; // server flags (MARLIN_SFLG)
+    char request[MARLIN_MAX_REQUEST];
+    uint8_t idle_cnt;         // idle call counter
+    uint8_t pqueue_head;      // copy of planner.block_buffer_head
+    uint8_t pqueue_tail;      // copy of planner.block_buffer_tail
+    uint8_t pqueue;           // calculated number of records in planner queue
+    uint8_t gqueue;           // copy of queue.length - number of commands in gcode queue
+    uint8_t resume_fan_speed; // resume fan speed
 } marlin_server_t;
-
-#pragma pack(pop)
 
 extern "C" {
 

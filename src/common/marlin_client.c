@@ -29,29 +29,27 @@ enum {
     DBG_VAR_STR_MAX_LEN = 128
 };
 
-#pragma pack(push)
-#pragma pack(1)
-
 // client
 typedef struct _marlin_client_t {
-    uint8_t id;          // client id (0..MARLIN_MAX_CLIENTS-1)
-    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
-    uint64_t events;     // event mask
-    uint64_t changes;    // variable change mask
-    marlin_vars_t vars;  // cached variables
-    uint32_t ack;        // cached ack value from last Acknowledge event
-    uint16_t last_count; // number of messages received in last client loop
+    uint64_t events;  // event mask
+    uint64_t changes; // variable change mask
     uint64_t errors;
-    marlin_mesh_t mesh;           // meshbed leveling
+    marlin_mesh_t mesh; // meshbed leveling
+
+    marlin_vars_t vars;           // cached variables
+    uint32_t ack;                 // cached ack value from last Acknowledge event
     uint32_t command;             // processed command (G28,G29,M701,M702,M600)
-    uint8_t reheating;            // reheating in progress
     fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
     fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
     fsm_change_t fsm_change_cb;   // to register callback for change of state
     message_cb_t message_cb;      // to register callback message
-} marlin_client_t;
 
-#pragma pack(pop)
+    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
+    uint16_t last_count; // number of messages received in last client loop
+
+    uint8_t id;        // client id (0..MARLIN_MAX_CLIENTS-1)
+    uint8_t reheating; // reheating in progress
+} marlin_client_t;
 
 //-----------------------------------------------------------------------------
 // variables
