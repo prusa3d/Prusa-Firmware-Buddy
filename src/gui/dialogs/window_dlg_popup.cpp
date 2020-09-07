@@ -24,6 +24,15 @@ void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
     dlg.open_time = HAL_GetTick();
     dlg.ttl = time;
     dlg.text.SetText(txt);
+    if (!dlg.GetParent()) {
+        window_t *parent = Screens::Access()->Get();
+        dlg.SetParent(parent);
+        parent->RegisterSubWin(&dlg);
+    }
+    if (GetCapturedWindow() != &dlg) {
+        dlg.StoreCapture();
+        dlg.SetCapture();
+    }
     //in 1st call text will be set twice, I could use static bool variable to prevent it
     //but i prefer fewer code instead
 }
@@ -34,11 +43,13 @@ void window_dlg_popup_t::UnregisterFromParent() {
     if (!GetParent())
         return;
     GetParent()->UnregisterSubWin(this);
+    SetParent(nullptr);
+    releaseCapture();
 }
 
 void window_dlg_popup_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     const uint32_t openned = HAL_GetTick() - open_time;
-    if (openned > ttl)
+    if (event == WINDOW_EVENT_LOOP && openned > ttl) //todo use timer
         UnregisterFromParent();
     IDialog::windowEvent(sender, event, param);
 }

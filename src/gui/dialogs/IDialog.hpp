@@ -35,7 +35,12 @@ public:
         }
     }
 
+    void StoreCapture(); //set capture pointer (to be restore after dialog closes)
+
 protected:
+    void releaseCapture();
+    void clearCapture();
+
     //used in MakeBlocking
     //needs included files which cannot be included in header
     bool isCloseFlag() const;
