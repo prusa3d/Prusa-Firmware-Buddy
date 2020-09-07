@@ -28,7 +28,7 @@ enum {
 
 //uart2 rx complete signal
 enum {
-    UART2_SIG_RXCPL = 0x0004,
+    UART2_SIG_RXCPL = 0x4, /// converted to int32_t
 };
 
 //guiconfig.h included with config

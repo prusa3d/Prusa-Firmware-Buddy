@@ -489,11 +489,11 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
 */
 
 void ScreenHardFault(void) {
-    static const constexpr uint8_t IACCVIOL_Msk = 1u << 0;
-    static const constexpr uint8_t DACCVIOL_Msk = 1u << 1;
-    static const constexpr uint8_t MSTKERR_Msk = 1u << 4;
-    static const constexpr uint8_t MUNSTKERR_Msk = 1u << 3;
-    static const constexpr uint8_t MLSPERR_Msk = 1u << 5;
+    static const constexpr uint32_t IACCVIOL_Msk = 1u << 0;
+    static const constexpr uint32_t DACCVIOL_Msk = 1u << 1;
+    static const constexpr uint32_t MSTKERR_Msk = 1u << 4;
+    static const constexpr uint32_t MUNSTKERR_Msk = 1u << 3;
+    static const constexpr uint32_t MLSPERR_Msk = 1u << 5;
 
     static const constexpr char *IACCVIOL_Txt = "Fault on instruction access";
     static const constexpr char *DACCVIOL_Txt = "Fault on direct data access";
@@ -501,14 +501,14 @@ void ScreenHardFault(void) {
     static const constexpr char *MUNSTKERR_Txt = "Context unstacking, because of an MPU access violation";
     static const constexpr char *MLSPERR_Txt = "During lazy floating-point state preservation";
 
-    static const constexpr uint16_t MMARVALID_Msk = 1 << 7; // MemManage Fault Address Register (MMFAR) valid flag:
+    static const constexpr uint32_t MMARVALID_Msk = 1 << 7; // MemManage Fault Address Register (MMFAR) valid flag:
 
-    static const constexpr uint16_t STKERR_Msk = 1u << 12;
-    static const constexpr uint16_t UNSTKERR_Msk = 1u << 11;
-    static const constexpr uint16_t IBUSERR_Msk = 1u << 8;
-    static const constexpr uint16_t LSPERR_Msk = 1u << 13;
-    static const constexpr uint16_t PRECISERR_Msk = 1u << 9;
-    static const constexpr uint16_t IMPRECISERR_Msk = 1u << 10;
+    static const constexpr uint32_t STKERR_Msk = 1u << 12;
+    static const constexpr uint32_t UNSTKERR_Msk = 1u << 11;
+    static const constexpr uint32_t IBUSERR_Msk = 1u << 8;
+    static const constexpr uint32_t LSPERR_Msk = 1u << 13;
+    static const constexpr uint32_t PRECISERR_Msk = 1u << 9;
+    static const constexpr uint32_t IMPRECISERR_Msk = 1u << 10;
 
     static const constexpr char *STKERR_Txt = "During exception stacking";
     static const constexpr char *UNSTKERR_Txt = "During exception unstacking";

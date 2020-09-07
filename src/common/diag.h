@@ -12,11 +12,11 @@ enum {
     DIAG_ERR_TMC_Y = 6,      // tmc2209 Y-axis communication error
     DIAG_ERR_TMC_Z = 7,      // tmc2209 Z-axis communication error
     DIAG_ERR_TMC_E = 8,      // tmc2209 E-axis communication error
-    DIAG_ERR_NOLOCK = 9,     // board not locked
-    DIAG_ERR_MACADDR = 10,   // MAC address not set or invalid
-    DIAG_ERR_BOARDREV = 11,  // board revision not set or invalid
-    DIAG_ERR_TIMESTAMP = 12, // timestamp not set or invalid
-    DIAG_ERR_SERIAL = 13,    // serial not set
+    DIAG_ERR_NOLOCK = 10,    // board not locked
+    DIAG_ERR_MACADDR = 11,   // MAC address not set or invalid
+    DIAG_ERR_BOARDREV = 12,  // board revision not set or invalid
+    DIAG_ERR_TIMESTAMP = 13, // timestamp not set or invalid
+    DIAG_ERR_SERIAL = 14,    // serial not set
 };
 
 #ifdef __cplusplus
