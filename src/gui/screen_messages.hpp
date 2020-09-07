@@ -9,9 +9,7 @@ struct screen_messages_data_t : public window_frame_t {
     window_header_t header;
     status_footer_t footer;
     window_term_t term;
-    term_t terminal;
-    uint8_t term_buff[TERM_BUFF_SIZE(20, 16)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
-    //todo calculate from screen size and font size
+    term_buff_t<20, 13> term_buff;
 
 public:
     screen_messages_data_t();

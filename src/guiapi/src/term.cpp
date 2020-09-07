@@ -1,4 +1,4 @@
-// term.c
+// term.cpp
 #include <stdarg.h>
 #include <algorithm>
 

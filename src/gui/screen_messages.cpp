@@ -17,23 +17,15 @@ screen_messages_data_t::screen_messages_data_t()
     : window_frame_t()
     , header(this)
     , footer(this)
-    , term(this, GuiDefaults::RectScreenBody) { // Rect16(10, 28, 11 * 20, 18 * 16))
+    , term(this, GuiDefaults::RectScreenBody.TopLeft(), &term_buff) { // Rect16(10, 28, 11 * 20, 18 * 16))
     header.SetText(_("MESSAGES"));
-
-    term_init(&(terminal), 20, 16, term_buff);
-    term.term = &(terminal);
-
-    /*    while (!MsgCircleBuffer().IsEmpty()) {
-        term_printf(term.term, "%s\n", MsgCircleBuffer().ConsumeFirst());
-        term.Invalidate();
-    }  */
 }
 
 void screen_messages_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 
     //if (!term.IsInvalid() && !MsgCircleBuffer().IsEmpty()) {
     while (!MsgCircleBuffer().IsEmpty()) {
-        term_printf(term.term, "%s\n", MsgCircleBuffer().ConsumeFirst());
+        term.Printf("%s\n", MsgCircleBuffer().ConsumeFirst());
         term.Invalidate();
     }
 
