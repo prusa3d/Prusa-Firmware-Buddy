@@ -15,6 +15,10 @@ char additional_symbol_name[DUMP_MAX_ADDITIONAL_SYMBOLS][DUMP_MAX_SYMBOL_CHARS];
 uint32_t additional_symbol_count = 0;
 
 dump_t *dump_alloc(void) {
+    _Static_assert(sizeof(dump_regs_gen_t) == 96, "invalid sizeof(dump_regs_gen_t)");
+    _Static_assert(sizeof(dump_tcb_t) == 68, "invalid sizeof(dump_tcb_t)");
+    _Static_assert(sizeof(dump_t) == 24, "invalid sizeof(dump_t)");
+
     dump_t *pd = (dump_t *)malloc(sizeof(dump_t));
     pd->ram = (uint8_t *)malloc(DUMP_RAM_SIZE);
     pd->ccram = (uint8_t *)malloc(DUMP_CCRAM_SIZE);
