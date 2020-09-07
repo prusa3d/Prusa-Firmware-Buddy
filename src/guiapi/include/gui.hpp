@@ -49,8 +49,11 @@ extern void gui_loop(void);
 extern void gui_reset_menu_timer();
 
 //meant to be use as MsgCircleBuffer().push_back(txt);
-//user does not need to know template parameters
-auto &MsgCircleBuffer();
+static constexpr size_t MSG_STACK_SIZE = 8 + 1; //status message stack size
+static constexpr size_t MSG_MAX_LENGTH = 21;    //status message max length
+using MsgBuff_t = CircleBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>;
+
+MsgBuff_t &MsgCircleBuffer();
 void MsgCircleBuffer_cb(const char *txt);
 
 #endif //GUI_WINDOW_SUPPORT

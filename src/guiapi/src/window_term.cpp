@@ -1,4 +1,4 @@
-// window_term.c
+// window_term.cpp
 #include "window_term.hpp"
 #include "gui.hpp"
 
@@ -6,10 +6,10 @@ void render_term(Rect16 rc, term_t *pt, const font_t *font, color_t clr0, color_
     uint8_t char_w = font->w;
     uint8_t char_h = font->h;
     if (pt && (pt->flg & TERM_FLG_CHANGED)) {
-        const uint8_t cols = pt->cols;
-        const uint8_t rows = pt->rows;
+        const uint8_t cols = std::min(pt->cols, uint8_t(rc.Width() / font->w));
+        const uint8_t rows = std::min(pt->rows, uint8_t(rc.Height() / font->h));
         uint8_t *pb = pt->buff;
-        uint8_t *pm = pt->buff + (cols * rows * 2);
+        uint8_t *pm = pt->buff + (pt->cols * pt->rows * 2);
         uint8_t msk = 0x01;
         uint8_t c;
         int i = 0;

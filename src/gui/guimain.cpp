@@ -62,9 +62,7 @@ char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 Jogwheel jogwheel(JOGWHEEL_PIN_EN1, JOGWHEEL_PIN_EN2, JOGWHEEL_PIN_ENC);
 #endif // GUI_JOGWHEEL_SUPPORT
 
-static constexpr size_t MSG_STACK_SIZE = 8 + 1; //status message stack size
-static constexpr size_t MSG_MAX_LENGTH = 21;    //status message max length
-auto &MsgCircleBuffer() {
+MsgBuff_t &MsgCircleBuffer() {
     static CircleBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
     return ret;
 }

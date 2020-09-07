@@ -61,7 +61,8 @@ const char *CircleBuffer<SIZE, MAX_LENGTH>::ConsumeFirst() {
     if (IsEmpty())
         return CircleBufferEmpty;
     const char *ret = GetFirst();
-    decrementIndex(begin);
+    incrementIndex(begin);
+    return ret;
 }
 
 template <size_t SIZE, size_t MAX_LENGTH>
@@ -70,6 +71,7 @@ const char *CircleBuffer<SIZE, MAX_LENGTH>::ConsumeLast() {
         return CircleBufferEmpty;
     const char *ret = GetLast();
     decrementIndex(end);
+    return ret;
 }
 
 template <size_t SIZE, size_t MAX_LENGTH>
