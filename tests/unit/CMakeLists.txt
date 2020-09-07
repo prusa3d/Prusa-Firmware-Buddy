@@ -1,5 +1,6 @@
 # first, let's create a symbolic target for all tests
 add_custom_target(tests)
+set_target_properties(tests PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
 
 # include catch_discover_tests function from Catch2
 include(${Catch2_SOURCE_DIR}/contrib/Catch.cmake)
