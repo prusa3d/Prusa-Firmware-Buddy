@@ -29,7 +29,7 @@ public:
     template <class... Args>
     void MakeBlocking(
         std::function<void(Args...)> action = [](Args...) {}, Args... args) const { //could be static, but I want it to be usable only from dialog
-        while (!isCloseFlag()) {
+        while (!consumeCloseFlag()) {
             guiLoop();
             action(args...);
         }
@@ -43,7 +43,7 @@ protected:
 
     //used in MakeBlocking
     //needs included files which cannot be included in header
-    bool isCloseFlag() const;
+    bool consumeCloseFlag() const;
     void guiLoop() const;
 };
 

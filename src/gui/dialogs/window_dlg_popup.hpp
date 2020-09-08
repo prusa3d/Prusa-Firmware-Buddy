@@ -28,6 +28,3 @@ public:
     //register dialog to actual screen
     static void Show(string_view_utf8 txt, uint32_t time = 1000);
 };
-/*
-void gui_pop_up(string_view_utf8 txt, uint32_t time = 1000);
-*/

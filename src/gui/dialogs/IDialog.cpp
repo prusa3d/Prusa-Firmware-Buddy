@@ -13,7 +13,7 @@ IDialog::~IDialog() {
     releaseCapture();
 }
 
-bool IDialog::isCloseFlag() const {
+bool IDialog::consumeCloseFlag() const {
     return Screens::Access()->ConsumeClose();
 }
 

@@ -119,6 +119,8 @@ void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
 }
 
 void Screens::WindowEvent(uint8_t event, void *param) {
+    if (current == nullptr)
+        return;
     current->WindowEvent(current.get(), event, param);
 }
 

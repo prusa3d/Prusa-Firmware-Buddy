@@ -26,8 +26,10 @@ void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
     dlg.text.SetText(txt);
     if (!dlg.GetParent()) {
         window_t *parent = Screens::Access()->Get();
-        dlg.SetParent(parent);
-        parent->RegisterSubWin(&dlg);
+        if (parent) {
+            dlg.SetParent(parent);
+            parent->RegisterSubWin(&dlg);
+        }
     }
     if (GetCapturedWindow() != &dlg) {
         dlg.StoreCapture();
