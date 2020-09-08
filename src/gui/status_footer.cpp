@@ -74,6 +74,7 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
             // vars->display_nozzle (not target_nozzle) is OK, because it's weird to show 200/215 and cooling color
             nozzle_state = HeatState::COOLING;
         }
+        nozzle_target_display = vars->display_nozzle;
     } else {
         nozzle_state = HeatState::STABLE;
         if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
@@ -81,12 +82,12 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
         } else if (vars->target_nozzle < vars->temp_nozzle - heating_difference && vars->temp_nozzle > COOL_NOZZLE) {
             nozzle_state = HeatState::COOLING;
         }
+        nozzle_target_display = vars->target_nozzle;
     }
 
     /// update values
     nozzle = vars->temp_nozzle;
     nozzle_target = vars->target_nozzle;
-    nozzle_target_display = vars->target_nozzle < 0.5f ? 0 : vars->display_nozzle;
 
     if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(nozzle_target_display))) {
         // this MakeRAM is safe - text_nozzle is statically allocated
