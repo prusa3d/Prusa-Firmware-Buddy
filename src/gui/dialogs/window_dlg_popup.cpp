@@ -13,7 +13,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-#define POPUP_DELAY_MS 1000
+static const constexpr uint16_t POPUP_DELAY_MS = 1000;
 
 extern msg_stack_t msg_stack;
 

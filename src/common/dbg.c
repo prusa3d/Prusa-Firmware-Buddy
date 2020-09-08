@@ -5,11 +5,13 @@
 #include "stm32f4xx_hal.h"
 #include "cmath_ext.h"
 
+enum {
 #ifndef _DEBUG
-    #define DBG_MAXLINE 128
+    DBG_MAXLINE = 128,
 #else
-    #define DBG_MAXLINE 256
+    DBG_MAXLINE = 256,
 #endif //_DEBUG
+};
 
 #ifdef DBG_RTOS
 

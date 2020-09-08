@@ -1,40 +1,43 @@
 // variant8.h
 
-#ifndef _VARIANT8_H
-#define _VARIANT8_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdlib.h>
 
-#define VARIANT8_EMPTY (0x00) // empty - no data
-#define VARIANT8_I8    (0x01) // signed char - 1byte
-#define VARIANT8_UI8   (0x02) // unsigned char - 1byte
-#define VARIANT8_I16   (0x03) // signed short - 2byte
-#define VARIANT8_UI16  (0x04) // unsigned short - 2byte
-#define VARIANT8_I32   (0x05) // signed long - 4byte
-#define VARIANT8_UI32  (0x06) // unsigned long - 4byte
-#define VARIANT8_FLT   (0x07) // float - 4byte
-#define VARIANT8_CHAR  (0x08) // char - 1byte
-#define VARIANT8_USER  (0x3f) // user - up to 7 bytes
-#define VARIANT8_PTR   (0x80) // pointer - 4 bytes,
-#define VARIANT8_ERROR (0xff) // error
+enum {
+    VARIANT8_EMPTY = 0x00, // empty - no data
+    VARIANT8_I8 = 0x01,    // signed char - 1byte
+    VARIANT8_UI8 = 0x02,   // unsigned char - 1byte
+    VARIANT8_I16 = 0x03,   // signed short - 2byte
+    VARIANT8_UI16 = 0x04,  // unsigned short - 2byte
+    VARIANT8_I32 = 0x05,   // signed long - 4byte
+    VARIANT8_UI32 = 0x06,  // unsigned long - 4byte
+    VARIANT8_FLT = 0x07,   // float - 4byte
+    VARIANT8_CHAR = 0x08,  // char - 1byte
+    VARIANT8_USER = 0x3f,  // user - up to 7 bytes
+    VARIANT8_PTR = 0x80,   // pointer - 4 bytes,
+    VARIANT8_ERROR = 0xff, // error
 
-//pointer types
-#define VARIANT8_PI8   (VARIANT8_I8 | VARIANT8_PTR)
-#define VARIANT8_PUI8  (VARIANT8_UI8 | VARIANT8_PTR)
-#define VARIANT8_PI16  (VARIANT8_I16 | VARIANT8_PTR)
-#define VARIANT8_PUI16 (VARIANT8_UI16 | VARIANT8_PTR)
-#define VARIANT8_PI32  (VARIANT8_I32 | VARIANT8_PTR)
-#define VARIANT8_PUI32 (VARIANT8_UI32 | VARIANT8_PTR)
-#define VARIANT8_PFLT  (VARIANT8_FLT | VARIANT8_PTR)
-#define VARIANT8_PCHAR (VARIANT8_CHAR | VARIANT8_PTR)
+    //pointer types
+    VARIANT8_PI8 = (VARIANT8_I8 | VARIANT8_PTR),
+    VARIANT8_PUI8 = (VARIANT8_UI8 | VARIANT8_PTR),
+    VARIANT8_PI16 = (VARIANT8_I16 | VARIANT8_PTR),
+    VARIANT8_PUI16 = (VARIANT8_UI16 | VARIANT8_PTR),
+    VARIANT8_PI32 = (VARIANT8_I32 | VARIANT8_PTR),
+    VARIANT8_PUI32 = (VARIANT8_UI32 | VARIANT8_PTR),
+    VARIANT8_PFLT = (VARIANT8_FLT | VARIANT8_PTR),
+    VARIANT8_PCHAR = (VARIANT8_CHAR | VARIANT8_PTR),
+};
 
 //variant errors
-#define VARIANT8_ERR_MALLOC 1 // memory allocation error (during conversion to strings and allocating pointer types)
-#define VARIANT8_ERR_UNSTYP 2 // unsupported conversion (during conversion)
-#define VARIANT8_ERR_UNSCON 3 // unsupported conversion (during conversion)
-#define VARIANT8_ERR_INVFMT 4 // invalid format (during conversion from string)
-#define VARIANT8_ERR_OOFRNG 5 // out of range (during conversion from bigger to lower range number)
+enum {
+    VARIANT8_ERR_MALLOC = 1, // memory allocation error (during conversion to strings and allocating pointer types)
+    VARIANT8_ERR_UNSTYP,     // unsupported conversion (during conversion)
+    VARIANT8_ERR_UNSCON,     // unsupported conversion (during conversion)
+    VARIANT8_ERR_INVFMT,     // invalid format (during conversion from string)
+    VARIANT8_ERR_OOFRNG,     // out of range (during conversion from bigger to lower range number)
+};
 
 #pragma pack(push)
 #pragma pack(1)
@@ -219,5 +222,3 @@ inline static int variant8_is_number(const variant8_t *pvar8) { return (pvar8) ?
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_VARIANT8_H

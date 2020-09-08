@@ -36,8 +36,10 @@ __attribute__((used)) inline void rop_rgb888_invert(uint8_t *ppx888) {
     ppx888[2] = 255 - ppx888[2];
 }
 
-#define SWAPBW_TOLERANCE 64
-__attribute__((used)) inline void rop_rgb888_swapbw(uint8_t *ppx888) {
+const uint8_t SWAPBW_TOLERANCE = 64;
+
+__attribute__((used)) inline void
+rop_rgb888_swapbw(uint8_t *ppx888) {
     const uint8_t r = ppx888[0];
     const uint8_t g = ppx888[1];
     const uint8_t b = ppx888[2];

@@ -25,7 +25,9 @@
 //#define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
 
 //maximum string length for DBG_VAR
-#define DBG_VAR_STR_MAX_LEN 128
+enum {
+    DBG_VAR_STR_MAX_LEN = 128
+};
 
 #pragma pack(push)
 #pragma pack(1)

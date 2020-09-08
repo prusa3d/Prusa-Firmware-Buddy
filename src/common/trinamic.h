@@ -1,6 +1,5 @@
 // trinamic.h
-#ifndef _TRYNAMIC_H
-#define _TRYNAMIC_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,4 +19,3 @@ extern uint8_t tmc_sample();
 }
 
 #endif //__cplusplus
-#endif

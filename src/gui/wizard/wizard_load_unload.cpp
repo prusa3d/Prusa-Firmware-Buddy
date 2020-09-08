@@ -8,8 +8,10 @@
     #include "filament_sensor.h"
     #include "i18n.h"
 
-    #define FKNOWN      0x01 //filament is known
-    #define F_NOTSENSED 0x02 //filament is not in sensor
+    enum {
+        FKNOWN = 0x01, //filament is known
+        F_NOTSENSED = 0x02, //filament is not in sensor
+    }
 
 LD_UNLD_STATE_t _decide_continue_load_unload() {
     uint8_t filament = 0;
@@ -98,4 +100,4 @@ LD_UNLD_STATE_t wizard_load_unload(LD_UNLD_STATE_t state) {
         return state;
     }
 }
-#endif                       //#if 0
+#endif //#if 0

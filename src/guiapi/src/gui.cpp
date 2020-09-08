@@ -9,7 +9,7 @@
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
 
-#define GUI_FLG_INVALID 0x0001
+static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
 uint16_t gui_flags = 0;
 
@@ -50,9 +50,9 @@ void gui_invalidate(void) {
 #endif //GUI_USE_RTOS
 }
 
-#define GUI_DELAY_MIN  1
-#define GUI_DELAY_MAX  10
-#define GUI_DELAY_LOOP 100
+static const constexpr uint8_t GUI_DELAY_MIN = 1;
+static const constexpr uint8_t GUI_DELAY_MAX = 10;
+static const constexpr uint8_t GUI_DELAY_LOOP = 100;
 
 #ifdef GUI_WINDOW_SUPPORT
 

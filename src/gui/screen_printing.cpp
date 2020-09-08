@@ -17,9 +17,9 @@
     #include "filament_sensor.h"
 #endif
 
-#define COLOR_VALUE_VALID COLOR_WHITE
-//#define COLOR_VALUE_INVALID COLOR_YELLOW
-#define COLOR_VALUE_INVALID COLOR_WHITE
+static const constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
+//static const constexpr color_t  COLOR_VALUE_INVALID = COLOR_YELLOW;
+static const constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE;
 
 enum class Btn {
     Tune = 0,
