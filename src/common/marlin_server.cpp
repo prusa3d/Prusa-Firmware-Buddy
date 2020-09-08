@@ -1422,13 +1422,13 @@ void _fsm_change(ClientFSM type, uint8_t phase, uint8_t progress_tot, uint8_t pr
 FSM_notifier::data FSM_notifier::s_data;
 FSM_notifier *FSM_notifier::activeInstance = nullptr;
 
-FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max,
+FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, variant8_t max,
     uint8_t progress_min, uint8_t progress_max, uint8_t var_id)
     : temp_data(s_data) {
     s_data.type = type;
     s_data.phase = phase;
-    s_data.scale = static_cast<float>(progress_max - progress_min) / static_cast<float>(max - min);
-    s_data.offset = -static_cast<float>(min) * s_data.scale + static_cast<float>(progress_min);
+    s_data.scale = static_cast<float>(progress_max - progress_min) / static_cast<float>(variant8_get_flt(max) - variant8_get_flt(min));
+    s_data.offset = -variant8_get_flt(min) * s_data.scale + static_cast<float>(progress_min);
     s_data.progress_min = progress_min;
     s_data.progress_max = progress_max;
     s_data.var_id = var_id;
@@ -1450,10 +1450,9 @@ void FSM_notifier::SendNotification() {
     if (s_data.type == ClientFSM::_none)
         return;
     activeInstance->preSendNotification();
-    cvariant8 temp;
-    temp.attach(marlin_vars_get_var(&(marlin_server.vars), s_data.var_id));
+    variant8_t temp = marlin_vars_get_var(&(marlin_server.vars), s_data.var_id);
 
-    float actual = static_cast<float>(temp);
+    float actual = variant8_get_flt(temp);
     actual = actual * s_data.scale + s_data.offset;
 
     int progress = static_cast<int>(actual); //int - must be signed

@@ -23,7 +23,6 @@ pipeline {
                     // required configurations
                     def configurations = [
                         [printer: "mini", build_type: "release", bootloader: "no"],
-                        [printer: "mini", build_type: "release", bootloader: "empty"],
                         [printer: "mini", build_type: "release", bootloader: "yes"],
                     ]
 
@@ -106,7 +105,6 @@ pipeline {
                     -DCMAKE_MAKE_PROGRAM=\$PWD/.dependencies/ninja-1.9.0/ninja \
                     --build-generator Ninja \
                     --build-target tests \
-                    --build-options -DCUSTOM_COMPILE_OPTIONS:STRING=-Dstrlcpy=strncpy \
                     --test-command ctest
                 """
             }
