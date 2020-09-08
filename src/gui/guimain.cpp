@@ -13,9 +13,7 @@
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
 #include "window_dlg_wait.hpp"
-#ifdef _DEBUG
-    #include "window_dlg_popup.hpp"
-#endif //_DEBUG
+#include "window_dlg_popup.hpp"
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_watchdog.hpp"
