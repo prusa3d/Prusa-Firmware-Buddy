@@ -58,10 +58,11 @@
 #define EEVAR_SOUND_VOLUME 0x1b // uint8_t
 #define EEVAR_LANGUAGE     0x1c // uint16_t
 #define EEVAR_FILE_SORT    0x1d // uint8_t  filebrowser file sort options
+#define EEVAR_MENU_TIMEOUT 0x1e // uint8_t on / off menu timeout flag
 
-#define EEVAR__PADDING 0x1e // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+#define EEVAR__PADDING 0x1f // 1..4 chars, to ensure (DATASIZE % 4 == 0)
 
-#define EEVAR_CRC32 0x1f // uint32_t crc32 for
+#define EEVAR_CRC32 0x20 // uint32_t crc32 for
 
 #define LAN_HOSTNAME_MAX_LEN 20
 #define CONNECT_TOKEN_SIZE   20

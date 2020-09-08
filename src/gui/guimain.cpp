@@ -47,7 +47,7 @@ const st7789v_config_t st7789v_cfg = {
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
-int8_t menu_timeout_enabled = 1; // Default: enabled
+uint8_t menu_timeout_enabled = 1; // Default: enabled
 
 void update_firmware_screen(void);
 
@@ -129,6 +129,8 @@ extern "C" void gui_run(void) {
                 screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
             }
         }
+				// TODO - If menu_timeout_enabled is used here - need to be reworked for
+				// EEPROM variable
         if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
