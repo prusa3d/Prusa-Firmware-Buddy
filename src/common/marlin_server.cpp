@@ -109,9 +109,9 @@ marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
 void _add_status_msg(const char *const popup_msg) {
     //I could check client mask here
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        variant8_done(&marlin_server.event_messages[i]);                 //destroy unsent message - free dynamic memory
-        marlin_server.event_messages[i] = cvariant8(popup_msg).detach(); //store new message
-        marlin_server.event_messages[i].type = VARIANT8_USER;            //set user type so client can recognize it as event
+        variant8_done(&marlin_server.event_messages[i]);                           //destroy unsent message - free dynamic memory
+        marlin_server.event_messages[i] = variant8_pchar((char *)popup_msg, 0, 1); //variant malloc - detached on send
+        marlin_server.event_messages[i].type = VARIANT8_USER;                      //set user type so client can recognize it as event
         marlin_server.event_messages[i].usr8 = MARLIN_EVT_Message;
     }
 }

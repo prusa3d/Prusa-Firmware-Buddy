@@ -20,7 +20,7 @@ window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
 }
 
 void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
-    static window_dlg_popup_t dlg(Rect16(0, 32, 240, 120), txt);
+    static window_dlg_popup_t dlg(Rect16(0, 70, 240, 120), txt);
     dlg.open_time = HAL_GetTick();
     dlg.ttl = time;
     dlg.text.SetText(txt);
