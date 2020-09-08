@@ -12,6 +12,7 @@
 #include "filament.h"
 #include "marlin_client.h"
 #include "stm32f4xx_hal.h"
+#include "cmath_ext.h"
 
 static const float heating_difference = 2.5F;
 
@@ -65,7 +66,7 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
         return;
 
     /// nozzle state
-    if (std::fabs(vars->target_nozzle - PREHEAT_TEMP) < 0.5f && vars->display_nozzle > vars->target_nozzle) { /// preheat mode
+    if (nearlyEqual(vars->target_nozzle, PREHEAT_TEMP, 0.4999f) && vars->display_nozzle > vars->target_nozzle) { /// preheat mode
         nozzle_state = HeatState::PREHEAT;
         if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
             nozzle_state = HeatState::HEATING;
