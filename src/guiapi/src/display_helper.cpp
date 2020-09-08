@@ -68,7 +68,7 @@ size_ui16_t render_text(Rect16 rc, string_view_utf8 str, const font_t *pf, color
             }
         }
 #else
-        if (!rc.Contain(point_ui16(x + w - 1, y)))
+        if (!rc.Contain(point_ui16(x + w - 1, y)) && !(flags & RENDER_FLG_WORDB))
             break;
         display::DrawChar(point_ui16(x, y), c, pf, clr_bg, clr_fg);
         x += w;
