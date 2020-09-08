@@ -22,16 +22,14 @@ screen_messages_data_t::screen_messages_data_t()
 }
 
 void screen_messages_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-
-    //if (!term.IsInvalid() && !MsgCircleBuffer().IsEmpty()) {
-    while (!MsgCircleBuffer().IsEmpty()) {
-        term.Printf("%s\n", MsgCircleBuffer().ConsumeFirst());
-        term.Invalidate();
-    }
-
     if (event == WINDOW_EVENT_CLICK) {
         Screens::Access()->Close();
     } else {
         window_frame_t::windowEvent(sender, event, param);
+    }
+
+    //must be last window_frame_t could validate term
+    while (!MsgCircleBuffer().IsEmpty()) {
+        term.Printf("%s\n", MsgCircleBuffer().ConsumeFirst());
     }
 }

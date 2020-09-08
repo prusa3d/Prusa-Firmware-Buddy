@@ -43,3 +43,5 @@ protected:
     window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, size_t cols, size_t rows);
     window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, size_t cols, size_t rows, font_t *fnt);
 };
+
+void render_term(term_t *pterm, size_t x, size_t y, const font_t *font, color_t color_back, color_t color_text);

@@ -146,7 +146,7 @@ static void stop_common(void) {
 //! @param term input message
 //! @param background_color background color
 static void print_error(term_t *term, color_t background_color) {
-    render_term(Rect16(10, 10, 220, 288), term, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    render_term(term, 10, 10, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
 }
 
@@ -180,7 +180,7 @@ void general_error(const char *error, const char *module) {
     term_printf(&term, module);
     term_printf(&term, "\n");
 
-    render_term(Rect16(PADDING, 100, 220, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    render_term(&term, PADDING, 100, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
@@ -680,7 +680,7 @@ void ScreenHardFault(void) {
             term_printf(&term, " ");
     }
 
-    render_term(Rect16(10, 10, 220, 288), &term, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    render_term(&term, 10, 10, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 
     while (1) //endless loop
