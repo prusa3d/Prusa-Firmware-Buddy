@@ -57,17 +57,17 @@ struct screen_test_disp_mem_data_t : public window_frame_t {
 //variables
 extern int16_t spi_prescaler;
 static const char *opt_spi[] = { "21M", "10.5M", "5.25M", "2.63M", "1.31M", "656k", "328k", "164k" };
-    #define opt_spi_sz      (sizeof(opt_spi) / sizeof(const char *))
-
 //static const char* modes[] = {"RGBW scale", "Direct hex", "RGB"};
 static const char *modes[] = { "RGBW scale", "WrRdWr + RGB" };
-    #define modes_sz        (sizeof(modes) / sizeof(const char *))
-
 static const char *inversions[] = { "Inv. DIS.", "Inv. ENA." };
-    #define inversions_sz   (sizeof(inversions) / sizeof(const char *))
-
 static const char *bright_enas[] = { "Bri. DIS.", "Bri. ENA." };
-    #define bright_enas_sz  (sizeof(bright_enas) / sizeof(const char *))
+
+enum {
+    opt_spi_sz = sizeof(opt_spi) / sizeof(const char *),
+    modes_sz  = sizeof(modes) / sizeof(const char *),
+    inversions_sz = sizeof(inversions) / sizeof(const char *),
+    bright_enas_sz = sizeof(bright_enas) / sizeof(const char *),
+};
 
 static int16_t spinSpiClkVal_last = -1;
 static int16_t spinSpiClkVal_actual = -1;
@@ -149,7 +149,9 @@ void printRGB_DirHx(size_t rect_index, size_t rect_count, size_t col, size_t row
 typedef void(drawCol_t)(size_t rect_index, size_t rect_count, size_t col, size_t row2draw, size_t row_space);
 //drawCol_t* fptrArr[] = {printRGBWscale,printDirectHex,printRGB};
 drawCol_t *fptrArr[] = { printRGBWscale, printRGB_DirHx };
-    #define fptrArr_sz      (sizeof(fptrArr) / sizeof(drawCol_t *))
+enum{
+    fptrArr_sz = sizeof(fptrArr) / sizeof(drawCol_t *)
+};
 
 static_assert(modes_sz == fptrArr_sz, "wrong number of function pointers");
 
@@ -373,7 +375,9 @@ size_t getNumOfWritesIn_1_Cycle(size_t wr_len){
 }
 */
 
-    #define directColorBuff_sz 20
+enum {
+    directColorBuff_sz = 20
+};
 uint16_t directColorBuff[directColorBuff_sz];
 
 void printRGBWscale(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {

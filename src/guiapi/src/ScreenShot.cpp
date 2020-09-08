@@ -4,12 +4,14 @@
 #include <inttypes.h>
 #include "ff.h"
 
-#define BMP_FILE_HEADER_SIZE 14
-#define BMP_INFO_HEADER_SIZE 40
+enum {
+    BMP_FILE_HEADER_SIZE = 14,
+    BMP_INFO_HEADER_SIZE = 40,
 
-#define ST7789V_BYTES_PER_PIXEL      2 // R(5b) + G(6b) + B(5b) = 16b = 2B
-#define BMP_FILE_SIZE                (BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL)
-#define SCREENSHOT_FILE_NAME_MAX_LEN 30
+    ST7789V_BYTES_PER_PIXEL = 2, // R(5b) + G(6b) + B(5b) = 16b = 2B
+    BMP_FILE_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + display::GetW() * display::GetH() * ST7789V_BYTES_PER_PIXEL,
+    SCREENSHOT_FILE_NAME_MAX_LEN = 30,
+};
 
 static const char screenshot_name[] = "/screenshot";
 static const char screenshot_format[] = ".bmp";

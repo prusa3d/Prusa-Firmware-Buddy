@@ -1,7 +1,6 @@
 //----------------------------------------------------------------------------//
 // pin names
-#ifndef _HWIO_PINDEF_H
-#define _HWIO_PINDEF_H
+#pragma once
 
 #define PIN_BEEPER         TPA0
 #define PIN_HW_IDENTIFY    TPA3
@@ -42,5 +41,3 @@
 #define PIN_BTN_EN2 TPE15
 
 #define PIN_FSENSOR TPB4
-
-#endif //_HWIO_PINDEF_H

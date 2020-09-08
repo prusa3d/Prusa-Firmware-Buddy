@@ -169,15 +169,15 @@ int main(void) {
     /* USER CODE BEGIN 1 */
 
     /*
-#define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
-#define RCC_FLAG_BORRST                  ((uint8_t)0x79)
-#define RCC_FLAG_PINRST                  ((uint8_t)0x7A)
-#define RCC_FLAG_PORRST                  ((uint8_t)0x7B)
-#define RCC_FLAG_SFTRST                  ((uint8_t)0x7C)
-#define RCC_FLAG_IWDGRST                 ((uint8_t)0x7D)
-#define RCC_FLAG_WWDGRST                 ((uint8_t)0x7E)
-#define RCC_FLAG_LPWRRST                 ((uint8_t)0x7F)
-*/
+    #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
+    #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
+    #define RCC_FLAG_PINRST                  ((uint8_t)0x7A)
+    #define RCC_FLAG_PORRST                  ((uint8_t)0x7B)
+    #define RCC_FLAG_SFTRST                  ((uint8_t)0x7C)
+    #define RCC_FLAG_IWDGRST                 ((uint8_t)0x7D)
+    #define RCC_FLAG_WWDGRST                 ((uint8_t)0x7E)
+    #define RCC_FLAG_LPWRRST                 ((uint8_t)0x7F)
+    */
 
     //__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST);
     //__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST);

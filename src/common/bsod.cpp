@@ -128,7 +128,7 @@ typedef tskTCB TCB_t;
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
 constexpr uint8_t PADDING = 10;
-    #define X_MAX (display::GetW() - PADDING * 2)
+static const constexpr uint16_t X_MAX = display::GetW() - PADDING * 2;
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -489,53 +489,53 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
 */
 
 void ScreenHardFault(void) {
-        #define IACCVIOL_Msk  (1UL << 0)
-        #define DACCVIOL_Msk  (1UL << 1)
-        #define MSTKERR_Msk   (1UL << 4)
-        #define MUNSTKERR_Msk (1UL << 3)
-        #define MLSPERR_Msk   (1UL << 5)
+    static const constexpr uint32_t IACCVIOL_Msk = 1u << 0;
+    static const constexpr uint32_t DACCVIOL_Msk = 1u << 1;
+    static const constexpr uint32_t MSTKERR_Msk = 1u << 4;
+    static const constexpr uint32_t MUNSTKERR_Msk = 1u << 3;
+    static const constexpr uint32_t MLSPERR_Msk = 1u << 5;
 
-        #define IACCVIOL_Txt  "Fault on instruction access"
-        #define DACCVIOL_Txt  "Fault on direct data access"
-        #define MSTKERR_Txt   "Context stacking, because of an MPU access violation"
-        #define MUNSTKERR_Txt "Context unstacking, because of an MPU access violation"
-        #define MLSPERR_Txt   "During lazy floating-point state preservation"
+    static const constexpr char *IACCVIOL_Txt = "Fault on instruction access";
+    static const constexpr char *DACCVIOL_Txt = "Fault on direct data access";
+    static const constexpr char *MSTKERR_Txt = "Context stacking, because of an MPU access violation";
+    static const constexpr char *MUNSTKERR_Txt = "Context unstacking, because of an MPU access violation";
+    static const constexpr char *MLSPERR_Txt = "During lazy floating-point state preservation";
 
-        #define MMARVALID_Msk (1UL << 7) // MemManage Fault Address Register (MMFAR) valid flag:
+    static const constexpr uint32_t MMARVALID_Msk = 1 << 7; // MemManage Fault Address Register (MMFAR) valid flag:
 
-        #define STKERR_Msk      (1UL << 12)
-        #define UNSTKERR_Msk    (1UL << 11)
-        #define IBUSERR_Msk     (1UL << 8)
-        #define LSPERR_Msk      (1UL << 13)
-        #define PRECISERR_Msk   (1UL << 9)
-        #define IMPRECISERR_Msk (1UL << 10)
+    static const constexpr uint32_t STKERR_Msk = 1u << 12;
+    static const constexpr uint32_t UNSTKERR_Msk = 1u << 11;
+    static const constexpr uint32_t IBUSERR_Msk = 1u << 8;
+    static const constexpr uint32_t LSPERR_Msk = 1u << 13;
+    static const constexpr uint32_t PRECISERR_Msk = 1u << 9;
+    static const constexpr uint32_t IMPRECISERR_Msk = 1u << 10;
 
-        #define STKERR_Txt      "During exception stacking"
-        #define UNSTKERR_Txt    "During exception unstacking"
-        #define IBUSERR_Txt     "During instruction prefetching, precise"
-        #define LSPERR_Txt      "During lazy floating-point state preservation "
-        #define PRECISERR_Txt   "Precise data access error, precise"
-        #define IMPRECISERR_Txt "Imprecise data access error, imprecise"
+    static const constexpr char *STKERR_Txt = "During exception stacking";
+    static const constexpr char *UNSTKERR_Txt = "During exception unstacking";
+    static const constexpr char *IBUSERR_Txt = "During instruction prefetching, precise";
+    static const constexpr char *LSPERR_Txt = "During lazy floating-point state preservation ";
+    static const constexpr char *PRECISERR_Txt = "Precise data access error, precise";
+    static const constexpr char *IMPRECISERR_Txt = "Imprecise data access error, imprecise";
 
-        #define BFARVALID_Msk (1UL << 15) // MemManage Fault Address Register (MMFAR) valid flag:
+    static const constexpr uint32_t BFARVALID_Msk = 1U << 15; // MemManage Fault Address Register (MMFAR) valid flag:
 
-        #define UNDEFINSTR_Msk (1UL << 16)
-        #define INVSTATE_Msk   (1UL << 17)
-        #define INVPC_Msk      (1UL << 18)
-        #define NOCPC_Msk      (1UL << 19)
-        #define UNALIGNED_Msk  (1UL << 24)
-        #define DIVBYZERO_Msk  (1UL << 25)
+    static const constexpr uint32_t UNDEFINSTR_Msk = 1u << 16;
+    static const constexpr uint32_t INVSTATE_Msk = 1u << 17;
+    static const constexpr uint32_t INVPC_Msk = 1u << 18;
+    static const constexpr uint32_t NOCPC_Msk = 1u << 19;
+    static const constexpr uint32_t UNALIGNED_Msk = 1u << 24;
+    static const constexpr uint32_t DIVBYZERO_Msk = 1u << 25;
 
-        #define UNDEFINSTR_Txt "Undefined instruction"
-        #define INVSTATE_Txt   "Attempt to enter an invalid instruction set state "
-        #define INVPC_Txt      "Failed integrity check on exception return  "
-        #define NOCPC_Txt      "Attempt to access a non-existing coprocessor"
-        #define UNALIGNED_Txt  "Illegal unaligned load or store"
-        #define DIVBYZERO_Txt  "Divide By 0"
-        //#define STKOF (1UL << 0)
+    static const constexpr char *UNDEFINSTR_Txt = "Undefined instruction";
+    static const constexpr char *INVSTATE_Txt = "Attempt to enter an invalid instruction set state ";
+    static const constexpr char *INVPC_Txt = "Failed integrity check on exception return  ";
+    static const constexpr char *NOCPC_Txt = "Attempt to access a non-existing coprocessor";
+    static const constexpr char *UNALIGNED_Txt = "Illegal unaligned load or store";
+    static const constexpr char *DIVBYZERO_Txt = "Divide By 0";
+    //static const constexpr uint8_t STKOF = 1U << 0;
 
-        #define ROWS 21
-        #define COLS 32
+    static const constexpr uint8_t ROWS = 21;
+    static const constexpr uint8_t COLS = 32;
 
     __disable_irq(); //disable irq
 

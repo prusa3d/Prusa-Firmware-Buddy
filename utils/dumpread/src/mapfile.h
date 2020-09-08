@@ -1,6 +1,5 @@
 // mapfile.h
-#ifndef _MAPFILE_H
-#define _MAPFILE_H
+#pragma once
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -37,5 +36,3 @@ extern mapfile_mem_entry_t *mapfile_find_mem_entry(mapfile_t *pm, const char *na
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_MAPFILE_H

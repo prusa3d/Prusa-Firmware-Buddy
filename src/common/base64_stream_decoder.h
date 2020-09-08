@@ -1,5 +1,4 @@
-#ifndef BASE64_STREAM_DECODER_H
-#define BASE64_STREAM_DECODER_H
+#pragma once
 
 #include <stdint.h>
 
@@ -56,5 +55,3 @@ private:
     // }
     static const uint8_t base64_inverse[256];
 };
-
-#endif // BASE64_STREAM_DECODER_H

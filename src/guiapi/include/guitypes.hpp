@@ -3,8 +3,6 @@
 
 #include "guitypes.h"
 
-typedef uint32_t color_t;
-
 template <class T>
 struct point_t {
     T x;

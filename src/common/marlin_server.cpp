@@ -284,7 +284,7 @@ int marlin_server_cycle(void) {
     return count;
 }
 
-#define MARLIN_IDLE_CNT_BUSY 1
+static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
 
 int marlin_server_loop(void) {
     if (marlin_server.idle_cnt >= MARLIN_IDLE_CNT_BUSY)

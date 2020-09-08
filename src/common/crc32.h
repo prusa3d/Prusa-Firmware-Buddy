@@ -1,7 +1,6 @@
 // crc32.h
 
-#ifndef _CRC32_H
-#define _CRC32_H
+#pragma once
 
 #include <inttypes.h>
 
@@ -18,5 +17,3 @@ extern uint32_t crc32_calc(uint32_t *data, uint32_t count);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_CRC32_H

@@ -5,8 +5,7 @@
  *      Author: Radek Vana
  */
 
-#ifndef _BSOD_H
-#define _BSOD_H
+#pragma once
 
 #include <stdint.h>
 
@@ -39,5 +38,3 @@ void ScreenHardFault(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_BSOD_H

@@ -1,3 +1,4 @@
+// status_footer.h
 #pragma once
 
 #include "gui.hpp"
@@ -53,15 +54,15 @@ public:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
 
-#define REPAINT_Z_POS_PERIOD 256  /// time span between z position repaint [miliseconds]
-#define REPAINT_VALUE_PERIOD 1024 /// time span between value repaint [miliseconds]
-#define BLINK_PERIOD         512  /// time span between color changes [miliseconds]
+static const uint16_t REPAINT_Z_POS_PERIOD = 256;  /// time span between z position repaint [miliseconds]
+static const uint16_t REPAINT_VALUE_PERIOD = 1024; /// time span between value repaint [miliseconds]
+static const uint16_t BLINK_PERIOD = 512;          /// time span between color changes [miliseconds]
 
-#define COOL_NOZZLE 50 /// highest temperature of nozzle to be considered as cool
-#define COOL_BED    45 /// highest temperature of bed to be considered as cool
+static const uint8_t COOL_NOZZLE = 50; /// highest temperature of nozzle to be considered as cool
+static const uint8_t COOL_BED = 45;    /// highest temperature of bed to be considered as cool
 
-#define DEFAULT_COLOR COLOR_WHITE
-#define STABLE_COLOR  COLOR_WHITE
-#define HEATING_COLOR COLOR_ORANGE
-#define COOLING_COLOR COLOR_BLUE
-#define PREHEAT_COLOR COLOR_GREEN
+static const color_t DEFAULT_COLOR = COLOR_WHITE;
+static const color_t STABLE_COLOR = COLOR_WHITE;
+static const color_t HEATING_COLOR = COLOR_ORANGE;
+static const color_t COOLING_COLOR = COLOR_BLUE;
+static const color_t PREHEAT_COLOR = COLOR_GREEN;

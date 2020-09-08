@@ -1,6 +1,5 @@
 // marlin_client.h
-#ifndef _MARLIN_CLIENT_H
-#define _MARLIN_CLIENT_H
+#pragma once
 
 #include "marlin_events.h"
 #include "marlin_vars.h"
@@ -8,9 +7,9 @@
 #include "client_fsm_types.h"
 
 // client flags
-#define MARLIN_CFLG_STARTED 0x0001 // client started (set in marlin_client_init)
-#define MARLIN_CFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_CFLG_LOWHIGH 0x0008 // receiving low/high part of client message
+static const uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
+static const uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
+static const uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
 
 #ifdef __cplusplus
 extern "C" {
@@ -190,5 +189,3 @@ extern void marlin_encoded_response(uint32_t enc_phase_and_response);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //MARLIN_CLIENT_H
