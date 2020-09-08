@@ -61,10 +61,7 @@ class screen_printing_data_t : public IScreenPrinting {
     //std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
     string_view_utf8 label_etime;      // not sure if we really must keep this in memory
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
-
-    window_text_t w_message; //Messages from onStatusChanged()
     uint32_t message_timer;
-    bool message_flag;
     bool stop_pressed;
     bool waiting_for_abort; /// flag specific for stop pressed when MBL is performed
     printing_state_t state__readonly__use_change_print_state;
@@ -76,8 +73,6 @@ public:
 private:
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
     void invalidate_print_state();
-    void open_popup_message();
-    void close_popup_message();
     void disable_tune_button();
     void enable_tune_button();
     void update_progress(uint8_t percent, uint16_t print_speed);

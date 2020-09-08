@@ -16,30 +16,12 @@ static const uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (c
 
 // server variable update interval [ms]
 static const uint8_t MARLIN_UPDATE_PERIOD = 100;
-enum {
-    MSG_STACK_SIZE = 8,  //status message stack size
-    MSG_MAX_LENGTH = 21, //status message max length
-};
 
 typedef void(marlin_server_idle_t)(void);
-
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct msg_stack {
-
-    char msg_data[MSG_STACK_SIZE][MSG_MAX_LENGTH];
-    uint8_t count;
-
-} msg_stack_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-
-extern msg_stack_t msg_stack;
 
 // callback for idle operation inside marlin (called from ExtUI handler onIdle)
 extern marlin_server_idle_t *marlin_server_idle_cb;

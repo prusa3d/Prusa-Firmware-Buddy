@@ -19,7 +19,7 @@ window_dlg_wait_t::window_dlg_wait_t(Rect16 rect)
     text.SetAlignment(ALIGN_CENTER);
 }
 
-void gui_dlg_wait(void (*closing_callback)()) {
+void gui_dlg_wait(std::function<void()> closing_callback) {
 
     window_dlg_wait_t dlg(GuiDefaults::RectScreenBody);
     dlg.MakeBlocking(closing_callback);

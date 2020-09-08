@@ -47,6 +47,8 @@ void window_t::Disable() { flag_enabled = false; }
 void window_t::SetFocus() {
     if (!IsVisible() || !flag_enabled)
         return;
+    if (focused_ptr == this)
+        return;
 
     if (focused_ptr) {
         focused_ptr->Invalidate();

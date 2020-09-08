@@ -32,4 +32,4 @@ static const constexpr uint8_t DLG_W8_DRAW_PROGRESS = 0x02;  // Draw progress ba
 *
 * It creates inner gui_loop cycle that keeps GUI running while waiting.
 */
-void gui_dlg_wait(void (*closing_callback)());
+void gui_dlg_wait(std::function<void()> closing_callback);
