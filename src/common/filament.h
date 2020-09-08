@@ -27,7 +27,7 @@ typedef enum {
 
 static const FILAMENT_t DEFAULT_FILAMENT = FILAMENT_PLA;
 
-static const float PREHEAT_TEMP = 170f;
+static const float PREHEAT_TEMP = 170.f;
 //static const char *PREHEAT_TEMP_STRING = "170"; // used for G codes
 
 #ifdef __cplusplus
