@@ -71,6 +71,8 @@ typedef struct _eeprom_vars_t {
     uint32_t CRC32;
 } eeprom_vars_t;
 
+static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
+
 #pragma pack(pop)
 
 // clang-format off
