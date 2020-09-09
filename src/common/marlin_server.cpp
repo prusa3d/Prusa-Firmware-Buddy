@@ -93,8 +93,6 @@ extern "C" {
 
 //-----------------------------------------------------------------------------
 // variables
-extern uint32_t Tacho_FAN0;
-extern uint32_t Tacho_FAN1;
 
 osThreadId marlin_server_task = 0;    // task handle
 osMessageQId marlin_server_queue = 0; // input queue (uint8_t)
@@ -163,27 +161,6 @@ void marlin_server_init(void) {
     marlin_server.vars.media_SFN_path = media_print_filepath();
 }
 
-void print_fan_spd() {
-    if (DEBUGGING(INFO)) {
-        static int time = 0;
-        static int last_prt = 0;
-        time = HAL_GetTick();
-        int timediff = time - last_prt;
-        if (timediff >= 1000) {
-
-            serial_echopair_PGM("Tacho_FAN0 ", (30 * 1000 * Tacho_FAN0) / timediff); //60s / 2 pulses per rotation
-            serialprintPGM("rpm ");
-            SERIAL_EOL();
-            serial_echopair_PGM("Tacho_FAN1 ", (30 * 1000 * Tacho_FAN1) / timediff);
-            serialprintPGM("rpm ");
-            SERIAL_EOL();
-            Tacho_FAN0 = 0;
-            Tacho_FAN1 = 0;
-            last_prt = time;
-        }
-    }
-}
-
 #ifdef MINDA_BROKEN_CABLE_DETECTION
 static void print_Z_probe_cnt() {
     if (DEBUGGING(INFO)) {
@@ -210,7 +187,6 @@ int marlin_server_cycle(void) {
 
     FSM_notifier::SendNotification();
 
-    print_fan_spd();
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
 #endif
