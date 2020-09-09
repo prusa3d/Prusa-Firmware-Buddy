@@ -87,6 +87,7 @@ RTC_HandleTypeDef hrtc;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi2_tx;
+DMA_HandleTypeDef hdma_spi2_rx;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
@@ -151,9 +152,6 @@ uint8_t uart6rx_data[32];
 uartslave_t uart6slave;
 char uart6slave_line[32];
 
-volatile uint32_t Tacho_FAN0;
-volatile uint32_t Tacho_FAN1;
-
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
@@ -186,15 +184,15 @@ int main(void) {
     /* USER CODE BEGIN 1 */
 
     /*
-#define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
-#define RCC_FLAG_BORRST                  ((uint8_t)0x79)
-#define RCC_FLAG_PINRST                  ((uint8_t)0x7A)
-#define RCC_FLAG_PORRST                  ((uint8_t)0x7B)
-#define RCC_FLAG_SFTRST                  ((uint8_t)0x7C)
-#define RCC_FLAG_IWDGRST                 ((uint8_t)0x7D)
-#define RCC_FLAG_WWDGRST                 ((uint8_t)0x7E)
-#define RCC_FLAG_LPWRRST                 ((uint8_t)0x7F)
-*/
+    #define RCC_FLAG_LSIRDY                  ((uint8_t)0x61)
+    #define RCC_FLAG_BORRST                  ((uint8_t)0x79)
+    #define RCC_FLAG_PINRST                  ((uint8_t)0x7A)
+    #define RCC_FLAG_PORRST                  ((uint8_t)0x7B)
+    #define RCC_FLAG_SFTRST                  ((uint8_t)0x7C)
+    #define RCC_FLAG_IWDGRST                 ((uint8_t)0x7D)
+    #define RCC_FLAG_WWDGRST                 ((uint8_t)0x7E)
+    #define RCC_FLAG_LPWRRST                 ((uint8_t)0x7F)
+    */
 
     //__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST);
     //__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST);
@@ -899,12 +897,6 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : FAN0_TACH_Pin FAN1_TACH_Pin */
-    GPIO_InitStruct.Pin = FAN0_TACH_Pin | FAN1_TACH_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
     /*Configure GPIO pins : LCD_SW1_Pin LCD_SW3_Pin LCD_SW2_Pin */
     GPIO_InitStruct.Pin = LCD_SW1_Pin | LCD_SW3_Pin | LCD_SW2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -953,12 +945,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     switch (GPIO_Pin) {
-    case GPIO_PIN_10:
-        Tacho_FAN1++;
-        break;
-    case GPIO_PIN_14:
-        Tacho_FAN0++;
-        break;
     case Z_MIN_Pin:
         ++minda_falling_edges;
         break;

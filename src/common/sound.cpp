@@ -21,6 +21,8 @@ const int Sound::loudRepeats[6] = { 1, 1, -1, 3, -1, 1 };
 const int Sound::silentRepeats[3] = { 1, 1, 1 };
 const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
 
+/* const bool Sound::forced[8] = { false, false, false, false, false, true, false, false }; */
+
 eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
 int Sound_GetVolume() { return Sound::getInstance().getVolume(); }
 void Sound_SetMode(eSOUND_MODE eSMode) { Sound::getInstance().setMode(eSMode); }
@@ -36,7 +38,7 @@ void Sound_Update1ms() {
 /*!
  * Sound signals implementation
  * Simple sound implementation supporting few sound modes and having different sound types.
- * [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for meassured durations of sound signals for non-blocking GUI.
+ * [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for measured durations of sound signals for non-blocking GUI.
  * Beeper is controled over [hwio_a3ides_2209_02.c] functions for beeper.
  */
 Sound::Sound()
@@ -45,6 +47,7 @@ Sound::Sound()
     , repeat(0)
     , frequency(100.F)
     , volume(volumeInit)
+    , _delay(0)
     , delay(100) {
     init();
 }
@@ -55,11 +58,11 @@ Sound::Sound()
  * [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
  */
 void Sound::init() {
-    eSoundMode = static_cast<eSOUND_MODE>(eeprom_get_var(EEVAR_SOUND_MODE).ui8);
+    eSoundMode = static_cast<eSOUND_MODE>(variant_get_ui8(eeprom_get_var(EEVAR_SOUND_MODE)));
     if (eSoundMode == eSOUND_MODE_NULL) {
         setMode(eSOUND_MODE_DEFAULT);
     }
-    varVolume = eeprom_get_var(EEVAR_SOUND_VOLUME).ui8 / 10.F;
+    varVolume = variant_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME)) / 10.F;
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;
 }
@@ -106,7 +109,7 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int r
     for (unsigned i = 0; i < size; i++) {
         eSOUND_TYPE type = types[i];
         if (type == sound) {
-            _sound(repeats[i], frequencies[type], durations[type], volumes[type]);
+            _sound(repeats[i], frequencies[type], durations[type], volumes[type] /* , Sound::forced[type] */);
             break;
         }
     }
@@ -139,10 +142,10 @@ void Sound::play(eSOUND_TYPE eSoundType) {
     }
 }
 
-/// Generic [_sound[ method with setting values and repeating logic
-void Sound::_sound(int rep, float frq, uint32_t dur, float vol) {
+/// Generic [_sound] method with setting values and repeating logic
+void Sound::_sound(int rep, float frq, uint32_t dur, float vol /*, bool forced*/) {
     /// if sound is already playing, then don't interrupt
-    if (repeat - 1 > 0 || repeat == -1) {
+    if ((repeat - 1 > 0 || repeat == -1) /*  && !forced */) {
         return;
     }
 

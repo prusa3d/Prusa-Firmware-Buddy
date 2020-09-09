@@ -55,7 +55,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 
-#define USB_DEFAULT_BLOCK_SIZE 512
+static const uint16_t USB_DEFAULT_BLOCK_SIZE = 512;
 
 /* Private variables ---------------------------------------------------------*/
 extern USBH_HandleTypeDef hUSB_Host;

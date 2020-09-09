@@ -391,7 +391,7 @@ if(GENERATE_DFU)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include
+  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/lang
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -475,6 +475,7 @@ target_sources(
           src/common/base64_stream_decoder.cpp
           src/common/sound.cpp
           src/common/language_eeprom.cpp
+          src/common/support_utils_lib.cpp
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp
@@ -482,6 +483,7 @@ target_sources(
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
+          src/common/sha256.c
           src/common/wui_api.c
           src/common/z_calibration_fsm.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.cpp>
@@ -500,6 +502,7 @@ target_sources(
           src/marlin_stubs/host/M115.cpp
           src/gui/guimain.cpp
           src/common/filament.cpp
+          src/common/fanctl.cpp
           src/lang/translator.cpp
           src/lang/translation_provider_CPUFLASH.cpp
           src/lang/unaccent.cpp
@@ -545,7 +548,6 @@ if(GUI)
             src/gui/screen_menu_move.cpp
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
-            src/gui/screen_qr_info.cpp
             src/gui/screen_qr_error.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
@@ -579,6 +581,7 @@ if(GUI)
             src/guiapi/src/gui.cpp
             src/guiapi/src/term.cpp
             src/guiapi/src/guitypes.cpp
+            src/guiapi/src/Rect16.cpp
             src/guiapi/src/window_progress.cpp
             src/guiapi/src/window_frame.cpp
             src/guiapi/src/gui_timer.cpp
@@ -587,10 +590,10 @@ if(GUI)
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.cpp
             src/guiapi/src/window_list.cpp
-            src/guiapi/src/jogwheel.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
             src/guiapi/src/st7789v.cpp
+            src/guiapi/src/display_ex.cpp
             src/guiapi/src/window_icon.cpp
             src/guiapi/src/window_spin.cpp
             src/guiapi/src/window_text.cpp
@@ -603,6 +606,8 @@ if(GUI)
             src/guiapi/src/MItem_menus.cpp
             src/guiapi/src/MItem_print.cpp
             src/guiapi/src/MItem_tools.cpp
+            src/guiapi/src/Jogwheel.cpp
+            src/guiapi/src/ScreenShot.cpp
     )
 endif()
 

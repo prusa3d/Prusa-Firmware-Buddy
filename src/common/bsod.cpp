@@ -1,4 +1,7 @@
 // bsod.c - blue screen of death
+#include <algorithm>
+#include <cmath>
+
 #include "bsod.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -9,24 +12,32 @@
     #error "HAS_GUI not defined"
 #elif HAS_GUI
 
-    #include "stm32f4xx_hal.h"
-    #include "config.h"
-    #include "gui.hpp"
-    #include "term.h"
-    #include "st7789v.hpp"
-    #include "window_term.hpp"
     #include <stdio.h>
     #include <stdarg.h>
     #include <stdlib.h>
     #include <string.h>
+    #include <inttypes.h>
+
+    #include "Rect16.h"
     #include "safe_state.h"
-    #include <inttypes.h>
-    #include <inttypes.h>
-    #include "jogwheel.h"
+    #include "stm32f4xx_hal.h"
+    #include "config.h"
+    #include "gui.hpp"
+    #include "term.h"
+    #include "window_term.hpp"
+    #include "Jogwheel.hpp"
     #include "gpio.h"
     #include "sys.h"
     #include "hwio.h"
     #include "version.h"
+    #include "window_qr.hpp"
+    #include "support_utils.h"
+    #include "str_utils.hpp"
+    #include "guitypes.h"
+    #include "i18n.h"
+    #include "../../lib/Prusa-Error-Codes/12/errors_list.h"
+    #include "../../lib/Marlin/Marlin/src/core/language.h"
+    #include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -44,27 +55,28 @@ typedef struct tskTaskControlBlock {
     xMPU_SETTINGS xMPUSettings;         /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
     #endif
 
-    ListItem_t xStateListItem;                                                                                                     /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
-    ListItem_t xEventListItem;                                                                                                     /*< Used to reference a task from an event list. */
-    UBaseType_t uxPriority;                                                                                                        /*< The priority of the task.  0 is the lowest priority. */
-    StackType_t *pxStack;                                                                                                          /*< Points to the start of the stack. */
-    char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */ /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+    ListItem_t xStateListItem;                /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
+    ListItem_t xEventListItem;                /*< Used to reference a task from an event list. */
+    UBaseType_t uxPriority;                   /*< The priority of the task.  0 is the lowest priority. */
+    StackType_t *pxStack;                     /*< Points to the start of the stack. */
+    char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */
+    /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
     #if (portSTACK_GROWTH > 0)
-    StackType_t *pxEndOfStack;                                                                                                     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
+    StackType_t *pxEndOfStack;     /*< Points to the end of the stack on architectures where the stack grows up from low memory. */
     #endif
 
     #if (portCRITICAL_NESTING_IN_TCB == 1)
-    UBaseType_t uxCriticalNesting;                                                                                                 /*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
+    UBaseType_t uxCriticalNesting; /*< Holds the critical section nesting depth for ports that do not maintain their own count in the port layer. */
     #endif
 
     #if (configUSE_TRACE_FACILITY == 1)
-    UBaseType_t uxTCBNumber;                                                                                                       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
-    UBaseType_t uxTaskNumber;                                                                                                      /*< Stores a number specifically for use by third party trace code. */
+    UBaseType_t uxTCBNumber;       /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
+    UBaseType_t uxTaskNumber;      /*< Stores a number specifically for use by third party trace code. */
     #endif
 
     #if (configUSE_MUTEXES == 1)
-    UBaseType_t uxBasePriority;                                                                                                    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
+    UBaseType_t uxBasePriority;    /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
     UBaseType_t uxMutexesHeld;
     #endif
 
@@ -115,8 +127,8 @@ typedef tskTCB TCB_t;
 //current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
-    #define PADDING 10
-    #define X_MAX   (display::GetW() - PADDING * 2)
+constexpr uint8_t PADDING = 10;
+static const constexpr uint16_t X_MAX = display::GetW() - PADDING * 2;
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -134,8 +146,8 @@ static void stop_common(void) {
 //! @param term input message
 //! @param background_color background color
 static void print_error(term_t *term, color_t background_color) {
-    render_term(rect_ui16(10, 10, 220, 288), term, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
-    display::DrawText(rect_ui16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    render_term(term, 10, 10, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
 }
 
 //! @brief Marlin stopped
@@ -161,41 +173,190 @@ void general_error(const char *error, const char *module) {
     uint8_t buff[TERM_BUFF_SIZE(20, 16)];
     term_init(&term, 20, 16, buff);
 
-    display::DrawText(rect_ui16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeRAM((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
+    display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, //resource_font(IDR_FNT_NORMAL),
         COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     term_printf(&term, module);
     term_printf(&term, "\n");
 
-    render_term(rect_ui16(PADDING, 100, 220, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    render_term(&term, PADDING, 100, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
-    render_text_align(rect_ui16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
+    render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
         COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, ALIGN_CENTER);
-
-    gui_reset_jogwheel();
 
     //questionable placement - where now, in almost every BSOD timers are
     //stopped and Sound class cannot update itself for timing sound signals.
     //GUI is in the middle of refactoring and should be showned after restart
-    //when timers and everything else is running again (info by - Rober/Radek)
+    //when timers and everything else is running again (info by - Robert/Radek)
     Sound_Play(eSOUND_TYPE_CriticalAlert);
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
         wdt_iwdg_refresh();
-        if (jogwheel_low_level_button_pressed())
+        if (!jogwheel.GetJogwheelButtonPinState())
             sys_reset(); //button press
     }
 }
 
+void general_error_init() {
+    __disable_irq();
+    stop_common();
+
+    //questionable placement - where now, in almost every BSOD timers are
+    //stopped and Sound class cannot update itself for timing sound signals.
+    //GUI is in the middle of refactoring and should be showned after restart
+    //when timers and everything else is running again (info by - Rober/Radek)
+
+    Sound_Play(eSOUND_TYPE_CriticalAlert);
+}
+
+void general_error_run() {
+    //cannot use jogwheel_signals  (disabled interrupt)
+    while (1) {
+        wdt_iwdg_refresh();
+        if (!jogwheel.GetJogwheelButtonPinState())
+            sys_reset(); //button press
+    }
+}
+
+//! Known possible reasons.
+//! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_HEATING_FAILED
+//! @n MSG_T_MAXTEMP
+//! @n MSG_T_MINTEMP
+//! @n "Emergency stop (M112)"
+void draw_error_screen(const uint16_t error_code_short) {
+
+    const uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
+
+    /// search for proper text according to error code
+    const char *text_title;
+    const char *text_body;
+
+    uint32_t i = 0;
+    while (i < sizeof(error_list) && error_code_short != error_list[i].err_num) {
+        ++i;
+    }
+    if (i == sizeof(error_list)) {
+        /// no text found => leave blank screen
+        /// wait for restart - endless loop
+        while (1)
+            wdt_iwdg_refresh();
+    } else {
+        text_title = error_list[i].err_title;
+        text_body = error_list[i].err_text;
+    }
+
+    /// draw header & main text
+    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
+    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
+
+    /// draw "Scan me" text
+    // r=1 c=34
+    static const char *scan_me_text = N_("Scan me for details");
+    render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+
+    /// draw "Scan me" arrow
+    /// FIXME arrow overlaps with QR code (bad PNG)
+    render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
+
+    /// draw QR
+    char qr_text[MAX_LEN_4QR + 1];
+    error_url_long(qr_text, sizeof(qr_text), error_code);
+    constexpr uint8_t qr_size_px = 140;
+    const Rect16 qr_rect = { 120 - qr_size_px / 2, 223 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
+    window_qr_t win(nullptr, qr_rect);
+    win.rect = qr_rect;
+    window_qr_t *window = &win;
+    win.text = qr_text;
+    win.bg_color = COLOR_WHITE;
+
+    /// use PNG RAM for QR code image
+    uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
+    uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
+
+    if (generate_qr(qr_text, qrcode, qr_buff)) {
+        draw_qr(qrcode, window);
+    }
+
+    /// draw short URL
+    error_url_short(qr_text, sizeof(qr_text), error_code);
+    // this MakeRAM is safe - qr_text is a local buffer on stack
+    render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
+
+    /// wait for restart - endless loop
+    while (1)
+        wdt_iwdg_refresh();
+}
+
+/// \returns nth character of the string
+/// \returns \0 if the string is too short
+char nth_char(const char str[], uint16_t nth) {
+    while (nth > 0 && str[0] != 0) {
+        --nth;
+        ++str;
+    }
+    return str[0];
+}
+
+//! Known possible reasons.
+//! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_HEATING_FAILED
+//! @n MSG_T_MAXTEMP
+//! @n MSG_T_MINTEMP
+//! @n "Emergency stop (M112)"
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    char buff[128];
-    snprintf(buff, sizeof(buff),
-        "The requested %s\ntemperature was not\nreached.\n\nNozzle temp: %d/%d\nBed temp: %d/%d",
-        module, (int)t_noz, (int)tt_noz, (int)t_bed, (int)tt_bed);
-    general_error(error, buff);
+
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+
+    uint16_t error_code_short = 0;
+
+    /// Decision tree to define error code
+    if (module == nullptr) {
+        /// TODO share these strings (saves ~100 B of binary size)
+        if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
+            error_code_short = 0;
+        } else if (strcmp("Emergency stop (M112)", error) == 0) {
+            error_code_short = 510;
+        } else if (strcmp("Inactive time kill", error) == 0) {
+            error_code_short = 0;
+        }
+    } else {
+        using namespace Language_en;
+
+        if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
+            error_code_short = 201;
+        } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
+            error_code_short = 202;
+        } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
+            error_code_short = 203;
+        } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
+            error_code_short = 204;
+
+        } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
+            error_code_short = 205;
+        } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
+            error_code_short = 206;
+        } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
+            error_code_short = 207;
+        } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
+            error_code_short = 208;
+        }
+    }
+
+    draw_error_screen(error_code_short);
+}
+
+/// Draws error screen
+/// Use for Debug only
+void temp_error_code(const uint16_t error_code) {
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+    draw_error_screen(error_code);
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
@@ -214,39 +375,41 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     display::Clear(COLOR_BLACK); //clear with black color
     //display::DrawIcon(point_ui16(75, 40), IDR_PNG_icon_pepa, COLOR_BLACK, 0);
     display::DrawIcon(point_ui16(75, 40), IDR_PNG_icon_pepa_psod, COLOR_BLACK, 0);
-    display::DrawText(rect_ui16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
+    display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
     #else
     display::Clear(COLOR_NAVY);           //clear with dark blue color
     term_t term;                          //terminal structure
     uint8_t buff[TERM_BUFF_SIZE(20, 16)]; //terminal buffer for 20x16
     term_init(&term, 20, 16, buff);       //initialize terminal structure (clear buffer etc)
 
-    //remove text before "/" and "\", to get filename without path
-    const char *pc;
-    pc = strrchr(file_name, '/');
-    if (pc != 0)
-        file_name = pc + 1;
-    pc = strrchr(file_name, '\\');
-    if (pc != 0)
-        file_name = pc + 1;
-    {
-        char text[TERM_PRINTF_MAX];
+    if (file_name != nullptr) {
+        //remove text before "/" and "\", to get filename without path
+        const char *pc;
+        pc = strrchr(file_name, '/');
+        if (pc != 0)
+            file_name = pc + 1;
+        pc = strrchr(file_name, '\\');
+        if (pc != 0)
+            file_name = pc + 1;
+        {
+            char text[TERM_PRINTF_MAX];
 
-        int ret = vsnprintf(text, sizeof(text), fmt, args);
+            int ret = vsnprintf(text, sizeof(text), fmt, args);
 
-        const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
-        for (size_t i = 0; i < range; i++)
-            term_write_char(&term, text[i]);
+            const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
+            for (size_t i = 0; i < range; i++)
+                term_write_char(&term, text[i]);
+        }
+        term_printf(&term, "\n");
+        if (file_name != 0)
+            term_printf(&term, "%s", file_name); //print filename
+        if ((file_name != 0) && (line_number != -1))
+            term_printf(&term, " "); //print space
+        if (line_number != -1)
+            term_printf(&term, "%d", line_number); //print line number
+        if ((file_name != 0) || (line_number != -1))
+            term_printf(&term, "\n"); //new line if there is filename or line number
     }
-    term_printf(&term, "\n");
-    if (file_name != 0)
-        term_printf(&term, "%s", file_name); //print filename
-    if ((file_name != 0) && (line_number != -1))
-        term_printf(&term, " "); //print space
-    if (line_number != -1)
-        term_printf(&term, "%d", line_number); //print line number
-    if ((file_name != 0) || (line_number != -1))
-        term_printf(&term, "\n"); //new line if there is filename or line number
 
     term_printf(&term, "TASK:%s\n", tskName);
     term_printf(&term, "b:%x", pBotOfStack);
@@ -286,7 +449,7 @@ static signed char *tsk_name = 0;
 extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
     tsk_hndl = xTask;
     tsk_name = pcTaskName;
-    if (strlen((const char *)pcTaskName) > 20)
+    if (pcTaskName != nullptr && strlen((const char *)pcTaskName) > 20)
         _bsod("STACK OVERFLOW\nHANDLE %p\n%s", 0, 0, xTask, pcTaskName);
     else
         _bsod("STACK OVERFLOW\nHANDLE %p\nTaskname ERROR", 0, 0, xTask);
@@ -326,53 +489,53 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
 */
 
 void ScreenHardFault(void) {
-        #define IACCVIOL_Msk  (1UL << 0)
-        #define DACCVIOL_Msk  (1UL << 1)
-        #define MSTKERR_Msk   (1UL << 4)
-        #define MUNSTKERR_Msk (1UL << 3)
-        #define MLSPERR_Msk   (1UL << 5)
+    static const constexpr uint32_t IACCVIOL_Msk = 1u << 0;
+    static const constexpr uint32_t DACCVIOL_Msk = 1u << 1;
+    static const constexpr uint32_t MSTKERR_Msk = 1u << 4;
+    static const constexpr uint32_t MUNSTKERR_Msk = 1u << 3;
+    static const constexpr uint32_t MLSPERR_Msk = 1u << 5;
 
-        #define IACCVIOL_Txt  "Fault on instruction access"
-        #define DACCVIOL_Txt  "Fault on direct data access"
-        #define MSTKERR_Txt   "Context stacking, because of an MPU access violation"
-        #define MUNSTKERR_Txt "Context unstacking, because of an MPU access violation"
-        #define MLSPERR_Txt   "During lazy floating-point state preservation"
+    static const constexpr char *IACCVIOL_Txt = "Fault on instruction access";
+    static const constexpr char *DACCVIOL_Txt = "Fault on direct data access";
+    static const constexpr char *MSTKERR_Txt = "Context stacking, because of an MPU access violation";
+    static const constexpr char *MUNSTKERR_Txt = "Context unstacking, because of an MPU access violation";
+    static const constexpr char *MLSPERR_Txt = "During lazy floating-point state preservation";
 
-        #define MMARVALID_Msk (1UL << 7) // MemManage Fault Address Register (MMFAR) valid flag:
+    static const constexpr uint32_t MMARVALID_Msk = 1 << 7; // MemManage Fault Address Register (MMFAR) valid flag:
 
-        #define STKERR_Msk      (1UL << 12)
-        #define UNSTKERR_Msk    (1UL << 11)
-        #define IBUSERR_Msk     (1UL << 8)
-        #define LSPERR_Msk      (1UL << 13)
-        #define PRECISERR_Msk   (1UL << 9)
-        #define IMPRECISERR_Msk (1UL << 10)
+    static const constexpr uint32_t STKERR_Msk = 1u << 12;
+    static const constexpr uint32_t UNSTKERR_Msk = 1u << 11;
+    static const constexpr uint32_t IBUSERR_Msk = 1u << 8;
+    static const constexpr uint32_t LSPERR_Msk = 1u << 13;
+    static const constexpr uint32_t PRECISERR_Msk = 1u << 9;
+    static const constexpr uint32_t IMPRECISERR_Msk = 1u << 10;
 
-        #define STKERR_Txt      "During exception stacking"
-        #define UNSTKERR_Txt    "During exception unstacking"
-        #define IBUSERR_Txt     "During instruction prefetching, precise"
-        #define LSPERR_Txt      "During lazy floating-point state preservation "
-        #define PRECISERR_Txt   "Precise data access error, precise"
-        #define IMPRECISERR_Txt "Imprecise data access error, imprecise"
+    static const constexpr char *STKERR_Txt = "During exception stacking";
+    static const constexpr char *UNSTKERR_Txt = "During exception unstacking";
+    static const constexpr char *IBUSERR_Txt = "During instruction prefetching, precise";
+    static const constexpr char *LSPERR_Txt = "During lazy floating-point state preservation ";
+    static const constexpr char *PRECISERR_Txt = "Precise data access error, precise";
+    static const constexpr char *IMPRECISERR_Txt = "Imprecise data access error, imprecise";
 
-        #define BFARVALID_Msk (1UL << 15) // MemManage Fault Address Register (MMFAR) valid flag:
+    static const constexpr uint32_t BFARVALID_Msk = 1U << 15; // MemManage Fault Address Register (MMFAR) valid flag:
 
-        #define UNDEFINSTR_Msk (1UL << 16)
-        #define INVSTATE_Msk   (1UL << 17)
-        #define INVPC_Msk      (1UL << 18)
-        #define NOCPC_Msk      (1UL << 19)
-        #define UNALIGNED_Msk  (1UL << 24)
-        #define DIVBYZERO_Msk  (1UL << 25)
+    static const constexpr uint32_t UNDEFINSTR_Msk = 1u << 16;
+    static const constexpr uint32_t INVSTATE_Msk = 1u << 17;
+    static const constexpr uint32_t INVPC_Msk = 1u << 18;
+    static const constexpr uint32_t NOCPC_Msk = 1u << 19;
+    static const constexpr uint32_t UNALIGNED_Msk = 1u << 24;
+    static const constexpr uint32_t DIVBYZERO_Msk = 1u << 25;
 
-        #define UNDEFINSTR_Txt "Undefined instruction"
-        #define INVSTATE_Txt   "Attempt to enter an invalid instruction set state "
-        #define INVPC_Txt      "Failed integrity check on exception return  "
-        #define NOCPC_Txt      "Attempt to access a non-existing coprocessor"
-        #define UNALIGNED_Txt  "Illegal unaligned load or store"
-        #define DIVBYZERO_Txt  "Divide By 0"
-        //#define STKOF (1UL << 0)
+    static const constexpr char *UNDEFINSTR_Txt = "Undefined instruction";
+    static const constexpr char *INVSTATE_Txt = "Attempt to enter an invalid instruction set state ";
+    static const constexpr char *INVPC_Txt = "Failed integrity check on exception return  ";
+    static const constexpr char *NOCPC_Txt = "Attempt to access a non-existing coprocessor";
+    static const constexpr char *UNALIGNED_Txt = "Illegal unaligned load or store";
+    static const constexpr char *DIVBYZERO_Txt = "Divide By 0";
+    //static const constexpr uint8_t STKOF = 1U << 0;
 
-        #define ROWS 21
-        #define COLS 32
+    static const constexpr uint8_t ROWS = 21;
+    static const constexpr uint8_t COLS = 32;
 
     __disable_irq(); //disable irq
 
@@ -517,8 +680,8 @@ void ScreenHardFault(void) {
             term_printf(&term, " ");
     }
 
-    render_term(rect_ui16(10, 10, 220, 288), &term, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
-    display::DrawText(rect_ui16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    render_term(&term, 10, 10, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 
     while (1) //endless loop
     {

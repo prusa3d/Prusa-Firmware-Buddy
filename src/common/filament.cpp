@@ -6,7 +6,7 @@
 #include "assert.h"
 #include "filament.h"
 #include <cstring>
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 //fixme generating long names, takes too long
 const filament_t filaments[FILAMENTS_END] = {
@@ -42,7 +42,7 @@ void set_filament(FILAMENT_t filament) {
 
 FILAMENT_t get_filament() {
     if (filament_selected == FILAMENTS_END) {
-        uint8_t fil = eeprom_get_var(EEVAR_FILAMENT_TYPE).ui8;
+        uint8_t fil = variant_get_ui8(eeprom_get_var(EEVAR_FILAMENT_TYPE));
         if (fil >= FILAMENTS_END)
             fil = 0;
         filament_selected = (FILAMENT_t)fil;

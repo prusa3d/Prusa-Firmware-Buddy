@@ -6,7 +6,7 @@
 #include "config.h"
 #include "dbg.h"
 #include "adc.h"
-#include "jogwheel.h"
+#include "Jogwheel.hpp"
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
@@ -33,6 +33,16 @@
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
+
+#ifdef NEW_FANCTL
+    #include "fanctl.h"
+CFanCtl fanctl0 = CFanCtl(FANCTL0_PIN_OUTP, FANCTL0_PIN_TACH,
+    FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
+    FANCTL0_RPM_MIN, FANCTL0_RPM_MAX);
+CFanCtl fanctl1 = CFanCtl(FANCTL1_PIN_OUTP, FANCTL1_PIN_TACH,
+    FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
+    FANCTL1_RPM_MIN, FANCTL1_RPM_MAX);
+#endif //NEW_FANCTL
 
 #define DBG _dbg0 //debug level 0
 //#define DBG(...)  //disable debug
@@ -82,6 +92,10 @@ void app_run(void) {
     marlin_server_idle_cb = app_idle;
 
     adc_init();
+
+#ifdef NEW_FANCTL
+    fanctl_init();
+#endif //NEW_FANCTL
 
 #ifdef SIM_HEATER
     sim_heater_init();
@@ -144,6 +158,34 @@ void app_run(void) {
             DBG("Z:%li", z);
         }
 #endif //SIM_MOTION_TRACE_Z
+#if defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
+        static uint16_t rpm0_tmp = 0;
+        static uint16_t rpm1_tmp = 0;
+        uint16_t rpm0 = fanctl0.getActualRPM();
+        uint16_t rpm1 = fanctl1.getActualRPM();
+        if ((rpm0_tmp != rpm0) || (rpm1_tmp != rpm1)) {
+            rpm0_tmp = rpm0;
+            rpm1_tmp = rpm1;
+            _dbg("rpm0: %-5u rpm1: %-5u", rpm0, rpm1);
+        }
+#else //defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
+    #ifdef FANCTL0_TRACE
+        static uint16_t rpm0_tmp = 0;
+        uint16_t rpm0 = fanctl0.getActualRPM();
+        if (rpm0_tmp != rpm0) {
+            rpm0_tmp = rpm0;
+            _dbg("rpm0: %u", rpm0);
+        }
+    #endif //FANCTL0_TRACE
+    #ifdef FANCTL1_TRACE
+        static uint16_t rpm1_tmp = 0;
+        uint16_t rpm1 = fanctl1.getActualRPM();
+        if (rpm1_tmp != rpm1) {
+            rpm1_tmp = rpm1;
+            _dbg("rpm1: %u", rpm1);
+        }
+    #endif //FANCTL1_TRACE
+#endif     //defined(FANCTL0_TRACE) && defined(FANCTL0_TRACE)
     }
 }
 
@@ -177,10 +219,13 @@ void adc_tick_1ms(void) {
 }
 
 void app_tim14_tick(void) {
+#ifdef NEW_FANCTL
+    fanctl_tick();
+#endif //NEW_FANCTL
 #ifndef HAS_GUI
     #error "HAS_GUI not defined."
 #elif HAS_GUI
-    jogwheel_update_1ms();
+    jogwheel.Update1ms();
 #endif
     Sound_Update1ms();
     //hwio_update_1ms();

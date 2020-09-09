@@ -50,10 +50,10 @@ class FSM_notifier {
     struct data { //used floats - no need to retype
         ClientFSM type;
         uint8_t phase;
-        float scale;  //scale from value to progress
-        float offset; //offset from lowest value
-        uint8_t progress_min;
-        uint8_t progress_max;
+        float scale = 1;  //scale from value to progress
+        float offset = 0; //offset from lowest value
+        uint8_t progress_min = 0;
+        uint8_t progress_max = 100;
         uint8_t var_id;
         uint8_t last_progress_sent;
         data()
@@ -73,7 +73,7 @@ class FSM_notifier {
 
 protected:
     //protected ctor so this instance cannot be created
-    FSM_notifier(ClientFSM type, uint8_t phase, cvariant8 min, cvariant8 max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
+    FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, variant8_t max, uint8_t progress_min, uint8_t progress_max, uint8_t var_id);
     FSM_notifier(const FSM_notifier &) = delete;
     virtual void preSendNotification() {}
     virtual void postSendNotification() {}
@@ -87,8 +87,15 @@ public:
 template <int VAR_ID, class T>
 class Notifier : public FSM_notifier {
 public:
-    Notifier(ClientFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
-        : FSM_notifier(type, phase, cvariant8(min), cvariant8(max), progress_min, progress_max, VAR_ID) {}
+    Notifier(ClientFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max) {};
+    //        : FSM_notifier(type, phase, min, max, progress_min, progress_max, VAR_ID) {}
+};
+
+template <int VAR_ID>
+class Notifier<VAR_ID, float> : public FSM_notifier {
+public:
+    Notifier(ClientFSM type, uint8_t phase, float min, float max, uint8_t progress_min, uint8_t progress_max)
+        : FSM_notifier(type, phase, variant8_flt(min), variant8_flt(max), progress_min, progress_max, VAR_ID) {};
 };
 
 //use an alias to automatically notify progress

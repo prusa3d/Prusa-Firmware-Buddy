@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2020-07-29 11:47+0200\n"
+"POT-Creation-Date: 2020-08-26 14:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -146,6 +146,26 @@ msgstr ""
 msgid "Change Filament"
 msgstr ""
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:42
+msgid "Check the heatbed heater & thermistor wiring for possible damage."
+msgstr ""
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:50
+#: lib/Prusa-Error-Codes/12/errors_list.h:58
+#: lib/Prusa-Error-Codes/12/errors_list.h:66
+msgid "Check the heatbed thermistor wiring for possible damage."
+msgstr ""
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:46
+msgid "Check the print head heater & thermistor wiring for possible damage."
+msgstr ""
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:54
+#: lib/Prusa-Error-Codes/12/errors_list.h:62
+#: lib/Prusa-Error-Codes/12/errors_list.h:70
+msgid "Check the print head thermistor wiring for possible damage."
+msgstr ""
+
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
 msgstr ""
@@ -277,6 +297,14 @@ msgstr ""
 msgid "Fan test"
 msgstr ""
 
+#: src/gui/screen_sysinf.cpp:71
+msgid "Fan0 RPM"
+msgstr ""
+
+#: src/gui/screen_sysinf.cpp:75
+msgid "Fan1 RPM"
+msgstr ""
+
 #: src/gui/screen_menu_settings.cpp:24
 msgid "Fil. sens."
 msgstr ""
@@ -315,12 +343,21 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#: src/gui/screen_home.cpp:83
+#: lib/Prusa-Error-Codes/12/errors_list.h:41
+#: lib/Prusa-Error-Codes/12/errors_list.h:45
+msgid "HEATING FAILED"
+msgstr ""
+
+#: src/gui/screen_home.cpp:83 src/gui/screen_home.cpp:67
 msgid "HOME"
 msgstr ""
 
 #: src/gui/dialogs/DialogFactory.cpp:37
 msgid "HOME TO MAX"
+msgstr ""
+
+#: src/gui/test/screen_test_msgbox.cpp:11
+msgid "Header"
 msgstr ""
 
 #: src/guiapi/include/MItem_print.hpp:16
@@ -460,6 +497,11 @@ msgstr ""
 msgid "Loud"
 msgstr ""
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:57
+#: lib/Prusa-Error-Codes/12/errors_list.h:61
+msgid "MAXTEMP ERROR"
+msgstr ""
+
 #: src/gui/test/screen_mesh_bed_lv.cpp:89
 msgid "MESH BED L."
 msgstr ""
@@ -467,6 +509,11 @@ msgstr ""
 #. p_window_header_set_icon(&(pmsg->header), IDR_PNG_status_icon_menu);					ICONka od Michala Fanty
 #: src/gui/screen_messages.cpp:61
 msgid "MESSAGES"
+msgstr ""
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:65
+#: lib/Prusa-Error-Codes/12/errors_list.h:69
+msgid "MINTEMP ERROR"
 msgstr ""
 
 #: src/gui/screen_menu_move.cpp:43
@@ -658,6 +705,10 @@ msgstr ""
 
 #: src/gui/dialogs/DialogFactory.cpp:14 src/gui/screen_menu_filament.cpp:98
 msgid "PURGE FILAMENT"
+msgstr ""
+
+#: src/gui/dialogs/dialog_response.cpp:19
+msgid "PURGE MORE"
 msgstr ""
 
 #: src/gui/dialogs/DialogG162.cpp:27 src/gui/dialogs/DialogLoadUnload.cpp:40
@@ -853,7 +904,13 @@ msgstr ""
 msgid "Save settings"
 msgstr ""
 
-#: src/gui/wizard/xyzcalib.cpp:66
+#. / draw "Scan me" text
+#. r=1 c=34
+#: src/common/bsod.cpp:259
+msgid "Scan me for details"
+msgstr ""
+
+#: src/gui/wizard/xyzcalib.cpp:66 src/gui/wizard/xyzcalib.cpp:68
 msgid ""
 "Searching bed\n"
 "calibration points"
@@ -940,6 +997,11 @@ msgstr ""
 msgid "TEMPERATURE"
 msgstr ""
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:49
+#: lib/Prusa-Error-Codes/12/errors_list.h:53
+msgid "THERMAL RUNAWAY"
+msgstr ""
+
 #. MSGBOX_RES_OK        8
 #. 9
 #: src/guiapi/src/window_msgbox.cpp:57
@@ -1008,6 +1070,10 @@ msgid ""
 "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr ""
 
+#: src/gui/screen_print_preview.cpp:149
+msgid "This G-CODE was set up for another printer type."
+msgstr ""
+
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:108
 msgid ""
@@ -1018,6 +1084,10 @@ msgstr ""
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
 msgid "Thr"
+msgstr ""
+
+#: src/guiapi/include/MItem_tools.hpp:321
+msgid "Time"
 msgstr ""
 
 #: src/gui/wizard/wizard_load_unload.cpp:23
@@ -1089,7 +1159,11 @@ msgstr ""
 msgid "Version Info"
 msgstr ""
 
-#: src/gui/wizard/screen_wizard.cpp:523
+#: src/gui/screen_print_preview.cpp:149
+msgid "WARNING:"
+msgstr ""
+
+#: src/gui/wizard/screen_wizard.cpp:523 src/gui/wizard/screen_wizard.cpp:520
 msgid "WIZARD"
 msgstr ""
 

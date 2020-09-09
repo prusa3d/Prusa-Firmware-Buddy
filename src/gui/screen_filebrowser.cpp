@@ -10,7 +10,7 @@
 #include "print_utils.hpp"
 #include "ScreenHandler.hpp"
 #include "eeprom.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
@@ -33,8 +33,8 @@ static char firstVisibleSFN[SFN_len] = "";
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : window_frame_t()
     , header(this)
-    , w_filelist(this, rect_ui16(10, 32, 220, 278)) {
-    screen_filebrowser_sort = (WF_Sort_t)eeprom_get_var(EEVAR_FILE_SORT).ui8;
+    , w_filelist(this, Rect16(10, 32, 220, 278)) {
+    screen_filebrowser_sort = (WF_Sort_t)variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT));
 
     // FIXME: this could crash with very fast insert and eject, status_header will fix this
     marlin_event_clr(MARLIN_EVT_MediaRemoved); // when screen is open, USB must be inserted
@@ -146,6 +146,4 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
             return;
         }
     }
-    window_frame_t::windowEvent(sender, event, param);
-    return;
 }

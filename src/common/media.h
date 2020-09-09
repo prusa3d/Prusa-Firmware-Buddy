@@ -1,11 +1,10 @@
 // media.h
-#ifndef _MEDIA_H
-#define _MEDIA_H
+#pragma once
 
 #include <inttypes.h>
 
-#define MEDIA_PRINT_FILENAME_SIZE 128
-#define MEDIA_PRINT_FILEPATH_SIZE 128
+static const uint16_t MEDIA_PRINT_FILENAME_SIZE = 128;
+static const uint16_t MEDIA_PRINT_FILEPATH_SIZE = 128;
 
 typedef enum {
     media_state_REMOVED = 0,  // media is inserted
@@ -52,6 +51,8 @@ extern uint32_t media_print_get_size(void);
 
 extern uint32_t media_print_get_position(void);
 
+extern void media_print_set_position(uint32_t pos);
+
 extern float media_print_get_percent_done(void);
 
 extern void media_loop(void);
@@ -73,5 +74,3 @@ extern void media_get_SFN_path(char *sfn, uint32_t sfn_size, char *filepath);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_MEDIA_H

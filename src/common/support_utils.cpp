@@ -1,3 +1,5 @@
+#include <array>
+
 #include "config.h"
 #include "otp.h"
 #include "sys.h"
@@ -7,43 +9,126 @@
 #include "string.h"
 #include "lang.h"
 #include "../../gui/wizard/selftest.h"
+#include "version.h"
+#include "eeprom.h"
+#include "sha256.h"
 
 #include "tm_stm32f4_crc.h"
 #include "qrcodegen.h"
+#include "support_utils_lib.hpp"
 
+static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
+static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
+static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
+
+/// FIXME same code in support_utils_lib
+/// but linker cannot find it
 char *eofstr(char *str) {
     return (str + strlen(str));
 }
 
-void block2hex(char *str, uint32_t str_size, uint8_t *pdata, size_t length) {
-    for (; length > 0; length--)
-        snprintf(eofstr(str), str_size - strlen(str), "%02X", *(pdata++));
-}
-
-void append_crc(char *str, uint32_t str_size) {
+void append_crc(char *str, const uint32_t str_size) {
     uint32_t crc;
 
     TM_CRC_Init(); // !!! should be somewhere else (not sure where yet)
-    crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ER_URL) - 1), strlen(str) - sizeof(ER_URL) + 1, 1);
+    crc = TM_CRC_Calculate8((uint8_t *)(str + sizeof(ERROR_URL_LONG_PREFIX) - 1), strlen(str) - sizeof(ERROR_URL_LONG_PREFIX) + 1, 1);
     snprintf(eofstr(str), str_size - strlen(str), "/%08lX", crc);
 }
 
-void create_path_info_4error(char *str, uint32_t str_size, int error_code) {
-    // FIXME use std::array instead
+/// \returns 40 bit encoded to 8 chars (32 symbol alphabet: 0-9,A-V)
+/// Make sure there's a space for 9 chars
+void printerCode(char *str) {
+    constexpr uint8_t SNSize = 4 + OTP_SERIAL_NUMBER_SIZE - 1; // + fixed header, - trailing 0
+    constexpr uint8_t bufferSize = OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE + SNSize;
+    uint8_t toHash[bufferSize];
+    /// CPU ID
+    memcpy(toHash, (char *)OTP_STM32_UUID_ADDR, OTP_STM32_UUID_SIZE);
+    //snprintf((char *)toHash, buffer, "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
+    /// MAC
+    memcpy(&toHash[OTP_STM32_UUID_SIZE], (char *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
+    /// SN
+    memcpy(&toHash[OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE], (char *)OTP_SERIAL_NUMBER_ADDR, SNSize);
 
-    strlcpy(str, ER_URL, str_size);
-    snprintf(eofstr(str), str_size - strlen(str), "%d/", error_code);
-    snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
-    snprintf(eofstr(str), str_size - strlen(str), "%08lX%08lX%08lX/", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
-    //!//     snprintf(eofstr(str), str_size - strlen(str), "%d/", FW_VERSION);
-    snprintf(eofstr(str), str_size - strlen(str), "%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
-    append_crc(str, str_size);
+    uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
+    /// get hash;
+    mbedtls_sha256_ret_256(toHash, sizeof(toHash), (unsigned char *)hash);
+
+    /// shift hash by 2 bits
+    hash[7] >>= 2;
+    for (int i = 6; i >= 0; --i)
+        rShift2Bits(hash[i], hash[i + 1]);
+
+    /// convert number to 38 bits (32 symbol alphabet)
+    for (uint8_t i = 0; i < 8; ++i) {
+        str[i] = to32((uint8_t *)hash, i * 5);
+    }
+
+    /// set first 2 bits (sign, appendix)
+    /// TODO FW sign
+    if (0) {
+        setBit((uint8_t *)hash, 7);
+        // setBit(str[0], 7);
+    }
+
+    /// appendix state
+    if (ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) {
+        setBit((uint8_t *)hash, 6);
+        //setBit(str[0], 6);
+    }
+
+    str[8] = '\0';
 }
 
-void create_path_info_4service(char *str, uint32_t str_size) {
-    // FIXME use std::array instead
+/// Adds "/en" or other language abbreviation
+void addLanguage(char *str, const uint32_t str_size) {
+    char lang[3];
+    const uint16_t langNum = variant_get_ui16(eeprom_get_var(EEVAR_LANGUAGE));
+    uint16_t *langP = (uint16_t *)lang;
+    *langP = langNum;
+    //uint16_t *(lang) = langNum;
+    //lang[0] = langNum / 256;
+    //lang[1] = langNum % 256;
+    lang[2] = '\0';
+    snprintf(eofstr(str), str_size - strlen(str), "/%s", lang);
+}
 
-    strlcpy(str, IR_URL, str_size);
+void error_url_long(char *str, const uint32_t str_size, const int error_code) {
+    /// FIXME remove eofstr & strlen
+
+    /// fixed prefix
+    strlcpy(str, ERROR_URL_LONG_PREFIX, str_size);
+
+    addLanguage(str, str_size);
+
+    /// error code
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
+
+    /// printer code
+    snprintf(eofstr(str), str_size - strlen(str), "/");
+    if (str_size - strlen(str) > 8)
+        printerCode(eofstr(str));
+
+    /// FW version
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", variant_get_ui16(eeprom_get_var(EEVAR_FW_VERSION)));
+
+    //snprintf(eofstr(str), str_size - strlen(str), "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
+    //snprintf(eofstr(str), str_size - strlen(str), "/%s", ((ram_data_exchange.model_specific_flags && APPENDIX_FLAG_MASK) ? "U" : "L"));
+    //append_crc(str, str_size);
+}
+
+void error_url_short(char *str, const uint32_t str_size, const int error_code) {
+    /// help....com/
+    strlcpy(str, ERROR_URL_SHORT_PREFIX, str_size);
+
+    addLanguage(str, str_size);
+
+    /// /12201
+    snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
+}
+
+void create_path_info_4service(char *str, const uint32_t str_size) {
+
+    strlcpy(str, INFO_URL_LONG_PREFIX, str_size);
     // PrinterType
     snprintf(eofstr(str), str_size - strlen(str), "%d/", PRINTER_TYPE);
     // UniqueID

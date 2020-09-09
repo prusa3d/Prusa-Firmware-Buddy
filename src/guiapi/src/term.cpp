@@ -1,7 +1,9 @@
-// term.c
+// term.cpp
+#include <stdarg.h>
+#include <algorithm>
+
 #include "term.h"
 #include "gui.hpp"
-#include <stdarg.h>
 #include "bsod.h"
 
 void term_init(term_t *pt, uint8_t cols, uint8_t rows, uint8_t *buff) {
@@ -29,12 +31,11 @@ void term_done(term_t *pt) {
 }
 
 void term_clear(term_t *pt) {
-    int r;
-    int c;
-    uint8_t *p = pt->buff;
-    if (!pt || !(pt->buff))
+    if (pt == nullptr || pt->buff == nullptr)
         return;
-    for (r = 0; r < pt->rows; r++)
+    uint8_t *p = pt->buff;
+    int c;
+    for (int r = 0; r < pt->rows; r++)
         for (c = 0; c < pt->cols; c++) {
             *(p++) = TERM_DEF_CHAR;
             *(p++) = TERM_DEF_ATTR;
@@ -124,8 +125,6 @@ void term_scroll_up(term_t *pt) {
 void term_write_escape_char(term_t *pt, uint8_t ch) {
     if (ch == 0x1b)
         pt->flg |= TERM_FLG_ESCAPE;
-    else {
-    }
 }
 
 void term_write_CR(term_t *pt) {
@@ -153,24 +152,34 @@ void term_write_control_char(term_t *pt, uint8_t ch) {
 void term_write_char(term_t *pt, uint8_t ch) {
     if (!pt || !(pt->buff))
         return;
+
+    /// Add new line if needed
+    /// if it's not a new line char.
+    if (ch != '\n') {
+        if (pt->col >= pt->cols) {
+            pt->col = 0;
+            if (++(pt->row) >= pt->rows)
+                term_scroll_up(pt);
+        }
+    }
+
     if ((ch == 0x1b) || (pt->flg & TERM_FLG_ESCAPE))
         term_write_escape_char(pt, ch);
     else if (ch < 32)
         term_write_control_char(pt, ch);
     else {
-        int i = pt->col + pt->row * pt->cols;
+        const uint16_t i = pt->col + pt->row * pt->cols;
         pt->buff[2 * i + 0] = ch;
         pt->buff[2 * i + 1] = pt->attr;
         pt->buff[pt->size + (i >> 3)] |= (1 << (i % 8));
-        if (++(pt->col) >= pt->cols) {
-            pt->col = 0;
-            if (++(pt->row) >= pt->rows)
-                term_scroll_up(pt);
-        }
         pt->flg |= TERM_FLG_CHANGED;
+        /// leave the cursor even behind the end of the line
+        /// this allows merging auto-new-line with '\n'
+        ++(pt->col);
     }
 }
-
+//duplicit function, todo erase
+//to be replaced by window_term_t::Printf, but it does not work in bsod
 int term_printf(term_t *pt, const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
@@ -179,7 +188,7 @@ int term_printf(term_t *pt, const char *fmt, ...) {
 
     int ret = vsnprintf(text, sizeof(text), fmt, va);
 
-    const size_t range = ret < TERM_PRINTF_MAX ? ret : TERM_PRINTF_MAX;
+    const size_t range = std::min(ret, TERM_PRINTF_MAX);
     for (size_t i = 0; i < range; i++)
         term_write_char(pt, text[i]);
 
@@ -187,3 +196,30 @@ int term_printf(term_t *pt, const char *fmt, ...) {
 
     return ret;
 }
+
+// cannot use this
+// passing va_list into multiple nested functions does not work
+// undefined behavior
+/*
+int term_printf(term_t *pt, const char *fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+    int ret = term_vprintf(pt, fmt, va);
+    va_end(va);
+    return ret;
+}
+
+
+int term_vprintf(term_t *pt, const char *fmt, va_list va) {
+
+    char text[TERM_PRINTF_MAX];
+
+    int ret = vsnprintf(text, sizeof(text), fmt, va);
+
+    const size_t range = std::min(ret, TERM_PRINTF_MAX);
+    for (size_t i = 0; i < range; i++)
+        term_write_char(pt, text[i]);
+
+    return ret;
+}
+*/

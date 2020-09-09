@@ -41,7 +41,7 @@ ctest .
 ```bash
 mkdir -p build_tests \
 && cd build_tests \
-&& rm -r * \
+&& rm -rf * \
 && export PATH="$(python ../utils/bootstrap.py --print-dependency-directory cmake)/bin:$PATH" \
 && export PATH="$(python ../utils/bootstrap.py --print-dependency-directory ninja):$PATH" \
 && export CTEST_OUTPUT_ON_FAILURE=1 \

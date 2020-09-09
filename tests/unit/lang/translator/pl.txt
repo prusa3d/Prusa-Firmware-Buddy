@@ -23,6 +23,10 @@ Kalibracja XY
 ANULUJ
 ZMIANA FILAMENTU
 Zmiana filamentu
+Sprawdź czy przewody grzałki i termistora stołu nie są uszkodzone.
+Sprawdź czy przewody termistora stołu nie są uszkodzone.
+Sprawdź czy przewody grzałki i termistora hotendu nie są uszkodzone.
+Sprawdź czy przewody termistora hotendu nie są uszkodzone.
 Sprawdzanie osi
 Sprawdzanie temp.\nhotendu i stołu
 Wyczyść płytę stalową.
@@ -47,6 +51,8 @@ Zresetowano do ustawień fabrycznych. System zostanie teraz zrestartowany.
 Ustawienia fabryczne
 Statystyki błędów
 Test wentylatorów
+RPM Went. 0
+RPM Went. 1
 Czujnik filam.
 FILAMENT
 Filament
@@ -59,8 +65,10 @@ Przepływ
 Pt
 AKTUALIZACJA FW
 Aktualizacja FW
+Nagłówek
 Stół
 Grzanie wyłączone po 30-minutowym braku aktywności.
+BŁĄD GRZANIA
 Nagrzewanie...
 Cześć, jestem Twoją Original Prusa Mini
 EKRAN GŁÓWNY
@@ -92,6 +100,7 @@ Wczytywanie ...
 Głośno
 Upewnij się, że   \nfilament          \nprzechodzi przez  \nczujnik filamentu.
 Materiał
+BŁĄD MAXTEMP
 Pomiar wysokości\npunktów\nkalibracyjnych
 Wył. czas. menu
 POZIOMOWANIE STOŁU
@@ -99,6 +108,7 @@ Poziomowanie stołu
 Błąd poziomowania stołu?
 KOMUNIKATY
 Komunikaty
+BŁĄD MINTEMP
 Pon
 Ruch osi
 RUCH OSI
@@ -106,6 +116,7 @@ Ruch E
 Ruch X
 Ruch Y
 Ruch Z
+Nazwa
 DALEJ
 NIE
 Nie wykryto czujnika filamentu. Sprawdź, czy jest podłączony i spróbuj ponownie.
@@ -150,6 +161,7 @@ DRUKOWANIE
 Czas druku
 CZYSZCZENIE
 Czyszczenie
+CZYŚĆ PONOWNIE
 Czyszczenie
 Test QR
 Pytanie
@@ -166,12 +178,13 @@ Powrót
 Sob
 Zapisz zrzut pamięci
 Zapisz ustawienia
+Szczegóły - zeskanuj
 Szukam punktów\nkalibracyjnych stołu
 Wybierz rodzaj filamentu
 WYBIERZ PLIK
 WYBIERZ JĘZYK
 Wybierz, jeśli      \nchcesz automatycznie\nwgrać zaktualizowane\nfirmware z pam. USB.
-SelfTest
+Selftest
 SELFTEST
 Wyślij info przez QR
 Serwis
@@ -179,6 +192,7 @@ Ustawienia
 USTAWIENIA
 Ustawienia wczytane pomyślnie
 Cicho
+Sortuj pliki wg
 Tryb dźwięku
 Rodzaj dźwięku
 Głośność dźwięku
@@ -200,9 +214,12 @@ Ustawienia zostały pomyślnie zapisane w pliku \"lan_settings.ini\".
 Pasek stanu znajduje się na spodzie ekranu. Zawiera informacje:\n- Temperatura dyszy\n- Temperatura stołu\n- Prędkość druku\n- Pozycja osi Z\n- Wybrany filament
 Kalibracja XYZ zakończona niepowodzeniem. Sprawdź okablowanie oraz osie drukarki, następnie uruchom kalibrację ponownie.
 Wystąpił błąd podczas zapisywania ustawień w pliku \"lan_settings.ini\".
+THERMAL RUNAWAY
+Ten G-code jest przygotowany dla innej drukarki.
 Tej czynności nie można cofnąć, a obecna konfiguracja zostanie utracona! Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?
 Czw
-Wyłącznik czasowy
+Czas
+Wył. czas. menu
 Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby wymienić, wybierz ROZŁADUJ.
 Aby do kalibracji użyć załadowanego filamentu, wybierz DALEJ. Aby załadować, wybierz ZAŁADUJ. Aby wymienić, wybierz ROZŁADUJ.
 Dziś o 
@@ -223,8 +240,9 @@ Wersja
 Czekam na schłodzenie
 Czekam na temp.
 Ostrzeżenie
+UWAGA:
 Śr
-Witaj w Asystencie Konfiguracji Original Prusa MINI Kontynuować?
+Witaj w Asystencie \nKonfiguracji \nOriginal Prusa MINI. \nKontynuować?
 Witaj w Asystencie Konfiguracji Original Prusa MINI. Kontynuować?
 Asystent
 ASYSTENT

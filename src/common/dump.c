@@ -4,13 +4,11 @@
 #include "ff.h"
 #include "w25x.h"
 
-#define DUMP_OFFSET 0x00000000
+static const uint32_t DUMP_OFFSET = 0x00;
+static const uint32_t DUMP_PAGE_SIZE = 0x100;
+static const uint32_t DUMP_BUFF_SIZE = 0x100;
 
-#define DUMP_PAGE_SIZE 0x100
-
-#define DUMP_BUFF_SIZE 0x100
-
-#define DUMP_XFLASH_SIZE (DUMP_RAM_SIZE + DUMP_CCRAM_SIZE)
+static const uint32_t DUMP_XFLASH_SIZE = DUMP_RAM_SIZE + DUMP_CCRAM_SIZE;
 
 #define _STR(arg)  #arg
 #define __STR(arg) _STR(arg)
@@ -115,9 +113,8 @@ void dump_hardfault_test_0(void) {
 }
 
 //integer div by zero test
-void dump_hardfault_test_1(void) {
-    volatile int a = 1;
+int dump_hardfault_test_1(void) {
     volatile int b = 0;
-    volatile int c = a / b;
-    c = c;
+    volatile int c = 1 / b;
+    return c;
 }

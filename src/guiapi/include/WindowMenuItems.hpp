@@ -5,7 +5,7 @@
 #include <array>
 #include "display_helper.h"
 #include "super.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 //WI_LABEL
 class WI_LABEL_t : public IWindowMenuItem {
@@ -22,11 +22,11 @@ protected:
         WIO_STEP = 2 };
     static std::array<char, 10> temp_buff; //temporary buffer to print value for text measurements
     virtual void click(IWindowMenu &window_menu) final;
-    virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const override;
-    std::array<rect_ui16_t, 2> getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t rect) const;
-    static rect_ui16_t getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen);
+    virtual Rect16 getRollingRect(IWindowMenu &window_menu, Rect16 rect) const override;
+    std::array<Rect16, 2> getRollingSpinRects(IWindowMenu &window_menu, Rect16 rect) const;
+    static Rect16 getSpinRect(IWindowMenu &window_menu, Rect16 base_rolling_rect, size_t spin_strlen);
     virtual char *sn_prt() const = 0;
-    virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    virtual void printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:
     IWiSpin(const char *label, uint16_t id_icon = 0, bool enabled = true, bool hidden = false)
@@ -125,10 +125,10 @@ public:
 protected:
     virtual void OnChange(size_t old_index) = 0;
     virtual void click(IWindowMenu &window_menu) final;
-    rect_ui16_t getSpinRect(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect, size_t spin_strlen) const;
-    std::array<rect_ui16_t, 2> getRollingSpinRects(IWindowMenu &window_menu, rect_ui16_t base_rolling_rect) const;
-    virtual rect_ui16_t getRollingRect(IWindowMenu &window_menu, rect_ui16_t rect) const override;
-    virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    Rect16 getSpinRect(IWindowMenu &window_menu, Rect16 base_rolling_rect, size_t spin_strlen) const;
+    std::array<Rect16, 2> getRollingSpinRects(IWindowMenu &window_menu, Rect16 base_rolling_rect) const;
+    virtual Rect16 getRollingRect(IWindowMenu &window_menu, Rect16 rect) const override;
+    virtual void printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override;
     virtual const char *get_item() const = 0;
 };
 
@@ -175,7 +175,7 @@ public: //todo private
     const char **strings;
 
 protected:
-    virtual void printText(IWindowMenu &window_menu, rect_ui16_t rect, color_t color_text, color_t color_back, uint8_t swap) const override;
+    virtual void printText(IWindowMenu &window_menu, Rect16 rect, color_t color_text, color_t color_back, uint8_t swap) const override;
 
 public:
     WI_SELECT_t(int32_t index, const char **strings, uint16_t id_icon, bool enabled = true, bool hidden = false);

@@ -10,11 +10,13 @@
 #include "DialogHandler.hpp"
 #include "ScreenHandler.hpp"
 #include "print_utils.hpp"
+#include "printers.h"
 
 #define DBG _dbg0
 
 static const char *gcode_file_name = NULL;
 static const char *gcode_file_path = NULL;
+static bool valid_printer_settings = true;
 
 const uint16_t menu_icons[2] = {
     IDR_PNG_menu_icon_print,
@@ -42,8 +44,8 @@ size_t description_line_t::value_width(string_view_utf8 *title_str) {
 }
 
 description_line_t::description_line_t(window_frame_t *frame, bool has_thumbnail, size_t row, string_view_utf8 title_str, const char *value_fmt, ...)
-    : title(frame, rect_ui16(PADDING, calculate_y(has_thumbnail, row), title_width(&title_str), LINE_HEIGHT))
-    , value(frame, rect_ui16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_thumbnail, row), value_width(&title_str), LINE_HEIGHT))
+    : title(frame, Rect16(PADDING, calculate_y(has_thumbnail, row), title_width(&title_str), LINE_HEIGHT), is_multiline::no)
+    , value(frame, Rect16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_thumbnail, row), value_width(&title_str), LINE_HEIGHT), is_multiline::no)
 
 {
     title.SetText(title_str);
@@ -88,6 +90,7 @@ GCodeInfo::GCodeInfo() {
     filament_type[0] = 0;
     filament_used_mm = 0;
     filament_used_g = 0;
+    valid_printer_settings = true;
     const unsigned search_last_x_bytes = 10000;
     FSIZE_t filesize = f_size(&file);
     f_lseek(&file, filesize > search_last_x_bytes ? filesize - search_last_x_bytes : 0);
@@ -109,6 +112,12 @@ GCodeInfo::GCodeInfo() {
             sscanf(value_buffer, "%u", &filament_used_mm);
         } else if (name_equals("filament used [g]")) {
             sscanf(value_buffer, "%u", &filament_used_g);
+        } else if (name_equals("printer_model")) {
+            if (strncmp(value_buffer, PRINTER_MODEL, sizeof(value_buffer)) == 0) {
+                valid_printer_settings = true; // GCODE settings suits Original Prusa MINI
+            } else {
+                valid_printer_settings = false; // GCODE settings suits another printer
+            }
         }
     }
 }
@@ -123,20 +132,44 @@ GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
     if (has_thumbnail || !filament_type[0]) {
         description_lines[2].value.Hide();
         description_lines[2].title.Hide();
+        description_lines[2].value.Validate(); // == do not redraw
+        description_lines[2].title.Validate(); // == do not redraw
     }
     if (has_thumbnail || !(filament_used_mm && filament_used_g)) {
         description_lines[3].value.Hide();
         description_lines[3].title.Hide();
+        description_lines[3].value.Validate(); // == do not redraw
+        description_lines[3].title.Validate(); // == do not redraw
+    }
+}
+
+static void print_button_press() {
+    bool approved = true;
+    if (!valid_printer_settings) {
+        switch (MsgBoxTitle(_("WARNING:"), _("This G-CODE was set up for another printer type."),
+            Responses_OkCancel, 0, GuiDefaults::RectScreenBodyNoFoot)) {
+        case Response::Ok:
+            break;
+        case Response::Cancel:
+            Sound_Play(eSOUND_TYPE_SingleBeep);
+            approved = false;
+            break;
+        default:
+            break;
+        }
+    }
+    if (approved) {
+        print_begin(screen_print_preview_data_t::GetGcodeFilepath());
     }
 }
 
 screen_print_preview_data_t::screen_print_preview_data_t()
     : window_frame_t()
-    , title_text(this, rect_ui16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
-    , print_button(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, []() { print_begin(screen_print_preview_data_t::GetGcodeFilepath()); })
-    , print_label(this, rect_ui16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))
-    , back_button(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back, []() { Screens::Access()->Close(); })
-    , back_label(this, rect_ui16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, 64))
+    , title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT), is_multiline::no)
+    , print_button(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, print_button_press)
+    , print_label(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
+    , back_button(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back, []() { Screens::Access()->Close(); })
+    , back_label(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail) {
     marlin_set_print_speed(100);

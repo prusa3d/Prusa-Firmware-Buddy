@@ -7,7 +7,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <deque>
-#include "rundir.h"
+#include <set>
 #include "hash.hpp"
 
 using namespace std;
@@ -25,7 +25,7 @@ std::pair<int, int> NumberOfCollisions(REDUCE r) {
     // beware - keys.txt is a "normal" text file, but it MUST be excluded from pre-commit
     // otherwise the pre-commit script will strip the trailing spaces on some texts.
     // In this case doing so prevents the tests from running on the genuine raw texts from the FW.
-    ifstream f(RELATIVE_FROM_RUNDIR "keys.txt");
+    ifstream f("keys.txt");
     deque<uint32_t> hashes_djb2;
     deque<uint32_t> hashes_sdbm;
     do {
@@ -104,7 +104,7 @@ struct String {
 };
 
 template <typename HASH, uint32_t buckets, uint32_t maxStrings>
-bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char *fname, deque<string> &rawStrings) {
+bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char *fname, deque<string> &rawStrings, bool skipCollisionCheck) {
     using SHTable = string_hash_table<HASH, buckets, maxStrings>;
     deque<String> workStrings;
 
@@ -147,6 +147,16 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
         auto ie = find_if_not(b, e, [&b](const String &s) { return SHTable::ReducedHash(s.hash) == SHTable::ReducedHash(b->hash); });
         sh.hash_table[SHTable::ReducedHash(b->hash)].begin = distance(begin, b);
         sh.hash_table[SHTable::ReducedHash(b->hash)].end = distance(begin, ie);
+
+        if (!skipCollisionCheck) {
+            // check, that we do not have collisions which were unsolvable by comparing the first 2 letters
+            // i.e. in each bucket <b, ie) the first letters must be unique
+            set<string> firstLetters;
+            for_each(b, ie, [&firstLetters](const String &s) { firstLetters.insert(s.s.substr(0, 2)); });
+            // If this is not true, we have a collision which cannot be solved just by the first 2 letters
+            // In such a case one must either enlarge the search hash map (more buckets) or do some other changes
+            REQUIRE(firstLetters.size() == distance(b, ie));
+        }
         b = ie; // move onto the next bucket
     }
     return true;
@@ -159,7 +169,9 @@ bool CheckHashClass() {
     using SHTable = string_hash_table<HASH, buckets, maxStrings>;
     SHTable sh;
     deque<string> rawStrings; // this is just for verifying the algorithm later on - need to have the raw strings as they came from the file
-    REQUIRE(FillHashClass<HASH, buckets, maxStrings>(sh, RELATIVE_FROM_RUNDIR "keys.txt", rawStrings));
+
+    // warning - deliberately skips collision tests
+    REQUIRE(FillHashClass<HASH, buckets, maxStrings>(sh, "keys.txt", rawStrings, true));
 
     // now the hash table is filled with data, let's query it ;)
     // every string must be found in the hash table
@@ -213,7 +225,7 @@ TEST_CASE("string_hash_table::make_hash_table_intentional_collision", "[translat
 }
 
 bool FillHashTableCPUFLASHProvider(CPUFLASHTranslationProviderBase::SHashTable &ht, const char *fname, std::deque<string> &rawStrings) {
-    return FillHashClass(ht, fname, rawStrings); // just to hide the template FillHashClass within this source file
+    return FillHashClass(ht, fname, rawStrings, false); // just to hide the template FillHashClass within this source file
 }
 
 void FindAndReplaceAll(string &data, string toSearch, string replaceStr) {

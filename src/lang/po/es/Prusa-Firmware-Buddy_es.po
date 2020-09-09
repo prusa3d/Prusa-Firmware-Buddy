@@ -120,6 +120,23 @@ msgstr "CAMBIAR FILAMENTO"
 msgid "Change Filament"
 msgstr "Cambiar Filamento"
 
+#. / FIXME split heating, min/max temp and thermal runaway
+#: src/common/bsod.cpp:232
+msgid "Check the heatbed heater & thermistor wiring for possible damage."
+msgstr "Revisa el cableado del termistor y el calentador de la base calefactable para detectar posibles daños."
+
+#: src/common/bsod.cpp:233
+msgid "Check the heatbed thermistor wiring for possible damage."
+msgstr "Revisa el cableado del termistor de la base calefactada buscando posibles daños."
+
+#: src/common/bsod.cpp:234
+msgid "Check the print head heater & thermistor wiring for possible damage."
+msgstr "Comprueba el cableado del termistor y el calentador del cabezal de impresión (fusor)   para ver si hay daños."
+
+#: src/common/bsod.cpp:235
+msgid "Check the print head thermistor wiring for possible damage."
+msgstr "Revisa el cableado del termistor del cabezal de impresión (fusor)  para detectar posibles daños."
+
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
 msgstr "Comprobando ejes"
@@ -220,6 +237,14 @@ msgstr "Registro de errores"
 msgid "Fan test"
 msgstr "Prueba del ventilador"
 
+#: src/gui/screen_sysinf.cpp:71
+msgid "Fan0 RPM"
+msgstr "RPM Ventilador0 "
+
+#: src/gui/screen_sysinf.cpp:75
+msgid "Fan1 RPM"
+msgstr "RPM Ventilador1"
+
 #: src/gui/screen_menu_settings.cpp:24
 msgid "Fil. sens."
 msgstr "Sens. fil."
@@ -271,6 +296,10 @@ msgstr "ACTUALIZAR FW"
 msgid "FW Update"
 msgstr "Actualizar FW"
 
+#: src/gui/test/screen_test_msgbox.cpp:11
+msgid "Header"
+msgstr "Cabecera"
+
 #: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
 msgstr "Base Calefactora"
@@ -278,6 +307,11 @@ msgstr "Base Calefactora"
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Calentamiento deshabilitado debido a 30 minutos de inactividad."
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:41
+#: lib/Prusa-Error-Codes/12/errors_list.h:45
+msgid "HEATING FAILED"
+msgstr "FALLO EN CALENTAMIENTO"
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -422,6 +456,11 @@ msgstr "Asegúrate que     \nfilamento está    \ninsertado a través\ndel senso
 msgid "Material"
 msgstr "Material"
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:57
+#: lib/Prusa-Error-Codes/12/errors_list.h:61
+msgid "MAXTEMP ERROR"
+msgstr "ERROR MAXTEMP"
+
 #: src/gui/wizard/xyzcalib.cpp:78
 msgid "Measuring reference\nheight of calib.\npoints"
 msgstr "Midiendo referencia\naltura de calibra.\npuntos"
@@ -454,6 +493,11 @@ msgstr "MENSAJES"
 msgid "Messages"
 msgstr "Mensajes"
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:65
+#: lib/Prusa-Error-Codes/12/errors_list.h:69
+msgid "MINTEMP ERROR"
+msgstr "ERROR MINTEMP"
+
 #. abbreviated Monday - max 3 characters
 #: src/lang/format_print_will_end.cpp:43
 msgid "Mon"
@@ -482,6 +526,10 @@ msgstr "Mover Y"
 #: src/gui/menu_vars.h:62
 msgid "Move Z"
 msgstr "Mover Z"
+
+#: src/guiapi/include/MItem_tools.hpp:239
+msgid "Name"
+msgstr "Nombre"
 
 #. known and not "unsensed" - do not allow load
 #. cannot use CONTINUE button, string is too long
@@ -680,6 +728,10 @@ msgstr "PURGAR FILAMENTO"
 msgid "Purge Filament"
 msgstr "Purgar filamento"
 
+#: src/gui/dialogs/dialog_response.cpp:19
+msgid "PURGE MORE"
+msgstr "PURGAR MÁS"
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:57
 msgid "Purging"
 msgstr "Purgando"
@@ -748,6 +800,11 @@ msgstr "Guardar arch. de errores"
 msgid "Save settings"
 msgstr "Guardar ajustes"
 
+#. / draw "Scan me" text
+#: src/common/bsod.cpp:264
+msgid "Scan me for details"
+msgstr "Escanéame para info "
+
 #: src/gui/wizard/xyzcalib.cpp:66
 msgid "Searching bed\ncalibration points"
 msgstr "Buscando la base\npuntos de calibración"
@@ -803,6 +860,10 @@ msgstr "Configuración cargada correctamente"
 #: src/guiapi/include/MItem_tools.hpp:210
 msgid "Silent"
 msgstr "Silenciosa"
+
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sort files by"
+msgstr "Ordenar archivos por"
 
 #: src/guiapi/include/MItem_tools.hpp:207
 #: src/guiapi/include/MItem_tools.hpp:206
@@ -897,6 +958,15 @@ msgstr "La calibración XYZ no pudo finalizar. Vuelva a verificar el cableado y 
 msgid "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr "Se produjo un error al guardar la configuración en el archivo \"lan_settings.ini\"."
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:49
+#: lib/Prusa-Error-Codes/12/errors_list.h:53
+msgid "THERMAL RUNAWAY"
+msgstr "DERIVA TÉRMICA"
+
+#: src/gui/screen_print_preview.cpp:149
+msgid "This G-CODE was set up for another printer type."
+msgstr "Este G-CODE se configuró para otro tipo de impresora."
+
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
@@ -906,6 +976,10 @@ msgstr "Esta operación no se puede deshacer, ¡se perderá la configuración ac
 #: src/lang/format_print_will_end.cpp:49
 msgid "Thr"
 msgstr "Jue"
+
+#: src/guiapi/include/MItem_tools.hpp:321
+msgid "Time"
+msgstr "Tiempo"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
@@ -998,6 +1072,10 @@ msgstr "Esperando temp."
 #: src/guiapi/src/window_msgbox.cpp:15
 msgid "Warning"
 msgstr "Cuidado"
+
+#: src/gui/screen_print_preview.cpp:149
+msgid "WARNING:"
+msgstr "CUIDADO:"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47

@@ -17,7 +17,7 @@ void window_roll_text_init(window_roll_text_t *window) {
     window->font = GuiDefaults::Font;
     window->text = string_view_utf8::MakeNULLSTR();
     window->padding = GuiDefaults::Padding;
-    window->alignment = GuiDefaults::Alignment;
+    window->SetAlignment(GuiDefaults::Alignment);
     window->roll.count = window->roll.px_cd = window->roll.progress = 0;
     window->roll.phase = ROLL_SETUP;
     window->roll.setup = TXTROLL_SETUP_INIT;
@@ -32,7 +32,7 @@ void window_roll_text_draw(window_roll_text_t *window) {
             window->text,
             window->font,
             window->padding,
-            window->alignment,
+            window->GetAlignment(),
             (window->IsFocused()) ? window->color_text : window->color_back,
             (window->IsFocused()) ? window->color_back : window->color_text,
             &window->roll);
@@ -52,8 +52,8 @@ void window_roll_text_done(window_roll_text_t *window) {
     gui_timers_delete_by_window(window);
 }
 
-window_roll_text_t::window_roll_text_t(window_t *parent, rect_ui16_t rect)
-    : window_text_t(parent, rect) {
+window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect)
+    : window_text_t(parent, rect, is_multiline::no) {
     roll.count = roll.px_cd = roll.progress = 0;
     roll.phase = ROLL_SETUP;
     roll.setup = TXTROLL_SETUP_INIT;

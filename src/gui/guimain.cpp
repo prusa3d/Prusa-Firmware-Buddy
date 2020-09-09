@@ -13,25 +13,21 @@
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
 #include "window_dlg_wait.hpp"
-#ifdef _DEBUG
-    #include "window_dlg_popup.hpp"
-#endif //_DEBUG
+#include "window_dlg_popup.hpp"
 #include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_watchdog.hpp"
-
-#include "screen_lan_settings.h"
+#include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 extern int HAL_IWDG_Reset;
 
 int guimain_spi_test = 0;
 
 #include "gpio.h"
-#include "st7789v.hpp"
-#include "jogwheel.h"
+#include "Jogwheel.hpp"
 #include "hwio.h"
 #include "diag.h"
 #include "sys.h"
@@ -43,10 +39,6 @@ const st7789v_config_t st7789v_cfg = {
     ST7789V_FLG_DMA,    // flags (DMA, MISO)
     ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
     ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
-};
-
-const jogwheel_config_t jogwheel_cfg = {
-    JOGWHEEL_DEF_FLG, // flags
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
@@ -61,20 +53,42 @@ static void _gui_loop_cb() {
 char gui_media_LFN[FILE_NAME_MAX_LEN + 1];
 char gui_media_SFN_path[FILE_PATH_MAX_LEN + 1];
 
-void gui_run() {
+#ifdef GUI_JOGWHEEL_SUPPORT
+Jogwheel jogwheel;
+#endif // GUI_JOGWHEEL_SUPPORT
+
+MsgBuff_t &MsgCircleBuffer() {
+    static CircleBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
+    return ret;
+}
+
+void MsgCircleBuffer_cb(const char *txt) {
+    MsgCircleBuffer().push_back(txt);
+    //cannot open == already openned
+    if (!IScreenPrinting::CanOpen()) {
+        window_dlg_popup_t::Show(string_view_utf8::MakeRAM((const uint8_t *)txt));
+    }
+}
+
+void gui_run(void) {
     if (diag_fastboot)
         return;
 
     st7789v_config = st7789v_cfg;
-    jogwheel_config = jogwheel_cfg;
+
     gui_init();
 
-    // select jogwheel type by meassured 'reset delay'
+    // select jogwheel type by measured 'reset delay'
     // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
     // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
-    if (st7789v_reset_delay > 1000) // threshold value is 1000
-        jogwheel_config.flg = JOGWHEEL_FLG_INV_DIR | JOGWHEEL_FLG_INV_ENC;
-    //_dbg("delay=%u", st7789v_reset_delay);
+#ifdef GUI_JOGWHEEL_SUPPORT
+    #ifdef USE_ST7789
+    // run-time jogwheel type detection decides which type of jogwheel device has (each type has different encoder behaviour)
+    jogwheel.SetJogwheelType(st7789v_reset_delay);
+    #else /* ! USE_ST7789 */
+    jogwheel.SetJogwheelType(0);
+    #endif
+#endif
 
     GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
     GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
@@ -93,6 +107,7 @@ void gui_run() {
     marlin_client_set_fsm_create_cb(DialogHandler::Open);
     marlin_client_set_fsm_destroy_cb(DialogHandler::Close);
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
+    marlin_client_set_message_cb(MsgCircleBuffer_cb);
 
     Sound_Play(eSOUND_TYPE_Start);
 
@@ -117,13 +132,7 @@ void gui_run() {
             MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
         }
         gui_loop();
-        /*if (marlin_message_received()) {
-            screen_t *curr = screen_get_curr();
-            if (curr == get_scr_printing()) {
-                screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
-            }
-        }
-        if (menu_timeout_enabled) {
+        /*if (menu_timeout_enabled) {
             gui_timeout_id = gui_get_menu_timeout_id();
             if (gui_timer_expired(gui_timeout_id) == 1) {
                 screen_close_multiple(scrn_close_on_timeout);
@@ -137,12 +146,12 @@ void update_firmware_screen(void) {
     font_t *font = resource_font(IDR_FNT_SPECIAL);
     font_t *font1 = resource_font(IDR_FNT_NORMAL);
     display::Clear(COLOR_BLACK);
-    render_icon_align(rect_ui16(70, 20, 100, 100), IDR_PNG_icon_pepa, COLOR_BLACK, RENDER_FLG(ALIGN_CENTER, 0));
-    display::DrawText(rect_ui16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
-    display::DrawText(rect_ui16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
-    render_text_align(rect_ui16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
+    render_icon_align(Rect16(70, 20, 100, 100), IDR_PNG_icon_pepa, COLOR_BLACK, RENDER_FLG(ALIGN_CENTER, 0));
+    display::DrawText(Rect16(10, 115, 240, 60), _("Hi, this is your\nOriginal Prusa MINI."), font, COLOR_BLACK, COLOR_WHITE);
+    display::DrawText(Rect16(10, 160, 240, 80), _("Please insert the USB\ndrive that came with\nyour MINI and reset\nthe printer to flash\nthe firmware"), font, COLOR_BLACK, COLOR_WHITE);
+    render_text_align(Rect16(5, 250, 230, 40), _("RESET PRINTER"), font1, COLOR_ORANGE, COLOR_WHITE, { 2, 6, 2, 2 }, ALIGN_CENTER);
     while (1) {
-        if (jogwheel_button_down > 50)
+        if (jogwheel.GetButtonAction() == Jogwheel::ButtonAction::BTN_HELD)
             sys_reset();
         osDelay(1);
         wdt_iwdg_refresh();

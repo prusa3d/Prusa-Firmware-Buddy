@@ -2,7 +2,7 @@
 
 #include "screen_test_msgbox.hpp"
 #include "config.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "window_msgbox.hpp"
 
@@ -13,15 +13,15 @@ static const string_view_utf8 test_header_view = string_view_utf8::MakeCPUFLASH(
 
 screen_test_msgbox_data_t::screen_test_msgbox_data_t()
     : window_frame_t()
-    , tst(this, rect_ui16(10, 32, 220, 22))
-    , back(this, rect_ui16(10, 54, 220, 22), is_closed_on_click_t::yes)
-    , tst_ok(this, rect_ui16(10, 76, 220, 22), []() { MsgBox(test_text_view, Responses_Ok); })
-    , tst_okcancel(this, rect_ui16(10, 98, 220, 22), []() { MsgBox(test_text_view, Responses_OkCancel); })
-    , tst_ico_error(this, rect_ui16(10, 120, 220, 22), []() { MsgBoxError(test_text_view, Responses_AbortRetryIgnore); })
-    , tst_ico_question(this, rect_ui16(10, 142, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_YesNoCancel); })
-    , tst_ico_warning(this, rect_ui16(10, 164, 220, 22), []() { MsgBoxWarning(test_text_view, Responses_YesNo); })
-    , tst_ico_info(this, rect_ui16(10, 186, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_RetryCancel); })
-    , tst_icon(this, rect_ui16(10, 208, 220, 22), []() { MsgBoxPepa(test_text_view); }) {
+    , tst(this, Rect16(10, 32, 220, 22), is_multiline::no)
+    , back(this, Rect16(10, 54, 220, 22), is_multiline::no, is_closed_on_click_t::yes)
+    , tst_ok(this, Rect16(10, 76, 220, 22), []() { MsgBox(test_text_view, Responses_Ok); })
+    , tst_okcancel(this, Rect16(10, 98, 220, 22), []() { MsgBox(test_text_view, Responses_OkCancel); })
+    , tst_ico_error(this, Rect16(10, 120, 220, 22), []() { MsgBoxError(test_text_view, Responses_AbortRetryIgnore); })
+    , tst_ico_question(this, Rect16(10, 142, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_YesNoCancel); })
+    , tst_ico_warning(this, Rect16(10, 164, 220, 22), []() { MsgBoxWarning(test_text_view, Responses_YesNo); })
+    , tst_ico_info(this, Rect16(10, 186, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_RetryCancel); })
+    , tst_icon(this, Rect16(10, 208, 220, 22), []() { MsgBoxPepa(test_text_view); }) {
     static const char tm[] = "TEST MSGBOX";
     tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tm));
 

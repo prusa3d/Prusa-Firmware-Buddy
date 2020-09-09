@@ -5,20 +5,30 @@
 #include "resource.h"
 #include "IWindowMenuItem.hpp"
 
-IWindowMenu::IWindowMenu(window_t *parent, rect_ui16_t rect)
-    : window_frame_t(parent, rect, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
+IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
+    : window_aligned_t(parent, rect)
     , color_text(GuiDefaults::ColorText)
     , color_disabled(GuiDefaults::ColorDisabled)
     , font(GuiDefaults::Font)
-    , padding { 6, 6, 6, 6 }
-    , icon_w(25)
-    , alignment(GuiDefaults::Alignment) {
+    , padding { 6, 6, 6, 6 } {
+    SetIconWidth(25);
+    Enable();
 }
 
-window_menu_t::window_menu_t(window_t *parent, rect_ui16_t rect, IWinMenuContainer *pContainer, uint8_t index)
+uint8_t IWindowMenu::GetIconWidth() const {
+    //mem_array_u08[0] is alignment
+    return mem_array_u08[1];
+}
+
+void IWindowMenu::SetIconWidth(uint8_t width) {
+    //mem_array_u08[0] is alignment
+    mem_array_u08[1] = width;
+    Invalidate();
+}
+
+window_menu_t::window_menu_t(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : IWindowMenu(parent, rect)
     , pContainer(pContainer) {
-    alignment = GuiDefaults::Alignment;
     setIndex(index);
     top_index = 0;
 }
@@ -41,8 +51,10 @@ bool window_menu_t::SetIndex(uint8_t index) {
         return false;
     if (this->index == index)
         return true;
-    GetActiveItem()->ClrFocus(); //remove focus from old item
-    GetItem(index)->SetFocus();  //set focus on new item
+    IWindowMenuItem *activeItem = GetActiveItem();
+    if (activeItem)
+        activeItem->ClrFocus(); //remove focus from old item
+    GetItem(index)->SetFocus(); //set focus on new item
     this->index = index;
     return true;
 }
@@ -67,6 +79,8 @@ IWindowMenuItem *window_menu_t::GetActiveItem() {
 
 void window_menu_t::Increment(int dif) {
     IWindowMenuItem *item = GetActiveItem();
+    if (!item)
+        return;
     if (item->IsSelected()) {
         if (item->Change(dif)) {
             Invalidate();
@@ -74,7 +88,7 @@ void window_menu_t::Increment(int dif) {
     } else {
         //all items can be in label mode
         int item_height = font->h + padding.top + padding.bottom;
-        int visible_count = rect.h / item_height;
+        int visible_count = rect.Height() / item_height;
         int old_index = GetIndex();
         int new_index = old_index + dif;
         // play sound at first or last index of menu
@@ -95,6 +109,7 @@ void window_menu_t::Increment(int dif) {
         if (new_index != old_index) { // optimization do not redraw when no change - still on end
             SetIndex(new_index);
             Invalidate();
+            Sound_Play(eSOUND_TYPE_EncoderMove);
         }
     }
 }
@@ -104,10 +119,12 @@ void window_menu_t::Increment(int dif) {
 //callback should handle it
 void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     IWindowMenuItem *const item = GetActiveItem();
+    if (!item)
+        return;
     const int value = int(param);
     bool invalid = false;
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
+    case WINDOW_EVENT_CLICK:
 
         item->Click(*this);
         //Invalidate(); //called inside click
@@ -140,12 +157,13 @@ void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
 }
 
 void window_menu_t::unconditionalDraw() {
-    IWindowMenu::unconditionalDraw();
+    // temporarily disabled erasing background to prevent menu blinking
+    //    IWindowMenu::unconditionalDraw();
 
     const int item_height = font->h + padding.top + padding.bottom;
-    rect_ui16_t rc_win = rect;
+    Rect16 rc_win = rect;
 
-    const size_t visible_count = rc_win.h / item_height;
+    const size_t visible_count = rc_win.Height() / item_height;
     size_t i;
     for (i = 0; i < visible_count && i < GetCount(); ++i) {
 
@@ -155,10 +173,10 @@ void window_menu_t::unconditionalDraw() {
             break;
         }
 
-        rect_ui16_t rc = { rc_win.x, uint16_t(rc_win.y + i * item_height),
-            rc_win.w, uint16_t(item_height) };
+        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + i * item_height),
+            rc_win.Width(), uint16_t(item_height) };
 
-        if (rect_in_rect_ui16(rc, rc_win)) {
+        if (rc_win.Contain(rc)) {
             if (item->RollNeedInit()) {
                 gui_timer_restart_txtroll(this);
                 gui_timer_change_txtroll_peri_delay(TEXT_ROLL_INITIAL_DELAY_MS, this);
@@ -167,10 +185,10 @@ void window_menu_t::unconditionalDraw() {
             item->Print(*this, rc);
         }
     }
-    rc_win.h = rc_win.h - (i * item_height);
+    rc_win -= Rect16::Height_t(i * item_height);
 
-    if (rc_win.h) {
-        rc_win.y += i * item_height;
+    if (rc_win.Height()) {
+        rc_win += Rect16::Top_t(i * item_height);
         display::FillRect(rc_win, color_back);
     }
 }

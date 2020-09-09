@@ -120,6 +120,23 @@ msgstr "VYMĚNIT FILAMENT"
 msgid "Change Filament"
 msgstr "Vyměnit filament"
 
+#. / FIXME split heating, min/max temp and thermal runaway
+#: src/common/bsod.cpp:232
+msgid "Check the heatbed heater & thermistor wiring for possible damage."
+msgstr "Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru."
+
+#: src/common/bsod.cpp:233
+msgid "Check the heatbed thermistor wiring for possible damage."
+msgstr "Zkontrolujte, zda není poškozen kabel termistoru vyhřívané podložky."
+
+#: src/common/bsod.cpp:234
+msgid "Check the print head heater & thermistor wiring for possible damage."
+msgstr "Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru."
+
+#: src/common/bsod.cpp:235
+msgid "Check the print head thermistor wiring for possible damage."
+msgstr "Zkontrolujte, zda není poškozen kabel termistoru v tiskové hlavě."
+
 #: src/gui/wizard/selftest_fans_axis.cpp:51
 msgid "Checking axes"
 msgstr "Kontrola os"
@@ -220,6 +237,14 @@ msgstr "Stat. chyb"
 msgid "Fan test"
 msgstr "Test ventilátorů"
 
+#: src/gui/screen_sysinf.cpp:71
+msgid "Fan0 RPM"
+msgstr "Vent0 RPM"
+
+#: src/gui/screen_sysinf.cpp:75
+msgid "Fan1 RPM"
+msgstr "Vent1 RPM"
+
 #: src/gui/screen_menu_settings.cpp:24
 msgid "Fil. sens."
 msgstr "Fil. senzor"
@@ -271,6 +296,10 @@ msgstr "AKTUALIZACE FW"
 msgid "FW Update"
 msgstr "Aktualizace FW"
 
+#: src/gui/test/screen_test_msgbox.cpp:11
+msgid "Header"
+msgstr "Hlavička"
+
 #: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
 msgstr "Podložka"
@@ -278,6 +307,11 @@ msgstr "Podložka"
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Vyhřívání vypnuto po 30 minutách neaktivity."
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:41
+#: lib/Prusa-Error-Codes/12/errors_list.h:45
+msgid "HEATING FAILED"
+msgstr "CHYBA VYHŘÍVÁNÍ"
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -416,15 +450,16 @@ msgstr "Hlasitý"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Make sure the     \nfilament is       \ninserted through  \nthe sensor.       "
-msgstr ""
-"Ujistěte se, že   \n"
-"je filament       \n"
-"vložen skrz       \n"
-"fil. senzor.      "
+msgstr "Ujistěte se, že   \nje filament       \nvložen skrz       \nfil. senzor.      "
 
 #: src/gui/screen_print_preview.cpp:147 src/gui/screen_print_preview.cpp:155
 msgid "Material"
 msgstr "Materiál"
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:57
+#: lib/Prusa-Error-Codes/12/errors_list.h:61
+msgid "MAXTEMP ERROR"
+msgstr "CHYBA MAXTEMP"
 
 #: src/gui/wizard/xyzcalib.cpp:78
 msgid "Measuring reference\nheight of calib.\npoints"
@@ -458,6 +493,11 @@ msgstr "ZPRÁVY"
 msgid "Messages"
 msgstr "Zprávy"
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:65
+#: lib/Prusa-Error-Codes/12/errors_list.h:69
+msgid "MINTEMP ERROR"
+msgstr "CHYBA MINTEMP"
+
 #. abbreviated Monday - max 3 characters
 #: src/lang/format_print_will_end.cpp:43
 msgid "Mon"
@@ -486,6 +526,10 @@ msgstr "Osa Y"
 #: src/gui/menu_vars.h:62
 msgid "Move Z"
 msgstr "Osa Z"
+
+#: src/guiapi/include/MItem_tools.hpp:239
+msgid "Name"
+msgstr "Název"
 
 #. known and not "unsensed" - do not allow load
 #. cannot use CONTINUE button, string is too long
@@ -641,10 +685,7 @@ msgstr "Příprava na ramming"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Press CONTINUE and\npush filament into\nthe extruder.     "
-msgstr ""
-"Zvolte POKRAČOVAT \n"
-"a zasuňte filament\n"
-"do extruderu.     "
+msgstr "Zvolte POKRAČOVAT \na zasuňte filament\ndo extruderu.     "
 
 #: src/gui/wizard/screen_wizard.c:206
 msgid "Press NEXT to run  \nthe Selftest, which\nchecks for         \npotential issues   \nrelated to         \nthe assembly."
@@ -686,6 +727,10 @@ msgstr "ČISTIT TRYSKU"
 #: src/gui/screen_menu_filament.cpp:100 src/gui/screen_menu_filament.cpp:97
 msgid "Purge Filament"
 msgstr "Čistit trysku"
+
+#: src/gui/dialogs/dialog_response.cpp:19
+msgid "PURGE MORE"
+msgstr "ČISTIT VÍCE"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:57
 msgid "Purging"
@@ -755,6 +800,11 @@ msgstr "Uložit výpis chyb"
 msgid "Save settings"
 msgstr "Uložit nastavení"
 
+#. / draw "Scan me" text
+#: src/common/bsod.cpp:264
+msgid "Scan me for details"
+msgstr "Načtěte pro info"
+
 #: src/gui/wizard/xyzcalib.cpp:66
 msgid "Searching bed\ncalibration points"
 msgstr "Hledání kalibračních\nbodů na podložce"
@@ -810,6 +860,10 @@ msgstr "Nastavení načteno"
 #: src/guiapi/include/MItem_tools.hpp:210
 msgid "Silent"
 msgstr "Tichý"
+
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sort files by"
+msgstr "Seřadit dle"
 
 #: src/guiapi/include/MItem_tools.hpp:207
 #: src/guiapi/include/MItem_tools.hpp:206
@@ -904,6 +958,15 @@ msgstr "Selhala kalibrace os XYZ. Zkontrolujte zapojení el. součástí i jedno
 msgid "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr "Při ukládání souboru \"lan_settings.ini\" došlo k chybě."
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:49
+#: lib/Prusa-Error-Codes/12/errors_list.h:53
+msgid "THERMAL RUNAWAY"
+msgstr "THERMAL RUNAWAY"
+
+#: src/gui/screen_print_preview.cpp:149
+msgid "This G-CODE was set up for another printer type."
+msgstr "Tento G-CODE je určen pro jiný typ tiskárny."
+
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
@@ -913,6 +976,10 @@ msgstr "Tuto operaci nelze vrátit, současná konfigurace bude ztracena! Skute�
 #: src/lang/format_print_will_end.cpp:49
 msgid "Thr"
 msgstr "Čt"
+
+#: src/guiapi/include/MItem_tools.hpp:321
+msgid "Time"
+msgstr "Čas"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
@@ -1005,6 +1072,10 @@ msgstr "Zahřívání"
 #: src/guiapi/src/window_msgbox.cpp:15
 msgid "Warning"
 msgstr "Varování"
+
+#: src/gui/screen_print_preview.cpp:149
+msgid "WARNING:"
+msgstr "VAROVÁNÍ:"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47

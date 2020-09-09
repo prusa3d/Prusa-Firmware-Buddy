@@ -9,7 +9,7 @@
 #include "eeprom.h"
 
 #include "stm32f4xx_hal.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 
@@ -24,13 +24,13 @@ void screen_splash_data_t::timer(uint32_t mseconds) {
 
 screen_splash_data_t::screen_splash_data_t()
     : window_frame_t()
-    , logo_prusa_mini(this, rect_ui16(0, 84, 240, 62), IDR_PNG_splash_logo_prusa_prn)
-    , text_progress(this, rect_ui16(10, 171, 220, 20))
-    , progress(this, rect_ui16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
-    , text_version(this, rect_ui16(00, 295, 240, 22))
-    , icon_logo_buddy(this, { 0 }, 0)  //unused?
-    , icon_logo_marlin(this, { 0 }, 0) //unused?
-    , icon_debug(this, rect_ui16(80, 240, 80, 80), IDR_PNG_splash_logo_marlin) {
+    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_splash_logo_prusa_prn)
+    , text_progress(this, Rect16(10, 171, 220, 20), is_multiline::no)
+    , progress(this, Rect16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
+    , text_version(this, Rect16(0, 295, 240, 22), is_multiline::no)
+    , icon_logo_buddy(this, Rect16(), 0)  //unused?
+    , icon_logo_marlin(this, Rect16(), 0) //unused?
+    , icon_debug(this, Rect16(80, 240, 80, 80), IDR_PNG_splash_logo_marlin) {
 
     text_progress.font = resource_font(IDR_FNT_NORMAL);
     text_progress.SetAlignment(ALIGN_CENTER_BOTTOM);
@@ -48,7 +48,7 @@ void screen_splash_data_t::draw() {
     window_frame_t::draw();
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
-    display::DrawText(rect_ui16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+    display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
 #endif //_DEBUG
 }
 
@@ -67,9 +67,9 @@ void screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *pa
         Screens::Access()->Close();
         */
 
-        const bool run_selftest = eeprom_get_var(EEVAR_RUN_SELFTEST).ui8 ? 1 : 0;
-        const bool run_xyzcalib = eeprom_get_var(EEVAR_RUN_XYZCALIB).ui8 ? 1 : 0;
-        const bool run_firstlay = eeprom_get_var(EEVAR_RUN_FIRSTLAY).ui8 ? 1 : 0;
+        const bool run_selftest = variant_get_ui8(eeprom_get_var(EEVAR_RUN_SELFTEST)) ? 1 : 0;
+        const bool run_xyzcalib = variant_get_ui8(eeprom_get_var(EEVAR_RUN_XYZCALIB)) ? 1 : 0;
+        const bool run_firstlay = variant_get_ui8(eeprom_get_var(EEVAR_RUN_FIRSTLAY)) ? 1 : 0;
         const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
         const bool run_lang = !LangEEPROM::getInstance().IsValid();
 

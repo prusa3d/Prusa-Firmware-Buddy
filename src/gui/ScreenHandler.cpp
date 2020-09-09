@@ -8,7 +8,8 @@ Screens::Screens(const ScreenFactory::Creator screen_creator)
     , stack_iterator(stack.begin())
     , current(nullptr)
     , creator(screen_creator)
-    , close(false) {
+    , close(false)
+    , close_all(false) {
 }
 
 void Screens::Init(const ScreenFactory::Creator screen_creator) {
@@ -111,10 +112,21 @@ Screens *Screens::Access() {
 }
 
 void Screens::ScreenEvent(window_t *sender, uint8_t event, void *param) {
+    if (current == nullptr)
+        return;
+    //todo shouldn't I use "sender ? sender : current.get()"?
     current->ScreenEvent(current.get(), event, param);
 }
 
+void Screens::WindowEvent(uint8_t event, void *param) {
+    if (current == nullptr)
+        return;
+    current->WindowEvent(current.get(), event, param);
+}
+
 void Screens::Draw() {
+    if (current == nullptr)
+        return;
     current->Draw();
 }
 
@@ -189,7 +201,7 @@ void Screens::Loop() {
         current = creator();
         if (!current->IsChildCaptured())
             current->SetCapture();
-        if (!current->IsChildFocused() && !current->IsChildFocused()) {
+        if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();
             if (child) {
                 child->SetFocus();

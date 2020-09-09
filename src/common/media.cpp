@@ -9,8 +9,8 @@
 
 extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
-#define USBHOST_REENUM_DELAY   100 // pool delay [ms]
-#define USBHOST_REENUM_TIMEOUT 500 // state-hang timeout [ms]
+static const constexpr uint8_t USBHOST_REENUM_DELAY = 100;    // pool delay [ms]
+static const constexpr uint16_t USBHOST_REENUM_TIMEOUT = 500; // state-hang timeout [ms]
 
 extern "C" {
 
@@ -159,7 +159,8 @@ private:
 
 void media_print_start(const char *sfnFilePath) {
     if (media_print_state == media_print_state_NONE) {
-        strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
+        if (sfnFilePath) // null sfnFilePath means use current filename media_print_SFN_path
+            strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
         // Beware - f_stat returns a SFN filename, when the input path is SFN
         // which is a nasty surprise. Therefore there is an alternative way of looking
         // for the file, which has the same results (and a bit lower code complexity)
@@ -217,6 +218,11 @@ uint32_t media_print_get_size(void) {
 
 uint32_t media_print_get_position(void) {
     return media_current_position;
+}
+
+void media_print_set_position(uint32_t pos) {
+    if (pos < media_print_size)
+        media_current_position = pos;
 }
 
 float media_print_get_percent_done(void) {

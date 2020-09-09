@@ -6,7 +6,7 @@
 #include "marlin_client.h"
 #include "screen_menu.hpp"
 #include "MItem_tools.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN,

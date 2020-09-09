@@ -2,7 +2,9 @@
 
 #include "guitypes.hpp"
 #include <array>
-#include <climits>
+#include <algorithm>
+#include <numeric>
+#include <limits.h> //SHRT_MAX, SHRT_MIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @enum ShiftDir_t
@@ -17,11 +19,11 @@ enum class ShiftDir_t {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-/// Class prepesents rectagle in graphics system where x rising to the right
+/// Class represents rectangle in graphics system where x rising to the right
 /// and y rising down.
 ///
 /// @details Class also support negative value of coordinates. Such a simple perk
-/// makes the implemetation more robust and useful.
+/// makes the implementation more robust and useful.
 ///
 class Rect16 {
     point_i16_t top_left_;
@@ -29,10 +31,46 @@ class Rect16 {
     uint16_t height_;
 
 public:
+    //some structs to work with operators
+    struct X_t {
+        constexpr X_t(int16_t x = 0)
+            : x(x) {}
+        int16_t x;
+        constexpr operator int16_t() const { return x; }
+    };
+    using Left_t = X_t;
+
+    struct Y_t {
+        constexpr Y_t(int16_t y = 0)
+            : y(y) {}
+        int16_t y;
+        constexpr operator int16_t() const { return y; }
+    };
+    using Top_t = Y_t;
+
+    struct W_t {
+        constexpr W_t(uint16_t w = 0)
+            : w(w) {}
+        uint16_t w;
+        constexpr operator uint16_t() const { return w; }
+    };
+    using Width_t = W_t;
+
+    struct H_t {
+        constexpr H_t(uint16_t h = 0)
+            : h(h) {}
+        uint16_t h;
+        constexpr operator uint16_t() const { return h; }
+    };
+    using Height_t = H_t;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Default constructor
-    /// @details set top left corner to {0,0} with width and heigth 0
-    Rect16();
+    /// @details set top left corner to {0,0} with width and height 0
+    constexpr Rect16()
+        : top_left_(point_i16_t { 0, 0 })
+        , width_(0)
+        , height_(0) {}
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left and bottom-right
@@ -41,23 +79,39 @@ public:
     /// @param[in] y Y coordinate of top-left corner
     /// @param[in] x X coordinate of bottom-right corner
     /// @param[in] y Y coordinate of bottom-right corner
-    Rect16(int16_t, int16_t, int16_t, int16_t);
+    //constexpr Rect16(int16_t, int16_t, int16_t, int16_t);
+
+    constexpr Rect16(
+        int16_t left,
+        int16_t top,
+        uint16_t width,
+        uint16_t height)
+        : top_left_(point_i16_t { left, top })
+        , width_(width)
+        , height_(height) {
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left corner and width
-    ///        and heigth
+    ///        and height
     /// @param[in] point Top-left corner
     /// @param[in] width Width in pixels
-    /// @param[in] heigth Heigth in pixels
-    Rect16(point_i16_t, uint16_t, uint16_t);
+    /// @param[in] height Height in pixels
+    constexpr Rect16(point_i16_t top_left, uint16_t width, uint16_t height)
+        : top_left_(top_left)
+        , width_(width)
+        , height_(height) {
+    }
+
+    Rect16(point_i16_t p0, point_i16_t p1);
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Copy contructor as default
-    Rect16(Rect16 const &) = default;
+    constexpr Rect16(Rect16 const &) = default;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Move contructor as default
-    Rect16(Rect16 &&) = default;
+    constexpr Rect16(Rect16 &&) = default;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle as a copy of given rectangle with the shift in
@@ -75,66 +129,87 @@ public:
     Rect16(point_i16_t, size_ui16_t);
 
     ////////////////////////////////////////////////////////////////////////////
-    /// @brief Destructor as default
-    virtual ~Rect16() = default;
+    /// @brief Assign operator as default
+    ///
+    /// @param[in] rect Existing rectangle to duplicate into curent one
+    constexpr Rect16 &operator=(Rect16 const &) & = default;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Assign operator as default
     ///
     /// @param[in] rect Existing rectangle to duplicate into curent one
-    Rect16 &operator=(Rect16 const &) & = default;
-
-    ////////////////////////////////////////////////////////////////////////////
-    /// @brief Assign operator as default
-    ///
-    /// @param[in] rect Existing rectangle to duplicate into curent one
-    Rect16 &operator=(Rect16 &&) & = default;
+    constexpr Rect16 &operator=(Rect16 &&) & = default;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the width of current rectangle
     ///
     /// @return Width of the rectangle.
-    uint16_t Width() const { return width_; };
+    constexpr Width_t Width() const { return Width_t(width_); };
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the height of current rectangle
     ///
     /// @return Height of the rectangle.
-    uint16_t Height() const { return height_; };
+    constexpr Height_t Height() const { return Height_t(height_); };
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the size of current rectangle
     ///
     /// @return Size of the rectangle.
-    size_ui16_t Size() const { return size_ui16_t { width_, height_ }; }
+    constexpr size_ui16_t Size() const { return size_ui16_t { width_, height_ }; }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the top-left corner of current rectangle
     ///
     /// @return Top-left corner of the rectangle.
-    point_i16_t TopLeft() const { return top_left_; };
+    constexpr point_i16_t TopLeft() const { return top_left_; };
+    constexpr point_i16_t BeginPoint() const { return TopLeft(); }; //just an alias for TopLeft()
+
+    constexpr Top_t Top() const { return Top_t(top_left_.y); };
+
+    constexpr Left_t Left() const { return Left_t(top_left_.x); };
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Object accessor to read the point behind bottom-right of current rectangle
+    ///
+    /// @return Point behind Bottom-right of the rectangle.
+    constexpr point_i16_t BottomRight() const {
+        return { static_cast<int16_t>(EndPoint().x - 1), static_cast<int16_t>(EndPoint().y - 1) };
+    };
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Object accessor to read the bottom-right of current rectangle
     ///
     /// @return Bottom-right of the rectangle.
-    point_i16_t BottomRight() const {
+    constexpr point_i16_t EndPoint() const {
         return {
             static_cast<int16_t>(top_left_.x + width_),
             static_cast<int16_t>(top_left_.y + height_)
         };
     };
 
+    //swap is not constexpr in C++17 and earlier
+    void SwapXY() {
+        std::swap(top_left_.x, top_left_.y);
+        std::swap(width_, height_);
+    }
+
+    //mirror over X point
+    constexpr void MirrorX(int16_t pt_X) { top_left_.x = static_cast<int16_t>(2 * pt_X - EndPoint().x); }
+    //mirror over Y point
+    constexpr void MirrorY(int16_t pt_Y) { top_left_.y = static_cast<int16_t>(2 * pt_Y - EndPoint().y); }
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines if the given point is placed inside of the curent rectangle
     ///
     /// @param[in] point Point given to check
     /// @return Return true if the point is in, false otherwise.
-    bool Contain(point_i16_t point) const {
+    template <class T>
+    constexpr bool Contain(point_t<T> point) const {
         return point.x >= top_left_.x
-            && point.x <= (top_left_.x + width_)
+            && point.x < (top_left_.x + width_)
             && point.y >= top_left_.y
-            && point.y <= (top_left_.y + height_);
+            && point.y < (top_left_.y + height_);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -167,7 +242,95 @@ public:
     /// current on
     /// @param[in] rect Rectangle given to check
     /// @return Return true if the rectangles is subrectangle, false otherwise.
-    bool IsSubrectangle(Rect16 const &) const;
+    bool Contain(Rect16 const &) const;
+
+    void Align(Rect16 rc, uint8_t align);
+
+    constexpr bool IsEmpty() const { return !(width_ && height_); }
+
+    constexpr Rect16 &operator+=(X_t val) {
+        top_left_.x += val.x;
+        return *this;
+    }
+    constexpr Rect16 &operator-=(X_t val) {
+        top_left_.x -= val.x;
+        return *this;
+    }
+    constexpr Rect16 &operator=(X_t val) {
+        top_left_.x = val.x;
+        return *this;
+    }
+    friend constexpr Rect16 operator+(Rect16 lhs, X_t rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    friend constexpr Rect16 operator-(Rect16 lhs, X_t rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    constexpr Rect16 &operator+=(Y_t val) {
+        top_left_.y += val.y;
+        return *this;
+    }
+    constexpr Rect16 &operator-=(Y_t val) {
+        top_left_.y -= val.y;
+        return *this;
+    }
+    constexpr Rect16 &operator=(Y_t val) {
+        top_left_.y = val.y;
+        return *this;
+    }
+    friend constexpr Rect16 operator+(Rect16 lhs, Y_t rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    friend constexpr Rect16 operator-(Rect16 lhs, Y_t rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    constexpr Rect16 &operator+=(W_t val) {
+        width_ += val.w;
+        return *this;
+    }
+    constexpr Rect16 &operator-=(W_t val) {
+        width_ -= val.w;
+        return *this;
+    }
+    constexpr Rect16 &operator=(W_t val) {
+        width_ = val.w;
+        return *this;
+    }
+    friend constexpr Rect16 operator+(Rect16 lhs, W_t rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    friend constexpr Rect16 operator-(Rect16 lhs, W_t rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    constexpr Rect16 &operator+=(H_t val) {
+        height_ += val.h;
+        return *this;
+    }
+    constexpr Rect16 &operator-=(H_t val) {
+        height_ -= val.h;
+        return *this;
+    }
+    constexpr Rect16 &operator=(H_t val) {
+        height_ = val.h;
+        return *this;
+    }
+    friend constexpr Rect16 operator+(Rect16 lhs, H_t rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    friend constexpr Rect16 operator-(Rect16 lhs, H_t rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Add pixels to given direction
@@ -175,7 +338,8 @@ public:
     /// added to origin coordinations and recent accessor call returns different
     /// value
     /// @param[in] padding Given padding structure that specify additional pixels
-    void AddPadding(const padding_ui8_t);
+    template <class T>
+    void AddPadding(const padding_t<T>);
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Subtract pixels from given direction
@@ -183,7 +347,8 @@ public:
     /// deducted from origin coordinations and recent accessor call returns
     /// different value
     /// @param[in] padding Given padding structure that specify deducted pixels
-    void CutPadding(const padding_ui8_t);
+    template <class T>
+    void CutPadding(const padding_t<T>);
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Static method determines the rectangle structure that represents
@@ -196,31 +361,35 @@ public:
         int16_t min_x = SHRT_MAX, min_y = SHRT_MAX;
         int16_t max_x = SHRT_MIN, max_y = SHRT_MIN;
 
-        for (size_t i = 0; i < SZ; ++i) {
-            if (rectangles[i].Width() > 0) {
+        for (size_t i = 0; i < rectangles.size(); ++i) {
+            if (!rectangles[i].IsEmpty()) {
                 min_x = rectangles[i].TopLeft().x < min_x ? rectangles[i].TopLeft().x : min_x;
                 min_y = rectangles[i].TopLeft().y < min_y ? rectangles[i].TopLeft().y : min_y;
-                max_x = rectangles[i].BottomRight().x > max_x ? rectangles[i].BottomRight().x : max_x;
-                max_y = rectangles[i].BottomRight().y > max_y ? rectangles[i].BottomRight().y : max_y;
+                max_x = rectangles[i].EndPoint().x > max_x ? rectangles[i].EndPoint().x : max_x;
+                max_y = rectangles[i].EndPoint().y > max_y ? rectangles[i].EndPoint().y : max_y;
             }
         }
-        return { min_x, min_y, max_x, max_y };
+        if (min_x > max_x || min_y > max_y) {
+            return Rect16();
+        } else {
+            return Rect16 { min_x, min_y, uint16_t(max_x - min_x), uint16_t(max_y - min_y) };
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines the rectangle structure that represents the union of
     /// all given rectangles.
     ///
-    /// @param[in] rectangles Collection of rectangles to united
+    /// @param[in] rectangles Collection of rectangles to be united
     /// @return Return a rectangle that represents the union of all rectangles
     template <size_t SZ>
     Rect16 Union(std::array<Rect16, SZ> const &rectangles) {
-        Rect16 ret = Merge(rectangles);
-        return {
+        Rect16 ret = Rect16::Merge(rectangles);
+        return Rect16 {
             TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
             TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,
-            BottomRight().x > ret.BottomRight().x ? BottomRight().x : ret.BottomRight().x,
-            BottomRight().y > ret.BottomRight().y ? BottomRight().y : ret.BottomRight().y
+            uint16_t(EndPoint().x > ret.EndPoint().x ? EndPoint().x : ret.EndPoint().x),
+            uint16_t(EndPoint().y > ret.EndPoint().y ? EndPoint().y : ret.EndPoint().y)
         };
     }
 
@@ -253,6 +422,16 @@ public:
         return i;
     }
 
+    /**
+		 * @brief Vertical split with spaces from parent Rect16
+		 * @param[out] splits[] buffer to fill of splitted Rect16
+		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+		 * @param[in] count number of splits
+		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
+		 */
+    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Split the current rectangle by given height and return such a
     /// collection of created rectangles
@@ -281,6 +460,16 @@ public:
         };
         return i;
     }
+
+    /**
+		 * @brief Vertical split with spaces from parent Rect16
+		 * @param[out] splits[] buffer to fill of splitted Rect16
+		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+		 * @param[in] count number of splits
+		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
+		 */
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -301,4 +490,26 @@ inline bool operator==(Rect16 const &lhs, Rect16 const &rhs) {
 /// @return Return true when the rectangle not perfectly match, false otherwise
 inline bool operator!=(Rect16 const &lhs, Rect16 const &rhs) {
     return !(lhs == rhs);
+}
+
+template <class T>
+void Rect16::AddPadding(const padding_t<T> p) {
+    top_left_.x = top_left_.x - p.left;
+    top_left_.y = top_left_.y - p.top;
+    width_ += (p.left + p.right);
+    height_ += (p.top + p.bottom);
+}
+
+template <class T>
+void Rect16::CutPadding(const padding_t<T> p) {
+    if ((p.left + p.right) >= width_
+        || (p.top + p.bottom) >= height_) {
+        width_ = height_ = 0;
+        top_left_.x = top_left_.y = 0;
+    } else {
+        top_left_.x = top_left_.x + p.left;
+        top_left_.y = top_left_.y + p.top;
+        width_ -= (p.left + p.right);
+        height_ -= (p.top + p.bottom);
+    }
 }

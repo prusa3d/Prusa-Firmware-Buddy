@@ -11,7 +11,7 @@
 #include "filament.h"
 #include "eeprom.h"
 #include "filament_sensor.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 uint64_t wizard_mask = 0;
 #if 0
@@ -31,7 +31,7 @@ void screen_wizard_init(screen_t *screen) {
     marlin_set_print_speed(100);
     pd->state = _STATE_START;
 
-    int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
+    int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, Rect16(0, 0, 0, 0), &(pd->frame));
 
     int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectFooter, &(pd->frame_footer));
     pd->frame_footer.Hide();
@@ -39,7 +39,7 @@ void screen_wizard_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectScreenBody, &(pd->frame_body));
     pd->frame_body.Hide();
 
-    window_create_ptr(WINDOW_CLS_TEXT, id_frame, rect_ui16(21, 0, 211, GuiDefaults::RectHeader.h), &(pd->header));
+    window_create_ptr(WINDOW_CLS_TEXT, id_frame, Rect16(21, 0, 211, GuiDefaults::RectHeader.h), &(pd->header));
     pd->header.SetAlignment(ALIGN_LEFT_BOTTOM);
 
     pd->header.SetText(wizard_get_caption(screen));
@@ -179,7 +179,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
                 if (fs_get_state() == FS_DISABLED) {
                     fs_enable();
-                    if (fs_wait_inicialized() == FS_NOT_CONNECTED)
+                    if (fs_wait_initialized() == FS_NOT_CONNECTED)
                         fs_disable();
                 }
                 break;

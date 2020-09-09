@@ -57,17 +57,17 @@ struct screen_test_disp_mem_data_t : public window_frame_t {
 //variables
 extern int16_t spi_prescaler;
 static const char *opt_spi[] = { "21M", "10.5M", "5.25M", "2.63M", "1.31M", "656k", "328k", "164k" };
-    #define opt_spi_sz      (sizeof(opt_spi) / sizeof(const char *))
-
 //static const char* modes[] = {"RGBW scale", "Direct hex", "RGB"};
 static const char *modes[] = { "RGBW scale", "WrRdWr + RGB" };
-    #define modes_sz        (sizeof(modes) / sizeof(const char *))
-
 static const char *inversions[] = { "Inv. DIS.", "Inv. ENA." };
-    #define inversions_sz   (sizeof(inversions) / sizeof(const char *))
-
 static const char *bright_enas[] = { "Bri. DIS.", "Bri. ENA." };
-    #define bright_enas_sz  (sizeof(bright_enas) / sizeof(const char *))
+
+enum {
+    opt_spi_sz = sizeof(opt_spi) / sizeof(const char *),
+    modes_sz  = sizeof(modes) / sizeof(const char *),
+    inversions_sz = sizeof(inversions) / sizeof(const char *),
+    bright_enas_sz = sizeof(bright_enas) / sizeof(const char *),
+};
 
 static int16_t spinSpiClkVal_last = -1;
 static int16_t spinSpiClkVal_actual = -1;
@@ -149,7 +149,9 @@ void printRGB_DirHx(size_t rect_index, size_t rect_count, size_t col, size_t row
 typedef void(drawCol_t)(size_t rect_index, size_t rect_count, size_t col, size_t row2draw, size_t row_space);
 //drawCol_t* fptrArr[] = {printRGBWscale,printDirectHex,printRGB};
 drawCol_t *fptrArr[] = { printRGBWscale, printRGB_DirHx };
-    #define fptrArr_sz      (sizeof(fptrArr) / sizeof(drawCol_t *))
+enum{
+    fptrArr_sz = sizeof(fptrArr) / sizeof(drawCol_t *)
+};
 
 static_assert(modes_sz == fptrArr_sz, "wrong number of function pointers");
 
@@ -160,7 +162,7 @@ enum { col_0 = 2,
 enum { col_0_w = col_1 - col_0,
     col_1_w = 240 - col_1 - col_0 };
 enum { col_2_w = 38 };
-    #define RECT_MACRO(col) rect_ui16(col_##col, row2draw, col_##col##_w, row_h)
+    #define RECT_MACRO(col) Rect16(col_##col, row2draw, col_##col##_w, row_h)
 
 enum {
     TAG_QUIT = 10,
@@ -169,7 +171,7 @@ enum {
 };
 
 //cannot use normal spin with format "%A"
-static void hexSpinInit(int16_t id0, rect_ui16_t rect, window_spin_t *pSpin) {
+static void hexSpinInit(int16_t id0, Rect16 rect, window_spin_t *pSpin) {
     window_create_ptr(WINDOW_CLS_SPIN, id0, rect, pSpin);
     pSpin->PrintAsInt();
     pSpin->SetFormat("%X");
@@ -181,9 +183,9 @@ void screen_test_disp_mem_init(screen_t *screen) {
     row2draw = 0;
     int16_t row_h = 22; //item_height from list
 
-    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), pd);
+    int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, Rect16(0, 0, 0, 0), pd);
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(0, 0, display::GetW(), 22), &(pd->textMenuName));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(0, 0, display::GetW(), 22), &(pd->textMenuName));
     pd->textMenuName.font = resource_font(IDR_FNT_BIG);
     static const char dtrm[] = "Disp. TEST rd mem.";
     pd->textMenuName.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)dtrm));
@@ -222,13 +224,13 @@ void screen_test_disp_mem_init(screen_t *screen) {
     static const char gam[] = "Gamma";
     pd->textMode.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)gam));
 
-    window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
+    window_create_ptr(WINDOW_CLS_SPIN, id0, Rect16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
     pd->spinGamma.SetFormat("%1.0f");
     pd->spinGamma.SetMinMaxStep(0.0F, 3.0F, 1.0F);
     pd->spinGamma.SetValue((float)st7789v_gamma_get());
 
     //INVERSION
-    window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
+    window_create_ptr(WINDOW_CLS_LIST, id0, Rect16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
     pd->spinInversion.SetItemCount(inversions_sz);
     pd->spinInversion.SetItemIndex(0);
     pd->spinInversion.SetCallback(window_list_inversions_item);
@@ -240,14 +242,14 @@ void screen_test_disp_mem_init(screen_t *screen) {
     static const char bri[] = "Brightn.";
     pd->textBrightness.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bri));
 
-    window_create_ptr(WINDOW_CLS_SPIN, id0, rect_ui16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
+    window_create_ptr(WINDOW_CLS_SPIN, id0, Rect16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
     pd->spinBrightness.SetFormat("%1.0f");
     pd->spinBrightness.SetMinMaxStep(0.0F, 255.0F, 5.0F);
     pd->spinBrightness.SetValue((float)st7789v_brightness_get());
     pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
 
     //Brightness enabled
-    window_create_ptr(WINDOW_CLS_LIST, id0, rect_ui16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
+    window_create_ptr(WINDOW_CLS_LIST, id0, Rect16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinBrigt_ena));
     pd->spinBrigt_ena.SetItemCount(bright_enas_sz);
     pd->spinBrigt_ena.SetItemIndex(0);
     pd->spinBrigt_ena.SetCallback(window_list_bright_enas_item);
@@ -267,13 +269,13 @@ void screen_test_disp_mem_init(screen_t *screen) {
     static const char zx[] = "0x";
     pd->text0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)zx));
 
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx3));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrHx3));
     col += offset;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx2));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrHx2));
     col += offset;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx1));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrHx1));
     col += offset;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrHx0));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrHx0));
 
     //write pixels
     row2draw += 25;
@@ -281,46 +283,46 @@ void screen_test_disp_mem_init(screen_t *screen) {
     int16_t RGBspaceW = 5;
 
     col = col_0;
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textR0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(col, row2draw, w_of_0xX, row_h), &(pd->textR0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     static const char rzx[] = "R 0x";
     pd->textR0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rzx));
     pd->textR0x.SetTextColor(COLOR_RED);
 
     col += w_of_0xX;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR0));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrR0));
     col += offset;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrR1));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrR1));
     col += offset;
     col += RGBspaceW;
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textG0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(col, row2draw, w_of_0xX, row_h), &(pd->textG0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     static const char gzx[] = "G 0x";
     pd->textG0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)gzx));
     pd->textG0x.SetTextColor(COLOR_GREEN);
 
     col += w_of_0xX;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG0));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrG0));
     col += offset;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrG1));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrG1));
     col += offset;
     col += RGBspaceW;
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col, row2draw, w_of_0xX, row_h), &(pd->textB0x));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(col, row2draw, w_of_0xX, row_h), &(pd->textB0x));
     pd->textMode.font = resource_font(IDR_FNT_NORMAL);
     static const char bzx[] = "B 0x";
     pd->textB0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bzx));
     pd->textB0x.SetTextColor(COLOR_BLUE);
 
     col += w_of_0xX;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB0));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrB0));
     col += offset;
-    hexSpinInit(id0, rect_ui16(col, row2draw, offset, row_h), &(pd->spinStrB1));
+    hexSpinInit(id0, Rect16(col, row2draw, offset, row_h), &(pd->spinStrB1));
 
     row2draw += 25; //position for drawing - it is global in this file
 
-    window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(col_0, 290, 60, 22), &(pd->textExit));
+    window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(col_0, 290, 60, 22), &(pd->textExit));
     pd->textExit.font = resource_font(IDR_FNT_BIG);
     static const char ex[] = "EXIT";
     pd->textExit.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ex));
@@ -331,20 +333,20 @@ void screen_test_disp_mem_init(screen_t *screen) {
 //draw line in Y direction
 void drawCol(size_t col, size_t row, size_t len, uint16_t directColor) {
     for (size_t i = 0; i < len; ++i) {
-        st7789v_set_pixel_directColor(point_ui16(col, row + i), directColor);
+        display_ex_set_pixel_displayNativeColor(point_ui16(col, row + i), directColor);
     }
 }
 //draw line in Y direction from buffer
 void drawCol_buff(size_t col, size_t row, size_t len, uint16_t *directColorBuff) {
     for (size_t i = 0; i < len; ++i) {
-        st7789v_set_pixel_directColor(point_ui16(col, row + i), directColorBuff[i]);
+        display_ex_set_pixel_displayNativeColor(point_ui16(col, row + i), directColorBuff[i]);
     }
 }
 
 //read line in Y direction
 void readCol(size_t col, size_t row, size_t len, uint16_t *directColorBuff) {
     for (size_t i = 0; i < len; ++i) {
-        directColorBuff[i] = st7789v_get_pixel_directColor(point_ui16(col, row + i));
+        directColorBuff[i] = display_ex_get_pixel_displayNativeColor(point_ui16(col, row + i));
     }
 }
 //draw line in Y direction, read it and draw it under first line
@@ -373,7 +375,9 @@ size_t getNumOfWritesIn_1_Cycle(size_t wr_len){
 }
 */
 
-    #define directColorBuff_sz 20
+enum {
+    directColorBuff_sz = 20
+};
 uint16_t directColorBuff[directColorBuff_sz];
 
 void printRGBWscale(size_t rect_index, size_t rect_count, size_t col, size_t row, size_t row_space) {
@@ -486,7 +490,7 @@ void readPartLine(size_t partRow, size_t partDivider, color_t *buff){
 
 	//read part of line
 	for (size_t i = 0; i < quarter; ++i){
-		buff[i] = st7789v_get_pixel(point_ui16(col + i, row2draw));
+		buff[i] = display_ex_get_pixel(point_ui16(col + i, row2draw));
 	}
 
 }

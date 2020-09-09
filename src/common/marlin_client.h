@@ -1,6 +1,5 @@
 // marlin_client.h
-#ifndef _MARLIN_CLIENT_H
-#define _MARLIN_CLIENT_H
+#pragma once
 
 #include "marlin_events.h"
 #include "marlin_vars.h"
@@ -8,14 +7,15 @@
 #include "client_fsm_types.h"
 
 // client flags
-#define MARLIN_CFLG_STARTED 0x0001 // client started (set in marlin_client_init)
-#define MARLIN_CFLG_PROCESS 0x0002 // loop processing in main thread is enabled
-#define MARLIN_CFLG_LOWHIGH 0x0008 // receiving low/high part of client message
-#define MARLIN_CFLG_MESSAGE 0x0010 // receiving status change message
+static const uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
+static const uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
+static const uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+
+typedef void (*message_cb_t)(const char *);
 
 //-----------------------------------------------------------------------------
 //externs from marlin server todo fixme use variables
@@ -47,6 +47,8 @@ extern int marlin_client_set_fsm_create_cb(fsm_create_t cb);
 extern int marlin_client_set_fsm_destroy_cb(fsm_destroy_t cb);
 //sets dialog callback, returns 1 on success
 extern int marlin_client_set_fsm_change_cb(fsm_change_t cb);
+//sets dialog message, returns 1 on success
+extern int marlin_client_set_message_cb(message_cb_t cb);
 // returns enabled status of loop processing
 extern int marlin_processing(void);
 
@@ -179,8 +181,6 @@ extern void marlin_print_resume(void);
 
 extern void marlin_park_head(void);
 
-extern uint8_t marlin_message_received(void);
-
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);
 
@@ -189,5 +189,3 @@ extern void marlin_encoded_response(uint32_t enc_phase_and_response);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //MARLIN_CLIENT_H

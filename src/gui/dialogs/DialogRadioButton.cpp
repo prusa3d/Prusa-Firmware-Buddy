@@ -28,21 +28,23 @@ size_t RadioButton::cnt_buttons(const PhaseTexts *labels, const PhaseResponses *
 }
 /*****************************************************************************/
 //nonstatic variables and methods
-RadioButton::RadioButton(window_t *parent, rect_ui16_t rect, const PhaseResponses *resp, const PhaseTexts *labels)
+RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels)
     : window_t(parent, rect)
     , pfont(resource_font(IDR_FNT_BIG))
     , responses(resp)
-    , texts(labels)
-    , btn_count(cnt_buttons(labels, resp))
-    , selected_index(0) {
+    , texts(labels) {
+    SetBtnCount(cnt_buttons(labels, resp));
+    SetBtnIndex(0);
     Enable();
 }
 
 //no overflow
 RadioButton &RadioButton::operator++() {
-    if ((selected_index + 1) < btn_count) {
-        ++selected_index; //btn_count can be 0
+    int8_t index = GetBtnIndex();
+    if ((index + 1) < GetBtnCount()) {
+        SetBtnIndex(index + 1);
         Invalidate();
+        Sound_Play(eSOUND_TYPE_EncoderMove);
     } else {
         Sound_Play(eSOUND_TYPE_BlindAlert);
     }
@@ -51,9 +53,11 @@ RadioButton &RadioButton::operator++() {
 
 //no underflow
 RadioButton &RadioButton::operator--() {
-    if (selected_index > 0) {
-        --selected_index;
+    uint8_t index = GetBtnIndex();
+    if (index > 0) {
+        SetBtnIndex(index - 1);
         Invalidate();
+        Sound_Play(eSOUND_TYPE_EncoderMove);
     } else {
         Sound_Play(eSOUND_TYPE_BlindAlert);
     }
@@ -77,7 +81,7 @@ void RadioButton::windowEvent(window_t *sender, uint8_t event, void *param) {
 }
 
 void RadioButton::unconditionalDraw() {
-    switch (btn_count) {
+    switch (GetBtnCount()) {
     case 0:
         draw_0_btn(); //cannot use draw_n_btns, would div by 0
         break;
@@ -85,7 +89,7 @@ void RadioButton::unconditionalDraw() {
         draw_1_btn(); //could use draw_n_btns, but this is much faster
         break;
     default:
-        draw_n_btns(btn_count);
+        draw_n_btns(GetBtnCount());
         break;
     }
 }
@@ -93,7 +97,7 @@ void RadioButton::unconditionalDraw() {
 Response RadioButton::Click() const {
     if (!responses)
         return Response::_none;
-    return (*responses)[selected_index];
+    return (*responses)[GetBtnIndex()];
 }
 
 void RadioButton::draw_0_btn() const {
@@ -105,36 +109,32 @@ void RadioButton::draw_1_btn() const {
         button_draw(rect, _((*texts)[0]), pfont, IsEnabled());
 }
 
-void RadioButton::draw_n_btns(size_t btn_count) const {
+void RadioButton::draw_n_btns(const size_t btn_count) const {
     if (!texts)
         return;
-    rect_ui16_t rc_btn = rect;
-    int16_t btn_width = rc_btn.w / btn_count - GuiDefaults::ButtonSpacing * (btn_count - 1);
-    rc_btn.w = btn_width;
+
+    static_assert(sizeof(btn_count) <= GuiDefaults::MAX_DIALOG_BUTTON_COUNT, "Too many RadioButtons to draw.");
+
+    /// fix size of dialog buttons - MAX_DIALOG_BUTTON_COUNT
+    Rect16 splits[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
+    Rect16 spaces[GuiDefaults::MAX_DIALOG_BUTTON_COUNT - 1];
+    uint8_t ratio[GuiDefaults::MAX_DIALOG_BUTTON_COUNT];
+
+    for (size_t index = 0; index < btn_count; index++) {
+        string_view_utf8 txt = _((*texts)[index]);
+        ratio[index] = static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
+    }
+    rect.HorizontalSplit(splits, spaces, btn_count, GuiDefaults::ButtonSpacing, ratio);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        button_draw(rc_btn, _((*texts)[i]), pfont, selected_index == i && IsEnabled());
-
-        if (i + 1 < btn_count) {
-            //space between buttons
-            rc_btn.x += btn_width;
-            rc_btn.w = GuiDefaults::ButtonSpacing;
-            display::FillRect(rc_btn, color_back);
-
-            //nextbutton coords
-            rc_btn.x += GuiDefaults::ButtonSpacing;
-            rc_btn.w = btn_width + GuiDefaults::ButtonSpacing;
-        }
+        button_draw(splits[i], _((*texts)[i]), pfont, GetBtnIndex() == i && IsEnabled());
     }
-    rc_btn.x += rc_btn.w; //start of black space after button (if exists)
-    int black_space_w = int(rect.x + rect.w) - int(rc_btn.x);
-    if (black_space_w > 0) {
-        rc_btn.w = black_space_w;
-        display::FillRect(rc_btn, color_back);
+    for (size_t i = 0; i < btn_count - 1; ++i) {
+        display::FillRect(spaces[i], color_back);
     }
 }
 
-void RadioButton::button_draw(rect_ui16_t rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected) {
+void RadioButton::button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected) {
     color_t back_cl = is_selected ? COLOR_ORANGE : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
     render_text_align(rc_btn, text, pf, back_cl, text_cl, { 0, 0, 0, 0 }, ALIGN_CENTER);
@@ -147,6 +147,7 @@ bool RadioButton::IsEnabled() const {
 void RadioButton::Change(const PhaseResponses *responses, const PhaseTexts *texts) {
     this->responses = responses;
     this->texts = texts;
-    btn_count = cnt_buttons(texts, responses);
+    SetBtnCount(cnt_buttons(texts, responses));
+    SetBtnIndex(0);
     Invalidate();
 }

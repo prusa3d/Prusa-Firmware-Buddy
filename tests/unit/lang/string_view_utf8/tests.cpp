@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "translator.hpp"
 #include "string_view_utf8.hpp"
-#include "rundir.h"
 
 using namespace std;
 
@@ -120,7 +119,7 @@ TEST_CASE("string_view_utf8::CreateFromCPUFLASH test", "[string_view_utf8]") {
 }
 
 TEST_CASE("string_view_utf8::CreateFromFILE test", "[string_view_utf8]") {
-    static const char fname[] = RELATIVE_FROM_RUNDIR "zluty_kun.bin";
+    static const char fname[] = "zluty_kun.bin";
     FILE *f = fopen(fname, "rb"); // beware! the file must end with \0!
     REQUIRE(f);                   // without it it makes no sense to continue this test
 

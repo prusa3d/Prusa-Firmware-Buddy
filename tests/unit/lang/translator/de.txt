@@ -16,13 +16,17 @@ Bettnivellierung fehlgeschlagen. Nochmals versuchen?
 Bett Soll: %.0f_C
 Bett: %.1f_C
 Kalibriere Z
-Kalibrierung
-KALIBRIERUNG
+Kalibrieren
+KALIBRIEREN
 Kalibrierung erfolgreich!\nFrohes Drucken!
 Kalibriere XY
 ABBRECHEN
 FILAMENTWECHSEL
 Filament wechseln
+Die Verkabelung von\nHeizbettheizung und\nThermistor auf\nmögliche Schäden\nprüfen.
+Die Verkabelung des\nHeizbettthermistors\nauf mögliche Schäden\nprüfen.
+Die Verkabelung der\nDruckkopfheizung und\ndes Thermistors auf\nmögliche Schäden\nprüfen.
+Die Verkabelung des\nDruckkopf-Thermistor\nauf mögliche Schäden\nprüfen.
 Prüfe Achsen
 Prüfe Hotend und\nHeizbettheizungen
 Stahlblech reinigen.
@@ -47,6 +51,8 @@ Werkeinstellung geladen. Das System wird neu gestartet.
 Werkseinstellung
 Fehlerstat.
 Lüftertest
+Fan0 UPM
+Fan1 UPM
 Fil.-Sens.
 FILAMENT
 Filament
@@ -59,8 +65,10 @@ Flussfaktor
 Fr.
 FW UPDATE
 FW Update
+Header
 Heizbett
 Heizung wegen 30 Minuten Inaktivität deaktiviert.
+HEIZEN FEHLER
 Aufheizen...
 Hallo, hier ist Ihr\nOriginal Prusa MINI.
 HOME
@@ -92,13 +100,15 @@ Zur Düse laden
 Laut
 Stellen Sie sicher\ndass das Filament \ndurch den Sensor  \ngeführt wird.
 Material
+MAXTEMP FEHLER
 Messe Referenz-\nHöhe der Kalibr.\nPunkte
 Menü Timeout
 BETTNIV.
-Bettnivelierung.
+Bettnivellieren
 Bettnivellierung fehlgeschlagen?
 MELDUNGEN
 Meldungen
+MINTEMP FEHLER
 Mo.
 Achsen Bewegen
 ACHSEN BEWEGEN
@@ -106,6 +116,7 @@ Bewege E
 Bewege X
 Bewege Y
 Bewege Z
+Name
 WEITER
 NEIN
 Kein Filamentsensor erkannt. Überprüfen Sie, ob der Sensor angeschlossen ist, und versuchen Sie es erneut.
@@ -150,6 +161,7 @@ DRUCKEN
 Druckzeit
 FILAMENT REINIGEN
 Filament reinigen
+MEHR REINIGEN
 Reinigen
 QR Test
 Frage
@@ -166,6 +178,7 @@ Rückkehr
 Sa.
 Crash Dump speichern
 Einstellungen speichern
+Für Details scannen
 Suche Bett-\nKalibrierpunkte
 Filamenttyp wählen
 DATEI WÄHLEN
@@ -175,10 +188,11 @@ Selbsttest
 SELBSTTEST
 Sende Info per QR
 Service
-Einstellungen
-EINSTELLUNGEN
+Einstellen
+EINSTELLEN
 Einstellungen erfolgreich geladen
 Leise
+Dateien sortieren
 Ton Modus
 Ton Typ
 Lautstärke
@@ -200,16 +214,19 @@ Die Einstellungen wurden erfolgreich in der Datei \"lan_settings.ini\" gespeiche
 Die Statusleiste ist am unteren Rand des Bildschirms. Sie enthält Infos über:\n - Düsentemperatur\n - Heizbetttemp.\n - Drucktempo\n - Höhe der Z-Achse\n - Filamenttyp
 Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Bitte Verkabelung und Achsen des Druckers überprüfen und starten Sie dann die XYZ-Kalibrierung erneut.
 Es gab einen Fehler beim Speichern der Einstellungen in der Datei \"lan_settings.ini\".
+THERMAL RUNAWAY
+Dieser G-Code ist für einen anderen Druckertyp.
 Diese Operation kann\nnicht rückgängig ge-\nmacht werden und die\naktuelle Konfiguration\ngeht verloren!\nDen Drucker auf die\nWerkseinstellungen\nzurücksetzen?
 Do.
+Zeit
 Timeout
 Zum Kalibrieren mit derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentwechsel drücken Sie ENTLADEN
 Zum Kalibrieren mit derzeit geladenem Filament, drücken Sie WEITER. Zum Filamentladen, drücken Sie LADEN. Zum Filamentwechsel drücken Sie ENTLADEN
 Heute um
 NEU VERSUCHEN
 Di.
-FEINEINSTELLEN
-Feineinstellung
+TUNEN
+Tunen
 ENTLADEN
 FILAMENT ENTLADEN
 Filament entladen
@@ -223,6 +240,7 @@ Version Info
 Warte auf Abkühl
 Warte auf\nTemperatur
 Warnung
+WARNUNG:
 Mi.
 Willkommen beim Original Prusa MINI Setup-Assistenten. Möchten Sie fortfahren?
 Willkommen beim Original Prusa MINI Einrichtungsassistenten. Möchten Sie fortfahren?

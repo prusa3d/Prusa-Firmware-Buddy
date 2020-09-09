@@ -11,7 +11,7 @@ void window_spin_dec(window_spin_t *window, int dif);
 
 void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_BTN_DN:
+    case WINDOW_EVENT_CLICK:
         if (window->IsEnabled())
             Screens::Access()->ScreenEvent((window_t *)window, WINDOW_EVENT_CHANGE, nullptr);
         if (window->GetParent())
@@ -98,7 +98,7 @@ void window_spin_t::setValMinMaxStep(float val, float min_val, float max_val, fl
     index = (int)((value - min) / step);
 }
 
-window_spin_t::window_spin_t(window_t *parent, rect_ui16_t rect)
+window_spin_t::window_spin_t(window_t *parent, Rect16 rect)
     : window_numb_t(parent, rect)
     , min(0.0)
     , max(100.0F)

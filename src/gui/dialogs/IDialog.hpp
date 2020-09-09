@@ -5,23 +5,46 @@
 #include "window_frame.hpp"
 #include "guitypes.hpp"
 #include "GuiDefaults.hpp"
+#include <functional>
+
+//todo remove this after jogwheel refactoring
+extern void gui_loop(void);
+
 //interface for dialog
 class IDialog : public window_frame_t {
-    window_t *id_capture;
+    window_t *prev_capture;
 
 public:
-    IDialog(rect_ui16_t rc = GuiDefaults::RectScreenBody);
+    IDialog(Rect16 rc = GuiDefaults::RectScreenBody);
     virtual ~IDialog();
 
-    static constexpr rect_ui16_t get_radio_button_size(rect_ui16_t rc_btn) {
-        rc_btn.y += (rc_btn.h - GuiDefaults::ButtonHeight - GuiDefaults::FrameWidth); // 30pixels for button (+ 10 space for grey frame)
-        rc_btn.h = GuiDefaults::ButtonHeight;
-        rc_btn.x += GuiDefaults::ButtonSpacing;
-        rc_btn.w -= 2 * GuiDefaults::ButtonSpacing;
-        return rc_btn;
+    static constexpr Rect16 get_radio_button_size(Rect16 rc_frame) {
+        return Rect16(
+            rc_frame.Left() + GuiDefaults::ButtonSpacing,
+            rc_frame.Top() + (rc_frame.Height() - GuiDefaults::ButtonHeight - GuiDefaults::FrameWidth),
+            rc_frame.Width() - 2 * GuiDefaults::ButtonSpacing,
+            GuiDefaults::ButtonHeight);
     }
 
-    void MakeBlocking(void (*action)() = []() {}) const; //could be static, but I want it to be usable only from dialog
+    template <class... Args>
+    void MakeBlocking(
+        std::function<void(Args...)> action = [](Args...) {}, Args... args) const { //could be static, but I want it to be usable only from dialog
+        while (!consumeCloseFlag()) {
+            guiLoop();
+            action(args...);
+        }
+    }
+
+    void StoreCapture(); //set capture pointer (to be restore after dialog closes)
+
+protected:
+    void releaseCapture();
+    void clearCapture();
+
+    //used in MakeBlocking
+    //needs included files which cannot be included in header
+    bool consumeCloseFlag() const;
+    void guiLoop() const;
 };
 
 void create_blocking_dialog_from_normal_window(window_t &dlg);

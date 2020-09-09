@@ -9,7 +9,7 @@
 #include "marlin_client.h"
 #include "window_dlg_load_unload.h"
 #include "dbg.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "ScreenHandler.hpp"
 
 /// Sets temperature of nozzle not to ooze before print (MBL)
@@ -120,7 +120,7 @@ class ScreenMenuFilament : public Screen {
 public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
-        : Screen(_(label)) {}
+        : Screen(_(label)) { deactivate_item(); }
     virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 
 private:

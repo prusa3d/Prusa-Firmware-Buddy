@@ -1,5 +1,4 @@
-#ifndef BASE64_STREAM_DECODER_H
-#define BASE64_STREAM_DECODER_H
+#pragma once
 
 #include <stdint.h>
 
@@ -35,7 +34,7 @@ public:
     int ConsumeChar(char c, uint8_t *out);
 
 private:
-    uint8_t lastbits;
+    uint8_t lastbits = 0;
     enum class States : uint8_t {
         AwaitingFirst, // ocekavam prvni znak, nemam nic
         FirstByteOut,  // mam prvni znak, a prisel mi 2. znak - vracim 1. bajt,
@@ -56,5 +55,3 @@ private:
     // }
     static const uint8_t base64_inverse[256];
 };
-
-#endif // BASE64_STREAM_DECODER_H

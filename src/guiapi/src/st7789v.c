@@ -15,52 +15,58 @@
 #endif //ST7789V_USE_RTOS
 
 //st7789 commands
-#define CMD_SLPIN     0x10
-#define CMD_SLPOUT    0x11
-#define CMD_INVOFF    0x20 //Display Inversion Off
-#define CMD_INVON     0x21 //Display Inversion On
-#define CMD_GAMMA_SET 0x26 //gamma set
-#define CMD_DISPOFF   0x28
-#define CMD_DISPON    0x29
-#define CMD_CASET     0x2A
-#define CMD_RASET     0x2B
-#define CMD_RAMWR     0x2C
-#define CMD_RAMRD     0x2E
-#define CMD_MADCTL    0x36
-//#define CMD_IDMOFF 		0x38//Idle Mode Off
-//#define CMD_IDMON 		0x38//Idle Mode On
-#define CMD_COLMOD  0x3A
-#define CMD_RAMWRC  0x3C
-#define CMD_WRDISBV 0x51 //Write Display Brightness
-#define CMD_RDDISBV 0x52 //Read Display Brightness Value
-#define CMD_WRCTRLD 0x53 // Write CTRL Display
-//-Brightness Control Block - bit 5
-//-Display Dimming			- bit 3
-//-Backlight Control On/Off - bit 2
-#define CMD_RDCTRLD 0x54 //Read CTRL Value Display
+enum {
+    CMD_SLPIN = 0x10,
+    CMD_SLPOUT = 0x11,
+    CMD_INVOFF = 0x20,    //Display Inversion Off
+    CMD_INVON = 0x21,     //Display Inversion On
+    CMD_GAMMA_SET = 0x26, //gamma set
+    CMD_DISPOFF = 0x28,
+    CMD_DISPON = 0x29,
+    CMD_CASET = 0x2A,
+    CMD_RASET = 0x2B,
+    CMD_RAMWR = 0x2C,
+    CMD_RAMRD = 0x2E,
+    CMD_MADCTL = 0x36,
+    // CMD_IDMOFF = 0x38,//Idle Mode Off FIXME shouldn't be 0x37?
+    // CMD_IDMON = 0x38,//Idle Mode On
+    CMD_COLMOD = 0x3A,
+    CMD_RAMWRC = 0x3C,
+    CMD_WRDISBV = 0x51, //Write Display Brightness
+    CMD_RDDISBV = 0x52, //Read Display Brightness Value
+    CMD_WRCTRLD = 0x53, // Write CTRL Display
+                        //-Brightness Control Block - bit 5
+                        //-Display Dimming			- bit 3
+                        //-Backlight Control On/Off - bit 2
+    CMD_RDCTRLD = 0x54, //Read CTRL Value Display
+};
 
 //st7789 gamma
-#define GAMMA_CURVE0 0x01
-#define GAMMA_CURVE1 0x02
-#define GAMMA_CURVE2 0x04
-#define GAMMA_CURVE3 0x08
+enum {
+    GAMMA_CURVE0 = 0x01,
+    GAMMA_CURVE1 = 0x02,
+    GAMMA_CURVE2 = 0x04,
+    GAMMA_CURVE3 = 0x08,
+};
 
 //st7789 CTRL Display
-#define MASK_CTRLD_BCTRL (0x01 << 5) //Brightness Control Block
-#define MASK_CTRLD_DD    (0x01 << 3) //Display Dimming
-#define MASK_CTRLD_BL    (0x01 << 2) //Backlight Control
+static const uint8_t MASK_CTRLD_BCTRL = 1 << 5; //Brightness Control Block
+// static const uint8_t MASK_CTRLD_DD = 1 << 3;    //Display Dimming
+// static const uint8_t MASK_CTRLD_BL = 1 << 2;    //Backlight Control
 
 //color constants
-#define CLR565_WHITE   0xffff
-#define CLR565_BLACK   0x0000
-#define CLR565_RED     0xf800
-#define CLR565_CYAN    0x0000
-#define CLR565_MAGENTA 0x0000
-#define CLR565_GREEN   0x07e0
-#define CLR565_YELLOW  0xffe0
-#define CLR565_ORANGE  0x0000
-#define CLR565_GRAY    0x38e7
-#define CLR565_BLUE    0x001f
+enum {
+    CLR565_WHITE = 0xffff,
+    CLR565_BLACK = 0x0000,
+    CLR565_RED = 0xf800,
+    CLR565_CYAN = 0x0000,
+    CLR565_MAGENTA = 0x0000,
+    CLR565_GREEN = 0x07e0,
+    CLR565_YELLOW = 0xffe0,
+    CLR565_ORANGE = 0x0000,
+    CLR565_GRAY = 0x38e7,
+    CLR565_BLUE = 0x001f,
+};
 
 uint8_t st7789v_flg = 0; // flags
 
@@ -69,7 +75,7 @@ uint16_t st7789v_y = 0;  // current y coordinate (RASET)
 uint16_t st7789v_cx = 0; //
 uint16_t st7789v_cy = 0; //
 
-uint8_t st7789v_buff[ST7789V_COLS * 2 * 16]; //16 lines buffer
+uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; //16 lines buffer
 
 #ifdef ST7789V_USE_RTOS
 osThreadId st7789v_task_handle = 0;
@@ -90,7 +96,7 @@ static inline int is_interrupt(void) {
 }
 
 void st7789v_delay_ms(uint32_t ms) {
-    if (is_interrupt() || (st7789v_flg & ST7789V_FLG_SAFE)) {
+    if (is_interrupt() || (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE)) {
         volatile uint32_t temp;
         while (ms--) {
             do {
@@ -111,7 +117,7 @@ void st7789v_spi_wr_byte(uint8_t b) {
 }
 
 void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
-    if ((st7789v_flg & ST7789V_FLG_DMA) && !(st7789v_flg & ST7789V_FLG_SAFE) && (size > 4)) {
+    if ((st7789v_flg & (uint8_t)ST7789V_FLG_DMA) && !(st7789v_flg & (uint8_t)ST7789V_FLG_SAFE) && (size > 4)) {
 #ifdef ST7789V_USE_RTOS
         osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
@@ -127,26 +133,24 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
 }
 
 void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
-    HAL_StatusTypeDef ret;
 #if 0
 //#ifdef ST7789V_DMA
     if (size <= 4)
-        ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+        HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
     else
     {
     #ifdef ST7789V_USE_RTOS
         osSignalSet(0, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     #endif //ST7789V_USE_RTOS
-        ret = HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
+        HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
     #ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    #endif     //ST7789V_USE_RTOS
+    #endif //ST7789V_USE_RTOS
     }
-#else          //ST7789V_DMA
-    ret = HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
-#endif         //ST7789V_DMA
-    ret = ret; //prevent warning
+#else      //ST7789V_DMA
+    HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+#endif     //ST7789V_DMA
 }
 
 void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
@@ -254,8 +258,8 @@ void st7789v_init(void) {
 #ifdef ST7789V_USE_RTOS
     st7789v_task_handle = osThreadGetId();
 #endif //ST7789V_USE_RTOS
-    if (st7789v_flg & ST7789V_FLG_SAFE)
-        st7789v_flg &= ~ST7789V_FLG_DMA;
+    if (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE)
+        st7789v_flg &= ~(uint8_t)ST7789V_FLG_DMA;
     else
         st7789v_flg = st7789v_config.flg;
     st7789v_init_ctl_pins();                   // CS=H, RS=H, RST=H
@@ -273,8 +277,8 @@ void st7789v_done(void) {
 }
 
 /// Fills screen by this color
-void st7789v_clear_C(uint16_t clr565) {
-    // FIXME similar to st7789v_fill_rect; join?
+void st7789v_clear(uint16_t clr565) {
+    // FIXME similar to display_ex_fill_rect; join?
     int i;
     for (i = 0; i < ST7789V_COLS * 16; i++)
         ((uint16_t *)st7789v_buff)[i] = clr565;
@@ -289,24 +293,10 @@ void st7789v_clear_C(uint16_t clr565) {
 }
 
 /// Turns the specified pixel to the specified color
-void st7789v_set_pixel_C(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
+void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
     st7789v_cmd_caset(point_x, 1);
     st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
-}
-
-uint32_t st7789v_get_pixel_C(uint16_t point_x, uint16_t point_y) {
-    uint16_t clr565;
-    st7789v_cmd_caset(point_x, 1);
-    st7789v_cmd_raset(point_y, 1);
-    st7789v_cmd_ramrd((uint8_t *)(&clr565), 2);
-    return color_from_565(clr565);
-}
-
-void st7789v_set_pixel_directColor_C(uint16_t point_x, uint16_t point_y, uint16_t directColor) {
-    st7789v_cmd_caset(point_x, 1);
-    st7789v_cmd_raset(point_y, 1);
-    st7789v_cmd_ramwr((uint8_t *)(&directColor), 2);
 }
 
 //1 == 0000 0001, 5 == 0001 1111
@@ -340,7 +330,7 @@ static uint16_t rd18bit_to_16bit(uint8_t *buff) {
     return ((uint16_t)(buff[0] >> 5) & set_num_of_ones(3)) | (((uint16_t)(buff[2] >> 3) & set_num_of_ones(5)) << 3) | (((uint16_t)(buff[1] >> 3) & set_num_of_ones(5)) << 8) | (((uint16_t)(buff[0] >> 2) & set_num_of_ones(3)) << 13);
 }
 
-uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
+uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y) {
     enum { buff_sz = 5 };
     uint8_t buff[buff_sz];
     st7789v_cmd_caset(point_x, 1);
@@ -350,8 +340,17 @@ uint16_t st7789v_get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
     return ret; //directColor;
 }
 
+uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
+    if (start_x > ST7789V_COLS || start_y > ST7789V_ROWS || end_x > ST7789V_COLS || end_y > ST7789V_ROWS)
+        return NULL;
+    st7789v_cmd_caset(start_x, end_x);
+    st7789v_cmd_raset(start_y, end_y);
+    st7789v_cmd_ramrd(st7789v_buff, ST7789V_COLS * 2 * ST7789V_BUFF_ROWS);
+    return st7789v_buff;
+}
+
 /// Draws a solid rectangle of defined color
-void st7789v_fill_rect_C(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565) {
+void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565) {
 
     uint32_t size = (uint32_t)rect_w * rect_h * 2; // area of rectangle
 
@@ -376,74 +375,18 @@ void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t 
     st7789v_set_cs();
 }
 
-static inline void rop_rgb888_invert(uint8_t *ppx888) {
-    ppx888[0] = 255 - ppx888[0];
-    ppx888[1] = 255 - ppx888[1];
-    ppx888[2] = 255 - ppx888[2];
-}
-
-#define SWAPBW_TOLERANCE 64
-static inline void rop_rgb888_swapbw(uint8_t *ppx888) {
-    const uint8_t r = ppx888[0];
-    const uint8_t g = ppx888[1];
-    const uint8_t b = ppx888[2];
-    const uint8_t l = (r + g + b) / 3;
-    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
-    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
-
-    if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
-        ppx888[0] = 255 - r;
-        ppx888[1] = 255 - g;
-        ppx888[2] = 255 - b;
-    }
-}
-
-static inline void rop_rgb888_disabled(uint8_t *ppx888) {
-    const uint8_t r = ppx888[0];
-    const uint8_t g = ppx888[1];
-    const uint8_t b = ppx888[2];
-    const uint8_t l = (r + g + b) / 3;
-    const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
-    const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
-    if ((l0 <= r) && (r <= l1) && (l0 <= g) && (g <= l1) && (l0 <= b) && (b <= l1)) {
-        ppx888[0] = r / 2;
-        ppx888[1] = g / 2;
-        ppx888[2] = b / 2;
-    }
-}
-
-static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
-    const uint8_t r = ppx[0];
-    const uint8_t g = ppx[1];
-    const uint8_t b = ppx[2];
-    const uint8_t a = ppx[3];
-    if ((r == g) && (r == b)) {
-        ppx[0] = 255 - r;
-        ppx[1] = 255 - g;
-        ppx[2] = 255 - b;
-        if (/*(r < 32) && */ (a < 128)) {
-            ppx[0] = 0;
-            ppx[1] = 0;
-            ppx[2] = 255;
-            ppx[3] = 255;
-        }
-    } else if (a < 128) {
-        ppx[0] = 0;
-        ppx[1] = 255;
-        ppx[2] = 0;
-        ppx[3] = 255;
-    }
-}
-
 #ifdef ST7789V_PNG_SUPPORT
 
     #include <png.h>
+enum {
+    PNG_MAX_CHUNKS = 10
+};
 
 void *png_mem_ptr0 = 0;
 uint32_t png_mem_total = 0;
 uint32_t png_mem_max = 0;
-void *png_mem_ptrs[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-uint32_t png_mem_sizes[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+void *png_mem_ptrs[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+uint32_t png_mem_sizes[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
 
 png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
@@ -452,15 +395,17 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
     if (png_mem_ptr0 == 0)
         //png_mem_ptr0 = pvPortMalloc(0xc000); //48k
         png_mem_ptr0 = (void *)0x10000000; //ccram
-    int i;
     void *p = ((uint8_t *)png_mem_ptr0) + png_mem_total;
     //	if (p == 0)
     //		while (1);
     //	else
     {
-        for (i = 0; i < 10; i++)
+        int i;
+        for (i = 0; i < PNG_MAX_CHUNKS; i++)
             if (png_mem_ptrs[i] == 0)
                 break;
+        if (i >= PNG_MAX_CHUNKS)
+            return NULL;
         png_mem_ptrs[i] = p;
         png_mem_sizes[i] = size;
         png_mem_total += size;
@@ -529,11 +474,11 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
     uint16_t w = png_get_image_width(pp, ppi);
     uint16_t h = png_get_image_height(pp, ppi);
     int rowsize = png_get_rowbytes(pp, ppi);
-    //_dbg("st7789v_draw_png rowsize = %i", rowsize);
+    //_dbg("display_ex_draw_png rowsize = %i", rowsize);
     if (rowsize > ST7789V_COLS * 4)
         goto _e_1;
     int pixsize = rowsize / w;
-    //_dbg("st7789v_draw_png pixsize = %i", pixsize);
+    //_dbg("display_ex_draw_png pixsize = %i", pixsize);
     int i;
     int j;
     st7789v_clr_cs();
@@ -684,7 +629,7 @@ uint16_t st7789v_reset_delay = 0;
 
 //! @brief enable safe mode (direct acces + safe delay)
 void st7789v_enable_safe_mode(void) {
-    st7789v_flg |= ST7789V_FLG_SAFE;
+    st7789v_flg |= (uint8_t)ST7789V_FLG_SAFE;
 }
 
 void st7789v_spi_tx_complete(void) {

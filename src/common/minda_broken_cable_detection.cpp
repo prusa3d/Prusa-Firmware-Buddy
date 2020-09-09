@@ -62,7 +62,10 @@ typedef struct pre_post_t {
     int post_lvl : 1;
 } pre_post;
 
-#define POINTS 16
+enum {
+    POINTS = 16
+};
+
 static pre_post mbl_preposts[POINTS] = {};
 static size_t actual_point = 0;
 void MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN() {

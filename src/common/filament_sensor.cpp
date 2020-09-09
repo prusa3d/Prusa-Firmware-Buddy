@@ -22,8 +22,8 @@
 #include "cmsis_os.h"      //osDelay
 #include "marlin_client.h" //enable/disable fs in marlin
 
-static volatile fsensor_t state = FS_NOT_INICIALIZED;
-static volatile fsensor_t last_state = FS_NOT_INICIALIZED;
+static volatile fsensor_t state = FS_NOT_INITIALIZED;
+static volatile fsensor_t last_state = FS_NOT_INITIALIZED;
 
 static InputPin fSensor(IoPort::B, IoPin::p4, IMode::input, Pull::up);
 
@@ -93,8 +93,8 @@ static void _set_state(fsensor_t st) {
 
 static void _enable() {
     fSensor.pullUp();
-    state = FS_NOT_INICIALIZED;
-    last_state = FS_NOT_INICIALIZED;
+    state = FS_NOT_INITIALIZED;
+    last_state = FS_NOT_INITIALIZED;
     status.meas_cycle = 0;
 }
 
@@ -163,9 +163,9 @@ void fs_restore__send_M600_on(uint8_t send_M600_on) {
     taskEXIT_CRITICAL();
 }
 
-fsensor_t fs_wait_inicialized() {
+fsensor_t fs_wait_initialized() {
     fsensor_t ret = fs_get_state();
-    while (ret == FS_NOT_INICIALIZED) {
+    while (ret == FS_NOT_INITIALIZED) {
         osDelay(0); // switch to other threads
         ret = fs_get_state();
     }
@@ -181,7 +181,7 @@ void fs_clr_sent() {
 /*---------------------------------------------------------------------------*/
 //global not thread safe functions
 static void _init() {
-    int enabled = eeprom_get_var(EEVAR_FSENSOR_ENABLED).ui8 ? 1 : 0;
+    int enabled = variant_get_ui8(eeprom_get_var(EEVAR_FSENSOR_ENABLED)) ? 1 : 0;
     marlin_client_set_fsm_create_cb(fsm_create_cb);
     marlin_client_set_fsm_destroy_cb(fsm_destroy_cb);
     if (enabled)

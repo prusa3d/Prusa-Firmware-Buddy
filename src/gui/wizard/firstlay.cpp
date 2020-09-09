@@ -2,6 +2,7 @@
 #if 0
     #include <stdio.h>
     #include <string.h>
+    #include <algorithm>
 
     #include "firstlay.h"
     #include "dbg.h"
@@ -15,8 +16,7 @@
     #include "guitypes.hpp" //font_meas_text
     #include "menu_vars.h"
     #include "filament.h"
-    #include "../lang/i18n.h"
-    #include <algorithm>
+    #include "i18n.h"
 
     #define V__GCODES_HEAD_BEGIN                 \
         "M107",    /*fan off */                  \
@@ -289,7 +289,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     pt = font_meas_text(resource_font(IDR_FNT_NORMAL), &wft, &numOfUTF8Chars);
     pt.x += 5;
     pt.y += 5;
-    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, pt.x, pt.y), &(p_screen->text_state));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x, y, pt.x, pt.y), &(p_screen->text_state));
     p_screen->text_state.font = resource_font(IDR_FNT_NORMAL);
     wft.rewind();
     p_screen->text_state.SetText(wft);
@@ -297,7 +297,7 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
     y += pt.y + 5;
 #else
     window_create_ptr(WINDOW_CLS_TERM, id_body,
-        rect_ui16(10, y,
+        Rect16(10, y,
             resource_font(IDR_FNT_SMALL)->w * FIRSTLAY_SCREEN_TERM_X,
             resource_font(IDR_FNT_SMALL)->h * FIRSTLAY_SCREEN_TERM_Y),
         &(p_screen->term));
@@ -307,22 +307,22 @@ void wizard_init_screen_firstlay(int16_t id_body, firstlay_screen_t *p_screen, f
 
     y += 18 * FIRSTLAY_SCREEN_TERM_Y + 3;
 #endif
-    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x, y, 110, 22), &(p_screen->text_Z_pos));
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x, y, 110, 22), &(p_screen->text_Z_pos));
     p_screen->text_Z_pos.SetText(_("Z height:"));
 
-    window_create_ptr(WINDOW_CLS_NUMB, id_body, rect_ui16(x + 110, y, 70, 22), &(p_screen->spin_baby_step));
+    window_create_ptr(WINDOW_CLS_NUMB, id_body, Rect16(x + 110, y, 70, 22), &(p_screen->spin_baby_step));
     p_screen->spin_baby_step.SetFormat("%.3f");
     p_screen->spin_baby_step.SetValue(p_screen->Z_offset);
     p_screen->spin_baby_step.color_text = COLOR_GRAY;
 
-    window_create_ptr(WINDOW_CLS_TEXT, id_body, rect_ui16(x + 110 + 70, y, WIZARD_X_SPACE - x - 110 - 70, 22),
+    window_create_ptr(WINDOW_CLS_TEXT, id_body, Rect16(x + 110 + 70, y, WIZARD_X_SPACE - x - 110 - 70, 22),
         &(p_screen->text_direction_arrow));
     static const char pm[] = "-|+";
     p_screen->text_direction_arrow.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pm));
 
     y += 22 + 10;
 
-    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, rect_ui16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
+    window_create_ptr(WINDOW_CLS_PROGRESS, id_body, Rect16(x, y, WIZARD_X_SPACE, 8), &(p_screen->progress));
 */
 }
 

@@ -2,7 +2,7 @@
 //menu items running tools
 #pragma once
 #include "WindowMenuItems.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "filament.h"
 
 class MI_WIZARD : public WI_LABEL_t {
@@ -180,6 +180,86 @@ class MI_EE_SAVEXML : public WI_LABEL_t {
 
 public:
     MI_EE_SAVEXML();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ES_12201 : public WI_LABEL_t {
+    static constexpr const char *const label = "Error 12201"; // intentionally not translated, only for debugging
+
+public:
+    MI_ES_12201();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ES_12202 : public WI_LABEL_t {
+    static constexpr const char *const label = "Error 12202"; // intentionally not translated, only for debugging
+
+public:
+    MI_ES_12202();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ES_12203 : public WI_LABEL_t {
+    static constexpr const char *const label = "Error 12203"; // intentionally not translated, only for debugging
+
+public:
+    MI_ES_12203();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ES_12204 : public WI_LABEL_t {
+    static constexpr const char *const label = "Error 12204"; // intentionally not translated, only for debugging
+
+public:
+    MI_ES_12204();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ES_12205 : public WI_LABEL_t {
+    static constexpr const char *const label = "Error 12205"; // intentionally not translated, only for debugging
+
+public:
+    MI_ES_12205();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ES_12206 : public WI_LABEL_t {
+    static constexpr const char *const label = "Error 12206"; // intentionally not translated, only for debugging
+
+public:
+    MI_ES_12206();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ES_12207 : public WI_LABEL_t {
+    static constexpr const char *const label = "Error 12207"; // intentionally not translated, only for debugging
+
+public:
+    MI_ES_12207();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_ES_12208 : public WI_LABEL_t {
+    static constexpr const char *const label = "Error 12208"; // intentionally not translated, only for debugging
+
+public:
+    MI_ES_12208();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

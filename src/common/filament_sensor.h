@@ -5,8 +5,7 @@
  *      Author: Radek Vana
  */
 
-#ifndef _FILAMENT_SENSOR_H
-#define _FILAMENT_SENSOR_H
+#pragma once
 
 #include "stdint.h"
 
@@ -17,7 +16,7 @@ extern "C" {
 #pragma pack(push)
 #pragma pack(1) //makes enum 1 BYTE
 typedef enum {
-    FS_NOT_INICIALIZED, //enable enters this state too
+    FS_NOT_INITIALIZED, //enable enters this state too
     FS_HAS_FILAMENT,
     FS_NO_FILAMENT,
     FS_NOT_CONNECTED,
@@ -40,7 +39,7 @@ void fs_disable();
 
 uint8_t fs_get__send_M600_on__and_disable();
 void fs_restore__send_M600_on(uint8_t send_M600_on);
-fsensor_t fs_wait_inicialized();
+fsensor_t fs_wait_initialized();
 void fs_clr_sent();
 
 //not thread safe functions
@@ -56,5 +55,3 @@ char fs_get_send_M600_on();
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_FILAMENT_SENSOR_H

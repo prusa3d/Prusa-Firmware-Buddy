@@ -10,7 +10,6 @@
 #include <set>
 #include "hash.hpp"
 #include "unaccent.hpp"
-#include "rundir.h"
 
 using namespace std;
 
@@ -179,8 +178,14 @@ pair<uint16_t, uint16_t> FillStringTable(const deque<string> &translatedStrings,
 bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &nonAsciiChars) {
     unichar c;
     while ((c = s.getUtf8Char()) != 0) {
-        if (c > 128)
+        if (c > 128) {
             nonAsciiChars.insert(c); // just stats how many non-ASCII UTF-8 characters do we have for now
+            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
+            if (cASCII.key == 0xffff) {
+                // this string wants a new non-ascii character
+                std::cout << "xx\n";
+            }
+        }
         if (c != s2.getUtf8Char()) {
             return false;
         }
@@ -244,7 +249,7 @@ bool CheckAllTheStrings(const deque<string> &rawStringKeys, const deque<string> 
 }
 
 void SaveArray(const char *strData, uint16_t strDataSize, const char *type, const char *langCode) {
-    ofstream f(string(RELATIVE_FROM_RUNDIR "strings.") + type + langCode);
+    ofstream f(string("strings.") + type + langCode);
     f.write(strData, strDataSize);
 }
 
@@ -280,7 +285,7 @@ void FillAndSaveStringTable(const deque<string> &strings, const char *langCode) 
 
     string upcaseLangCode(langCode);
     std::transform(upcaseLangCode.begin(), upcaseLangCode.end(), upcaseLangCode.begin(), ::toupper);
-    SaveArray4CPP(T::stringBegins, T::stringCount, (string(RELATIVE_FROM_RUNDIR "stringBegins.") + langCode + ".hpp").c_str(),
+    SaveArray4CPP(T::stringBegins, T::stringCount, (string("stringBegins.") + langCode + ".hpp").c_str(),
         (string("const uint16_t StringTable") + upcaseLangCode + "::stringBegins[]").c_str());
 }
 
@@ -303,27 +308,27 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     CPUFLASHTranslationProviderITTest providerIT;
     CPUFLASHTranslationProviderPLTest providerPL;
     deque<string> rawStringKeys;
-    FillHashTableCPUFLASHProvider(CPUFLASHTranslationProviderBase::hash_table, RELATIVE_FROM_RUNDIR "keys.txt", rawStringKeys);
+    FillHashTableCPUFLASHProvider(CPUFLASHTranslationProviderBase::hash_table, "keys.txt", rawStringKeys);
     const auto &ht = CPUFLASHTranslationProviderBase::hash_table;
-    SaveArray((const char *)ht.hash_table, sizeof(ht.hash_table), RELATIVE_FROM_RUNDIR "hash_table", "");
-    SaveArray((const char *)ht.stringRecArray, sizeof(ht.stringRecArray), RELATIVE_FROM_RUNDIR "hash_buckets", "");
+    SaveArray((const char *)ht.hash_table, sizeof(ht.hash_table), "hash_table", "");
+    SaveArray((const char *)ht.stringRecArray, sizeof(ht.stringRecArray), "hash_buckets", "");
     SaveHashIPP(
-        ht.hash_table, ht.Buckets(), RELATIVE_FROM_RUNDIR "hash_table_buckets.ipp",
+        ht.hash_table, ht.Buckets(), "hash_table_buckets.ipp",
         [](const CPUFLASHTranslationProviderBase::SHashTable::BucketRange &b) { return b.begin; },
         [](const CPUFLASHTranslationProviderBase::SHashTable::BucketRange &b) { return b.end; });
     SaveHashIPP(
-        ht.stringRecArray, ht.MaxStrings(), RELATIVE_FROM_RUNDIR "hash_table_string_indices.ipp",
+        ht.stringRecArray, ht.MaxStrings(), "hash_table_string_indices.ipp",
         [](const CPUFLASHTranslationProviderBase::SHashTable::BucketItem &b) { return b.firstLetters; },
         [](const CPUFLASHTranslationProviderBase::SHashTable::BucketItem &b) { return b.stringIndex; });
 
     // now do a similar thing for the translated strings
     deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings; // don't have the Spanish translation yet
-    REQUIRE(LoadTranslatedStringsFile(RELATIVE_FROM_RUNDIR "cs.txt", &csStrings));
-    REQUIRE(LoadTranslatedStringsFile(RELATIVE_FROM_RUNDIR "de.txt", &deStrings));
-    REQUIRE(LoadTranslatedStringsFile(RELATIVE_FROM_RUNDIR "es.txt", &esStrings));
-    REQUIRE(LoadTranslatedStringsFile(RELATIVE_FROM_RUNDIR "fr.txt", &frStrings));
-    REQUIRE(LoadTranslatedStringsFile(RELATIVE_FROM_RUNDIR "it.txt", &itStrings));
-    REQUIRE(LoadTranslatedStringsFile(RELATIVE_FROM_RUNDIR "pl.txt", &plStrings));
+    REQUIRE(LoadTranslatedStringsFile("cs.txt", &csStrings));
+    REQUIRE(LoadTranslatedStringsFile("de.txt", &deStrings));
+    REQUIRE(LoadTranslatedStringsFile("es.txt", &esStrings));
+    REQUIRE(LoadTranslatedStringsFile("fr.txt", &frStrings));
+    REQUIRE(LoadTranslatedStringsFile("it.txt", &itStrings));
+    REQUIRE(LoadTranslatedStringsFile("pl.txt", &plStrings));
 
     // need to have at least the same amount of translations like the keys (normally there will be an exact number of them)
     REQUIRE(rawStringKeys.size() <= csStrings.size());
@@ -365,8 +370,8 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
         // Dump detected non-ASCII characters to a file - note, I don't have the correct utf-8 represetation here
         // ... can be probably added later
         // In our case we have only 2-byte utf chars so far (cs, de, es, fr, it, pl)
-        ofstream fr(RELATIVE_FROM_RUNDIR "non-ascii-chars.raw");
-        ofstream f(RELATIVE_FROM_RUNDIR "non-ascii-chars.txt");
+        ofstream fr("non-ascii-chars.raw");
+        ofstream f("non-ascii-chars.txt");
         for_each(nonASCIICharacters.begin(), nonASCIICharacters.end(), [&f, &fr](unichar c) {
             fr.write((const char *)&c, sizeof(unichar));
             uint8_t uc[4] = "   ";

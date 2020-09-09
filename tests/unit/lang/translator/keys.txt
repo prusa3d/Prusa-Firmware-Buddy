@@ -23,6 +23,10 @@ Calibration XY
 CANCEL
 CHANGE FILAMENT
 Change Filament
+Check the heatbed heater & thermistor wiring for possible damage.
+Check the heatbed thermistor wiring for possible damage.
+Check the print head heater & thermistor wiring for possible damage.
+Check the print head thermistor wiring for possible damage.
 Checking axes
 Checking hotend and\nheatbed heaters
 Clean steel sheet.
@@ -47,6 +51,8 @@ Factory defaults loaded. The system will now restart.
 Factory Reset
 Fail Stats
 Fan test
+Fan0 RPM
+Fan1 RPM
 Fil. sens.
 FILAMENT
 Filament
@@ -59,8 +65,10 @@ Flow Factor
 Fri
 FW UPDATE
 FW Update
+Header
 Heatbed
 Heating disabled due to 30 minutes of inactivity.
+HEATING FAILED
 Heating...
 Hi, this is your\nOriginal Prusa MINI.
 HOME
@@ -92,6 +100,7 @@ Loading to nozzle
 Loud
 Make sure the     \nfilament is       \ninserted through  \nthe sensor.       
 Material
+MAXTEMP ERROR
 Measuring reference\nheight of calib.\npoints
 Menu Timeout
 MESH BED L.
@@ -99,6 +108,7 @@ Mesh Bed Level.
 Mesh bed leveling failed?
 MESSAGES
 Messages
+MINTEMP ERROR
 Mon
 Move Axis
 MOVE AXIS
@@ -106,6 +116,7 @@ Move E
 Move X
 Move Y
 Move Z
+Name
 NEXT
 NO
 No filament sensor detected. Verify that the sensor is connected and try again.
@@ -150,6 +161,7 @@ PRINTING
 Printing time
 PURGE FILAMENT
 Purge Filament
+PURGE MORE
 Purging
 QR test
 Question
@@ -166,6 +178,7 @@ Return
 Sat
 Save Crash Dump
 Save settings
+Scan me for details
 Searching bed\ncalibration points
 Select filament type
 SELECT FILE
@@ -179,6 +192,7 @@ Settings
 SETTINGS
 Settings successfully loaded
 Silent
+Sort files by
 Sound Mode
 Sound Type
 Sound Volume
@@ -200,8 +214,11 @@ The settings have been saved successfully in the \"lan_settings.ini\" file.
 The status bar is at\nthe bottom of the  \nscreen. It contains\ninformation about: \n - Nozzle temp.    \n - Heatbed temp.   \n - Printing speed  \n - Z-axis height   \n - Selected filament
 The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration.
 There was an error saving the settings in the \"lan_settings.ini\" file.
+THERMAL RUNAWAY
+This G-CODE was set up for another printer type.
 This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?
 Thr
+Time
 Timeout
 To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo change filament,\npress UNLOAD.
 To calibrate with  \ncurrently loaded   \nfilament,          \npress NEXT.        \nTo load filament,  \npress LOAD.        \nTo change filament,\npress UNLOAD.
@@ -223,6 +240,7 @@ Version Info
 Waiting for cooldown
 Waiting for temp.
 Warning
+WARNING:
 Wed
 Welcome to the     \nOriginal Prusa MINI\nsetup wizard.      \nWould you like to  \ncontinue?           
 Welcome to the Original Prusa MINI setup wizard. Would you like to continue?

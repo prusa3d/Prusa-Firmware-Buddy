@@ -16,7 +16,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
-#include "../lang/i18n.h"
+#include "i18n.h"
 
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
@@ -24,7 +24,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Fil. sens.");
 
     size_t init_index() const {
-        fsensor_t fs = fs_wait_inicialized();
+        fsensor_t fs = fs_wait_initialized();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
@@ -33,13 +33,13 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
         }
         return fs == FS_DISABLED ? 0 : 1;
     }
-    bool fs_not_connected;
+    // bool fs_not_connected;
 
 public:
     MI_FILAMENT_SENSOR()
         : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
     void CheckDisconnected() {
-        fsensor_t fs = fs_wait_inicialized();
+        fsensor_t fs = fs_wait_initialized();
         if (fs == FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
             fs_disable();
             index = 0;
@@ -50,7 +50,7 @@ public:
 protected:
     virtual void OnChange(size_t old_index) {
         old_index == 1 ? fs_disable() : fs_enable();
-        fsensor_t fs = fs_wait_inicialized();
+        fsensor_t fs = fs_wait_initialized();
         if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
@@ -71,7 +71,8 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_LANGUAGE, MI_SORT_FILES,
     MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
-    MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
+    MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML,
+    MI_ES_12201, MI_ES_12202, MI_ES_12203, MI_ES_12204, MI_ES_12205, MI_ES_12206, MI_ES_12207, MI_ES_12208>;
 #else
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,

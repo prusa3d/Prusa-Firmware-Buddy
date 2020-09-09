@@ -21,11 +21,13 @@
 //#define DBG_EVT_MSK (MARLIN_EVT_MSK_ALL & ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge))
 
 //trace variable change notifications (client side), to disable trace undef DBG_VAR_MSK
-//#define DBG_VAR DBG
+//#define DBG_VAR     DBG
 //#define DBG_VAR_MSK (MARLIN_VAR_MSK_ALL & ~MARLIN_VAR_MSK_TEMP_ALL)
 
 //maximum string length for DBG_VAR
-#define DBG_VAR_STR_MAX_LEN 128
+enum {
+    DBG_VAR_STR_MAX_LEN = 128
+};
 
 #pragma pack(push)
 #pragma pack(1)
@@ -46,6 +48,7 @@ typedef struct _marlin_client_t {
     fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
     fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
     fsm_change_t fsm_change_cb;   // to register callback for change of state
+    message_cb_t message_cb;      // to register callback message
 } marlin_client_t;
 
 #pragma pack(pop)
@@ -104,6 +107,8 @@ marlin_vars_t *marlin_client_init(void) {
         client->reheating = 0;
         client->fsm_create_cb = NULL;
         client->fsm_destroy_cb = NULL;
+        client->fsm_change_cb = NULL;
+        client->message_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(marlin_server_sema);
@@ -189,6 +194,18 @@ int marlin_client_set_fsm_change_cb(fsm_change_t cb) {
     }
     return 0;
 }
+
+//register callback to message
+//return success
+int marlin_client_set_message_cb(message_cb_t cb) {
+    marlin_client_t *client = _client_ptr();
+    if (client && cb) {
+        client->message_cb = cb;
+        return 1;
+    }
+    return 0;
+}
+
 int marlin_processing(void) {
     marlin_client_t *client = _client_ptr();
     if (client)
@@ -462,7 +479,7 @@ marlin_vars_t *marlin_update_vars(uint64_t msk) {
 }
 
 uint8_t marlin_get_gqueue(void) {
-    return marlin_get_var(MARLIN_VAR_GQUEUE).ui8;
+    return variant_get_ui8(marlin_get_var(MARLIN_VAR_GQUEUE));
 }
 
 uint8_t marlin_get_gqueue_max(void) {
@@ -472,7 +489,7 @@ uint8_t marlin_get_gqueue_max(void) {
 }
 
 uint8_t marlin_get_pqueue(void) {
-    return marlin_get_var(MARLIN_VAR_PQUEUE).ui8;
+    return variant_get_ui8(marlin_get_var(MARLIN_VAR_PQUEUE));
 }
 
 uint8_t marlin_get_pqueue_max(void) {
@@ -482,39 +499,39 @@ uint8_t marlin_get_pqueue_max(void) {
 }
 
 float marlin_set_target_nozzle(float val) {
-    return marlin_set_var(MARLIN_VAR_TTEM_NOZ, variant8_flt(val)).flt;
+    return variant8_get_flt(marlin_set_var(MARLIN_VAR_TTEM_NOZ, variant8_flt(val)));
 }
 
 float marlin_set_display_nozzle(float val) {
-    return marlin_set_var(MARLIN_VAR_DTEM_NOZ, variant8_flt(val)).flt;
+    return variant8_get_flt(marlin_set_var(MARLIN_VAR_DTEM_NOZ, variant8_flt(val)));
 }
 
 float marlin_set_target_bed(float val) {
-    return marlin_set_var(MARLIN_VAR_TTEM_BED, variant8_flt(val)).flt;
+    return variant8_get_flt(marlin_set_var(MARLIN_VAR_TTEM_BED, variant8_flt(val)));
 }
 
 float marlin_set_z_offset(float val) {
-    return marlin_set_var(MARLIN_VAR_Z_OFFSET, variant8_flt(val)).flt;
+    return variant8_get_flt(marlin_set_var(MARLIN_VAR_Z_OFFSET, variant8_flt(val)));
 }
 
 uint8_t marlin_set_fan_speed(uint8_t val) {
-    return marlin_set_var(MARLIN_VAR_FANSPEED, variant8_ui8(val)).ui8;
+    return variant_get_ui8(marlin_set_var(MARLIN_VAR_FANSPEED, variant8_ui8(val)));
 }
 
 uint16_t marlin_set_print_speed(uint16_t val) {
-    return marlin_set_var(MARLIN_VAR_PRNSPEED, variant8_ui16(val)).ui16;
+    return variant_get_ui16(marlin_set_var(MARLIN_VAR_PRNSPEED, variant8_ui16(val)));
 }
 
 uint16_t marlin_set_flow_factor(uint16_t val) {
-    return marlin_set_var(MARLIN_VAR_FLOWFACT, variant8_ui16(val)).ui16;
+    return variant_get_ui16(marlin_set_var(MARLIN_VAR_FLOWFACT, variant8_ui16(val)));
 }
 
 uint8_t marlin_set_wait_heat(uint8_t val) {
-    return marlin_set_var(MARLIN_VAR_WAITHEAT, variant8_ui8(val)).ui8;
+    return variant_get_ui8(marlin_set_var(MARLIN_VAR_WAITHEAT, variant8_ui8(val)));
 }
 
 uint8_t marlin_set_wait_user(uint8_t val) {
-    return marlin_set_var(MARLIN_VAR_WAITUSER, variant8_ui8(val)).ui8;
+    return variant_get_ui8(marlin_set_var(MARLIN_VAR_WAITUSER, variant8_ui8(val)));
 }
 
 void marlin_do_babysteps_Z(float offs) {
@@ -610,17 +627,6 @@ void marlin_park_head(void) {
     _wait_ack_from_server(client->id);
 }
 
-uint8_t marlin_message_received(void) {
-    marlin_client_t *client = _client_ptr();
-    if (client == 0)
-        return 0;
-    if (client->flags & MARLIN_CFLG_MESSAGE) {
-        client->flags &= ~MARLIN_CFLG_MESSAGE;
-        return 1;
-    } else
-        return 0;
-}
-
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating(void) {
     marlin_client_t *client = _client_ptr();
@@ -694,8 +700,8 @@ static uint32_t _wait_ack_from_server(uint8_t client_id) {
 
 // process message on client side (set flags, update vars etc.)
 static void _process_client_message(marlin_client_t *client, variant8_t msg) {
-    uint8_t id = msg.usr8 & MARLIN_USR8_MSK_ID;
-    if (msg.usr8 & MARLIN_USR8_VAR_FLG) // variable change received
+    uint8_t id = variant8_get_usr8(msg) & MARLIN_USR8_MSK_ID;
+    if (variant8_get_usr8(msg) & MARLIN_USR8_VAR_FLG) // variable change received
     {
         marlin_vars_set_var(&(client->vars), id, msg);
         client->changes |= ((uint64_t)1 << id);
@@ -704,15 +710,15 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         marlin_vars_value_to_str(&(client->vars), id, var_str, sizeof(var_str));
         if (DBG_VAR_MSK & ((uint64_t)1 << id))
             DBG_VAR("CL%c: VAR %s %s", '0' + client->id, marlin_vars_get_name(id), var_str);
-#endif                                    //DBG_VAR_MSK
-    } else if (msg.type == VARIANT8_USER) // event received
+#endif                                                  //DBG_VAR_MSK
+    } else if (variant8_get_type(msg) == VARIANT8_USER) // event received
     {
         client->events |= ((uint64_t)1 << id);
         switch ((MARLIN_EVT_t)id) {
         case MARLIN_EVT_MeshUpdate: {
-            uint8_t x = msg.usr16 & 0xff;
-            uint8_t y = msg.usr16 >> 8;
-            float z = msg.flt;
+            uint8_t x = variant8_get_usr16(msg) & 0xff;
+            uint8_t y = variant8_get_usr16(msg) >> 8;
+            float z = variant8_get_flt(msg);
             client->mesh.z[x + client->mesh.xc * y] = z;
         } break;
         case MARLIN_EVT_StartProcessing:
@@ -722,34 +728,35 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             client->flags &= ~MARLIN_CFLG_PROCESS;
             break;
         case MARLIN_EVT_Error:
-            client->errors |= MARLIN_ERR_MSK(msg.ui32);
+            client->errors |= MARLIN_ERR_MSK(variant8_get_ui32(msg));
             break;
         case MARLIN_EVT_CommandBegin:
-            client->command = msg.ui32;
+            client->command = variant8_get_ui32(msg);
             break;
         case MARLIN_EVT_CommandEnd:
             client->command = MARLIN_CMD_NONE;
             break;
-        case MARLIN_EVT_Message:
-            client->flags |= MARLIN_CFLG_MESSAGE;
-            break;
         case MARLIN_EVT_Reheat:
-            client->reheating = (uint8_t)msg.ui32;
+            client->reheating = (uint8_t)variant8_get_ui32(msg);
             break;
         case MARLIN_EVT_Acknowledge:
-            client->ack = msg.ui32;
+            client->ack = variant8_get_ui32(msg);
             break;
         case MARLIN_EVT_FSM_Create:
             if (client->fsm_create_cb)
-                client->fsm_create_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8));
+                client->fsm_create_cb((uint8_t)variant8_get_ui32(msg), (uint8_t)(variant8_get_ui32(msg) >> 8));
             break;
         case MARLIN_EVT_FSM_Destroy:
             if (client->fsm_destroy_cb)
-                client->fsm_destroy_cb((uint8_t)msg.ui32);
+                client->fsm_destroy_cb((uint8_t)variant8_get_ui32(msg));
             break;
         case MARLIN_EVT_FSM_Change:
             if (client->fsm_change_cb)
-                client->fsm_change_cb((uint8_t)msg.ui32, (uint8_t)(msg.ui32 >> 8), (uint8_t)(msg.ui32 >> 16), (uint8_t)(msg.ui32 >> 24));
+                client->fsm_change_cb((uint8_t)variant8_get_ui32(msg), (uint8_t)(variant8_get_ui32(msg) >> 8), (uint8_t)(variant8_get_ui32(msg) >> 16), (uint8_t)(variant8_get_ui32(msg) >> 24));
+            break;
+        case MARLIN_EVT_Message:
+            if (client->message_cb)
+                client->message_cb(msg.pch);
             break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added

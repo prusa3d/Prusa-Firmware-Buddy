@@ -7,18 +7,24 @@
 
 #pragma once
 
-#include "window.hpp"
-#include "marlin_server.h"
+#include "IDialog.hpp"
+#include "window_text.hpp"
 
-struct window_dlg_popup_t : public window_t {
-    color_t color_text;
-    font_t *font;
-    font_t *font_title;
-    padding_ui8_t padding;
-    uint32_t timer;
-    uint16_t flags;
-    char text[MSG_MAX_LENGTH];
-    window_dlg_popup_t(window_t *parent, rect_ui16_t rect);
+//Singleton dialog for messages
+class window_dlg_popup_t : public IDialog {
+    window_text_t text;
+    uint32_t open_time;
+    uint32_t ttl; //time to live
+
+    window_dlg_popup_t(Rect16 rect, string_view_utf8 txt);
+    window_dlg_popup_t(const window_dlg_popup_t &) = delete;
+
+    void UnregisterFromParent();
+
+protected:
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+
+public:
+    //register dialog to actual screen
+    static void Show(string_view_utf8 txt, uint32_t time = 1000);
 };
-
-extern void gui_pop_up(void);

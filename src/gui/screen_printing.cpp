@@ -10,16 +10,17 @@
 #include "screen_menus.hpp"
 #include <ctime>
 #include "wui_api.h"
-#include "../lang/i18n.h"
+#include "i18n.h"
 #include "../lang/format_print_will_end.hpp"
+#include "window_dlg_popup.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor.h"
 #endif
 
-#define COLOR_VALUE_VALID COLOR_WHITE
-//#define COLOR_VALUE_INVALID COLOR_YELLOW
-#define COLOR_VALUE_INVALID COLOR_WHITE
+static const constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
+//static const constexpr color_t  COLOR_VALUE_INVALID = COLOR_YELLOW;
+static const constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE;
 
 enum class Btn {
     Tune = 0,
@@ -59,7 +60,7 @@ printing_state_t screen_printing_data_t::GetState() const {
 }
 
 void screen_printing_data_t::tuneAction() {
-    if (btn_tune.ico.IsBWSwapped()) {
+    if (btn_tune.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -73,7 +74,7 @@ void screen_printing_data_t::tuneAction() {
 }
 
 void screen_printing_data_t::pauseAction() {
-    if (btn_pause.ico.IsBWSwapped()) {
+    if (btn_pause.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -92,7 +93,7 @@ void screen_printing_data_t::pauseAction() {
 }
 
 void screen_printing_data_t::stopAction() {
-    if (btn_stop.ico.IsBWSwapped()) {
+    if (btn_stop.ico.IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -106,8 +107,8 @@ void screen_printing_data_t::stopAction() {
         if (MsgBoxWarning(_("Are you sure to stop this printing?"), Responses_YesNo, 1)
             == Response::Yes) {
             stop_pressed = true;
+            waiting_for_abort = true;
             change_print_state();
-            marlin_print_abort();
         } else
             return;
     }
@@ -118,20 +119,17 @@ void screen_printing_data_t::stopAction() {
 
 screen_printing_data_t::screen_printing_data_t()
     : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
-    , w_filename(this, rect_ui16(10, 33, 220, 29))
-    , w_progress(this, rect_ui16(10, 70, 220, 50), 16, COLOR_ORANGE)
-    , w_time_label(this, rect_ui16(10, 128, 101, 20))
-    , w_time_value(this, rect_ui16(10, 148, 101, 20))
-    , w_etime_label(this, rect_ui16(130, 128, 101, 20))
-    , w_etime_value(this, rect_ui16(30, 148, 201, 20))
-
+    , w_filename(this, Rect16(10, 33, 220, 29), is_multiline::no)
+    , w_progress(this, Rect16(10, 70, 220, 50), 16, COLOR_ORANGE)
+    , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
+    , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
+    , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
+    , w_etime_value(this, Rect16(30, 148, 201, 20), is_multiline::no)
     , last_print_duration(-1)
     , last_time_to_end(-1)
-
-    , w_message(this, rect_ui16(10, 75, 230, 95))
     , message_timer(0)
-    , message_flag(false)
     , stop_pressed(false)
+    , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
     , last_sd_percent_done(-1) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
@@ -170,41 +168,6 @@ screen_printing_data_t::screen_printing_data_t()
     w_time_value.SetPadding({ 0, 2, 0, 2 });
     // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
     w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
-
-    w_message.font = resource_font(IDR_FNT_NORMAL);
-    w_message.SetAlignment(ALIGN_LEFT_TOP);
-    w_message.SetPadding({ 0, 2, 0, 2 });
-    w_message.SetText(_("No messages"));
-    w_message.Hide();
-    message_flag = false;
-}
-
-void screen_printing_data_t::open_popup_message() {
-    w_etime_label.Hide();
-    w_etime_value.Hide();
-    w_progress.Hide();
-    w_time_label.Hide();
-    w_time_value.Hide();
-
-    // this MakeRAM is safe - msg stack and its items are allocated in RAM for the lifetime of pw
-    w_message.SetText(string_view_utf8::MakeRAM((const uint8_t *)msg_stack.msg_data[0]));
-
-    w_message.Show();
-    message_timer = HAL_GetTick();
-    message_flag = true;
-}
-
-void screen_printing_data_t::close_popup_message() {
-    w_etime_label.Show();
-    w_etime_value.Show();
-    w_progress.Show();
-    w_time_label.Show();
-    w_time_value.Show();
-
-    w_message.SetText(string_view_utf8::MakeNULLSTR());
-
-    w_message.Hide();
-    message_flag = false;
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -219,7 +182,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         _last = HAL_GetTick();
 
         static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
-        buff[1] = fs_get_state() + '0';                              // S0 init, S1 has filament, S2 nofilament, S3 not connected, S4 disabled
+        buff[1] = fs_get_state() + '0';                              // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
         buff[4] = fs_get_send_M600_on();                             // Me edge, Ml level, Mn never, Mx undefined
         buff[6] = fs_was_M600_send() ? 's' : 'n';                    // s == send, n== not send
         buff[8] = _is_in_M600_flg ? 'M' : '0';                       // M == marlin is doing M600
@@ -231,16 +194,15 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
 
 #endif
 
-    if (event == WINDOW_EVENT_MESSAGE && msg_stack.count > 0) {
-        open_popup_message();
+    /// check stop clicked when MBL is running
+    printing_state_t p_state = GetState();
+    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && p_state == printing_state_t::ABORTING) {
+        marlin_print_abort();
+        waiting_for_abort = false;
         return;
     }
 
-    if ((!is_abort_state(marlin_vars()->print_state)) && message_flag && (HAL_GetTick() - message_timer >= POPUP_MSG_DUR_MS)) {
-        close_popup_message();
-    }
-
-    if ((state__readonly__use_change_print_state == printing_state_t::PRINTED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
+    if (p_state == printing_state_t::PRINTED && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
@@ -272,7 +234,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         update_progress(marlin_vars()->sd_percent_done, marlin_vars()->print_speed);
 
     /// -- close screen when print is done / stopped and USB media is removed
-    if (!marlin_vars()->media_inserted && GetState() == printing_state_t::PRINTED) {
+    if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
         Screens::Access()->Close();
         return;
     }
@@ -282,11 +244,12 @@ void screen_printing_data_t::windowEvent(window_t *sender, uint8_t event, void *
         /// -- check for enable/disable resume button
         set_pause_icon_and_label();
     }
+
     IScreenPrinting::windowEvent(sender, event, param);
 }
 
 void screen_printing_data_t::disable_tune_button() {
-    btn_tune.ico.SwapBW();
+    btn_tune.ico.Shadow();
     btn_tune.ico.Disable(); // can't be focused
 
     // move to reprint when tune is focused
@@ -297,7 +260,7 @@ void screen_printing_data_t::disable_tune_button() {
 }
 
 void screen_printing_data_t::enable_tune_button() {
-    btn_tune.ico.UnswapBW();
+    btn_tune.ico.Unshadow();
     btn_tune.ico.Enable(); // can be focused
     btn_tune.ico.Invalidate();
 }
@@ -344,7 +307,7 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     }
 
     static const uint32_t full_day_in_seconds = 86400;
-    time_t print_end_sec, tommorow_sec;
+    time_t print_end_sec, tomorrow_sec;
 
     if (print_speed != 100)
         // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
@@ -352,19 +315,19 @@ void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print
     else
         print_end_sec = now_sec + marlin_vars()->time_to_end;
 
-    tommorow_sec = now_sec + full_day_in_seconds;
+    tomorrow_sec = now_sec + full_day_in_seconds;
 
-    struct tm tommorow, print_end, now;
+    struct tm tomorrow, print_end, now;
     localtime_r(&now_sec, &now);
-    localtime_r(&tommorow_sec, &tommorow);
+    localtime_r(&tomorrow_sec, &tomorrow);
     localtime_r(&print_end_sec, &print_end);
 
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
         //strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
         FormatMsgPrintWillEnd::Today(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
-    } else if (tommorow.tm_mday == print_end.tm_mday && // if print end is tommorow
-        tommorow.tm_mon == print_end.tm_mon && tommorow.tm_year == print_end.tm_year) {
+    } else if (tomorrow.tm_mday == print_end.tm_mday && // if print end is tomorrow
+        tomorrow.tm_mon == print_end.tm_mon && tomorrow.tm_year == print_end.tm_year) {
         //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
         FormatMsgPrintWillEnd::DayOfWeek(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
     } else {
@@ -433,16 +396,16 @@ void screen_printing_data_t::set_icon_and_label(item_id_t id_to_set, window_icon
 }
 
 void screen_printing_data_t::enable_button(window_icon_t *p_button) {
-    if (p_button->IsBWSwapped()) {
-        p_button->UnswapBW();
+    if (p_button->IsShadowed()) {
+        p_button->Unshadow();
         p_button->Enable();
         p_button->Invalidate();
     }
 }
 
 void screen_printing_data_t::disable_button(window_icon_t *p_button) {
-    if (!p_button->IsBWSwapped()) {
-        p_button->SwapBW();
+    if (!p_button->IsShadowed()) {
+        p_button->Shadow();
         p_button->Disable();
         p_button->Invalidate();
     }

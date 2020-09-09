@@ -44,6 +44,7 @@ public:
     void Draw();
 
     void ScreenEvent(window_t *sender, uint8_t event, void *param);
+    void WindowEvent(uint8_t event, void *param);
 
     window_frame_t *Get();
 

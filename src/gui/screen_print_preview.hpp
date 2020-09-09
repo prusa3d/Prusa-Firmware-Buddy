@@ -1,16 +1,16 @@
-//screen_printing_serial.hpp
+// screen_print_preview.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "ff.h"
 
-#define PADDING          10
-#define SCREEN_WIDTH     240 //FIXME should be in display.h
-#define SCREEN_HEIGHT    320 //FIXME should be in display.h
-#define THUMBNAIL_HEIGHT 124
-#define TITLE_HEIGHT     24
-#define LINE_HEIGHT      15
-#define LINE_SPACING     5
+static const constexpr uint16_t PADDING = 10;
+static const constexpr uint16_t SCREEN_WIDTH = 240;  //FIXME should be in display.h
+static const constexpr uint16_t SCREEN_HEIGHT = 320; //FIXME should be in display.h
+static const constexpr uint16_t THUMBNAIL_HEIGHT = 124;
+static const constexpr uint16_t TITLE_HEIGHT = 24;
+static const constexpr uint16_t LINE_HEIGHT = 15;
+static const constexpr uint16_t LINE_SPACING = 5;
 
 struct description_line_t {
     window_text_t title;
@@ -24,7 +24,7 @@ struct description_line_t {
 private:
     static constexpr size_t calculate_y(bool has_thumbnail, size_t row) {
         size_t y = TITLE_HEIGHT + 2 * PADDING;
-        if (row > 0 && has_thumbnail)
+        if (has_thumbnail)
             y += THUMBNAIL_HEIGHT + PADDING;
         y += row * (LINE_HEIGHT + LINE_SPACING);
         return y;

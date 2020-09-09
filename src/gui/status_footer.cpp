@@ -1,4 +1,8 @@
+
+#include <cmath>
+#include <algorithm>
 #include "math.h"
+#include "limits.h"
 
 /// don't draw above line specified in gui.c
 /// FIXME footer should receive window to know where to draw
@@ -6,11 +10,9 @@
 #include "config.h"
 #include "status_footer.h"
 #include "filament.h"
-
 #include "marlin_client.h"
 #include "stm32f4xx_hal.h"
-#include "limits.h"
-#include <algorithm>
+#include "cmath_ext.h"
 
 static const float heating_difference = 2.5F;
 
@@ -64,7 +66,7 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
         return;
 
     /// nozzle state
-    if (vars->target_nozzle != vars->display_nozzle) { /// preheat mode
+    if (nearlyEqual(vars->target_nozzle, PREHEAT_TEMP, 0.4999f) && vars->display_nozzle > vars->target_nozzle) { /// preheat mode
         nozzle_state = HeatState::PREHEAT;
         if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
             nozzle_state = HeatState::HEATING;
@@ -72,6 +74,7 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
             // vars->display_nozzle (not target_nozzle) is OK, because it's weird to show 200/215 and cooling color
             nozzle_state = HeatState::COOLING;
         }
+        nozzle_target_display = vars->display_nozzle;
     } else {
         nozzle_state = HeatState::STABLE;
         if (vars->target_nozzle > vars->temp_nozzle + heating_difference) {
@@ -79,14 +82,14 @@ void status_footer_t::update_nozzle(const marlin_vars_t *vars) {
         } else if (vars->target_nozzle < vars->temp_nozzle - heating_difference && vars->temp_nozzle > COOL_NOZZLE) {
             nozzle_state = HeatState::COOLING;
         }
+        nozzle_target_display = vars->target_nozzle;
     }
 
     /// update values
     nozzle = vars->temp_nozzle;
     nozzle_target = vars->target_nozzle;
-    nozzle_target_display = vars->display_nozzle;
 
-    if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(vars->display_nozzle))) {
+    if (0 < snprintf(text_nozzle, sizeof(text_nozzle), "%d/%d\177C", (int)roundf(vars->temp_nozzle), (int)roundf(nozzle_target_display))) {
         // this MakeRAM is safe - text_nozzle is statically allocated
         wt_nozzle.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_nozzle));
     }
@@ -122,15 +125,6 @@ void status_footer_t::update_temperatures() {
 
     update_nozzle(vars);
     update_heatbed(vars);
-
-#ifdef LCD_HEATBREAK_TO_FILAMENT
-    const float actual_heatbreak = thermalManager.degHeatbreak();
-    //float actual_heatbreak = analogRead(6);
-    const unsigned int text_len = 10;
-    char text[text_len];
-    snprintf(text, text_len, "%.0f\177C", (double)actual_heatbreak);
-    wt_filament.SetText(text);
-#endif //LCD_HEATBREAK_TO_FILAMENT
 }
 
 void status_footer_t::update_feedrate() {
@@ -228,16 +222,16 @@ void status_footer_t::repaint_heatbed() {
 
 status_footer_t::status_footer_t(window_t *parent)
     : window_frame_t(parent, GuiDefaults::RectFooter)
-    , wi_nozzle(this, rect_ui16(8, 270, 16, 16), IDR_PNG_status_icon_nozzle)
-    , wi_heatbed(this, rect_ui16(128, 270, 20, 16), IDR_PNG_status_icon_heatbed)
-    , wi_prnspeed(this, rect_ui16(10, 297, 16, 12), IDR_PNG_status_icon_prnspeed)
-    , wi_z_axis(this, rect_ui16(80, 297, 16, 16), IDR_PNG_status_icon_z_axis)
-    , wi_filament(this, rect_ui16(163, 297, 16, 16), IDR_PNG_status_icon_filament)
-    , wt_nozzle(this, rect_ui16(24, 269, 85, 20))
-    , wt_heatbed(this, rect_ui16(150, 269, 85, 22))
-    , wt_prnspeed(this, rect_ui16(28, 296, 40, 22))
-    , wt_z_axis(this, rect_ui16(102, 296, 58, 22))
-    , wt_filament(this, rect_ui16(181, 296, 49, 22))
+    , wi_nozzle(this, Rect16(8, 270, 16, 16), IDR_PNG_status_icon_nozzle)
+    , wi_heatbed(this, Rect16(128, 270, 20, 16), IDR_PNG_status_icon_heatbed)
+    , wi_prnspeed(this, Rect16(10, 297, 16, 12), IDR_PNG_status_icon_prnspeed)
+    , wi_z_axis(this, Rect16(80, 297, 16, 16), IDR_PNG_status_icon_z_axis)
+    , wi_filament(this, Rect16(163, 297, 16, 16), IDR_PNG_status_icon_filament)
+    , wt_nozzle(this, Rect16(24, 269, 85, 20), is_multiline::no)
+    , wt_heatbed(this, Rect16(150, 269, 85, 22), is_multiline::no)
+    , wt_prnspeed(this, Rect16(28, 296, 40, 22), is_multiline::no)
+    , wt_z_axis(this, Rect16(102, 296, 58, 22), is_multiline::no)
+    , wt_filament(this, Rect16(181, 296, 49, 22), is_multiline::no)
     , nozzle(-273)
     , nozzle_target(-273)
     , nozzle_target_display(-273)
