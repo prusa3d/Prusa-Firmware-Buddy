@@ -77,6 +77,8 @@ IWindowMenuItem *window_menu_t::GetActiveItem() {
 
 void window_menu_t::Increment(int dif) {
     IWindowMenuItem *item = GetActiveItem();
+    if (!item)
+        return;
     if (item->IsSelected()) {
         if (item->Change(dif)) {
             Invalidate();
@@ -115,6 +117,8 @@ void window_menu_t::Increment(int dif) {
 //callback should handle it
 void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     IWindowMenuItem *const item = GetActiveItem();
+    if (!item)
+        return;
     const int value = int(param);
     bool invalid = false;
     switch (event) {
