@@ -99,12 +99,13 @@ void CFanCtlTach::init() {
     initialized = true;
 }
 
-void CFanCtlTach::tick(int8_t pwm_on) {
+bool CFanCtlTach::tick(int8_t pwm_on) {
     if (!initialized) {
-        return;
+        return false;
     }
-    bool tach = gpio_get(pin) ? true : false;  // sample tach input pin
-    if ((tach ^ input_state) && (pwm_on >= 2)) // detect edge inside pwm pulse, ignore first two sub-periods after 0-1 pwm transition
+    bool tach = gpio_get(pin) ? true : false;            // sample tach input pin
+    bool edge = ((tach ^ input_state) && (pwm_on >= 2)); // detect edge inside pwm pulse, ignore first two sub-periods after 0-1 pwm transition
+    if (edge)
         edges++;
     input_state = tach; // store current tach input state
     if (++tick_count >= ticks_per_second) {
@@ -116,6 +117,7 @@ void CFanCtlTach::tick(int8_t pwm_on) {
         pwm_sum = 0;                                               // reset pwm_sum
     } else if (pwm_on >= 0)
         pwm_sum++; // inc pwm sum if pwm enabled
+    return edge;
 }
 
 //------------------------------------------------------------------------------
@@ -127,6 +129,7 @@ CFanCtl::CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM
     m_MinRPM = minRPM;
     m_MaxRPM = maxRPM;
     m_State = idle;
+    m_PWMValue = 0;
     // this is not thread-safe for first look, but CFanCtl instances are global variables, so it is safe
     if (CFanCtl_count < FANCTL_MAX_FANS)
         CFanCtl_instance[CFanCtl_count++] = this;
@@ -141,11 +144,44 @@ void CFanCtl::tick() {
     // PWM control
     int8_t pwm_on = m_pwm.tick();
     // RPM measurement
-    m_tach.tick(pwm_on);
+    bool edge = m_tach.tick(pwm_on);
+    switch (m_State) {
+    case idle:
+        if (m_PWMValue > 0) {
+            m_State = starting;
+            m_Edges = 0;
+            m_Ticks = 0;
+        } else
+            m_pwm.set_PWM(0);
+        break;
+    case starting:
+        if (m_PWMValue == 0)
+            m_State = idle;
+        else {
+            m_Ticks++;
+            if (m_Ticks > 1000)
+                m_State = error_starting;
+            else {
+                m_pwm.set_PWM(m_pwm.get_max_PWM());
+                //				m_pwm.set_PWM(m_PWMValue);
+                if (edge)
+                    m_Edges++;
+                if (m_Edges > 4)
+                    m_State = running;
+            }
+        }
+        break;
+    default: // running and error state
+        if (m_PWMValue == 0)
+            m_State = idle;
+        else
+            m_pwm.set_PWM(m_PWMValue);
+        break;
+    }
 }
 
 void CFanCtl::setPWM(uint8_t pwm) {
-    m_pwm.set_PWM(pwm);
+    m_PWMValue = pwm;
 }
 
 //------------------------------------------------------------------------------

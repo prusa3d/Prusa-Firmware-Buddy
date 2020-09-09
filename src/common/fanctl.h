@@ -78,7 +78,7 @@ public:
 
 public:
     void init();              // init function - initialize hw
-    void tick(int8_t pwm_on); // tick callback from timer interrupt (currently 1kHz)
+    bool tick(int8_t pwm_on); // tick callback from timer interrupt (currently 1kHz), returns true when edge detected
     // returns: true = tach cycle complete (used for RPM calculation)
 
     // getters
@@ -115,15 +115,18 @@ public:
     inline FanState getState() // get fan control state
     { return m_State; }
     inline uint8_t getPWM() // get PWM value
-    { return m_pwm.get_PWM(); }
+    { return m_PWMValue; }
     inline uint16_t getActualRPM() // get actual (measured) RPM
     { return m_tach.getRPM(); }
     // setters
     void setPWM(uint8_t pwm); // set PWM value - switch to non closed-loop mode
 private:
-    uint16_t m_MinRPM; // minimum rpm value (set in constructor)
-    uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
-    FanState m_State;  // fan control state
+    uint16_t m_MinRPM;  // minimum rpm value (set in constructor)
+    uint16_t m_MaxRPM;  // maximum rpm value (set in constructor)
+    FanState m_State;   // fan control state
+    uint8_t m_PWMValue; // current pwm value
+    uint8_t m_Edges;    // edge counter - used for starting and measurement
+    uint8_t m_Ticks;    // tick counter - used for starting and measurement
 
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
