@@ -443,13 +443,17 @@ variant8_t marlin_get_var(uint8_t var_id) {
 variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
     variant8_t retval = variant8_empty();
     char request[MARLIN_MAX_REQUEST];
-    int n;
     marlin_client_t *client = _client_ptr();
     if (client) {
         retval = marlin_vars_get_var(&(client->vars), var_id);
         marlin_vars_set_var(&(client->vars), var_id, val);
-        n = snprintf(request, MARLIN_MAX_REQUEST, "!var %s ", marlin_vars_get_name(var_id));
-        if (marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n) >= (sizeof(request) - n))
+        const int n = snprintf(request, MARLIN_MAX_REQUEST, "!var %s ", marlin_vars_get_name(var_id));
+        if (n < 0)
+            bsod("Error formatting var name.");
+        const int v = marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n);
+        if (v < 0)
+            bsod("Error formatting var value.");
+        if ((size_t)v >= (sizeof(request) - (size_t)n))
             bsod("Request too long.");
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
@@ -589,7 +593,10 @@ void marlin_print_start(const char *filename) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    if (snprintf(request, sizeof(request), "!pstart %s", filename) >= sizeof(request))
+    const int len = snprintf(request, sizeof(request), "!pstart %s", filename);
+    if (len < 0)
+        bsod("Error formatting request.");
+    if ((size_t)len >= sizeof(request))
         bsod("Request too long.");
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
