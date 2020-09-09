@@ -322,7 +322,7 @@ void _hwio_pwm_set_val(int i_pwm, int val) //write pwm output
 {
     uint32_t chan = _pwm_get_chan(i_pwm);
     TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-    if ((chan == -1) || htim->Instance == 0) {
+    if ((chan == (uint32_t)-1) || htim->Instance == 0) {
         return;
     }
 
