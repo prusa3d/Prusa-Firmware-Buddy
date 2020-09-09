@@ -3,6 +3,7 @@
 #include "fanctl.h"
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
+#include <stdlib.h>
 
 // global variables for C wrapper
 static uint8_t CFanCtl_count = 0;                  // number of instances
@@ -55,6 +56,8 @@ int8_t CFanCtlPWM::tick() {
         }
 #if 1
         else if (pha_stp) { // phase-shifting enabled
+            pha = pha_max * ((float)rand() / RAND_MAX);
+            /*
             pha += pha_stp;
             if (pha >= pha_max) {
                 pha_stp = -pha_stp;
@@ -63,6 +66,7 @@ int8_t CFanCtlPWM::tick() {
                 pha_stp = -pha_stp;
                 pha = 0;
             }
+*/
         }
 #endif
     }
