@@ -48,8 +48,8 @@ int8_t CFanCtlPWM::tick() {
                 pha_max = max_value - val;
                 uint8_t steps = max_value / val; // calculate number of steps
                 if (steps < 3)
-                    steps = 3;               // limit steps >= 3
-                pha_stp = max_value / steps; // calculate step - enable phase shifting
+                    steps = 3;             // limit steps >= 3
+                pha_stp = pha_max / steps; // calculate step - enable phase shifting
             } else
                 pha_stp = 0; // set step to zero - disable phase shifting
         }
