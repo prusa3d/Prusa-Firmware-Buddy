@@ -12,32 +12,39 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#define TERM_ATTR_BACK_MASK  0x00
-#define TERM_ATTR_BACK_BLACK 0x00
-#define TERM_ATTR_BACK_WHITE 0x00
+// FIXME define meaningful numbers for masks
+enum {
+    TERM_ATTR_BACK_MASK = 0x00,
+    TERM_ATTR_BACK_BLACK = 0x00,
+    TERM_ATTR_BACK_WHITE = 0x00,
 
-#define TERM_ATTR_TEXT_MASK  0x00
-#define TERM_ATTR_TEXT_BLACK 0x00
-#define TERM_ATTR_TEXT_WHITE 0x00
+    TERM_ATTR_TEXT_MASK = 0x00,
+    TERM_ATTR_TEXT_BLACK = 0x00,
+    TERM_ATTR_TEXT_WHITE = 0x00,
 
-#define TERM_ATTR_INVERT 0x40
-#define TERM_ATTR_BLINK  0x80
+    TERM_ATTR_INVERT = 0x40,
+    TERM_ATTR_BLINK = 0x80,
+};
 
-#define TERM_COLOR_BLACK   0
-#define TERM_COLOR_RED     1
-#define TERM_COLOR_GREEN   2
-#define TERM_COLOR_YELLOW  3
-#define TERM_COLOR_BLUE    4
-#define TERM_COLOR_MAGENTA 5
-#define TERM_COLOR_CYAN    6
-#define TERM_COLOR_WHITE   7
+enum {
+    TERM_COLOR_BLACK,
+    TERM_COLOR_RED,
+    TERM_COLOR_GREEN,
+    TERM_COLOR_YELLOW,
+    TERM_COLOR_BLUE,
+    TERM_COLOR_MAGENTA,
+    TERM_COLOR_CYAN,
+    TERM_COLOR_WHITE,
+};
 
-#define TERM_FLG_CHANGED 0x0040
-#define TERM_FLG_ESCAPE  0x0020
-#define TERM_FLG_AUTOCR  0x0010
+static const uint16_t TERM_FLG_CHANGED = 0x40;
+static const uint16_t TERM_FLG_ESCAPE = 0x20;
+static const uint16_t TERM_FLG_AUTOCR = 0x10;
 
-#define TERM_DEF_CHAR ' '
-#define TERM_DEF_ATTR (TERM_ATTR_BACK_BLACK | TERM_ATTR_TEXT_WHITE)
+static const char TERM_DEF_CHAR = ' ';
+enum {
+    TERM_DEF_ATTR = TERM_ATTR_BACK_BLACK | TERM_ATTR_TEXT_WHITE
+};
 
 #define TERM_BUFF_SIZE(c, r) ((r * c * 2) + (r * c + 7) / 8)
 

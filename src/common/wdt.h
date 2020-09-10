@@ -1,6 +1,5 @@
 //wdt.h - watchdog timers (IWDG, WWDG)
-#ifndef _WDT_H
-#define _WDT_H
+#pragma once
 
 typedef void(wdt_iwdg_warning_cb_t)(void); // IWDG warning callback prototype
 
@@ -24,4 +23,3 @@ void watchdog_init(); // initialization - called from marlin during setup (C++)
 void HAL_watchdog_refresh(); // IWDG refresh - called from marlin thermal management (C++)
 
 #endif //defined(__cplusplus)
-#endif //_WDT_H

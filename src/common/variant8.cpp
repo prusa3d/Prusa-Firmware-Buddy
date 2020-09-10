@@ -357,9 +357,12 @@ int variant8_snprintf(char *str, unsigned int size, const char *fmt, variant8_t 
 }
 
 #ifdef CLEAN_UNUSED
-    #define VARIANT8_TO_STR_MAX_BUFF 32
+enum {
+    VARIANT8_TO_STR_MAX_BUFF = 32
+};
 
-char *variant8_to_str(variant8_t *pvar8, const char *fmt) {
+char *
+variant8_to_str(variant8_t *pvar8, const char *fmt) {
     // FIXME - do we need to print to buff and then to str?
     char buff[VARIANT8_TO_STR_MAX_BUFF] = "";
     int n = variant8_snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt, pvar8);
@@ -710,7 +713,7 @@ cvariant8 &cvariant8::attach(variant8_t var8) {
 
 variant8_t cvariant8::detach() {
     variant8_t var8 = *this;
-    variant8_done(this);
+    *((variant8_t *)(this)) = variant8_empty();
     return var8;
 }
 #ifdef CLEAN_UNUSED

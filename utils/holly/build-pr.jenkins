@@ -105,7 +105,6 @@ pipeline {
                     -DCMAKE_MAKE_PROGRAM=\$PWD/.dependencies/ninja-1.9.0/ninja \
                     --build-generator Ninja \
                     --build-target tests \
-                    --build-options -DCUSTOM_COMPILE_OPTIONS:STRING=-Dstrlcpy=strncpy \
                     --test-command ctest
                 """
             }

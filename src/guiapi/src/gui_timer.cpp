@@ -5,13 +5,13 @@
 #include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
 
-#define GUI_MAX_TIMERS 6
+static const constexpr uint8_t GUI_MAX_TIMERS = 6;
 
-#define GUI_TIMER_NONE    0
-#define GUI_TIMER_1SHT    1
-#define GUI_TIMER_PERI    2
-#define GUI_MENU_TIMEOUT  3
-#define GUI_TIMER_TXTROLL 4
+static const constexpr uint8_t GUI_TIMER_NONE = 0;
+static const constexpr uint8_t GUI_TIMER_1SHT = 1;
+static const constexpr uint8_t GUI_TIMER_PERI = 2;
+static const constexpr uint8_t GUI_MENU_TIMEOUT = 3;
+static const constexpr uint8_t GUI_TIMER_TXTROLL = 4;
 
 struct gui_timer_t {
     uint32_t start;

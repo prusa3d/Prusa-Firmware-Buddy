@@ -6,7 +6,7 @@
 #include "dbg.h"
 
 //firmware update flag
-#define FW_UPDATE_FLAG_ADDRESS 0x40B
+static const constexpr uint16_t FW_UPDATE_FLAG_ADDRESS = 0x040B;
 
 extern SPI_HandleTypeDef hspi2;
 

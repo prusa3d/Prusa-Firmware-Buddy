@@ -24,8 +24,7 @@
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_SHA256_H
-#define MBEDTLS_SHA256_H
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -238,5 +237,3 @@ int mbedtls_sha256_self_test(int verbose);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* mbedtls_sha256.h */
