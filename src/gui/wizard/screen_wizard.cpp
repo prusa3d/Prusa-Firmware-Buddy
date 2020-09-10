@@ -13,6 +13,7 @@
 #include "filament_sensor.h"
 #include "i18n.h"
 #include "bsod.h"
+#include "RAII.hpp"
 
 uint64_t wizard_mask = 0;
 #if 0
@@ -474,55 +475,31 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     return 0;
 }
 
-string_view_utf8 wizard_get_caption(screen_t *screen) {
-    switch (pd->state) {
-    case _STATE_START:
-    case _STATE_INIT:
-    case _STATE_INFO:
-    case _STATE_FIRST:
+#endif //#if 0
+
+string_view_utf8 WizardGetCaption(wizard_state_t st) {
+    if (IsStateInWizardMask(st, WizardMaskStart())) {
         return _("WIZARD");
-    case _STATE_SELFTEST_INIT:
-    case _STATE_SELFTEST_FAN0:
-    case _STATE_SELFTEST_FAN1:
-    case _STATE_SELFTEST_X:
-    case _STATE_SELFTEST_Y:
-    case _STATE_SELFTEST_Z:
-    case _STATE_SELFTEST_COOL:
-    case _STATE_SELFTEST_INIT_TEMP:
-    case _STATE_SELFTEST_TEMP:
-    case _STATE_SELFTEST_PASS:
-    case _STATE_SELFTEST_FAIL:
-        return _("SELFTEST");
-    case _STATE_XYZCALIB_INIT:
-    case _STATE_XYZCALIB_HOME:
-    case _STATE_XYZCALIB_Z:
-    case _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE:
-    case _STATE_XYZCALIB_XY_MSG_IS_SHEET:
-    case _STATE_XYZCALIB_XY_MSG_REMOVE_SHEET:
-    case _STATE_XYZCALIB_XY_MSG_PLACE_PAPER:
-    case _STATE_XYZCALIB_XY_SEARCH:
-    case _STATE_XYZCALIB_XY_MSG_PLACE_SHEET:
-    case _STATE_XYZCALIB_XY_MEASURE:
-    case _STATE_XYZCALIB_PASS:
-    case _STATE_XYZCALIB_FAIL:
-        return _("XYZ CALIBRATION");
-    case _STATE_FIRSTLAY_INIT:
-    case _STATE_FIRSTLAY_LOAD:
-    case _STATE_FIRSTLAY_MSBX_CALIB:
-    case _STATE_FIRSTLAY_MSBX_START_PRINT:
-    case _STATE_FIRSTLAY_PRINT:
-    case _STATE_FIRSTLAY_MSBX_REPEAT_PRINT:
-    case _STATE_FIRSTLAY_FAIL:
-        return _("FIRST LAYER CALIB.");
-    case _STATE_FINISH:
-        return _("WIZARD - OK");
-    case _STATE_LAST:
-        return string_view_utf8::MakeNULLSTR();
     }
+
+    if (IsStateInWizardMask(st, WizardMaskSelftest())) {
+        return _("SELFTEST");
+    }
+
+    if (IsStateInWizardMask(st, WizardMaskXYZCalib())) {
+        return _("XYZ CALIBRATION");
+    }
+
+    if (IsStateInWizardMask(st, WizardMaskFirstLay())) {
+        return _("FIRST LAYER CALIB.");
+    }
+
+    if (st == wizard_state_t::FINISH) {
+        return _("WIZARD - OK");
+    }
+
     return string_view_utf8::MakeNULLSTR(); //to avoid warning
 }
-
-#endif //#if 0
 
 ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
 
@@ -551,9 +528,10 @@ ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
 
 ScreenWizard::ScreenWizard(uint64_t run_mask)
     : window_frame_t()
-    , header(this)
+    , header(this, WizardGetCaption(wizard_state_t::START_first))
     , footer(this)
-    , results(ResultInitializer(run_mask)) {
+    , results(ResultInitializer(run_mask))
+    , loopInProgress(false) {
     marlin_set_print_speed(100);
 
     //marlin_set_exclusive_mode(1); //hope i will not need this
@@ -566,4 +544,17 @@ ScreenWizard::~ScreenWizard() {
 
     //turn heaters off
     //wizard_init(0, 0);
+}
+
+void ScreenWizard::windowEvent(window_t *sender, uint8_t event, void *param) {
+
+    if (event != WINDOW_EVENT_LOOP) {
+        window_frame_t::windowEvent(sender, event, param);
+        return;
+    }
+
+    if (loopInProgress)
+        return;
+    AutoRestore<bool> AR(loopInProgress);
+    loopInProgress = true;
 }

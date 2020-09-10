@@ -72,7 +72,7 @@ constexpr uint64_t WizardMaskStart() { return WizardMaskRange(wizard_state_t::ST
 constexpr uint64_t WizardMaskSelftest() { return WizardMaskRange(wizard_state_t::SELFTEST_first, wizard_state_t::SELFTEST_last) | WizardMaskStart(); }
 constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(wizard_state_t::XYZCALIB_first, wizard_state_t::XYZCALIB_last) | WizardMaskStart(); }
 constexpr uint64_t WizardMaskFirstLay() { return WizardMaskRange(wizard_state_t::FIRSTLAY_first, wizard_state_t::FIRSTLAY_last) | WizardMaskStart(); }
-constexpr uint64_t WizardMaskAlle() { return WizardMaskUpTo(wizard_state_t::last); }
+constexpr uint64_t WizardMaskAll() { return WizardMaskUpTo(wizard_state_t::last); }
 
 enum {
     _SCREEN_NONE,
