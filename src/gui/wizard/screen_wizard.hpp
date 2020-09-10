@@ -1,13 +1,17 @@
-// screen_wizard.h
+// screen_wizard.hpp
 #pragma once
 
 #include "gui.hpp"
+#include "window_header.hpp"
 #include "status_footer.h"
-#include "wizard_types.h"
+#include "wizard_types.hpp"
+
+#if 0
+
 //#include "wizard_ui.h"
-#include "xyzcalib.h"
-#include "selftest.h"
-#include "firstlay.h"
+    #include "xyzcalib.h"
+    #include "selftest.h"
+    #include "firstlay.h"
 
 union screen_variant_t {
     selftest_fans_axis_screen_t selftest_fans_axis_screen;
@@ -41,8 +45,27 @@ struct screen_wizard_data_t {
 	float Kd_noz;*/
 };
 
-#define pd ((screen_wizard_data_t *)screen->pdata)
+    #define pd ((screen_wizard_data_t *)screen->pdata)
 
 //extern string_view_utf8 wizard_get_caption(screen_t *screen);
 
 extern void wizard_ui_set_progress(int ctl, float val);
+#endif //0
+
+class ScreenWizard : public window_frame_t {
+    window_header_t header;
+    status_footer_t footer;
+
+    using StateFnc = wizard_state_t (*)();
+    using StateArray = std::array<StateFnc, size_t(wizard_state_t::last) + 1>;
+    using ResultArray = std::array<WizardTestState_t, size_t(wizard_state_t::last) + 1>;
+    static StateArray states;
+    static StateArray StateInitializer();
+
+    ResultArray results;
+    static ResultArray ResultInitializer(uint64_t mask);
+
+public:
+    ScreenWizard(uint64_t run_mask);
+    ~ScreenWizard();
+};

@@ -1,12 +1,13 @@
 // selftest_fans_axis.c
+#if 0
 
-#include "selftest.h"
-#include "dbg.h"
-#include "config.h"
-#include "hwio.h"
-#include "marlin_client.h"
-#include "wizard_config.h"
-#include "wizard_ui.h"
+    #include "selftest.h"
+    #include "dbg.h"
+    #include "config.h"
+    #include "hwio.h"
+    #include "marlin_client.h"
+    #include "wizard_config.h"
+    #include "wizard_ui.h"
 
 void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
     selftest_fans_axis_data_t *p_data) {
@@ -377,3 +378,5 @@ int wizard_selftest_z(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
     wizard_update_test_icon(p_screen->icon_z_axis, p_data->state_z);
     return progress;
 }
+
+#endif //0

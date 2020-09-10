@@ -1,10 +1,11 @@
 // wizard.c
+#if 0
 
-#include "wizard.h"
-#include "gui.hpp"
-#include "dbg.h"
-#include "config.h"
-#include "screen_wizard.h"
+    #include "wizard.h"
+    #include "gui.hpp"
+    #include "dbg.h"
+    #include "config.h"
+    #include "screen_wizard.hpp"
 
 extern uint64_t wizard_mask;
 
@@ -61,9 +62,9 @@ void wizard_run_selftest(void) {
 void wizard_run_xyzcalib(void) {
     //	wizard_run_mask(_STATE_MASK_XYZCALIB);
     uint64_t mask = (_STATE_MASK(_STATE_XYZCALIB_INIT) | _STATE_MASK(_STATE_XYZCALIB_HOME) |
-#ifdef WIZARD_Z_CALIBRATION
+    #ifdef WIZARD_Z_CALIBRATION
         _STATE_MASK(_STATE_XYZCALIB_Z) |
-#endif
+    #endif
         _STATE_MASK(_STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE) | _STATE_MASK(_STATE_XYZCALIB_XY_MSG_IS_SHEET) | _STATE_MASK(_STATE_XYZCALIB_XY_MSG_REMOVE_SHEET) | _STATE_MASK(_STATE_XYZCALIB_XY_MSG_PLACE_PAPER) | _STATE_MASK(_STATE_XYZCALIB_XY_SEARCH) | _STATE_MASK(_STATE_XYZCALIB_XY_MSG_PLACE_SHEET) | _STATE_MASK(_STATE_XYZCALIB_XY_MEASURE) | _STATE_MASK(_STATE_XYZCALIB_PASS) | _STATE_MASK(_STATE_XYZCALIB_FAIL) | _STATE_MASK(_STATE_LAST));
     wizard_run_mask(mask);
 }
@@ -95,3 +96,4 @@ void wizard_stack_push_firstlay(void) {
     wizard_mask = (_STATE_MASK(_STATE_FIRSTLAY_INIT) | _STATE_MASK(_STATE_FIRSTLAY_LOAD) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_CALIB) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_START_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_MSBX_REPEAT_PRINT) | _STATE_MASK(_STATE_FIRSTLAY_FAIL) | _STATE_MASK(_STATE_LAST));
     //screen_stack_push(get_scr_wizard()->id);
 }
+#endif //0

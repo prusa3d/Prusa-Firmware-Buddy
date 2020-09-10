@@ -1,6 +1,6 @@
 // screen_wizard.c
 
-#include "screen_wizard.h"
+#include "screen_wizard.hpp"
 #include "dbg.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"
@@ -12,35 +12,17 @@
 #include "eeprom.h"
 #include "filament_sensor.h"
 #include "i18n.h"
+#include "bsod.h"
 
 uint64_t wizard_mask = 0;
 #if 0
-static int is_state_in_wizard_mask(wizard_state_t st) {
-    return ((((uint64_t)1) << st) & wizard_mask) != 0;
-}
 
-static _TEST_STATE_t init_state(wizard_state_t st) {
-    if (is_state_in_wizard_mask(st)) {
-        return _TEST_START;
-    } else {
-        return _TEST_PASSED;
-    }
-}
 
 void screen_wizard_init(screen_t *screen) {
-    marlin_set_print_speed(100);
+
     pd->state = _STATE_START;
 
-    int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, Rect16(0, 0, 0, 0), &(pd->frame));
 
-    int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectFooter, &(pd->frame_footer));
-    pd->frame_footer.Hide();
-
-    window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectScreenBody, &(pd->frame_body));
-    pd->frame_body.Hide();
-
-    window_create_ptr(WINDOW_CLS_TEXT, id_frame, Rect16(21, 0, 211, GuiDefaults::RectHeader.h), &(pd->header));
-    pd->header.SetAlignment(ALIGN_LEFT_BOTTOM);
 
     pd->header.SetText(wizard_get_caption(screen));
 
@@ -75,26 +57,7 @@ void screen_wizard_init(screen_t *screen) {
     marlin_set_exclusive_mode(1);
 }
 
-void screen_wizard_done(screen_t *screen) {
-    if (!marlin_processing())
-        marlin_start_processing();
-    marlin_set_exclusive_mode(0);
-    /*
-	//M301 - Set Hotend PID
-	//M301 [C<value>] [D<value>] [E<index>] [I<value>] [L<value>] [P<value>]
-	marlin_gcode_printf("M301 D%f I%f P%f", (double)(pd->Kd_noz), (double)(pd->Ki_noz), (double)(pd->Kp_noz));
-	//M304 - Set Bed PID
-	//M304 [D<value>] [I<value>] [P<value>]
-	marlin_gcode_printf("M304 D%f I%f P%f", (double)(pd->Kd_bed), (double)(pd->Ki_bed), (double)(pd->Kp_bed));
-*/
 
-    //turn heaters off
-    wizard_init(0, 0);
-    window_destroy(pd->frame.id);
-}
-
-void screen_wizard_draw(screen_t *screen) {
-}
 
 int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     static int inside_handler = 0;
@@ -559,8 +522,48 @@ string_view_utf8 wizard_get_caption(screen_t *screen) {
     return string_view_utf8::MakeNULLSTR(); //to avoid warning
 }
 
-void wizard_done_screen(screen_t *screen) {
-    //window_destroy_children(pd->frame_body.id);
-    pd->frame_body.Invalidate();
-}
 #endif //#if 0
+
+ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
+
+ScreenWizard::StateArray ScreenWizard::StateInitializer() {
+    StateArray ret = { { nullptr } };
+
+    //check if all states are assigned, hope it will be optimized out
+    for (size_t i = size_t(wizard_state_t::START_first); i <= size_t(wizard_state_t::last); ++i) {
+        if (ret[i] == nullptr)
+            bsod("Wizard states invalid");
+    }
+
+    return ret;
+}
+
+ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
+    ResultArray ret;
+    ret.fill(WizardTestState_t::DISABLED); //not needed, just to be safe;
+
+    for (size_t i = size_t(wizard_state_t::START_first); i < size_t(wizard_state_t::last); ++i) {
+        ret[i] = InitState(wizard_state_t(i), mask);
+    }
+
+    return ret;
+}
+
+ScreenWizard::ScreenWizard(uint64_t run_mask)
+    : window_frame_t()
+    , header(this)
+    , footer(this)
+    , results(ResultInitializer(run_mask)) {
+    marlin_set_print_speed(100);
+
+    //marlin_set_exclusive_mode(1); //hope i will not need this
+}
+
+ScreenWizard::~ScreenWizard() {
+    //if (!marlin_processing())
+    //    marlin_start_processing(); //hope i will not need this
+    //marlin_set_exclusive_mode(0); //hope i will not need this
+
+    //turn heaters off
+    //wizard_init(0, 0);
+}

@@ -1,9 +1,12 @@
 // selftest_cool.h
-#pragma once
-#include <inttypes.h>
-#include "gui.hpp"
-#include "wizard_types.h"
-#include "hwio.h"
+
+#if 0
+
+    #pragma once
+    #include <inttypes.h>
+    #include "gui.hpp"
+    #include "wizard_types.hpp"
+    #include "hwio.h"
 
 struct selftest_cool_screen_t {
     window_progress_t progress;
@@ -29,3 +32,5 @@ extern void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_scre
 
 extern int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen,
     selftest_cool_data_t *p_data);
+
+#endif //0

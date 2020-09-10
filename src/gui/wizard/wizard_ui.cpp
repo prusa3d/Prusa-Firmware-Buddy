@@ -1,11 +1,12 @@
 // wizard_ui.c
+#if 0
 
-#include "wizard_ui.h"
-#include "wizard_types.h"
-#include "resource.h"
-#include "stm32f4xx_hal.h" //HAL_GetTick
-#include "marlin_client.h" //HAL_GetTick
-#include "i18n.h"
+    #include "wizard_ui.h"
+    #include "wizard_types.hpp"
+    #include "resource.h"
+    #include "stm32f4xx_hal.h" //HAL_GetTick
+    #include "marlin_client.h" //HAL_GetTick
+    #include "i18n.h"
 
 uint16_t wizard_get_test_icon_resource(uint8_t state) {
     switch (state) {
@@ -121,3 +122,5 @@ void wizard_init_disable_PID(float t_noz, float t_bed /*, int16_t footer_id*/) {
     //Set Bed Temperature
     marlin_gcode_printf("M140 S%d", (int)t_bed);
 }
+
+#endif //0

@@ -1,16 +1,17 @@
 // firstlay.h
 #pragma once
 
+#if 0
 //choose 0 off 1 on
-#define DEBUG_TERM 0
+    #define DEBUG_TERM 0
 //#define DEBUG_TERM 1
 
-#include <inttypes.h>
-#include "gui.hpp"
-#include "wizard_types.h"
-#include "wizard_load_unload.h"
+    #include <inttypes.h>
+    #include "gui.hpp"
+    #include "wizard_types.hpp"
+    #include "wizard_load_unload.h"
 
-#pragma pack(push, 1)
+    #pragma pack(push, 1)
 //#pragma pack(1) makes enums 8 bit
 // which is an ugly and unreadable hack (probably a side effect)
 typedef enum {
@@ -20,20 +21,20 @@ typedef enum {
     _FL_GCODE_DONE
 } _FL_STATE;
 
-#pragma pack(pop)
+    #pragma pack(pop)
 
-#define FIRSTLAY_SCREEN_TERM_X 25
-#define FIRSTLAY_SCREEN_TERM_Y 10
+    #define FIRSTLAY_SCREEN_TERM_X 25
+    #define FIRSTLAY_SCREEN_TERM_Y 10
 struct firstlay_screen_t {
     _FL_STATE state;
     window_progress_t progress;
-#if DEBUG_TERM == 0
+    #if DEBUG_TERM == 0
     window_text_t text_state;
-#else
+    #else
     window_term_t term;
     term_t terminal;
     uint8_t term_buff[TERM_BUFF_SIZE(FIRSTLAY_SCREEN_TERM_X, FIRSTLAY_SCREEN_TERM_Y)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
-#endif
+    #endif
 
     float extruder_start_len;
     LD_UNLD_STATE_t load_unload_state;
@@ -76,3 +77,4 @@ extern int wizard_firstlay_load(int16_t id_body,
 */
 extern int wizard_firstlay_print(int16_t id_body,
     firstlay_screen_t *p_screen, firstlay_data_t *p_data, float z_offset);
+#endif //0

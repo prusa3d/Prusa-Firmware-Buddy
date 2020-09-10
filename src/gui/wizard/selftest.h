@@ -1,17 +1,19 @@
 // selftest.h
-#pragma once
-#include <inttypes.h>
-#include "gui.hpp"
-#include "wizard_types.h"
-#include "selftest_cool.h"
-#include "selftest_temp.h"
-#include "selftest_fans_axis.h"
+#if 0
 
-#ifndef _DEBUG
-    #define LAST_SELFTEST_TIMEOUT (30 * 60) // [s]
-#else
-    #define LAST_SELFTEST_TIMEOUT 30 // [s]
-#endif                               //_DEBUG
+    #pragma once
+    #include <inttypes.h>
+    #include "gui.hpp"
+    #include "wizard_types.hpp"
+    #include "selftest_cool.h"
+    #include "selftest_temp.h"
+    #include "selftest_fans_axis.h"
+
+    #ifndef _DEBUG
+        #define LAST_SELFTEST_TIMEOUT (30 * 60) // [s]
+    #else
+        #define LAST_SELFTEST_TIMEOUT 30 // [s]
+    #endif                               //_DEBUG
 
 struct selftest_data_t {
     selftest_cool_data_t cool_data;
@@ -23,3 +25,5 @@ extern uint32_t last_selftest_result;
 extern uint32_t last_selftest_time;
 
 extern int wizard_selftest_is_ok(int16_t id_body, selftest_data_t *p_data);
+
+#endif //0

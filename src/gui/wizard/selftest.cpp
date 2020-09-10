@@ -1,7 +1,8 @@
 // selftest.c
+#if 0
 
-#include "selftest.h"
-#include "stm32f4xx_hal.h"
+    #include "selftest.h"
+    #include "stm32f4xx_hal.h"
 
 uint32_t last_selftest_result;
 uint32_t last_selftest_time = 0;
@@ -30,3 +31,5 @@ static uint32_t get_and_store_selftest_result(int16_t id_body, selftest_data_t *
 int wizard_selftest_is_ok(int16_t id_body, selftest_data_t *p_data) {
     return (get_and_store_selftest_result(id_body, p_data) == 0);
 }
+
+#endif //0

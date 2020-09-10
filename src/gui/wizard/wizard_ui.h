@@ -1,8 +1,10 @@
 // wizard_ui.h
-#pragma once
+#if 0
 
-#include "gui.hpp"
-#include "wizard_types.h"
+    #pragma once
+
+    #include "gui.hpp"
+    #include "wizard_types.hpp"
 
 enum {
     WIZARD_MARGIN_LEFT = 6,
@@ -46,3 +48,5 @@ extern void wizard_init_footer(float t_noz, float t_bed, int16_t footer_id);
 
 extern void wizard_init_footer_disable_PID(float t_noz, float t_bed, int16_t footer_id);
 */
+
+#endif //0

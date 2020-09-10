@@ -127,6 +127,7 @@ void error_url_short(char *str, const uint32_t str_size, const int error_code) {
 }
 
 void create_path_info_4service(char *str, const uint32_t str_size) {
+#if 0
 
     strlcpy(str, INFO_URL_LONG_PREFIX, str_size);
     // PrinterType
@@ -165,4 +166,5 @@ void create_path_info_4service(char *str, const uint32_t str_size) {
     // LockBlock
     block2hex(str, str_size, (uint8_t *)OTP_LOCK_BLOCK_ADDR, OTP_LOCK_BLOCK_SIZE);
     append_crc(str, str_size);
+#endif //0
 }

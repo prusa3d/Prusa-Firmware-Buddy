@@ -22,7 +22,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_complete();
+    //wizard_run_complete();
 }
 
 /*****************************************************************************/
@@ -67,7 +67,7 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_selftest();
+    //wizard_run_selftest();
 }
 
 /*****************************************************************************/
@@ -77,7 +77,7 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_firstlay();
+    //wizard_run_firstlay();
 }
 
 /*****************************************************************************/

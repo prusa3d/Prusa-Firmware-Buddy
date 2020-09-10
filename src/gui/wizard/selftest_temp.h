@@ -1,8 +1,11 @@
 // selftest_temp.h
-#pragma once
-#include <inttypes.h>
-#include "gui.hpp"
-#include "wizard_types.h"
+
+#if 0
+
+    #pragma once
+    #include <inttypes.h>
+    #include "gui.hpp"
+    #include "wizard_types.hpp"
 
 struct selftest_temp_screen_t {
     window_text_t text_checking_temp;
@@ -32,3 +35,5 @@ extern int wizard_selftest_temp_bed(int16_t id_body, selftest_temp_screen_t *p_s
 
 extern int wizard_selftest_temp(int16_t id_body, selftest_temp_screen_t *p_screen,
     selftest_temp_data_t *p_data);
+
+#endif //0

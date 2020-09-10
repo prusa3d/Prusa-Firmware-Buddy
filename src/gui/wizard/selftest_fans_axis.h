@@ -1,8 +1,11 @@
 // selftest_fans_axis.h
-#pragma once
-#include <inttypes.h>
-#include "gui.hpp"
-#include "wizard_types.h"
+
+#if 0
+
+    #pragma once
+    #include <inttypes.h>
+    #include "gui.hpp"
+    #include "wizard_types.hpp"
 
 //todo create multiple small structures inside this structure
 struct selftest_fans_axis_screen_t {
@@ -47,3 +50,5 @@ extern int wizard_selftest_x(int16_t id_body, selftest_fans_axis_screen_t *p_scr
 extern int wizard_selftest_y(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data);
 
 extern int wizard_selftest_z(int16_t id_body, selftest_fans_axis_screen_t *p_screen, selftest_fans_axis_data_t *p_data);
+
+#endif //0

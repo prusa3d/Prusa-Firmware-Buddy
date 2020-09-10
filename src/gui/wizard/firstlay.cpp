@@ -11,7 +11,7 @@
     #include "marlin_client.h"
     #include "wizard_config.h"
     #include "wizard_ui.h"
-    #include "wizard_types.h"
+    #include "wizard_types.hpp"
     #include "wizard_progress_bar.h"
     #include "guitypes.hpp" //font_meas_text
     #include "menu_vars.h"

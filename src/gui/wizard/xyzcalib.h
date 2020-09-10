@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 #include "gui.hpp"
-#include "wizard_types.h"
+#include "wizard_types.hpp"
 
 struct xyzcalib_screen_t {
     window_progress_t progress;

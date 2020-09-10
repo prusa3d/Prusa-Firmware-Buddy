@@ -2,7 +2,7 @@
 #pragma once
 #include <inttypes.h>
 #include "gui.hpp"
-#include "wizard_types.h"
+#include "wizard_types.hpp"
 
 extern int wiz_get_percent(int min, int max, int value);
 extern int wiz_set_progressbar(window_progress_t *p_progress,

@@ -1,12 +1,13 @@
 // selftest_temp_cool.c
+#if 0
 
-#include "selftest_cool.h"
-#include "config.h"
-#include "marlin_client.h"
-#include "wizard_config.h"
-#include "wizard_ui.h"
-#include "guitypes.hpp" //font_meas_text
-#include "wizard_progress_bar.h"
+    #include "selftest_cool.h"
+    #include "config.h"
+    #include "marlin_client.h"
+    #include "wizard_config.h"
+    #include "wizard_ui.h"
+    #include "guitypes.hpp" //font_meas_text
+    #include "wizard_progress_bar.h"
 
 //-----------------------------------------------------------------------------
 //function definitions
@@ -156,3 +157,5 @@ int wizard_selftest_cool(int16_t id_body, selftest_cool_screen_t *p_screen, self
     p_screen->progress.SetValue(progress);
     return progress;
 }
+
+#endif //0

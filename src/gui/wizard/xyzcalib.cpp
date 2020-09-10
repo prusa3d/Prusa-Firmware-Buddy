@@ -1,15 +1,16 @@
 // xyzcalib.c
+#if 0
 
-#include "xyzcalib.h"
-#include "gui.hpp"
-#include "dbg.h"
-#include "config.h"
-#include "stm32f4xx_hal.h"
-#include "marlin_client.h"
-#include "wizard_config.h"
-#include "screen_wizard.h"
-#include "wizard_ui.h"
-#include "window_dlg_calib_z.hpp"
+    #include "xyzcalib.h"
+    #include "gui.hpp"
+    #include "dbg.h"
+    #include "config.h"
+    #include "stm32f4xx_hal.h"
+    #include "marlin_client.h"
+    #include "wizard_config.h"
+    #include "screen_wizard.hpp"
+    #include "wizard_ui.h"
+    #include "window_dlg_calib_z.hpp"
 
 void wizard_init_screen_xyzcalib(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t *p_data) {
     /*
@@ -98,3 +99,5 @@ int xyzcalib_is_ok(int16_t id_body, xyzcalib_screen_t *p_screen, xyzcalib_data_t
     ok &= (p_data->state_xy_measure == _TEST_PASSED);
     return ok;
 }
+
+#endif //0
