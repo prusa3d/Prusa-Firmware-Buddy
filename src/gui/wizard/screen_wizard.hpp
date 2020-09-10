@@ -48,17 +48,17 @@ struct screen_wizard_data_t {
 extern void wizard_ui_set_progress(int ctl, float val);
 #endif //0
 
-string_view_utf8 WizardGetCaption(wizard_state_t st); //todo constexpr
+string_view_utf8 WizardGetCaption(WizardState_t st); //todo constexpr
 
 class StateFncData {
-    wizard_state_t next_state;
+    WizardState_t next_state;
     WizardTestState_t result;
 
 public:
-    wizard_state_t GetNextState() { return next_state; }
+    WizardState_t GetState() { return next_state; }
     WizardTestState_t GetResult() { return result; }
-
-    StateFncData(wizard_state_t state, WizardTestState_t res)
+    StateFncData PassToNext() { return StateFncData(GetNextWizardState(GetState()), WizardTestState_t::PASSED); }
+    StateFncData(WizardState_t state, WizardTestState_t res)
         : next_state(state)
         , result(res) {}
 };
@@ -68,14 +68,16 @@ class ScreenWizard : public window_frame_t {
     status_footer_t footer;
 
     using StateFnc = StateFncData (*)(StateFncData last_run);
-    using StateArray = std::array<StateFnc, size_t(wizard_state_t::last) + 1>;
-    using ResultArray = std::array<WizardTestState_t, size_t(wizard_state_t::last) + 1>;
+    using StateArray = std::array<StateFnc, size_t(WizardState_t::last) + 1>;
+    using ResultArray = std::array<WizardTestState_t, size_t(WizardState_t::last) + 1>;
+
     static StateArray states;
     static StateArray StateInitializer();
 
     ResultArray results;
     static ResultArray ResultInitializer(uint64_t mask);
 
+    WizardState_t state;
     bool loopInProgress;
 
 protected:

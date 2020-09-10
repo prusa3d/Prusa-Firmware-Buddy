@@ -9,6 +9,7 @@
 #include "client_response.hpp"
 
 extern const PhaseResponses Responses_NONE;
+extern const PhaseResponses Responses_NEXT;
 extern const PhaseResponses Responses_Ok;
 extern const PhaseResponses Responses_OkCancel;
 extern const PhaseResponses Responses_AbortRetryIgnore;

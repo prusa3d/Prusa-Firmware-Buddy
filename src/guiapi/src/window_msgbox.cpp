@@ -10,6 +10,7 @@
 /*****************************************************************************/
 // clang-format off
 const PhaseResponses Responses_NONE             = { Response::_none, Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_NEXT             = { Response::Next,  Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
 const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };

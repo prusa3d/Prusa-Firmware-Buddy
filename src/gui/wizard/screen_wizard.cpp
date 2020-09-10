@@ -14,6 +14,7 @@
 #include "i18n.h"
 #include "bsod.h"
 #include "RAII.hpp"
+#include "ScreenHandler.hpp"
 
 uint64_t wizard_mask = 0;
 #if 0
@@ -477,7 +478,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
 
 #endif //#if 0
 
-string_view_utf8 WizardGetCaption(wizard_state_t st) {
+string_view_utf8 WizardGetCaption(WizardState_t st) {
     if (IsStateInWizardMask(st, WizardMaskStart())) {
         return _("WIZARD");
     }
@@ -494,7 +495,7 @@ string_view_utf8 WizardGetCaption(wizard_state_t st) {
         return _("FIRST LAYER CALIB.");
     }
 
-    if (st == wizard_state_t::FINISH) {
+    if (st == WizardState_t::FINISH) {
         return _("WIZARD - OK");
     }
 
@@ -507,7 +508,7 @@ ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     StateArray ret = { { nullptr } };
 
     //check if all states are assigned, hope it will be optimized out
-    for (size_t i = size_t(wizard_state_t::START_first); i <= size_t(wizard_state_t::last); ++i) {
+    for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
         if (ret[i] == nullptr)
             bsod("Wizard states invalid");
     }
@@ -519,8 +520,8 @@ ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
     ResultArray ret;
     ret.fill(WizardTestState_t::DISABLED); //not needed, just to be safe;
 
-    for (size_t i = size_t(wizard_state_t::START_first); i < size_t(wizard_state_t::last); ++i) {
-        ret[i] = InitState(wizard_state_t(i), mask);
+    for (size_t i = size_t(WizardState_t::START_first); i < size_t(WizardState_t::last); ++i) {
+        ret[i] = InitState(WizardState_t(i), mask);
     }
 
     return ret;
@@ -528,9 +529,10 @@ ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
 
 ScreenWizard::ScreenWizard(uint64_t run_mask)
     : window_frame_t()
-    , header(this, WizardGetCaption(wizard_state_t::START_first))
+    , header(this, WizardGetCaption(WizardState_t::START_first))
     , footer(this)
     , results(ResultInitializer(run_mask))
+    , state(WizardState_t::START_first)
     , loopInProgress(false) {
     marlin_set_print_speed(100);
 
@@ -553,8 +555,355 @@ void ScreenWizard::windowEvent(window_t *sender, uint8_t event, void *param) {
         return;
     }
 
+    //loop might be blocking
     if (loopInProgress)
         return;
     AutoRestore<bool> AR(loopInProgress);
     loopInProgress = true;
+
+    StateFnc stateFnc = states[size_t(state)];                                 // actual state function (action)
+    StateFncData data = stateFnc(StateFncData(state, results[size_t(state)])); // perform state action
+
+    results[size_t(state)] = data.GetResult(); // store result of actual state
+    if (state != data.GetState()) {
+        state = data.GetState();                                      // change state
+        while (results[size_t(state)] == WizardTestState_t::DISABLED) // check for disabled result == skip state
+            state = WizardState_t(int(state) + 1);                    // skip disabled states
+        header.SetText(WizardGetCaption(state));                      // change caption
+    }
+}
+
+const PhaseResponses Responses_IgnoreYesNo = { Response::Ignore, Response::Yes, Response::No, Response::_none };
+
+StateFncData StateFnc_START(StateFncData last_run) {
+    string_view_utf8 title = _("Welcome to the     \n"
+                               "Original Prusa MINI\n"
+                               "setup wizard.      \n"
+                               "Would you like to  \n"
+                               "continue?           ");
+#ifdef _DEBUG
+    const PhaseResponses &resp = Responses_IgnoreYesNo;
+#else  //_DEBUG
+    const PhaseResponses &resp = Responses_YesNo;
+#endif //_DEBUG
+
+    //IDR_PNG_icon_pepa
+    switch (MsgBoxPepa(title, resp)) {
+#ifdef _DEBUG
+    case Response::Ignore:
+        eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
+        eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
+        eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
+        return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+#endif //_DEBUG
+    case Response::Yes:
+        return last_run.PassToNext();
+    case Response::No:
+    default:
+        return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+    }
+}
+
+StateFncData StateFnc_INIT(StateFncData last_run) {
+    //wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
+    if (fs_get_state() == FS_DISABLED) {
+        fs_enable();
+        if (fs_wait_initialized() == FS_NOT_CONNECTED)
+            fs_disable();
+    }
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_INFO(StateFncData last_run) {
+    string_view_utf8 title = _("The status bar is at\n"
+                               "the bottom of the  \n"
+                               "screen. It contains\n"
+                               "information about: \n"
+                               " - Nozzle temp.    \n"
+                               " - Heatbed temp.   \n"
+                               " - Printing speed  \n"
+                               " - Z-axis height   \n"
+                               " - Selected filament");
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FIRST(StateFncData last_run) {
+    string_view_utf8 title = _(
+        "Press NEXT to run  \n"
+        "the Selftest, which\n"
+        "checks for         \n"
+        "potential issues   \n"
+        "related to         \n"
+        "the assembly.");
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_INIT(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_INIT      \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_FAN0(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_FAN0      \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_FAN1(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_FAN1      \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_X(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_X         \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_Y(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_Y         \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_Z(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_Z         \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_COOL(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_COOL      \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_INIT_TEMP(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_INIT_TEMP \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_PASS(StateFncData last_run) {
+    static const string_view_utf8 title = _("All tests finished successfully!");
+    MsgBoxPepa(title, Responses_NEXT);
+    return last_run.PassToNext().PassToNext(); // 2x PassToNext() to skip fail
+}
+
+StateFncData StateFnc_SELFTEST_FAIL(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "The selftest failed\n"
+        "to finish.         \n"
+        "Double-check the   \n"
+        "printer's wiring   \n"
+        "and axes.          \n"
+        "Then restart       \n"
+        "the Selftest.      ");
+    MsgBox(title, Responses_NEXT);
+    return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+}
+
+StateFncData StateFnc_SELFTEST_AND_XYZCALIB(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "Everything is alright. "
+        "I will run XYZ "
+        "calibration now. It will "
+        "take approximately "
+        "12 minutes.");
+    MsgBoxPepa(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_INIT(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "XYZCALIB_INIT      \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_HOME(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "XYZCALIB_HOME      \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_Z(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "XYZCALIB_Z         \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_XY_MSG_CLEAN_NOZZLE(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "Please clean the nozzle "
+        "for calibration. Click "
+        "NEXT when done.");
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_XY_MSG_IS_SHEET(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "Is steel sheet "
+        "on heatbed?");
+
+    if (MsgBox(title, Responses_YesNo) == Response::Yes) {
+        return StateFncData(WizardState_t::XYZCALIB_XY_MSG_REMOVE_SHEET, WizardTestState_t::PASSED);
+    } else {
+        return StateFncData(WizardState_t::XYZCALIB_XY_MSG_PLACE_PAPER, WizardTestState_t::PASSED);
+    }
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_XY_MSG_REMOVE_SHEET(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "Please remove steel "
+        "sheet from heatbed.");
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "Place a sheet of paper "
+        "under the nozzle during "
+        "the calibration of first "
+        "4 points. "
+        "If the nozzle "
+        "catches the paper, power "
+        "off printer immediately!");
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_XY_SEARCH(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "XYZCALIB_XY_SEARCH \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_SHEET(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "Please place steel sheet "
+        "on heatbed.");
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_XY_MEASURE(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_PASS(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_XYZCALIB_FAIL(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FIRSTLAY_INIT(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FIRSTLAY_LOAD(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FIRSTLAY_MSBX_CALIB(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_MSBX_START_PRINT(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_PRINT(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_PASS(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_FAIL(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FIRSTLAY_FINISH(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "Calibration successful!\n"
+        "Happy printing!");
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_EXIT(StateFncData last_run) {
+    Screens::Access()->Close();
+    return last_run;
 }

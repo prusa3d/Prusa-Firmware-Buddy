@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include <limits>    //std::numeric_limits
 #include <algorithm> //std::swap
-enum class wizard_state_t {
+enum class WizardState_t {
     START_first,
     START = START_first,
     INIT,
@@ -26,6 +26,8 @@ enum class wizard_state_t {
     SELFTEST_PASS,
     SELFTEST_FAIL,
     SELFTEST_last = SELFTEST_FAIL,
+
+    SELFTEST_AND_XYZCALIB, //SELFTEST_PASS has different message when it is combined with XYZCALIB
 
     XYZCALIB_first,
     XYZCALIB_INIT = XYZCALIB_first,
@@ -49,30 +51,36 @@ enum class wizard_state_t {
     FIRSTLAY_MSBX_START_PRINT,
     FIRSTLAY_PRINT,
     FIRSTLAY_MSBX_REPEAT_PRINT,
+    FIRSTLAY_PASS,
     FIRSTLAY_FAIL,
     FIRSTLAY_last = FIRSTLAY_FAIL,
 
     FINISH,
+    EXIT,
 
-    last = FINISH
+    last = EXIT
 };
 
-static_assert(int(wizard_state_t::last) < 64, "too many states in wizard_state_t");
+static_assert(int(WizardState_t::last) < 64, "too many states in wizard_state_t");
 
-constexpr uint64_t WizardMask(wizard_state_t state) { return (int(state) >= 64) ? std::numeric_limits<uint64_t>::max() : uint64_t(1) << int(state); }
-constexpr uint64_t WizardMaskUpTo(wizard_state_t state) { return (int(state) >= 64) ? std::numeric_limits<uint64_t>::max() : WizardMask(wizard_state_t(int(state) + 1)) - uint64_t(1); }
-constexpr uint64_t WizardMaskAdd(uint64_t mask, wizard_state_t state) { return mask | WizardMask(state); }
-constexpr uint64_t WizardMaskRange(wizard_state_t first, wizard_state_t last) {
+constexpr WizardState_t GetNextWizardState(WizardState_t state) { return state == WizardState_t::last ? WizardState_t::last : WizardState_t(int(state) + 1); }
+constexpr uint64_t WizardMask(WizardState_t state) { return (int(state) >= 64) ? std::numeric_limits<uint64_t>::max() : uint64_t(1) << int(state); }
+constexpr uint64_t WizardMaskUpTo(WizardState_t state) { return (int(state) >= 64) ? std::numeric_limits<uint64_t>::max() : WizardMask(WizardState_t(int(state) + 1)) - uint64_t(1); }
+constexpr uint64_t WizardMaskAdd(uint64_t mask, WizardState_t state) { return mask | WizardMask(state); }
+constexpr uint64_t WizardMaskRange(WizardState_t first, WizardState_t last) {
     if (int(first) > int(last))
         std::swap(first, last);
     return WizardMaskUpTo(last) & (~WizardMaskUpTo(first));
 }
 
-constexpr uint64_t WizardMaskStart() { return WizardMaskRange(wizard_state_t::START_first, wizard_state_t::START_last); }
-constexpr uint64_t WizardMaskSelftest() { return WizardMaskRange(wizard_state_t::SELFTEST_first, wizard_state_t::SELFTEST_last) | WizardMaskStart(); }
-constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(wizard_state_t::XYZCALIB_first, wizard_state_t::XYZCALIB_last) | WizardMaskStart(); }
-constexpr uint64_t WizardMaskFirstLay() { return WizardMaskRange(wizard_state_t::FIRSTLAY_first, wizard_state_t::FIRSTLAY_last) | WizardMaskStart(); }
-constexpr uint64_t WizardMaskAll() { return WizardMaskUpTo(wizard_state_t::last); }
+constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last); }
+constexpr uint64_t WizardMaskSelftest() { return WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMaskStart(); }
+constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) | WizardMaskStart(); }
+constexpr uint64_t WizardMaskSelftestAndXYZCalib() { //SELFTEST_PASS has different message when it is combined with XYZCALIB
+    return (WizardMaskSelftest() | WizardMaskXYZCalib() | WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB)) & ~WizardMask(WizardState_t::XYZCALIB_PASS);
+}
+constexpr uint64_t WizardMaskFirstLay() { return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMaskStart(); }
+constexpr uint64_t WizardMaskAll() { return WizardMaskUpTo(WizardState_t::last); }
 
 enum {
     _SCREEN_NONE,
@@ -97,11 +105,11 @@ constexpr uint64_t IsTestDone(WizardTestState_t result) {
     return DidTestPass(result) || (result == WizardTestState_t::FAILED);
 }
 
-constexpr bool IsStateInWizardMask(wizard_state_t st, uint64_t mask) {
+constexpr bool IsStateInWizardMask(WizardState_t st, uint64_t mask) {
     return ((((uint64_t)1) << int(st)) & mask) != 0;
 }
 
-constexpr WizardTestState_t InitState(wizard_state_t st, uint64_t mask) {
+constexpr WizardTestState_t InitState(WizardState_t st, uint64_t mask) {
     if (IsStateInWizardMask(st, mask)) {
         return WizardTestState_t::START;
     } else {

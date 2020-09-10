@@ -15,6 +15,7 @@ enum class Response : uint8_t {
     Continue,
     Filament_removed,
     Ignore,
+    Next,
     No,
     Ok,
     Purge_more,
