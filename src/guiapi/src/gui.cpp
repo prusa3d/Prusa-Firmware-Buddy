@@ -129,7 +129,8 @@ void gui_loop(void) {
 }
 
 void gui_reset_menu_timer() {
-    if (menu_timeout_enabled) {
+    uint8_t mt = variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT));
+    if (mt) {
         if (gui_get_menu_timeout_id() >= 0) {
             gui_timer_reset(gui_get_menu_timeout_id());
         } else {

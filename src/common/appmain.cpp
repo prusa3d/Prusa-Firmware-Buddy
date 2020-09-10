@@ -12,7 +12,6 @@
 #include "gpio.h"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
-#include "gui.hpp"
 
 #ifdef SIM_HEATER
     #include "sim_heater.h"
@@ -88,7 +87,6 @@ void app_run(void) {
 
     uint8_t defaults_loaded = eeprom_init();
     LangEEPROM::getInstance();
-    menu_timeout_enabled = variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT));
 
     marlin_server_init();
     marlin_server_idle_cb = app_idle;
