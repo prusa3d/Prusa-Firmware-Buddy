@@ -18,16 +18,15 @@ typedef struct _fanctl_pwm_t {
         struct {                   // flags:
             bool initialized : 1;  //  hw initialized
             bool output_state : 1; //  current pwm output state (0/1)
-            bool pha_ena : 1;      //  phase shift enabled
         };
-        uint8_t flags; // flags as uint8
     };
-    uint8_t pwm;    // requested pwm value
-    uint8_t cnt;    // pwm counter (value 0..max-1)
-    uint8_t val;    // pwm value (cached during pwm cycle)
-    int8_t pha;     // pwm phase shift
-    int8_t pha_max; // pwm phase shift maximum (calculated when pwm changed)
-    int8_t pha_stp; // pwm phase shift step (calculated when pwm changed)
+    uint8_t pwm;      // requested pwm value
+    uint8_t cnt;      // pwm counter (value 0..max-1)
+    uint8_t val;      // pwm value (cached during pwm cycle)
+    uint8_t pha_mode; // pwm phase shift mode
+    int8_t pha;       // pwm phase shift
+    int8_t pha_max;   // pwm phase shift maximum (calculated when pwm changed)
+    int8_t pha_stp;   // pwm phase shift step (calculated when pwm changed)
 } fanctl_pwm_t;
 
 // this structure contain variables for rpm measuement
@@ -39,7 +38,6 @@ typedef struct _fanctl_tach_t {
             bool initialized : 1; //  hw initialized
             bool input_state : 1; //  last tacho input state (0/1)
         };
-        uint8_t flags; // flags as uint8
     };
     uint16_t tick_count;       // tick counter
     uint16_t ticks_per_second; // tacho periode in ticks
@@ -53,6 +51,13 @@ typedef struct _fanctl_tach_t {
 // class for software pwm control with phase-shifting
 class CFanCtlPWM : private fanctl_pwm_t {
 public:
+    enum PhaseShiftMode {
+        none,     // phase shifting disabled
+        triangle, // phase shift follows triangle function
+        random,   // phase shift is random (using rand)
+    };
+
+public:
     // constructor
     CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max);
 
@@ -65,9 +70,11 @@ public:
     inline uint8_t get_min_PWM() { return min_value; }
     inline uint8_t get_max_PWM() { return max_value; }
     inline uint8_t get_PWM() { return pwm; }
+    inline PhaseShiftMode get_PhaseShiftMode() { return (PhaseShiftMode)pha_mode; }
 
     // setters
     void set_PWM(uint8_t new_pwm);
+    inline void set_PhaseShiftMode(PhaseShiftMode new_pha_mode) { pha_mode = new_pha_mode; }
 };
 
 // class for rpm measurement
@@ -118,8 +125,11 @@ public:
     { return m_PWMValue; }
     inline uint16_t getActualRPM() // get actual (measured) RPM
     { return m_tach.getRPM(); }
+    inline uint8_t getPhaseShiftMode() // get PhaseShiftMode
+    { return m_pwm.get_PhaseShiftMode(); }
     // setters
-    void setPWM(uint8_t pwm); // set PWM value - switch to non closed-loop mode
+    void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
+    void setPhaseShiftMode(uint8_t psm); // set PWM value - switch to non closed-loop mode
 private:
     uint16_t m_MinRPM;  // minimum rpm value (set in constructor)
     uint16_t m_MaxRPM;  // maximum rpm value (set in constructor)
@@ -141,6 +151,8 @@ extern void fanctl_tick(void);                        // tick for all fanctl ins
 extern void fanctl_set_pwm(uint8_t fan, uint8_t pwm); // set requested PWM value
 extern uint8_t fanctl_get_pwm(uint8_t fan);           // get requested PWM value
 extern uint16_t fanctl_get_rpm(uint8_t fan);          // get actual RPM value
+extern void fanctl_set_psm(uint8_t fan, uint8_t psm); // set PhaseShiftMode
+extern uint8_t fanctl_get_psm(uint8_t fan);           // get PhaseShiftMode
 
 #ifdef __cplusplus
 }

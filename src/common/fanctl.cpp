@@ -18,7 +18,7 @@ CFanCtlPWM::CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max) {
     max_value = pwm_max;
     initialized = false;
     output_state = false;
-    pha_ena = false;
+    pha_mode = random;
     pwm = 0;
     cnt = 0;
     val = 0;
@@ -55,19 +55,25 @@ int8_t CFanCtlPWM::tick() {
                 pha_stp = 0; // set step to zero - disable phase shifting
         }
 #if 1
-        else if (pha_stp) { // phase-shifting enabled
-            pha = pha_max * ((float)rand() / RAND_MAX);
-            /*
-            pha += pha_stp;
-            if (pha >= pha_max) {
-                pha_stp = -pha_stp;
-                pha = pha_max;
-            } else if (pha < 0) {
-                pha_stp = -pha_stp;
+        else
+            switch (pha_mode) {
+            case none:
                 pha = 0;
+                break;
+            case triangle:
+                pha += pha_stp;
+                if (pha >= pha_max) {
+                    pha_stp = -pha_stp;
+                    pha = pha_max;
+                } else if (pha < 0) {
+                    pha_stp = -pha_stp;
+                    pha = 0;
+                }
+                break;
+            case random:
+                pha = pha_max * ((float)rand() / RAND_MAX);
+                break;
             }
-*/
-        }
 #endif
     }
     if (o != output_state)        // pwm output changed?
@@ -188,6 +194,10 @@ void CFanCtl::setPWM(uint8_t pwm) {
     m_PWMValue = pwm;
 }
 
+void CFanCtl::setPhaseShiftMode(uint8_t psm) {
+    m_pwm.set_PhaseShiftMode((CFanCtlPWM::PhaseShiftMode)psm);
+}
+
 //------------------------------------------------------------------------------
 // "C" wrapper
 
@@ -217,6 +227,17 @@ uint8_t fanctl_get_pwm(uint8_t fan) {
 uint16_t fanctl_get_rpm(uint8_t fan) {
     if (fan < CFanCtl_count)
         return CFanCtl_instance[fan]->getActualRPM();
+    return 0;
+}
+
+void fanctl_set_psm(uint8_t fan, uint8_t psm) {
+    if (fan < CFanCtl_count)
+        CFanCtl_instance[fan]->setPhaseShiftMode(psm);
+}
+
+uint8_t fanctl_get_psm(uint8_t fan) {
+    if (fan < CFanCtl_count)
+        return CFanCtl_instance[fan]->getPhaseShiftMode();
     return 0;
 }
 }
