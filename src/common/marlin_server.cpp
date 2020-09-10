@@ -53,7 +53,7 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 #define DBG_FSM(...) //disable trace
 
 typedef struct {
-    marlin_vars_t vars;                          // cached variables
+    marlin_vars_t vars;                              // cached variables
     marlin_mesh_t mesh;                              // meshbed leveling
     uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask
     uint64_t notify_changes[MARLIN_MAX_CLIENTS];     // variable change notification mask
@@ -70,11 +70,11 @@ typedef struct {
     uint32_t fsmDestroy;                             // fsm destroy ui32 argument for resend
     uint32_t fsmChange;                              // fsm change ui32 argument for resend
     int request_len;
-    uint32_t last_update;             // last update tick count
-    uint32_t command;                 // actually running command
-    uint32_t command_begin;           // variable for notification
-    uint32_t command_end;             // variable for notification
-    uint16_t flags; // server flags (MARLIN_SFLG)
+    uint32_t last_update;   // last update tick count
+    uint32_t command;       // actually running command
+    uint32_t command_begin; // variable for notification
+    uint32_t command_end;   // variable for notification
+    uint16_t flags;         // server flags (MARLIN_SFLG)
     char request[MARLIN_MAX_REQUEST];
     uint8_t idle_cnt;         // idle call counter
     uint8_t pqueue_head;      // copy of planner.block_buffer_head
