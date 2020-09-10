@@ -20,6 +20,8 @@ osThreadId gui_task_handle = 0;
 font_t *GuiDefaults::Font = 0;
 font_t *GuiDefaults::FontBig = 0;
 
+uint8_t GuiDefaults::menu_timeout_enabled = 1;
+
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
 constexpr Rect16 GuiDefaults::RectScreenBody;
@@ -129,8 +131,7 @@ void gui_loop(void) {
 }
 
 void gui_reset_menu_timer() {
-    uint8_t mt = variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT));
-    if (mt) {
+    if (GuiDefaults::menu_timeout_enabled) {
         if (gui_get_menu_timeout_id() >= 0) {
             gui_timer_reset(gui_get_menu_timeout_id());
         } else {

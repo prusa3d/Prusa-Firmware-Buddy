@@ -127,6 +127,7 @@ extern "C" void gui_run(void) {
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
     //int8_t gui_timeout_id;
+    GuiDefaults::menu_timeout_enabled = variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT));
     while (1) {
         Screens::Access()->Loop();
         // show warning dialog on safety timer expiration
