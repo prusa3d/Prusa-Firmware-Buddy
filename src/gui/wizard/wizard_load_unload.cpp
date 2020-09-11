@@ -4,7 +4,7 @@
     #include "window_dlg_load_unload.h"
     #include "window_dlg_preheat.hpp"
     #include "filament.h"
-    #include "filament_sensor.h"
+    #include "filament_sensor.hpp"
     #include "i18n.h"
 
     enum {
@@ -15,7 +15,7 @@
 LD_UNLD_STATE_t _decide_continue_load_unload() {
     uint8_t filament = 0;
     filament |= get_filament() != FILAMENT_NONE ? FKNOWN : 0;
-    filament |= fs_get_state() == FS_NO_FILAMENT ? F_NOTSENSED : 0;
+    filament |= fs_get_state() == NoFilament ? F_NOTSENSED : 0;
     uint16_t def_bt = filament == (FKNOWN | F_NOTSENSED) ? MSGBOX_DEF_BUTTON2 : MSGBOX_DEF_BUTTON1;
     switch (filament) {
     case FKNOWN: { //known and not "unsensed" - do not allow load

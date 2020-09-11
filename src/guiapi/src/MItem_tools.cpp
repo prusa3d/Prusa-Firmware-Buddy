@@ -321,8 +321,8 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_SOUND_MODE
 size_t MI_SOUND_MODE::init_index() const {
-    size_t sound_mode = Sound_GetMode();
-    return sound_mode > 4 ? eSOUND_MODE_DEFAULT : sound_mode;
+    eSOUND_MODE sound_mode = Sound_GetMode();
+    return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
     : WI_SWITCH_t<4>(init_index(), label, 0, true, false, str_Once, str_Loud, str_Silent, str_Assist) {}
@@ -335,11 +335,12 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 MI_SOUND_TYPE::MI_SOUND_TYPE()
     : WI_SWITCH_t<8>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
-    if (old_index == eSOUND_TYPE_StandardPrompt || old_index == eSOUND_TYPE_CriticalAlert) {
-        Sound_Play(eSOUND_TYPE_StandardPrompt);
+    eSOUND_TYPE st = static_cast<eSOUND_TYPE>(old_index);
+    if (st == eSOUND_TYPE::StandardPrompt || st == eSOUND_TYPE::CriticalAlert) {
+        Sound_Play(eSOUND_TYPE::StandardPrompt);
         MsgBoxInfo(_("Continual beeps test\n press button to stop"), Responses_Ok);
     } else {
-        Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+        Sound_Play(st);
     }
 }
 

@@ -131,15 +131,10 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
         DUMP_INFO_TO_CCRAM(DUMP_IWDGW);   \
     }
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _dumpinfo_t {
     unsigned char type_flags;   //
     unsigned char reserved[15]; // TODO: RTC time
 } dumpinfo_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

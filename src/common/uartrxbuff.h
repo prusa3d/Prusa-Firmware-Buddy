@@ -4,19 +4,15 @@
 #include <inttypes.h>
 #include "stm32f4xx_hal.h"
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _uartrxbuff_t {
     UART_HandleTypeDef *phuart;
     DMA_HandleTypeDef *phdma;
+    uint8_t *pdata;
     uint8_t flags;
     uint8_t index;
     uint8_t size;
-    uint8_t *pdata;
+    uint8_t reserve;
 } uartrxbuff_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

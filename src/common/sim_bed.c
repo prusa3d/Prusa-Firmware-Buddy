@@ -4,9 +4,6 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct
 {
     float C;  // [J/K] total heat capacity of entire heat block
@@ -18,8 +15,6 @@ typedef struct
     float Ts; // [K] sensor temperature (avg)
     float P;  // [W] heater power
 } sim_bed_t;
-
-#pragma pack(pop)
 
 sim_bed_t sim_bed;
 

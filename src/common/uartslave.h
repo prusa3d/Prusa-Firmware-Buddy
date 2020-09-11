@@ -25,21 +25,17 @@ typedef int(uartslave_parse_mod_mask_t)(uartslave_t *pslave, char *pstr, uint16_
 typedef int(uartslave_parse_cmd_id_t)(uartslave_t *pslave, char *pstr, uint16_t *pcmd_id);
 typedef int(uartslave_do_cmd_t)(uartslave_t *pslave, uint16_t mod_msk, char cmd, uint16_t pcmd_id, char *pstr);
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _uartslave_t {
     uartrxbuff_t *prxbuff;
-    uint8_t flags;
-    int count;
-    int size;
-    char *pline;
     uartslave_parse_mod_mask_t *parse_mod_mask;
     uartslave_parse_cmd_id_t *parse_cmd_id;
     uartslave_do_cmd_t *do_cmd;
+    char *pline;
+    int count;
+    int size;
+    uint8_t flags;
+    uint8_t reserve[3];
 } uartslave_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

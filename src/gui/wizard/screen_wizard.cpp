@@ -8,7 +8,7 @@
 #include "wizard_config.h"
 #include "filament.h"
 #include "eeprom.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "i18n.h"
 #include "bsod.h"
 #include "RAII.hpp"
@@ -101,9 +101,9 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 pd->state = _STATE_INFO;
                 pd->frame_footer.Show();
                 wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
-                if (fs_get_state() == FS_DISABLED) {
+                if (fs_get_state() == Disabled) {
                     fs_enable();
-                    if (fs_wait_initialized() == FS_NOT_CONNECTED)
+                    if (fs_wait_initialized() == fsensor_t::NotConnected)
                         fs_disable();
                 }
                 break;
@@ -298,7 +298,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 pd->state = _STATE_FIRSTLAY_LOAD;
                 pd->frame_footer.Show();
                 FILAMENT_t filament = get_filament();
-                if (filament == FILAMENT_NONE || fs_get_state() == FS_NO_FILAMENT)
+                if (filament == FILAMENT_NONE || fs_get_state() == NoFilament)
                     filament = FILAMENT_PLA;
                 wizard_init(filaments[filament].nozzle, filaments[filament].heatbed);
                 p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
@@ -555,9 +555,9 @@ StateFncData StateFnc_START(StateFncData last_run) {
 
 StateFncData StateFnc_INIT(StateFncData last_run) {
     //wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
-    if (fs_get_state() == FS_DISABLED) {
+    if (fs_get_state() == fsensor_t::Disabled) {
         fs_enable();
-        if (fs_wait_initialized() == FS_NOT_CONNECTED)
+        if (fs_wait_initialized() == fsensor_t::NotConnected)
             fs_disable();
     }
     return last_run.PassToNext();
