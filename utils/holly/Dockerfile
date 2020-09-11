@@ -1,4 +1,4 @@
-FROM gcc:10
+FROM prusa3d/gcc-multilib:10
 RUN apt-get clean && \
     apt-get update -qq -y && \
     apt-get install curl python3 python3-pip libncurses5 g++-multilib -y
