@@ -453,7 +453,7 @@ variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
         const int v = marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n);
         if (v < 0)
             bsod("Error formatting var value.");
-        if ((size_t)v >= (sizeof(request) - (size_t)n))
+        if (((size_t)v + (size_t)n) >= sizeof(request))
             bsod("Request too long.");
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
