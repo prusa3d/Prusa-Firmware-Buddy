@@ -34,6 +34,10 @@ public:
     ScreenWizard();
     ~ScreenWizard();
 
-    static constexpr void SetMaskAll() { run_mask = WizardMaskAll(); }
+    static void RunAll();
+    static void RunSelfTest();
+    static void RunXYZCalib();
+    static void RunFirstLay();
+
     static uint64_t GetMask() { return run_mask; }
 };

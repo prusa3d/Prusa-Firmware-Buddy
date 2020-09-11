@@ -437,12 +437,32 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
 
 #endif //#if 0
 
+void ScreenWizard::RunAll() {
+    run_mask = WizardMaskAll();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
+}
+
+void ScreenWizard::RunSelfTest() {
+    run_mask = WizardMaskSelfTest();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
+}
+
+void ScreenWizard::RunXYZCalib() {
+    run_mask = WizardMaskXYZCalib();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
+}
+
+void ScreenWizard::RunFirstLay() {
+    run_mask = WizardMaskFirstLay();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
+}
+
 string_view_utf8 WizardGetCaption(WizardState_t st) {
     if (IsStateInWizardMask(st, WizardMaskStart())) {
         return _("WIZARD");
     }
 
-    if (IsStateInWizardMask(st, WizardMaskSelftest())) {
+    if (IsStateInWizardMask(st, WizardMaskSelfTest())) {
         return _("SELFTEST");
     }
 
