@@ -12,13 +12,14 @@ static CFanCtl *CFanCtl_instance[FANCTL_MAX_FANS]; // array of pointers to insta
 //------------------------------------------------------------------------------
 // CFanCtlPWM implementation
 
-CFanCtlPWM::CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max) {
+CFanCtlPWM::CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max, uint8_t phase_shift_threshold) {
     pin = pin_out;
     min_value = pwm_min;
     max_value = pwm_max;
     initialized = false;
     output_state = false;
     pha_mode = random;
+    pha_thr = phase_shift_threshold;
     pwm = 0;
     cnt = 0;
     val = 0;
@@ -42,11 +43,11 @@ int8_t CFanCtlPWM::tick() {
     bool o = (cnt >= pha) && (cnt < (pha + val));
     if (++cnt >= max_value) {
         cnt = 0;
-        if (val != pwm) { // pwm changed
-            val = pwm;    // update cached value
-            pha = 0;      // reset phase
-            if ((val > 1) && (val <= (max_value / 2))) {
-                pha_max = max_value - val;
+        if (val != pwm) {              // pwm changed
+            val = pwm;                 // update cached value
+            pha = 0;                   // reset phase
+            pha_max = max_value - val; // calculate maximum phase
+            if ((val > 1) && (val <= pha_thr)) {
                 uint8_t steps = max_value / val; // calculate number of steps
                 if (steps < 3)
                     steps = 3;             // limit steps >= 3
@@ -55,7 +56,7 @@ int8_t CFanCtlPWM::tick() {
                 pha_stp = 0; // set step to zero - disable phase shifting
         }
 #if 1
-        else
+        else if (pha_stp) // pha_stp != 0 means phase shifting enabled
             switch (pha_mode) {
             case none:
                 pha = 0;
@@ -133,8 +134,8 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
 //------------------------------------------------------------------------------
 // CFanCtl implementation
 
-CFanCtl::CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM)
-    : m_pwm(pinOut, minPWM, maxPWM)
+CFanCtl::CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM)
+    : m_pwm(pinOut, minPWM, maxPWM, thrPWM)
     , m_tach(pinTach) {
     m_MinRPM = minRPM;
     m_MaxRPM = maxRPM;
@@ -173,12 +174,23 @@ void CFanCtl::tick() {
                 m_State = error_starting;
             else {
                 m_pwm.set_PWM(m_pwm.get_max_PWM());
-                //				m_pwm.set_PWM(m_PWMValue);
                 if (edge)
                     m_Edges++;
-                if (m_Edges > 4)
+                if (m_Edges >= 4)
                     m_State = running;
             }
+        }
+        break;
+    case measuring:
+        m_Ticks++;
+        if (m_Ticks > 1000)
+            m_State = running;
+        else {
+            m_pwm.set_PWM(m_pwm.get_max_PWM());
+            if (edge)
+                m_Edges++;
+            if (m_Edges >= 2)
+                m_State = running;
         }
         break;
     default: // running and error state
@@ -196,6 +208,9 @@ void CFanCtl::setPWM(uint8_t pwm) {
 
 void CFanCtl::setPhaseShiftMode(uint8_t psm) {
     m_pwm.set_PhaseShiftMode((CFanCtlPWM::PhaseShiftMode)psm);
+}
+
+void CFanCtl::measure() {
 }
 
 //------------------------------------------------------------------------------

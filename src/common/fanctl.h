@@ -24,6 +24,7 @@ typedef struct _fanctl_pwm_t {
     uint8_t cnt;      // pwm counter (value 0..max-1)
     uint8_t val;      // pwm value (cached during pwm cycle)
     uint8_t pha_mode; // pwm phase shift mode
+    uint8_t pha_thr;  // pwm phase shift threshold (shifting will be enabled for pwm <= pha_thr)
     int8_t pha;       // pwm phase shift
     int8_t pha_max;   // pwm phase shift maximum (calculated when pwm changed)
     int8_t pha_stp;   // pwm phase shift step (calculated when pwm changed)
@@ -59,7 +60,7 @@ public:
 
 public:
     // constructor
-    CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max);
+    CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max, uint8_t phase_shift_threshold);
 
 public:
     void init();   // init function - initialize hw
@@ -97,15 +98,16 @@ class CFanCtl {
 public:
     enum FanState {
         idle,           // idle - no rotation, PWM = 0%
-        starting,       // starting - PWM = 100%, waiting for tacho pulse
+        starting,       // starting - PWM = 100%, waiting for 4 tacho edges
         running,        // running - PWM set by setPWM(), no regulation
+        measuring,      // measuring - PWM = 100%, waiting for 2 tacho edges
         error_starting, // starting error - means no feedback after timeout expired
         error_running,  // running error - means zero RPM measured (no feedback)
     };
 
 public:
     // constructor
-    CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM);
+    CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM);
 
 public:
     void init();               // init function - initialize hw
@@ -129,7 +131,8 @@ public:
     { return m_pwm.get_PhaseShiftMode(); }
     // setters
     void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
-    void setPhaseShiftMode(uint8_t psm); // set PWM value - switch to non closed-loop mode
+    void setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
+    void measure();                      // measure tacho delay
 private:
     uint16_t m_MinRPM;  // minimum rpm value (set in constructor)
     uint16_t m_MaxRPM;  // maximum rpm value (set in constructor)
