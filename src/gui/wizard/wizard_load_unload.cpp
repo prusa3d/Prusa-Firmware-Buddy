@@ -1,6 +1,6 @@
-// wizard_load_unload.c
+// wizard_load_unload.cpp
+#include "wizard_load_unload.hpp"
 #if 0
-    #include "wizard_load_unload.h"
     #include "wizard_ui.h"
     #include "window_dlg_load_unload.h"
     #include "window_dlg_preheat.hpp"

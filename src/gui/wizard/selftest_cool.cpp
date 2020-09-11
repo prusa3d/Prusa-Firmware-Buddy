@@ -1,13 +1,47 @@
-// selftest_temp_cool.c
+// selftest_temp_cool.cpp
+#include "selftest_cool.hpp"
+#include "i18n.h"
+#include "gui.hpp"
+
+StateFncData StateFnc_SELFTEST_COOL(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_COOL      \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
 #if 0
 
-    #include "selftest_cool.h"
     #include "config.h"
     #include "marlin_client.h"
     #include "wizard_config.h"
     #include "wizard_ui.h"
     #include "guitypes.hpp" //font_meas_text
     #include "wizard_progress_bar.h"
+
+struct selftest_cool_screen_t {
+    window_progress_t progress;
+    window_text_t text_waiting_cd;
+    window_numb_t target_nozzle;
+    window_numb_t target_bed;
+    window_icon_t icon_hourglass;
+    window_numb_t curr_nozzle_temp;
+    window_numb_t curr_bed_temp;
+};
+
+struct selftest_cool_data_t {
+    _TEST_STATE_t state_cool;
+    float temp_noz;
+    float temp_bed;
+    uint32_t timer;
+    float start_nozzle_temp;
+    float start_bed_temp;
+};
+
 
 //-----------------------------------------------------------------------------
 //function definitions

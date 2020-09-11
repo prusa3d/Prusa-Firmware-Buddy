@@ -1,8 +1,65 @@
-// selftest.c
+// selftest.cpp
+#include "selftest_temp.hpp"
+#include "i18n.h"
+#include "gui.hpp"
+
+StateFncData StateFnc_SELFTEST_INIT(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_INIT      \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_PASS(StateFncData last_run) {
+    static const string_view_utf8 title = _("All tests finished successfully!");
+    MsgBoxPepa(title, Responses_NEXT);
+    return last_run.PassToNext().PassToNext(); // 2x PassToNext() to skip fail
+}
+
+StateFncData StateFnc_SELFTEST_FAIL(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "The selftest failed\n"
+        "to finish.         \n"
+        "Double-check the   \n"
+        "printer's wiring   \n"
+        "and axes.          \n"
+        "Then restart       \n"
+        "the Selftest.      ");
+    MsgBox(title, Responses_NEXT);
+    return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+}
+
+StateFncData StateFnc_SELFTEST_AND_XYZCALIB(StateFncData last_run) {
+    static const string_view_utf8 title = _(
+        "Everything is alright. "
+        "I will run XYZ "
+        "calibration now. It will "
+        "take approximately "
+        "12 minutes.");
+    MsgBoxPepa(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
 #if 0
 
-    #include "selftest.h"
+    #include "selftest.hpp"
     #include "stm32f4xx_hal.h"
+
+    #ifndef _DEBUG
+        #define LAST_SELFTEST_TIMEOUT (30 * 60) // [s]
+    #else
+        #define LAST_SELFTEST_TIMEOUT 30 // [s]
+    #endif                               //_DEBUG
+
+struct selftest_data_t {
+    selftest_cool_data_t cool_data;
+    selftest_temp_data_t temp_data;
+    selftest_fans_axis_data_t fans_axis_data;
+};
 
 uint32_t last_selftest_result;
 uint32_t last_selftest_time = 0;

@@ -8,7 +8,7 @@
 #include "display.h"
 #include "string.h"
 #include "lang.h"
-#include "../../gui/wizard/selftest.h"
+#include "../../gui/wizard/selftest.hpp"
 #include "version.h"
 #include "eeprom.h"
 #include "sha256.h"

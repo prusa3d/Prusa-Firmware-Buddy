@@ -1,4 +1,4 @@
-// wizard_load_unload.h
+// wizard_load_unload.hpp
 #pragma once
 #include <inttypes.h>
 #include "gui.hpp"

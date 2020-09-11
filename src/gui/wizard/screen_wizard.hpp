@@ -8,19 +8,6 @@
 
 string_view_utf8 WizardGetCaption(WizardState_t st); //todo constexpr
 
-class StateFncData {
-    WizardState_t next_state;
-    WizardTestState_t result;
-
-public:
-    WizardState_t GetState() { return next_state; }
-    WizardTestState_t GetResult() { return result; }
-    StateFncData PassToNext() { return StateFncData(GetNextWizardState(GetState()), WizardTestState_t::PASSED); }
-    StateFncData(WizardState_t state, WizardTestState_t res)
-        : next_state(state)
-        , result(res) {}
-};
-
 class ScreenWizard : public window_frame_t {
     window_header_t header;
     status_footer_t footer;

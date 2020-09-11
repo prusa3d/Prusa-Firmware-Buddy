@@ -116,3 +116,16 @@ constexpr WizardTestState_t InitState(WizardState_t st, uint64_t mask) {
         return WizardTestState_t::DISABLED;
     }
 }
+
+class StateFncData {
+    WizardState_t next_state;
+    WizardTestState_t result;
+
+public:
+    WizardState_t GetState() { return next_state; }
+    WizardTestState_t GetResult() { return result; }
+    StateFncData PassToNext() { return StateFncData(GetNextWizardState(GetState()), WizardTestState_t::PASSED); }
+    StateFncData(WizardState_t state, WizardTestState_t res)
+        : next_state(state)
+        , result(res) {}
+};
