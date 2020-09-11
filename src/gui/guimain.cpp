@@ -21,6 +21,7 @@
 #include "DialogHandler.hpp"
 #include "sound.hpp"
 #include "i18n.h"
+#include "eeprom.h"
 
 extern int HAL_IWDG_Reset;
 

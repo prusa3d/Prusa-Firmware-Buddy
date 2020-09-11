@@ -7,7 +7,6 @@
 #include "display_helper.h"
 #include "display.h"
 #include "GuiDefaults.hpp"
-#include "eeprom.h"
 
 typedef void(gui_loop_cb_t)(void);
 

@@ -10,7 +10,6 @@
 #include "lang.h"
 #include "../../gui/wizard/selftest.h"
 #include "version.h"
-// #include "eeprom.h"
 #include "language_eeprom.hpp"
 #include "sha256.h"
 

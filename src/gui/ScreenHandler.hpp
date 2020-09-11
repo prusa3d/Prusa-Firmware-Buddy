@@ -19,6 +19,8 @@ class Screens {
     bool close;
     bool close_all;
 
+    int8_t gui_timeout_id;
+
     //void stack_push(int16_t screen_id) {}
     //int16_t stack_pop(void) {}
 
@@ -55,6 +57,8 @@ public:
     static Screens *Access();
 
 private:
+    void InnerLoop(); //call inside Loop of this class
+
     using r_iter = std::reverse_iterator<const ScreenFactory::Creator *>;
     static r_iter rfind_enabled_node(r_iter begin, r_iter end); // reverse find method
     using iter = const ScreenFactory::Creator *;

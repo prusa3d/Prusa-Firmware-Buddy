@@ -164,6 +164,20 @@ void Screens::PushBeforeCurrent(const ScreenFactory::Creator screen_creator) {
 }
 
 void Screens::Loop() {
+    if (GuiDefaults::menu_timeout_enabled) {
+        window_frame_t *w = current.get();
+        if (w->IsTimeout()) {
+            gui_timeout_id = gui_get_menu_timeout_id();
+            if (gui_timer_expired(gui_timeout_id) == 1) {
+                close_all = true;
+                gui_timer_delete(gui_timeout_id);
+            }
+        }
+    }
+    InnerLoop();
+}
+
+void Screens::InnerLoop() {
     if (close_all) {
         if (current) {                              // is there something to close?
             if (creator) {                          // have creator, have to emulate opening

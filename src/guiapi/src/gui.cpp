@@ -135,7 +135,7 @@ void gui_reset_menu_timer() {
         if (gui_get_menu_timeout_id() >= 0) {
             gui_timer_reset(gui_get_menu_timeout_id());
         } else {
-            //gui_timer_create_timeout((uint32_t)MENU_TIMEOUT_MS, (int16_t)-1);
+            gui_timer_create_timeout(Screens::Access()->Get(), (uint32_t)MENU_TIMEOUT_MS);
         }
     }
 }
