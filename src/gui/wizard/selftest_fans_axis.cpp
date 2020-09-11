@@ -66,7 +66,6 @@ StateFncData StateFnc_SELFTEST_Z(StateFncData last_run) {
     #include "hwio.h"
     #include "marlin_client.h"
     #include "wizard_config.h"
-    #include "wizard_ui.h"
 
 
 //todo create multiple small structures inside this structure

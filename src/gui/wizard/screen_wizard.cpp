@@ -6,7 +6,6 @@
 #include "stm32f4xx_hal.h"
 #include "marlin_client.h"
 #include "wizard_config.h"
-#include "wizard_ui.h"
 #include "filament.h"
 #include "eeprom.h"
 #include "filament_sensor.h"

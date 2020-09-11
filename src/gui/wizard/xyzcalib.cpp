@@ -123,7 +123,6 @@ StateFncData StateFnc_XYZCALIB_FAIL(StateFncData last_run) {
     #include "marlin_client.h"
     #include "wizard_config.h"
     #include "screen_wizard.hpp"
-    #include "wizard_ui.h"
     #include "window_dlg_calib_z.hpp"
 
 struct xyzcalib_screen_t {

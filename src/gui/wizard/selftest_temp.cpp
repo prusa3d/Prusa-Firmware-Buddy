@@ -29,9 +29,7 @@ StateFncData StateFnc_SELFTEST_TEMP(StateFncData last_run) {
     #include "config.h"
     #include "marlin_client.h"
     #include "wizard_config.h"
-    #include "wizard_ui.h"
     #include "guitypes.hpp" //font_meas_text
-    #include "wizard_progress_bar.h"
 
 struct selftest_temp_screen_t {
     window_text_t text_checking_temp;

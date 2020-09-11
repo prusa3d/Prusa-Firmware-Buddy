@@ -40,9 +40,7 @@ StateFncData StateFnc_FIRSTLAY_FAIL(StateFncData last_run) {
     #include "stm32f4xx_hal.h"
     #include "marlin_client.h"
     #include "wizard_config.h"
-    #include "wizard_ui.h"
     #include "wizard_types.hpp"
-    #include "wizard_progress_bar.h"
     #include "guitypes.hpp" //font_meas_text
     #include "menu_vars.h"
     #include "filament.h"

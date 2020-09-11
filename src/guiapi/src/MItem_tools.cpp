@@ -2,7 +2,6 @@
 #include "dump.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
-#include "wizard/wizard.h"
 #include "marlin_client.h"
 #include "gui.hpp"
 #include "sys.h"

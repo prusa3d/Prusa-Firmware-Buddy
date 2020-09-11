@@ -1,6 +1,5 @@
 
 # define the test executable
-#add_executable(wizard_tests tests.cpp fatfs.cpp strlcpy.c)
 add_executable(wizard_tests tests_wizard_types.cpp)
 
 # define required search paths
