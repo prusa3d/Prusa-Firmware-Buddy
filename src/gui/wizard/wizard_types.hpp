@@ -70,10 +70,10 @@ constexpr uint64_t WizardMaskAdd(uint64_t mask, WizardState_t state) { return ma
 constexpr uint64_t WizardMaskRange(WizardState_t first, WizardState_t last) {
     if (int(first) > int(last))
         std::swap(first, last);
-    return WizardMaskUpTo(last) & (~WizardMaskUpTo(first));
+    return WizardMaskUpTo(last) & ((~WizardMaskUpTo(first)) | WizardMask(first));
 }
 
-constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last); }
+constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::FINISH); }
 constexpr uint64_t WizardMaskSelftest() { return WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMaskStart(); }
 constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) | WizardMaskStart(); }
 constexpr uint64_t WizardMaskSelftestAndXYZCalib() { //SELFTEST_PASS has different message when it is combined with XYZCALIB

@@ -1,4 +1,4 @@
-// screen_wizard.c
+// screen_wizard.cpp
 
 #include "screen_wizard.hpp"
 #include "dbg.h"
@@ -504,30 +504,20 @@ string_view_utf8 WizardGetCaption(WizardState_t st) {
 
 ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
 
-ScreenWizard::StateArray ScreenWizard::StateInitializer() {
-    StateArray ret = { { nullptr } };
-
-    //check if all states are assigned, hope it will be optimized out
-    for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
-        if (ret[i] == nullptr)
-            bsod("Wizard states invalid");
-    }
-
-    return ret;
-}
+uint64_t ScreenWizard::run_mask = WizardMaskAll();
 
 ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
     ResultArray ret;
     ret.fill(WizardTestState_t::DISABLED); //not needed, just to be safe;
 
-    for (size_t i = size_t(WizardState_t::START_first); i < size_t(WizardState_t::last); ++i) {
+    for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
         ret[i] = InitState(WizardState_t(i), mask);
     }
 
     return ret;
 }
 
-ScreenWizard::ScreenWizard(uint64_t run_mask)
+ScreenWizard::ScreenWizard()
     : window_frame_t()
     , header(this, WizardGetCaption(WizardState_t::START_first))
     , footer(this)
@@ -728,6 +718,17 @@ StateFncData StateFnc_SELFTEST_INIT_TEMP(StateFncData last_run) {
     return last_run.PassToNext();
 }
 
+StateFncData StateFnc_SELFTEST_TEMP(StateFncData last_run) {
+    static const char *title_txt = N_(
+        "State              \n"
+        "SELFTEST_TEMP \n"
+        "not implemented");
+    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+
+    MsgBox(title, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
 StateFncData StateFnc_SELFTEST_PASS(StateFncData last_run) {
     static const string_view_utf8 title = _("All tests finished successfully!");
     MsgBoxPepa(title, Responses_NEXT);
@@ -896,7 +897,7 @@ StateFncData StateFnc_FIRSTLAY_FAIL(StateFncData last_run) {
     return last_run.PassToNext();
 }
 
-StateFncData StateFnc_FIRSTLAY_FINISH(StateFncData last_run) {
+StateFncData StateFnc_FINISH(StateFncData last_run) {
     static const string_view_utf8 title = _(
         "Calibration successful!\n"
         "Happy printing!");
@@ -906,4 +907,63 @@ StateFncData StateFnc_FIRSTLAY_FINISH(StateFncData last_run) {
 StateFncData StateFnc_EXIT(StateFncData last_run) {
     Screens::Access()->Close();
     return last_run;
+}
+
+ScreenWizard::StateArray ScreenWizard::StateInitializer() {
+    StateArray ret = { { nullptr } };
+    size_t i = 0;
+    ret[i++] = StateFnc_START;
+    ret[i++] = StateFnc_INIT;
+    ret[i++] = StateFnc_INFO;
+    ret[i++] = StateFnc_FIRST;
+
+    ret[i++] = StateFnc_SELFTEST_INIT;
+    ret[i++] = StateFnc_SELFTEST_FAN0;
+    ret[i++] = StateFnc_SELFTEST_FAN1;
+    ret[i++] = StateFnc_SELFTEST_X;
+    ret[i++] = StateFnc_SELFTEST_Y;
+    ret[i++] = StateFnc_SELFTEST_Z;
+    ret[i++] = StateFnc_SELFTEST_COOL;
+    ret[i++] = StateFnc_SELFTEST_INIT_TEMP;
+    ret[i++] = StateFnc_SELFTEST_TEMP;
+    ret[i++] = StateFnc_SELFTEST_PASS;
+    ret[i++] = StateFnc_SELFTEST_FAIL;
+
+    ret[i++] = StateFnc_SELFTEST_AND_XYZCALIB;
+
+    ret[i++] = StateFnc_XYZCALIB_INIT;
+    ret[i++] = StateFnc_XYZCALIB_HOME;
+    ret[i++] = StateFnc_XYZCALIB_Z;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_CLEAN_NOZZLE;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_IS_SHEET;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_REMOVE_SHEET;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER;
+    ret[i++] = StateFnc_XYZCALIB_XY_SEARCH;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_PLACE_SHEET;
+    ret[i++] = StateFnc_XYZCALIB_XY_MEASURE;
+    ret[i++] = StateFnc_XYZCALIB_PASS;
+    ret[i++] = StateFnc_XYZCALIB_FAIL;
+
+    ret[i++] = StateFnc_FIRSTLAY_INIT;
+    ret[i++] = StateFnc_FIRSTLAY_LOAD;
+    ret[i++] = StateFnc_FIRSTLAY_MSBX_CALIB;
+    ret[i++] = StateFnc_FIRSTLAY_MSBX_START_PRINT;
+    ret[i++] = StateFnc_FIRSTLAY_PRINT;
+    ret[i++] = StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT;
+    ret[i++] = StateFnc_FIRSTLAY_PASS;
+    ret[i++] = StateFnc_FIRSTLAY_FAIL;
+
+    ret[i++] = StateFnc_FINISH;
+    ret[i++] = StateFnc_EXIT;
+
+#ifdef _DEBUG
+    //check if all states are assigned, hope it will be optimized out
+    for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
+        if (ret[i] == nullptr) {
+            //bsod will not work, but it will cause freeze
+            bsod("Wizard states invalid");
+        }
+    }
+#endif
+    return ret;
 }

@@ -13,6 +13,7 @@
 #include "wui_api.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "screen_wizard.hpp"
 #include "bsod.h"
 
 /*****************************************************************************/
@@ -22,7 +23,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    //wizard_run_complete();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
 }
 
 /*****************************************************************************/
