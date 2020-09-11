@@ -65,20 +65,16 @@ enum {
 
 //--------------------------------------
 //FANCTL - new software pwm fan control with rpm measurement and closed loop
-//#define NEW_FANCTL //TODO REFACTOR HWIO
+#define NEW_FANCTL
 #ifdef NEW_FANCTL
 
-    //FANCTL0 - printing fan
-    #define FANCTL0_PIN_OUTP TPE11
-    #define FANCTL0_PIN_TACH TPE10
+//FANCTL0 - printing fan
 static const uint8_t FANCTL0_PWM_MIN = 15;
 static const uint8_t FANCTL0_PWM_MAX = 50;
 static const uint16_t FANCTL0_RPM_MIN = 500;
 static const uint16_t FANCTL0_RPM_MAX = 5000;
     #define FANCTL0_TRACE
-    //FANCTL1 - heatbreak fan
-    #define FANCTL1_PIN_OUTP TPE9
-    #define FANCTL1_PIN_TACH TPE14
+//FANCTL1 - heatbreak fan
 static const uint8_t FANCTL1_PWM_MIN = 12;
 static const uint8_t FANCTL1_PWM_MAX = 50;
 static const uint16_t FANCTL1_RPM_MIN = 500;

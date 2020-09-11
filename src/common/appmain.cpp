@@ -36,10 +36,14 @@
 
 #ifdef NEW_FANCTL
     #include "fanctl.h"
-CFanCtl fanctl0 = CFanCtl(FANCTL0_PIN_OUTP, FANCTL0_PIN_TACH,
+CFanCtl fanctl0 = CFanCtl(
+    IoPort::E, IoPin::p11,
+    IoPort::E, IoPin::p10,
     FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
     FANCTL0_RPM_MIN, FANCTL0_RPM_MAX);
-CFanCtl fanctl1 = CFanCtl(FANCTL1_PIN_OUTP, FANCTL1_PIN_TACH,
+CFanCtl fanctl1 = CFanCtl(
+    IoPort::E, IoPin::p9,
+    IoPort::E, IoPin::p14,
     FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
     FANCTL1_RPM_MIN, FANCTL1_RPM_MAX);
 #endif //NEW_FANCTL
@@ -92,10 +96,6 @@ void app_run(void) {
     marlin_server_idle_cb = app_idle;
 
     adc_init();
-
-#ifdef NEW_FANCTL
-    fanctl_init();
-#endif //NEW_FANCTL
 
 #ifdef SIM_HEATER
     sim_heater_init();

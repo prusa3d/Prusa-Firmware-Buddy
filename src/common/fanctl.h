@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include "Pin.hpp"
 
 enum {
     FANCTL_MAX_FANS = 2 // maximum number of fans for C wrapper functions
@@ -11,12 +12,10 @@ enum {
 // this structure contain variables for software pwm fan control with phase-shifting
 // used in class CFanCtlPWM
 typedef struct _fanctl_pwm_t {
-    uint8_t pin;       // output pwm pin
     uint8_t min_value; // minimum pwm value
     uint8_t max_value; // maximum pwm value
     union {
         struct {                   // flags:
-            bool initialized : 1;  //  hw initialized
             bool output_state : 1; //  current pwm output state (0/1)
             bool pha_ena : 1;      //  phase shift enabled
         };
@@ -33,10 +32,8 @@ typedef struct _fanctl_pwm_t {
 // this structure contain variables for rpm measuement
 // used in class CFanCtlTach
 typedef struct _fanctl_tach_t {
-    uint8_t pin; // input tacho pin
     union {
         struct {                  // flags:
-            bool initialized : 1; //  hw initialized
             bool input_state : 1; //  last tacho input state (0/1)
         };
         uint8_t flags; // flags as uint8
@@ -54,10 +51,9 @@ typedef struct _fanctl_tach_t {
 class CFanCtlPWM : private fanctl_pwm_t {
 public:
     // constructor
-    CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max);
+    CFanCtlPWM(IoPort portOut, IoPin pinOut, uint8_t pwm_min, uint8_t pwm_max);
 
 public:
-    void init();   // init function - initialize hw
     int8_t tick(); // tick callback from timer interrupt
     // returns: positive number means pwm is on N ticks, negative number means pwm is off and will be switched on in -N ticks
 
@@ -68,21 +64,26 @@ public:
 
     // setters
     void set_PWM(uint8_t new_pwm);
+
+private:
+    OutputPin m_pin;
 };
 
 // class for rpm measurement
 class CFanCtlTach : private fanctl_tach_t {
 public:
     // constructor
-    CFanCtlTach(uint8_t pin_in);
+    CFanCtlTach(IoPort port, IoPin pin);
 
 public:
-    void init();              // init function - initialize hw
     void tick(int8_t pwm_on); // tick callback from timer interrupt (currently 1kHz)
     // returns: true = tach cycle complete (used for RPM calculation)
 
     // getters
     inline uint16_t getRPM() { return rpm; }
+
+private:
+    InputPin m_pin;
 };
 
 //
@@ -98,10 +99,9 @@ public:
 
 public:
     // constructor
-    CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM);
+    CFanCtl(IoPort portOut, IoPin pinOut, IoPort portTach, IoPin pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM);
 
 public:
-    void init();               // init function - initialize hw
     void tick();               // tick callback from timer interrupt
                                // getters (in-lined)
     inline uint8_t getMinPWM() // get minimum PWM, this should be safe value for self starting
@@ -133,7 +133,6 @@ extern "C" {
 #endif //__cplusplus
 
 // C wrapper functions
-extern void fanctl_init(void);                        // init for all fanctl instances is done using this function in appmain.cpp
 extern void fanctl_tick(void);                        // tick for all fanctl instances is done using this function in appmain.cpp
 extern void fanctl_set_pwm(uint8_t fan, uint8_t pwm); // set requested PWM value
 extern uint8_t fanctl_get_pwm(uint8_t fan);           // get requested PWM value
