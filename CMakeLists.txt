@@ -283,7 +283,7 @@ if(CMAKE_CROSSCOMPILING)
 endif()
 
 # enable all warnings (well, not all, but some)
-add_compile_options(-Wall)
+add_compile_options(-Wall -Wsign-compare)
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
