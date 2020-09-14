@@ -5,8 +5,7 @@
  *      Author: Radek Vana
  */
 
-#ifndef _BSOD_H
-#define _BSOD_H
+#pragma once
 
 #include <stdint.h>
 
@@ -33,10 +32,9 @@ void _bsod(const char *fmt, const char *fine_name, int line_number, ...); //with
 void general_error(const char *error, const char *module);
 
 void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed);
+void temp_error_code(const uint16_t error_code);
 
 void ScreenHardFault(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_BSOD_H

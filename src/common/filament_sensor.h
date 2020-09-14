@@ -5,25 +5,17 @@
  *      Author: Radek Vana
  */
 
-#ifndef _FILAMENT_SENSOR_H
-#define _FILAMENT_SENSOR_H
+#pragma once
 
 #include "stdint.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
-#pragma pack(push)
-#pragma pack(1) //makes enum 1 BYTE
-typedef enum {
+enum class fsensor_t : uint8_t {
     FS_NOT_INITIALIZED, //enable enters this state too
     FS_HAS_FILAMENT,
     FS_NO_FILAMENT,
     FS_NOT_CONNECTED,
     FS_DISABLED
-} fsensor_t;
-#pragma pack(pop)
+};
 
 //thread safe functions
 fsensor_t fs_get_state();
@@ -52,9 +44,3 @@ void fs_cycle(); //call it in thread, max call speed 1MHz
 //for debug
 int fs_was_M600_send();
 char fs_get_send_M600_on();
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus
-
-#endif //_FILAMENT_SENSOR_H

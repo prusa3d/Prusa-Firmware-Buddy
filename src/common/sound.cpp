@@ -5,21 +5,23 @@
 static bool SOUND_INIT = false;
 
 /// durations of signals in ms
-const uint32_t Sound::durations[eSOUND_TYPE_count] = { 100, 500, 200, 500, 10, 50, 100, 800 };
+const uint32_t Sound::durations[eSOUND_TYPE::count] = { 100, 500, 200, 500, 10, 50, 100, 800 };
 /// durations of signals in ms
-const float Sound::frequencies[eSOUND_TYPE_count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
+const float Sound::frequencies[eSOUND_TYPE::count] = { 900.F, 600.F, 950.F, 999.F, 800.F, 500.F, 999.F, 950.F };
 /// durations of signals in ms
-const float Sound::volumes[eSOUND_TYPE_count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit };
+const float Sound::volumes[eSOUND_TYPE::count] = { Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, 0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit };
 
-const eSOUND_TYPE Sound::onceTypes[5] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
-const eSOUND_TYPE Sound::loudTypes[6] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
-const eSOUND_TYPE Sound::silentTypes[3] = { eSOUND_TYPE_Start, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_CriticalAlert };
-const eSOUND_TYPE Sound::assistTypes[8] = { eSOUND_TYPE_Start, eSOUND_TYPE_ButtonEcho, eSOUND_TYPE_StandardPrompt, eSOUND_TYPE_StandardAlert, eSOUND_TYPE_EncoderMove, eSOUND_TYPE_BlindAlert, eSOUND_TYPE_CriticalAlert, eSOUND_TYPE_SingleBeep };
+const eSOUND_TYPE Sound::onceTypes[5] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho, eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep };
+const eSOUND_TYPE Sound::loudTypes[6] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho, eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep };
+const eSOUND_TYPE Sound::silentTypes[3] = { eSOUND_TYPE::Start, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::CriticalAlert };
+const eSOUND_TYPE Sound::assistTypes[8] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho, eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::EncoderMove, eSOUND_TYPE::BlindAlert, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep };
 
 const int Sound::onceRepeats[5] = { 1, 1, 1, 1, 1 };
 const int Sound::loudRepeats[6] = { 1, 1, -1, 3, -1, 1 };
 const int Sound::silentRepeats[3] = { 1, 1, 1 };
 const int Sound::assistRepeats[8] = { 1, 1, -1, 3, 1, 1, -1, 1 };
+
+/* const bool Sound::forced[8] = { false, false, false, false, false, true, false, false }; */
 
 eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
 int Sound_GetVolume() { return Sound::getInstance().getVolume(); }
@@ -36,7 +38,7 @@ void Sound_Update1ms() {
 /*!
  * Sound signals implementation
  * Simple sound implementation supporting few sound modes and having different sound types.
- * [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for meassured durations of sound signals for non-blocking GUI.
+ * [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for measured durations of sound signals for non-blocking GUI.
  * Beeper is controled over [hwio_a3ides_2209_02.c] functions for beeper.
  */
 Sound::Sound()
@@ -56,11 +58,11 @@ Sound::Sound()
  * [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
  */
 void Sound::init() {
-    eSoundMode = static_cast<eSOUND_MODE>(eeprom_get_var(EEVAR_SOUND_MODE).ui8);
-    if (eSoundMode == eSOUND_MODE_NULL) {
-        setMode(eSOUND_MODE_DEFAULT);
+    eSoundMode = static_cast<eSOUND_MODE>(variant_get_ui8(eeprom_get_var(EEVAR_SOUND_MODE)));
+    if (eSoundMode == eSOUND_MODE::UNDEF) {
+        setMode(eSOUND_MODE::DEFAULT);
     }
-    varVolume = eeprom_get_var(EEVAR_SOUND_VOLUME).ui8 / 10.F;
+    varVolume = variant_get_ui8(eeprom_get_var(EEVAR_SOUND_VOLUME)) / 10.F;
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;
 }
@@ -107,7 +109,7 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int r
     for (unsigned i = 0; i < size; i++) {
         eSOUND_TYPE type = types[i];
         if (type == sound) {
-            _sound(repeats[i], frequencies[type], durations[type], volumes[type]);
+            _sound(repeats[i], frequencies[(size_t)type], durations[(size_t)type], volumes[(size_t)type] /* , Sound::forced[type] */);
             break;
         }
     }
@@ -120,19 +122,19 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int r
 void Sound::play(eSOUND_TYPE eSoundType) {
     int t_size = 0;
     switch (eSoundMode) {
-    case eSOUND_MODE_ONCE:
+    case eSOUND_MODE::ONCE:
         t_size = sizeof(onceTypes) / sizeof(onceTypes[0]);
         _playSound(eSoundType, onceTypes, onceRepeats, t_size);
         break;
-    case eSOUND_MODE_SILENT:
+    case eSOUND_MODE::SILENT:
         t_size = sizeof(silentTypes) / sizeof(silentTypes[0]);
         _playSound(eSoundType, silentTypes, silentRepeats, t_size);
         break;
-    case eSOUND_MODE_ASSIST:
+    case eSOUND_MODE::ASSIST:
         t_size = sizeof(assistTypes) / sizeof(assistTypes[0]);
         _playSound(eSoundType, assistTypes, assistRepeats, t_size);
         break;
-    case eSOUND_MODE_LOUD:
+    case eSOUND_MODE::LOUD:
     default:
         t_size = sizeof(loudTypes) / sizeof(loudTypes[0]);
         _playSound(eSoundType, loudTypes, loudRepeats, t_size);
@@ -140,10 +142,10 @@ void Sound::play(eSOUND_TYPE eSoundType) {
     }
 }
 
-/// Generic [_sound[ method with setting values and repeating logic
-void Sound::_sound(int rep, float frq, uint32_t dur, float vol) {
+/// Generic [_sound] method with setting values and repeating logic
+void Sound::_sound(int rep, float frq, uint32_t dur, float vol /*, bool forced*/) {
     /// if sound is already playing, then don't interrupt
-    if (repeat - 1 > 0 || repeat == -1) {
+    if ((repeat - 1 > 0 || repeat == -1) /*  && !forced */) {
         return;
     }
 

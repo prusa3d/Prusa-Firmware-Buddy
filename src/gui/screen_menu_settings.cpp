@@ -25,13 +25,13 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
 
     size_t init_index() const {
         fsensor_t fs = fs_wait_initialized();
-        if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
+        if (fs == fsensor_t::FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
             MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
-            fs = FS_DISABLED;
+            fs = fsensor_t::FS_DISABLED;
         }
-        return fs == FS_DISABLED ? 0 : 1;
+        return fs == fsensor_t::FS_DISABLED ? 0 : 1;
     }
     // bool fs_not_connected;
 
@@ -40,7 +40,7 @@ public:
         : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
     void CheckDisconnected() {
         fsensor_t fs = fs_wait_initialized();
-        if (fs == FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
+        if (fs == fsensor_t::FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
             fs_disable();
             index = 0;
             MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
@@ -51,7 +51,7 @@ protected:
     virtual void OnChange(size_t old_index) {
         old_index == 1 ? fs_disable() : fs_enable();
         fsensor_t fs = fs_wait_initialized();
-        if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
+        if (fs == fsensor_t::FS_NOT_CONNECTED) //tried to enable but there is no sensor
         {
             fs_disable();
             index = old_index;
@@ -71,7 +71,8 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_LANGUAGE, MI_SORT_FILES,
     MI_SOUND_TYPE, MI_HF_TEST_0, MI_HF_TEST_1,
     MI_EE_LOAD_400, MI_EE_LOAD_401, MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
-    MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML>;
+    MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML,
+    MI_ES_12201, MI_ES_12202, MI_ES_12203, MI_ES_12204, MI_ES_12205, MI_ES_12206, MI_ES_12207, MI_ES_12208>;
 #else
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,

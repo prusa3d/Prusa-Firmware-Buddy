@@ -1,6 +1,5 @@
 // gpio.h
-#ifndef _GPIO_H
-#define _GPIO_H
+#pragma once
 
 #include "stm32f4xx_hal.h"
 
@@ -107,5 +106,3 @@ static inline void gpio_init(uint8_t pin8, uint32_t mode, uint32_t pull, uint32_
     GPIO_InitStruct.Speed = speed;
     HAL_GPIO_Init(gpio_port(pin8), &GPIO_InitStruct);
 }
-
-#endif //_GPIO_H

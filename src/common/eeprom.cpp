@@ -13,22 +13,19 @@
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
 
-#define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
-#define EEPROM_DATASIZE sizeof(eeprom_vars_t)
-#define EEPROM__PADDING 2
-
-#define EEPROM_MAX_NAME          16     // maximum name length (with '\0')
-#define EEPROM_MAX_DATASIZE      256    // maximum datasize
-#define EEPROM_FIRST_VERSION_CRC 0x0004 // first eeprom version with crc support
+static const constexpr uint8_t EEPROM__PADDING = 1;
+static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
+static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
-#define EEVAR_FLG_READONLY 0x0001 // variable is read only
+static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
 
 // measure time needed to update crc
 //#define EEPROM_MEASURE_CRC_TIME
 
-#pragma pack(push)
-#pragma pack(1)
+// this pragma pack must remain intact, the ordering of EEPROM variables is not alignment-friendly
+#pragma pack(push, 1)
 
 // eeprom map entry structure
 typedef struct _eeprom_entry_t {
@@ -74,6 +71,8 @@ typedef struct _eeprom_vars_t {
     uint32_t CRC32;
 } eeprom_vars_t;
 
+static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
+
 #pragma pack(pop)
 
 // clang-format off
@@ -113,6 +112,9 @@ static const eeprom_entry_t eeprom_map[] = {
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
+
+static const constexpr uint32_t EEPROM_VARCOUNT = sizeof(eeprom_map) / sizeof(eeprom_entry_t);
+static const constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
 
 // eeprom variable defaults
 static const eeprom_vars_t eeprom_var_defaults = {
@@ -190,8 +192,8 @@ uint8_t eeprom_init(void) {
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
     st25dv64k_init();
 
-    version = eeprom_get_var(EEVAR_VERSION).ui16;
-    features = (version >= 4) ? eeprom_get_var(EEVAR_FEATURES).ui16 : 0;
+    version = variant_get_ui16(eeprom_get_var(EEVAR_VERSION));
+    features = (version >= 4) ? variant_get_ui16(eeprom_get_var(EEVAR_FEATURES)) : 0;
     if ((version >= EEPROM_FIRST_VERSION_CRC) && !eeprom_check_crc32())
         defaults = 1;
     else if ((version != EEPROM_VERSION) || (features != EEPROM_FEATURES)) {
@@ -247,10 +249,10 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     void *data_ptr;
     if (id < EEPROM_VARCOUNT) {
         eeprom_lock();
-        if (var.type == eeprom_map[id].type) {
+        if (variant8_get_type(var) == eeprom_map[id].type) {
             size = eeprom_var_size(id);
             data_size = variant8_data_size(&var);
-            if ((size == data_size) || ((var.type == VARIANT8_PCHAR) && (data_size <= size))) {
+            if ((size == data_size) || ((variant8_get_type(var) == VARIANT8_PCHAR) && (data_size <= size))) {
                 addr = eeprom_var_addr(id);
                 data_ptr = variant8_data_ptr(&var);
                 st25dv64k_user_write_bytes(addr, data_ptr, data_size);
@@ -284,7 +286,8 @@ int eeprom_var_format(char *str, unsigned int size, uint8_t id, variant8_t var) 
     case EEVAR_LAN_IP4_GW:
     case EEVAR_LAN_IP4_DNS1:
     case EEVAR_LAN_IP4_DNS2: {
-        n = snprintf(str, size, "%u.%u.%u.%u", var.ui8a[0], var.ui8a[1], var.ui8a[2], var.ui8a[3]);
+        n = snprintf(str, size, "%u.%u.%u.%u", variant8_get_uia(var, 0), variant8_get_uia(var, 1),
+            variant8_get_uia(var, 2), variant8_get_uia(var, 3));
     } break;
     default: //use default conversion
         n = variant8_snprintf(str, size, 0, &var);
@@ -332,12 +335,12 @@ static void eeprom_print_vars(void) {
     }
 }
 
-#define ADDR_V2_FILAMENT_TYPE  0x0400
-#define ADDR_V2_FILAMENT_COLOR EEPROM_ADDRESS + 3
-#define ADDR_V2_RUN_SELFTEST   EEPROM_ADDRESS + 19
-#define ADDR_V2_ZOFFSET        0x010e
-#define ADDR_V2_PID_NOZ_P      0x019d
-#define ADDR_V2_PID_BED_P      0x01af
+static const constexpr uint16_t ADDR_V2_FILAMENT_TYPE = 0x0400;
+static const constexpr uint16_t ADDR_V2_FILAMENT_COLOR = EEPROM_ADDRESS + 3;
+static const constexpr uint16_t ADDR_V2_RUN_SELFTEST = EEPROM_ADDRESS + 19;
+static const constexpr uint16_t ADDR_V2_ZOFFSET = 0x010e;
+static const constexpr uint16_t ADDR_V2_PID_NOZ_P = 0x019d;
+static const constexpr uint16_t ADDR_V2_PID_BED_P = 0x01af;
 
 // conversion function for old version 2 format (marlin eeprom)
 static int eeprom_convert_from_v2(void) {
@@ -439,7 +442,7 @@ static int eeprom_convert_from(uint16_t version, uint16_t features) {
 static int eeprom_check_crc32(void) {
     uint16_t datasize;
     uint32_t crc;
-    datasize = eeprom_get_var(EEVAR_DATASIZE).ui16;
+    datasize = variant_get_ui16(eeprom_get_var(EEVAR_DATASIZE));
     if (datasize > EEPROM_MAX_DATASIZE)
         return 0;
     st25dv64k_user_read_bytes(EEPROM_ADDRESS + datasize - 4, &crc, 4);

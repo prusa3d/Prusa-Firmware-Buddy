@@ -43,3 +43,9 @@
 
 /// \returns random float in range <0,MAX>
 #define FRAND(max_val) ((float)rand() / RAND_MAX * (max_val));
+
+/// Compares two float numbers whether they are almost equal or not
+/// \param max_abs_diff is maximal absolute difference allowed for equality
+#define nearlyEqual(a, b, max_abs_diff) \
+    ({ __typeof__ (a) d = (a)-(b); \
+    d <= max_abs_diff && d >= -max_abs_diff; })

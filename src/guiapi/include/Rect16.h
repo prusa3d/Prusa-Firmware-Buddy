@@ -3,6 +3,7 @@
 #include "guitypes.hpp"
 #include <array>
 #include <algorithm>
+#include <numeric>
 #include <limits.h> //SHRT_MAX, SHRT_MIN
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -18,11 +19,11 @@ enum class ShiftDir_t {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
-/// Class prepesents rectagle in graphics system where x rising to the right
+/// Class represents rectangle in graphics system where x rising to the right
 /// and y rising down.
 ///
 /// @details Class also support negative value of coordinates. Such a simple perk
-/// makes the implemetation more robust and useful.
+/// makes the implementation more robust and useful.
 ///
 class Rect16 {
     point_i16_t top_left_;
@@ -65,7 +66,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Default constructor
-    /// @details set top left corner to {0,0} with width and heigth 0
+    /// @details set top left corner to {0,0} with width and height 0
     constexpr Rect16()
         : top_left_(point_i16_t { 0, 0 })
         , width_(0)
@@ -92,10 +93,10 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left corner and width
-    ///        and heigth
+    ///        and height
     /// @param[in] point Top-left corner
     /// @param[in] width Width in pixels
-    /// @param[in] heigth Heigth in pixels
+    /// @param[in] height Height in pixels
     constexpr Rect16(point_i16_t top_left, uint16_t width, uint16_t height)
         : top_left_(top_left)
         , width_(width)
@@ -371,7 +372,7 @@ public:
         if (min_x > max_x || min_y > max_y) {
             return Rect16();
         } else {
-            return Rect16 { min_x, min_y, max_x - min_x, max_y - min_y };
+            return Rect16 { min_x, min_y, uint16_t(max_x - min_x), uint16_t(max_y - min_y) };
         }
     }
 
@@ -379,7 +380,7 @@ public:
     /// @brief Determines the rectangle structure that represents the union of
     /// all given rectangles.
     ///
-    /// @param[in] rectangles Collection of rectangles to united
+    /// @param[in] rectangles Collection of rectangles to be united
     /// @return Return a rectangle that represents the union of all rectangles
     template <size_t SZ>
     Rect16 Union(std::array<Rect16, SZ> const &rectangles) {
@@ -387,8 +388,8 @@ public:
         return Rect16 {
             TopLeft().x < ret.TopLeft().x ? TopLeft().x : ret.TopLeft().x,
             TopLeft().y < ret.TopLeft().y ? TopLeft().y : ret.TopLeft().y,
-            EndPoint().x > ret.EndPoint().x ? EndPoint().x : ret.EndPoint().x,
-            EndPoint().y > ret.EndPoint().y ? EndPoint().y : ret.EndPoint().y
+            uint16_t(EndPoint().x > ret.EndPoint().x ? EndPoint().x : ret.EndPoint().x),
+            uint16_t(EndPoint().y > ret.EndPoint().y ? EndPoint().y : ret.EndPoint().y)
         };
     }
 
@@ -421,6 +422,16 @@ public:
         return i;
     }
 
+    /**
+		 * @brief Vertical split with spaces from parent Rect16
+		 * @param[out] splits[] buffer to fill of splitted Rect16
+		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+		 * @param[in] count number of splits
+		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
+		 */
+    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Split the current rectangle by given height and return such a
     /// collection of created rectangles
@@ -450,8 +461,15 @@ public:
         return i;
     }
 
-    //count must be at least 1
-    void VerticalSplit(Rect16 splits[], Rect16 spaces[], size_t count, uint16_t spacing = 0) const;
+    /**
+		 * @brief Vertical split with spaces from parent Rect16
+		 * @param[out] splits[] buffer to fill of splitted Rect16
+		 * @param[out] spaces[] buffer to fill of spaces between Rect16 splits
+		 * @param[in] count number of splits
+		 * @param[in] spacing with of spaces between rectangle's splits (optional = 0)
+		 * @param[in] ratio[] ratio of wanted splits (optional = nullptr)
+		 */
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t ratio[] = nullptr) const;
 };
 
 ////////////////////////////////////////////////////////////////////////////

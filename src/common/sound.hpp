@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include "sound_enum.h"
 
@@ -47,7 +49,7 @@ private:
     void init();
     void saveMode();
     void saveVolume();
-    void _sound(int rep, float frq, uint32_t dur, float vol);
+    void _sound(int rep, float frq, uint32_t dur, float vol /* , bool forced */);
     void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int repeats[], unsigned size);
 
     void nextRepeat();
@@ -63,9 +65,9 @@ private:
 
     static constexpr float volumeInit = 0.35F;
     /// values of sound signals - frequencies, volumes, durations
-    static const uint32_t durations[eSOUND_TYPE_count];
-    static const float frequencies[eSOUND_TYPE_count];
-    static const float volumes[eSOUND_TYPE_count];
+    static const uint32_t durations[eSOUND_TYPE::count];
+    static const float frequencies[eSOUND_TYPE::count];
+    static const float volumes[eSOUND_TYPE::count];
 
     /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
     static const eSOUND_TYPE onceTypes[5];
@@ -78,6 +80,9 @@ private:
     static const int loudRepeats[6];
     static const int silentRepeats[3];
     static const int assistRepeats[8];
+
+    /// forced sound types TODO: posible forced sounds
+    /* static const bool forced[8]; */
 
     eSOUND_MODE eSoundMode;
 };

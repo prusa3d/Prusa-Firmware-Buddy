@@ -135,108 +135,108 @@ void marlin_vars_set_var(marlin_vars_t *vars, uint8_t var_id, variant8_t var) {
 
     switch (var_id) {
     case MARLIN_VAR_MOTION:
-        vars->motion = var.ui8;
+        vars->motion = variant_get_ui8(var);
         break;
     case MARLIN_VAR_GQUEUE:
-        vars->gqueue = var.ui8;
+        vars->gqueue = variant_get_ui8(var);
         break;
     case MARLIN_VAR_PQUEUE:
-        vars->pqueue = var.ui8;
+        vars->pqueue = variant_get_ui8(var);
         break;
     case MARLIN_VAR_IPOS_X:
-        vars->ipos[0] = var.i32;
+        vars->ipos[0] = variant8_get_i32(var);
         break;
     case MARLIN_VAR_IPOS_Y:
-        vars->ipos[1] = var.i32;
+        vars->ipos[1] = variant8_get_i32(var);
         break;
     case MARLIN_VAR_IPOS_Z:
-        vars->ipos[2] = var.i32;
+        vars->ipos[2] = variant8_get_i32(var);
         break;
     case MARLIN_VAR_IPOS_E:
-        vars->ipos[3] = var.i32;
+        vars->ipos[3] = variant8_get_i32(var);
         break;
     case MARLIN_VAR_POS_X:
-        vars->pos[0] = var.flt;
+        vars->pos[0] = variant8_get_flt(var);
         break;
     case MARLIN_VAR_POS_Y:
-        vars->pos[1] = var.flt;
+        vars->pos[1] = variant8_get_flt(var);
         break;
     case MARLIN_VAR_POS_Z:
-        vars->pos[2] = var.flt;
+        vars->pos[2] = variant8_get_flt(var);
         break;
     case MARLIN_VAR_POS_E:
-        vars->pos[3] = var.flt;
+        vars->pos[3] = variant8_get_flt(var);
         break;
     case MARLIN_VAR_TEMP_NOZ:
-        vars->temp_nozzle = var.flt;
+        vars->temp_nozzle = variant8_get_flt(var);
         break;
     case MARLIN_VAR_TEMP_BED:
-        vars->temp_bed = var.flt;
+        vars->temp_bed = variant8_get_flt(var);
         break;
     case MARLIN_VAR_TTEM_NOZ:
-        vars->target_nozzle = var.flt;
+        vars->target_nozzle = variant8_get_flt(var);
         break;
     case MARLIN_VAR_TTEM_BED:
-        vars->target_bed = var.flt;
+        vars->target_bed = variant8_get_flt(var);
         break;
     case MARLIN_VAR_Z_OFFSET:
-        vars->z_offset = var.flt;
+        vars->z_offset = variant8_get_flt(var);
         break;
     case MARLIN_VAR_FANSPEED:
-        vars->fan_speed = var.ui8;
+        vars->fan_speed = variant_get_ui8(var);
         break;
     case MARLIN_VAR_PRNSPEED:
-        vars->print_speed = var.ui16;
+        vars->print_speed = variant_get_ui16(var);
         break;
     case MARLIN_VAR_FLOWFACT:
-        vars->flow_factor = var.ui16;
+        vars->flow_factor = variant_get_ui16(var);
         break;
     case MARLIN_VAR_WAITHEAT:
-        vars->wait_heat = var.ui8;
+        vars->wait_heat = variant_get_ui8(var);
         break;
     case MARLIN_VAR_WAITUSER:
-        vars->wait_user = var.ui8;
+        vars->wait_user = variant_get_ui8(var);
         break;
     case MARLIN_VAR_SD_PRINT:
-        vars->sd_printing = var.ui8;
+        vars->sd_printing = variant_get_ui8(var);
         break;
     case MARLIN_VAR_SD_PDONE:
-        vars->sd_percent_done = var.ui8;
+        vars->sd_percent_done = variant_get_ui8(var);
         break;
     case MARLIN_VAR_DURATION:
-        vars->print_duration = var.ui32;
+        vars->print_duration = variant8_get_ui32(var);
         break;
     case MARLIN_VAR_MEDIAINS:
-        vars->media_inserted = var.ui8;
+        vars->media_inserted = variant_get_ui8(var);
         break;
     case MARLIN_VAR_PRNSTATE:
-        vars->print_state = var.ui8;
+        vars->print_state = variant_get_ui8(var);
         break;
     case MARLIN_VAR_FILENAME:
         if (vars->media_LFN)
-            if (var.type == VARIANT8_PCHAR) {
+            if (variant8_get_type(var) == VARIANT8_PCHAR) {
                 memset(vars->media_LFN, '\0', sizeof(vars->media_LFN) * sizeof(char)); // set to zeros to be on the safe side
-                strlcpy(vars->media_LFN, var.pch, FILE_NAME_MAX_LEN);
+                strlcpy(vars->media_LFN, variant8_get_pch(var), FILE_NAME_MAX_LEN);
             }
         break;
     case MARLIN_VAR_FILEPATH:
         if (vars->media_SFN_path)
-            if (var.type == VARIANT8_PCHAR) {
+            if (variant8_get_type(var) == VARIANT8_PCHAR) {
                 memset(vars->media_SFN_path, '\0', sizeof(vars->media_SFN_path) * sizeof(char)); // set to zeros to be on the safe side
-                strlcpy(vars->media_SFN_path, var.pch, FILE_PATH_MAX_LEN);
+                strlcpy(vars->media_SFN_path, variant8_get_pch(var), FILE_PATH_MAX_LEN);
             }
         break;
     case MARLIN_VAR_DTEM_NOZ:
-        vars->display_nozzle = var.flt;
+        vars->display_nozzle = variant8_get_flt(var);
         break;
     case MARLIN_VAR_TIMTOEND:
-        vars->time_to_end = var.ui32;
+        vars->time_to_end = variant8_get_ui32(var);
         break;
     case MARLIN_VAR_FAN0_RPM:
-        vars->fan0_rpm = var.ui16;
+        vars->fan0_rpm = variant_get_ui16(var);
         break;
     case MARLIN_VAR_FAN1_RPM:
-        vars->fan1_rpm = var.ui16;
+        vars->fan1_rpm = variant_get_ui16(var);
         break;
     }
 }

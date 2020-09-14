@@ -1,6 +1,5 @@
 // trinamic.h
-#ifndef _TRYNAMIC_H
-#define _TRYNAMIC_H
+#pragma once
 
 #include <inttypes.h>
 
@@ -28,4 +27,3 @@ extern tmc_sg_sample_cb_t *tmc_sg_sampe_cb;
 }
 
 #endif //__cplusplus
-#endif

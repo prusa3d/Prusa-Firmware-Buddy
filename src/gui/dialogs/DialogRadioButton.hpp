@@ -15,13 +15,14 @@ private:
     const PhaseTexts *texts;
 
     void SetBtnCount(uint8_t cnt) { mem_array_u08[0] = cnt & (RESPONSE_BITS + 1); }
-    uint8_t GetBtnCount() const { return mem_array_u08[0]; }
+    const uint8_t GetBtnCount() const { return mem_array_u08[0]; }
 
     static void button_draw(Rect16 rc_btn, string_view_utf8 text, const font_t *pf, bool is_selected);
 
     void draw_0_btn() const;
     void draw_1_btn() const;
-    void draw_n_btns(size_t btn_count) const;
+    /// btn_count cannot exceed MAX_DIALOG_BUTTON_COUNT
+    void draw_n_btns(const size_t btn_count) const;
 
     static size_t cnt_labels(const PhaseTexts *labels);
     static size_t cnt_responses(const PhaseResponses *resp);

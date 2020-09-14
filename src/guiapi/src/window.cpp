@@ -47,6 +47,8 @@ void window_t::Disable() { flag_enabled = false; }
 void window_t::SetFocus() {
     if (!IsVisible() || !flag_enabled)
         return;
+    if (focused_ptr == this)
+        return;
 
     if (focused_ptr) {
         focused_ptr->Invalidate();
@@ -252,6 +254,10 @@ window_t *window_t::GetFocusedWindow() {
 
 window_t *window_t::GetCapturedWindow() {
     return capture_ptr;
+}
+
+void window_t::ResetCapturedWindow() {
+    capture_ptr = nullptr;
 }
 
 /*****************************************************************************/

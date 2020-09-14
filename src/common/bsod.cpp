@@ -34,7 +34,10 @@
     #include "support_utils.h"
     #include "str_utils.hpp"
     #include "guitypes.h"
-    #include "../lang/i18n.h"
+    #include "i18n.h"
+    #include "../../lib/Prusa-Error-Codes/12/errors_list.h"
+    #include "../../lib/Marlin/Marlin/src/core/language.h"
+    #include "../../lib/Marlin/Marlin/src/lcd/language/language_en.h"
 
     /* FreeRTOS includes. */
     #include "StackMacros.h"
@@ -125,7 +128,7 @@ typedef tskTCB TCB_t;
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
 constexpr uint8_t PADDING = 10;
-    #define X_MAX (display::GetW() - PADDING * 2)
+static const constexpr uint16_t X_MAX = display::GetW() - PADDING * 2;
 
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
@@ -143,7 +146,7 @@ static void stop_common(void) {
 //! @param term input message
 //! @param background_color background color
 static void print_error(term_t *term, color_t background_color) {
-    render_term(Rect16(10, 10, 220, 288), term, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
+    render_term(term, 10, 10, resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), background_color, COLOR_WHITE);
 }
 
@@ -177,7 +180,7 @@ void general_error(const char *error, const char *module) {
     term_printf(&term, module);
     term_printf(&term, "\n");
 
-    render_term(Rect16(PADDING, 100, 220, 220), &term, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    render_term(&term, PADDING, 100, GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
 
     static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), GuiDefaults::Font,
@@ -187,7 +190,7 @@ void general_error(const char *error, const char *module) {
     //stopped and Sound class cannot update itself for timing sound signals.
     //GUI is in the middle of refactoring and should be showned after restart
     //when timers and everything else is running again (info by - Robert/Radek)
-    Sound_Play(eSOUND_TYPE_CriticalAlert);
+    Sound_Play(eSOUND_TYPE::CriticalAlert);
 
     //cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
@@ -206,7 +209,7 @@ void general_error_init() {
     //GUI is in the middle of refactoring and should be showned after restart
     //when timers and everything else is running again (info by - Rober/Radek)
 
-    Sound_Play(eSOUND_TYPE_CriticalAlert);
+    Sound_Play(eSOUND_TYPE::CriticalAlert);
 }
 
 void general_error_run() {
@@ -224,45 +227,41 @@ void general_error_run() {
 //! @n MSG_T_MAXTEMP
 //! @n MSG_T_MINTEMP
 //! @n "Emergency stop (M112)"
-void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
-    //const uint16_t line_width_chars = (uint16_t)floor(X_MAX / GuiDefaults::Font->w);
+void draw_error_screen(const uint16_t error_code_short) {
 
-    /// FIXME include proper .h file instead
-    /// r=5 c=20
-    static const char bad_bed[] = N_("Check the heatbed heater & thermistor wiring for possible damage.");
-    /// r=5 c=20
-    //static const char bad_bed_wire[] = N_("Check the heatbed thermistor wiring for possible damage.");
-    /// r=5 c=20
-    static const char bad_head[] = N_("Check the print head heater & thermistor wiring for possible damage.");
-    /// r=5 c=20
-    //static const char bad_head_wire[] = N_("Check the print head thermistor wiring for possible damage.");
+    const uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
 
-    /// TODO find proper error code
-    const uint16_t error_code = 12201;
+    /// search for proper text according to error code
+    const char *text_title;
+    const char *text_body;
 
-    /// TODO search proper text according to error code
-    const char *text;
-    if (module[0] != 'E') {
-        text = bad_bed;
+    uint32_t i = 0;
+    while (i < sizeof(error_list) && error_code_short != error_list[i].err_num) {
+        ++i;
+    }
+    if (i == sizeof(error_list)) {
+        /// no text found => leave blank screen
+        /// wait for restart - endless loop
+        while (1)
+            wdt_iwdg_refresh();
     } else {
-        text = bad_head;
+        text_title = error_list[i].err_title;
+        text_body = error_list[i].err_text;
     }
 
-    general_error_init();
-    display::Clear(COLOR_RED_ALERT);
-
     /// draw header & main text
-    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+    display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
+    display::DrawText(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE, RENDER_FLG_WORDB);
 
     /// draw "Scan me" text
-    // r=1 c=20
+    // r=1 c=34
     static const char *scan_me_text = N_("Scan me for details");
-    display::DrawText(Rect16(52, 142, display::GetW() - 52, display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
+    render_text_align(Rect16(0, 142, display::GetW(), display::GetH() - 142), _(scan_me_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
 
     /// draw "Scan me" arrow
-    render_icon_align(Rect16(191, 147, 36, 81), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
+    /// FIXME arrow overlaps with QR code (bad PNG)
+    render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
 
     /// draw QR
     char qr_text[MAX_LEN_4QR + 1];
@@ -274,8 +273,6 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     window_qr_t *window = &win;
     win.text = qr_text;
     win.bg_color = COLOR_WHITE;
-
-    //display::DrawLine(point_ui16(0, 175), point_ui16(display::GetW() - 1, 175), COLOR_WHITE);
 
     /// use PNG RAM for QR code image
     uint8_t *qrcode = (uint8_t *)0x10000000; //ccram
@@ -289,12 +286,77 @@ void temp_error(const char *error, const char *module, float t_noz, float tt_noz
     error_url_short(qr_text, sizeof(qr_text), error_code);
     // this MakeRAM is safe - qr_text is a local buffer on stack
     render_text_align(Rect16(0, 293, display::GetW(), display::GetH() - 293), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), ALIGN_HCENTER);
-    //display::DrawText(Rect16(30, 293, display::GetW() - 30, display::GetH() - 293), qr_text, resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE);
 
-    /// wait for restart
-    while (1) {
+    /// wait for restart - endless loop
+    while (1)
         wdt_iwdg_refresh();
+}
+
+/// \returns nth character of the string
+/// \returns \0 if the string is too short
+char nth_char(const char str[], uint16_t nth) {
+    while (nth > 0 && str[0] != 0) {
+        --nth;
+        ++str;
     }
+    return str[0];
+}
+
+//! Known possible reasons.
+//! @n MSG_T_THERMAL_RUNAWAY
+//! @n MSG_T_HEATING_FAILED
+//! @n MSG_T_MAXTEMP
+//! @n MSG_T_MINTEMP
+//! @n "Emergency stop (M112)"
+void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
+
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+
+    uint16_t error_code_short = 0;
+
+    /// Decision tree to define error code
+    if (module == nullptr) {
+        /// TODO share these strings (saves ~100 B of binary size)
+        if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
+            error_code_short = 0;
+        } else if (strcmp("Emergency stop (M112)", error) == 0) {
+            error_code_short = 510;
+        } else if (strcmp("Inactive time kill", error) == 0) {
+            error_code_short = 0;
+        }
+    } else {
+        using namespace Language_en;
+
+        if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
+            error_code_short = 201;
+        } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
+            error_code_short = 202;
+        } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
+            error_code_short = 203;
+        } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
+            error_code_short = 204;
+
+        } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
+            error_code_short = 205;
+        } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
+            error_code_short = 206;
+        } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
+            error_code_short = 207;
+        } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
+            error_code_short = 208;
+        }
+    }
+
+    draw_error_screen(error_code_short);
+}
+
+/// Draws error screen
+/// Use for Debug only
+void temp_error_code(const uint16_t error_code) {
+    general_error_init();
+    display::Clear(COLOR_RED_ALERT);
+    draw_error_screen(error_code);
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
@@ -427,53 +489,53 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
 */
 
 void ScreenHardFault(void) {
-        #define IACCVIOL_Msk  (1UL << 0)
-        #define DACCVIOL_Msk  (1UL << 1)
-        #define MSTKERR_Msk   (1UL << 4)
-        #define MUNSTKERR_Msk (1UL << 3)
-        #define MLSPERR_Msk   (1UL << 5)
+    static const constexpr uint32_t IACCVIOL_Msk = 1u << 0;
+    static const constexpr uint32_t DACCVIOL_Msk = 1u << 1;
+    static const constexpr uint32_t MSTKERR_Msk = 1u << 4;
+    static const constexpr uint32_t MUNSTKERR_Msk = 1u << 3;
+    static const constexpr uint32_t MLSPERR_Msk = 1u << 5;
 
-        #define IACCVIOL_Txt  "Fault on instruction access"
-        #define DACCVIOL_Txt  "Fault on direct data access"
-        #define MSTKERR_Txt   "Context stacking, because of an MPU access violation"
-        #define MUNSTKERR_Txt "Context unstacking, because of an MPU access violation"
-        #define MLSPERR_Txt   "During lazy floating-point state preservation"
+    static const constexpr char *IACCVIOL_Txt = "Fault on instruction access";
+    static const constexpr char *DACCVIOL_Txt = "Fault on direct data access";
+    static const constexpr char *MSTKERR_Txt = "Context stacking, because of an MPU access violation";
+    static const constexpr char *MUNSTKERR_Txt = "Context unstacking, because of an MPU access violation";
+    static const constexpr char *MLSPERR_Txt = "During lazy floating-point state preservation";
 
-        #define MMARVALID_Msk (1UL << 7) // MemManage Fault Address Register (MMFAR) valid flag:
+    static const constexpr uint32_t MMARVALID_Msk = 1 << 7; // MemManage Fault Address Register (MMFAR) valid flag:
 
-        #define STKERR_Msk      (1UL << 12)
-        #define UNSTKERR_Msk    (1UL << 11)
-        #define IBUSERR_Msk     (1UL << 8)
-        #define LSPERR_Msk      (1UL << 13)
-        #define PRECISERR_Msk   (1UL << 9)
-        #define IMPRECISERR_Msk (1UL << 10)
+    static const constexpr uint32_t STKERR_Msk = 1u << 12;
+    static const constexpr uint32_t UNSTKERR_Msk = 1u << 11;
+    static const constexpr uint32_t IBUSERR_Msk = 1u << 8;
+    static const constexpr uint32_t LSPERR_Msk = 1u << 13;
+    static const constexpr uint32_t PRECISERR_Msk = 1u << 9;
+    static const constexpr uint32_t IMPRECISERR_Msk = 1u << 10;
 
-        #define STKERR_Txt      "During exception stacking"
-        #define UNSTKERR_Txt    "During exception unstacking"
-        #define IBUSERR_Txt     "During instruction prefetching, precise"
-        #define LSPERR_Txt      "During lazy floating-point state preservation "
-        #define PRECISERR_Txt   "Precise data access error, precise"
-        #define IMPRECISERR_Txt "Imprecise data access error, imprecise"
+    static const constexpr char *STKERR_Txt = "During exception stacking";
+    static const constexpr char *UNSTKERR_Txt = "During exception unstacking";
+    static const constexpr char *IBUSERR_Txt = "During instruction prefetching, precise";
+    static const constexpr char *LSPERR_Txt = "During lazy floating-point state preservation ";
+    static const constexpr char *PRECISERR_Txt = "Precise data access error, precise";
+    static const constexpr char *IMPRECISERR_Txt = "Imprecise data access error, imprecise";
 
-        #define BFARVALID_Msk (1UL << 15) // MemManage Fault Address Register (MMFAR) valid flag:
+    static const constexpr uint32_t BFARVALID_Msk = 1U << 15; // MemManage Fault Address Register (MMFAR) valid flag:
 
-        #define UNDEFINSTR_Msk (1UL << 16)
-        #define INVSTATE_Msk   (1UL << 17)
-        #define INVPC_Msk      (1UL << 18)
-        #define NOCPC_Msk      (1UL << 19)
-        #define UNALIGNED_Msk  (1UL << 24)
-        #define DIVBYZERO_Msk  (1UL << 25)
+    static const constexpr uint32_t UNDEFINSTR_Msk = 1u << 16;
+    static const constexpr uint32_t INVSTATE_Msk = 1u << 17;
+    static const constexpr uint32_t INVPC_Msk = 1u << 18;
+    static const constexpr uint32_t NOCPC_Msk = 1u << 19;
+    static const constexpr uint32_t UNALIGNED_Msk = 1u << 24;
+    static const constexpr uint32_t DIVBYZERO_Msk = 1u << 25;
 
-        #define UNDEFINSTR_Txt "Undefined instruction"
-        #define INVSTATE_Txt   "Attempt to enter an invalid instruction set state "
-        #define INVPC_Txt      "Failed integrity check on exception return  "
-        #define NOCPC_Txt      "Attempt to access a non-existing coprocessor"
-        #define UNALIGNED_Txt  "Illegal unaligned load or store"
-        #define DIVBYZERO_Txt  "Divide By 0"
-        //#define STKOF (1UL << 0)
+    static const constexpr char *UNDEFINSTR_Txt = "Undefined instruction";
+    static const constexpr char *INVSTATE_Txt = "Attempt to enter an invalid instruction set state ";
+    static const constexpr char *INVPC_Txt = "Failed integrity check on exception return  ";
+    static const constexpr char *NOCPC_Txt = "Attempt to access a non-existing coprocessor";
+    static const constexpr char *UNALIGNED_Txt = "Illegal unaligned load or store";
+    static const constexpr char *DIVBYZERO_Txt = "Divide By 0";
+    //static const constexpr uint8_t STKOF = 1U << 0;
 
-        #define ROWS 21
-        #define COLS 32
+    static const constexpr uint8_t ROWS = 21;
+    static const constexpr uint8_t COLS = 32;
 
     __disable_irq(); //disable irq
 
@@ -618,7 +680,7 @@ void ScreenHardFault(void) {
             term_printf(&term, " ");
     }
 
-    render_term(Rect16(10, 10, 220, 288), &term, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
+    render_term(&term, 10, 10, resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
     display::DrawText(Rect16(10, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 
     while (1) //endless loop

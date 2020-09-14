@@ -38,7 +38,7 @@ class TestErrors(unittest.TestCase):
         print("C++ messages:")
         print(sio.getvalue())
 
-        self.assertRegex(sio.getvalue(), r'{"#00500", "No problem"}')
+        self.assertRegex(sio.getvalue(), r'00500, "No problem",')
 
     def test_cpp_ts_export(self):
         sio = StringIO()

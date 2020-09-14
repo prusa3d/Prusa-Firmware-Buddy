@@ -1,6 +1,9 @@
 //guiconfig.h - guiapi configuration file
-#ifndef _GUICONFIG_H
-#define _GUICONFIG_H
+#pragma once
+
+#include <inttypes.h>
+
+#define USE_ST7789 /// defines usage of ST7789 display (and corresponding knob)
 
 //--------------------------------------
 //GUI configuration
@@ -12,15 +15,13 @@
 //FreeRTOS Signals
 
 //redraw (gui thread is waiting for this signal, window_0.draw is called)
-#define GUI_SIG_REDRAW 0x0001
+static const uint32_t GUI_SIG_REDRAW = 0x01;
 
 //st7789v - spi DMA transmit complete (triggered from callback, gui thread is waiting for this signal)
-#define ST7789V_SIG_SPI_TX 0x0008
+static const uint32_t ST7789V_SIG_SPI_TX = 0x08;
 
-#define MENU_TIMEOUT_MS 30000
+static const uint32_t MENU_TIMEOUT_MS = 30000;
 //--------------------------------------
 //ST7789v configuration
 #define ST7789V_USE_RTOS
 #define ST7789V_PNG_SUPPORT
-
-#endif //_GUICONFIG_H

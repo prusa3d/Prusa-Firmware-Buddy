@@ -217,7 +217,7 @@ bool Pause::FilamentLoad() {
                 // wait till filament sensor does not show "FS_NO_FILAMENT" in this block
                 // ask user to insert filament, than wait continue button
                 do {
-                    while (fs_get_state() == FS_NO_FILAMENT) {
+                    while (fs_get_state() == fsensor_t::FS_NO_FILAMENT) {
                         idle(true);
                         fsm_change(ClientFSM::Load_unload, PhasesLoadUnload::MakeSureInserted, 0, 0);
                     }

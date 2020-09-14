@@ -5,22 +5,23 @@
  *  Created on: April 22, 2020
  *      Author: joshy <joshymjose[at]gmail.com>
  */
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <time.h>
+
 #include "wui_api.h"
 #include "version.h"
 #include "otp.h"
-#include <string.h>
-#include <stdio.h>
 #include "ini_handler.h"
 #include "eeprom.h"
 #include "string.h"
-#include <stdbool.h>
-#include <time.h>
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
-#define MAX_UINT16           65535
-#define PRINTER_TYPE_ADDR    0x0802002F // 1 B
-#define PRINTER_VERSION_ADDR 0x08020030 // 1 B
+// static const uint16_t MAX_UINT16 = 65535;
+static const uint32_t PRINTER_TYPE_ADDR = 0x0802002F;    // 1 B
+static const uint32_t PRINTER_VERSION_ADDR = 0x08020030; // 1 B
 
 static bool sntp_time_init = false;
 
@@ -102,24 +103,24 @@ uint32_t save_eth_params(ETH_config_t *ethconfig) {
 uint32_t load_eth_params(ETH_config_t *ethconfig) {
 
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_FLAGS)) {
-        ethconfig->lan.flag = eeprom_get_var(EEVAR_LAN_FLAG).ui8;
+        ethconfig->lan.flag = variant_get_ui8(eeprom_get_var(EEVAR_LAN_FLAG));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
-        ethconfig->lan.addr_ip4.addr = eeprom_get_var(EEVAR_LAN_IP4_ADDR).ui32;
+        ethconfig->lan.addr_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_ADDR));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
-        ethconfig->lan.msk_ip4.addr = eeprom_get_var(EEVAR_LAN_IP4_MSK).ui32;
+        ethconfig->lan.msk_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_MSK));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_GW_IP4)) {
-        ethconfig->lan.gw_ip4.addr = eeprom_get_var(EEVAR_LAN_IP4_GW).ui32;
+        ethconfig->lan.gw_ip4.addr = variant8_get_ui32(eeprom_get_var(EEVAR_LAN_IP4_GW));
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
         variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME);
-        strlcpy(ethconfig->hostname, hostname.pch, ETH_HOSTNAME_LEN + 1);
+        strlcpy(ethconfig->hostname, variant8_get_pch(hostname), ETH_HOSTNAME_LEN + 1);
         variant8_done(&hostname);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_TIMEZONE)) {
-        ethconfig->timezone = eeprom_get_var(EEVAR_TIMEZONE).i8;
+        ethconfig->timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
     }
 
     return 0;

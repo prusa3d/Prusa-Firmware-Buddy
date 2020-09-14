@@ -90,11 +90,11 @@ msgstr "Kalibriere Z"
 
 #: src/gui/screen_menu_calibration.cpp:16 src/gui/screen_home.cpp:42
 msgid "Calibration"
-msgstr "Kalibrierung"
+msgstr "Kalibrieren"
 
 #: src/gui/screen_menu_calibration.cpp:17
 msgid "CALIBRATION"
-msgstr "KALIBRIERUNG"
+msgstr "KALIBRIEREN"
 
 #: src/gui/wizard/screen_wizard.c:496
 msgid "Calibration successful!\nHappy printing!"
@@ -237,6 +237,14 @@ msgstr "Fehlerstat."
 msgid "Fan test"
 msgstr "Lüftertest"
 
+#: src/gui/screen_sysinf.cpp:71
+msgid "Fan0 RPM"
+msgstr "Fan0 UPM"
+
+#: src/gui/screen_sysinf.cpp:75
+msgid "Fan1 RPM"
+msgstr "Fan1 UPM"
+
 #: src/gui/screen_menu_settings.cpp:24
 msgid "Fil. sens."
 msgstr "Fil.-Sens."
@@ -288,6 +296,10 @@ msgstr "FW UPDATE"
 msgid "FW Update"
 msgstr "FW Update"
 
+#: src/gui/test/screen_test_msgbox.cpp:11
+msgid "Header"
+msgstr "Header"
+
 #: src/guiapi/include/MItem_print.hpp:16
 msgid "Heatbed"
 msgstr "Heizbett"
@@ -295,6 +307,11 @@ msgstr "Heizbett"
 #: src/gui/guimain.c:165
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Heizung wegen 30 Minuten Inaktivität deaktiviert."
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:41
+#: lib/Prusa-Error-Codes/12/errors_list.h:45
+msgid "HEATING FAILED"
+msgstr "HEIZEN FEHLER"
 
 #: src/gui/screen_printing.cpp:80
 msgid "Heating..."
@@ -439,6 +456,11 @@ msgstr "Stellen Sie sicher\ndass das Filament \ndurch den Sensor  \ngeführt wir
 msgid "Material"
 msgstr "Material"
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:57
+#: lib/Prusa-Error-Codes/12/errors_list.h:61
+msgid "MAXTEMP ERROR"
+msgstr "MAXTEMP FEHLER"
+
 #: src/gui/wizard/xyzcalib.cpp:78
 msgid "Measuring reference\nheight of calib.\npoints"
 msgstr "Messe Referenz-\nHöhe der Kalibr.\nPunkte"
@@ -453,7 +475,7 @@ msgstr "BETTNIV."
 
 #: src/guiapi/include/MItem_tools.hpp:28
 msgid "Mesh Bed Level."
-msgstr "Bettnivelierung."
+msgstr "Bettnivellieren"
 
 #. Z 30mm
 #. Disable steppers
@@ -470,6 +492,11 @@ msgstr "MELDUNGEN"
 #: src/guiapi/include/MItem_menus.hpp:148
 msgid "Messages"
 msgstr "Meldungen"
+
+#: lib/Prusa-Error-Codes/12/errors_list.h:65
+#: lib/Prusa-Error-Codes/12/errors_list.h:69
+msgid "MINTEMP ERROR"
+msgstr "MINTEMP FEHLER"
 
 #. abbreviated Monday - max 3 characters
 #: src/lang/format_print_will_end.cpp:43
@@ -499,6 +526,10 @@ msgstr "Bewege Y"
 #: src/gui/menu_vars.h:62
 msgid "Move Z"
 msgstr "Bewege Z"
+
+#: src/guiapi/include/MItem_tools.hpp:239
+msgid "Name"
+msgstr "Name"
 
 #. known and not "unsensed" - do not allow load
 #. cannot use CONTINUE button, string is too long
@@ -697,6 +728,10 @@ msgstr "FILAMENT REINIGEN"
 msgid "Purge Filament"
 msgstr "Filament reinigen"
 
+#: src/gui/dialogs/dialog_response.cpp:19
+msgid "PURGE MORE"
+msgstr "MEHR REINIGEN"
+
 #: src/gui/dialogs/DialogLoadUnload.cpp:57
 msgid "Purging"
 msgstr "Reinigen"
@@ -809,11 +844,11 @@ msgstr "Service"
 #: src/gui/screen_menu_settings.cpp:85 src/gui/screen_menu_move.cpp:43
 #: src/gui/screen_home.cpp:43
 msgid "Settings"
-msgstr "Einstellungen"
+msgstr "Einstellen"
 
 #: src/gui/screen_menu_settings.cpp:88
 msgid "SETTINGS"
-msgstr "EINSTELLUNGEN"
+msgstr "EINSTELLEN"
 
 #: src/gui/screen_menu_lan_settings.cpp:302
 #: src/gui/screen_menu_lan_settings.cpp:303
@@ -825,6 +860,10 @@ msgstr "Einstellungen erfolgreich geladen"
 #: src/guiapi/include/MItem_tools.hpp:210
 msgid "Silent"
 msgstr "Leise"
+
+#: src/guiapi/include/MItem_tools.hpp:237
+msgid "Sort files by"
+msgstr "Dateien sortieren"
 
 #: src/guiapi/include/MItem_tools.hpp:207
 #: src/guiapi/include/MItem_tools.hpp:206
@@ -919,6 +958,15 @@ msgstr "Die XYZ-Kalibrierung konnte nicht abgeschlossen werden. Bitte Verkabelun
 msgid "There was an error saving the settings in the \"lan_settings.ini\" file."
 msgstr "Es gab einen Fehler beim Speichern der Einstellungen in der Datei \"lan_settings.ini\"."
 
+#: lib/Prusa-Error-Codes/12/errors_list.h:49
+#: lib/Prusa-Error-Codes/12/errors_list.h:53
+msgid "THERMAL RUNAWAY"
+msgstr "THERMAL RUNAWAY"
+
+#: src/gui/screen_print_preview.cpp:149
+msgid "This G-CODE was set up for another printer type."
+msgstr "Dieser G-Code ist für einen anderen Druckertyp."
+
 #. window_menu
 #: src/guiapi/src/MItem_tools.cpp:106
 msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
@@ -928,6 +976,10 @@ msgstr "Diese Operation kann\nnicht rückgängig ge-\nmacht werden und die\naktu
 #: src/lang/format_print_will_end.cpp:49
 msgid "Thr"
 msgstr "Do."
+
+#: src/guiapi/include/MItem_tools.hpp:321
+msgid "Time"
+msgstr "Zeit"
 
 #: src/guiapi/include/MItem_tools.hpp:198
 msgid "Timeout"
@@ -959,11 +1011,11 @@ msgstr "Di."
 
 #: src/gui/screen_menu_tune.cpp:21
 msgid "TUNE"
-msgstr "FEINEINSTELLEN"
+msgstr "TUNEN"
 
 #: src/gui/screen_printing_serial.cpp:34 src/gui/screen_printing.cpp:74
 msgid "Tune"
-msgstr "Feineinstellung"
+msgstr "Tunen"
 
 #: src/gui/wizard/wizard_load_unload.cpp:21
 #: src/gui/wizard/wizard_load_unload.cpp:44
@@ -1020,6 +1072,10 @@ msgstr "Warte auf\nTemperatur"
 #: src/guiapi/src/window_msgbox.cpp:15
 msgid "Warning"
 msgstr "Warnung"
+
+#: src/gui/screen_print_preview.cpp:149
+msgid "WARNING:"
+msgstr "WARNUNG:"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47

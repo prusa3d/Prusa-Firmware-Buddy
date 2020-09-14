@@ -1,21 +1,18 @@
 //config.h - main configuration file
-#ifndef _SHARED_CONFIG_H
-#define _SHARED_CONFIG_H
+#pragma once
 
 #include "stdint.h"
 
 // bootloader version
-#define BOOTLOADER_VERSION_ADDRESS 0x0801FFFA
+static const uint32_t BOOTLOADER_VERSION_ADDRESS = 0x0801FFFA;
 
 // EEPROM firmware update flag
-#define FW_UPDATE_ENABLE  0xAA
-#define FW_UPDATE_DISABLE 0x00
+static const uint8_t FW_UPDATE_ENABLE = 0xAA;
+static const uint8_t FW_UPDATE_DISABLE = 0x00;
 
 // pin PA13 state
-#define APPENDIX_FLAG_MASK 0x01
+static const uint8_t APPENDIX_FLAG_MASK = 0x01;
 
-#pragma pack(push)
-#pragma pack(1)
 typedef struct {
     uint8_t fw_update_flag;
     uint8_t model_specific_flags; // ~ "reserved1" originally
@@ -40,7 +37,3 @@ typedef struct {
     uint8_t minor;
     uint8_t patch;
 } version_t;
-
-#pragma pack(pop)
-
-#endif /* _SHARED_CONFIG_H */

@@ -169,6 +169,7 @@ bool CheckHashClass() {
     using SHTable = string_hash_table<HASH, buckets, maxStrings>;
     SHTable sh;
     deque<string> rawStrings; // this is just for verifying the algorithm later on - need to have the raw strings as they came from the file
+
     // warning - deliberately skips collision tests
     REQUIRE(FillHashClass<HASH, buckets, maxStrings>(sh, "keys.txt", rawStrings, true));
 

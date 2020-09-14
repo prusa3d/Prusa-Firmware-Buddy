@@ -199,7 +199,7 @@ void window_file_list_t::unconditionalDraw() {
 void window_file_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_CLICK:
-        Screens::Access()->ScreenEvent(this, WINDOW_EVENT_CLICK, (void *)index);
+        Screens::Access()->Get()->WindowEvent(this, WINDOW_EVENT_CLICK, (void *)index);
         break;
     case WINDOW_EVENT_ENC_DN:
         dec((int)param);
@@ -221,7 +221,7 @@ void window_file_list_t::inc(int dif) {
     if (index >= int(ldv->WindowSize() - 1)) {
         repaint = ldv->MoveDown();
         if (!repaint) {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     } else {
         // this 'if' solves a situation with less files than slots on the screen
@@ -229,7 +229,7 @@ void window_file_list_t::inc(int dif) {
             index += 1; // @@TODO dif > 1 if needed
             repaint = true;
         } else {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     }
 
@@ -237,6 +237,7 @@ void window_file_list_t::inc(int dif) {
         // here we know exactly, that the selected item changed -> prepare text rolling
         init_text_roll();
         Invalidate();
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     }
 }
 
@@ -246,7 +247,7 @@ void window_file_list_t::dec(int dif) {
         // at the beginning of the window
         repaint = ldv->MoveUp();
         if (!repaint) {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     } else {
         --index;
@@ -256,5 +257,6 @@ void window_file_list_t::dec(int dif) {
     if (repaint) {
         init_text_roll();
         Invalidate();
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     }
 }

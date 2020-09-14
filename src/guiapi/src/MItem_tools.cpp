@@ -13,6 +13,7 @@
 #include "wui_api.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "bsod.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -233,6 +234,78 @@ void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+MI_ES_12201::MI_ES_12201()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12201::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(201);
+}
+
+/*****************************************************************************/
+MI_ES_12202::MI_ES_12202()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12202::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(202);
+}
+
+/*****************************************************************************/
+MI_ES_12203::MI_ES_12203()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12203::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(203);
+}
+
+/*****************************************************************************/
+MI_ES_12204::MI_ES_12204()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12204::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(204);
+}
+
+/*****************************************************************************/
+MI_ES_12205::MI_ES_12205()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12205::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(205);
+}
+
+/*****************************************************************************/
+MI_ES_12206::MI_ES_12206()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12206::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(206);
+}
+
+/*****************************************************************************/
+MI_ES_12207::MI_ES_12207()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12207::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(207);
+}
+
+/*****************************************************************************/
+MI_ES_12208::MI_ES_12208()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_ES_12208::click(IWindowMenu & /*window_menu*/) {
+    temp_error_code(208);
+}
+
+/*****************************************************************************/
 //MI_M600
 MI_M600::MI_M600()
     : WI_LABEL_t(label, 0, true, false) {
@@ -258,8 +331,8 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_SOUND_MODE
 size_t MI_SOUND_MODE::init_index() const {
-    size_t sound_mode = Sound_GetMode();
-    return sound_mode > 4 ? eSOUND_MODE_DEFAULT : sound_mode;
+    eSOUND_MODE sound_mode = Sound_GetMode();
+    return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
     : WI_SWITCH_t<4>(init_index(), label, 0, true, false, str_Once, str_Loud, str_Silent, str_Assist) {}
@@ -272,11 +345,12 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 MI_SOUND_TYPE::MI_SOUND_TYPE()
     : WI_SWITCH_t<8>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
-    if (old_index == eSOUND_TYPE_StandardPrompt || old_index == eSOUND_TYPE_CriticalAlert) {
-        Sound_Play(eSOUND_TYPE_StandardPrompt);
+    eSOUND_TYPE st = static_cast<eSOUND_TYPE>(old_index);
+    if (st == eSOUND_TYPE::StandardPrompt || st == eSOUND_TYPE::CriticalAlert) {
+        Sound_Play(eSOUND_TYPE::StandardPrompt);
         MsgBoxInfo(_("Continual beeps test\n press button to stop"), Responses_Ok);
     } else {
-        Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+        Sound_Play(st);
     }
 }
 
@@ -297,7 +371,7 @@ void MI_SOUND_VOLUME::OnClick() {
 //MI_SORT_FILES
 
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(eeprom_get_var(EEVAR_FILE_SORT).ui8, label, 0, true, false, str_time, str_name) {}
+    : WI_SWITCH_t<2>(variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT)), label, 0, true, false, str_time, str_name) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         eeprom_set_var(EEVAR_FILE_SORT, variant8_ui8((uint8_t)WF_SORT_BY_NAME));
@@ -312,10 +386,10 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 //MI_TIMEZONE
 constexpr static const std::array<int8_t, 3> timezone_range = { { -12, 12, 1 } };
 MI_TIMEZONE::MI_TIMEZONE()
-    : WI_SPIN_I08_t(eeprom_get_var(EEVAR_TIMEZONE).i8, timezone_range.data(), label, 0, true, false) {}
+    : WI_SPIN_I08_t(variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE)), timezone_range.data(), label, 0, true, false) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = value;
-    int8_t last_timezone = eeprom_get_var(EEVAR_TIMEZONE).i8;
+    int8_t last_timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
     eeprom_set_var(EEVAR_TIMEZONE, variant8_i8(timezone));
     time_t seconds = 0;
     if ((seconds = sntp_get_system_time())) {
