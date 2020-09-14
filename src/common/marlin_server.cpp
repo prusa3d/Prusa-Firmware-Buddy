@@ -44,6 +44,8 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
 
+#include "marlin_test.h"
+
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
 
@@ -73,9 +75,6 @@ typedef struct {
     uint32_t fsmCreate;                              // fsm create ui32 argument for resend
     uint32_t fsmDestroy;                             // fsm destroy ui32 argument for resend
     uint32_t fsmChange;                              // fsm change ui32 argument for resend
-    marlin_test_state_t test_state;                  // test state (Xaxis_start, Xaxis_home, ...)
-    marlin_test_type_t test_type;                    // current test type (none, init, xaxis...)
-    uint64_t test_mask;                              // mask of tests to be done after test_start
     int request_len;
     uint32_t last_update;   // last update tick count
     uint32_t command;       // actually running command
@@ -125,7 +124,6 @@ extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue hand
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-static void _server_test_loop(void);
 static void _server_print_loop(void);
 static int _send_notify_to_client(osMessageQId queue, variant8_t msg);
 static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
@@ -186,8 +184,8 @@ int marlin_server_cycle(void) {
         return 0;
     processing = 1;
 
-    if ((marlin_server.test_state != mtsIdle) && (marlin_server.test_state != mtsFinished))
-        _server_test_loop();
+    if (MarlinTest.isInProgress())
+        MarlinTest.loop();
     else
         _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
 
@@ -389,14 +387,22 @@ void marlin_server_quick_stop(void) {
     planner.quick_stop();
 }
 
+uint32_t marlin_server_get_command(void) {
+    return marlin_server.command;
+}
+
+void marlin_server_set_command(uint32_t command) {
+    marlin_server.command = command;
+}
+
 void marlin_server_test_start(void) {
-    if (((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) && ((marlin_server.test_state == mtsIdle) || (marlin_server.test_state == mtsFinished))) {
-        marlin_server.test_state = mtsStart;
+    if (((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) && (!MarlinTest.isInProgress())) {
+        MarlinTest.start();
     }
 }
 
 void marlin_server_print_start(const char *filename) {
-    if ((marlin_server.test_state != mtsIdle) && (marlin_server.test_state != mtsFinished))
+    if (MarlinTest.isInProgress())
         return;
     if (filename == nullptr)
         return;
@@ -440,282 +446,6 @@ int marlin_server_print_reheat_ready(void) {
         if (marlin_server.vars.temp_nozzle >= (marlin_server.vars.target_nozzle - 5))
             return 1;
     return 0;
-}
-
-uint32_t _test_start_time;
-int32_t _test_start_pos;
-FIL _test_fil;
-bool _test_fil_ok;
-bool _test_sg_sample_on = false;
-uint16_t _test_sg_sample_count;
-uint32_t _test_sg_sample_sum;
-
-void _test_XAxis_start(float fr, int dir) {
-    osDelay(100);
-    _test_start_time = HAL_GetTick();
-    _test_start_pos = stepper.position(X_AXIS);
-    f_printf(&_test_fil, "X-axis @%d mm/s %s\n", (int)fr, (dir == -1) ? "(from RIGHT to LEFT)" : "(from LEFT to RIGHT)");
-    f_sync(&_test_fil);
-    _test_sg_sample_count = 0;
-    _test_sg_sample_sum = 0;
-    planner.synchronize();
-    current_position.x += dir * 200;
-    _test_sg_sample_on = true;
-    line_to_current_position(fr);
-}
-
-void _test_XAxis_end(float fr, int dir) {
-    _test_sg_sample_on = false;
-    osDelay(100);
-    int32_t length = dir * (stepper.position(X_AXIS) - _test_start_pos);
-    uint32_t sg_avg = _test_sg_sample_sum / _test_sg_sample_count;
-    f_printf(&_test_fil, "measured length: %d\n", length);
-    f_printf(&_test_fil, "avg stallguard: %d\n\n", sg_avg);
-    f_sync(&_test_fil);
-}
-
-void _test_YAxis_start(float fr, int dir) {
-    osDelay(100);
-    _test_start_time = HAL_GetTick();
-    _test_start_pos = stepper.position(Y_AXIS);
-    f_printf(&_test_fil, "Y-axis @%d mm/s %s\n", (int)fr, (dir == -1) ? "(from BACK to FRONT)" : "(from FRONT to BACK)");
-    f_sync(&_test_fil);
-    _test_sg_sample_count = 0;
-    _test_sg_sample_sum = 0;
-    planner.synchronize();
-    current_position.y += dir * 200;
-    _test_sg_sample_on = true;
-    line_to_current_position(fr);
-}
-
-void _test_YAxis_end(float fr, int dir) {
-    _test_sg_sample_on = false;
-    osDelay(100);
-    int32_t length = dir * (stepper.position(Y_AXIS) - _test_start_pos);
-    uint32_t sg_avg = _test_sg_sample_sum / _test_sg_sample_count;
-    f_printf(&_test_fil, "measured length: %d\n", length);
-    f_printf(&_test_fil, "avg stallguard: %d\n\n", sg_avg);
-    f_sync(&_test_fil);
-}
-
-void _test_sg_sample(uint8_t axis, uint16_t sg) {
-    if (!_test_sg_sample_on)
-        return;
-    int32_t pos = stepper.position(X_AXIS);
-    if (_test_fil_ok)
-        f_printf(&_test_fil, "%u %d %d\n", HAL_GetTick() - _test_start_time, pos, sg);
-    _test_sg_sample_count++;
-    _test_sg_sample_sum += sg;
-    //	_dbg("%u %d %d", HAL_GetTick() - _test_start_time, pos, sg);
-}
-
-static void _server_test_loop(void) {
-    switch (marlin_server.test_state) {
-    case mtsIdle:
-        break;
-
-    case mtsStart: {
-        marlin_server.test_type = mttInit;
-        marlin_server.test_mask = (1 << mttInit) | (1 << mttXAxis) | (1 << mttYAxis);
-        marlin_server.flags |= MARLIN_SFLG_EXCMODE; // enter exclusive mode
-        marlin_server.test_state = mtsInit;
-        char *serial_otp = (char *)OTP_SERIAL_NUMBER_ADDR;
-        if (*serial_otp == 0xff) {
-            serial_otp = 0;
-        }
-        char serial[32] = "unknown";
-        char fname[32] = "test_unknown.txt";
-        if (serial_otp) {
-            sprintf(serial, "CZPX%.15s", serial_otp);
-            sprintf(fname, "test_CZPX%.15s.txt", serial_otp);
-        }
-        if (f_open(&_test_fil, fname, FA_WRITE | FA_CREATE_ALWAYS) == FR_OK) {
-            _test_fil_ok = true;
-            f_printf(&_test_fil, "TEST START\n");
-            f_printf(&_test_fil, "printer serial: %s\n\n", serial);
-            f_sync(&_test_fil);
-        } else
-            _test_fil_ok = false;
-        break;
-    }
-
-    case mtsInit:
-        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
-            // TODO: validate system state (temperature, etc)
-            marlin_server_enqueue_gcode("G28");
-            marlin_server.command = MARLIN_CMD_G28;
-            marlin_server.test_state = mtsInit_Home;
-        }
-        break;
-
-    case mtsInit_Home:
-        if (marlin_server.command != MARLIN_CMD_G28) {
-            marlin_server.test_state = mtsXAxis_Start;
-        }
-        break;
-
-    case mtsXAxis_Start:
-        osDelay(100);
-        marlin_server_enqueue_gcode("G28 X");
-        marlin_server.command = MARLIN_CMD_G28;
-        marlin_server.test_state = mtsXAxis_Home;
-        break;
-    case mtsXAxis_Home:
-        if (marlin_server.command != MARLIN_CMD_G28) {
-            marlin_server.test_state = mtsXAxis_Measure_RL_50mms;
-            tmc_sg_mask = 0x01;
-            tmc_sg_sampe_cb = _test_sg_sample;
-            endstops.enable(true);
-            _test_XAxis_start(50, -1);
-        }
-        break;
-    case mtsXAxis_Measure_RL_50mms:
-        if (planner.movesplanned() == 0) {
-            _test_XAxis_end(50, -1);
-            marlin_server.test_state = mtsXAxis_Measure_LR_50mms;
-            _test_XAxis_start(50, 1);
-        }
-        break;
-    case mtsXAxis_Measure_LR_50mms:
-        if (planner.movesplanned() == 0) {
-            _test_XAxis_end(50, 1);
-            marlin_server.test_state = mtsXAxis_Measure_RL_60mms;
-            _test_XAxis_start(60, -1);
-        }
-        break;
-    case mtsXAxis_Measure_RL_60mms:
-        if (planner.movesplanned() == 0) {
-            _test_XAxis_end(60, -1);
-            marlin_server.test_state = mtsXAxis_Measure_LR_60mms;
-            _test_XAxis_start(60, 1);
-        }
-        break;
-    case mtsXAxis_Measure_LR_60mms:
-        if (planner.movesplanned() == 0) {
-            _test_XAxis_end(60, 1);
-            marlin_server.test_state = mtsXAxis_Measure_RL_75mms;
-            _test_XAxis_start(75, -1);
-        }
-        break;
-    case mtsXAxis_Measure_RL_75mms:
-        if (planner.movesplanned() == 0) {
-            _test_XAxis_end(75, -1);
-            marlin_server.test_state = mtsXAxis_Measure_LR_75mms;
-            _test_XAxis_start(75, 1);
-        }
-        break;
-    case mtsXAxis_Measure_LR_75mms:
-        if (planner.movesplanned() == 0) {
-            _test_XAxis_end(75, 1);
-            marlin_server.test_state = mtsXAxis_Measure_RL_100mms;
-            _test_XAxis_start(100, -1);
-        }
-        break;
-    case mtsXAxis_Measure_RL_100mms:
-        if (planner.movesplanned() == 0) {
-            _test_XAxis_end(100, -1);
-            marlin_server.test_state = mtsXAxis_Measure_LR_100mms;
-            _test_XAxis_start(100, 1);
-        }
-        break;
-    case mtsXAxis_Measure_LR_100mms:
-        if (planner.movesplanned() == 0) {
-            _test_XAxis_end(100, 1);
-            marlin_server.test_state = mtsXAxis_Finished;
-        }
-        break;
-    case mtsXAxis_Finished:
-        endstops.enable(false);
-        tmc_sg_mask = 0x07;
-        tmc_sg_sampe_cb = 0;
-        marlin_server.test_state = mtsYAxis_Start;
-        break;
-
-    case mtsYAxis_Start:
-        osDelay(100);
-        marlin_server_enqueue_gcode("G28 Y");
-        marlin_server.command = MARLIN_CMD_G28;
-        marlin_server.test_state = mtsYAxis_Home;
-        break;
-    case mtsYAxis_Home:
-        if (marlin_server.command != MARLIN_CMD_G28) {
-            marlin_server.test_state = mtsYAxis_Measure_BF_50mms;
-            tmc_sg_mask = 0x02;
-            tmc_sg_sampe_cb = _test_sg_sample;
-            endstops.enable(true);
-            _test_YAxis_start(50, 1);
-        }
-        break;
-    case mtsYAxis_Measure_BF_50mms:
-        if (planner.movesplanned() == 0) {
-            _test_YAxis_end(50, 1);
-            marlin_server.test_state = mtsYAxis_Measure_FB_50mms;
-            _test_YAxis_start(50, -1);
-        }
-        break;
-    case mtsYAxis_Measure_FB_50mms:
-        if (planner.movesplanned() == 0) {
-            _test_YAxis_end(50, -1);
-            marlin_server.test_state = mtsYAxis_Measure_BF_60mms;
-            _test_YAxis_start(60, 1);
-        }
-        break;
-    case mtsYAxis_Measure_BF_60mms:
-        if (planner.movesplanned() == 0) {
-            _test_YAxis_end(60, 1);
-            marlin_server.test_state = mtsYAxis_Measure_FB_60mms;
-            _test_YAxis_start(60, -1);
-        }
-        break;
-    case mtsYAxis_Measure_FB_60mms:
-        if (planner.movesplanned() == 0) {
-            _test_YAxis_end(60, -1);
-            marlin_server.test_state = mtsYAxis_Measure_BF_75mms;
-            _test_YAxis_start(75, 1);
-        }
-        break;
-    case mtsYAxis_Measure_BF_75mms:
-        if (planner.movesplanned() == 0) {
-            _test_YAxis_end(75, 1);
-            marlin_server.test_state = mtsYAxis_Measure_FB_75mms;
-            _test_YAxis_start(75, -1);
-        }
-        break;
-    case mtsYAxis_Measure_FB_75mms:
-        if (planner.movesplanned() == 0) {
-            _test_YAxis_end(75, -1);
-            marlin_server.test_state = mtsYAxis_Measure_BF_100mms;
-            _test_YAxis_start(100, 1);
-        }
-        break;
-    case mtsYAxis_Measure_BF_100mms:
-        if (planner.movesplanned() == 0) {
-            _test_YAxis_end(100, 1);
-            marlin_server.test_state = mtsYAxis_Measure_FB_100mms;
-            _test_YAxis_start(100, -1);
-        }
-        break;
-    case mtsYAxis_Measure_FB_100mms:
-        if (planner.movesplanned() == 0) {
-            _test_YAxis_end(100, -1);
-            marlin_server.test_state = mtsYAxis_Finished;
-        }
-        break;
-    case mtsYAxis_Finished:
-        endstops.enable(false);
-        tmc_sg_mask = 0x07;
-        tmc_sg_sampe_cb = 0;
-        marlin_server.test_state = mtsFinish;
-        break;
-
-    case mtsFinish:
-        if (_test_fil_ok)
-            f_close(&_test_fil);
-        marlin_server.flags &= ~MARLIN_SFLG_EXCMODE; // exit exclusive mode
-        break;
-    case mtsFinished:
-        break;
-    }
 }
 
 static void _server_print_loop(void) {
@@ -886,6 +616,13 @@ int marlin_all_axes_known(void) {
 
 int marlin_server_get_exclusive_mode(void) {
     return (marlin_server.flags & MARLIN_SFLG_EXCMODE) ? 1 : 0;
+}
+
+void marlin_server_set_exclusive_mode(int exclusive) {
+    if (exclusive)
+        marlin_server.flags |= MARLIN_SFLG_EXCMODE; // enter exclusive mode
+    else
+        marlin_server.flags &= ~MARLIN_SFLG_EXCMODE; // exit exclusive mode
 }
 
 void marlin_server_set_temp_to_display(float value) {
