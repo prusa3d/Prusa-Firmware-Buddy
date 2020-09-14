@@ -9,8 +9,6 @@
 #include "otp.h"
 #include "trinamic.h"
 
-
-
 CMarlinTest MarlinTest = CMarlinTest();
 
 /*
@@ -27,28 +25,19 @@ static void _server_test_loop(void) {
 }
 */
 
-
-
-
-
-CMarlinTest::CMarlinTest()
-{
-
+CMarlinTest::CMarlinTest() {
 }
 
-bool CMarlinTest::isInProgress()
-{
-	return (state != mtsIdle) && (state != mtsFinished);
+bool CMarlinTest::isInProgress() {
+    return (state != mtsIdle) && (state != mtsFinished);
 }
 
-bool CMarlinTest::start()
-{
-	state = mtsStart;
+bool CMarlinTest::start() {
+    state = mtsStart;
 }
 
-void CMarlinTest::loop()
-{
-	uint8_t movesplanned = planner.movesplanned();
+void CMarlinTest::loop() {
+    uint8_t movesplanned = planner.movesplanned();
     switch (state) {
     case mtsIdle:
         break;
@@ -305,7 +294,6 @@ void CMarlinTest::YAxis_end(float fr, int dir) {
     f_sync(&fil);
 }
 
-
 void CMarlinTest::sg_sample(uint8_t axis, uint16_t sg) {
     if (!MarlinTest.sg_sample_on)
         return;
@@ -316,4 +304,3 @@ void CMarlinTest::sg_sample(uint8_t axis, uint16_t sg) {
     MarlinTest.sg_sample_sum += sg;
     //	_dbg("%u %d %d", HAL_GetTick() - start_time, pos, sg);
 }
-

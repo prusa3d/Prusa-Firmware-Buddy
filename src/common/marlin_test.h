@@ -43,25 +43,26 @@ typedef enum {
     mttZAxis,
 } marlin_test_type_t;
 
-
-class CMarlinTest
-{
+class CMarlinTest {
 public:
-	CMarlinTest();
-	bool isInProgress();
-	bool start();
-	void loop();
+    CMarlinTest();
+    bool isInProgress();
+    bool start();
+    void loop();
+
 protected:
-	void XAxis_start(float fr, int dir);
-	void XAxis_end(float fr, int dir);
-	void YAxis_start(float fr, int dir);
-	void YAxis_end(float fr, int dir);
+    void XAxis_start(float fr, int dir);
+    void XAxis_end(float fr, int dir);
+    void YAxis_start(float fr, int dir);
+    void YAxis_end(float fr, int dir);
+
 protected:
-	static void sg_sample(uint8_t axis, uint16_t sg);
+    static void sg_sample(uint8_t axis, uint16_t sg);
+
 protected:
-    marlin_test_state_t state;                  // test state (Xaxis_start, Xaxis_home, ...)
-    marlin_test_type_t type;                    // current test type (none, init, xaxis...)
-    uint64_t mask;                              // mask of tests to be done after test_start
+    marlin_test_state_t state; // test state (Xaxis_start, Xaxis_home, ...)
+    marlin_test_type_t type;   // current test type (none, init, xaxis...)
+    uint64_t mask;             // mask of tests to be done after test_start
 
     uint32_t start_time;
     int32_t start_pos;
