@@ -37,20 +37,20 @@ StateFncData StateFnc_XYZCALIB_Z(StateFncData last_run) {
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_CLEAN_NOZZLE(StateFncData last_run) {
-    static const string_view_utf8 title = _(
-        "Please clean the nozzle "
-        "for calibration. Click "
-        "NEXT when done.");
+    const char *txt = "Please clean the nozzle "
+                      "for calibration. Click "
+                      "NEXT when done.";
 
+    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
     MsgBox(title, Responses_NEXT);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_IS_SHEET(StateFncData last_run) {
-    static const string_view_utf8 title = _(
-        "Is steel sheet "
-        "on heatbed?");
+    const char *txt = "Is steel sheet "
+                      "on heatbed?";
 
+    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
     if (MsgBox(title, Responses_YesNo) == Response::Yes) {
         return StateFncData(WizardState_t::XYZCALIB_XY_MSG_REMOVE_SHEET, WizardTestState_t::PASSED);
     } else {
@@ -60,24 +60,22 @@ StateFncData StateFnc_XYZCALIB_XY_MSG_IS_SHEET(StateFncData last_run) {
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_REMOVE_SHEET(StateFncData last_run) {
-    static const string_view_utf8 title = _(
-        "Please remove steel "
-        "sheet from heatbed.");
+    const char *txt = "Please remove steel sheet from heatbed.";
 
+    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
     MsgBox(title, Responses_NEXT);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER(StateFncData last_run) {
-    static const string_view_utf8 title = _(
-        "Place a sheet of paper "
-        "under the nozzle during "
-        "the calibration of first "
-        "4 points. "
-        "If the nozzle "
-        "catches the paper, power "
-        "off printer immediately!");
-
+    const char *txt = "Place a sheet of paper "
+                      "under the nozzle during "
+                      "the calibration of first "
+                      "4 points. "
+                      "If the nozzle "
+                      "catches the paper, power "
+                      "off printer immediately!";
+    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
     MsgBox(title, Responses_NEXT);
     return last_run.PassToNext();
 }
@@ -94,10 +92,9 @@ StateFncData StateFnc_XYZCALIB_XY_SEARCH(StateFncData last_run) {
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_SHEET(StateFncData last_run) {
-    static const string_view_utf8 title = _(
-        "Please place steel sheet "
-        "on heatbed.");
+    const char *txt = "Please place steel sheet on heatbed.";
 
+    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
     MsgBox(title, Responses_NEXT);
     return last_run.PassToNext();
 }
