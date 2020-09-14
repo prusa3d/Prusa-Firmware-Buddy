@@ -267,47 +267,47 @@ TEST_CASE("memory layout", "[variant8][.]") {
     REQUIRE(sizeof(origin_variant) == 8);
     REQUIRE(sizeof(new_variant) == 8);
 
-    const size_t bench_count = 100000ul;
+    //const size_t bench_count = 100000ul;
 
-    BENCHMARK("access origin a") {
-        uint8_t l = 0;
-        for (size_t i = 0; i < bench_count; ++i) {
-            origin_variant v;
-            v.a = i % 0xFF;
-            l = v.a;
-        }
-        return l;
-    };
+    // BENCHMARK("access origin a") {
+    //     uint8_t l = 0;
+    //     for (size_t i = 0; i < bench_count; ++i) {
+    //         origin_variant v;
+    //         v.a = i % 0xFF;
+    //         l = v.a;
+    //     }
+    //     return l;
+    // };
 
-    BENCHMARK("access new a") {
-        uint8_t l = 0;
-        for (size_t i = 0; i < bench_count; ++i) {
-            new_variant v;
-            v.a = i % 0xFF;
-            l = v.a;
-        }
-        return l;
-    };
+    // BENCHMARK("access new a") {
+    //     uint8_t l = 0;
+    //     for (size_t i = 0; i < bench_count; ++i) {
+    //         new_variant v;
+    //         v.a = i % 0xFF;
+    //         l = v.a;
+    //     }
+    //     return l;
+    // };
 
-    BENCHMARK("access origin d") {
-        uint8_t l = 0;
-        for (size_t i = 0; i < bench_count; ++i) {
-            origin_variant v;
-            v.d = i % 0xFF;
-            l = v.d;
-        }
-        return l;
-    };
+    // BENCHMARK("access origin d") {
+    //     uint8_t l = 0;
+    //     for (size_t i = 0; i < bench_count; ++i) {
+    //         origin_variant v;
+    //         v.d = i % 0xFF;
+    //         l = v.d;
+    //     }
+    //     return l;
+    // };
 
-    BENCHMARK("access new d") {
-        uint8_t l = 0;
-        for (size_t i = 0; i < bench_count; ++i) {
-            new_variant v;
-            v.d = i % 0xFF;
-            l = v.d;
-        }
-        return l;
-    };
+    // BENCHMARK("access new d") {
+    //     uint8_t l = 0;
+    //     for (size_t i = 0; i < bench_count; ++i) {
+    //         new_variant v;
+    //         v.d = i % 0xFF;
+    //         l = v.d;
+    //     }
+    //     return l;
+    // };
 }
 
 TEST_CASE("failing tests", "[variant8][.]") {
