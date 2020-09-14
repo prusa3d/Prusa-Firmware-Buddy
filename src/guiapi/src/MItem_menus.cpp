@@ -133,3 +133,13 @@ MI_LANGUAGE::MI_LANGUAGE()
 void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuLanguages);
 }
+
+/*****************************************************************************/
+//MI_HW_SETUP
+MI_HW_SETUP::MI_HW_SETUP()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuHwSetup);
+}

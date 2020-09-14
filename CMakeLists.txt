@@ -548,6 +548,8 @@ if(GUI)
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
             src/gui/screen_qr_error.cpp
+            src/gui/screen_menu_hw_setup.cpp
+            src/gui/screen_menu_steel_sheets.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
             src/gui/test/screen_test_gui.cpp

@@ -16,3 +16,5 @@ ScreenFactory::UniquePtr GetScreenMenuFwUpdate();
 ScreenFactory::UniquePtr GetScreenMenuLanguages();
 ScreenFactory::UniquePtr GetScreenMenuLanSettings();
 ScreenFactory::UniquePtr GetScreenMenuLanguagesNoRet();
+ScreenFactory::UniquePtr GetScreenMenuHwSetup();
+ScreenFactory::UniquePtr GetScreenMenuSteelSheets();
