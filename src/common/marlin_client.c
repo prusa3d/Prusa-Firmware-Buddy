@@ -121,6 +121,7 @@ void marlin_client_loop(void) {
     uint16_t count = 0;
     osEvent ose;
     variant8_t msg;
+    variant8_t *pmsg = &msg;
     int client_id;
     marlin_client_t *client;
     osMessageQId queue;
@@ -136,7 +137,7 @@ void marlin_client_loop(void) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
                 msg |= ((variant8_t)ose.value.v << 32); //store high dword
                 _process_client_message(client, msg);   //call handler
-                variant8_done(&msg);
+                variant8_done(&pmsg);
                 count++;
             } else
                 msg = ose.value.v;                //store low dword

@@ -1,7 +1,6 @@
 // variant8.cpp
 
 #include "variant8.h"
-// #include "variant8.hpp"
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -44,7 +43,7 @@ struct _variant8_t {
     uint8_t usr8;
 };
 
-static_assert(sizeof(_variant8_t) == sizeof(uint64_t), "Incompatible types");
+static_assert(sizeof(_variant8_t) == sizeof(variant8_t), "Incompatible types");
 
 extern "C" {
 
@@ -98,31 +97,32 @@ variant8_t variant8_init(uint8_t type, uint16_t count, void const *pdata) {
     } else if ((count > 1) && (type & VARIANT8_PTR)) {
         size = variant8_type_size(type & ~VARIANT8_PTR) * count;
         var8 = _VARIANT8_TYPE(type, 0, .size = size, 0);
-        if (size) {
+        if (size && pdata) {
             var8.ptr = variant8_malloc(size);
             if (var8.ptr) {
-                if (pdata)
-                    memcpy(var8.ptr, pdata, size);
-            }
-            //            else
-            //                var8 = _VARIANT8_ERROR(VARIANT8_ERR_MALLOC, 0, 0);
+                memcpy(var8.ptr, pdata, size);
+                var8.type |= VARIANT8_PTR_OWNER;
+            } else
+                return variant8_error(VARIANT8_ERR_MALLOC, 0, 0);
         }
     } else
         return variant8_error(VARIANT8_ERR_UNSTYP, 0, 0);
     return *pack(&var8);
 }
 
-void variant8_done(variant8_t *pvar8) {
+void variant8_done(variant8_t **pvar8) {
     if (pvar8) {
-        _variant8_t *v = unpack(pvar8);
-        if (v->type & VARIANT8_PTR) {
-            if (v->size && v->ptr)
-                variant8_free(v->ptr);
+        _variant8_t *v = unpack(*pvar8);
+        if ((v->type & (~VARIANT8_ERROR)) == (VARIANT8_PTR_OWNER | VARIANT8_PTR)
+            && v->size) {
+            variant8_free(v->ptr);
         }
         *v = _VARIANT8_EMPTY();
-        *pvar8 = *pack(v);
+        *pvar8 = pack(v);
     }
 }
+
+#ifdef CLEAN_UNUSED
 
 variant8_t variant8_copy(const variant8_t *pvar8) {
     variant8_t v = *pvar8;
@@ -138,7 +138,6 @@ variant8_t variant8_copy(const variant8_t *pvar8) {
     return *pack(&var8);
 }
 
-#ifdef CLEAN_UNUSED
 int variant8_change_type(variant8_t *pvar8, uint8_t type) {
     if (pvar8 == 0)
         return 0;
@@ -267,6 +266,25 @@ variant8_t variant8_flt(float flt) {
     return *pack(&v);
 }
 
+variant8_t variant8_pchar(char *pch, uint16_t count, int init) {
+    if (init)
+        return variant8_init(VARIANT8_PCHAR, count ? count : strlen(pch) + 1, (void *)pch);
+    else {
+        _variant8_t v = _VARIANT8_TYPE(VARIANT8_PCHAR, 0, .size = (uint16_t)(count ? count : strlen(pch) + 1), .pch = pch);
+        return *pack(&v);
+    }
+}
+
+variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_USER, usr8, .usr16 = usr16, .usr32 = usr32);
+    return *pack(&v);
+}
+
+static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8) {
+    _variant8_t v = _VARIANT8_TYPE(VARIANT8_ERROR, err8, .err16 = err16, .err32 = err32);
+    return *pack(&v);
+}
+
 void variant8_set_usr8(variant8_t *v, uint8_t usr) {
     unpack(v)->usr8 = usr;
 }
@@ -275,7 +293,7 @@ void variant8_set_type(variant8_t *v, uint8_t type) {
     unpack(v)->type = type;
 }
 
-uint8_t variant8_get_type(variant8_t v) { return unpack(&v)->type; }
+uint8_t variant8_get_type(variant8_t v) { return unpack(&v)->type & (~VARIANT8_PTR_OWNER); }
 
 // returns variant8_t usr8
 uint8_t variant8_get_usr8(variant8_t v) { return unpack(&v)->usr8; }
@@ -332,25 +350,6 @@ variant8_t variant8_pflt(float *pflt, uint16_t count, int init) {
     return _VARIANT8_TYPE(VARIANT8_PFLT, 0, .size = (uint16_t)(count * sizeof(float)), .pflt = pflt);
 }
 #endif
-variant8_t variant8_pchar(char *pch, uint16_t count, int init) {
-    if (init)
-        return variant8_init(VARIANT8_PCHAR, count ? count : strlen(pch) + 1, (void *)pch);
-    else {
-        _variant8_t v = _VARIANT8_TYPE(VARIANT8_PCHAR, 0, .size = (uint16_t)(count ? count : strlen(pch) + 1), .pch = pch);
-        return *pack(&v);
-    }
-}
-
-variant8_t variant8_user(uint32_t usr32, uint16_t usr16, uint8_t usr8) {
-    _variant8_t v = _VARIANT8_TYPE(VARIANT8_USER, usr8, .usr16 = usr16, .usr32 = usr32);
-    return *pack(&v);
-}
-
-static variant8_t variant8_error(uint32_t err32, uint16_t err16, uint8_t err8) {
-    _variant8_t v = _VARIANT8_TYPE(VARIANT8_ERROR, err8, .err16 = err16, .err32 = err32);
-    return *pack(&v);
-}
-
 uint16_t variant8_type_size(uint8_t type) {
     switch (type) {
     case VARIANT8_I8:

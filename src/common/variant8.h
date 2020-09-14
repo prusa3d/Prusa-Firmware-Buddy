@@ -6,20 +6,20 @@
 #include <stdlib.h>
 
 enum {
-    VARIANT8_EMPTY = 0x00, // empty - no data
-    VARIANT8_I8 = 0x01,    // signed char - 1byte
-    VARIANT8_UI8 = 0x02,   // unsigned char - 1byte
-    VARIANT8_I16 = 0x03,   // signed short - 2byte
-    VARIANT8_UI16 = 0x04,  // unsigned short - 2byte
-    VARIANT8_I32 = 0x05,   // signed long - 4byte
-    VARIANT8_UI32 = 0x06,  // unsigned long - 4byte
-    VARIANT8_FLT = 0x07,   // float - 4byte
-    VARIANT8_CHAR = 0x08,  // char - 1byte
-    VARIANT8_USER = 0x3f,  // user - up to 7 bytes
-    VARIANT8_PTR = 0x80,   // pointer - 4 bytes,
-    VARIANT8_ERROR = 0xff, // error
-
-    //pointer types
+    VARIANT8_EMPTY = 0x00,     // empty - no data
+    VARIANT8_I8 = 0x01,        // signed char - 1byte
+    VARIANT8_UI8 = 0x02,       // unsigned char - 1byte
+    VARIANT8_I16 = 0x03,       // signed short - 2byte
+    VARIANT8_UI16 = 0x04,      // unsigned short - 2byte
+    VARIANT8_I32 = 0x05,       // signed long - 4byte
+    VARIANT8_UI32 = 0x06,      // unsigned long - 4byte
+    VARIANT8_FLT = 0x07,       // float - 4byte
+    VARIANT8_CHAR = 0x08,      // char - 1byte
+    VARIANT8_USER = 0x09,      // user - up to 7 bytes
+    VARIANT8_PTR = 0x80,       // pointer - 4 bytes,
+    VARIANT8_ERROR = 0x3f,     // error
+    VARIANT8_PTR_OWNER = 0x40, //pointer ownership
+                               //pointer types
     VARIANT8_PI8 = (VARIANT8_I8 | VARIANT8_PTR),
     VARIANT8_PUI8 = (VARIANT8_UI8 | VARIANT8_PTR),
     VARIANT8_PI16 = (VARIANT8_I16 | VARIANT8_PTR),
@@ -50,7 +50,7 @@ extern "C" {
 extern variant8_t variant8_init(uint8_t type, uint16_t count, void const *pdata);
 
 // free allocated pointer for VARIANT8_PTR types, sets pvar8 to VARIANT8_EMPTY
-extern void variant8_done(variant8_t *pvar8);
+extern void variant8_done(variant8_t **pvar8);
 
 // returns copy of pvar8, allocate pointer and copy data for VARIANT8_PTR types
 extern variant8_t variant8_copy(const variant8_t *pvar8);
