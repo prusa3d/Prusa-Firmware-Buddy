@@ -12,9 +12,6 @@
 #define _VARIANT8_TYPE(type, _8, _16, _32) ((_variant8_t) { { _32 }, { _16 }, type, _8 })
 #define _VARIANT8_EMPTY()                  _VARIANT8_TYPE(VARIANT8_EMPTY, 0, .size = 0, .ui32 = 0)
 
-#pragma pack(push)
-#pragma pack(1)
-
 struct _variant8_t {
     union {
         void *ptr;
@@ -47,7 +44,7 @@ struct _variant8_t {
     uint8_t usr8;
 };
 
-#pragma pack(pop)
+static_assert(sizeof(_variant8_t) == sizeof(uint64_t), "Incompatible types");
 
 extern "C" {
 
