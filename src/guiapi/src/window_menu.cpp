@@ -157,17 +157,18 @@ void window_menu_t::unconditionalDraw() {
     const int item_height = font->h + padding.top + padding.bottom;
     Rect16 rc_win = rect;
 
-    const size_t visible_count = rc_win.Height() / item_height;
+    const size_t visible_available = rc_win.Height() / item_height;
+    size_t visible_count = 0;
     size_t i;
-    for (i = 0; i < visible_count && i < GetCount(); ++i) {
+    for (i = 0; i < visible_available && i < GetCount(); ++i) {
 
         IWindowMenuItem *item = GetItem(i + top_index);
-        if (!item) {
-            --i;
+        if (!item)
             break;
-        }
+        if (item->IsHidden())
+            continue;
 
-        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + i * item_height),
+        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + visible_count * item_height),
             rc_win.Width(), uint16_t(item_height) };
 
         if (rc_win.Contain(rc)) {
@@ -178,11 +179,12 @@ void window_menu_t::unconditionalDraw() {
             }
             item->Print(*this, rc);
         }
+        ++visible_count;
     }
-    rc_win -= Rect16::Height_t(i * item_height);
+    rc_win -= Rect16::Height_t(visible_count * item_height);
 
     if (rc_win.Height()) {
-        rc_win += Rect16::Top_t(i * item_height);
+        rc_win += Rect16::Top_t(visible_count * item_height);
         display::FillRect(rc_win, color_back);
     }
 }
