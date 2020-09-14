@@ -401,3 +401,10 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
     set_last_preheated_filament(filament_index);
     Screens::Access()->Close(); // skip this screen everytime
 }
+
+const uint8_t sensor_range[3] = { 0, 1, 1 };
+MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
+    : WI_SPIN_U08_t(0, sensor_range, label, 0, true, false) {}
+
+MI_MINDA::MI_MINDA()
+    : WI_SPIN_U08_t(0, sensor_range, label, 0, true, false) {}

@@ -17,6 +17,16 @@ void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+//MI_SENSOR_INFO
+MI_SENSOR_INFO::MI_SENSOR_INFO()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(GetScreenMenuSensorInfo);
+}
+
+/*****************************************************************************/
 //MI_FILAMENT
 MI_FILAMENT::MI_FILAMENT()
     : WI_LABEL_t(label, 0, true, false) {

@@ -14,6 +14,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_SENSOR_INFO : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Sensor Info");
+
+public:
+    MI_SENSOR_INFO();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_FILAMENT : public WI_LABEL_t {
     static constexpr const char *const label = N_("Filament");
 
