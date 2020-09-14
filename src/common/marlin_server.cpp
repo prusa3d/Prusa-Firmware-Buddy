@@ -52,48 +52,42 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 //#define DBG_FSM DBG //trace fsm
 #define DBG_FSM(...) //disable trace
 
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct _marlin_server_t {
-    uint16_t flags;                              // server flags (MARLIN_SFLG)
-    uint64_t notify_events[MARLIN_MAX_CLIENTS];  // event notification mask
-    uint64_t notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask
-    marlin_vars_t vars;                          // cached variables
-    char request[MARLIN_MAX_REQUEST];
-    int request_len;
+typedef struct {
+    marlin_vars_t vars;                              // cached variables
+    marlin_mesh_t mesh;                              // meshbed leveling
+    uint64_t notify_events[MARLIN_MAX_CLIENTS];      // event notification mask
+    uint64_t notify_changes[MARLIN_MAX_CLIENTS];     // variable change notification mask
     uint64_t client_events[MARLIN_MAX_CLIENTS];      // client event mask
     uint64_t client_changes[MARLIN_MAX_CLIENTS];     // client variable change mask
-    uint32_t last_update;                            // last update tick count
-    uint8_t idle_cnt;                                // idle call counter
-    uint8_t pqueue_head;                             // copy of planner.block_buffer_head
-    uint8_t pqueue_tail;                             // copy of planner.block_buffer_tail
-    uint8_t pqueue;                                  // calculated number of records in planner queue
-    uint8_t gqueue;                                  // copy of queue.length - number of commands in gcode queue
-    uint32_t command;                                // actually running command
-    uint32_t command_begin;                          // variable for notification
-    uint32_t command_end;                            // variable for notification
-    marlin_mesh_t mesh;                              // meshbed leveling
     uint64_t mesh_point_notsent[MARLIN_MAX_CLIENTS]; // mesh point mask (points that are not sent)
+    variant8_t event_messages[MARLIN_MAX_CLIENTS];   // last MARLIN_EVT_Message for clients, cannot use cvariant, desctructor would free memory
     uint64_t update_vars;                            // variable update mask
     marlin_print_state_t print_state;                // printing state (printing, paused, ...)
     float resume_pos[4];                             // resume position for unpark_head
     float resume_nozzle_temp;                        // resume nozzle temperature
-    uint8_t resume_fan_speed;                        // resume fan speed
     uint32_t paused_ticks;                           // tick count in moment when printing paused
     uint32_t fsmCreate;                              // fsm create ui32 argument for resend
     uint32_t fsmDestroy;                             // fsm destroy ui32 argument for resend
     uint32_t fsmChange;                              // fsm change ui32 argument for resend
+    int request_len;
+    uint32_t last_update;   // last update tick count
+    uint32_t command;       // actually running command
+    uint32_t command_begin; // variable for notification
+    uint32_t command_end;   // variable for notification
+    uint16_t flags;         // server flags (MARLIN_SFLG)
+    char request[MARLIN_MAX_REQUEST];
+    uint8_t idle_cnt;         // idle call counter
+    uint8_t pqueue_head;      // copy of planner.block_buffer_head
+    uint8_t pqueue_tail;      // copy of planner.block_buffer_tail
+    uint8_t pqueue;           // calculated number of records in planner queue
+    uint8_t gqueue;           // copy of queue.length - number of commands in gcode queue
+    uint8_t resume_fan_speed; // resume fan speed
 } marlin_server_t;
-
-#pragma pack(pop)
 
 extern "C" {
 
 //-----------------------------------------------------------------------------
 // variables
-extern uint32_t Tacho_FAN0;
-extern uint32_t Tacho_FAN1;
 
 osThreadId marlin_server_task = 0;    // task handle
 osMessageQId marlin_server_queue = 0; // input queue (uint8_t)
@@ -105,30 +99,14 @@ uint32_t *pCommand = &marlin_server.command;
 #endif
 marlin_server_idle_t *marlin_server_idle_cb = 0; // idle callback
 
-//==========MSG_STACK===================
-//	top of the stack is at [0]
-
-msg_stack_t msg_stack = { '\0', 0 };
-
 void _add_status_msg(const char *const popup_msg) {
-    char message[MSG_MAX_LENGTH];
-    memset(message, '\0', sizeof(message) * sizeof(char)); // set to zeros to be on the safe side
-
-    strlcpy(message, popup_msg, MSG_MAX_LENGTH);
-
-    for (uint8_t i = msg_stack.count; i; i--) {
-        if (i == MSG_STACK_SIZE)
-            i--; // last place of the limited stack will be always overwritten
-
-        memset(msg_stack.msg_data[i], '\0', sizeof(msg_stack.msg_data[i]) * sizeof(char)); // set to zeros to be on the safe side
-        strlcpy(msg_stack.msg_data[i], msg_stack.msg_data[i - 1], sizeof(msg_stack.msg_data[i]));
+    //I could check client mask here
+    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
+        variant8_done(&marlin_server.event_messages[i]);                           //destroy unsent message - free dynamic memory
+        marlin_server.event_messages[i] = variant8_pchar((char *)popup_msg, 0, 1); //variant malloc - detached on send
+        variant8_set_type(&(marlin_server.event_messages[i]), VARIANT8_USER);      //set user type so client can recognize it as event
+        variant8_set_usr8(&(marlin_server.event_messages[i]), MARLIN_EVT_Message);
     }
-
-    memset(msg_stack.msg_data[0], '\0', sizeof(msg_stack.msg_data[0]) * sizeof(char)); // set to zeros to be on the safe side
-    strlcpy(msg_stack.msg_data[0], message, sizeof(msg_stack.msg_data[0]));
-
-    if (msg_stack.count < MSG_STACK_SIZE)
-        msg_stack.count++;
 }
 
 //-----------------------------------------------------------------------------
@@ -178,27 +156,6 @@ void marlin_server_init(void) {
     marlin_server.vars.media_SFN_path = media_print_filepath();
 }
 
-void print_fan_spd() {
-    if (DEBUGGING(INFO)) {
-        static int time = 0;
-        static int last_prt = 0;
-        time = HAL_GetTick();
-        int timediff = time - last_prt;
-        if (timediff >= 1000) {
-
-            serial_echopair_PGM("Tacho_FAN0 ", (30 * 1000 * Tacho_FAN0) / timediff); //60s / 2 pulses per rotation
-            serialprintPGM("rpm ");
-            SERIAL_EOL();
-            serial_echopair_PGM("Tacho_FAN1 ", (30 * 1000 * Tacho_FAN1) / timediff);
-            serialprintPGM("rpm ");
-            SERIAL_EOL();
-            Tacho_FAN0 = 0;
-            Tacho_FAN1 = 0;
-            last_prt = time;
-        }
-    }
-}
-
 #ifdef MINDA_BROKEN_CABLE_DETECTION
 static void print_Z_probe_cnt() {
     if (DEBUGGING(INFO)) {
@@ -225,7 +182,6 @@ int marlin_server_cycle(void) {
 
     FSM_notifier::SendNotification();
 
-    print_fan_spd();
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
 #endif
@@ -299,7 +255,7 @@ int marlin_server_cycle(void) {
     return count;
 }
 
-#define MARLIN_IDLE_CNT_BUSY 1
+static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
 
 int marlin_server_loop(void) {
     if (marlin_server.idle_cnt >= MARLIN_IDLE_CNT_BUSY)
@@ -662,9 +618,14 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 
 // send event notification to client (called from server thread)
 static int _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16) {
-    variant8_t msg;
-    msg = variant8_user(usr32, usr16, evt_id);
-    return _send_notify_to_client(queue, msg);
+    variant8_t msg = evt_id == MARLIN_EVT_Message ? marlin_server.event_messages[client_id] : variant8_user(usr32, usr16, evt_id);
+    bool ret = _send_notify_to_client(queue, msg);
+
+    // clear sent client message
+    if (evt_id == MARLIN_EVT_Message && ret) {
+        marlin_server.event_messages[client_id] = variant8_empty();
+    }
+    return ret;
 }
 
 // send event notification to client - multiple events (called from server thread)

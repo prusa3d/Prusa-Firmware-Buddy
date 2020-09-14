@@ -9,7 +9,7 @@
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
 
-#define GUI_FLG_INVALID 0x0001
+static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
 uint16_t gui_flags = 0;
 
@@ -50,9 +50,9 @@ void gui_invalidate(void) {
 #endif //GUI_USE_RTOS
 }
 
-#define GUI_DELAY_MIN  1
-#define GUI_DELAY_MAX  10
-#define GUI_DELAY_LOOP 100
+static const constexpr uint8_t GUI_DELAY_MIN = 1;
+static const constexpr uint8_t GUI_DELAY_MAX = 10;
+static const constexpr uint8_t GUI_DELAY_LOOP = 100;
 
 #ifdef GUI_WINDOW_SUPPORT
 
@@ -68,7 +68,7 @@ void gui_loop(void) {
     Jogwheel::ButtonAction btn = jogwheel.GetButtonAction();
     bool encoder_changed = jogwheel.EncoderChanged();
     if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
-        Sound_Play(eSOUND_TYPE_ButtonEcho);
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
     }
 
     if (encoder_changed || btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
@@ -82,7 +82,6 @@ void gui_loop(void) {
             } else {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_DN, (void *)-diff);
             }
-            Sound_Play(eSOUND_TYPE_EncoderMove);
             gui_reset_menu_timer();
         }
         if (btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
@@ -96,7 +95,7 @@ void gui_loop(void) {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
             } else if (btn == Jogwheel::ButtonAction::BTN_HELD) {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
-                Sound_Play(eSOUND_TYPE_ButtonEcho);
+                Sound_Play(eSOUND_TYPE::ButtonEcho);
             }
             gui_reset_menu_timer();
         }

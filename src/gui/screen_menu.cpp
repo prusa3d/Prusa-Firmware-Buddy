@@ -48,7 +48,10 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_i
 
 IScreenMenu::~IScreenMenu() {
     //if (!IsDialog())
-    prev_capture->SetCapture();
+    if (prev_capture != nullptr) // in some cases prev_capture can be null
+        prev_capture->SetCapture();
+    else
+        window_t::ResetCapturedWindow(); // set window_t::capture_ptr to null
 }
 
 void IScreenMenu::windowEvent(window_t *sender, uint8_t event, void *param) {

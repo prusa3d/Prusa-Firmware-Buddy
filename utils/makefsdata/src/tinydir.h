@@ -26,8 +26,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef TINYDIR_H
-#define TINYDIR_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -736,6 +735,4 @@ size_t _tinydir_dirent_buf_size(_TINYDIR_DIR *dirp) {
 
 #if defined(_MSC_VER)
     #pragma warning(pop)
-#endif
-
 #endif

@@ -5,6 +5,11 @@
 #include "window_frame.hpp"
 #include "guitypes.hpp"
 #include "GuiDefaults.hpp"
+#include <functional>
+
+//todo remove this after jogwheel refactoring
+extern void gui_loop(void);
+
 //interface for dialog
 class IDialog : public window_frame_t {
     window_t *prev_capture;
@@ -21,7 +26,25 @@ public:
             GuiDefaults::ButtonHeight);
     }
 
-    void MakeBlocking(void (*action)() = []() {}) const; //could be static, but I want it to be usable only from dialog
+    template <class... Args>
+    void MakeBlocking(
+        std::function<void(Args...)> action = [](Args...) {}, Args... args) const { //could be static, but I want it to be usable only from dialog
+        while (!consumeCloseFlag()) {
+            guiLoop();
+            action(args...);
+        }
+    }
+
+    void StoreCapture(); //set capture pointer (to be restore after dialog closes)
+
+protected:
+    void releaseCapture();
+    void clearCapture();
+
+    //used in MakeBlocking
+    //needs included files which cannot be included in header
+    bool consumeCloseFlag() const;
+    void guiLoop() const;
 };
 
 void create_blocking_dialog_from_normal_window(window_t &dlg);

@@ -1,9 +1,10 @@
 //----------------------------------------------------------------------------//
 // hwio_a3ides.c - hardware input output abstraction for a3ides board
 
+#include <inttypes.h>
+
 #include "hwio.h"
 #include "hwio_a3ides.h"
-#include <inttypes.h>
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
@@ -15,20 +16,21 @@
 #include "Arduino.h"
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
-#include "filament_sensor.h"
 #include "bsod.h"
 #include "main.h"
 #include "fanctl.h"
 
 //hwio arduino wrapper errors
-#define HWIO_ERR_UNINI_DIG_RD 0x01
-#define HWIO_ERR_UNINI_DIG_WR 0x02
-#define HWIO_ERR_UNINI_ANA_RD 0x03
-#define HWIO_ERR_UNINI_ANA_WR 0x04
-#define HWIO_ERR_UNDEF_DIG_RD 0x05
-#define HWIO_ERR_UNDEF_DIG_WR 0x06
-#define HWIO_ERR_UNDEF_ANA_RD 0x07
-#define HWIO_ERR_UNDEF_ANA_WR 0x08
+enum {
+    HWIO_ERR_UNINI_DIG_RD = 0x01,
+    HWIO_ERR_UNINI_DIG_WR,
+    HWIO_ERR_UNINI_ANA_RD,
+    HWIO_ERR_UNINI_ANA_WR,
+    HWIO_ERR_UNDEF_DIG_RD,
+    HWIO_ERR_UNDEF_DIG_WR,
+    HWIO_ERR_UNDEF_ANA_RD,
+    HWIO_ERR_UNDEF_ANA_WR,
+};
 
 // a3ides analog input pins
 const uint32_t _adc_pin32[] = {
@@ -40,7 +42,7 @@ const uint32_t _adc_pin32[] = {
 };
 // a3ides analog input maximum values
 const int _adc_max[] = { 4095, 4095, 4095, 4095, 4095 };
-#define _ADC_CNT (sizeof(_adc_pin32) / sizeof(uint32_t))
+static const size_t _ADC_CNT = sizeof(_adc_pin32) / sizeof(uint32_t);
 //sampled analog inputs
 int _adc_val[] = { 0, 0, 0, 0, 0 };
 
@@ -48,15 +50,19 @@ int _adc_val[] = { 0, 0, 0, 0, 0 };
 const uint32_t _dac_pin32[] = {};
 // a3ides analog output maximum values
 const int _dac_max[] = { 0 };
-#define _DAC_CNT (sizeof(_dac_pin32) / sizeof(uint32_t))
+static const size_t _DAC_CNT = sizeof(_dac_pin32) / sizeof(uint32_t);
 
-#define _FAN_ID_MIN HWIO_PWM_FAN1
-#define _FAN_ID_MAX HWIO_PWM_FAN
-#define _FAN_CNT    (_FAN_ID_MAX - _FAN_ID_MIN + 1)
+enum {
+    _FAN_ID_MIN = HWIO_PWM_FAN1,
+    _FAN_ID_MAX = HWIO_PWM_FAN,
+};
+static const int _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
 
-#define _HEATER_ID_MIN HWIO_PWM_HEATER_BED
-#define _HEATER_ID_MAX HWIO_PWM_HEATER_0
-#define _HEATER_CNT    (_HEATER_ID_MAX - _HEATER_ID_MIN + 1)
+enum {
+    _HEATER_ID_MIN = HWIO_PWM_HEATER_BED,
+    _HEATER_ID_MAX = HWIO_PWM_HEATER_0,
+};
+static const int _HEATER_CNT = _HEATER_ID_MAX - _HEATER_ID_MIN + 1;
 
 //this value is compared to new value (to avoid rounding errors)
 int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
@@ -93,7 +99,9 @@ int *const _pwm_period_us[] = {
 
 // a3ides pwm output maximum values
 const int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period }; //{42000, 42000, 42000, 42000};
-#define _PWM_CNT (sizeof(_pwm_pin32) / sizeof(uint32_t))
+enum {
+    _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t))
+};
 
 const TIM_OC_InitTypeDef sConfigOC_default = {
     TIM_OCMODE_PWM1,       //OCMode
@@ -313,7 +321,7 @@ void _hwio_pwm_set_val(int i_pwm, int val) //write pwm output
 {
     uint32_t chan = _pwm_get_chan(i_pwm);
     TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-    if ((chan == -1) || htim->Instance == 0) {
+    if ((chan == (uint32_t)-1) || htim->Instance == 0) {
         return;
     }
 

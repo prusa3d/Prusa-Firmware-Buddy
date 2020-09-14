@@ -8,6 +8,7 @@
 //#define UARTSLAVE_TST
 
 int uartslave_parse_mod_mask(uartslave_t *pslave, char *pstr, uint16_t *pmod_msk) {
+    _Static_assert(sizeof(uartslave_t) == 32, "invalid sizeof(uartslave_t)");
     int ret = 0;
     char ch;
     do {

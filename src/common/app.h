@@ -1,6 +1,5 @@
 // app.h
-#ifndef _APP_H
-#define _APP_H
+#pragma once
 
 #include <inttypes.h>
 
@@ -25,5 +24,3 @@ extern void app_tim14_tick(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _APP_H

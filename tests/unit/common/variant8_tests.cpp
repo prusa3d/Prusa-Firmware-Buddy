@@ -38,7 +38,7 @@ TEST_CASE("init & done", "[variant8]") {
         REQUIRE(variant8_get_type(v) == VARIANT8_UI32);
         REQUIRE(variant8_data_ptr(&v) != nullptr);
         variant8_done(&v);
-        REQUIRE(variant8_data_ptr(&v) == nullptr);
+        REQUIRE(variant8_data_ptr(&v) != nullptr);
     };
 
     SECTION("flt") {
@@ -54,7 +54,7 @@ TEST_CASE("init & done", "[variant8]") {
         CHECK(variant8_get_flt(v) == Approx(0.00f));
         REQUIRE(variant8_data_ptr(&v) != nullptr);
         variant8_done(&v);
-        REQUIRE(variant8_data_ptr(&v) == nullptr);
+        REQUIRE(variant8_data_ptr(&v) != nullptr);
     };
 
     SECTION("init.1") {

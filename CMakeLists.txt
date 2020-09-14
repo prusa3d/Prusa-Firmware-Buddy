@@ -283,7 +283,7 @@ if(CMAKE_CROSSCOMPILING)
 endif()
 
 # enable all warnings (well, not all, but some)
-add_compile_options(-Wall)
+add_compile_options(-Wall -Wsign-compare)
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -437,7 +437,7 @@ target_sources(
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
-          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
+          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/diag.c
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
@@ -478,7 +478,6 @@ target_sources(
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp
-          src/common/lang.cpp
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c

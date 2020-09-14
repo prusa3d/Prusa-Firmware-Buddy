@@ -271,6 +271,10 @@ void variant8_set_usr8(variant8_t *v, uint8_t usr) {
     unpack(v)->usr8 = usr;
 }
 
+void variant8_set_type(variant8_t *v, uint8_t type) {
+    unpack(v)->type = type;
+}
+
 uint8_t variant8_get_type(variant8_t v) { return unpack(&v)->type; }
 
 // returns variant8_t usr8
@@ -468,9 +472,12 @@ int variant8_snprintf(char *str, unsigned int size, const char *fmt, variant8_t 
 }
 
 #ifdef CLEAN_UNUSED
-    #define VARIANT8_TO_STR_MAX_BUFF 32
+enum {
+    VARIANT8_TO_STR_MAX_BUFF = 32
+};
 
-char *variant8_to_str(variant8_t *pvar8, const char *fmt) {
+char *
+variant8_to_str(variant8_t *pvar8, const char *fmt) {
     // FIXME - do we need to print to buff and then to str?
     char buff[VARIANT8_TO_STR_MAX_BUFF] = "";
     int n = variant8_snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt, pvar8);

@@ -2,13 +2,21 @@
 #include "uartrxbuff.h"
 #include "dbg.h"
 
+enum {
+    UARTRXBUFF_FLG_HALF = 0x01,
+    UARTRXBUFF_FLG_CPLT = 0x02,
+    UARTRXBUFF_FLG_FULL = 0x04,
+    UARTRXBUFF_FLG_OVER = 0x08,
+};
+
 void uartrxbuff_rx_full(uartrxbuff_t *prxbuff) {
-    prxbuff->flags |= UARTRXBUFF_FLG_FULL;
+    _Static_assert(sizeof(uartrxbuff_t) == 16, "invalid sizeof(uartrxbuff_t)");
+    prxbuff->flags |= (uint8_t)UARTRXBUFF_FLG_FULL;
     _dbg0("uartrxbuff_rx_full");
 }
 
 void uartrxbuff_rx_overflow(uartrxbuff_t *prxbuff) {
-    prxbuff->flags |= UARTRXBUFF_FLG_OVER;
+    prxbuff->flags |= (uint8_t)UARTRXBUFF_FLG_OVER;
     _dbg0("uartrxbuff_rx_overflow");
 }
 
@@ -40,17 +48,17 @@ int uartrxbuff_getchar(uartrxbuff_t *prxbuff) {
     uint32_t ndtr = prxbuff->phdma->Instance->NDTR;
     uint8_t cnt = prxbuff->size - ndtr;
     if (prxbuff->index < (prxbuff->size / 2)) {
-        if ((prxbuff->flags & UARTRXBUFF_FLG_HALF) || (prxbuff->index < cnt)) {
+        if ((prxbuff->flags & (uint8_t)UARTRXBUFF_FLG_HALF) || (prxbuff->index < cnt)) {
             ch = prxbuff->pdata[prxbuff->index++];
             if (prxbuff->index == (prxbuff->size / 2))
-                prxbuff->flags &= ~UARTRXBUFF_FLG_HALF;
+                prxbuff->flags &= ~(uint8_t)UARTRXBUFF_FLG_HALF;
         }
     } else {
-        if ((prxbuff->flags & UARTRXBUFF_FLG_CPLT) || (prxbuff->index < cnt)) {
+        if ((prxbuff->flags & (uint8_t)UARTRXBUFF_FLG_CPLT) || (prxbuff->index < cnt)) {
             ch = prxbuff->pdata[prxbuff->index++];
             if (prxbuff->index >= prxbuff->size) {
                 prxbuff->index = 0;
-                prxbuff->flags &= ~UARTRXBUFF_FLG_CPLT;
+                prxbuff->flags &= ~(uint8_t)UARTRXBUFF_FLG_CPLT;
             }
         }
     }
@@ -59,21 +67,21 @@ int uartrxbuff_getchar(uartrxbuff_t *prxbuff) {
 }
 
 void uartrxbuff_rxhalf_cb(uartrxbuff_t *prxbuff) {
-    if (prxbuff->flags & UARTRXBUFF_FLG_HALF)
+    if (prxbuff->flags & (uint8_t)UARTRXBUFF_FLG_HALF)
         uartrxbuff_rx_overflow(prxbuff);
     else {
-        prxbuff->flags |= UARTRXBUFF_FLG_HALF;
-        if ((prxbuff->flags & UARTRXBUFF_FLG_CPLT) && (prxbuff->index == (prxbuff->size / 2)))
+        prxbuff->flags |= (uint8_t)UARTRXBUFF_FLG_HALF;
+        if ((prxbuff->flags & (uint8_t)UARTRXBUFF_FLG_CPLT) && (prxbuff->index == (prxbuff->size / 2)))
             uartrxbuff_rx_full(prxbuff);
     }
 }
 
 void uartrxbuff_rxcplt_cb(uartrxbuff_t *prxbuff) {
-    if (prxbuff->flags & UARTRXBUFF_FLG_CPLT)
+    if (prxbuff->flags & (uint8_t)UARTRXBUFF_FLG_CPLT)
         uartrxbuff_rx_overflow(prxbuff);
     else {
-        prxbuff->flags |= UARTRXBUFF_FLG_CPLT;
-        if ((prxbuff->flags & UARTRXBUFF_FLG_HALF) && (prxbuff->index == 0))
+        prxbuff->flags |= (uint8_t)UARTRXBUFF_FLG_CPLT;
+        if ((prxbuff->flags & (uint8_t)UARTRXBUFF_FLG_HALF) && (prxbuff->index == 0))
             uartrxbuff_rx_full(prxbuff);
     }
 }

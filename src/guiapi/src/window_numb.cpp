@@ -4,7 +4,7 @@
 
 // @@TODO Beware - keep this big enough as long as the SetFormat is being abused to print
 // long utf8 text messages in selftest_cool.cpp (and probably in other places too)
-#define WINDOW_NUMB_MAX_TEXT 30
+static const constexpr uint8_t WINDOW_NUMB_MAX_TEXT = 30;
 
 void window_numb_t::unconditionalDraw() {
     color_t clr_back = (IsFocused()) ? color_text : color_back;
