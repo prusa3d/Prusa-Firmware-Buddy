@@ -116,8 +116,9 @@ uint32_t load_eth_params(ETH_config_t *ethconfig) {
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
         variant8_t hostname = eeprom_get_var(EEVAR_LAN_HOSTNAME);
+        variant8_t *pvar = &hostname;
         strlcpy(ethconfig->hostname, variant8_get_pch(hostname), ETH_HOSTNAME_LEN + 1);
-        variant8_done(&hostname);
+        variant8_done(&pvar);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_TIMEZONE)) {
         ethconfig->timezone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
