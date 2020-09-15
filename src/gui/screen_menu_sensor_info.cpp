@@ -5,7 +5,7 @@
 #include "ScreenHandler.hpp"
 #include "MItem_tools.hpp"
 
-using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpLines_None, MI_MINDA, MI_FILAMENT_SENSOR_STATE>;
+using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpLines_None, MI_RETURN, MI_MINDA, MI_FILAMENT_SENSOR_STATE>;
 
 class ScreenMenuSensorInfo : public Screen {
 public:

@@ -404,7 +404,7 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
 
 const uint8_t sensor_range[3] = { 0, 1, 1 };
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SPIN_U08_t(0, sensor_range, label, 0, true, false) {}
+    : WI_SPIN_U08_t(0, sensor_range, label, 0, false, false) {}
 
 MI_MINDA::MI_MINDA()
-    : WI_SPIN_U08_t(0, sensor_range, label, 0, true, false) {}
+    : WI_SPIN_U08_t(0, sensor_range, label, 0, false, false) {}
