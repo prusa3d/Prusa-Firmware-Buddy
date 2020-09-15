@@ -1,14 +1,17 @@
 // wizard_ui.h
 #pragma once
+
 #include "gui.hpp"
 #include "wizard_types.h"
 
-#define WIZARD_MARGIN_LEFT  6
-#define WIZARD_MARGIN_RIGHT 6
-#define WIZARD_X_SPACE      (240 - (WIZARD_MARGIN_LEFT + WIZARD_MARGIN_RIGHT))
+enum {
+    WIZARD_MARGIN_LEFT = 6,
+    WIZARD_MARGIN_RIGHT = 6,
+    WIZARD_X_SPACE = 240 - (WIZARD_MARGIN_LEFT + WIZARD_MARGIN_RIGHT),
 
-#define MSGBOX_BTN_NEXT MSGBOX_BTN_MAX + 1
-#define MSGBOX_BTN_DONE MSGBOX_BTN_MAX + 2
+    MSGBOX_BTN_NEXT = /*MSGBOX_BTN_MAX*/ +1,
+    MSGBOX_BTN_DONE = /*MSGBOX_BTN_MAX*/ +2,
+};
 
 // types of wizard_timer()
 // _WIZ_TIMER_AUTOPASS means - when progress reaches 100%, state automatically set to _TEST_PASSED

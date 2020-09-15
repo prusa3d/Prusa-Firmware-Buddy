@@ -1,7 +1,6 @@
 // eeprom_loadsave.h
 
-#ifndef _EEPROM_LOADSAVE_H
-#define _EEPROM_LOADSAVE_H
+#pragma once
 
 #include "eeprom.h"
 
@@ -24,5 +23,3 @@ extern int eeprom_save_xml_to_usb(const char *fn);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif //_EEPROM_LOADSAVE_H

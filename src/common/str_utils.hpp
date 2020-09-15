@@ -4,12 +4,12 @@
 #include <array>
 #include <cstdint>
 
-constexpr char CHAR_SPACE = ' ';
-constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
-#define NBSP "\xA0"                /// Non Breaking Space
-constexpr char CHAR_NL = '\n';     /// New Line
-#define NL "\n"                    /// New Line
-constexpr char EOS = '\0';         /// End Of String
+static const constexpr char CHAR_SPACE = ' ';
+static const constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
+#define NBSP "\xA0"                             /// Non Breaking Space
+static const constexpr char CHAR_NL = '\n';     /// New Line
+#define NL "\n"                                 /// New Line
+static const constexpr char EOS = '\0';         /// End Of String
 
 enum str_err {
     nullptr_err = -1,

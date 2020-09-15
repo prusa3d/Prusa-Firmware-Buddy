@@ -13,22 +13,19 @@
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
 
-#define EEPROM_VARCOUNT (sizeof(eeprom_map) / sizeof(eeprom_entry_t))
-#define EEPROM_DATASIZE sizeof(eeprom_vars_t)
-#define EEPROM__PADDING 2
-
-#define EEPROM_MAX_NAME          16     // maximum name length (with '\0')
-#define EEPROM_MAX_DATASIZE      256    // maximum datasize
-#define EEPROM_FIRST_VERSION_CRC 0x0004 // first eeprom version with crc support
+static const constexpr uint8_t EEPROM__PADDING = 1;
+static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
+static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
-#define EEVAR_FLG_READONLY 0x0001 // variable is read only
+static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
 
 // measure time needed to update crc
 //#define EEPROM_MEASURE_CRC_TIME
 
-#pragma pack(push)
-#pragma pack(1)
+// this pragma pack must remain intact, the ordering of EEPROM variables is not alignment-friendly
+#pragma pack(push, 1)
 
 // eeprom map entry structure
 typedef struct _eeprom_entry_t {
@@ -74,6 +71,8 @@ typedef struct _eeprom_vars_t {
     uint32_t CRC32;
 } eeprom_vars_t;
 
+static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
+
 #pragma pack(pop)
 
 // clang-format off
@@ -113,6 +112,9 @@ static const eeprom_entry_t eeprom_map[] = {
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
+
+static const constexpr uint32_t EEPROM_VARCOUNT = sizeof(eeprom_map) / sizeof(eeprom_entry_t);
+static const constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
 
 // eeprom variable defaults
 static const eeprom_vars_t eeprom_var_defaults = {
@@ -333,12 +335,12 @@ static void eeprom_print_vars(void) {
     }
 }
 
-#define ADDR_V2_FILAMENT_TYPE  0x0400
-#define ADDR_V2_FILAMENT_COLOR EEPROM_ADDRESS + 3
-#define ADDR_V2_RUN_SELFTEST   EEPROM_ADDRESS + 19
-#define ADDR_V2_ZOFFSET        0x010e
-#define ADDR_V2_PID_NOZ_P      0x019d
-#define ADDR_V2_PID_BED_P      0x01af
+static const constexpr uint16_t ADDR_V2_FILAMENT_TYPE = 0x0400;
+static const constexpr uint16_t ADDR_V2_FILAMENT_COLOR = EEPROM_ADDRESS + 3;
+static const constexpr uint16_t ADDR_V2_RUN_SELFTEST = EEPROM_ADDRESS + 19;
+static const constexpr uint16_t ADDR_V2_ZOFFSET = 0x010e;
+static const constexpr uint16_t ADDR_V2_PID_NOZ_P = 0x019d;
+static const constexpr uint16_t ADDR_V2_PID_BED_P = 0x01af;
 
 // conversion function for old version 2 format (marlin eeprom)
 static int eeprom_convert_from_v2(void) {

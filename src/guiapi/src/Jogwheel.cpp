@@ -4,21 +4,23 @@
 #include "gpio.h"
 
 // time constants
-#define JG_DOUBLECLICK_INTERVAL 500  // [ms] jogwheel max double click delay - if second click is after 500ms it doesn't trigger doubleclick
-#define JG_HOLD_INTERVAL        1000 // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
+static const constexpr uint16_t JG_DOUBLECLICK_INTERVAL = 500; // [ms] jogwheel max double click delay - if second click is after 500ms it doesn't trigger doubleclick
+static const constexpr uint16_t JG_HOLD_INTERVAL = 1000;       // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
 
 // encoder limits
-#define JG_ENCODER_MAX INT_MAX
-#define JG_ENCODER_MIN INT_MIN
+static const constexpr int32_t JG_ENCODER_MAX = INT_MAX;
+static const constexpr int32_t JG_ENCODER_MIN = INT_MIN;
 
 // signal flags
-#define JG_PHASE_0                   0x01
-#define JG_PHASE_1                   0x02
-#define JG_PHASES_CHANGED            0x03
-#define JG_BUTTON_PRESSED            0x04
-#define JG_PHASES_OR_BUTTON_CHANGED  0x07
-#define JG_ENCODER_CHANGED           0x08
-#define JG_BUTTON_OR_ENCODER_CHANGED 0x0C
+enum : uint8_t {
+    JG_PHASE_0 = 0x01,
+    JG_PHASE_1 = 0x02,
+    JG_PHASES_CHANGED = 0x03,
+    JG_BUTTON_PRESSED = 0x04,
+    JG_PHASES_OR_BUTTON_CHANGED = 0x07,
+    JG_ENCODER_CHANGED = 0x08,
+    JG_BUTTON_OR_ENCODER_CHANGED = 0x0C,
+};
 
 Jogwheel::Jogwheel(uint8_t encoder_pin1, uint8_t encoder_pin2, uint8_t btn_pin) {
     jogwheel_signals_old = jogwheel_signals_new = jogwheel_signals = last_encoder = encoder = jogwheel_changed = doubleclick_counter = hold_counter = spin_speed_counter = 0;

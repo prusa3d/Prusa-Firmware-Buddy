@@ -1,7 +1,6 @@
 // sim_heater.h
 
-#ifndef _SIM_HEATER_H
-#define _SIM_HEATER_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,5 +13,3 @@ extern void sim_heater_cycle(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-
-#endif // _SIM_HEATER_H

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include "sound_enum.h"
 
@@ -63,9 +65,9 @@ private:
 
     static constexpr float volumeInit = 0.35F;
     /// values of sound signals - frequencies, volumes, durations
-    static const uint32_t durations[eSOUND_TYPE_count];
-    static const float frequencies[eSOUND_TYPE_count];
-    static const float volumes[eSOUND_TYPE_count];
+    static const uint32_t durations[eSOUND_TYPE::count];
+    static const float frequencies[eSOUND_TYPE::count];
+    static const float volumes[eSOUND_TYPE::count];
 
     /// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
     static const eSOUND_TYPE onceTypes[5];

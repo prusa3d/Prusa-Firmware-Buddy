@@ -24,10 +24,12 @@ public:
     cmapfile();
     ~cmapfile();
     bool load(const char *fn);
-    cmapfile_mem_entry *find_mem_entry(const char *name);
+    cmapfile_mem_entry *find_mem_entry_by_name(const char *name);
+    cmapfile_mem_entry *find_mem_entry_by_addr(uint32_t addr);
 
 protected:
     int add_mem_entry(mapfile_mem_type_t type, uint32_t addr, uint32_t size, const char *name);
+    void set_last_mem_entry_size(uint32_t size);
 
 private:
     std::string m_filename;
@@ -80,19 +82,6 @@ bool cmapfile::load(const char *fn) {
     FILE *fmap = fopen(fn, "r");
     if (fmap) {
         m_filename = fn;
-        /*
-        m_map["test0"] = 0;
-        m_map["test1"] = 1;
-        m_map["test2"] = 2;
-
-        std::string tst;
-        uint32_t u;
-        u = m_map["test0"];
-        u = m_map["test1"];
-        u = m_map["test2"];
-        m_mem.push_back(cmapfile_mem_entry(0, 0, 0));
-        m_mem.push_back(cmapfile_mem_entry(1, 1, 0));
-*/
         // skip all lines to "Memory Configuration"
         while (fgets(line, 1024, fmap))
             if (strcmp(line, "Memory Configuration\n") == 0)
@@ -103,6 +92,8 @@ bool cmapfile::load(const char *fn) {
                 break;
         int s = 0;
         int common_section = 0;
+        uint32_t common_addr = 0;
+        uint32_t common_size = 0;
         while (fgets(line, 1024, fmap)) {
             if (!common_section) {
                 if ((s = sscanf(line, " *fill*         %x%x", &addr, &size)) == 2) {
@@ -119,6 +110,12 @@ bool cmapfile::load(const char *fn) {
                             add_mem_entry(mem_type_data, addr, size, name);
                     } else if (s == 4)
                         add_mem_entry(mem_type_data, addr, size, name);
+                } else if ((s = sscanf(line, " .rodata.%s%x%x%[^\n]", name, &addr, &size, buff)) >= 1) {
+                    if (s == 1) {
+                        if (fgets(line, 1024, fmap) && (sscanf(line, "                %x%x%[^\n]", &addr, &size, buff)) == 3)
+                            add_mem_entry(mem_type_rodata, addr, size, name);
+                    } else if (s == 4)
+                        add_mem_entry(mem_type_rodata, addr, size, name);
                 } else if ((s = sscanf(line, " .bss.%s%x%x%[^\n]", name, &addr, &size, buff)) >= 1) {
                     if (s == 1) {
                         if (fgets(line, 1024, fmap) && (sscanf(line, "                %x%x%[^\n]", &addr, &size, buff)) == 3)
@@ -129,16 +126,32 @@ bool cmapfile::load(const char *fn) {
                     common_section = 1;
             } else {
                 if ((s = sscanf(line, " *fill*         %x%x", &addr, &size)) == 2) {
+                    if (common_size)
+                        set_last_mem_entry_size(common_size);
+                    common_addr = 0;
+                    common_size = 0;
                     add_mem_entry(mem_type_fill, addr, size, 0);
                 }
                 if ((s = sscanf(line, " COMMON         %x%x%[^\n]", &addr, &size, name)) == 3) {
-                    add_mem_entry(mem_type_common, addr, size, name);
-                    //printf("COMMON %08x %04x %s\n", addr, size, name);
+                    if (common_size)
+                        set_last_mem_entry_size(common_size);
+                    //add_mem_entry(mem_type_common, addr, size, name);
+                    common_addr = addr;
+                    common_size = size;
                 } else if ((s = sscanf(line, "                %x                %[^\n]", &addr, name)) == 2) {
+                    uint32_t prev_size = addr - common_addr;
+                    if (prev_size)
+                        set_last_mem_entry_size(prev_size);
+                    common_addr = addr;
+                    common_size -= prev_size;
                     add_mem_entry(mem_type_other, addr, 0, name);
-                    //printf("other %08x %s\n", addr, name);
-                } else if (strlen(line) <= 1)
+                } else if (strlen(line) <= 1) {
+                    if (common_size)
+                        set_last_mem_entry_size(common_size);
                     common_section = 0;
+                    common_addr = 0;
+                    common_size = 0;
+                }
             }
         }
         fclose(fmap);
@@ -147,8 +160,25 @@ bool cmapfile::load(const char *fn) {
     return false;
 }
 
-cmapfile_mem_entry *cmapfile::find_mem_entry(const char *name) {
-    return &m_mem[m_map[name]];
+cmapfile_mem_entry *cmapfile::find_mem_entry_by_name(const char *name) {
+    cmapfile_mem_entry *pentry = NULL;
+    std::map<std::string, int>::iterator it;
+    it = m_map.find(name);
+    if (it != m_map.end()) {
+        int index = it->second;
+        pentry = &m_mem[index];
+    }
+    return pentry;
+}
+
+cmapfile_mem_entry *cmapfile::find_mem_entry_by_addr(uint32_t addr) {
+    cmapfile_mem_entry *pentry = NULL;
+    for (int index = 0; index < (signed)m_mem.size(); index++) {
+        pentry = &m_mem[index];
+        if ((pentry->addr <= addr) && ((pentry->addr + pentry->size) > addr))
+            return pentry;
+    }
+    return NULL;
 }
 
 int cmapfile::add_mem_entry(mapfile_mem_type_t type, uint32_t addr, uint32_t size, const char *name) {
@@ -158,6 +188,11 @@ int cmapfile::add_mem_entry(mapfile_mem_type_t type, uint32_t addr, uint32_t siz
         m_map[name] = index;
     //    printf("TEXT %08x %04x %s\n", addr, size, name);
     return index;
+}
+
+void cmapfile::set_last_mem_entry_size(uint32_t size) {
+    m_mem.back().size = size;
+    //    printf("0x%08x 0x%04x %s\n", m_mem.back().addr, m_mem.back().size, m_mem.back().name);
 }
 
 // "C" interface implementation
@@ -177,9 +212,15 @@ mapfile_t *mapfile_load(const char *fn) {
     return 0;
 }
 
-mapfile_mem_entry_t *mapfile_find_mem_entry(mapfile_t *pm, const char *name) {
+mapfile_mem_entry_t *mapfile_find_mem_entry_by_name(mapfile_t *pm, const char *name) {
     cmapfile *mapfile = (cmapfile *)pm;
-    cmapfile_mem_entry *entry = mapfile->find_mem_entry(name);
+    cmapfile_mem_entry *entry = mapfile->find_mem_entry_by_name(name);
+    return entry;
+}
+
+mapfile_mem_entry_t *mapfile_find_mem_entry_by_addr(mapfile_t *pm, uint32_t addr) {
+    cmapfile *mapfile = (cmapfile *)pm;
+    cmapfile_mem_entry *entry = mapfile->find_mem_entry_by_addr(addr);
     return entry;
 }
 }

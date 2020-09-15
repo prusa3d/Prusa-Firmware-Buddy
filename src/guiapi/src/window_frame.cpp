@@ -135,10 +135,10 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
             if (!pPrev) {
-                Sound_Play(eSOUND_TYPE_BlindAlert);
+                Sound_Play(eSOUND_TYPE::BlindAlert);
                 break;
             } else {
-                Sound_Play(eSOUND_TYPE_EncoderMove);
+                Sound_Play(eSOUND_TYPE::EncoderMove);
             }
             pWin = pPrev;
         }
@@ -150,10 +150,10 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
             if (!pNext) {
-                Sound_Play(eSOUND_TYPE_BlindAlert);
+                Sound_Play(eSOUND_TYPE::BlindAlert);
                 break;
             } else {
-                Sound_Play(eSOUND_TYPE_EncoderMove);
+                Sound_Play(eSOUND_TYPE::EncoderMove);
             }
             pWin = pNext;
         }
