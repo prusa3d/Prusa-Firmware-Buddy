@@ -57,6 +57,7 @@ protected:
     void YAxis_end(float fr, int dir);
 
 protected:
+    void sg_sample_set(uint8_t axis_mask);
     static void sg_sample(uint8_t axis, uint16_t sg);
 
 protected:
@@ -68,7 +69,7 @@ protected:
     int32_t start_pos;
     FIL fil;
     bool fil_ok;
-    bool sg_sample_on = false;
+    bool sg_sample_on;
     uint16_t sg_sample_count;
     uint32_t sg_sample_sum;
 };

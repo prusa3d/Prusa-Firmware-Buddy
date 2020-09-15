@@ -9,23 +9,12 @@
 #include "otp.h"
 #include "trinamic.h"
 
+
 CMarlinTest MarlinTest = CMarlinTest();
 
-/*
-uint32_t start_time;
-int32_t start_pos;
-FIL fil;
-bool fil_ok;
-bool sg_sample_on = false;
-uint16_t sg_sample_count;
-uint32_t sg_sample_sum;
-*/
-/*
-static void _server_test_loop(void) {
-}
-*/
 
 CMarlinTest::CMarlinTest() {
+	sg_sample_on = false;
 }
 
 bool CMarlinTest::isInProgress() {
@@ -34,6 +23,7 @@ bool CMarlinTest::isInProgress() {
 
 bool CMarlinTest::start() {
     state = mtsStart;
+    return true;
 }
 
 void CMarlinTest::loop() {
@@ -91,8 +81,7 @@ void CMarlinTest::loop() {
     case mtsXAxis_Home:
         if (marlin_server_get_command() != MARLIN_CMD_G28) {
             state = mtsXAxis_Measure_RL_50mms;
-            tmc_sg_mask = 0x01;
-            tmc_sg_sampe_cb = sg_sample;
+            sg_sample_set(1<<X_AXIS);
             endstops.enable(true);
             XAxis_start(50, -1);
         }
@@ -154,8 +143,7 @@ void CMarlinTest::loop() {
         break;
     case mtsXAxis_Finished:
         endstops.enable(false);
-        tmc_sg_mask = 0x07;
-        tmc_sg_sampe_cb = 0;
+        sg_sample_set(0);
         state = mtsYAxis_Start;
         break;
 
@@ -168,8 +156,7 @@ void CMarlinTest::loop() {
     case mtsYAxis_Home:
         if (marlin_server_get_command() != MARLIN_CMD_G28) {
             state = mtsYAxis_Measure_BF_50mms;
-            tmc_sg_mask = 0x02;
-            tmc_sg_sampe_cb = sg_sample;
+            sg_sample_set(1<<Y_AXIS);
             endstops.enable(true);
             YAxis_start(50, 1);
         }
@@ -231,8 +218,7 @@ void CMarlinTest::loop() {
         break;
     case mtsYAxis_Finished:
         endstops.enable(false);
-        tmc_sg_mask = 0x07;
-        tmc_sg_sampe_cb = 0;
+        sg_sample_set(0);
         state = mtsFinish;
         break;
 
@@ -292,6 +278,11 @@ void CMarlinTest::YAxis_end(float fr, int dir) {
     f_printf(&fil, "measured length: %d\n", length);
     f_printf(&fil, "avg stallguard: %d\n\n", sg_avg);
     f_sync(&fil);
+}
+
+void CMarlinTest::sg_sample_set(uint8_t axis_mask) {
+    tmc_sg_mask = axis_mask;
+    tmc_sg_sampe_cb = axis_mask?sg_sample:0;
 }
 
 void CMarlinTest::sg_sample(uint8_t axis, uint16_t sg) {
