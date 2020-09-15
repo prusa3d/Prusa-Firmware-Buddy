@@ -12,9 +12,9 @@
 //method definitions
 void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     if (ptr)
-        return; //an dialog is already openned
+        return; //the dialog is already openned
 
-    if (gui_get_nesting() > 1) //another test if dialog is openned todo remove after gui refactoring
+    if (gui_get_nesting() > 1) //another test if the dialog is openned, TODO: remove after gui refactoring
         return;
 
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?

@@ -8,9 +8,12 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-ScreenFirstLayer::ScreenFirstLayer(string_view_utf8 caption)
-    : IScreenPrinting(caption)
+ScreenFirstLayer::ScreenFirstLayer()
+    : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
     , header(this)
     , footer(this) {
-    header.SetText(caption);
 }
+
+void ScreenFirstLayer::stopAction() {}
+void ScreenFirstLayer::pauseAction() {}
+void ScreenFirstLayer::tuneAction() {}
