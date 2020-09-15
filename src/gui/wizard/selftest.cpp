@@ -16,31 +16,21 @@ StateFncData StateFnc_SELFTEST_INIT(StateFncData last_run) {
 
 StateFncData StateFnc_SELFTEST_PASS(StateFncData last_run) {
     const char *txt = "All tests finished successfully!";
-    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
+    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
     MsgBoxPepa(title, Responses_NEXT);
     return last_run.PassToNext().PassToNext(); // 2x PassToNext() to skip fail
 }
 
 StateFncData StateFnc_SELFTEST_FAIL(StateFncData last_run) {
-    const char *txt = "The selftest failed\n"
-                      "to finish.         \n"
-                      "Double-check the   \n"
-                      "printer's wiring   \n"
-                      "and axes.          \n"
-                      "Then restart       \n"
-                      "the Selftest.      ";
-    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
+    static const char *txt = "The selftest failed to finish. Double-check the printer's wiring and axes. Then restart the Selftest.";
+    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
     MsgBox(title, Responses_NEXT);
     return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
 }
 
 StateFncData StateFnc_SELFTEST_AND_XYZCALIB(StateFncData last_run) {
-    const char *txt = "Everything is alright. "
-                      "I will run XYZ "
-                      "calibration now. It will "
-                      "take approximately "
-                      "12 minutes.";
-    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
+    static const char *txt = "Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes.";
+    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
     MsgBoxPepa(title, Responses_NEXT);
     return last_run.PassToNext();
 }

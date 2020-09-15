@@ -610,8 +610,8 @@ StateFncData StateFnc_FIRST(StateFncData last_run) {
 }
 
 StateFncData StateFnc_FINISH(StateFncData last_run) {
-    const char *txt = "Calibration successful!\nHappy printing!";
-    string_view_utf8 title = string_view_utf8::MakeRAM((const uint8_t *)txt);
+    static const char *txt = "Calibration successful! Happy printing!";
+    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
     return last_run.PassToNext();
 }
 
