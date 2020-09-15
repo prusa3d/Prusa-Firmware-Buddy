@@ -570,6 +570,8 @@ if(GUI)
             src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
             src/gui/IScreenPrinting.cpp
+            src/gui/ScreenFirstLayer.cpp
+            src/gui/ScreenPrintingModel.cpp
             src/gui/screen_printing.cpp
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
