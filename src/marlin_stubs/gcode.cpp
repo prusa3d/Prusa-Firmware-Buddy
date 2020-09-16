@@ -1,6 +1,6 @@
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "G162.hpp"
+#include "PrusaGcodeSuite.hpp"
 #include "client_fsm_types.h"
 #include "marlin_server.hpp"
 
