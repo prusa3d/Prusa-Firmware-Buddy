@@ -9,7 +9,7 @@
 
 //todo ensure signature match
 //notify all clients to create finit statemachine, must match fsm_create_t signature
-void fsm_create(ClientFSM type, uint8_t data);
+void fsm_create(ClientFSM type, uint8_t data = 0);
 //notify all clients to destroy finit statemachine, must match fsm_destroy_t signature
 void fsm_destroy(ClientFSM type);
 //notify all clients to change state of finit statemachine, must match fsm_change_t signature
