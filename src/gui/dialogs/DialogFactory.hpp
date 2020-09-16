@@ -2,6 +2,7 @@
 
 #include "DialogLoadUnload.hpp"
 #include "DialogG162.hpp"
+#include "DialogSelftestFansAxis.hpp"
 #include "static_alocation_ptr.hpp"
 #include <array>
 
@@ -18,6 +19,7 @@ public:
     static static_unique_ptr<IDialogStateful> serial_printing(uint8_t data);
     static static_unique_ptr<IDialogStateful> load_unload(uint8_t data);
     static static_unique_ptr<IDialogStateful> G162(uint8_t data);
+    static static_unique_ptr<IDialogStateful> SelftestFansAxis(uint8_t data);
 
     static Ctors GetAll(); //returns all factory methods in an array
 };

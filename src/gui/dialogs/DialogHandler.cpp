@@ -7,6 +7,19 @@
 #include "screen_printing_serial.hpp"
 #include "screen_printing.hpp"
 
+static void OpenPrintScreen(ClientFSM dialog) {
+    switch (dialog) {
+    case ClientFSM::Serial_printing:
+        Screens::Access()->Open(ScreenFactory::Screen<screen_printing_serial_data_t>);
+        return;
+    case ClientFSM::Printing:
+        Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
+        return;
+    default:
+        return;
+    }
+}
+
 //*****************************************************************************
 //method definitions
 void DialogHandler::open(ClientFSM dialog, uint8_t data) {
@@ -18,17 +31,19 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
 
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
-    if (dialog == ClientFSM::Serial_printing) {
+    switch (dialog) {
+    case ClientFSM::Serial_printing:
+    case ClientFSM::Printing:
         if (IScreenPrinting::CanOpen()) {
             Screens::Access()->CloseAll();
-            Screens::Access()->Open(ScreenFactory::Screen<screen_printing_serial_data_t>);
+            OpenPrintScreen(dialog);
         }
-    } else if (dialog == ClientFSM::Printing) {
-        if (IScreenPrinting::CanOpen()) {
-            Screens::Access()->CloseAll();
-            Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
-        }
-    } else {
+        break;
+        /* case ClientFSM::SelftestFansAxis:
+        //Screens::Access()->Open(ScreenFactory::Screen<DialogSelftestFansAxis>);
+        Screens::Access()->Get()->RegisterSubWin()
+        break;*/
+    default:
         ptr = dialog_ctors[size_t(dialog)](data);
     }
 }
@@ -44,6 +59,9 @@ void DialogHandler::close(ClientFSM dialog) {
         if (dialog == ClientFSM::Serial_printing) {
             Screens::Access()->CloseAll();
         }
+        /* if (dialog == ClientFSM::SelftestFansAxis) {
+            Screens::Access()->Close();
+        }*/
     }
 
     ptr = nullptr; //destroy current dialog

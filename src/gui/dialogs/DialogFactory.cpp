@@ -39,6 +39,12 @@ static_unique_ptr<IDialogStateful> DialogFactory::G162(uint8_t data) {
     return make_static_unique_ptr<DialogG162>(&all_dialogs, name);
 }
 
+static_unique_ptr<IDialogStateful> DialogFactory::SelftestFansAxis(uint8_t data) {
+    static const char *nm = N_("First layer calibration");
+    string_view_utf8 name = string_view_utf8::MakeCPUFLASH((const uint8_t *)nm);
+    return make_static_unique_ptr<DialogSelftestFansAxis>(&all_dialogs, name);
+}
+
 DialogFactory::Ctors DialogFactory::GetAll() {
     //todo check if all fields are set
     std::array<fnc, size_t(ClientFSM::_count)> ret = { nullptr };

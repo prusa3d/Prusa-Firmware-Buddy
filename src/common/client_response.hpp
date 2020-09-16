@@ -65,6 +65,20 @@ enum class PhasesG162 : uint16_t {
     _last = Parking
 };
 
+enum class PhasesSelfTest : uint16_t {
+    _first = static_cast<uint16_t>(PhasesG162::_last) + 1,
+    FansAxis,
+    Cooldown,
+    Heaters,
+    _last = Heaters
+};
+/*
+enum class PhasesSelfTestHeaters : uint16_t {
+    _first = static_cast<uint16_t>(PhasesSelfTest::_last) + 1,
+    Init,
+    _last = Init
+};*/
+
 //static class for work with fsm responses (like button click)
 //encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
@@ -74,10 +88,14 @@ class ClientResponses {
     //declare 2d arrays of single buttons for radio buttons
     static const PhaseResponses LoadUnloadResponses[CountPhases<PhasesLoadUnload>()];
     static const PhaseResponses G162Responses[CountPhases<PhasesG162>()];
+    static const PhaseResponses SelfTestResponses[CountPhases<PhasesSelfTest>()];
+    //static const PhaseResponses SelfTestHeatersResponses[CountPhases<PhasesSelfTestHeaters>()];
 
     //methods to "bind" button array with enum type
     static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static const PhaseResponses &getResponsesInPhase(PhasesG162 phase) { return G162Responses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesG162::_first)]; }
+    static const PhaseResponses &getResponsesInPhase(PhasesSelfTest phase) { return SelfTestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelfTest::_first)]; }
+    //static const PhaseResponses &getResponsesInPhase(PhasesSelfTestHeaters phase) { return SelfTestHeatersResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelfTestHeaters::_first)]; }
 
 protected:
     //get index of single response in PhaseResponses
