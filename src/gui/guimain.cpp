@@ -125,10 +125,10 @@ extern "C" void gui_run(void) {
     //Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
+    //TIMEOUT variable getting value from EEPROM when EEPROM interface is inicialized
+    GuiDefaults::menu_timeout_enabled = (bool)variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT));
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
-    //int8_t gui_timeout_id;
-    GuiDefaults::menu_timeout_enabled = variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT));
     while (1) {
         Screens::Access()->Loop();
         // show warning dialog on safety timer expiration
@@ -136,21 +136,6 @@ extern "C" void gui_run(void) {
             MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
         }
         gui_loop();
-        /*if (marlin_message_received()) {
-            screen_t *curr = screen_get_curr();
-            if (curr == get_scr_printing()) {
-                screen_dispatch_event(NULL, WINDOW_EVENT_MESSAGE, 0);
-            }
-        }
-				// TODO - If menu_timeout_enabled is used here - need to be reworked for
-				// EEPROM variable
-        if (menu_timeout_enabled) {
-            gui_timeout_id = gui_get_menu_timeout_id();
-            if (gui_timer_expired(gui_timeout_id) == 1) {
-                screen_close_multiple(scrn_close_on_timeout);
-                gui_timer_delete(gui_timeout_id);
-            }
-        }*/
     }
 }
 

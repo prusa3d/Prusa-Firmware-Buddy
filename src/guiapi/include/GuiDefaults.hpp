@@ -20,5 +20,5 @@ struct GuiDefaults {
     static font_t *Font;                                                     //todo constexpr
     static font_t *FontBig;                                                  //todo constexpr
     static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                       // maximum number of radio buttons
-    static uint8_t menu_timeout_enabled;
+    static bool menu_timeout_enabled;
 };

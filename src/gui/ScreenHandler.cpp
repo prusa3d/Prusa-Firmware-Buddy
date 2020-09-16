@@ -146,6 +146,10 @@ void Screens::CloseAll() {
     close_all = true;
 }
 
+void Screens::CloseSerial() {
+    close_serial = true;
+}
+
 //used to close blocking dialogs
 bool Screens::ConsumeClose() {
     bool ret = close | close_all; // close_all must also close dialogs
@@ -163,17 +167,41 @@ void Screens::PushBeforeCurrent(const ScreenFactory::Creator screen_creator) {
     }
 }
 
-void Screens::Loop() {
+void Screens::ResetTimeout() {
     if (GuiDefaults::menu_timeout_enabled) {
-        window_frame_t *w = current.get();
-        if (w->IsTimeout()) {
-            gui_timeout_id = gui_get_menu_timeout_id();
-            if (gui_timer_expired(gui_timeout_id) == 1) {
-                close_all = true;
-                gui_timer_delete(gui_timeout_id);
+        if (gui_get_menu_timeout_id() >= 0) {
+            gui_timer_reset(gui_get_menu_timeout_id());
+        } else {
+            gui_timer_create_timeout(current.get(), (uint32_t)MENU_TIMEOUT_MS);
+        }
+    }
+}
+
+void Screens::Loop() {
+    /// menu timeout logic:
+    /// when timeout is expired on current screen,
+    /// we iterate thrue whole stack and close every screen thta should be closed
+    if (current.get()->IsTimeout()) {
+        gui_timeout_id = gui_get_menu_timeout_id();
+        if (gui_timer_expired(gui_timeout_id) == 1) {
+            gui_timer_delete(gui_timeout_id);
+            while (current.get()->IsTimeout() || stack_iterator != stack.begin()) {
+                close = true;
+                InnerLoop();
             }
         }
     }
+    /// serial close logic:
+    /// when serial printing screen (M876) is open, Screens::SerialClose() is
+    /// called and it will iterate all screens to close those that should be closed
+    if (close_serial) {
+        while (current.get()->IsSerial() || stack_iterator != stack.begin()) {
+            close = true;
+            InnerLoop();
+        }
+        close_serial = false;
+    }
+    /// continue inner loop
     InnerLoop();
 }
 

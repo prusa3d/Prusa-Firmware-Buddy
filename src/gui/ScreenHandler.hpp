@@ -18,6 +18,7 @@ class Screens {
 
     bool close;
     bool close_all;
+    bool close_serial;
 
     int8_t gui_timeout_id;
 
@@ -41,9 +42,12 @@ public:
 
     void CloseAll();
 
+    void CloseSerial();
+
     bool ConsumeClose(); //dialog can erase close signal and close itself
 
     void Draw();
+    void ResetTimeout();
 
     void ScreenEvent(window_t *sender, uint8_t event, void *param);
     void WindowEvent(uint8_t event, void *param);

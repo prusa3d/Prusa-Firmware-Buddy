@@ -59,7 +59,7 @@ protected:
             is_dialog_t flag_dialog : 1;                   // 05 - window id dialog
             is_closed_on_click_t flag_close_on_click : 1;  // 06 - window id dialog
             bool flag_hidden_behind_dialog : 1;            // 07 - there is an dialog over this window
-            is_closed_on_timeout_t flag_timeout_close : 1; // 08 - menu timeout flag
+            is_closed_on_timeout_t flag_timeout_close : 1; // 08 - menu timeout flag - it's meant to be used in window_frame_t
             is_closed_on_serial_t flag_serial_close : 1;   // 09 - serial printing screen open close
             bool flag_custom0 : 1;                         // 0A - this flag can be defined in parent
             bool flag_custom1 : 1;                         // 0B - this flag can be defined in parent

@@ -18,6 +18,9 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog
 void window_frame_t::SetMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::yes; }
 void window_frame_t::ClrMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::no; }
 
+void window_frame_t::SetOnSerialClose() { flag_serial_close = is_closed_on_serial_t::yes; }
+void window_frame_t::ClrOnSerialClose() { flag_serial_close = is_closed_on_serial_t::no; }
+
 //register sub win
 void window_frame_t::RegisterSubWin(window_t *win) {
     //window must fit inside frame

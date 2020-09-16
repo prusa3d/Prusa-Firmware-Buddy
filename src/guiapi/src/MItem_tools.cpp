@@ -313,7 +313,7 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
         gui_timer_delete(gui_get_menu_timeout_id());
     }
     GuiDefaults::menu_timeout_enabled = !old_index;
-    eeprom_set_var(EEVAR_MENU_TIMEOUT, variant8_ui8((uint8_t)GuiDefaults::menu_timeout_enabled));
+    eeprom_set_var(EEVAR_MENU_TIMEOUT, variant8_ui8((uint8_t)(GuiDefaults::menu_timeout_enabled ? 1 : 0)));
 }
 
 /*****************************************************************************/

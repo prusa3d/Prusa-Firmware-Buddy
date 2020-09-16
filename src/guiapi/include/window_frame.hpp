@@ -39,6 +39,9 @@ struct window_frame_t : public window_t {
     void SetMenuTimeoutClose();
     void ClrMenuTimeoutClose();
 
+    void SetOnSerialClose();
+    void ClrOnSerialClose();
+
 protected:
     virtual void draw() override;
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
