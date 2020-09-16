@@ -1,19 +1,19 @@
-// eeprom.c
-
 #include "eeprom.h"
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
 #include "config.h"
 #include "st25dv64k.h"
 #include "dbg.h"
 #include "cmsis_os.h"
-#include "ff.h"
 #include "crc32.h"
 #include "version.h"
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
+#include "Marlin/src/core/serial.h"
+#include "cmath_ext.h"
 
-static const constexpr uint8_t EEPROM__PADDING = 1;
+static const constexpr uint8_t EEPROM__PADDING = 4;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
 static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
@@ -67,11 +67,21 @@ typedef struct _eeprom_vars_t {
     uint8_t SOUND_VOLUME;
     uint16_t LANGUAGE;
     uint8_t FILE_SORT;
+    uint8_t MENU_TIMEOUT;
+    uint8_t ACTUAL_SHEET;
+    Sheet SHEET_PROFILE0;
+    Sheet SHEET_PROFILE1;
+    Sheet SHEET_PROFILE2;
+    Sheet SHEET_PROFILE3;
+    Sheet SHEET_PROFILE4;
+    Sheet SHEET_PROFILE5;
+    Sheet SHEET_PROFILE6;
+    Sheet SHEET_PROFILE7;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
 
-static_assert(sizeof(eeprom_vars_t) % 4 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
+static_assert(sizeof(eeprom_vars_t) % 3 == 0, "EEPROM__PADDING needs to be adjusted so CRC32 could work.");
 
 #pragma pack(pop)
 
@@ -109,6 +119,16 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SOUND_VOLUME",    VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_VOLUME
     { "LANGUAGE",        VARIANT8_UI16,  1, 0 }, // EEVAR_LANGUAGE
     { "FILE_SORT",       VARIANT8_UI8,   1, 0 }, // EEVAR_FILE_SORT
+    { "MENU_TIMEOUT",    VARIANT8_UI8,   1, 0 }, // EEVAR_MENU_TIMEOUT
+    { "ACTIVE_SHEET",    VARIANT8_UI8,   1, 0 }, // EEVAR_ACTIVE_SHEET
+    { "SHEET_PROFILE0",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE1",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE2",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE3",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE4",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE5",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE6",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
+    { "SHEET_PROFILE7",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -152,6 +172,16 @@ static const eeprom_vars_t eeprom_var_defaults = {
     5,               // EEVAR_SOUND_VOLUME
     0xffff,          // EEVAR_LANGUAGE
     0,               // EEVAR_FILE_SORT
+    0,               // EEVAR_MENU_TIMEOUT
+    0,               // EEVAR_ACTUAL_SHEET
+    {"Smooth1", 0.0f },
+    {"Smooth2", FLT_MAX },
+    {"Textur1", FLT_MAX },
+    {"Textur2", FLT_MAX },
+    {"Custom1", -2.05f },
+    {"Custom2", FLT_MAX },
+    {"Custom3", FLT_MAX },
+    {"Custom4", FLT_MAX },
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };
@@ -249,6 +279,12 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     void *data_ptr;
     if (id < EEPROM_VARCOUNT) {
         eeprom_lock();
+        if (id == EEVAR_ZOFFSET && variant8_get_type(var) == VARIANT8_FLT) {
+            uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+            uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+            float z_offset = variant8_get_flt(var);
+            st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH, &z_offset, sizeof(float));
+        }
         if (variant8_get_type(var) == eeprom_map[id].type) {
             size = eeprom_var_size(id);
             data_size = variant8_data_size(&var);
@@ -504,4 +540,54 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
             res_flag = 0;
     }
     return res_flag;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Sheets profile methods
+uint32_t sheet_select_next_configured() {
+    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+
+    for (int8_t i = 0; i < MAX_SHEETS; ++i) {
+        if (sheet_select((index + i) % MAX_SHEETS))
+            return (index + i) % MAX_SHEETS;
+    }
+    return 0;
+}
+
+bool sheet_is_initialized(uint32_t index) {
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    float z_offset = FLT_MAX;
+    st25dv64k_user_read_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
+        &z_offset, sizeof(float));
+    return !nearlyEqual(z_offset, FLT_MAX, 0.001f);
+}
+
+bool sheet_select(uint32_t index) {
+    if (index >= MAX_SHEETS || !sheet_is_initialized(index))
+        return false;
+    uint16_t actual_sheet_address = eeprom_var_addr(EEVAR_ACTUAL_SHEET);
+    st25dv64k_user_write(actual_sheet_address, index);
+    return true;
+}
+
+bool sheet_reset(uint32_t index) {
+    if (index >= MAX_SHEETS)
+        return false;
+    uint8_t actual = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    float z_offset = FLT_MAX;
+    st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
+        &z_offset, sizeof(float));
+    if (actual == index)
+        sheet_select_next_configured();
+    return true;
+}
+
+uint32_t sheet_number_of_initialized() {
+    uint32_t count = 1;
+    for (int8_t i = 1; i < MAX_SHEETS; ++i) {
+        if (sheet_is_initialized(i))
+            ++count;
+    }
+    return count;
 }

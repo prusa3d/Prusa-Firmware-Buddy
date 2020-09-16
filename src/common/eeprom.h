@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include "variant8.h"
 
 enum {
@@ -12,7 +13,24 @@ enum {
 #define EEPROM_FEATURE_PID_NOZ 0x0001
 #define EEPROM_FEATURE_PID_BED 0x0002
 #define EEPROM_FEATURE_LAN     0x0004
-#define EEPROM_FEATURES        (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN)
+#define EEPROM_FEATURE_SHEETS  0x0008
+#define EEPROM_FEATURES        (EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN | EEPROM_FEATURE_SHEETS)
+
+enum {
+    MAX_SHEET_NAME_LENGTH = 8,
+    MAX_SHEETS = 8,
+    EEPROM_SHEET_SIZEOF = 12
+};
+
+typedef struct
+{
+    char name[MAX_SHEET_NAME_LENGTH]; //!< Can be null terminated, doesn't need to be null terminated
+    float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
+} Sheet;
+
+#ifdef __cplusplus
+static_assert(sizeof(Sheet) == EEPROM_SHEET_SIZEOF, "Sizeof(Sheets) is not EEPROM_SHEETS_SIZEOF.");
+#endif
 
 enum {
     // basic variables
@@ -60,8 +78,18 @@ enum {
     EEVAR_SOUND_VOLUME = 0x1b, // uint8_t
     EEVAR_LANGUAGE = 0x1c,     // uint16_t
     EEVAR_FILE_SORT = 0x1d,    // uint8_t  filebrowser file sort options
-    EEVAR__PADDING = 0x1e,     // 1..4 chars, to ensure (DATASIZE % 4 == 0)
-    EEVAR_CRC32 = 0x1f,        // uint32_t crc32 for
+    EEVAR_MENU_TIMEOUT = 0x1e,
+    EEVAR_ACTUAL_SHEET = 0x1f,
+    EEVAR_SHEET_PROFILE0 = 0x20,
+    EEVAR_SHEET_PROFILE1 = 0x21,
+    EEVAR_SHEET_PROFILE2 = 0x22,
+    EEVAR_SHEET_PROFILE3 = 0x23,
+    EEVAR_SHEET_PROFILE4 = 0x24,
+    EEVAR_SHEET_PROFILE5 = 0x25,
+    EEVAR_SHEET_PROFILE6 = 0x26,
+    EEVAR_SHEET_PROFILE7 = 0x27,
+    EEVAR__PADDING = 0x28, // 1..4 chars, to ensure (DATASIZE % 4 == 0)
+    EEVAR_CRC32 = 0x29,    // uint32_t crc32 for
 };
 
 enum {
@@ -102,6 +130,11 @@ extern void eeprom_clear(void);
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);
 
+extern uint32_t eeprom_switch_to_next_sheet();
+extern bool sheet_is_initialized(uint32_t);
+extern bool sheet_select(uint32_t);
+extern bool sheet_reset(uint32_t);
+extern uint32_t sheet_number_of_initialized();
 #ifdef __cplusplus
 }
 #endif //__cplusplus

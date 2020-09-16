@@ -17,6 +17,7 @@
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
 #include "i18n.h"
+#include "Marlin/src/core/serial.h"
 
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
@@ -74,7 +75,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML,
     MI_ES_12201, MI_ES_12202, MI_ES_12203, MI_ES_12204, MI_ES_12205, MI_ES_12206, MI_ES_12207, MI_ES_12208>;
 #else
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_ACTUAL_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     MI_FACTORY_DEFAULTS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
@@ -89,6 +90,8 @@ public:
     ScreenMenuSettings()
         : Screen(_(label)) {}
     virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+
+    virtual void draw() override;
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSettings() {
@@ -101,4 +104,15 @@ void ScreenMenuSettings::windowEvent(window_t *sender, uint8_t ev, void *param) 
     }
 
     Screen::windowEvent(sender, ev, param);
+}
+
+void ScreenMenuSettings::draw() {
+    uint32_t initialized = sheet_number_of_initialized();
+    SERIAL_ECHOLNPAIR("initialized: ", initialized);
+    if (initialized > 1) {
+
+        Item<MI_ACTUAL_PROFILE>().SetHidden(false);
+        Item<MI_ACTUAL_PROFILE>().SetLabel("[muhehe]");
+    }
+    window_frame_t::draw();
 }

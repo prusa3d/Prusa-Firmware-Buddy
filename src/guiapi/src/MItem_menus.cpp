@@ -143,3 +143,12 @@ MI_HW_SETUP::MI_HW_SETUP()
 void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(GetScreenMenuHwSetup);
 }
+
+/*****************************************************************************/
+//MI_ACTUAL_PROFILE
+MI_ACTUAL_PROFILE::MI_ACTUAL_PROFILE()
+    : WI_LABEL_t(label, 0, true, true) {
+}
+
+void MI_ACTUAL_PROFILE::click(IWindowMenu & /*window_menu*/) {
+}

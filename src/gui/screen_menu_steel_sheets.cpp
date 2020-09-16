@@ -6,6 +6,7 @@
 #include "ScreenHandler.hpp"
 #include <type_traits>
 #include "Marlin/src/core/serial.h"
+#include "eeprom.h"
 
 class ScreenMenuSteelSheets;
 
@@ -30,7 +31,7 @@ class MI_SHEET_SELECT : public WI_LABEL_t {
 
 public:
     MI_SHEET_SELECT()
-        : WI_LABEL_t(label, 0, true, true) {};
+        : WI_LABEL_t(label, 0, false, false) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -60,7 +61,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        //        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_0>);
+        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CLICK, (void *)profile_action::Rename);
     }
 };
 
@@ -69,7 +70,7 @@ class MI_SHEET_RESET : public WI_LABEL_t {
 
 public:
     MI_SHEET_RESET()
-        : WI_LABEL_t(label, 0, true, false) {};
+        : WI_LABEL_t(label, 0, false, false) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -78,7 +79,7 @@ protected:
 };
 
 using SheetProfileMenuScreen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SHEET_SELECT, MI_SHEET_CALIBRATE,
-    MI_SHEET_RENAME, MI_SHEET_RESET>;
+    MI_SHEET_RESET>;
 
 template <typename Index>
 class SheetProfileMenuScreenT : public SheetProfileMenuScreen {
@@ -87,7 +88,6 @@ public:
     using index_type = Index;
     SheetProfileMenuScreenT()
         : SheetProfileMenuScreen(_(label)) {
-        Item<MI_SHEET_SELECT>().SetHidden(Index::value != 0);
     }
 
     virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override {
@@ -96,13 +96,14 @@ public:
             return;
         }
         profile_action action = *((profile_action *)param);
-        SERIAL_ECHOLNPAIR("action: ", *((std::uint32_t *)param));
         switch (action) {
         case profile_action::Reset:
             SERIAL_ECHOLN("MI_SHEET_RESET");
+            sheet_reset(Index::value);
             break;
         case profile_action::Select:
             SERIAL_ECHOLN("MI_SHEET_SELECT");
+            sheet_select(Index::value);
             break;
         case profile_action::Calibrate:
             SERIAL_ECHOLN("MI_SHEET_CALIBRATE");
@@ -110,6 +111,16 @@ public:
         default:
             break;
         }
+    }
+
+    virtual void draw() override {
+        if (sheet_is_initialized(Index::value)) {
+            Item<MI_SHEET_SELECT>().Enable();
+            Item<MI_SHEET_RESET>().Enable();
+        }
+        if (Index::value == 0)
+            Item<MI_SHEET_RESET>().Disable();
+        window_frame_t::draw();
     }
 };
 
@@ -119,7 +130,7 @@ ScreenFactory::UniquePtr GetScreenMenuSheetProfile() {
 }
 
 class MI_SHEET_SMOOTH1 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Sheet Smooth1");
+    static constexpr const char *const label = N_("Smooth1");
 
 public:
     MI_SHEET_SMOOTH1()
@@ -132,7 +143,7 @@ protected:
 };
 
 class MI_SHEET_SMOOTH2 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Sheet Smooth2");
+    static constexpr const char *const label = N_("Smooth2");
 
 public:
     MI_SHEET_SMOOTH2()
@@ -145,7 +156,7 @@ protected:
 };
 
 class MI_SHEET_TEXTUR1 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Sheet Textur1");
+    static constexpr const char *const label = N_("Textur1");
 
 public:
     MI_SHEET_TEXTUR1()
@@ -158,7 +169,7 @@ protected:
 };
 
 class MI_SHEET_TEXTUR2 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Sheet Textur2");
+    static constexpr const char *const label = N_("Textur2");
 
 public:
     MI_SHEET_TEXTUR2()
@@ -171,7 +182,7 @@ protected:
 };
 
 class MI_SHEET_CUSTOM1 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Sheet Custom1");
+    static constexpr const char *const label = N_("Custom1");
 
 public:
     MI_SHEET_CUSTOM1()
@@ -184,7 +195,7 @@ protected:
 };
 
 class MI_SHEET_CUSTOM2 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Sheet Custom2");
+    static constexpr const char *const label = N_("Custom2");
 
 public:
     MI_SHEET_CUSTOM2()
@@ -197,7 +208,7 @@ protected:
 };
 
 class MI_SHEET_CUSTOM3 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Sheet Custom3");
+    static constexpr const char *const label = N_("Custom3");
 
 public:
     MI_SHEET_CUSTOM3()
@@ -210,7 +221,7 @@ protected:
 };
 
 class MI_SHEET_CUSTOM4 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Sheet Custom4");
+    static constexpr const char *const label = N_("Custom4");
 
 public:
     MI_SHEET_CUSTOM4()

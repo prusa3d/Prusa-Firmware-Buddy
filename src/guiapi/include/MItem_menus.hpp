@@ -153,3 +153,13 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_ACTUAL_PROFILE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Actual Profile");
+
+public:
+    MI_ACTUAL_PROFILE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
