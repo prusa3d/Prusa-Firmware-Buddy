@@ -107,12 +107,11 @@ extern OutputPin heat0;
 #define MARLIN_PORT_FAN     MARLIN_PORT_E
 #define MARLIN_PIN_FAN      MARLIN_PIN_11
 #define MARLIN_PORT_PIN_FAN MARLIN_PORT_PIN(MARLIN_PORT_FAN, MARLIN_PIN_FAN)
-extern OutputPin fan;
 
 #define MARLIN_PORT_FAN1     MARLIN_PORT_E
 #define MARLIN_PIN_FAN1      MARLIN_PIN_9
 #define MARLIN_PORT_PIN_FAN1 MARLIN_PORT_PIN(MARLIN_PORT_FAN1, MARLIN_PIN_FAN1)
-extern OutputPin fan;
+
 #if 0 //not used outside of its definition scope
 extern InputPin fastBoot;
 extern InputPin jogWheelEN1;
