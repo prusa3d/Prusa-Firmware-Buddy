@@ -7,6 +7,7 @@
 #include "ScreenHandler.hpp"
 #include "screen_printing_serial.hpp"
 #include "screen_printing.hpp"
+#include "ScreenFirstLayer.hpp"
 
 //*****************************************************************************
 //method definitions
@@ -19,17 +20,29 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
 
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
-    if (dialog == ClientFSM::Serial_printing) {
+    switch (dialog) {
+    case ClientFSM::Serial_printing:
         if (IScreenPrinting::CanOpen()) {
             Screens::Access()->CloseAll();
             Screens::Access()->Open(ScreenFactory::Screen<screen_printing_serial_data_t>);
         }
-    } else if (dialog == ClientFSM::Printing) {
+        break;
+
+    case ClientFSM::Printing:
         if (IScreenPrinting::CanOpen()) {
             Screens::Access()->CloseAll();
             Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
         }
-    } else {
+        break;
+
+    case ClientFSM::FirstLayer:
+        if (IScreenPrinting::CanOpen()) {
+            Screens::Access()->CloseAll();
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenFirstLayer>);
+        }
+        break;
+
+    default:
         ptr = dialog_ctors[size_t(dialog)](data);
     }
 }
