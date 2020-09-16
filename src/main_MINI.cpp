@@ -61,6 +61,7 @@
 #include "Z_probe.h"
 #include "hwio_pindef_MINI.h"
 #include "gui.hpp"
+#include "config_a3ides2209_02.h"
 
 /* USER CODE END Includes */
 
@@ -601,7 +602,9 @@ static void MX_TIM1_Init(void) {
     //HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
     //HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
     /* USER CODE END TIM1_Init 2 */
+#ifndef NEW_FANCTL
     HAL_TIM_MspPostInit(&htim1);
+#endif
 }
 
 /**
