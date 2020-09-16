@@ -147,7 +147,13 @@ void Screens::CloseAll() {
 }
 
 void Screens::CloseSerial() {
-    close_serial = true;
+    /// serial close logic:
+    /// when serial printing screen (M876) is open, Screens::SerialClose() is
+    /// called and it will iterate all screens to close those that should be closed
+    while (current.get()->IsSerial() || stack_iterator != stack.begin()) {
+        close = true;
+        InnerLoop();
+    }
 }
 
 //used to close blocking dialogs
@@ -191,16 +197,6 @@ void Screens::Loop() {
             }
         }
     }
-    /// serial close logic:
-    /// when serial printing screen (M876) is open, Screens::SerialClose() is
-    /// called and it will iterate all screens to close those that should be closed
-    if (close_serial) {
-        while (current.get()->IsSerial() || stack_iterator != stack.begin()) {
-            close = true;
-            InnerLoop();
-        }
-        close_serial = false;
-    }
     /// continue inner loop
     InnerLoop();
 }
@@ -240,9 +236,15 @@ void Screens::InnerLoop() {
                 }
             }
         }
+
+        /// when msgbox(IDialog) is closed on Event and in response is closed
+        /// another screen we need to reset captured flag
+        window_t::ResetCapturedWindow();
         current = creator();
         if (!current->IsChildCaptured())
             current->SetCapture();
+        /// need to be reset also focused ptr
+        window_t::ResetFocusedWindow();
         if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();
             if (child) {

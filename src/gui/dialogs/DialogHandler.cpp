@@ -20,7 +20,7 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     // only ptr = dialog_creators[dialog](data); should remain
     if (dialog == ClientFSM::Serial_printing) {
         if (IScreenPrinting::CanOpen()) {
-            Screens::Access()->CloseAll();
+            Screens::Access()->CloseSerial();
             Screens::Access()->Open(ScreenFactory::Screen<screen_printing_serial_data_t>);
         }
     } else if (dialog == ClientFSM::Printing) {

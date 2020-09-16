@@ -140,8 +140,8 @@ public:
     static window_t *GetFocusedWindow();
     static window_t *GetCapturedWindow();
 
-protected:
     static void ResetCapturedWindow();
+    static void ResetFocusedWindow();
 };
 
 /*****************************************************************************/

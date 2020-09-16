@@ -262,6 +262,9 @@ void window_t::ResetCapturedWindow() {
     capture_ptr = nullptr;
 }
 
+void window_t::ResetFocusedWindow() {
+    focused_ptr = nullptr;
+}
 /*****************************************************************************/
 //window_aligned_t
 
