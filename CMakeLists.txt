@@ -487,6 +487,7 @@ target_sources(
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M876.cpp
+          src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
           src/marlin_stubs/gcode.cpp
           src/marlin_stubs/pause/G27.cpp

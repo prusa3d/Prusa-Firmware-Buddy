@@ -8,8 +8,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
     switch (parser.command_letter) {
     case 'G':
         switch (parser.codenum) {
-        case 26:
-            fsm_create(ClientFSM::FirstLayer);
         case 162:
             PrusaGcodeSuite::G162();
             return true;
