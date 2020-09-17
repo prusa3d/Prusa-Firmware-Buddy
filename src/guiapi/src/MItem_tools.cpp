@@ -81,6 +81,16 @@ void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+//MI_TEST_X
+MI_TEST_X::MI_TEST_X()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start();
+}
+
+/*****************************************************************************/
 //MI_DISABLE_STEP
 MI_DISABLE_STEP::MI_DISABLE_STEP()
     : WI_LABEL_t(label, 0, true, false) {
