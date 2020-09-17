@@ -545,11 +545,8 @@ void ScreenWizard::windowEvent(window_t *sender, uint8_t event, void *param) {
 const PhaseResponses Responses_IgnoreYesNo = { Response::Ignore, Response::Yes, Response::No, Response::_none };
 
 StateFncData StateFnc_START(StateFncData last_run) {
-    string_view_utf8 title = _("Welcome to the     \n"
-                               "Original Prusa MINI\n"
-                               "setup wizard.      \n"
-                               "Would you like to  \n"
-                               "continue?           ");
+    static const char en_text[] = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
+    string_view_utf8 translatedText = _(en_text);
 #ifdef _DEBUG
     const PhaseResponses &resp = Responses_IgnoreYesNo;
 #else  //_DEBUG
@@ -557,7 +554,7 @@ StateFncData StateFnc_START(StateFncData last_run) {
 #endif //_DEBUG
 
     //IDR_PNG_icon_pepa
-    switch (MsgBoxPepa(title, resp)) {
+    switch (MsgBoxPepa(translatedText, resp)) {
 #ifdef _DEBUG
     case Response::Ignore:
         eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
@@ -584,34 +581,31 @@ StateFncData StateFnc_INIT(StateFncData last_run) {
 }
 
 StateFncData StateFnc_INFO(StateFncData last_run) {
-    string_view_utf8 title = _("The status bar is at\n"
-                               "the bottom of the  \n"
-                               "screen. It contains\n"
-                               "information about: \n"
-                               " - Nozzle temp.    \n"
-                               " - Heatbed temp.   \n"
-                               " - Printing speed  \n"
-                               " - Z-axis height   \n"
-                               " - Selected filament");
-    MsgBox(title, Responses_NEXT);
+    static const char en_text[] = N_("The status bar is at\n"
+                                     "the bottom of the  \n"
+                                     "screen. It contains\n"
+                                     "information about: \n"
+                                     " - Nozzle temp.    \n"
+                                     " - Heatbed temp.   \n"
+                                     " - Printing speed  \n"
+                                     " - Z-axis height   \n"
+                                     " - Selected filament");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_FIRST(StateFncData last_run) {
-    string_view_utf8 title = _(
-        "Press NEXT to run  \n"
-        "the Selftest, which\n"
-        "checks for         \n"
-        "potential issues   \n"
-        "related to         \n"
-        "the assembly.");
-    MsgBox(title, Responses_NEXT);
+    static const char en_text[] = N_("Press NEXT to run the Selftest, which checks for potential issues related to the assembly.");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_FINISH(StateFncData last_run) {
-    static const char *txt = "Calibration successful! Happy printing!";
-    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
+    static const char en_text[] = N_("Calibration successful! Happy printing!");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT);
     return last_run.PassToNext();
 }
 
@@ -673,7 +667,9 @@ ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
         if (ret[i] == nullptr) {
             //bsod will not work, but it will cause freeze
-            bsod("Wizard states invalid");
+            //todo show bsod after display (spi) init
+            static const char en_text[] = N_("Wizard states invalid");
+            bsod(en_text);
         }
     }
 #endif

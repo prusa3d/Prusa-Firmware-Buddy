@@ -4,51 +4,50 @@
 #include "xyzcalib.hpp"
 
 StateFncData StateFnc_XYZCALIB_INIT(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "XYZCALIB_INIT      \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "XYZCALIB_INIT\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_HOME(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "XYZCALIB_HOME      \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "XYZCALIB_HOME\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_Z(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "XYZCALIB_Z         \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "XYZCALIB_Z\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_CLEAN_NOZZLE(StateFncData last_run) {
-    static const char *txt = "Please clean the nozzle for calibration. Click NEXT when done.";
-
-    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
-    MsgBox(title, Responses_NEXT);
+    static const char en_text[] = N_("Please clean the nozzle for calibration. Click NEXT when done.");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_IS_SHEET(StateFncData last_run) {
-    static const char *txt = "Is steel sheet on heatbed?";
+    static const char en_text[] = N_("Is steel sheet on heatbed?");
+    string_view_utf8 translatedText = _(en_text);
 
-    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
-    if (MsgBox(title, Responses_YesNo) == Response::Yes) {
+    if (MsgBox(translatedText, Responses_YesNo) == Response::Yes) {
         return StateFncData(WizardState_t::XYZCALIB_XY_MSG_REMOVE_SHEET, WizardTestState_t::PASSED);
     } else {
         return StateFncData(WizardState_t::XYZCALIB_XY_MSG_PLACE_PAPER, WizardTestState_t::PASSED);
@@ -57,37 +56,35 @@ StateFncData StateFnc_XYZCALIB_XY_MSG_IS_SHEET(StateFncData last_run) {
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_REMOVE_SHEET(StateFncData last_run) {
-    static const char *txt = "Please remove steel sheet from heatbed.";
-
-    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
-    MsgBox(title, Responses_NEXT);
+    static const char en_text[] = N_("Please remove steel sheet from heatbed.");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER(StateFncData last_run) {
-    static const char *txt = "Place a sheet of paper under the nozzle during the calibration of first "
-                             "4 points. If the nozzle catches the paper, power off printer immediately!";
-    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
-    MsgBox(title, Responses_NEXT);
+    static const char en_text[] = N_("Place a sheet of paper under the nozzle during the calibration of first "
+                                     "4 points. If the nozzle catches the paper, power off printer immediately!");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_XY_SEARCH(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "XYZCALIB_XY_SEARCH \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "XYZCALIB_XY_SEARCH\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_XYZCALIB_XY_MSG_PLACE_SHEET(StateFncData last_run) {
-    static const char *txt = "Please place steel sheet on heatbed.";
-
-    string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)txt);
-    MsgBox(title, Responses_NEXT);
+    static const char en_text[] = N_("Please place steel sheet on heatbed.");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT);
     return last_run.PassToNext();
 }
 

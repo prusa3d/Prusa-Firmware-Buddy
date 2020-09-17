@@ -4,57 +4,57 @@
 #include "gui.hpp"
 
 StateFncData StateFnc_SELFTEST_FAN0(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "SELFTEST_FAN0      \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_FAN0\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_SELFTEST_FAN1(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "SELFTEST_FAN1      \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_FAN1\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_SELFTEST_X(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "SELFTEST_X         \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_X\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_SELFTEST_Y(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "SELFTEST_Y         \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_Y\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_SELFTEST_Z(StateFncData last_run) {
-    static const char *title_txt = N_(
-        "State              \n"
-        "SELFTEST_Z         \n"
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_Z\n"
         "not implemented");
-    static const string_view_utf8 title = string_view_utf8::MakeCPUFLASH((const uint8_t *)(title_txt));
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(title, Responses_NEXT);
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
     return last_run.PassToNext();
 }
 
