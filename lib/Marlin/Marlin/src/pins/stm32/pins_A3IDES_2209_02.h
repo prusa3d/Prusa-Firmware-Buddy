@@ -42,40 +42,36 @@
 //
 // Limit Switches
 //
-#define X_MIN_PIN              MARLIN_PORT_PIN_X_DIAG
-#define X_MAX_PIN              MARLIN_PORT_PIN_X_DIAG
-#define Y_MIN_PIN              MARLIN_PORT_PIN_Y_DIAG
-#define Y_MAX_PIN              MARLIN_PORT_PIN_Y_DIAG
-#define Z_MIN_PIN              MARLIN_PORT_PIN_Z_MIN
-#define Z_MAX_PIN              MARLIN_PORT_PIN_Z_DIAG
+#define X_MIN_PIN              MARLIN_PIN(X_DIAG)
+#define X_MAX_PIN              MARLIN_PIN(X_DIAG)
+#define Y_MIN_PIN              MARLIN_PIN(Y_DIAG)
+#define Y_MAX_PIN              MARLIN_PIN(Y_DIAG)
+#define Z_MIN_PIN              MARLIN_PIN(Z_MIN)
+#define Z_MAX_PIN              MARLIN_PIN(Z_DIAG)
 
 //
 // Z Probe (when not Z_MIN_PIN)
 //
 
-//#ifndef Z_MIN_PROBE_PIN
-//  #define Z_MIN_PROBE_PIN    PA4
-//#endif
-
 //
 // Steppers
 //
 
-#define X_STEP_PIN             MARLIN_PORT_PIN_X_STEP
-#define X_DIR_PIN              MARLIN_PORT_PIN_X_DIR
-#define X_ENABLE_PIN           MARLIN_PORT_PIN_X_ENA
+#define X_STEP_PIN             MARLIN_PIN(X_STEP)
+#define X_DIR_PIN              MARLIN_PIN(X_DIR)
+#define X_ENABLE_PIN           MARLIN_PIN(X_ENA)
 
-#define Y_STEP_PIN             MARLIN_PORT_PIN_Y_STEP
-#define Y_DIR_PIN              MARLIN_PORT_PIN_Y_DIR
-#define Y_ENABLE_PIN           MARLIN_PORT_PIN_Y_ENA
+#define Y_STEP_PIN             MARLIN_PIN(Y_STEP)
+#define Y_DIR_PIN              MARLIN_PIN(Y_DIR)
+#define Y_ENABLE_PIN           MARLIN_PIN(Y_ENA)
 
-#define Z_STEP_PIN             MARLIN_PORT_PIN_Z_STEP
-#define Z_DIR_PIN              MARLIN_PORT_PIN_Z_DIR
-#define Z_ENABLE_PIN           MARLIN_PORT_PIN_Z_ENA
+#define Z_STEP_PIN             MARLIN_PIN(Z_STEP)
+#define Z_DIR_PIN              MARLIN_PIN(Z_DIR)
+#define Z_ENABLE_PIN           MARLIN_PIN(Z_ENA)
 
-#define E0_STEP_PIN            MARLIN_PORT_PIN_E0_STEP
-#define E0_DIR_PIN             MARLIN_PORT_PIN_E0_DIR
-#define E0_ENABLE_PIN          MARLIN_PORT_PIN_E0_ENA
+#define E0_STEP_PIN            MARLIN_PIN(E0_STEP)
+#define E0_DIR_PIN             MARLIN_PIN(E0_DIR)
+#define E0_ENABLE_PIN          MARLIN_PIN(E0_ENA)
 
 
 #if HAS_DRIVER(TMC2208)
@@ -110,23 +106,23 @@
 // Temperature Sensors
 //
 
-#define TEMP_0_PIN             MARLIN_PORT_PIN_TEMP_0     // Analog Input
-#define TEMP_BED_PIN           MARLIN_PORT_PIN_TEMP_BED   // Analog Input
+#define TEMP_0_PIN             MARLIN_PIN(TEMP_0)     // Analog Input
+#define TEMP_BED_PIN           MARLIN_PIN(TEMP_BED)   // Analog Input
 
-#define TEMP_BOARD_PIN         MARLIN_PORT_PIN_THERM2 // Analog Input
+#define TEMP_BOARD_PIN         MARLIN_PIN(THERM2) // Analog Input
 
 
 //
 // Heaters / Fans
 //
 
-#define HEATER_0_PIN           MARLIN_PORT_PIN_HEAT0
-#define HEATER_BED_PIN         MARLIN_PORT_PIN_BED_HEAT
+#define HEATER_0_PIN           MARLIN_PIN(HEAT0)
+#define HEATER_BED_PIN         MARLIN_PIN(BED_HEAT)
 
-#define FAN_PIN                MARLIN_PORT_PIN_FAN
+#define FAN_PIN                MARLIN_PIN(FAN)
 
 #undef E0_AUTO_FAN_PIN         //todo fixme, remove other definition of E0_AUTO_FAN_PIN
-#define E0_AUTO_FAN_PIN        MARLIN_PORT_PIN_FAN1
+#define E0_AUTO_FAN_PIN        MARLIN_PIN(FAN1)
 
 
 

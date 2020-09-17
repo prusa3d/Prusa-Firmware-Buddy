@@ -196,7 +196,7 @@ int putslave_do_cmd_q_gpio(uartslave_t *pslave, char *pstr) {
     int gpio = 0;
     if (sscanf(pstr, "%d", &gpio) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_15)))
+    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_NR_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_NR_15)))
         return UARTSLAVE_ERR_OOR;
     uartslave_printf(pslave, "%d ", gpio_get(gpio));
     return UARTSLAVE_OK;
@@ -237,7 +237,7 @@ int putslave_do_cmd_q_gpup(uartslave_t *pslave, char *pstr) {
     int gpio = 0;
     if (sscanf(pstr, "%d", &gpio) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_15)))
+    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_NR_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_NR_15)))
         return UARTSLAVE_ERR_OOR;
     gpio_init(gpio, GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_LOW);
     uartslave_printf(pslave, "%d ", gpio_get(gpio));
@@ -416,14 +416,14 @@ int putslave_do_cmd_a_gpio(uartslave_t *pslave, char *pstr) {
     int n = 0;
     if (sscanf(pstr, "%d%n", &gpio, &n) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_15)))
+    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_NR_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_NR_15)))
         return UARTSLAVE_ERR_OOR;
     pstr += n;
     if (sscanf(pstr, "%d%n", &state, &n) != 1)
         return UARTSLAVE_ERR_SYN;
     if ((state < 0) || (state > 1))
         return UARTSLAVE_ERR_OOR;
-    if (gpio == MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) {
+    if (gpio == MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_NR_0)) {
         if (state)
             hwio_beeper_set_pwm(255, 255); // 1
         else
@@ -440,7 +440,7 @@ int putslave_do_cmd_a_gpcf(uartslave_t *pslave, char *pstr) {
     int n = 0;
     if (sscanf(pstr, "%d%n", &gpio, &n) != 1)
         return UARTSLAVE_ERR_SYN;
-    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_15)))
+    if ((gpio < MARLIN_PORT_PIN(MARLIN_PORT_A, MARLIN_PIN_NR_0)) || (gpio > MARLIN_PORT_PIN(MARLIN_PORT_E, MARLIN_PIN_NR_15)))
         return UARTSLAVE_ERR_OOR;
     pstr += n;
     if (sscanf(pstr, "%d%n", &mode, &n) != 1)
@@ -708,11 +708,11 @@ static void enter_put() {
     hwio_pwm_set_val(HWIO_PWM_HEATER_BED, 0);
     hwio_pwm_set_val(HWIO_PWM_HEATER_0, 0);
     //SCK - PB10
-    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_B, MARLIN_PIN_10), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_B, MARLIN_PIN_NR_10), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
     //MISO - PC2
-    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_C, MARLIN_PIN_2), GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
+    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_C, MARLIN_PIN_NR_2), GPIO_MODE_INPUT, GPIO_PULLUP, GPIO_SPEED_FREQ_VERY_HIGH);
     //MOSI - PC3
-    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_C, MARLIN_PIN_3), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
+    gpio_init(MARLIN_PORT_PIN(MARLIN_PORT_C, MARLIN_PIN_NR_3), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_HIGH);
 }
 
 static int putslave_do_cmd_a_stop(uartslave_t *pslave) {

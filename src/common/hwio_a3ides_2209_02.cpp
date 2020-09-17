@@ -34,11 +34,11 @@ enum {
 
 // a3ides analog input pins
 const uint32_t _adc_pin32[] = {
-    MARLIN_PORT_PIN_HW_IDENTIFY,
-    MARLIN_PORT_PIN_TEMP_BED,
-    MARLIN_PORT_PIN_THERM2,
-    MARLIN_PORT_PIN_TEMP_HEATBREAK,
-    MARLIN_PORT_PIN_TEMP_0, // THERM0 (nozzle)
+    MARLIN_PIN(HW_IDENTIFY),
+    MARLIN_PIN(TEMP_BED),
+    MARLIN_PIN(THERM2),
+    MARLIN_PIN(TEMP_HEATBREAK),
+    MARLIN_PIN(TEMP_0), // THERM0 (nozzle)
 };
 // a3ides analog input maximum values
 const int _adc_max[] = { 4095, 4095, 4095, 4095, 4095 };
@@ -70,10 +70,10 @@ int _tim3_period_us = GEN_PERIOD_US(TIM3_default_Prescaler, TIM3_default_Period)
 
 // a3ides pwm output pins
 const uint32_t _pwm_pin32[] = {
-    MARLIN_PORT_PIN_HEAT0,
-    MARLIN_PORT_PIN_BED_HEAT,
-    MARLIN_PORT_PIN_FAN1,
-    MARLIN_PORT_PIN_FAN
+    MARLIN_PIN(HEAT0),
+    MARLIN_PIN(BED_HEAT),
+    MARLIN_PIN(FAN1),
+    MARLIN_PIN(FAN)
 };
 
 const uint32_t _pwm_chan[] = {
@@ -547,23 +547,23 @@ int digitalRead(uint32_t ulPin) {
     if (HAL_GPIO_Initialized) {
         switch (ulPin) {
 #ifdef SIM_MOTION
-        case MARLIN_PORT_PIN_Z_MIN:
+        case MARLIN_PIN(Z_MIN):
             return sim_motion_get_min_end(2);
-        case PIN_E_DIAG:
+        case MARLIN_PIN(E0_DIAG):
             return sim_motion_get_diag(3);
-        case PIN_Y_DIAG:
+        case MARLIN_PIN(Y_DIAG):
             return sim_motion_get_diag(1);
-        case PIN_X_DIAG:
+        case MARLIN_PIN(X_DIAG):
             return sim_motion_get_diag(0);
-        case PIN_Z_DIAG:
+        case MARLIN_PIN(Z_DIAG):
             return sim_motion_get_diag(2);
 #else  //SIM_MOTION
-        case MARLIN_PORT_PIN_Z_MIN:
-        case MARLIN_PORT_PIN_E0_DIAG:
-        case MARLIN_PORT_PIN_Y_DIAG:
-        case MARLIN_PORT_PIN_X_DIAG:
-        case MARLIN_PORT_PIN_Z_DIAG:
-        case MARLIN_PORT_PIN_Z_DIR:
+        case MARLIN_PIN(Z_MIN):
+        case MARLIN_PIN(E0_DIAG):
+        case MARLIN_PIN(Y_DIAG):
+        case MARLIN_PIN(X_DIAG):
+        case MARLIN_PIN(Z_DIAG):
+        case MARLIN_PIN(Z_DIR):
             return gpio_get(ulPin);
 #endif //SIM_MOTION
         default:
@@ -577,7 +577,7 @@ int digitalRead(uint32_t ulPin) {
 void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
     if (HAL_GPIO_Initialized) {
         switch (ulPin) {
-        case MARLIN_PORT_PIN_BED_HEAT:
+        case MARLIN_PIN(BED_HEAT):
             //hwio_heater_set_pwm(_HEATER_BED, ulVal?255:0);
 #ifdef SIM_HEATER_BED_ADC
             if (adc_sim_msk & (1 << SIM_HEATER_BED_ADC))
@@ -586,7 +586,7 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
 #endif //SIM_HEATER_BED_ADC
                 _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_BED] : 0);
             return;
-        case MARLIN_PORT_PIN_HEAT0:
+        case MARLIN_PIN(HEAT0):
             //hwio_heater_set_pwm(_HEATER_0, ulVal?255:0);
 #ifdef SIM_HEATER_NOZZLE_ADC
             if (adc_sim_msk & (1 << SIM_HEATER_NOZZLE_ADC))
@@ -595,7 +595,7 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
 #endif //SIM_HEATER_NOZZLE_ADC
                 _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max[HWIO_PWM_HEATER_0] : 0);
             return;
-        case MARLIN_PORT_PIN_FAN1:
+        case MARLIN_PIN(FAN1):
             //hwio_fan_set_pwm(_FAN1, ulVal?255:0);
             //_hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? _pwm_analogWrite_max[HWIO_PWM_FAN1] : 0);
 #ifdef NEW_FANCTL
@@ -604,7 +604,7 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? 100 : 0);
 #endif //NEW_FANCTL
             return;
-        case MARLIN_PORT_PIN_FAN:
+        case MARLIN_PIN(FAN):
 #ifdef NEW_FANCTL
             fanctl_set_pwm(0, ulVal ? 50 : 0);
 #else  //NEW_FANCTL
@@ -612,55 +612,55 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
 #endif //NEW_FANCTL
             return;
 #ifdef SIM_MOTION
-        case PIN_X_DIR:
+        case MARLIN_PIN(X_DIR):
             sim_motion_set_dir(0, ulVal ? 1 : 0);
             return;
-        case PIN_X_STEP:
+        case MARLIN_PIN(X_STEP):
             sim_motion_set_stp(0, ulVal ? 1 : 0);
             return;
-        case PIN_Z_ENABLE:
+        case MARLIN_PIN(Z_ENABLE):
             sim_motion_set_ena(2, ulVal ? 1 : 0);
             return;
-        case PIN_X_ENABLE:
+        case MARLIN_PIN(X_ENABLE):
             sim_motion_set_ena(0, ulVal ? 1 : 0);
             return;
-        case PIN_Z_STEP:
+        case MARLIN_PIN(Z_STEP):
             sim_motion_set_stp(2, ulVal ? 1 : 0);
             return;
-        case PIN_E_DIR:
+        case MARLIN_PIN(E_DIR):
             sim_motion_set_dir(3, ulVal ? 1 : 0);
             return;
-        case PIN_E_STEP:
+        case MARLIN_PIN(E_STEP):
             sim_motion_set_stp(3, ulVal ? 1 : 0);
             return;
-        case PIN_E_ENABLE:
+        case MARLIN_PIN(E_ENABLE):
             sim_motion_set_ena(3, ulVal ? 1 : 0);
             return;
-        case PIN_Y_DIR:
+        case MARLIN_PIN(Y_DIR):
             sim_motion_set_dir(1, ulVal ? 1 : 0);
             return;
-        case PIN_Y_STEP:
+        case MARLIN_PIN(Y_STEP):
             sim_motion_set_stp(1, ulVal ? 1 : 0);
             return;
-        case PIN_Y_ENABLE:
+        case MARLIN_PIN(Y_ENABLE):
             sim_motion_set_ena(1, ulVal ? 1 : 0);
             return;
-        case PIN_Z_DIR:
+        case MARLIN_PIN(Z_DIR):
             sim_motion_set_dir(2, ulVal ? 1 : 0);
             return;
 #else  //SIM_MOTION
-        case MARLIN_PORT_PIN_X_DIR:
-        case MARLIN_PORT_PIN_X_STEP:
-        case MARLIN_PORT_PIN_Z_ENA:
-        case MARLIN_PORT_PIN_X_ENA:
-        case MARLIN_PORT_PIN_Z_STEP:
-        case MARLIN_PORT_PIN_E0_DIR:
-        case MARLIN_PORT_PIN_E0_STEP:
-        case MARLIN_PORT_PIN_E0_ENA:
-        case MARLIN_PORT_PIN_Y_DIR:
-        case MARLIN_PORT_PIN_Y_STEP:
-        case MARLIN_PORT_PIN_Y_ENA:
-        case MARLIN_PORT_PIN_Z_DIR:
+        case MARLIN_PIN(X_DIR):
+        case MARLIN_PIN(X_STEP):
+        case MARLIN_PIN(Z_ENA):
+        case MARLIN_PIN(X_ENA):
+        case MARLIN_PIN(Z_STEP):
+        case MARLIN_PIN(E0_DIR):
+        case MARLIN_PIN(E0_STEP):
+        case MARLIN_PIN(E0_ENA):
+        case MARLIN_PIN(Y_DIR):
+        case MARLIN_PIN(Y_STEP):
+        case MARLIN_PIN(Y_ENA):
+        case MARLIN_PIN(Z_DIR):
             gpio_set(ulPin, ulVal ? 1 : 0);
             return;
 #endif //SIM_MOTION
@@ -679,13 +679,13 @@ void digitalToggle(uint32_t ulPin) {
 uint32_t analogRead(uint32_t ulPin) {
     if (HAL_ADC_Initialized) {
         switch (ulPin) {
-        case MARLIN_PORT_PIN_TEMP_BED:
+        case MARLIN_PIN(TEMP_BED):
             return hwio_adc_get_val(ADC_TEMP_BED);
-        case MARLIN_PORT_PIN_TEMP_0:
+        case MARLIN_PIN(TEMP_0):
             return hwio_adc_get_val(ADC_TEMP_0);
-        case MARLIN_PORT_PIN_TEMP_HEATBREAK:
+        case MARLIN_PIN(TEMP_HEATBREAK):
             return hwio_adc_get_val(ADC_TEMP_HEATBREAK);
-        case MARLIN_PORT_PIN_THERM2:
+        case MARLIN_PIN(THERM2):
             return hwio_adc_get_val(ADC_TEMP_2);
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); //error: undefined pin analog read
@@ -698,11 +698,11 @@ uint32_t analogRead(uint32_t ulPin) {
 void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
-        case MARLIN_PORT_PIN_FAN1:
+        case MARLIN_PIN(FAN1):
             //hwio_fan_set_pwm(_FAN1, ulValue);
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulValue);
             return;
-        case MARLIN_PORT_PIN_FAN:
+        case MARLIN_PIN(FAN):
             //hwio_fan_set_pwm(_FAN, ulValue);
 #ifdef NEW_FANCTL
             fanctl_set_pwm(0, ulValue * 50 / 255);
@@ -710,10 +710,10 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulValue);
 #endif //NEW_FANCTL
             return;
-        case MARLIN_PORT_PIN_BED_HEAT:
+        case MARLIN_PIN(BED_HEAT):
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulValue);
             return;
-        case MARLIN_PORT_PIN_HEAT0:
+        case MARLIN_PIN(HEAT0):
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulValue);
             return;
         default:
