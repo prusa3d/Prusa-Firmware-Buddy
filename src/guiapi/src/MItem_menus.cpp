@@ -5,6 +5,7 @@
 #include "screen_qr_error.hpp"
 #include "screen_test.hpp"
 #include "screen_messages.hpp"
+#include "eeprom.h"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -145,10 +146,21 @@ void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_ACTUAL_PROFILE
-MI_ACTUAL_PROFILE::MI_ACTUAL_PROFILE()
+//MI_CURRENT_PROFILE
+MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
     : WI_LABEL_t(label, 0, true, true) {
 }
 
-void MI_ACTUAL_PROFILE::click(IWindowMenu & /*window_menu*/) {
+void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
+    sheet_next_calibrated();
+    UpdateLabel();
+}
+
+void MI_CURRENT_PROFILE::UpdateLabel() {
+    char name[MAX_SHEET_NAME_LENGTH + 2];
+    name[0] = '[';
+    sheet_get_current_name(name + 1, MAX_SHEET_NAME_LENGTH);
+    name[MAX_SHEET_NAME_LENGTH] = ']';
+    name[MAX_SHEET_NAME_LENGTH + 1] = '\0';
+    SetLabel(name);
 }
