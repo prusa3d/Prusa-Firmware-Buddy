@@ -181,39 +181,43 @@ const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_wizard_icon_ng;
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding)
     : window_aligned_t(
         parent,
-        [pt, id_res_ok, padding] {
-            size_ui16_t sz = window_icon_t::CalculateMinimalSize(id_res_ok);
+        [pt, padding] {
+            size_ui16_t sz = window_icon_t::CalculateMinimalSize(WindowIcon_OkNg::id_res_ok);
             if (!(sz.h && sz.w))
                 return Rect16();
             return Rect16(pt,
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);
-        }(), ) {
+        }()) {
+    SetState(State_t::undef);
 }
 
-void window_icon_t::unconditionalDraw() {
-    uint8_t ropfn = 0;
-    if (IsShadowed()) { // that could not be set, but what if
-        ropfn |= ROPFN_DISABLE;
-    }
-    if (IsFocused()) {
-        ropfn |= ROPFN_SWAPBW;
-    }
-
-    render_icon_align(rect, id_res, color_back, RENDER_FLG(GetAlignment(), ropfn));
+WindowIcon_OkNg::State_t WindowIcon_OkNg::GetState() const {
+    return static_cast<State_t>(mem_array_u08[1]);
 }
 
-bool window_icon_t::IsShadowed() const { return flag_custom0 == true; }
-void window_icon_t::Shadow() { flag_custom0 = true; }
-void window_icon_t::Unshadow() { flag_custom0 = false; }
+//there is a free space in window_t flags, store state in it
+void WindowIcon_OkNg::SetState(State_t s) {
+    const uint8_t state = static_cast<uint8_t>(s);
+    if (state != mem_array_u08[1]) {
+        mem_array_u08[1] = state;
+        Invalidate();
+    }
+}
 
-size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
-    size_ui16_t ret = size_ui16(0, 0);
-    if (!id_res)
-        return ret;
-    const uint8_t *p_icon = resource_ptr(id_res);
-    if (!p_icon)
-        return ret;
-    ret = icon_size(p_icon);
-    return ret;
+void WindowIcon_OkNg::unconditionalDraw() {
+    uint16_t id_res = 0;
+    switch (GetState()) {
+    case State_t::ok:
+        id_res = id_res_ok;
+        break;
+    case State_t::ng:
+        id_res = id_res_ng;
+        break;
+    case State_t::undef:
+        id_res = 0;
+        break;
+    }
+
+    render_icon_align(rect, id_res, color_back, GetAlignment());
 }

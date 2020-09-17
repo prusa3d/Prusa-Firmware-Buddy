@@ -527,7 +527,8 @@ if(GUI)
             src/gui/dialogs/DialogRadioButton.cpp
             src/gui/dialogs/DialogLoadUnload.cpp
             src/gui/dialogs/DialogG162.cpp
-            src/gui/dialogs/DialogSelftestFansAxis.cpp
+            src/gui/dialogs/DialogSelftestAxis.cpp
+            src/gui/dialogs/DialogSelftestFans.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp

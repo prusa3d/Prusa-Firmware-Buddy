@@ -24,7 +24,7 @@ void PrusaGcodeSuite::D666() {
         axis_test = fan_axis_test = true;
     }
 
-    FSM_Holder D(ClientFSM::SelftestFansAxis, 0);
+    FSM_Holder D(ClientFSM::SelftestFans, 0);
     while (1)
         ;
     /*    FSM_Holder D(ClientFSM::G162, 0);
