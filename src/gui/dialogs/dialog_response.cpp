@@ -14,6 +14,7 @@ const std::array<const char *, static_cast<size_t>(Response::_last) + 1> BtnText
     N_("CONTINUE"),
     N_("DISABLE SENSOR"),
     N_("IGNORE"),
+    N_("NEXT"),
     N_("NO"),
     N_("OK"),
     N_("PURGE MORE"),

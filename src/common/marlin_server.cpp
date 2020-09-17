@@ -31,7 +31,7 @@
 #include "hwio.h"
 #include "eeprom.h"
 #include "media.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "wdt.h"
 #include "fanctl.h"
 #include "trinamic.h"
