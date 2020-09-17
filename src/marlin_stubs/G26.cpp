@@ -10,8 +10,11 @@
 #include "G26.hpp"
 #include "cmath_ext.h"
 
-constexpr float filamentD = 1.75f;
-constexpr float pi = 3.1415926535897932384626433832795f;
+static const constexpr float filamentD = 1.75f;
+static const constexpr float layerHeight = 0.2f;
+static const constexpr float threadWidth = 0.5f;
+
+static const constexpr float pi = 3.1415926535897932384626433832795f;
 
 void go_to_destination(const float x, const float y, const float z, const float e, const float f) {
     if (isfinite(x))
@@ -69,15 +72,14 @@ float extrusion(const float x1, const float y1, const float x2, const float y2, 
 }
 
 float extrusion_Manhattan(const float *path, const uint32_t position, const float last) {
-    float x, y;
     if (position % 2 == 0) {
-        x = path[position];
-        y = path[position - 2];
-        return extrusion(x, y, last, y);
+        const float x = path[position];
+        const float y = path[position - 2];
+        return extrusion(x, y, last, y, layerHeight, threadWidth);
     } else {
-        x = path[position - 1];
-        y = path[position];
-        return extrusion(x, y, x, last);
+        const float x = path[position - 1];
+        const float y = path[position];
+        return extrusion(x, y, x, last, layerHeight, threadWidth);
     }
 }
 
