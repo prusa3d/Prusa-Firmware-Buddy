@@ -1,26 +1,26 @@
 #include "DialogSelftestFansAxis.hpp"
 #include "gui.hpp" //resource_font
 #include "i18n.h"
-#include "dialog_response.hpp"
+#include "wizard_config.h"
 
-/*****************************************************************************/
-// clang-format off
-static const char *txt_first              = N_("Finishing         \nbuffered gcodes.  \n");
-//static const char *txt_parking            = N_("Parking");
+static constexpr size_t col_0 = WIZARD_MARGIN_LEFT;
+static constexpr size_t col_0_w = 200;
+static constexpr size_t col_1 = col_0_w + WIZARD_MARGIN_LEFT;
 
-static DialogSelftestFansAxis::States Factory() {
-    DialogSelftestFansAxis::States ret = {
-        DialogSelftestFansAxis::State { txt_first,   ClientResponses::GetResponses(PhasesSelfTest::_first),  ph_txt_none },
-        DialogSelftestFansAxis::State { txt_first, ClientResponses::GetResponses(PhasesSelfTest::FansAxis), ph_txt_stop },
-        DialogSelftestFansAxis::State { txt_first, ClientResponses::GetResponses(PhasesSelfTest::Cooldown), ph_txt_stop },
-        DialogSelftestFansAxis::State { txt_first, ClientResponses::GetResponses(PhasesSelfTest::Heaters), ph_txt_stop },
-    };
-
-    return ret;
-}
-// clang-format on
-/*****************************************************************************/
-
-DialogSelftestFansAxis::DialogSelftestFansAxis(string_view_utf8 name)
-    : DialogStateful<PhasesSelfTest>(name, Factory()) {
+DialogSelftestFansAxis::DialogSelftestFansAxis()
+    : IDialogMarlin()
+    , text_fan_test(this, Rect16(col_0, 40, WIZARD_X_SPACE, 22), is_multiline::no, is_closed_on_click_t::no, _("Fan test"))
+    , progress_fan(this, Rect16(col_0, 62, WIZARD_X_SPACE, 8), COLOR_LIME, COLOR_BLACK)
+    , text_extruder_fan(this, Rect16(col_0, 74, col_1, 22), is_multiline::no, is_closed_on_click_t::no, _("Hotend fan"))
+    , icon_extruder_fan(this, Rect16(col_0, 62, WIZARD_X_SPACE, 8), COLOR_LIME, COLOR_BLACK)
+    , text_print_fan;
+, icon_print_fan;
+, text_checking_axis;
+, progress_axis(this, Rect16(col_0, 62, WIZARD_X_SPACE, 8), COLOR_LIME, COLOR_BLACK), text_x_axis;
+, icon_x_axis;
+, text_y_axis;
+, icon_y_axis;
+, text_z_axis;
+, icon_z_axis;
+{
 }

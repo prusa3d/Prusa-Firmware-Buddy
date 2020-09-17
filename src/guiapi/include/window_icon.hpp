@@ -43,3 +43,14 @@ protected:
     virtual void unconditionalDraw() override;
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
+
+class WindowIcon_OkNg : public window_aligned_t {
+    static const uint16_t id_res_ok;
+    static const uint16_t id_res_ng;
+
+public:
+    WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 });
+
+protected:
+    virtual void unconditionalDraw() override;
+};

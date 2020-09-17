@@ -5,7 +5,7 @@
 #include "DialogFactory.hpp"
 
 class DialogHandler {
-    static_unique_ptr<IDialogStateful> ptr;
+    static_unique_ptr<IDialogMarlin> ptr;
     DialogFactory::Ctors dialog_ctors;
     ClientFSM waiting_closed = ClientFSM::_none;
 
