@@ -1,5 +1,6 @@
 //appmain.cpp - arduino-like app start
 
+#include "appmain.hpp"
 #include "app.h"
 #include "dbg.h"
 #include "cmsis_os.h"

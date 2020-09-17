@@ -18,9 +18,6 @@
 #define DUMP_REGS_SCB 0x1000ff60
 #define DUMP_INFO     0x1000fff0
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _dump_regs_gen_t {
     union {
         uint32_t R[16];
@@ -80,8 +77,6 @@ typedef struct _dump_mallinfo_t {
     uint32_t fordblks; /* total non-inuse space */
     uint32_t keepcost; /* top-most, releasable (via malloc_trim) space */
 } dump_mallinfo_t;
-
-#pragma pack(pop)
 
 typedef struct _dump_t {
     uint8_t *ram;

@@ -16,7 +16,6 @@
 #include "Arduino.h"
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
-#include "filament_sensor.h"
 #include "bsod.h"
 #include "main.h"
 #include "fanctl.h"

@@ -177,7 +177,7 @@ void ScreenMenuFilament::deactivate_item() {
 
     uint8_t filament = 0;
     filament |= get_filament() != FILAMENT_NONE ? F_EEPROM : 0;
-    filament |= fs_get_state() == FS_NO_FILAMENT ? 0 : F_SENSED;
+    filament |= fs_get_state() == fsensor_t::FS_NO_FILAMENT ? 0 : F_SENSED;
     switch (filament) {
     case 0: //filament not loaded
         ena<MI_LOAD>();

@@ -24,8 +24,8 @@ static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read
 // measure time needed to update crc
 //#define EEPROM_MEASURE_CRC_TIME
 
-#pragma pack(push)
-#pragma pack(1)
+// this pragma pack must remain intact, the ordering of EEPROM variables is not alignment-friendly
+#pragma pack(push, 1)
 
 // eeprom map entry structure
 typedef struct _eeprom_entry_t {
@@ -327,11 +327,12 @@ static void eeprom_print_vars(void) {
     uint8_t id;
     char text[128];
     variant8_t var8;
+    variant8_t *pvar = &var8;
     for (id = 0; id < EEPROM_VARCOUNT; id++) {
         var8 = eeprom_get_var(id);
         eeprom_var_format(text, sizeof(text), id, var8);
         _dbg("%s=%s", eeprom_map[id].name, text);
-        variant8_done(&var8);
+        variant8_done(&pvar);
     }
 }
 

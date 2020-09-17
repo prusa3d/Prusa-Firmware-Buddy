@@ -109,7 +109,7 @@ void gui_run(void) {
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
 
-    Sound_Play(eSOUND_TYPE_Start);
+    Sound_Play(eSOUND_TYPE::Start);
 
     ScreenFactory::Creator screen_initializer[] {
 #ifndef _DEBUG

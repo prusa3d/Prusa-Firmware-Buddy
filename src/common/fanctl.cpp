@@ -12,18 +12,17 @@ static CFanCtl *CFanCtl_instance[FANCTL_MAX_FANS]; // array of pointers to insta
 // CFanCtlPWM implementation
 
 CFanCtlPWM::CFanCtlPWM(IoPort portOut, IoPin pinOut, uint8_t pwm_min, uint8_t pwm_max)
-    : m_pin(portOut, pinOut, InitState::reset, OMode::pushPull, OSpeed::high) {
-    min_value = pwm_min;
-    max_value = pwm_max;
-    output_state = false;
-    pha_ena = false;
-    pwm = 0;
-    cnt = 0;
-    val = 0;
-    pha = 0;
-    pha_max = 0;
-    pha_stp = 0;
-}
+    : m_pin(portOut, pinOut, InitState::reset, OMode::pushPull, OSpeed::high)
+    , min_value(pwm_min)
+    , max_value(pwm_max)
+    , output_state(false)
+    , pha_ena(false)
+    , pwm(0)
+    , cnt(0)
+    , val(0)
+    , pha(0)
+    , pha_max(0)
+    , pha_stp(0) {}
 
 int8_t CFanCtlPWM::tick() {
     int8_t pwm_on = cnt - pha; // calculate on time (number of ticks after 0-1 pwm transition)
@@ -105,11 +104,11 @@ void CFanCtlTach::tick(int8_t pwm_on) {
 
 CFanCtl::CFanCtl(IoPort portOut, IoPin pinOut, IoPort portTach, IoPin pinTach,
     uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM)
-    : m_pwm(portOut, pinOut, minPWM, maxPWM)
+    : m_MinRPM(minRPM)
+    , m_MaxRPM(maxRPM)
+    , m_State(idle)
+    , m_pwm(portOut, pinOut, minPWM, maxPWM)
     , m_tach(portTach, pinTach) {
-    m_MinRPM = minRPM;
-    m_MaxRPM = maxRPM;
-    m_State = idle;
     // this is not thread-safe for first look, but CFanCtl instances are global variables, so it is safe
     if (CFanCtl_count < FANCTL_MAX_FANS)
         CFanCtl_instance[CFanCtl_count++] = this;
@@ -123,7 +122,7 @@ void CFanCtl::tick() {
 }
 
 void CFanCtl::setPWM(uint8_t pwm) {
-    m_pwm.set_PWM(pwm);
+    m_pwm.set_PWM(m_MaxRPM);
 }
 
 //------------------------------------------------------------------------------
@@ -152,4 +151,13 @@ uint16_t fanctl_get_rpm(uint8_t fan) {
         return CFanCtl_instance[fan]->getActualRPM();
     return 0;
 }
+}
+
+void CFanCtl::safeState() {
+    m_pwm.safeState();
+}
+
+void CFanCtlPWM::safeState() {
+    set_PWM(max_value);
+    m_pin.write(GPIO_PinState::GPIO_PIN_SET);
 }

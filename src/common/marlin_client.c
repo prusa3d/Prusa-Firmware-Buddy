@@ -29,29 +29,27 @@ enum {
     DBG_VAR_STR_MAX_LEN = 128
 };
 
-#pragma pack(push)
-#pragma pack(1)
-
 // client
 typedef struct _marlin_client_t {
-    uint8_t id;          // client id (0..MARLIN_MAX_CLIENTS-1)
-    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
-    uint64_t events;     // event mask
-    uint64_t changes;    // variable change mask
-    marlin_vars_t vars;  // cached variables
-    uint32_t ack;        // cached ack value from last Acknowledge event
-    uint16_t last_count; // number of messages received in last client loop
+    uint64_t events;  // event mask
+    uint64_t changes; // variable change mask
     uint64_t errors;
-    marlin_mesh_t mesh;           // meshbed leveling
+    marlin_mesh_t mesh; // meshbed leveling
+
+    marlin_vars_t vars;           // cached variables
+    uint32_t ack;                 // cached ack value from last Acknowledge event
     uint32_t command;             // processed command (G28,G29,M701,M702,M600)
-    uint8_t reheating;            // reheating in progress
     fsm_create_t fsm_create_cb;   // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
     fsm_destroy_t fsm_destroy_cb; // to register callback for screen destruction
     fsm_change_t fsm_change_cb;   // to register callback for change of state
     message_cb_t message_cb;      // to register callback message
-} marlin_client_t;
 
-#pragma pack(pop)
+    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
+    uint16_t last_count; // number of messages received in last client loop
+
+    uint8_t id;        // client id (0..MARLIN_MAX_CLIENTS-1)
+    uint8_t reheating; // reheating in progress
+} marlin_client_t;
 
 //-----------------------------------------------------------------------------
 // variables
@@ -123,6 +121,7 @@ void marlin_client_loop(void) {
     uint16_t count = 0;
     osEvent ose;
     variant8_t msg;
+    variant8_t *pmsg = &msg;
     int client_id;
     marlin_client_t *client;
     osMessageQId queue;
@@ -136,13 +135,13 @@ void marlin_client_loop(void) {
     if ((queue = marlin_client_queue[client_id]) != 0)
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
-                *(((uint32_t *)(&msg)) + 1) = ose.value.v; //store high dword
-                _process_client_message(client, msg);      //call handler
-                variant8_done(&msg);
+                msg |= ((variant8_t)ose.value.v << 32); //store high dword
+                _process_client_message(client, msg);   //call handler
+                variant8_done(&pmsg);
                 count++;
             } else
-                *(((uint32_t *)(&msg)) + 0) = ose.value.v; //store low dword
-            client->flags ^= MARLIN_CFLG_LOWHIGH;          //flip flag
+                msg = ose.value.v;                //store low dword
+            client->flags ^= MARLIN_CFLG_LOWHIGH; //flip flag
         }
     client->last_count = count;
 }
@@ -443,13 +442,17 @@ variant8_t marlin_get_var(uint8_t var_id) {
 variant8_t marlin_set_var(uint8_t var_id, variant8_t val) {
     variant8_t retval = variant8_empty();
     char request[MARLIN_MAX_REQUEST];
-    int n;
     marlin_client_t *client = _client_ptr();
     if (client) {
         retval = marlin_vars_get_var(&(client->vars), var_id);
         marlin_vars_set_var(&(client->vars), var_id, val);
-        n = snprintf(request, MARLIN_MAX_REQUEST, "!var %s ", marlin_vars_get_name(var_id));
-        if (marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n) >= (sizeof(request) - n))
+        const int n = snprintf(request, MARLIN_MAX_REQUEST, "!var %s ", marlin_vars_get_name(var_id));
+        if (n < 0)
+            bsod("Error formatting var name.");
+        const int v = marlin_vars_value_to_str(&(client->vars), var_id, request + n, sizeof(request) - n);
+        if (v < 0)
+            bsod("Error formatting var value.");
+        if (((size_t)v + (size_t)n) >= sizeof(request))
             bsod("Request too long.");
         _send_request_to_server(client->id, request);
         _wait_ack_from_server(client->id);
@@ -589,7 +592,10 @@ void marlin_print_start(const char *filename) {
     marlin_client_t *client = _client_ptr();
     if (client == 0)
         return;
-    if (snprintf(request, sizeof(request), "!pstart %s", filename) >= sizeof(request))
+    const int len = snprintf(request, sizeof(request), "!pstart %s", filename);
+    if (len < 0)
+        bsod("Error formatting request.");
+    if ((size_t)len >= sizeof(request))
         bsod("Request too long.");
     _send_request_to_server(client->id, request);
     _wait_ack_from_server(client->id);
@@ -756,7 +762,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case MARLIN_EVT_Message:
             if (client->message_cb)
-                client->message_cb(msg.pch);
+                client->message_cb(variant8_get_pch(msg));
             break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added

@@ -9,26 +9,6 @@ enum {
     FANCTL_MAX_FANS = 2 // maximum number of fans for C wrapper functions
 };
 
-// this structure contain variables for software pwm fan control with phase-shifting
-// used in class CFanCtlPWM
-typedef struct _fanctl_pwm_t {
-    uint8_t min_value; // minimum pwm value
-    uint8_t max_value; // maximum pwm value
-    union {
-        struct {                   // flags:
-            bool output_state : 1; //  current pwm output state (0/1)
-            bool pha_ena : 1;      //  phase shift enabled
-        };
-        uint8_t flags; // flags as uint8
-    };
-    uint8_t pwm;    // requested pwm value
-    uint8_t cnt;    // pwm counter (value 0..max-1)
-    uint8_t val;    // pwm value (cached during pwm cycle)
-    int8_t pha;     // pwm phase shift
-    int8_t pha_max; // pwm phase shift maximum (calculated when pwm changed)
-    int8_t pha_stp; // pwm phase shift step (calculated when pwm changed)
-} fanctl_pwm_t;
-
 // this structure contain variables for rpm measuement
 // used in class CFanCtlTach
 typedef struct _fanctl_tach_t {
@@ -48,7 +28,7 @@ typedef struct _fanctl_tach_t {
 #ifdef __cplusplus
 
 // class for software pwm control with phase-shifting
-class CFanCtlPWM : private fanctl_pwm_t {
+class CFanCtlPWM {
 public:
     // constructor
     CFanCtlPWM(IoPort portOut, IoPin pinOut, uint8_t pwm_min, uint8_t pwm_max);
@@ -64,9 +44,25 @@ public:
 
     // setters
     void set_PWM(uint8_t new_pwm);
+    void safeState();
 
 private:
     OutputPin m_pin;
+    const uint8_t min_value; // minimum pwm value
+    const uint8_t max_value; // maximum pwm value
+    union {
+        struct {                   // flags:
+            bool output_state : 1; //  current pwm output state (0/1)
+            bool pha_ena : 1;      //  phase shift enabled
+        };
+        uint8_t flags; // flags as uint8
+    };
+    uint8_t pwm;    // requested pwm value
+    uint8_t cnt;    // pwm counter (value 0..max-1)
+    uint8_t val;    // pwm value (cached during pwm cycle)
+    int8_t pha;     // pwm phase shift
+    int8_t pha_max; // pwm phase shift maximum (calculated when pwm changed)
+    int8_t pha_stp; // pwm phase shift step (calculated when pwm changed)
 };
 
 // class for rpm measurement
@@ -120,10 +116,12 @@ public:
     { return m_tach.getRPM(); }
     // setters
     void setPWM(uint8_t pwm); // set PWM value - switch to non closed-loop mode
+    void safeState();
+
 private:
-    uint16_t m_MinRPM; // minimum rpm value (set in constructor)
-    uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
-    FanState m_State;  // fan control state
+    const uint16_t m_MinRPM; // minimum rpm value (set in constructor)
+    const uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
+    FanState m_State;        // fan control state
 
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
