@@ -121,6 +121,7 @@ void marlin_client_loop(void) {
     uint16_t count = 0;
     osEvent ose;
     variant8_t msg;
+    variant8_t *pmsg = &msg;
     int client_id;
     marlin_client_t *client;
     osMessageQId queue;
@@ -134,13 +135,13 @@ void marlin_client_loop(void) {
     if ((queue = marlin_client_queue[client_id]) != 0)
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
-                *(((uint32_t *)(&msg)) + 1) = ose.value.v; //store high dword
-                _process_client_message(client, msg);      //call handler
-                variant8_done(&msg);
+                msg |= ((variant8_t)ose.value.v << 32); //store high dword
+                _process_client_message(client, msg);   //call handler
+                variant8_done(&pmsg);
                 count++;
             } else
-                *(((uint32_t *)(&msg)) + 0) = ose.value.v; //store low dword
-            client->flags ^= MARLIN_CFLG_LOWHIGH;          //flip flag
+                msg = ose.value.v;                //store low dword
+            client->flags ^= MARLIN_CFLG_LOWHIGH; //flip flag
         }
     client->last_count = count;
 }
@@ -586,6 +587,14 @@ void marlin_quick_stop(void) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_test_start(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!test");
+    _wait_ack_from_server(client->id);
+}
+
 void marlin_print_start(const char *filename) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
@@ -761,7 +770,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case MARLIN_EVT_Message:
             if (client->message_cb)
-                client->message_cb(msg.pch);
+                client->message_cb(variant8_get_pch(msg));
             break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added

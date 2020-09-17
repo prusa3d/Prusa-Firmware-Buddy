@@ -93,9 +93,6 @@ pipeline {
         }
 
         stage('Test') {
-            when {
-                expression { env.CHANGE_TARGET }
-            }
             steps {
                 sh """
                 python3 utils/bootstrap.py
@@ -115,6 +112,8 @@ pipeline {
         always {
             // archive build products
             archiveArtifacts artifacts: 'build/products/*', fingerprint: true
+            // archive test products
+            archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
         }
         cleanup {
             deleteDir()
