@@ -9,12 +9,10 @@
 #include "otp.h"
 #include "trinamic.h"
 
-
 CMarlinTest MarlinTest = CMarlinTest();
 
-
 CMarlinTest::CMarlinTest() {
-	sg_sample_on = false;
+    sg_sample_on = false;
 }
 
 bool CMarlinTest::isInProgress() {
@@ -81,7 +79,7 @@ void CMarlinTest::loop() {
     case mtsXAxis_Home:
         if (marlin_server_get_command() != MARLIN_CMD_G28) {
             state = mtsXAxis_Measure_RL_50mms;
-            sg_sample_set(1<<X_AXIS);
+            sg_sample_set(1 << X_AXIS);
             endstops.enable(true);
             XAxis_start(50, -1);
         }
@@ -156,7 +154,7 @@ void CMarlinTest::loop() {
     case mtsYAxis_Home:
         if (marlin_server_get_command() != MARLIN_CMD_G28) {
             state = mtsYAxis_Measure_BF_50mms;
-            sg_sample_set(1<<Y_AXIS);
+            sg_sample_set(1 << Y_AXIS);
             endstops.enable(true);
             YAxis_start(50, 1);
         }
@@ -282,7 +280,7 @@ void CMarlinTest::YAxis_end(float fr, int dir) {
 
 void CMarlinTest::sg_sample_set(uint8_t axis_mask) {
     tmc_sg_mask = axis_mask;
-    tmc_sg_sampe_cb = axis_mask?sg_sample:0;
+    tmc_sg_sampe_cb = axis_mask ? sg_sample : 0;
 }
 
 void CMarlinTest::sg_sample(uint8_t axis, uint16_t sg) {
