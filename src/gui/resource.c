@@ -84,6 +84,7 @@
 #include "res/cc/png_flag_it.c"
 #include "res/cc/png_flag_pl.c"
 
+#include "res/cc/png_sheets_profile_16px.c"
 RESOURCE_TABLE_BEGIN
 RESOURCE_ENTRY_NUL() //IDR_NULL
 //fonts
@@ -166,5 +167,5 @@ RESOURCE_ENTRY_PNG(png_flag_es)
 RESOURCE_ENTRY_PNG(png_flag_fr)
 RESOURCE_ENTRY_PNG(png_flag_it)
 RESOURCE_ENTRY_PNG(png_flag_pl)
-
+RESOURCE_ENTRY_PNG(png_sheets_profile_16px)
 RESOURCE_TABLE_END
