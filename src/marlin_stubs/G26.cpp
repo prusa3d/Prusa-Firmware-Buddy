@@ -8,6 +8,10 @@
 #include "client_fsm_types.h"
 #include "PrusaGcodeSuite.hpp"
 #include "G26.hpp"
+#include "cmath_ext.h"
+
+constexpr float filamentD = 1.75f;
+constexpr float pi = 3.1415926535897932384626433832795f;
 
 void go_to_destination(const float x, const float y, const float z, const float e, const float f) {
     if (isfinite(x))
@@ -28,7 +32,7 @@ void go_to_destination(const float x, const float y, const float z, const float 
     if (isfinite(e))
         destination[3] = e;
     else
-        destination[3] = current_position[3];
+        destination[3] = 0;
 
     if (isfinite(f))
         feedrate_mm_s = f;
@@ -58,50 +62,65 @@ void go_to_destination(const float x, const float y, const float e) {
     prepare_move_to_destination();
 }
 
-float extrusion(const float *snake, const int position) {
-    /// TODO implement
-    return 0;
+/// @returns length of filament to extrude
+float extrusion(const float x1, const float y1, const float x2, const float y2, const float layerHeight = 0.2f, const float threadWidth = 0.5f) {
+    const float length = sqrt(SQR(x2 - x1) + SQR(y2 - y1));
+    return length * layerHeight * threadWidth / (pi * SQR(filamentD / 2));
 }
 
-void print_snake() {
+float extrusion_Manhattan(const float *path, const uint32_t position, const float last) {
+    float x, y;
+    if (position % 2 == 0) {
+        x = path[position];
+        y = path[position - 2];
+        return extrusion(x, y, last, y);
+    } else {
+        x = path[position - 1];
+        y = path[position];
+        return extrusion(x, y, x, last);
+    }
+}
+
+void print_snake(const float *snake) {
     /// move to start
-    go_to_destination(snake1[0], snake1[1], 0); // Process X Y Z E F parameters
+    go_to_destination(snake[0], snake[1], 0); // Process X Y Z E F parameters
     /// iterate positions
-    for (uint32_t i = 2; i < sizeof(snake1); i += 2) {
-        go_to_destination(snake1[i], NAN, extrusion(snake1, i));
-        go_to_destination(NAN, snake1[i + 1], extrusion(snake1, i + 1));
+    float last_x, last_y;
+    for (uint32_t i = 2; i < sizeof(snake); i += 2) {
+        go_to_destination(snake[i], NAN, extrusion_Manhattan(snake, i, last_x));
+        last_x = snake[i];
+        go_to_destination(NAN, snake[i + 1], extrusion_Manhattan(snake, i + 1, last_y));
+        last_y = snake[i];
     }
 }
 
 void PrusaGcodeSuite::G26() {
     fsm_create(ClientFSM::FirstLayer);
 
-    /// start movement
+    /// TODO switch to mm and relative extrusion
 
+    /// print purge line
     // "G1 Z4 F1000",
     do_blocking_move_to_z(4, 1000);
-    // "G1 X0 Y-2 Z0.2 F3000.0",
-    // "G1 E6 F2000",
-    // "G1 X60 E9 F1000.0",
-    // "G1 X100 E12.5 F1000.0",
-    // "G1 Z2 E-6 F2100.00000",
+    go_to_destination(0.f, -2.f, 0.2f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+    go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
+    go_to_destination(100.f, NAN, NAN, 12.5f, 1000.f);
+    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
 
-    // "G1 X10 Y150 Z0.2 F3000",
-    // "G1 E6 F2000"
+    /// go to starting point and de-retract
+    go_to_destination(10.f, 150.f, 0.2f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+    go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
 
-    // "G1 F1000",
-    // //E = extrusion_length * layer_height * extrusion_width / (PI * pow(1.75, 2) / 4)
-
-    /// snake extrusion (no Z movement)
-    print_snake();
+    print_snake(snake1);
 
     /// finish printing
 
-    // "G1 Z2 E-6 F2100",
-    // "G1 X178 Y0 Z10 F3000",
+    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+    go_to_destination(178.f, 0.f, 10.f, NAN, 3000.f);
 
     /// don't bother with G4 or heating turning off
 
-    //
-    // fsm_destroy(ClientFSM::FirstLayer);
+    fsm_destroy(ClientFSM::FirstLayer);
 }

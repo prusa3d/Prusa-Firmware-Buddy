@@ -49,3 +49,8 @@
 #define nearlyEqual(a, b, max_abs_diff) \
     ({ __typeof__ (a) d = (a)-(b); \
     d <= max_abs_diff && d >= -max_abs_diff; })
+
+/// square of a value
+#define SQR(a) \
+    ({ __typeof__ (a) a_ = (a); \
+        (a_ * a_); })
