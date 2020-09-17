@@ -81,62 +81,32 @@ void CMarlinTest::loop() {
             state = mtsXAxis_Measure_RL_50mms;
             sg_sample_set(1 << X_AXIS);
             endstops.enable(true);
-            XAxis_start(50, -1);
+            XAxis_start(XYAxis_get_fr(state), -1);
         }
         break;
     case mtsXAxis_Measure_RL_50mms:
+    case mtsXAxis_Measure_RL_60mms:
+    case mtsXAxis_Measure_RL_75mms:
+    case mtsXAxis_Measure_RL_100mms:
         if (movesplanned == 0) {
-            XAxis_end(50, -1);
-            state = mtsXAxis_Measure_LR_50mms;
-            XAxis_start(50, 1);
+            float fr = XYAxis_get_fr(state);
+            XAxis_end(fr, -1);
+            state = get_next_state();
+            fr = XYAxis_get_fr(state);
+            XAxis_start(fr, 1);
         }
         break;
     case mtsXAxis_Measure_LR_50mms:
-        if (movesplanned == 0) {
-            XAxis_end(50, 1);
-            state = mtsXAxis_Measure_RL_60mms;
-            XAxis_start(60, -1);
-        }
-        break;
-    case mtsXAxis_Measure_RL_60mms:
-        if (movesplanned == 0) {
-            XAxis_end(60, -1);
-            state = mtsXAxis_Measure_LR_60mms;
-            XAxis_start(60, 1);
-        }
-        break;
     case mtsXAxis_Measure_LR_60mms:
-        if (movesplanned == 0) {
-            XAxis_end(60, 1);
-            state = mtsXAxis_Measure_RL_75mms;
-            XAxis_start(75, -1);
-        }
-        break;
-    case mtsXAxis_Measure_RL_75mms:
-        if (movesplanned == 0) {
-            XAxis_end(75, -1);
-            state = mtsXAxis_Measure_LR_75mms;
-            XAxis_start(75, 1);
-        }
-        break;
     case mtsXAxis_Measure_LR_75mms:
-        if (movesplanned == 0) {
-            XAxis_end(75, 1);
-            state = mtsXAxis_Measure_RL_100mms;
-            XAxis_start(100, -1);
-        }
-        break;
-    case mtsXAxis_Measure_RL_100mms:
-        if (movesplanned == 0) {
-            XAxis_end(100, -1);
-            state = mtsXAxis_Measure_LR_100mms;
-            XAxis_start(100, 1);
-        }
-        break;
     case mtsXAxis_Measure_LR_100mms:
         if (movesplanned == 0) {
-            XAxis_end(100, 1);
-            state = mtsXAxis_Finished;
+            float fr = XYAxis_get_fr(state);
+            XAxis_end(fr, 1);
+            state = get_next_state();
+            fr = XYAxis_get_fr(state);
+            if (fr > 0)
+                XAxis_start(fr, -1);
         }
         break;
     case mtsXAxis_Finished:
@@ -156,62 +126,32 @@ void CMarlinTest::loop() {
             state = mtsYAxis_Measure_BF_50mms;
             sg_sample_set(1 << Y_AXIS);
             endstops.enable(true);
-            YAxis_start(50, 1);
+            YAxis_start(XYAxis_get_fr(state), 1);
         }
         break;
     case mtsYAxis_Measure_BF_50mms:
+    case mtsYAxis_Measure_BF_60mms:
+    case mtsYAxis_Measure_BF_75mms:
+    case mtsYAxis_Measure_BF_100mms:
         if (movesplanned == 0) {
-            YAxis_end(50, 1);
-            state = mtsYAxis_Measure_FB_50mms;
-            YAxis_start(50, -1);
+            float fr = XYAxis_get_fr(state);
+            YAxis_end(fr, 1);
+            state = get_next_state();
+            fr = XYAxis_get_fr(state);
+            YAxis_start(fr, -1);
         }
         break;
     case mtsYAxis_Measure_FB_50mms:
-        if (movesplanned == 0) {
-            YAxis_end(50, -1);
-            state = mtsYAxis_Measure_BF_60mms;
-            YAxis_start(60, 1);
-        }
-        break;
-    case mtsYAxis_Measure_BF_60mms:
-        if (movesplanned == 0) {
-            YAxis_end(60, 1);
-            state = mtsYAxis_Measure_FB_60mms;
-            YAxis_start(60, -1);
-        }
-        break;
     case mtsYAxis_Measure_FB_60mms:
-        if (movesplanned == 0) {
-            YAxis_end(60, -1);
-            state = mtsYAxis_Measure_BF_75mms;
-            YAxis_start(75, 1);
-        }
-        break;
-    case mtsYAxis_Measure_BF_75mms:
-        if (movesplanned == 0) {
-            YAxis_end(75, 1);
-            state = mtsYAxis_Measure_FB_75mms;
-            YAxis_start(75, -1);
-        }
-        break;
     case mtsYAxis_Measure_FB_75mms:
-        if (movesplanned == 0) {
-            YAxis_end(75, -1);
-            state = mtsYAxis_Measure_BF_100mms;
-            YAxis_start(100, 1);
-        }
-        break;
-    case mtsYAxis_Measure_BF_100mms:
-        if (movesplanned == 0) {
-            YAxis_end(100, 1);
-            state = mtsYAxis_Measure_FB_100mms;
-            YAxis_start(100, -1);
-        }
-        break;
     case mtsYAxis_Measure_FB_100mms:
         if (movesplanned == 0) {
-            YAxis_end(100, -1);
-            state = mtsYAxis_Finished;
+            float fr = XYAxis_get_fr(state);
+            YAxis_end(fr, -1);
+            state = get_next_state();
+            fr = XYAxis_get_fr(state);
+            if (fr > 0)
+                YAxis_start(fr, 1);
         }
         break;
     case mtsYAxis_Finished:
@@ -224,10 +164,16 @@ void CMarlinTest::loop() {
         if (fil_ok)
             f_close(&fil);
         marlin_server_set_exclusive_mode(0);
+        state = mtsFinished;
         break;
+
     case mtsFinished:
         break;
     }
+}
+
+marlin_test_state_t CMarlinTest::get_next_state() {
+    return (marlin_test_state_t)((int)state + 1);
 }
 
 void CMarlinTest::XAxis_start(float fr, int dir) {
@@ -276,6 +222,15 @@ void CMarlinTest::YAxis_end(float fr, int dir) {
     f_printf(&fil, "measured length: %d\n", length);
     f_printf(&fil, "avg stallguard: %d\n\n", sg_avg);
     f_sync(&fil);
+}
+
+float CMarlinTest::XYAxis_get_fr(marlin_test_state_t state) {
+    static const int XY_speed_table[] = { 50, 60, 75, 100 };
+    if ((state >= mtsXAxis_Measure_RL_50mms) && (state <= mtsXAxis_Measure_LR_100mms))
+        return XY_speed_table[(state - mtsXAxis_Measure_RL_50mms) / 2];
+    if ((state >= mtsYAxis_Measure_BF_50mms) && (state <= mtsYAxis_Measure_FB_100mms))
+        return XY_speed_table[(state - mtsYAxis_Measure_BF_50mms) / 2];
+    return 0;
 }
 
 void CMarlinTest::sg_sample_set(uint8_t axis_mask) {

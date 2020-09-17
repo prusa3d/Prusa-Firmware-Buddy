@@ -51,10 +51,12 @@ public:
     void loop();
 
 protected:
+    marlin_test_state_t get_next_state();
     void XAxis_start(float fr, int dir);
     void XAxis_end(float fr, int dir);
     void YAxis_start(float fr, int dir);
     void YAxis_end(float fr, int dir);
+    float XYAxis_get_fr(marlin_test_state_t state);
 
 protected:
     void sg_sample_set(uint8_t axis_mask);
