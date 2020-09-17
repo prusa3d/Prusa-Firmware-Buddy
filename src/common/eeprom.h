@@ -130,11 +130,12 @@ extern void eeprom_clear(void);
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);
 
-extern uint32_t eeprom_switch_to_next_sheet();
+extern uint32_t sheet_next_calibrated();
 extern bool sheet_is_initialized(uint32_t);
 extern bool sheet_select(uint32_t);
 extern bool sheet_reset(uint32_t);
 extern uint32_t sheet_number_of_initialized();
+extern uint32_t sheet_get_current_name(char *, uint32_t);
 #ifdef __cplusplus
 }
 #endif //__cplusplus

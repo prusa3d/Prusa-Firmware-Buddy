@@ -24,6 +24,7 @@ enum {
     WINDOW_EVENT_LOOP,         //gui loop (every 50ms)
     WINDOW_EVENT_TIMER,        //gui timer
     WINDOW_EVENT_MESSAGE,      //onStatusChange() message notification
+    WINDOW_EVENT_CHILD_CLICK   //click at the child screen
 };
 
 using ButtonCallback = void (*)();

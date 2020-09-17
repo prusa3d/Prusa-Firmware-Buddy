@@ -10,7 +10,7 @@
 
 class ScreenMenuSteelSheets;
 
-enum class profile_action : std::uint32_t {
+enum class profile_action : uint32_t {
     Select = 1,
     Calibrate = 2,
     Reset = 3,
@@ -35,7 +35,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CLICK, (void *)profile_action::Select);
+        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CHILD_CLICK, (void *)profile_action::Select);
     }
 };
 
@@ -48,7 +48,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CLICK, (void *)profile_action::Calibrate);
+        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CHILD_CLICK, (void *)profile_action::Calibrate);
     }
 };
 
@@ -61,7 +61,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CLICK, (void *)profile_action::Rename);
+        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CHILD_CLICK, (void *)profile_action::Rename);
     }
 };
 
@@ -74,7 +74,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CLICK, (void *)profile_action::Reset);
+        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CHILD_CLICK, (void *)profile_action::Reset);
     }
 };
 
@@ -88,18 +88,29 @@ public:
     using index_type = Index;
     SheetProfileMenuScreenT()
         : SheetProfileMenuScreen(_(label)) {
+        if (sheet_is_initialized(Index::value)) {
+            Item<MI_SHEET_SELECT>().Enable();
+            Item<MI_SHEET_RESET>().Enable();
+        }
+        if (Index::value == 0)
+            Item<MI_SHEET_RESET>().Disable();
     }
 
     virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override {
-        if (ev != WINDOW_EVENT_CLICK) {
+        SERIAL_ECHOLN("SheetProfile::event");
+        if (ev != WINDOW_EVENT_CHILD_CLICK) {
             SheetProfileMenuScreen::windowEvent(sender, ev, param);
             return;
         }
-        profile_action action = *((profile_action *)param);
+        profile_action action = static_cast<profile_action>((uint32_t)param);
         switch (action) {
         case profile_action::Reset:
-            SERIAL_ECHOLN("MI_SHEET_RESET");
-            sheet_reset(Index::value);
+            if (sheet_reset(Index::value)) {
+                Item<MI_SHEET_RESET>().Disable();
+                Item<MI_SHEET_SELECT>().Disable();
+                SERIAL_ECHOLN("MI_SHEET_RESET OK");
+            } else
+                SERIAL_ECHOLN("MI_SHEET_RESET FAIL!");
             break;
         case profile_action::Select:
             SERIAL_ECHOLN("MI_SHEET_SELECT");
@@ -109,18 +120,10 @@ public:
             SERIAL_ECHOLN("MI_SHEET_CALIBRATE");
             break;
         default:
+            SERIAL_ECHOPAIR("Click: ", static_cast<uint32_t>(action));
+            SERIAL_ECHOLN("");
             break;
         }
-    }
-
-    virtual void draw() override {
-        if (sheet_is_initialized(Index::value)) {
-            Item<MI_SHEET_SELECT>().Enable();
-            Item<MI_SHEET_RESET>().Enable();
-        }
-        if (Index::value == 0)
-            Item<MI_SHEET_RESET>().Disable();
-        window_frame_t::draw();
     }
 };
 

@@ -178,7 +178,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     {"Smooth2", FLT_MAX },
     {"Textur1", FLT_MAX },
     {"Textur2", FLT_MAX },
-    {"Custom1", -2.05f },
+    {"Custom1", FLT_MAX },
     {"Custom2", FLT_MAX },
     {"Custom3", FLT_MAX },
     {"Custom4", FLT_MAX },
@@ -544,10 +544,10 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Sheets profile methods
-uint32_t sheet_select_next_configured() {
+uint32_t sheet_next_calibrated() {
     uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
 
-    for (int8_t i = 0; i < MAX_SHEETS; ++i) {
+    for (int8_t i = 1; i < MAX_SHEETS; ++i) {
         if (sheet_select((index + i) % MAX_SHEETS))
             return (index + i) % MAX_SHEETS;
     }
@@ -579,7 +579,7 @@ bool sheet_reset(uint32_t index) {
     st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
         &z_offset, sizeof(float));
     if (actual == index)
-        sheet_select_next_configured();
+        sheet_next_calibrated();
     return true;
 }
 
@@ -590,4 +590,15 @@ uint32_t sheet_number_of_initialized() {
             ++count;
     }
     return count;
+}
+
+uint32_t sheet_get_current_name(char *buffer, uint32_t length) {
+    if (!buffer)
+        return 0;
+    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+    uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
+    uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1 ? length : MAX_SHEET_NAME_LENGTH - 1;
+    st25dv64k_user_read_bytes(profile_address,
+        buffer, l);
+    return l;
 }
