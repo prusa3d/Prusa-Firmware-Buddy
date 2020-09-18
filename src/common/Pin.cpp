@@ -23,7 +23,7 @@ void OutputPin::configure() const {
     HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
 }
 
-void OutputInputPin::enableInput(Pull pull) {
+void OutputInputPin::enableInput(Pull pull) const {
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;

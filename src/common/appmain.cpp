@@ -38,13 +38,13 @@
 #ifdef NEW_FANCTL
     #include "fanctl.h"
 CFanCtl fanctl0 = CFanCtl(
-    IoPort::E, IoPin::p11,
-    IoPort::E, IoPin::p10,
+    fan0pwm,
+    fan0tach,
     FANCTL0_PWM_MIN, FANCTL0_PWM_MAX,
     FANCTL0_RPM_MIN, FANCTL0_RPM_MAX);
 CFanCtl fanctl1 = CFanCtl(
-    IoPort::E, IoPin::p9,
-    IoPort::E, IoPin::p14,
+    fan1pwm,
+    fan1tach,
     FANCTL1_PWM_MIN, FANCTL1_PWM_MAX,
     FANCTL1_RPM_MIN, FANCTL1_RPM_MAX);
 #endif //NEW_FANCTL

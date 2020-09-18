@@ -11,8 +11,8 @@ static CFanCtl *CFanCtl_instance[FANCTL_MAX_FANS]; // array of pointers to insta
 //------------------------------------------------------------------------------
 // CFanCtlPWM implementation
 
-CFanCtlPWM::CFanCtlPWM(IoPort portOut, IoPin pinOut, uint8_t pwm_min, uint8_t pwm_max)
-    : m_pin(portOut, pinOut, InitState::reset, OMode::pushPull, OSpeed::high)
+CFanCtlPWM::CFanCtlPWM(const OutputPin &pinOut, uint8_t pwm_min, uint8_t pwm_max)
+    : m_pin(pinOut)
     , min_value(pwm_min)
     , max_value(pwm_max)
     , output_state(false)
@@ -73,8 +73,8 @@ void CFanCtlPWM::set_PWM(uint8_t new_pwm) {
 //------------------------------------------------------------------------------
 // CFanCtlTach implementation
 
-CFanCtlTach::CFanCtlTach(IoPort port, IoPin pin)
-    : m_pin(port, pin, IMode::input, Pull::up) {
+CFanCtlTach::CFanCtlTach(const InputPin &inputPin)
+    : m_pin(inputPin) {
     input_state = false;
     tick_count = 0;
     ticks_per_second = 1000;
@@ -102,13 +102,13 @@ void CFanCtlTach::tick(int8_t pwm_on) {
 //------------------------------------------------------------------------------
 // CFanCtl implementation
 
-CFanCtl::CFanCtl(IoPort portOut, IoPin pinOut, IoPort portTach, IoPin pinTach,
+CFanCtl::CFanCtl(const OutputPin &pinOut, const InputPin &pinTach,
     uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM)
     : m_MinRPM(minRPM)
     , m_MaxRPM(maxRPM)
     , m_State(idle)
-    , m_pwm(portOut, pinOut, minPWM, maxPWM)
-    , m_tach(portTach, pinTach) {
+    , m_pwm(pinOut, minPWM, maxPWM)
+    , m_tach(pinTach) {
     // this is not thread-safe for first look, but CFanCtl instances are global variables, so it is safe
     if (CFanCtl_count < FANCTL_MAX_FANS)
         CFanCtl_instance[CFanCtl_count++] = this;

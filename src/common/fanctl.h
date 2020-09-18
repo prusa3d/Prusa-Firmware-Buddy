@@ -31,7 +31,7 @@ typedef struct _fanctl_tach_t {
 class CFanCtlPWM {
 public:
     // constructor
-    CFanCtlPWM(IoPort portOut, IoPin pinOut, uint8_t pwm_min, uint8_t pwm_max);
+    CFanCtlPWM(const OutputPin &pinOut, uint8_t pwm_min, uint8_t pwm_max);
 
 public:
     int8_t tick(); // tick callback from timer interrupt
@@ -47,7 +47,7 @@ public:
     void safeState();
 
 private:
-    OutputPin m_pin;
+    const OutputPin &m_pin;
     const uint8_t min_value; // minimum pwm value
     const uint8_t max_value; // maximum pwm value
     union {
@@ -69,7 +69,7 @@ private:
 class CFanCtlTach : private fanctl_tach_t {
 public:
     // constructor
-    CFanCtlTach(IoPort port, IoPin pin);
+    CFanCtlTach(const InputPin &inputPin);
 
 public:
     void tick(int8_t pwm_on); // tick callback from timer interrupt (currently 1kHz)
@@ -79,7 +79,7 @@ public:
     inline uint16_t getRPM() { return rpm; }
 
 private:
-    InputPin m_pin;
+    const InputPin &m_pin;
 };
 
 //
@@ -95,7 +95,7 @@ public:
 
 public:
     // constructor
-    CFanCtl(IoPort portOut, IoPin pinOut, IoPort portTach, IoPin pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM);
+    CFanCtl(const OutputPin &pinOut, const InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM);
 
 public:
     void tick();               // tick callback from timer interrupt

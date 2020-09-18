@@ -13,7 +13,7 @@
 //Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
 #include "filament_sensor.h"
-#include "Pin.hpp"
+#include "hwio_pindef.h"
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 #include "eeprom.h"
@@ -24,8 +24,6 @@
 
 static volatile fsensor_t state = fsensor_t::FS_NOT_INITIALIZED;
 static volatile fsensor_t last_state = fsensor_t::FS_NOT_INITIALIZED;
-
-static InputPin fSensor(IoPort::B, IoPin::p4, IMode::input, Pull::up);
 
 typedef enum {
     M600_on_edge = 0,

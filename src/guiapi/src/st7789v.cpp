@@ -3,11 +3,7 @@
 #include "st7789v.h"
 #include <functional>
 #include <cmath>
-#include "Pin.hpp"
-
-static OutputPin cs(IoPort::C, IoPin::p9, InitState::set, OMode::pushPull, OSpeed::high);
-static OutputPin rs(IoPort::D, IoPin::p11, InitState::set, OMode::pushPull, OSpeed::high);
-static OutputInputPin rst(IoPort::C, IoPin::p8, InitState::set, OMode::pushPull, OSpeed::low);
+#include "hwio_pindef.h"
 
 void st7789v_set_cs(void) {
     cs.write(GPIO_PinState::GPIO_PIN_SET);

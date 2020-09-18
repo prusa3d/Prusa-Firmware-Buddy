@@ -17,8 +17,6 @@ int diag_error = 0;
 
 extern ApplicationTypeDef Appli_state;
 
-static InputPin fastBoot(IoPort::C, IoPin::p7, IMode::input, Pull::up);
-
 void diag_delay(int delay) {
     volatile int i;
     for (i = 0; i < delay; i++) {

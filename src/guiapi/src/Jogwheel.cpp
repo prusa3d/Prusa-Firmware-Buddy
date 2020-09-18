@@ -2,7 +2,7 @@
 
 #include "Jogwheel.hpp"
 #include "guiconfig.h"
-#include "Pin.hpp"
+#include "hwio_pindef.h"
 
 #ifdef GUI_JOGWHEEL_SUPPORT
 
@@ -13,10 +13,6 @@ static const constexpr uint16_t JG_HOLD_INTERVAL = 1000;       // [ms] jogwheel 
 // encoder limits
 static const constexpr int32_t JG_ENCODER_MAX = INT_MAX;
 static const constexpr int32_t JG_ENCODER_MIN = INT_MIN;
-
-static InputPin jogWheelEN1(IoPort::E, IoPin::p15, IMode::input, Pull::up);
-static InputPin jogWheelEN2(IoPort::E, IoPin::p13, IMode::input, Pull::up);
-static InputPin jogWheelENC(IoPort::E, IoPin::p12, IMode::input, Pull::up);
 
 // signal flags
 enum : uint8_t {
