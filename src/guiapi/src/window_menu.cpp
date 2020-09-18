@@ -166,7 +166,7 @@ void window_menu_t::unconditionalDraw() {
     const size_t visible_available = rc_win.Height() / item_height;
     size_t visible_count = 0;
     size_t i;
-    for (i = 0; i < visible_available && i < GetCount(); ++i) {
+    for (i = 0; visible_count < visible_available && i < GetCount(); ++i) {
 
         IWindowMenuItem *item = GetItem(i + top_index);
         if (!item)
