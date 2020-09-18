@@ -40,8 +40,8 @@
 
 #define MARLIN_PIN(name)                       MARLIN_PORT_PIN(MARLIN_PORT_##name, MARLIN_PIN_NR_##name)
 #define BUDDY_PIN(name)                        static_cast<IoPort>(MARLIN_PORT_##name), static_cast<IoPin>(MARLIN_PIN_NR_##name)
-#define DECLARE_PINS(TYPE, NAME, PARAMETERS)   extern TYPE NAME;
-#define DEFINE_PINS(TYPE, NAME, PARAMETERS)    TYPE NAME PARAMETERS;
+#define DECLARE_PINS(TYPE, NAME, PARAMETERS)   extern const TYPE NAME;
+#define DEFINE_PINS(TYPE, NAME, PARAMETERS)    const TYPE NAME PARAMETERS;
 #define CONFIGURE_PINS(TYPE, NAME, PARAMETERS) NAME.configure();
 /**@}*/
 
@@ -124,15 +124,15 @@ public:
         : Pin(ioPort, ioPin)
         , m_mode(iMode)
         , m_pull(pull) {}
-    GPIO_PinState read() {
+    GPIO_PinState read() const {
         return HAL_GPIO_ReadPin(m_halPort, m_halPin);
     }
     void pullUp() { configure(Pull::up); }
     void pullDown() { configure(Pull::down); }
-    void configure() { configure(m_pull); }
+    void configure() const { configure(m_pull); }
 
 private:
-    void configure(Pull pull);
+    void configure(Pull pull) const;
     const IMode m_mode;
     const Pull m_pull;
 };
@@ -182,10 +182,10 @@ public:
         }
         return bitstatus;
     }
-    void write(GPIO_PinState pinState) {
+    void write(GPIO_PinState pinState) const {
         HAL_GPIO_WritePin(m_halPort, m_halPin, pinState);
     }
-    void configure();
+    void configure() const;
 
 protected:
     const InitState m_initState;

@@ -6,7 +6,7 @@
 
 #include "Pin.hpp"
 
-void InputPin::configure(Pull pull) {
+void InputPin::configure(Pull pull) const {
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
@@ -14,7 +14,7 @@ void InputPin::configure(Pull pull) {
     HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
 }
 
-void OutputPin::configure() {
+void OutputPin::configure() const {
     HAL_GPIO_WritePin(m_halPort, m_halPin, static_cast<GPIO_PinState>(m_initState));
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
     GPIO_InitStruct.Pin = m_halPin;
