@@ -1,8 +1,8 @@
-// wizard_load_unload.h
+// wizard_load_unload.hpp
 #pragma once
 #include <inttypes.h>
 #include "gui.hpp"
-#include "wizard_types.h"
+#include "wizard_types.hpp"
 
 typedef enum {
     LD_UNLD_INIT,

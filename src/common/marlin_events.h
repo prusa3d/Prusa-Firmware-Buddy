@@ -63,16 +63,11 @@ enum {
     MARLIN_MAX_MESH_POINTS = (4 * 4),
 };
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _marlin_mesh_t {
     float z[MARLIN_MAX_MESH_POINTS];
     uint8_t xc;
     uint8_t yc;
 } marlin_mesh_t;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {

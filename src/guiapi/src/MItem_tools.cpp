@@ -2,7 +2,6 @@
 #include "dump.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
-#include "wizard/wizard.h"
 #include "marlin_client.h"
 #include "gui.hpp"
 #include "sys.h"
@@ -13,6 +12,7 @@
 #include "wui_api.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "screen_wizard.hpp"
 #include "bsod.h"
 
 /*****************************************************************************/
@@ -22,7 +22,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_complete();
+    ScreenWizard::RunAll();
 }
 
 /*****************************************************************************/
@@ -67,7 +67,7 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_selftest();
+    ScreenWizard::RunSelfTest();
 }
 
 /*****************************************************************************/
@@ -77,7 +77,17 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_firstlay();
+    ScreenWizard::RunFirstLay();
+}
+
+/*****************************************************************************/
+//MI_TEST_X
+MI_TEST_X::MI_TEST_X()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start();
 }
 
 /*****************************************************************************/
@@ -321,8 +331,8 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
 /*****************************************************************************/
 //MI_SOUND_MODE
 size_t MI_SOUND_MODE::init_index() const {
-    size_t sound_mode = Sound_GetMode();
-    return sound_mode > 4 ? eSOUND_MODE_DEFAULT : sound_mode;
+    eSOUND_MODE sound_mode = Sound_GetMode();
+    return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
     : WI_SWITCH_t<4>(init_index(), label, 0, true, false, str_Once, str_Loud, str_Silent, str_Assist) {}
@@ -335,11 +345,12 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 MI_SOUND_TYPE::MI_SOUND_TYPE()
     : WI_SWITCH_t<8>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
-    if (old_index == eSOUND_TYPE_StandardPrompt || old_index == eSOUND_TYPE_CriticalAlert) {
-        Sound_Play(eSOUND_TYPE_StandardPrompt);
+    eSOUND_TYPE st = static_cast<eSOUND_TYPE>(old_index);
+    if (st == eSOUND_TYPE::StandardPrompt || st == eSOUND_TYPE::CriticalAlert) {
+        Sound_Play(eSOUND_TYPE::StandardPrompt);
         MsgBoxInfo(_("Continual beeps test\n press button to stop"), Responses_Ok);
     } else {
-        Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+        Sound_Play(st);
     }
 }
 

@@ -1,10 +1,11 @@
 // thread_measurement.c
 #include "thread_measurement.h"
 #include "cmsis_os.h" //osDelay
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "marlin_client.h"
 #include "trinamic.h"
 
+extern "C" {
 void StartMeasurementTask(void const *argument) {
     marlin_client_init();
     marlin_client_wait_for_start_processing();
@@ -26,4 +27,5 @@ void StartMeasurementTask(void const *argument) {
             osDelay(10);  // otherwise we will wait 10ms (full period)
         //TODO: maybe improve timing to for more accurate and equidistant samples
     }
+}
 }

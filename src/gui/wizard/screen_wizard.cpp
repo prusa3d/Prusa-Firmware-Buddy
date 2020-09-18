@@ -1,100 +1,24 @@
-// screen_wizard.c
+// screen_wizard.cpp
 
-#include "screen_wizard.h"
+#include "screen_wizard.hpp"
 #include "dbg.h"
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "marlin_client.h"
 #include "wizard_config.h"
-#include "selftest.h"
-#include "wizard_ui.h"
 #include "filament.h"
 #include "eeprom.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "i18n.h"
+#include "bsod.h"
+#include "RAII.hpp"
+#include "ScreenHandler.hpp"
 
-uint64_t wizard_mask = 0;
+#include "selftest.hpp"
+#include "firstlay.hpp"
+#include "xyzcalib.hpp"
+
 #if 0
-static int is_state_in_wizard_mask(wizard_state_t st) {
-    return ((((uint64_t)1) << st) & wizard_mask) != 0;
-}
-
-static _TEST_STATE_t init_state(wizard_state_t st) {
-    if (is_state_in_wizard_mask(st)) {
-        return _TEST_START;
-    } else {
-        return _TEST_PASSED;
-    }
-}
-
-void screen_wizard_init(screen_t *screen) {
-    marlin_set_print_speed(100);
-    pd->state = _STATE_START;
-
-    int16_t id_frame = window_create_ptr(WINDOW_CLS_FRAME, -1, Rect16(0, 0, 0, 0), &(pd->frame));
-
-    int16_t id_footer = window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectFooter, &(pd->frame_footer));
-    pd->frame_footer.Hide();
-
-    window_create_ptr(WINDOW_CLS_FRAME, id_frame, GuiDefaults::RectScreenBody, &(pd->frame_body));
-    pd->frame_body.Hide();
-
-    window_create_ptr(WINDOW_CLS_TEXT, id_frame, Rect16(21, 0, 211, GuiDefaults::RectHeader.h), &(pd->header));
-    pd->header.SetAlignment(ALIGN_LEFT_BOTTOM);
-
-    pd->header.SetText(wizard_get_caption(screen));
-
-    pd->selftest.fans_axis_data.state_fan0 = init_state(_STATE_SELFTEST_FAN0);
-    pd->selftest.fans_axis_data.state_fan1 = init_state(_STATE_SELFTEST_FAN1);
-    pd->selftest.fans_axis_data.state_x = init_state(_STATE_SELFTEST_X);
-    pd->selftest.fans_axis_data.state_y = init_state(_STATE_SELFTEST_Y);
-    pd->selftest.fans_axis_data.state_z = init_state(_STATE_SELFTEST_Z);
-    pd->selftest.cool_data.state_cool = init_state(_STATE_SELFTEST_COOL);
-    pd->selftest.temp_data.state_preheat_nozzle = init_state(_STATE_SELFTEST_TEMP);
-    pd->selftest.temp_data.state_preheat_bed = init_state(_STATE_SELFTEST_TEMP);
-    pd->selftest.temp_data.state_temp_nozzle = init_state(_STATE_SELFTEST_TEMP);
-    pd->selftest.temp_data.state_temp_bed = init_state(_STATE_SELFTEST_TEMP);
-    pd->xyzcalib.state_home = init_state(_STATE_XYZCALIB_HOME);
-    pd->xyzcalib.state_z = init_state(_STATE_XYZCALIB_Z);
-    pd->xyzcalib.state_xy = _TEST_START; //init_state();
-    pd->xyzcalib.state_xy_search = init_state(_STATE_XYZCALIB_XY_SEARCH);
-    pd->xyzcalib.state_xy_measure = init_state(_STATE_XYZCALIB_XY_MEASURE);
-    //pd->firstlay.state_heat                     = init_state();
-    pd->firstlay.state_load = init_state(_STATE_FIRSTLAY_LOAD);
-    pd->firstlay.state_print = init_state(_STATE_FIRSTLAY_PRINT);
-
-    pd->flags = 0;
-
-    //backup PID
-    //pd->Kp_bed = get_Kp_Bed();
-	//pd->Ki_bed = get_Ki_Bed();
-	//pd->Kd_bed = get_Kd_Bed();
-	//pd->Kp_noz = get_Kp_Noz();
-	//pd->Ki_noz = get_Ki_Noz();
-	//pd->Kd_noz = get_Kd_Noz();
-    marlin_set_exclusive_mode(1);
-}
-
-void screen_wizard_done(screen_t *screen) {
-    if (!marlin_processing())
-        marlin_start_processing();
-    marlin_set_exclusive_mode(0);
-    /*
-	//M301 - Set Hotend PID
-	//M301 [C<value>] [D<value>] [E<index>] [I<value>] [L<value>] [P<value>]
-	marlin_gcode_printf("M301 D%f I%f P%f", (double)(pd->Kd_noz), (double)(pd->Ki_noz), (double)(pd->Kp_noz));
-	//M304 - Set Bed PID
-	//M304 [D<value>] [I<value>] [P<value>]
-	marlin_gcode_printf("M304 D%f I%f P%f", (double)(pd->Kd_bed), (double)(pd->Ki_bed), (double)(pd->Kp_bed));
-*/
-
-    //turn heaters off
-    wizard_init(0, 0);
-    window_destroy(pd->frame.id);
-}
-
-void screen_wizard_draw(screen_t *screen) {
-}
 
 int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
     static int inside_handler = 0;
@@ -177,9 +101,9 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 pd->state = _STATE_INFO;
                 pd->frame_footer.Show();
                 wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
-                if (fs_get_state() == FS_DISABLED) {
+                if (fs_get_state() == Disabled) {
                     fs_enable();
-                    if (fs_wait_initialized() == FS_NOT_CONNECTED)
+                    if (fs_wait_initialized() == fsensor_t::NotConnected)
                         fs_disable();
                 }
                 break;
@@ -374,7 +298,7 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                 pd->state = _STATE_FIRSTLAY_LOAD;
                 pd->frame_footer.Show();
                 FILAMENT_t filament = get_filament();
-                if (filament == FILAMENT_NONE || fs_get_state() == FS_NO_FILAMENT)
+                if (filament == FILAMENT_NONE || fs_get_state() == NoFilament)
                     filament = FILAMENT_PLA;
                 wizard_init(filaments[filament].nozzle, filaments[filament].heatbed);
                 p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
@@ -511,56 +435,243 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
     return 0;
 }
 
-string_view_utf8 wizard_get_caption(screen_t *screen) {
-    switch (pd->state) {
-    case _STATE_START:
-    case _STATE_INIT:
-    case _STATE_INFO:
-    case _STATE_FIRST:
+#endif //#if 0
+
+void ScreenWizard::RunAll() {
+    run_mask = WizardMaskAll();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
+}
+
+void ScreenWizard::RunSelfTest() {
+    run_mask = WizardMaskSelfTest();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
+}
+
+void ScreenWizard::RunXYZCalib() {
+    run_mask = WizardMaskXYZCalib();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
+}
+
+void ScreenWizard::RunFirstLay() {
+    run_mask = WizardMaskFirstLay();
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
+}
+
+string_view_utf8 WizardGetCaption(WizardState_t st) {
+    if (IsStateInWizardMask(st, WizardMaskStart())) {
         return _("WIZARD");
-    case _STATE_SELFTEST_INIT:
-    case _STATE_SELFTEST_FAN0:
-    case _STATE_SELFTEST_FAN1:
-    case _STATE_SELFTEST_X:
-    case _STATE_SELFTEST_Y:
-    case _STATE_SELFTEST_Z:
-    case _STATE_SELFTEST_COOL:
-    case _STATE_SELFTEST_INIT_TEMP:
-    case _STATE_SELFTEST_TEMP:
-    case _STATE_SELFTEST_PASS:
-    case _STATE_SELFTEST_FAIL:
-        return _("SELFTEST");
-    case _STATE_XYZCALIB_INIT:
-    case _STATE_XYZCALIB_HOME:
-    case _STATE_XYZCALIB_Z:
-    case _STATE_XYZCALIB_XY_MSG_CLEAN_NOZZLE:
-    case _STATE_XYZCALIB_XY_MSG_IS_SHEET:
-    case _STATE_XYZCALIB_XY_MSG_REMOVE_SHEET:
-    case _STATE_XYZCALIB_XY_MSG_PLACE_PAPER:
-    case _STATE_XYZCALIB_XY_SEARCH:
-    case _STATE_XYZCALIB_XY_MSG_PLACE_SHEET:
-    case _STATE_XYZCALIB_XY_MEASURE:
-    case _STATE_XYZCALIB_PASS:
-    case _STATE_XYZCALIB_FAIL:
-        return _("XYZ CALIBRATION");
-    case _STATE_FIRSTLAY_INIT:
-    case _STATE_FIRSTLAY_LOAD:
-    case _STATE_FIRSTLAY_MSBX_CALIB:
-    case _STATE_FIRSTLAY_MSBX_START_PRINT:
-    case _STATE_FIRSTLAY_PRINT:
-    case _STATE_FIRSTLAY_MSBX_REPEAT_PRINT:
-    case _STATE_FIRSTLAY_FAIL:
-        return _("FIRST LAYER CALIB.");
-    case _STATE_FINISH:
-        return _("WIZARD - OK");
-    case _STATE_LAST:
-        return string_view_utf8::MakeNULLSTR();
     }
+
+    if (IsStateInWizardMask(st, WizardMaskSelfTest())) {
+        return _("SELFTEST");
+    }
+
+    if (IsStateInWizardMask(st, WizardMaskXYZCalib())) {
+        return _("XYZ CALIBRATION");
+    }
+
+    if (IsStateInWizardMask(st, WizardMaskFirstLay())) {
+        return _("FIRST LAYER CALIB.");
+    }
+
+    if (st == WizardState_t::FINISH) {
+        return _("WIZARD - OK");
+    }
+
     return string_view_utf8::MakeNULLSTR(); //to avoid warning
 }
 
-void wizard_done_screen(screen_t *screen) {
-    //window_destroy_children(pd->frame_body.id);
-    pd->frame_body.Invalidate();
+ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
+
+uint64_t ScreenWizard::run_mask = WizardMaskAll();
+
+ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
+    ResultArray ret;
+    ret.fill(WizardTestState_t::DISABLED); //not needed, just to be safe;
+
+    for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
+        ret[i] = InitState(WizardState_t(i), mask);
+    }
+
+    return ret;
 }
-#endif //#if 0
+
+ScreenWizard::ScreenWizard()
+    : window_frame_t()
+    , header(this, WizardGetCaption(WizardState_t::START_first))
+    , footer(this)
+    , results(ResultInitializer(run_mask))
+    , state(WizardState_t::START_first)
+    , loopInProgress(false) {
+    marlin_set_print_speed(100);
+
+    //marlin_set_exclusive_mode(1); //hope i will not need this
+}
+
+ScreenWizard::~ScreenWizard() {
+    //if (!marlin_processing())
+    //    marlin_start_processing(); //hope i will not need this
+    //marlin_set_exclusive_mode(0); //hope i will not need this
+
+    //turn heaters off
+    //wizard_init(0, 0);
+}
+
+void ScreenWizard::windowEvent(window_t *sender, uint8_t event, void *param) {
+
+    if (event != WINDOW_EVENT_LOOP) {
+        window_frame_t::windowEvent(sender, event, param);
+        return;
+    }
+
+    //loop might be blocking
+    if (loopInProgress)
+        return;
+    AutoRestore<bool> AR(loopInProgress);
+    loopInProgress = true;
+
+    StateFnc stateFnc = states[size_t(state)];                                 // actual state function (action)
+    StateFncData data = stateFnc(StateFncData(state, results[size_t(state)])); // perform state action
+
+    results[size_t(state)] = data.GetResult(); // store result of actual state
+    if (state != data.GetState()) {
+        state = data.GetState();                                      // change state
+        while (results[size_t(state)] == WizardTestState_t::DISABLED) // check for disabled result == skip state
+            state = WizardState_t(int(state) + 1);                    // skip disabled states
+        header.SetText(WizardGetCaption(state));                      // change caption
+    }
+}
+
+const PhaseResponses Responses_IgnoreYesNo = { Response::Ignore, Response::Yes, Response::No, Response::_none };
+
+StateFncData StateFnc_START(StateFncData last_run) {
+    static const char en_text[] = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
+    string_view_utf8 translatedText = _(en_text);
+#ifdef _DEBUG
+    const PhaseResponses &resp = Responses_IgnoreYesNo;
+#else  //_DEBUG
+    const PhaseResponses &resp = Responses_YesNo;
+#endif //_DEBUG
+
+    //IDR_PNG_icon_pepa
+    switch (MsgBoxPepa(translatedText, resp)) {
+#ifdef _DEBUG
+    case Response::Ignore:
+        eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
+        eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
+        eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
+        return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+#endif //_DEBUG
+    case Response::Yes:
+        return last_run.PassToNext();
+    case Response::No:
+    default:
+        return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
+    }
+}
+
+StateFncData StateFnc_INIT(StateFncData last_run) {
+    //wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
+    if (fs_get_state() == fsensor_t::Disabled) {
+        fs_enable();
+        if (fs_wait_initialized() == fsensor_t::NotConnected)
+            fs_disable();
+    }
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_INFO(StateFncData last_run) {
+    static const char en_text[] = N_("The status bar is at\n"
+                                     "the bottom of the  \n"
+                                     "screen. It contains\n"
+                                     "information about: \n"
+                                     " - Nozzle temp.    \n"
+                                     " - Heatbed temp.   \n"
+                                     " - Printing speed  \n"
+                                     " - Z-axis height   \n"
+                                     " - Selected filament");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FIRST(StateFncData last_run) {
+    static const char en_text[] = N_("Press NEXT to run the Selftest, which checks for potential issues related to the assembly.");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FINISH(StateFncData last_run) {
+    static const char en_text[] = N_("Calibration successful! Happy printing!");
+    string_view_utf8 translatedText = _(en_text);
+    MsgBox(translatedText, Responses_NEXT);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_EXIT(StateFncData last_run) {
+    Screens::Access()->Close();
+    return last_run;
+}
+
+ScreenWizard::StateArray ScreenWizard::StateInitializer() {
+    StateArray ret = { { nullptr } };
+    //todo rewrite .. template/macro or just enum values instead size_t i
+    size_t i = 0;
+    ret[i++] = StateFnc_START;
+    ret[i++] = StateFnc_INIT;
+    ret[i++] = StateFnc_INFO;
+    ret[i++] = StateFnc_FIRST;
+
+    ret[i++] = StateFnc_SELFTEST_INIT;
+    ret[i++] = StateFnc_SELFTEST_FAN0;
+    ret[i++] = StateFnc_SELFTEST_FAN1;
+    ret[i++] = StateFnc_SELFTEST_X;
+    ret[i++] = StateFnc_SELFTEST_Y;
+    ret[i++] = StateFnc_SELFTEST_Z;
+    ret[i++] = StateFnc_SELFTEST_COOL;
+    ret[i++] = StateFnc_SELFTEST_INIT_TEMP;
+    ret[i++] = StateFnc_SELFTEST_TEMP;
+    ret[i++] = StateFnc_SELFTEST_PASS;
+    ret[i++] = StateFnc_SELFTEST_FAIL;
+
+    ret[i++] = StateFnc_SELFTEST_AND_XYZCALIB;
+
+    ret[i++] = StateFnc_XYZCALIB_INIT;
+    ret[i++] = StateFnc_XYZCALIB_HOME;
+    ret[i++] = StateFnc_XYZCALIB_Z;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_CLEAN_NOZZLE;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_IS_SHEET;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_REMOVE_SHEET;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER;
+    ret[i++] = StateFnc_XYZCALIB_XY_SEARCH;
+    ret[i++] = StateFnc_XYZCALIB_XY_MSG_PLACE_SHEET;
+    ret[i++] = StateFnc_XYZCALIB_XY_MEASURE;
+    ret[i++] = StateFnc_XYZCALIB_PASS;
+    ret[i++] = StateFnc_XYZCALIB_FAIL;
+
+    ret[i++] = StateFnc_FIRSTLAY_INIT;
+    ret[i++] = StateFnc_FIRSTLAY_LOAD;
+    ret[i++] = StateFnc_FIRSTLAY_MSBX_CALIB;
+    ret[i++] = StateFnc_FIRSTLAY_MSBX_START_PRINT;
+    ret[i++] = StateFnc_FIRSTLAY_PRINT;
+    ret[i++] = StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT;
+    ret[i++] = StateFnc_FIRSTLAY_PASS;
+    ret[i++] = StateFnc_FIRSTLAY_FAIL;
+
+    ret[i++] = StateFnc_FINISH;
+    ret[i++] = StateFnc_EXIT;
+
+#ifdef _DEBUG
+    //check if all states are assigned, hope it will be optimized out
+    for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
+        if (ret[i] == nullptr) {
+            //bsod will not work, but it will cause freeze
+            //todo show bsod after display (spi) init
+            static const char en_text[] = N_("Wizard states invalid");
+            bsod(en_text);
+        }
+    }
+#endif
+    return ret;
+}

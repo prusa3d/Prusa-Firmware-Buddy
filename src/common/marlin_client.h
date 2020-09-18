@@ -171,6 +171,8 @@ extern void marlin_manage_heater(void);
 
 extern void marlin_quick_stop(void);
 
+extern void marlin_test_start(void);
+
 extern void marlin_print_start(const char *filename);
 
 extern void marlin_print_abort(void);

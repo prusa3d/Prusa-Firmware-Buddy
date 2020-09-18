@@ -1,22 +1,104 @@
-// firstlay.c
+// firstlay.cpp
+#include "i18n.h"
+#include "gui.hpp"
+#include "firstlay.hpp"
+
+StateFncData StateFnc_FIRSTLAY_INIT(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FIRSTLAY_LOAD(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_FIRSTLAY_MSBX_CALIB(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_MSBX_START_PRINT(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_PRINT(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_PASS(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+StateFncData StateFnc_FIRSTLAY_FAIL(StateFncData last_run) {
+    return last_run.PassToNext();
+}
+
 #if 0
     #include <stdio.h>
     #include <string.h>
     #include <algorithm>
 
-    #include "firstlay.h"
     #include "dbg.h"
     #include "config.h"
     #include "stm32f4xx_hal.h"
     #include "marlin_client.h"
     #include "wizard_config.h"
-    #include "wizard_ui.h"
-    #include "wizard_types.h"
-    #include "wizard_progress_bar.h"
+    #include "wizard_types.hpp"
     #include "guitypes.hpp" //font_meas_text
     #include "menu_vars.h"
     #include "filament.h"
     #include "i18n.h"
+//choose 0 off 1 on
+    #define DEBUG_TERM 0
+//#define DEBUG_TERM 1
+
+    #include <inttypes.h>
+    #include "gui.hpp"
+    #include "wizard_types.hpp"
+    #include "wizard_load_unload.hpp"
+
+enum _FL_STATE : uint8_t {
+    _FL_INIT,
+    _FL_GCODE_HEAD,
+    _FL_GCODE_BODY,
+    _FL_GCODE_DONE
+};
+
+    #define FIRSTLAY_SCREEN_TERM_X 25
+    #define FIRSTLAY_SCREEN_TERM_Y 10
+struct firstlay_screen_t {
+    _FL_STATE state;
+    window_progress_t progress;
+    #if DEBUG_TERM == 0
+    window_text_t text_state;
+    #else
+    window_term_t term;
+    term_t terminal;
+    uint8_t term_buff[TERM_BUFF_SIZE(FIRSTLAY_SCREEN_TERM_X, FIRSTLAY_SCREEN_TERM_Y)]; //chars and attrs (640 bytes) + change bitmask (40 bytes)
+    #endif
+
+    float extruder_start_len;
+    LD_UNLD_STATE_t load_unload_state;
+
+    window_text_t text_Z_pos;
+    window_text_t text_direction_arrow;
+    window_numb_t spin_baby_step;
+
+    float Z_offset;
+    float Z_offset_request;
+
+    //it is being deleted i do not know why. size isue?
+    /*const char**      head_gcode;
+	const char**      body_gcode;
+	size_t            head_gcode_sz;
+	size_t            body_gcode_sz;
+	size_t            gcode_sz;*/
+
+    uint32_t timer0;
+};
+
+struct firstlay_data_t {
+    //_TEST_STATE_t state_heat;
+    _TEST_STATE_t state_load;
+    _TEST_STATE_t state_print;
+};
 
     #define V__GCODES_HEAD_BEGIN                 \
         "M107",    /*fan off */                  \

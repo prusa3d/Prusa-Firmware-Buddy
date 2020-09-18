@@ -283,7 +283,7 @@ if(CMAKE_CROSSCOMPILING)
 endif()
 
 # enable all warnings (well, not all, but some)
-add_compile_options(-Wall)
+add_compile_options(-Wall -Wsign-compare)
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -391,7 +391,14 @@ if(GENERATE_DFU)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/lang
+  firmware
+  PRIVATE include
+          src/common
+          src/gui
+          src/gui/dialogs
+          src/gui/wizard
+          src/guiapi/include
+          src/lang
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -437,7 +444,7 @@ target_sources(
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
-          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
+          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/diag.c
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
@@ -464,6 +471,7 @@ target_sources(
           src/common/appmain.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
+          src/common/marlin_test.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
           $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
@@ -478,7 +486,6 @@ target_sources(
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp
-          src/common/lang.cpp
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
@@ -560,11 +567,8 @@ if(GUI)
             src/gui/wizard/selftest.cpp
             src/gui/wizard/firstlay.cpp
             src/gui/wizard/wizard_load_unload.cpp
-            src/gui/wizard/wizard_ui.cpp
-            src/gui/wizard/wizard.cpp
             src/gui/wizard/screen_wizard.cpp
             src/gui/wizard/xyzcalib.cpp
-            src/gui/wizard/wizard_progress_bar.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
             src/gui/screen_menu_preheat.cpp
