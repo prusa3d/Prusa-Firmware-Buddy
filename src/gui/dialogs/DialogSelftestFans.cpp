@@ -1,6 +1,6 @@
 #include "DialogSelftestFans.hpp"
 #include "i18n.h"
-#include "wizard_config.h"
+#include "wizard_config.hpp"
 
 static constexpr size_t col_0 = WIZARD_MARGIN_LEFT;
 static constexpr size_t col_0_w = 200;
@@ -15,3 +15,19 @@ DialogSelftestFans::DialogSelftestFans()
     , text_print_fan(this, Rect16(col_0, 96, col_0_w, 22), is_multiline::no, is_closed_on_click_t::no, _("Print fan"))
     , icon_print_fan(this, { col_1, 96 }) {
 }
+
+bool DialogSelftestFans::change(uint8_t phs, uint8_t progress_tot, uint8_t progress) {
+    PhasesSelftestFans test = GetEnumFromPhaseIndex<PhasesSelftestFans>(phs);
+    SelftestSubtestState_t test_state = SelftestSubtestState_t(progress);
+
+    switch (test) {
+    case PhasesSelftestFans::TestFan0:
+        icon_extruder_fan.SetState(test_state);
+        break;
+    case PhasesSelftestFans::TestFan1:
+        icon_print_fan.SetState(test_state);
+        break;
+    }
+    progress_fan.SetProgress(progress_tot);
+    return true;
+};

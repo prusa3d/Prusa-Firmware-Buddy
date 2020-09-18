@@ -1,6 +1,6 @@
 #include "DialogSelftestAxis.hpp"
 #include "i18n.h"
-#include "wizard_config.h"
+#include "wizard_config.hpp"
 
 static constexpr size_t col_0 = WIZARD_MARGIN_LEFT;
 static constexpr size_t col_0_w = 200;
@@ -17,3 +17,7 @@ DialogSelftestAxis::DialogSelftestAxis()
     , text_z_axis(this, Rect16(col_0, 120, col_0_w, 22), is_multiline::no, is_closed_on_click_t::no, _("Z-axis"))
     , icon_z_axis(this, { col_1, 120 }) {
 }
+
+bool DialogSelftestAxis::change(uint8_t phs, uint8_t progress_tot, uint8_t progress) {
+    return true;
+};

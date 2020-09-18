@@ -6,12 +6,13 @@
 #include "M50.hpp"
 #include <stdint.h>
 #include "z_calibration_fsm.hpp"
+#include "wizard_config.hpp"
 
 // M50 .. selftest
 // use M50 because M48 is test of Z probing (also some kind of test)
 // and M49 was used
 void PrusaGcodeSuite::M50() {
-    bool X_test = parser.seen('H');
+    bool X_test = parser.seen('X');
     bool Y_test = parser.seen('Y');
     bool Z_test = parser.seen('Z');
     bool fan_test = parser.seen('F');
@@ -27,9 +28,20 @@ void PrusaGcodeSuite::M50() {
         axis_test = fan_axis_test = true;
     }
 
-    FSM_Holder D(ClientFSM::SelftestFans, 0);
-    while (1)
-        ;
+    {
+        FSM_Holder D(ClientFSM::SelftestFans, 0);
+        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, 0, uint8_t(SelftestSubtestState_t::running));
+        do_blocking_move_to_z(10, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, 30, uint8_t(SelftestSubtestState_t::ok));
+        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, 80, uint8_t(SelftestSubtestState_t::running));
+        do_blocking_move_to_z(0, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, 100, uint8_t(SelftestSubtestState_t::not_good));
+        do_blocking_move_to_z(10, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+    }
+    {
+        FSM_Holder D(ClientFSM::SelftestAxis, 0);
+        do_blocking_move_to_z(0, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+    }
     /*    FSM_Holder D(ClientFSM::G162, 0);
 
     // Z axis lift
