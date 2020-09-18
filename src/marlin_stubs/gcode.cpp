@@ -5,9 +5,9 @@
 
 bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
     switch (parser.command_letter) {
-    case 'D':
+    case 'M': //idiotic parser does not see 'D'
         switch (parser.codenum) {
-        case 666:
+        case 50:
             PrusaGcodeSuite::D666(); //selftest
             return true;
         }
