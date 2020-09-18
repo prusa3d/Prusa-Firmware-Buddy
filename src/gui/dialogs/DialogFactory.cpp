@@ -38,13 +38,6 @@ static_unique_ptr<IDialogMarlin> DialogFactory::G162(uint8_t data) {
     string_view_utf8 name = _(nm);
     return make_static_unique_ptr<DialogG162>(&all_dialogs, name);
 }
-/*
-static_unique_ptr<IDialogMarlin> DialogFactory::SelftestFansAxis(uint8_t data) {
-    //static const char *nm = N_("First layer calibration");
-    //string_view_utf8 name = _(nm);
-    //return make_static_unique_ptr<DialogSelftestFansAxis>(&all_dialogs, name);
-    return make_static_unique_ptr<DialogSelftestFansAxis>(&all_dialogs);
-}*/
 
 DialogFactory::Ctors DialogFactory::GetAll() {
     //todo check if all fields are set

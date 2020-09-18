@@ -20,7 +20,6 @@ public:
     static static_unique_ptr<IDialogMarlin> serial_printing(uint8_t data);
     static static_unique_ptr<IDialogMarlin> load_unload(uint8_t data);
     static static_unique_ptr<IDialogMarlin> G162(uint8_t data);
-    //static static_unique_ptr<IDialogMarlin> SelftestFansAxis(uint8_t data);
 
     static Ctors GetAll(); //returns all factory methods in an array
 };

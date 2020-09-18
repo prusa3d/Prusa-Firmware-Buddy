@@ -39,10 +39,6 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
             OpenPrintScreen(dialog);
         }
         break;
-        /* case ClientFSM::SelftestFansAxis:
-        //Screens::Access()->Open(ScreenFactory::Screen<DialogSelftestFansAxis>);
-        Screens::Access()->Get()->RegisterSubWin()
-        break;*/
     default:
         ptr = dialog_ctors[size_t(dialog)](data);
     }
@@ -59,9 +55,6 @@ void DialogHandler::close(ClientFSM dialog) {
         if (dialog == ClientFSM::Serial_printing) {
             Screens::Access()->CloseAll();
         }
-        /* if (dialog == ClientFSM::SelftestFansAxis) {
-            Screens::Access()->Close();
-        }*/
     }
 
     ptr = nullptr; //destroy current dialog

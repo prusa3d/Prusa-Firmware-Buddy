@@ -494,9 +494,9 @@ target_sources(
           src/common/z_calibration_fsm.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
+          src/marlin_stubs/M50.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/G162.cpp
-          src/marlin_stubs/D666.cpp
           src/marlin_stubs/gcode.cpp
           src/marlin_stubs/pause/G27.cpp
           src/marlin_stubs/pause/M125.cpp

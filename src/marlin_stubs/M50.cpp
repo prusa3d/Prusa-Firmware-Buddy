@@ -3,11 +3,14 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
-#include "D666.hpp"
+#include "M50.hpp"
 #include <stdint.h>
 #include "z_calibration_fsm.hpp"
 
-void PrusaGcodeSuite::D666() {
+// M50 .. selftest
+// use M50 because M48 is test of Z probing (also some kind of test)
+// and M49 was used
+void PrusaGcodeSuite::M50() {
     bool X_test = parser.seen('H');
     bool Y_test = parser.seen('Y');
     bool Z_test = parser.seen('Z');
