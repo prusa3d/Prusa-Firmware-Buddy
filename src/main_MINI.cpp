@@ -156,25 +156,7 @@ char uart6slave_line[32];
 static volatile uint32_t minda_falling_edges = 0;
 uint32_t get_Z_probe_endstop_hits() { return minda_falling_edges; }
 
-InputPin zMin(BUDDY_PIN(Z_MIN), IMode::IT_faling, Pull::up);
-InputPin xDiag(BUDDY_PIN(X_DIAG), IMode::input, Pull::none);
-InputPin yDiag(BUDDY_PIN(Y_DIAG), IMode::input, Pull::none);
-InputPin zDiag(BUDDY_PIN(Z_DIAG), IMode::input, Pull::none);
-InputPin e0Diag(BUDDY_PIN(E0_DIAG), IMode::input, Pull::none);
-
-OutputPin xEnable(BUDDY_PIN(X_ENA), InitState::set, OMode::pushPull, OSpeed::low);
-OutputPin yEnable(BUDDY_PIN(Y_ENA), InitState::set, OMode::pushPull, OSpeed::low);
-OutputPin zEnable(BUDDY_PIN(Z_ENA), InitState::set, OMode::pushPull, OSpeed::low);
-OutputPin e0Enable(BUDDY_PIN(E0_ENA), InitState::set, OMode::pushPull, OSpeed::low);
-OutputPin xStep(BUDDY_PIN(X_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin yStep(BUDDY_PIN(Y_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin zStep(BUDDY_PIN(Z_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin e0Step(BUDDY_PIN(E0_STEP), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin xDir(BUDDY_PIN(X_DIR), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin yDir(BUDDY_PIN(Y_DIR), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin zDir(BUDDY_PIN(Z_DIR), InitState::reset, OMode::pushPull, OSpeed::low);
-OutputPin e0Dir(BUDDY_PIN(E0_DIR), InitState::reset, OMode::pushPull, OSpeed::low);
-
+PIN_TABLE(DEFINE_PINS)
 /* USER CODE END 0 */
 
 /**
@@ -914,7 +896,7 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-    ConfigurableIndestructible::configure_all();
+    PIN_TABLE(CONFIGURE_PINS)
 
     /*Configure GPIO pins : FIL_SENSOR_Pin WP2_Pin */
     GPIO_InitStruct.Pin = FIL_SENSOR_Pin | WP2_Pin;

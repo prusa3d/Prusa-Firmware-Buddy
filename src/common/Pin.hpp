@@ -38,29 +38,12 @@
 
 #define MARLIN_PORT_PIN(port, pin) ((16 * (port)) + pin)
 
-#define MARLIN_PIN(name) MARLIN_PORT_PIN(MARLIN_PORT_##name, MARLIN_PIN_NR_##name)
-#define BUDDY_PIN(name)  static_cast<IoPort>(MARLIN_PORT_##name), static_cast<IoPin>(MARLIN_PIN_NR_##name)
+#define MARLIN_PIN(name)                       MARLIN_PORT_PIN(MARLIN_PORT_##name, MARLIN_PIN_NR_##name)
+#define BUDDY_PIN(name)                        static_cast<IoPort>(MARLIN_PORT_##name), static_cast<IoPin>(MARLIN_PIN_NR_##name)
+#define DECLARE_PINS(TYPE, NAME, PARAMETERS)   extern TYPE NAME;
+#define DEFINE_PINS(TYPE, NAME, PARAMETERS)    TYPE NAME PARAMETERS;
+#define CONFIGURE_PINS(TYPE, NAME, PARAMETERS) NAME.configure();
 /**@}*/
-
-/**
- * @brief Container for all instances of its class
- *
- * Use only for objects of static storage duration. It is not possible meaningfully destroy object
- * of this class. (Do not allocate on stack or heap.)
- * Implicitly creates linked list of all created objects of its class. To conserve RAM, pointers to
- * previous items in list are constant.
- */
-class ConfigurableIndestructible {
-public:
-    static void configure_all();
-    ConfigurableIndestructible()
-        : m_previous(s_last) { s_last = this; }
-
-private:
-    virtual void configure() = 0;
-    ConfigurableIndestructible *const m_previous; //!< previous instance, nullptr if this is first instance
-    static ConfigurableIndestructible *s_last;
-};
 
 enum class IoPort : uint8_t {
     A = 0,
@@ -135,7 +118,7 @@ enum class Pull : uint8_t {
     down = GPIO_PULLDOWN,
 };
 
-class InputPin : private ConfigurableIndestructible, public Pin {
+class InputPin : public Pin {
 public:
     InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
         : Pin(ioPort, ioPin)
@@ -146,10 +129,10 @@ public:
     }
     void pullUp() { configure(Pull::up); }
     void pullDown() { configure(Pull::down); }
+    void configure() { configure(m_pull); }
 
 private:
     void configure(Pull pull);
-    void configure() override { configure(m_pull); }
     const IMode m_mode;
     const Pull m_pull;
 };
@@ -176,7 +159,7 @@ enum class OSpeed : uint8_t {
     very_high = GPIO_SPEED_FREQ_VERY_HIGH,
 };
 
-class OutputPin : private ConfigurableIndestructible, public Pin {
+class OutputPin : public Pin {
 public:
     OutputPin(IoPort ioPort, IoPin ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
         : Pin(ioPort, ioPin)
@@ -202,9 +185,9 @@ public:
     void write(GPIO_PinState pinState) {
         HAL_GPIO_WritePin(m_halPort, m_halPin, pinState);
     }
+    void configure();
 
 protected:
-    void configure() override;
     const InitState m_initState;
     const OMode m_mode;
     const OSpeed m_speed;
