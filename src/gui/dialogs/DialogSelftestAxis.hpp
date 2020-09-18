@@ -5,7 +5,7 @@
 
 class DialogSelftestAxis : public IDialogMarlin {
     window_text_t text_checking_axis;
-    window_numberless_progress_t progress_axis;
+    window_numberless_progress_t progress;
     window_text_t text_x_axis;
     WindowIcon_OkNg icon_x_axis;
     window_text_t text_y_axis;

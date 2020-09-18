@@ -5,7 +5,7 @@
 
 class DialogSelftestFans : public IDialogMarlin {
     window_text_t text_fan_test;
-    window_numberless_progress_t progress_fan;
+    window_numberless_progress_t progress;
     window_text_t text_extruder_fan;
     WindowIcon_OkNg icon_extruder_fan;
     window_text_t text_print_fan;
