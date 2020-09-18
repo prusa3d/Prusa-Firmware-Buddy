@@ -18,19 +18,7 @@ enum {
 
 enum {
     MAX_SHEET_NAME_LENGTH = 8,
-    MAX_SHEETS = 8,
-    EEPROM_SHEET_SIZEOF = 12
 };
-
-typedef struct
-{
-    char name[MAX_SHEET_NAME_LENGTH]; //!< Can be null terminated, doesn't need to be null terminated
-    float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
-} Sheet;
-
-#ifdef __cplusplus
-static_assert(sizeof(Sheet) == EEPROM_SHEET_SIZEOF, "Sizeof(Sheets) is not EEPROM_SHEETS_SIZEOF.");
-#endif
 
 enum {
     // basic variables

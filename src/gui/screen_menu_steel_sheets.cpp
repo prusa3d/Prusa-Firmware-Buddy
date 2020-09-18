@@ -236,8 +236,13 @@ protected:
     }
 };
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SHEET_SMOOTH1, MI_SHEET_SMOOTH2,
-    MI_SHEET_TEXTUR1, MI_SHEET_TEXTUR2, MI_SHEET_CUSTOM1, MI_SHEET_CUSTOM2, MI_SHEET_CUSTOM3, MI_SHEET_CUSTOM4>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    ,
+    MI_SHEET_SMOOTH1, MI_SHEET_SMOOTH2,
+    MI_SHEET_TEXTUR1, MI_SHEET_TEXTUR2, MI_SHEET_CUSTOM1, MI_SHEET_CUSTOM2, MI_SHEET_CUSTOM3, MI_SHEET_CUSTOM4
+#endif
+    >;
 
 class ScreenMenuSteelSheets : public Screen {
 public:
