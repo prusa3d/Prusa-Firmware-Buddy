@@ -23,12 +23,16 @@
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Fil. sens.");
 
+    void no_sensor_msg() const {
+        MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+    }
+
     size_t init_index() const {
         fsensor_t fs = fs_wait_initialized();
         if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
         {
             fs_disable();
-            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+            no_sensor_msg();
             fs = fsensor_t::Disabled;
         }
         return fs == fsensor_t::Disabled ? 0 : 1;
@@ -43,7 +47,7 @@ public:
         if (fs == fsensor_t::NotConnected) { //only way to have this state is that fs just disconnected
             fs_disable();
             index = 0;
-            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+            no_sensor_msg();
         }
     }
 
@@ -55,7 +59,7 @@ protected:
         {
             fs_disable();
             index = old_index;
-            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+            no_sensor_msg();
         }
     }
 };
