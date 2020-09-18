@@ -65,7 +65,7 @@ dependencies = {
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-1.0.0.zip',
     },
 }
-pip_dependencies = ['ecdsa']
+pip_dependencies = ['ecdsa', 'polib']
 # yapf: enable
 
 
