@@ -363,15 +363,17 @@ protected:
     }
 };
 
-class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_U08_t {
+class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_I08_t {
     static constexpr const char *const label = N_("Filament sensor");
 
 public:
     MI_FILAMENT_SENSOR_STATE();
-    virtual void OnClick() override {};
+    virtual ~MI_FILAMENT_SENSOR_STATE() {};
+    virtual void OnClick() override;
+    void CheckValue();
 };
 
-class MI_MINDA : public WI_SPIN_U08_t {
+class MI_MINDA : public WI_SPIN_I08_t {
     static constexpr const char *const label = N_("M.I.N.D.A.");
 
 public:

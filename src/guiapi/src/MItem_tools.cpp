@@ -14,6 +14,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "bsod.h"
+#include "filament_sensor.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -402,9 +403,32 @@ void I_MI_Filament::click_at(FILAMENT_t filament_index) {
     Screens::Access()->Close(); // skip this screen everytime
 }
 
-const uint8_t sensor_range[3] = { 0, 1, 1 };
+int get_fs_state() {
+    fsensor_t fs = fs_wait_initialized();
+    switch (fs) {
+    case FS_HAS_FILAMENT:
+        return 1;
+        break;
+
+    case FS_NO_FILAMENT:
+        return 0;
+        break;
+
+    default:
+        return -1;
+    }
+}
+
+const int8_t sensor_range[3] = { -1, 1, 1 };
 MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SPIN_U08_t(0, sensor_range, label, 0, false, false) {}
+    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {
+
+    value = get_fs_state();
+}
+
+void MI_FILAMENT_SENSOR_STATE::CheckValue() {
+    value = get_fs_state();
+}
 
 MI_MINDA::MI_MINDA()
-    : WI_SPIN_U08_t(0, sensor_range, label, 0, false, false) {}
+    : WI_SPIN_I08_t(0, sensor_range, label, 0, false, false) {}

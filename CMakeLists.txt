@@ -547,7 +547,7 @@ if(GUI)
             src/gui/screen_menu_move.cpp
             src/gui/screen_menu_lan_settings.cpp
             src/gui/screen_menu_languages.cpp
-            src/gui/screen_menu_sensor_info
+            src/gui/screen_menu_sensor_info.cpp
             src/gui/screen_qr_error.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp

@@ -13,8 +13,17 @@ public:
     ScreenMenuSensorInfo()
         : Screen(_(label)) {
     }
+    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {
     return ScreenFactory::Screen<ScreenMenuSensorInfo>();
+}
+
+void ScreenMenuSensorInfo::windowEvent(window_t *sender, uint8_t ev, void *param) {
+    if (ev == WINDOW_EVENT_LOOP) {
+        Item<MI_FILAMENT_SENSOR_STATE>().CheckValue();
+    }
+
+    Screen::windowEvent(sender, ev, param);
 }
