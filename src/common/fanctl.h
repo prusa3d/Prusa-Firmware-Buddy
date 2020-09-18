@@ -52,7 +52,7 @@ typedef struct _fanctl_tach_t {
 // class for software pwm control with phase-shifting
 class CFanCtlPWM : private fanctl_pwm_t {
 public:
-    enum PhaseShiftMode {
+    enum PhaseShiftMode : uint8_t {
         none,     // phase shifting disabled
         triangle, // phase shift follows triangle function
         random,   // phase shift is random (using rand)
@@ -68,10 +68,10 @@ public:
     // returns: positive number means pwm is on N ticks, negative number means pwm is off and will be switched on in -N ticks
 
     // getters
-    inline uint8_t get_min_PWM() { return min_value; }
-    inline uint8_t get_max_PWM() { return max_value; }
-    inline uint8_t get_PWM() { return pwm; }
-    inline PhaseShiftMode get_PhaseShiftMode() { return (PhaseShiftMode)pha_mode; }
+    inline uint8_t get_min_PWM() const { return min_value; }
+    inline uint8_t get_max_PWM() const { return max_value; }
+    inline uint8_t get_PWM() const { return pwm; }
+    inline PhaseShiftMode get_PhaseShiftMode() const { return (PhaseShiftMode)pha_mode; }
 
     // setters
     void set_PWM(uint8_t new_pwm);
@@ -90,7 +90,7 @@ public:
     // returns: true = tach cycle complete (used for RPM calculation)
 
     // getters
-    inline uint16_t getRPM() { return rpm; }
+    inline uint16_t getRPM() const { return rpm; }
 };
 
 //
@@ -110,25 +110,27 @@ public:
     CFanCtl(uint8_t pinOut, uint8_t pinTach, uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM);
 
 public:
-    void init();               // init function - initialize hw
-    void tick();               // tick callback from timer interrupt
-                               // getters (in-lined)
-    inline uint8_t getMinPWM() // get minimum PWM, this should be safe value for self starting
+    void init(); // init function - initialize hw
+    void tick(); // tick callback from timer interrupt
+
+    // getters (in-lined)
+    inline uint8_t getMinPWM() const // get minimum PWM, this should be safe value for self starting
     { return m_pwm.get_min_PWM(); }
-    inline uint8_t getMaxPWM() // get maximum PWM, this is value representing 100% power
+    inline uint8_t getMaxPWM() const // get maximum PWM, this is value representing 100% power
     { return m_pwm.get_max_PWM(); }
-    inline uint16_t getMinRPM() // get minimum RPM [n/min], this is lowest RPM that can be reached with reliable response
+    inline uint16_t getMinRPM() const // get minimum RPM [n/min], this is lowest RPM that can be reached with reliable response
     { return m_pwm.get_max_PWM(); }
-    inline uint16_t getMaxRPM() // get maximup RPM [n/min], this is highest RPM at 100% power
+    inline uint16_t getMaxRPM() const // get maximup RPM [n/min], this is highest RPM at 100% power
     { return m_pwm.get_max_PWM(); }
-    inline FanState getState() // get fan control state
+    inline FanState getState() const // get fan control state
     { return m_State; }
-    inline uint8_t getPWM() // get PWM value
+    inline uint8_t getPWM() const // get PWM value
     { return m_PWMValue; }
-    inline uint16_t getActualRPM() // get actual (measured) RPM
+    inline uint16_t getActualRPM() const // get actual (measured) RPM
     { return m_tach.getRPM(); }
-    inline uint8_t getPhaseShiftMode() // get PhaseShiftMode
+    inline uint8_t getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
+
     // setters
     void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
     void setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
