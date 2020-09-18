@@ -77,7 +77,8 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_firstlay();
+    marlin_gcode("G26");
+    //wizard_run_firstlay();
 }
 
 /*****************************************************************************/
