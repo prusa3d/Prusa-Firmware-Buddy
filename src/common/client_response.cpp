@@ -26,16 +26,3 @@ const PhaseResponses ClientResponses::G162Responses[CountPhases<PhasesG162>()] =
     {}, //_first
     {}, //Parking
 };
-
-const PhaseResponses ClientResponses::SelfTestResponses[CountPhases<PhasesSelfTest>()] = {
-    {}, //_first
-    {}, //FansAxis
-    {}, //Heaters
-    {}, //Cooldown
-};
-/*
-const PhaseResponses ClientResponses::SelfTestHeatersResponses[CountPhases<PhasesSelfTestHeaters>()] = {
-    {}, //_first
-    {}, //Init
-};
-*/
