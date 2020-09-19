@@ -43,11 +43,14 @@
 /**
  * @brief Convert Marlin style defined pin to be used in constructor of Pin
  */
-#define BUDDY_PIN(name)                      Pin::IoPortToHalBase(static_cast<IoPort>(MARLIN_PORT_##name)), Pin::IoPinToHal(static_cast<IoPin>(MARLIN_PIN_NR_##name))
-#define COMMA                                ,
-#define DECLARE_PINS(TYPE, NAME, PARAMETERS) inline constexpr TYPE NAME = PARAMETERS;
-#define DEFINE_PINS(TYPE, NAME, PARAMETERS)
-#define CONFIGURE_PINS(TYPE, NAME, PARAMETERS) NAME.configure();
+#define BUDDY_PIN(name) Pin::IoPortToHalBase(static_cast<IoPort>(MARLIN_PORT_##name)), Pin::IoPinToHal(static_cast<IoPin>(MARLIN_PIN_NR_##name))
+
+#define COMMA ,
+
+#define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) inline constexpr TYPE NAME = { PORTPIN, PARAMETERS };
+#define DEFINE_PINS(TYPE, NAME, PORTPIN, PARAMETERS)
+#define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) NAME.configure();
+#define PINS_TO_CHECK(TYPE, NAME, PORTPIN, PARAMETERS)  { PORTPIN },
 
 enum class IoPort : uint8_t {
     A = 0,
