@@ -11,16 +11,16 @@ void InputPin::configure(Pull pull) const {
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
     GPIO_InitStruct.Pull = static_cast<uint32_t>(pull);
-    HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
+    HAL_GPIO_Init(reinterpret_cast<GPIO_TypeDef *>(m_halPortBase), &GPIO_InitStruct);
 }
 
 void OutputPin::configure() const {
-    HAL_GPIO_WritePin(m_halPort, m_halPin, static_cast<GPIO_PinState>(m_initState));
+    HAL_GPIO_WritePin(reinterpret_cast<GPIO_TypeDef *>(m_halPortBase), m_halPin, static_cast<GPIO_PinState>(m_initState));
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
     GPIO_InitStruct.Speed = static_cast<uint32_t>(m_speed);
-    HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
+    HAL_GPIO_Init(reinterpret_cast<GPIO_TypeDef *>(m_halPortBase), &GPIO_InitStruct);
 }
 
 void OutputInputPin::enableInput(Pull pull) const {
@@ -28,5 +28,5 @@ void OutputInputPin::enableInput(Pull pull) const {
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = static_cast<uint32_t>(pull);
-    HAL_GPIO_Init(m_halPort, &GPIO_InitStruct);
+    HAL_GPIO_Init(reinterpret_cast<GPIO_TypeDef *>(m_halPortBase), &GPIO_InitStruct);
 }

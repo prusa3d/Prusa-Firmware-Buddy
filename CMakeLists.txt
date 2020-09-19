@@ -284,7 +284,7 @@ endif()
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
-add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-register>)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-std=c++1z>)
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
