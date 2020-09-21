@@ -596,6 +596,7 @@ if(GUI)
             src/guiapi/src/window_text.cpp
             src/guiapi/src/window_roll_text.cpp
             src/guiapi/src/window_msgbox.cpp
+            src/guiapi/src/liveadjustz.cpp
             src/guiapi/src/window_qr.cpp
             src/guiapi/src/window.cpp
             src/guiapi/src/IWindowMenuItem.cpp

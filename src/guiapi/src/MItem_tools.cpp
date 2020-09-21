@@ -14,6 +14,17 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "bsod.h"
+#include "liveadjustz.hpp"
+
+/*****************************************************************************/
+//MI_LIVE_ADJUST_Z
+MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
+    LiveAdjustZOpen();
+}
 
 /*****************************************************************************/
 //MI_WIZARD

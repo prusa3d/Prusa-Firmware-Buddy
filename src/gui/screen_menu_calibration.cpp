@@ -8,7 +8,7 @@
 #include "MItem_print.hpp"
 #include "printers.h"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_BABYSTEP, MI_AUTO_HOME, MI_MESH_BED,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_LIVE_ADJUST_Z, MI_BABYSTEP, MI_AUTO_HOME, MI_MESH_BED,
     MI_SELFTEST, MI_CALIB_FIRST>;
 /*
 static void init(screen_t *screen) {

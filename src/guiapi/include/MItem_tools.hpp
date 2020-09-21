@@ -5,6 +5,16 @@
 #include "i18n.h"
 #include "filament.h"
 
+class MI_LIVE_ADJUST_Z : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Live Adjust Z");
+
+public:
+    MI_LIVE_ADJUST_Z();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");
 

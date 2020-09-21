@@ -60,6 +60,7 @@ enum {
     IDR_PNG_wizard_icon_measure,
 
     IDR_PNG_icon_pepa_psod,
+    IDR_PNG_big_nozzle,
 
     IDR_PNG_header_icon_usb,
     IDR_PNG_header_icon_lan,
@@ -71,6 +72,8 @@ enum {
 
     IDR_PNG_arrow_up,
     IDR_PNG_arrow_down,
+    IDR_PNG_arrow_up_orange,
+    IDR_PNG_arrow_down_orange,
     IDR_PNG_arrow_scan_me,
 
     IDR_PNG_menu_icon_back,

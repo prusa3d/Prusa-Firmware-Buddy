@@ -61,6 +61,7 @@
 #include "res/cc/png_wizard_icon_measure.c"   //IDR_PNG_wizard_icon_measure
 
 #include "res/cc/png_icon_pepa_psod.c" //IDR_PNG_icon_pepa_psod
+#include "res/cc/png_big_nozzle.c"     //IDR_PNG_big_nozzle
 
 #include "res/cc/png_header_icon_usb.c"      //IDR_PNG_header_icon_usb
 #include "res/cc/png_header_icon_lan.c"      //IDR_PNG_header_icon_lan
@@ -70,9 +71,11 @@
 #include "res/cc/png_header_icon_warning.c"  //IDR_PNG_header_icon_warning
 #include "res/cc/png_header_icon_question.c" //IDR_PNG_header_icon_question
 
-#include "res/cc/png_arrow_up.c"      //IDR_PNG_arrow_up
-#include "res/cc/png_arrow_down.c"    //IDR_PNG_arrow_down
-#include "res/cc/png_arrow_scan_me.c" //IDR_PNG_arrow_scan_me
+#include "res/cc/png_arrow_up.c"          //IDR_PNG_arrow_up
+#include "res/cc/png_arrow_down.c"        //IDR_PNG_arrow_down
+#include "res/cc/png_arrow_up_orange.c"   //IDR_PNG_arrow_up_orange
+#include "res/cc/png_arrow_down_orange.c" //IDR_PNG_arrow_down_orange
+#include "res/cc/png_arrow_scan_me.c"     //IDR_PNG_arrow_scan_me
 
 #include "res/cc/png_serial_printing.c" //IDR_PNG_serial_printing
 
@@ -141,6 +144,7 @@ RESOURCE_ENTRY_PNG(png_wizard_icon_search)
 RESOURCE_ENTRY_PNG(png_wizard_icon_measure)
 
 RESOURCE_ENTRY_PNG(png_icon_pepa_psod)
+RESOURCE_ENTRY_PNG(png_big_nozzle)
 
 RESOURCE_ENTRY_PNG(png_header_icon_usb)
 RESOURCE_ENTRY_PNG(png_header_icon_lan)
