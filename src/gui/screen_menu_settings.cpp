@@ -97,7 +97,7 @@ ScreenFactory::UniquePtr GetScreenMenuSettings() {
 
 ScreenMenuSettings::ScreenMenuSettings()
     : Screen(_(label)) {
-    if (sheet_number_of_initialized() > 1) {
+    if (sheet_number_of_calibrated() > 1) {
         Item<MI_CURRENT_PROFILE>().UpdateLabel();
         Item<MI_CURRENT_PROFILE>().SetHidden(false);
     }

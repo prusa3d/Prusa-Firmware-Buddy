@@ -581,7 +581,7 @@ uint32_t sheet_next_calibrated() {
     return 0;
 }
 
-bool sheet_is_initialized(uint32_t index) {
+bool sheet_is_calibrated(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
     float z_offset = FLT_MAX;
@@ -595,7 +595,7 @@ bool sheet_is_initialized(uint32_t index) {
 
 bool sheet_select(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    if (index >= MAX_SHEETS || !sheet_is_initialized(index))
+    if (index >= MAX_SHEETS || !sheet_is_calibrated(index))
         return false;
     uint16_t actual_sheet_address = eeprom_var_addr(EEVAR_ACTUAL_SHEET);
     st25dv64k_user_write(actual_sheet_address, index);
@@ -622,11 +622,11 @@ bool sheet_reset(uint32_t index) {
 #endif
 }
 
-uint32_t sheet_number_of_initialized() {
+uint32_t sheet_number_of_calibrated() {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     uint32_t count = 1;
     for (int8_t i = 1; i < MAX_SHEETS; ++i) {
-        if (sheet_is_initialized(i))
+        if (sheet_is_calibrated(i))
             ++count;
     }
     return count;

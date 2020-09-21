@@ -88,7 +88,7 @@ public:
     using index_type = Index;
     SheetProfileMenuScreenT()
         : SheetProfileMenuScreen(_(label)) {
-        if (sheet_is_initialized(Index::value)) {
+        if (sheet_is_calibrated(Index::value)) {
             Item<MI_SHEET_SELECT>().Enable();
             Item<MI_SHEET_RESET>().Enable();
         }

@@ -48,7 +48,7 @@ void status_footer_t::windowEvent(window_t *sender, uint8_t event, void *param) 
     }
 
     if (dynamic_cast<screen_home_data_t *>(GetParent()) != nullptr //is home_screen
-        && sheet_number_of_initialized() > 1) {                    // calibrated more profiles than 1
+        && sheet_number_of_calibrated() > 1) {                     // calibrated more profiles than 1
         update_sheet_profile();
     } else if (mseconds - last_timer_repaint_z_pos >= REPAINT_Z_POS_PERIOD) {
         update_z_axis();
@@ -283,7 +283,7 @@ status_footer_t::status_footer_t(window_t *parent)
     update_temperatures();
     update_feedrate();
     update_filament();
-    if (sheet_number_of_initialized() > 1)
+    if (sheet_number_of_calibrated() > 1)
         update_sheet_profile();
     else
         update_z_axis();

@@ -118,11 +118,57 @@ extern void eeprom_clear(void);
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);
 
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Iterate across the profiles and switch to the next calibrated.
+///
+/// Printer use print sheet profile on the index 0 as a default so the method
+/// in the worst case iterate across entire profiles and return index 0 when
+/// not any other profile is calibrated yet.
+/// @return Index of the next calibrated profile.
 extern uint32_t sheet_next_calibrated();
-extern bool sheet_is_initialized(uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Determine if the given sheet profile is calibrated.
+///
+/// In case the index of the given print sheet profile is bigger than the
+/// MAX_SHEETS method return false.
+/// @param[in] index Index of the sheet profile
+/// @return True when the profile is calibrated, False othewise.
+extern bool sheet_is_calibrated(uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Select the given print sheet profile as an active for the printer.
+///
+/// In case the index of the given print sheet profile is bigger than the
+/// MAX_SHEETS method return false.
+/// @param[in] index Index of the sheet profile
+/// @return True when the profile can be selected, False othewise.
 extern bool sheet_select(uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Reset the given print sheet profile to the uncalibrated state.
+///
+/// In case the index of the given print sheet profile is bigger than the
+/// MAX_SHEETS method return false.
+/// @param[in] index Index of the sheet profile
+/// @return True when the profile was reset, False othewise.
 extern bool sheet_reset(uint32_t);
-extern uint32_t sheet_number_of_initialized();
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Reset the given print sheet profile to the uncalibrated state.
+///
+/// Printer use print sheet profile on the index 0 as a default so the method
+/// return always at least 1 calibrated profile.
+/// @return Return the count of the calibrated print sheet profiles.
+extern uint32_t sheet_number_of_calibrated();
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Determine the name of the current active print sheet profile
+///
+/// @param[out] buffer Buffer to store the print sheet profile
+/// @param[in] length Size of the given buffer.
+/// @return Number of characters written to the buffer. Number will be
+///        always < MAX_SHEET_NAME_LENGTH
 extern uint32_t sheet_get_current_name(char *, uint32_t);
 #ifdef __cplusplus
 }
