@@ -163,13 +163,24 @@ extern bool sheet_reset(uint32_t);
 extern uint32_t sheet_number_of_calibrated();
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Determine the name of the current active print sheet profile
+/// @brief Determine the name of the current active print sheet profile.
 ///
 /// @param[out] buffer Buffer to store the print sheet profile
 /// @param[in] length Size of the given buffer.
 /// @return Number of characters written to the buffer. Number will be
-///        always < MAX_SHEET_NAME_LENGTH
+///        always less than MAX_SHEET_NAME_LENGTH
 extern uint32_t sheet_get_current_name(char *, uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Rename the given print sheet profile.
+///
+/// @param[in] index Index of the sheet profile
+/// @param[in] buffer New name of the print sheet profile
+/// @param[in] length Size of the given name.
+/// @return Number of characters written to the buffer. Number will be
+///        always less than MAX_SHEET_NAME_LENGTH
+extern uint32_t sheet_rename(uint32_t, char const *, uint32_t);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus
