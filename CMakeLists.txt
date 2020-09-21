@@ -494,6 +494,7 @@ target_sources(
           src/common/z_calibration_fsm.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
+          src/marlin_stubs/M50.cpp
           src/marlin_stubs/M876.cpp
           src/marlin_stubs/G162.cpp
           src/marlin_stubs/gcode.cpp
@@ -527,6 +528,8 @@ if(GUI)
             src/gui/dialogs/DialogRadioButton.cpp
             src/gui/dialogs/DialogLoadUnload.cpp
             src/gui/dialogs/DialogG162.cpp
+            src/gui/dialogs/DialogSelftestAxis.cpp
+            src/gui/dialogs/DialogSelftestFans.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
@@ -560,6 +563,7 @@ if(GUI)
             src/gui/test/screen_test_gui.cpp
             src/gui/test/screen_test_term.cpp
             src/gui/test/screen_test_msgbox.cpp
+            src/gui/test/screen_test_wizard_icons.cpp
             src/gui/test/screen_test_graph.cpp
             src/gui/wizard/selftest_fans_axis.cpp
             src/gui/wizard/selftest_temp.cpp

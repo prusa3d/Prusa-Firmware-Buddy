@@ -107,7 +107,7 @@ StateFncData StateFnc_XYZCALIB_FAIL(StateFncData last_run) {
     #include "config.h"
     #include "stm32f4xx_hal.h"
     #include "marlin_client.h"
-    #include "wizard_config.h"
+    #include "wizard_config.hpp"
     #include "screen_wizard.hpp"
     #include "window_dlg_calib_z.hpp"
 
