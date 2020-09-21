@@ -313,3 +313,9 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
         return first;
     return GetNextEnabledSubWin(first, intersection_rect);
 }
+
+Rect16 window_frame_t::GenerateRect(ShiftDir_t dir) {
+    if (!last)
+        return Rect16();
+    return Rect16(last->rect, dir);
+}

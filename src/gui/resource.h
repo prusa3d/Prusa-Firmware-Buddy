@@ -49,11 +49,11 @@ enum {
     IDR_PNG_msgbox_icon_warning,
     IDR_PNG_msgbox_icon_info,
 
-    IDR_PNG_wizard_icon_na,
-    IDR_PNG_wizard_icon_ok,
-    IDR_PNG_wizard_icon_ng,
-    IDR_PNG_wizard_icon_ip0,
-    IDR_PNG_wizard_icon_ip1,
+    IDR_PNG_wizard_icon_na,  // not available gray "-"
+    IDR_PNG_wizard_icon_ok,  // OK green hook
+    IDR_PNG_wizard_icon_ng,  // not good red cross
+    IDR_PNG_wizard_icon_ip0, // in progress gray rotating circle phase 0
+    IDR_PNG_wizard_icon_ip1, // in progress gray rotating circle phase 1
     IDR_PNG_wizard_icon_hourglass,
     IDR_PNG_wizard_icon_autohome,
     IDR_PNG_wizard_icon_search,

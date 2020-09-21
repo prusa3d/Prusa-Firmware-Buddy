@@ -587,6 +587,14 @@ void marlin_quick_stop(void) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_test_start(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!test");
+    _wait_ack_from_server(client->id);
+}
+
 void marlin_print_start(const char *filename) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();

@@ -30,4 +30,3 @@ protected:
 };
 
 void LiveAdjustZOpen(Rect16 rect = GuiDefaults::RectScreenBody, is_closed_on_click_t outside_close = is_closed_on_click_t::yes);
-

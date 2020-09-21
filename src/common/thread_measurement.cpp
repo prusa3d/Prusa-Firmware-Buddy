@@ -1,7 +1,7 @@
 // thread_measurement.c
 #include "thread_measurement.h"
 #include "cmsis_os.h" //osDelay
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "marlin_client.h"
 #include "trinamic.h"
 

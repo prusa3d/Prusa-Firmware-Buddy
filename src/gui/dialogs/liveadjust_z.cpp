@@ -126,4 +126,3 @@ void LiveAdjustZOpen(Rect16 rect, is_closed_on_click_t outside_close) {
     LiveAdjustZ liveadjust(rect, outside_close);
     liveadjust.MakeBlocking();
 }
-

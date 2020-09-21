@@ -548,7 +548,7 @@
 // Almost all printers will be using one per axis. Probes will use one or more of the
 // extra connectors. Leave undefined any used for non-endstop and non-probe purposes.
 #if _DEBUG
-    #define MINDA_BROKEN_CABLE_DETECTION
+//    #define MINDA_BROKEN_CABLE_DETECTION
 #endif
 #define USE_XMIN_PLUG
 #define USE_YMIN_PLUG

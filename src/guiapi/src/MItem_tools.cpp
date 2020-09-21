@@ -2,7 +2,6 @@
 #include "dump.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
-#include "wizard/wizard.h"
 #include "marlin_client.h"
 #include "gui.hpp"
 #include "sys.h"
@@ -13,6 +12,7 @@
 #include "wui_api.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "screen_wizard.hpp"
 #include "bsod.h"
 #include "liveadjust_z.hpp"
 
@@ -33,7 +33,7 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_complete();
+    ScreenWizard::RunAll();
 }
 
 /*****************************************************************************/
@@ -78,7 +78,7 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_selftest();
+    ScreenWizard::RunSelfTest();
 }
 
 /*****************************************************************************/
@@ -88,7 +88,17 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_firstlay();
+    ScreenWizard::RunFirstLay();
+}
+
+/*****************************************************************************/
+//MI_TEST_X
+MI_TEST_X::MI_TEST_X()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start();
 }
 
 /*****************************************************************************/

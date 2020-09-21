@@ -5,7 +5,6 @@
 
 #include "config.h"
 #include "version.h"
-#include "wizard/wizard.h"
 #include "eeprom.h"
 
 #include "stm32f4xx_hal.h"
