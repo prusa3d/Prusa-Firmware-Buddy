@@ -114,7 +114,7 @@ void print_snake(const float *snake) {
     }
 }
 
-void G26() {
+void PrusaGcodeSuite::G26() {
     fsm_create(ClientFSM::FirstLayer);
 
     /// TODO switch to mm and relative extrusion

@@ -1,6 +1,7 @@
 // G26.hpp
-
+namespace PrusaGcodeSuite {
 void G26();
+}
 
 /// Path of Manhattan snake
 /// Alternate X and Y coordinates.
