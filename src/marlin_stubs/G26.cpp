@@ -72,6 +72,7 @@ float extrusion(const float x1, const float y1, const float x2, const float y2, 
 }
 
 float extrusion_Manhattan(const float *path, const uint32_t position, const float last) {
+    return 0;
     if (position % 2 == 0) {
         const float x = path[position];
         const float y = path[position - 2];
@@ -83,30 +84,14 @@ float extrusion_Manhattan(const float *path, const uint32_t position, const floa
     }
 }
 
-void print_snake(const float *snake) {
-
-    go_to_destination(10, 150, 0);
-    go_to_destination(170, 150, 0);
-    go_to_destination(170, 130, 0);
-    go_to_destination(10, 130, 0);
-    go_to_destination(10, 110, 0);
-    go_to_destination(170, 110, 0);
-    go_to_destination(170, 90, 0);
-    go_to_destination(10, 90, 0);
-    go_to_destination(10, 70, 0);
-    go_to_destination(170, 70, 0);
-    go_to_destination(170, 170, 0);
-    go_to_destination(50, 170, 0);
-    go_to_destination(50, 9.5, 0);
-
-    return;
+void print_snake(const float *snake, const size_t snake_size) {
 
     /// move to start
     go_to_destination(snake[0], snake[1], 0); // Process X Y Z E F parameters
     float last_x = snake[0];
     float last_y = snake[1];
     /// iterate positions
-    for (uint32_t i = 2; i < sizeof(snake); i += 2) {
+    for (size_t i = 2; i < snake_size; i += 2) {
         go_to_destination(snake[i], NAN, extrusion_Manhattan(snake, i, last_x));
         last_x = snake[i];
         go_to_destination(NAN, snake[i + 1], extrusion_Manhattan(snake, i + 1, last_y));
@@ -119,21 +104,21 @@ void PrusaGcodeSuite::G26() {
 
     /// TODO switch to mm and relative extrusion
 
-    // /// print purge line
-    // // "G1 Z4 F1000",
-    // do_blocking_move_to_z(4, 1000);
-    // go_to_destination(0.f, -2.f, 0.2f, NAN, 3000.f);
-    // go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
-    // go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
-    // go_to_destination(100.f, NAN, NAN, 12.5f, 1000.f);
-    // go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+    /// print purge line
+    // "G1 Z4 F1000",
+    do_blocking_move_to_z(4, 1000);
+    go_to_destination(0.f, -2.f, 0.2f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+    go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
+    go_to_destination(100.f, NAN, NAN, 12.5f, 1000.f);
+    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
 
-    // /// go to starting point and de-retract
-    // go_to_destination(10.f, 150.f, 0.2f, NAN, 3000.f);
-    // go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
-    // go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
+    /// go to starting point and de-retract
+    go_to_destination(10.f, 150.f, 0.2f, NAN, 3000.f);
+    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+    go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
 
-    print_snake(snake1);
+    print_snake(snake1, sizeof(snake1));
 
     /// finish printing
 
