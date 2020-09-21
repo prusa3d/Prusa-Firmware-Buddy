@@ -18,7 +18,7 @@ WindowArrows::WindowArrows(window_t *parent, point_i16_t pt, padding_ui8_t paddi
             return Rect16(pt,
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);
-        }() ) {
+        }()) {
     SetState(State_t::undef);
 }
 WindowArrows::State_t WindowArrows::GetState() const {
@@ -27,24 +27,23 @@ WindowArrows::State_t WindowArrows::GetState() const {
 //there is a free space in window_t flags, store state in it
 void WindowArrows::SetState(State_t s) {
     const uint8_t state = static_cast<uint8_t>(s);
-    if (state != mem_array_u08[1]){
+    if (state != mem_array_u08[1]) {
         mem_array_u08[1] = state;
         Invalidate();
     }
 }
 void WindowArrows::unconditionalDraw() {
     uint16_t id_res;
-    switch (GetState()){
+    switch (GetState()) {
     case State_t::ok:
         id_res = id_res_ok;
         break;
     case State_t::ng:
         id_res = id_res_ng;
         break;
-    case State_t::undef: 
-        id_res = 0;  
-        break; 
+    case State_t::undef:
+        id_res = 0;
+        break;
     }
     render_icon_align(rect, id_res, color_back, GetAlignment());
 }
-

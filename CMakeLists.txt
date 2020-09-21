@@ -523,6 +523,7 @@ if(GUI)
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
+            src/gui/dialogs/liveadjust_z.cpp
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/dialogs/window_dlg_calib_z.cpp
@@ -596,7 +597,6 @@ if(GUI)
             src/guiapi/src/window_text.cpp
             src/guiapi/src/window_roll_text.cpp
             src/guiapi/src/window_msgbox.cpp
-            src/guiapi/src/liveadjustz.cpp
             src/guiapi/src/window_qr.cpp
             src/guiapi/src/window.cpp
             src/guiapi/src/IWindowMenuItem.cpp

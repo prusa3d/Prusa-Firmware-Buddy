@@ -1,16 +1,14 @@
 // liveadjustz.cpp
 
-#include "liveadjustz.hpp"
+#include "liveadjust_z.hpp"
 #include "resource.h"
 #include "sound.hpp"
-#include <algorithm>
 #include "ScreenHandler.hpp"
 #include "GuiDefaults.hpp"
 #include "marlin_client.h"
 #include "marlin_vars.h"
 #include "eeprom.h"
 
-#include "config.h"
 #include "../Marlin/src/inc/MarlinConfig.h"
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     #include "gui_config_mini.h"
@@ -27,13 +25,17 @@ const float z_offset_max = Z_OFFSET_MAX;
 LiveAdjustZ::LiveAdjustZ(Rect16 rect, is_closed_on_click_t outside_close)
     : IDialog(rect)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
-    , number(this, getNumberRect(), is_multiline::no, is_closed_on_click_t::no)
-    , nozzle_icon(this, Rect16(120 - 24, 120, 48, 48), IDR_PNG_big_nozzle)
-    , bed(this, Rect16(70, 180, 100, 10))
-    , result(Response::_none) {
+    , number(this, getNumberRect(), marlin_vars()->z_offset)
+    , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
+    , bed(this, Rect16(70, 180, 100, 10)) {
 
-    closed_outside = outside_close;
-    z_offset = marlin_vars()->z_offset;
+    /// using window_t 1bit flag
+    flag_close_on_click = outside_close;
+
+    /// using window_numb to store float value of z_offset
+    /// we have to set format and bigger font
+    number.SetFont(GuiDefaults::FontBig);
+    number.SetFormat("%.3f");
 
     /// simple rectangle as bed with defined background color
     bed.SetBackColor(COLOR_ORANGE);
@@ -43,71 +45,75 @@ LiveAdjustZ::LiveAdjustZ(Rect16 rect, is_closed_on_click_t outside_close)
     static const string_view_utf8 text_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(txt));
     text.SetText(text_view);
 
-    /// number label
-    number.font = GuiDefaults::FontBig;
-    writeZoffsetLabel();
+    /// set right position of the nozzle for our value
+    moveNozzle();
 }
 
-void LiveAdjustZ::writeZoffsetLabel(){
-    snprintf(numString, 7, "%0.3f", (double)z_offset);
-    static const string_view_utf8 num_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(numString));
-    number.SetText(num_view);
-}
-
-Response LiveAdjustZ::GetResult() {
-    return result;
-}
-
-Rect16 LiveAdjustZ::getTextRect() {
+const Rect16 LiveAdjustZ::getTextRect() {
     return Rect16(0, 32, 240, 60);
 }
 
-Rect16 LiveAdjustZ::getNumberRect() {
+const Rect16 LiveAdjustZ::getNumberRect() {
     return Rect16(80, 205, 120, 40);
 }
 
-void LiveAdjustZ::saveAndClose() {
-    variant8_t var = variant8_flt(z_offset);
+const Rect16 LiveAdjustZ::getNozzleRect() {
+    return Rect16(120 - 24, 120, 48, 48);
+}
+
+void LiveAdjustZ::SaveAndClose() {
+    /// store new z offset value into a marlin_vars & EEPROM
+    variant8_t var = variant8_flt(number.GetValue());
     eeprom_set_var(EEVAR_ZOFFSET, var);
     marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
+    /// force update marlin vars
+    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
     /// value is stored in Marlin and EEPROM, let's close the screen
     Screens::Access()->Close();
 }
 
-bool LiveAdjustZ::Change(int dif) {
-    float old = z_offset;
+void LiveAdjustZ::Change(int dif) {
+    float old = number.GetValue();
+    float z_offset = number.value;
+
     z_offset += (float)dif * z_offset_step;
     z_offset = dif >= 0 ? std::max(z_offset, old) : std::min(z_offset, old); //check overflow/underflow
     z_offset = std::min(z_offset, z_offset_max);
     z_offset = std::max(z_offset, z_offset_min);
-    return old != z_offset;
-}
 
-void LiveAdjustZ::Step(int diff){
-    auto temp_value = z_offset;
-    if (Change(diff)) {
-        /// wrote new value into a number label
-        writeZoffsetLabel();
-        /// do a baby step
-        float baby_step = z_offset - temp_value;
+    /// check if value has changed so we are free to set babystep and store new value
+    float baby_step = z_offset - old;
+    if (baby_step != 0.0F) {
+        number.SetValue(z_offset);
         marlin_do_babysteps_Z(baby_step);
     }
+
+    /// move nozzle image by set offset
+    moveNozzle();
+}
+
+void LiveAdjustZ::moveNozzle() {
+    float percent = number.GetValue() / z_offset_min;
+    Rect16 moved_rect = getNozzleRect();
+    moved_rect += Rect16::Top_t(int(10 * percent));
+    nozzle_icon.rect = moved_rect;
+    nozzle_icon.Invalidate();
 }
 
 void LiveAdjustZ::windowEvent(window_t *sender, uint8_t event, void *param) {
     switch (event) {
     case WINDOW_EVENT_CLICK:
-        if (closed_outside == is_closed_on_click_t::yes) {
-            saveAndClose();
+        if (flag_close_on_click == is_closed_on_click_t::yes) {
+            SaveAndClose();
         }
         break;
     case WINDOW_EVENT_ENC_UP:
-        Step(1);
+        Change(1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         gui_invalidate();
         break;
     case WINDOW_EVENT_ENC_DN:
-        Step(-1);
+        Change(-1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         gui_invalidate();
         break;
@@ -116,14 +122,8 @@ void LiveAdjustZ::windowEvent(window_t *sender, uint8_t event, void *param) {
     }
 }
 
-template <class T, typename... Args>
-Response LiveAdjustZ_Custom(Rect16 rect, Args... args) {
-    T liveadjust(rect, args...);
+void LiveAdjustZOpen(Rect16 rect, is_closed_on_click_t outside_close) {
+    LiveAdjustZ liveadjust(rect, outside_close);
     liveadjust.MakeBlocking();
-    return liveadjust.GetResult();
-}
-
-Response LiveAdjustZOpen(Rect16 rect, is_closed_on_click_t outside_close){
-    return LiveAdjustZ_Custom<LiveAdjustZ>(rect, outside_close);
 }
 

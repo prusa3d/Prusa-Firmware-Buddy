@@ -14,7 +14,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "bsod.h"
-#include "liveadjustz.hpp"
+#include "liveadjust_z.hpp"
 
 /*****************************************************************************/
 //MI_LIVE_ADJUST_Z
