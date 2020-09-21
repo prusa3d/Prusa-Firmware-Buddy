@@ -1,5 +1,9 @@
 
-/// window_arrows
+/// window_arrows.cpp
+#include "window_arrows.hpp"
+#include "gui.hpp"
+#include "guitypes.hpp"
+#include "resource.h"
 
 /// must be same size
 const uint16_t WindowArrows::id_res_grey_up = IDR_PNG_arrow_up;
@@ -12,38 +16,47 @@ WindowArrows::WindowArrows(window_t *parent, point_i16_t pt, padding_ui8_t paddi
     : window_aligned_t(
         parent,
         [pt, padding] {
-            size_ui16_t sz = window_icon_t::CalculateMinimalSize(WindowArrows::id_res_ok);
+            size_ui16_t sz = window_icon_t::CalculateMinimalSize(WindowArrows::id_res_grey_up);
             if (!(sz.h && sz.w))
                 return Rect16();
             return Rect16(pt,
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);
         }()) {
-    SetState(State_t::undef);
+    SetState(State_arrows_t::undef);
 }
-WindowArrows::State_t WindowArrows::GetState() const {
-    return static_cast<State_t>(mem_array_u08[1]);
+
+State_arrows_t WindowArrows::GetState() const {
+    return static_cast<State_arrows_t>(mem_array_u08[1]);
 }
+
 //there is a free space in window_t flags, store state in it
-void WindowArrows::SetState(State_t s) {
+void WindowArrows::SetState(State_arrows_t s) {
     const uint8_t state = static_cast<uint8_t>(s);
     if (state != mem_array_u08[1]) {
         mem_array_u08[1] = state;
-        Invalidate();
     }
+    Invalidate();
 }
+
 void WindowArrows::unconditionalDraw() {
-    uint16_t id_res;
+    uint16_t id_res1;
+    uint16_t id_res2;
     switch (GetState()) {
-    case State_t::ok:
-        id_res = id_res_ok;
+    case State_arrows_t::up:
+        id_res1 = id_res_orange_up;
+        id_res2 = id_res_grey_down;
         break;
-    case State_t::ng:
-        id_res = id_res_ng;
+    case State_arrows_t::down:
+        id_res1 = id_res_grey_up;
+        id_res2 = id_res_orange_down;
         break;
-    case State_t::undef:
-        id_res = 0;
+    case State_arrows_t::undef:
+    default:
+        id_res1 = id_res_grey_up;
+        id_res2 = id_res_grey_down;
         break;
     }
-    render_icon_align(rect, id_res, color_back, GetAlignment());
+    render_icon_align(rect, id_res1, color_back, GetAlignment());
+    render_icon_align(rect + Rect16::Top_t(8), id_res2, color_back, GetAlignment());
 }

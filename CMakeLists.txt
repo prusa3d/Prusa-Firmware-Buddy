@@ -597,6 +597,7 @@ if(GUI)
             src/guiapi/src/window_menu.cpp
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.cpp
+            src/guiapi/src/window_arrows.cpp
             src/guiapi/src/window_list.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c

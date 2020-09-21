@@ -156,6 +156,8 @@ RESOURCE_ENTRY_PNG(png_header_icon_question)
 
 RESOURCE_ENTRY_PNG(png_arrow_up)
 RESOURCE_ENTRY_PNG(png_arrow_down)
+RESOURCE_ENTRY_PNG(png_arrow_up_orange)
+RESOURCE_ENTRY_PNG(png_arrow_down_orange)
 RESOURCE_ENTRY_PNG(png_arrow_scan_me)
 
 RESOURCE_ENTRY_PNG(png_menu_icon_back)

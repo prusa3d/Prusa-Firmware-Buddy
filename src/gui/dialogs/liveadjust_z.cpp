@@ -27,7 +27,8 @@ LiveAdjustZ::LiveAdjustZ(Rect16 rect, is_closed_on_click_t outside_close)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
     , number(this, getNumberRect(), marlin_vars()->z_offset)
     , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
-    , bed(this, Rect16(70, 180, 100, 10)) {
+    , bed(this, Rect16(70, 180, 100, 10))
+    , arrows(this, { 160, 210 }) {
 
     /// using window_t 1bit flag
     flag_close_on_click = outside_close;
@@ -110,11 +111,13 @@ void LiveAdjustZ::windowEvent(window_t *sender, uint8_t event, void *param) {
     case WINDOW_EVENT_ENC_UP:
         Change(1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
+        arrows.SetState(State_arrows_t::up);
         gui_invalidate();
         break;
     case WINDOW_EVENT_ENC_DN:
         Change(-1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
+        arrows.SetState(State_arrows_t::down);
         gui_invalidate();
         break;
     default:
@@ -122,7 +125,8 @@ void LiveAdjustZ::windowEvent(window_t *sender, uint8_t event, void *param) {
     }
 }
 
-void LiveAdjustZOpen(Rect16 rect, is_closed_on_click_t outside_close) {
+/// static
+void LiveAdjustZ::Open(Rect16 rect, is_closed_on_click_t outside_close) {
     LiveAdjustZ liveadjust(rect, outside_close);
     liveadjust.MakeBlocking();
 }
