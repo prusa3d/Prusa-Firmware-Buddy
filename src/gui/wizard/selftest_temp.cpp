@@ -1,12 +1,52 @@
-// selftest_temp.c
+// selftest_temp.cpp
+#include "selftest_temp.hpp"
+#include "i18n.h"
+#include "gui.hpp"
 
-#include "selftest_temp.h"
-#include "config.h"
-#include "marlin_client.h"
-#include "wizard_config.h"
-#include "wizard_ui.h"
-#include "guitypes.hpp" //font_meas_text
-#include "wizard_progress_bar.h"
+StateFncData StateFnc_SELFTEST_INIT_TEMP(StateFncData last_run) {
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_INIT_TEMP\n"
+        "not implemented");
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
+
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_TEMP(StateFncData last_run) {
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_TEMP\n"
+        "not implemented");
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
+
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    return last_run.PassToNext();
+}
+
+#if 0
+    #include "config.h"
+    #include "marlin_client.h"
+    #include "wizard_config.h"
+    #include "guitypes.hpp" //font_meas_text
+
+struct selftest_temp_screen_t {
+    window_text_t text_checking_temp;
+    window_progress_t progress;
+
+    uint32_t timer_noz;
+    uint32_t timer_bed;
+};
+
+struct selftest_temp_data_t {
+    _TEST_STATE_t state_preheat_nozzle;
+    _TEST_STATE_t state_preheat_bed;
+    _TEST_STATE_t state_temp_nozzle;
+    _TEST_STATE_t state_temp_bed;
+    float temp_noz;
+    float temp_bed;
+};
 
 //-----------------------------------------------------------------------------
 //function definitions
@@ -187,3 +227,5 @@ int wizard_selftest_temp(int16_t id_body, selftest_temp_screen_t *p_screen, self
 
     return progress;
 }
+
+#endif //0

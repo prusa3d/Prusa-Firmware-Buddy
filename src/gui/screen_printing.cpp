@@ -15,7 +15,7 @@
 #include "window_dlg_popup.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
-    #include "filament_sensor.h"
+    #include "filament_sensor.hpp"
 #endif
 
 static const constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;

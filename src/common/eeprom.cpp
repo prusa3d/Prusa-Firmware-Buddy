@@ -327,11 +327,12 @@ static void eeprom_print_vars(void) {
     uint8_t id;
     char text[128];
     variant8_t var8;
+    variant8_t *pvar = &var8;
     for (id = 0; id < EEPROM_VARCOUNT; id++) {
         var8 = eeprom_get_var(id);
         eeprom_var_format(text, sizeof(text), id, var8);
         _dbg("%s=%s", eeprom_map[id].name, text);
-        variant8_done(&var8);
+        variant8_done(&pvar);
     }
 }
 

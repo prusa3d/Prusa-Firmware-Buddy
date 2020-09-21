@@ -1,4 +1,5 @@
 // trinamic.cpp
+#include "trinamic.h"
 #include "dbg.h"
 #include "config.h"
 #include "hwio_a3ides.h"
@@ -23,6 +24,8 @@ uint16_t tmc_sg[4];      // stallguard result for each axis
 uint8_t tmc_sg_mask = 7; // stalguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
 uint8_t tmc_sg_axis = 0; // current axis for stalguard result sampling (0-x, 1-y, ...)
 
+tmc_sg_sample_cb_t *tmc_sg_sampe_cb = 0; // sg sample callback
+
 void tmc_delay(uint16_t time) // delay for switching tmc step pin level
 {
     volatile uint16_t tmc_delay;
@@ -43,7 +46,7 @@ void init_tmc(void) {
     pStep[Z_AXIS]->TCOOLTHRS(400);
     pStep[E_AXIS]->TCOOLTHRS(400);
     //set SGTHRS
-    pStep[X_AXIS]->SGTHRS(140);
+    pStep[X_AXIS]->SGTHRS(130);
     pStep[Y_AXIS]->SGTHRS(130);
     pStep[Z_AXIS]->SGTHRS(100);
     pStep[E_AXIS]->SGTHRS(100);
@@ -65,6 +68,8 @@ uint8_t tmc_sample(void) {
             tmc_sg[tmc_sg_axis] = pStep[tmc_sg_axis]->SG_RESULT();
         } else
             tmc_sg[tmc_sg_axis] = 0;
+        if (tmc_sg_sampe_cb)
+            tmc_sg_sampe_cb(tmc_sg_axis, tmc_sg[tmc_sg_axis]);
         tmc_sg_axis = (tmc_sg_axis + 1) & 0x03;
     }
     return mask;
@@ -138,7 +143,7 @@ void tmc_move(uint8_t step_mask, uint16_t step, uint8_t speed) {
     }
 }
 
-void tmc_set_move(uint8_t tmc, uint16_t step, uint8_t dir, uint8_t speed) {
+void tmc_set_move(uint8_t tmc, uint32_t step, uint8_t dir, uint8_t speed) {
     gpio_set(PIN_X_DIR, dir);
     gpio_set(PIN_Y_DIR, dir);
     gpio_set(PIN_Z_DIR, dir);

@@ -391,7 +391,14 @@ if(GENERATE_DFU)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/lang
+  firmware
+  PRIVATE include
+          src/common
+          src/gui
+          src/gui/dialogs
+          src/gui/wizard
+          src/guiapi/include
+          src/lang
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -464,6 +471,7 @@ target_sources(
           src/common/appmain.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
+          src/common/marlin_test.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
           $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
@@ -560,11 +568,8 @@ if(GUI)
             src/gui/wizard/selftest.cpp
             src/gui/wizard/firstlay.cpp
             src/gui/wizard/wizard_load_unload.cpp
-            src/gui/wizard/wizard_ui.cpp
-            src/gui/wizard/wizard.cpp
             src/gui/wizard/screen_wizard.cpp
             src/gui/wizard/xyzcalib.cpp
-            src/gui/wizard/wizard_progress_bar.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
             src/gui/screen_menu_preheat.cpp

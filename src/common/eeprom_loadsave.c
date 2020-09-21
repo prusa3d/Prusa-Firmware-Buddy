@@ -71,6 +71,7 @@ int eeprom_save_xml_to_usb(const char *fn) {
     uint8_t id;
     char text[128];
     variant8_t var8;
+    variant8_t *pvar = &var8;
     UINT bw;
     uint8_t var_count = eeprom_get_var_count();
     const char *var_name;
@@ -87,7 +88,7 @@ int eeprom_save_xml_to_usb(const char *fn) {
             f_write(&fil, "\" value=\"", 9, &bw);
             f_write(&fil, text, strlen(text), &bw);
             f_write(&fil, "\"/>\n", 4, &bw);
-            variant8_done(&var8);
+            variant8_done(&pvar);
         }
         f_write(&fil, "</eeprom>\n", 10, &bw);
         f_close(&fil);
