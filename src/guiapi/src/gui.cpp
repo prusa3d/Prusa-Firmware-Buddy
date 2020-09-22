@@ -20,7 +20,7 @@ osThreadId gui_task_handle = 0;
 font_t *GuiDefaults::Font = 0;
 font_t *GuiDefaults::FontBig = 0;
 
-bool GuiDefaults::menu_timeout_enabled = true;
+// bool GuiDefaults::menu_timeout_enabled = true;
 
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;

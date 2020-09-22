@@ -101,8 +101,8 @@ public:
     bool IsCaptured() const;
     bool HasTimer() const;
     bool IsDialog() const;
-    bool IsTimeout() const;
-    bool IsSerial() const;
+    bool ClosedOnTimeout() const;
+    bool ClosedOnSerialPrint() const;
     void Validate(Rect16 validation_rect = Rect16());
     void Invalidate(Rect16 validation_rect = Rect16());
 

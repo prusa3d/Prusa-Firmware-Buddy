@@ -59,6 +59,7 @@ public:
     static void RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end); // init in reversed order, skips nullptr
 
     static Screens *Access();
+    static bool menu_timeout_enabled;
 
 private:
     void InnerLoop(); //call inside Loop of this class

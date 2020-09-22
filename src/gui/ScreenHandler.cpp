@@ -2,6 +2,7 @@
 #include "bsod.h"
 
 Screens *Screens::instance = nullptr;
+bool Screens::menu_timeout_enabled = true;
 
 Screens::Screens(const ScreenFactory::Creator screen_creator)
     : stack({ { nullptr } })
@@ -131,6 +132,9 @@ void Screens::Draw() {
 }
 
 window_frame_t *Screens::Get() {
+    if (!current) {
+        return nullptr;
+    }
     return current.get();
 }
 
@@ -150,7 +154,7 @@ void Screens::CloseSerial() {
     /// serial close logic:
     /// when serial printing screen (M876) is open, Screens::SerialClose() is
     /// called and it will iterate all screens to close those that should be closed
-    while (current.get()->IsSerial() || stack_iterator != stack.begin()) {
+    while (Get() && Get()->ClosedOnSerialPrint() && stack_iterator != stack.begin()) {
         close = true;
         InnerLoop();
     }
@@ -174,7 +178,7 @@ void Screens::PushBeforeCurrent(const ScreenFactory::Creator screen_creator) {
 }
 
 void Screens::ResetTimeout() {
-    if (GuiDefaults::menu_timeout_enabled) {
+    if (menu_timeout_enabled) {
         if (gui_get_menu_timeout_id() >= 0) {
             gui_timer_reset(gui_get_menu_timeout_id());
         } else {
@@ -187,11 +191,11 @@ void Screens::Loop() {
     /// menu timeout logic:
     /// when timeout is expired on current screen,
     /// we iterate thrue whole stack and close every screen thta should be closed
-    if (current.get()->IsTimeout()) {
+    if (current.get()->ClosedOnTimeout()) {
         gui_timeout_id = gui_get_menu_timeout_id();
         if (gui_timer_expired(gui_timeout_id) == 1) {
             gui_timer_delete(gui_timeout_id);
-            while (current.get()->IsTimeout() || stack_iterator != stack.begin()) {
+            while (Get() && Get()->ClosedOnTimeout() && stack_iterator != stack.begin()) {
                 close = true;
                 InnerLoop();
             }
@@ -240,11 +244,12 @@ void Screens::InnerLoop() {
         /// when msgbox(IDialog) is closed on Event and in response is closed
         /// another screen we need to reset captured flag
         window_t::ResetCapturedWindow();
+        /// need to be reset also focused ptr
+        window_t::ResetFocusedWindow();
         current = creator();
         if (!current->IsChildCaptured())
             current->SetCapture();
         /// need to be reset also focused ptr
-        window_t::ResetFocusedWindow();
         if (!current->IsFocused() && !current->IsChildFocused()) {
             window_t *child = current->GetFirstEnabledSubWin();
             if (child) {

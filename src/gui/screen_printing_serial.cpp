@@ -18,8 +18,8 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
     , last_tick(0)
     , connection(connection_state_t::connected) {
-    IScreenPrinting::ClrMenuTimeoutClose();
-    IScreenPrinting::ClrOnSerialClose(); // don't close on Serial print
+    ClrMenuTimeoutClose();
+    ClrOnSerialClose(); // don't close on Serial print
 
     octo_icon.SetIdRes(IDR_PNG_serial_printing);
     octo_icon.Disable();

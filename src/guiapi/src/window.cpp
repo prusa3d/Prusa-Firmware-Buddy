@@ -15,8 +15,8 @@ bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return flag_timer; }
 bool window_t::IsDialog() const { return flag_dialog == is_dialog_t::yes; }
-bool window_t::IsTimeout() const { return flag_timeout_close == is_closed_on_timeout_t::yes; }
-bool window_t::IsSerial() const { return flag_serial_close == is_closed_on_serial_t::yes; }
+bool window_t::ClosedOnTimeout() const { return flag_timeout_close == is_closed_on_timeout_t::yes; }
+bool window_t::ClosedOnSerialPrint() const { return flag_serial_close == is_closed_on_serial_t::yes; }
 
 void window_t::Validate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {

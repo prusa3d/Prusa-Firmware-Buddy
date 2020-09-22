@@ -26,7 +26,6 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, 
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no, txt)
     , buttons(this, get_radio_button_size(rect), resp, labels)
     , result(Response::_none) {
-    window_frame_t::ClrMenuTimeoutClose();
     buttons.SetBtnIndex(def_btn);
     //text.SetAlignment(ALIGN_CENTER);
     //buttons.SetCapture(); //todo make this work
