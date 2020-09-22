@@ -9,12 +9,17 @@
 #include "PrusaGcodeSuite.hpp"
 #include "G26.hpp"
 #include "cmath_ext.h"
+#include "../../lib/Marlin/Marlin/src/module/planner.h"
 
 static const constexpr float filamentD = 1.75f;
 static const constexpr float layerHeight = 0.2f;
 static const constexpr float threadWidth = 0.5f;
 
 static const constexpr float pi = 3.1415926535897932384626433832795f;
+
+void wait_for_move() {
+    planner.synchronize();
+}
 
 /// Moves head and extrudes
 /// Use NAN for axis you don't want to move
@@ -44,6 +49,11 @@ void go_to_destination(const float x, const float y, const float z, const float 
         feedrate_mm_s = f / 60.f;
 
     prepare_move_to_destination();
+}
+
+void go_to_destination_and_wait(const float x, const float y, const float z, const float e, const float f) {
+    go_to_destination(x, y, z, e, f);
+    wait_for_move();
 }
 
 /// Moves and extrudes
@@ -81,9 +91,9 @@ void print_snake(const float *snake, const size_t snake_size, const float speed)
     /// iterate positions
     size_t i;
     for (i = 2; i < snake_size - 1; i += 2) { /// snake_size-1 because we need 2 items
-        go_to_destination(snake[i], NAN, NAN, extrusion_Manhattan(snake, i, last_x), speed);
+        go_to_destination_and_wait(snake[i], NAN, NAN, extrusion_Manhattan(snake, i, last_x), speed);
         last_x = snake[i];
-        go_to_destination(NAN, snake[i + 1], NAN, extrusion_Manhattan(snake, i + 1, last_y), speed);
+        go_to_destination_and_wait(NAN, snake[i + 1], NAN, extrusion_Manhattan(snake, i + 1, last_y), speed);
         last_y = snake[i + 1];
     }
     if (i == snake_size - 1) { /// process last X movement
@@ -99,23 +109,23 @@ void PrusaGcodeSuite::G26() {
 
         /// print purge line
         do_blocking_move_to_z(4, 1000 / 60.f);
-        go_to_destination(0.f, -2.f, 0.2f, NAN, 3000.f);
-        go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
-        go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
-        go_to_destination(100.f, NAN, NAN, 12.5f, 1000.f);
-        go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+        go_to_destination_and_wait(0.f, -2.f, 0.2f, NAN, 3000.f);
+        go_to_destination_and_wait(NAN, NAN, NAN, 6.f, 2000.f);
+        go_to_destination_and_wait(60.f, NAN, NAN, 9.f, 1000.f);
+        go_to_destination_and_wait(100.f, NAN, NAN, 12.5f, 1000.f);
+        go_to_destination_and_wait(NAN, NAN, 2.f, -6.f, 2100.f);
 
         /// go to starting point and de-retract
-        go_to_destination(10.f, 150.f, 0.2f, NAN, 3000.f);
-        go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
-        go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
+        go_to_destination_and_wait(10.f, 150.f, 0.2f, NAN, 3000.f);
+        go_to_destination_and_wait(NAN, NAN, NAN, 6.f, 2000.f);
+        go_to_destination_and_wait(NAN, NAN, NAN, NAN, 1000.f);
 
         print_snake(snake1, ARRAY_SIZE(snake1), 1000.f);
 
         /// finish printing
 
-        go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
-        go_to_destination(178.f, 0.f, 10.f, NAN, 3000.f);
+        go_to_destination_and_wait(NAN, NAN, 2.f, -6.f, 2100.f);
+        go_to_destination_and_wait(178.f, 0.f, 10.f, NAN, 3000.f);
 
         /// don't bother with G4 or heating turning off
     }
