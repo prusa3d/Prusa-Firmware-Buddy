@@ -16,6 +16,9 @@ static const constexpr float threadWidth = 0.5f;
 
 static const constexpr float pi = 3.1415926535897932384626433832795f;
 
+/// Moves head and extrudes
+/// Use NAN for axis you don't want to move
+/// \param f is defined in milimeters per minute
 void go_to_destination(const float x, const float y, const float z, const float e, const float f) {
     if (isfinite(x))
         destination[0] = x;
@@ -38,12 +41,13 @@ void go_to_destination(const float x, const float y, const float z, const float 
         destination[3] = 0;
 
     if (isfinite(f))
-        feedrate_mm_s = f;
+        feedrate_mm_s = f / 60.f;
 
     prepare_move_to_destination();
 }
 
-/// Keep Z and feedrate from last time
+/// Moves and extrudes
+/// Keep Z and feedrate from the last time
 void go_to_destination(const float x, const float y, const float e) {
     go_to_destination(x, y, NAN, e, NAN);
 }
@@ -68,7 +72,7 @@ float extrusion_Manhattan(const float *path, const uint32_t position, const floa
     }
 }
 
-void print_snake(const float *snake, const size_t snake_size) {
+void print_snake(const float *snake, const size_t snake_size, const float speed) {
 
     /// move to start
     go_to_destination(snake[0], snake[1], 0); // Process X Y Z E F parameters
@@ -77,13 +81,13 @@ void print_snake(const float *snake, const size_t snake_size) {
     /// iterate positions
     size_t i;
     for (i = 2; i < snake_size - 1; i += 2) { /// snake_size-1 because we need 2 items
-        go_to_destination(snake[i], NAN, extrusion_Manhattan(snake, i, last_x));
+        go_to_destination(snake[i], NAN, NAN, extrusion_Manhattan(snake, i, last_x), speed);
         last_x = snake[i];
-        go_to_destination(NAN, snake[i + 1], extrusion_Manhattan(snake, i + 1, last_y));
+        go_to_destination(NAN, snake[i + 1], NAN, extrusion_Manhattan(snake, i + 1, last_y), speed);
         last_y = snake[i + 1];
     }
     if (i == snake_size - 1) { /// process last X movement
-        go_to_destination(snake[i], NAN, extrusion_Manhattan(snake, i, last_x));
+        go_to_destination(snake[i], NAN, NAN, extrusion_Manhattan(snake, i, last_x), speed);
     }
 }
 
@@ -94,8 +98,7 @@ void PrusaGcodeSuite::G26() {
         /// TODO switch to mm and relative extrusion
 
         /// print purge line
-        // "G1 Z4 F1000",
-        do_blocking_move_to_z(4, 1000);
+        do_blocking_move_to_z(4, 1000 / 60.f);
         go_to_destination(0.f, -2.f, 0.2f, NAN, 3000.f);
         go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
         go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
@@ -107,7 +110,7 @@ void PrusaGcodeSuite::G26() {
         go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
         go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
 
-        print_snake(snake1, sizeof(snake1) / sizeof(snake1[0]));
+        print_snake(snake1, ARRAY_SIZE(snake1), 1000.f);
 
         /// finish printing
 
