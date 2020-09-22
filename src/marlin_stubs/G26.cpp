@@ -80,7 +80,7 @@ void print_snake(const float *snake, const size_t snake_size) {
         go_to_destination(snake[i], NAN, extrusion_Manhattan(snake, i, last_x));
         last_x = snake[i];
         go_to_destination(NAN, snake[i + 1], extrusion_Manhattan(snake, i + 1, last_y));
-        last_y = snake[i];
+        last_y = snake[i + 1];
     }
     if (i == snake_size - 1) { /// process last X movement
         go_to_destination(snake[i], NAN, extrusion_Manhattan(snake, i, last_x));
@@ -107,7 +107,7 @@ void PrusaGcodeSuite::G26() {
         go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
         go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
 
-        print_snake(snake1, sizeof(snake1));
+        print_snake(snake1, sizeof(snake1) / sizeof(snake1[0]));
 
         /// finish printing
 
