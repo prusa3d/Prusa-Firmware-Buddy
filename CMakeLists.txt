@@ -534,6 +534,7 @@ if(GUI)
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
+            src/gui/dialogs/liveadjust_z.cpp
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/dialogs/window_dlg_calib_z.cpp
@@ -596,6 +597,7 @@ if(GUI)
             src/guiapi/src/window_menu.cpp
             src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.cpp
+            src/guiapi/src/window_arrows.cpp
             src/guiapi/src/window_list.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c

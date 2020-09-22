@@ -14,6 +14,7 @@
 #include "ScreenHandler.hpp"
 #include "screen_wizard.hpp"
 #include "bsod.h"
+#include "liveadjust_z.hpp"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -23,6 +24,16 @@ MI_WIZARD::MI_WIZARD()
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
     ScreenWizard::RunAll();
+}
+
+/*****************************************************************************/
+//MI_LIVE_ADJUST_Z
+MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
+    LiveAdjustZ::Open();
 }
 
 /*****************************************************************************/
