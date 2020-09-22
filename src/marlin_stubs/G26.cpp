@@ -45,24 +45,7 @@ void go_to_destination(const float x, const float y, const float z, const float 
 
 /// Keep Z and feedrate from last time
 void go_to_destination(const float x, const float y, const float e) {
-    if (isfinite(x))
-        destination[0] = x;
-    else
-        destination[0] = current_position[0];
-
-    if (isfinite(y))
-        destination[1] = y;
-    else
-        destination[1] = current_position[1];
-
-    destination[2] = current_position[2];
-
-    if (isfinite(e))
-        destination[3] = e;
-    else
-        destination[3] = current_position[3];
-
-    prepare_move_to_destination();
+    go_to_destination(x, y, NAN, e, NAN);
 }
 
 /// @returns length of filament to extrude
@@ -72,6 +55,7 @@ float extrusion(const float x1, const float y1, const float x2, const float y2, 
 }
 
 float extrusion_Manhattan(const float *path, const uint32_t position, const float last) {
+    /// TODO remove
     return 0;
     if (position % 2 == 0) {
         const float x = path[position];
@@ -91,41 +75,47 @@ void print_snake(const float *snake, const size_t snake_size) {
     float last_x = snake[0];
     float last_y = snake[1];
     /// iterate positions
-    for (size_t i = 2; i < snake_size; i += 2) {
+    size_t i;
+    for (i = 2; i < snake_size - 1; i += 2) { /// snake_size-1 because we need 2 items
         go_to_destination(snake[i], NAN, extrusion_Manhattan(snake, i, last_x));
         last_x = snake[i];
         go_to_destination(NAN, snake[i + 1], extrusion_Manhattan(snake, i + 1, last_y));
         last_y = snake[i];
     }
+    if (i == snake_size - 1) { /// process last X movement
+        go_to_destination(snake[i], NAN, extrusion_Manhattan(snake, i, last_x));
+    }
 }
 
 void PrusaGcodeSuite::G26() {
     fsm_create(ClientFSM::FirstLayer);
+    if (all_axes_known()) { /// checks if axes are calibrated (homed) before
 
-    /// TODO switch to mm and relative extrusion
+        /// TODO switch to mm and relative extrusion
 
-    /// print purge line
-    // "G1 Z4 F1000",
-    do_blocking_move_to_z(4, 1000);
-    go_to_destination(0.f, -2.f, 0.2f, NAN, 3000.f);
-    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
-    go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
-    go_to_destination(100.f, NAN, NAN, 12.5f, 1000.f);
-    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+        /// print purge line
+        // "G1 Z4 F1000",
+        do_blocking_move_to_z(4, 1000);
+        go_to_destination(0.f, -2.f, 0.2f, NAN, 3000.f);
+        go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+        go_to_destination(60.f, NAN, NAN, 9.f, 1000.f);
+        go_to_destination(100.f, NAN, NAN, 12.5f, 1000.f);
+        go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
 
-    /// go to starting point and de-retract
-    go_to_destination(10.f, 150.f, 0.2f, NAN, 3000.f);
-    go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
-    go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
+        /// go to starting point and de-retract
+        go_to_destination(10.f, 150.f, 0.2f, NAN, 3000.f);
+        go_to_destination(NAN, NAN, NAN, 6.f, 2000.f);
+        go_to_destination(NAN, NAN, NAN, NAN, 1000.f);
 
-    print_snake(snake1, sizeof(snake1));
+        print_snake(snake1, sizeof(snake1));
 
-    /// finish printing
+        /// finish printing
 
-    go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
-    go_to_destination(178.f, 0.f, 10.f, NAN, 3000.f);
+        go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+        go_to_destination(178.f, 0.f, 10.f, NAN, 3000.f);
 
-    /// don't bother with G4 or heating turning off
+        /// don't bother with G4 or heating turning off
+    }
 
     fsm_destroy(ClientFSM::FirstLayer);
 }
