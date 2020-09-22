@@ -638,7 +638,7 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/appmain.cpp src/common/putslave.c
+  SOURCE src/common/appmain.cpp src/common/putslave.c src/common/marlin_test.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
