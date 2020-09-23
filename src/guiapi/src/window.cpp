@@ -206,9 +206,9 @@ void window_t::draw() {
     if (IsInvalid() && rect.Width() && rect.Height()) {
         if (IsVisible()) {
             unconditionalDraw();
-        } else {
-            display::FillRect(rect, color_back);
         }
+        // there was in else branch: display::FillRect(rect, color_back);
+        // I really do not know why, but it cannot be, because background was drawing over dialogs
         Validate();
     }
 }
