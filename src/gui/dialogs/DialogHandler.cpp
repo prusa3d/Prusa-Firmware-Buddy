@@ -37,7 +37,7 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
 
     case ClientFSM::FirstLayer:
         if (IScreenPrinting::CanOpen()) {
-            Screens::Access()->CloseAll();
+            //Screens::Access()->CloseAll();
             Screens::Access()->Open(ScreenFactory::Screen<ScreenFirstLayer>);
         }
         break;

@@ -20,11 +20,11 @@ static const constexpr float snake1[] = {
     70,
     170,
     50,
-    9.5,
     ///
     /// frame around
+    9.5,
     17,
-    31.5,
+    30.5,
     30.5,
     10,
     30,
@@ -80,4 +80,5 @@ static const constexpr float snake1[] = {
     18,
     30,
     17.5,
+    10,
 };
