@@ -2,6 +2,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <functional>
 #include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
 #include "Rect16.h"
@@ -27,7 +28,7 @@ enum {
     WINDOW_EVENT_CHILD_CLICK   //click at the child screen
 };
 
-using ButtonCallback = void (*)();
+using ButtonCallback = std::function<void()>;
 
 struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
