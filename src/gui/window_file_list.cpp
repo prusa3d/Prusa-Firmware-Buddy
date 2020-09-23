@@ -213,6 +213,8 @@ void window_file_list_t::windowEvent(window_t *sender, GUI_event_t event, void *
     case GUI_event_t::TIMER:
         roll_text_phasing(this, font, &roll);
         break;
+    default:
+        break;
     }
 }
 

@@ -111,5 +111,7 @@ void DialogStateful<T>::windowEvent(window_t * /*sender*/, GUI_event_t event, vo
         --radio;
         gui_invalidate();
         break;
+    default:
+        break;
     }
 }

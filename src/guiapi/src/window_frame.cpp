@@ -182,6 +182,8 @@ void window_frame_t::windowEvent(window_t *sender, GUI_event_t event, void *para
                 pWin->SetFocus();
         }
         break;
+    default:
+        break;
     }
 }
 

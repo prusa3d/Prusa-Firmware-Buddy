@@ -27,6 +27,8 @@ void window_spin_event(window_spin_t *window, GUI_event_t event, void *param) {
     case GUI_event_t::CAPT_1:
         window->Invalidate();
         break;
+    default:
+        break;
     }
 }
 

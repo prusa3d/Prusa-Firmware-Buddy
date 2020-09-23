@@ -75,6 +75,7 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
     case GUI_event_t::MESSAGE:
         return ("message notification");
     }
+    return ("error bad index");
 }
 
 void window_t::EventDbg(const char *event_method_name, window_t *sender, GUI_event_t event) {

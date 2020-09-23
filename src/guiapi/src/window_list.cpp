@@ -96,6 +96,8 @@ void window_list_t::windowEvent(window_t *sender, GUI_event_t event, void *param
     case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
+    default:
+        break;
     }
 }
 

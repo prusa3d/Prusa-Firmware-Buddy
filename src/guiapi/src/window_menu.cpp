@@ -151,6 +151,8 @@ void window_menu_t::windowEvent(window_t *sender, GUI_event_t event, void *param
             item->Roll(*this); //warning it is accessing gui timer
         }
         break;
+    default:
+        break;
     }
     if (invalid)
         Invalidate();
