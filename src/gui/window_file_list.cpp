@@ -196,21 +196,21 @@ void window_file_list_t::unconditionalDraw() {
     }
 }
 
-void window_file_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_file_list_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK:
-        Screens::Access()->Get()->WindowEvent(this, WINDOW_EVENT_CLICK, (void *)index);
+    case GUI_event_t::CLICK:
+        Screens::Access()->Get()->WindowEvent(this, GUI_event_t::CLICK, (void *)index);
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         dec((int)param);
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         inc((int)param);
         break;
-    case WINDOW_EVENT_CAPT_1:
+    case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
-    case WINDOW_EVENT_TIMER:
+    case GUI_event_t::TIMER:
         roll_text_phasing(this, font, &roll);
         break;
     }

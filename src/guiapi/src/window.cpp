@@ -54,11 +54,11 @@ void window_t::SetFocus() {
 
     if (focused_ptr) {
         focused_ptr->Invalidate();
-        focused_ptr->windowEvent(focused_ptr, WINDOW_EVENT_FOCUS0, 0); //will not resend event to anyone
+        focused_ptr->windowEvent(focused_ptr, GUI_event_t::FOCUS0, 0); //will not resend event to anyone
     }
     focused_ptr = this;
     Invalidate();
-    windowEvent(this, WINDOW_EVENT_FOCUS1, 0); //will not resend event to anyone
+    windowEvent(this, GUI_event_t::FOCUS1, 0); //will not resend event to anyone
     gui_invalidate();
 }
 
@@ -67,10 +67,10 @@ void window_t::SetCapture() {
     // window hidden by dialog can get capture
     if (flag_visible && flag_enabled) {
         if (capture_ptr) {
-            capture_ptr->windowEvent(capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
+            capture_ptr->windowEvent(capture_ptr, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
         }
         capture_ptr = this;
-        windowEvent(this, WINDOW_EVENT_CAPT_1, 0); //will not resend event to anyone
+        windowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
         gui_invalidate();
     }
 }
@@ -223,20 +223,20 @@ void window_t::unconditionalDraw() {
     display::FillRect(rect, color_back);
 }
 
-void window_t::WindowEvent(window_t *sender, uint8_t ev, void *param) {
+void window_t::WindowEvent(window_t *sender, GUI_event_t ev, void *param) {
     windowEvent(sender, ev, param);
 }
 
-void window_t::ScreenEvent(window_t *sender, uint8_t ev, void *param) {
+void window_t::ScreenEvent(window_t *sender, GUI_event_t ev, void *param) {
     screenEvent(sender, ev, param);
 }
 
 //frame does something else - resend to all children
-void window_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
+void window_t::screenEvent(window_t *sender, GUI_event_t ev, void *param) {
     windowEvent(sender, ev, param);
 }
-void window_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK && parent) {
+void window_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CLICK && parent) {
         if (flag_close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
         } else {

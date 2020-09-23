@@ -62,8 +62,8 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     textExit.SetText(_("EXIT"));
 }
 
-void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_LOOP) {
+void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         if (marlin_error(MARLIN_ERR_ProbingFailed)) {
             text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
         } else {

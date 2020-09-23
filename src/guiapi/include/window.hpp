@@ -7,23 +7,23 @@
 #include "Rect16.h"
 
 //window events
-enum {
-    WINDOW_EVENT_BTN_DN = 1,   //button down
-    WINDOW_EVENT_BTN_UP,       //button up
-    WINDOW_EVENT_ENC_DN,       //encoder minus
-    WINDOW_EVENT_ENC_UP,       //encoder plus
-    WINDOW_EVENT_FOCUS0,       //focus lost
-    WINDOW_EVENT_FOCUS1,       //focus set
-    WINDOW_EVENT_CAPT_0,       //capture lost
-    WINDOW_EVENT_CAPT_1,       //capture set
-    WINDOW_EVENT_CLICK,        //clicked (tag > 0)
-    WINDOW_EVENT_DOUBLE_CLICK, // double-clicked
-    WINDOW_EVENT_HOLD,         // held button
-    WINDOW_EVENT_CHANGE,       //value/index changed (tag > 0)
-    WINDOW_EVENT_CHANGING,     //value/index changing (tag > 0)
-    WINDOW_EVENT_LOOP,         //gui loop (every 50ms)
-    WINDOW_EVENT_TIMER,        //gui timer
-    WINDOW_EVENT_MESSAGE,      //onStatusChange() message notification
+enum class GUI_event_t {
+    BTN_DN = 1,   //button down
+    BTN_UP,       //button up
+    ENC_DN,       //encoder minus
+    ENC_UP,       //encoder plus
+    FOCUS0,       //focus lost
+    FOCUS1,       //focus set
+    CAPT_0,       //capture lost
+    CAPT_1,       //capture set
+    CLICK,        //clicked (tag > 0)
+    DOUBLE_CLICK, // double-clicked
+    HOLD,         // held button
+    CHANGE,       //value/index changed (tag > 0)
+    CHANGING,     //value/index changing (tag > 0)
+    LOOP,         //gui loop (every 50ms)
+    TIMER,        //gui timer
+    MESSAGE,      //onStatusChange() message notification
 };
 
 using ButtonCallback = void (*)();
@@ -91,9 +91,9 @@ public:
     window_t *GetParent() const;
     bool IsChildOf(window_t *win) const;
     void Draw();
-    void ScreenEvent(window_t *sender, uint8_t event, void *param); //try to handle, frame resends children
-    void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, can sent click to parent
-    bool IsVisible() const;                                         // visible and not hidden by dialog
+    void ScreenEvent(window_t *sender, GUI_event_t event, void *param); //try to handle, frame resends children
+    void WindowEvent(window_t *sender, GUI_event_t event, void *param); //try to handle, can sent click to parent
+    bool IsVisible() const;                                             // visible and not hidden by dialog
     bool IsHiddenBehindDialog() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
@@ -127,8 +127,8 @@ public:
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param);
-    virtual void screenEvent(window_t *sender, uint8_t event, void *param);
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param);
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param);
     virtual void invalidate(Rect16 validation_rect);
     virtual void validate(Rect16 validation_rect);
 

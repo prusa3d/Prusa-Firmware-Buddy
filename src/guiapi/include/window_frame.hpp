@@ -46,8 +46,8 @@ struct window_frame_t : public window_t {
 
 protected:
     virtual void draw() override;
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
-    virtual void screenEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
     virtual void invalidate(Rect16 validation_rect = Rect16()) override;
     virtual void validate(Rect16 validation_rect = Rect16()) override;
 };

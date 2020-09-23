@@ -27,7 +27,7 @@ public:
     screen_printing_serial_data_t();
 
 private:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     void DisableButton(btn &b);
 
     virtual void stopAction() override;

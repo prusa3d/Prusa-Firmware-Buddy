@@ -23,7 +23,7 @@ public:
         : WI_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 1 : 0, label, 0, true, false) {}
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? sys_fw_update_enable() : sys_fw_update_disable();
-        Screens::Access()->ScreenEvent(nullptr, WINDOW_EVENT_CLICK, (void *)index);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::CLICK, (void *)index);
     }
 };
 
@@ -50,11 +50,11 @@ public:
         help.font = resource_font(IDR_FNT_SPECIAL);
         help.SetText(_("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
     }
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-void ScreenMenuFwUpdate::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK) {
+void ScreenMenuFwUpdate::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CLICK) {
         MI_ON_RESTART *mi_restart = &Item<MI_ON_RESTART>();
         if (size_t(param) == 1) {
             mi_restart->index = sys_fw_update_on_restart_is_enabled() ? 0 : 1;

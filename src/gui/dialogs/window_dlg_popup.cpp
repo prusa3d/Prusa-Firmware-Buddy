@@ -49,9 +49,9 @@ void window_dlg_popup_t::UnregisterFromParent() {
     releaseCapture();
 }
 
-void window_dlg_popup_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_dlg_popup_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     const uint32_t openned = HAL_GetTick() - open_time;
-    if (event == WINDOW_EVENT_LOOP && openned > ttl) //todo use timer
+    if (event == GUI_event_t::LOOP && openned > ttl) //todo use timer
         UnregisterFromParent();
     IDialog::windowEvent(sender, event, param);
 }

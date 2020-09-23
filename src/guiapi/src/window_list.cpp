@@ -81,19 +81,19 @@ void window_list_t::unconditionalDraw() {
     }
 }
 
-void window_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_list_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK:
+    case GUI_event_t::CLICK:
         if (GetParent())
             GetParent()->SetCapture();
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         window_list_dec(this, (int)param);
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         window_list_inc(this, (int)param);
         break;
-    case WINDOW_EVENT_CAPT_1:
+    case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
     }
