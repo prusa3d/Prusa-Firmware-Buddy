@@ -157,10 +157,10 @@ void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
 }
 
 void MI_CURRENT_PROFILE::UpdateLabel() {
-    char name[MAX_SHEET_NAME_LENGTH + 2];
+    char name[MAX_SHEET_NAME_LENGTH + 3];
     name[0] = '[';
-    sheet_get_current_name(name + 1, MAX_SHEET_NAME_LENGTH);
-    name[MAX_SHEET_NAME_LENGTH] = ']';
-    name[MAX_SHEET_NAME_LENGTH + 1] = '\0';
+    std::uint32_t cnt = sheet_current_name(name + 1, MAX_SHEET_NAME_LENGTH);
+    name[cnt + 1] = ']';
+    name[cnt + 2] = 0;
     SetLabel(name);
 }

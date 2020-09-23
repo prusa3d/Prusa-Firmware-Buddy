@@ -169,7 +169,17 @@ extern uint32_t sheet_number_of_calibrated();
 /// @param[in] length Size of the given buffer.
 /// @return Number of characters written to the buffer. Number will be
 ///        always less than MAX_SHEET_NAME_LENGTH
-extern uint32_t sheet_get_current_name(char *, uint32_t);
+extern uint32_t sheet_current_name(char *, uint32_t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Determine the name of the given print sheet profile.
+///
+/// @param[in] index Index of the sheet profile
+/// @param[out] buffer Buffer to store the print sheet profile
+/// @param[in] length Size of the given buffer.
+/// @return Number of characters written to the buffer. Number will be
+///        always less than MAX_SHEET_NAME_LENGTH
+extern uint32_t sheet_name(uint32_t, char *, uint32_t);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Rename the given print sheet profile.

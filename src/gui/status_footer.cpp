@@ -226,7 +226,7 @@ void status_footer_t::repaint_heatbed() {
 }
 
 void status_footer_t::update_sheet_profile() {
-    sheet_get_current_name(text_z_profile, MAX_SHEET_NAME_LENGTH);
+    sheet_current_name(text_z_profile, MAX_SHEET_NAME_LENGTH);
     wt_z_profile.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)text_z_profile));
     wi_z_profile.SetIdRes(IDR_PNG_sheet_profile);
 }
@@ -236,12 +236,12 @@ status_footer_t::status_footer_t(window_t *parent)
     , wi_nozzle(this, Rect16(8, 270, 16, 16), IDR_PNG_status_icon_nozzle)
     , wi_heatbed(this, Rect16(128, 270, 20, 16), IDR_PNG_status_icon_heatbed)
     , wi_prnspeed(this, Rect16(10, 297, 16, 12), IDR_PNG_status_icon_prnspeed)
-    , wi_z_profile(this, Rect16(70, 297, 16, 16), IDR_NULL)
+    , wi_z_profile(this, Rect16(74, 297, 16, 16), IDR_NULL)
     , wi_filament(this, Rect16(163, 297, 16, 16), IDR_PNG_status_icon_filament)
     , wt_nozzle(this, Rect16(24, 269, 85, 20), is_multiline::no)
     , wt_heatbed(this, Rect16(150, 269, 85, 22), is_multiline::no)
     , wt_prnspeed(this, Rect16(28, 296, 40, 22), is_multiline::no)
-    , wt_z_profile(this, Rect16(88, 296, 68, 22), is_multiline::no)
+    , wt_z_profile(this, Rect16(92, 296, 68, 22), is_multiline::no)
     , wt_filament(this, Rect16(181, 296, 49, 22), is_multiline::no)
     , nozzle(-273)
     , nozzle_target(-273)

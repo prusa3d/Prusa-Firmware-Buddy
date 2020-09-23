@@ -635,17 +635,30 @@ uint32_t sheet_number_of_calibrated() {
 #endif
 }
 
-uint32_t sheet_get_current_name(char *buffer, uint32_t length) {
-    if (!buffer)
+uint32_t sheet_current_name(char *buffer, uint32_t length) {
+    if (!buffer || !length)
         return 0;
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+    return sheet_name(index, buffer, length);
+#else
+    memcpy(buffer, "DEFAULT", MAX_SHEET_NAME_LENGTH - 1);
+    return MAX_SHEET_NAME_LENGTH - 1;
+#endif
+}
+
+uint32_t sheet_name(uint32_t index, char *buffer, uint32_t length) {
+    if (index >= MAX_SHEETS || !buffer || !length)
+        return 0;
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
     uint32_t l = length < MAX_SHEET_NAME_LENGTH - 1
         ? length
         : MAX_SHEET_NAME_LENGTH - 1;
     st25dv64k_user_read_bytes(profile_address,
         buffer, l);
+    while (l > 0 && !buffer[l - 1])
+        --l;
     return l;
 #else
     memcpy(buffer, "DEFAULT", MAX_SHEET_NAME_LENGTH - 1);
@@ -664,7 +677,7 @@ uint32_t sheet_rename(uint32_t index, char const *name, uint32_t length) {
         : MAX_SHEET_NAME_LENGTH - 1;
     memset(eeprom_name, 0, MAX_SHEET_NAME_LENGTH);
     memcpy(eeprom_name, name, l);
-    st25dv64k_user_write_bytes(profile_address, eeprom_name, l);
+    st25dv64k_user_write_bytes(profile_address, eeprom_name, MAX_SHEET_NAME_LENGTH);
     return l;
 #else
     return 0;
