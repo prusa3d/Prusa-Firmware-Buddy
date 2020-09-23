@@ -54,7 +54,8 @@ public:
 
     window_frame_t *Get();
 
-    void SetMenuTimeout(bool mt);
+    void EnableMenuTimeout();
+    void DisableMenuTimeout();
     bool GetMenuTimeout();
 
     static void Init(const ScreenFactory::Creator screen_creator);

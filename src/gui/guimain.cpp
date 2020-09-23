@@ -126,7 +126,11 @@ extern "C" void gui_run(void) {
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
     //TIMEOUT variable getting value from EEPROM when EEPROM interface is inicialized
-    Screens::Access()->SetMenuTimeout(variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT)) != 0);
+    if (variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT)) != 0) {
+        Screens::Access()->EnableMenuTimeout();
+    } else {
+        Screens::Access()->DisableMenuTimeout();
+    }
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
     while (1) {

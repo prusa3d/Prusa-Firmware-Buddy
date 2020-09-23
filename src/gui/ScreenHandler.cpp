@@ -65,8 +65,10 @@ void Screens::RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Cr
     Access()->RPushBeforeCurrent(begin, r_node.base());
 }
 
-void Screens::SetMenuTimeout(bool mt) {
-    menu_timeout_enabled = mt;
+void Screens::EnableMenuTimeout() { menu_timeout_enabled = true; }
+void Screens::DisableMenuTimeout() {
+    gui_timer_delete(gui_get_menu_timeout_id());
+    menu_timeout_enabled = false;
 }
 bool Screens::GetMenuTimeout() { return menu_timeout_enabled; }
 
@@ -195,7 +197,7 @@ void Screens::Loop() {
     /// menu timeout logic:
     /// when timeout is expired on current screen,
     /// we iterate thrue whole stack and close every screen thta should be closed
-    if (current.get()->ClosedOnTimeout()) {
+    if (Get() && Get()->ClosedOnTimeout()) {
         gui_timeout_id = gui_get_menu_timeout_id();
         if (gui_timer_expired(gui_timeout_id) == 1) {
             gui_timer_delete(gui_timeout_id);
@@ -247,6 +249,7 @@ void Screens::InnerLoop() {
 
         /// need to reset focused and capture ptr before calling current = creator();
         /// screen ctor can change those pointers
+        /// screen was destroyed by unique_ptr.release()
         window_t::ResetCapturedWindow();
         window_t::ResetFocusedWindow();
         current = creator();
