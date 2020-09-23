@@ -4,6 +4,7 @@
 #include "gui.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
+#include "dbg.h"
 
 extern osThreadId displayTaskHandle;
 
@@ -223,17 +224,19 @@ void window_t::unconditionalDraw() {
     display::FillRect(rect, color_back);
 }
 
-void window_t::WindowEvent(window_t *sender, GUI_event_t ev, void *param) {
-    windowEvent(sender, ev, param);
+void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
+    _dbg("WindowEvent ptr: %p, event %s\n", sender, event);
+    windowEvent(sender, event, param);
 }
 
-void window_t::ScreenEvent(window_t *sender, GUI_event_t ev, void *param) {
-    screenEvent(sender, ev, param);
+void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
+    _dbg("ScreenEvent ptr: %p, event %s\n", sender, event);
+    screenEvent(sender, event, param);
 }
 
 //frame does something else - resend to all children
-void window_t::screenEvent(window_t *sender, GUI_event_t ev, void *param) {
-    windowEvent(sender, ev, param);
+void window_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
+    windowEvent(sender, event, param);
 }
 void window_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK && parent) {

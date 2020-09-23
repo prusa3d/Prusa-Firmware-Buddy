@@ -26,6 +26,43 @@ enum class GUI_event_t {
     MESSAGE,      //onStatusChange() message notification
 };
 
+constexpr const char *GUI_event_prt(GUI_event_t e) {
+    switch (e) {
+    case GUI_event_t::BTN_DN:
+        return ("button down");
+    case GUI_event_t::BTN_UP:
+        return ("button up");
+    case GUI_event_t::ENC_DN:
+        return ("encoder minus");
+    case GUI_event_t::ENC_UP:
+        return ("encoder plus");
+    case GUI_event_t::FOCUS0:
+        return ("focus lost");
+    case GUI_event_t::FOCUS1:
+        return ("focus set");
+    case GUI_event_t::CAPT_0:
+        return ("capture lost");
+    case GUI_event_t::CAPT_1:
+        return ("capture set");
+    case GUI_event_t::CLICK:
+        return ("clicked");
+    case GUI_event_t::DOUBLE_CLICK:
+        return ("double-clicked");
+    case GUI_event_t::HOLD:
+        return ("held button");
+    case GUI_event_t::CHANGE:
+        return ("value/index changed");
+    case GUI_event_t::CHANGING:
+        return ("value/index changing");
+    case GUI_event_t::LOOP:
+        return ("gui loop");
+    case GUI_event_t::TIMER:
+        return ("gui timer");
+    case GUI_event_t::MESSAGE:
+        return ("message notification");
+    }
+}
+
 using ButtonCallback = void (*)();
 
 struct window_list_t;
