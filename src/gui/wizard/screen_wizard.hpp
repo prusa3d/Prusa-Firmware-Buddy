@@ -27,7 +27,7 @@ class ScreenWizard : public window_frame_t {
 
     static uint64_t run_mask;
 
-protected:
+private:
     void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:

@@ -520,7 +520,7 @@ ScreenWizard::~ScreenWizard() {
 void ScreenWizard::windowEvent(window_t *sender, GUI_event_t event, void *param) {
 
     if (event != GUI_event_t::LOOP) {
-        window_frame_t::windowEvent(sender, event, param);
+        window_frame_t::WindowEvent(sender, event, param);
         return;
     }
 

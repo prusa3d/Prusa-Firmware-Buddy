@@ -25,6 +25,6 @@ void screen_test_term_data_t::windowEvent(window_t *sender, GUI_event_t event, v
     if (event != GUI_event_t::LOOP) {
         term.Printf("%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
     } else {
-        window_frame_t::windowEvent(sender, event, param);
+        window_frame_t::WindowEvent(sender, event, param);
     }
 }

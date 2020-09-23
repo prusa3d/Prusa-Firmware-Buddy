@@ -254,5 +254,5 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, GUI_event_t even
         redraw_thumbnail = false;
     }
 
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }

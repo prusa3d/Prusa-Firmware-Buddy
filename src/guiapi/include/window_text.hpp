@@ -31,6 +31,6 @@ struct window_text_button_t : public window_text_t {
 
     window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); //default action is close screen
 
-protected:
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

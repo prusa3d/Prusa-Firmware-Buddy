@@ -51,6 +51,8 @@ class status_footer_t : public window_frame_t {
 
 public:
     status_footer_t(window_t *parent);
+
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 

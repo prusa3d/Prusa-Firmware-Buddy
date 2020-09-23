@@ -245,7 +245,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         set_pause_icon_and_label();
     }
 
-    IScreenPrinting::windowEvent(sender, event, param);
+    IScreenPrinting::WindowEvent(sender, event, param);
 }
 
 void screen_printing_data_t::disable_tune_button() {

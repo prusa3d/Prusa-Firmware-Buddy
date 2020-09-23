@@ -124,9 +124,9 @@ public:
         Screen::ClrMenuTimeoutClose(); // don't close on menu timeout
         deactivate_item();
     }
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     void deactivate_item();
 
     template <class T>
@@ -159,7 +159,7 @@ void ScreenMenuFilament::windowEvent(window_t *sender, GUI_event_t event, void *
             header.SetText(_(label));                    //restore label
         }
     } else {
-        Screen::windowEvent(sender, event, param);
+        Screen::WindowEvent(sender, event, param);
     }
 }
 

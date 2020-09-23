@@ -192,7 +192,7 @@ void window_frame_t::screenEvent(window_t *sender, GUI_event_t event, void *para
         ptr->ScreenEvent(sender, event, param);
         ptr = ptr->GetNext();
     }
-    windowEvent(this, event, param);
+    WindowEvent(this, event, param);
 }
 
 //resend invalidation to all children

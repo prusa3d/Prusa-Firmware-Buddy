@@ -68,7 +68,7 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, GUI_event_t ev
         Screens::Access()->Close();
     }
 
-    IScreenPrinting::windowEvent(sender, event, param);
+    IScreenPrinting::WindowEvent(sender, event, param);
 }
 
 void screen_printing_serial_data_t::tuneAction() {

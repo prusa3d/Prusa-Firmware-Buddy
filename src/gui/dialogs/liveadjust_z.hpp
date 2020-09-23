@@ -30,5 +30,6 @@ protected:
     const Rect16 getNumberRect();
     const Rect16 getNozzleRect();
 
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

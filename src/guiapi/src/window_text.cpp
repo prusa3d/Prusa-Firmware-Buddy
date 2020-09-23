@@ -46,6 +46,6 @@ void window_text_button_t::windowEvent(window_t *sender, GUI_event_t event, void
     if (event == GUI_event_t::CLICK) {
         callback();
     } else {
-        window_text_t::windowEvent(sender, event, param);
+        window_text_t::WindowEvent(sender, event, param);
     }
 }

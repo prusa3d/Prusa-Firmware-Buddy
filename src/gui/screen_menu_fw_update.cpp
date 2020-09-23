@@ -50,6 +50,8 @@ public:
         help.font = resource_font(IDR_FNT_SPECIAL);
         help.SetText(_("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
     }
+
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
@@ -64,7 +66,7 @@ void ScreenMenuFwUpdate::windowEvent(window_t *sender, GUI_event_t event, void *
             mi_restart->index = 0;
         }
     }
-    Screen::windowEvent(sender, event, param);
+    Screen::WindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {

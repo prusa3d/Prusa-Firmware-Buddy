@@ -34,6 +34,8 @@ protected:
     status_footer_t footer;
 
     window_t *prev_capture;
+
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:

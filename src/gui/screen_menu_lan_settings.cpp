@@ -270,6 +270,8 @@ class ScreenMenuLanSettings : public window_frame_t {
 
 public:
     ScreenMenuLanSettings();
+
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
@@ -346,5 +348,5 @@ void ScreenMenuLanSettings::windowEvent(window_t *sender, GUI_event_t event, voi
         refresh_addresses();
 
     show_msg(Eth::ConsumeMsg());
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }

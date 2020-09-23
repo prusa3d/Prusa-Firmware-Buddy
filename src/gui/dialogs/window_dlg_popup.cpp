@@ -53,5 +53,5 @@ void window_dlg_popup_t::windowEvent(window_t *sender, GUI_event_t event, void *
     const uint32_t openned = HAL_GetTick() - open_time;
     if (event == GUI_event_t::LOOP && openned > ttl) //todo use timer
         UnregisterFromParent();
-    IDialog::windowEvent(sender, event, param);
+    IDialog::WindowEvent(sender, event, param);
 }

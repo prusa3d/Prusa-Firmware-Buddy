@@ -31,6 +31,8 @@ public:
     constexpr static const char *label = N_("TEMPERATURE");
     ScreenMenuTemperature()
         : Screen(_(label)) {}
+
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
@@ -45,7 +47,7 @@ void ScreenMenuTemperature::windowEvent(window_t *sender, GUI_event_t event, voi
         Item<MI_HEATBED>().ClrVal();
         Item<MI_PRINTFAN>().ClrVal();
     }
-    Screen::windowEvent(sender, event, param);
+    Screen::WindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuTemperature() {

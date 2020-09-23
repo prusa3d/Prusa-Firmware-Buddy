@@ -26,6 +26,8 @@ public:
         //todo test if needed
         //marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
     }
+
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
@@ -35,7 +37,7 @@ void ScreenMenuTune::windowEvent(window_t *sender, GUI_event_t event, void *para
     } else {
         Item<MI_M600>().Disable();
     }
-    Screen::windowEvent(sender, event, param);
+    Screen::WindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuTune() {

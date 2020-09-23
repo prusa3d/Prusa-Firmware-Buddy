@@ -113,5 +113,5 @@ void screen_mesh_bed_lv_data_t::windowEvent(window_t *sender, GUI_event_t event,
             break;
         }
     }
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }

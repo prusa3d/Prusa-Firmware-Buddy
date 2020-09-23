@@ -80,7 +80,7 @@ void window_icon_button_t::windowEvent(window_t *sender, GUI_event_t event, void
     if (event == GUI_event_t::CLICK) {
         callback();
     } else {
-        window_icon_t::windowEvent(sender, event, param);
+        window_icon_t::WindowEvent(sender, event, param);
     }
 }
 

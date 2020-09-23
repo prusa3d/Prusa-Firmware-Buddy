@@ -43,6 +43,8 @@ public:
     constexpr static const char *label = N_("MOVE AXIS");
     ScreenMenuMove()
         : Screen(_(label)) {}
+
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
@@ -57,7 +59,7 @@ void ScreenMenuMove::windowEvent(window_t *sender, GUI_event_t event, void *para
             pAxis_E->Disable();
     }
 
-    Screen::windowEvent(sender, event, param);
+    Screen::WindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuMove() {

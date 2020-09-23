@@ -76,7 +76,7 @@ void RadioButton::windowEvent(window_t *sender, GUI_event_t event, void *param) 
         --(*this);
         return;
     default:
-        window_t::windowEvent(sender, event, param);
+        window_t::WindowEvent(sender, event, param);
     }
 }
 

@@ -21,7 +21,7 @@ class window_dlg_popup_t : public IDialog {
 
     void UnregisterFromParent();
 
-protected:
+private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:

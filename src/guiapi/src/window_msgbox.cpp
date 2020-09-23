@@ -56,7 +56,7 @@ void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
         gui_invalidate();
         break;
     default:
-        IDialog::windowEvent(sender, event, param);
+        IDialog::WindowEvent(sender, event, param);
     }
 }
 

@@ -25,7 +25,7 @@ void screen_messages_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
     if (event == GUI_event_t::CLICK) {
         Screens::Access()->Close();
     } else {
-        window_frame_t::windowEvent(sender, event, param);
+        window_frame_t::WindowEvent(sender, event, param);
     }
 
     //must be last window_frame_t could validate term
