@@ -54,16 +54,19 @@ public:
 
     window_frame_t *Get();
 
+    void SetMenuTimeout(bool mt);
+    bool GetMenuTimeout();
+
     static void Init(const ScreenFactory::Creator screen_creator);
     static void Init(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end);  // init in normal order, skips nullptr
     static void RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end); // init in reversed order, skips nullptr
 
     static Screens *Access();
-    static bool menu_timeout_enabled;
 
 private:
     void InnerLoop(); //call inside Loop of this class
 
+    bool menu_timeout_enabled = true;
     using r_iter = std::reverse_iterator<const ScreenFactory::Creator *>;
     static r_iter rfind_enabled_node(r_iter begin, r_iter end); // reverse find method
     using iter = const ScreenFactory::Creator *;

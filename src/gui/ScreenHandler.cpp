@@ -2,7 +2,6 @@
 #include "bsod.h"
 
 Screens *Screens::instance = nullptr;
-bool Screens::menu_timeout_enabled = true;
 
 Screens::Screens(const ScreenFactory::Creator screen_creator)
     : stack({ { nullptr } })
@@ -65,6 +64,11 @@ void Screens::RInit(const ScreenFactory::Creator *begin, const ScreenFactory::Cr
     //Push rest of enabled creators on stack
     Access()->RPushBeforeCurrent(begin, r_node.base());
 }
+
+void Screens::SetMenuTimeout(bool mt) {
+    menu_timeout_enabled = mt;
+}
+bool Screens::GetMenuTimeout() { return menu_timeout_enabled; }
 
 // Push enabled creators on stack - in reverted order
 // not a bug non reverting method must use reverse iterators
@@ -182,7 +186,7 @@ void Screens::ResetTimeout() {
         if (gui_get_menu_timeout_id() >= 0) {
             gui_timer_reset(gui_get_menu_timeout_id());
         } else {
-            gui_timer_create_timeout(current.get(), (uint32_t)MENU_TIMEOUT_MS);
+            gui_timer_create_timeout(Get(), (uint32_t)MENU_TIMEOUT_MS);
         }
     }
 }

@@ -307,13 +307,13 @@ void MI_M600::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_TIMEOUT
 MI_TIMEOUT::MI_TIMEOUT()
-    : WI_SWITCH_OFF_ON_t(Screens::menu_timeout_enabled ? 1 : 0, label, 0, true, false) {}
+    : WI_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, label, 0, true, false) {}
 void MI_TIMEOUT::OnChange(size_t old_index) {
     if (old_index) {
         gui_timer_delete(gui_get_menu_timeout_id());
     }
-    Screens::menu_timeout_enabled = !old_index;
-    eeprom_set_var(EEVAR_MENU_TIMEOUT, variant8_ui8((uint8_t)(Screens::menu_timeout_enabled ? 1 : 0)));
+    Screens::Access()->SetMenuTimeout(!old_index);
+    eeprom_set_var(EEVAR_MENU_TIMEOUT, variant8_ui8((uint8_t)(Screens::Access()->GetMenuTimeout() ? 1 : 0)));
 }
 
 /*****************************************************************************/
