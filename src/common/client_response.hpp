@@ -65,6 +65,23 @@ enum class PhasesG162 : uint16_t {
     _last = Parking
 };
 
+//not binded to responses
+enum class PhasesSelftestFans : uint16_t {
+    _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
+    TestFan0 = _first, //in this case is safe to have TestFan0 == _first
+    TestFan1,
+    _last = TestFan1
+};
+
+//not binded to responses
+enum class PhasesSelftestAxis : uint16_t {
+    _first = static_cast<uint16_t>(PhasesSelftestFans::_last) + 1,
+    Xaxis = _first, //in this case is safe to have Xaxis == _first
+    Yaxis,
+    Zaxis,
+    _last = Zaxis
+};
+
 //static class for work with fsm responses (like button click)
 //encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {

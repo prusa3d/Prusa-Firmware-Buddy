@@ -106,11 +106,11 @@ void window_list_inc(window_list_t *window, int dif) {
     window->index += dif;
     if (window->index < 0) {
         window->index = 0;
-        Sound_Play(eSOUND_TYPE_BlindAlert);
+        Sound_Play(eSOUND_TYPE::BlindAlert);
     }
     if (window->index >= window->count) {
         window->index = window->count - 1;
-        Sound_Play(eSOUND_TYPE_BlindAlert);
+        Sound_Play(eSOUND_TYPE::BlindAlert);
     }
 
     if (window->index < window->top_index) {

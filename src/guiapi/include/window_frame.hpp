@@ -42,6 +42,8 @@ struct window_frame_t : public window_t {
     void SetOnSerialClose();
     void ClrOnSerialClose();
 
+    Rect16 GenerateRect(ShiftDir_t dir);
+
 protected:
     virtual void draw() override;
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;

@@ -245,10 +245,9 @@ void Screens::InnerLoop() {
             }
         }
 
-        /// when msgbox(IDialog) is closed on Event and in response is closed
-        /// another screen we need to reset captured flag
+        /// need to reset focused and capture ptr before calling current = creator();
+        /// screen ctor can change those pointers
         window_t::ResetCapturedWindow();
-        /// need to be reset also focused ptr
         window_t::ResetFocusedWindow();
         current = creator();
         if (!current->IsChildCaptured())

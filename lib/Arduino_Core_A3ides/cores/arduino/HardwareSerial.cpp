@@ -71,7 +71,7 @@ size_t HardwareSerial::write(uint8_t c) {
             if (len == 4)
                 HAL_UART_Receive_DMA(&huart2, buf2, 12);
             else if (len == 8)
-                HAL_UART_Receive_DMA(&huart2, buf2, 4);
+                HAL_UART_Receive_DMA(&huart2, buf2, 8);
             HAL_UART_Transmit(&huart2, buf, len, HAL_MAX_DELAY);
             if (len == 4) //
             {

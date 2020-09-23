@@ -121,6 +121,9 @@ public:
     /// @param[in] offset Offset in pixels of the new rectangle shift
     Rect16(Rect16 const &, ShiftDir_t, uint16_t);
 
+    //position it right next this rect
+    Rect16(Rect16 const &, ShiftDir_t);
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left corner and size
     ///

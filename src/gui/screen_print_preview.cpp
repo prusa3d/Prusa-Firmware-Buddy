@@ -4,7 +4,7 @@
 #include "marlin_client.h"
 #include "resource.h"
 #include "window_dlg_load_unload.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include <stdarg.h>
 #include "sound.hpp"
 #include "DialogHandler.hpp"
@@ -151,7 +151,7 @@ static void print_button_press() {
         case Response::Ok:
             break;
         case Response::Cancel:
-            Sound_Play(eSOUND_TYPE_SingleBeep);
+            Sound_Play(eSOUND_TYPE::SingleBeep);
             approved = false;
             break;
         default:
@@ -216,7 +216,7 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
 
     if (!suppress_draw && fs_did_filament_runout()) {
         suppress_draw = true;
-        Sound_Play(eSOUND_TYPE_SingleBeep);
+        Sound_Play(eSOUND_TYPE::SingleBeep);
         const PhaseResponses btns = { Response::Yes, Response::No, Response::Ignore, Response::_none };
         // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
         switch (MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode_file_name),

@@ -5,7 +5,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "marlin_client.h"
 #include "window_dlg_load_unload.h"
 #include "dbg.h"
@@ -180,7 +180,7 @@ void ScreenMenuFilament::deactivate_item() {
 
     uint8_t filament = 0;
     filament |= get_filament() != FILAMENT_NONE ? F_EEPROM : 0;
-    filament |= fs_get_state() == FS_NO_FILAMENT ? 0 : F_SENSED;
+    filament |= fs_get_state() == fsensor_t::NoFilament ? 0 : F_SENSED;
     switch (filament) {
     case 0: //filament not loaded
         ena<MI_LOAD>();

@@ -145,10 +145,10 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
             if (!pPrev) {
-                Sound_Play(eSOUND_TYPE_BlindAlert);
+                Sound_Play(eSOUND_TYPE::BlindAlert);
                 break;
             } else {
-                Sound_Play(eSOUND_TYPE_EncoderMove);
+                Sound_Play(eSOUND_TYPE::EncoderMove);
             }
             pWin = pPrev;
         }
@@ -160,10 +160,10 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
             if (!pNext) {
-                Sound_Play(eSOUND_TYPE_BlindAlert);
+                Sound_Play(eSOUND_TYPE::BlindAlert);
                 break;
             } else {
-                Sound_Play(eSOUND_TYPE_EncoderMove);
+                Sound_Play(eSOUND_TYPE::EncoderMove);
             }
             pWin = pNext;
         }
@@ -322,4 +322,10 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
     if (first->IsEnabled() && first->rect.HasIntersection(intersection_rect))
         return first;
     return GetNextEnabledSubWin(first, intersection_rect);
+}
+
+Rect16 window_frame_t::GenerateRect(ShiftDir_t dir) {
+    if (!last)
+        return Rect16();
+    return Rect16(last->rect, dir);
 }

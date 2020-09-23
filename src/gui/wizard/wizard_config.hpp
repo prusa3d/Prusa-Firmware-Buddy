@@ -1,7 +1,20 @@
-// wizard_config.h
+// wizard_config.hpp
 #pragma once
+enum class SelftestSubtestState_t : uint8_t { //it is passed as uint8_t between threads
+    undef,
+    ok,
+    not_good,
+    running
+};
 
-#include "menu_vars.h"
+enum {
+    WIZARD_MARGIN_LEFT = 6,
+    WIZARD_MARGIN_RIGHT = 6,
+    WIZARD_X_SPACE = 240 - (WIZARD_MARGIN_LEFT + WIZARD_MARGIN_RIGHT),
+
+    MSGBOX_BTN_NEXT = /*MSGBOX_BTN_MAX*/ +1,
+    MSGBOX_BTN_DONE = /*MSGBOX_BTN_MAX*/ +2,
+};
 
 //calculate move time in milliseconds (max is in mm and fr is in mm/min)
 #define _SELFTEST_AXIS_TIME(max, fr) ((60 * 1000 * max) / fr)

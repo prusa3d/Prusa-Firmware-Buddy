@@ -1,12 +1,103 @@
-// selftest_fans_axis.c
+// selftest_fans_axis.cpp
+#include "selftest_fans_axis.hpp"
+#include "i18n.h"
+#include "gui.hpp"
 
-#include "selftest.h"
-#include "dbg.h"
-#include "config.h"
-#include "hwio.h"
-#include "marlin_client.h"
-#include "wizard_config.h"
-#include "wizard_ui.h"
+StateFncData StateFnc_SELFTEST_FAN0(StateFncData last_run) {
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_FAN0\n"
+        "not implemented");
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
+
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_FAN1(StateFncData last_run) {
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_FAN1\n"
+        "not implemented");
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
+
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_X(StateFncData last_run) {
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_X\n"
+        "not implemented");
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
+
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_Y(StateFncData last_run) {
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_Y\n"
+        "not implemented");
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
+
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_Z(StateFncData last_run) {
+    static const char en_text[] = N_(
+        "State\n"
+        "SELFTEST_Z\n"
+        "not implemented");
+    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
+
+    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    return last_run.PassToNext();
+}
+
+#if 0
+
+    #include "selftest.hpp"
+    #include "dbg.h"
+    #include "config.h"
+    #include "hwio.h"
+    #include "marlin_client.h"
+    #include "wizard_config.hpp"
+
+
+//todo create multiple small structures inside this structure
+struct selftest_fans_axis_screen_t {
+    window_progress_t progress_fan;
+    window_progress_t progress_axis;
+    window_text_t text_fan_test;
+    window_text_t text_extruder_fan;
+    window_text_t text_print_fan;
+    window_text_t text_checking_axis;
+    window_text_t text_x_axis;
+    window_text_t text_y_axis;
+    window_text_t text_z_axis;
+    window_icon_t icon_extruder_fan;
+    window_icon_t icon_print_fan;
+    window_icon_t icon_x_axis;
+    window_icon_t icon_y_axis;
+    window_icon_t icon_z_axis;
+    uint32_t timer0;
+    uint32_t timer1;
+};
+
+struct selftest_fans_axis_data_t {
+    _TEST_STATE_t state_fan0;
+    _TEST_STATE_t state_fan1;
+    _TEST_STATE_t state_x;
+    _TEST_STATE_t state_y;
+    _TEST_STATE_t state_z;
+
+    float axis_min[3];
+    float axis_max[3];
+};
 
 void wizard_init_screen_selftest_fans_axis(int16_t id_body, selftest_fans_axis_screen_t *p_screen,
     selftest_fans_axis_data_t *p_data) {
@@ -377,3 +468,5 @@ int wizard_selftest_z(int16_t id_body, selftest_fans_axis_screen_t *p_screen, se
     wizard_update_test_icon(p_screen->icon_z_axis, p_data->state_z);
     return progress;
 }
+
+#endif //0
