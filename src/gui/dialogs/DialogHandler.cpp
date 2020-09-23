@@ -10,9 +10,11 @@
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
+        Screens::Access()->CloseSerial();
         Screens::Access()->Open(ScreenFactory::Screen<screen_printing_serial_data_t>);
         return;
     case ClientFSM::Printing:
+        Screens::Access()->CloseAll();
         Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
         return;
     default:
@@ -35,7 +37,6 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
         if (IScreenPrinting::CanOpen()) {
-            Screens::Access()->CloseAll();
             OpenPrintScreen(dialog);
         }
         break;

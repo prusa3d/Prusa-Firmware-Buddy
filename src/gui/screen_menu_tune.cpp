@@ -22,6 +22,7 @@ public:
     constexpr static const char *label = N_("TUNE");
     ScreenMenuTune()
         : Screen(_(label)) {
+        Screen::ClrMenuTimeoutClose();
         //todo test if needed
         //marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
     }

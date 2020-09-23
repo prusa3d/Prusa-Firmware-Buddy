@@ -174,6 +174,7 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , redraw_thumbnail(gcode.has_thumbnail) {
     marlin_set_print_speed(100);
 
+    window_frame_t::ClrMenuTimeoutClose();
     // Title
     title_text.font = resource_font(IDR_FNT_BIG);
     // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
