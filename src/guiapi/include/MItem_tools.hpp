@@ -368,8 +368,6 @@ class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_I08_t {
 
 public:
     MI_FILAMENT_SENSOR_STATE();
-    virtual ~MI_FILAMENT_SENSOR_STATE() {};
-    virtual void OnClick() override;
     void CheckValue();
 };
 
@@ -378,5 +376,4 @@ class MI_MINDA : public WI_SPIN_I08_t {
 
 public:
     MI_MINDA();
-    virtual void OnClick() override {};
 };
