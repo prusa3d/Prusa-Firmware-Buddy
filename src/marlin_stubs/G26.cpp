@@ -142,8 +142,22 @@ public:
 
     void print_shape_2() {
 
-        total_lines = 1;
+        total_lines = 11 + ARRAY_SIZE(snake2);
         current_line = 0;
+
+        /// print purge line
+        go_to_destination_and_wait(NAN, NAN, 4.f, NAN, 1000.f);
+        go_to_destination_and_wait(0.f, -2.f, 0.2f, NAN, 3000.f);
+        go_to_destination_and_wait(NAN, NAN, NAN, 6.f, 2000.f);
+        go_to_destination_and_wait(60.f, NAN, NAN, 9.f, 1000.f);
+        go_to_destination_and_wait(100.f, NAN, NAN, 12.5f, 1000.f);
+        go_to_destination_and_wait(10.f, 30.f, NAN, extrusion(100.0f, -2.f, 10.f, 30.f), 1000.f);
+
+        print_snake(snake2, ARRAY_SIZE(snake2), 1000.f);
+
+        /// finish printing
+        go_to_destination_and_wait(NAN, NAN, 2.f, -6.f, 2100.f);
+        go_to_destination_and_wait(178.f, 180.f, 10.f, NAN, 3000.f);
     }
 };
 
@@ -154,8 +168,8 @@ void PrusaGcodeSuite::G26() {
         /// TODO check that units are millimeters
 
         FirstLayer fl;
-        fl.print_shape_1();
-        //fl.print_shape_2();
+        //fl.print_shape_1();
+        fl.print_shape_2();
     }
 
     fsm_destroy(ClientFSM::FirstLayer);
