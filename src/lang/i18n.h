@@ -9,12 +9,12 @@
 ///
 /// Translated text:
 ///
-///     static const char some_EN_text[] = N_("this is a text");
+///     static const char some_EN_text[] = N_("this is a text"); // this text is marked for extraction with GNU/gettext
 ///     string_view_utf8 translatedText = _(some_EN_text); // this text will be translated
 ///
 /// alternative:
 ///
-///     string_view_utf8 translatedText = _("this is a text"); // this text will be translated
+///     string_view_utf8 translatedText = _("this is a text"); // this text will be translated (also marked for extraction with GNU/gettext)
 ///
 /// It is recommended to define the source texts as static const char[] - they will not be copied to RAM at runtime
 /// It is perfectly safe to store string_view_utf8 in classes and/or initialize it in a constructor.
@@ -24,7 +24,7 @@
 ///
 /// Untranslated text (wrapping normal const char * into a string view):
 ///
-///     static const char some_EN_text[] = N_("this is a text");
+///     static const char some_EN_text[] = "this is a text";
 ///     string_view_utf8 untranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)some_EN_text); // this text will NOT be translated
 ///
 /// Using translated text in snprintf:
