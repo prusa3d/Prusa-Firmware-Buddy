@@ -39,6 +39,10 @@ enum class is_dialog_t : bool { no,
     yes };
 enum class is_closed_on_click_t : bool { no,
     yes };
+enum class is_closed_on_timeout_t : bool { no,
+    yes };
+enum class is_closed_on_serial_t : bool { no,
+    yes };
 
 class window_t {
     window_t *parent;
@@ -49,22 +53,22 @@ protected:
     union {
         uint32_t flg;
         struct {
-            bool flag_visible : 1;                        // 00 - is visible
-            bool flag_enabled : 1;                        // 01 - is enabled (can be focused)
-            bool flag_invalid : 1;                        // 02 - content is invalid (draw)
-            bool flag_checked : 1;                        // 03 - is checked/selected
-            bool flag_timer : 1;                          // 04 - window has timers
-            is_dialog_t flag_dialog : 1;                  // 05 - window id dialog
-            is_closed_on_click_t flag_close_on_click : 1; // 06 - window id dialog
-            bool flag_hidden_behind_dialog : 1;           // 07 - there is an dialog over this window
-            bool flag_custom0 : 1;                        // 08 - this flag can be defined in parent
-            bool flag_custom1 : 1;                        // 09 - this flag can be defined in parent
-            bool flag_custom2 : 1;                        // 0A - this flag can be defined in parent
-            bool flag_custom3 : 1;                        // 0B - this flag can be defined in parent
-            bool flag_custom4 : 1;                        // 0C - this flag can be defined in parent
-            bool flag_custom5 : 1;                        // 0D - this flag can be defined in parent
-            bool flag_custom6 : 1;                        // 0E - this flag can be defined in parent
-            bool flag_custom7 : 1;                        // 0F - this flag can be defined in parent
+            bool flag_visible : 1;                         // 00 - is visible
+            bool flag_enabled : 1;                         // 01 - is enabled (can be focused)
+            bool flag_invalid : 1;                         // 02 - content is invalid (draw)
+            bool flag_checked : 1;                         // 03 - is checked/selected
+            bool flag_timer : 1;                           // 04 - window has timers
+            is_dialog_t flag_dialog : 1;                   // 05 - window id dialog
+            is_closed_on_click_t flag_close_on_click : 1;  // 06 - window id dialog
+            bool flag_hidden_behind_dialog : 1;            // 07 - there is an dialog over this window
+            is_closed_on_timeout_t flag_timeout_close : 1; // 08 - menu timeout flag - it's meant to be used in window_frame_t
+            is_closed_on_serial_t flag_serial_close : 1;   // 09 - serial printing screen open close
+            bool flag_custom0 : 1;                         // 0A - this flag can be defined in parent
+            bool flag_custom1 : 1;                         // 0B - this flag can be defined in parent
+            bool flag_custom2 : 1;                         // 0C - this flag can be defined in parent
+            bool flag_custom3 : 1;                         // 0D - this flag can be defined in parent
+            bool flag_custom4 : 1;                         // 0E - this flag can be defined in parent
+            bool flag_custom5 : 1;                         // 0F - this flag can be defined in parent
 
             // here would be 2 unused Bytes (structure data alignment),
             // make them accessible to be used in child to save RAM
@@ -99,6 +103,8 @@ public:
     bool IsCaptured() const;
     bool HasTimer() const;
     bool IsDialog() const;
+    bool ClosedOnTimeout() const;
+    bool ClosedOnSerialPrint() const;
     void Validate(Rect16 validation_rect = Rect16());
     void Invalidate(Rect16 validation_rect = Rect16());
 
@@ -136,8 +142,8 @@ public:
     static window_t *GetFocusedWindow();
     static window_t *GetCapturedWindow();
 
-protected:
     static void ResetCapturedWindow();
+    static void ResetFocusedWindow();
 };
 
 /*****************************************************************************/

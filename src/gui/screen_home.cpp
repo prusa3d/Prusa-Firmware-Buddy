@@ -58,6 +58,8 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no } }
 
 {
+    window_frame_t::ClrMenuTimeoutClose();
+    window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.
     // Seconds (timestamp) from UNIX epocho will fix this
     time = HAL_GetTick();

@@ -43,12 +43,3 @@ public:
     MI_FLOWFACT();
     virtual void OnClick() override;
 };
-
-class MI_BABYSTEP : public WI_SPIN_t<float> {
-    constexpr static const char *const label = N_("Live Adjust Z");
-
-public:
-    MI_BABYSTEP();
-    virtual void OnClick() override;
-    virtual bool Change(int dif) override;
-};

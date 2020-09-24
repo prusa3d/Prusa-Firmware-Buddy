@@ -5,6 +5,10 @@
 #include <vector>
 #include <tuple>
 
+/// Warning!
+/// With yet unknown reason for us the method Catch::getResultCapture() returns nullptr in case the
+/// benchmarks in CATCH2 are configured as enable. Please consider this issue when you'll decide to
+/// write benchmark tests.
 #define COMPARE_ARRAYS(lhs, rhs) compareArrays(Catch::getResultCapture().getCurrentTestName(), __LINE__, lhs, rhs)
 
 template <typename T, size_t N>

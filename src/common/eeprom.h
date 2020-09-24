@@ -66,7 +66,7 @@ enum {
     EEVAR_SOUND_VOLUME = 0x1b, // uint8_t
     EEVAR_LANGUAGE = 0x1c,     // uint16_t
     EEVAR_FILE_SORT = 0x1d,    // uint8_t  filebrowser file sort options
-    EEVAR_MENU_TIMEOUT = 0x1e,
+    EEVAR_MENU_TIMEOUT = 0x1e, // uint8_t on / off menu timeout flag
     EEVAR_ACTUAL_SHEET = 0x1f,
     EEVAR_SHEET_PROFILE0 = 0x20,
     EEVAR_SHEET_PROFILE1 = 0x21,

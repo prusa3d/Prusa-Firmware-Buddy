@@ -17,6 +17,7 @@ IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
     , btn_stop  { { this, Rect16(8 + (15 + 64) * 2, 185, 64, 64), 0, StopAction  }, { this, Rect16(80 * 2, 196 + 48 + 8, 80, 22), is_multiline::no } }
 // clang-format on
 {
+    IScreenPrinting::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetText(caption);
 
     initAndsetIconAndLabel(btn_tune, res_tune);

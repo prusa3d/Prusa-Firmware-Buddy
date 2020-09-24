@@ -10,7 +10,7 @@
 
 /*****************************************************************************/
 //parent alias
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_BABYSTEP, MI_M600, MI_SPEED, MI_NOZZLE,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_LIVE_ADJUST_Z, MI_M600, MI_SPEED, MI_NOZZLE,
     MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_SOUND_MODE, MI_LAN_SETTINGS, MI_TIMEZONE, MI_VERSION_INFO,
 #ifdef _DEBUG
     MI_TEST,
@@ -22,6 +22,7 @@ public:
     constexpr static const char *label = N_("TUNE");
     ScreenMenuTune()
         : Screen(_(label)) {
+        Screen::ClrMenuTimeoutClose();
         //todo test if needed
         //marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
     }

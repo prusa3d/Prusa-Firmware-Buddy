@@ -43,3 +43,22 @@ protected:
     virtual void unconditionalDraw() override;
     virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
 };
+
+#include "wizard_config.hpp"
+class WindowIcon_OkNg : public window_aligned_t {
+    static const uint16_t id_res_na;  // not available
+    static const uint16_t id_res_ok;  // ok
+    static const uint16_t id_res_ng;  // not good
+    static const uint16_t id_res_ip0; // in progress - 1st part of animation
+    static const uint16_t id_res_ip1; // in progress - 2nd part of animation
+    enum { ANIMATION_STEP_MS = 500 };
+
+public:
+    WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 });
+    SelftestSubtestState_t GetState() const;
+    void SetState(SelftestSubtestState_t s);
+
+protected:
+    virtual void unconditionalDraw() override;
+    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+};

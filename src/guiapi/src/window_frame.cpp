@@ -3,13 +3,23 @@
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 
-window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog)
+window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
     : window_t(parent, rect, dialog)
     , first(nullptr)
     , last(nullptr) {
+
+    flag_timeout_close = timeout;
+    flag_serial_close = serial;
+
     Enable();
     color_back = COLOR_BLACK;
 }
+
+void window_frame_t::SetMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::yes; }
+void window_frame_t::ClrMenuTimeoutClose() { flag_timeout_close = is_closed_on_timeout_t::no; }
+
+void window_frame_t::SetOnSerialClose() { flag_serial_close = is_closed_on_serial_t::yes; }
+void window_frame_t::ClrOnSerialClose() { flag_serial_close = is_closed_on_serial_t::no; }
 
 //register sub win
 void window_frame_t::RegisterSubWin(window_t *win) {
@@ -312,4 +322,10 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
     if (first->IsEnabled() && first->rect.HasIntersection(intersection_rect))
         return first;
     return GetNextEnabledSubWin(first, intersection_rect);
+}
+
+Rect16 window_frame_t::GenerateRect(ShiftDir_t dir) {
+    if (!last)
+        return Rect16();
+    return Rect16(last->rect, dir);
 }

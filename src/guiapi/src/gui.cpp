@@ -20,6 +20,8 @@ osThreadId gui_task_handle = 0;
 font_t *GuiDefaults::Font = 0;
 font_t *GuiDefaults::FontBig = 0;
 
+// bool GuiDefaults::menu_timeout_enabled = true;
+
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
 constexpr Rect16 GuiDefaults::RectScreenBody;
@@ -82,7 +84,7 @@ void gui_loop(void) {
             } else {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_DN, (void *)-diff);
             }
-            gui_reset_menu_timer();
+            Screens::Access()->ResetTimeout();
         }
         if (btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
             if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
@@ -97,7 +99,7 @@ void gui_loop(void) {
                 capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
                 Sound_Play(eSOUND_TYPE::ButtonEcho);
             }
-            gui_reset_menu_timer();
+            Screens::Access()->ResetTimeout();
         }
     }
     #endif //GUI_JOGWHEEL_SUPPORT
@@ -124,17 +126,7 @@ void gui_loop(void) {
 
     // -- reset menu timer when we're in dialog
     if (guiloop_nesting > 0) {
-        gui_reset_menu_timer();
-    }
-}
-
-void gui_reset_menu_timer() {
-    if (menu_timeout_enabled) {
-        if (gui_get_menu_timeout_id() >= 0) {
-            gui_timer_reset(gui_get_menu_timeout_id());
-        } else {
-            //gui_timer_create_timeout((uint32_t)MENU_TIMEOUT_MS, (int16_t)-1);
-        }
+        Screens::Access()->ResetTimeout();
     }
 }
 

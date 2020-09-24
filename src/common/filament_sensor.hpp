@@ -1,5 +1,5 @@
 /*
- * filament_sensor.h
+ * filament_sensor.hpp
  *
  *  Created on: 2019-12-16
  *      Author: Radek Vana
@@ -10,11 +10,11 @@
 #include "stdint.h"
 
 enum class fsensor_t : uint8_t {
-    FS_NOT_INITIALIZED, //enable enters this state too
-    FS_HAS_FILAMENT,
-    FS_NO_FILAMENT,
-    FS_NOT_CONNECTED,
-    FS_DISABLED
+    NotInitialized, //enable enters this state too
+    HasFilament,
+    NoFilament,
+    NotConnected,
+    Disabled
 };
 
 //thread safe functions
