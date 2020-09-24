@@ -8,7 +8,7 @@
 
 extern osThreadId displayTaskHandle;
 
-constexpr bool GUI_event_IsKnob(GUI_event_t event) {
+static constexpr bool GUI_event_IsKnob(GUI_event_t event) {
     switch (event) {
     case GUI_event_t::BTN_DN:
     case GUI_event_t::BTN_UP:
@@ -20,7 +20,7 @@ constexpr bool GUI_event_IsKnob(GUI_event_t event) {
     }
 }
 
-constexpr bool GUI_event_IsWindowKnobReaction(GUI_event_t event) {
+static constexpr bool GUI_event_IsWindowKnobReaction(GUI_event_t event) {
     switch (event) {
     case GUI_event_t::FOCUS0:
     case GUI_event_t::FOCUS1:
@@ -36,11 +36,13 @@ constexpr bool GUI_event_IsWindowKnobReaction(GUI_event_t event) {
     }
 }
 
-constexpr bool GUI_event_IsAnyButLoop(GUI_event_t event) {
+static constexpr bool GUI_event_IsAnyButLoop(GUI_event_t event) {
     return event != GUI_event_t::LOOP;
 }
 
-constexpr const char *GUI_event_prt(GUI_event_t event) {
+static constexpr const char *GUI_event_prt(GUI_event_t event) {
+    // cannot use: case GUI_event_t::BTN_DN: { static const char txt[] = "button down"; return txt; }
+    // error: 'txt' declared 'static' in 'constexpr' function
     switch (event) {
     case GUI_event_t::BTN_DN:
         return ("button down");
@@ -310,12 +312,14 @@ void window_t::unconditionalDraw() {
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
-    EventDbg("WindowEvent", sender, event);
+    static const char txt[] = "WindowEvent";
+    EventDbg(txt, sender, event);
     windowEvent(sender, event, param);
 }
 
 void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
-    EventDbg("ScreenEvent", sender, event);
+    static const char txt[] = "ScreenEvent";
+    EventDbg(txt, sender, event);
     screenEvent(sender, event, param);
 }
 
