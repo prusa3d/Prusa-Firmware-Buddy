@@ -7,6 +7,7 @@
 #include <type_traits>
 #include "Marlin/src/core/serial.h"
 #include "eeprom.h"
+#include "screen_sheet_rename.hpp"
 
 class ScreenMenuSteelSheets;
 
@@ -79,7 +80,7 @@ protected:
 };
 
 using SheetProfileMenuScreen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_SHEET_SELECT, MI_SHEET_CALIBRATE,
-    MI_SHEET_RESET>;
+    MI_SHEET_RENAME, MI_SHEET_RESET>;
 
 template <typename Index>
 class SheetProfileMenuScreenT : public SheetProfileMenuScreen {
@@ -119,128 +120,45 @@ public:
         case profile_action::Calibrate:
             SERIAL_ECHOLN("MI_SHEET_CALIBRATE");
             break;
+        case profile_action::Rename:
+            SERIAL_ECHOLN("MI_SHEET_RENAME");
+            Screens::Access()->Open([]() {
+                screen_sheet_rename_t::index(Index::value);
+                return ScreenFactory::Screen<screen_sheet_rename_t>();
+            });
+            break;
         default:
             SERIAL_ECHOPAIR("Click: ", static_cast<uint32_t>(action));
             SERIAL_ECHOLN("");
             break;
         }
     }
+
+private:
 };
 
-template <typename T>
-ScreenFactory::UniquePtr GetScreenMenuSheetProfile() {
-    return ScreenFactory::Screen<SheetProfileMenuScreenT<T>>();
-}
-
-class MI_SHEET_SMOOTH1 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Smooth1");
-
-public:
-    MI_SHEET_SMOOTH1()
-        : WI_LABEL_t(label, 0, true, false) {};
+template <typename Index>
+struct profile_record_t : public WI_LABEL_t {
+    profile_record_t()
+        : WI_LABEL_t(nullptr, 0, true, false) {
+        char name[MAX_SHEET_NAME_LENGTH];
+        memset(name, 0, MAX_SHEET_NAME_LENGTH);
+        sheet_name(Index::value, name, MAX_SHEET_NAME_LENGTH);
+        SetLabel(name);
+    };
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_0>);
-    }
-};
-
-class MI_SHEET_SMOOTH2 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Smooth2");
-
-public:
-    MI_SHEET_SMOOTH2()
-        : WI_LABEL_t(label, 0, true, false) {};
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_1>);
-    }
-};
-
-class MI_SHEET_TEXTUR1 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Textur1");
-
-public:
-    MI_SHEET_TEXTUR1()
-        : WI_LABEL_t(label, 0, true, false) {};
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_2>);
-    }
-};
-
-class MI_SHEET_TEXTUR2 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Textur2");
-
-public:
-    MI_SHEET_TEXTUR2()
-        : WI_LABEL_t(label, 0, true, false) {};
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_3>);
-    }
-};
-
-class MI_SHEET_CUSTOM1 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Custom1");
-
-public:
-    MI_SHEET_CUSTOM1()
-        : WI_LABEL_t(label, 0, true, false) {};
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_4>);
-    }
-};
-
-class MI_SHEET_CUSTOM2 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Custom2");
-
-public:
-    MI_SHEET_CUSTOM2()
-        : WI_LABEL_t(label, 0, true, false) {};
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_5>);
-    }
-};
-
-class MI_SHEET_CUSTOM3 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Custom3");
-
-public:
-    MI_SHEET_CUSTOM3()
-        : WI_LABEL_t(label, 0, true, false) {};
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_6>);
-    }
-};
-
-class MI_SHEET_CUSTOM4 : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Custom4");
-
-public:
-    MI_SHEET_CUSTOM4()
-        : WI_LABEL_t(label, 0, true, false) {};
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(GetScreenMenuSheetProfile<sheet_index_7>);
+        Screens::Access()->Open([]() {
+            return ScreenFactory::Screen<SheetProfileMenuScreenT<Index>>();
+        });
     }
 };
 
 using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     ,
-    MI_SHEET_SMOOTH1, MI_SHEET_SMOOTH2,
-    MI_SHEET_TEXTUR1, MI_SHEET_TEXTUR2, MI_SHEET_CUSTOM1, MI_SHEET_CUSTOM2, MI_SHEET_CUSTOM3, MI_SHEET_CUSTOM4
+    profile_record_t<sheet_index_0>, profile_record_t<sheet_index_1>, profile_record_t<sheet_index_2>, profile_record_t<sheet_index_3>, profile_record_t<sheet_index_4>, profile_record_t<sheet_index_5>, profile_record_t<sheet_index_6>, profile_record_t<sheet_index_7>
 #endif
     >;
 
