@@ -11,7 +11,7 @@ void window_icon_t::SetIdRes(int16_t id) {
 }
 
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, uint16_t id_res, is_closed_on_click_t close)
-    : window_aligned_t(parent, rect, is_dialog_t::no, close)
+    : AddSuperWindow<window_aligned_t>(parent, rect, is_dialog_t::no, close)
     , id_res(id_res) {
     SetAlignment(ALIGN_CENTER);
 }
@@ -71,7 +71,7 @@ size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
 /*****************************************************************************/
 //window_icon_button_t
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb)
-    : window_icon_t(parent, rect, id_res)
+    : AddSuperWindow<window_icon_t>(parent, rect, id_res)
     , callback(cb) {
     Enable();
 }
@@ -80,14 +80,14 @@ void window_icon_button_t::windowEvent(window_t *sender, GUI_event_t event, void
     if (event == GUI_event_t::CLICK) {
         callback();
     } else {
-        window_icon_t::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 
 /*****************************************************************************/
 //window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
-    : window_icon_t(parent, IDR_PNG_wizard_icon_hourglass, pt, padding, close)
+    : AddSuperWindow<window_icon_t>(parent, IDR_PNG_wizard_icon_hourglass, pt, padding, close)
     , start_time(HAL_GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {
@@ -192,7 +192,7 @@ const uint16_t WindowIcon_OkNg::id_res_ip1 = IDR_PNG_wizard_icon_ip1;
 
 //Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding)
-    : window_aligned_t(
+    : AddSuperWindow<window_aligned_t>(
         parent,
         [pt, padding] {
             size_ui16_t sz = window_icon_t::CalculateMinimalSize(WindowIcon_OkNg::id_res_ok);

@@ -59,7 +59,7 @@ void ScreenMenuMove::windowEvent(window_t *sender, GUI_event_t event, void *para
             pAxis_E->Disable();
     }
 
-    Screen::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuMove() {

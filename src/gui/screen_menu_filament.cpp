@@ -159,7 +159,7 @@ void ScreenMenuFilament::windowEvent(window_t *sender, GUI_event_t event, void *
             header.SetText(_(label));                    //restore label
         }
     } else {
-        Screen::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 

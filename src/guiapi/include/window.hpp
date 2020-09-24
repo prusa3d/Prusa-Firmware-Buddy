@@ -42,7 +42,14 @@ enum class is_closed_on_timeout_t : bool { no,
 enum class is_closed_on_serial_t : bool { no,
     yes };
 
+//forward declaration
+//use AddSuperWindow for inheritance
+template <class Base>
+struct AddSuperWindow;
+
 class window_t {
+    template <class T>
+    friend class AddSuperWindow; //<window_t>;
     static void EventDbg(const char *event_method_name, window_t *sender, GUI_event_t event);
 
     window_t *parent;
@@ -147,10 +154,26 @@ public:
     static void ResetFocusedWindow();
 };
 
+//all childern of window_t and their childern must use AddSuperWindow<parent_window> for inheritance
+template <class Base>
+struct AddSuperWindow : public Base {
+    template <class... T>
+    AddSuperWindow(T... args)
+        : Base(args...) {}
+
+protected:
+    typedef Base super;
+    void SuperWindowEvent(window_t *sender, GUI_event_t event, void *param) {
+        //event log will be here
+        super::windowEvent(sender, event, param);
+    }
+};
+
 /*****************************************************************************/
 //window_aligned_t
 //uses window_t  mem_array_u08[0] to store alignment (saves RAM)
-struct window_aligned_t : public window_t {
+struct window_aligned_t : public AddSuperWindow<window_t> {
+    friend class AddSuperWindow<window_aligned_t>;
     window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
     /// alignment constants are in guitypes.h
     uint8_t GetAlignment() const;

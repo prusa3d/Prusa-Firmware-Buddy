@@ -8,7 +8,8 @@
 
 string_view_utf8 WizardGetCaption(WizardState_t st); //todo constexpr
 
-class ScreenWizard : public window_frame_t {
+class ScreenWizard : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<ScreenWizard>;
     window_header_t header;
     status_footer_t footer;
 

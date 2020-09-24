@@ -48,7 +48,8 @@ struct GCodeInfoWithDescription : public GCodeInfo {
 };
 
 //todo implement draw, i am using visible property on some description_lines
-struct screen_print_preview_data_t : public window_frame_t {
+struct screen_print_preview_data_t : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<screen_print_preview_data_t>;
     window_text_t title_text;
     window_icon_button_t print_button;
     window_text_t print_label;

@@ -9,7 +9,8 @@
 #include "window_term.hpp"
 #include "window_progress.hpp"
 
-struct screen_test_term_data_t : public window_frame_t {
+struct screen_test_term_data_t : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<screen_test_term_data_t>;
     window_text_t text;
     window_term_t term;
     term_buff_t<20, 16> term_buff;

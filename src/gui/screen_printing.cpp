@@ -118,7 +118,7 @@ void screen_printing_data_t::stopAction() {
 /******************************************************************************/
 
 screen_printing_data_t::screen_printing_data_t()
-    : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
+    : AddSuperWindow<IScreenPrinting>(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
     , w_filename(this, Rect16(10, 33, 220, 29), is_multiline::no)
     , w_progress(this, Rect16(10, 70, 220, 50), 16, COLOR_ORANGE)
     , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
@@ -245,7 +245,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         set_pause_icon_and_label();
     }
 
-    IScreenPrinting::WindowEvent(sender, event, param);
+    super::SuperWindowEvent(sender, event, param);
 }
 
 void screen_printing_data_t::disable_tune_button() {

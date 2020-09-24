@@ -7,7 +7,8 @@
 #include "window.hpp"
 #include "display.h"
 
-struct window_frame_t : public window_t {
+struct window_frame_t : public AddSuperWindow<window_t> {
+    friend class AddSuperWindow<window_frame_t>;
     //todo implement pointer to last
     window_t *first;
     window_t *last;

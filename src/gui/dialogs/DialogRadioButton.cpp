@@ -29,7 +29,7 @@ size_t RadioButton::cnt_buttons(const PhaseTexts *labels, const PhaseResponses *
 /*****************************************************************************/
 //nonstatic variables and methods
 RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels)
-    : window_t(parent, rect)
+    : AddSuperWindow<window_t>(parent, rect)
     , pfont(resource_font(IDR_FNT_BIG))
     , responses(resp)
     , texts(labels) {
@@ -76,7 +76,7 @@ void RadioButton::windowEvent(window_t *sender, GUI_event_t event, void *param) 
         --(*this);
         return;
     default:
-        window_t::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 

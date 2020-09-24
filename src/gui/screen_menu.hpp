@@ -24,7 +24,9 @@ constexpr static const HelperConfig HelpLines_None = { 0, IDR_FNT_SPECIAL };
 constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
 
 //parent to not repeat code in templates
-class IScreenMenu : public window_frame_t {
+class IScreenMenu : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<IScreenMenu>;
+
 protected:
     constexpr static const char *no_labelS = "MISSING";
     static string_view_utf8 no_label;
@@ -44,7 +46,9 @@ public:
 };
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
-class ScreenMenu : public IScreenMenu {
+class ScreenMenu : public AddSuperWindow<IScreenMenu> {
+    friend class AddSuperWindow<ScreenMenu>;
+
 protected:
     //std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;
@@ -66,7 +70,7 @@ public:
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
 ScreenMenu<HEADER, FOOTER, HELP_CNF, T...>::ScreenMenu(string_view_utf8 label, window_t *parent, Rect16 menu_item_rect)
-    : IScreenMenu(parent, label, menu_item_rect, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
+    : AddSuperWindow<IScreenMenu>(parent, label, menu_item_rect, FOOTER, HELP_CNF.lines, HELP_CNF.font_id) {
     menu.pContainer = &container;
     menu.GetActiveItem()->SetFocus(); //set focus on new item//containder was not valid during construction, have to set its index again
 }

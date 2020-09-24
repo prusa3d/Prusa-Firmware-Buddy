@@ -8,7 +8,9 @@
 #include "window_arrows.hpp"
 #include "../../lang/i18n.h"
 
-class LiveAdjustZ : public IDialog {
+class LiveAdjustZ : public AddSuperWindow<IDialog> {
+    friend class AddSuperWindow<LiveAdjustZ>;
+
 protected:
     window_text_t text;
     window_numb_t number;

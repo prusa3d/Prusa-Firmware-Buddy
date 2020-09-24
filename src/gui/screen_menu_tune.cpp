@@ -37,7 +37,7 @@ void ScreenMenuTune::windowEvent(window_t *sender, GUI_event_t event, void *para
     } else {
         Item<MI_M600>().Disable();
     }
-    Screen::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuTune() {

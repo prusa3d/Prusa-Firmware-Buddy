@@ -4,7 +4,8 @@
 #include "status_footer.h"
 #include "gui.hpp"
 
-struct screen_home_data_t : public window_frame_t {
+struct screen_home_data_t : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<screen_home_data_t>;
     window_header_t header;
     status_footer_t footer;
 

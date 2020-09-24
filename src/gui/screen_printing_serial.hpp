@@ -9,7 +9,8 @@
 
 static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 
-class screen_printing_serial_data_t : public IScreenPrinting {
+class screen_printing_serial_data_t : public AddSuperWindow<IScreenPrinting> {
+    friend class AddSuperWindow<screen_printing_serial_data_t>;
     static constexpr const char *caption = "SERIAL PRT.";
     // static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 

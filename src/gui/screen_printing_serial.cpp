@@ -14,7 +14,7 @@
 static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_printing)); }
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
-    : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
+    : AddSuperWindow<IScreenPrinting>(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
     , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
     , last_tick(0)
     , connection(connection_state_t::connected) {
@@ -68,7 +68,7 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, GUI_event_t ev
         Screens::Access()->Close();
     }
 
-    IScreenPrinting::WindowEvent(sender, event, param);
+    super::SuperWindowEvent(sender, event, param); // hack parent foes not have defined windowEvent
 }
 
 void screen_printing_serial_data_t::tuneAction() {

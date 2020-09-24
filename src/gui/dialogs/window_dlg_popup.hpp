@@ -11,7 +11,8 @@
 #include "window_text.hpp"
 
 //Singleton dialog for messages
-class window_dlg_popup_t : public IDialog {
+class window_dlg_popup_t : public AddSuperWindow<IDialog> {
+    friend class AddSuperWindow<window_dlg_popup_t>;
     window_text_t text;
     uint32_t open_time;
     uint32_t ttl; //time to live

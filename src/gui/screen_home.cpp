@@ -40,7 +40,7 @@ const char *labels[7] = {
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 
 screen_home_data_t::screen_home_data_t()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , header(this)
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_status_logo_prusa_prn)
@@ -133,7 +133,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
         printBtnDis();
     }
 
-    window_frame_t::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {

@@ -20,7 +20,8 @@ enum class mesh_state_t : uint8_t {
     meshed
 };
 
-struct screen_mesh_bed_lv_data_t : public window_frame_t {
+struct screen_mesh_bed_lv_data_t : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<screen_mesh_bed_lv_data_t>;
     status_footer_t footer;
     window_text_t textMenuName;
     window_text_button_t btMesh;

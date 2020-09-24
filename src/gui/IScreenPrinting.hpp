@@ -14,7 +14,9 @@ static constexpr btn_resource res_tune = { IDR_PNG_menu_icon_settings, N_("Tune"
 static constexpr btn_resource res_pause = { IDR_PNG_menu_icon_pause, (const char *)(N_("Pause")) };
 static constexpr btn_resource res_stop = { IDR_PNG_menu_icon_stop, N_("Stop") };
 
-class IScreenPrinting : public window_frame_t {
+class IScreenPrinting : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<IScreenPrinting>;
+
 protected:
     struct btn {
         window_icon_button_t ico;

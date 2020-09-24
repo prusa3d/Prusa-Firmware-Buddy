@@ -5,7 +5,8 @@
 #include "support_utils.h" //MAX_LEN_4QR
 #include <array>
 
-struct screen_qr_error_data_t : public window_frame_t {
+struct screen_qr_error_data_t : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<screen_qr_error_data_t>;
     window_text_t errText;
     window_text_t errDescription;
     window_text_t info;

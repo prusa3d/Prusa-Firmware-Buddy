@@ -47,7 +47,7 @@ void ScreenMenuTemperature::windowEvent(window_t *sender, GUI_event_t event, voi
         Item<MI_HEATBED>().ClrVal();
         Item<MI_PRINTFAN>().ClrVal();
     }
-    Screen::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuTemperature() {

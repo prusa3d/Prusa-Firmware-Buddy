@@ -8,8 +8,9 @@
 //responses are counted and stored into btn_count
 //if there is more labels than buttons, "additional buttons" are not acessible
 //if there is less labels than buttons, "remaining buttons" have no labels
-class RadioButton : public window_t {
-private:
+class RadioButton : public AddSuperWindow<window_t> {
+    friend class AddSuperWindow<RadioButton>;
+
     font_t *pfont;
     const PhaseResponses *responses;
     const PhaseTexts *texts;

@@ -7,7 +7,8 @@
 enum class is_multiline : bool { no,
     yes };
 
-struct window_text_t : public window_aligned_t {
+struct window_text_t : public AddSuperWindow<window_aligned_t> {
+    friend class AddSuperWindow<window_text_t>;
     color_t color_text;
     font_t *font;
     string_view_utf8 text;
@@ -26,7 +27,8 @@ protected:
     virtual void unconditionalDraw() override;
 };
 
-struct window_text_button_t : public window_text_t {
+struct window_text_button_t : public AddSuperWindow<window_text_t> {
+    friend class AddSuperWindow<window_text_button_t>;
     ButtonCallback callback;
 
     window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); //default action is close screen

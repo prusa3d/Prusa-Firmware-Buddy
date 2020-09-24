@@ -66,7 +66,7 @@ void ScreenMenuFwUpdate::windowEvent(window_t *sender, GUI_event_t event, void *
             mi_restart->index = 0;
         }
     }
-    Screen::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {

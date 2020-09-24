@@ -19,7 +19,9 @@ extern const PhaseResponses Responses_RetryCancel;
 
 /*****************************************************************************/
 //MsgBoxBase
-class MsgBoxBase : public IDialog {
+class MsgBoxBase : public AddSuperWindow<IDialog> {
+    friend class AddSuperWindow<MsgBoxBase>;
+
 protected:
     window_text_t text;
     RadioButton buttons;
@@ -38,7 +40,7 @@ private:
 
 /*****************************************************************************/
 //MsgBoxTitled
-class MsgBoxTitled : public MsgBoxBase {
+class MsgBoxTitled : public AddSuperWindow<MsgBoxBase> {
     window_icon_t title_icon;
     window_text_t title;
 
@@ -58,7 +60,7 @@ protected:
 
 /*****************************************************************************/
 //MsgBoxIconned
-class MsgBoxIconned : public MsgBoxBase {
+class MsgBoxIconned : public AddSuperWindow<MsgBoxBase> {
     window_icon_t icon;
 
 public:

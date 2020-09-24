@@ -31,7 +31,7 @@ constexpr unsigned int SFN_len = 13;
 static char firstVisibleSFN[SFN_len] = "";
 
 screen_filebrowser_data_t::screen_filebrowser_data_t()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , header(this)
     , w_filelist(this, Rect16(10, 32, 220, 278)) {
     screen_filebrowser_sort = (WF_Sort_t)variant_get_ui8(eeprom_get_var(EEVAR_FILE_SORT));
@@ -74,7 +74,7 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, GUI_event_t event,
     header.EventClr();
 
     if (event != GUI_event_t::CLICK) {
-        window_frame_t::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
         return;
     }
 
@@ -93,7 +93,7 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, GUI_event_t event,
     size_t sfnPathLen = strlen(w_filelist.sfn_path);
     if ((sfnPathLen + strlen(currentSFN) + 1) >= MAXPATHNAMELENGTH) {
         LOG_ERROR("path too long");
-        window_frame_t::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
         return;
     }
     if (!currentIsFile) {                // directory selected
@@ -130,7 +130,7 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, GUI_event_t event,
             }
             if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
                 LOG_ERROR("failed to prepare file path for print");
-                window_frame_t::WindowEvent(sender, event, param);
+                SuperWindowEvent(sender, event, param);
                 return;
             }
 

@@ -106,5 +106,5 @@ void ScreenMenuSettings::windowEvent(window_t *sender, GUI_event_t event, void *
         Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 
-    Screen::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }

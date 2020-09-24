@@ -6,7 +6,7 @@
 #include "errors.h"
 
 screen_qr_error_data_t::screen_qr_error_data_t()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , errText(this, Rect16(8, 0, 224, 25), is_multiline::no)
     , errDescription(this, Rect16(8, 30, 224, 95), is_multiline::yes)
     , info(this, Rect16(8, 275, 224, 20), is_multiline::no)
@@ -43,5 +43,5 @@ void screen_qr_error_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         return;
     first_run_flag = false;
     //unconditionalDraw(); // todo why?
-    window_frame_t::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }

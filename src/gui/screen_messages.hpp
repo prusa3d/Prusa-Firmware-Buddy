@@ -5,7 +5,8 @@
 #include "status_footer.h"
 #include "window_term.hpp"
 
-struct screen_messages_data_t : public window_frame_t {
+struct screen_messages_data_t : public AddSuperWindow<window_frame_t> {
+    friend class AddSuperWindow<screen_messages_data_t>;
     window_header_t header;
     status_footer_t footer;
     window_term_t term;
