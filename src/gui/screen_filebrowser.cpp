@@ -64,7 +64,7 @@ static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
     firstVisibleSFN[0] = 0; // clear the last top item
 }
 
-void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_filebrowser_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     marlin_vars_t *vars = marlin_vars();
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
         screen_filebrowser_clear_firstVisibleSFN(vars);
@@ -73,8 +73,8 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
 
     header.EventClr();
 
-    if (event != WINDOW_EVENT_CLICK) {
-        window_frame_t::windowEvent(sender, event, param);
+    if (event != GUI_event_t::CLICK) {
+        window_frame_t::WindowEvent(sender, event, param);
         return;
     }
 
@@ -93,7 +93,7 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
     size_t sfnPathLen = strlen(w_filelist.sfn_path);
     if ((sfnPathLen + strlen(currentSFN) + 1) >= MAXPATHNAMELENGTH) {
         LOG_ERROR("path too long");
-        window_frame_t::windowEvent(sender, event, param);
+        window_frame_t::WindowEvent(sender, event, param);
         return;
     }
     if (!currentIsFile) {                // directory selected
@@ -130,7 +130,7 @@ void screen_filebrowser_data_t::windowEvent(window_t *sender, uint8_t event, voi
             }
             if (written < 0 || written >= (int)FILE_PATH_MAX_LEN) {
                 LOG_ERROR("failed to prepare file path for print");
-                window_frame_t::windowEvent(sender, event, param);
+                window_frame_t::WindowEvent(sender, event, param);
                 return;
             }
 

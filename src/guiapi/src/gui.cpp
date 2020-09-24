@@ -80,23 +80,23 @@ void gui_loop(void) {
         int diff = jogwheel.GetEncoderDiff();
         if (diff != 0) {
             if (diff > 0) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_UP, (void *)diff);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_UP, (void *)diff);
             } else {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_ENC_DN, (void *)-diff);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::ENC_DN, (void *)-diff);
             }
             Screens::Access()->ResetTimeout();
         }
         if (btn != Jogwheel::ButtonAction::BTN_NO_ACTION) {
             if (btn == Jogwheel::ButtonAction::BTN_PUSHED) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_DN, 0);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_DN, 0);
             } else if (btn == Jogwheel::ButtonAction::BTN_CLICKED) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_CLICK, 0);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::CLICK, 0);
             } else if (btn == Jogwheel::ButtonAction::BTN_DOUBLE_CLICKED) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::DOUBLE_CLICK, 0); // first click is a normal click so event should not react to WINDOW_CLICK_EVENT
             } else if (btn == Jogwheel::ButtonAction::BTN_HELD) {
-                capturedWin->WindowEvent(capturedWin, WINDOW_EVENT_BTN_UP, 0);
+                capturedWin->WindowEvent(capturedWin, GUI_event_t::BTN_UP, 0);
                 Sound_Play(eSOUND_TYPE::ButtonEcho);
             }
             Screens::Access()->ResetTimeout();
@@ -120,7 +120,7 @@ void gui_loop(void) {
         if (gui_loop_cb)
             gui_loop_cb();
         gui_loop_tick = tick;
-        Screens::Access()->ScreenEvent(0, WINDOW_EVENT_LOOP, 0);
+        Screens::Access()->ScreenEvent(0, GUI_event_t::LOOP, 0);
     }
     --guiloop_nesting;
 

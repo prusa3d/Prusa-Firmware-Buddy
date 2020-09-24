@@ -87,8 +87,8 @@ protected:
         }
     }
 
-public:
-    virtual void windowEvent(window_t * /*sender*/, uint8_t event, void *param) override;
+private:
+    virtual void windowEvent(window_t * /*sender*/, GUI_event_t event, void *param) override;
 };
 
 /*****************************************************************************/
@@ -96,20 +96,22 @@ public:
 
 //todo make radio button events behave like normal button
 template <class T>
-void DialogStateful<T>::windowEvent(window_t * /*sender*/, uint8_t event, void *param) {
+void DialogStateful<T>::windowEvent(window_t * /*sender*/, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK: {
+    case GUI_event_t::CLICK: {
         Response response = radio.Click();
         marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
         break;
     }
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         ++radio;
         gui_invalidate();
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         --radio;
         gui_invalidate();
+        break;
+    default:
         break;
     }
 }

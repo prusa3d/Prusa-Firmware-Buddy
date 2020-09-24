@@ -17,14 +17,14 @@ screen_test_term_data_t::screen_test_term_data_t()
     text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
 }
 
-void screen_test_term_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_test_term_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     int winid = -1;
-    if (event == WINDOW_EVENT_BTN_DN) {
+    if (event == GUI_event_t::BTN_DN) {
         Screens::Access()->Close();
     }
-    if (event != WINDOW_EVENT_LOOP) {
+    if (event != GUI_event_t::LOOP) {
         term.Printf("%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
     } else {
-        window_frame_t::windowEvent(sender, event, param);
+        window_frame_t::WindowEvent(sender, event, param);
     }
 }

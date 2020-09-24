@@ -25,8 +25,8 @@ struct window_icon_button_t : public window_icon_t {
 
     window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb);
 
-protected:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+private:
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class window_icon_hourglass_t : public window_icon_t {
@@ -39,9 +39,9 @@ class window_icon_hourglass_t : public window_icon_t {
 public:
     window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
 
-protected:
+private:
     virtual void unconditionalDraw() override;
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 #include "wizard_config.hpp"
@@ -58,7 +58,7 @@ public:
     SelftestSubtestState_t GetState() const;
     void SetState(SelftestSubtestState_t s);
 
-protected:
+private:
     virtual void unconditionalDraw() override;
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

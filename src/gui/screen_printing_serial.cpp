@@ -35,7 +35,7 @@ void screen_printing_serial_data_t::DisableButton(btn &b) {
     }
 }
 
-void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_printing_serial_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     header.EventClr();
 
     /// end sequence waiting for empty marlin gcode queue
@@ -68,7 +68,7 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event,
         Screens::Access()->Close();
     }
 
-    IScreenPrinting::windowEvent(sender, event, param);
+    IScreenPrinting::WindowEvent(sender, event, param);
 }
 
 void screen_printing_serial_data_t::tuneAction() {

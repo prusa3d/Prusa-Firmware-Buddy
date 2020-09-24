@@ -101,27 +101,27 @@ void LiveAdjustZ::moveNozzle() {
     nozzle_icon.Invalidate();
 }
 
-void LiveAdjustZ::windowEvent(window_t *sender, uint8_t event, void *param) {
+void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK:
+    case GUI_event_t::CLICK:
         if (flag_close_on_click == is_closed_on_click_t::yes) {
             SaveAndClose();
         }
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         Change(1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::up);
         gui_invalidate();
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         Change(-1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::down);
         gui_invalidate();
         break;
     default:
-        IDialog::windowEvent(sender, event, param);
+        IDialog::WindowEvent(sender, event, param);
     }
 }
 

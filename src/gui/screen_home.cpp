@@ -94,7 +94,7 @@ void screen_home_data_t::draw() {
 #endif //_DEBUG
 }
 
-void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
 
     if (is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
     {
@@ -133,7 +133,7 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
         printBtnDis();
     }
 
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {

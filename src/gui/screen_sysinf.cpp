@@ -87,8 +87,8 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textExit.SetText(_(ex));
 }
 
-void screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_LOOP) {
+void screen_sysinfo_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {
             textCPU_load_val.SetValue(actual_CPU_load);
@@ -99,5 +99,5 @@ void screen_sysinfo_data_t::windowEvent(window_t *sender, uint8_t event, void *p
         if (marlin_change_clr(MARLIN_VAR_FAN1_RPM))
             textFan1_RPM_val.SetValue(marlin_vars()->fan1_rpm);
     }
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }

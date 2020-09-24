@@ -41,22 +41,22 @@ Response MsgBoxBase::GetResult() {
 }
 
 //todo make radio button events behave like normal button
-void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
+void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK:
+    case GUI_event_t::CLICK:
         result = buttons.Click();
         Screens::Access()->Close();
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         ++buttons;
         gui_invalidate();
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         --buttons;
         gui_invalidate();
         break;
     default:
-        IDialog::windowEvent(sender, event, param);
+        IDialog::WindowEvent(sender, event, param);
     }
 }
 

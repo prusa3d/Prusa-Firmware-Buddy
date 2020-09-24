@@ -49,8 +49,8 @@ public:
     void Draw();
     void ResetTimeout();
 
-    void ScreenEvent(window_t *sender, uint8_t event, void *param);
-    void WindowEvent(uint8_t event, void *param);
+    void ScreenEvent(window_t *sender, GUI_event_t event, void *param);
+    void WindowEvent(GUI_event_t event, void *param);
 
     window_frame_t *Get();
 
