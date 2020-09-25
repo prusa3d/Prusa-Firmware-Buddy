@@ -402,6 +402,12 @@ void marlin_server_test_start(uint32_t mask) {
     }
 }
 
+void marlin_server_test_abort(void) {
+    if (Selftest.IsInProgress()) {
+        Selftest.Abort();
+    }
+}
+
 void marlin_server_print_start(const char *filename) {
     if (Selftest.IsInProgress())
         return;
@@ -1135,6 +1141,9 @@ static int _process_server_request(const char *request) {
         processed = 1;
     } else if (sscanf(request, "!test %d", &ival) == 1) { //start selftest
         marlin_server_test_start(ival);
+        processed = 1;
+    } else if (strcmp("!tabort", request) == 0) {
+        marlin_server_test_abort();
         processed = 1;
     } else {
         bsod("Unknown request %s", request);

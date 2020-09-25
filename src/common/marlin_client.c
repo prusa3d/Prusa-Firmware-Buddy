@@ -597,6 +597,14 @@ void marlin_test_start(uint32_t mask) {
     _wait_ack_from_server(client->id);
 }
 
+void marlin_test_abort(void) {
+    marlin_client_t *client = _client_ptr();
+    if (client == 0)
+        return;
+    _send_request_to_server(client->id, "!tabort");
+    _wait_ack_from_server(client->id);
+}
+
 void marlin_print_start(const char *filename) {
     char request[MARLIN_MAX_REQUEST];
     marlin_client_t *client = _client_ptr();
