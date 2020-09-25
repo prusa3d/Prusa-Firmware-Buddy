@@ -104,7 +104,7 @@ static const uint8_t FANCTL1_PWM_THR = 20;
 #endif //NEW_FANCTL
 
 //Simulator configuration
-//#define SIM_HEATER
+#define SIM_HEATER
 //#define SIM_MOTION
 
 #ifdef SIM_HEATER
