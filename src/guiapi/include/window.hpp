@@ -5,26 +5,7 @@
 #include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
 #include "Rect16.h"
-
-//window events
-enum class GUI_event_t {
-    BTN_DN = 1,   //button down
-    BTN_UP,       //button up
-    ENC_DN,       //encoder minus
-    ENC_UP,       //encoder plus
-    FOCUS0,       //focus lost
-    FOCUS1,       //focus set
-    CAPT_0,       //capture lost
-    CAPT_1,       //capture set
-    CLICK,        //clicked (tag > 0)
-    DOUBLE_CLICK, // double-clicked
-    HOLD,         // held button
-    CHANGE,       //value/index changed (tag > 0)
-    CHANGING,     //value/index changing (tag > 0)
-    LOOP,         //gui loop (every 50ms)
-    TIMER,        //gui timer
-    MESSAGE,      //onStatusChange() message notification
-};
+#include "window_event.hpp"
 
 using ButtonCallback = void (*)();
 
@@ -42,26 +23,11 @@ enum class is_closed_on_timeout_t : bool { no,
 enum class is_closed_on_serial_t : bool { no,
     yes };
 
-//forward declarations
-class window_t;
-template <class Base>
-struct AddSuperWindow;
-// hasprivate ctor
-// only friend (AddSuperWindow or base window_t) can create lock and call locked methods
-class EventLock {
-    constexpr EventLock() {} //ctor must be private
-    template <class T>
-    friend class AddSuperWindow;
-    friend class window_t;
-};
-
 class window_t {
     window_t *parent;
     window_t *next;
 
 protected:
-    static void EventDbg(const char *event_method_name, window_t *sender, GUI_event_t event);
-
     //todo add can capture flag (needed in frame event and SetCapture)
     union {
         uint32_t flg;
@@ -170,8 +136,7 @@ protected:
     typedef Base super;
     void SuperWindowEvent(window_t *sender, GUI_event_t event, void *param) {
         static const char txt[] = "WindowEvent via super";
-        super::EventDbg(txt, sender, event);
-        super::windowEvent(EventLock(), sender, event, param);
+        super::windowEvent(EventLock(txt, sender, event), sender, event, param);
     }
 };
 
