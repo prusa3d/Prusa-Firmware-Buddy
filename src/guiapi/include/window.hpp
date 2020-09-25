@@ -56,12 +56,12 @@ class EventLock {
 };
 
 class window_t {
-    static void EventDbg(const char *event_method_name, window_t *sender, GUI_event_t event);
-
     window_t *parent;
     window_t *next;
 
 protected:
+    static void EventDbg(const char *event_method_name, window_t *sender, GUI_event_t event);
+
     //todo add can capture flag (needed in frame event and SetCapture)
     union {
         uint32_t flg;
@@ -169,7 +169,8 @@ struct AddSuperWindow : public Base {
 protected:
     typedef Base super;
     void SuperWindowEvent(window_t *sender, GUI_event_t event, void *param) {
-        //event log will be here
+        static const char txt[] = "WindowEvent via super";
+        super::EventDbg(txt, sender, event);
         super::windowEvent(EventLock(), sender, event, param);
     }
 };

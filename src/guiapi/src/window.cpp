@@ -312,19 +312,9 @@ void window_t::unconditionalDraw() {
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
-    static size_t nesting_lv = 0;
-    static const size_t nesting_echo = 10;
-
-    ++nesting_lv;
-    if (nesting_lv >= nesting_echo) {
-        _dbg("WindowEvent lv %d\n", nesting_lv);
-    }
-
     static const char txt[] = "WindowEvent";
     EventDbg(txt, sender, event);
     windowEvent(EventLock(), sender, event, param);
-
-    --nesting_lv;
 }
 
 void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
