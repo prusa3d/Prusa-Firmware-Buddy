@@ -5,6 +5,7 @@
 #include "window_header.hpp"
 #include "status_footer.h"
 #include "wizard_types.hpp"
+#include <functional>
 
 string_view_utf8 WizardGetCaption(WizardState_t st); //todo constexpr
 
@@ -12,7 +13,7 @@ class ScreenWizard : public window_frame_t {
     window_header_t header;
     status_footer_t footer;
 
-    using StateFnc = StateFncData (*)(StateFncData last_run);
+    using StateFnc = std::function<StateFncData(StateFncData last_run)>;
     using StateArray = std::array<StateFnc, size_t(WizardState_t::last) + 1>;
     using ResultArray = std::array<WizardTestState_t, size_t(WizardState_t::last) + 1>;
 

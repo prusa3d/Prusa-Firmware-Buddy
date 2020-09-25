@@ -4,7 +4,7 @@
 #include "screen_splash.hpp"
 #include "static_alocation_ptr.hpp"
 #include <array>
-
+#include <functional>
 class ScreenFactory {
     ScreenFactory() = delete;
     ScreenFactory(const ScreenFactory &) = delete;
@@ -13,7 +13,7 @@ class ScreenFactory {
 
 public:
     using UniquePtr = static_unique_ptr<window_frame_t>;
-    using Creator = static_unique_ptr<window_frame_t> (*)(); //function pointer definition
+    using Creator = std::function<static_unique_ptr<window_frame_t>()>; //function pointer definition
 
     template <class T>
     static UniquePtr Screen() {

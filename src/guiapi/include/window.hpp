@@ -6,6 +6,7 @@
 #include "../../lang/string_view_utf8.hpp"
 #include "Rect16.h"
 
+#include <functional>
 //window events
 enum class GUI_event_t {
     BTN_DN = 1,   //button down
@@ -26,7 +27,7 @@ enum class GUI_event_t {
     MESSAGE,      //onStatusChange() message notification
 };
 
-using ButtonCallback = void (*)();
+using ButtonCallback = std::function<void()>;
 
 struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,

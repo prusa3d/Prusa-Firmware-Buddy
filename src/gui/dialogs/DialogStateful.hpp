@@ -9,8 +9,10 @@
 #include "window_text.hpp"
 #include "window_progress.hpp"
 
+#include <functional>
+
 // function pointer for onEnter & onExit callbacks
-using change_state_cb_t = void (*)();
+using change_state_cb_t = std::function<void()>;
 
 class IDialogMarlin : public IDialog {
 protected:
