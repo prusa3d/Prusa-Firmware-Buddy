@@ -10,7 +10,7 @@
 static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 
 class screen_printing_serial_data_t : public AddSuperWindow<IScreenPrinting> {
-    static constexpr const char *caption = "SERIAL PRT.";
+    static constexpr const char *caption = N_("SERIAL PRT.");
     // static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 
     window_icon_t octo_icon;

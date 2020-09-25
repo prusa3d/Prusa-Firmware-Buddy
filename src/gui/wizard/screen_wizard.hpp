@@ -27,7 +27,7 @@ class ScreenWizard : public AddSuperWindow<window_frame_t> {
 
     static uint64_t run_mask;
 
-private:
+protected:
     void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 public:

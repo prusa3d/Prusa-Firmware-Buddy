@@ -44,7 +44,7 @@ constexpr static const size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yy
 constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
 
 class screen_printing_data_t : public AddSuperWindow<IScreenPrinting> {
-    static constexpr const char *caption = "PRINTING";
+    static constexpr const char *caption = N_("PRINTING");
 
     window_text_t w_filename;
     window_progress_t w_progress;
