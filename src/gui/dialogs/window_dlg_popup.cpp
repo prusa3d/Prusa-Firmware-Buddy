@@ -44,9 +44,9 @@ void window_dlg_popup_t::Show(string_view_utf8 txt, uint32_t time) {
 void window_dlg_popup_t::UnregisterFromParent() {
     if (!GetParent())
         return;
+    releaseCapture();
     GetParent()->UnregisterSubWin(this);
     SetParent(nullptr);
-    releaseCapture();
 }
 
 void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
