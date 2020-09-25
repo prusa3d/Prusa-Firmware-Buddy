@@ -18,7 +18,7 @@ public:
     IDialog(Rect16 rc = GuiDefaults::RectScreenBody);
     virtual ~IDialog();
 
-    static constexpr Rect16 get_radio_button_size(Rect16 rc_frame) {
+    static constexpr Rect16 get_radio_button_rect(Rect16 rc_frame) {
         return Rect16(
             rc_frame.Left() + GuiDefaults::ButtonSpacing,
             rc_frame.Top() + (rc_frame.Height() - GuiDefaults::ButtonHeight - GuiDefaults::FrameWidth),
