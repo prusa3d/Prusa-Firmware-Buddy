@@ -305,7 +305,9 @@ uint16_t variant8_get_usr16(variant8_t v) { return unpack(&v)->usr16; }
 float variant8_get_flt(variant8_t v) { return unpack(&v)->flt; }
 
 // returns variant8_t pch
-char *variant8_get_pch(variant8_t v) { return unpack(&v)->type == VARIANT8_PCHAR ? unpack(&v)->pch : NULL; }
+char *variant8_get_pch(variant8_t v) {
+    return (unpack(&v)->type & (~VARIANT8_PTR_OWNER)) == VARIANT8_PCHAR ? unpack(&v)->pch : NULL;
+}
 
 // returns variant8_t ui8
 uint8_t variant8_get_uia(variant8_t v, uint8_t index) { return index < 4 ? unpack(&v)->ui8a[index] : UINT8_MAX; }
