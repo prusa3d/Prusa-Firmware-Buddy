@@ -8,7 +8,7 @@
 #include "ScreenHandler.hpp"
 
 IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , header(this)
     , footer(this)
     // clang-format off

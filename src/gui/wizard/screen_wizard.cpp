@@ -497,7 +497,7 @@ ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
 }
 
 ScreenWizard::ScreenWizard()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , header(this, WizardGetCaption(WizardState_t::START_first))
     , footer(this)
     , results(ResultInitializer(run_mask))
@@ -517,10 +517,10 @@ ScreenWizard::~ScreenWizard() {
     //wizard_init(0, 0);
 }
 
-void ScreenWizard::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     if (event != GUI_event_t::LOOP) {
-        window_frame_t::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
         return;
     }
 

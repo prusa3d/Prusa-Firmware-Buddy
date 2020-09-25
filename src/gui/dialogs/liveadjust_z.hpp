@@ -8,7 +8,7 @@
 #include "window_arrows.hpp"
 #include "../../lang/i18n.h"
 
-class LiveAdjustZ : public IDialog {
+class LiveAdjustZ : public AddSuperWindow<IDialog> {
 protected:
     window_text_t text;
     window_numb_t number;
@@ -30,6 +30,6 @@ protected:
     const Rect16 getNumberRect();
     const Rect16 getNozzleRect();
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

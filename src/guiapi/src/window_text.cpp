@@ -19,7 +19,7 @@ void window_text_t::SetPadding(padding_ui8_t padd) {
 }
 
 window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close, string_view_utf8 txt)
-    : window_aligned_t(parent, rect, is_dialog_t::no, close)
+    : AddSuperWindow<window_aligned_t>(parent, rect, is_dialog_t::no, close)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , text(txt)
@@ -37,15 +37,15 @@ void window_text_t::unconditionalDraw() {
 /*****************************************************************************/
 //window_text_button_t
 window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt)
-    : window_text_t(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
+    : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , callback(cb) {
     Enable();
 }
 
-void window_text_button_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_text_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         callback();
     } else {
-        window_text_t::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
