@@ -1,9 +1,11 @@
 #pragma once
 
 #include <stdint.h>
-#include <functional>
 
 #ifdef __cplusplus
+
+    #include <functional>
+
 //C++ checks enum clases
 
 //Client finite state machines
