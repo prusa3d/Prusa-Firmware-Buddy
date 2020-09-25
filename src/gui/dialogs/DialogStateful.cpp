@@ -22,7 +22,7 @@ Rect16 get_label_size(Rect16 rect) {
 
 //*****************************************************************************
 IDialogStateful::IDialogStateful(string_view_utf8 name)
-    : IDialog()
+    : IDialogMarlin()
     , title(this, get_title_size(rect), is_multiline::no, is_closed_on_click_t::no, name)
     , progress(this, get_progress_size(rect), PROGRESS_BAR_H, COLOR_ORANGE, COLOR_GRAY)
     , label(this, get_label_size(rect), is_multiline::yes)
@@ -35,7 +35,7 @@ IDialogStateful::IDialogStateful(string_view_utf8 name)
     label.SetAlignment(ALIGN_CENTER);
 }
 
-bool IDialogStateful::Change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
+bool IDialogStateful::change(uint8_t phs, uint8_t progress_tot, uint8_t /*progr*/) {
     if (!can_change(phs))
         return false;
     if (phase != phs) {

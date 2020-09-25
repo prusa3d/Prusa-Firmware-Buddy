@@ -13,7 +13,7 @@
 #include "wdt.h"
 #include "../Marlin/src/module/temperature.h"
 
-static const constexpr uint8_t EEPROM__PADDING = 1;
+static const constexpr uint8_t EEPROM__PADDING = 4;
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;               // maximum name length (with '\0')
 static const constexpr uint16_t EEPROM_MAX_DATASIZE = 256;         // maximum datasize
 static const constexpr uint16_t EEPROM_FIRST_VERSION_CRC = 0x0004; // first eeprom version with crc support
@@ -67,6 +67,7 @@ typedef struct _eeprom_vars_t {
     uint8_t SOUND_VOLUME;
     uint16_t LANGUAGE;
     uint8_t FILE_SORT;
+    uint8_t MENU_TIMEOUT;
     char _PADDING[EEPROM__PADDING];
     uint32_t CRC32;
 } eeprom_vars_t;
@@ -109,6 +110,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SOUND_VOLUME",    VARIANT8_UI8,   1, 0 }, // EEVAR_SOUND_VOLUME
     { "LANGUAGE",        VARIANT8_UI16,  1, 0 }, // EEVAR_LANGUAGE
     { "FILE_SORT",       VARIANT8_UI8,   1, 0 }, // EEVAR_FILE_SORT
+    { "MENU_TIMEOUT",    VARIANT8_UI8,   1, 0 }, // EEVAR_MENU_TIMEOUT
     { "_PADDING",        VARIANT8_PCHAR, EEPROM__PADDING, 0 }, // EEVAR__PADDING32
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -152,6 +154,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     5,               // EEVAR_SOUND_VOLUME
     0xffff,          // EEVAR_LANGUAGE
     0,               // EEVAR_FILE_SORT
+    1,               // EEVAR_MENU_TIMEOUT
     "",              // EEVAR__PADDING
     0xffffffff,      // EEVAR_CRC32
 };

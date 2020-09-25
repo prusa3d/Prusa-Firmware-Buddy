@@ -31,7 +31,9 @@ public:
 
 protected:
     Rect16 getTextRect();
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+
+private:
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 /*****************************************************************************/

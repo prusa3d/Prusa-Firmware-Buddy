@@ -270,11 +270,13 @@ class ScreenMenuLanSettings : public window_frame_t {
 
 public:
     ScreenMenuLanSettings();
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+
+private:
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 ScreenMenuLanSettings::ScreenMenuLanSettings()
-    : window_frame_t(nullptr, GuiDefaults::RectScreen, is_dialog_t::no)
+    : window_frame_t(nullptr, GuiDefaults::RectScreen, is_dialog_t::no, is_closed_on_timeout_t::no)
     , menu(this, GuiDefaults::RectScreenBodyNoFoot - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), GuiDefaults::RectScreen.Height() - get_help_h(), GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes) {
@@ -335,7 +337,7 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
     }
 }
 
-void ScreenMenuLanSettings::windowEvent(window_t *sender, uint8_t event, void *param) {
+void ScreenMenuLanSettings::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (Eth::ConsumeReinit()) {
         MI_LAN_IP_t *item = &std::get<MI_LAN_IP_t>(container.menu_items);
         item->ReInit();
@@ -346,5 +348,5 @@ void ScreenMenuLanSettings::windowEvent(window_t *sender, uint8_t event, void *p
         refresh_addresses();
 
     show_msg(Eth::ConsumeMsg());
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }

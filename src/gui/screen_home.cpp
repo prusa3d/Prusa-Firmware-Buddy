@@ -58,6 +58,8 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no } }
 
 {
+    window_frame_t::ClrMenuTimeoutClose();
+    window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     // Every 49days and some time in 5 seconds window, auto filebrowser open will not work.
     // Seconds (timestamp) from UNIX epocho will fix this
     time = HAL_GetTick();
@@ -92,7 +94,7 @@ void screen_home_data_t::draw() {
 #endif //_DEBUG
 }
 
-void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
 
     if (is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
     {
@@ -131,7 +133,7 @@ void screen_home_data_t::windowEvent(window_t *sender, uint8_t event, void *para
         printBtnDis();
     }
 
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }
 
 static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {

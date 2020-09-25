@@ -8,8 +8,8 @@
 #include "MItem_print.hpp"
 #include "printers.h"
 
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_BABYSTEP, MI_AUTO_HOME, MI_MESH_BED,
-    MI_SELFTEST, MI_CALIB_FIRST, MI_TEST_FANS, MI_TEST_X>;
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_WIZARD, MI_LIVE_ADJUST_Z, MI_AUTO_HOME, MI_MESH_BED,
+    MI_SELFTEST, MI_CALIB_FIRST, MI_TEST_X>;
 /*
 static void init(screen_t *screen) {
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));

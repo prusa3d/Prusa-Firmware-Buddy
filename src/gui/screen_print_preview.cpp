@@ -174,6 +174,7 @@ screen_print_preview_data_t::screen_print_preview_data_t()
     , redraw_thumbnail(gcode.has_thumbnail) {
     marlin_set_print_speed(100);
 
+    window_frame_t::ClrMenuTimeoutClose();
     // Title
     title_text.font = resource_font(IDR_FNT_BIG);
     // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
@@ -205,7 +206,7 @@ bool screen_print_preview_data_t::gcode_file_exists() {
 //rewrite later
 static bool suppress_draw = false;
 
-void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_print_preview_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
     if (!gcode_file_exists()) {
@@ -238,7 +239,7 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
         //window_draw(id);
     }
 
-    if (!suppress_draw && event == WINDOW_EVENT_LOOP && gcode.has_thumbnail &&
+    if (!suppress_draw && event == GUI_event_t::LOOP && gcode.has_thumbnail &&
         // Draw the thumbnail
         redraw_thumbnail) {
         FILE f = { 0 };
@@ -253,5 +254,5 @@ void screen_print_preview_data_t::windowEvent(window_t *sender, uint8_t event, v
         redraw_thumbnail = false;
     }
 
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }

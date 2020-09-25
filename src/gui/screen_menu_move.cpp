@@ -43,11 +43,13 @@ public:
     constexpr static const char *label = N_("MOVE AXIS");
     ScreenMenuMove()
         : Screen(_(label)) {}
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+
+private:
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-void ScreenMenuMove::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_LOOP) {
+void ScreenMenuMove::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
 
         bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::extrude_min_temp);
         IWindowMenuItem *pAxis_E = &Item<MI_AXIS_E>();
@@ -57,7 +59,7 @@ void ScreenMenuMove::windowEvent(window_t *sender, uint8_t event, void *param) {
             pAxis_E->Disable();
     }
 
-    Screen::windowEvent(sender, event, param);
+    Screen::WindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuMove() {

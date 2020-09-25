@@ -34,8 +34,8 @@ void screen_qr_error_data_t::unconditionalDraw() {
     display::FillRect(Rect16(8, 25, 224, 2), COLOR_WHITE);
 }
 
-void screen_qr_error_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if ((event == WINDOW_EVENT_CLICK) || (event == WINDOW_EVENT_BTN_DN)) {
+void screen_qr_error_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if ((event == GUI_event_t::CLICK) || (event == GUI_event_t::BTN_DN)) {
         Screens::Access()->Close();
         return;
     }
@@ -43,5 +43,5 @@ void screen_qr_error_data_t::windowEvent(window_t *sender, uint8_t event, void *
         return;
     first_run_flag = false;
     //unconditionalDraw(); // todo why?
-    window_frame_t::windowEvent(sender, event, param);
+    window_frame_t::WindowEvent(sender, event, param);
 }

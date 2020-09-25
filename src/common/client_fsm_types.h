@@ -10,8 +10,10 @@ enum class ClientFSM : uint8_t {
     Serial_printing,
     Load_unload,
     G162,
-    Printing,
-    _none, //cannot be created, must have same index as _count
+    SelftestAxis,
+    SelftestFans,
+    Printing, //not a dialog
+    _none,    //cannot be created, must have same index as _count
     _count = _none
 };
 

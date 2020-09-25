@@ -44,8 +44,18 @@ void window_icon_t::unconditionalDraw() {
 }
 
 bool window_icon_t::IsShadowed() const { return flag_custom0 == true; }
-void window_icon_t::Shadow() { flag_custom0 = true; }
-void window_icon_t::Unshadow() { flag_custom0 = false; }
+void window_icon_t::Shadow() {
+    if (!flag_custom0) {
+        flag_custom0 = true;
+        Invalidate();
+    }
+}
+void window_icon_t::Unshadow() {
+    if (flag_custom0) {
+        flag_custom0 = false;
+        Invalidate();
+    }
+}
 
 size_ui16_t window_icon_t::CalculateMinimalSize(uint16_t id_res) {
     size_ui16_t ret = size_ui16(0, 0);
@@ -66,11 +76,11 @@ window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16
     Enable();
 }
 
-void window_icon_button_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK) {
+void window_icon_button_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CLICK) {
         callback();
     } else {
-        window_icon_t::windowEvent(sender, event, param);
+        window_icon_t::WindowEvent(sender, event, param);
     }
 }
 
@@ -161,11 +171,79 @@ void window_icon_hourglass_t::unconditionalDraw() {
     }
 }
 
-void window_icon_hourglass_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_icon_hourglass_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     uint8_t phs = ((HAL_GetTick() - start_time) / ANIMATION_STEP_MS);
     phs %= ANIMATION_STEPS;
     if (phase != phs) {
         phase = phs;
         Invalidate();
+    }
+}
+
+/*****************************************************************************/
+//WindowIcon_OkNg
+
+//both must be same size
+const uint16_t WindowIcon_OkNg::id_res_na = IDR_PNG_wizard_icon_na;
+const uint16_t WindowIcon_OkNg::id_res_ok = IDR_PNG_wizard_icon_ok;
+const uint16_t WindowIcon_OkNg::id_res_ng = IDR_PNG_wizard_icon_ng;
+const uint16_t WindowIcon_OkNg::id_res_ip0 = IDR_PNG_wizard_icon_ip0;
+const uint16_t WindowIcon_OkNg::id_res_ip1 = IDR_PNG_wizard_icon_ip1;
+
+//Icon rect is increased by padding, icon is centered inside it
+WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, padding_ui8_t padding)
+    : window_aligned_t(
+        parent,
+        [pt, padding] {
+            size_ui16_t sz = window_icon_t::CalculateMinimalSize(WindowIcon_OkNg::id_res_ok);
+            if (!(sz.h && sz.w))
+                return Rect16();
+            return Rect16(pt,
+                sz.w + padding.left + padding.right,
+                sz.h + padding.top + padding.bottom);
+        }()) {
+    SetState(SelftestSubtestState_t::undef);
+}
+
+SelftestSubtestState_t WindowIcon_OkNg::GetState() const {
+    return static_cast<SelftestSubtestState_t>(mem_array_u08[1]);
+}
+
+//there is a free space in window_t flags, store state in it
+void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
+    const uint8_t state = static_cast<uint8_t>(s);
+    if (state != mem_array_u08[1]) {
+        mem_array_u08[1] = state;
+        Invalidate();
+    }
+}
+
+void WindowIcon_OkNg::unconditionalDraw() {
+    uint16_t id_res = 0;
+    switch (GetState()) {
+    case SelftestSubtestState_t::ok:
+        id_res = id_res_ok;
+        break;
+    case SelftestSubtestState_t::not_good:
+        id_res = id_res_ng;
+        break;
+    case SelftestSubtestState_t::undef:
+        id_res = id_res_na;
+        break;
+    case SelftestSubtestState_t::running:
+        id_res = flag_custom0 ? id_res_ip1 : id_res_ip0;
+        break;
+    }
+
+    render_icon_align(rect, id_res, color_back, GetAlignment());
+}
+
+void WindowIcon_OkNg::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (GetState() == SelftestSubtestState_t::running) {
+        bool b = (HAL_GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
+        if (flag_custom0 != b) {
+            flag_custom0 = b;
+            Invalidate();
+        }
     }
 }

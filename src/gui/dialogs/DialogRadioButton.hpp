@@ -42,7 +42,7 @@ public:
     void SetBtnIndex(uint8_t index) { mem_array_u08[1] = index < mem_array_u08[0] ? index : 0; }
     uint8_t GetBtnIndex() const { return mem_array_u08[1]; }
 
-protected:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+private:
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     virtual void unconditionalDraw() override;
 };

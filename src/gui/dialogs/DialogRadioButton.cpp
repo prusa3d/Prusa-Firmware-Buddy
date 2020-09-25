@@ -64,19 +64,19 @@ RadioButton &RadioButton::operator--() {
     return *this;
 }
 
-void RadioButton::windowEvent(window_t *sender, uint8_t event, void *param) {
+void RadioButton::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (!GetParent())
         return;
 
     switch (event) {
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         ++(*this);
         return;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         --(*this);
         return;
     default:
-        window_t::windowEvent(sender, event, param);
+        window_t::WindowEvent(sender, event, param);
     }
 }
 

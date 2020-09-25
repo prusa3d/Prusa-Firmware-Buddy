@@ -39,7 +39,7 @@ StateFncData StateFnc_FIRSTLAY_FAIL(StateFncData last_run) {
     #include "config.h"
     #include "stm32f4xx_hal.h"
     #include "marlin_client.h"
-    #include "wizard_config.h"
+    #include "wizard_config.hpp"
     #include "wizard_types.hpp"
     #include "guitypes.hpp" //font_meas_text
     #include "menu_vars.h"

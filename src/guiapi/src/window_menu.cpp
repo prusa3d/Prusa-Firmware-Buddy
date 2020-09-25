@@ -117,39 +117,41 @@ void window_menu_t::Increment(int dif) {
 //I think I do not need
 //screen_dispatch_event
 //callback should handle it
-void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_menu_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     IWindowMenuItem *const item = GetActiveItem();
     if (!item)
         return;
     const int value = int(param);
     bool invalid = false;
     switch (event) {
-    case WINDOW_EVENT_CLICK:
+    case GUI_event_t::CLICK:
 
         item->Click(*this);
         //Invalidate(); //called inside click
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         if (item->IsSelected()) {
             invalid |= item->Decrement(value);
         } else {
             Decrement(value);
         }
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
             invalid |= item->Increment(value);
         } else {
             Increment(value);
         }
         break;
-    case WINDOW_EVENT_CAPT_1:
+    case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
-    case WINDOW_EVENT_TIMER:
+    case GUI_event_t::TIMER:
         if (!item->RollNeedInit()) {
             item->Roll(*this); //warning it is accessing gui timer
         }
+        break;
+    default:
         break;
     }
     if (invalid)

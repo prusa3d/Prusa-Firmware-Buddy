@@ -4,8 +4,96 @@
 #include "gui.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
+#include "dbg.h"
 
 extern osThreadId displayTaskHandle;
+
+static constexpr bool GUI_event_IsKnob(GUI_event_t event) {
+    switch (event) {
+    case GUI_event_t::BTN_DN:
+    case GUI_event_t::BTN_UP:
+    case GUI_event_t::ENC_DN:
+    case GUI_event_t::ENC_UP:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static constexpr bool GUI_event_IsWindowKnobReaction(GUI_event_t event) {
+    switch (event) {
+    case GUI_event_t::FOCUS0:
+    case GUI_event_t::FOCUS1:
+    case GUI_event_t::CAPT_0:
+    case GUI_event_t::CAPT_1:
+    case GUI_event_t::CLICK:
+    case GUI_event_t::DOUBLE_CLICK:
+    case GUI_event_t::HOLD:
+    case GUI_event_t::CHANGE:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static constexpr bool GUI_event_IsAnyButLoop(GUI_event_t event) {
+    return event != GUI_event_t::LOOP;
+}
+
+static constexpr const char *GUI_event_prt(GUI_event_t event) {
+    // cannot use: case GUI_event_t::BTN_DN: { static const char txt[] = "button down"; return txt; }
+    // error: 'txt' declared 'static' in 'constexpr' function
+    switch (event) {
+    case GUI_event_t::BTN_DN:
+        return ("button down");
+    case GUI_event_t::BTN_UP:
+        return ("button up");
+    case GUI_event_t::ENC_DN:
+        return ("encoder minus");
+    case GUI_event_t::ENC_UP:
+        return ("encoder plus");
+    case GUI_event_t::FOCUS0:
+        return ("focus lost");
+    case GUI_event_t::FOCUS1:
+        return ("focus set");
+    case GUI_event_t::CAPT_0:
+        return ("capture lost");
+    case GUI_event_t::CAPT_1:
+        return ("capture set");
+    case GUI_event_t::CLICK:
+        return ("clicked");
+    case GUI_event_t::DOUBLE_CLICK:
+        return ("double-clicked");
+    case GUI_event_t::HOLD:
+        return ("held button");
+    case GUI_event_t::CHANGE:
+        return ("value/index changed");
+    case GUI_event_t::CHANGING:
+        return ("value/index changing");
+    case GUI_event_t::LOOP:
+        return ("gui loop");
+    case GUI_event_t::TIMER:
+        return ("gui timer");
+    case GUI_event_t::MESSAGE:
+        return ("message notification");
+    }
+    return ("error bad index");
+}
+
+void window_t::EventDbg(const char *event_method_name, window_t *sender, GUI_event_t event) {
+    bool print = false;
+
+    // clang-format off
+    // uncomment debug options
+    if (GUI_event_IsKnob(event)) print = true;
+    if (GUI_event_IsWindowKnobReaction(event)) print = true;
+    //if (GUI_event_IsAnyButLoop(event)) print = true;
+    // clang-format on
+
+    if (print) {
+        _dbg("%s ptr: %p, event %s\n", event_method_name, sender, GUI_event_prt(event));
+    }
+}
 
 bool window_t::IsVisible() const { return flag_visible && !flag_hidden_behind_dialog; }
 bool window_t::IsHiddenBehindDialog() const { return flag_hidden_behind_dialog; }
@@ -15,6 +103,8 @@ bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::IsCaptured() const { return GetCapturedWindow() == this; }
 bool window_t::HasTimer() const { return flag_timer; }
 bool window_t::IsDialog() const { return flag_dialog == is_dialog_t::yes; }
+bool window_t::ClosedOnTimeout() const { return flag_timeout_close == is_closed_on_timeout_t::yes; }
+bool window_t::ClosedOnSerialPrint() const { return flag_serial_close == is_closed_on_serial_t::yes; }
 
 void window_t::Validate(Rect16 validation_rect) {
     if (validation_rect.IsEmpty() || rect.HasIntersection(validation_rect)) {
@@ -52,11 +142,11 @@ void window_t::SetFocus() {
 
     if (focused_ptr) {
         focused_ptr->Invalidate();
-        focused_ptr->windowEvent(focused_ptr, WINDOW_EVENT_FOCUS0, 0); //will not resend event to anyone
+        focused_ptr->WindowEvent(focused_ptr, GUI_event_t::FOCUS0, 0); //will not resend event to anyone
     }
     focused_ptr = this;
     Invalidate();
-    windowEvent(this, WINDOW_EVENT_FOCUS1, 0); //will not resend event to anyone
+    WindowEvent(this, GUI_event_t::FOCUS1, 0); //will not resend event to anyone
     gui_invalidate();
 }
 
@@ -65,10 +155,10 @@ void window_t::SetCapture() {
     // window hidden by dialog can get capture
     if (flag_visible && flag_enabled) {
         if (capture_ptr) {
-            capture_ptr->windowEvent(capture_ptr, WINDOW_EVENT_CAPT_0, 0); //will not resend event to anyone
+            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
         }
         capture_ptr = this;
-        windowEvent(this, WINDOW_EVENT_CAPT_1, 0); //will not resend event to anyone
+        WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
         gui_invalidate();
     }
 }
@@ -206,9 +296,9 @@ void window_t::draw() {
     if (IsInvalid() && rect.Width() && rect.Height()) {
         if (IsVisible()) {
             unconditionalDraw();
-        } else {
-            display::FillRect(rect, color_back);
         }
+        // there was in else branch: display::FillRect(rect, color_back);
+        // I really do not know why, but it cannot be, because background was drawing over dialogs
         Validate();
     }
 }
@@ -221,24 +311,33 @@ void window_t::unconditionalDraw() {
     display::FillRect(rect, color_back);
 }
 
-void window_t::WindowEvent(window_t *sender, uint8_t ev, void *param) {
-    windowEvent(sender, ev, param);
+void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
+    static const char txt[] = "WindowEvent";
+    EventDbg(txt, sender, event);
+    windowEvent(sender, event, param);
 }
 
-void window_t::ScreenEvent(window_t *sender, uint8_t ev, void *param) {
-    screenEvent(sender, ev, param);
+void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
+    static const char txt[] = "ScreenEvent";
+    EventDbg(txt, sender, event);
+    screenEvent(sender, event, param);
 }
 
 //frame does something else - resend to all children
-void window_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
-    windowEvent(sender, ev, param);
+// MUST BE PRIVATE
+// call nonvirtual ScreenEvent instead (contains debug output)
+void window_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
+    WindowEvent(sender, event, param);
 }
-void window_t::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK && parent) {
+
+// MUST BE PRIVATE
+// call nonvirtual WindowEvent instead (contains debug output)
+void window_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CLICK && parent) {
         if (flag_close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
         } else {
-            parent->windowEvent(this, event, param);
+            parent->WindowEvent(this, event, param);
         }
     }
 }
@@ -260,6 +359,9 @@ void window_t::ResetCapturedWindow() {
     capture_ptr = nullptr;
 }
 
+void window_t::ResetFocusedWindow() {
+    focused_ptr = nullptr;
+}
 /*****************************************************************************/
 //window_aligned_t
 
