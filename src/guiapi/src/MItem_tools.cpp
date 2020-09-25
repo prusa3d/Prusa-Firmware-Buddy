@@ -80,6 +80,18 @@ void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
     ScreenWizard::RunFirstLay();
 }
 
+#include "../common/selftest/selftest_MINI.h"
+
+/*****************************************************************************/
+//MI_TEST_FANS
+MI_TEST_FANS::MI_TEST_FANS()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmFans);
+}
+
 /*****************************************************************************/
 //MI_TEST_X
 MI_TEST_X::MI_TEST_X()
@@ -87,7 +99,7 @@ MI_TEST_X::MI_TEST_X()
 }
 
 void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start();
+    marlin_test_start(stmXAxis);
 }
 
 /*****************************************************************************/

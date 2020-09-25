@@ -55,6 +55,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_TEST_FANS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test FANs");
+
+public:
+    MI_TEST_FANS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_TEST_X : public WI_LABEL_t {
     static constexpr const char *const label = N_("Test XY-Axis");
 

@@ -471,7 +471,10 @@ target_sources(
           src/common/appmain.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
-          src/common/marlin_test.cpp
+          src/common/selftest/selftest_MINI.cpp
+          src/common/selftest/selftest_fan.cpp
+          src/common/selftest/selftest_axis.cpp
+          src/common/selftest/selftest_heater.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
           $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
