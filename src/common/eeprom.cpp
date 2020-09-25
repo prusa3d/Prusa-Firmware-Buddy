@@ -489,6 +489,31 @@ static int eeprom_convert_from_v6(void) {
     return 1;
 }
 
+// conversion function for old version 8 (v 4.3.RC)
+static int eeprom_convert_from_v8(void) {
+    uint16_t addr_start;
+    uint16_t addr_end;
+    eeprom_vars_t vars = eeprom_var_defaults;
+
+    // these variables not initialised in eeprom_var_defaults
+    vars.FWBUILD = project_build_number;
+    vars.FWVERSION = eeprom_fwversion_ui16();
+
+    // start addres of imported data block (FILAMENT_TYPE..EEVAR_SOUND_MODE)
+    addr_start = eeprom_var_addr(EEVAR_FILAMENT_TYPE);
+    // end addres of imported data
+    addr_end = eeprom_var_addr(EEVAR_MENU_TIMEOUT);
+    // read first block
+    st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
+
+    // calculate crc32
+    vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
+    // write data to eeprom
+    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+
+    return 1;
+}
+
 // conversion function for new version format (features, firmware version/build)
 static int eeprom_convert_from(uint16_t version, uint16_t features) {
     if (version == 2)
@@ -497,6 +522,8 @@ static int eeprom_convert_from(uint16_t version, uint16_t features) {
         return eeprom_convert_from_v4();
     if (version == 6)
         return eeprom_convert_from_v6();
+    if (version == 8)
+        return eeprom_convert_from_v8();
     return 0;
 }
 

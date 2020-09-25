@@ -7,7 +7,7 @@
 
 enum {
     EEPROM_ADDRESS = 0x0500, // uint16_t
-    EEPROM_VERSION = 8,      // uint16_t
+    EEPROM_VERSION = 9,      // uint16_t
 };
 
 #define EEPROM_FEATURE_PID_NOZ 0x0001
