@@ -32,11 +32,11 @@ public:
     ScreenMenuTemperature()
         : Screen(_(label)) {}
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
-void ScreenMenuTemperature::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         marlin_set_target_nozzle(0);
         marlin_set_display_nozzle(0);

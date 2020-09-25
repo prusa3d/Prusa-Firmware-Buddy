@@ -130,7 +130,7 @@ void window_frame_t::draw() {
     }
 }
 
-void window_frame_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
 

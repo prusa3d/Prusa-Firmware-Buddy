@@ -12,7 +12,6 @@ extern void gui_loop(void);
 
 //interface for dialog
 class IDialog : public AddSuperWindow<window_frame_t> {
-    friend class AddSuperWindow<IDialog>;
     window_t *prev_capture;
 
 public:

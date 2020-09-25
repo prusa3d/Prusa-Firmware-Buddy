@@ -25,8 +25,6 @@ constexpr static const HelperConfig HelpLines_Default = { 4, IDR_FNT_SPECIAL };
 
 //parent to not repeat code in templates
 class IScreenMenu : public AddSuperWindow<window_frame_t> {
-    friend class AddSuperWindow<IScreenMenu>;
-
 protected:
     constexpr static const char *no_labelS = "MISSING";
     static string_view_utf8 no_label;
@@ -37,8 +35,7 @@ protected:
 
     window_t *prev_capture;
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id);
@@ -47,8 +44,6 @@ public:
 
 template <EHeader HEADER, EFooter FOOTER, const HelperConfig &HELP_CNF, class... T>
 class ScreenMenu : public AddSuperWindow<IScreenMenu> {
-    friend class AddSuperWindow<ScreenMenu>;
-
 protected:
     //std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;

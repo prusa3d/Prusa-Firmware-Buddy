@@ -175,7 +175,7 @@ extern int _is_in_M600_flg;
 extern uint32_t *pCommand;
 #endif
 
-void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
     if (HAL_GetTick() - _last > 300) {
@@ -245,7 +245,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         set_pause_icon_and_label();
     }
 
-    super::SuperWindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 void screen_printing_data_t::disable_tune_button() {

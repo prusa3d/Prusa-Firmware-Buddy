@@ -196,7 +196,7 @@ void window_file_list_t::unconditionalDraw() {
     }
 }
 
-void window_file_list_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
         Screens::Access()->Get()->WindowEvent(this, GUI_event_t::CLICK, (void *)index);

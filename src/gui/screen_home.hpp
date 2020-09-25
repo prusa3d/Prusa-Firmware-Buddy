@@ -5,7 +5,6 @@
 #include "gui.hpp"
 
 struct screen_home_data_t : public AddSuperWindow<window_frame_t> {
-    friend class AddSuperWindow<screen_home_data_t>;
     window_header_t header;
     status_footer_t footer;
 
@@ -18,8 +17,10 @@ struct screen_home_data_t : public AddSuperWindow<window_frame_t> {
 
     screen_home_data_t();
 
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
 private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     virtual void draw() override;
 
     void printBtnEna();

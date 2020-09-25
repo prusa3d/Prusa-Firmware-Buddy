@@ -101,7 +101,7 @@ void LiveAdjustZ::moveNozzle() {
     nozzle_icon.Invalidate();
 }
 
-void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
         if (flag_close_on_click == is_closed_on_click_t::yes) {
@@ -121,7 +121,7 @@ void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) 
         gui_invalidate();
         break;
     default:
-        super::SuperWindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 

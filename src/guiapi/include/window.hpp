@@ -42,14 +42,20 @@ enum class is_closed_on_timeout_t : bool { no,
 enum class is_closed_on_serial_t : bool { no,
     yes };
 
-//forward declaration
-//use AddSuperWindow for inheritance
+//forward declarations
+class window_t;
 template <class Base>
 struct AddSuperWindow;
+// hasprivate ctor
+// only friend (AddSuperWindow or base window_t) can create lock and call locked methods
+class EventLock {
+    constexpr EventLock() {} //ctor must be private
+    template <class T>
+    friend class AddSuperWindow;
+    friend class window_t;
+};
 
 class window_t {
-    template <class T>
-    friend class AddSuperWindow; //<window_t>;
     static void EventDbg(const char *event_method_name, window_t *sender, GUI_event_t event);
 
     window_t *parent;
@@ -135,14 +141,13 @@ public:
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param);
 
 private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param);
-    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param);
     virtual void invalidate(Rect16 validation_rect);
     virtual void validate(Rect16 validation_rect);
 
-private:
     static window_t *focused_ptr; // has focus
     static window_t *capture_ptr; // capture jog events
 
@@ -154,7 +159,7 @@ public:
     static void ResetFocusedWindow();
 };
 
-//all childern of window_t and their childern must use AddSuperWindow<parent_window> for inheritance
+//all children of window_t and their children must use AddSuperWindow<parent_window> for inheritance
 template <class Base>
 struct AddSuperWindow : public Base {
     template <class... T>
@@ -165,7 +170,7 @@ protected:
     typedef Base super;
     void SuperWindowEvent(window_t *sender, GUI_event_t event, void *param) {
         //event log will be here
-        super::windowEvent(sender, event, param);
+        super::windowEvent(EventLock(), sender, event, param);
     }
 };
 
@@ -173,7 +178,6 @@ protected:
 //window_aligned_t
 //uses window_t  mem_array_u08[0] to store alignment (saves RAM)
 struct window_aligned_t : public AddSuperWindow<window_t> {
-    friend class AddSuperWindow<window_aligned_t>;
     window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
     /// alignment constants are in guitypes.h
     uint8_t GetAlignment() const;

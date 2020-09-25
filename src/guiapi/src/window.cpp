@@ -322,7 +322,7 @@ void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
 
     static const char txt[] = "WindowEvent";
     EventDbg(txt, sender, event);
-    windowEvent(sender, event, param);
+    windowEvent(EventLock(), sender, event, param);
 
     --nesting_lv;
 }
@@ -342,7 +342,7 @@ void window_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
 
 // MUST BE PRIVATE
 // call nonvirtual WindowEvent instead (contains debug output)
-void window_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK && parent) {
         if (flag_close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();

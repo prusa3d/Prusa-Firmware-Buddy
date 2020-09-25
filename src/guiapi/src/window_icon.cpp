@@ -76,7 +76,7 @@ window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, uint16
     Enable();
 }
 
-void window_icon_button_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         callback();
     } else {
@@ -171,7 +171,7 @@ void window_icon_hourglass_t::unconditionalDraw() {
     }
 }
 
-void window_icon_hourglass_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     uint8_t phs = ((HAL_GetTick() - start_time) / ANIMATION_STEP_MS);
     phs %= ANIMATION_STEPS;
     if (phase != phs) {
@@ -238,7 +238,7 @@ void WindowIcon_OkNg::unconditionalDraw() {
     render_icon_align(rect, id_res, color_back, GetAlignment());
 }
 
-void WindowIcon_OkNg::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (GetState() == SelftestSubtestState_t::running) {
         bool b = (HAL_GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0x01;
         if (flag_custom0 != b) {

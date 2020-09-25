@@ -42,7 +42,7 @@ window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, Button
     Enable();
 }
 
-void window_text_button_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_text_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         callback();
     } else {

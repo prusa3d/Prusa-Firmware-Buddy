@@ -87,7 +87,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textExit.SetText(_(ex));
 }
 
-void screen_sysinfo_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_sysinfo_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
         actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {

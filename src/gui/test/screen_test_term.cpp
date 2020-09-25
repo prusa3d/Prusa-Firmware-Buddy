@@ -17,7 +17,7 @@ screen_test_term_data_t::screen_test_term_data_t()
     text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
 }
 
-void screen_test_term_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_test_term_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     int winid = -1;
     if (event == GUI_event_t::BTN_DN) {
         Screens::Access()->Close();

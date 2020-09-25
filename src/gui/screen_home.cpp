@@ -94,7 +94,7 @@ void screen_home_data_t::draw() {
 #endif //_DEBUG
 }
 
-void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     if (is_starting) // first 1000ms (cca 50ms is event period) skip MediaInserted
     {

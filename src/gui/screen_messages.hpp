@@ -6,7 +6,6 @@
 #include "window_term.hpp"
 
 struct screen_messages_data_t : public AddSuperWindow<window_frame_t> {
-    friend class AddSuperWindow<screen_messages_data_t>;
     window_header_t header;
     status_footer_t footer;
     window_term_t term;
@@ -15,6 +14,6 @@ struct screen_messages_data_t : public AddSuperWindow<window_frame_t> {
 public:
     screen_messages_data_t();
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

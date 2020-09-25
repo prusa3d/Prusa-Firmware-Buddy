@@ -10,7 +10,6 @@
 #include "window_progress.hpp"
 
 struct screen_test_term_data_t : public AddSuperWindow<window_frame_t> {
-    friend class AddSuperWindow<screen_test_term_data_t>;
     window_text_t text;
     window_term_t term;
     term_buff_t<20, 16> term_buff;
@@ -18,6 +17,6 @@ struct screen_test_term_data_t : public AddSuperWindow<window_frame_t> {
 public:
     screen_test_term_data_t();
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

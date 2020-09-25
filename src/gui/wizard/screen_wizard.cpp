@@ -517,7 +517,7 @@ ScreenWizard::~ScreenWizard() {
     //wizard_init(0, 0);
 }
 
-void ScreenWizard::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     if (event != GUI_event_t::LOOP) {
         SuperWindowEvent(sender, event, param);

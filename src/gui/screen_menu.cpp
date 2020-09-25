@@ -54,7 +54,7 @@ IScreenMenu::~IScreenMenu() {
         window_t::ResetCapturedWindow(); // set window_t::capture_ptr to null
 }
 
-void IScreenMenu::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void IScreenMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     header.EventClr();
     SuperWindowEvent(sender, event, param);
     /*if ((event == GUI_event_t::ENC_DN) || (event == GUI_event_t::ENC_UP)) { // hack because we want prevent redrawing header/footer to prevent blinking

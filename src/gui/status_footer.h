@@ -52,8 +52,8 @@ class status_footer_t : public window_frame_t {
 public:
     status_footer_t(window_t *parent);
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 static const uint16_t REPAINT_Z_POS_PERIOD = 256;  /// time span between z position repaint [miliseconds]

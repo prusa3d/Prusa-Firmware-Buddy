@@ -256,7 +256,6 @@ inline uint16_t get_help_h() {
 }
 
 class ScreenMenuLanSettings : public AddSuperWindow<window_frame_t> {
-    friend class AddSuperWindow<ScreenMenuLanSettings>;
     constexpr static const char *label = N_("LAN SETTINGS");
 
     MenuContainer container;
@@ -272,8 +271,8 @@ class ScreenMenuLanSettings : public AddSuperWindow<window_frame_t> {
 public:
     ScreenMenuLanSettings();
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 ScreenMenuLanSettings::ScreenMenuLanSettings()
@@ -338,7 +337,7 @@ void ScreenMenuLanSettings::show_msg(Eth::Msg msg) {
     }
 }
 
-void ScreenMenuLanSettings::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuLanSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (Eth::ConsumeReinit()) {
         MI_LAN_IP_t *item = &std::get<MI_LAN_IP_t>(container.menu_items);
         item->ReInit();

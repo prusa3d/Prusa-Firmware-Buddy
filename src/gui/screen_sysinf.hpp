@@ -14,7 +14,6 @@
 #endif
 
 struct screen_sysinfo_data_t : public AddSuperWindow<window_frame_t> {
-    friend class AddSuperWindow<screen_sysinfo_data_t>;
     window_text_t textMenuName;
     window_text_t textCPU_load;
     window_numb_t textCPU_load_val;
@@ -30,6 +29,6 @@ struct screen_sysinfo_data_t : public AddSuperWindow<window_frame_t> {
 public:
     screen_sysinfo_data_t();
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

@@ -64,7 +64,7 @@ static void screen_filebrowser_clear_firstVisibleSFN(marlin_vars_t *vars) {
     firstVisibleSFN[0] = 0; // clear the last top item
 }
 
-void screen_filebrowser_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     marlin_vars_t *vars = marlin_vars();
     if (marlin_event_clr(MARLIN_EVT_MediaRemoved)) { // close screen when media removed
         screen_filebrowser_clear_firstVisibleSFN(vars);

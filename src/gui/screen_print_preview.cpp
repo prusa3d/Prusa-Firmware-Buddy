@@ -206,7 +206,7 @@ bool screen_print_preview_data_t::gcode_file_exists() {
 //rewrite later
 static bool suppress_draw = false;
 
-void screen_print_preview_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // In case the file is no longer present, close this screen.
     // (Most likely because of usb flash drive disconnection).
     if (!gcode_file_exists()) {

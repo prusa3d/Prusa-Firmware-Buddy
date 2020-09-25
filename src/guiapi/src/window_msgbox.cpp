@@ -41,7 +41,7 @@ Response MsgBoxBase::GetResult() {
 }
 
 //todo make radio button events behave like normal button
-void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
         result = buttons.Click();
@@ -56,7 +56,7 @@ void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
         gui_invalidate();
         break;
     default:
-        super::SuperWindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 

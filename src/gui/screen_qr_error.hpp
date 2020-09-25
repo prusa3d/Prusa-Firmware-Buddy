@@ -6,7 +6,6 @@
 #include <array>
 
 struct screen_qr_error_data_t : public AddSuperWindow<window_frame_t> {
-    friend class AddSuperWindow<screen_qr_error_data_t>;
     window_text_t errText;
     window_text_t errDescription;
     window_text_t info;
@@ -17,7 +16,7 @@ struct screen_qr_error_data_t : public AddSuperWindow<window_frame_t> {
 public:
     screen_qr_error_data_t();
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     virtual void unconditionalDraw() override;
 };

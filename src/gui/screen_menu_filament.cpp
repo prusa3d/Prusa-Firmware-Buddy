@@ -125,8 +125,10 @@ public:
         deactivate_item();
     }
 
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
 private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     void deactivate_item();
 
     template <class T>
@@ -149,7 +151,7 @@ ScreenFactory::UniquePtr GetScreenMenuFilament() {
     return ScreenFactory::Screen<ScreenMenuFilament>();
 }
 
-void ScreenMenuFilament::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     deactivate_item();
     if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);

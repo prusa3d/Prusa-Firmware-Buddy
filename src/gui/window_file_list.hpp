@@ -51,9 +51,11 @@ public:
     /// @return true if path is either empty or contains just a "/"
     static bool IsPathRoot(const char *path);
 
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
 private:
     virtual void unconditionalDraw() override;
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     void inc(int dif);
     void dec(int dif);
     void init_text_roll();

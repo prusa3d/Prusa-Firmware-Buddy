@@ -10,7 +10,6 @@ class screen_filebrowser_data_t : public AddSuperWindow<window_frame_t> {
 public:
     screen_filebrowser_data_t();
 
-private:
-    //virtual void draw() override;
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

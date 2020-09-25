@@ -35,7 +35,7 @@ void screen_printing_serial_data_t::DisableButton(btn &b) {
     }
 }
 
-void screen_printing_serial_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     header.EventClr();
 
     /// end sequence waiting for empty marlin gcode queue
@@ -68,7 +68,7 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, GUI_event_t ev
         Screens::Access()->Close();
     }
 
-    super::SuperWindowEvent(sender, event, param); // hack parent foes not have defined windowEvent
+    SuperWindowEvent(sender, event, param);
 }
 
 void screen_printing_serial_data_t::tuneAction() {

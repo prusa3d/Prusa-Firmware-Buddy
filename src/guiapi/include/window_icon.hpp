@@ -5,7 +5,6 @@
 #include "window.hpp"
 
 struct window_icon_t : public AddSuperWindow<window_aligned_t> {
-    friend class AddSuperWindow<window_icon_t>;
     uint16_t id_res;
     uint16_t GetIdRes() const { return id_res; }
     void SetIdRes(int16_t id);
@@ -22,17 +21,15 @@ protected:
 };
 
 struct window_icon_button_t : public AddSuperWindow<window_icon_t> {
-    friend class AddSuperWindow<window_icon_button_t>;
     ButtonCallback callback;
 
     window_icon_button_t(window_t *parent, Rect16 rect, uint16_t id_res, ButtonCallback cb);
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class window_icon_hourglass_t : public AddSuperWindow<window_icon_t> {
-    friend class AddSuperWindow<window_icon_hourglass_t>;
     enum { ANIMATION_STEPS = 5,
         ANIMATION_STEP_MS = 500 };
     uint32_t start_time; //todo use window timer
@@ -42,14 +39,13 @@ class window_icon_hourglass_t : public AddSuperWindow<window_icon_t> {
 public:
     window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
 
-private:
+protected:
     virtual void unconditionalDraw() override;
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 #include "wizard_config.hpp"
 class WindowIcon_OkNg : public AddSuperWindow<window_aligned_t> {
-    friend class AddSuperWindow<WindowIcon_OkNg>;
     static const uint16_t id_res_na;  // not available
     static const uint16_t id_res_ok;  // ok
     static const uint16_t id_res_ng;  // not good
@@ -62,7 +58,7 @@ public:
     SelftestSubtestState_t GetState() const;
     void SetState(SelftestSubtestState_t s);
 
-private:
+protected:
     virtual void unconditionalDraw() override;
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

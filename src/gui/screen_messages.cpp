@@ -21,7 +21,7 @@ screen_messages_data_t::screen_messages_data_t()
     header.SetText(_("MESSAGES"));
 }
 
-void screen_messages_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_messages_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         Screens::Access()->Close();
     } else {

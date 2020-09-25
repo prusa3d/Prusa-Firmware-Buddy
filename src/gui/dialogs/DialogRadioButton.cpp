@@ -64,7 +64,7 @@ RadioButton &RadioButton::operator--() {
     return *this;
 }
 
-void RadioButton::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void RadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (!GetParent())
         return;
 

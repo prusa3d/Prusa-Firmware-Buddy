@@ -34,7 +34,7 @@ void screen_qr_error_data_t::unconditionalDraw() {
     display::FillRect(Rect16(8, 25, 224, 2), COLOR_WHITE);
 }
 
-void screen_qr_error_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_qr_error_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if ((event == GUI_event_t::CLICK) || (event == GUI_event_t::BTN_DN)) {
         Screens::Access()->Close();
         return;

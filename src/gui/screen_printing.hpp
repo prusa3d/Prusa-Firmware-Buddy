@@ -44,7 +44,6 @@ constexpr static const size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yy
 constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
 
 class screen_printing_data_t : public AddSuperWindow<IScreenPrinting> {
-    friend class AddSuperWindow<screen_printing_data_t>;
     static constexpr const char *caption = "PRINTING";
 
     window_text_t w_filename;
@@ -71,8 +70,10 @@ class screen_printing_data_t : public AddSuperWindow<IScreenPrinting> {
 public:
     screen_printing_data_t();
 
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
 private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     void invalidate_print_state();
     void disable_tune_button();
     void enable_tune_button();

@@ -12,7 +12,6 @@
 
 //Singleton dialog for messages
 class window_dlg_popup_t : public AddSuperWindow<IDialog> {
-    friend class AddSuperWindow<window_dlg_popup_t>;
     window_text_t text;
     uint32_t open_time;
     uint32_t ttl; //time to live
@@ -22,8 +21,8 @@ class window_dlg_popup_t : public AddSuperWindow<IDialog> {
 
     void UnregisterFromParent();
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     //register dialog to actual screen
