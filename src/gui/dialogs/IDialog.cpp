@@ -24,7 +24,7 @@ void IDialog::guiLoop() const {
 void IDialog::releaseCapture() {
     window_frame_t *const ActiveScreen = Screens::Access()->Get();
     //parent pointer must exist and must point to screen
-    if (prev_capture && GetParent() && ActiveScreen == GetParent()) {
+    if (GetParent() && ActiveScreen == GetParent()) {
         // dialog is registered as last in active screen
         // can be unregistered normally
         if (ActiveScreen->GetLast() == this) {
