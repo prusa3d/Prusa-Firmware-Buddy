@@ -11,7 +11,7 @@
 #include "ScreenHandler.hpp"
 
 window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
-    : IDialog(rect)
+    : AddSuperWindow<IDialog>(rect)
     , text(this, rect, is_multiline::yes, is_closed_on_click_t::no, txt)
     , open_time(0)
     , ttl(0) {
@@ -49,9 +49,9 @@ void window_dlg_popup_t::UnregisterFromParent() {
     releaseCapture();
 }
 
-void window_dlg_popup_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     const uint32_t openned = HAL_GetTick() - open_time;
     if (event == GUI_event_t::LOOP && openned > ttl) //todo use timer
         UnregisterFromParent();
-    IDialog::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }

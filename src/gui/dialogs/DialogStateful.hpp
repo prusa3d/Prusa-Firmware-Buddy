@@ -87,8 +87,8 @@ protected:
         }
     }
 
-private:
-    virtual void windowEvent(window_t * /*sender*/, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param) override;
 };
 
 /*****************************************************************************/
@@ -96,7 +96,7 @@ private:
 
 //todo make radio button events behave like normal button
 template <class T>
-void DialogStateful<T>::windowEvent(window_t * /*sender*/, GUI_event_t event, void *param) {
+void DialogStateful<T>::windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = radio.Click();

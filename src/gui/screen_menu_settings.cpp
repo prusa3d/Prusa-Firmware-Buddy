@@ -93,18 +93,18 @@ public:
     ScreenMenuSettings()
         : Screen(_(label)) {}
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSettings() {
     return ScreenFactory::Screen<ScreenMenuSettings>();
 }
 
-void ScreenMenuSettings::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
         Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 
-    Screen::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }

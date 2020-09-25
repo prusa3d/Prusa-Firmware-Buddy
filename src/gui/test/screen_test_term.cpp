@@ -8,7 +8,7 @@
 #include "ScreenHandler.hpp"
 
 screen_test_term_data_t::screen_test_term_data_t()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , text(this, Rect16(10, 0, 220, 22), is_multiline::no)
     , term(this, { 10, 28 }, &term_buff) {
     SetBackColor(COLOR_GRAY);
@@ -17,7 +17,7 @@ screen_test_term_data_t::screen_test_term_data_t()
     text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tst));
 }
 
-void screen_test_term_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void screen_test_term_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     int winid = -1;
     if (event == GUI_event_t::BTN_DN) {
         Screens::Access()->Close();
@@ -25,6 +25,6 @@ void screen_test_term_data_t::windowEvent(window_t *sender, GUI_event_t event, v
     if (event != GUI_event_t::LOOP) {
         term.Printf("%010d w:%d e:%d\n", HAL_GetTick(), winid, (int)event);
     } else {
-        window_frame_t::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }

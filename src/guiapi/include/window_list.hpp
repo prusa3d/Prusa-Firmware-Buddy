@@ -25,7 +25,7 @@ struct window_list_t : window_aligned_t {
 
     window_list_t(window_t *parent, Rect16 rect);
 
-private:
+protected:
     virtual void unconditionalDraw() override;
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

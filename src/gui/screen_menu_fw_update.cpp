@@ -51,11 +51,11 @@ public:
         help.SetText(_("Select when you want\nto automatically flash\nupdated firmware\nfrom USB flash disk."));
     }
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
-void ScreenMenuFwUpdate::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuFwUpdate::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         MI_ON_RESTART *mi_restart = &Item<MI_ON_RESTART>();
         if (size_t(param) == 1) {
@@ -66,7 +66,7 @@ void ScreenMenuFwUpdate::windowEvent(window_t *sender, GUI_event_t event, void *
             mi_restart->index = 0;
         }
     }
-    Screen::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {

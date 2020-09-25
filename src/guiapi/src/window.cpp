@@ -4,96 +4,8 @@
 #include "gui.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
-#include "dbg.h"
 
 extern osThreadId displayTaskHandle;
-
-static constexpr bool GUI_event_IsKnob(GUI_event_t event) {
-    switch (event) {
-    case GUI_event_t::BTN_DN:
-    case GUI_event_t::BTN_UP:
-    case GUI_event_t::ENC_DN:
-    case GUI_event_t::ENC_UP:
-        return true;
-    default:
-        return false;
-    }
-}
-
-static constexpr bool GUI_event_IsWindowKnobReaction(GUI_event_t event) {
-    switch (event) {
-    case GUI_event_t::FOCUS0:
-    case GUI_event_t::FOCUS1:
-    case GUI_event_t::CAPT_0:
-    case GUI_event_t::CAPT_1:
-    case GUI_event_t::CLICK:
-    case GUI_event_t::DOUBLE_CLICK:
-    case GUI_event_t::HOLD:
-    case GUI_event_t::CHANGE:
-        return true;
-    default:
-        return false;
-    }
-}
-
-static constexpr bool GUI_event_IsAnyButLoop(GUI_event_t event) {
-    return event != GUI_event_t::LOOP;
-}
-
-static constexpr const char *GUI_event_prt(GUI_event_t event) {
-    // cannot use: case GUI_event_t::BTN_DN: { static const char txt[] = "button down"; return txt; }
-    // error: 'txt' declared 'static' in 'constexpr' function
-    switch (event) {
-    case GUI_event_t::BTN_DN:
-        return ("button down");
-    case GUI_event_t::BTN_UP:
-        return ("button up");
-    case GUI_event_t::ENC_DN:
-        return ("encoder minus");
-    case GUI_event_t::ENC_UP:
-        return ("encoder plus");
-    case GUI_event_t::FOCUS0:
-        return ("focus lost");
-    case GUI_event_t::FOCUS1:
-        return ("focus set");
-    case GUI_event_t::CAPT_0:
-        return ("capture lost");
-    case GUI_event_t::CAPT_1:
-        return ("capture set");
-    case GUI_event_t::CLICK:
-        return ("clicked");
-    case GUI_event_t::DOUBLE_CLICK:
-        return ("double-clicked");
-    case GUI_event_t::HOLD:
-        return ("held button");
-    case GUI_event_t::CHANGE:
-        return ("value/index changed");
-    case GUI_event_t::CHANGING:
-        return ("value/index changing");
-    case GUI_event_t::LOOP:
-        return ("gui loop");
-    case GUI_event_t::TIMER:
-        return ("gui timer");
-    case GUI_event_t::MESSAGE:
-        return ("message notification");
-    }
-    return ("error bad index");
-}
-
-void window_t::EventDbg(const char *event_method_name, window_t *sender, GUI_event_t event) {
-    bool print = false;
-
-    // clang-format off
-    // uncomment debug options
-    if (GUI_event_IsKnob(event)) print = true;
-    if (GUI_event_IsWindowKnobReaction(event)) print = true;
-    //if (GUI_event_IsAnyButLoop(event)) print = true;
-    // clang-format on
-
-    if (print) {
-        _dbg("%s ptr: %p, event %s\n", event_method_name, sender, GUI_event_prt(event));
-    }
-}
 
 bool window_t::IsVisible() const { return flag_visible && !flag_hidden_behind_dialog; }
 bool window_t::IsHiddenBehindDialog() const { return flag_hidden_behind_dialog; }
@@ -312,14 +224,13 @@ void window_t::unconditionalDraw() {
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
-    static const char txt[] = "WindowEvent";
-    EventDbg(txt, sender, event);
-    windowEvent(sender, event, param);
+    static const char txt[] = "WindowEvent via public";
+    windowEvent(EventLock(txt, sender, event), sender, event, param);
 }
 
 void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
-    static const char txt[] = "ScreenEvent";
-    EventDbg(txt, sender, event);
+    static const char txt[] = "ScreenEvent via public";
+    EventLock(txt, sender, event); //just print debug msg
     screenEvent(sender, event, param);
 }
 
@@ -332,7 +243,7 @@ void window_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
 
 // MUST BE PRIVATE
 // call nonvirtual WindowEvent instead (contains debug output)
-void window_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK && parent) {
         if (flag_close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
@@ -366,7 +277,7 @@ void window_t::ResetFocusedWindow() {
 //window_aligned_t
 
 window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_click_t close)
-    : window_t(parent, rect, dialog, close) {
+    : AddSuperWindow<window_t>(parent, rect, dialog, close) {
     SetAlignment(GuiDefaults::Alignment);
 }
 
