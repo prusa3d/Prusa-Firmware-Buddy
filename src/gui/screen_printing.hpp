@@ -8,7 +8,7 @@
 #include "window_spin.hpp"
 #include "window_list.hpp"
 #include "window_term.hpp"
-#include "window_progress.hpp"
+#include "window_print_progress.hpp"
 #include "ScreenPrintingModel.hpp"
 #include <array>
 
@@ -47,7 +47,7 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     static constexpr const char *caption = N_("PRINTING");
 
     window_text_t w_filename;
-    window_progress_t w_progress;
+    WindowPrintProgress w_progress;
     window_text_t w_time_label;
     window_text_t w_time_value;
     window_text_t w_etime_label;
@@ -65,7 +65,6 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     bool stop_pressed;
     bool waiting_for_abort; /// flag specific for stop pressed when MBL is performed
     printing_state_t state__readonly__use_change_print_state;
-    uint8_t last_sd_percent_done;
 
 public:
     screen_printing_data_t();
@@ -77,7 +76,6 @@ private:
     void invalidate_print_state();
     void disable_tune_button();
     void enable_tune_button();
-    void update_progress(uint8_t percent, uint16_t print_speed);
     void update_remaining_time(time_t rawtime, uint16_t print_speed);
     void update_end_timestamp(time_t now_sec, uint16_t print_speed);
     void update_print_duration(time_t rawtime);

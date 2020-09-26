@@ -541,6 +541,7 @@ if(GUI)
             src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
+            src/gui/window_print_progress.cpp
             src/gui/window_file_list.cpp
             src/gui/window_temp_graph.cpp
             src/gui/screen_menu_settings.cpp
