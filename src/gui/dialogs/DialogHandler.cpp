@@ -20,7 +20,7 @@ static void OpenPrintScreen(ClientFSM dialog) {
         Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
         return;
     case ClientFSM::FirstLayer: //do not close screens
-        Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
+        Screens::Access()->Open(ScreenFactory::Screen<ScreenFirstLayer>);
         return;
     default:
         return;
@@ -59,8 +59,18 @@ void DialogHandler::close(ClientFSM dialog) {
             return;
 
         //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
-        if (dialog == ClientFSM::Serial_printing) {
+
+        switch (dialog) {
+        case ClientFSM::Serial_printing:
             Screens::Access()->CloseAll();
+            break;
+        case ClientFSM::FirstLayer:
+            Screens::Access()->Close();
+            break;
+        case ClientFSM::Printing: //closed on button, todo marlin thread should close it
+            break;
+        default:
+            break;
         }
     }
 
