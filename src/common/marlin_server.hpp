@@ -134,6 +134,12 @@ public:
         : dialog(type) {
         fsm_create(type, data);
     }
+
+    template <class T>
+    void Change(T phase, uint8_t progress_tot, uint8_t progress) const {
+        fsm_change(dialog, phase, progress_tot, progress);
+    }
+
     ~FSM_Holder() {
         fsm_destroy(dialog);
     }

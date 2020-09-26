@@ -18,12 +18,15 @@ static const constexpr float threadWidth = 0.5f;
 
 static const constexpr float pi = 3.1415926535897932384626433832795f;
 
-class FirstLayer {
+class FirstLayer : public FSM_Holder {
 private:
     uint16_t total_lines = 1;
     uint16_t current_line = 0;
 
 public:
+    FirstLayer()
+        : FSM_Holder(ClientFSM::FirstLayer, 0) {}
+
     void wait_for_move() {
         planner.synchronize();
     }
@@ -162,15 +165,9 @@ public:
 };
 
 void PrusaGcodeSuite::G26() {
-    fsm_create(ClientFSM::FirstLayer);
     if (all_axes_known()) { /// checks if axes are calibrated (homed) before
-
-        /// TODO check that units are millimeters
-
         FirstLayer fl;
         //fl.print_shape_1();
         fl.print_shape_2();
     }
-
-    fsm_destroy(ClientFSM::FirstLayer);
 }
