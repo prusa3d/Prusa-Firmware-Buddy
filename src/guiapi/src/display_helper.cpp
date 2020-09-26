@@ -101,19 +101,19 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
 
-    if (font->h * 2 > rc_pad.Height()) { //2 lines would not fit, clear multiline flag
-        is_multiline = false;
-    }
-
     // 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
     uint16_t strlen_text = 0;
-    point_ui16_t wh_txt = font_meas_text(font, &text, &strlen_text);
-    if (!wh_txt.x || !wh_txt.y) {
+    point_ui16_t txt_size = font_meas_text(font, &text, &strlen_text);
+    if (txt_size.x == 0 || txt_size.y == 0) {
+        /// empty text => draw background rectangle only
         display::FillRect(rc, clr0);
         return;
     }
 
-    if (wh_txt.y == font->h && wh_txt.x <= rc.Width()) { // not multiline
+    /// fall back to single line in specific cases
+    if (font->h * 2 > rc_pad.Height()                           /// 2 lines would not fit
+        || txt_size.y == font->h && txt_size.x <= rc.Width()) { /// text fits into a single line completely
+
         is_multiline = false;
     }
 
@@ -126,7 +126,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
         return;
     }
 
-    Rect16 rc_txt = Rect16(0, 0, wh_txt.x, wh_txt.y);
+    Rect16 rc_txt = Rect16(0, 0, txt_size.x, txt_size.y);
     rc_txt.Align(rc_pad, flags & ALIGN_MASK);
     rc_txt = rc_txt.Intersection(rc_pad);
     const uint8_t unused_pxls = (strlen_text * font->w <= rc_txt.Width()) ? 0 : rc_txt.Width() % font->w;
