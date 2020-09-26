@@ -18,6 +18,9 @@ class Screens {
 
     bool close;
     bool close_all;
+    bool close_serial;
+
+    int8_t gui_timeout_id;
 
     //void stack_push(int16_t screen_id) {}
     //int16_t stack_pop(void) {}
@@ -39,14 +42,21 @@ public:
 
     void CloseAll();
 
+    void CloseSerial();
+
     bool ConsumeClose(); //dialog can erase close signal and close itself
 
     void Draw();
+    void ResetTimeout();
 
-    void ScreenEvent(window_t *sender, uint8_t event, void *param);
-    void WindowEvent(uint8_t event, void *param);
+    void ScreenEvent(window_t *sender, GUI_event_t event, void *param);
+    void WindowEvent(GUI_event_t event, void *param);
 
     window_frame_t *Get();
+
+    void EnableMenuTimeout();
+    void DisableMenuTimeout();
+    bool GetMenuTimeout();
 
     static void Init(const ScreenFactory::Creator screen_creator);
     static void Init(const ScreenFactory::Creator *begin, const ScreenFactory::Creator *end);  // init in normal order, skips nullptr
@@ -55,6 +65,9 @@ public:
     static Screens *Access();
 
 private:
+    void InnerLoop(); //call inside Loop of this class
+
+    bool menu_timeout_enabled = true;
     using r_iter = std::reverse_iterator<const ScreenFactory::Creator *>;
     static r_iter rfind_enabled_node(r_iter begin, r_iter end); // reverse find method
     using iter = const ScreenFactory::Creator *;

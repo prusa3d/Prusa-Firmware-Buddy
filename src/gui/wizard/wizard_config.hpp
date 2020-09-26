@@ -1,7 +1,11 @@
-// wizard_config.h
+// wizard_config.hpp
 #pragma once
-
-#include "menu_vars.h"
+enum class SelftestSubtestState_t : uint8_t { //it is passed as uint8_t between threads
+    undef,
+    ok,
+    not_good,
+    running
+};
 
 enum {
     WIZARD_MARGIN_LEFT = 6,

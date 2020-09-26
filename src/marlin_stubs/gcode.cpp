@@ -1,11 +1,19 @@
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+
 #include "PrusaGcodeSuite.hpp"
-#include "client_fsm_types.h"
-#include "marlin_server.hpp"
+
+#include "M50.hpp"
 
 bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
     switch (parser.command_letter) {
+    case 'M':
+        switch (parser.codenum) {
+        case 50:
+            PrusaGcodeSuite::M50(); //selftest
+            return true;
+        }
+        return false;
     case 'G':
         switch (parser.codenum) {
         case 26:

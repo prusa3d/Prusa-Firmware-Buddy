@@ -234,8 +234,10 @@ float CMarlinTest::XYAxis_get_fr(marlin_test_state_t state) {
 }
 
 void CMarlinTest::sg_sample_set(uint8_t axis_mask) {
-    tmc_sg_mask = axis_mask;
-    tmc_sg_sampe_cb = axis_mask ? sg_sample : 0;
+    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+        tmc_set_sg_mask(axis_mask);
+        tmc_set_sg_sampe_cb(axis_mask ? sg_sample : nullptr);
+    }
 }
 
 void CMarlinTest::sg_sample(uint8_t axis, uint16_t sg) {

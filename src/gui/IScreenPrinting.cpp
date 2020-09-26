@@ -8,9 +8,10 @@
 #include "ScreenHandler.hpp"
 
 IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , header(this)
     , footer(this) {
+    IScreenPrinting::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetText(caption);
     ths = this;
 }

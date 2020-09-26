@@ -13,18 +13,22 @@
 
 #if ((MOTHERBOARD == 1823))
 
+static TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
+
+static uint16_t tmc_sg[4];      // stallguard result for each axis
+static uint8_t tmc_sg_mask = 7; // stalguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
+static uint8_t tmc_sg_axis = 0; // current axis for stalguard result sampling (0-x, 1-y, ...)
+
+static tmc_sg_sample_cb_t *tmc_sg_sampe_cb = 0; // sg sample callback
+
 extern "C" {
 
-TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
+uint8_t tmc_get_sg_mask() { return tmc_sg_mask; }
+uint8_t tmc_get_sg_axis() { return tmc_sg_axis; }
 
-uint16_t tmc_step = 0;
-uint8_t tmc_stepper = -1;
-
-uint16_t tmc_sg[4];      // stallguard result for each axis
-uint8_t tmc_sg_mask = 7; // stalguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
-uint8_t tmc_sg_axis = 0; // current axis for stalguard result sampling (0-x, 1-y, ...)
-
-tmc_sg_sample_cb_t *tmc_sg_sampe_cb = 0; // sg sample callback
+void tmc_set_sg_mask(uint8_t mask) { tmc_sg_mask = mask; }
+void tmc_set_sg_axis(uint8_t axis) { tmc_sg_axis = axis; }
+void tmc_set_sg_sampe_cb(tmc_sg_sample_cb_t *cb) { tmc_sg_sampe_cb = cb; }
 
 void tmc_delay(uint16_t time) // delay for switching tmc step pin level
 {

@@ -18,7 +18,7 @@ StateFncData StateFnc_SELFTEST_COOL(StateFncData last_run) {
 
     #include "config.h"
     #include "marlin_client.h"
-    #include "wizard_config.h"
+    #include "wizard_config.hpp"
     #include "guitypes.hpp" //font_meas_text
 
 struct selftest_cool_screen_t {

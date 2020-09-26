@@ -5,7 +5,7 @@
 #include "status_footer.h"
 #include "resource.h"
 
-class IScreenPrinting : public window_frame_t {
+class IScreenPrinting : public AddSuperWindow<window_frame_t> {
 protected:
     window_header_t header;
     status_footer_t footer;

@@ -14,10 +14,12 @@
 static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_printing)); }
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
-    : ScreenPrintingModel(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
+    : AddSuperWindow<ScreenPrintingModel>(_(caption))
     , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
     , last_tick(0)
-    , connection(connection_state_t::disconnected) {
+    , connection(connection_state_t::connected) {
+    ClrMenuTimeoutClose();
+    ClrOnSerialClose(); // don't close on Serial print
 
     octo_icon.SetIdRes(IDR_PNG_serial_printing);
     octo_icon.Disable();
@@ -33,7 +35,7 @@ void screen_printing_serial_data_t::DisableButton(btn &b) {
     }
 }
 
-void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     header.EventClr();
 
     /// end sequence waiting for empty marlin gcode queue
@@ -55,15 +57,18 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, uint8_t event,
     }
 
     if (connection == connection_state_t::disconnecting && marlin_get_gqueue() < 1) {
+        connection = connection_state_t::disconnected;
         marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
         marlin_gcode("M104 S0 D0"); /// set temperatures to zero
         marlin_gcode("M140 S0");    /// set temperatures to zero
-        marlin_gcode("M107");       /// print fan off
-        Screens::Access()->Close();
+        marlin_gcode("M107");       /// print fan off.
         return;
     }
+    if (connection == connection_state_t::disconnected) {
+        Screens::Access()->Close();
+    }
 
-    ScreenPrintingModel::windowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 void screen_printing_serial_data_t::tuneAction() {

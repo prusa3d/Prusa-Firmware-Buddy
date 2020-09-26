@@ -10,44 +10,72 @@ Rect16::Rect16(point_i16_t p0, point_i16_t p1)
     height_ = p1.y - top_left_.y + 1;
 }
 
-Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance) {
-    switch (direction) {
-    case ShiftDir_t::Left:
-        top_left_ = {
-            static_cast<int16_t>(rect.TopLeft().x - distance),
-            rect.TopLeft().y
-        };
-        break;
-    case ShiftDir_t::Right:
-        top_left_ = {
-            static_cast<int16_t>(rect.TopLeft().x + distance),
-            rect.TopLeft().y
-        };
-        break;
-    case ShiftDir_t::Top:
-        top_left_ = {
-            rect.TopLeft().x,
-            static_cast<int16_t>(rect.TopLeft().y - distance)
-        };
-        break;
-    case ShiftDir_t::Bottom:
-        top_left_ = {
-            rect.TopLeft().x,
-            static_cast<int16_t>(rect.TopLeft().y + distance)
-        };
-        break;
-    default:
-        top_left_ = rect.TopLeft();
-        break;
-    }
-    width_ = rect.Width();
-    height_ = rect.Height();
+Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction)
+    : Rect16(rect, direction,
+        [=] {
+            uint16_t distance;
+            switch (direction) {
+
+            case ShiftDir_t::Left:
+            case ShiftDir_t::Right:
+                distance = rect.Width();
+                break;
+            case ShiftDir_t::Top:
+            case ShiftDir_t::Bottom:
+                distance = rect.Height();
+                break;
+            default:
+                distance = 0;
+                break;
+            }
+            return distance;
+        }()) {
 }
 
-Rect16::Rect16(point_i16_t top_left, size_ui16_t s) {
-    top_left_ = top_left;
-    width_ = s.w;
-    height_ = s.h;
+Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance)
+    : top_left_(
+        [=] {
+            point_i16_t top_left;
+            switch (direction) {
+
+            case ShiftDir_t::Left:
+                top_left = {
+                    static_cast<int16_t>(rect.TopLeft().x - distance),
+                    rect.TopLeft().y
+                };
+                break;
+            case ShiftDir_t::Right:
+                top_left = {
+                    static_cast<int16_t>(rect.TopLeft().x + distance),
+                    rect.TopLeft().y
+                };
+                break;
+            case ShiftDir_t::Top:
+                top_left = {
+                    rect.TopLeft().x,
+                    static_cast<int16_t>(rect.TopLeft().y - distance)
+                };
+                break;
+            case ShiftDir_t::Bottom:
+                top_left = {
+                    rect.TopLeft().x,
+                    static_cast<int16_t>(rect.TopLeft().y + distance)
+                };
+                break;
+            default:
+                top_left = rect.TopLeft();
+                break;
+            }
+            return top_left;
+        }())
+    , width_(rect.Width())
+    , height_(rect.Height()) {
+}
+
+Rect16::Rect16(point_i16_t top_left, size_ui16_t s)
+    : top_left_(top_left)
+    , width_(s.w)
+    , height_(s.h) {
 }
 
 Rect16 Rect16::Intersection(Rect16 const &r) const {

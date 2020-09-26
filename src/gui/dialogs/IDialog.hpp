@@ -11,7 +11,7 @@
 extern void gui_loop(void);
 
 //interface for dialog
-class IDialog : public window_frame_t {
+class IDialog : public AddSuperWindow<window_frame_t> {
     window_t *prev_capture;
 
 public:
@@ -35,8 +35,8 @@ public:
         }
     }
 
-    void StoreCapture(); //set capture pointer (to be restore after dialog closes)
-
+    void StoreCapture();                         // set capture pointer (to be restore after dialog closes)
+    void ModifyStoredCapture(window_t *capture); // in some cases another closing dialog can pass its capture
 protected:
     void releaseCapture();
     void clearCapture();

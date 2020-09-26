@@ -5,7 +5,7 @@
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "marlin_client.h"
-#include "wizard_config.h"
+#include "wizard_config.hpp"
 #include "filament.h"
 #include "eeprom.h"
 #include "filament_sensor.hpp"
@@ -42,14 +42,14 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
 
     //notify first layer calib (needed for baby steps)
     if (pd->state == _STATE_FIRSTLAY_PRINT) {
-        if (event == WINDOW_EVENT_ENC_DN)
+        if (event == GUI_event_t::ENC_DN)
             wizard_firstlay_event_dn(p_firstlay_screen);
 
-        if (event == WINDOW_EVENT_ENC_UP)
+        if (event == GUI_event_t::ENC_UP)
             wizard_firstlay_event_up(p_firstlay_screen);
     }
 
-    if (event == WINDOW_EVENT_LOOP) {
+    if (event == GUI_event_t::LOOP) {
         if (inside_handler == 0) {
             marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
             pd->header.SetText(wizard_get_caption(screen));
@@ -497,7 +497,7 @@ ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
 }
 
 ScreenWizard::ScreenWizard()
-    : window_frame_t()
+    : AddSuperWindow<window_frame_t>()
     , header(this, WizardGetCaption(WizardState_t::START_first))
     , footer(this)
     , results(ResultInitializer(run_mask))
@@ -517,10 +517,10 @@ ScreenWizard::~ScreenWizard() {
     //wizard_init(0, 0);
 }
 
-void ScreenWizard::windowEvent(window_t *sender, uint8_t event, void *param) {
+void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
-    if (event != WINDOW_EVENT_LOOP) {
-        window_frame_t::windowEvent(sender, event, param);
+    if (event != GUI_event_t::LOOP) {
+        SuperWindowEvent(sender, event, param);
         return;
     }
 

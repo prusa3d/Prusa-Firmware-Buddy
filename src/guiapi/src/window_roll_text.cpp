@@ -42,8 +42,8 @@ void window_roll_text_draw(window_roll_text_t *window) {
     }
 }
 
-void window_roll_text_event(window_roll_text_t *window, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_TIMER) {
+void window_roll_text_event(window_roll_text_t *window, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::TIMER) {
         roll_text_phasing(window, window->font, &window->roll);
     }
 }

@@ -9,7 +9,7 @@
 #include "ScreenHandler.hpp"
 
 ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
-    : IScreenPrinting(caption)
+    : AddSuperWindow<IScreenPrinting>(caption)
     // clang-format off
     , btn_tune  { { this, Rect16(8 + (15 + 64) * 0, 185, 64, 64), 0, TuneAction  }, { this, Rect16(80 * 0, 196 + 48 + 8, 80, 22), is_multiline::no } }
     , btn_pause { { this, Rect16(8 + (15 + 64) * 1, 185, 64, 64), 0, PauseAction }, { this, Rect16(80 * 1, 196 + 48 + 8, 80, 22), is_multiline::no } }

@@ -9,6 +9,24 @@
 #include "screen_printing.hpp"
 #include "ScreenFirstLayer.hpp"
 
+static void OpenPrintScreen(ClientFSM dialog) {
+    switch (dialog) {
+    case ClientFSM::Serial_printing:
+        Screens::Access()->CloseSerial();
+        Screens::Access()->Open(ScreenFactory::Screen<screen_printing_serial_data_t>);
+        return;
+    case ClientFSM::Printing:
+        Screens::Access()->CloseAll();
+        Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
+        return;
+    case ClientFSM::FirstLayer: //do not close screens
+        Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
+        return;
+    default:
+        return;
+    }
+}
+
 //*****************************************************************************
 //method definitions
 void DialogHandler::open(ClientFSM dialog, uint8_t data) {
@@ -22,26 +40,12 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     // only ptr = dialog_creators[dialog](data); should remain
     switch (dialog) {
     case ClientFSM::Serial_printing:
-        if (IScreenPrinting::CanOpen()) {
-            Screens::Access()->CloseAll();
-            Screens::Access()->Open(ScreenFactory::Screen<screen_printing_serial_data_t>);
-        }
-        break;
-
     case ClientFSM::Printing:
-        if (IScreenPrinting::CanOpen()) {
-            Screens::Access()->CloseAll();
-            Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
-        }
-        break;
-
     case ClientFSM::FirstLayer:
         if (IScreenPrinting::CanOpen()) {
-            //Screens::Access()->CloseAll();
-            Screens::Access()->Open(ScreenFactory::Screen<ScreenFirstLayer>);
+            OpenPrintScreen(dialog);
         }
         break;
-
     default:
         ptr = dialog_ctors[size_t(dialog)](data);
     }
