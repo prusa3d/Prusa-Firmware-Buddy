@@ -173,17 +173,17 @@ public:
     constexpr Left_t Left() const { return Left_t(top_left_.x); };
 
     ////////////////////////////////////////////////////////////////////////////
-    /// @brief Object accessor to read the point behind bottom-right of current rectangle
+    /// @brief Object accessor to read the bottom-right of the current rectangle
     ///
-    /// @return Point behind Bottom-right of the rectangle.
+    /// @return Bottom-right of the rectangle.
     constexpr point_i16_t BottomRight() const {
         return { static_cast<int16_t>(EndPoint().x - 1), static_cast<int16_t>(EndPoint().y - 1) };
     };
 
     ////////////////////////////////////////////////////////////////////////////
-    /// @brief Object accessor to read the bottom-right of current rectangle
+    /// @brief Object accessor to read the point just behind the bottom-right of the current rectangle
     ///
-    /// @return Bottom-right of the rectangle.
+    /// @return Point behind the Bottom-right of the rectangle.
     constexpr point_i16_t EndPoint() const {
         return {
             static_cast<int16_t>(top_left_.x + width_),
