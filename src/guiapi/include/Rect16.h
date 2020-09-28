@@ -124,6 +124,8 @@ public:
     //position it right next this rect
     Rect16(Rect16 const &, ShiftDir_t);
 
+    uint16_t CalculateShift(ShiftDir_t direction) const;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left corner and size
     ///
@@ -188,6 +190,20 @@ public:
         return {
             static_cast<int16_t>(top_left_.x + width_),
             static_cast<int16_t>(top_left_.y + height_)
+        };
+    };
+
+    constexpr point_i16_t TopEndPoint() const {
+        return {
+            EndPoint().x,
+            TopLeft().y
+        };
+    };
+
+    constexpr point_i16_t LeftEndPoint() const {
+        return {
+            TopLeft().x,
+            EndPoint().y
         };
     };
 

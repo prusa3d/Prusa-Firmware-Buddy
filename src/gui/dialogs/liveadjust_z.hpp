@@ -8,28 +8,55 @@
 #include "window_arrows.hpp"
 #include "../../lang/i18n.h"
 
-class LiveAdjustZ : public AddSuperWindow<IDialog> {
-protected:
-    window_text_t text;
+//regular window binded to Z calib
+class WindowLiveAdjustZ : public AddSuperWindow<window_frame_t> {
     window_numb_t number;
-    window_icon_t nozzle_icon;
-    window_frame_t bed;
     WindowArrows arrows;
 
-    LiveAdjustZ(Rect16 rect, is_closed_on_click_t outside_close);
-
 public:
-    void SaveAndClose();
-    static void Open(Rect16 rect = GuiDefaults::RectScreenBody, is_closed_on_click_t outside_close = is_closed_on_click_t::yes);
+    WindowLiveAdjustZ(window_t *parent, point_i16_t pt);
+    void Save();
+    virtual ~WindowLiveAdjustZ() override { Save(); }
+    float GetValue() const { return number.GetValue(); }
 
 protected:
     void Change(int dif);
+
+    static constexpr Rect16 getNumberRect(point_i16_t pt) {
+        return Rect16(pt, 80, 25);
+    }
+    static constexpr point_i16_t getIconPoint(point_i16_t pt) {
+        point_i16_t ret = getNumberRect(pt).TopEndPoint();
+        return { ret.x, int16_t(ret.y + 5) };
+    }
+
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+};
+
+class WindowLiveAdjustZ_withText : public AddSuperWindow<WindowLiveAdjustZ> {
+    window_text_t text;
+
+public:
+    static constexpr const char *text_str = N_("Z height:");
+    WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width);
+};
+
+class LiveAdjustZ : public AddSuperWindow<IDialog> {
+    window_text_t text;
+    window_icon_t nozzle_icon;
+    window_frame_t bed;
+    WindowLiveAdjustZ adjuster;
+
+    LiveAdjustZ(); // created by static Open method
+
+public:
+    static void Open();
+
+protected:
     void moveNozzle();
 
     const Rect16 getTextRect();
-    const Rect16 getNumberRect();
     const Rect16 getNozzleRect();
 
-protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };

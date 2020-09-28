@@ -14,7 +14,7 @@
 static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_printing)); }
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
-    : AddSuperWindow<IScreenPrinting>(_(caption))
+    : AddSuperWindow<ScreenPrintingModel>(_(caption))
     , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), IDR_PNG_serial_printing)
     , last_tick(0)
     , connection(connection_state_t::connected) {
