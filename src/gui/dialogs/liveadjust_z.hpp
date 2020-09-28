@@ -47,10 +47,10 @@ class LiveAdjustZ : public AddSuperWindow<IDialog> {
     window_frame_t bed;
     WindowLiveAdjustZ adjuster;
 
-    LiveAdjustZ(is_closed_on_click_t outside_close); // created by static Open method
+    LiveAdjustZ(); // created by static Open method
 
 public:
-    static void Open(is_closed_on_click_t outside_close = is_closed_on_click_t::yes);
+    static void Open();
 
 protected:
     void moveNozzle();
