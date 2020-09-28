@@ -191,6 +191,20 @@ public:
         };
     };
 
+    constexpr point_i16_t TopEndPoint() const {
+        return {
+            EndPoint().x,
+            TopLeft().y
+        };
+    };
+
+    constexpr point_i16_t LeftEndPoint() const {
+        return {
+            TopLeft().x,
+            EndPoint().y
+        };
+    };
+
     //swap is not constexpr in C++17 and earlier
     void SwapXY() {
         std::swap(top_left_.x, top_left_.y);

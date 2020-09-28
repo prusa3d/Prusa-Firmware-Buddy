@@ -9,9 +9,11 @@
 #include "ScreenHandler.hpp"
 
 ScreenFirstLayer::ScreenFirstLayer()
-    : IScreenPrinting(string_view_utf8::MakeCPUFLASH((const uint8_t *)caption))
-    , header(this)
-    , footer(this) {
+    : IScreenPrinting(_(caption))
+    , text(this, Rect16(WIZARD_MARGIN_LEFT, 40, GuiDefaults::RectScreen.Width() - WIZARD_MARGIN_LEFT, 150), is_multiline::yes, is_closed_on_click_t::no, _(text_str))
+    , progress(this, { WIZARD_MARGIN_LEFT, 190 + 30 })
+    , live_z(this, { 100, 190 }) {
+    live_z.SetCapture();
 }
 
 void ScreenFirstLayer::stopAction() {}

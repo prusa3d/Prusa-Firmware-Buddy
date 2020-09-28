@@ -133,12 +133,16 @@ void window_frame_t::draw() {
 void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
+    if (!pWin || !pWin->IsChildOf(this))
+        pWin = nullptr;
 
     switch (event) {
     case GUI_event_t::CLICK:
         if (pWin) {
             pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);
             //pWin->SetCapture(); //item must do this - only some of them
+        } else {
+            //todo should not I resend event to super?
         }
         break;
     case GUI_event_t::ENC_DN:
