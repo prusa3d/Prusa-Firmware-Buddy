@@ -10,7 +10,7 @@ StateFncData StateFnc_SELFTEST_FAN0(StateFncData last_run) {
         "not implemented");
     const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    MsgBox(notTranslatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
@@ -21,7 +21,7 @@ StateFncData StateFnc_SELFTEST_FAN1(StateFncData last_run) {
         "not implemented");
     const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    MsgBox(notTranslatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
@@ -32,7 +32,7 @@ StateFncData StateFnc_SELFTEST_X(StateFncData last_run) {
         "not implemented");
     const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    MsgBox(notTranslatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
@@ -43,7 +43,7 @@ StateFncData StateFnc_SELFTEST_Y(StateFncData last_run) {
         "not implemented");
     const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    MsgBox(notTranslatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
@@ -54,7 +54,7 @@ StateFncData StateFnc_SELFTEST_Z(StateFncData last_run) {
         "not implemented");
     const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    MsgBox(notTranslatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
