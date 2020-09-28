@@ -10,9 +10,9 @@
 
 ScreenFirstLayer::ScreenFirstLayer()
     : IScreenPrinting(_(caption))
-    , text(this, Rect16(WIZARD_MARGIN_LEFT, 40, GuiDefaults::RectScreen.Width() - WIZARD_MARGIN_LEFT, 150), is_multiline::yes, is_closed_on_click_t::no, _(text_str))
+    , text(this, Rect16(WIZARD_MARGIN_LEFT, 40, GuiDefaults::RectScreen.Width() - WIZARD_MARGIN_LEFT * 2, 150), is_multiline::yes, is_closed_on_click_t::no, _(text_str))
     , progress(this, { WIZARD_MARGIN_LEFT, 190 + 30 })
-    , live_z(this, { 100, 190 }) {
+    , live_z(this, { int16_t(WIZARD_MARGIN_LEFT), 190 }, rect.Width() - WIZARD_MARGIN_LEFT * 2) {
     live_z.SetCapture();
 }
 

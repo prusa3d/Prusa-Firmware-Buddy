@@ -124,6 +124,8 @@ public:
     //position it right next this rect
     Rect16(Rect16 const &, ShiftDir_t);
 
+    uint16_t CalculateShift(ShiftDir_t direction) const;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left corner and size
     ///

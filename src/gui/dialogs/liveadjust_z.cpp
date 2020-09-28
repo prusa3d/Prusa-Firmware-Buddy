@@ -22,12 +22,15 @@ const float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
 const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
 
+/*****************************************************************************/
+//WindowLiveAdjustZ
+
 WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody) //calculate size later
     , number(this, getNumberRect(pt), marlin_vars()->z_offset)
     , arrows(this, getIconPoint(pt)) {
 
-    this->rect = number.rect.Union(arrows.rect);
+    rect = number.rect.Union(arrows.rect);
     /// using window_numb to store float value of z_offset
     /// we have to set format and bigger font
     number.SetFont(GuiDefaults::FontBig);
@@ -78,6 +81,19 @@ void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *se
         SuperWindowEvent(sender, event, param);
     }
 }
+
+/*****************************************************************************/
+//WindowLiveAdjustZ_withText
+WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width)
+    : AddSuperWindow<WindowLiveAdjustZ>(parent, pt)
+    , text(parent, Rect16(), is_multiline::no, is_closed_on_click_t::no, _(text_str)) {
+    Shift(ShiftDir_t::Right, width - rect.Width());
+    text.rect = Rect16(pt, width - rect.Width(), rect.Height());
+    rect = rect.Union(text.rect);
+}
+
+/*****************************************************************************/
+//LiveAdjustZ
 
 LiveAdjustZ::LiveAdjustZ(is_closed_on_click_t outside_close)
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)

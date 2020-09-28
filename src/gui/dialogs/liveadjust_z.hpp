@@ -33,6 +33,14 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
+class WindowLiveAdjustZ_withText : public AddSuperWindow<WindowLiveAdjustZ> {
+    window_text_t text;
+
+public:
+    static constexpr const char *text_str = N_("Z height:");
+    WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width);
+};
+
 class LiveAdjustZ : public AddSuperWindow<IDialog> {
     window_text_t text;
     window_icon_t nozzle_icon;

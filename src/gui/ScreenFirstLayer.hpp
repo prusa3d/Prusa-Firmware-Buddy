@@ -20,7 +20,7 @@ class ScreenFirstLayer : public IScreenPrinting {
                                                "sheet.");
     window_text_t text;
     WindowPrintProgress progress;
-    WindowLiveAdjustZ live_z;
+    WindowLiveAdjustZ_withText live_z;
 
     virtual void stopAction() override;
     virtual void pauseAction() override;
