@@ -44,11 +44,11 @@ public:
     ScreenMenuMove()
         : Screen(_(label)) {}
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
-void ScreenMenuMove::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
 
         bool temp_ok = (marlin_vars()->target_nozzle > MenuVars::extrude_min_temp);
@@ -59,7 +59,7 @@ void ScreenMenuMove::windowEvent(window_t *sender, GUI_event_t event, void *para
             pAxis_E->Disable();
     }
 
-    Screen::WindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuMove() {

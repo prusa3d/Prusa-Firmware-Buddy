@@ -3,7 +3,7 @@
 #include "ScreenHandler.hpp"
 
 IDialog::IDialog(Rect16 rc)
-    : window_frame_t(Screens::Access()->Get(), rc, is_dialog_t::yes) //use dialog ctor
+    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rc, is_dialog_t::yes) //use dialog ctor
     , prev_capture(GetCapturedWindow()) {
     Enable();
     SetCapture();
@@ -22,8 +22,26 @@ void IDialog::guiLoop() const {
 }
 
 void IDialog::releaseCapture() {
-    if (prev_capture)
-        prev_capture->SetCapture();
+    window_frame_t *const ActiveScreen = Screens::Access()->Get();
+    //parent pointer must exist and must point to screen
+    if (GetParent() && ActiveScreen == GetParent()) {
+        // dialog is registered as last in active screen
+        // can be unregistered normally
+        if (ActiveScreen->GetLast() == this) {
+            if (prev_capture) {
+                prev_capture->SetCapture();
+            }
+        }
+        // dialog is not registered as last in active screen
+        // it must pass its saved capture to next dialog, even if it is null_ptr
+        else {
+            window_t *const NextSubwin = ActiveScreen->GetNextSubWin(this);
+            if (NextSubwin && NextSubwin->IsDialog()) { //this condition should be always true
+                IDialog *NextDialog = reinterpret_cast<IDialog *>(NextSubwin);
+                NextDialog->ModifyStoredCapture(prev_capture);
+            }
+        }
+    }
     clearCapture();
 }
 void IDialog::clearCapture() {
@@ -32,6 +50,10 @@ void IDialog::clearCapture() {
 
 void IDialog::StoreCapture() {
     prev_capture = GetCapturedWindow();
+}
+
+void IDialog::ModifyStoredCapture(window_t *capture) {
+    prev_capture = capture;
 }
 
 void create_blocking_dialog_from_normal_window(window_t &dlg) {

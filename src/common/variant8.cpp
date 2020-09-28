@@ -290,6 +290,8 @@ void variant8_set_usr8(variant8_t *v, uint8_t usr) {
 }
 
 void variant8_set_type(variant8_t *v, uint8_t type) {
+    if (type & VARIANT8_PTR)
+        type |= VARIANT8_PTR_OWNER;
     unpack(v)->type = type;
 }
 

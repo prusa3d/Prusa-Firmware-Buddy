@@ -23,7 +23,7 @@ const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
 
 LiveAdjustZ::LiveAdjustZ(Rect16 rect, is_closed_on_click_t outside_close)
-    : IDialog(rect)
+    : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
     , number(this, getNumberRect(), marlin_vars()->z_offset)
     , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
@@ -101,7 +101,7 @@ void LiveAdjustZ::moveNozzle() {
     nozzle_icon.Invalidate();
 }
 
-void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
         if (flag_close_on_click == is_closed_on_click_t::yes) {
@@ -121,7 +121,7 @@ void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) 
         gui_invalidate();
         break;
     default:
-        IDialog::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 

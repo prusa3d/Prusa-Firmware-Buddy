@@ -117,7 +117,7 @@ void window_menu_t::Increment(int dif) {
 //I think I do not need
 //screen_dispatch_event
 //callback should handle it
-void window_menu_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     IWindowMenuItem *const item = GetActiveItem();
     if (!item)
         return;

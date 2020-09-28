@@ -19,7 +19,7 @@ extern const PhaseResponses Responses_RetryCancel;
 
 /*****************************************************************************/
 //MsgBoxBase
-class MsgBoxBase : public IDialog {
+class MsgBoxBase : public AddSuperWindow<IDialog> {
 protected:
     window_text_t text;
     RadioButton buttons;
@@ -31,14 +31,12 @@ public:
 
 protected:
     Rect16 getTextRect();
-
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 /*****************************************************************************/
 //MsgBoxTitled
-class MsgBoxTitled : public MsgBoxBase {
+class MsgBoxTitled : public AddSuperWindow<MsgBoxBase> {
     window_icon_t title_icon;
     window_text_t title;
 
@@ -58,7 +56,7 @@ protected:
 
 /*****************************************************************************/
 //MsgBoxIconned
-class MsgBoxIconned : public MsgBoxBase {
+class MsgBoxIconned : public AddSuperWindow<MsgBoxBase> {
     window_icon_t icon;
 
 public:

@@ -4,7 +4,7 @@
 #include "ScreenHandler.hpp"
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
-    : window_t(parent, rect, dialog)
+    : AddSuperWindow<window_t>(parent, rect, dialog)
     , first(nullptr)
     , last(nullptr) {
 
@@ -130,7 +130,7 @@ void window_frame_t::draw() {
     }
 }
 
-void window_frame_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
 

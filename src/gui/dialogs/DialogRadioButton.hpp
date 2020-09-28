@@ -8,8 +8,7 @@
 //responses are counted and stored into btn_count
 //if there is more labels than buttons, "additional buttons" are not acessible
 //if there is less labels than buttons, "remaining buttons" have no labels
-class RadioButton : public window_t {
-private:
+class RadioButton : public AddSuperWindow<window_t> {
     font_t *pfont;
     const PhaseResponses *responses;
     const PhaseTexts *texts;
@@ -42,7 +41,7 @@ public:
     void SetBtnIndex(uint8_t index) { mem_array_u08[1] = index < mem_array_u08[0] ? index : 0; }
     uint8_t GetBtnIndex() const { return mem_array_u08[1]; }
 
-private:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     virtual void unconditionalDraw() override;
 };

@@ -23,7 +23,7 @@ const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::C
 /*****************************************************************************/
 //MsgBoxBase
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
-    : IDialog(rect)
+    : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
     , buttons(this, get_radio_button_rect(rect), resp, labels)
     , result(Response::_none) {
@@ -41,7 +41,7 @@ Response MsgBoxBase::GetResult() {
 }
 
 //todo make radio button events behave like normal button
-void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
         result = buttons.Click();
@@ -56,7 +56,7 @@ void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
         gui_invalidate();
         break;
     default:
-        IDialog::WindowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 
@@ -64,7 +64,7 @@ void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, uint16_t title_icon_id_res)
-    : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline)
+    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
     , title_icon(this, title_icon_id_res, { rect.Left(), rect.Top() }, GuiDefaults::Padding)
     , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
@@ -113,7 +113,7 @@ void MsgBoxTitled::unconditionalDraw() {
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, uint16_t icon_id_res)
-    : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline)
+    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
     , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
     icon.rect -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
