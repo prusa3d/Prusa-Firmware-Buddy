@@ -143,7 +143,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
         /// fill borders (padding)
         fill_between_rectangles(&rc, &rc_txt, clr0);
         /// 2nd pass reading the string_view_utf8 - draw the text
-        render_text(rc_txt, text, font, clr0, clr1);
+        render_text(rc_txt, text, font, clr0, clr1, 0);
         return;
     }
 
