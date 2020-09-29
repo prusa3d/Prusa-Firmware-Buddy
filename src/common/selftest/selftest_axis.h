@@ -7,6 +7,10 @@
 typedef struct _selftest_axis_config_t {
     const char *partname;
     uint8_t axis;
+    uint8_t steps;
+    int8_t dir;
+    float length;
+    const float *fr_table;
 } selftest_axis_config_t;
 
 class CSelftestPart_Axis : public CSelftestPart {
@@ -15,14 +19,13 @@ public:
         spsIdle,
         spsStart,
         spsWaitHome,
+        spsMoveFwd,
+        spsWaitFwd,
+        spsMoveRev,
+        spsWaitRev,
         spsFinish,
         spsFinished,
         spsAborted,
-    };
-    enum HomeState : uint8_t {
-        hsNone,
-        hsHommingInProgress,
-        hsHommingFinished,
     };
 
 public:
@@ -36,16 +39,18 @@ public:
     virtual bool Loop() override;
     virtual bool Abort() override;
 
-public:
-    static void ResetHome();
+protected:
+    void phaseMove(int8_t dir);
+    bool phaseWait(int8_t dir);
 
 protected:
     bool next();
-    uint32_t estimate(const selftest_axis_config_t *pconfig);
+    static uint32_t estimate(const selftest_axis_config_t *pconfig);
 
 protected:
     TestState m_State;
     const selftest_axis_config_t *m_pConfig;
     uint32_t m_Time;
-    static HomeState m_Home;
+    uint8_t m_Step;
+    uint32_t m_StartPos_usteps;
 };

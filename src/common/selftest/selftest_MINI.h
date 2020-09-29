@@ -14,14 +14,20 @@ class CSelftestPart_Axis;
 class CSelftestPart_Heater;
 class FSM_Holder;
 
+typedef struct _selftest_fan_config_t selftest_fan_config_t;
+typedef struct _selftest_axis_config_t selftest_axis_config_t;
+typedef struct _selftest_heater_config_t selftest_heater_config_t;
+
 typedef enum {
     stsIdle,
     stsStart,
     stsFans,
+    stsHome,
     stsXAxis,
     stsYAxis,
     stsZAxis,
     stsHeaters,
+    stsFans_fine,
     stsFinish,
     stsFinished,
     //	stsAbort,
@@ -29,16 +35,23 @@ typedef enum {
 } SelftestState_t;
 
 typedef enum {
-    //	Start,
     stmNone = 0,
     stmFans = (1 << stsFans),
+    stmHome = (1 << stsHome),
     stmXAxis = (1 << stsXAxis),
     stmYAxis = (1 << stsYAxis),
     stmZAxis = (1 << stsZAxis),
     stmXYZAxis = (stmXAxis | stmYAxis | stmZAxis),
     stmHeaters = (1 << stsHeaters),
     stmAll = (stmFans | stmXYZAxis | stmHeaters),
+    stmFans_fine = (1 << stsFans_fine),
 } SelftestMask_t;
+
+typedef enum _SelftestHomeState_t : uint8_t {
+    sthsNone,
+    sthsHommingInProgress,
+    sthsHommingFinished,
+} SelftestHomeState_t;
 
 // class representing whole self-test
 class CSelftest {
@@ -57,6 +70,14 @@ public:
     bool Start(SelftestMask_t mask);
     void Loop();
     bool Abort();
+
+protected:
+    void phaseStart();
+    bool phaseFans(const selftest_fan_config_t *pconfig_fan0, const selftest_fan_config_t *pconfig_fan1);
+    bool phaseHome();
+    bool phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase);
+    bool phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, const selftest_heater_config_t *pconfig_bed);
+    void phaseFinish();
 
 protected:
     void next();
@@ -79,6 +100,7 @@ protected:
     FSM_Holder *m_pFSM;
     FIL m_fil;
     bool m_filIsValid;
+    SelftestHomeState_t m_HomeState;
 };
 
 enum TestResult_t : uint8_t {

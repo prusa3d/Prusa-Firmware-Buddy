@@ -59,11 +59,10 @@ bool CSelftestPart_Fan::Loop() {
             return true;
         }
         Selftest.log_printf("%s at %u%% PWM = %u RPM\n", m_pConfig->partname, m_pConfig->pfanctl->getPWM(), m_SampleSum / m_SampleCount);
-        if (m_Step < m_pConfig->pwm_steps) {
+        if (++m_Step < m_pConfig->steps) {
             m_pConfig->pfanctl->setPWM(m_pConfig->pfanctl->getPWM() + m_pConfig->pwm_step);
             m_Time = Selftest.m_Time;
             m_State = spsWait_rpm;
-            m_Step++;
             return true;
         }
         break;
@@ -95,6 +94,6 @@ bool CSelftestPart_Fan::next() {
 }
 
 uint32_t CSelftestPart_Fan::estimate(const selftest_fan_config_t *pconfig) {
-    uint32_t total_time = FANTEST_STOP_DELAY + pconfig->pwm_steps * (FANTEST_WAIT_DELAY + FANTEST_MEASURE_DELAY);
+    uint32_t total_time = FANTEST_STOP_DELAY + pconfig->steps * (FANTEST_WAIT_DELAY + FANTEST_MEASURE_DELAY);
     return total_time;
 }
