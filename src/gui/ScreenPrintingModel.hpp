@@ -12,9 +12,9 @@ struct btn_resource {
     const char *txt;
 };
 
-static constexpr btn_resource res_tune = { IDR_PNG_menu_icon_settings, N_("Tune") };
-static constexpr btn_resource res_pause = { IDR_PNG_menu_icon_pause, (const char *)(N_("Pause")) };
-static constexpr btn_resource res_stop = { IDR_PNG_menu_icon_stop, N_("Stop") };
+static constexpr btn_resource res_tune = { IDR_PNG_settings_58px, N_("Tune") };
+static constexpr btn_resource res_pause = { IDR_PNG_pause_58px, (const char *)(N_("Pause")) };
+static constexpr btn_resource res_stop = { IDR_PNG_stop_58px, N_("Stop") };
 
 class ScreenPrintingModel : public AddSuperWindow<IScreenPrinting> {
 protected:

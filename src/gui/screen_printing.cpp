@@ -25,15 +25,15 @@ enum class Btn {
 };
 
 const uint16_t printing_icons[static_cast<size_t>(item_id_t::count)] = {
-    IDR_PNG_menu_icon_settings,
-    IDR_PNG_menu_icon_pause,
-    IDR_PNG_menu_icon_pause, //same as pause
-    IDR_PNG_menu_icon_stop,
-    IDR_PNG_menu_icon_resume,
-    IDR_PNG_menu_icon_resume,
-    IDR_PNG_menu_icon_resume, //reheating is same as resume, bud disabled
-    IDR_PNG_menu_icon_reprint,
-    IDR_PNG_menu_icon_home,
+    IDR_PNG_settings_58px,
+    IDR_PNG_pause_58px,
+    IDR_PNG_pause_58px, //same as pause
+    IDR_PNG_stop_58px,
+    IDR_PNG_resume_48px,
+    IDR_PNG_resume_48px,
+    IDR_PNG_resume_48px, //reheating is same as resume, bud disabled
+    IDR_PNG_reprint_48px,
+    IDR_PNG_home_58px,
 };
 
 const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {

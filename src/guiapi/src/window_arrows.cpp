@@ -6,10 +6,10 @@
 #include "resource.h"
 
 /// must be same size
-const uint16_t WindowArrows::id_res_grey_up = IDR_PNG_arrow_up;
-const uint16_t WindowArrows::id_res_grey_down = IDR_PNG_arrow_down;
-const uint16_t WindowArrows::id_res_orange_up = IDR_PNG_arrow_up_orange;
-const uint16_t WindowArrows::id_res_orange_down = IDR_PNG_arrow_down_orange;
+const uint16_t WindowArrows::id_res_grey_up = IDR_PNG_arrow_up_8px;
+const uint16_t WindowArrows::id_res_grey_down = IDR_PNG_arrow_down_8px;
+const uint16_t WindowArrows::id_res_orange_up = IDR_PNG_arrow_up_orange_8px;
+const uint16_t WindowArrows::id_res_orange_down = IDR_PNG_arrow_down_orange_8px;
 
 /// Icon rect is increased by padding, icon is centered inside it
 WindowArrows::WindowArrows(window_t *parent, point_i16_t pt, padding_ui8_t padding)

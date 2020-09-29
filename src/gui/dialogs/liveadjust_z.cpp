@@ -98,7 +98,7 @@ WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
     , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
-    , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
+    , nozzle_icon(this, getNozzleRect(), IDR_PNG_nozzle_shape_48px)
     , bed(this, Rect16(70, 180, 100, 10))
     , adjuster(this, { 75, 205 }) {
 

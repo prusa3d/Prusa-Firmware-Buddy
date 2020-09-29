@@ -112,11 +112,11 @@
                                       "calibration now. It will "
                                       "take approximately "
                                       "12 minutes."),
-                        MSGBOX_BTN_NEXT, IDR_PNG_icon_pepa);
+                        MSGBOX_BTN_NEXT, IDR_PNG_pepa_64px);
                 else // do not run XYZ
                     wizard_msgbox(_(
                                       "All tests finished successfully!"),
-                        MSGBOX_BTN_DONE, IDR_PNG_icon_pepa);
+                        MSGBOX_BTN_DONE, IDR_PNG_pepa_64px);
                 pd->state = _STATE_XYZCALIB_INIT;
                 break;
             case _STATE_SELFTEST_FAIL:
@@ -208,7 +208,7 @@
                                   "XYZ calibration is ok. "
                                   "XY axes are "
                                   "perpendicular."),
-                    MSGBOX_BTN_NEXT, IDR_PNG_icon_pepa);
+                    MSGBOX_BTN_NEXT, IDR_PNG_pepa_64px);
                 pd->state = _STATE_FIRSTLAY_INIT;
                 break;
             case _STATE_XYZCALIB_FAIL:
@@ -218,6 +218,150 @@
                     MSGBOX_BTN_DONE, 0);
                 Screens::Access()->Close();
                 break;
+<<<<<<< HEAD
+=======
+            case _STATE_FIRSTLAY_INIT: {
+                pd->state = _STATE_FIRSTLAY_LOAD;
+                pd->frame_footer.Show();
+                FILAMENT_t filament = get_filament();
+                if (filament == FILAMENT_NONE || fs_get_state() == NoFilament)
+                    filament = FILAMENT_PLA;
+                wizard_init(filaments[filament].nozzle, filaments[filament].heatbed);
+                p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
+            } break;
+            case _STATE_FIRSTLAY_LOAD:
+                p_firstlay_screen->load_unload_state = wizard_load_unload(p_firstlay_screen->load_unload_state);
+                if (p_firstlay_screen->load_unload_state == LD_UNLD_DONE)
+                    pd->state = _STATE_FIRSTLAY_MSBX_CALIB;
+                break;
+            case _STATE_FIRSTLAY_MSBX_CALIB: {
+                wizard_msgbox(_(
+                                  "Now, let's calibrate\n"
+                                  "the distance       \n"
+                                  "between the tip    \n"
+                                  "of the nozzle and  \n"
+                                  "the print sheet.   "),
+                    MSGBOX_BTN_NEXT, 0);
+
+                //show dialog only when values are not equal
+                float diff = vars->z_offset - z_offset_def;
+                if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
+                    char buff[20 * 7];
+                    {
+                        char fmt[20 * 7];
+                        // c=20 r=6
+                        static const char fmt2Translate[] = N_("Do you want to use\n"
+                                                               "the current value?\n"
+                                                               "Current: %0.3f.   \n"
+                                                               "Default: %0.3f.   \n"
+                                                               "Click NO to use the default value (recommended)");
+                        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+                        snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)vars->z_offset, (double)z_offset_def);
+                    }
+                    if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
+                        marlin_set_z_offset(z_offset_def);
+                        eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));
+                    }
+                }
+
+                pd->state = _STATE_FIRSTLAY_MSBX_START_PRINT;
+            } break;
+            case _STATE_FIRSTLAY_MSBX_START_PRINT:
+                wizard_msgbox(
+                    //					"Observe the pattern\n"
+                    //					"and turn the knob \n"
+                    //					"to adjust the     \n"
+                    //					"nozzle height in  \n"
+                    //					"real time.        \n"
+                    //					"Extruded plastic  \n"
+                    //					"must stick to     \n"
+                    //					"the print surface."
+                    _("In the next step, \n"
+                      "use the knob to   \n"
+                      "adjust the nozzle \n"
+                      "height.           \n"
+                      "Check the pictures\n"
+                      "in the handbook   \n"
+                      "for reference.")
+
+                        ,
+                    MSGBOX_BTN_NEXT, 0);
+                pd->state = _STATE_FIRSTLAY_PRINT;
+                break;
+            case _STATE_FIRSTLAY_PRINT:
+                if (wizard_firstlay_print(frame_id, p_firstlay_screen, p_firstlay_data, vars->z_offset) == 100)
+                    pd->state = p_firstlay_data->state_print == _TEST_PASSED ? _STATE_FIRSTLAY_MSBX_REPEAT_PRINT : _STATE_FIRSTLAY_FAIL;
+                break;
+            case _STATE_FIRSTLAY_MSBX_REPEAT_PRINT:
+                if (wizard_msgbox(_(
+                                      "Do you want to     \n"
+                                      "repeat the last    \n"
+                                      "step and readjust  \n"
+                                      "the distance       \n"
+                                      "between the nozzle \n"
+                                      "and heatbed?"),
+                        MSGBOX_BTN_YESNO | MSGBOX_DEF_BUTTON1, 0)
+                    == MSGBOX_RES_NO) {
+                    pd->state = _STATE_FINISH;
+                    marlin_set_z_offset(p_firstlay_screen->Z_offset);
+                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(p_firstlay_screen->Z_offset));
+                    eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
+                    wizard_done_screen(screen);
+                } else {
+                    wizard_msgbox(_("Clean steel sheet."), MSGBOX_BTN_NEXT, 0);
+
+                    pd->state = _STATE_FIRSTLAY_PRINT;
+                    pd->firstlay.state_print = _TEST_START;
+
+                    float z_val_to_store = p_firstlay_screen->Z_offset;
+                    //show dialog only when values are not equal
+                    float diff = z_val_to_store - z_offset_def;
+                    if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
+                        char buff[20 * 7];
+                        {
+                            char fmt[20 * 7];
+                            // c=20 r=6
+                            static const char fmt2Translate[] = N_("Do you want to use last set value? "
+                                                                   "Last:  %0.3f.   "
+                                                                   "Default: %0.3f.   "
+                                                                   "Click NO to use default value.");
+                            _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+                            snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)p_firstlay_screen->Z_offset, (double)z_offset_def);
+                        }
+                        if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
+                            z_val_to_store = z_offset_def;
+                        }
+                    }
+                    marlin_set_z_offset(z_val_to_store);
+                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_val_to_store));
+                }
+                break;
+            case _STATE_FIRSTLAY_FAIL:
+                wizard_msgbox(_(
+                                  "The first layer calibration failed to finish. "
+                                  "Double-check the printer's wiring, nozzle and axes, then restart the calibration."),
+                    MSGBOX_BTN_DONE, 0);
+                Screens::Access()->Close();
+                break;
+            case _STATE_FINISH:
+                wizard_msgbox(_(
+                                  "Calibration successful!\n"
+                                  "Happy printing!"),
+                    MSGBOX_BTN_DONE, IDR_PNG_pepa_64px);
+                Screens::Access()->Close();
+                break;
+            default:
+                Screens::Access()->Close();
+                break;
+            }
+            inside_handler = 0;
+        }
+    } else {
+    }
+    return 0;
+}
+
+>>>>>>> Improve icon naming
 #endif //#if 0
 
 void ScreenWizard::RunAll() {

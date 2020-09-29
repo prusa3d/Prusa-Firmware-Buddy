@@ -116,7 +116,7 @@ void wizard_init_screen_selftest_cool(int16_t id_body, selftest_cool_screen_t *p
     y += 35;
 
     window_create_ptr(WINDOW_CLS_ICON, id_body, Rect16(100, y, 40, 40), &(p_screen->icon_hourglass));
-    p_screen->icon_hourglass.SetIdRes(IDR_PNG_wizard_icon_hourglass);
+    p_screen->icon_hourglass.SetIdRes(IDR_PNG_hourglass_39px);
     */
 }
 

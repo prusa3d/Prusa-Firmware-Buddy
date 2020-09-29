@@ -261,7 +261,7 @@ void draw_error_screen(const uint16_t error_code_short) {
 
     /// draw "Scan me" arrow
     /// FIXME arrow overlaps with QR code (bad PNG)
-    render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me, COLOR_RED_ALERT, 0);
+    render_icon_align(Rect16(176, 160, 64, 82), IDR_PNG_arrow_scan_me_64px, COLOR_RED_ALERT, 0);
 
     /// draw QR
     char qr_text[MAX_LEN_4QR + 1];
@@ -373,8 +373,8 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     #ifdef PSOD_BSOD
     display::Clear(COLOR_BLACK); //clear with black color
-    //display::DrawIcon(point_ui16(75, 40), IDR_PNG_icon_pepa, COLOR_BLACK, 0);
-    display::DrawIcon(point_ui16(75, 40), IDR_PNG_icon_pepa_psod, COLOR_BLACK, 0);
+    //display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_64px, COLOR_BLACK, 0);
+    display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_140px, COLOR_BLACK, 0);
     display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
     #else
     display::Clear(COLOR_NAVY);           //clear with dark blue color
