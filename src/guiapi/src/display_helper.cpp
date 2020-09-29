@@ -152,7 +152,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     /// fill borders (padding)
     fill_between_rectangles(&rc, &rc_pad, clr0);
     /// 2nd pass reading the string_view_utf8 - draw the text
-    size_ui16_t s = render_text(rc_pad, text, font, clr0, clr1, RENDER_FLG_WORDB);
+    render_text(rc_pad, text, font, clr0, clr1, RENDER_FLG_WORDB);
 }
 
 void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, uint16_t flags) {
