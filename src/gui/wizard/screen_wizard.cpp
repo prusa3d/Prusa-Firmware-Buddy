@@ -10,7 +10,6 @@
 #include "eeprom.h"
 #include "filament_sensor.hpp"
 #include "i18n.h"
-#include "bsod.h"
 #include "RAII.hpp"
 #include "ScreenHandler.hpp"
 
@@ -244,6 +243,8 @@ ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
 uint64_t ScreenWizard::run_mask = WizardMaskAll();
 WizardState_t ScreenWizard::start_state = WizardState_t::START_first;
 
+bool ScreenWizard::is_config_invalid = true;
+
 ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
     ResultArray ret;
     ret.fill(WizardTestState_t::DISABLED); //not needed, just to be safe;
@@ -423,16 +424,12 @@ ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     ret[static_cast<size_t>(WizardState_t::FINISH)] = StateFnc_FINISH;
     ret[static_cast<size_t>(WizardState_t::EXIT)] = StateFnc_EXIT;
 
-#ifdef _DEBUG
-    //check if all states are assigned, hope it will be optimized out
+    is_config_invalid = false;
+    //check if all states are assigned
     for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
         if (ret[i] == nullptr) {
-            //bsod will not work, but it will cause freeze
-            //todo show bsod after display (spi) init
-            static const char en_text[] = N_("Wizard states invalid");
-            bsod(en_text);
+            is_config_invalid = true;
         }
     }
-#endif
     return ret;
 }
