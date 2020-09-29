@@ -4,29 +4,48 @@
 #include <inttypes.h>
 #include "selftest_MINI.h"
 
+typedef struct _selftest_axis_config_t {
+    const char *partname;
+    uint8_t axis;
+} selftest_axis_config_t;
 
 class CSelftestPart_Axis : public CSelftestPart {
 public:
-	enum TestState : uint8_t {
-		spsIdle,
-		spsStart,
-		spsFinish,
-		spsFinished,
-		spsAborted,
-	};
+    enum TestState : uint8_t {
+        spsIdle,
+        spsStart,
+        spsWaitHome,
+        spsFinish,
+        spsFinished,
+        spsAborted,
+    };
+    enum HomeState : uint8_t {
+        hsNone,
+        hsHommingInProgress,
+        hsHommingFinished,
+    };
+
 public:
-	CSelftestPart_Axis(uint8_t axis);
+    CSelftestPart_Axis(const selftest_axis_config_t *pconfig);
+
 public:
-	bool IsInProgress() const;
+    bool IsInProgress() const;
+
 public:
-	bool Start();
-	bool Loop();
-	bool Abort();
-	float GetProgress();
-	TestResult_t GetResult();
+    bool Start();
+    bool Loop();
+    bool Abort();
+
+public:
+    static void ResetHome();
+
 protected:
-	bool next();
+    bool next();
+    uint32_t estimate(const selftest_axis_config_t *pconfig);
+
 protected:
-	uint8_t m_Axis;
-	TestState m_State;
+    TestState m_State;
+    const selftest_axis_config_t *m_pConfig;
+    uint32_t m_Time;
+    static HomeState m_Home;
 };

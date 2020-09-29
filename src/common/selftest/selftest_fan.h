@@ -5,39 +5,47 @@
 #include "selftest_MINI.h"
 #include "fanctl.h"
 
+typedef struct _selftest_fan_config_t {
+    const char *partname;
+    CFanCtl *pfanctl;
+    int pwm_start;
+    int pwm_step;
+    int pwm_steps;
+} selftest_fan_config_t;
 
 class CSelftestPart_Fan : public CSelftestPart {
 public:
-	enum TestState : uint8_t {
-		spsIdle,
-		spsStart,
-		spsWait_stopped,
-		spsWait_rpm,
-		spsMeasure_rpm,
-		spsFinish,
-		spsFinished,
-		spsAborted,
-	};
+    enum TestState : uint8_t {
+        spsIdle,
+        spsStart,
+        spsWait_stopped,
+        spsWait_rpm,
+        spsMeasure_rpm,
+        spsFinish,
+        spsFinished,
+        spsAborted,
+    };
+
 public:
-	CSelftestPart_Fan(const char* partname, CFanCtl* pfanctl, int pwm_start, int pwm_step, int pwm_steps);
+    CSelftestPart_Fan(const selftest_fan_config_t *pconfig);
+
 public:
-	bool IsInProgress() const;
+    bool IsInProgress() const;
+
 public:
-	bool Start();
-	bool Loop();
-	bool Abort();
-	float GetProgress();
-	TestResult_t GetResult();
+    bool Start();
+    bool Loop();
+    bool Abort();
+
 protected:
-	bool next();
+    bool next();
+    static uint32_t estimate(const selftest_fan_config_t *pconfig);
+
 protected:
-	CFanCtl* m_pFanCtl;
-	TestState m_State;
-	uint32_t m_Time;
-	const char* m_Name;
-	uint8_t m_PWM_Start;
-	uint8_t m_PWM_Step;
-	uint8_t m_PWM_Steps;
+    TestState m_State;
+    const selftest_fan_config_t *m_pConfig;
+    uint32_t m_Time;
+    uint8_t m_Step;
     uint16_t m_SampleCount;
     uint32_t m_SampleSum;
 };

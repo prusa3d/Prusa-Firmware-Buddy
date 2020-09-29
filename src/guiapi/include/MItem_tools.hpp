@@ -75,11 +75,11 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_TEST_X : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test XY-Axis");
+class MI_TEST_XYZ : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test XYZ-Axis");
 
 public:
-    MI_TEST_X();
+    MI_TEST_XYZ();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

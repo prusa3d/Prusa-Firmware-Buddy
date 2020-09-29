@@ -105,12 +105,12 @@ void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
 
 /*****************************************************************************/
 //MI_TEST_X
-MI_TEST_X::MI_TEST_X()
+MI_TEST_XYZ::MI_TEST_XYZ()
     : WI_LABEL_t(label, 0, true, false) {
 }
 
-void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start(stmXAxis);
+void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmXYZAxis);
 }
 
 /*****************************************************************************/
