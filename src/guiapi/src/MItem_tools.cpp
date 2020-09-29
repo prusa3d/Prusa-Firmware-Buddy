@@ -426,8 +426,11 @@ MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
     value = get_fs_state();
 }
 
-void MI_FILAMENT_SENSOR_STATE::CheckValue() {
-    value = get_fs_state();
+bool MI_FILAMENT_SENSOR_STATE::StateChanged() {
+    int new_state = get_fs_state();
+    bool changed = (value != new_state);
+    value = new_state;
+    return changed;
 }
 
 MI_MINDA::MI_MINDA()

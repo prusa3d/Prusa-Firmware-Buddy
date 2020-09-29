@@ -368,7 +368,7 @@ class MI_FILAMENT_SENSOR_STATE : public WI_SPIN_I08_t {
 
 public:
     MI_FILAMENT_SENSOR_STATE();
-    void CheckValue();
+    bool StateChanged();
 };
 
 class MI_MINDA : public WI_SPIN_I08_t {

@@ -9,7 +9,7 @@ using Screen = ScreenMenu<EHeader::On, EFooter::On, HelpLines_None, MI_RETURN, M
 
 class ScreenMenuSensorInfo : public Screen {
 private:
-    int32_t last_refresh = 0;
+    uint8_t last_state = -1;
 
 public:
     constexpr static const char *label = N_("SENSOR INFO");
@@ -25,11 +25,8 @@ ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, uint8_t ev, void *param) {
     if (ev == WINDOW_EVENT_LOOP) {
-        Item<MI_FILAMENT_SENSOR_STATE>().CheckValue();
-        if (HAL_GetTick() - last_refresh > 100) {
+        if (Item<MI_FILAMENT_SENSOR_STATE>().StateChanged())
             Invalidate();
-            last_refresh = HAL_GetTick();
-        }
     }
 
     Screen::windowEvent(sender, ev, param);
