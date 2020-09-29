@@ -471,7 +471,7 @@ string_view_utf8 WizardGetCaption(WizardState_t st) {
     }
 
     if (IsStateInWizardMask(st, WizardMaskFirstLay())) {
-        return _("FIRST LAYER CALIB.");
+        return _("FIRST LAYER CAL.");
     }
 
     if (st == WizardState_t::FINISH) {
