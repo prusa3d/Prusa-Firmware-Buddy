@@ -45,9 +45,13 @@ enum class WizardState_t {
     XYZCALIB_last = XYZCALIB_FAIL,
 
     FIRSTLAY_first,
-    FIRSTLAY_INIT = FIRSTLAY_first,
-    FIRSTLAY_LOAD,
+    FIRSTLAY_FILAMENT_ASK = FIRSTLAY_first,
+    FIRSTLAY_FILAMENT_ASK_PREHEAT,
+    FIRSTLAY_FILAMENT_LOAD,
+    FIRSTLAY_FILAMENT_UNLOAD,
+    FIRSTLAY_FILAMENT_last = FIRSTLAY_FILAMENT_UNLOAD,
     FIRSTLAY_MSBX_CALIB,
+    FIRSTLAY_MSBX_USEVAL,
     FIRSTLAY_MSBX_START_PRINT,
     FIRSTLAY_PRINT,
     FIRSTLAY_MSBX_REPEAT_PRINT,
@@ -79,7 +83,7 @@ constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::
 constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_PASS has different message when it is combined with XYZCALIB
     return (WizardMaskSelfTest() | WizardMaskXYZCalib() | WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB)) & ~WizardMask(WizardState_t::SELFTEST_PASS);
 }
-constexpr uint64_t WizardMaskFirstLay() { return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMaskStart(); }
+constexpr uint64_t WizardMaskFirstLay() { return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) /* | WizardMaskStart()*/; }
 constexpr uint64_t WizardMaskAll() { return WizardMaskUpTo(WizardState_t::last); }
 
 enum class WizardTestState_t : uint8_t {

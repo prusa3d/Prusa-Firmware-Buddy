@@ -18,7 +18,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
-        Screens::Access()->ScreenEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this);
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::CLICK, (void *)this);
     }
 };
 
@@ -31,11 +31,13 @@ public:
     constexpr static const char *label = N_("TEMPERATURE");
     ScreenMenuTemperature()
         : Screen(_(label)) {}
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
-void ScreenMenuTemperature::windowEvent(window_t *sender, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK) {
+void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CLICK) {
         marlin_set_target_nozzle(0);
         marlin_set_display_nozzle(0);
         marlin_set_target_bed(0);
@@ -45,7 +47,7 @@ void ScreenMenuTemperature::windowEvent(window_t *sender, uint8_t event, void *p
         Item<MI_HEATBED>().ClrVal();
         Item<MI_PRINTFAN>().ClrVal();
     }
-    Screen::windowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuTemperature() {

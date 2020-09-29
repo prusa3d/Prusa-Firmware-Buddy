@@ -7,8 +7,7 @@
 #include "window.hpp"
 #include "display.h"
 
-struct window_frame_t : public window_t {
-    //todo implement pointer to last
+struct window_frame_t : public AddSuperWindow<window_t> {
     window_t *first;
     window_t *last;
     virtual void RegisterSubWin(window_t *win) override;
@@ -42,12 +41,15 @@ struct window_frame_t : public window_t {
     void SetOnSerialClose();
     void ClrOnSerialClose();
 
-    Rect16 GenerateRect(ShiftDir_t dir);
+    Rect16 GenerateRect(ShiftDir_t direction);
+    virtual void Shift(ShiftDir_t direction, uint16_t distance) override;
 
 protected:
     virtual void draw() override;
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
-    virtual void screenEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
+
+private:
     virtual void invalidate(Rect16 validation_rect = Rect16()) override;
     virtual void validate(Rect16 validation_rect = Rect16()) override;
 };

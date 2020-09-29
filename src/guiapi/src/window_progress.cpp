@@ -1,4 +1,4 @@
-// window_progress.c
+// window_progress.cpp
 #include "window_progress.hpp"
 #include "gui.hpp"
 #include <algorithm>
@@ -8,7 +8,7 @@ static const constexpr uint8_t WINDOW_PROGRESS_MAX_TEXT = 16;
 /*****************************************************************************/
 //window_numberless_progress_t
 window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back)
-    : window_t(parent, rect)
+    : AddSuperWindow<window_t>(parent, rect)
     , color_progress(cl_progress) {
     SetProgress(0);
     color_back = cl_back;
@@ -54,7 +54,7 @@ void window_progress_t::SetValue(float val) {
 }
 
 window_progress_t::window_progress_t(window_t *parent, Rect16 rect, uint16_t h_progr, color_t cl_progress, color_t cl_back)
-    : window_frame_t(parent, rect)
+    : AddSuperWindow<window_frame_t>(parent, rect)
     , progr(this, { rect.Left(), rect.Top(), rect.Width(), h_progr }, cl_progress, cl_back)
     , numb(this, { rect.Left(), int16_t(rect.Top() + h_progr), rect.Width(), uint16_t(rect.Height() - h_progr) })
     , min(0)

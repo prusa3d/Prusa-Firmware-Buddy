@@ -4,7 +4,7 @@
 #include "ScreenHandler.hpp"
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, is_dialog_t dialog, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
-    : window_t(parent, rect, dialog)
+    : AddSuperWindow<window_t>(parent, rect, dialog)
     , first(nullptr)
     , last(nullptr) {
 
@@ -130,18 +130,22 @@ void window_frame_t::draw() {
     }
 }
 
-void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
+    if (!pWin || !pWin->IsChildOf(this))
+        pWin = nullptr;
 
     switch (event) {
-    case WINDOW_EVENT_CLICK:
+    case GUI_event_t::CLICK:
         if (pWin) {
-            pWin->WindowEvent(this, WINDOW_EVENT_CLICK, nullptr);
+            pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);
             //pWin->SetCapture(); //item must do this - only some of them
+        } else {
+            //todo should not I resend event to super?
         }
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
             if (!pPrev) {
@@ -156,7 +160,7 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
             pWin->SetFocus();
         }
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
             if (!pNext) {
@@ -171,9 +175,9 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
             pWin->SetFocus();
         }
         break;
-    case WINDOW_EVENT_CAPT_0:
+    case GUI_event_t::CAPT_0:
         break;
-    case WINDOW_EVENT_CAPT_1:
+    case GUI_event_t::CAPT_1:
         if (pWin->GetParent() != this) {
             pWin = first;
             if (pWin && !pWin->IsEnabled())
@@ -182,17 +186,19 @@ void window_frame_t::windowEvent(window_t *sender, uint8_t event, void *param) {
                 pWin->SetFocus();
         }
         break;
+    default:
+        break;
     }
 }
 
 //resend event to all children
-void window_frame_t::screenEvent(window_t *sender, uint8_t ev, void *param) {
+void window_frame_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
     window_t *ptr = first;
     while (ptr) {
-        ptr->ScreenEvent(sender, ev, param);
+        ptr->ScreenEvent(sender, event, param);
         ptr = ptr->GetNext();
     }
-    windowEvent(this, ev, param);
+    WindowEvent(this, event, param);
 }
 
 //resend invalidation to all children
@@ -324,8 +330,18 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
     return GetNextEnabledSubWin(first, intersection_rect);
 }
 
-Rect16 window_frame_t::GenerateRect(ShiftDir_t dir) {
+Rect16 window_frame_t::GenerateRect(ShiftDir_t direction) {
     if (!last)
         return Rect16();
-    return Rect16(last->rect, dir);
+    return Rect16(last->rect, direction);
+}
+
+void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
+    window_t *pWin = first;
+    while (pWin) {
+        pWin->Shift(direction, distance);
+        pWin = GetNextSubWin(pWin);
+    }
+
+    super::Shift(direction, distance);
 }

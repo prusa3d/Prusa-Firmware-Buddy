@@ -22,58 +22,31 @@ const float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
 const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
 
-LiveAdjustZ::LiveAdjustZ(Rect16 rect, is_closed_on_click_t outside_close)
-    : IDialog(rect)
-    , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
-    , number(this, getNumberRect(), marlin_vars()->z_offset)
-    , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
-    , bed(this, Rect16(70, 180, 100, 10))
-    , arrows(this, { 155, 210 }) {
+/*****************************************************************************/
+//WindowLiveAdjustZ
 
-    /// using window_t 1bit flag
-    flag_close_on_click = outside_close;
+WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
+    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody) //calculate size later
+    , number(this, getNumberRect(pt), marlin_vars()->z_offset)
+    , arrows(this, getIconPoint(pt)) {
 
+    rect = number.rect.Union(arrows.rect);
     /// using window_numb to store float value of z_offset
     /// we have to set format and bigger font
     number.SetFont(GuiDefaults::FontBig);
     number.SetFormat("% .3f");
-
-    /// simple rectangle as bed with defined background color
-    bed.SetBackColor(COLOR_ORANGE);
-
-    /// title text
-    constexpr static const char *txt = N_("Adjust the nozzle height above the heatbed by turning the knob");
-    static const string_view_utf8 text_view = string_view_utf8::MakeCPUFLASH((const uint8_t *)(txt));
-    text.SetText(text_view);
-
-    /// set right position of the nozzle for our value
-    moveNozzle();
 }
 
-const Rect16 LiveAdjustZ::getTextRect() {
-    return Rect16(0, 32, 240, 60);
-}
-
-const Rect16 LiveAdjustZ::getNumberRect() {
-    return Rect16(75, 205, 80, 25);
-}
-
-const Rect16 LiveAdjustZ::getNozzleRect() {
-    return Rect16(120 - 24, 120, 48, 48);
-}
-
-void LiveAdjustZ::SaveAndClose() {
+void WindowLiveAdjustZ::Save() {
     /// store new z offset value into a marlin_vars & EEPROM
     variant8_t var = variant8_flt(number.GetValue());
     eeprom_set_var(EEVAR_ZOFFSET, var);
     marlin_set_var(MARLIN_VAR_Z_OFFSET, var);
     /// force update marlin vars
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
-    /// value is stored in Marlin and EEPROM, let's close the screen
-    Screens::Access()->Close();
 }
 
-void LiveAdjustZ::Change(int dif) {
+void WindowLiveAdjustZ::Change(int dif) {
     float old = number.GetValue();
     float z_offset = number.value;
 
@@ -88,45 +61,104 @@ void LiveAdjustZ::Change(int dif) {
         number.SetValue(z_offset);
         marlin_do_babysteps_Z(baby_step);
     }
-
-    /// move nozzle image by set offset
-    moveNozzle();
 }
 
-void LiveAdjustZ::moveNozzle() {
-    float percent = number.GetValue() / z_offset_min;
-    Rect16 moved_rect = getNozzleRect();
-    moved_rect += Rect16::Top_t(int(10 * percent));
-    nozzle_icon.rect = moved_rect;
-    nozzle_icon.Invalidate();
-}
-
-void LiveAdjustZ::windowEvent(window_t *sender, uint8_t event, void *param) {
+void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK:
-        if (flag_close_on_click == is_closed_on_click_t::yes) {
-            SaveAndClose();
-        }
-        break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         Change(1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::up);
         gui_invalidate();
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         Change(-1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::down);
         gui_invalidate();
         break;
     default:
-        IDialog::windowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
+    }
+}
+
+/*****************************************************************************/
+//WindowLiveAdjustZ_withText
+WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width)
+    : AddSuperWindow<WindowLiveAdjustZ>(parent, pt)
+    , text(parent, Rect16(), is_multiline::no, is_closed_on_click_t::no, _(text_str)) {
+    Shift(ShiftDir_t::Right, width - rect.Width());
+    text.rect = Rect16(pt, width - rect.Width(), rect.Height());
+    rect = rect.Union(text.rect);
+}
+
+/*****************************************************************************/
+//LiveAdjustZ
+
+LiveAdjustZ::LiveAdjustZ()
+    : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
+    , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
+    , nozzle_icon(this, getNozzleRect(), IDR_PNG_big_nozzle)
+    , bed(this, Rect16(70, 180, 100, 10))
+    , adjuster(this, { 75, 205 }) {
+
+    /// using window_t 1bit flag
+    flag_close_on_click = is_closed_on_click_t::yes;
+
+    /// simple rectangle as bed with defined background color
+    bed.SetBackColor(COLOR_ORANGE);
+
+    /// title text
+    constexpr static const char *txt = N_("Adjust the nozzle height above the heatbed by turning the knob");
+    static const string_view_utf8 text_view = _(txt);
+    text.SetText(text_view);
+
+    /// set right position of the nozzle for our value
+    moveNozzle();
+}
+
+const Rect16 LiveAdjustZ::getTextRect() {
+    return Rect16(0, 32, 240, 60);
+}
+
+const Rect16 LiveAdjustZ::getNozzleRect() {
+    return Rect16(120 - 24, 120, 48, 48);
+}
+
+void LiveAdjustZ::moveNozzle() {
+    float percent = adjuster.GetValue() / z_offset_min;
+    Rect16 moved_rect = getNozzleRect();
+    moved_rect += Rect16::Top_t(int(10 * percent));
+    nozzle_icon.rect = moved_rect;
+    nozzle_icon.Invalidate();
+}
+
+void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    switch (event) {
+    case GUI_event_t::ENC_UP:
+    case GUI_event_t::ENC_DN:
+        adjuster.WindowEvent(sender, event, param);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
+        moveNozzle();
+        gui_invalidate();
+        break;
+    case GUI_event_t::CLICK:
+        /// has set is_closed_on_click_t
+        /// destructor of WindowLiveAdjustZ stores new z offset value into a marlin_vars & EEPROM
+        /// todo
+        /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
+        /// so CLICK could be left unhandled here
+        /// but there is a problem with focus !!!parrent window of this dialog has it!!!
+        if (flag_close_on_click == is_closed_on_click_t::yes)
+            Screens::Access()->Close();
+        break;
+    default:
+        SuperWindowEvent(sender, event, param);
     }
 }
 
 /// static
-void LiveAdjustZ::Open(Rect16 rect, is_closed_on_click_t outside_close) {
-    LiveAdjustZ liveadjust(rect, outside_close);
+void LiveAdjustZ::Open() {
+    LiveAdjustZ liveadjust;
     liveadjust.MakeBlocking();
 }

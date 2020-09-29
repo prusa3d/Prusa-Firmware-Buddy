@@ -20,7 +20,7 @@ enum class mesh_state_t : uint8_t {
     meshed
 };
 
-struct screen_mesh_bed_lv_data_t : public window_frame_t {
+struct screen_mesh_bed_lv_data_t : public AddSuperWindow<window_frame_t> {
     status_footer_t footer;
     window_text_t textMenuName;
     window_text_button_t btMesh;
@@ -33,9 +33,10 @@ struct screen_mesh_bed_lv_data_t : public window_frame_t {
 public:
     screen_mesh_bed_lv_data_t();
 
-private:
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
+private:
     void gui_state_mesh_off();
     void gui_state_mesh_on();
 };

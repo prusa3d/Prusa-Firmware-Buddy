@@ -16,7 +16,7 @@ static uint16_t get_help_h(size_t helper_lines, uint32_t font_id) {
 }
 
 IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, Rect16 menu_item_rect, EFooter FOOTER, size_t helper_lines, uint32_t font_id)
-    : window_frame_t(parent, GuiDefaults::RectScreen, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
+    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreen, parent != nullptr ? is_dialog_t::yes : is_dialog_t::no)
     , menu(this, menu_item_rect, nullptr)
     , header(this)
     , help(this, helper_lines > 0 ? Rect16(win_x, win_h - (FOOTER == EFooter::On ? footer_h : 0) - get_help_h(helper_lines, font_id), win_w, get_help_h(helper_lines, font_id)) : Rect16(0, 0, 0, 0), is_multiline::yes)
@@ -54,10 +54,10 @@ IScreenMenu::~IScreenMenu() {
         window_t::ResetCapturedWindow(); // set window_t::capture_ptr to null
 }
 
-void IScreenMenu::windowEvent(window_t *sender, uint8_t event, void *param) {
+void IScreenMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     header.EventClr();
-    window_frame_t::windowEvent(sender, event, param);
-    /*if ((event == WINDOW_EVENT_ENC_DN) || (event == WINDOW_EVENT_ENC_UP)) { // hack because we want prevent redrawing header/footer to prevent blinking
+    SuperWindowEvent(sender, event, param);
+    /*if ((event == GUI_event_t::ENC_DN) || (event == GUI_event_t::ENC_UP)) { // hack because we want prevent redrawing header/footer to prevent blinking
         header.Validate();
         footer.Validate();
     }*/

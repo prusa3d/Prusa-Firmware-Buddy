@@ -36,7 +36,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CHILD_CLICK, (void *)profile_action::Select);
+        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Select);
     }
 };
 
@@ -49,7 +49,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CHILD_CLICK, (void *)profile_action::Calibrate);
+        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Calibrate);
     }
 };
 
@@ -62,7 +62,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CHILD_CLICK, (void *)profile_action::Rename);
+        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Rename);
     }
 };
 
@@ -75,7 +75,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CHILD_CLICK, (void *)profile_action::Reset);
+        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Reset);
     }
 };
 
@@ -97,10 +97,10 @@ public:
             Item<MI_SHEET_RESET>().Disable();
     }
 
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override {
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t ev, void *param) override {
         SERIAL_ECHOLN("SheetProfile::event");
-        if (ev != WINDOW_EVENT_CHILD_CLICK) {
-            SheetProfileMenuScreen::windowEvent(sender, ev, param);
+        if (ev != GUI_event_t::CHILD_CLICK) {
+            SuperWindowEvent(sender, ev, param);
             return;
         }
         profile_action action = static_cast<profile_action>((uint32_t)param);

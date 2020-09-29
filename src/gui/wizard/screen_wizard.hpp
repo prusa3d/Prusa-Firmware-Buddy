@@ -8,7 +8,7 @@
 
 string_view_utf8 WizardGetCaption(WizardState_t st); //todo constexpr
 
-class ScreenWizard : public window_frame_t {
+class ScreenWizard : public AddSuperWindow<window_frame_t> {
     window_header_t header;
     status_footer_t footer;
 
@@ -26,11 +26,13 @@ class ScreenWizard : public window_frame_t {
     bool loopInProgress;
 
     static uint64_t run_mask;
+    static WizardState_t start_state;
 
 protected:
-    void windowEvent(window_t *sender, uint8_t event, void *param) override;
+    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 public:
+    static void ChangeStartState(WizardState_t state) { start_state = state; }
     ScreenWizard();
     ~ScreenWizard();
 

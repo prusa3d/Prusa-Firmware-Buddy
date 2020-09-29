@@ -110,18 +110,18 @@ uint32_t gui_timers_cycle(void) {
                 if (delay <= diff) {
                     switch (gui_timers[id].f_timer) {
                     case GUI_TIMER_1SHT:
-                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, GUI_event_t::TIMER, (void *)(int)id);
                         gui_timers[id].delay = 0;
                         break;
                     case GUI_TIMER_PERI:
-                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, GUI_event_t::TIMER, (void *)(int)id);
                         gui_timers[id].start += delay;
                         break;
                     case GUI_MENU_TIMEOUT:
                         gui_timers[id].delay = 0;
                         break;
                     case GUI_TIMER_TXTROLL:
-                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, WINDOW_EVENT_TIMER, (void *)(int)id);
+                        Screens::Access()->ScreenEvent(gui_timers[id].pWin, GUI_event_t::TIMER, (void *)(int)id);
                         gui_timers[id].start = tick;
                         break;
                     }

@@ -10,7 +10,7 @@
 /*****************************************************************************/
 // clang-format off
 const PhaseResponses Responses_NONE             = { Response::_none, Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_NEXT             = { Response::Next,  Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_Next             = { Response::Next,  Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
 const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
@@ -23,7 +23,7 @@ const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::C
 /*****************************************************************************/
 //MsgBoxBase
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
-    : IDialog(rect)
+    : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
     , buttons(this, get_radio_button_size(rect), resp, labels)
     , result(Response::_none) {
@@ -41,22 +41,22 @@ Response MsgBoxBase::GetResult() {
 }
 
 //todo make radio button events behave like normal button
-void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
+void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK:
+    case GUI_event_t::CLICK:
         result = buttons.Click();
         Screens::Access()->Close();
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         ++buttons;
         gui_invalidate();
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         --buttons;
         gui_invalidate();
         break;
     default:
-        IDialog::windowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 
@@ -64,7 +64,7 @@ void MsgBoxBase::windowEvent(window_t *sender, uint8_t event, void *param) {
 //MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, uint16_t title_icon_id_res)
-    : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline)
+    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
     , title_icon(this, title_icon_id_res, { rect.Left(), rect.Top() }, GuiDefaults::Padding)
     , title(this, getTitleRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     text.rect = getTitledTextRect(); // reinit text, icon and title must be initialized
@@ -113,7 +113,7 @@ void MsgBoxTitled::unconditionalDraw() {
 //MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, uint16_t icon_id_res)
-    : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline)
+    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline)
     , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
     icon.rect -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);

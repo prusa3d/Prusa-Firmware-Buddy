@@ -496,6 +496,7 @@ target_sources(
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
           src/marlin_stubs/M50.cpp
           src/marlin_stubs/M876.cpp
+          src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
           src/marlin_stubs/gcode.cpp
           src/marlin_stubs/pause/G27.cpp
@@ -540,6 +541,7 @@ if(GUI)
             src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
+            src/gui/window_print_progress.cpp
             src/gui/window_file_list.cpp
             src/gui/window_temp_graph.cpp
             src/gui/screen_menu_settings.cpp
@@ -574,7 +576,6 @@ if(GUI)
             src/gui/wizard/selftest_cool.cpp
             src/gui/wizard/selftest.cpp
             src/gui/wizard/firstlay.cpp
-            src/gui/wizard/wizard_load_unload.cpp
             src/gui/wizard/screen_wizard.cpp
             src/gui/wizard/xyzcalib.cpp
             src/gui/screen_home.cpp
@@ -583,6 +584,8 @@ if(GUI)
             src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
             src/gui/IScreenPrinting.cpp
+            src/gui/ScreenFirstLayer.cpp
+            src/gui/ScreenPrintingModel.cpp
             src/gui/screen_printing.cpp
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp

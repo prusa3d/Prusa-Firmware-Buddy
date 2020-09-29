@@ -10,26 +10,27 @@ Rect16::Rect16(point_i16_t p0, point_i16_t p1)
     height_ = p1.y - top_left_.y + 1;
 }
 
-Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction)
-    : Rect16(rect, direction,
-        [=] {
-            uint16_t distance;
-            switch (direction) {
+uint16_t Rect16::CalculateShift(ShiftDir_t direction) const {
+    uint16_t distance;
+    switch (direction) {
 
-            case ShiftDir_t::Left:
-            case ShiftDir_t::Right:
-                distance = rect.Width();
-                break;
-            case ShiftDir_t::Top:
-            case ShiftDir_t::Bottom:
-                distance = rect.Height();
-                break;
-            default:
-                distance = 0;
-                break;
-            }
-            return distance;
-        }()) {
+    case ShiftDir_t::Left:
+    case ShiftDir_t::Right:
+        distance = Width();
+        break;
+    case ShiftDir_t::Top:
+    case ShiftDir_t::Bottom:
+        distance = Height();
+        break;
+    default:
+        distance = 0;
+        break;
+    }
+    return distance;
+}
+
+Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction)
+    : Rect16(rect, direction, rect.CalculateShift(direction)) {
 }
 
 Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance)

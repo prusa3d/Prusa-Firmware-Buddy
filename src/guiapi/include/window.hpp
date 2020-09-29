@@ -6,27 +6,7 @@
 #include "guitypes.hpp"
 #include "../../lang/string_view_utf8.hpp"
 #include "Rect16.h"
-
-//window events
-enum {
-    WINDOW_EVENT_BTN_DN = 1,   //button down
-    WINDOW_EVENT_BTN_UP,       //button up
-    WINDOW_EVENT_ENC_DN,       //encoder minus
-    WINDOW_EVENT_ENC_UP,       //encoder plus
-    WINDOW_EVENT_FOCUS0,       //focus lost
-    WINDOW_EVENT_FOCUS1,       //focus set
-    WINDOW_EVENT_CAPT_0,       //capture lost
-    WINDOW_EVENT_CAPT_1,       //capture set
-    WINDOW_EVENT_CLICK,        //clicked (tag > 0)
-    WINDOW_EVENT_DOUBLE_CLICK, // double-clicked
-    WINDOW_EVENT_HOLD,         // held button
-    WINDOW_EVENT_CHANGE,       //value/index changed (tag > 0)
-    WINDOW_EVENT_CHANGING,     //value/index changing (tag > 0)
-    WINDOW_EVENT_LOOP,         //gui loop (every 50ms)
-    WINDOW_EVENT_TIMER,        //gui timer
-    WINDOW_EVENT_MESSAGE,      //onStatusChange() message notification
-    WINDOW_EVENT_CHILD_CLICK   //click at the child screen
-};
+#include "window_event.hpp"
 
 using ButtonCallback = std::function<void()>;
 
@@ -85,7 +65,6 @@ public:
     Rect16 rect; // (8 bytes) display rectangle
     color_t color_back;
 
-public:
     void SetNext(window_t *nxt);
     void SetParent(window_t *par);
     window_t *GetNext() const;
@@ -93,9 +72,9 @@ public:
     window_t *GetParent() const;
     bool IsChildOf(window_t *win) const;
     void Draw();
-    void ScreenEvent(window_t *sender, uint8_t event, void *param); //try to handle, frame resends children
-    void WindowEvent(window_t *sender, uint8_t event, void *param); //try to handle, can sent click to parent
-    bool IsVisible() const;                                         // visible and not hidden by dialog
+    void ScreenEvent(window_t *sender, GUI_event_t event, void *param); //try to handle, frame resends children
+    void WindowEvent(window_t *sender, GUI_event_t event, void *param); //try to handle, can sent click to parent
+    bool IsVisible() const;                                             // visible and not hidden by dialog
     bool IsHiddenBehindDialog() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
@@ -126,15 +105,20 @@ public:
 
     virtual void RegisterSubWin(window_t *win);
     virtual void UnregisterSubWin(window_t *win) {} //meant for dialogs, remove this window from frame
+
+    void ShiftNextTo(ShiftDir_t direction);
+    virtual void Shift(ShiftDir_t direction, uint16_t distance);
+
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param);
-    virtual void screenEvent(window_t *sender, uint8_t event, void *param);
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param);
+
+private:
     virtual void invalidate(Rect16 validation_rect);
     virtual void validate(Rect16 validation_rect);
 
-private:
     static window_t *focused_ptr; // has focus
     static window_t *capture_ptr; // capture jog events
 
@@ -146,10 +130,25 @@ public:
     static void ResetFocusedWindow();
 };
 
+//all children of window_t and their children must use AddSuperWindow<parent_window> for inheritance
+template <class Base>
+struct AddSuperWindow : public Base {
+    template <class... T>
+    AddSuperWindow(T... args)
+        : Base(args...) {}
+
+protected:
+    typedef Base super;
+    void SuperWindowEvent(window_t *sender, GUI_event_t event, void *param) {
+        static const char txt[] = "WindowEvent via super";
+        super::windowEvent(EventLock(txt, sender, event), sender, event, param);
+    }
+};
+
 /*****************************************************************************/
 //window_aligned_t
 //uses window_t  mem_array_u08[0] to store alignment (saves RAM)
-struct window_aligned_t : public window_t {
+struct window_aligned_t : public AddSuperWindow<window_t> {
     window_aligned_t(window_t *parent, Rect16 rect, is_dialog_t dialog = is_dialog_t::no, is_closed_on_click_t close = is_closed_on_click_t::no);
     /// alignment constants are in guitypes.h
     uint8_t GetAlignment() const;

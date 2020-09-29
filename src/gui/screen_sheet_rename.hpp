@@ -10,7 +10,7 @@
 struct screen_sheet_rename_t : public window_frame_t {
     static void index(std::uint32_t);
     screen_sheet_rename_t();
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     static std::uint32_t index_;
 
 private:

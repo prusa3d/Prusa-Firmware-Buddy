@@ -9,23 +9,25 @@ extern osThreadId displayTaskHandle;
 void window_spin_inc(window_spin_t *window, int dif);
 void window_spin_dec(window_spin_t *window, int dif);
 
-void window_spin_event(window_spin_t *window, uint8_t event, void *param) {
+void window_spin_event(window_spin_t *window, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK:
+    case GUI_event_t::CLICK:
         if (window->IsEnabled())
-            Screens::Access()->ScreenEvent((window_t *)window, WINDOW_EVENT_CHANGE, nullptr);
+            Screens::Access()->ScreenEvent((window_t *)window, GUI_event_t::CHANGE, nullptr);
         if (window->GetParent())
             window->GetParent()->SetCapture();
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         window_spin_dec(window, (int)param);
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         window_spin_inc(window, (int)param);
         break;
-    case WINDOW_EVENT_CAPT_0:
-    case WINDOW_EVENT_CAPT_1:
+    case GUI_event_t::CAPT_0:
+    case GUI_event_t::CAPT_1:
         window->Invalidate();
+        break;
+    default:
         break;
     }
 }

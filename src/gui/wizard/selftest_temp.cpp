@@ -10,7 +10,7 @@ StateFncData StateFnc_SELFTEST_INIT_TEMP(StateFncData last_run) {
         "not implemented");
     const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    MsgBox(notTranslatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
@@ -21,7 +21,7 @@ StateFncData StateFnc_SELFTEST_TEMP(StateFncData last_run) {
         "not implemented");
     const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
 
-    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    MsgBox(notTranslatedText, Responses_Next);
     return last_run.PassToNext();
 }
 

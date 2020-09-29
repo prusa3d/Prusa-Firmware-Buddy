@@ -503,13 +503,13 @@ void screen_test_disp_mem_draw(screen_t *screen) {
 }
 
 int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    if (event == WINDOW_EVENT_CLICK)
+    if (event == GUI_event_t::CLICK)
         switch ((int)param) {
         case TAG_QUIT:
             Screens::Access()->Close();
             return 1;
         }
-    if (event == WINDOW_EVENT_LOOP) {
+    if (event == GUI_event_t::LOOP) {
 
         isBrightness_ena_actual = pd->spinBrigt_ena.GetItemIndex();
         brightness_actual = pd->spinBrightness.GetValue();

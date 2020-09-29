@@ -51,7 +51,7 @@ void screen_splash_data_t::draw() {
 #endif //_DEBUG
 }
 
-void screen_splash_data_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     timer(HAL_GetTick());
 
 #ifdef _EXTUI
