@@ -4,7 +4,14 @@
 #include <inttypes.h>
 
 #ifdef __cplusplus
+
+    #include "fanctl.h"
+
+extern CFanCtl fanctl0;
+extern CFanCtl fanctl1;
+
 extern "C" {
+
 #endif //__cplusplus
 
 extern void app_setup(void);

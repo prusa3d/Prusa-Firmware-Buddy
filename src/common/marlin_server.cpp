@@ -44,7 +44,7 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
 
-#include "marlin_test.h"
+#include "./selftest/selftest_MINI.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)
@@ -185,8 +185,8 @@ int marlin_server_cycle(void) {
         return 0;
     processing = 1;
 
-    if (MarlinTest.isInProgress())
-        MarlinTest.loop();
+    if (Selftest.IsInProgress())
+        Selftest.Loop();
     else
         _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
 
@@ -396,14 +396,20 @@ void marlin_server_set_command(uint32_t command) {
     marlin_server.command = command;
 }
 
-void marlin_server_test_start(void) {
-    if (((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) && (!MarlinTest.isInProgress())) {
-        MarlinTest.start();
+void marlin_server_test_start(uint32_t mask) {
+    if (((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) && (!Selftest.IsInProgress())) {
+        Selftest.Start((SelftestMask_t)mask);
+    }
+}
+
+void marlin_server_test_abort(void) {
+    if (Selftest.IsInProgress()) {
+        Selftest.Abort();
     }
 }
 
 void marlin_server_print_start(const char *filename) {
-    if (MarlinTest.isInProgress())
+    if (Selftest.IsInProgress())
         return;
     if (filename == nullptr)
         return;
@@ -1133,8 +1139,11 @@ static int _process_server_request(const char *request) {
         } else
             marlin_server.flags &= ~MARLIN_SFLG_EXCMODE;
         processed = 1;
-    } else if (strcmp("!test", request) == 0) {
-        marlin_server_test_start();
+    } else if (sscanf(request, "!test %d", &ival) == 1) { //start selftest
+        marlin_server_test_start(ival);
+        processed = 1;
+    } else if (strcmp("!tabort", request) == 0) {
+        marlin_server_test_abort();
         processed = 1;
     } else {
         bsod("Unknown request %s", request);

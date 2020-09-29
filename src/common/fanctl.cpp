@@ -2,6 +2,7 @@
 
 #include "fanctl.h"
 #include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
 #include "gpio.h"
 #include <stdlib.h>
 
@@ -173,28 +174,38 @@ void CFanCtl::tick() {
             m_State = idle;
         else {
             m_Ticks++;
-            if (m_Ticks > 1000)
+            if (m_Ticks > FANCTL_START_TIMEOUT)
                 m_State = error_starting;
             else {
                 m_pwm.set_PWM(m_pwm.get_max_PWM());
                 if (edge)
                     m_Edges++;
-                if (m_Edges >= 4)
+                if (m_Edges >= FANCTL_START_EDGES)
                     m_State = running;
             }
         }
         break;
     case measuring:
         m_Ticks++;
-        if (m_Ticks > 1000)
-            m_State = running;
-        else {
+        if (m_Ticks > FANCTL_MEASURE_TIMEOUT) {
+            m_Result = 0;
+            m_State = blanking;
+        } else {
             m_pwm.set_PWM(m_pwm.get_max_PWM());
             if (edge)
                 m_Edges++;
-            if (m_Edges >= 2)
-                m_State = running;
+            if (m_Edges >= FANCTL_MEASURE_EDGES) {
+                m_Result = m_Ticks;
+                m_State = blanking;
+            }
         }
+        break;
+    case blanking:
+        m_pwm.set_PWM(0);
+        if (m_Ticks > 0)
+            m_Ticks--;
+        else
+            m_State = m_TmpState;
         break;
     default: // running and error state
         if (m_PWMValue == 0)
@@ -213,7 +224,17 @@ void CFanCtl::setPhaseShiftMode(uint8_t psm) {
     m_pwm.set_PhaseShiftMode((CFanCtlPWM::PhaseShiftMode)psm);
 }
 
-void CFanCtl::measure() {
+uint32_t CFanCtl::measure() {
+    __disable_irq();
+    m_Ticks = 0;
+    m_Edges = 0;
+    m_TmpState = m_State;
+    m_State = measuring;
+    __enable_irq();
+    while (m_State == measuring) {
+        osDelay(1);
+    }
+    return m_Result;
 }
 
 //------------------------------------------------------------------------------
@@ -256,6 +277,12 @@ void fanctl_set_psm(uint8_t fan, uint8_t psm) {
 uint8_t fanctl_get_psm(uint8_t fan) {
     if (fan < CFanCtl_count)
         return CFanCtl_instance[fan]->getPhaseShiftMode();
+    return 0;
+}
+
+uint32_t fanctl_measure(uint8_t fan) {
+    if (fan < CFanCtl_count)
+        return CFanCtl_instance[fan]->measure();
     return 0;
 }
 }
