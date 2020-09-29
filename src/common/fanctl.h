@@ -5,7 +5,11 @@
 #include <stdbool.h>
 
 enum {
-    FANCTL_MAX_FANS = 2 // maximum number of fans for C wrapper functions
+    FANCTL_MAX_FANS = 2,           // maximum number of fans for C wrapper functions
+    FANCTL_START_TIMEOUT = 1000,   //
+    FANCTL_MEASURE_TIMEOUT = 1000, //
+    FANCTL_START_EDGES = 4,        //
+    FANCTL_MEASURE_EDGES = 3       //
 };
 
 // this structure contain variables for software pwm fan control with phase-shifting
@@ -137,9 +141,9 @@ public:
     void setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
     uint32_t measure();                  // measure tacho delay [us], blocking
 private:
-    uint16_t m_MinRPM;   // minimum rpm value (set in constructor)
-    uint16_t m_MaxRPM;   // maximum rpm value (set in constructor)
-    uint16_t m_Ticks;    // tick counter - used for starting and measurement
+    uint16_t m_MinRPM; // minimum rpm value (set in constructor)
+    uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
+    uint16_t m_Ticks;  // tick counter - used for starting and measurement
     uint16_t m_Result;
     FanState m_State;    // fan control state
     uint8_t m_PWMValue;  // current pwm value

@@ -174,27 +174,27 @@ void CFanCtl::tick() {
             m_State = idle;
         else {
             m_Ticks++;
-            if (m_Ticks > 1000)
+            if (m_Ticks > FANCTL_START_TIMEOUT)
                 m_State = error_starting;
             else {
                 m_pwm.set_PWM(m_pwm.get_max_PWM());
                 if (edge)
                     m_Edges++;
-                if (m_Edges >= 4)
+                if (m_Edges >= FANCTL_START_EDGES)
                     m_State = running;
             }
         }
         break;
     case measuring:
         m_Ticks++;
-        if (m_Ticks > 1000) {
+        if (m_Ticks > FANCTL_MEASURE_TIMEOUT) {
             m_Result = 0;
             m_State = blanking;
         } else {
             m_pwm.set_PWM(m_pwm.get_max_PWM());
             if (edge)
                 m_Edges++;
-            if (m_Edges >= 3) {
+            if (m_Edges >= FANCTL_MEASURE_EDGES) {
                 m_Result = m_Ticks;
                 m_State = blanking;
             }
