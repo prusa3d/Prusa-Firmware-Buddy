@@ -353,7 +353,7 @@ void MI_M600::click(IWindowMenu & /*window_menu*/) {
 MI_TIMEOUT::MI_TIMEOUT()
     : WI_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, label, 0, true, false) {}
 void MI_TIMEOUT::OnChange(size_t old_index) {
-    if (old_index) {
+    if (!old_index) {
         Screens::Access()->EnableMenuTimeout();
     } else {
         Screens::Access()->DisableMenuTimeout();
