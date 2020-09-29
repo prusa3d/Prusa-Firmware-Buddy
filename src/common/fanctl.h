@@ -139,12 +139,12 @@ public:
 private:
     uint16_t m_MinRPM;   // minimum rpm value (set in constructor)
     uint16_t m_MaxRPM;   // maximum rpm value (set in constructor)
+    uint16_t m_Ticks;    // tick counter - used for starting and measurement
+    uint16_t m_Result;
     FanState m_State;    // fan control state
     uint8_t m_PWMValue;  // current pwm value
     uint8_t m_Edges;     // edge counter - used for starting and measurement
-    uint16_t m_Ticks;    // tick counter - used for starting and measurement
     FanState m_TmpState; // storage for previous fan control state during measurement cycle
-    uint16_t m_Result;
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
 };
