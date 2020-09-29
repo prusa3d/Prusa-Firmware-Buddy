@@ -32,9 +32,9 @@ public:
     }
 
     /// Moves head and extrudes
-    /// Use NAN for axis you don't want to move
+    /// Use NAN for axis you don't want to move with
     /// \param e is relative extrusion
-    /// \param f is defined in millimeters per minute
+    /// \param f is defined in millimeters per minute (like in G code)
     void go_to_destination(const float x, const float y, const float z, const float e, const float f) {
         if (isfinite(x))
             destination[0] = x;
@@ -65,10 +65,11 @@ public:
     /// increases progress by 1 line and sends it to Marlin
     void inc_progress() {
         current_line++;
-        const variant8_t var = variant8_i8(current_line / (float)total_lines);
+        const variant8_t var = variant8_i8(100 * current_line / (float)total_lines);
         marlin_set_var(MARLIN_VAR_SD_PDONE, var);
     }
 
+    /// Puts the destination into the Marlin planner and waits for the end of the move
     void go_to_destination_and_wait(const float x, const float y, const float z, const float e, const float f) {
         go_to_destination(x, y, z, e, f);
         wait_for_move();
@@ -82,12 +83,13 @@ public:
     }
 
     /// @returns length of filament to extrude
-    float extrusion(const float x1, const float y1, const float x2, const float y2, const float layerHeight = 0.2f, const float threadWidth = 0.5f) {
+    constexpr float extrusion(const float x1, const float y1, const float x2, const float y2, const float layerHeight = 0.2f, const float threadWidth = 0.5f) const {
         const float length = sqrt(SQR(x2 - x1) + SQR(y2 - y1));
         return length * layerHeight * threadWidth / (pi * SQR(filamentD / 2));
     }
 
-    float extrusion_Manhattan(const float *path, const uint32_t position, const float last) {
+    /// @returns length of filament to extrude on the Manhattan path
+    constexpr float extrusion_Manhattan(const float *path, const uint32_t position, const float last) const {
         if (position % 2 == 0) {
             const float x = path[position];
             const float y = path[position - 2];
