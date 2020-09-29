@@ -151,13 +151,10 @@ void Rect16::Align(Rect16 rc, uint8_t align) {
         top_left_.x = rc.Left();
         break;
     case ALIGN_RIGHT:
-        top_left_.x = ((rc.Left() + rc.Width()) > width_) ? ((rc.Left() + rc.Width()) - width_) : 0;
+        top_left_.x = rc.Left() + rc.Width() - width_;
         break;
     case ALIGN_HCENTER:
-        if (rc.Width() >= width_)
-            top_left_.x = rc.Left() + (rc.Width() - width_) / 2;
-        else
-            top_left_.x = std::max(0, rc.Left() - (width_ - rc.Width()) / 2);
+        top_left_.x = rc.Left() + (rc.Width() - width_) / 2;
         break;
     }
 
@@ -166,14 +163,10 @@ void Rect16::Align(Rect16 rc, uint8_t align) {
         top_left_.y = rc.Top();
         break;
     case ALIGN_BOTTOM:
-        top_left_.y = ((rc.Top() + rc.Height()) > height_) ? ((rc.Top() + rc.Height()) - height_) : 0;
-        top_left_.y = std::max(0, (rc.Top() + rc.Height()) - height_);
+        top_left_.y = rc.Top() + rc.Height() - height_;
         break;
     case ALIGN_VCENTER:
-        if (rc.Height() >= height_)
-            top_left_.y = rc.Top() + ((rc.Height() - height_) / 2);
-        else
-            top_left_.y = (rc.Top() > ((height_ - rc.Height()) / 2)) ? rc.Top() - ((height_ - rc.Height()) / 2) : 0;
+        top_left_.y = rc.Top() + (rc.Height() - height_) / 2;
         break;
     }
 }

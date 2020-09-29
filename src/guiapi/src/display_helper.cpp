@@ -116,53 +116,43 @@ void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t co
 }
 
 /// Draws text into the specified rectangle with proper alignment (@flags)
-/// Aligns single line of text only. This cannot align text spread over more lines.
+/// This cannot horizontally align a text spread over more lines (multiline text).
 /// \param flags Use ALIGN constants from guitypes.h. Use RENDER_FLG_WORDB for line wrapping
 void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, uint16_t flags) {
-    bool is_multiline = flags & RENDER_FLG_WORDB;
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
 
-    // 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
+    /// 1st pass reading the string_view_utf8 - font_meas_text also computes the number of utf8 characters (i.e. individual bitmaps) in the input string
     uint16_t strlen_text = 0;
-    point_ui16_t txt_size = font_meas_text(font, &text, &strlen_text);
+    const point_ui16_t txt_size = font_meas_text(font, &text, &strlen_text);
     if (txt_size.x == 0 || txt_size.y == 0) {
         /// empty text => draw background rectangle only
         display::FillRect(rc, clr0);
         return;
     }
 
-    /// fall back to single line in specific cases
-    if (font->h * 2 > rc_pad.Height()                             /// 2 lines would not fit
-        || (txt_size.y == font->h && txt_size.x <= rc.Width())) { /// text fits into a single line completely
+    /// single line
+    if (font->h * 2 > rc_pad.Height()                              /// 2 lines would not fit
+        || (txt_size.y == font->h && txt_size.x <= rc_pad.Width()) /// text fits into a single line completely
+        || !(flags & RENDER_FLG_WORDB)) {                          /// wrapping turned off
 
-        is_multiline = false;
-    }
+        Rect16 rc_txt = Rect16(0, 0, txt_size.x, txt_size.y); /// set size
+        rc_txt.Align(rc_pad, flags & ALIGN_MASK);             /// position the rectangle
+        rc_txt = rc_txt.Intersection(rc_pad);                 /// crop the rectangle if the text is too long
 
-    /// fill borders (padding)
-    fill_between_rectangles(&rc, &rc_pad, clr0);
-
-    if (is_multiline) {
-        size_ui16_t s = render_text(rc_pad, text, font, clr0, clr1, RENDER_FLG_WORDB);
-        // hack for broken text wrapper ... and for too long texts as well
-        // rc_pad = Rect16::Width_t(s.w);
-        // rc_pad = Rect16::Height_t(s.h);
+        /// fill borders (padding)
+        fill_between_rectangles(&rc, &rc_txt, clr0);
+        /// 2nd pass reading the string_view_utf8 - draw the text
+        render_text(rc_txt, text, font, clr0, clr1);
         return;
     }
 
-    /// single line only
+    /// multiline text
 
-    Rect16 rc_txt = Rect16(0, 0, txt_size.x, txt_size.y); /// set size
-    rc_txt.Align(rc_pad, flags & ALIGN_MASK);             /// position the rectangle
-    rc_txt = rc_txt.Intersection(rc_pad);                 /// crop the rectangle if the text is too long
-
-    // TODO remove
-    // const uint8_t unused_pxls = (strlen_text * font->w <= rc_txt.Width()) ? 0 : rc_txt.Width() % font->w;
-    // const Rect16 rect_in = rc_txt - Rect16::Width_t(unused_pxls);
-    // fill_between_rectangles(&rc, &rect_in, clr0);
-
-    // 2nd pass reading the string_view_utf8 - draw the text
-    render_text(rc_pad, text, font, clr0, clr1);
+    /// fill borders (padding)
+    fill_between_rectangles(&rc, &rc_pad, clr0);
+    /// 2nd pass reading the string_view_utf8 - draw the text
+    size_ui16_t s = render_text(rc_pad, text, font, clr0, clr1, RENDER_FLG_WORDB);
 }
 
 void render_icon_align(Rect16 rc, uint16_t id_res, color_t clr0, uint16_t flags) {
