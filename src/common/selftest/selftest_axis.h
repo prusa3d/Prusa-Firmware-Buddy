@@ -29,12 +29,12 @@ public:
     CSelftestPart_Axis(const selftest_axis_config_t *pconfig);
 
 public:
-    bool IsInProgress() const;
+    virtual bool IsInProgress() const override;
 
 public:
-    bool Start();
-    bool Loop();
-    bool Abort();
+    virtual bool Start() override;
+    virtual bool Loop() override;
+    virtual bool Abort() override;
 
 public:
     static void ResetHome();

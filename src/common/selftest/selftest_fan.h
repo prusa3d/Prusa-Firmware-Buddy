@@ -30,12 +30,12 @@ public:
     CSelftestPart_Fan(const selftest_fan_config_t *pconfig);
 
 public:
-    bool IsInProgress() const;
+    virtual bool IsInProgress() const override;
 
 public:
-    bool Start();
-    bool Loop();
-    bool Abort();
+    virtual bool Start() override;
+    virtual bool Loop() override;
+    virtual bool Abort() override;
 
 protected:
     bool next();
