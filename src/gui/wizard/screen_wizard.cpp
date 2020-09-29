@@ -13,7 +13,6 @@
 #include "bsod.h"
 #include "RAII.hpp"
 #include "ScreenHandler.hpp"
-#include "DialogHandler.hpp"
 
 #include "selftest.hpp"
 #include "firstlay.hpp"
@@ -242,25 +241,9 @@ void ScreenWizard::RunFirstLay() {
 }
 
 void ScreenWizard::RunFirstLayerStandAlone() {
-    // run_mask =
-    //     WizardMaskRange(WizardState_t::FIRSTLAY_MSBX_CALIB, WizardState_t::FIRSTLAY_last)
-    //     | WizardMask(WizardState_t::EXIT);
-    // Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
-    DialogHandler::Open(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
-
-    const int temp_nozzle_preheat = int(PREHEAT_TEMP);
-    const int temp_nozzle = std::max(int(marlin_vars()->display_nozzle), int(filaments[get_filament()].nozzle));
-    const int temp_bed = std::max(int(marlin_vars()->target_bed), int(filaments[get_filament()].heatbed));
-
-    marlin_gcode_printf("M104 S%d D%d", temp_nozzle_preheat, temp_nozzle); // nozzle target
-    marlin_gcode_printf("M140 S%d", temp_bed);                             // bed target
-    marlin_gcode_printf("M109 R%d", temp_nozzle_preheat);                  // Set target temperature, wait even if cooling
-    marlin_gcode_printf("M190 S", temp_bed);                               // Set target temperature, wait
-    marlin_gcode("G28");                                                   //autohome
-    marlin_gcode("G29");                                                   //mbl
-    marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
-    marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
-    marlin_gcode("G26");                                                   //firstlay
+    run_mask = WizardMaskRange(WizardState_t::FIRSTLAY_MSBX_CALIB, WizardState_t::FIRSTLAY_last)
+        | WizardMask(WizardState_t::EXIT);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
 }
 
 string_view_utf8 WizardGetCaption(WizardState_t st) {

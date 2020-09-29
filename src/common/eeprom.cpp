@@ -301,15 +301,16 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     uint16_t data_size;
     void *data_ptr;
     if (id < EEPROM_VARCOUNT) {
-        eeprom_lock();
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
         if (id == EEVAR_ZOFFSET && variant8_get_type(var) == VARIANT8_FLT) {
-            uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+            variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTUAL_SHEET);
+            uint8_t index = variant_get_ui8(recent_sheet);
             uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
             float z_offset = variant8_get_flt(var);
             st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH, &z_offset, sizeof(float));
         }
 #endif
+        eeprom_lock();
         if (variant8_get_type(var) == eeprom_map[id].type) {
             size = eeprom_var_size(id);
             data_size = variant8_data_size(&var);

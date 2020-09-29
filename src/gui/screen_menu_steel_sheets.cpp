@@ -120,7 +120,7 @@ public:
         case profile_action::Calibrate:
             SERIAL_ECHOLN("MI_SHEET_CALIBRATE");
             sheet_calibrate(Index::value);
-            ScreenWizard::RunFirstLay();
+            ScreenWizard::RunFirstLayerStandAlone();
             break;
         case profile_action::Rename:
             SERIAL_ECHOLN("MI_SHEET_RENAME");
