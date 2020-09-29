@@ -26,10 +26,6 @@ screen_sheet_rename_t::screen_sheet_rename_t()
     SERIAL_ECHOPAIR("Rename : ", name);
 }
 
-void screen_sheet_rename_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-//    window_frame_t::windowEvent(sender, event, param);
-}
-
 void onclick_ok() {
     std::uint32_t cnt = sheet_rename(
         screen_sheet_rename_t::index_, "muhehe", 6);
