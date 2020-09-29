@@ -252,6 +252,16 @@ void window_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI
         }
     }
 }
+
+void window_t::ShiftNextTo(ShiftDir_t direction) {
+    Shift(direction, rect.CalculateShift(direction));
+}
+
+void window_t::Shift(ShiftDir_t direction, uint16_t distance) {
+    rect = Rect16(rect, direction, distance);
+    Invalidate();
+}
+
 /*****************************************************************************/
 //static
 

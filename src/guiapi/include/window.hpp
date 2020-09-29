@@ -104,6 +104,10 @@ public:
 
     virtual void RegisterSubWin(window_t *win);
     virtual void UnregisterSubWin(window_t *win) {} //meant for dialogs, remove this window from frame
+
+    void ShiftNextTo(ShiftDir_t direction);
+    virtual void Shift(ShiftDir_t direction, uint16_t distance);
+
 protected:
     virtual void unconditionalDraw();
     virtual void draw();

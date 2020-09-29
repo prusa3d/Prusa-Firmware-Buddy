@@ -35,7 +35,7 @@
 void GcodeSuite::M876() {
     if (parser.seenval('P')) {
         if (parser.value_int()) {
-            fsm_create(ClientFSM::Serial_printing, 0);
+            fsm_create(ClientFSM::Serial_printing);
         } else {
             fsm_destroy(ClientFSM::Serial_printing);
             safety_timer_set_interval(1800000); // in miliseconds

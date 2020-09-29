@@ -26,11 +26,13 @@ class ScreenWizard : public AddSuperWindow<window_frame_t> {
     bool loopInProgress;
 
     static uint64_t run_mask;
+    static WizardState_t start_state;
 
 protected:
     void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 public:
+    static void ChangeStartState(WizardState_t state) { start_state = state; }
     ScreenWizard();
     ~ScreenWizard();
 

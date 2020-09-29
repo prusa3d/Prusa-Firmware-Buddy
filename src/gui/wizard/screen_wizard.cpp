@@ -19,82 +19,6 @@
 #include "xyzcalib.hpp"
 
 #if 0
-
-int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void *param) {
-    static int inside_handler = 0;
-
-    int16_t frame_id = pd->frame_body.id;
-    selftest_fans_axis_screen_t *p_selftest_fans_axis_screen = &(pd->screen_variant.selftest_fans_axis_screen);
-    selftest_cool_screen_t *p_selftest_cool_screen = &(pd->screen_variant.selftest_cool_screen);
-    selftest_temp_screen_t *p_selftest_temp_screen = &(pd->screen_variant.selftest_temp_screen);
-    selftest_data_t *p_selftest_data = &(pd->selftest);
-    selftest_cool_data_t *p_selftest_cool_data = &(pd->selftest.cool_data);
-    selftest_temp_data_t *p_selftest_temp_data = &(pd->selftest.temp_data);
-    selftest_fans_axis_data_t *p_selftest_fans_axis_data = &(pd->selftest.fans_axis_data);
-    firstlay_screen_t *p_firstlay_screen = &(pd->screen_variant.firstlay_screen);
-    firstlay_data_t *p_firstlay_data = &(pd->firstlay);
-    xyzcalib_screen_t *p_xyzcalib_screen = &(pd->screen_variant.xyzcalib_screen);
-    xyzcalib_data_t *p_xyzcalib_data = &(pd->xyzcalib);
-
-    if (pd->frame_footer.IsVisible()) {
-        //status_footer_event(&(pd->footer), window, event, param);
-    }
-
-    //notify first layer calib (needed for baby steps)
-    if (pd->state == _STATE_FIRSTLAY_PRINT) {
-        if (event == GUI_event_t::ENC_DN)
-            wizard_firstlay_event_dn(p_firstlay_screen);
-
-        if (event == GUI_event_t::ENC_UP)
-            wizard_firstlay_event_up(p_firstlay_screen);
-    }
-
-    if (event == GUI_event_t::LOOP) {
-        if (inside_handler == 0) {
-            marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
-            pd->header.SetText(wizard_get_caption(screen));
-            inside_handler = 1;
-            while (is_state_in_wizard_mask(pd->state) == 0)
-                pd->state = wizard_state_t(int(pd->state) + 1); //skip disabled steps
-            switch (pd->state) {
-            case _STATE_START: {
-    #ifndef _DEBUG
-                if (wizard_msgbox(
-    #else
-                const char *btns[3] = { "SetDone", "YES", "NO" }; // intentionally not translated, this is a debug code path
-                switch (wizard_msgbox_btns(
-    #endif
-                        _("Welcome to the     \n"
-                          "Original Prusa MINI\n"
-                          "setup wizard.      \n"
-                          "Would you like to  \n"
-                          "continue?           "),
-    #ifndef _DEBUG
-                        MSGBOX_BTN_YESNO, IDR_PNG_icon_pepa)
-                    == MSGBOX_RES_YES) {
-                    pd->state = _STATE_INIT;
-                    pd->frame_footer.Show();
-                } else
-                    Screens::Access()->Close();
-    #else
-                    MSGBOX_BTN_CUSTOM3, IDR_PNG_icon_pepa, btns)) {
-                case MSGBOX_RES_CUSTOM0:
-                    eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
-                    eeprom_set_var(EEVAR_RUN_XYZCALIB, variant8_ui8(0)); // clear XYZ calib flag
-                    eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
-                    Screens::Access()->Close();
-                    break;
-                case MSGBOX_RES_CUSTOM1:
-                    pd->state = _STATE_INIT;
-                    pd->frame_footer.Show();
-                    break;
-                case MSGBOX_RES_CUSTOM2:
-                default:
-                    Screens::Access()->Close();
-                }
-    #endif
-                break;
-            }
             case _STATE_INIT:
                 //PID of nozzle does not work with low temperatures well
                 //have to preheat to lower temperature to avoid need of cooling
@@ -294,147 +218,6 @@ int screen_wizard_event(screen_t *screen, window_t *window, uint8_t event, void 
                     MSGBOX_BTN_DONE, 0);
                 Screens::Access()->Close();
                 break;
-            case _STATE_FIRSTLAY_INIT: {
-                pd->state = _STATE_FIRSTLAY_LOAD;
-                pd->frame_footer.Show();
-                FILAMENT_t filament = get_filament();
-                if (filament == FILAMENT_NONE || fs_get_state() == NoFilament)
-                    filament = FILAMENT_PLA;
-                wizard_init(filaments[filament].nozzle, filaments[filament].heatbed);
-                p_firstlay_screen->load_unload_state = LD_UNLD_INIT;
-            } break;
-            case _STATE_FIRSTLAY_LOAD:
-                p_firstlay_screen->load_unload_state = wizard_load_unload(p_firstlay_screen->load_unload_state);
-                if (p_firstlay_screen->load_unload_state == LD_UNLD_DONE)
-                    pd->state = _STATE_FIRSTLAY_MSBX_CALIB;
-                break;
-            case _STATE_FIRSTLAY_MSBX_CALIB: {
-                wizard_msgbox(_(
-                                  "Now, let's calibrate\n"
-                                  "the distance       \n"
-                                  "between the tip    \n"
-                                  "of the nozzle and  \n"
-                                  "the print sheet.   "),
-                    MSGBOX_BTN_NEXT, 0);
-
-                //show dialog only when values are not equal
-                float diff = vars->z_offset - z_offset_def;
-                if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-                    char buff[20 * 7];
-                    {
-                        char fmt[20 * 7];
-                        // c=20 r=6
-                        static const char fmt2Translate[] = N_("Do you want to use\n"
-                                                               "the current value?\n"
-                                                               "Current: %0.3f.   \n"
-                                                               "Default: %0.3f.   \n"
-                                                               "Click NO to use the default value (recommended)");
-                        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
-                        snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)vars->z_offset, (double)z_offset_def);
-                    }
-                    if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
-                        marlin_set_z_offset(z_offset_def);
-                        eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_offset_def));
-                    }
-                }
-
-                pd->state = _STATE_FIRSTLAY_MSBX_START_PRINT;
-            } break;
-            case _STATE_FIRSTLAY_MSBX_START_PRINT:
-                wizard_msgbox(
-                    //					"Observe the pattern\n"
-                    //					"and turn the knob \n"
-                    //					"to adjust the     \n"
-                    //					"nozzle height in  \n"
-                    //					"real time.        \n"
-                    //					"Extruded plastic  \n"
-                    //					"must stick to     \n"
-                    //					"the print surface."
-                    _("In the next step, \n"
-                      "use the knob to   \n"
-                      "adjust the nozzle \n"
-                      "height.           \n"
-                      "Check the pictures\n"
-                      "in the handbook   \n"
-                      "for reference.")
-
-                        ,
-                    MSGBOX_BTN_NEXT, 0);
-                pd->state = _STATE_FIRSTLAY_PRINT;
-                break;
-            case _STATE_FIRSTLAY_PRINT:
-                if (wizard_firstlay_print(frame_id, p_firstlay_screen, p_firstlay_data, vars->z_offset) == 100)
-                    pd->state = p_firstlay_data->state_print == _TEST_PASSED ? _STATE_FIRSTLAY_MSBX_REPEAT_PRINT : _STATE_FIRSTLAY_FAIL;
-                break;
-            case _STATE_FIRSTLAY_MSBX_REPEAT_PRINT:
-                if (wizard_msgbox(_(
-                                      "Do you want to     \n"
-                                      "repeat the last    \n"
-                                      "step and readjust  \n"
-                                      "the distance       \n"
-                                      "between the nozzle \n"
-                                      "and heatbed?"),
-                        MSGBOX_BTN_YESNO | MSGBOX_DEF_BUTTON1, 0)
-                    == MSGBOX_RES_NO) {
-                    pd->state = _STATE_FINISH;
-                    marlin_set_z_offset(p_firstlay_screen->Z_offset);
-                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(p_firstlay_screen->Z_offset));
-                    eeprom_set_var(EEVAR_RUN_FIRSTLAY, variant8_ui8(0)); // clear first layer flag
-                    wizard_done_screen(screen);
-                } else {
-                    wizard_msgbox(_("Clean steel sheet."), MSGBOX_BTN_NEXT, 0);
-
-                    pd->state = _STATE_FIRSTLAY_PRINT;
-                    pd->firstlay.state_print = _TEST_START;
-
-                    float z_val_to_store = p_firstlay_screen->Z_offset;
-                    //show dialog only when values are not equal
-                    float diff = z_val_to_store - z_offset_def;
-                    if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-                        char buff[20 * 7];
-                        {
-                            char fmt[20 * 7];
-                            // c=20 r=6
-                            static const char fmt2Translate[] = N_("Do you want to use last set value? "
-                                                                   "Last:  %0.3f.   "
-                                                                   "Default: %0.3f.   "
-                                                                   "Click NO to use default value.");
-                            _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
-                            snprintf(buff, sizeof(buff) / sizeof(char), fmt, (double)p_firstlay_screen->Z_offset, (double)z_offset_def);
-                        }
-                        if (wizard_msgbox(string_view_utf8::MakeRAM((const uint8_t *)buff), MSGBOX_BTN_YESNO, 0) == MSGBOX_RES_NO) {
-                            z_val_to_store = z_offset_def;
-                        }
-                    }
-                    marlin_set_z_offset(z_val_to_store);
-                    eeprom_set_var(EEVAR_ZOFFSET, variant8_flt(z_val_to_store));
-                }
-                break;
-            case _STATE_FIRSTLAY_FAIL:
-                wizard_msgbox(_(
-                                  "The first layer calibration failed to finish. "
-                                  "Double-check the printer's wiring, nozzle and axes, then restart the calibration."),
-                    MSGBOX_BTN_DONE, 0);
-                Screens::Access()->Close();
-                break;
-            case _STATE_FINISH:
-                wizard_msgbox(_(
-                                  "Calibration successful!\n"
-                                  "Happy printing!"),
-                    MSGBOX_BTN_DONE, IDR_PNG_icon_pepa);
-                Screens::Access()->Close();
-                break;
-            default:
-                Screens::Access()->Close();
-                break;
-            }
-            inside_handler = 0;
-        }
-    } else {
-    }
-    return 0;
-}
-
 #endif //#if 0
 
 void ScreenWizard::RunAll() {
@@ -484,6 +267,7 @@ string_view_utf8 WizardGetCaption(WizardState_t st) {
 ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
 
 uint64_t ScreenWizard::run_mask = WizardMaskAll();
+WizardState_t ScreenWizard::start_state = WizardState_t::START_first;
 
 ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
     ResultArray ret;
@@ -501,10 +285,10 @@ ScreenWizard::ScreenWizard()
     , header(this, WizardGetCaption(WizardState_t::START_first))
     , footer(this)
     , results(ResultInitializer(run_mask))
-    , state(WizardState_t::START_first)
+    , state(start_state)
     , loopInProgress(false) {
     marlin_set_print_speed(100);
-
+    start_state = WizardState_t::START_first;
     //marlin_set_exclusive_mode(1); //hope i will not need this
 }
 
@@ -580,6 +364,7 @@ StateFncData StateFnc_INIT(StateFncData last_run) {
     return last_run.PassToNext();
 }
 
+//todo both is_multiline::no and is_multiline::yes does not work with \n
 StateFncData StateFnc_INFO(StateFncData last_run) {
     static const char en_text[] = N_("The status bar is at\n"
                                      "the bottom of the  \n"
@@ -591,21 +376,21 @@ StateFncData StateFnc_INFO(StateFncData last_run) {
                                      " - Z-axis height   \n"
                                      " - Selected filament");
     string_view_utf8 translatedText = _(en_text);
-    MsgBox(translatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+    MsgBox(translatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_FIRST(StateFncData last_run) {
     static const char en_text[] = N_("Press NEXT to run the Selftest, which checks for potential issues related to the assembly.");
     string_view_utf8 translatedText = _(en_text);
-    MsgBox(translatedText, Responses_NEXT);
+    MsgBox(translatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_FINISH(StateFncData last_run) {
     static const char en_text[] = N_("Calibration successful! Happy printing!");
     string_view_utf8 translatedText = _(en_text);
-    MsgBox(translatedText, Responses_NEXT);
+    MsgBox(translatedText, Responses_Next);
     return last_run.PassToNext();
 }
 
@@ -650,9 +435,12 @@ ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     ret[i++] = StateFnc_XYZCALIB_PASS;
     ret[i++] = StateFnc_XYZCALIB_FAIL;
 
-    ret[i++] = StateFnc_FIRSTLAY_INIT;
-    ret[i++] = StateFnc_FIRSTLAY_LOAD;
+    ret[i++] = StateFnc_FIRSTLAY_FILAMENT_ASK;
+    ret[i++] = StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT;
+    ret[i++] = StateFnc_FIRSTLAY_FILAMENT_LOAD;
+    ret[i++] = StateFnc_FIRSTLAY_FILAMENT_UNLOAD;
     ret[i++] = StateFnc_FIRSTLAY_MSBX_CALIB;
+    ret[i++] = StateFnc_FIRSTLAY_MSBX_USEVAL;
     ret[i++] = StateFnc_FIRSTLAY_MSBX_START_PRINT;
     ret[i++] = StateFnc_FIRSTLAY_PRINT;
     ret[i++] = StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT;
