@@ -40,7 +40,14 @@ StateFncData StateFnc_FIRSTLAY_FILAMENT_ASK(StateFncData last_run) {
     uint8_t filament = 0;
     filament |= get_filament() != FILAMENT_NONE ? FKNOWN : 0;
     filament |= fs_get_state() == fsensor_t::NoFilament ? F_NOTSENSED : 0;
-    size_t def_bt = filament == (FKNOWN | F_NOTSENSED) ? 1 : 0;
+
+    size_t def_bt = filament == (FKNOWN | F_NOTSENSED) ? 1 : 0; //default button
+
+    // 4 posible states
+    // 0 !FKNOWN !F_NOTSENSED
+    // 1 FKNOWN !F_NOTSENSED
+    // 2 !FKNOWN F_NOTSENSED
+    // 3 FKNOWN F_NOTSENSED
     switch (filament) {
     case FKNOWN: { //known and not "unsensed" - do not allow load
         const PhaseResponses responses = { Response::Next, Response::Unload, Response::_none, Response::_none };
@@ -89,8 +96,9 @@ StateFncData StateFnc_FIRSTLAY_FILAMENT_LOAD(StateFncData last_run) {
         return FIRSTLAY_FILAMENT_done();
     case DLG_ABORTED:
         return StateFncData(WizardState_t::FIRSTLAY_FILAMENT_ASK, WizardTestState_t::PASSED);
+    default:
+        return FIRSTLAY_FILAMENT_done();
     }
-    return FIRSTLAY_FILAMENT_done();
 }
 
 StateFncData StateFnc_FIRSTLAY_FILAMENT_UNLOAD(StateFncData last_run) {
@@ -99,8 +107,9 @@ StateFncData StateFnc_FIRSTLAY_FILAMENT_UNLOAD(StateFncData last_run) {
         return StateFncData(WizardState_t::FIRSTLAY_FILAMENT_LOAD, WizardTestState_t::PASSED);
     case DLG_ABORTED:
         return StateFncData(WizardState_t::FIRSTLAY_FILAMENT_ASK, WizardTestState_t::PASSED);
+    default:
+        return FIRSTLAY_FILAMENT_done();
     }
-    return FIRSTLAY_FILAMENT_done();
 }
 
 StateFncData StateFnc_FIRSTLAY_MSBX_CALIB(StateFncData last_run) {
