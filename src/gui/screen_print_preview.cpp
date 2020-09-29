@@ -19,8 +19,8 @@ static const char *gcode_file_path = NULL;
 static bool valid_printer_settings = true;
 
 const uint16_t menu_icons[2] = {
-    IDR_PNG_menu_icon_print,
-    IDR_PNG_menu_icon_stop,
+    IDR_PNG_print_58px,
+    IDR_PNG_stop_58px,
 };
 
 void screen_print_preview_data_t::SetGcodeFilepath(const char *fpath) {
@@ -166,9 +166,9 @@ static void print_button_press() {
 screen_print_preview_data_t::screen_print_preview_data_t()
     : AddSuperWindow<window_frame_t>()
     , title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT), is_multiline::no)
-    , print_button(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_print, print_button_press)
+    , print_button(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_print_58px, print_button_press)
     , print_label(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
-    , back_button(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_menu_icon_back, []() { Screens::Access()->Close(); })
+    , back_button(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_back_32px, []() { Screens::Access()->Close(); })
     , back_label(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
     , gcode(this)
     , redraw_thumbnail(gcode.has_thumbnail) {
