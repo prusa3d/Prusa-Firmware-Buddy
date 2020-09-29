@@ -571,7 +571,6 @@ if(GUI)
             src/gui/test/screen_test_msgbox.cpp
             src/gui/test/screen_test_wizard_icons.cpp
             src/gui/test/screen_test_graph.cpp
-            src/gui/wizard/selftest_fans_axis.cpp
             src/gui/wizard/selftest_temp.cpp
             src/gui/wizard/selftest_cool.cpp
             src/gui/wizard/selftest.cpp

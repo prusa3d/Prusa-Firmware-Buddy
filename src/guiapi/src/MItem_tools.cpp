@@ -102,6 +102,7 @@ MI_TEST_FANS::MI_TEST_FANS()
 
 void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmFans);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
 }
 
 /*****************************************************************************/
@@ -112,6 +113,7 @@ MI_TEST_XYZ::MI_TEST_XYZ()
 
 void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
     marlin_test_start(stmXYZAxis);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
 }
 
 /*****************************************************************************/

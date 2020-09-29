@@ -6,7 +6,9 @@
 #include <limits>    //std::numeric_limits
 #include <algorithm> //std::swap
 enum class WizardState_t {
-    START_first,
+    first,
+
+    START_first = first,
     START = START_first,
     INIT,
     INFO,
@@ -14,12 +16,11 @@ enum class WizardState_t {
     START_last = FIRST,
 
     SELFTEST_first,
-    SELFTEST_INIT = SELFTEST_first,
-    SELFTEST_FAN0,
-    SELFTEST_FAN1,
+    SELFTEST_FAN = SELFTEST_first,
     SELFTEST_X,
     SELFTEST_Y,
     SELFTEST_Z,
+    SELFTEST_XYZ,
     SELFTEST_COOL,
     SELFTEST_INIT_TEMP,
     SELFTEST_TEMP,
@@ -56,7 +57,7 @@ enum class WizardState_t {
     FIRSTLAY_PRINT,
     FIRSTLAY_MSBX_REPEAT_PRINT,
     FIRSTLAY_PASS,
-    FIRSTLAY_FAIL,
+    FIRSTLAY_FAIL, //cannot fail now, but could due MINDA issue
     FIRSTLAY_last = FIRSTLAY_FAIL,
 
     FINISH,
