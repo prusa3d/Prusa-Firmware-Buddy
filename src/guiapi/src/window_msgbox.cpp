@@ -117,6 +117,7 @@ MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def
     , icon(this, icon_id_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.rect = getIconnedTextRect(); // reinit text, icon and title must be initialized
     icon.rect -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
+    icon.rect += Rect16::Left_t((rect.Width() / 2) - (icon.rect.Width() / 2)); // center icon
 }
 
 Rect16 MsgBoxIconned::getIconnedTextRect() {

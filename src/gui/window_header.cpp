@@ -78,7 +78,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , label(this, rect + Rect16::Left_t(span) - Rect16::Width_t(icons_width + span), is_multiline::no, is_closed_on_click_t::no, txt)
     , icon_usb(this, (rect + Rect16::Left_t(rect.Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_header_icon_usb)
     , icon_lan(this, (rect + Rect16::Left_t(rect.Width() - icons_width)) = icon_lan_width, IDR_PNG_header_icon_lan) {
-    label.SetAlignment(ALIGN_CENTER);
+    label.SetAlignment(ALIGN_LEFT);
 
     marlin_vars()->media_inserted ? USB_Activate() : USB_On();
 
