@@ -8,7 +8,7 @@
 #include "Marlin/src/core/serial.h"
 #include "eeprom.h"
 #include "screen_sheet_rename.hpp"
-
+#include "wizard/screen_wizard.hpp"
 class ScreenMenuSteelSheets;
 
 enum class profile_action : uint32_t {
@@ -119,6 +119,8 @@ public:
             break;
         case profile_action::Calibrate:
             SERIAL_ECHOLN("MI_SHEET_CALIBRATE");
+            sheet_calibrate(Index::value);
+            ScreenWizard::RunFirstLay();
             break;
         case profile_action::Rename:
             SERIAL_ECHOLN("MI_SHEET_RENAME");

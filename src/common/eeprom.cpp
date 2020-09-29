@@ -633,6 +633,18 @@ bool sheet_select(uint32_t index) {
 #endif
 }
 
+bool sheet_calibrate(uint32_t index) {
+#if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
+    if (index >= MAX_SHEETS)
+        return false;
+    uint16_t actual_sheet_address = eeprom_var_addr(EEVAR_ACTUAL_SHEET);
+    st25dv64k_user_write(actual_sheet_address, index);
+    return true;
+#else
+    return index == 0;
+#endif
+}
+
 bool sheet_reset(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS)
