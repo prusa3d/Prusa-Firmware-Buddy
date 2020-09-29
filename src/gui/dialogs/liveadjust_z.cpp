@@ -126,11 +126,14 @@ const Rect16 LiveAdjustZ::getNozzleRect() {
 }
 
 void LiveAdjustZ::moveNozzle() {
+    uint16_t old_top = nozzle_icon.rect.Top();
     float percent = adjuster.GetValue() / z_offset_min;
     Rect16 moved_rect = getNozzleRect();
     moved_rect += Rect16::Top_t(int(10 * percent));
     nozzle_icon.rect = moved_rect;
-    nozzle_icon.Invalidate();
+    if (old_top != nozzle_icon.rect.Top()) {
+        nozzle_icon.Invalidate();
+    }
 }
 
 void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
