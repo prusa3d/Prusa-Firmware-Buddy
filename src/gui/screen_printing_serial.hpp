@@ -1,6 +1,6 @@
 //screen_printing_serial.hpp
 #pragma once
-#include "IScreenPrinting.hpp"
+#include "ScreenPrintingModel.hpp"
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "status_footer.h"
@@ -9,7 +9,7 @@
 
 static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 
-class screen_printing_serial_data_t : public AddSuperWindow<IScreenPrinting> {
+class screen_printing_serial_data_t : public AddSuperWindow<ScreenPrintingModel> {
     static constexpr const char *caption = N_("SERIAL PRT.");
     // static constexpr btn_resource res_disconnect = { IDR_PNG_menu_icon_disconnect, N_("Disconnect") };
 

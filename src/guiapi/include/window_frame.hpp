@@ -41,7 +41,8 @@ struct window_frame_t : public AddSuperWindow<window_t> {
     void SetOnSerialClose();
     void ClrOnSerialClose();
 
-    Rect16 GenerateRect(ShiftDir_t dir);
+    Rect16 GenerateRect(ShiftDir_t direction);
+    virtual void Shift(ShiftDir_t direction, uint16_t distance) override;
 
 protected:
     virtual void draw() override;

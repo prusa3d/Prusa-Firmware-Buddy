@@ -94,7 +94,6 @@ TEST_CASE("LazyDirView::SortByName test", "[LazyDirView]") {
         CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
     }
 }
-
 TEST_CASE("LazyDirView::SortByCrModDateTime test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
 
@@ -291,4 +290,25 @@ TEST_CASE("LazyDirView::StartWithFile2 test", "[LazyDirView]") {
     CHECK(CheckFilesSeq(ldv, { "..", "3", "tr.g", "", "", "", "", "", "" }));
     CHECK(ldv.MoveUp() == false);
     CHECK(CheckFilesSeq(ldv, { "..", "3", "tr.g", "", "", "", "", "", "" }));
+}
+
+TEST_CASE("LazyDirView::ExtremelyLongFileName test", "[LazyDirView][!shouldfail]") {
+    using LDV = LazyDirView<9>;
+
+    static const char extremeLFN[] = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff - kopie - kopie.gcode";
+    char truncatedLFN[FF_LFN_BUF + 1];
+    strlcpy(truncatedLFN, extremeLFN, sizeof(truncatedLFN)); // prepare the truncated string
+    testFiles0 = {
+        { "3", 1, 0, true },
+        { extremeLFN, 2, 0, false },
+    };
+
+    LDV ldv;
+    ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, nullptr);
+    // And here I don't expect the correct path to be in the file list - it is just too long for that
+    // For now this test is expected to fail, to be solved in BFW-1041
+    CHECK(CheckFilesSeq(ldv, { "3", truncatedLFN, "", "", "", "", "", "", "" }));
+    // the file list may survive this unharmed, but I must also make sure the surrounding code survives as well
+    // -> the truncated filename does not exist at all or may even be identical to some other (deliberately chosen) filename
+    // and we must make sure the user prints the right one (the chosen one)
 }

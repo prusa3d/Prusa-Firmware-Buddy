@@ -779,8 +779,11 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
                 client->fsm_change_cb((uint8_t)variant8_get_ui32(msg), (uint8_t)(variant8_get_ui32(msg) >> 8), (uint8_t)(variant8_get_ui32(msg) >> 16), (uint8_t)(variant8_get_ui32(msg) >> 24));
             break;
         case MARLIN_EVT_Message:
-            if (client->message_cb)
-                client->message_cb(variant8_get_pch(msg));
+            if (client->message_cb) {
+                variant8_set_type(&msg, VARIANT8_PCHAR);
+                const char *str = variant8_get_pch(msg);
+                client->message_cb(str);
+            }
             break;
             //not handled events
             //do not use default, i want all events listed here, so new event will generate warning, when not added

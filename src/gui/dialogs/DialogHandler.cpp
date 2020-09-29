@@ -1,3 +1,4 @@
+// DialogHandler.cpp
 #include "DialogHandler.hpp"
 #include "gui.hpp"
 #include "DialogLoadUnload.hpp"
@@ -6,6 +7,7 @@
 #include "ScreenHandler.hpp"
 #include "screen_printing_serial.hpp"
 #include "screen_printing.hpp"
+#include "ScreenFirstLayer.hpp"
 
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
@@ -17,6 +19,9 @@ static void OpenPrintScreen(ClientFSM dialog) {
         Screens::Access()->CloseAll();
         Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
         return;
+    case ClientFSM::FirstLayer: //do not close screens
+        Screens::Access()->Open(ScreenFactory::Screen<ScreenFirstLayer>);
+        return;
     default:
         return;
     }
@@ -26,9 +31,9 @@ static void OpenPrintScreen(ClientFSM dialog) {
 //method definitions
 void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     if (ptr)
-        return; //an dialog is already openned
+        return; //the dialog is already openned
 
-    if (gui_get_nesting() > 1) //another test if dialog is openned todo remove after gui refactoring
+    if (gui_get_nesting() > 1) //another test if the dialog is openned, TODO: remove after gui refactoring
         return;
 
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
@@ -36,6 +41,7 @@ void DialogHandler::open(ClientFSM dialog, uint8_t data) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
+    case ClientFSM::FirstLayer:
         if (IScreenPrinting::CanOpen()) {
             OpenPrintScreen(dialog);
         }
@@ -53,8 +59,18 @@ void DialogHandler::close(ClientFSM dialog) {
             return;
 
         //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
-        if (dialog == ClientFSM::Serial_printing) {
+
+        switch (dialog) {
+        case ClientFSM::Serial_printing:
             Screens::Access()->CloseAll();
+            break;
+        case ClientFSM::FirstLayer:
+            Screens::Access()->Close();
+            break;
+        case ClientFSM::Printing: //closed on button, todo marlin thread should close it
+            break;
+        default:
+            break;
         }
     }
 

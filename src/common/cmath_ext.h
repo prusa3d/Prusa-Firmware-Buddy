@@ -49,3 +49,11 @@
 #define nearlyEqual(a, b, max_abs_diff) \
     ({ __typeof__ (a) d = (a)-(b); \
     d <= max_abs_diff && d >= -max_abs_diff; })
+
+/// \returns square of the value
+#define SQR(a) \
+    ({ __typeof__ (a) a_ = (a); \
+        (a_ * a_); })
+
+/// \returns number of items in the array
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))

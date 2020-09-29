@@ -15,6 +15,7 @@
 #include "screen_wizard.hpp"
 #include "bsod.h"
 #include "liveadjust_z.hpp"
+#include "DialogHandler.hpp"
 
 /*****************************************************************************/
 //MI_WIZARD

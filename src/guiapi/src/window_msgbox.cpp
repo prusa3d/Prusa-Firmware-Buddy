@@ -10,7 +10,7 @@
 /*****************************************************************************/
 // clang-format off
 const PhaseResponses Responses_NONE             = { Response::_none, Response::_none,  Response::_none,  Response::_none };
-const PhaseResponses Responses_NEXT             = { Response::Next,  Response::_none,  Response::_none,  Response::_none };
+const PhaseResponses Responses_Next             = { Response::Next,  Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_Ok               = { Response::Ok,    Response::_none,  Response::_none,  Response::_none };
 const PhaseResponses Responses_OkCancel         = { Response::Ok,    Response::Cancel, Response::_none,  Response::_none };
 const PhaseResponses Responses_AbortRetryIgnore = { Response::Abort, Response::Retry,  Response::Ignore, Response::_none };
@@ -25,7 +25,7 @@ const PhaseResponses Responses_RetryCancel      = { Response::Retry, Response::C
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline)
     : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
-    , buttons(this, get_radio_button_size(rect), resp, labels)
+    , buttons(this, get_radio_button_rect(rect), resp, labels)
     , result(Response::_none) {
     buttons.SetBtnIndex(def_btn);
     //text.SetAlignment(ALIGN_CENTER);
@@ -33,7 +33,7 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses *resp, size_t def_btn, 
 }
 
 Rect16 MsgBoxBase::getTextRect() {
-    return rect - get_radio_button_size(rect).Height();
+    return rect - get_radio_button_rect(rect).Height();
 }
 
 Response MsgBoxBase::GetResult() {
@@ -89,7 +89,7 @@ Rect16 MsgBoxTitled::getTitledTextRect() {
     Rect16 text_rect = rect;
     text_rect -= getTitleRect().Height();
     text_rect -= Rect16::Height_t(4); // atleast 1px red line and 1px space after red line
-    text_rect -= get_radio_button_size(rect).Height();
+    text_rect -= get_radio_button_rect(rect).Height();
 
     text_rect += Rect16::Top_t(getTitleRect().Height());
     text_rect += Rect16::Top_t(4); // atleast 1px red line and 1px space after red line
@@ -122,7 +122,7 @@ MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses *resp, size_t def
 Rect16 MsgBoxIconned::getIconnedTextRect() {
     Rect16 text_rect = rect;
     text_rect -= icon.rect.Height();
-    text_rect -= get_radio_button_size(rect).Height();
+    text_rect -= get_radio_button_rect(rect).Height();
 
     text_rect += Rect16::Top_t(icon.rect.Height());
     return text_rect;

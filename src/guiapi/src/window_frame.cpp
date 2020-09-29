@@ -133,12 +133,16 @@ void window_frame_t::draw() {
 void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     int dif = (int)param;
     window_t *pWin = GetFocusedWindow();
+    if (!pWin || !pWin->IsChildOf(this))
+        pWin = nullptr;
 
     switch (event) {
     case GUI_event_t::CLICK:
         if (pWin) {
             pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);
             //pWin->SetCapture(); //item must do this - only some of them
+        } else {
+            //todo should not I resend event to super?
         }
         break;
     case GUI_event_t::ENC_DN:
@@ -326,8 +330,18 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
     return GetNextEnabledSubWin(first, intersection_rect);
 }
 
-Rect16 window_frame_t::GenerateRect(ShiftDir_t dir) {
+Rect16 window_frame_t::GenerateRect(ShiftDir_t direction) {
     if (!last)
         return Rect16();
-    return Rect16(last->rect, dir);
+    return Rect16(last->rect, direction);
+}
+
+void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
+    window_t *pWin = first;
+    while (pWin) {
+        pWin->Shift(direction, distance);
+        pWin = GetNextSubWin(pWin);
+    }
+
+    super::Shift(direction, distance);
 }
