@@ -573,7 +573,6 @@ if(GUI)
             src/gui/wizard/selftest_cool.cpp
             src/gui/wizard/selftest.cpp
             src/gui/wizard/firstlay.cpp
-            src/gui/wizard/wizard_load_unload.cpp
             src/gui/wizard/screen_wizard.cpp
             src/gui/wizard/xyzcalib.cpp
             src/gui/screen_home.cpp
