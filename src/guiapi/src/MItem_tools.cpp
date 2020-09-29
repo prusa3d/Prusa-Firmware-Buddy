@@ -16,6 +16,7 @@
 #include "bsod.h"
 #include "liveadjust_z.hpp"
 #include "DialogHandler.hpp"
+#include "selftest_MINI.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -91,8 +92,6 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
     ScreenWizard::RunFirstLay();
 }
-
-#include "../common/selftest/selftest_MINI.h"
 
 /*****************************************************************************/
 //MI_TEST_FANS

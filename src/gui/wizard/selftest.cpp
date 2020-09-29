@@ -2,7 +2,7 @@
 #include "selftest.hpp"
 #include "i18n.h"
 #include "gui.hpp"
-#include "../common/selftest/selftest_MINI.h"
+#include "selftest_MINI.h"
 #include "marlin_client.h"
 #include "DialogHandler.hpp"
 
