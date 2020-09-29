@@ -5,7 +5,7 @@
 #include "../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 #include "marlin_server.hpp"
-#include "marlin_client.hpp"
+//#include "marlin_client.hpp"
 #include "client_fsm_types.h"
 #include "PrusaGcodeSuite.hpp"
 #include "G26.hpp"
@@ -22,6 +22,7 @@ class FirstLayer : public FSM_Holder {
 private:
     uint16_t total_lines = 1;
     uint16_t current_line = 0;
+    uint8_t last_progress = 0;
 
 public:
     FirstLayer()
@@ -65,8 +66,15 @@ public:
     /// increases progress by 1 line and sends it to Marlin
     void inc_progress() {
         current_line++;
-        const variant8_t var = variant8_i8(100 * current_line / (float)total_lines);
-        marlin_set_var(MARLIN_VAR_SD_PDONE, var);
+        const uint8_t progress = uint8_t(100.f * current_line / (float)total_lines);
+        if (progress != last_progress) {
+            last_progress = progress;
+            marlin_server.vars.sd_percent_done = progress;
+            changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
+        }
+
+        // const variant8_t var = variant8_i8(100 * current_line / (float)total_lines);
+        // marlin_set_var(MARLIN_VAR_SD_PDONE, var);
     }
 
     /// Puts the destination into the Marlin planner and waits for the end of the move
