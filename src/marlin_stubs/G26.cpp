@@ -19,14 +19,11 @@ static const constexpr float threadWidth = 0.5f;
 
 static const constexpr float pi = 3.1415926535897932384626433832795f;
 
-void FirstLayer::start_printing() {
-    isPrinting_ = true;
-}
+bool FirstLayer::isPrinting_ = false;
 
 void FirstLayer::finish_printing() {
     current_line = 0;
     total_lines = 1; /// don't set 0 to avoid division by zero
-    isPrinting_ = false;
 }
 
 void FirstLayer::go_to_destination(const float x, const float y, const float z, const float e, const float f) {
@@ -111,7 +108,6 @@ void FirstLayer::print_snake(const float *snake, const size_t snake_size, const 
 }
 
 void FirstLayer::print_shape_1() {
-    start_printing();
     total_lines = 11 + ARRAY_SIZE(snake1);
     current_line = 0;
 
@@ -138,7 +134,6 @@ void FirstLayer::print_shape_1() {
 }
 
 void FirstLayer::print_shape_2() {
-    start_printing();
     total_lines = 11 + ARRAY_SIZE(snake2);
     current_line = 0;
 

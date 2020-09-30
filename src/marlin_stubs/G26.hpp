@@ -4,20 +4,21 @@
 
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 
-static bool isPrinting_ = false; /// ensures proper progress state in marlin_server
-
 class FirstLayer : public FSM_Holder {
 private:
+    static bool isPrinting_; /// ensures proper progress state in marlin_server
+
     uint16_t total_lines = 1;
     uint16_t current_line = 0;
     uint8_t last_progress = 0;
 
-    void start_printing();
     void finish_printing();
 
 public:
     FirstLayer()
-        : FSM_Holder(ClientFSM::FirstLayer, 0) {}
+        : FSM_Holder(ClientFSM::FirstLayer, 0) { isPrinting_ = true; }
+
+    ~FirstLayer() { isPrinting_ = false; }
 
     static bool isPrinting() {
         return isPrinting_;
