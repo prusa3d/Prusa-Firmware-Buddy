@@ -12,6 +12,7 @@ enum class ClientFSM : uint8_t {
     G162,
     SelftestAxis,
     SelftestFans,
+    SelftestHeat,
     Printing, //not a dialog
     FirstLayer,
     _none, //cannot be created, must have same index as _count

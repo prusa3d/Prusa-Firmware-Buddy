@@ -82,6 +82,16 @@ enum class PhasesSelftestAxis : uint16_t {
     _last = Zaxis
 };
 
+//not binded to responses
+enum class PhasesSelftestHeat : uint16_t {
+    _first = static_cast<uint16_t>(PhasesSelftestAxis::_last) + 1,
+    noz_cool = _first, //in this case is safe to have Xaxis == _first
+    noz_heat,
+    bed_cool,
+    bed_heat,
+    _last = bed_heat
+};
+
 //static class for work with fsm responses (like button click)
 //encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
