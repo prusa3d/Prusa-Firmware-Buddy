@@ -8,7 +8,7 @@
 #include "window_arrows.hpp"
 #include "../../lang/i18n.h"
 
-//regular window binded to Z calib
+//regular window bound to Z calib
 class WindowLiveAdjustZ : public AddSuperWindow<window_frame_t> {
     window_numb_t number;
     WindowArrows arrows;

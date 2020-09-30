@@ -57,6 +57,12 @@ StateFncData StateFnc_SELFTEST_AND_XYZCALIB(StateFncData last_run) {
     return last_run.PassToNext();
 }
 
+StateFncData StateFnc_SELFTEST_TEMP(StateFncData last_run) {
+    marlin_test_start(stmHeaters);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestHeat, 0);
+    return last_run.PassToNext();
+}
+
 #if 0
 
     #include "selftest.hpp"

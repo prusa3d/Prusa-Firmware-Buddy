@@ -535,6 +535,7 @@ if(GUI)
             src/gui/dialogs/DialogG162.cpp
             src/gui/dialogs/DialogSelftestAxis.cpp
             src/gui/dialogs/DialogSelftestFans.cpp
+            src/gui/dialogs/DialogSelftestTemp.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
@@ -572,8 +573,6 @@ if(GUI)
             src/gui/test/screen_test_msgbox.cpp
             src/gui/test/screen_test_wizard_icons.cpp
             src/gui/test/screen_test_graph.cpp
-            src/gui/wizard/selftest_temp.cpp
-            src/gui/wizard/selftest_cool.cpp
             src/gui/wizard/selftest.cpp
             src/gui/wizard/firstlay.cpp
             src/gui/wizard/screen_wizard.cpp
