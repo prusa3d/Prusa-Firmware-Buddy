@@ -90,10 +90,7 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    DialogHandler::Open(ClientFSM::FirstLayer, 0); //open screen now, it would auto open later (on G26)
-    marlin_gcode("G28");                           //autohome
-    marlin_gcode("G29");                           //mbl
-    marlin_gcode("G26");                           //firstlay
+    ScreenWizard::RunFirstLay();
 }
 
 /*****************************************************************************/
