@@ -44,7 +44,7 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
     #include "Z_probe.h" //get_Z_probe_endstop_hits
 #endif
 
-#include "./selftest/selftest_MINI.h"
+#include "selftest_MINI.h"
 
 #define DBG _dbg1 //enabled level 1
 //#define DBG(...)

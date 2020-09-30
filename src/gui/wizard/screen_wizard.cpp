@@ -10,7 +10,6 @@
 #include "eeprom.h"
 #include "filament_sensor.hpp"
 #include "i18n.h"
-#include "bsod.h"
 #include "RAII.hpp"
 #include "ScreenHandler.hpp"
 
@@ -56,34 +55,9 @@
                     MSGBOX_BTN_NEXT, 0);
                 pd->state = _STATE_SELFTEST_INIT;
                 break;
-            case _STATE_SELFTEST_INIT:
-                pd->state = _STATE_SELFTEST_FAN0;
-                //am i inicialized by screen before?
-                if (!is_state_in_wizard_mask(_STATE_INIT)) {
-                    pd->frame_footer.Show();
-                    wizard_init(_START_TEMP_NOZ, _START_TEMP_BED);
-                }
-                break;
-            case _STATE_SELFTEST_FAN0:
-                if (wizard_selftest_fan0(frame_id, p_selftest_fans_axis_screen, p_selftest_fans_axis_data) == 100)
-                    pd->state = _STATE_SELFTEST_FAN1;
-                break;
-            case _STATE_SELFTEST_FAN1:
-                if (wizard_selftest_fan1(frame_id, p_selftest_fans_axis_screen, p_selftest_fans_axis_data) == 100)
-                    pd->state = _STATE_SELFTEST_X;
-                break;
-            case _STATE_SELFTEST_X:
-                if (wizard_selftest_x(frame_id, p_selftest_fans_axis_screen, p_selftest_fans_axis_data) == 100)
-                    pd->state = _STATE_SELFTEST_Y;
-                break;
-            case _STATE_SELFTEST_Y:
-                if (wizard_selftest_y(frame_id, p_selftest_fans_axis_screen, p_selftest_fans_axis_data) == 100)
-                    pd->state = _STATE_SELFTEST_Z;
-                break;
-            case _STATE_SELFTEST_Z:
-                if (wizard_selftest_z(frame_id, p_selftest_fans_axis_screen, p_selftest_fans_axis_data) == 100)
-                    pd->state = _STATE_SELFTEST_COOL;
-                break;
+
+..............................
+
             case _STATE_SELFTEST_COOL:
                 if (wizard_selftest_cool(frame_id, p_selftest_cool_screen, p_selftest_cool_data) == 100)
                     pd->state = _STATE_SELFTEST_INIT_TEMP;
@@ -269,6 +243,8 @@ ScreenWizard::StateArray ScreenWizard::states = StateInitializer();
 uint64_t ScreenWizard::run_mask = WizardMaskAll();
 WizardState_t ScreenWizard::start_state = WizardState_t::START_first;
 
+bool ScreenWizard::is_config_invalid = true;
+
 ScreenWizard::ResultArray ScreenWizard::ResultInitializer(uint64_t mask) {
     ResultArray ret;
     ret.fill(WizardTestState_t::DISABLED); //not needed, just to be safe;
@@ -401,65 +377,59 @@ StateFncData StateFnc_EXIT(StateFncData last_run) {
 
 ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     StateArray ret = { { nullptr } };
-    //todo rewrite .. template/macro or just enum values instead size_t i
-    size_t i = 0;
-    ret[i++] = StateFnc_START;
-    ret[i++] = StateFnc_INIT;
-    ret[i++] = StateFnc_INFO;
-    ret[i++] = StateFnc_FIRST;
+    //todo rewrite .. template/macro ?
+    ret[static_cast<size_t>(WizardState_t::START)] = StateFnc_START;
+    ret[static_cast<size_t>(WizardState_t::INIT)] = StateFnc_INIT;
+    ret[static_cast<size_t>(WizardState_t::INFO)] = StateFnc_INFO;
+    ret[static_cast<size_t>(WizardState_t::FIRST)] = StateFnc_FIRST;
 
-    ret[i++] = StateFnc_SELFTEST_INIT;
-    ret[i++] = StateFnc_SELFTEST_FAN0;
-    ret[i++] = StateFnc_SELFTEST_FAN1;
-    ret[i++] = StateFnc_SELFTEST_X;
-    ret[i++] = StateFnc_SELFTEST_Y;
-    ret[i++] = StateFnc_SELFTEST_Z;
-    ret[i++] = StateFnc_SELFTEST_COOL;
-    ret[i++] = StateFnc_SELFTEST_INIT_TEMP;
-    ret[i++] = StateFnc_SELFTEST_TEMP;
-    ret[i++] = StateFnc_SELFTEST_PASS;
-    ret[i++] = StateFnc_SELFTEST_FAIL;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_FAN)] = StateFnc_SELFTEST_FAN;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_X)] = StateFnc_SELFTEST_X;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_Y)] = StateFnc_SELFTEST_Y;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_Z)] = StateFnc_SELFTEST_Z;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_XYZ)] = StateFnc_SELFTEST_XYZ;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_COOL)] = StateFnc_SELFTEST_COOL;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_INIT_TEMP)] = StateFnc_SELFTEST_INIT_TEMP;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_TEMP)] = StateFnc_SELFTEST_TEMP;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_PASS)] = StateFnc_SELFTEST_PASS;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_FAIL)] = StateFnc_SELFTEST_FAIL;
 
-    ret[i++] = StateFnc_SELFTEST_AND_XYZCALIB;
+    ret[static_cast<size_t>(WizardState_t::SELFTEST_AND_XYZCALIB)] = StateFnc_SELFTEST_AND_XYZCALIB;
 
-    ret[i++] = StateFnc_XYZCALIB_INIT;
-    ret[i++] = StateFnc_XYZCALIB_HOME;
-    ret[i++] = StateFnc_XYZCALIB_Z;
-    ret[i++] = StateFnc_XYZCALIB_XY_MSG_CLEAN_NOZZLE;
-    ret[i++] = StateFnc_XYZCALIB_XY_MSG_IS_SHEET;
-    ret[i++] = StateFnc_XYZCALIB_XY_MSG_REMOVE_SHEET;
-    ret[i++] = StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER;
-    ret[i++] = StateFnc_XYZCALIB_XY_SEARCH;
-    ret[i++] = StateFnc_XYZCALIB_XY_MSG_PLACE_SHEET;
-    ret[i++] = StateFnc_XYZCALIB_XY_MEASURE;
-    ret[i++] = StateFnc_XYZCALIB_PASS;
-    ret[i++] = StateFnc_XYZCALIB_FAIL;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_INIT)] = StateFnc_XYZCALIB_INIT;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_HOME)] = StateFnc_XYZCALIB_HOME;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_Z)] = StateFnc_XYZCALIB_Z;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_XY_MSG_CLEAN_NOZZLE)] = StateFnc_XYZCALIB_XY_MSG_CLEAN_NOZZLE;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_XY_MSG_IS_SHEET)] = StateFnc_XYZCALIB_XY_MSG_IS_SHEET;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_XY_MSG_REMOVE_SHEET)] = StateFnc_XYZCALIB_XY_MSG_REMOVE_SHEET;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_XY_MSG_PLACE_PAPER)] = StateFnc_XYZCALIB_XY_MSG_PLACE_PAPER;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_XY_SEARCH)] = StateFnc_XYZCALIB_XY_SEARCH;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_XY_MSG_PLACE_SHEET)] = StateFnc_XYZCALIB_XY_MSG_PLACE_SHEET;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_XY_MEASURE)] = StateFnc_XYZCALIB_XY_MEASURE;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_PASS)] = StateFnc_XYZCALIB_PASS;
+    ret[static_cast<size_t>(WizardState_t::XYZCALIB_FAIL)] = StateFnc_XYZCALIB_FAIL;
 
-    ret[i++] = StateFnc_FIRSTLAY_FILAMENT_ASK;
-    ret[i++] = StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT;
-    ret[i++] = StateFnc_FIRSTLAY_FILAMENT_LOAD;
-    ret[i++] = StateFnc_FIRSTLAY_FILAMENT_UNLOAD;
-    ret[i++] = StateFnc_FIRSTLAY_MSBX_CALIB;
-    ret[i++] = StateFnc_FIRSTLAY_MSBX_USEVAL;
-    ret[i++] = StateFnc_FIRSTLAY_MSBX_START_PRINT;
-    ret[i++] = StateFnc_FIRSTLAY_PRINT;
-    ret[i++] = StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT;
-    ret[i++] = StateFnc_FIRSTLAY_PASS;
-    ret[i++] = StateFnc_FIRSTLAY_FAIL;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_FILAMENT_ASK)] = StateFnc_FIRSTLAY_FILAMENT_ASK;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_FILAMENT_ASK_PREHEAT)] = StateFnc_FIRSTLAY_FILAMENT_ASK_PREHEAT;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_FILAMENT_LOAD)] = StateFnc_FIRSTLAY_FILAMENT_LOAD;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_FILAMENT_UNLOAD)] = StateFnc_FIRSTLAY_FILAMENT_UNLOAD;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_MSBX_CALIB)] = StateFnc_FIRSTLAY_MSBX_CALIB;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_MSBX_USEVAL)] = StateFnc_FIRSTLAY_MSBX_USEVAL;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_MSBX_START_PRINT)] = StateFnc_FIRSTLAY_MSBX_START_PRINT;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_PRINT)] = StateFnc_FIRSTLAY_PRINT;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_MSBX_REPEAT_PRINT)] = StateFnc_FIRSTLAY_MSBX_REPEAT_PRINT;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_PASS)] = StateFnc_FIRSTLAY_PASS;
+    ret[static_cast<size_t>(WizardState_t::FIRSTLAY_FAIL)] = StateFnc_FIRSTLAY_FAIL;
 
-    ret[i++] = StateFnc_FINISH;
-    ret[i++] = StateFnc_EXIT;
+    ret[static_cast<size_t>(WizardState_t::FINISH)] = StateFnc_FINISH;
+    ret[static_cast<size_t>(WizardState_t::EXIT)] = StateFnc_EXIT;
 
-#ifdef _DEBUG
-    //check if all states are assigned, hope it will be optimized out
+    is_config_invalid = false;
+    //check if all states are assigned
     for (size_t i = size_t(WizardState_t::START_first); i <= size_t(WizardState_t::last); ++i) {
         if (ret[i] == nullptr) {
-            //bsod will not work, but it will cause freeze
-            //todo show bsod after display (spi) init
-            static const char en_text[] = N_("Wizard states invalid");
-            bsod(en_text);
+            is_config_invalid = true;
         }
     }
-#endif
     return ret;
 }
