@@ -43,11 +43,11 @@
 /**
  * @brief Convert Marlin style defined pin to be used in constructor of Pin
  */
-#define BUDDY_PIN(name) Pin::IoPortToHalBase(static_cast<IoPort>(MARLIN_PORT_##name)), Pin::IoPinToHal(static_cast<IoPin>(MARLIN_PIN_NR_##name))
+#define BUDDY_PIN(name) static_cast<IoPort>(MARLIN_PORT_##name), static_cast<IoPin>(MARLIN_PIN_NR_##name)
 
 #define COMMA ,
 
-#define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) inline constexpr TYPE NAME = { PORTPIN, PARAMETERS };
+#define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) inline constexpr TYPE NAME(PORTPIN, PARAMETERS);
 #define DEFINE_PINS(TYPE, NAME, PORTPIN, PARAMETERS)
 #define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) NAME.configure();
 #define PINS_TO_CHECK(TYPE, NAME, PORTPIN, PARAMETERS)  { PORTPIN },
@@ -83,15 +83,20 @@ enum class IoPin : uint8_t {
 
 class Pin {
 public:
+    constexpr Pin(IoPort ioPort, IoPin ioPin)
+        : m_halPortBase(IoPortToHalBase(ioPort))
+        , m_halPin(IoPinToHal(ioPin)) {}
     static constexpr uint32_t IoPortToHalBase(IoPort ioPort) {
         return (GPIOA_BASE + (static_cast<uint32_t>(ioPort) * (GPIOB_BASE - GPIOA_BASE)));
     }
-    static constexpr GPIO_TypeDef *IoPortToHal(IoPort ioPort) {
-        return reinterpret_cast<GPIO_TypeDef *>(IoPortToHalBase(ioPort));
+    GPIO_TypeDef *halPort() const {
+        return reinterpret_cast<GPIO_TypeDef *>(m_halPortBase);
     }
     static constexpr uint16_t IoPinToHal(IoPin ioPin) {
         return (0x1U << static_cast<uint16_t>(ioPin));
     }
+    const uint32_t m_halPortBase;
+    const uint16_t m_halPin;
 };
 
 static_assert(Pin::IoPortToHalBase(IoPort::A) == GPIOA_BASE, "IoPortToHalBase broken.");
@@ -113,14 +118,12 @@ enum class Pull : uint8_t {
     down = GPIO_PULLDOWN,
 };
 
-class InputPin {
+class InputPin : protected Pin {
 public:
-#if 0
-    InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
+    constexpr InputPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull)
         : Pin(ioPort, ioPin)
         , m_mode(iMode)
         , m_pull(pull) {}
-#endif
     GPIO_PinState read() const {
         return HAL_GPIO_ReadPin(reinterpret_cast<GPIO_TypeDef *>(m_halPortBase), m_halPin);
     }
@@ -132,8 +135,6 @@ private:
     void configure(Pull pull) const;
 
 public:
-    uint32_t m_halPortBase;
-    uint16_t m_halPin;
     IMode m_mode;
     Pull m_pull;
 };
@@ -160,11 +161,10 @@ enum class OSpeed : uint8_t {
     very_high = GPIO_SPEED_FREQ_VERY_HIGH,
 };
 
-class OutputPin {
+class OutputPin : protected Pin {
 public:
-    constexpr OutputPin(uint32_t ioPort, uint16_t ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
-        : m_halPortBase(ioPort)
-        , m_halPin(ioPin)
+    constexpr OutputPin(IoPort ioPort, IoPin ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
+        : Pin(ioPort, ioPin)
         , m_initState(initState)
         , m_mode(oMode)
         , m_speed(oSpeed) {}
@@ -190,8 +190,6 @@ public:
     void configure() const;
 
 public:
-    uint32_t m_halPortBase;
-    uint16_t m_halPin;
     InitState m_initState;
     OMode m_mode;
     OSpeed m_speed;
@@ -199,7 +197,7 @@ public:
 
 class OutputInputPin : public OutputPin {
 public:
-    constexpr OutputInputPin(uint32_t ioPort, uint16_t ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
+    constexpr OutputInputPin(IoPort ioPort, IoPin ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
         : OutputPin(ioPort, ioPin, initState, oMode, oSpeed) {}
 
 private:
