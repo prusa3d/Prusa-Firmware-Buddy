@@ -116,6 +116,17 @@ void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+//MI_TEST_HEAT
+MI_TEST_HEAT::MI_TEST_HEAT()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmHeaters);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestHeat, 0);
+}
+
+/*****************************************************************************/
 //MI_TEST_ABORT
 MI_TEST_ABORT::MI_TEST_ABORT()
     : WI_LABEL_t(label, 0, true, false) {
