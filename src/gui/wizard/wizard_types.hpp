@@ -78,13 +78,18 @@ constexpr uint64_t WizardMaskRange(WizardState_t first, WizardState_t last) {
     return WizardMaskUpTo(last) & ((~WizardMaskUpTo(first)) | WizardMask(first));
 }
 
-constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::FINISH); }
-constexpr uint64_t WizardMaskSelfTest() { return WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMaskStart(); }
+constexpr uint64_t WizardMaskStart() { return WizardMaskRange(WizardState_t::START_first, WizardState_t::START_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT); }
+constexpr uint64_t WizardMaskSelfTest() {
+    return (WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT) /*| WizardMaskStart()*/)
+        & ~WizardMaskRange(WizardState_t::SELFTEST_X, WizardState_t::SELFTEST_Z); //exclude standalone axis tests
+}
 constexpr uint64_t WizardMaskXYZCalib() { return WizardMaskRange(WizardState_t::XYZCALIB_first, WizardState_t::XYZCALIB_last) | WizardMaskStart(); }
 constexpr uint64_t WizardMaskSelfTestAndXYZCalib() { //SELFTEST_PASS has different message when it is combined with XYZCALIB
     return (WizardMaskSelfTest() | WizardMaskXYZCalib() | WizardMask(WizardState_t::SELFTEST_AND_XYZCALIB)) & ~WizardMask(WizardState_t::SELFTEST_PASS);
 }
-constexpr uint64_t WizardMaskFirstLay() { return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) /* | WizardMaskStart()*/; }
+constexpr uint64_t WizardMaskFirstLay() {
+    return WizardMaskRange(WizardState_t::FIRSTLAY_first, WizardState_t::FIRSTLAY_last) | WizardMask(WizardState_t::FINISH) | WizardMask(WizardState_t::EXIT) /* | WizardMaskStart()*/;
+}
 
 //disabled XYZ calib
 constexpr uint64_t WizardMaskAll() {
