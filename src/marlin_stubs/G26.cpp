@@ -18,6 +18,12 @@ static const constexpr float threadWidth = 0.5f;
 
 static const constexpr float pi = 3.1415926535897932384626433832795f;
 
+// static uint8_t first_layer_progress = 50;
+
+// uint8_t get_first_layer_progress() {
+//     return first_layer_progress;
+// }
+
 class FirstLayer : public FSM_Holder {
 private:
     uint16_t total_lines = 1;
@@ -67,10 +73,9 @@ public:
     void inc_progress() {
         current_line++;
         const uint8_t progress = uint8_t(100.f * current_line / (float)total_lines);
-        if (progress != last_progress) {
+        if (last_progress != progress) {
             last_progress = progress;
-            marlin_server.vars.sd_percent_done = progress;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
+            set_var_sd_printing(progress);
         }
 
         // const variant8_t var = variant8_i8(100 * current_line / (float)total_lines);

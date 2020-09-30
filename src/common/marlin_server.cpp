@@ -37,6 +37,7 @@
 #include "trinamic.h"
 #include "ff.h"
 #include "otp.h"
+//#include "../marlin_stubs/G26.hpp"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -1487,3 +1488,11 @@ FSM_notifier::~FSM_notifier() {
 //define static member
 //-1 (maxval) is used as no response from client
 uint32_t ClientResponseHandler::server_side_encoded_response = -1;
+
+uint8_t get_var_sd_printing() {
+    return marlin_server.vars.sd_printing;
+}
+
+void set_var_sd_printing(uint8_t value) {
+    marlin_server.vars.sd_printing = value;
+}

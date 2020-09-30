@@ -2,6 +2,8 @@
 
 #pragma once
 
+uint8_t get_first_layer_progress();
+
 /// Path of Manhattan snake
 /// Alternate X and Y coordinates.
 /// It cannot print diagonals etc.

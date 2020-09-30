@@ -144,3 +144,6 @@ public:
         fsm_destroy(dialog);
     }
 };
+
+uint8_t get_var_sd_printing();
+void set_var_sd_printing(uint8_t value);
