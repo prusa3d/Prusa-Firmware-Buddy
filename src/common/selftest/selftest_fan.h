@@ -8,9 +8,9 @@
 typedef struct _selftest_fan_config_t {
     const char *partname;
     CFanCtl *pfanctl;
+    uint8_t steps;
     int pwm_start;
     int pwm_step;
-    int pwm_steps;
 } selftest_fan_config_t;
 
 class CSelftestPart_Fan : public CSelftestPart {

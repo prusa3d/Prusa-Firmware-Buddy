@@ -13,19 +13,30 @@
 #include "ff.h"
 #include "../../Marlin/src/module/stepper.h"
 
-static const selftest_fan_config_t Config_Fan0 = { .partname = "Fan0", .pfanctl = &fanctl0, .pwm_start = 10, .pwm_step = 5, .pwm_steps = 10 };
+#define HOMING_TIME 15000 // ~15s when X and Y axes are at oposite side to home position
+#define _PF         2.40F // progres factor (because the value is in pixels! :) TODO fix this
 
-static const selftest_fan_config_t Config_Fan1 = { .partname = "Fan1", .pfanctl = &fanctl1, .pwm_start = 10, .pwm_step = 10, .pwm_steps = 5 };
+static const float XYfr_table[] = { 50, 60, 75, 100 };
 
-static const selftest_axis_config_t Config_XAxis = { .partname = "X-Axis", .axis = X_AXIS };
+static const float Zfr_table[] = { 20 };
 
-static const selftest_axis_config_t Config_YAxis = { .partname = "Y-Axis", .axis = Y_AXIS };
+static const selftest_fan_config_t Config_Fan0 = { .partname = "Fan0", .pfanctl = &fanctl0, .steps = 5, .pwm_start = 10, .pwm_step = 10 };
 
-static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .axis = Z_AXIS };
+static const selftest_fan_config_t Config_Fan1 = { .partname = "Fan1", .pfanctl = &fanctl1, .steps = 5, .pwm_start = 10, .pwm_step = 10 };
+
+static const selftest_axis_config_t Config_XAxis = { .partname = "X-Axis", .axis = X_AXIS, .steps = 4, .dir = -1, .length = 186, .fr_table = XYfr_table };
+
+static const selftest_axis_config_t Config_YAxis = { .partname = "Y-Axis", .axis = Y_AXIS, .steps = 4, .dir = 1, .length = 185, .fr_table = XYfr_table };
+
+static const selftest_axis_config_t Config_ZAxis = { .partname = "Z-Axis", .axis = Z_AXIS, .steps = 1, .dir = 1, .length = 185, .fr_table = Zfr_table };
 
 static const selftest_heater_config_t Config_HeaterNozzle = { .partname = "Nozzle", .heater = 0 };
 
 static const selftest_heater_config_t Config_HeaterBed = { .partname = "Bed", .heater = 0xff };
+
+static const selftest_fan_config_t Config_Fan0_fine = { .partname = "Fan0", .pfanctl = &fanctl0, .steps = 24, .pwm_start = 4, .pwm_step = 2 };
+
+static const selftest_fan_config_t Config_Fan1_fine = { .partname = "Fan1", .pfanctl = &fanctl1, .steps = 24, .pwm_start = 4, .pwm_step = 2 };
 
 CSelftest::CSelftest()
     : m_State(stsIdle)
@@ -48,6 +59,8 @@ bool CSelftest::IsInProgress() const {
 
 bool CSelftest::Start(SelftestMask_t mask) {
     m_Mask = mask;
+    if (m_Mask & stmXYZAxis)
+        m_Mask = (SelftestMask_t)(m_Mask | stmHome);
     m_State = stsStart;
     return true;
 }
@@ -61,101 +74,38 @@ void CSelftest::Loop() {
     case stsIdle:
         return;
     case stsStart:
-        marlin_server_set_exclusive_mode(1);
-        hwio_fan_control_disable();
-        CSelftestPart_Axis::ResetHome();
-        log_open();
+        phaseStart();
         break;
-    case stsFans: {
-        m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestFans, 0);
-        m_pFan0 = m_pFan0 ? m_pFan0 : new CSelftestPart_Fan(&Config_Fan0);
-        m_pFan1 = m_pFan1 ? m_pFan1 : new CSelftestPart_Fan(&Config_Fan1);
-        m_pFan0->Loop();
-        m_pFan1->Loop();
-        if (m_pFan0->IsInProgress() || m_pFan1->IsInProgress()) {
-            int p0 = m_pFan0->GetProgress();
-            int p1 = m_pFan1->GetProgress();
-            fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, p0 + p1, uint8_t(SelftestSubtestState_t::running));
-            if (m_pFan1->IsInProgress())
-                fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, p0 + p1, uint8_t(SelftestSubtestState_t::running));
-            else
-                fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, p0 + 100, uint8_t(SelftestSubtestState_t::ok));
+    case stsFans:
+        if (phaseFans(&Config_Fan0, &Config_Fan1))
             return;
-        }
-        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, 200, uint8_t(SelftestSubtestState_t::ok));
-        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, 200, uint8_t(SelftestSubtestState_t::ok));
-        delete m_pFan0;
-        m_pFan0 = nullptr;
-        delete m_pFan1;
-        m_pFan1 = nullptr;
-        delete m_pFSM;
-        m_pFSM = nullptr;
-    } break;
+        break;
+    case stsHome:
+        if (phaseHome())
+            return;
+        break;
     case stsXAxis:
-        m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestAxis, 0);
-        m_pXAxis = m_pXAxis ? m_pXAxis : new CSelftestPart_Axis(&Config_XAxis);
-        if (m_pXAxis->Loop()) {
-            int p = m_pXAxis->GetProgress();
-            fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::Xaxis, p / 3, uint8_t(SelftestSubtestState_t::running));
+        if (phaseAxis(&Config_XAxis, &m_pXAxis, (uint16_t)PhasesSelftestAxis::Xaxis))
             return;
-        }
-        fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::Xaxis, 33, uint8_t(SelftestSubtestState_t::ok));
-        delete m_pXAxis;
-        m_pXAxis = nullptr;
-        if ((m_Mask & (stmYAxis | stmZAxis)) == 0) {
-            delete m_pFSM;
-            m_pFSM = nullptr;
-        }
         break;
     case stsYAxis:
-        m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestAxis, 0);
-        m_pYAxis = m_pYAxis ? m_pYAxis : new CSelftestPart_Axis(&Config_YAxis);
-        if (m_pYAxis->Loop()) {
-            int p = m_pYAxis->GetProgress();
-            fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::Yaxis, 33 + p / 3, uint8_t(SelftestSubtestState_t::running));
+        if (phaseAxis(&Config_YAxis, &m_pYAxis, (uint16_t)PhasesSelftestAxis::Yaxis))
             return;
-        }
-        fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::Yaxis, 66, uint8_t(SelftestSubtestState_t::ok));
-        delete m_pYAxis;
-        m_pYAxis = nullptr;
-        if ((m_Mask & stmZAxis) == 0) {
-            delete m_pFSM;
-            m_pFSM = nullptr;
-        }
         break;
     case stsZAxis:
-        m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestAxis, 0);
-        m_pZAxis = m_pZAxis ? m_pZAxis : new CSelftestPart_Axis(&Config_ZAxis);
-        if (m_pZAxis->Loop()) {
-            int p = m_pYAxis->GetProgress();
-            fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::Zaxis, 66 + p / 3, uint8_t(SelftestSubtestState_t::running));
-            return;
-        }
-        fsm_change(ClientFSM::SelftestAxis, PhasesSelftestAxis::Zaxis, 100, uint8_t(SelftestSubtestState_t::ok));
-        delete m_pZAxis;
-        m_pZAxis = nullptr;
-        delete m_pFSM;
-        m_pFSM = nullptr;
+        //    	if (phaseAxis(&Config_ZAxis, &m_pZAxis, (uint16_t)PhasesSelftestAxis::Zaxis))
+        //    		return;
         break;
     case stsHeaters:
-        m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_Heater(&Config_HeaterNozzle);
-        m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(&Config_HeaterBed);
-        m_pHeater_Nozzle->Loop();
-        m_pHeater_Bed->Loop();
-        if (m_pHeater_Nozzle->IsInProgress() || m_pFan1->IsInProgress()) {
-            //int p0 = m_pHeater_Nozzle->GetProgress();
-            //int p1 = m_pHeater_Bed->GetProgress();
+        if (phaseHeaters(&Config_HeaterNozzle, &Config_HeaterBed))
             return;
-        }
-        delete m_pHeater_Nozzle;
-        m_pHeater_Nozzle = nullptr;
-        delete m_pHeater_Bed;
-        m_pHeater_Bed = nullptr;
+        break;
+    case stsFans_fine:
+        if (phaseFans(&Config_Fan0_fine, &Config_Fan1_fine))
+            return;
         break;
     case stsFinish:
-        log_close();
-        hwio_fan_control_enable();
-        marlin_server_set_exclusive_mode(0);
+        phaseFinish();
         break;
     case stsFinished:
     case stsAborted:
@@ -174,6 +124,99 @@ bool CSelftest::Abort() {
     abort_part((CSelftestPart **)&m_pZAxis);
     m_State = stsAborted;
     return true;
+}
+
+void CSelftest::phaseStart() {
+    marlin_server_set_exclusive_mode(1);
+    hwio_fan_control_disable();
+    m_HomeState = sthsNone;
+    log_open();
+}
+
+bool CSelftest::phaseFans(const selftest_fan_config_t *pconfig_fan0, const selftest_fan_config_t *pconfig_fan1) {
+    m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestFans, 0);
+    m_pFan0 = m_pFan0 ? m_pFan0 : new CSelftestPart_Fan(pconfig_fan0);
+    m_pFan1 = m_pFan1 ? m_pFan1 : new CSelftestPart_Fan(pconfig_fan1);
+    m_pFan0->Loop();
+    m_pFan1->Loop();
+    if (m_pFan0->IsInProgress() || m_pFan1->IsInProgress()) {
+        int p0 = m_pFan0->GetProgress();
+        int p1 = m_pFan1->GetProgress();
+        int p = _PF * ((p1 > p0) ? p0 : p1);
+        fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, p, uint8_t(SelftestSubtestState_t::running));
+        if (m_pFan1->IsInProgress())
+            fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, p, uint8_t(SelftestSubtestState_t::running));
+        else
+            fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, p, uint8_t(SelftestSubtestState_t::ok));
+        return true;
+    }
+    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan0, _PF, uint8_t(SelftestSubtestState_t::ok));
+    fsm_change(ClientFSM::SelftestFans, PhasesSelftestFans::TestFan1, _PF, uint8_t(SelftestSubtestState_t::ok));
+    delete m_pFan0;
+    m_pFan0 = nullptr;
+    delete m_pFan1;
+    m_pFan1 = nullptr;
+    delete m_pFSM;
+    m_pFSM = nullptr;
+    return false;
+}
+
+bool CSelftest::phaseHome() {
+    switch (m_HomeState) {
+    case sthsNone:
+        queue.enqueue_one_now("G28");
+        m_HomeState = sthsHommingInProgress;
+        return true;
+    case sthsHommingInProgress:
+        if (planner.movesplanned() || queue.length)
+            return true;
+        m_HomeState = sthsHommingFinished;
+        break;
+    case sthsHommingFinished:
+        break;
+    }
+    return false;
+}
+
+bool CSelftest::phaseAxis(const selftest_axis_config_t *pconfig_axis, CSelftestPart_Axis **ppaxis, uint16_t fsm_phase) {
+    m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestAxis, 0);
+    *ppaxis = *ppaxis ? *ppaxis : new CSelftestPart_Axis(pconfig_axis);
+    if ((*ppaxis)->Loop()) {
+        int p = _PF * ((*ppaxis)->GetProgress());
+        fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, p, uint8_t(SelftestSubtestState_t::running));
+        return true;
+    }
+    fsm_change(ClientFSM::SelftestAxis, (PhasesSelftestAxis)fsm_phase, _PF, uint8_t(SelftestSubtestState_t::ok));
+    delete *ppaxis;
+    *ppaxis = nullptr;
+    if (((m_State == stsXAxis) && ((m_Mask & (stmYAxis | stmZAxis)) == 0)) || ((m_State == stsYAxis) && ((m_Mask & stmZAxis) == 0)) || (m_State == stsZAxis)) {
+        delete m_pFSM;
+        m_pFSM = nullptr;
+    }
+    return false;
+}
+
+bool CSelftest::phaseHeaters(const selftest_heater_config_t *pconfig_nozzle, const selftest_heater_config_t *pconfig_bed) {
+    m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_Heater(&Config_HeaterNozzle);
+    m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(&Config_HeaterBed);
+    m_pHeater_Nozzle->Loop();
+    m_pHeater_Bed->Loop();
+    if (m_pHeater_Nozzle->IsInProgress() || m_pFan1->IsInProgress()) {
+        //int p0 = m_pHeater_Nozzle->GetProgress();
+        //int p1 = m_pHeater_Bed->GetProgress();
+        return true;
+    }
+    delete m_pHeater_Nozzle;
+    m_pHeater_Nozzle = nullptr;
+    delete m_pHeater_Bed;
+    m_pHeater_Bed = nullptr;
+    return false;
+}
+
+void CSelftest::phaseFinish() {
+    log_close();
+    hwio_fan_control_enable();
+    marlin_server_set_exclusive_mode(0);
 }
 
 void CSelftest::next() {
