@@ -47,8 +47,7 @@
 
 #define COMMA ,
 
-#define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) inline constexpr TYPE NAME(PORTPIN, PARAMETERS);
-#define DEFINE_PINS(TYPE, NAME, PORTPIN, PARAMETERS)
+#define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS)   inline constexpr TYPE NAME(PORTPIN, PARAMETERS);
 #define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS) NAME.configure();
 #define PINS_TO_CHECK(TYPE, NAME, PORTPIN, PARAMETERS)  { PORTPIN },
 
@@ -86,25 +85,39 @@ public:
     constexpr Pin(IoPort ioPort, IoPin ioPin)
         : m_halPortBase(IoPortToHalBase(ioPort))
         , m_halPin(IoPinToHal(ioPin)) {}
+
+protected:
+    GPIO_TypeDef *getHalPort() const {
+        return reinterpret_cast<GPIO_TypeDef *>(m_halPortBase);
+    }
+
+private:
     static constexpr uint32_t IoPortToHalBase(IoPort ioPort) {
         return (GPIOA_BASE + (static_cast<uint32_t>(ioPort) * (GPIOB_BASE - GPIOA_BASE)));
-    }
-    GPIO_TypeDef *halPort() const {
-        return reinterpret_cast<GPIO_TypeDef *>(m_halPortBase);
     }
     static constexpr uint16_t IoPinToHal(IoPin ioPin) {
         return (0x1U << static_cast<uint16_t>(ioPin));
     }
     const uint32_t m_halPortBase;
+
+protected:
     const uint16_t m_halPin;
+    friend class PinChecker;
 };
 
-static_assert(Pin::IoPortToHalBase(IoPort::A) == GPIOA_BASE, "IoPortToHalBase broken.");
-static_assert(Pin::IoPortToHalBase(IoPort::B) == GPIOB_BASE, "IoPortToHalBase broken.");
-static_assert(Pin::IoPortToHalBase(IoPort::G) == GPIOG_BASE, "IoPortToHalBase broken.");
-static_assert(Pin::IoPinToHal(IoPin::p0) == GPIO_PIN_0, "IoPinToHal broken");
-static_assert(Pin::IoPinToHal(IoPin::p1) == GPIO_PIN_1, "IoPinToHal broken");
-static_assert(Pin::IoPinToHal(IoPin::p15) == GPIO_PIN_15, "IoPinToHal broken");
+class PinChecker : public Pin {
+public:
+    constexpr PinChecker(IoPort ioPort, IoPin ioPin)
+        : Pin(ioPort, ioPin) {}
+    static_assert(Pin::IoPortToHalBase(IoPort::A) == GPIOA_BASE, "IoPortToHalBase broken.");
+    static_assert(Pin::IoPortToHalBase(IoPort::B) == GPIOB_BASE, "IoPortToHalBase broken.");
+    static_assert(Pin::IoPortToHalBase(IoPort::G) == GPIOG_BASE, "IoPortToHalBase broken.");
+    static_assert(Pin::IoPinToHal(IoPin::p0) == GPIO_PIN_0, "IoPinToHal broken");
+    static_assert(Pin::IoPinToHal(IoPin::p1) == GPIO_PIN_1, "IoPinToHal broken");
+    static_assert(Pin::IoPinToHal(IoPin::p15) == GPIO_PIN_15, "IoPinToHal broken");
+    constexpr uint32_t getPort() const { return m_halPortBase; }
+    constexpr uint16_t getPin() const { return m_halPin; }
+};
 
 enum class IMode {
     input = GPIO_MODE_INPUT,
@@ -125,7 +138,7 @@ public:
         , m_mode(iMode)
         , m_pull(pull) {}
     GPIO_PinState read() const {
-        return HAL_GPIO_ReadPin(reinterpret_cast<GPIO_TypeDef *>(m_halPortBase), m_halPin);
+        return HAL_GPIO_ReadPin(getHalPort(), m_halPin);
     }
     void pullUp() const { configure(Pull::up); }
     void pullDown() const { configure(Pull::down); }
@@ -177,7 +190,7 @@ public:
      */
     GPIO_PinState read() {
         GPIO_PinState bitstatus;
-        if ((reinterpret_cast<GPIO_TypeDef *>(m_halPortBase)->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
+        if ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
             bitstatus = GPIO_PIN_SET;
         } else {
             bitstatus = GPIO_PIN_RESET;
@@ -185,7 +198,7 @@ public:
         return bitstatus;
     }
     void write(GPIO_PinState pinState) const {
-        HAL_GPIO_WritePin(reinterpret_cast<GPIO_TypeDef *>(m_halPortBase), m_halPin, pinState);
+        HAL_GPIO_WritePin(getHalPort(), m_halPin, pinState);
     }
     void configure() const;
 
@@ -202,7 +215,7 @@ public:
 
 private:
     GPIO_PinState read() const {
-        return HAL_GPIO_ReadPin(reinterpret_cast<GPIO_TypeDef *>(m_halPortBase), m_halPin);
+        return HAL_GPIO_ReadPin(getHalPort(), m_halPin);
     }
     void enableInput(Pull pull) const;
     void enableOutput() const {
