@@ -5,7 +5,11 @@
 #include <stdbool.h>
 
 enum {
-    FANCTL_MAX_FANS = 2 // maximum number of fans for C wrapper functions
+    FANCTL_MAX_FANS = 2,           // maximum number of fans for C wrapper functions
+    FANCTL_START_TIMEOUT = 1000,   //
+    FANCTL_MEASURE_TIMEOUT = 1000, //
+    FANCTL_START_EDGES = 4,        //
+    FANCTL_MEASURE_EDGES = 3       //
 };
 
 // this structure contain variables for software pwm fan control with phase-shifting
@@ -96,11 +100,12 @@ public:
 //
 class CFanCtl {
 public:
-    enum FanState {
+    enum FanState : uint8_t {
         idle,           // idle - no rotation, PWM = 0%
         starting,       // starting - PWM = 100%, waiting for 4 tacho edges
         running,        // running - PWM set by setPWM(), no regulation
         measuring,      // measuring - PWM = 100%, waiting for 2 tacho edges
+        blanking,       // blanking - PWM = 0%, waiting n ticks (used to compensate measurement 100% PWM)
         error_starting, // starting error - means no feedback after timeout expired
         error_running,  // running error - means zero RPM measured (no feedback)
     };
@@ -134,15 +139,16 @@ public:
     // setters
     void setPWM(uint8_t pwm);            // set PWM value - switch to non closed-loop mode
     void setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
-    void measure();                      // measure tacho delay
+    uint32_t measure();                  // measure tacho delay [us], blocking
 private:
-    uint16_t m_MinRPM;  // minimum rpm value (set in constructor)
-    uint16_t m_MaxRPM;  // maximum rpm value (set in constructor)
-    FanState m_State;   // fan control state
-    uint8_t m_PWMValue; // current pwm value
-    uint8_t m_Edges;    // edge counter - used for starting and measurement
-    uint8_t m_Ticks;    // tick counter - used for starting and measurement
-
+    uint16_t m_MinRPM; // minimum rpm value (set in constructor)
+    uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
+    uint16_t m_Ticks;  // tick counter - used for starting and measurement
+    uint16_t m_Result;
+    FanState m_State;    // fan control state
+    uint8_t m_PWMValue;  // current pwm value
+    uint8_t m_Edges;     // edge counter - used for starting and measurement
+    FanState m_TmpState; // storage for previous fan control state during measurement cycle
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
 };
@@ -158,6 +164,7 @@ extern uint8_t fanctl_get_pwm(uint8_t fan);           // get requested PWM value
 extern uint16_t fanctl_get_rpm(uint8_t fan);          // get actual RPM value
 extern void fanctl_set_psm(uint8_t fan, uint8_t psm); // set PhaseShiftMode
 extern uint8_t fanctl_get_psm(uint8_t fan);           // get PhaseShiftMode
+extern uint32_t fanctl_measure(uint8_t fan);          // measure tacho delay [us], blocking
 
 #ifdef __cplusplus
 }

@@ -2,6 +2,7 @@
 
 #include "fanctl.h"
 #include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
 #include "gpio.h"
 #include <stdlib.h>
 
@@ -18,7 +19,7 @@ CFanCtlPWM::CFanCtlPWM(uint8_t pin_out, uint8_t pwm_min, uint8_t pwm_max, uint8_
     max_value = pwm_max;
     initialized = false;
     output_state = false;
-    pha_mode = random;
+    pha_mode = random; // random, none, triangle
     pha_thr = phase_shift_threshold;
     pwm = 0;
     cnt = 0;
@@ -121,11 +122,14 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
     input_state = tach; // store current tach input state
     if (++tick_count >= ticks_per_second) {
         if (pwm_sum)
-            edges *= 1 + ((ticks_per_second - pwm_sum) / pwm_sum); // add lost edges
-        rpm = (rpm + 3 * ((60 * edges) >> 2)) >> 2;                // calculate and filter rpm
-        edges = 0;                                                 // reset edge counter
-        tick_count = 0;                                            // reset tick counter
-        pwm_sum = 0;                                               // reset pwm_sum
+            edges = (edges * ticks_per_second) / pwm_sum; // add lost edges
+        rpm = (rpm + (45 * edges)) >> 2;                  // calculate and filter rpm original formula
+                                                          //rpm = (rpm + 3 * ((60 * edges) >> 2)) >> 2;
+                                                          // take original rpm add 3 times new rpm - new rpm= 60*freq;
+                                                          //freq=edges/2/2; edges= revolutions per second *2 *2 (2 poles motor and two edges per revolution)
+        edges = 0;                                        // reset edge counter
+        tick_count = 0;                                   // reset tick counter
+        pwm_sum = 0;                                      // reset pwm_sum
     } else if (pwm_on >= 0)
         pwm_sum++; // inc pwm sum if pwm enabled
     return edge;
@@ -170,28 +174,38 @@ void CFanCtl::tick() {
             m_State = idle;
         else {
             m_Ticks++;
-            if (m_Ticks > 1000)
+            if (m_Ticks > FANCTL_START_TIMEOUT)
                 m_State = error_starting;
             else {
                 m_pwm.set_PWM(m_pwm.get_max_PWM());
                 if (edge)
                     m_Edges++;
-                if (m_Edges >= 4)
+                if (m_Edges >= FANCTL_START_EDGES)
                     m_State = running;
             }
         }
         break;
     case measuring:
         m_Ticks++;
-        if (m_Ticks > 1000)
-            m_State = running;
-        else {
+        if (m_Ticks > FANCTL_MEASURE_TIMEOUT) {
+            m_Result = 0;
+            m_State = blanking;
+        } else {
             m_pwm.set_PWM(m_pwm.get_max_PWM());
             if (edge)
                 m_Edges++;
-            if (m_Edges >= 2)
-                m_State = running;
+            if (m_Edges >= FANCTL_MEASURE_EDGES) {
+                m_Result = m_Ticks;
+                m_State = blanking;
+            }
         }
+        break;
+    case blanking:
+        m_pwm.set_PWM(0);
+        if (m_Ticks > 0)
+            m_Ticks--;
+        else
+            m_State = m_TmpState;
         break;
     default: // running and error state
         if (m_PWMValue == 0)
@@ -210,7 +224,17 @@ void CFanCtl::setPhaseShiftMode(uint8_t psm) {
     m_pwm.set_PhaseShiftMode((CFanCtlPWM::PhaseShiftMode)psm);
 }
 
-void CFanCtl::measure() {
+uint32_t CFanCtl::measure() {
+    __disable_irq();
+    m_Ticks = 0;
+    m_Edges = 0;
+    m_TmpState = m_State;
+    m_State = measuring;
+    __enable_irq();
+    while (m_State == measuring) {
+        osDelay(1);
+    }
+    return m_Result;
 }
 
 //------------------------------------------------------------------------------
@@ -253,6 +277,12 @@ void fanctl_set_psm(uint8_t fan, uint8_t psm) {
 uint8_t fanctl_get_psm(uint8_t fan) {
     if (fan < CFanCtl_count)
         return CFanCtl_instance[fan]->getPhaseShiftMode();
+    return 0;
+}
+
+uint32_t fanctl_measure(uint8_t fan) {
+    if (fan < CFanCtl_count)
+        return CFanCtl_instance[fan]->measure();
     return 0;
 }
 }

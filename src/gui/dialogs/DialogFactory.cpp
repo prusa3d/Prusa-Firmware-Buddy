@@ -47,5 +47,6 @@ DialogFactory::Ctors DialogFactory::GetAll() {
     ret[size_t(ClientFSM::G162)] = G162;
     ret[size_t(ClientFSM::SelftestAxis)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(make_static_unique_ptr<DialogSelftestAxis>(&all_dialogs)); };
     ret[size_t(ClientFSM::SelftestFans)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(make_static_unique_ptr<DialogSelftestFans>(&all_dialogs)); };
+    ret[size_t(ClientFSM::SelftestHeat)] = [](uint8_t) { return static_unique_ptr<IDialogMarlin>(make_static_unique_ptr<DialogSelftestTemp>(&all_dialogs)); };
     return ret;
 }

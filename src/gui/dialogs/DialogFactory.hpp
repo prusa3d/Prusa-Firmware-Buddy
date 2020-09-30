@@ -4,6 +4,7 @@
 #include "DialogG162.hpp"
 #include "DialogSelftestAxis.hpp"
 #include "DialogSelftestFans.hpp"
+#include "DialogSelftestTemp.hpp"
 #include "static_alocation_ptr.hpp"
 #include <array>
 

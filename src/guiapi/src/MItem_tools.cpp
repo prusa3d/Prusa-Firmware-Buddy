@@ -16,6 +16,7 @@
 #include "bsod.h"
 #include "liveadjust_z.hpp"
 #include "DialogHandler.hpp"
+#include "selftest_MINI.h"
 
 /*****************************************************************************/
 //MI_WIZARD
@@ -96,13 +97,46 @@ void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_TEST_X
-MI_TEST_X::MI_TEST_X()
+//MI_TEST_FANS
+MI_TEST_FANS::MI_TEST_FANS()
     : WI_LABEL_t(label, 0, true, false) {
 }
 
-void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
-    marlin_test_start();
+void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmFans);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
+}
+
+/*****************************************************************************/
+//MI_TEST_X
+MI_TEST_XYZ::MI_TEST_XYZ()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmXYZAxis);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+}
+
+/*****************************************************************************/
+//MI_TEST_HEAT
+MI_TEST_HEAT::MI_TEST_HEAT()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmHeaters);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestHeat, 0);
+}
+
+/*****************************************************************************/
+//MI_TEST_ABORT
+MI_TEST_ABORT::MI_TEST_ABORT()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_ABORT::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_abort();
 }
 
 /*****************************************************************************/
@@ -334,7 +368,7 @@ void MI_M600::click(IWindowMenu & /*window_menu*/) {
 MI_TIMEOUT::MI_TIMEOUT()
     : WI_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, label, 0, true, false) {}
 void MI_TIMEOUT::OnChange(size_t old_index) {
-    if (old_index) {
+    if (!old_index) {
         Screens::Access()->EnableMenuTimeout();
     } else {
         Screens::Access()->DisableMenuTimeout();

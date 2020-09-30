@@ -247,7 +247,8 @@ target_link_libraries(FatFs_Config INTERFACE A3idesHeaders STM32::USBHost)
 add_library(Marlin_Config INTERFACE)
 # TODO: fix dependency on src/common and src/gui
 target_include_directories(
-  Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
+  Marlin_Config INTERFACE include/marlin src/common src/common/selftest src/gui
+                          src/marlin_stubs/include
   )
 target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
 
@@ -471,7 +472,10 @@ target_sources(
           src/common/appmain.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
-          src/common/marlin_test.cpp
+          src/common/selftest/selftest_MINI.cpp
+          src/common/selftest/selftest_fan.cpp
+          src/common/selftest/selftest_axis.cpp
+          src/common/selftest/selftest_heater.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
           $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
@@ -531,6 +535,7 @@ if(GUI)
             src/gui/dialogs/DialogG162.cpp
             src/gui/dialogs/DialogSelftestAxis.cpp
             src/gui/dialogs/DialogSelftestFans.cpp
+            src/gui/dialogs/DialogSelftestTemp.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
@@ -568,12 +573,8 @@ if(GUI)
             src/gui/test/screen_test_msgbox.cpp
             src/gui/test/screen_test_wizard_icons.cpp
             src/gui/test/screen_test_graph.cpp
-            src/gui/wizard/selftest_fans_axis.cpp
-            src/gui/wizard/selftest_temp.cpp
-            src/gui/wizard/selftest_cool.cpp
             src/gui/wizard/selftest.cpp
             src/gui/wizard/firstlay.cpp
-            src/gui/wizard/wizard_load_unload.cpp
             src/gui/wizard/screen_wizard.cpp
             src/gui/wizard/xyzcalib.cpp
             src/gui/screen_home.cpp

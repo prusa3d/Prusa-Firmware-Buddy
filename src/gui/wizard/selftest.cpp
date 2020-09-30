@@ -1,37 +1,65 @@
 // selftest.cpp
-#include "selftest_temp.hpp"
+#include "selftest.hpp"
 #include "i18n.h"
 #include "gui.hpp"
+#include "selftest_MINI.h"
+#include "marlin_client.h"
+#include "DialogHandler.hpp"
 
-StateFncData StateFnc_SELFTEST_INIT(StateFncData last_run) {
-    static const char en_text[] = N_(
-        "State\n"
-        "SELFTEST_INIT\n"
-        "not implemented");
-    const string_view_utf8 notTranslatedText = string_view_utf8::MakeCPUFLASH((const uint8_t *)(en_text));
+StateFncData StateFnc_SELFTEST_FAN(StateFncData last_run) {
+    marlin_test_start(stmFans);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
+    return last_run.PassToNext();
+}
 
-    MsgBox(notTranslatedText, Responses_NEXT, 0, GuiDefaults::RectScreenBody, is_multiline::no);
+StateFncData StateFnc_SELFTEST_X(StateFncData last_run) {
+    marlin_test_start(stmXAxis);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_Y(StateFncData last_run) {
+    marlin_test_start(stmYAxis);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_Z(StateFncData last_run) {
+    marlin_test_start(stmZAxis);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_XYZ(StateFncData last_run) {
+    marlin_test_start(stmXYZAxis);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
     return last_run.PassToNext();
 }
 
 StateFncData StateFnc_SELFTEST_PASS(StateFncData last_run) {
     const char en_text[] = N_("All tests finished successfully!");
     string_view_utf8 translatedText = _(en_text);
-    MsgBoxPepa(translatedText, Responses_NEXT);
+    MsgBoxPepa(translatedText, Responses_Next);
     return last_run.PassToNext().PassToNext(); // 2x PassToNext() to skip fail
 }
 
 StateFncData StateFnc_SELFTEST_FAIL(StateFncData last_run) {
     static const char en_text[] = N_("The selftest failed to finish. Double-check the printer's wiring and axes. Then restart the Selftest.");
     string_view_utf8 translatedText = _(en_text);
-    MsgBox(translatedText, Responses_NEXT);
+    MsgBox(translatedText, Responses_Next);
     return StateFncData(WizardState_t::EXIT, WizardTestState_t::PASSED);
 }
 
 StateFncData StateFnc_SELFTEST_AND_XYZCALIB(StateFncData last_run) {
     static const char en_text[] = N_("Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes.");
     string_view_utf8 translatedText = _(en_text);
-    MsgBoxPepa(translatedText, Responses_NEXT);
+    MsgBoxPepa(translatedText, Responses_Next);
+    return last_run.PassToNext();
+}
+
+StateFncData StateFnc_SELFTEST_TEMP(StateFncData last_run) {
+    marlin_test_start(stmHeaters);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestHeat, 0);
     return last_run.PassToNext();
 }
 
