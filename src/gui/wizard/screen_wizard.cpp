@@ -219,7 +219,7 @@ string_view_utf8 WizardGetCaption(WizardState_t st) {
         return _("WIZARD");
     }
 
-    if (IsStateInWizardMask(st, WizardMaskSelfTest())) {
+    if (IsStateInWizardMask(st, WizardMaskRange(WizardState_t::SELFTEST_first, WizardState_t::SELFTEST_last))) {
         return _("SELFTEST");
     }
 
@@ -266,6 +266,8 @@ ScreenWizard::ScreenWizard()
     marlin_set_print_speed(100);
     start_state = WizardState_t::START_first;
     //marlin_set_exclusive_mode(1); //hope i will not need this
+    ClrMenuTimeoutClose();
+    ClrOnSerialClose();
 }
 
 ScreenWizard::~ScreenWizard() {
