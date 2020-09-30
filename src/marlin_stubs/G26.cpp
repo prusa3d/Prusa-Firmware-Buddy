@@ -20,11 +20,11 @@ static const constexpr float threadWidth = 0.5f;
 static const constexpr float pi = 3.1415926535897932384626433832795f;
 
 void FirstLayer::start_printing() {
-    current_line = 0;
     isPrinting_ = true;
 }
 
 void FirstLayer::finish_printing() {
+    current_line = 0;
     total_lines = 1; /// don't set 0 to avoid division by zero
     isPrinting_ = false;
 }
