@@ -992,6 +992,8 @@ static uint64_t _server_update_vars(uint64_t update) {
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
         }
     }
+    marlin_server.vars.sd_percent_done = 50;
+    changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_DURATION)) {
         uint32_t timer = print_job_timer.duration();
