@@ -51,9 +51,8 @@ private:
     const uint8_t min_value; // minimum pwm value
     const uint8_t max_value; // maximum pwm value
     union {
-        struct {                   // flags:
-            bool output_state : 1; //  current pwm output state (0/1)
-            bool pha_ena : 1;      //  phase shift enabled
+        struct {              // flags:
+            bool pha_ena : 1; //  phase shift enabled
         };
         uint8_t flags; // flags as uint8
     };

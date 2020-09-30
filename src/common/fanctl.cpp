@@ -15,7 +15,6 @@ CFanCtlPWM::CFanCtlPWM(const OutputPin &pinOut, uint8_t pwm_min, uint8_t pwm_max
     : m_pin(pinOut)
     , min_value(pwm_min)
     , max_value(pwm_max)
-    , output_state(false)
     , pha_ena(false)
     , pwm(0)
     , cnt(0)
@@ -56,9 +55,7 @@ int8_t CFanCtlPWM::tick() {
         }
 #endif
     }
-    if (o != output_state)                       // pwm output changed?
-        m_pin.write(static_cast<Pin::State>(o)); // set output pin
-    output_state = o;                            // store pwm output state
+    m_pin.write(static_cast<Pin::State>(o)); // set output pin
     return pwm_on;
 }
 
