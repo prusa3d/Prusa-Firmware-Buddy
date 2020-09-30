@@ -145,5 +145,5 @@ public:
     }
 };
 
-uint8_t get_var_sd_printing();
-void set_var_sd_printing(uint8_t value);
+uint8_t get_var_sd_percent_done();
+void set_var_sd_percent_done(uint8_t value);

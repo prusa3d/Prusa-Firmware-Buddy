@@ -37,7 +37,7 @@
 #include "trinamic.h"
 #include "ff.h"
 #include "otp.h"
-//#include "../marlin_stubs/G26.hpp"
+#include "../marlin_stubs/G26.hpp"
 
 static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
@@ -982,18 +982,19 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
-        uint8_t progress = 0;
-        if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
-            progress = static_cast<uint8_t>(oProgressData.oPercentDone.mGetValue());
-        else
-            progress = static_cast<uint8_t>(media_print_get_percent_done());
-        if (marlin_server.vars.sd_percent_done != progress) {
-            marlin_server.vars.sd_percent_done = progress;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
+        if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
+
+            //     uint8_t progress = 0;
+            //     if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
+            //         progress = static_cast<uint8_t>(oProgressData.oPercentDone.mGetValue());
+            //     else
+            //         progress = static_cast<uint8_t>(media_print_get_percent_done());
+            //     if (marlin_server.vars.sd_percent_done != progress) {
+            //         marlin_server.vars.sd_percent_done = progress;
+            //         changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
+            //     }
         }
     }
-    marlin_server.vars.sd_percent_done = 50;
-    changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_DURATION)) {
         uint32_t timer = print_job_timer.duration();
@@ -1491,10 +1492,11 @@ FSM_notifier::~FSM_notifier() {
 //-1 (maxval) is used as no response from client
 uint32_t ClientResponseHandler::server_side_encoded_response = -1;
 
-uint8_t get_var_sd_printing() {
-    return marlin_server.vars.sd_printing;
+uint8_t get_var_sd_percent_done() {
+    return marlin_server.vars.sd_percent_done;
 }
 
-void set_var_sd_printing(uint8_t value) {
-    marlin_server.vars.sd_printing = value;
+void set_var_sd_percent_done(uint8_t value) {
+    marlin_server.vars.sd_percent_done = value;
+    _set_notify_change(MARLIN_VAR_SD_PDONE);
 }
