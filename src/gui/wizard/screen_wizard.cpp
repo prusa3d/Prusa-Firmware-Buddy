@@ -394,8 +394,6 @@ ScreenWizard::StateArray ScreenWizard::StateInitializer() {
     ret[static_cast<size_t>(WizardState_t::SELFTEST_Y)] = StateFnc_SELFTEST_Y;
     ret[static_cast<size_t>(WizardState_t::SELFTEST_Z)] = StateFnc_SELFTEST_Z;
     ret[static_cast<size_t>(WizardState_t::SELFTEST_XYZ)] = StateFnc_SELFTEST_XYZ;
-    ret[static_cast<size_t>(WizardState_t::SELFTEST_COOL)] = StateFnc_SELFTEST_COOL;
-    ret[static_cast<size_t>(WizardState_t::SELFTEST_INIT_TEMP)] = StateFnc_SELFTEST_INIT_TEMP;
     ret[static_cast<size_t>(WizardState_t::SELFTEST_TEMP)] = StateFnc_SELFTEST_TEMP;
     ret[static_cast<size_t>(WizardState_t::SELFTEST_PASS)] = StateFnc_SELFTEST_PASS;
     ret[static_cast<size_t>(WizardState_t::SELFTEST_FAIL)] = StateFnc_SELFTEST_FAIL;

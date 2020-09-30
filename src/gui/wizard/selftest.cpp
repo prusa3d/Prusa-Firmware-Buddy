@@ -57,6 +57,11 @@ StateFncData StateFnc_SELFTEST_AND_XYZCALIB(StateFncData last_run) {
     return last_run.PassToNext();
 }
 
+StateFncData StateFnc_SELFTEST_TEMP(StateFncData last_run) {
+
+    return last_run.PassToNext();
+}
+
 #if 0
 
     #include "selftest.hpp"

@@ -21,8 +21,6 @@ enum class WizardState_t {
     SELFTEST_Y,
     SELFTEST_Z,
     SELFTEST_XYZ,
-    SELFTEST_COOL,
-    SELFTEST_INIT_TEMP,
     SELFTEST_TEMP,
     SELFTEST_PASS,
     SELFTEST_FAIL,
