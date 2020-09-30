@@ -97,22 +97,22 @@ uint8_t tmc_get_diag() //0 = X, 2 = Y, 4 = Z, 8 = E
     for (tmp_step = 0; tmp_step < step; step--) {
         tmc_delay(1024 * 2);
         if (step_mask & 1)
-            xStep.write(GPIO_PinState::GPIO_PIN_RESET);
+            xStep.write(Pin::State::low);
         if (step_mask & 2)
-            yStep.write(GPIO_PinState::GPIO_PIN_RESET);
+            yStep.write(Pin::State::low);
         if (step_mask & 4)
-            zStep.write(GPIO_PinState::GPIO_PIN_RESET);
+            zStep.write(Pin::State::low);
         if (step_mask & 8)
-            e0Step.write(GPIO_PinState::GPIO_PIN_RESET);
+            e0Step.write(Pin::State::low);
         //fixme why there is no delay?
-        xStep.write(GPIO_PinState::GPIO_PIN_SET);
-        yStep.write(GPIO_PinState::GPIO_PIN_SET);
-        zStep.write(GPIO_PinState::GPIO_PIN_SET);
-        e0Step.write(GPIO_PinState::GPIO_PIN_SET);
-        diag |= e0Diag.read() << 3;
-        diag |= xDiag.read();
-        diag |= yDiag.read() << 1;
-        diag |= zDiag.read() << 2;
+        xStep.write(Pin::State::high);
+        yStep.write(Pin::State::high);
+        zStep.write(Pin::State::high);
+        e0Step.write(Pin::State::high);
+        diag |= static_cast<unsigned int>(e0Diag.read()) << 3;
+        diag |= static_cast<unsigned int>(xDiag.read());
+        diag |= static_cast<unsigned int>(yDiag.read()) << 1;
+        diag |= static_cast<unsigned int>(zDiag.read()) << 2;
 
         if (diag == 15)
             break;
@@ -124,26 +124,26 @@ void tmc_move(uint8_t step_mask, uint16_t step, uint8_t speed) {
     uint16_t tmp_step;
     for (tmp_step = 0; tmp_step < step; step--) {
         if (step_mask & 1)
-            xStep.write(GPIO_PinState::GPIO_PIN_SET);
+            xStep.write(Pin::State::high);
         if (step_mask & 2)
-            yStep.write(GPIO_PinState::GPIO_PIN_SET);
+            yStep.write(Pin::State::high);
         if (step_mask & 4)
-            zStep.write(GPIO_PinState::GPIO_PIN_SET);
+            zStep.write(Pin::State::high);
         if (step_mask & 8)
-            e0Step.write(GPIO_PinState::GPIO_PIN_SET);
+            e0Step.write(Pin::State::high);
         tmc_delay(1024 * speed);
-        xStep.write(GPIO_PinState::GPIO_PIN_RESET);
-        yStep.write(GPIO_PinState::GPIO_PIN_RESET);
-        zStep.write(GPIO_PinState::GPIO_PIN_RESET);
-        e0Step.write(GPIO_PinState::GPIO_PIN_RESET);
+        xStep.write(Pin::State::low);
+        yStep.write(Pin::State::low);
+        zStep.write(Pin::State::low);
+        e0Step.write(Pin::State::low);
     }
 }
 
 void tmc_set_move(uint8_t tmc, uint16_t step, uint8_t dir, uint8_t speed) {
-    xDir.write(static_cast<GPIO_PinState>(dir));
-    yDir.write(static_cast<GPIO_PinState>(dir));
-    zDir.write(static_cast<GPIO_PinState>(dir));
-    e0Dir.write(static_cast<GPIO_PinState>(dir));
+    xDir.write(static_cast<Pin::State>(dir));
+    yDir.write(static_cast<Pin::State>(dir));
+    zDir.write(static_cast<Pin::State>(dir));
+    e0Dir.write(static_cast<Pin::State>(dir));
     tmc_move(tmc, step, speed);
 }
 

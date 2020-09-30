@@ -27,8 +27,8 @@ void hwio_safe_state(void) {
     gpio_set(MARLIN_PIN(HEAT0), 0);
     gpio_set(MARLIN_PIN(BED_HEAT), 0);
     // disable motors
-    xEnable.write(GPIO_PinState::GPIO_PIN_SET);
-    yEnable.write(GPIO_PinState::GPIO_PIN_SET);
-    zEnable.write(GPIO_PinState::GPIO_PIN_SET);
-    e0Enable.write(GPIO_PinState::GPIO_PIN_SET);
+    xEnable.write(Pin::State::high);
+    yEnable.write(Pin::State::high);
+    zEnable.write(Pin::State::high);
+    e0Enable.write(Pin::State::high);
 }

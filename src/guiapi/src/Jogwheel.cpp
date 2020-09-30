@@ -37,20 +37,20 @@ Jogwheel::Jogwheel() {
 }
 
 const int Jogwheel::GetJogwheelButtonPinState() const {
-    return jogWheelENC.read();
+    return static_cast<int>(jogWheelENC.read());
 }
 
 void Jogwheel::ReadInput(uint8_t &signals) {
 
-    if (jogWheelENC.read()) {
+    if (jogWheelENC.read() == Pin::State::high) {
         signals |= JG_BUTTON_PRESSED; //bit 2 - button press
     }
     signals ^= JG_BUTTON_PRESSED; // we are using inverted button pin
 
-    if (jogWheelEN1.read()) {
+    if (jogWheelEN1.read() == Pin::State::high) {
         signals |= JG_PHASE_0; //bit 0 - phase0
     }
-    if (jogWheelEN2.read()) {
+    if (jogWheelEN2.read() == Pin::State::high) {
         signals |= JG_PHASE_1; //bit 1 - phase1
     }
 }

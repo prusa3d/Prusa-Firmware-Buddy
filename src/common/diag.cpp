@@ -30,11 +30,11 @@ void diag_check_fastboot(void) {
         diag_delay(100000);
         int i;
         for (i = 0; i < 10; i++) {
-            if (fastBoot.read())
+            if (fastBoot.read() == Pin::State::high)
                 break;
             diag_delay(10000);
         }
-        diag_fastboot = ((i == 10) && !fastBoot.read()) ? 1 : 0;
+        diag_fastboot = ((i == 10) && (fastBoot.read() == Pin::State::low)) ? 1 : 0;
     }
 }
 

@@ -6,32 +6,32 @@
 #include "hwio_pindef.h"
 
 void st7789v_set_cs(void) {
-    cs.write(GPIO_PinState::GPIO_PIN_SET);
+    cs.write(Pin::State::high);
     st7789v_flg |= FLG_CS;
 }
 
 void st7789v_clr_cs(void) {
-    cs.write(GPIO_PinState::GPIO_PIN_RESET);
+    cs.write(Pin::State::low);
     st7789v_flg &= ~FLG_CS;
 }
 
 void st7789v_set_rs(void) {
-    rs.write(GPIO_PinState::GPIO_PIN_SET);
+    rs.write(Pin::State::high);
     st7789v_flg |= FLG_RS;
 }
 
 void st7789v_clr_rs(void) {
-    rs.write(GPIO_PinState::GPIO_PIN_RESET);
+    rs.write(Pin::State::low);
     st7789v_flg &= ~FLG_RS;
 }
 
 void st7789v_set_rst(void) {
-    rst.write(GPIO_PinState::GPIO_PIN_SET);
+    rst.write(Pin::State::high);
     st7789v_flg |= FLG_RST;
 }
 
 void st7789v_clr_rst(void) {
-    rst.write(GPIO_PinState::GPIO_PIN_RESET);
+    rst.write(Pin::State::low);
     st7789v_flg &= ~FLG_RST;
 }
 
@@ -44,7 +44,7 @@ void st7789v_reset(void) {
         int irq = __get_PRIMASK() & 1;
         if (irq)
             __disable_irq();
-        while (!rstInput.read())
+        while (rstInput.read() == Pin::State::low)
             delay++;
         if (irq)
             __enable_irq();

@@ -56,9 +56,9 @@ int8_t CFanCtlPWM::tick() {
         }
 #endif
     }
-    if (o != output_state)                          // pwm output changed?
-        m_pin.write(static_cast<GPIO_PinState>(o)); // set output pin
-    output_state = o;                               // store pwm output state
+    if (o != output_state)                       // pwm output changed?
+        m_pin.write(static_cast<Pin::State>(o)); // set output pin
+    output_state = o;                            // store pwm output state
     return pwm_on;
 }
 
@@ -84,8 +84,8 @@ CFanCtlTach::CFanCtlTach(const InputPin &inputPin)
 }
 
 void CFanCtlTach::tick(int8_t pwm_on) {
-    bool tach = m_pin.read();                  // sample tach input pin
-    if ((tach ^ input_state) && (pwm_on >= 2)) // detect edge inside pwm pulse, ignore first two sub-periods after 0-1 pwm transition
+    bool tach = static_cast<bool>(m_pin.read()); // sample tach input pin
+    if ((tach ^ input_state) && (pwm_on >= 2))   // detect edge inside pwm pulse, ignore first two sub-periods after 0-1 pwm transition
         edges++;
     input_state = tach; // store current tach input state
     if (++tick_count >= ticks_per_second) {
@@ -159,5 +159,5 @@ void CFanCtl::safeState() {
 
 void CFanCtlPWM::safeState() {
     set_PWM(max_value);
-    m_pin.write(GPIO_PinState::GPIO_PIN_SET);
+    m_pin.write(Pin::State::high);
 }

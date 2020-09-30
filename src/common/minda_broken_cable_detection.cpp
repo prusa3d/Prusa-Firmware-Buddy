@@ -32,18 +32,18 @@ void MINDA_BROKEN_CABLE_DETECTION__BEGIN() {
     endstop_status.i = 0;
 }
 void MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME() {
-    endstop_status.PRE_XYHOME = zMin.read();
+    endstop_status.PRE_XYHOME = static_cast<uint8_t>(zMin.read());
     PRE_XYHOME = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME() {
-    endstop_status.POST_XYHOME = zMin.read();
+    endstop_status.POST_XYHOME = static_cast<uint8_t>(zMin.read());
     POST_XYHOME = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0() {
-    endstop_status.POST_ZHOME_0 = zMin.read();
+    endstop_status.POST_ZHOME_0 = static_cast<uint8_t>(zMin.read());
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1() {
-    endstop_status.POST_ZHOME_1 = zMin.read();
+    endstop_status.POST_ZHOME_1 = static_cast<uint8_t>(zMin.read());
 }
 void MINDA_BROKEN_CABLE_DETECTION__END() {
 
@@ -73,11 +73,11 @@ void MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN() {
     actual_point = 0;
 }
 void MINDA_BROKEN_CABLE_DETECTION__PRE_XYMOVE() {
-    mbl_preposts[actual_point].pre_lvl = zMin.read();
+    mbl_preposts[actual_point].pre_lvl = static_cast<int>(zMin.read());
     mbl_preposts[actual_point].pre = get_Z_probe_endstop_hits();
 }
 void MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE() {
-    mbl_preposts[actual_point].post_lvl = zMin.read();
+    mbl_preposts[actual_point].post_lvl = static_cast<int>(zMin.read());
     mbl_preposts[actual_point].post = get_Z_probe_endstop_hits();
     actual_point = (actual_point + 1) % POINTS;
 }

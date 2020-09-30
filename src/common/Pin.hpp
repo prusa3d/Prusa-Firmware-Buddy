@@ -155,6 +155,12 @@ enum class IoPin : uint8_t {
  * @brief Base class for all types of pins. Stores pin physical location.
  */
 class Pin {
+public:
+    enum class State {
+        low = GPIO_PinState::GPIO_PIN_RESET,
+        high = GPIO_PinState::GPIO_PIN_SET,
+    };
+
 protected:
     constexpr Pin(IoPort ioPort, IoPin ioPin)
         : m_halPortBase(IoPortToHalBase(ioPort))
@@ -220,8 +226,12 @@ public:
         : Pin(ioPort, ioPin)
         , m_mode(iMode)
         , m_pull(pull) {}
-    GPIO_PinState read() const {
-        return HAL_GPIO_ReadPin(getHalPort(), m_halPin);
+    State read() const {
+        if ((getHalPort()->IDR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+            return State::high;
+        } else {
+            return State::low;
+        }
     }
     void pullUp() const { configure(Pull::up); }
     void pullDown() const { configure(Pull::down); }
@@ -233,11 +243,6 @@ private:
 public:
     IMode m_mode;
     Pull m_pull;
-};
-
-enum class InitState : uint8_t {
-    reset = GPIO_PinState::GPIO_PIN_RESET,
-    set = GPIO_PinState::GPIO_PIN_SET,
 };
 
 enum class OMode : uint8_t {
@@ -259,7 +264,7 @@ enum class OSpeed : uint8_t {
 
 class OutputPin : protected Pin {
 public:
-    constexpr OutputPin(IoPort ioPort, IoPin ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
+    constexpr OutputPin(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
         : Pin(ioPort, ioPin)
         , m_initState(initState)
         , m_mode(oMode)
@@ -268,25 +273,27 @@ public:
      * @brief  Read output pin.
      *
      * Reads output data register. Can not work for alternate function pin.
-     * @retval GPIO_PIN_SET
-     * @retval GPIO_PIN_RESET
+     * @retval State::high
+     * @retval State::low
      */
-    GPIO_PinState read() {
-        GPIO_PinState bitstatus;
+    State read() {
         if ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
-            bitstatus = GPIO_PIN_SET;
+            return State::high;
         } else {
-            bitstatus = GPIO_PIN_RESET;
+            return State::low;
         }
-        return bitstatus;
     }
-    void write(GPIO_PinState pinState) const {
-        HAL_GPIO_WritePin(getHalPort(), m_halPin, pinState);
+    void write(State pinState) const {
+        if (pinState != State::low) {
+            getHalPort()->BSRR = m_halPin;
+        } else {
+            getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+        }
     }
     void configure() const;
 
 public:
-    InitState m_initState;
+    State m_initState;
     OMode m_mode;
     OSpeed m_speed;
 };
@@ -298,12 +305,16 @@ public:
  */
 class OutputInputPin : public OutputPin {
 public:
-    constexpr OutputInputPin(IoPort ioPort, IoPin ioPin, InitState initState, OMode oMode, OSpeed oSpeed)
+    constexpr OutputInputPin(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
         : OutputPin(ioPort, ioPin, initState, oMode, oSpeed) {}
 
 private:
-    GPIO_PinState read() const {
-        return HAL_GPIO_ReadPin(getHalPort(), m_halPin);
+    State read() const {
+        if ((getHalPort()->IDR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+            return State::high;
+        } else {
+            return State::low;
+        }
     }
     void enableInput(Pull pull) const;
     void enableOutput() const {
@@ -324,7 +335,7 @@ public:
     ~InputEnabler() {
         m_outputInputPin.enableOutput();
     }
-    GPIO_PinState read() {
+    Pin::State read() {
         return m_outputInputPin.read();
     }
 

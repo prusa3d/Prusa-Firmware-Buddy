@@ -561,8 +561,8 @@ int putslave_do_cmd_a_ten(uartslave_t *pslave, char *pstr) {
     int state;
     if (sscanf(pstr, "%d", &state) != 1)
         return UARTSLAVE_ERR_SYN;
-    const GPIO_PinState pinState = static_cast<GPIO_PinState>(state);
-    if ((pinState != GPIO_PinState::GPIO_PIN_RESET) || (pinState != GPIO_PinState::GPIO_PIN_SET))
+    const Pin::State pinState = static_cast<Pin::State>(state);
+    if ((pinState != Pin::State::low) || (pinState != Pin::State::high))
         return UARTSLAVE_ERR_OOR;
     tmc_set_mres();
     xEnable.write(pinState);
