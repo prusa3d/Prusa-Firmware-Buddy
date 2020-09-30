@@ -1455,7 +1455,7 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, varian
 
 //static method
 //notifies clients about progress rise
-//scales "binded" variable via following formula to calculate progress
+//scales "bound" variable via following formula to calculate progress
 //x = (actual - s_data.min) * s_data.scale + s_data.progress_min;
 //x = actual * s_data.scale - s_data.min * s_data.scale + s_data.progress_min;
 //s_data.offset == -s_data.min * s_data.scale + s_data.progress_min

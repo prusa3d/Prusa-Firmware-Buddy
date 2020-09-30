@@ -65,7 +65,7 @@ enum class PhasesG162 : uint16_t {
     _last = Parking
 };
 
-//not binded to responses
+//not bound to responses
 enum class PhasesSelftestFans : uint16_t {
     _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
     TestFan0 = _first, //in this case is safe to have TestFan0 == _first
@@ -73,7 +73,7 @@ enum class PhasesSelftestFans : uint16_t {
     _last = TestFan1
 };
 
-//not binded to responses
+//not bound to responses
 enum class PhasesSelftestAxis : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftestFans::_last) + 1,
     Xaxis = _first, //in this case is safe to have Xaxis == _first
@@ -82,7 +82,7 @@ enum class PhasesSelftestAxis : uint16_t {
     _last = Zaxis
 };
 
-//not binded to responses
+//not bound to responses
 enum class PhasesSelftestHeat : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftestAxis::_last) + 1,
     noz_cool = _first, //in this case is safe to have Xaxis == _first
