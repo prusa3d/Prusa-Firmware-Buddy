@@ -15,8 +15,8 @@ constexpr bool has_duplicates(const PinChecker (&array)[std::size(pinsToCheck)])
     for (size_t i = 1; i < std::size(array); i++)
         for (size_t j = 0; j < i; j++)
             if ((array[i].getPort() == array[j].getPort()) && (array[i].getPin() == array[j].getPin()))
-                return 1;
-    return 0;
+                return true;
+    return false;
 }
 
 static_assert(!has_duplicates(pinsToCheck), "Some physical pin defined under two names.");
