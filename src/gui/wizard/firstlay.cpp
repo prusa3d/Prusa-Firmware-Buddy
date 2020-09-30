@@ -162,7 +162,7 @@ StateFncData StateFnc_FIRSTLAY_PRINT(StateFncData last_run) {
     marlin_gcode("G28");                                                   //autohome
     marlin_gcode("G29");                                                   //mbl
     marlin_gcode_printf("M104 S%d", temp_nozzle);                          // set displayed temperature
-    marlin_gcode_printf("M104 S%d", temp_nozzle);                          // wait for displayed temperature
+    marlin_gcode_printf("M109 S%d", temp_nozzle);                          // wait for displayed temperature
     marlin_gcode("G26");                                                   //firstlay
 
     //todo save to eeprom
