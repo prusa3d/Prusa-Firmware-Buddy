@@ -292,16 +292,20 @@ void ScreenWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender,
     AutoRestore<bool> AR(loopInProgress);
     loopInProgress = true;
 
+    bool changed = false;
+    while (results[size_t(state)] == WizardTestState_t::DISABLED) { // check for disabled result == skip state
+        state = WizardState_t(int(state) + 1);                      // skip disabled states
+        changed = true;
+    }
+    if (changed) {
+        header.SetText(WizardGetCaption(state)); // change caption
+    }
+
     StateFnc stateFnc = states[size_t(state)];                                 // actual state function (action)
     StateFncData data = stateFnc(StateFncData(state, results[size_t(state)])); // perform state action
 
     results[size_t(state)] = data.GetResult(); // store result of actual state
-    if (state != data.GetState()) {
-        state = data.GetState();                                      // change state
-        while (results[size_t(state)] == WizardTestState_t::DISABLED) // check for disabled result == skip state
-            state = WizardState_t(int(state) + 1);                    // skip disabled states
-        header.SetText(WizardGetCaption(state));                      // change caption
-    }
+    state = data.GetState();                   // actualize state
 }
 
 const PhaseResponses Responses_IgnoreYesNo = { Response::Ignore, Response::Yes, Response::No, Response::_none };
