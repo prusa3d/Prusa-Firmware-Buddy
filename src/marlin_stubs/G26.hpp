@@ -12,6 +12,9 @@ private:
     uint16_t current_line = 0;
     uint8_t last_progress = 0;
 
+    void start_printing();
+    void finish_printing();
+
 public:
     FirstLayer()
         : FSM_Holder(ClientFSM::FirstLayer, 0) {}
