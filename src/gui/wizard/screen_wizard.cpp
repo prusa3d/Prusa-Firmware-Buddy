@@ -58,53 +58,6 @@
 
 ..............................
 
-            case _STATE_SELFTEST_COOL:
-                if (wizard_selftest_cool(frame_id, p_selftest_cool_screen, p_selftest_cool_data) == 100)
-                    pd->state = _STATE_SELFTEST_INIT_TEMP;
-                break;
-            case _STATE_SELFTEST_INIT_TEMP:
-                //must start marlin
-                pd->state = _STATE_SELFTEST_TEMP;
-                pd->frame_footer.Show();
-                wizard_init_disable_PID(_START_TEMP_NOZ, _START_TEMP_BED);
-                break;
-            case _STATE_SELFTEST_TEMP:
-                if (wizard_selftest_temp(frame_id, p_selftest_temp_screen, p_selftest_temp_data) == 100) {
-                    pd->state = wizard_selftest_is_ok(frame_id, p_selftest_data)
-                        ? _STATE_SELFTEST_PASS
-                        : _STATE_SELFTEST_FAIL;
-                    wizard_done_screen(screen);
-                }
-                break;
-            case _STATE_SELFTEST_PASS:
-                //need to show different msg box if XYZ calib shall not run
-                eeprom_set_var(EEVAR_RUN_SELFTEST, variant8_ui8(0)); // clear selftest flag
-                if (is_state_in_wizard_mask(_STATE_XYZCALIB_INIT))   //run XYZ
-                    wizard_msgbox(_(
-                                      "Everything is alright. "
-                                      "I will run XYZ "
-                                      "calibration now. It will "
-                                      "take approximately "
-                                      "12 minutes."),
-                        MSGBOX_BTN_NEXT, IDR_PNG_icon_pepa);
-                else // do not run XYZ
-                    wizard_msgbox(_(
-                                      "All tests finished successfully!"),
-                        MSGBOX_BTN_DONE, IDR_PNG_icon_pepa);
-                pd->state = _STATE_XYZCALIB_INIT;
-                break;
-            case _STATE_SELFTEST_FAIL:
-                wizard_msgbox(_(
-                                  "The selftest failed\n"
-                                  "to finish.         \n"
-                                  "Double-check the   \n"
-                                  "printer's wiring   \n"
-                                  "and axes.          \n"
-                                  "Then restart       \n"
-                                  "the Selftest.      "),
-                    MSGBOX_BTN_DONE, 0);
-                Screens::Access()->Close();
-                break;
             case _STATE_XYZCALIB_INIT:
                 pd->state = _STATE_XYZCALIB_HOME;
                 pd->frame_footer.Show();
