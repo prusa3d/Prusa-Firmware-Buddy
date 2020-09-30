@@ -39,7 +39,8 @@ public:
     void Enable() { enabled = true; }
     void Disable() { enabled = false; }
     bool IsEnabled() const { return enabled; }
-    void SetHidden(bool hidden_) { hidden = hidden_; }
+    void Hide() { hidden = true; }
+    void Show() { hidden = false; }
     bool IsHidden() const { return hidden; }
     void SetFocus();
     void ClrFocus() { focused = false; }

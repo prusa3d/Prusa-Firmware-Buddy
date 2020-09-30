@@ -240,12 +240,6 @@ void ScreenWizard::RunFirstLay() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
 }
 
-void ScreenWizard::RunFirstLayerStandAlone() {
-    run_mask = WizardMaskRange(WizardState_t::FIRSTLAY_MSBX_CALIB, WizardState_t::FIRSTLAY_last)
-        | WizardMask(WizardState_t::EXIT);
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenWizard>);
-}
-
 string_view_utf8 WizardGetCaption(WizardState_t st) {
     if (IsStateInWizardMask(st, WizardMaskStart())) {
         return _("WIZARD");

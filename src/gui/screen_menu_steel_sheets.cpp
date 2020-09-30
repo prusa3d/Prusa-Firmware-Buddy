@@ -5,10 +5,11 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include <type_traits>
-#include "Marlin/src/core/serial.h"
 #include "eeprom.h"
 #include "screen_sheet_rename.hpp"
 #include "wizard/screen_wizard.hpp"
+#include "dbg.h"
+
 class ScreenMenuSteelSheets;
 
 enum class profile_action : uint32_t {
@@ -18,14 +19,14 @@ enum class profile_action : uint32_t {
     Rename = 4
 };
 
-using sheet_index_0 = std::integral_constant<std::uint32_t, 0>;
-using sheet_index_1 = std::integral_constant<std::uint32_t, 1>;
-using sheet_index_2 = std::integral_constant<std::uint32_t, 2>;
-using sheet_index_3 = std::integral_constant<std::uint32_t, 3>;
-using sheet_index_4 = std::integral_constant<std::uint32_t, 4>;
-using sheet_index_5 = std::integral_constant<std::uint32_t, 5>;
-using sheet_index_6 = std::integral_constant<std::uint32_t, 6>;
-using sheet_index_7 = std::integral_constant<std::uint32_t, 7>;
+using sheet_index_0 = std::integral_constant<uint32_t, 0>;
+using sheet_index_1 = std::integral_constant<uint32_t, 1>;
+using sheet_index_2 = std::integral_constant<uint32_t, 2>;
+using sheet_index_3 = std::integral_constant<uint32_t, 3>;
+using sheet_index_4 = std::integral_constant<uint32_t, 4>;
+using sheet_index_5 = std::integral_constant<uint32_t, 5>;
+using sheet_index_6 = std::integral_constant<uint32_t, 6>;
+using sheet_index_7 = std::integral_constant<uint32_t, 7>;
 
 class MI_SHEET_SELECT : public WI_LABEL_t {
     static constexpr const char *const label = N_("Select");
@@ -41,7 +42,7 @@ protected:
 };
 
 class MI_SHEET_CALIBRATE : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First layer cal.");
+    static constexpr const char *const label = N_("First layer calibration");
 
 public:
     MI_SHEET_CALIBRATE()
@@ -97,8 +98,9 @@ public:
             Item<MI_SHEET_RESET>().Disable();
     }
 
+protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t ev, void *param) override {
-        SERIAL_ECHOLN("SheetProfile::event");
+        _dbg("SheetProfile::event");
         if (ev != GUI_event_t::CHILD_CLICK) {
             SuperWindowEvent(sender, ev, param);
             return;
@@ -109,34 +111,31 @@ public:
             if (sheet_reset(Index::value)) {
                 Item<MI_SHEET_RESET>().Disable();
                 Item<MI_SHEET_SELECT>().Disable();
-                SERIAL_ECHOLN("MI_SHEET_RESET OK");
+                _dbg("MI_SHEET_RESET OK");
             } else
-                SERIAL_ECHOLN("MI_SHEET_RESET FAIL!");
+                _dbg("MI_SHEET_RESET FAIL!");
             break;
         case profile_action::Select:
-            SERIAL_ECHOLN("MI_SHEET_SELECT");
+            _dbg("MI_SHEET_SELECT");
             sheet_select(Index::value);
             break;
         case profile_action::Calibrate:
-            SERIAL_ECHOLN("MI_SHEET_CALIBRATE");
+            _dbg("MI_SHEET_CALIBRATE");
             sheet_calibrate(Index::value);
-            ScreenWizard::RunFirstLayerStandAlone();
+            ScreenWizard::RunFirstLay();
             break;
         case profile_action::Rename:
-            SERIAL_ECHOLN("MI_SHEET_RENAME");
+            _dbg("MI_SHEET_RENAME");
             Screens::Access()->Open([]() {
                 screen_sheet_rename_t::index(Index::value);
                 return ScreenFactory::Screen<screen_sheet_rename_t>();
             });
             break;
         default:
-            SERIAL_ECHOPAIR("Click: ", static_cast<uint32_t>(action));
-            SERIAL_ECHOLN("");
+            _dbg("Click: %d\n", static_cast<uint32_t>(action));
             break;
         }
     }
-
-private:
 };
 
 template <typename Index>

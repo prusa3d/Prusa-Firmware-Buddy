@@ -33,9 +33,7 @@ typedef struct
     float z_offset;                   //!< Z_BABYSTEP_MIN .. Z_BABYSTEP_MAX = Z_BABYSTEP_MIN*2/1000 [mm] .. Z_BABYSTEP_MAX*2/1000 [mm]
 } Sheet;
 
-    #ifdef __cplusplus
 static_assert(sizeof(Sheet) == EEPROM_SHEET_SIZEOF, "Sizeof(Sheets) is not EEPROM_SHEETS_SIZEOF.");
-    #endif
 
 #endif
 // this pragma pack must remain intact, the ordering of EEPROM variables is not alignment-friendly
@@ -83,7 +81,7 @@ typedef struct _eeprom_vars_t {
     uint8_t FILE_SORT;
     uint8_t MENU_TIMEOUT;
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t ACTUAL_SHEET;
+    uint8_t CURRENT_SHEET;
     Sheet SHEET_PROFILE0;
     Sheet SHEET_PROFILE1;
     Sheet SHEET_PROFILE2;
@@ -195,7 +193,7 @@ static const eeprom_vars_t eeprom_var_defaults = {
     0,               // EEVAR_FILE_SORT
     1,               // EEVAR_MENU_TIMEOUT
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    0,               // EEVAR_ACTUAL_SHEET
+    0,               // EEVAR_ACTIVE_SHEET
     {"Smooth1", 0.0f },
     {"Smooth2", FLT_MAX },
     {"Textur1", FLT_MAX },
@@ -303,7 +301,7 @@ void eeprom_set_var(uint8_t id, variant8_t var) {
     if (id < EEPROM_VARCOUNT) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
         if (id == EEVAR_ZOFFSET && variant8_get_type(var) == VARIANT8_FLT) {
-            variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTUAL_SHEET);
+            variant8_t recent_sheet = eeprom_get_var(EEVAR_ACTIVE_SHEET);
             uint8_t index = variant_get_ui8(recent_sheet);
             uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
             float z_offset = variant8_get_flt(var);
@@ -495,7 +493,7 @@ static int eeprom_convert_from_v8(void) {
     uint16_t addr_start;
     uint16_t addr_end;
     eeprom_vars_t vars = eeprom_var_defaults;
-
+    float active_z_offset = variant8_get_flt(eeprom_get_var(EEVAR_ZOFFSET));
     // these variables not initialised in eeprom_var_defaults
     vars.FWBUILD = project_build_number;
     vars.FWVERSION = eeprom_fwversion_ui16();
@@ -506,7 +504,7 @@ static int eeprom_convert_from_v8(void) {
     addr_end = eeprom_var_addr(EEVAR_MENU_TIMEOUT);
     // read first block
     st25dv64k_user_read_bytes(addr_start, &(vars.FILAMENT_TYPE), addr_end - addr_start);
-
+    vars.SHEET_PROFILE0.z_offset = active_z_offset;
     // calculate crc32
     vars.CRC32 = crc32_calc((uint32_t *)(&vars), (EEPROM_DATASIZE - 4) / 4);
     // write data to eeprom
@@ -600,7 +598,7 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
 /// Sheets profile methods
 uint32_t sheet_next_calibrated() {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
 
     for (int8_t i = 1; i < MAX_SHEETS; ++i) {
         if (sheet_select((index + i) % MAX_SHEETS))
@@ -626,8 +624,8 @@ bool sheet_select(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS || !sheet_is_calibrated(index))
         return false;
-    uint16_t actual_sheet_address = eeprom_var_addr(EEVAR_ACTUAL_SHEET);
-    st25dv64k_user_write(actual_sheet_address, index);
+    uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
+    st25dv64k_user_write(active_sheet_address, index);
     return true;
 #else
     return index == 0;
@@ -638,8 +636,8 @@ bool sheet_calibrate(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS)
         return false;
-    uint16_t actual_sheet_address = eeprom_var_addr(EEVAR_ACTUAL_SHEET);
-    st25dv64k_user_write(actual_sheet_address, index);
+    uint16_t active_sheet_address = eeprom_var_addr(EEVAR_ACTIVE_SHEET);
+    st25dv64k_user_write(active_sheet_address, index);
     return true;
 #else
     return index == 0;
@@ -650,12 +648,12 @@ bool sheet_reset(uint32_t index) {
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     if (index >= MAX_SHEETS)
         return false;
-    uint8_t actual = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+    uint8_t active = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
     uint16_t profile_address = eeprom_var_addr(EEVAR_SHEET_PROFILE0 + index);
     float z_offset = FLT_MAX;
     st25dv64k_user_write_bytes(profile_address + MAX_SHEET_NAME_LENGTH,
         &z_offset, sizeof(float));
-    if (actual == index)
+    if (active == index)
         sheet_next_calibrated();
     return true;
 #else
@@ -676,11 +674,11 @@ uint32_t sheet_number_of_calibrated() {
 #endif
 }
 
-uint32_t sheet_current_name(char *buffer, uint32_t length) {
+uint32_t sheet_active_name(char *buffer, uint32_t length) {
     if (!buffer || !length)
         return 0;
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
-    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTUAL_SHEET));
+    uint8_t index = variant_get_ui8(eeprom_get_var(EEVAR_ACTIVE_SHEET));
     return sheet_name(index, buffer, length);
 #else
     memcpy(buffer, "DEFAULT", MAX_SHEET_NAME_LENGTH - 1);

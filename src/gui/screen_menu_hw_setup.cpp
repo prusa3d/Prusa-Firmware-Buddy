@@ -29,7 +29,7 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 
 class ScreenMenuHwSetup : public Screen {
 public:
-    constexpr static const char *label = N_("Hw Setup");
+    constexpr static const char *label = N_("HW Setup");
     ScreenMenuHwSetup()
         : Screen(_(label)) {
     }

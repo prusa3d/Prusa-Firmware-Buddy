@@ -226,7 +226,7 @@ void status_footer_t::repaint_heatbed() {
 }
 
 void status_footer_t::update_sheet_profile() {
-    sheet_current_name(text_z_profile, MAX_SHEET_NAME_LENGTH);
+    sheet_active_name(text_z_profile, MAX_SHEET_NAME_LENGTH);
     wt_z_profile.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)text_z_profile));
     wi_z_profile.SetIdRes(IDR_PNG_sheet_profile);
 }

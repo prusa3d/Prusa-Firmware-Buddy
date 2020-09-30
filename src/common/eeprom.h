@@ -67,7 +67,7 @@ enum {
     EEVAR_LANGUAGE = 0x1c,     // uint16_t
     EEVAR_FILE_SORT = 0x1d,    // uint8_t  filebrowser file sort options
     EEVAR_MENU_TIMEOUT = 0x1e, // uint8_t on / off menu timeout flag
-    EEVAR_ACTUAL_SHEET = 0x1f,
+    EEVAR_ACTIVE_SHEET = 0x1f,
     EEVAR_SHEET_PROFILE0 = 0x20,
     EEVAR_SHEET_PROFILE1 = 0x21,
     EEVAR_SHEET_PROFILE2 = 0x22,
@@ -178,7 +178,7 @@ extern uint32_t sheet_number_of_calibrated();
 /// @param[in] length Size of the given buffer.
 /// @return Number of characters written to the buffer. Number will be
 ///        always less than MAX_SHEET_NAME_LENGTH
-extern uint32_t sheet_current_name(char *, uint32_t);
+extern uint32_t sheet_active_name(char *, uint32_t);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Determine the name of the given print sheet profile.

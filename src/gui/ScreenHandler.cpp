@@ -196,7 +196,7 @@ void Screens::ResetTimeout() {
 void Screens::Loop() {
     /// menu timeout logic:
     /// when timeout is expired on current screen,
-    /// we iterate throught whole stack and close every screen that should be closed
+    /// we iterate through whole stack and close every screen that should be closed
     if (Get() && Get()->ClosedOnTimeout()) {
         gui_timeout_id = gui_get_menu_timeout_id();
         if (gui_timer_expired(gui_timeout_id) == 1) {

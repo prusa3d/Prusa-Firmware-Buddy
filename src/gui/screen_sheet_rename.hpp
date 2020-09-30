@@ -8,9 +8,9 @@
 #include "ScreenFactory.hpp"
 
 struct screen_sheet_rename_t : public window_frame_t {
-    static void index(std::uint32_t);
+    static void index(uint32_t);
     screen_sheet_rename_t();
-    static std::uint32_t index_;
+    static uint32_t index_;
 
 private:
     window_header_t header;

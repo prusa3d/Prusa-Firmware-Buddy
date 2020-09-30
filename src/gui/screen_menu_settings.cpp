@@ -105,7 +105,7 @@ ScreenMenuSettings::ScreenMenuSettings()
     : Screen(_(label)) {
     if (sheet_number_of_calibrated() > 1) {
         Item<MI_CURRENT_PROFILE>().UpdateLabel();
-        Item<MI_CURRENT_PROFILE>().SetHidden(false);
+        Item<MI_CURRENT_PROFILE>().Hide();
     }
 }
 
