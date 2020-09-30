@@ -33,8 +33,4 @@ TEST_CASE("wizard_types header tests", "[wizard]") {
         CHECK(WizardMaskRange(WizardState_t(1), WizardState_t(0)) == WizardMaskUpTo(WizardState_t(1)));
         CHECK(WizardMaskRange(WizardState_t(0), WizardState_t(1)) == WizardMaskUpTo(WizardState_t(1)));
     }
-
-    SECTION("WizardMaskAll") {
-        CHECK(WizardMaskAll() == pow(2, int(WizardState_t::last)) * 2 - 1); // it uses bitshigt internaly, so I use POW
-    }
 }
