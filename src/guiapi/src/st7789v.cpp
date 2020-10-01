@@ -5,40 +5,40 @@
 #include <cmath>
 #include "hwio_pindef.h"
 
-using buddy::hw::cs;
+using buddy::hw::displayCs;
+using buddy::hw::displayRs;
+using buddy::hw::displayRst;
 using buddy::hw::InputEnabler;
 using buddy::hw::Pin;
 using buddy::hw::Pull;
-using buddy::hw::rs;
-using buddy::hw::rst;
 
 void st7789v_set_cs(void) {
-    cs.write(Pin::State::high);
+    displayCs.write(Pin::State::high);
     st7789v_flg |= FLG_CS;
 }
 
 void st7789v_clr_cs(void) {
-    cs.write(Pin::State::low);
+    displayCs.write(Pin::State::low);
     st7789v_flg &= ~FLG_CS;
 }
 
 void st7789v_set_rs(void) {
-    rs.write(Pin::State::high);
+    displayRs.write(Pin::State::high);
     st7789v_flg |= FLG_RS;
 }
 
 void st7789v_clr_rs(void) {
-    rs.write(Pin::State::low);
+    displayRs.write(Pin::State::low);
     st7789v_flg &= ~FLG_RS;
 }
 
 void st7789v_set_rst(void) {
-    rst.write(Pin::State::high);
+    displayRst.write(Pin::State::high);
     st7789v_flg |= FLG_RST;
 }
 
 void st7789v_clr_rst(void) {
-    rst.write(Pin::State::low);
+    displayRst.write(Pin::State::low);
     st7789v_flg &= ~FLG_RST;
 }
 
@@ -47,7 +47,7 @@ void st7789v_reset(void) {
     st7789v_delay_ms(15);
     volatile uint16_t delay = 0;
     {
-        InputEnabler rstInput(rst, Pull::up);
+        InputEnabler rstInput(displayRst, Pull::up);
         int irq = __get_PRIMASK() & 1;
         if (irq)
             __disable_irq();
