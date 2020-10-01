@@ -21,6 +21,7 @@
 #include "DialogHandler.hpp"
 #include "sound.hpp"
 #include "i18n.h"
+#include "eeprom.h"
 
 extern int HAL_IWDG_Reset;
 
@@ -45,7 +46,6 @@ const st7789v_config_t st7789v_cfg = {
 };
 
 marlin_vars_t *gui_marlin_vars = 0;
-int8_t menu_timeout_enabled = 1; // Default: enabled
 
 void update_firmware_screen(void);
 
@@ -112,7 +112,7 @@ extern "C" void gui_run(void) {
     marlin_client_set_fsm_change_cb(DialogHandler::Change);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
 
-    Sound_Play(eSOUND_TYPE_Start);
+    Sound_Play(eSOUND_TYPE::Start);
 
     ScreenFactory::Creator screen_initializer[] {
 #ifndef _DEBUG
@@ -125,9 +125,14 @@ extern "C" void gui_run(void) {
     //Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
+    //TIMEOUT variable getting value from EEPROM when EEPROM interface is inicialized
+    if (variant_get_ui8(eeprom_get_var(EEVAR_MENU_TIMEOUT)) != 0) {
+        Screens::Access()->EnableMenuTimeout();
+    } else {
+        Screens::Access()->DisableMenuTimeout();
+    }
     //set loop callback (will be called every time inside gui_loop)
     gui_loop_cb = _gui_loop_cb;
-    //int8_t gui_timeout_id;
     while (1) {
         Screens::Access()->Loop();
         // show warning dialog on safety timer expiration
@@ -135,13 +140,6 @@ extern "C" void gui_run(void) {
             MsgBoxInfo(_("Heating disabled due to 30 minutes of inactivity."), Responses_Ok);
         }
         gui_loop();
-        /*if (menu_timeout_enabled) {
-            gui_timeout_id = gui_get_menu_timeout_id();
-            if (gui_timer_expired(gui_timeout_id) == 1) {
-                screen_close_multiple(scrn_close_on_timeout);
-                gui_timer_delete(gui_timeout_id);
-            }
-        }*/
     }
 }
 

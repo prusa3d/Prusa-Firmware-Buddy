@@ -416,7 +416,7 @@ void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t
     st7789v_cmd_raset(rect_y, rect_y + rect_h - 1);
     st7789v_cmd_ramwr(0, 0);
 
-    for (int i = 0; i < size / sizeof(st7789v_buff); i++) // writer buffer by buffer
+    for (unsigned int i = 0; i < size / sizeof(st7789v_buff); i++) // writer buffer by buffer
         st7789v_wr(st7789v_buff, sizeof(st7789v_buff));
 
     st7789v_wr(st7789v_buff, size % sizeof(st7789v_buff)); // write the remainder data

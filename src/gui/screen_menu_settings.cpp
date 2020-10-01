@@ -10,28 +10,33 @@
 #include "sys.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "dump.h"
 #include "sound.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
 #include "i18n.h"
+#include "Marlin/src/core/serial.h"
 
 /*****************************************************************************/
 //MI_FILAMENT_SENSOR
 class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Fil. sens.");
 
+    void no_sensor_msg() const {
+        MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+    }
+
     size_t init_index() const {
         fsensor_t fs = fs_wait_initialized();
-        if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
+        if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
         {
             fs_disable();
-            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
-            fs = FS_DISABLED;
+            no_sensor_msg();
+            fs = fsensor_t::Disabled;
         }
-        return fs == FS_DISABLED ? 0 : 1;
+        return fs == fsensor_t::Disabled ? 0 : 1;
     }
     // bool fs_not_connected;
 
@@ -40,10 +45,10 @@ public:
         : WI_SWITCH_OFF_ON_t(init_index(), label, 0, true, false) {}
     void CheckDisconnected() {
         fsensor_t fs = fs_wait_initialized();
-        if (fs == FS_NOT_CONNECTED) { //only way to have this state is that fs just disconnected
+        if (fs == fsensor_t::NotConnected) { //only way to have this state is that fs just disconnected
             fs_disable();
             index = 0;
-            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+            no_sensor_msg();
         }
     }
 
@@ -51,18 +56,18 @@ protected:
     virtual void OnChange(size_t old_index) {
         old_index == 1 ? fs_disable() : fs_enable();
         fsensor_t fs = fs_wait_initialized();
-        if (fs == FS_NOT_CONNECTED) //tried to enable but there is no sensor
+        if (fs == fsensor_t::NotConnected) //tried to enable but there is no sensor
         {
             fs_disable();
             index = old_index;
-            MsgBoxQuestion(_("No filament sensor detected. Verify that the sensor is connected and try again."));
+            no_sensor_msg();
         }
     }
 };
 
 #ifdef _DEBUG
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+    MI_FACTORY_DEFAULTS, MI_SERVICE, MI_HW_SETUP, MI_TEST, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
@@ -74,8 +79,8 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML,
     MI_ES_12201, MI_ES_12202, MI_ES_12203, MI_ES_12204, MI_ES_12205, MI_ES_12206, MI_ES_12207, MI_ES_12208>;
 #else
-using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-    MI_FACTORY_DEFAULTS, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
+using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
+    MI_FACTORY_DEFAULTS, MI_HW_SETUP, MI_FW_UPDATE, MI_FILAMENT_SENSOR, MI_TIMEOUT,
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_LAN_SETTINGS,
     MI_TIMEZONE,
@@ -86,19 +91,28 @@ using Screen = ScreenMenu<EHeader::Off, EFooter::On, HelpLines_None, MI_RETURN, 
 class ScreenMenuSettings : public Screen {
 public:
     constexpr static const char *label = N_("SETTINGS");
-    ScreenMenuSettings()
-        : Screen(_(label)) {}
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+    ScreenMenuSettings();
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 ScreenFactory::UniquePtr GetScreenMenuSettings() {
     return ScreenFactory::Screen<ScreenMenuSettings>();
 }
 
-void ScreenMenuSettings::windowEvent(window_t *sender, uint8_t ev, void *param) {
-    if (ev == WINDOW_EVENT_LOOP) {
+ScreenMenuSettings::ScreenMenuSettings()
+    : Screen(_(label)) {
+    if (sheet_number_of_calibrated() > 1) {
+        Item<MI_CURRENT_PROFILE>().UpdateLabel();
+        Item<MI_CURRENT_PROFILE>().Hide();
+    }
+}
+
+void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         Item<MI_FILAMENT_SENSOR>().CheckDisconnected();
     }
 
-    Screen::windowEvent(sender, ev, param);
+    SuperWindowEvent(sender, event, param);
 }

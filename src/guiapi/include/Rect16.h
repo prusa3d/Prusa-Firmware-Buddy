@@ -121,6 +121,11 @@ public:
     /// @param[in] offset Offset in pixels of the new rectangle shift
     Rect16(Rect16 const &, ShiftDir_t, uint16_t);
 
+    //position it right next this rect
+    Rect16(Rect16 const &, ShiftDir_t);
+
+    uint16_t CalculateShift(ShiftDir_t direction) const;
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left corner and size
     ///
@@ -170,21 +175,35 @@ public:
     constexpr Left_t Left() const { return Left_t(top_left_.x); };
 
     ////////////////////////////////////////////////////////////////////////////
-    /// @brief Object accessor to read the point behind bottom-right of current rectangle
+    /// @brief Object accessor to read the bottom-right of the current rectangle
     ///
-    /// @return Point behind Bottom-right of the rectangle.
+    /// @return Bottom-right of the rectangle.
     constexpr point_i16_t BottomRight() const {
         return { static_cast<int16_t>(EndPoint().x - 1), static_cast<int16_t>(EndPoint().y - 1) };
     };
 
     ////////////////////////////////////////////////////////////////////////////
-    /// @brief Object accessor to read the bottom-right of current rectangle
+    /// @brief Object accessor to read the point just behind the bottom-right of the current rectangle
     ///
-    /// @return Bottom-right of the rectangle.
+    /// @return Point behind the Bottom-right of the rectangle.
     constexpr point_i16_t EndPoint() const {
         return {
             static_cast<int16_t>(top_left_.x + width_),
             static_cast<int16_t>(top_left_.y + height_)
+        };
+    };
+
+    constexpr point_i16_t TopEndPoint() const {
+        return {
+            EndPoint().x,
+            TopLeft().y
+        };
+    };
+
+    constexpr point_i16_t LeftEndPoint() const {
+        return {
+            TopLeft().x,
+            EndPoint().y
         };
     };
 

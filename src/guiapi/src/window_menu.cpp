@@ -94,11 +94,11 @@ void window_menu_t::Increment(int dif) {
         // play sound at first or last index of menu
         if (new_index < 0) {
             new_index = 0;
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
         if (new_index >= GetCount()) {
             new_index = GetCount() - 1;
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
 
         if (new_index < top_index)
@@ -109,7 +109,7 @@ void window_menu_t::Increment(int dif) {
         if (new_index != old_index) { // optimization do not redraw when no change - still on end
             SetIndex(new_index);
             Invalidate();
-            Sound_Play(eSOUND_TYPE_EncoderMove);
+            Sound_Play(eSOUND_TYPE::EncoderMove);
         }
     }
 }
@@ -117,39 +117,41 @@ void window_menu_t::Increment(int dif) {
 //I think I do not need
 //screen_dispatch_event
 //callback should handle it
-void window_menu_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_menu_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     IWindowMenuItem *const item = GetActiveItem();
     if (!item)
         return;
     const int value = int(param);
     bool invalid = false;
     switch (event) {
-    case WINDOW_EVENT_CLICK:
+    case GUI_event_t::CLICK:
 
         item->Click(*this);
         //Invalidate(); //called inside click
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         if (item->IsSelected()) {
             invalid |= item->Decrement(value);
         } else {
             Decrement(value);
         }
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         if (item->IsSelected()) {
             invalid |= item->Increment(value);
         } else {
             Increment(value);
         }
         break;
-    case WINDOW_EVENT_CAPT_1:
+    case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
-    case WINDOW_EVENT_TIMER:
+    case GUI_event_t::TIMER:
         if (!item->RollNeedInit()) {
             item->Roll(*this); //warning it is accessing gui timer
         }
+        break;
+    default:
         break;
     }
     if (invalid)
@@ -163,17 +165,18 @@ void window_menu_t::unconditionalDraw() {
     const int item_height = font->h + padding.top + padding.bottom;
     Rect16 rc_win = rect;
 
-    const size_t visible_count = rc_win.Height() / item_height;
+    const size_t visible_available = rc_win.Height() / item_height;
+    size_t visible_count = 0;
     size_t i;
-    for (i = 0; i < visible_count && i < GetCount(); ++i) {
+    for (i = 0; visible_count < visible_available && i < GetCount(); ++i) {
 
         IWindowMenuItem *item = GetItem(i + top_index);
-        if (!item) {
-            --i;
+        if (!item)
             break;
-        }
+        if (item->IsHidden())
+            continue;
 
-        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + i * item_height),
+        Rect16 rc = { rc_win.Left(), int16_t(rc_win.Top() + visible_count * item_height),
             rc_win.Width(), uint16_t(item_height) };
 
         if (rc_win.Contain(rc)) {
@@ -184,11 +187,12 @@ void window_menu_t::unconditionalDraw() {
             }
             item->Print(*this, rc);
         }
+        ++visible_count;
     }
-    rc_win -= Rect16::Height_t(i * item_height);
+    rc_win -= Rect16::Height_t(visible_count * item_height);
 
     if (rc_win.Height()) {
-        rc_win += Rect16::Top_t(i * item_height);
+        rc_win += Rect16::Top_t(visible_count * item_height);
         display::FillRect(rc_win, color_back);
     }
 }

@@ -10,44 +10,73 @@ Rect16::Rect16(point_i16_t p0, point_i16_t p1)
     height_ = p1.y - top_left_.y + 1;
 }
 
-Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance) {
+uint16_t Rect16::CalculateShift(ShiftDir_t direction) const {
+    uint16_t distance;
     switch (direction) {
+
     case ShiftDir_t::Left:
-        top_left_ = {
-            static_cast<int16_t>(rect.TopLeft().x - distance),
-            rect.TopLeft().y
-        };
-        break;
     case ShiftDir_t::Right:
-        top_left_ = {
-            static_cast<int16_t>(rect.TopLeft().x + distance),
-            rect.TopLeft().y
-        };
+        distance = Width();
         break;
     case ShiftDir_t::Top:
-        top_left_ = {
-            rect.TopLeft().x,
-            static_cast<int16_t>(rect.TopLeft().y - distance)
-        };
-        break;
     case ShiftDir_t::Bottom:
-        top_left_ = {
-            rect.TopLeft().x,
-            static_cast<int16_t>(rect.TopLeft().y + distance)
-        };
+        distance = Height();
         break;
     default:
-        top_left_ = rect.TopLeft();
+        distance = 0;
         break;
     }
-    width_ = rect.Width();
-    height_ = rect.Height();
+    return distance;
 }
 
-Rect16::Rect16(point_i16_t top_left, size_ui16_t s) {
-    top_left_ = top_left;
-    width_ = s.w;
-    height_ = s.h;
+Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction)
+    : Rect16(rect, direction, rect.CalculateShift(direction)) {
+}
+
+Rect16::Rect16(Rect16 const &rect, ShiftDir_t direction, uint16_t distance)
+    : top_left_(
+        [=] {
+            point_i16_t top_left;
+            switch (direction) {
+
+            case ShiftDir_t::Left:
+                top_left = {
+                    static_cast<int16_t>(rect.TopLeft().x - distance),
+                    rect.TopLeft().y
+                };
+                break;
+            case ShiftDir_t::Right:
+                top_left = {
+                    static_cast<int16_t>(rect.TopLeft().x + distance),
+                    rect.TopLeft().y
+                };
+                break;
+            case ShiftDir_t::Top:
+                top_left = {
+                    rect.TopLeft().x,
+                    static_cast<int16_t>(rect.TopLeft().y - distance)
+                };
+                break;
+            case ShiftDir_t::Bottom:
+                top_left = {
+                    rect.TopLeft().x,
+                    static_cast<int16_t>(rect.TopLeft().y + distance)
+                };
+                break;
+            default:
+                top_left = rect.TopLeft();
+                break;
+            }
+            return top_left;
+        }())
+    , width_(rect.Width())
+    , height_(rect.Height()) {
+}
+
+Rect16::Rect16(point_i16_t top_left, size_ui16_t s)
+    : top_left_(top_left)
+    , width_(s.w)
+    , height_(s.h) {
 }
 
 Rect16 Rect16::Intersection(Rect16 const &r) const {
@@ -123,13 +152,10 @@ void Rect16::Align(Rect16 rc, uint8_t align) {
         top_left_.x = rc.Left();
         break;
     case ALIGN_RIGHT:
-        top_left_.x = ((rc.Left() + rc.Width()) > width_) ? ((rc.Left() + rc.Width()) - width_) : 0;
+        top_left_.x = rc.Left() + rc.Width() - width_;
         break;
     case ALIGN_HCENTER:
-        if (rc.Width() >= width_)
-            top_left_.x = rc.Left() + (rc.Width() - width_) / 2;
-        else
-            top_left_.x = std::max(0, rc.Left() - (width_ - rc.Width()) / 2);
+        top_left_.x = rc.Left() + (rc.Width() - width_) / 2;
         break;
     }
 
@@ -138,14 +164,10 @@ void Rect16::Align(Rect16 rc, uint8_t align) {
         top_left_.y = rc.Top();
         break;
     case ALIGN_BOTTOM:
-        top_left_.y = ((rc.Top() + rc.Height()) > height_) ? ((rc.Top() + rc.Height()) - height_) : 0;
-        top_left_.y = std::max(0, (rc.Top() + rc.Height()) - height_);
+        top_left_.y = rc.Top() + rc.Height() - height_;
         break;
     case ALIGN_VCENTER:
-        if (rc.Height() >= height_)
-            top_left_.y = rc.Top() + ((rc.Height() - height_) / 2);
-        else
-            top_left_.y = (rc.Top() > ((height_ - rc.Height()) / 2)) ? rc.Top() - ((height_ - rc.Height()) / 2) : 0;
+        top_left_.y = rc.Top() + (rc.Height() - height_) / 2;
         break;
     }
 }

@@ -196,22 +196,24 @@ void window_file_list_t::unconditionalDraw() {
     }
 }
 
-void window_file_list_t::windowEvent(window_t *sender, uint8_t event, void *param) {
+void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case WINDOW_EVENT_CLICK:
-        Screens::Access()->Get()->WindowEvent(this, WINDOW_EVENT_CLICK, (void *)index);
+    case GUI_event_t::CLICK:
+        Screens::Access()->Get()->WindowEvent(this, GUI_event_t::CLICK, (void *)index);
         break;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         dec((int)param);
         break;
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         inc((int)param);
         break;
-    case WINDOW_EVENT_CAPT_1:
+    case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
-    case WINDOW_EVENT_TIMER:
+    case GUI_event_t::TIMER:
         roll_text_phasing(this, font, &roll);
+        break;
+    default:
         break;
     }
 }
@@ -221,7 +223,7 @@ void window_file_list_t::inc(int dif) {
     if (index >= int(ldv->WindowSize() - 1)) {
         repaint = ldv->MoveDown();
         if (!repaint) {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     } else {
         // this 'if' solves a situation with less files than slots on the screen
@@ -229,7 +231,7 @@ void window_file_list_t::inc(int dif) {
             index += 1; // @@TODO dif > 1 if needed
             repaint = true;
         } else {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     }
 
@@ -237,7 +239,7 @@ void window_file_list_t::inc(int dif) {
         // here we know exactly, that the selected item changed -> prepare text rolling
         init_text_roll();
         Invalidate();
-        Sound_Play(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     }
 }
 
@@ -247,7 +249,7 @@ void window_file_list_t::dec(int dif) {
         // at the beginning of the window
         repaint = ldv->MoveUp();
         if (!repaint) {
-            Sound_Play(eSOUND_TYPE_BlindAlert);
+            Sound_Play(eSOUND_TYPE::BlindAlert);
         }
     } else {
         --index;
@@ -257,6 +259,6 @@ void window_file_list_t::dec(int dif) {
     if (repaint) {
         init_text_roll();
         Invalidate();
-        Sound_Play(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     }
 }

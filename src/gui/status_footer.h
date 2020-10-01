@@ -15,13 +15,13 @@ class status_footer_t : public window_frame_t {
     window_icon_t wi_nozzle;
     window_icon_t wi_heatbed;
     window_icon_t wi_prnspeed;
-    window_icon_t wi_z_axis;
+    window_icon_t wi_z_profile;
     window_icon_t wi_filament;
 
     window_text_t wt_nozzle;
     window_text_t wt_heatbed;
     window_text_t wt_prnspeed;
-    window_text_t wt_z_axis;
+    window_text_t wt_z_profile;
     window_text_t wt_filament;
 
     float nozzle;                /// current temperature of nozzle
@@ -48,10 +48,13 @@ class status_footer_t : public window_frame_t {
     void update_filament();
     void repaint_nozzle();
     void repaint_heatbed();
+    void update_sheet_profile();
 
 public:
     status_footer_t(window_t *parent);
-    virtual void windowEvent(window_t *sender, uint8_t event, void *param) override;
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 static const uint16_t REPAINT_Z_POS_PERIOD = 256;  /// time span between z position repaint [miliseconds]

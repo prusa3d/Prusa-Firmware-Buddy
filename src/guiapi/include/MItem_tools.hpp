@@ -15,6 +15,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_LIVE_ADJUST_Z : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Live Adjust Z");
+
+public:
+    MI_LIVE_ADJUST_Z();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_AUTO_HOME : public WI_LABEL_t {
     static constexpr const char *const label = N_("Auto Home");
 
@@ -50,6 +60,56 @@ class MI_CALIB_FIRST : public WI_LABEL_t {
 
 public:
     MI_CALIB_FIRST();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_TEST_FANS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test FANs");
+
+public:
+    MI_TEST_FANS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_TEST_XYZ : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test XYZ-Axis");
+
+public:
+    MI_TEST_XYZ();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_TEST_HEAT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test heaters");
+
+public:
+    MI_TEST_HEAT();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_TEST_FANS_fine : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test FANs fine");
+
+public:
+    MI_TEST_FANS_fine();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_TEST_ABORT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test Abort");
+
+public:
+    MI_TEST_ABORT();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

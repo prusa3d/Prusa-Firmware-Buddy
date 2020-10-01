@@ -49,7 +49,7 @@ void get_telemetry_for_local(char *data, const uint32_t buf_len) {
     uint16_t print_speed = (uint16_t)(wui_vars_copy.print_speed);
     uint16_t flow_factor = (uint16_t)(wui_vars_copy.flow_factor);
     const char *filament_material = filaments[get_filament()].name;
-    int8_t time_zone = eeprom_get_var(EEVAR_TIMEZONE).i8;
+    int8_t time_zone = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
 
     if (!wui_vars_copy.sd_printing) {
         snprintf(data, buf_len, "{"

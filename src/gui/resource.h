@@ -49,17 +49,18 @@ enum {
     IDR_PNG_msgbox_icon_warning,
     IDR_PNG_msgbox_icon_info,
 
-    IDR_PNG_wizard_icon_na,
-    IDR_PNG_wizard_icon_ok,
-    IDR_PNG_wizard_icon_ng,
-    IDR_PNG_wizard_icon_ip0,
-    IDR_PNG_wizard_icon_ip1,
+    IDR_PNG_wizard_icon_na,  // not available gray "-"
+    IDR_PNG_wizard_icon_ok,  // OK green hook
+    IDR_PNG_wizard_icon_ng,  // not good red cross
+    IDR_PNG_wizard_icon_ip0, // in progress gray rotating circle phase 0
+    IDR_PNG_wizard_icon_ip1, // in progress gray rotating circle phase 1
     IDR_PNG_wizard_icon_hourglass,
     IDR_PNG_wizard_icon_autohome,
     IDR_PNG_wizard_icon_search,
     IDR_PNG_wizard_icon_measure,
 
     IDR_PNG_icon_pepa_psod,
+    IDR_PNG_big_nozzle,
 
     IDR_PNG_header_icon_usb,
     IDR_PNG_header_icon_lan,
@@ -71,6 +72,8 @@ enum {
 
     IDR_PNG_arrow_up,
     IDR_PNG_arrow_down,
+    IDR_PNG_arrow_up_orange,
+    IDR_PNG_arrow_down_orange,
     IDR_PNG_arrow_scan_me,
 
     IDR_PNG_menu_icon_back,
@@ -84,4 +87,5 @@ enum {
     IDR_PNG_flag_fr,
     IDR_PNG_flag_it,
     IDR_PNG_flag_pl,
+    IDR_PNG_sheet_profile,
 };

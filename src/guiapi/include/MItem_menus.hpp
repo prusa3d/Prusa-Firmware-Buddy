@@ -153,3 +153,25 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_HW_SETUP : public WI_LABEL_t {
+    static constexpr const char *const label = N_("HW Setup");
+
+public:
+    MI_HW_SETUP();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_CURRENT_PROFILE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Current Profile");
+
+public:
+    MI_CURRENT_PROFILE();
+
+    void UpdateLabel();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};

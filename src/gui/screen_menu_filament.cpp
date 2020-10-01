@@ -5,7 +5,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "filament.h"
-#include "filament_sensor.h"
+#include "filament_sensor.hpp"
 #include "marlin_client.h"
 #include "window_dlg_load_unload.h"
 #include "dbg.h"
@@ -28,7 +28,7 @@ class MI_event_dispatcher : public WI_LABEL_t {
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
         //no way to change header on this level, have to dispatch event
-        Screens::Access()->Get()->WindowEvent(nullptr, WINDOW_EVENT_CLICK, (void *)this); //WI_LABEL is not a window, cannot set sender param
+        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CLICK, (void *)this); //WI_LABEL is not a window, cannot set sender param
     }
 
 public:
@@ -120,8 +120,13 @@ class ScreenMenuFilament : public Screen {
 public:
     constexpr static const char *label = N_("FILAMENT");
     ScreenMenuFilament()
-        : Screen(_(label)) { deactivate_item(); }
-    virtual void windowEvent(window_t *sender, uint8_t ev, void *param) override;
+        : Screen(_(label)) {
+        Screen::ClrMenuTimeoutClose(); // don't close on menu timeout
+        deactivate_item();
+    }
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 private:
     void deactivate_item();
@@ -146,9 +151,9 @@ ScreenFactory::UniquePtr GetScreenMenuFilament() {
     return ScreenFactory::Screen<ScreenMenuFilament>();
 }
 
-void ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) {
+void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     deactivate_item();
-    if (ev == WINDOW_EVENT_CLICK) {
+    if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
             header.SetText(item->GetHeaderAlterLabel()); //set new label
@@ -156,7 +161,7 @@ void ScreenMenuFilament::windowEvent(window_t *sender, uint8_t ev, void *param) 
             header.SetText(_(label));                    //restore label
         }
     } else {
-        Screen::windowEvent(sender, ev, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 
@@ -177,7 +182,7 @@ void ScreenMenuFilament::deactivate_item() {
 
     uint8_t filament = 0;
     filament |= get_filament() != FILAMENT_NONE ? F_EEPROM : 0;
-    filament |= fs_get_state() == FS_NO_FILAMENT ? 0 : F_SENSED;
+    filament |= fs_get_state() == fsensor_t::NoFilament ? 0 : F_SENSED;
     switch (filament) {
     case 0: //filament not loaded
         ena<MI_LOAD>();

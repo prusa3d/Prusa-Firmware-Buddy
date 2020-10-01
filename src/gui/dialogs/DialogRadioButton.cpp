@@ -29,7 +29,7 @@ size_t RadioButton::cnt_buttons(const PhaseTexts *labels, const PhaseResponses *
 /*****************************************************************************/
 //nonstatic variables and methods
 RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses *resp, const PhaseTexts *labels)
-    : window_t(parent, rect)
+    : AddSuperWindow<window_t>(parent, rect)
     , pfont(resource_font(IDR_FNT_BIG))
     , responses(resp)
     , texts(labels) {
@@ -44,9 +44,9 @@ RadioButton &RadioButton::operator++() {
     if ((index + 1) < GetBtnCount()) {
         SetBtnIndex(index + 1);
         Invalidate();
-        Sound_Play(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     } else {
-        Sound_Play(eSOUND_TYPE_BlindAlert);
+        Sound_Play(eSOUND_TYPE::BlindAlert);
     }
     return *this;
 }
@@ -57,26 +57,26 @@ RadioButton &RadioButton::operator--() {
     if (index > 0) {
         SetBtnIndex(index - 1);
         Invalidate();
-        Sound_Play(eSOUND_TYPE_EncoderMove);
+        Sound_Play(eSOUND_TYPE::EncoderMove);
     } else {
-        Sound_Play(eSOUND_TYPE_BlindAlert);
+        Sound_Play(eSOUND_TYPE::BlindAlert);
     }
     return *this;
 }
 
-void RadioButton::windowEvent(window_t *sender, uint8_t event, void *param) {
+void RadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (!GetParent())
         return;
 
     switch (event) {
-    case WINDOW_EVENT_ENC_UP:
+    case GUI_event_t::ENC_UP:
         ++(*this);
         return;
-    case WINDOW_EVENT_ENC_DN:
+    case GUI_event_t::ENC_DN:
         --(*this);
         return;
     default:
-        window_t::windowEvent(sender, event, param);
+        SuperWindowEvent(sender, event, param);
     }
 }
 

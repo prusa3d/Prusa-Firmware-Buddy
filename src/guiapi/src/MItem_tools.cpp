@@ -2,7 +2,6 @@
 #include "dump.h"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
-#include "wizard/wizard.h"
 #include "marlin_client.h"
 #include "gui.hpp"
 #include "sys.h"
@@ -13,7 +12,11 @@
 #include "wui_api.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "screen_wizard.hpp"
 #include "bsod.h"
+#include "liveadjust_z.hpp"
+#include "DialogHandler.hpp"
+#include "selftest_MINI.h"
 #include "filament_sensor.h"
 #include "main_MINI.h"
 #include "gpio.h"
@@ -25,7 +28,17 @@ MI_WIZARD::MI_WIZARD()
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_complete();
+    ScreenWizard::RunAll();
+}
+
+/*****************************************************************************/
+//MI_LIVE_ADJUST_Z
+MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
+    LiveAdjustZ::Open();
 }
 
 /*****************************************************************************/
@@ -70,7 +83,7 @@ MI_SELFTEST::MI_SELFTEST()
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_selftest();
+    ScreenWizard::RunSelfTest();
 }
 
 /*****************************************************************************/
@@ -80,7 +93,61 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-    wizard_run_firstlay();
+    ScreenWizard::RunFirstLay();
+}
+
+/*****************************************************************************/
+//MI_TEST_FANS
+MI_TEST_FANS::MI_TEST_FANS()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmFans);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
+}
+
+/*****************************************************************************/
+//MI_TEST_XYZ
+MI_TEST_XYZ::MI_TEST_XYZ()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmXYZAxis);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestAxis, 0);
+}
+
+/*****************************************************************************/
+//MI_TEST_HEAT
+MI_TEST_HEAT::MI_TEST_HEAT()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmHeaters);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestHeat, 0);
+}
+
+/*****************************************************************************/
+//MI_TEST_FANS_fine
+MI_TEST_FANS_fine::MI_TEST_FANS_fine()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_FANS_fine::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_start(stmFans_fine);
+    DialogHandler::WaitUntilClosed(ClientFSM::SelftestFans, 0);
+}
+
+/*****************************************************************************/
+//MI_TEST_ABORT
+MI_TEST_ABORT::MI_TEST_ABORT()
+    : WI_LABEL_t(label, 0, true, false) {
+}
+
+void MI_TEST_ABORT::click(IWindowMenu & /*window_menu*/) {
+    marlin_test_abort();
 }
 
 /*****************************************************************************/
@@ -309,23 +376,22 @@ void MI_M600::click(IWindowMenu & /*window_menu*/) {
 
 /*****************************************************************************/
 //MI_TIMEOUT
-//if needed to remeber after poweroff
-//use st25dv64k_user_read(MENU_TIMEOUT_FLAG_ADDRESS) st25dv64k_user_write((uint16_t)MENU_TIMEOUT_FLAG_ADDRESS, (uint8_t)1 or 0);
-//todo do not use externed variables like menu_timeout_enabled
 MI_TIMEOUT::MI_TIMEOUT()
-    : WI_SWITCH_OFF_ON_t(menu_timeout_enabled ? 1 : 0, label, 0, true, false) {}
+    : WI_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, label, 0, true, false) {}
 void MI_TIMEOUT::OnChange(size_t old_index) {
-    if (old_index) {
-        gui_timer_delete(gui_get_menu_timeout_id());
+    if (!old_index) {
+        Screens::Access()->EnableMenuTimeout();
+    } else {
+        Screens::Access()->DisableMenuTimeout();
     }
-    menu_timeout_enabled = !old_index;
+    eeprom_set_var(EEVAR_MENU_TIMEOUT, variant8_ui8((uint8_t)(Screens::Access()->GetMenuTimeout() ? 1 : 0)));
 }
 
 /*****************************************************************************/
 //MI_SOUND_MODE
 size_t MI_SOUND_MODE::init_index() const {
-    size_t sound_mode = Sound_GetMode();
-    return sound_mode > 4 ? eSOUND_MODE_DEFAULT : sound_mode;
+    eSOUND_MODE sound_mode = Sound_GetMode();
+    return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
     : WI_SWITCH_t<4>(init_index(), label, 0, true, false, str_Once, str_Loud, str_Silent, str_Assist) {}
@@ -338,11 +404,12 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 MI_SOUND_TYPE::MI_SOUND_TYPE()
     : WI_SWITCH_t<8>(0, label, 0, true, false, str_ButtonEcho, str_StandardPrompt, str_StandardAlert, str_CriticalAlert, str_EncoderMove, str_BlindAlert, str_Start, str_SingleBeep) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
-    if (old_index == eSOUND_TYPE_StandardPrompt || old_index == eSOUND_TYPE_CriticalAlert) {
-        Sound_Play(eSOUND_TYPE_StandardPrompt);
+    eSOUND_TYPE st = static_cast<eSOUND_TYPE>(old_index);
+    if (st == eSOUND_TYPE::StandardPrompt || st == eSOUND_TYPE::CriticalAlert) {
+        Sound_Play(eSOUND_TYPE::StandardPrompt);
         MsgBoxInfo(_("Continual beeps test\n press button to stop"), Responses_Ok);
     } else {
-        Sound_Play(static_cast<eSOUND_TYPE>(old_index));
+        Sound_Play(st);
     }
 }
 

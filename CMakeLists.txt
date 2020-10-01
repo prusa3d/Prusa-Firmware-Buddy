@@ -247,7 +247,8 @@ target_link_libraries(FatFs_Config INTERFACE A3idesHeaders STM32::USBHost)
 add_library(Marlin_Config INTERFACE)
 # TODO: fix dependency on src/common and src/gui
 target_include_directories(
-  Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
+  Marlin_Config INTERFACE include/marlin src/common src/common/selftest src/gui
+                          src/marlin_stubs/include
   )
 target_link_libraries(Marlin_Config INTERFACE A3idesHeaders FreeRTOS::FreeRTOS)
 
@@ -283,7 +284,7 @@ if(CMAKE_CROSSCOMPILING)
 endif()
 
 # enable all warnings (well, not all, but some)
-add_compile_options(-Wall)
+add_compile_options(-Wall -Wsign-compare)
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -391,7 +392,14 @@ if(GENERATE_DFU)
 endif()
 
 target_include_directories(
-  firmware PRIVATE include src/common src/gui src/gui/dialogs src/guiapi/include src/lang
+  firmware
+  PRIVATE include
+          src/common
+          src/gui
+          src/gui/dialogs
+          src/gui/wizard
+          src/guiapi/include
+          src/lang
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
@@ -437,7 +445,7 @@ target_sources(
           src/usbd_conf.c
           src/stm32f4xx_hal_timebase_tim.c
           $<$<STREQUAL:${FILAMENT_SENSOR},YES>:src/common/filament_sensor.cpp>
-          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.c>
+          $<$<BOOL:${FILAMENT_SENSOR}>:src/common/thread_measurement.cpp>
           src/common/diag.c
           src/common/eeprom.cpp
           src/common/eeprom_loadsave.c
@@ -464,6 +472,10 @@ target_sources(
           src/common/appmain.cpp
           src/common/sim_heater.cpp
           src/common/marlin_server.cpp
+          src/common/selftest/selftest_MINI.cpp
+          src/common/selftest/selftest_fan.cpp
+          src/common/selftest/selftest_axis.cpp
+          src/common/selftest/selftest_heater.cpp
           src/common/sim_motion.cpp
           src/common/st25dv64k.c
           $<$<STREQUAL:${INIT_TRINAMIC_FROM_MARLIN_ONLY},NO>:src/common/trinamic.cpp>
@@ -478,7 +490,6 @@ target_sources(
           src/common/support_utils.cpp
           src/common/str_utils.cpp
           src/common/errors.cpp
-          src/common/lang.cpp
           src/common/client_response.cpp
           src/common/crc32.c
           src/common/ini_handler.c
@@ -487,7 +498,9 @@ target_sources(
           src/common/z_calibration_fsm.cpp
           $<$<STREQUAL:${PRINTER},MINI>:src/common/minda_broken_cable_detection.c>
           $<$<STREQUAL:${PRINTER},MINI>:src/common/MindaRedscreen.cpp>
+          src/marlin_stubs/M50.cpp
           src/marlin_stubs/M876.cpp
+          src/marlin_stubs/G26.cpp
           src/marlin_stubs/G162.cpp
           src/marlin_stubs/gcode.cpp
           src/marlin_stubs/pause/G27.cpp
@@ -520,15 +533,20 @@ if(GUI)
             src/gui/dialogs/DialogRadioButton.cpp
             src/gui/dialogs/DialogLoadUnload.cpp
             src/gui/dialogs/DialogG162.cpp
+            src/gui/dialogs/DialogSelftestAxis.cpp
+            src/gui/dialogs/DialogSelftestFans.cpp
+            src/gui/dialogs/DialogSelftestTemp.cpp
             src/gui/dialogs/window_dlg_load_unload.cpp
             src/gui/dialogs/window_dlg_wait.cpp
             src/gui/dialogs/window_dlg_popup.cpp
             src/gui/dialogs/window_dlg_preheat.cpp
+            src/gui/dialogs/liveadjust_z.cpp
             src/gui/ScreenFactory.cpp
             src/gui/ScreenHandler.cpp
             src/gui/dialogs/window_dlg_calib_z.cpp
             src/gui/screen_menu_temperature.cpp
             src/gui/resource.c
+            src/gui/window_print_progress.cpp
             src/gui/window_file_list.cpp
             src/gui/window_temp_graph.cpp
             src/gui/screen_menu_settings.cpp
@@ -549,29 +567,28 @@ if(GUI)
             src/gui/screen_menu_languages.cpp
             src/gui/screen_menu_sensor_info.cpp
             src/gui/screen_qr_error.cpp
+            src/gui/screen_menu_hw_setup.cpp
+            src/gui/screen_menu_steel_sheets.cpp
+            src/gui/screen_sheet_rename.cpp
             src/gui/test/screen_test.cpp
             src/gui/test/screen_test_disp_mem.cpp
             src/gui/test/screen_test_gui.cpp
             src/gui/test/screen_test_term.cpp
             src/gui/test/screen_test_msgbox.cpp
+            src/gui/test/screen_test_wizard_icons.cpp
             src/gui/test/screen_test_graph.cpp
-            src/gui/wizard/selftest_fans_axis.cpp
-            src/gui/wizard/selftest_temp.cpp
-            src/gui/wizard/selftest_cool.cpp
             src/gui/wizard/selftest.cpp
             src/gui/wizard/firstlay.cpp
-            src/gui/wizard/wizard_load_unload.cpp
-            src/gui/wizard/wizard_ui.cpp
-            src/gui/wizard/wizard.cpp
             src/gui/wizard/screen_wizard.cpp
             src/gui/wizard/xyzcalib.cpp
-            src/gui/wizard/wizard_progress_bar.cpp
             src/gui/screen_home.cpp
             src/gui/screen_filebrowser.cpp
             src/gui/screen_menu_preheat.cpp
             src/gui/status_footer.cpp
             src/gui/menu_vars.cpp
             src/gui/IScreenPrinting.cpp
+            src/gui/ScreenFirstLayer.cpp
+            src/gui/ScreenPrintingModel.cpp
             src/gui/screen_printing.cpp
             src/gui/screen_printing_serial.cpp
             src/gui/screen_menu_tune.cpp
@@ -587,8 +604,8 @@ if(GUI)
             src/guiapi/src/gui_timer.cpp
             src/guiapi/src/display_helper.cpp
             src/guiapi/src/window_menu.cpp
-            src/guiapi/src/screen_close_multiple.cpp
             src/guiapi/src/window_term.cpp
+            src/guiapi/src/window_arrows.cpp
             src/guiapi/src/window_list.cpp
             src/guiapi/src/window_numb.cpp
             src/guiapi/src/st7789v.c
@@ -631,7 +648,7 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/appmain.cpp src/common/putslave.c
+  SOURCE src/common/appmain.cpp src/common/putslave.c src/common/marlin_test.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
