@@ -33,6 +33,6 @@ bool DialogSelftestAxis::change(uint8_t phs, uint8_t progress_tot, uint8_t progr
         icon_z_axis.SetState(test_state);
         break;
     }
-    progress.SetProgress(progress_tot);
+    progress.SetProgressPercent(progress_tot);
     return true;
 };

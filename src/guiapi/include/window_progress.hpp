@@ -12,7 +12,8 @@ class window_numberless_progress_t : public AddSuperWindow<window_t> {
 public:
     window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress = COLOR_LIME, color_t cl_back = COLOR_GRAY);
 
-    void SetProgress(uint16_t px);
+    void SetProgressInPixels(uint16_t px);
+    void SetProgressPercent(float val);
     uint16_t GetProgressPixels() const;
 
     void SetColor(color_t clr);
